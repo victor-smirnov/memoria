@@ -87,7 +87,7 @@ public:
     }
 
 protected:
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, OpStatus);
+    MEMORIA_V1_DECLARE_NODE_FN(RemoveSpaceFn, removeSpace);
 
     VoidResult ctr_remove_node_recursively(NodeBaseG& node, Position& accum) noexcept;
     VoidResult ctr_remove_node(NodeBaseG& node) noexcept;
@@ -97,8 +97,8 @@ protected:
     Result<Position> ctr_remove_leaf_content(TreePathT& path, const Position& start, const Position& end) noexcept;
     Result<Position> ctr_remove_leaf_content(TreePathT& path, int32_t stream, int32_t start, int32_t end) noexcept;
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(RemoveNonLeafNodeEntryFn, removeSpaceAcc, OpStatus);
-    Result<OpStatus> ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t idx) noexcept;
+    MEMORIA_V1_DECLARE_NODE_FN(RemoveNonLeafNodeEntryFn, removeSpaceAcc);
+    VoidResult ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t idx) noexcept;
 
     BoolResult ctr_merge_leaf_with_left_sibling(TreePathT& path, MergeFn fn = [](const Position&, int32_t){}) noexcept;
     BoolResult ctr_merge_leaf_with_right_sibling(TreePathT& path) noexcept;
@@ -216,12 +216,7 @@ VoidResult M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_
     });
     MEMORIA_RETURN_IF_ERROR(res);
 
-
-    OpStatus status = self.branch_dispatcher().dispatch(path[level], RemoveSpaceFn(), start, end);
-    if (isFail(status)) {
-        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
-    }
-
+    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(path[level], RemoveSpaceFn(), start, end));
     MEMORIA_TRY_VOID(self.ctr_update_path(path, level));
 
     return ResultT::of();
@@ -229,7 +224,7 @@ VoidResult M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_
 
 
 M_PARAMS
-Result<OpStatus> M_TYPE::ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t start) noexcept
+VoidResult M_TYPE::ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t start) noexcept
 {
     auto& self = this->self();
 
@@ -237,13 +232,11 @@ Result<OpStatus> M_TYPE::ctr_remove_non_leaf_node_entry(TreePathT& path, size_t 
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
-    if (isFail(self.branch_dispatcher().dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1))) {
-        return OpStatus::FAIL;
-    }
+    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1));
 
     MEMORIA_TRY_VOID(self.ctr_update_path(path, level));
 
-    return OpStatus::OK;
+    return VoidResult::of();
 }
 
 
@@ -257,12 +250,7 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(TreePathT& pat
     NodeBaseG node = path.leaf();
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
-    OpStatus status = self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), start, end);
-
-    if (isFail(status)) {
-        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
-    }
-
+    MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), start, end));
     MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
 
     return ResultT::of(end - start);
@@ -282,12 +270,7 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(
     NodeBaseG node = path.leaf();
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
-    OpStatus status = self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), stream, start, end);
-
-    if (isFail(status)) {
-        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
-    }
-
+    MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), stream, start, end));
     MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
 
     return ResultT::of(end - start);

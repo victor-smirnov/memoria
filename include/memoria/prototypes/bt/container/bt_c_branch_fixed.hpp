@@ -69,8 +69,8 @@ public:
 
 
 public:
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(InsertFn, insert, OpStatus);
-    Result<OpStatus> ctr_insert_to_branch_node(
+    MEMORIA_V1_DECLARE_NODE_FN(InsertFn, insert);
+    VoidResult ctr_insert_to_branch_node(
             TreePathT& path,
             size_t level,
             int32_t idx,
@@ -106,7 +106,7 @@ public:
             SplitFn split_fn
     ) noexcept;
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(UpdateNodeFn, updateUp, OpStatus);
+    MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
     BoolResult ctr_update_branch_node(
             NodeBaseG& node,
             int32_t idx,
@@ -131,7 +131,7 @@ public:
     }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(MergeNodesFn, mergeWith, OpStatus);
+    MEMORIA_V1_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
     VoidResult ctr_do_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level) noexcept;
     BoolResult ctr_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level, bool only_if_same_parent = false) noexcept;
     BoolResult ctr_merge_current_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level) noexcept;
@@ -146,7 +146,7 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-Result<OpStatus> M_TYPE::ctr_insert_to_branch_node(
+VoidResult M_TYPE::ctr_insert_to_branch_node(
         TreePathT& path,
         size_t level,
         int32_t idx,
@@ -154,16 +154,14 @@ Result<OpStatus> M_TYPE::ctr_insert_to_branch_node(
         const BlockID& id
 ) noexcept
 {
-    using ResultT = Result<OpStatus>;
+    using ResultT = VoidResult;
 
     auto& self = this->self();
 
     NodeBaseG node = path[level];
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
-    if (isFail(self.branch_dispatcher().dispatch(node, InsertFn(), idx, keys, id))) {
-        return ResultT::of(OpStatus::FAIL);
-    }
+    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node, InsertFn(), idx, keys, id));
 
     if (!node->is_root())
     {
@@ -175,7 +173,7 @@ Result<OpStatus> M_TYPE::ctr_insert_to_branch_node(
         MEMORIA_TRY_VOID(self.ctr_update_branch_nodes(path, level + 1, parent_idx, max));
     }
 
-    return ResultT::of(OpStatus::OK);
+    return ResultT::of();
 }
 
 M_PARAMS
@@ -208,11 +206,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
 
     if (self.ctr_get_branch_node_capacity(path[level + 1], -1) > 0)
     {
-        MEMORIA_TRY(insertion_status, self.ctr_insert_to_branch_node(path, level + 1, parent_idx + 1, right_max, right_node->id()));
-        if (isFail(insertion_status))
-        {
-            return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
-        }
+        MEMORIA_TRY_VOID(self.ctr_insert_to_branch_node(path, level + 1, parent_idx + 1, right_max, right_node->id()));
     }
     else {
         int32_t parent_size = self.ctr_get_node_size(path[level + 1], 0);
@@ -237,8 +231,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
             parent_idx -= parent_split_idx;
         }
 
-        MEMORIA_TRY(
-                    right_path_insertion_status,
+        MEMORIA_TRY_VOID(
                     self.ctr_insert_to_branch_node(
                         path,
                         level + 1,
@@ -247,11 +240,6 @@ VoidResult M_TYPE::ctr_split_node_raw(
                         right_node->id()
                     )
         );
-
-        if(isFail(right_path_insertion_status))
-        {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't insert node into the right path");
-        }
     }
 
     path[level] = right_node;
@@ -414,19 +402,13 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(src));
 
-    OpStatus status0 = self.branch_dispatcher().dispatch(src, tgt, MergeNodesFn());
-    if (isFail(status0)) {
-        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
-    }
+    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(src, tgt, MergeNodesFn()));
 
     MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, level));
 
     auto max = self.ctr_get_node_max_keys(tgt);
 
-    MEMORIA_TRY(status1, self.ctr_remove_non_leaf_node_entry(tgt_path, level + 1, parent_idx));
-    if (isFail(status1)) {
-        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
-    }
+    MEMORIA_TRY_VOID(self.ctr_remove_non_leaf_node_entry(tgt_path, level + 1, parent_idx));
 
     MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, level, max));
 

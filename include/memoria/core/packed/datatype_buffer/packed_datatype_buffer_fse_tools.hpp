@@ -47,8 +47,8 @@ public:
         return pkd_buf_->template get<T>(DataBlock);
     }
 
-    static OpStatus allocateEmpty(PkdStruct* alloc) {
-        return OpStatus::OK;
+    static VoidResult allocateEmpty(PkdStruct* alloc) noexcept {
+        return VoidResult::of();
     }
 
     static constexpr psize_t empty_size_aligned() {
@@ -95,15 +95,13 @@ public:
         return data_size;
     }
 
-    OpStatus insert_space(psize_t start, psize_t size, psize_t data_len)
+    VoidResult insert_space(psize_t start, psize_t size, psize_t data_len) noexcept
     {
         auto& meta = pkd_buf_->metadata();
 
         psize_t column_data_length = size + meta.size();
 
-        if(isFail(pkd_buf_->resizeBlock(DataBlock, column_data_length * sizeof(T)))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(pkd_buf_->resizeBlock(DataBlock, column_data_length * sizeof(T)));
 
         auto data = this->data();
 
@@ -112,10 +110,10 @@ public:
 
         MemMoveBuffer(data + data_start, data + data_end, meta.size() - start);
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus remove_space(psize_t start, psize_t size)
+    VoidResult remove_space(psize_t start, psize_t size) noexcept
     {
         auto& meta = pkd_buf_->metadata();
 
@@ -125,21 +123,20 @@ public:
 
         psize_t column_data_length = (meta.size() - size) * sizeof(T);
 
-        if(isFail(pkd_buf_->resizeBlock(DataBlock, column_data_length))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(pkd_buf_->resizeBlock(DataBlock, column_data_length));
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus resize_row(psize_t idx, const T* value)
+    VoidResult resize_row(psize_t idx, const T* value) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    void replace_row(psize_t idx, const T* value)
+    VoidResult replace_row(psize_t idx, const T* value) noexcept
     {
         *(this->data() + idx) = *value;
+        return VoidResult::of();
     }
 
     void copy_to(PkdStruct* other, psize_t copy_from, psize_t count, psize_t copy_to, psize_t data_length) const
@@ -193,15 +190,17 @@ public:
     }
 
     template <typename SerializationData, typename Metadata>
-    void serialize(const Metadata& meta, SerializationData& buf) const
+    VoidResult serialize(const Metadata& meta, SerializationData& buf) const noexcept
     {
         FieldFactory<T>::serialize(buf, data(), meta.size());
+        return VoidResult::of();
     }
 
     template <typename DeserializationData, typename Metadata>
-    void deserialize(Metadata& meta, DeserializationData& buf)
+    VoidResult deserialize(Metadata& meta, DeserializationData& buf) noexcept
     {
         FieldFactory<T>::deserialize(buf, data(), meta.size());
+        return VoidResult::of();
     }
 };
 

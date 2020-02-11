@@ -66,10 +66,10 @@ class PackedAllocatorTest: public TestState {
             return size_;
         }
 
-        OpStatus init(int32_t block_size)
+        VoidResult init(int32_t block_size) noexcept
         {
             size_ = block_size - sizeof(SimpleStruct);
-            return OpStatus::OK;
+            return VoidResult::of();
         }
 
         void fill(uint8_t data)
@@ -134,7 +134,7 @@ class PackedAllocatorTest: public TestState {
             return PackedAllocator::block_size(client_area, 3);
         }
 
-        OpStatus init(int32_t block_size)
+        VoidResult init(int32_t block_size) noexcept
         {
             return PackedAllocator::init(block_size, 3);
         }
@@ -274,7 +274,7 @@ public:
         assert_equals(alloc->element_offset(2) - size0_delta, offset2);
 
         assert_throws<PackedOOMException>([alloc](){
-            OOM_THROW_IF_FAILED(toOpStatus(alloc->enlarge(10000)), MMA_SRC);
+            OOM_THROW_IF_FAILED(alloc->enlarge(10000), MMA_SRC);
         });
 
         assert_throws<PackedOOMException>([sl_struct](){

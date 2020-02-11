@@ -66,7 +66,7 @@ public:
         if (stream == 0)
         {
             int32_t key_idx = self.data_stream_idx(stream);
-            return std::get<0>(self.template iter_read_leaf_entry<0, IntList<1>>(key_idx, 0));
+            return std::get<0>(self.template iter_read_leaf_entry<0, IntList<1>>(key_idx, 0).get_or_throw());
         }
         else {
             MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: {}", stream));
@@ -82,7 +82,7 @@ public:
         if (stream == 1)
         {
             int32_t value_idx = self.data_stream_idx(stream);
-            return std::get<0>(self.template iter_read_leaf_entry<1, IntList<1>>(value_idx, 0));
+            return std::get<0>(self.template iter_read_leaf_entry<1, IntList<1>>(value_idx, 0).get_or_throw());
         }
         else {
             MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: ", stream));

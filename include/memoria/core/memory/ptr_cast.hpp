@@ -24,7 +24,7 @@
 namespace memoria {
 
 template <typename TypeTo, typename TypeFrom>
-TypeTo* ptr_cast(TypeFrom* ptr)
+TypeTo* ptr_cast(TypeFrom* ptr) noexcept
 {
     static_assert(
         (std::is_const<TypeFrom*>::value && std::is_const<TypeTo*>::value) ||
@@ -42,7 +42,7 @@ TypeTo* ptr_cast(TypeFrom* ptr)
 }
 
 template <typename TypeTo, typename TypeFrom>
-TypeTo value_cast(const TypeFrom& ptr)
+TypeTo value_cast(const TypeFrom& ptr) noexcept
 {
     static_assert(sizeof(TypeFrom) == sizeof(TypeTo), "");
 

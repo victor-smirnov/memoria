@@ -51,20 +51,16 @@ public:
 
     struct InsertBufferIntoLeafFn
     {
-        OpStatus status_{OpStatus::OK};
-
         template <typename NTypes, typename LeafPosition, typename Buffer>
-        void treeNode(bt::LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+        VoidResult treeNode(bt::LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
         {
-            node->processAll(*this, pos, start, size, buffer);
+            return node->processAll(*this, pos, start, size, buffer);
         }
 
         template <typename StreamType, typename LeafPosition, typename Buffer>
-        void stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+        VoidResult stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
         {
-            if (isOk(status_)) {
-                status_ <<= obj->insert(buffer, pos, start, size);
-            }
+            return obj->insert(buffer, pos, start, size);
         }
     };
 
@@ -73,16 +69,20 @@ public:
     MMA_NODISCARD bool doInsertBufferIntoLeaf(NodeBaseG& leaf, BlockUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
     {
         InsertBufferIntoLeafFn fn;
-        self().leaf_dispatcher().dispatch(leaf, fn, pos, start, size - start, buffer);
+        VoidResult status = self().leaf_dispatcher().dispatch(leaf, fn, pos, start, size - start, buffer);
 
-        if (isOk(fn.status_)) {
+        if (status.is_ok()) {
             mgr.checkpoint(leaf);
             return true;
         }
-        else {
+        else if (status.memoria_error()->error_category() == ErrorCategory::PACKED) {
             mgr.restoreNodeState();
-            return false;
         }
+        else {
+            status.throw_if_error();
+        }
+
+        return false;
     }
 
 

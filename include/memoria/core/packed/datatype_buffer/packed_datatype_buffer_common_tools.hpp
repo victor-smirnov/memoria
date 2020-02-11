@@ -18,6 +18,7 @@
 
 #include <memoria/core/types.hpp>
 #include <memoria/core/types/list/append.hpp>
+#include <memoria/core/tools/result.hpp>
 
 #include <memoria/core/iovector/io_substream_base.hpp>
 

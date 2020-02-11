@@ -103,12 +103,12 @@ public:
 
     auto iter_key() const
     {
-        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), 0));
+        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), 0).get_or_throw());
     }
 
     auto iter_value() const
     {
-		return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<2>>(self().iter_leaf(), self().iter_local_pos()));
+        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<2>>(self().iter_leaf(), self().iter_local_pos()).get_or_throw());
     }
 
     virtual Datum<Key> key() const noexcept

@@ -107,7 +107,7 @@ public:
         return MyType::block_size(size() + other->size());
     }
 
-    OpStatus init_bs(int32_t block_size) {
+    VoidResult init_bs(int32_t block_size) noexcept {
         return init();
     }
 
@@ -115,32 +115,21 @@ public:
         return -1;
     }
 
-    OpStatus init(int32_t capacity = 0)
+    VoidResult init(int32_t capacity = 0) noexcept
     {
-        if(isFail(Base::init(block_size(capacity), STRUCTS_NUM__))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::init(block_size(capacity), STRUCTS_NUM__));
 
         int32_t bitmap_block_size = Bitmap::packed_block_size(capacity);
 
-        Bitmap* bitmap = allocateSpace<Bitmap>(BITMAP, bitmap_block_size);
-        if(isFail(bitmap)) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(bitmap, allocateSpace<Bitmap>(BITMAP, bitmap_block_size));
+        MEMORIA_TRY_VOID(bitmap->init(bitmap_block_size));
 
-        if(isFail(bitmap->init(bitmap_block_size))) {
-            return OpStatus::FAIL;
-        }
-
-        Tree* tree = allocateSpace<Tree>(TREE, Tree::empty_size());
-        if(isFail(tree)) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY(tree, allocateSpace<Tree>(TREE, Tree::empty_size()));
 
         return tree->init();
     }
 
-    OpStatus init(const SizesT& sizes)
+    VoidResult init(const SizesT& sizes) noexcept
     {
         return MyType::init(sizes[0]);
     }
@@ -210,7 +199,7 @@ public:
 
 
     template <typename T>
-    OpStatus setValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
+    VoidResult setValues(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
     {
         Bitmap* bitmap  = this->bitmap();
         Tree* tree      = this->tree();
@@ -222,20 +211,12 @@ public:
 
             if (bitmap->symbol(idx))
             {
-                if(isFail(tree->setValues(tree_idx, tree_values))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(tree->setValues(tree_idx, tree_values));
             }
             else {
-                if(isFail(tree->insert(tree_idx, tree_values))) {
-                    return OpStatus::FAIL;
-                }
-
+                MEMORIA_TRY_VOID(tree->insert(tree_idx, tree_values));
                 bitmap->symbol(idx) = 1;
-
-                if (isFail(bitmap->reindex())) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(bitmap->reindex());
             }
         }
         else {
@@ -243,21 +224,16 @@ public:
 
             if (bitmap->symbol(idx))
             {
-                if (isFail(tree->remove(tree_idx, tree_idx + 1))) {
-                    return OpStatus::FAIL;
-                }
-
+                MEMORIA_TRY_VOID(tree->remove(tree_idx, tree_idx + 1));
                 bitmap->symbol(idx) = 0;
-                if (isFail(bitmap->reindex())) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(bitmap->reindex());
             }
             else {
                 // Do nothing
             }
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -334,11 +310,9 @@ public:
 
 
 
-    OpStatus reindex()
+    VoidResult reindex()
     {
-        if(isFail(bitmap()->reindex())) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(bitmap()->reindex());
         return tree()->reindex();
     }
 
@@ -349,61 +323,51 @@ public:
     }
 
 
-    OpStatus splitTo(MyType* other, int32_t idx)
+    VoidResult splitTo(MyType* other, int32_t idx) noexcept
     {
         Bitmap* bitmap = this->bitmap();
 
         int32_t tree_idx = this->tree_idx(bitmap, idx);
 
-        if(isFail(bitmap->splitTo(other->bitmap(), idx))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(bitmap->splitTo(other->bitmap(), idx));
 
-        if(isFail(tree()->splitTo(other->tree(), tree_idx))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(tree()->splitTo(other->tree(), tree_idx));
 
         return reindex();
     }
 
-    OpStatus mergeWith(MyType* other)
+    VoidResult mergeWith(MyType* other) noexcept
     {
-        if(isFail(bitmap()->mergeWith(other->bitmap()))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(bitmap()->mergeWith(other->bitmap()));
 
         return tree()->mergeWith(other->tree());
     }
 
-    OpStatus removeSpace(int32_t start, int32_t end)
+    VoidResult removeSpace(int32_t start, int32_t end) noexcept
     {
         return remove(start, end);
     }
 
-    OpStatus remove(int32_t start, int32_t end)
+    VoidResult remove(int32_t start, int32_t end) noexcept
     {
         Bitmap* bitmap = this->bitmap();
 
         int32_t tree_start = tree_idx(bitmap, start);
         int32_t tree_end = tree_idx(bitmap, end);
 
-        if(isFail(bitmap->remove(start, end))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(bitmap->remove(start, end));
 
         return tree()->remove(tree_start, tree_end);
     }
 
     template <typename T>
-    OpStatus insert(int32_t idx, const core::StaticVector<T, Blocks>& values)
+    VoidResult insert(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
     {
         Bitmap* bitmap  = this->bitmap();
 
         if (values[0].is_set())
         {
-            if(isFail(bitmap->insert(idx, 1))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(bitmap->insert(idx, 1));
 
             TreeValues tree_values  = this->tree_values(values);
             int32_t tree_idx        = this->tree_idx(bitmap, idx);
@@ -417,7 +381,7 @@ public:
     }
 
 
-//    OpStatus insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true)
+//    VoidResult insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true)
 //    {
 //        auto bitmap = this->bitmap();
 //        int32_t bitidx = 0;
@@ -457,42 +421,44 @@ public:
 //                }
 //            }
 //        }))) {
-//            return OpStatus::FAIL;
+//            return VoidResult::FAIL;
 //        };
 
-//        return OpStatus::OK;
+//        return VoidResult::OK;
 //    }
 
 
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->startStruct();
         handler->startGroup("VMO_TREE");
         
-        bitmap()->generateDataEvents(handler);
-        tree()->generateDataEvents(handler);
+        MEMORIA_TRY_VOID(bitmap()->generateDataEvents(handler));
+        MEMORIA_TRY_VOID(tree()->generateDataEvents(handler));
 
         handler->endGroup();
         handler->endStruct();
+
+        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        Base::serialize(buf);
+        MEMORIA_TRY_VOID(Base::serialize(buf));
 
-        bitmap()->serialize(buf);
-        tree()->serialize(buf);
+        MEMORIA_TRY_VOID(bitmap()->serialize(buf));
+        return tree()->serialize(buf);
     }
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        Base::deserialize(buf);
+        MEMORIA_TRY_VOID(Base::deserialize(buf));
 
-        bitmap()->deserialize(buf);
-        tree()->deserialize(buf);
+        MEMORIA_TRY_VOID(bitmap()->deserialize(buf));
+        return tree()->deserialize(buf);
     }
 
     void dump() const {

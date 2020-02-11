@@ -343,7 +343,7 @@ public:
 
         auto result = node.template processStream<BranchPath>(
                 FindBranchFn(self), node.node()->is_root(), index, start
-        );
+        ).get_or_throw();
 
         self.postProcessBranchNode(node, direction, start, result);
 
@@ -356,7 +356,7 @@ public:
         this->direction_ = direction;
 
         auto& self = this->self();
-        auto result = node.template processStream<LeafPath>(FindLeafFn(self), start);
+        auto result = node.template processStream<LeafPath>(FindLeafFn(self), start).get_or_throw();
 
         self.postProcessLeafNode(node, direction, start, result);
 
@@ -378,7 +378,7 @@ public:
 
         return node.template processStream<BranchPath>(
                     ProcessBranchCmdFn(self), cmd, index, std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -397,7 +397,7 @@ public:
         Node::template StreamDispatcher<
             ListHead<LeafPath>::Value
         >
-        ::dispatchAll(node.allocator(), w, self(), accum, std::forward<Args>(args)...);
+        ::dispatchAll(node.allocator(), w, self(), accum, std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -468,13 +468,13 @@ public:
     template <typename Node, typename... Args>
     void processBranchSizePrefix(Node& node, Args&&... args)
     {
-        node.processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
+        node.processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <typename Node, typename... Args>
     void processLeafSizePrefix(Node& node, Args&&... args)
     {
-        node.processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
+        node.processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <int32_t StreamIdx, typename StreamType>

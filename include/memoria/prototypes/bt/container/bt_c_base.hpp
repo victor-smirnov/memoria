@@ -223,9 +223,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 map_so.setup(get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX));
             }
 
-            OOM_THROW_IF_FAILED(map_so.set(key, value), MMA_SRC);
-
-            return VoidResult::of();
+            return map_so.set(key, value);
         });
     }
 
@@ -249,7 +247,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
             PackedMapSO<CtrPropertiesMap> map_so(map);
 
-            OOM_THROW_IF_FAILED(map_so.remove(key), MMA_SRC);
+            MEMORIA_TRY_VOID(map_so.remove(key));
 
             MEMORIA_TRY_VOID(self.ctr_downsize_node(root));
             return VoidResult::of();
@@ -293,8 +291,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 map_so.setup(get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX));
             }
 
-            OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA_SRC);
-            return VoidResult::of();
+            return map_so.set_all(entries_view);
         });
     }
 
@@ -329,8 +326,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 map_so.setup(get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX));
             }
 
-            OOM_THROW_IF_FAILED(map_so.set(key, value), MMA_SRC);
-            return VoidResult::of();
+            return map_so.set(key, value);
         });
     }
 
@@ -344,7 +340,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
             PackedMapSO<CtrReferencesMap> map_so(map);
 
-            OOM_THROW_IF_FAILED(map_so.remove(key), MMA_SRC);
+            MEMORIA_TRY_VOID(map_so.remove(key));
 
             return self.ctr_downsize_node(root);
         });
@@ -395,8 +391,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 map_so.setup(get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX));
             }
 
-            OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA_SRC);
-            return VoidResult::of();
+            return map_so.set_all(entries_view);
         });
     }
 
@@ -419,17 +414,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
 
         node->set_root(true);
-        node->setMetadata(meta);
-
-        return VoidResult::of();
+        return node->setMetadata(meta);
     }
 
     VoidResult ctr_copy_root_metadata(NodeBaseG& src, NodeBaseG& tgt) noexcept
     {
         MEMORIA_TRY_VOID(self().ctr_update_block_guard(tgt));
-        tgt->copy_metadata_from(src);
-
-        return VoidResult::of();
+        return tgt->copy_metadata_from(src);
     }
 
     bool ctr_can_convert_to_root(const NodeBaseG& node, psize_t metadata_size) const noexcept
@@ -619,7 +610,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         node->level() = level;
 
-        ctr_prepare_node(node);
+        MEMORIA_TRY_VOID(ctr_prepare_node(node));
 
         if (leaf) {
             MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(node, Position()));
@@ -663,13 +654,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         node->level() = level;
 
-        ctr_prepare_node(node);
+        MEMORIA_TRY_VOID(ctr_prepare_node(node));
 
         if (root_block) {
-            node->copy_metadata_from(root_block);
+            MEMORIA_TRY_VOID(node->copy_metadata_from(root_block));
         }
         else {
-            self.node_dispatcher().dispatch(node, InitRootMetadataFn());
+            MEMORIA_TRY_VOID(self.node_dispatcher().dispatch(node, InitRootMetadataFn()));
 
             Metadata& meta = *get<Metadata>(node->allocator(), METADATA_IDX);
             meta = self.ctr_create_new_root_metadata();
@@ -709,16 +700,16 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
     template <typename Node>
-    void ctr_prepare_node(Node&& node) const noexcept
+    VoidResult ctr_prepare_node(Node&& node) const noexcept
     {
-        node.prepare();
+        return node.prepare();
     }
 
     MEMORIA_V1_CONST_FN_WRAPPER(PrepareNodeFn, ctr_prepare_node);
 
-    void ctr_prepare_node(NodeBaseG& node) const noexcept
+    VoidResult ctr_prepare_node(NodeBaseG& node) const noexcept
     {
-        self().node_dispatcher().dispatch(node, PrepareNodeFn(self()));
+        return self().node_dispatcher().dispatch(node, PrepareNodeFn(self()));
     }
 
 

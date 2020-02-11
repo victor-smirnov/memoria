@@ -46,29 +46,28 @@ namespace _ {
     struct StreamSelector<StreamSelectorType::DATA, DataStreams>
     {
         template <int32_t StreamIdx, typename StreamObj, typename Position>
-        static void io_stream(
+        static VoidResult io_stream(
                 StreamObj&& stream,
                 PackedAllocator* alloc,
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
                 const memoria::io::IOVector& io_vector,
-                OpStatus& status,
                 int32_t& current_substream
-        )
+        ) noexcept
         {
             static_assert(StreamIdx < DataStreams, "");
-            if (isOk(status))
-            {
-                status <<= stream.insert_io_substream(
+
+            MEMORIA_TRY_VOID(stream.insert_io_substream(
                     at[StreamIdx],
                     io_vector.substream(current_substream),
                     starts[StreamIdx],
                     sizes[StreamIdx]
-                );
-            }
+            ));
 
             current_substream++;
+
+            return VoidResult::of();
         }
     };
 
@@ -76,29 +75,27 @@ namespace _ {
     struct StreamSelector<StreamSelectorType::STRUCTURE, DataStreams>
     {
         template <int32_t StreamIdx, typename StreamObj, typename Position>
-        static void io_stream(
+        static VoidResult io_stream(
                 StreamObj&& stream,
                 PackedAllocator* alloc,
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
                 const memoria::io::IOVector& io_vector,
-                OpStatus& status,
                 int32_t& current_substream
-        )
+        ) noexcept
         {
             static_assert(StreamIdx == DataStreams, "");
-            if (isOk(status))
-            {
-                status <<= stream.insert_io_substream(
+            MEMORIA_TRY_VOID(stream.insert_io_substream(
                     at[StreamIdx],
                     io_vector.symbol_sequence(),
                     starts[StreamIdx],
                     sizes[StreamIdx]
-                );
-            }
+            ));
 
             current_substream++;
+
+            return VoidResult::of();
         }
     };
 
@@ -408,7 +405,7 @@ public:
 
             auto buffer_sizes = this->buffer_size();
 
-            auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);
+            MEMORIA_TRY(inserted, insertBuffer(mgr, leaf, pos, buffer_sizes));
 
             if (inserted.sum() > 0)
             {
@@ -428,14 +425,17 @@ public:
     }
 
 
-    virtual DataPositions insertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, DataPositions at, const DataPositions& size)
+    virtual Result<DataPositions> insertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, DataPositions at, const DataPositions& size) noexcept
     {
-        if (tryInsertBuffer(mgr, leaf, at, size))
+        using ResultT = Result<DataPositions>;
+
+        MEMORIA_TRY(status0, tryInsertBuffer(mgr, leaf, at, size));
+        if (status0)
         {
             start_ += size;
             totals_ += size;
             total_symbols_ += size.sum();
-            return size;
+            return ResultT::of(size);
         }
         else {
             auto imax = size.sum();
@@ -453,7 +453,9 @@ public:
                     int32_t try_block_size = mid - start;
 
                     auto sizes = rank(try_block_size);
-                    if (tryInsertBuffer(mgr, leaf, at, sizes))
+
+                    MEMORIA_TRY(status2, tryInsertBuffer(mgr, leaf, at, sizes));
+                    if (status2)
                     {
                         imin = mid + 1;
 
@@ -470,7 +472,9 @@ public:
                 }
                 else {
                     auto sizes = rank(1);
-                    if (tryInsertBuffer(mgr, leaf, at, sizes))
+
+                    MEMORIA_TRY(status1, tryInsertBuffer(mgr, leaf, at, sizes));
+                    if (status1)
                     {
                         start += 1;
                         at += sizes;
@@ -483,7 +487,7 @@ public:
                 }
             }
 
-            return at - tmp;
+            return ResultT::of(at - tmp);
         }
     }
 
@@ -496,18 +500,18 @@ protected:
         template <StreamType T> struct Tag {};
 
         int32_t current_substream_{};
-        OpStatus status_{OpStatus::OK};
+
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj>
-        void stream(
+        VoidResult stream(
                 StreamObj&& stream,
                 PackedAllocator* alloc,
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                const memoria::io::IOVector& io_vector)
+                const memoria::io::IOVector& io_vector) noexcept
         {
-            _::StreamSelector<
+            return _::StreamSelector<
                     StreamIdx < DataStreams ? _::StreamSelectorType::DATA : _::StreamSelectorType::STRUCTURE,
                     DataStreams
             >::template io_stream<StreamIdx>(
@@ -517,7 +521,6 @@ protected:
                     starts,
                     sizes,
                     io_vector,
-                    status_,
                     current_substream_
             );
         }
@@ -526,28 +529,23 @@ protected:
                 int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx,
                 typename ExtData, typename PakdStruct
         >
-        void stream(
+        VoidResult stream(
                 PackedSizedStructSO<ExtData, PakdStruct>& stream,
                 PackedAllocator* alloc,
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                memoria::io::IOVector& io_vector)
+                memoria::io::IOVector& io_vector) noexcept
         {
             static_assert(StreamIdx < Streams, "");
-            if (isOk(status_))
-            {
-                status_ <<= stream.insertSpace(at[StreamIdx], sizes[StreamIdx]);
-            }
+            return stream.insertSpace(at[StreamIdx], sizes[StreamIdx]);
         }
 
         template <typename LCtrT, typename NodeT, typename... Args>
-        auto treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args)
+        VoidResult treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args) noexcept
         {
-            leaf.layout(255);
-            leaf.processSubstreamGroups(*this, leaf.allocator(), std::forward<Args>(args)...);
-
-            return;
+            MEMORIA_TRY_VOID(leaf.layout(255));
+            return leaf.processSubstreamGroups(*this, leaf.allocator(), std::forward<Args>(args)...);
         }
     };
 
@@ -566,11 +564,11 @@ protected:
     }
 
 
-    MMA_NODISCARD bool tryInsertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, const DataPositions& at, const DataPositions& size)
+    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, const DataPositions& at, const DataPositions& size) noexcept
     {
         InsertBuffersFn insert_fn;
 
-        ctr().leaf_dispatcher().dispatch(
+        VoidResult status = ctr().leaf_dispatcher().dispatch(
                     leaf,
                     insert_fn,
                     to_position(at),
@@ -579,17 +577,20 @@ protected:
                     *io_vector_
         );
 
-        if (isFail(insert_fn.status_)) {
-            mgr.restoreNodeState();
-            return false;
+        if (status.is_error()) {
+            if (status.is_packed_error())
+            {
+                mgr.restoreNodeState();
+                return BoolResult::of(false);
+            }
         }
 
         mgr.checkpoint(leaf);
 
-        return true;
+        return BoolResult::of(true);
     }
 
-    static float getFreeSpacePart(const NodeBaseG& node)
+    static float getFreeSpacePart(const NodeBaseG& node) noexcept
     {
         float client_area = node->allocator()->client_area();
         float free_space = node->allocator()->free_space();
@@ -597,7 +598,7 @@ protected:
         return free_space / client_area;
     }
 
-    static bool hasFreeSpace(const NodeBaseG& node)
+    static bool hasFreeSpace(const NodeBaseG& node) noexcept
     {
         return getFreeSpacePart(node) > FREE_SPACE_THRESHOLD;
     }

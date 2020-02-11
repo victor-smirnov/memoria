@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/core/packed/tools/packed_allocator_types.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/tools/accessors.hpp>
 
 #include <memoria/core/packed/array/packed_fse_array_so.hpp>
@@ -104,29 +104,20 @@ public:
         );
     }
 
-    OpStatus init()
+    VoidResult init() noexcept
     {
-        if(isFail(init(empty_size(), Blocks + 1))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(init(empty_size(), Blocks + 1));
 
-
-        Metadata* meta = allocate<Metadata>(METADATA);
-
-        if(isFail(meta)) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY(meta, allocate<Metadata>(METADATA));
 
         meta->size() = 0;
 
         for (psize_t block = 0; block < Blocks; block++)
         {
-            if(isFail(allocateArrayBySize<Value>(block + 1, 0))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(allocateArrayBySize<Value>(block + 1, 0));
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     static psize_t packed_block_size(psize_t capacity)

@@ -108,33 +108,6 @@ public:
     }
 };
 
-
-
-static inline void OOM_THROW_IF_FAILED(OpStatus status, const char* source) {
-    if (isFail(status)) {
-        throw PackedOOMException(source);
-    }
-}
-
-static inline OpStatus toOpStatus(int32_t res)
-{
-    return res >= 0 ? OpStatus::OK : OpStatus::FAIL;
-}
-
-template <typename T>
-static inline void OOM_THROW_IF_FAILED(const OpStatusT<T>& status, const char* source) {
-    if (isFail(status)) {
-        throw PackedOOMException(source);
-    }
-}
-
-template <typename T>
-static inline void OOM_THROW_IF_FAILED(const T* ptr, const char* source) {
-    if (!ptr) {
-        throw PackedOOMException(source);
-    }
-}
-
 template <typename MyType, typename Base> class PackedAllocatorBase;
 
 class PackedAllocator;
@@ -270,15 +243,18 @@ public:
     }
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
         FieldFactory<int32_t>::serialize(buf, allocator_offset_);
+
+        return VoidResult::of();
     }
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
         FieldFactory<int32_t>::deserialize(buf, allocator_offset_);
+        return VoidResult::of();
     }
 };
 

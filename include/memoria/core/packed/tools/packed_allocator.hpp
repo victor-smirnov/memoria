@@ -75,63 +75,63 @@ public:
     const PackedAllocatable& allocatable() const {return allocatable_;}
 
 
-    bool is_allocatable(int32_t idx) const
+    bool is_allocatable(int32_t idx) const noexcept
     {
         const Bitmap* bmp = bitmap();
         return GetBit(bmp, idx);
     }
 
-    Bitmap* bitmap() {
+    Bitmap* bitmap() noexcept {
         return ptr_cast<Bitmap>(buffer_ + layout_size_);
     }
 
-    const Bitmap* bitmap() const {
+    const Bitmap* bitmap() const noexcept {
         return ptr_cast<const Bitmap>(buffer_ + layout_size_);
     }
 
-    int32_t allocated() const {
+    int32_t allocated() const noexcept {
         return element_offset(elements());
     }
 
-    int32_t client_area() const {
+    int32_t client_area() const noexcept {
         return block_size_ - my_size() - layout_size_ - bitmap_size_;
     }
 
-    int32_t free_space() const {
+    int32_t free_space() const noexcept {
         int32_t client_area = this->client_area();
         int32_t allocated = this->allocated();
         return client_area - allocated;
     }
 
-    int32_t elements() const {
+    int32_t elements() const noexcept {
         return layout_size_/4 - 1;
     }
 
-    uint8_t* base() {
+    uint8_t* base() noexcept {
         return buffer_ + layout_size_ + bitmap_size_;
     }
 
-    const uint8_t* base() const {
+    const uint8_t* base() const noexcept {
         return buffer_ + layout_size_ + bitmap_size_;
     }
 
-    int32_t layout_size() const {
+    int32_t layout_size() const noexcept {
         return layout_size_;
     }
 
-    int32_t bitmap_size() const {
+    int32_t bitmap_size() const noexcept {
         return bitmap_size_;
     }
 
-    int32_t block_size() const {
+    int32_t block_size() const noexcept {
         return block_size_;
     }
 
-    void set_block_size(int32_t block_size) {
+    void set_block_size(int32_t block_size) noexcept {
         this->block_size_ = block_size;
     }
 
-    OpStatus init(int32_t block_size, int32_t blocks)
+    VoidResult init(int32_t block_size, int32_t blocks) noexcept
     {
         block_size_ = PackedAllocatable::roundDownBytesToAlignmentBlocks(block_size);
 
@@ -146,15 +146,15 @@ public:
         Bitmap* bitmap = this->bitmap();
         memset(bitmap, 0, bitmap_size_);
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    static constexpr int32_t empty_size(int32_t blocks)
+    static constexpr int32_t empty_size(int32_t blocks) noexcept
     {
         return block_size(0, blocks);
     }
 
-    static constexpr int32_t block_size(int32_t client_area, int32_t blocks)
+    static constexpr int32_t block_size(int32_t client_area, int32_t blocks) noexcept
     {
         return PackedAllocatable::roundUpBytesToAlignmentBlocks(
                 my_size() +
@@ -164,7 +164,7 @@ public:
         );
     }
 
-    static constexpr int32_t client_area(int32_t block_size, int32_t blocks)
+    static constexpr int32_t client_area(int32_t block_size, int32_t blocks) noexcept
     {
         return PackedAllocatable::roundDownBytesToAlignmentBlocks(
                 block_size -
@@ -173,7 +173,7 @@ public:
         );
     }
 
-    int32_t computeElementOffset(const void* element) const
+    int32_t computeElementOffset(const void* element) const noexcept
     {
         const uint8_t* base_ptr = base();
         const uint8_t* elt_ptr = ptr_cast<const uint8_t>(element);
@@ -183,31 +183,27 @@ public:
         return diff;
     }
 
-    MMA_NODISCARD int32_t resizeBlock(const void* element, int32_t new_size)
+    Int32Result resizeBlock(const void* element, int32_t new_size) noexcept
     {
-        int32_t idx = findElement(element);
-
+        MEMORIA_TRY(idx, findElement(element));
         return resizeBlock(idx, new_size);
     }
 
-    MMA_NODISCARD int32_t resizeBlock(int32_t idx, int32_t new_size)
+    Int32Result resizeBlock(int32_t idx, int32_t new_size) noexcept
     {
-        MEMORIA_V1_ASSERT(new_size, >=, 0);
+        MEMORIA_V1_ASSERT_RTN(new_size, >=, 0);
 
         int32_t allocation_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(new_size);
 
-        int32_t size        = element_size(idx);
-        int32_t delta       = allocation_size - size;
+        int32_t size  = element_size(idx);
+        int32_t delta = allocation_size - size;
 
         if (delta > 0)
         {
         	int32_t free_space = this->free_space();
             if (delta > free_space)
             {
-                if (isFail(enlarge(delta)))
-                {
-                    return -1;
-                }
+                MEMORIA_TRY_VOID(enlarge(delta));
             }
 
             moveElements(idx + 1, delta);
@@ -218,87 +214,80 @@ public:
 
             if (allocatable_.allocator_offset() > 0)
             {
-                if (isFail(pack())) {
-                    return -1;
-                }
+                MEMORIA_TRY_VOID(pack());
             }
         }
 
-
-        return allocation_size;
+        return Int32Result::of(allocation_size);
     }
 
 
-    int32_t* layout() {
+    int32_t* layout() noexcept {
         return ptr_cast<int32_t>(buffer_);
     }
 
-    const int32_t* layout() const {
+    const int32_t* layout() const noexcept {
         return ptr_cast<const int32_t>(buffer_);
     }
 
-    const int32_t& element_offset(int32_t idx) const
+    const int32_t& element_offset(int32_t idx) const noexcept
     {
         return *(ptr_cast<const int32_t>(buffer_) + idx);
     }
 
     //TODO: rename to segment_size ?
-    int32_t element_size(int32_t idx) const
+    int32_t element_size(int32_t idx) const noexcept
     {
         int32_t size2 = element_offset(idx + 1);
         int32_t size1 = element_offset(idx);
         return size2 - size1;
     }
 
-    int32_t element_size(const void* element_ptr) const
+    int32_t element_size(const void* element_ptr) const noexcept
     {
-        int32_t idx = findElement(element_ptr);
+        int32_t idx = findElement(element_ptr).get_or_throw();
         return element_size(idx);
     }
 
 
-    int32_t findElement(const void* element_ptr) const
+    Int32Result findElement(const void* element_ptr) const noexcept
     {
         int32_t offset  = computeElementOffset(element_ptr);
 
-        if (offset < 0) {
-            int a = 0; a++;
-        }
-
-        MEMORIA_V1_ASSERT(offset, >=, 0);
+        MEMORIA_V1_ASSERT_RTN(offset, >=, 0);
 
         for (int32_t c = 0; c < layout_size_ / 4; c++)
         {
             if (offset < element_offset(c))
             {
-                return c - 1;
+                return Int32Result::of(c - 1);
             }
         }
 
-        MMA_THROW(Exception()) << WhatCInfo("Requested element is not found in this allocator");
+        return MEMORIA_MAKE_GENERIC_ERROR("Requested element is not found in this allocator");
     }
 
 
     template <typename T>
-    const T* get(int32_t idx) const
+    const T* get(int32_t idx) const noexcept
     {
         const T* addr = ptr_cast<const T>(base() + element_offset(idx));
         return addr;
     }
 
     template <typename T>
-    T* get(int32_t idx)
+    T* get(int32_t idx) noexcept
     {
         T* addr = ptr_cast<T>(base() + element_offset(idx));
         return addr;
     }
 
-    bool is_empty(int idx) const
+    bool is_empty(int idx) const noexcept
     {
         return element_size(idx) == 0;
     }
 
-    AllocationBlock describe(int32_t idx)
+    AllocationBlock describe(int32_t idx) noexcept
     {
         int32_t offset  = element_offset(idx);
         int32_t size    = element_size(idx);
@@ -306,7 +295,7 @@ public:
         return AllocationBlock(size, offset, base() + offset);
     }
 
-    AllocationBlockConst describe(int32_t idx) const
+    AllocationBlockConst describe(int32_t idx) const noexcept
     {
         int32_t offset  = element_offset(idx);
         int32_t size    = element_size(idx);
@@ -315,119 +304,111 @@ public:
     }
 
     template <typename T>
-    MMA_NODISCARD T* allocate(int32_t idx, int32_t block_size)
+    Result<T*> allocate(int32_t idx, int32_t block_size) noexcept
     {
+        using ResultT = Result<T*>;
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
-        AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
+        MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
 
         T* object = block.cast<T>();
 
-        if(isFail(object->init(block.size()))) {
-            return nullptr;
-        }
+        MEMORIA_TRY_VOID(object->init(block.size()));
 
-        return object;
+        return ResultT::of(object);
     }
 
     template <typename T>
-    MMA_NODISCARD T* allocateSpace(int32_t idx, int32_t block_size)
+    Result<T*> allocateSpace(int32_t idx, int32_t block_size) noexcept
     {
+        using ResultT = Result<T*>;
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
-        AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
+        MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
 
-        return block.cast<T>();
+        return ResultT::of(block.cast<T>());
     }
 
     template <typename T>
-    MMA_NODISCARD T* allocateEmpty(int32_t idx)
+    Result<T*> allocateEmpty(int32_t idx) noexcept
     {
+        using ResultT = Result<T*>;
+
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
         int32_t block_size = T::empty_size();
 
-        AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
-
-        if (!block) {
-            return nullptr;
-        }
+        MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
 
         T* object = block.cast<T>();
 
-        if(isFail(object->init())) {
-            return nullptr;
-        }
+        MEMORIA_TRY_VOID(object->init());
 
-        return object;
+        return ResultT::of(object);
     }
 
 
-    MMA_NODISCARD PackedAllocator* allocateAllocator(int32_t idx, int32_t streams)
+    Result<PackedAllocator*> allocateAllocator(int32_t idx, int32_t streams) noexcept
     {
+        using ResultT = Result<PackedAllocator*>;
         int32_t block_size = PackedAllocator::empty_size(streams);
 
-        AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
-
-        if (!block) {
-            return nullptr;
-        }
+        MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
 
         PackedAllocator* object = block.cast<PackedAllocator>();
 
-        if(isFail(object->init(block_size, streams))) {
-            return nullptr;
-        }
+        MEMORIA_TRY_VOID(object->init(block_size, streams));
 
-        return object;
+        return ResultT::of(object);
     }
 
 
     template <typename T>
-    MMA_NODISCARD T* allocate(int32_t idx)
+    Result<T*> allocate(int32_t idx) noexcept
     {
+        using ResultT = Result<T*>;
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
 
-        AllocationBlock block = allocate(idx, sizeof(T), PackedBlockType::RAW_MEMORY);
-        return block.cast<T>();
+        MEMORIA_TRY(block, allocate(idx, sizeof(T), PackedBlockType::RAW_MEMORY));
+        return ResultT::of(block.cast<T>());
     }
 
     template <typename T>
-    MMA_NODISCARD T* allocateArrayByLength(int32_t idx, int32_t length)
+    Result<T*> allocateArrayByLength(int32_t idx, int32_t length) noexcept
     {
+        using ResultT = Result<T*>;
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
 
-        AllocationBlock block = allocate(idx, length, PackedBlockType::RAW_MEMORY);
-        return block.cast<T>();
+        MEMORIA_TRY(block, allocate(idx, length, PackedBlockType::RAW_MEMORY));
+        return ResultT::of(block.cast<T>());
     }
 
     template <typename T>
-    MMA_NODISCARD T* allocateArrayBySize(int32_t idx, int32_t size)
+    Result<T*> allocateArrayBySize(int32_t idx, int32_t size) noexcept
     {
+        using ResultT = Result<T*>;
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
 
-        AllocationBlock block = allocate(idx, sizeof(T) * size, PackedBlockType::RAW_MEMORY);
-        return block.cast<T>();
+        MEMORIA_TRY(block, allocate(idx, sizeof(T) * size, PackedBlockType::RAW_MEMORY));
+        return ResultT::of(block.cast<T>());
     }
 
 
-    MMA_NODISCARD AllocationBlock allocate(int32_t idx, int32_t size, PackedBlockType type)
+    Result<AllocationBlock> allocate(int32_t idx, int32_t size, PackedBlockType type) noexcept
     {
+        using ResultT = Result<AllocationBlock>;
         int32_t allocation_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(size);
 
         int free_space_v = free_space();
         if (allocation_size > free_space_v)
         {
-            if (enlarge(allocation_size - free_space_v) < 0)
-            {
-                return AllocationBlock();
-            }
+            MEMORIA_TRY_VOID(enlarge(allocation_size - free_space_v));
         }
 
         moveElements(idx + 1, allocation_size);
@@ -446,19 +427,17 @@ public:
 
         auto offs = base() + offset;
 
-        MEMORIA_V1_ASSERT_ALIGN(offs, 8);
+        MEMORIA_V1_ASSERT_ALIGN_RTN(offs, 8);
 
-        return AllocationBlock(allocation_size, offset, base() + offset);
+        return ResultT::of(allocation_size, offset, base() + offset);
     }
 
-    OpStatus importBlock(int32_t idx, const PackedAllocator* src, int32_t src_idx)
+    VoidResult importBlock(int32_t idx, const PackedAllocator* src, int32_t src_idx) noexcept
     {
         auto src_block  = src->describe(src_idx);
         auto type       = src->block_type(src_idx);
 
-        if (resizeBlock(idx, src_block.size()) < 0) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(resizeBlock(idx, src_block.size()));
 
         setBlockType(idx, type);
 
@@ -475,42 +454,41 @@ public:
             element->setAllocatorOffset(this);
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    void free(int32_t idx)
+    VoidResult free(int32_t idx) noexcept
     {
         int32_t size        = element_size(idx);
         moveElements(idx + 1, -size);
 
         if (allocatable_.allocator_offset() > 0)
         {
-            if(isFail(pack()))
-            {
-                MMA_THROW(RuntimeException()) << WhatCInfo("PackedAllocator::pack() failed");
-            }
+            MEMORIA_TRY_VOID(pack());
         }
+
+        return VoidResult::of();
     }
 
-    void clear(int32_t idx)
+    void clear(int32_t idx) noexcept
     {
         auto block = describe(idx);
         memset(block.ptr(), 0, block.size());
     }
 
-    void setBlockType(int32_t idx, PackedBlockType type)
+    void setBlockType(int32_t idx, PackedBlockType type) noexcept
     {
         Bitmap* bitmap = this->bitmap();
         SetBit(bitmap, idx, type == PackedBlockType::ALLOCATABLE);
     }
 
-    PackedBlockType block_type(int32_t idx) const
+    PackedBlockType block_type(int32_t idx) const noexcept
     {
         const Bitmap* bitmap = this->bitmap();
         return GetBit(bitmap, idx) ? PackedBlockType::ALLOCATABLE : PackedBlockType::RAW_MEMORY;
     }
 
-    void dump(std::ostream& out = std::cout) const
+    void dump(std::ostream& out = std::cout) const noexcept
     {
         out << "PackedAllocator Layout:" << std::endl;
         out << "Block Size: " << block_size_ << std::endl;
@@ -531,11 +509,11 @@ public:
         });
     }
 
-    void dumpAllocator(std::ostream& out = std::cout) const {
+    void dumpAllocator(std::ostream& out = std::cout) const noexcept {
     	dump(out);
     }
 
-    void dumpLayout(std::ostream& out = std::cout) const
+    void dumpLayout(std::ostream& out = std::cout) const noexcept
     {
         dumpArray<int32_t>(out, layout_size_/4, [this](int32_t idx){
             return this->element_offset(idx);
@@ -543,27 +521,28 @@ public:
     }
 
 
-    MMA_NODISCARD int32_t enlarge(int32_t delta)
+    Int32Result enlarge(int32_t delta) noexcept
     {
         return resize(PackedAllocatable::roundUpBytesToAlignmentBlocks(block_size_ + delta));
     }
 
-    MMA_NODISCARD int32_t shrink(int32_t delta)
+    Int32Result shrink(int32_t delta) noexcept
     {
         return resize(PackedAllocatable::roundUpBytesToAlignmentBlocks(block_size_ - delta));
     }
 
-    void resizeBlock(int32_t new_size)
+    void resizeBlock(int32_t new_size) noexcept
     {
         block_size_ = new_size;
     }
 
-    MMA_NODISCARD int32_t resize(int32_t new_size)
+    Int32Result resize(int32_t new_size) noexcept
     {
         if (allocatable_.allocator_offset() > 0)
         {
             Allocator* alloc = allocatable_.allocator();
-            block_size_ = alloc->resizeBlock(this, new_size);
+            MEMORIA_TRY(block_size_tmp, alloc->resizeBlock(this, new_size));
+            block_size_ = block_size_tmp;
         }
         else if (new_size <= block_size_)
         {
@@ -572,28 +551,28 @@ public:
                 block_size_ = new_size;
             }
             else {
-                return -1;
+                return MEMORIA_MAKE_PACKED_OOM_ERROR();
             }
         }
         else {
-            return -1;
+            return MEMORIA_MAKE_PACKED_OOM_ERROR();
         }
 
-        return block_size_;
+        return Int32Result::of(block_size_);
     }
 
-    void forceResize(int32_t amount)
+    void forceResize(int32_t amount) noexcept
     {
         block_size_ += PackedAllocatable::roundDownBytesToAlignmentBlocks(amount);
     }
 
-    MMA_NODISCARD int32_t pack()
+    Int32Result pack() noexcept
     {
         int32_t free_space = this->free_space();
         return resize(block_size_ - free_space);
     }
 
-    MMA_NODISCARD int32_t compute_free_space_up() const
+    MMA_NODISCARD int32_t compute_free_space_up() const noexcept
     {
         int32_t space{};
 
@@ -610,7 +589,7 @@ public:
     }
 
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startGroup("ALLOCATOR");
 
@@ -621,18 +600,20 @@ public:
         int32_t client_area = this->client_area();
         int32_t free_space  = this->free_space();
 
-        handler->value("CLIENT_AREA",   &client_area);
+        handler->value("CLIENT_AREA",  &client_area);
         handler->value("FREE_SPACE",   &free_space);
 
         handler->value("LAYOUT_SIZE",   &layout_size_);
         handler->value("BITMAP_SIZE",   &bitmap_size_);
 
         handler->endGroup();
+
+        return VoidResult::of();
     }
 
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
         FieldFactory<int32_t>::serialize(buf, allocatable_.allocator_offset_);
         FieldFactory<int32_t>::serialize(buf, block_size_);
@@ -644,11 +625,13 @@ public:
         FieldFactory<int32_t>::serialize(buf, layout(), layout_size);
 
         FieldFactory<Bitmap>::serialize(buf, bitmap(), bitmap_size_/sizeof(Bitmap));
+
+        return VoidResult::of();
     }
 
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
         FieldFactory<int32_t>::deserialize(buf, allocatable_.allocator_offset_);
         FieldFactory<int32_t>::deserialize(buf, block_size_);
@@ -660,37 +643,43 @@ public:
         FieldFactory<int32_t>::deserialize(buf, layout(), layout_size);
 
         FieldFactory<Bitmap>::deserialize(buf, bitmap(), bitmap_size_/sizeof(Bitmap));
+
+        return VoidResult::of();
     }
 
     template <typename T, typename SerializationData>
-    void serializeSegment(SerializationData& buf, int32_t segment) const
+    VoidResult serializeSegment(SerializationData& buf, int32_t segment) const noexcept
     {
         auto data = this->describe(segment);
         FieldFactory<T>::serialize(buf, ptr_cast<const T>(data.ptr()), data.size() / (int32_t)sizeof(T));
+
+        return VoidResult::of();
     }
 
     template <typename T, typename DeserializationData>
-    void deserializeSegment(DeserializationData& buf, int32_t segment)
+    VoidResult deserializeSegment(DeserializationData& buf, int32_t segment) noexcept
     {
         auto data = this->describe(segment);
         FieldFactory<T>::deserialize(buf, ptr_cast<T>(data.ptr()), data.size() / (int32_t)sizeof(T));
+
+        return VoidResult::of();
     }
 
 
-    constexpr static int32_t my_size()
+    constexpr static int32_t my_size() noexcept
     {
         return sizeof(MyType) - alignof(MyType);
     }
 
 
 private:
-    int32_t& set_element_offset(int32_t idx)
+    int32_t& set_element_offset(int32_t idx) noexcept
     {
         return *(ptr_cast<int32_t>(buffer_) + idx);
     }
 
 
-    void moveElementsUp(int32_t idx, int delta)
+    void moveElementsUp(int32_t idx, int delta) noexcept
     {
         int32_t layout_size = layout_size_/4;
 
@@ -706,7 +695,7 @@ private:
         set_element_offset(idx) += delta;
     }
 
-    void moveElementsDown(int32_t idx, int delta)
+    void moveElementsDown(int32_t idx, int delta) noexcept
     {
         int32_t layout_size = layout_size_/4;
 
@@ -725,7 +714,7 @@ private:
         }
     }
 
-    void moveElementData(int32_t idx, const AllocationBlock& block, int32_t delta)
+    void moveElementData(int32_t idx, const AllocationBlock& block, int32_t delta) noexcept
     {
         if (block.size() > 0)
         {
@@ -742,7 +731,7 @@ private:
     }
 
 
-    void moveElements(int32_t start_idx, int32_t delta)
+    void moveElements(int32_t start_idx, int32_t delta) noexcept
     {
         if (delta > 0) {
             moveElementsUp(start_idx, delta);
@@ -755,34 +744,34 @@ private:
 };
 
 template <typename T>
-T* get(PackedAllocator* alloc, psize_t idx) {
+T* get(PackedAllocator* alloc, psize_t idx) noexcept {
     return alloc->template get<T>(idx);
 }
 
 template <typename T>
-const T* get(const PackedAllocator* alloc, psize_t idx) {
+const T* get(const PackedAllocator* alloc, psize_t idx) noexcept {
     return alloc->template get<T>(idx);
 }
 
 template <typename T>
-T* get(PackedAllocator& alloc, psize_t idx) {
+T* get(PackedAllocator& alloc, psize_t idx) noexcept {
     return alloc.template get<T>(idx);
 }
 
 template <typename T>
-const T* get(const PackedAllocator& alloc, psize_t idx) {
+const T* get(const PackedAllocator& alloc, psize_t idx) noexcept {
     return alloc.template get<T>(idx);
 }
 
 
 template <typename T>
-T* allocate(PackedAllocator* alloc, psize_t idx) {
+Result<T*> allocate(PackedAllocator* alloc, psize_t idx) noexcept {
     return alloc->template allocate<T>(idx);
 }
 
 
 template <typename T>
-T* allocate(PackedAllocator& alloc, psize_t idx) {
+Result<T*> allocate(PackedAllocator& alloc, psize_t idx) noexcept {
     return alloc.template allocate<T>(idx);
 }
 

@@ -61,6 +61,12 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
             MMA_THROW(::memoria::Exception()) << ::memoria::WhatInfo(::memoria::format_u8("ASSERT TRUE FAILURE: {}", #Arg0));        \
         }
 
+#define MEMORIA_V1_ASSERT_TRUE_RTN(Arg0)                                                                \
+        if (!(Arg0)) {                                                                                  \
+            return MEMORIA_MAKE_GENERIC_ERROR("ASSERT TRUE FAILURE: {}", #Arg0);                        \
+        }
+
+
 #define MEMORIA_V1_ASSERT_FALSE(Arg0)                                                                   \
         if ((Arg0)) {                                                                                   \
             MMA_THROW(::memoria::Exception()) << ::memoria::WhatInfo(::memoria::format_u8("ASSERT FALSE FAILURE: {}", #Arg0));       \
@@ -92,6 +98,10 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
             MMA_THROW(::memoria::Exception()) << ::memoria::WhatInfo(format_u8("ASSERT FAILURE: \"{}\" is not properly aligned ({})", #MemExpr, Align)); \
         }
 
+#define MEMORIA_V1_ASSERT_ALIGN_RTN(MemExpr, Align)                                                         \
+        if (::memoria::value_cast<std::ptrdiff_t>(MemExpr) % Align != 0) {                                                \
+            return MEMORIA_MAKE_GENERIC_ERROR("ASSERT FAILURE: \"{}\" is not properly aligned ({})", #MemExpr, Align); \
+        }
 
 #else
 

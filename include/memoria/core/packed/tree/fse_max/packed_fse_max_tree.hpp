@@ -101,27 +101,21 @@ public:
         return block_size(tree_capacity);
     }
 
-    OpStatus init_tl(int32_t data_block_size)
+    VoidResult init_tl(int32_t data_block_size)
     {
         return Base::init_tl(data_block_size, Blocks);
     }
 
-    OpStatus init_bs(int32_t block_size)
+    VoidResult init_bs(int32_t block_size)
     {
         return init(elements_for(block_size));
     }
 
-    OpStatus init(int32_t capacity = 0)
+    VoidResult init(int32_t capacity = 0)
     {
-        if(isFail(Base::init(block_size(capacity), Blocks * SegmentsPerBlock + 1))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::init(block_size(capacity), Blocks * SegmentsPerBlock + 1));
 
-        Metadata* meta = this->template allocate<Metadata>(METADATA);
-
-        if(isFail(meta)) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY(meta, this->template allocate<Metadata>(METADATA));
 
         meta->size()        = 0;
         meta->max_size()    = capacity;
@@ -129,21 +123,16 @@ public:
 
         for (int32_t block = 0; block < Blocks; block++)
         {
-            if(isFail(this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size()))) {
-                return OpStatus::FAIL;
-            }
-
-            if(isFail(this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size()));
+            MEMORIA_TRY_VOID(this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity));
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
 
-    OpStatus init(const SizesT& sizes)
+    VoidResult init(const SizesT& sizes) noexcept
     {
         return MyType::init(sizes[0]);
     }
@@ -189,9 +178,9 @@ public:
     }
 
 
-    OpStatus reindex() {
+    VoidResult reindex() noexcept {
         Base::reindex(Blocks);
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     void check() const {
@@ -383,30 +372,25 @@ public:
     // ========================================= Insert/Remove/Resize ============================================== //
 
 protected:
-    OpStatus resize(Metadata* meta, int32_t size)
+    VoidResult resize(Metadata* meta, int32_t size) noexcept
     {
         int32_t new_data_size  = meta->max_size() + size;
         int32_t new_index_size = MyType::index_size(new_data_size);
 
         for (int32_t block = 0; block < Blocks; block++)
         {
-            if (isFail(Base::resizeBlock(SegmentsPerBlock * block + 1, new_index_size * sizeof(IndexValue)))) {
-                return OpStatus::FAIL;
-            }
-
-            if (isFail(Base::resizeBlock(SegmentsPerBlock * block + 2, new_data_size * sizeof(Value)))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(Base::resizeBlock(SegmentsPerBlock * block + 1, new_index_size * sizeof(IndexValue)));
+            MEMORIA_TRY_VOID(Base::resizeBlock(SegmentsPerBlock * block + 2, new_data_size * sizeof(Value)));
         }
 
         meta->max_size()    += size;
         meta->index_size()  = new_index_size;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 public:
-    OpStatus insertSpace(int32_t idx, int32_t room_length)
+    VoidResult insertSpace(int32_t idx, int32_t room_length) noexcept
     {
         auto meta = this->metadata();
 
@@ -415,15 +399,13 @@ public:
             int a = 0; a++;
         }
 
-        MEMORIA_V1_ASSERT(idx, <=, meta->size());
+        MEMORIA_V1_ASSERT_RTN(idx, <=, meta->size());
 
         int32_t capacity  = meta->capacity();
 
         if (capacity < room_length)
         {
-            if (isFail(resize(meta, room_length - capacity))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(resize(meta, room_length - capacity));
         }
 
         for (int32_t block = 0; block < Blocks; block++)
@@ -443,14 +425,14 @@ public:
 
         meta->size() += room_length;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 protected:
-    OpStatus copyTo(MyType* other, int32_t copy_from, int32_t count, int32_t copy_to) const
+    VoidResult copyTo(MyType* other, int32_t copy_from, int32_t count, int32_t copy_to) const noexcept
     {
-        MEMORIA_V1_ASSERT_TRUE(copy_from >= 0);
-        MEMORIA_V1_ASSERT_TRUE(count >= 0);
+        MEMORIA_V1_ASSERT_TRUE_RTN(copy_from >= 0);
+        MEMORIA_V1_ASSERT_TRUE_RTN(count >= 0);
 
         for (int32_t block = 0; block < Blocks; block++)
         {
@@ -464,61 +446,44 @@ protected:
             );
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 public:
-    OpStatus splitTo(MyType* other, int32_t idx)
+    VoidResult splitTo(MyType* other, int32_t idx) noexcept
     {
         int32_t total = this->size() - idx;
-        if(isFail(other->insertSpace(0, total))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(other->insertSpace(0, total));
 
-        if(isFail(copyTo(other, idx, total, 0))) {
-            return OpStatus::FAIL;
-        }
-        if(isFail(other->reindex())) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(copyTo(other, idx, total, 0));
 
-        if(isFail(removeSpace(idx, this->size()))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(other->reindex());
+
+        MEMORIA_TRY_VOID(removeSpace(idx, this->size()));
 
         return reindex();
     }
 
-    OpStatus mergeWith(MyType* other)
+    VoidResult mergeWith(MyType* other) noexcept
     {
         int32_t my_size     = this->size();
         int32_t other_size  = other->size();
 
-        if(isFail(other->insertSpace(other_size, my_size))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(other->insertSpace(other_size, my_size));
+        MEMORIA_TRY_VOID(copyTo(other, 0, my_size, other_size));
+        MEMORIA_TRY_VOID(removeSpace(0, my_size));
+        MEMORIA_TRY_VOID(reindex());
 
-        if(isFail(copyTo(other, 0, my_size, other_size))) {
-            return OpStatus::FAIL;
-        }
-
-        if(isFail(removeSpace(0, my_size))) {
-            return OpStatus::FAIL;
-        }
-
-        if(isFail(reindex())) {
-            return OpStatus::FAIL;
-        }
         return other->reindex();
     }
 
 
-    OpStatus removeSpace(int32_t start, int32_t end)
+    VoidResult removeSpace(int32_t start, int32_t end) noexcept
     {
         return remove(start, end);
     }
 
-    OpStatus remove(int32_t start, int32_t end)
+    VoidResult remove(int32_t start, int32_t end) noexcept
     {
         auto meta = this->metadata();
 
@@ -543,108 +508,88 @@ public:
 
         meta->size() -= room_length;
 
-        if (isFail(resize(meta, -room_length))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(resize(meta, -room_length));
 
         return reindex();
     }
 
 
     template <int32_t Offset, int32_t Size, typename T1, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _insert(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
+    VoidResult _insert(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum) noexcept
     {
-        if(isFail(insert(idx, values))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(insert(idx, values));
 
         sum<Offset>(this->size() - 1, accum);
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <int32_t Offset, int32_t Size, typename AccessorFn, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    VoidResult _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values) noexcept
     {
-        if(isFail(insertSpace(idx, 1))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(insertSpace(idx, 1));
 
         for (int32_t b = 0; b < Blocks; b++) {
             this->values(b)[idx] = values(b);
         }
 
-        if(isFail(reindex())) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(reindex());
 
         sum<Offset>(this->size() - 1, accum);
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
     template <int32_t Offset, int32_t Size, typename T1, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _update(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
+    VoidResult _update(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum) noexcept
     {
-        if(isFail(update(idx, values))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(update(idx, values));
 
         sum<Offset>(this->size() - 1, accum);
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <int32_t Offset, int32_t Size, typename T2, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    OpStatus _update_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    VoidResult _update_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values) noexcept
     {
         for (int32_t b = 0; b < Blocks; b++)
         {
             this->values(b)[idx] = values(b);
         }
 
-        if(isFail(reindex())) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(reindex());
 
         sum<Offset>(this->size() - 1, accum);
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
     template <int32_t Offset, int32_t Size, typename T1, typename T2, typename I, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _update(int32_t idx, const std::pair<T1, I>& values, BranchNodeEntryItem<T2, Size>& accum)
+    VoidResult _update(int32_t idx, const std::pair<T1, I>& values, BranchNodeEntryItem<T2, Size>& accum) noexcept
     {
-        if(isFail(this->setValue(values.first, idx, values.second))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(this->setValue(values.first, idx, values.second));
 
         sum<Offset>(this->size() - 1, accum);
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
+    VoidResult _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum) noexcept
     {
-        if (isFail(remove(idx, idx + 1))) {
-            return OpStatus::FAIL;
-        }
-
+        MEMORIA_TRY_VOID(remove(idx, idx + 1));
         sum<Offset>(this->size() - 1, accum);
-
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
 
-    OpStatus insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true)
+    VoidResult insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true) noexcept
     {
-        if (isFail(insertSpace(idx, size))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(insertSpace(idx, size));
 
         typename Base::Value* values[Blocks];
         for (int32_t block  = 0; block < Blocks; block++)
@@ -666,36 +611,28 @@ public:
             return this->reindex();
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <typename T>
-    OpStatus insert(int32_t idx, const core::StaticVector<T, Blocks>& values)
+    VoidResult insert(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
     {
-        if (isFail(insertSpace(idx, 1))) {
-            return OpStatus::FAIL;
-        }
-
+        MEMORIA_TRY_VOID(insertSpace(idx, 1));
         return setValues(idx, values);
     }
 
 
     template <typename Adaptor>
-    OpStatus _insert(int32_t pos, int32_t size, Adaptor&& adaptor)
+    VoidResult _insert(int32_t pos, int32_t size, Adaptor&& adaptor) noexcept
     {
-        if(isFail(populate(pos, size, std::forward<Adaptor>(adaptor)))) {
-            return OpStatus::FAIL;
-        }
-
+        MEMORIA_TRY_VOID(populate(pos, size, std::forward<Adaptor>(adaptor)));
         return reindex();
     }
 
     template <typename Adaptor>
-    OpStatus populate(int32_t pos, int32_t size, Adaptor&& adaptor)
+    VoidResult populate(int32_t pos, int32_t size, Adaptor&& adaptor) noexcept
     {
-        if (isFail(insertSpace(pos, size))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(insertSpace(pos, size));
 
         for (int32_t c = 0; c < size; c++)
         {
@@ -706,7 +643,7 @@ public:
             }
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -714,13 +651,13 @@ public:
 
 
 
-//    OpStatus insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t inserted)
+//    VoidResult insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t inserted)
 //    {
 //        const io::IOColumnwiseFixedSizeArraySubstream<Value>& buffer
 //                = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Value>>(substream);
 
 //        if (isFail(insertSpace(at, inserted))) {
-//            return OpStatus::FAIL;
+//            return VoidResult::FAIL;
 //        }
 
 //        for (int32_t block = 0; block < Blocks; block++)
@@ -731,7 +668,7 @@ public:
 
 //        (void)this->reindex();
 
-//        return OpStatus::OK;
+//        return VoidResult::of();
 //    }
 
 //    void configure_io_substream(io::IOSubstream& substream) const
@@ -751,7 +688,7 @@ public:
 //    }
 
     template <typename T>
-    OpStatus update(int32_t idx, const core::StaticVector<T, Blocks>& values)
+    VoidResult update(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
     {
         return setValues(idx, values);
     }
@@ -759,24 +696,24 @@ public:
 
 
 
-    OpStatusT<int64_t> setValue(int32_t block, int32_t idx, const Value& value)
+    Result<int64_t> setValue(int32_t block, int32_t idx, const Value& value) noexcept
     {
         if (value != 0)
         {
             Value val = this->value(block, idx);
             this->value(block, idx) = value;
 
-            return OpStatusT<int64_t>(val - value);
+            return Result<int64_t>::of(val - value);
         }
         else {
-            return OpStatusT<int64_t>(0);
+            return Result<int64_t>::of(0);
         }
     }
 
 
 
     template <typename T>
-    OpStatus setValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
+    VoidResult setValues(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
     {
         for (int32_t b = 0; b < Blocks; b++) {
             this->values(b)[idx] = values[b];
@@ -845,23 +782,21 @@ public:
         }
     }
 
-    OpStatus clear()
+    VoidResult clear() noexcept
     {
-        if (isFail(init())) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(init());
 
         if (this->allocatable().has_allocator())
         {
             auto alloc = this->allocatable().allocator();
             int32_t empty_size = MyType::empty_size();
-            return toOpStatus(alloc->resizeBlock(this, empty_size));
+            MEMORIA_TRY_VOID(alloc->resizeBlock(this, empty_size));
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus clear(int32_t start, int32_t end)
+    VoidResult clear(int32_t start, int32_t end) noexcept
     {
         for (int32_t block = 0; block < Blocks; block++)
         {
@@ -873,10 +808,10 @@ public:
             }
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->startStruct();
         handler->startGroup("FSM_TREE");
@@ -908,8 +843,6 @@ public:
 
         handler->startGroup("DATA", meta->size());
 
-
-
         const Value* values[Blocks];
 
         for (int32_t b = 0; b < Blocks; b++) {
@@ -928,13 +861,15 @@ public:
         handler->endGroup();
 
         handler->endStruct();
+
+        return VoidResult::of();
     }
 
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        Base::serialize(buf);
+        MEMORIA_TRY_VOID(Base::serialize(buf));
 
         const Metadata* meta = this->metadata();
 
@@ -947,13 +882,15 @@ public:
             FieldFactory<IndexValue>::serialize(buf, this->index(b), meta->index_size());
             FieldFactory<Value>::serialize(buf, this->values(b), meta->size());
         }
+
+        return VoidResult::of();
     }
 
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        Base::deserialize(buf);
+        MEMORIA_TRY_VOID(Base::deserialize(buf));
 
         Metadata* meta = this->metadata();
 
@@ -966,6 +903,8 @@ public:
             FieldFactory<IndexValue>::deserialize(buf, this->index(b), meta->index_size());
             FieldFactory<Value>::deserialize(buf, this->values(b), meta->size());
         }
+
+        return VoidResult::of();
     }
 };
 

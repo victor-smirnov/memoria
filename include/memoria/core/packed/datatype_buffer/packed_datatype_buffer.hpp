@@ -106,6 +106,11 @@ public:
         ForEach<0, Dimensions>::process_fn(fn);
     }
 
+    template <typename Fn>
+    static VoidResult for_each_dimension_res(Fn&& fn) noexcept {
+        return ForEach<0, Dimensions>::process_res_fn(fn);
+    }
+
     static psize_t empty_size()
     {
         psize_t dimensions_size{};
@@ -137,35 +142,21 @@ public:
         return base_size(aligned_data_size);
     }
 
-    OpStatus init()
+    VoidResult init() noexcept
     {
-        if(isFail(init(empty_size(), Dimensions + 1))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(init(empty_size(), Dimensions + 1));
 
-        Metadata* meta = allocate<Metadata>(METADATA);
-
-        if(isFail(meta)) {
-            return OpStatus::FAIL;
-        }
-
+        MEMORIA_TRY(meta, allocate<Metadata>(METADATA));
         meta->size() = 0;
 
-        OpStatus status = OpStatus::OK;
-
-        for_each_dimension([&](auto idx){
+        return for_each_dimension_res([&](auto idx) noexcept -> VoidResult {
             using DimensionStruct = Dimension<idx>;
-            if (isFail(status))
-            {
-                if (isFail(DimensionStruct::allocateEmpty(this))) {
-                    status = OpStatus::FAIL;
-                }
-            }
+
+            MEMORIA_TRY_VOID(DimensionStruct::allocateEmpty(this));
 
             DimensionStruct::init_metadata(*meta);
+            return VoidResult::of();
         });
-
-        return status;
     }
 
 
@@ -211,33 +202,32 @@ public:
 
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        Base::serialize(buf);
+        MEMORIA_TRY_VOID(Base::serialize(buf));
 
         auto& meta = this->metadata();
 
         FieldFactory<psize_t>::serialize(buf, meta.size());
         FieldFactory<psize_t>::serialize(buf, meta.data_size(), Dimensions);
 
-
-        for_each_dimension([&, this](auto idx){
-            this->dimension<idx>().serialize(meta, buf);
+        return for_each_dimension_res([&, this](auto idx){
+            return this->dimension<idx>().serialize(meta, buf);
         });
     }
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        Base::deserialize(buf);
+        MEMORIA_TRY_VOID(Base::deserialize(buf));
 
         auto& meta = this->metadata();
 
         FieldFactory<psize_t>::deserialize(buf, meta.size());
         FieldFactory<psize_t>::deserialize(buf, meta.data_size(), Dimensions);
 
-        for_each_dimension([&, this](auto idx){
-            this->dimension<idx>().deserialize(meta, buf);
+        return for_each_dimension_res([&, this](auto idx){
+            return this->dimension<idx>().deserialize(meta, buf);
         });
     }
 };

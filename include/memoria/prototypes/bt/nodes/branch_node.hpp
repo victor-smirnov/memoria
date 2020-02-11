@@ -42,6 +42,7 @@
 #include <memoria/core/packed/misc/packed_map.hpp>
 
 #include <memoria/core/memory/ptr_cast.hpp>
+#include <memoria/core/tools/result.hpp>
 
 #include <type_traits>
 
@@ -206,21 +207,23 @@ public:
         return *allocator()->template get<Metadata>(METADATA);
     }
 
-    void setMetadata(const Metadata& meta)
+    VoidResult setMetadata(const Metadata& meta)
     {
         if (!has_root_metadata())
         {
-            OOM_THROW_IF_FAILED(allocator_.template allocate<Metadata>(METADATA), MMA_SRC);
+            MEMORIA_TRY_VOID(allocator_.template allocate<Metadata>(METADATA));
         }
 
         root_metadata() = meta;
+
+        return VoidResult::of();
     }
 
     void clear_metadata()
     {
         for (int32_t c = 0; c < StreamsStart; c++)
         {
-            allocator_.free(c);
+            allocator_.free(c).get_or_throw();
         }
     }
 
@@ -235,12 +238,14 @@ public:
         }
     }
 
-    void copy_metadata_from(const TreeNodeBase* other)
+    VoidResult copy_metadata_from(const TreeNodeBase* other) noexcept
     {
         for (int32_t c = 0; c < StreamsStart; c++)
         {
-            OOM_THROW_IF_FAILED(allocator_.importBlock(c, other->allocator(), c), MMA_SRC);
+            MEMORIA_TRY_VOID(allocator_.importBlock(c, other->allocator(), c));
         }
+
+        return VoidResult::of();
     }
 
 
@@ -255,13 +260,13 @@ public:
 
 public:
 
-    void initAllocator(int32_t entries)
+    VoidResult initAllocator(int32_t entries) noexcept
     {
         int32_t block_size = this->header().memory_block_size();
-        MEMORIA_V1_ASSERT(block_size, >, static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size());
+        MEMORIA_V1_ASSERT_RTN(block_size, >, static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size());
 
         allocator_.allocatable().setTopLevelAllocator();
-        OOM_THROW_IF_FAILED(allocator_.init(block_size - static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size(), entries), MMA_SRC);
+        return allocator_.init(block_size - static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size(), entries);
     }
 
     void resizeBlock(int32_t new_size)
@@ -290,7 +295,7 @@ public:
     template <typename List>
     struct GenerateDataEventsFn {
         template <int32_t Idx>
-        static bool process(IBlockDataEventHandler* handler, const PackedAllocator* allocator)
+        static BoolResult process(IBlockDataEventHandler* handler, const PackedAllocator* allocator)
         {
             using T = Select<Idx, List>;
             if (!allocator->is_empty(Idx))
@@ -301,20 +306,20 @@ public:
 
                 SparseObject so(const_cast<T*>(value));
 
-                so.generateDataEvents(handler);
+                MEMORIA_TRY_VOID(so.generateDataEvents(handler));
             }
 
-            return true;
+            return BoolResult::of(true);
         }
     };
 
 
     template <typename MetadataTypesList>
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
 
-        header_.generateDataEvents(handler);
+        MEMORIA_TRY_VOID(header_.generateDataEvents(handler));
 
         handler->value("ROOT",  &root_);
         handler->value("LEAF",  &leaf_);
@@ -322,35 +327,35 @@ public:
 
         handler->value("NEXT_LEAF_ID_", &next_leaf_id_);
 
-        allocator()->generateDataEvents(handler);
+        MEMORIA_TRY_VOID(allocator()->generateDataEvents(handler));
 
-        ForEach<0, StreamsStart>::process(GenerateDataEventsFn<MetadataTypesList>(), handler, allocator());
+        return ForEach<0, StreamsStart>::process_res(GenerateDataEventsFn<MetadataTypesList>(), handler, allocator());
     }
 
 
     template <typename List>
     struct SerializeFn {
         template <int32_t Idx, typename SerializationData>
-        static bool process(SerializationData& buf, const PackedAllocator* allocator)
+        static BoolResult process(SerializationData& buf, const PackedAllocator* allocator) noexcept
         {
             using T = Select<Idx, List>;
             if (!allocator->is_empty(Idx))
             {
                 const T* value = get<T>(allocator, Idx);
-                value->serialize(buf);
+                MEMORIA_TRY_VOID(value->serialize(buf));
             }
 
-            return true;
+            return BoolResult::of(true);
         }
     };
 
 
     template <typename MetadataTypesList, typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
         static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
 
-        header_.template serialize<FieldFactory>(buf);
+        MEMORIA_TRY_VOID(header_.template serialize<FieldFactory>(buf));
 
         FieldFactory<int32_t>::serialize(buf, root_);
         FieldFactory<int32_t>::serialize(buf, leaf_);
@@ -358,32 +363,32 @@ public:
 
         FieldFactory<BlockID>::serialize(buf, next_leaf_id_);
 
-        allocator()->serialize(buf);
+        MEMORIA_TRY_VOID(allocator()->serialize(buf));
 
-        ForEach<0, StreamsStart>::process(SerializeFn<MetadataTypesList>(), buf, allocator());
+        return ForEach<0, StreamsStart>::process_res(SerializeFn<MetadataTypesList>(), buf, allocator());
     }
 
     template <typename List>
     struct DeserializeFn {
         template <int32_t Idx, typename DeserializationData>
-        static bool process(DeserializationData& buf, PackedAllocator* allocator)
+        static BoolResult process(DeserializationData& buf, PackedAllocator* allocator) noexcept
         {
             using T = Select<Idx, List>;
             if (!allocator->is_empty(Idx))
             {
                 T* value = get<T>(allocator, Idx);
-                value->deserialize(buf);
+                MEMORIA_TRY_VOID(value->deserialize(buf));
             }
 
-            return true;
+            return BoolResult::of(true);
         }
     };
 
     template <typename MetadataTypesList, typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
         static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
-        header_.template deserialize<FieldFactory>(buf);
+        MEMORIA_TRY_VOID(header_.template deserialize<FieldFactory>(buf));
 
         FieldFactory<int32_t>::deserialize(buf, root_);
         FieldFactory<int32_t>::deserialize(buf, leaf_);
@@ -391,9 +396,9 @@ public:
 
         FieldFactory<BlockID>::deserialize(buf, next_leaf_id_);
 
-        allocator()->deserialize(buf);
+        MEMORIA_TRY_VOID(allocator()->deserialize(buf));
 
-        ForEach<0, StreamsStart>::process(DeserializeFn<MetadataTypesList>(), buf, allocator());
+        return ForEach<0, StreamsStart>::process_res(DeserializeFn<MetadataTypesList>(), buf, allocator());
     }
 
 
@@ -401,24 +406,24 @@ public:
     template <typename List>
     struct InitMetadataFn {
         template <int32_t Idx>
-        static bool process(PackedAllocator* allocator)
+        static BoolResult process(PackedAllocator* allocator) noexcept
         {
             using T = Select<Idx, List>;
             if (allocator->is_empty(Idx))
             {
-                OOM_THROW_IF_FAILED(allocator->allocateEmpty<T>(Idx), MMA_SRC);
+                MEMORIA_TRY_VOID(allocator->allocateEmpty<T>(Idx));
             }
 
-            return true;
+            return BoolResult::of(true);
         }
     };
 
     template <typename MetadataTypesList>
-    void init_root_metadata()
+    VoidResult init_root_metadata() noexcept
     {
         static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
 
-        ForEach<0, StreamsStart>::process(InitMetadataFn<MetadataTypesList>(), allocator());
+        return ForEach<0, StreamsStart>::process_res(InitMetadataFn<MetadataTypesList>(), allocator());
     }
 };
 
@@ -601,7 +606,7 @@ public:
     {
         TreeSizeFn fn;
 
-        processSubstreamGroupsStatic(fn, tree_size, active_streams);
+        processSubstreamGroupsStatic(fn, tree_size, active_streams).get_or_throw();
 
         int32_t tree_block_size     = fn.size_;
         int32_t array_block_size    = PackedAllocatable::roundUpBytesToAlignmentBlocks(tree_size * sizeof(Value));
@@ -637,9 +642,9 @@ public:
         return max_tree_size1(fixed_block_size);
     }
 
-    void prepare()
+    VoidResult prepare() noexcept
     {
-        Base::initAllocator(SubstreamsStart + Substreams + 1);
+        return Base::initAllocator(SubstreamsStart + Substreams + 1);
     }
 
 
@@ -710,42 +715,46 @@ public:
 
     struct SerializeFn {
         template <typename StreamObj, typename SerializationData>
-        void stream(const StreamObj* stream, SerializationData* buf)
+        VoidResult stream(const StreamObj* stream, SerializationData* buf) noexcept
         {
-            stream->serialize(*buf);
+            return stream->serialize(*buf);
         }
     };
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        Base::template serialize<RootMetadataList>(buf);
+        MEMORIA_TRY_VOID(Base::template serialize<RootMetadataList>(buf));
 
-        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf).get_or_throw();
+        MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf));
 
         int32_t size = this->size();
 
         FieldFactory<Value>::serialize(buf, values(), size);
+
+        return VoidResult::of();
     }
 
     struct DeserializeFn {
         template <typename StreamObj, typename DeserializationData>
-        void stream(StreamObj* obj, DeserializationData* buf)
+        VoidResult stream(StreamObj* obj, DeserializationData* buf) noexcept
         {
-            obj->deserialize(*buf);
+            return obj->deserialize(*buf);
         }
     };
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        Base::template deserialize<RootMetadataList>(buf);
+        MEMORIA_TRY_VOID(Base::template deserialize<RootMetadataList>(buf));
 
-        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf).get_or_throw();
+        MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf));
 
         int32_t size = this->size();
 
         FieldFactory<Value>::deserialize(buf, values(), size);
+
+        return VoidResult::of();
     }
 
 
@@ -812,29 +821,29 @@ public:
 
         virtual ~BlockOperations() noexcept {}
 
-        virtual Result<int32_t> serialize(const BlockType* block, void* buf) const noexcept
+        virtual Int32Result serialize(const BlockType* block, void* buf) const noexcept
         {
-            return wrap_throwing([&]() {
+            return wrap_throwing([&]() -> Int32Result {
                 const MyType* node = ptr_cast<const MyType>(block);
 
                 SerializationData data;
                 data.buf = ptr_cast<char>(buf);
 
-                node->serialize(data);
+                MEMORIA_TRY_VOID(node->serialize(data));
 
-                return Result<int32_t>::of(data.total);
+                return Int32Result::of(data.total);
             });
         }
 
         virtual VoidResult deserialize(const void* buf, int32_t buf_size, BlockType* block) const noexcept
         {
-            return wrap_throwing([&]() {
+            return wrap_throwing([&]() -> VoidResult {
                 MyType* node = ptr_cast<MyType>(block);
 
                 DeserializationData data;
                 data.buf = ptr_cast<const char>(buf);
 
-                node->deserialize(data);
+                MEMORIA_TRY_VOID(node->deserialize(data));
 
                 return VoidResult::of();
             });

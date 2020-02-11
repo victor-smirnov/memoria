@@ -63,7 +63,7 @@ public:
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(InsertChildFn, insert, OpStatus);
+    MEMORIA_V1_DECLARE_NODE_FN(InsertChildFn, insert);
     Result<InsertBatchResult> ctr_insert_subtree(
             TreePathT& path,
             size_t level,
@@ -93,7 +93,7 @@ public:
 
             int32_t c;
 
-            OpStatus status{OpStatus::OK};
+            bool insertion_status{true};
 
             for (c = 0; c < batch_size && provider.size() > 0; c++)
             {
@@ -106,14 +106,14 @@ public:
 
                 BranchNodeEntry sums = self.ctr_get_node_max_keys(child);
                 if(isFail(self.branch_dispatcher().dispatch(node, InsertChildFn(), idx + c, sums, child->id()))) {
-                    status = OpStatus::FAIL;
+                    insertion_status = false;
                     break;
                 }
 
                 last_child = child;
             }
 
-            if (isFail(status))
+            if (!insertion_status)
             {
                 if (node->level() > 1)
                 {

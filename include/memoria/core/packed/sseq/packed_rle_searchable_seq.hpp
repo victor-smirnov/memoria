@@ -387,9 +387,9 @@ public:
 
 
     MMA_PKD_OOM_SAFE
-    OpStatus append(int32_t symbol, uint64_t length)
+    VoidResult append(int32_t symbol, uint64_t length) noexcept
     {
-        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
+        MEMORIA_V1_ASSERT_TRUE_RTN(symbol >= 0 && symbol < Symbols);
 
         auto meta = this->metadata();
 
@@ -398,23 +398,19 @@ public:
         Codec codec;
         auto len = codec.length(run_value);
 
-        if(isFail(ensure_capacity(len))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(ensure_capacity(len));
 
         meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
         meta->size() += length;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
 
-    OpStatus append_and_reindex(int32_t symbol, uint64_t length)
+    VoidResult append_and_reindex(int32_t symbol, uint64_t length) noexcept
     {
-        if(isFail(append(symbol, length))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(append(symbol, length));
         return reindex();
     }
 
@@ -468,60 +464,47 @@ public:
         return block_size;
     }
 
-    OpStatus init(int32_t block_size)
+    VoidResult init(int32_t block_size) noexcept
     {
-        MEMORIA_V1_ASSERT(block_size, >=, empty_size());
-
+        MEMORIA_V1_ASSERT_RTN(block_size, >=, empty_size());
         return init();
     }
 
-    OpStatus init() {
+    VoidResult init() noexcept {
         return init_bs(empty_size());
     }
 
-    OpStatus init_bs(int32_t block_size)
+    VoidResult init_bs(int32_t block_size) noexcept
     {
-        if(isFail(Base::init(block_size, TOTAL_SEGMENTS__))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::init(block_size, TOTAL_SEGMENTS__));
 
-        Metadata* meta  = Base::template allocate<Metadata>(METADATA);
-
-        if(isFail(meta)) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY(meta, Base::template allocate<Metadata>(METADATA));
 
         meta->size() = 0;
         meta->data_size() = 0;
 
-        if(isFail(this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(0)))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(0)));
 
         Base::setBlockType(SIZE_INDEX, PackedBlockType::ALLOCATABLE);
         Base::setBlockType(SUM_INDEX,  PackedBlockType::ALLOCATABLE);
         Base::setBlockType(SYMBOLS, PackedBlockType::RAW_MEMORY);
 
-        return OpStatus::OK;
+        return VoidResult::of();
         // other sections are empty at this moment
     }
 
-    OpStatus clear()
+    VoidResult clear() noexcept
     {
-        if(isFail(Base::resizeBlock(SYMBOLS, 0))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, 0));
 
-        if(isFail(removeIndex())) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(removeIndex());
 
         auto meta = this->metadata();
 
         meta->size()        = 0;
         meta->data_size()   = 0;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     void reset() {
@@ -546,44 +529,34 @@ public:
     }
 
 
-    OpStatus removeIndex()
+    VoidResult removeIndex() noexcept
     {
-        Base::free(SIZE_INDEX);
-        Base::free(SUM_INDEX);
+        MEMORIA_TRY_VOID(Base::free(SIZE_INDEX));
+        MEMORIA_TRY_VOID(Base::free(SUM_INDEX));
 
-        if(isFail(Base::resizeBlock(OFFSETS, offsets_segment_size(0)))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::resizeBlock(OFFSETS, offsets_segment_size(0)));
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
-    OpStatus createIndex(int32_t index_size)
+    VoidResult createIndex(int32_t index_size) noexcept
     {
         int32_t size_index_block_size = SizeIndex::block_size(index_size);
-        if(isFail(Base::resizeBlock(SIZE_INDEX, size_index_block_size))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::resizeBlock(SIZE_INDEX, size_index_block_size));
 
         int32_t sum_index_block_size = SumIndex::block_size(index_size);
-        if(isFail(Base::resizeBlock(SUM_INDEX, sum_index_block_size))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::resizeBlock(SUM_INDEX, sum_index_block_size));
 
         auto size_index = this->size_index();
         size_index->allocatable().setAllocatorOffset(this);
-        if(isFail(size_index->init(index_size))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(size_index->init(index_size));
 
         auto sum_index = this->sum_index();
         sum_index->allocatable().setAllocatorOffset(this);
-        if(isFail(sum_index->init(index_size))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(sum_index->init(index_size));
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -727,7 +700,7 @@ public:
     // ========================================= Update ================================= //
 
     MMA_PKD_OOM_SAFE
-    OpStatus reindex()
+    VoidResult reindex() noexcept
     {
         rleseq::ReindexFn<MyType> reindex_fn;
         return reindex_fn.reindex(*this);
@@ -745,7 +718,7 @@ public:
         }
     }
 
-    OpStatus ensure_capacity(int32_t capacity)
+    VoidResult ensure_capacity(int32_t capacity) noexcept
     {
         int32_t current_capacity = this->symbols_block_capacity();
 
@@ -754,7 +727,7 @@ public:
             return enlargeData(capacity - current_capacity);
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     bool has_capacity(int32_t required_capacity) const
@@ -764,32 +737,33 @@ public:
     }
 
 
-    OpStatus enlargeData(int32_t length)
+    VoidResult enlargeData(int32_t length) noexcept
     {
         int32_t new_size = this->element_size(SYMBOLS) + length;
-        return toOpStatus(Base::resizeBlock(SYMBOLS, new_size));
+        MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, new_size));
+        return VoidResult::of();
     }
 
 protected:
 
     MMA_PKD_OOM_SAFE
-    OpStatus shrinkData(int32_t length)
+    VoidResult shrinkData(int32_t length) noexcept
     {
         int32_t current_size = this->element_size(SYMBOLS);
 
         int32_t new_size = current_size - length;
 
-        if (!isFail(new_size))
+        if (new_size < 0)
         {
-            return toOpStatus(Base::resizeBlock(SYMBOLS, new_size));
+            MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, new_size));
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
     MMA_PKD_OOM_SAFE
-    OpStatus shrink_to_data()
+    VoidResult shrink_to_data() noexcept
     {
         return shrinkData(this->symbols_block_capacity());
     }
@@ -797,30 +771,30 @@ protected:
 public:
 
     template <int32_t Offset, int32_t Size, typename AccessorFn, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    VoidResult _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values) noexcept
     {
         return insert(idx, values(0));
     }
 
 
 
-    OpStatus insert(int32_t pos, int32_t symbol)
+    VoidResult insert(int32_t pos, int32_t symbol) noexcept
     {
         return insert(pos, symbol, 1);
     }
 
-    OpStatus removeSpace(int32_t start, int32_t end) {
+    VoidResult removeSpace(int32_t start, int32_t end) noexcept {
         return remove(start, end);
     }
 
-    OpStatus remove(int32_t start, int32_t end, bool compactify = false)
+    VoidResult remove(int32_t start, int32_t end, bool compactify = false) noexcept
     {
         auto meta = this->metadata();
 
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(end, >=, 0);
-        MEMORIA_V1_ASSERT(start, <=, end);
-        MEMORIA_V1_ASSERT(end, <=, meta->size());
+        MEMORIA_V1_ASSERT_RTN(start, >=, 0);
+        MEMORIA_V1_ASSERT_RTN(end, >=, 0);
+        MEMORIA_V1_ASSERT_RTN(start, <=, end);
+        MEMORIA_V1_ASSERT_RTN(end, <=, meta->size());
 
         auto location_start = find_run(start);
         auto location_end   = find_run(end);
@@ -829,9 +803,7 @@ public:
         {
             if (location_start.run_prefix() > 0)
             {
-                if(isFail(remove_runs(location_start, location_end))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(remove_runs(location_start, location_end));
 
                 if (location_start.run().symbol() == location_end.run().symbol())
                 {
@@ -860,9 +832,7 @@ public:
             return this->compactify();
         }
         else {
-            if(isFail(shrink_to_data())) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(shrink_to_data());
             return reindex();
         }
     }
@@ -895,7 +865,7 @@ public:
 
 
 
-    OpStatus insert(int32_t idx, int32_t symbol, uint64_t length)
+    VoidResult insert(int32_t idx, int32_t symbol, uint64_t length) noexcept
     {
         auto meta = this->metadata();
         
@@ -907,21 +877,14 @@ public:
             {
                 if (location.run_prefix() > 0)
                 {
-                    auto location_s = split_run(location);
-                    if (isFail(location_s)) {
-                        return OpStatus::FAIL;
-                    }
+                    MEMORIA_TRY(location_s, split_run(location));
                     location = location_s.value();
                 }
 
-                if(isFail(insert_run(location.data_pos(), symbol, length))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(insert_run(location.data_pos(), symbol, length));
             }
             else {
-                if(isFail(add_run_length(location, length))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(add_run_length(location, length));
             }
         }
         else {
@@ -929,14 +892,10 @@ public:
             
             if (location.run().symbol() != symbol || location.run().length() + length > MaxRunLength)
             {
-                if(isFail(insert_run(location.data_pos() + location.data_length(), symbol, length))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(insert_run(location.data_pos() + location.data_length(), symbol, length));
             }
             else {
-                if(isFail(add_run_length(location, length))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(add_run_length(location, length));
             }
         }
         
@@ -946,13 +905,13 @@ public:
 
     MMA_PKD_OOM_SAFE
     template <typename InputSource>
-    OpStatus insert_from(int32_t at, const InputSource* buffer, int32_t start, int32_t size)
+    VoidResult insert_from(int32_t at, const InputSource* buffer, int32_t start, int32_t size) noexcept
     {
         if (size > 0)
         {
             auto meta = this->metadata();
 
-            MEMORIA_V1_ASSERT(at, <= , meta->size());
+            MEMORIA_V1_ASSERT_RTN(at, <= , meta->size());
 
             auto start_run  = buffer->find_run(start);
             auto end_run    = buffer->find_run(start + size);
@@ -968,12 +927,8 @@ public:
             {
                 if (location.run_prefix() > 0)
                 {
-                    auto location_s = split_run(location);
-                    if (isFail(location_s)) {
-                        return OpStatus::FAIL;
-                    }
-
-                    location = location_s.value();
+                    MEMORIA_TRY(location_s, split_run(location));
+                    location = location_s;
                 }
 
                 uint64_t start_run_value = encode_run(start_run.run().symbol(), start_run.run_suffix());
@@ -987,9 +942,7 @@ public:
                     size_t to_copy      = end_run.data_pos() - start_run.data_end();
                     size_t total_length = start_run_value_length + to_copy + end_run_value_length;
 
-                    if(isFail(ensure_capacity(total_length))) {
-                        return OpStatus::FAIL;
-                    }
+                    MEMORIA_TRY_VOID(ensure_capacity(total_length));
 
                     size_t pos = location.data_pos();
                     codec.move(symbols, pos, pos + total_length, meta->data_size() - pos);
@@ -1006,9 +959,7 @@ public:
                     size_t to_copy      = end_run.data_pos() - start_run.data_end();
                     size_t total_length = start_run_value_length + to_copy;
 
-                    if(isFail(ensure_capacity(total_length))) {
-                        return OpStatus::FAIL;
-                    }
+                    MEMORIA_TRY_VOID(ensure_capacity(total_length));
 
                     size_t pos = location.data_pos();
                     codec.move(symbols, pos, pos + total_length, meta->data_size() - pos);
@@ -1023,31 +974,22 @@ public:
             }
             else if (location.run().symbol() == start_run.run().symbol())
             {
-                if(isFail(add_run_length(location, size))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(add_run_length(location, size));
             }
             else {
                 if (location.run_prefix() > 0)
                 {
-                    auto location_s = split_run(location);
-
-                    if (isFail(location_s)) {
-                        return OpStatus::FAIL;
-                    }
-
-                    location = location_s.value();
+                    MEMORIA_TRY(location_s, split_run(location));
+                    location = location_s;
                 }
 
-                if(isFail(insert_run(location.data_pos(), start_run.run().symbol(), size))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(insert_run(location.data_pos(), start_run.run().symbol(), size));
             }
 
             return reindex();
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -1058,35 +1000,31 @@ public:
 
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _insert(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
+    VoidResult _insert(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum) noexcept
     {
-        if(isFail(insert(idx, symbol))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(insert(idx, symbol));
 
         sum<Offset>(idx, accum);
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _update(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
+    VoidResult _update(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum) noexcept
     {
         sub<Offset>(idx, accum);
 
         this->symbol(idx) = symbol;
 
-        if(isFail(this->reindex())) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(this->reindex());
 
         sum<Offset>(idx, accum);
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
+    VoidResult _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum) noexcept
     {
         sub<Offset>(idx, accum);
         return remove(idx, idx + 1);
@@ -1098,7 +1036,7 @@ public:
 
 
 
-    OpStatus splitTo(MyType* other, int32_t idx)
+    VoidResult splitTo(MyType* other, int32_t idx) noexcept
     {
         auto meta = this->metadata();
 
@@ -1120,9 +1058,7 @@ public:
 
             int32_t data_to_move = data_to_move_remainder + suffix_value_length;
 
-            if(isFail(other->ensure_capacity(data_to_move))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(other->ensure_capacity(data_to_move));
 
             codec.move(other->symbols(), 0, data_to_move, other_meta->data_size());
 
@@ -1134,26 +1070,22 @@ public:
 
             //other->try_merge_two_adjustent_runs(0);
 
-            if(isFail(other->compactify())) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(other->compactify());
 
             return remove(idx, meta->size(), true);
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus mergeWith(MyType* other) const
+    VoidResult mergeWith(MyType* other) const noexcept
     {
         auto meta       = this->metadata();
         auto other_meta = other->metadata();
 
         int32_t data_to_move = meta->data_size();
 
-        if (isFail(other->ensure_capacity(data_to_move))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(other->ensure_capacity(data_to_move));
 
         Codec codec;
 
@@ -1163,9 +1095,7 @@ public:
         other_meta->data_size() += data_to_move;
         other_meta->size()      += meta->size();
 
-        if (isFail(other->compactify_runs())) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(other->compactify_runs());
 
         return other->reindex();
     }
@@ -1593,11 +1523,11 @@ public:
     void dump(std::ostream& out = std::cout, bool dump_index = true) const
     {
         TextBlockDumper dumper(out);
-        generateDataEvents(&dumper);
+        generateDataEvents(&dumper).get_or_throw();
     }
 
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->startGroup("PACKED_RLE_SEQUENCE");
         auto meta = this->metadata();
@@ -1608,8 +1538,8 @@ public:
         if (has_index())
         {
             handler->startGroup("INDEXES");
-            size_index()->generateDataEvents(handler);
-            sum_index()->generateDataEvents(handler);
+            MEMORIA_TRY_VOID(size_index()->generateDataEvents(handler));
+            MEMORIA_TRY_VOID(sum_index()->generateDataEvents(handler));
             handler->endGroup();
         }
 
@@ -1638,12 +1568,14 @@ public:
         handler->endGroup();
 
         handler->endGroup();
+
+        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        Base::serialize(buf);
+        MEMORIA_TRY_VOID(Base::serialize(buf));
 
         const Metadata* meta = this->metadata();
 
@@ -1654,18 +1586,20 @@ public:
 
         if (has_index())
         {
-            size_index()->serialize(buf);
-            sum_index()->serialize(buf);
+            MEMORIA_TRY_VOID(size_index()->serialize(buf));
+            MEMORIA_TRY_VOID(sum_index()->serialize(buf));
         }
 
         FieldFactory<Value>::serialize(buf, symbols(), meta->data_size());
+
+        return VoidResult::of();
     }
 
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        Base::deserialize(buf);
+        MEMORIA_TRY_VOID(Base::deserialize(buf));
 
         Metadata* meta = this->metadata();
 
@@ -1675,11 +1609,13 @@ public:
         FieldFactory<OffsetsType>::deserialize(buf, offsets(), number_of_offsets());
 
         if (has_index()) {
-            size_index()->deserialize(buf);
-            sum_index()->deserialize(buf);
+            MEMORIA_TRY_VOID(size_index()->deserialize(buf));
+            MEMORIA_TRY_VOID(sum_index()->deserialize(buf));
         }
 
         FieldFactory<Value>::deserialize(buf, symbols(), meta->data_size());
+
+        return VoidResult::of();
     }
 
 
@@ -1688,7 +1624,7 @@ public:
         return find_run(this->metadata(), symbol_pos);
     }
 
-    OpStatus insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
+    VoidResult insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size) noexcept
     {
         const MyType* buffer = ptr_cast<const MyType>(io::substream_cast<io::IOSymbolSequence>(substream).buffer());
         return this->insert_from(at, buffer, start, size);
@@ -1761,12 +1697,9 @@ private:
 public:    
     
 
-    OpStatus compactify()
+    VoidResult compactify() noexcept
     {
-        if (isFail(compactify_runs())) {
-            return OpStatus::FAIL;
-        }
-
+        MEMORIA_TRY_VOID(compactify_runs());
         return reindex();
     }
 
@@ -2010,7 +1943,7 @@ private:
 
 
 
-    OpStatus compactify_runs()
+    VoidResult compactify_runs() noexcept
     {
         auto meta    = this->metadata();
         auto symbols = this->symbols();
@@ -2146,7 +2079,7 @@ private:
 
 
 
-    OpStatus remove_runs(const Location& start, const Location& end)
+    VoidResult remove_runs(const Location& start, const Location& end) noexcept
     {
         if (start.data_pos() < end.data_pos())
         {
@@ -2176,12 +2109,10 @@ private:
         }
         else {
             int64_t delta = end.local_idx() - start.local_idx();
-            if (isFail(add_run_length0(start, -delta))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(add_run_length0(start, -delta));
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -2283,8 +2214,9 @@ private:
     }
 
     MMA_PKD_OOM_SAFE
-    OpStatusT<Location> split_run(const Location& location, uint64_t subtraction = 0)
+    Result<Location> split_run(const Location& location, uint64_t subtraction = 0) noexcept
     {
+        using ResultT = Result<Location>;
         uint64_t pos = location.local_idx();
 
         if (pos > 0 && pos < location.run().length())
@@ -2307,10 +2239,7 @@ private:
 
                 if (delta > 0)
                 {
-                    if (isFail(ensure_capacity(delta))) {
-                        return OpStatus::FAIL;
-                    }
-
+                    MEMORIA_TRY_VOID(ensure_capacity(delta));
                     codec.move(symbols, location.data_end(), location.data_end() + delta, meta->data_size() - location.data_end());
                 }
 
@@ -2333,12 +2262,10 @@ private:
                 meta->data_size() -= delta;
                 meta->size() -= subtraction;
 
-                if (isFail(shrink_to_data())) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(shrink_to_data());
             }
 
-            return OpStatusT<Location>(Location(
+            return ResultT::of(Location(
                     location.data_pos() + prefix_value_length,
                     suffix_value_length,
                     0,
@@ -2348,21 +2275,21 @@ private:
             ));
         }
         else {
-            MMA_THROW(Exception()) << WhatInfo(format_u8("split_run: invalid split position: {} {}", pos, location.run().length()));
+            return MEMORIA_MAKE_GENERIC_ERROR("split_run: invalid split position: {} {}", pos, location.run().length());
         }
     }
 
-    OpStatusT<size_t> add_run_length0(const Location& location, int64_t length)
+    Result<size_t> add_run_length0(const Location& location, int64_t length) noexcept
     {
+        using ResultT = Result<size_t>;
+
         Codec codec;
         auto meta = this->metadata();
 
         uint64_t run_value      = encode_run(location.run().symbol(), location.run().length() + length);
         size_t run_value_length = codec.length(run_value);
 
-        if(isFail(ensure_capacity(run_value_length))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(ensure_capacity(run_value_length));
 
         auto symbols = this->symbols();
 
@@ -2371,16 +2298,13 @@ private:
 
         meta->data_size() += (run_value_length - location.data_length());
 
-        return OpStatusT<size_t>(run_value_length);
+        return ResultT::of(run_value_length);
     }
 
-    OpStatusT<size_t> add_run_length(const Location& location, int64_t length)
+    Result<size_t> add_run_length(const Location& location, int64_t length) noexcept
     {
         auto run_value_length_s = add_run_length0(location, length);
-
-        if(isFail(run_value_length_s)) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_RETURN_IF_ERROR(run_value_length_s);
 
         auto meta = this->metadata();
         meta->size() += length;
@@ -2388,7 +2312,7 @@ private:
         return run_value_length_s;
     }
 
-    OpStatus remove_run(const Location& location)
+    VoidResult remove_run(const Location& location) noexcept
     {
         Codec codec;
         auto meta = this->metadata();
@@ -2403,8 +2327,9 @@ private:
         return shrink_to_data();
     }
 
-    OpStatusT<size_t> insert_run(const size_t& location, int32_t symbol, uint64_t length)
+    Result<size_t> insert_run(const size_t& location, int32_t symbol, uint64_t length) noexcept
     {
+        using ResultT = Result<size_t>;
         Codec codec;
         auto symbols = this->symbols();
         auto meta    = this->metadata();
@@ -2412,9 +2337,7 @@ private:
         uint64_t run_value       = encode_run(symbol, length);
         size_t run_value_length  = codec.length(run_value);
 
-        if (isFail(ensure_capacity(run_value_length))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(ensure_capacity(run_value_length));
 
         codec.move(symbols, location, location + run_value_length, meta->data_size() - location);
         codec.encode(symbols, run_value, location);
@@ -2422,7 +2345,7 @@ private:
         meta->data_size() += run_value_length;
         meta->size() += length;
 
-        return OpStatusT<size_t>(run_value_length);
+        return ResultT::of(run_value_length);
     }
 };
 

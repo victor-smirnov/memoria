@@ -94,7 +94,7 @@ public:
 
     virtual void append(int32_t symbol, uint64_t length)
     {
-        while (sequence_->append(symbol, length) != OpStatus::OK)
+        while (isFail(sequence_->append(symbol, length)))
         {
             enlarge();
         }
@@ -102,7 +102,7 @@ public:
 
     virtual void reindex()
     {
-        while (sequence_->reindex() != OpStatus::OK) {
+        while (isFail(sequence_->reindex())) {
             enlarge();
         }
     }
@@ -130,7 +130,7 @@ public:
     {
         SeqT* source_seq = ptr_cast<SeqT>(source.buffer());
 
-        while (sequence_->insert_from(sequence_->size(), source_seq, start, length) != OpStatus::OK) {
+        while (isFail(sequence_->insert_from(sequence_->size(), source_seq, start, length))) {
             enlarge();
         }
     }

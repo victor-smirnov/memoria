@@ -145,11 +145,7 @@ public:
 
             if (capacity > 0)
             {
-                MEMORIA_TRY(status, insertBuffer(leaf, pos[0], capacity));
-
-                if (isFail(status)) {
-                    return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
-                }
+                MEMORIA_TRY_VOID(insertBuffer(leaf, pos[0], capacity));
 
                 auto rest = buffer_size();
 
@@ -176,73 +172,64 @@ public:
         template <StreamType T> struct Tag {};
 
         int32_t current_substream_{};
-        OpStatus status_{OpStatus::OK};
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj>
-        void stream(
+        VoidResult stream(
                 StreamObj&& stream,
                 PackedAllocator* alloc,
                 int32_t at,
                 int32_t start,
                 int32_t size,
-                memoria::io::IOVector& io_vector)
+                memoria::io::IOVector& io_vector) noexcept
         {
-            if (isOk(status_))
-            {
-                status_ <<= stream.insert_io_substream(
+            MEMORIA_TRY_VOID(stream.insert_io_substream(
                     at,
                     io_vector.substream(current_substream_),
                     start,
                     size
-                );
-            }
+            ));
 
             current_substream_++;
+
+            return VoidResult::of();
         }
 
         template <
                 int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx,
                 typename ExtData, typename PkdStruct
         >
-        void stream(
+        VoidResult stream(
                 PackedSizedStructSO<ExtData, PkdStruct>& stream,
                 PackedAllocator* alloc,
                 int32_t at,
                 int32_t start,
                 int32_t size,
-                memoria::io::IOVector& io_vector)
+                memoria::io::IOVector& io_vector) noexcept
         {
-            if (isOk(status_))
-            {
-                status_ <<= stream.insertSpace(at, size);
-            }
+            return stream.insertSpace(at, size);
         }
 
         template <typename LCtrT, typename NodeT, typename... Args>
-        auto treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args)
+        VoidResult treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args) noexcept
         {
-            leaf.layout(255);
+            MEMORIA_TRY_VOID(leaf.layout(255));
             return leaf.processSubstreamGroups(*this, leaf.allocator(), std::forward<Args>(args)...);
         }
     };
 
 
-    virtual Result<OpStatus> insertBuffer(NodeBaseG& leaf, int32_t at, int32_t size) noexcept
+    virtual VoidResult insertBuffer(NodeBaseG& leaf, int32_t at, int32_t size) noexcept
     {
-        using ResultT = Result<OpStatus>;
+        using ResultT = VoidResult;
 
         InsertBufferFn fn;
-        ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, *io_vector_);
-
-        if (isFail(fn.status_)) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, *io_vector_));
 
         start_ += size;
 
         total_symbols_ += size;
 
-        return ResultT::of(OpStatus::OK);
+        return ResultT::of();
     }
 
     int32_t buffer_size() const noexcept
@@ -441,19 +428,21 @@ public:
 
     virtual Int32Result insertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size) noexcept
     {
-        int32_t inserted = this->insertBuffer_(mgr, leaf, at, size);
+        MEMORIA_TRY(inserted, this->insertBuffer_(mgr, leaf, at, size));
 
         this->total_symbols_ += inserted;
 
-        return Int32Result::of(inserted);
+        return inserted_result;
     }
 
-    int32_t insertBuffer_(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
+    Int32Result insertBuffer_(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size) noexcept
     {
-        if (tryInsertBuffer(mgr, leaf, at, size))
+        MEMORIA_TRY(ins_result, tryInsertBuffer(mgr, leaf, at, size));
+
+        if (ins_result)
         {
             this->start_ += size;
-            return size;
+            return Int32Result::of(size);
         }
         else {
             auto imax = size;
@@ -469,7 +458,9 @@ public:
                     auto mid = imin + ((imax - imin) / 2);
 
                     int32_t try_block_size = mid - start;
-                    if (tryInsertBuffer(mgr, leaf, at, try_block_size))
+
+                    MEMORIA_TRY(ins_result2, tryInsertBuffer(mgr, leaf, at, try_block_size));
+                    if (ins_result2)
                     {
                         imin = mid + 1;
 
@@ -484,7 +475,8 @@ public:
                     }
                 }
                 else {
-                    if (tryInsertBuffer(mgr, leaf, at, 1))
+                    MEMORIA_TRY(ins_result3, tryInsertBuffer(mgr, leaf, at, 1));
+                    if (ins_result3)
                     {
                         start += 1;
                         at += 1;
@@ -494,7 +486,7 @@ public:
                     break;
                 }
             }
-            return start;
+            return Int32Result::of(start);
         }
     }
 
@@ -504,20 +496,26 @@ protected:
     }
 
 
-    bool tryInsertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
+    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size) noexcept
     {
         typename Base::InsertBufferFn fn;
 
-        ctr().leaf_dispatcher().dispatch(leaf, fn, at, this->start_, size, *io_vector_);
+        VoidResult status = ctr().leaf_dispatcher().dispatch(leaf, fn, at, this->start_, size, *io_vector_);
 
-        if (isFail(fn.status_))
+        if (status.is_error())
         {
-            mgr.restoreNodeState();
-            return false;
+            if (status.is_packed_error())
+            {
+                mgr.restoreNodeState();
+                return BoolResult::of(false);
+            }
+            else {
+                return MEMORIA_PROPAGATE_ERROR(status);
+            }
         }
 
         mgr.checkpoint(leaf);
-        return true;
+        return BoolResult::of(true);
     }
 
     float getFreeSpacePart(const NodeBaseG& node)

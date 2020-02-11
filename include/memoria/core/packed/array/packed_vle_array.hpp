@@ -17,6 +17,8 @@
 #pragma once
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
+
 #include <memoria/core/tools/accessors.hpp>
 
 #include <memoria/core/packed/array/packed_vle_array_so.hpp>
@@ -126,19 +128,12 @@ public:
         );
     }
 
-    OpStatus init()
+    VoidResult init() noexcept
     {
-        if(isFail(init(empty_size(), Blocks * SegmentsPerBlock + 1))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(init(empty_size(), Blocks * SegmentsPerBlock + 1));
 
 
-        Metadata* meta = allocate<Metadata>(METADATA);
-
-        if(isFail(meta)) {
-            return OpStatus::FAIL;
-        }
-
+        MEMORIA_TRY(meta, allocate<Metadata>(METADATA));
         meta->size() = 0;
 
         for (psize_t block = 0; block < Blocks; block++)
@@ -146,20 +141,14 @@ public:
             meta->data_size(block)      = 0;
             meta->stride_log2(block)    = 2; // default value
 
-            DataSizeType* offsets = allocateArrayBySize<DataSizeType>(block * SegmentsPerBlock + OffsetsBlk + 1, 1);
-
-            if(isFail(offsets)) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY(offsets, allocateArrayBySize<DataSizeType>(block * SegmentsPerBlock + OffsetsBlk + 1, 1));
 
             offsets[0] = 0;
 
-            if(isFail(allocateArrayBySize<DataAtomType>(block * SegmentsPerBlock + DataBlk + 1, 0))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(allocateArrayBySize<DataAtomType>(block * SegmentsPerBlock + DataBlk + 1, 0));
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -226,9 +215,9 @@ public:
     const psize_t& max_size(psize_t block) const {return metadata().data_size(block);}
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        Base::serialize(buf);
+        MEMORIA_TRY_VOID(Base::serialize(buf));
 
         auto& meta = this->metadata();
 
@@ -243,12 +232,14 @@ public:
             FieldFactory<DataSizeType>::serialize(buf, offsets(b), meta.offsets_size());
             FieldFactory<DataAtomType>::serialize(buf, data(b), meta.data_size(b));
         }
+
+        return VoidResult::of();
     }
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        Base::deserialize(buf);
+        MEMORIA_TRY_VOID(Base::deserialize(buf));
 
         auto& meta = this->metadata();
 
@@ -262,6 +253,8 @@ public:
             FieldFactory<DataSizeType>::deserialize(buf, offsets(b), meta.offsets_size());
             FieldFactory<DataAtomType>::deserialize(buf, data(b), meta.data_size(b));
         }
+
+        return VoidResult::of();
     }
 };
 

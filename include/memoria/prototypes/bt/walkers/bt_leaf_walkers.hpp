@@ -180,7 +180,7 @@ public:
             Node::template StreamStartIdx<0>::Value
         > w;
 
-        node.dispatchAll(w, self(), accum, std::forward<Args>(args)...);
+        node.dispatchAll(w, self(), accum, std::forward<Args>(args)...).get_or_throw();
     }
 
     struct BranchSizePrefix
@@ -206,13 +206,13 @@ public:
     template <typename Node, typename... Args>
     void processBranchSizePrefix(Node&& node, Args&&... args)
     {
-        node.processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
+        node.processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <typename Node, typename... Args>
     void processLeafSizePrefix(Node&& node, Args&&... args)
     {
-        node.processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
+        node.processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...).get_or_throw();
     }
 };
 

@@ -89,9 +89,9 @@ public:
     }
 
 
-    OpStatus init(int32_t block_size) {return OpStatus::OK;}
+    VoidResult init(int32_t block_size) noexcept {return VoidResult::of();}
 
-    OpStatus init(const SizesT& capacities) {return OpStatus::OK;}
+    VoidResult init(const SizesT& capacities) noexcept {return VoidResult::of();}
 
     static constexpr int32_t empty_size()
     {
@@ -99,9 +99,9 @@ public:
     }
 
 
-    OpStatus init()
+    VoidResult init() noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <typename T>
@@ -110,13 +110,13 @@ public:
     }
 
     template <typename T>
-    OpStatus setValues(int32_t idx, T&&) {return OpStatus::OK;}
+    VoidResult setValues(int32_t idx, T&&) noexcept {return VoidResult::of();}
 
     template <typename T>
-    OpStatus insert(int32_t idx, T&&) {return OpStatus::OK;}
+    VoidResult insert(int32_t idx, T&&) noexcept {return VoidResult::of();}
 
     template <int32_t Offset, typename T>
-    OpStatus _insert(int32_t idx, T&&) {return OpStatus::OK;}
+    VoidResult _insert(int32_t idx, T&&) noexcept {return VoidResult::of();}
 
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
@@ -158,53 +158,53 @@ public:
 
     // =================================== Update ========================================== //
 
-    OpStatus reindex() {return OpStatus::OK;}
+    VoidResult reindex() {return VoidResult::of();}
     void check() const {}
 
-    OpStatus remove(int32_t start, int32_t end)
+    VoidResult remove(int32_t start, int32_t end) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus removeSpace(int32_t room_start, int32_t room_end) {
+    VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept {
         return remove(room_start, room_end);
     }
 
 
 
-    OpStatus reset()
+    VoidResult reset() noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
-    OpStatus splitTo(MyType* other, int32_t idx)
+    VoidResult splitTo(MyType* other, int32_t idx) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus mergeWith(MyType* other)
+    VoidResult mergeWith(MyType* other)
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     // ===================================== IO ============================================ //
 
-    OpStatus insert(int32_t pos, Value val)
+    VoidResult insert(int32_t pos, Value val) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus insert(int32_t block, int32_t pos, Value val)
+    VoidResult insert(int32_t block, int32_t pos, Value val) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
     template <typename Adaptor>
-    OpStatus insert(int32_t pos, int32_t size, Adaptor&& adaptor)
+    VoidResult insert(int32_t pos, int32_t size, Adaptor&& adaptor) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -218,28 +218,28 @@ public:
 
 
     template <typename Adaptor>
-    OpStatus _insert(int32_t pos, int32_t size, Adaptor&& adaptor)
+    VoidResult _insert(int32_t pos, int32_t size, Adaptor&& adaptor) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
     template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
+    VoidResult _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
+    VoidResult _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
+    VoidResult _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -271,24 +271,26 @@ public:
     {}
 
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->startStruct();
         handler->startGroup("EMPTY_STRUCT");
         handler->endGroup();
         handler->endStruct();
+
+        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        header_.serialize(buf);
+        return header_.serialize(buf);
     }
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        header_.deserialize(buf);
+        return header_.deserialize(buf);
     }
 };
 

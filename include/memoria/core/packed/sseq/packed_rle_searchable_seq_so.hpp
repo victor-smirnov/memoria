@@ -64,16 +64,16 @@ public:
     const PkdStruct* data() const {return data_;}
     PkdStruct* data() {return data_;}
 
-    OpStatus splitTo(MyType& other, int32_t idx)
+    VoidResult splitTo(MyType& other, int32_t idx) noexcept
     {
         return data_->splitTo(other.data(), idx);
     }
 
-    OpStatus mergeWith(MyType& other) {
+    VoidResult mergeWith(MyType& other) noexcept {
         return data_->mergeWith(other.data());
     }
 
-    OpStatus removeSpace(int32_t room_start, int32_t room_end) {
+    VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept {
         return data_->removeSpace(room_start, room_end);
     }
 
@@ -91,7 +91,7 @@ public:
         return data_->selectFW(std::forward<Args>(args)...);
     }
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const {
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept {
         return data_->generateDataEvents(handler);
     }
 
@@ -108,9 +108,10 @@ public:
         return data_->configure_io_substream(substream);
     }
 
-    OpStatusT<int32_t> insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
+    Int32Result insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size) noexcept
     {
-        return data_->insert_io_substream(at, substream, start, size);
+        MEMORIA_TRY_VOID(data_->insert_io_substream(at, substream, start, size));
+        return Int32Result::of(at + size);
     }
 };
 

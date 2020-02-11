@@ -109,8 +109,8 @@ public:
     const PkdStruct* data() const {return data_;}
     PkdStruct* data() {return data_;}
 
-    OpStatus reindex() {
-        return OpStatus::OK;
+    VoidResult reindex() {
+        return VoidResult::of();
     }
 
     DataLengths data_lengts(psize_t row, psize_t size) const
@@ -124,7 +124,7 @@ public:
         return lengths;
     }
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         const auto& meta = data_->metadata();
 
@@ -146,6 +146,8 @@ public:
 
         handler->endGroup();
         handler->endStruct();
+
+        return VoidResult::of();
     }
 
     void check() const
@@ -185,72 +187,59 @@ public:
 
 
 
-    OpStatus splitTo(MyType& other, psize_t idx)
+    VoidResult splitTo(MyType& other, psize_t idx)
     {
         auto& meta = data_->metadata();
 
-        MEMORIA_V1_ASSERT(other.size(), ==, 0);
+        MEMORIA_V1_ASSERT_RTN(other.size(), ==, 0);
 
         psize_t split_size = meta.size() - idx;
         DataLengths data_lengths = this->data_lengts(idx, split_size);
 
-        if(isFail(other.insertSpace(0, split_size, data_lengths))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(other.insertSpace(0, split_size, data_lengths));
 
         copyTo(other, idx, split_size, 0, data_lengths);
 
-        if(isFail(removeSpace(idx, meta.size()))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(removeSpace(idx, meta.size()));
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus mergeWith(MyType& other)
+    VoidResult mergeWith(MyType& other)
     {
         psize_t my_size     = this->size();
         psize_t other_size  = other.size();
 
         DataLengths data_lengths = this->data_lengts(0, my_size);
 
-        if(isFail(other.insertSpace(other_size, my_size, data_lengths))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(other.insertSpace(other_size, my_size, data_lengths));
 
         copyTo(other, 0, my_size, other_size, data_lengths);
 
-        if(isFail(removeSpace(0, my_size))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(removeSpace(0, my_size));
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus removeSpace(psize_t room_start, psize_t room_end)
+    VoidResult removeSpace(psize_t room_start, psize_t room_end)
     {
         auto& meta = data_->metadata();
         psize_t size = meta.size();
         psize_t room_length = room_end - room_start;
 
-        MEMORIA_V1_ASSERT(room_start, <=, size);
-        MEMORIA_V1_ASSERT(room_end, <=, size);
-        MEMORIA_V1_ASSERT(room_start, <=, room_end);
+        MEMORIA_V1_ASSERT_RTN(room_start, <=, size);
+        MEMORIA_V1_ASSERT_RTN(room_end, <=, size);
+        MEMORIA_V1_ASSERT_RTN(room_start, <=, room_end);
 
-        OpStatus status{OpStatus::OK};
-
-        for_each_dimension([&](auto dim_idx) {
-            if (!isFail(status))
-            {
-                status = data_->template dimension<dim_idx>().remove_space(
-                    room_start, room_length
-                );
-            }
-        });
+        MEMORIA_TRY_VOID(for_each_dimension_res([&](auto dim_idx) {
+            return data_->template dimension<dim_idx>().remove_space(
+                room_start, room_length
+            );
+        }));
 
         meta.size() -= room_length;
 
-        return status;
+        return VoidResult::of();
     }
 
     ViewType get_values(psize_t idx) const {
@@ -263,25 +252,18 @@ public:
 
 
     template <typename T>
-    OpStatus setValues(psize_t pos, const core::StaticVector<T, Columns>& values)
+    VoidResult setValues(psize_t pos, const core::StaticVector<T, Columns>& values)
     {
-        if (isFail(removeSpace(pos, pos + 1))) {
-            return OpStatus::FAIL;
-        }
-
+        MEMORIA_TRY_VOID(removeSpace(pos, pos + 1));
         return insert(pos, values);
     }
 
     template <typename T>
-    OpStatus insert(psize_t pos, const core::StaticVector<T, Columns>& values)
+    VoidResult insert(psize_t pos, const core::StaticVector<T, Columns>& values)
     {
-        if (isFail(insert_from_fn(pos, 1, [&](psize_t row){
-                return values[0];
-        }))) {
-            return OpStatus::FAIL;
-        }
-
-        return OpStatus::OK;
+        return insert_from_fn(pos, 1, [&](psize_t row){
+            return values[0];
+        });
     }
 
     ViewType max(psize_t column) const
@@ -343,17 +325,14 @@ public:
 
 
 
-    OpStatusT<int32_t> insert_io_substream(psize_t at, const io::IOSubstream& substream, psize_t start, psize_t size)
+    Int32Result insert_io_substream(psize_t at, const io::IOSubstream& substream, psize_t start, psize_t size) noexcept
     {
         using IOBuffer = typename PkdStruct::GrowableIOSubstream;
-
         const IOBuffer& buffer = io::substream_cast<IOBuffer>(substream);
 
         DataLengths lengths = to_data_lengths(buffer.data_lengths(start, size));
 
-        if(isFail(insertSpace(at, size, lengths))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(insertSpace(at, size, lengths));
 
         for_each_dimension([&](auto dim_idx) {
             data_->template dimension<dim_idx>().copy_from_databuffer(
@@ -361,35 +340,30 @@ public:
             );
         });
 
-        return OpStatusT<int32_t>(at + size);
+        return Int32Result::of(static_cast<int32_t>(at + size));
     }
 
 
 
     template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    OpStatus _update_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
+    VoidResult _update_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
     {
-        if (isFail(removeSpace(pos, pos + 1))) {
-            return OpStatus::FAIL;
-        }
-
+        MEMORIA_TRY_VOID(removeSpace(pos, pos + 1));
         return _insert_b<Offset>(pos, accum, std::forward<AccessorFn>(val));
     }
 
     template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    OpStatus _insert_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
+    VoidResult _insert_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
     {
-        if (isFail(insert_from_fn(pos, 1, [&](psize_t row){
+        MEMORIA_TRY_VOID(insert_from_fn(pos, 1, [&](psize_t row){
                 return val(0);
-        }))) {
-            return OpStatus::FAIL;
-        }
+        }));
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _remove(psize_t idx, BranchNodeEntryItem<T, Size>& accum)
+    VoidResult _remove(psize_t idx, BranchNodeEntryItem<T, Size>& accum)
     {
         return removeSpace(idx, idx + 1);
     }
@@ -497,24 +471,20 @@ public:
         return total_size;
     }
 
-    OpStatus replace(psize_t column, psize_t idx, const ViewType& view)
+    VoidResult replace(psize_t column, psize_t idx, const ViewType& view) noexcept
     {
         DataDimensionsTuple data = DataTypeTraits<DataType>::describe_data(&view);
 
-        if (isFail(resize(idx, data))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(resize(idx, data));
 
-        for_each_dimension([&](auto dim_idx) {
-            data_->template dimension<dim_idx>().replace_row(
+        return for_each_dimension_res([&](auto dim_idx) {
+            return data_->template dimension<dim_idx>().replace_row(
                 idx, std::get<dim_idx>(data)
             );
         });
-
-        return OpStatus::OK;
     }
 
-    OpStatus insert(int32_t idx, int32_t size, std::function<Values (int32_t)> provider)
+    VoidResult insert(int32_t idx, int32_t size, std::function<Values (int32_t)> provider) noexcept
     {
         return insert_from_fn(idx, size, [&](psize_t row){
             return provider(row)[0];
@@ -524,7 +494,7 @@ public:
 
 
     template <typename AccessorFn>
-    OpStatus insert_from_fn(psize_t row_at, psize_t size, AccessorFn&& elements)
+    VoidResult insert_from_fn(psize_t row_at, psize_t size, AccessorFn&& elements)
     {
         DataLengths data_lengths{};
 
@@ -538,9 +508,7 @@ public:
             });
         }
 
-        if (isFail(insertSpace(row_at, size, data_lengths))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(insertSpace(row_at, size, data_lengths));
 
         for (psize_t row = 0; row < size; row++)
         {
@@ -554,12 +522,12 @@ public:
             });
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
 
-    OpStatus insert(psize_t idx, const ViewType& view)
+    VoidResult insert(psize_t idx, const ViewType& view) noexcept
     {
         static_assert(Columns == 1, "");
 
@@ -569,7 +537,7 @@ public:
         return insert(idx, vv);
     }
 
-    OpStatus remove(psize_t idx)
+    VoidResult remove(psize_t idx) noexcept
     {
         return removeSpace(idx, idx + 1);
     }
@@ -596,15 +564,15 @@ private:
     }
 
 
-    OpStatus insertSpace(psize_t idx, psize_t room_length, const DataLengths& data_lengths)
+    VoidResult insertSpace(psize_t idx, psize_t room_length, const DataLengths& data_lengths) noexcept
     {
         auto& meta = data_->metadata();
 
         psize_t size = meta.size();
 
-        MEMORIA_V1_ASSERT(idx, <=, size);
-        MEMORIA_V1_ASSERT(idx, >=, 0);
-        MEMORIA_V1_ASSERT(room_length, >=, 0);
+        MEMORIA_V1_ASSERT_RTN(idx, <=, size);
+        MEMORIA_V1_ASSERT_RTN(idx, >=, 0);
+        MEMORIA_V1_ASSERT_RTN(room_length, >=, 0);
 
         psize_t extra_data{};
 
@@ -614,48 +582,34 @@ private:
             );
         });
 
-        if(isFail(data_->resize(PkdStruct::base_size(extra_data)))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(data_->resize(PkdStruct::base_size(extra_data)));
 
-        OpStatus status{OpStatus::OK};
-
-        for_each_dimension([&](auto dim_idx) {
-            if (!isFail(status))
-            {
-                status = data_->template dimension<dim_idx>().insert_space(
-                    idx, room_length, data_lengths[dim_idx]
-                );
-            }
-        });
+        MEMORIA_TRY_VOID(for_each_dimension_res([&](auto dim_idx) {
+            return data_->template dimension<dim_idx>().insert_space(
+                idx, room_length, data_lengths[dim_idx]
+            );
+        }));
 
         meta.size() += room_length;
 
-        return status;
+        return VoidResult::of();
     }
 
 
-    OpStatus resize(psize_t idx, const DataDimensionsTuple& new_value_sizes)
+    VoidResult resize(psize_t idx, const DataDimensionsTuple& new_value_sizes) noexcept
     {
         auto& meta = data_->metadata();
 
         psize_t size = meta.size();
 
-        MEMORIA_V1_ASSERT(idx, <=, size);
-        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT_RTN(idx, <=, size);
+        MEMORIA_V1_ASSERT_RTN(idx, >=, 0);
 
-        OpStatus status{OpStatus::OK};
-
-        for_each_dimension([&](auto dim_idx) {
-            if (!isFail(status))
-            {
-                status = data_->template dimension<dim_idx>().resize_row(
+        return for_each_dimension_res([&](auto dim_idx) {
+            return data_->template dimension<dim_idx>().resize_row(
                     idx, std::get<dim_idx>(new_value_sizes)
-                );
-            }
+            );
         });
-
-        return status;
     }
 
     template <typename... Types>
@@ -673,6 +627,11 @@ private:
     template <typename Fn>
     static void for_each_dimension(Fn&& fn) {
         ForEach<0, Dimensions>::process_fn(fn);
+    }
+
+    template <typename Fn>
+    static VoidResult for_each_dimension_res(Fn&& fn) noexcept {
+        return ForEach<0, Dimensions>::process_res_fn(fn);
     }
 };
 

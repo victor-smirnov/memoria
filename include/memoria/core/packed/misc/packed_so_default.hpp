@@ -66,9 +66,9 @@ public:
     const PkdStruct* data() const {return data_;}
     PkdStruct* data() {return data_;}
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
-        data_->generateDataEvents(handler);
+        return data_->generateDataEvents(handler);
     }
 
     void check() const {

@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/core/tools/bitmap_select.hpp>
-
+#include <memoria/core/tools/result.hpp>
 
 namespace memoria {
 
@@ -103,16 +103,14 @@ class BitmapReindexFn {
             "BitmapReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
 
 public:
-    OpStatus reindex(Seq& seq)
+    VoidResult reindex(Seq& seq) noexcept
     {
         int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
             int32_t index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
-            if (isFail(seq.createIndex(index_size))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(seq.createIndex(index_size));
 
             Index* index = seq.index();
 
@@ -134,11 +132,9 @@ public:
             int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                if (isFail(index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
+                MEMORIA_TRY_VOID(index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
-                }))) {
-                    return OpStatus::FAIL;
-                }
+                }));
 
                 at += buffer_size;
             }
@@ -149,7 +145,7 @@ public:
             return seq.removeIndex();
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     void check(const Seq& seq)
@@ -222,16 +218,14 @@ class ReindexFn {
                     "ReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
 
 public:
-    OpStatus reindex(Seq& seq)
+    VoidResult reindex(Seq& seq) noexcept
     {
         int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
             int32_t index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
-            if(isFail(seq.createIndex(index_size))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(seq.createIndex(index_size));
 
             Index* index = seq.index();
 
@@ -256,11 +250,9 @@ public:
             int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                if(isFail(index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
+                MEMORIA_TRY_VOID(index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
-                }))) {
-                    return OpStatus::FAIL;
-                }
+                }));
 
                 at += buffer_size;
             }
@@ -271,7 +263,7 @@ public:
             return seq.removeIndex();
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -350,7 +342,7 @@ class VLEReindexFn {
                 "VLEReindexFn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-    OpStatus reindex(Seq& seq)
+    VoidResult reindex(Seq& seq) noexcept
     {
         int32_t size = seq.size();
 
@@ -381,9 +373,7 @@ public:
                 }
             }
 
-            if(isFail(seq.createIndex(length))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(seq.createIndex(length));
 
             Index* index = seq.index();
 
@@ -407,13 +397,9 @@ public:
             SizesT at;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                auto at_s = index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
+                MEMORIA_TRY(at_s, index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
-                });
-
-                if (isFail(at_s)) {
-                    return OpStatus::FAIL;
-                }
+                }));
 
                 at = at_s.value();
             }
@@ -424,7 +410,7 @@ public:
             return seq.removeIndex();
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -500,7 +486,7 @@ class VLEReindex8Fn {
                 "VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-    OpStatus reindex(Seq& seq)
+    VoidResult reindex(Seq& seq) noexcept
     {
         int32_t size = seq.size();
 
@@ -531,9 +517,7 @@ public:
                 }
             }
 
-            if(isFail(seq.createIndex(length))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(seq.createIndex(length));
 
             symbols = seq.symbols();
 
@@ -558,13 +542,9 @@ public:
             int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                auto at_s = index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
+                MEMORIA_TRY(at_s, index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
-                });
-
-                if(isFail(at_s)) {
-                    return OpStatus::FAIL;
-                }
+                }));
 
                 at = at_s.value();
             }
@@ -575,7 +555,7 @@ public:
             return seq.removeIndex();
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     void check(const Seq& seq)
@@ -646,7 +626,7 @@ class VLEReindex8BlkFn: public VLEReindex8Fn<Seq> {
                 "VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-    OpStatus reindex(Seq& seq)
+    VoidResult reindex(Seq& seq) noexcept
     {
         int32_t size = seq.size();
 
@@ -705,7 +685,7 @@ public:
             return Base::reindex(seq);
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 };
 

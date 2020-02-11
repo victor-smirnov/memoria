@@ -85,24 +85,14 @@ public:
 
 
 
-    OpStatus init()
+    VoidResult init() noexcept
     {
-        if(isFail(Base::init(empty_size(), STRUCTS_NUM__))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::init(empty_size(), STRUCTS_NUM__));
 
-        KeysPkdStruct* keys = allocateEmpty<KeysPkdStruct>(KEYS);
-        if(isFail(keys)) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(allocateEmpty<KeysPkdStruct>(KEYS));
+        MEMORIA_TRY_VOID(allocateEmpty<ValuesPkdStruct>(VALUES));
 
-
-        ValuesPkdStruct* values = allocateEmpty<ValuesPkdStruct>(VALUES);
-        if(isFail(values)) {
-            return OpStatus::FAIL;
-        }
-
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     int32_t size() const
@@ -118,21 +108,21 @@ public:
 
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        Base::serialize(buf);
+        MEMORIA_TRY_VOID(Base::serialize(buf));
 
-        keys()->serialize(buf);
-        values()->serialize(buf);
+        MEMORIA_TRY_VOID(keys()->serialize(buf));
+        return values()->serialize(buf);
     }
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        Base::deserialize(buf);
+        MEMORIA_TRY_VOID(Base::deserialize(buf));
 
-        keys()->deserialize(buf);
-        values()->deserialize(buf);
+        MEMORIA_TRY_VOID(keys()->deserialize(buf));
+        return values()->deserialize(buf);
     }
 };
 

@@ -46,16 +46,21 @@ namespace _ {
         static void get_value(std::tuple<>& value, psize_t idx, const PkdTuple& pkd_tuple) {}
 
         template <typename SerializationData>
-        static void serialize(SerializationData& buf, psize_t idx, const PkdTuple& tuple) {}
+        static VoidResult serialize(SerializationData& buf, psize_t idx, const PkdTuple& tuple) noexcept {
+            return VoidResult::of();
+        }
 
         template <typename DeserializationData>
-        static void deserialize(DeserializationData& buf, psize_t idx, PkdTuple& tuple) {}
+        static VoidResult deserialize(DeserializationData& buf, psize_t idx, PkdTuple& tuple) noexcept {
+            return VoidResult::of();
+        }
 
-        static void generateDataEvents(const char* name, psize_t idx, IBlockDataEventHandler* handler, const PkdTuple& pkd_tuple)
+        static VoidResult generateDataEvents(const char* name, psize_t idx, IBlockDataEventHandler* handler, const PkdTuple& pkd_tuple) noexcept
         {
             U8String str("EMPTY_TYPE");
             BlockValueProviderT<U8String> pp(str);
-            handler->value(name, pp);
+            handler->value(name, pp);            
+            return VoidResult::of();
         }
     };
 
@@ -82,24 +87,29 @@ namespace _ {
         }
 
         template <typename SerializationData>
-        static void serialize(SerializationData& buf, psize_t idx, const PkdTuple& tuple)
+        static VoidResult serialize(SerializationData& buf, psize_t idx, const PkdTuple& tuple) noexcept
         {
             const T* data = get<T>(tuple, idx);
             FieldFactory<T>::serialize(buf, *data);
+
+            return VoidResult::of();
         }
 
         template <typename DeserializationData>
-        static void deserialize(DeserializationData& buf, psize_t idx, PkdTuple& tuple)
+        static VoidResult deserialize(DeserializationData& buf, psize_t idx, PkdTuple& tuple) noexcept
         {
             T* data = get<T>(tuple, idx);
             FieldFactory<T>::deserialize(buf, *data);
+            return VoidResult::of();
         }
 
-        static void generateDataEvents(const char* name, psize_t idx, IBlockDataEventHandler* handler, const PkdTuple& pkd_tuple)
+        static VoidResult generateDataEvents(const char* name, psize_t idx, IBlockDataEventHandler* handler, const PkdTuple& pkd_tuple) noexcept
         {
             U8String str_value = format_u8("{}", *get<T>(pkd_tuple, idx));
             BlockValueProviderT<U8String> pp(str_value);
             handler->value(name, pp);
+
+            return VoidResult::of();
         }
     };
 
@@ -137,7 +147,7 @@ namespace _ {
         }
 
         template <typename SerializationData>
-        static void serialize(SerializationData& buf, psize_t idx, const PkdTuple& tuple)
+        static VoidResult serialize(SerializationData& buf, psize_t idx, const PkdTuple& tuple) noexcept
         {
             using BufferType = typename ValueCodec<U8StringView>::BufferType;
             const BufferType* data = get<BufferType>(tuple, idx);
@@ -149,13 +159,15 @@ namespace _ {
         }
 
         template <typename DeserializationData>
-        static void deserialize(DeserializationData& buf, psize_t idx, PkdTuple& tuple)
+        static VoidResult deserialize(DeserializationData& buf, psize_t idx, PkdTuple& tuple) noexcept
         {
             T* data = get<T>(tuple, idx);
             FieldFactory<T>::deserialize(buf, *data);
+
+            return VoidResult::of();
         }
 
-        static void generateDataEvents(const char* name, psize_t idx, IBlockDataEventHandler* handler, const PkdTuple& pkd_tuple)
+        static VoidResult generateDataEvents(const char* name, psize_t idx, IBlockDataEventHandler* handler, const PkdTuple& pkd_tuple) noexcept
         {
             using BufferType = typename ValueCodec<U8StringView>::BufferType;
             const BufferType* data = get<BufferType>(pkd_tuple, idx);
@@ -166,6 +178,8 @@ namespace _ {
 
             BlockValueProviderT<U8String> pp(str_value);
             handler->value(name, pp);
+
+            return VoidResult::of();
         }
     };
 
@@ -196,8 +210,8 @@ public:
 
     PackedTuple() = default;
 
-    OpStatus pack() {
-        return OpStatus::OK;
+    VoidResult pack() noexcept {
+        return VoidResult::of();
     }
 
     struct SetValueFn {
@@ -233,28 +247,26 @@ public:
         return PackedAllocator::block_size(0, TupleSize);
     }
 
-    OpStatus init()
+    VoidResult init() noexcept
     {
-        if(isFail(init(empty_size(), TupleSize))) {
-            return OpStatus::FAIL;
-        }
-
-        return OpStatus::OK;
+        MEMORIA_TRY_VOID(init(empty_size(), TupleSize));
+        return VoidResult::of();
     }
 
 
     struct GenerateEventsFn {
         template <int32_t Idx>
-        bool process(IBlockDataEventHandler* handler, const MyType& pkd_tuple)
+        BoolResult process(IBlockDataEventHandler* handler, const MyType& pkd_tuple) noexcept
         {
             using T = std::tuple_element_t<Idx, Tuple>;
-            _::PkdTupleValueHandler<MyType, T>::generateDataEvents("ENTRY", Idx, handler, pkd_tuple);
+            auto res = _::PkdTupleValueHandler<MyType, T>::generateDataEvents("ENTRY", Idx, handler, pkd_tuple);
+            MEMORIA_RETURN_IF_ERROR(res);
 
-            return true;
+            return BoolResult::of(true);
         }
     };
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->startStruct();
         handler->startGroup("PKD_TUPLE");
@@ -264,50 +276,57 @@ public:
 
         handler->startGroup("ENTRIES");
 
-        ForEach<0, tuple_size>::process(GenerateEventsFn(), handler, *this);
+        auto res = ForEach<0, tuple_size>::process_res(GenerateEventsFn(), handler, *this);
+        MEMORIA_RETURN_IF_ERROR(res);
 
         handler->endGroup();
 
         handler->endGroup();
         handler->endStruct();
+
+        return VoidResult::of();
     }
 
     struct SerializeFn {
         template <int32_t Idx, typename SerializationData>
-        bool process(SerializationData& buffer, const MyType& pkd_tuple)
+        BoolResult process(SerializationData& buffer, const MyType& pkd_tuple) noexcept
         {
             using T = std::tuple_element_t<Idx, Tuple>;
-            _::PkdTupleValueHandler<MyType, T>::serialize(buffer, Idx, pkd_tuple);
-            return true;
+            auto res = _::PkdTupleValueHandler<MyType, T>::serialize(buffer, Idx, pkd_tuple);
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            return BoolResult::of(true);
         }
     };
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        Base::serialize(buf);
+        MEMORIA_TRY_VOID(Base::serialize(buf));
 
         constexpr psize_t tuple_size = std::tuple_size<Tuple>::value;
-        ForEach<0, tuple_size>::process(SerializeFn(), buf, *this);
+        return ForEach<0, tuple_size>::process_res(SerializeFn(), buf, *this);
     }
 
     struct DeserializeFn {
         template <int32_t Idx, typename DeserializationData>
-        bool process(DeserializationData& buffer, MyType& pkd_tuple)
+        BoolResult process(DeserializationData& buffer, MyType& pkd_tuple) noexcept
         {
             using T = std::tuple_element_t<Idx, Tuple>;
-            _::PkdTupleValueHandler<MyType, T>::deserialize(buffer, Idx, pkd_tuple);
-            return true;
+            auto res = _::PkdTupleValueHandler<MyType, T>::deserialize(buffer, Idx, pkd_tuple);
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            return BoolResult::of(true);
         }
     };
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        Base::deserialize(buf);
+        MEMORIA_TRY_VOID(Base::deserialize(buf));
 
         constexpr psize_t tuple_size = std::tuple_size<Tuple>::value;
-        ForEach<0, tuple_size>::process(DeserializeFn(), buf, *this);
+        return ForEach<0, tuple_size>::process_res(DeserializeFn(), buf, *this);
     }
 };
 

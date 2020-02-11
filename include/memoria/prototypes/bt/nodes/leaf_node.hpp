@@ -102,34 +102,33 @@ public:
 
     struct SerializeFn {
         template <typename Tree, typename SerializationData>
-        void stream(const Tree* tree, SerializationData* buf)
+        VoidResult stream(const Tree* tree, SerializationData* buf) noexcept
         {
-            tree->serialize(*buf);
+            return tree->serialize(*buf);
         }
     };
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        Base::template serialize<RootMetadataList>(buf);
+        MEMORIA_TRY_VOID(Base::template serialize<RootMetadataList>(buf));
 
-        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf).get_or_throw();
+        return Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
     }
 
     struct DeserializeFn {
         template <typename Tree, typename DeserializationData>
-        void stream(Tree* tree, DeserializationData* buf)
+        VoidResult stream(Tree* tree, DeserializationData* buf) noexcept
         {
-            tree->deserialize(*buf);
+            return tree->deserialize(*buf);
         }
     };
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        Base::template deserialize<RootMetadataList>(buf);
-
-        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf).get_or_throw();
+        MEMORIA_TRY_VOID(Base::template deserialize<RootMetadataList>(buf));
+        return Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
     }
 
 };

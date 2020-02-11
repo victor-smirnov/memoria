@@ -83,7 +83,7 @@ public:
     const int32_t& max_size() const {return max_size_;}
 
 public:
-    OpStatus init(int32_t block_size)
+    VoidResult init(int32_t block_size) noexcept
     {
         size_ = 0;
         alignment_gap_ = 0;
@@ -92,10 +92,10 @@ public:
 
         max_size_   = data_size * 8 / BitsPerSymbol;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus init()
+    VoidResult init() noexcept
     {
         return init(empty_size());
     }
@@ -247,14 +247,12 @@ public:
 
     // ==================================== Node =========================================== //
 
-    OpStatus splitTo(MyType* other, int32_t idx)
+    VoidResult splitTo(MyType* other, int32_t idx) noexcept
     {
         int32_t to_move     = this->size() - idx;
         int32_t other_size  = other->size();
 
-        if(isFail(other->enlargeData(to_move))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(other->enlargeData(to_move));
 
         move(other->symbols(), other->symbols(), 0, to_move, other_size);
 
@@ -265,20 +263,18 @@ public:
         return removeSpace(idx, this->size());
     }
 
-    OpStatus mergeWith(MyType* other) const
+    VoidResult mergeWith(MyType* other) const noexcept
     {
         int32_t my_size     = this->size();
         int32_t other_size  = other->size();
 
-        if(isFail(other->enlargeData(my_size))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(other->enlargeData(my_size));
 
         move(this->symbols(), other->symbols(), 0, other_size, my_size);
 
         other->size() += my_size;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     // ==================================== Dump =========================================== //
@@ -297,7 +293,7 @@ public:
         });
     }
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->startGroup("PACKED_FSE_BITMAP");
 
@@ -313,28 +309,34 @@ public:
         handler->endGroup();
 
         handler->endGroup();
+
+        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        header_.serialize(buf);
+        MEMORIA_TRY_VOID(header_.serialize(buf));
 
         FieldFactory<int32_t>::serialize(buf, size_);
         FieldFactory<int32_t>::serialize(buf, max_size_);
 
         FieldFactory<Value>::serialize(buf, buffer_, symbols_buffer_size());
+
+        return VoidResult::of();
     }
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        header_.deserialize(buf);
+        MEMORIA_TRY_VOID(header_.deserialize(buf));
 
         FieldFactory<int32_t>::deserialize(buf, size_);
         FieldFactory<int32_t>::deserialize(buf, max_size_);
 
         FieldFactory<Value>::deserialize(buf, buffer_, symbols_buffer_size());
+
+        return VoidResult::of();
     }
 
 private:

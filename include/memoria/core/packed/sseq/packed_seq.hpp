@@ -142,7 +142,7 @@ public:
     PackedSeq() {}
 
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->startGroup("PACKED_TREE");
 
@@ -172,10 +172,12 @@ public:
         handler->endGroup();
 
         handler->endGroup();
+
+        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
         FieldFactory<int32_t>::serialize(buf, size());
         FieldFactory<int32_t>::serialize(buf, max_size_);
@@ -186,11 +188,13 @@ public:
         const Value* values = valuesBlock();
 
         FieldFactory<Value>::serialize(buf, values, getUsedValueCells());
+
+        return VoidResult::of();
     }
 
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
         FieldFactory<int32_t>::deserialize(buf, size());
         FieldFactory<int32_t>::deserialize(buf, max_size_);
@@ -201,6 +205,8 @@ public:
         Value* values = valuesBlock();
 
         FieldFactory<Value>::deserialize(buf, values, getUsedValueCells());
+
+        return VoidResult:;of();
     }
 
     void initByBlock(int32_t block_size)

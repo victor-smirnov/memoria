@@ -71,7 +71,7 @@ namespace {
 
             IteratorSubstreamsRangesListWalker<IntList<Idx, Tail...>> w;
 
-            node.template processStreamByIdx<Idx>(w, RangesIdxList(), std::get<Idx>(accum), walker, std::forward<Args>(args)...);
+            node.template processStreamByIdx<Idx>(w, RangesIdxList(), std::get<Idx>(accum), walker, std::forward<Args>(args)...).get_or_throw();
 
             IteratorSubstreamsRangesListWalker<IntList<Tail...>>::process(walker, node, accum, std::forward<Args>(args)...);
         }

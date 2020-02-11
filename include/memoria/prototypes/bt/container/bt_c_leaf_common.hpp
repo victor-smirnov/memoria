@@ -59,9 +59,7 @@ public:
         auto& self = this->self();
 
         MEMORIA_TRY_VOID(self.ctr_split_node(path, 0, [&self, &split_at](NodeBaseG& left, NodeBaseG& right) noexcept -> VoidResult {
-            MEMORIA_TRY_VOID(self.ctr_split_leaf_node(left, right, split_at));
-            // FIXME: handle OpStatus from res here? Or just remove it from the func defn?
-            return VoidResult::of();
+            return self.ctr_split_leaf_node(left, right, split_at);
         }));
 
         MEMORIA_TRY_VOID(self.ctr_check_path(path));
@@ -69,11 +67,10 @@ public:
         return VoidResult::of();
     }
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, OpStatus);
-    Result<OpStatus> ctr_split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at) noexcept
+    MEMORIA_V1_DECLARE_NODE_FN(SplitNodeFn, splitTo);
+    VoidResult ctr_split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at) noexcept
     {
-        OpStatus status = self().leaf_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
-        return Result<OpStatus>::of(status);
+        return self().leaf_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
     }
 
 public:

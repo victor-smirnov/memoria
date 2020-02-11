@@ -152,13 +152,13 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN(GenerateDataEventsFn, generateDataEvents);
     VoidResult ctr_dump_node(const NodeBaseG& block, std::ostream& out = std::cout) const noexcept
     {
-        return wrap_throwing([&]() -> VoidResult{
+        return wrap_throwing([&]() -> VoidResult {
             const auto& self = this->self();
             if (block)
             {
                 TextBlockDumper dumper(out);
 
-                self.node_dispatcher().dispatch(block, GenerateDataEventsFn(), &dumper).get_or_throw();
+                MEMORIA_TRY_VOID(self.node_dispatcher().dispatch(block, GenerateDataEventsFn(), &dumper));
 
                 out<<std::endl;
                 out<<std::endl;
@@ -357,14 +357,12 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
     VoidResult ctr_layout_branch_node(NodeBaseG& node, uint64_t active_streams) const noexcept
     {
-        self().branch_dispatcher().dispatch(node, LayoutNodeFn(), active_streams);
-        return VoidResult::of();
+        return self().branch_dispatcher().dispatch(node, LayoutNodeFn(), active_streams);
     }
 
     VoidResult ctr_layout_leaf_node(NodeBaseG& node, const Position& sizes) const noexcept
     {
-        self().leaf_dispatcher().dispatch(node, LayoutNodeFn(), sizes);
-        return VoidResult::of();
+        return self().leaf_dispatcher().dispatch(node, LayoutNodeFn(), sizes);
     }
 
 

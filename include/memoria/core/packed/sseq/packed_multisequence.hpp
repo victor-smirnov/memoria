@@ -112,23 +112,17 @@ public:
         return block_size;
     }
 
-    OpStatus init()
+    VoidResult init() noexcept
     {
         int32_t block_size = MyType::empty_size();
 
-        if(isFail(Base::init(block_size, 2))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::init(block_size, 2));
 
-        if(isFail(Base::template allocateEmpty<LabelArray>(LABELS))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::template allocateEmpty<LabelArray>(LABELS));
 
-        if(isFail(Base::template allocateEmpty<Sequence>(SYMBOLS))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::template allocateEmpty<Sequence>(SYMBOLS));
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     int32_t rank(int32_t subseq_num, int32_t to, int32_t symbol) const
@@ -162,12 +156,9 @@ public:
         }
     }
 
-    OpStatus insertSubsequence(int32_t idx)
+    VoidResult insertSubsequence(int32_t idx) noexcept
     {
-        if(isFail(labels()->insert(idx, LabelArrayValues()))) {
-            return OpStatus::FAIL;
-        }
-
+        MEMORIA_TRY_VOID(labels()->insert(idx, LabelArrayValues()));
         return labels()->reindex();
     }
 
@@ -176,48 +167,44 @@ public:
         insertSubsequence(labels()->size());
     }
 
-    OpStatus insertSymbol(int32_t subseq_num, int32_t idx, int32_t symbol)
+    VoidResult insertSymbol(int32_t subseq_num, int32_t idx, int32_t symbol) noexcept
     {
         Sequence* seq       = sequence();
         LabelArray* labels  = this->labels();
 
         int32_t seq_prefix  = labels->sum(0, subseq_num);
 
-        MEMORIA_V1_ASSERT(idx, <=, labels->value(0, subseq_num));
+        MEMORIA_V1_ASSERT_RTN(idx, <=, labels->value(0, subseq_num));
 
-        if(isFail(seq->insert(seq_prefix + idx, symbol))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(seq->insert(seq_prefix + idx, symbol));
 
         labels->value(0, subseq_num)++;
 //        labels->setValue(0, subseq_num)++;
 
-        labels->reindex();
+        MEMORIA_TRY_VOID(labels->reindex());
 
         return seq->reindex();
     }
 
-    OpStatus removeSymbol(int32_t subseq_num, int32_t idx)
+    VoidResult removeSymbol(int32_t subseq_num, int32_t idx) noexcept
     {
         Sequence* seq       = sequence();
         LabelArray* labels  = this->labels();
 
         int32_t seq_prefix  = labels->sum(0, subseq_num);
 
-        MEMORIA_V1_ASSERT(idx, <=, labels->value(0, subseq_num));
+        MEMORIA_V1_ASSERT_RTN(idx, <=, labels->value(0, subseq_num));
 
-        if(isFail(seq->removeSymbol(seq_prefix + idx))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(seq->removeSymbol(seq_prefix + idx));
 
         labels->value(0, subseq_num)--;
 
-        labels->reindex();
+        MEMORIA_TRY_VOID(labels->reindex());
 
         return seq->reindex();
     }
 
-    OpStatus appendSymbol(int32_t subseq_num, int32_t symbol)
+    VoidResult appendSymbol(int32_t subseq_num, int32_t symbol) noexcept
     {
         LabelArray* labels  = this->labels();
         int32_t size        = labels->value(0, subseq_num);
@@ -225,7 +212,7 @@ public:
         return insertSymbol(subseq_num, size, symbol);
     }
 
-    OpStatus remove(int32_t subseq_num)
+    VoidResult remove(int32_t subseq_num) noexcept
     {
         LabelArray* labels  = this->labels();
         MEMORIA_V1_ASSERT(labels->value(0, subseq_num), ==, 0);

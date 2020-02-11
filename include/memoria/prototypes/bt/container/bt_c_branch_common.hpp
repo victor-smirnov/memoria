@@ -57,8 +57,8 @@ public:
     }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, OpStatus);
-    Result<OpStatus> ctr_split_branch_node(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at) noexcept;
+    MEMORIA_V1_DECLARE_NODE_FN(SplitNodeFn, splitTo);
+    VoidResult ctr_split_branch_node(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at) noexcept;
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -67,16 +67,10 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-Result<OpStatus> M_TYPE::ctr_split_branch_node(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at) noexcept
+VoidResult M_TYPE::ctr_split_branch_node(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at) noexcept
 {
-    using ResultT = Result<OpStatus>;
     auto& self = this->self();
-
-    if (isFail(self.branch_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at))) {
-        return ResultT::of(OpStatus::FAIL);
-    }
-
-    return ResultT::of(OpStatus::OK);
+    return self.branch_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
 }
 
 
@@ -98,11 +92,7 @@ VoidResult M_TYPE::ctr_create_new_root_block(TreePathT& path) noexcept
 
     path.add_root(new_root);
 
-    MEMORIA_TRY(status, self.ctr_insert_to_branch_node(path, new_root->level(), 0, max, root->id()));
-
-    if (isFail(status)) {
-        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
-    }
+    MEMORIA_TRY_VOID(self.ctr_insert_to_branch_node(path, new_root->level(), 0, max, root->id()));
 
     return self.set_root(new_root->id());
 }

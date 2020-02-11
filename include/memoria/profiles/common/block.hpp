@@ -162,7 +162,7 @@ public:
     //Rebuild block content such indexes using provided data.
     void Rebiuild(){}
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->value("GID",               &uuid_);
         handler->value("ID",                &id_);
@@ -174,6 +174,8 @@ public:
 
         handler->value("NEXT_BLOCK_POS",    &next_block_pos_);
         handler->value("TARGET_BLOCK_POS",  &target_block_pos_);
+
+        return VoidResult::of();
     }
 
 
@@ -191,7 +193,7 @@ public:
     }
 
     template <template <typename T> class FieldFactory, typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
         FieldFactory<uint32_t>::serialize(buf, crc());
         FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
@@ -205,10 +207,12 @@ public:
         FieldFactory<PageIdType>::serialize(buf, uuid());
 
         FieldFactory<int32_t>::serialize(buf, deleted_);
+
+        return VoidResult::of();
     }
 
     template <template <typename T> class FieldFactory, typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
         FieldFactory<uint32_t>::deserialize(buf, crc());
         FieldFactory<uint64_t>::deserialize(buf, ctr_type_hash());
@@ -222,6 +226,8 @@ public:
         FieldFactory<PageIdType>::deserialize(buf, uuid());
 
         FieldFactory<int32_t>::deserialize(buf, deleted_);
+
+        return VoidResult::of();
     }
 };
 

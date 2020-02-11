@@ -20,6 +20,7 @@
 #include <memoria/core/tools/span.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/tools/result.hpp>
 
 namespace memoria {
 
@@ -76,7 +77,7 @@ public:
         return element.data();
     }
 
-    static OpStatus rowwise_insert(ArraySO& array, psize_t row_at, Span<const Span<const ViewType>> elements)
+    static VoidResult rowwise_insert(ArraySO& array, psize_t row_at, Span<const Span<const ViewType>> elements) noexcept
     {
         psize_t size = elements.length();
         return insert(array, row_at, size, [&] (psize_t col, psize_t row) -> const ViewType& {
@@ -84,7 +85,7 @@ public:
         });
     }
 
-    static OpStatus columnwise_insert(ArraySO& array, psize_t row_at, Span<const Span<const ViewType>> elements)
+    static VoidResult columnwise_insert(ArraySO& array, psize_t row_at, Span<const Span<const ViewType>> elements) noexcept
     {
         psize_t size = elements[0].length();
         return insert(array, row_at, size, [&] (psize_t col, psize_t row) -> const ViewType& {
@@ -93,7 +94,7 @@ public:
     }
 
     template <typename AccessorFn>
-    static OpStatus insert(ArraySO& array, psize_t row_at, psize_t size, AccessorFn&& elements)
+    static VoidResult insert(ArraySO& array, psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
     {
         psize_t data_lengths[Columns] = {};
 
@@ -105,9 +106,7 @@ public:
             }
         }
 
-        if (isFail(array.insertSpace(row_at, size, data_lengths))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(array.insertSpace(row_at, size, data_lengths));
 
         for (psize_t column = 0; column < Columns; column++)
         {
@@ -127,7 +126,7 @@ public:
             }
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 };
 

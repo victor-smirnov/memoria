@@ -22,6 +22,7 @@
 
 #include <memoria/core/types/fn_traits.hpp>
 #include <memoria/core/types/list/tuple.hpp>
+#include <memoria/core/tools/result.hpp>
 
 #include <memoria/core/packed/tools/packed_dispatcher_detail.hpp>
 
@@ -64,6 +65,11 @@ struct IsVoid {
 
 template <>
 struct IsVoid<void> {
+    static const bool Value = true;
+};
+
+template <>
+struct IsVoid<Result<void>> {
     static const bool Value = true;
 };
 

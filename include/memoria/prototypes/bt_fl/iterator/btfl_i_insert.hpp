@@ -85,14 +85,9 @@ public:
     {
         auto& self = this->self();
 
-        std::function<OpStatus (int, int)> insert_fn = [&](int structure_idx, int stream_idx) -> OpStatus {
-            auto status1 = self.ctr().template ctr_try_insert_stream_entry_no_mgr<StructureStreamIdx>(self.iter_leaf(), structure_idx, InsertSymbolFn<StructureStreamIdx>(Stream));
-            if (isOk(status1))
-            {
-                return self.ctr().template ctr_try_insert_stream_entry_no_mgr<Stream>(self.iter_leaf(), stream_idx, std::forward<EntryFn>(entry));
-            }
-
-            return OpStatus::FAIL;
+        std::function<VoidResult (int, int)> insert_fn = [&](int structure_idx, int stream_idx) -> VoidResult {
+            MEMORIA_TRY_VOID(self.ctr().template ctr_try_insert_stream_entry_no_mgr<StructureStreamIdx>(self.iter_leaf(), structure_idx, InsertSymbolFn<StructureStreamIdx>(Stream)));
+            return self.ctr().template ctr_try_insert_stream_entry_no_mgr<Stream>(self.iter_leaf(), stream_idx, std::forward<EntryFn>(entry));
         };
 
         int structure_idx = self.iter_local_pos();

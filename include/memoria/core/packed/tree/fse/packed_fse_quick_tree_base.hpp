@@ -109,16 +109,11 @@ public:
     >;
 
 
-    OpStatus init_tl(int32_t data_block_size, int32_t blocks)
+    VoidResult init_tl(int32_t data_block_size, int32_t blocks) noexcept
     {
-        if(isFail(Base::init(data_block_size, blocks * SegmentsPerBlock + 1))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::init(data_block_size, blocks * SegmentsPerBlock + 1));
 
-        Metadata* meta = this->template allocate<Metadata>(METADATA);
-        if(isFail(meta)) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY(meta, this->template allocate<Metadata>(METADATA));
 
         int32_t max_size        = 0;
 
@@ -128,16 +123,11 @@ public:
 
         for (int32_t block = 0; block < blocks; block++)
         {
-            if(isFail(this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size()))){
-                return OpStatus::FAIL;
-            }
-
-            if(isFail(this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, max_size))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size()));
+            MEMORIA_TRY_VOID(this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, max_size));
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 

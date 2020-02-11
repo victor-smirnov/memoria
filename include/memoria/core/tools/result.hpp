@@ -33,10 +33,18 @@
 
 namespace memoria {
 
+enum class ErrorCategory {GENERIC, PACKED};
+
 class MemoriaError {
+    ErrorCategory error_category_;
 public:
-    MemoriaError() noexcept {}
+    MemoriaError(ErrorCategory error_category) noexcept: error_category_(error_category)  {}
+
     virtual ~MemoriaError() noexcept {}
+
+    ErrorCategory error_category() const noexcept {
+        return error_category_;
+    }
 
     virtual void describe(std::ostream& out) const noexcept = 0;
     virtual const char* what() const noexcept = 0;
@@ -59,11 +67,13 @@ class GenericMemoriaError: public MemoriaError {
     U8String reason_;
 public:
     GenericMemoriaError(U8String reason) noexcept:
+        MemoriaError(ErrorCategory::GENERIC),
         source_("NONE"),
         reason_(std::move(reason))
     {}
 
     GenericMemoriaError(const char* source, U8String reason) noexcept:
+        MemoriaError(ErrorCategory::GENERIC),
         source_(source),
         reason_(std::move(reason))
     {}
@@ -92,6 +102,25 @@ public:
         return source_;
     }
 };
+
+class PackedOOMError: public MemoriaError {
+public:
+    PackedOOMError() noexcept: MemoriaError(ErrorCategory::PACKED) {}
+
+    virtual void release() noexcept {
+        delete this;
+    }
+
+    virtual void describe(std::ostream& out) const noexcept
+    {
+        out << what();
+    }
+
+    virtual const char* what() const noexcept {
+        return "PackedOOMError";
+    }
+};
+
 
 class ResultException: public std::exception {
     MemoriaErrorPtr error_;
@@ -142,6 +171,14 @@ detail::ResultErrors make_generic_error_with_source(const char* source, const ch
 }
 
 #define MEMORIA_MAKE_GENERIC_ERROR(FMT, ...) ::memoria::make_generic_error_with_source(MMA_SRC, FMT, ##__VA_ARGS__)
+
+
+inline detail::ResultErrors make_packed_oom_error() noexcept {
+    return make_memoria_error<PackedOOMError>();
+}
+
+#define MEMORIA_MAKE_PACKED_OOM_ERROR() ::memoria::make_packed_oom_error()
+
 
 template <typename T>
 class Result;
@@ -200,29 +237,18 @@ public:
         return Result<T>(ResultTag{}, std::forward<Args>(args)...);
     }
 
-//    template <typename Arg>
-//    static Result<T> error(Arg&& arg) noexcept {
-//        return Result<T>(ErrorTag{}, std::forward<Arg>(arg));
-//    }
-
-//    template <typename... Arg>
-//    static Result<T> simple_memoria_error(Arg&&... args) noexcept {
-//        return Result<T>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(std::forward<Arg>(args)...));
-//    }
-
-//    template <typename... Arg>
-//    static Result<T> make_error(const char* fmt, Arg&&... args) noexcept {
-//        return Result<T>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...)));
-//    }
-
-//    template <typename... Arg>
-//    static detail::ResultErrors make_error_tr(const char* fmt, Arg&&... args) noexcept {
-//        return Result<T>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...))).transfer_error();
-//    }
+    bool is_packed_error() const noexcept {
+        return memoria_error()->error_category() == ErrorCategory::PACKED;
+    }
 
     bool is_ok() const noexcept {
         return variant_.index() == 0;
     }
+
+    bool is_error() const noexcept {
+        return variant_.index() != 0;
+    }
+
 
     const T& get() const & noexcept {
         return *boost::variant2::get_if<T>(&variant_);
@@ -465,28 +491,16 @@ public:
         return Result<void>(ResultTag{});
     }
 
-//    template <typename Arg>
-//    static Result<void> error(Arg&& arg) noexcept {
-//        return Result<void>(ErrorTag{}, std::forward<Arg>(arg));
-//    }
-
-//    template <typename... Arg>
-//    static Result<void> simple_memoria_error(Arg&&... args) noexcept {
-//        return Result<void>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(std::forward<Arg>(args)...));
-//    }
-
-//    template <typename... Arg>
-//    static Result<void> make_error(const char* fmt, Arg&&... args) noexcept {
-//        return Result<void>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...)));
-//    }
-
-//    template <typename... Arg>
-//    static detail::ResultErrors make_error_tr(const char* fmt, Arg&&... args) noexcept {
-//        return Result<void>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...))).transfer_error();
-//    }
+    bool is_packed_error() const noexcept {
+        return memoria_error()->error_category() == ErrorCategory::PACKED;
+    }
 
     bool is_ok() const noexcept {
         return variant_.index() == 0;
+    }
+
+    bool is_error() const noexcept {
+        return variant_.index() != 0;
     }
 
     void get_or_throw() {
@@ -700,6 +714,16 @@ namespace detail {
     }
 }
 
+template <typename T>
+bool isFail(const Result<T>& res) noexcept {
+    return res.is_error();
+}
+
+template <typename T>
+bool isOk(const Result<T>& res) noexcept {
+    return res.is_ok();
+}
+
 template <typename Fn>
 std::enable_if_t<
     !detail::IsVoidResultH<std::result_of_t<Fn()>>::Value,
@@ -772,5 +796,7 @@ do {                                         \
     auto VarName##_result = Code;                  \
     if (MMA_UNLIKELY(!VarName##_result.is_ok())) return std::move(VarName##_result).transfer_error(); \
     auto& VarName = VarName##_result.get()
+
+#define MEMORIA_PROPAGATE_ERROR(res0) std::move(res0).transfer_error()
 
 }

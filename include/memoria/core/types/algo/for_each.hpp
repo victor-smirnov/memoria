@@ -18,6 +18,8 @@
 
 #include <memoria/core/types.hpp>
 #include <memoria/core/types/typelist.hpp>
+#include <memoria/core/tools/result.hpp>
+
 
 namespace memoria {
 
@@ -71,19 +73,36 @@ struct ForEachIdx {
 template <int32_t Idx, int32_t Size>
 struct ForEach {
     template <typename Fn, typename... Args>
-    static void process(Fn&& fn, Args&&... args)
-    {
-        if (fn.template process<Idx>(std::forward<Args>(args)...))
-        {
+    static void process(Fn&& fn, Args&&... args){
+        if (fn.template process<Idx>(std::forward<Args>(args)...)){
             ForEach<Idx + 1, Size>::process(std::forward<Fn>(fn), std::forward<Args>(args)...);
         }
     }
+
+    template <typename Fn, typename... Args>
+    static VoidResult process_res(Fn&& fn, Args&&... args) noexcept {
+        MEMORIA_TRY(proceed_next, fn.template process<Idx>(std::forward<Args>(args)...));
+
+        if (proceed_next) {
+            return ForEach<Idx + 1, Size>::process_res(std::forward<Fn>(fn), std::forward<Args>(args)...);
+        }
+
+        return VoidResult::of();
+    }
+
 
     template <typename Fn, typename... Args>
     static void process_fn(Fn&& fn, Args&&... args)
     {
         fn(ForEachIdx<Idx>{}, std::forward<Args>(args)...);
         ForEach<Idx + 1, Size>::process_fn(std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+    template <typename Fn, typename... Args>
+    static VoidResult process_res_fn(Fn&& fn, Args&&... args) noexcept
+    {
+        MEMORIA_TRY_VOID(fn(ForEachIdx<Idx>{}, std::forward<Args>(args)...));
+        return ForEach<Idx + 1, Size>::process_res_fn(std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 };
 
@@ -94,7 +113,17 @@ struct ForEach<Idx, Idx> {
     static void process(Args&&... args){}
 
     template <typename... Args>
+    static VoidResult process_res(Args&&... args) noexcept {
+        return VoidResult::of();
+    }
+
+    template <typename... Args>
     static void process_fn(Args&&... args){}
+
+    template <typename... Args>
+    static VoidResult process_res_fn(Args&&... args) noexcept {
+        return VoidResult::of();
+    }
 };
 
 }

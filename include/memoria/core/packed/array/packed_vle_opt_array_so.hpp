@@ -105,16 +105,18 @@ public:
 
 
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->startStruct();
         handler->startGroup("VLE_OPTMAX_ARRAY");
 
-        data_->bitmap()->generateDataEvents(handler);
-        data_->array()->generateDataEvents(handler);
+        MEMORIA_TRY_VOID(data_->bitmap()->generateDataEvents(handler));
+        MEMORIA_TRY_VOID(data_->array()->generateDataEvents(handler));
 
         handler->endGroup();
         handler->endStruct();
+
+        return VoidResult::of();
     }
 
     void check() const {
@@ -128,48 +130,43 @@ public:
 
     /*********************** API *********************/
 
-    OpStatus splitTo(MyType& other, psize_t idx)
+    VoidResult splitTo(MyType& other, psize_t idx) noexcept
     {
         Bitmap* bitmap = data_->bitmap();
 
         psize_t array_idx = this->array_idx(bitmap, idx);
 
-        if(isFail(bitmap->splitTo(other.data_->bitmap(), idx))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(bitmap->splitTo(other.data_->bitmap(), idx));
 
         refresh_array();
+        other.refresh_array();
 
-        if(isFail(array_.splitTo(other.array_, array_idx))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(array_.splitTo(other.array_, array_idx));
 
         refresh_array();
+        other.refresh_array();
 
         return reindex();
     }
 
-    OpStatus mergeWith(MyType& other)
+    VoidResult mergeWith(MyType& other) noexcept
     {
-        if(isFail(data_->bitmap()->mergeWith(other.data_->bitmap()))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(data_->bitmap()->mergeWith(other.data_->bitmap()));
 
         refresh_array();
+        other.refresh_array();
 
         return array_.mergeWith(other.array_);
     }
 
-    OpStatus removeSpace(psize_t start, psize_t end)
+    VoidResult removeSpace(psize_t start, psize_t end) noexcept
     {
         Bitmap* bitmap = data_->bitmap();
 
         int32_t array_start = array_idx(bitmap, start);
         int32_t array_end = array_idx(bitmap, end);
 
-        if(isFail(bitmap->remove(start, end))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(bitmap->remove(start, end));
 
         refresh_array();
 
@@ -244,29 +241,29 @@ public:
 
 
 //    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-//    OpStatus _update_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
+//    VoidResult _update_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
 //    {
 //        if (isFail(removeSpace(pos, pos + 1))) {
-//            return OpStatus::FAIL;
+//            return VoidResult::FAIL;
 //        }
 
 //        return _insert_b<Offset>(pos, accum, std::forward<AccessorFn>(val));
 //    }
 
 //    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-//    OpStatus _insert_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
+//    VoidResult _insert_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
 //    {
 //        if (isFail(Accessor::insert(*this, pos, 1, [&](psize_t column, psize_t row){
 //            return val(column);
 //        }))) {
-//            return OpStatus::FAIL;
+//            return VoidResult::FAIL;
 //        }
 
-//        return OpStatus::OK;
+//        return VoidResult::of();
 //    }
 
 //    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-//    OpStatus _remove(psize_t idx, BranchNodeEntryItem<T, Size>& accum)
+//    VoidResult _remove(psize_t idx, BranchNodeEntryItem<T, Size>& accum)
 //    {
 //        return removeSpace(idx, idx + 1);
 //    }
@@ -308,7 +305,7 @@ public:
     }
 
     template <typename T>
-    OpStatus setValues(int32_t idx, const core::StaticVector<T, Columns>& values)
+    VoidResult setValues(int32_t idx, const core::StaticVector<T, Columns>& values) noexcept
     {
         if (values[0].is_set())
         {
@@ -319,26 +316,20 @@ public:
 
             if (bitmap->symbol(idx))
             {
-                if(isFail(array_.setValues(array_idx, array_values))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(array_.setValues(array_idx, array_values));
 
                 refresh_array();
             }
             else {
                 bitmap = data_->bitmap();
 
-                if(isFail(array_.insert(array_idx, array_values))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(array_.insert(array_idx, array_values));
 
                 refresh_array();
 
                 bitmap->symbol(idx) = 1;
 
-                if (isFail(bitmap->reindex())) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(bitmap->reindex());
             }
         }
         else {
@@ -347,17 +338,13 @@ public:
 
             if (bitmap->symbol(idx))
             {
-                if (isFail(array_.removeSpace(array_idx, array_idx + 1))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(array_.removeSpace(array_idx, array_idx + 1));
 
                 refresh_array();
                 bitmap = data_->bitmap();
 
                 bitmap->symbol(idx) = 0;
-                if (isFail(bitmap->reindex())) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(bitmap->reindex());
             }
             else {
                 // Do nothing
@@ -366,19 +353,17 @@ public:
 
         refresh_array();
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <typename T>
-    OpStatus insert(int32_t idx, const core::StaticVector<T, Columns>& values)
+    VoidResult insert(int32_t idx, const core::StaticVector<T, Columns>& values) noexcept
     {
         Bitmap* bitmap = data_->bitmap();
 
         if (values[0].is_set())
         {
-            if(isFail(bitmap->insert(idx, 1))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(bitmap->insert(idx, 1));
 
             refresh_array();
 
@@ -389,16 +374,15 @@ public:
         }
         else {
             auto status = bitmap->insert(idx, 0);
+            MEMORIA_RETURN_IF_ERROR(status);
             refresh_array();
-            return status;
+            return VoidResult::of();
         }
     }
 
-    OpStatus reindex()
+    VoidResult reindex() noexcept
     {
-        if(isFail(data_->bitmap()->reindex())) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(data_->bitmap()->reindex());
 
         refresh_array();
 
@@ -407,7 +391,7 @@ public:
 
 private:
 
-    void refresh_array() {
+    void refresh_array() noexcept {
         array_.setup(data_->array());
     }
 

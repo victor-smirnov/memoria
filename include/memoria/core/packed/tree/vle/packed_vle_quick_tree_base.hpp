@@ -170,21 +170,13 @@ public:
 //      }
 //    }
 
-    OpStatus init_tl(int32_t data_block_size, int32_t blocks)
+    VoidResult init_tl(int32_t data_block_size, int32_t blocks) noexcept
     {
-        if(isFail(Base::init(data_block_size, blocks * SegmentsPerBlock + BlocksStart))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::init(data_block_size, blocks * SegmentsPerBlock + BlocksStart));
 
-        Metadata* meta = this->template allocate<Metadata>(METADATA);
-        if(isFail(meta)) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY(meta, this->template allocate<Metadata>(METADATA));
 
-
-        if(isFail(this->template allocateArrayBySize<int32_t>(DATA_SIZES, blocks))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(this->template allocateArrayBySize<int32_t>(DATA_SIZES, blocks));
 
         meta->size()            = 0;
         int32_t max_size        = 0;
@@ -195,24 +187,13 @@ public:
 
         for (int32_t block = 0; block < blocks; block++)
         {
-            if(isFail(this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart, index_size))) {
-                return OpStatus::FAIL;
-            }
-
-            if(isFail(this->template allocateArrayBySize<int32_t>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size))) {
-                return OpStatus::FAIL;
-            }
-
-            if(isFail(this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size))) {
-                return OpStatus::FAIL;
-            }
-
-            if(isFail(this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart, index_size));
+            MEMORIA_TRY_VOID(this->template allocateArrayBySize<int32_t>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size));
+            MEMORIA_TRY_VOID(this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size));
+            MEMORIA_TRY_VOID(this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length));
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 //    void init(int32_t blocks)
@@ -1016,19 +997,17 @@ public:
     }
 
 
-    OpStatus reindex(int32_t blocks)
+    VoidResult reindex(int32_t blocks) noexcept
     {
         for (int32_t block = 0; block < blocks; block++)
         {
             int32_t data_size = this->data_size(block);
             TreeLayout layout = this->compute_tree_layout(data_size);
 
-            if(isFail(this->reindex_block(block, layout))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(this->reindex_block(block, layout));
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -1118,13 +1097,13 @@ public:
 
 
 protected:
-    OpStatus reindex_block(int32_t block)
+    VoidResult reindex_block(int32_t block) noexcept
     {
         TreeLayout layout = this->compute_tree_layout(this->data_size(block));
         return reindex_block(block, layout);
     }
 
-    OpStatus reindex_block(int32_t block, TreeLayout& layout)
+    VoidResult reindex_block(int32_t block, TreeLayout& layout) noexcept
     {
         if (layout.levels_max >= 0)
         {
@@ -1218,7 +1197,7 @@ protected:
             this->clear(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 

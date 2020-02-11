@@ -93,16 +93,18 @@ public:
     const PkdStruct* data() const {return data_;}
     PkdStruct* data() {return data_;}
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->startStruct();
         handler->startGroup("PACKED_MAP");
 
-        keys_.generateDataEvents(handler);
-        values_.generateDataEvents(handler);
+        MEMORIA_TRY_VOID(keys_.generateDataEvents(handler));
+        MEMORIA_TRY_VOID(values_.generateDataEvents(handler));
 
         handler->endGroup();
         handler->endStruct();
+
+        return VoidResult::of();
     }
 
     void check() const {
@@ -129,7 +131,7 @@ public:
         return Optional<ValueView>();
     }
 
-    OpStatus set(const KeyView& key, const ValueView value)
+    VoidResult set(const KeyView& key, const ValueView value) noexcept
     {
         int32_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
@@ -139,43 +141,33 @@ public:
 
             if (MMA_UNLIKELY(key0 == key))
             {
-                if (isFail(values_.replace(0, result.local_pos(), value))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(values_.replace(0, result.local_pos(), value));
             }
             else {
-                if (isFail(keys_.insert(result.local_pos(), key))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(keys_.insert(result.local_pos(), key));
 
                 refresh_so();
 
-                if (isFail(values_.insert(result.local_pos(), value))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(values_.insert(result.local_pos(), value));
 
                 refresh_so();
             }
         }
         else {
             psize_t idx = size;
-            if (isFail(keys_.insert(idx, key))){
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(keys_.insert(idx, key));
 
             refresh_so();
 
-            if (isFail(values_.insert(idx, value))){
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(values_.insert(idx, value));
 
             refresh_so();
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus remove(const KeyView& key)
+    VoidResult remove(const KeyView& key) noexcept
     {
         int32_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
@@ -185,19 +177,15 @@ public:
 
             if (MMA_UNLIKELY(key0 == key))
             {
-                if (isFail(keys_.remove(result.local_pos()))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(keys_.remove(result.local_pos()));
                 refresh_so();
 
-                if (isFail(values_.remove(result.local_pos()))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(values_.remove(result.local_pos()));
                 refresh_so();
             }
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     psize_t estimate_required_upsize(const KeyView& key, const ValueView& value) const
@@ -239,19 +227,17 @@ public:
         return upsize;
     }
 
-    OpStatus set_all(const std::vector<std::pair<KeyView, ValueView>>& entries)
+    VoidResult set_all(const std::vector<std::pair<KeyView, ValueView>>& entries) noexcept
     {
         for (const auto& entry: entries)
         {
             const KeyView& key     = std::get<0>(entry);
             const ValueView& value = std::get<1>(entry);
 
-            if (isFail(set(key, value))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(set(key, value));
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     void for_each(std::function<void (KeyView, ValueView)> fn) const

@@ -63,17 +63,13 @@ public:
         return pkd_buf_->template get<psize_t>(OffsetsBlock);
     }
 
-    static OpStatus allocateEmpty(PkdStruct* alloc)
+    static VoidResult allocateEmpty(PkdStruct* alloc) noexcept
     {
-        psize_t* offsets = alloc->template allocateArrayBySize<psize_t>(OffsetsBlock, 1);
-
-        if (isFail(offsets)) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY(offsets, alloc->template allocateArrayBySize<psize_t>(OffsetsBlock, 1));
 
         offsets[0] = 0;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     static psize_t data_block_size(psize_t capacity)
@@ -146,7 +142,7 @@ public:
         return data_length_aligned + offsets_length_aligned;
     }
 
-    OpStatus insert_space(psize_t start, psize_t extra_size, psize_t extra_data_length)
+    VoidResult insert_space(psize_t start, psize_t extra_size, psize_t extra_data_length) noexcept
     {
         auto& meta = pkd_buf_->metadata();
 
@@ -154,15 +150,11 @@ public:
 
         psize_t offsets_length = (meta.offsets_size() + extra_size) * sizeof(DataSizeType);
 
-        if(isFail(pkd_buf_->resizeBlock(OffsetsBlock, offsets_length))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(pkd_buf_->resizeBlock(OffsetsBlock, offsets_length));
 
         psize_t column_data_length = extra_data_length + meta.data_size(Dimension);
 
-        if(isFail(pkd_buf_->resizeBlock(DataBlock, column_data_length * sizeof(T)))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(pkd_buf_->resizeBlock(DataBlock, column_data_length * sizeof(T)));
 
         psize_t offsets_size = meta.offsets_size();
 
@@ -180,10 +172,10 @@ public:
 
         meta.data_size(Dimension) += extra_data_length;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus remove_space(psize_t start, psize_t size)
+    VoidResult remove_space(psize_t start, psize_t size) noexcept
     {
         auto& meta = pkd_buf_->metadata();
 
@@ -209,20 +201,16 @@ public:
 
         psize_t new_offsets_length = (meta.offsets_size() - size) * sizeof(DataSizeType);
 
-        if(isFail(pkd_buf_->resizeBlock(OffsetsBlock, new_offsets_length))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(pkd_buf_->resizeBlock(OffsetsBlock, new_offsets_length));
 
         psize_t column_data_length = meta.data_size(Dimension) * sizeof(T);
 
-        if(isFail(pkd_buf_->resizeBlock(DataBlock, column_data_length))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(pkd_buf_->resizeBlock(DataBlock, column_data_length));
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus resize_row(psize_t idx, const Span<const T>& value)
+    VoidResult resize_row(psize_t idx, const Span<const T>& value)
     {
         auto& meta = pkd_buf_->metadata();
 
@@ -235,9 +223,7 @@ public:
 
             psize_t column_data_length = size_delta + meta.data_size(Dimension);
 
-            if(isFail(pkd_buf_->resizeBlock(DataBlock, column_data_length))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(pkd_buf_->resizeBlock(DataBlock, column_data_length));
 
             auto offsets = this->offsets();
             auto data    = this->data();
@@ -269,22 +255,21 @@ public:
 
             psize_t column_data_length = meta.data_size(Dimension) - size_delta;
 
-            if(isFail(pkd_buf_->resizeBlock(DataBlock, column_data_length))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(pkd_buf_->resizeBlock(DataBlock, column_data_length));
 
             meta.data_size(Dimension) -= size_delta;
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    void replace_row(psize_t idx, const Span<const T>& value)
+    VoidResult replace_row(psize_t idx, const Span<const T>& value) noexcept
     {
         auto* data = this->data();
         psize_t offset = this->offsets()[idx];
 
         MemCpyBuffer(value.data(), data + offset, value.length());
+        return VoidResult::of();
     }
 
     void copy_to(PkdStruct* other, psize_t copy_from, psize_t count, psize_t copy_to, psize_t data_length) const
@@ -392,17 +377,21 @@ public:
     }
 
     template <typename SerializationData, typename Metadata>
-    void serialize(const Metadata& meta, SerializationData& buf) const
+    VoidResult serialize(const Metadata& meta, SerializationData& buf) const noexcept
     {
         FieldFactory<psize_t>::serialize(buf, offsets(), meta.offsets_size());
         FieldFactory<T>::serialize(buf, data(), meta.data_size(Dimension));
+
+        return VoidResult::of();
     }
 
     template <typename DeserializationData, typename Metadata>
-    void deserialize(const Metadata& meta, DeserializationData& buf)
+    VoidResult deserialize(const Metadata& meta, DeserializationData& buf) noexcept
     {
         FieldFactory<psize_t>::deserialize(buf, offsets(), meta.offsets_size());
         FieldFactory<T>::deserialize(buf, data(), meta.data_size(Dimension));
+
+        return VoidResult::of();
     }
 
 

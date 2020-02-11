@@ -47,19 +47,19 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
         auto& self = this->self();
 
-        MEMORIA_TRY(result0, self.template ctr_try_insert_stream_entry<Stream>(iter, idx, entry));
+        MEMORIA_TRY(status0, self.template ctr_try_insert_stream_entry<Stream>(iter, idx, entry));
 
         SplitStatus split_status;
 
-        if (!std::get<0>(result0))
+        if (!status0)
         {
             MEMORIA_TRY(split_result, iter.iter_split_leaf(stream, idx));
 
             split_status = split_result.type();
 
-            MEMORIA_TRY(result1, self.template ctr_try_insert_stream_entry<Stream>(iter, split_result.stream_idx(), entry));
+            MEMORIA_TRY(status1, self.template ctr_try_insert_stream_entry<Stream>(iter, split_result.stream_idx(), entry));
 
-            if (!std::get<0>(result1))
+            if (!status1)
             {
                 return MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed");
             }
@@ -77,13 +77,12 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
 
     template <int32_t Stream>
-    Result<SplitStatus> ctr_insert_stream_entry0(Iterator& iter, int32_t structure_idx, int32_t stream_idx, std::function<Result<OpStatus> (int, int)> insert_fn) noexcept
+    Result<SplitStatus> ctr_insert_stream_entry0(Iterator& iter, int32_t structure_idx, int32_t stream_idx, std::function<VoidResult (int, int)> insert_fn) noexcept
     {
         using ResultT = Result<SplitStatus>;
         auto& self = this->self();
 
         MEMORIA_TRY(result0, self.ctr_with_block_manager(iter.iter_leaf(), structure_idx, stream_idx, insert_fn));
-
 
         SplitStatus split_status;
 

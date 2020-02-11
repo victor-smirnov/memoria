@@ -20,6 +20,8 @@
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/assert.hpp>
 
+#include <memoria/core/tools/result.hpp>
+
 #include "rleseq_tools.hpp"
 
 namespace memoria {
@@ -204,16 +206,14 @@ class ReindexFn {
 
 
 public:
-    OpStatus reindex(Seq& seq)
+    VoidResult reindex(Seq& seq) noexcept
     {
         auto meta = seq.metadata();
 
         auto symbols_block_size = seq.element_size(Seq::SYMBOLS);
         auto symbols_blocks     = seq.number_of_offsets(symbols_block_size);
 
-        if (isFail(seq.resizeBlock(Seq::OFFSETS, symbols_blocks))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(seq.resizeBlock(Seq::OFFSETS, symbols_blocks));
 
         seq.clear(Seq::OFFSETS);
 
@@ -221,9 +221,7 @@ public:
         {
             size_t index_size = symbols_blocks;
 
-            if (isFail(seq.createIndex(index_size))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(seq.createIndex(index_size));
 
             auto size_index = seq.size_index();
             auto sum_index  = seq.sum_index();
@@ -241,21 +239,14 @@ public:
                 offsets[c] = size_iterator.block_offset();
 
                 typename Seq::SizeIndex::Values sizes(size_iterator.value(0));
-
-                if (isFail(size_index->append(sizes))) {
-                    return OpStatus::FAIL;
-                }
+                MEMORIA_TRY_VOID(size_index->append(sizes));
             }
 
-            if (isFail(size_index->reindex())) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(size_index->reindex());
 
             SymbolsSumIterator<Seq> sum_iterator(symbols, data_size, index_size);
 
-            if (isFail(sum_index->populate_from_iterator(0, index_size, sum_iterator))) {
-                return OpStatus::FAIL;
-            }
+            MEMORIA_TRY_VOID(sum_index->populate_from_iterator(0, index_size, sum_iterator));
 
             return sum_index->reindex();
         }
@@ -263,7 +254,7 @@ public:
             return seq.removeIndex();
         }
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 

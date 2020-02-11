@@ -20,6 +20,9 @@
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/prototypes/bt/nodes/leaf_node_so.hpp>
+#include <memoria/prototypes/bt/nodes/branch_node_so.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -53,8 +56,6 @@ public:
     template <int32_t Stream>
     struct InsertStreamEntryFn
     {
-        OpStatus status_{OpStatus::OK};
-
         template <
             int32_t Offset,
             bool StreamStart,
@@ -63,41 +64,39 @@ public:
             typename BranchNodeEntryItem,
             typename Entry
         >
-        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
+        VoidResult stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry) noexcept
         {
-            if (isOk(status_)) {
-                status_ <<= obj.template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
-                        return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
-                });
-            }
+            return obj.template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
+                return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
+            });
         }
 
 
         template <typename CtrT, typename NTypes, typename... Args>
-        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
+        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args) noexcept
         {
-            node.layout(255);
-            node.template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...);
+            MEMORIA_TRY_VOID(node.layout(255));
+            auto res = node.template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...);
+            MEMORIA_RETURN_IF_ERROR(res);
+            return VoidResult::of();
         }
     };
 
 
 
     template <int32_t Stream, typename Entry>
-    OpStatus ctr_try_insert_stream_entry_no_mgr(NodeBaseG& leaf, int32_t idx, const Entry& entry) noexcept
+    VoidResult ctr_try_insert_stream_entry_no_mgr(NodeBaseG& leaf, int32_t idx, const Entry& entry) noexcept
     {
         BranchNodeEntry accum;
         InsertStreamEntryFn<Stream> fn;
-        self().leaf_dispatcher().dispatch(leaf, fn, idx, accum, entry);
-
-        return fn.status_;
+        return self().leaf_dispatcher().dispatch(leaf, fn, idx, accum, entry);
     }
 
 
     template <int32_t Stream, typename Entry>
-    Result<std::tuple<bool>> ctr_try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry) noexcept
+    Result<bool> ctr_try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry) noexcept
     {
-        using ResultT = Result<std::tuple<bool>>;
+        using ResultT = Result<bool>;
 
         auto& self = this->self();
 
@@ -108,17 +107,21 @@ public:
         MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf()));
 
         auto status = self.template ctr_try_insert_stream_entry_no_mgr<Stream>(iter.iter_leaf(), idx, entry);
-
-        if (isFail(status))
-        {
-            mgr.rollback();
-            return ResultT::of(std::make_tuple(false));
+        if (status.is_error()) {
+            if (status.is_packed_error())
+            {
+                mgr.rollback();
+                return BoolResult::of(false);
+            }
+            else {
+                return MEMORIA_PROPAGATE_ERROR(status);
+            }
         }
 
-        return ResultT::of(std::make_tuple(true));
+        return ResultT::of(true);
     }
 
-    BoolResult ctr_with_block_manager(NodeBaseG& leaf, int structure_idx, int stream_idx, std::function<Result<OpStatus> (int, int)> insert_fn) noexcept
+    BoolResult ctr_with_block_manager(NodeBaseG& leaf, int structure_idx, int stream_idx, std::function<VoidResult (int, int)> insert_fn) noexcept
     {
         auto& self = this->self();
 
@@ -128,15 +131,19 @@ public:
 
         MEMORIA_TRY_VOID(mgr.add(leaf));
 
-        MEMORIA_TRY(status, insert_fn(structure_idx, stream_idx));
+        VoidResult status = insert_fn(structure_idx, stream_idx);
 
-        if (isFail(status))
+        if (status.is_ok()) {
+            return BoolResult::of(true);
+        }
+        else if (status.memoria_error()->error_category() == ErrorCategory::PACKED)
         {
             mgr.rollback();
             return BoolResult::of(false);
         }
-
-        return BoolResult::of(true);
+        else {
+            return std::move(status).transfer_error();
+        }
     }
 
 
@@ -146,8 +153,6 @@ public:
     template <int32_t Stream>
     struct RemoveFromLeafFn
     {
-        OpStatus status_{OpStatus::OK};
-
         template <
             int32_t Offset,
             bool StreamStart,
@@ -155,18 +160,18 @@ public:
             typename SubstreamType,
             typename BranchNodeEntryItem
         >
-        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx)
+        VoidResult stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx) noexcept
         {
-            if (isOk(status_)) {
-                status_ <<= obj.template _remove<Offset>(idx, accum);
-            }
+            return obj.template _remove<Offset>(idx, accum);
         }
 
         template <typename CtrT, typename NTypes>
-        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum)
+        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum) noexcept
         {
-            node.layout(255);
-            node.template processStreamAcc<Stream>(*this, accum, idx);
+            MEMORIA_TRY_VOID(node.layout(255));
+            auto res = node.template processStreamAcc<Stream>(*this, accum, idx);
+            MEMORIA_RETURN_IF_ERROR(res);
+            return VoidResult::of();
         }
     };
 
@@ -180,19 +185,22 @@ public:
         BlockUpdateMgr mgr(self);
 
         MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
-
         MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf()));
 
         BranchNodeEntry accum;
         RemoveFromLeafFn<Stream> fn;
-        self.leaf_dispatcher().dispatch(iter.iter_leaf(), fn, idx, accum);
+        VoidResult status = self.leaf_dispatcher().dispatch(iter.iter_leaf(), fn, idx, accum);
 
-        if (isFail(fn.status_)) {
+        if (status.is_ok()) {
+            return ResultT::of(std::make_tuple(true, accum));
+        }
+        else if (status.memoria_error()->error_category() == ErrorCategory::PACKED) {
             mgr.rollback();
             return ResultT::of(std::make_tuple(false, BranchNodeEntry()));
         }
-
-        return ResultT::of(std::make_tuple(true, accum));
+        else {
+            return std::move(status).transfer_error();
+        }
     }
 
 
@@ -203,7 +211,6 @@ public:
     template <int32_t Stream, typename SubstreamsList>
     struct UpdateStreamEntryBufferFn
     {
-        OpStatus status_{OpStatus::OK};
         template <
             int32_t Offset,
             bool Start,
@@ -212,19 +219,17 @@ public:
             typename BranchNodeEntryItem,
             typename Entry
         >
-        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
+        VoidResult stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry) noexcept
         {
-            if (isOk(status_)) {
-                status_ <<= obj.template _update_b<Offset>(idx, accum, [&](int32_t block){
-                    return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
-                });
-            }
+            return obj.template _update_b<Offset>(idx, accum, [&](int32_t block){
+                return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
+            });
         }
 
         template <typename CtrT, typename NTypes, typename... Args>
-        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
+        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args) noexcept
         {
-            node.template processSubstreamsByIdxAcc<
+            auto res = node.template processSubstreamsByIdxAcc<
                 Stream,
                 SubstreamsList
             >(
@@ -233,6 +238,9 @@ public:
                     idx,
                     std::forward<Args>(args)...
             );
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            return VoidResult::of();
         }
     };
 
@@ -250,7 +258,7 @@ public:
 
         BranchNodeEntry accum;
         UpdateStreamEntryBufferFn<Stream, SubstreamsList> fn;
-        self.leaf_dispatcher().dispatch(
+        VoidResult status = self.leaf_dispatcher().dispatch(
                     iter.iter_leaf(),
                     fn,
                     idx,
@@ -258,13 +266,17 @@ public:
                     entry
         );
 
-        if (isFail(fn.status_))
+        if (status.is_ok()) {
+            return ResultT::of(std::make_tuple(true, accum));
+        }
+        else if (status.memoria_error()->error_category() == ErrorCategory::PACKED)
         {
             mgr.rollback();
             return ResultT::of(std::make_tuple(false, BranchNodeEntry()));
         }
-
-        return ResultT::of(std::make_tuple(true, accum));
+        else {
+            return std::move(status).transfer_error();
+        }
     }
 
     template <typename Fn, typename... Args>
@@ -275,7 +287,7 @@ public:
     }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(TryMergeNodesFn, mergeWith, OpStatus);
+    MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
     BoolResult ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path, MergeFn = [](const Position&){
         return VoidResult::of();
     }) noexcept;
@@ -315,22 +327,26 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
     MEMORIA_TRY_VOID(mgr.add(tgt));
 
     Position tgt_sizes = self.ctr_get_node_sizes(tgt);
-    //int32_t tgt_size   = self.ctr_get_node_size(tgt, 0);
 
     MEMORIA_TRY(src_parent, self.ctr_get_node_parent(src_path, 0));
     MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(src_parent, src->id()));
 
-    if (isFail(self.leaf_dispatcher().dispatch(src, tgt, TryMergeNodesFn()))) {
-        mgr.rollback();
-        return BoolResult::of(false);
+    VoidResult res = self.leaf_dispatcher().dispatch(src, tgt, TryMergeNodesFn());
+
+    if (res.is_error())
+    {
+        if (res.is_packed_error())
+        {
+            mgr.rollback();
+            return BoolResult::of(false);
+        }
+        else {
+            return MEMORIA_PROPAGATE_ERROR(res);
+        }
     }
 
 
-    // FIXME. This is special OOM condition that, if occurs, must be handled separately.
-    MEMORIA_TRY(status1, self.ctr_remove_non_leaf_node_entry(tgt_path, 1, parent_idx));
-    if (isFail(status1)) {
-        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
-    }
+    MEMORIA_TRY_VOID(self.ctr_remove_non_leaf_node_entry(tgt_path, 1, parent_idx));
 
     MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, 0));
 

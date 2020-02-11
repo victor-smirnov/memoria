@@ -501,44 +501,6 @@ enum class MMA_NODISCARD OpStatus: int32_t {
     OK = 0, FAIL = 1
 };
 
-static inline OpStatus& operator<<=(OpStatus& s1, OpStatus s2) {
-    s1 = static_cast<OpStatus>(static_cast<int32_t>(s1) + static_cast<int32_t>(s2));
-    return s1;
-}
-
-template <typename T>
-class MMA_NODISCARD OpStatusT {
-    T value_;
-    OpStatus status_;
-public:
-    OpStatusT(T value): value_(std::move(value)), status_(OpStatus::OK) {}
-    OpStatusT(): value_{}, status_(OpStatus::FAIL) {}
-    OpStatusT(OpStatus s): value_{}, status_(s) {}
-
-    OpStatus status() const {return status_;}
-    const T& value() const {return value_;}
-};
-
-template <typename T>
-static inline OpStatus& operator<<=(OpStatus& s1, OpStatusT<T> s2) {
-    s1 = static_cast<OpStatus>(static_cast<int32_t>(s1) + static_cast<int32_t>(s2.status()));
-    return s1;
-}
-
-static inline bool isFail(OpStatus status) {return status != OpStatus::OK;}
-static inline bool isFail(int32_t status) {return status < 0;}
-static inline bool isFail(void) {return false;}
-
-static inline bool isOk(OpStatus status) {return status == OpStatus::OK;}
-
-template <typename T>
-static inline bool isFail(const T* ptr) {return ptr == nullptr;}
-
-template <typename T>
-bool isFail(const OpStatusT<T>& op_status) {
-    return isFail(op_status.status());
-}
-
 template <typename T>
 constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_trivially_copyable<T>::value;
 

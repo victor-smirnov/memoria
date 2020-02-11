@@ -108,16 +108,16 @@ public:
     }
 
 
-    OpStatus init(int32_t block_size)
+    VoidResult init(int32_t block_size) noexcept
     {
         size_ = 0;
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus init(const SizesT& capacities)
+    VoidResult init(const SizesT& capacities) noexcept
     {
         size_ = 0;
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     static constexpr int32_t empty_size()
@@ -126,11 +126,11 @@ public:
     }
 
 
-    OpStatus init()
+    VoidResult init() noexcept
     {
         size_ = 0;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     SizesT data_capacity() const
@@ -159,15 +159,15 @@ public:
     }
 
     template <typename T>
-    OpStatus setValues(int32_t idx, T&&) {return OpStatus::OK;}
+    VoidResult setValues(int32_t idx, T&&) noexcept {return VoidResult::of();}
 
     template <typename T>
-    OpStatus insert(int32_t idx, T&&) {
+    VoidResult insert(int32_t idx, T&&) noexcept {
         return insertSpace(idx, 1);
     }
 
     template <int32_t Offset, typename T>
-    OpStatus _insert(int32_t idx, T&&) {
+    VoidResult _insert(int32_t idx, T&&) noexcept {
         return insertSpace(idx, 1);
     }
 
@@ -234,11 +234,11 @@ public:
     }
 
 
-    OpStatus copyTo(MyType* other) const
+    VoidResult copyTo(MyType* other) const noexcept
     {
         other->size_ = this->size_;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
@@ -267,90 +267,86 @@ public:
 
     // =================================== Update ========================================== //
 
-    OpStatus reindex() {return OpStatus::OK;}
+    VoidResult reindex() noexcept {return VoidResult::of();}
 
     void check() const
     {
         MEMORIA_V1_ASSERT(size_, >=, 0);
     }
 
-    OpStatus remove(int32_t start, int32_t end)
+    VoidResult remove(int32_t start, int32_t end) noexcept
     {
         if (end < 0) {
             int32_t a = 0; a++;
         }
 
-        MEMORIA_V1_ASSERT_TRUE(start >= 0);
-        MEMORIA_V1_ASSERT_TRUE(end >= 0);
+        MEMORIA_V1_ASSERT_TRUE_RTN(start >= 0);
+        MEMORIA_V1_ASSERT_TRUE_RTN(end >= 0);
 
         int32_t room_length = end - start;
         size_ -= room_length;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus removeSpace(int32_t room_start, int32_t room_end) {
+    VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept {
         return remove(room_start, room_end);
     }
 
-    OpStatus insertSpace(int32_t idx, int32_t room_length)
+    VoidResult insertSpace(int32_t idx, int32_t room_length) noexcept
     {
-        MEMORIA_V1_ASSERT(idx, <=, this->size());
-        MEMORIA_V1_ASSERT(idx, >=, 0);
-        MEMORIA_V1_ASSERT(room_length, >=, 0);
+        MEMORIA_V1_ASSERT_RTN(idx, <=, this->size());
+        MEMORIA_V1_ASSERT_RTN(idx, >=, 0);
+        MEMORIA_V1_ASSERT_RTN(room_length, >=, 0);
 
         size_ += room_length;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
-    OpStatus reset()
+    VoidResult reset() noexcept
     {
         size_ = 0;
 
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
 
-    OpStatus splitTo(MyType* other, int32_t idx)
+    VoidResult splitTo(MyType* other, int32_t idx) noexcept
     {
-        MEMORIA_V1_ASSERT(other->size(), ==, 0);
+        MEMORIA_V1_ASSERT_RTN(other->size(), ==, 0);
 
         int32_t split_size = this->size() - idx;
-        if(isFail(other->insertSpace(0, split_size))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(other->insertSpace(0, split_size));
 
         return removeSpace(idx, this->size());
     }
 
-    OpStatus mergeWith(MyType* other)
+    VoidResult mergeWith(MyType* other) noexcept
     {
         int32_t my_size     = this->size();
         int32_t other_size  = other->size();
 
-        if(isFail(other->insertSpace(other_size, my_size))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(other->insertSpace(other_size, my_size));
 
         return removeSpace(0, my_size);
     }
 
     // ===================================== IO ============================================ //
 
-    OpStatus insert(int32_t pos, Value val)
+    VoidResult insert(int32_t pos, Value val)
     {
         return insertSpace(pos, 1);
     }
 
-    OpStatus insert(int32_t block, int32_t pos, Value val)
+    VoidResult insert(int32_t block, int32_t pos, Value val)
     {
         return insertSpace(pos, 1);
     }
 
 
     template <typename Adaptor>
-    OpStatus insert(int32_t pos, int32_t size, Adaptor&& adaptor)
+    VoidResult insert(int32_t pos, int32_t size, Adaptor&& adaptor)
     {
         return insertSpace(pos, size);
     }
@@ -375,26 +371,26 @@ public:
 
 
     template <typename Adaptor>
-    OpStatus _insert(int32_t pos, int32_t size, Adaptor&& adaptor)
+    VoidResult _insert(int32_t pos, int32_t size, Adaptor&& adaptor) noexcept
     {
         return insertSpace(pos, size);
     }
 
 
     template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
+    VoidResult _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    OpStatus _update_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
+    VoidResult _update_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&) noexcept
     {
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
+    VoidResult _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum) noexcept
     {
         if (Offset < Size)
         {
@@ -406,7 +402,7 @@ public:
 
 
     template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    OpStatus _insert_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
+    VoidResult _insert_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&) noexcept
     {
         if (Offset < Size)
         {
@@ -418,13 +414,10 @@ public:
 
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    OpStatus _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
+    VoidResult _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum) noexcept
     {
-        if(isFail(remove(idx, idx + 1))) {
-            return OpStatus::FAIL;
-        }
-
-        return OpStatus::OK;
+        MEMORIA_TRY_VOID(remove(idx, idx + 1));
+        return VoidResult::of();
     }
 
 
@@ -469,7 +462,7 @@ public:
     }
 
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->startStruct();
         handler->startGroup("SIZED_STRUCT");
@@ -478,20 +471,26 @@ public:
 
         handler->endGroup();
         handler->endStruct();
+
+        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    void serialize(SerializationData& buf) const
+    VoidResult serialize(SerializationData& buf) const noexcept
     {
-        header_.serialize(buf);
+        MEMORIA_TRY_VOID(header_.serialize(buf));
         FieldFactory<int32_t>::serialize(buf, size_);
+
+        return VoidResult::of();
     }
 
     template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
+    VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        header_.deserialize(buf);
+        MEMORIA_TRY_VOID(header_.deserialize(buf));
         FieldFactory<int32_t>::deserialize(buf, size_);
+
+        return VoidResult::of();
     }
 };
 

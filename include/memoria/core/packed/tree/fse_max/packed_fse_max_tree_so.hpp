@@ -69,29 +69,29 @@ public:
     const PkdStruct* data() const {return data_;}
     PkdStruct* data() {return data_;}
 
-    OpStatus reindex() {
+    VoidResult reindex() noexcept {
         return data_->reindex();
     }
 
-    OpStatus splitTo(MyType& other, int32_t idx)
+    VoidResult splitTo(MyType& other, int32_t idx) noexcept
     {
         return data_->splitTo(other.data(), idx);
     }
 
-    OpStatus mergeWith(MyType& other) {
+    VoidResult mergeWith(MyType& other) noexcept {
         return data_->mergeWith(other.data());
     }
 
-    OpStatus removeSpace(int32_t room_start, int32_t room_end) {
+    VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept {
         return data_->removeSpace(room_start, room_end);
     }
 
-    OpStatus insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true) {
+    VoidResult insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true) noexcept {
         return data_->insert(idx, size, provider, reindex);
     }
 
     template <typename T>
-    OpStatus insert(int32_t idx, const core::StaticVector<T, Blocks>& values) {
+    VoidResult insert(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
         return data_->insert(idx, values);
     }
 
@@ -114,7 +114,7 @@ public:
         return data_->get_values(std::forward<Args>(args)...);
     }
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const {
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept {
         return data_->generateDataEvents(handler);
     }
 
@@ -134,7 +134,7 @@ public:
 
 
     template <typename T>
-    OpStatus setValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
+    VoidResult setValues(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
     {
         return data_->setValues(idx, values);
     }
@@ -143,18 +143,18 @@ public:
 //        return data_->configure_io_substream(substream);
 //    }
 
-//    OpStatusT<int32_t> insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
+//    VoidResultT<int32_t> insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
 //    {
 //        return data_->insert_io_substream(at, substream, start, size);
 //    }
 
     template <int32_t Offset, typename... Args>
-    OpStatus _insert_b(Args&&... args) {
+    VoidResult _insert_b(Args&&... args) noexcept {
         return data_->template _insert_b<Offset>(std::forward<Args>(args)...);
     }
 
     template <int32_t Offset, typename... Args>
-    OpStatus _remove(Args&&... args) {
+    VoidResult _remove(Args&&... args) noexcept {
         return data_->template _remove<Offset>(std::forward<Args>(args)...);
     }
 };

@@ -138,22 +138,15 @@ public:
         return block_size;
     }
 
-    OpStatus init()
+    VoidResult init()
     {
         int32_t block_size = empty_size();
 
-        if(isFail(Base::init(block_size, 2))) {
-            return OpStatus::FAIL;
-        }
+        MEMORIA_TRY_VOID(Base::init(block_size, 2));
+        MEMORIA_TRY_VOID(Base::template allocateEmpty<CardinalTree>(CTREE));
+        MEMORIA_TRY_VOID(Base::template allocateEmpty<MultiSequence>(MULTISEQ));
 
-        if(isFail(Base::template allocateEmpty<CardinalTree>(CTREE))) {
-            return OpStatus::FAIL;
-        }
-        if(isFail(Base::template allocateEmpty<MultiSequence>(MULTISEQ))) {
-            return OpStatus::FAIL;
-        }
-
-        return OpStatus::OK;
+        return VoidResult::of();
     }
 
     static int32_t block_size(int32_t client_area)

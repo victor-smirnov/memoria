@@ -67,25 +67,25 @@ public:
     const PkdStruct* data() const {return data_;}
     PkdStruct* data() {return data_;}
 
-    OpStatus splitTo(MyType& other, int32_t idx)
+    VoidResult splitTo(MyType& other, int32_t idx) noexcept
     {
         return data_->splitTo(other.data(), idx);
     }
 
-    OpStatus mergeWith(MyType& other) {
+    VoidResult mergeWith(MyType& other) noexcept {
         return data_->mergeWith(other.data());
     }
 
-    OpStatus removeSpace(int32_t room_start, int32_t room_end) {
+    VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept {
         return data_->removeSpace(room_start, room_end);
     }
 
     template <typename T>
-    OpStatus insert(int32_t idx, const core::StaticVector<T, Blocks>& values) {
+    VoidResult insert(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
         return data_->insert(idx, values);
     }
 
-    OpStatus reindex() {
+    VoidResult reindex() noexcept {
         return data_->reindex();
     }
 
@@ -94,7 +94,7 @@ public:
     }
 
     template <typename T>
-    OpStatus setValues(int32_t idx, const core::StaticVector<T, Blocks>& values) {
+    VoidResult setValues(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
         return data_->setValues(idx, values);
     }
 
@@ -108,7 +108,7 @@ public:
         return data_->findBackward(std::forward<Args>(args)...);
     }
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const {
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept {
         return data_->generateDataEvents(handler);
     }
 

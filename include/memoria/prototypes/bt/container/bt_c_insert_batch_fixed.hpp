@@ -84,24 +84,24 @@ public:
 
     struct InsertChildrenFn {
         template <typename CtrT, typename NodeT>
-        void treeNode(BranchNodeSO<CtrT, NodeT>& node, int32_t from, int32_t to, const BranchNodeEntryT* entries)
+        VoidResult treeNode(BranchNodeSO<CtrT, NodeT>& node, int32_t from, int32_t to, const BranchNodeEntryT* entries) noexcept
         {
             int old_size = node.size();
 
-            node.processAll(*this, from, to, entries);
+            MEMORIA_TRY_VOID(node.processAll(*this, from, to, entries));
 
             int32_t idx = 0;
-            node.insertValues(old_size, from, to - from, [entries, &idx](){
+            return node.insertValues(old_size, from, to - from, [entries, &idx](){
                 return entries[idx++].child_id();
             });
         }
 
         template <int32_t ListIdx, typename StreamType>
-        void stream(StreamType& obj, int32_t from, int32_t to, const BranchNodeEntryT* entries)
+        VoidResult stream(StreamType& obj, int32_t from, int32_t to, const BranchNodeEntryT* entries) noexcept
         {
-            OOM_THROW_IF_FAILED(obj.insert(from, to - from, [entries](int32_t idx) -> const auto& {
+            return obj.insert(from, to - from, [entries](int32_t idx) -> const auto& {
                 return std::get<ListIdx>(entries[idx].accum());
-            }), MMA_SRC);
+            });
         }
     };
 
@@ -131,7 +131,7 @@ public:
                 subtrees[i].child_id()  = child->id();
             }
 
-            self.branch_dispatcher().dispatch(node, InsertChildrenFn(), idx + c, idx + c + i, subtrees);
+            MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node, InsertChildrenFn(), idx + c, idx + c + i, subtrees));
 
             max = idx + c + i;
 

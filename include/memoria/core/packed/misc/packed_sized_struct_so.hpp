@@ -63,23 +63,23 @@ public:
     const PkdStruct* data() const {return data_;}
     PkdStruct* data() {return data_;}
 
-    OpStatus splitTo(MyType& other, int32_t idx)
+    VoidResult splitTo(MyType& other, int32_t idx) noexcept
     {
         return data_->splitTo(other.data(), idx);
     }
 
-    OpStatus mergeWith(MyType& other) {
+    VoidResult mergeWith(MyType& other) noexcept {
         return data_->mergeWith(other.data());
     }
 
-    OpStatus removeSpace(int32_t room_start, int32_t room_end) {
+    VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept {
         return data_->removeSpace(room_start, room_end);
     }
 
 
 
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const {
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept {
         return data_->generateDataEvents(handler);
     }
 
@@ -101,16 +101,16 @@ public:
     }
 
     template <int32_t Offset, typename... Args>
-    OpStatus _insert_b(Args&&... args) {
+    VoidResult _insert_b(Args&&... args) {
         return data_->template _insert_b<Offset>(std::forward<Args>(args)...);
     }
 
     template <int32_t Offset, typename... Args>
-    OpStatus _remove(Args&&... args) {
+    VoidResult _remove(Args&&... args) noexcept {
         return data_->template _remove<Offset>(std::forward<Args>(args)...);
     }
 
-    OpStatus insertSpace(int32_t idx, int32_t room_length) {
+    VoidResult insertSpace(int32_t idx, int32_t room_length) noexcept {
         return data_->insertSpace(idx, room_length);
     }
 };
