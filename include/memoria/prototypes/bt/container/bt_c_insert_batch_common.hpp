@@ -151,6 +151,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
         virtual Result<NodeBaseG> get_leaf() noexcept
         {
+            using ResultT = Result<NodeBaseG>;
             if (head_.isSet())
             {
                 auto node = head_;
@@ -159,7 +160,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
                 head_ = block;
                 size_--;
-                return node;
+                return ResultT::of(std::move(node));
             }
             else {
                 return MEMORIA_MAKE_GENERIC_ERROR("Leaf List is empty");

@@ -48,7 +48,7 @@ public:
     Result<Position> sizes() const noexcept
     {
         MEMORIA_TRY(node, self().ctr_get_root_node());
-        return self().node_dispatcher().dispatch(node, SizesFn());
+        return Result<Position>::of(self().node_dispatcher().dispatch(node, SizesFn()));
     }
 
 protected:

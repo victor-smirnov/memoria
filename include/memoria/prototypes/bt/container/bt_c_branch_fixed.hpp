@@ -292,11 +292,7 @@ BoolResult M_TYPE::ctr_update_branch_node(NodeBaseG& node, int32_t idx, const Br
 {
     MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
 
-    auto res = self().branch_dispatcher().dispatch(node, UpdateNodeFn(), idx, keys);
-    if (!isOk(res))
-    {
-        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
-    }
+    MEMORIA_TRY_VOID(self().branch_dispatcher().dispatch(node, UpdateNodeFn(), idx, keys));
 
     return BoolResult::of(true);
 }

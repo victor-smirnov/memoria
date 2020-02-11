@@ -147,11 +147,11 @@ public:
 
         const int32_t AllocatorIdx  = StreamDescrT::Value;
 
-        Result<StreamType*> head;
+        StreamType* head;
         if (alloc->is_empty(AllocatorIdx))
         {
-            head = alloc->template allocateEmpty<StreamType>(AllocatorIdx);
-            MEMORIA_RETURN_IF_ERROR(head);
+            MEMORIA_TRY(head_res, alloc->template allocateEmpty<StreamType>(AllocatorIdx));
+            head = head_res;
         }
         else {
             return MEMORIA_MAKE_GENERIC_ERROR("Substream {} is not empty", SubstreamIdx);
@@ -159,7 +159,7 @@ public:
 
         using SubstreamSO = typename StreamType::SparseObject;
 
-        return Result<SubstreamSO>::of(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head.get());
+        return Result<SubstreamSO>::of(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head);
     }
 
     template <int32_t SubstreamIdx>
@@ -918,11 +918,11 @@ public:
 
         const int32_t AllocatorIdx  = StreamDescrT::Value;
 
-        Result<StreamType*> head;
+        StreamType* head;
         if (alloc->is_empty(AllocatorIdx))
         {
-            head = alloc->template allocateEmpty<StreamType>(AllocatorIdx);
-            MEMORIA_RETURN_IF_ERROR(head);
+            MEMORIA_TRY(head_res, alloc->template allocateEmpty<StreamType>(AllocatorIdx));
+            head = head_res;
         }
         else {
             return MEMORIA_MAKE_GENERIC_ERROR("Substream {} is not empty", SubstreamIdx);
@@ -930,7 +930,7 @@ public:
 
         using SubstreamSO = typename StreamType::SparseObject;
 
-        return Result<SubstreamSO>::of(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head.get());
+        return Result<SubstreamSO>::of(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head);
     }
 
 

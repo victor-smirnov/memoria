@@ -264,12 +264,12 @@ public:
             MEMORIA_TRY_VOID(ii.get()->remove(1));
             MEMORIA_TRY_VOID(ii->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
 
-            return true;
+            return BoolResult::of(true);
         }
 
         MEMORIA_TRY_VOID(ii.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
 
-        return false;
+        return BoolResult::of(false);
     }
 
 

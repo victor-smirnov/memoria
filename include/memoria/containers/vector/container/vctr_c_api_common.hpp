@@ -147,9 +147,10 @@ public:
 
     Result<Datum<Value>> get(CtrSizeT pos) const noexcept
     {
+        using ResultT = Result<Datum<Value>>;
         MEMORIA_TRY(ii, self().seek(pos));
 
-        return ii->value();
+        return ResultT::of(ii->value());
     }
 
     VoidResult set(CtrSizeT pos, ViewType view) noexcept

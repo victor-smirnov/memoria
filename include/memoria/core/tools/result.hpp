@@ -33,7 +33,7 @@
 
 namespace memoria {
 
-enum class ErrorCategory {GENERIC, PACKED};
+enum class ErrorCategory {GENERIC, PACKED, EXCEPTION};
 
 class MemoriaError {
     ErrorCategory error_category_;
@@ -47,7 +47,7 @@ public:
     }
 
     virtual void describe(std::ostream& out) const noexcept = 0;
-    virtual const char* what() const noexcept = 0;
+    virtual const U8String what() const noexcept = 0;
 
     virtual void release() noexcept = 0;
 };
@@ -90,8 +90,8 @@ public:
         return std::move(reason_);
     }
 
-    virtual const char* what() const noexcept {
-        return reason_.data();
+    virtual const U8String what() const noexcept {
+        return reason_;
     }
 
     virtual void release() noexcept {
@@ -116,14 +116,34 @@ public:
         out << what();
     }
 
-    virtual const char* what() const noexcept {
+    virtual const U8String what() const noexcept {
         return "PackedOOMError";
     }
+};
+
+class WrappedExceptionMemoriaError: public MemoriaError {
+    std::exception_ptr ptr_;
+public:
+    WrappedExceptionMemoriaError(std::exception_ptr&& ptr) noexcept:
+        MemoriaError(ErrorCategory::EXCEPTION),
+        ptr_(std::move(ptr))
+    {}
+
+    void release() noexcept;
+    void describe(std::ostream& out) const noexcept;
+    const U8String what() const noexcept;
+
+    std::exception_ptr& ptr();
+
+    [[noreturn]] void rethrow() const;
+
+    static MemoriaErrorPtr create(std::exception_ptr&& ptr);
 };
 
 
 class ResultException: public std::exception {
     MemoriaErrorPtr error_;
+    mutable std::unique_ptr<U8String> what_;
 
 public:
     ResultException(MemoriaErrorPtr&& error) noexcept :
@@ -144,20 +164,24 @@ public:
 
     virtual const char* what() const noexcept
     {
-        return error_->what();
+        if (!what_)
+        {
+            what_ = std::make_unique<U8String>(error_->what());
+        }
+
+        return what_->data();
     }
 };
 
 struct UnknownResultStatusException: MemoriaThrowable {};
 
 enum class ResultStatus {
-    RESULT_SUCCESS = 0, UNASSIGNED = 1, MEMORIA_ERROR = 2, EXCEPTION = 3
+    RESULT_SUCCESS = 0, MEMORIA_ERROR = 1
 };
 
 
 namespace detail {
-    using ResultErrors = boost::variant2::variant<MemoriaErrorPtr, std::exception_ptr>;
-    struct UnassignedResultValueType {};
+    using ResultErrors = boost::variant2::variant<MemoriaErrorPtr>;
 }
 
 template <typename... Args>
@@ -183,8 +207,8 @@ inline detail::ResultErrors make_packed_oom_error() noexcept {
 template <typename T>
 class Result;
 
-using VoidResult = Result<void>;
-using BoolResult = Result<bool>;
+using VoidResult  = Result<void>;
+using BoolResult  = Result<bool>;
 using Int32Result = Result<int32_t>;
 
 template <typename T>
@@ -193,9 +217,10 @@ std::ostream& operator<<(std::ostream& out, const Result<T>& res) noexcept;
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const Result<T*>& res) noexcept;
 
+
 template <typename T>
 class MMA_NODISCARD Result {
-    using Variant = boost::variant2::variant<T, detail::UnassignedResultValueType, MemoriaErrorPtr, std::exception_ptr>;
+    using Variant = boost::variant2::variant<T, MemoriaErrorPtr>;
     Variant variant_;
 
     struct ResultTag {};
@@ -216,8 +241,6 @@ class MMA_NODISCARD Result {
 
 public:
     using ValueType = T;
-
-    Result() noexcept : variant_(detail::UnassignedResultValueType{}) {}
 
     Result(const Result&) = delete;
     Result(Result&&) noexcept = default;
@@ -317,15 +340,16 @@ public:
 
         switch(status())
         {
-            case ResultStatus::EXCEPTION: {
-                std::rethrow_exception(
-                    *boost::variant2::get_if<std::exception_ptr>(&variant_)
-                );
-            }
             case ResultStatus::MEMORIA_ERROR:
             {
+                if (memoria_error()->error_category() == ErrorCategory::EXCEPTION)
+                {
+                    WrappedExceptionMemoriaError* err = static_cast<WrappedExceptionMemoriaError*>(memoria_error().get());
+                    err->rethrow();
+                }
+
                 throw ResultException(
-                    *boost::variant2::get_if<MemoriaErrorPtr>(&variant_)
+                    std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))
                 );
             }
             default: break;
@@ -345,13 +369,14 @@ public:
 
         switch(status())
         {
-            case ResultStatus::EXCEPTION: {
-                std::rethrow_exception(
-                    *boost::variant2::get_if<std::exception_ptr>(&variant_)
-                );
-            }
             case ResultStatus::MEMORIA_ERROR:
             {
+                if (memoria_error()->error_category() == ErrorCategory::EXCEPTION)
+                {
+                    WrappedExceptionMemoriaError* err = static_cast<WrappedExceptionMemoriaError*>(memoria_error().get());
+                    err->rethrow();
+                }
+
                 throw ResultException(
                     std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))
                 );
@@ -370,16 +395,14 @@ public:
             case ResultStatus::RESULT_SUCCESS: {
                 return;
             }
-            case ResultStatus::UNASSIGNED: {
-                return;
-            }
-            case ResultStatus::EXCEPTION: {
-                std::rethrow_exception(
-                    *boost::variant2::get_if<std::exception_ptr>(&variant_)
-                );
-            }
             case ResultStatus::MEMORIA_ERROR:
             {
+                if (memoria_error()->error_category() == ErrorCategory::EXCEPTION)
+                {
+                    WrappedExceptionMemoriaError* err = static_cast<WrappedExceptionMemoriaError*>(memoria_error().get());
+                    err->rethrow();
+                }
+
                 throw ResultException(
                     std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))
                 );
@@ -395,9 +418,6 @@ public:
         switch(status())
         {
             case ResultStatus::RESULT_SUCCESS: {
-                return;
-            }
-            case ResultStatus::UNASSIGNED: {
                 return;
             }
             default: break;
@@ -419,7 +439,6 @@ public:
     {
         switch(status())
         {
-        case ResultStatus::EXCEPTION: return std::move(*boost::variant2::get_if<std::exception_ptr>(&variant_));
         case ResultStatus::MEMORIA_ERROR: return std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_));
         default: terminate((SBuf() << "Unknown result status value: {}" << static_cast<int32_t>(status())).str().c_str());
         }
@@ -454,7 +473,7 @@ public:
 
 template <>
 class MMA_NODISCARD Result<void> {
-    using Variant = boost::variant2::variant<EmptyType, detail::UnassignedResultValueType, MemoriaErrorPtr, std::exception_ptr>;
+    using Variant = boost::variant2::variant<EmptyType, MemoriaErrorPtr>;
     Variant variant_;
 
     struct ResultTag {};
@@ -475,7 +494,6 @@ class MMA_NODISCARD Result<void> {
 public:
     using ValueType = void;
 
-    Result() noexcept: variant_(detail::UnassignedResultValueType{}) {}
 
     Result(const Result&) = delete;
     Result(Result&&) noexcept = default;
@@ -521,24 +539,17 @@ public:
             case ResultStatus::RESULT_SUCCESS: {
                 return;
             }
-            case ResultStatus::UNASSIGNED: {
-                return;
-            }
-            case ResultStatus::EXCEPTION: {
-                std::rethrow_exception(
-                    *boost::variant2::get_if<std::exception_ptr>(&variant_)
-                );
-            }
             case ResultStatus::MEMORIA_ERROR:
             {
-                (*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))->describe(std::cout);
-                std::cout << std::endl;
+                if (memoria_error()->error_category() == ErrorCategory::EXCEPTION)
+                {
+                    WrappedExceptionMemoriaError* err = static_cast<WrappedExceptionMemoriaError*>(memoria_error().get());
+                    err->rethrow();
+                }
 
-                MMA_THROW(MemoriaThrowable()) << WhatCInfo("Forwarding memoria exception");
-
-//                throw ResultException(
-//                    std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))
-//                );
+                throw ResultException(
+                    std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))
+                );
             }
         }
     }
@@ -550,16 +561,13 @@ public:
             case ResultStatus::RESULT_SUCCESS: {
                 return;
             }
-            case ResultStatus::UNASSIGNED: {
-                return;
-            }
             default: break;
         }
 
         std::stringstream ss;
 
         ss << "Getting value from error. Terminating.\n";
-        //ss << *this;
+        ss << *this;
 
         terminate(ss.str().c_str());
     }
@@ -577,17 +585,7 @@ public:
     }
 
 
-    const std::exception_ptr& exception() const & noexcept {
-        return boost::variant2::get<std::exception_ptr>(variant_);
-    }
 
-    std::exception_ptr& exception() & noexcept {
-        return boost::variant2::get<std::exception_ptr>(variant_);
-    }
-
-    std::exception_ptr&& exception() && noexcept {
-        return std::move(boost::variant2::get<std::exception_ptr>(variant_));
-    }
 
     ResultStatus status() const noexcept {
         return static_cast<ResultStatus>(variant_.index());
@@ -597,12 +595,15 @@ public:
     {
         switch(status())
         {
-        case ResultStatus::EXCEPTION: return std::move(*boost::variant2::get_if<std::exception_ptr>(&variant_));
         case ResultStatus::MEMORIA_ERROR: return std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_));
         default: terminate(format_u8("Unknown result status value: {}", static_cast<int32_t>(status())).data());
         }
     }
 };
+template <typename T>
+bool isFail(const Result<T>& res) noexcept {
+    return res.is_error();
+}
 
 namespace detail {
 
@@ -639,28 +640,11 @@ namespace detail {
     void print_error(std::ostream&out, const Result<T>& result) noexcept
     {
         ResultStatus status = result.status();
-        if (status == ResultStatus::UNASSIGNED) {
-            out << "<Unassigned>";
-        }
-        else if (status == ResultStatus::MEMORIA_ERROR) {
+        if (status == ResultStatus::MEMORIA_ERROR) {
             result.memoria_error()->describe(out);
         }
-        else if (status == ResultStatus::EXCEPTION) {
-            try {
-                std::rethrow_exception(result.exception());
-            }
-            catch (MemoriaThrowable& mth) {
-                mth.dump(out);
-            }
-            catch (std::exception& ex) {
-                out << boost::diagnostic_information(ex);
-            }
-            catch (boost::exception& ex) {
-                out << boost::diagnostic_information(ex);
-            }
-            catch (...) {
-                out << "Unknown Exception";
-            }
+        else {
+            out << "[[Not an error]]";
         }
     }
 
@@ -714,15 +698,6 @@ namespace detail {
     }
 }
 
-template <typename T>
-bool isFail(const Result<T>& res) noexcept {
-    return res.is_error();
-}
-
-template <typename T>
-bool isOk(const Result<T>& res) noexcept {
-    return res.is_ok();
-}
 
 template <typename Fn>
 std::enable_if_t<
@@ -735,7 +710,7 @@ wrap_throwing(Fn&& fn) noexcept
         return detail::wrap_fn_result(fn());
     }
     catch (...) {
-        return detail::ResultErrors{std::current_exception()};
+        return detail::ResultErrors{WrappedExceptionMemoriaError::create(std::current_exception())};
     }
 }
 
@@ -773,13 +748,13 @@ wrap_throwing(Fn&& fn) noexcept
         return Result<RtnT>::of();
     }
     catch (...) {
-        return detail::ResultErrors{std::current_exception()};
+        return detail::ResultErrors{WrappedExceptionMemoriaError::create(std::current_exception())};
     }
 }
 
 #define MEMORIA_RETURN_IF_ERROR(ResultVal)   \
 do {                                         \
-    if (MMA_UNLIKELY(!ResultVal.is_ok())) {  \
+    if (MMA_UNLIKELY(ResultVal.is_error())) {  \
         return std::move(ResultVal).transfer_error(); \
     }                                        \
 } while (0)
@@ -787,14 +762,14 @@ do {                                         \
 #define MEMORIA_TRY_VOID(FnCall)             \
 do {                                         \
     auto res0 = FnCall;                      \
-    if (MMA_UNLIKELY(!res0.is_ok())) {       \
+    if (MMA_UNLIKELY(res0.is_error())) {       \
         return std::move(res0).transfer_error(); \
     }                                        \
 } while(0)
 
 #define MEMORIA_TRY(VarName, Code)                  \
     auto VarName##_result = Code;                  \
-    if (MMA_UNLIKELY(!VarName##_result.is_ok())) return std::move(VarName##_result).transfer_error(); \
+    if (MMA_UNLIKELY(VarName##_result.is_error())) return std::move(VarName##_result).transfer_error(); \
     auto& VarName = VarName##_result.get()
 
 #define MEMORIA_PROPAGATE_ERROR(res0) std::move(res0).transfer_error()

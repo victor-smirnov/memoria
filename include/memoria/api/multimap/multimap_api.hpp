@@ -82,8 +82,10 @@ public:
 
     virtual Result<CtrSharedPtr<IEntriesScanner<ApiTypes, Profile>>> entries_scanner() const noexcept
     {
+        using ResultT = Result<CtrSharedPtr<IEntriesScanner<ApiTypes, Profile>>>;
+
         MEMORIA_TRY(iter, this->iterator());
-        return entries_scanner(iter);
+        return ResultT::of(entries_scanner(iter));
     }
 
     virtual Result<IteratorAPIPtr> seek(CtrSizeT pos) const noexcept = 0;

@@ -188,7 +188,7 @@ public:
         bool buffer_has_data = start_.sum() < size_.sum();
 
         if (buffer_has_data) {
-            return true;
+            return BoolResult::of(true);
         }
         else {
             return populate_buffer();
@@ -226,7 +226,7 @@ public:
     {
         if (start_.sum() < size_.sum())
         {
-            return true;
+            return BoolResult::of(true);
         }
         else if (!finished_)
         {
@@ -234,7 +234,7 @@ public:
 
             if (finished_)
             {
-                return start_.sum() < size_.sum();
+                return BoolResult::of(start_.sum() < size_.sum());
             }
             else {
                 return BoolResult::of(true);

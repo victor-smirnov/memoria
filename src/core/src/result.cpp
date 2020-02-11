@@ -24,5 +24,46 @@ void release(MemoriaError* error) noexcept {
     }
 }
 
+void WrappedExceptionMemoriaError::release() noexcept {
+    delete this;
+}
+
+void WrappedExceptionMemoriaError::describe(std::ostream& out) const noexcept
+{
+    try {
+        std::rethrow_exception(ptr_);
+    }
+    catch (MemoriaThrowable& mth) {
+        mth.dump(out);
+    }
+    catch (std::exception& ex) {
+        out << boost::diagnostic_information(ex);
+    }
+    catch (boost::exception& ex) {
+        out << boost::diagnostic_information(ex);
+    }
+    catch (...) {
+        out << "Unknown Exception";
+    }
+}
+
+const U8String WrappedExceptionMemoriaError::what() const noexcept
+{
+    return "WrappedExceptionMemoriaError";
+}
+
+std::exception_ptr& WrappedExceptionMemoriaError::ptr() {
+    return ptr_;
+}
+
+void WrappedExceptionMemoriaError::rethrow() const {
+    std::rethrow_exception(ptr_);
+}
+
+
+MemoriaErrorPtr WrappedExceptionMemoriaError::create(std::exception_ptr&& ptr)
+{
+    return make_memoria_error<WrappedExceptionMemoriaError>(std::move(ptr));
+}
 
 }

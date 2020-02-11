@@ -954,7 +954,7 @@ public:
     // memory pool allocator
     virtual Result<void*> allocateMemory(size_t size) noexcept {
         return wrap_throwing([&]() -> Result<void*> {
-            return allocate_system<uint8_t>(size).release();
+            return Result<void*>::of(allocate_system<uint8_t>(size).release());
         });
     }
 
@@ -1011,7 +1011,7 @@ public:
     virtual BoolResult hasRoot(const CtrID& name) noexcept
     {
         if (MMA_UNLIKELY(!root_map_)) {
-            return false;
+            return BoolResult::of(false);
         }
 
         if (!name.is_null())

@@ -116,7 +116,7 @@ public:
     {
         bool buffer_has_data = start_ < size_;
         MEMORIA_TRY(res, populate_buffer());
-        return buffer_has_data || res;
+        return BoolResult::of(buffer_has_data || res);
     }
 
     virtual Result<Position> fill(NodeBaseG& leaf, const Position& from) noexcept
@@ -241,21 +241,21 @@ public:
     {
         if (start_ < size_)
         {
-            return true;
+            return BoolResult::of(true);
         }
         else if (!finished_)
         {
             MEMORIA_TRY_VOID(do_populate_iobuffer());
             if (finished_)
             {
-                return start_ < size_;
+                return BoolResult::of(start_ < size_);
             }
             else {
-                return true;
+                return BoolResult::of(true);
             }
         }
         else {
-            return false;
+            return BoolResult::of(false);
         }
     }
 

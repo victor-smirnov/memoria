@@ -208,7 +208,7 @@ public:
 
         if (stream == 1) 
         {
-            return true;
+            return BoolResult::of(true);
         }
         else {
             MEMORIA_TRY_VOID(self.next());

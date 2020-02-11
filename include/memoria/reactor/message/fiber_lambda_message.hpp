@@ -17,6 +17,8 @@
 
 #include "fiber_message.hpp"
 
+#include <memoria/core/tools/optional.hpp>
+
 #include <string>
 
 namespace memoria {
@@ -32,7 +34,7 @@ protected:
     
     Fn fn_;
     std::tuple<Args...> args_;
-    RtnType result_{};
+    Optional<RtnType> result_{};
 
 public:
     template <typename... CtrArgs>
@@ -60,7 +62,7 @@ public:
             std::rethrow_exception(exception_);
         }
         
-        return std::move(result_);
+        return std::move(result_.get());
     }
     
     virtual std::string describe() {return std::string("FiberLambdaMessage: ") + typeid(Fn).name() + ", return: " + (return_ ? "true" : "false");}

@@ -205,7 +205,7 @@ public:
         );
 
         if (isOk(fn.status_)) {
-            return SplitStatus::NONE;
+            return ResultT::of(SplitStatus::NONE);
         }
 
         mgr.rollback();

@@ -384,10 +384,10 @@ BoolResult M_TYPE::iter_find_next_leaf(Walker&& walker) noexcept
 
         self.iter_local_pos() = 0;
 
-        return idx < size;
+        return BoolResult::of(idx < size);
     }
     else {
-        return false;
+        return BoolResult::of(false);
     }
 }
 
@@ -431,10 +431,10 @@ BoolResult M_TYPE::iter_find_prev_leaf(Walker&& walker) noexcept
 
         self.iter_local_pos() = idx >= 0 ? self.iter_leaf_size(stream) - 1 : -1;
 
-        return idx >= 0;
+        return BoolResult::of(idx >= 0);
     }
     else {
-        return false;
+        return BoolResult::of(false);
     }
 }
 
