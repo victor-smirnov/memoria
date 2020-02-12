@@ -109,9 +109,13 @@ private:
     CountDownLatch<int64_t> active_snapshots_;
  
 public:
-    ThreadsMemoryStoreImpl() noexcept {
-        auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this);
-        snapshot->commit().terminate_if_error();
+    ThreadsMemoryStoreImpl(MaybeError& maybe_error) noexcept:
+        Base(maybe_error)
+    {
+        wrap_construction(maybe_error, [&]() -> VoidResult {
+            MEMORIA_TRY(snapshot, snp_make_shared_init<SnapshotT>(history_tree_, this));
+            return snapshot->commit();
+        });
     }
     
     
@@ -141,8 +145,12 @@ protected:
     	return store_mutex_;
     }
 
-    SnapshotApiPtr upcast(SnapshotPtr ptr) {
+    SnapshotApiPtr upcast(SnapshotPtr&& ptr) {
         return memoria_static_pointer_cast<IMemorySnapshot<Profile>>(ptr);
+    }
+
+    Result<SnapshotApiPtr> upcast(Result<SnapshotPtr>&& ptr) {
+        return memoria_static_pointer_cast<IMemorySnapshot<Profile>>(std::move(ptr));
     }
 
 public:
@@ -434,7 +442,7 @@ public:
 
     Result<SnapshotApiPtr> find(const SnapshotID& snapshot_id) noexcept
     {
-        using ResultT = Result<SnapshotApiPtr>;
+        //using ResultT = Result<SnapshotApiPtr>;
         LockGuardT lock_guard(mutex_);
 
         auto iter = snapshot_map_.find(snapshot_id);
@@ -446,7 +454,7 @@ public:
 
             if (history_node->is_committed())
             {
-                return ResultT::of(upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this())));
+                return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this()));
             }
             if (history_node->is_data_locked())
             {
@@ -473,7 +481,7 @@ public:
 
     Result<SnapshotApiPtr> find_branch(U8StringRef name) noexcept
     {
-        using ResultT = Result<SnapshotApiPtr>;
+        //using ResultT = Result<SnapshotApiPtr>;
         LockGuardT lock_guard(mutex_);
 
     	auto iter = named_branches_.find(name);
@@ -485,13 +493,13 @@ public:
 
             if (history_node->is_committed())
             {
-                return ResultT::of(upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this())));
+                return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this()));
             }
             else if (history_node->is_data_locked())
             {
             	if (history_node->references() == 0)
             	{
-                    return ResultT::of(upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this())));
+                    return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this()));
             	}
             	else {
                     return MEMORIA_MAKE_GENERIC_ERROR(
@@ -515,13 +523,13 @@ public:
 
     Result<SnapshotApiPtr> master() noexcept
     {
-        using ResultT = Result<SnapshotApiPtr>;
+        //using ResultT = Result<SnapshotApiPtr>;
         std::lock(mutex_, master_->snapshot_mutex());
 
     	LockGuardT lock_guard(mutex_, std::adopt_lock);
     	SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
 
-        return ResultT::of(upcast(snp_make_shared_init<SnapshotT>(master_, this->shared_from_this())));
+        return upcast(snp_make_shared_init<SnapshotT>(master_, this->shared_from_this()));
     }
 
     SnapshotMetadata<SnapshotID> describe_master() const noexcept
@@ -739,12 +747,12 @@ public:
         SharedPtr<AllocatorMemoryStat<Profile>> alloc_stat = MakeShared<AllocatorMemoryStat<Profile>>(0);
 
         auto history_visitor = [&](HistoryNode* node) -> VoidResult {
-            return wrap_throwing([&](){
+            return wrap_throwing([&]() -> VoidResult {
                 SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
 
                 if (node->is_committed() || node->is_dropped())
                 {
-                    auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this());
+                    MEMORIA_TRY(snp, snp_make_shared_init<SnapshotT>(node, this->shared_from_this()));
                     auto snp_stat = snp->do_compute_memory_stat(visited_blocks);
                     alloc_stat->add_snapshot_stat(snp_stat);
                 }
@@ -771,7 +779,7 @@ protected:
     {
         if (node->is_committed())
         {
-            auto txn = snp_make_shared_init<SnapshotT>(node, this);
+            MEMORIA_TRY(txn, snp_make_shared_init<SnapshotT>(node, this));
             MEMORIA_TRY_VOID(fn(node, txn.get()));
         }
 
@@ -801,7 +809,7 @@ protected:
 
         if (node->is_committed())
         {
-            auto txn = snp_make_shared_init<SnapshotT>(node, this);
+            MEMORIA_TRY(txn, snp_make_shared_init<SnapshotT>(node, this));
             MEMORIA_TRY_VOID(txn->walkContainers(walker, get_labels_for(node)));
         }
 
@@ -937,7 +945,16 @@ template <typename Profile>
 Result<AllocSharedPtr<IMemoryStore<Profile>>> IMemoryStore<Profile>::create() noexcept
 {
     using ResultT = Result<AllocSharedPtr<IMemoryStore<Profile>>>;
-    return ResultT::of(MakeShared<store::memory::ThreadsMemoryStoreImpl<Profile>>());
+    MaybeError maybe_error;
+
+    auto snp = MakeShared<store::memory::ThreadsMemoryStoreImpl<Profile>>(maybe_error);
+
+    if (!maybe_error) {
+        return ResultT::of(std::move(snp));
+    }
+    else {
+        return std::move(maybe_error.get());
+    }
 }
 
 

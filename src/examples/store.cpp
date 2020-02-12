@@ -30,13 +30,13 @@ int main()
     StaticLibraryCtrs<>::init();
 
     // Creating new instance of in-memory store.
-    auto alloc = IMemoryStore<>::create().get_or_terminate();
+    auto alloc = IMemoryStore<>::create().get_or_throw();
 
     // Obtaining Master's branch head.
-    auto master = alloc->master().get_or_terminate();
+    auto master = alloc->master().get_or_throw();
 
     // Creating new writable snapshot from the Master's head.
-    auto snp = master->branch().get_or_terminate();
+    auto snp = master->branch().get_or_throw();
 
     // Do somethig with containers here
 

@@ -47,6 +47,7 @@
 #include <memoria/core/datatypes/type_registry.hpp>
 
 #include <memoria/api/common/ctr_api.hpp>
+#include <memoria/core/tools/result.hpp>
 
 #include <string>
 #include <memory>
@@ -117,7 +118,7 @@ protected:
     bool do_unregister_on_dtr_{true};
 
 public:
-    CtrBase(){}
+    CtrBase(MaybeError&) noexcept {}
 
     virtual ~CtrBase() noexcept {}
 
@@ -228,17 +229,27 @@ public:
         template <typename CtrName>
         using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
-        virtual SnpSharedPtr<CtrReferenceable<ProfileT>> create_instance(
+        virtual Result<CtrSharedPtr<CtrReferenceable<ProfileT>>> create_instance(
                 const AllocatorPtr& allocator,
                 const CtrID& ctr_id,
                 const LDTypeDeclarationView& type_decl
         ) const
         {
+            using ResultT = Result<CtrSharedPtr<CtrReferenceable<ProfileT>>>;
             boost::any obj = DataTypeRegistry::local().create_object(type_decl);
 
-            return ctr_make_shared<CtrT<ContainerTypeName>>(
-                allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
+            MaybeError maybe_error;
+
+            auto instance = ctr_make_shared<CtrT<ContainerTypeName>>(
+                maybe_error, allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
             );
+
+            if (!maybe_error) {
+                return ResultT::of(std::move(instance));
+            }
+            else {
+                return std::move(maybe_error.get());
+            }
         }
     };
 
@@ -321,7 +332,7 @@ public:
 
 
             virtual void ctr_begin_node(int32_t idx, const BlockType* block) {
-                consumer_(block->uuid(), block->id(), block).terminate_if_error();
+                consumer_(block->uuid(), block->id(), block).get_or_throw();
             }
 
             virtual void rootLeaf(int32_t idx, const BlockType* block) {
@@ -352,14 +363,22 @@ public:
             const ProfileBlockG<typename Types::Profile>& root_block,
             AllocatorPtr allocator
         ) const noexcept
-        {    
+        {
             using ResultT = Result<CtrSharedPtr<CtrReferenceable<typename Types::Profile>>>;
-            return wrap_throwing([&]() -> ResultT {
-                return ResultT::of(ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
+
+            MaybeError maybe_error;
+            auto instance = ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
+                    maybe_error,
                     allocator,
                     root_block
-                ));
-            });
+            );
+
+            if (!maybe_error) {
+                return ResultT::of(std::move(instance));
+            }
+            else {
+                return std::move(maybe_error.get());
+            }
         }
 
         virtual Result<CtrID> clone_ctr(const BlockID& ctr_id, const CtrID& new_ctr_id, AllocatorPtr allocator) const noexcept
@@ -380,8 +399,7 @@ public:
 
         virtual Result<CtrBlockDescription<ProfileT>> describe_block1(const BlockID& block_id, AllocatorPtr allocator) const noexcept
         {
-            using ResultT = Result<CtrBlockDescription<ProfileT>>;
-            return ResultT::of(MyType::describe_block(block_id, allocator.get()));
+            return MyType::describe_block(block_id, allocator.get());
         }
     };
 
@@ -463,7 +481,9 @@ class CtrHelper: public CtrPart<
     using MyType   = Ctr<Types>;
     using Base     = CtrPart<Select<Idx, typename Types::List>, CtrHelper<Idx - 1, Types>, Types>;
 public:
-    CtrHelper() noexcept {}
+    CtrHelper(MaybeError& maybe_error) noexcept:
+        Base(maybe_error)
+    {}
 
     virtual ~CtrHelper() noexcept {}
 };
@@ -475,7 +495,7 @@ class CtrHelper<-1, Types>: public Types::template BaseFactory<Types> {
     using Base     = typename Types::template BaseFactory<Types>;
 
 public:
-    CtrHelper() noexcept {}
+    CtrHelper(MaybeError& maybe_error) noexcept: Base(maybe_error) {}
 
     virtual ~CtrHelper() noexcept {}
 
@@ -497,7 +517,9 @@ class CtrStart: public CtrHelper<ListSize<typename Types::List> - 1, Types> {
     using Base      = CtrHelper<ListSize<typename Types::List> - 1, Types>;
 
 public:
-    CtrStart() noexcept {}
+    CtrStart(MaybeError& maybe_error) noexcept:
+        Base(maybe_error)
+    {}
 };
 
 
@@ -536,38 +558,48 @@ public:
 
     // create new ctr
     Ctr(
+        MaybeError& maybe_error,
         const CtrSharedPtr<Allocator>& allocator,
         const CtrID& ctr_id,
         const ContainerTypeName& ctr_type_name
     ) noexcept:
-        Base()
+        Base(maybe_error)
     {
-        Base::allocator_holder_ = allocator;
+        wrap_construction(maybe_error, [&]() -> VoidResult {
+            Base::allocator_holder_ = allocator;
 
-        allocator_ = allocator.get();
-        name_ = ctr_id;
+            allocator_ = allocator.get();
+            name_ = ctr_id;
 
-        this->do_create_ctr(ctr_id, ctr_type_name).terminate_if_error();
-
-        allocator_->registerCtr(ctr_id, this).terminate_if_error();
+            MEMORIA_TRY_VOID(this->do_create_ctr(ctr_id, ctr_type_name));
+            MEMORIA_TRY_VOID(allocator_->registerCtr(ctr_id, this));
+            return VoidResult::of();
+        });
     }
 
     // find existing ctr
     Ctr(
+        MaybeError& maybe_error,
         const CtrSharedPtr<Allocator>& allocator,
         const typename Allocator::BlockG& root_block
     ) noexcept :
-        Base()
+        Base(maybe_error)
     {
-        Base::allocator_holder_ = allocator;
+        wrap_construction(maybe_error, [&]() -> VoidResult {
+            Base::allocator_holder_ = allocator;
 
-        allocator_ = allocator.get();
+            allocator_ = allocator.get();
 
-        initLogger();
+            initLogger();
 
-        name_ = this->do_init_ctr(root_block).get_or_terminate();
+            MEMORIA_TRY(name, this->do_init_ctr(root_block));
 
-        allocator_->registerCtr(name_, this).terminate_if_error();
+            name_ = name;
+
+            MEMORIA_TRY_VOID(allocator_->registerCtr(name_, this));
+
+            return VoidResult::of();
+        });
     }
 
 
@@ -580,7 +612,7 @@ public:
         if (this->do_unregister_on_dtr_)
         {
             try {
-                allocator_->unregisterCtr(name_, this).terminate_if_error();
+                allocator_->unregisterCtr(name_, this).get_or_throw();
             }
             catch (Exception& ex) {
                 ex.dump(std::cout);

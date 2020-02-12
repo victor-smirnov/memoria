@@ -199,7 +199,7 @@ private:
 
     static ID get_ctr_root(Allocator& allocator, const ID& root_id, const UUID& ctr_name, int64_t name)
     {
-        NodeBaseG root  = allocator.getBlock(root_id, ctr_name).get_or_terminate();
+        NodeBaseG root  = allocator.getBlock(root_id, ctr_name).get_or_throw();
         Metadata  meta  = Tree::ctr_get_ctr_root_metadata(root);
 
         return meta.roots(UUID(0, name));

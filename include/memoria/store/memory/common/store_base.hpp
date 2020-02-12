@@ -514,15 +514,17 @@ protected:
     std::atomic<bool> dump_snapshot_lifecycle_{false};
 
 public:
-    MemoryStoreBase():
+    MemoryStoreBase(MaybeError& maybe_error):
         logger_("PersistentInMemAllocator")
     {
-        master_ = history_tree_ = new HistoryNode(&self(), HistoryNode::Status::ACTIVE);
+        wrap_construction(maybe_error, [&](){
+            master_ = history_tree_ = new HistoryNode(&self(), HistoryNode::Status::ACTIVE);
 
-        snapshot_map_[history_tree_->snapshot_id()] = history_tree_;
+            snapshot_map_[history_tree_->snapshot_id()] = history_tree_;
 
-        auto leaf = new LeafNodeT(history_tree_->snapshot_id(), IDTools<BlockID>::make_random());
-        history_tree_->set_root(leaf);
+            auto leaf = new LeafNodeT(history_tree_->snapshot_id(), IDTools<BlockID>::make_random());
+            history_tree_->set_root(leaf);
+        });
     }
 
 protected:
@@ -566,9 +568,19 @@ public:
     }
 
 
-    static auto create() noexcept
+    static Result<AllocSharedPtr<IMemoryStore<Profile>>> create() noexcept
     {
-        return alloc_make_shared<MyType>();
+        using ResultT = Result<AllocSharedPtr<IMemoryStore<Profile>>>;
+
+        MaybeError maybe_error;
+        auto store = alloc_make_shared<MyType>(maybe_error);
+
+        if (!maybe_error) {
+            return ResultT::of(std::move(store));
+        }
+        else {
+            return std::move(maybe_error.get());
+        }
     }
 
     auto newId() noexcept

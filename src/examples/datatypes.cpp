@@ -29,117 +29,57 @@
 #include <memoria/core/tools/result.hpp>
 
 #include <iostream>
+#include <stdexcept>
 
 using namespace memoria;
 
-using Ctr1T = Vector<LinkedData>;
-using Ctr2T = Vector<Varchar>;
+struct Resource {
 
-template <typename... Args>
-Result<void> boo(Args...) {
-    return MEMORIA_MAKE_GENERIC_ERROR("Ooops!");
+    Resource(MaybeError& mabe_error, U8String name)
+    {
+        wrap_construction(mabe_error, [&]() {
+            std::cout << "Initilizing Resource " << name << std::endl;
+
+            //return make_generic_error("Resource {} graceful faiulre", name);
+
+//            if (1==1) {
+//                throw std::runtime_error("Resource " + name.to_std_string() + " failure");
+//            }
+        });
+    }
+};
+
+struct Aggregate {
+
+    Resource res1_;
+    Resource res2_;
+
+    Aggregate(MaybeError& mabe_error):
+        res1_(mabe_error, "RES1"),
+        res2_(mabe_error, "RES2")
+    {
+        wrap_construction(mabe_error, [](){
+            std::cout << "Initilizing Aggregate" << std::endl;
+        });
+    }
+};
+
+Result<Aggregate> make_aggreagte() {
+    MaybeError maybe_error;
+    Aggregate agg(maybe_error);
+    if (!maybe_error) {
+        return Result<Aggregate>::of(std::move(agg));
+    }
+    else {
+        return std::move(maybe_error.get());
+    }
 }
-
-
 
 int main()
 {
     try {
-        Result<int> rr = wrap_throwing([] () -> Result<int> {
-            //auto boo_r = boo();
-            //MEMORIA_RETURN_IF_ERROR(boo(1,2,3,4));
-            //return 12345;
-
-            //return Result<EmptyType>::of();
-            MMA_THROW(RuntimeException()) << WhatCInfo("Foooo!");
-        });
-
-        rr.get_or_terminate();
-
-        //std::cout << rr << std::endl;
-
-        //rr.throw_if_error();
-
-        //std::cout << rr.throw_if_error() << std::endl;
-
-
-
-//        LDDocument doc = LDDocument::parse("Decimal(10,8)");
-//        doc.dump(std::cout) << std::endl;
-
-        //std::cout << cast_as<Varchar>(doc.value()) << std::endl;
-
-        //DataTypeRegistryStore::global().register_creator_fn<Decimal, TL<int32_t, int32_t>, TL<int32_t>, TL<>>();
-
-        //DataTypeRegistry::local().create_object(doc.value().as_type_decl());
-
-        /*
-        auto store = IMemoryStore<>::create();
-
-        auto snp = store->master()->branch();
-
-        auto ctr1 = create(snp, Ctr1T());
-        auto ctr2 = create(snp, Ctr2T());
-
-        ctr1->append([&](auto& buffer, size_t size){
-            for (size_t c = 0; c < 1; c++)
-            {
-                buffer.builder().doc().set_sdn("{'booo': 'Hello World', 'foo': [ [], {}, 1,2,3,4,5,6,7, " + std::to_string(c) + "], 'key0': false}");
-                buffer.builder().build();
-            }
-
-            return true;
-        });
-
-        ctr2->append([&](auto& buffer, size_t size){
-            for (size_t c = 0; c < 1; c++)
-            {
-                buffer.builder().append("{'booo': 'Hello World', 'foo': [1,2,3,4,5,6,7, " + std::to_string(c) + "]}");
-                buffer.builder().build();
-            }
-
-            return true;
-        });
-
-        std::cout << ctr1->size() << std::endl;
-        std::cout << ctr2->size() << std::endl;
-
-        auto scanner1 = ctr1->as_scanner([](auto ctr){
-            return ctr->seek(0);
-        });
-
-        while (!scanner1.is_end())
-        {
-            for (const auto& vv: scanner1.values()) {
-                std::cout << vv << std::endl;
-            }
-
-            scanner1.next_leaf();
-        }
-
-        auto scanner2 = ctr2->as_scanner([](auto ctr){
-            return ctr->seek(0);
-        });
-
-        while (!scanner2.is_end())
-        {
-            for (const auto& vv: scanner2.values()) {
-                std::cout << vv << std::endl;
-            }
-
-            scanner2.next_leaf();
-        }
-
-        UUID ctr2_id = ctr2->name();
-
-        //ctr2->drop();
-
-        //auto ctr3 = find<Ctr1T>(snp, ctr2_id);
-        //std::cout << ctr3->describe_type() << std::endl;
-
-        snp->commit();
-
-        */
+        Result<Aggregate> res = make_aggreagte();
+        res.get_or_throw();
     }
     catch (MemoriaThrowable& th) {
         th.dump(std::cout);

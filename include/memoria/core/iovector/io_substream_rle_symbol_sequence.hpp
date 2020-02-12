@@ -113,7 +113,7 @@ public:
 
     virtual void dump(std::ostream& out) const
     {
-        sequence_->dump(out, true);
+        DumpStruct(sequence_, out);
     }
 
     virtual const std::type_info& sequence_type() const {

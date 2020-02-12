@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/tools/any.hpp>
+#include <memoria/core/tools/optional.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/strings/format.hpp>
 #include <memoria/core/strings/u8_string.hpp>
@@ -60,6 +60,7 @@ template <typename ErrorType, typename... Args>
 MemoriaErrorPtr make_memoria_error(Args&&... args) {
     return MemoriaErrorPtr(new ErrorType{std::forward<Args>(args)...}, release);
 }
+
 
 
 class GenericMemoriaError: public MemoriaError {
@@ -183,6 +184,9 @@ enum class ResultStatus {
 namespace detail {
     using ResultErrors = boost::variant2::variant<MemoriaErrorPtr>;
 }
+
+using MaybeError = Optional<detail::ResultErrors>;
+
 
 template <typename... Args>
 detail::ResultErrors make_generic_error(const char* fmt, Args&&... args) noexcept {
@@ -330,9 +334,9 @@ public:
         return accessor();
     }
 
-    const T& get_or_throw() const &
+    T& get_or_throw() &
     {
-        const T* ptr = boost::variant2::get_if<T>(&variant_);
+        T* ptr = boost::variant2::get_if<T>(&variant_);
 
         if (ptr) {
             return *ptr;
@@ -600,9 +604,18 @@ public:
         }
     }
 };
+
 template <typename T>
 bool isFail(const Result<T>& res) noexcept {
     return res.is_error();
+}
+
+inline bool isFail(const MaybeError& res) noexcept {
+    return res.is_initialized();
+}
+
+inline bool isFail(const detail::ResultErrors&) noexcept {
+    return true;
 }
 
 namespace detail {
@@ -696,23 +709,19 @@ namespace detail {
 
         return out;
     }
+
+    template <typename T>
+    ResultErrors propagate_errors(Result<T>&& res) {
+        return std::move(res).transfer_error();
+    }
+
+    inline ResultErrors propagate_errors(MaybeError&& err) {
+        return std::move(err.get());
+    }
 }
 
 
-template <typename Fn>
-std::enable_if_t<
-    !detail::IsVoidResultH<std::result_of_t<Fn()>>::Value,
-    typename detail::ResultOfFn<Fn()>::Type
->
-wrap_throwing(Fn&& fn) noexcept
-{
-    try {
-        return detail::wrap_fn_result(fn());
-    }
-    catch (...) {
-        return detail::ResultErrors{WrappedExceptionMemoriaError::create(std::current_exception())};
-    }
-}
+
 
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const Result<T>& res) noexcept
@@ -734,6 +743,21 @@ std::ostream& operator<<(std::ostream& out, const Result<T*>& res) noexcept
 }
 
 
+template <typename Fn>
+std::enable_if_t<
+    !detail::IsVoidResultH<std::result_of_t<Fn()>>::Value,
+    typename detail::ResultOfFn<Fn()>::Type
+>
+wrap_throwing(Fn&& fn) noexcept
+{
+    try {
+        return detail::wrap_fn_result(fn());
+    }
+    catch (...) {
+        return detail::ResultErrors{WrappedExceptionMemoriaError::create(std::current_exception())};
+    }
+}
+
 
 template <typename Fn>
 std::enable_if_t<
@@ -749,6 +773,44 @@ wrap_throwing(Fn&& fn) noexcept
     }
     catch (...) {
         return detail::ResultErrors{WrappedExceptionMemoriaError::create(std::current_exception())};
+    }
+}
+
+
+template <typename Fn>
+std::enable_if_t<
+    detail::IsVoidResultH<std::result_of_t<Fn()>>::Value,
+    void
+>
+wrap_construction(MaybeError& maybe_error, Fn&& fn) {
+    if (!maybe_error)
+    {
+        try {
+            fn();
+        }
+        catch (...) {
+            maybe_error = detail::ResultErrors{WrappedExceptionMemoriaError::create(std::current_exception())};
+        }
+    }
+}
+
+template <typename Fn>
+std::enable_if_t<
+    !detail::IsVoidResultH<std::result_of_t<Fn()>>::Value,
+    void
+>
+wrap_construction(MaybeError& maybe_error, Fn&& fn) {
+    if (!maybe_error)
+    {
+        try {
+            auto res = fn();
+            if (isFail(res)){
+                maybe_error = detail::propagate_errors(std::move(res));
+            }
+        }
+        catch (...) {
+            maybe_error = detail::ResultErrors{WrappedExceptionMemoriaError::create(std::current_exception())};
+        }
     }
 }
 

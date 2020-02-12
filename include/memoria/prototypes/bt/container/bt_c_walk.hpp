@@ -146,7 +146,7 @@ private:
         {
             self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&](const BlockID& id, int32_t idx)
             {
-                NodeBaseG child = self.store().getBlock(id).get_or_terminate();
+                MEMORIA_TRY(child, self.ctr_get_block(id));
                 NodeBaseG new_child = self.ctr_clone_tree(child, new_node->id());
                 self.ctr_set_child_id(new_node, idx, new_child->id());
             });

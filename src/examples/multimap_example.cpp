@@ -39,11 +39,11 @@ int main()
         using MultimapType = Multimap<Varchar, Varchar>;
         using Entry   = std::pair<U8String, std::vector<U8String>>;
 
-        auto alloc = IMemoryStore<>::create().get_or_terminate();
+        auto alloc = IMemoryStore<>::create().get_or_throw();
 
-        auto snp = alloc->master().get_or_terminate()->branch().get_or_terminate();
+        auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
 
-        auto ctr0 = create(snp, MultimapType()).get_or_terminate();
+        auto ctr0 = create(snp, MultimapType()).get_or_throw();
 
         //ctr0->set_new_block_size(64*1024).throw_if_error();
 

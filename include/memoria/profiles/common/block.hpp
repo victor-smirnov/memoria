@@ -268,8 +268,6 @@ class PageShared {
 
     MyType* owner_;
 
-    MyTypePtr delegate_;
-
 public:
 
     enum {UNDEFINED, READ, UPDATE, _DELETE};
@@ -343,12 +341,6 @@ public:
     int32_t unref() noexcept
     {
         int32_t refs = --references_;
-
-        if (refs == 0)
-        {
-            unrefDelegate();
-        }
-
         return refs;
     }
 
@@ -379,29 +371,6 @@ public:
         return owner_;
     }
 
-    const MyTypePtr& delegate() const noexcept {
-        return delegate_;
-    }
-
-    void setDelegate(MyType* delegate) noexcept
-    {
-        MEMORIA_V1_ASSERT_TRUE(delegate != this);
-
-        if (delegate_)
-        {
-            delegate_->owner() = nullptr;
-            if (delegate_->unref() == 0)
-            {
-                delegate_->store()->releasePage(delegate_);
-                delegate_ = nullptr;
-            }
-        }
-
-        delegate_ = delegate;
-        delegate_->owner() = this;
-
-        delegate_->ref();
-    }
 
 
     void refresh() noexcept
@@ -421,7 +390,6 @@ public:
         allocator_  = nullptr;
 
         owner_      = nullptr;
-        delegate_   = nullptr;
     }
 
 private:
@@ -431,15 +399,6 @@ private:
         this->state_    = shared->state_;
 
         refresh();
-    }
-
-    void unrefDelegate() noexcept
-    {
-        if (delegate_ && delegate_->unref() == 0)
-        {
-            delegate_->store()->releaseBlock(delegate_).terminate_if_error();
-            delegate_ = nullptr;
-        }
     }
 };
 
@@ -684,7 +643,7 @@ private:
         {
             if (shared_->unref() == 0)
             {
-                shared_->store()->releaseBlock(shared_).terminate_if_error();
+                shared_->store()->releaseBlock(shared_).get_or_throw();
             }
         }
     }

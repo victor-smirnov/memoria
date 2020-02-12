@@ -90,7 +90,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     virtual Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>> iterator() const noexcept = 0;
 
     MapScanner<ApiTypes, Profile> scanner() const {
-        return MapScanner<ApiTypes, Profile>(iterator().get_or_terminate());
+        return MapScanner<ApiTypes, Profile>(iterator().get_or_throw());
     }
 
     template <typename Fn>

@@ -34,7 +34,7 @@ int main()
     try {
         using MapType = Set<Varchar>;
 
-        auto alloc = IMemoryStore<>::create().get_or_terminate();
+        auto alloc = IMemoryStore<>::create().get_or_throw();
 
         auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
 

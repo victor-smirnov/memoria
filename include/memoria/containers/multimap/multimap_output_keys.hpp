@@ -67,8 +67,8 @@ public:
     {
         auto ii = iter_->iter_clone();
 
-        ii.get()->iter_btfl_select_fw(key_idx, 0).terminate_if_error();
-        ii.get()->to_values().terminate_if_error();
+        ii.get()->iter_btfl_select_fw(key_idx, 0).get_or_throw();
+        ii.get()->to_values().get_or_throw();
 
         auto ptr = ctr_make_shared<multimap::ValuesIteratorImpl<Types, Profile, IteratorPtr>>(ii);
         return memoria_static_pointer_cast<IValuesScanner<Types, Profile>>(ptr);

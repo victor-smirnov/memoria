@@ -110,16 +110,12 @@ struct ContainerWalkerBase: ContainerWalker<Profile> {
     virtual void beginCtr(const char* descr, const CtrID& name, const BlockID& root) {}
     virtual void endCtr() {}
 
-//    virtual void beginRoot(int32_t idx, const BlockType* block) {}
+
     virtual void beginRoot(const BlockType* block) {}
     virtual void endRoot() {}
 
-    //virtual void ctr_begin_node(int32_t idx, const BlockType* block) {}
     virtual void ctr_begin_node(const BlockType* block) {}
     virtual void ctr_end_node() {}
-
-//    virtual void rootLeaf(int32_t idx, const BlockType* block) {}
-//    virtual void leaf(int32_t idx, const BlockType* block) {}
 
     virtual void rootLeaf(const BlockType* block) {}
     virtual void leaf(const BlockType* block) {}
@@ -236,7 +232,7 @@ struct CtrInstanceFactory {
     using Allocator     = ProfileAllocatorType<Profile>;
     using AllocatorPtr  = SnpSharedPtr<Allocator>;
 
-    virtual SnpSharedPtr<CtrReferenceable<Profile>> create_instance(
+    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create_instance(
             const AllocatorPtr& allocator,
             const CtrID& ctr_id,
             const LDTypeDeclarationView& type_decl

@@ -117,12 +117,20 @@ private:
     memoria::fibers::count_down_latch<int64_t> active_snapshots_;
 
     LocalSharedPtr<StoreEventListener> event_listener_;
+
+    Result<SnapshotApiPtr> upcast(Result<SnapshotPtr>&& ptr) {
+        return memoria_static_pointer_cast<IMemorySnapshot<Profile>>(std::move(ptr));
+    }
  
 public:
-    FibersMemoryStoreImpl() noexcept {
-        cpu_ = reactor::engine().cpu();
-        auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this, OperationType::OP_CREATE);
-        snapshot->commit().terminate_if_error();
+    FibersMemoryStoreImpl(MaybeError& maybe_error) noexcept:
+        Base(maybe_error)
+    {
+        wrap_construction(maybe_error, [&]() noexcept -> VoidResult {
+            cpu_ = reactor::engine().cpu();
+            MEMORIA_TRY(snapshot, snp_make_shared_init<SnapshotT>(history_tree_, this, OperationType::OP_CREATE));
+            return snapshot->commit();
+        });
     }
     
     virtual ~FibersMemoryStoreImpl() noexcept
@@ -389,7 +397,7 @@ public:
 
                 if (history_node->is_committed())
                 {
-                    return ResultT::of(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND));
+                    return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND));
                 }
                 if (history_node->is_data_locked())
                 {
@@ -420,13 +428,13 @@ public:
 
                 if (history_node->is_committed())
                 {
-                    return ResultT::of(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND));
+                    return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND));
                 }
                 else if (history_node->is_data_locked())
                 {
                     if (history_node->references() == 0)
                     {
-                        return ResultT::of(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND));
+                        return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND));
                     }
                     else {
                         return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is locked and open", history_node->snapshot_id());
@@ -444,9 +452,8 @@ public:
 
     Result<SnapshotApiPtr> master() noexcept
     {
-        using ResultT = Result<SnapshotApiPtr>;
         return reactor::engine().run_at(cpu_, [&]{
-            return ResultT::of(snp_make_shared_init<SnapshotT>(master_, this->shared_from_this(), OperationType::OP_FIND));
+            return upcast(snp_make_shared_init<SnapshotT>(master_, this->shared_from_this(), OperationType::OP_FIND));
         });
     }
 
@@ -626,10 +633,10 @@ public:
     static Result<AllocSharedPtr<IMemoryStore<Profile>>> create(int32_t cpu) noexcept
     {
         using ResultT = Result<AllocSharedPtr<IMemoryStore<Profile>>>;
-        return reactor::engine().run_at(cpu, [cpu]{
-            auto alloc = Base::create();
-            alloc->cpu_ = cpu;
-            return ResultT::of(alloc);
+        return reactor::engine().run_at(cpu, [cpu]() noexcept -> ResultT {
+            MEMORIA_TRY(alloc, Base::create());
+            static_cast<FibersMemoryStoreImpl*>(alloc.get())->cpu_ = cpu;
+            return alloc_result;
         });
     }
     
@@ -650,10 +657,10 @@ public:
             SharedPtr<AllocatorMemoryStat<Profile>> alloc_stat = MakeShared<AllocatorMemoryStat<Profile>>(0);
 
             auto history_visitor = [&](HistoryNode* node) noexcept -> VoidResult {
-                return wrap_throwing([&]() {
+                return wrap_throwing([&]() -> VoidResult {
                     if (node->is_committed() || node->is_dropped())
                     {
-                        auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this(), OperationType::OP_FIND);
+                        MEMORIA_TRY(snp, snp_make_shared_init<SnapshotT>(node, this->shared_from_this(), OperationType::OP_FIND));
                         auto snp_stat = snp->do_compute_memory_stat(visited_blocks);
                         alloc_stat->add_snapshot_stat(snp_stat);
                     }
@@ -688,7 +695,7 @@ protected:
         return wrap_throwing([&]() -> VoidResult {
             if (node->is_committed())
             {
-                auto txn = snp_make_shared_init<SnapshotT>(node, this, OperationType::OP_FIND);
+                MEMORIA_TRY(txn, snp_make_shared_init<SnapshotT>(node, this, OperationType::OP_FIND));
                 MEMORIA_TRY_VOID(fn(node, txn.get()));
             }
 
@@ -719,7 +726,7 @@ protected:
         return wrap_throwing([&]() -> VoidResult {
             if (node->is_committed())
             {
-                auto txn = snp_make_shared_init<SnapshotT>(node, this, OperationType::OP_FIND);
+                MEMORIA_TRY(txn, snp_make_shared_init<SnapshotT>(node, this, OperationType::OP_FIND));
                 MEMORIA_TRY_VOID(txn->walk_containers(walker, get_labels_for(node)));
             }
 
@@ -845,7 +852,16 @@ template <typename Profile>
 Result<AllocSharedPtr<IMemoryStore<Profile>>> IMemoryStore<Profile>::create() noexcept
 {
     using ResultT = Result<AllocSharedPtr<IMemoryStore<Profile>>>;
-    return ResultT::of(MakeShared<store::memory::FibersMemoryStoreImpl<Profile>>());
+    MaybeError maybe_error;
+
+    auto snp = MakeShared<store::memory::FibersMemoryStoreImpl<Profile>>(maybe_error);
+
+    if (!maybe_error) {
+        return ResultT::of(std::move(snp));
+    }
+    else {
+        return std::move(maybe_error.get());
+    }
 }
 
 

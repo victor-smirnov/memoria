@@ -80,14 +80,18 @@ protected:
 
     int32_t cpu_;
 
+    Result<SnapshotApiPtr> upcast(Result<SnapshotPtr>&& ptr) {
+        return memoria_static_pointer_cast<IMemorySnapshot<Profile>>(std::move(ptr));
+    }
+
 public:
 
     using Base::has_open_containers;
     using Base::uuid;
     
     
-    FibersSnapshot(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree, OperationType op_type):
-        Base(history_node, history_tree),
+    FibersSnapshot(MaybeError& maybe_error, HistoryNode* history_node, const PersistentAllocatorPtr& history_tree, OperationType op_type):
+        Base(maybe_error, history_node, history_tree),
         cpu_(history_tree->cpu_)
     {
         if (history_tree->event_listener_.get()) {
@@ -97,8 +101,8 @@ public:
         }
     }
 
-    FibersSnapshot(HistoryNode* history_node, PersistentAllocator* history_tree, OperationType op_type):
-        Base(history_node, history_tree),
+    FibersSnapshot(MaybeError& maybe_error, HistoryNode* history_node, PersistentAllocator* history_tree, OperationType op_type):
+        Base(maybe_error, history_node, history_tree),
         cpu_(history_tree->cpu_)
     {
         if (history_tree->event_listener_.get()) {
@@ -282,7 +286,7 @@ public:
 
                 history_tree_raw_->snapshot_map_[history_node->snapshot_id()] = history_node;
 
-                return ResultT::of(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::OP_CREATE));
+                return upcast(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::OP_CREATE));
             }
             else if (history_node_->is_data_locked()){
                 return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is locked, branching is not possible.", uuid());
@@ -308,7 +312,7 @@ public:
             if (history_node_->parent())
             {
                 HistoryNode* history_node = history_node_->parent();
-                return ResultT::of(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::OP_FIND));
+                return upcast(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::OP_FIND));
             }
             else
             {

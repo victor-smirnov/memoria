@@ -961,13 +961,6 @@ public:
         return init();
     }
 
-    void dump(std::ostream& out = std::cout) const
-    {
-        std::unique_ptr<TextBlockDumper> dumper = std::make_unique<TextBlockDumper>(out);
-        this->generateDataEvents(dumper.get()).get_or_throw();
-    }
-
-
     VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         MEMORIA_TRY_VOID(Base::generateDataEvents(handler));

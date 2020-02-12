@@ -29,12 +29,12 @@ template <typename CtrName, typename Allocator, typename Profile>
 class SharedCtr: public CtrTF<Profile, CtrName, CtrName>::Type {
     using Base = typename CtrTF<Profile, CtrName, CtrName>::Type;
 public:
-    SharedCtr(const CtrSharedPtr<Allocator>& allocator, const ProfileCtrID<Profile>& name, CtrName type_decl):
-        Base(allocator, name, type_decl)
+    SharedCtr(MaybeError& maybe_error, const CtrSharedPtr<Allocator>& allocator, const ProfileCtrID<Profile>& name, CtrName type_decl):
+        Base(maybe_error, allocator, name, type_decl)
     {}
 
-    SharedCtr(const CtrSharedPtr<Allocator>& allocator, const typename Allocator::BlockG& root_block):
-        Base(allocator, root_block)
+    SharedCtr(MaybeError& maybe_error, const CtrSharedPtr<Allocator>& allocator, const typename Allocator::BlockG& root_block):
+        Base(maybe_error, allocator, root_block)
     {}    
 };
 

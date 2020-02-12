@@ -79,21 +79,25 @@ protected:
     template <typename>
     friend class ThreadMemoryStoreImpl;
 
+    Result<SnapshotApiPtr> upcast(Result<SnapshotPtr>&& ptr) {
+        return memoria_static_pointer_cast<IMemorySnapshot<Profile>>(std::move(ptr));
+    }
+
 public:
     using Base::has_open_containers;
     using Base::uuid;
     
     
-    ThreadsSnapshot(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
-        Base(history_node, history_tree)
+    ThreadsSnapshot(MaybeError& maybe_error, HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
+        Base(maybe_error, history_node, history_tree)
     {}
 
-    ThreadsSnapshot(HistoryNode* history_node, PersistentAllocator* history_tree):
-        Base(history_node, history_tree)
+    ThreadsSnapshot(MaybeError& maybe_error, HistoryNode* history_node, PersistentAllocator* history_tree):
+        Base(maybe_error, history_node, history_tree)
     {
     }
  
-    virtual ~ThreadsSnapshot()
+    virtual ~ThreadsSnapshot() noexcept
     {
     	//FIXME This code doesn't decrement properly number of active snapshots
     	// for allocator to store data correctly.
@@ -259,7 +263,7 @@ public:
 
     Result<SnapshotApiPtr> branch() noexcept
     {
-        using ResultT = Result<SnapshotApiPtr>;
+        //using ResultT = Result<SnapshotApiPtr>;
 
     	std::lock(history_node_->allocator_mutex(), history_node_->snapshot_mutex());
 
@@ -278,7 +282,7 @@ public:
 
             history_tree_raw_->snapshot_map_[history_node->snapshot_id()] = history_node;
 
-            return ResultT::of(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this()));
+            return upcast(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this()));
         }
         else if (history_node_->is_data_locked())
         {
@@ -298,7 +302,7 @@ public:
 
     Result<SnapshotApiPtr> parent() noexcept
     {
-        using ResultT = Result<SnapshotApiPtr>;
+        //using ResultT = Result<SnapshotApiPtr>;
         std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
 
     	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
@@ -307,7 +311,7 @@ public:
         if (history_node_->parent())
         {
             HistoryNode* history_node = history_node_->parent();
-            return ResultT::of(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this()));
+            return upcast(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this()));
         }
         else
         {

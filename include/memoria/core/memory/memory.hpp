@@ -42,18 +42,47 @@ template <typename T>
 using SnpSharedFromThis = EnableSharedFromThis<T>;
 
 
+//template <typename T, typename... Args>
+//Result<SnpSharedPtr<T>> snp_make_shared(Args&&... args)
+//{
+//    using ResultT = Result<SnpSharedPtr<T>>;
+
+//    MaybeError maybe_error;
+//    auto snp = MakeLocalShared<T>(maybe_error, std::forward<Args>(args)...);
+
+//    if (!maybe_error)
+//    {
+//        return ResultT::of(std::move(snp));
+//    }
+//    else {
+//        return std::move(maybe_error.get());
+//    }
+//}
+
 template <typename T, typename... Args>
-auto snp_make_shared(Args&&... args) {
-    auto snp = MakeLocalShared<T>(std::forward<Args>(args)...);
-    return snp;
+auto snp_make_shared(Args&&... args)
+{
+    return MakeLocalShared<T>(std::forward<Args>(args)...);
 }
 
 
+
 template <typename T, typename... Args>
-auto snp_make_shared_init(Args&&... args) {
-    auto snp = MakeLocalShared<T>(std::forward<Args>(args)...);
-    snp->post_init().get_or_throw();
-    return snp;
+Result<SnpSharedPtr<T>> snp_make_shared_init(Args&&... args)
+{
+    using ResultT = Result<SnpSharedPtr<T>>;
+
+    MaybeError maybe_error;
+    auto snp = MakeLocalShared<T>(maybe_error, std::forward<Args>(args)...);
+
+    if (!maybe_error)
+    {
+        MEMORIA_TRY_VOID(snp->post_init());
+        return ResultT::of(std::move(snp));
+    }
+    else {
+        return std::move(maybe_error.get());
+    }
 }
 
 

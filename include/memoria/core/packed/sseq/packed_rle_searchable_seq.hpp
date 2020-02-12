@@ -1519,14 +1519,6 @@ public:
         return block_count_bw(metadata(), symbols(), start_pos);
     }
 
-
-    void dump(std::ostream& out = std::cout, bool dump_index = true) const
-    {
-        TextBlockDumper dumper(out);
-        generateDataEvents(&dumper).get_or_throw();
-    }
-
-
     VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->startGroup("PACKED_RLE_SEQUENCE");

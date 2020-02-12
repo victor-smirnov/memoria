@@ -721,25 +721,17 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
 
-    static CtrBlockDescription<ProfileT> describe_block(const BlockID& node_id, Allocator* alloc)
+    static Result<CtrBlockDescription<ProfileT>> describe_block(const BlockID& node_id, Allocator* alloc) noexcept
     {
-        NodeBaseG node = alloc->getBlock(node_id).get_or_terminate();
+        MEMORIA_TRY(tmp, alloc->getBlock(node_id));
+        NodeBaseG node = tmp;
 
         int32_t size = node->header().memory_block_size();
         bool leaf = node->is_leaf();
         bool root = node->is_root();
 
         uint64_t offset{};
-
-        while (!node->is_root())
-        {
-            // FIXME: this code tries to compute block's offset in the tree,
-            // but apparently it doesn't make sense.
-            //offset += node->parent_idx();
-            node = alloc->getBlock(node->parent_id1()).get_or_terminate();
-        }
-
-        return CtrBlockDescription<ProfileT>(size, ctr_get_model_name(node), root, leaf, offset);
+        return CtrBlockDescription<ProfileT>(size, CtrID{}, root, leaf, offset);
     }
 
 //    void configure_types(
@@ -784,7 +776,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        if (self.store().hasRoot(ctr_id).get_or_terminate())
+        MEMORIA_TRY(has_root, self.store().hasRoot(ctr_id));
+
+        if (has_root)
         {
             return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists", ctr_id);
         }

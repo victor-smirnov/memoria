@@ -127,11 +127,6 @@ public:
         return header_.memory_block_size() - allocator()->free_space();
     }
 
-    // FIXME: remove this
-    BlockID parent_id1() const noexcept {
-        return BlockID{};
-    }
-
     void init() {
         header_.init();
     }

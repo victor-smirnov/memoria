@@ -141,7 +141,7 @@ protected:
     CtrSharedPtr<RootMapType> root_map_;
 public:
 
-    SnapshotBase(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
+    SnapshotBase(MaybeError& maybe_error, HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
         history_node_(history_node),
         history_tree_(history_tree),
         history_tree_raw_(history_tree.get()),
@@ -156,7 +156,7 @@ public:
         }
     }
 
-    SnapshotBase(HistoryNode* history_node, PersistentAllocator* history_tree):
+    SnapshotBase(MaybeError& maybe_error, HistoryNode* history_node, PersistentAllocator* history_tree):
         history_node_(history_node),
         history_tree_raw_(history_tree),
         persistent_tree_(history_node_),
@@ -176,18 +176,24 @@ public:
 
         BlockID root_id = history_node_->root_id();
 
+        MaybeError maybe_error;
         if (root_id.isSet())
         {
             MEMORIA_TRY(root_block, findBlock(root_id));
-            root_map_ = ctr_make_shared<RootMapType>(ptr, root_block);
+            root_map_ = ctr_make_shared<RootMapType>(maybe_error, ptr, root_block);
         }
         else {
-            root_map_ = ctr_make_shared<RootMapType>(ptr, CtrID{}, Map<CtrID, BlockID>());
+            root_map_ = ctr_make_shared<RootMapType>(maybe_error, ptr, CtrID{}, Map<CtrID, BlockID>());
         }
 
         root_map_->reset_allocator_holder();
 
-        return VoidResult::of();
+        if (!maybe_error) {
+            return VoidResult::of();
+        }
+        else {
+            return std::move(maybe_error.get());
+        }
     }
     
     static void init_profile_metadata() {
@@ -1108,9 +1114,7 @@ public:
     {
         MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return Result<CtrSharedPtr<CtrReferenceable<Profile>>>::of(
-                factory->create_instance(this->shared_from_this(), ctr_id, decl)
-        );
+        return factory->create_instance(this->shared_from_this(), ctr_id, decl);
     }
 
     virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create(const LDTypeDeclarationView& decl) noexcept
@@ -1120,9 +1124,7 @@ public:
 
         MEMORIA_TRY(ctr_name, this->createCtrName());
 
-        return Result<CtrSharedPtr<CtrReferenceable<Profile>>>::of(
-            factory->create_instance(this->shared_from_this(), ctr_name, decl)
-        );
+        return factory->create_instance(this->shared_from_this(), ctr_name, decl);
     }
 
     virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> find(const CtrID& ctr_id) noexcept

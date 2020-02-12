@@ -102,7 +102,7 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
     }
 
     SetScanner<ApiTypes, Profile> scanner() const {
-        return SetScanner<ApiTypes, Profile>(iterator().get_or_terminate());
+        return SetScanner<ApiTypes, Profile>(iterator().get_or_throw());
     }
 
     MMA_DECLARE_ICTRAPI();
