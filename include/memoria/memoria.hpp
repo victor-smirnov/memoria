@@ -35,9 +35,6 @@
 #   endif
 #endif
 
-//#include <memoria/api/db/edge_map/edge_map_api.hpp>
-//#include <memoria/api/db/update_log/update_log_api.hpp>
-
 #include <memoria/core/tools/fixed_array.hpp>
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/tools/uuid.hpp>

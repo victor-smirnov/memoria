@@ -146,49 +146,6 @@ public:
     };
 
 
-    class BlockIterator {
-        const Value* values_;
-        int32_t idx_ = 0;
-
-        int32_t size_;
-        Value data_value_;
-
-        int32_t idx_backup_;
-    public:
-        BlockIterator() {}
-        BlockIterator(const Value* values, int32_t idx, int32_t size):
-            values_(values),
-            idx_(idx),
-            size_(size),
-            data_value_(),
-            idx_backup_()
-        {}
-
-        int32_t size() const {return size_;}
-
-        bool has_next() const {return idx_ < size_;}
-
-        void next()
-        {
-            for (int32_t b = 0; b < Blocks; b++)
-            {
-                data_value_ = values_[idx_];
-            }
-
-            idx_++;
-        }
-
-        const auto& value() {return data_value_;}
-
-        void mark() {
-            idx_backup_ = idx_;
-        }
-
-        void restore() {
-            idx_ = idx_backup_;
-        }
-    };
-
 
     static int32_t estimate_block_size(int32_t tree_capacity, int32_t density_hi = 1, int32_t density_lo = 1)
     {
@@ -838,10 +795,10 @@ public:
         return Iterator(ptrs, idx, this->size());
     }
 
-    BlockIterator iterator(int32_t block, int32_t idx) const
-    {
-        return BlockIterator(this->values(block), idx, this->size());
-    }
+//    BlockIterator iterator(int32_t block, int32_t idx) const
+//    {
+//        return BlockIterator(this->values(block), idx, this->size());
+//    }
 
 
 
