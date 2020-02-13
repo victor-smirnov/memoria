@@ -105,13 +105,8 @@ class PackedAllocatorTest: public TestState {
         {
             Allocator* alloc = header_.allocator();
             int32_t block_size   = alloc->element_size(this);
-            int32_t new_size     = alloc->resizeBlock(this, block_size + delta);
-
-            if (isFail(new_size)) {
-                throw PackedOOMException(MMA_SRC);
-            }
-
-            OOM_THROW_IF_FAILED(init(new_size), MMA_SRC);
+            int32_t new_size     = alloc->resizeBlock(this, block_size + delta).get_or_throw();
+            init(new_size).get_or_throw();
             fill(data_);
         }
 
@@ -119,9 +114,9 @@ class PackedAllocatorTest: public TestState {
         {
             Allocator* alloc = header_.allocator();
             int32_t block_size   = alloc->element_size(this);
-            int32_t new_size     = alloc->resizeBlock(this, block_size - delta);
+            int32_t new_size     = alloc->resizeBlock(this, block_size - delta).get_or_throw();
 
-            OOM_THROW_IF_FAILED(init(new_size), MMA_SRC);
+            init(new_size).get_or_throw();
             fill(data_);
         }
     };
@@ -153,7 +148,7 @@ public:
 
         Allocator* alloc = allocate_system_zeroed<Allocator>(block_size).release();
 
-        OOM_THROW_IF_FAILED(alloc->init(block_size, elements), MMA_SRC);
+        alloc->init(block_size, elements).get_or_throw();
         alloc->allocatable().setTopLevelAllocator();
 
         assert_equals(alloc->elements(), elements);
@@ -177,7 +172,7 @@ public:
         {
             int32_t size = SimpleStruct::block_size(111 + c*10);
 
-            SimpleStruct* obj = alloc->allocate<SimpleStruct>(c, size);
+            SimpleStruct* obj = alloc->allocate<SimpleStruct>(c, size).get_or_throw();
             assert_ge(alloc->element_size(c), size);
 
             obj->fill(0x55 + c * 16);
@@ -185,15 +180,15 @@ public:
             assert_ge(obj->size(), 111 + c*10);
         }
 
-        AllocationBlock block = alloc->allocate(2, 512, PackedBlockType::ALLOCATABLE);
+        AllocationBlock block = alloc->allocate(2, 512, PackedBlockType::ALLOCATABLE).get_or_throw();
 
         ComplexStruct* cx_struct = ptr_cast<ComplexStruct>(block.ptr());
 
-        OOM_THROW_IF_FAILED(cx_struct->init(512), MMA_SRC);
+        cx_struct->init(512).get_or_throw();
 
         for (int32_t c = 0; c < cx_struct->elements(); c++)
         {
-            SimpleStruct* sl_struct = cx_struct->allocate<SimpleStruct>(c, 100);
+            SimpleStruct* sl_struct = cx_struct->allocate<SimpleStruct>(c, 100).get_or_throw();
 
             sl_struct->fill(0x22 + c*16);
         }
@@ -273,16 +268,16 @@ public:
 
         assert_equals(alloc->element_offset(2) - size0_delta, offset2);
 
-        assert_throws<PackedOOMException>([alloc](){
-            OOM_THROW_IF_FAILED(alloc->enlarge(10000), MMA_SRC);
+        assert_fails([alloc](){
+            return alloc->enlarge(10000);
         });
 
-        assert_throws<PackedOOMException>([sl_struct](){
-            sl_struct->enlarge(10000);
+        assert_fails([sl_struct](){
+            return sl_struct->enlarge(10000);
         });
 
-        assert_throws<Exception>([sl_struct](){
-            sl_struct->enlarge(-300);
+        assert_fails([sl_struct](){
+            return sl_struct->enlarge(-300);
         });
     }
 };

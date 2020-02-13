@@ -23,7 +23,7 @@
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
-#include <memoria/core/packed/array/packed_array_iterator.hpp>
+#include <memoria/core/packed/datatype_buffer/packed_array_iterator.hpp>
 
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/bitmap.hpp>
@@ -35,7 +35,7 @@
 #include <memoria/core/packed/datatype_buffer/packed_datatype_buffer_fse_tools.hpp>
 #include <memoria/core/packed/datatype_buffer/packed_datatype_buffer_vle_tools.hpp>
 
-#include <memoria/core/packed/array/packed_array_iterator.hpp>
+#include <memoria/core/packed/datatype_buffer/packed_array_iterator.hpp>
 
 #include <algorithm>
 

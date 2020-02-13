@@ -20,13 +20,7 @@
 
 #include <memoria/prototypes/bt/tools/bt_tools_vector_tuple.hpp>
 
-
-#include <memoria/core/packed/array/packed_fse_array.hpp>
-
-#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
-
+#include <memoria/core/packed/packed.hpp>
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 

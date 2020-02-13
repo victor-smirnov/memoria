@@ -20,8 +20,6 @@
 #include <memoria/core/tools/accessors.hpp>
 
 #include <memoria/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
-#include <memoria/core/packed/array/packed_vle_array.hpp>
-#include <memoria/core/packed/array/packed_fse_array.hpp>
 
 #include <memoria/api/common/packed_api.hpp>
 

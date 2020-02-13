@@ -21,6 +21,8 @@
 #include <memoria/api/set/set_scanner.hpp>
 #include <memoria/api/set/set_producer.hpp>
 
+#include <memoria/core/datatypes/buffer/buffer.hpp>
+
 #include <memory>
 
 namespace memoria {

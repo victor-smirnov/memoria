@@ -304,7 +304,7 @@ public:
 
     void dump(std::ostream& out = std::cout) const {
         TextBlockDumper dumper(out);
-        generateDataEvents(&dumper);
+        generateDataEvents(&dumper).get_or_throw();
     }
 
     bool check_capacity(int32_t size) const

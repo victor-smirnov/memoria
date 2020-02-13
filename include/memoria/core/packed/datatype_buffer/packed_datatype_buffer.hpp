@@ -23,9 +23,6 @@
 
 #include <memoria/api/common/packed_api.hpp>
 
-#include <memoria/core/packed/array/packed_fse_array.hpp>
-#include <memoria/core/packed/array/packed_vle_array.hpp>
-
 #include <type_traits>
 
 namespace memoria {

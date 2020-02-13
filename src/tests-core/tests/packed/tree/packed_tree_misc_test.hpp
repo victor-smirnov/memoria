@@ -132,7 +132,7 @@ public:
             Values value = Base::createRandom();
             int32_t idx = getRandom(tree->size());
 
-            OOM_THROW_IF_FAILED(tree->addValues(idx, value), MMA_SRC);
+            tree->addValues(idx, value).get_or_throw();
             Base::assertIndexCorrect(MA_SRC, tree);
 
             addValues(tree_values, idx, value);
@@ -163,7 +163,7 @@ public:
 
         int32_t idx = this->getRandom(size);
 
-        OOM_THROW_IF_FAILED(tree1->splitTo(tree2.get(), idx), MMA_SRC);
+        tree1->splitTo(tree2.get(), idx).get_or_throw();
 
         std::vector<Values> tree_values2(tree_values1.begin() + idx, tree_values1.end());
 
@@ -196,7 +196,7 @@ public:
 
         int32_t idx = getRandom(size);
 
-        OOM_THROW_IF_FAILED(tree1->splitTo(tree2.get(), idx), MMA_SRC);
+        tree1->splitTo(tree2.get(), idx).get_or_throw();
 
         tree_values2.insert(tree_values2.begin(), tree_values1.begin() + idx, tree_values1.end());
 
@@ -227,7 +227,7 @@ public:
 
                 int32_t block_size = tree->block_size();
 
-                OOM_THROW_IF_FAILED(tree->remove(start, end), MMA_SRC);
+                tree->remove(start, end).get_or_throw();
 
                 tree_values.erase(tree_values.begin() + start, tree_values.begin() + end);
 
@@ -253,7 +253,7 @@ public:
 
             assertEqual(tree, tree_values);
 
-            OOM_THROW_IF_FAILED(tree->remove(0, tree->size()), MMA_SRC);
+            tree->remove(0, tree->size()).get_or_throw();
 
             assertEmpty(tree);
         }
@@ -283,7 +283,7 @@ public:
         Base::fillVector(tree1, tree_values1);
         Base::fillVector(tree2, tree_values2);
 
-        OOM_THROW_IF_FAILED(tree1->mergeWith(tree2.get()), MMA_SRC);
+        tree1->mergeWith(tree2.get()).get_or_throw();
 
         tree_values2.insert(tree_values2.end(), tree_values1.begin(), tree_values1.end());
 
@@ -313,7 +313,7 @@ public:
 
         assertEqual(tree, tree_values);
 
-        OOM_THROW_IF_FAILED(tree->clear(), MMA_SRC);
+        tree->clear().get_or_throw();
         tree->set_block_size(block_size);
 
         assertEmpty(tree);
@@ -322,7 +322,7 @@ public:
 
         assertEqual(tree, tree_values);
 
-        OOM_THROW_IF_FAILED(tree->clear(), MMA_SRC);
+        tree->clear().get_or_throw();
         assertEmpty(tree);
     }
 

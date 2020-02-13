@@ -24,7 +24,6 @@
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
 #include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 
@@ -130,9 +129,9 @@ public:
             }
         }
 
-        OOM_THROW_IF_FAILED(tree->_insert(0, size, [&](int32_t block, int32_t idx) {
+        tree->_insert(0, size, [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        }), MMA_SRC);
+        }).get_or_throw();
 
         truncate(vals, size);
 
@@ -186,9 +185,9 @@ public:
 
     void fillVector(TreePtr& tree, const std::vector<Values>& vals)
     {
-        OOM_THROW_IF_FAILED(tree->_insert(0, vals.size(), [&](int32_t block, int32_t idx) {
+        tree->_insert(0, vals.size(), [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        }), MMA_SRC);
+        }).get_or_throw();
     }
 
     Values createRandom(int32_t max = 100)

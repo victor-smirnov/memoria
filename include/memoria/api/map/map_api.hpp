@@ -32,6 +32,8 @@
 
 #include <memoria/core/strings/string_codec.hpp>
 
+#include <memoria/core/datatypes/buffer/buffer.hpp>
+
 namespace memoria {
 
 template <typename Key, typename Value, typename Profile>

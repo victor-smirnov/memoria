@@ -22,11 +22,6 @@
 #include <memoria/core/packed/datatypes/fixed_size.hpp>
 #include <memoria/core/packed/datatypes/varchar.hpp>
 
-#include <memoria/core/packed/array/packed_fse_array.hpp>
-#include <memoria/core/packed/array/packed_vle_array.hpp>
-#include <memoria/core/packed/array/packed_fse_opt_array.hpp>
-#include <memoria/core/packed/array/packed_vle_opt_array.hpp>
-
 #include <memoria/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
 #include <memoria/core/packed/datatype_buffer/packed_datatype_opt_buffer.hpp>
 
@@ -38,5 +33,3 @@
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 #include <memoria/core/packed/sseq/packed_rle_searchable_seq.hpp>
 
-#include <memoria/core/packed/tree/fse_max/packed_fse_optmax_tree.hpp>
-#include <memoria/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>

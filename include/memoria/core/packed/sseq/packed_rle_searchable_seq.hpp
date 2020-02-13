@@ -878,7 +878,7 @@ public:
                 if (location.run_prefix() > 0)
                 {
                     MEMORIA_TRY(location_s, split_run(location));
-                    location = location_s.value();
+                    location = location_s;
                 }
 
                 MEMORIA_TRY_VOID(insert_run(location.data_pos(), symbol, length));

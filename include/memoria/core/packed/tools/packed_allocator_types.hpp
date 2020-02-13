@@ -86,27 +86,6 @@ struct PackedSizeTypeList<> {
     static const PackedDataTypeSize Value = PackedDataTypeSize::FIXED;
 };
 
-class PackedOOMException: public MemoriaThrowableLW {
-    const char* msg_;
-public:
-
-    PackedOOMException(const char* source, const char* msg):
-        MemoriaThrowableLW(source ),
-        msg_(msg)
-    {}
-
-    PackedOOMException(const char* source): MemoriaThrowableLW(source), msg_("Packed Structure Memory Allocation Failed") {}
-
-    virtual void dump(std::ostream& out) const noexcept
-    {
-        if (msg_ != nullptr) {
-            out << "PackedOOMException at " << source_ << ": " << msg_;
-        }
-        else {
-            out << "PackedOOMException at " << source_;
-        }
-    }
-};
 
 template <typename MyType, typename Base> class PackedAllocatorBase;
 

@@ -92,7 +92,7 @@ public:
 
                 out() << "Insert " << symbol << " at " << idx << std::endl;
 
-                OOM_THROW_IF_FAILED(seq->insert(idx, symbol), MMA_SRC);
+                seq->insert(idx, symbol).get_or_throw();
 
                 symbols.insert(symbols.begin() + idx, symbol);
 
@@ -119,7 +119,7 @@ public:
 
                 out() << "Split at " << idx << std::endl;
 
-                OOM_THROW_IF_FAILED(seq->splitTo(seq2.get(), idx), MMA_SRC);
+                seq->splitTo(seq2.get(), idx).get_or_throw();
 
                 seq2->check();
                 seq->check();
@@ -157,7 +157,7 @@ public:
                 seq2->dump(out());
                 this->dumpAsSymbols(symbols2);
 
-                OOM_THROW_IF_FAILED(seq1->mergeWith(seq2.get()), MMA_SRC);
+                seq1->mergeWith(seq2.get()).get_or_throw();
 
                 //out() << "Seq1" << std::endl;
                 seq1->dump(out());
@@ -195,7 +195,7 @@ public:
 
                 int32_t block_size = seq->block_size();
 
-                OOM_THROW_IF_FAILED(seq->remove(start, end), MMA_SRC);
+                seq->remove(start, end).get_or_throw();
 
                 symbols.erase(symbols.begin() + start, symbols.begin() + end);
 
@@ -218,7 +218,7 @@ public:
             auto symbols = this->fillRandom(seq, size);
             assertEqual(seq, symbols);
 
-            OOM_THROW_IF_FAILED(seq->remove(0, seq->size()), MMA_SRC);
+            seq->remove(0, seq->size()).get_or_throw();
 
             assertEmpty(seq);
         }
@@ -239,7 +239,7 @@ public:
             assert_gt(seq->size(), 0);
             assert_gt(seq->block_size(), Seq::empty_size());
 
-            OOM_THROW_IF_FAILED(seq->clear(), MMA_SRC);
+            seq->clear().get_or_throw();
 
             assertEmpty(seq);
         }

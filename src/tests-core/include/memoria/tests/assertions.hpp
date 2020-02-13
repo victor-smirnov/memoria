@@ -20,6 +20,7 @@
 
 #include <memoria/tests/tests.hpp>
 
+#include <memoria/core/tools/result.hpp>
 
 
 namespace memoria {
@@ -145,6 +146,20 @@ void assert_throws(Fn&& fn, Args&&... args) {
 
     MMA_THROW(TestExecutionException()) << format_ex("Expected exception {} hasn't been thrown", TypeNameFactory<ExT>::name());
 }
+
+template <typename Fn, typename... Args>
+void assert_fails(Fn&& fn, Args&&... args)
+{
+    auto res = wrap_throwing([&](){
+        return fn(std::forward<Args>(args)...);
+    });
+
+    if (res.is_ok()) {
+        MMA_THROW(TestExecutionException()) << format_ex("No expected falure has happened");
+    }
+}
+
+
 
 template <typename ExT, typename Fn, typename... Args>
 void assert_no_throws(Fn&& fn, Args&&... args) {

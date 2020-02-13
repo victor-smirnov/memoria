@@ -401,7 +401,7 @@ public:
                     return buffer.buffer()[idx][block];
                 }));
 
-                at = at_s.value();
+                at = at_s;
             }
 
             return index->reindex();
@@ -546,7 +546,7 @@ public:
                     return buffer.buffer()[idx][block];
                 }));
 
-                at = at_s.value();
+                at = at_s;
             }
 
             return index->reindex();

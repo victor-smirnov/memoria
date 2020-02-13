@@ -46,8 +46,10 @@ void dump_exception(std::ostream& out, std::exception_ptr& ex)
     catch (std::exception& th) {
         out << "STD Exception: " << th.what() << std::endl;
     }
-    catch (PackedOOMException& th) {
-        th.dump(out);
+    catch (boost::exception& th)
+    {
+        out << boost::diagnostic_information(th);
+        out << std::flush;
     }
     catch (...) {
         out << "Unknown exception" << std::endl;
@@ -236,7 +238,7 @@ TestStatus replay_single_test(const U8String& test_path)
         }
 
         reactor::engine().coutln("seed = {}", seed);
-        Seed(seed);
+        Seed(static_cast<int32_t>(seed));
         SeedBI(seed);
 
         Optional<TestCoverage> coverage = get_test_coverage();

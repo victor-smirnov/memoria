@@ -111,8 +111,8 @@ public:
 
             int32_t symbol = getRandom(Symbols);
 
-            OOM_THROW_IF_FAILED(seq->remove(idx2, idx2 + 1), MMA_SRC);
-            OOM_THROW_IF_FAILED(seq->insert(idx1, symbol), MMA_SRC);
+            seq->remove(idx2, idx2 + 1).get_or_throw();
+            seq->insert(idx1, symbol).get_or_throw();
         }
 
         int64_t t2 = getTimeInMillis();

@@ -24,7 +24,7 @@
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/core/packed/tools/packed_tools.hpp>
 
-#include <memoria/core/packed/array/packed_vle_array_so.hpp>
+//#include <memoria/core/packed/array/packed_vle_array_so.hpp>
 
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/bitmap.hpp>

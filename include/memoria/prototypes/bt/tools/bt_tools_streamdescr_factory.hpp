@@ -69,10 +69,6 @@ struct FSEBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
 };
 
 
-template <typename KeyType, int32_t Indexes>
-struct FSEBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
-    using Type = PkdFMTreeT<KeyType, Indexes>;
-};
 
 template <typename KeyType>
 struct FSEBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
@@ -97,32 +93,7 @@ struct VLQBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
     using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
 };
 
-template <typename KeyType, int32_t Indexes>
-struct VLQBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
-    static_assert(
-            std::is_arithmetic<KeyType>::value ||
-#ifdef HAVE_BOOST
-            std::is_same<KeyType, BigInteger>::value ||
-#endif
-            std::is_same<KeyType, U8String>::value,
-            "Only arithmetic types, BigNumber and U8String are supported for VLQBranchStructTF<>"
-    );
-
-
-
-    using Type = IfThenElse<
-                std::is_arithmetic<KeyType>::value,
-                IfThenElse<
-                    std::is_integral<KeyType>::value,
-                    PkdVBMTreeT<KeyType>,
-                    PkdFMTreeT<KeyType, Indexes>
-                >,
-                PkdVBMTreeT<KeyType>
-            >;
-
-    static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
-};
 
 
 
@@ -133,10 +104,6 @@ struct VLDBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
     using Type = PkdVDTreeT<KeyType, Indexes, UByteI7Codec>;
 };
 
-template <typename KeyType, int32_t Indexes>
-struct VLDBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
-    using Type = PkdFMTreeT<KeyType, Indexes>;
-};
 
 
 
@@ -383,8 +350,5 @@ struct BTStreamDescritorsBuilder<TL<TL<LeafStruct, Tail1...>, Tail2...>, BranchS
     using Type = _::BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
 };
 
-
-
-/**/
 
 }}
