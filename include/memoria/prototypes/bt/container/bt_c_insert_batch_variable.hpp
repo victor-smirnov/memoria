@@ -105,10 +105,21 @@ public:
                 }
 
                 BranchNodeEntry sums = self.ctr_get_node_max_keys(child);
-                if(isFail(self.branch_dispatcher().dispatch(node, InsertChildFn(), idx + c, sums, child->id()))) {
-                    insertion_status = false;
-                    break;
+
+                VoidResult ins_res = self.branch_dispatcher().dispatch(node, InsertChildFn(), idx + c, sums, child->id());
+
+                if(ins_res.is_error())
+                {
+                    if (ins_res.is_packed_error())
+                    {
+                        insertion_status = false;
+                        break;
+                    }
+                    else {
+                        return MEMORIA_PROPAGATE_ERROR(ins_res);
+                    }
                 }
+
 
                 last_child = child;
             }

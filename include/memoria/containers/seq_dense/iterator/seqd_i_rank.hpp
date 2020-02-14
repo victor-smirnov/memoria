@@ -168,7 +168,7 @@ int64_t M_TYPE::ranki(int32_t symbol) const
 //{
 //    auto& self  = this->self();
 //
-//    MEMORIA_V1_ASSERT(delta, >=, 0);
+//    MEMORIA_ASSERT(delta, >=, 0);
 //
 //    typename Types::template RankFWWalker<Types, IntList<0>> walker(symbol, delta);
 //
@@ -181,7 +181,7 @@ int64_t M_TYPE::ranki(int32_t symbol) const
 //{
 //    auto& self  = this->self();
 //
-//    MEMORIA_V1_ASSERT(delta, >=, 0);
+//    MEMORIA_ASSERT(delta, >=, 0);
 //
 //    typename Types::template RankBWWalker<Types, IntList<0>> walker(symbol, delta);
 //

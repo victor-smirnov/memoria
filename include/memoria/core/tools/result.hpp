@@ -618,6 +618,8 @@ inline bool isFail(const detail::ResultErrors&) noexcept {
     return true;
 }
 
+
+
 namespace detail {
 
     template <typename T>

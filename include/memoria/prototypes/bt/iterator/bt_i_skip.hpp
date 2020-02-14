@@ -42,7 +42,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorSkipName)
     template <int32_t Stream>
     auto iter_skip_fw(CtrSizeT amount) noexcept
     {
-        //MEMORIA_V1_ASSERT(amount, >=, 0);
+        //MEMORIA_ASSERT(amount, >=, 0);
 
         typename Types::template SkipForwardWalker<Types, IntList<Stream>> walker(amount);
 
@@ -52,7 +52,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorSkipName)
     template <int32_t Stream>
     auto iter_skip_bw(CtrSizeT amount) noexcept
     {
-        //MEMORIA_V1_ASSERT(amount, >=, 0);
+        //MEMORIA_ASSERT(amount, >=, 0);
 
         typename Types::template SkipBackwardWalker<Types, IntList<Stream>> walker(amount);
 

@@ -242,7 +242,7 @@ public:
 
     VoidResult init(int32_t block_size) noexcept
     {
-        MEMORIA_V1_ASSERT_RTN(block_size, >=, empty_size());
+        MEMORIA_ASSERT_RTN(block_size, >=, empty_size());
 
         return init_bs(empty_size());
     }
@@ -363,7 +363,7 @@ public:
 
     void set(int32_t idx, int32_t symbol)
     {
-        MEMORIA_V1_ASSERT(idx , <, size());
+        MEMORIA_ASSERT(idx , <, size());
 
         tools().set(symbols(), idx, symbol);
     }
@@ -394,6 +394,35 @@ public:
 
         return VoidResult::of();
     }
+
+    template <typename AccessorFn>
+    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    {
+        MEMORIA_ASSERT_RTN(row_at, <=, this->size());
+
+        MEMORIA_TRY_VOID(insertDataRoom(row_at, size));
+
+        for (psize_t c = 0; c < size; c++) {
+            set(c + row_at, elements(c));
+        }
+
+        return VoidResult::of();
+    }
+
+    template <typename AccessorFn>
+    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    {
+        MEMORIA_TRY_VOID(remove_entries(row_at, size));
+        return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
+    }
+
+    template <typename AccessorFn>
+    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
+    {
+        MEMORIA_ASSERT_RTN(row_at + size, <=, this->size());
+        return removeSpace(row_at, row_at + size);
+    }
+
 
 protected:
     VoidResult insertDataRoom(int32_t pos, int32_t length) noexcept
@@ -426,14 +455,6 @@ protected:
 
 public:
 
-    template <int32_t Offset, int32_t Size, typename AccessorFn, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values) noexcept
-    {
-        return insert(idx, values(0));
-    }
-
-
-
     VoidResult insert(int32_t pos, int32_t symbol) noexcept
     {
         MEMORIA_TRY_VOID(insertDataRoom(pos, 1));
@@ -449,11 +470,11 @@ public:
     {
         int32_t& size = this->size();
 
-        MEMORIA_V1_ASSERT_RTN(start, >=, 0);
-        MEMORIA_V1_ASSERT_RTN(end, >=, 0);
-        MEMORIA_V1_ASSERT_RTN(start, <=, end);
+        MEMORIA_ASSERT_RTN(start, >=, 0);
+        MEMORIA_ASSERT_RTN(end, >=, 0);
+        MEMORIA_ASSERT_RTN(start, <=, end);
 
-        MEMORIA_V1_ASSERT_RTN(end, <=, size);
+        MEMORIA_ASSERT_RTN(end, <=, size);
 
         auto symbols = this->symbols();
 
@@ -496,10 +517,10 @@ public:
 
     VoidResult insert(int32_t start, int32_t length, std::function<Value ()> fn) noexcept
     {
-        MEMORIA_V1_ASSERT_RTN(start, >=, 0);
-        MEMORIA_V1_ASSERT_RTN(start, <=, size());
+        MEMORIA_ASSERT_RTN(start, >=, 0);
+        MEMORIA_ASSERT_RTN(start, <=, size());
 
-        MEMORIA_V1_ASSERT_RTN(length, >=, 0);
+        MEMORIA_ASSERT_RTN(length, >=, 0);
 
         MEMORIA_TRY_VOID(insertDataRoom(start, length));
 
@@ -514,9 +535,9 @@ public:
     {
         int32_t size = this->size();
 
-        MEMORIA_V1_ASSERT_RTN(start, >=, 0);
-        MEMORIA_V1_ASSERT_RTN(start, <=, size);
-        MEMORIA_V1_ASSERT_RTN(length, >=, 0);
+        MEMORIA_ASSERT_RTN(start, >=, 0);
+        MEMORIA_ASSERT_RTN(start, <=, size);
+        MEMORIA_ASSERT_RTN(length, >=, 0);
 
         MEMORIA_TRY_VOID(insertDataRoom(start, length));
 
@@ -539,9 +560,9 @@ public:
 
     VoidResult update(int32_t start, int32_t end, std::function<Value ()> fn) noexcept
     {
-        MEMORIA_V1_ASSERT_RTN(start, >=, 0);
-        MEMORIA_V1_ASSERT_RTN(start, <=, end);
-        MEMORIA_V1_ASSERT_RTN(end, <=, size());
+        MEMORIA_ASSERT_RTN(start, >=, 0);
+        MEMORIA_ASSERT_RTN(start, <=, end);
+        MEMORIA_ASSERT_RTN(end, <=, size());
 
         fill(start, end, fn);
         return reindex();
@@ -552,9 +573,9 @@ public:
 
     void read(int32_t start, int32_t end, std::function<void (Value)> fn) const
     {
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(start, <=, end);
-        MEMORIA_V1_ASSERT(end, <=, size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, size());
 
         auto symbols    = this->symbols();
         auto tools      = this->tools();
@@ -566,52 +587,6 @@ public:
     }
 
 
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _insert(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum) noexcept
-    {
-        MEMORIA_TRY_VOID(insert(idx, symbol));
-
-        sum<Offset>(idx, accum);
-
-        return VoidResult::of();
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _update(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum) noexcept
-    {
-        sub<Offset>(idx, accum);
-
-        this->symbol(idx) = symbol;
-
-        MEMORIA_TRY_VOID(this->reindex());
-
-        sum<Offset>(idx, accum);
-
-        return VoidResult::of();
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum) noexcept
-    {
-        sub<Offset>(idx, accum);
-        return remove(idx, idx + 1);
-    }
-
-
-    // ========================================= Node ================================== //
-
-    template <typename TreeType>
-    VoidResult transferDataTo(TreeType* other) const noexcept
-    {
-        MEMORIA_TRY_VOID(other->enlargeData(this->size()));
-
-        int32_t data_size = this->element_size(SYMBOLS);
-
-        CopyByteBuffer(symbols(), other->symbols(), data_size);
-
-        return other->reindex();
-    }
 
     VoidResult splitTo(MyType* other, int32_t idx) noexcept
     {
@@ -648,233 +623,20 @@ public:
 
     // ========================================= Query ================================= //
 
-    Values sums() const
-    {
-        if (has_index())
-        {
-            auto index = this->index();
-            return index->sums();
-        }
-        else {
-            return sums(size());
-        }
-    }
-
-
-    Values sums(int32_t to) const
-    {
-        if (has_index())
-        {
-            auto index = this->index();
-
-            int32_t index_block = to / ValuesPerBranch;
-
-            auto isums = index->sums(0, index_block);
-
-            auto vsums = tools().sum(index_block * ValuesPerBranch, to);
-
-            vsums.sumUp(isums);
-
-            return vsums;
-        }
-        else
-        {
-            auto vsums = tools().sum(0, to);
-            return vsums;
-        }
-    }
-
-
-
-
-    Values ranks(int32_t to) const
-    {
-        Values vals;
-
-        for (int32_t symbol = 0; symbol < Indexes; symbol++)
-        {
-            vals[symbol] = rank(to, symbol);
-        }
-
-        return vals;
-    }
-
-    Values ranks() const
-    {
-        return this->ranks(this->size());
-    }
-
-
-
-
-    Values sumsAt(int32_t idx) const
-    {
-        Values values;
-        values[symbol(idx)] = 1;
-
-        return values;
-    }
-
-    Values sums(int32_t from, int32_t to) const
-    {
-        return sums(to) - sums(from);
-    }
-
-
-    void sums(int32_t from, int32_t to, Values& values) const
-    {
-        values += sums(from, to);
-    }
-
-    void sums(Values& values) const
-    {
-        values += sums();
-    }
-
-    Values sum_v(int32_t from, int32_t to) const {
-        return sums(from, to);
-    }
-
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void max(BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-
-        for (int32_t block = 0; block < Indexes; block++)
-        {
-            accum[block + Offset] = rank(block);
-        }
-    }
-
-
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-
-        for (int32_t block = 0; block < Indexes; block++)
-        {
-            accum[block + Offset] += rank(block);
-        }
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-
-        for (int32_t block = 0; block < Indexes; block++)
-        {
-            accum[block + Offset] += rank(start, end, block);
-        }
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-
-        accum[symbol(idx) + Offset] ++;
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sub(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-
-        accum[symbol(idx) + Offset]--;
-    }
-
-
-    template <int32_t Offset, int32_t From, int32_t To, typename T, template <typename, int32_t, int32_t> class BranchNodeEntryItem>
-    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, From, To>& accum) const
-    {
-        for (int32_t block = 0; block < Indexes; block++)
-        {
-            accum[block + Offset] += rank(block, start, end);
-        }
-    }
-
-
-    int32_t sum(int32_t symbol, int32_t start, int32_t end) const
-    {
-        return rank(start, end, symbol);
-    }
-
-    int32_t sum(int32_t symbol, int32_t end) const
-    {
-        return rank(end, symbol);
-    }
-
-    int32_t sum(int32_t symbol) const
-    {
-        return rank(symbol);
-    }
-
-
-
-
-
-    template <typename T>
-    void _add(int32_t symbol, T& value) const
-    {
-        value += rank(symbol);
-    }
-
-    template <typename T>
-    void _add(int32_t symbol, int32_t end, T& value) const
-    {
-        value += rank(end, symbol);
-    }
-
-    template <typename T>
-    void _add(int32_t symbol, int32_t start, int32_t end, T& value) const
-    {
-        value += rank(start, end, symbol);
-    }
-
-
-
-    template <typename T>
-    void _sub(int32_t symbol, T& value) const
-    {
-        value -= rank(symbol);
-    }
-
-    template <typename T>
-    void _sub(int32_t symbol, int32_t end, T& value) const
-    {
-        value -= rank(end, symbol);
-    }
-
-    template <typename T>
-    void _sub(int32_t symbol, int32_t start, int32_t end, T& value) const
-    {
-        value -= rank(start, end, symbol);
-    }
-
-
     int32_t get(int32_t idx) const
     {
         if (idx >= size()) {
             int a = 0; a++;
         }
 
-        MEMORIA_V1_ASSERT(idx , <, size());
+        MEMORIA_ASSERT(idx , <, size());
         return tools().get(symbols(), idx);
     }
 
-    int32_t get_values(int32_t idx) const
-    {
-        MEMORIA_V1_ASSERT(idx , <, size());
-        return tools().get(symbols(), idx);
-    }
 
     bool test(int32_t idx, Value symbol) const
     {
-        MEMORIA_V1_ASSERT(idx , <, size());
+        MEMORIA_ASSERT(idx , <, size());
         return tools().test(symbols(), idx, symbol);
     }
 
@@ -900,7 +662,7 @@ public:
 
     int32_t rank(int32_t end, int32_t symbol) const
     {
-        MEMORIA_V1_ASSERT(end, <=, size());
+        MEMORIA_ASSERT(end, <=, size());
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
 
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
@@ -940,7 +702,7 @@ public:
 
     SelectResult selectFw(int32_t symbol, int64_t rank) const
     {
-        MEMORIA_V1_ASSERT(rank, >=, 0);
+        MEMORIA_ASSERT(rank, >=, 0);
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
 
         if (has_index())

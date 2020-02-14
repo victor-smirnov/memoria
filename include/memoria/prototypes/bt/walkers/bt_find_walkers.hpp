@@ -491,13 +491,13 @@ public:
     {
         int32_t s = start > (obj.size() - 1) ? obj.size() - 1 : start;
 
-        obj.data()->_sub(0, end + 1, s + 1, Base::branch_size_prefix()[StreamIdx]);
+        obj._sub(0, end + 1, s + 1, Base::branch_size_prefix()[StreamIdx]);
     }
 
     template <int32_t StreamIdx, typename StreamType>
     void branch_size_prefix(StreamType&& obj, int32_t start, int32_t end, FixTargetTag)
     {
-        obj.data()->_add(0, end + 1, end + 2, Base::branch_size_prefix()[StreamIdx]);
+        obj._add(0, end + 1, end + 2, Base::branch_size_prefix()[StreamIdx]);
     }
 
 

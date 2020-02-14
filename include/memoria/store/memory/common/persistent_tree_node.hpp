@@ -224,7 +224,7 @@ public:
     {
         LockGuardT lk(mutex_);
         auto r = --refs_;
-        MEMORIA_V1_ASSERT(r, >=, 0);
+        MEMORIA_ASSERT(r, >=, 0);
         return r;
     }
 

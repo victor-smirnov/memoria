@@ -164,7 +164,7 @@ public:
 
                 louds->reindex();
 
-                MEMORIA_V1_ASSERT(louds, ==, this->tree());
+                MEMORIA_ASSERT(louds, ==, this->tree());
 
                 fn(node, label, level);
 
@@ -193,7 +193,7 @@ public:
 
             PackedLoudsNode child = find_child(node, label);
 
-            MEMORIA_V1_ASSERT(child.is_empty(), !=, true);
+            MEMORIA_ASSERT(child.is_empty(), !=, true);
 
             level++;
         }

@@ -245,7 +245,7 @@ public:
 
     bool isAlone(const PackedLoudsNode& node) const
     {
-        MEMORIA_V1_ASSERT(node.local_pos(), <, this->size());
+        MEMORIA_ASSERT(node.local_pos(), <, this->size());
 
         int32_t idx = node.local_pos();
 

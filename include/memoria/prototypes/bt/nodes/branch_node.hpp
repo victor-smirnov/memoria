@@ -258,7 +258,7 @@ public:
     VoidResult initAllocator(int32_t entries) noexcept
     {
         int32_t block_size = this->header().memory_block_size();
-        MEMORIA_V1_ASSERT_RTN(block_size, >, static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size());
+        MEMORIA_ASSERT_RTN(block_size, >, static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size());
 
         allocator_.allocatable().setTopLevelAllocator();
         return allocator_.init(block_size - static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size(), entries);

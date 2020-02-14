@@ -1210,8 +1210,8 @@ protected:
 
         if (layout.levels_max >= 0)
         {
-            MEMORIA_V1_ASSERT(this->element_size(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart), >, 0);
-            MEMORIA_V1_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), >, 0);
+            MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart), >, 0);
+            MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), >, 0);
 
             auto values     = this->values(block);
             auto indexes    = this->value_index(block);
@@ -1233,17 +1233,17 @@ protected:
             size_t threshold = ValuesPerBranch;
             int32_t total_size = 0;
 
-            MEMORIA_V1_ASSERT(offset(offsets, 0), ==, 0);
+            MEMORIA_ASSERT(offset(offsets, 0), ==, 0);
 
             int32_t idx = 0;
             while(pos < data_size)
             {
                 if (pos >= threshold)
                 {
-                    MEMORIA_V1_ASSERT(offset(offsets, idx + 1), ==, pos - threshold);
+                    MEMORIA_ASSERT(offset(offsets, idx + 1), ==, pos - threshold);
 
-                    MEMORIA_V1_ASSERT(indexes[level_start + idx], ==, value_sum);
-                    MEMORIA_V1_ASSERT(size_index[level_start + idx], ==, size_cnt);
+                    MEMORIA_ASSERT(indexes[level_start + idx], ==, value_sum);
+                    MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
 
                     threshold += ValuesPerBranch;
 
@@ -1264,12 +1264,12 @@ protected:
                 pos += len;
             }
 
-            MEMORIA_V1_ASSERT((int32_t)pos, ==, data_size);
+            MEMORIA_ASSERT((int32_t)pos, ==, data_size);
 
-            MEMORIA_V1_ASSERT(indexes[level_start + idx], ==, value_sum);
-            MEMORIA_V1_ASSERT(size_index[level_start + idx], ==, size_cnt);
+            MEMORIA_ASSERT(indexes[level_start + idx], ==, value_sum);
+            MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
 
-            MEMORIA_V1_ASSERT(this->size(), ==, size_cnt + total_size);
+            MEMORIA_ASSERT(this->size(), ==, size_cnt + total_size);
 
             for (int32_t level = levels - 1; level > 0; level--)
             {
@@ -1295,25 +1295,25 @@ protected:
                         sizes_sum += size_index[c];
                     }
 
-                    MEMORIA_V1_ASSERT(indexes[previous_level_start + i], ==, sum);
-                    MEMORIA_V1_ASSERT(size_index[previous_level_start + i], ==, sizes_sum);
+                    MEMORIA_ASSERT(indexes[previous_level_start + i], ==, sum);
+                    MEMORIA_ASSERT(size_index[previous_level_start + i], ==, sizes_sum);
                 }
             }
         }
         else {
-            MEMORIA_V1_ASSERT(this->element_size(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart), ==, 0);
-            MEMORIA_V1_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), ==, 0);
+            MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart), ==, 0);
+            MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), ==, 0);
 
             if (data_size > 0)
             {
-                MEMORIA_V1_ASSERT(offsets_size, ==, sizeof(OffsetsType));
-                MEMORIA_V1_ASSERT(this->offset(block, 0), ==, 0);
+                MEMORIA_ASSERT(offsets_size, ==, sizeof(OffsetsType));
+                MEMORIA_ASSERT(this->offset(block, 0), ==, 0);
             }
             else {
-                MEMORIA_V1_ASSERT(offsets_size, ==, 0);
+                MEMORIA_ASSERT(offsets_size, ==, 0);
             }
 
-            MEMORIA_V1_ASSERT(this->data_size(block), <=, kValuesPerBranch);
+            MEMORIA_ASSERT(this->data_size(block), <=, kValuesPerBranch);
         }
     }
 };

@@ -275,39 +275,15 @@ protected:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(SumsFn, sums);
-    void ctr_sums(const NodeBaseG& node, BranchNodeEntry& sums) const noexcept
+    VoidResult ctr_sums(const NodeBaseG& node, int32_t start, int32_t end, BranchNodeEntry& sums) const noexcept
     {
-        self().node_dispatcher().dispatch(node, SumsFn(), sums);
+        return self().branch_dispatcher().dispatch(node, SumsFn(), start, end, sums);
     }
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(SumsRtnFn, sums, BranchNodeEntry);
-    BranchNodeEntry ctr_sums(const NodeBaseG& node) const noexcept
-    {
-        return self().node_dispatcher().dispatch(node, SumsRtnFn());
-    }
 
-    void ctr_sums(const NodeBaseG& node, int32_t start, int32_t end, BranchNodeEntry& sums) const noexcept
+    VoidResult ctr_sums(const NodeBaseG& node, const Position& start, const Position& end, BranchNodeEntry& sums) const noexcept
     {
-        self().node_dispatcher().dispatch(node, SumsFn(), start, end, sums);
-    }
-
-    BranchNodeEntry ctr_sums(const NodeBaseG& node, int32_t start, int32_t end) const noexcept
-    {
-        BranchNodeEntry sums;
-        self().node_dispatcher().dispatch(node, SumsFn(), start, end, sums);
-        return sums;
-    }
-
-    void ctr_sums(const NodeBaseG& node, const Position& start, const Position& end, BranchNodeEntry& sums) const noexcept
-    {
-        self().node_dispatcher().dispatch(node, SumsFn(), start, end, sums);
-    }
-
-    BranchNodeEntry ctr_sums(const NodeBaseG& node, const Position& start, const Position& end) const noexcept
-    {
-        BranchNodeEntry sums;
-        self().node_dispatcher().dispatch(node, SumsFn(), start, end, sums);
-        return sums;
+        return self().leaf_dispatcher().dispatch(node, SumsFn(), start, end, sums);
     }
 
 
@@ -315,15 +291,14 @@ protected:
     template <typename Path>
     struct LeafSumsFn {
         template <typename Node, typename... Args>
-        auto treeNode(Node&& node, Args&&... args) {
-            return node->template ctr_leaf_sums<Path>(std::forward<Args>(args)...);
+        auto treeNode(Node&& node, Args&&... args) noexcept {
+            return node.template leaf_sums<Path>(std::forward<Args>(args)...);
         }
     };
 
-
     struct LeafSizesFn {
         template <typename Node, typename... Args>
-        auto treeNode(Node&& node, Args&&...) {
+        auto treeNode(Node&& node, Args&&...) noexcept {
             return node.sizes();
         }
     };

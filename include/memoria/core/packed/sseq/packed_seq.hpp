@@ -216,7 +216,7 @@ public:
         max_size_   = getMaxSize(block_size);
         index_size_ = getIndexSize(max_size_);
 
-        MEMORIA_V1_ASSERT(getDataSize(), <=, block_size);
+        MEMORIA_ASSERT(getDataSize(), <=, block_size);
     }
 
 
@@ -376,24 +376,24 @@ public:
 
     IndexKey& indexb(int32_t block_offset, int32_t key_num)
     {
-        MEMORIA_V1_ASSERT(key_num, >=, 0);
-        MEMORIA_V1_ASSERT(key_num, <, index_size_);
+        MEMORIA_ASSERT(key_num, >=, 0);
+        MEMORIA_ASSERT(key_num, <, index_size_);
 
         return *ptr_cast<IndexKey>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
     }
 
     const IndexKey& indexb(int32_t block_offset, int32_t key_num) const
     {
-        MEMORIA_V1_ASSERT(key_num, >=, 0);
-        MEMORIA_V1_ASSERT(key_num, <, index_size_);
+        MEMORIA_ASSERT(key_num, >=, 0);
+        MEMORIA_ASSERT(key_num, <, index_size_);
 
         return *ptr_cast<const IndexKey>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
     }
 
     IndexKey& index(int32_t block_num, int32_t key_num)
     {
-        MEMORIA_V1_ASSERT(key_num, >=, 0);
-        MEMORIA_V1_ASSERT(key_num, <, index_size_);
+        MEMORIA_ASSERT(key_num, >=, 0);
+        MEMORIA_ASSERT(key_num, <, index_size_);
 
         int32_t block_offset = getIndexKeyBlockOffset(block_num);
 
@@ -402,8 +402,8 @@ public:
 
     const IndexKey& index(int32_t block_num, int32_t key_num) const
     {
-        MEMORIA_V1_ASSERT(key_num, >=, 0);
-        MEMORIA_V1_ASSERT(key_num, <, index_size_);
+        MEMORIA_ASSERT(key_num, >=, 0);
+        MEMORIA_ASSERT(key_num, <, index_size_);
 
         int32_t block_offset = getIndexKeyBlockOffset(block_num);
 
@@ -428,9 +428,9 @@ public:
 
     int32_t rank(int32_t from, int32_t to, Value symbol) const
     {
-        MEMORIA_V1_ASSERT(from, >=, 0);
-        MEMORIA_V1_ASSERT(to, >=, from);
-        MEMORIA_V1_ASSERT(to, <, size());
+        MEMORIA_ASSERT(from, >=, 0);
+        MEMORIA_ASSERT(to, >=, from);
+        MEMORIA_ASSERT(to, <, size());
 
         RankWalker<MyType, Bits> walker(*this, symbol);
 
@@ -441,7 +441,7 @@ public:
 
     int32_t rank(int32_t to, Value symbol) const
     {
-        MEMORIA_V1_ASSERT(to, <, size());
+        MEMORIA_ASSERT(to, <, size());
 
         RankWalker<MyType, Bits> walker(*this, symbol);
 
@@ -453,9 +453,9 @@ public:
 
     int32_t rank1(int32_t from, int32_t to, Value symbol) const
     {
-        MEMORIA_V1_ASSERT(from, >=, 0);
-        MEMORIA_V1_ASSERT(to, >=, from);
-        MEMORIA_V1_ASSERT(to, <=, size());
+        MEMORIA_ASSERT(from, >=, 0);
+        MEMORIA_ASSERT(to, >=, from);
+        MEMORIA_ASSERT(to, <=, size());
 
         RankWalker<MyType, Bits> walker(*this, symbol);
 
@@ -466,7 +466,7 @@ public:
 
     int32_t rank1(int32_t to, Value symbol) const
     {
-        MEMORIA_V1_ASSERT(to, <=, size());
+        MEMORIA_ASSERT(to, <=, size());
 
         RankWalker<MyType, Bits> walker(*this, symbol);
 
@@ -479,8 +479,8 @@ public:
 
     SelectResult selectFW(int32_t from, Value symbol, int32_t rank) const
     {
-        MEMORIA_V1_ASSERT(from, >=, 0);
-        MEMORIA_V1_ASSERT(from, <, size());
+        MEMORIA_ASSERT(from, >=, 0);
+        MEMORIA_ASSERT(from, <, size());
 
         intrnl1::EmptyMainWalker mw;
         btree::EmptyExtenderState state;
@@ -667,32 +667,32 @@ private:
 public:
     ValueSetter value(int32_t value_num)
     {
-        MEMORIA_V1_ASSERT(value_num, >=, 0);
-        MEMORIA_V1_ASSERT(value_num, <, max_size_);
+        MEMORIA_ASSERT(value_num, >=, 0);
+        MEMORIA_ASSERT(value_num, <, max_size_);
 
         return valueb(getValueBlockOffset(), value_num);
     }
 
     Value value(int32_t value_num) const
     {
-        MEMORIA_V1_ASSERT(value_num, >=, 0);
-        MEMORIA_V1_ASSERT(value_num, <, max_size_);
+        MEMORIA_ASSERT(value_num, >=, 0);
+        MEMORIA_ASSERT(value_num, <, max_size_);
 
         return valueb(getValueBlockOffset(), value_num);
     }
 
     ValueSetter valueb(int32_t block_offset, int32_t value_num)
     {
-        MEMORIA_V1_ASSERT(value_num, >=, 0);
-        MEMORIA_V1_ASSERT(value_num, <, max_size_);
+        MEMORIA_ASSERT(value_num, >=, 0);
+        MEMORIA_ASSERT(value_num, <, max_size_);
 
         return ValueSetter(*this, block_offset, value_num);
     }
 
     Value valueb(int32_t block_offset, int32_t value_num) const
     {
-        MEMORIA_V1_ASSERT(value_num, >=, 0);
-        MEMORIA_V1_ASSERT(value_num, <, max_size_);
+        MEMORIA_ASSERT(value_num, >=, 0);
+        MEMORIA_ASSERT(value_num, <, max_size_);
 
         return this->getValueItem(block_offset, value_num);
     }
@@ -772,12 +772,12 @@ public:
 
     void copyTo(MyType* other, int32_t copy_from, int32_t count, int32_t copy_to) const
     {
-        MEMORIA_V1_ASSERT(copy_from, >=, 0);
-        MEMORIA_V1_ASSERT(copy_from + count, <=, max_size_);
+        MEMORIA_ASSERT(copy_from, >=, 0);
+        MEMORIA_ASSERT(copy_from + count, <=, max_size_);
 
-        MEMORIA_V1_ASSERT(copy_to, >=, 0);
+        MEMORIA_ASSERT(copy_to, >=, 0);
 
-        MEMORIA_V1_ASSERT(copy_to + count, <=, other->max_size_);
+        MEMORIA_ASSERT(copy_to + count, <=, other->max_size_);
 
         const Value* src    = valuesBlock();
         Value* dst          = other->valuesBlock();
@@ -797,9 +797,9 @@ public:
 
     void clear(int32_t from, int32_t to)
     {
-        MEMORIA_V1_ASSERT(from, >=, 0);
-        MEMORIA_V1_ASSERT(to, <=, max_size_);
-        MEMORIA_V1_ASSERT(from, <=, to);
+        MEMORIA_ASSERT(from, >=, 0);
+        MEMORIA_ASSERT(to, <=, max_size_);
+        MEMORIA_ASSERT(from, <=, to);
 
         clearValues(from, to);
     }
@@ -861,9 +861,9 @@ public:
 
     void transferTo(MyType* other, int8_t* memory_block = nullptr) const
     {
-        MEMORIA_V1_ASSERT(size(), <=, other->maxSize());
+        MEMORIA_ASSERT(size(), <=, other->maxSize());
 #ifndef __clang__
-        MEMORIA_V1_ASSERT(Blocks,  ==, other->Blocks);
+        MEMORIA_ASSERT(Blocks,  ==, other->Blocks);
 #endif
         if (memory_block == nullptr)
         {
@@ -875,12 +875,12 @@ public:
 
     void insertSpace(int32_t room_start, int32_t room_length)
     {
-        MEMORIA_V1_ASSERT(room_start,  >=, 0);
-        MEMORIA_V1_ASSERT(room_start,  <, max_size_);
-        MEMORIA_V1_ASSERT(room_start,  <=, size_);
+        MEMORIA_ASSERT(room_start,  >=, 0);
+        MEMORIA_ASSERT(room_start,  <, max_size_);
+        MEMORIA_ASSERT(room_start,  <=, size_);
 
-        MEMORIA_V1_ASSERT(room_length, >=, 0);
-        MEMORIA_V1_ASSERT(size_ + room_length, <=, max_size_);
+        MEMORIA_ASSERT(room_length, >=, 0);
+        MEMORIA_ASSERT(size_ + room_length, <=, max_size_);
 
         copyTo(this, room_start, size() - room_start, room_start + room_length);
 
@@ -889,11 +889,11 @@ public:
 
     void removeSpace(int32_t room_start, int32_t room_length)
     {
-        MEMORIA_V1_ASSERT(room_start,  >=, 0);
-        MEMORIA_V1_ASSERT(room_start,  <, size_);
+        MEMORIA_ASSERT(room_start,  >=, 0);
+        MEMORIA_ASSERT(room_start,  <, size_);
 
-        MEMORIA_V1_ASSERT(room_length, >=, 0);
-        MEMORIA_V1_ASSERT(room_start + room_length, <=, size_);
+        MEMORIA_ASSERT(room_length, >=, 0);
+        MEMORIA_ASSERT(room_start + room_length, <=, size_);
 
         int32_t copy_from = room_start + room_length;
 
@@ -939,8 +939,8 @@ public:
 
     void updateUp(int32_t block_num, int32_t idx, IndexKey key_value)
     {
-        MEMORIA_V1_ASSERT(idx, >=, 0);
-        MEMORIA_V1_ASSERT(idx, <=, size());
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, <=, size());
 
         int32_t level_size      = maxSize();
         int32_t level_start     = indexSize();
@@ -967,9 +967,9 @@ public:
 
     void reindex(int32_t start, int32_t end)
     {
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(end, <=, size());
-        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_ASSERT(start, <=, end);
 
         int32_t block_start = getBlockStartV(start);
         int32_t block_end   = getBlockEndV(end);
@@ -1125,9 +1125,9 @@ public:
     template <typename Functor>
     void walkRange(int32_t start, int32_t end, Functor& walker) const
     {
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(end,   <=,  size());
-        MEMORIA_V1_ASSERT(start, <=,  end);
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(end,   <=,  size());
+        MEMORIA_ASSERT(start, <=,  end);
 
         FinishHandler<Functor> finish_handler(walker);
 
@@ -1162,7 +1162,7 @@ public:
     template <typename Walker>
     void walkRange(int32_t target, Walker& walker) const
     {
-        MEMORIA_V1_ASSERT(target,   <=,  size());
+        MEMORIA_ASSERT(target,   <=,  size());
 
         FinishHandler<Walker> finish_handler(walker);
 
@@ -1248,7 +1248,7 @@ public:
     template <typename Walker>
     int32_t findFw(int32_t start, Walker& walker) const
     {
-        MEMORIA_V1_ASSERT(start, <=, size());
+        MEMORIA_ASSERT(start, <=, size());
 
         FinishHandler<Walker> finish_handler(walker);
 
@@ -1298,7 +1298,7 @@ public:
     template <typename Walker>
     size_t findBw(int32_t start, Walker& walker) const
     {
-        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, >=, 0);
 
         FinishHandler<Walker> finish_handler(walker);
 

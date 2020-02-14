@@ -129,7 +129,7 @@ public:
             }
         }
 
-        tree->_insert(0, size, [&](int32_t block, int32_t idx) {
+        tree->insert_entries(0, size, [&](int32_t block, int32_t idx) noexcept {
             return vals[idx][block];
         }).get_or_throw();
 
@@ -185,7 +185,7 @@ public:
 
     void fillVector(TreePtr& tree, const std::vector<Values>& vals)
     {
-        tree->_insert(0, vals.size(), [&](int32_t block, int32_t idx) {
+        tree->insert_entries(0, vals.size(), [&](int32_t block, int32_t idx) noexcept {
             return vals[idx][block];
         }).get_or_throw();
     }

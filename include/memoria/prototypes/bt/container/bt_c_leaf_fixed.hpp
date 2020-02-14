@@ -59,26 +59,27 @@ public:
     struct InsertStreamEntryFn
     {
         template <
-            int32_t Offset,
-            bool StreamStart,
             int32_t Idx,
             typename SubstreamType,
-            typename BranchNodeEntryItem,
             typename Entry
         >
-        VoidResult stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry) noexcept
+        VoidResult stream(SubstreamType&& obj, int32_t idx, const Entry& entry) noexcept
         {
-            return obj.template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
-                return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
-            });
+            if (obj) {
+                return obj.insert_entries(idx, 1, [&](int32_t block, int32_t row) -> const auto& {
+                    return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
+                });
+            }
+            else {
+                return make_generic_error("Substream {} is empty", Idx);
+            }
         }
 
         template <typename CtrT, typename NTypes, typename... Args>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args) noexcept
+        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args) noexcept
         {
             MEMORIA_TRY_VOID(node.layout(255));
-            MEMORIA_TRY_VOID(node.template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...));
-            return VoidResult::of();
+            return node.template processSubstreams<IntList<Stream>>(*this, idx, std::forward<Args>(args)...);
         }
     };
 
@@ -93,8 +94,7 @@ public:
 
         if (self.ctr_check_node_capacities(iter.iter_leaf(), Position::create(Stream, 1)))
         {
-            BranchNodeEntry accum;
-            MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(iter.iter_leaf(), InsertStreamEntryFn<Stream>(), idx, accum, entry));
+            MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(iter.iter_leaf(), InsertStreamEntryFn<Stream>(), idx, entry));
             return ResultT::of(true);
         }
         else {
@@ -113,36 +113,32 @@ public:
     struct RemoveFromLeafFn
     {
         template <typename CtrT, typename NTypes>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum) noexcept
+        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx) noexcept
         {
             MEMORIA_TRY_VOID(node.layout(255));
-            MEMORIA_TRY_VOID(node.template processStreamAcc<Stream>(*this, accum, idx));
+            MEMORIA_TRY_VOID(node.template processSubstreams<IntList<Stream>>(*this, idx));
             return VoidResult::of();
         }
 
         template <
-            int32_t Offset,
-            bool StreamStart,
             int32_t Idx,
-            typename SubstreamType,
-            typename BranchNodeEntryItem
+            typename SubstreamType
         >
-        VoidResult stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx) noexcept
+        VoidResult stream(SubstreamType&& obj, int32_t idx) noexcept
         {
-            return obj.template _remove<Offset>(idx, accum);
+            return obj.remove_entries(idx, 1);
         }
     };
 
     template <int32_t Stream>
-    Result<std::tuple<bool, BranchNodeEntry>> ctr_try_remove_stream_entry(Iterator& iter, int32_t idx) noexcept
+    BoolResult ctr_try_remove_stream_entry(Iterator& iter, int32_t idx) noexcept
     {
-        using ResultT = Result<std::tuple<bool, BranchNodeEntry>>;
+        using ResultT = BoolResult;
         MEMORIA_TRY_VOID(self().ctr_update_block_guard(iter.iter_leaf()));
 
-        BranchNodeEntry accum;
-        MEMORIA_TRY_VOID(self().leaf_dispatcher().dispatch(iter.iter_leaf(), RemoveFromLeafFn<Stream>(), idx, accum));
+        MEMORIA_TRY_VOID(self().leaf_dispatcher().dispatch(iter.iter_leaf(), RemoveFromLeafFn<Stream>(), idx));
 
-        return ResultT::of(std::make_tuple(true, std::move(accum)));
+        return ResultT::of(true);
     }
 
 

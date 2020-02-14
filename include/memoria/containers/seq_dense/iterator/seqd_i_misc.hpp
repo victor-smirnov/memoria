@@ -89,7 +89,7 @@ public:
 
     void insert_symbol(int32_t symbol)
     {
-        MEMORIA_V1_ASSERT(symbol, <, (int32_t)Symbols);
+        MEMORIA_ASSERT(symbol, <, (int32_t)Symbols);
 
         auto& self  = this->self();
         auto& ctr   = self.ctr();

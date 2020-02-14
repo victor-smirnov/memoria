@@ -46,20 +46,20 @@ public:
 
     int32_t symbol(int32_t n) const
     {
-        MEMORIA_V1_ASSERT(n, <, size_);
+        MEMORIA_ASSERT(n, <, size_);
         return GetBits(symbols(), n, BitsPerSymbol);
     }
 
     void set_symbol(int32_t n, int32_t symbol)
     {
-        MEMORIA_V1_ASSERT(n, <, size_);
+        MEMORIA_ASSERT(n, <, size_);
         SetBits(symbols(), n, symbol, BitsPerSymbol);
     }
 
     void set_symbols(int32_t n, int32_t symbol, int32_t nsyms)
     {
-        MEMORIA_V1_ASSERT(n, <, size_);
-        MEMORIA_V1_ASSERT(nsyms, <=, (int32_t)sizeof(int32_t) * 8 / BitsPerSymbol);
+        MEMORIA_ASSERT(n, <, size_);
+        MEMORIA_ASSERT(nsyms, <=, (int32_t)sizeof(int32_t) * 8 / BitsPerSymbol);
 
         return SetBits(symbols(), n, symbol, BitsPerSymbol * nsyms);
     }
@@ -76,7 +76,7 @@ public:
 
     void resize(int32_t size)
     {
-        MEMORIA_V1_ASSERT(size, <=, max_size());
+        MEMORIA_ASSERT(size, <=, max_size());
         this->size_ = size;
     }
 
@@ -86,7 +86,7 @@ public:
 
     void append(int32_t symbol)
     {
-        MEMORIA_V1_ASSERT(size_, <, max_size());
+        MEMORIA_ASSERT(size_, <, max_size());
 
         int32_t pos = size_;
         size_ += 1;
@@ -123,20 +123,20 @@ public:
 
     int32_t symbol(int32_t n) const
     {
-        MEMORIA_V1_ASSERT(n, <, size_);
+        MEMORIA_ASSERT(n, <, size_);
         return symbols_[n];
     }
 
     void set_symbol(int32_t n, int32_t symbol)
     {
-        MEMORIA_V1_ASSERT(n, <, size_);
+        MEMORIA_ASSERT(n, <, size_);
         symbols_[n] = symbol;
     }
 
     void set_symbols(int32_t n, int32_t symbols, int32_t nsyms)
     {
-        MEMORIA_V1_ASSERT(n, <, size_);
-        MEMORIA_V1_ASSERT(nsyms, <, (int32_t)sizeof(int32_t));
+        MEMORIA_ASSERT(n, <, size_);
+        MEMORIA_ASSERT(nsyms, <, (int32_t)sizeof(int32_t));
 
         for (int32_t c = 0; c < nsyms; c++)
         {
@@ -158,7 +158,7 @@ public:
 
     void resize(int32_t size)
     {
-        MEMORIA_V1_ASSERT(size, <=, max_size());
+        MEMORIA_ASSERT(size, <=, max_size());
         this->size_ = size;
     }
 
@@ -168,7 +168,7 @@ public:
 
     void append(int32_t symbol)
     {
-        MEMORIA_V1_ASSERT(size_, <, max_size());
+        MEMORIA_ASSERT(size_, <, max_size());
 
         int32_t pos = size_;
         size_ += 1;

@@ -24,7 +24,6 @@
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/core/packed/tools/packed_tools.hpp>
 
-//#include <memoria/core/packed/array/packed_vle_array_so.hpp>
 
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/bitmap.hpp>
@@ -52,12 +51,7 @@ public:
 
     using ViewType      = typename Array::ViewType;
     using DataType      = typename Array::DataType;
-//    using Accessor      = typename Array::Accessor;
-
     using FindResult    = typename ArraySO::FindResult;
-
-//    using Iterator      = PkdRandomAccessIterator<Accessor>;
-//    using ConstIterator = PkdRandomAccessIterator<Accessor>;
 
     using PkdStructT = PkdStruct;
 
@@ -127,6 +121,25 @@ public:
 
     /*********************** API *********************/
 
+    psize_t max_element_idx() const noexcept {
+        psize_t array_idx = array_.size() - 1;
+        psize_t bm_idx = bitmap_idx(array_idx);
+        return bm_idx;
+    }
+
+    Optional<ViewType> access(int32_t column, int32_t row) const noexcept
+    {
+        Bitmap* bitmap = data_->bitmap();
+        if (bitmap->symbol(row))
+        {
+            int32_t array_idx  = this->array_idx(row);
+            return array_.access(column, array_idx);
+        }
+        else {
+            return Optional<ViewType>{};
+        }
+    }
+
     VoidResult splitTo(MyType& other, psize_t idx) noexcept
     {
         Bitmap* bitmap = data_->bitmap();
@@ -189,81 +202,38 @@ public:
     }
 
 
-    Optional<ViewType> max(psize_t column) const
+    template <typename AccessorFn>
+    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
     {
-        auto size = array_.size();
+        MEMORIA_ASSERT_RTN(row_at, <=, this->size());
 
-        if (size > 0)
-        {
-            return this->access(column, size - 1);
-        }
-        else {
-            return Optional<ViewType>{};
-        }
+        Bitmap* bitmap = data_->bitmap();
+        MEMORIA_TRY_VOID(bitmap->insert_entries(row_at, size, [&](psize_t pos){
+            return is_not_empty(elements(0, pos));
+        }));
+
+        refresh_array();
+
+        psize_t set_elements_num = bitmap->rank(row_at, row_at + size, 1);
+        psize_t array_row_at = array_idx(row_at);
+
+        return array_.insert_entries(array_row_at, set_elements_num, [&](psize_t col, psize_t arr_idx) noexcept {
+            psize_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
+            return elements(col, bm_idx - row_at).get();
+        });
     }
 
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void max(BranchNodeEntryItem<T, Size>& accum) const
+    template <typename AccessorFn>
+    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
     {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-
-        for (int32_t column = 0; column < Columns; column++)
-        {
-            accum[column] = this->max(column);
-        }
+        MEMORIA_TRY_VOID(remove_entries(row_at, size));
+        return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
     }
 
-
-
-    template <typename T>
-    void max(core::StaticVector<T, Columns>& accum) const
+    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
     {
-        psize_t size = array_.size();
-
-        if (size > 0)
-        {
-            for (int32_t column = 0; column < Columns; column++)
-            {
-                accum[column] = array_.access(column, size - 1);
-            }
-        }
-        else {
-            for (int32_t column = 0; column < Columns; column++)
-            {
-                accum[column] = T{};
-            }
-        }
+        return removeSpace(row_at, row_at + size);
     }
-
-
-
-//    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-//    VoidResult _update_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
-//    {
-//        if (isFail(removeSpace(pos, pos + 1))) {
-//            return VoidResult::FAIL;
-//        }
-
-//        return _insert_b<Offset>(pos, accum, std::forward<AccessorFn>(val));
-//    }
-
-//    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-//    VoidResult _insert_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
-//    {
-//        if (isFail(Accessor::insert(*this, pos, 1, [&](psize_t column, psize_t row){
-//            return val(column);
-//        }))) {
-//            return VoidResult::FAIL;
-//        }
-
-//        return VoidResult::OK;
-//    }
-
-//    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-//    VoidResult _remove(psize_t idx, BranchNodeEntryItem<T, Size>& accum)
-//    {
-//        return removeSpace(idx, idx + 1);
-//    }
 
 
 
@@ -400,6 +370,17 @@ public:
 
 private:
 
+    template <typename T>
+    bool is_not_empty(const T& value) const noexcept {
+        return true;
+    }
+
+    template <typename T>
+    bool is_not_empty(const Optional<T>& value) const noexcept {
+        return (bool)value;
+    }
+
+
     void refresh_array() noexcept {
         array_.setup(data_->array());
     }
@@ -422,7 +403,7 @@ private:
         return array_idx(data_->bitmap(), global_idx);
     }
 
-    psize_t bitmap_idx(psize_t array_idx) const
+    psize_t bitmap_idx(psize_t array_idx) const noexcept
     {
         return bitmap_idx(data_->bitmap(), array_idx);
     }
@@ -433,7 +414,7 @@ private:
         return rank;
     }
 
-    psize_t bitmap_idx(const Bitmap* bitmap, psize_t array_idx) const
+    psize_t bitmap_idx(const Bitmap* bitmap, psize_t array_idx) const noexcept
     {
         auto select_res = bitmap->selectFw(1, array_idx + 1);
 

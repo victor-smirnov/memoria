@@ -20,6 +20,8 @@
 
 #include <memoria/profiles/common/block_operations.hpp>
 
+#include <memoria/core/iovector/io_substream_base.hpp>
+
 namespace memoria {
 
 template <typename ExtData, typename PkdStruct>
@@ -99,9 +101,8 @@ public:
         return data_->check();
     }
 
-    template <int32_t Offset, typename... Args>
-    auto max(Args&&... args) const {
-        return data_->template max<Offset>(std::forward<Args>(args)...);
+    auto sum(int32_t symbol) const noexcept {
+        return data_->rank(symbol);
     }
 
     void configure_io_substream(io::IOSubstream& substream) const {
@@ -113,6 +114,35 @@ public:
         MEMORIA_TRY_VOID(data_->insert_io_substream(at, substream, start, size));
         return Int32Result::of(at + size);
     }
+
+    template <typename AccessorFn>
+    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    {
+        MEMORIA_TRY_VOID(data_->insertSpace(row_at, size));
+
+        for (psize_t c = 0; c < size; c++)
+        {
+            int32_t symbol = elements(c);
+            data_->insert(row_at, symbol, 1);
+        }
+
+        return VoidResult::of();
+    }
+
+    template <typename AccessorFn>
+    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    {
+        MEMORIA_TRY_VOID(data_->removeSpace(row_at, row_at + size));
+        return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
+    }
+
+    template <typename AccessorFn>
+    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
+    {
+        return data_->removeSpace(row_at, row_at + size);
+    }
+
+private:
 };
 
 

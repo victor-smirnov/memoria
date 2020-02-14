@@ -770,7 +770,7 @@ protected:
 
             remove_node(root);
 
-            MEMORIA_V1_ASSERT(node->references(), ==, 1);
+            MEMORIA_ASSERT(node->references(), ==, 1);
         }
 
         next[level] = node;

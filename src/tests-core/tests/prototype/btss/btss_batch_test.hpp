@@ -458,6 +458,8 @@ public:
 
             commit();
 
+            //storeAllocator(format_u8("testInsert{}.mma1", iteration_));
+
             size = ctr->size().get_or_throw();
         }
 

@@ -46,6 +46,9 @@ template <typename PkdStruct>
 using PkdSearchKeyDataType = typename PackedStructTraits<PkdStruct>::SearchKeyDataType;
 
 template <typename PkdStruct>
+using PkdSearchKeyDataType = typename PackedStructTraits<PkdStruct>::SearchKeyDataType;
+
+template <typename PkdStruct>
 constexpr PackedDataTypeSize PkdStructSizeType = PackedStructTraits<PkdStruct>::DataTypeSize;
 
 template <typename PkdStruct>

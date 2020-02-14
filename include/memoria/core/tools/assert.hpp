@@ -29,19 +29,19 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 }
 
 
-#define MEMORIA_V1_STATIC_ASSERT(B) \
+#define MEMORIA_STATIC_ASSERT(B) \
     enum { MMA_JOIN(MEMORIA_V1_STATIC_ASSERT_, __LINE__) = sizeof(STATIC_ASSERT_FAILURE<(bool)(B)>)}
 
 
 #ifndef MEMORIA_V1_NO_ASSERTS
 
-#define MEMORIA_V1_ASSERT(Left, Operation, Right)                                                       \
+#define MEMORIA_ASSERT(Left, Operation, Right)                                                       \
         do {if (!(Left Operation Right)) {                                                                  \
             try{MMA_THROW(::memoria::Exception()) << ::memoria::WhatInfo(format_u8("ASSERT FAILURE: {} {} {} Values: {} {}", \
                     #Left, #Operation, #Right, Left, Right));} catch (::memoria::MemoriaThrowable& th) {th.dump(std::cout); std::terminate();}                                              \
         }} while(0)
 
-#define MEMORIA_V1_ASSERT_RTN(Left, Operation, Right)                                                       \
+#define MEMORIA_ASSERT_RTN(Left, Operation, Right)                                                       \
         do {if (!(Left Operation Right)) {                                                                  \
             return MEMORIA_MAKE_GENERIC_ERROR("ASSERT FAILURE: {} {} {} Values: {} {} at {}", \
                     #Left, #Operation, #Right, Left, Right, MMA_SRC);                                       \
@@ -105,7 +105,7 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #else
 
-#define MEMORIA_V1_ASSERT(Left, Operation, Right)
+#define MEMORIA_ASSERT(Left, Operation, Right)
 #define MEMORIA_V1_ASSERT_EXPR(Expr, Msg)
 #define MEMORIA_V1_ASSERT_NOT_NULL(Operand)
 #define MEMORIA_V1_ASSERT_TRUE(Arg0)

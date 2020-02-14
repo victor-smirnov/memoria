@@ -99,8 +99,8 @@ public:
         template <int32_t ListIdx, typename StreamType>
         VoidResult stream(StreamType& obj, int32_t from, int32_t to, const BranchNodeEntryT* entries) noexcept
         {
-            return obj.insert(from, to - from, [entries](int32_t idx) -> const auto& {
-                return std::get<ListIdx>(entries[idx].accum());
+            return obj.insert_entries(from, to - from, [entries](int32_t column, int32_t idx) noexcept -> const auto& {
+                return std::get<ListIdx>(entries[idx].accum())[column];
             });
         }
     };

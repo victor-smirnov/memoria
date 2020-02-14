@@ -46,13 +46,13 @@ protected:
         auto& self = this->self();
 
         MEMORIA_TRY(remove_entry_result0, self.template ctr_try_remove_stream_entry<Stream>(iter, idx));
-        if (!std::get<0>(remove_entry_result0))
+        if (!remove_entry_result0)
         {
             // FIXME: split at the middle of the leaf!
             MEMORIA_TRY_VOID(iter.iter_split_leaf(stream, idx));
             MEMORIA_TRY(remove_entry_result1, self.template ctr_try_remove_stream_entry<Stream>(iter, idx));
 
-            if (!std::get<0>(remove_entry_result1))
+            if (!remove_entry_result1)
             {
                 return MEMORIA_MAKE_GENERIC_ERROR("Second removal attempt failed");
             }

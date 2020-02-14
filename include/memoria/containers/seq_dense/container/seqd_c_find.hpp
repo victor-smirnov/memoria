@@ -67,8 +67,8 @@ public:
     {
         auto& self = this->self();
 
-        MEMORIA_V1_ASSERT(rank, >=, 1);
-        MEMORIA_V1_ASSERT(symbol, >=, 0);
+        MEMORIA_ASSERT(rank, >=, 1);
+        MEMORIA_ASSERT(symbol, >=, 0);
 
         typename Types::template SelectForwardWalker<Types, SymbolsSubstreamPath> walker(symbol, rank);
 

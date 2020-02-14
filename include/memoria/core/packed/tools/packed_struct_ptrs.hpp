@@ -106,7 +106,7 @@ std::enable_if_t<
 >
 MakeUniquePackedStructByBlock(int32_t block_size, Args&&... args)
 {
-    MEMORIA_V1_ASSERT(block_size, >=, sizeof(T::empty_size()));
+    MEMORIA_ASSERT(block_size, >=, sizeof(T::empty_size()));
 
     T* ptr = allocate_system_zeroed<T>(block_size).release();
 

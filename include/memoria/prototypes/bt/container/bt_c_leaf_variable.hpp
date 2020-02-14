@@ -57,28 +57,29 @@ public:
     struct InsertStreamEntryFn
     {
         template <
-            int32_t Offset,
-            bool StreamStart,
             int32_t Idx,
             typename SubstreamType,
-            typename BranchNodeEntryItem,
             typename Entry
         >
-        VoidResult stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry) noexcept
+        VoidResult stream(SubstreamType&& obj, int32_t idx, const Entry& entry) noexcept
         {
-            return obj.template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
-                return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
-            });
+            if (obj)
+            {
+                return obj.insert_entries(idx, 1, [&](psize_t block, psize_t row) -> const auto& {
+                    return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
+                });
+            }
+            else {
+                return make_generic_error("Substream {} is empty", Idx);
+            }
         }
 
 
         template <typename CtrT, typename NTypes, typename... Args>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args) noexcept
+        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args) noexcept
         {
             MEMORIA_TRY_VOID(node.layout(255));
-            auto res = node.template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...);
-            MEMORIA_RETURN_IF_ERROR(res);
-            return VoidResult::of();
+            return node.template processSubstreams<IntList<Stream>>(*this, idx, std::forward<Args>(args)...);
         }
     };
 
@@ -87,9 +88,8 @@ public:
     template <int32_t Stream, typename Entry>
     VoidResult ctr_try_insert_stream_entry_no_mgr(NodeBaseG& leaf, int32_t idx, const Entry& entry) noexcept
     {
-        BranchNodeEntry accum;
         InsertStreamEntryFn<Stream> fn;
-        return self().leaf_dispatcher().dispatch(leaf, fn, idx, accum, entry);
+        return self().leaf_dispatcher().dispatch(leaf, fn, idx, entry);
     }
 
 
@@ -154,32 +154,27 @@ public:
     struct RemoveFromLeafFn
     {
         template <
-            int32_t Offset,
-            bool StreamStart,
             int32_t Idx,
-            typename SubstreamType,
-            typename BranchNodeEntryItem
+            typename SubstreamType
         >
-        VoidResult stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx) noexcept
+        VoidResult stream(SubstreamType&& obj, int32_t idx) noexcept
         {
-            return obj.template _remove<Offset>(idx, accum);
+            return obj.remove_entries(idx, 1);
         }
 
         template <typename CtrT, typename NTypes>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum) noexcept
+        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx) noexcept
         {
             MEMORIA_TRY_VOID(node.layout(255));
-            auto res = node.template processStreamAcc<Stream>(*this, accum, idx);
-            MEMORIA_RETURN_IF_ERROR(res);
-            return VoidResult::of();
+            return node.template processSubstreams<IntList<Stream>>(*this, idx);
         }
     };
 
 
     template <int32_t Stream>
-    Result<std::tuple<bool, BranchNodeEntry>> ctr_try_remove_stream_entry(Iterator& iter, int32_t idx) noexcept
+    BoolResult ctr_try_remove_stream_entry(Iterator& iter, int32_t idx) noexcept
     {
-        using ResultT = Result<std::tuple<bool, BranchNodeEntry>>;
+        using ResultT = BoolResult;
         auto& self = this->self();
 
         BlockUpdateMgr mgr(self);
@@ -187,16 +182,15 @@ public:
         MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
         MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf()));
 
-        BranchNodeEntry accum;
         RemoveFromLeafFn<Stream> fn;
-        VoidResult status = self.leaf_dispatcher().dispatch(iter.iter_leaf(), fn, idx, accum);
+        VoidResult status = self.leaf_dispatcher().dispatch(iter.iter_leaf(), fn, idx);
 
         if (status.is_ok()) {
-            return ResultT::of(std::make_tuple(true, accum));
+            return ResultT::of(true);
         }
         else if (status.memoria_error()->error_category() == ErrorCategory::PACKED) {
             mgr.rollback();
-            return ResultT::of(std::make_tuple(false, BranchNodeEntry()));
+            return ResultT::of(false);
         }
         else {
             return std::move(status).transfer_error();

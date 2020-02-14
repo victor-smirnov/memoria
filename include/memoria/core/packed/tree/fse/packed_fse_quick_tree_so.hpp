@@ -19,6 +19,7 @@
 #include <memoria/core/types.hpp>
 
 #include <memoria/profiles/common/block_operations.hpp>
+#include <memoria/core/tools/static_array.hpp>
 
 namespace memoria {
 
@@ -32,6 +33,7 @@ class PackedFSEQuickTreeSO {
     using IndexValue = typename PkdStruct::IndexValue;
 
     using MyType = PackedFSEQuickTreeSO;
+
 
 public:
     using PkdStructT = PkdStruct;
@@ -83,22 +85,14 @@ public:
         return data_->removeSpace(room_start, room_end);
     }
 
-    template <typename T>
-    VoidResult insert(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
-        return data_->insert(idx, values);
-    }
-
-    template <typename Fn>
-    VoidResult insert(int32_t idx, int32_t length, Fn&& fn) noexcept {
-        return data_->insert(idx, length, std::forward<Fn>(fn));
-    }
 
     VoidResult reindex() noexcept {
         return data_->reindex();
     }
 
-    Values get_values(int32_t idx) const {
-        return data_->get_values(idx);
+
+    const Value& access(int32_t column, int32_t row) const noexcept {
+        return data_->value(column, row);
     }
 
     template <typename T>
@@ -122,6 +116,20 @@ public:
         return data_->value(block, idx);
     }
 
+    template <typename T>
+    void _add(int32_t block, int32_t start, int32_t end, T& value) const
+    {
+        value += data_->sum(block, start, end);
+    }
+
+
+
+    template <typename T>
+    void _sub(int32_t block, int32_t start, int32_t end, T& value) const
+    {
+        value -= data_->sum(block, start, end);
+    }
+
     template <typename... Args>
     auto sum(Args&&... args) const {
         return data_->sum(std::forward<Args>(args)...);
@@ -141,9 +149,24 @@ public:
         return data_->check();
     }
 
-    template <typename... Args>
-    auto max(Args&&... args) const {
-        return data_->max(std::forward<Args>(args)...);
+    template <typename AccessorFn>
+    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    {
+        return data_->insert_entries(row_at, size, std::forward<AccessorFn>(elements));
+    }
+
+    template <typename AccessorFn>
+    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    {
+        MEMORIA_TRY_VOID(data_->removeSpace(row_at, row_at + size));
+        return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
+    }
+
+    template <typename AccessorFn>
+    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
+    {
+        MEMORIA_TRY_VOID(data_->removeSpace(row_at, row_at + size));
+        return data_->reindex();
     }
 };
 

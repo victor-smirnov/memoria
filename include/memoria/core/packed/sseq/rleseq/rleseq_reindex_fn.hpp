@@ -270,7 +270,7 @@ public:
             auto symbols_blocks     = seq.number_of_offsets(symbols_block_size);
             auto offsets_block_size = seq.element_size(Seq::OFFSETS);
 
-            MEMORIA_V1_ASSERT(offsets_block_size, ==, seq.offsets_segment_size(symbols_block_size));
+            MEMORIA_ASSERT(offsets_block_size, ==, seq.offsets_segment_size(symbols_block_size));
 
             MEMORIA_V1_ASSERT_TRUE(seq.has_index());
 
@@ -279,8 +279,8 @@ public:
             auto size_index = seq.size_index();
             auto sum_index  = seq.sum_index();
 
-            MEMORIA_V1_ASSERT(size_index->size(), ==, index_size);
-            MEMORIA_V1_ASSERT(sum_index->size(),  ==, index_size);
+            MEMORIA_ASSERT(size_index->size(), ==, index_size);
+            MEMORIA_ASSERT(sum_index->size(),  ==, index_size);
 
             auto symbols   = seq.symbols();
             auto offsets   = seq.offsets();
@@ -297,14 +297,14 @@ public:
                 size_index_iterator.next();
                 size_iterator.next();
 
-                MEMORIA_V1_ASSERT(size_index_iterator.value(0), ==, size_iterator.value(0));
-                MEMORIA_V1_ASSERT(offsets[c], ==, size_iterator.block_offset());
+                MEMORIA_ASSERT(size_index_iterator.value(0), ==, size_iterator.value(0));
+                MEMORIA_ASSERT(offsets[c], ==, size_iterator.block_offset());
 
                 total_size += size_iterator.value(0);
             }
 
-            MEMORIA_V1_ASSERT(total_size, ==, (size_t)meta->size());
-            MEMORIA_V1_ASSERT(size_iterator.data_pos(), ==, size_iterator.limit());
+            MEMORIA_ASSERT(total_size, ==, (size_t)meta->size());
+            MEMORIA_ASSERT(size_iterator.data_pos(), ==, size_iterator.limit());
 
             SymbolsSumIterator<Seq> sum_iterator(symbols, data_size, index_size);
             auto sum_index_iterator = sum_index->iterator(0);
@@ -316,15 +316,15 @@ public:
 
                 for (int32_t s = 0; s < Seq::Symbols; s++)
                 {
-                    MEMORIA_V1_ASSERT(sum_index_iterator.value(s), ==, sum_iterator.value(s));
+                    MEMORIA_ASSERT(sum_index_iterator.value(s), ==, sum_iterator.value(s));
                 }
             }
 
-            MEMORIA_V1_ASSERT(sum_iterator.data_pos(), ==, sum_iterator.limit());
+            MEMORIA_ASSERT(sum_iterator.data_pos(), ==, sum_iterator.limit());
         }
         else {
             MEMORIA_V1_ASSERT_FALSE(seq.has_index());
-            MEMORIA_V1_ASSERT(seq.element_size(Seq::OFFSETS), ==, (int32_t)PackedAllocatable::AlignmentBlock);
+            MEMORIA_ASSERT(seq.element_size(Seq::OFFSETS), ==, (int32_t)PackedAllocatable::AlignmentBlock);
         }
     }
 };

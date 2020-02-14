@@ -183,6 +183,11 @@ public:
         }
     }
 
+    auto sum(int32_t) const noexcept
+    {
+        return size_;
+    }
+
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
     void sum(BranchNodeEntryItem<T, Size>& accum) const
@@ -271,7 +276,7 @@ public:
 
     void check() const
     {
-        MEMORIA_V1_ASSERT(size_, >=, 0);
+        MEMORIA_ASSERT(size_, >=, 0);
     }
 
     VoidResult remove(int32_t start, int32_t end) noexcept
@@ -295,9 +300,9 @@ public:
 
     VoidResult insertSpace(int32_t idx, int32_t room_length) noexcept
     {
-        MEMORIA_V1_ASSERT_RTN(idx, <=, this->size());
-        MEMORIA_V1_ASSERT_RTN(idx, >=, 0);
-        MEMORIA_V1_ASSERT_RTN(room_length, >=, 0);
+        MEMORIA_ASSERT_RTN(idx, <=, this->size());
+        MEMORIA_ASSERT_RTN(idx, >=, 0);
+        MEMORIA_ASSERT_RTN(room_length, >=, 0);
 
         size_ += room_length;
 
@@ -314,7 +319,7 @@ public:
 
     VoidResult splitTo(MyType* other, int32_t idx) noexcept
     {
-        MEMORIA_V1_ASSERT_RTN(other->size(), ==, 0);
+        MEMORIA_ASSERT_RTN(other->size(), ==, 0);
 
         int32_t split_size = this->size() - idx;
         MEMORIA_TRY_VOID(other->insertSpace(0, split_size));
@@ -334,22 +339,22 @@ public:
 
     // ===================================== IO ============================================ //
 
-    VoidResult insert(int32_t pos, Value val)
-    {
-        return insertSpace(pos, 1);
-    }
+//    VoidResult insert(int32_t pos, Value val)
+//    {
+//        return insertSpace(pos, 1);
+//    }
 
-    VoidResult insert(int32_t block, int32_t pos, Value val)
-    {
-        return insertSpace(pos, 1);
-    }
+//    VoidResult insert(int32_t block, int32_t pos, Value val)
+//    {
+//        return insertSpace(pos, 1);
+//    }
 
 
-    template <typename Adaptor>
-    VoidResult insert(int32_t pos, int32_t size, Adaptor&& adaptor)
-    {
-        return insertSpace(pos, size);
-    }
+//    template <typename Adaptor>
+//    VoidResult insert(int32_t pos, int32_t size, Adaptor&& adaptor)
+//    {
+//        return insertSpace(pos, size);
+//    }
 
 
 
@@ -361,64 +366,64 @@ public:
         return ReadState(idx);
     }
 
-    Values get_values(int32_t) const {
-        return Values();
-    }
+//    Values get_values(int32_t) const {
+//        return Values();
+//    }
 
-    Values get_values(int32_t, int32_t) const {
-        return Values();
-    }
-
-
-    template <typename Adaptor>
-    VoidResult _insert(int32_t pos, int32_t size, Adaptor&& adaptor) noexcept
-    {
-        return insertSpace(pos, size);
-    }
+//    Values get_values(int32_t, int32_t) const {
+//        return Values();
+//    }
 
 
-    template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum) noexcept
-    {
-        return VoidResult::of();
-    }
-
-    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    VoidResult _update_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&) noexcept
-    {
-        return VoidResult::of();
-    }
-
-    template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum) noexcept
-    {
-        if (Offset < Size)
-        {
-            accum[Offset] += 1;
-        }
-
-        return insertSpace(pos, 1);
-    }
+//    template <typename Adaptor>
+//    VoidResult _insert(int32_t pos, int32_t size, Adaptor&& adaptor) noexcept
+//    {
+//        return insertSpace(pos, size);
+//    }
 
 
-    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    VoidResult _insert_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&) noexcept
-    {
-        if (Offset < Size)
-        {
-            accum[Offset] += 1;
-        }
+//    template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
+//    VoidResult _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum) noexcept
+//    {
+//        return VoidResult::of();
+//    }
 
-        return insertSpace(pos, 1);
-    }
+//    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
+//    VoidResult _update_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&) noexcept
+//    {
+//        return VoidResult::of();
+//    }
+
+//    template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
+//    VoidResult _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum) noexcept
+//    {
+//        if (Offset < Size)
+//        {
+//            accum[Offset] += 1;
+//        }
+
+//        return insertSpace(pos, 1);
+//    }
 
 
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum) noexcept
-    {
-        MEMORIA_TRY_VOID(remove(idx, idx + 1));
-        return VoidResult::of();
-    }
+//    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
+//    VoidResult _insert_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&) noexcept
+//    {
+//        if (Offset < Size)
+//        {
+//            accum[Offset] += 1;
+//        }
+
+//        return insertSpace(pos, 1);
+//    }
+
+
+//    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+//    VoidResult _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum) noexcept
+//    {
+//        MEMORIA_TRY_VOID(remove(idx, idx + 1));
+//        return VoidResult::of();
+//    }
 
 
     template <typename IOBuffer>
@@ -440,10 +445,10 @@ public:
     template <typename Fn>
     void read(int32_t block, int32_t start, int32_t end, Fn&& fn) const
     {
-        MEMORIA_V1_ASSERT(start, <=, size_);
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(end, >=, 0);
-        MEMORIA_V1_ASSERT(end, <=, size_);
+        MEMORIA_ASSERT(start, <=, size_);
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(end, >=, 0);
+        MEMORIA_ASSERT(end, <=, size_);
 
         for (int32_t c = start; c < end; c++)
         {
@@ -500,6 +505,7 @@ using StreamSize = PackedSizedStruct<int64_t, 1, PkdSearchType::SUM>;
 template <typename T, int32_t V, PkdSearchType S>
 struct PackedStructTraits<PackedSizedStruct<T, V, S>>
 {
+    using PkdSearchKeyType  = T;
     using SearchKeyDataType = T;
 
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::FIXED;

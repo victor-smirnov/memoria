@@ -94,7 +94,7 @@ public:
 
     virtual void append(int32_t symbol, uint64_t length)
     {
-        while (isFail(sequence_->append(symbol, length)))
+        while (is_packed_error(sequence_->append(symbol, length)))
         {
             enlarge();
         }
@@ -102,7 +102,7 @@ public:
 
     virtual void reindex()
     {
-        while (isFail(sequence_->reindex())) {
+        while (is_packed_error(sequence_->reindex())) {
             enlarge();
         }
     }
@@ -130,7 +130,7 @@ public:
     {
         SeqT* source_seq = ptr_cast<SeqT>(source.buffer());
 
-        while (isFail(sequence_->insert_from(sequence_->size(), source_seq, start, length))) {
+        while (is_packed_error(sequence_->insert_from(sequence_->size(), source_seq, start, length))) {
             enlarge();
         }
     }
@@ -161,6 +161,21 @@ public:
     }
 
 private:
+
+    template <typename T>
+    bool is_packed_error(Result<T>&& res)
+    {
+        if (res.is_error()) {
+            if (res.is_packed_error()) {
+                return true;
+            }
+            else {
+                res.get_or_throw();
+            }
+        }
+
+        return false;
+    }
 
     void enlarge()
     {

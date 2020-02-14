@@ -41,8 +41,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorSelectName)
     template <typename LeafPath>
     auto iter_select_fw(int32_t index, CtrSizeT rank) noexcept
     {
-        //MEMORIA_V1_ASSERT(index, >=, 0);
-        //MEMORIA_V1_ASSERT(rank, >=, 0);
+        //MEMORIA_ASSERT(index, >=, 0);
+        //MEMORIA_ASSERT(rank, >=, 0);
 
         typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank);
 
@@ -52,8 +52,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorSelectName)
     template <typename LeafPath>
     auto iter_select_bw(int32_t index, CtrSizeT rank) noexcept
     {
-        //MEMORIA_V1_ASSERT(index, >=, 0);
-        //MEMORIA_V1_ASSERT(rank, >=, 0);
+        //MEMORIA_ASSERT(index, >=, 0);
+        //MEMORIA_ASSERT(rank, >=, 0);
 
         typename Types::template SelectBackwardWalker<Types, LeafPath> walker(index, rank);
 

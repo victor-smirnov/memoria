@@ -138,7 +138,7 @@ public:
 
         if (start < size)
         {
-            MEMORIA_V1_ASSERT(start, ==, 0);
+            MEMORIA_ASSERT(start, ==, 0);
 
             auto result = tree.findForward(Base::search_type_, index, Base::target_);
             return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
@@ -166,7 +166,7 @@ public:
         {
             if (start < tree.size())
             {
-                MEMORIA_V1_ASSERT(start, ==, 0);
+                MEMORIA_ASSERT(start, ==, 0);
 
                 int32_t index   = this->leaf_index();
 

@@ -104,8 +104,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
     template <typename LeafPath>
     auto iter_find_fw_gt(int32_t index, TargetType<LeafPath> key) noexcept
     {
-        MEMORIA_V1_ASSERT(index, >=, 0);
-        MEMORIA_V1_ASSERT(key, >=, 0);
+        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_ASSERT(key, >=, 0);
 
         typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
 
@@ -115,8 +115,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
     template <typename LeafPath>
     auto iter_find_fw_ge(int32_t index, TargetType<LeafPath> key) noexcept
     {
-        MEMORIA_V1_ASSERT(index, >=, 0);
-        MEMORIA_V1_ASSERT(key, >=, 0);
+        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_ASSERT(key, >=, 0);
 
         typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
 
@@ -127,8 +127,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
     template <typename LeafPath>
     auto iter_find_bw_gt(int32_t index, TargetType<LeafPath> key) noexcept
     {
-        MEMORIA_V1_ASSERT(index, >=, 0);
-        MEMORIA_V1_ASSERT(key, >=, 0);
+        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_ASSERT(key, >=, 0);
 
         typename Types::template FindGTBackwardWalker<Types, LeafPath> walker(index, key);
 
@@ -138,8 +138,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
     template <typename LeafPath>
     auto iter_find_bw_ge(int32_t index, TargetType<LeafPath> key) noexcept
     {
-        MEMORIA_V1_ASSERT(index, >=, 0);
-        MEMORIA_V1_ASSERT(key, >=, 0);
+        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_ASSERT(key, >=, 0);
 
         typename Types::template FindGEBackwardWalker<Types, LeafPath> walker(index, key);
 

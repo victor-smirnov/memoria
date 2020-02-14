@@ -132,9 +132,9 @@ public:
             int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                MEMORIA_TRY_VOID(index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
+                MEMORIA_TRY_VOID(index->insert_entries(at, buffer_size, [&](int32_t block, int32_t idx) noexcept {
                     return buffer.buffer()[idx][block];
-                }));
+                }, false));
 
                 at += buffer_size;
             }
@@ -158,7 +158,7 @@ public:
 
             auto index = seq.index();
 
-            MEMORIA_V1_ASSERT(index->size(), ==, index_size);
+            MEMORIA_ASSERT(index->size(), ==, index_size);
 
 
             auto symbols = seq.symbols();
@@ -183,7 +183,7 @@ public:
                 {
                     for (int32_t c = 0; c < buffer_size; c++)
                     {
-                        MEMORIA_V1_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
                 }
 
@@ -250,9 +250,9 @@ public:
             int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                MEMORIA_TRY_VOID(index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
+                MEMORIA_TRY_VOID(index->insert_entries(at, buffer_size, [&](int32_t block, int32_t idx) noexcept {
                     return buffer.buffer()[idx][block];
-                }));
+                }, false));
 
                 at += buffer_size;
             }
@@ -277,7 +277,7 @@ public:
 
             auto index = seq.index();
 
-            MEMORIA_V1_ASSERT(index->size(), ==, index_size);
+            MEMORIA_ASSERT(index->size(), ==, index_size);
 
             auto symbols = seq.symbols();
 
@@ -304,7 +304,7 @@ public:
                 {
                     for (int32_t c = 0; c < buffer_size; c++)
                     {
-                        MEMORIA_V1_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
                 }
 
@@ -449,7 +449,7 @@ public:
                         auto idx_value = index->value(b, c + at);
                         auto buf_value = buffer.buffer()[c][b];
 
-                        MEMORIA_V1_ASSERT(idx_value, ==, buf_value);
+                        MEMORIA_ASSERT(idx_value, ==, buf_value);
                     }
                 }
 
@@ -590,7 +590,7 @@ public:
                 {
                     for (int32_t c = 0; c < buffer_size; c++)
                     {
-                        MEMORIA_V1_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
                 }
 
@@ -671,7 +671,7 @@ public:
 //                }
 //            }
 //
-//            MEMORIA_V1_ASSERT(sum, ==, size);
+//            MEMORIA_ASSERT(sum, ==, size);
 //
 //            seq.createIndex(length);
 //

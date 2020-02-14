@@ -240,8 +240,8 @@ public:
 
     Value value(int32_t block, int32_t idx) const
     {
-        MEMORIA_V1_ASSERT(idx, >=, 0);
-        MEMORIA_V1_ASSERT(idx, <, this->size());
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, <, this->size());
 
         int32_t data_size     = this->data_size(block);
         auto values       = this->values(block);
@@ -249,7 +249,7 @@ public:
 
         int32_t start_pos     = this->locate(layout, values, block, idx).idx;
 
-        MEMORIA_V1_ASSERT(start_pos, <, data_size);
+        MEMORIA_ASSERT(start_pos, <, data_size);
 
         Codec codec;
         Value value;
@@ -285,195 +285,6 @@ public:
         return alloc->free_space() >= delta;
     }
 
-
-    // ================================ Container API =========================================== //
-
-    Values sums(int32_t from, int32_t to) const
-    {
-        Values vals;
-
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            vals[block] = this->sum(block, from, to);
-        }
-
-        return vals;
-    }
-
-
-    Values sums() const
-    {
-        Values vals;
-
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            vals[block] = this->sum(block);
-        }
-
-        return vals;
-    }
-
-    template <typename T>
-    void sums(int32_t from, int32_t to, core::StaticVector<T, Blocks>& values) const
-    {
-        values += this->sums(from, to);
-    }
-
-    void sums(Values& values) const
-    {
-        values += this->sums();
-    }
-
-
-    void sums(int32_t idx, Values& values) const
-    {
-        addKeys(idx, values);
-    }
-
-
-    template <typename T>
-    void max(StaticVector<T, Blocks>& accum) const
-    {
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            accum[block] = this->sum(block);
-        }
-    }
-
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void max(BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
-
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            accum[block + Offset] = this->sum(block);
-        }
-    }
-
-
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
-
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            accum[block + Offset] += this->sum(block);
-        }
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
-
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            accum[block + Offset] += this->sum(block, start, end);
-        }
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
-
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            accum[block + Offset] += this->value(block, idx);
-        }
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sub(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
-
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            accum[block + Offset] -= this->value(block, idx);
-        }
-    }
-
-
-    template <int32_t Offset, int32_t From, int32_t To, typename T, template <typename, int32_t, int32_t> class BranchNodeEntryItem>
-    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, From, To>& accum) const
-    {
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            accum[block + Offset] += this->sum(block, start, end);
-        }
-    }
-
-
-    template <typename T>
-    void _add(int32_t block, T& value) const
-    {
-        value += this->sum(block);
-    }
-
-    template <typename T>
-    void _add(int32_t block, int32_t end, T& value) const
-    {
-        value += this->sum(block, end);
-    }
-
-    template <typename T>
-    void _add(int32_t block, int32_t start, int32_t end, T& value) const
-    {
-        value += this->sum(block, start, end);
-    }
-
-
-
-    template <typename T>
-    void _sub(int32_t block, T& value) const
-    {
-        value -= this->sum(block);
-    }
-
-    template <typename T>
-    void _sub(int32_t block, int32_t end, T& value) const
-    {
-        value -= this->sum(block, end);
-    }
-
-    template <typename T>
-    void _sub(int32_t block, int32_t start, int32_t end, T& value) const
-    {
-        value -= this->sum(block, start, end);
-    }
-
-    Values get_values(int32_t idx) const
-    {
-        Values v;
-
-        for (int32_t i = 0; i < Blocks; i++)
-        {
-            v[i] = this->value(i, idx);
-        }
-
-        return v;
-    }
-
-    Value get_values(int32_t idx, int32_t index) const
-    {
-        return this->value(index, idx);
-    }
-
-    Value getValue(int32_t index, int32_t idx) const
-    {
-        return this->value(index, idx);
-    }
-
-
-
-
-
-    // ========================================= Insert/Remove/Resize ============================================== //
 
 protected:
     VoidResult resize(int32_t block, int32_t data_size, int32_t start, int32_t length) noexcept
@@ -539,7 +350,7 @@ protected:
         Codec codec;
         int32_t end = start + length;
 
-        MEMORIA_V1_ASSERT_RTN(data_size, >=, end);
+        MEMORIA_ASSERT_RTN(data_size, >=, end);
 
         codec.move(values, end, start, data_size - end);
 
@@ -598,22 +409,7 @@ public:
 
 
 
-    template <typename TreeType>
-    VoidResult transferDataTo(TreeType* other) const noexcept
-    {
-        Codec codec;
 
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            int32_t data_size = this->data_size(block);
-
-            MEMORIA_TRY_VOID(other->insertSpace(block, 0, data_size));
-
-            codec.copy(this->values(block), 0, other->values(block), 0, data_size);
-        }
-
-        return other->reindex();
-    }
 
 
     VoidResult remove_space(int32_t start, int32_t end) noexcept
@@ -647,28 +443,16 @@ public:
 
 
 
-    template <typename T>
-    VoidResult insert(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
-    {
-        return this->_insert(idx, 1, [&](int32_t block, int32_t idx) -> const auto& {
-            return values[block];
-        });
-    }
-
-    template <typename Adaptor>
-    VoidResult insert(int32_t pos, int32_t processed, Adaptor&& adaptor) noexcept {
-        return _insert(pos, processed, std::forward<Adaptor>(adaptor));
-    }
 
 
     template <typename Adaptor>
-    VoidResult _insert(int32_t pos, int32_t processed, Adaptor&& adaptor) noexcept
+    VoidResult insert_entries(int32_t pos, int32_t processed, Adaptor&& adaptor) noexcept
     {
         int32_t size = this->size();
 
-        MEMORIA_V1_ASSERT_RTN(pos, >=, 0);
-        MEMORIA_V1_ASSERT_RTN(pos, <=, size);
-        MEMORIA_V1_ASSERT_RTN(processed, >=, 0);
+        MEMORIA_ASSERT_RTN(pos, >=, 0);
+        MEMORIA_ASSERT_RTN(pos, <=, size);
+        MEMORIA_ASSERT_RTN(processed, >=, 0);
 
         Codec codec;
 
@@ -716,13 +500,13 @@ public:
 
     ReadState positions(int32_t idx) const
     {
-        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, >=, 0);
 
         if(idx > this->size()) {
             this->dump();
         }
 
-        MEMORIA_V1_ASSERT(idx, <=, this->size());
+        MEMORIA_ASSERT(idx, <=, this->size());
 
         SizesT pos;
         for (int32_t block = 0; block < Blocks; block++)
@@ -738,64 +522,6 @@ public:
     }
 
 
-//    VoidResultT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
-//    {
-//        Codec codec;
-
-//        SizesT total_lengths = ends - starts;
-
-//        for (int32_t block = 0; block < Blocks; block++)
-//        {
-//            auto values = this->values(block);
-
-//            size_t insertion_pos = at[block];
-
-//            if(isFail(this->insert_space(block, insertion_pos, total_lengths[block]))) {
-//                return VoidResult::FAIL;
-//            }
-
-//            values = this->values(block);
-
-//            codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
-//        }
-
-//        this->size() += size;
-
-//        reindex();
-
-//        return VoidResultT<SizesT>(at + total_lengths);
-//    }
-
-//    VoidResult insert_buffer(int32_t pos, const InputBuffer* buffer, int32_t start, int32_t size)
-//    {
-//        Codec codec;
-
-//        SizesT starts = buffer->positions(start);
-//        SizesT ends   = buffer->positions(start + size);
-
-//        SizesT at     = this->positions(pos);
-
-//        SizesT total_lengths = ends - starts;
-
-//        for (int32_t block = 0; block < Blocks; block++)
-//        {
-//            auto values = this->values(block);
-
-//            size_t insertion_pos = at[block];
-
-//            if(isFail(this->insert_space(block, insertion_pos, total_lengths[block]))) {
-//                return VoidResult::FAIL;
-//            }
-
-//            values = this->values(block);
-
-//            codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
-//        }
-
-//        this->size() += size;
-
-//        return reindex();
-//    }
 
 
 
@@ -835,56 +561,6 @@ public:
         return Result<SizesT>::of(at + total_lengths);
     }
 
-
-    template <typename T>
-    VoidResult update(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
-    {
-        return setValues(idx, values);
-    }
-
-
-
-    template <int32_t Offset, int32_t Size, typename T1, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _insert(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum) noexcept
-    {
-        MEMORIA_TRY_VOID(insert(idx, values));
-
-        sum<Offset>(idx, accum);
-
-        return VoidResult::of();
-    }
-
-    template <int32_t Offset, int32_t Size, typename T1, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _update(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum) noexcept
-    {
-        sub<Offset>(idx, accum);
-
-        MEMORIA_TRY_VOID(update(idx, values));
-
-        sum<Offset>(idx, accum);
-
-        return VoidResult::of();
-    }
-
-
-    template <int32_t Offset, int32_t Size, typename T1, typename T2, typename I, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _update(int32_t idx, const std::pair<T1, I>& values, BranchNodeEntryItem<T2, Size>& accum) noexcept
-    {
-        sub<Offset>(idx, accum);
-
-        MEMORIA_TRY_VOID(this->setValue(values.first, idx, values.second));
-
-        sum<Offset>(idx, accum);
-
-        return VoidResult::of();
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum) noexcept
-    {
-        sub<Offset>(idx, accum);
-        return remove(idx, idx + 1);
-    }
 
     template <typename UpdateFn>
     VoidResult update_values(int32_t start, int32_t end, UpdateFn&& update_fn) noexcept
@@ -969,10 +645,10 @@ public:
     template <typename UpdateFn>
     VoidResult update_value(int32_t block, int32_t start, UpdateFn&& update_fn) noexcept
     {
-        MEMORIA_V1_ASSERT_RTN(start, <, this->size());
-        MEMORIA_V1_ASSERT_RTN(start, >=, 0);
-        MEMORIA_V1_ASSERT_RTN(block, >=, 0);
-        MEMORIA_V1_ASSERT_RTN(block, <=, (int32_t)Blocks);
+        MEMORIA_ASSERT_RTN(start, <, this->size());
+        MEMORIA_ASSERT_RTN(start, >=, 0);
+        MEMORIA_ASSERT_RTN(block, >=, 0);
+        MEMORIA_ASSERT_RTN(block, <=, (int32_t)Blocks);
 
         Codec codec;
 
@@ -1009,42 +685,6 @@ public:
         return VoidResult::of();
     }
 
-
-
-    template <typename T>
-    VoidResult setValues(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
-    {
-        return update_values(idx, [&](int32_t block, auto old_value){return values[block];});
-    }
-
-    template <typename T>
-    VoidResult addValues(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
-    {
-        return update_values(idx, [&](int32_t block, auto old_value){return values[block] + old_value;});
-    }
-
-    template <typename T>
-    VoidResult subValues(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
-    {
-        return update_values(idx, [&](int32_t block, auto old_value){return values[block] + old_value;});
-    }
-
-
-    VoidResult addValue(int32_t block, int32_t idx, Value value) noexcept
-    {
-        return update_value(block, idx, [&](int32_t block, auto old_value){return value + old_value;});
-    }
-
-    template <typename T, int32_t Indexes>
-    VoidResult addValues(int32_t idx, int32_t from, int32_t size, const core::StaticVector<T, Indexes>& values) noexcept
-    {
-        for (int32_t block = 0; block < size; block++)
-        {
-            MEMORIA_TRY_VOID(update_value(block, idx, [&](int32_t block, auto old_value){return values[block + from] + old_value;}));
-        }
-
-        return reindex();
-    }
 
 
 
@@ -1367,9 +1007,9 @@ public:
     template <typename ConsumerFn>
     void read(int32_t block, int32_t start, int32_t end, ConsumerFn&& fn) const
     {
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(start, <=, end);
-        MEMORIA_V1_ASSERT(end, <=, this->size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, this->size());
 
         auto values = this->values(block);
         TreeLayout layout = this->compute_tree_layout(this->data_size(block));
@@ -1391,9 +1031,9 @@ public:
     template <typename ConsumerFn>
     void read(int32_t start, int32_t end, ConsumerFn&& fn) const
     {
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(start, <=, end);
-        MEMORIA_V1_ASSERT(end, <=, this->size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, this->size());
 
         const ValueData* values[Blocks];
         size_t positions[Blocks];
@@ -1427,9 +1067,9 @@ public:
     template <typename T>
     void read(int32_t block, int32_t start, int32_t end, T* values) const
     {
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(start, <=, end);
-        MEMORIA_V1_ASSERT(end, <=, this->size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, this->size());
 
         int32_t c = 0;
         read(block, start, end, make_fn_with_next([&](int32_t c, auto&& value){

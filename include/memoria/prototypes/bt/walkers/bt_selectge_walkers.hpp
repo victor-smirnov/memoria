@@ -123,7 +123,7 @@ public:
     {
         if (direction_ == WalkDirection::DOWN)
       {
-          MEMORIA_V1_ASSERT(start, ==, 0);
+          MEMORIA_ASSERT(start, ==, 0);
           return seq.selectGEFW(rank, symbol);
       }
       else {

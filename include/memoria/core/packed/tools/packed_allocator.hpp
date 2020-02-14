@@ -191,7 +191,7 @@ public:
 
     Int32Result resizeBlock(int32_t idx, int32_t new_size) noexcept
     {
-        MEMORIA_V1_ASSERT_RTN(new_size, >=, 0);
+        MEMORIA_ASSERT_RTN(new_size, >=, 0);
 
         int32_t allocation_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(new_size);
 
@@ -254,7 +254,7 @@ public:
     {
         int32_t offset  = computeElementOffset(element_ptr);
 
-        MEMORIA_V1_ASSERT_RTN(offset, >=, 0);
+        MEMORIA_ASSERT_RTN(offset, >=, 0);
 
         for (int32_t c = 0; c < layout_size_ / 4; c++)
         {

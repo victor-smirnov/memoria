@@ -19,6 +19,8 @@
 #include <memoria/core/types.hpp>
 
 #include <memoria/profiles/common/block_operations.hpp>
+#include <memoria/core/iovector/io_substream_base.hpp>
+#include <memoria/core/tools/result.hpp>
 
 namespace memoria {
 
@@ -76,9 +78,6 @@ public:
         return data_->removeSpace(room_start, room_end);
     }
 
-
-
-
     VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept {
         return data_->generateDataEvents(handler);
     }
@@ -91,28 +90,50 @@ public:
         return data_->check();
     }
 
-    template <int32_t Offset, typename... Args>
-    auto max(Args&&... args) const {
-        return data_->template max<Offset>(std::forward<Args>(args)...);
+    auto sum(int32_t column) const noexcept {
+        return data_->sum(column);
     }
+
+
 
     void configure_io_substream(io::IOSubstream& substream) const {
         return data_->configure_io_substream(substream);
     }
 
-    template <int32_t Offset, typename... Args>
-    VoidResult _insert_b(Args&&... args) {
-        return data_->template _insert_b<Offset>(std::forward<Args>(args)...);
-    }
+//    template <int32_t Offset, typename... Args>
+//    VoidResult _insert_b(Args&&... args) {
+//        return data_->template _insert_b<Offset>(std::forward<Args>(args)...);
+//    }
 
-    template <int32_t Offset, typename... Args>
-    VoidResult _remove(Args&&... args) noexcept {
-        return data_->template _remove<Offset>(std::forward<Args>(args)...);
-    }
+//    template <int32_t Offset, typename... Args>
+//    VoidResult _remove(Args&&... args) noexcept {
+//        return data_->template _remove<Offset>(std::forward<Args>(args)...);
+//    }
 
     VoidResult insertSpace(int32_t idx, int32_t room_length) noexcept {
         return data_->insertSpace(idx, room_length);
     }
+
+
+    template <typename AccessorFn>
+    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    {
+        MEMORIA_ASSERT_RTN(row_at, <=, this->size());
+        return data_->insertSpace(row_at, size);
+    }
+
+    template <typename AccessorFn>
+    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    {
+        MEMORIA_ASSERT_RTN(row_at, <=, this->size());
+        return VoidResult::of();
+    }
+
+    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
+    {
+        return removeSpace(row_at, row_at + size);
+    }
+
 };
 
 

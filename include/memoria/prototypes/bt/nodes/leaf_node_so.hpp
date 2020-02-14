@@ -19,10 +19,14 @@
 
 #include <memoria/core/iovector/io_vector.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_iovector.hpp>
+#include <memoria/prototypes/bt/pkd_adapters/bt_pkd_adapter_generic.hpp>
+
 
 #include <memoria/core/packed/tools/packed_stateful_dispatcher.hpp>
 
 #include <memoria/core/memory/ptr_cast.hpp>
+
+
 
 namespace memoria {
 
@@ -535,52 +539,22 @@ public:
     int32_t stream_block_size(int32_t size) const
     {
         int32_t mem_size = 0;
-
         StreamDispatcher<0>::dispatchAllStatic(SingleStreamCapacityFn(), size, mem_size).get_or_throw();
-
         return mem_size;
     }
 
 
 
-    struct BranchNodeEntryHandler
+    struct BranchNodeEntriesSumHandler
     {
-        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamType, typename TupleItem>
-        VoidResult stream(StreamType&& obj, TupleItem& accum, int32_t start, int32_t end)
+        template <int32_t Offset, bool StreamStart, int32_t ListIdx, typename StreamType, typename TupleItem>
+        VoidResult stream(StreamType&& obj, TupleItem& accum, const Position& start, const Position& end) noexcept
         {
             if (obj)
             {
+                bt::BTPkdStructAdaper<StreamType> adapter(obj);
                 obj.template sum<Offset>(start, end, accum);
             }
-
-            return VoidResult::of();
-        }
-
-        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamType, typename TupleItem>
-        VoidResult stream(StreamType&& obj, TupleItem& accum)
-        {
-            if (obj)
-            {
-                if (StreamStart)
-                {
-                    accum[Offset - 1] += obj.size();
-                }
-
-                obj.template sum<Offset>(accum);
-            }
-
-            return VoidResult::of();
-        }
-
-        template <int32_t Offset, bool StreamStart, int32_t ListIdx, typename StreamType, typename TupleItem>
-        VoidResult stream(StreamType&& obj, TupleItem& accum, const Position& start, const Position& end)
-        {
-            const int32_t StreamIdx = bt::FindTopLevelIdx<LeafSubstreamsStructList, ListIdx>::Value;
-
-            int32_t startIdx    = start[StreamIdx];
-            int32_t endIdx      = end[StreamIdx];
-
-            stream<Offset, StreamStart, ListIdx>(obj, accum, startIdx, endIdx);
 
             return VoidResult::of();
         }
@@ -588,13 +562,13 @@ public:
 
     struct BranchNodeEntryMaxHandler
     {
-
         template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamType, typename TupleItem>
         VoidResult stream(const StreamType& obj, TupleItem& accum) noexcept
         {
             if (obj)
             {
-                obj.template max<Offset>(accum);
+                bt::BTPkdStructAdaper<StreamType> adapter(obj);
+                adapter.template leaf_max_entry<Offset>(accum);
             }
 
             return VoidResult::of();
@@ -606,21 +580,11 @@ public:
         processAllSubstreamsAcc(BranchNodeEntryMaxHandler(), entry).get_or_throw();
     }
 
-    void sums(int32_t start, int32_t end, BranchNodeEntry& sums) const
+
+    VoidResult sums(const Position& start, const Position& end, BranchNodeEntry& sums) const noexcept
     {
-        processAllSubstreamsAcc(BranchNodeEntryHandler(), sums, start, end).get_or_throw();
+        processAllSubstreamsAcc(BranchNodeEntriesSumHandler(), sums, start, end);
     }
-
-
-    void sums(const Position& start, const Position& end, BranchNodeEntry& sums) const
-    {
-        processAllSubstreamsAcc(BranchNodeEntryHandler(), sums, start, end).get_or_throw();
-    }
-
-
-
-
-
 
     struct RemoveSpaceFn {
 
@@ -675,7 +639,7 @@ public:
 
 
     template <typename Path, typename... Args>
-    auto leaf_sums(Args&&... args) const
+    auto leaf_sums(Args&&... args) const noexcept
     {
         return processStream<Path>(LeafSumsFn(), std::forward<Args>(args)...);
     }
@@ -798,8 +762,8 @@ public:
                 int32_t idx   = indexes[StreamIdx];
                 int32_t size  = tree.size();
 
-                MEMORIA_V1_ASSERT(idx, >=, 0);
-                MEMORIA_V1_ASSERT(idx, <=, size);
+                MEMORIA_ASSERT(idx, >=, 0);
+                MEMORIA_ASSERT(idx, <=, size);
 
                 Dispatcher other_disp = other.dispatcher();
 
@@ -952,7 +916,7 @@ public:
     template <typename SubstreamsPath, typename Fn, typename... Args>
     auto processSubstreams(Fn&& fn, Args&&... args) noexcept
     {
-        return SubstreamsDispatcher<SubstreamsPath>()
+        return SubstreamsDispatcher<SubstreamsPath>(state())
                 .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 

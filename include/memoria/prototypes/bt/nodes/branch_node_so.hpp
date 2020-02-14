@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memoria/prototypes/bt/nodes/node_common_so.hpp>
+#include <memoria/prototypes/bt/pkd_adapters/bt_pkd_adapter_generic.hpp>
 
 namespace memoria {
 
@@ -262,7 +263,8 @@ public:
         template <int32_t Idx, typename StreamType>
         void stream(const StreamType& obj, BranchNodeEntry& accum)
         {
-            obj.max(std::get<Idx>(accum));
+            bt::BTPkdStructAdaper<StreamType> adapter(obj);
+            adapter.branch_max_entry(std::get<Idx>(accum));
         }
     };
 
@@ -285,16 +287,16 @@ public:
 
     Value& value(int32_t idx)
     {
-        MEMORIA_V1_ASSERT(idx, >=, 0);
-        MEMORIA_V1_ASSERT(idx, <, size());
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, <, size());
 
         return *(node_->values() + idx);
     }
 
     const Value& value(int32_t idx) const
     {
-        MEMORIA_V1_ASSERT(idx, >=, 0);
-        MEMORIA_V1_ASSERT(idx, <, size());
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, <, size());
 
         return *(node_->values() + idx);
     }
@@ -398,16 +400,18 @@ public:
         template <int32_t Idx, typename StreamType>
         VoidResult stream(StreamType&& obj, int32_t idx, const BranchNodeEntry& keys) noexcept
         {
-            return obj.insert(idx, std::get<Idx>(keys));
+            return obj.insert_entries(idx, 1, [&](size_t column, size_t) noexcept {
+                return std::get<Idx>(keys)[column];
+            });
         }
     };
 
-    VoidResult insert(int32_t idx, const BranchNodeEntry& keys, const Value& value)
+    VoidResult insert(int32_t idx, const BranchNodeEntry& keys, const Value& value) noexcept
     {
         int32_t size = this->size();
 
-        MEMORIA_V1_ASSERT(idx, >=, 0);
-        MEMORIA_V1_ASSERT(idx, <=, size);
+        MEMORIA_ASSERT_RTN(idx, >=, 0);
+        MEMORIA_ASSERT_RTN(idx, <=, size);
 
         InsertFn insert_fn;
         MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), insert_fn, idx, keys));
@@ -430,8 +434,8 @@ public:
 
     VoidResult insertValuesSpace(int32_t old_size, int32_t room_start, int32_t room_length) noexcept
     {
-        MEMORIA_V1_ASSERT_RTN(room_start, >=, 0);
-        MEMORIA_V1_ASSERT_RTN(room_start, <=, old_size);
+        MEMORIA_ASSERT_RTN(room_start, >=, 0);
+        MEMORIA_ASSERT_RTN(room_start, <=, old_size);
 
         int32_t requested_block_size = (old_size + room_length) * sizeof(Value);
 
@@ -511,7 +515,7 @@ public:
         CopyBuffer(values + room_end, values + room_start, old_size - room_end);
 
         MEMORIA_TRY_VOID(reindex());
-        MEMORIA_V1_ASSERT(old_size, >=, room_end - room_start);
+        MEMORIA_ASSERT(old_size, >=, room_end - room_start);
 
         int32_t requested_block_size = (old_size - (room_end - room_start)) * sizeof(Value);
 
@@ -655,7 +659,7 @@ public:
         int32_t size        = this->size();
         int32_t remainder   = size - split_idx;
 
-        MEMORIA_V1_ASSERT(split_idx, <=, size);
+        MEMORIA_ASSERT(split_idx, <=, size);
 
         SplitToFn fn;
         MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), split_idx));
@@ -677,7 +681,8 @@ public:
         template <int32_t Idx, typename Tree>
         void stream(const Tree& tree, int32_t idx, BranchNodeEntry* acc)
         {
-            assign(std::get<Idx>(*acc), tree.get_values(idx));
+            bt::BTPkdStructAdaper<Tree> adapter(tree);
+            adapter.assign_to(std::get<Idx>(*acc), idx);
         }
     };
 
@@ -766,7 +771,9 @@ public:
         template <int32_t Idx, typename StreamType>
         VoidResult stream(StreamType&& tree, int32_t idx, const BranchNodeEntry& accum) noexcept
         {
-            return tree.setValues(idx, std::get<Idx>(accum));
+            return tree.update_entries(idx, 1, [&](psize_t col, psize_t) noexcept {
+                return std::get<Idx>(accum)[col];
+            });
         }
     };
 

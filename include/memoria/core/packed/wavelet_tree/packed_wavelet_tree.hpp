@@ -156,11 +156,6 @@ public:
 
     void dump(ostream& out = cout, bool dump_index = true) const
     {
-//      if (dump_index)
-//      {
-//          Base::dump(out);
-//      }
-
         out<<"Cardinal Tree:"<<endl;
         ctree()->dump(out, dump_index);
 

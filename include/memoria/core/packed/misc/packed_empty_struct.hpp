@@ -59,6 +59,10 @@ private:
 public:
     PackedEmptyStruct() = default;
 
+    Value access(int32_t column, int32_t row) const noexcept {
+        return Value{};
+    }
+
     int32_t size() const {return 0;}
 
     int32_t block_size() const
@@ -112,43 +116,36 @@ public:
     template <typename T>
     VoidResult setValues(int32_t idx, T&&) noexcept {return VoidResult::of();}
 
-    template <typename T>
-    VoidResult insert(int32_t idx, T&&) noexcept {return VoidResult::of();}
+    //    template <typename T>
+    //    VoidResult insert(int32_t idx, T&&) noexcept {return VoidResult::of();}
 
-    template <int32_t Offset, typename T>
-    VoidResult _insert(int32_t idx, T&&) noexcept {return VoidResult::of();}
-
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void max(BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-    }
+    //    template <int32_t Offset, typename T>
+    //    VoidResult _insert(int32_t idx, T&&) noexcept {return VoidResult::of();}
 
 
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-    }
+//    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+//    void sum(BranchNodeEntryItem<T, Size>& accum) const
+//    {
+//        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+//    }
 
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-    }
+//    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+//    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, Size>& accum) const
+//    {
+//        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+//    }
 
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sub(int32_t start, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-    }
+//    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+//    void sub(int32_t start, BranchNodeEntryItem<T, Size>& accum) const
+//    {
+//        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+//    }
 
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-    }
+//    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+//    void sum(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
+//    {
+//        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+//    }
 
     template <typename T>
     int32_t append(int32_t size, T&&)

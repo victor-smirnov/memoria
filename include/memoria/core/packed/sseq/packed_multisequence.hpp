@@ -130,7 +130,7 @@ public:
         const Sequence*     seq     = sequence();
         const LabelArray*   labels  = this->labels();
 
-        MEMORIA_V1_ASSERT(to, <=, labels->value(0, subseq_num));
+        MEMORIA_ASSERT(to, <=, labels->value(0, subseq_num));
 
         int32_t seq_pefix   = labels->sum(0, subseq_num);
 
@@ -174,7 +174,7 @@ public:
 
         int32_t seq_prefix  = labels->sum(0, subseq_num);
 
-        MEMORIA_V1_ASSERT_RTN(idx, <=, labels->value(0, subseq_num));
+        MEMORIA_ASSERT_RTN(idx, <=, labels->value(0, subseq_num));
 
         MEMORIA_TRY_VOID(seq->insert(seq_prefix + idx, symbol));
 
@@ -193,7 +193,7 @@ public:
 
         int32_t seq_prefix  = labels->sum(0, subseq_num);
 
-        MEMORIA_V1_ASSERT_RTN(idx, <=, labels->value(0, subseq_num));
+        MEMORIA_ASSERT_RTN(idx, <=, labels->value(0, subseq_num));
 
         MEMORIA_TRY_VOID(seq->removeSymbol(seq_prefix + idx));
 
@@ -215,7 +215,7 @@ public:
     VoidResult remove(int32_t subseq_num) noexcept
     {
         LabelArray* labels  = this->labels();
-        MEMORIA_V1_ASSERT(labels->value(0, subseq_num), ==, 0);
+        MEMORIA_ASSERT(labels->value(0, subseq_num), ==, 0);
 
         return labels->removeSpace(subseq_num, subseq_num + 1);
     }
@@ -242,7 +242,7 @@ public:
         int32_t seq_prefix  = labels()->sum(0, seq_num);
         int32_t size        = labels()->value(0, seq_num);
 
-        MEMORIA_V1_ASSERT(idx, <, size);
+        MEMORIA_ASSERT(idx, <, size);
 
         return sequence()->symbol(seq_prefix + idx);
     }
@@ -253,7 +253,7 @@ public:
         int32_t seq_prefix  = labels()->sum(0, seq_num);
         int32_t size        = labels()->value(seq_num);
 
-        MEMORIA_V1_ASSERT(idx, <, size);
+        MEMORIA_ASSERT(idx, <, size);
 
         return sequence()->symbol(seq_prefix + idx);
     }

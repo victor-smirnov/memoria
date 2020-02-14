@@ -20,6 +20,10 @@
 
 #include <memoria/profiles/common/block_operations.hpp>
 
+#include <memoria/core/tools/static_array.hpp>
+#include <memoria/core/tools/result.hpp>
+
+
 namespace memoria {
 
 template <typename ExtData, typename PkdStruct>
@@ -67,6 +71,14 @@ public:
     const PkdStruct* data() const {return data_;}
     PkdStruct* data() {return data_;}
 
+    psize_t max_element_idx() const noexcept {
+        return 0;
+    }
+
+    auto access(int32_t column, int32_t row) const noexcept {
+        return data_->access(column, row);
+    }
+
     VoidResult splitTo(MyType& other, int32_t idx) noexcept
     {
         return data_->splitTo(other.data(), idx);
@@ -80,15 +92,15 @@ public:
         return data_->removeSpace(room_start, room_end);
     }
 
-    template <typename T>
-    VoidResult insert(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
-        return data_->insert(idx, values);
-    }
+//    template <typename T>
+//    VoidResult insert(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
+//        return data_->insert(idx, values);
+//    }
 
-    template <typename Fn>
-    VoidResult insert(int32_t idx, int32_t length, Fn&& fn) noexcept {
-        return data_->insert(idx, length, std::forward<Fn>(fn));
-    }
+//    template <typename Fn>
+//    VoidResult insert(int32_t idx, int32_t length, Fn&& fn) noexcept {
+//        return data_->insert(idx, length, std::forward<Fn>(fn));
+//    }
 
 
 
@@ -120,6 +132,23 @@ public:
     template <typename... Args>
     auto max(Args&&... args) const {
         return data_->max(std::forward<Args>(args)...);
+    }
+
+    template <typename AccessorFn>
+    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    {
+        return VoidResult::of();
+    }
+
+    template <typename AccessorFn>
+    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    {
+        return VoidResult::of();
+    }
+
+    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
+    {
+        return VoidResult::of();
     }
 };
 

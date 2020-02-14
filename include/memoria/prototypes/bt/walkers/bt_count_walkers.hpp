@@ -105,7 +105,7 @@ public:
 
         if (start < size)
         {
-            MEMORIA_V1_ASSERT(tree.size(), ==, sizes_substream.size());
+            MEMORIA_ASSERT(tree.size(), ==, sizes_substream.size());
 
             auto tree_iter  = tree.iterator(index, start);
             auto sizes_iter = sizes_substream.iterator(0, start);
@@ -258,7 +258,7 @@ public:
 
         if (start >= 0)
         {
-            MEMORIA_V1_ASSERT(tree.size(), ==, sizes_substream.size());
+            MEMORIA_ASSERT(tree.size(), ==, sizes_substream.size());
 
             for (int32_t c = start; c >= 0; c--)
             {

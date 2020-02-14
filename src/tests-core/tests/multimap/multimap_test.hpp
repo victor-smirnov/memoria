@@ -183,6 +183,9 @@ public:
 
         populate_container(ctr, data);
 
+//        commit();
+//        this->storeAllocator(format_u8("MultimapTest.mma1"));
+
         check_container(ctr, data);
 
         for (const auto& entry: data_unsored)

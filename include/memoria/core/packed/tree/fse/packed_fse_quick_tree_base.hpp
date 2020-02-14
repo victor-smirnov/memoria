@@ -838,7 +838,7 @@ public:
     {
     	auto size = this->size();
 
-    	MEMORIA_V1_ASSERT(start, <, size);
+    	MEMORIA_ASSERT(start, <, size);
 
     	int32_t min_idx = size;
 
@@ -873,9 +873,9 @@ public:
     template <typename T>
     void read(int32_t block, int32_t start, int32_t end, T* values) const
     {
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(start, <=, end);
-        MEMORIA_V1_ASSERT(end, <=, size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, size());
 
         scan(block, start, end, [&](int32_t c, auto value){
             values[c - start] = value;
