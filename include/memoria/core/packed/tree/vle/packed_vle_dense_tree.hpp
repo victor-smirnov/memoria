@@ -552,7 +552,7 @@ public:
     }
 
 
-    VoidResult mergeWith(MyType* other) noexcept
+    VoidResult mergeWith(MyType* other) const noexcept
     {
         int32_t size = this->size();
         int32_t other_size = other->size();
@@ -586,9 +586,7 @@ public:
 
         other->metadata()->size() += size * Blocks;
 
-        MEMORIA_TRY_VOID(other->reindex());
-
-        return this->clear();
+        return other->reindex();
     }
 
 

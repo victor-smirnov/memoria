@@ -394,15 +394,13 @@ public:
         }
     }
 
-    VoidResult mergeWith(MyType* other) noexcept
+    VoidResult mergeWith(MyType* other) const noexcept
     {
         int32_t my_size     = this->size();
         int32_t other_size  = other->size();
 
         MEMORIA_TRY_VOID(other->insertSpace(other_size, my_size));
         MEMORIA_TRY_VOID(copyTo(other, 0, my_size, other_size));
-        MEMORIA_TRY_VOID(removeSpace(0, my_size));
-        MEMORIA_TRY_VOID(reindex());
 
         return other->reindex();
     }

@@ -406,15 +406,13 @@ BoolResult M_TYPE::ctr_try_merge_branch_nodes(TreePathT& tgt_path, TreePathT& sr
 
     BlockUpdateMgr mgr(self);
 
-    MEMORIA_TRY_VOID(self.ctr_update_block_guard(src));
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
 
-    MEMORIA_TRY_VOID(mgr.add(src));
     MEMORIA_TRY_VOID(mgr.add(tgt));
 
     MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, level));
 
-    auto res = self.branch_dispatcher().dispatch(src, tgt, TryMergeNodesFn());
+    auto res = self.branch_dispatcher().dispatch_1st_const(src, tgt, TryMergeNodesFn());
     if (res.is_error()) {
         if (res.is_packed_error())
         {

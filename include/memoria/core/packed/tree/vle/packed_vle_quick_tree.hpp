@@ -386,7 +386,7 @@ public:
     }
 
 
-    VoidResult mergeWith(MyType* other) noexcept
+    VoidResult mergeWith(MyType* other) const noexcept
     {
         Codec codec;
 
@@ -402,9 +402,7 @@ public:
 
         other->size() += this->size();
 
-        MEMORIA_TRY_VOID(other->reindex());
-
-        return this->clear();
+        return other->reindex();
     }
 
 

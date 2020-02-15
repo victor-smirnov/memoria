@@ -583,7 +583,7 @@ public:
 
     struct MergeWithFn {
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        VoidResult stream(Tree& tree, OtherNodeT&& other) noexcept
+        VoidResult stream(const Tree& tree, OtherNodeT&& other) noexcept
         {
             int32_t size = tree.size();
 
@@ -606,7 +606,7 @@ public:
     };
 
     template <typename OtherNodeT>
-    VoidResult mergeWith(OtherNodeT&& other) noexcept
+    VoidResult mergeWith(OtherNodeT&& other) const noexcept
     {
         int32_t other_size  = other.size();
         int32_t my_size     = size();

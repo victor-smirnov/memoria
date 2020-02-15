@@ -150,7 +150,7 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult mergeWith(MyType* other)
+    VoidResult mergeWith(MyType* other) const noexcept
     {
         return VoidResult::of();
     }

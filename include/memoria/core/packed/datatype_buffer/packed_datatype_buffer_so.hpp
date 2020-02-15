@@ -245,7 +245,7 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult mergeWith(MyType& other) noexcept
+    VoidResult mergeWith(MyType& other) const noexcept
     {
         psize_t my_size     = this->size();
         psize_t other_size  = other.size();
@@ -255,8 +255,6 @@ public:
         MEMORIA_TRY_VOID(other.insertSpace(other_size, my_size, data_lengths));
 
         copyTo(other, 0, my_size, other_size, data_lengths);
-
-        MEMORIA_TRY_VOID(removeSpace(0, my_size));
 
         return VoidResult::of();
     }

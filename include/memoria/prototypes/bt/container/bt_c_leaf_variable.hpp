@@ -313,11 +313,9 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
     NodeBaseG tgt = tgt_path.leaf();
     NodeBaseG src = src_path.leaf();
 
-    MEMORIA_TRY_VOID(self.ctr_update_block_guard(src));
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
 
     // FIXME: Need to leave src node untouched on merge.
-    MEMORIA_TRY_VOID(mgr.add(src));
     MEMORIA_TRY_VOID(mgr.add(tgt));
 
     Position tgt_sizes = self.ctr_get_node_sizes(tgt);
@@ -325,7 +323,7 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
     MEMORIA_TRY(src_parent, self.ctr_get_node_parent(src_path, 0));
     MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(src_parent, src->id()));
 
-    VoidResult res = self.leaf_dispatcher().dispatch(src, tgt, TryMergeNodesFn());
+    VoidResult res = self.leaf_dispatcher().dispatch_1st_const(src, tgt, TryMergeNodesFn());
 
     if (res.is_error())
     {

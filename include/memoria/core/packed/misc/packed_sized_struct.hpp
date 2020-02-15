@@ -324,14 +324,12 @@ public:
         return removeSpace(idx, this->size());
     }
 
-    VoidResult mergeWith(MyType* other) noexcept
+    VoidResult mergeWith(MyType* other) const noexcept
     {
         int32_t my_size     = this->size();
         int32_t other_size  = other->size();
 
-        MEMORIA_TRY_VOID(other->insertSpace(other_size, my_size));
-
-        return removeSpace(0, my_size);
+        return other->insertSpace(other_size, my_size);
     }
 
 

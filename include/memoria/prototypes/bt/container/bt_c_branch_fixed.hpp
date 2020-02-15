@@ -396,9 +396,8 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src
     NodeBaseG tgt = tgt_path[level];
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
-    MEMORIA_TRY_VOID(self.ctr_update_block_guard(src));
 
-    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(src, tgt, MergeNodesFn()));
+    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch_1st_const(src, tgt, MergeNodesFn()));
 
     MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, level));
 

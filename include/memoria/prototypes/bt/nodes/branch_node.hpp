@@ -771,7 +771,6 @@ public:
                 std::forward<Args>(args)...
         );
     }
-
 };
 
 

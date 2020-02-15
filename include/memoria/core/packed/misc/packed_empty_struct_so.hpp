@@ -84,7 +84,7 @@ public:
         return data_->splitTo(other.data(), idx);
     }
 
-    VoidResult mergeWith(MyType& other) noexcept {
+    VoidResult mergeWith(MyType& other) const noexcept {
         return data_->mergeWith(other.data());
     }
 

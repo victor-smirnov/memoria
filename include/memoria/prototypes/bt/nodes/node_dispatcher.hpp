@@ -25,6 +25,11 @@
 namespace memoria {
 namespace bt {
 
+template <
+    template <typename> class TreeNode,
+    typename Types
+>
+class NodePageAdaptor;
 
 template <typename CtrT, typename Types, int idx> class NDT0;
 template <typename CtrT, typename Types> class NDT0<CtrT, Types, -1>;
@@ -104,6 +109,22 @@ public:
         }
         else {
             return NextNDT0(ctr_).dispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+        }
+    }
+
+
+    template <typename Functor, typename... Args>
+    auto dispatch_1st_const(const NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
+    {
+        if (HASH == node1->block_type_hash())
+        {
+            ConstNodeSO node1_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(node1.block())));
+            NodeSO node2_so(&ctr_, static_cast<Head*>(node2.block()));
+
+            return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
+        }
+        else {
+            return NextNDT0(ctr_).dispatch_1st_const(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
@@ -240,6 +261,21 @@ public:
         else {
             MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
+    }
+
+    template <typename Functor, typename... Args>
+    auto dispatch_1st_const(const NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
+    {
+        if (HASH == node1->block_type_hash())
+        {
+            ConstNodeSO node1_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(node1.block())));
+            NodeSO node2_so(&ctr_, static_cast<Head*>(node2.block()));
+            return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
+        }
+        else {
+            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+        }
+
     }
 
 

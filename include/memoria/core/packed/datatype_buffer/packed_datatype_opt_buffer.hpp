@@ -328,7 +328,7 @@ public:
         return reindex();
     }
 
-    VoidResult mergeWith(MyType* other) noexcept
+    VoidResult mergeWith(MyType* other) const noexcept
     {
         MEMORIA_TRY_VOID(bitmap()->mergeWith(other->bitmap()));
         return array()->mergeWith(other->array());
