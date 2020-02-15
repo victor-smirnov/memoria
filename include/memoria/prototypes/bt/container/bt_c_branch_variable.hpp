@@ -112,10 +112,8 @@ public:
     BoolResult ctr_update_branch_nodes(TreePathT& path, size_t level, int32_t& idx, const BranchNodeEntry& entry) noexcept;
 
     MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
-    BoolResult ctr_try_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level) noexcept;
+    BoolResult ctr_try_merge_branch_nodes(TreePathT& tgt_path, const TreePathT& src_path, size_t level) noexcept;
     BoolResult ctr_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level, bool only_if_same_parent = false) noexcept;
-    BoolResult ctr_merge_current_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level) noexcept;
-
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -395,7 +393,7 @@ VoidResult M_TYPE::ctr_update_path(TreePathT& path, size_t level, const BranchNo
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_try_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level) noexcept
+BoolResult M_TYPE::ctr_try_merge_branch_nodes(TreePathT& tgt_path, const TreePathT& src_path, size_t level) noexcept
 {
     auto& self = this->self();
 
@@ -457,7 +455,7 @@ BoolResult M_TYPE::ctr_merge_branch_nodes(
     MEMORIA_TRY(is_same_parent, self.ctr_is_the_same_parent(tgt_path, src_path, level));
     if (is_same_parent)
     {
-        MEMORIA_TRY(merged, self.ctr_merge_current_branch_nodes(tgt_path, src_path, level));
+        MEMORIA_TRY(merged, self.ctr_try_merge_branch_nodes(tgt_path, src_path, level));
         if (!merged)
         {
             MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt_path, src_path, level));
@@ -474,7 +472,7 @@ BoolResult M_TYPE::ctr_merge_branch_nodes(
             MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt_path, src_path, level));
             MEMORIA_TRY_VOID(self.ctr_expect_next_node(src_path, level));
 
-            return self.ctr_merge_current_branch_nodes(tgt_path, src_path, level);
+            return self.ctr_try_merge_branch_nodes(tgt_path, src_path, level);
         }
         else
         {
@@ -488,20 +486,6 @@ BoolResult M_TYPE::ctr_merge_branch_nodes(
 
 
 
-
-M_PARAMS
-BoolResult M_TYPE::ctr_merge_current_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level) noexcept
-{
-    auto& self = this->self();
-
-    MEMORIA_TRY(merged, self.ctr_try_merge_branch_nodes(tgt_path, src_path, level));
-    if (merged)
-    {
-        MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(tgt_path, level));
-    }
-
-    return BoolResult::of(merged);
-}
 
 
 #undef M_TYPE

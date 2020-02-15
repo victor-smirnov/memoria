@@ -465,8 +465,6 @@ VoidResult M_TYPE::ctr_remove_branch_nodes(
         MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(stop_path, start_path, level));
         MEMORIA_TRY_VOID(self.ctr_expect_prev_node(start_path, level));
 
-        //MEMORIA_TRY_VOID(ctr_remove_branch_nodes(start_path, start_parent_idx + 1, stop_path, stop_parent_idx, level + 1, sizes));
-
         MEMORIA_TRY(merged, self.ctr_merge_branch_nodes(start_path, stop_path, level));
         if (merged)
         {
