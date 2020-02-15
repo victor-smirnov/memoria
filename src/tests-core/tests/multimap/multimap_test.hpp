@@ -142,6 +142,9 @@ public:
     void check_container(CtrApiT ctr, const std::vector<Entry>& data)
     {
         out() << "Checking contianer.... ";
+
+        this->check("Store structure checking", MMA_SRC);
+
         assert_equals(data.size(), ctr->size().get_or_throw());
 
         auto scanner = ctr->entries_scanner().get_or_throw();
@@ -182,9 +185,6 @@ public:
         sort(data);
 
         populate_container(ctr, data);
-
-//        commit();
-//        this->storeAllocator(format_u8("MultimapTest.mma1"));
 
         check_container(ctr, data);
 

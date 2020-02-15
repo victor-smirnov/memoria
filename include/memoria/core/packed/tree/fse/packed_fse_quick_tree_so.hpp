@@ -145,7 +145,7 @@ public:
         return data_->generateDataEvents(handler);
     }
 
-    void check() const {
+    VoidResult check() const noexcept {
         return data_->check();
     }
 

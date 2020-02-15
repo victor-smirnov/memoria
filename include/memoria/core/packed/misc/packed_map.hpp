@@ -98,11 +98,7 @@ public:
         return keys()->size();
     }
 
-    void check() const
-    {
-        keys()->check();
-        values()->check();
-    }
+
 
 
     template <typename SerializationData>

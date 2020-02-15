@@ -450,15 +450,15 @@ public:
             if (iteration_ % 100 == 0)
             {
                 out() << "Size: " << ctr->size().get_or_throw() << std::endl;
+                //this->check("Store structure checking", MMA_SRC);
             }
 
-            check(snp, "Insert: Container Check Failed", MA_SRC);
+            //check(snp, "Insert: Container Check Failed", MA_SRC);
 
             iteration_++;
 
             commit();
 
-            //storeAllocator(format_u8("testInsert{}.mma1", iteration_));
 
             size = ctr->size().get_or_throw();
         }
@@ -496,9 +496,10 @@ public:
             if (iteration_ % 100 == 0)
             {
                 out() << "Size: " << ctr->size().get_or_throw() << std::endl;
+                //this->check("Store structure checking", MMA_SRC);
             }
 
-            check("Remove: Container Check Failed", MA_SRC);
+            //check("Remove: Container Check Failed", MA_SRC);
 
             size = ctr->size().get_or_throw();
 

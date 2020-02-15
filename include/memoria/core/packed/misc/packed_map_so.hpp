@@ -107,8 +107,24 @@ public:
         return VoidResult::of();
     }
 
-    void check() const {
-        data_->check();
+    VoidResult check() const noexcept
+    {
+        MEMORIA_TRY_VOID(keys_.check());
+        MEMORIA_TRY_VOID(values_.check());
+
+        auto keys_size = keys_.size();
+        auto values_size = values_.size();
+
+        if (keys_size != values_size)
+        {
+            return MEMORIA_MAKE_GENERIC_ERROR(
+                "PackedMap: keys size != values size: {} {}",
+                keys_size,
+                values_size
+            );
+        }
+
+        return VoidResult::of();
     }
 
     psize_t size() const {

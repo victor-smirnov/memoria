@@ -18,6 +18,7 @@
 
 #include <memoria/core/tools/bitmap_select.hpp>
 #include <memoria/core/tools/result.hpp>
+#include <memoria/core/tools/assert.hpp>
 
 namespace memoria {
 
@@ -148,7 +149,7 @@ public:
         return VoidResult::of();
     }
 
-    void check(const Seq& seq)
+    VoidResult check(const Seq& seq) noexcept
     {
         int32_t size = seq.size();
 
@@ -158,7 +159,7 @@ public:
 
             auto index = seq.index();
 
-            MEMORIA_ASSERT(index->size(), ==, index_size);
+            MEMORIA_ASSERT_RTN(index->size(), ==, index_size);
 
 
             auto symbols = seq.symbols();
@@ -183,7 +184,7 @@ public:
                 {
                     for (int32_t c = 0; c < buffer_size; c++)
                     {
-                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                        MEMORIA_ASSERT_RTN(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
                 }
 
@@ -191,8 +192,10 @@ public:
             }
         }
         else {
-            MEMORIA_V1_ASSERT_FALSE(seq.has_index());
+            MEMORIA_ASSERT_RTN(seq.has_index(), ==, false);
         }
+
+        return VoidResult::of();
     }
 };
 
@@ -267,7 +270,7 @@ public:
     }
 
 
-    void check(const Seq& seq)
+    VoidResult check(const Seq& seq) noexcept
     {
         int32_t size = seq.size();
 
@@ -277,7 +280,7 @@ public:
 
             auto index = seq.index();
 
-            MEMORIA_ASSERT(index->size(), ==, index_size);
+            MEMORIA_ASSERT_RTN(index->size(), ==, index_size);
 
             auto symbols = seq.symbols();
 
@@ -304,7 +307,7 @@ public:
                 {
                     for (int32_t c = 0; c < buffer_size; c++)
                     {
-                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                        MEMORIA_ASSERT_RTN(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
                 }
 
@@ -312,8 +315,10 @@ public:
             }
         }
         else {
-            MEMORIA_V1_ASSERT_FALSE(seq.has_index());
+            MEMORIA_ASSERT(seq.has_index(), ==, false);
         }
+
+        return VoidResult::of();
     }
 };
 
@@ -414,7 +419,7 @@ public:
     }
 
 
-    void check(const Seq& seq)
+    VoidResult check(const Seq& seq) noexcept
     {
         int32_t size = seq.size();
 
@@ -449,7 +454,7 @@ public:
                         auto idx_value = index->value(b, c + at);
                         auto buf_value = buffer.buffer()[c][b];
 
-                        MEMORIA_ASSERT(idx_value, ==, buf_value);
+                        MEMORIA_ASSERT_RTN(idx_value, ==, buf_value);
                     }
                 }
 
@@ -457,8 +462,10 @@ public:
             }
         }
         else {
-            MEMORIA_V1_ASSERT_FALSE(seq.has_index());
+            MEMORIA_ASSERT_RTN(seq.has_index(), ==, false);
         }
+
+        return VoidResult::of();
     }
 };
 
@@ -558,7 +565,7 @@ public:
         return VoidResult::of();
     }
 
-    void check(const Seq& seq)
+    VoidResult check(const Seq& seq) noexcept
     {
         int32_t size = seq.size();
 
@@ -590,7 +597,7 @@ public:
                 {
                     for (int32_t c = 0; c < buffer_size; c++)
                     {
-                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                        MEMORIA_ASSERT_RTN(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
                 }
 
@@ -598,8 +605,10 @@ public:
             }
         }
         else {
-            MEMORIA_V1_ASSERT_FALSE(seq.has_index());
+            MEMORIA_ASSERT_RTN(seq.has_index(), ==, false);
         }
+
+        return VoidResult::of();
     }
 
 };

@@ -567,9 +567,9 @@ public:
         }
     }
 
-
-
-    void check() const {}
+    VoidResult check() const noexcept {
+        return VoidResult::of();
+    }
 
     VoidResult clear() noexcept
     {

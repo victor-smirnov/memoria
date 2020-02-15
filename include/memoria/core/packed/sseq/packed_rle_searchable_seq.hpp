@@ -706,16 +706,20 @@ public:
         return reindex_fn.reindex(*this);
     }
 
-    void check() const
+    VoidResult check() const noexcept
     {
-        if (has_index())
-        {
-            size_index()->check();
-            sum_index()->check();
+        return wrap_throwing([&]() -> VoidResult {
+            if (has_index())
+            {
+                MEMORIA_TRY_VOID(size_index()->check());
+                MEMORIA_TRY_VOID(sum_index()->check());
 
-            rleseq::ReindexFn<MyType> reindex_fn;
-            reindex_fn.check(*this);
-        }
+                rleseq::ReindexFn<MyType> reindex_fn;
+                return reindex_fn.check(*this);
+            }
+
+            return VoidResult::of();
+        });
     }
 
     VoidResult ensure_capacity(int32_t capacity) noexcept

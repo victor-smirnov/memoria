@@ -120,6 +120,7 @@ public:
             if (c % 100000 == 0)
             {
                 out() << "C=" << c << std::endl;
+                this->check("Store structure checking", MMA_SRC);
             }
 
             auto key = internal_set::ValueTools<CxxValueType>::generate_random();
@@ -130,13 +131,15 @@ public:
             ctr->insert(key).get_or_throw();
         }
         int64_t t1 = getTimeInMillis();
-
         out() << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
 
         out() << "Size: " << ctr->size().get_or_throw() << std::endl;
 
+        this->check("Store structure checking", MMA_SRC);
+
         int64_t t2 = getTimeInMillis();
-        for (auto key: entries_list) {
+        for (auto key: entries_list)
+        {
             bool kk = ctr->contains(key).get_or_throw();
             assert_equals(true, kk);
         }
@@ -168,6 +171,8 @@ public:
         {
             if (cnt % 100000 == 0) {
                 out() << "K=" << cnt << std::endl;
+
+                this->check("Store structure checking", MMA_SRC);
             }
 
             ctr->remove(key).get_or_throw();
@@ -179,6 +184,7 @@ public:
         }
 
         out() << "Final Container Size: " << ctr->size().get_or_throw() << std::endl;
+        this->check("Store structure checking", MMA_SRC);
 
         commit();
     }

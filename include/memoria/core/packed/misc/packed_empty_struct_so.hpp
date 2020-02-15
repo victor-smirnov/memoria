@@ -92,18 +92,6 @@ public:
         return data_->removeSpace(room_start, room_end);
     }
 
-//    template <typename T>
-//    VoidResult insert(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
-//        return data_->insert(idx, values);
-//    }
-
-//    template <typename Fn>
-//    VoidResult insert(int32_t idx, int32_t length, Fn&& fn) noexcept {
-//        return data_->insert(idx, length, std::forward<Fn>(fn));
-//    }
-
-
-
     VoidResult reindex() noexcept {
         return data_->reindex();
     }
@@ -121,8 +109,8 @@ public:
         return data_->generateDataEvents(handler);
     }
 
-    void check() const {
-        return data_->check();
+    VoidResult check() const noexcept {
+        return VoidResult::of();
     }
 
     int32_t size() const {

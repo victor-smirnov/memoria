@@ -688,8 +688,8 @@ public:
 
 
 
-    void check() const {
-        Base::check(Blocks);
+    VoidResult check() const noexcept {
+        return Base::check(Blocks);
     }
 
     VoidResult clear() noexcept

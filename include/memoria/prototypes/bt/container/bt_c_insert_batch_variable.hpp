@@ -128,13 +128,10 @@ public:
             {
                 if (node->level() > 1)
                 {
-                    auto res = self.ctr_for_all_ids(node, idx, c, [&, this](const BlockID& id) noexcept -> VoidResult
+                    MEMORIA_TRY_VOID(self.ctr_for_all_ids(node, idx, c, [&](const BlockID& id) noexcept -> VoidResult
                     {
-                        auto& self = this->self();
-                        MEMORIA_TRY_VOID(self.ctr_remove_branch_nodes(id));
-                        return VoidResult::of();
-                    });
-                    MEMORIA_RETURN_IF_ERROR(res);
+                        return self.ctr_remove_branch_nodes(id);
+                    }));
                 }
 
                 provider.rollback(checkpoint);

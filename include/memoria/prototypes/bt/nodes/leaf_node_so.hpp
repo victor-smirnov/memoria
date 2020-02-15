@@ -351,15 +351,15 @@ public:
 
     struct CheckFn {
         template <typename Tree>
-        void stream(Tree&& tree)
+        VoidResult stream(Tree&& tree) noexcept
         {
-            tree.check();
+            return tree.check();
         }
     };
 
-    void check() const
+    VoidResult check() const noexcept
     {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn()).get_or_throw();
+        return Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn());
     }
 
     struct Size2Fn {

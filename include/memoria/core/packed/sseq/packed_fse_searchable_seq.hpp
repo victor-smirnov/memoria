@@ -350,15 +350,18 @@ public:
         return reindex_fn.reindex(*this);
     }
 
-    void check() const
+    VoidResult check() const noexcept
     {
-        if (has_index())
-        {
-            index()->check();
+        return wrap_throwing([&]() -> VoidResult {
+            if (has_index())
+            {
+                MEMORIA_TRY_VOID(index()->check());
 
-            typename Types::template ReindexFn<MyType> reindex_fn;
-            reindex_fn.check(*this);
-        }
+                typename Types::template ReindexFn<MyType> reindex_fn;
+                return reindex_fn.check(*this);
+            }
+            return VoidResult::of();
+        });
     }
 
     void set(int32_t idx, int32_t symbol)

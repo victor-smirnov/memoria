@@ -41,6 +41,39 @@
 
 namespace memoria {
 
+namespace detail_ {
+
+    template <typename BufferSO, bool Indexed = BufferSO::Indexed>
+    struct BufferContentChecker {
+        static VoidResult check(const BufferSO& buffer) {
+            return VoidResult::of();
+        }
+    };
+
+    template <typename BufferSO>
+    struct BufferContentChecker<BufferSO, true> {
+        static VoidResult check(const BufferSO& buffer)
+        {
+            for (int32_t c = 0; c < BufferSO::Indexes; c++) {
+                for (psize_t idx = 1; idx < buffer.size(); idx++)
+                {
+                    if (buffer.access(c, idx - 1) > buffer.access(c, idx)) {
+                        return MEMORIA_MAKE_GENERIC_ERROR(
+                            "Buffer's content is not in the proper order at position {}, column {}: '{}' > '{}' ",
+                                    idx,
+                                    c,
+                                    buffer.access(c, idx - 1),
+                                    buffer.access(c, idx)
+                        );
+                    }
+                }
+            }
+
+            return VoidResult::of();
+        }
+    };
+}
+
 template <typename ExtData, typename PkdStruct>
 class PackedDataTypeBufferSO {
     const ExtData* ext_data_;
@@ -52,6 +85,7 @@ public:
     static constexpr psize_t Columns = 1;
     static constexpr int32_t Dimensions = PkdStruct::Dimensions;
     static constexpr int32_t Indexes = PkdStruct::Indexes;
+    static constexpr bool Indexed = PkdStruct::Indexed;
 
     using ViewType      = typename PkdStruct::ViewType;
     using DataType      = typename PkdStruct::DataType;
@@ -151,8 +185,9 @@ public:
         return VoidResult::of();
     }
 
-    void check() const noexcept
+    VoidResult check() const noexcept
     {
+        return detail_::BufferContentChecker<MyType>::check(*this);
     }
 
     psize_t size() const noexcept {

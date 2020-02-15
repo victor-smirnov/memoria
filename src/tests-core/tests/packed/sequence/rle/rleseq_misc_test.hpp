@@ -121,8 +121,8 @@ public:
 
                 seq->splitTo(seq2.get(), idx).get_or_throw();
 
-                seq2->check();
-                seq->check();
+                seq2->check().get_or_throw();
+                seq->check().get_or_throw();
 
                 std::vector<int32_t> symbols2(symbols.begin() + idx, symbols.end());
 
@@ -165,7 +165,7 @@ public:
                 //out() << "Seq2" << std::endl;
                 seq2->dump(out());
                 
-                seq2->check();
+                seq2->check().get_or_throw();
 
                 symbols2.insert(symbols2.end(), symbols1.begin(), symbols1.end());
 

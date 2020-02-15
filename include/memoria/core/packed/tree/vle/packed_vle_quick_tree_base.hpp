@@ -1011,15 +1011,18 @@ public:
     }
 
 
-    void check(int32_t blocks) const
+    VoidResult check(int32_t blocks) const noexcept
     {
-        for (int32_t block = 0; block < blocks; block++)
-        {
-            int32_t data_size = this->data_size(block);
-            TreeLayout layout = this->compute_tree_layout(data_size);
+        return wrap_throwing([&]() -> VoidResult {
+            for (int32_t block = 0; block < blocks; block++)
+            {
+                int32_t data_size = this->data_size(block);
+                TreeLayout layout = this->compute_tree_layout(data_size);
 
-            this->check_block(block, layout);
-        }
+                this->check_block(block, layout);
+            }
+            return VoidResult::of();
+        });
     }
 
 

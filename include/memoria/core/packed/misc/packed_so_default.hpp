@@ -71,8 +71,8 @@ public:
         return data_->generateDataEvents(handler);
     }
 
-    void check() const {
-        data_->check();
+    VoidResult check() const noexcept {
+        return data_->check();
     }
 };
 

@@ -94,11 +94,11 @@ public:
         }
 
         seq->reindex().get_or_throw();
-        seq->check();
+        seq->check().get_or_throw();
 
         if (compactify) {
             seq->compactify().get_or_throw();
-            seq->check();
+            seq->check().get_or_throw();
         }
 
         std::vector<int32_t> symbols;
@@ -136,7 +136,7 @@ public:
     void assertIndexCorrect(const char* src, const T& seq)
     {
         try {
-            seq->check();
+            seq->check().get_or_throw();
         }
         catch (Exception& e) {
             out()<<"Sequence structure check failed"<<std::endl;

@@ -23,6 +23,7 @@
 
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/strings/format.hpp>
+#include <memoria/core/strings/strings.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
 
@@ -216,3 +217,18 @@ struct DataTypeTraits<FixedArray<Size>>:  FixedSizeDataTypeTraits<FixedArray<Siz
 };
 
 }
+
+namespace fmt {
+
+template <int32_t Size>
+struct formatter<memoria::FixedArray<Size>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::FixedArray<Size>& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "{}", memoria::toString(d));
+    }
+};
+
+}
+

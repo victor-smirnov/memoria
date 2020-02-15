@@ -252,7 +252,7 @@ public:
     void assertIndexCorrect(const char* src, const TreePtr& tree)
     {
         try {
-            tree->check();
+            tree->check().get_or_throw();
         }
         catch (Exception& e)
         {

@@ -110,8 +110,24 @@ public:
         return VoidResult::of();
     }
 
-    void check() const {
-        data_->bitmap()->check();
+    VoidResult check() const noexcept
+    {
+        MEMORIA_TRY_VOID(data_->bitmap()->check());
+        MEMORIA_TRY_VOID(array_.check());
+
+        auto rnk1 = data_->bitmap()->rank(1);
+        auto array_size = array_.size();
+
+        if (rnk1 != array_size)
+        {
+            return MEMORIA_MAKE_GENERIC_ERROR(
+                "PackedDataTypeOptBufferSO: Bitmap.rank(1) != array.size(): {} {}",
+                rnk1,
+                array_size
+            );
+        }
+
+        return VoidResult::of();
     }
 
     psize_t size() const {

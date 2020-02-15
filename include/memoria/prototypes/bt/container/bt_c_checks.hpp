@@ -109,15 +109,13 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN(CheckContentFn, check);
     BoolResult ctr_check_content(const NodeBaseG& node) const noexcept
     {
-        try {
-            self().node_dispatcher().dispatch(node, CheckContentFn());
+        VoidResult res = self().node_dispatcher().dispatch(node, CheckContentFn());
+        if (res.is_ok()) {
             return BoolResult::of(false);
         }
-        catch (Exception& ex)
-        {
+        else {
             MEMORIA_TRY_VOID(self().ctr_dump_node(node));
-
-            MMA_ERROR(self(), "Node content check failed", ex.message());
+            MMA_ERROR(self(), "Node content check failed", res.memoria_error()->what());
             return BoolResult::of(true);
         }
     }

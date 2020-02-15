@@ -437,7 +437,6 @@ public:
     BlockGuard(const MyType& guard) noexcept: shared_(guard.shared_)
     {
         ref();
-        check();
         inc();
     }
 
@@ -445,7 +444,6 @@ public:
     BlockGuard(const BlockGuard<Page, AllocatorT>& guard) noexcept: shared_(guard.shared_)
     {
         ref();
-        check();
         inc();
     }
 
@@ -453,7 +451,6 @@ public:
     BlockGuard(BlockGuard<Page, AllocatorT>&& guard) noexcept: shared_(guard.shared_)
     {
         guard.shared_   = NULL;
-        check();
         inc();
     }
 
@@ -481,7 +478,6 @@ public:
         {
             unref();
             shared_ = guard.shared_;
-            check();
             ref();
         }
 
@@ -494,7 +490,6 @@ public:
     {
         unref();
         shared_ = guard.shared_;
-        check();
         ref();
         return *this;
     }
@@ -505,7 +500,6 @@ public:
         shared_ = guard.shared_;
 
         guard.shared_ = NULL;
-        check();
         return *this;
     }
 
@@ -518,7 +512,6 @@ public:
         shared_ = guard.shared_;
 
         guard.shared_ = NULL;
-        check();
         return *this;
     }
 
@@ -622,9 +615,6 @@ public:
     template <typename Page, typename Allocator> friend class BlockGuard;
 
 private:
-
-    void check() noexcept {}
-
     void inc() noexcept {}
 
     void dec() noexcept {}

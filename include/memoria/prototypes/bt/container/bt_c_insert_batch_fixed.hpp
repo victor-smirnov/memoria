@@ -70,15 +70,21 @@ public:
     class BranchNodeEntryT {
         BranchNodeEntry accum_;
         BlockID child_id_;
+        NodeBaseG node_;
     public:
-        BranchNodeEntryT(const BranchNodeEntryT& accum, const BlockID& id): accum_(accum), child_id_(id) {}
-        BranchNodeEntryT() : child_id_() {}
+        BranchNodeEntryT(const BranchNodeEntryT& accum, const BlockID& id, NodeBaseG node) noexcept:
+            accum_(accum), child_id_(id)
+        {}
 
-        const BranchNodeEntry& accum() const {return accum_;}
-        const BlockID& child_id() const {return child_id_;}
+        BranchNodeEntryT() noexcept: accum_(), child_id_(), node_()
+        {}
 
-        BranchNodeEntry& accum() {return accum_;}
-        BlockID& child_id() {return child_id_;}
+        const BranchNodeEntry& accum() const noexcept {return accum_;}
+        const BlockID& child_id() const noexcept {return child_id_;}
+
+        BranchNodeEntry& accum() noexcept {return accum_;}
+        BlockID& child_id() noexcept {return child_id_;}
+        NodeBaseG& child_node() noexcept {return node_;}
     };
 
 
@@ -127,8 +133,9 @@ public:
             {
                 MEMORIA_TRY(child, child_fn());
 
-                subtrees[i].accum()     = self.ctr_get_node_max_keys(child);
-                subtrees[i].child_id()  = child->id();
+                subtrees[i].accum()         = self.ctr_get_node_max_keys(child);
+                subtrees[i].child_id()      = child->id();
+                subtrees[i].child_node()    = child;
             }
 
             MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node, InsertChildrenFn(), idx + c, idx + c + i, subtrees));

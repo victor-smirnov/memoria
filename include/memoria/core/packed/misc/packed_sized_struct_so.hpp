@@ -86,7 +86,7 @@ public:
         return data_->size();
     }
 
-    void check() const {
+    VoidResult check() const noexcept {
         return data_->check();
     }
 
@@ -100,15 +100,7 @@ public:
         return data_->configure_io_substream(substream);
     }
 
-//    template <int32_t Offset, typename... Args>
-//    VoidResult _insert_b(Args&&... args) {
-//        return data_->template _insert_b<Offset>(std::forward<Args>(args)...);
-//    }
 
-//    template <int32_t Offset, typename... Args>
-//    VoidResult _remove(Args&&... args) noexcept {
-//        return data_->template _remove<Offset>(std::forward<Args>(args)...);
-//    }
 
     VoidResult insertSpace(int32_t idx, int32_t room_length) noexcept {
         return data_->insertSpace(idx, room_length);

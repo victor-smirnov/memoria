@@ -36,8 +36,8 @@ struct PackedDataTypeBufferTypes {};
 template <typename DataType, bool Indexed>
 using PackedDataTypeBufferT = PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, Indexed>>;
 
-template <typename DataType_, bool Indexed>
-class PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType_, Indexed>>:
+template <typename DataType_, bool Indexed_>
+class PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType_, Indexed_>>:
     public PackedAllocator
 {
     using Base = PackedAllocator;
@@ -47,7 +47,9 @@ public:
 
     static constexpr uint32_t VERSION   = 1;
     static constexpr int32_t Dimensions = ListSize<DataDimenstionsList>;
+    static constexpr bool Indexed       = Indexed_;
     static constexpr int32_t Indexes    = Indexed ? 1 : 0;
+
 
     using MyType    = PackedDataTypeBuffer;
     using ViewType  = DTTViewType<DataType>;

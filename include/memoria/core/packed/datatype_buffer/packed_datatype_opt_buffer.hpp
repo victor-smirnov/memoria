@@ -308,11 +308,11 @@ public:
         return array()->reindex();
     }
 
-    void check() const
-    {
-        bitmap()->check();
-        array()->check();
-    }
+//    void check() const
+//    {
+//        bitmap()->check();
+//        array()->check();
+//    }
 
 
     VoidResult splitTo(MyType* other, int32_t idx) noexcept
