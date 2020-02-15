@@ -325,7 +325,7 @@ public:
 
     int32_t capacity(uint64_t active_streams) const
     {
-        int32_t free_space  = node_->free_space(node_->header().memory_block_size(), node_->is_root());
+        int32_t free_space  = node_->compute_streams_available_space();
         int32_t max_size    = node_->max_tree_size1(free_space, active_streams);
         int32_t cap         = max_size - size();
 
@@ -578,7 +578,7 @@ public:
         fn.mem_used_ += other_data_size;
 
         // FIXME +10 is an extra safety gap
-        return BoolResult::of(client_area >= fn.mem_used_ + 10);
+        return BoolResult::of(client_area >= fn.mem_used_); //+ 10
     }
 
     struct MergeWithFn {

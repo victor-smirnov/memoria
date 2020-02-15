@@ -90,10 +90,9 @@ public:
         using ResultT = BoolResult;
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
-
         if (self.ctr_check_node_capacities(iter.iter_leaf(), Position::create(Stream, 1)))
         {
+            MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
             MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(iter.iter_leaf(), InsertStreamEntryFn<Stream>(), idx, entry));
             return ResultT::of(true);
         }

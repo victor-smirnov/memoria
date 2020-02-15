@@ -420,6 +420,31 @@ public:
 
         return ForEach<0, StreamsStart>::process_res(InitMetadataFn<MetadataTypesList>(), allocator());
     }
+
+
+    int32_t compute_metadata_size() const noexcept
+    {
+        int32_t mem_size = 0;
+
+        for (int32_t c = 0; c < StreamsStart; c++) {
+            mem_size += allocator_.element_size(c);
+        }
+
+        return mem_size;
+    }
+
+    int32_t compute_parent_size() const noexcept
+    {
+        int32_t client_area = allocator_.client_area();
+        int32_t metadata_segments_size = compute_metadata_size();
+        return client_area - metadata_segments_size;
+    }
+
+    int32_t compute_streams_available_space() const noexcept
+    {
+        int32_t occupied = compute_parent_size();
+        return occupied;
+    }
 };
 
 
@@ -517,18 +542,6 @@ private:
     };
 
 public:
-
-    static int32_t free_space(int32_t block_size, bool root)
-    {
-        int32_t fixed_block_size  = block_size - sizeof(MyType) + PackedAllocator::my_size();
-        int32_t client_area = PackedAllocator::client_area(fixed_block_size, SubstreamsStart + Substreams + 1);
-
-        return client_area - root * PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(typename Types::Metadata)) - 400;
-    }
-
-
-
-
     PackedAllocator* allocator()
     {
         return Base::allocator();
@@ -631,20 +644,10 @@ public:
     }
 
 public:
-    static int32_t max_tree_size_for_block(int32_t block_size, bool root)
-    {
-        int32_t fixed_block_size = MyType::free_space(block_size, root);
-        return max_tree_size1(fixed_block_size);
-    }
-
     VoidResult prepare() noexcept
     {
         return Base::initAllocator(SubstreamsStart + Substreams + 1);
     }
-
-
-
-
 
     uint64_t active_streams() const
     {

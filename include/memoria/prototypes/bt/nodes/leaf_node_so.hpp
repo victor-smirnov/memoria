@@ -438,21 +438,6 @@ public:
         }
     };
 
-    static int32_t free_space(int32_t block_size, bool root)
-    {
-        int32_t fixed_block_size = block_size - sizeof(NodeType_) + PackedAllocator::my_size();
-        int32_t client_area = PackedAllocator::client_area(fixed_block_size, SubstreamsStart + Substreams + 1);
-
-        return client_area - root * PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(typename NodeType_::TypesT::Metadata));
-    }
-
-    static int32_t client_area(int32_t block_size, bool root)
-    {
-        int32_t free_space = MyType::free_space(block_size, root);
-
-        //FIXME Check if Streams value below is correct.
-        return PackedAllocator::client_area(free_space, Streams);
-    }
 
     bool checkCapacities(const Position& sizes) const
     {
@@ -467,11 +452,10 @@ public:
 
         this->processSubstreamGroups(CheckCapacitiesFn(), fillment, &mem_size).get_or_throw();
 
-        int32_t free_space      = this->free_space(node_->header().memory_block_size(), node_->is_root());
-        int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
+        int32_t client_area = node_->compute_streams_available_space();
 
         // FIXME: fix block size estimation and remove '350'
-        return client_area >= mem_size + 350;
+        return client_area >= mem_size; //+ 350
     }
 
 
@@ -489,9 +473,7 @@ public:
 
         processSubstreamGroups(CheckCapacitiesFn(), entropy, fillment, &mem_size).get_or_throw();
 
-        int32_t free_space      = node_->free_space(node_->header().memory_block_size(), node_->is_root());
-        int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
-
+        int32_t client_area = node_->compute_streams_available_space();
         return client_area >= mem_size;
     }
 
@@ -515,8 +497,7 @@ public:
         int32_t min = sizes()[0];
         int32_t max = node_->header().memory_block_size() * 8;
 
-        int32_t free_space      = this->free_space(node_->header().memory_block_size(), node_->is_root()) - 350;
-        int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
+        int32_t client_area = node_->compute_streams_available_space();
 
         int32_t total = FindTotalElementsNumber(min, max, client_area, max_hops, [&](int32_t stream_size){
             return stream_block_size(stream_size);

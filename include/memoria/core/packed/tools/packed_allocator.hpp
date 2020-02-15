@@ -158,7 +158,7 @@ public:
     {
         return PackedAllocatable::roundUpBytesToAlignmentBlocks(
                 my_size() +
-                (blocks + (blocks % 2 ? 1 : 2))*sizeof(int32_t) +
+                (blocks + (blocks % 2 ? 1 : 2)) * sizeof(int32_t) +
                 PackedAllocatable::roundUpBitsToAlignmentBlocks(blocks) +
                 PackedAllocatable::roundUpBytesToAlignmentBlocks(client_area)
         );
@@ -168,7 +168,7 @@ public:
     {
         return PackedAllocatable::roundDownBytesToAlignmentBlocks(
                 block_size -
-                (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(int32_t)
+                (my_size() + (blocks + (blocks % 2 ? 1 : 2)) * sizeof(int32_t)
                  + PackedAllocatable::roundUpBitsToAlignmentBlocks(blocks))
         );
     }
@@ -236,14 +236,14 @@ public:
     }
 
     //TODO: rename to segment_size ?
-    int32_t element_size(int32_t idx) const noexcept
+    MMA_NODISCARD int32_t element_size(int32_t idx) const noexcept
     {
         int32_t size2 = element_offset(idx + 1);
         int32_t size1 = element_offset(idx);
         return size2 - size1;
     }
 
-    int32_t element_size(const void* element_ptr) const noexcept
+    MMA_NODISCARD int32_t element_size(const void* element_ptr) const noexcept
     {
         int32_t idx = findElement(element_ptr).get_or_throw();
         return element_size(idx);
@@ -668,9 +668,8 @@ public:
 
     constexpr static int32_t my_size() noexcept
     {
-        return sizeof(MyType) - alignof(MyType);
+        return sizeof(MyType);
     }
-
 
 private:
     int32_t& set_element_offset(int32_t idx) noexcept

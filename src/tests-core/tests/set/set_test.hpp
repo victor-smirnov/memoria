@@ -120,7 +120,7 @@ public:
             if (c % 100000 == 0)
             {
                 out() << "C=" << c << std::endl;
-                this->check("Store structure checking", MMA_SRC);
+                //this->check("Store structure checking", MMA_SRC);
             }
 
             auto key = internal_set::ValueTools<CxxValueType>::generate_random();
