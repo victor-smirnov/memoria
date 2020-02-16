@@ -55,11 +55,12 @@ public:
 
         auto& self = this->self();
 
-        std::unique_ptr<io::IOVector> iov = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
+        auto iov_res = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
+        MEMORIA_RETURN_IF_ERROR(iov_res);
 
         auto id = iter.iter_leaf()->id();
 
-        btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov.get(), start, length);
+        btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov_res.get().get(), start, length);
 
         auto pos = iter.iter_leafrank(iter.iter_local_pos());
 
@@ -88,7 +89,8 @@ public:
 
         auto& self = this->self();
 
-        std::unique_ptr<io::IOVector> iov = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
+//        auto iov_res = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
+//        MEMORIA_RETURN_IF_ERROR(iov_res);
 
         auto id = iter.iter_leaf()->id();
 

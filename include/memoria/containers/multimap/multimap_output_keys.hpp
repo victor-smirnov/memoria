@@ -79,7 +79,7 @@ private:
     void build()
     {
         const io::IOVector& buffer = iter_->iovector_view();
-        int32_t iter_leaf_size = iter_->iter_leaf_size(0);
+        int32_t iter_leaf_size = iter_->iter_leaf_size(0).get_or_throw();
 
         keys_.clear();
         KeysIOVSubstreamAdapter::read_to(buffer.substream(0), 0, idx_, iter_leaf_size - idx_, keys_.array());

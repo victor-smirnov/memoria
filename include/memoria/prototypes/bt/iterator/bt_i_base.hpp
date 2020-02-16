@@ -222,7 +222,7 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN(RefreshIOVectorViewFn, configure_iovector_view);
     void refresh_iovector_view() noexcept
     {
-        self().ctr().leaf_dispatcher().dispatch(path_.leaf(), RefreshIOVectorViewFn(), *&iovector_view_);
+        self().ctr().leaf_dispatcher().dispatch(path_.leaf(), RefreshIOVectorViewFn(), *&iovector_view_).get_or_throw();
     }
 
 
@@ -244,7 +244,7 @@ public:
     {
         auto& self = this->self();
 
-        return iter_leaf().node().isSet() ? iter_local_pos() >= self.iter_leaf_size() : true;
+        return iter_leaf().node().isSet() ? iter_local_pos() >= self.iter_leaf_size().get_or_throw() : true;
     }
 
     bool is_end() const noexcept

@@ -20,6 +20,8 @@
 #include <memoria/core/types/fn_traits.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/types/list/typelist.hpp>
+#include <memoria/core/types/algo/select.hpp>
+#include <memoria/core/tools/result.hpp>
 
 #include <type_traits>
 #include <utility>
@@ -59,7 +61,7 @@ public:
             const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
-    ) const
+    ) const noexcept
     {
         if (HASH == parent->block_type_hash())
         {
@@ -109,7 +111,10 @@ public:
             const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
-    ) const
+    ) const noexcept ->
+        typename detail::ResultOfFn<
+            decltype(NDT2Start(ctr_).dispatchTree(std::declval<ConstNodeSO>(), child, std::forward<Functor>(functor), std::forward<Args>(args)...))
+        >::Type
     {
         if (HASH == parent->block_type_hash())
         {
@@ -123,7 +128,7 @@ public:
             );
         }
         else {
-            MMA_THROW(Exception()) << WhatCInfo("Can't dispatch btree node type");
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", parent->block_type_hash());
         }
     }
 };
@@ -153,7 +158,7 @@ public:
             const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
-    ) const
+    ) const noexcept
     {
         if (HASH == child->block_type_hash())
         {
@@ -197,7 +202,10 @@ public:
             const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
-    ) const
+    ) const noexcept ->
+        typename detail::ResultOfFn<
+            decltype(functor.treeNode(std::forward<Node>(parent), std::declval<ConstNodeSO>(), std::forward<Args>(args)...))
+        >::Type
     {
         if (HASH == child->block_type_hash())
         {
@@ -209,7 +217,7 @@ public:
             );
         }
         else {
-            MMA_THROW(DispatchException()) << WhatInfo("Can't dispatch btree node type");
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", child->block_type_hash());
         }
     }
 };

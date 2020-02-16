@@ -19,6 +19,8 @@
 #include <memoria/core/packed/tree/fse/packed_fse_quick_tree_base_base.hpp>
 
 #include <memoria/core/tools/assert.hpp>
+#include <memoria/core/tools/result.hpp>
+
 
 namespace memoria {
 
@@ -87,8 +89,10 @@ public:
 
         InitFn(int32_t blocks): blocks_(blocks) {}
 
-        int32_t block_size(int32_t items_number) const {
-            return MyType::block_size(blocks_, items_number);
+        Int32Result block_size(int32_t items_number) const noexcept {
+            return wrap_throwing([&](){
+                return MyType::block_size(blocks_, items_number);
+            });
         }
 
         int32_t max_elements(int32_t block_size)
@@ -132,7 +136,7 @@ public:
 
 
 
-    static int32_t block_size(int32_t blocks, int32_t capacity)
+    static int32_t block_size(int32_t blocks, int32_t capacity) noexcept
     {
         int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
@@ -156,9 +160,14 @@ public:
         return layout.index_size;
     }
 
-    static int32_t tree_size(int32_t blocks, int32_t block_size)
+    static Int32Result tree_size(int32_t blocks, int32_t block_size) noexcept
     {
-        return block_size >= (int32_t)sizeof(Value) ? FindTotalElementsNumber2(block_size, InitFn(blocks)) : 0;
+        if (block_size >= (int32_t)sizeof(Value)) {
+            return FindTotalElementsNumber2(block_size, InitFn(blocks));
+        }
+        else {
+            return 0;
+        }
     }
 
 

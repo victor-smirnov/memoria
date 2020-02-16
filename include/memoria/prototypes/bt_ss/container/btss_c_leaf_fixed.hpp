@@ -46,10 +46,10 @@ protected:
 
 
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, single_stream_capacity, int32_t);
+    MEMORIA_V1_DECLARE_NODE_FN(GetStreamCapacityFn, single_stream_capacity);
 
 public:
-    int32_t ctr_get_leaf_node_capacity(const NodeBaseG& node, int max_hops = 100) const
+    Int32Result ctr_get_leaf_node_capacity(const NodeBaseG& node, int max_hops = 100) const noexcept
     {
         return self().leaf_dispatcher().dispatch(node, GetStreamCapacityFn(), max_hops);
     }

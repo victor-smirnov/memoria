@@ -182,7 +182,8 @@ public:
 
     VoidResult init_bs(int32_t block_size) noexcept
     {
-        return init_by_block(block_size, elements_for(block_size));
+        MEMORIA_TRY(elements_num, elements_for(block_size));
+        return init_by_block(block_size, elements_num);
     }
 
     VoidResult init_by_block(int32_t block_size, int32_t capacity = 0) noexcept
@@ -209,12 +210,12 @@ public:
         return MyType::init(sizes[0]);
     }
 
-    static int32_t block_size(int32_t capacity)
+    static int32_t block_size(int32_t capacity) noexcept
     {
         return Base::block_size(Blocks, capacity);
     }
 
-    static int32_t packed_block_size(int32_t tree_capacity)
+    static int32_t packed_block_size(int32_t tree_capacity) noexcept
     {
         return block_size(tree_capacity);
     }
@@ -233,16 +234,10 @@ public:
 
 
 
-    static int32_t elements_for(int32_t block_size)
+    static Int32Result elements_for(int32_t block_size) noexcept
     {
         return Base::tree_size(Blocks, block_size);
     }
-
-    static int32_t expected_block_size(int32_t items_num)
-    {
-        return block_size(items_num);
-    }
-
 
 
     static int32_t empty_size()
@@ -259,11 +254,6 @@ public:
 
     void dump_index(std::ostream& out = std::cout) const {
         Base::dump_index(Blocks, out);
-    }
-
-    void dump(std::ostream& out = std::cout) const {
-        TextBlockDumper dumper(out);
-        generateDataEvents(&dumper).get_or_throw();
     }
 
     bool check_capacity(int32_t size) const

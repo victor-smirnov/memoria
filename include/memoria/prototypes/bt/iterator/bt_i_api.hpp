@@ -46,7 +46,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorAPIName)
 
     static const int32_t Streams = Container::Types::Streams;
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(SizesFn, sizes, Position);
+    MEMORIA_V1_DECLARE_NODE_FN(SizesFn, sizes);
 
 public:
 
@@ -87,36 +87,36 @@ public:
     Result<CtrSizeT> iter_skip_stream_bw(int32_t stream, CtrSizeT distance) noexcept;
     Result<CtrSizeT> iter_skip_stream(int32_t stream, CtrSizeT distance) noexcept;
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(SizeFn, size, int32_t);
+    MEMORIA_V1_DECLARE_NODE_FN(SizeFn, size);
 
-    int32_t iter_leaf_size(int32_t stream) const noexcept
+    Int32Result iter_leaf_size(int32_t stream) const noexcept
     {
         return self().iter_leaf_size0(stream);
     }
 
-    int32_t iter_leaf_size0(int32_t stream) const noexcept
+    Int32Result iter_leaf_size0(int32_t stream) const noexcept
     {
         return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizeFn(), stream);
     }
 
-    int32_t iter_leaf_size() const noexcept
+    Int32Result iter_leaf_size() const noexcept
     {
         return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizeFn(), self().iter_stream());
     }
 
 
-    bool iter_is_leaf_empty() const noexcept
+    BoolResult iter_is_leaf_empty() const noexcept
     {
         return self().model().ctr_is_node_empty(self().iter_leaf());
     }
 
-    int32_t iter_leaf_capacity(int32_t stream) const noexcept
+    Int32Result iter_leaf_capacity(int32_t stream) const noexcept
     {
         auto& self = this->self();
         return self.iter_leaf_capacity(Position(), stream);
     }
 
-    int32_t iter_leaf_capacity(const Position& reserved, int32_t stream) const noexcept
+    Int32Result iter_leaf_capacity(const Position& reserved, int32_t stream) const noexcept
     {
         auto& self = this->self();
         auto& ctr = self.model();
@@ -165,12 +165,12 @@ public:
     template <typename Walker>
     VoidResult iter_walk_up_for_refresh(const TreePathT& path, size_t level, int32_t idx, Walker&& walker) const noexcept
     {
-        self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx);
+        MEMORIA_TRY_VOID(self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx));
 
         for (size_t ll = level + 1; ll < path.size(); ll++)
         {
             MEMORIA_TRY(child_idx, self().ctr().ctr_get_child_idx(path[ll], path[ll - 1]->id()));
-            self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx);
+            MEMORIA_TRY_VOID(self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx));
         }
 
         return VoidResult::of();
@@ -179,12 +179,12 @@ public:
     template <typename Walker>
     VoidResult iter_walk_up_for_refresh(TreePathT& path, size_t level, int32_t idx, Walker&& walker) noexcept
     {
-        self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx);
+        MEMORIA_TRY_VOID(self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx));
 
         for (size_t ll = level + 1; ll < path.size(); ll++)
         {
             MEMORIA_TRY(child_idx, self().ctr().ctr_get_child_idx(path[ll], path[ll - 1]->id()));
-            self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx);
+            MEMORIA_TRY_VOID(self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx));
         }
 
         return VoidResult::of();

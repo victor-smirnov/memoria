@@ -99,60 +99,6 @@ namespace {
 }
 
 
-template <typename T, typename... Args>
-std::enable_if_t<
-    std::is_base_of<PackedAllocator, T>::value,
-    PkdStructUPtr<T>
->
-MakeUniquePackedStructByBlock(int32_t block_size, Args&&... args)
-{
-    MEMORIA_ASSERT(block_size, >=, sizeof(T::empty_size()));
-
-    T* ptr = allocate_system_zeroed<T>(block_size).release();
-
-    if (ptr)
-    {
-        ptr->setTopLevelAllocator();
-        OOM_THROW_IF_FAILED(ptr->init(std::forward<Args>(args)...), MMA_SRC);
-        ptr->set_block_size(block_size);
-
-        return PkdStructUPtr<T>(ptr, free_system);
-    }
-    else {
-        MMA_THROW(OOMException());
-    }
-}
-
-
-
-
-template <typename T, typename... Args>
-std::enable_if_t<
-    !std::is_base_of<PackedAllocator, T>::value,
-    PkdStructUPtr<T>
->
-MakeUniquePackedStructByBlock(int32_t block_size, Args&&... args)
-{
-    int32_t allocator_block_size = PackedAllocator::block_size(block_size, 1);
-
-    PackedAllocator* alloc = allocate_system_zeroed<PackedAllocator>(allocator_block_size).release();
-
-    if (alloc)
-    {
-        alloc->allocatable().setTopLevelAllocator();
-        alloc->init(allocator_block_size, 1).get_or_throw();
-
-        T* ptr = alloc->template allocateSpace<T>(0, block_size);
-
-        ptr->init(std::forward<Args>(args)...).get_or_throw();
-
-        return PkdStructUPtr<T>(ptr, free_packed_allocatable);
-    }
-    else {
-        MMA_THROW(OOMException());
-    }
-}
-
 
 template <typename T, typename... Args>
 std::enable_if_t<

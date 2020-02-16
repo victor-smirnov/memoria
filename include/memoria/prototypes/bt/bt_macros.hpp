@@ -89,7 +89,7 @@ struct WrapperName {                                    \
     MyType& me_;                                        \
     WrapperName(MyType& v): me_(v) {}                   \
     template <typename T, typename... Args>             \
-    auto treeNode(T&& arg, Args&&... args)                \
+    auto treeNode(T&& arg, Args&&... args) noexcept     \
     {                                                   \
         return me_.TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
     }                                                   \
@@ -101,7 +101,7 @@ struct WrapperName {                                    \
     MyType& me_;                                        \
     WrapperName(MyType& v): me_(v) {}                   \
     template <typename T, typename... Args>             \
-    ReturnType treeNode(T arg, Args&&... args)          \
+    ReturnType treeNode(T arg, Args&&... args) noexcept \
     {                                                   \
         return me_.TargetMethod(arg, std::forward<Args>(args)...);\
     }                                                   \
@@ -112,7 +112,7 @@ struct WrapperName {                                        \
     const MyType& me_;                                      \
     WrapperName(const MyType& v): me_(v) {}                 \
     template <typename T, typename... Args>                 \
-    auto treeNode(T&& arg, Args&&... args) const              \
+    auto treeNode(T&& arg, Args&&... args) const noexcept   \
     {                                                       \
         return me_.TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
     }                                                       \
@@ -124,7 +124,7 @@ struct WrapperName {                                    \
     const MyType& me_;                                  \
     WrapperName(const MyType& v): me_(v) {}             \
     template <typename T, typename... Args>             \
-    ReturnType treeNode(T&& arg, Args&&... args) const    \
+    ReturnType treeNode(T&& arg, Args&&... args) const noexcept \
     {                                                   \
         return me_.TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
     }                                                   \
@@ -139,7 +139,7 @@ struct WrapperName {                                    \
     const MyType& me_;                                  \
     WrapperName(const MyType& v): me_(v) {}             \
     template <typename T, typename... Args>             \
-    ReturnType treeNode(T&&, Args&&... args) const \
+    ReturnType treeNode(T&&, Args&&... args) const noexcept \
     {                                                   \
         return me_.template TargetMethod<std::decay_t<T>>(std::forward<Args>(args)...);\
     }                                                   \
@@ -150,7 +150,7 @@ struct WrapperName {                                    \
     const MyType& me_;                                  \
     WrapperName(const MyType& v): me_(v) {}             \
     template <typename T, typename... Args>             \
-    auto treeNode(T&&, Args&&... args) const \
+    auto treeNode(T&&, Args&&... args) const noexcept   \
     {                                                   \
         return me_.template TargetMethod<std::decay_t<T>>(std::forward<Args>(args)...);\
     }                                                   \
@@ -160,7 +160,7 @@ struct WrapperName {                                    \
 #define MEMORIA_V1_DECLARE_NODE_FN(WrapperName, NodeMethodName)\
 struct WrapperName {                                        \
     template <typename T, typename... Args>                 \
-    auto treeNode(T&& node, Args&&... args) const           \
+    auto treeNode(T&& node, Args&&... args) const noexcept  \
     {                                                       \
         return node.NodeMethodName(std::forward<Args>(args)...);   \
     }                                                       \
@@ -169,7 +169,7 @@ struct WrapperName {                                        \
 #define MEMORIA_V1_DECLARE_NODE2_FN(WrapperName, NodeMethodName)\
 struct WrapperName {                                            \
     template <typename T, typename... Args>                     \
-    auto treeNode(T&& node1, T&& node2, Args&&... args) const   \
+    auto treeNode(T&& node1, T&& node2, Args&&... args) const noexcept \
     {                                                           \
         return node1.NodeMethodName(node2, std::forward<Args>(args)...);\
     }                                                           \
@@ -179,7 +179,7 @@ struct WrapperName {                                            \
 struct WrapperName {                                            \
     typedef ReturnType_ ReturnType;                             \
     template <typename T, typename... Args>                     \
-    ReturnType treeNode(T&& node, Args&&... args) const         \
+    ReturnType treeNode(T&& node, Args&&... args) const noexcept\
     {                                                           \
         return node.NodeMethodName(std::forward<Args>(args)...);\
     }                                                           \
@@ -189,7 +189,7 @@ struct WrapperName {                                            \
 struct WrapperName {                                        \
     typedef ReturnType_ ReturnType;                         \
     template <typename T, typename... Args>                 \
-    ReturnType treeNode(T&& node1, T&& node2, Args&&... args) const \
+    ReturnType treeNode(T&& node1, T&& node2, Args&&... args) const noexcept\
     {                                                       \
         return node1.NodeMethodName(node2, std::forward<Args>(args)...);\
     }                                                       \

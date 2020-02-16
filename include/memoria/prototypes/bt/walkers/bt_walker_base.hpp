@@ -320,8 +320,9 @@ public:
     const MyType& self() const {return *ptr_cast<const MyType>(this);}
 
     template <typename CtrT, typename NodeT>
-    StreamOpResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
+    Result<StreamOpResult> treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
     {
+        using ResultT = Result<StreamOpResult>;
         auto& self = this->self();
 
         this->direction_ = direction;
@@ -341,26 +342,27 @@ public:
         //FailIf<true, typename BranchNodeSO<CtrT, NodeT>::BranchSubstreamsStructList> ee;
 
 
-        auto result = node.template processStream<BranchPath>(
+        MEMORIA_TRY(result, node.template processStream<BranchPath>(
                 FindBranchFn(self), node.node()->is_root(), index, start
-        ).get_or_throw();
+        ));
 
         self.postProcessBranchNode(node, direction, start, result);
 
-        return result;
+        return ResultT::of(result);
     }
 
     template <typename CtrT, typename NodeT>
-    StreamOpResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
+    Result<StreamOpResult> treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
     {
+        using ResultT = Result<StreamOpResult>;
         this->direction_ = direction;
 
         auto& self = this->self();
-        auto result = node.template processStream<LeafPath>(FindLeafFn(self), start).get_or_throw();
+        MEMORIA_TRY(result, node.template processStream<LeafPath>(FindLeafFn(self), start));
 
         self.postProcessLeafNode(node, direction, start, result);
 
-        return result;
+        return ResultT::of(result);
     }
 
 

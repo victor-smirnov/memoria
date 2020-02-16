@@ -163,7 +163,9 @@ private:
 
         if (!node->is_leaf())
         {
-            MEMORIA_TRY_VOID(self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&self, walker](const BlockID& id) noexcept -> VoidResult
+            MEMORIA_TRY(node_size, self.ctr_get_node_size(node, 0));
+
+            MEMORIA_TRY_VOID(self.ctr_for_all_ids(node, 0, node_size, [&self, walker](const BlockID& id) noexcept -> VoidResult
             {
                 MEMORIA_TRY(child, self.ctr_get_block(id));
                 return self.ctr_traverse_tree(child, walker);

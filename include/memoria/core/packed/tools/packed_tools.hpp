@@ -21,118 +21,119 @@
 
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/tools/static_array.hpp>
+#include <memoria/core/tools/result.hpp>
 
 
 #include <memory>
 
 namespace memoria {
 
-template <typename T, int32_t Indexes>
-void assign(core::StaticVector<Optional<T>, Indexes>& tgt, const core::StaticVector<Optional<T>, Indexes>& src) {
-    tgt = src;
-}
+//template <typename T, int32_t Indexes>
+//void assign(core::StaticVector<Optional<T>, Indexes>& tgt, const core::StaticVector<Optional<T>, Indexes>& src) {
+//    tgt = src;
+//}
 
-template <typename T, int32_t Indexes>
-void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<Optional<T>, Indexes>& src) {
-    for (int32_t c = 0; c < Indexes; c++) {
-        tgt[c] = src[c].get();
-    }
-}
+//template <typename T, int32_t Indexes>
+//void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<Optional<T>, Indexes>& src) {
+//    for (int32_t c = 0; c < Indexes; c++) {
+//        tgt[c] = src[c].get();
+//    }
+//}
 
-template <typename T, int32_t Indexes>
-void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<T, Indexes>& src) {
-    for (int32_t c = 0; c < Indexes; c++) {
-        tgt[c] = src[c];
-    }
-}
+//template <typename T, int32_t Indexes>
+//void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<T, Indexes>& src) {
+//    for (int32_t c = 0; c < Indexes; c++) {
+//        tgt[c] = src[c];
+//    }
+//}
 
-template <typename T, typename TT, int32_t Indexes>
-void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<TT, Indexes>& src) {
-    for (int32_t c = 0; c < Indexes; c++) {
-        tgt[c] = src[c];
-    }
-}
+//template <typename T, typename TT, int32_t Indexes>
+//void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<TT, Indexes>& src) {
+//    for (int32_t c = 0; c < Indexes; c++) {
+//        tgt[c] = src[c];
+//    }
+//}
 
-template <typename T, int32_t Indexes>
-void assign(core::StaticVector<Optional<T>, Indexes>& tgt, const core::StaticVector<T, Indexes>& src)
-{
-    for (int32_t c = 0; c < Indexes; c++) {
-        tgt[c] = src[c];
-    }
-}
+//template <typename T, int32_t Indexes>
+//void assign(core::StaticVector<Optional<T>, Indexes>& tgt, const core::StaticVector<T, Indexes>& src)
+//{
+//    for (int32_t c = 0; c < Indexes; c++) {
+//        tgt[c] = src[c];
+//    }
+//}
 
-template <typename T, int32_t Indexes>
-void assign(core::StaticVector<Optional<T>, Indexes>& tgt, const T& src)
-{
-    static_assert(Indexes == 1, "");
-    tgt[0] = src;
-}
+//template <typename T, int32_t Indexes>
+//void assign(core::StaticVector<Optional<T>, Indexes>& tgt, const T& src)
+//{
+//    static_assert(Indexes == 1, "");
+//    tgt[0] = src;
+//}
 
 
-template <typename T, int32_t Indexes>
-void assign(core::StaticVector<T, Indexes>& tgt, const T& src)
-{
-    static_assert(Indexes <= 1, "");
-    if (Indexes == 1)
-    {
-        tgt[0] = src;
-    }
-}
+//template <typename T, int32_t Indexes>
+//void assign(core::StaticVector<T, Indexes>& tgt, const T& src)
+//{
+//    static_assert(Indexes <= 1, "");
+//    if (Indexes == 1)
+//    {
+//        tgt[0] = src;
+//    }
+//}
+
+
+
+//template <typename Fn>
+//static int32_t FindTotalElementsNumber(int32_t block_size, Fn&& fn)
+//{
+//    int32_t first       = 1;
+//    int32_t last        = block_size;
+
+//    while (first < last - 1)
+//    {
+//        int32_t middle = (first + last) / 2;
+
+//        int32_t size = fn.getBlockSize(middle);
+//        if (size < block_size)
+//        {
+//            first = middle;
+//        }
+//        else if (size > block_size)
+//        {
+//            last = middle;
+//        }
+//        else {
+//            break;
+//        }
+//    }
+
+//    int32_t max_size;
+
+//    if (fn.getBlockSize(last) <= block_size)
+//    {
+//        max_size = last;
+//    }
+//    else if (fn.getBlockSize((first + last) / 2) <= block_size)
+//    {
+//        max_size = (first + last) / 2;
+//    }
+//    else {
+//        max_size = first;
+//    }
+
+//    int32_t max = fn.extend(max_size);
+
+//    if (fn.getIndexSize(max) <= fn.getIndexSize(max_size))
+//    {
+//        return max;
+//    }
+
+//    return max_size;
+//}
 
 
 
 template <typename Fn>
-static int32_t FindTotalElementsNumber(int32_t block_size, Fn&& fn)
-{
-    int32_t first       = 1;
-    int32_t last        = block_size;
-
-    while (first < last - 1)
-    {
-        int32_t middle = (first + last) / 2;
-
-        int32_t size = fn.getBlockSize(middle);
-        if (size < block_size)
-        {
-            first = middle;
-        }
-        else if (size > block_size)
-        {
-            last = middle;
-        }
-        else {
-            break;
-        }
-    }
-
-    int32_t max_size;
-
-    if (fn.getBlockSize(last) <= block_size)
-    {
-        max_size = last;
-    }
-    else if (fn.getBlockSize((first + last) / 2) <= block_size)
-    {
-        max_size = (first + last) / 2;
-    }
-    else {
-        max_size = first;
-    }
-
-    int32_t max = fn.extend(max_size);
-
-    if (fn.getIndexSize(max) <= fn.getIndexSize(max_size))
-    {
-        return max;
-    }
-
-    return max_size;
-}
-
-
-
-template <typename Fn>
-static int32_t FindTotalElementsNumber2(int32_t block_size, Fn&& fn)
+static Int32Result FindTotalElementsNumber2(int32_t block_size, Fn&& fn) noexcept
 {
     int32_t first       = 0;
     int32_t last        = fn.max_elements(block_size);
@@ -143,7 +144,7 @@ static int32_t FindTotalElementsNumber2(int32_t block_size, Fn&& fn)
     {
         int32_t middle = (first + last) / 2;
 
-        int32_t size = fn.block_size(middle);
+        MEMORIA_TRY(size, fn.block_size(middle));
 
         if (size < block_size)
         {
@@ -159,7 +160,8 @@ static int32_t FindTotalElementsNumber2(int32_t block_size, Fn&& fn)
 
             for (int32_t c = 0; c < 256; c++)
             {
-                if (fn.block_size(middle + c) <= block_size)
+                MEMORIA_TRY(mid_size, fn.block_size(middle + c));
+                if (mid_size <= block_size)
                 {
                     max_size = middle + c;
                 }
@@ -168,7 +170,7 @@ static int32_t FindTotalElementsNumber2(int32_t block_size, Fn&& fn)
                 }
             }
 
-            MMA_THROW(Exception()) << WhatCInfo("Can't find max_size in 64 steps. Stop.");
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't find max_size in 64 steps. Stop.");
         }
     }
 
@@ -177,7 +179,7 @@ static int32_t FindTotalElementsNumber2(int32_t block_size, Fn&& fn)
 
     for (int32_t c = 0; c < 1024; c++)
     {
-        int32_t bs = fn.block_size(first + c);
+        MEMORIA_TRY(bs, fn.block_size(first + c));
         if (bs <= block_size)
         {
             max_size = first + c;
@@ -187,56 +189,54 @@ static int32_t FindTotalElementsNumber2(int32_t block_size, Fn&& fn)
         }
     }
 
-    MMA_THROW(Exception()) << WhatCInfo("Can't find max_size in 64 steps. Stop.");
-
-    return max_size;
+    return MEMORIA_MAKE_GENERIC_ERROR("Can't find max_size in 64 steps. Stop.");
 }
 
 
-template <typename Fn>
-static int32_t FindTotalElementsNumber3(int32_t block_size, Fn&& fn)
-{
-    int32_t first       = 0;
-    int32_t last        = fn.max_elements(block_size);
+//template <typename Fn>
+//static int32_t FindTotalElementsNumber3(int32_t block_size, Fn&& fn)
+//{
+//    int32_t first       = 0;
+//    int32_t last        = fn.max_elements(block_size);
 
-    int32_t max_size    = 0;
+//    int32_t max_size    = 0;
 
-    while (first < last - 1)
-    {
-        int32_t middle = (first + last) / 2;
+//    while (first < last - 1)
+//    {
+//        int32_t middle = (first + last) / 2;
 
-        int32_t size = fn.block_size(middle);
+//        int32_t size = fn.block_size(middle);
 
-        if (size < block_size)
-        {
-            first = middle;
-        }
-        else if (size > block_size)
-        {
-            last = middle;
-        }
-        else {
+//        if (size < block_size)
+//        {
+//            first = middle;
+//        }
+//        else if (size > block_size)
+//        {
+//            last = middle;
+//        }
+//        else {
 
-            max_size = middle;
-            return max_size;
-        }
-    }
+//            max_size = middle;
+//            return max_size;
+//        }
+//    }
 
-    max_size = first;
+//    max_size = first;
 
-    return max_size;
-}
+//    return max_size;
+//}
 
 
 
 template <typename Fn>
-static int32_t FindTotalElementsNumber(int32_t first, int32_t last, int32_t block_size, int32_t max_hops, Fn&& fn)
+static Int32Result FindTotalElementsNumber(int32_t first, int32_t last, int32_t block_size, int32_t max_hops, Fn&& fn) noexcept
 {
     while (first < last - 1 && max_hops > 0)
     {
         int32_t middle = (first + last) / 2;
 
-        int32_t size = fn(middle);
+        MEMORIA_TRY(size, fn(middle));
 
         if (size < block_size)
         {

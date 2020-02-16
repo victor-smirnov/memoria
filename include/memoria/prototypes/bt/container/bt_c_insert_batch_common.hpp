@@ -303,7 +303,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         if (has_data)
         {
             // has to be defined in subclasses
-            if (!self.ctr_is_at_the_end(path.leaf(), last_pos))
+            MEMORIA_TRY(at_end, self.ctr_is_at_the_end(path.leaf(), last_pos));
+            if (!at_end)
             {
                 MEMORIA_TRY_VOID(self.ctr_split_leaf(path, last_pos));
 
@@ -415,7 +416,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
                 insertion_state.next_pass();
             }
 
-            int32_t parent_size = self.ctr_get_branch_node_size(path[1]);
+            MEMORIA_TRY(parent_size, self.ctr_get_branch_node_size(path[1]));
             if (last_insertion_idx < parent_size)
             {
                 MEMORIA_TRY(child, self.ctr_get_node_child(path[1], last_insertion_idx));
@@ -468,7 +469,7 @@ Int32Result M_TYPE::ctr_insert_subtree_one_pass(
     {
         if (state.shouldMoveUp())
         {
-            int32_t node_size = self.ctr_get_branch_node_size(path[level]);
+            MEMORIA_TRY(node_size, self.ctr_get_branch_node_size(path[level]));
             if (insertion_result.idx() < node_size)
             {
                 MEMORIA_TRY_VOID(self.ctr_split_path(path, level, insertion_result.idx()));
@@ -496,7 +497,7 @@ Int32Result M_TYPE::ctr_insert_subtree_one_pass(
                         )
             );
 
-            int32_t parent_size = self.ctr_get_branch_node_size(path[level + 1]);
+            MEMORIA_TRY(parent_size, self.ctr_get_branch_node_size(path[level + 1]));
             if (parent_insertion_result < parent_size)
             {
                 MEMORIA_TRY(child, self.ctr_get_node_child(path[level + 1], parent_insertion_result));
@@ -516,12 +517,12 @@ Int32Result M_TYPE::ctr_insert_subtree_one_pass(
             else {
                 MEMORIA_TRY(child, self.ctr_get_node_child(path[level + 1], parent_insertion_result - 1));
                 path[level] = child;
-                return Int32Result::of(self.ctr_get_branch_node_size(child));
+                return self.ctr_get_branch_node_size(child);
             }
         }
         else {
             int32_t last_idx = insertion_result.idx();
-            int32_t node_size = self.ctr_get_branch_node_size(path[level]);
+            MEMORIA_TRY(node_size, self.ctr_get_branch_node_size(path[level]));
 
             if (last_idx < node_size)
             {

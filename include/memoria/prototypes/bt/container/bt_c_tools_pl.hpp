@@ -149,7 +149,7 @@ BoolResult M_TYPE::ctr_get_next_node(TreePathT& path, size_t level) const noexce
     {
         MEMORIA_TRY(parent, self.ctr_get_node_parent(path, level));
 
-        int32_t size = self.ctr_get_node_size(parent, 0);
+        MEMORIA_TRY(size, self.ctr_get_node_size(parent, 0));
 
         MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
 
@@ -199,7 +199,7 @@ BoolResult M_TYPE::ctr_get_prev_node(TreePathT& path, size_t level) const noexce
 
             if (has_prev_parent)
             {
-                int32_t node_size = self.ctr_get_node_size(path[level + 1], 0);
+                MEMORIA_TRY(node_size, self.ctr_get_node_size(path[level + 1], 0));
                 MEMORIA_TRY(child, self.ctr_get_node_child(path[level + 1], node_size - 1));
                 path[level] = child;
                 return ResultT::of(true);

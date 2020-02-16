@@ -104,7 +104,7 @@ public:
                     return MEMORIA_MAKE_GENERIC_ERROR("Subtree is null");
                 }
 
-                BranchNodeEntry sums = self.ctr_get_node_max_keys(child);
+                MEMORIA_TRY(sums, self.ctr_get_node_max_keys(child));
 
                 VoidResult ins_res = self.branch_dispatcher().dispatch(node, InsertChildFn(), idx + c, sums, child->id());
 

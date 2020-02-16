@@ -14,72 +14,32 @@
 // limitations under the License.
 
 
-#include <memoria/profiles/default/default.hpp>
 #include <memoria/core/datatypes/datatypes.hpp>
-
-#include <memoria/core/datatypes/varchars/varchar_builder.hpp>
-#include <memoria/core/datatypes/buffer/buffer.hpp>
-
-#include <memoria/api/store/memory_store_api.hpp>
-
-#include <memoria/api/vector/vector_api.hpp>
-
-#include <memoria/memoria.hpp>
-
 #include <memoria/core/tools/result.hpp>
 
 #include <iostream>
 #include <stdexcept>
+#include <type_traits>
 
 using namespace memoria;
 
-struct Resource {
-
-    Resource(MaybeError& mabe_error, U8String name)
-    {
-        wrap_construction(mabe_error, [&]() {
-            std::cout << "Initilizing Resource " << name << std::endl;
-
-            //return make_generic_error("Resource {} graceful faiulre", name);
-
-//            if (1==1) {
-//                throw std::runtime_error("Resource " + name.to_std_string() + " failure");
-//            }
-        });
-    }
-};
-
-struct Aggregate {
-
-    Resource res1_;
-    Resource res2_;
-
-    Aggregate(MaybeError& mabe_error):
-        res1_(mabe_error, "RES1"),
-        res2_(mabe_error, "RES2")
-    {
-        wrap_construction(mabe_error, [](){
-            std::cout << "Initilizing Aggregate" << std::endl;
-        });
-    }
-};
-
-Result<Aggregate> make_aggreagte() {
-    MaybeError maybe_error;
-    Aggregate agg(maybe_error);
-    if (!maybe_error) {
-        return Result<Aggregate>::of(std::move(agg));
-    }
-    else {
-        return std::move(maybe_error.get());
-    }
+template <typename Fn, typename... Args>
+auto function(Fn&& fn, Args&&... args) -> typename detail::ResultOfFn<decltype(fn(std::forward<Args>(args)...))>::Type {
+    return wrap_throwing([&](){
+        return fn(std::forward<Args>(args)...);
+    });
 }
+
 
 int main()
 {
     try {
-        Result<Aggregate> res = make_aggreagte();
-        res.get_or_throw();
+        const int x = 0;
+
+        function([&](auto&& a){
+            return a;
+        }, x).get_or_throw();
+
     }
     catch (MemoriaThrowable& th) {
         th.dump(std::cout);

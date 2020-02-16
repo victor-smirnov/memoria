@@ -223,12 +223,6 @@ public:
         return Base::tree_size(TreeBlocks, block_size);
     }
 
-    static int32_t expected_block_size(int32_t items_num)
-    {
-        return block_size(items_num);
-    }
-
-
 
     Value value(int32_t block, int32_t idx) const
     {

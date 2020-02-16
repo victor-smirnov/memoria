@@ -85,7 +85,7 @@ public:
     NDT0(CtrT& ctr): ctr_(ctr) {}
 
     template <typename Functor, typename... Args>
-    auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args) const
+    auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node->block_type_hash())
         {
@@ -98,7 +98,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
+    auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node1->block_type_hash())
         {
@@ -114,7 +114,7 @@ public:
 
 
     template <typename Functor, typename... Args>
-    auto dispatch_1st_const(const NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
+    auto dispatch_1st_const(const NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node1->block_type_hash())
         {
@@ -129,11 +129,11 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args) const
+    auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node->block_type_hash())
         {
-            const ConstNodeSO node_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(node.block())));
+            const ConstNodeSO node_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(node.block())));            
             return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
@@ -148,7 +148,7 @@ public:
             const NodeBaseG& node2,
             Functor&& functor,
             Args&&... args
-    ) const
+    ) const noexcept
     {
         if (HASH == node1->block_type_hash())
         {
@@ -169,7 +169,7 @@ public:
         typename Functor,
         typename... Args
     >
-    auto dispatch(bool leaf, Functor&& fn, Args&&... args) const
+    auto dispatch(bool leaf, Functor&& fn, Args&&... args) const noexcept
     {
         bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
@@ -187,7 +187,7 @@ public:
         typename Functor,
         typename... Args
     >
-    auto dispatch2(bool leaf, Functor&& fn, Args&&... args) const
+    auto dispatch2(bool leaf, Functor&& fn, Args&&... args) const noexcept
     {
         if (leaf == Leaf)
         {
@@ -237,7 +237,8 @@ public:
 
 
     template <typename Functor, typename... Args>
-    auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args) const
+    auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args) const noexcept ->
+        typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<NodeSO&>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node->block_type_hash())
         {
@@ -245,12 +246,13 @@ public:
             return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            MMA_THROW(DispatchException()) << WhatInfo(format_u8("Can't dispatch btree node type: {}", node->block_type_hash()));
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node->block_type_hash());
         }
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
+    auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const noexcept ->
+        typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<NodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node1->block_type_hash())
         {
@@ -259,12 +261,13 @@ public:
             return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
-            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node1->block_type_hash());
         }
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch_1st_const(const NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
+    auto dispatch_1st_const(const NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const noexcept ->
+        typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node1->block_type_hash())
         {
@@ -273,14 +276,15 @@ public:
             return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
-            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node1->block_type_hash());
         }
 
     }
 
 
     template <typename Functor, typename... Args>
-    auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args) const
+    auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args) const noexcept ->
+        typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node->block_type_hash())
         {
@@ -288,7 +292,7 @@ public:
             return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node->block_type_hash());
         }
     }
 
@@ -299,7 +303,8 @@ public:
             const NodeBaseG& node2,
             Functor&& functor,
             Args&&... args
-    ) const
+    ) const noexcept ->
+        typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::declval<ConstNodeSO>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node1->block_type_hash())
         {
@@ -308,7 +313,7 @@ public:
             return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
-            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node1->block_type_hash());
         }
     }
 
@@ -317,7 +322,8 @@ public:
         typename Functor,
         typename... Args
     >
-    auto dispatch(bool leaf, Functor&& fn, Args&&... args) const
+    auto dispatch(bool leaf, Functor&& fn, Args&&... args) const ->
+        typename detail::ResultOfFn<decltype(fn.treeNode(std::declval<ConstNodeSO>(), std::forward<Args>(args)...))>::Type
     {
         bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
@@ -327,7 +333,7 @@ public:
             return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type");
         }
     }
 
@@ -335,7 +341,8 @@ public:
         typename Functor,
         typename... Args
     >
-    auto dispatch2(bool leaf, Functor&& fn, Args&&... args) const
+    auto dispatch2(bool leaf, Functor&& fn, Args&&... args) const ->
+        typename detail::ResultOfFn<decltype(fn.treeNode(std::declval<ConstNodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))>::Type
     {
         if (leaf == Leaf)
         {
@@ -343,7 +350,7 @@ public:
             return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type");
         }
     }
 

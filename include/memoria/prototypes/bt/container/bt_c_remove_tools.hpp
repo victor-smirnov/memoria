@@ -105,8 +105,8 @@ protected:
     Result<MergeType> ctr_merge_leaf_with_siblings(TreePathT& path, MergeFn fn = [](const Position&, int32_t){}) noexcept;
 
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
-    bool ctr_should_merge_node(const NodeBaseG& node) const noexcept
+    MEMORIA_V1_DECLARE_NODE_FN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings);
+    BoolResult ctr_should_merge_node(const NodeBaseG& node) const noexcept
     {
         return self().node_dispatcher().dispatch(node, ShouldBeMergedNodeFn());
     }
@@ -150,7 +150,8 @@ VoidResult M_TYPE::ctr_remove_node_recursively(NodeBaseG& node, Position& sizes)
 
     if (!node->is_leaf())
     {
-        int32_t size = self.ctr_get_node_size(node, 0);
+        MEMORIA_TRY(size, self.ctr_get_node_size(node, 0));
+
         auto res = self.ctr_for_all_ids(node, 0, size, [&, this](const BlockID& id) noexcept -> VoidResult
         {
             auto& self = this->self();
@@ -161,7 +162,8 @@ VoidResult M_TYPE::ctr_remove_node_recursively(NodeBaseG& node, Position& sizes)
         MEMORIA_RETURN_IF_ERROR(res);
     }
     else {
-        sizes += self.ctr_leaf_sizes(node);
+        MEMORIA_TRY(leaf_size, self.ctr_leaf_sizes(node));
+        sizes += leaf_size;
     }
 
     return self.store().removeBlock(node->id());
@@ -294,7 +296,7 @@ VoidResult M_TYPE::ctr_remove_redundant_root(TreePathT& path, size_t level) noex
 
         if (parent->is_root())
         {
-            int32_t size = self.ctr_get_node_size(parent, 0);
+            MEMORIA_TRY(size, self.ctr_get_node_size(parent, 0));
             if (size == 1)
             {
                 MEMORIA_TRY(root_metadata, self.ctr_get_root_metadata());
@@ -382,7 +384,9 @@ BoolResult M_TYPE::ctr_merge_leaf_with_left_sibling(TreePathT& path, MergeFn fn)
 
     bool merged = false;
 
-    if (self.ctr_should_merge_node(path.leaf()))
+    MEMORIA_TRY(should_merge, self.ctr_should_merge_node(path.leaf()));
+
+    if (should_merge)
     {
         TreePathT prev = path;
         MEMORIA_TRY(has_prev, self.ctr_get_prev_node(prev, 0));
@@ -425,7 +429,8 @@ BoolResult M_TYPE::ctr_merge_leaf_with_right_sibling(TreePathT& path) noexcept
 
     auto& self = this->self();
 
-    if (self.ctr_should_merge_node(path.leaf()))
+    MEMORIA_TRY(should_merge, self.ctr_should_merge_node(path.leaf()));
+    if (should_merge)
     {
         TreePathT next_path = path;
         MEMORIA_TRY(has_next, self.ctr_get_next_node(next_path, 0));

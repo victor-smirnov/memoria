@@ -139,7 +139,7 @@ VoidResult M_TYPE::ctr_remove_entries(
 {
     auto& self = this->self();
 
-    Position stop_sizes = self.ctr_get_node_sizes(stop_path.leaf());
+    MEMORIA_TRY(stop_sizes, self.ctr_get_node_sizes(stop_path.leaf()));
 
     bool at_end;
 
@@ -172,7 +172,8 @@ VoidResult M_TYPE::ctr_remove_entries(
 
         if (has_prev_node)
         {
-            start_idx   = self.ctr_get_node_sizes(start_path.leaf());
+            MEMORIA_TRY(sizes, self.ctr_get_node_sizes(start_path.leaf()));
+            start_idx   = sizes;
             from_start  = false;
         }
         else {
@@ -306,15 +307,15 @@ VoidResult M_TYPE::ctr_remove_branch_nodes_at_end(
 {
     auto& self = this->self();
 
-    int32_t node_size = self.ctr_get_node_size(start_path[level], 0);
+    MEMORIA_TRY(node_size, self.ctr_get_node_size(start_path[level], 0));
     MEMORIA_TRY_VOID(self.ctr_remove_node_content(start_path, level, start_idx, node_size, sizes));
 
     while (!start_path[level]->is_root())
     {
         MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(start_path, level));
 
-        node_size = self.ctr_get_node_size(start_path[level + 1], 0);
-        MEMORIA_TRY_VOID(self.ctr_remove_node_content(start_path, level + 1, parent_idx + 1, node_size, sizes));
+        MEMORIA_TRY(node_size2, self.ctr_get_node_size(start_path[level + 1], 0));
+        MEMORIA_TRY_VOID(self.ctr_remove_node_content(start_path, level + 1, parent_idx + 1, node_size2, sizes));
 
         level++;
     }
@@ -332,7 +333,7 @@ VoidResult M_TYPE::ctr_remove_nodes_at_end(
 {
     auto& self = this->self();
 
-    Position node_sizes = self.ctr_get_node_sizes(start_path.leaf());
+    MEMORIA_TRY(node_sizes, self.ctr_get_node_sizes(start_path.leaf()));
 
     MEMORIA_TRY(leaf_sizes, self.ctr_remove_leaf_content(start_path, start_idx, node_sizes));
     sizes += leaf_sizes;
@@ -389,7 +390,7 @@ VoidResult M_TYPE::ctr_remove_nodes(
 
         MEMORIA_TRY_VOID(ctr_remove_branch_nodes(start_path, start_parent_idx + 1, stop_path, stop_parent_idx, 1, sizes));
 
-        Position start_end = self.ctr_get_node_sizes(start_path.leaf());
+        MEMORIA_TRY(start_end, self.ctr_get_node_sizes(start_path.leaf()));
 
         MEMORIA_TRY(start_leaf_sizes, self.ctr_remove_leaf_content(start_path, start_idx, start_end));
 
@@ -455,7 +456,7 @@ VoidResult M_TYPE::ctr_remove_branch_nodes(
 
         MEMORIA_TRY_VOID(ctr_remove_branch_nodes(start_path, start_parent_idx + 1, stop_path, stop_parent_idx, level + 1, sizes));
 
-        int32_t start_end = self.ctr_get_node_size(start_path[level], 0);
+        MEMORIA_TRY(start_end, self.ctr_get_node_size(start_path[level], 0));
 
         MEMORIA_TRY_VOID(self.ctr_remove_node_content(start_path, level, start_idx, start_end, sizes));
         MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(start_path, stop_path, level));

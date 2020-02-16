@@ -17,6 +17,8 @@
 
 #include <memoria/prototypes/bt/nodes/node_common_so.hpp>
 #include <memoria/prototypes/bt/pkd_adapters/bt_pkd_adapter_generic.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
+#include <memoria/core/tools/result.hpp>
 
 namespace memoria {
 
@@ -187,8 +189,9 @@ public:
     }
 
     template <typename V>
-    std::vector<V> values_as_vector(int32_t start, int32_t end) const
+    Result<std::vector<V>> values_as_vector(int32_t start, int32_t end) const noexcept
     {
+        using ResultT = Result<std::vector<V>>;
         std::vector<V> vals;
 
         const auto* vv = node_->values();
@@ -198,13 +201,14 @@ public:
             vals.emplace_back(vv[c]);
         }
 
-        return vals;
+        return ResultT::of(std::move(vals));
     }
 
     template <typename V>
-    std::vector<V> values_as_vector() const
+    Result<std::vector<V>> values_as_vector() const noexcept
     {
-        return values_as_vector<V>(0, size());
+        MEMORIA_TRY(size, this->size());
+        return values_as_vector<V>(0, size);
     }
 
 
@@ -223,7 +227,7 @@ public:
     template <typename V>
     VoidResult forAllValues(int32_t start, std::function<VoidResult (const V&)> fn) const noexcept
     {
-        auto end = size();
+        MEMORIA_TRY(end, size());
         return forAllValues(start, end, fn);
     }
 
@@ -268,9 +272,9 @@ public:
         }
     };
 
-    void max(BranchNodeEntry& entry) const
+    VoidResult max(BranchNodeEntry& entry) const noexcept
     {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), MaxFn(), entry).get_or_throw();
+        return Dispatcher(state()).dispatchNotEmpty(allocator(), MaxFn(), entry);
     }
 
     template <typename BranchNodeEntry>
@@ -288,7 +292,7 @@ public:
     Value& value(int32_t idx)
     {
         MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <, size());
+        //MEMORIA_ASSERT(idx, <, size());
 
         return *(node_->values() + idx);
     }
@@ -296,7 +300,7 @@ public:
     const Value& value(int32_t idx) const
     {
         MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <, size());
+        //MEMORIA_ASSERT(idx, <, size());
 
         return *(node_->values() + idx);
     }
@@ -317,24 +321,27 @@ public:
 
 
 
-    uint64_t active_streams() const {
-        return node_->active_streams();
+    Result<uint64_t> active_streams() const noexcept {
+        return Result<uint64_t>::of(node_->active_streams());
     }
 
 
 
-    int32_t capacity(uint64_t active_streams) const
+    Int32Result capacity(uint64_t active_streams) const noexcept
     {
         int32_t free_space  = node_->compute_streams_available_space();
-        int32_t max_size    = node_->max_tree_size1(free_space, active_streams);
-        int32_t cap         = max_size - size();
+        MEMORIA_TRY(max_size, node_->max_tree_size1(free_space, active_streams));
 
-        return cap >= 0 ? cap : 0;
+        MEMORIA_TRY(size, this->size());
+        int32_t cap = max_size - size;
+
+        return Int32Result::of(cap >= 0 ? cap : 0);
     }
 
-    int32_t capacity() const
+    Int32Result capacity() const noexcept
     {
-        return capacity(active_streams());
+        MEMORIA_TRY(active, active_streams());
+        return capacity(active);
     }
 
     struct SizeFn {
@@ -347,19 +354,18 @@ public:
         }
     };
 
-    int32_t size() const
+    Int32Result size() const noexcept
     {
         SizeFn fn;
-        //FIXME: use correct procedure to get number of children
-        Dispatcher(state()).dispatch(0, allocator(), fn).get_or_throw();
-        return fn.size_;
+        MEMORIA_TRY_VOID(Dispatcher(state()).dispatch(0, allocator(), fn));
+        return Int32Result::of(fn.size_);
     }
 
-    int32_t size(int32_t stream) const
+    Int32Result size(int32_t stream) const noexcept
     {
         SizeFn fn;
-        Dispatcher(state()).dispatch(stream, allocator(), fn).get_or_throw();
-        return fn.size_;
+        MEMORIA_TRY_VOID(Dispatcher(state()).dispatch(stream, allocator(), fn));
+        return Int32Result::of(fn.size_);
     }
 
     struct SizesFn {
@@ -370,11 +376,12 @@ public:
         }
     };
 
-    Position sizes() const
+    Result<Position> sizes() const noexcept
     {
+        using ResultT = Result<Position>;
         Position pos;
-        processSubstreamGroups(SizesFn(), pos).get_or_throw();
-        return pos;
+        MEMORIA_TRY_VOID(processSubstreamGroups(SizesFn(), pos));
+        return ResultT::of(pos);
     }
 
     struct SizeSumsFn {
@@ -385,11 +392,12 @@ public:
         }
     };
 
-    Position size_sums() const
+    Result<Position> size_sums() const noexcept
     {
+        using ResultT = Result<Position>;
         Position sums;
-        processStreamsStart(SizeSumsFn(), sums).get_or_throw();
-        return sums;
+        MEMORIA_TRY_VOID(processStreamsStart(SizeSumsFn(), sums));
+        return ResultT::of(sums);
     }
 
 
@@ -408,7 +416,7 @@ public:
 
     VoidResult insert(int32_t idx, const BranchNodeEntry& keys, const Value& value) noexcept
     {
-        int32_t size = this->size();
+        MEMORIA_TRY(size, this->size());
 
         MEMORIA_ASSERT_RTN(idx, >=, 0);
         MEMORIA_ASSERT_RTN(idx, <=, size);
@@ -505,7 +513,7 @@ public:
 
     VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept
     {
-        int32_t old_size = this->size();
+        MEMORIA_TRY(old_size, this->size());
 
         RemoveSpaceFn remove_fn;
         MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), remove_fn, room_start, room_end));
@@ -531,7 +539,7 @@ public:
 
 
 
-    bool shouldBeMergedWithSiblings() const {
+    BoolResult shouldBeMergedWithSiblings() const noexcept {
         return node_->shouldBeMergedWithSiblings();
     }
 
@@ -608,8 +616,8 @@ public:
     template <typename OtherNodeT>
     VoidResult mergeWith(OtherNodeT&& other) const noexcept
     {
-        int32_t other_size  = other.size();
-        int32_t my_size     = size();
+        MEMORIA_TRY(other_size, other.size());
+        MEMORIA_TRY(my_size, size());
 
         MergeWithFn fn;
         MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other)));
@@ -630,8 +638,8 @@ public:
 
 
     struct SplitToFn {
-        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        VoidResult stream(Tree& tree, OtherNodeT& other, int32_t idx) noexcept
+        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
+        VoidResult stream(Tree& tree, OtherNodeT&& other, int32_t idx) noexcept
         {
             int32_t size = tree.size();
             if (size > 0)
@@ -656,15 +664,13 @@ public:
     template <typename OtherNodeT>
     VoidResult splitTo(OtherNodeT&& other, int32_t split_idx)
     {
-        int32_t size        = this->size();
-        int32_t remainder   = size - split_idx;
+        MEMORIA_TRY(size, this->size());
+        int32_t remainder = size - split_idx;
 
         MEMORIA_ASSERT(split_idx, <=, size);
 
         SplitToFn fn;
         MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), split_idx));
-
-
         MEMORIA_TRY_VOID(other.allocator()->template allocateArrayBySize<Value>(ValuesBlockIdx, remainder));
 
         Value* other_values = other.node()->values();
@@ -686,11 +692,11 @@ public:
         }
     };
 
-    BranchNodeEntry keysAt(int32_t idx) const
+    Result<BranchNodeEntry> keysAt(int32_t idx) const
     {
         BranchNodeEntry acc;
 
-        Dispatcher(state()).dispatchNotEmpty(allocator(), KeysAtFn(), idx, &acc).get_or_throw();
+        MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), KeysAtFn(), idx, &acc));
 
         return acc;
     }
@@ -722,48 +728,49 @@ public:
         }
     };
 
-    void sums(int32_t start, int32_t end, BranchNodeEntry& sums) const
+    VoidResult sums(int32_t start, int32_t end, BranchNodeEntry& sums) const noexcept
     {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), start, end, sums).get_or_throw();
+        return Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
     }
 
-    void sums(const Position& start, const Position& end, BranchNodeEntry& sums) const
+    VoidResult sums(const Position& start, const Position& end, BranchNodeEntry& sums) const noexcept
     {
-        processSubstreamGroups(SumsFn(), start, end, sums);
+        return processSubstreamGroups(SumsFn(), start, end, sums);
     }
 
-    void sums(BranchNodeEntry& sums) const
+    VoidResult sums(BranchNodeEntry& sums) const noexcept
     {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), sums).get_or_throw();
+        return Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), sums);
     }
 
-    BranchNodeEntry sums() const
+    Result<BranchNodeEntry> sums() const noexcept
     {
+        using ResultT = Result<BranchNodeEntry>;
         BranchNodeEntry sums;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), sums).get_or_throw();
-        return sums;
+        MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), sums));
+        return ResultT::of(sums);
     }
 
-    void sum(int32_t stream, int32_t block_num, int32_t start, int32_t end, int64_t& accum) const
+    VoidResult sum(int32_t stream, int32_t block_num, int32_t start, int32_t end, int64_t& accum) const noexcept
     {
-        Dispatcher(state()).dispatch(stream, allocator(), SumsFn(), block_num, start, end, accum).get_or_throw();
+        return Dispatcher(state()).dispatch(stream, allocator(), SumsFn(), block_num, start, end, accum);
     }
 
 
     template <typename SubstreamPath>
-    void sum_substream(int32_t block_num, int32_t start, int32_t end, int64_t& accum) const
+    VoidResult sum_substream(int32_t block_num, int32_t start, int32_t end, int64_t& accum) const noexcept
     {
-        processStream<SubstreamPath>(SumsFn(), block_num, start, end, accum);
+        return processStream<SubstreamPath>(SumsFn(), block_num, start, end, accum);
     }
 
     template <typename LeafSubstreamPath>
-    void sum_substream_for_leaf_path(int32_t leaf_block_num, int32_t start, int32_t end, int64_t& accum) const
+    VoidResult sum_substream_for_leaf_path(int32_t leaf_block_num, int32_t start, int32_t end, int64_t& accum) const noexcept
     {
         using BranchPath = BuildBranchPath<LeafSubstreamPath>;
 
         const int32_t index = MyType::translateLeafIndexToBranchIndex<LeafSubstreamPath>(leaf_block_num);
 
-        processStream<BranchPath>(SumsFn(), index, start, end, accum);
+        return processStream<BranchPath>(SumsFn(), index, start, end, accum);
     }
 
 
@@ -786,9 +793,11 @@ public:
 
 
 
-    bool checkCapacities(const Position& sizes) const
+    BoolResult checkCapacities(const Position& sizes) const noexcept
     {
-        return capacity() >= sizes.get();
+        MEMORIA_TRY(val, capacity());
+
+        return BoolResult::of(val >= sizes.get());
     }
 
 
@@ -805,9 +814,11 @@ public:
         MEMORIA_TRY_VOID(node_->template generateDataEvents<RootMetadataList>(handler));
         MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler));
 
-        handler->startGroup("TREE_VALUES", size());
+        MEMORIA_TRY(size, this->size());
 
-        for (int32_t idx = 0; idx < size(); idx++)
+        handler->startGroup("TREE_VALUES", size);
+
+        for (int32_t idx = 0; idx < size; idx++)
         {
             ValueHelper<Value>::setup(handler, "CHILD_ID", value(idx));
         }
@@ -821,12 +832,12 @@ public:
         return node_->template init_root_metadata<RootMetadataList>();
     }
 
-    int32_t find_child_idx(const Value& child_id) const noexcept
+    Int32Result find_child_idx(const Value& child_id) const noexcept
     {
         int32_t idx = -1;
 
         const Value* values = node_->values();
-        int32_t size = node_->size();
+        MEMORIA_TRY(size, node_->size());
 
         for (int32_t c = 0; c < size; c++) {
             if (child_id == values[c]) {
@@ -834,7 +845,7 @@ public:
             }
         }
 
-        return idx;
+        return Int32Result::of(idx);
     }
 
 

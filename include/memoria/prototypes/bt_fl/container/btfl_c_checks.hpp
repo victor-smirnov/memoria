@@ -53,7 +53,7 @@ public:
     	{
     		if (node->is_leaf())
     		{
-    			auto sizes = self.ctr_get_leaf_stream_sizes(node);
+                MEMORIA_TRY(sizes, self.ctr_get_leaf_stream_sizes(node));
 
     			CtrSizeT data_streams_size = 0;
     			for (int32_t c = 0; c < CtrSizesT::Indexes - 1; c++)

@@ -756,36 +756,6 @@ public:
         return selectBw(size(), symbol, rank);
     }
 
-    void dump(std::ostream& out = std::cout, bool dump_index = true) const
-    {
-        out << "size       = " << size() << std::endl;
-        out << "max_size   = " << max_size() << std::endl;
-        out << "symbols    = " << Indexes << std::endl;
-
-
-        if (dump_index)
-        {
-            out << "Index: ";
-            if (has_index())
-            {
-                out << std::endl;
-                out << "========================================" << std::endl;
-                this->index()->dump(out);
-                out << "========================================" << std::endl;
-            }
-            else {
-                out << "None" << std::endl;
-            }
-        }
-
-        out << std::endl;
-
-        out << "Data:" << std::endl;
-
-        dumpSymbols<Value>(out, size(), BitsPerSymbol, [this](int32_t idx) -> Value {
-            return this->get(idx);
-        });
-    }
 
     VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {

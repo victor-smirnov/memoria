@@ -318,7 +318,7 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
     // FIXME: Need to leave src node untouched on merge.
     MEMORIA_TRY_VOID(mgr.add(tgt));
 
-    Position tgt_sizes = self.ctr_get_node_sizes(tgt);
+    MEMORIA_TRY(tgt_sizes, self.ctr_get_node_sizes(tgt));
 
     MEMORIA_TRY(src_parent, self.ctr_get_node_parent(src_path, 0));
     MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(src_parent, src->id()));

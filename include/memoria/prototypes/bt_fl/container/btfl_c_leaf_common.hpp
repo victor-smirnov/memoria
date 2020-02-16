@@ -45,10 +45,9 @@ public:
     using BlockUpdateMgr     = typename Types::BlockUpdateMgr;
 
 
-    bool ctr_is_at_the_end(const NodeBaseG& leaf, const Position& pos) const
+    BoolResult ctr_is_at_the_end(const NodeBaseG& leaf, const Position& pos) const noexcept
     {
-        auto sizes = self().ctr_get_node_sizes(leaf);
-
+        MEMORIA_TRY(sizes, self().ctr_get_node_sizes(leaf));
         return pos.sum() >= sizes.sum();
     }
 

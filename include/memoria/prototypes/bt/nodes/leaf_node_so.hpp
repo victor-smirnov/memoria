@@ -19,10 +19,13 @@
 
 #include <memoria/core/iovector/io_vector.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_iovector.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
+
 #include <memoria/prototypes/bt/pkd_adapters/bt_pkd_adapter_generic.hpp>
 
 
 #include <memoria/core/packed/tools/packed_stateful_dispatcher.hpp>
+
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
@@ -278,21 +281,22 @@ public:
     }
 
 
-    static std::unique_ptr<io::IOVector> create_iovector()
+    static Result<std::unique_ptr<io::IOVector>> create_iovector()
     {
-        return std::make_unique<IOVectorT>();
+        using ResultT = Result<std::unique_ptr<io::IOVector>>;
+        return ResultT::of(std::make_unique<IOVectorT>());
     }
 
-    std::unique_ptr<io::IOVector> create_iovector_view() const
+    Result<std::unique_ptr<io::IOVector>> create_iovector_view() const
     {
         auto iov = std::make_unique<IOVectorViewT>();
         configure_iovector_view(*iov.get());
-        return iov;
+        return std::move(iov);
     }
 
-    void configure_iovector_view(io::IOVector& io_vector) const
+    VoidResult configure_iovector_view(io::IOVector& io_vector) const
     {
-        Dispatcher(state()).dispatchAll(allocator(), _::ConfigureIOVectorViewFn<Streams>(io_vector)).get_or_throw();
+        return Dispatcher(state()).dispatchAll(allocator(), _::ConfigureIOVectorViewFn<Streams>(io_vector));
     }
 
 
@@ -337,8 +341,9 @@ public:
     }
 
 
-    uint64_t active_streams() const
+    Result<uint64_t> active_streams() const noexcept
     {
+        using ResultT = Result<uint64_t>;
         uint64_t streams = 0;
         for (int32_t c = 0; c < Streams; c++)
         {
@@ -346,7 +351,7 @@ public:
             streams += (bit << c);
         }
 
-        return streams;
+        return ResultT::of(streams);
     }
 
     struct CheckFn {
@@ -364,14 +369,14 @@ public:
 
     struct Size2Fn {
         template <int32_t StreamIdx, typename T>
-        int32_t process(const T* node)
+        Int32Result process(const T* node)
         {
             return node->template streamSize<StreamIdx>();
         }
     };
 
 
-    int32_t size(int32_t stream) const
+    Int32Result size(int32_t stream) const noexcept
     {
         return bt::ForEachStream<Streams - 1>::process(stream, Size2Fn(), this);
     }
@@ -385,9 +390,9 @@ public:
     };
 
     template <int32_t StreamIdx>
-    int32_t streamSize() const
+    Int32Result streamSize() const noexcept
     {
-        return this->processStream<IntList<StreamIdx>>(SizeFn()).get_or_throw();
+        return this->processStream<IntList<StreamIdx>>(SizeFn());
     }
 
 
@@ -439,9 +444,9 @@ public:
     };
 
 
-    bool checkCapacities(const Position& sizes) const
+    BoolResult checkCapacities(const Position& sizes) const noexcept
     {
-        Position fillment = this->sizes();
+        MEMORIA_TRY(fillment, this->sizes());
 
         for (int32_t c = 0; c < Streams; c++)
         {
@@ -450,19 +455,18 @@ public:
 
         int32_t mem_size = 0;
 
-        this->processSubstreamGroups(CheckCapacitiesFn(), fillment, &mem_size).get_or_throw();
+        MEMORIA_TRY_VOID(this->processSubstreamGroups(CheckCapacitiesFn(), fillment, &mem_size));
 
         int32_t client_area = node_->compute_streams_available_space();
 
-        // FIXME: fix block size estimation and remove '350'
-        return client_area >= mem_size; //+ 350
+        return BoolResult::of(client_area >= mem_size);
     }
 
 
     template <typename Entropy>
-    bool checkCapacities(const Entropy& entropy, const Position& sizes) const
+    BoolResult checkCapacities(const Entropy& entropy, const Position& sizes) const noexcept
     {
-        Position fillment = this->sizes();
+        MEMORIA_TRY(fillment, this->sizes());
 
         for (int32_t c = 0; c < Streams; c++)
         {
@@ -471,10 +475,10 @@ public:
 
         int32_t mem_size = 0;
 
-        processSubstreamGroups(CheckCapacitiesFn(), entropy, fillment, &mem_size).get_or_throw();
+        MEMORIA_TTRY_VOID(processSubstreamGroups(CheckCapacitiesFn(), entropy, fillment, &mem_size));
 
         int32_t client_area = node_->compute_streams_available_space();
-        return client_area >= mem_size;
+        return BoolResult::of(client_area >= mem_size);
     }
 
     struct SizesFn {
@@ -485,25 +489,27 @@ public:
         }
     };
 
-    Position sizes() const
+    Result<Position> sizes() const noexcept
     {
+        using ResultT = Result<Position>;
         Position pos;
-        processStreamsStart(SizesFn(), pos).get_or_throw();
-        return pos;
+        MEMORIA_TRY_VOID(processStreamsStart(SizesFn(), pos));
+        return ResultT::of(pos);
     }
 
-    int32_t single_stream_capacity(int32_t max_hops) const
+    Int32Result single_stream_capacity(int32_t max_hops) const noexcept
     {
-        int32_t min = sizes()[0];
+        MEMORIA_TRY(sizes, this->sizes());
+        int32_t min = sizes[0];
         int32_t max = node_->header().memory_block_size() * 8;
 
         int32_t client_area = node_->compute_streams_available_space();
 
-        int32_t total = FindTotalElementsNumber(min, max, client_area, max_hops, [&](int32_t stream_size){
+        MEMORIA_TRY(total, FindTotalElementsNumber(min, max, client_area, max_hops, [&](int32_t stream_size){
             return stream_block_size(stream_size);
-        });
+        }));
 
-        return total - min;
+        return Int32Result::of(total - min);
     }
 
     struct SingleStreamCapacityFn {
@@ -517,11 +523,11 @@ public:
     };
 
 
-    int32_t stream_block_size(int32_t size) const
+    Int32Result stream_block_size(int32_t size) const noexcept
     {
         int32_t mem_size = 0;
-        StreamDispatcher<0>::dispatchAllStatic(SingleStreamCapacityFn(), size, mem_size).get_or_throw();
-        return mem_size;
+        MEMORIA_TRY_VOID(StreamDispatcher<0>::dispatchAllStatic(SingleStreamCapacityFn(), size, mem_size));
+        return Int32Result::of(mem_size);
     }
 
 
@@ -556,15 +562,15 @@ public:
         }
     };
 
-    void max(BranchNodeEntry& entry) const
+    VoidResult max(BranchNodeEntry& entry) const noexcept
     {
-        processAllSubstreamsAcc(BranchNodeEntryMaxHandler(), entry).get_or_throw();
+        return processAllSubstreamsAcc(BranchNodeEntryMaxHandler(), entry);
     }
 
 
     VoidResult sums(const Position& start, const Position& end, BranchNodeEntry& sums) const noexcept
     {
-        processAllSubstreamsAcc(BranchNodeEntriesSumHandler(), sums, start, end);
+        return processAllSubstreamsAcc(BranchNodeEntriesSumHandler(), sums, start, end);
     }
 
     struct RemoveSpaceFn {
@@ -697,7 +703,7 @@ public:
         return BoolResult::of(client_area >= fn.mem_used_);
     }
 
-    bool shouldBeMergedWithSiblings() const
+    BoolResult shouldBeMergedWithSiblings() const noexcept
     {
         return node_->shouldBeMergedWithSiblings();
     }
@@ -785,11 +791,12 @@ public:
         }
     };
 
-    Position size_sums() const
+    Result<Position> size_sums() const noexcept
     {
+        using ResultT = Result<Position>;
         Position sums;
-        processStreamsStart(SizeSumsFn(), sums).get_or_throw();
-        return sums;
+        MEMORIA_TRY_VOID(processStreamsStart(SizeSumsFn(), sums));
+        return ResultT::of(sums);
     }
 
 
@@ -822,8 +829,8 @@ public:
     };
 
 
-    void dump() const {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), DumpFn()).get_or_throw();
+    VoidResult dump() const noexcept {
+        return Dispatcher(state()).dispatchNotEmpty(allocator(), DumpFn());
     }
 
 
@@ -835,8 +842,8 @@ public:
         }
     };
 
-    void dumpBlockSizes() const {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), DumpBlockSizesFn()).get_or_throw();
+    VoidResult dumpBlockSizes() const noexcept {
+        return Dispatcher(state()).dispatchNotEmpty(allocator(), DumpBlockSizesFn());
     }
 
 

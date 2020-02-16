@@ -214,12 +214,14 @@ public:
         return VoidResult::of();
     }
 
-    void clear_metadata()
+    VoidResult clear_metadata() noexcept
     {
         for (int32_t c = 0; c < StreamsStart; c++)
         {
-            allocator_.free(c).get_or_throw();
+            MEMORIA_TRY_VOID(allocator_.free(c));
         }
+
+        return VoidResult::of();
     }
 
     bool can_convert_to_root(psize_t metadata_size) const
@@ -245,12 +247,12 @@ public:
 
 
 
-    bool shouldBeMergedWithSiblings() const
+    BoolResult shouldBeMergedWithSiblings() const noexcept
     {
         int32_t client_area = allocator_.client_area();
         int32_t used        = allocator_.allocated();
 
-        return used < (client_area / 2);
+        return BoolResult::of(used < (client_area / 2));
     }
 
 public:
@@ -528,14 +530,14 @@ private:
     struct InitFn {
         uint64_t active_streams_;
 
-        InitFn(uint64_t active_streams): active_streams_(active_streams) {}
+        InitFn(uint64_t active_streams) noexcept: active_streams_(active_streams) {}
 
-        int32_t block_size(int32_t items_number) const
+        Int32Result block_size(int32_t items_number) const noexcept
         {
             return MyType::block_size(items_number, active_streams_);
         }
 
-        int32_t max_elements(int32_t block_size)
+        int32_t max_elements(int32_t block_size) const noexcept
         {
             return block_size;
         }
@@ -610,35 +612,35 @@ private:
     };
 
 public:
-    static int32_t block_size(int32_t tree_size, uint64_t active_streams = -1)
+    static Int32Result block_size(int32_t tree_size, uint64_t active_streams = -1) noexcept
     {
         TreeSizeFn fn;
 
-        processSubstreamGroupsStatic(fn, tree_size, active_streams).get_or_throw();
+        MEMORIA_TRY_VOID(processSubstreamGroupsStatic(fn, tree_size, active_streams));
 
         int32_t tree_block_size     = fn.size_;
         int32_t array_block_size    = PackedAllocatable::roundUpBytesToAlignmentBlocks(tree_size * sizeof(Value));
         int32_t client_area         = tree_block_size + array_block_size;
 
-        return PackedAllocator::block_size(client_area, Streams + 1);
+        return Int32Result::of(PackedAllocator::block_size(client_area, Streams + 1));
     }
 
 
-    static int32_t block_size(const Position& sizes, int32_t values_size)
+    static Int32Result block_size(const Position& sizes, int32_t values_size) noexcept
     {
         TreeSize2Fn fn;
 
-        processSubstreamGroupsStatic(fn, &sizes);
+        MEMORIA_TRY_VOID(processSubstreamGroupsStatic(fn, &sizes));
 
         int32_t tree_block_size     = fn.size_;
         int32_t array_block_size    = PackedAllocatable::roundUpBytesToAlignmentBlocks(values_size * sizeof(Value));
         int32_t client_area         = tree_block_size + array_block_size;
 
-        return PackedAllocator::block_size(client_area, Streams + 1);
+        return Int32Result::of(PackedAllocator::block_size(client_area, Streams + 1));
     }
 
 public:
-    static int32_t max_tree_size1(int32_t block_size, uint64_t active_streams = -1)
+    static Int32Result max_tree_size1(int32_t block_size, uint64_t active_streams = -1) noexcept
     {
         return FindTotalElementsNumber2(block_size, InitFn(active_streams));
     }
@@ -702,12 +704,12 @@ public:
         }
     };
 
-    int32_t size() const
+    Int32Result size() const noexcept
     {
         SizeFn fn;
         //FIXME: use correct procedure to get number of children
-        Dispatcher::dispatch(0, allocator(), fn).get_or_throw();
-        return fn.size_;
+        MEMORIA_TRY_VOID(Dispatcher::dispatch(0, allocator(), fn));
+        return Int32Result::of(fn.size_);
     }
 
 
@@ -726,7 +728,7 @@ public:
 
         MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf));
 
-        int32_t size = this->size();
+        MEMORIA_TRY(size, this->size());
 
         FieldFactory<Value>::serialize(buf, values(), size);
 
@@ -748,7 +750,7 @@ public:
 
         MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf));
 
-        int32_t size = this->size();
+        MEMORIA_TRY(size, this->size());
 
         FieldFactory<Value>::deserialize(buf, values(), size);
 

@@ -57,7 +57,7 @@ public:
 
         if (!path[level]->is_root())
         {
-            auto max_entry = self.ctr_get_node_max_keys(path[level]);
+            MEMORIA_TRY(max_entry, self.ctr_get_node_max_keys(path[level]));
             return ctr_update_path(path, level, max_entry);
         }
         else {
@@ -167,7 +167,7 @@ VoidResult M_TYPE::ctr_insert_to_branch_node(
     {
         MEMORIA_TRY(parent, self.ctr_get_node_parent_for_update(path, level));
 
-        auto max = self.ctr_get_node_max_keys(node);
+        MEMORIA_TRY(max, self.ctr_get_node_max_keys(node));
         MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
 
         MEMORIA_TRY_VOID(self.ctr_update_branch_nodes(path, level + 1, parent_idx, max));
@@ -197,19 +197,21 @@ VoidResult M_TYPE::ctr_split_node_raw(
 
     MEMORIA_TRY_VOID(split_fn(left_node, right_node));
 
-    auto left_max  = self.ctr_get_node_max_keys(left_node);
-    auto right_max = self.ctr_get_node_max_keys(right_node);
+    MEMORIA_TRY(left_max, self.ctr_get_node_max_keys(left_node));
+    MEMORIA_TRY(right_max, self.ctr_get_node_max_keys(right_node));
 
     MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(path[level + 1], left_node->id()));
 
     MEMORIA_TRY_VOID(self.ctr_update_branch_nodes(path, level + 1, parent_idx, left_max));
 
-    if (self.ctr_get_branch_node_capacity(path[level + 1], -1) > 0)
+    MEMORIA_TRY(capacity, self.ctr_get_branch_node_capacity(path[level + 1], -1));
+
+    if (capacity > 0)
     {
         MEMORIA_TRY_VOID(self.ctr_insert_to_branch_node(path, level + 1, parent_idx + 1, right_max, right_node->id()));
     }
     else {
-        int32_t parent_size = self.ctr_get_node_size(path[level + 1], 0);
+        MEMORIA_TRY(parent_size, self.ctr_get_node_size(path[level + 1], 0));
         int32_t parent_split_idx = parent_size / 2;
 
         MEMORIA_TRY_VOID(ctr_split_path_raw(path, level + 1, parent_split_idx));
@@ -316,7 +318,7 @@ BoolResult M_TYPE::ctr_update_branch_nodes(
 
     while(!tmp->is_root())
     {
-        auto max = self.ctr_get_node_max_keys(tmp);
+        MEMORIA_TRY(max, self.ctr_get_node_max_keys(tmp));
 
         MEMORIA_TRY(parent, self.ctr_get_node_parent_for_update(path, level));
 
@@ -343,7 +345,7 @@ VoidResult M_TYPE::ctr_update_path(TreePathT& path, size_t level, const BranchNo
     MEMORIA_TRY(using_next_node, self.ctr_update_branch_nodes(path, level + 1, parent_idx, entry));
 
     // Locating current child ID in the parent path[level+1].
-    int32_t child_idx = self.ctr_find_child_idx(path[level + 1], path[level]->id());
+    MEMORIA_TRY(child_idx, self.ctr_find_child_idx(path[level + 1], path[level]->id()));
     if (child_idx < 0)
     {
         // If no child is found in the parent, then we are looking eigher in the right,
@@ -357,7 +359,7 @@ VoidResult M_TYPE::ctr_update_path(TreePathT& path, size_t level, const BranchNo
         }
 
         // This is just a check
-        int32_t child_idx = self.ctr_find_child_idx(path[level + 1], path[level]->id());
+        MEMORIA_TRY(child_idx, self.ctr_find_child_idx(path[level + 1], path[level]->id()));
         if (child_idx < 0)
         {
             return MEMORIA_MAKE_GENERIC_ERROR("ctr_update_path() internal error");
@@ -401,7 +403,7 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, const TreePath
 
     MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, level));
 
-    auto max = self.ctr_get_node_max_keys(tgt);
+    MEMORIA_TRY(max, self.ctr_get_node_max_keys(tgt));
 
     MEMORIA_TRY_VOID(self.ctr_remove_non_leaf_node_entry(tgt_path, level + 1, parent_idx));
 

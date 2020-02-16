@@ -90,7 +90,7 @@ public:
     using Base::treeNode;
 
     template <typename CtrT, typename NodeT>
-    void treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
+    VoidResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
     {
         auto& self = this->self();
 
@@ -104,11 +104,13 @@ public:
             self.processBranchIteratorBranchNodeEntry(node, start, end);
             self.processBranchSizePrefix(node, start, end);
         }
+
+        return VoidResult::of();
     }
 
 
     template <typename CtrT, typename NodeT>
-    void treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
+    VoidResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
     {
         auto& self = this->self();
 
@@ -133,6 +135,8 @@ public:
                 // throw exception ?
             }
         }
+
+        return VoidResult::of();
     }
 
 
@@ -429,7 +433,7 @@ public:
     using Base::treeNode;
 
     template <typename CtrT, typename NodeT>
-    void treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
+    VoidResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
     {
         auto& self = this->self();
 
@@ -443,10 +447,12 @@ public:
             self.processBranchIteratorBranchNodeEntry(node, start, end);
             self.processBranchSizePrefix(node, start, end);
         }
+
+        return VoidResult::of();
     }
 
     template <typename CtrT, typename NodeT>
-    void treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
+    VoidResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
     {
         auto& self = this->self();
 
@@ -467,6 +473,8 @@ public:
         else {
             // ?
         }
+
+        return VoidResult::of();
     }
 
     template <int32_t StreamIdx, typename Tree>

@@ -257,7 +257,7 @@ public:
         catch (Exception& e)
         {
             out() << "Tree structure check failed" << std::endl;
-            tree->dump(out());
+            //tree->dump(out());
             throw e;
         }
     }

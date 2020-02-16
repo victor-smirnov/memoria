@@ -92,7 +92,7 @@ public:
         template <typename CtrT, typename NodeT>
         VoidResult treeNode(BranchNodeSO<CtrT, NodeT>& node, int32_t from, int32_t to, const BranchNodeEntryT* entries) noexcept
         {
-            int old_size = node.size();
+            MEMORIA_TRY(old_size, node.size());
 
             MEMORIA_TRY_VOID(node.processAll(*this, from, to, entries));
 
@@ -118,7 +118,7 @@ public:
 
         NodeBaseG node = path[level];
 
-        int32_t capacity         = self.ctr_get_branch_node_capacity(node, -1ull);
+        MEMORIA_TRY(capacity, self.ctr_get_branch_node_capacity(node, -1ull));
         CtrSizeT provider_size0  = provider.size();
         const int32_t batch_size = 32;
 
@@ -133,7 +133,8 @@ public:
             {
                 MEMORIA_TRY(child, child_fn());
 
-                subtrees[i].accum()         = self.ctr_get_node_max_keys(child);
+                MEMORIA_TRY(max, self.ctr_get_node_max_keys(child));
+                subtrees[i].accum()         = max;
                 subtrees[i].child_id()      = child->id();
                 subtrees[i].child_node()    = child;
             }

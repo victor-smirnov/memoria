@@ -128,15 +128,19 @@ public:
         CtrSizeT prefix_{};
 
         template <typename CtrT, typename NodeT>
-        void treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
+        VoidResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
         {
             const auto* stream = node.template substream<IntList<0>>();
             prefix_ += stream->sum(0, start, end);
+
+            return VoidResult::of();
         }
 
 
         template <typename CtrT, typename NodeT>
-        void treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end){}
+        VoidResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept {
+            return VoidResult::of();
+        }
     };
 
 
@@ -335,10 +339,10 @@ public:
         using ResultT = Result<SplitResult>;
         auto& self = this->self();
 
-        int32_t& idx        = self.iter_local_pos();
+        int32_t& idx = self.iter_local_pos();
 
-        int32_t size        = self.iter_leaf_size(0);
-        int32_t split_idx   = size/2;
+        MEMORIA_TRY(size, self.iter_leaf_size(0));
+        int32_t split_idx = size/2;
 
         MEMORIA_TRY_VOID(self.ctr().ctr_split_leaf(self.path(), Position::create(0, split_idx)));
 

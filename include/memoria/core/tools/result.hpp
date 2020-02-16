@@ -25,6 +25,8 @@
 
 #include <boost/variant2/variant.hpp>
 
+#include <fmt/format.h>
+
 #include <memory>
 #include <exception>
 #include <sstream>
@@ -635,11 +637,11 @@ namespace detail {
     struct IsVoidResultH<void>: HasValue<bool, true> {};
 
 
-    template <typename Fn, typename Rtn = std::result_of_t<Fn>>
-    struct ResultOfFn: HasType<Result<Rtn>> {};
+    template <typename T>
+    struct ResultOfFn: HasType<Result<T>> {};
 
-    template <typename Fn, typename T>
-    struct ResultOfFn<Fn, Result<T>>: HasType<Result<T>> {};
+    template <typename T>
+    struct ResultOfFn<Result<T>>: HasType<Result<T>> {};
 
     template <typename T>
     Result<T> wrap_fn_result(T&& value) noexcept {
@@ -748,7 +750,7 @@ std::ostream& operator<<(std::ostream& out, const Result<T*>& res) noexcept
 template <typename Fn>
 std::enable_if_t<
     !detail::IsVoidResultH<std::result_of_t<Fn()>>::Value,
-    typename detail::ResultOfFn<Fn()>::Type
+    typename detail::ResultOfFn<std::result_of_t<Fn()>>::Type
 >
 wrap_throwing(Fn&& fn) noexcept
 {
@@ -764,11 +766,11 @@ wrap_throwing(Fn&& fn) noexcept
 template <typename Fn>
 std::enable_if_t<
     detail::IsVoidResultH<std::result_of_t<Fn()>>::Value,
-    typename detail::ResultOfFn<Fn()>::Type
+    typename detail::ResultOfFn<std::result_of_t<Fn()>>::Type
 >
 wrap_throwing(Fn&& fn) noexcept
 {
-    using RtnT = typename detail::ResultOfFn<Fn()>::Type::ValueType;
+    using RtnT = typename detail::ResultOfFn<std::result_of_t<Fn()>>::Type::ValueType;
     try {
         fn();
         return Result<RtnT>::of();
@@ -839,3 +841,20 @@ do {                                         \
 #define MEMORIA_PROPAGATE_ERROR(res0) std::move(res0).transfer_error()
 
 }
+
+namespace fmt {
+
+template <typename T>
+struct formatter<memoria::Result<T>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::Result<T>& d, FormatContext& ctx) {
+        std::stringstream buf;
+        buf << d;
+        return format_to(ctx.out(), "{}", buf.str());
+    }
+};
+
+}
+

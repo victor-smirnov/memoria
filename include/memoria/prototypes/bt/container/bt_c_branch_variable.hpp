@@ -56,7 +56,7 @@ public:
 
         if (!path[level]->is_root())
         {
-            auto max_entry = self.ctr_get_node_max_keys(path[level]);
+            MEMORIA_TRY(max_entry, self.ctr_get_node_max_keys(path[level]));
             return ctr_update_path(path, level, max_entry);
         }
         else {
@@ -170,7 +170,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
 
     MEMORIA_TRY_VOID(split_fn(left_node, right_node));
 
-    auto right_max = self.ctr_get_node_max_keys(right_node);
+    MEMORIA_TRY(right_max, self.ctr_get_node_max_keys(right_node));
 
     MEMORIA_TRY_VOID(self.ctr_update_path(path, level));
 
@@ -187,7 +187,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
         {
             mgr.rollback();
 
-            int32_t parent_size = self.ctr_get_node_size(path[level + 1], 0);
+            MEMORIA_TRY(parent_size, self.ctr_get_node_size(path[level + 1], 0));
             int32_t parent_split_idx = parent_size / 2;
 
             MEMORIA_TRY_VOID(ctr_split_path_raw(path, level + 1, parent_split_idx));
@@ -323,8 +323,8 @@ BoolResult M_TYPE::ctr_update_branch_nodes(TreePathT& path, size_t level, int32_
     MEMORIA_TRY(success, self.ctr_update_branch_node(path[level], idx, entry));
     if (!success)
     {
-        int32_t size        = self.ctr_get_node_size(path[level], 0);
-        int32_t split_idx   = size / 2;
+        MEMORIA_TRY(size, self.ctr_get_node_size(path[level], 0));
+        int32_t split_idx = size / 2;
 
         MEMORIA_TRY_VOID(self.ctr_split_path_raw(path, level, split_idx));
 
@@ -367,7 +367,7 @@ VoidResult M_TYPE::ctr_update_path(TreePathT& path, size_t level, const BranchNo
     MEMORIA_TRY(using_next_node, self.ctr_update_branch_nodes(path, level + 1, parent_idx, entry));
 
     // Locating current child ID in the parent path[level+1].
-    int32_t child_idx = self.ctr_find_child_idx(path[level + 1], path[level]->id());
+    MEMORIA_TRY(child_idx, self.ctr_find_child_idx(path[level + 1], path[level]->id()));
     if (child_idx < 0)
     {
         // If no child is found in the parent, then we are looking eigher in the right,
@@ -381,7 +381,7 @@ VoidResult M_TYPE::ctr_update_path(TreePathT& path, size_t level, const BranchNo
         }
 
         // This is just a check
-        int32_t child_idx = self.ctr_find_child_idx(path[level + 1], path[level]->id());
+        MEMORIA_TRY(child_idx, self.ctr_find_child_idx(path[level + 1], path[level]->id()));
         if (child_idx < 0)
         {
             return MEMORIA_MAKE_GENERIC_ERROR("ctr_update_path() internal error");

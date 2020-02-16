@@ -70,7 +70,8 @@ public:
             return BoolResult::of(true);
         }
         else {
-            iter_->iter_local_pos() = iter_->iter_leaf_sizes().sum();
+            MEMORIA_TRY(leaf_sizes, iter_->iter_leaf_sizes());
+            iter_->iter_local_pos() = leaf_sizes.sum();
             return BoolResult::of(false);
         }
     }

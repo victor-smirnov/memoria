@@ -404,7 +404,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         node->set_root(false);
 
-        node->clear_metadata();
+        MEMORIA_TRY_VOID(node->clear_metadata());
 
         return VoidResult::of();
     }
@@ -584,7 +584,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    MEMORIA_V1_CONST_STATIC_FN_WRAPPER(CreateNodeFn, ctr_create_node_fn);
+    MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, ctr_create_node_fn, Result<NodeBaseG>);
     Result<NodeBaseG> createNonRootNode(int16_t level, bool leaf, int32_t size = -1) const noexcept
     {
         using ResultT = Result<NodeBaseG>;

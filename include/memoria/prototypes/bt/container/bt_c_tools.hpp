@@ -19,7 +19,9 @@
 #include <memoria/core/container/macros.hpp>
 #include <memoria/core/strings/string.hpp>
 
-#include <memoria/prototypes/bt/nodes/branch_node.hpp>
+#include <memoria/prototypes/bt/nodes/branch_node_so.hpp>
+#include <memoria/prototypes/bt/nodes/leaf_node_so.hpp>
+
 #include <memoria/prototypes/bt/bt_macros.hpp>
 
 #include <memoria/core/iovector/io_vector.hpp>
@@ -76,22 +78,22 @@ public:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(DumpBlockSizesFn, ctr_dump_block_sizes);
-    void ctr_dump_block_sizes(const NodeBaseG& node) const noexcept
+    VoidResult ctr_dump_block_sizes(const NodeBaseG& node) const noexcept
     {
-        self().leaf_dispatcher().dispatch(node, DumpBlockSizesFn());
+        return self().leaf_dispatcher().dispatch(node, DumpBlockSizesFn());
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN(MaxFn, max);
-    BranchNodeEntry ctr_get_node_max_keys(const NodeBaseG& node) const noexcept
+    Result<BranchNodeEntry> ctr_get_node_max_keys(const NodeBaseG& node) const noexcept
     {
         BranchNodeEntry entry;
-        self().node_dispatcher().dispatch(node, MaxFn(), entry);
-        return entry;
+        MEMORIA_TRY_VOID(self().node_dispatcher().dispatch(node, MaxFn(), entry));
+        return Result<BranchNodeEntry>::of(entry);
     }
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetSizesFn, sizes, Position);
-    Position ctr_get_node_sizes(const NodeBaseG& node) const noexcept
+    MEMORIA_V1_DECLARE_NODE_FN(GetSizesFn, sizes);
+    Result<Position> ctr_get_node_sizes(const NodeBaseG& node) const noexcept
     {
         return self().node_dispatcher().dispatch(node, GetSizesFn());
     }
@@ -110,7 +112,7 @@ public:
 
     Int32Result ctr_get_child_idx(const NodeBaseG& node, const BlockID& child_id) const noexcept
     {
-        auto idx = ctr_find_child_idx(node, child_id);
+        MEMORIA_TRY(idx, ctr_find_child_idx(node, child_id));
         if (MMA_LIKELY(idx >= 0)) {
             return Int32Result::of(idx);
         }
@@ -142,8 +144,8 @@ public:
     }
 
     // TODO: check noexcept
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(CheckCapacitiesFn, checkCapacities, bool);
-    bool ctr_check_node_capacities(const NodeBaseG& node, const Position& sizes) const noexcept
+    MEMORIA_V1_DECLARE_NODE_FN(CheckCapacitiesFn, checkCapacities);
+    BoolResult ctr_check_node_capacities(const NodeBaseG& node, const Position& sizes) const noexcept
     {
         return self().node_dispatcher().dispatch(node, CheckCapacitiesFn(), sizes);
     }
@@ -207,7 +209,8 @@ protected:
     Result<NodeBaseG> getLastChildFn(Node&& node) const noexcept
     {
         auto& self = this->self();
-        return self.ctr_get_block(node.value(node.size() - 1));
+        MEMORIA_TRY(size, node.size());
+        return self.ctr_get_block(node.value(size - 1));
     }
 
 
@@ -234,7 +237,7 @@ protected:
         }
     }
 
-    MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetLastChildFn, getLastChildFn, Result<NodeBaseG>);
+    MEMORIA_V1_CONST_FN_WRAPPER(GetLastChildFn, getLastChildFn);
     Result<NodeBaseG> ctr_get_node_last_child(const NodeBaseG& node) const noexcept
     {
         using ResultT = Result<NodeBaseG>;
@@ -251,7 +254,7 @@ protected:
 
 
 
-    MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetChildForUpdateFn, getChildForUpdateFn, Result<NodeBaseG>);
+    MEMORIA_V1_CONST_FN_WRAPPER(GetChildForUpdateFn, getChildForUpdateFn);
     Result<NodeBaseG> ctr_get_child_for_update(const NodeBaseG& node, int32_t idx) const noexcept
     {
         using ResultT = Result<NodeBaseG>;
@@ -266,8 +269,8 @@ protected:
         }
     }
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(NodeStreamSizesFn, size_sums, Position);
-    Position ctr_node_stream_sizes(const NodeBaseG& node) const noexcept
+    MEMORIA_V1_DECLARE_NODE_FN(NodeStreamSizesFn, size_sums);
+    Result<Position> ctr_node_stream_sizes(const NodeBaseG& node) const noexcept
     {
         return self().node_dispatcher().dispatch(node, NodeStreamSizesFn());
     }
@@ -317,7 +320,7 @@ protected:
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, BlockID);
-    BlockID ctr_get_child_id(const NodeBaseG& node, int32_t idx) const noexcept
+    Result<BlockID> ctr_get_child_id(const NodeBaseG& node, int32_t idx) const noexcept
     {
         return self().branch_dispatcher().dispatch(node, GetINodeDataFn(), idx);
     }
@@ -342,15 +345,15 @@ public:
 
 
 protected:
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetActiveStreamsFn, active_streams, uint64_t);
-    uint64_t ctr_get_active_streams(const NodeBaseG& node) const noexcept
+    MEMORIA_V1_DECLARE_NODE_FN(GetActiveStreamsFn, active_streams);
+    Result<uint64_t> ctr_get_active_streams(const NodeBaseG& node) const noexcept
     {
         return self().node_dispatcher().dispatch(node, GetActiveStreamsFn());
     }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(IsNodeEmpty, is_empty, bool);
-    bool ctr_is_node_empty(const NodeBaseG& node) noexcept
+    MEMORIA_V1_DECLARE_NODE_FN(IsNodeEmpty, is_empty);
+    BoolResult ctr_is_node_empty(const NodeBaseG& node) noexcept
     {
         return self().node_dispatcher().dispatch(node, IsNodeEmpty());
     }
@@ -383,17 +386,17 @@ protected:
         }
     };
 
-    void ctr_set_child_id(NodeBaseG& node, int32_t child_idx, const BlockID& child_id) const noexcept
+    VoidResult ctr_set_child_id(NodeBaseG& node, int32_t child_idx, const BlockID& child_id) const noexcept
     {
         self().ctr_update_block_guard(node);
-        self().branch_dispatcher().dispatch(node, SetChildIDFn(), child_idx, child_id);
+        return self().branch_dispatcher().dispatch(node, SetChildIDFn(), child_idx, child_id);
     }
 
 
 
     struct GetBranchNodeChildernCount {
         template <typename CtrT, typename T, typename... Args>
-        int32_t treeNode(BranchNodeSO<CtrT, T>& node, Args&&... args) const noexcept
+        Int32Result treeNode(BranchNodeSO<CtrT, T>& node, Args&&... args) const noexcept
         {
             return node->size();
         }
@@ -402,7 +405,7 @@ protected:
     template <int32_t Stream>
     struct GetLeafNodeStreamSize {
         template <typename CtrT, typename T, typename... Args>
-        int32_t treeNode(const LeafNodeSO<CtrT, T>& node, Args&&... args) const noexcept
+        Int32Result treeNode(const LeafNodeSO<CtrT, T>& node, Args&&... args) const noexcept
         {
             return node.template streamSize<Stream>();
         }
@@ -410,29 +413,29 @@ protected:
 
     struct GetLeafNodeStreamSizes {
         template <typename CtrT, typename T, typename... Args>
-        Position treeNode(const LeafNodeSO<CtrT, T>& node, Args&&... args) const noexcept
+        Result<Position> treeNode(const LeafNodeSO<CtrT, T>& node, Args&&... args) const noexcept
         {
             return node.sizes();
         }
     };
 
-    struct GetLeafNodeStreamSizesStatic {
-        template <typename CtrT, typename T, typename... Args>
-        Position treeNode(const LeafNodeSO<CtrT, T>& node, Args&&... args) const
-        {
-            return bt::LeafNode<T>::sizes(std::forward<Args>(args)...);
-        }
-    };
+//    struct GetLeafNodeStreamSizesStatic {
+//        template <typename CtrT, typename T, typename... Args>
+//        Result<Position> treeNode(const LeafNodeSO<CtrT, T>& node, Args&&... args) const
+//        {
+//            return bt::LeafNode<T>::sizes(std::forward<Args>(args)...);
+//        }
+//    };
 
 
-    int32_t ctr_get_node_children_count(const NodeBaseG& node) const noexcept
+    Int32Result ctr_get_node_children_count(const NodeBaseG& node) const noexcept
     {
         return self().branch_dispatcher().dispatch(node, GetBranchNodeChildernCount());
     }
 
 
 
-    int32_t ctr_get_branch_node_size(const NodeBaseG& node) const noexcept
+    Int32Result ctr_get_branch_node_size(const NodeBaseG& node) const noexcept
     {
         return self().branch_dispatcher().dispatch(node, GetSizeFn());
     }
@@ -440,21 +443,16 @@ protected:
 public:
 
     template <int32_t StreamIdx>
-    int32_t ctr_get_leaf_stream_size(const NodeBaseG& node) const noexcept
+    Int32Result ctr_get_leaf_stream_size(const NodeBaseG& node) const noexcept
     {
         return self().leaf_dispatcher().dispatch(node, GetLeafNodeStreamSize<StreamIdx>());
     }
 
-    Position ctr_get_leaf_stream_sizes(const NodeBaseG& node) const noexcept
+    Result<Position> ctr_get_leaf_stream_sizes(const NodeBaseG& node) const noexcept
     {
         return self().leaf_dispatcher().dispatch(node, GetLeafNodeStreamSizes());
     }
 
-
-    Position get_get_stream_sizes(const BranchNodeEntry& sums) const noexcept
-    {
-        return self().leaf_dispatcher().template dispatch<bt::LeafNode>(true, GetLeafNodeStreamSizesStatic(), sums);
-    }
 
     struct CreateIOVectorViewFn
     {
@@ -482,7 +480,7 @@ public:
     };
 
     // TODO: error handling
-    void configure_iovector_view(NodeBaseG& node, io::IOVector& io_vector) noexcept
+    VoidResult configure_iovector_view(NodeBaseG& node, io::IOVector& io_vector) noexcept
     {
         return self().leaf_dispatcher().dispatch(node, ConfigureIOVectorViewFn(), io_vector);
     }
@@ -507,13 +505,13 @@ protected:
 
     // TODO: error handling
     template <typename SubstreamPath>
-    const auto* ctr_get_packed_struct(const NodeBaseG& leaf) const noexcept
+    auto ctr_get_packed_struct(const NodeBaseG& leaf) const noexcept
     {
         return self().leaf_dispatcher().dispatch(leaf, GetPackedStructFn<SubstreamPath>());
     }
 
     template <typename SubstreamPath>
-    auto* ctr_get_packed_struct(NodeBaseG& leaf) noexcept
+    auto ctr_get_packed_struct(NodeBaseG& leaf) noexcept
     {
         return self().leaf_dispatcher().dispatch(leaf, GetPackedStructFn<SubstreamPath>());
     }

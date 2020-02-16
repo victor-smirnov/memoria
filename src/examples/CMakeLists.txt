@@ -37,6 +37,8 @@ MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
 ENDMACRO()
 
 if (BUILD_CLASSIC_MEMORIA_LIB)
+    ClassicExample(datatypes datatypes.cpp "" "")
+
     if (BUILD_MEMORY_STORE)
         if (BUILD_CONTAINERS)
             ClassicExample(mapped mapped.cpp "" "")

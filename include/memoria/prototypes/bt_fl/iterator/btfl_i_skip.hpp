@@ -55,21 +55,19 @@ public:
     bool iter_is_end() const noexcept
     {
         auto& self = this->self();
-
-        return self.iter_leaf().node().isSet() ? self.iter_local_pos() >= self.iter_leaf_size(StructureStreamIdx) : true;
+        return self.iter_leaf().node().isSet() ? self.iter_local_pos() >= self.iter_leaf_size(StructureStreamIdx).get_or_throw() : true;
     }
 
     bool is_end() const noexcept
     {
         auto& self = this->self();
-        return self.iter_leaf().node().isSet() ? self.iter_local_pos() >= self.iter_leaf_size(StructureStreamIdx) : true;
+        return self.iter_leaf().node().isSet() ? self.iter_local_pos() >= self.iter_leaf_size(StructureStreamIdx).get_or_throw() : true;
     }
 
     bool iter_is_end(int32_t idx) const noexcept
     {
         auto& self = this->self();
-
-        return self.iter_leaf().node().isSet() ? idx >= self.iter_leaf_size(StructureStreamIdx) : true;
+        return self.iter_leaf().node().isSet() ? idx >= self.iter_leaf_size(StructureStreamIdx).get_or_throw() : true;
     }
 
     bool iter_is_content() const noexcept
@@ -97,7 +95,7 @@ public:
     bool iter_is_empty() const noexcept
     {
         auto& self = this->self();
-        return self.iter_leaf().node().isEmpty() || self.iter_leaf_size(StructureStreamIdx) == 0;
+        return self.iter_leaf().node().isEmpty() || self.iter_leaf_size(StructureStreamIdx).get_or_throw() == 0;
     }
 
     bool iter_is_not_empty() const noexcept
@@ -174,7 +172,7 @@ public:
     int32_t iter_data_stream() const noexcept
     {
         auto& self  = this->self();
-        auto s      = self.leaf_structure();
+        auto s      = self.leaf_structure().get_or_throw();
 
         if (s != nullptr)
         {
@@ -192,7 +190,7 @@ public:
     int32_t iter_data_stream_s() const noexcept
     {
         auto& self  = this->self();
-        auto s      = self.leaf_structure();
+        auto s = self.leaf_structure().get_or_throw();
 
         if (s != nullptr)
         {
@@ -228,18 +226,21 @@ private:
         CtrSizeT pos_ = 0;
 
         template <typename NodeTypes>
-        void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+        VoidResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end) noexcept
         {
             using BranchSizePath = IntList<Stream>;
 
             auto sizes_substream = node->template substream<BranchSizePath>();
 
             pos_ += sizes_substream->sum(0, end);
+
+            return VoidResult::of();
         }
 
         template <typename NodeTypes>
-        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+        VoidResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end) noexcept
         {
+            return VoidResult::of();
         }
     };
 
@@ -289,10 +290,9 @@ public:
     	if (self.iter_stream() != StructureStreamIdx)
     	{
     		int32_t stream = self.iter_stream();
-
     		int32_t data_idx = self.iter_local_pos();
 
-    		auto s = self.leaf_structure();
+            MEMORIA_TRY(s, self.leaf_structure());
 
     		if (s != nullptr)
     		{
@@ -306,7 +306,8 @@ public:
                     self.iter_local_pos() = result.local_pos();
     			}
     			else {
-    				self.iter_local_pos() = self.iter_leaf_size(StructureStreamIdx);
+                    MEMORIA_TRY(leaf_size, self.iter_leaf_size(StructureStreamIdx));
+                    self.iter_local_pos() = leaf_size;
     			}
 
                 return VoidResult::of();
@@ -345,7 +346,7 @@ public:
     {
         auto& self = this->self();
 
-        auto s = self.leaf_structure();
+        auto s = self.leaf_structure().get_or_throw();
         if (s != nullptr) {
         	return s->rank(structure_idx, stream);
         }
@@ -363,7 +364,7 @@ public:
     {
         auto& self = this->self();
 
-        auto leaf_structure = self.leaf_structure();
+        auto leaf_structure = self.leaf_structure().get_or_throw();
 
         if (leaf_structure != nullptr) {
 
@@ -389,7 +390,7 @@ public:
     {
         auto& self = this->self();
 
-        auto leaf_structure = self.leaf_structure();
+        auto leaf_structure = self.leaf_structure().get_or_throw();
 
         if (leaf_structure != nullptr)
         {
@@ -403,11 +404,11 @@ public:
 
     int32_t iter_structure_size() const noexcept
     {
-        return self().iter_leaf_size(StructureStreamIdx);
+        return self().iter_leaf_size(StructureStreamIdx).get_or_throw();
     }
 
 
-    const auto* leaf_structure() const noexcept
+    auto leaf_structure() const noexcept
     {
         auto& self = this->self();
         return self.ctr().template ctr_get_packed_struct<IntList<StructureStreamIdx, 1>>(self.iter_leaf());
@@ -417,11 +418,11 @@ public:
     {
         auto& self = this->self();
 
-        auto s = self.leaf_structure();
+        auto s = self.leaf_structure().get_or_throw();
 
         if (s != nullptr)
         {
-            return self.leaf_structure()->selectFW(position + 1, stream).local_pos();
+            return self.leaf_structure().get_or_throw()->selectFW(position + 1, stream).local_pos();
         }
         else {
         	return 0;

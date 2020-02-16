@@ -90,7 +90,8 @@ public:
         using ResultT = BoolResult;
         auto& self = this->self();
 
-        if (self.ctr_check_node_capacities(iter.iter_leaf(), Position::create(Stream, 1)))
+        MEMORIA_TRY(capacity, self.ctr_check_node_capacities(iter.iter_leaf(), Position::create(Stream, 1)));
+        if (capacity)
         {
             MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
             MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(iter.iter_leaf(), InsertStreamEntryFn<Stream>(), idx, entry));
@@ -272,7 +273,7 @@ BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, bool onl
 
         if (is_same_parent)
         {
-            auto sizes = self.ctr_get_node_sizes(tgt.leaf());
+            MEMORIA_TRY(sizes, self.ctr_get_node_sizes(tgt.leaf()));
 
             MEMORIA_TRY_VOID(self.ctr_do_merge_leaf_nodes(tgt, src));
             MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(tgt));
@@ -290,7 +291,7 @@ BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, bool onl
 
             if (branch_nodes_merged)
             {
-                auto sizes = self.ctr_get_node_sizes(tgt.leaf());
+                MEMORIA_TRY(sizes, self.ctr_get_node_sizes(tgt.leaf()));
 
                 MEMORIA_TRY_VOID(self.ctr_do_merge_leaf_nodes(tgt, src));
                 MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(tgt));

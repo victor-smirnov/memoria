@@ -50,8 +50,8 @@ public:
 
     VoidResult ctr_create_new_root_block(TreePathT& path) noexcept;
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, int32_t);
-    int32_t ctr_get_branch_node_capacity(const NodeBaseG& node, uint64_t active_streams) const noexcept
+    MEMORIA_V1_DECLARE_NODE_FN(GetNonLeafCapacityFn, capacity);
+    Int32Result ctr_get_branch_node_capacity(const NodeBaseG& node, uint64_t active_streams) const noexcept
     {
         return self().branch_dispatcher().dispatch(node, GetNonLeafCapacityFn(), active_streams);
     }
@@ -83,12 +83,12 @@ VoidResult M_TYPE::ctr_create_new_root_block(TreePathT& path) noexcept
 
     MEMORIA_TRY(new_root, self.ctr_create_node(root->level() + 1, true, false, root->header().memory_block_size()));
 
-    uint64_t root_active_streams = self.ctr_get_active_streams(root);
+    MEMORIA_TRY(root_active_streams, self.ctr_get_active_streams(root));
     MEMORIA_TRY_VOID(self.ctr_layout_branch_node(new_root, root_active_streams));
     MEMORIA_TRY_VOID(self.ctr_copy_root_metadata(root, new_root));
     MEMORIA_TRY_VOID(self.ctr_root_to_node(root));
 
-    BranchNodeEntry max = self.ctr_get_node_max_keys(root);
+    MEMORIA_TRY(max, self.ctr_get_node_max_keys(root));
 
     path.add_root(new_root);
 

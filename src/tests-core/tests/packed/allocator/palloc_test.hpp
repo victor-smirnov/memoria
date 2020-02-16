@@ -55,7 +55,7 @@ class PackedAllocatorTest: public TestState {
             const Allocator* alloc = header_.allocator();
             assert_equals(true, alloc != nullptr);
 
-            return alloc->element_size(this);
+            return alloc->element_size(this).get_or_throw();
         }
 
         int32_t object_size() const {
@@ -104,7 +104,7 @@ class PackedAllocatorTest: public TestState {
         void enlarge(int32_t delta)
         {
             Allocator* alloc = header_.allocator();
-            int32_t block_size   = alloc->element_size(this);
+            int32_t block_size   = alloc->element_size(this).get_or_throw();
             int32_t new_size     = alloc->resizeBlock(this, block_size + delta).get_or_throw();
             init(new_size).get_or_throw();
             fill(data_);
@@ -113,7 +113,7 @@ class PackedAllocatorTest: public TestState {
         void shrink(int32_t delta)
         {
             Allocator* alloc = header_.allocator();
-            int32_t block_size   = alloc->element_size(this);
+            int32_t block_size   = alloc->element_size(this).get_or_throw();
             int32_t new_size     = alloc->resizeBlock(this, block_size - delta).get_or_throw();
 
             init(new_size).get_or_throw();

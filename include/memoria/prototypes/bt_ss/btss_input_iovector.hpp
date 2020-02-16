@@ -141,7 +141,7 @@ public:
                 }
             }
 
-            auto capacity = findCapacity(leaf, buffer_sizes);
+            MEMORIA_TRY(capacity, findCapacity(leaf, buffer_sizes));
 
             if (capacity > 0)
             {
@@ -163,7 +163,7 @@ public:
         }
     }
 
-    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size) noexcept = 0;
+    virtual Int32Result findCapacity(const NodeBaseG& leaf, int32_t size) noexcept = 0;
 
     struct InsertBufferFn
     {
@@ -344,16 +344,16 @@ public:
     ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
     {}
 
-    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size) noexcept
+    virtual Int32Result findCapacity(const NodeBaseG& leaf, int32_t size) noexcept
     {
-        int32_t capacity = this->ctr_.ctr_get_leaf_node_capacity(leaf);
+        MEMORIA_TRY(capacity, this->ctr_.ctr_get_leaf_node_capacity(leaf));
 
         if (capacity > size)
         {
-            return size;
+            return Int32Result::of(size);
         }
         else {
-            return capacity;
+            return Int32Result::of(capacity);
         }
     }
 };
@@ -491,7 +491,7 @@ public:
     }
 
 protected:
-    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size) noexcept {
+    virtual Int32Result findCapacity(const NodeBaseG& leaf, int32_t size) noexcept {
         return 0;
     }
 

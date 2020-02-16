@@ -243,9 +243,9 @@ public:
         return size2 - size1;
     }
 
-    MMA_NODISCARD int32_t element_size(const void* element_ptr) const noexcept
+    Int32Result element_size(const void* element_ptr) const noexcept
     {
-        int32_t idx = findElement(element_ptr).get_or_throw();
+        MEMORIA_TRY(idx, findElement(element_ptr));
         return element_size(idx);
     }
 

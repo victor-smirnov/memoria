@@ -149,7 +149,7 @@ public:
 
         psize_t local_pos = self.iter_local_pos();
 
-        if (local_pos < self.iter_leaf_size(0))
+        if (local_pos < self.iter_leaf_size(0).get_or_throw())
         {
             auto& iovv = self.iovector_view();
 
@@ -166,7 +166,7 @@ public:
                        << format_ex(
                            "Requested index {} is outside of bounds [0, {})",
                            local_pos,
-                           self.iter_leaf_size(0)
+                           self.iter_leaf_size(0).get_or_throw()
                        )
             );
         }
@@ -194,7 +194,8 @@ public:
         auto& self = this->self();
         psize_t local_pos = self.iter_local_pos();
 
-        if (local_pos < self.iter_leaf_size(0))
+        MEMORIA_TRY(leaf_size, self.iter_leaf_size(0));
+        if (local_pos < leaf_size)
         {
             return self.ctr().template ctr_update_entry<IntList<1>>(self, EntryAdapter{v});
         }

@@ -55,16 +55,16 @@ public:
     }
 
     template <typename SubstreamsIdxList, typename... Args>
-    auto iter_read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
+    auto iter_read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const noexcept
     {
          return self().template ctr_apply_substreams_fn<0, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
-    bool ctr_is_at_the_end(const NodeBaseG& leaf, const Position& pos) noexcept
+    BoolResult ctr_is_at_the_end(const NodeBaseG& leaf, const Position& pos) noexcept
     {
-        int32_t size = self().template ctr_get_leaf_stream_size<0>(leaf);
-        return pos[0] >= size;
+        MEMORIA_TRY(size, self().template ctr_get_leaf_stream_size<0>(leaf));
+        return BoolResult::of(pos[0] >= size);
     }
 
     template <typename EntryBuffer>
@@ -97,7 +97,7 @@ public:
         using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
 
-        std::unique_ptr<io::IOVector> iov = LeafNodeT::template SparseObject<MyType>::create_iovector();
+        MEMORIA_TRY(iov, LeafNodeT::template SparseObject<MyType>::create_iovector());
 
         auto id = iter.iter_leaf()->id();
 

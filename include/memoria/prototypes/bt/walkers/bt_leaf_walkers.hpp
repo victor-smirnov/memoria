@@ -244,7 +244,7 @@ public:
 
 
     template <typename CtrT, typename NodeT>
-    StreamOpResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
+    Result<StreamOpResult> treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
     {
         int32_t size = node->size();
 
@@ -258,14 +258,14 @@ public:
     }
 
     template <typename CtrT, typename NodeT>
-    StreamOpResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
+    Result<StreamOpResult> treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
     {
         return StreamOpResult(0, 0, true);
     }
 
 
     template <typename CtrT, typename NodeT>
-    void treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
+    VoidResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
     {
         auto& self = this->self();
 
@@ -281,6 +281,8 @@ public:
         else {
             self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
         }
+
+        return VoidResult::of();
     }
 
 
@@ -329,7 +331,7 @@ public:
 
 
     template <typename CtrT, typename NodeT>
-    StreamOpResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
+    Result<StreamOpResult> treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
     {
         if (start >= 0)
         {
@@ -341,14 +343,14 @@ public:
     }
 
     template <typename CtrT, typename NodeT>
-    StreamOpResult treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
+    Result<StreamOpResult> treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
     {
         return StreamOpResult(0, 0, true);
     }
 
 
     template <typename CtrT, typename NodeT>
-    void treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
+    VoidResult treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
     {
         auto& self = this->self();
 
@@ -363,6 +365,8 @@ public:
             self.processLeafIteratorBranchNodeEntry(node, this->branch_BranchNodeEntry());
             self.processLeafSizePrefix(node);
         }
+
+        return VoidResult::of();
     }
 
 
@@ -383,8 +387,6 @@ public:
         }
     }
 };
-
-
 
 
 
