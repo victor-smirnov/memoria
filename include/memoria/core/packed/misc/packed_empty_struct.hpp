@@ -63,29 +63,29 @@ public:
         return Value{};
     }
 
-    int32_t size() const {return 0;}
+    int32_t size() const noexcept {return 0;}
 
-    int32_t block_size() const
+    int32_t block_size() const noexcept
     {
         return sizeof(MyType);
     }
 
-    int32_t block_size(const MyType* other) const
+    int32_t block_size(const MyType* other) const noexcept
     {
         return block_size();
     }
 
-    static constexpr int32_t block_size(int32_t array_size)
+    static constexpr int32_t block_size(int32_t array_size) noexcept
     {
         return sizeof(MyType);
     }
 
-    static constexpr int32_t packed_block_size(int32_t array_size)
+    static constexpr int32_t packed_block_size(int32_t array_size) noexcept
     {
         return sizeof(MyType);
     }
 
-    static int32_t elements_for(int32_t block_size)
+    static int32_t elements_for(int32_t block_size) noexcept
     {
         size_t bsize = block_size;
 
@@ -97,7 +97,7 @@ public:
 
     VoidResult init(const SizesT& capacities) noexcept {return VoidResult::of();}
 
-    static constexpr int32_t empty_size()
+    static constexpr int32_t empty_size() noexcept
     {
         return sizeof(MyType);
     }
@@ -108,24 +108,8 @@ public:
         return VoidResult::of();
     }
 
-    template <typename T>
-    void max(T& accum) const
-    {
-    }
 
-    template <typename T>
-    VoidResult setValues(int32_t idx, T&&) noexcept {return VoidResult::of();}
-
-
-    template <typename T>
-    int32_t append(int32_t size, T&&)
-    {
-        return size;
-    }
-
-    // =================================== Update ========================================== //
-
-    VoidResult reindex() {return VoidResult::of();}
+    VoidResult reindex() noexcept {return VoidResult::of();}
 
 
     VoidResult remove(int32_t start, int32_t end) noexcept
@@ -154,88 +138,6 @@ public:
     {
         return VoidResult::of();
     }
-
-    // ===================================== IO ============================================ //
-
-    VoidResult insert(int32_t pos, Value val) noexcept
-    {
-        return VoidResult::of();
-    }
-
-    VoidResult insert(int32_t block, int32_t pos, Value val) noexcept
-    {
-        return VoidResult::of();
-    }
-
-
-    template <typename Adaptor>
-    VoidResult insert(int32_t pos, int32_t size, Adaptor&& adaptor) noexcept
-    {
-        return VoidResult::of();
-    }
-
-
-    Values get_values(int32_t) const {
-        return Values();
-    }
-
-    ReadState positions(int32_t idx) const {
-        return ReadState(idx);
-    }
-
-
-    template <typename Adaptor>
-    VoidResult _insert(int32_t pos, int32_t size, Adaptor&& adaptor) noexcept
-    {
-        return VoidResult::of();
-    }
-
-
-    template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum) noexcept
-    {
-        return VoidResult::of();
-    }
-
-    template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum) noexcept
-    {
-        return VoidResult::of();
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum) noexcept
-    {
-        return VoidResult::of();
-    }
-
-
-
-    template <typename Fn>
-    void read(int32_t block, int32_t start, int32_t end, Fn&& fn) const
-    {
-    }
-
-    template <typename Fn>
-    void read(int32_t start, int32_t end, Fn&& fn) const
-    {
-
-    }
-
-
-
-    template <typename Fn>
-    SizesT scan(int32_t start, int32_t end, Fn&& fn) const
-    {
-        return SizesT(end);
-    }
-
-
-    // ==================================== Dump =========================================== //
-
-
-    void dump(std::ostream& out = std::cout) const
-    {}
 
 
     VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept

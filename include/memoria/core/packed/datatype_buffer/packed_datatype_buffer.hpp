@@ -110,7 +110,7 @@ public:
         return ForEach<0, Dimensions>::process_res_fn(fn);
     }
 
-    static psize_t empty_size()
+    static psize_t empty_size() noexcept
     {
         psize_t dimensions_size{};
 
@@ -121,7 +121,7 @@ public:
         return base_size(dimensions_size);
     }
 
-    static psize_t base_size(psize_t dimensions_size)
+    static psize_t base_size(psize_t dimensions_size) noexcept
     {
         psize_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
@@ -130,7 +130,7 @@ public:
         );
     }
 
-    static psize_t packed_block_size(psize_t capacity)
+    static psize_t packed_block_size(psize_t capacity) noexcept
     {
         psize_t aligned_data_size{};
 
@@ -159,7 +159,7 @@ public:
     }
 
 
-    psize_t block_size(const PackedDataTypeBuffer* other) const
+    psize_t block_size(const PackedDataTypeBuffer* other) const noexcept
     {
         auto& my_meta = metadata();
         auto& other_meta = other->metadata();
@@ -173,29 +173,29 @@ public:
         return base_size(values_length);
     }
 
-    Metadata& metadata() {
+    Metadata& metadata() noexcept {
         return *get<Metadata>(METADATA);
     }
 
-    const Metadata& metadata() const {
+    const Metadata& metadata() const noexcept {
         return *get<Metadata>(METADATA);
     }
 
     template <int32_t Idx>
-    Dimension<Idx> dimension() {
+    Dimension<Idx> dimension() noexcept {
         return Dimension<Idx>(this);
     }
 
     template <int32_t Idx>
-    const Dimension<Idx> dimension() const {
+    const Dimension<Idx> dimension() const noexcept {
         return Dimension<Idx>(const_cast<PackedDataTypeBuffer*>(this));
     }
 
-    psize_t& size() {
+    psize_t& size() noexcept {
         return metadata().size();
     }
 
-    const psize_t& size() const {
+    const psize_t& size() const noexcept {
         return metadata().size();
     }
 

@@ -72,36 +72,36 @@ private:
 public:
     PackedSizedStruct() = default;
 
-    int32_t& size() {return size_;}
-    const int32_t& size() const {return size_;}
+    int32_t& size() noexcept {return size_;}
+    const int32_t& size() const noexcept {return size_;}
 
 
-    int32_t block_size() const
+    int32_t block_size() const noexcept
     {
         return sizeof(MyType);
     }
 
-    int32_t block_size(const MyType* other) const
+    int32_t block_size(const MyType* other) const noexcept
     {
         return block_size(size_ + other->size_);
     }
 
-    static constexpr int32_t block_size(int32_t array_size)
+    static constexpr int32_t block_size(int32_t array_size) noexcept
     {
         return sizeof(MyType);
     }
 
-    static constexpr int32_t block_size(SizesT array_size)
+    static constexpr int32_t block_size(SizesT array_size) noexcept
     {
         return sizeof(MyType);
     }
 
-    static constexpr int32_t packed_block_size(int32_t array_size)
+    static constexpr int32_t packed_block_size(int32_t array_size) noexcept
     {
         return sizeof(MyType);
     }
 
-    static int32_t elements_for(int32_t block_size)
+    static int32_t elements_for(int32_t block_size) noexcept
     {
         size_t bsize = block_size;
         return bsize >= sizeof(MyType) ? std::numeric_limits<int32_t>::max() : 0;
@@ -120,7 +120,7 @@ public:
         return VoidResult::of();
     }
 
-    static constexpr int32_t empty_size()
+    static constexpr int32_t empty_size() noexcept
     {
         return sizeof(MyType);
     }
@@ -133,55 +133,6 @@ public:
         return VoidResult::of();
     }
 
-    SizesT data_capacity() const
-    {
-        return SizesT(size_ * 2);
-    }
-
-    template <typename Adaptor>
-    static SizesT calculate_size(int32_t size, Adaptor&& fn)
-    {
-        return SizesT(size);
-    }
-
-    bool has_capacity_for(const SizesT& sizes) const
-    {
-        return true;
-    }
-
-    template <typename T>
-    void max(T& accum) const
-    {
-        if (Indexes > 0)
-        {
-            accum[0] = size_;
-        }
-    }
-
-    template <typename T>
-    VoidResult setValues(int32_t idx, T&&) noexcept {return VoidResult::of();}
-
-    template <typename T>
-    VoidResult insert(int32_t idx, T&&) noexcept {
-        return insertSpace(idx, 1);
-    }
-
-    template <int32_t Offset, typename T>
-    VoidResult _insert(int32_t idx, T&&) noexcept {
-        return insertSpace(idx, 1);
-    }
-
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void max(BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-
-        if (Indexes > 0)
-        {
-            accum[Offset] = size_;
-        }
-    }
 
     auto sum(int32_t) const noexcept
     {
@@ -189,88 +140,12 @@ public:
     }
 
 
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-        accum[Offset] += size_;
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-        accum[Offset] += end - start;
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sub(int32_t start, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void sum(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-        accum[Offset] += idx;
-    }
-
-
-    AppendState append_state() const
-    {
-        AppendState state;
-
-        state.size() = this->size();
-
-        return state;
-    }
-
-
-    template <typename IOBuffer>
-    bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
-    {
-        state.size()++;
-
-        this->size()++;
-
-        return true;
-    }
-
-
     VoidResult copyTo(MyType* other) const noexcept
     {
         other->size_ = this->size_;
-
         return VoidResult::of();
     }
 
-
-
-    void restore(const AppendState& state)
-    {
-        this->size() = state.size();
-    }
-
-
-
-
-    template <typename T>
-    int32_t append(int32_t size, T&&)
-    {
-        this->size_ += size;
-
-        return size;
-    }
-
-
-    void fill(int32_t size)
-    {
-        this->size_ += size;
-    }
-
-    // =================================== Update ========================================== //
 
     VoidResult reindex() noexcept {return VoidResult::of();}
 
@@ -309,7 +184,6 @@ public:
     VoidResult reset() noexcept
     {
         size_ = 0;
-
         return VoidResult::of();
     }
 
@@ -333,54 +207,8 @@ public:
     }
 
 
-    Value value(int32_t, int32_t) const {
+    Value value(int32_t, int32_t) const noexcept {
         return Value();
-    }
-
-    ReadState positions(int32_t idx) const {
-        return ReadState(idx);
-    }
-
-
-
-    template <typename IOBuffer>
-    bool readTo(ReadState& state, IOBuffer& buffer) const
-    {
-        // Don't read anything into the buffer
-        return true;
-    }
-
-
-    template <typename Fn>
-    void read(int32_t start, int32_t end, Fn&& fn) const
-    {
-        read(0, start, end, std::forward<Fn>(fn));
-    }
-
-
-
-    template <typename Fn>
-    void read(int32_t block, int32_t start, int32_t end, Fn&& fn) const
-    {
-        MEMORIA_ASSERT(start, <=, size_);
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(end, >=, 0);
-        MEMORIA_ASSERT(end, <=, size_);
-
-        for (int32_t c = start; c < end; c++)
-        {
-            fn(block, Value());
-            fn.next();
-        }
-    }
-
-
-    // ==================================== Dump =========================================== //
-
-
-    void dump(std::ostream& out = std::cout) const
-    {
-        out << "size_ = " << size_ << std::endl;
     }
 
 

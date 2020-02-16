@@ -269,7 +269,7 @@ public:
         node_ = node;
     }
 
-    const LeafExtData& state() const {
+    LeafExtData& state() const {
         return ctr_->leaf_node_ext_data();
     }
 

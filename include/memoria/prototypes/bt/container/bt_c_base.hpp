@@ -96,8 +96,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     ObjectPools pools_;
 
-    LeafNodeExtData leaf_node_ext_data_;
-    BranchNodeExtData branch_node_ext_data_;
+    mutable LeafNodeExtData leaf_node_ext_data_;
+    mutable BranchNodeExtData branch_node_ext_data_;
 
     NodeDispatcher node_dispatcher_{self()};
     LeafDispatcher leaf_dispatcher_{self()};
@@ -134,8 +134,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
 
-    const LeafNodeExtData& leaf_node_ext_data() const noexcept {return leaf_node_ext_data_;}
-    const BranchNodeExtData& branch_node_ext_data() const noexcept {return branch_node_ext_data_;}
+    LeafNodeExtData& leaf_node_ext_data() const noexcept {return leaf_node_ext_data_;}
+    BranchNodeExtData& branch_node_ext_data() const noexcept {return branch_node_ext_data_;}
 
     VoidResult ctr_upsize_node(NodeBaseG node, size_t upsize) noexcept
     {

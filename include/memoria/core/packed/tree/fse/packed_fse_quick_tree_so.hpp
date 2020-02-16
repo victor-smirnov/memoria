@@ -25,7 +25,7 @@ namespace memoria {
 
 template <typename ExtData, typename PkdStruct>
 class PackedFSEQuickTreeSO {
-    const ExtData* ext_data_;
+    ExtData* ext_data_;
     PkdStruct* data_;
 
     using Values = typename PkdStruct::Values;
@@ -40,37 +40,39 @@ public:
 
     static constexpr int32_t Blocks = PkdStruct::Blocks;
 
-    PackedFSEQuickTreeSO(): ext_data_(), data_() {}
-    PackedFSEQuickTreeSO(const ExtData* ext_data, PkdStruct* data):
+    PackedFSEQuickTreeSO() noexcept: ext_data_(), data_() {}
+    PackedFSEQuickTreeSO(ExtData* ext_data, PkdStruct* data) noexcept:
         ext_data_(ext_data), data_(data)
     {}
 
-    void setup() {
+    void setup() noexcept {
         ext_data_ = nullptr;
         data_ = nullptr;
     }
 
-    void setup(const ExtData* ext_data, PkdStruct* data) {
+    void setup(ExtData* ext_data, PkdStruct* data) noexcept {
         ext_data_ = ext_data;
         data_ = data;
     }
 
-    void setup(const ExtData* ext_data) {
+    void setup(ExtData* ext_data) noexcept {
         ext_data_ = ext_data;
     }
 
-    void setup(PkdStruct* data) {
+    void setup(PkdStruct* data) noexcept {
         data_ = data;
     }
 
 
-    operator bool() const {
+    operator bool() const noexcept {
         return data_ != nullptr;
     }
 
-    const ExtData* ext_data() const {return ext_data_;}
-    const PkdStruct* data() const {return data_;}
-    PkdStruct* data() {return data_;}
+    const ExtData* ext_data() const noexcept {return ext_data_;}
+    ExtData* ext_data() noexcept {return ext_data_;}
+
+    const PkdStruct* data() const noexcept {return data_;}
+    PkdStruct* data() noexcept {return data_;}
 
     VoidResult splitTo(MyType& other, int32_t idx) noexcept
     {

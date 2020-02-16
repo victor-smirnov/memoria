@@ -294,7 +294,7 @@ public:
     }
 
 
-    static int32_t empty_size()
+    static int32_t empty_size() noexcept
     {
         int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
         int32_t index_length    = 0;
@@ -303,7 +303,7 @@ public:
         return block_size;
     }
 
-    static int32_t estimate_block_size(int32_t size, int32_t density_hi = 1, int32_t density_lo = 1)
+    static int32_t estimate_block_size(int32_t size, int32_t density_hi = 1, int32_t density_lo = 1) noexcept
     {
         int32_t symbols_block_size  = PackedAllocatable::roundUpBitsToAlignmentBlocks(size * BitsPerSymbol);
         int32_t index_size          = PackedAllocatable::divUp(size , ValuesPerBranch);

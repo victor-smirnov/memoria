@@ -28,7 +28,7 @@ namespace memoria {
 
 template <typename ExtData, typename PkdStruct>
 class PackedEmptyStructSO {
-    const ExtData* ext_data_;
+    ExtData* ext_data_;
     PkdStruct* data_;
 
     using MyType = PackedEmptyStructSO;
@@ -40,36 +40,38 @@ public:
     static constexpr int32_t Blocks = PkdStruct::Blocks;
 
 
-    PackedEmptyStructSO(): ext_data_(), data_() {}
-    PackedEmptyStructSO(const ExtData* ext_data, PkdStruct* data):
+    PackedEmptyStructSO() noexcept: ext_data_(), data_() {}
+    PackedEmptyStructSO(ExtData* ext_data, PkdStruct* data) noexcept:
         ext_data_(ext_data), data_(data)
     {}
 
-    void setup() {
+    void setup() noexcept {
         ext_data_ = nullptr;
         data_ = nullptr;
     }
 
-    void setup(const ExtData* ext_data, PkdStruct* data) {
+    void setup(ExtData* ext_data, PkdStruct* data) noexcept {
         ext_data_ = ext_data;
         data_ = data;
     }
 
-    void setup(const ExtData* ext_data) {
+    void setup(ExtData* ext_data) noexcept {
         ext_data_ = ext_data;
     }
 
-    void setup(PkdStruct* data) {
+    void setup(PkdStruct* data) noexcept {
         data_ = data;
     }
 
-    operator bool() const {
+    operator bool() const noexcept {
         return data_ != nullptr;
     }
 
-    const ExtData* ext_data() const {return ext_data_;}
-    const PkdStruct* data() const {return data_;}
-    PkdStruct* data() {return data_;}
+    const ExtData* ext_data() const noexcept {return ext_data_;}
+    ExtData* ext_data() noexcept {return ext_data_;}
+
+    const PkdStruct* data() const noexcept {return data_;}
+    PkdStruct* data() noexcept {return data_;}
 
     psize_t max_element_idx() const noexcept {
         return 0;

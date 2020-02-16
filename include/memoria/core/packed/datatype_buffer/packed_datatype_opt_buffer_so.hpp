@@ -58,41 +58,43 @@ public:
     static constexpr psize_t Columns = 1;
     static constexpr int32_t Indexes = PkdStruct::Array::Indexes;
 
-    PackedDataTypeOptBufferSO():
+    PackedDataTypeOptBufferSO() noexcept:
         data_(), array_()
     {}
 
-    PackedDataTypeOptBufferSO(const ExtData* ext_data, PkdStruct* data):
+    PackedDataTypeOptBufferSO(ExtData* ext_data, PkdStruct* data) noexcept:
         data_(data), array_(ext_data, data->array())
     {}
 
-    void setup() {
+    void setup() noexcept {
         array_.setup();
         data_ = nullptr;
     }
 
-    void setup(const ExtData* ext_data, PkdStruct* data)
+    void setup(ExtData* ext_data, PkdStruct* data) noexcept
     {
         array_.setup(ext_data, data->array());
         data_ = data;
     }
 
-    void setup(const ExtData* ext_data) {
+    void setup(ExtData* ext_data) noexcept {
         array_.setup(ext_data);
     }
 
-    void setup(PkdStruct* data) {
+    void setup(PkdStruct* data) noexcept {
         array_.setup(data->array());
         data_ = data;
     }
 
-    operator bool() const {
+    operator bool() const noexcept {
         return data_ != nullptr;
     }
 
-    const ExtData* ext_data() const {return array_.ext_data();}
-    const PkdStruct* data() const {return data_;}
-    PkdStruct* data() {return data_;}
+    const ExtData* ext_data() const noexcept {return array_.ext_data();}
+    ExtData* ext_data() noexcept {return array_.ext_data();}
+
+    const PkdStruct* data() const noexcept {return data_;}
+    PkdStruct* data() noexcept {return data_;}
 
 
 
@@ -130,7 +132,7 @@ public:
         return VoidResult::of();
     }
 
-    psize_t size() const {
+    psize_t size() const noexcept {
         return data_->bitmap()->size();
     }
 
@@ -198,23 +200,23 @@ public:
         return array_.removeSpace(array_start, array_end);
     }
 
-    Optional<ViewType> get_values(psize_t idx) const {
-        return get_values(idx, 0);
-    }
+//    Optional<ViewType> get_values(psize_t idx) const {
+//        return get_values(idx, 0);
+//    }
 
-    Optional<ViewType>
-    get_values(psize_t idx, psize_t column) const
-    {
-        auto bitmap = data_->bitmap();
+//    Optional<ViewType>
+//    get_values(psize_t idx, psize_t column) const
+//    {
+//        auto bitmap = data_->bitmap();
 
-        if (bitmap->symbol(idx) == 1)
-        {
-            psize_t array_idx = this->array_idx(idx);
-            return array_.get_values(array_idx);
-        }
+//        if (bitmap->symbol(idx) == 1)
+//        {
+//            psize_t array_idx = this->array_idx(idx);
+//            return array_.get_values(array_idx);
+//        }
 
-        return Optional<ViewType>{};
-    }
+//        return Optional<ViewType>{};
+//    }
 
 
     template <typename AccessorFn>

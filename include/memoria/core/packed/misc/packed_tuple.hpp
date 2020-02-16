@@ -216,7 +216,7 @@ public:
 
     struct SetValueFn {
         template <psize_t Idx>
-        static bool process(const Tuple& tuple, MyType& pkd_tuple)
+        static bool process(Tuple& tuple, MyType& pkd_tuple)
         {
             using T = std::tuple_element_t<Idx, Tuple>;
             _::PkdTupleValueHandler<MyType, T>::set_value(std::get<Idx>(tuple), Idx, pkd_tuple);
@@ -224,7 +224,7 @@ public:
         }
     };
 
-    void set_value(const Tuple& tuple) {
+    void set_value(Tuple& tuple) {
         ForEach<0, TupleSize>::process(SetValueFn(), tuple, *this);
     }
 
@@ -238,11 +238,11 @@ public:
         }
     };
 
-    void get_value(Tuple& tuple) const {
+    void get_value(Tuple& tuple) const noexcept {
         ForEach<0, TupleSize>::process(GetValueFn(), tuple, *this);
     }
 
-    static psize_t empty_size()
+    static psize_t empty_size() noexcept
     {
         return PackedAllocator::block_size(0, TupleSize);
     }

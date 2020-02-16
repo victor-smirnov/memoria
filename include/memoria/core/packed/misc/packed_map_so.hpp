@@ -63,35 +63,35 @@ public:
     using KeysPkdStruct         = typename PkdStruct::KeysPkdStruct;
     using ValuesPkdStruct       = typename PkdStruct::ValuesPkdStruct;
 
-    PackedMapSO():
+    PackedMapSO() noexcept:
         data_(), keys_(), values_()
     {}
 
-    PackedMapSO(PkdStruct* data):
+    PackedMapSO(PkdStruct* data) noexcept:
         data_(data),
         keys_(&keys_ext_data_, data->keys()),
         values_(&values_ext_data_, data->values())
     {}
 
-    void setup() {
+    void setup() noexcept {
         keys_.setup();
         values_.setup();
         data_ = nullptr;
     }
 
 
-    void setup(PkdStruct* data)
+    void setup(PkdStruct* data) noexcept
     {
         data_ = data;
         refresh_so();
     }
 
-    operator bool() const {
+    operator bool() const noexcept {
         return data_ != nullptr;
     }
 
-    const PkdStruct* data() const {return data_;}
-    PkdStruct* data() {return data_;}
+    const PkdStruct* data() const noexcept {return data_;}
+    PkdStruct* data() noexcept {return data_;}
 
     VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {

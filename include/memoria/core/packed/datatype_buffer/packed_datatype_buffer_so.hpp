@@ -76,7 +76,7 @@ namespace detail_ {
 
 template <typename ExtData, typename PkdStruct>
 class PackedDataTypeBufferSO {
-    const ExtData* ext_data_;
+    ExtData* ext_data_;
     PkdStruct* data_;
 
     using MyType = PackedDataTypeBufferSO;
@@ -102,7 +102,7 @@ public:
 
 
     PackedDataTypeBufferSO() noexcept: ext_data_(), data_() {}
-    PackedDataTypeBufferSO(const ExtData* ext_data, PkdStruct* data) noexcept:
+    PackedDataTypeBufferSO(ExtData* ext_data, PkdStruct* data) noexcept:
         ext_data_(ext_data), data_(data)
     {}
 
@@ -112,12 +112,12 @@ public:
         data_ = nullptr;
     }
 
-    void setup(const ExtData* ext_data, PkdStruct* data) noexcept {
+    void setup(ExtData* ext_data, PkdStruct* data) noexcept {
         ext_data_ = ext_data;
         data_ = data;
     }
 
-    void setup(const ExtData* ext_data) noexcept {
+    void setup(ExtData* ext_data) noexcept {
         ext_data_ = ext_data;
     }
 
@@ -141,6 +141,8 @@ public:
     }
 
     const ExtData* ext_data() const noexcept {return ext_data_;}
+    ExtData* ext_data() noexcept {return ext_data_;}
+
     const PkdStruct* data() const noexcept {return data_;}
     PkdStruct* data() noexcept {return data_;}
 

@@ -76,35 +76,35 @@ public:
 
     using Base::block_size;
 
-    Bitmap* bitmap() {
+    Bitmap* bitmap() noexcept {
         return this->template get<Bitmap>(BITMAP);
     }
 
-    const Bitmap* bitmap() const {
+    const Bitmap* bitmap() const noexcept {
         return this->template get<Bitmap>(BITMAP);
     }
 
-    Array* array() {
+    Array* array() noexcept {
         return this->template get<Array>(ARRAY);
     }
 
-    const Array* array() const {
+    const Array* array() const noexcept {
         return this->template get<Array>(ARRAY);
     }
 
-    static int32_t empty_size()
+    static int32_t empty_size() noexcept
     {
         int32_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
         return parent_size + Bitmap::empty_size() + Array::empty_size();
     }
 
 
-    static int32_t block_size(int32_t capacity)
+    static int32_t block_size(int32_t capacity) noexcept
     {
         return Bitmap::packed_block_size(capacity) + Array::empty_size();
     }
 
-    int32_t block_size(const MyType* other) const
+    int32_t block_size(const MyType* other) const noexcept
     {
         return MyType::block_size(size() + other->size());
     }
@@ -125,33 +125,33 @@ public:
         return array->init();
     }
 
-    int32_t size() const
+    int32_t size() const noexcept
     {
         return bitmap()->size();
     }
 
 
-    template <typename T>
-    void max(core::StaticVector<T, Blocks>& accum) const
-    {
-        const Array* array = this->array();
+//    template <typename T>
+//    void max(core::StaticVector<T, Blocks>& accum) const
+//    {
+//        const Array* array = this->array();
 
-        int32_t size = array->size();
+//        int32_t size = array->size();
 
-        if (size > 0)
-        {
-            for (int32_t block = 0; block < Blocks; block++)
-            {
-                accum[block] = array->value(block, size - 1);
-            }
-        }
-        else {
-            for (int32_t block = 0; block < Blocks; block++)
-            {
-                accum[block] = Value();
-            }
-        }
-    }
+//        if (size > 0)
+//        {
+//            for (int32_t block = 0; block < Blocks; block++)
+//            {
+//                accum[block] = array->value(block, size - 1);
+//            }
+//        }
+//        else {
+//            for (int32_t block = 0; block < Blocks; block++)
+//            {
+//                accum[block] = Value();
+//            }
+//        }
+//    }
 
 
 
@@ -308,12 +308,6 @@ public:
         return array()->reindex();
     }
 
-//    void check() const
-//    {
-//        bitmap()->check();
-//        array()->check();
-//    }
-
 
     VoidResult splitTo(MyType* other, int32_t idx) noexcept
     {
@@ -397,7 +391,7 @@ public:
 protected:
 
     template <typename T>
-    core::StaticVector<ArrayValue, Blocks> array_values(const core::StaticVector<Optional<T>, Blocks>& values)
+    core::StaticVector<ArrayValue, Blocks> array_values(const core::StaticVector<Optional<T>, Blocks>& values) noexcept
     {
         core::StaticVector<ArrayValue, Blocks> tv;
 
@@ -409,24 +403,24 @@ protected:
         return tv;
     }
 
-    int32_t array_idx(int32_t global_idx) const
+    int32_t array_idx(int32_t global_idx) const noexcept
     {
         return array_idx(bitmap(), global_idx);
     }
 
-    int32_t array_idx(const Bitmap* bitmap, int32_t global_idx) const
+    int32_t array_idx(const Bitmap* bitmap, int32_t global_idx) const noexcept
     {
         int32_t rank = bitmap->rank(global_idx, 1);
         return rank;
     }
 
 
-    int32_t global_idx(int32_t array_idx) const
+    int32_t global_idx(int32_t array_idx) const noexcept
     {
         return global_idx(bitmap(), array_idx);
     }
 
-    int32_t global_idx(const Bitmap* bitmap, int32_t array_idx) const
+    int32_t global_idx(const Bitmap* bitmap, int32_t array_idx) const noexcept
     {
         auto result = bitmap->selectFw(1, array_idx + 1);
         return result.local_pos();

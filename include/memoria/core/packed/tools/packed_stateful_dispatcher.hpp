@@ -63,7 +63,7 @@ class PackedStatefulDispatcher;
 template <typename State, typename Head, typename... Tail, int32_t AllocatorStartIdx, int32_t Index, int32_t GroupIdx, int32_t ListIdx>
 class PackedStatefulDispatcher<State, TypeList<SubstreamDescr<Head, Index>, Tail...>, AllocatorStartIdx, GroupIdx, ListIdx> {
 
-    const State& state_;
+    State& state_;
 
 public:
 
@@ -136,7 +136,7 @@ public:
     template <template <typename> class MapFn>
     using ForAllStructs = TransformTL<List, MapFn>;
 
-    PackedStatefulDispatcher(const State& state) noexcept : state_(state) {}
+    PackedStatefulDispatcher(State& state) noexcept : state_(state) {}
 
     template <int32_t SubstreamIdx>
     auto allocateEmpty(PackedAllocator* alloc) noexcept ->
@@ -839,7 +839,7 @@ public:
 
 template <typename State, typename Head, int32_t AllocatorStartIdx, int32_t Index, int32_t GroupIdx, int32_t ListIdx>
 class PackedStatefulDispatcher<State, TypeList<SubstreamDescr<Head, Index>>, AllocatorStartIdx, GroupIdx, ListIdx> {
-    const State& state_;
+    State& state_;
 public:
 
     using HeadSO = typename Head::SparseObject;
@@ -906,7 +906,7 @@ public:
     using ForAllStructs = TransformTL<List, MapFn>;
 
 
-    PackedStatefulDispatcher(const State& state) noexcept: state_(state) {}
+    PackedStatefulDispatcher(State& state) noexcept: state_(state) {}
 
 
     template <int32_t SubstreamIdx>

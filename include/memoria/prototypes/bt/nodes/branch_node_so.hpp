@@ -179,7 +179,7 @@ public:
         return node_->allocator();
     }
 
-    const BranchExtData& state() const noexcept {
+    BranchExtData& state() const noexcept {
         return ctr_->branch_node_ext_data();
     }
 

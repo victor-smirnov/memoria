@@ -172,20 +172,20 @@ public:
 public:
     PkdRLESeq() = default;
 
-    int32_t& size() {return metadata()->size();}
-    const int32_t& size() const {return metadata()->size();}
+    int32_t& size() noexcept {return metadata()->size();}
+    const int32_t& size() const noexcept {return metadata()->size();}
 
-    int32_t& data_size() {return metadata()->data_size();}
-    const int32_t& data_size() const {return metadata()->data_size();}
+    int32_t& data_size() noexcept {return metadata()->data_size();}
+    const int32_t& data_size() const noexcept {return metadata()->data_size();}
 
 
 
-    static constexpr RLESymbolsRun decode_run(uint64_t value)
+    static constexpr RLESymbolsRun decode_run(uint64_t value) noexcept
     {
         return rleseq::DecodeRun<Symbols>(value);
     }
 
-    static constexpr uint64_t encode_run(int32_t symbol, uint64_t length)
+    static constexpr uint64_t encode_run(int32_t symbol, uint64_t length) noexcept
     {
         return rleseq::EncodeRun<Symbols, MaxRunLength>(symbol, length);
     }
@@ -193,89 +193,90 @@ public:
 
     // ====================================== Accessors ================================= //
 
-    Metadata* metadata()
+    Metadata* metadata() noexcept
     {
         return Base::template get<Metadata>(METADATA);
     }
 
-    const Metadata* metadata() const
+    const Metadata* metadata() const noexcept
     {
         return Base::template get<Metadata>(METADATA);
     }
 
-    SumIndex* sum_index()
+    SumIndex* sum_index() noexcept
     {
         return Base::template get<SumIndex>(SUM_INDEX);
     }
 
-    const SumIndex* sum_index() const
+    const SumIndex* sum_index() const noexcept
     {
         return Base::template get<SumIndex>(SUM_INDEX);
     }
 
-    SizeIndex* size_index()
+    SizeIndex* size_index() noexcept
     {
         return Base::template get<SizeIndex>(SIZE_INDEX);
     }
 
-    const SizeIndex* size_index() const
+    const SizeIndex* size_index() const noexcept
     {
         return Base::template get<SizeIndex>(SIZE_INDEX);
     }
 
-    OffsetsType* offsets() {
+    OffsetsType* offsets() noexcept {
         return this->template get<OffsetsType>(OFFSETS);
     }
 
-    const OffsetsType* offsets() const {
+    const OffsetsType* offsets() const noexcept {
         return this->template get<OffsetsType>(OFFSETS);
     }
 
-    OffsetsType offset(int32_t idx) const
+    OffsetsType offset(int32_t idx) const noexcept
     {
         return offsets()[idx];
     }
 
-    void set_offset(int32_t idx, OffsetsType value)
+    void set_offset(int32_t idx, OffsetsType value) noexcept
     {
         set_offsets(offsets(), idx, value);
     }
 
-    void set_offset(OffsetsType* block, int32_t idx, int32_t value)
+    void set_offset(OffsetsType* block, int32_t idx, int32_t value) noexcept
     {
         block[idx] = value;
     }
 
-    int32_t symbols_block_capacity() const
+    int32_t symbols_block_capacity() const noexcept
     {
         return symbols_block_capacity(metadata());
     }
 
-    int32_t symbols_block_capacity(const Metadata* meta) const
+    int32_t symbols_block_capacity(const Metadata* meta) const noexcept
     {
         return symbols_block_size() - meta->data_size();
     }
 
-    int32_t symbols_block_size() const
+    int32_t symbols_block_size() const noexcept
     {
         return this->element_size(SYMBOLS);
     }
 
-    bool has_index() const {
+    bool has_index() const noexcept
+    {
         return Base::element_size(SIZE_INDEX) > 0;
     }
 
-    Value* symbols()
+    Value* symbols() noexcept
     {
         return Base::template get<Value>(SYMBOLS);
     }
 
-    const Value* symbols() const
+    const Value* symbols() const noexcept
     {
         return Base::template get<Value>(SYMBOLS);
     }
 
-    Tools tools() const {
+    Tools tools() const noexcept {
         return Tools();
     }
 
@@ -291,16 +292,16 @@ public:
             return val;
         }
 
-        operator Value() const {
+        operator Value() const noexcept {
             return seq_.get_symbol(idx_);
         }
 
-        Value value() const {
+        Value value() const noexcept {
             return seq_.get_symbol(idx_);
         }
     };
 
-    SymbolAccessor symbol(int32_t idx)
+    SymbolAccessor symbol(int32_t idx) noexcept
     {
         return SymbolAccessor(*this, idx);
     }
@@ -320,7 +321,7 @@ public:
 
 
 
-    void set_symbol(int32_t idx, int32_t symbol)
+    VoidResult set_symbol(int32_t idx, int32_t symbol) noexcept
     {
         auto location = this->find_run(idx);
 
@@ -332,35 +333,35 @@ public:
                 {
                     if (location.run_suffix() > 1)
                     {
-                        location = split_run(location, 1);
-                        insert_run(location.data_pos(), symbol, 1);
+                        MEMORIA_TRY(location2, split_run(location, 1));
+                        MEMORIA_TRY_VOID(insert_run(location2.data_pos(), symbol, 1));
                     }
                     else {
-                        auto run_value_length = add_run_length(location, -1);
-                        insert_run(location.data_pos() + run_value_length, symbol, 1);
+                        MEMORIA_TRY(run_value_length, add_run_length(location, -1));
+                        MEMORIA_TRY_VOID(insert_run(location.data_pos() + run_value_length, symbol, 1));
                     }
                 }
                 else if (location.run().length() > 1)
                 {
-                    add_run_length(location, -1);
-                    insert_run(location.data_pos(), symbol, 1);
+                    MEMORIA_TRY_VOID(add_run_length(location, -1));
+                    MEMORIA_TRY_VOID(insert_run(location.data_pos(), symbol, 1));
                 }
                 else {
-                    remove_run(location);
-                    insert_run(location.data_pos(), symbol, 1);
+                    MEMORIA_TRY_VOID(remove_run(location));
+                    MEMORIA_TRY_VOID(insert_run(location.data_pos(), symbol, 1));
                     try_merge_two_adjustent_runs(location.data_pos());
                 }
 
-                reindex();
+                MEMORIA_TRY_VOID(reindex());
             }
         }
         else {
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Symbol index {} is out of range {}", idx, this->size()));
+            return MEMORIA_MAKE_GENERIC_ERROR("Symbol index {} is out of range {}", idx, this->size());
         }
     }
 
 
-    int32_t value(int32_t symbol, int32_t idx) const {
+    int32_t value(int32_t symbol, int32_t idx) const noexcept {
         return this->symbol(idx) == symbol;
     }
 
@@ -371,16 +372,16 @@ public:
     public:
         ConstSymbolAccessor(const MyType& seq, int32_t idx): seq_(seq), idx_(idx) {}
 
-        operator Value() const {
+        operator Value() const noexcept {
             return seq_.get_symbol(idx_);
         }
 
-        Value value() const {
+        Value value() const noexcept {
             return seq_.get_symbol(idx_);
         }
     };
 
-    ConstSymbolAccessor symbol(int32_t idx) const
+    ConstSymbolAccessor symbol(int32_t idx) const noexcept
     {
         return ConstSymbolAccessor(*this, idx);
     }
@@ -507,7 +508,7 @@ public:
         return VoidResult::of();
     }
 
-    void reset() {
+    void reset() noexcept {
         auto meta = this->metadata();
 
         meta->size()        = 0;
@@ -807,7 +808,7 @@ public:
                 }
             }
             else {
-                remove_runs_one_sided_left(location_start, location_end);
+                MEMORIA_TRY_VOID(remove_runs_one_sided_left(location_start, location_end));
                 try_merge_two_adjustent_runs(location_start.data_pos());
             }
         }
@@ -1830,7 +1831,7 @@ private:
     }
 
 
-    void remove_runs_one_sided_left(const Location& start, const Location& end)
+    VoidResult remove_runs_one_sided_left(const Location& start, const Location& end) noexcept
     {
         Codec codec;
 
@@ -1851,10 +1852,12 @@ private:
         codec.encode(symbols, new_end_run_value, hole_start);
 
         meta->data_size() -= to_remove;
+
+        return VoidResult::of();
     }
 
 
-    void remove_runs_one_sided(const Location& start, size_t end)
+    void remove_runs_one_sided(const Location& start, size_t end) noexcept
     {
         Codec codec;
 
@@ -1875,7 +1878,7 @@ private:
         meta->data_size() -= to_remove;
     }
 
-    void remove_runs_two_sided(size_t start, size_t end)
+    void remove_runs_two_sided(size_t start, size_t end) noexcept
     {
         size_t to_remove  = end - start;
 
@@ -1889,7 +1892,7 @@ private:
         meta->data_size() -= to_remove;
     }
 
-    void try_merge_two_adjustent_runs(size_t run_pos)
+    void try_merge_two_adjustent_runs(size_t run_pos) noexcept
     {
         auto meta    = this->metadata();
         auto symbols = this->symbols();

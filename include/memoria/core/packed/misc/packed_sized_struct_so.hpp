@@ -26,7 +26,7 @@ namespace memoria {
 
 template <typename ExtData, typename PkdStruct>
 class PackedSizedStructSO {
-    const ExtData* ext_data_;
+    ExtData* ext_data_;
     PkdStruct* data_;
 
     using MyType = PackedSizedStructSO;
@@ -34,39 +34,40 @@ class PackedSizedStructSO {
 public:
     using PkdStructT = PkdStruct;
 
-    PackedSizedStructSO(): ext_data_(), data_() {}
-    PackedSizedStructSO(const ExtData* ext_data, PkdStruct* data):
+    PackedSizedStructSO() noexcept: ext_data_(), data_() {}
+    PackedSizedStructSO(ExtData* ext_data, PkdStruct* data) noexcept:
         ext_data_(ext_data), data_(data)
     {}
 
-    void setup() {
+    void setup() noexcept {
         ext_data_ = nullptr;
         data_ = nullptr;
     }
 
-    void setup(const ExtData* ext_data, PkdStruct* data) {
+    void setup(ExtData* ext_data, PkdStruct* data) noexcept {
         ext_data_ = ext_data;
         data_ = data;
     }
 
-    void setup(const ExtData* ext_data) {
+    void setup(ExtData* ext_data) noexcept {
         ext_data_ = ext_data;
     }
 
-    void setup(PkdStruct* data) {
+    void setup(PkdStruct* data) noexcept {
         data_ = data;
     }
 
-    operator bool() const {
+    operator bool() const noexcept {
         return data_ != nullptr;
     }
 
-    const ExtData* ext_data() const {return ext_data_;}
-    const PkdStruct* data() const {return data_;}
-    PkdStruct* data() {return data_;}
+    const ExtData* ext_data() const noexcept {return ext_data_;}
+    ExtData* ext_data() noexcept {return ext_data_;}
 
-    VoidResult splitTo(MyType& other, int32_t idx) noexcept
-    {
+    const PkdStruct* data() const noexcept {return data_;}
+    PkdStruct* data() noexcept {return data_;}
+
+    VoidResult splitTo(MyType& other, int32_t idx) noexcept {
         return data_->splitTo(other.data(), idx);
     }
 
@@ -82,7 +83,7 @@ public:
         return data_->generateDataEvents(handler);
     }
 
-    int32_t size() const {
+    int32_t size() const noexcept {
         return data_->size();
     }
 
