@@ -28,15 +28,7 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorSelectName)
 
-    typedef typename Base::NodeBaseG                                                NodeBaseG;
-    typedef typename Base::Container                                                Container;
-
-    typedef typename Container::Allocator                                           Allocator;
-    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Container::Iterator                                            Iterator;
-
-    using CtrSizeT = typename Container::Types::CtrSizeT;
-
+    using typename Base::CtrSizeT;
 
     template <typename LeafPath>
     auto iter_select_fw(int32_t index, CtrSizeT rank) noexcept
@@ -59,6 +51,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorSelectName)
 
         return self().iter_find_bw(walker);
     }
+
 MEMORIA_V1_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(bt::IteratorSelectName)

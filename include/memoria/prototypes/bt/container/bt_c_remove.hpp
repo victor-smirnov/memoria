@@ -28,15 +28,9 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveName)
 
-    typedef typename Base::Types                                                Types;
-
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
-
+    using typename Base::NodeBaseG;
+    using typename Base::Iterator;
+    using typename Base::Position;
     using typename Base::TreePathT;
 
 protected:

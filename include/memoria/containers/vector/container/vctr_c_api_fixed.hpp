@@ -31,7 +31,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(mvector::CtrApiFixedName)
 public:
     using Types = typename Base::Types;
 
-protected:
+
     using typename Base::NodeBaseG;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
@@ -40,6 +40,7 @@ protected:
     using typename Base::IteratorPtr;
     using typename Base::Profile;
 
+protected:
     using Value = typename Types::Value;
     using ValueDataType = typename Types::ValueDataType;
     using ViewType  = DTTViewType<ValueDataType>;

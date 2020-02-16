@@ -31,24 +31,16 @@
 namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsName)
-public:
-    using Types = typename Base::Types;
 
-protected:
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::Allocator::BlockG                                    BlockG;
-
+    using typename Base::Profile;
     using typename Base::BlockID;
-    using typename Base::BlockType;
+    using typename Base::NodeBaseG;
+    using typename Base::Iterator;
+    using typename Base::Position;
     using typename Base::TreePathT;
+    using typename Base::CtrSizeT;
+    using typename Base::BranchNodeEntry;
 
-    using Profile = typename Types::Profile;
-
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
 
 public:
     Result<NodeBaseG> ctr_get_block(const BlockID& block_id) const noexcept
@@ -327,11 +319,6 @@ protected:
 
 
 public:
-
-    Result<NodeBaseG> ctr_get_next_node(NodeBaseG& node) const noexcept;
-    Result<NodeBaseG> ctr_get_prev_node(NodeBaseG& node) const noexcept;
-
-
     MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
     VoidResult ctr_layout_branch_node(NodeBaseG& node, uint64_t active_streams) const noexcept
     {
@@ -418,15 +405,6 @@ protected:
             return node.sizes();
         }
     };
-
-//    struct GetLeafNodeStreamSizesStatic {
-//        template <typename CtrT, typename T, typename... Args>
-//        Result<Position> treeNode(const LeafNodeSO<CtrT, T>& node, Args&&... args) const
-//        {
-//            return bt::LeafNode<T>::sizes(std::forward<Args>(args)...);
-//        }
-//    };
-
 
     Int32Result ctr_get_node_children_count(const NodeBaseG& node) const noexcept
     {
@@ -520,81 +498,6 @@ MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::ToolsName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
-
-
-
-
-
-
-M_PARAMS
-Result<typename M_TYPE::NodeBaseG> M_TYPE::ctr_get_next_node(NodeBaseG& node) const noexcept
-{
-    using ResultT = Result<NodeBaseG>;
-    auto& self = this->self();
-
-    if (!node->is_root())
-    {
-        NodeBaseG parent = self.ctr_get_node_parent(node);
-
-        int32_t size = self.ctr_get_node_size(parent, 0);
-
-        int32_t parent_idx = node->parent_idx();
-
-        if (parent_idx < size - 1)
-        {
-            return self.ctr_get_node_child(parent, parent_idx + 1);
-        }
-        else {
-            NodeBaseG target_parent = ctr_get_next_node(parent);
-
-            if (target_parent.isSet())
-            {
-                return self.ctr_get_node_child(target_parent, 0);
-            }
-            else {
-                return target_parent;
-            }
-        }
-    }
-    else {
-        return ResultT::of();
-    }
-}
-
-
-M_PARAMS
-Result<typename M_TYPE::NodeBaseG> M_TYPE::ctr_get_prev_node(NodeBaseG& node) const noexcept
-{
-    using ResultT = Result<NodeBaseG>;
-    auto& self = this->self();
-
-    if (!node->is_root())
-    {
-        NodeBaseG parent = self.ctr_get_node_parent(node);
-
-        int32_t parent_idx = node->parent_idx();
-
-        if (parent_idx > 0)
-        {
-            return self.ctr_get_node_child(parent, parent_idx - 1);
-        }
-        else {
-            NodeBaseG target_parent = ctr_get_prev_node(parent);
-
-            if (target_parent.isSet())
-            {
-                int32_t node_size = self.ctr_get_node_size(target_parent, 0);
-                return self.ctr_get_node_child(target_parent, node_size - 1);
-            }
-            else {
-                return target_parent;
-            }
-        }
-    }
-    else {
-        return ResultT::of();
-    }
-}
 
 #undef M_TYPE
 #undef M_PARAMS

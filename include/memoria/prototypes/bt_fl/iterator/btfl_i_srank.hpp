@@ -32,14 +32,11 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorStreamRankName)
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    using typename Base::TreePathT;
+    using typename Base::CtrSizeT;
+    using typename Base::CtrSizesT;
+    using typename Base::Container;
 
-    typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
-    typedef typename Base::Container                                            Container;
-    typedef typename Base::Container::Position                                  Position;
-
-    using CtrSizeT 		= typename Container::Types::CtrSizeT;
     using DataSizesT  = typename Container::Types::DataSizesT;
 
     static constexpr int32_t DataStreams 				= Container::Types::DataStreams;
@@ -53,8 +50,8 @@ private:
         int32_t symbol_;
         RankWalker(int32_t symbol): symbol_(symbol) {}
 
-        template <typename NodeTypes>
-        void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+        template <typename CtrT, typename NodeTypes>
+        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
         {
             using BranchNodeT = bt::BranchNode<NodeTypes>;
 
@@ -63,14 +60,17 @@ private:
 
             int32_t symbols_base = BranchNodeT::template translateLeafIndexToBranchIndex<LeafPath>(0);
 
-            auto sizes_substream = node->template substream<BranchPath>();
+            auto sizes_substream = node.template substream<BranchPath>();
 
-            rank_ += sizes_substream->sum(symbol_ + symbols_base, end);
+            rank_ += sizes_substream.sum(symbol_ + symbols_base, end);
+
+            return VoidResult::of();
         }
 
-        template <typename NodeTypes>
-        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+        template <typename CtrT, typename NodeTypes>
+        VoidResult treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
         {
+            return VoidResult::of();
         }
     };
 
@@ -78,54 +78,61 @@ private:
     struct RanksWalker {
         DataSizesT ranks_;
 
-        template <typename NodeTypes>
-        void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+        template <typename CtrT, typename NodeTypes>
+        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
         {
-        	  using BranchNodeT = bt::BranchNode<NodeTypes>;
+            using BranchNodeT = bt::BranchNode<NodeTypes>;
 
-        	  using LeafPath = IntList<StructureStreamIdx, 1>;
-        	  using BranchPath = typename BranchNodeT::template BuildBranchPath<LeafPath>;
+            using LeafPath = IntList<StructureStreamIdx, 1>;
+            using BranchPath = typename BranchNodeT::template BuildBranchPath<LeafPath>;
 
-        	  int32_t symbols_base = BranchNodeT::template translateLeafIndexToBranchIndex<LeafPath>(0);
+            int32_t symbols_base = BranchNodeT::template translateLeafIndexToBranchIndex<LeafPath>(0);
 
-            auto sizes_substream = node->template substream<BranchPath>();
+            auto sizes_substream = node.template substream<BranchPath>();
 
             for (int32_t s = 0; s < DataStreams; s++) {
-            	ranks_[s] += sizes_substream->sum(s + symbols_base, end);
+                ranks_[s] += sizes_substream.sum(s + symbols_base, end);
             }
+
+            return VoidResult::of();
         }
 
         template <typename NodeTypes>
-        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+        VoidResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end) noexcept
         {
+            return VoidResult::of();
         }
     };
 
 public:
 
-    CtrSizeT iter_rank(int32_t stream) const
+    Result<CtrSizeT> iter_rank(int32_t stream) const noexcept
     {
-    	auto& self = this->self();
+        using ResultT = Result<CtrSizeT>;
+
+        auto& self = this->self();
     	RankWalker fn(stream);
 
     	auto idx = self.iter_local_pos();
 
-    	self.ctr().ctr_walk_tree_up(self.iter_leaf(), idx, fn);
+        MEMORIA_TRY_VOID(self.ctr().ctr_walk_tree_up(self.iter_leaf(), idx, fn));
 
     	auto leaf_rank = self.leaf_structure()->rank(idx, stream);
 
-    	return fn.rank_ + leaf_rank;
+        return ResultT::of(fn.rank_ + leaf_rank);
     }
 
 
-    CtrSizeT iter_ranks() const
+    Result<CtrSizeT> iter_ranks() const noexcept
     {
+        using ResultT = Result<CtrSizeT>;
+
     	auto& self = this->self();
     	RankWalker fn;
 
     	auto idx = self.iter_local_pos();
 
-    	self.ctr().ctr_walk_tree_up(self.iter_leaf(), idx, fn);
+        MEMORIA_TRY_VOID(self.ctr().ctr_walk_tree_up(self.iter_leaf(), idx, fn));
 
     	auto leaf_structure = self.leaf_structure();
 
@@ -135,7 +142,7 @@ public:
     		leaf_ranks[s] = leaf_structure->rank(idx, s);
     	}
 
-    	return fn.ranks_ + leaf_ranks;
+        return ResultT::of(fn.ranks_ + leaf_ranks);
     }
 
 MEMORIA_V1_ITERATOR_PART_END

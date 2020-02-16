@@ -27,26 +27,10 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::BranchCommonName)
 public:
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
-    
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
-
-    typedef std::function<Result<BranchNodeEntry> (NodeBaseG&, NodeBaseG&)>             SplitFn;
-
+    using typename Base::NodeBaseG;
     using typename Base::TreePathT;
 
 public:
-    static const int32_t Streams = Types::Streams;
 
     VoidResult ctr_create_new_root_block(TreePathT& path) noexcept;
 

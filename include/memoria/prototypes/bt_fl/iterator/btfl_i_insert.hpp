@@ -32,17 +32,14 @@ namespace memoria {
 MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorInsertName)
 
 
-    using Container = typename Base::Container;
-
+    using typename Base::TreePathT;
+    using typename Base::CtrSizeT;
+    using typename Base::Container;
 
     static const int32_t Streams            = Container::Types::Streams;
     static const int32_t DataStreams        = Container::Types::DataStreams;
     static const int32_t StructureStreamIdx = Container::Types::StructureStreamIdx;
 
-    using typename Base::TreePathT;
-
-
-    using CtrSizeT  = typename Container::Types::CtrSizeT;
 
     auto insert_iovector(io::IOVectorProducer& provider, int64_t start, int64_t length)
     {

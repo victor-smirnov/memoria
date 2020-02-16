@@ -29,23 +29,17 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
 
-    typedef TypesType                                                           Types;
-    typedef typename Base::Allocator                                            Allocator;
-
-    using typename Base::BlockID;
     using typename Base::CtrID;
-
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef std::function<VoidResult (const Position&)>                         MergeFn;
-
+    using typename Base::BlockID;
+    using typename Base::NodeBaseG;
+    using typename Base::Iterator;
+    using typename Base::Position;
     using typename Base::TreePathT;
-    using Base::CONTAINER_HASH;
+    using typename Base::BranchNodeEntry;
+
+
+    using MergeFn = std::function<VoidResult (const Position&)>;
+
 
 
 public:

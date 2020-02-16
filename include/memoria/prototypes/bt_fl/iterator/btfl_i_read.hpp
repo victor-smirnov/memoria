@@ -35,15 +35,17 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorReadName)
 
-    using Container = typename Base::Container;
+    using typename Base::TreePathT;
+    using typename Base::CtrSizeT;
+    using typename Base::CtrSizesT;
+    using typename Base::Container;
 
-    using CtrSizeT      = typename Container::Types::CtrSizeT;
     using DataSizesT    = typename Container::Types::DataSizesT;
-    using CtrSizesT     = typename Container::Types::CtrSizesT;
 
     static const int32_t Streams                = Container::Types::Streams;
     static const int32_t DataStreams            = Container::Types::DataStreams;
     static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
+
 #ifdef MMA_USE_IOBUFFER
     template <typename IOBuffer>
     using ReadWalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanThroughStrategy>>;

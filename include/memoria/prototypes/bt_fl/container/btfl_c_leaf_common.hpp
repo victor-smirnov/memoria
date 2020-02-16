@@ -29,21 +29,9 @@
 namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::LeafCommonName)
-public:
-    using Types             = typename Base::Types;
-    using Iterator          = typename Base::Iterator;
 
-public:
-    using NodeBaseG         = typename Types::NodeBaseG;
-    using CtrSizeT          = typename Types::CtrSizeT;
-
-    using BranchNodeEntry   = typename Types::BranchNodeEntry;
-    using Position          = typename Types::Position;
-
-    static const int32_t Streams = Types::Streams;
-
-    using BlockUpdateMgr     = typename Types::BlockUpdateMgr;
-
+    using typename Base::NodeBaseG;
+    using typename Base::Position;
 
     BoolResult ctr_is_at_the_end(const NodeBaseG& leaf, const Position& pos) const noexcept
     {

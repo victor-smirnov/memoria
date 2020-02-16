@@ -52,7 +52,7 @@ class NDTTree {
     CtrT& ctr_;
 
 public:
-    NDTTree(CtrT& ctr): ctr_(ctr) {}
+    NDTTree(CtrT& ctr) noexcept: ctr_(ctr) {}
 
     template <typename Functor, typename... Args>
     auto
@@ -101,7 +101,7 @@ class NDTTree<CtrT, Types, 0> {
 public:
     using NDT2Start = NDT2<CtrT, Types, ListSize<typename Types::ChildList> - 1>;
 
-    NDTTree(CtrT& ctr): ctr_(ctr) {}
+    NDTTree(CtrT& ctr) noexcept: ctr_(ctr) {}
 
 
     template <typename Functor, typename... Args>
@@ -150,7 +150,7 @@ class NDT2 {
     CtrT& ctr_;
 
 public:
-    NDT2(CtrT& ctr): ctr_(ctr) {}
+    NDT2(CtrT& ctr) noexcept: ctr_(ctr) {}
 
     template <typename Node, typename Functor, typename... Args>
     auto dispatchTree(
@@ -194,7 +194,7 @@ class NDT2<CtrT, Types, 0> {
     CtrT& ctr_;
 
 public:
-    NDT2(CtrT& ctr): ctr_(ctr) {}
+    NDT2(CtrT& ctr) noexcept: ctr_(ctr) {}
 
     template <typename Node, typename Functor, typename... Args>
     auto dispatchTree(

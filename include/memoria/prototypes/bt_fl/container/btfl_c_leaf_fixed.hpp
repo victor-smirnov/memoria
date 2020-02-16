@@ -29,23 +29,6 @@
 namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::LeafFixedName)
-public:
-    using Types             = typename Base::Types;
-    using Iterator          = typename Base::Iterator;
-
-protected:
-
-    using NodeBaseG         = typename Types::NodeBaseG;
-    using Key               = typename Types::Key;
-    using Value             = typename Types::Value;
-    using CtrSizeT          = typename Types::CtrSizeT;
-
-    using BranchNodeEntry       = typename Types::BranchNodeEntry;
-    using Position          = typename Types::Position;
-
-    static const int32_t Streams = Types::Streams;
-
-    using BlockUpdateMgr     = typename Types::BlockUpdateMgr;
 
 MEMORIA_V1_CONTAINER_PART_END
 

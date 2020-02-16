@@ -26,22 +26,6 @@
 namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::RanksName)
-public:
-    using Types             = typename Base::Types;
-    using Iterator          = typename Base::Iterator;
-
-protected:
-    using NodeBaseG         = typename Types::NodeBaseG;
-    using CtrSizeT          = typename Types::CtrSizeT;
-
-    using BranchNodeEntry   = typename Types::BranchNodeEntry;
-    using Position          = typename Types::Position;
-
-    using BlockUpdateMgr     = typename Types::BlockUpdateMgr;
-
-public:
-
-
 
 MEMORIA_V1_CONTAINER_PART_END
 

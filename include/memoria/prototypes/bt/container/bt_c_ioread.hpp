@@ -30,16 +30,6 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::IOReadName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
-    
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-    typedef typename Types::CtrSizeT                                            CtrSizeT;
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::IOReadName)

@@ -28,34 +28,26 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
-
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-    typedef typename Types::CtrSizeT                                            CtrSizeT;
+    using typename Base::NodeBaseG;
+    using typename Base::Iterator;
+    using typename Base::CtrSizeT;
 
 
-    // TODO: noexcept
     template <int32_t StreamIdx>
     struct ReadEntriesFn {
 
         template <int32_t SubstreamIdx, typename StreamObj, typename Entry>
-        auto stream(const StreamObj* obj, Entry&& entry, int32_t idx)
+        auto stream(const StreamObj& obj, Entry&& entry, int32_t idx)
         {
-            obj->read(idx, idx + 1, make_fn_with_next([&](int32_t block, auto&& value) {
+            obj.read(idx, idx + 1, make_fn_with_next([&](int32_t block, auto&& value) {
                 entry.put(bt::StreamTag<StreamIdx>(), bt::StreamTag<SubstreamIdx>(), block, value);
             }));
         }
 
         template <typename Node, typename Fn, typename... Args>
-        int32_t treeNode(const Node* node, Fn&& fn, int32_t from, CtrSizeT to, Args&&... args)
+        Int32Result treeNode(const Node& node, Fn&& fn, int32_t from, CtrSizeT to, Args&&... args) noexcept
         {
-            int32_t limit = node->size(0);
+            int32_t limit = node.size(0);
 
             if (to < limit) {
                 limit = to;
@@ -63,12 +55,12 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
             for (int32_t c = from; c < limit; c++)
             {
-                node->template processSubstreams<IntList<StreamIdx>>(*this, fn, c, std::forward<Args>(args)...);
+                MEMORIA_TRY_VOID(node->template processSubstreams<IntList<StreamIdx>>(*this, fn, c, std::forward<Args>(args)...));
 
                 fn.next();
             }
 
-            return limit - from;
+            return Int32Result::of(limit - from);
         }
     };
 
@@ -83,7 +75,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.iter_local_pos();
 
-            int32_t processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadEntriesFn<StreamIdx>(), std::forward<Fn>(fn), idx, idx + (length - total));
+            MEMORIA_TRY(processed, self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadEntriesFn<StreamIdx>(), std::forward<Fn>(fn), idx, idx + (length - total)));
 
             if (processed > 0) {
                 total += iter.iter_skip_fw(processed);
@@ -100,27 +92,27 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     struct ReadSubstreamFn {
 
         template <int32_t SubstreamIdx, typename StreamObj, typename Fn>
-        auto stream(const StreamObj* obj, int32_t from, int32_t to, Fn&& entry)
+        auto stream(const StreamObj& obj, int32_t from, int32_t to, Fn&& entry) noexcept
         {
             static constexpr int32_t StreamIdx = ListHead<SubstreamPath>::Value;
 
-            obj->read(from, to, make_fn_with_next([&](int32_t block, auto&& value) {
+            obj.read(from, to, make_fn_with_next([&](int32_t block, auto&& value) {
                 entry.put(bt::StreamTag<StreamIdx>(), bt::StreamTag<SubstreamIdx>(), value);
             }));
         }
 
-        template <typename Node, typename Fn>
-        int32_t treeNode(const Node* node, int32_t from, CtrSizeT to, Fn&& fn)
+        template <typename NodeSO, typename Fn>
+        Int32Result treeNode(const NodeSO& node, int32_t from, CtrSizeT to, Fn&& fn) noexcept
         {
-            int32_t limit = node->size(ListHead<SubstreamPath>::Value);
+            MEMORIA_TRY(limit, node.size(ListHead<SubstreamPath>::Value));
 
             if (to < limit) {
                 limit = to;
             }
 
-            node->template processStream<SubstreamPath>(*this, from, limit, std::forward<Fn>(fn));
+            MEMORIA_TRY_VOID(node.template processStream<SubstreamPath>(*this, from, limit, std::forward<Fn>(fn)));
 
-            return limit - from;
+            return Int32Result::of(limit - from);
         }
     };
 
@@ -133,7 +125,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.iter_local_pos();
 
-            int32_t processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSubstreamFn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
+            MEMORIA_TRY(processed, self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSubstreamFn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn)));
 
             if (processed > 0) {
                 total += iter.iter_skip_fw(processed);
@@ -153,27 +145,27 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     struct ReadSingleSubstreamFn {
 
         template <int32_t SubstreamIdx, typename StreamObj, typename Fn>
-        auto stream(const StreamObj* obj, int32_t from, int32_t to, int32_t block, Fn&& entry)
+        auto stream(const StreamObj& obj, int32_t from, int32_t to, int32_t block, Fn&& entry)
         {
             static constexpr int32_t StreamIdx = ListHead<SubstreamPath>::Value;
 
-            obj->read(from, to, make_fn_with_next([&](int32_t block, auto&& value) {
+            obj.read(from, to, make_fn_with_next([&](int32_t block, auto&& value) {
                 entry.put(bt::StreamTag<StreamIdx>(), bt::StreamTag<SubstreamIdx>(), value);
             }));
         }
 
         template <typename Node, typename Fn>
-        int32_t treeNode(const Node* node, int32_t from, CtrSizeT to, int32_t block, Fn&& fn)
+        Int32Result treeNode(const Node& node, int32_t from, CtrSizeT to, int32_t block, Fn&& fn) noexcept
         {
-            int32_t limit = node->size(0);
+            MEMORIA_TRY(limit, node.size(0));
 
             if (to < limit) {
                 limit = to;
             }
 
-            node->template processStream<SubstreamPath>(*this, from, limit, block, std::forward<Fn>(fn));
+            MEMORIA_TRY_VOID(node.template processStream<SubstreamPath>(*this, from, limit, block, std::forward<Fn>(fn)));
 
-            return limit - from;
+            return Int32Result::of(limit - from);
         }
     };
 
@@ -186,7 +178,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.iter_local_pos();
 
-            int32_t processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
+            MEMORIA_TRY(processed, self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn)));
 
             if (processed > 0) {
                 total += iter.iter_skip_fw(processed);
@@ -204,27 +196,27 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     struct DescribeSingleSubstreamFn {
 
         template <int32_t SubstreamIdx, typename StreamObj, typename Fn>
-        auto stream(const StreamObj* obj, int32_t block, int32_t from, int32_t to, Fn&& entry)
+        auto stream(const StreamObj& obj, int32_t block, int32_t from, int32_t to, Fn&& entry)
         {
             static constexpr int32_t StreamIdx = ListHead<SubstreamPath>::Value;
 
-            obj->describe(block, from, to, make_fn_with_next([&](int32_t block, auto&& value) {
+            obj.describe(block, from, to, make_fn_with_next([&](int32_t block, auto&& value) {
                 return entry.put(bt::StreamTag<StreamIdx>(), bt::StreamTag<SubstreamIdx>(), block, value);
             }));
         }
 
         template <typename Node, typename Fn>
-        int32_t treeNode(const Node* node, int32_t block, int32_t from, CtrSizeT to, Fn&& fn)
+        Int32Result treeNode(const Node& node, int32_t block, int32_t from, CtrSizeT to, Fn&& fn) noexcept
         {
-            int32_t limit = node->size(0);
+            MEMORIA_TRY(limit, node->size(0));
 
             if (to < limit) {
                 limit = to;
             }
 
-            node->template processStream<SubstreamPath>(*this, block, from, limit, std::forward<Fn>(fn));
+            MEMORIA_TRY_VOID(node.template processStream<SubstreamPath>(*this, block, from, limit, std::forward<Fn>(fn)));
 
-            return limit - from;
+            return Int32Result::of(limit - from);
         }
     };
 
@@ -237,7 +229,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.iter_local_pos();
 
-            int32_t processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), DescribeSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
+            MEMORIA_TRY(processed, self().leaf_dispatcher().dispatch(iter.iter_leaf(), DescribeSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn)));
 
             if (processed > 0) {
                 total += iter.iter_skip_fw(processed);
@@ -257,25 +249,25 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     struct ReadSingleSubstream2Fn {
 
         template <int32_t SubstreamIdx, typename StreamObj, typename Fn>
-        auto stream(const StreamObj* obj, int32_t from, int32_t to, Fn&& entry)
+        auto stream(const StreamObj& obj, int32_t from, int32_t to, Fn&& entry)
         {
             static constexpr int32_t StreamIdx = ListHead<SubstreamPath>::Value;
 
-            entry.process(bt::StreamTag<StreamIdx>(), bt::StreamTag<SubstreamIdx>(), from, to, *obj);
+            entry.process(bt::StreamTag<StreamIdx>(), bt::StreamTag<SubstreamIdx>(), from, to, obj);
         }
 
         template <typename Node, typename Fn>
-        int32_t treeNode(const Node* node, int32_t from, CtrSizeT to, Fn&& fn)
+        Int32Result treeNode(const Node& node, int32_t from, CtrSizeT to, Fn&& fn) noexcept
         {
-            int32_t limit = node->size(0);
+            MEMORIA_TRY(limit, node.size(0));
 
             if (to < limit) {
                 limit = to;
             }
 
-            node->template processStream<SubstreamPath>(*this, from, limit, std::forward<Fn>(fn));
+            MEMORIA_TRY_VOID(node.template processStream<SubstreamPath>(*this, from, limit, std::forward<Fn>(fn)));
 
-            return limit - from;
+            return Int32Result::of(limit - from);
         }
     };
 
@@ -288,7 +280,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.iter_local_pos();
 
-            int32_t processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSingleSubstream2Fn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
+            MEMORIA_TRY(processed, self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSingleSubstream2Fn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn)));
 
             if (processed > 0) {
                 total += iter.iter_skip_fw(processed);

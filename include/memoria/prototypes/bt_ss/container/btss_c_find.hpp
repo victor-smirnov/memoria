@@ -18,6 +18,8 @@
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
+#include <memoria/prototypes/bt_ss/btss_names.hpp>
+
 #include <memoria/core/container/macros.hpp>
 
 #include <vector>
@@ -26,23 +28,16 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::FindName)
 public:
-    using typename Base::Types;
-    using typename Base::IteratorPtr;
 
-protected:
-    using typename Base::NodeBaseG;
-    using typename Base::Position;
-    using typename Base::BranchNodeEntry;
-    using typename Base::BlockUpdateMgr;
+    using typename Base::IteratorPtr;
     using typename Base::CtrSizeT;
 
-    using Profile = typename Types::Profile;
     using Base::Streams;
 
 public:
-    Result<ProfileCtrSizeT<Profile>> size() const noexcept
+    Result<CtrSizeT> size() const noexcept
     {
-        using ResultT = Result<ProfileCtrSizeT<Profile>>;
+        using ResultT = Result<CtrSizeT>;
         MEMORIA_TRY(sizes, self().sizes());
 
         return ResultT::of(sizes[0]);

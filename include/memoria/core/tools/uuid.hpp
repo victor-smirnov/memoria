@@ -39,66 +39,66 @@ class UUID {
     uint64_t lo_;
 
 public:
-    constexpr UUID():
+    constexpr UUID() noexcept:
         hi_(), lo_()
     {}
 
-    constexpr UUID(uint64_t hi, uint64_t lo): hi_(hi), lo_(lo) {}
+    constexpr UUID(uint64_t hi, uint64_t lo) noexcept: hi_(hi), lo_(lo) {}
 
-    const uint64_t& hi() const {
+    const uint64_t& hi() const noexcept {
         return hi_;
     }
 
-    uint64_t& hi() {
+    uint64_t& hi() noexcept{
         return hi_;
     }
 
-    const uint64_t& lo() const {
+    const uint64_t& lo() const noexcept {
         return lo_;
     }
 
-    uint64_t& lo() {
+    uint64_t& lo() noexcept {
         return lo_;
     }
 
-    bool is_null() const {
+    bool is_null() const noexcept {
         return lo_ == 0 && hi_ == 0;
     }
 
-    bool is_set() const {
+    bool is_set() const noexcept {
         return lo_ != 0 || hi_ != 0;
     }
 
-    bool operator==(const UUID& uuid) const {
+    bool operator==(const UUID& uuid) const noexcept {
         return hi_ == uuid.hi_ && lo_ == uuid.lo_;
     }
 
-    bool operator!=(const UUID& uuid) const {
+    bool operator!=(const UUID& uuid) const noexcept {
         return hi_ != uuid.hi_ || lo_ != uuid.lo_;
     }
 
 
-    bool operator<(const UUID& other) const {
+    bool operator<(const UUID& other) const noexcept {
         return hi_ < other.hi_ || (hi_ == other.hi_ && lo_ < other.lo_);
     }
 
-    bool operator<=(const UUID& other) const {
+    bool operator<=(const UUID& other) const noexcept {
         return hi_ < other.hi_ || (hi_ == other.hi_ && lo_ <= other.lo_);
     }
 
-    bool operator>(const UUID& other) const {
+    bool operator>(const UUID& other) const noexcept {
         return hi_ > other.hi_ || (hi_ == other.hi_ && lo_ > other.lo_);
     }
 
-    bool operator>=(const UUID& other) const {
+    bool operator>=(const UUID& other) const noexcept {
         return hi_ > other.hi_ || (hi_ == other.hi_ && lo_ >= other.lo_);
     }
 
-    bool isSet() const {
+    bool isSet() const noexcept {
         return hi_ != 0 || lo_ != 0;
     }
 
-    void clear() {
+    void clear() noexcept {
         hi_ = lo_ = 0;
     }
 
@@ -106,7 +106,7 @@ public:
     static UUID make_time();
     static UUID parse(const char* in);
 
-    static constexpr UUID make(uint64_t hi, uint64_t lo) {
+    static constexpr UUID make(uint64_t hi, uint64_t lo) noexcept {
         return UUID(hi, lo);
     }
 

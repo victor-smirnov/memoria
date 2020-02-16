@@ -27,24 +27,8 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
-    
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
-
-
-    static const int32_t Streams                                                = Types::Streams;
-
-
-    using CtrSizeT = typename Types::CtrSizeT;
-
+    using typename Base::NodeBaseG;
+    using typename Base::Iterator;
 
     template <int32_t Stream, typename SubstreamsList, typename Buffer>
     VoidResult ctr_update_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Buffer& entry) noexcept

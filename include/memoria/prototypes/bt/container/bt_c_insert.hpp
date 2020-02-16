@@ -27,18 +27,8 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
-
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
+    using typename Base::NodeBaseG;
+    using typename Base::Iterator;
 
     template <int32_t Stream, typename Entry>
     Result<SplitStatus> ctr_insert_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Entry& entry) noexcept

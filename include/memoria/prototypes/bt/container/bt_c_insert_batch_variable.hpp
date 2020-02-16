@@ -26,29 +26,14 @@
 namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchVariableName)
-public:
-    using Types = typename Base::Types;
-    using typename Base::Iterator;
 
-protected:
-    typedef typename Base::Allocator                                            Allocator;    
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    using typename Base::NodeBaseG;
     using typename Base::BlockID;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
-
-    typedef typename Types::CtrSizeT                                            CtrSizeT;
-
+    using typename Base::BlockUpdateMgr;
+    using typename Base::CtrSizeT;
     using typename Base::TreePathT;
-
-
-    using Checkpoint    = typename Base::Checkpoint;
-    using ILeafProvider = typename Base::ILeafProvider;
+    using typename Base::Checkpoint;
+    using typename Base::ILeafProvider;
 
 public:
     class InsertBatchResult {

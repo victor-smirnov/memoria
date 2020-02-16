@@ -26,7 +26,7 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafVariableName)
 
-protected:
+
 
 MEMORIA_V1_CONTAINER_PART_END
 

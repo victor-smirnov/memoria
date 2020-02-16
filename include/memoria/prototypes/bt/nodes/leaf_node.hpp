@@ -45,8 +45,6 @@ template <
 >
 class LeafNode: public Types::NodeBase
 {
-    static const int32_t BranchingFactor = PackedTreeBranchingFactor;
-
     using MyType = LeafNode<Types>;
 
 public:
@@ -97,8 +95,7 @@ public:
 
     using Base::allocator;
 
-    //FIXME: Use SubDispatcher
-    LeafNode() = default;
+    LeafNode() noexcept = default;
 
     struct SerializeFn {
         template <typename Tree, typename SerializationData>

@@ -29,23 +29,7 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorUpdateName)
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-
-    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
-    typedef typename Base::Container                                            Container;
-    typedef typename Base::Container::Position                                  Position;
-
-    using CtrSizeT  = typename Container::Types::CtrSizeT;
-
-    using IteratorBranchNodeEntry = typename Container::Types::IteratorBranchNodeEntry;
-
-    template <typename LeafPath>
-    using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
-
-    static const int32_t Streams          = Container::Types::Streams;
-    static const int32_t DataStreams      = Container::Types::DataStreams;
 
 
 MEMORIA_V1_ITERATOR_PART_END

@@ -69,7 +69,7 @@ public:
         decltype(bitmap_size_)
     >;
 
-    PackedAllocator() = default;
+    PackedAllocator() noexcept = default;
 
     PackedAllocatable& allocatable() {return allocatable_;}
     const PackedAllocatable& allocatable() const {return allocatable_;}
@@ -531,9 +531,10 @@ public:
         return resize(PackedAllocatable::roundUpBytesToAlignmentBlocks(block_size_ - delta));
     }
 
-    void resizeBlock(int32_t new_size) noexcept
+    VoidResult resizeBlock(int32_t new_size) noexcept
     {
         block_size_ = new_size;
+        return VoidResult::of();
     }
 
     Int32Result resize(int32_t new_size) noexcept

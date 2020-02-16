@@ -33,16 +33,14 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorMiscName)
 
-    using Container = typename Base::Container;
-
-    using CtrSizeT      = typename Container::Types::CtrSizeT;
-    using DataSizesT    = typename Container::Types::DataSizesT;
+    using typename Base::TreePathT;
+    using typename Base::CtrSizeT;
+    using typename Base::Container;
+    using DataSizesT = typename Container::Types::DataSizesT;
 
     static const int32_t Streams                = Container::Types::Streams;
     static const int32_t DataStreams            = Container::Types::DataStreams;
     static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
-
-
 
 public:
 

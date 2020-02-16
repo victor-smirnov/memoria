@@ -30,19 +30,12 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::ChecksName)
 
 public:
-    using Types = typename Base::Types;
-    using typename Base::IteratorPtr;
-
-public:
     using typename Base::NodeBaseG;
-    using typename Base::Position;
-    using typename Base::BranchNodeEntry;
-    using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
 
+    using Base::Streams;
 
-    static const int32_t Streams = Types::Streams;
 
     BoolResult ctr_check_content(const NodeBaseG& node) const noexcept
     {

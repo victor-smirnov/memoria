@@ -36,7 +36,7 @@ template <typename CtrT, typename Types> class NDT0<CtrT, Types, -1>;
 
 template <typename CtrT, typename Types>
 struct NDT: public NDT0<CtrT, Types, ListSize<typename Types::List> - 1> {
-    NDT(CtrT& ctr): NDT0<CtrT, Types, ListSize<typename Types::List> - 1>(ctr)
+    NDT(CtrT& ctr) noexcept: NDT0<CtrT, Types, ListSize<typename Types::List> - 1>(ctr)
     {}
 };
 
@@ -46,7 +46,7 @@ template <
     typename TreeNodeAdaptor
 >
 struct IsTreeNode {
-    static const bool Value = false;
+    static constexpr bool Value = false;
 };
 
 
@@ -55,7 +55,7 @@ template <
     typename Types
 >
 struct IsTreeNode<TreeNode, NodePageAdaptor<TreeNode, Types>> {
-    static const bool Value = true;
+    static constexpr bool Value = true;
 };
 
 
@@ -68,8 +68,8 @@ public:
     using Head = Select<Idx, typename Types::List>;
 
 private:
-    static const uint64_t HASH  = Head::BLOCK_HASH;
-    static const bool Leaf      = Head::Leaf;
+    static constexpr uint64_t HASH  = Head::BLOCK_HASH;
+    static constexpr bool Leaf      = Head::Leaf;
 
     using NodeSO        = typename Head::template SparseObject<CtrT>;
     using ConstNodeSO   = NodeSO;
@@ -82,7 +82,7 @@ public:
     using NodeBaseG = typename Types::NodeBaseG;
 
 public:
-    NDT0(CtrT& ctr): ctr_(ctr) {}
+    NDT0(CtrT& ctr) noexcept: ctr_(ctr) {}
 
     template <typename Functor, typename... Args>
     auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args) const noexcept
@@ -232,7 +232,7 @@ public:
     using NodeBaseG = typename Types::NodeBaseG;
 
 public:
-    NDT0(CtrT& ctr): ctr_(ctr) {}
+    NDT0(CtrT& ctr) noexcept: ctr_(ctr) {}
 
 
 

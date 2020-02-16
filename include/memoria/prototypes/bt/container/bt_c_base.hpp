@@ -49,7 +49,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using typename Base::CtrID;
     using typename Base::ContainerTypeName;
 
-    using ProfileT = typename Types::Profile;
+    using Profile  = typename Types::Profile;
 
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
@@ -721,7 +721,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
 
-    static Result<CtrBlockDescription<ProfileT>> describe_block(const BlockID& node_id, Allocator* alloc) noexcept
+    static Result<CtrBlockDescription<Profile>> describe_block(const BlockID& node_id, Allocator* alloc) noexcept
     {
         MEMORIA_TRY(tmp, alloc->getBlock(node_id));
         NodeBaseG node = tmp;
@@ -731,7 +731,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         bool root = node->is_root();
 
         uint64_t offset{};
-        return CtrBlockDescription<ProfileT>(size, CtrID{}, root, leaf, offset);
+        return CtrBlockDescription<Profile>(size, CtrID{}, root, leaf, offset);
     }
 
 //    void configure_types(

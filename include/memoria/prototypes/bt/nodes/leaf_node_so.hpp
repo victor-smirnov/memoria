@@ -244,57 +244,57 @@ public:
 
 
 
-    LeafNodeSO(): Base() {}
-    LeafNodeSO(CtrT* ctr): Base(ctr, nullptr) {}
-    LeafNodeSO(CtrT* ctr, NodeType_* node):
+    LeafNodeSO() noexcept: Base() {}
+    LeafNodeSO(CtrT* ctr) noexcept: Base(ctr, nullptr) {}
+    LeafNodeSO(CtrT* ctr, NodeType_* node) noexcept:
         Base(ctr, node)
     {}
 
-    void setup() {
+    void setup() noexcept {
         ctr_ = nullptr;
         node_ = nullptr;
     }
 
-    void setup(CtrT* ctr) {
+    void setup(CtrT* ctr) noexcept {
         ctr_ = ctr;
         node_ = nullptr;
     }
 
-    void setup(CtrT* ctr, NodeType_* node) {
+    void setup(CtrT* ctr, NodeType_* node) noexcept {
         ctr_ = ctr;
         node_ = node;
     }
 
-    void setup(NodeType_* node) {
+    void setup(NodeType_* node) noexcept {
         node_ = node;
     }
 
-    LeafExtData& state() const {
+    LeafExtData& state() const noexcept {
         return ctr_->leaf_node_ext_data();
     }
 
     template <typename LeafPath, typename ExtData>
-    void set_ext_data(ExtData&& data) const
+    void set_ext_data(ExtData&& data) const noexcept
     {
         constexpr int32_t substream_idx = SubstreamIdxByLeafPath<LeafPath>;
         std::get<substream_idx>(ctr_->leaf_node_ext_data()) = std::forward<ExtData>(data);
     }
 
 
-    static Result<std::unique_ptr<io::IOVector>> create_iovector()
+    static Result<std::unique_ptr<io::IOVector>> create_iovector() noexcept
     {
         using ResultT = Result<std::unique_ptr<io::IOVector>>;
         return ResultT::of(std::make_unique<IOVectorT>());
     }
 
-    Result<std::unique_ptr<io::IOVector>> create_iovector_view() const
+    Result<std::unique_ptr<io::IOVector>> create_iovector_view() const noexcept
     {
         auto iov = std::make_unique<IOVectorViewT>();
         configure_iovector_view(*iov.get());
         return std::move(iov);
     }
 
-    VoidResult configure_iovector_view(io::IOVector& io_vector) const
+    VoidResult configure_iovector_view(io::IOVector& io_vector) const noexcept
     {
         return Dispatcher(state()).dispatchAll(allocator(), _::ConfigureIOVectorViewFn<Streams>(io_vector));
     }

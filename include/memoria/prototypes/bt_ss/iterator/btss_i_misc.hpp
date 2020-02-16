@@ -32,18 +32,12 @@ using bt::StreamTag;
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(btss::IteratorMiscName)
 
-    using typename Base::NodeBaseG;
-    using Container = typename Base::Container;
+    using typename Base::CtrSizeT;
+    using typename Base::TreePathT;
+    using typename Base::IteratorPtr;
+    using typename Base::Container;
+    using typename Base::Position;
 
-    typedef typename Container::Allocator                                           Allocator;
-    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Container::Iterator                                            Iterator;
-    typedef typename Container::IteratorPtr                                         IteratorPtr;
-
-    using Position = typename Container::Types::Position;
-    using CtrSizeT = typename Container::Types::CtrSizeT;
-
-    using TreePathT = typename Container::TreePathT;
 
 public:
     int32_t iovector_pos() const noexcept {

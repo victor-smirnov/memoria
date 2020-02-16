@@ -29,16 +29,12 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorRemoveName)
 
-
+    using typename Base::TreePathT;
+    using typename Base::CtrSizeT;
+    using typename Base::CtrSizesT;
+    using typename Base::Container;
     using typename Base::NodeBaseG;
-    using Container = typename Base::Container;
     using typename Base::Position;
-
-    using CtrSizeT  = typename Container::Types::CtrSizeT;
-    using CtrSizesT = typename Container::Types::CtrSizesT;
-
-    using BranchNodeEntry               = typename Container::Types::BranchNodeEntry;
-    using IteratorBranchNodeEntry       = typename Container::Types::IteratorBranchNodeEntry;
 
     static const int32_t Streams          		= Container::Types::Streams;
     static const int32_t DataStreams      		= Container::Types::DataStreams;

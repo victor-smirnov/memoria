@@ -23,17 +23,11 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveBatchName)
 
-    typedef TypesType                                                           Types;
-    typedef typename Base::Allocator                                            Allocator;
-
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Base::Metadata                                             Metadata;
-
+    using typename Base::NodeBaseG;
+    using typename Base::Position;
     using typename Base::TreePathT;
+
+
 
 
     VoidResult ctr_remove_entries(

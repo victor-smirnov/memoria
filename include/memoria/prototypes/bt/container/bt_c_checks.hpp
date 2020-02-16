@@ -27,19 +27,11 @@
 namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ChecksName)
-private:
-    
-public:
-
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
 
     using typename Base::BlockID;
     using typename Base::TreePathT;
-
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
+    using typename Base::NodeBaseG;
+    using typename Base::BranchNodeEntry;
 
     BoolResult check(void *) const noexcept
     {

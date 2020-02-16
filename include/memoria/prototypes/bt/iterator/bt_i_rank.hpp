@@ -28,14 +28,7 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorRankName)
 
-    typedef typename Base::NodeBaseG                                                NodeBaseG;
-    typedef typename Base::Container                                                Container;
-
-    typedef typename Container::Allocator                                           Allocator;
-    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Container::Iterator                                            Iterator;
-
-    using CtrSizeT = typename Container::Types::CtrSizeT;
+    using typename Base::CtrSizeT;
 
     template <typename LeafPath>
     auto iter_rank_fw(int32_t index, CtrSizeT pos) noexcept

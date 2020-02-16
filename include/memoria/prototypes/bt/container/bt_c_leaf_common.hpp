@@ -28,27 +28,14 @@
 namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafCommonName)
-public:
-    using Types = typename Base::Types;
 
-protected:
-    typedef typename Base::Allocator                                            Allocator;
-    
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
-
+    using typename Base::Types;
+    using typename Base::NodeBaseG;
+    using typename Base::Iterator;
+    using typename Base::Position;
+    using typename Base::BlockUpdateMgr;
     using typename Base::TreePathT;
-
-    using CtrSizeT = typename Types::CtrSizeT;
-
-    static const int32_t Streams = Types::Streams;
+    using typename Base::CtrSizeT;
 
 public:
     VoidResult ctr_split_leaf(

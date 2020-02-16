@@ -35,13 +35,9 @@ public:
 
 protected:
     using typename Base::NodeBaseG;
-    using typename Base::Position;
-    using typename Base::BranchNodeEntry;
-    using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
 
-    static const int32_t Streams                = Types::Streams;
     static const int32_t DataStreams            = Types::DataStreams;
     static const int32_t StructureStreamIdx     = Types::StructureStreamIdx;
 

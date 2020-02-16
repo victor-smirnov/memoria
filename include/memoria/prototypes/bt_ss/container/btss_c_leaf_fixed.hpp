@@ -20,35 +20,18 @@
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/prototypes/bt_ss/btss_names.hpp>
+
 #include <vector>
 
 namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafFixedName)
-public:
-    using Types = typename Base::Types;
 
-protected:
-    typedef typename Base::Allocator                                            Allocator;
-
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
-
-    using CtrSizeT = typename Types::CtrSizeT;
-
-    static const int32_t Streams = Types::Streams;
-
+    using typename Base::NodeBaseG;
 
 
     MEMORIA_V1_DECLARE_NODE_FN(GetStreamCapacityFn, single_stream_capacity);
-
-public:
     Int32Result ctr_get_leaf_node_capacity(const NodeBaseG& node, int max_hops = 100) const noexcept
     {
         return self().leaf_dispatcher().dispatch(node, GetStreamCapacityFn(), max_hops);

@@ -28,16 +28,7 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorSkipName)
 
-    typedef typename Base::NodeBaseG                                                NodeBaseG;
-    typedef typename Base::Container                                                Container;
-
-    typedef typename Container::Allocator                                           Allocator;
-    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Container::Iterator                                            Iterator;
-
-    using CtrSizeT = typename Container::Types::CtrSizeT;
-
-
+    using typename Base::CtrSizeT;
 
     template <int32_t Stream>
     auto iter_skip_fw(CtrSizeT amount) noexcept

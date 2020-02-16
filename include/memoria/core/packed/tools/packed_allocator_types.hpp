@@ -108,31 +108,31 @@ public:
     friend class PackedAllocator;
 
 
-    static const uint32_t VERSION                   = 1;
-    static const int32_t AlignmentBlock             = PackedAllocationAlignment;
+    static constexpr uint32_t VERSION                   = 1;
+    static constexpr int32_t AlignmentBlock             = PackedAllocationAlignment;
 
 
-    typedef TypeList<
+    using FieldsList = TypeList<
             ConstValue<uint32_t, VERSION>,
             decltype(allocator_offset_)
-    >                                           FieldsList;
+    >;
 
-    PackedAllocatable() = default;
+    PackedAllocatable() noexcept = default;
 
     const int32_t& allocator_offset() const {return allocator_offset_;}
 
-    void setTopLevelAllocator()
+    void setTopLevelAllocator() noexcept
     {
         allocator_offset() = 0;
     }
 
 
-    bool has_allocator() const
+    bool has_allocator() const noexcept
     {
         return allocator_offset_ > 0;
     }
 
-    void setAllocatorOffset(const void* allocator)
+    void setAllocatorOffset(const void* allocator) noexcept
     {
         // TODO: check for UB.
         const char* my_ptr = ptr_cast<const char>(this);
@@ -141,7 +141,7 @@ public:
         allocator_offset() = diff;
     }
 
-    PackedAllocator* allocator()
+    PackedAllocator* allocator() noexcept
     {
         if (allocator_offset() > 0)
         {
@@ -149,11 +149,12 @@ public:
             return ptr_cast<PackedAllocator>(my_ptr - allocator_offset());
         }
         else {
-            MMA_THROW(RuntimeException()) << WhatCInfo("No allocation is defined for this object");
+            // FIXME: return an error
+            terminate("No allocation is defined for this object");
         }
     }
 
-    PackedAllocator* allocator_or_null()
+    PackedAllocator* allocator_or_null() noexcept
     {
         if (allocator_offset() > 0)
         {
@@ -165,7 +166,7 @@ public:
         }
     }
 
-    const PackedAllocator* allocator() const
+    const PackedAllocator* allocator() const noexcept
     {
         if (allocator_offset() > 0)
         {
@@ -173,11 +174,12 @@ public:
             return ptr_cast<const PackedAllocator>(my_ptr - allocator_offset());
         }
         else {
-            MMA_THROW(RuntimeException()) << WhatCInfo("No allocation is defined for this object");
+            // FIXME: return an error here
+            terminate("No allocation is defined for this object");
         }
     }
 
-    const PackedAllocator* allocator_or_null() const
+    const PackedAllocator* allocator_or_null() const noexcept
     {
         if (allocator_offset() > 0)
         {
@@ -189,38 +191,37 @@ public:
         }
     }
 
-    static constexpr int32_t roundUpBytesToAlignmentBlocks(int32_t value)
+    static constexpr int32_t roundUpBytesToAlignmentBlocks(int32_t value) noexcept
     {
         return (value / AlignmentBlock + (value % AlignmentBlock ? 1 : 0)) * AlignmentBlock;
     }
 
-    static constexpr int32_t roundDownBytesToAlignmentBlocks(int32_t value)
+    static constexpr int32_t roundDownBytesToAlignmentBlocks(int32_t value) noexcept
     {
         return (value / AlignmentBlock) * AlignmentBlock;
     }
 
-    static constexpr int32_t roundUpBitsToAlignmentBlocks(int32_t bits)
+    static constexpr int32_t roundUpBitsToAlignmentBlocks(int32_t bits) noexcept
     {
         return roundUpBytesToAlignmentBlocks(roundUpBitToBytes(bits));
     }
 
-    static constexpr int32_t roundDownBitsToAlignmentBlocks(int32_t bits)
+    static constexpr int32_t roundDownBitsToAlignmentBlocks(int32_t bits) noexcept
     {
         return roundDownBytesToAlignmentBlocks(roundDownBitsToBytes(bits));
     }
 
-    static constexpr int32_t roundUpBitToBytes(int32_t bits)
+    static constexpr int32_t roundUpBitToBytes(int32_t bits) noexcept
     {
         return bits / 8 + (bits % 8 > 0);
     }
 
-    static constexpr int32_t roundDownBitsToBytes(int32_t bits)
+    static constexpr int32_t roundDownBitsToBytes(int32_t bits) noexcept
     {
         return bits / 8 + (bits % 8 > 0);
     }
 
-    static constexpr int32_t divUp(int32_t value, int32_t divider) {
-        //return (value / divider) + (value % divider ? 1 : 0);
+    static constexpr int32_t divUp(int32_t value, int32_t divider) noexcept {
         return ::memoria::divUp(value, divider);
     }
 
@@ -247,25 +248,30 @@ struct AllocationBlock {
     int32_t offset_;
     uint8_t* ptr_;
 
-    AllocationBlock(int32_t size, int32_t offset, uint8_t* ptr): size_(size), offset_(offset), ptr_(ptr) {}
-    AllocationBlock(): size_{}, offset_{}, ptr_{nullptr} {}
+    constexpr AllocationBlock(int32_t size, int32_t offset, uint8_t* ptr) noexcept:
+        size_(size), offset_(offset), ptr_(ptr)
+    {}
 
-    int32_t size() const    {return size_;}
-    int32_t offset() const  {return offset_;}
-    uint8_t* ptr() const  {return ptr_;}
-    bool is_empty() const {return size_ == 0;}
+    constexpr AllocationBlock() noexcept:
+        size_{}, offset_{}, ptr_{nullptr}
+    {}
+
+    int32_t size() const noexcept   {return size_;}
+    int32_t offset() const noexcept {return offset_;}
+    uint8_t* ptr() const noexcept   {return ptr_;}
+    bool is_empty() const noexcept  {return size_ == 0;}
 
     template <typename T>
-    const T* cast() const {
+    const T* cast() const noexcept {
         return ptr_cast<const T>(ptr_);
     }
 
     template <typename T>
-    T* cast() {
+    T* cast() noexcept {
         return ptr_cast<T>(ptr_);
     }
 
-    operator bool() const {
+    operator bool() const noexcept {
         return ptr_ != nullptr;
     }
 };
@@ -276,16 +282,18 @@ struct AllocationBlockConst {
     int32_t offset_;
     const uint8_t* ptr_;
 
-    AllocationBlockConst(int32_t size, int32_t offset, const uint8_t* ptr): size_(size), offset_(offset), ptr_(ptr) {}
+    constexpr AllocationBlockConst(int32_t size, int32_t offset, const uint8_t* ptr) noexcept:
+        size_(size), offset_(offset), ptr_(ptr)
+    {}
 
-    int32_t size() const    {return size_;}
-    int32_t offset() const  {return offset_;}
-    const uint8_t* ptr() const    {return ptr_;}
+    int32_t size() const noexcept   {return size_;}
+    int32_t offset() const noexcept {return offset_;}
+    const uint8_t* ptr() const noexcept {return ptr_;}
 
-    operator bool() const {return true;}
+    operator bool() const noexcept {return true;}
 
     template <typename T>
-    const T* cast() const {
+    const T* cast() const noexcept {
         return ptr_cast<const T>(ptr_);
     }
 };

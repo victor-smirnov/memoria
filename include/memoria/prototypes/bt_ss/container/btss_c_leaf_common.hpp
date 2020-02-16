@@ -17,14 +17,17 @@
 #pragma once
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
+#include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
-#include <memoria/core/container/macros.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
-
+#include <memoria/prototypes/bt_ss/btss_names.hpp>
 #include <memoria/prototypes/bt_ss/btss_input_iovector.hpp>
 
+
+#include <memoria/core/container/macros.hpp>
+#include <memoria/core/iovector/io_vector.hpp>
 #include <memoria/api/common/ctr_api_btss.hpp>
+
 
 #include <vector>
 
@@ -32,25 +35,15 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
 
-public:
-    using typename Base::Types;
     using typename Base::Iterator;
-
-public:
     using typename Base::NodeBaseG;
-    using typename Base::BranchNodeEntry;
     using typename Base::Position;
-
-    using SplitFn = std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>;
-    using MergeFn = std::function<void (const Position&)>;
+    using typename Base::Profile;
 
     using typename Base::CtrSizeT;
+    using typename Base::LeafNode;
 
-    using LeafNodeT = typename Types::LeafNode;
-
-    static const int32_t Streams = Types::Streams;
-
-    CtrSharedPtr<BTSSIterator<typename Types::Profile>> raw_iterator() {
+    CtrSharedPtr<BTSSIterator<Profile>> raw_iterator() {
         return self().ctr_begin();
     }
 
@@ -97,7 +90,7 @@ public:
         using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
 
-        MEMORIA_TRY(iov, LeafNodeT::template SparseObject<MyType>::create_iovector());
+        MEMORIA_TRY(iov, LeafNode::template SparseObject<MyType>::create_iovector());
 
         auto id = iter.iter_leaf()->id();
 
@@ -133,7 +126,7 @@ public:
 
         auto& self = this->self();
 
-        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
+        std::unique_ptr<io::IOVector> iov = LeafNode::create_iovector();
 
         auto id = iter.iter_leaf()->id();
 

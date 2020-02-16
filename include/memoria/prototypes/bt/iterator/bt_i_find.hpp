@@ -29,19 +29,17 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
-    typedef typename Base::NodeBaseG                                                NodeBaseG;
-    typedef typename Base::Container                                                Container;
 
-    typedef typename Container::Allocator                                           Allocator;
-    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Container::Iterator                                            Iterator;
 
+    using typename Base::CtrSizeT;
+    using typename Base::Position;
     using typename Base::TreePathT;
+    using typename Base::NodeBaseG;
+    using typename Base::NodeChain;
 
-    using CtrSizeT = typename Container::Types::CtrSizeT;
 
     template <typename LeafPath>
-    using TargetType = typename Container::Types::template TargetType<LeafPath>;
+    using TargetType = typename Base::Types::template TargetType<LeafPath>;
 
     template <typename Walker>
     auto iter_find_fw(Walker&& walker) noexcept -> Result<decltype(walker.result())>
@@ -52,7 +50,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         walker.prepare(self);
 
-        typename Container::NodeChain node_chain(self.ctr(), self.iter_leaf(), self.iter_local_pos());
+        NodeChain node_chain(self.ctr(), self.iter_leaf(), self.iter_local_pos());
 
         TreePathT end_path = self.path();
 
@@ -80,7 +78,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         walker.prepare(self);
 
-        typename Container::NodeChain node_chain(self.ctr(), self.iter_leaf(), self.iter_local_pos());
+        NodeChain node_chain(self.ctr(), self.iter_leaf(), self.iter_local_pos());
 
         TreePathT end_path = self.path();
 

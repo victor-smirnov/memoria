@@ -19,6 +19,7 @@
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
+#include <memoria/core/tools/result.hpp>
 
 #include <vector>
 
@@ -27,27 +28,14 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::BranchVariableName)
 
-public:
-    using Types = typename Base::Types;
-
-protected:
-    typedef typename Base::Allocator                                            Allocator;
     using typename Base::BlockID;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
-
-    typedef std::function<VoidResult (NodeBaseG&, NodeBaseG&)>                  SplitFn;
-
+    using typename Base::NodeBaseG;
+    using typename Base::BranchNodeEntry;
+    using typename Base::BlockUpdateMgr;
     using typename Base::TreePathT;
 
-    static const int32_t Streams = Types::Streams;
+    using SplitFn = std::function<VoidResult (NodeBaseG&, NodeBaseG&)>;
+
 
 public:
     VoidResult ctr_update_path(TreePathT& path, size_t level) noexcept

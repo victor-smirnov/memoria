@@ -31,23 +31,18 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
 
-public:
-    using Types             = typename Base::Types;
-    using Iterator          = typename Base::Iterator;
 
-    using LeafNodeT         = typename Types::LeafNode;
+    using typename Base::LeafNode;
+    using typename Base::Iterator;
 
-    using CtrSizeT          = int64_t;
-    static const int32_t DataStreams = Types::DataStreams;
+    using Base::Streams;
 
-public:
+
 
 #ifdef MMA_USE_IOBUFFER
     template <typename IOBuffer>
     using CtrInputProviderPool = ObjectPool<btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer>>;
 #endif
-
-    static const int32_t Streams = Types::Streams;
 
     VoidResult ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
@@ -55,7 +50,7 @@ public:
 
         auto& self = this->self();
 
-        auto iov_res = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
+        auto iov_res = LeafNode::template NodeSparseObject<MyType, LeafNode>::create_iovector();
         MEMORIA_RETURN_IF_ERROR(iov_res);
 
         auto id = iter.iter_leaf()->id();

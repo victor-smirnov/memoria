@@ -30,29 +30,15 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchFixedName)
 
-public:
-    using Types = typename Base::Types;
-    using Allocator = typename Base::Allocator;
 
-protected:
     using typename Base::BlockID;
-
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
-
-    typedef typename Types::CtrSizeT                                            CtrSizeT;
-
+    using typename Base::NodeBaseG;
+    using typename Base::BranchNodeEntry;
+    using typename Base::CtrSizeT;
     using typename Base::TreePathT;
 
-    using Checkpoint    = typename Base::Checkpoint;
-    using ILeafProvider = typename Base::ILeafProvider;
+    using typename Base::Checkpoint;
+    using typename Base::ILeafProvider;
 
 
 public:

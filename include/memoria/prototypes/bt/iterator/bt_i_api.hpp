@@ -33,18 +33,12 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorAPIName)
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
-
-    typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
-    typedef typename Base::Container                                            Container;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
-
+    using typename Base::CtrSizeT;
+    using typename Base::Position;
     using typename Base::TreePathT;
+    using typename Base::NodeBaseG;
 
-    static const int32_t Streams = Container::Types::Streams;
+    static constexpr int32_t Streams = Base::Streams;
 
     MEMORIA_V1_DECLARE_NODE_FN(SizesFn, sizes);
 
@@ -113,7 +107,7 @@ public:
     Int32Result iter_leaf_capacity(int32_t stream) const noexcept
     {
         auto& self = this->self();
-        return self.iter_leaf_capacity(Position(), stream);
+        return self.iter_leaf_capacity(Position{}, stream);
     }
 
     Int32Result iter_leaf_capacity(const Position& reserved, int32_t stream) const noexcept
@@ -352,8 +346,8 @@ BoolResult M_TYPE::iter_find_next_leaf(Walker&& walker) noexcept
 {
     auto& self = this->self();
 
-    NodeBaseG&  leaf    = self.iter_leaf();
-    int32_t stream      = self.iter_stream();
+    NodeBaseG& leaf = self.iter_leaf();
+    int32_t stream  = self.iter_stream();
 
     if (!leaf->is_root())
     {

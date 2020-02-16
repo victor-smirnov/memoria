@@ -32,13 +32,16 @@ public:
     using Types     = typename Base::Container::Types;
     using NodeBaseG = typename Types::NodeBaseG;
     using Allocator = typename Base::Container::Allocator;
+    using Position  = typename Types::Position;
+    using NodeChain = typename Base::Container::NodeChain;
 
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
     using CtrSizeT  = typename Types::CtrSizeT;
     using CtrSizesT = typename Types::CtrSizesT;
 
-    using Iterator  = typename Base::Container::Iterator;
+    using Iterator      = typename Base::Container::Iterator;
+    using IteratorPtr   = typename Base::Container::IteratorPtr;
 
     using IteratorCache = typename Types::template IteratorCacheFactory<
             MyType,
@@ -50,6 +53,8 @@ public:
     using IOVectorViewT = typename Types::LeafNode::template SparseObject<CtrT>::IOVectorViewT;
 
     using TreePathT = TreePath<NodeBaseG>;
+
+    static constexpr int32_t Streams = Types::Streams;
 
 private:
 

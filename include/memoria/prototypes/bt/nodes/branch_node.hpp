@@ -100,80 +100,80 @@ public:
 
     using MyType = TreeNodeBase<Metadata, Header>;
 
-    TreeNodeBase() = default;
+    TreeNodeBase() noexcept = default;
 
-    Header& header() {return header_;}
-    const Header& header() const {return header_;}
+    Header& header() noexcept {return header_;}
+    const Header& header() const noexcept {return header_;}
 
-    Header* as_header() {return &header_;}
-    const Header* as_header() const {return &header_;}
+    Header* as_header() noexcept {return &header_;}
+    const Header* as_header() const noexcept {return &header_;}
 
-    BlockID& id() {return header_.id();}
-    const BlockID& id() const {return header_.id();}
+    BlockID& id() noexcept {return header_.id();}
+    const BlockID& id() const noexcept {return header_.id();}
 
-    BlockID& uuid() {return header_.uuid();}
-    const BlockID& uuid() const {return header_.uuid();}
+    BlockID& uuid() noexcept {return header_.uuid();}
+    const BlockID& uuid() const noexcept {return header_.uuid();}
 
 
-    uint64_t ctr_type_hash() const {
+    uint64_t ctr_type_hash() const noexcept {
         return header_.ctr_type_hash();
     }
 
-    uint64_t block_type_hash() const {
+    uint64_t block_type_hash() const noexcept {
         return header_.block_type_hash();
     }
 
-    int32_t used_memory_block_size() const {
+    int32_t used_memory_block_size() const noexcept {
         return header_.memory_block_size() - allocator()->free_space();
     }
 
-    void init() {
+    void init() noexcept {
         header_.init();
     }
 
-    inline bool is_root() const {
+    inline bool is_root() const noexcept {
         return root_;
     }
 
-    void set_root(bool root) {
+    void set_root(bool root) noexcept {
         root_ = root;
     }
 
-    inline bool is_leaf() const {
+    inline bool is_leaf() const noexcept {
         return leaf_;
     }
 
-    void set_leaf(bool leaf) {
+    void set_leaf(bool leaf) noexcept {
         leaf_ = leaf;
     }
 
-    const int32_t& level() const
+    const int32_t& level() const noexcept
     {
         return level_;
     }
 
-    int32_t& level()
+    int32_t& level() noexcept
     {
         return level_;
     }
 
-    const BlockID& next_leaf_id() const {
+    const BlockID& next_leaf_id() const noexcept {
         return next_leaf_id_;
     }
 
-    BlockID& next_leaf_id() {
+    BlockID& next_leaf_id() noexcept {
         return next_leaf_id_;
     }
 
-    PackedAllocator* allocator() {
+    PackedAllocator* allocator() noexcept {
         return &allocator_;
     }
 
-    const PackedAllocator* allocator() const {
+    const PackedAllocator* allocator() const noexcept {
         return &allocator_;
     }
 
-    psize_t root_metadata_size() const
+    psize_t root_metadata_size() const noexcept
     {
         const PackedAllocator* alloc = allocator();
 
@@ -186,23 +186,22 @@ public:
         return size;
     }
 
-    bool has_root_metadata() const
+    bool has_root_metadata() const noexcept
     {
         return root_metadata_size() > 0;
     }
 
-    const Metadata& root_metadata() const
+    const Metadata& root_metadata() const noexcept
     {
         return *allocator()->template get<Metadata>(METADATA);
     }
 
-    Metadata& root_metadata()
+    Metadata& root_metadata() noexcept
     {
-        MEMORIA_V1_ASSERT_TRUE(!allocator_.is_empty(METADATA));
         return *allocator()->template get<Metadata>(METADATA);
     }
 
-    VoidResult setMetadata(const Metadata& meta)
+    VoidResult setMetadata(const Metadata& meta) noexcept
     {
         if (!has_root_metadata())
         {
@@ -224,7 +223,7 @@ public:
         return VoidResult::of();
     }
 
-    bool can_convert_to_root(psize_t metadata_size) const
+    bool can_convert_to_root(psize_t metadata_size) const noexcept
     {
         if (!has_root_metadata())
         {
@@ -266,25 +265,23 @@ public:
         return allocator_.init(block_size - static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size(), entries);
     }
 
-    void resizeBlock(int32_t new_size)
+    VoidResult resizeBlock(int32_t new_size) noexcept
     {
         int32_t space_delta = new_size - header_.memory_block_size();
         int32_t free_space  = allocator_.free_space();
 
         if (space_delta < 0 && free_space < -space_delta)
         {
-            MMA_THROW(RuntimeException())
-                    << format_ex(
-                           "Resizing block {} has insufficient space for downsizing: available {}, requied {}",
-                           uuid(),
-                           free_space,
-                           -space_delta
-                       );
+            return MEMORIA_MAKE_GENERIC_ERROR(
+                "Resizing block {} has insufficient space for downsizing: available {}, requied {}",
+                uuid(),
+                free_space,
+                -space_delta
+            );
         }
 
-
         header_.memory_block_size() = new_size;
-        allocator_.resizeBlock(new_size - sizeof(MyType) + PackedAllocator::my_size());
+        return allocator_.resizeBlock(new_size - sizeof(MyType) + PackedAllocator::my_size());
     }
 
 public:
@@ -460,14 +457,11 @@ template <
 >
 class BranchNode: public Types::NodeBase
 {
-    static const int32_t  BranchingFactor = PackedTreeBranchingFactor;
-
     using MyType = BranchNode;
 
 public:
-    static const uint32_t VERSION = 1;
-
-    static const bool Leaf = false;
+    static constexpr uint32_t VERSION = 1;
+    static constexpr bool Leaf = false;
 
     using Base = typename Types::NodeBase;
 
@@ -478,10 +472,10 @@ public:
     template <typename CtrT, typename NodeT>
     using NodeSparseObject = BranchNodeSO<CtrT, NodeT>;
 
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
+    using BranchNodeEntry = typename Types::BranchNodeEntry;
+    using Position = typename Types::Position;
 
-    typedef typename Types::ID                                                  Value;
+    using Value = typename Types::ID;
 
     template <template <typename> class, typename>
     friend class NodePageAdaptor;
@@ -515,16 +509,16 @@ public:
         CtrReferencesMap
     >;
 
-    static const int32_t Streams            = ListSize<BranchSubstreamsStructList>;
+    static constexpr int32_t Streams            = ListSize<BranchSubstreamsStructList>;
 
-    static const int32_t Substreams         = Dispatcher::Size;
+    static constexpr int32_t Substreams         = Dispatcher::Size;
 
-    static const int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
-    static const int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
+    static constexpr int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
+    static constexpr int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
 
-    static const int32_t ValuesBlockIdx     = SubstreamsEnd;
+    static constexpr int32_t ValuesBlockIdx     = SubstreamsEnd;
 
-    BranchNode() = default;
+    constexpr BranchNode() noexcept = default;
 
 private:
     struct InitFn {
@@ -852,9 +846,7 @@ public:
         {
             return wrap_throwing([&]() {
                 MyType* tgt = ptr_cast<MyType>(buffer);
-                tgt->resizeBlock(new_size);
-
-                return VoidResult::of();
+                return tgt->resizeBlock(new_size);
             });
         }
 

@@ -28,26 +28,9 @@ namespace memoria {
 
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsPLName)
-public:
-    using Types = typename Base::Types;
 
-protected:
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::Allocator::BlockG                                    BlockG;
-
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    static const int32_t Streams                                                = Types::Streams;
-
+    using typename Base::NodeBaseG;
     using typename Base::TreePathT;
-
-public:
-
 
     VoidResult ctr_dump_path(const TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
     {

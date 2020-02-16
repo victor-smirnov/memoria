@@ -28,15 +28,6 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorLeafName)
 
-    typedef typename Base::NodeBaseG                                                NodeBaseG;
-    typedef typename Base::Container                                                Container;
-
-    typedef typename Container::Allocator                                           Allocator;
-    typedef typename Container::BranchNodeEntry                                         BranchNodeEntry;
-    typedef typename Container::Iterator                                            Iterator;
-
-    using CtrSizeT = typename Container::Types::CtrSizeT;
-
 public:
     BoolResult iter_next_leaf() noexcept
     {

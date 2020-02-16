@@ -32,7 +32,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorFindName)
 
 
     using Container = typename Base::Container;
-    using CtrSizeT  = typename Container::Types::CtrSizeT;
+    using typename Base::CtrSizeT;
 
     static const int32_t Streams                = Container::Types::Streams;
     static const int32_t DataStreams            = Container::Types::DataStreams;

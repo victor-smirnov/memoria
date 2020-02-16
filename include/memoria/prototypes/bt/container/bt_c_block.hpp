@@ -33,7 +33,7 @@ public:
 
     using typename Base::NodeBaseG;
     using typename Base::Iterator;
-    using IteratorPtr = typename Base::IteratorPtr;
+    using typename Base::IteratorPtr;
     using typename Base::Position;
     using typename Base::CtrSizeT;
     using typename Base::TreePathT;

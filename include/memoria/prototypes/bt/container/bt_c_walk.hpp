@@ -28,24 +28,15 @@
 namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
-private:
-    
-public:
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
-
-    using typename Base::BlockID;
+    using typename Base::Types;
+    using typename Base::NodeBaseG;
+    using typename Base::Profile;
     using typename Base::CtrID;
-
-    using ProfileT = typename Types::Profile;
-
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-
-    using BranchNodeEntry = typename Types::BranchNodeEntry;
+    using typename Base::BlockID;
 
 
-    VoidResult ctr_walk_tree(ContainerWalker<ProfileT>* walker) noexcept
+    VoidResult ctr_walk_tree(ContainerWalker<Profile>* walker) noexcept
     {
         auto& self = this->self();
 
@@ -63,8 +54,8 @@ public:
         return VoidResult::of();
     }
 
-    // TODO: error handling
-    void ctr_begin_node(const NodeBaseG& node, ContainerWalker<ProfileT>* walker) noexcept
+    // FIXME: error handling
+    void ctr_begin_node(const NodeBaseG& node, ContainerWalker<Profile>* walker) noexcept
     {
         if (node->is_root())
         {
@@ -86,7 +77,7 @@ public:
     }
 
     // TODO: error handling
-    void ctr_end_node(const NodeBaseG& node, ContainerWalker<ProfileT>* walker) noexcept
+    void ctr_end_node(const NodeBaseG& node, ContainerWalker<Profile>* walker) noexcept
     {
         if (node->is_root())
         {
@@ -101,7 +92,7 @@ public:
         }
     }
 
-    Result<CtrID> ctr_clone(CtrID new_name) const noexcept
+    Result<CtrID> ctr_clone(const CtrID& new_name) const noexcept
     {
         if (new_name.is_null())
         {
@@ -155,7 +146,7 @@ private:
         return new_node;
     }
 
-    VoidResult ctr_traverse_tree(const NodeBaseG& node, ContainerWalker<ProfileT>* walker) noexcept
+    VoidResult ctr_traverse_tree(const NodeBaseG& node, ContainerWalker<Profile>* walker) noexcept
     {
         auto& self = this->self();
 

@@ -34,7 +34,7 @@ public:
 
     using typename Base::NodeBaseG;
     using typename Base::Iterator;
-    using IteratorPtr = typename Base::IteratorPtr;
+    using typename Base::IteratorPtr;
     using typename Base::Position;
     using typename Base::CtrSizeT;
     using typename Base::TreePathT;
@@ -51,7 +51,7 @@ public:
         return self().node_dispatcher().dispatch(node, SizesFn());
     }
 
-protected:
+public:
 
     template <typename Walker>
     Result<IteratorPtr> ctr_find(Walker&& walker) const noexcept;

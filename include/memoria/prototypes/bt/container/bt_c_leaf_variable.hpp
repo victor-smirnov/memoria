@@ -28,29 +28,18 @@
 namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
-public:
-    using Types = typename Base::Types;
 
-protected:
-    typedef typename Base::Allocator                                            Allocator;
-
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
-
-    typedef std::function<VoidResult (const Position&)>                         MergeFn;
-
+    using typename Base::NodeBaseG;
+    using typename Base::Iterator;
+    using typename Base::Position;
     using typename Base::TreePathT;
+    using typename Base::CtrSizeT;
+    using typename Base::BranchNodeEntry;
+    using typename Base::BlockUpdateMgr;
 
-    static const int32_t Streams = Types::Streams;
+    using MergeFn = std::function<VoidResult (const Position&)>;
 
 
-public:
 
     // TODO: noexcept
     template <int32_t Stream>

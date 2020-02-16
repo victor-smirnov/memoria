@@ -139,33 +139,33 @@ public:
     }
 
 
-    BranchNodeSO(): Base() {}
-    BranchNodeSO(CtrT* ctr): Base(ctr, nullptr) {}
-    BranchNodeSO(CtrT* ctr, NodeType_* node):
+    BranchNodeSO() noexcept: Base() {}
+    BranchNodeSO(CtrT* ctr) noexcept: Base(ctr, nullptr) {}
+    BranchNodeSO(CtrT* ctr, NodeType_* node) noexcept:
         Base(ctr, node)
     {}
 
-    void setup() {
+    void setup() noexcept {
         ctr_ = nullptr;
         node_ = nullptr;
     }
 
-    void setup(CtrT* ctr) {
+    void setup(CtrT* ctr) noexcept {
         ctr_ = ctr;
         node_ = nullptr;
     }
 
-    void setup(CtrT* ctr, NodeType_* node) {
+    void setup(CtrT* ctr, NodeType_* node) noexcept {
         ctr_ = ctr;
         node_ = node;
     }
 
-    void setup(NodeType_* node) {
+    void setup(NodeType_* node) noexcept {
         node_ = node;
     }
 
     template <typename LeafPath, typename ExtData>
-    void set_ext_data(ExtData&& data) const
+    void set_ext_data(ExtData&& data) const noexcept
     {
         constexpr int32_t substream_idx = SubstreamIdxByLeafPath<LeafPath>;
         std::get<substream_idx>(ctr_->branch_node_ext_data()) = std::forward<ExtData>(data);

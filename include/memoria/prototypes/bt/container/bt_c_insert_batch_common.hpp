@@ -27,22 +27,10 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
-
     using typename Base::BlockID;
-    
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
-
-    typedef typename Types::CtrSizeT                                            CtrSizeT;
+    using typename Base::NodeBaseG;
+    using typename Base::Position;
+    using typename Base::CtrSizeT;
 
     using typename Base::TreePathT;
 

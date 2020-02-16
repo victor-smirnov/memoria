@@ -284,20 +284,6 @@ namespace _ {
     struct CheckRangeList<Max, TL<>> {
         static const bool Value = true;
     };
-
-
-//    template <typename List> struct MakeTupleT;
-//    template <typename List> using MakeTuple = typename MakeTupleT<List>::Type;
-
-//    template <typename... Types>
-//    struct MakeTupleT<TypeList<Types...>> {
-//        using Type = std::tuple<Types...>;
-//    };
-
-//    template <typename... Types>
-//    struct MakeTupleT<std::tuple<Types...>> {
-//        using type = std::tuple<Types...>;
-//    };
 }
 
 

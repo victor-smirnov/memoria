@@ -32,9 +32,10 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorSkipName)
 
+    using typename Base::TreePathT;
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
-    using Container = typename Base::Container;
+    using typename Base::Container;
 
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
