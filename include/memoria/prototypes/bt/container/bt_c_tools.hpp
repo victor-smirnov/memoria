@@ -90,6 +90,11 @@ public:
         return self().node_dispatcher().dispatch(node, GetSizesFn());
     }
 
+    Result<Position> ctr_get_leaf_sizes(const NodeBaseG& node) const noexcept
+    {
+        return self().leaf_dispatcher().dispatch(node, GetSizesFn());
+    }
+
     MEMORIA_V1_DECLARE_NODE_FN(GetSizeFn, size);
     auto ctr_get_node_size(const NodeBaseG& node, int32_t stream) const noexcept
     {

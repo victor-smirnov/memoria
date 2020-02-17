@@ -46,7 +46,7 @@ public:
         using ResultT = Result<Position>;
 
         auto& self = this->self();
-        CtrSizesT sizes;
+        CtrSizesT sizes{};
 
         if (!self.iter_is_end())
         {
@@ -57,7 +57,7 @@ public:
         	auto start = self.iter_leafrank();
         	auto end   = ii->iter_leafrank();
 
-            MEMORIA_TRY_VOID(self.ctr().ctr_remove_entries(self.path(), start, ii->path(), end, sizes, true));
+            MEMORIA_TRY_VOID(self.ctr().ctr_remove_entries(self.path(), start, ii->path(), end, true));
 
             self.iter_local_pos() = end[StructureStreamIdx];
 
@@ -112,7 +112,7 @@ public:
             auto start = self.iter_leafrank();
             auto end   = to.iter_leafrank();
 
-            MEMORIA_TRY_VOID(self.ctr().ctr_remove_entries(self.path(), start, to.path(), end, sizes, true));
+            MEMORIA_TRY_VOID(self.ctr().ctr_remove_entries(self.path(), start, to.path(), end, true));
 
             self.iter_local_pos() = end[StructureStreamIdx];
             self.iter_leaf().assign(to.iter_leaf());

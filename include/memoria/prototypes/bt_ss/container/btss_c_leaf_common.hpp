@@ -39,6 +39,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
     using typename Base::NodeBaseG;
     using typename Base::Position;
     using typename Base::Profile;
+    using typename Base::TreePathT;
 
     using typename Base::CtrSizeT;
     using typename Base::LeafNode;
@@ -77,9 +78,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
     }
 
 
-    VoidResult ctr_remove_entry(Iterator& iter) noexcept {
-        return self().template ctr_remove_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos());
-    }
+
 
 
 
@@ -147,6 +146,27 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
         }
 
         return ResultT::of(streaming.totals());
+    }
+
+
+    Result<SplitResult> split_leaf_in_a_half(TreePathT& path, int32_t target_idx) noexcept
+    {
+        using ResultT = Result<SplitResult>;
+        auto& self = this->self();
+
+        MEMORIA_TRY(leaf_sizes, self.ctr_get_leaf_sizes(path.leaf()));
+        int32_t split_idx = leaf_sizes[0] / 2;
+
+        MEMORIA_TRY_VOID(self.ctr_split_leaf(path, Position::create(0, split_idx)));
+
+        if (target_idx > split_idx)
+        {
+            MEMORIA_TRY_VOID(self.ctr_expect_next_node(path, 0));
+            return ResultT::of(SplitStatus::RIGHT, target_idx - split_idx);
+        }
+        else {
+            return ResultT::of(SplitStatus::LEFT, target_idx);
+        }
     }
 
 MEMORIA_V1_CONTAINER_PART_END

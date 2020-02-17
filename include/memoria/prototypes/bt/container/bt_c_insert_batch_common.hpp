@@ -358,8 +358,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             total++;
         }
 
-        total += provider.orphan_splits();
-
         return ResultT::of(total, head, current);
     }
 

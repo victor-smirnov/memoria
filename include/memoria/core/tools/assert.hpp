@@ -62,9 +62,9 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
         }
 
 #define MEMORIA_V1_ASSERT_TRUE_RTN(Arg0)                                                                \
-        if (!(Arg0)) {                                                                                  \
+        do {if (!(Arg0)) {                                                                              \
             return MEMORIA_MAKE_GENERIC_ERROR("ASSERT TRUE FAILURE: {}", #Arg0);                        \
-        }
+        }} while(0)
 
 
 #define MEMORIA_V1_ASSERT_FALSE(Arg0)                                                                   \

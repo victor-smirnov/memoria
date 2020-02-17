@@ -24,6 +24,8 @@
 #include <memoria/prototypes/bt_ss/container/btss_c_leaf_fixed.hpp>
 #include <memoria/prototypes/bt_ss/container/btss_c_leaf_variable.hpp>
 #include <memoria/prototypes/bt_ss/container/btss_c_find.hpp>
+#include <memoria/prototypes/bt_ss/container/btss_c_remove.hpp>
+
 
 #include <memoria/prototypes/bt_ss/iterator/btss_i_misc.hpp>
 
@@ -49,7 +51,8 @@ struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 btss::LeafCommonName,
-                btss::FindName
+                btss::FindName,
+                btss::RemoveName
     >;
 
     using FixedLeafContainerPartsList = MergeLists<

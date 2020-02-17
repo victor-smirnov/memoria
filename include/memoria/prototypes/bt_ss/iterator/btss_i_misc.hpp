@@ -183,16 +183,16 @@ public:
         auto to_path        = to->path();
         Position to_pos     = Position(to->iter_local_pos());
 
-        Position sizes;
 
         MEMORIA_TRY_VOID(
-            self.ctr().ctr_remove_entries(from_path, from_pos, to_path, to_pos, sizes, true)
+            self.ctr().ctr_remove_entries(from_path, from_pos, to_path, to_pos, true)
         );
 
         self.iter_local_pos() = to_pos.get();
 
         //MEMORIA_TRY_VOID(self.iter_refresh());
 
+        Position sizes{};
         return ResultT::of(sizes[0]);
     }
 

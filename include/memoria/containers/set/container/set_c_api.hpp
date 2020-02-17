@@ -160,7 +160,7 @@ public:
 
         if ((!iter->iter_is_end()) && iter->key() == key)
         {
-            MEMORIA_TRY_VOID(iter->remove());
+            MEMORIA_TRY_VOID(iter->remove(false));
             return BoolResult::of(true);
         }
 

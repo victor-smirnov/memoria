@@ -79,7 +79,7 @@ public:
     VoidResult ctr_split_node(
             TreePathT& path,
             size_t level,
-            SplitFn split_fn
+            const SplitFn& split_fn
     ) noexcept
     {
         MEMORIA_TRY_VOID(ctr_split_node_raw(path, level, split_fn));
@@ -89,7 +89,7 @@ public:
     VoidResult ctr_split_node_raw(
             TreePathT& path,
             size_t level,
-            SplitFn split_fn
+            const SplitFn& split_fn
     ) noexcept;
 
     MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
@@ -141,7 +141,7 @@ M_PARAMS
 VoidResult M_TYPE::ctr_split_node_raw(
         TreePathT& path,
         size_t level,
-        SplitFn split_fn
+        const SplitFn& split_fn
 ) noexcept
 {
     using ResultT = VoidResult;
@@ -258,7 +258,6 @@ VoidResult M_TYPE::ctr_split_path_raw(
 ) noexcept
 {
     auto& self = this->self();
-
     return ctr_split_node_raw(
                 path,
                 level,

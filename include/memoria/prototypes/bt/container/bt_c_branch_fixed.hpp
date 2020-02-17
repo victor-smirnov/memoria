@@ -82,7 +82,7 @@ public:
     VoidResult ctr_split_node(
             TreePathT& path,
             size_t level,
-            SplitFn split_fn
+            const SplitFn& split_fn
     ) noexcept
     {
         MEMORIA_TRY_VOID(self().ctr_split_node_raw(path, level, split_fn));
@@ -92,7 +92,7 @@ public:
     VoidResult ctr_split_node_raw(
             TreePathT& path,
             size_t level,
-            SplitFn split_fn
+            const SplitFn& split_fn
     ) noexcept;
 
     MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
@@ -169,7 +169,7 @@ M_PARAMS
 VoidResult M_TYPE::ctr_split_node_raw(
         TreePathT& path,
         size_t level,
-        SplitFn split_fn
+        const SplitFn& split_fn
 ) noexcept
 {
     using ResultT = VoidResult;
@@ -362,19 +362,6 @@ VoidResult M_TYPE::ctr_update_path(TreePathT& path, size_t level, const BranchNo
 
 
 
-/**
- * \brief Merge *src* path to the *tgt* path unconditionally.
- *
- * Perform merging of two paths, *src* to *dst* at the specified *level*. Both nodes (at boths paths) must
- * have the same parent.
- *
- * \param tgt path to node to be merged with
- * \param src path to node to be merged
- * \param level level of the node in the tree
- * \return true if paths have been merged
- *
- * \see mergeWithSiblings - this is the basic method
- */
 
 M_PARAMS
 VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, const TreePathT& src_path, size_t level) noexcept
@@ -401,26 +388,7 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, const TreePath
     return self.store().removeBlock(src->id());
 }
 
-/**
- * \brief Merge *src* path to the *tgt* path.
- *
- * Merge two tree paths, *src* to *dst* upward starting from nodes specified with *level*. If both these
- * nodes have different parents, then recursively merge parents first. Calls \ref ctr_can_merge_nodes to check if nodes can be merged.
- * This call will try to merge parents only if current nodes can be merged.
- *
- * If after nodes have been merged the resulting path is redundant, that means it consists from a single node chain,
- * then this path is truncated from the tree root down to the specified *level*.
- *
- * Unlike this call, \ref mergePaths tries to merge paths starting from the root down to the specified *level*.
- *
- * \param tgt path to node to be merged with
- * \param src path to node to be merged
- * \param level level of the node in the tree
- * \return true if paths have been merged
- *
- * \see mergeWithSiblings - this is the basic method
- * \see ctr_can_merge_nodes, removeRedundantRoot, mergeNodes, ctr_is_the_same_parent
- */
+
 
 M_PARAMS
 BoolResult M_TYPE::ctr_merge_branch_nodes(TreePathT& tgt, TreePathT& src, size_t level, bool only_if_same_parent) noexcept

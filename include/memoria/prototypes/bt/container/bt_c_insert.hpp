@@ -48,7 +48,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
             split_status = split_result.type();
 
             MEMORIA_TRY(status1, self.template ctr_try_insert_stream_entry<Stream>(iter, split_result.stream_idx(), entry));
-
             if (!status1)
             {
                 return MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed");

@@ -56,9 +56,6 @@ protected:
 
     CtrT& ctr_;
 
-    // FIXME: remove it
-    NodePair split_watcher_;
-
     CtrSizeT total_symbols_{};
 
     memoria::io::IOVectorProducer* producer_{};
@@ -94,18 +91,6 @@ public:
 
     CtrSizeT totals() const {
         return total_symbols_;
-    }
-
-    NodePair& split_watcher() {
-        return split_watcher_;
-    }
-
-    const NodePair& split_watcher() const {
-        return split_watcher_;
-    }
-
-    CtrSizeT orphan_splits() const {
-        return 0;
     }
 
     VoidResult iter_next_leaf(const NodeBaseG& leaf) noexcept{

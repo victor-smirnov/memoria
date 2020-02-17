@@ -72,11 +72,11 @@ public:
     }
 
 
-    VoidResult remove() noexcept
+    VoidResult remove(bool update_iterator = true) noexcept
     {
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr().ctr_remove_entry(self));
+        MEMORIA_TRY_VOID(self.ctr().ctr_remove_entry(self, update_iterator));
         MEMORIA_TRY_VOID(self.ctr().ctr_check_path(self.path(), 0));
 
         if (self.iter_is_end())

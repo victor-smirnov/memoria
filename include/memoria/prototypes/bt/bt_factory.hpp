@@ -60,8 +60,9 @@
 #include <memoria/prototypes/bt/container/bt_c_leaf_fixed.hpp>
 #include <memoria/prototypes/bt/container/bt_c_find.hpp>
 #include <memoria/prototypes/bt/container/bt_c_walk.hpp>
-#include <memoria/prototypes/bt/container/bt_c_remove.hpp>
 #include <memoria/prototypes/bt/container/bt_c_block.hpp>
+
+#include <memoria/prototypes/bt/bt_names.hpp>
 
 #include <memoria/prototypes/bt/bt_iterator.hpp>
 
@@ -98,7 +99,6 @@ struct BTTypes {
             bt::InsertName,
             bt::RemoveToolsName,
             bt::RemoveBatchName,
-            bt::RemoveName,
             bt::FindName,
             bt::ReadName,
             bt::IOReadName,

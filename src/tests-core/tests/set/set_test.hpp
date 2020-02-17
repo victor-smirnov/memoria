@@ -86,6 +86,7 @@ class SetTest: public BTTestBase<Set<DataType>, ProfileT, StoreT>
     using Base::branch;
     using Base::commit;
     using Base::drop;
+    using Base::println;
     using Base::out;
     using Base::getRandom;
 
@@ -120,7 +121,7 @@ public:
             if (c % 100000 == 0)
             {
                 out() << "C=" << c << std::endl;
-                //this->check("Store structure checking", MMA_SRC);
+                this->check("Store structure checking", MMA_SRC);
             }
 
             auto key = internal_set::ValueTools<CxxValueType>::generate_random();
@@ -165,13 +166,13 @@ public:
         }
 
 
+        int64_t t4 = getTimeInMillis();
         size_t cnt = 0;
         auto ctr_size = ctr->size().get_or_throw();
         for (auto& key: entries_list)
         {
             if (cnt % 100000 == 0) {
                 out() << "K=" << cnt << std::endl;
-
                 this->check("Store structure checking", MMA_SRC);
             }
 
@@ -182,6 +183,8 @@ public:
 
             assert_equals(ctr_size, ctr->size().get_or_throw());
         }
+        int64_t t5 = getTimeInMillis();
+        println("Removed entries in {} ms", t5 - t4);
 
         out() << "Final Container Size: " << ctr->size().get_or_throw() << std::endl;
         this->check("Store structure checking", MMA_SRC);
