@@ -19,8 +19,11 @@
 #include <memoria/api/store/memory_store_api.hpp>
 #include <memoria/api/set/set_api.hpp>
 
+
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/uuid.hpp>
+
 #include <memoria/memoria.hpp>
 
 #include <iostream>
@@ -34,7 +37,7 @@ using Profile = MemoryCoWProfile<>;
 
 int main()
 {
-    using CtrName = Set<Varchar>;
+    using CtrName = Set<UUID>;
 
     InitCtrMetadata<CtrName, MemoryCoWProfile<>>();
 
@@ -50,11 +53,12 @@ int main()
 
         auto ctr = create(snp, CtrName{}, name).get_or_throw();
 
-        std::vector<U8String> entries;
+        std::vector<UUID> entries;
 
         for (int c = 0; c < 10000000; c++) //47793
         {
-            U8String entry = format_u8("BBBBBBBBB_{}", c);
+            //U8String entry = format_u8("BBBBBBBBB_{}", c);
+            UUID entry = UUID::make_random();
             entries.push_back(entry);
         }
 
@@ -82,11 +86,11 @@ int main()
         snp->commit().get_or_throw();
         snp->set_as_master().get_or_throw();
 
-        store->store("set_cow.mma3").get_or_throw();
+        //store->store("set_cow.mma3").get_or_throw();
 
-        auto store2 = IMemoryStore<Profile>::load("set_cow.mma3").get_or_throw();
+        //auto store2 = IMemoryStore<Profile>::load("set_cow.mma3").get_or_throw();
 
-        auto snp2 = store2->master().get_or_throw()->branch().get_or_throw();
+        auto snp2 = store->master().get_or_throw()->branch().get_or_throw();
 
         auto ctr1 = find<CtrName>(snp2, name).get_or_throw();
 
