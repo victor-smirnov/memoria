@@ -121,6 +121,8 @@ VoidResult M_TYPE::ctr_insert_to_branch_node(
     using ResultT = VoidResult;
     auto& self = this->self();
 
+    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
+
     NodeBaseG node = path[level];
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
@@ -206,7 +208,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
                             new_parent_idx + 1,
                             right_max,
                             right_node->id()
-                            );
+                        );
 
 
             if (right_path_insertion_status.is_error())
@@ -226,6 +228,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
         }
     }
 
+    MEMORIA_TRY_VOID(self.ctr_ref_block(right_node->id()));
     path[level] = right_node;
 
     return ResultT::of();
@@ -305,6 +308,7 @@ BoolResult M_TYPE::ctr_update_branch_nodes(TreePathT& path, size_t level, int32_
 
     bool updated_next_node = false;
 
+    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(path[level]));
 
     MEMORIA_TRY(success, self.ctr_update_branch_node(path[level], idx, entry));
@@ -386,6 +390,9 @@ BoolResult M_TYPE::ctr_try_merge_branch_nodes(TreePathT& tgt_path, const TreePat
 
     MEMORIA_TRY_VOID(self.ctr_check_same_paths(tgt_path, src_path, level + 1));
 
+    MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, level));
+    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(tgt_path, level));
+
     NodeBaseG src = src_path[level];
     NodeBaseG tgt = tgt_path[level];
 
@@ -395,7 +402,6 @@ BoolResult M_TYPE::ctr_try_merge_branch_nodes(TreePathT& tgt_path, const TreePat
 
     MEMORIA_TRY_VOID(mgr.add(tgt));
 
-    MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, level));
 
     auto res = self.branch_dispatcher().dispatch_1st_const(src, tgt, TryMergeNodesFn());
     if (res.is_error()) {
@@ -409,6 +415,8 @@ BoolResult M_TYPE::ctr_try_merge_branch_nodes(TreePathT& tgt_path, const TreePat
         }
     }
 
+    // FIXME: in case of 'packed error' (that shouldn't happen),
+    // the tree is in inconsistent state. So we need to backup the parent node too.
     auto status = self.ctr_remove_non_leaf_node_entry(tgt_path, level + 1, parent_idx);
 
     if (status.is_error()) {
@@ -422,8 +430,10 @@ BoolResult M_TYPE::ctr_try_merge_branch_nodes(TreePathT& tgt_path, const TreePat
         }
     }
 
+    MEMORIA_TRY_VOID(self.ctr_cow_ref_children_after_merge(src));
+
     MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, level));
-    MEMORIA_TRY_VOID(self.store().removeBlock(src->id()));
+    MEMORIA_TRY_VOID(self.ctr_unref_block(src->id()));
 
     return BoolResult::of(true);
 }

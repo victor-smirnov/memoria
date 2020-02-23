@@ -16,12 +16,9 @@
 
 #pragma once
 
-/**
- * Basic bitmap tools. get/set bit and bit groups. Copy/Shift bits in a Buffer.
- *
- * Buffer must have Long type declarator and [] overloaded operator.
- */
 
+#include <memoria/core/types.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
 namespace memoria {
 

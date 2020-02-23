@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <memoria/core/container/profile.hpp>
 #include <memoria/core/container/builder.hpp>
 #include <memoria/core/container/names.hpp>
 

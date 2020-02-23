@@ -191,6 +191,9 @@ using BitVector = Sequence<1, Dense>;
 template <typename ChildType = void>
 class DefaultProfile  {};
 
+template <typename ChildType = void>
+class MemoryCoWProfile  {};
+
 enum class Granularity  {Bit, int8_t};
 enum class Indexed      {No, Yes};
 
@@ -507,8 +510,75 @@ constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_tr
 
 [[noreturn]] void terminate(const char* msg) noexcept;
 
-enum class BTPathsMergeStatus {
-    UNTOUCHED, MERGED, REBUILD_SRC_PATH
+
+template <typename ValueHolder_>
+class MemCoWBlockID {
+    ValueHolder_ holder_;
+public:
+    using ValueHolder = ValueHolder_;
+
+    MemCoWBlockID() noexcept = default;
+    explicit MemCoWBlockID(uint64_t value) noexcept:
+        holder_(value)
+    {}
+
+    ValueHolder& value() noexcept {
+        return holder_;
+    }
+
+    const ValueHolder& value() const noexcept {
+        return holder_;
+    }
+
+    bool operator==(const MemCoWBlockID& other) const noexcept {
+        return holder_ == other.holder_;
+    }
+
+    bool operator!=(const MemCoWBlockID& other) const noexcept {
+        return holder_ != other.holder_;
+    }
+
+    bool operator<(const MemCoWBlockID& other) const noexcept {
+        return holder_ < other.holder_;
+    }
+
+    bool isSet() const noexcept {
+        return holder_;
+    }
+
+    bool is_set() const noexcept {
+        return holder_;
+    }
+
+    bool is_null() const noexcept {
+        return !isSet();
+    }
 };
+
+
+//std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept;
+
+inline std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept {
+    out << block_id.value();
+    return out;
+}
+
+
+}
+
+namespace std {
+
+template <typename ValueHolder>
+class hash<memoria::MemCoWBlockID<ValueHolder>> {
+public:
+    size_t operator()(const memoria::MemCoWBlockID<ValueHolder>& obj) const noexcept {
+        return std::hash<ValueHolder>()(obj.value());
+    }
+};
+
+template <typename ValueHolder>
+void swap(memoria::MemCoWBlockID<ValueHolder>& one, memoria::MemCoWBlockID<ValueHolder>& two) noexcept {
+    std::swap(one.value(), two.value());
+}
 
 }

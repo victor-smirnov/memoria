@@ -63,6 +63,8 @@ VoidResult M_TYPE::ctr_create_new_root_block(TreePathT& path) noexcept
 {
     auto& self = this->self();
 
+    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
+
     NodeBaseG root = path.root();
 
     MEMORIA_TRY(new_root, self.ctr_create_node(root->level() + 1, true, false, root->header().memory_block_size()));
@@ -77,6 +79,8 @@ VoidResult M_TYPE::ctr_create_new_root_block(TreePathT& path) noexcept
     path.add_root(new_root);
 
     MEMORIA_TRY_VOID(self.ctr_insert_to_branch_node(path, new_root->level(), 0, max, root->id()));
+
+    MEMORIA_TRY_VOID(self.ctr_ref_block(root->id()));
 
     return self.set_root(new_root->id());
 }

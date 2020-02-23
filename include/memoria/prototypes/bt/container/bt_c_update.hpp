@@ -30,23 +30,25 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
     using typename Base::NodeBaseG;
     using typename Base::Iterator;
 
-    template <int32_t Stream, typename SubstreamsList, typename Buffer>
+    template <typename SubstreamsList, typename Buffer>
     VoidResult ctr_update_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Buffer& entry) noexcept
     {
         auto& self = this->self();
 
-        auto result0 = self.template ctr_try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
-        MEMORIA_RETURN_IF_ERROR(result0);
+        MEMORIA_TRY_VOID(self.ctr_cow_clone_path(iter.path(), 0));
 
-        if (!std::get<0>(result0.get()))
+        auto update_status0 = self.template ctr_try_update_stream_entry<SubstreamsList>(iter, idx, entry);
+        MEMORIA_RETURN_IF_ERROR(update_status0);
+
+        if (!update_status0.get())
         {
             MEMORIA_TRY(split_r, iter.iter_split_leaf(stream, idx));
             idx = split_r.stream_idx();
 
-            auto result1 = self.template ctr_try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
-            MEMORIA_RETURN_IF_ERROR(result1);
+            auto update_status1 = self.template ctr_try_update_stream_entry<SubstreamsList>(iter, idx, entry);
+            MEMORIA_RETURN_IF_ERROR(update_status1);
 
-            if (!std::get<0>(result1.get()))
+            if (!update_status1.get())
             {
                 return MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed");
             }

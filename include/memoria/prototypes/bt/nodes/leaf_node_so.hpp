@@ -26,6 +26,7 @@
 
 #include <memoria/core/packed/tools/packed_stateful_dispatcher.hpp>
 
+#include <memoria/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
@@ -299,6 +300,140 @@ public:
         return Dispatcher(state()).dispatchAll(allocator(), _::ConfigureIOVectorViewFn<Streams>(io_vector));
     }
 
+    template <typename OtherNode>
+    VoidResult copy_node_data_to(OtherNode&& other) const noexcept
+    {
+        PackedAllocator* other_alloc = other.allocator();
+        const PackedAllocator* my_alloc = this->allocator();
+
+        for (int32_t c = 0; c < SubstreamsEnd; c++)
+        {
+            MEMORIA_TRY_VOID(other_alloc->importBlock(c, my_alloc, c));
+        }
+
+        return VoidResult::of();
+    }
+
+
+    struct CoWRefChildrenFn {
+        template <typename Tree>
+        VoidResult stream(Tree&&, CtrT&) const noexcept
+        {
+            return VoidResult::of();
+        }
+
+        template <typename ExtData, bool Indexed, typename ValueHolder>
+        VoidResult stream(
+                PackedDataTypeBufferSO<
+                    ExtData,
+                    PackedDataTypeBuffer<
+                        PackedDataTypeBufferTypes<
+                            MemCoWBlockID<ValueHolder>,
+                            Indexed
+                        >
+                    >
+                >& buffer,
+                CtrT& ctr
+                ) const noexcept
+        {
+            auto ii = buffer.begin();
+            auto end = buffer.end();
+
+            for (; ii != end; ii++)
+            {
+                MEMORIA_TRY_VOID(ctr.ctr_ref_block(*ii));
+            }
+
+            return VoidResult::of();
+        }
+    };
+
+    VoidResult cow_ref_children(CtrT& ctr) noexcept {
+        return processAll(CoWRefChildrenFn(), ctr);
+    }
+
+
+    struct CoWUnRefChildrenFn {
+        template <typename Tree, typename Store>
+        VoidResult stream(Tree&&, Store&) const noexcept
+        {
+            return VoidResult::of();
+        }
+
+        template <typename ExtData, bool Indexed, typename Store, typename ValueHolder>
+        VoidResult stream(
+                PackedDataTypeBufferSO<
+                    ExtData,
+                    PackedDataTypeBuffer<
+                        PackedDataTypeBufferTypes<
+                            MemCoWBlockID<ValueHolder>,
+                            Indexed
+                        >
+                    >
+                >& buffer,
+                Store& store
+                ) const noexcept
+        {
+            auto ii = buffer.begin();
+            auto end = buffer.end();
+
+            for (; ii != end; ii++)
+            {
+                MEMORIA_TRY_VOID(store.unref_ctr_root(*ii));
+            }
+
+            return VoidResult::of();
+        }
+    };
+
+    template <typename Store>
+    VoidResult cow_unref_children(Store& store) noexcept {
+        return processAll(CoWUnRefChildrenFn(), store);
+    }
+
+
+    struct ForAllCtrRootIDsFn {
+        template <typename Tree, typename BlockProcessorFn>
+        VoidResult stream(const Tree&, const BlockProcessorFn&) const noexcept
+        {
+            return VoidResult::of();
+        }
+
+        template <
+                typename ExtData,
+                bool Indexed,
+                typename ValueHolder,
+                typename BlockProcessorFn
+        >
+        VoidResult stream(
+                const PackedDataTypeBufferSO<
+                    ExtData,
+                    PackedDataTypeBuffer<
+                        PackedDataTypeBufferTypes<
+                            MemCoWBlockID<ValueHolder>,
+                            Indexed
+                        >
+                    >
+                >& buffer,
+                const BlockProcessorFn& fn
+        ) const noexcept
+        {
+            auto ii = buffer.begin();
+            auto end = buffer.end();
+
+            for (; ii != end; ii++)
+            {
+                MEMORIA_TRY_VOID(fn(*ii));
+            }
+
+            return VoidResult::of();
+        }
+    };
+
+    template <typename BlockID>
+    VoidResult for_all_ctr_root_ids(const std::function<VoidResult (const BlockID&)>& fn) const noexcept {
+        return processAll(ForAllCtrRootIDsFn(), fn);
+    }
 
 
     VoidResult prepare() noexcept

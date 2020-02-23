@@ -26,13 +26,13 @@ namespace memoria {
 
 void Expand(std::ostream& os, int32_t level);
 
-namespace {
+namespace detail {
 
     template <typename T>
     struct OutputHelepr {
         static std::ostream& out(std::ostream& o, const T& value)
         {
-            o<<value;
+            o << value;
             return o;
         }
     };
@@ -41,7 +41,7 @@ namespace {
     struct OutputHelepr<int8_t> {
         static std::ostream& out(std::ostream& o, const int8_t& value)
         {
-            o<<(int32_t)(uint8_t)value;
+            o << (int32_t)(uint8_t)value;
             return o;
         }
     };
@@ -50,7 +50,7 @@ namespace {
     struct OutputHelepr<uint8_t> {
         static std::ostream& out(std::ostream& o, const uint8_t& value)
         {
-            o<<(int32_t)value;
+            o << (int32_t)value;
             return o;
         }
     };
@@ -157,7 +157,7 @@ void dumpArray(std::ostream& out, int32_t count, std::function<V (int32_t)> fn)
 
             ss << (is_char ? std::hex : std::dec);
 
-            OutputHelepr<V>::out(ss, fn(c + d));
+            detail::OutputHelepr<V>::out(ss, fn(c + d));
 
             out.width(width);
             out<<ss.str();
@@ -180,7 +180,7 @@ void dumpArray(std::ostream& out, int32_t count, std::function<V (int32_t)> fn)
             {
                 out.width(1);
 
-                dump_as_char(out, fn(c + d));
+                detail::dump_as_char(out, fn(c + d));
             }
         }
 
@@ -235,13 +235,13 @@ void dumpSymbols(std::ostream& out_, int32_t size_, int32_t bits_per_symbol, std
             out_.width(6);
             out_ << std::dec << c << " " << std::hex;
             out_.width(6);
-            out_<<c<<": ";
+            out_ << c << ": ";
 
             for (int32_t d = 0; d < columns && c + d < size_; d++)
             {
                 out_ << std::hex;
                 out_.width(width);
-                OutputHelepr<V>::out(out_, fn(c + d));
+                detail::OutputHelepr<V>::out(out_, fn(c + d));
             }
 
             out_ << std::dec << std::endl;

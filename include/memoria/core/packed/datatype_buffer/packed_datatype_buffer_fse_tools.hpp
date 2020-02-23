@@ -196,6 +196,21 @@ public:
         return VoidResult::of();
     }
 
+    template <typename SerializationData, typename Metadata, typename IDResolver>
+    VoidResult mem_cow_serialize(const Metadata& meta, SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    {
+        auto size = meta.size();
+        auto data = this->data();
+        for (psize_t c = 0; c < size; c++)
+        {
+            MEMORIA_TRY(new_id, id_resolver->resolve_id(data[c]));
+            FieldFactory<T>::serialize(buf, new_id);
+        }
+
+
+        return VoidResult::of();
+    }
+
     template <typename DeserializationData, typename Metadata>
     VoidResult deserialize(Metadata& meta, DeserializationData& buf) noexcept
     {

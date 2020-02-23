@@ -60,6 +60,7 @@ option(BUILD_CONTAINERS_MULTIMAP "Build Multimap<Varchar, Varchar> container." O
 option(BUILD_CONTAINERS_SET      "Build Set<Varchar> container." ON)
 option(BUILD_CONTAINERS_VECTOR   "Build Vector<...> container(s)." ON)
 option(BUILD_MEMORY_STORE        "Build default in-memory store." ON)
+option(BUILD_MEMORY_STORE_COW    "Build default CoW in-memory store." OFF)
 
 option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" OFF)
 option(BUILD_TESTS_PACKED       "Build Packed Structires tests" ON)
@@ -125,6 +126,10 @@ endif()
 
 if (BUILD_MEMORY_STORE)
     add_definitions(-DMEMORIA_BUILD_MEMORY_STORE)
+endif()
+
+if (BUILD_MEMORY_STORE_COW)
+    add_definitions(-DMEMORIA_BUILD_MEMORY_STORE_COW)
 endif()
 
 if (BUILD_POSIX)

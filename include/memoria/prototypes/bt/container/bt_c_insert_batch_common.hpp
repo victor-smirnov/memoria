@@ -73,7 +73,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         MEMORIA_TRY(node, self.ctr_get_block(node_id));
         if (node->level() > 0)
         {
-            auto res = self.ctr_for_all_ids(node, [&, this](const BlockID& id)
+            auto res = self.ctr_for_all_ids(node, [&, this](const BlockID& id) noexcept
             {
                 auto& self = this->self();
                 return self.ctr_remove_branch_nodes(id);

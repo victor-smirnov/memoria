@@ -17,6 +17,7 @@
 #include <memoria/profiles/common/metadata.hpp>
 
 #include <memoria/profiles/default/default.hpp>
+#include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
 
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
@@ -44,8 +45,12 @@ const ProfileMetadataPtr<Profile>& ProfileMetadata<Profile>::local()
 template class ProfileMetadataStore<DefaultProfile<>>;
 template class ProfileMetadata<DefaultProfile<>>;
 
+template class ProfileMetadataStore<MemoryCoWProfile<>>;
+template class ProfileMetadata<MemoryCoWProfile<>>;
+
 namespace {
-    ProfileMetadataStore<DefaultProfile<>>::Init init_store;
+    ProfileMetadataStore<DefaultProfile<>>::Init init_store1;
+    ProfileMetadataStore<MemoryCoWProfile<>>::Init init_store2;
 }
 
 }

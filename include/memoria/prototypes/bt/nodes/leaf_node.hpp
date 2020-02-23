@@ -34,6 +34,8 @@
 
 #include <memoria/prototypes/bt/nodes/leaf_node_so.hpp>
 
+#include <memoria/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
+
 namespace memoria {
 namespace bt {
 
@@ -113,6 +115,100 @@ public:
         return Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
     }
 
+    struct MemCowSerializeFn {
+        template <typename Tree, typename SerializationData, typename IDResolver>
+        VoidResult stream(const Tree* tree, SerializationData* buf, const IDResolver*) noexcept
+        {
+            return tree->serialize(*buf);
+        }
+
+        template <typename SerializationData, typename IDResolver, bool Indexed, typename ValueHolder>
+        VoidResult stream(
+                const PackedDataTypeBuffer<
+                        PackedDataTypeBufferTypes<
+                            MemCoWBlockID<ValueHolder>,
+                            Indexed
+                        >
+                >* pkd_buffer,
+                SerializationData* buf,
+                const IDResolver* id_resolver
+        ) noexcept
+        {
+            return pkd_buffer->mem_cow_serialize(*buf, id_resolver);
+        }
+    };
+
+    template <typename SerializationData, typename IDResolver>
+    VoidResult mem_cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    {
+        MEMORIA_TRY_VOID(Base::template mem_cow_serialize<RootMetadataList>(buf, id_resolver));
+
+        return Dispatcher::dispatchNotEmpty(allocator(), MemCowSerializeFn(), &buf, id_resolver);
+    }
+
+
+    struct MemCowResolveIDSFn {
+        template <typename Tree, typename IDResolver>
+        VoidResult stream(const Tree* tree, const IDResolver*) noexcept
+        {
+            return VoidResult::of();
+        }
+
+        template <typename IDResolver, bool Indexed, typename IDValueHolder>
+        VoidResult stream(
+                PackedDataTypeBuffer<
+                        PackedDataTypeBufferTypes<
+                            MemCoWBlockID<IDValueHolder>,
+                            Indexed
+                        >
+                >* pkd_buffer,
+                const IDResolver* id_resolver
+        ) noexcept
+        {
+            using DataType = MemCoWBlockID<IDValueHolder>;
+
+            using Buffer = PackedDataTypeBuffer<
+                PackedDataTypeBufferTypes<
+                    DataType,
+                    Indexed
+                >
+            >;
+
+            using ExtData = typename DataTypeTraits<DataType>::TypeDimensionsTuple;
+
+            using BufferSO = PackedDataTypeBufferSO<
+                ExtData,
+                Buffer
+            >;
+
+            ExtData ext_data{};
+            BufferSO buffer_so(&ext_data, pkd_buffer);
+
+            psize_t size = buffer_so.size();
+
+            for (psize_t c = 0; c < size; c++)
+            {
+                MEMORIA_TRY(memref_id, id_resolver->resolve_id(buffer_so.access(0, c)));
+
+                MEMORIA_TRY_VOID(buffer_so.update_entries(c, 1, [&](auto col, auto row) noexcept {
+                    return memref_id;
+                }));
+            }
+
+            return VoidResult::of();
+        }
+    };
+
+
+    template <typename IDResolver>
+    VoidResult mem_cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    {
+        MEMORIA_TRY_VOID(Base::mem_cow_resolve_ids(id_resolver));
+        return Dispatcher::dispatchNotEmpty(allocator(), MemCowResolveIDSFn(), id_resolver);
+    }
+
+
+
     struct DeserializeFn {
         template <typename Tree, typename DeserializationData>
         VoidResult stream(Tree* tree, DeserializationData* buf) noexcept
@@ -125,7 +221,11 @@ public:
     VoidResult deserialize(DeserializationData& buf) noexcept
     {
         MEMORIA_TRY_VOID(Base::template deserialize<RootMetadataList>(buf));
-        return Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
+        MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf));
+
+        ProfileSpecificBlockTools<typename Types::Profile>::after_deserialization(this);
+
+        return VoidResult::of();
     }
 
 };

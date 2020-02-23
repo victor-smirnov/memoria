@@ -78,6 +78,7 @@ struct IBlockDataEventHandler {
     virtual void value(const char* name, const UAcc128T* value, int32_t count = 1, int32_t kind = 0)    = 0;
     virtual void value(const char* name, const UAcc192T* value, int32_t count = 1, int32_t kind = 0)    = 0;
     virtual void value(const char* name, const UAcc256T* value, int32_t count = 1, int32_t kind = 0)    = 0;
+    virtual void value(const char* name, const MemCoWBlockID<uint64_t>* value, int32_t count = 1, int32_t kind = 0)    = 0;
 
     virtual void symbols(const char* name, const uint64_t* value, int32_t count, int32_t bits_per_symbol)    = 0;
     virtual void symbols(const char* name, const uint8_t* value, int32_t count, int32_t bits_per_symbol)     = 0;
@@ -91,21 +92,42 @@ struct IBlockDataEventHandler {
 struct DataEventsParams {};
 struct LayoutEventsParams {};
 
-template <typename Profile>
-struct IBlockOperations {
 
-    virtual ~IBlockOperations() noexcept {}
+
+template <typename Profile>
+struct IBlockOperationsBase {
+
+    virtual ~IBlockOperationsBase() noexcept {}
 
     using BlockType = ProfileBlockType<Profile>;
     using BlockID   = ProfileBlockID<Profile>;
 
-    virtual Result<int32_t> serialize(const BlockType* block, void* buf) const noexcept = 0;
+    struct IDValueResolver {
+        virtual Result<BlockID> resolve_id(const BlockID& stored_block_id) const noexcept = 0;
+    };
+
+    virtual Int32Result serialize(
+            const BlockType* block,
+            void* buf,
+            const IDValueResolver* resolver = nullptr
+    ) const noexcept = 0;
+
     virtual VoidResult deserialize(const void* buf, int32_t buf_size, BlockType* block) const noexcept = 0;
 
+    // FIXME: remove this method from here
     virtual VoidResult resize(const BlockType* block, void* buffer, int32_t new_size) const noexcept = 0;
 
     virtual uint64_t block_type_hash() const noexcept = 0;
 };
+
+template <typename Profile>
+struct IBlockOperations: IBlockOperationsBase<Profile> {
+
+};
+
+
+
+
 
 template <typename Profile>
 using BlockOperationsPtr = std::shared_ptr<IBlockOperations<Profile>>;
@@ -537,6 +559,17 @@ public:
         if (kind == BYTE_ARRAY)
         {
             dumpArray<UAcc256T>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const MemCoWBlockID<uint64_t>* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            dumpArray<MemCoWBlockID<uint64_t>>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);

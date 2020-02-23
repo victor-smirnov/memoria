@@ -74,7 +74,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
     template <typename SubstreamsList, typename EntryBuffer>
     VoidResult ctr_update_entry(Iterator& iter, const EntryBuffer& entry) noexcept
     {
-        return self().template ctr_update_stream_entry<0, SubstreamsList>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
+        return self().template ctr_update_stream_entry<SubstreamsList>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
     }
 
 

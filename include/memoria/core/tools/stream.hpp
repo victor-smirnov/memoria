@@ -216,6 +216,12 @@ OutputStreamHandler& operator<<(OutputStreamHandler& out, const T& value) {
     return out;
 }
 
+template <typename T>
+OutputStreamHandler& operator<<(OutputStreamHandler& out, const MemCoWBlockID<T>& value) {
+    out.write(value.value());
+    return out;
+}
+
 
 inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const U8String& value)
 {

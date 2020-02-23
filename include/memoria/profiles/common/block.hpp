@@ -34,9 +34,16 @@
 
 namespace memoria {
 
+template <typename Profile>
+struct ProfileSpecificBlockTools;
 
 
-template <typename PageIdType>
+template <
+        typename PageIdType,
+        typename PageGuidType,
+        typename IdValueHolder,
+        typename SnapshotID
+>
 class AbstractPage {
 
 public:
@@ -44,169 +51,209 @@ public:
 
 private:
 
-    uint32_t    crc_;
     uint64_t    ctr_type_hash_;
     uint64_t    block_type_hash_;
     int32_t     memory_block_size_;
 
     uint64_t    next_block_pos_;
     uint64_t    target_block_pos_;
+    std::atomic<int64_t> references_;
 
+    IdValueHolder id_value_;
     PageIdType  id_;
-    PageIdType  uuid_;
+    PageGuidType uuid_;
+    SnapshotID snapshot_id_;
 
-    int32_t     deleted_;
 
-    //Txn rollback intrusive list fields. Not used by containers.
+
 public:
     using FieldsList = TypeList<
                 ConstValue<uint32_t, VERSION>,
+                decltype(id_value_),
                 decltype(id_),
                 decltype(uuid_),
-                decltype(crc_),
+                decltype(snapshot_id_),
                 decltype(ctr_type_hash_),
                 decltype(block_type_hash_),
-                decltype(deleted_),
                 decltype(memory_block_size_),
                 decltype(next_block_pos_),
-                decltype(target_block_pos_)
+                decltype(target_block_pos_),
+                int64_t //references
     >;
 
     using BlockID  = PageIdType;
 
-    AbstractPage() = default;
+    AbstractPage() noexcept= default;
 
-    AbstractPage(const PageIdType &id): id_(id), uuid_(id) {}
+    AbstractPage(const PageIdType &id) noexcept: id_(id), uuid_(id) {}
 
-    const PageIdType &id() const {
+    const IdValueHolder &id_value() const noexcept {
+        return id_value_;
+    }
+
+    IdValueHolder &id_value() noexcept {
+        return id_value_;
+    }
+
+    const PageIdType &id() const noexcept {
         return id_;
     }
 
-    PageIdType &id() {
+    PageIdType &id() noexcept {
         return id_;
     }
 
-    const PageIdType &uuid() const {
+    const PageGuidType &uuid() const noexcept {
         return uuid_;
     }
 
-    PageIdType &uuid() {
+    PageGuidType &uuid() noexcept {
         return uuid_;
     }
 
-    void init() {}
-
-    uint32_t &crc() {
-        return crc_;
+    const SnapshotID &snapshot_id() const noexcept {
+        return snapshot_id_;
     }
 
-    const uint32_t &crc() const {
-        return crc_;
+    SnapshotID &snapshot_id() noexcept {
+        return snapshot_id_;
     }
 
-    uint64_t &ctr_type_hash() {
+    void init() noexcept {}
+
+    uint64_t &ctr_type_hash() noexcept {
         return ctr_type_hash_;
     }
 
-    const uint64_t &ctr_type_hash() const {
+    const uint64_t &ctr_type_hash() const noexcept {
         return ctr_type_hash_;
     }
 
     
-    uint64_t &block_type_hash() {
+    uint64_t &block_type_hash() noexcept {
         return block_type_hash_;
     }
 
-    const uint64_t &block_type_hash() const {
+    const uint64_t &block_type_hash() const noexcept {
         return block_type_hash_;
     }
 
 
-    int32_t &deleted() {
-        return deleted_;
-    }
-
-    const int32_t& deleted() const {
-        return deleted_;
-    }
-
-    int32_t& memory_block_size() {
+    int32_t& memory_block_size() noexcept {
         return memory_block_size_;
     }
 
-    const int32_t& memory_block_size() const {
+    const int32_t& memory_block_size() const noexcept {
         return memory_block_size_;
     }
 
-    int32_t data_size() const {
-        return sizeof(AbstractPage);
-    }
-
-    uint64_t& next_block_pos() {
+    uint64_t& next_block_pos() noexcept {
         return next_block_pos_;
     }
 
-    const uint64_t& next_block_pos() const {
+    const uint64_t& next_block_pos() const noexcept {
         return next_block_pos_;
     }
 
-    uint64_t& target_block_pos() {
+    uint64_t& target_block_pos() noexcept {
         return target_block_pos_;
     }
 
-    const uint64_t& target_block_pos() const {
+    const uint64_t& target_block_pos() const noexcept {
         return target_block_pos_;
     }
 
+    int64_t references() const noexcept {
+        return references_.load(std::memory_order_acquire);
+    }
 
-    //Rebuild block content such indexes using provided data.
-    void Rebiuild(){}
+    void set_references(int64_t value) {
+        references_.store(value);
+    }
+
+    void ref_block(int64_t amount = 1) noexcept {
+//        auto refs =
+                references_.fetch_add(amount, std::memory_order_relaxed);
+        //std::cout << "Ref block " << id_value_ << " :: " << (refs + amount) << std::endl;
+    }
+
+    bool unref_block() noexcept {
+        auto refs = references_.fetch_sub(1, std::memory_order_acq_rel);
+        //std::cout << "Unref block " << id_value_ << " :: " << (refs - 1) << std::endl;
+
+        if (refs < 1) {
+            terminate(format_u8("Internal error. Negative refcount detected for block {}", id_value_).data());
+        }
+
+        return refs == 1;
+    }
 
     VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         handler->value("GID",               &uuid_);
         handler->value("ID",                &id_);
-        handler->value("CRC",               &crc_);
+        handler->value("SNAPSHOT_ID",       &snapshot_id_);
         handler->value("CTR_HASH",          &ctr_type_hash_);
         handler->value("PAGE_TYPE_HASH",    &block_type_hash_);
-        handler->value("DELETED",           &deleted_);
         handler->value("PAGE_SIZE",         &memory_block_size_);
 
         handler->value("NEXT_BLOCK_POS",    &next_block_pos_);
         handler->value("TARGET_BLOCK_POS",  &target_block_pos_);
 
+        int64_t refs = references();
+        handler->value("REFERENCES",        &refs);
+
         return VoidResult::of();
     }
 
 
-    void copyFrom(const AbstractPage* block)
-    {
-        this->id()              = block->id();
-        this->gid()             = block->gid();
-        this->crc()             = block->crc();
-
-        this->ctr_type_hash()       = block->ctr_type_hash();
-        
-        this->block_type_hash()     = block->block_type_hash();
-        this->deleted()             = block->deleted();
-        this->memory_block_size()   = block->memory_block_size();
-    }
-
     template <template <typename T> class FieldFactory, typename SerializationData>
     VoidResult serialize(SerializationData& buf) const noexcept
     {
-        FieldFactory<uint32_t>::serialize(buf, crc());
         FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
         FieldFactory<uint64_t>::serialize(buf, block_type_hash());
-        FieldFactory<int32_t>::serialize(buf, memory_block_size_);
+        FieldFactory<int32_t>::serialize(buf, memory_block_size());
 
-        FieldFactory<uint64_t>::serialize(buf, next_block_pos_);
-        FieldFactory<uint64_t>::serialize(buf, target_block_pos_);
+        FieldFactory<uint64_t>::serialize(buf, next_block_pos());
+        FieldFactory<uint64_t>::serialize(buf, target_block_pos());
 
         FieldFactory<PageIdType>::serialize(buf, id());
-        FieldFactory<PageIdType>::serialize(buf, uuid());
+        FieldFactory<PageGuidType>::serialize(buf, uuid());
+        FieldFactory<SnapshotID>::serialize(buf, snapshot_id());
 
-        FieldFactory<int32_t>::serialize(buf, deleted_);
+        int64_t refs = references();
+        FieldFactory<int64_t>::serialize(buf, refs);
+
+        return VoidResult::of();
+    }
+
+    template <template <typename T> class FieldFactory, typename SerializationData, typename IDResolver>
+    VoidResult mem_cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    {
+        FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
+        FieldFactory<uint64_t>::serialize(buf, block_type_hash());
+        FieldFactory<int32_t>::serialize(buf, memory_block_size());
+
+        FieldFactory<uint64_t>::serialize(buf, next_block_pos());
+        FieldFactory<uint64_t>::serialize(buf, target_block_pos());
+
+        BlockID actual_id(id_value_);
+
+        FieldFactory<PageIdType>::serialize(buf, actual_id);
+        FieldFactory<PageGuidType>::serialize(buf, uuid());
+        FieldFactory<SnapshotID>::serialize(buf, snapshot_id());
+
+        int64_t refs = references();
+        FieldFactory<int64_t>::serialize(buf, refs);
+
+        return VoidResult::of();
+    }
+
+    template <typename IDResolver>
+    VoidResult mem_cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    {
+        MEMORIA_TRY(memref_id, id_resolver->resolve_id(id_));
+        id_ = memref_id;
 
         return VoidResult::of();
     }
@@ -214,38 +261,24 @@ public:
     template <template <typename T> class FieldFactory, typename DeserializationData>
     VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        FieldFactory<uint32_t>::deserialize(buf, crc());
         FieldFactory<uint64_t>::deserialize(buf, ctr_type_hash());
         FieldFactory<uint64_t>::deserialize(buf, block_type_hash());
-        FieldFactory<int32_t>::deserialize(buf, memory_block_size_);
+        FieldFactory<int32_t>::deserialize(buf,  memory_block_size());
 
-        FieldFactory<uint64_t>::deserialize(buf, next_block_pos_);
-        FieldFactory<uint64_t>::deserialize(buf, target_block_pos_);
+        FieldFactory<uint64_t>::deserialize(buf, next_block_pos());
+        FieldFactory<uint64_t>::deserialize(buf, target_block_pos());
 
-        FieldFactory<PageIdType>::deserialize(buf, id());
-        FieldFactory<PageIdType>::deserialize(buf, uuid());
+        FieldFactory<PageIdType>::deserialize(buf,   id());
+        FieldFactory<PageGuidType>::deserialize(buf, uuid());
+        FieldFactory<SnapshotID>::deserialize(buf,   snapshot_id());
 
-        FieldFactory<int32_t>::deserialize(buf, deleted_);
+        int64_t refs;
+        FieldFactory<int64_t>::deserialize(buf, refs);
+        set_references(refs);
 
         return VoidResult::of();
     }
 };
-
-
-
-template <typename PageIdType>
-struct TypeHash<AbstractPage<PageIdType>>: HasValue<
-        uint64_t,
-        HashHelper<
-            AbstractPage<PageIdType>::VERSION,
-            TypeHashV<typename AbstractPage<PageIdType>::FlagsType>,
-            TypeHashV<typename AbstractPage<PageIdType>::BlockID>,
-            TypeHashV<int32_t>,
-            8
-        >
->{};
-
-
 
 
 
@@ -460,17 +493,7 @@ public:
         unref();
     }
 
-    template <typename Page>
-    operator const Page* () const noexcept
-    {
-        return static_cast<const Page*>(*shared_);
-    }
 
-    template <typename Page>
-    operator Page* () noexcept
-    {
-        return static_cast<Page*>(*shared_);
-    }
 
     const MyType& operator=(const MyType& guard) noexcept
     {
@@ -673,27 +696,107 @@ LogHandler* logIt(LogHandler* log, const BlockGuard<T, A>& value) noexcept {
 
 
 
-template <typename T>
-std::ostream& operator<<(std::ostream& out, const BlockID<T>& id) noexcept
-{
-    IDValue idv(id);
-    out<<idv;
-    return out;
+
+template <typename BlockType_>
+class LWBlockHandler {
+    BlockType_* ptr_;
+
+    template <typename> friend class LWBlockHandler;
+
+public:
+    enum {UNDEFINED, READ, UPDATE, _DELETE};
+
+    using Shared = LWBlockHandler;
+    using BlockType = BlockType_;
+
+    LWBlockHandler() noexcept:
+        ptr_()
+    {}
+
+    template <typename U>
+    LWBlockHandler(LWBlockHandler<U>&& other) noexcept:
+        ptr_(ptr_cast<BlockType>(other.ptr_))
+    {}
+
+    template <typename U>
+    LWBlockHandler(const LWBlockHandler<U>& other) noexcept:
+        ptr_(ptr_cast<BlockType>(other.ptr_))
+    {}
+
+    LWBlockHandler(BlockType* ptr) noexcept:
+        ptr_(ptr)
+    {}
+
+    ~LWBlockHandler() noexcept = default;
+
+    operator bool() const noexcept {
+        return ptr_;
+    }
+
+    bool isSet() const noexcept {
+        return ptr_;
+    }
+
+    bool is_null() const noexcept {
+        return ptr_ == nullptr;
+    }
+
+    template <typename TT>
+    bool operator==(const LWBlockHandler<TT>& other) const noexcept {
+        return ptr_ == other.ptr_;
+    }
+
+    BlockType* block() noexcept {
+        return ptr_;
+    }
+
+    const BlockType* block() const noexcept {
+        return ptr_;
+    }
+
+    BlockType* get() noexcept {
+        return ptr_;
+    }
+
+    const BlockType* get() const noexcept {
+        return ptr_;
+    }
+
+    template <typename ParentBlockType, typename = std::enable_if_t<std::is_base_of<ParentBlockType, BlockType>::value, void>>
+    operator LWBlockHandler<ParentBlockType>() noexcept {
+        return LWBlockHandler<ParentBlockType>(ptr_);
+    }
+
+    VoidResult update() const noexcept {
+        return VoidResult::of();
+    }
+
+    BlockType* operator->() noexcept {
+        return ptr_;
+    }
+
+    const BlockType* operator->() const noexcept {
+        return ptr_;
+    }
+
+    Shared* shared() noexcept {
+        return this;
+    }
+
+    const Shared* shared() const noexcept {
+        return this;
+    }
+};
+
+template <typename T, typename U>
+Result<T> static_cast_block(Result<LWBlockHandler<U>>&& src) noexcept {
+    if (MMA_LIKELY(src.is_ok()))
+    {
+        T tgt = std::move(src).get();
+        return Result<T>::of(std::move(tgt));
+    }
+    return std::move(src).transfer_error();
 }
 
-
-template <typename T>
-OutputStreamHandler& operator<<(OutputStreamHandler& out, const BlockID<T>& id) noexcept
-{
-    out << id.value();
-    return out;
-}
-
-template <typename T>
-InputStreamHandler& operator>>(InputStreamHandler& in, BlockID<T>& id) noexcept
-{
-    in >> id.value();
-    return in;
-}
 
 }

@@ -63,7 +63,7 @@ struct ContainerWalker {
     virtual void beginCompositeCtr(const char* descr, const CtrID& name)        = 0;
     virtual void endCompositeCtr()                                              = 0;
 
-    virtual void beginCtr(const char* descr, const CtrID& name, const CtrID& root) = 0;
+    virtual void beginCtr(const char* descr, const CtrID& name, const BlockID& root) = 0;
     virtual void endCtr()                                                       = 0;
 
     virtual void beginRoot(const BlockType* block)                              = 0;
@@ -159,17 +159,18 @@ public:
 template <typename Profile> struct IAllocator;
 
 template <typename Profile>
-struct ContainerOperations {
+struct ContainerOperationsBase {
 
     using BlockType = ProfileBlockType<Profile>;
     using BlockID   = ProfileBlockID<Profile>;
     using CtrID     = ProfileCtrID<Profile>;
 
-    virtual ~ContainerOperations() noexcept {}
+    virtual ~ContainerOperationsBase() noexcept {}
 
     // uuid, id, block data
     using BlockCallbackFn = std::function<VoidResult (const BlockID&, const BlockID&, const BlockType*)>;
-    using AllocatorBasePtr = SnpSharedPtr<IAllocator<Profile>>;
+    using Allocator = ProfileAllocatorType<Profile>;
+    using AllocatorBasePtr = SnpSharedPtr<ProfileAllocatorType<Profile>>;
 
     virtual U8String data_type_decl_signature() const noexcept = 0;
 
@@ -195,6 +196,7 @@ struct ContainerOperations {
             AllocatorBasePtr allocator
     ) const noexcept = 0;
 
+
     virtual VoidResult for_each_ctr_node(
         const CtrID& name,
         AllocatorBasePtr allocator,
@@ -204,6 +206,11 @@ struct ContainerOperations {
     virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> new_ctr_instance(
         const ProfileBlockG<Profile>& root_block,
         AllocatorBasePtr allocator
+    ) const noexcept = 0;
+
+    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> new_ctr_instance(
+        const ProfileBlockG<Profile>& root_block,
+        Allocator* allocator
     ) const noexcept = 0;
 
 
@@ -219,8 +226,28 @@ struct ContainerOperations {
     ) const noexcept = 0;
 };
 
+
+template <typename Profile>
+struct ContainerOperations: ContainerOperationsBase<Profile> {
+
+};
+
+
 template <typename Profile>
 using ContainerOperationsPtr = std::shared_ptr<ContainerOperations<Profile>>;
+
+template <typename Profile>
+struct BTreeTraverseNodeHandler {
+    using BlockType = ProfileBlockType<Profile>;
+    using BlockID   = ProfileBlockID<Profile>;
+
+
+    virtual VoidResult process_branch_node(const BlockType* block) noexcept = 0;
+    virtual VoidResult process_leaf_node(const BlockType* block) noexcept = 0;
+    virtual VoidResult process_directory_leaf_node(const BlockType* block) noexcept = 0;
+
+    virtual BoolResult proceed_with(const BlockID& block_id) const noexcept = 0;
+};
 
 
 template<typename Profile>

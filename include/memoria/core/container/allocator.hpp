@@ -38,7 +38,7 @@
 namespace memoria {
 
 template <typename Profile>
-struct IAllocator {
+struct IAllocatorBase {
 
     enum {UNDEFINED, READ, UPDATE};
 
@@ -51,57 +51,92 @@ struct IAllocator {
     using CtrID         = ProfileCtrID<Profile>;
 
 
-    using BlockG        = BlockGuard<BlockType, MyType>;
-    using Shared        = typename BlockG::Shared;
+    using BlockG        = typename ProfileTraits<Profile>::BlockGuardT;
 
-    virtual ~IAllocator() noexcept {}
+
+    virtual ~IAllocatorBase() noexcept {}
     
     virtual Result<BlockID> getRootID(const CtrID& ctr_id) noexcept = 0;
-    virtual Result<void> setRoot(const CtrID& ctr_id, const BlockID& root) noexcept = 0;
+    virtual VoidResult setRoot(const CtrID& ctr_id, const BlockID& root) noexcept = 0;
 
-    virtual Result<bool> hasRoot(const CtrID& ctr_id) noexcept = 0;
+    virtual BoolResult hasRoot(const CtrID& ctr_id) noexcept = 0;
     virtual Result<CtrID> createCtrName() noexcept = 0;
 
-
     virtual Result<BlockG> getBlock(const BlockID& id) noexcept = 0;
-    virtual Result<BlockG> getBlockForUpdate(const BlockID& id) noexcept = 0;
 
-    virtual Result<BlockG> updateBlock(Shared* shared) noexcept = 0;
-    virtual Result<void>  removeBlock(const ID& id) noexcept = 0;
+    virtual VoidResult removeBlock(const BlockID& id) noexcept = 0;
     virtual Result<BlockG> createBlock(int32_t initial_size) noexcept = 0;
 
-    virtual Result<BlockG> cloneBlock(const Shared* shared, const BlockID& new_id) noexcept = 0;
+    virtual Result<BlockG> cloneBlock(const BlockG& block, const BlockID& new_id) noexcept = 0;
 
-    virtual Result<void>  resizeBlock(Shared* block, int32_t new_size) noexcept = 0;
-    virtual Result<void>  releaseBlock(Shared* shared) noexcept = 0;
-    virtual Result<BlockG> getBlockG(BlockType* block) noexcept = 0;
 
-    virtual Result<ID> newId() noexcept = 0;
+
+    virtual Result<BlockID> newId() noexcept = 0;
     virtual SnapshotID currentTxnId() const noexcept = 0;
 
     // memory pool allocator
-
     virtual Result<void*> allocateMemory(size_t size) noexcept = 0;
-    virtual void  freeMemory(void* ptr) noexcept = 0;
+    virtual void freeMemory(void* ptr) noexcept = 0;
 
     virtual Logger& logger() noexcept = 0;
 
     virtual bool isActive() const noexcept = 0;
 
-    virtual Result<void> registerCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) noexcept = 0;
-    virtual Result<void> unregisterCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) noexcept = 0;
-    virtual Result<void> flush_open_containers() noexcept = 0;
+    virtual VoidResult registerCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) noexcept = 0;
+    virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) noexcept = 0;
+    virtual VoidResult flush_open_containers() noexcept = 0;
 
-    virtual SnpSharedPtr<MyType> self_ptr() noexcept = 0;
+
     virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> find(const CtrID& ctr_id) noexcept = 0;
     virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> from_root_id(const BlockID& root_block_id, const CtrID& name) noexcept = 0;
 
-    virtual Result<bool> check() noexcept = 0;
-    virtual Result<void> walkContainers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;
+    virtual BoolResult check() noexcept = 0;
+    virtual VoidResult walkContainers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;
 
-    virtual Result<bool> drop_ctr(const CtrID& ctr_id) noexcept = 0;
+    virtual BoolResult drop_ctr(const CtrID& ctr_id) noexcept = 0;
 
     virtual Result<U8String> ctr_type_name(const CtrID& ctr_id) noexcept = 0;
+};
+
+
+template <typename Profile>
+struct IAllocator: IAllocatorBase<Profile> {
+    using Base = IAllocatorBase<Profile>;
+
+    using typename Base::BlockG;
+    using typename Base::BlockType;
+
+    using Shared = typename BlockG::Shared;
+
+
+    virtual SnpSharedPtr<IAllocator> self_ptr() noexcept = 0;
+
+    virtual Result<BlockG> updateBlock(Shared* block) noexcept = 0;
+    virtual VoidResult resizeBlock(Shared* block, int32_t new_size) noexcept = 0;
+    virtual VoidResult releaseBlock(Shared* block) noexcept = 0;
+};
+
+
+template <typename Profile>
+struct ICoWAllocator: IAllocatorBase<Profile> {
+
+    using Base = IAllocatorBase<Profile>;
+
+    using typename Base::BlockG;
+    using typename Base::BlockID;
+
+    virtual SnpSharedPtr<ICoWAllocator> self_ptr() noexcept = 0;
+
+    virtual VoidResult ref_block(BlockG block, int64_t amount = 1) noexcept = 0;
+    virtual BoolResult unref_block(BlockG block) noexcept = 0;
+    virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept = 0;
+
+    virtual VoidResult traverse_ctr(
+            BlockID root_block,
+            BTreeTraverseNodeHandler<Profile>& node_handler
+    ) noexcept = 0;
+
+    virtual VoidResult check_updates_allowed() noexcept = 0;
 };
 
 }

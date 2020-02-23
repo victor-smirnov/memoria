@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (BUILD_MEMORY_STORE)
-    add_subdirectory(memory_fibers)
-    add_subdirectory(memory_threads)
-endif()
 
 
-if (BUILD_MEMORY_STORE_COW)
-    add_subdirectory(memory_cow_threads)
-endif()
+
+file(GLOB SRCS *.cpp)
+set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})

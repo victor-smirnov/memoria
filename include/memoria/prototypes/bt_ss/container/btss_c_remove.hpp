@@ -67,6 +67,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
         using ResultT = Result<RemoveEntryResult>;
         auto& self = this->self();
 
+        MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
+
         RemoveEntryResult result{false, idx};
 
         MEMORIA_TRY(removed, self.template ctr_try_remove_stream_entry<0>(path, idx));

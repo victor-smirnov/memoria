@@ -57,11 +57,11 @@ struct CtrBlock {
 
 
 template <typename Profile>
-struct CtrReferenceable {
+struct CtrReferenceableBase {
 
     using CtrID = ProfileCtrID<Profile>;
 
-    virtual ~CtrReferenceable() noexcept {}
+    virtual ~CtrReferenceableBase() noexcept {}
 
     virtual bool is_castable_to(uint64_t type_hash) const noexcept  = 0;
     virtual U8String describe_type() const noexcept                 = 0;
@@ -93,9 +93,14 @@ struct CtrReferenceable {
     virtual VoidResult drop() noexcept  = 0;
     virtual VoidResult flush() noexcept = 0;
 
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> shared_self() noexcept = 0;
-
     virtual Result<CtrBlockPtr<Profile>> root_block() noexcept = 0;
+
+    virtual VoidResult internal_unref_cascade(const ProfileBlockID<Profile>& block_id) noexcept = 0;
+};
+
+template <typename Profile>
+struct CtrReferenceable: CtrReferenceableBase<Profile> {
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> shared_self() noexcept = 0;
 };
 
 }

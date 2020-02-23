@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,31 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
+#include <memoria/containers/set/set_factory.hpp>
 
-#pragma once
-
-#include <memoria/prototypes/bt/tools/bt_tools.hpp>
-#include <memoria/prototypes/bt/bt_macros.hpp>
-#include <memoria/core/container/macros.hpp>
-
-#include <memoria/prototypes/bt/nodes/leaf_node.hpp>
-#include <memoria/prototypes/bt/nodes/branch_node.hpp>
-
-#include <vector>
-#include <utility>
 
 namespace memoria {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(bt::IOReadName)
+using Profile = MemoryCoWProfile<>;
+using CtrName = Set<Varchar>;
 
-MEMORIA_V1_CONTAINER_PART_END
-
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::IOReadName)
-#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
-
-
-
-#undef M_TYPE
-#undef M_PARAMS
-
+MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
+    
 }
+

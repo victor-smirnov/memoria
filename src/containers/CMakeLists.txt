@@ -1,9 +1,17 @@
 
 if (BUILD_CONTAINERS)
-    file(GLOB SRCS *.cpp)
+    file(GLOB SRCS *_dflt.cpp)
 
     set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
     set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})
+
+    if (BUILD_MEMORY_STORE_COW)
+        file(GLOB SRCS *_cow.cpp)
+
+        set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
+        set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})
+    endif()
+
 else()
     if(BUILD_CONTAINERS_MULTIMAP)
         file(GLOB SRCS multimap_varchar_varchar_dflt.cpp multimap_uub_dflt.cpp)

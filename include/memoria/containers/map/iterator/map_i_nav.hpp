@@ -65,7 +65,7 @@ public:
 
             //MEMORIA_V1_ASSERT_TRUE((k - StaticVector<int64_t, 1>(delta))[0] >= 0);
 
-            return self.ctr().template ctr_update_entry<IntList<1>>(self, std::make_tuple(k - StaticVector<int64_t, 1>(delta)));
+            return self.ctr().template ctr_update_entry<IntList<0, 1>>(self, std::make_tuple(k - StaticVector<int64_t, 1>(delta)));
         }
     }
 
@@ -85,7 +85,7 @@ public:
         if (!self.iter_is_end())
         {
             auto kk = self.iter_raw_key();
-            return self.ctr().template ctr_update_entry<IntList<0>>(self, std::make_tuple(k + kk));
+            return self.ctr().template ctr_update_entry<IntList<0, 0>>(self, std::make_tuple(k + kk));
         }
     }
 
@@ -144,7 +144,7 @@ public:
 
     void assign(const Value& v)
     {
-        self().ctr().template ctr_update_entry<IntList<1>>(self(), std::make_tuple(v));
+        self().ctr().template ctr_update_entry<IntList<0, 1>>(self(), std::make_tuple(v));
     }
 
     bool is_found(const Key& k) const

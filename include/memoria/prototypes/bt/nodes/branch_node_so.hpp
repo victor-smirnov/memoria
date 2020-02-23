@@ -212,8 +212,23 @@ public:
     }
 
 
+
+    template <typename OtherNode>
+    VoidResult copy_node_data_to(OtherNode&& other) const noexcept
+    {
+        PackedAllocator* other_alloc = other.allocator();
+        const PackedAllocator* my_alloc = this->allocator();
+
+        for (int32_t c = 0; c <= ValuesBlockIdx; c++)
+        {
+            MEMORIA_TRY_VOID(other_alloc->importBlock(c, my_alloc, c));
+        }
+
+        return VoidResult::of();
+    }
+
     template <typename V>
-    VoidResult forAllValues(int32_t start, int32_t end, std::function<VoidResult (const V&)> fn) const noexcept
+    VoidResult forAllValues(int32_t start, int32_t end, const std::function<VoidResult (const V&)>& fn) const noexcept
     {
         const Value* v = node_->values();
         for (int32_t c = start; c < end; c++)
@@ -225,14 +240,14 @@ public:
     }
 
     template <typename V>
-    VoidResult forAllValues(int32_t start, std::function<VoidResult (const V&)> fn) const noexcept
+    VoidResult forAllValues(int32_t start, const std::function<VoidResult (const V&)>& fn) const noexcept
     {
         MEMORIA_TRY(end, size());
         return forAllValues(start, end, fn);
     }
 
     template <typename V>
-    VoidResult forAllValues(std::function<VoidResult (const V&)> fn) const noexcept
+    VoidResult forAllValues(const std::function<VoidResult (const V&)>& fn) const noexcept
     {
         return forAllValues(0, fn);
     }
@@ -289,17 +304,17 @@ public:
         return node_->insert(idx, keys, value);
     }
 
-    Value& value(int32_t idx)
+    Value& value(int32_t idx) noexcept
     {
-        MEMORIA_ASSERT(idx, >=, 0);
+        //MEMORIA_ASSERT(idx, >=, 0);
         //MEMORIA_ASSERT(idx, <, size());
 
         return *(node_->values() + idx);
     }
 
-    const Value& value(int32_t idx) const
+    const Value& value(int32_t idx) const noexcept
     {
-        MEMORIA_ASSERT(idx, >=, 0);
+        //MEMORIA_ASSERT(idx, >=, 0);
         //MEMORIA_ASSERT(idx, <, size());
 
         return *(node_->values() + idx);

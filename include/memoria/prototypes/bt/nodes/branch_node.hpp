@@ -67,8 +67,8 @@ public:
 
 
     static_assert(IsPackedStructV<Metadata>, "TreeNodeBase: Metadata must satisfy IsPackedStructV<>");
-    static_assert(IsPackedStructV<Header>, "TreeNodeBase: Header must satisfy IsPackedStructV<>");
-    static_assert(IsPackedStructV<BlockID>, "TreeNodeBase: ID must satisfy IsPackedStructV<>");
+    static_assert(IsPackedStructV<Header>,   "TreeNodeBase: Header must satisfy IsPackedStructV<>");
+    static_assert(IsPackedStructV<BlockID>,  "TreeNodeBase: ID must satisfy IsPackedStructV<>");
 
     enum {
             METADATA = 0,
@@ -355,11 +355,32 @@ public:
         FieldFactory<int32_t>::serialize(buf, leaf_);
         FieldFactory<int32_t>::serialize(buf, level_);
 
-        FieldFactory<BlockID>::serialize(buf, next_leaf_id_);
+        MEMORIA_TRY_VOID(allocator()->serialize(buf));
+
+        return ForEach<0, StreamsStart>::process_res(SerializeFn<MetadataTypesList>(), buf, allocator());
+    }
+
+
+    template <typename MetadataTypesList, typename SerializationData, typename IDResolver>
+    VoidResult mem_cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    {
+        static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
+
+        MEMORIA_TRY_VOID(header_.template mem_cow_serialize<FieldFactory>(buf, id_resolver));
+
+        FieldFactory<int32_t>::serialize(buf, root_);
+        FieldFactory<int32_t>::serialize(buf, leaf_);
+        FieldFactory<int32_t>::serialize(buf, level_);
 
         MEMORIA_TRY_VOID(allocator()->serialize(buf));
 
         return ForEach<0, StreamsStart>::process_res(SerializeFn<MetadataTypesList>(), buf, allocator());
+    }
+
+    template <typename IDResolver>
+    VoidResult mem_cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    {
+        return header_.mem_cow_resolve_ids(id_resolver);
     }
 
     template <typename List>
@@ -388,7 +409,7 @@ public:
         FieldFactory<int32_t>::deserialize(buf, leaf_);
         FieldFactory<int32_t>::deserialize(buf, level_);
 
-        FieldFactory<BlockID>::deserialize(buf, next_leaf_id_);
+        next_leaf_id_ = BlockID{};
 
         MEMORIA_TRY_VOID(allocator()->deserialize(buf));
 
@@ -729,6 +750,45 @@ public:
         return VoidResult::of();
     }
 
+
+    template <typename SerializationData, typename IDResolver>
+    VoidResult mem_cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    {
+        MEMORIA_TRY_VOID(Base::template mem_cow_serialize<RootMetadataList>(buf, id_resolver));
+
+        MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf));
+
+        MEMORIA_TRY(size, this->size());
+
+        const Value* child_ids = values();
+
+        for (int32_t c = 0; c < size; c++)
+        {
+            MEMORIA_TRY(actual_id, id_resolver->resolve_id(child_ids[c]));
+            FieldFactory<Value>::serialize(buf, actual_id);
+        }
+
+        return VoidResult::of();
+    }
+
+    template <typename IDResolver>
+    VoidResult mem_cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    {
+        MEMORIA_TRY_VOID(Base::mem_cow_resolve_ids(id_resolver));
+
+        MEMORIA_TRY(size, this->size());
+
+        Value* child_ids = values();
+
+        for (int32_t c = 0; c < size; c++)
+        {
+            MEMORIA_TRY(memref_id, id_resolver->resolve_id(child_ids[c]));
+            child_ids[c] = memref_id;
+        }
+
+        return VoidResult::of();
+    }
+
     struct DeserializeFn {
         template <typename StreamObj, typename DeserializationData>
         VoidResult stream(StreamObj* obj, DeserializationData* buf) noexcept
@@ -747,6 +807,8 @@ public:
         MEMORIA_TRY(size, this->size());
 
         FieldFactory<Value>::deserialize(buf, values(), size);
+
+        ProfileSpecificBlockTools<typename Types::Profile>::after_deserialization(this);
 
         return VoidResult::of();
     }
@@ -770,6 +832,42 @@ public:
 };
 
 
+namespace detail_ {
+
+    template <typename Profile>
+    struct BTNodeNodeMethodsSelector {
+        using BlockType = ProfileBlockType<Profile>;
+
+        template <typename BTNode, typename IDResolver>
+        static VoidResult serialize(const BTNode* node, SerializationData& data, const IDResolver*) noexcept
+        {
+            return node->serialize(data);
+        }
+
+        template <typename BTNode, typename IDResolver>
+        static VoidResult resolve_ids(BTNode* node, const IDResolver*) noexcept
+        {
+            return VoidResult::of();
+        }
+    };
+
+    template <>
+    struct BTNodeNodeMethodsSelector<MemoryCoWProfile<>> {
+
+        template <typename BTNode, typename IDResolver>
+        static VoidResult serialize(const BTNode* node, SerializationData& data, const IDResolver* id_resolver) noexcept
+        {
+            return node->mem_cow_serialize(data, id_resolver);
+        }
+
+        template <typename BTNode, typename IDResolver>
+        static VoidResult resolve_ids(BTNode* node, const IDResolver* id_resolver) noexcept
+        {
+            return node->mem_cow_resolve_ids(id_resolver);
+        }
+    };
+
+}
 
 
 
@@ -811,10 +909,11 @@ public:
     struct BlockOperations: public IBlockOperations<Profile>
     {
         using typename IBlockOperations<Profile>::BlockType;
+        using typename IBlockOperations<Profile>::IDValueResolver;
 
         virtual ~BlockOperations() noexcept {}
 
-        virtual Int32Result serialize(const BlockType* block, void* buf) const noexcept
+        virtual Int32Result serialize(const BlockType* block, void* buf, const IDValueResolver* resolver) const noexcept
         {
             return wrap_throwing([&]() -> Int32Result {
                 const MyType* node = ptr_cast<const MyType>(block);
@@ -822,7 +921,9 @@ public:
                 SerializationData data;
                 data.buf = ptr_cast<char>(buf);
 
-                MEMORIA_TRY_VOID(node->serialize(data));
+                MEMORIA_TRY_VOID(
+                    detail_::BTNodeNodeMethodsSelector<Profile>::serialize(node, data, resolver)
+                );
 
                 return Int32Result::of(data.total);
             });
@@ -841,6 +942,16 @@ public:
                 return VoidResult::of();
             });
         }
+
+
+        virtual VoidResult mem_cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const noexcept
+        {
+            return wrap_throwing([&]() -> VoidResult {
+                MyType* node = ptr_cast<MyType>(block);
+                return detail_::BTNodeNodeMethodsSelector<Profile>::resolve_ids(node, id_resolver);
+            });
+        }
+
 
         virtual VoidResult resize(const BlockType* block, void* buffer, int32_t new_size) const noexcept
         {

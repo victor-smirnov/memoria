@@ -112,5 +112,18 @@ struct formatter<memoria::filesystem::path> {
     }
 };
 
+template <typename ValueHolder>
+struct formatter<memoria::MemCoWBlockID<ValueHolder>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::MemCoWBlockID<ValueHolder>& d, FormatContext& ctx)
+    {
+        std::stringstream ss;
+        ss << d;
+        return format_to(ctx.out(), "{}", ss.str());
+    }
+};
+
 
 }

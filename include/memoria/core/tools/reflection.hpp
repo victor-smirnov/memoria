@@ -85,53 +85,9 @@ struct FieldFactory<BitField<Type> > {
 };
 
 
-#define MEMORIA_TYPED_FIELD(Type)                                               \
-template <> struct FieldFactory<Type> {                                         \
-    template <typename SerializationData>                                       \
-    static void serialize(SerializationData& data, const Type& field) {         \
-        memcpy(data.buf, &field, sizeof(Type));                                 \
-        data.buf += sizeof(Type);                                               \
-        data.total += sizeof(Type);                                             \
-    }                                                                           \
-                                                                                \
-    template <typename DeserializationData>                                     \
-    static void deserialize(DeserializationData& data, Type& field) {           \
-        memcpy(&field, data.buf, sizeof(Type));                                 \
-        data.buf += sizeof(Type);                                               \
-    }                                                                           \
-                                                                                \
-    template <typename SerializationData>                                       \
-    static void serialize(SerializationData& data, const Type& field, int32_t count) {\
-        memcpy(data.buf, &field, count*sizeof(Type));                           \
-        data.buf += count * sizeof(Type);                                       \
-        data.total += count * sizeof(Type);                                     \
-    }                                                                           \
-                                                                                \
-    template <typename DeserializationData>                                     \
-    static void deserialize(DeserializationData& data, Type& field, int32_t count) {\
-        memcpy(&field, data.buf, count*sizeof(Type));                           \
-        data.buf += count*sizeof(Type);                                         \
-    }                                                                           \
-                                                                                \
-    template <typename SerializationData>                                       \
-    static void serialize(SerializationData& data, const Type* field, int32_t count) {\
-        memcpy(data.buf, field, count*sizeof(Type));                            \
-        data.buf += count * sizeof(Type);                                       \
-        data.total += count * sizeof(Type);                                     \
-    }                                                                           \
-                                                                                \
-    template <typename DeserializationData>                                     \
-    static void deserialize(DeserializationData& data, Type* field, int32_t count) {\
-        memcpy(field, data.buf, count*sizeof(Type));                            \
-        data.buf += count*sizeof(Type);                                         \
-    }                                                                           \
-}
 
-
-template <> struct FieldFactory<uint64_t> {
-
-    using Type = uint64_t;
-
+template <typename Type>
+struct FieldFactoryBase {
     template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field) {
         memcpy(data.buf, &field, sizeof(Type));
@@ -173,17 +129,19 @@ template <> struct FieldFactory<uint64_t> {
 };
 
 
-MEMORIA_TYPED_FIELD(char);
-MEMORIA_TYPED_FIELD(int8_t);
-MEMORIA_TYPED_FIELD(int16_t);
-MEMORIA_TYPED_FIELD(int32_t);
-MEMORIA_TYPED_FIELD(int64_t);
-MEMORIA_TYPED_FIELD(uint8_t);
-MEMORIA_TYPED_FIELD(uint16_t);
-MEMORIA_TYPED_FIELD(uint32_t);
-MEMORIA_TYPED_FIELD(float);
-MEMORIA_TYPED_FIELD(double);
-MEMORIA_TYPED_FIELD(bool);
+template <> struct FieldFactory<char>: FieldFactoryBase<char> {};
+template <> struct FieldFactory<int8_t>: FieldFactoryBase<int8_t> {};
+template <> struct FieldFactory<int16_t>: FieldFactoryBase<int16_t> {};
+template <> struct FieldFactory<int32_t>: FieldFactoryBase<int32_t> {};
+template <> struct FieldFactory<int64_t>: FieldFactoryBase<int64_t> {};
+template <> struct FieldFactory<uint8_t>: FieldFactoryBase<uint8_t> {};
+template <> struct FieldFactory<uint16_t>: FieldFactoryBase<uint16_t> {};
+template <> struct FieldFactory<uint32_t>: FieldFactoryBase<uint32_t> {};
+template <> struct FieldFactory<uint64_t>: FieldFactoryBase<uint64_t> {};
+template <> struct FieldFactory<float>: FieldFactoryBase<float> {};
+template <> struct FieldFactory<double>: FieldFactoryBase<double> {};
+template <> struct FieldFactory<bool>: FieldFactoryBase<bool> {};
+
 
 
 namespace internal {

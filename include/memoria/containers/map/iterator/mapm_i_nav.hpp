@@ -17,12 +17,17 @@
 #pragma once
 
 #include <memoria/containers/map/map_names.hpp>
+#include <memoria/containers/map/map_tools.hpp>
+
+
 #include <memoria/core/types.hpp>
 
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
 #include <memoria/prototypes/bt/bt_iterator.hpp>
+
+
 
 #include <iostream>
 
@@ -124,7 +129,7 @@ public:
 
     VoidResult assign(const ValueView& v) noexcept
     {
-        return self().ctr().template ctr_update_entry<IntList<2>>(self(), map::ValueBuffer<ValueView>(v));
+        return self().ctr().template ctr_update_entry<IntList<0, 2>>(self(), map::ValueBuffer<ValueView>(v));
     }
 
     bool is_found(const KeyView& k) const noexcept

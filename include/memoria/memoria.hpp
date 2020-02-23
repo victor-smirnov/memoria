@@ -51,6 +51,10 @@ void InitCtrDatatypes();
 void InitDefaultInMemStore();
 #endif
 
+#if defined(MEMORIA_BUILD_MEMORY_STORE_COW) && defined(MMA_NO_REACTOR)
+void InitCoWInMemStore();
+#endif
+
 void InitMemoriaExplicit();
 
 template <typename T, typename ProfileT>

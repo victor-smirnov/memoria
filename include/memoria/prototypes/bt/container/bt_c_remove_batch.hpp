@@ -40,10 +40,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveBatchName)
 
 
 
-    VoidResult ctr_remove_all_nodes(
-            TreePathT& start_path,
-            TreePathT& stop_path
-    ) noexcept;
+
 
     VoidResult ctr_remove_nodes_from_start(
             TreePathT& stop,
@@ -172,7 +169,7 @@ VoidResult M_TYPE::ctr_remove_entries(
 
     if (from_start && at_end)
     {
-        MEMORIA_TRY_VOID(ctr_remove_all_nodes(start_path, stop_path));
+        MEMORIA_TRY_VOID(self.ctr_remove_all_nodes(start_path, stop_path));
         start_idx = stop_idx.setAll(0);
     }
     else if (from_start && !at_end)
@@ -214,30 +211,7 @@ VoidResult M_TYPE::ctr_remove_entries(
 
 
 
-M_PARAMS
-VoidResult M_TYPE::ctr_remove_all_nodes(TreePathT& start_path, TreePathT& stop_path) noexcept
-{
-    auto& self = this->self();
 
-    NodeBaseG root = start_path.root();
-    start_path.clear();
-    stop_path.clear();
-
-    MEMORIA_TRY(new_root, self.ctr_create_root_node(0, true, -1));
-
-    MEMORIA_TRY_VOID(self.ctr_remove_node_recursively(root));
-
-    MEMORIA_TRY_VOID(self.set_root(new_root->id()));
-
-    start_path.add_root(new_root);
-
-    if (stop_path.size() == 0)
-    {
-        stop_path.add_root(new_root);
-    }
-
-    return VoidResult::of();
-}
 
 
 M_PARAMS
@@ -271,7 +245,7 @@ VoidResult M_TYPE::ctr_remove_nodes_from_start(TreePathT& stop_path, const Posit
         MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(stop_path, 0));
 
         MEMORIA_TRY_VOID(self.ctr_remove_branch_nodes_from_start(stop_path, 1, parent_idx));
-        MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(stop_path));
+        MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(stop_path, 0));
     }
 
     return VoidResult::of();

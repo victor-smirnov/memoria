@@ -36,6 +36,9 @@ class FindName              {};
 class IOReadName            {};
 class ReadName              {};
 class UpdateName            {};
+class CoWOpsName            {};
+class NoCoWOpsName          {};
+
 
 class InsertName            {};
 class InsertBatchName       {};

@@ -49,23 +49,11 @@ public:
         return static_cast_block<NodeBaseG>(self.store().getBlock(block_id));
     }
 
-    Result<NodeBaseG> ctr_get_block_for_update(const BlockID& block_id) const noexcept
-    {
-        auto& self = this->self();
-        return static_cast_block<NodeBaseG>(self.store().getBlockForUpdate(block_id));
-    }
-
 
     Result<NodeBaseG> ctr_get_root_node() const noexcept
     {
         auto& self = this->self();
         return self.ctr_get_block(self.root());
-    }
-
-    Result<NodeBaseG> ctr_get_root_node_for_update() const noexcept
-    {
-        auto& self = this->self();
-        return self.ctr_get_block_for_update(self.root());
     }
 
 
@@ -210,15 +198,6 @@ protected:
         return self.ctr_get_block(node.value(size - 1));
     }
 
-
-    template <typename Node>
-    Result<NodeBaseG> getChildForUpdateFn(Node&& node, int32_t idx) const noexcept
-    {
-        auto& self = this->self();
-        return self.ctr_get_block_for_update(node.value(idx));
-    }
-
-
     MEMORIA_V1_CONST_FN_WRAPPER(GetChildFn, ctr_get_child_fn);
     Result<NodeBaseG> ctr_get_node_child(const NodeBaseG& node, int32_t idx) const noexcept
     {
@@ -315,7 +294,7 @@ protected:
         return self().leaf_dispatcher().dispatch(node, LeafSizesFn());
     }
 
-
+public:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, BlockID);
     Result<BlockID> ctr_get_child_id(const NodeBaseG& node, int32_t idx) const noexcept
     {
@@ -323,7 +302,7 @@ protected:
     }
 
 
-public:
+
     MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
     VoidResult ctr_layout_branch_node(NodeBaseG& node, uint64_t active_streams) const noexcept
     {
@@ -351,7 +330,6 @@ protected:
     }
 
 
-    // TODO: errors handling
     MEMORIA_V1_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
     VoidResult ctr_for_all_ids(const NodeBaseG& node, int32_t start, int32_t end, std::function<VoidResult (const BlockID&)> fn) const noexcept
     {
@@ -372,15 +350,20 @@ protected:
 
     struct SetChildIDFn {
         template <typename CtrT, typename T>
-        void treeNode(BranchNodeSO<CtrT, T>& node, int child_idx, const BlockID& child_id) const
+        Result<BlockID> treeNode(BranchNodeSO<CtrT, T>& node, int child_idx, const BlockID& child_id) const noexcept
         {
+            using ResultT = Result<BlockID>;
+
+            auto old_value = node.value(child_idx);
             node.value(child_idx) = child_id;
+
+            return ResultT::of(old_value);
         }
     };
 
-    VoidResult ctr_set_child_id(NodeBaseG& node, int32_t child_idx, const BlockID& child_id) const noexcept
+    Result<BlockID> ctr_set_child_id(NodeBaseG& node, int32_t child_idx, const BlockID& child_id) noexcept
     {
-        self().ctr_update_block_guard(node);
+        MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
         return self().branch_dispatcher().dispatch(node, SetChildIDFn(), child_idx, child_id);
     }
 

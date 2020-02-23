@@ -158,7 +158,7 @@ public:
     
     
 
-    SnpSharedPtr<SnapshotMetadata<SnapshotID>> describe() const
+    SnpSharedPtr<SnapshotMetadata<Profile>> describe() const
     {
         return reactor::engine().run_at(cpu_, [&]
         {
@@ -173,7 +173,7 @@ public:
 
             auto parent_id = history_node_->parent() ? history_node_->parent()->snapshot_id() : SnapshotID{};
 
-            return snp_make_shared<SnapshotMetadata<SnapshotID>>(
+            return snp_make_shared<SnapshotMetadata<Profile>>(
                 parent_id, history_node_->snapshot_id(), children, history_node_->metadata(), history_node_->status()
             );
         });

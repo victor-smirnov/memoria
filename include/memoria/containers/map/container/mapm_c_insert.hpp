@@ -79,10 +79,10 @@ public:
 
         if (iter->is_found(key))
         {
-            MEMORIA_TRY_VOID(iter.get()->assign(value));
+            MEMORIA_TRY_VOID(iter->assign(value));
         }
         else {
-            MEMORIA_TRY_VOID(iter.get()->insert(key, value));
+            MEMORIA_TRY_VOID(iter->insert(key, value));
         }
 
         return iter_result;

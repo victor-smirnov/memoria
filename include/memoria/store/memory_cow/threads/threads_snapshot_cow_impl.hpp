@@ -1,5 +1,5 @@
 
-// Copyright 2016 Victor Smirnov
+// Copyright 2016-2020 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #pragma once
 
 
-#include <memoria/store/memory/common/snapshot_base.hpp>
+#include <memoria/store/memory_cow/common/snapshot_base_cow.hpp>
 
 #include <memoria/api/store/memory_store_api.hpp>
 
@@ -42,7 +42,7 @@
 
 namespace memoria {
 namespace store {
-namespace memory {
+namespace memory_cow {
 
 
 template <typename Profile, typename PersistentAllocator>
@@ -74,10 +74,10 @@ protected:
     using Base::history_tree_;
     using Base::history_tree_raw_;
     using Base::do_drop;
-    using Base::check_tree_structure;
+
 
     template <typename>
-    friend class ThreadMemoryStoreImpl;
+    friend class ThreadsMemoryStoreImpl;
 
     Result<SnapshotApiPtr> upcast(Result<SnapshotPtr>&& ptr) {
         return memoria_static_pointer_cast<IMemorySnapshot<Profile>>(std::move(ptr));
@@ -90,7 +90,8 @@ public:
     
     ThreadsSnapshot(MaybeError& maybe_error, HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
         Base(maybe_error, history_node, history_tree)
-    {}
+    {
+    }
 
     ThreadsSnapshot(MaybeError& maybe_error, HistoryNode* history_node, PersistentAllocator* history_tree):
         Base(maybe_error, history_node, history_tree)
@@ -99,16 +100,13 @@ public:
  
     virtual ~ThreadsSnapshot() noexcept
     {
-    	//FIXME This code doesn't decrement properly number of active snapshots
-    	// for allocator to store data correctly.
-
     	bool drop1 = false;
     	bool drop2 = false;
 
     	{
     		LockGuardT snapshot_lock_guard(history_node_->snapshot_mutex());
 
-    		if (history_node_->unref() == 0)
+            if (history_node_->unref() == 0 && history_node_->root_id().isSet())
     		{
     			if (history_node_->is_active())
     			{
@@ -118,7 +116,6 @@ public:
     			else if(history_node_->is_dropped())
     			{
     				drop2 = true;
-    				check_tree_structure(history_node_->root());
     			}
     		}
     	}
@@ -131,10 +128,9 @@ public:
 
     	if (drop2)
     	{
+            // FIXME: check if absence of snapshot lock here leads to data races...
     		StoreLockGuardT store_lock_guard(history_node_->store_mutex());
     		do_drop();
-
-    		// FIXME: check if absence of snapshot lock here leads to data races...
     	}
     }
 
@@ -161,7 +157,7 @@ public:
     {
     	LockGuardT lock_guard(history_node_->snapshot_mutex());
 
-        if (history_node_->is_active() || history_node_->is_data_locked())
+        if (history_node_->is_active())
         {
             MEMORIA_TRY_VOID(this->flush_open_containers());
 
@@ -251,8 +247,6 @@ public:
                 return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has open containers", uuid());
     		}
     	}
-    	else if (history_node_->is_data_locked()) {
-    	}
     	else {
             return MEMORIA_MAKE_GENERIC_ERROR("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid());
     	}
@@ -273,6 +267,7 @@ public:
         if (history_node_->is_committed())
         {
             HistoryNode* history_node = new HistoryNode(history_node_);
+            history_node->ref_root();
 
             if (history_tree_raw_->is_dump_snapshot_lifecycle()) {
                 std::cout << "MEMORIA: BRANCH snapshot: " << history_node->snapshot_id() << std::endl;
@@ -283,10 +278,6 @@ public:
             history_tree_raw_->snapshot_map_[history_node->snapshot_id()] = history_node;
 
             return upcast(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this()));
-        }
-        else if (history_node_->is_data_locked())
-        {
-            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is locked, branching is not possible.", uuid());
         }
         else
         {

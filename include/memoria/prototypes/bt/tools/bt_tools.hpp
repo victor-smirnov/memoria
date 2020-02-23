@@ -30,6 +30,8 @@
 #include <memoria/prototypes/bt/tools/bt_tools_streamdescr_factory.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_vector_tuple.hpp>
 
+#include <memoria/api/map/map_api.hpp>
+
 #include <memoria/core/packed/packed.hpp>
 
 #include <ostream>
@@ -519,6 +521,11 @@ struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>
 };
 
 
+template <typename CtrName>
+struct CtrDirectoryHelper: HasValue<bool, false> {};
+
+template <typename KeyType, typename ValueHolder>
+struct CtrDirectoryHelper<Map<KeyType, MemCoWBlockID<ValueHolder>>>: HasValue<bool, true> {};
 
 
 }

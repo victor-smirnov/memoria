@@ -407,6 +407,17 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
 };
 
 
+template <typename ValueHolder>
+struct DataTypeTraits<MemCoWBlockID<ValueHolder>>: FixedSizeDataTypeTraits<MemCoWBlockID<ValueHolder>, MemCoWBlockIDDT>
+{
+    static void create_signature(SBuf& buf, const MemCoWBlockID<ValueHolder>& obj) {
+        buf << "MemCoWBlockIDDT";
+    }
+
+    static void create_signature(SBuf& buf) {
+        buf << "MemCoWBlockIDDT";
+    }
+};
 
 
 template<typename T>

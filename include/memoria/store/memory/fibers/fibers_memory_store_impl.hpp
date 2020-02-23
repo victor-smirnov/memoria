@@ -355,9 +355,9 @@ public:
 
 
 
-    Result<SnpSharedPtr<SnapshotMetadata<SnapshotID>>> describe(const SnapshotID& snapshot_id) const noexcept
+    Result<SnpSharedPtr<SnapshotMetadata<Profile>>> describe(const SnapshotID& snapshot_id) const noexcept
     {
-        using ResultT = Result<SnpSharedPtr<SnapshotMetadata<SnapshotID>>>;
+        using ResultT = Result<SnpSharedPtr<SnapshotMetadata<Profile>>>;
         return reactor::engine().run_at(cpu_, [&] () -> ResultT {
             auto iter = snapshot_map_.find(snapshot_id);
             if (iter != snapshot_map_.end())
@@ -373,7 +373,7 @@ public:
 
                 auto parent_id = history_node->parent() ? history_node->parent()->snapshot_id() : SnapshotID{};
 
-                return ResultT::of(snp_make_shared<SnapshotMetadata<SnapshotID>>(
+                return ResultT::of(snp_make_shared<SnapshotMetadata<Profile>>(
                     parent_id, history_node->snapshot_id(), children, history_node->metadata(), history_node->status()
                 ));
             }
@@ -457,7 +457,7 @@ public:
         });
     }
 
-    SnpSharedPtr<SnapshotMetadata<SnapshotID>> describe_master() const
+    SnpSharedPtr<SnapshotMetadata<Profile>> describe_master() const
     {
         return reactor::engine().run_at(cpu_, [&]{
             std::vector<SnapshotID> children;
@@ -469,7 +469,7 @@ public:
 
             auto parent_id = master_->parent() ? master_->parent()->snapshot_id() : SnapshotID{};
 
-            return snp_make_shared<SnapshotMetadata<SnapshotID>>(
+            return snp_make_shared<SnapshotMetadata<Profile>>(
                 parent_id, master_->snapshot_id(), children, master_->metadata(), master_->status()
             );
         });

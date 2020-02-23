@@ -37,51 +37,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
     using typename Base::TreePathT;
     using typename Base::BranchNodeEntry;
 
-
-public:
-    VoidResult drop() noexcept
-    {
-        auto& self = this->self();
-
-        if (self.store().isActive())
-        {
-            auto res0 = self.for_each_ctr_reference([&](auto prop_name, auto ctr_id) noexcept -> VoidResult {
-                MEMORIA_TRY_VOID(self.store().drop_ctr(ctr_id));
-                return VoidResult::of();
-            });
-            MEMORIA_RETURN_IF_ERROR(res0);
-
-            MEMORIA_TRY(root, self.ctr_get_root_node());
-            MEMORIA_TRY_VOID(self.ctr_remove_root_node(root));
-
-            MEMORIA_TRY_VOID(self.set_root(BlockID{}));
-
-            this->do_unregister_on_dtr_ = false;
-            return self.store().unregisterCtr(self.name(), this);
-        }
-        else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Transaction must be in active state to drop containers");
-        }
-    }
-
-
-    VoidResult cleanup() noexcept
-    {
-        auto& self = this->self();
-        auto metadata = self.ctr_get_root_metadata();
-
-        NodeBaseG new_root = self.ctr_create_node(0, true, true, metadata.memory_block_size());
-
-        self.drop();
-        return self.set_root(new_root->id());
-    }
-
 protected:
     MEMORIA_V1_DECLARE_NODE_FN(RemoveSpaceFn, removeSpace);
-
-    VoidResult ctr_remove_node_recursively(NodeBaseG& node) noexcept;
-    VoidResult ctr_remove_node(NodeBaseG& node) noexcept;
-    VoidResult ctr_remove_root_node(NodeBaseG& node) noexcept;
 
     VoidResult ctr_remove_node_content(TreePathT& path, size_t level, int32_t start, int32_t end) noexcept;
     Result<Position> ctr_remove_leaf_content(TreePathT& path, const Position& start, const Position& end) noexcept;
@@ -97,7 +54,6 @@ protected:
 
     Result<LeftMergeResult> ctr_merge_leaf_with_left_sibling(TreePathT& path) noexcept;
     BoolResult ctr_merge_leaf_with_right_sibling(TreePathT& path) noexcept;
-    //Result<MergeType> ctr_merge_leaf_with_siblings(TreePathT& path) noexcept;
 
 
     MEMORIA_V1_DECLARE_NODE_FN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings);
@@ -110,12 +66,6 @@ protected:
 
 
     ////  ------------------------ CONTAINER PART PRIVATE API ------------------------
-
-
-
-    VoidResult ctr_remove_redundant_root(TreePathT& path, size_t level = 0) noexcept;
-
-
     BoolResult ctr_is_the_same_parent(const TreePathT& left, const TreePathT& right, size_t level) noexcept
     {
         if (level + 1 < left.size())
@@ -138,56 +88,11 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 
-M_PARAMS
-VoidResult M_TYPE::ctr_remove_node_recursively(NodeBaseG& node) noexcept
-{
-    auto& self = this->self();
 
-    if (!node->is_leaf())
-    {
-        //MEMORIA_TRY(size, self.ctr_get_node_size(node, 0));
 
-        auto res = self.ctr_for_all_ids(node, /*0, size,*/ [&, this](const BlockID& id) noexcept -> VoidResult
-        {
-            auto& self = this->self();
-            MEMORIA_TRY(child, self.ctr_get_block(id));
-            return self.ctr_remove_node_recursively(child);
-        });
 
-        MEMORIA_RETURN_IF_ERROR(res);
-    }
 
-    return self.store().removeBlock(node->id());
-}
 
-M_PARAMS
-VoidResult M_TYPE::ctr_remove_node(NodeBaseG& node) noexcept
-{
-    auto& self = this->self();
-
-    BranchNodeEntry sums;
-    Position sizes;
-
-    if (!node->is_root())
-    {
-        NodeBaseG parent = self.ctr_get_node_parent_for_update(node);
-
-        self.ctr_remove_non_leaf_node_entry(parent, node->parent_idx());
-
-        self.ctr_remove_node(node, sums, sizes);
-    }
-    else {
-        MMA_THROW(Exception()) << WhatCInfo("Empty root node should not be deleted with this method.");
-    }
-}
-
-M_PARAMS
-VoidResult M_TYPE::ctr_remove_root_node(NodeBaseG& node) noexcept
-{
-    auto& self = this->self();
-    MEMORIA_V1_ASSERT_TRUE_RTN(node->is_root());
-    return self.ctr_remove_node_recursively(node);
-}
 
 
 
@@ -197,11 +102,12 @@ VoidResult M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_
     using ResultT = VoidResult;
     auto& self = this->self();
 
+    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
+
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(path[level]));
 
     auto res = self.ctr_for_all_ids(path[level], start, end, [&](const BlockID& id) noexcept -> VoidResult {
-        MEMORIA_TRY(child, self.ctr_get_block(id));
-        return self.ctr_remove_node_recursively(child);
+        return self.ctr_unref_block(id);
     });
     MEMORIA_RETURN_IF_ERROR(res);
 
@@ -217,12 +123,13 @@ VoidResult M_TYPE::ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level,
 {
     auto& self = this->self();
 
+    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
+
     NodeBaseG node = path[level];
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
     MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1));
-
     MEMORIA_TRY_VOID(self.ctr_update_path(path, level));
 
     return VoidResult::of();
@@ -267,44 +174,6 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(
 
 
 
-M_PARAMS
-VoidResult M_TYPE::ctr_remove_redundant_root(TreePathT& path, size_t level) noexcept
-{
-    auto& self = this->self();
-
-    if (level + 1 < path.size())
-    {
-        MEMORIA_TRY(parent, self.ctr_get_node_parent(path, level));
-
-        if (!parent->is_root())
-        {
-            MEMORIA_TRY_VOID(ctr_remove_redundant_root(path, level + 1));
-        }
-
-        if (parent->is_root())
-        {
-            MEMORIA_TRY(size, self.ctr_get_node_size(parent, 0));
-            if (size == 1)
-            {
-                MEMORIA_TRY(root_metadata, self.ctr_get_root_metadata());
-
-                NodeBaseG node = path[level];
-
-                // FIXME redesign it to use tryConvertToRoot(node) instead
-                if (self.ctr_can_convert_to_root(node, parent->root_metadata_size()))
-                {
-                    MEMORIA_TRY_VOID(self.ctr_node_to_root(node, root_metadata));
-                    MEMORIA_TRY_VOID(self.store().removeBlock(parent->id()));
-                    MEMORIA_TRY_VOID(self.set_root(node->id()));
-
-                    path.remove_root();
-                }
-            }
-        }
-    }
-
-    return VoidResult::of();
-}
 
 
 M_PARAMS

@@ -197,7 +197,7 @@ public:
         MEMORIA_TRY(leaf_size, self.iter_leaf_size(0));
         if (local_pos < leaf_size)
         {
-            return self.ctr().template ctr_update_entry<IntList<1>>(self, EntryAdapter{v});
+            return self.ctr().template ctr_update_entry<IntList<0, 1>>(self, EntryAdapter{v});
         }
         else {
             return MEMORIA_MAKE_GENERIC_ERROR(

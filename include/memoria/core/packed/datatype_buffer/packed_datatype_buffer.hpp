@@ -215,6 +215,22 @@ public:
         });
     }
 
+
+    template <typename SerializationData, typename IDResolver>
+    VoidResult mem_cow_serialize(SerializationData& buf, const IDResolver* resolver) const noexcept
+    {
+        MEMORIA_TRY_VOID(Base::serialize(buf));
+
+        auto& meta = this->metadata();
+
+        FieldFactory<psize_t>::serialize(buf, meta.size());
+        FieldFactory<psize_t>::serialize(buf, meta.data_size(), Dimensions);
+
+        return for_each_dimension_res([&, this](auto idx){
+            return this->dimension<idx>().mem_cow_serialize(meta, buf, resolver);
+        });
+    }
+
     template <typename DeserializationData>
     VoidResult deserialize(DeserializationData& buf) noexcept
     {

@@ -51,6 +51,7 @@
 
 #include <string>
 #include <memory>
+#include <unordered_set>
 
 namespace memoria {
 
@@ -116,6 +117,7 @@ protected:
     AllocatorPtr allocator_holder_;
 
     bool do_unregister_on_dtr_{true};
+    bool do_unregister_{true};
 
 public:
     CtrBase(MaybeError&) noexcept {}
@@ -170,7 +172,7 @@ public:
     PairPtr& pair() noexcept {return pair_;}
     const PairPtr& pair() const noexcept {return pair_;}
 
-    Result<void> set_root(const BlockID &root) noexcept
+    VoidResult set_root(const BlockID &root) noexcept
     {
         root_ = root;
         return self().store().setRoot(self().master_name(), root);
@@ -255,8 +257,7 @@ public:
 
     struct CtrInterfaceImpl: public ContainerOperations<ProfileT> {
 
-        using CIBase = ContainerOperations<ProfileT>;
-
+        using CIBase = ContainerOperations<ProfileT>;    
         using typename CIBase::BlockCallbackFn;
 
         virtual U8String data_type_decl_signature() const noexcept {
@@ -381,7 +382,29 @@ public:
             }
         }
 
-        virtual Result<CtrID> clone_ctr(const BlockID& ctr_id, const CtrID& new_ctr_id, AllocatorPtr allocator) const noexcept
+        virtual Result<CtrSharedPtr<CtrReferenceable<typename Types::Profile>>> new_ctr_instance(
+            const ProfileBlockG<typename Types::Profile>& root_block,
+            ProfileAllocatorType<ProfileT>* allocator
+        ) const noexcept
+        {
+            using ResultT = Result<CtrSharedPtr<CtrReferenceable<typename Types::Profile>>>;
+
+            MaybeError maybe_error;
+            auto instance = ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
+                    maybe_error,
+                    allocator,
+                    root_block
+            );
+
+            if (!maybe_error) {
+                return ResultT::of(std::move(instance));
+            }
+            else {
+                return std::move(maybe_error.get());
+            }
+        }
+
+        virtual Result<CtrID> clone_ctr(const CtrID& ctr_id, const CtrID& new_ctr_id, AllocatorPtr allocator) const noexcept
         {
             using ResultT = Result<CtrID>;
 
@@ -523,8 +546,6 @@ public:
 };
 
 
-extern int32_t CtrRefCounters;
-extern int32_t CtrUnrefCounters;
 
 
 template <typename Types>
@@ -603,13 +624,36 @@ public:
     }
 
 
+    // find existing ctr
+    Ctr(
+        MaybeError& maybe_error,
+        Allocator* allocator,
+        const typename Allocator::BlockG& root_block
+    ) noexcept :
+        Base(maybe_error)
+    {
+        wrap_construction(maybe_error, [&]() -> VoidResult {
+            allocator_ = allocator;
+
+            initLogger();
+
+            MEMORIA_TRY(name, this->do_init_ctr(root_block));
+
+            name_ = name;
+
+            this->do_unregister_ = false;
+
+            return VoidResult::of();
+        });
+    }
+
 
     Ctr(const MyType& other) = delete;
     Ctr(MyType&& other) = delete;
 
     virtual ~Ctr() noexcept
     {
-        if (this->do_unregister_on_dtr_)
+        if (this->do_unregister_on_dtr_ && this->do_unregister_)
         {
             try {
                 allocator_->unregisterCtr(name_, this).get_or_throw();

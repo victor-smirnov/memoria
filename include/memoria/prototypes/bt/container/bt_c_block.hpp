@@ -102,7 +102,7 @@ public:
             MEMORIA_TRY(block, store_->getBlock(block_id_));
 
             return with_ctr([&](auto& ctr) -> VoidResult {
-                return ctr.ctr_dump_node(block, out);
+                return ctr.ctr_dump_node(std::move(block), out);
             });
         }
 

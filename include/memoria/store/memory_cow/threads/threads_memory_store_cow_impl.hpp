@@ -1,5 +1,5 @@
 
-// Copyright 2016 Victor Smirnov
+// Copyright 2016-2020 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@
 #include <memoria/core/tools/latch.hpp>
 #include <memoria/core/memory/memory.hpp>
 
-#include <memoria/store/memory/common/store_base.hpp>
+#include <memoria/store/memory_cow/common/store_base_cow.hpp>
 
-#include <memoria/store/memory/threads/threads_snapshot_impl.hpp>
+#include <memoria/store/memory_cow/threads/threads_snapshot_cow_impl.hpp>
 
 #include <memoria/filesystem/path.hpp>
 
@@ -40,7 +40,7 @@
 
 namespace memoria {
 namespace store {
-namespace memory {
+namespace memory_cow {
 
 template <typename Profile>
 class ThreadsMemoryStoreImpl: public MemoryStoreBase<Profile, ThreadsMemoryStoreImpl<Profile>> {
@@ -456,19 +456,12 @@ public:
             {
                 return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this()));
             }
-            if (history_node->is_data_locked())
-            {
-                return MEMORIA_MAKE_GENERIC_ERROR(
-                            "Snapshot {} data is locked",
-                            history_node->snapshot_id()
-                            );
-            }
             else {
                 return MEMORIA_MAKE_GENERIC_ERROR(
                             "Snapshot {} is {}",
                             history_node->snapshot_id(),
                             (history_node->is_active() ? "active" : "dropped")
-                            );
+                );
             }
         }
         else {
@@ -495,25 +488,12 @@ public:
             {
                 return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this()));
             }
-            else if (history_node->is_data_locked())
-            {
-            	if (history_node->references() == 0)
-            	{
-                    return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this()));
-            	}
-            	else {
-                    return MEMORIA_MAKE_GENERIC_ERROR(
-                                "Snapshot id {} is locked and open",
-                                history_node->snapshot_id()
-                                );
-            	}
-            }
             else {                
                 return MEMORIA_MAKE_GENERIC_ERROR(
                             "Snapshot {} is {} ",
                             history_node->snapshot_id(),
                             (history_node->is_active() ? "active" : "dropped")
-                            );
+                );
             }
         }
         else {
@@ -568,10 +548,6 @@ public:
             {
                 master_ = iter->second;
             }
-            else if (history_node->is_data_locked())
-            {
-            	master_ = iter->second;
-            }
             else if (history_node->is_dropped())
             {
                 return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been dropped", txn_id);
@@ -603,10 +579,6 @@ public:
             {
                 named_branches_[name] = history_node;
             }
-        	else if (history_node->is_data_locked())
-        	{
-        		named_branches_[name] = history_node;
-        	}
             else {
                 return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} hasn't been committed yet", txn_id);
             }
@@ -836,9 +808,10 @@ protected:
                 free_memory(child);
             }
 
-            if (node->root())
+            if (node->root_id().isSet())
             {
-                SnapshotT::delete_snapshot(node);
+                auto txn = snp_make_shared_init<SnapshotT>(node, this).get_or_terminate();
+                txn->do_drop();
             }
 
             delete node;
@@ -852,19 +825,19 @@ protected:
 
     void do_delete_dropped(HistoryNode* node)
     {
-        if (node->is_dropped() && node->root() != nullptr)
-        {
-            if (this->is_dump_snapshot_lifecycle()) {
-                std::cout << "MEMORIA: DELETE snapshot's DATA (do_delete_dropped): " << node->snapshot_id() << std::endl;
-            }
+//        if (node->is_dropped() && node->root_id().isSet())
+//        {
+//            if (this->is_dump_snapshot_lifecycle()) {
+//                std::cout << "MEMORIA: DELETE snapshot's DATA (do_delete_dropped): " << node->snapshot_id() << std::endl;
+//            }
 
-            SnapshotT::delete_snapshot(node);
-        }
+//            SnapshotT::delete_snapshot(node);
+//        }
 
-        for (auto child: node->children())
-        {
-            do_delete_dropped(child);
-        }
+//        for (auto child: node->children())
+//        {
+//            do_delete_dropped(child);
+//        }
     }
     
     virtual void forget_snapshot(HistoryNode* history_node)
@@ -897,7 +870,7 @@ protected:
         {
         	SnapshotLockGuardT lock_guard(node->snapshot_mutex());
 
-        	if (node->root() == nullptr && node->references() == 0 && branches.find(node) == branches.end())
+            if (node->root_id().is_null() && node->references() == 0 && branches.find(node) == branches.end())
         	{
         		remove_node = true;
         	}
@@ -910,52 +883,57 @@ protected:
         return Result<void>::of();
     }
 
+    class BTreeNodeSerializationHandler: public BTreeTraverseNodeHandler<Profile> {
+        MyType& store_;
+        OutputStreamHandler& out_;
+        RCBlockSet& stored_blocks_;
+    public:
+        BTreeNodeSerializationHandler(
+                MyType& store,
+                OutputStreamHandler& out,
+                RCBlockSet& stored_blocks
+        ) noexcept:
+            store_(store), out_(out), stored_blocks_(stored_blocks)
+        {}
+
+        virtual VoidResult process_branch_node(const BlockType* block) noexcept {
+            stored_blocks_.insert(block);
+            return store_.write_ctr_block(out_, block);
+        }
+
+        virtual VoidResult process_leaf_node(const BlockType* block) noexcept {
+            stored_blocks_.insert(block);
+            return store_.write_ctr_block(out_, block);
+        }
+
+        virtual VoidResult process_directory_leaf_node(const BlockType* block) noexcept {
+            stored_blocks_.insert(block);
+            return store_.write_ctr_block(out_, block);
+        }
+
+        virtual BoolResult proceed_with(const BlockID& block_id) const noexcept
+        {
+            const BlockType* block = value_cast<const BlockType*>(block_id);
+            return BoolResult::of(stored_blocks_.count(block) == 0);
+        }
+    };
+
+
+    virtual VoidResult serialize_snapshot(
+            OutputStreamHandler& out,
+            const HistoryNode* history_node,
+            RCBlockSet& stored_blocks
+    ) noexcept
+    {
+        MEMORIA_TRY(txn, snp_make_shared_init<SnapshotT>(const_cast<HistoryNode*>(history_node), this));
+        BTreeNodeSerializationHandler handler(*this, out, stored_blocks);
+        return txn->traverse_ctr(history_node->root_id(), handler);
+    }
+
 
 };
 
 }}
-
-
-template <>
-Result<AllocSharedPtr<IMemoryStore<DefaultProfile<>>>> IMemoryStore<DefaultProfile<>>::load(InputStreamHandler* input_stream) noexcept
-{
-    auto rr = store::memory::ThreadsMemoryStoreImpl<DefaultProfile<>>::load(input_stream);
-    if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<DefaultProfile<>>>>::of(rr.get());
-    }
-
-    return std::move(rr).transfer_error();
-}
-
-template <>
-Result<AllocSharedPtr<IMemoryStore<DefaultProfile<>>>> IMemoryStore<DefaultProfile<>>::load(U8String input_file) noexcept
-{
-    auto fileh = FileInputStreamHandler::create(input_file.data());
-    auto rr = store::memory::ThreadsMemoryStoreImpl<DefaultProfile<>>::load(fileh.get());
-
-    if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<DefaultProfile<>>>>::of(rr.get());
-    }
-
-    return std::move(rr).transfer_error();
-}
-
-
-template <>
-Result<AllocSharedPtr<IMemoryStore<DefaultProfile<>>>> IMemoryStore<DefaultProfile<>>::create() noexcept
-{
-    using ResultT = Result<AllocSharedPtr<IMemoryStore<DefaultProfile<>>>>;
-    MaybeError maybe_error;
-
-    auto snp = MakeShared<store::memory::ThreadsMemoryStoreImpl<DefaultProfile<>>>(maybe_error);
-
-    if (!maybe_error) {
-        return ResultT::of(std::move(snp));
-    }
-    else {
-        return std::move(maybe_error.get());
-    }
-}
 
 
 }

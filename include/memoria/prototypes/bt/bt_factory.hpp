@@ -50,7 +50,6 @@
 #include <memoria/prototypes/bt/container/bt_c_checks.hpp>
 #include <memoria/prototypes/bt/container/bt_c_insert.hpp>
 #include <memoria/prototypes/bt/container/bt_c_read.hpp>
-#include <memoria/prototypes/bt/container/bt_c_ioread.hpp>
 #include <memoria/prototypes/bt/container/bt_c_update.hpp>
 #include <memoria/prototypes/bt/container/bt_c_branch_common.hpp>
 #include <memoria/prototypes/bt/container/bt_c_branch_variable.hpp>
@@ -61,6 +60,8 @@
 #include <memoria/prototypes/bt/container/bt_c_find.hpp>
 #include <memoria/prototypes/bt/container/bt_c_walk.hpp>
 #include <memoria/prototypes/bt/container/bt_c_block.hpp>
+#include <memoria/prototypes/bt/container/bt_c_cow.hpp>
+#include <memoria/prototypes/bt/container/bt_c_no_cow.hpp>
 
 #include <memoria/prototypes/bt/bt_names.hpp>
 
@@ -101,11 +102,13 @@ struct BTTypes {
             bt::RemoveBatchName,
             bt::FindName,
             bt::ReadName,
-            bt::IOReadName,
             bt::UpdateName,
             bt::WalkName,
-            bt::BlockName
+            bt::BlockName,
+            IfThenElse<ProfileTraits<Profile>::IsCoW, bt::CoWOpsName, bt::NoCoWOpsName>
     >;
+
+
 
 
     using FixedBranchContainerPartsList = TypeList<
@@ -244,7 +247,7 @@ public:
     using BlockType         = typename ContainerTypes::Allocator::BlockType;
 
     using TreeNodeBase      = bt::TreeNodeBase<typename ContainerTypes::Metadata, BlockType>;
-    using TreeNodeBaseG     = BlockGuard<TreeNodeBase, typename ContainerTypes::Allocator>;
+    using TreeNodeBaseG     = typename ProfileTraits<Profile>::template BlockGuardTF<TreeNodeBase>;
 
     using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
 

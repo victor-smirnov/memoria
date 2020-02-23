@@ -25,6 +25,8 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/core/tools/optional.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -124,6 +126,43 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
         else {
             MEMORIA_TRY_VOID(iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
             return VoidResult::of();
+        }
+    }
+
+    Result<Optional<Datum<Value>>> remove_and_return(KeyView key) noexcept
+    {
+        using ResultT = Result<Optional<Datum<Value>>>;
+        auto& self = this->self();
+
+        MEMORIA_TRY(iter, self.ctr_map_find(key));
+
+        if (iter->is_found(key))
+        {
+            auto val = iter->value();
+            MEMORIA_TRY_VOID(iter->remove());
+            return ResultT::of(val);
+        }
+        else {
+            return ResultT::of(Optional<Datum<Value>>{});
+        }
+    }
+
+    Result<Optional<Datum<Value>>> replace_and_return(KeyView key, ValueView value) noexcept
+    {
+        using ResultT = Result<Optional<Datum<Value>>>;
+        auto& self = this->self();
+
+        MEMORIA_TRY(iter, self.ctr_map_find(key));
+
+        if (iter->is_found(key))
+        {
+            auto prev = iter->value();
+            MEMORIA_TRY_VOID(iter->assign(value));
+            return ResultT::of(prev);
+        }
+        else {
+            MEMORIA_TRY_VOID(iter->insert(key, value));
+            return ResultT::of(Optional<Datum<Value>>{});
         }
     }
 

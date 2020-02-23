@@ -32,11 +32,20 @@ struct StaticInitializer {
 #ifdef MEMORIA_BUILD_MEMORY_STORE
         InitDefaultInMemStore();
 #endif
+
+#if defined(MEMORIA_BUILD_MEMORY_STORE_COW) && defined(MMA_NO_REACTOR)
+        InitCoWInMemStore();
+#endif
+
         StaticLibraryCtrs<DefaultProfile<>>::init();
     }
 };
 
+namespace {
+
 StaticInitializer init0;
+
+}
 
 void InitMemoriaExplicit() {
     StaticInitializer init0;

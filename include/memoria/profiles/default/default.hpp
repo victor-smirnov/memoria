@@ -24,25 +24,51 @@
 
 namespace memoria {
 
-template <typename Profile>
-struct ProfileTraits {
+template <>
+struct ProfileTraits<DefaultProfile<>> {
     using BlockID       = UUID;
     using SnapshotID    = UUID;
     using CtrID         = UUID;
     using CtrSizeT      = int64_t;
+    using Profile       = DefaultProfile<>;
 
-    using Block = AbstractPage <BlockID>;
+
+    using Block = AbstractPage <BlockID, BlockID, EmptyType, SnapshotID>;
     using BlockType = Block;
 
     using AllocatorType = IAllocator<Profile>;
 
+    using BlockGuardT = BlockGuard<Block, AllocatorType>;
+
+    template <typename TargetBlockType>
+    using BlockGuardTF = BlockGuard<TargetBlockType, AllocatorType>;
+
+    static constexpr bool IsCoW = false;
+
     using BlockG = typename AllocatorType::BlockG;
+
+    static UUID make_random_block_id() {
+        return UUID::make_random();
+    }
+
+    static UUID make_random_block_guid() {
+        return UUID::make_random();
+    }
+
+    static UUID make_random_ctr_id() {
+        return UUID::make_random();
+    }
+
+    static UUID make_random_snapshot_id() {
+        return UUID::make_random();
+    }
 };
 
 template <>
-struct IDTools<UUID> {
-    static UUID make_random() {
-        return UUID::make_random();
+struct ProfileSpecificBlockTools<DefaultProfile<>>{
+    template <typename BlockT>
+    static void after_deserialization(BlockT*) noexcept {
+        // do nothing here
     }
 };
 

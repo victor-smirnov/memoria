@@ -356,7 +356,7 @@ public:
     }
 
     IndexKey* indexes(int32_t block) {
-        return ptr_casr<IndexKey>(memory_block_ + getIndexKeyBlockOffset(block));
+        return ptr_cast<IndexKey>(memory_block_ + getIndexKeyBlockOffset(block));
     }
 
     const IndexKey* indexes(int32_t block) const {

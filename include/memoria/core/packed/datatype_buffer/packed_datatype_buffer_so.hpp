@@ -306,55 +306,6 @@ public:
         });
     }
 
-    ViewType max(psize_t column) const noexcept
-    {
-        auto size = this->size();
-
-        if (size > 0)
-        {
-            return access(size - 1);
-        }
-        else {
-            return ViewType{};
-            //MMA_THROW(RuntimeException()) << format_ex("Column {} is empty", column);
-        }
-    }
-
-    template <typename T>
-    void max(core::StaticVector<T, Columns>& accum) const noexcept
-    {
-        psize_t size = data_->size();
-
-        if (size > 0)
-        {
-            accum[0] = access(size - 1);
-        }
-        else {
-            set_empty(accum[0]);
-        }
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void max(BranchNodeEntryItem<T, Size>& accum) const noexcept
-    {
-        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-        if (size() > 0) {
-            accum[0] = this->max(0);
-        }
-        else {
-            set_empty(accum[0]);
-        }
-    }
-
-    template <typename TT>
-    void set_empty(TT& dest) const noexcept {
-        dest = TT{};
-    }
-
-    template <typename TT>
-    void set_empty(Optional<TT>& dest) const noexcept {
-        dest = Optional<TT>{};
-    }
 
 
     void configure_io_substream(io::IOSubstream& substream) const noexcept
@@ -381,31 +332,6 @@ public:
         });
 
         return Int32Result::of(static_cast<int32_t>(at + size));
-    }
-
-
-
-    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    VoidResult _update_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val) noexcept
-    {
-        MEMORIA_TRY_VOID(removeSpace(pos, pos + 1));
-        return _insert_b<Offset>(pos, accum, std::forward<AccessorFn>(val));
-    }
-
-    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    VoidResult _insert_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val) noexcept
-    {
-        MEMORIA_TRY_VOID(insert_from_fn(pos, 1, [&](psize_t row){
-                return val(0);
-        }));
-
-        return VoidResult::of();
-    }
-
-    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    VoidResult _remove(psize_t idx, BranchNodeEntryItem<T, Size>& accum) noexcept
-    {
-        return removeSpace(idx, idx + 1);
     }
 
 

@@ -169,5 +169,10 @@ struct TypeHash<Table<Key, Value, PackedDataTypeSize::VARIABLE>>: UInt64Value <
     HashHelper<3099, TypeHashV<Key>, TypeHashV<Value>>
 > {};
 
+template <typename ValueHolder>
+struct TypeHash<MemCoWBlockID<ValueHolder>>: UInt64Value <
+    HashHelper<345630986034956, TypeHashV<ValueHolder>>
+> {};
+
 
 }

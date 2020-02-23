@@ -40,10 +40,15 @@ using ProfileSnapshotID = typename ProfileTraits<Profile>::SnapshotID;
 template <typename Profile>
 using ProfileCtrSizeT = typename ProfileTraits<Profile>::CtrSizeT;
 
+template <typename Profile>
+bool ProfileIsCopyOnWrite = ProfileTraits<Profile>::IsCoW;
 
 template <typename Profile>
 using ProfileBlockG = typename ProfileTraits<Profile>::BlockG;
 
 template <typename ID> struct IDTools;
+
+template <typename Profile>
+struct ProfileSpecificBlockTools;
 
 }

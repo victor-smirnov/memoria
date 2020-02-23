@@ -89,6 +89,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
         auto& self = this->self();
 
+        MEMORIA_TRY_VOID(self.ctr_cow_clone_path(iter.path(), 0));
+
         BlockUpdateMgr mgr(self);
 
         MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
@@ -171,6 +173,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
         using ResultT = BoolResult;
         auto& self = this->self();
 
+        MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
+
         BlockUpdateMgr mgr(self);
 
         MEMORIA_TRY_VOID(self.ctr_update_block_guard(path.leaf()));
@@ -196,71 +200,66 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
     //=========================================================================================
 
-    template <int32_t Stream, typename SubstreamsList>
+    template <typename SubstreamsList>
     struct UpdateStreamEntryBufferFn
     {
         template <
-            int32_t Offset,
-            bool Start,
+            int32_t StreamIdx,
+            int32_t AllocatorIdx,
             int32_t Idx,
             typename SubstreamType,
-            typename BranchNodeEntryItem,
             typename Entry
         >
-        VoidResult stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry) noexcept
+        VoidResult stream(SubstreamType&& obj, int32_t idx, const Entry& entry) noexcept
         {
-            return obj.template _update_b<Offset>(idx, accum, [&](int32_t block){
-                return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
+            return obj.update_entries(idx, 1, [&](auto block, auto){
+                return entry.get(bt::StreamTag<StreamIdx>(), bt::StreamTag<Idx>(), block);
             });
         }
 
         template <typename CtrT, typename NTypes, typename... Args>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args) noexcept
+        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args) noexcept
         {
-            auto res = node.template processSubstreamsByIdxAcc<
-                Stream,
+            return node.template processSubstreams<
                 SubstreamsList
             >(
                     *this,
-                    accum,
                     idx,
                     std::forward<Args>(args)...
             );
-            MEMORIA_RETURN_IF_ERROR(res);
-
-            return VoidResult::of();
         }
     };
 
 
-    template <int32_t Stream, typename SubstreamsList, typename Entry>
-    Result<std::tuple<bool, BranchNodeEntry>> ctr_try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry) noexcept
+    template <typename SubstreamsList, typename Entry>
+    BoolResult ctr_try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry) noexcept
     {
-        using ResultT = Result<std::tuple<bool, BranchNodeEntry>>;
+        using ResultT = BoolResult;
         auto& self = this->self();
+
+        MEMORIA_TRY_VOID(self.ctr_cow_clone_path(iter.path(), 0));
 
         BlockUpdateMgr mgr(self);
 
         MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
         MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf()));
 
-        BranchNodeEntry accum;
-        UpdateStreamEntryBufferFn<Stream, SubstreamsList> fn;
+
+        UpdateStreamEntryBufferFn<SubstreamsList> fn;
         VoidResult status = self.leaf_dispatcher().dispatch(
                     iter.iter_leaf(),
                     fn,
                     idx,
-                    accum,
                     entry
         );
 
         if (status.is_ok()) {
-            return ResultT::of(std::make_tuple(true, accum));
+            return ResultT::of(true);
         }
         else if (status.memoria_error()->error_category() == ErrorCategory::PACKED)
         {
             mgr.rollback();
-            return ResultT::of(std::make_tuple(false, BranchNodeEntry()));
+            return ResultT::of(false);
         }
         else {
             return std::move(status).transfer_error();
@@ -296,6 +295,11 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
 
     MEMORIA_TRY_VOID(self.ctr_check_same_paths(tgt_path, src_path, 1));
 
+    MEMORIA_TRY(src_parent, self.ctr_get_node_parent(src_path, 0));
+    MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(src_parent, src_path.leaf()->id()));
+
+    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(tgt_path, 0));
+
     BlockUpdateMgr mgr(self);
 
     NodeBaseG tgt = tgt_path.leaf();
@@ -308,8 +312,7 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
 
     //MEMORIA_TRY(tgt_sizes, self.ctr_get_node_sizes(tgt));
 
-    MEMORIA_TRY(src_parent, self.ctr_get_node_parent(src_path, 0));
-    MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(src_parent, src->id()));
+
 
     VoidResult res = self.leaf_dispatcher().dispatch_1st_const(src, tgt, TryMergeNodesFn());
 
@@ -330,7 +333,9 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
 
     MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, 0));
 
-    MEMORIA_TRY_VOID(self.store().removeBlock(src->id()));
+    MEMORIA_TRY_VOID(self.ctr_cow_ref_children_after_merge(src));
+
+    MEMORIA_TRY_VOID(self.ctr_unref_block(src->id()));
 
     MEMORIA_TRY_VOID(self.ctr_check_path(tgt_path, 0));
 
