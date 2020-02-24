@@ -92,6 +92,15 @@ public:
         return this->template get<Array>(ARRAY);
     }
 
+    static constexpr int32_t default_size(int32_t available_space) noexcept
+    {
+        return empty_size();
+    }
+
+    VoidResult init_default(int32_t block_size) noexcept {
+        return init();
+    }
+
     static int32_t empty_size() noexcept
     {
         int32_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);

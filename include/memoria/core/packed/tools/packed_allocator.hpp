@@ -348,6 +348,27 @@ public:
     }
 
 
+    template <typename T>
+    Result<T*> allocateDefault(int32_t idx) noexcept
+    {
+        using ResultT = Result<T*>;
+
+        static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
+
+        int32_t available_client_area = this->client_area();
+        int32_t block_size = T::default_size(available_client_area);
+
+        MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
+
+        T* object = block.cast<T>();
+
+        MEMORIA_TRY_VOID(object->init_default(block_size));
+
+        return ResultT::of(object);
+    }
+
+
+
     Result<PackedAllocator*> allocateAllocator(int32_t idx, int32_t streams) noexcept
     {
         using ResultT = Result<PackedAllocator*>;

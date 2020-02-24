@@ -125,6 +125,14 @@ public:
         return sizeof(MyType);
     }
 
+    static constexpr int32_t default_size(int32_t available_space) noexcept
+    {
+        return empty_size();
+    }
+
+    VoidResult init_default(int32_t block_size) noexcept {
+        return init();
+    }
 
     VoidResult init() noexcept
     {

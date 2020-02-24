@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2020 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
 // limitations under the License.
 
 #include <memoria/profiles/default/default.hpp>
-#include <memoria/containers/vector/vctr_factory.hpp>
-
+#include <memoria/containers/allocation_map/allocation_map_impl.hpp>
 
 namespace memoria {
 
-using Profile = DefaultProfile<>;    
-using CtrName = Vector<Varchar>;
+using Profile = DefaultProfile<>;
+using CtrName = AllocationMap;
 
 MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     

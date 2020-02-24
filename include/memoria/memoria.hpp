@@ -23,12 +23,14 @@
 #   include <memoria/api/map/map_api.hpp>
 #   include <memoria/api/vector/vector_api.hpp>
 #   include <memoria/api/multimap/multimap_api.hpp>
+#   include <memoria/api/allocation_map/allocation_map_api.hpp>
 #else
 #   if defined (MEMORIA_BUILD_CONTAINERS_MULTIMAP)
 #       include <memoria/api/multimap/multimap_api.hpp>
 #   endif
 #   if defined (MEMORIA_BUILD_CONTAINERS_SET)
 #       include <memoria/api/set/set_api.hpp>
+#       include <memoria/api/allocation_map/allocation_map_api.hpp>
 #   endif
 #   if defined (MEMORIA_BUILD_CONTAINERS_VECTOR)
 #       include <memoria/api/vector/vector_api.hpp>
@@ -51,7 +53,7 @@ void InitCtrDatatypes();
 void InitDefaultInMemStore();
 #endif
 
-#if defined(MEMORIA_BUILD_MEMORY_STORE_COW) && defined(MMA_NO_REACTOR)
+#if defined(MEMORIA_BUILD_MEMORY_STORE_COW)
 void InitCoWInMemStore();
 #endif
 
@@ -82,6 +84,8 @@ struct StaticLibraryCtrs {
         InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();
 
         InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
+
+        InitCtrMetadata<AllocationMap, ProfileT>();
 #else
 #   if defined(MEMORIA_BUILD_CONTAINERS_MULTIMAP)
         InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
@@ -91,6 +95,7 @@ struct StaticLibraryCtrs {
 #   if defined(MEMORIA_BUILD_CONTAINERS_SET)
         InitCtrMetadata<Set<Varchar>, ProfileT>();
         InitCtrMetadata<Set<UUID>, ProfileT>();
+        InitCtrMetadata<AllocationMap, ProfileT>();
 #   endif
 
 #   if defined(MEMORIA_BUILD_CONTAINERS_VECTOR)

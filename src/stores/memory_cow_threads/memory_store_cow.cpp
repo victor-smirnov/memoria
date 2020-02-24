@@ -22,6 +22,11 @@ using Profile = MemoryCoWProfile<>;
 template class IMemoryStore<Profile>;
 
 
+inline std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept {
+    out << block_id.value();
+    return out;
+}
+
 
 
 template <>

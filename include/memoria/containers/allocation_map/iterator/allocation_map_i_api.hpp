@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2020 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,16 +13,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/default/default.hpp>
-#include <memoria/containers/vector/vctr_factory.hpp>
 
+
+#pragma once
+
+#include <memoria/containers/allocation_map/allocation_map_names.hpp>
+#include <memoria/core/types.hpp>
+
+#include <memoria/core/container/iterator.hpp>
+#include <memoria/core/container/macros.hpp>
+
+#include <iostream>
 
 namespace memoria {
 
-using Profile = DefaultProfile<>;    
-using CtrName = Vector<Varchar>;
+MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
 
-MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
-    
+
+
+
+MEMORIA_V1_ITERATOR_PART_END
+
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(alcmap::ItrApiName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
+
+
+
+#undef M_TYPE
+#undef M_PARAMS
+
 }
-

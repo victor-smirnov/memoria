@@ -240,6 +240,16 @@ public:
     }
 
 
+    static constexpr int32_t default_size(int32_t available_space) noexcept
+    {
+        return empty_size();
+    }
+
+    VoidResult init_default(int32_t block_size) noexcept {
+        return init();
+    }
+
+
     static int32_t empty_size()
     {
         return block_size(0);

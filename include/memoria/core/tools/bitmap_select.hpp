@@ -21,7 +21,7 @@
 
 namespace memoria {
 
-inline uint64_t BroadwordGTZ8 (uint64_t x)
+inline constexpr uint64_t BroadwordGTZ8 (uint64_t x) noexcept
 {
     uint64_t H8 = 0x8080808080808080;
     uint64_t L8 = 0x0101010101010101;
@@ -29,13 +29,13 @@ inline uint64_t BroadwordGTZ8 (uint64_t x)
     return  ((x | (( x | H8) - L8)) & H8) >> 7;
 }
 
-inline uint64_t BroadwordLE8 (uint64_t x, uint64_t y)
+inline constexpr uint64_t BroadwordLE8 (uint64_t x, uint64_t y) noexcept
 {
     uint64_t H8 = 0x8080808080808080;
     return ((((y | H8) - (x & ~H8)) ^ x ^ y) & H8 ) >> 7;
 }
 
-inline size_t SelectFW(uint64_t arg, size_t rank)
+inline constexpr size_t SelectFW(uint64_t arg, size_t rank) noexcept
 {
     uint64_t v = arg;
 
@@ -81,7 +81,7 @@ inline size_t SelectFW(uint64_t arg, size_t rank)
 }
 
 
-inline size_t SelectBW(uint64_t arg, size_t rank)
+inline constexpr size_t SelectBW(uint64_t arg, size_t rank) noexcept
 {
     uint64_t v = arg;
 
@@ -135,7 +135,7 @@ namespace intrnl2 {
 
 
 template <typename T>
-bool SelectFW(T arg, size_t& total, size_t count, size_t& stop)
+constexpr bool SelectFW(T arg, size_t& total, size_t count, size_t& stop) noexcept
 {
     size_t popcnt = PopCnt(arg & MakeMask<T>(0, stop));
 
@@ -165,7 +165,7 @@ bool SelectFW(T arg, size_t& total, size_t count, size_t& stop)
 
 
 template <typename T>
-bool SelectBW(T arg, size_t& total, size_t count, size_t start, size_t& delta)
+constexpr bool SelectBW(T arg, size_t& total, size_t count, size_t start, size_t& delta) noexcept
 {
     size_t popcnt = PopCnt(arg & MakeMask<T>(0, start + 1));
 
@@ -209,7 +209,9 @@ class SelectResult {
     size_t  rank_;
     bool    found_;
 public:
-    SelectResult(size_t idx, size_t rank, bool found): idx_(idx), rank_(rank), found_(found) {}
+    constexpr SelectResult(size_t idx, size_t rank, bool found) noexcept:
+        idx_(idx), rank_(rank), found_(found)
+    {}
 
     size_t local_pos() const   {return idx_;}
     size_t rank() const  {return rank_;}
@@ -221,7 +223,7 @@ public:
 
 
 template <typename T>
-SelectResult Select1FW(const T* buffer, size_t start, size_t stop, size_t rank)
+SelectResult Select1FW(const T* buffer, size_t start, size_t stop, size_t rank) noexcept
 {
     const size_t bitsize    = TypeBitsize<T>();
     const size_t mask       = TypeBitmask<T>();
@@ -293,7 +295,7 @@ SelectResult Select1FW(const T* buffer, size_t start, size_t stop, size_t rank)
 
 
 template <typename T>
-SelectResult Select0FW(const T* buffer, size_t start, size_t stop, size_t rank)
+SelectResult Select0FW(const T* buffer, size_t start, size_t stop, size_t rank) noexcept
 {
     const size_t bitsize    = TypeBitsize<T>();
     const size_t mask       = TypeBitmask<T>();
@@ -365,7 +367,7 @@ SelectResult Select0FW(const T* buffer, size_t start, size_t stop, size_t rank)
 
 
 template <typename T>
-T GetBits00(const T* buf, size_t idx, int32_t nbits)
+T GetBits00(const T* buf, size_t idx, int32_t nbits) noexcept
 {
     const size_t mask = TypeBitmask<T>();
     const size_t divisor = TypeBitmaskPopCount(mask);
@@ -382,7 +384,7 @@ T GetBits00(const T* buf, size_t idx, int32_t nbits)
 
 
 template <typename T>
-T GetBitsNeg00(const T* buf, size_t idx, int32_t nbits)
+T GetBitsNeg00(const T* buf, size_t idx, int32_t nbits) noexcept
 {
     const size_t mask = TypeBitmask<T>();
     const size_t divisor = TypeBitmaskPopCount(mask);
@@ -401,7 +403,7 @@ T GetBitsNeg00(const T* buf, size_t idx, int32_t nbits)
 
 
 template <typename T>
-SelectResult Select1BW(const T* buffer, size_t start, size_t stop, size_t rank)
+SelectResult Select1BW(const T* buffer, size_t start, size_t stop, size_t rank) noexcept
 {
     if (start - stop > 0)
     {
@@ -484,7 +486,7 @@ SelectResult Select1BW(const T* buffer, size_t start, size_t stop, size_t rank)
 
 
 template <typename T>
-SelectResult Select0BW(const T* buffer, size_t start, size_t stop, size_t rank)
+SelectResult Select0BW(const T* buffer, size_t start, size_t stop, size_t rank) noexcept
 {
     if (start - stop > 0)
     {

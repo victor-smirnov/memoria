@@ -33,3 +33,5 @@
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 #include <memoria/core/packed/sseq/packed_rle_searchable_seq.hpp>
 
+#include <memoria/core/packed/sseq/packed_allocation_map.hpp>
+

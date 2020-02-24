@@ -13,16 +13,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/default/default.hpp>
-#include <memoria/containers/vector/vctr_factory.hpp>
+#pragma once
 
+#include "allocation_map_factory.hpp"
+
+#include <memoria/api/allocation_map/allocation_map_api.hpp>
+#include <memoria/core/container/ctr_impl_btss.hpp>
+#include <memoria/core/tools/static_array.hpp>
+
+#include <memory>
 
 namespace memoria {
 
-using Profile = DefaultProfile<>;    
-using CtrName = Vector<Varchar>;
-
-MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
-    
+template <typename Profile>
+void ICtrApi<AllocationMap, Profile>::init_profile_metadata()
+{
+    SharedCtr<AllocationMap, ProfileAllocatorType<Profile>, Profile>::init_profile_metadata();
 }
 
+}

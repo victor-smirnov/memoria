@@ -26,6 +26,8 @@
 
 #include <memoria/memoria.hpp>
 
+#include <memoria/core/packed/sseq/packed_allocation_map.hpp>
+
 #include <iostream>
 #include <stdexcept>
 #include <type_traits>
@@ -37,9 +39,14 @@ using Profile = MemoryCoWProfile<>;
 
 int main()
 {
-    using CtrName = Set<UUID>;
+    using AlkMap = PkdAllocationMap<PkdAllocationMapTypes>;
 
-    InitCtrMetadata<CtrName, MemoryCoWProfile<>>();
+    int sss = 0;
+    std::cout << AlkMap::find_block_size(4096) << std::endl;
+
+
+/*
+    using CtrName = Set<UUID>;
 
     long dtrStart;
 
@@ -55,7 +62,7 @@ int main()
 
         std::vector<UUID> entries;
 
-        for (int c = 0; c < 10000000; c++) //47793
+        for (int c = 0; c < 1000; c++) //47793
         {
             //U8String entry = format_u8("BBBBBBBBB_{}", c);
             UUID entry = UUID::make_random();
@@ -86,9 +93,9 @@ int main()
         snp->commit().get_or_throw();
         snp->set_as_master().get_or_throw();
 
-        //store->store("set_cow.mma3").get_or_throw();
+        store->store("set_cow.mma3").get_or_throw();
 
-        //auto store2 = IMemoryStore<Profile>::load("set_cow.mma3").get_or_throw();
+        auto store2 = IMemoryStore<Profile>::load("set_cow.mma3").get_or_throw();
 
         auto snp2 = store->master().get_or_throw()->branch().get_or_throw();
 
@@ -147,6 +154,6 @@ int main()
     long dtrEnd = getTimeInMillis();
 
     std::cout << "Dtr time: " << (dtrEnd - dtrStart) << std::endl;
-
+*/
     return 0;
 }

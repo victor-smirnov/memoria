@@ -15,6 +15,7 @@
 
 
 #include <memoria/profiles/default/default.hpp>
+#include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
 #include <memoria/memoria.hpp>
 
 namespace memoria {
@@ -33,8 +34,9 @@ struct StaticInitializer {
         InitDefaultInMemStore();
 #endif
 
-#if defined(MEMORIA_BUILD_MEMORY_STORE_COW) && defined(MMA_NO_REACTOR)
+#if defined(MEMORIA_BUILD_MEMORY_STORE_COW)
         InitCoWInMemStore();
+        StaticLibraryCtrs<MemoryCoWProfile<>>::init();
 #endif
 
         StaticLibraryCtrs<DefaultProfile<>>::init();

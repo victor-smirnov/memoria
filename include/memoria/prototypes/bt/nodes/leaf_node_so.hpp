@@ -458,7 +458,7 @@ public:
                 if (alloc->is_empty(AllocatorIdx))
                 {
                     MEMORIA_TRY_VOID(
-                        alloc->template allocateEmpty<
+                        alloc->template allocateDefault<
                                 typename Stream::PkdStructT
                         >(AllocatorIdx)
                     );

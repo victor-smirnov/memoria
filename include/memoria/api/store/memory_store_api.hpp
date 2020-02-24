@@ -277,5 +277,8 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
     });
 }
 
+using DefaultMemoryStore = IMemoryStore<DefaultProfile<>>;
+using CoWMemoryStore = IMemoryStore<MemoryCoWProfile<>>;
+
 }
 

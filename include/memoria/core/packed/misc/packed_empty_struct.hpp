@@ -97,6 +97,11 @@ public:
 
     VoidResult init(const SizesT& capacities) noexcept {return VoidResult::of();}
 
+    static constexpr int32_t default_size(int32_t available_space) noexcept
+    {
+        return empty_size();
+    }
+
     static constexpr int32_t empty_size() noexcept
     {
         return sizeof(MyType);

@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
-
 file(GLOB SRCS *.cpp)
 set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})
+
+file(GLOB SRCS *.cpp)
+set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
+

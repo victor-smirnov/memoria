@@ -556,13 +556,7 @@ public:
 };
 
 
-//std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept;
-
-inline std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept {
-    out << block_id.value();
-    return out;
-}
-
+std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept;
 
 }
 

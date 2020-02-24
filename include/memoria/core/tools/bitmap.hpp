@@ -139,7 +139,7 @@ namespace intrnl {
      */
 
     template <typename uT, typename sT>
-    uT MakeMask0(int32_t start, int32_t length)
+    constexpr uT MakeMask0(int32_t start, int32_t length) noexcept
     {
         sT svalue   = std::numeric_limits<sT>::min();
 
@@ -156,7 +156,7 @@ namespace intrnl {
  * its signed equivalent basing on sizeof(T). T can be signed or unsigned.
  */
 template <typename T>
-T MakeMask(int32_t start, int32_t length)
+constexpr T MakeMask(int32_t start, int32_t length) noexcept
 {
     if (length > 0)
     {
@@ -170,13 +170,13 @@ T MakeMask(int32_t start, int32_t length)
     }
 }
 
-constexpr uint64_t NumberOfBits(uint64_t value)
+constexpr uint64_t NumberOfBits(uint64_t value) noexcept
 {
     return value < 2 ? value : 1 + NumberOfBits(value >> 1);
 }
 
 
-inline uint64_t ReverseBits(uint64_t value)
+inline uint64_t ReverseBits(uint64_t value) noexcept
 {
     value = (((value & 0xAAAAAAAAAAAAAAAAuLL) >> 1) | ((value & 0x5555555555555555uLL) << 1));
     value = (((value & 0xCCCCCCCCCCCCCCCCuLL) >> 2) | ((value & 0x3333333333333333uLL) << 2));
@@ -187,7 +187,7 @@ inline uint64_t ReverseBits(uint64_t value)
     return (value >> 32) | (value << 32);
 }
 
-inline uint32_t ReverseBits(uint32_t value)
+inline uint32_t ReverseBits(uint32_t value) noexcept
 {
     value = (((value & 0xaaaaaaaa) >> 1) | ((value & 0x55555555) << 1));
     value = (((value & 0xcccccccc) >> 2) | ((value & 0x33333333) << 2));
@@ -197,7 +197,7 @@ inline uint32_t ReverseBits(uint32_t value)
     return (value >> 16) | (value << 16);
 }
 
-inline int32_t PopCnt(uint64_t arg)
+inline int32_t PopCnt(uint64_t arg) noexcept
 {
     arg = arg - ((arg >> 1) & 0x5555555555555555uLL);
     arg = ((arg >> 2) & 0x3333333333333333uLL) + (arg & 0x3333333333333333uLL);
@@ -207,7 +207,7 @@ inline int32_t PopCnt(uint64_t arg)
     return (argl + (argl >> 8)) & 0x7F;
 }
 
-inline int32_t PopCnt(uint32_t v)
+inline int32_t PopCnt(uint32_t v) noexcept
 {
     v -= ((v >> 1) & 0x55555555);
     v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
@@ -217,12 +217,12 @@ inline int32_t PopCnt(uint32_t v)
 }
 
 template <typename T>
-static constexpr T divUp(T value, T divider) {
+static constexpr T divUp(T value, T divider) noexcept {
     return (value / divider) + (value % divider ? 1 : 0);
 }
 
 
-inline int32_t PopCnt(uint8_t v)
+inline int32_t PopCnt(uint8_t v) noexcept
 {
     v -= ((v >> 1) & 0x55);
     v = (v & 0x33) + ((v >> 2) & 0x33);
@@ -230,20 +230,20 @@ inline int32_t PopCnt(uint8_t v)
     return v;
 }
 
-inline int32_t PopCnt(uint64_t arg, int32_t start, int32_t length)
+inline int32_t PopCnt(uint64_t arg, int32_t start, int32_t length) noexcept
 {
     uint64_t mask = MakeMask<uint64_t>(start, length);
     return PopCnt(arg & mask);
 }
 
-inline int32_t PopCnt(uint32_t arg, int32_t start, int32_t length)
+inline int32_t PopCnt(uint32_t arg, int32_t start, int32_t length) noexcept
 {
     uint32_t mask = MakeMask<uint32_t>(start, length);
     return PopCnt(arg & mask);
 }
 
 template <typename T>
-inline size_t PopCount(const T* buffer, size_t start, size_t stop)
+inline size_t PopCount(const T* buffer, size_t start, size_t stop) noexcept
 {
     const size_t bitsize    = TypeBitsize<T>();
     const size_t mask       = TypeBitmask<T>();
@@ -278,7 +278,7 @@ inline size_t PopCount(const T* buffer, size_t start, size_t stop)
 
 
 template <typename T>
-void FillOne(T* buffer, size_t start, size_t stop)
+void FillOne(T* buffer, size_t start, size_t stop) noexcept
 {
     const size_t bitsize    = TypeBitsize<T>();
     const size_t mask       = TypeBitmask<T>();
@@ -313,7 +313,7 @@ void FillOne(T* buffer, size_t start, size_t stop)
 
 
 template <typename T>
-void FillZero(T* buffer, size_t start, size_t stop)
+void FillZero(T* buffer, size_t start, size_t stop) noexcept
 {
     const size_t bitsize    = TypeBitsize<T>();
     const size_t mask       = TypeBitmask<T>();
@@ -348,7 +348,7 @@ void FillZero(T* buffer, size_t start, size_t stop)
 
 
 template <typename Buffer>
-void SetBit(Buffer& buf, size_t idx, int32_t value)
+void SetBit(Buffer& buf, size_t idx, int32_t value) noexcept
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -376,7 +376,7 @@ void SetBit(Buffer& buf, size_t idx, int32_t value)
  */
 
 template <typename Buffer>
-int32_t GetBit(const Buffer& buf, size_t idx)
+int32_t GetBit(const Buffer& buf, size_t idx) noexcept
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -401,7 +401,7 @@ int32_t GetBit(const Buffer& buf, size_t idx)
 template <typename Buffer>
 void
 //__attribute__((always_inline))
-SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, int32_t nbits)
+SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, int32_t nbits) noexcept
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -433,7 +433,7 @@ SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, 
 template <typename Buffer>
 typename intrnl::ElementT<Buffer>::Type
 MMA_V1_ALWAYS_INLINE
-inline GetBits0(const Buffer& buf, size_t idx, int32_t nbits)
+inline GetBits0(const Buffer& buf, size_t idx, int32_t nbits) noexcept
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -455,7 +455,7 @@ inline GetBits0(const Buffer& buf, size_t idx, int32_t nbits)
 }
 
 template <typename T>
-inline bool TestBits(const T* buf, size_t idx, T bits, int32_t nbits)
+inline bool TestBits(const T* buf, size_t idx, T bits, int32_t nbits) noexcept
 {
     const size_t mask       = TypeBitmask<T>();
     const size_t divisor    = TypeBitmaskPopCount(mask);
@@ -470,7 +470,7 @@ inline bool TestBits(const T* buf, size_t idx, T bits, int32_t nbits)
 
 
 template <typename T>
-inline bool TestBit(const T* buf, size_t idx)
+inline bool TestBit(const T* buf, size_t idx) noexcept
 {
     const size_t mask       = TypeBitmask<T>();
     const size_t divisor    = TypeBitmaskPopCount(mask);
@@ -484,7 +484,7 @@ inline bool TestBit(const T* buf, size_t idx)
 
 
 template <typename T>
-T GetBitsNeg0(const T* buf, size_t idx, int32_t nbits)
+T GetBitsNeg0(const T* buf, size_t idx, int32_t nbits) noexcept
 {
     const size_t mask       = TypeBitmask<T>();
     const size_t divisor    = TypeBitmaskPopCount(mask);
@@ -505,7 +505,7 @@ T GetBitsNeg0(const T* buf, size_t idx, int32_t nbits)
  */
 
 template <typename Buffer>
-void SetBits(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, int32_t nbits)
+void SetBits(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, int32_t nbits) noexcept
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -542,7 +542,7 @@ void SetBits(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bi
 template <typename Buffer>
 typename intrnl::ElementT<Buffer>::Type
 MMA_V1_ALWAYS_INLINE inline
-GetBits(const Buffer& buf, size_t idx, int32_t nbits)
+GetBits(const Buffer& buf, size_t idx, int32_t nbits) noexcept
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -565,7 +565,7 @@ GetBits(const Buffer& buf, size_t idx, int32_t nbits)
 }
 
 template <typename T>
-inline T GetBits2(const T* buf, size_t& pos, size_t nbits)
+inline T GetBits2(const T* buf, size_t& pos, size_t nbits) noexcept
 {
     size_t bitsize      = TypeBitsize<T>();
     size_t mask         = TypeBitmask<T>();
@@ -595,7 +595,7 @@ inline T GetBits2(const T* buf, size_t& pos, size_t nbits)
 }
 
 template <typename T>
-void MoveBitsFW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t length)
+void MoveBitsFW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t length) noexcept
 {
     size_t bitsize = TypeBitsize<T>();
     size_t mask = TypeBitmask<T>();
@@ -636,7 +636,7 @@ void MoveBitsFW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t len
 
 
 template <typename T>
-void MoveBitsBW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t length)
+void MoveBitsBW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t length) noexcept
 {
     size_t bitsize  = TypeBitsize<T>();
     size_t mask     = TypeBitmask<T>();
@@ -675,7 +675,7 @@ void MoveBitsBW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t len
 
 
 template <typename T>
-void MoveBits(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t length)
+void MoveBits(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t length) noexcept
 {
     if (dst_idx > src_idx)
     {
@@ -691,7 +691,7 @@ void MoveBits(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t lengt
 namespace intrnl {
 
 template <typename T>
-size_t CountFw(const T* buffer, size_t from, size_t to, const char *lut, bool zero)
+size_t CountFw(const T* buffer, size_t from, size_t to, const char *lut, bool zero) noexcept
 {
     size_t cnt = 0;
 
@@ -766,7 +766,7 @@ size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
 }
 
 template <typename T>
-size_t CountFw(const T* buffer, size_t from, size_t to, const char *lut, bool zero)
+size_t CountFw(const T* buffer, size_t from, size_t to, const char *lut, bool zero) noexcept
 {
     size_t bitsize  = TypeBitsize<T>();
     size_t mask     = TypeBitmask<T>();
@@ -810,13 +810,13 @@ size_t CountFw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
 }
 
 template <typename T>
-size_t CountOneFw(const T* buffer, size_t from, size_t to)
+size_t CountOneFw(const T* buffer, size_t from, size_t to) noexcept
 {
     return CountFw(buffer, from, to, kPopCountFW_LUT, false);
 }
 
 template <typename T>
-size_t CountZeroFw(const T* buffer, size_t from, size_t to)
+size_t CountZeroFw(const T* buffer, size_t from, size_t to) noexcept
 {
     return CountFw(buffer, from, to, kZeroCountFW_LUT, true);
 }
@@ -824,7 +824,7 @@ size_t CountZeroFw(const T* buffer, size_t from, size_t to)
 
 
 template <typename T>
-size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool zero)
+size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool zero) noexcept
 {
     size_t bitsize  = TypeBitsize<T>();
     size_t mask     = TypeBitmask<T>();
@@ -868,12 +868,12 @@ size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
 namespace details {
 
 	
-	constexpr uint64_t CtLZ_(uint64_t val, uint64_t mask) {
+    constexpr uint64_t CtLZ_(uint64_t val, uint64_t mask) noexcept {
 		uint64_t bit_off = (val & mask) == 0;
 		return bit_off ? 1 + ((mask > 1) ? CtLZ_(val, mask >> 1) : 0) : 0;
 	}
 
-	constexpr uint32_t CtLZ_(uint32_t val, uint32_t mask) {
+    constexpr uint32_t CtLZ_(uint32_t val, uint32_t mask) noexcept {
 		uint32_t bit_off = (val & mask) == 0;
 		return bit_off ? 1 + ((mask > 1) ? CtLZ_(val, mask >> 1) : 0) : 0;
 	}
@@ -881,11 +881,11 @@ namespace details {
 }
 
 //template <typename Val>
-constexpr uint32_t CtLZ(uint32_t val) {
+constexpr uint32_t CtLZ(uint32_t val) noexcept {
 	return memoria::details::CtLZ_(val, 0x80000000u);
 }
 
-constexpr uint64_t CtLZ(uint64_t val) {
+constexpr uint64_t CtLZ(uint64_t val) noexcept {
 	return memoria::details::CtLZ_(val, 0x8000000000000000ull);
 }
 
@@ -907,11 +907,11 @@ constexpr int32_t Log2(uint64_t value) {
 //}
 
 
-static inline int32_t CountTrailingZeroes(uint32_t value) {
+static inline int32_t CountTrailingZeroes(uint32_t value) noexcept {
     return __builtin_ctz(value);
 }
 
-static inline int32_t CountTrailingZeroes(uint64_t value) {
+static inline int32_t CountTrailingZeroes(uint64_t value) noexcept {
     return __builtin_ctzll(value);
 }
 
@@ -920,7 +920,7 @@ static inline int32_t CountTrailingZeroes(uint64_t value) {
 
 
 template <typename T>
-MMA_V1_ALWAYS_INLINE inline size_t CountTrailingZeroes(const T* buf, size_t pos, size_t limit)
+MMA_V1_ALWAYS_INLINE inline size_t CountTrailingZeroes(const T* buf, size_t pos, size_t limit) noexcept
 {
     size_t bitsize      = TypeBitsize<T>();
     size_t mask         = TypeBitmask<T>();
@@ -969,7 +969,7 @@ MMA_V1_ALWAYS_INLINE inline size_t CountTrailingZeroes(const T* buf, size_t pos,
 
 
 template <typename T>
-size_t CountTrailingZeroesLight(const T* buf, size_t pos, size_t limit)
+size_t CountTrailingZeroesLight(const T* buf, size_t pos, size_t limit) noexcept
 {
     return CountTrailingZeroes(GetBits(buf, pos, sizeof(T)*8));
 }
@@ -977,20 +977,20 @@ size_t CountTrailingZeroesLight(const T* buf, size_t pos, size_t limit)
 
 
 template <typename Buffer>
-size_t CountOneBw(const Buffer* buffer, size_t from, size_t to)
+size_t CountOneBw(const Buffer* buffer, size_t from, size_t to) noexcept
 {
     return CountBw(buffer, from, to, kPopCountBW_LUT, false);
 }
 
 template <typename Buffer>
-size_t CountZeroBw(const Buffer* buffer, size_t from, size_t to)
+size_t CountZeroBw(const Buffer* buffer, size_t from, size_t to) noexcept
 {
     return CountBw(buffer, from, to, kZeroCountBW_LUT, true);
 }
 
 
 template <typename Buffer>
-size_t CreateUDS(Buffer* buf, size_t start, const size_t* ds, size_t ds_size, size_t node_bits)
+size_t CreateUDS(Buffer* buf, size_t start, const size_t* ds, size_t ds_size, size_t node_bits) noexcept
 {
     for (size_t ids = 0; ids < ds_size; ids++)
     {
@@ -1016,25 +1016,21 @@ size_t CreateUDS(Buffer* buf, size_t start, const size_t* ds, size_t ds_size, si
 
 
 template <typename T>
-void CopyBuffer(const T *src, T *dst, size_t size)
+void CopyBuffer(const T *src, T *dst, size_t size) noexcept
 {
-    if (size == static_cast<size_t>(-2ll)) {
-        int a = 0;
-        a++;
-    }
     static_assert(std::is_trivially_copyable<T>::value, "CopyBuffer supports only trivially copyable types");
     std::memmove(dst, src, size * sizeof(T));
 }
 
 template <typename T>
-void MemCpyBuffer(const T *src, T *dst, size_t size)
+void MemCpyBuffer(const T *src, T *dst, size_t size) noexcept
 {
     static_assert(std::is_trivially_copyable<T>::value, "MemCpyBuffer supports only trivially copyable types");
     std::memcpy(dst, src, size * sizeof(T));
 }
 
 template <typename T>
-void MemMoveBuffer(const T *src, T *dst, size_t size)
+void MemMoveBuffer(const T *src, T *dst, size_t size) noexcept
 {
     static_assert(std::is_trivially_copyable<T>::value, "MemCpyBuffer supports only trivially copyable types");
     std::memmove(dst, src, size * sizeof(T));
@@ -1042,13 +1038,13 @@ void MemMoveBuffer(const T *src, T *dst, size_t size)
 
 
 
-static inline void CopyByteBuffer(const void *src, void *dst, size_t size)
+static inline void CopyByteBuffer(const void *src, void *dst, size_t size) noexcept
 {
     std::memmove(dst, src, size);
 }
 
 template <typename T>
-void MoveBuffer(T *src, long from, long to, long size)
+void MoveBuffer(T *src, long from, long to, long size) noexcept
 {
     CopyBuffer(src + from, src + to, size);
 }

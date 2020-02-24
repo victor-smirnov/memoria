@@ -143,7 +143,7 @@ struct IOSymbolSequence: IOSubstream {
         return TypeNameFactory<IOSymbolSequence>::name();
     }
 
-    virtual const std::type_info& sequence_type() const         = 0;
+    virtual const std::type_info& sequence_type() const = 0;
     virtual const std::type_info& substream_type() const {
         return typeid(IOSymbolSequence);
     }
