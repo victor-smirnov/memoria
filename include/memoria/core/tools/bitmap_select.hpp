@@ -213,12 +213,16 @@ public:
         idx_(idx), rank_(rank), found_(found)
     {}
 
-    size_t local_pos() const   {return idx_;}
-    size_t rank() const  {return rank_;}
+    size_t local_pos() const noexcept {return idx_;}
+    size_t rank() const noexcept {return rank_;}
 
-    size_t& rank() {return rank_;}
+    size_t& rank() noexcept {return rank_;}
 
-    bool is_found() const {return found_;}
+    bool is_found() const noexcept {return found_;}
+
+    void set_local_pos(size_t local_pos) noexcept {
+        idx_ = local_pos;
+    }
 };
 
 

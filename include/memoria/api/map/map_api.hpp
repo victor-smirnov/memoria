@@ -100,6 +100,12 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         return MapScanner<ApiTypes, Profile>(iterator_producer(this));
     }
 
+
+    virtual VoidResult with_value(
+            KeyView key,
+            std::function<Optional<Datum<Value>> (Optional<Datum<Value>>)> value_fn
+    ) noexcept = 0;
+
     MMA_DECLARE_ICTRAPI();
 };
 

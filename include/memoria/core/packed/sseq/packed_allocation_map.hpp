@@ -51,6 +51,7 @@ public:
     using IndexType  = uint16_t;
 
     using GrowableIOSubstream = PackedAllocationMapView<MyType>;
+    using IOSubstreamView = PackedAllocationMapView<MyType>;
 
     static constexpr int32_t ValuesPerBranch        = 512;
     static constexpr int32_t Indexes                = 9;
@@ -77,6 +78,11 @@ public:
 
     int32_t& size() noexcept {return metadata()->size();}
     const int32_t& size() const noexcept {return metadata()->size();}
+
+    int32_t size(int32_t level) const noexcept
+    {
+        return bitmap_level_size(size(), level);
+    }
 
     static int do_nothing() {
         return 0;
@@ -132,10 +138,9 @@ public:
     VoidResult init_by_size(int32_t bitmap_size) noexcept
     {
         int32_t bitmap_blk_size = block_size(bitmap_size);
-        MEMORIA_TRY_VOID(Base::init(bitmap_blk_size, 2 + Indexes * 2));
+        MEMORIA_TRY_VOID(Base::init(bitmap_blk_size, 1 + Indexes * 2));
 
         MEMORIA_TRY(meta, allocate<Metadata>(METADATA));
-
 
         int32_t single_bitmap_size = bitmap_size;
         for (int32_t c = 0; c < Indexes; c++, single_bitmap_size /= 2)
@@ -172,18 +177,21 @@ public:
         int32_t single_bitmap_size = bitmap_size;
         for (int32_t c = 0; c < Indexes; c++, single_bitmap_size /= 2)
         {
-            int32_t bitmap_length = divUp(single_bitmap_size, static_cast<int32_t>(sizeof(BitmapType) * 8)) * 8;
+            int32_t bitmap_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+                    divUp(single_bitmap_size, static_cast<int32_t>(sizeof(BitmapType) * 8)) * 8
+            );
             bitmaps_length += bitmap_length;
 
             int32_t index_size   = index_level_size(single_bitmap_size);
             int32_t index_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexType));
-            index_length += index_length;
+            indexes_length += index_length;
         }
 
-        return Base::block_size(metadata_length + indexes_length + bitmaps_length, 2 + Indexes * 2);
+        return Base::block_size(metadata_length + indexes_length + bitmaps_length, 1 + Indexes * 2);
     }
 
-    static int32_t default_size(int32_t available_space) noexcept {
+    static int32_t default_size(int32_t available_space) noexcept
+    {
         return find_block_size(available_space);
     }
 
@@ -268,10 +276,12 @@ public:
                 IndexType* index = this->index(c);
                 const BitmapType* bitmap = symbols(c);
 
-                for (int32_t bi = 0; bi < local_bitmap_size; bi += ValuesPerBranch)
+                for (int32_t bi = 0, icnt = 0; bi < local_bitmap_size; bi += ValuesPerBranch, icnt++)
                 {
                     int32_t limit = (bi + ValuesPerBranch <= local_bitmap_size) ? (bi + ValuesPerBranch) : local_bitmap_size;
-                    index[bi] = static_cast<IndexType>(PopCount(bitmap, bi, limit));
+                    size_t span_size = static_cast<size_t>(limit - bi);
+
+                    index[icnt] = static_cast<IndexType>(span_size - PopCount(bitmap, bi, limit));
                 }
             }
         }
@@ -334,10 +344,16 @@ public:
         int32_t bitmap_size = bitmap_level_size(size(), level);
         int32_t index_size = this->index_level_size(bitmap_size);
 
-        const IndexType* idxs = this->index(level);
-
-        for (int32_t c = 0; c < index_size; c++) {
-            value += idxs[c];
+        if (MMA_LIKELY(index_size > 0))
+        {
+            const IndexType* idxs = this->index(level);
+            for (int32_t c = 0; c < index_size; c++) {
+                value += idxs[c];
+            }
+        }
+        else {
+            const BitmapType* bitmap = symbols(level);
+            value += PopCount(bitmap, 0, bitmap_size);
         }
 
         return static_cast<int32_t>(value);
@@ -351,7 +367,7 @@ public:
     };
 
 
-    SelectResult select0(int32_t level, int64_t rank) const noexcept
+    SelectResult select0(int64_t rank, int32_t level) const noexcept
     {
         int32_t bm_size  = bitmap_level_size(size(), level);
         int32_t idx_size = index_level_size(bm_size);
@@ -376,10 +392,107 @@ public:
         auto result = Select0FW(bitmap, bm_start, bm_size, rank);
 
         return SelectResult{
-            result.local_pos(),
+            static_cast<int32_t>(result.local_pos()),
             bm_size,
             static_cast<int64_t>(result.rank()) + sum
         };
+    }
+
+    int32_t rank(int32_t pos, int32_t level) const noexcept
+    {
+        int32_t block_start = (pos / ValuesPerBranch) * ValuesPerBranch;
+
+        const BitmapType* bitmap = symbols(level);
+
+        size_t ones     = PopCount(bitmap, block_start, pos);
+        int32_t zeroes  = (pos - block_start) - static_cast<int32_t>(ones);
+
+        if (MMA_LIKELY(block_start > 0))
+        {
+            const IndexType* idxs = index(level);
+            for (int32_t c  = 0; c < pos / ValuesPerBranch; c++)
+            {
+                zeroes += idxs[c];
+            }
+        }
+
+        return zeroes;
+    }
+
+
+    auto selectFW(int64_t rank, int32_t level) const noexcept
+    {
+        auto res = select0(rank, level);
+        return memoria::SelectResult{
+            static_cast<size_t>(res.pos) << level,
+            static_cast<size_t>(res.rank),
+            res.pos < res.bm_size
+        };
+    }
+
+    memoria::SelectResult selectFW(int32_t start, int64_t rank, int32_t level) const noexcept
+    {
+        int32_t startrank_ = this->rank(start, level);
+        auto result = selectFW(startrank_ + rank, level);
+
+        result.rank() -= startrank_;
+
+        return result;
+    }
+
+
+    class CountResult {
+        int32_t count_;
+        int32_t symbol_;
+    public:
+        CountResult(int32_t count, int32_t symbol) noexcept:
+            count_(count), symbol_(symbol)
+        {}
+
+        int32_t count() const noexcept {return count_;}
+        int32_t symbol() const noexcept {return symbol_;}
+    };
+
+    CountResult countFW(int32_t start, int32_t level) const noexcept
+    {
+        int32_t bm_size     = bitmap_level_size(size(), level);
+        int32_t block_end   = (start / ValuesPerBranch + 1) * ValuesPerBranch;
+        int32_t block_limit = block_end > bm_size ? bm_size : block_end;
+
+        const BitmapType* bitmap = symbols(level);
+        int32_t zeroes = CountTrailingZeroes(bitmap, start, block_limit);
+
+        if (zeroes < block_limit - start) {
+            return CountResult{zeroes, level};
+        }
+        else {
+            int32_t index_size = index_level_size(bm_size);
+            const IndexType* idxs = index(level);
+
+            int32_t index_start = start / ValuesPerBranch + 1;
+            int32_t sum{};
+
+            for (int32_t ii = index_start; ii < index_size; ii++)
+            {
+                int32_t index_block_start = ii * ValuesPerBranch;
+                int32_t index_block_end = (ii + 1) * ValuesPerBranch;
+                int32_t index_block_limit = index_block_end > bm_size ? bm_size : index_block_end;
+                int32_t index_block_size  = index_block_limit - index_block_start;
+
+                int32_t cell_value = idxs[ii];
+
+                if (cell_value == index_block_size) {
+                    sum += cell_value;
+                }
+                else {
+                    int32_t blk_cnt = CountTrailingZeroes(bitmap, index_block_start, index_block_limit);
+                    sum += blk_cnt;
+                    break;
+                }
+            }
+
+            return CountResult{zeroes + sum, level};
+        }
     }
 
     static int32_t initial_size(int32_t available_space) noexcept
@@ -470,6 +583,8 @@ public:
 
         return VoidResult::of();
     }
+
+
 
 private:
 

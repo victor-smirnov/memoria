@@ -150,7 +150,7 @@ public:
         StreamType* head;
         if (alloc->is_empty(AllocatorIdx))
         {
-            MEMORIA_TRY(head_res, alloc->template allocateEmpty<StreamType>(AllocatorIdx));
+            MEMORIA_TRY(head_res, alloc->template allocateDefault<StreamType>(AllocatorIdx));
             head = head_res;
         }
         else {
@@ -189,7 +189,7 @@ public:
 
         const int32_t AllocatorIdx  = StreamDescrT::Value;
 
-        StreamType* head = nullptr;
+        const StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
         {
             head = alloc->template get<StreamType>(AllocatorIdx);
@@ -921,7 +921,7 @@ public:
         StreamType* head;
         if (alloc->is_empty(AllocatorIdx))
         {
-            MEMORIA_TRY(head_res, alloc->template allocateEmpty<StreamType>(AllocatorIdx));
+            MEMORIA_TRY(head_res, alloc->template allocateDefault<StreamType>(AllocatorIdx));
             head = head_res;
         }
         else {

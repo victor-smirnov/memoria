@@ -17,7 +17,7 @@
 #include <memoria/core/datatypes/datatypes.hpp>
 #include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
 #include <memoria/api/store/memory_store_api.hpp>
-#include <memoria/api/set/set_api.hpp>
+#include <memoria/api/allocation_map/allocation_map_api.hpp>
 
 
 #include <memoria/core/tools/result.hpp>
@@ -26,7 +26,6 @@
 
 #include <memoria/memoria.hpp>
 
-#include <memoria/core/packed/sseq/packed_allocation_map.hpp>
 
 #include <iostream>
 #include <stdexcept>
@@ -39,14 +38,7 @@ using Profile = MemoryCoWProfile<>;
 
 int main()
 {
-    using AlkMap = PkdAllocationMap<PkdAllocationMapTypes>;
-
-    int sss = 0;
-    std::cout << AlkMap::find_block_size(4096) << std::endl;
-
-
-/*
-    using CtrName = Set<UUID>;
+    using CtrName = AllocationMap;
 
     long dtrStart;
 
@@ -60,84 +52,22 @@ int main()
 
         auto ctr = create(snp, CtrName{}, name).get_or_throw();
 
-        std::vector<UUID> entries;
+        std::cout << ctr->size().get_or_throw() << std::endl;
 
-        for (int c = 0; c < 1000; c++) //47793
-        {
-            //U8String entry = format_u8("BBBBBBBBB_{}", c);
-            UUID entry = UUID::make_random();
-            entries.push_back(entry);
-        }
+        auto actual = ctr->expand(1024*1024).get_or_throw();
+        std::cout << ctr->size().get_or_throw() << " " << actual << std::endl;
 
-        std::random_device rd;
-        std::mt19937 g(rd());
+        ctr->shrink(102400).get_or_throw();
+        std::cout << ctr->size().get_or_throw() << " " << std::endl;
 
-        std::shuffle(entries.begin(), entries.end(), g);
-
-        long t0 = getTimeInMillis();
-
-        int cnt = 0;
-        for (auto& entry: entries) {
-            if (cnt % 10000 == 0) {
-                std::cout << "C = " << cnt << std::endl;
-            }
-
-            ctr->insert(entry).get_or_throw();
-            cnt++;
-        }
-
-        long t1 = getTimeInMillis();
-
-        std::cout << "Insertion time: " << (t1 - t0) << std::endl;
-
-        snp->commit().get_or_throw();
-        snp->set_as_master().get_or_throw();
-
-        store->store("set_cow.mma3").get_or_throw();
-
-        auto store2 = IMemoryStore<Profile>::load("set_cow.mma3").get_or_throw();
-
-        auto snp2 = store->master().get_or_throw()->branch().get_or_throw();
-
-        auto ctr1 = find<CtrName>(snp2, name).get_or_throw();
-
-        long t2 = getTimeInMillis();
+        ctr->mark_allocated(100000, 0, 100).get_or_throw();
 
 
-        for (auto& entry: entries) {
-            if (!ctr1->contains(entry).get_or_throw()) {
-                std::cout << "Missing " << entry << std::endl;
-            }
-        }
+        auto ii = ctr->iterator().get_or_throw();
+        ii->dumpPath().get_or_throw();
 
-        long t3 = getTimeInMillis();
-
-        std::cout << "Query time: " << (t3 - t2) << std::endl;
-
-
-
-//        cnt = 0;
-//        for (auto& entry: entries)
-//        {
-//            if (cnt % 10000 == 0)
-//            {
-//                std::cout << "R = " << cnt << std::endl;
-//            }
-
-//            ctr1->remove(entry).get_or_throw();
-//            cnt++;
-//        }
-
-//        std::cout << "Final size: " << ctr1->size().get_or_throw() << std::endl;
-//        std::cout << "Prev size: " << ctr->size().get_or_throw() << std::endl;
-
-//        for (auto& entry: entries) {
-//            if (!ctr->contains(entry).get_or_throw()) {
-//                std::cout << "Missing " << entry << std::endl;
-//            }
-//        }
-
-        //snp2->drop().get_or_throw();
+        auto cnt = ii->count_fw().get_or_throw();
+        std::cout << "Zeroes: " << cnt << std::endl;
 
         dtrStart = getTimeInMillis();
     }
@@ -154,6 +84,6 @@ int main()
     long dtrEnd = getTimeInMillis();
 
     std::cout << "Dtr time: " << (dtrEnd - dtrStart) << std::endl;
-*/
+
     return 0;
 }

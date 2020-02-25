@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/api/map/map_api.hpp>
+#include <memoria/api/allocation_map/allocation_map_api.hpp>
 
 #include <memory>
 

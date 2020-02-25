@@ -27,6 +27,8 @@
 #include <memoria/api/vector/vector_api.hpp>
 #include <memoria/api/map/map_api.hpp>
 #include <memoria/api/multimap/multimap_api.hpp>
+#include <memoria/api/allocation_map/allocation_map_api.hpp>
+
 
 #include <string>
 
@@ -48,6 +50,7 @@ MMA_DEFINE_DEFAULT_DATATYPE_OPS(Map<BigInt, BigInt>);
 //MMA_DEFINE_DEFAULT_DATATYPE_OPS(Multimap<BigInt, UTinyInt>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Multimap<UUID, UTinyInt>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Multimap<Varchar, Varchar>);
+MMA_DEFINE_DEFAULT_DATATYPE_OPS(AllocationMap);
 
 void InitCtrDatatypes()
 {
@@ -66,6 +69,7 @@ void InitCtrDatatypes()
     //register_notctr_operations<Multimap<BigInt, UTinyInt>>();
     register_notctr_operations<Multimap<UUID, UTinyInt>>();
     register_notctr_operations<Multimap<Varchar, Varchar>>();
+    register_notctr_operations<AllocationMap>();
 }
 
 }

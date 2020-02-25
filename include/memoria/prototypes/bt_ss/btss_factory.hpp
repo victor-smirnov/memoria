@@ -71,6 +71,13 @@ struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
                 btss::IteratorMiscName
     >;
 
+
+
+    template <typename Types, typename LeafPath>
+    using CountForwardWalker   = bt::CountForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
+
+    template <typename Types, typename LeafPath>
+    using CountBackwardWalker  = bt::CountBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 };
 
 

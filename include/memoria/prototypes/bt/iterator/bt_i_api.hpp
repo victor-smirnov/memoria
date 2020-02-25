@@ -248,8 +248,7 @@ MEMORIA_V1_ITERATOR_PART_END
 M_PARAMS
 Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream_fw(int32_t stream, CtrSizeT amount) noexcept
 {
-    //using ResultT = Result<CtrSizeT>;
-    typedef typename Types::template SkipForwardWalker<Types> Walker;
+    using Walker = typename Types::template SkipForwardWalker<Types>;
 
     auto& self = this->self();
 
@@ -257,7 +256,7 @@ Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream_fw(int32_t stream, Ct
 
     walker.prepare(self);
 
-    int32_t idx = self.model().findFw(self.iter_leaf(), stream, self.idx(    ), walker);
+    int32_t idx = self.model().findFw(self.iter_leaf(), stream, self.idx(), walker);
 
     return walker.finish(self, idx);
 }
@@ -265,8 +264,7 @@ Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream_fw(int32_t stream, Ct
 M_PARAMS
 Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream_bw(int32_t stream, CtrSizeT amount) noexcept
 {
-    //using ResultT = Result<CtrSizeT>;
-    typedef typename Types::template SkipBackwardWalker<Types> Walker;
+    using Walker = typename Types::template SkipBackwardWalker<Types>;
 
     auto& self = this->self();
 
@@ -285,7 +283,6 @@ Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream_bw(int32_t stream, Ct
 M_PARAMS
 Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream(int32_t stream, CtrSizeT amount) noexcept
 {
-    //using ResultT = Result<CtrSizeT>;
     auto& self = this->self();
 
     if (amount > 0)

@@ -33,29 +33,102 @@
 #include <memoria/core/strings/string_codec.hpp>
 
 #include <memoria/core/datatypes/buffer/buffer.hpp>
+#include <memoria/core/tools/span.hpp>
 
 namespace memoria {
 
 template <typename Profile>
 struct AllocationMapIterator: BTSSIterator<Profile> {
+    using CtrSizeT = ProfileCtrSizeT<Profile>;
 
     virtual ~AllocationMapIterator() noexcept {}
 
     virtual bool is_end() const noexcept = 0;
     virtual BoolResult next() noexcept = 0;
+
+    virtual Result<CtrSizeT> count_fw() noexcept = 0;
 };
 
+template <typename Profile>
+class AllocationMetadata {
+    using CtrSizeT = ProfileCtrSizeT<Profile>;
+    CtrSizeT position_;
+    CtrSizeT size_;
+    int32_t level_;
+public:
+    AllocationMetadata() noexcept :
+        position_(), size_(), level_()
+    {}
 
+    AllocationMetadata(CtrSizeT position, CtrSizeT size, int32_t level) noexcept :
+        position_(position), size_(size), level_(level)
+    {}
+
+    CtrSizeT position() const noexcept {
+        return position_;
+    }
+
+    CtrSizeT size() const noexcept {
+        return size_;
+    }
+
+    int32_t level() const noexcept {
+        return level_;
+    }
+
+    bool operator<(const AllocationMetadata& other) noexcept {
+        return position_ < other.position_;
+    }
+
+    CtrSizeT level0_position() const noexcept {
+        return position_ << level_;
+    }
+};
 
 
 template <typename Profile>
 struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
+    using CtrSizeT = ProfileCtrSizeT<Profile>;
+
     using ApiTypes  = ICtrApiTypes<AllocationMap, Profile>;
 
-    virtual Result<ProfileCtrSizeT<Profile>> size() const noexcept = 0;
+    using IteratorResult = Result<CtrSharedPtr<AllocationMapIterator<Profile>>>;
+    using CtrSizeTResult = Result<CtrSizeT>;
 
+    virtual CtrSizeTResult size() const noexcept = 0;
+
+    virtual IteratorResult seek(CtrSizeT position) noexcept = 0;
+    virtual IteratorResult iterator() noexcept = 0;
+
+    virtual CtrSizeTResult expand(CtrSizeT blocks) noexcept = 0;
+    virtual VoidResult shrink(CtrSizeT size) noexcept = 0;
+
+    virtual CtrSizeTResult rank(CtrSizeT pos) noexcept = 0;
+
+    virtual VoidResult find_unallocated(
+            CtrSizeT from,
+            int32_t level,
+            CtrSizeT required,
+            CtrSizeT prefetch,
+            ArenaBuffer<AllocationMetadata<Profile>>& buffer
+    ) noexcept = 0;
+
+    virtual CtrSizeTResult setup_bits(Span<const AllocationMetadata<Profile>> allocations, bool set_bits) noexcept = 0;
+    virtual CtrSizeTResult mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size) noexcept = 0;
+    virtual CtrSizeTResult mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size) noexcept = 0;
 
     MMA_DECLARE_ICTRAPI();
 };
+
+}
+
+namespace std {
+
+template <typename Profile>
+void swap(memoria::AllocationMetadata<Profile>& one, memoria::AllocationMetadata<Profile>& two) noexcept {
+    auto tmp = one;
+    one = two;
+    two = tmp;
+}
 
 }

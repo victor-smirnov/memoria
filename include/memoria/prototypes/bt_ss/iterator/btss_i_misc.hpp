@@ -124,8 +124,8 @@ public:
         template <typename CtrT, typename NodeT>
         VoidResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
         {
-            const auto* stream = node.template substream<IntList<0>>();
-            prefix_ += stream->sum(0, start, end);
+            auto stream = node.template substream<IntList<0>>();
+            prefix_ += stream.sum(0, start, end);
 
             return VoidResult::of();
         }

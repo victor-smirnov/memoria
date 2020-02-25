@@ -85,6 +85,14 @@ public:
         return data_->size();
     }
 
+    int32_t get_symbol(int32_t idx) const noexcept {
+        return data_->get_symbol(idx);
+    }
+
+    auto rank(int32_t pos, int32_t symbol) const noexcept {
+        return data_->rank(pos, symbol);
+    }
+
     template <typename... Args>
     auto selectGEFW(Args&&... args) const {
         return data_->selectGEFW(std::forward<Args>(args)...);

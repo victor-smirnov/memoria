@@ -93,13 +93,13 @@ public:
     SelectResult select(const Seq& seq, int32_t start, int32_t symbol, CtrSizeT rank)
     {
         if (direction_ == WalkDirection::DOWN)
-      {
-          MEMORIA_ASSERT(start, ==, 0);
-          return seq.selectFW(rank, symbol);
-      }
-      else {
-          return seq.selectFW(start, rank, symbol);
-      }
+        {
+            MEMORIA_ASSERT(start, ==, 0);
+            return seq.selectFW(rank, symbol);
+        }
+        else {
+            return seq.selectFW(start, rank, symbol);
+        }
     }
 };
 

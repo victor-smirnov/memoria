@@ -68,29 +68,33 @@ public:
 
     VoidResult splitTo(MyType& other, int32_t idx) noexcept
     {
-        return data_->splitTo(other.data(), idx);
+        return MEMORIA_MAKE_GENERIC_ERROR("Splitting PackedAllocationMap is not supported");
     }
 
     VoidResult mergeWith(MyType& other) const noexcept {
-        return data_->mergeWith(other.data());
+        return MEMORIA_MAKE_GENERIC_ERROR("Merging PackedAllocationMap is not supported");
     }
 
     VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept {
-        return data_->removeSpace(room_start, room_end);
+        return MEMORIA_MAKE_GENERIC_ERROR("Removing space from PackedAllocationMap is not supported");
     }
 
     int32_t size() const noexcept {
         return data_->size();
     }
 
-    template <typename... Args>
-    auto selectGEFW(Args&&... args) const {
-        return data_->selectGEFW(std::forward<Args>(args)...);
+
+    auto countFW(int32_t start, int32_t level) const noexcept {
+        return data_->countFW(start, level);
     }
 
-    template <typename... Args>
-    auto selectFW(Args&&... args) const {
-        return data_->selectFW(std::forward<Args>(args)...);
+
+    auto selectFW(int64_t rank, int32_t level) const noexcept {
+        return data_->selectFW(rank, level);
+    }
+
+    auto selectFW(int32_t start, int64_t rank, int32_t level) const noexcept {
+        return data_->selectFW(start, rank, level);
     }
 
     VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept {

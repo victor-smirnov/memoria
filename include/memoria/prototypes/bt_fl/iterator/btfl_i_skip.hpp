@@ -175,13 +175,13 @@ public:
         auto& self  = this->self();
         auto s      = self.leaf_structure().get_or_throw();
 
-        if (s != nullptr)
+        if (s)
         {
-        	auto idx    = self.iter_local_pos();
+            auto idx = self.iter_local_pos();
 
-        	if (idx < s->size())
+            if (idx < s.size())
         	{
-        		return s->get_symbol(idx);
+                return s.get_symbol(idx);
         	}
         }
 
@@ -193,13 +193,13 @@ public:
         auto& self  = this->self();
         auto s = self.leaf_structure().get_or_throw();
 
-        if (s != nullptr)
+        if (s)
         {
             auto idx = self.iter_local_pos();
 
-        	if (idx < s->size())
+            if (idx < s.size())
         	{
-        		return s->get_symbol(idx);
+                return s.get_symbol(idx);
         	}
         }
 
@@ -226,20 +226,20 @@ private:
     struct SizePrefix {
         CtrSizeT pos_ = 0;
 
-        template <typename NodeTypes>
-        VoidResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        template <typename CtrT, typename NodeTypes>
+        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
         {
             using BranchSizePath = IntList<Stream>;
 
-            auto sizes_substream = node->template substream<BranchSizePath>();
+            auto sizes_substream = node.template substream<BranchSizePath>();
 
-            pos_ += sizes_substream->sum(0, end);
+            pos_ += sizes_substream.sum(0, end);
 
             return VoidResult::of();
         }
 
-        template <typename NodeTypes>
-        VoidResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        template <typename CtrT, typename NodeTypes>
+        VoidResult treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
         {
             return VoidResult::of();
         }
@@ -267,9 +267,9 @@ public:
         auto& self = this->self();
         auto s = self.leaf_structure();
 
-        if (s != nullptr)
+        if (s)
         {
-            auto result = s->selectFW(data_idx + 1, stream);
+            auto result = s.selectFW(data_idx + 1, stream);
 
             if (result.is_found())
             {
@@ -295,10 +295,10 @@ public:
 
             MEMORIA_TRY(s, self.leaf_structure());
 
-    		if (s != nullptr)
+            if (s)
     		{
                 //auto result = s->selectFW(stream, data_idx);
-                auto result = s->selectFW(data_idx + 1, stream);
+                auto result = s.selectFW(data_idx + 1, stream);
 
     			self.iter_stream() = StructureStreamIdx;
 
@@ -348,8 +348,8 @@ public:
         auto& self = this->self();
 
         auto s = self.leaf_structure().get_or_throw();
-        if (s != nullptr) {
-        	return s->rank(structure_idx, stream);
+        if (s) {
+            return s.rank(structure_idx, stream);
         }
         else {
         	return 0;
@@ -367,13 +367,13 @@ public:
 
         auto leaf_structure = self.leaf_structure().get_or_throw();
 
-        if (leaf_structure != nullptr) {
+        if (leaf_structure) {
 
         	CtrSizesT ranks;
 
         	for (int32_t c = 0; c < DataStreams; c++)
         	{
-        		ranks[c] = leaf_structure->rank(structure_idx, c);
+                ranks[c] = leaf_structure.rank(structure_idx, c);
         	}
 
         	ranks[StructureStreamIdx] = structure_idx;
@@ -393,9 +393,9 @@ public:
 
         auto leaf_structure = self.leaf_structure().get_or_throw();
 
-        if (leaf_structure != nullptr)
+        if (leaf_structure)
         {
-            return leaf_structure->rank(structure_idx, stream);
+            return leaf_structure.rank(structure_idx, stream);
         }
         else {
             return 0;
@@ -421,9 +421,9 @@ public:
 
         auto s = self.leaf_structure().get_or_throw();
 
-        if (s != nullptr)
+        if (s)
         {
-            return self.leaf_structure().get_or_throw()->selectFW(position + 1, stream).local_pos();
+            return self.leaf_structure().get_or_throw().selectFW(position + 1, stream).local_pos();
         }
         else {
         	return 0;

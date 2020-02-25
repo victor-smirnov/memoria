@@ -170,6 +170,15 @@ public:
         MEMORIA_TRY_VOID(data_->removeSpace(row_at, row_at + size));
         return data_->reindex();
     }
+
+    auto iterator(int32_t idx) const {
+        return data_->iterator(idx);
+    }
+
+
+    auto iterator(int32_t block, int32_t idx) const {
+        return data_->iterator(block, idx);
+    }
 };
 
 

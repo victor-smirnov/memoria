@@ -24,6 +24,8 @@
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
+#include <memoria/core/packed/sseq/packed_allocation_map.hpp>
+
 namespace memoria {
 namespace bt {
 
@@ -55,13 +57,17 @@ public:
         Base(-1, 0, SearchType::GE)
     {}
 
+    CountForwardWalkerBase(int32_t symbol):
+        Base(symbol, 0, SearchType::GE)
+    {}
+
     struct FindBranchFn {
         MyType& walker_;
 
         FindBranchFn(MyType& walker): walker_(walker) {}
 
         template <int32_t ListIdx, typename StreamType, typename... Args>
-        StreamOpResult stream(const StreamType* stream, bool root, int32_t index, int32_t start, Args&&... args)
+        StreamOpResult stream(const StreamType& stream, bool root, int32_t index, int32_t start, Args&&... args)
         {
             StreamOpResult result = walker_.template find_non_leaf<ListIdx>(stream, root, index, start, std::forward<Args>(args)...);
 
@@ -72,24 +78,24 @@ public:
         }
     };
 
-    MyType& self() {return *ptr_cast<MyType*>(this);}
-    const MyType& self() const {return *ptr_cast<const MyType*>(this);}
+    MyType& self() {return *ptr_cast<MyType>(this);}
+    const MyType& self() const {return *ptr_cast<const MyType>(this);}
 
-    template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, int32_t start)
+    template <typename CtrT, typename BranchNode>
+    Result<StreamOpResult> treeNode(const BranchNodeSO<CtrT, BranchNode>& node, WalkDirection direction, int32_t start) noexcept
     {
         auto& self = this->self();
 
         direction_ = direction;
 
-        int32_t index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
+        int32_t index = node.template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
-        using BranchPath     = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
+        using BranchPath     = typename BranchNodeSO<CtrT, BranchNode>::template BuildBranchPath<LeafPath>;
         using BranchSizePath = IntList<ListHead<LeafPath>::Value>;
 
-        auto sizes_substream = node->template substream<BranchSizePath>();
+        auto sizes_substream = node.template substream<BranchSizePath>();
 
-        auto result = node->template processStream<BranchPath>(FindBranchFn(self), node->is_root(), index, start, sizes_substream);
+        auto result = node.template processStream<BranchPath>(FindBranchFn(self), node.node()->is_root(), index, start, sizes_substream);
 
         self.postProcessBranchNode(node, direction, start, result);
 
@@ -101,7 +107,7 @@ public:
     template <int32_t StreamIdx, typename Tree, typename SizesSubstream>
     StreamOpResult find_non_leaf(const Tree& tree, bool root, int32_t index, int32_t start, const SizesSubstream& sizes_substream)
     {
-        auto size = tree->size();
+        auto size = tree.size();
 
         if (start < size)
         {
@@ -162,7 +168,36 @@ public:
                 return StreamOpResult(start, start, false);
             }
         }
+    }
 
+    template <int32_t StreamIdx, typename ExtData, typename PkdStruct>
+    StreamOpResult find_leaf(const PackedAllocationMapSO<ExtData, PkdStruct>& seq, int32_t start)
+    {
+        auto count = seq.countFW(start, this->leaf_index());
+
+        if (direction_ == WalkDirection::UP)
+        {
+            sum_ += count.count();
+
+            this->set_leaf_index(count.symbol());
+
+            int32_t end = start + count.count();
+
+            return StreamOpResult(end, start, end >= seq.size());
+        }
+        else {
+            if (count.symbol() == leaf_index())
+            {
+                sum_ += count.count();
+
+                int32_t end = start + count.count();
+
+                return StreamOpResult(end, start, end >= seq.size());
+            }
+            else {
+                return StreamOpResult(start, start, false);
+            }
+        }
     }
 };
 
@@ -173,11 +208,10 @@ template <
     typename Types
 >
 class CountForwardWalker: public CountForwardWalkerBase<Types, CountForwardWalker<Types>> {
-
     using Base = CountForwardWalkerBase<Types, CountForwardWalker<Types>>;
-
 public:
     CountForwardWalker(): Base() {}
+    CountForwardWalker(int32_t symbol): Base(symbol) {}
 };
 
 

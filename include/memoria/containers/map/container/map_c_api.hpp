@@ -166,6 +166,36 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
         }
     }
 
+
+    virtual VoidResult with_value(
+            KeyView key,
+            std::function<Optional<Datum<Value>> (Optional<Datum<Value>>)> value_fn
+    ) noexcept
+    {
+        using OptionalValue = Optional<Datum<Value>>;
+        auto& self = this->self();
+
+        MEMORIA_TRY(iter, self.ctr_map_find(key));
+        if (iter->is_found(key))
+        {
+            auto new_value = value_fn(iter->value());
+            if (new_value) {
+                MEMORIA_TRY_VOID(iter->assign(new_value.get()));
+            }
+            else {
+                MEMORIA_TRY_VOID(iter->remove());
+            }
+        }
+        else {
+            auto value = value_fn(OptionalValue{});
+            if (value) {
+                MEMORIA_TRY_VOID(iter->insert(key, value.get()));
+            }
+        }
+
+        return VoidResult::of();
+    }
+
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(map::CtrApiName)

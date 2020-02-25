@@ -195,7 +195,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
 
     MEMORIA_TRY_VOID(self.ctr_update_branch_nodes(path, level + 1, parent_idx, left_max));
 
-    MEMORIA_TRY(capacity, self.ctr_get_branch_node_capacity(path[level + 1], -1));
+    MEMORIA_TRY(capacity, self.ctr_get_branch_node_capacity(path[level + 1], -1ull));
 
     if (capacity > 0)
     {

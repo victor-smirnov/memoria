@@ -37,6 +37,7 @@
 #include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_leaf_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_rank_walkers.hpp>
+#include <memoria/prototypes/bt/walkers/bt_count_walkers.hpp>
 
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/prototypes/bt/nodes/leaf_node.hpp>

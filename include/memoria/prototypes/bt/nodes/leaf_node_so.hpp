@@ -1247,44 +1247,26 @@ public:
     auto substream()
     {
         const int32_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
-        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
-
-        if (!this->allocator()->is_empty(SubstreamIdx + SubstreamsStart))
-        {
-            return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
-        }
-        else {
-            return static_cast<T*>(nullptr);
-        }
+        return Dispatcher(state()).template get<SubstreamIdx>(allocator());
     }
 
     template <typename SubstreamPath>
     auto substream() const
     {
         const int32_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
-        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
-
-        if (!this->allocator()->is_empty(SubstreamIdx + SubstreamsStart))
-        {
-            return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
-        }
-        else {
-            return static_cast<const T*>(nullptr);
-        }
+        return Dispatcher(state()).template get<SubstreamIdx>(allocator());
     }
 
     template <int32_t SubstreamIdx>
     auto substream_by_idx()
     {
-        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
-        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+        return Dispatcher(state()).template get<SubstreamIdx>(allocator());
     }
 
     template <int32_t SubstreamIdx>
     auto substream_by_idx() const
     {
-        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
-        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+        return Dispatcher(state()).template get<SubstreamIdx>(allocator());
     }
 
 

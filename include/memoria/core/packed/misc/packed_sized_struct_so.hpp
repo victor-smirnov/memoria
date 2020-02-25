@@ -95,8 +95,6 @@ public:
         return data_->sum(column);
     }
 
-
-
     void configure_io_substream(io::IOSubstream& substream) const {
         return data_->configure_io_substream(substream);
     }

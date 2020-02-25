@@ -882,16 +882,14 @@ public:
     auto substream()
     {
         const int32_t SubstreamIdx = list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>;
-        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
-        return allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+        return Dispatcher(state()).template get<SubstreamIdx>(allocator());
     }
 
     template <typename SubstreamPath>
     auto substream() const
     {
         const int32_t SubstreamIdx = list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>;
-        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
-        return allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+        return Dispatcher(state()).template get<SubstreamIdx>(allocator());
     }
 
 

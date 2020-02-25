@@ -102,6 +102,10 @@ public:
         return empty_size();
     }
 
+    VoidResult init_default(int32_t block_size) noexcept {
+        return init();
+    }
+
     static constexpr int32_t empty_size() noexcept
     {
         return sizeof(MyType);

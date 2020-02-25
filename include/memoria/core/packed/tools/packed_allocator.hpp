@@ -355,7 +355,7 @@ public:
 
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
-        int32_t available_client_area = this->client_area();
+        int32_t available_client_area = this->free_space();
         int32_t block_size = T::default_size(available_client_area);
 
         MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
