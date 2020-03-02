@@ -724,23 +724,15 @@ public:
     }
 
 
-    virtual Result<BlockG> cloneBlock(const BlockG& block, const BlockID& new_id) noexcept
+    virtual Result<BlockG> cloneBlock(const BlockG& block) noexcept
     {
         MEMORIA_TRY_VOID(check_updates_allowed());
 
-        BlockID new_id_v;
-
-        if (new_id.is_set()) {
-            new_id_v = new_id;
-        }
-        else {
-            MEMORIA_TRY(id_res, newId());
-            new_id_v = id_res;
-        }
+        MEMORIA_TRY(new_id, newId());
 
         MEMORIA_TRY(new_block, this->clone_block(block.block()));
 
-        new_block->id_value() = new_id_v.value();
+        new_block->id_value() = new_id.value();
         new_block->id() = BlockID{value_cast<typename BlockID::ValueHolder>(new_block)};
 
         return Result<BlockG>::of(BlockG{new_block});

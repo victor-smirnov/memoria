@@ -661,7 +661,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 size = meta->memory_block_size();
             }
             else {
-                size = DEFAULT_BLOCK_SIZE;
+                size = -1;
             }
         }
 

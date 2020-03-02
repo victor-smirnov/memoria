@@ -39,6 +39,8 @@ namespace memoria {
 template <typename Key, typename Value, typename Profile>
 struct MapIterator: BTSSIterator<Profile> {
 
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+
     virtual ~MapIterator() noexcept {}
 
     virtual Datum<Key> key() const noexcept = 0;
@@ -46,6 +48,8 @@ struct MapIterator: BTSSIterator<Profile> {
 
     virtual bool is_end() const noexcept = 0;
     virtual BoolResult next() noexcept = 0;
+
+    virtual bool is_found(const KeyView& key) const noexcept = 0;
 };
 
 
@@ -100,6 +104,9 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         return MapScanner<ApiTypes, Profile>(iterator_producer(this));
     }
 
+
+    virtual Result<Optional<Datum<Value>>> remove_and_return(KeyView key) noexcept = 0;
+    virtual Result<Optional<Datum<Value>>> replace_and_return(KeyView key, ValueView value) noexcept = 0;
 
     virtual VoidResult with_value(
             KeyView key,

@@ -25,6 +25,7 @@
 
 #include <type_traits>
 #include <functional>
+#include <algorithm>
 
 
 namespace memoria {
@@ -140,11 +141,11 @@ public:
         }
     }
 
-    bool operator==(const ArenaBuffer&& other) const {
+    bool operator==(const ArenaBuffer&& other) const noexcept {
         return buffer_ == other.buffer_;
     }
 
-    ArenaBuffer& operator=(const ArenaBuffer&& other)
+    ArenaBuffer& operator=(const ArenaBuffer&& other) noexcept
     {
         if (&other != this)
         {
@@ -163,7 +164,7 @@ public:
         return *this;
     }
 
-    ArenaBuffer& operator=(ArenaBuffer&& other)
+    ArenaBuffer& operator=(ArenaBuffer&& other) noexcept
     {
         if (&other != this)
         {
@@ -185,7 +186,7 @@ public:
     // NOTE: other's memory must be compatible with
     // own's memory manager!
 
-    void move_data_from(ArenaBuffer&& other)
+    void move_data_from(ArenaBuffer&& other) noexcept
     {
         if (this != &other)
         {
@@ -203,65 +204,65 @@ public:
         }
     }
 
-    int32_t buffer_id() const {return buffer_id_;}
+    int32_t buffer_id() const noexcept {return buffer_id_;}
 
-    void set_buffer_id(int32_t buffer_id) {
+    void set_buffer_id(int32_t buffer_id) noexcept {
         buffer_id_ = buffer_id;
     }
 
-    SizeT size() const {
+    SizeT size() const noexcept {
         return size_;
     }
 
-    SizeT capacity() const {
+    SizeT capacity() const noexcept {
         return capacity_;
     }
 
-    SizeT remaining() const {
+    SizeT remaining() const noexcept {
         return capacity_ - size_;
     }
 
-    ValueT& tail() {
+    ValueT& tail() noexcept {
         return *buffer_;
     }
 
-    ValueT* tail_ptr() {
+    ValueT* tail_ptr() noexcept {
         return buffer_;
     }
 
-    const ValueT& tail() const {
+    const ValueT& tail() const noexcept {
         return *buffer_;
     }
 
-    const ValueT* tail_ptr() const {
+    const ValueT* tail_ptr() const noexcept {
         return buffer_;
     }
 
-    const ValueT* data() const {
+    const ValueT* data() const noexcept {
         return buffer_;
     }
 
-    ValueT* data() {
+    ValueT* data() noexcept {
         return buffer_;
     }
 
-    ValueT& head() {
+    ValueT& head() noexcept {
         return *(buffer_ + size_ - 1);
     }
 
-    const ValueT& head() const {
+    const ValueT& head() const noexcept {
         return *(buffer_ + size_ - 1);
     }
 
-    const ValueT* top() const {
+    const ValueT* top() const noexcept {
         return buffer_ + size_;
     }
 
-    ValueT* top() {
+    ValueT* top() noexcept {
         return buffer_ + size_;
     }
 
-    bool append_value(const ValueT& value)
+    bool append_value(const ValueT& value) noexcept
     {
         bool resized = ensure(1);
         *(buffer_ + size_) = value;
@@ -269,7 +270,7 @@ public:
         return resized;
     }
 
-    bool append_values(const ValueT* values, SizeT size)
+    bool append_values(const ValueT* values, SizeT size) noexcept
     {
         bool resized = ensure(size);
         MemCpyBuffer(values, buffer_ + size_, size);
@@ -277,7 +278,7 @@ public:
         return resized;
     }
 
-    bool append_values(Span<const ValueT> values)
+    bool append_values(Span<const ValueT> values) noexcept
     {
         SizeT size = values.size();
         bool resized = ensure(size);
@@ -286,7 +287,7 @@ public:
         return resized;
     }
 
-    bool ensure(SizeT size)
+    bool ensure(SizeT size) noexcept
     {
         if (size_ + size > capacity_)
         {
@@ -298,7 +299,7 @@ public:
     }
 
 
-    void enlarge(SizeT requested)
+    void enlarge(SizeT requested) noexcept
     {
         SizeT next_capaicty = capacity_ * 2;
         if (next_capaicty == 0) next_capaicty = 1;
@@ -323,19 +324,19 @@ public:
         capacity_ = next_capaicty;
     }
 
-    ValueT& access(SizeT idx) {
+    ValueT& access(SizeT idx) noexcept {
         return *(buffer_ + idx);
     }
 
-    const ValueT& access(SizeT idx) const {
+    const ValueT& access(SizeT idx) const noexcept {
         return *(buffer_ + idx);
     }
 
-    void clear() {
+    void clear() noexcept {
         size_ = 0;
     }
 
-    void reset()
+    void reset() noexcept
     {
         if (buffer_) {
             free_buffer(buffer_);
@@ -347,46 +348,60 @@ public:
         buffer_ = allocate_buffer(capacity_);
     }
 
-    Span<ValueT> span() {
+    void remove(size_t from, size_t to) noexcept
+    {
+        MemCpyBuffer(buffer_ + to, buffer_ + from, size_ - to);
+        size_ -= to - from;
+    }
+
+    Span<ValueT> span() noexcept {
         return Span<ValueT>(buffer_, size_);
     }
 
-    Span<const ValueT> span() const {
+    Span<const ValueT> span() const noexcept {
         return Span<ValueT>(buffer_, size_);
     }
 
-    Span<ValueT> span(SizeT from) {
+    Span<ValueT> span(SizeT from) noexcept {
         return Span<ValueT>(buffer_ + from, size_ - from);
     }
 
-    Span<const ValueT> span(SizeT from) const
+    Span<const ValueT> span(SizeT from) const noexcept
     {
         return Span<ValueT>(buffer_ + from, size_ - from);
     }
 
-    Span<ValueT> span(SizeT from, SizeT length)
+    Span<ValueT> span(SizeT from, SizeT length) noexcept
     {
         return Span<ValueT>(buffer_ + from, length);
     }
 
-    Span<const ValueT> span(SizeT from, SizeT length) const
+    Span<const ValueT> span(SizeT from, SizeT length) const noexcept
     {
         return Span<ValueT>(buffer_ + from, length);
     }
 
-    TT& operator[](SizeT idx) {return access(idx);}
-    const TT& operator[](SizeT idx) const {return access(idx);}
+    TT& operator[](SizeT idx) noexcept {return access(idx);}
+    const TT& operator[](SizeT idx) const noexcept {return access(idx);}
 
-    bool emplace_back(const TT& tt) {
+    bool emplace_back(const TT& tt) noexcept {
         return append_value(tt);
     }
 
-    bool emplace_back(TT&& tt) {
+    bool emplace_back(TT&& tt) noexcept {
         return append_value(tt);
     }
 
-    void add_size(SizeT size) {
+    void add_size(SizeT size) noexcept {
         size_ += size;
+    }
+
+    void sort() noexcept
+    {
+        if (buffer_)
+        {
+            std::sort(buffer_, buffer_ + size());
+        }
     }
 
 private:

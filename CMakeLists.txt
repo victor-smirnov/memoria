@@ -61,6 +61,7 @@ option(BUILD_CONTAINERS_SET      "Build Set<Varchar> container." ON)
 option(BUILD_CONTAINERS_VECTOR   "Build Vector<...> container(s)." ON)
 option(BUILD_MEMORY_STORE        "Build default in-memory store." ON)
 option(BUILD_MEMORY_STORE_COW    "Build default CoW in-memory store." OFF)
+option(BUILD_SWMR_STORE_MAPPED   "Build memory-mapped SWMR store." ON)
 
 option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" OFF)
 option(BUILD_TESTS_PACKED       "Build Packed Structires tests" ON)
@@ -121,6 +122,10 @@ endif()
 
 if (BUILD_CONTAINERS_VECTOR)
     add_definitions(-DMEMORIA_BUILD_CONTAINERS_VECTOR)
+endif()
+
+if (BUILD_SWMR_STORE_MAPPED)
+    add_definitions(-DMEMORIA_BUILD_SWMR_STORE_MAPPED)
 endif()
 
 

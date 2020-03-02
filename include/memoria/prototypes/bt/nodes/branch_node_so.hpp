@@ -741,6 +741,12 @@ public:
         {
             accum += obj.sum(block, start, end);
         }
+
+        template <typename StreamType>
+        void stream(const StreamType& obj, int32_t block, int64_t& accum)
+        {
+            accum += obj.sum(block);
+        }
     };
 
     VoidResult sums(int32_t start, int32_t end, BranchNodeEntry& sums) const noexcept
@@ -769,6 +775,11 @@ public:
     VoidResult sum(int32_t stream, int32_t block_num, int32_t start, int32_t end, int64_t& accum) const noexcept
     {
         return Dispatcher(state()).dispatch(stream, allocator(), SumsFn(), block_num, start, end, accum);
+    }
+
+    VoidResult sum(int32_t stream, int32_t block_num, int64_t& accum) const noexcept
+    {
+        return Dispatcher(state()).dispatch(stream, allocator(), SumsFn(), block_num, accum);
     }
 
 

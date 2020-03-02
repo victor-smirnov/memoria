@@ -57,6 +57,10 @@ void InitDefaultInMemStore();
 void InitCoWInMemStore();
 #endif
 
+#if defined(MEMORIA_BUILD_SWMR_STORE_MAPPED)
+void InitSWMRMappedStore();
+#endif
+
 void InitMemoriaExplicit();
 
 template <typename T, typename ProfileT>

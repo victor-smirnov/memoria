@@ -63,9 +63,13 @@ public:
 
     class Metadata {
         int32_t size_;
+        int32_t capacity_;
     public:
         int32_t& size()                 {return size_;}
         const int32_t& size() const     {return size_;}
+
+        int32_t& capacity()                 {return capacity_;}
+        const int32_t& capacity() const     {return capacity_;}
     };
 
 
@@ -78,6 +82,14 @@ public:
 
     int32_t& size() noexcept {return metadata()->size();}
     const int32_t& size() const noexcept {return metadata()->size();}
+
+    int32_t& capacity() noexcept {return metadata()->capacity();}
+    const int32_t& capacity() const noexcept {return metadata()->capacity();}
+
+    int32_t available_space() const noexcept {
+        auto meta = this->metadata();
+        return meta->capacity() - meta->size();
+    }
 
     int32_t size(int32_t level) const noexcept
     {
@@ -156,7 +168,8 @@ public:
             MEMORIA_TRY_VOID(allocateArrayBySize<BitmapType>(SYMBOLS + c, bitmap_uints_size));
         }
 
-        meta->size() = bitmap_size;
+        meta->capacity() = bitmap_size;
+        meta->size()     = 0;
 
         return reindex();
     }
@@ -164,7 +177,7 @@ public:
 
     int32_t block_size(const MyType* other) const noexcept
     {
-        return MyType::block_size(size() + other->size());
+        return MyType::block_size(capacity() + other->capacity());
     }
 
     static int32_t block_size(int32_t bitmap_size) noexcept
@@ -235,6 +248,32 @@ public:
 
 
 public:
+
+    VoidResult enlarge(int32_t size) noexcept
+    {
+        if (size % ValuesPerBranch)
+        {
+            return MEMORIA_MAKE_GENERIC_ERROR(
+                "Size argument {} must me multiple of {}", size, ValuesPerBranch
+            );
+        }
+
+        auto meta = this->metadata();
+
+        int32_t capacity = meta->capacity();
+        if (size + meta->size() > capacity) {
+            return MEMORIA_MAKE_GENERIC_ERROR(
+                "Requested size {} is too large, maximum is {}", size, capacity - meta->size()
+            );
+        }
+
+        BitmapType* bitmap = this->symbols(0);
+        FillZero(bitmap, meta->size(), meta->size() + size);
+
+        meta->size() += size;
+
+        return reindex(true);
+    }
 
     VoidResult check() const noexcept {
         return VoidResult::of();
@@ -318,6 +357,12 @@ public:
         return VoidResult::of();
     }
 
+    int32_t get_bit(int32_t level, int32_t idx) const noexcept
+    {
+        const BitmapType* bitmap = this->symbols(level);
+        return GetBit(bitmap, idx);
+    }
+
 
     VoidResult clear_bits(int32_t level, int32_t idx, int32_t size) noexcept
     {
@@ -353,7 +398,7 @@ public:
         }
         else {
             const BitmapType* bitmap = symbols(level);
-            value += PopCount(bitmap, 0, bitmap_size);
+            value = bitmap_size - PopCount(bitmap, 0, bitmap_size);
         }
 
         return static_cast<int32_t>(value);

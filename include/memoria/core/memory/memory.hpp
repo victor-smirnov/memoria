@@ -42,23 +42,6 @@ template <typename T>
 using SnpSharedFromThis = EnableSharedFromThis<T>;
 
 
-//template <typename T, typename... Args>
-//Result<SnpSharedPtr<T>> snp_make_shared(Args&&... args)
-//{
-//    using ResultT = Result<SnpSharedPtr<T>>;
-
-//    MaybeError maybe_error;
-//    auto snp = MakeLocalShared<T>(maybe_error, std::forward<Args>(args)...);
-
-//    if (!maybe_error)
-//    {
-//        return ResultT::of(std::move(snp));
-//    }
-//    else {
-//        return std::move(maybe_error.get());
-//    }
-//}
-
 template <typename T, typename... Args>
 auto snp_make_shared(Args&&... args)
 {

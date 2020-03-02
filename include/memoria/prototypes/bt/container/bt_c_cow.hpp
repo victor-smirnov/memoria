@@ -142,7 +142,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
         using ResultT = Result<NodeBaseG>;
         auto& self = this->self();
 
-        MEMORIA_TRY(new_block_tmp, self.store().cloneBlock(src, BlockID{}));
+        MEMORIA_TRY(new_block_tmp, self.store().cloneBlock(src));
         NodeBaseG new_block = new_block_tmp;
 
         if (!new_block->is_leaf())

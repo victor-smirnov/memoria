@@ -774,27 +774,20 @@ public:
     }
 
 
-    virtual Result<BlockG> cloneBlock(const BlockG& block, const BlockID& new_id) noexcept
+    virtual Result<BlockG> cloneBlock(const BlockG& block) noexcept
     {
         MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
 
-        BlockID new_id_v;
+        MEMORIA_TRY(new_id, newId());
 
-        if (new_id.is_set()) {
-            new_id_v = new_id;
-        }
-        else {
-            MEMORIA_TRY(id_res, newId());
-            new_id_v = id_res;
-        }
 
         MEMORIA_TRY(new_block, this->clone_block(block.block()));
 
-        new_block->id() = new_id_v;
+        new_block->id() = new_id;
 
-        Shared* new_shared  = pool_.allocate(new_id_v);
+        Shared* new_shared  = pool_.allocate(new_id);
 
-        new_shared->id()    = new_id_v;
+        new_shared->id()    = new_id;
         new_shared->state() = Shared::UPDATE;
 
         new_shared->set_block(new_block);

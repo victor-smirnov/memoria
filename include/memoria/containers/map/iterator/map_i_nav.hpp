@@ -111,7 +111,7 @@ public:
         return self().template iter_find_bw_ge<IntList<0>>(index, key);
     }
 
-    Key iter_map_prefix() const
+    Key iter_map_prefix() const noexcept
     {
         auto& self = this->self();
         auto& iter_cache = self.iter_cache();
@@ -122,12 +122,12 @@ public:
     }
 
 
-    auto iter_raw_key() const
+    auto iter_raw_key() const noexcept
     {
         return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos()));
     }
 
-    auto key() const -> Key
+    auto key() const noexcept -> Key
     {
         return self().iter_raw_key(0) + self().prefix();
     }
@@ -137,20 +137,19 @@ public:
         return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), index));
     }
 
-    auto value() const
+    auto value() const noexcept
     {
         return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<2>>(self().iter_leaf(), self().iter_local_pos()));
     }
 
-    void assign(const Value& v)
+    void assign(const Value& v) noexcept
     {
         self().ctr().template ctr_update_entry<IntList<0, 1>>(self(), std::make_tuple(v));
     }
 
-    bool is_found(const Key& k) const
+    bool is_found(const Key& k) const noexcept
     {
         auto& self = this->self();
-
         return (!self.iter_is_end()) && self.key() == k;
     }
 

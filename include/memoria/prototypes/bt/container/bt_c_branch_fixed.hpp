@@ -235,8 +235,9 @@ VoidResult M_TYPE::ctr_split_node_raw(
         );
     }
 
-    MEMORIA_TRY_VOID(self.ctr_ref_block(right_node->id()));
     path[level] = right_node;
+
+    MEMORIA_TRY_VOID(self.ctr_ref_block(right_node->id()));
 
     return ResultT::of();
 }

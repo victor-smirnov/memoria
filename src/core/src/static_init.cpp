@@ -36,6 +36,13 @@ struct StaticInitializer {
 
 #if defined(MEMORIA_BUILD_MEMORY_STORE_COW)
         InitCoWInMemStore();
+#endif
+
+#if defined(MEMORIA_BUILD_SWMR_STORE_MAPPED)
+        InitSWMRMappedStore();
+#endif
+
+#if defined(MEMORIA_BUILD_MEMORY_STORE_COW) || defined(MEMORIA_BUILD_SWMR_STORE_MAPPED)
         StaticLibraryCtrs<MemoryCoWProfile<>>::init();
 #endif
 

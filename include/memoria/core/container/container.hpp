@@ -231,8 +231,36 @@ public:
         template <typename CtrName>
         using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
-        virtual Result<CtrSharedPtr<CtrReferenceable<ProfileT>>> create_instance(
+        using CtrReferenceableResult = Result<CtrSharedPtr<CtrReferenceable<ProfileT>>>;
+
+
+
+        virtual CtrReferenceableResult create_instance(
                 const AllocatorPtr& allocator,
+                const CtrID& ctr_id,
+                const LDTypeDeclarationView& type_decl
+        ) const
+        {
+            using ResultT = CtrReferenceableResult;
+            boost::any obj = DataTypeRegistry::local().create_object(type_decl);
+
+            MaybeError maybe_error;
+
+            auto instance = ctr_make_shared<CtrT<ContainerTypeName>>(
+                maybe_error, allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
+            );
+
+            if (!maybe_error) {
+                return ResultT::of(std::move(instance));
+            }
+            else {
+                return std::move(maybe_error.get());
+            }
+        }
+
+
+        virtual CtrReferenceableResult create_instance(
+                Allocator* allocator,
                 const CtrID& ctr_id,
                 const LDTypeDeclarationView& type_decl
         ) const
@@ -253,6 +281,28 @@ public:
                 return std::move(maybe_error.get());
             }
         }
+
+//        virtual CtrReferenceableResult create_instance(
+//                Allocator* allocator,
+//                const BlockG& root_block
+//        ) const
+//        {
+//            using ResultT = Result<CtrSharedPtr<CtrReferenceable<ProfileT>>>;
+
+//            MaybeError maybe_error;
+
+//            auto instance = ctr_make_shared<CtrT<ContainerTypeName>>(
+//                maybe_error, allocator, root_block
+//            );
+
+//            if (!maybe_error) {
+//                return ResultT::of(std::move(instance));
+//            }
+//            else {
+//                return std::move(maybe_error.get());
+//            }
+//        }
+
     };
 
     struct CtrInterfaceImpl: public ContainerOperations<ProfileT> {
@@ -594,6 +644,26 @@ public:
 
             MEMORIA_TRY_VOID(this->do_create_ctr(ctr_id, ctr_type_name));
             MEMORIA_TRY_VOID(allocator_->registerCtr(ctr_id, this));
+            return VoidResult::of();
+        });
+    }
+
+    // create new ctr
+    Ctr(
+        MaybeError& maybe_error,
+        Allocator* allocator,
+        const CtrID& ctr_id,
+        const ContainerTypeName& ctr_type_name
+    ) noexcept:
+        Base(maybe_error)
+    {
+        wrap_construction(maybe_error, [&]() -> VoidResult {
+            allocator_ = allocator;
+            name_ = ctr_id;
+
+            MEMORIA_TRY_VOID(this->do_create_ctr(ctr_id, ctr_type_name));
+
+            this->do_unregister_ = false;
             return VoidResult::of();
         });
     }

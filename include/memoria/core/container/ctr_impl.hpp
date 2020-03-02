@@ -33,6 +33,10 @@ public:
         Base(maybe_error, allocator, name, type_decl)
     {}
 
+    SharedCtr(MaybeError& maybe_error, Allocator* allocator, const ProfileCtrID<Profile>& name, CtrName type_decl):
+        Base(maybe_error, allocator, name, type_decl)
+    {}
+
     SharedCtr(MaybeError& maybe_error, const CtrSharedPtr<Allocator>& allocator, const typename Allocator::BlockG& root_block):
         Base(maybe_error, allocator, root_block)
     {}

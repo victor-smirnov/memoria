@@ -19,6 +19,7 @@
 #include <memoria/api/store/memory_store_api.hpp>
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 
+#include <memoria/api/store/swmr_store_api.hpp>
 
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/tools/time.hpp>
@@ -43,31 +44,39 @@ int main()
     long dtrStart;
 
     try {
-        auto store = IMemoryStore<Profile>::create().get_or_throw();
+        UUID uuid = UUID::make_random();
 
-        auto master = store->master().get_or_throw();
-        auto snp = master->branch().get_or_throw();
+        std::cout << uuid.hi() << " :: " << uuid.lo() << std::endl;
+        std::cout << uuid << std::endl;
 
-        UUID name = UUID::make_random();
-
-        auto ctr = create(snp, CtrName{}, name).get_or_throw();
-
-        std::cout << ctr->size().get_or_throw() << std::endl;
-
-        auto actual = ctr->expand(1024*1024).get_or_throw();
-        std::cout << ctr->size().get_or_throw() << " " << actual << std::endl;
-
-        ctr->shrink(102400).get_or_throw();
-        std::cout << ctr->size().get_or_throw() << " " << std::endl;
-
-        ctr->mark_allocated(100000, 0, 100).get_or_throw();
+        auto store = create_mapped_swmr_store("/home/guest/memoria_swmr_file.mma4", 1024).get_or_throw();
 
 
-        auto ii = ctr->iterator().get_or_throw();
-        ii->dumpPath().get_or_throw();
+//        auto store = IMemoryStore<Profile>::create().get_or_throw();
 
-        auto cnt = ii->count_fw().get_or_throw();
-        std::cout << "Zeroes: " << cnt << std::endl;
+//        auto master = store->master().get_or_throw();
+//        auto snp = master->branch().get_or_throw();
+
+//        UUID name = UUID::make_random();
+
+//        auto ctr = create(snp, CtrName{}, name).get_or_throw();
+
+//        std::cout << ctr->size().get_or_throw() << std::endl;
+
+//        auto actual = ctr->expand(1024*1024).get_or_throw();
+//        std::cout << ctr->size().get_or_throw() << " " << actual << std::endl;
+
+//        ctr->shrink(102400).get_or_throw();
+//        std::cout << ctr->size().get_or_throw() << " " << std::endl;
+
+//        ctr->mark_allocated(100000, 0, 100).get_or_throw();
+
+
+//        auto ii = ctr->iterator().get_or_throw();
+//        ii->dumpPath().get_or_throw();
+
+//        auto cnt = ii->count_fw().get_or_throw();
+//        std::cout << "Zeroes: " << cnt << std::endl;
 
         dtrStart = getTimeInMillis();
     }

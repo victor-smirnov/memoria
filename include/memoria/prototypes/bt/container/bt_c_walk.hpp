@@ -130,7 +130,7 @@ private:
     {
         auto& self = this->self();
 
-        NodeBaseG new_node = self.store().cloneBlock(node.shared(), BlockID{});
+        NodeBaseG new_node = self.store().cloneBlock(node.shared());
         new_node->parent_id() = parent_id;
 
         if (!node->is_leaf())

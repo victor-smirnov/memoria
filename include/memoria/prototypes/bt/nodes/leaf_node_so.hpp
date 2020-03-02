@@ -675,7 +675,7 @@ public:
             if (obj)
             {
                 bt::BTPkdStructAdaper<StreamType> adapter(obj);
-                obj.template sum<Offset>(start, end, accum);
+                adapter.template sum<Offset>(start, end, accum);
             }
 
             return VoidResult::of();

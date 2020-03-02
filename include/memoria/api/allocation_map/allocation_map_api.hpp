@@ -47,6 +47,7 @@ struct AllocationMapIterator: BTSSIterator<Profile> {
     virtual BoolResult next() noexcept = 0;
 
     virtual Result<CtrSizeT> count_fw() noexcept = 0;
+    virtual Result<CtrSizeT> level0_pos() const noexcept = 0;
 };
 
 template <typename Profile>
@@ -83,6 +84,35 @@ public:
     CtrSizeT level0_position() const noexcept {
         return position_ << level_;
     }
+
+    AllocationMetadata take(int64_t amount) noexcept
+    {
+        AllocationMetadata meta{position_, amount, level_};
+        size_ -= amount;
+        position_ += amount;
+        return meta;
+    }
+
+
+    AllocationMetadata take_for(int64_t amount, int32_t level) noexcept
+    {
+        AllocationMetadata meta{position_, amount << (level_ - level), level};
+        size_ -= amount;
+        position_ += amount;
+        return meta;
+    }
+
+    AllocationMetadata take_all_for(int32_t level) noexcept
+    {
+        AllocationMetadata meta{position_, size_ << (level_ - level), level};
+        size_ = 0;
+        position_ += size_ << level_;
+        return meta;
+    }
+};
+
+enum class AllocationMapEntryStatus: int32_t {
+    FREE = 0, ALLOCATED = 1
 };
 
 
@@ -95,6 +125,9 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
     using IteratorResult = Result<CtrSharedPtr<AllocationMapIterator<Profile>>>;
     using CtrSizeTResult = Result<CtrSizeT>;
 
+    static constexpr int32_t  LEVELS          = 9;
+    static constexpr CtrSizeT ALLOCATION_SIZE = 512;
+
     virtual CtrSizeTResult size() const noexcept = 0;
 
     virtual IteratorResult seek(CtrSizeT position) noexcept = 0;
@@ -103,19 +136,24 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
     virtual CtrSizeTResult expand(CtrSizeT blocks) noexcept = 0;
     virtual VoidResult shrink(CtrSizeT size) noexcept = 0;
 
+    virtual Result<Optional<AllocationMapEntryStatus>> get_allocation_status(int32_t level, CtrSizeT position) noexcept = 0;
+
     virtual CtrSizeTResult rank(CtrSizeT pos) noexcept = 0;
 
     virtual VoidResult find_unallocated(
             CtrSizeT from,
             int32_t level,
             CtrSizeT required,
-            CtrSizeT prefetch,
             ArenaBuffer<AllocationMetadata<Profile>>& buffer
     ) noexcept = 0;
 
     virtual CtrSizeTResult setup_bits(Span<const AllocationMetadata<Profile>> allocations, bool set_bits) noexcept = 0;
     virtual CtrSizeTResult mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size) noexcept = 0;
     virtual CtrSizeTResult mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size) noexcept = 0;
+
+    virtual CtrSizeTResult unallocated_at(int32_t level) noexcept = 0;
+    virtual VoidResult unallocated(Span<CtrSizeT> ranks) noexcept = 0;
+
 
     MMA_DECLARE_ICTRAPI();
 };

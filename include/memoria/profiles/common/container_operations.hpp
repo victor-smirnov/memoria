@@ -264,6 +264,14 @@ struct CtrInstanceFactory {
             const CtrID& ctr_id,
             const LDTypeDeclarationView& type_decl
     ) const = 0;
+
+    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create_instance(
+            Allocator* allocator,
+            const CtrID& ctr_id,
+            const LDTypeDeclarationView& type_decl
+    ) const = 0;
+
+
 };
 
 template <typename Profile>

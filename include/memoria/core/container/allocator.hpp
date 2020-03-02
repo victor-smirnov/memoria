@@ -67,7 +67,7 @@ struct IAllocatorBase {
     virtual VoidResult removeBlock(const BlockID& id) noexcept = 0;
     virtual Result<BlockG> createBlock(int32_t initial_size) noexcept = 0;
 
-    virtual Result<BlockG> cloneBlock(const BlockG& block, const BlockID& new_id) noexcept = 0;
+    virtual Result<BlockG> cloneBlock(const BlockG& block) noexcept = 0;
 
 
 

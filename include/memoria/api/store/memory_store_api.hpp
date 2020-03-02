@@ -15,21 +15,18 @@
 
 #pragma once
 
-#include <memoria/core/types.hpp>
 #include <memoria/core/strings/strings.hpp>
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/memory/memory.hpp>
 #include <memoria/core/container/logs.hpp>
-#include <memoria/core/datatypes/type_signature.hpp>
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/tools/result.hpp>
-
-#include <memoria/profiles/common/common.hpp>
 
 #include <memoria/api/store/memory_store_common.hpp>
 
 #include <memoria/api/common/ctr_api.hpp>
+#include <memoria/api/store/store_api_common.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -52,7 +49,6 @@ public:
     template <typename CtrName>
     using CtrApiType = ICtrApi<CtrName, Profile>;
 
-
     virtual ~IMemoryStore() noexcept {}
 
     static Result<StorePtr> load(InputStreamHandler* input_stream) noexcept;
@@ -62,22 +58,22 @@ public:
 
     virtual int64_t active_snapshots() noexcept = 0;
 
-    virtual Result<void> store(U8String file_name, int64_t wait_duration = 0) noexcept = 0;
-    virtual Result<void> store(OutputStreamHandler* output_stream, int64_t wait_duration = 0) noexcept = 0;
+    virtual VoidResult store(U8String file_name, int64_t wait_duration = 0) noexcept = 0;
+    virtual VoidResult store(OutputStreamHandler* output_stream, int64_t wait_duration = 0) noexcept = 0;
 
     virtual Result<SnapshotPtr> master() noexcept = 0;
     virtual Result<SnapshotPtr> find(const SnapshotID& snapshot_id) noexcept = 0;
     virtual Result<SnapshotPtr> find_branch(U8StringRef name) noexcept = 0;
 
-    virtual Result<void> set_master(const SnapshotID& txn_id) noexcept = 0;
-    virtual Result<void> set_branch(U8StringRef name, const SnapshotID& txn_id) noexcept = 0;
+    virtual VoidResult set_master(const SnapshotID& txn_id) noexcept = 0;
+    virtual VoidResult set_branch(U8StringRef name, const SnapshotID& txn_id) noexcept = 0;
 
-    virtual Result<void> walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;
+    virtual VoidResult walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;
 
     virtual Logger& logger() noexcept = 0;
 
-    virtual Result<void> pack() noexcept = 0;
-    virtual Result<bool> check() noexcept = 0;
+    virtual VoidResult pack() noexcept = 0;
+    virtual BoolResult check() noexcept = 0;
 
     virtual void lock() noexcept = 0;
     virtual void unlock() noexcept = 0;
@@ -89,7 +85,7 @@ public:
     virtual SnapshotID root_shaphot_id() const noexcept = 0;
     virtual Result<std::vector<SnapshotID>> children_of(const SnapshotID& snapshot_id) const noexcept = 0;
     virtual Result<std::vector<std::string>> children_of_str(const SnapshotID& snapshot_id) const noexcept = 0;
-    virtual Result<void> remove_named_branch(const std::string& name) noexcept = 0;
+    virtual VoidResult remove_named_branch(const std::string& name) noexcept = 0;
 
 
     virtual Result<std::vector<SnapshotID>> branch_heads() noexcept = 0;
@@ -123,9 +119,8 @@ using IMemoryStorePtr = typename IMemoryStore<Profile>::StorePtr;
 
 
 
-
 template <typename Profile>
-class IMemorySnapshot {
+class IMemorySnapshot: public IStoreWritableSnapshotCtrOps<Profile> {
 
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot>;
     using SnapshotID    = ProfileSnapshotID<Profile>;
@@ -142,56 +137,30 @@ public:
     virtual ~IMemorySnapshot() noexcept {}
 
     virtual const SnapshotID& uuid() const noexcept = 0;
-    virtual bool is_active() const noexcept = 0;
-    virtual bool is_marked_to_clear() const noexcept = 0;
-    virtual bool is_committed() const noexcept = 0;
-    virtual Result<void> commit() noexcept = 0;
-    virtual Result<void> drop() noexcept = 0;
-    virtual Result<bool> drop_ctr(const CtrID& name) noexcept = 0;
-    virtual Result<void> set_as_master() noexcept = 0;
-    virtual Result<void> set_as_branch(U8StringRef name) noexcept = 0;
+
+    virtual VoidResult set_as_master() noexcept = 0;
+    virtual VoidResult set_as_branch(U8StringRef name) noexcept = 0;
     virtual U8String snapshot_metadata() const noexcept = 0;
-    virtual Result<void> set_snapshot_metadata(U8StringRef metadata) noexcept = 0;
-    virtual Result<void> lock_data_for_import() noexcept = 0;
+    virtual VoidResult set_snapshot_metadata(U8StringRef metadata) noexcept = 0;
+    virtual VoidResult lock_data_for_import() noexcept = 0;
     virtual Result<SnapshotPtr> branch() noexcept = 0;
     virtual bool has_parent() const noexcept = 0;
     virtual Result<SnapshotPtr> parent() noexcept = 0;
-    virtual Result<void> import_new_ctr_from(SnapshotPtr txn, const CtrID& name) noexcept = 0;
-    virtual Result<void> copy_new_ctr_from(SnapshotPtr txn, const CtrID& name) noexcept = 0;
-    virtual Result<void> import_ctr_from(SnapshotPtr txn, const CtrID& name) noexcept = 0;
-    virtual Result<void> copy_ctr_from(SnapshotPtr txn, const CtrID& name) noexcept = 0;
-    virtual Result<bool> check() noexcept = 0;
+    virtual VoidResult import_new_ctr_from(SnapshotPtr txn, const CtrID& name) noexcept = 0;
+    virtual VoidResult copy_new_ctr_from(SnapshotPtr txn, const CtrID& name) noexcept = 0;
+    virtual VoidResult import_ctr_from(SnapshotPtr txn, const CtrID& name) noexcept = 0;
+    virtual VoidResult copy_ctr_from(SnapshotPtr txn, const CtrID& name) noexcept = 0;
 
-    virtual Result<void> flush_open_containers() noexcept = 0;
-
-    virtual Result<Optional<U8String>> ctr_type_name_for(const CtrID& name) noexcept = 0;
-
-    virtual Result<std::vector<CtrID>> container_names() const noexcept = 0;
     virtual Result<std::vector<U8String>> container_names_str() const noexcept = 0;
 
-    virtual Result<void> dump_dictionary_blocks() noexcept = 0;
-    virtual Result<void> dump_open_containers() noexcept = 0;
-    virtual Result<bool> has_open_containers() noexcept = 0;
-    virtual Result<void> dump_persistent_tree() noexcept = 0;
-
-    virtual Result<void> walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;
-
-    virtual Result<CtrID> clone_ctr(const CtrID& name, const CtrID& new_name) noexcept = 0;
-    virtual Result<CtrID> clone_ctr(const CtrID& name) noexcept = 0;
+    virtual VoidResult dump_dictionary_blocks() noexcept = 0;
+    virtual VoidResult dump_persistent_tree() noexcept = 0;
 
     virtual const PairPtr& pair() const noexcept = 0;
     virtual PairPtr& pair() noexcept = 0;
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept = 0;
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create(const LDTypeDeclarationView& decl) noexcept = 0;
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> find(const CtrID& ctr_id) noexcept = 0;
-
     virtual Logger& logger() noexcept = 0;
     virtual Result<SharedPtr<SnapshotMemoryStat<Profile>>> memory_stat() noexcept = 0;
-
-protected:
-    virtual Result<SnpSharedPtr<AllocatorT>> snapshot_ref_creation_allowed() noexcept = 0;
-    virtual Result<SnpSharedPtr<AllocatorT>> snapshot_ref_opening_allowed() noexcept = 0;
 };
 
 
