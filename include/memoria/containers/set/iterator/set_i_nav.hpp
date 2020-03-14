@@ -57,16 +57,7 @@ public:
                 set::KeyEntry<KeyView, CtrSizeT>(key)
         ));
 
-        try {
-
         MEMORIA_TRY_VOID(self.iter_btss_skip_fw(1));
-
-        }
-        catch (MemoriaThrowable& th) {
-            th.dump(std::cout);
-            throw th;
-        }
-
 
         return VoidResult::of();
     }

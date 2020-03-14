@@ -140,7 +140,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
         {
             auto val = iter->value();
             MEMORIA_TRY_VOID(iter->remove());
-            return ResultT::of(val);
+            return ResultT::of(std::move(val));
         }
         else {
             return ResultT::of(Optional<Datum<Value>>{});
@@ -158,7 +158,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
         {
             auto prev = iter->value();
             MEMORIA_TRY_VOID(iter->assign(value));
-            return ResultT::of(prev);
+            return ResultT::of(std::move(prev));
         }
         else {
             MEMORIA_TRY_VOID(iter->insert(key, value));

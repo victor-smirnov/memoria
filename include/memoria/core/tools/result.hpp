@@ -325,7 +325,7 @@ public:
     }
 
     template <typename Fn>
-    T&& get_or(Fn&& accessor) && noexcept(accessor())
+    T&& get_or(Fn&& accessor) && noexcept(std::declval<Fn>())
     {
         T* ptr = boost::variant2::get_if<T>(&variant_);
 

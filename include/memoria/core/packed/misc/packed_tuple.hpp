@@ -156,6 +156,7 @@ namespace _ {
             psize_t str_data_length = codec.length(data, 0);
 
             FieldFactory<T>::serialize(buf, data, str_data_length);
+            return VoidResult::of();
         }
 
         template <typename DeserializationData>

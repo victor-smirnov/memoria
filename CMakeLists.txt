@@ -106,7 +106,7 @@ if (BUILD_TESTS AND BUILD_TESTS_CONTAINERS)
 endif()
 
 add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
-add_definitions(-DMMA_ICU_CXX_NS=icu_61)
+add_definitions(-DMMA_ICU_CXX_NS=icu)
 
 if (BUILD_CONTAINERS)
     add_definitions(-DMEMORIA_BUILD_CONTAINERS)

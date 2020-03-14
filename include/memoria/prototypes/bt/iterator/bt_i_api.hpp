@@ -138,6 +138,8 @@ public:
         self.iter_leaf().assign(next);
 
         self.iter_local_pos() = 0;
+
+        return VoidResult::of();
     }
 
     template <int32_t Stream, typename SubstreamsList, typename... Args>
@@ -146,7 +148,7 @@ public:
         auto& self = this->self();
         auto& ctr  = self.model();
 
-        ctr.template ctr_update_stream_entry<Stream, SubstreamsList>(self, std::make_tuple(std::forward<Args>(args)...));
+        return ctr.template ctr_update_stream_entry<Stream, SubstreamsList>(self, std::make_tuple(std::forward<Args>(args)...));
     }
 
 

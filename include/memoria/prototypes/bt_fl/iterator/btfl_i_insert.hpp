@@ -99,7 +99,7 @@ public:
     {
         auto& self = this->self();
         int32_t key_idx = self.data_stream_idx(Stream);
-        self.ctr().template ctr_update_stream_entry<Stream, SubstreamsList>(self, Stream, key_idx, std::forward<EntryFn>(entry));
+        return self.ctr().template ctr_update_stream_entry<Stream, SubstreamsList>(self, Stream, key_idx, std::forward<EntryFn>(entry));
     }
 
 

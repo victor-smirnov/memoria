@@ -114,7 +114,7 @@ static Int32Result FindTotalElementsNumber(int32_t first, int32_t last, int32_t 
         }
     }
 
-    return first;
+    return Int32Result::of(first);
 }
 
 
