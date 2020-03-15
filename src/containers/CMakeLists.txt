@@ -5,7 +5,7 @@ if (BUILD_CONTAINERS)
     set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
     set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})
 
-    if (BUILD_MEMORY_STORE_COW)
+    if (BUILD_MEMORY_STORE_COW OR BUILD_SWMR_STORE_MAPPED)
         file(GLOB SRCS *_cow.cpp)
 
         set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
@@ -19,7 +19,7 @@ else()
         set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
         set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})
 
-        if (BUILD_MEMORY_STORE_COW)
+        if (BUILD_MEMORY_STORE_COW OR BUILD_SWMR_STORE_MAPPED)
             file(GLOB SRCS multimap_varchar_varchar_cow.cpp multimap_uub_cow.cpp)
 
             set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
