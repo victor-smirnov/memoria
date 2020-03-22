@@ -81,15 +81,11 @@ public:
         return position_ < other.position_;
     }
 
-    CtrSizeT level0_position() const noexcept {
-        return position_ << level_;
-    }
-
     AllocationMetadata take(int64_t amount) noexcept
     {
         AllocationMetadata meta{position_, amount, level_};
         size_ -= amount;
-        position_ += amount;
+        position_ += (amount << level_);
         return meta;
     }
 
@@ -98,7 +94,7 @@ public:
     {
         AllocationMetadata meta{position_, amount << (level_ - level), level};
         size_ -= amount;
-        position_ += amount;
+        position_ += (amount << level_);
         return meta;
     }
 
@@ -110,6 +106,13 @@ public:
         return meta;
     }
 };
+
+template <typename Profile>
+std::ostream& operator<<(std::ostream& out, const AllocationMetadata<Profile>& meta)
+{
+    out << "[" << meta.position() << ", " << meta.size() << ", " << meta.level() << "]";
+    return out;
+}
 
 enum class AllocationMapEntryStatus: int32_t {
     FREE = 0, ALLOCATED = 1

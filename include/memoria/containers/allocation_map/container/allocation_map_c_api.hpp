@@ -165,10 +165,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         CtrSizeT sum{};
         while (!ii.get()->is_end())
         {
+            MEMORIA_TRY(level0_pos, ii.get()->level0_pos());
+
             MEMORIA_TRY(available, ii.get()->count_fw());
             sum += available;
-
-            MEMORIA_TRY(level0_pos, ii.get()->level0_pos());
 
             buffer.append_value(AllocationMetadata<Profile>{level0_pos, available, level});
 
@@ -285,7 +285,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             auto alc_ii = allocations.begin();
             const auto& alloc0 = *alc_ii;
 
-            CtrSizeT global_pos = alloc0.level0_position();
+            CtrSizeT global_pos = alloc0.position();
             MEMORIA_TRY(ii, self.ctr_seek(global_pos));
 
             if (ii->iter_is_end()) {
@@ -305,7 +305,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             for (;alc_ii != allocations.end(); alc_ii++)
             {
                 const auto& alc = *alc_ii;
-                CtrSizeT next_pos = alc.level0_position();
+                CtrSizeT next_pos = alc.position();
                 CtrSizeT skip_size = next_pos - global_pos;
 
                 MEMORIA_TRY_VOID(ii->skip(skip_size));

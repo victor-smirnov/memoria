@@ -585,30 +585,7 @@ namespace _ {
 
 }
 
-//template <typename T, typename ArgTypesLists>
-//T configure_datatype_object(const LDTypeDeclarationView& typedecl)
-//{
-//    constexpr size_t declared_params_size = ListSize<DTTParameters<T>>;
 
-//    size_t actual_parameters_size = decl.params();
-
-//    if (declared_params_size == actual_parameters_size)
-//    {
-//        return _::DataTypeCreator<
-//                T,
-//                DTTParameters<T>,
-//                ArgTypesLists...
-//        >::create(registry, decl);
-//    }
-//    else {
-//        MMA_THROW(RuntimeException())
-//                << format_ex(
-//                       "Actual number of parameters {} does not match expected one {} for type {}",
-//                       actual_parameters_size, declared_params_size,
-//                       decl.to_standard_string()
-//                   );
-//    }
-//}
 
 
 template <typename T>

@@ -104,6 +104,19 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         return MapScanner<ApiTypes, Profile>(iterator_producer(this));
     }
 
+    Result<MapScanner<ApiTypes, Profile>> scanner_from(
+            Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>>&& iterator_res
+    ) const noexcept
+    {
+        using ResultT = Result<MapScanner<ApiTypes, Profile>>;
+        if (iterator_res.is_ok()){
+            return ResultT::of(std::move(iterator_res).get());
+        }
+        else {
+            return std::move(iterator_res).transfer_error();
+        }
+    }
+
 
     virtual Result<Optional<Datum<Value>>> remove_and_return(KeyView key) noexcept = 0;
     virtual Result<Optional<Datum<Value>>> replace_and_return(KeyView key, ValueView value) noexcept = 0;

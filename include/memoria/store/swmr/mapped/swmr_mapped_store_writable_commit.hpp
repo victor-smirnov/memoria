@@ -21,6 +21,7 @@
 
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 
+#include <memoria/core/datatypes/type_registry.hpp>
 
 template <typename Profile>
 class MappedSWMRStoreReadOnlyCommit;
@@ -70,7 +71,7 @@ class MappedSWMRStoreWritableCommit:
     static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
     static constexpr int32_t SUPERBLOCK_SIZE             = BASIC_BLOCK_SIZE;
     static constexpr int32_t ALLOCATION_LEVELS           = Store::ALLOCATION_MAP_LEVELS;
-    static constexpr int32_t SUPERBLOCK_ALLOCATION_LEVEL = Log2(SUPERBLOCK_SIZE / BASIC_BLOCK_SIZE);
+    static constexpr int32_t SUPERBLOCK_ALLOCATION_LEVEL = Log2(SUPERBLOCK_SIZE / BASIC_BLOCK_SIZE) - 1;
     static constexpr int32_t SUPERBLOCKS_RESERVED        = Store::HEADER_SIZE / BASIC_BLOCK_SIZE;
     static constexpr int32_t ALLOCATION_MAP_SIZE_STEP    = Store::ALLOCATION_MAP_SIZE_STEP;
 
@@ -98,14 +99,21 @@ class MappedSWMRStoreWritableCommit:
 
     ParentCommit parent_commit_;
 
-
-
     CountersCache counters_cache_;
 
+    bool flushing_awaiting_allocations_{false};
     ArenaBuffer<AllocationMetadataT> awaiting_allocations_;
+    ArenaBuffer<AllocationMetadataT> awaiting_allocations_reentry_;
+
+    bool flushing_postponed_deallocations_{false};
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_;
+    ArenaBuffer<AllocationMetadataT> postponed_deallocations_reentry_;
+
 
     bool persistent_{false};
+
+    template <typename>
+    friend class MappedSWMRStore;
 
 public:
 
@@ -118,13 +126,29 @@ public:
     ) noexcept:
         Base(maybe_error, store, buffer, commit_descriptor)
     {
-        wrap_construction(maybe_error, [&]() -> VoidResult {
+        wrap_construction(maybe_error, [&]() -> VoidResult {                                          
             parent_commit_ = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
                 maybe_error, store, buffer, parent_commit_descriptor
             );
 
             MEMORIA_TRY(parent_allocation_map_ctr, parent_commit_->find(AllocationMapCtrID));
             parent_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(parent_allocation_map_ctr);
+
+            MEMORIA_TRY_VOID(populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 1, 64));
+
+            CommitID parent_commit_id = parent_commit_descriptor->superblock()->commit_id();
+
+            MEMORIA_TRY(
+                superblock,
+                allocate_superblock(
+                    parent_commit_descriptor->superblock(),
+                    parent_commit_id + 1
+                )
+            );
+
+            commit_descriptor->set_superblock(superblock);
+            superblock_ = superblock;
+
             return VoidResult::of();
         });
 
@@ -153,7 +177,7 @@ public:
             maybe_error,
             directory_ctr_,
             superblock_->directory_root_id(),
-            HistoryCtrID
+            DirectoryCtrID
         );
     }
 
@@ -166,17 +190,22 @@ public:
     ) noexcept:
         Base(maybe_error, store, buffer, commit_descriptor)
     {
-        wrap_construction(maybe_error, [&]() -> VoidResult {            
+        wrap_construction(maybe_error, [&]() -> VoidResult {
             int64_t avaialble = (buffer_.size() / (BASIC_BLOCK_SIZE << (ALLOCATION_LEVELS - 1)));
             allocation_pool_.add(AllocationMetadataT{0, avaialble, ALLOCATION_LEVELS - 1});
 
             int64_t reserved = SUPERBLOCKS_RESERVED;
             ArenaBuffer<AllocationMetadataT> allocations;
             allocation_pool_.allocate(SUPERBLOCK_ALLOCATION_LEVEL, reserved, allocations);
+            for (auto& alc: allocations.span()) {
+                add_awaiting_allocation(alc);
+            }
 
             CommitID commit_id = 1;
             MEMORIA_TRY(superblock, allocate_superblock(nullptr, commit_id, buffer.size()));
             commit_descriptor->set_superblock(superblock);
+
+            Base::superblock_ = superblock;
 
             allocator_initialization_mode_ = true;
 
@@ -186,7 +215,24 @@ public:
 
             return VoidResult::of();
         });
+
+
+        internal_init_system_ctr<RefcountersCtrType>(
+            maybe_error,
+            refcounters_ctr_,
+            superblock_->counters_root_id(),
+            RefcountersCtrID
+        );
+
+        internal_init_system_ctr<HistoryCtrType>(
+            maybe_error,
+            history_ctr_,
+            superblock_->history_root_id(),
+            HistoryCtrID
+        );
     }
+
+
 
     VoidResult finish_store_initialization() noexcept
     {
@@ -237,10 +283,22 @@ public:
                 }
             }
 
-            if (postponed_deallocations_.size() > 0)
-            {
-                MEMORIA_TRY_VOID(allocation_map_ctr_->setup_bits(postponed_deallocations_, false)); // clear bits
+            do {
+                MEMORIA_TRY_VOID(flush_awaiting_allocations());
+
+                if (postponed_deallocations_.size() > 0)
+                {
+                    flushing_postponed_deallocations_ = true;
+                    auto res = allocation_map_ctr_->setup_bits(postponed_deallocations_, false); // clear bits
+                    flushing_postponed_deallocations_ = false;
+                    MEMORIA_RETURN_IF_ERROR(res);
+
+                    postponed_deallocations_.clear();
+                    postponed_deallocations_.append_values(postponed_deallocations_reentry_.span());
+                    postponed_deallocations_reentry_.clear();
+                }
             }
+            while (awaiting_allocations_.size() > 0 || postponed_deallocations_.size() > 0);
 
             MEMORIA_TRY_VOID(store_->flush_data());
 
@@ -250,6 +308,7 @@ public:
             std::memcpy(buffer_.data() + sb_slot * BASIC_BLOCK_SIZE, superblock_, BASIC_BLOCK_SIZE);
 
             MEMORIA_TRY_VOID(store_->flush_header());
+            MEMORIA_TRY_VOID(store_->finish_commit(Base::commit_descriptor_));
         }
         else {
             return MEMORIA_MAKE_GENERIC_ERROR("Transaction {} has been already committed", commit_id());
@@ -473,21 +532,39 @@ public:
 
         int32_t block_size = block->memory_block_size();
         int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
-        int32_t level = Log2(scale_factor);
+        int32_t level = CustomLog2(scale_factor);
 
         int64_t block_pos = block->id_value();
-        int64_t allocator_block_pos = block_pos / BASIC_BLOCK_SIZE;
+        int64_t allocator_block_pos = block_pos;
         int64_t ll_allocator_block_pos = allocator_block_pos >> level;
 
-        MEMORIA_TRY(status, parent_allocation_map_ctr_->get_allocation_status(level, ll_allocator_block_pos));
-
         AllocationMetadataT meta[1] = {AllocationMetadataT{allocator_block_pos, 1, level}};
-        if ((!status) || status.get() == AllocationMapEntryStatus::FREE)
+
+        if (parent_allocation_map_ctr_)
         {
-            MEMORIA_TRY_VOID(allocation_map_ctr_->setup_bits(meta, false)); // clear bits
+            MEMORIA_TRY(status, parent_allocation_map_ctr_->get_allocation_status(level, ll_allocator_block_pos));
+            if ((!status) || status.get() == AllocationMapEntryStatus::FREE)
+            {
+                if (!flushing_awaiting_allocations_) {
+                    MEMORIA_TRY_VOID(flush_awaiting_allocations());
+                    MEMORIA_TRY_VOID(allocation_map_ctr_->setup_bits(meta, false)); // clear bits
+                }
+                else {
+                    add_postponed_deallocation(meta[0]);
+                }
+            }
+            else {
+                add_postponed_deallocation(meta[0]);
+            }
         }
         else {
-            postponed_deallocations_.append_value(meta[0]);
+            if (!flushing_awaiting_allocations_) {
+                MEMORIA_TRY_VOID(flush_awaiting_allocations());
+                MEMORIA_TRY_VOID(allocation_map_ctr_->setup_bits(meta, false)); // clear bits
+            }
+            else {
+                add_postponed_deallocation(meta[0]);
+            }
         }
 
         return VoidResult::of();
@@ -504,7 +581,7 @@ public:
         }
 
         int32_t scale_factor = initial_size / BASIC_BLOCK_SIZE;
-        int32_t level = Log2(scale_factor);
+        int32_t level = CustomLog2(scale_factor);
         Optional<AllocationMetadataT> allocation = allocation_pool_.allocate_one(level);
 
         if (!allocation) {
@@ -516,9 +593,11 @@ public:
             }
         }
 
-        awaiting_allocations_.append_value(allocation.get());
+        std::cout << "createBlock: " << allocation.get() << std::endl;
 
-        uint64_t id = allocation.get().level0_position();
+        add_awaiting_allocation(allocation.get());
+
+        uint64_t id = allocation.get().position();
 
         uint8_t* block_addr = buffer_.data() + id * BASIC_BLOCK_SIZE;
 
@@ -541,7 +620,7 @@ public:
 
         int32_t block_size = block->memory_block_size();
         int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
-        int32_t level = Log2(scale_factor);
+        int32_t level = CustomLog2(scale_factor);
 
         Optional<AllocationMetadataT> allocation = allocation_pool_.allocate_one(level);
 
@@ -554,15 +633,15 @@ public:
             }
         }
 
-        awaiting_allocations_.append_value(allocation.get());
+        add_awaiting_allocation(allocation.get());
 
-        uint64_t id = allocation.get().level0_position();
+        uint64_t id = allocation.get().position();
 
         uint8_t* block_addr = buffer_.data() + id * BASIC_BLOCK_SIZE;
 
         std::memcpy(block_addr, block.block(), block_size);
 
-        BlockType* new_block = new (block_addr) BlockType();
+        BlockType* new_block = ptr_cast<BlockType>(block_addr);
         new_block->id() = BlockID{id};
         new_block->id_value() = id;
         new_block->snapshot_id() = superblock_->commit_uuid();
@@ -685,12 +764,20 @@ private:
     }
 
 private:
-    VoidResult populate_allocation_pool(int32_t level, int64_t minimal_amount, int64_t prefetch = 0) noexcept
+    VoidResult populate_allocation_pool(int32_t level, int64_t minimal_amount, int64_t prefetch = 0) noexcept {
+        return populate_allocation_pool(allocation_map_ctr_, level, minimal_amount, prefetch);
+    }
+
+    VoidResult populate_allocation_pool(CtrSharedPtr<AllocationMapCtr> allocation_map_ctr, int32_t level, int64_t minimal_amount, int64_t prefetch = 0) noexcept
     {
+        if (flushing_awaiting_allocations_) {
+            return MEMORIA_MAKE_GENERIC_ERROR("Internal Error. Invoking populate_allocation_pool() while flushing awaiting allocations.");
+        }
+
         MEMORIA_TRY_VOID(flush_awaiting_allocations());
 
         int64_t ranks[ALLOCATION_LEVELS] = {0,};
-        MEMORIA_TRY_VOID(allocation_map_ctr_->unallocated(ranks));
+        MEMORIA_TRY_VOID(allocation_map_ctr->unallocated(ranks));
 
         if (ranks[level] >= minimal_amount)
         {
@@ -698,7 +785,6 @@ private:
 
             int32_t target_level = level;
             int32_t target_desirable = desireable;
-
 
             if (MMA_LIKELY(desireable > 1))
             {
@@ -717,9 +803,15 @@ private:
                 }
             }
 
-            return allocation_map_ctr_->find_unallocated(
-                0, target_level, target_desirable, allocation_pool_.level_buffer(target_level)
-            );
+            auto& level_buffer = allocation_pool_.level_buffer(target_level);
+
+            MEMORIA_TRY_VOID(allocation_map_ctr->find_unallocated(
+                0, target_level, target_desirable, level_buffer
+            ));
+
+            allocation_pool_.refresh(target_level);
+
+            return VoidResult::of();
         }
         else {
             return MEMORIA_MAKE_GENERIC_ERROR(
@@ -731,7 +823,12 @@ private:
         }
     }
 
-    Result<Superblock*> allocate_superblock(const Superblock* parent_sb, int64_t commit_id, uint64_t file_size = 0) noexcept
+    Result<Superblock*> allocate_superblock(
+            const Superblock* parent_sb,
+            int64_t commit_id,
+            uint64_t
+            file_size = 0
+    ) noexcept
     {
         using ResultT = Result<Superblock*>;
 
@@ -739,7 +836,9 @@ private:
         allocation_pool_.allocate(SUPERBLOCK_ALLOCATION_LEVEL, 1, available);
         if (available.size() > 0)
         {
-            uint64_t pos = (available.tail().position() << SUPERBLOCK_ALLOCATION_LEVEL) * BASIC_BLOCK_SIZE;
+            AllocationMetadataT allocation = available.tail();
+
+            uint64_t pos = (allocation.position() << SUPERBLOCK_ALLOCATION_LEVEL) * BASIC_BLOCK_SIZE;
 
             Superblock* superblock = new (buffer_.data() + pos) Superblock();
             if (parent_sb)
@@ -747,10 +846,12 @@ private:
                 MEMORIA_TRY_VOID(superblock->init_from(*parent_sb, pos, commit_id));
             }
             else {
-                MEMORIA_TRY_VOID(superblock->init(file_size, pos, commit_id, SUPERBLOCK_SIZE));
+                MEMORIA_TRY_VOID(superblock->init(pos, file_size, commit_id, SUPERBLOCK_SIZE, 1));
             }
 
             MEMORIA_TRY_VOID(superblock->build_superblock_description());
+
+            add_awaiting_allocation(allocation);
 
             return ResultT::of(superblock);
         }
@@ -894,12 +995,81 @@ private:
     {
         if (awaiting_allocations_.size() > 0 && allocation_map_ctr_)
         {
-            awaiting_allocations_.sort();
-            MEMORIA_TRY_VOID(allocation_map_ctr_->setup_bits(awaiting_allocations_.span(), true)); // set bits
-            awaiting_allocations_.clear();
+            if (flushing_awaiting_allocations_){
+                return MEMORIA_MAKE_GENERIC_ERROR("Internal error. flush_awaiting_allocations() reentry.");
+            }
+
+            flushing_awaiting_allocations_ = true;
+            do {
+                awaiting_allocations_.sort();
+                auto res = allocation_map_ctr_->setup_bits(awaiting_allocations_.span(), true); // set bits
+                if (res.is_error())
+                {
+                    flushing_awaiting_allocations_ = false;
+                    return std::move(res).transfer_error();
+                }
+
+                awaiting_allocations_.clear();
+
+                awaiting_allocations_.append_values(awaiting_allocations_reentry_.span());
+                awaiting_allocations_reentry_.clear();
+            }
+            while (awaiting_allocations_.size() > 0);
         }
 
         return VoidResult::of();
+    }
+
+
+    VoidResult for_each_root_block(const std::function<VoidResult (int64_t)>& fn) const noexcept
+    {
+        MEMORIA_TRY(scanner, history_ctr_->scanner_from(history_ctr_->iterator()));
+
+        bool has_next;
+        do {
+
+            for (auto superblock_ptr: scanner.values())
+            {
+                MEMORIA_TRY_VOID(fn(superblock_ptr));
+            }
+
+            MEMORIA_TRY(has_next_res, scanner.next_leaf());
+            has_next = has_next_res;
+        }
+        while (has_next);
+
+        return VoidResult::of();
+    }
+
+    static constexpr int32_t CustomLog2(int32_t value) noexcept {
+        return 31 - CtLZ((uint32_t)value);
+    }
+
+    void add_awaiting_allocation(const AllocationMetadataT& meta) noexcept {
+        if (!flushing_awaiting_allocations_) {
+            awaiting_allocations_.append_value(meta);
+        }
+        else {
+            awaiting_allocations_reentry_.append_value(meta);
+        }
+    }
+
+    void add_postponed_deallocation(const AllocationMetadataT& meta) noexcept {
+        if (!flushing_postponed_deallocations_) {
+            postponed_deallocations_.append_value(meta);
+        }
+        else {
+            postponed_deallocations_reentry_.append_value(meta);
+        }
+    }
+
+    virtual SnpSharedPtr<IStoreSnapshotCtrOps<Profile>> ro_ops() noexcept {
+        //return memoria_static_pointer_cast<IStoreSnapshotCtrOps<Profile>>(this->shared_from_this());
+        return SnpSharedPtr<IStoreSnapshotCtrOps<Profile>>{};
+    }
+
+    virtual SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> ops() noexcept {
+        return memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(this->shared_from_this());
     }
 };
 

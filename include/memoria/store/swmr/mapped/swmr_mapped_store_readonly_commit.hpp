@@ -34,9 +34,10 @@ class MappedSWMRStoreReadOnlyCommit:
     using typename Base::AllocatorT;
 
     using typename Base::DirectoryCtrType;
+    using typename Base::HistoryCtrType;
 
     using Base::directory_ctr_;
-
+    using Base::superblock_;
     using Base::internal_find_by_root_typed;
 
 public:
@@ -59,15 +60,33 @@ public:
                 MEMORIA_RETURN_IF_ERROR(directory_ctr_ref);
                 directory_ctr_ = directory_ctr_ref.get();
             }
-            else {
-                return MEMORIA_MAKE_GENERIC_ERROR(
-                    "Read-only commit {} has no container directory",
-                    commit_descriptor->superblock()->commit_id()
-                );
-            }
 
             return VoidResult::of();
         });
+    }
+
+    VoidResult for_each_root_block(const std::function<VoidResult (int64_t)>& fn) noexcept
+    {
+        auto history_ctr_ref = this->template internal_find_by_root_typed<HistoryCtrType>(superblock_->history_root_id());
+        MEMORIA_RETURN_IF_ERROR(history_ctr_ref);
+        auto history_ctr = history_ctr_ref.get();
+
+        MEMORIA_TRY(scanner, history_ctr->scanner_from(history_ctr->iterator()));
+
+        bool has_next;
+        do {
+
+            for (auto superblock_ptr: scanner.values())
+            {
+                MEMORIA_TRY_VOID(fn(superblock_ptr));
+            }
+
+            MEMORIA_TRY(has_next_res, scanner.next_leaf());
+            has_next = has_next_res;
+        }
+        while (has_next);
+
+        return VoidResult::of();
     }
 
 
@@ -76,6 +95,10 @@ protected:
 
     virtual SnpSharedPtr<AllocatorT> self_ptr() noexcept {
         return this->shared_from_this();
+    }
+
+    virtual SnpSharedPtr<IStoreSnapshotCtrOps<Profile>> ro_ops() noexcept {
+        return memoria_static_pointer_cast<IStoreSnapshotCtrOps<Profile>>(this->shared_from_this());
     }
 
 };

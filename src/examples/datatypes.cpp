@@ -17,7 +17,7 @@
 #include <memoria/core/datatypes/datatypes.hpp>
 #include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
 #include <memoria/api/store/memory_store_api.hpp>
-#include <memoria/api/allocation_map/allocation_map_api.hpp>
+#include <memoria/api/set/set_api.hpp>
 
 #include <memoria/api/store/swmr_store_api.hpp>
 
@@ -39,9 +39,9 @@ using Profile = MemoryCoWProfile<>;
 
 int main()
 {
-    using CtrName = AllocationMap;
+    using CtrName = Set<Varchar>;
 
-    long dtrStart;
+    long dtrStart{};
 
     try {
         UUID uuid = UUID::make_random();
@@ -49,34 +49,33 @@ int main()
         std::cout << uuid.hi() << " :: " << uuid.lo() << std::endl;
         std::cout << uuid << std::endl;
 
-        auto store = create_mapped_swmr_store("/home/guest/memoria_swmr_file.mma4", 1024).get_or_throw();
+        const char* name = "/home/victor/memoria_swmr_file.mma4";
+        memoria::filesystem::remove(name);
+        auto store1 = create_mapped_swmr_store(name, 1024).get_or_throw();
 
+        UUID ctr_id = UUID::make_random();
 
-//        auto store = IMemoryStore<Profile>::create().get_or_throw();
+        auto txn = store1->begin().get_or_throw();
+        auto ctr = create(txn->ops(), CtrName{}, ctr_id).get_or_throw();
 
-//        auto master = store->master().get_or_throw();
-//        auto snp = master->branch().get_or_throw();
+        for (int c = 0; c < 10000; c++) {
+            ctr->insert(format_u8("AAAAAAAAAAAAAAAAAA: {}", c)).get_or_throw();
+        }
 
-//        UUID name = UUID::make_random();
+        txn->commit().get_or_throw();
 
-//        auto ctr = create(snp, CtrName{}, name).get_or_throw();
+        store1.reset();
 
-//        std::cout << ctr->size().get_or_throw() << std::endl;
+        auto store2 = open_mapped_swmr_store(name).get_or_throw();
 
-//        auto actual = ctr->expand(1024*1024).get_or_throw();
-//        std::cout << ctr->size().get_or_throw() << " " << actual << std::endl;
+        auto txn2 = store2->open().get_or_throw();
+        auto ctr2 = find<CtrName>(txn2->ro_ops(), ctr_id).get_or_throw();
 
-//        ctr->shrink(102400).get_or_throw();
-//        std::cout << ctr->size().get_or_throw() << " " << std::endl;
+        std::cout << ctr2->size().get_or_throw() << std::endl;
+        ctr2->for_each([](auto key){
+            std::cout << "Key: " << key << std::endl;
+        }).get_or_throw();
 
-//        ctr->mark_allocated(100000, 0, 100).get_or_throw();
-
-
-//        auto ii = ctr->iterator().get_or_throw();
-//        ii->dumpPath().get_or_throw();
-
-//        auto cnt = ii->count_fw().get_or_throw();
-//        std::cout << "Zeroes: " << cnt << std::endl;
 
         dtrStart = getTimeInMillis();
     }

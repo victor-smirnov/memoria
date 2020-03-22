@@ -93,7 +93,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
                 self.iter_local_pos() = local_pos = 0;
             }
             else {
-                self.iter_local_pos() = processed << level;
+                self.iter_local_pos() += processed << level;
             }
         }
 
@@ -123,6 +123,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
 
         template <typename CtrT, typename NodeT>
         VoidResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept {
+            prefix_ += end - start;
             return VoidResult::of();
         }
     };

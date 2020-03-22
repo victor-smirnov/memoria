@@ -562,7 +562,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         memset(&metadata, 0, sizeof(Metadata));
 
         metadata.model_name()        = self.name();
-        metadata.memory_block_size() = DEFAULT_BLOCK_SIZE;
+        metadata.memory_block_size() = -1;
 
         return metadata;
     }
@@ -651,18 +651,11 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         using ResultT = Result<NodeBaseG>;
         auto& self = this->self();
 
-        MEMORIA_TRY(root_block, self.ctr_get_block(self.root()));
-
-        if (size == -1)
+        if (size == -1 && self.root().is_set())
         {
-            if (root_block)
-            {
-                const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
-                size = meta->memory_block_size();
-            }
-            else {
-                size = -1;
-            }
+            MEMORIA_TRY(root_block, self.ctr_get_block(self.root()));
+            const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
+            size = meta->memory_block_size();
         }
 
         MEMORIA_TRY(node, self.node_dispatcher().dispatch2(
@@ -679,7 +672,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         MEMORIA_TRY_VOID(ctr_prepare_node(node));
 
-        if (root_block) {
+        if (self.root().is_set())
+        {
+            MEMORIA_TRY(root_block, self.ctr_get_block(self.root()));
             MEMORIA_TRY_VOID(node->copy_metadata_from(root_block.block()));
         }
         else {

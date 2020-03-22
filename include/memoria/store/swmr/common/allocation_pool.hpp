@@ -98,6 +98,14 @@ public:
         return levels_[ll];
     }
 
+    void refresh(int32_t level) noexcept
+    {
+        totals_[level] = 0;
+        for (const auto& alc: levels_[level].span()) {
+            totals_[level] += alc.size();
+        }
+    }
+
 private:
     bool populate_level_from_above(int32_t level, int64_t amount) noexcept
     {
@@ -121,20 +129,26 @@ private:
                     int64_t avl_size = avl_alc.size();
                     int64_t ll0_avl_size = avl_size << (ll - level);
 
-                    if (ll0_avl_size >= ll0_remainder)
+                    if (ll0_avl_size <= ll0_remainder)
                     {
                         totals_[ll] -= avl_alc.size();
-                        levels_[level].append_value(avl_alc.take_all_for(level));
+
+                        auto meta_ll = avl_alc.take_all_for(level);
+                        levels_[level].append_value(meta_ll);
+                        totals_[level] += meta_ll.size();
+
                         sum += ll0_avl_size;
                     }
                     else {
-                        int64_t scale_mask = 1ll << ((ll - level + 1) - 1);
+                        int64_t scale_mask = (1ll << (ll - level + 1)) - 1;
                         int64_t ll_remainder = (
                                     (ll0_remainder >> (ll - level)) +
                                     ((ll0_remainder & scale_mask) != 0)
-                        ) << (ll - level);
+                        );
 
-                        levels_[level].append_value(avl_alc.take_for(ll_remainder, level));
+                        auto meta_ll = avl_alc.take_for(ll_remainder, level);
+                        levels_[level].append_value(meta_ll);
+                        totals_[level] += meta_ll.size();
 
                         totals_[ll] -= ll_remainder;
 

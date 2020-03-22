@@ -13,6 +13,13 @@ if (BUILD_CONTAINERS)
     endif()
 
 else()
+    if (BUILD_SWMR_STORE_MAPPED)
+        file(GLOB SRCS map_bigint_bigint_cow.cpp allocation_map_cow.cpp)
+
+        set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
+        set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})
+    endif()
+
     if(BUILD_CONTAINERS_MULTIMAP)
         file(GLOB SRCS multimap_varchar_varchar_dflt.cpp multimap_uub_dflt.cpp)
 

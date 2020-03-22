@@ -24,8 +24,6 @@ template class MappedSWMRStore<Profile>;
 template class MappedSWMRStoreWritableCommit<Profile>;
 template class MappedSWMRStoreReadOnlyCommit<Profile>;
 
-
-
 #if !defined(MEMORIA_BUILD_MEMORY_STORE_COW)
 std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept {
     out << block_id.value();
@@ -61,6 +59,8 @@ Result<SharedPtr<ISWMRStore<MemoryCoWProfile<>>>> open_mapped_swmr_store(U8Strin
         return std::move(maybe_error.get());
     }
 
+    MEMORIA_TRY_VOID(ptr->do_open_file());
+
     return ResultT::of(ptr);
 }
 
@@ -74,6 +74,8 @@ Result<SharedPtr<ISWMRStore<MemoryCoWProfile<>>>> create_mapped_swmr_store(U8Str
     if (maybe_error) {
         return std::move(maybe_error.get());
     }
+
+    MEMORIA_TRY_VOID(ptr->init_store());
 
     return ResultT::of(ptr);
 }

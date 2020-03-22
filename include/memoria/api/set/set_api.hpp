@@ -107,6 +107,25 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
         return SetScanner<ApiTypes, Profile>(iterator().get_or_throw());
     }
 
+    template <typename Fn>
+    VoidResult for_each(Fn&& fn) noexcept
+    {
+        auto ss = scanner();
+        while (!ss.is_end())
+        {
+            for (auto key_view: ss.keys()) {
+                auto res = wrap_throwing([&](){
+                    fn(key_view);
+                });
+                MEMORIA_RETURN_IF_ERROR(res);
+            }
+
+            MEMORIA_TRY_VOID(ss.next_leaf());
+        }
+
+        return VoidResult::of();
+    }
+
     MMA_DECLARE_ICTRAPI();
 };
 

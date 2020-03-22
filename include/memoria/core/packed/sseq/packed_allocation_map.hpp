@@ -641,29 +641,30 @@ private:
         return l0_bitmap_size >> level;
     }
 
-    constexpr static BitmapType make_half_mask() noexcept
-    {
-        size_t bits_size = (sizeof(BitmapType) * 8);
-        return (static_cast<BitmapType>(0x1) << (bits_size / 2 + 1)) - 1;
-    }
+//    constexpr static BitmapType make_half_mask() noexcept
+//    {
+//        size_t bits_size = (sizeof(BitmapType) * 8);
+//        return (static_cast<BitmapType>(0x1) << (bits_size / 2 + 1)) - 1;
+//    }
 
     constexpr static BitmapType gather_bits(BitmapType bits) noexcept
     {
-        BitmapType ones = (bits | bits >> 1);
+        BitmapType src = (bits | bits >> 1);
+        BitmapType tgt{};
 
         size_t atom_size = sizeof(BitmapType) * 4;
 
         constexpr BitmapType ONE = 0x1;
 
-        for (size_t c = 1; c < atom_size; c++)
+        for (size_t c = 0; c < atom_size; c++)
         {
             BitmapType mask = ONE << (c * 2);
-            BitmapType value = ones & mask;
+            BitmapType value = src & mask;
             value >>= c;
-            ones |= value;
+            tgt |= value;
         }
 
-        return ones & make_half_mask();
+        return tgt;
     }
 
     void rebuild_bitmaps(int32_t level_from) noexcept
@@ -682,11 +683,28 @@ private:
             {
                 BitmapType a1 = src_bitmap[bms];
                 BitmapType a2 = src_bitmap[bms + 1];
-                BitmapType rs = a1 | (a2 << atom_bits_size / 2);
-                tgt_bitmap[bms / 2] = rs;
+
+                //BitmapType b1 = a1 | (a1 >> 1);
+                //BitmapType b2 = a2 | (a2 >> 1);
+
+                //BitmapType rs = b1 | (b2 << atom_bits_size / 2);
+                tgt_bitmap[bms / 2] = gather_bits(a1) | (gather_bits(a2) << atom_bits_size / 2);
             }
         }
     }
+
+//private:
+//    BitmapType gather_bits(BitmapType bits) noexcept
+//    {
+//        BitmapType rs{};
+
+//        for (size_t c = 0; c < sizeof(BitmapType) * 4; c++)
+//        {
+
+//        }
+
+//        return rs;
+//    }
 };
 
 

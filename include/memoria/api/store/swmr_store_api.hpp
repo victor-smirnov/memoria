@@ -34,11 +34,14 @@ struct ISWMRStoreWritableCommit: ISWMRStoreCommitBase<Profile>, IStoreWritableSn
 
     virtual VoidResult set_persistent(bool persistent) noexcept = 0;
     virtual bool is_persistent() noexcept = 0;
+
+    virtual SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> ops() noexcept = 0;
 };
 
 template <typename Profile>
 struct ISWMRStoreReadOnlyCommit: ISWMRStoreCommitBase<Profile> {
     virtual VoidResult drop() noexcept = 0;
+    virtual SnpSharedPtr<IStoreSnapshotCtrOps<Profile>> ro_ops() noexcept = 0;
 };
 
 template <typename Profile>

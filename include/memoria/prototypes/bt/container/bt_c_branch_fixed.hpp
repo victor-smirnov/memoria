@@ -305,9 +305,9 @@ BoolResult M_TYPE::ctr_update_branch_nodes(
 {
     auto& self = this->self();
 
-    NodeBaseG tmp = path[level];
-
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
+
+    NodeBaseG tmp = path[level];
 
     MEMORIA_TRY_VOID(self.ctr_update_branch_node(tmp, idx, entry));
 

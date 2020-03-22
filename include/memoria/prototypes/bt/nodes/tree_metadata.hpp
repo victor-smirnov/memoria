@@ -26,20 +26,6 @@
 
 namespace memoria {
 
-//template <typename BalancedTreeMetadata>
-//class BalancedTreeMetadataSO {
-//    BalancedTreeMetadata* data_;
-//public:
-//    BalancedTreeMetadataSO(BalancedTreeMetadata* data): data_(data) {}
-
-//    BalancedTreeMetadata* operator->() {return data_;}
-//    const BalancedTreeMetadata* operator->() const {return data_;}
-
-//    void generateDataEvents(IBlockDataEventHandler* handler) const
-//    {
-//        data_->generateDataEvents(handler);
-//    }
-//};
 
 
 

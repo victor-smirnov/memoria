@@ -25,6 +25,8 @@
 #   include <memoria/api/multimap/multimap_api.hpp>
 #   include <memoria/api/allocation_map/allocation_map_api.hpp>
 #else
+#   include <memoria/api/map/map_api.hpp>
+#   include <memoria/api/allocation_map/allocation_map_api.hpp>
 #   if defined (MEMORIA_BUILD_CONTAINERS_MULTIMAP)
 #       include <memoria/api/multimap/multimap_api.hpp>
 #   endif
@@ -91,6 +93,8 @@ struct StaticLibraryCtrs {
 
         InitCtrMetadata<AllocationMap, ProfileT>();
 #else
+        //InitCtrMetadata<Map<BigInt, BigInt>, ProfileT>();
+        //InitCtrMetadata<AllocationMap, ProfileT>();
 #   if defined(MEMORIA_BUILD_CONTAINERS_MULTIMAP)
         InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
         InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();

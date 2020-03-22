@@ -43,7 +43,6 @@ constexpr UUID RefcountersCtrID = UUID(4273691379738852952ull, 67911282286977022
 // 0bc70e1f-adaf-4454-afda-7f6ac7104790
 constexpr UUID HistoryCtrID = UUID(6072171355687536395ull, 10396296713479379631ull);
 
-
 template <typename Profile> class MappedSWMRStore;
 
 template <typename Profile>
@@ -51,11 +50,15 @@ class CommitDescriptor: public boost::intrusive::list_base_hook<> {
     using Superblock = SWMRSuperblock<Profile>;
     using BlockID = ProfileBlockID<Profile>;
 
-    std::atomic<int32_t> uses_{1};
+    std::atomic<int32_t> uses_{};
     Superblock* superblock_;
 public:
     CommitDescriptor() noexcept:
         superblock_(nullptr)
+    {}
+
+    CommitDescriptor(Superblock* superblock) noexcept:
+        superblock_(superblock)
     {}
 
     Superblock* superblock() noexcept {
@@ -107,6 +110,8 @@ protected:
     using HistoryCtrType    = Map<BigInt, BigInt>;
     using HistoryCtr        = ICtrApi<HistoryCtrType, Profile>;
 
+    static constexpr int32_t BASIC_BLOCK_SIZE = Store::BASIC_BLOCK_SIZE;
+
     CtrInstanceMap instance_map_;
 
     SharedPtr<Store> store_;
@@ -128,6 +133,12 @@ public:
         superblock_(commit_descriptor->superblock())
     {
 
+    }
+
+    static void init_profile_metadata() noexcept {
+        DirectoryCtr::init_profile_metadata();
+        RefcountersCtr::init_profile_metadata();
+        AllocationMapCtr::init_profile_metadata();
     }
 
     virtual Result<BlockID> getRootID(const CtrID& ctr_id) noexcept
@@ -172,7 +183,25 @@ public:
 
     virtual BoolResult hasRoot(const CtrID& ctr_id) noexcept
     {
-        if (ctr_id != DirectoryCtrID)
+        using ResultT = BoolResult;
+
+        if (MMA_UNLIKELY(ctr_id == DirectoryCtrID))
+        {
+            return ResultT::of(superblock_->directory_root_id().is_set());
+        }
+        else if (MMA_UNLIKELY(ctr_id == AllocationMapCtrID))
+        {
+            return ResultT::of(superblock_->allocator_root_id().is_set());
+        }
+        else if (MMA_UNLIKELY(ctr_id == RefcountersCtrID))
+        {
+            return ResultT::of(superblock_->counters_root_id().is_set());
+        }
+        else if (MMA_UNLIKELY(ctr_id == HistoryCtrID))
+        {
+            return ResultT::of(superblock_->history_root_id().is_set());
+        }
+        else if (directory_ctr_)
         {
             MEMORIA_TRY(iter, directory_ctr_->find(ctr_id));
 
@@ -180,9 +209,6 @@ public:
             {
                 return BoolResult::of(true);
             }
-        }
-        else {
-            return BoolResult::of(true);
         }
 
         return BoolResult::of(false);
@@ -195,7 +221,7 @@ public:
     virtual Result<BlockG> getBlock(const BlockID& id) noexcept
     {
         using ResultT = Result<BlockG>;
-        BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value());
+        BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value() * BASIC_BLOCK_SIZE);
         return ResultT::of(BlockG{block});
     }
 
@@ -554,6 +580,10 @@ protected:
 
             return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref_result));
         });
+    }
+
+    void set_superblock(Superblock* superblock) noexcept {
+        this->superblock_ = superblock;
     }
 };
 

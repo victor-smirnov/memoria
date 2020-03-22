@@ -26,10 +26,17 @@ namespace memoria {
 
 template <typename Profile>
 class SWMRSuperblock {
+public:
+    static constexpr UUID MAGICK1 = UUID(15582486158405818875ull, 10745804754247616161ull);
+    static constexpr UUID MAGICK2 = UUID(11983071476558773143ull, 15192944415463971007ull);
+private:
     using BlockID    = ProfileBlockID<Profile>;
     using CommitUUID = ProfileSnapshotID<Profile>;
     using CommitID   = int64_t;
     using SequenceID = uint64_t;
+
+    UUID magick1_;
+    UUID magick2_;
 
     char magic_buffer_[256];
     char reserved_[4 * 8];
@@ -82,12 +89,19 @@ public:
     const CommitUUID& commit_uuid() const noexcept {return commit_uuid_;}
     CommitUUID& commit_uuid() noexcept {return commit_uuid_;}
 
-    VoidResult init(uint64_t superblock_file_pos, uint64_t file_size, int64_t commit_id, size_t superblock_size)
+    bool match_magick() noexcept {
+        return magick1_ == MAGICK1 && magick2_ == MAGICK2;
+    }
+
+    VoidResult init(uint64_t superblock_file_pos, uint64_t file_size, int64_t commit_id, size_t superblock_size, SequenceID sequence_id = 1)
     {
+        magick1_ = MAGICK1;
+        magick2_ = MAGICK2;
+
         std::memset(magic_buffer_, 0, sizeof(magic_buffer_));
         std::memset(reserved_, 0, sizeof(reserved_));
 
-        sequence_id_ = 1;
+        sequence_id_ = sequence_id;
         commit_id_   = commit_id;
 
         superblock_file_pos_ = superblock_file_pos;
@@ -106,6 +120,9 @@ public:
 
     VoidResult init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, int64_t commit_id) noexcept
     {
+        magick1_ = other.magick1_;
+        magick2_ = other.magick2_;
+
         history_root_id_   = other.history_root_id_;
         directory_root_id_ = other.directory_root_id_;
         counters_root_id_  = other.counters_root_id_;
