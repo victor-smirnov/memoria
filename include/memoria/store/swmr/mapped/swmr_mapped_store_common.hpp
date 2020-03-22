@@ -131,9 +131,7 @@ public:
         buffer_(buffer),
         commit_descriptor_(commit_descriptor),
         superblock_(commit_descriptor->superblock())
-    {
-
-    }
+    {}
 
     static void init_profile_metadata() noexcept {
         DirectoryCtr::init_profile_metadata();

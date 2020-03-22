@@ -56,7 +56,7 @@ int main()
         UUID ctr_id = UUID::make_random();
 
         auto txn = store1->begin().get_or_throw();
-        auto ctr = create(txn->ops(), CtrName{}, ctr_id).get_or_throw();
+        auto ctr = create(txn, CtrName{}, ctr_id).get_or_throw();
 
         for (int c = 0; c < 10000; c++) {
             ctr->insert(format_u8("AAAAAAAAAAAAAAAAAA: {}", c)).get_or_throw();
@@ -69,7 +69,7 @@ int main()
         auto store2 = open_mapped_swmr_store(name).get_or_throw();
 
         auto txn2 = store2->open().get_or_throw();
-        auto ctr2 = find<CtrName>(txn2->ro_ops(), ctr_id).get_or_throw();
+        auto ctr2 = find<CtrName>(txn2, ctr_id).get_or_throw();
 
         std::cout << ctr2->size().get_or_throw() << std::endl;
         ctr2->for_each([](auto key){

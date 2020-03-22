@@ -34,14 +34,11 @@ struct ISWMRStoreWritableCommit: ISWMRStoreCommitBase<Profile>, IStoreWritableSn
 
     virtual VoidResult set_persistent(bool persistent) noexcept = 0;
     virtual bool is_persistent() noexcept = 0;
-
-    virtual SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> ops() noexcept = 0;
 };
 
 template <typename Profile>
 struct ISWMRStoreReadOnlyCommit: ISWMRStoreCommitBase<Profile> {
     virtual VoidResult drop() noexcept = 0;
-    virtual SnpSharedPtr<IStoreSnapshotCtrOps<Profile>> ro_ops() noexcept = 0;
 };
 
 template <typename Profile>
@@ -69,5 +66,48 @@ struct ISWMRStore {
 Result<SharedPtr<ISWMRStore<MemoryCoWProfile<>>>> open_mapped_swmr_store(U8StringView path);
 Result<SharedPtr<ISWMRStore<MemoryCoWProfile<>>>> create_mapped_swmr_store(U8StringView path, uint64_t store_size_mb);
 
+
+template <typename CtrName, typename Profile>
+Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
+        SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
+        const CtrName& ctr_type_name,
+        const ProfileCtrID<Profile>& ctr_id
+) noexcept
+{
+    auto ptr = memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(alloc);
+    return create(ptr, ctr_type_name, ctr_id);
+}
+
+template <typename CtrName, typename Profile>
+Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
+        SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
+        const CtrName& ctr_type_name
+) noexcept
+{
+    auto ptr = memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(alloc);
+    return create(ptr, ctr_type_name);
+}
+
+
+template <typename CtrName, typename Profile>
+Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
+        SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
+        const CtrName& ctr_type_name,
+        const ProfileCtrID<Profile>& ctr_id
+) noexcept
+{
+    auto ptr = memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(alloc);
+    return find_or_create(ptr, ctr_type_name, ctr_id);
+}
+
+template <typename CtrName, typename Profile>
+Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
+        SnpSharedPtr<ISWMRStoreReadOnlyCommit<Profile>>& alloc,
+        const ProfileCtrID<Profile>& ctr_id
+) noexcept
+{
+    auto ptr = memoria_static_pointer_cast<IStoreSnapshotCtrOps<Profile>>(alloc);
+    return find<CtrName>(ptr, ctr_id);
+}
 
 }

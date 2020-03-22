@@ -92,15 +92,9 @@ public:
 
 
 protected:
-
     virtual SnpSharedPtr<AllocatorT> self_ptr() noexcept {
         return this->shared_from_this();
     }
-
-    virtual SnpSharedPtr<IStoreSnapshotCtrOps<Profile>> ro_ops() noexcept {
-        return memoria_static_pointer_cast<IStoreSnapshotCtrOps<Profile>>(this->shared_from_this());
-    }
-
 };
 
 }

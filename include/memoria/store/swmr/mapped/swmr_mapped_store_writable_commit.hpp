@@ -1062,15 +1062,6 @@ private:
             postponed_deallocations_reentry_.append_value(meta);
         }
     }
-
-    virtual SnpSharedPtr<IStoreSnapshotCtrOps<Profile>> ro_ops() noexcept {
-        //return memoria_static_pointer_cast<IStoreSnapshotCtrOps<Profile>>(this->shared_from_this());
-        return SnpSharedPtr<IStoreSnapshotCtrOps<Profile>>{};
-    }
-
-    virtual SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> ops() noexcept {
-        return memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(this->shared_from_this());
-    }
 };
 
 }
