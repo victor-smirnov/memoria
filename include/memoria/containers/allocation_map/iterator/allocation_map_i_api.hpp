@@ -77,6 +77,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
         CtrSizeT remainder = size;
         while (accum < size)
         {
+            MEMORIA_TRY_VOID(self.ctr().ctr_cow_clone_path(self.path(), 0));
+
             MEMORIA_TRY(processed, self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), SetClearBitsFn(), local_pos, level, remainder, set_bits));
 
             accum += processed;
@@ -106,6 +108,64 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
 
         return ResultT::of(accum);
     }
+
+
+    struct TouchBitsFn {
+        template <typename T>
+        Result<CtrSizeT> treeNode(T&& node_so, int32_t start, int32_t level, CtrSizeT size) const noexcept
+        {
+            using ResultT = Result<CtrSizeT>;
+            auto bitmap = node_so.template substream_by_idx<1>();
+            int32_t bm_size = bitmap.data()->size(level);
+
+            int32_t limit = (start + size) < bm_size ? (start + size) : bm_size;
+
+            return ResultT::of(limit - start);
+        }
+    };
+
+
+    Result<CtrSizeT> iter_touch_bits(int32_t level, CtrSizeT size) noexcept
+    {
+        using ResultT = Result<CtrSizeT>;
+        auto& self = this->self();
+
+        int32_t local_pos = self.iter_local_pos() >> level;
+
+        CtrSizeT accum{};
+        CtrSizeT remainder = size;
+        while (accum < size)
+        {
+            MEMORIA_TRY_VOID(self.ctr().ctr_cow_clone_path(self.path(), 0));
+
+            MEMORIA_TRY(processed, self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), TouchBitsFn(), local_pos, level, remainder));
+
+            accum += processed;
+
+            if (accum < size)
+            {
+                MEMORIA_TRY(has_next, self.next_leaf());
+                if (!has_next) {
+                    break;
+                }
+
+                self.iter_local_pos() = local_pos = 0;
+            }
+            else {
+                self.iter_local_pos() += processed << level;
+            }
+        }
+
+        MEMORIA_TRY(leaf_size, self.iter_leaf_size());
+
+        if (leaf_size == self.iter_local_pos())
+        {
+            MEMORIA_TRY_VOID(self.next_leaf());
+        }
+
+        return ResultT::of(accum);
+    }
+
 
 
     struct PosWalker {

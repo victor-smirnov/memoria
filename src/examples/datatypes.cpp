@@ -59,7 +59,15 @@ int main()
         auto ctr = create(txn, CtrName{}, ctr_id).get_or_throw();
         txn->commit().get_or_throw();
 
-        for (int c = 0; c < 100000; c++)
+        long t0 = getTimeInMillis();
+
+
+        long tCommit{};
+        long tInsert{};
+
+
+
+        for (int c = 0; c < 10000; c++)
         {
             if (c % 1000 == 0)
             {
@@ -68,24 +76,42 @@ int main()
 
             auto txn2 = store1->begin().get_or_throw();
             auto ctr2 = find<CtrName>(txn2, ctr_id).get_or_throw();
-            ctr2->insert(format_u8("AAAAAAAAAAAAAAAAAA: {}", c)).get_or_throw();
 
+
+            int64_t val = getBIRandomG();
+
+            int64_t ti0 = getTimeInNanos();
+            ctr2->insert(format_u8("AAAAAAAAAAAAAAAAAA: {}", val)).get_or_throw();
+            int64_t ti1 = getTimeInNanos();
+
+            tInsert += ti1 - ti0;
+
+            long tc0 = getTimeInMillis();
             txn2->commit(false).get_or_throw();
+            long tc1 = getTimeInMillis();
+
+            tCommit += tc1 - tc0;
         }
 
-        std::cout << "Insertion finished" << std::endl;
+
         store1->flush().get_or_throw();
+        long t1 = getTimeInMillis();
+
+        std::cout << "Insertion finished, time = " << (t1 - t0)
+                  << ", commit time = " << tCommit
+                  << ", inert time = " << (tInsert / 1000000)
+                  <<  std::endl;
         store1.reset();
 
         auto store2 = open_mapped_swmr_store(name).get_or_throw();
 
-        auto txn2 = store2->open().get_or_throw();
-        auto ctr2 = find<CtrName>(txn2, ctr_id).get_or_throw();
+        auto txn3 = store2->open().get_or_throw();
+        auto ctr3 = find<CtrName>(txn3, ctr_id).get_or_throw();
 
-        std::cout << ctr2->size().get_or_throw() << std::endl;
-        ctr2->for_each([](auto key){
-            std::cout << "Key: " << key << std::endl;
-        }).get_or_throw();
+        std::cout << ctr3->size().get_or_throw() << std::endl;
+//        ctr3->for_each([](auto key){
+//            std::cout << "Key: " << key << std::endl;
+//        }).get_or_throw();
 
 
         dtrStart = getTimeInMillis();

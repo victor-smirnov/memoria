@@ -151,6 +151,8 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
     ) noexcept = 0;
 
     virtual CtrSizeTResult setup_bits(Span<const AllocationMetadata<Profile>> allocations, bool set_bits) noexcept = 0;
+    virtual CtrSizeTResult touch_bits(Span<const AllocationMetadata<Profile>> allocations) noexcept = 0;
+
     virtual CtrSizeTResult mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size) noexcept = 0;
     virtual CtrSizeTResult mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size) noexcept = 0;
 

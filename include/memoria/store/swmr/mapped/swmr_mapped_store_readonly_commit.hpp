@@ -75,7 +75,6 @@ public:
 
         bool has_next;
         do {
-
             for (auto superblock_ptr: scanner.values())
             {
                 MEMORIA_TRY_VOID(fn(superblock_ptr));

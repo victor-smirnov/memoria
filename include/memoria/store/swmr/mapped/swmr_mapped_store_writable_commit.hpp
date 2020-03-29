@@ -109,9 +109,7 @@ class MappedSWMRStoreWritableCommit:
     ArenaBuffer<AllocationMetadataT> awaiting_allocations_;
     ArenaBuffer<AllocationMetadataT> awaiting_allocations_reentry_;
 
-    bool flushing_postponed_deallocations_{false};
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_;
-    ArenaBuffer<AllocationMetadataT> postponed_deallocations_reentry_;
 
     bool persistent_{false};
 
@@ -281,8 +279,11 @@ public:
                 MEMORIA_TRY_VOID(history_ctr_->assign_key(superblock_->commit_id(), sb_pos * (persistent_ ? 1 : -1)));
             }
 
-            do {
-                while (counters_cache_.size() > 0)
+            ArenaBuffer<AllocationMetadataT> all_postponed_deallocations;
+
+            while (counters_cache_.size() > 0 || awaiting_allocations_.size() > 0 || postponed_deallocations_.size() > 0)
+            {
+                if (counters_cache_.size() > 0)
                 {
                     CountersCache counters_cache = std::move(counters_cache_);
                     counters_cache_ = CountersCache{};
@@ -292,29 +293,32 @@ public:
                     {
                         MEMORIA_TRY_VOID(internal_merge_counters_entry(entry.first, entry.second.value, entry.second.on_zero_fn));
                     }
-
                     refcounter_consolidation_mode_ = false;
                 }
 
-                do {
-                    MEMORIA_TRY_VOID(flush_awaiting_allocations());
+                MEMORIA_TRY_VOID(flush_awaiting_allocations());
 
-                    if (postponed_deallocations_.size() > 0)
-                    {
-                        flushing_postponed_deallocations_ = true;
-                        postponed_deallocations_.sort();
-                        auto res = allocation_map_ctr_->setup_bits(postponed_deallocations_, false); // clear bits
-                        flushing_postponed_deallocations_ = false;
-                        MEMORIA_RETURN_IF_ERROR(res);
+                if (postponed_deallocations_.size() > 0)
+                {
+                    ArenaBuffer<AllocationMetadataT> postponed_deallocations;
+                    postponed_deallocations.append_values(postponed_deallocations_.span());
+                    all_postponed_deallocations.append_values(postponed_deallocations_.span());
+                    postponed_deallocations.sort();
+                    postponed_deallocations_.clear();
 
-                        postponed_deallocations_.clear();
-                        postponed_deallocations_.append_values(postponed_deallocations_reentry_.span());
-                        postponed_deallocations_reentry_.clear();
-                    }
+                    // Just CoW allocation map's leafs that bits will be cleared later
+                    auto res = allocation_map_ctr_->touch_bits(postponed_deallocations.span());
+                    MEMORIA_RETURN_IF_ERROR(res);
                 }
-                while (awaiting_allocations_.size() > 0 || postponed_deallocations_.size() > 0);
             }
-            while (counters_cache_.size() > 0);
+
+            if (all_postponed_deallocations.size() > 0)
+            {
+                all_postponed_deallocations.sort();
+                // Mark blocks as free
+                auto res = allocation_map_ctr_->setup_bits(all_postponed_deallocations.span(), false);
+                MEMORIA_RETURN_IF_ERROR(res);
+            }
 
             if (flush) {
                 MEMORIA_TRY_VOID(store_->flush_data());
@@ -1129,12 +1133,7 @@ private:
     }
 
     void add_postponed_deallocation(const AllocationMetadataT& meta) noexcept {
-        if (!flushing_postponed_deallocations_) {
-            postponed_deallocations_.append_value(meta);
-        }
-        else {
-            postponed_deallocations_reentry_.append_value(meta);
-        }
+        postponed_deallocations_.append_value(meta);
     }
 };
 

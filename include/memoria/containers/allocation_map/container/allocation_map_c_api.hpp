@@ -287,10 +287,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             auto alc_ii = allocations.begin();
             const auto& alloc0 = *alc_ii;
 
-//            if (DebugCounter) {
-//                std::cout << alloc0 << std::endl;
-//            }
-
             CtrSizeT global_pos = alloc0.position();
             MEMORIA_TRY(ii, self.ctr_seek(global_pos));
 
@@ -312,10 +308,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             {
                 const auto& alc = *alc_ii;
 
-//                if (DebugCounter) {
-//                    std::cout << alc<< std::endl;
-//                }
-
                 CtrSizeT next_pos = alc.position();
                 CtrSizeT skip_size = next_pos - global_pos;
 
@@ -331,6 +323,67 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 int32_t level_ii = alc.level();
 
                 MEMORIA_TRY(processed_ii, ii->iter_setup_bits(level_ii, size_ii, set_bits));
+
+                global_size += processed_ii << level_ii;
+                global_pos  += (processed_ii << level_ii);
+            }
+
+            return ResultT::of(global_size);
+        }
+        else {
+            return ResultT::of();
+        }
+    }
+
+
+    virtual Result<CtrSizeT> touch_bits(Span<const AllocationMetadata<Profile>> allocations) noexcept
+    {
+        using ResultT = Result<CtrSizeT>;
+        auto& self = this->self();
+
+        if (allocations.size() > 0)
+        {
+            CtrSizeT global_size{};
+
+            auto alc_ii = allocations.begin();
+            const auto& alloc0 = *alc_ii;
+
+            CtrSizeT global_pos = alloc0.position();
+            MEMORIA_TRY(ii, self.ctr_seek(global_pos));
+
+            if (ii->iter_is_end()) {
+                return ResultT::of();
+            }
+
+            CtrSizeT size = alloc0.size();
+            int32_t level = alloc0.level();
+
+            MEMORIA_TRY(processed, ii->iter_touch_bits(level, size));
+
+            global_size += processed << level;
+            global_pos  += processed << level;
+
+            alc_ii++;
+
+            for (;alc_ii != allocations.end(); alc_ii++)
+            {
+                const auto& alc = *alc_ii;
+
+                CtrSizeT next_pos = alc.position();
+                CtrSizeT skip_size = next_pos - global_pos;
+
+                MEMORIA_TRY_VOID(ii->skip(skip_size));
+
+                if (ii->iter_is_end()) {
+                    break;
+                }
+
+                global_pos += skip_size;
+
+                CtrSizeT size_ii = alc.size();
+                int32_t level_ii = alc.level();
+
+                MEMORIA_TRY(processed_ii, ii->iter_touch_bits(level_ii, size_ii));
 
                 global_size += processed_ii << level_ii;
                 global_pos  += (processed_ii << level_ii);
