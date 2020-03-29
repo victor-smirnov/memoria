@@ -157,7 +157,7 @@ public:
         return SnapshotMetadata<Profile>(parent_id, history_node_->snapshot_id(), children, history_node_->metadata(), history_node_->status());
     }
 
-    VoidResult commit() noexcept
+    VoidResult commit(bool flush = true) noexcept
     {
     	LockGuardT lock_guard(history_node_->snapshot_mutex());
 

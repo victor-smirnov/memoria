@@ -67,7 +67,7 @@ protected:
 
 
 template <typename Profile>
-class IStoreWritableSnapshotCtrOps: public IStoreSnapshotCtrOps<Profile> {
+class IStoreWritableSnapshotCtrOps: public virtual IStoreSnapshotCtrOps<Profile> {
     using AllocatorT = ProfileAllocatorType<Profile>;
 
 public:
@@ -77,7 +77,7 @@ public:
     virtual CtrReferenceableResult create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept = 0;
     virtual CtrReferenceableResult create(const LDTypeDeclarationView& decl) noexcept = 0;
 
-    virtual VoidResult commit() noexcept = 0;
+    virtual VoidResult commit(bool flush = true) noexcept = 0;
     virtual VoidResult flush_open_containers() noexcept = 0;
 
     virtual BoolResult drop_ctr(const CtrID& name) noexcept = 0;

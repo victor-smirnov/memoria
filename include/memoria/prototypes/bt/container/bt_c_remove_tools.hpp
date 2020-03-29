@@ -103,7 +103,6 @@ VoidResult M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_
     auto& self = this->self();
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
-
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(path[level]));
 
     auto res = self.ctr_for_all_ids(path[level], start, end, [&](const BlockID& id) noexcept -> VoidResult {

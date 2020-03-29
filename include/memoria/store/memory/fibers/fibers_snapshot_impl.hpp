@@ -179,7 +179,7 @@ public:
         });
     }
 
-    Result<void> commit() noexcept
+    VoidResult commit(bool flush = true) noexcept
     {
         using ResultT = Result<void>;
         return reactor::engine().run_at(cpu_, [&] () noexcept -> ResultT

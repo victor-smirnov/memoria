@@ -68,6 +68,18 @@ public:
     void set_superblock(Superblock* superblock) noexcept {
         superblock_ = superblock;
     }
+
+    void ref() noexcept {
+        uses_.fetch_add(1);
+    }
+
+    void unref() noexcept {
+        uses_.fetch_sub(1);
+    }
+
+    bool is_in_use() noexcept {
+        return uses_.load() > 0;
+    }
 };
 
 template <typename Profile>
@@ -524,7 +536,7 @@ public:
     virtual VoidResult ref_block(BlockG block, int64_t amount = 1) noexcept {
         return MEMORIA_MAKE_GENERIC_ERROR("ref_block() is not implemented for ReadOnly commits");
     }
-    virtual BoolResult unref_block(BlockG block) noexcept {
+    virtual VoidResult unref_block(BlockG block, std::function<VoidResult()> on_zero) noexcept {
         return MEMORIA_MAKE_GENERIC_ERROR("unref_block() is not implemented for ReadOnly commits");
     }
 

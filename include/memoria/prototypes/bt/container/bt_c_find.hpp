@@ -510,6 +510,10 @@ Result<typename M_TYPE::IteratorPtr> M_TYPE::ctr_find(Walker&& walker) const noe
 
     MEMORIA_TRY(node, self.ctr_get_root_node());
 
+    if (!node->is_root()) {
+        std::cout << "########################################" << std::endl;
+    }
+
     i->path().resize(node->level() + 1);
 
     if (node.isSet())

@@ -128,7 +128,7 @@ struct ICoWAllocator: IAllocatorBase<Profile> {
     virtual SnpSharedPtr<ICoWAllocator> self_ptr() noexcept = 0;
 
     virtual VoidResult ref_block(BlockG block, int64_t amount = 1) noexcept = 0;
-    virtual BoolResult unref_block(BlockG block) noexcept = 0;
+    virtual VoidResult unref_block(BlockG block, std::function<VoidResult()> on_zero) noexcept = 0;
     virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept = 0;
 
     virtual VoidResult traverse_ctr(

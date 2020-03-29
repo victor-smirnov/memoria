@@ -681,8 +681,13 @@ public:
         return VoidResult::of();
     }
 
-    virtual BoolResult unref_block(BlockG block) noexcept {
-        return block->unref_block();
+    virtual VoidResult unref_block(BlockG block, std::function<VoidResult()> on_zero) noexcept
+    {
+        if (block->unref_block()) {
+            return on_zero();
+        }
+
+        return VoidResult::of();
     }
 
 
@@ -814,6 +819,7 @@ public:
                 if (root_id_to_remove.isSet())
                 {
                     MEMORIA_TRY(instance, from_root_id(root_id_to_remove, CtrID{}));
+                    // TODO: Do we need to unref the block here first?
                     return instance->internal_unref_cascade(root_id_to_remove);
                 }
             }

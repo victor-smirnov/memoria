@@ -64,8 +64,6 @@ private:
     PageGuidType uuid_;
     SnapshotID snapshot_id_;
 
-
-
 public:
     using FieldsList = TypeList<
                 ConstValue<uint32_t, VERSION>,
@@ -172,19 +170,15 @@ public:
     }
 
     void ref_block(int64_t amount = 1) noexcept {
-//        auto refs =
-                references_.fetch_add(amount, std::memory_order_relaxed);
-        //std::cout << "Ref block " << id_value_ << " :: " << (refs + amount) << std::endl;
+        references_.fetch_add(amount, std::memory_order_relaxed);
     }
 
-    bool unref_block() noexcept {
+    bool unref_block() noexcept
+    {
         auto refs = references_.fetch_sub(1, std::memory_order_acq_rel);
-        //std::cout << "Unref block " << id_value_ << " :: " << (refs - 1) << std::endl;
-
         if (refs < 1) {
             terminate(format_u8("Internal error. Negative refcount detected for block {}", id_value_).data());
         }
-
         return refs == 1;
     }
 

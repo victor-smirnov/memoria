@@ -123,8 +123,8 @@ VoidResult M_TYPE::ctr_insert_to_branch_node(
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
 
+    MEMORIA_TRY_VOID(self.ctr_update_block_guard(path[level]));
     NodeBaseG node = path[level];
-    MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
     MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node, InsertFn(), idx, sums, id));
 

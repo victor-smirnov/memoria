@@ -217,10 +217,10 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_p
 
     MEMORIA_TRY_VOID(self.ctr_check_same_paths(tgt_path, src_path, 1));
 
+    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(tgt_path, 0));
+
     NodeBaseG src = src_path.leaf();
     NodeBaseG tgt = tgt_path.leaf();
-
-    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(tgt_path, 0));
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
 

@@ -80,9 +80,9 @@ VoidResult M_TYPE::ctr_create_new_root_block(TreePathT& path) noexcept
 
     MEMORIA_TRY_VOID(self.ctr_insert_to_branch_node(path, new_root->level(), 0, max, root->id()));
 
-    MEMORIA_TRY_VOID(self.set_root(new_root->id()));
+    MEMORIA_TRY_VOID(self.ctr_ref_block(root->id()));
 
-    return self.ctr_ref_block(root->id());
+    return self.set_root(new_root->id());
 }
 
 #undef M_TYPE

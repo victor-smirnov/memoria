@@ -239,6 +239,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             if (MMA_UNLIKELY(branch_capacity == 0))
             {
                 MEMORIA_TRY_VOID(self.ctr_split_path(path, 1, branch_size));
+                MEMORIA_TRY_VOID(self.ctr_expect_next_node(path, 1));
+
                 parent_idx = 0;
             }
             else {
@@ -285,6 +287,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             auto alc_ii = allocations.begin();
             const auto& alloc0 = *alc_ii;
 
+//            if (DebugCounter) {
+//                std::cout << alloc0 << std::endl;
+//            }
+
             CtrSizeT global_pos = alloc0.position();
             MEMORIA_TRY(ii, self.ctr_seek(global_pos));
 
@@ -305,6 +311,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             for (;alc_ii != allocations.end(); alc_ii++)
             {
                 const auto& alc = *alc_ii;
+
+//                if (DebugCounter) {
+//                    std::cout << alc<< std::endl;
+//                }
+
                 CtrSizeT next_pos = alc.position();
                 CtrSizeT skip_size = next_pos - global_pos;
 

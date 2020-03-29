@@ -51,19 +51,30 @@ int main()
 
         const char* name = "/home/victor/memoria_swmr_file.mma4";
         memoria::filesystem::remove(name);
-        auto store1 = create_mapped_swmr_store(name, 1024).get_or_throw();
+        auto store1 = create_mapped_swmr_store(name, 16*1024).get_or_throw();
 
         UUID ctr_id = UUID::make_random();
 
         auto txn = store1->begin().get_or_throw();
         auto ctr = create(txn, CtrName{}, ctr_id).get_or_throw();
-
-        for (int c = 0; c < 10000; c++) {
-            ctr->insert(format_u8("AAAAAAAAAAAAAAAAAA: {}", c)).get_or_throw();
-        }
-
         txn->commit().get_or_throw();
 
+        for (int c = 0; c < 100000; c++)
+        {
+            if (c % 1000 == 0)
+            {
+                std::cout << "C=" << c << std::endl;
+            }
+
+            auto txn2 = store1->begin().get_or_throw();
+            auto ctr2 = find<CtrName>(txn2, ctr_id).get_or_throw();
+            ctr2->insert(format_u8("AAAAAAAAAAAAAAAAAA: {}", c)).get_or_throw();
+
+            txn2->commit(false).get_or_throw();
+        }
+
+        std::cout << "Insertion finished" << std::endl;
+        store1->flush().get_or_throw();
         store1.reset();
 
         auto store2 = open_mapped_swmr_store(name).get_or_throw();

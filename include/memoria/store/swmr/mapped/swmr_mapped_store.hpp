@@ -170,6 +170,11 @@ public:
         return VoidResult::of();
     }
 
+    virtual VoidResult flush() noexcept {
+        MEMORIA_TRY_VOID(flush_data());
+        return flush_header();
+    }
+
     virtual Result<WritableCommitPtr> begin() noexcept
     {
         using ResultT = Result<WritableCommitPtr>;
@@ -229,7 +234,7 @@ public:
                 LockGuard lock(reader_mutex_);
 
                 if (former_head_ptr_) {
-                    eviction_queue_.push_back(*commit_descriptor);
+                    eviction_queue_.push_back(*former_head_ptr_);
                 }
 
                 former_head_ptr_ = head_ptr_;
@@ -398,6 +403,10 @@ private:
         });
     }
 
+
+    void unlock_writer() noexcept {
+        writer_mutex_.unlock();
+    }
 };
 
 }

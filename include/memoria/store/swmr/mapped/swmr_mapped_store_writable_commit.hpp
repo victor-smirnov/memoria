@@ -63,8 +63,11 @@ class MappedSWMRStoreWritableCommit:
     using Superblock          = SWMRSuperblock<Profile>;
     using ParentCommit        = SnpSharedPtr<MappedSWMRStoreReadOnlyCommit<Profile>>;
 
+    using BlockCleanupHandler = std::function<VoidResult ()>;
+
     struct CounterValue{
         int64_t value;
+        std::function<VoidResult()> on_zero_fn;
     };
     using CountersCache       = std::unordered_map<BlockID, CounterValue>;
 
@@ -96,6 +99,7 @@ class MappedSWMRStoreWritableCommit:
     bool committed_{false};
     bool allocator_initialization_mode_{false};
     bool refcounter_update_mode_{false};
+    bool refcounter_consolidation_mode_{false};
 
     ParentCommit parent_commit_;
 
@@ -108,7 +112,6 @@ class MappedSWMRStoreWritableCommit:
     bool flushing_postponed_deallocations_{false};
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_;
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_reentry_;
-
 
     bool persistent_{false};
 
@@ -232,6 +235,12 @@ public:
         );
     }
 
+    virtual ~MappedSWMRStoreWritableCommit() noexcept {
+        if (!committed_) {
+            store_->unlock_writer();
+            delete Base::commit_descriptor_;
+        }
+    }
 
 
     VoidResult finish_store_initialization() noexcept
@@ -260,7 +269,7 @@ public:
         return factory->create_instance(self_ptr(), ctr_name, decl);
     }
 
-    virtual VoidResult commit() noexcept
+    virtual VoidResult commit(bool flush = true) noexcept
     {        
         if (this->is_active())
         {
@@ -272,43 +281,57 @@ public:
                 MEMORIA_TRY_VOID(history_ctr_->assign_key(superblock_->commit_id(), sb_pos * (persistent_ ? 1 : -1)));
             }
 
-            while (counters_cache_.size() > 0)
-            {
-                CountersCache counters_cache = std::move(counters_cache_);
-                counters_cache_ = CountersCache{};
-
-                for (auto entry: counters_cache)
-                {
-                    MEMORIA_TRY_VOID(internal_update_counters_entry(entry.first, entry.second.value));
-                }
-            }
-
             do {
-                MEMORIA_TRY_VOID(flush_awaiting_allocations());
-
-                if (postponed_deallocations_.size() > 0)
+                while (counters_cache_.size() > 0)
                 {
-                    flushing_postponed_deallocations_ = true;
-                    auto res = allocation_map_ctr_->setup_bits(postponed_deallocations_, false); // clear bits
-                    flushing_postponed_deallocations_ = false;
-                    MEMORIA_RETURN_IF_ERROR(res);
+                    CountersCache counters_cache = std::move(counters_cache_);
+                    counters_cache_ = CountersCache{};
 
-                    postponed_deallocations_.clear();
-                    postponed_deallocations_.append_values(postponed_deallocations_reentry_.span());
-                    postponed_deallocations_reentry_.clear();
+                    refcounter_consolidation_mode_ = true;
+                    for (auto entry: counters_cache)
+                    {
+                        MEMORIA_TRY_VOID(internal_merge_counters_entry(entry.first, entry.second.value, entry.second.on_zero_fn));
+                    }
+
+                    refcounter_consolidation_mode_ = false;
                 }
-            }
-            while (awaiting_allocations_.size() > 0 || postponed_deallocations_.size() > 0);
 
-            MEMORIA_TRY_VOID(store_->flush_data());
+                do {
+                    MEMORIA_TRY_VOID(flush_awaiting_allocations());
+
+                    if (postponed_deallocations_.size() > 0)
+                    {
+                        flushing_postponed_deallocations_ = true;
+                        postponed_deallocations_.sort();
+                        auto res = allocation_map_ctr_->setup_bits(postponed_deallocations_, false); // clear bits
+                        flushing_postponed_deallocations_ = false;
+                        MEMORIA_RETURN_IF_ERROR(res);
+
+                        postponed_deallocations_.clear();
+                        postponed_deallocations_.append_values(postponed_deallocations_reentry_.span());
+                        postponed_deallocations_reentry_.clear();
+                    }
+                }
+                while (awaiting_allocations_.size() > 0 || postponed_deallocations_.size() > 0);
+            }
+            while (counters_cache_.size() > 0);
+
+            if (flush) {
+                MEMORIA_TRY_VOID(store_->flush_data());
+            }
 
             MEMORIA_TRY_VOID(superblock_->build_superblock_description());
 
             size_t sb_slot = superblock_->sequence_id() % 2;
             std::memcpy(buffer_.data() + sb_slot * BASIC_BLOCK_SIZE, superblock_, BASIC_BLOCK_SIZE);
 
-            MEMORIA_TRY_VOID(store_->flush_header());
+            if (flush) {
+                MEMORIA_TRY_VOID(store_->flush_header());
+            }
+
             MEMORIA_TRY_VOID(store_->finish_commit(Base::commit_descriptor_));
+
+            committed_ = true;
         }
         else {
             return MEMORIA_MAKE_GENERIC_ERROR("Transaction {} has been already committed", commit_id());
@@ -367,9 +390,6 @@ public:
         }
     }
 
-    virtual VoidResult rollback() noexcept {
-        return VoidResult::of();
-    }
 
     virtual VoidResult set_persistent(bool persistent) noexcept
     {
@@ -593,8 +613,6 @@ public:
             }
         }
 
-        std::cout << "createBlock: " << allocation.get() << std::endl;
-
         add_awaiting_allocation(allocation.get());
 
         uint64_t id = allocation.get().position();
@@ -645,6 +663,7 @@ public:
         new_block->id() = BlockID{id};
         new_block->id_value() = id;
         new_block->snapshot_id() = superblock_->commit_uuid();
+        new_block->set_references(0);
 
         return ResultT::of(BlockG{new_block});
     }
@@ -653,53 +672,37 @@ public:
     {
         BlockID block_id = block->id();
 
-        if (MMA_UNLIKELY(!refcounters_ctr_)) {
+        if (MMA_UNLIKELY((!refcounters_ctr_) || refcounter_update_mode_ || refcounter_consolidation_mode_)) {
             internal_ref_counter_cache(block_id, amount);
         }
-        else if (MMA_LIKELY(!refcounter_update_mode_)) {
+        else if (!internal_try_ref_counter_cache(block_id, amount))
+        {
             return internal_ref_block(block_id, amount);
-        }
-        else {
-            MEMORIA_TRY(success, internal_try_ref_block(block_id, amount));
-            if (!success)
-            {
-                internal_ref_counter_cache(block_id, amount);
-            }
         }
 
         return VoidResult::of();
     }
 
-    virtual BoolResult unref_block(BlockG block) noexcept
+    virtual VoidResult unref_block(BlockG block, BlockCleanupHandler on_zero) noexcept
     {
         BlockID block_id = block->id();
-        auto cached = internal_unref_counter_cache(block_id);
-        if (MMA_UNLIKELY((bool)cached)) {
-            return BoolResult::of(cached.get());
+
+        if (MMA_UNLIKELY((!refcounters_ctr_) || refcounter_update_mode_ || refcounter_consolidation_mode_)) {
+            internal_unref_counter_cache(block_id, on_zero);
         }
-        else if (MMA_LIKELY(!refcounter_update_mode_))
-        {
-            return internal_unref_block(block_id, true);
+        else if (!internal_try_unref_counter_cache(block_id)) {
+            return internal_unref_block(block_id, on_zero);
         }
-        else if (MMA_LIKELY((bool)refcounters_ctr_))
-        {
-            MEMORIA_TRY(zero_refs, internal_unref_block(block_id, false));
-            if (zero_refs){
-                counters_cache_[block_id] = CounterValue{0};
-            }
-            return zero_refs_result;
-        }
-        else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Counters container hasn't been initialized yet");
-        }
+
+        return VoidResult::of();
     }
 
     virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept
     {
-        MEMORIA_TRY(block, this->getBlock(root_block_id));
-        MEMORIA_TRY(zero_references, unref_block(block));
-        if (zero_references)
-        {
+        MEMORIA_TRY(block0, this->getBlock(root_block_id));
+        return unref_block(block0, [=]() -> VoidResult {
+            MEMORIA_TRY(block, this->getBlock(root_block_id));
+
             auto ctr_hash = block->ctr_type_hash();
 
             auto ctr_intf = ProfileMetadata<Profile>::local()
@@ -708,9 +711,9 @@ public:
             MEMORIA_TRY(ctr, ctr_intf->new_ctr_instance(block, this));
 
             MEMORIA_TRY_VOID(ctr->internal_unref_cascade(root_block_id));
-        }
 
-        return VoidResult::of();
+            return VoidResult::of();
+        });
     }
 
 protected:
@@ -898,7 +901,7 @@ private:
                 return Optional<DatumT>{DatumT(new_value)};
             }
             else {
-                return Optional<DatumT>{DatumT(1)};
+                return Optional<DatumT>{DatumT(amount)};
             }
         });
 
@@ -908,7 +911,7 @@ private:
         return VoidResult::of();
     }
 
-    BoolResult internal_unref_block(const BlockID& block_id, bool delete_on_zero) noexcept
+    VoidResult internal_unref_block(const BlockID& block_id, const BlockCleanupHandler& on_zero) noexcept
     {
         refcounter_update_mode_ = true;
 
@@ -921,7 +924,7 @@ private:
             {
                 counter_value = value.get().view() - 1;
 
-                if (counter_value == 0 && delete_on_zero) {
+                if (counter_value == 0) {
                     return Optional<DatumT>{};
                 }
                 else {
@@ -944,7 +947,16 @@ private:
             return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Negative counter for block ID {}: {}", block_id, counter_value);
         }
 
-        return BoolResult::of(counter_value == 0);
+        if (counter_value == 0) {
+            if (on_zero) {
+                return on_zero();
+            }
+            else {
+                return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Zero-refs block cleanup handler is not specified for {}", block_id);
+            }
+        }
+
+        return VoidResult::of();
     }
 
 
@@ -962,30 +974,92 @@ private:
         }
     }
 
-    Optional<bool> internal_unref_counter_cache(const BlockID& block_id) noexcept
+    bool internal_try_ref_counter_cache(const BlockID& block_id, int64_t amount) noexcept
+    {
+        auto ii = counters_cache_.find(block_id);
+        if (ii != counters_cache_.end()) {
+            ii->second.value += amount;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    void internal_unref_counter_cache(const BlockID& block_id, const BlockCleanupHandler& on_zero) noexcept
     {
         auto ii = counters_cache_.find(block_id);
         if (ii != counters_cache_.end()) {
             auto res = ii->second.value - 1;
             ii->second.value = res;
-            return Optional<bool>{res == 0};
+            ii->second.on_zero_fn = on_zero;
         }
         else {
-            return Optional<bool>{};
+            counters_cache_[block_id] = CounterValue{-1, on_zero};
         }
     }
 
-    VoidResult internal_update_counters_entry(const BlockID& block_id, int64_t refs_value) noexcept
+    bool internal_try_unref_counter_cache(const BlockID& block_id) noexcept
     {
-        if (refs_value > 0)
-        {
-            MEMORIA_TRY_VOID(refcounters_ctr_->assign_key(block_id.value(), refs_value));
-        }
-        else if (refs_value == 0) {
-            MEMORIA_TRY_VOID(refcounters_ctr_->remove_key(block_id.value()));
+        auto ii = counters_cache_.find(block_id);
+        if (ii != counters_cache_.end()) {
+            ii->second.value -= 1;
+            return true;
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Negtive refcount for block {}", block_id);
+            return false;
+        }
+    }
+
+    VoidResult internal_merge_counters_entry(const BlockID& block_id, int64_t cached_value, const BlockCleanupHandler& on_zero) noexcept
+    {
+        refcounter_update_mode_ = true;
+
+        bool no_counter = false;
+        int64_t counter_value{};
+
+        using DatumT = Datum<BigInt>;
+        auto res = refcounters_ctr_->with_value(block_id.value(), [&](Optional<DatumT> value) noexcept {
+            if (value)
+            {
+                counter_value = value.get().view() + cached_value;
+
+                if (counter_value == 0) {
+                    return Optional<DatumT>{};
+                }
+                else {
+                    return Optional<DatumT>{DatumT(counter_value)};
+                }
+            }
+            else {
+                no_counter = true;
+                if (cached_value != 0) {
+                    counter_value = cached_value;
+                    return Optional<DatumT>{DatumT(cached_value)};
+                }
+                else {
+                    return Optional<DatumT>{};
+                }
+            }
+        });
+        refcounter_update_mode_ = false;
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        if (no_counter && cached_value < 0) {
+            return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Negative cached counter for block ID {}: {}", block_id, counter_value);
+        }
+
+        if (counter_value < 0) {
+            return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Negative counter for block ID {}: {}", block_id, counter_value);
+        }
+
+        if (counter_value == 0) {
+            if (on_zero) {
+                return on_zero();
+            }
+            else {
+                return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Zero-refs block cleanup handler is not specified for {}", block_id);
+            }
         }
 
         return VoidResult::of();

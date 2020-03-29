@@ -57,7 +57,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
             if (level + 1 < path_size)
             {
-                new_node->header().set_references(1);
+                MEMORIA_TRY_VOID(self.ctr_ref_block(new_node->id()));
 
                 MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(path, level));
                 MEMORIA_TRY(old_child_id, self.ctr_set_child_id(path[level + 1], parent_idx, new_node->id()));
@@ -82,25 +82,25 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(block, self.ctr_get_block(block_id));
+        auto this_ptr = this->shared_from_this();
+        MEMORIA_TRY(block0, self.ctr_get_block(block_id));
 
-        MEMORIA_TRY(no_references, self.store().unref_block(block));
-        if (no_references)
-        {
+        return self.store().unref_block(block0, [=]() -> VoidResult {
+
+            MEMORIA_TRY(block, this_ptr->ctr_get_block(block_id));
+
             if (!block->is_leaf())
             {
-                MEMORIA_TRY_VOID(self.ctr_for_all_ids(block, [&](const BlockID& child_id) noexcept {
-                    return self.ctr_unref_block(child_id);
+                MEMORIA_TRY_VOID(this_ptr->ctr_for_all_ids(block, [&](const BlockID& child_id) noexcept {
+                    return this_ptr->ctr_unref_block(child_id);
                 }));
             }
             else {
-                MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(block, UnrefLeafChildren(), self.store()));
+                MEMORIA_TRY_VOID(this_ptr->leaf_dispatcher().dispatch(block, UnrefLeafChildren(), this_ptr->store()));
             }
 
-            MEMORIA_TRY_VOID(self.store().removeBlock(block->id()));
-        }
-
-        return VoidResult::of();
+            return this_ptr->store().removeBlock(block->id());
+        });
     }
 
 

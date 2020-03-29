@@ -83,6 +83,8 @@ public:
     using Name              = ContainerTypeName;
     using Types             = TypesType;
     using ProfileT          = typename Types::Profile;
+
+    using NodeBaseG = typename Types::NodeBaseG;
     
     using Allocator = typename Types::Allocator;
     using BlockID   = typename Allocator::BlockID;
@@ -175,6 +177,13 @@ public:
     VoidResult set_root(const BlockID &root) noexcept
     {
         root_ = root;
+
+        MEMORIA_TRY(rr, self().ctr_get_block(root));
+
+        if (!rr->is_root()) {
+            std::cout << "!!!!!!!!!!!ERROR!!!!!!!!!!!" << std::endl;
+        }
+
         return self().store().setRoot(self().master_name(), root);
     }
 
