@@ -86,6 +86,17 @@ template <typename Profile>
 using CommitDescriptorsList = boost::intrusive::list<CommitDescriptor<Profile>>;
 
 template <typename Profile>
+struct ReferenceCounterDelegate {
+    using BlockID = ProfileBlockID<Profile>;
+
+    virtual ~ReferenceCounterDelegate() noexcept {}
+
+    virtual VoidResult ref_block(const BlockID& block_id, int64_t amount) noexcept = 0;
+    virtual VoidResult unref_block(const BlockID& block_id, const std::function<VoidResult()>& on_zero) noexcept = 0;
+    virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept = 0;
+};
+
+template <typename Profile>
 class MappedSWMRStoreCommitBase:
         public ProfileAllocatorType<Profile>,
         public ISWMRStoreReadOnlyCommit<Profile>
@@ -136,13 +147,22 @@ protected:
 
     CtrSharedPtr<DirectoryCtr> directory_ctr_;
 
+    ReferenceCounterDelegate<Profile>* refcounter_delegate_;
 
 public:
-    MappedSWMRStoreCommitBase(MaybeError& maybe_error, SharedPtr<Store> store, Span<uint8_t> buffer, CommitDescriptorT* commit_descriptor) noexcept:
+    MappedSWMRStoreCommitBase(
+            MaybeError& maybe_error,
+            SharedPtr<Store> store,
+            Span<uint8_t> buffer,
+            CommitDescriptorT* commit_descriptor,
+            ReferenceCounterDelegate<Profile>* refcounter_delegate
+
+            ) noexcept:
         store_(store),
         buffer_(buffer),
         commit_descriptor_(commit_descriptor),
-        superblock_(commit_descriptor->superblock())
+        superblock_(commit_descriptor->superblock()),
+        refcounter_delegate_(refcounter_delegate)
     {}
 
     static void init_profile_metadata() noexcept {
@@ -533,19 +553,40 @@ public:
 
 
 
-    virtual VoidResult ref_block(BlockG block, int64_t amount = 1) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("ref_block() is not implemented for ReadOnly commits");
-    }
-    virtual VoidResult unref_block(BlockG block, std::function<VoidResult()> on_zero) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("unref_block() is not implemented for ReadOnly commits");
+    virtual VoidResult ref_block(const BlockID& block_id, int64_t amount = 1) noexcept
+    {
+        if (refcounter_delegate_) {
+            return refcounter_delegate_->ref_block(block_id, amount);
+        }
+        else {
+            return MEMORIA_MAKE_GENERIC_ERROR("ref_block() is not implemented for ReadOnly commits");
+        }
     }
 
-    virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("unref_ctr_root() is not implemented for ReadOnly commits");
+    virtual VoidResult unref_block(const BlockID& block_id, std::function<VoidResult()> on_zero) noexcept
+    {
+        if (refcounter_delegate_)
+        {
+            return refcounter_delegate_->unref_block(block_id, on_zero);
+        }
+        else {
+            return MEMORIA_MAKE_GENERIC_ERROR("unref_block() is not implemented for ReadOnly commits");
+        }
+    }
+
+    virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept
+    {
+        if (refcounter_delegate_)
+        {
+            return refcounter_delegate_->unref_ctr_root(root_block_id);
+        }
+        else {
+            return MEMORIA_MAKE_GENERIC_ERROR("unref_ctr_root() is not implemented for ReadOnly commits");
+        }
     }
 
     virtual VoidResult traverse_ctr(
-            BlockID root_block,
+            const BlockID& root_block,
             BTreeTraverseNodeHandler<Profile>& node_handler
     ) noexcept
     {

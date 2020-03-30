@@ -177,13 +177,13 @@ public:
 
     virtual Result<WritableCommitPtr> begin() noexcept
     {
-        using ResultT = Result<WritableCommitPtr>;
+        using ResultT = Result<SnpSharedPtr<MappedSWMRStoreWritableCommit<Profile>>>;
         writer_mutex_.lock();
 
         ResultT res = wrap_throwing([&]() -> ResultT {
             CommitDescriptorT* commit_descriptor = new CommitDescriptorT();
             MaybeError maybe_error{};
-            WritableCommitPtr ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
+            auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
                 maybe_error, this->shared_from_this(), buffer_, head_ptr_, commit_descriptor
             );
 
@@ -195,11 +195,15 @@ public:
             }
         });
 
-        if (res.is_error()) {
+        if (res.is_error())
+        {
             writer_mutex_.unlock();
+            return MEMORIA_PROPAGATE_ERROR(res);
         }
-
-        return res;
+        else {
+            MEMORIA_TRY_VOID(res.get()->finish_commit_opening());
+            return Result<WritableCommitPtr>::of(std::move(res).get());
+        }
     }
 
     virtual VoidResult close() noexcept {

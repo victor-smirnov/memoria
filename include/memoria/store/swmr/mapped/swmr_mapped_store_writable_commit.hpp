@@ -125,9 +125,9 @@ public:
             CommitDescriptorT* parent_commit_descriptor,
             CommitDescriptorT* commit_descriptor
     ) noexcept:
-        Base(maybe_error, store, buffer, commit_descriptor)
+        Base(maybe_error, store, buffer, commit_descriptor, nullptr)
     {
-        wrap_construction(maybe_error, [&]() -> VoidResult {                                          
+        wrap_construction(maybe_error, [&]() -> VoidResult {
             parent_commit_ = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
                 maybe_error, store, buffer, parent_commit_descriptor
             );
@@ -189,7 +189,7 @@ public:
             CommitDescriptorT* commit_descriptor,
             InitStoreTag
     ) noexcept:
-        Base(maybe_error, store, buffer, commit_descriptor)
+        Base(maybe_error, store, buffer, commit_descriptor, nullptr)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             int64_t avaialble = (buffer_.size() / (BASIC_BLOCK_SIZE << (ALLOCATION_LEVELS - 1)));
@@ -231,6 +231,13 @@ public:
             superblock_->history_root_id(),
             HistoryCtrID
         );
+
+        internal_init_system_ctr<DirectoryCtrType>(
+            maybe_error,
+            directory_ctr_,
+            superblock_->directory_root_id(),
+            DirectoryCtrID
+        );
     }
 
     virtual ~MappedSWMRStoreWritableCommit() noexcept {
@@ -244,7 +251,37 @@ public:
     VoidResult finish_store_initialization() noexcept
     {
         MEMORIA_TRY_VOID(allocation_map_ctr_->expand(buffer_.size() / BASIC_BLOCK_SIZE));
+        MEMORIA_TRY_VOID(finish_commit_opening());
         return commit();
+    }
+
+    VoidResult finish_commit_opening() noexcept
+    {
+        if (superblock_->counters_root_id().is_set())
+        {
+            //MEMORIA_TRY_VOID(ref_block(superblock_->counters_root_id()));
+            internal_ref_counter_cache(superblock_->counters_root_id(), 1);
+        }
+
+        if (superblock_->history_root_id().is_set())
+        {
+            MEMORIA_TRY_VOID(ref_block(superblock_->history_root_id()));
+            //internal_ref_counter_cache(superblock_->history_root_id(), 1);
+        }
+
+        if (superblock_->directory_root_id().is_set())
+        {
+            MEMORIA_TRY_VOID(ref_block(superblock_->directory_root_id()));
+            //internal_ref_counter_cache(superblock_->directory_root_id(), 1);
+        }
+
+        if (superblock_->allocator_root_id().is_set())
+        {
+            MEMORIA_TRY_VOID(ref_block(superblock_->allocator_root_id()));
+            //internal_ref_counter_cache(superblock_->allocator_root_id(), 1);
+        }
+
+        return VoidResult::of();
     }
 
     virtual CommitID commit_id() noexcept {
@@ -458,8 +495,7 @@ public:
         {
             if (!root.is_null())
             {
-                MEMORIA_TRY(root_block, getBlock(root));
-                MEMORIA_TRY_VOID(ref_block(root_block));
+                MEMORIA_TRY_VOID(ref_block(root));
 
                 auto prev_id = superblock_->directory_root_id();
                 superblock_->directory_root_id() = root;
@@ -476,8 +512,7 @@ public:
         {
             if (!root.is_null())
             {
-                MEMORIA_TRY(root_block, getBlock(root));
-                MEMORIA_TRY_VOID(ref_block(root_block));
+                MEMORIA_TRY_VOID(ref_block(root));
 
                 auto prev_id = superblock_->allocator_root_id();
                 superblock_->allocator_root_id() = root;
@@ -494,8 +529,7 @@ public:
         {
             if (!root.is_null())
             {
-                MEMORIA_TRY(root_block, getBlock(root));
-                MEMORIA_TRY_VOID(ref_block(root_block));
+                MEMORIA_TRY_VOID(ref_block(root));
 
                 auto prev_id = superblock_->counters_root_id();
                 superblock_->counters_root_id() = root;
@@ -512,8 +546,7 @@ public:
         {
             if (!root.is_null())
             {
-                MEMORIA_TRY(root_block, getBlock(root));
-                MEMORIA_TRY_VOID(ref_block(root_block));
+                MEMORIA_TRY_VOID(ref_block(root));
 
                 auto prev_id = superblock_->history_root_id();
                 superblock_->history_root_id() = root;
@@ -529,8 +562,7 @@ public:
         else {
             if (root.is_set())
             {
-                MEMORIA_TRY(root_block, getBlock(root));
-                MEMORIA_TRY_VOID(ref_block(root_block));
+                MEMORIA_TRY_VOID(ref_block(root));
 
                 MEMORIA_TRY(prev_id, directory_ctr_->replace_and_return(ctr_id, root));
                 if (prev_id)
@@ -672,10 +704,8 @@ public:
         return ResultT::of(BlockG{new_block});
     }
 
-    virtual VoidResult ref_block(BlockG block, int64_t amount = 1) noexcept
+    virtual VoidResult ref_block(const BlockID& block_id, int64_t amount = 1) noexcept
     {
-        BlockID block_id = block->id();
-
         if (MMA_UNLIKELY((!refcounters_ctr_) || refcounter_update_mode_ || refcounter_consolidation_mode_)) {
             internal_ref_counter_cache(block_id, amount);
         }
@@ -687,10 +717,8 @@ public:
         return VoidResult::of();
     }
 
-    virtual VoidResult unref_block(BlockG block, BlockCleanupHandler on_zero) noexcept
+    virtual VoidResult unref_block(const BlockID& block_id, BlockCleanupHandler on_zero) noexcept
     {
-        BlockID block_id = block->id();
-
         if (MMA_UNLIKELY((!refcounters_ctr_) || refcounter_update_mode_ || refcounter_consolidation_mode_)) {
             internal_unref_counter_cache(block_id, on_zero);
         }
@@ -703,8 +731,7 @@ public:
 
     virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept
     {
-        MEMORIA_TRY(block0, this->getBlock(root_block_id));
-        return unref_block(block0, [=]() -> VoidResult {
+        return unref_block(root_block_id, [=]() -> VoidResult {
             MEMORIA_TRY(block, this->getBlock(root_block_id));
 
             auto ctr_hash = block->ctr_type_hash();

@@ -625,7 +625,7 @@ public:
     }
 
     virtual VoidResult traverse_ctr(
-            BlockID root_block,
+            const BlockID& root_block,
             BTreeTraverseNodeHandler<Profile>& node_handler
     ) noexcept
     {
@@ -676,13 +676,16 @@ public:
         return VoidResult::of();
     }
 
-    virtual VoidResult ref_block(BlockG block, int64_t amount) noexcept {
+    virtual VoidResult ref_block(const BlockID& block_id, int64_t amount) noexcept
+    {
+        MEMORIA_TRY(block, getBlock(block_id));
         block->ref_block(amount);
         return VoidResult::of();
     }
 
-    virtual VoidResult unref_block(BlockG block, std::function<VoidResult()> on_zero) noexcept
+    virtual VoidResult unref_block(const BlockID& block_id, std::function<VoidResult()> on_zero) noexcept
     {
+        MEMORIA_TRY(block, getBlock(block_id));
         if (block->unref_block()) {
             return on_zero();
         }

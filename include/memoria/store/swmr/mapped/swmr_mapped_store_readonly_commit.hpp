@@ -20,6 +20,8 @@
 
 namespace memoria {
 
+
+
 template <typename Profile>
 class MappedSWMRStoreReadOnlyCommit:
         public MappedSWMRStoreCommitBase<Profile>,
@@ -48,9 +50,10 @@ public:
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             Span<uint8_t> buffer,
-            CommitDescriptorT* commit_descriptor
+            CommitDescriptorT* commit_descriptor,
+            ReferenceCounterDelegate<Profile>* refcounter_delegate = nullptr
     ) noexcept:
-        Base(maybe_error, store, buffer, commit_descriptor)
+        Base(maybe_error, store, buffer, commit_descriptor, refcounter_delegate)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             auto root_block_id = commit_descriptor->superblock()->directory_root_id();

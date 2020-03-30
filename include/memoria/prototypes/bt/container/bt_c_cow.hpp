@@ -82,10 +82,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     {
         auto& self = this->self();
 
-        auto this_ptr = this->shared_from_this();
-        MEMORIA_TRY(block0, self.ctr_get_block(block_id));
-
-        return self.store().unref_block(block0, [=]() -> VoidResult {
+        auto this_ptr = this->shared_from_this();        
+        return self.store().unref_block(block_id, [=]() -> VoidResult {
 
             MEMORIA_TRY(block, this_ptr->ctr_get_block(block_id));
 
@@ -130,8 +128,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     VoidResult ctr_ref_block(const BlockID& block_id) noexcept
     {
         auto& self = this->self();
-        MEMORIA_TRY(block, self.store().getBlock(block_id));
-        return  self.store().ref_block(block);
+        return  self.store().ref_block(block_id);
     }
 
 
