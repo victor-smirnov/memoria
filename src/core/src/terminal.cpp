@@ -22,7 +22,7 @@
 
 #include <string>
 #include <iostream>
-#include <sys/timeb.h>
+#include <sys/time.h>
 
 
 namespace memoria {
@@ -72,9 +72,9 @@ void Term::init(int argc, const char** argv, const char** envp)
 
 int64_t getTimeInMillisT()
 {
-    struct timeb tm;
-    ftime(&tm);
-    return tm.time * 1000 + tm.millitm;
+    timespec tm;
+    clock_gettime(CLOCK_REALTIME, &tm);
+    return tm.tv_sec * 1000 + tm.tv_nsec / 1000000;
 }
 
 

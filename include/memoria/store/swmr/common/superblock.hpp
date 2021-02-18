@@ -45,6 +45,7 @@ private:
     uint64_t file_size_;
     uint64_t superblock_file_pos_;
     uint64_t superblock_size_;
+    uint64_t block_counters_file_pos_;
 
     BlockID history_root_id_;
     BlockID directory_root_id_;
@@ -86,6 +87,9 @@ public:
     uint64_t superblock_file_pos() const noexcept {return superblock_file_pos_;}
     uint64_t& superblock_file_pos() noexcept {return superblock_file_pos_;}
 
+    uint64_t block_counters_file_pos() const noexcept {return block_counters_file_pos_;}
+    uint64_t& block_counters_file_pos() noexcept {return block_counters_file_pos_;}
+
     const CommitUUID& commit_uuid() const noexcept {return commit_uuid_;}
     CommitUUID& commit_uuid() noexcept {return commit_uuid_;}
 
@@ -107,6 +111,7 @@ public:
         superblock_file_pos_ = superblock_file_pos;
         file_size_           = file_size;
         superblock_size_     = superblock_size;
+        block_counters_file_pos_ = 0;
 
         history_root_id_   = BlockID{};
         directory_root_id_ = BlockID{};
@@ -136,6 +141,7 @@ public:
         superblock_file_pos_ = superblock_file_pos;
         file_size_           = other.file_size_;
         superblock_size_     = other.superblock_size_;
+        block_counters_file_pos_ = other.block_counters_file_pos_;
 
         return allocator_.init(allocator_block_size(other.superblock_size_), 1);
     }

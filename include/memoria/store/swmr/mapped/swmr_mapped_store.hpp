@@ -26,11 +26,23 @@
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <boost/interprocess/sync/file_lock.hpp>
 
 #include <mutex>
 #include <unordered_set>
 
 namespace memoria {
+
+namespace detail {
+
+struct FileLockHandler {
+    virtual ~FileLockHandler() noexcept;
+    virtual VoidResult unlock() noexcept = 0;
+
+    static Result<std::unique_ptr<FileLockHandler>> lock_file(const char* name, bool create) noexcept;
+};
+
+}
 
 template <typename Profile>
 class MappedSWMRStore: public ISWMRStore<Profile>, public EnableSharedFromThis<MappedSWMRStore<Profile>> {
@@ -70,8 +82,10 @@ class MappedSWMRStore: public ISWMRStore<Profile>, public EnableSharedFromThis<M
 
     U8String file_name_;
     uint64_t file_size_;
-    boost::interprocess::file_mapping file_;
+    std::unique_ptr<boost::interprocess::file_mapping> file_;
     boost::interprocess::mapped_region region_;
+
+    std::unique_ptr<detail::FileLockHandler> lock_;
 
     Span<uint8_t> buffer_;
 
@@ -84,11 +98,12 @@ public:
             if (filesystem::exists(file_name.to_std_string())) {
                 return MEMORIA_MAKE_GENERIC_ERROR("Provided file {} already exists", file_name);
             }
+            MEMORIA_TRY_VOID(acquire_lock(file_name.data(), true));
 
             MEMORIA_TRY_VOID(make_file(file_name, file_size_));
 
-            file_   = boost::interprocess::file_mapping(file_name_.data(), boost::interprocess::read_write);
-            region_ = boost::interprocess::mapped_region(file_, boost::interprocess::read_write, 0, file_size_);
+            file_   = std::make_unique<boost::interprocess::file_mapping>(file_name_.data(), boost::interprocess::read_write);
+            region_ = boost::interprocess::mapped_region(*file_.get(), boost::interprocess::read_write, 0, file_size_);
             buffer_ = Span<uint8_t>(ptr_cast<uint8_t>(region_.get_address()), file_size_);
 
             return VoidResult::of();
@@ -99,12 +114,15 @@ public:
         file_name_(file_name)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            file_ =  boost::interprocess::file_mapping(file_name_.data(), boost::interprocess::read_write);
-            file_size_ = memoria::filesystem::file_size(file_name_);
+            MEMORIA_TRY_VOID(acquire_lock(file_name.data(), false));
+
+            file_       = std::make_unique<boost::interprocess::file_mapping>(file_name_.data(), boost::interprocess::read_write);
+            file_size_  = memoria::filesystem::file_size(file_name_);
             MEMORIA_TRY_VOID(check_file_size());
 
-            region_ = boost::interprocess::mapped_region(file_, boost::interprocess::read_write);
+            region_ = boost::interprocess::mapped_region(*file_.get(), boost::interprocess::read_write);
             buffer_ = Span<uint8_t>(ptr_cast<uint8_t>(region_.get_address()), file_size_);
+
             return VoidResult::of();
         });
     }
@@ -130,18 +148,23 @@ public:
 
     virtual Result<std::vector<CommitID>> persistent_commits() noexcept
     {
+        MEMORIA_TRY_VOID(check_if_open());
+
         using ResultT = Result<std::vector<CommitID>>;
         return ResultT::of();
     }
 
     virtual Result<ReadOnlyCommitPtr> open(CommitID commit_id) noexcept
     {
+        MEMORIA_TRY_VOID(check_if_open());
         using ResultT = Result<ReadOnlyCommitPtr>;
         return ResultT::of();
     }
 
     virtual Result<ReadOnlyCommitPtr> open() noexcept
     {
+        MEMORIA_TRY_VOID(check_if_open());
+
         using ResultT = Result<ReadOnlyCommitPtr>;
         MaybeError maybe_error{};
         ReadOnlyCommitPtr ptr{};
@@ -162,21 +185,26 @@ public:
     }
 
     virtual BoolResult drop_persistent_commit(CommitID commit_id) noexcept {
+        MEMORIA_TRY_VOID(check_if_open());
         return BoolResult::of();
     }
 
     virtual VoidResult rollback_last_commit() noexcept
     {
+        MEMORIA_TRY_VOID(check_if_open());
         return VoidResult::of();
     }
 
     virtual VoidResult flush() noexcept {
+        MEMORIA_TRY_VOID(check_if_open());
         MEMORIA_TRY_VOID(flush_data());
         return flush_header();
     }
 
     virtual Result<WritableCommitPtr> begin() noexcept
     {
+        MEMORIA_TRY_VOID(check_if_open());
+
         using ResultT = Result<SnpSharedPtr<MappedSWMRStoreWritableCommit<Profile>>>;
         writer_mutex_.lock();
 
@@ -207,6 +235,10 @@ public:
     }
 
     virtual VoidResult close() noexcept {
+        MEMORIA_TRY_VOID(check_if_open());
+        MEMORIA_TRY_VOID(lock_->unlock());
+        region_.flush();
+        file_.reset();
         return VoidResult::of();
     }
 
@@ -216,6 +248,7 @@ public:
 
     VoidResult flush_data() noexcept
     {
+        MEMORIA_TRY_VOID(check_if_open());
         if (!region_.flush(HEADER_SIZE, buffer_.size() - HEADER_SIZE, false)) {
             return make_generic_error("DataFlush operation failed");
         }
@@ -225,6 +258,8 @@ public:
 
     VoidResult flush_header() noexcept
     {
+        MEMORIA_TRY_VOID(check_if_open());
+
         if (!region_.flush(0, HEADER_SIZE, false)) {
             return make_generic_error("HeaderFlush operation failed");
         }
@@ -255,6 +290,13 @@ public:
     }
 
 private:
+    VoidResult check_if_open() noexcept {
+        if (!file_) {
+            return make_generic_error("File {} has been already closed", file_name_);
+        }
+
+        return VoidResult::of();
+    }
 
     VoidResult init_store()
     {
@@ -397,16 +439,32 @@ private:
         return wrap_throwing([&](){
             std::filebuf fbuf;
 
-            fbuf.open(name.to_std_string(), std::ios_base::out | std::ios_base::binary);
-            fbuf.close();
             fbuf.open(name.to_std_string(), std::ios_base::in | std::ios_base::out | std::ios_base::binary);
 
             //Set the size
             fbuf.pubseekoff(file_size - 1, std::ios_base::beg);
             fbuf.sputc(0);
+            fbuf.close();
         });
     }
 
+    VoidResult acquire_lock(const char* file_name, bool create_file) noexcept {
+        auto lock = detail::FileLockHandler::lock_file(file_name, create_file);
+
+        if (!lock.is_error()) {
+            if (!lock.get()) {
+                return MEMORIA_MAKE_GENERIC_ERROR("Provided file {} has been already locked", file_name);
+            }
+            else {
+                lock_ = std::move(lock.get());
+            }
+        }
+        else {
+            return std::move(lock).transfer_error();
+        }
+
+        return VoidResult::of();
+    }
 
     void unlock_writer() noexcept {
         writer_mutex_.unlock();

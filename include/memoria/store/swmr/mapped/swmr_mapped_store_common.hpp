@@ -37,9 +37,6 @@ constexpr UUID DirectoryCtrID = UUID(8595428187223239884ull, 1471925794664053644
 // a64d654b-ec9b-4ab7-870f-83816c8d0ce2
 constexpr UUID AllocationMapCtrID = UUID(13207540296396918182ull, 16288549449461075847ull);
 
-// 58befbb8-aa33-4f3b-9a7f-a79f24ef3e5e
-constexpr UUID RefcountersCtrID = UUID(4273691379738852952ull, 6791128228697702298ull);
-
 // 0bc70e1f-adaf-4454-afda-7f6ac7104790
 constexpr UUID HistoryCtrID = UUID(6072171355687536395ull, 10396296713479379631ull);
 
@@ -127,8 +124,8 @@ protected:
     using AllocationMapCtrType = AllocationMap;
     using AllocationMapCtr  = ICtrApi<AllocationMapCtrType, Profile>;
 
-    using RefcountersCtrType = Map<BigInt, BigInt>;
-    using RefcountersCtr     = ICtrApi<RefcountersCtrType, Profile>;
+//    using RefcountersCtrType = Map<BigInt, BigInt>;
+//    using RefcountersCtr     = ICtrApi<RefcountersCtrType, Profile>;
 
     using HistoryCtrType    = Map<BigInt, BigInt>;
     using HistoryCtr        = ICtrApi<HistoryCtrType, Profile>;
@@ -156,8 +153,7 @@ public:
             Span<uint8_t> buffer,
             CommitDescriptorT* commit_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate
-
-            ) noexcept:
+    ) noexcept:
         store_(store),
         buffer_(buffer),
         commit_descriptor_(commit_descriptor),
@@ -167,7 +163,6 @@ public:
 
     static void init_profile_metadata() noexcept {
         DirectoryCtr::init_profile_metadata();
-        RefcountersCtr::init_profile_metadata();
         AllocationMapCtr::init_profile_metadata();
     }
 
@@ -182,10 +177,6 @@ public:
         else if (MMA_UNLIKELY(ctr_id == AllocationMapCtrID))
         {
             return ResultT::of(superblock_->allocator_root_id());
-        }
-        else if (MMA_UNLIKELY(ctr_id == RefcountersCtrID))
-        {
-            return ResultT::of(superblock_->counters_root_id());
         }
         else if (MMA_UNLIKELY(ctr_id == HistoryCtrID))
         {
@@ -222,10 +213,6 @@ public:
         else if (MMA_UNLIKELY(ctr_id == AllocationMapCtrID))
         {
             return ResultT::of(superblock_->allocator_root_id().is_set());
-        }
-        else if (MMA_UNLIKELY(ctr_id == RefcountersCtrID))
-        {
-            return ResultT::of(superblock_->counters_root_id().is_set());
         }
         else if (MMA_UNLIKELY(ctr_id == HistoryCtrID))
         {

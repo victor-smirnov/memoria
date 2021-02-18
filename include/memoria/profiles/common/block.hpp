@@ -31,6 +31,8 @@
 #include <memoria/core/memory/ptr_cast.hpp>
 
 #include <type_traits>
+#include <atomic>
+
 
 namespace memoria {
 

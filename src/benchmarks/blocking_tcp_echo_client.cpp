@@ -26,7 +26,7 @@
 #include <boost/asio.hpp>
 
 using boost::asio::ip::tcp;
-using namespace memoria::v1;
+using namespace memoria;
 
 enum { mean_length = 4096 };
 enum { data_size = 1000000000 };

@@ -23,6 +23,8 @@
 
 #include <memoria/core/datatypes/type_registry.hpp>
 
+#include <type_traits>
+
 template <typename Profile>
 class MappedSWMRStoreReadOnlyCommit;
 
@@ -52,9 +54,6 @@ class MappedSWMRStoreWritableCommit:
     using typename Base::AllocationMapCtr;
     using typename Base::AllocationMapCtrType;
 
-    using typename Base::RefcountersCtr;
-    using typename Base::RefcountersCtrType;
-
     using typename Base::HistoryCtr;
     using typename Base::HistoryCtrType;
 
@@ -63,13 +62,14 @@ class MappedSWMRStoreWritableCommit:
     using Superblock          = SWMRSuperblock<Profile>;
     using ParentCommit        = SnpSharedPtr<MappedSWMRStoreReadOnlyCommit<Profile>>;
 
+    using CounterStorageT     = uint32_t;
+
     using BlockCleanupHandler = std::function<VoidResult ()>;
 
     struct CounterValue{
         int64_t value;
         std::function<VoidResult()> on_zero_fn;
     };
-    using CountersCache       = std::unordered_map<BlockID, CounterValue>;
 
     static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
     static constexpr int32_t SUPERBLOCK_SIZE             = BASIC_BLOCK_SIZE;
@@ -81,7 +81,6 @@ class MappedSWMRStoreWritableCommit:
 
     CtrSharedPtr<AllocationMapCtr> parent_allocation_map_ctr_;
     CtrSharedPtr<AllocationMapCtr> allocation_map_ctr_;
-    CtrSharedPtr<RefcountersCtr>   refcounters_ctr_;
     CtrSharedPtr<HistoryCtr>       history_ctr_;
 
     using Base::directory_ctr_;
@@ -93,17 +92,12 @@ class MappedSWMRStoreWritableCommit:
     using Base::buffer_;
     using Base::store_;
 
-
     AllocationPool<Profile, 9> allocation_pool_;
 
     bool committed_{false};
     bool allocator_initialization_mode_{false};
-    bool refcounter_update_mode_{false};
-    bool refcounter_consolidation_mode_{false};
 
     ParentCommit parent_commit_;
-
-    CountersCache counters_cache_;
 
     bool flushing_awaiting_allocations_{false};
     ArenaBuffer<AllocationMetadataT> awaiting_allocations_;
@@ -112,6 +106,8 @@ class MappedSWMRStoreWritableCommit:
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_;
 
     bool persistent_{false};
+
+    Span<CounterStorageT> counters_;
 
     template <typename>
     friend class MappedSWMRStore;
@@ -128,6 +124,13 @@ public:
         Base(maybe_error, store, buffer, commit_descriptor, nullptr)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
+            auto counters_pos = parent_commit_descriptor->superblock()->block_counters_file_pos();
+            size_t counters_size = buffer.size() / BASIC_BLOCK_SIZE;
+            counters_ = Span<CounterStorageT>(
+                ptr_cast<CounterStorageT>(store->buffer_.data() + counters_pos),
+                counters_size
+            );
+
             parent_commit_ = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
                 maybe_error, store, buffer, parent_commit_descriptor
             );
@@ -158,13 +161,6 @@ public:
             allocation_map_ctr_,
             superblock_->allocator_root_id(),
             AllocationMapCtrID
-        );
-
-        internal_init_system_ctr<RefcountersCtrType>(
-            maybe_error,
-            refcounters_ctr_,
-            superblock_->counters_root_id(),
-            RefcountersCtrID
         );
 
         internal_init_system_ctr<HistoryCtrType>(
@@ -206,6 +202,21 @@ public:
             MEMORIA_TRY(superblock, allocate_superblock(nullptr, commit_id, buffer.size()));
             commit_descriptor->set_superblock(superblock);
 
+            ArenaBuffer<AllocationMetadataT> counters_buffer;
+            uint64_t total_blocks = buffer_.size() / BASIC_BLOCK_SIZE;
+            uint64_t counters_blocks = divUp(total_blocks, BASIC_BLOCK_SIZE / sizeof(CounterStorageT));
+            allocation_pool_.allocate(0, counters_blocks, counters_buffer);
+
+            MEMORIA_RETURN_IF_ERROR(check_counters_allocation(counters_buffer, counters_blocks));
+
+            uint64_t counters_file_pos = counters_buffer[0].position() * BASIC_BLOCK_SIZE;
+            superblock->block_counters_file_pos() = counters_file_pos;
+
+            counters_ = Span<CounterStorageT>(
+                ptr_cast<CounterStorageT>(buffer.data() + counters_file_pos),
+                total_blocks
+            );
+
             Base::superblock_ = superblock;
 
             allocator_initialization_mode_ = true;
@@ -217,13 +228,6 @@ public:
             return VoidResult::of();
         });
 
-
-        internal_init_system_ctr<RefcountersCtrType>(
-            maybe_error,
-            refcounters_ctr_,
-            superblock_->counters_root_id(),
-            RefcountersCtrID
-        );
 
         internal_init_system_ctr<HistoryCtrType>(
             maybe_error,
@@ -259,26 +263,22 @@ public:
     {
         if (superblock_->counters_root_id().is_set())
         {
-            //MEMORIA_TRY_VOID(ref_block(superblock_->counters_root_id()));
-            internal_ref_counter_cache(superblock_->counters_root_id(), 1);
+            MEMORIA_TRY_VOID(ref_block(superblock_->counters_root_id()));
         }
 
         if (superblock_->history_root_id().is_set())
         {
             MEMORIA_TRY_VOID(ref_block(superblock_->history_root_id()));
-            //internal_ref_counter_cache(superblock_->history_root_id(), 1);
         }
 
         if (superblock_->directory_root_id().is_set())
         {
             MEMORIA_TRY_VOID(ref_block(superblock_->directory_root_id()));
-            //internal_ref_counter_cache(superblock_->directory_root_id(), 1);
         }
 
         if (superblock_->allocator_root_id().is_set())
         {
             MEMORIA_TRY_VOID(ref_block(superblock_->allocator_root_id()));
-            //internal_ref_counter_cache(superblock_->allocator_root_id(), 1);
         }
 
         return VoidResult::of();
@@ -318,21 +318,8 @@ public:
 
             ArenaBuffer<AllocationMetadataT> all_postponed_deallocations;
 
-            while (counters_cache_.size() > 0 || awaiting_allocations_.size() > 0 || postponed_deallocations_.size() > 0)
+            while (awaiting_allocations_.size() > 0 || postponed_deallocations_.size() > 0)
             {
-                if (counters_cache_.size() > 0)
-                {
-                    CountersCache counters_cache = std::move(counters_cache_);
-                    counters_cache_ = CountersCache{};
-
-                    refcounter_consolidation_mode_ = true;
-                    for (auto entry: counters_cache)
-                    {
-                        MEMORIA_TRY_VOID(internal_merge_counters_entry(entry.first, entry.second.value, entry.second.on_zero_fn));
-                    }
-                    refcounter_consolidation_mode_ = false;
-                }
-
                 MEMORIA_TRY_VOID(flush_awaiting_allocations());
 
                 if (postponed_deallocations_.size() > 0)
@@ -525,23 +512,6 @@ public:
                 return MEMORIA_MAKE_GENERIC_ERROR("AllocationMap removal attempted");
             }
         }
-        else if (MMA_UNLIKELY(ctr_id == RefcountersCtrID))
-        {
-            if (!root.is_null())
-            {
-                MEMORIA_TRY_VOID(ref_block(root));
-
-                auto prev_id = superblock_->counters_root_id();
-                superblock_->counters_root_id() = root;
-                if (prev_id.is_set())
-                {
-                    MEMORIA_TRY_VOID(unref_ctr_root(prev_id));
-                }
-            }
-            else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Refcounters removal attempted");
-            }
-        }
         else if (MMA_UNLIKELY(ctr_id == HistoryCtrID))
         {
             if (!root.is_null())
@@ -706,27 +676,29 @@ public:
 
     virtual VoidResult ref_block(const BlockID& block_id, int64_t amount = 1) noexcept
     {
-        if (MMA_UNLIKELY((!refcounters_ctr_) || refcounter_update_mode_ || refcounter_consolidation_mode_)) {
-            internal_ref_counter_cache(block_id, amount);
+        if (counters_[block_id.value()] <= std::numeric_limits<CounterStorageT>::max() - amount) {
+            counters_[block_id.value()] += amount;
+            return VoidResult::of();
         }
-        else if (!internal_try_ref_counter_cache(block_id, amount))
-        {
-            return internal_ref_block(block_id, amount);
+        else {
+            return make_generic_error_with_source(MA_SRC, "SWMRStore block counter overflow for block {}", block_id);
         }
-
-        return VoidResult::of();
     }
 
     virtual VoidResult unref_block(const BlockID& block_id, BlockCleanupHandler on_zero) noexcept
     {
-        if (MMA_UNLIKELY((!refcounters_ctr_) || refcounter_update_mode_ || refcounter_consolidation_mode_)) {
-            internal_unref_counter_cache(block_id, on_zero);
-        }
-        else if (!internal_try_unref_counter_cache(block_id)) {
-            return internal_unref_block(block_id, on_zero);
-        }
+       if (counters_[block_id.value()] > 0)
+       {
+           counters_[block_id.value()]--;
+           if (!counters_[block_id.value()]) {
+               return on_zero();
+           }
 
-        return VoidResult::of();
+           return VoidResult::of();
+       }
+       else {
+           return make_generic_error_with_source(MA_SRC, "SWMRStore block counter underflow for block {}", block_id);
+       }
     }
 
     virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept
@@ -901,200 +873,6 @@ private:
     }
 
 
-    BoolResult internal_try_ref_block(const BlockID& block_id, int64_t amount = 1) noexcept
-    {
-        using DatumT = Datum<BigInt>;
-
-        bool success = true;
-        auto res = refcounters_ctr_->with_value(block_id.value(), [&](Optional<DatumT> value) noexcept {
-            if (value) {
-                auto new_value = value.get().view() + amount;
-                return Optional<DatumT>{DatumT(new_value)};
-            }
-            else {
-                success = false;
-                return Optional<DatumT>{};
-            }
-        });
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        return BoolResult::of(success);
-    }
-
-    VoidResult internal_ref_block(const BlockID& block_id, int64_t amount = 1) noexcept
-    {
-        refcounter_update_mode_ = true;
-        using DatumT = Datum<BigInt>;
-
-        auto res = refcounters_ctr_->with_value(block_id.value(), [&](Optional<DatumT> value) noexcept {
-            if (value) {
-                auto new_value = value.get().view() + amount;
-                return Optional<DatumT>{DatumT(new_value)};
-            }
-            else {
-                return Optional<DatumT>{DatumT(amount)};
-            }
-        });
-
-        refcounter_update_mode_ = false;
-
-        MEMORIA_RETURN_IF_ERROR(res);
-        return VoidResult::of();
-    }
-
-    VoidResult internal_unref_block(const BlockID& block_id, const BlockCleanupHandler& on_zero) noexcept
-    {
-        refcounter_update_mode_ = true;
-
-        bool no_counter = false;
-        int64_t counter_value{};
-
-        using DatumT = Datum<BigInt>;
-        auto res = refcounters_ctr_->with_value(block_id.value(), [&](Optional<DatumT> value) noexcept {
-            if (value)
-            {
-                counter_value = value.get().view() - 1;
-
-                if (counter_value == 0) {
-                    return Optional<DatumT>{};
-                }
-                else {
-                    return Optional<DatumT>{DatumT(counter_value)};
-                }
-            }
-            else {
-                no_counter = true;
-                return Optional<DatumT>{};
-            }
-        });
-        refcounter_update_mode_ = false;
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        if (no_counter) {
-            return MEMORIA_MAKE_GENERIC_ERROR("Internal error. No counter for block ID {}", block_id);
-        }
-
-        if (counter_value < 0) {
-            return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Negative counter for block ID {}: {}", block_id, counter_value);
-        }
-
-        if (counter_value == 0) {
-            if (on_zero) {
-                return on_zero();
-            }
-            else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Zero-refs block cleanup handler is not specified for {}", block_id);
-            }
-        }
-
-        return VoidResult::of();
-    }
-
-
-
-
-
-    void internal_ref_counter_cache(const BlockID& block_id, int64_t amount) noexcept
-    {
-        auto ii = counters_cache_.find(block_id);
-        if (ii != counters_cache_.end()) {
-            ii->second.value += amount;
-        }
-        else {
-            counters_cache_[block_id] = CounterValue{amount};
-        }
-    }
-
-    bool internal_try_ref_counter_cache(const BlockID& block_id, int64_t amount) noexcept
-    {
-        auto ii = counters_cache_.find(block_id);
-        if (ii != counters_cache_.end()) {
-            ii->second.value += amount;
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    void internal_unref_counter_cache(const BlockID& block_id, const BlockCleanupHandler& on_zero) noexcept
-    {
-        auto ii = counters_cache_.find(block_id);
-        if (ii != counters_cache_.end()) {
-            auto res = ii->second.value - 1;
-            ii->second.value = res;
-            ii->second.on_zero_fn = on_zero;
-        }
-        else {
-            counters_cache_[block_id] = CounterValue{-1, on_zero};
-        }
-    }
-
-    bool internal_try_unref_counter_cache(const BlockID& block_id) noexcept
-    {
-        auto ii = counters_cache_.find(block_id);
-        if (ii != counters_cache_.end()) {
-            ii->second.value -= 1;
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    VoidResult internal_merge_counters_entry(const BlockID& block_id, int64_t cached_value, const BlockCleanupHandler& on_zero) noexcept
-    {
-        refcounter_update_mode_ = true;
-
-        bool no_counter = false;
-        int64_t counter_value{};
-
-        using DatumT = Datum<BigInt>;
-        auto res = refcounters_ctr_->with_value(block_id.value(), [&](Optional<DatumT> value) noexcept {
-            if (value)
-            {
-                counter_value = value.get().view() + cached_value;
-
-                if (counter_value == 0) {
-                    return Optional<DatumT>{};
-                }
-                else {
-                    return Optional<DatumT>{DatumT(counter_value)};
-                }
-            }
-            else {
-                no_counter = true;
-                if (cached_value != 0) {
-                    counter_value = cached_value;
-                    return Optional<DatumT>{DatumT(cached_value)};
-                }
-                else {
-                    return Optional<DatumT>{};
-                }
-            }
-        });
-        refcounter_update_mode_ = false;
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        if (no_counter && cached_value < 0) {
-            return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Negative cached counter for block ID {}: {}", block_id, counter_value);
-        }
-
-        if (counter_value < 0) {
-            return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Negative counter for block ID {}: {}", block_id, counter_value);
-        }
-
-        if (counter_value == 0) {
-            if (on_zero) {
-                return on_zero();
-            }
-            else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Internal error. Zero-refs block cleanup handler is not specified for {}", block_id);
-            }
-        }
-
-        return VoidResult::of();
-    }
 
     VoidResult flush_awaiting_allocations() noexcept
     {
@@ -1161,6 +939,32 @@ private:
 
     void add_postponed_deallocation(const AllocationMetadataT& meta) noexcept {
         postponed_deallocations_.append_value(meta);
+    }
+
+    VoidResult check_counters_allocation(const ArenaBuffer<AllocationMetadataT>& buffer, uint64_t total_blocks)
+    {
+        if (buffer.size() == 0) {
+            return make_generic_error_with_source(MA_SRC, "SWMRStore creation internal error. Can't allocate counters buffer.");
+        }
+
+        uint64_t alc_size{};
+        uint64_t last_pos = buffer[0].position();
+
+        for(const AllocationMetadataT& alc: buffer.span()) {
+            alc_size += alc.size();
+            if (alc.position() == last_pos) {
+                last_pos += alc.size();
+            }
+            else {
+                return make_generic_error_with_source(MA_SRC, "SWMRStore counters buffer allocation error. Can't allocate contigous counters buffer.");
+            }
+        }
+
+        if (alc_size < total_blocks) {
+            return make_generic_error_with_source(MA_SRC, "SWMRStore counters buffer allocation error. Insufficient buffer space allocated.");
+        }
+
+        return VoidResult::of();
     }
 };
 

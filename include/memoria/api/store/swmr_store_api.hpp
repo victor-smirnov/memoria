@@ -62,10 +62,8 @@ struct ISWMRStore {
 };
 
 
-
 Result<SharedPtr<ISWMRStore<MemoryCoWProfile<>>>> open_mapped_swmr_store(U8StringView path);
 Result<SharedPtr<ISWMRStore<MemoryCoWProfile<>>>> create_mapped_swmr_store(U8StringView path, uint64_t store_size_mb);
-
 
 
 template <typename CtrName, typename Profile>

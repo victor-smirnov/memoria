@@ -17,7 +17,7 @@
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/tools/random.hpp>
 
-using namespace memoria::v1;
+using namespace memoria;
 using namespace memoria::reactor;
 
 namespace po = boost::program_options;

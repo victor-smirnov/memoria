@@ -19,6 +19,7 @@
 #include <memoria/core/types.hpp>
 
 #include <boost/exception/all.hpp>
+#include <boost/throw_exception.hpp>
 
 namespace memoria {
 
@@ -55,7 +56,7 @@ using Traced = boost::error_info<struct tag_stacktrace, boost::stacktrace::stack
 
 
 #define MMA_THROW(Ex) throw Ex << ::memoria::Traced(boost::stacktrace::stacktrace()) \
-    << ::boost::throw_function(BOOST_THROW_EXCEPTION_CURRENT_FUNCTION) \
+    << ::boost::throw_function(BOOST_CURRENT_FUNCTION) \
     << ::boost::throw_file(__FILE__) \
     << ::boost::throw_line(static_cast<int>(__LINE__))
 

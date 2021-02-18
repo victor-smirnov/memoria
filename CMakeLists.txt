@@ -212,7 +212,7 @@ else()
     link_libraries(ICU::i18n ICU::uc ICU::data)
 endif()
 
-find_package(Boost 1.71.0 COMPONENTS context program_options serialization unit_test_framework REQUIRED)
+find_package(Boost 1.75.0 COMPONENTS context program_options serialization unit_test_framework REQUIRED)
 
 if (MSVC)
     link_libraries(Boost::program_options Boost::serialization Boost::unit_test_framework)
