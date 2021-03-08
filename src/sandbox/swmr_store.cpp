@@ -30,29 +30,43 @@ using CtrType = Set<Varchar>;
 
 int main(void) {
     try {
-        filesystem::remove("file.mma2");
-        auto store1 = create_mapped_swmr_store("file.mma2", 1024 * 8).get_or_throw();
+        const char* file = "file.mma2";
+
+        filesystem::remove(file);
+        auto store1 = create_mapped_swmr_store(file, 1024*8).get_or_throw();
 
         UUID ctr_id = UUID::make_random();
 
         auto t_start = getTimeInMillis();
+
+        StoreCheckCallbackFn callback = [](LDDocument& doc){
+            std::cout << doc.to_string() << std::endl;
+            return VoidResult::of();
+        };
 
         {
             {
                 auto snp0 = store1->begin().get_or_throw();
                 auto ctr0 = create(snp0, CtrType(), ctr_id).get_or_throw();
                 snp0->commit().get_or_throw();
+//                snp0->describe_to_cout().get_or_throw();
             }
 
             int cnt = 0;
             int b0  = 0;
-            while (cnt < 1000000) {
+            int batch_size = 100;
+            int batches = 10000;
+            while (cnt < batch_size * batches) {
                 auto snp1 = store1->begin().get_or_throw();
                 auto ctr1 = find<CtrType>(snp1, ctr_id).get_or_throw();
 
-                std::cout << "Batch " << (b0++) << std::endl;
+                if (b0 % 100 == 0) {
+                    std::cout << "Batch " << (b0) << std::endl;
+                }
 
-                for (int c = 0; c < 100000; c++, cnt++) {
+                b0++;
+
+                for (int c = 0; c < batch_size; c++, cnt++) {
                     ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str()).get_or_throw();
                 }
 
@@ -60,20 +74,28 @@ int main(void) {
             }
         }
 
+        store1->check(callback).get_or_throw();
+
         store1->close().get_or_throw();
 
         auto t_end = getTimeInMillis();
 
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
 
-        auto store2 = open_mapped_swmr_store("file.mma2").get_or_throw();
+        auto store2 = open_mapped_swmr_store(file).get_or_throw();
 
-        auto snp2 = store2->open().get_or_throw();
+        auto snp2 = store2->begin().get_or_throw();
         auto ctr2 = find<CtrType>(snp2, ctr_id).get_or_throw();
 
-//        ctr2->for_each([](auto view){
-//            std::cout << view << std::endl;
-//        }).get_or_throw();
+        ctr2->for_each([](auto view){
+            std::cout << view << std::endl;
+        }).get_or_throw();
+
+        snp2->commit().get_or_throw();
+
+        store2->check(callback).get_or_throw();
+
+        store2->close().get_or_throw();
     }
     catch (std::exception& ee) {
         std::cerr << "Exception: " << ee.what() << std::endl;

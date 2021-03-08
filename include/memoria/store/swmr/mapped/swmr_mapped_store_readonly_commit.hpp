@@ -18,29 +18,46 @@
 
 #include <memoria/store/swmr/mapped/swmr_mapped_store_common.hpp>
 
+#include <functional>
+
 namespace memoria {
-
-
 
 template <typename Profile>
 class MappedSWMRStoreReadOnlyCommit:
         public MappedSWMRStoreCommitBase<Profile>,
         public EnableSharedFromThis<MappedSWMRStoreReadOnlyCommit<Profile>>
 {
+protected:
     using Base = MappedSWMRStoreCommitBase<Profile>;
+
+    using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
 
     using typename Base::Store;
     using typename Base::CommitDescriptorT;
     using typename Base::CtrID;
     using typename Base::CtrReferenceableResult;
     using typename Base::AllocatorT;
+    using typename Base::BlockID;
 
     using typename Base::DirectoryCtrType;
     using typename Base::HistoryCtrType;
+    using typename Base::HistoryCtr;
+
+    using typename Base::AllocationMapCtr;
+    using typename Base::AllocationMapCtrType;
+
+    using typename Base::CommitID;
 
     using Base::directory_ctr_;
     using Base::superblock_;
+    using Base::commit_descriptor_;
     using Base::internal_find_by_root_typed;
+    using Base::traverse_cow_containers;
+    using Base::traverse_ctr_cow_tree;
+
+
+    template <typename>
+    friend class MappedSWMRStore;
 
 public:
     using Base::find;
@@ -62,6 +79,7 @@ public:
                 auto directory_ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(root_block_id);
                 MEMORIA_RETURN_IF_ERROR(directory_ctr_ref);
                 directory_ctr_ = directory_ctr_ref.get();
+                directory_ctr_->internal_reset_allocator_holder();
             }
 
             return VoidResult::of();
@@ -91,9 +109,12 @@ public:
         return VoidResult::of();
     }
 
-
-
 protected:
+    uint64_t sequence_id() const {
+        return commit_descriptor_->superblock()->sequence_id();
+    }
+
+
     virtual SnpSharedPtr<AllocatorT> self_ptr() noexcept {
         return this->shared_from_this();
     }

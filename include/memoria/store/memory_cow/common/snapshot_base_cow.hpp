@@ -676,10 +676,10 @@ public:
         return VoidResult::of();
     }
 
-    virtual VoidResult ref_block(const BlockID& block_id, int64_t amount) noexcept
+    virtual VoidResult ref_block(const BlockID& block_id) noexcept
     {
         MEMORIA_TRY(block, getBlock(block_id));
-        block->ref_block(amount);
+        block->ref_block(1);
         return VoidResult::of();
     }
 

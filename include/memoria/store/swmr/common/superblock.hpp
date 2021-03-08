@@ -24,16 +24,22 @@
 
 namespace memoria {
 
+enum class SWMRStoreStatus {
+    UNCLEAN, CLEAN
+};
+
 template <typename Profile>
 class SWMRSuperblock {
 public:
     static constexpr UUID MAGICK1 = UUID(15582486158405818875ull, 10745804754247616161ull);
     static constexpr UUID MAGICK2 = UUID(11983071476558773143ull, 15192944415463971007ull);
-private:
+
     using BlockID    = ProfileBlockID<Profile>;
     using CommitUUID = ProfileSnapshotID<Profile>;
     using CommitID   = int64_t;
     using SequenceID = uint64_t;
+
+private:
 
     UUID magick1_;
     UUID magick2_;
@@ -46,6 +52,7 @@ private:
     uint64_t superblock_file_pos_;
     uint64_t superblock_size_;
     uint64_t block_counters_file_pos_;
+    uint64_t block_counters_size_;
 
     BlockID history_root_id_;
     BlockID directory_root_id_;
@@ -53,6 +60,8 @@ private:
     BlockID allocator_root_id_;
 
     CommitUUID commit_uuid_;
+
+    SWMRStoreStatus store_status_;
 
     PackedAllocator allocator_;
 
@@ -90,8 +99,20 @@ public:
     uint64_t block_counters_file_pos() const noexcept {return block_counters_file_pos_;}
     uint64_t& block_counters_file_pos() noexcept {return block_counters_file_pos_;}
 
+    uint64_t block_counters_size() const noexcept {return block_counters_size_;}
+    uint64_t& block_counters_size() noexcept {return block_counters_size_;}
+
     const CommitUUID& commit_uuid() const noexcept {return commit_uuid_;}
     CommitUUID& commit_uuid() noexcept {return commit_uuid_;}
+
+    SWMRStoreStatus status() const noexcept {return store_status_;}
+
+    bool is_clean() const noexcept {return store_status_ == SWMRStoreStatus::CLEAN;}
+    bool is_unclean() const noexcept {return store_status_ == SWMRStoreStatus::UNCLEAN;}
+
+    bool set_clean_status() noexcept {
+        store_status_ = SWMRStoreStatus::CLEAN;
+    }
 
     bool match_magick() noexcept {
         return magick1_ == MAGICK1 && magick2_ == MAGICK2;
@@ -111,7 +132,9 @@ public:
         superblock_file_pos_ = superblock_file_pos;
         file_size_           = file_size;
         superblock_size_     = superblock_size;
+
         block_counters_file_pos_ = 0;
+        block_counters_size_ = 0;
 
         history_root_id_   = BlockID{};
         directory_root_id_ = BlockID{};
@@ -119,6 +142,8 @@ public:
         allocator_root_id_ = BlockID{};
 
         commit_uuid_       = ProfileTraits<Profile>::make_random_snapshot_id();
+
+        store_status_ = SWMRStoreStatus::UNCLEAN;
 
         return allocator_.init(allocator_block_size(superblock_size), 1);
     }
@@ -142,6 +167,8 @@ public:
         file_size_           = other.file_size_;
         superblock_size_     = other.superblock_size_;
         block_counters_file_pos_ = other.block_counters_file_pos_;
+        block_counters_size_ = other.block_counters_size_;
+        store_status_        = other.store_status_;
 
         return allocator_.init(allocator_block_size(other.superblock_size_), 1);
     }

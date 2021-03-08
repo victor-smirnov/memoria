@@ -151,6 +151,10 @@ public:
         allocator_holder_.reset();
     }
 
+    void internal_reset_allocator_holder() noexcept {
+        reset_allocator_holder();
+    }
+
     AllocatorPtr allocator_holder() noexcept {
         return allocator_holder_;
     }

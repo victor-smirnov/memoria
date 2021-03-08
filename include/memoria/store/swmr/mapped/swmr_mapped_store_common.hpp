@@ -28,6 +28,7 @@
 
 #include <atomic>
 #include <memory>
+#include <absl/container/btree_map.h>
 
 namespace memoria {
 
@@ -45,10 +46,13 @@ template <typename Profile> class MappedSWMRStore;
 template <typename Profile>
 class CommitDescriptor: public boost::intrusive::list_base_hook<> {
     using Superblock = SWMRSuperblock<Profile>;
-    using BlockID = ProfileBlockID<Profile>;
+    using BlockID    = ProfileBlockID<Profile>;
+    using CommitID   = typename Superblock::CommitID;
 
     std::atomic<int32_t> uses_{};
     Superblock* superblock_;
+    bool persistent_{false};
+
 public:
     CommitDescriptor() noexcept:
         superblock_(nullptr)
@@ -66,6 +70,14 @@ public:
         superblock_ = superblock;
     }
 
+    bool is_persistent() const {
+        return persistent_;
+    }
+
+    void set_persistent(bool persistent) {
+        persistent_ = persistent;
+    };
+
     void ref() noexcept {
         uses_.fetch_add(1);
     }
@@ -82,13 +94,109 @@ public:
 template <typename Profile>
 using CommitDescriptorsList = boost::intrusive::list<CommitDescriptor<Profile>>;
 
+
+
+
+template <typename Profile>
+using BlockRefCounterFn = std::function<BoolResult(const ProfileBlockID<Profile>&)>;
+
+
+template <typename Profile>
+struct SWMRBlockCounters {
+
+    using BlockID = ProfileBlockID<Profile>;
+
+    struct Counter {
+        uint64_t value;
+        void inc() noexcept {
+            ++value;
+        }
+
+        bool dec() noexcept {
+            return --value == 0;
+        }
+    };
+
+private:
+    absl::btree_map<BlockID, Counter> map_;
+public:
+
+    void clear() noexcept {
+        map_.clear();
+    }
+
+    auto begin() const {
+        return map_.begin();
+    }
+
+    auto end() const {
+        return map_.end();
+    }
+
+    size_t size() const noexcept {
+        return map_.size();
+    }
+
+    void set(const BlockID& block_id, uint64_t counter) noexcept {
+        map_[block_id] = Counter{counter};
+    }
+
+    bool inc(const BlockID& block_id) noexcept {
+        auto ii = map_.find(block_id);
+        if (ii != map_.end()) {
+            ii->second.inc();
+            return false;
+        }
+        else {
+            map_.insert(std::make_pair(block_id, Counter{1}));
+            return true;
+        }
+    }
+
+    BoolResult dec(const BlockID& block_id) noexcept {
+        auto ii = map_.find(block_id);
+        if (ii != map_.end()) {
+            bool res = ii->second.dec();
+            if (res) {
+                map_.erase(ii);
+            }
+            return BoolResult::of(res);
+        }
+        else {
+            return make_generic_error_with_source(MA_SRC, "SWMRStore block counter is not found for block {}", block_id);
+        }
+    }
+
+    VoidResult for_each(std::function<VoidResult(const BlockID&, uint64_t)> fn) const noexcept
+    {
+        for (auto ii = map_.begin(); ii != map_.end(); ++ii) {
+            MEMORIA_TRY_VOID(fn(ii->first, ii->second.value));
+        }
+        return VoidResult::of();
+    }
+
+    Optional<uint64_t> get(const BlockID& block_id) const noexcept {
+        auto ii = map_.find(block_id);
+        if (ii != map_.end()) {
+            return ii->second.value;
+        }
+        return Optional<uint64_t>{};
+    }
+};
+
+template <typename Profile>
+struct CommitCheckState {
+    SWMRBlockCounters<Profile> counters;
+};
+
+
 template <typename Profile>
 struct ReferenceCounterDelegate {
     using BlockID = ProfileBlockID<Profile>;
 
     virtual ~ReferenceCounterDelegate() noexcept {}
 
-    virtual VoidResult ref_block(const BlockID& block_id, int64_t amount) noexcept = 0;
+    virtual VoidResult ref_block(const BlockID& block_id) noexcept = 0;
     virtual VoidResult unref_block(const BlockID& block_id, const std::function<VoidResult()>& on_zero) noexcept = 0;
     virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept = 0;
 };
@@ -107,6 +215,8 @@ protected:
     using typename Base::SnapshotID;
     using typename Base::CtrID;
 
+    using BlockCounterCallbackFn = std::function<BoolResult(const BlockID&)>;
+
     using CommitID = typename ISWMRStoreCommitBase<Profile>::CommitID;
 
     using Store                     = MappedSWMRStore<Profile>;
@@ -117,15 +227,11 @@ protected:
 
     using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<Profile>*>;
 
-
     using DirectoryCtrType  = Map<CtrID, BlockID>;
     using DirectoryCtr      = ICtrApi<DirectoryCtrType, Profile>;
 
     using AllocationMapCtrType = AllocationMap;
     using AllocationMapCtr  = ICtrApi<AllocationMapCtrType, Profile>;
-
-//    using RefcountersCtrType = Map<BigInt, BigInt>;
-//    using RefcountersCtr     = ICtrApi<RefcountersCtrType, Profile>;
 
     using HistoryCtrType    = Map<BigInt, BigInt>;
     using HistoryCtr        = ICtrApi<HistoryCtrType, Profile>;
@@ -142,9 +248,13 @@ protected:
 
     Logger logger_;
 
-    CtrSharedPtr<DirectoryCtr> directory_ctr_;
+    CtrSharedPtr<DirectoryCtr>      directory_ctr_;
+    CtrSharedPtr<AllocationMapCtr>  allocation_map_ctr_;
+    CtrSharedPtr<HistoryCtr>        history_ctr_;
 
     ReferenceCounterDelegate<Profile>* refcounter_delegate_;
+
+    template <typename> friend class SWMRMappedStoreHistoryView;
 
 public:
     MappedSWMRStoreCommitBase(
@@ -540,10 +650,10 @@ public:
 
 
 
-    virtual VoidResult ref_block(const BlockID& block_id, int64_t amount = 1) noexcept
+    virtual VoidResult ref_block(const BlockID& block_id) noexcept
     {
         if (refcounter_delegate_) {
-            return refcounter_delegate_->ref_block(block_id, amount);
+            return refcounter_delegate_->ref_block(block_id);
         }
         else {
             return MEMORIA_MAKE_GENERIC_ERROR("ref_block() is not implemented for ReadOnly commits");
@@ -585,7 +695,71 @@ public:
         return MEMORIA_MAKE_GENERIC_ERROR("updated are not allowed for ReadOnly commits");
     }
 
+    virtual VoidResult check(std::function<VoidResult(LDDocument&)> callback) noexcept {
+        return VoidResult::of();
+    }
+
+    virtual VoidResult build_block_refcounters(SWMRBlockCounters<Profile>& counters) noexcept
+    {
+        auto counters_fn = [&](const BlockID& block_id) -> BoolResult {
+            return wrap_throwing([&](){
+                return BoolResult::of(counters.inc(block_id));
+            });
+        };
+
+        MEMORIA_TRY_VOID(traverse_cow_containers(counters_fn));
+
+        MEMORIA_TRY_VOID(traverse_ctr_cow_tree(
+            commit_descriptor_->superblock()->history_root_id(),
+            counters_fn
+        ));
+
+        MEMORIA_TRY_VOID(traverse_ctr_cow_tree(
+            commit_descriptor_->superblock()->allocator_root_id(),
+            counters_fn
+        ));
+
+        return VoidResult::of();
+    }
+
+
 protected:
+
+    virtual VoidResult traverse_cow_containers(const BlockCounterCallbackFn& callback) noexcept {
+        MEMORIA_TRY_VOID(traverse_ctr_cow_tree(commit_descriptor_->superblock()->directory_root_id(), callback));
+
+        MEMORIA_TRY(iter, directory_ctr_->iterator());
+        while (!iter->is_end())
+        {
+            auto root_id = iter->value();
+            MEMORIA_TRY_VOID(traverse_ctr_cow_tree(root_id, callback));
+            MEMORIA_TRY_VOID(iter->next());
+        }
+
+        return VoidResult::of();
+    }
+
+
+    VoidResult traverse_ctr_cow_tree(const BlockID& root_block_id, const BlockCounterCallbackFn& callback) noexcept {
+        MEMORIA_TRY(ref, from_root_id(root_block_id, CtrID{}));
+        MEMORIA_TRY(root_block, ref->root_block());
+        return traverse_block_tree(root_block, callback);
+    }
+
+    VoidResult traverse_block_tree(
+            CtrBlockPtr<Profile> block,
+            const BlockCounterCallbackFn& callback) noexcept
+    {
+        MEMORIA_TRY(traverse, callback(block->block_id()));
+        if (traverse) {
+            MEMORIA_TRY(children, block->children());
+            for (size_t c = 0; c < children.size(); c++) {
+                MEMORIA_TRY_VOID(traverse_block_tree(children[c], callback));
+            }
+        }
+
+        return VoidResult::of();
+    }
 
     template<typename CtrName>
     Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> internal_find_by_root_typed(const BlockID& root_block_id) noexcept
@@ -622,6 +796,80 @@ protected:
 
     void set_superblock(Superblock* superblock) noexcept {
         this->superblock_ = superblock;
+    }
+
+    VoidResult for_each_history_entry(const std::function<VoidResult (CommitID, int64_t)>& fn) noexcept
+    {
+        MEMORIA_TRY_VOID(init_history_ctr());
+        MEMORIA_TRY(scanner, history_ctr_->scanner_from(history_ctr_->iterator()));
+
+        bool has_next;
+        do {
+            for (size_t c = 0; c < scanner.keys().size(); c++) {
+                MEMORIA_TRY_VOID(fn(scanner.keys()[c], scanner.values()[c]));
+            }
+
+            MEMORIA_TRY(has_next_res, scanner.next_leaf());
+            has_next = has_next_res;
+        }
+        while (has_next);
+
+        return VoidResult::of();
+    }
+
+    VoidResult init_allocator_ctr() noexcept
+    {
+        if (!allocation_map_ctr_)
+        {
+            auto root_block_id = commit_descriptor_->superblock()->allocator_root_id();
+            if (root_block_id.is_set())
+            {
+                auto ctr_ref = this->template internal_find_by_root_typed<AllocationMapCtrType>(root_block_id);
+                MEMORIA_RETURN_IF_ERROR(ctr_ref);
+                allocation_map_ctr_ = ctr_ref.get();
+                allocation_map_ctr_->internal_reset_allocator_holder();
+            }
+        }
+
+        return VoidResult::of();
+    }
+
+
+    VoidResult init_history_ctr() noexcept
+    {
+        if (!history_ctr_)
+        {
+            auto root_block_id = commit_descriptor_->superblock()->history_root_id();
+            if (root_block_id.is_set())
+            {
+                auto ctr_ref = this->template internal_find_by_root_typed<HistoryCtrType>(root_block_id);
+                MEMORIA_RETURN_IF_ERROR(ctr_ref);
+                history_ctr_ = ctr_ref.get();
+                history_ctr_->internal_reset_allocator_holder();
+            }
+        }
+
+        return VoidResult::of();
+    }
+
+    Result<Optional<int64_t>> find_root(const CommitID& commit_id) noexcept {
+        MEMORIA_TRY_VOID(init_history_ctr());
+        MEMORIA_TRY(iter, history_ctr_->find(commit_id));
+
+        if (iter->is_found(commit_id)) {
+            return Result<Optional<int64_t>>::of(iter->value().view());
+        }
+
+        return Result<Optional<int64_t>>::of(Optional<int64_t>{});
+    }
+
+    virtual VoidResult describe_to_cout() noexcept {
+        if (allocation_map_ctr_) {
+            MEMORIA_TRY(ii, allocation_map_ctr_->iterator());
+            return ii->dump();
+        }
+
+        return VoidResult::of();
     }
 };
 

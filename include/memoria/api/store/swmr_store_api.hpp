@@ -17,6 +17,9 @@
 #pragma once
 
 #include <memoria/api/store/store_api_common.hpp>
+#include <memoria/core/linked/linked.hpp>
+
+#include <functional>
 
 namespace memoria {
 
@@ -25,6 +28,7 @@ struct ISWMRStoreCommitBase: virtual IStoreSnapshotCtrOps<Profile> {
     using CommitID = int64_t;
 
     virtual CommitID commit_id() noexcept = 0;
+    virtual VoidResult describe_to_cout() noexcept = 0;
 };
 
 template <typename Profile>
@@ -41,10 +45,31 @@ struct ISWMRStoreReadOnlyCommit: virtual ISWMRStoreCommitBase<Profile> {
 };
 
 template <typename Profile>
+struct ISWMRStoreHistoryView {
+    using CommitID = int64_t;
+    using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
+
+    virtual ~ISWMRStoreHistoryView() noexcept {}
+
+    virtual VoidResult check() noexcept = 0;
+
+    virtual Result<std::vector<CommitID>> persistent_commits() noexcept = 0;
+
+    virtual Result<std::vector<CommitID>> children(CommitID) noexcept = 0;
+    virtual Result<Optional<CommitID>> parent(CommitID) noexcept = 0;
+};
+
+using StoreCheckCallbackFn = std::function<VoidResult(LDDocument&)>;
+
+template <typename Profile>
 struct ISWMRStore {
     using WritableCommitPtr = SharedPtr<ISWMRStoreWritableCommit<Profile>>;
     using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
+
+    using HistoryPtr = SharedPtr<ISWMRStoreHistoryView<Profile>>;
+
     using CommitID = int64_t;
+    using SequenceID = uint64_t;
 
     virtual ~ISWMRStore() noexcept {}
 
@@ -59,6 +84,13 @@ struct ISWMRStore {
 
     virtual VoidResult flush() noexcept = 0;
     virtual VoidResult close() noexcept = 0;
+
+    virtual Result<Optional<SequenceID>> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) noexcept = 0;
+    virtual Result<Optional<SequenceID>> check(StoreCheckCallbackFn callback) noexcept {
+        return check(Optional<SequenceID>{}, callback);
+    };
+
+    virtual Result<HistoryPtr> history_view() noexcept = 0;
 };
 
 

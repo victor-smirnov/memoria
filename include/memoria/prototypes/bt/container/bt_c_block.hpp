@@ -130,7 +130,7 @@ public:
 
 
         return ResultT::of(std::make_shared<CtrBlockImpl>(
-            self.allocator_holder(),
+            self.store().self_ptr(),
             self.name(),
             self.root()
         ));

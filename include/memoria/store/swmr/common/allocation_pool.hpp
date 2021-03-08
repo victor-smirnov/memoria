@@ -106,6 +106,16 @@ public:
         }
     }
 
+    void dump() const noexcept {
+        std::cout << "Allocation Pool :: Levels: " << Levels << std::endl;
+        for (int c = 0; c < Levels; c++) {
+            std::cout << "total(" << c << "): " << totals_[c] << std::endl;
+            for (const auto& alc: levels_[c].span()) {
+                std::cout << "    " << alc << std::endl;
+            }
+        }
+    }
+
 private:
     bool populate_level_from_above(int32_t level, int64_t amount) noexcept
     {

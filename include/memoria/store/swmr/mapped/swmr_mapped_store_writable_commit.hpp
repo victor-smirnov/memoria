@@ -62,14 +62,9 @@ class MappedSWMRStoreWritableCommit:
     using Superblock          = SWMRSuperblock<Profile>;
     using ParentCommit        = SnpSharedPtr<MappedSWMRStoreReadOnlyCommit<Profile>>;
 
-    using CounterStorageT     = uint32_t;
+    using CounterStorageT     = typename Store::CounterStorageT;
 
     using BlockCleanupHandler = std::function<VoidResult ()>;
-
-    struct CounterValue{
-        int64_t value;
-        std::function<VoidResult()> on_zero_fn;
-    };
 
     static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
     static constexpr int32_t SUPERBLOCK_SIZE             = BASIC_BLOCK_SIZE;
@@ -80,10 +75,10 @@ class MappedSWMRStoreWritableCommit:
 
 
     CtrSharedPtr<AllocationMapCtr> parent_allocation_map_ctr_;
-    CtrSharedPtr<AllocationMapCtr> allocation_map_ctr_;
-    CtrSharedPtr<HistoryCtr>       history_ctr_;
 
     using Base::directory_ctr_;
+    using Base::allocation_map_ctr_;
+    using Base::history_ctr_;
     using Base::createCtrName;
     using Base::superblock_;
     using Base::getRootID;
@@ -91,6 +86,9 @@ class MappedSWMRStoreWritableCommit:
     using Base::instance_map_;
     using Base::buffer_;
     using Base::store_;
+    using Base::commit_descriptor_;
+    using Base::refcounter_delegate_;
+
 
     AllocationPool<Profile, 9> allocation_pool_;
 
@@ -105,14 +103,11 @@ class MappedSWMRStoreWritableCommit:
 
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_;
 
-    bool persistent_{false};
-
-    Span<CounterStorageT> counters_;
-
     template <typename>
     friend class MappedSWMRStore;
 
 public:
+    using Base::check;
 
     MappedSWMRStoreWritableCommit(
             MaybeError& maybe_error,
@@ -121,16 +116,9 @@ public:
             CommitDescriptorT* parent_commit_descriptor,
             CommitDescriptorT* commit_descriptor
     ) noexcept:
-        Base(maybe_error, store, buffer, commit_descriptor, nullptr)
+        Base(maybe_error, store, buffer, commit_descriptor, store.get())
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            auto counters_pos = parent_commit_descriptor->superblock()->block_counters_file_pos();
-            size_t counters_size = buffer.size() / BASIC_BLOCK_SIZE;
-            counters_ = Span<CounterStorageT>(
-                ptr_cast<CounterStorageT>(store->buffer_.data() + counters_pos),
-                counters_size
-            );
-
             parent_commit_ = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
                 maybe_error, store, buffer, parent_commit_descriptor
             );
@@ -156,26 +144,32 @@ public:
             return VoidResult::of();
         });
 
-        internal_init_system_ctr<AllocationMapCtrType>(
-            maybe_error,
-            allocation_map_ctr_,
-            superblock_->allocator_root_id(),
-            AllocationMapCtrID
-        );
+        if (!maybe_error) {
+            internal_init_system_ctr<AllocationMapCtrType>(
+                maybe_error,
+                allocation_map_ctr_,
+                superblock_->allocator_root_id(),
+                AllocationMapCtrID
+            );
+        }
 
-        internal_init_system_ctr<HistoryCtrType>(
-            maybe_error,
-            history_ctr_,
-            superblock_->history_root_id(),
-            HistoryCtrID
-        );
+        if (!maybe_error) {
+            internal_init_system_ctr<HistoryCtrType>(
+                maybe_error,
+                history_ctr_,
+                superblock_->history_root_id(),
+                HistoryCtrID
+            );
+        }
 
-        internal_init_system_ctr<DirectoryCtrType>(
-            maybe_error,
-            directory_ctr_,
-            superblock_->directory_root_id(),
-            DirectoryCtrID
-        );
+        if (!maybe_error) {
+            internal_init_system_ctr<DirectoryCtrType>(
+                maybe_error,
+                directory_ctr_,
+                superblock_->directory_root_id(),
+                DirectoryCtrID
+            );
+        }
     }
 
     MappedSWMRStoreWritableCommit(
@@ -185,7 +179,7 @@ public:
             CommitDescriptorT* commit_descriptor,
             InitStoreTag
     ) noexcept:
-        Base(maybe_error, store, buffer, commit_descriptor, nullptr)
+        Base(maybe_error, store, buffer, commit_descriptor, store.get())
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             int64_t avaialble = (buffer_.size() / (BASIC_BLOCK_SIZE << (ALLOCATION_LEVELS - 1)));
@@ -194,6 +188,7 @@ public:
             int64_t reserved = SUPERBLOCKS_RESERVED;
             ArenaBuffer<AllocationMetadataT> allocations;
             allocation_pool_.allocate(SUPERBLOCK_ALLOCATION_LEVEL, reserved, allocations);
+
             for (auto& alc: allocations.span()) {
                 add_awaiting_allocation(alc);
             }
@@ -202,20 +197,18 @@ public:
             MEMORIA_TRY(superblock, allocate_superblock(nullptr, commit_id, buffer.size()));
             commit_descriptor->set_superblock(superblock);
 
-            ArenaBuffer<AllocationMetadataT> counters_buffer;
             uint64_t total_blocks = buffer_.size() / BASIC_BLOCK_SIZE;
             uint64_t counters_blocks = divUp(total_blocks, BASIC_BLOCK_SIZE / sizeof(CounterStorageT));
-            allocation_pool_.allocate(0, counters_blocks, counters_buffer);
 
-            MEMORIA_RETURN_IF_ERROR(check_counters_allocation(counters_buffer, counters_blocks));
+            ArenaBuffer<AllocationMetadataT> counters;
+            allocation_pool_.allocate(0, counters_blocks, counters);
 
-            uint64_t counters_file_pos = counters_buffer[0].position() * BASIC_BLOCK_SIZE;
+            for (auto& alc: counters.span()) {
+                add_awaiting_allocation(alc);
+            }
+
+            uint64_t counters_file_pos = counters[0].position() * BASIC_BLOCK_SIZE;
             superblock->block_counters_file_pos() = counters_file_pos;
-
-            counters_ = Span<CounterStorageT>(
-                ptr_cast<CounterStorageT>(buffer.data() + counters_file_pos),
-                total_blocks
-            );
 
             Base::superblock_ = superblock;
 
@@ -228,20 +221,23 @@ public:
             return VoidResult::of();
         });
 
+        if (!maybe_error) {
+            internal_init_system_ctr<HistoryCtrType>(
+                maybe_error,
+                history_ctr_,
+                superblock_->history_root_id(),
+                HistoryCtrID
+            );
+        }
 
-        internal_init_system_ctr<HistoryCtrType>(
-            maybe_error,
-            history_ctr_,
-            superblock_->history_root_id(),
-            HistoryCtrID
-        );
-
-        internal_init_system_ctr<DirectoryCtrType>(
-            maybe_error,
-            directory_ctr_,
-            superblock_->directory_root_id(),
-            DirectoryCtrID
-        );
+        if (!maybe_error) {
+            internal_init_system_ctr<DirectoryCtrType>(
+                maybe_error,
+                directory_ctr_,
+                superblock_->directory_root_id(),
+                DirectoryCtrID
+            );
+        }
     }
 
     virtual ~MappedSWMRStoreWritableCommit() noexcept {
@@ -313,7 +309,8 @@ public:
             if (history_ctr_)
             {
                 int64_t sb_pos = superblock_->superblock_file_pos();
-                MEMORIA_TRY_VOID(history_ctr_->assign_key(superblock_->commit_id(), sb_pos * (persistent_ ? 1 : -1)));
+                MEMORIA_TRY_VOID(history_ctr_->assign_key(superblock_->commit_id(), sb_pos * (
+                                                              is_persistent() ? 1 : -1)));
             }
 
             ArenaBuffer<AllocationMetadataT> all_postponed_deallocations;
@@ -422,12 +419,12 @@ public:
     virtual VoidResult set_persistent(bool persistent) noexcept
     {
         MEMORIA_TRY_VOID(check_updates_allowed());
-        persistent_ = persistent;
+        commit_descriptor_->set_persistent(persistent);
         return VoidResult::of();
     }
 
     virtual bool is_persistent() noexcept {
-        return persistent_;
+        return commit_descriptor_->is_persistent();
     }
 
 
@@ -674,36 +671,19 @@ public:
         return ResultT::of(BlockG{new_block});
     }
 
-    virtual VoidResult ref_block(const BlockID& block_id, int64_t amount = 1) noexcept
+    virtual VoidResult ref_block(const BlockID& block_id) noexcept
     {
-        if (counters_[block_id.value()] <= std::numeric_limits<CounterStorageT>::max() - amount) {
-            counters_[block_id.value()] += amount;
-            return VoidResult::of();
-        }
-        else {
-            return make_generic_error_with_source(MA_SRC, "SWMRStore block counter overflow for block {}", block_id);
-        }
+        return refcounter_delegate_->ref_block(block_id);
     }
 
     virtual VoidResult unref_block(const BlockID& block_id, BlockCleanupHandler on_zero) noexcept
     {
-       if (counters_[block_id.value()] > 0)
-       {
-           counters_[block_id.value()]--;
-           if (!counters_[block_id.value()]) {
-               return on_zero();
-           }
-
-           return VoidResult::of();
-       }
-       else {
-           return make_generic_error_with_source(MA_SRC, "SWMRStore block counter underflow for block {}", block_id);
-       }
+        return refcounter_delegate_->unref_block(block_id, on_zero);
     }
 
     virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept
     {
-        return unref_block(root_block_id, [=]() -> VoidResult {
+        return unref_block(root_block_id, [=]() noexcept -> VoidResult {
             MEMORIA_TRY(block, this->getBlock(root_block_id));
 
             auto ctr_hash = block->ctr_type_hash();
@@ -749,13 +729,15 @@ private:
             {
                 auto ctr_ref = this->template internal_find_by_root_typed<CtrName>(root_block_id);
                 MEMORIA_RETURN_IF_ERROR(ctr_ref);
-                assign_to = ctr_ref.get();
+                assign_to = ctr_ref.get();                
             }
             else {
                 auto ctr_ref = this->template internal_create_by_name_typed<CtrName>(ctr_id);
                 MEMORIA_RETURN_IF_ERROR(ctr_ref);
                 assign_to = ctr_ref.get();
             }
+
+            assign_to->internal_reset_allocator_holder();
 
             return VoidResult::of();
         });
@@ -939,32 +921,6 @@ private:
 
     void add_postponed_deallocation(const AllocationMetadataT& meta) noexcept {
         postponed_deallocations_.append_value(meta);
-    }
-
-    VoidResult check_counters_allocation(const ArenaBuffer<AllocationMetadataT>& buffer, uint64_t total_blocks)
-    {
-        if (buffer.size() == 0) {
-            return make_generic_error_with_source(MA_SRC, "SWMRStore creation internal error. Can't allocate counters buffer.");
-        }
-
-        uint64_t alc_size{};
-        uint64_t last_pos = buffer[0].position();
-
-        for(const AllocationMetadataT& alc: buffer.span()) {
-            alc_size += alc.size();
-            if (alc.position() == last_pos) {
-                last_pos += alc.size();
-            }
-            else {
-                return make_generic_error_with_source(MA_SRC, "SWMRStore counters buffer allocation error. Can't allocate contigous counters buffer.");
-            }
-        }
-
-        if (alc_size < total_blocks) {
-            return make_generic_error_with_source(MA_SRC, "SWMRStore counters buffer allocation error. Insufficient buffer space allocated.");
-        }
-
-        return VoidResult::of();
     }
 };
 

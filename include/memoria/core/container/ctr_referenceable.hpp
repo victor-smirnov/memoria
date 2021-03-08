@@ -32,6 +32,7 @@
 
 
 #include <string>
+#include <functional>
 
 namespace memoria {
 
@@ -96,6 +97,8 @@ struct CtrReferenceableBase {
     virtual Result<CtrBlockPtr<Profile>> root_block() noexcept = 0;
 
     virtual VoidResult internal_unref_cascade(const ProfileBlockID<Profile>& block_id) noexcept = 0;
+
+    virtual void internal_reset_allocator_holder() noexcept = 0;
 };
 
 template <typename Profile>
