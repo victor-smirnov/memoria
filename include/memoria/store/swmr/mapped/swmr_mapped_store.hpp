@@ -769,15 +769,11 @@ private:
 
     virtual VoidResult ref_block(const BlockID& block_id) noexcept {
         block_counters_.inc(block_id);
-        //std::cout << "Ref " << block_id << " :: " << block_counters_.get(block_id) << std::endl;
         return VoidResult::of();
     }
 
     virtual VoidResult unref_block(const BlockID& block_id, const std::function<VoidResult()>& on_zero) noexcept {
         MEMORIA_TRY(zero, block_counters_.dec(block_id));
-
-        //std::cout << "UnRef " << block_id << " :: " << block_counters_.get(block_id) << std::endl;
-
         if (zero) {
             return on_zero();
         }

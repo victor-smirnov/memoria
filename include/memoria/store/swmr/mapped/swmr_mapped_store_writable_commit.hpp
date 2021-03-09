@@ -251,7 +251,7 @@ public:
     VoidResult finish_store_initialization() noexcept
     {
         MEMORIA_TRY_VOID(allocation_map_ctr_->expand(buffer_.size() / BASIC_BLOCK_SIZE));
-        MEMORIA_TRY_VOID(finish_commit_opening());
+        //MEMORIA_TRY_VOID(finish_commit_opening());
         return commit();
     }
 
@@ -301,7 +301,7 @@ public:
     }
 
     virtual VoidResult commit(bool flush = true) noexcept
-    {        
+    {
         if (this->is_active())
         {
             MEMORIA_TRY_VOID(flush_open_containers());
@@ -619,7 +619,6 @@ public:
         add_awaiting_allocation(allocation.get());
 
         uint64_t id = allocation.get().position();
-
         uint8_t* block_addr = buffer_.data() + id * BASIC_BLOCK_SIZE;
 
         std::memset(block_addr, 0, initial_size);
@@ -657,7 +656,6 @@ public:
         add_awaiting_allocation(allocation.get());
 
         uint64_t id = allocation.get().position();
-
         uint8_t* block_addr = buffer_.data() + id * BASIC_BLOCK_SIZE;
 
         std::memcpy(block_addr, block.block(), block_size);
