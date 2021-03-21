@@ -115,7 +115,7 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
         {
             for (auto key_view: ss.keys()) {
                 auto res = wrap_throwing([&](){
-                    fn(key_view);
+                    return fn(key_view);
                 });
                 MEMORIA_RETURN_IF_ERROR(res);
             }

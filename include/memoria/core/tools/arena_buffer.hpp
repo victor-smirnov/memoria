@@ -30,6 +30,209 @@
 
 namespace memoria {
 
+template <typename TT, typename SizeT = size_t>
+class ArenaBuffer;
+
+namespace detail {
+
+class ArenaBufferSharedGuard {
+protected:
+    uint64_t refs_;
+    bool valid_;
+public:
+    ArenaBufferSharedGuard() noexcept:
+        refs_(0), valid_(true)
+    {}
+
+    void ref() noexcept {
+        ++refs_;
+    }
+
+    bool unref() noexcept {
+        return --refs_ == 0;
+    }
+
+    virtual void destroy() noexcept = 0;
+    virtual void invalidate() noexcept = 0;
+
+    bool is_invalid() const noexcept {
+        return !valid_;
+    }
+};
+
+}
+
+template <typename View>
+class ViewGuard {
+    View* view_;
+    detail::ArenaBufferSharedGuard* shared_;
+
+    ViewGuard(View view, detail::ArenaBufferSharedGuard* shared) noexcept:
+        view_(view),
+        shared_(shared)
+    {
+        shared_->ref();
+    }
+public:
+    ViewGuard() noexcept:
+        shared_(nullptr)
+    {}
+
+    ViewGuard(const ViewGuard& other) noexcept:
+        view_(other.view_),
+        shared_(other.shared_)
+    {
+        if (shared_) {
+            shared_->ref();
+        }
+    }
+
+    ViewGuard(ViewGuard&& other) noexcept:
+        view_(std::move(other.view_)),
+        shared_(other.shared_)
+    {
+        other.shared_ = nullptr;
+    }
+
+    ~ViewGuard() noexcept {
+        do_unref();
+    }
+
+    ViewGuard& operator=(const ViewGuard& other) noexcept {
+        if (this == &other) {
+            return *this;
+        }
+
+        do_unref();
+
+        view_ = other.view_;
+        shared_ = other.shared_;
+
+        if (shared_) {
+            shared_->ref();
+        }
+
+        return *this;
+    }
+
+    ViewGuard& operator=(ViewGuard&& other) noexcept {
+        if (this == &other) {
+            return *this;
+        }
+
+        view_   = std::move(other.view_);
+        shared_ = other.shared_;
+
+        other.shared_ = nullptr;
+
+        return *this;
+    }
+
+    View* operator->() {
+        if (!shared_ || shared_->is_invalid()) {
+            throw std::runtime_error("Accessing invalid/empty ViewGuard");
+        }
+        return view_;
+    }
+
+    const View* operator->() const {
+        if (!shared_ || shared_->is_invalid()) {
+            throw std::runtime_error("Accessing invalid/empty ViewGuard");
+        }
+        return view_;
+    }
+
+    operator bool() const noexcept {
+        return shared_ && !shared_->is_invalid();
+    }
+
+private:
+    void do_unref() noexcept {
+        if (shared_) {
+            if (shared_->unref()) {
+                shared_->destroy();
+            }
+        }
+    }
+};
+
+
+
+class BufferGuard {
+
+    detail::ArenaBufferSharedGuard* shared_;
+
+    BufferGuard(detail::ArenaBufferSharedGuard* shared) noexcept:
+        shared_(shared)
+    {
+        shared_->ref();
+    }
+public:
+    BufferGuard() noexcept:
+        shared_(nullptr)
+    {}
+
+    BufferGuard(const BufferGuard& other) noexcept:
+        shared_(other.shared_)
+    {
+        if (shared_) {
+            shared_->ref();
+        }
+    }
+
+    BufferGuard(BufferGuard&& other) noexcept:
+        shared_(other.shared_)
+    {
+        other.shared_ = nullptr;
+    }
+
+    ~BufferGuard() noexcept {
+        do_unref();
+    }
+
+    BufferGuard& operator=(const BufferGuard& other) noexcept {
+        if (this == &other) {
+            return *this;
+        }
+
+        do_unref();
+        shared_ = other.shared_;
+
+        if (shared_) {
+            shared_->ref();
+        }
+
+        return *this;
+    }
+
+    BufferGuard& operator=(BufferGuard&& other) noexcept {
+        if (this == &other) {
+            return *this;
+        }
+
+        shared_ = other.shared_;
+
+        other.shared_ = nullptr;
+
+        return *this;
+    }
+
+    bool is_valid() const noexcept {
+        return shared_ && !shared_->is_invalid();
+    }
+
+private:
+    void do_unref() noexcept {
+        if (shared_) {
+            if (shared_->unref()) {
+                shared_->destroy();
+            }
+        }
+    }
+};
+
+
+
 enum class ArenaBufferCmd: int32_t {
     ALLOCATE, FREE
 };
@@ -37,13 +240,13 @@ enum class ArenaBufferCmd: int32_t {
 // memaddr(buffer_id, command, size, existing_memaddr)
 using ArenaBufferMemoryMgr = std::function<uint8_t* (int32_t, ArenaBufferCmd, size_t, uint8_t*)>;
 
-template <typename TT, typename SizeT = size_t>
-class ArenaBuffer;
+
 
 template <typename TT, typename SizeT>
 class ArenaBuffer {
 
-protected:    
+protected:
+    using MyType = ArenaBuffer;
     using ValueT = TT;
     static_assert(std::is_trivially_copyable<ValueT>::value, "ArenaBufferBase currently supports only trivially copyable types");
 
@@ -53,6 +256,29 @@ protected:
 
     ArenaBufferMemoryMgr memory_mgr_;
     int32_t buffer_id_{-1};
+
+    class ArenaBufferSharedGuardImpl: public detail::ArenaBufferSharedGuard {
+        const MyType* arena_;
+    public:
+        ArenaBufferSharedGuardImpl(const MyType* arena) noexcept:
+            arena_(arena)
+        {}
+
+        void destroy() noexcept {
+            delete arena_->guard_;
+            if (valid_) {
+                arena_->guard_ = nullptr;
+            }
+        }
+
+        void invalidate() noexcept {
+            valid_ = false;
+        }
+    };
+
+    mutable ArenaBufferSharedGuardImpl* guard_{nullptr};
+
+    friend class ArenaBufferSharedGuardImpl;
 
 public:
     ArenaBuffer(SizeT capacity):
@@ -136,6 +362,8 @@ public:
 
     ~ArenaBuffer() noexcept
     {
+        invalidate_guard();
+
         if (buffer_) {
             free_buffer(buffer_);
         }
@@ -149,6 +377,7 @@ public:
     {
         if (&other != this)
         {
+            invalidate_guard();
             free_buffer(buffer_);
 
             capacity_ = other.capacity_;
@@ -168,6 +397,7 @@ public:
     {
         if (&other != this)
         {
+            invalidate_guard();
             free_buffer(buffer_);
 
             capacity_ = other.capacity_;
@@ -177,6 +407,7 @@ public:
 
             buffer_ = other.buffer_;
 
+            other.invalidate_guard();
             other.buffer_ = nullptr;
         }
 
@@ -200,6 +431,7 @@ public:
             size_       = other.size_;
             capacity_   = other.capacity_;
 
+            other.invalidate_guard();
             other.buffer_ = nullptr;
         }
     }
@@ -316,6 +548,8 @@ public:
             MemCpyBuffer(buffer_, new_ptr, size_);
         }
 
+        invalidate_guard();
+
         if (buffer_) {
             free_buffer(buffer_);
         }
@@ -333,11 +567,14 @@ public:
     }
 
     void clear() noexcept {
+        invalidate_guard();
         size_ = 0;
     }
 
     void reset() noexcept
     {
+        invalidate_guard();
+
         if (buffer_) {
             free_buffer(buffer_);
         }
@@ -350,9 +587,33 @@ public:
 
     void remove(size_t from, size_t to) noexcept
     {
+        invalidate_guard();
         MemCpyBuffer(buffer_ + to, buffer_ + from, size_ - to);
         size_ -= to - from;
     }
+
+    ViewGuard<ValueT> get_guarded(size_t idx) noexcept {
+        if (!guard_) {
+            guard_ = new ArenaBufferSharedGuardImpl(this);
+        }
+        return ViewGuard<ValueT>(buffer_ + idx, guard_);
+    }
+
+    ViewGuard<const ValueT> get_guarded(size_t idx) const noexcept {
+        if (!guard_) {
+            guard_ = new ArenaBufferSharedGuardImpl(this);
+        }
+        return ViewGuard<const ValueT>(buffer_ + idx, guard_);
+    }
+
+    BufferGuard guard() const noexcept {
+        if (!guard_) {
+            guard_ = new ArenaBufferSharedGuardImpl(this);
+        }
+
+        return BufferGuard(guard_);
+    }
+
 
     Span<ValueT> span() noexcept {
         return Span<ValueT>(buffer_, size_);
@@ -400,6 +661,7 @@ public:
     {
         if (buffer_)
         {
+            invalidate_guard();
             std::sort(buffer_, buffer_ + size());
         }
     }
@@ -426,6 +688,13 @@ private:
         }
         else {
             memory_mgr_(buffer_id_, ArenaBufferCmd::FREE, capacity_ * sizeof(ValueT), ptr_cast<uint8_t>(existing));
+        }
+    }
+
+    void invalidate_guard() const noexcept {
+        if (guard_) {
+            guard_->invalidate();
+            guard_ = nullptr;
         }
     }
 };

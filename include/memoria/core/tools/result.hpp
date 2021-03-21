@@ -177,14 +177,20 @@ public:
 };
 
 struct UnknownResultStatusException: MemoriaThrowable {};
+struct ResultUninitializedException: MemoriaThrowable {};
+
+namespace detail {
+    struct UninitializedType {};
+}
+
 
 enum class ResultStatus {
-    RESULT_SUCCESS = 0, MEMORIA_ERROR = 1
+    RESULT_SUCCESS = 0, MEMORIA_ERROR = 1, RESULT_UNINITIALIZED = 2
 };
 
 
 namespace detail {
-    using ResultErrors = boost::variant2::variant<MemoriaErrorPtr>;
+    using ResultErrors = boost::variant2::variant<MemoriaErrorPtr, detail::UninitializedType>;
 }
 
 using MaybeError = Optional<detail::ResultErrors>;
@@ -226,7 +232,7 @@ std::ostream& operator<<(std::ostream& out, const Result<T*>& res) noexcept;
 
 template <typename T>
 class MMA_NODISCARD Result {
-    using Variant = boost::variant2::variant<T, MemoriaErrorPtr>;
+    using Variant = boost::variant2::variant<T, MemoriaErrorPtr, detail::UninitializedType>;
     Variant variant_;
 
     struct ResultTag {};
@@ -247,6 +253,10 @@ class MMA_NODISCARD Result {
 
 public:
     using ValueType = T;
+
+    Result() noexcept:
+        variant_(detail::UninitializedType{})
+    {}
 
     Result(const Result&) = delete;
     Result(Result&&) noexcept = default;
@@ -346,6 +356,10 @@ public:
 
         switch(status())
         {
+            case ResultStatus::RESULT_UNINITIALIZED:
+            {
+                throw ResultUninitializedException{};
+            }
             case ResultStatus::MEMORIA_ERROR:
             {
                 if (memoria_error()->error_category() == ErrorCategory::EXCEPTION)
@@ -375,6 +389,10 @@ public:
 
         switch(status())
         {
+            case ResultStatus::RESULT_UNINITIALIZED:
+            {
+                throw ResultUninitializedException{};
+            }
             case ResultStatus::MEMORIA_ERROR:
             {
                 if (memoria_error()->error_category() == ErrorCategory::EXCEPTION)
@@ -400,6 +418,10 @@ public:
         {
             case ResultStatus::RESULT_SUCCESS: {
                 return;
+            }
+            case ResultStatus::RESULT_UNINITIALIZED:
+            {
+                throw ResultUninitializedException{};
             }
             case ResultStatus::MEMORIA_ERROR:
             {
@@ -445,6 +467,7 @@ public:
     {
         switch(status())
         {
+        case ResultStatus::RESULT_UNINITIALIZED: return std::move(*boost::variant2::get_if<detail::UninitializedType>(&variant_));
         case ResultStatus::MEMORIA_ERROR: return std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_));
         default: terminate((SBuf() << "Unknown result status value: {}" << static_cast<int32_t>(status())).str().c_str());
         }
@@ -476,10 +499,10 @@ public:
     }
 };
 
-
 template <>
-class MMA_NODISCARD Result<void> {
-    using Variant = boost::variant2::variant<EmptyType, MemoriaErrorPtr>;
+class MMA_NODISCARD Result<void> {    
+    using Variant = boost::variant2::variant<EmptyType, MemoriaErrorPtr, detail::UninitializedType>;
+
     Variant variant_;
 
     struct ResultTag {};
@@ -499,6 +522,10 @@ class MMA_NODISCARD Result<void> {
 
 public:
     using ValueType = void;
+
+    Result() noexcept:
+        variant_(detail::UninitializedType{})
+    {}
 
 
     Result(const Result&) = delete;
@@ -545,6 +572,9 @@ public:
             case ResultStatus::RESULT_SUCCESS: {
                 return;
             }
+            case ResultStatus::RESULT_UNINITIALIZED: {
+                throw ResultUninitializedException();
+            }
             case ResultStatus::MEMORIA_ERROR:
             {
                 if (memoria_error()->error_category() == ErrorCategory::EXCEPTION)
@@ -590,9 +620,6 @@ public:
         return std::move(boost::variant2::get<MemoriaErrorPtr>(variant_));
     }
 
-
-
-
     ResultStatus status() const noexcept {
         return static_cast<ResultStatus>(variant_.index());
     }
@@ -601,6 +628,7 @@ public:
     {
         switch(status())
         {
+        case ResultStatus::RESULT_UNINITIALIZED: return std::move(*boost::variant2::get_if<detail::UninitializedType>(&variant_));
         case ResultStatus::MEMORIA_ERROR: return std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_));
         default: terminate(format_u8("Unknown result status value: {}", static_cast<int32_t>(status())).data());
         }
@@ -659,6 +687,9 @@ namespace detail {
         ResultStatus status = result.status();
         if (status == ResultStatus::MEMORIA_ERROR) {
             result.memoria_error()->describe(out);
+        }
+        else if (status == ResultStatus::RESULT_UNINITIALIZED) {
+            out << "[[Uninitialized]]";
         }
         else {
             out << "[[Not an error]]";

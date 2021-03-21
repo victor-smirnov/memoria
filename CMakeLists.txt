@@ -78,6 +78,7 @@ option(Boost_DEBUG "Debug FindBoost" OFF)
 option(BUILD_CLASSIC_MEMORIA_LIB "Build core library without Reactor support, using threads for concurrency" OFF)
 option(BUILD_REACTOR_MEMORIA_LIB "Build core library WITH Reactor support, using fibers for concurrency" ON)
 
+option(BUILD_PYTHON_BINDINGS "Build Python bindings for certain Memoria libraries." OFF)
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
@@ -224,6 +225,10 @@ link_libraries(Boost::program_options Boost::serialization)
 
 include_directories(${ICU_INCLUDE_DIRS})
 link_directories(${ICU_LIBRARY_DIRS})
+
+if (BUILD_PYTHON_BINDINGS)
+    find_package(pybind11 CONFIG REQUIRED)
+endif()
 
 
 find_package(absl CONFIG REQUIRED)

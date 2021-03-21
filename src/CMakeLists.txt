@@ -133,3 +133,8 @@ if (BUILD_REACTOR_MEMORIA_LIB AND BUILD_MEMORY_STORE)
         ENDFOREACH()
     endif()
 endif()
+
+
+if (BUILD_PYTHON_BINDINGS)
+    add_subdirectory(python)
+endif()

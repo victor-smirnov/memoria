@@ -126,6 +126,10 @@ public:
 
     virtual ~CtrBase() noexcept {}
 
+    const std::type_info& api_type_info() const noexcept {
+        return typeid(::memoria::ICtrApi<typename TypesType::ContainerTypeName, typename TypesType::Profile>);
+    }
+
     auto make_shared_ptr() const noexcept {
         return this->shared_from_this();
     }

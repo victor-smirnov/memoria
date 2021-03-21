@@ -4,5 +4,12 @@ build.sh
 .kdev*
 .vs*
 CMakeSettings.json
-
 /*.user*
+dist/
+_build/
+_generate/
+*.so
+*.py[cod]
+*.egg-info
+*env*
+make_wheel.sh

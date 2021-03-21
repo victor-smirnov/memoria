@@ -110,7 +110,7 @@ public:
     bool is_clean() const noexcept {return store_status_ == SWMRStoreStatus::CLEAN;}
     bool is_unclean() const noexcept {return store_status_ == SWMRStoreStatus::UNCLEAN;}
 
-    bool set_clean_status() noexcept {
+    void set_clean_status() noexcept {
         store_status_ = SWMRStoreStatus::CLEAN;
     }
 

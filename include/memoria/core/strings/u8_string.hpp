@@ -52,6 +52,7 @@ inline bool is_unicode_space_u8(char codeunit)
 class U8String {
 public:
     using CharT = char;
+    using value_type = CharT;
 private:
     using ContentT = std::basic_string<CharT>;
 

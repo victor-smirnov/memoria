@@ -32,7 +32,7 @@ int main(void) {
     try {
         const char* file = "file.mma2";
 
-        filesystem::remove(file);
+        //filesystem::remove(file);
         auto store1 = create_mapped_swmr_store(file, 1024).get_or_throw();
 
         UUID ctr_id = UUID::make_random();
@@ -56,7 +56,7 @@ int main(void) {
             int cnt = 0;
             int b0  = 0;
             int batch_size = 100;
-            int batches = 10000;
+            int batches = 10;
             while (cnt < batch_size * batches) {
                 auto snp1 = store1->begin().get_or_throw();
                 auto ctr1 = find<CtrType>(snp1, ctr_id).get_or_throw();
@@ -73,7 +73,6 @@ int main(void) {
 
                 snp1->commit(false).get_or_throw();
             }
-
         }
 
         store1->check(callback).get_or_throw();

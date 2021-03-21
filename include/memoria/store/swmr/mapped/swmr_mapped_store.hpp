@@ -115,7 +115,7 @@ public:
         file_size_(compute_file_size(file_size_mb))
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            if (filesystem::exists(file_name.to_std_string())) {
+            if (filesystem::exists(file_name.to_std_string())) {                
                 return MEMORIA_MAKE_GENERIC_ERROR("Provided file {} already exists", file_name);
             }
             MEMORIA_TRY_VOID(acquire_lock(file_name.data(), true));

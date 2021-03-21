@@ -69,6 +69,8 @@ struct CtrReferenceableBase {
     virtual U8String describe_datatype() const noexcept             = 0;
     virtual uint64_t type_hash() noexcept                           = 0;
 
+    virtual const std::type_info& api_type_info() const noexcept    = 0;
+
     virtual VoidResult set_new_block_size(int32_t block_size) noexcept       = 0;
     virtual Result<int32_t> get_new_block_size() const noexcept              = 0;
 
@@ -87,7 +89,7 @@ struct CtrReferenceableBase {
     virtual VoidResult for_each_ctr_reference(std::function<VoidResult (U8StringView, const CtrID&)> consumer) const noexcept = 0;
     virtual VoidResult set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries) noexcept = 0;
     
-    virtual const ProfileCtrID<Profile>& name() const noexcept = 0;
+    virtual const CtrID& name() const noexcept = 0;
 
     virtual std::shared_ptr<io::IOVector> create_iovector() noexcept  = 0;
 

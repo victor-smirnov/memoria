@@ -77,6 +77,22 @@ public:
     virtual CtrReferenceableResult create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept = 0;
     virtual CtrReferenceableResult create(const LDTypeDeclarationView& decl) noexcept = 0;
 
+    virtual CtrReferenceableResult create(U8StringView type_def, const CtrID& ctr_id) noexcept {
+        return wrap_throwing([&] () -> CtrReferenceableResult {
+            LDDocument doc = TypeSignature::parse(type_def);
+            LDTypeDeclarationView decl = doc.value().as_type_decl();
+            return this->create(decl, ctr_id);
+        });
+    }
+
+    virtual CtrReferenceableResult create(U8StringView type_def) noexcept {
+        return wrap_throwing([&] () -> CtrReferenceableResult {
+            LDDocument doc = TypeSignature::parse(type_def);
+            LDTypeDeclarationView decl = doc.value().as_type_decl();
+            return this->create(decl);
+        });
+    }
+
     virtual VoidResult commit(bool flush = true) noexcept = 0;
     virtual VoidResult flush_open_containers() noexcept = 0;
 
