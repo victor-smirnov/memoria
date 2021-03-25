@@ -109,6 +109,10 @@ if(BUILD_MSVC)
 #    SET(MEMORIA_APPS ${MEMORIA_APPS} named_pipes)
 endif()
 
+if (BUILD_PYTHON_BINDINGS)
+    add_subdirectory(python)
+endif()
+
 if (BUILD_REACTOR_MEMORIA_LIB AND BUILD_MEMORY_STORE)
     FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
         add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
@@ -135,6 +139,4 @@ if (BUILD_REACTOR_MEMORIA_LIB AND BUILD_MEMORY_STORE)
 endif()
 
 
-if (BUILD_PYTHON_BINDINGS)
-    add_subdirectory(python)
-endif()
+

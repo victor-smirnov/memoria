@@ -101,6 +101,10 @@ namespace _ {
         const AtomType* data(SizeT start) const {
             return buffer_.data() + start;
         }
+
+        void set_invalidation_listener(LifetimeInvalidationListener listener) const noexcept {
+            buffer_.set_invalidation_listener(listener);
+        }
     };
 
     template <typename T, typename SizeT>
@@ -169,6 +173,10 @@ namespace _ {
 
         const SizeT* offsets(SizeT start) const {
             return buffer_.offsets(start);
+        }
+
+        void set_invalidation_listener(LifetimeInvalidationListener listener) const noexcept {
+            buffer_.set_invalidation_listener(listener);
         }
     };
 }

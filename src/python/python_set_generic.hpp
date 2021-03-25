@@ -32,6 +32,12 @@ struct PythonAPIBinder<ICtrApi<Set<Key>, Profile>> {
     using BTSSIterType          = BTSSIterator<Profile>;
     using IterType              = SetIterator<Key, Profile>;
     using KeyView               = DTTViewType<Key>;
+    using CtrSizeT              = typename CtrType::CtrSizeT;
+    using Buffer                = DataTypeBuffer<Key>;
+
+    using ProducerFn            = typename CtrType::ProducerFn;
+
+    using Producer2Fn        = std::function<bool (Buffer*, size_t)>;
 
     static void make_bindings(pybind11::module_& m) {
         namespace py = pybind11;
@@ -48,6 +54,13 @@ struct PythonAPIBinder<ICtrApi<Set<Key>, Profile>> {
                 .def("contains", &CtrType::contains)
                 .def("remove", py::overload_cast<KeyView>(&CtrType::remove))
                 .def("insert", py::overload_cast<KeyView>(&CtrType::insert))
+                .def("insert_buf", py::overload_cast<CtrSizeT, const Buffer&>(&CtrType::insert))
+                //.def("append", py::overload_cast<ProducerFn>(&CtrType::append))
+                .def("append", [](CtrType& ctr, Producer2Fn fn) -> VoidResult {
+                    return ctr.append([&](Buffer& buf, size_t size){
+                        return fn(&buf, size);
+                    });
+                })
                 .def("for_each", [](CtrType& ctr, std::function<VoidResult(KeyView)> fn) -> VoidResult {
                     return ctr.for_each([&](auto key){
                         return fn(key);

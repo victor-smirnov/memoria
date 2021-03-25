@@ -48,12 +48,26 @@ static inline void define_UUID(pybind11::module_& m) {
             .def_static("parse", &UUID::parse);
 }
 
+
+static inline void define_LifetimeGuard(pybind11::module_& m, U8String type_name) {
+    namespace py = pybind11;
+    using Type = LifetimeGuard;
+
+    py::class_<Type>(m, type_name.data())
+            .def(py::init())
+            .def("is_valid", &Type::is_valid)
+            .def("__repr__", [](const Type& lg) -> std::string {
+                return lg.is_valid() ? "LifetimeGuard[valid]" : "LifetimeGuard[invalid]";
+            })
+            ;
+}
+
 template <typename T1, typename T2>
-static inline void define_pair(pybind11::module_& m, U8String type_name) {
+static inline void define_pair(pybind11::module_& m, const char* type_name) {
     namespace py = pybind11;
     using Type = std::pair<T1, T2>;
 
-    py::class_<Type>(m, type_name.data())
+    py::class_<Type>(m, type_name)
             .def(py::init())
             .def(py::init<T1, T2>())
             .def("first", [](const Type& pair){
@@ -64,8 +78,6 @@ static inline void define_pair(pybind11::module_& m, U8String type_name) {
             });
 }
 
-
-
 template <>
 struct PythonAPIBinder<GlobalBindings> {
     static void make_bindings(pybind11::module_& m) {
@@ -74,6 +86,8 @@ struct PythonAPIBinder<GlobalBindings> {
         define_pair<UUID, UUID>(m, "UUIDPair");
         define_pair<U8String, U8String>(m, "StringPair");
         define_pair<U8String, UUID>(m, "StringUUIDPair") ;
+
+        define_LifetimeGuard(m, "LifetimeGuard");
 
         PythonAPIBinder<DataTypes>::make_bindings(m);
     }

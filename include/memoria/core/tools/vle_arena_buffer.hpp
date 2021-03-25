@@ -87,39 +87,66 @@ class VLEArenaBuffer {
     ArenaBuffer<SizeT> offsets_;
     ArenaBuffer<T> data_;
 public:
+
+
     using Iterator = VLEArenaBufferIterator<VLEArenaBuffer, Span<T>>;
     using ConstIterator = VLEArenaBufferIterator<const VLEArenaBuffer, Span<const T>>;
 
     VLEArenaBuffer(): offsets_(), data_() {}
 
-    Iterator begin() {
+    LifetimeGuard data_guard() const noexcept {
+        return data_.guard();
+    }
+
+    LifetimeGuard offsets_guard() const noexcept {
+        return offsets_.guard();
+    }
+
+    GuardedView<T> get_guarded_data(size_t idx) noexcept {
+        return data_.get_guarded(idx);
+    }
+
+    GuardedView<const T> get_guarded_data(size_t idx) const noexcept {
+        return data_.get_guarded(idx);
+    }
+
+    void invalidate_guard() const noexcept {
+        data_.invalidate_guard();
+        offsets_.invalidate_guard();
+    }
+
+    void set_invalidation_listener(LifetimeInvalidationListener listener) const noexcept {
+        data_.set_invalidation_listener(listener);
+    }
+
+    Iterator begin() noexcept {
         return Iterator(this, 0, size());
     }
 
-    Iterator end() {
+    Iterator end() noexcept {
         size_t size = this->size();
         return Iterator(this, size, size);
     }
 
-    ConstIterator begin() const {
+    ConstIterator begin() const noexcept {
         return ConstIterator(this, 0, size());
     }
 
-    ConstIterator end() const {
+    ConstIterator end() const noexcept {
         size_t size = this->size();
         return ConstIterator(this, size, size);
     }
 
-    ConstIterator cbegin() {
+    ConstIterator cbegin() noexcept {
         return ConstIterator(this, 0, size());
     }
 
-    ConstIterator cend() {
+    ConstIterator cend() noexcept {
         size_t size = this->size();
         return ConstIterator(this, size, size);
     }
 
-    Span<T> operator[](SizeT idx)
+    Span<T> operator[](SizeT idx) noexcept
     {
         SizeT offset = offsets_[idx];
         SizeT length = this->length(idx);
@@ -127,7 +154,7 @@ public:
         return Span<T>(data_.data() + offset, length);
     }
 
-    Span<const T> operator[](SizeT idx) const
+    Span<const T> operator[](SizeT idx) const noexcept
     {
         SizeT offset = offsets_[idx];
         SizeT length = this->length(idx);
@@ -136,56 +163,55 @@ public:
     }
 
 
-    SizeT length(SizeT idx) const {
+    SizeT length(SizeT idx) const noexcept {
         return offsets_[idx + 1] - offsets_[idx];
     }
 
-    SizeT length(SizeT idx, SizeT size) const {
+    SizeT length(SizeT idx, SizeT size) const noexcept {
         return offsets_[idx + size] - offsets_[idx];
     }
 
-    SizeT offset(SizeT idx) const {
+    SizeT offset(SizeT idx) const noexcept {
         return offsets_[idx];
     }
 
-    const SizeT* offsets(SizeT idx) const {
+    const SizeT* offsets(SizeT idx) const noexcept {
         return offsets_.data() + idx;
     }
 
-    SizeT* offsets(SizeT idx) {
+    SizeT* offsets(SizeT idx) noexcept{
         return offsets_.data() + idx;
     }
 
-    T* data() {
+    T* data() noexcept {
         return data_.data();
     }
 
-    const T* data() const {
+    const T* data() const noexcept {
         return data_.data();
     }
 
-    T* data(SizeT start) {
+    T* data(SizeT start) noexcept {
         return data_.data() + offsets_[start];
     }
 
-    const T* data(SizeT start) const {
+    const T* data(SizeT start) const noexcept {
         return data_.data() + offsets_[start];
     }
 
-    SizeT data_size() const
-    {
+    SizeT data_size() const noexcept {
         return data_.size();
     }
 
-    Span<T> data_span() {
+    Span<T> data_span() noexcept {
         return data_.span();
     }
 
-    Span<const T> data_span() const {
+    Span<const T> data_span() const noexcept {
         return data_.span();
     }
 
-    Span<T> head()
+    Span<T> head() noexcept
     {
         SizeT size   = this->size();
         SizeT offset = this->offset(size - 1);
@@ -194,7 +220,7 @@ public:
         return Span<T>(data_.data() + offset, length);
     }
 
-    Span<const T> head() const
+    Span<const T> head() const noexcept
     {
         SizeT size   = this->size();
         SizeT offset = this->offset(size - 1);
@@ -204,7 +230,7 @@ public:
     }
 
 
-    bool append(Span<const T> data)
+    bool append(Span<const T> data) noexcept
     {
         if (MMA_UNLIKELY(offsets_.size() == 0)) {
             offsets_.append_value(0);
@@ -215,7 +241,7 @@ public:
         return data_.append_values(data);
     }
 
-    void append_size(SizeT size)
+    void append_size(SizeT size) noexcept
     {
         if (MMA_UNLIKELY(offsets_.size() == 0)) {
             offsets_.append_value(0);
@@ -225,26 +251,25 @@ public:
         data_.add_size(size);
     }
 
-    SizeT size() const
+    SizeT size() const noexcept
     {
         SizeT offsets_size = offsets_.size();
         return MMA_LIKELY(offsets_size > 0) ? offsets_size - 1 : 0;
     }
 
-    bool ensure(SizeT size) {
+    bool ensure(SizeT size) noexcept {
         return data_.ensure(size);
     }
 
-    void reset() {
+    void reset() noexcept {
         data_.reset();
         offsets_.reset();
     }
 
-    void clear() {
+    void clear() noexcept {
         data_.clear();
         offsets_.clear();
     }
 };
-
 
 }

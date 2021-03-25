@@ -35,7 +35,7 @@ struct PythonAPIBinder<GenericProfileBindings<Profile>> {
         PythonAPIBinder<StoreSnapshotOps<Profile>>::make_bindings(m);
 
         PythonAPIBinder<ICtrApi<Set<Varchar>, Profile>>::make_bindings(m);
-        PythonAPIBinder<ICtrApi<Set<UUID>, Profile>>::make_bindings(m);
+        //PythonAPIBinder<ICtrApi<Set<UUID>, Profile>>::make_bindings(m);
     }
 };
 

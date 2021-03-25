@@ -19,6 +19,7 @@
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/datatypes/varchars/varchars.hpp>
 
+#include <memoria/core/tools/lifetime_guard.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 
 namespace memoria {
@@ -45,8 +46,12 @@ public:
         arena_.append_values(view.data(), view.size());
     }
 
-    ViewType view() const {
+    ViewType view() const noexcept {
         return ViewType(data(), arena_.size());
+    }
+
+    GuardedView<ViewType> guarded_view() const {
+        return GuardedView<ViewType>(view(), arena_.guard());
     }
 
     void reset() {

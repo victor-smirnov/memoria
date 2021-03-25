@@ -20,17 +20,33 @@
 #include <memoria/core/datatypes/datatypes.hpp>
 
 #include "python_commons.hpp"
+#include "datatypes/python_varchar_datatype.hpp"
 
-
+#include <string>
+#include <sstream>
 
 namespace memoria {
 
 class DataTypes {};
 
+namespace detail {
+
+template <typename T>
+struct PythonStrConverter {
+    static std::string to_string(T& datum) {
+        std::stringstream ss;
+        ss << datum.view();
+        return ss.str();
+    }
+};
+
+}
+
 template <typename T>
 struct PythonAPIBinder<Datum<T>> {
 
     using Type = Datum<T>;
+    using ViewType = DTTViewType<T>;
 
     static void make_bindings(pybind11::module_& m, std::string datatype_name = "") {
         namespace py = pybind11;
@@ -44,14 +60,35 @@ struct PythonAPIBinder<Datum<T>> {
         }
 
         py::class_<Type>(m, type_name.c_str())
-                .def("view", &Type::view)
+                .def(py::init<ViewType>())
+                .def("view", &Type::guarded_view)
                 .def("__repr__", &Type::to_sdn_string)
-                .def("__bool__", &Type::operator bool)
+                .def("__str__", [](Type& datum) {
+                    return detail::PythonStrConverter<Type>::to_string(datum);
+                })
+                .def("__bool__", &Type::operator bool)                
                 .def_static("from_sdn", &Type::from_sdn_string)
                 ;
     }
 };
 
+template <>
+struct PythonAPIBinder<GuardedView<U8StringView>> {
+    using Type = GuardedView<U8StringView>;
+
+    static void make_bindings(pybind11::module_& m) {
+        namespace py = pybind11;
+        py::class_<Type> cls(m, "U8StringView");
+
+        cls.def(py::init());
+        cls.def("__repr__", [](const Type& view){
+            return view.view();
+        });
+        cls.def("__str__", [](const Type& view){
+            return view.view();
+        });
+    }
+};
 
 template <>
 struct PythonAPIBinder<DataTypes> {
@@ -60,6 +97,10 @@ struct PythonAPIBinder<DataTypes> {
         PythonAPIBinder<Datum<Varchar>>::make_bindings(m);
         PythonAPIBinder<Datum<BigInt>>::make_bindings(m);
         PythonAPIBinder<Datum<UUID>>::make_bindings(m, "UUIDDatum");
+
+        PythonAPIBinder<GuardedView<U8StringView>>::make_bindings(m);
+
+        PythonAPIBinder<Varchar>::make_bindings(m);
     }
 };
 

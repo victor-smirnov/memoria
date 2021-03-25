@@ -17,7 +17,9 @@
 
 #include <memoria/core/types.hpp>
 #include <memoria/core/memory/smart_ptrs.hpp>
+
 #include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/lifetime_guard.hpp>
 
 #include <memoria/core/strings/string.hpp>
 

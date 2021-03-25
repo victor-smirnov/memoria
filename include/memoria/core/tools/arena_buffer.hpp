@@ -20,6 +20,7 @@
 #include <memoria/core/tools/bitmap.hpp>
 
 #include <memoria/core/tools/span.hpp>
+#include <memoria/core/tools/lifetime_guard.hpp>
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
@@ -32,206 +33,6 @@ namespace memoria {
 
 template <typename TT, typename SizeT = size_t>
 class ArenaBuffer;
-
-namespace detail {
-
-class ArenaBufferSharedGuard {
-protected:
-    uint64_t refs_;
-    bool valid_;
-public:
-    ArenaBufferSharedGuard() noexcept:
-        refs_(0), valid_(true)
-    {}
-
-    void ref() noexcept {
-        ++refs_;
-    }
-
-    bool unref() noexcept {
-        return --refs_ == 0;
-    }
-
-    virtual void destroy() noexcept = 0;
-    virtual void invalidate() noexcept = 0;
-
-    bool is_invalid() const noexcept {
-        return !valid_;
-    }
-};
-
-}
-
-template <typename View>
-class ViewGuard {
-    View* view_;
-    detail::ArenaBufferSharedGuard* shared_;
-
-    ViewGuard(View view, detail::ArenaBufferSharedGuard* shared) noexcept:
-        view_(view),
-        shared_(shared)
-    {
-        shared_->ref();
-    }
-public:
-    ViewGuard() noexcept:
-        shared_(nullptr)
-    {}
-
-    ViewGuard(const ViewGuard& other) noexcept:
-        view_(other.view_),
-        shared_(other.shared_)
-    {
-        if (shared_) {
-            shared_->ref();
-        }
-    }
-
-    ViewGuard(ViewGuard&& other) noexcept:
-        view_(std::move(other.view_)),
-        shared_(other.shared_)
-    {
-        other.shared_ = nullptr;
-    }
-
-    ~ViewGuard() noexcept {
-        do_unref();
-    }
-
-    ViewGuard& operator=(const ViewGuard& other) noexcept {
-        if (this == &other) {
-            return *this;
-        }
-
-        do_unref();
-
-        view_ = other.view_;
-        shared_ = other.shared_;
-
-        if (shared_) {
-            shared_->ref();
-        }
-
-        return *this;
-    }
-
-    ViewGuard& operator=(ViewGuard&& other) noexcept {
-        if (this == &other) {
-            return *this;
-        }
-
-        view_   = std::move(other.view_);
-        shared_ = other.shared_;
-
-        other.shared_ = nullptr;
-
-        return *this;
-    }
-
-    View* operator->() {
-        if (!shared_ || shared_->is_invalid()) {
-            throw std::runtime_error("Accessing invalid/empty ViewGuard");
-        }
-        return view_;
-    }
-
-    const View* operator->() const {
-        if (!shared_ || shared_->is_invalid()) {
-            throw std::runtime_error("Accessing invalid/empty ViewGuard");
-        }
-        return view_;
-    }
-
-    operator bool() const noexcept {
-        return shared_ && !shared_->is_invalid();
-    }
-
-private:
-    void do_unref() noexcept {
-        if (shared_) {
-            if (shared_->unref()) {
-                shared_->destroy();
-            }
-        }
-    }
-};
-
-
-
-class BufferGuard {
-
-    detail::ArenaBufferSharedGuard* shared_;
-
-    BufferGuard(detail::ArenaBufferSharedGuard* shared) noexcept:
-        shared_(shared)
-    {
-        shared_->ref();
-    }
-public:
-    BufferGuard() noexcept:
-        shared_(nullptr)
-    {}
-
-    BufferGuard(const BufferGuard& other) noexcept:
-        shared_(other.shared_)
-    {
-        if (shared_) {
-            shared_->ref();
-        }
-    }
-
-    BufferGuard(BufferGuard&& other) noexcept:
-        shared_(other.shared_)
-    {
-        other.shared_ = nullptr;
-    }
-
-    ~BufferGuard() noexcept {
-        do_unref();
-    }
-
-    BufferGuard& operator=(const BufferGuard& other) noexcept {
-        if (this == &other) {
-            return *this;
-        }
-
-        do_unref();
-        shared_ = other.shared_;
-
-        if (shared_) {
-            shared_->ref();
-        }
-
-        return *this;
-    }
-
-    BufferGuard& operator=(BufferGuard&& other) noexcept {
-        if (this == &other) {
-            return *this;
-        }
-
-        shared_ = other.shared_;
-
-        other.shared_ = nullptr;
-
-        return *this;
-    }
-
-    bool is_valid() const noexcept {
-        return shared_ && !shared_->is_invalid();
-    }
-
-private:
-    void do_unref() noexcept {
-        if (shared_) {
-            if (shared_->unref()) {
-                shared_->destroy();
-            }
-        }
-    }
-};
-
-
 
 enum class ArenaBufferCmd: int32_t {
     ALLOCATE, FREE
@@ -250,6 +51,8 @@ protected:
     using ValueT = TT;
     static_assert(std::is_trivially_copyable<ValueT>::value, "ArenaBufferBase currently supports only trivially copyable types");
 
+    using InvalidationListener = LifetimeInvalidationListener;
+
     ValueT* buffer_;
     SizeT capacity_;
     SizeT size_;
@@ -257,7 +60,7 @@ protected:
     ArenaBufferMemoryMgr memory_mgr_;
     int32_t buffer_id_{-1};
 
-    class ArenaBufferSharedGuardImpl: public detail::ArenaBufferSharedGuard {
+    class ArenaBufferSharedGuardImpl: public detail::LifetimeGuardShared {
         const MyType* arena_;
     public:
         ArenaBufferSharedGuardImpl(const MyType* arena) noexcept:
@@ -265,10 +68,11 @@ protected:
         {}
 
         void destroy() noexcept {
-            delete arena_->guard_;
             if (valid_) {
                 arena_->guard_ = nullptr;
             }
+
+            delete this;
         }
 
         void invalidate() noexcept {
@@ -277,6 +81,7 @@ protected:
     };
 
     mutable ArenaBufferSharedGuardImpl* guard_{nullptr};
+    mutable InvalidationListener invalidation_listener_;
 
     friend class ArenaBufferSharedGuardImpl;
 
@@ -592,26 +397,41 @@ public:
         size_ -= to - from;
     }
 
-    ViewGuard<ValueT> get_guarded(size_t idx) noexcept {
+    GuardedView<ValueT> get_guarded(size_t idx) noexcept {
         if (!guard_) {
             guard_ = new ArenaBufferSharedGuardImpl(this);
         }
-        return ViewGuard<ValueT>(buffer_ + idx, guard_);
+        return GuardedView<ValueT>(buffer_[idx], LifetimeGuard(guard_));
     }
 
-    ViewGuard<const ValueT> get_guarded(size_t idx) const noexcept {
+    GuardedView<const ValueT> get_guarded(size_t idx) const noexcept {
         if (!guard_) {
             guard_ = new ArenaBufferSharedGuardImpl(this);
         }
-        return ViewGuard<const ValueT>(buffer_ + idx, guard_);
+        return GuardedView<const ValueT>(buffer_[idx], LifetimeGuard(guard_));
     }
 
-    BufferGuard guard() const noexcept {
+    LifetimeGuard guard() const noexcept {
         if (!guard_) {
             guard_ = new ArenaBufferSharedGuardImpl(this);
         }
 
-        return BufferGuard(guard_);
+        return LifetimeGuard(guard_);
+    }
+
+    void invalidate_guard() const noexcept {
+        if (guard_) {
+            guard_->invalidate();
+            guard_ = nullptr;
+        }
+
+        if (invalidation_listener_) {
+            invalidation_listener_();
+        }
+    }
+
+    void set_invalidation_listener(InvalidationListener listener) const noexcept {
+        invalidation_listener_ = listener;
     }
 
 
@@ -688,13 +508,6 @@ private:
         }
         else {
             memory_mgr_(buffer_id_, ArenaBufferCmd::FREE, capacity_ * sizeof(ValueT), ptr_cast<uint8_t>(existing));
-        }
-    }
-
-    void invalidate_guard() const noexcept {
-        if (guard_) {
-            guard_->invalidate();
-            guard_ = nullptr;
         }
     }
 };

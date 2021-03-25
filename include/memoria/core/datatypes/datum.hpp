@@ -122,11 +122,21 @@ class DatumStorageBase: public AnyDatumStorage, public DataType {
 protected:
     using ViewType = DTTViewType<DataType>;
 
+    using DatumLifeguardSharedImpl = detail::DefaultLifetimeGuardSharedImpl;
+
     ViewType view_;
+    mutable detail::LifetimeGuardShared* lg_shared_;
 public:
     DatumStorageBase(ViewType view) noexcept :
-        view_(view)
+        view_(view),
+        lg_shared_(nullptr)
     {}
+
+    ~DatumStorageBase() noexcept {
+        if (lg_shared_) {
+            lg_shared_->invalidate();
+        }
+    }
 
     const ViewType& view() const noexcept {return view_;}
 
@@ -150,6 +160,16 @@ public:
 
     virtual bool equals(const AnyDatumStorage* other) const noexcept {
         return view_ == static_cast<const DatumStorageBase*>(other)->view();
+    }
+
+    virtual LifetimeGuard lifetime_guard() const noexcept {
+        if (!lg_shared_) {
+            lg_shared_ = new DatumLifeguardSharedImpl([&]{
+                lg_shared_ = nullptr;
+            });
+        }
+
+        return LifetimeGuard();
     }
 };
 
@@ -262,6 +282,10 @@ public:
         return storage_->view();
     }
 
+    GuardedView<ViewType> guarded_view() const noexcept {
+        return GuardedView<ViewType>(storage_->view(), storage_->lifetime_guard());
+    }
+
     operator const ViewType& () const noexcept{
         return storage_->view();
     }
@@ -311,6 +335,8 @@ Datum<DataType> datum_from_sdn_value(const DataType*, const U8StringView& value)
 
 template <typename DataType>
 class Datum<DataType, FixedSizeDataTypeTag> {
+    using MyType = Datum;
+
     using ViewType = typename DataTypeTraits<DataType>::ViewType;
 
     ViewType value_;
@@ -342,6 +368,11 @@ public:
     }
 
     const ViewType& view() const noexcept
+    {
+        return value_;
+    }
+
+    const ViewType& guarded_view() const noexcept
     {
         return value_;
     }

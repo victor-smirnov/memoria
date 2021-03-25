@@ -54,10 +54,12 @@ class DataTypeBuffer<
     ArenaBuffer<ViewType, SizeT> views_;
     DataBuffersTuple data_buffers_;
 
-    using Builder = SparseObjectBuilder<DataTypeT, DataTypeBuffer>;
+    using BuilderT = SparseObjectBuilder<DataTypeT, DataTypeBuffer>;
 
     TypeDimensionsTuple type_data_;
-    Builder builder_;
+    BuilderT builder_;
+
+    mutable detail::LifetimeGuardShared* lg_shared_{};
 
     using SOAdapter = DataTypeTraits<DataTypeT>;
 
@@ -66,16 +68,48 @@ public:
     friend class SparseObjectBuilder;
 
     using DataType = DataTypeT;
+    using Builder  = BuilderT;
 
     DataTypeBuffer(DataType data_type = DataType()):
         type_data_(SOAdapter::describe_type(data_type)),
         builder_(this)
-    {}
+    {
+        install_invalidation_listener();
+    }
 
     DataTypeBuffer(const TypeDimensionsTuple& type_data):
         type_data_(type_data),
         builder_(this)
-    {}
+    {
+        install_invalidation_listener();
+    }
+
+    ~DataTypeBuffer() noexcept {
+        invalidate_guard();
+    }
+
+    LifetimeGuard buffer_guard() const noexcept {
+        if (!lg_shared_) {
+            lg_shared_ = new detail::DefaultLifetimeGuardSharedImpl([&]{
+               lg_shared_ = nullptr;
+            });
+        }
+        return LifetimeGuard(lg_shared_);
+    }
+
+
+    LifetimeGuard data_guard() const noexcept {
+        return views_.guard();
+    }
+
+    GuardedView<ViewType> get_guarded(size_t idx) noexcept {
+        return views_.get_guarded(idx);
+    }
+
+    GuardedView<const ViewType> get_guarded(size_t idx) const noexcept {
+        return views_.get_guarded(idx);
+    }
+
 
     virtual void reindex() {}
 
@@ -87,6 +121,9 @@ public:
         return typeid(DataTypeBuffer);
     }
 
+    void sort() noexcept {
+        views_.sort();
+    }
 
     Builder& builder() {
         return builder_;
@@ -229,10 +266,7 @@ protected:
         return std::get<Idx>(data_buffers_).buffer().ensure(size);
     }
 
-
-
 private:
-
 
     bool emplace_back_nockeck(const ViewType& view)
     {
@@ -290,6 +324,23 @@ private:
             std::forward<Fn>(fn),
             std::forward<Args>(args)...
         );
+    }
+
+    void install_invalidation_listener() noexcept {
+        auto listener = [&]{
+            refresh_views();
+        };
+
+        for_eatch_data_buffer([&](auto idx) {
+            std::get<idx>(data_buffers_).set_invalidation_listener(listener);
+        });
+    }
+
+    void invalidate_guard() const noexcept {
+        if (lg_shared_) {
+            lg_shared_->invalidate();
+            lg_shared_ = nullptr;
+        }
     }
 };
 

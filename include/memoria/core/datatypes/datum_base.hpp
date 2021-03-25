@@ -17,6 +17,7 @@
 
 #include <memoria/core/types.hpp>
 #include <memoria/core/datatypes/traits.hpp>
+#include <memoria/core/tools/lifetime_guard.hpp>
 
 #include <typeinfo>
 
@@ -38,6 +39,8 @@ struct AnyDatumStorage
     virtual const char* data() const noexcept = 0;
     virtual void destroy() noexcept = 0;
     virtual bool equals(const AnyDatumStorage* other) const noexcept = 0;
+
+    virtual LifetimeGuard lifetime_guard() const noexcept = 0;
 };
 
 }
