@@ -46,6 +46,21 @@ ENDIF()
 option(USE_TSAN "Compile with Thread Sanitizer ON" OFF)
 option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 
+option(BUILD_CLASSIC_MEMORIA_LIB "Build core library without Reactor support, using threads for concurrency" ON)
+option(BUILD_REACTOR_MEMORIA_LIB "Build core library WITH Reactor support, using fibers for concurrency" OFF)
+
+option(BUILD_CONTAINERS          "Build stores and containers." ON)
+option(BUILD_CONTAINERS_MULTIMAP "Build Multimap<Varchar, Varchar> container." ON)
+option(BUILD_CONTAINERS_SET      "Build Set<Varchar> container." ON)
+option(BUILD_CONTAINERS_VECTOR   "Build Vector<...> container(s)." ON)
+
+option(BUILD_MEMORY_STORE        "Build default in-memory store." ON)
+option(BUILD_MEMORY_STORE_COW    "Build default CoW in-memory store." ON)
+option(BUILD_SWMR_STORE_MAPPED   "Build memory-mapped SWMR store." ON)
+option(BUILD_LMDB_STORE          "Build LMDB-based SWMR store." OFF)
+
+option(BUILD_PYTHON_BINDINGS     "Build Python bindings for certain Memoria libraries." OFF)
+
 
 option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
 option(BUILD_STATIC     "Build statically linked binaries" OFF)
@@ -53,14 +68,6 @@ option(BUILD_EXAMPLES   "Build project examples" OFF)
 option(BUILD_BENCHMARKS "Build project benchmarks" OFF)
 option(BUILD_WITH_STATIC_BOOST "Use static boost libraries" OFF)
 option(BUILD_EMIT_LLVM  "Emit LLVM bytecode for compiled binaries. Implies Clang is the compiler." OFF)
-
-option(BUILD_CONTAINERS          "Build stores and containers." ON)
-option(BUILD_CONTAINERS_MULTIMAP "Build Multimap<Varchar, Varchar> container." ON)
-option(BUILD_CONTAINERS_SET      "Build Set<Varchar> container." ON)
-option(BUILD_CONTAINERS_VECTOR   "Build Vector<...> container(s)." ON)
-option(BUILD_MEMORY_STORE        "Build default in-memory store." ON)
-option(BUILD_MEMORY_STORE_COW    "Build default CoW in-memory store." OFF)
-option(BUILD_SWMR_STORE_MAPPED   "Build memory-mapped SWMR store." ON)
 
 option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" OFF)
 option(BUILD_TESTS_PACKED       "Build Packed Structires tests" ON)
@@ -75,10 +82,7 @@ option(BUILD_TESTS_CONTEXT      "Build Disriptor MPSC queue tests" OFF)
 option(ICU_DEBUG   "Debug FindICU" OFF)
 option(Boost_DEBUG "Debug FindBoost" OFF)
 
-option(BUILD_CLASSIC_MEMORIA_LIB "Build core library without Reactor support, using threads for concurrency" OFF)
-option(BUILD_REACTOR_MEMORIA_LIB "Build core library WITH Reactor support, using fibers for concurrency" ON)
 
-option(BUILD_PYTHON_BINDINGS "Build Python bindings for certain Memoria libraries." OFF)
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 

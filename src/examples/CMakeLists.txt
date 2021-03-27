@@ -22,7 +22,7 @@ MACRO (ClassicExample EX_TARGET MAIN SRCS1 SRCS2)
     set_target_properties(${EX_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMMA1_NO_REACTOR")
     set_target_properties(${EX_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
-    target_link_libraries(${EX_TARGET} MemoriaClassic ${MEMORIA_LIBS})
+    target_link_libraries(${EX_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit ${MEMORIA_LIBS})
 ENDMACRO()
 
 MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
@@ -33,7 +33,7 @@ MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
     set_target_properties(${EX_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     set_target_properties(${EX_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
-    target_link_libraries(${EX_TARGET} Memoria ${MEMORIA_LIBS})
+    target_link_libraries(${EX_TARGET} MemoriaCtrsReactor MemoriaStoresReactor MemoriaCoreReactor ${MEMORIA_LIBS})
 ENDMACRO()
 
 if (BUILD_CLASSIC_MEMORIA_LIB)

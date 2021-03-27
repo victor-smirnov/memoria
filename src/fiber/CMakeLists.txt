@@ -15,7 +15,7 @@
 
 file(GLOB SRCS *.cpp)
 
-set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_REACTOR ${SRCS})
 
 add_subdirectory(algo)
 add_subdirectory(numa)

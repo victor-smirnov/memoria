@@ -1,4 +1,4 @@
-// Copyright 2021 Victor Smirnov
+// Copyright 2011-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,9 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+
 #pragma once
 
-#include <memoria/memoria_core.hpp>
-#include <memoria/memoria_stores.hpp>
-#include <memoria/memoria_ctrs.hpp>
-#include <memoria/memoria_app_init.hpp>
+#include <memoria/core/types.hpp>
+
+namespace memoria {
+
+
+#ifdef MEMORIA_BUILD_MEMORY_STORE
+void InitDefaultInMemStore();
+#endif
+
+#if defined(MEMORIA_BUILD_MEMORY_STORE_COW)
+void InitCoWInMemStore();
+#endif
+
+#if defined(MEMORIA_BUILD_SWMR_STORE_MAPPED)
+void InitSWMRMappedStore();
+#endif
+
+void InitMemoriaStoresExplicit();
+
+}

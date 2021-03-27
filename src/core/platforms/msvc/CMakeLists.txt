@@ -14,7 +14,8 @@
 
 
 file(GLOB SRCS ../posix/msvc_config.cpp ../posix/msvc_container.cpp ../posix/msvc_m*.cpp ../posix/msvc_s*.cpp ../posix/msvc_t*.cpp *.cpp)
-set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
-set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})
+
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES ${SRCS})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_CLASSIC ${SRCS})
 
 include_directories(../posix)

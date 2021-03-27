@@ -1,4 +1,5 @@
-# Copyright 2016 Victor Smirnov
+
+# Copyright 2021 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB SRCS *.cpp)
-set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES_REACTOR ${SRCS})
+file(GLOB SRCS1 *.cpp)
 
-file(GLOB SRCS *.cpp)
-set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_INIT_SOURCES ${SRCS1})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_INIT_SOURCES_REACTOR ${SRCS1})
 

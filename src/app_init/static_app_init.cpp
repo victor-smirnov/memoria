@@ -1,3 +1,4 @@
+
 // Copyright 2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +13,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
 
-#include <memoria/memoria_core.hpp>
-#include <memoria/memoria_stores.hpp>
-#include <memoria/memoria_ctrs.hpp>
+
 #include <memoria/memoria_app_init.hpp>
+#include <memoria/memoria_core.hpp>
+#include <memoria/memoria_ctrs.hpp>
+#include <memoria/memoria_stores.hpp>
+
+namespace memoria {
+
+MMA_DEFINE_EXPLICIT_CU_LINKING(MemoriaStaticAppInit)
+
+struct StaticInitializer {
+    StaticInitializer() {
+
+        InitMemoriaCoreExplicit();
+        InitMemoriaCtrsExplicit();
+        InitMemoriaStoresExplicit();
+    }
+};
+
+namespace {
+StaticInitializer init0;
+}
+
+void InitMemoriaExplicit() {
+    StaticInitializer init0;
+}
+
+}

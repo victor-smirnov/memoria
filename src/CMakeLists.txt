@@ -16,6 +16,7 @@
 include_directories(../include)
 include_directories(core/include)
 
+add_subdirectory(app_init)
 add_subdirectory(core)
 add_subdirectory(stores)
 
@@ -27,40 +28,78 @@ add_subdirectory(reactor)
 add_subdirectory(filesystem_reactor)
 add_subdirectory(filesystem_common)
 
-get_property(GLOBAL_SRCS GLOBAL PROPERTY GLOBAL_SOURCES)
-
 if (BUILD_REACTOR_MEMORIA_LIB)
+    get_property(GLOBAL_CORE_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_CORE_SOURCES_REACTOR)
+    get_property(GLOBAL_INIT_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_INIT_SOURCES_REACTOR)
+    get_property(GLOBAL_CONTAINERS_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_CONTAINERS_SOURCES_REACTOR)
+    get_property(GLOBAL_SRORES_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_STORES_SOURCES_REACTOR)
+
     if (MSVC)
         enable_language(ASM_MASM)
     else()
         enable_language(ASM)
     endif()
 
-    add_library(Memoria STATIC ${GLOBAL_SRCS})
+    add_library(MemoriaCoreReactor STATIC ${GLOBAL_CORE_SRCS_REACTOR})
+    add_library(MemoriaInitReactor STATIC ${GLOBAL_INIT_SRCS_REACTOR})
+    add_library(MemoriaCtrsReactor STATIC ${GLOBAL_CONTAINERS_SRCS_REACTOR})
+    add_library(MemoriaStoresReactor STATIC ${GLOBAL_SRORES_SRCS_REACTOR})
 
-    SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-    SET_TARGET_PROPERTIES(Memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-    target_link_libraries(Memoria ${MEMORIA_LIBS})
-    set_property(TARGET Memoria PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+    SET_TARGET_PROPERTIES(MemoriaInitReactor PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+    SET_TARGET_PROPERTIES(MemoriaInitReactor PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
-    export(TARGETS Memoria FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
+    SET_TARGET_PROPERTIES(MemoriaCoreReactor PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+    SET_TARGET_PROPERTIES(MemoriaCoreReactor PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+
+    SET_TARGET_PROPERTIES(MemoriaCtrsReactor PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+    SET_TARGET_PROPERTIES(MemoriaCtrsReactor PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+
+    SET_TARGET_PROPERTIES(MemoriaStoresReactor PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+    SET_TARGET_PROPERTIES(MemoriaStoresReactor PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+
+    target_link_libraries(MemoriaCoreReactor ${MEMORIA_LIBS})
+    target_link_libraries(MemoriaCtrsReactor MemoriaCoreReactor)
+    target_link_libraries(MemoriaStoresReactor MemoriaCoreReactor)
+    target_link_libraries(MemoriaInitReactor MemoriaCoreReactor MemoriaCtrsReactor MemoriaStoresReactor)
+
+    set_property(TARGET MemoriaCoreReactor MemoriaInitReactor MemoriaCtrsReactor MemoriaStoresReactor PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+    export(TARGETS MemoriaCoreReactor MemoriaInitReactor MemoriaCtrsReactor MemoriaStoresReactor FILE ${LIBRARY_OUTPUT_PATH}/MemoriaReactor.cmake)
 endif()
+
 
 if (BUILD_CLASSIC_MEMORIA_LIB)
     add_subdirectory(filesystem_classic)
 
-    get_property(GLOBAL_SRCS_CLASSIC GLOBAL PROPERTY GLOBAL_SOURCES_CLASSIC)
-    add_library(MemoriaClassic STATIC ${GLOBAL_SRCS_CLASSIC})
-    set_property(TARGET MemoriaClassic PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+    get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
+    get_property(GLOBAL_INIT_SRCS GLOBAL PROPERTY GLOBAL_INIT_SOURCES)
+    get_property(GLOBAL_CONTAINERS_SRCS GLOBAL PROPERTY GLOBAL_CONTAINERS_SOURCES)
+    get_property(GLOBAL_SRORES_SRCS GLOBAL PROPERTY GLOBAL_STORES_SOURCES)
 
-    SET_TARGET_PROPERTIES(MemoriaClassic PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR} -DMMA1_NO_REACTOR")
-    SET_TARGET_PROPERTIES(MemoriaClassic PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+    add_library(MemoriaCore STATIC ${GLOBAL_CORE_SRCS})
+    add_library(MemoriaInit STATIC ${GLOBAL_INIT_SRCS})
+    add_library(MemoriaCtrs STATIC ${GLOBAL_CONTAINERS_SRCS})
+    add_library(MemoriaStores STATIC ${GLOBAL_SRORES_SRCS})
 
-    export(TARGETS MemoriaClassic FILE ${LIBRARY_OUTPUT_PATH}/MemoriaClassic.cmake)
+    SET_TARGET_PROPERTIES(MemoriaInit PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR} -DMMA1_NO_REACTOR")
+    SET_TARGET_PROPERTIES(MemoriaInit PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+
+    SET_TARGET_PROPERTIES(MemoriaCore PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR} -DMMA1_NO_REACTOR")
+    SET_TARGET_PROPERTIES(MemoriaCore PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+
+    SET_TARGET_PROPERTIES(MemoriaCtrs PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+    SET_TARGET_PROPERTIES(MemoriaCtrs PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+
+    SET_TARGET_PROPERTIES(MemoriaStores PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+    SET_TARGET_PROPERTIES(MemoriaStores PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+
+    target_link_libraries(MemoriaCore ${MEMORIA_LIBS})
+    target_link_libraries(MemoriaCtrs MemoriaCore)
+    target_link_libraries(MemoriaStores MemoriaCore)
+    target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
+
+    set_property(TARGET MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+    export(TARGETS MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
 endif()
-
-
-
 
 
 if (BUILD_EXAMPLES)
@@ -99,10 +138,6 @@ if (BUILD_SANDBOX)
     add_subdirectory(sandbox)
 endif()
 
-
-#SET(MEMORIA_APPS tcp_server tcp_client disruptor_bm spsc_queue_bm timers alloc shared_ptrs yaml)
-#SET(MEMORIA_APPS ${MEMORIA_APPS} ustrings icu_regexp fmt_u16 sockets anon_pipes processes crash print_env)
-
 SET(MEMORIA_APPS)
 
 if(BUILD_MSVC)
@@ -118,7 +153,7 @@ if (BUILD_REACTOR_MEMORIA_LIB AND BUILD_MEMORY_STORE)
         add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
         SET_TARGET_PROPERTIES(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
         set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-        target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS})
+        target_link_libraries(${MEMORIA_TARGET} MemoriaCoreReactor MemoriaCtrsReactor MemoriaStoresReactor ${MEMORIA_LIBS})
     ENDFOREACH()
 
     if (Qt5_FOUND)
@@ -132,7 +167,7 @@ if (BUILD_REACTOR_MEMORIA_LIB AND BUILD_MEMORY_STORE)
             add_executable(${MEMORIA_QT_TARGET} ${MEMORIA_QT_TARGET}.cpp)
             SET_TARGET_PROPERTIES(${MEMORIA_QT_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
             set_target_properties(${MEMORIA_QT_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-            target_link_libraries(${MEMORIA_QT_TARGET} Memoria ${MEMORIA_LIBS} ${Qt5_LIBRARIES})
+            target_link_libraries(${MEMORIA_QT_TARGET} MemoriaCoreReactor MemoriaCtrsReactor MemoriaStoresReactor ${MEMORIA_LIBS} ${Qt5_LIBRARIES})
             qt5_use_modules(${MEMORIA_QT_TARGET} Widgets Core Gui)
         ENDFOREACH()
     endif()

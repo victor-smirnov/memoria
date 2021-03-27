@@ -23,7 +23,7 @@ FOREACH(TEST_SOURCE ${SRCS})
     SET_TARGET_PROPERTIES(${TEST_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     SET_TARGET_PROPERTIES(${TEST_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     
-    target_link_libraries(${TEST_TARGET} MemoriaClassic ${MEMORIA_LIBS} Boost::unit_test_framework)
+    target_link_libraries(${TEST_TARGET} MemoriaCoreClassic ${MEMORIA_LIBS} Boost::unit_test_framework)
 ENDFOREACH()
 
 endif()

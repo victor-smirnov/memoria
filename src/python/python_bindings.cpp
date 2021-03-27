@@ -27,21 +27,6 @@
 namespace py = pybind11;
 using namespace memoria;
 
-struct Base {
-    virtual ~Base() noexcept = default;
-    virtual void say_hello() noexcept = 0;
-};
-
-struct Derived: Base {
-    void say_hello() noexcept {
-        std::cout << "HELLO!" << std::endl;
-    }
-};
-
-Result<std::shared_ptr<Base>> make_derived() {
-    return Result<std::shared_ptr<Base>>::of(new Derived{});
-}
-
 std::string memoria::get_script_name(const std::string& in) {
     SBuf buf;
     for (size_t c = 0; c < in.length(); c++) {
@@ -68,11 +53,4 @@ PYBIND11_MODULE(memoria, m) {
 
     PythonAPIBinder<MemoryCoWProfile<>>::make_bindings(m_cow);
     PythonAPIBinder<ISWMRStore<MemoryCoWProfile<>>>::make_bindings(m_cow);
-
-    py::class_<Base, std::shared_ptr<Base>>(m, "Base");
-    py::class_<Derived, Base, std::shared_ptr<Derived>>(m, "Derived")
-            .def("say_hello", &Derived::say_hello)
-            ;
-
-    m.def("make_derived", &make_derived);
 }

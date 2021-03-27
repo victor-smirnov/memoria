@@ -34,8 +34,6 @@
 
 namespace memoria {
 
-MMA_DECLARE_EXPLICIT_CU_LINKING(MemoriaStaticInit);
-
 static constexpr int DEFAULT_BLOCK_SIZE                 = 8192;
 static constexpr int PackedTreeBranchingFactor          = 32;
 static constexpr int PackedSeqBranchingFactor           = 32;

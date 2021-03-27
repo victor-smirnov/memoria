@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,20 +16,11 @@
 
 #include <memoria/profiles/default/default.hpp>
 #include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
-#include <memoria/memoria.hpp>
+#include <memoria/memoria_stores.hpp>
 
 namespace memoria {
 
-MMA_DEFINE_EXPLICIT_CU_LINKING(MemoriaStaticInit)
-
-struct StaticInitializer {
-    StaticInitializer() {
-
-        InitCoreLDDatatypes();
-        InitCoreDatatypes();
-        InitSimpleNumericDatatypes();
-        InitCtrDatatypes();
-
+void InitMemoriaStoresExplicit() {
 #ifdef MEMORIA_BUILD_MEMORY_STORE
         InitDefaultInMemStore();
 #endif
@@ -41,23 +32,6 @@ struct StaticInitializer {
 #if defined(MEMORIA_BUILD_SWMR_STORE_MAPPED)
         InitSWMRMappedStore();
 #endif
-
-#if defined(MEMORIA_BUILD_MEMORY_STORE_COW) || defined(MEMORIA_BUILD_SWMR_STORE_MAPPED)
-        StaticLibraryCtrs<MemoryCoWProfile<>>::init();
-#endif
-
-        StaticLibraryCtrs<DefaultProfile<>>::init();
-    }
-};
-
-namespace {
-
-StaticInitializer init0;
-
-}
-
-void InitMemoriaExplicit() {
-    StaticInitializer init0;
 }
 
 }

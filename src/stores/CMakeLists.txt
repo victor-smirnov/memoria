@@ -25,3 +25,7 @@ endif()
 if (BUILD_SWMR_STORE_MAPPED)
     add_subdirectory(swmr_mapped)
 endif()
+
+file(GLOB SRCS *.cpp)
+set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES_REACTOR ${SRCS})

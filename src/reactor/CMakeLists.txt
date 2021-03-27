@@ -21,5 +21,5 @@ else()
     file(GLOB SRCS *.cpp linux/*.cpp posix/*.cpp)
 endif()
 
-set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_REACTOR ${SRCS})
 

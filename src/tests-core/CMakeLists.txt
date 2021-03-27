@@ -20,7 +20,7 @@ file(GLOB TOOLS_LIB_SRC lib/*.cpp)
 add_library(MemoriaTests2 STATIC ${TOOLS_LIB_SRC})
 SET_TARGET_PROPERTIES(MemoriaTests2 PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 
-target_link_libraries(MemoriaTests2 Memoria ${MEMORIA_LIBS})
+target_link_libraries(MemoriaTests2 MemoriaStoresReactor MemoriaCtrsReactor MemoriaCoreReactor MemoriaInitReactor ${MEMORIA_LIBS})
 
 add_subdirectory(tests)
 

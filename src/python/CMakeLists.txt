@@ -16,5 +16,5 @@
 
 
 pybind11_add_module(memoria python_bindings.cpp)
-target_link_libraries(memoria PRIVATE MemoriaClassic pybind11::lto pybind11::embed pybind11::module)
+target_link_libraries(memoria PRIVATE MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit pybind11::lto pybind11::embed pybind11::module)
 target_compile_definitions(memoria PRIVATE VERSION_INFO=${MEMORIA_VERSION_INFO})

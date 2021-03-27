@@ -1,4 +1,4 @@
-// Copyright 2021 Victor Smirnov
+// Copyright 2011 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,18 @@
 
 #pragma once
 
-#include <memoria/memoria_core.hpp>
-#include <memoria/memoria_stores.hpp>
-#include <memoria/memoria_ctrs.hpp>
-#include <memoria/memoria_app_init.hpp>
+#include <memoria/core/tools/fixed_array.hpp>
+#include <memoria/core/strings/string.hpp>
+#include <memoria/core/tools/uuid.hpp>
+
+
+namespace memoria {
+
+void InitCoreLDDatatypes();
+void InitCoreDatatypes();
+void InitSimpleNumericDatatypes();
+void InitCtrDatatypes();
+
+void InitMemoriaCoreExplicit();
+
+}

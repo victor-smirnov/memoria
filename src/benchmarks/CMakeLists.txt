@@ -19,7 +19,7 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
     SET_TARGET_PROPERTIES(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-    target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS})
+    target_link_libraries(${MEMORIA_TARGET} MemoriaCore MemoriaCoreCtrs MemoriaCoreStores ${MEMORIA_LIBS})
 ENDFOREACH()
 
 
