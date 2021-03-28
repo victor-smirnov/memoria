@@ -18,6 +18,7 @@
 
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/profiles/common/block.hpp>
+#include <memoria/profiles/core_api/core_api_profile.hpp>
 #include <memoria/core/container/allocator.hpp>
 
 #include <memoria/core/tools/uuid.hpp>
@@ -25,13 +26,15 @@
 namespace memoria {
 
 template <>
-struct ProfileTraits<DefaultProfile<>> {
-    using BlockID       = UUID;
-    using SnapshotID    = UUID;
-    using CtrID         = UUID;
-    using CtrSizeT      = int64_t;
-    using Profile       = DefaultProfile<>;
+struct ProfileTraits<DefaultProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
+    using Base = ApiProfileTraits<CoreApiProfile<>>;
 
+    using typename Base::CtrID;
+    using typename Base::CtrSizeT;
+    using typename Base::SnapshotID;
+
+    using BlockID       = UUID;
+    using Profile       = DefaultProfile<>;
 
     using Block = AbstractPage <BlockID, BlockID, EmptyType, SnapshotID>;
     using BlockType = Block;
@@ -55,13 +58,13 @@ struct ProfileTraits<DefaultProfile<>> {
         return UUID::make_random();
     }
 
-    static UUID make_random_ctr_id() {
-        return UUID::make_random();
-    }
+//    static UUID make_random_ctr_id() {
+//        return UUID::make_random();
+//    }
 
-    static UUID make_random_snapshot_id() {
-        return UUID::make_random();
-    }
+//    static UUID make_random_snapshot_id() {
+//        return UUID::make_random();
+//    }
 };
 
 template <>

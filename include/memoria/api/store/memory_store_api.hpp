@@ -33,18 +33,18 @@
 namespace memoria {
 
 
-template <typename Profile = DefaultProfile<>>
+template <typename Profile>
 class IMemorySnapshot;
 
-template <typename Profile = DefaultProfile<>>
+template <typename Profile = CoreApiProfile<>>
 class IMemoryStore {
 
-    using SnapshotID = ProfileSnapshotID<Profile>;
+    using SnapshotID = ApiProfileSnapshotID<Profile>;
 
 public:
     using StorePtr      = AllocSharedPtr<IMemoryStore>;
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot<Profile>>;
-    using BlockType     = ProfileBlockType<Profile>;
+    //using BlockType     = ProfileBlockType<Profile>;
 
     template <typename CtrName>
     using CtrApiType = ICtrApi<CtrName, Profile>;
@@ -68,7 +68,7 @@ public:
     virtual VoidResult set_master(const SnapshotID& txn_id) noexcept = 0;
     virtual VoidResult set_branch(U8StringRef name, const SnapshotID& txn_id) noexcept = 0;
 
-    virtual VoidResult walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;
+    //virtual VoidResult walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;
 
     virtual Logger& logger() noexcept = 0;
 
@@ -113,7 +113,7 @@ public:
     virtual Result<SharedPtr<AllocatorMemoryStat<Profile>>> memory_stat() noexcept = 0;
 };
 
-template <typename Profile = DefaultProfile<>>
+template <typename Profile = CoreApiProfile<>>
 using IMemoryStorePtr = typename IMemoryStore<Profile>::StorePtr;
 
 
@@ -123,18 +123,16 @@ template <typename Profile>
 class IMemorySnapshot: public IStoreWritableSnapshotCtrOps<Profile> {
 
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot>;
-    using SnapshotID    = ProfileSnapshotID<Profile>;
-    using CtrID         = ProfileCtrID<Profile>;
+    using SnapshotID    = ApiProfileSnapshotID<Profile>;
+    using CtrID         = ApiProfileCtrID<Profile>;
 
-    using AllocatorT    = ProfileAllocatorType<Profile>;
+    using AllocatorT    = AllocatorApiBase<Profile>;
 
 public:
     template <typename CtrName>
     using CtrT = ICtrApi<CtrName, Profile>;
 
-    using BlockType = ProfileBlockType<Profile>;
-
-    virtual ~IMemorySnapshot() noexcept {}
+    //using BlockType = ProfileBlockType<Profile>;
 
     virtual const SnapshotID& uuid() const noexcept = 0;
 
@@ -168,7 +166,7 @@ template <typename CtrName, typename Profile>
 Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
         SnpSharedPtr<IMemorySnapshot<Profile>>& alloc,
         const CtrName& ctr_type_name,
-        const ProfileCtrID<Profile>& ctr_id
+        const ApiProfileCtrID<Profile>& ctr_id
 ) noexcept
 {
     using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
@@ -203,7 +201,7 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
 template <typename CtrName, typename Profile>
 Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
         SnpSharedPtr<IMemorySnapshot<Profile>>& alloc,
-        const ProfileCtrID<Profile>& ctr_id
+        const ApiProfileCtrID<Profile>& ctr_id
 ) noexcept
 {
     using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
@@ -231,7 +229,7 @@ template <typename CtrName, typename Profile>
 Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
         SnpSharedPtr<IMemorySnapshot<Profile>>& alloc,
         const CtrName& ctr_type_name,
-        const ProfileCtrID<Profile>& ctr_id
+        const ApiProfileCtrID<Profile>& ctr_id
 ) noexcept
 {
     using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
@@ -246,8 +244,8 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
     });
 }
 
-using DefaultMemoryStore = IMemoryStore<DefaultProfile<>>;
-using CoWMemoryStore = IMemoryStore<MemoryCoWProfile<>>;
+using DefaultMemoryStore = IMemoryStore<CoreApiProfile<>>;
+using CoWMemoryStore = IMemoryStore<CoreCowApiProfile<>>;
 
 }
 

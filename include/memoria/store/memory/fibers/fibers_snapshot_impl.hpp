@@ -81,7 +81,7 @@ protected:
     int32_t cpu_;
 
     Result<SnapshotApiPtr> upcast(Result<SnapshotPtr>&& ptr) {
-        return memoria_static_pointer_cast<IMemorySnapshot<Profile>>(std::move(ptr));
+        return memoria_static_pointer_cast<IMemorySnapshot<ApiProfile<Profile>>>(std::move(ptr));
     }
 
 public:
@@ -158,7 +158,7 @@ public:
     
     
 
-    SnpSharedPtr<SnapshotMetadata<Profile>> describe() const
+    SnpSharedPtr<SnapshotMetadata<ApiProfile<Profile>>> describe() const
     {
         return reactor::engine().run_at(cpu_, [&]
         {
@@ -173,7 +173,7 @@ public:
 
             auto parent_id = history_node_->parent() ? history_node_->parent()->snapshot_id() : SnapshotID{};
 
-            return snp_make_shared<SnapshotMetadata<Profile>>(
+            return snp_make_shared<SnapshotMetadata<ApiProfile<Profile>>>(
                 parent_id, history_node_->snapshot_id(), children, history_node_->metadata(), history_node_->status()
             );
         });
@@ -314,8 +314,7 @@ public:
                 HistoryNode* history_node = history_node_->parent();
                 return upcast(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::OP_FIND));
             }
-            else
-            {
+            else {
                 return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has no parent.", uuid());
             }
         });
@@ -323,26 +322,26 @@ public:
 
     
 
-    Result<SharedPtr<SnapshotMemoryStat<Profile>>> memory_stat() noexcept
+    Result<SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>>> memory_stat() noexcept
     {
-        using ResultT = Result<SharedPtr<SnapshotMemoryStat<Profile>>>;
+        using ResultT = Result<SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>>>;
         std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
         return ResultT::of(this->do_compute_memory_stat());
     }
 
-    Result<SnpSharedPtr<ProfileAllocatorType<Profile>>> snapshot_ref_creation_allowed() noexcept
+    Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>> snapshot_ref_creation_allowed() noexcept
     {
-        using ResultT = Result<SnpSharedPtr<ProfileAllocatorType<Profile>>>;
+        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>>;
         MEMORIA_TRY_VOID(this->checkIfConainersCreationAllowed());
-        return ResultT::of(memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(this->shared_from_this()));
+        return ResultT::of(memoria_static_pointer_cast<AllocatorApiBase<ApiProfile<Profile>>>(this->shared_from_this()));
     }
 
 
-    Result<SnpSharedPtr<ProfileAllocatorType<Profile>>> snapshot_ref_opening_allowed() noexcept
+    Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>> snapshot_ref_opening_allowed() noexcept
     {
-        using ResultT = Result<SnpSharedPtr<ProfileAllocatorType<Profile>>>;
+        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>>;
         MEMORIA_TRY_VOID(this->checkIfConainersOpeneingAllowed());
-        return ResultT::of(memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(this->shared_from_this()));
+        return ResultT::of(memoria_static_pointer_cast<AllocatorApiBase<ApiProfile<Profile>>>(this->shared_from_this()));
     }
 };
 

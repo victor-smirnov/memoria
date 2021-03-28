@@ -46,7 +46,7 @@ struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
 
     using Base = BTTypes<Profile, BTSingleStream>;
 
-    using IteratorInterface = VectorIterator<DataType, Profile>;
+    using IteratorInterface = VectorIterator<DataType, ApiProfile<Profile>>;
 
 
     using Value = DataType;

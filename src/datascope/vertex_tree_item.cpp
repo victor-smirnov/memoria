@@ -166,8 +166,12 @@ void ContainerTreeItem::expand()
 QVariant CtrBlockTreeItem::data(int column)
 {
     switch (column) {
-        case 0: return node_type() + QString::fromUtf8((U8String(" :: ") + toString(idx_)).data());
-        case 1: return QString::fromUtf8(toString(block_->block_id()).data());
+    case 0: return node_type() + QString::fromUtf8((U8String(" :: ") + toString(idx_)).data());
+    case 1: {
+        UUID uuid;
+        block_id_holder_to(block_->block_id(), uuid);
+        return QString::fromUtf8(toString(uuid).data());
+    }
     }
 
     return QVariant{};

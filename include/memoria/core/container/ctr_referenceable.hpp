@@ -45,7 +45,7 @@ using CtrBlockPtr = std::shared_ptr<CtrBlock<Profile>>;
 
 template <typename Profile>
 struct CtrBlock {
-    using BlockID = ProfileBlockID<Profile>;
+    using ApiBlockID = ApiProfileBlockID<Profile>;
 
     virtual ~CtrBlock() noexcept {}
 
@@ -53,14 +53,14 @@ struct CtrBlock {
     virtual VoidResult describe(std::ostream& out) const noexcept = 0;
 
     virtual BoolResult is_leaf() const noexcept = 0;
-    virtual BlockID block_id() const noexcept = 0;
+    virtual ApiBlockID block_id() const noexcept = 0;
 };
 
 
 template <typename Profile>
 struct CtrReferenceableBase {
 
-    using CtrID = ProfileCtrID<Profile>;
+    using CtrID = ApiProfileCtrID<Profile>;
 
     virtual ~CtrReferenceableBase() noexcept {}
 
@@ -98,7 +98,7 @@ struct CtrReferenceableBase {
 
     virtual Result<CtrBlockPtr<Profile>> root_block() noexcept = 0;
 
-    virtual VoidResult internal_unref_cascade(const ProfileBlockID<Profile>& block_id) noexcept = 0;
+    virtual VoidResult internal_unref_cascade(const ApiProfileBlockID<Profile>& block_id) noexcept = 0;
 
     virtual void internal_reset_allocator_holder() noexcept = 0;
 };

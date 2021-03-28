@@ -34,9 +34,6 @@
 
 using namespace memoria;
 
-using Profile = MemoryCoWProfile<>;
-
-
 int main()
 {
     using CtrName = Set<Varchar>;

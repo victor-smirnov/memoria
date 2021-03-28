@@ -1,5 +1,5 @@
 
-// Copyright 2017-2020 Victor Smirnov
+// Copyright 2017-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,18 +25,16 @@
 
 namespace memoria {
 
-
-
 template <typename Profile>
 class IStoreSnapshotCtrOps {
 
 public:
-    using AllocatorT = ProfileAllocatorType<Profile>;
+    using AllocatorT = AllocatorApiBase<Profile>;
 
-    using CtrID = ProfileCtrID<Profile>;
+    using CtrID = ApiProfileCtrID<Profile>;
     using CtrReferenceableResult = Result<CtrSharedPtr<CtrReferenceable<Profile>>>;
 
-    virtual ~IStoreSnapshotCtrOps() noexcept {}
+    virtual ~IStoreSnapshotCtrOps() noexcept = default;
 
 
     virtual CtrReferenceableResult find(const CtrID& ctr_id) noexcept = 0;
@@ -54,10 +52,10 @@ public:
 
     virtual Result<Optional<U8String>> ctr_type_name_for(const CtrID& name) noexcept = 0;
 
-    virtual VoidResult walk_containers(
-            ContainerWalker<Profile>* walker,
-            const char* allocator_descr = nullptr
-    ) noexcept = 0;
+//    virtual VoidResult walk_containers(
+//            ContainerWalker<Profile>* walker,
+//            const char* allocator_descr = nullptr
+//    ) noexcept = 0;
 
 
 protected:
@@ -68,10 +66,10 @@ protected:
 
 template <typename Profile>
 class IStoreWritableSnapshotCtrOps: public virtual IStoreSnapshotCtrOps<Profile> {
-    using AllocatorT = ProfileAllocatorType<Profile>;
+    using AllocatorT = AllocatorApiBase<Profile>;
 
 public:
-    using CtrID = ProfileCtrID<Profile>;
+    using CtrID = ApiProfileCtrID<Profile>;
     using CtrReferenceableResult = Result<CtrSharedPtr<CtrReferenceable<Profile>>>;
 
     virtual CtrReferenceableResult create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept = 0;
@@ -110,7 +108,7 @@ template <typename CtrName, typename Profile>
 Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
         SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> alloc,
         const CtrName& ctr_type_name,
-        const ProfileCtrID<Profile>& ctr_id
+        const ApiProfileCtrID<Profile>& ctr_id
 ) noexcept
 {
     using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
@@ -149,7 +147,7 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
 template <typename CtrName, typename Profile>
 Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
         SnpSharedPtr<IStoreSnapshotCtrOps<Profile>> alloc,
-        const ProfileCtrID<Profile>& ctr_id
+        const ApiProfileCtrID<Profile>& ctr_id
 ) noexcept
 {
     using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
@@ -177,7 +175,7 @@ template <typename CtrName, typename Profile>
 Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
         SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> alloc,
         const CtrName& ctr_type_name,
-        const ProfileCtrID<Profile>& ctr_id
+        const ApiProfileCtrID<Profile>& ctr_id
 ) noexcept
 {
     using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;

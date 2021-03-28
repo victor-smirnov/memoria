@@ -151,15 +151,15 @@ protected:
 class CtrBlockTreeItem: public AbstractTreeItem {
 protected:
     size_t idx_;
-    CtrBlockPtr<DefaultProfile<>> block_;
+    CtrBlockPtr<CoreApiProfile<>> block_;
 public:
-    CtrBlockTreeItem(size_t idx, CtrBlockPtr<DefaultProfile<>> block, AbstractTreeItem* parent):
+    CtrBlockTreeItem(size_t idx, CtrBlockPtr<CoreApiProfile<>> block, AbstractTreeItem* parent):
         AbstractTreeItem(parent),
         idx_(idx),
         block_(block)
     {}
 
-    CtrBlockPtr<DefaultProfile<>> block() const {
+    CtrBlockPtr<CoreApiProfile<>> block() const {
         return block_;
     }
 

@@ -24,7 +24,6 @@ namespace memoria {
 void InitCoreLDDatatypes();
 void InitCoreDatatypes();
 void InitSimpleNumericDatatypes();
-void InitCtrDatatypes();
 
 void InitMemoriaCoreExplicit();
 

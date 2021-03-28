@@ -51,6 +51,6 @@ PYBIND11_MODULE(memoria, m) {
     PythonAPIBinder<GlobalBindings>::make_bindings(m);
     py::module_ m_cow = m.def_submodule("cow");
 
-    PythonAPIBinder<MemoryCoWProfile<>>::make_bindings(m_cow);
-    PythonAPIBinder<ISWMRStore<MemoryCoWProfile<>>>::make_bindings(m_cow);
+    PythonAPIBinder<CoreCowApiProfile<>>::make_bindings(m_cow);
+    PythonAPIBinder<ISWMRStore<CoreCowApiProfile<>>>::make_bindings(m_cow);
 }

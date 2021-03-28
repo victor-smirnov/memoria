@@ -20,7 +20,12 @@
 
 namespace memoria {
 
+template <typename ApiProfile> struct ApiProfileTraits;
+
 template <typename Profile> struct ProfileTraits;
+
+template <typename Profile>
+using ApiProfile = typename ProfileTraits<Profile>::ApiProfileT;
 
 template <typename Profile>
 using ProfileBlockType = typename ProfileTraits<Profile>::BlockType;
@@ -32,13 +37,29 @@ template <typename Profile>
 using ProfileBlockID = typename ProfileTraits<Profile>::BlockID;
 
 template <typename Profile>
+using ApiProfileBlockID = typename ApiProfileTraits<Profile>::ApiBlockID;
+
+
+template <typename Profile>
 using ProfileCtrID = typename ProfileTraits<Profile>::CtrID;
+
+template <typename Profile>
+using ApiProfileCtrID = typename ApiProfileTraits<Profile>::CtrID;
+
 
 template <typename Profile>
 using ProfileSnapshotID = typename ProfileTraits<Profile>::SnapshotID;
 
 template <typename Profile>
+using ApiProfileSnapshotID = typename ApiProfileTraits<Profile>::SnapshotID;
+
+template <typename Profile>
 using ProfileCtrSizeT = typename ProfileTraits<Profile>::CtrSizeT;
+
+template <typename Profile>
+using ApiProfileCtrSizeT = typename ApiProfileTraits<Profile>::CtrSizeT;
+
+
 
 template <typename Profile>
 bool ProfileIsCopyOnWrite = ProfileTraits<Profile>::IsCoW;

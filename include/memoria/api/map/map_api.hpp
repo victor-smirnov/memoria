@@ -66,7 +66,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     using Producer      = MapProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
-    virtual Result<ProfileCtrSizeT<Profile>> size() const noexcept = 0;
+    virtual Result<ApiProfileCtrSizeT<Profile>> size() const noexcept = 0;
     virtual VoidResult assign_key(KeyView key, ValueView value) noexcept = 0;
     virtual VoidResult remove_key(KeyView key) noexcept = 0;
 

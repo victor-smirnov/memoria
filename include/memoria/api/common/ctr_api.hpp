@@ -65,21 +65,31 @@ template <typename Profile, int32_t Streams> struct ProfileCtrSizesTS: HasType<
     core::StaticVector<ProfileCtrSizeT<Profile>, Streams>
 > {};
 
+template <typename Profile, int32_t Streams> struct ApiProfileCtrSizesTS: HasType<
+    core::StaticVector<ApiProfileCtrSizeT<Profile>, Streams>
+> {};
+
 }
 
 template <typename Profile, int32_t Streams> 
 using ProfileCtrSizesT = typename _::ProfileCtrSizesTS<Profile, Streams>::Type;
 
+template <typename Profile, int32_t Streams>
+using ApiProfileCtrSizesT = typename _::ApiProfileCtrSizesTS<Profile, Streams>::Type;
 
-#define MMA_DECLARE_ICTRAPI() \
+
+#define MMA_DECLARE_ICTRAPI()           \
+    template <typename ImplProfile>     \
     static void init_profile_metadata()
 
 
 #define MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile, ...)\
-template struct ICtrApi<CtrName, Profile>;
+template struct ICtrApi<CtrName, ApiProfile<Profile>>; \
+template void ICtrApi<CtrName, ApiProfile<Profile>>::init_profile_metadata<Profile>();
 
 
 #define MMA_INSTANTIATE_CTR_BTFL(CtrName, Profile, ...) \
-template struct ICtrApi<CtrName, Profile>;
+template struct ICtrApi<CtrName, ApiProfile<Profile>>;  \
+template void ICtrApi<CtrName, ApiProfile<Profile>>::init_profile_metadata<Profile>();
 
 }

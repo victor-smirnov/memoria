@@ -58,7 +58,7 @@ namespace store {
 namespace memory_cow {
 
 template <typename Profile, typename MyType>
-class MemoryStoreBase: public IMemoryStore<Profile>, public EnableSharedFromThis<MyType> {
+class MemoryStoreBase: public IMemoryStore<ApiProfile<Profile>>, public EnableSharedFromThis<MyType> {
 public:
     using BlockType = ProfileBlockType<Profile>;
     using NodeBaseT = BlockType;

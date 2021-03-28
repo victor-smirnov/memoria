@@ -65,8 +65,8 @@ public:
 
     
     static constexpr int32_t DataStreams = 2;
-    using CtrSizeT  = ProfileCtrSizeT<Profile>;
-    using CtrSizesT = ProfileCtrSizesT<Profile, DataStreams + 1>;
+    using CtrSizeT  = ApiProfileCtrSizeT<Profile>;
+    using CtrSizesT = ApiProfileCtrSizesT<Profile, DataStreams + 1>;
     
     virtual BoolResult contains(const KeyView& key) const noexcept = 0;
     virtual BoolResult remove(const KeyView& key) noexcept = 0;

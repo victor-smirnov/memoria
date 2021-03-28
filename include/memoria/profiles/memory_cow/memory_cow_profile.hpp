@@ -18,6 +18,7 @@
 
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/profiles/common/block.hpp>
+#include <memoria/profiles/core_cow_api/core_cow_api_profile.hpp>
 
 #include <memoria/core/container/allocator.hpp>
 #include <memoria/core/tools/uuid.hpp>
@@ -27,11 +28,14 @@
 namespace memoria {
 
 template <>
-struct ProfileTraits<MemoryCoWProfile<>> {
+struct ProfileTraits<MemoryCoWProfile<>>: ApiProfileTraits<CoreCowApiProfile<>> {
+    using Base = ApiProfileTraits<CoreCowApiProfile<>>;
+
+    using typename Base::CtrID;
+    using typename Base::CtrSizeT;
+    using typename Base::SnapshotID;
+
     using BlockID       = MemCoWBlockID<uint64_t>;
-    using SnapshotID    = UUID;
-    using CtrID         = UUID;
-    using CtrSizeT      = int64_t;
     using Profile       = MemoryCoWProfile<>;
 
     using Block = AbstractPage<BlockID, BlockID, uint64_t, SnapshotID>;
@@ -139,15 +143,28 @@ struct ContainerOperations<MemoryCoWProfile<>>: ContainerOperationsBase<MemoryCo
 };
 
 
-template <>
-struct CtrReferenceable<MemoryCoWProfile<>>: CtrReferenceableBase<MemoryCoWProfile<>> {
-    using Profile = MemoryCoWProfile<>;
+//template <>
+//struct CtrReferenceable<MemoryCoWProfile<>>: CtrReferenceableBase<MemoryCoWProfile<>> {
+//    using Profile = MemoryCoWProfile<>;
 
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> shared_self() noexcept = 0;
+//    virtual CtrSharedPtr<CtrReferenceable<Profile>> shared_self() noexcept = 0;
 
-    virtual VoidResult traverse_ctr(BTreeTraverseNodeHandler<Profile>& node_handler) const noexcept = 0;
-};
+//    virtual VoidResult traverse_ctr(BTreeTraverseNodeHandler<Profile>& node_handler) const noexcept = 0;
+//};
 
+
+template <typename ValueHolder>
+ApiBlockIDHolder<2> block_id_holder_from(const MemCoWBlockID<ValueHolder>& uuid) noexcept {
+    ApiBlockIDHolder<2> holder;
+    holder.array[0] = uuid.value();
+    return holder;
+}
+
+template <size_t N, typename ValueHolder>
+void block_id_holder_to(const ApiBlockIDHolder<N>& holder, MemCoWBlockID<ValueHolder>& uuid) noexcept {
+    static_assert(N >= 1, "");
+    uuid.value() = holder.array[0];
+}
 
 
 }

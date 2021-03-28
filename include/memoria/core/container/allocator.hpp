@@ -38,7 +38,7 @@
 namespace memoria {
 
 template <typename Profile>
-struct IAllocatorBase {
+struct IAllocatorBase: AllocatorApiBase<ApiProfile<Profile>> {
 
     enum {UNDEFINED, READ, UPDATE};
 
@@ -82,13 +82,13 @@ struct IAllocatorBase {
 
     virtual bool isActive() const noexcept = 0;
 
-    virtual VoidResult registerCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) noexcept = 0;
-    virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) noexcept = 0;
+    virtual VoidResult registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfile<Profile>>* instance) noexcept = 0;
+    virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfile<Profile>>* instance) noexcept = 0;
     virtual VoidResult flush_open_containers() noexcept = 0;
 
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> find(const CtrID& ctr_id) noexcept = 0;
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> from_root_id(const BlockID& root_block_id, const CtrID& name) noexcept = 0;
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> find(const CtrID& ctr_id) noexcept = 0;
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> from_root_id(const BlockID& root_block_id, const CtrID& name) noexcept = 0;
 
     virtual BoolResult check() noexcept = 0;
     virtual VoidResult walkContainers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;

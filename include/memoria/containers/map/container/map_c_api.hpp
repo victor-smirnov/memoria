@@ -79,18 +79,18 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
         return VoidResult::of();
     }
 
-    Result<CtrSharedPtr<MapIterator<Key,Value, Profile>>> iterator() const noexcept
+    Result<CtrSharedPtr<MapIterator<Key,Value, ApiProfile<Profile>>>> iterator() const noexcept
     {
         auto iter = self().ctr_begin();
-        return memoria_static_pointer_cast<MapIterator<Key,Value, Profile>>(std::move(iter));
+        return memoria_static_pointer_cast<MapIterator<Key,Value, ApiProfile<Profile>>>(std::move(iter));
     }
 
-    virtual Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>> find(KeyView key) const noexcept
+    virtual Result<CtrSharedPtr<MapIterator<Key, Value, ApiProfile<Profile>>>> find(KeyView key) const noexcept
     {
         auto iter = self().ctr_map_find(key);
         MEMORIA_RETURN_IF_ERROR(iter);
 
-        return memoria_static_pointer_cast<MapIterator<Key, Value, Profile>>(std::move(iter));
+        return memoria_static_pointer_cast<MapIterator<Key, Value, ApiProfile<Profile>>>(std::move(iter));
     }
 
     VoidResult append(io::IOVectorProducer& producer) noexcept

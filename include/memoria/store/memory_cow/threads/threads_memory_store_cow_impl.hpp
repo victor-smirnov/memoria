@@ -52,16 +52,16 @@ public:
 
     using SnapshotT             = ThreadsSnapshot<Profile, MyType>;
     using SnapshotPtr           = SnpSharedPtr<SnapshotT>;
-    using SnapshotApiPtr        = SnpSharedPtr<IMemorySnapshot<Profile>>;
+    using SnapshotApiPtr        = SnpSharedPtr<IMemorySnapshot<ApiProfile<Profile>>>;
 
     using AllocatorPtr          = AllocSharedPtr<MyType>;
     
-    using MutexT			= std::recursive_mutex;
+    using MutexT		= std::recursive_mutex;
     using SnapshotMutexT	= std::recursive_mutex;
     using StoreMutexT		= std::mutex;
 
-    using LockGuardT			= std::lock_guard<MutexT>;
-    using StoreLockGuardT		= std::lock_guard<StoreMutexT>;
+    using LockGuardT		= std::lock_guard<MutexT>;
+    using StoreLockGuardT	= std::lock_guard<StoreMutexT>;
     using SnapshotLockGuardT	= std::lock_guard<SnapshotMutexT>;
     
     using typename Base::HistoryNode;
@@ -146,11 +146,11 @@ protected:
     }
 
     SnapshotApiPtr upcast(SnapshotPtr&& ptr) {
-        return memoria_static_pointer_cast<IMemorySnapshot<Profile>>(ptr);
+        return memoria_static_pointer_cast<IMemorySnapshot<ApiProfile<Profile>>>(ptr);
     }
 
     Result<SnapshotApiPtr> upcast(Result<SnapshotPtr>&& ptr) {
-        return memoria_static_pointer_cast<IMemorySnapshot<Profile>>(std::move(ptr));
+        return memoria_static_pointer_cast<IMemorySnapshot<ApiProfile<Profile>>>(std::move(ptr));
     }
 
 public:
@@ -352,9 +352,9 @@ public:
 
 
     
-    Result<SnapshotMetadata<Profile>> describe(const SnapshotID& snapshot_id) const noexcept
+    Result<SnapshotMetadata<ApiProfile<Profile>>> describe(const SnapshotID& snapshot_id) const noexcept
     {
-        using ResultT = Result<SnapshotMetadata<Profile>>;
+        using ResultT = Result<SnapshotMetadata<ApiProfile<Profile>>>;
 
     	LockGuardT lock_guard2(mutex_);
 
@@ -374,7 +374,7 @@ public:
 
             auto parent_id = history_node->parent() ? history_node->parent()->snapshot_id() : SnapshotID{};
 
-            return ResultT::of(SnapshotMetadata<Profile>(
+            return ResultT::of(SnapshotMetadata<ApiProfile<Profile>>(
                 parent_id, history_node->snapshot_id(), children, history_node->metadata(), history_node->status()
             ));
         }
@@ -512,7 +512,7 @@ public:
         return upcast(snp_make_shared_init<SnapshotT>(master_, this->shared_from_this()));
     }
 
-    SnapshotMetadata<Profile> describe_master() const noexcept
+    SnapshotMetadata<ApiProfile<Profile>> describe_master() const noexcept
     {
     	std::lock(mutex_, master_->snapshot_mutex());
     	LockGuardT lock_guard2(mutex_, std::adopt_lock);
@@ -527,7 +527,7 @@ public:
 
         auto parent_id = master_->parent() ? master_->parent()->snapshot_id() : SnapshotID{};
 
-        return SnapshotMetadata<Profile>(
+        return SnapshotMetadata<ApiProfile<Profile>>(
             parent_id, master_->snapshot_id(), children, master_->metadata(), master_->status()
     	);
     }
@@ -687,36 +687,36 @@ public:
     }
 
 
-    static Result<AllocSharedPtr<IMemoryStore<Profile>>> load(const char* file) noexcept
+    static Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> load(const char* file) noexcept
     {
         auto fileh = FileInputStreamHandler::create(U8String(file).data());
         auto rr = Base::load(fileh.get());
         if (rr.is_ok()) {
-            return Result<AllocSharedPtr<IMemoryStore<Profile>>>::of(rr.get());
+            return Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>>::of(rr.get());
         }
 
         return std::move(rr).transfer_error();
     }
 
-    static Result<AllocSharedPtr<IMemoryStore<Profile>>> load(const U8String& file) noexcept
+    static Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> load(const U8String& file) noexcept
     {
         auto fileh = FileInputStreamHandler::create(file.data());
         auto rr = Base::load(fileh.get());
         if (rr.is_ok()) {
-            return Result<AllocSharedPtr<IMemoryStore<Profile>>>::of(rr.get());
+            return Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>>::of(rr.get());
         }
 
         return std::move(rr).transfer_error();
     }
 
-    Result<SharedPtr<AllocatorMemoryStat<Profile>>> memory_stat() noexcept
+    Result<SharedPtr<AllocatorMemoryStat<ApiProfile<Profile>>>> memory_stat() noexcept
     {
-        using ResultT = Result<SharedPtr<AllocatorMemoryStat<Profile>>>;
+        using ResultT = Result<SharedPtr<AllocatorMemoryStat<ApiProfile<Profile>>>>;
         LockGuardT lock_guard(mutex_);
 
         _::BlockSet visited_blocks;
 
-        SharedPtr<AllocatorMemoryStat<Profile>> alloc_stat = MakeShared<AllocatorMemoryStat<Profile>>(0);
+        SharedPtr<AllocatorMemoryStat<ApiProfile<Profile>>> alloc_stat = MakeShared<AllocatorMemoryStat<ApiProfile<Profile>>>(0);
 
         auto history_visitor = [&](HistoryNode* node) -> VoidResult {
             return wrap_throwing([&]() -> VoidResult {
@@ -856,7 +856,7 @@ protected:
     }
     
     
-    virtual Result<void> do_pack(HistoryNode* node, int32_t depth, const std::unordered_set<HistoryNode*>& branches) noexcept
+    virtual VoidResult do_pack(HistoryNode* node, int32_t depth, const std::unordered_set<HistoryNode*>& branches) noexcept
     {
     	// FIXME: use dedicated stack data structure
 

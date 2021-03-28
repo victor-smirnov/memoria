@@ -61,7 +61,7 @@ namespace memory_cow {
 template <typename Profile, typename PersistentAllocator, typename SnapshotType>
 class SnapshotBase:
         public ProfileAllocatorType<Profile>,
-        public IMemorySnapshot<Profile>,
+        public IMemorySnapshot<ApiProfile<Profile>>,
         public SnpSharedFromThis<SnapshotType>
 {    
 protected:
@@ -83,12 +83,12 @@ protected:
 
     using PersistentAllocatorPtr = AllocSharedPtr<PersistentAllocator>;
     using SnapshotPtr            = SnpSharedPtr<MyType>;
-    using SnapshotApiPtr         = SnpSharedPtr<IMemorySnapshot<Profile>>;
+    using SnapshotApiPtr         = SnpSharedPtr<IMemorySnapshot<ApiProfile<Profile>>>;
     using AllocatorPtr           = AllocSharedPtr<Base>;
 
     using Status            = typename HistoryNode::Status;
 
-    using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<Profile>*>;
+    using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<ApiProfile<Profile>>*>;
 
 public:
 
@@ -294,7 +294,7 @@ public:
 
             MEMORIA_TRY(ctr, ctr_intf->new_ctr_instance(block, this));
 
-            MEMORIA_TRY_VOID(ctr->internal_unref_cascade(root_block_id));
+            MEMORIA_TRY_VOID(ctr->internal_unref_cascade(block_id_holder_from(root_block_id)));
         }
 
         return VoidResult::of();
@@ -604,7 +604,7 @@ public:
 
 
 
-    virtual Result<void> registerCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) noexcept
+    virtual Result<void> registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfile<Profile>>* instance) noexcept
     {
         auto ii = instance_map_.find(ctr_id);
     	if (ii == instance_map_.end())
@@ -618,7 +618,7 @@ public:
         return Result<void>::of();
     }
 
-    virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<Profile>*) noexcept
+    virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfile<Profile>>*) noexcept
     {
         instance_map_.erase(ctr_id);
         return VoidResult::of();
@@ -630,7 +630,7 @@ public:
     ) noexcept
     {
         MEMORIA_TRY(instance, from_root_id(root_block, CtrID{}));
-        return instance->traverse_ctr(node_handler);
+        return instance->traverse_ctr(&node_handler);
     }
 
 
@@ -823,7 +823,9 @@ public:
                 {
                     MEMORIA_TRY(instance, from_root_id(root_id_to_remove, CtrID{}));
                     // TODO: Do we need to unref the block here first?
-                    return instance->internal_unref_cascade(root_id_to_remove);
+                    return instance->internal_unref_cascade(
+                        block_id_holder_from(root_id_to_remove)
+                    );
                 }
             }
         }
@@ -926,14 +928,14 @@ public:
     }
 
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept
     {
         MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(this->shared_from_this(), ctr_id, decl);
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create(const LDTypeDeclarationView& decl) noexcept
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> create(const LDTypeDeclarationView& decl) noexcept
     {
         MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
@@ -943,9 +945,9 @@ public:
         return factory->create_instance(this->shared_from_this(), ctr_name, decl);
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> find(const CtrID& ctr_id) noexcept
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> find(const CtrID& ctr_id) noexcept
     {
-        using ResultT = Result<CtrSharedPtr<CtrReferenceable<Profile>>>;
+        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>>;
         MEMORIA_TRY_VOID(checkIfConainersOpeneingAllowed());
 
         MEMORIA_TRY(root_id, getRootID(ctr_id));
@@ -1005,9 +1007,9 @@ public:
         }
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> from_root_id(const BlockID& root_block_id, const CtrID& name) noexcept
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> from_root_id(const BlockID& root_block_id, const CtrID& name) noexcept
     {
-        using ResultT = Result<CtrSharedPtr<CtrReferenceable<Profile>>>;
+        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>>;
 
         if (root_block_id.is_set())
         {
@@ -1023,13 +1025,13 @@ public:
         }
     }
 
-    Result<CtrBlockDescription<Profile>> describe_block(const CtrID& block_id) noexcept
+    Result<CtrBlockDescription<ApiProfile<Profile>>> describe_block(const CtrID& block_id) noexcept
     {
         MEMORIA_TRY(block, this->getBlock(block_id));
         return describe_block(block);
     }
 
-    Result<CtrBlockDescription<Profile>> describe_block(const BlockG& block) noexcept
+    Result<CtrBlockDescription<ApiProfile<Profile>>> describe_block(const BlockG& block) noexcept
     {
         auto ctr_intf = ProfileMetadata<Profile>::local()
                 ->get_container_operations(block->ctr_type_hash());
@@ -1040,7 +1042,7 @@ public:
 
 protected:
 
-    SharedPtr<SnapshotMemoryStat<Profile>> do_compute_memory_stat()
+    SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>> do_compute_memory_stat()
     {
         _::BlockSet visited_blocks;
 
@@ -1063,7 +1065,7 @@ protected:
         return consumer.finish();
     }
 
-    SharedPtr<SnapshotMemoryStat<Profile>> do_compute_memory_stat(_::BlockSet& visited_blocks)
+    SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>> do_compute_memory_stat(_::BlockSet& visited_blocks)
     {
         SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_blocks, this);
 
@@ -1171,7 +1173,9 @@ protected:
         BlockType* root_blk = value_cast<BlockType*>(history_node_->root_id().value());
         if (root_blk->unref_block())
         {
-            root_map_->internal_unref_cascade(root_blk->id()).get_or_terminate();
+            root_map_->internal_unref_cascade(
+                block_id_holder_from(root_blk->id())
+            ).get_or_terminate();
         }
 
         history_node_->reset_root_id();

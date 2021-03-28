@@ -29,8 +29,6 @@ using namespace memoria;
 
 int main()
 {
-    StaticLibraryCtrs<>::init();
-
     try {
 
         //    using MapType = Map<BigInt, BigInt>;
@@ -39,8 +37,8 @@ int main()
         //using MapType = Map<Varchar, Varchar>;
         //using Entry   = std::pair<U8String, U8String>;
 
-            using MapType = Map<BigInt, Varchar>;
-            using Entry   = std::pair<int64_t, U8String>;
+        using MapType = Map<BigInt, Varchar>;
+        using Entry   = std::pair<int64_t, U8String>;
 
         auto alloc = IMemoryStore<>::create().get_or_throw();
 

@@ -21,7 +21,7 @@ namespace memoria {
 
 using Profile = DefaultProfile<>;
 
-template class IMemoryStore<Profile>;
+template class IMemoryStore<ApiProfile<Profile>>;
 
 namespace store {
 namespace memory {

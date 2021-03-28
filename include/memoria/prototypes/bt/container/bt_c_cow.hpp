@@ -201,13 +201,15 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     }
 
     VoidResult traverse_ctr(
-            BTreeTraverseNodeHandler<Profile>& node_handler
+            void* node_handler_ptr
     ) const noexcept
     {
         auto& self = this->self();
 
+        BTreeTraverseNodeHandler<Profile>* node_handler = ptr_cast<BTreeTraverseNodeHandler<Profile>>(node_handler_ptr);
+
         MEMORIA_TRY(root, self.ctr_get_root_node());
-        return ctr_do_cow_traverse_tree(node_handler, root);
+        return ctr_do_cow_traverse_tree(*node_handler, root);
     }
 
 private:
@@ -285,8 +287,10 @@ public:
         return VoidResult::of();
     }
 
-    virtual VoidResult internal_unref_cascade(const BlockID& root_block_id) noexcept
+    virtual VoidResult internal_unref_cascade(const ApiProfileBlockID<ApiProfile<Profile>>& root_block_id_api) noexcept
     {
+        BlockID root_block_id;
+        block_id_holder_to(root_block_id_api, root_block_id);
         return self().ctr_unref_block_cascade(root_block_id);
     }
 

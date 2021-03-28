@@ -40,7 +40,7 @@ template <typename Profile>
 struct PythonAPIBinder<CtrReferenceable<Profile>> {
 
     using CtrReferenceableType = CtrReferenceable<Profile>;
-    using CtrID = ProfileCtrID<Profile>;
+    using CtrID = ApiProfileCtrID<Profile>;
 
     static void make_bindings(pybind11::module_& m) {
         namespace py = pybind11;

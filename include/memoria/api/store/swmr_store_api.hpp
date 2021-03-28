@@ -94,15 +94,15 @@ struct ISWMRStore {
 };
 
 
-Result<SharedPtr<ISWMRStore<MemoryCoWProfile<>>>> open_mapped_swmr_store(U8StringView path);
-Result<SharedPtr<ISWMRStore<MemoryCoWProfile<>>>> create_mapped_swmr_store(U8StringView path, uint64_t store_size_mb);
+Result<SharedPtr<ISWMRStore<CoreCowApiProfile<>>>> open_mapped_swmr_store(U8StringView path);
+Result<SharedPtr<ISWMRStore<CoreCowApiProfile<>>>> create_mapped_swmr_store(U8StringView path, uint64_t store_size_mb);
 
 
 template <typename CtrName, typename Profile>
 Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
         SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
         const CtrName& ctr_type_name,
-        const ProfileCtrID<Profile>& ctr_id
+        const ApiProfileCtrID<Profile>& ctr_id
 ) noexcept
 {
     auto ptr = memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(alloc);
@@ -124,7 +124,7 @@ template <typename CtrName, typename Profile>
 Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
         SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
         const CtrName& ctr_type_name,
-        const ProfileCtrID<Profile>& ctr_id
+        const ApiProfileCtrID<Profile>& ctr_id
 ) noexcept
 {
     auto ptr = memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(alloc);
@@ -134,7 +134,7 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
 template <typename CtrName, typename Profile>
 Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
         SnpSharedPtr<ISWMRStoreReadOnlyCommit<Profile>> alloc,
-        const ProfileCtrID<Profile>& ctr_id
+        const ApiProfileCtrID<Profile>& ctr_id
 ) noexcept
 {
     auto ptr = memoria_static_pointer_cast<IStoreSnapshotCtrOps<Profile>>(alloc);
@@ -144,7 +144,7 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
 template <typename CtrName, typename Profile>
 Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
         SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
-        const ProfileCtrID<Profile>& ctr_id
+        const ApiProfileCtrID<Profile>& ctr_id
 ) noexcept
 {
     auto ptr = memoria_static_pointer_cast<IStoreSnapshotCtrOps<Profile>>(alloc);

@@ -50,7 +50,7 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
     using IteratorT     = CtrSharedPtr<SetIterator<Key, Profile>>;
     using BufferT       = DataTypeBuffer<Key>;
     using DataTypeT     = Key;
-    using CtrSizeT      = ProfileCtrSizeT<Profile>;
+    using CtrSizeT      = ApiProfileCtrSizeT<Profile>;
 
 
     virtual VoidResult read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const noexcept = 0;
@@ -65,7 +65,7 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
     virtual Result<CtrSizeT> remove_up_to(CtrSizeT pos) noexcept = 0;
 
 
-    virtual Result<ProfileCtrSizeT<Profile>> size() const noexcept = 0;
+    virtual Result<ApiProfileCtrSizeT<Profile>> size() const noexcept = 0;
 
     virtual Result<CtrSharedPtr<SetIterator<Key, Profile>>> find(KeyView key) const noexcept = 0;
 

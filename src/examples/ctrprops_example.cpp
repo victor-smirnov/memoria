@@ -29,8 +29,6 @@ using namespace memoria;
 
 int main()
 {
-    StaticLibraryCtrs<>::init();
-
     try {
 
         using MapType = Map<Varchar, Varchar>;

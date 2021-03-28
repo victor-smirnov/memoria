@@ -39,8 +39,6 @@ using namespace memoria::reactor;
 
 int main(int argc, char** argv, char** envp)
 {
-    StaticLibraryCtrs<>::init();
-
     QApplication q_app(argc, argv);
     Application app(argc, argv, envp);
 

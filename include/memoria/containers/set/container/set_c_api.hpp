@@ -73,9 +73,9 @@ public:
 
     }
 
-    Result<CtrSharedPtr<SetIterator<Key, Profile>>> find(KeyView key) const noexcept
+    Result<CtrSharedPtr<SetIterator<Key, ApiProfile<Profile>>>> find(KeyView key) const noexcept
     {
-        return memoria_static_pointer_cast<SetIterator<Key, Profile>>(self().ctr_set_find(key));
+        return memoria_static_pointer_cast<SetIterator<Key, ApiProfile<Profile>>>(self().ctr_set_find(key));
     }
 
 //    bool contains_element(KeyView key) {
@@ -92,10 +92,10 @@ public:
 
 
 
-    Result<CtrSharedPtr<SetIterator<Key, Profile>>> iterator() const noexcept
+    Result<CtrSharedPtr<SetIterator<Key, ApiProfile<Profile>>>> iterator() const noexcept
     {
         auto iter = self().ctr_begin();
-        return memoria_static_pointer_cast<SetIterator<Key, Profile>>(std::move(iter));
+        return memoria_static_pointer_cast<SetIterator<Key, ApiProfile<Profile>>>(std::move(iter));
     }
 
     VoidResult append(io::IOVectorProducer& producer) noexcept
@@ -208,7 +208,7 @@ public:
         MEMORIA_TRY(ii, self.ctr_seek(start));
 
         CtrSizeT cnt{};
-        SetScanner<CtrApiTypes, Profile> scanner(ii);
+        SetScanner<CtrApiTypes, ApiProfile<Profile>> scanner(ii);
 
         size_t local_cnt;
         while (cnt < length && !scanner.is_end())

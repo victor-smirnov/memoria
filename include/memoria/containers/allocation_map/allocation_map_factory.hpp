@@ -38,7 +38,7 @@ struct AllocationMapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
     using Base = BTTypes<Profile, BTSingleStream>;
 
-    using IteratorInterface = AllocationMapIterator<Profile>;
+    using IteratorInterface = AllocationMapIterator<ApiProfile<Profile>>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,

@@ -63,7 +63,7 @@ struct ValueTools<U8String> {
 template <
     typename DataType,
     typename CxxValueType,
-    typename ProfileT = DefaultProfile<>,
+    typename ProfileT = ApiProfile<DefaultProfile<>>,
     typename StoreT   = IMemoryStorePtr<ProfileT>
 >
 class SetTest: public BTTestBase<Set<DataType>, ProfileT, StoreT>

@@ -42,7 +42,7 @@ public:
     using typename Base::CtrID;
     using typename Base::AllocatorPtr;
 
-    class CtrBlockImpl: public CtrBlock<ProfileT> {
+    class CtrBlockImpl: public CtrBlock<ApiProfile<ProfileT>> {
         AllocatorPtr store_;
         CtrID ctr_id_;
         BlockID block_id_;
@@ -63,16 +63,16 @@ public:
             return BoolResult::of(block->is_leaf());
         }
 
-        virtual BlockID block_id() const noexcept
+        virtual ApiProfileBlockID<ApiProfile<ProfileT>> block_id() const noexcept
         {
-            return block_id_;
+            return block_id_holder_from(block_id_);
         }
 
-        virtual Result<std::vector<CtrBlockPtr<ProfileT>>> children() const noexcept
+        virtual Result<std::vector<CtrBlockPtr<ApiProfile<ProfileT>>>> children() const noexcept
         {
-            using ResultT = Result<std::vector<CtrBlockPtr<ProfileT>>>;
+            using ResultT = Result<std::vector<CtrBlockPtr<ApiProfile<ProfileT>>>>;
 
-            std::vector<CtrBlockPtr<ProfileT>> children;
+            std::vector<CtrBlockPtr<ApiProfile<ProfileT>>> children;
 
             MEMORIA_TRY(block, static_cast_block<NodeBaseG>(store_->getBlock(block_id_)));
 
@@ -123,9 +123,9 @@ public:
         }
     };
 
-    virtual Result<CtrBlockPtr<ProfileT>> root_block() noexcept
+    virtual Result<CtrBlockPtr<ApiProfile<ProfileT>>> root_block() noexcept
     {
-        using ResultT = Result<CtrBlockPtr<ProfileT>>;
+        using ResultT = Result<CtrBlockPtr<ApiProfile<ProfileT>>>;
         auto& self = this->self();
 
 

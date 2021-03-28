@@ -39,7 +39,7 @@ enum class SnapshotStatus {ACTIVE, COMMITTED, DROPPED, DATA_LOCKED};
 
 template <typename Profile>
 class SnapshotMetadata {
-    using SnapshotID = ProfileSnapshotID<Profile>;
+    using SnapshotID = ApiProfileSnapshotID<Profile>;
     SnapshotID parent_id_;
     SnapshotID snapshot_id_;
     std::vector<SnapshotID> children_;
@@ -67,7 +67,7 @@ public:
 
 template <typename Profile>
 class SnapshotMemoryStat {
-    using SnpID = ProfileSnapshotID<Profile>;
+    using SnpID = ApiProfileSnapshotID<Profile>;
 
     SnpID snapshot_id_;
 
@@ -95,7 +95,7 @@ public:
 
 template <typename Profile>
 class AllocatorMemoryStat {
-    using SnpID = ProfileSnapshotID<Profile>;
+    using SnpID = ApiProfileSnapshotID<Profile>;
     uint64_t total_size_;
 
     using SnapshotMap = std::unordered_map<SnpID, SharedPtr<SnapshotMemoryStat<Profile>>>;

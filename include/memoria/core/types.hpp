@@ -192,7 +192,13 @@ class DefaultProfile  {};
 template <typename ChildType = void>
 class MemoryCoWProfile  {};
 
-enum class Granularity  {Bit, int8_t};
+template <typename ChildType = void>
+class CoreApiProfile {};
+
+template <typename ChildType = void>
+class CoreCowApiProfile {};
+
+enum class Granularity  {Bit, Byte};
 enum class Indexed      {No, Yes};
 
 template <
@@ -553,6 +559,25 @@ public:
     }
 };
 
+template <typename Profile>
+struct AllocatorApiBase {
+    virtual ~AllocatorApiBase() noexcept = default;
+};
+
+template <size_t N>
+class ApiBlockIDHolder {
+    static_assert(N > 0, "");
+
+public:
+    static constexpr size_t Size = N;
+    uint64_t array[N];
+
+    ApiBlockIDHolder() noexcept {
+        for (auto& v: array) {
+            v = 0;
+        }
+    }
+};
 
 std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept;
 

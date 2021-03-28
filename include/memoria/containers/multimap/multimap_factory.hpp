@@ -44,7 +44,7 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
     using Key   = Key_;
     using Value = Value_;
 
-    using IteratorInterface = MultimapIterator<Key_, Value_, Profile>;
+    using IteratorInterface = MultimapIterator<Key_, Value_, ApiProfile<Profile>>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,

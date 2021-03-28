@@ -46,7 +46,7 @@ struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
 
     using Base = BTTypes<Profile, BT>;
 
-    using IteratorInterface = BTSSIterator<Profile>;
+    using IteratorInterface = BTSSIterator<ApiProfile<Profile>>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,

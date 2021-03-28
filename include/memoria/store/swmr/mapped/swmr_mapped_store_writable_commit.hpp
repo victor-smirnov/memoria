@@ -35,7 +35,7 @@ struct InitStoreTag{};
 template <typename Profile>
 class MappedSWMRStoreWritableCommit:
         public MappedSWMRStoreCommitBase<Profile>,
-        public ISWMRStoreWritableCommit<Profile>,
+        public ISWMRStoreWritableCommit<ApiProfile<Profile>>,
         public EnableSharedFromThis<MappedSWMRStoreWritableCommit<Profile>>
 {
     using Base = MappedSWMRStoreCommitBase<Profile>;
@@ -58,7 +58,7 @@ class MappedSWMRStoreWritableCommit:
     using typename Base::HistoryCtrType;
 
     using typename Base::DirectoryCtrType;
-    using AllocationMetadataT = AllocationMetadata<Profile>;
+    using AllocationMetadataT = AllocationMetadata<ApiProfile<Profile>>;
     using Superblock          = SWMRSuperblock<Profile>;
     using ParentCommit        = SnpSharedPtr<MappedSWMRStoreReadOnlyCommit<Profile>>;
 
@@ -90,7 +90,7 @@ class MappedSWMRStoreWritableCommit:
     using Base::refcounter_delegate_;
 
 
-    AllocationPool<Profile, 9> allocation_pool_;
+    AllocationPool<ApiProfile<Profile>, 9> allocation_pool_;
 
     bool committed_{false};
     bool allocator_initialization_mode_{false};
@@ -284,14 +284,14 @@ public:
         return Base::commit_id();
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept
     {
         MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(self_ptr(), ctr_id, decl);
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create(const LDTypeDeclarationView& decl) noexcept
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> create(const LDTypeDeclarationView& decl) noexcept
     {
         MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
@@ -428,7 +428,7 @@ public:
     }
 
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> find(const CtrID& ctr_id) noexcept {
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> find(const CtrID& ctr_id) noexcept {
         return Base::find(ctr_id);
     }
 
@@ -691,7 +691,8 @@ public:
 
             MEMORIA_TRY(ctr, ctr_intf->new_ctr_instance(block, this));
 
-            MEMORIA_TRY_VOID(ctr->internal_unref_cascade(root_block_id));
+            ApiProfileBlockID<ApiProfile<Profile>> holder = block_id_holder_from(root_block_id);
+            MEMORIA_TRY_VOID(ctr->internal_unref_cascade(holder));
 
             return VoidResult::of();
         });
@@ -699,13 +700,13 @@ public:
 
 protected:
 
-    virtual Result<SnpSharedPtr<AllocatorT>> snapshot_ref_creation_allowed() noexcept {
-        using ResultT = Result<SnpSharedPtr<AllocatorT>>;
+    virtual Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>> snapshot_ref_creation_allowed() noexcept {
+        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>>;
         return ResultT::of();
     }
 
 
-    virtual Result<SnpSharedPtr<AllocatorT>> snapshot_ref_opening_allowed() noexcept {
+    virtual Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>> snapshot_ref_opening_allowed() noexcept {
         return Base::snapshot_ref_opening_allowed();
     }
 

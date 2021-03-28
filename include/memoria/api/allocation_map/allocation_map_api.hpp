@@ -39,7 +39,7 @@ namespace memoria {
 
 template <typename Profile>
 struct AllocationMapIterator: BTSSIterator<Profile> {
-    using CtrSizeT = ProfileCtrSizeT<Profile>;
+    using CtrSizeT = ApiProfileCtrSizeT<Profile>;
 
     virtual ~AllocationMapIterator() noexcept {}
 
@@ -52,7 +52,7 @@ struct AllocationMapIterator: BTSSIterator<Profile> {
 
 template <typename Profile>
 class AllocationMetadata {
-    using CtrSizeT = ProfileCtrSizeT<Profile>;
+    using CtrSizeT = ApiProfileCtrSizeT<Profile>;
     CtrSizeT position_;
     CtrSizeT size_;
     int32_t level_;
@@ -121,7 +121,7 @@ enum class AllocationMapEntryStatus: int32_t {
 
 template <typename Profile>
 struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
-    using CtrSizeT = ProfileCtrSizeT<Profile>;
+    using CtrSizeT = ApiProfileCtrSizeT<Profile>;
 
     using ApiTypes  = ICtrApiTypes<AllocationMap, Profile>;
 

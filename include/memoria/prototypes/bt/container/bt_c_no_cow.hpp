@@ -109,7 +109,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
         return self.store().removeBlock(node->id());
     }
 
-    virtual VoidResult internal_unref_cascade(const BlockID& root) noexcept {
+    virtual VoidResult internal_unref_cascade(const ApiProfileBlockID<ApiProfile<Profile>>& root) noexcept {
         return MEMORIA_MAKE_GENERIC_ERROR("unref_cascade(BlockID) should not be called fo this profile");
     }
 

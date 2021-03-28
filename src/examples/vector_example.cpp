@@ -29,8 +29,6 @@ using namespace memoria;
 
 int main()
 {
-    StaticLibraryCtrs<>::init();
-
     try {
 
         using VectorType = Vector<Varchar>;

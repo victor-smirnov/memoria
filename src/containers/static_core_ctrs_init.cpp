@@ -22,6 +22,9 @@ namespace memoria {
 
 
 void InitMemoriaCtrsExplicit() {
+    InitCtrDatatypes();
+
+
 #if defined(MEMORIA_BUILD_MEMORY_STORE_COW) || defined(MEMORIA_BUILD_SWMR_STORE_MAPPED)
     StaticLibraryCtrs<MemoryCoWProfile<>>::init();
 #endif

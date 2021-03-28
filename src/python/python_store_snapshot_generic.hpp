@@ -33,7 +33,7 @@ struct PythonAPIBinder<StoreSnapshotOps<Profile>> {
     using WritableSnpCtrOpsType = IStoreWritableSnapshotCtrOps<Profile>;
     using CtrReferenceableType = CtrReferenceable<Profile>;
 
-    using CtrID = ProfileCtrID<Profile>;
+    using CtrID = ApiProfileCtrID<Profile>;
 
     using CommitID = int64_t;
     using SequenceID = uint64_t;

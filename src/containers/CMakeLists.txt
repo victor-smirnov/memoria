@@ -1,7 +1,7 @@
+file(GLOB SRCS *_dflt.cpp static_core_ctrs_init.cpp dt_ctr_datatypes.cpp)
+
 
 if (BUILD_CONTAINERS)
-    file(GLOB SRCS *_dflt.cpp static_core_ctrs_init.cpp)
-
     set_property(GLOBAL APPEND PROPERTY GLOBAL_CONTAINERS_SOURCES ${SRCS})
     set_property(GLOBAL APPEND PROPERTY GLOBAL_CONTAINERS_SOURCES_REACTOR ${SRCS})
 
@@ -13,8 +13,6 @@ if (BUILD_CONTAINERS)
     endif()
 
 else()
-    file(GLOB SRCS static_core_ctrs_init.cpp)
-
     set_property(GLOBAL APPEND PROPERTY GLOBAL_CONTAINERS_SOURCES ${SRCS})
     set_property(GLOBAL APPEND PROPERTY GLOBAL_CONTAINERS_SOURCES_REACTOR ${SRCS})
 

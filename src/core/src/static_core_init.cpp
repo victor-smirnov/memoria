@@ -24,7 +24,6 @@ void InitMemoriaCoreExplicit() {
     InitCoreLDDatatypes();
     InitCoreDatatypes();
     InitSimpleNumericDatatypes();
-    InitCtrDatatypes();
 }
 
 }

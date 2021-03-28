@@ -27,7 +27,7 @@ int main()
 {
     // Initializing Containers' Metadata (for statically linked libMemoriaClassic)
     // Dynamic linking does not require this step.
-    StaticLibraryCtrs<>::init();
+    //StaticLibraryCtrs<>::init();
 
     // Creating new instance of in-memory store.
     auto alloc = IMemoryStore<>::create().get_or_throw();

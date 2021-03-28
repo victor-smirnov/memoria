@@ -32,8 +32,6 @@ using namespace memoria;
 
 int main()
 {
-    StaticLibraryCtrs<>::init();
-
     try {
 
         using MultimapType = Multimap<Varchar, Varchar>;

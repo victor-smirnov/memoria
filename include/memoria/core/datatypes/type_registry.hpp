@@ -586,7 +586,8 @@ namespace _ {
 }
 
 
-
+#define MMA_DEFINE_DEFAULT_DATATYPE_OPS(...) \
+template <> struct DataTypeOperationsImpl<__VA_ARGS__>: CtrDataTypeOperationsImpl<__VA_ARGS__>{}
 
 template <typename T>
 void register_operations()

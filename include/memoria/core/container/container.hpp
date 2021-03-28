@@ -71,7 +71,7 @@ constexpr UUID CTR_DEFAULT_NAME = UUID(-1ull, -1ull);
 
 template <typename TypesType>
 class CtrBase:
-        public ::memoria::ICtrApi<typename TypesType::ContainerTypeName, typename TypesType::Profile>,
+        public ::memoria::ICtrApi<typename TypesType::ContainerTypeName, ApiProfile<typename TypesType::Profile>>,
         public CtrSharedFromThis<Ctr<TypesType>>
 {
 public:
@@ -82,7 +82,9 @@ public:
     using ContainerTypeName = typename TypesType::ContainerTypeName;
     using Name              = ContainerTypeName;
     using Types             = TypesType;
+
     using ProfileT          = typename Types::Profile;
+    using ApiProfileT       = ApiProfile<ProfileT>;
 
     using NodeBaseG = typename Types::NodeBaseG;
     
@@ -127,7 +129,7 @@ public:
     virtual ~CtrBase() noexcept {}
 
     const std::type_info& api_type_info() const noexcept {
-        return typeid(::memoria::ICtrApi<typename TypesType::ContainerTypeName, typename TypesType::Profile>);
+        return typeid(::memoria::ICtrApi<typename TypesType::ContainerTypeName, ApiProfile<typename TypesType::Profile>>);
     }
 
     auto make_shared_ptr() const noexcept {
@@ -139,11 +141,11 @@ public:
     }
 
     // TODO: error handling
-    virtual CtrSharedPtr<CtrReferenceable<ProfileT>> shared_self() noexcept {
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfile<ProfileT>>> shared_self() noexcept {
         return this->shared_from_this();
     }
 
-    virtual CtrSharedPtr<const CtrReferenceable<ProfileT>> shared_self() const noexcept {
+    virtual CtrSharedPtr<const CtrReferenceable<ApiProfile<ProfileT>>> shared_self() const noexcept {
         return this->shared_from_this();
     }
     
@@ -241,7 +243,7 @@ public:
         template <typename CtrName>
         using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
-        using CtrReferenceableResult = Result<CtrSharedPtr<CtrReferenceable<ProfileT>>>;
+        using CtrReferenceableResult = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<ProfileT>>>>;
 
 
 
@@ -275,7 +277,7 @@ public:
                 const LDTypeDeclarationView& type_decl
         ) const
         {
-            using ResultT = Result<CtrSharedPtr<CtrReferenceable<ProfileT>>>;
+            using ResultT = CtrReferenceableResult;
             boost::any obj = DataTypeRegistry::local().create_object(type_decl);
 
             MaybeError maybe_error;
@@ -291,28 +293,6 @@ public:
                 return std::move(maybe_error.get());
             }
         }
-
-//        virtual CtrReferenceableResult create_instance(
-//                Allocator* allocator,
-//                const BlockG& root_block
-//        ) const
-//        {
-//            using ResultT = Result<CtrSharedPtr<CtrReferenceable<ProfileT>>>;
-
-//            MaybeError maybe_error;
-
-//            auto instance = ctr_make_shared<CtrT<ContainerTypeName>>(
-//                maybe_error, allocator, root_block
-//            );
-
-//            if (!maybe_error) {
-//                return ResultT::of(std::move(instance));
-//            }
-//            else {
-//                return std::move(maybe_error.get());
-//            }
-//        }
-
     };
 
     struct CtrInterfaceImpl: public ContainerOperations<ProfileT> {
@@ -420,12 +400,12 @@ public:
             });
         }
         
-        virtual Result<CtrSharedPtr<CtrReferenceable<typename Types::Profile>>> new_ctr_instance(
+        virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>> new_ctr_instance(
             const ProfileBlockG<typename Types::Profile>& root_block,
             AllocatorPtr allocator
         ) const noexcept
         {
-            using ResultT = Result<CtrSharedPtr<CtrReferenceable<typename Types::Profile>>>;
+            using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>>;
 
             MaybeError maybe_error;
             auto instance = ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
@@ -442,12 +422,12 @@ public:
             }
         }
 
-        virtual Result<CtrSharedPtr<CtrReferenceable<typename Types::Profile>>> new_ctr_instance(
+        virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>> new_ctr_instance(
             const ProfileBlockG<typename Types::Profile>& root_block,
             ProfileAllocatorType<ProfileT>* allocator
         ) const noexcept
         {
-            using ResultT = Result<CtrSharedPtr<CtrReferenceable<typename Types::Profile>>>;
+            using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>>;
 
             MaybeError maybe_error;
             auto instance = ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
@@ -480,7 +460,7 @@ public:
             return ResultT::of(new_name_rtn);
         }
 
-        virtual Result<CtrBlockDescription<ProfileT>> describe_block1(const BlockID& block_id, AllocatorPtr allocator) const noexcept
+        virtual Result<CtrBlockDescription<ApiProfile<ProfileT>>> describe_block1(const BlockID& block_id, AllocatorPtr allocator) const noexcept
         {
             return MyType::describe_block(block_id, allocator.get());
         }

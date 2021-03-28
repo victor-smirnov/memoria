@@ -160,6 +160,23 @@ struct DataTypeTraits<UUID>: SdnFixedSizeDataTypeTraits<UUID, UUID> {};
 
 
 
+static inline ApiBlockIDHolder<2> block_id_holder_from(const UUID& uuid) noexcept {
+    ApiBlockIDHolder<2> holder;
+
+    holder.array[0] = uuid.lo();
+    holder.array[1] = uuid.hi();
+
+    return holder;
+}
+
+template <size_t N>
+void block_id_holder_to(const ApiBlockIDHolder<N>& holder, UUID& uuid) noexcept {
+    static_assert(N >= 2, "");
+    uuid.lo() = holder.array[0];
+    uuid.hi() = holder.array[1];
+}
+
+
 }
 
 

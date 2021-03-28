@@ -736,7 +736,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
 
-    static Result<CtrBlockDescription<Profile>> describe_block(const BlockID& node_id, Allocator* alloc) noexcept
+    static Result<CtrBlockDescription<ApiProfile<Profile>>> describe_block(const BlockID& node_id, Allocator* alloc) noexcept
     {
         MEMORIA_TRY(tmp, alloc->getBlock(node_id));
         NodeBaseG node = tmp;
@@ -746,7 +746,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         bool root = node->is_root();
 
         uint64_t offset{};
-        return CtrBlockDescription<Profile>(size, CtrID{}, root, leaf, offset);
+        return CtrBlockDescription<ApiProfile<Profile>>(size, CtrID{}, root, leaf, offset);
     }
 
 //    void configure_types(

@@ -35,9 +35,6 @@
 
 namespace memoria {
 
-#define MMA_DEFINE_DEFAULT_DATATYPE_OPS(...) \
-template <> struct DataTypeOperationsImpl<__VA_ARGS__>: CtrDataTypeOperationsImpl<__VA_ARGS__>{}
-
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Set<FixedArray<16>>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Set<Varchar>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Set<UUID>);

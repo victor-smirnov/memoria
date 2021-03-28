@@ -19,7 +19,7 @@
 namespace memoria {
 
 using Profile = MemoryCoWProfile<>;
-template class IMemoryStore<Profile>;
+template class IMemoryStore<ApiProfile<Profile>>;
 
 
 std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept {
@@ -30,24 +30,24 @@ std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block
 
 
 template <>
-Result<AllocSharedPtr<IMemoryStore<MemoryCoWProfile<>>>> IMemoryStore<MemoryCoWProfile<>>::load(InputStreamHandler* input_stream) noexcept
+Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> IMemoryStore<ApiProfile<Profile>>::load(InputStreamHandler* input_stream) noexcept
 {
-    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<MemoryCoWProfile<>>::load(input_stream);
+    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(input_stream);
     if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<MemoryCoWProfile<>>>>::of(rr.get());
+        return Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>>::of(rr.get());
     }
 
     return std::move(rr).transfer_error();
 }
 
 template <>
-Result<AllocSharedPtr<IMemoryStore<MemoryCoWProfile<>>>> IMemoryStore<MemoryCoWProfile<>>::load(U8String input_file) noexcept
+Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> IMemoryStore<ApiProfile<Profile>>::load(U8String input_file) noexcept
 {
     auto fileh = FileInputStreamHandler::create(input_file.data());
-    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<MemoryCoWProfile<>>::load(fileh.get());
+    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(fileh.get());
 
     if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<MemoryCoWProfile<>>>>::of(rr.get());
+        return Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>>::of(rr.get());
     }
 
     return std::move(rr).transfer_error();
@@ -55,12 +55,12 @@ Result<AllocSharedPtr<IMemoryStore<MemoryCoWProfile<>>>> IMemoryStore<MemoryCoWP
 
 
 template <>
-Result<AllocSharedPtr<IMemoryStore<MemoryCoWProfile<>>>> IMemoryStore<MemoryCoWProfile<>>::create() noexcept
+Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> IMemoryStore<ApiProfile<Profile>>::create() noexcept
 {
-    using ResultT = Result<AllocSharedPtr<IMemoryStore<MemoryCoWProfile<>>>>;
+    using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>>;
     MaybeError maybe_error;
 
-    auto snp = MakeShared<store::memory_cow::ThreadsMemoryStoreImpl<MemoryCoWProfile<>>>(maybe_error);
+    auto snp = MakeShared<store::memory_cow::ThreadsMemoryStoreImpl<Profile>>(maybe_error);
 
     if (!maybe_error) {
         return ResultT::of(std::move(snp));

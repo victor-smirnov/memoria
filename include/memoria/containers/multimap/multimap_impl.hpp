@@ -28,9 +28,10 @@
 namespace memoria {
 
 template <typename Key, typename Value, typename Profile>
+template <typename ImplProfile>
 void ICtrApi<Multimap<Key, Value>, Profile>::init_profile_metadata()
 {
-    SharedCtr<Multimap<Key, Value>, ProfileAllocatorType<Profile>, Profile>::init_profile_metadata();
+    SharedCtr<Multimap<Key, Value>, ProfileAllocatorType<ImplProfile>, ImplProfile>::init_profile_metadata();
 }
 
 }

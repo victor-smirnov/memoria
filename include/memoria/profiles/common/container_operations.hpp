@@ -136,7 +136,7 @@ struct ContainerWalkerBase: ContainerWalker<Profile> {
 template <typename Profile>
 class CtrBlockDescription {
 
-    using CtrID = ProfileCtrID<Profile>;
+    using CtrID = ApiProfileCtrID<Profile>;
 
     int32_t size_;
     UUID ctr_name_;
@@ -203,12 +203,12 @@ struct ContainerOperationsBase {
         BlockCallbackFn consumer
     ) const noexcept = 0;
     
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> new_ctr_instance(
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> new_ctr_instance(
         const ProfileBlockG<Profile>& root_block,
         AllocatorBasePtr allocator
     ) const noexcept = 0;
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> new_ctr_instance(
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> new_ctr_instance(
         const ProfileBlockG<Profile>& root_block,
         Allocator* allocator
     ) const noexcept = 0;
@@ -220,7 +220,7 @@ struct ContainerOperationsBase {
         AllocatorBasePtr allocator
     ) const noexcept = 0;
 
-    virtual Result<CtrBlockDescription<Profile>> describe_block1(
+    virtual Result<CtrBlockDescription<ApiProfile<Profile>>> describe_block1(
         const BlockID& block_id,
         AllocatorBasePtr allocator
     ) const noexcept = 0;
@@ -259,13 +259,13 @@ struct CtrInstanceFactory {
     using Allocator     = ProfileAllocatorType<Profile>;
     using AllocatorPtr  = SnpSharedPtr<Allocator>;
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create_instance(
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> create_instance(
             const AllocatorPtr& allocator,
             const CtrID& ctr_id,
             const LDTypeDeclarationView& type_decl
     ) const = 0;
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create_instance(
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> create_instance(
             Allocator* allocator,
             const CtrID& ctr_id,
             const LDTypeDeclarationView& type_decl

@@ -133,9 +133,9 @@ public:
     }
 
 
-    SharedPtr<SnapshotMemoryStat<Profile>> finish()
+    SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>> finish()
     {
-        SharedPtr<SnapshotMemoryStat<Profile>> snp_stat = MakeShared<SnapshotMemoryStat<Profile>>(
+        SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>> snp_stat = MakeShared<SnapshotMemoryStat<ApiProfile<Profile>>>(
                 current_snapshot_->uuid(),
                 total_ptree_size_,
                 total_data_size_,
