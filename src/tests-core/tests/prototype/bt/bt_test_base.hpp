@@ -21,7 +21,7 @@
 #include <memoria/tests/yaml.hpp>
 #include <memoria/tests/tools.hpp>
 
-#include <memoria/profiles/core_cow_api/core_cow_api_profile.hpp>
+#include <memoria/profiles/core_api/core_api_profile.hpp>
 #include <memoria/api/store/memory_store_api.hpp>
 
 #include <memoria/core/tools/time.hpp>

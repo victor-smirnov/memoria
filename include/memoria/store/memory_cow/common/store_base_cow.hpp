@@ -28,7 +28,7 @@
 
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/profiles/common/metadata.hpp>
-#include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/memory_cow_profile.hpp>
 
 #include <memoria/api/store/memory_store_api.hpp>
 

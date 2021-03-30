@@ -826,7 +826,7 @@ protected:
 template <typename Profile>
 Result<AllocSharedPtr<IMemoryStore<Profile>>> IMemoryStore<Profile>::load(InputStreamHandler* input_stream) noexcept
 {
-    auto rr = store::memory::FibersMemoryStoreImpl<DefaultProfile<>>::load(input_stream);
+    auto rr = store::memory::FibersMemoryStoreImpl<NoCowProfile<>>::load(input_stream);
     if (rr.is_ok()) {
         return Result<AllocSharedPtr<IMemoryStore<Profile>>>::of(std::move(rr).get());
     }
@@ -840,7 +840,7 @@ template <typename Profile>
 Result<AllocSharedPtr<IMemoryStore<Profile>>> IMemoryStore<Profile>::load(U8String input_file) noexcept
 {
     auto fileh = FileInputStreamHandler::create(input_file.data());
-    auto rr = store::memory::FibersMemoryStoreImpl<DefaultProfile<>>::load(fileh.get());
+    auto rr = store::memory::FibersMemoryStoreImpl<NoCowProfile<>>::load(fileh.get());
     if (rr.is_ok()) {
         return Result<AllocSharedPtr<IMemoryStore<Profile>>>::of(std::move(rr).get());
     }
@@ -857,7 +857,7 @@ Result<AllocSharedPtr<IMemoryStore<Profile>>> IMemoryStore<Profile>::create() no
     using ResultT = Result<AllocSharedPtr<IMemoryStore<Profile>>>;
     MaybeError maybe_error;
 
-    auto snp = MakeShared<store::memory::FibersMemoryStoreImpl<DefaultProfile<>>>(maybe_error);
+    auto snp = MakeShared<store::memory::FibersMemoryStoreImpl<NoCowProfile<>>>(maybe_error);
 
     if (!maybe_error) {
         return ResultT::of(std::move(snp));

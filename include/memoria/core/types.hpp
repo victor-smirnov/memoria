@@ -187,16 +187,10 @@ template <bool Dense = true>
 using BitVector = Sequence<1, Dense>;
 
 template <typename ChildType = void>
-class DefaultProfile  {};
-
-template <typename ChildType = void>
 class MemoryCoWProfile  {};
 
 template <typename ChildType = void>
 class CoreApiProfile {};
-
-template <typename ChildType = void>
-class CoreCowApiProfile {};
 
 enum class Granularity  {Bit, Byte};
 enum class Indexed      {No, Yes};

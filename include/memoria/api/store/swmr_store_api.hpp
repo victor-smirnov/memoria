@@ -94,8 +94,8 @@ struct ISWMRStore {
 };
 
 
-Result<SharedPtr<ISWMRStore<CoreCowApiProfile<>>>> open_mapped_swmr_store(U8StringView path);
-Result<SharedPtr<ISWMRStore<CoreCowApiProfile<>>>> create_mapped_swmr_store(U8StringView path, uint64_t store_size_mb);
+Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> open_mapped_swmr_store(U8StringView path);
+Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> create_mapped_swmr_store(U8StringView path, uint64_t store_size_mb);
 
 
 template <typename CtrName, typename Profile>

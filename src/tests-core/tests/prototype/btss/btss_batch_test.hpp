@@ -71,7 +71,7 @@ namespace internal_ {
 
 template <
     typename CtrName,
-    typename ProfileT       = CoreCowApiProfile<>,
+    typename ProfileT       = CoreApiProfile<>,
     typename AllocatorT     = IMemoryStorePtr<ProfileT>
 >
 class BTSSBatchTest: public BTSSTestBase<CtrName, ProfileT, AllocatorT> {

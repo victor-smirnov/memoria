@@ -31,11 +31,11 @@ namespace memoria {
 namespace tests {
 
 template <int32_t BitsPerSymbol, bool Dense = true>
-class SequenceTestBase: public BTTestBase<Sequence<BitsPerSymbol, Dense>, InMemAllocator<>, DefaultProfile<>> {
+class SequenceTestBase: public BTTestBase<Sequence<BitsPerSymbol, Dense>, InMemAllocator<>, NoCowProfile<>> {
 
     using MyType = SequenceTestBase<BitsPerSymbol, Dense>;
 
-    using Base   = BTTestBase<Sequence<BitsPerSymbol, Dense>, InMemAllocator<>, DefaultProfile<>>;
+    using Base   = BTTestBase<Sequence<BitsPerSymbol, Dense>, InMemAllocator<>, NoCowProfile<>>;
 
 protected:
     using CtrName = Sequence<BitsPerSymbol, Dense>;

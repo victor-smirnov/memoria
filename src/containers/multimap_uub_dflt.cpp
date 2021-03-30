@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/default/default.hpp>
+#include <memoria/profiles/impl/no_cow_profile.hpp>
 
 #include <memoria/containers/multimap/multimap_impl.hpp>
 
@@ -21,7 +21,7 @@
 
 namespace memoria {
 
-using Profile = DefaultProfile<>;    
+using Profile = NoCowProfile<>;    
 using CtrName = memoria::Multimap<UUID, UTinyInt>;
 
 MMA_INSTANTIATE_CTR_BTFL(CtrName, Profile)

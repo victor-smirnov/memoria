@@ -19,7 +19,7 @@
 #include <memoria/profiles/common/container_operations.hpp>
 
 #include <memoria/profiles/common/metadata.hpp>
-#include <memoria/profiles/default/default.hpp>
+#include <memoria/profiles/impl/no_cow_profile.hpp>
 
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
@@ -33,12 +33,12 @@ std::ostream& operator<<(std::ostream& os, const IDValue& id) {
     return os;
 }
 
-//template class ProfileMetadata<DefaultProfile<>>;
+//template class ProfileMetadata<NoCowProfile<>>;
 
 
 namespace {
 
-//ProfileMetadata<DefaultProfile<>>::Init init_def;
+//ProfileMetadata<NoCowProfile<>>::Init init_def;
 
 }
 

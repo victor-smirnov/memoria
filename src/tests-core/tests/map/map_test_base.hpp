@@ -63,9 +63,9 @@ struct IndirectStateFiledSerializer<std::vector<K, A>> {
 
 
 template<typename MapName>
-class MapTestBase: public BTSSTestBase<MapName, InMemAllocator<>, ApiProfile<DefaultProfile<>>> {
+class MapTestBase: public BTSSTestBase<MapName, InMemAllocator<>, ApiProfile<NoCowProfile<>>> {
     using MyType = MapTestBase<MapName>;
-    using Base = BTSSTestBase<MapName, InMemAllocator<>, ApiProfile<DefaultProfile<>>>;
+    using Base = BTSSTestBase<MapName, InMemAllocator<>, ApiProfile<NoCowProfile<>>>;
 
 public:
     using typename Base::Ctr;

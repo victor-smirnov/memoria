@@ -29,7 +29,7 @@
 #include <memoria/api/multimap/multimap_api.hpp>
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 
-#include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/memory_cow_profile.hpp>
 
 #include <string>
 

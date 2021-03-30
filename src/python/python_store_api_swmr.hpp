@@ -27,7 +27,7 @@ struct PythonAPIBinder<ISWMRStore<Profile>> {
     using ROCommitType   = ISWMRStoreReadOnlyCommit<Profile>;
     using CommitBaseType = ISWMRStoreCommitBase<Profile>;
 
-    using SnpCtrOpsType = IStoreSnapshotCtrOps<Profile>;
+    using SnpCtrOpsType  = IStoreSnapshotCtrOps<Profile>;
     using WritableSnpCtrOpsType = IStoreWritableSnapshotCtrOps<Profile>;
     using CtrReferenceableType = CtrReferenceable<Profile>;
 

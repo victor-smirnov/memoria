@@ -107,7 +107,7 @@ public:
     virtual Result<SharedPtr<AllocatorMemoryStat<Profile>>> memory_stat() noexcept = 0;
 };
 
-template <typename Profile = CoreCowApiProfile<>>
+template <typename Profile = CoreApiProfile<>>
 using IMemoryStorePtr = typename IMemoryStore<Profile>::StorePtr;
 
 
@@ -240,9 +240,9 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
 
 
 
-Result<SharedPtr<IMemoryStore<CoreCowApiProfile<>>>> create_memory_store() noexcept;
-Result<SharedPtr<IMemoryStore<CoreCowApiProfile<>>>> load_memory_store(U8String path) noexcept;
-Result<SharedPtr<IMemoryStore<CoreCowApiProfile<>>>> load_memory_store(InputStreamHandler* input_stream) noexcept;
+Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> create_memory_store() noexcept;
+Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> load_memory_store(U8String path) noexcept;
+Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> load_memory_store(InputStreamHandler* input_stream) noexcept;
 
 Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> create_memory_store_noncow() noexcept;
 Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> load_memory_store_noncow(U8String path) noexcept;

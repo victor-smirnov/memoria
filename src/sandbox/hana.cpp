@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/profiles/default/default.hpp>
+#include <memoria/profiles/impl/no_cow_profile.hpp>
 #include <memoria/core/datatypes/datatypes.hpp>
 
 #include <memoria/core/types/hana.hpp>

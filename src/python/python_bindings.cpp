@@ -13,10 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/memoria.hpp>
 
 #include <memoria/api/store/swmr_store_api.hpp>
-#include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
-#include <memoria/memoria.hpp>
+
+#include <memoria/profiles/core_api/core_api_profile.hpp>
 
 #include "python_global_bindings.hpp"
 #include "python_cow_profile_global_bindings.hpp"
@@ -49,8 +50,8 @@ PYBIND11_MODULE(memoria, m) {
     InitMemoriaExplicit();
 
     PythonAPIBinder<GlobalBindings>::make_bindings(m);
-    py::module_ m_cow = m.def_submodule("cow");
+    py::module_ m_core_api = m.def_submodule("coreapi");
 
-    PythonAPIBinder<CoreCowApiProfile<>>::make_bindings(m_cow);
-    PythonAPIBinder<ISWMRStore<CoreCowApiProfile<>>>::make_bindings(m_cow);
+    PythonAPIBinder<CoreApiProfile<>>::make_bindings(m_core_api);
+    PythonAPIBinder<ISWMRStore<CoreApiProfile<>>>::make_bindings(m_core_api);
 }

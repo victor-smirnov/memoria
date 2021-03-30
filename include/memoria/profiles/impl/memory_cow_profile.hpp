@@ -18,7 +18,7 @@
 
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/profiles/common/block.hpp>
-#include <memoria/profiles/core_cow_api/core_cow_api_profile.hpp>
+#include <memoria/profiles/core_api/core_api_profile.hpp>
 
 #include <memoria/core/container/allocator.hpp>
 #include <memoria/core/tools/uuid.hpp>
@@ -27,9 +27,11 @@
 
 namespace memoria {
 
+
+
 template <>
-struct ProfileTraits<MemoryCoWProfile<>>: ApiProfileTraits<CoreCowApiProfile<>> {
-    using Base = ApiProfileTraits<CoreCowApiProfile<>>;
+struct ProfileTraits<MemoryCoWProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
+    using Base = ApiProfileTraits<CoreApiProfile<>>;
 
     using typename Base::CtrID;
     using typename Base::CtrSizeT;
@@ -141,16 +143,6 @@ template <>
 struct ContainerOperations<MemoryCoWProfile<>>: ContainerOperationsBase<MemoryCoWProfile<>> {
 
 };
-
-
-//template <>
-//struct CtrReferenceable<MemoryCoWProfile<>>: CtrReferenceableBase<MemoryCoWProfile<>> {
-//    using Profile = MemoryCoWProfile<>;
-
-//    virtual CtrSharedPtr<CtrReferenceable<Profile>> shared_self() noexcept = 0;
-
-//    virtual VoidResult traverse_ctr(BTreeTraverseNodeHandler<Profile>& node_handler) const noexcept = 0;
-//};
 
 
 template <typename ValueHolder>

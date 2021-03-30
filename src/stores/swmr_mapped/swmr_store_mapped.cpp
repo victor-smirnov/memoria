@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/memory_cow_profile.hpp>
 #include <memoria/store/swmr/mapped/swmr_mapped_store.hpp>
 
 namespace memoria {

@@ -31,7 +31,7 @@ namespace tests {
 
 template <
     typename DataType,
-    typename ProfileT = DefaultProfile<>,
+    typename ProfileT = NoCowProfile<>,
     typename StoreT   = IMemoryStorePtr<ProfileT>
 >
 class VectorTest: public BTTestBase<Vector<DataType>, ProfileT, StoreT>

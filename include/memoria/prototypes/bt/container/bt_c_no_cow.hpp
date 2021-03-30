@@ -210,6 +210,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
         return VoidResult::of();
     }
 
+    virtual VoidResult traverse_ctr(void* node_handler) const noexcept {
+        return make_generic_error("Method is not implemented for this profile");
+    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

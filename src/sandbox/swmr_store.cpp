@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/memory_cow_profile.hpp>
 #include <memoria/api/store/swmr_store_api.hpp>
 
 #include <memoria/api/set/set_api.hpp>

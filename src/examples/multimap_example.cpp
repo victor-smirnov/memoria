@@ -18,7 +18,7 @@
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/datatypes/type_registry.hpp>
 
-#include <memoria/profiles/core_cow_api/core_cow_api_profile.hpp>
+#include <memoria/profiles/core_api/core_api_profile.hpp>
 #include <memoria/api/store/memory_store_api.hpp>
 
 #include <memoria/core/tools/time.hpp>

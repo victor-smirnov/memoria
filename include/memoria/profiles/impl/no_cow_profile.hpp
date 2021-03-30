@@ -25,8 +25,11 @@
 
 namespace memoria {
 
+template <typename ChildType = void>
+class NoCowProfile  {};
+
 template <>
-struct ProfileTraits<DefaultProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
+struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using Base = ApiProfileTraits<CoreApiProfile<>>;
 
     using typename Base::CtrID;
@@ -34,7 +37,7 @@ struct ProfileTraits<DefaultProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using typename Base::SnapshotID;
 
     using BlockID       = UUID;
-    using Profile       = DefaultProfile<>;
+    using Profile       = NoCowProfile<>;
 
     using Block = AbstractPage <BlockID, BlockID, EmptyType, SnapshotID>;
     using BlockType = Block;
@@ -57,18 +60,10 @@ struct ProfileTraits<DefaultProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     static UUID make_random_block_guid() {
         return UUID::make_random();
     }
-
-//    static UUID make_random_ctr_id() {
-//        return UUID::make_random();
-//    }
-
-//    static UUID make_random_snapshot_id() {
-//        return UUID::make_random();
-//    }
 };
 
 template <>
-struct ProfileSpecificBlockTools<DefaultProfile<>>{
+struct ProfileSpecificBlockTools<NoCowProfile<>>{
     template <typename BlockT>
     static void after_deserialization(BlockT*) noexcept {
         // do nothing here

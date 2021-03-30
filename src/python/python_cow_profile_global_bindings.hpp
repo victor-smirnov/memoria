@@ -20,8 +20,8 @@
 namespace memoria {
 
 template <typename T>
-struct PythonAPIBinder<CoreCowApiProfile<T>> {
-    using Profile = CoreCowApiProfile<T>;
+struct PythonAPIBinder<CoreApiProfile<T>> {
+    using Profile = CoreApiProfile<T>;
 
     static void make_bindings(pybind11::module_& m) {
         namespace py = pybind11;

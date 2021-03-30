@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/default/default.hpp>
+#include <memoria/profiles/impl/no_cow_profile.hpp>
 
 #include <memoria/containers/set/set_factory.hpp>
 #include <memoria/containers/set/set_api_impl.hpp>
@@ -22,7 +22,7 @@
 
 namespace memoria {
 
-using Profile = DefaultProfile<>;    
+using Profile = NoCowProfile<>;    
 using CtrName = Set<FixedArray<16>>;
 
 MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)

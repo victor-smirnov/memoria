@@ -14,8 +14,8 @@
 // limitations under the License.
 
 
-#include <memoria/profiles/default/default.hpp>
-#include <memoria/profiles/memory_cow/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/no_cow_profile.hpp>
+#include <memoria/profiles/impl/memory_cow_profile.hpp>
 #include <memoria/memoria_core.hpp>
 
 namespace memoria {

@@ -921,24 +921,24 @@ protected:
 
 /*
 template <>
-Result<AllocSharedPtr<IMemoryStore<ApiProfile<DefaultProfile<>>>>> IMemoryStore<ApiProfile<DefaultProfile<>>>::load(InputStreamHandler* input_stream) noexcept
+Result<AllocSharedPtr<IMemoryStore<ApiProfile<NoCowProfile<>>>>> IMemoryStore<ApiProfile<NoCowProfile<>>>::load(InputStreamHandler* input_stream) noexcept
 {
-    auto rr = store::memory::ThreadsMemoryStoreImpl<DefaultProfile<>>::load(input_stream);
+    auto rr = store::memory::ThreadsMemoryStoreImpl<NoCowProfile<>>::load(input_stream);
     if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<ApiProfile<DefaultProfile<>>>>>::of(rr.get());
+        return Result<AllocSharedPtr<IMemoryStore<ApiProfile<NoCowProfile<>>>>>::of(rr.get());
     }
 
     return std::move(rr).transfer_error();
 }
 
 template <>
-Result<AllocSharedPtr<IMemoryStore<ApiProfile<DefaultProfile<>>>>> IMemoryStore<ApiProfile<DefaultProfile<>>>::load(U8String input_file) noexcept
+Result<AllocSharedPtr<IMemoryStore<ApiProfile<NoCowProfile<>>>>> IMemoryStore<ApiProfile<NoCowProfile<>>>::load(U8String input_file) noexcept
 {
     auto fileh = FileInputStreamHandler::create(input_file.data());
-    auto rr = store::memory::ThreadsMemoryStoreImpl<DefaultProfile<>>::load(fileh.get());
+    auto rr = store::memory::ThreadsMemoryStoreImpl<NoCowProfile<>>::load(fileh.get());
 
     if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<ApiProfile<DefaultProfile<>>>>>::of(rr.get());
+        return Result<AllocSharedPtr<IMemoryStore<ApiProfile<NoCowProfile<>>>>>::of(rr.get());
     }
 
     return std::move(rr).transfer_error();
@@ -946,12 +946,12 @@ Result<AllocSharedPtr<IMemoryStore<ApiProfile<DefaultProfile<>>>>> IMemoryStore<
 
 
 template <>
-Result<AllocSharedPtr<IMemoryStore<ApiProfile<DefaultProfile<>>>>> IMemoryStore<ApiProfile<DefaultProfile<>>>::create() noexcept
+Result<AllocSharedPtr<IMemoryStore<ApiProfile<NoCowProfile<>>>>> IMemoryStore<ApiProfile<NoCowProfile<>>>::create() noexcept
 {
-    using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfile<DefaultProfile<>>>>>;
+    using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfile<NoCowProfile<>>>>>;
     MaybeError maybe_error;
 
-    auto snp = MakeShared<store::memory::ThreadsMemoryStoreImpl<DefaultProfile<>>>(maybe_error);
+    auto snp = MakeShared<store::memory::ThreadsMemoryStoreImpl<NoCowProfile<>>>(maybe_error);
 
     if (!maybe_error) {
         return ResultT::of(std::move(snp));
