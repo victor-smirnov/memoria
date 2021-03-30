@@ -1,4 +1,4 @@
-# Copyright 2016 Victor Smirnov
+# Copyright 2021 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,27 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (BUILD_MEMORY_STORE)
-    add_subdirectory(memory_fibers)
-    add_subdirectory(memory_threads)
-endif()
-
-
-if (BUILD_MEMORY_STORE_COW)
-    add_subdirectory(memory_cow_threads)
-endif()
-
-if (BUILD_SWMR_STORE_MAPPED)
-    add_subdirectory(swmr_mapped)
-endif()
-
-
-if (BUILD_LMDB_STORE)
-    add_subdirectory(lmdb)
-endif()
-
-
-
-file(GLOB SRCS *.cpp)
-set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS})
+file(GLOB SRCS *.cpp mdb/mdb.c mdb/midl.c mdb/lmdb.h)
 set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES_REACTOR ${SRCS})
+
+file(GLOB SRCS *.cpp mdb/mdb.c mdb/midl.c mdb/lmdb.h)
+set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS})
+

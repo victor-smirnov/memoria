@@ -57,7 +57,7 @@ option(BUILD_CONTAINERS_VECTOR   "Build Vector<...> container(s)." ON)
 option(BUILD_MEMORY_STORE        "Build default in-memory store." ON)
 option(BUILD_MEMORY_STORE_COW    "Build default CoW in-memory store." ON)
 option(BUILD_SWMR_STORE_MAPPED   "Build memory-mapped SWMR store." ON)
-option(BUILD_LMDB_STORE          "Build LMDB-based SWMR store." OFF)
+option(BUILD_LMDB_STORE          "Build LMDB-based SWMR store." ON)
 
 option(BUILD_PYTHON_BINDINGS     "Build Python bindings for certain Memoria libraries." OFF)
 

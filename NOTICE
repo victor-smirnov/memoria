@@ -12,4 +12,6 @@ http://www.boost.org/LICENSE_1_0.txt
 
 pyproject.toml, setup.cfg and setup.py files are distributed according to the LICENCE.pybind file
 
+LMDB database is under The OpenLDAP Public License. See LICENCE.lmdb for details.
+
 Check file headers to get the exact conditions those sources may be used under.

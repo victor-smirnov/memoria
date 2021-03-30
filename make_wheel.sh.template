@@ -1,0 +1,5 @@
+#!/bin/bash
+
+VCPKG_TOOLCHAIN=/home/victor/cxx/vcpkg-upstream/scripts/buildsystems/vcpkg.cmake
+
+python setup.py bdist_wheel
