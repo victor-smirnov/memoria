@@ -822,7 +822,7 @@ protected:
 
 }}
 
-
+/*
 template <typename Profile>
 Result<AllocSharedPtr<IMemoryStore<Profile>>> IMemoryStore<Profile>::load(InputStreamHandler* input_stream) noexcept
 {
@@ -866,7 +866,7 @@ Result<AllocSharedPtr<IMemoryStore<Profile>>> IMemoryStore<Profile>::create() no
         return std::move(maybe_error.get());
     }
 }
-
+*/
 
 
 }

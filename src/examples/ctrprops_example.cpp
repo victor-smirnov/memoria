@@ -16,7 +16,7 @@
 
 #include <memoria/core/datatypes/datatypes.hpp>
 
-#include <memoria/profiles/default/default.hpp>
+#include <memoria/profiles/core_cow_api/core_cow_api_profile.hpp>
 #include <memoria/api/store/memory_store_api.hpp>
 
 #include <memoria/api/map/map_api.hpp>
@@ -34,7 +34,7 @@ int main()
         using MapType = Map<Varchar, Varchar>;
         //using Entry   = std::pair<U8String, U8String>;
 
-        auto alloc = IMemoryStore<>::create().get_or_throw();
+        auto alloc = create_memory_store().get_or_throw();
 
         auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
 

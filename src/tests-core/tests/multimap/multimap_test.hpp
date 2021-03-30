@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <memoria/profiles/core_cow_api/core_cow_api_profile.hpp>
+
 #include "../prototype/bt/bt_test_base.hpp"
 
 #include <memoria/api/multimap/multimap_api.hpp>
@@ -26,13 +28,10 @@
 namespace memoria {
 namespace tests {
 
-
-
-
 template <
     typename KeyDataType,
     typename ValueDataType,
-    typename ProfileT = ApiProfile<DefaultProfile<>>,
+    typename ProfileT = CoreCowApiProfile<>,
     typename StoreT   = IMemoryStorePtr<ProfileT>
 >
 class MultimapTest: public BTTestBase<Multimap<KeyDataType, ValueDataType>, ProfileT, StoreT>

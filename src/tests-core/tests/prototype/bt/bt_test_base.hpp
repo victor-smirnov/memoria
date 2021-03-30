@@ -21,7 +21,7 @@
 #include <memoria/tests/yaml.hpp>
 #include <memoria/tests/tools.hpp>
 
-#include <memoria/profiles/default/default.hpp>
+#include <memoria/profiles/core_cow_api/core_cow_api_profile.hpp>
 #include <memoria/api/store/memory_store_api.hpp>
 
 #include <memoria/core/tools/time.hpp>
@@ -80,7 +80,7 @@ public:
 
     BTTestBase()
     {
-        store_ = Store::create().get_or_throw();
+        store_ = create_memory_store().get_or_throw();
         snapshot_  = store_->master().get_or_throw();
     }
 
@@ -201,7 +201,7 @@ public:
 
     virtual void loadAllocator(U8String file_name)
     {
-        store_ = Store::load(file_name.to_u8()).get_or_throw();
+        store_ = load_memory_store(file_name.to_u8()).get_or_throw();
     }
 
 

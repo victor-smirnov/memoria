@@ -31,7 +31,7 @@
 
 namespace memoria {
 
-template <typename CtrName, typename Profile = DefaultProfile<>>
+template <typename CtrName, typename Profile>
 struct ICtrApi;
 
 

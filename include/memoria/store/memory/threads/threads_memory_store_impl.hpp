@@ -919,7 +919,7 @@ protected:
 
 }}
 
-
+/*
 template <>
 Result<AllocSharedPtr<IMemoryStore<ApiProfile<DefaultProfile<>>>>> IMemoryStore<ApiProfile<DefaultProfile<>>>::load(InputStreamHandler* input_stream) noexcept
 {
@@ -960,6 +960,6 @@ Result<AllocSharedPtr<IMemoryStore<ApiProfile<DefaultProfile<>>>>> IMemoryStore<
         return std::move(maybe_error.get());
     }
 }
-
+*/
 
 }

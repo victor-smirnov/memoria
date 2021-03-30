@@ -36,7 +36,7 @@ namespace memoria {
 template <typename Profile>
 class IMemorySnapshot;
 
-template <typename Profile = CoreApiProfile<>>
+template <typename Profile>
 class IMemoryStore {
 
     using SnapshotID = ApiProfileSnapshotID<Profile>;
@@ -44,17 +44,11 @@ class IMemoryStore {
 public:
     using StorePtr      = AllocSharedPtr<IMemoryStore>;
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot<Profile>>;
-    //using BlockType     = ProfileBlockType<Profile>;
 
     template <typename CtrName>
     using CtrApiType = ICtrApi<CtrName, Profile>;
 
     virtual ~IMemoryStore() noexcept {}
-
-    static Result<StorePtr> load(InputStreamHandler* input_stream) noexcept;
-    static Result<StorePtr> load(U8String file_name) noexcept;
-
-    static Result<StorePtr> create() noexcept;
 
     virtual int64_t active_snapshots() noexcept = 0;
 
@@ -113,7 +107,7 @@ public:
     virtual Result<SharedPtr<AllocatorMemoryStat<Profile>>> memory_stat() noexcept = 0;
 };
 
-template <typename Profile = CoreApiProfile<>>
+template <typename Profile = CoreCowApiProfile<>>
 using IMemoryStorePtr = typename IMemoryStore<Profile>::StorePtr;
 
 
@@ -244,8 +238,15 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
     });
 }
 
-using DefaultMemoryStore = IMemoryStore<CoreApiProfile<>>;
-using CoWMemoryStore = IMemoryStore<CoreCowApiProfile<>>;
+
+
+Result<SharedPtr<IMemoryStore<CoreCowApiProfile<>>>> create_memory_store() noexcept;
+Result<SharedPtr<IMemoryStore<CoreCowApiProfile<>>>> load_memory_store(U8String path) noexcept;
+Result<SharedPtr<IMemoryStore<CoreCowApiProfile<>>>> load_memory_store(InputStreamHandler* input_stream) noexcept;
+
+Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> create_memory_store_noncow() noexcept;
+Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> load_memory_store_noncow(U8String path) noexcept;
+Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> load_memory_store_noncow(InputStreamHandler* input_stream) noexcept;
 
 }
 

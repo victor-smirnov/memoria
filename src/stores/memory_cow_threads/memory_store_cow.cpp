@@ -30,33 +30,8 @@ std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block
 
 
 
-template <>
-Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> IMemoryStore<ApiProfileT>::load(InputStreamHandler* input_stream) noexcept
-{
-    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(input_stream);
-    if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
-    }
 
-    return std::move(rr).transfer_error();
-}
-
-template <>
-Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> IMemoryStore<ApiProfileT>::load(U8String input_file) noexcept
-{
-    auto fileh = FileInputStreamHandler::create(input_file.data());
-    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(fileh.get());
-
-    if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
-    }
-
-    return std::move(rr).transfer_error();
-}
-
-
-template <>
-Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> IMemoryStore<ApiProfileT>::create() noexcept
+Result<SharedPtr<IMemoryStore<ApiProfileT>>> create_memory_store() noexcept
 {
     using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>;
     MaybeError maybe_error;
@@ -69,6 +44,27 @@ Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> IMemoryStore<ApiProfileT>::cre
     else {
         return std::move(maybe_error.get());
     }
+}
+
+Result<SharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store(U8String path) noexcept {
+    auto fileh = FileInputStreamHandler::create(path.data());
+    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(fileh.get());
+
+    if (rr.is_ok()) {
+        return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
+    }
+
+    return std::move(rr).transfer_error();
+}
+
+Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store(InputStreamHandler* input_stream) noexcept
+{
+    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(input_stream);
+    if (rr.is_ok()) {
+        return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
+    }
+
+    return std::move(rr).transfer_error();
 }
 
 
@@ -91,5 +87,6 @@ struct Initializer {
 void InitCoWInMemStore() {
     store::memory_cow::Initializer<Profile> init0;
 }
+
 
 }

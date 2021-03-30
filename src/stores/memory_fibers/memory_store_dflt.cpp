@@ -20,8 +20,46 @@
 namespace memoria {
 
 using Profile = DefaultProfile<>;
+using ApiProfileT = ApiProfile<Profile>;
 
 template class IMemoryStore<ApiProfile<Profile>>;
+
+
+Result<SharedPtr<IMemoryStore<ApiProfileT>>> create_memory_store_noncow() noexcept
+{
+    using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>;
+    MaybeError maybe_error;
+
+    auto snp = MakeShared<store::memory::FibersMemoryStoreImpl<Profile>>(maybe_error);
+
+    if (!maybe_error) {
+        return ResultT::of(std::move(snp));
+    }
+    else {
+        return std::move(maybe_error.get());
+    }
+}
+
+Result<SharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store_noncow(U8String path) noexcept {
+    auto fileh = FileInputStreamHandler::create(path.data());
+    auto rr = store::memory::FibersMemoryStoreImpl<Profile>::load(fileh.get());
+
+    if (rr.is_ok()) {
+        return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
+    }
+
+    return std::move(rr).transfer_error();
+}
+
+Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store_noncow(InputStreamHandler* input_stream) noexcept
+{
+    auto rr = store::memory::FibersMemoryStoreImpl<Profile>::load(input_stream);
+    if (rr.is_ok()) {
+        return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
+    }
+
+    return std::move(rr).transfer_error();
+}
 
 namespace store {
 namespace memory {

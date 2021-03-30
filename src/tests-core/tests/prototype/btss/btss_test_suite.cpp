@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/profiles/core_cow_api/core_cow_api_profile.hpp>
+
 #include "btss_batch_test.hpp"
 
 #include <memoria/api/vector/vector_api.hpp>

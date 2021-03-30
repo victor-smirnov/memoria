@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/profiles/default/default.hpp>
+#include <memoria/profiles/core_cow_api/core_cow_api_profile.hpp>
 #include <memoria/api/store/memory_store_api.hpp>
 
 #include <memoria/memoria.hpp>
@@ -25,12 +25,8 @@ using namespace memoria;
 
 int main()
 {
-    // Initializing Containers' Metadata (for statically linked libMemoriaClassic)
-    // Dynamic linking does not require this step.
-    //StaticLibraryCtrs<>::init();
-
     // Creating new instance of in-memory store.
-    auto alloc = IMemoryStore<>::create().get_or_throw();
+    auto alloc = create_memory_store().get_or_throw();
 
     // Obtaining Master's branch head.
     auto master = alloc->master().get_or_throw();

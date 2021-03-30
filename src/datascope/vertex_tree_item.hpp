@@ -16,10 +16,11 @@
 
 #pragma once
 
+#include <memoria/profiles/core_cow_api/core_cow_api_profile.hpp>
 #include <memoria/api/store/memory_store_api.hpp>
 #include <memoria/api/common/ctr_api.hpp>
 
-#include <memoria/profiles/default/default.hpp>
+
 
 #include <QList>
 #include <QVariant>
@@ -151,15 +152,15 @@ protected:
 class CtrBlockTreeItem: public AbstractTreeItem {
 protected:
     size_t idx_;
-    CtrBlockPtr<CoreApiProfile<>> block_;
+    CtrBlockPtr<CoreCowApiProfile<>> block_;
 public:
-    CtrBlockTreeItem(size_t idx, CtrBlockPtr<CoreApiProfile<>> block, AbstractTreeItem* parent):
+    CtrBlockTreeItem(size_t idx, CtrBlockPtr<CoreCowApiProfile<>> block, AbstractTreeItem* parent):
         AbstractTreeItem(parent),
         idx_(idx),
         block_(block)
     {}
 
-    CtrBlockPtr<CoreApiProfile<>> block() const {
+    CtrBlockPtr<CoreCowApiProfile<>> block() const {
         return block_;
     }
 
