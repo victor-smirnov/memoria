@@ -50,6 +50,7 @@ protected:
     using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
+    using typename Base::ApiProfileT;
 
     using Key   = typename Types::Key;
     using Value = typename Types::Value;
@@ -57,9 +58,9 @@ protected:
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ValueView = typename DataTypeTraits<Value>::ViewType;
 
-    using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, ApiProfile<Profile>>;
+    using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, ApiProfileT>;
 
-    using IteratorAPI = MultimapIterator<Key, Value, ApiProfile<Profile>>;
+    using IteratorAPI = MultimapIterator<Key, Value, ApiProfileT>;
     using IteratorAPIPtr = CtrSharedPtr<IteratorAPI>;
 
     using typename Base::BranchNodeExtData;
@@ -117,7 +118,7 @@ public:
 
         MEMORIA_TRY_VOID(ii->iter_to_structure_stream());
 
-        return memoria_static_pointer_cast<MultimapIterator<Key, Value, ApiProfile<Profile>>>(std::move(ii_result));
+        return memoria_static_pointer_cast<MultimapIterator<Key, Value, ApiProfileT>>(std::move(ii_result));
     }
 
     template <typename ScannerApi, typename ScannerImpl>
@@ -137,32 +138,32 @@ public:
     }
 
 
-    virtual CtrSharedPtr<IEntriesScanner<CtrApiTypes, ApiProfile<Profile>>> entries_scanner(IteratorAPIPtr iterator) const
+    virtual CtrSharedPtr<IEntriesScanner<CtrApiTypes, ApiProfileT>> entries_scanner(IteratorAPIPtr iterator) const
     {
         return as_scanner<
-                IEntriesScanner<CtrApiTypes, ApiProfile<Profile>>,
-                multimap::EntriesIteratorImpl<CtrApiTypes, ApiProfile<Profile>, IteratorPtr>
+                IEntriesScanner<CtrApiTypes, ApiProfileT>,
+                multimap::EntriesIteratorImpl<CtrApiTypes, ApiProfileT, IteratorPtr>
         >(iterator);
     }
 
-    virtual CtrSharedPtr<IValuesScanner<CtrApiTypes, ApiProfile<Profile>>> values_scanner(IteratorAPIPtr iterator) const
+    virtual CtrSharedPtr<IValuesScanner<CtrApiTypes, ApiProfileT>> values_scanner(IteratorAPIPtr iterator) const
     {
         if (MMA_UNLIKELY(!iterator)) {
-            return CtrSharedPtr<IValuesScanner<CtrApiTypes, ApiProfile<Profile>>>{};
+            return CtrSharedPtr<IValuesScanner<CtrApiTypes, ApiProfileT>>{};
         }
         else if (iterator->cxx_type() == typeid(typename Base::Iterator))
         {
             auto iter = memoria_static_pointer_cast<SharedIterator>(iterator);
-            return ctr_make_shared<multimap::ValuesIteratorImpl<CtrApiTypes, ApiProfile<Profile>, IteratorPtr>>(iter);
+            return ctr_make_shared<multimap::ValuesIteratorImpl<CtrApiTypes, ApiProfileT, IteratorPtr>>(iter);
         }
         else {
             MMA_THROW(RuntimeException()) << WhatCInfo("Invalid iterator type");
         }
     }
 
-    Result<CtrSharedPtr<IKeysScanner<CtrApiTypes, ApiProfile<Profile>>>> keys() const noexcept
+    Result<CtrSharedPtr<IKeysScanner<CtrApiTypes, ApiProfileT>>> keys() const noexcept
     {
-        using ResultT = Result<CtrSharedPtr<IKeysScanner<CtrApiTypes, ApiProfile<Profile>>>>;
+        using ResultT = Result<CtrSharedPtr<IKeysScanner<CtrApiTypes, ApiProfileT>>>;
 
         auto& self = this->self();
         MEMORIA_TRY(ii, self.template ctr_seek_stream<0>(0));
@@ -171,9 +172,9 @@ public:
 
         MEMORIA_TRY_VOID(ii->iter_to_structure_stream());
 
-        auto ptr = ctr_make_shared<multimap::KeysIteratorImpl<CtrApiTypes, ApiProfile<Profile>, IteratorPtr>>(ii);
+        auto ptr = ctr_make_shared<multimap::KeysIteratorImpl<CtrApiTypes, ApiProfileT, IteratorPtr>>(ii);
 
-        return ResultT::of(memoria_static_pointer_cast<IKeysScanner<CtrApiTypes, ApiProfile<Profile>>>(ptr));
+        return ResultT::of(memoria_static_pointer_cast<IKeysScanner<CtrApiTypes, ApiProfileT>>(ptr));
     }
 
     Result<IteratorAPIPtr> find(KeyView key) const noexcept
@@ -187,7 +188,7 @@ public:
         {
             MEMORIA_TRY_VOID(ii->to_values());
 
-            return memoria_static_pointer_cast<MultimapIterator<Key, Value, ApiProfile<Profile>>>(std::move(ii_result));
+            return memoria_static_pointer_cast<MultimapIterator<Key, Value, ApiProfileT>>(std::move(ii_result));
         }
         else {
             return ResultT::of();

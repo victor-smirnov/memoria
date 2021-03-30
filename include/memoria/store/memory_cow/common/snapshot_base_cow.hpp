@@ -70,6 +70,7 @@ protected:
 
 public:
     using ProfileT = Profile;
+    using ApiProfileT = ApiProfile<ProfileT>;
 
     using typename Base::CtrID;
     using typename Base::BlockID;
@@ -83,12 +84,12 @@ protected:
 
     using PersistentAllocatorPtr = AllocSharedPtr<PersistentAllocator>;
     using SnapshotPtr            = SnpSharedPtr<MyType>;
-    using SnapshotApiPtr         = SnpSharedPtr<IMemorySnapshot<ApiProfile<Profile>>>;
+    using SnapshotApiPtr         = SnpSharedPtr<IMemorySnapshot<ApiProfileT>>;
     using AllocatorPtr           = AllocSharedPtr<Base>;
 
     using Status            = typename HistoryNode::Status;
 
-    using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<ApiProfile<Profile>>*>;
+    using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<ApiProfileT>*>;
 
 public:
 
@@ -604,7 +605,7 @@ public:
 
 
 
-    virtual Result<void> registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfile<Profile>>* instance) noexcept
+    virtual Result<void> registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) noexcept
     {
         auto ii = instance_map_.find(ctr_id);
     	if (ii == instance_map_.end())
@@ -618,7 +619,7 @@ public:
         return Result<void>::of();
     }
 
-    virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfile<Profile>>*) noexcept
+    virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>*) noexcept
     {
         instance_map_.erase(ctr_id);
         return VoidResult::of();
@@ -928,14 +929,14 @@ public:
     }
 
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept
     {
         MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(this->shared_from_this(), ctr_id, decl);
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> create(const LDTypeDeclarationView& decl) noexcept
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> create(const LDTypeDeclarationView& decl) noexcept
     {
         MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
@@ -945,9 +946,9 @@ public:
         return factory->create_instance(this->shared_from_this(), ctr_name, decl);
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> find(const CtrID& ctr_id) noexcept
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> find(const CtrID& ctr_id) noexcept
     {
-        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>>;
+        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
         MEMORIA_TRY_VOID(checkIfConainersOpeneingAllowed());
 
         MEMORIA_TRY(root_id, getRootID(ctr_id));
@@ -1007,9 +1008,9 @@ public:
         }
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> from_root_id(const BlockID& root_block_id, const CtrID& name) noexcept
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> from_root_id(const BlockID& root_block_id, const CtrID& name) noexcept
     {
-        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>>;
+        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
 
         if (root_block_id.is_set())
         {
@@ -1025,13 +1026,13 @@ public:
         }
     }
 
-    Result<CtrBlockDescription<ApiProfile<Profile>>> describe_block(const CtrID& block_id) noexcept
+    Result<CtrBlockDescription<ApiProfileT>> describe_block(const CtrID& block_id) noexcept
     {
         MEMORIA_TRY(block, this->getBlock(block_id));
         return describe_block(block);
     }
 
-    Result<CtrBlockDescription<ApiProfile<Profile>>> describe_block(const BlockG& block) noexcept
+    Result<CtrBlockDescription<ApiProfileT>> describe_block(const BlockG& block) noexcept
     {
         auto ctr_intf = ProfileMetadata<Profile>::local()
                 ->get_container_operations(block->ctr_type_hash());
@@ -1042,7 +1043,7 @@ public:
 
 protected:
 
-    SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>> do_compute_memory_stat()
+    SharedPtr<SnapshotMemoryStat<ApiProfileT>> do_compute_memory_stat()
     {
         _::BlockSet visited_blocks;
 
@@ -1065,7 +1066,7 @@ protected:
         return consumer.finish();
     }
 
-    SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>> do_compute_memory_stat(_::BlockSet& visited_blocks)
+    SharedPtr<SnapshotMemoryStat<ApiProfileT>> do_compute_memory_stat(_::BlockSet& visited_blocks)
     {
         SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_blocks, this);
 

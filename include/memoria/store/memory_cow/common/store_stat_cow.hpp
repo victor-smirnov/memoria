@@ -83,6 +83,7 @@ class SnapshotStatsCountingConsumer {
 
     using CtrID = typename Snapshot::CtrID;
     using Profile = typename Snapshot::ProfileT;
+    using ApiProfileT = ApiProfile<Profile>;
 
     uint64_t total_ptree_size_{};
     uint64_t total_data_size_{};
@@ -133,9 +134,9 @@ public:
     }
 
 
-    SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>> finish()
+    SharedPtr<SnapshotMemoryStat<ApiProfileT>> finish()
     {
-        SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>> snp_stat = MakeShared<SnapshotMemoryStat<ApiProfile<Profile>>>(
+        SharedPtr<SnapshotMemoryStat<ApiProfileT>> snp_stat = MakeShared<SnapshotMemoryStat<ApiProfileT>>(
                 current_snapshot_->uuid(),
                 total_ptree_size_,
                 total_data_size_,

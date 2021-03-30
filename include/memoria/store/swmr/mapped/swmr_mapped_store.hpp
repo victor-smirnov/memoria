@@ -55,6 +55,8 @@ class MappedSWMRStore: public ISWMRStore<ApiProfile<Profile>>, public ReferenceC
     using typename Base::CommitID;
     using typename Base::SequenceID;
 
+    using ApiProfileT = ApiProfile<Profile>;
+
     using MappedReadOnlyCommitPtr = SharedPtr<MappedSWMRStoreReadOnlyCommit<Profile>>;
     using MappedWritableCommitPtr = SharedPtr<MappedSWMRStoreWritableCommit<Profile>>;
     using MappedWritableCommitWeakPtr = WeakPtr<MappedSWMRStoreWritableCommit<Profile>>;
@@ -69,8 +71,8 @@ class MappedSWMRStore: public ISWMRStore<ApiProfile<Profile>>, public ReferenceC
 
     static constexpr size_t  BASIC_BLOCK_SIZE = 4096;
     static constexpr size_t  HEADER_SIZE = BASIC_BLOCK_SIZE * 2;
-    static constexpr int32_t ALLOCATION_MAP_LEVELS    = ICtrApi<AllocationMap, ApiProfile<Profile>>::LEVELS;
-    static constexpr int32_t ALLOCATION_MAP_SIZE_STEP = ICtrApi<AllocationMap, ApiProfile<Profile>>::ALLOCATION_SIZE * BASIC_BLOCK_SIZE;
+    static constexpr int32_t ALLOCATION_MAP_LEVELS    = ICtrApi<AllocationMap, ApiProfileT>::LEVELS;
+    static constexpr int32_t ALLOCATION_MAP_SIZE_STEP = ICtrApi<AllocationMap, ApiProfileT>::ALLOCATION_SIZE * BASIC_BLOCK_SIZE;
     static constexpr size_t  MB = 1024*1024;
 
     mutable std::recursive_mutex reader_mutex_;
@@ -92,8 +94,8 @@ class MappedSWMRStore: public ISWMRStore<ApiProfile<Profile>>, public ReferenceC
     template <typename> friend class MappedSWMRStoreCommitBase;
     template <typename> friend class SWMRMappedStoreHistoryView;
 
-    friend Result<SharedPtr<ISWMRStore<ApiProfile<Profile>>>> open_mapped_swmr_store(U8StringView);
-    friend Result<SharedPtr<ISWMRStore<ApiProfile<Profile>>>> create_mapped_swmr_store(U8StringView, uint64_t);
+    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_mapped_swmr_store(U8StringView);
+    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_mapped_swmr_store(U8StringView, uint64_t);
 
 
     U8String file_name_;
@@ -371,11 +373,11 @@ public:
         return VoidResult::of();
     }
 
-    Result<SharedPtr<ISWMRStoreHistoryView<ApiProfile<Profile>>>> history_view() noexcept {
+    Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>> history_view() noexcept {
 
         MEMORIA_TRY(head, open_mapped_readonly(head_ptr_));
 
-        return Result<SharedPtr<ISWMRStoreHistoryView<ApiProfile<Profile>>>>::of(
+        return Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>>::of(
             MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head)
         );
     }
@@ -604,7 +606,7 @@ private:
         MEMORIA_TRY(commit, open_mapped_readonly(commit_descr));
 
         return Result<ReadOnlyCommitPtr>::of(
-            memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfile<Profile>>>(commit)
+            memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(commit)
         );
     }
 

@@ -34,6 +34,8 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(set::CtrApiName)
 
+    using typename Base::ApiProfileT;
+
 public:
     using Types = typename Base::Types;
     using typename Base::IteratorPtr;
@@ -73,9 +75,9 @@ public:
 
     }
 
-    Result<CtrSharedPtr<SetIterator<Key, ApiProfile<Profile>>>> find(KeyView key) const noexcept
+    Result<CtrSharedPtr<SetIterator<Key, ApiProfileT>>> find(KeyView key) const noexcept
     {
-        return memoria_static_pointer_cast<SetIterator<Key, ApiProfile<Profile>>>(self().ctr_set_find(key));
+        return memoria_static_pointer_cast<SetIterator<Key, ApiProfileT>>(self().ctr_set_find(key));
     }
 
 //    bool contains_element(KeyView key) {
@@ -92,10 +94,10 @@ public:
 
 
 
-    Result<CtrSharedPtr<SetIterator<Key, ApiProfile<Profile>>>> iterator() const noexcept
+    Result<CtrSharedPtr<SetIterator<Key, ApiProfileT>>> iterator() const noexcept
     {
         auto iter = self().ctr_begin();
-        return memoria_static_pointer_cast<SetIterator<Key, ApiProfile<Profile>>>(std::move(iter));
+        return memoria_static_pointer_cast<SetIterator<Key, ApiProfileT>>(std::move(iter));
     }
 
     VoidResult append(io::IOVectorProducer& producer) noexcept
@@ -208,7 +210,7 @@ public:
         MEMORIA_TRY(ii, self.ctr_seek(start));
 
         CtrSizeT cnt{};
-        SetScanner<CtrApiTypes, ApiProfile<Profile>> scanner(ii);
+        SetScanner<CtrApiTypes, ApiProfileT> scanner(ii);
 
         size_t local_cnt;
         while (cnt < length && !scanner.is_end())

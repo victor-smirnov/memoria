@@ -54,15 +54,17 @@ namespace memory {
 
 template <typename Profile>
 class FibersMemoryStoreImpl: public MemoryStoreBase<Profile, FibersMemoryStoreImpl<Profile>> {
+
 public:
     using Base      = MemoryStoreBase<Profile, FibersMemoryStoreImpl<Profile>>;
     using MyType    = FibersMemoryStoreImpl<Profile>;
+    using ApiProfileT = ApiProfile<Profile>;
     
     using typename Base::BlockType;
 
     using SnapshotT             = FibersSnapshot<Profile, MyType>;
     using SnapshotPtr           = SnpSharedPtr<SnapshotT>;
-    using SnapshotApiPtr        = SnpSharedPtr<IMemorySnapshot<ApiProfile<Profile>>>;
+    using SnapshotApiPtr        = SnpSharedPtr<IMemorySnapshot<ApiProfileT>>;
 
     using StorePtr              = AllocSharedPtr<MyType>;
     
@@ -77,6 +79,7 @@ public:
     using typename Base::SnapshotID;
     using typename Base::RCBlockSet;
     using typename Base::Checksum;
+
     
     using Base::load;
 
@@ -119,7 +122,7 @@ private:
     LocalSharedPtr<StoreEventListener> event_listener_;
 
     Result<SnapshotApiPtr> upcast(Result<SnapshotPtr>&& ptr) {
-        return memoria_static_pointer_cast<IMemorySnapshot<ApiProfile<Profile>>>(std::move(ptr));
+        return memoria_static_pointer_cast<IMemorySnapshot<ApiProfileT>>(std::move(ptr));
     }
  
 public:
@@ -355,9 +358,9 @@ public:
 
 
 
-    Result<SnpSharedPtr<SnapshotMetadata<ApiProfile<Profile>>>> describe(const SnapshotID& snapshot_id) const noexcept
+    Result<SnpSharedPtr<SnapshotMetadata<ApiProfileT>>> describe(const SnapshotID& snapshot_id) const noexcept
     {
-        using ResultT = Result<SnpSharedPtr<SnapshotMetadata<ApiProfile<Profile>>>>;
+        using ResultT = Result<SnpSharedPtr<SnapshotMetadata<ApiProfileT>>>;
         return reactor::engine().run_at(cpu_, [&] () -> ResultT {
             auto iter = snapshot_map_.find(snapshot_id);
             if (iter != snapshot_map_.end())
@@ -373,7 +376,7 @@ public:
 
                 auto parent_id = history_node->parent() ? history_node->parent()->snapshot_id() : SnapshotID{};
 
-                return ResultT::of(snp_make_shared<SnapshotMetadata<ApiProfile<Profile>>>(
+                return ResultT::of(snp_make_shared<SnapshotMetadata<ApiProfileT>>(
                     parent_id, history_node->snapshot_id(), children, history_node->metadata(), history_node->status()
                 ));
             }
@@ -457,7 +460,7 @@ public:
         });
     }
 
-    SnpSharedPtr<SnapshotMetadata<ApiProfile<Profile>>> describe_master() const
+    SnpSharedPtr<SnapshotMetadata<ApiProfileT>> describe_master() const
     {
         return reactor::engine().run_at(cpu_, [&]{
             std::vector<SnapshotID> children;
@@ -469,7 +472,7 @@ public:
 
             auto parent_id = master_->parent() ? master_->parent()->snapshot_id() : SnapshotID{};
 
-            return snp_make_shared<SnapshotMetadata<ApiProfile<Profile>>>(
+            return snp_make_shared<SnapshotMetadata<ApiProfileT>>(
                 parent_id, master_->snapshot_id(), children, master_->metadata(), master_->status()
             );
         });
@@ -609,7 +612,7 @@ public:
     }
 
 
-    static Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> load(const char* file, int32_t cpu) noexcept
+    static Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> load(const char* file, int32_t cpu) noexcept
     {
         auto rr = reactor::engine().run_at(cpu, [&]{
             auto fileh = FileInputStreamHandler::create(U8String(file).data());
@@ -617,7 +620,7 @@ public:
         });
 
         if (rr.is_ok()) {
-            return Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>>::of(std::move(rr).get());
+            return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(std::move(rr).get());
         }
         else
         {
@@ -625,14 +628,14 @@ public:
         }
     }
     
-    static Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> load(const char* file) noexcept
+    static Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> load(const char* file) noexcept
     {
         return load(file, reactor::engine().cpu());
     }
     
-    static Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> create(int32_t cpu) noexcept
+    static Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> create(int32_t cpu) noexcept
     {
-        using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>>;
+        using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>;
         return reactor::engine().run_at(cpu, [cpu]() noexcept -> ResultT {
             MEMORIA_TRY(alloc, Base::create());
             static_cast<FibersMemoryStoreImpl*>(alloc.get())->cpu_ = cpu;
@@ -640,7 +643,7 @@ public:
         });
     }
     
-    static Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> create() noexcept
+    static Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> create() noexcept
     {
         return create(reactor::engine().cpu());
     }
@@ -648,13 +651,13 @@ public:
 
 
 
-    Result<SharedPtr<AllocatorMemoryStat<ApiProfile<Profile>>>> memory_stat() noexcept
+    Result<SharedPtr<AllocatorMemoryStat<ApiProfileT>>> memory_stat() noexcept
     {
-        using ResultT = Result<SharedPtr<AllocatorMemoryStat<ApiProfile<Profile>>>>;
+        using ResultT = Result<SharedPtr<AllocatorMemoryStat<ApiProfileT>>>;
         return reactor::engine().run_at(cpu_, [&]() noexcept -> ResultT {
             _::BlockSet visited_blocks;
 
-            SharedPtr<AllocatorMemoryStat<ApiProfile<Profile>>> alloc_stat = MakeShared<AllocatorMemoryStat<ApiProfile<Profile>>>(0);
+            SharedPtr<AllocatorMemoryStat<ApiProfileT>> alloc_stat = MakeShared<AllocatorMemoryStat<ApiProfileT>>(0);
 
             auto history_visitor = [&](HistoryNode* node) noexcept -> VoidResult {
                 return wrap_throwing([&]() -> VoidResult {

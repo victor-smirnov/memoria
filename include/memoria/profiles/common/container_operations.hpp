@@ -161,6 +161,8 @@ template <typename Profile> struct IAllocator;
 template <typename Profile>
 struct ContainerOperationsBase {
 
+    using ApiProfileT = ApiProfile<Profile>;
+
     using BlockType = ProfileBlockType<Profile>;
     using BlockID   = ProfileBlockID<Profile>;
     using CtrID     = ProfileCtrID<Profile>;
@@ -203,12 +205,12 @@ struct ContainerOperationsBase {
         BlockCallbackFn consumer
     ) const noexcept = 0;
     
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> new_ctr_instance(
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> new_ctr_instance(
         const ProfileBlockG<Profile>& root_block,
         AllocatorBasePtr allocator
     ) const noexcept = 0;
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> new_ctr_instance(
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> new_ctr_instance(
         const ProfileBlockG<Profile>& root_block,
         Allocator* allocator
     ) const noexcept = 0;
@@ -220,7 +222,7 @@ struct ContainerOperationsBase {
         AllocatorBasePtr allocator
     ) const noexcept = 0;
 
-    virtual Result<CtrBlockDescription<ApiProfile<Profile>>> describe_block1(
+    virtual Result<CtrBlockDescription<ApiProfileT>> describe_block1(
         const BlockID& block_id,
         AllocatorBasePtr allocator
     ) const noexcept = 0;

@@ -32,7 +32,7 @@ int main(void) {
     try {
         const char* file = "file.mma2";
 
-        //filesystem::remove(file);
+        filesystem::remove(file);
         auto store1 = create_mapped_swmr_store(file, 1024).get_or_throw();
 
         UUID ctr_id = UUID::make_random();

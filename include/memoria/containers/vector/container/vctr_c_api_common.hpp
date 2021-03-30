@@ -43,6 +43,7 @@ public:
     using typename Base::CtrSizeT;
     using typename Base::IteratorPtr;
     using typename Base::Profile;
+    using typename Base::ApiProfileT;
 
 protected:
     using Value = typename Types::Value;
@@ -74,7 +75,7 @@ public:
         MEMORIA_TRY(ii, self.ctr_seek(start));
 
         CtrSizeT cnt{};
-        VectorScanner<CtrApiTypes, ApiProfile<Profile>> scanner(ii);
+        VectorScanner<CtrApiTypes, ApiProfileT> scanner(ii);
 
         size_t local_cnt;
         while (cnt < length && !scanner.is_end())
@@ -139,10 +140,10 @@ public:
         return ResultT::of(sizes[0]);
     }
 
-    Result<CtrSharedPtr<VectorIterator<ValueDataType, ApiProfile<Profile>>>> seek(CtrSizeT pos) const noexcept
+    Result<CtrSharedPtr<VectorIterator<ValueDataType, ApiProfileT>>> seek(CtrSizeT pos) const noexcept
     {
         typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
-        return memoria_static_pointer_cast<VectorIterator<ValueDataType, ApiProfile<Profile>>>(self().ctr_find(walker));
+        return memoria_static_pointer_cast<VectorIterator<ValueDataType, ApiProfileT>>(self().ctr_find(walker));
     }
 
 

@@ -30,6 +30,8 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
+    using typename Base::ApiProfileT;
+
     using typename Base::NodeBaseG;
     using typename Base::TreePathT;
     using typename Base::SnapshotID;
@@ -287,7 +289,7 @@ public:
         return VoidResult::of();
     }
 
-    virtual VoidResult internal_unref_cascade(const ApiProfileBlockID<ApiProfile<Profile>>& root_block_id_api) noexcept
+    virtual VoidResult internal_unref_cascade(const ApiProfileBlockID<ApiProfileT>& root_block_id_api) noexcept
     {
         BlockID root_block_id;
         block_id_holder_to(root_block_id_api, root_block_id);

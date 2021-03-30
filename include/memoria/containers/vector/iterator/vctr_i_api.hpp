@@ -48,12 +48,14 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(mvector::ItrApiName)
     typedef typename Container::Position                                        Position;
 
     using Profile  = typename Types::Profile;
+    using ApiProfileT = ApiProfile<Profile>;
 
     using CtrSizeT = ProfileCtrSizeT<Profile>;
 
-    using CtrApi = ICtrApi<typename Types::ContainerTypeName, ApiProfile<Profile>>;
 
-    using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, ApiProfile<Profile>>;
+    using CtrApi = ICtrApi<typename Types::ContainerTypeName, ApiProfileT>;
+
+    using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, ApiProfileT>;
 
     using IOVSchema = Linearize<typename CtrApiTypes::IOVSchema>;
 
@@ -74,7 +76,7 @@ public:
         auto buffer = ctr_make_shared<BufferT>();
 
         CtrSizeT cnt{};
-        VectorScanner<CtrApiTypes, ApiProfile<Profile>> scanner(self.shared_from_this());
+        VectorScanner<CtrApiTypes, ApiProfileT> scanner(self.shared_from_this());
 
         size_t local_cnt;
         while (cnt < size && !scanner.is_end())

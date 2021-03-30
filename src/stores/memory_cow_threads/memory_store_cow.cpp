@@ -19,7 +19,8 @@
 namespace memoria {
 
 using Profile = MemoryCoWProfile<>;
-template class IMemoryStore<ApiProfile<Profile>>;
+using ApiProfileT = ApiProfile<Profile>;
+template class IMemoryStore<ApiProfileT>;
 
 
 std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept {
@@ -30,24 +31,24 @@ std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block
 
 
 template <>
-Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> IMemoryStore<ApiProfile<Profile>>::load(InputStreamHandler* input_stream) noexcept
+Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> IMemoryStore<ApiProfileT>::load(InputStreamHandler* input_stream) noexcept
 {
     auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(input_stream);
     if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>>::of(rr.get());
+        return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
     }
 
     return std::move(rr).transfer_error();
 }
 
 template <>
-Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> IMemoryStore<ApiProfile<Profile>>::load(U8String input_file) noexcept
+Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> IMemoryStore<ApiProfileT>::load(U8String input_file) noexcept
 {
     auto fileh = FileInputStreamHandler::create(input_file.data());
     auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(fileh.get());
 
     if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>>::of(rr.get());
+        return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
     }
 
     return std::move(rr).transfer_error();
@@ -55,9 +56,9 @@ Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> IMemoryStore<ApiProfil
 
 
 template <>
-Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> IMemoryStore<ApiProfile<Profile>>::create() noexcept
+Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> IMemoryStore<ApiProfileT>::create() noexcept
 {
-    using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>>;
+    using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>;
     MaybeError maybe_error;
 
     auto snp = MakeShared<store::memory_cow::ThreadsMemoryStoreImpl<Profile>>(maybe_error);

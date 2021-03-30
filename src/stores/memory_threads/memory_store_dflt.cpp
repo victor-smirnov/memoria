@@ -20,8 +20,9 @@
 namespace memoria {
 
 using Profile = DefaultProfile<>;
+using ApiProfileT = ApiProfile<Profile>;
 
-template class IMemoryStore<ApiProfile<Profile>>;
+template class IMemoryStore<ApiProfileT>;
 
 namespace store {
 namespace memory {

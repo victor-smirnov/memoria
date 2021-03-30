@@ -147,6 +147,7 @@ namespace memory {
 
 template <typename Profile, typename MyType>
 class MemoryStoreBase: public IMemoryStore<ApiProfile<Profile>>, public EnableSharedFromThis<MyType> {
+    using ApiProfileT = ApiProfile<Profile>;
 public:
     using BlockType = ProfileBlockType<Profile>;
 
@@ -568,9 +569,9 @@ public:
     }
 
 
-    static Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>> create() noexcept
+    static Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> create() noexcept
     {
-        using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfile<Profile>>>>;
+        using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>;
 
         MaybeError maybe_error;
         auto store = alloc_make_shared<MyType>(maybe_error);

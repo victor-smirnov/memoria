@@ -215,26 +215,28 @@ protected:
     using typename Base::SnapshotID;
     using typename Base::CtrID;
 
-    using BlockCounterCallbackFn = std::function<BoolResult(const ApiProfileBlockID<ApiProfile<Profile>>&)>;
+    using ApiProfileT = ApiProfile<Profile>;
 
-    using CommitID = typename ISWMRStoreCommitBase<ApiProfile<Profile>>::CommitID;
+    using BlockCounterCallbackFn = std::function<BoolResult(const ApiProfileBlockID<ApiProfileT>&)>;
+
+    using CommitID = typename ISWMRStoreCommitBase<ApiProfileT>::CommitID;
 
     using Store                     = MappedSWMRStore<Profile>;
     using CommitDescriptorT         = CommitDescriptor<Profile>;
-    using CtrReferenceableResult    = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>>;
+    using CtrReferenceableResult    = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
     using AllocatorT                = Base;
     using Superblock                = SWMRSuperblock<Profile>;
 
-    using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<ApiProfile<Profile>>*>;
+    using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<ApiProfileT>*>;
 
     using DirectoryCtrType  = Map<CtrID, BlockID>;
-    using DirectoryCtr      = ICtrApi<DirectoryCtrType, ApiProfile<Profile>>;
+    using DirectoryCtr      = ICtrApi<DirectoryCtrType, ApiProfileT>;
 
     using AllocationMapCtrType = AllocationMap;
-    using AllocationMapCtr  = ICtrApi<AllocationMapCtrType, ApiProfile<Profile>>;
+    using AllocationMapCtr  = ICtrApi<AllocationMapCtrType, ApiProfileT>;
 
     using HistoryCtrType    = Map<BigInt, BigInt>;
-    using HistoryCtr        = ICtrApi<HistoryCtrType, ApiProfile<Profile>>;
+    using HistoryCtr        = ICtrApi<HistoryCtrType, ApiProfileT>;
 
     static constexpr int32_t BASIC_BLOCK_SIZE = Store::BASIC_BLOCK_SIZE;
 
@@ -390,7 +392,7 @@ public:
         return false;
     }
 
-    virtual VoidResult registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfile<Profile>>* instance) noexcept
+    virtual VoidResult registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) noexcept
     {
         auto ii = instance_map_.find(ctr_id);
         if (ii == instance_map_.end())
@@ -404,7 +406,7 @@ public:
         return VoidResult::of();
     }
 
-    virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfile<Profile>>*) noexcept
+    virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>*) noexcept
     {
         instance_map_.erase(ctr_id);
         return VoidResult::of();
@@ -415,9 +417,9 @@ public:
     }
 
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> find(const CtrID& ctr_id) noexcept
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> find(const CtrID& ctr_id) noexcept
     {
-        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>>;
+        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
 
         MEMORIA_TRY(root_id, getRootID(ctr_id));
         if (root_id.is_set())
@@ -453,12 +455,12 @@ public:
         }
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> from_root_id(
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> from_root_id(
             const BlockID& root_block_id,
             const CtrID& name
     ) noexcept
     {
-        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>>;
+        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
 
         if (root_block_id.is_set())
         {
@@ -642,8 +644,8 @@ public:
         }
     }
 
-    virtual Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>> snapshot_ref_opening_allowed() noexcept {
-        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>>;
+    virtual Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>> snapshot_ref_opening_allowed() noexcept {
+        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>>;
         return ResultT::of();
     }
 
@@ -701,7 +703,7 @@ public:
 
     virtual VoidResult build_block_refcounters(SWMRBlockCounters<Profile>& counters) noexcept
     {
-        auto counters_fn = [&](const ApiProfileBlockID<ApiProfile<Profile>>& block_id_holder) -> BoolResult {
+        auto counters_fn = [&](const ApiProfileBlockID<ApiProfileT>& block_id_holder) -> BoolResult {
             return wrap_throwing([&](){
                 BlockID block_id;
                 block_id_holder_to(block_id_holder, block_id);
@@ -749,7 +751,7 @@ protected:
     }
 
     VoidResult traverse_block_tree(
-            CtrBlockPtr<ApiProfile<Profile>> block,
+            CtrBlockPtr<ApiProfileT> block,
             const BlockCounterCallbackFn& callback) noexcept
     {
         MEMORIA_TRY(traverse, callback(block->block_id()));
@@ -764,14 +766,14 @@ protected:
     }
 
     template<typename CtrName>
-    Result<CtrSharedPtr<ICtrApi<CtrName, ApiProfile<Profile>>>> internal_find_by_root_typed(const BlockID& root_block_id) noexcept
+    Result<CtrSharedPtr<ICtrApi<CtrName, ApiProfileT>>> internal_find_by_root_typed(const BlockID& root_block_id) noexcept
     {
         auto ref = from_root_id(root_block_id, CtrID{});
-        return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfile<Profile>>>(std::move(ref));
+        return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfileT>>(std::move(ref));
     }
 
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> internal_create_by_name(
+    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> internal_create_by_name(
             const LDTypeDeclarationView& decl, const CtrID& ctr_id
     ) noexcept
     {
@@ -780,9 +782,9 @@ protected:
     }
 
     template<typename CtrName>
-    Result<CtrSharedPtr<ICtrApi<CtrName, ApiProfile<Profile>>>> internal_create_by_name_typed(const CtrID& ctr_id) noexcept
+    Result<CtrSharedPtr<ICtrApi<CtrName, ApiProfileT>>> internal_create_by_name_typed(const CtrID& ctr_id) noexcept
     {
-        using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, ApiProfile<Profile>>>>;
+        using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, ApiProfileT>>>;
         return wrap_throwing([&]() -> ResultT {
             U8String signature = make_datatype_signature(CtrName{}).name();
 
@@ -792,7 +794,7 @@ protected:
             MEMORIA_TRY(ctr_ref, internal_create_by_name(decl, ctr_id));
             (void)ctr_ref;
 
-            return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfile<Profile>>>(std::move(ctr_ref_result));
+            return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfileT>>(std::move(ctr_ref_result));
         });
     }
 

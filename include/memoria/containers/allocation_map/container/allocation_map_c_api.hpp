@@ -42,6 +42,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     using typename Base::BranchNodeExtData;
     using typename Base::LeafNodeExtData;
     using typename Base::Profile;
+    using typename Base::ApiProfileT;
     using typename Base::CtrSizeT;
     using typename Base::NodeBaseG;
     using typename Base::TreePathT;
@@ -51,7 +52,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     using CtrSizeTResult = Result<CtrSizeT>;
 
-    using ApiIteratorResult = Result<CtrSharedPtr<AllocationMapIterator<ApiProfile<Profile>>>>;
+    using ApiIteratorResult = Result<CtrSharedPtr<AllocationMapIterator<ApiProfileT>>>;
 
     void configure_types(
         const ContainerTypeName& type_name,
@@ -69,13 +70,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     ApiIteratorResult iterator() noexcept
     {
         auto iter = self().ctr_begin();
-        return memoria_static_pointer_cast<AllocationMapIterator<ApiProfile<Profile>>>(std::move(iter));
+        return memoria_static_pointer_cast<AllocationMapIterator<ApiProfileT>>(std::move(iter));
     }
 
 
     virtual ApiIteratorResult seek(CtrSizeT position) noexcept {
         auto iter = self().ctr_seek(position);
-        return memoria_static_pointer_cast<AllocationMapIterator<ApiProfile<Profile>>>(std::move(iter));
+        return memoria_static_pointer_cast<AllocationMapIterator<ApiProfileT>>(std::move(iter));
     }
 
 
@@ -155,7 +156,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         CtrSizeT from,
         int32_t level,
         CtrSizeT required,
-        ArenaBuffer<AllocationMetadata<ApiProfile<Profile>>>& buffer
+        ArenaBuffer<AllocationMetadata<ApiProfileT>>& buffer
     ) noexcept
     {
         auto& self = this->self();
@@ -170,7 +171,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             MEMORIA_TRY(available, ii.get()->count_fw());
             sum += available;
 
-            buffer.append_value(AllocationMetadata<ApiProfile<Profile>>{level0_pos, available, level});
+            buffer.append_value(AllocationMetadata<ApiProfileT>{level0_pos, available, level});
 
             if (sum < required)
             {
@@ -275,7 +276,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     }
 
 
-    virtual Result<CtrSizeT> setup_bits(Span<const AllocationMetadata<ApiProfile<Profile>>> allocations, bool set_bits) noexcept
+    virtual Result<CtrSizeT> setup_bits(Span<const AllocationMetadata<ApiProfileT>> allocations, bool set_bits) noexcept
     {
         using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
@@ -336,7 +337,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     }
 
 
-    virtual Result<CtrSizeT> touch_bits(Span<const AllocationMetadata<ApiProfile<Profile>>> allocations) noexcept
+    virtual Result<CtrSizeT> touch_bits(Span<const AllocationMetadata<ApiProfileT>> allocations) noexcept
     {
         using ResultT = Result<CtrSizeT>;
         auto& self = this->self();

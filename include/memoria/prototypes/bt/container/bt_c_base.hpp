@@ -49,7 +49,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using typename Base::CtrID;
     using typename Base::ContainerTypeName;
 
+
     using Profile  = typename Types::Profile;
+    using ApiProfileT = ApiProfile<Profile>;
     using SnapshotID = ProfileSnapshotID<Profile>;
 
 
@@ -736,7 +738,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
 
-    static Result<CtrBlockDescription<ApiProfile<Profile>>> describe_block(const BlockID& node_id, Allocator* alloc) noexcept
+    static Result<CtrBlockDescription<ApiProfileT>> describe_block(const BlockID& node_id, Allocator* alloc) noexcept
     {
         MEMORIA_TRY(tmp, alloc->getBlock(node_id));
         NodeBaseG node = tmp;
@@ -746,7 +748,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         bool root = node->is_root();
 
         uint64_t offset{};
-        return CtrBlockDescription<ApiProfile<Profile>>(size, CtrID{}, root, leaf, offset);
+        return CtrBlockDescription<ApiProfileT>(size, CtrID{}, root, leaf, offset);
     }
 
 //    void configure_types(

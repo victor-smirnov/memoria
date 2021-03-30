@@ -19,7 +19,9 @@
 namespace memoria {
 
 using Profile = MemoryCoWProfile<>;
-template struct ISWMRStore<ApiProfile<Profile>>;
+using ApiProfileT = ApiProfile<Profile>;
+
+template struct ISWMRStore<ApiProfileT>;
 template class MappedSWMRStore<Profile>;
 template class MappedSWMRStoreWritableCommit<Profile>;
 template class MappedSWMRStoreReadOnlyCommit<Profile>;
@@ -48,9 +50,9 @@ void InitSWMRMappedStore() {
 
 
 
-Result<SharedPtr<ISWMRStore<ApiProfile<Profile>>>> open_mapped_swmr_store(U8StringView path)
+Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_mapped_swmr_store(U8StringView path)
 {
-    using ResultT = Result<SharedPtr<ISWMRStore<ApiProfile<Profile>>>>;
+    using ResultT = Result<SharedPtr<ISWMRStore<ApiProfileT>>>;
 
     MaybeError maybe_error;
     auto ptr = MakeShared<MappedSWMRStore<Profile>>(maybe_error, path);
@@ -64,9 +66,9 @@ Result<SharedPtr<ISWMRStore<ApiProfile<Profile>>>> open_mapped_swmr_store(U8Stri
     return ResultT::of(ptr);
 }
 
-Result<SharedPtr<ISWMRStore<ApiProfile<Profile>>>> create_mapped_swmr_store(U8StringView path, uint64_t store_size_mb)
+Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_mapped_swmr_store(U8StringView path, uint64_t store_size_mb)
 {
-    using ResultT = Result<SharedPtr<ISWMRStore<ApiProfile<Profile>>>>;
+    using ResultT = Result<SharedPtr<ISWMRStore<ApiProfileT>>>;
 
     MaybeError maybe_error;
     auto ptr = MakeShared<MappedSWMRStore<Profile>>(maybe_error, path, store_size_mb);

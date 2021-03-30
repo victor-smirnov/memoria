@@ -69,6 +69,7 @@ protected:
     using typename Base::CtrID;
     using typename Base::BlockType;
     using typename Base::SnapshotID;
+    using typename Base::ApiProfileT;
     
     using Base::history_node_;
     using Base::history_tree_;
@@ -80,7 +81,7 @@ protected:
     friend class ThreadsMemoryStoreImpl;
 
     Result<SnapshotApiPtr> upcast(Result<SnapshotPtr>&& ptr) {
-        return memoria_static_pointer_cast<IMemorySnapshot<ApiProfile<Profile>>>(std::move(ptr));
+        return memoria_static_pointer_cast<IMemorySnapshot<ApiProfileT>>(std::move(ptr));
     }
 
 public:
@@ -134,7 +135,7 @@ public:
     	}
     }
 
-    SnapshotMetadata<ApiProfile<Profile>> describe() const
+    SnapshotMetadata<ApiProfileT> describe() const
     {
     	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
 
@@ -150,7 +151,7 @@ public:
 
         auto parent_id = history_node_->parent() ? history_node_->parent()->snapshot_id() : SnapshotID{};
 
-        return SnapshotMetadata<ApiProfile<Profile>>(parent_id, history_node_->snapshot_id(), children, history_node_->metadata(), history_node_->status());
+        return SnapshotMetadata<ApiProfileT>(parent_id, history_node_->snapshot_id(), children, history_node_->metadata(), history_node_->status());
     }
 
     VoidResult commit(bool flush = true) noexcept
@@ -310,27 +311,27 @@ public:
         }
     }
 
-    Result<SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>>> memory_stat() noexcept
+    Result<SharedPtr<SnapshotMemoryStat<ApiProfileT>>> memory_stat() noexcept
     {
-        using ResultT = Result<SharedPtr<SnapshotMemoryStat<ApiProfile<Profile>>>>;
+        using ResultT = Result<SharedPtr<SnapshotMemoryStat<ApiProfileT>>>;
         std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
         return ResultT::of(this->do_compute_memory_stat());
     }
 
 
-    Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>> snapshot_ref_creation_allowed() noexcept
+    Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>> snapshot_ref_creation_allowed() noexcept
     {
-        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>>;
+        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>>;
         MEMORIA_TRY_VOID(this->checkIfConainersCreationAllowed());
-        return ResultT::of(memoria_static_pointer_cast<AllocatorApiBase<ApiProfile<Profile>>>(this->shared_from_this()));
+        return ResultT::of(memoria_static_pointer_cast<AllocatorApiBase<ApiProfileT>>(this->shared_from_this()));
     }
 
 
-    Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>> snapshot_ref_opening_allowed() noexcept
+    Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>> snapshot_ref_opening_allowed() noexcept
     {
-        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfile<Profile>>>>;
+        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>>;
         MEMORIA_TRY_VOID(this->checkIfConainersOpeneingAllowed());
-        return ResultT::of(memoria_static_pointer_cast<AllocatorApiBase<ApiProfile<Profile>>>(this->shared_from_this()));
+        return ResultT::of(memoria_static_pointer_cast<AllocatorApiBase<ApiProfileT>>(this->shared_from_this()));
     }
 };
 

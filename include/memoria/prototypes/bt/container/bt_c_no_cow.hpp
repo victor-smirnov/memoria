@@ -34,6 +34,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
     using typename Base::TreePathT;
     using typename Base::BlockID;
     using typename Base::Profile;
+    using typename Base::ApiProfileT;
 
     VoidResult ctr_cow_clone_path(TreePathT& path, size_t level) const noexcept {
         return VoidResult::of();
@@ -109,7 +110,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
         return self.store().removeBlock(node->id());
     }
 
-    virtual VoidResult internal_unref_cascade(const ApiProfileBlockID<ApiProfile<Profile>>& root) noexcept {
+    virtual VoidResult internal_unref_cascade(const ApiProfileBlockID<ApiProfileT>& root) noexcept {
         return MEMORIA_MAKE_GENERIC_ERROR("unref_cascade(BlockID) should not be called fo this profile");
     }
 
