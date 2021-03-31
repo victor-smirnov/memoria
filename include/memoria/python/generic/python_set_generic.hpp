@@ -20,7 +20,7 @@
 
 #include <memoria/core/datatypes/datatypes.hpp>
 
-#include "python_commons.hpp"
+#include <memoria/python/python_commons.hpp>
 
 namespace memoria {
 

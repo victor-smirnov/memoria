@@ -17,7 +17,7 @@
 
 #include <memoria/api/common/ctr_api_btss.hpp>
 
-#include "python_commons.hpp"
+#include <memoria/python/python_commons.hpp>
 
 namespace memoria {
 

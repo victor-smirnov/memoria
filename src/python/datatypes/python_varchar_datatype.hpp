@@ -15,9 +15,7 @@
 
 #pragma once
 
-
-
-#include "python_datatype_commons.hpp"
+#include <memoria/python/datatypes/python_datatype_commons.hpp>
 
 namespace memoria {
 

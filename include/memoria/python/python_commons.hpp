@@ -67,4 +67,20 @@ std::string get_datatype_script_name(std::string prefix)
     return prefix + get_script_name(buf.str());
 }
 
+template <typename T1, typename T2>
+static inline void define_pair(pybind11::module_& m, const char* type_name) {
+    namespace py = pybind11;
+    using Type = std::pair<T1, T2>;
+
+    py::class_<Type>(m, type_name)
+            .def(py::init())
+            .def(py::init<T1, T2>())
+            .def("first", [](const Type& pair){
+                return pair.first;
+            })
+            .def("second", [](const Type& pair){
+                return pair.second;
+            });
+}
+
 }

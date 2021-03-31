@@ -17,10 +17,10 @@
 
 #include <memoria/core/container/ctr_referenceable.hpp>
 
-#include "python_store_snapshot_generic.hpp"
-#include "python_ctr_referenceable_generic.hpp"
-#include "python_btss_iterator_generic.hpp"
-#include "python_set_generic.hpp"
+#include <memoria/python/generic/python_store_snapshot_generic.hpp>
+#include <memoria/python/generic/python_ctr_referenceable_generic.hpp>
+#include <memoria/python/generic/python_btss_iterator_generic.hpp>
+#include <memoria/python/generic/python_set_generic.hpp>
 
 namespace memoria {
 

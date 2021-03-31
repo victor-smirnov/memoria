@@ -14,16 +14,14 @@
 // limitations under the License.
 
 #include <memoria/memoria.hpp>
-
-#include <memoria/api/store/swmr_store_api.hpp>
+#include <memoria/python/python_result_t.hpp>
+#include <memoria/python/generic/python_store_api_swmr.hpp>
 
 #include <memoria/profiles/core_api/core_api_profile.hpp>
 
 #include "python_global_bindings.hpp"
 #include "python_cow_profile_global_bindings.hpp"
 
-#include "python_result_t.hpp"
-#include "python_store_api_swmr.hpp"
 
 namespace py = pybind11;
 using namespace memoria;

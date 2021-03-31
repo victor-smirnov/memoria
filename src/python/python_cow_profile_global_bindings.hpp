@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "python_profile_generic.hpp"
+#include <memoria/python/generic/python_profile_generic.hpp>
 
 namespace memoria {
 

@@ -18,7 +18,8 @@
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/strings/string.hpp>
 
-#include "python_commons.hpp"
+#include <memoria/python/python_commons.hpp>
+#include <memoria/python/python_datum_bindings.hpp>
 #include "python_datum_bindings.hpp"
 
 namespace memoria {
@@ -62,21 +63,7 @@ static inline void define_LifetimeGuard(pybind11::module_& m, U8String type_name
             ;
 }
 
-template <typename T1, typename T2>
-static inline void define_pair(pybind11::module_& m, const char* type_name) {
-    namespace py = pybind11;
-    using Type = std::pair<T1, T2>;
 
-    py::class_<Type>(m, type_name)
-            .def(py::init())
-            .def(py::init<T1, T2>())
-            .def("first", [](const Type& pair){
-                return pair.first;
-            })
-            .def("second", [](const Type& pair){
-                return pair.second;
-            });
-}
 
 template <>
 struct PythonAPIBinder<GlobalBindings> {
@@ -85,7 +72,7 @@ struct PythonAPIBinder<GlobalBindings> {
         define_UUID(m);
         define_pair<UUID, UUID>(m, "UUIDPair");
         define_pair<U8String, U8String>(m, "StringPair");
-        define_pair<U8String, UUID>(m, "StringUUIDPair") ;
+        define_pair<U8String, UUID>(m, "StringUUIDPair");
 
         define_LifetimeGuard(m, "LifetimeGuard");
 

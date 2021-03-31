@@ -14,8 +14,7 @@
 // limitations under the License.
 
 #include <memoria/api/store/swmr_store_api.hpp>
-
-#include "python_store_snapshot_generic.hpp"
+#include <memoria/python/generic/python_store_snapshot_generic.hpp>
 
 namespace memoria {
 

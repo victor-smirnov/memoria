@@ -19,7 +19,7 @@
 
 #include <memoria/api/store/store_api_common.hpp>
 
-#include "python_commons.hpp"
+#include <memoria/python/python_commons.hpp>
 
 namespace memoria {
 
@@ -29,13 +29,13 @@ class StoreSnapshotOps {};
 template <typename Profile>
 struct PythonAPIBinder<StoreSnapshotOps<Profile>> {
 
-    using SnpCtrOpsType = IStoreSnapshotCtrOps<Profile>;
-    using WritableSnpCtrOpsType = IStoreWritableSnapshotCtrOps<Profile>;
-    using CtrReferenceableType = CtrReferenceable<Profile>;
+    using SnpCtrOpsType             = IStoreSnapshotCtrOps<Profile>;
+    using WritableSnpCtrOpsType     = IStoreWritableSnapshotCtrOps<Profile>;
+    using CtrReferenceableType      = CtrReferenceable<Profile>;
 
     using CtrID = ApiProfileCtrID<Profile>;
 
-    using CommitID = int64_t;
+    using CommitID   = int64_t;
     using SequenceID = uint64_t;
 
     static void make_bindings(pybind11::module_& m) {

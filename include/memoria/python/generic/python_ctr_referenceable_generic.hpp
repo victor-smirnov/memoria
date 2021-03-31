@@ -17,7 +17,7 @@
 
 #include <memoria/core/container/ctr_referenceable.hpp>
 
-#include "python_commons.hpp"
+#include <memoria/python/python_commons.hpp>
 
 namespace pybind11 {
 template<typename Profile>
