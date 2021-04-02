@@ -46,13 +46,9 @@
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
-
-
 #include <vector>
 #include <memory>
 #include <mutex>
-
-
 
 namespace memoria {
 namespace store {
@@ -129,6 +125,8 @@ protected:
 
     bool snapshot_removal_{false};
 
+    mutable ObjectPools object_pools_;
+
 public:
 
     SnapshotBase(MaybeError& maybe_error, HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
@@ -189,8 +187,10 @@ public:
     }
 
 
-    virtual ~SnapshotBase() noexcept
-    {
+    virtual ~SnapshotBase() noexcept {}
+
+    virtual ObjectPools& object_pools() const noexcept {
+        return object_pools_;
     }
 
     virtual SnpSharedPtr<ProfileAllocatorType<Profile>> self_ptr() noexcept {

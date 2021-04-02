@@ -22,14 +22,30 @@
 #include <memoria/filesystem/operations.hpp>
 #include <memoria/memoria.hpp>
 
+#include <memoria/core/tools/object_pool.hpp>
+
 #include <iostream>
 
 using namespace memoria;
 
 using CtrType = Set<Varchar>;
 
+struct AAA {
+    AAA(std::string st) noexcept {
+        std::cout << "AAA :: " << st << std::endl;
+    }
+
+    ~AAA() noexcept {
+        std::cout << "Destroy AAA" << std::endl;
+    }
+};
+
+
 int main(void) {
     try {
+
+        TL_pool_allocate_shared<AAA>("hello world");
+
         const char* file = "file.mma2";
 
         filesystem::remove(file);

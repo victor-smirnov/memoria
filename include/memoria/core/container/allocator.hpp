@@ -27,6 +27,7 @@
 #include <memoria/profiles/common/container_operations.hpp>
 
 #include <memoria/core/tools/result.hpp>
+#include <memoria/core/tools/object_pool.hpp>
 
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
@@ -116,6 +117,8 @@ struct IAllocator: IAllocatorBase<Profile> {
     virtual Result<BlockG> updateBlock(Shared* block) noexcept = 0;
     virtual VoidResult resizeBlock(Shared* block, int32_t new_size) noexcept = 0;
     virtual VoidResult releaseBlock(Shared* block) noexcept = 0;
+
+    virtual ObjectPools& object_pools() const noexcept = 0;
 };
 
 

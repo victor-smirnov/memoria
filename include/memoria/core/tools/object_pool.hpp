@@ -24,6 +24,8 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
 
+#include <boost/pool/object_pool.hpp>
+
 #include <iostream>
 #include <type_traits>
 #include <cstddef>
@@ -47,7 +49,7 @@
 namespace memoria {
 
 struct PoolBase {
-    virtual ~PoolBase() noexcept {}
+    virtual ~PoolBase() noexcept = default;
 };
 
 
@@ -74,19 +76,140 @@ public:
     {
         return Base::operator==(other);
     }
+};
 
-    auto convert_to_ptr() {
-        return new PoolUniquePtr(std::move(*this));
+
+template <typename T> struct SharedObjectPoolBase;
+
+namespace detail {
+
+template <typename T>
+class ObjectPoolShared {
+    int counter_;
+public:
+    SharedObjectPoolBase<T>* pool;
+    T object;
+
+    template <typename... Args>
+    ObjectPoolShared(SharedObjectPoolBase<T>* pool, Args&&... args):
+        counter_(1),
+        pool(pool),
+        object(std::forward<Args>(args)...)
+    {}
+
+    void ref() noexcept {
+        counter_++;
+    }
+
+    bool unref() noexcept {
+        return --counter_ == 0;
+    }
+};
+
+}
+
+
+template <typename T> class PoolSharedPtr;
+
+
+template <typename T>
+struct SharedObjectPoolBase: PoolBase {
+
+    template <typename> friend class PoolSharedPtr;
+
+protected:
+    virtual void release(detail::ObjectPoolShared<T>* shared) noexcept = 0;
+};
+
+
+template <typename T>
+class PoolSharedPtr {
+    T* ptr_;
+    detail::ObjectPoolShared<T>* shared_;
+public:
+    PoolSharedPtr() noexcept :
+        ptr_(), shared_()
+    {}
+
+    PoolSharedPtr(detail::ObjectPoolShared<T>* shared) noexcept :
+        ptr_(&shared->object), shared_(shared)
+    {}
+
+    PoolSharedPtr(PoolSharedPtr&& other) noexcept :
+        ptr_(other.ptr_),
+        shared_(other.shared_)
+    {
+        other.shared_ = nullptr;
+    }
+
+    PoolSharedPtr(const PoolSharedPtr& other) noexcept :
+        ptr_(other.ptr_),
+        shared_(other.shared_) {
+        if (other.shared_) {
+            other.shared_->ref();
+        }
+    }
+
+    ~PoolSharedPtr() noexcept {
+        release();
+    }
+
+    T* operator->() const noexcept {
+        return ptr_;
+    }
+
+    T* get() const noexcept {
+        return ptr_;
+    }
+
+    void reset() noexcept {
+        release();
+    }
+
+    bool operator==(const PoolSharedPtr& other) const noexcept {
+        return shared_ == other.shared_;
+    }
+
+    PoolSharedPtr& operator=(const PoolSharedPtr& other) noexcept {
+        if (&other != this) {
+            release();
+
+            ptr_ = other.ptr_;
+            shared_ = other.shared_;
+
+            if (shared_) shared_->ref();
+        }
+        return *this;
+    }
+
+    PoolSharedPtr& operator=(PoolSharedPtr&& other) noexcept {
+        if (&other != this) {
+            release();
+
+            ptr_ = other.ptr_;
+            shared_ = other.shared_;
+
+            other.shared_ = nullptr;
+        }
+        return *this;
+    }
+
+private:
+    void release() noexcept {
+        if (shared_) {
+            if (shared_->unref()) {
+                shared_->pool->release(shared_);
+            }
+        }
     }
 };
 
 
 
-
 template <typename ObjectType>
-class ObjectPool: public PoolBase {
+class HeavyObjectPool: public PoolBase {
 
-    using MyType = ObjectPool<ObjectType>;
+    using MyType = HeavyObjectPool;
 
     using UniquePtr = PoolUniquePtr<ObjectType>;
     using SharedPtr = std::shared_ptr<ObjectType>;
@@ -102,11 +225,10 @@ class ObjectPool: public PoolBase {
 
     Descriptor* head_;
 
-
 public:
-    ObjectPool(): head_() {}
+    HeavyObjectPool(): head_() {}
 
-    virtual ~ObjectPool()
+    virtual ~HeavyObjectPool() noexcept
     {
         while (head_)
         {
@@ -156,6 +278,47 @@ private:
     }
 };
 
+
+
+
+template <typename T>
+class SharedObjectPool: public SharedObjectPoolBase<T> {
+    boost::object_pool<detail::ObjectPoolShared<T>> alloc_;
+public:
+
+    template <typename... Args>
+    PoolSharedPtr<T> allocate(Args&&... args) noexcept {
+        return alloc_.construct(this, std::forward<Args>(args)...);
+    }
+
+protected:
+    virtual void release(detail::ObjectPoolShared<T>* shared) noexcept {
+        alloc_.destroy(shared);
+    }
+};
+
+template <typename T>
+class UniqueObjectPool: public PoolBase {
+    boost::object_pool<T> alloc_;
+public:
+
+    template <typename... Args>
+    PoolUniquePtr<T> allocate(Args&&... args) noexcept {
+        auto ptr = alloc_.malloc();
+        return PoolUniquePtr<T> {
+            new (ptr) detail::ObjectPoolShared<T>(this, std::forward<Args>(args)...),
+            &UniqueObjectPool::release
+        };
+    }
+
+protected:
+    void release(void* shared) noexcept {
+        alloc_.destroy(shared);
+        alloc_.free(shared);
+    }
+};
+
+
 template <typename T>
 struct PoolT {};
 
@@ -163,9 +326,9 @@ class ObjectPools {
     using PoolMap = std::unordered_map<std::type_index, PoolBase*>;
     PoolMap pools_;
 public:
-    ObjectPools() {}
+    ObjectPools() noexcept {}
 
-    ~ObjectPools()
+    ~ObjectPools() noexcept
     {
         for (auto e: pools_)
         {
@@ -174,7 +337,7 @@ public:
     }
 
     template <typename PoolType>
-    PoolType& get_instance(const PoolT<PoolType>&)
+    PoolType& get_instance(const PoolT<PoolType>&) noexcept
     {
         auto i = pools_.find(typeid(PoolType));
         if (i != pools_.end())
@@ -188,5 +351,33 @@ public:
         }
     }
 };
+
+ObjectPools& thread_local_pools();
+
+template <typename T, typename... Args>
+PoolSharedPtr<T> pool_allocate_shared(ObjectPools& pools, Args&&... args) {
+    using PoolType = SharedObjectPool<T>;
+    auto& pool = pools.get_instance(PoolT<PoolType>{});
+    return pool.allocate(std::forward<Args>(args)...);
+}
+
+template <typename T, typename... Args>
+PoolUniquePtr<T> pool_allocate_unique(ObjectPools& pools, Args&&... args) {
+    using PoolType = UniqueObjectPool<T>;
+    auto& pool = pools.get_instance(PoolT<PoolType>{});
+    return pool.allocate(std::forward<Args>(args)...);
+}
+
+
+template <typename T, typename... Args>
+PoolSharedPtr<T> TL_pool_allocate_shared(Args&&... args) {
+    return pool_allocate_shared<T>(thread_local_pools(), std::forward<Args>(args)...);
+}
+
+template <typename T, typename... Args>
+PoolUniquePtr<T> TL_pool_allocate_unique(Args&&... args) {
+    return pool_allocate_unique<T>(thread_local_pools(), std::forward<Args>(args)...);
+}
+
 
 }

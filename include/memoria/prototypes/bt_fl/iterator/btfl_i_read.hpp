@@ -48,13 +48,13 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorReadName)
 
 #ifdef MMA_USE_IOBUFFER
     template <typename IOBuffer>
-    using ReadWalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanThroughStrategy>>;
+    using ReadWalkerPool = HeavyObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanThroughStrategy>>;
 
     template <typename IOBuffer>
-    using ScanWalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanRunGTStrategy>>;
+    using ScanWalkerPool = HeavyObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanRunGTStrategy>>;
 
     template <typename IOBuffer>
-    using ScanRunWalkerPool = ObjectPool<btfl::io::BTFLScanRunWalker<MyType, IOBuffer>>;
+    using ScanRunWalkerPool = HeavyObjectPool<btfl::io::BTFLScanRunWalker<MyType, IOBuffer>>;
 #endif
 
 public:

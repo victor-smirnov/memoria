@@ -256,6 +256,8 @@ protected:
 
     ReferenceCounterDelegate<Profile>* refcounter_delegate_;
 
+    mutable ObjectPools object_pools_;
+
     template <typename> friend class SWMRMappedStoreHistoryView;
 
 public:
@@ -276,6 +278,10 @@ public:
     static void init_profile_metadata() noexcept {
         DirectoryCtr::template init_profile_metadata<Profile>();
         AllocationMapCtr::template init_profile_metadata<Profile>();
+    }
+
+    virtual ObjectPools& object_pools() const noexcept {
+        return object_pools_;
     }
 
     virtual Result<BlockID> getRootID(const CtrID& ctr_id) noexcept

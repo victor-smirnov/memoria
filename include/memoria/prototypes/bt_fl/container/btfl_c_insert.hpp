@@ -41,7 +41,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
 
 #ifdef MMA_USE_IOBUFFER
     template <typename IOBuffer>
-    using CtrInputProviderPool = ObjectPool<btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer>>;
+    using CtrInputProviderPool = HeavyObjectPool<btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer>>;
 #endif
 
     VoidResult ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)

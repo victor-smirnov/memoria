@@ -28,25 +28,28 @@ static inline void define_UUID(pybind11::module_& m) {
     namespace py = pybind11;
     py::class_<UUID>(m, "UUID")
             .def(py::init())
-            .def(py::init<uint64_t, uint64_t>())
+            .def(py::init<uint64_t, uint64_t>(), py::arg("hi"), py::arg("lo"), "Create UUID using high and low unsigned 64 bit values of the UUID")
             .def("hi", [](const UUID& uuid){
                 return uuid.hi();
-            })
+            }, "Return high parth of the UUID as unsigned 64 bit value")
             .def("lo", [](const UUID& uuid){
                 return uuid.lo();
-            })
-            .def("is_null", &UUID::is_null)
-            .def("is_set", &UUID::is_set)
-            .def("clear", &UUID::clear)
+            }, "Return low parth of the UUID as unsigned 64 bit value")
+            .def("is_null", &UUID::is_null, "Check if both high and low parts are 0")
+            .def("is_set", &UUID::is_set, "Inverse of is_null()")
+            .def("clear", &UUID::clear, "Write 0 into both high and low parts")
             .def("equals", [](const UUID& uuid1, const UUID& uuid2){
                 return uuid1 == uuid2;
-            })
+            }, "Compare two UUIDs for data equiality")
             .def("__eq__", &UUID::operator==)
             .def("to_string", &UUID::to_u8)
             .def("__repr__", &UUID::to_u8)
-            .def_static("make_random", &UUID::make_random)
-            .def_static("make_time", &UUID::make_time)
-            .def_static("parse", &UUID::parse);
+            .def("__hash__", [](UUID& uuid){
+                return std::hash<UUID>{}(uuid);
+            })
+            .def_static("make_random", &UUID::make_random, "Create a random UUID")
+            .def_static("make_time", &UUID::make_time, "Currently create a random UUID, not a Time UUID!")
+            .def_static("parse", &UUID::parse, "Create UUID by parsing it's standard string representation");
 }
 
 
@@ -75,8 +78,6 @@ struct PythonAPIBinder<GlobalBindings> {
         define_pair<U8String, UUID>(m, "StringUUIDPair");
 
         define_LifetimeGuard(m, "LifetimeGuard");
-
-        PythonAPIBinder<DataTypes>::make_bindings(m);
     }
 };
 

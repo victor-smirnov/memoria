@@ -98,8 +98,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     static const int32_t CTR_PROPERTIES_IDX  = 3;
     static const int32_t CTR_REFERENCES_IDX  = 4;
 
-    ObjectPools pools_;
-
     mutable LeafNodeExtData leaf_node_ext_data_;
     mutable BranchNodeExtData branch_node_ext_data_;
 
@@ -109,8 +107,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     DefaultDispatcher default_dispatcher_{self()};
     TreeDispatcher tree_dispatcher_{self()};
 
-
-    ObjectPools& pools() {return pools_;}
+    ObjectPools& pools() const noexcept {return self().allocator().object_pools();}
 
     Result<NodeBaseG> createRootLeaf() const noexcept {
         return self().ctr_create_root_node(0, true, -1);

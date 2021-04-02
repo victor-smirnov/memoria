@@ -47,9 +47,38 @@ std::string memoria::get_script_name(const std::string& in) {
 PYBIND11_MODULE(memoria, m) {
     InitMemoriaExplicit();
 
+    m.doc() = R"(
+        Python bindings for the Memoria library.
+
+        These bindings are mainly intended for adhoc operations
+        on Memoria containers to accomodate Memoria development.
+    )";
+
     PythonAPIBinder<GlobalBindings>::make_bindings(m);
+
+    py::module_ m_datatypes = m.def_submodule("datatypes");
+
+    m_datatypes.doc() = R"(
+        Data types are special kind of data object that can be stored in
+        data containers. Most of these data types mimique API of corresponding
+        C++ objects, so the python code using them can be easily ported to
+        C++ if performance matters.
+    )";
+
+    PythonAPIBinder<DataTypes>::make_bindings(m_datatypes);
+
+
     py::module_ m_core_api = m.def_submodule("coreapi");
 
-    PythonAPIBinder<CoreApiProfile<>>::make_bindings(m_core_api);
-    PythonAPIBinder<ISWMRStore<CoreApiProfile<>>>::make_bindings(m_core_api);
+    m_core_api.doc() = R"(
+        Python module for Memoria's CoreApiProfile (storage engines,
+        data container, query engines and auxiliary tools).
+    )";
+
+    py::module_ m_core_api_ctrs = m_core_api.def_submodule("containers");
+
+    PythonAPIBinder<CoreApiProfile<>>::make_bindings(m_core_api_ctrs);
+
+    py::module_ m_core_api_stores = m_core_api.def_submodule("stores");
+    PythonAPIBinder<ISWMRStore<CoreApiProfile<>>>::make_bindings(m_core_api_stores);
 }

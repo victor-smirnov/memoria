@@ -48,25 +48,29 @@ struct PythonAPIBinder<ICtrApi<Set<Key>, Profile>> {
                 .def("key", &IterType::key)
                 ;
 
-        py::class_<CtrType, CtrReferencableType, CtrSharedPtr<CtrType>>(m, get_datatype_script_name<Key>("Set").c_str())
-                .def("find", &CtrType::find)
-                .def("size", &CtrType::size)
-                .def("contains", &CtrType::contains)
-                .def("remove", py::overload_cast<KeyView>(&CtrType::remove))
-                .def("insert", py::overload_cast<KeyView>(&CtrType::insert))
-                .def("insert_buf", py::overload_cast<CtrSizeT, const Buffer&>(&CtrType::insert))
-                //.def("append", py::overload_cast<ProducerFn>(&CtrType::append))
-                .def("append", [](CtrType& ctr, Producer2Fn fn) -> VoidResult {
+        py::class_<CtrType, CtrReferencableType, CtrSharedPtr<CtrType>> set_cls(m, get_datatype_script_name<Key>("Set").c_str());
+                set_cls.def("find", &CtrType::find);
+                set_cls.def("size", &CtrType::size);
+                set_cls.def("contains", &CtrType::contains);
+                set_cls.def("remove", py::overload_cast<KeyView>(&CtrType::remove));
+                set_cls.def("insert", py::overload_cast<KeyView>(&CtrType::insert));
+                set_cls.def("insert_buf", py::overload_cast<CtrSizeT, const Buffer&>(&CtrType::insert));
+                //set_cls.def("append", py::overload_cast<ProducerFn>(&CtrType::append));
+                set_cls.def("append", [](CtrType& ctr, Producer2Fn fn) -> VoidResult {
                     return ctr.append([&](Buffer& buf, size_t size){
                         return fn(&buf, size);
                     });
-                })
-                .def("for_each", [](CtrType& ctr, std::function<VoidResult(KeyView)> fn) -> VoidResult {
+                });
+                set_cls.def("for_each", [](CtrType& ctr, std::function<VoidResult(KeyView)> fn) -> VoidResult {
                     return ctr.for_each([&](auto key){
                         return fn(key);
                     });
-                })
-                ;
+                });
+
+        set_cls.doc() = format_u8(R"(
+            Set<{}>
+        )", make_datatype_signature<Key>().name());
+
     }
 };
 
