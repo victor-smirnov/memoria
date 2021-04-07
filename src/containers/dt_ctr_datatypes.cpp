@@ -45,6 +45,7 @@ MMA_DEFINE_DEFAULT_DATATYPE_OPS(Map<Varchar, Varchar>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Vector<LinkedData>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Map<BigInt, Varchar>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Map<BigInt, BigInt>);
+MMA_DEFINE_DEFAULT_DATATYPE_OPS(Map<UUID, UUID>);
 //MMA_DEFINE_DEFAULT_DATATYPE_OPS(Multimap<BigInt, UTinyInt>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Multimap<UUID, UTinyInt>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Multimap<Varchar, Varchar>);
@@ -68,6 +69,7 @@ void InitCtrDatatypes()
     register_notctr_operations<Vector<LinkedData>>();
     register_notctr_operations<Map<BigInt, Varchar>>();
     register_notctr_operations<Map<BigInt, BigInt>>();
+    register_notctr_operations<Map<UUID, UUID>>();
     //register_notctr_operations<Multimap<BigInt, UTinyInt>>();
     register_notctr_operations<Multimap<UUID, UTinyInt>>();
     register_notctr_operations<Multimap<Varchar, Varchar>>();

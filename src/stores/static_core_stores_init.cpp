@@ -32,6 +32,10 @@ void InitMemoriaStoresExplicit() {
 #if defined(MEMORIA_BUILD_SWMR_STORE_MAPPED)
         InitSWMRMappedStore();
 #endif
+
+#if defined(MEMORIA_BUILD_LMDB_STORE)
+        InitLMDBStore();
+#endif
 }
 
 }

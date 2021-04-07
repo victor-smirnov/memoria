@@ -24,10 +24,10 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#ifndef _MDB_MIDL_H_
-#define _MDB_MIDL_H_
+#ifndef MMA_MDB_MIDL_H_
+#define MMA_MDB_MIDL_H_
 
-#include "lmdb.h"
+#include "mma_lmdb.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -197,4 +197,4 @@ int mma_mdb_mid3l_insert( MDB_ID3L ids, MDB_ID3 *id );
 #ifdef __cplusplus
 }
 #endif
-#endif	/* _MDB_MIDL_H_ */
+#endif	/* MMA_MDB_MIDL_H_ */

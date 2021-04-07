@@ -240,8 +240,8 @@ union semun {
 #define MISALIGNED_OK	1
 #endif
 
-#include "lmdb.h"
-#include "midl.h"
+#include "mma_lmdb.h"
+#include "mma_midl.h"
 
 #if (BYTE_ORDER == LITTLE_ENDIAN) == (BYTE_ORDER == BIG_ENDIAN)
 # error "Unknown or unsupported endianness (BYTE_ORDER)"

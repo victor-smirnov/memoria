@@ -23,14 +23,16 @@
 #include <memoria/core/tools/time.hpp>
 #include <memoria/memoria.hpp>
 
+
+
 #include <iostream>
 
 using namespace memoria;
 
+
 int main()
 {
     try {
-
         //    using MapType = Map<BigInt, BigInt>;
         //    using Entry   = std::pair<int64_t, int64_t>;
 
@@ -40,7 +42,7 @@ int main()
         using MapType = Map<BigInt, Varchar>;
         using Entry   = std::pair<int64_t, U8String>;
 
-        auto alloc = create_memory_store().get_or_throw();
+        auto alloc = create_memory_store_noncow().get_or_throw();
 
         auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
 

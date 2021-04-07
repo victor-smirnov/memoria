@@ -49,10 +49,7 @@ option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 option(BUILD_CLASSIC_MEMORIA_LIB "Build core library without Reactor support, using threads for concurrency" ON)
 option(BUILD_REACTOR_MEMORIA_LIB "Build core library WITH Reactor support, using fibers for concurrency" OFF)
 
-option(BUILD_CONTAINERS          "Build stores and containers." ON)
-option(BUILD_CONTAINERS_MULTIMAP "Build Multimap<Varchar, Varchar> container." ON)
-option(BUILD_CONTAINERS_SET      "Build Set<Varchar> container." ON)
-option(BUILD_CONTAINERS_VECTOR   "Build Vector<...> container(s)." ON)
+option(BUILD_CONTAINERS          "Build containers." ON)
 
 option(BUILD_MEMORY_STORE        "Build default in-memory store." ON)
 option(BUILD_MEMORY_STORE_COW    "Build default CoW in-memory store." ON)
@@ -132,6 +129,9 @@ if (BUILD_SWMR_STORE_MAPPED)
     add_definitions(-DMEMORIA_BUILD_SWMR_STORE_MAPPED)
 endif()
 
+if (BUILD_LMDB_STORE)
+    add_definitions(-DMEMORIA_BUILD_LMDB_STORE)
+endif()
 
 if (BUILD_MEMORY_STORE)
     add_definitions(-DMEMORIA_BUILD_MEMORY_STORE)

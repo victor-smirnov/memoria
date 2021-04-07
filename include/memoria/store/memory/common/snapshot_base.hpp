@@ -35,12 +35,13 @@
 #include <memoria/containers/map/map_factory.hpp>
 #include <memoria/core/tools/pair.hpp>
 #include <memoria/core/tools/type_name.hpp>
+#include <memoria/core/tools/simple_2q_cache.hpp>
 
 #include <memoria/core/datatypes/type_registry.hpp>
 
 #include <memoria/core/linked/document/linked_document.hpp>
 
-#include "persistent_tree.hpp"
+#include <memoria/store/memory/common/persistent_tree.hpp>
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
@@ -48,13 +49,11 @@
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
-
+#include <boost/pool/object_pool.hpp>
 
 #include <vector>
 #include <memory>
 #include <mutex>
-
-
 
 namespace memoria {
 namespace store {
@@ -84,8 +83,6 @@ protected:
     using HistoryNode       = typename PersistentAllocator::HistoryNode;
     using PersistentTreeT   = typename PersistentAllocator::PersistentTreeT;
     
-
-
     using PersistentAllocatorPtr = AllocSharedPtr<PersistentAllocator>;
     using SnapshotPtr            = SnpSharedPtr<MyType>;
     using SnapshotApiPtr         = SnpSharedPtr<IMemorySnapshot<ApiProfileT>>;
@@ -95,11 +92,14 @@ protected:
     using LeafNodeT         = typename PersistentTreeT::LeafNodeT;
     using PTreeValue        = typename LeafNodeT::Value;
     
-    using RCBlockPtr			= typename std::remove_pointer<typename PersistentTreeT::Value::Value>::type;
+    using RCBlockPtr		= typename std::remove_pointer<typename PersistentTreeT::Value::Value>::type;
 
     using Status            = typename HistoryNode::Status;
 
-    using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<ApiProfileT>*>;
+    using CtrInstanceMap  = std::unordered_map<CtrID, CtrReferenceable<ApiProfileT>*>;
+
+    using BlockGuardCache = SimpleTwoQueueCache<BlockID, typename Base::Shared>;
+    using BlockCacheEntry = typename BlockGuardCache::EntryT;
 
 public:
 
@@ -122,7 +122,7 @@ protected:
 
     PersistentTreeT persistent_tree_;
 
-    StaticPool<BlockID, Shared, 256> pool_;
+    //StaticPool<BlockID, Shared, 256> pool_;
 
     Logger logger_;
 
@@ -143,6 +143,8 @@ protected:
     CtrSharedPtr<RootMapType> root_map_;
 
     mutable ObjectPools object_pools_;
+    mutable boost::object_pool<BlockCacheEntry> block_shared_cache_pool_;
+    mutable BlockGuardCache block_shared_cache_;
 
 public:
 
@@ -151,7 +153,8 @@ public:
         history_tree_(history_tree),
         history_tree_raw_(history_tree.get()),
         persistent_tree_(history_node_),
-        logger_("PersistentInMemStoreSnp", Logger::DERIVED, &history_tree->logger_)
+        logger_("PersistentInMemStoreSnp", Logger::DERIVED, &history_tree->logger_),
+        block_shared_cache_(1024)
     {
         history_node_->ref();
 
@@ -165,7 +168,8 @@ public:
         history_node_(history_node),
         history_tree_raw_(history_tree),
         persistent_tree_(history_node_),
-        logger_("PersistentInMemStoreSnp")
+        logger_("PersistentInMemStoreSnp"),
+        block_shared_cache_(1024)
     {
         history_node_->ref();
 
@@ -716,8 +720,6 @@ public:
             shared->set_block(new_block);
 
             shared->state() = Shared::UPDATE;
-
-            shared->refresh();
         }
 
         return ResultT::of(shared);
@@ -731,14 +733,14 @@ public:
 
         if (!iter.is_end())
         {
-            auto shared = pool_.get(id);
+            auto shared = block_shared_cache_.get(id);
 
             if (!shared)
             {
                 persistent_tree_.remove(iter);
             }
             else {
-                shared->state() = Shared::_DELETE;
+                shared.get()->state() = Shared::_DELETE;
             }
         }
 
@@ -769,15 +771,12 @@ public:
 
         p->memory_block_size() = initial_size;
 
-        Shared* shared  = pool_.allocate(id);
-
-        shared->id()    = id;
-        shared->state() = Shared::UPDATE;
-
-        shared->set_block(p);
+        BlockCacheEntry* shared = block_shared_cache_pool_.construct(id, p, Shared::UPDATE);
         shared->set_allocator(this);
 
         ptree_set_new_block(p);
+
+        block_shared_cache_.insert(shared);
 
         return Result<BlockG>::of(shared);
     }
@@ -794,15 +793,12 @@ public:
 
         new_block->id() = new_id;
 
-        Shared* new_shared  = pool_.allocate(new_id);
-
-        new_shared->id()    = new_id;
-        new_shared->state() = Shared::UPDATE;
-
-        new_shared->set_block(new_block);
+        BlockCacheEntry* new_shared  = block_shared_cache_pool_.construct(new_id, new_block, Shared::UPDATE);
         new_shared->set_allocator(this);
 
         ptree_set_new_block(new_block);
+
+        block_shared_cache_.insert(new_shared);
 
         return Result<BlockG>::of(new_shared);
     }
@@ -830,7 +826,6 @@ public:
 
             shared->set_block(new_block);
             shared->state() = Shared::UPDATE;
-            shared->refresh();
 
             ptree_set_new_block(new_block);
 
@@ -864,10 +859,15 @@ public:
     {
         if (shared->state() == Shared::_DELETE)
         {
-            persistent_tree_.remove(shared->get()->id());
+            persistent_tree_.remove(shared->id());
+            block_shared_cache_.remove_from_map(shared->id());
+            block_shared_cache_pool_.destroy(static_cast<BlockCacheEntry*>(shared));
         }
-
-        pool_.release(shared->id());
+        else {
+            block_shared_cache_.attach(static_cast<BlockCacheEntry*>(shared), [&](BlockCacheEntry* entry){
+                block_shared_cache_pool_.destroy(entry);
+            });
+        }
 
         return VoidResult::of();
     }
@@ -1220,44 +1220,56 @@ protected:
         return ResultT::of(new_block);
     }
 
+    void put_into_cache(Shared* shared)
+    {
+        auto evicted_entry = block_shared_cache_.insert(shared);
+
+        if (evicted_entry) {
+            if (evicted_entry->state() == Shared::DELETE_)
+            {
+
+            }
+        }
+    }
+
     Shared* get_shared(BlockType* block)
     {
         MEMORIA_V1_ASSERT_TRUE(block != nullptr);
 
-        Shared* shared = pool_.get(block->id());
+        auto shared_opt = block_shared_cache_.get(block->id());
 
-        if (shared == NULL)
+        if (!shared_opt)
         {
-            shared = pool_.allocate(block->id());
-
-            shared->id()        = block->id();
-            shared->state()     = Shared::UNDEFINED;
+            BlockCacheEntry* shared  = block_shared_cache_pool_.construct(block->id());
+            shared->state() = Shared::UNDEFINED;
             shared->set_block(block);
             shared->set_allocator(this);
+
+            block_shared_cache_.insert(shared);
+
+            return shared;
         }
 
-        return shared;
+        return shared_opt.get();
     }
 
     Shared* get_shared(const BlockID& id, int32_t state)
     {
-        Shared* shared = pool_.get(id);
+        auto shared_opt = block_shared_cache_.get(id);
 
-        if (shared == NULL)
+        if (!shared_opt)
         {
-            shared = pool_.allocate(id);
-
-            shared->id()        = id;
-            shared->state()     = state;
-            shared->set_block((BlockType*)nullptr);
+            BlockCacheEntry* shared  = block_shared_cache_pool_.construct(id, (BlockType*)nullptr, state);
             shared->set_allocator(this);
+            block_shared_cache_.insert(shared);
+
+            return shared;
         }
 
-        return shared;
+        return shared_opt.get();
     }
 
-    void* malloc(size_t size)
-    {
+    void* malloc(size_t size) noexcept {
         return ::malloc(size);
     }
 
@@ -1272,7 +1284,7 @@ protected:
         {
             if (old_value.block_ptr()->unref() == 0) {
                 delete old_value.block_ptr();
-        	}
+            }
         }
     }
 
@@ -1375,12 +1387,12 @@ protected:
                 auto& block_descr = leaf->data(c);
                 if (block_descr.block_ptr()->unref() == 0)
                 {
-                    auto shared = pool_.get(block_descr.block_ptr()->raw_data()->id());
+                    auto shared = block_shared_cache_.get(block_descr.block_ptr()->raw_data()->id());
 
                     if (shared)
                     {
                         block_descr.block_ptr()->clear();
-                        shared->state() = Shared::_DELETE;
+                        shared.get()->state() = Shared::_DELETE;
                     }
 
                     delete block_descr.block_ptr();

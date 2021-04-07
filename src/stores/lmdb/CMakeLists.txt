@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB SRCS *.cpp mdb/mdb.c mdb/midl.c mdb/lmdb.h)
+file(GLOB SRCS *.cpp mdb/mdb.c mdb/midl.c)
+
 set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES_REACTOR ${SRCS})
-
-file(GLOB SRCS *.cpp mdb/mdb.c mdb/midl.c mdb/lmdb.h)
 set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS})
-

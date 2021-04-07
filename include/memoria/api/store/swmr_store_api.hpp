@@ -62,28 +62,45 @@ struct ISWMRStoreHistoryView {
 using StoreCheckCallbackFn = std::function<VoidResult(LDDocument&)>;
 
 template <typename Profile>
-struct ISWMRStore {
-    using WritableCommitPtr = SharedPtr<ISWMRStoreWritableCommit<Profile>>;
+struct IBasicSWMRStore {
+
     using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
+    using WritableCommitPtr = SharedPtr<ISWMRStoreWritableCommit<Profile>>;
+
+    using SequenceID = uint64_t;
+
+    virtual ~IBasicSWMRStore() noexcept = default;
+
+    virtual Result<ReadOnlyCommitPtr> open() noexcept = 0;
+    virtual Result<WritableCommitPtr> begin() noexcept = 0;
+
+    virtual VoidResult flush() noexcept = 0;
+    virtual VoidResult close() noexcept = 0;
+
+    virtual Result<Optional<SequenceID>> check(StoreCheckCallbackFn callback) noexcept = 0;
+};
+
+
+template <typename Profile>
+struct ISWMRStore: IBasicSWMRStore<Profile> {
+    using Base = IBasicSWMRStore<Profile>;
+
+    using typename Base::WritableCommitPtr;
+    using typename Base::ReadOnlyCommitPtr;
 
     using HistoryPtr = SharedPtr<ISWMRStoreHistoryView<Profile>>;
 
     using CommitID = int64_t;
     using SequenceID = uint64_t;
 
-    virtual ~ISWMRStore() noexcept {}
-
     virtual Result<std::vector<CommitID>> persistent_commits() noexcept = 0;
 
+    using Base::open;
     virtual Result<ReadOnlyCommitPtr> open(CommitID commit_id) noexcept = 0;
-    virtual Result<ReadOnlyCommitPtr> open() noexcept = 0;
+
     virtual BoolResult drop_persistent_commit(CommitID commit_id) noexcept = 0;
 
     virtual VoidResult rollback_last_commit() noexcept = 0;
-    virtual Result<WritableCommitPtr> begin() noexcept = 0;
-
-    virtual VoidResult flush() noexcept = 0;
-    virtual VoidResult close() noexcept = 0;
 
     virtual Result<Optional<SequenceID>> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) noexcept = 0;
     virtual Result<Optional<SequenceID>> check(StoreCheckCallbackFn callback) noexcept {
@@ -96,6 +113,23 @@ struct ISWMRStore {
 
 Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> open_mapped_swmr_store(U8StringView path);
 Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> create_mapped_swmr_store(U8StringView path, uint64_t store_size_mb);
+
+
+
+template <typename Profile>
+struct ILMDBStore: IBasicSWMRStore<Profile> {
+    using Base = IBasicSWMRStore<Profile>;
+
+    using CommitID = int64_t;
+
+    using typename Base::WritableCommitPtr;
+    using typename Base::ReadOnlyCommitPtr;
+};
+
+Result<SharedPtr<ILMDBStore<CoreApiProfile<>>>> open_lmdb_store(U8StringView path);
+Result<SharedPtr<ILMDBStore<CoreApiProfile<>>>> create_lmdb_store(U8StringView path, uint64_t store_size_mb);
+
+
 
 
 template <typename CtrName, typename Profile>

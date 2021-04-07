@@ -30,10 +30,14 @@ using CtrType = Set<Varchar>;
 
 int main(void) {
     try {
-        const char* file = "file.mma2";
 
-        filesystem::remove(file);
-        auto store1 = create_mapped_swmr_store(file, 1024).get_or_throw();
+        const char* file = "file_lmdb";
+
+        //filesystem::remove(file);
+
+        filesystem::create_directories(file);
+
+        auto store1 = create_lmdb_store(file, 1024).get_or_throw();
 
         UUID ctr_id = UUID::make_random();
 
@@ -83,20 +87,20 @@ int main(void) {
 
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
 
-//        auto store2 = open_mapped_swmr_store(file).get_or_throw();
+        auto store2 = open_lmdb_store(file).get_or_throw();
 
-//        auto snp2 = store2->begin().get_or_throw();
-//        auto ctr2 = find<CtrType>(snp2, ctr_id).get_or_throw();
+        auto snp2 = store2->begin().get_or_throw();
+        auto ctr2 = find<CtrType>(snp2, ctr_id).get_or_throw();
 
-//        ctr2->for_each([](auto view){
-//            std::cout << view << std::endl;
-//        }).get_or_throw();
+        ctr2->for_each([](auto view){
+            std::cout << view << std::endl;
+        }).get_or_throw();
 
-//        snp2->commit().get_or_throw();
+        //snp2->commit().get_or_throw();
 
-//        store2->check(callback).get_or_throw();
+        store2->check(callback).get_or_throw();
 
-//        store2->close().get_or_throw();
+        store2->close().get_or_throw();
     }
     catch (std::exception& ee) {
         std::cerr << "Exception: " << ee.what() << std::endl;

@@ -1,4 +1,5 @@
-// Copyright 2011-2021 Victor Smirnov
+
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,31 +13,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-
-#pragma once
-
-#include <memoria/core/types.hpp>
+#include <memoria/profiles/impl/memory_cow_profile.hpp>
+#include <memoria/containers/map/map_impl.hpp>
 
 namespace memoria {
 
+using Profile = MemoryCoWProfile<>;
+using CtrName = Map<UUID, UUID>;
 
-#ifdef MEMORIA_BUILD_MEMORY_STORE
-void InitDefaultInMemStore();
-#endif
-
-#if defined(MEMORIA_BUILD_MEMORY_STORE_COW)
-void InitCoWInMemStore();
-#endif
-
-#if defined(MEMORIA_BUILD_SWMR_STORE_MAPPED)
-void InitSWMRMappedStore();
-#endif
-
-#if defined(MEMORIA_BUILD_LMDB_STORE)
-void InitLMDBStore();
-#endif
-
-void InitMemoriaStoresExplicit();
+MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_uuid_uuid)
 
 }
+

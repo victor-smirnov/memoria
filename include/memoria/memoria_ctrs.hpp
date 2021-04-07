@@ -69,6 +69,7 @@ struct StaticLibraryCtrs {
         InitCtrMetadata<Vector<LinkedData>, ProfileT>();
         InitCtrMetadata<Map<BigInt, Varchar>, ProfileT>();
         InitCtrMetadata<Map<BigInt, BigInt>, ProfileT>();
+        InitCtrMetadata<Map<UUID, UUID>, ProfileT>();
 
         InitCtrMetadata<Multimap<BigInt, UTinyInt>, ProfileT>();
         InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();
@@ -76,26 +77,17 @@ struct StaticLibraryCtrs {
         InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
 
         InitCtrMetadata<AllocationMap, ProfileT>();
-#else
-        //InitCtrMetadata<Map<BigInt, BigInt>, ProfileT>();
-        //InitCtrMetadata<AllocationMap, ProfileT>();
-#   if defined(MEMORIA_BUILD_CONTAINERS_MULTIMAP)
-        InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
-        InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();
-#   endif
-
-#   if defined(MEMORIA_BUILD_CONTAINERS_SET)
-        InitCtrMetadata<Set<Varchar>, ProfileT>();
-        InitCtrMetadata<Set<UUID>, ProfileT>();
-        InitCtrMetadata<AllocationMap, ProfileT>();
-#   endif
-
-#   if defined(MEMORIA_BUILD_CONTAINERS_VECTOR)
-        InitCtrMetadata<Vector<Varchar>, ProfileT>();
-        InitCtrMetadata<Vector<UTinyInt>, ProfileT>();
-#   endif
-
 #endif
+
+#ifdef MEMORIA_BUILD_SWMR_STORE_MAPPED
+        InitCtrMetadata<Map<BigInt, BigInt>, ProfileT>();
+        InitCtrMetadata<AllocationMap, ProfileT>();
+#endif
+
+#ifdef MEMORIA_BUILD_LMDB_STORE
+        InitCtrMetadata<Map<UUID, UUID>, ProfileT>();
+#endif
+
     }
 };
 

@@ -163,8 +163,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef _LMDB_H_
-#define _LMDB_H_
+#ifndef MMA_LMDB_H_
+#define MMA_LMDB_H_
 
 #include <sys/types.h>
 #include <inttypes.h>
@@ -1650,4 +1650,4 @@ int	mma_mdb_reader_check(MDB_env *env, int *dead);
 	\li \ref mma_mdb_stat_1
 */
 
-#endif /* _LMDB_H_ */
+#endif /* MMA_LMDB_H_ */

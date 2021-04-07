@@ -45,6 +45,8 @@ if (BUILD_REACTOR_MEMORIA_LIB)
     add_library(MemoriaCtrsReactor STATIC ${GLOBAL_CONTAINERS_SRCS_REACTOR})
     add_library(MemoriaStoresReactor STATIC ${GLOBAL_SRORES_SRCS_REACTOR})
 
+    target_include_directories(MemoriaStoresReactor PRIVATE "stores/lmdb")
+
     SET_TARGET_PROPERTIES(MemoriaInitReactor PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
     SET_TARGET_PROPERTIES(MemoriaInitReactor PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
@@ -80,6 +82,8 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
     add_library(MemoriaCtrs STATIC ${GLOBAL_CONTAINERS_SRCS})
     add_library(MemoriaStores STATIC ${GLOBAL_SRORES_SRCS})
 
+    target_include_directories(MemoriaStores PRIVATE "stores/lmdb")
+
     SET_TARGET_PROPERTIES(MemoriaInit PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR} -DMMA1_NO_REACTOR")
     SET_TARGET_PROPERTIES(MemoriaInit PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
@@ -96,6 +100,8 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
     target_link_libraries(MemoriaCtrs MemoriaCore)
     target_link_libraries(MemoriaStores MemoriaCore)
     target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
+
+
 
     set_property(TARGET MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
     export(TARGETS MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
