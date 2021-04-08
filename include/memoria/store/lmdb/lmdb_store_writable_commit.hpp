@@ -141,7 +141,7 @@ public:
 
         wrap_construction(maybe_error, [&]() -> VoidResult {
             if (const int rc = mma_mdb_txn_begin(mdb_env_, nullptr, 0, &transaction_)) {
-                return make_generic_error("Can't start read-write transaction");
+                return make_generic_error("Can't start read-write transaction, error = {}", mma_mdb_strerror(rc));
             }
 
             return VoidResult::of();
@@ -181,7 +181,7 @@ public:
 
         wrap_construction(maybe_error, [&]() -> VoidResult {
             if (const int rc = mma_mdb_txn_begin(mdb_env_, nullptr, 0, &transaction_)) {
-                return make_generic_error("Can't start read-only transaction");
+                return make_generic_error("Can't start read-write transaction, error = {}", mma_mdb_strerror(rc));
             }
 
             return VoidResult::of();
@@ -251,7 +251,7 @@ public:
             }
 
             if (const int rc = mma_mdb_txn_commit(transaction_)) {
-                return make_generic_error("Can't commit read-write transaction");
+                return make_generic_error("Can't commit read-write transaction, error = {}", mma_mdb_strerror(rc));
             }
 
             committed_ = true;
@@ -647,11 +647,13 @@ private:
     }
 
     virtual Result<BlockID> newId() noexcept {
-        return ProfileTraits<Profile>::make_random_block_id();
+        UUID uuid{};
+        uuid.lo() = superblock_->new_block_id();
+        return uuid;
     }
 
     virtual VoidResult drop() noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("drop() has to be implemented!!");
+        return MEMORIA_MAKE_GENERIC_ERROR("drop() is not supported for LMDB store");
     }
 
     VoidResult evictionFn(bool keep_entry, BlockCacheEntry* entry) noexcept
@@ -718,7 +720,7 @@ private:
         MDB_val data{};
 
         if (int rc = mma_mdb_del(transaction_, dbi, &key, &data)) {
-            return make_generic_error("Can't delete block {} from the database", block_id);
+            return make_generic_error("Can't delete block {} from the database, error = {}", block_id, mma_mdb_strerror(rc));
         }
 
         return VoidResult::of();

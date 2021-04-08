@@ -50,7 +50,6 @@ struct PythonAPIBinder<ISWMRStore<Profile>> {
             .def("is_persistent", &RWCommitType::is_persistent);
 
         py::class_<Type, SharedPtr<Type>>(m, "SWMRStore")
-            .def("close", &Type::close)
             .def("flush", &Type::flush)
             .def("begin", &Type::begin)
             .def("open", py::overload_cast<CommitID>(&Type::open))

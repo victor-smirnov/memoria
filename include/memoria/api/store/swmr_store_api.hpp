@@ -75,7 +75,6 @@ struct IBasicSWMRStore {
     virtual Result<WritableCommitPtr> begin() noexcept = 0;
 
     virtual VoidResult flush() noexcept = 0;
-    virtual VoidResult close() noexcept = 0;
 
     virtual Result<Optional<SequenceID>> check(StoreCheckCallbackFn callback) noexcept = 0;
 };
@@ -124,9 +123,14 @@ struct ILMDBStore: IBasicSWMRStore<Profile> {
 
     using typename Base::WritableCommitPtr;
     using typename Base::ReadOnlyCommitPtr;
+
+    virtual VoidResult set_async(bool is_async) noexcept = 0;
+    virtual VoidResult copy_to(U8String path, bool with_compaction = true) noexcept = 0;
+    virtual VoidResult flush(bool force = true) noexcept = 0;
 };
 
 Result<SharedPtr<ILMDBStore<CoreApiProfile<>>>> open_lmdb_store(U8StringView path);
+Result<SharedPtr<ILMDBStore<CoreApiProfile<>>>> open_lmdb_store_readonly(U8StringView path);
 Result<SharedPtr<ILMDBStore<CoreApiProfile<>>>> create_lmdb_store(U8StringView path, uint64_t store_size_mb);
 
 

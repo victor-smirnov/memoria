@@ -33,6 +33,7 @@ private:
     BlockID directory_root_id_;
     uint64_t superblock_size_;
     uint64_t updates_;
+    uint64_t block_id_counter_;
 
     PackedAllocator allocator_;
 
@@ -48,6 +49,7 @@ public:
         superblock_size_ = superblock_size;
 
         updates_ = 1;
+        block_id_counter_ = 1000;
 
         return allocator_.init(allocator_block_size(superblock_size), 1);
     }
@@ -62,6 +64,12 @@ public:
 
     void touch() noexcept {
         ++updates_;
+    }
+
+    uint64_t new_block_id() noexcept {
+        ++block_id_counter_;
+        ++updates_;
+        return block_id_counter_;
     }
 
 private:

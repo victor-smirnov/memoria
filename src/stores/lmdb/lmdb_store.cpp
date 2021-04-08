@@ -49,13 +49,25 @@ Result<SharedPtr<ILMDBStore<ApiProfileT>>> open_lmdb_store(U8StringView path)
     using ResultT = Result<SharedPtr<ILMDBStore<ApiProfileT>>>;
 
     MaybeError maybe_error;
-    auto ptr = MakeShared<LMDBStore<Profile>>(maybe_error, path);
+    auto ptr = MakeShared<LMDBStore<Profile>>(maybe_error, path, false);
 
     if (maybe_error) {
         return std::move(maybe_error.get());
     }
 
-    MEMORIA_TRY_VOID(ptr->do_open_file());
+    return ResultT::of(ptr);
+}
+
+Result<SharedPtr<ILMDBStore<ApiProfileT>>> open_lmdb_store_readonly(U8StringView path)
+{
+    using ResultT = Result<SharedPtr<ILMDBStore<ApiProfileT>>>;
+
+    MaybeError maybe_error;
+    auto ptr = MakeShared<LMDBStore<Profile>>(maybe_error, path, true);
+
+    if (maybe_error) {
+        return std::move(maybe_error.get());
+    }
 
     return ResultT::of(ptr);
 }

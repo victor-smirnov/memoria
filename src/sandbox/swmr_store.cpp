@@ -77,11 +77,11 @@ int main(void) {
 
         store1->check(callback).get_or_throw();
 
-        store1->close().get_or_throw();
-
         auto t_end = getTimeInMillis();
 
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
+
+        store1.reset();
 
 //        auto store2 = open_mapped_swmr_store(file).get_or_throw();
 
@@ -95,8 +95,6 @@ int main(void) {
 //        snp2->commit().get_or_throw();
 
 //        store2->check(callback).get_or_throw();
-
-//        store2->close().get_or_throw();
     }
     catch (std::exception& ee) {
         std::cerr << "Exception: " << ee.what() << std::endl;

@@ -65,6 +65,7 @@ class LMDBStore:
     template <typename> friend class LMDBStoreCommitBase;
 
     friend Result<SharedPtr<ILMDBStore<ApiProfileT>>> open_lmdb_store(U8StringView);
+    friend Result<SharedPtr<ILMDBStore<ApiProfileT>>> open_lmdb_store_readonly(U8StringView);
     friend Result<SharedPtr<ILMDBStore<ApiProfileT>>> create_lmdb_store(U8StringView, uint64_t);
 
     Superblock* superblock_{};
@@ -74,6 +75,7 @@ class LMDBStore:
     MDB_dbi system_db_{};
     MDB_dbi data_db_{};
 
+    mutable std::recursive_mutex store_mutex_;
 public:
     // create store
     LMDBStore(MaybeError& maybe_error, U8String file_name, uint64_t file_size_mb):
@@ -99,9 +101,9 @@ public:
                 return make_generic_error("Can't set LMDB's maximal file size in the environment, error = {}", mma_mdb_strerror(rc));
             }
 
-            if (int rc = mma_mdb_env_open(mdb_env_, file_name_.data(), MDB_NOSYNC | MDB_CREATE | MDB_NOTLS, 0664)) { //MDB_NOSYNC
+            if (int rc = mma_mdb_env_open(mdb_env_, file_name_.data(), MDB_NOSUBDIR | MDB_CREATE | MDB_NOTLS, 0664)) { //MDB_NOSYNC
                 mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't open LMDB database {}", file_name_, mma_mdb_strerror(rc));
+                return make_generic_error("Can't create LMDB database {}, error = {}", file_name_, mma_mdb_strerror(rc));
             }
 
             MDB_txn* transaction{};
@@ -140,7 +142,7 @@ public:
     }
 
     // open store
-    LMDBStore(MaybeError& maybe_error, U8String file_name):
+    LMDBStore(MaybeError& maybe_error, U8String file_name, bool read_only):
         file_name_(file_name)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
@@ -158,7 +160,8 @@ public:
                 return make_generic_error("Can't set LMDB maximum number of readers in the environment to 1024, error = {}", mma_mdb_strerror(rc));
             }
 
-            if (int rc = mma_mdb_env_open(mdb_env_, file_name_.data(), MDB_NOSYNC | MDB_NOTLS, 0664)) {
+            int32_t is_readonly = read_only ? MDB_RDONLY : 0;
+            if (int rc = mma_mdb_env_open(mdb_env_, file_name_.data(), MDB_NOSUBDIR | MDB_NOTLS | is_readonly, 0664)) {
                 mma_mdb_env_close(mdb_env_);
                 return make_generic_error("Can't open LMDB database {}, error = {}", file_name_, mma_mdb_strerror(rc));
             }
@@ -218,13 +221,36 @@ public:
     }
 
     virtual ~LMDBStore() noexcept {
+        mma_mdb_env_close(mdb_env_);
         ::free(superblock_);
+    }
+
+    virtual VoidResult set_async(bool async) noexcept
+    {
+        std::lock_guard<std::recursive_mutex> lock(store_mutex_);
+        if (const int rc = mma_mdb_env_set_flags(mdb_env_, MDB_NOSYNC, async ? 1 : 0)) {
+            return make_generic_error("Can't set asynchronous mode ({}), error = {}", async, mma_mdb_strerror(rc));
+        }
+        return VoidResult::of();
+    }
+
+    virtual VoidResult copy_to(U8String path, bool with_compaction) noexcept
+    {
+        if (const int rc = mma_mdb_env_copy2(mdb_env_, path.data(), with_compaction ? MDB_CP_COMPACT : 0)) {
+            return make_generic_error("Can't copy database to '{}', error = {}", path, mma_mdb_strerror(rc));
+        }
+        return VoidResult::of();
+    }
+
+    virtual VoidResult flush(bool force) noexcept {
+        if (const int rc = mma_mdb_env_sync(mdb_env_, force)) {
+            return make_generic_error("Can't csync the environment error = {}", mma_mdb_strerror(rc));
+        }
+        return VoidResult::of();
     }
 
     virtual Result<ReadOnlyCommitPtr> open() noexcept
     {
-        MEMORIA_TRY_VOID(check_if_open());
-
         using ResultT = Result<ReadOnlyCommitPtr>;
         MaybeError maybe_error{};
         ReadOnlyCommitPtr ptr{};
@@ -249,8 +275,6 @@ public:
 
     virtual Result<WritableCommitPtr> begin() noexcept
     {
-        MEMORIA_TRY_VOID(check_if_open());
-
         using ResultT = Result<SnpSharedPtr<LMDBStoreWritableCommit<Profile>>>;
 
         ResultT res = wrap_throwing([&]() -> ResultT {
@@ -278,7 +302,7 @@ public:
     }
 
     virtual VoidResult close() noexcept {
-        return VoidResult::of();
+        return make_generic_error("Explicitly closing LMDB store is not supported");
     }
 
     static void init_profile_metadata() noexcept {
@@ -287,10 +311,6 @@ public:
 
 
 private:
-    VoidResult check_if_open() noexcept {
-        return VoidResult::of();
-    }
-
     VoidResult init_store()
     {
         MaybeError maybe_error;
@@ -310,21 +330,8 @@ private:
         return VoidResult::of();
     }
 
-
-
-
-
-    VoidResult do_open_file()
-    {
-
-
-        return VoidResult::of();
-    }
-
-
     virtual Result<Optional<SequenceID>> check(StoreCheckCallbackFn callback) noexcept
     {
-        MEMORIA_TRY_VOID(check_if_open());
         return wrap_throwing([&]() {
             return do_check(callback);
         });

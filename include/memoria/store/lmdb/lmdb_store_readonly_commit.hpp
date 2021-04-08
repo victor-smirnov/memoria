@@ -85,7 +85,7 @@ public:
 
         wrap_construction(maybe_error, [&]() -> VoidResult {
             if (const int rc = mma_mdb_txn_begin(mdb_env_, nullptr, MDB_RDONLY, &transaction_)) {
-                return make_generic_error("Can't start read-only transaction");
+                return make_generic_error("Can't start read-only transaction, error = {}", mma_mdb_strerror(rc));
             }
 
             MEMORIA_TRY(superblock_ptr, get_data_addr(DirectoryCtrID, system_db_));
@@ -217,7 +217,7 @@ protected:
     }
 
     virtual VoidResult drop() noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("drop() is not implemented for ReadOnly commits");
+        return MEMORIA_MAKE_GENERIC_ERROR("drop() is not implemented for LMDB store");
     }
 };
 
