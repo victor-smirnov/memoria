@@ -18,3 +18,5 @@
 #include <memoria/memoria_stores.hpp>
 #include <memoria/memoria_ctrs.hpp>
 #include <memoria/memoria_app_init.hpp>
+
+#include <memoria/profiles/core_api/core_api_profile.hpp>

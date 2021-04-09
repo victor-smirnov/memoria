@@ -13,17 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
+#include <memoria/containers/vector/vctr_factory.hpp>
 
-#include <memoria/containers/set/set_factory.hpp>
-#include <memoria/containers/set/set_api_impl.hpp>
-
-#include <memoria/core/tools/fixed_array.hpp>
 
 namespace memoria {
 
-using Profile = MemoryCoWProfile<>;
-using CtrName = Set<FixedArray<16>>;
+using Profile = CowLiteProfile<>;
+using CtrName = Vector<LinkedData>;
 
 MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     

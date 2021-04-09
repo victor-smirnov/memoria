@@ -126,7 +126,7 @@ public:
         VoidResult stream(
                 const PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
-                            MemCoWBlockID<ValueHolder>,
+                            CowLiteBlockID<ValueHolder>,
                             Indexed
                         >
                 >* pkd_buffer,
@@ -158,14 +158,14 @@ public:
         VoidResult stream(
                 PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
-                            MemCoWBlockID<IDValueHolder>,
+                            CowLiteBlockID<IDValueHolder>,
                             Indexed
                         >
                 >* pkd_buffer,
                 const IDResolver* id_resolver
         ) noexcept
         {
-            using DataType = MemCoWBlockID<IDValueHolder>;
+            using DataType = CowLiteBlockID<IDValueHolder>;
 
             using Buffer = PackedDataTypeBuffer<
                 PackedDataTypeBufferTypes<

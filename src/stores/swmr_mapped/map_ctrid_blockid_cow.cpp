@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
 
 #include <memoria/containers/map/map_impl.hpp>
 
@@ -21,7 +21,7 @@
 
 namespace memoria {
 
-using Profile = MemoryCoWProfile<>;
+using Profile = CowLiteProfile<>;
 using CtrName = Map<ProfileCtrID<Profile>, ProfileBlockID<Profile>>;
 
 MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_ctrid_blockid)

@@ -78,7 +78,7 @@ struct IBlockDataEventHandler {
     virtual void value(const char* name, const UAcc128T* value, int32_t count = 1, int32_t kind = 0)    = 0;
     virtual void value(const char* name, const UAcc192T* value, int32_t count = 1, int32_t kind = 0)    = 0;
     virtual void value(const char* name, const UAcc256T* value, int32_t count = 1, int32_t kind = 0)    = 0;
-    virtual void value(const char* name, const MemCoWBlockID<uint64_t>* value, int32_t count = 1, int32_t kind = 0)    = 0;
+    virtual void value(const char* name, const CowLiteBlockID<uint64_t>* value, int32_t count = 1, int32_t kind = 0)    = 0;
 
     virtual void symbols(const char* name, const uint64_t* value, int32_t count, int32_t bits_per_symbol)    = 0;
     virtual void symbols(const char* name, const uint8_t* value, int32_t count, int32_t bits_per_symbol)     = 0;
@@ -565,11 +565,11 @@ public:
         }
     }
 
-    virtual void value(const char* name, const MemCoWBlockID<uint64_t>* value, int32_t count = 1, int32_t kind = 0)
+    virtual void value(const char* name, const CowLiteBlockID<uint64_t>* value, int32_t count = 1, int32_t kind = 0)
     {
         if (kind == BYTE_ARRAY)
         {
-            dumpArray<MemCoWBlockID<uint64_t>>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<CowLiteBlockID<uint64_t>>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);

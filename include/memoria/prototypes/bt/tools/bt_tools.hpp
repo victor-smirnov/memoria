@@ -525,7 +525,7 @@ template <typename CtrName>
 struct CtrDirectoryHelper: HasValue<bool, false> {};
 
 template <typename KeyType, typename ValueHolder>
-struct CtrDirectoryHelper<Map<KeyType, MemCoWBlockID<ValueHolder>>>: HasValue<bool, true> {};
+struct CtrDirectoryHelper<Map<KeyType, CowLiteBlockID<ValueHolder>>>: HasValue<bool, true> {};
 
 
 }

@@ -27,18 +27,19 @@
 
 namespace memoria {
 
-
+template <typename ChildType = void>
+class CowLiteProfile  {};
 
 template <>
-struct ProfileTraits<MemoryCoWProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
+struct ProfileTraits<CowLiteProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using Base = ApiProfileTraits<CoreApiProfile<>>;
 
     using typename Base::CtrID;
     using typename Base::CtrSizeT;
     using typename Base::SnapshotID;
 
-    using BlockID       = MemCoWBlockID<uint64_t>;
-    using Profile       = MemoryCoWProfile<>;
+    using BlockID       = CowLiteBlockID<uint64_t>;
+    using Profile       = CowLiteProfile<>;
 
     using Block = AbstractPage<BlockID, BlockID, uint64_t, SnapshotID>;
     using BlockType = Block;
@@ -73,7 +74,7 @@ struct ProfileTraits<MemoryCoWProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 
 
 template <>
-struct ProfileSpecificBlockTools<MemoryCoWProfile<>>{
+struct ProfileSpecificBlockTools<CowLiteProfile<>>{
 
     template <typename BlockT>
     static void after_deserialization(BlockT* block) noexcept {
@@ -83,8 +84,8 @@ struct ProfileSpecificBlockTools<MemoryCoWProfile<>>{
 
 
 template <typename ValueHolder>
-struct FieldFactory<MemCoWBlockID<ValueHolder>> {
-    using Type = MemCoWBlockID<ValueHolder>;
+struct FieldFactory<CowLiteBlockID<ValueHolder>> {
+    using Type = CowLiteBlockID<ValueHolder>;
 
     static constexpr size_t Size = sizeof(ValueHolder);
 
@@ -127,9 +128,9 @@ struct FieldFactory<MemCoWBlockID<ValueHolder>> {
 
 
 template <>
-struct IBlockOperations<MemoryCoWProfile<>>: IBlockOperationsBase<MemoryCoWProfile<>> {
+struct IBlockOperations<CowLiteProfile<>>: IBlockOperationsBase<CowLiteProfile<>> {
 
-    using Base = IBlockOperationsBase<MemoryCoWProfile<>>;
+    using Base = IBlockOperationsBase<CowLiteProfile<>>;
     using typename Base::IDValueResolver;
     using typename Base::BlockType;
 
@@ -140,20 +141,20 @@ struct IBlockOperations<MemoryCoWProfile<>>: IBlockOperationsBase<MemoryCoWProfi
 
 
 template <>
-struct ContainerOperations<MemoryCoWProfile<>>: ContainerOperationsBase<MemoryCoWProfile<>> {
+struct ContainerOperations<CowLiteProfile<>>: ContainerOperationsBase<CowLiteProfile<>> {
 
 };
 
 
 template <typename ValueHolder>
-ApiBlockIDHolder<2> block_id_holder_from(const MemCoWBlockID<ValueHolder>& uuid) noexcept {
+ApiBlockIDHolder<2> block_id_holder_from(const CowLiteBlockID<ValueHolder>& uuid) noexcept {
     ApiBlockIDHolder<2> holder;
     holder.array[0] = uuid.value();
     return holder;
 }
 
 template <size_t N, typename ValueHolder>
-void block_id_holder_to(const ApiBlockIDHolder<N>& holder, MemCoWBlockID<ValueHolder>& uuid) noexcept {
+void block_id_holder_to(const ApiBlockIDHolder<N>& holder, CowLiteBlockID<ValueHolder>& uuid) noexcept {
     static_assert(N >= 1, "");
     uuid.value() = holder.array[0];
 }

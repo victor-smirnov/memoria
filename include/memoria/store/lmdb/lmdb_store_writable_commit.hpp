@@ -460,7 +460,8 @@ public:
 
         MEMORIA_TRY(id, newId());
         BlockType* new_block = ptr_cast<BlockType>(block_addr);
-        new_block->id() = id;
+        new_block->id()   = id;
+        new_block->uuid() = id;
 
         new_block->set_references(0);
 
@@ -601,6 +602,10 @@ private:
         }
 
         using ResultT = Result<BlockG>;
+
+        if (MMA_UNLIKELY(id.is_null())) {
+            return Result<BlockG>::of();
+        }
 
         auto block = block_cache_.get(id);
         if (block) {

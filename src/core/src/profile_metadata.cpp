@@ -17,7 +17,8 @@
 #include <memoria/profiles/common/metadata.hpp>
 
 #include <memoria/profiles/impl/no_cow_profile.hpp>
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
+#include <memoria/profiles/impl/cow_profile.hpp>
 
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
@@ -45,12 +46,16 @@ const ProfileMetadataPtr<Profile>& ProfileMetadata<Profile>::local()
 template class ProfileMetadataStore<NoCowProfile<>>;
 template class ProfileMetadata<NoCowProfile<>>;
 
-template class ProfileMetadataStore<MemoryCoWProfile<>>;
-template class ProfileMetadata<MemoryCoWProfile<>>;
+template class ProfileMetadataStore<CowLiteProfile<>>;
+template class ProfileMetadata<CowLiteProfile<>>;
+
+template class ProfileMetadataStore<CowProfile<>>;
+template class ProfileMetadata<CowProfile<>>;
 
 namespace {
     ProfileMetadataStore<NoCowProfile<>>::Init init_store1;
-    ProfileMetadataStore<MemoryCoWProfile<>>::Init init_store2;
+    ProfileMetadataStore<CowLiteProfile<>>::Init init_store2;
+    ProfileMetadataStore<CowProfile<>>::Init init_store3;
 }
 
 }

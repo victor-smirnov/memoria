@@ -1,11 +1,11 @@
-file(GLOB SRCS *_dflt.cpp static_core_ctrs_init.cpp dt_ctr_datatypes.cpp)
+file(GLOB SRCS nocow/*_nocow.cpp cow/*_cow.cpp  static_core_ctrs_init.cpp dt_ctr_datatypes.cpp)
 
 if (BUILD_CONTAINERS)
     set_property(GLOBAL APPEND PROPERTY GLOBAL_CONTAINERS_SOURCES ${SRCS})
     set_property(GLOBAL APPEND PROPERTY GLOBAL_CONTAINERS_SOURCES_REACTOR ${SRCS})
 
     if (BUILD_MEMORY_STORE_COW OR BUILD_SWMR_STORE_MAPPED)
-        file(GLOB SRCS *_cow.cpp)
+        file(GLOB SRCS cowlite/*_cowlite.cpp)
 
         set_property(GLOBAL APPEND PROPERTY GLOBAL_CONTAINERS_SOURCES ${SRCS})
         set_property(GLOBAL APPEND PROPERTY GLOBAL_CONTAINERS_SOURCES_REACTOR ${SRCS})

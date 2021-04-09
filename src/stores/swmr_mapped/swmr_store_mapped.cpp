@@ -13,12 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
 #include <memoria/store/swmr/mapped/swmr_mapped_store.hpp>
 
 namespace memoria {
 
-using Profile = MemoryCoWProfile<>;
+using Profile = CowLiteProfile<>;
 using ApiProfileT = ApiProfile<Profile>;
 
 template struct ISWMRStore<ApiProfileT>;
@@ -27,7 +27,7 @@ template class MappedSWMRStoreWritableCommit<Profile>;
 template class MappedSWMRStoreReadOnlyCommit<Profile>;
 
 #if !defined(MEMORIA_BUILD_MEMORY_STORE_COW)
-std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept {
+std::ostream& operator<<(std::ostream& out, const CowLiteBlockID<uint64_t>& block_id) noexcept {
     out << block_id.value();
     return out;
 }

@@ -13,14 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/cow_profile.hpp>
 #include <memoria/containers/vector/vctr_factory.hpp>
 
 
 namespace memoria {
 
-using Profile = MemoryCoWProfile<>;
-using CtrName = Vector<LinkedData>;
+using Profile = CowProfile<>;
+using CtrName = Vector<Varchar>;
 
 MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     

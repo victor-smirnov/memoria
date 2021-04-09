@@ -13,8 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
 #include <memoria/api/store/swmr_store_api.hpp>
 
 #include <memoria/api/set/set_api.hpp>

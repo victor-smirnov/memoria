@@ -328,7 +328,7 @@ public:
                     ExtData,
                     PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
-                            MemCoWBlockID<ValueHolder>,
+                            CowLiteBlockID<ValueHolder>,
                             Indexed
                         >
                     >
@@ -366,7 +366,7 @@ public:
                     ExtData,
                     PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
-                            MemCoWBlockID<ValueHolder>,
+                            CowLiteBlockID<ValueHolder>,
                             Indexed
                         >
                     >
@@ -410,7 +410,7 @@ public:
                     ExtData,
                     PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
-                            MemCoWBlockID<ValueHolder>,
+                            CowLiteBlockID<ValueHolder>,
                             Indexed
                         >
                     >

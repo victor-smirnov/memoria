@@ -47,7 +47,7 @@ struct Date      {};
 struct Time      {};
 struct TimeWithTZ {};
 struct Boolean   {};
-struct MemCoWBlockIDDT {};
+struct CowLiteBlockIDDT {};
 
 class Decimal {
     bool default_;

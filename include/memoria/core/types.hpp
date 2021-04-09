@@ -187,9 +187,6 @@ template <bool Dense = true>
 using BitVector = Sequence<1, Dense>;
 
 template <typename ChildType = void>
-class MemoryCoWProfile  {};
-
-template <typename ChildType = void>
 class CoreApiProfile {};
 
 enum class Granularity  {Bit, Byte};
@@ -510,13 +507,13 @@ constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_tr
 
 
 template <typename ValueHolder_>
-class MemCoWBlockID {
+class CowLiteBlockID {
     ValueHolder_ holder_;
 public:
     using ValueHolder = ValueHolder_;
 
-    MemCoWBlockID() noexcept = default;
-    explicit MemCoWBlockID(uint64_t value) noexcept:
+    CowLiteBlockID() noexcept = default;
+    explicit CowLiteBlockID(uint64_t value) noexcept:
         holder_(value)
     {}
 
@@ -528,15 +525,15 @@ public:
         return holder_;
     }
 
-    bool operator==(const MemCoWBlockID& other) const noexcept {
+    bool operator==(const CowLiteBlockID& other) const noexcept {
         return holder_ == other.holder_;
     }
 
-    bool operator!=(const MemCoWBlockID& other) const noexcept {
+    bool operator!=(const CowLiteBlockID& other) const noexcept {
         return holder_ != other.holder_;
     }
 
-    bool operator<(const MemCoWBlockID& other) const noexcept {
+    bool operator<(const CowLiteBlockID& other) const noexcept {
         return holder_ < other.holder_;
     }
 
@@ -573,22 +570,22 @@ public:
     }
 };
 
-std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept;
+std::ostream& operator<<(std::ostream& out, const CowLiteBlockID<uint64_t>& block_id) noexcept;
 
 }
 
 namespace std {
 
 template <typename ValueHolder>
-class hash<memoria::MemCoWBlockID<ValueHolder>> {
+class hash<memoria::CowLiteBlockID<ValueHolder>> {
 public:
-    size_t operator()(const memoria::MemCoWBlockID<ValueHolder>& obj) const noexcept {
+    size_t operator()(const memoria::CowLiteBlockID<ValueHolder>& obj) const noexcept {
         return std::hash<ValueHolder>()(obj.value());
     }
 };
 
 template <typename ValueHolder>
-void swap(memoria::MemCoWBlockID<ValueHolder>& one, memoria::MemCoWBlockID<ValueHolder>& two) noexcept {
+void swap(memoria::CowLiteBlockID<ValueHolder>& one, memoria::CowLiteBlockID<ValueHolder>& two) noexcept {
     std::swap(one.value(), two.value());
 }
 

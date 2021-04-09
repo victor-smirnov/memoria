@@ -13,13 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
 #include <memoria/containers/multimap/multimap_impl.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 namespace memoria {
 
-using Profile = MemoryCoWProfile<>;
-using CtrName = memoria::Multimap<Varchar, Varchar>;
+using Profile = CowLiteProfile<>;
+using CtrName = memoria::Multimap<UUID, UTinyInt>;
 
 MMA_INSTANTIATE_CTR_BTFL(CtrName, Profile)
 

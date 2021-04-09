@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,54 +19,63 @@
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/profiles/common/block.hpp>
 #include <memoria/profiles/core_api/core_api_profile.hpp>
-#include <memoria/core/container/allocator.hpp>
 
+#include <memoria/core/container/allocator.hpp>
 #include <memoria/core/tools/uuid.hpp>
+
+#include <unordered_set>
 
 namespace memoria {
 
 template <typename ChildType = void>
-class NoCowProfile  {};
+class CowProfile  {};
 
 template <>
-struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
+struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using Base = ApiProfileTraits<CoreApiProfile<>>;
 
     using typename Base::CtrID;
     using typename Base::CtrSizeT;
     using typename Base::SnapshotID;
 
-    using BlockID = UUID;
-    using Profile = NoCowProfile<>;
+    using BlockID       = UUID;
+    using Profile       = CowProfile<>;
 
-    using Block = AbstractPage <BlockID, BlockID, EmptyType, SnapshotID>;
+    using Block = AbstractPage<BlockID, BlockID, uint64_t, SnapshotID>;
     using BlockType = Block;
 
-    using AllocatorType = IAllocator<Profile>;
-    using BlockShared = PageShared<AllocatorType, Block, BlockID>;
+    using AllocatorType = ICoWAllocator<Profile>;
 
-    template <typename TargetBlockType>
-    using BlockGuardTF = BlockGuard<TargetBlockType, AllocatorType, BlockShared>;
-
-    using BlockGuardT  = BlockGuard<Block, AllocatorType, BlockShared>;
-
-    static constexpr bool IsCoW = false;
-
+    using BlockGuardT = LWBlockHandler<Block>;
     using BlockG = BlockGuardT;
 
-    static UUID make_random_block_id() {
-        return UUID::make_random();
+    template <typename TargetBlockType>
+    using BlockGuardTF = LWBlockHandler<TargetBlockType>;
+
+    static constexpr bool IsCoW = true;
+
+
+    static BlockID make_random_block_id() {
+        return BlockID::make_random();
     }
 
     static UUID make_random_block_guid() {
         return UUID::make_random();
     }
+
+    static UUID make_random_ctr_id() {
+        return UUID::make_random();
+    }
+
+    static UUID make_random_snapshot_id() {
+        return UUID::make_random();
+    }
 };
 
 template <>
-struct ProfileSpecificBlockTools<NoCowProfile<>>{
+struct ProfileSpecificBlockTools<CowProfile<>>{
     template <typename BlockT>
-    static void after_deserialization(BlockT*) noexcept {
+    static void after_deserialization(BlockT* block) noexcept {
         // do nothing here
     }
 };

@@ -33,8 +33,6 @@ struct ISWMRStoreCommitBase: virtual IStoreSnapshotCtrOps<Profile> {
 
 template <typename Profile>
 struct ISWMRStoreWritableCommit: virtual ISWMRStoreCommitBase<Profile>, virtual IStoreWritableSnapshotCtrOps<Profile> {
-    //virtual VoidResult commit() noexcept = 0;
-
     virtual VoidResult set_persistent(bool persistent) noexcept = 0;
     virtual bool is_persistent() noexcept = 0;
 };

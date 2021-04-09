@@ -152,6 +152,10 @@ protected:
     {
         using ResultT = Result<BlockG>;
 
+        if (MMA_UNLIKELY(id.is_null())) {
+            return Result<BlockG>::of();
+        }
+
         auto block = block_shared_cache_.get(id);
         if (block) {
             return ResultT::of(block.get());

@@ -13,17 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
-#include <memoria/store/memory_cow/threads/threads_memory_store_cow_impl.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
+#include <memoria/store/memory_cow_lite/threads/threads_memory_store_cow_impl.hpp>
 
 namespace memoria {
 
-using Profile = MemoryCoWProfile<>;
+using Profile = CowLiteProfile<>;
 using ApiProfileT = ApiProfile<Profile>;
 template class IMemoryStore<ApiProfileT>;
 
 
-std::ostream& operator<<(std::ostream& out, const MemCoWBlockID<uint64_t>& block_id) noexcept {
+std::ostream& operator<<(std::ostream& out, const CowLiteBlockID<uint64_t>& block_id) noexcept {
     out << block_id.value();
     return out;
 }

@@ -80,5 +80,8 @@ PYBIND11_MODULE(memoria, m) {
     PythonAPIBinder<CoreApiProfile<>>::make_bindings(m_core_api_ctrs);
 
     py::module_ m_core_api_stores = m_core_api.def_submodule("stores");
+
+    PythonAPIBinder<IBasicSWMRStore<CoreApiProfile<>>>::make_bindings(m_core_api_stores);
     PythonAPIBinder<ISWMRStore<CoreApiProfile<>>>::make_bindings(m_core_api_stores);
+    PythonAPIBinder<ILMDBStore<CoreApiProfile<>>>::make_bindings(m_core_api_stores);
 }

@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2020 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,18 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
-
-#include <memoria/containers/map/map_impl.hpp>
-
-#include <memoria/core/strings/string.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
+#include <memoria/containers/allocation_map/allocation_map_impl.hpp>
 
 namespace memoria {
 
-using Profile = MemoryCoWProfile<>;
-using CtrName = Map<BigInt, BigInt>;
+using Profile = CowLiteProfile<>;
+using CtrName = AllocationMap;
 
-MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_bi_bi)
+MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
 
 }
+
+
 

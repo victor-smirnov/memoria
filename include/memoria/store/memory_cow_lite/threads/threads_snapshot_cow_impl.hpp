@@ -17,7 +17,7 @@
 #pragma once
 
 
-#include <memoria/store/memory_cow/common/snapshot_base_cow.hpp>
+#include <memoria/store/memory_cow_lite/common/snapshot_base_cow.hpp>
 
 #include <memoria/api/store/memory_store_api.hpp>
 

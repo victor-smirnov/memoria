@@ -217,7 +217,7 @@ OutputStreamHandler& operator<<(OutputStreamHandler& out, const T& value) {
 }
 
 template <typename T>
-OutputStreamHandler& operator<<(OutputStreamHandler& out, const MemCoWBlockID<T>& value) {
+OutputStreamHandler& operator<<(OutputStreamHandler& out, const CowLiteBlockID<T>& value) {
     out.write(value.value());
     return out;
 }

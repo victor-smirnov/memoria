@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,17 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/profiles/impl/cow_profile.hpp>
 
-#include <memoria/profiles/impl/no_cow_profile.hpp>
-#include <memoria/profiles/impl/cow_lite_profile.hpp>
-#include <memoria/memoria_core.hpp>
+#include <memoria/containers/set/set_factory.hpp>
+#include <memoria/containers/set/set_api_impl.hpp>
+
+#include <memoria/core/tools/uuid.hpp>
 
 namespace memoria {
 
-void InitMemoriaCoreExplicit() {
-    InitCoreLDDatatypes();
-    InitCoreDatatypes();
-    InitSimpleNumericDatatypes();
+using Profile = CowProfile<>;
+using CtrName = Set<UUID>;
+
+MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
+    
 }
 
-}

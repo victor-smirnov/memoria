@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,17 +13,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/profiles/impl/cow_profile.hpp>
 
-#include <memoria/profiles/impl/no_cow_profile.hpp>
-#include <memoria/profiles/impl/cow_lite_profile.hpp>
-#include <memoria/memoria_core.hpp>
+#include <memoria/containers/map/map_impl.hpp>
+
+#include <memoria/core/strings/string.hpp>
 
 namespace memoria {
 
-void InitMemoriaCoreExplicit() {
-    InitCoreLDDatatypes();
-    InitCoreDatatypes();
-    InitSimpleNumericDatatypes();
-}
+using Profile = CowProfile<>;
+using CtrName = Map<BigInt, BigInt>;
+
+MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_bi_bi)
 
 }
+

@@ -29,7 +29,7 @@
 #include <memoria/api/multimap/multimap_api.hpp>
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
 
 #include <string>
 
@@ -53,7 +53,7 @@ MMA_DEFINE_DEFAULT_DATATYPE_OPS(AllocationMap);
 
 template <typename Profile>
 using DirectoryCtrType = Map<ProfileCtrID<Profile>, ProfileBlockID<Profile>>;
-MMA_DEFINE_DEFAULT_DATATYPE_OPS(DirectoryCtrType<MemoryCoWProfile<>>);
+MMA_DEFINE_DEFAULT_DATATYPE_OPS(DirectoryCtrType<CowLiteProfile<>>);
 
 void InitCtrDatatypes()
 {
@@ -74,7 +74,7 @@ void InitCtrDatatypes()
     register_notctr_operations<Multimap<UUID, UTinyInt>>();
     register_notctr_operations<Multimap<Varchar, Varchar>>();
     register_notctr_operations<AllocationMap>();
-    register_notctr_operations<DirectoryCtrType<MemoryCoWProfile<>>>();
+    register_notctr_operations<DirectoryCtrType<CowLiteProfile<>>>();
 }
 
 }

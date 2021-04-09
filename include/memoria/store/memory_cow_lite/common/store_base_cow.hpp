@@ -28,11 +28,11 @@
 
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/profiles/common/metadata.hpp>
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
 
 #include <memoria/api/store/memory_store_api.hpp>
 
-#include <memoria/store/memory_cow/common/snapshot_base_cow.hpp>
+#include <memoria/store/memory_cow_lite/common/snapshot_base_cow.hpp>
 
 #include <stdlib.h>
 #include <memory>
@@ -47,7 +47,7 @@
 namespace memoria {
 
 template <typename ValueHolder>
-InputStreamHandler& operator>>(InputStreamHandler& in, MemCoWBlockID<ValueHolder>& value)
+InputStreamHandler& operator>>(InputStreamHandler& in, CowLiteBlockID<ValueHolder>& value)
 {
     in >> value.value();
     return in;

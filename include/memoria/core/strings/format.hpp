@@ -113,11 +113,11 @@ struct formatter<memoria::filesystem::path> {
 };
 
 template <typename ValueHolder>
-struct formatter<memoria::MemCoWBlockID<ValueHolder>> {
+struct formatter<memoria::CowLiteBlockID<ValueHolder>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::MemCoWBlockID<ValueHolder>& d, FormatContext& ctx)
+    auto format(const memoria::CowLiteBlockID<ValueHolder>& d, FormatContext& ctx)
     {
         std::stringstream ss;
         ss << d;

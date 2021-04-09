@@ -24,9 +24,9 @@
 #include <memoria/core/tools/latch.hpp>
 #include <memoria/core/memory/memory.hpp>
 
-#include <memoria/store/memory_cow/common/store_base_cow.hpp>
+#include <memoria/store/memory_cow_lite/common/store_base_cow.hpp>
 
-#include <memoria/store/memory_cow/threads/threads_snapshot_cow_impl.hpp>
+#include <memoria/store/memory_cow_lite/threads/threads_snapshot_cow_impl.hpp>
 
 #include <memoria/filesystem/path.hpp>
 

@@ -26,7 +26,6 @@ MMA_DEFINE_EXPLICIT_CU_LINKING(MemoriaStaticAppInit)
 
 struct StaticInitializer {
     StaticInitializer() {
-
         InitMemoriaCoreExplicit();
         InitMemoriaCtrsExplicit();
         InitMemoriaStoresExplicit();

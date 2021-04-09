@@ -44,6 +44,9 @@
 #include <memoria/core/memory/ptr_cast.hpp>
 #include <memoria/core/tools/result.hpp>
 
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
+
+
 #include <type_traits>
 
 namespace memoria {
@@ -852,7 +855,7 @@ namespace detail_ {
     };
 
     template <>
-    struct BTNodeNodeMethodsSelector<MemoryCoWProfile<>> {
+    struct BTNodeNodeMethodsSelector<CowLiteProfile<>> {
 
         template <typename BTNode, typename IDResolver>
         static VoidResult serialize(const BTNode* node, SerializationData& data, const IDResolver* id_resolver) noexcept

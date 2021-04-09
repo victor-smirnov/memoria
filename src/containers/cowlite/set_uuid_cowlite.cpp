@@ -13,16 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
-#include <memoria/containers/vector/vctr_factory.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
+#include <memoria/containers/set/set_factory.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 
 namespace memoria {
 
-using Profile = MemoryCoWProfile<>;
-using CtrName = Vector<Varchar>;
+using Profile = CowLiteProfile<>;
+using CtrName = Set<UUID>;
 
 MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
-    
+
 }
+
+
 

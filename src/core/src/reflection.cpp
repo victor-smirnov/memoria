@@ -17,29 +17,11 @@
 
 #include <memoria/core/strings/string.hpp>
 #include <memoria/profiles/common/container_operations.hpp>
-
-#include <memoria/profiles/common/metadata.hpp>
-#include <memoria/profiles/impl/no_cow_profile.hpp>
-
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
-
 namespace memoria {
 
 std::ostream& operator<<(std::ostream& os, const IDValue& id) {
     os << id.str();
     return os;
-}
-
-//template class ProfileMetadata<NoCowProfile<>>;
-
-
-namespace {
-
-//ProfileMetadata<NoCowProfile<>>::Init init_def;
-
 }
 
 }

@@ -13,9 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#include <memoria/profiles/impl/no_cow_profile.hpp>
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
 #include <memoria/memoria_stores.hpp>
 
 namespace memoria {

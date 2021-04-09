@@ -14,7 +14,6 @@
 // limitations under the License.
 
 
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
 #include <memoria/api/store/swmr_store_api.hpp>
 
 #include <memoria/api/set/set_api.hpp>
@@ -38,6 +37,12 @@ int main(void) {
 
         UUID ctr_id = UUID::make_random();
 
+//        DataTypeBuffer<Varchar> buf0;
+
+//        for (int c = 0; c < 1000; c++) {
+//            buf0.append(format_u8("Cool String via Buffer :: {}", c));
+//        }
+
         auto t_start = getTimeInMillis();
 
         StoreCheckCallbackFn callback = [](LDDocument& doc){
@@ -49,6 +54,14 @@ int main(void) {
             {
                 auto snp0 = store1->begin().get_or_throw();
                 auto ctr0 = create(snp0, CtrType(), ctr_id).get_or_throw();
+
+                ctr0->append([&](auto& buf, size_t){
+                    for (int c = 0; c < 1000; c++) {
+                        buf.append(format_u8("Cool String via Buffer :: {}", c));
+                    }
+                    return true;
+                }).get_or_throw();
+
                 snp0->commit().get_or_throw();
                 //snp0->describe_to_cout().get_or_throw();
             }

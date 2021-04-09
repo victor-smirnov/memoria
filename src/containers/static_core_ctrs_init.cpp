@@ -14,8 +14,9 @@
 // limitations under the License.
 
 
+#include <memoria/profiles/impl/cow_profile.hpp>
 #include <memoria/profiles/impl/no_cow_profile.hpp>
-#include <memoria/profiles/impl/memory_cow_profile.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
 #include <memoria/memoria_ctrs.hpp>
 
 namespace memoria {
@@ -24,12 +25,11 @@ namespace memoria {
 void InitMemoriaCtrsExplicit() {
     InitCtrDatatypes();
 
-
-#if defined(MEMORIA_BUILD_MEMORY_STORE_COW) || defined(MEMORIA_BUILD_SWMR_STORE_MAPPED)
-    StaticLibraryCtrs<MemoryCoWProfile<>>::init();
-#endif
+    StaticLibraryCtrs<CowLiteProfile<>>::init();
 
     StaticLibraryCtrs<NoCowProfile<>>::init();
+
+    StaticLibraryCtrs<CowProfile<>>::init();
 }
 
 }

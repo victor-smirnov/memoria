@@ -20,7 +20,7 @@
 
 #include <memoria/api/store/memory_store_api.hpp>
 
-#include <memoria/store/memory_cow/common/store_stat_cow.hpp>
+#include <memoria/store/memory_cow_lite/common/store_stat_cow.hpp>
 #include <memoria/store/memory/common/static_pool.hpp>
 
 
