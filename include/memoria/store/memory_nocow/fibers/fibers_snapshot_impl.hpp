@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/store/memory/common/snapshot_base.hpp>
+#include <memoria/store/memory_nocow/common/snapshot_base.hpp>
 
 #include <memoria/api/store/memory_store_api.hpp>
 
@@ -44,7 +44,7 @@
 
 namespace memoria {
 namespace store {
-namespace memory {
+namespace memory_nocow {
 
 enum class OperationType {OP_FIND, OP_CREATE, OP_UPDATE, OP_DELETE};
 

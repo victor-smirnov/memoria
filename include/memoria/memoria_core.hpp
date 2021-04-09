@@ -27,4 +27,6 @@ void InitSimpleNumericDatatypes();
 
 void InitMemoriaCoreExplicit();
 
+void InitProfileMetadata();
+
 }

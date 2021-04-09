@@ -20,9 +20,7 @@
 
 #include <memoria/api/store/memory_store_api.hpp>
 
-#include <memoria/store/memory_cow_lite/common/store_stat_cow.hpp>
-#include <memoria/store/memory/common/static_pool.hpp>
-
+#include <memoria/store/memory_cow_lite/common/store_stat_cow_lite.hpp>
 
 #include <memoria/core/container/allocator.hpp>
 #include <memoria/core/container/ctr_impl.hpp>
@@ -52,7 +50,7 @@
 
 namespace memoria {
 namespace store {
-namespace memory_cow {
+namespace memory_cow_lite {
 
 template <typename Profile, typename PersistentAllocator, typename SnapshotType>
 class SnapshotBase:

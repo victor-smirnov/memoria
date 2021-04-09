@@ -24,9 +24,9 @@
 #include <memoria/core/tools/latch.hpp>
 #include <memoria/core/memory/memory.hpp>
 
-#include <memoria/store/memory/common/store_base.hpp>
+#include <memoria/store/memory_nocow/common/store_base.hpp>
 
-#include <memoria/store/memory/threads/threads_snapshot_impl.hpp>
+#include <memoria/store/memory_nocow/threads/threads_snapshot_impl.hpp>
 
 #include <memoria/filesystem/path.hpp>
 
@@ -40,7 +40,7 @@
 
 namespace memoria {
 namespace store {
-namespace memory {
+namespace memory_nocow {
 
 template <typename Profile>
 class ThreadsMemoryStoreImpl: public MemoryStoreBase<Profile, ThreadsMemoryStoreImpl<Profile>> {

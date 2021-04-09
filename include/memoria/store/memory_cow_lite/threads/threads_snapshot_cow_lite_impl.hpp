@@ -17,7 +17,7 @@
 #pragma once
 
 
-#include <memoria/store/memory_cow_lite/common/snapshot_base_cow.hpp>
+#include <memoria/store/memory_cow_lite/common/snapshot_base_cow_lite.hpp>
 
 #include <memoria/api/store/memory_store_api.hpp>
 
@@ -42,7 +42,7 @@
 
 namespace memoria {
 namespace store {
-namespace memory_cow {
+namespace memory_cow_lite {
 
 
 template <typename Profile, typename PersistentAllocator>

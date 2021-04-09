@@ -52,7 +52,7 @@ template class ProfileMetadata<CowLiteProfile<>>;
 template class ProfileMetadataStore<CowProfile<>>;
 template class ProfileMetadata<CowProfile<>>;
 
-namespace {
+void InitProfileMetadata() {
     ProfileMetadataStore<NoCowProfile<>>::Init init_store1;
     ProfileMetadataStore<CowLiteProfile<>>::Init init_store2;
     ProfileMetadataStore<CowProfile<>>::Init init_store3;

@@ -22,7 +22,7 @@ namespace memoria {
 
 
 #ifdef MEMORIA_BUILD_MEMORY_STORE
-void InitDefaultInMemStore();
+void InitNoCowInMemStore();
 #endif
 
 #if defined(MEMORIA_BUILD_MEMORY_STORE_COW)

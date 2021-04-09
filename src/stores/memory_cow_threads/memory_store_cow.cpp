@@ -14,7 +14,7 @@
 // limitations under the License.
 
 #include <memoria/profiles/impl/cow_lite_profile.hpp>
-#include <memoria/store/memory_cow_lite/threads/threads_memory_store_cow_impl.hpp>
+#include <memoria/store/memory_cow_lite/threads/threads_memory_store_cow_lite_impl.hpp>
 
 namespace memoria {
 
@@ -36,7 +36,7 @@ Result<SharedPtr<IMemoryStore<ApiProfileT>>> create_memory_store() noexcept
     using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>;
     MaybeError maybe_error;
 
-    auto snp = MakeShared<store::memory_cow::ThreadsMemoryStoreImpl<Profile>>(maybe_error);
+    auto snp = MakeShared<store::memory_cow_lite::ThreadsMemoryStoreImpl<Profile>>(maybe_error);
 
     if (!maybe_error) {
         return ResultT::of(std::move(snp));
@@ -48,7 +48,7 @@ Result<SharedPtr<IMemoryStore<ApiProfileT>>> create_memory_store() noexcept
 
 Result<SharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store(U8String path) noexcept {
     auto fileh = FileInputStreamHandler::create(path.data());
-    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(fileh.get());
+    auto rr = store::memory_cow_lite::ThreadsMemoryStoreImpl<Profile>::load(fileh.get());
 
     if (rr.is_ok()) {
         return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
@@ -59,7 +59,7 @@ Result<SharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store(U8String path) no
 
 Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store(InputStreamHandler* input_stream) noexcept
 {
-    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(input_stream);
+    auto rr = store::memory_cow_lite::ThreadsMemoryStoreImpl<Profile>::load(input_stream);
     if (rr.is_ok()) {
         return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
     }
@@ -69,7 +69,7 @@ Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store(InputStreamH
 
 
 namespace store {
-namespace memory_cow {
+namespace memory_cow_lite {
 
 template class ThreadsMemoryStoreImpl<Profile>;
 template class ThreadsSnapshot<Profile, ThreadsMemoryStoreImpl<Profile>>;
@@ -85,7 +85,7 @@ struct Initializer {
 }}
 
 void InitCoWInMemStore() {
-    store::memory_cow::Initializer<Profile> init0;
+    store::memory_cow_lite::Initializer<Profile> init0;
 }
 
 

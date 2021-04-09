@@ -21,6 +21,7 @@
 namespace memoria {
 
 void InitMemoriaCoreExplicit() {
+    InitProfileMetadata();
     InitCoreLDDatatypes();
     InitCoreDatatypes();
     InitSimpleNumericDatatypes();

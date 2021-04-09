@@ -25,7 +25,7 @@
 
 namespace memoria {
 namespace store {
-namespace memory {
+namespace memory_nocow {
 
 namespace _ {
     using BlockSet = std::unordered_set<const void*>;

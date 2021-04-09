@@ -19,7 +19,7 @@ namespace memoria {
 
 void InitMemoriaStoresExplicit() {
 #ifdef MEMORIA_BUILD_MEMORY_STORE
-        InitDefaultInMemStore();
+        InitNoCowInMemStore();
 #endif
 
 #if defined(MEMORIA_BUILD_MEMORY_STORE_COW)

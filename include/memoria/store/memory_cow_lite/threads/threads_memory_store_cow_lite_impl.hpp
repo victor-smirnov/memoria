@@ -24,9 +24,8 @@
 #include <memoria/core/tools/latch.hpp>
 #include <memoria/core/memory/memory.hpp>
 
-#include <memoria/store/memory_cow_lite/common/store_base_cow.hpp>
-
-#include <memoria/store/memory_cow_lite/threads/threads_snapshot_cow_impl.hpp>
+#include <memoria/store/memory_cow_lite/common/store_base_cow_lite.hpp>
+#include <memoria/store/memory_cow_lite/threads/threads_snapshot_cow_lite_impl.hpp>
 
 #include <memoria/filesystem/path.hpp>
 
@@ -40,7 +39,7 @@
 
 namespace memoria {
 namespace store {
-namespace memory_cow {
+namespace memory_cow_lite {
 
 template <typename Profile>
 class ThreadsMemoryStoreImpl: public MemoryStoreBase<Profile, ThreadsMemoryStoreImpl<Profile>> {

@@ -32,7 +32,7 @@
 
 namespace memoria {
 namespace store {
-namespace memory {
+namespace memory_nocow {
 
 template <typename BranchNode, typename LeafNode>
 class PersistentTreeIteratorBase {

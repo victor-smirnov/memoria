@@ -24,8 +24,8 @@
 #include <memoria/core/tools/latch.hpp>
 #include <memoria/core/memory/memory.hpp>
 
-#include <memoria/store/memory/common/store_base.hpp>
-#include <memoria/store/memory/fibers/fibers_snapshot_impl.hpp>
+#include <memoria/store/memory_nocow/common/store_base.hpp>
+#include <memoria/store/memory_nocow/fibers/fibers_snapshot_impl.hpp>
 
 #include <memoria/reactor/reactor.hpp>
 
@@ -49,7 +49,7 @@
 
 namespace memoria {
 namespace store {
-namespace memory {
+namespace memory_nocow {
 
 
 template <typename Profile>

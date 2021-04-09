@@ -20,9 +20,7 @@
 
 #include <memoria/api/store/memory_store_api.hpp>
 
-#include <memoria/store/memory/common/store_stat.hpp>
-#include <memoria/store/memory/common/static_pool.hpp>
-
+#include <memoria/store/memory_nocow/common/store_stat.hpp>
 
 #include <memoria/core/container/allocator.hpp>
 #include <memoria/core/container/ctr_impl.hpp>
@@ -41,7 +39,7 @@
 
 #include <memoria/core/linked/document/linked_document.hpp>
 
-#include <memoria/store/memory/common/persistent_tree.hpp>
+#include <memoria/store/memory_nocow/common/persistent_tree.hpp>
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
@@ -57,7 +55,7 @@
 
 namespace memoria {
 namespace store {
-namespace memory {
+namespace memory_nocow {
 
 template <typename Profile, typename PersistentAllocator, typename SnapshotType>
 class SnapshotBase:

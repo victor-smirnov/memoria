@@ -15,7 +15,7 @@
 
 #include <memoria/profiles/impl/no_cow_profile.hpp>
 
-#include <memoria/store/memory/fibers/fibers_memory_store_impl.hpp>
+#include <memoria/store/memory_nocow/fibers/fibers_memory_store_impl.hpp>
 
 namespace memoria {
 
@@ -30,7 +30,7 @@ Result<SharedPtr<IMemoryStore<ApiProfileT>>> create_memory_store_noncow() noexce
     using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>;
     MaybeError maybe_error;
 
-    auto snp = MakeShared<store::memory::FibersMemoryStoreImpl<Profile>>(maybe_error);
+    auto snp = MakeShared<store::memory_nocow::FibersMemoryStoreImpl<Profile>>(maybe_error);
 
     if (!maybe_error) {
         return ResultT::of(std::move(snp));
@@ -42,7 +42,7 @@ Result<SharedPtr<IMemoryStore<ApiProfileT>>> create_memory_store_noncow() noexce
 
 Result<SharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store_noncow(U8String path) noexcept {
     auto fileh = FileInputStreamHandler::create(path.data());
-    auto rr = store::memory::FibersMemoryStoreImpl<Profile>::load(fileh.get());
+    auto rr = store::memory_nocow::FibersMemoryStoreImpl<Profile>::load(fileh.get());
 
     if (rr.is_ok()) {
         return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
@@ -53,7 +53,7 @@ Result<SharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store_noncow(U8String p
 
 Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store_noncow(InputStreamHandler* input_stream) noexcept
 {
-    auto rr = store::memory::FibersMemoryStoreImpl<Profile>::load(input_stream);
+    auto rr = store::memory_nocow::FibersMemoryStoreImpl<Profile>::load(input_stream);
     if (rr.is_ok()) {
         return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
     }
@@ -62,7 +62,7 @@ Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store_noncow(Input
 }
 
 namespace store {
-namespace memory {
+namespace memory_nocow {
     
 template class FibersMemoryStoreImpl<Profile>;
 template class FibersSnapshot<Profile, FibersMemoryStoreImpl<Profile>>;
@@ -76,8 +76,8 @@ struct Initializer {
 
 }}
 
-void InitDefaultInMemStore() {
-    store::memory::Initializer<Profile> init0;
+void InitNoCowInMemStore() {
+    store::memory_nocow::Initializer<Profile> init0;
 }
 
 }
