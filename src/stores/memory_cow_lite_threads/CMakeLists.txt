@@ -12,28 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (BUILD_MEMORY_STORE)
-    add_subdirectory(memory_nocow_fibers)
-    add_subdirectory(memory_nocow_threads)
-endif()
-
-
-if (BUILD_MEMORY_STORE_COW)
-    add_subdirectory(memory_cow_lite_threads)
-    add_subdirectory(memory_cow_threads)
-endif()
-
-if (BUILD_SWMR_STORE_MAPPED)
-    add_subdirectory(swmr_mapped)
-endif()
-
-
-if (BUILD_LMDB_STORE)
-    add_subdirectory(lmdb)
-endif()
-
-
+file(GLOB SRCS *.cpp)
+set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES_REACTOR ${SRCS})
 
 file(GLOB SRCS *.cpp)
 set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS})
-set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES_REACTOR ${SRCS})
+
