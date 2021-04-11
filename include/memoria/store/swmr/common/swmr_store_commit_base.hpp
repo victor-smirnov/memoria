@@ -98,7 +98,15 @@ protected:
     using HistoryCtrType    = Map<BigInt, BigInt>;
     using HistoryCtr        = ICtrApi<HistoryCtrType, ApiProfileT>;
 
-    static constexpr size_t BASIC_BLOCK_SIZE = 4096;
+    static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
+    static constexpr int32_t SUPERBLOCK_SIZE             = BASIC_BLOCK_SIZE;
+    static constexpr size_t  HEADER_SIZE                 = Store::HEADER_SIZE;
+    static constexpr int32_t ALLOCATION_MAP_LEVELS       = Store::ALLOCATION_MAP_LEVELS;
+    static constexpr int32_t ALLOCATION_MAP_SIZE_STEP    = Store::ALLOCATION_MAP_SIZE_STEP;
+    static constexpr int32_t SUPERBLOCK_ALLOCATION_LEVEL = Log2(SUPERBLOCK_SIZE / BASIC_BLOCK_SIZE) - 1;
+    static constexpr int32_t SUPERBLOCKS_RESERVED        = HEADER_SIZE / BASIC_BLOCK_SIZE;
+
+
 
     SharedPtr<Store> store_;
 

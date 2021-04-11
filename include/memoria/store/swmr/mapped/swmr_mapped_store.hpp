@@ -64,13 +64,12 @@ protected:
     using Base::init_mapped_store;
     using Base::buffer_;
 
-    using ApiProfileT = ApiProfile<Profile>;
+    using Base::HEADER_SIZE;
+    using Base::BASIC_BLOCK_SIZE;
+    using Base::ALLOCATION_MAP_SIZE_STEP;
+    using Base::MB;
 
-    static constexpr size_t  BASIC_BLOCK_SIZE = 4096;
-    static constexpr size_t  HEADER_SIZE = BASIC_BLOCK_SIZE * 2;
-    static constexpr int32_t ALLOCATION_MAP_LEVELS    = ICtrApi<AllocationMap, ApiProfileT>::LEVELS;
-    static constexpr int32_t ALLOCATION_MAP_SIZE_STEP = ICtrApi<AllocationMap, ApiProfileT>::ALLOCATION_SIZE * BASIC_BLOCK_SIZE;
-    static constexpr size_t  MB = 1024*1024;
+    using ApiProfileT = ApiProfile<Profile>;
 
     mutable std::recursive_mutex reader_mutex_;
     mutable std::recursive_mutex writer_mutex_;
@@ -89,16 +88,6 @@ protected:
     template <typename> friend class MappedSWMRStoreReadonlyCommit;
     template <typename> friend class MappedSWMRStoreWritableCommit;
     template <typename> friend class MappedSWMRStoreCommitBase;
-    template <typename> friend class SWMRMappedStoreHistoryView;
-
-    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_swmr_store(U8StringView);
-    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_swmr_store(U8StringView, uint64_t);
-
-    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_lite_raw_swmr_store(U8StringView);
-    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_lite_raw_swmr_store(U8StringView, uint64_t);
-
-    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_lite_swmr_store(U8StringView);
-    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_lite_swmr_store(U8StringView, uint64_t);
 
     U8String file_name_;
     uint64_t file_size_;
@@ -106,7 +95,6 @@ protected:
     boost::interprocess::mapped_region region_;
 
     std::unique_ptr<detail::FileLockHandler> lock_;
-
 
 public:
     MappedSWMRStore(MaybeError& maybe_error, U8String file_name, uint64_t file_size_mb):
@@ -278,6 +266,11 @@ public:
         );
     }
 
+    VoidResult do_open_file() noexcept
+    {
+        return this->do_open_buffer();
+    }
+
 private:
 
     VoidResult check_file_size() noexcept
@@ -307,10 +300,7 @@ private:
 
 
 
-    VoidResult do_open_file() noexcept
-    {
-        return this->do_open_buffer();
-    }
+
 
     static uint64_t compute_file_size(uint64_t file_size_mb) noexcept
     {

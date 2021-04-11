@@ -65,24 +65,14 @@ class MappedSWMRStoreWritableCommit:
     using Superblock          = SWMRSuperblock<Profile>;
     using ParentCommit        = SnpSharedPtr<MappedSWMRStoreReadOnlyCommit<Profile>>;
 
-
-
     using BlockCleanupHandler = std::function<VoidResult ()>;
 
     using Base::BASIC_BLOCK_SIZE;
-
-    //static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
-    static constexpr int32_t SUPERBLOCK_SIZE             = BASIC_BLOCK_SIZE;
-
-
-    static constexpr size_t  HEADER_SIZE = BASIC_BLOCK_SIZE * 2;
-    static constexpr int32_t ALLOCATION_MAP_LEVELS    = ICtrApi<AllocationMap, ApiProfileT>::LEVELS;
-    static constexpr int32_t ALLOCATION_MAP_SIZE_STEP = ICtrApi<AllocationMap, ApiProfileT>::ALLOCATION_SIZE * BASIC_BLOCK_SIZE;
-
-    static constexpr int32_t SUPERBLOCK_ALLOCATION_LEVEL = Log2(SUPERBLOCK_SIZE / BASIC_BLOCK_SIZE) - 1;
-    static constexpr int32_t SUPERBLOCKS_RESERVED        = HEADER_SIZE / BASIC_BLOCK_SIZE;
-    //static constexpr int32_t ALLOCATION_MAP_SIZE_STEP    = Store::ALLOCATION_MAP_SIZE_STEP;
-
+    using Base::SUPERBLOCK_ALLOCATION_LEVEL;
+    using Base::SUPERBLOCK_SIZE;
+    using Base::ALLOCATION_MAP_LEVELS;
+    using Base::ALLOCATION_MAP_SIZE_STEP;
+    using Base::SUPERBLOCKS_RESERVED;
 
     CtrSharedPtr<AllocationMapCtr> parent_allocation_map_ctr_;
 
