@@ -32,6 +32,9 @@ namespace memoria {
 template <typename ChildType = void>
 class CowProfile  {};
 
+template<>
+struct TypeHash<CowProfile<>>: HasValue<uint64_t, 4863967982592845444ull> {};
+
 template <>
 struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using Base = ApiProfileTraits<CoreApiProfile<>>;

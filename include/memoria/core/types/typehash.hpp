@@ -44,9 +44,10 @@ template <> struct TypeHash<int64_t>:   UInt64Value<7> {};
 template <> struct TypeHash<uint64_t>:  UInt64Value<8> {};
 template <> struct TypeHash<float>:     UInt64Value<9> {};
 template <> struct TypeHash<double>:    UInt64Value<10> {};
+template <> struct TypeHash<void>:      UInt64Value<11> {};
 
-// Core datatypes: 11 - 29
-// LinkedData: 30 - 34
+// Core datatypes: 20 - 39
+// LinkedData: 40 - 44
 // Reserved for Linked Data : 250 - 255
 
 template <
@@ -56,7 +57,7 @@ template <
 struct TypeHash<Profile<T>> {
     // FIXME need template assigning unique code to the each profile level
     using VList = UInt64List<100, TypeHash<T>::Value>;
-    static constexpr uint64_t Value = md5::Md5Sum<VList>::Result::Value64;
+    static constexpr uint64_t Value = md5::Md5Sum<VList>::Type::Value64;
 };
 
 
@@ -169,10 +170,10 @@ struct TypeHash<Table<Key, Value, PackedDataTypeSize::VARIABLE>>: UInt64Value <
     HashHelper<3099, TypeHashV<Key>, TypeHashV<Value>>
 > {};
 
+
 template <typename ValueHolder>
 struct TypeHash<CowBlockID<ValueHolder>>: UInt64Value <
     HashHelper<345630986034956, TypeHashV<ValueHolder>>
 > {};
-
 
 }

@@ -18,7 +18,6 @@
 
 #include <memoria/core/types.hpp>
 
-
 namespace memoria {
 
 template <typename ValueHolder_>
@@ -71,6 +70,9 @@ std::ostream& operator<<(std::ostream& out, const CowBlockID<VH>& block_id) noex
 
     return out;
 }
+
+
+
 
 }
 

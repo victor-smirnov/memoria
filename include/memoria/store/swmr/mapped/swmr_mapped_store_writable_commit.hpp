@@ -669,13 +669,11 @@ public:
         return ResultT::of(BlockG{new_block});
     }
 
-    virtual VoidResult ref_block(const BlockID& block_id) noexcept
-    {
+    virtual VoidResult ref_block(const BlockID& block_id) noexcept {
         return refcounter_delegate_->ref_block(block_id);
     }
 
-    virtual VoidResult unref_block(const BlockID& block_id, BlockCleanupHandler on_zero) noexcept
-    {
+    virtual VoidResult unref_block(const BlockID& block_id, BlockCleanupHandler on_zero) noexcept {
         return refcounter_delegate_->unref_block(block_id, on_zero);
     }
 

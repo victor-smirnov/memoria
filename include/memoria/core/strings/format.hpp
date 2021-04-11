@@ -21,7 +21,6 @@
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/exceptions/core.hpp>
 #include <memoria/core/container/cow.hpp>
-
 #include <memoria/filesystem/path.hpp>
 
 #include <string>

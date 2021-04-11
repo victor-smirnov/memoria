@@ -19,8 +19,10 @@
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/types/typehash.hpp>
 #include <memoria/core/strings/format.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
+
 
 namespace memoria {
 
@@ -30,9 +32,10 @@ enum class SWMRStoreStatus {
 
 template <typename Profile>
 class SWMRSuperblock {
+    static constexpr uint64_t PROFILE_HASH = TypeHash<Profile>::Value;
 public:
-    static constexpr UUID MAGICK1 = UUID(15582486158405818875ull, 10745804754247616161ull);
-    static constexpr UUID MAGICK2 = UUID(11983071476558773143ull, 15192944415463971007ull);
+    static constexpr UUID MAGICK1 = UUID(15582486158405818875ull ^ PROFILE_HASH, 10745804754247616161ull ^ PROFILE_HASH);
+    static constexpr UUID MAGICK2 = UUID(11983071476558773143ull ^ PROFILE_HASH, 15192944415463971007ull ^ PROFILE_HASH);
 
     using BlockID    = ProfileBlockID<Profile>;
     using CommitUUID = ProfileSnapshotID<Profile>;

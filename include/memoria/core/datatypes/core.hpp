@@ -103,64 +103,64 @@ template <typename DataType, typename Buffer> class SparseObjectBuilder;
 
 
 template <>
-struct TypeHash<TinyInt>:  UInt64Value<11>  {};
+struct TypeHash<TinyInt>:  UInt64Value<20>  {};
 
 template <>
-struct TypeHash<UTinyInt>: UInt64Value<12>  {};
+struct TypeHash<UTinyInt>: UInt64Value<21>  {};
 
 template <>
-struct TypeHash<SmallInt>: UInt64Value<13>  {};
+struct TypeHash<SmallInt>: UInt64Value<22>  {};
 
 template <>
-struct TypeHash<USmallInt>: UInt64Value<14> {};
+struct TypeHash<USmallInt>: UInt64Value<23> {};
 
 template <>
-struct TypeHash<Integer>:  UInt64Value<15>  {};
+struct TypeHash<Integer>:  UInt64Value<23>  {};
 
 template <>
-struct TypeHash<UInteger>: UInt64Value<16>  {};
+struct TypeHash<UInteger>: UInt64Value<25>  {};
 
 template <>
-struct TypeHash<BigInt>:   UInt64Value<17>  {};
+struct TypeHash<BigInt>:   UInt64Value<26>  {};
 
 template <>
-struct TypeHash<UBigInt>:  UInt64Value<18>  {};
+struct TypeHash<UBigInt>:  UInt64Value<27>  {};
 
 template <>
-struct TypeHash<Varchar>:  UInt64Value<19>  {};
+struct TypeHash<Varchar>:  UInt64Value<28>  {};
 
 template <>
-struct TypeHash<Varbinary>: UInt64Value<20> {};
+struct TypeHash<Varbinary>: UInt64Value<29> {};
 
 template <>
-struct TypeHash<Real>:     UInt64Value<21>  {};
+struct TypeHash<Real>:     UInt64Value<30>  {};
 
 template <>
-struct TypeHash<Double>: UInt64Value<22>    {};
+struct TypeHash<Double>: UInt64Value<31>    {};
 
 template <>
-struct TypeHash<Timestamp>: UInt64Value<23> {};
+struct TypeHash<Timestamp>: UInt64Value<32> {};
 
 template <>
-struct TypeHash<TimestampWithTZ>: UInt64Value<24> {};
+struct TypeHash<TimestampWithTZ>: UInt64Value<33> {};
 
 template <>
-struct TypeHash<Date>: UInt64Value<25>      {};
+struct TypeHash<Date>: UInt64Value<34>      {};
 
 template <>
-struct TypeHash<Time>: UInt64Value<26>      {};
+struct TypeHash<Time>: UInt64Value<35>      {};
 
 template <>
-struct TypeHash<TimeWithTZ>: UInt64Value<27> {};
+struct TypeHash<TimeWithTZ>: UInt64Value<36> {};
 
 template <>
-struct TypeHash<Boolean>: UInt64Value<28>   {};
+struct TypeHash<Boolean>: UInt64Value<37>   {};
 
 template <>
-struct TypeHash<BigDecimal>: UInt64Value<29>{};
+struct TypeHash<BigDecimal>: UInt64Value<38>{};
 
 template <>
-struct TypeHash<Decimal>: UInt64Value<30>{};
+struct TypeHash<Decimal>: UInt64Value<39>{};
 
 
 }
