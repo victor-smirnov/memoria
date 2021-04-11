@@ -1,5 +1,5 @@
-﻿
-// Copyright 2020 Victor Smirnov
+
+// Copyright 2019-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 #pragma once
 
+#include <memoria/store/swmr/common/mapped_swmr_store_base.hpp>
+
 #include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_commit.hpp>
 #include <memoria/store/swmr/mapped/swmr_mapped_store_writable_commit.hpp>
-#include <memoria/store/swmr/mapped/swmr_mapped_store_history_view.hpp>
 
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
@@ -35,39 +36,35 @@
 
 namespace memoria {
 
-namespace detail {
-
-struct FileLockHandler {
-    virtual ~FileLockHandler() noexcept;
-    virtual VoidResult unlock() noexcept = 0;
-
-    static Result<std::unique_ptr<FileLockHandler>> lock_file(const char* name, bool create) noexcept;
-};
-
-}
-
 template <typename Profile>
-class MappedSWMRStore: public ISWMRStore<ApiProfile<Profile>>, public ReferenceCounterDelegate<Profile>, public EnableSharedFromThis<MappedSWMRStore<Profile>> {
+class MappedSWMRStore: public MappedSWMRStoreBase<Profile>, public EnableSharedFromThis<MappedSWMRStore<Profile>> {
 
-    using Base = ISWMRStore<ApiProfile<Profile>>;
+    using Base = MappedSWMRStoreBase<Profile>;
+
+    using MappedReadOnlyCommitPtr = SnpSharedPtr<MappedSWMRStoreReadOnlyCommit<Profile>>;
+    using MappedWritableCommitPtr = SnpSharedPtr<MappedSWMRStoreWritableCommit<Profile>>;
+
+protected:
+
     using typename Base::ReadOnlyCommitPtr;
     using typename Base::WritableCommitPtr;
+
+    using typename Base::SWMRReadOnlyCommitPtr;
+    using typename Base::SWMRWritableCommitPtr;
+
+
     using typename Base::CommitID;
     using typename Base::SequenceID;
+    using typename Base::CommitDescriptorT;
+    using typename Base::CounterStorageT;
+    using typename Base::BlockID;
+
+    using Base::block_counters_;
+    using Base::get_superblock;
+    using Base::init_mapped_store;
+    using Base::buffer_;
 
     using ApiProfileT = ApiProfile<Profile>;
-
-    using MappedReadOnlyCommitPtr = SharedPtr<MappedSWMRStoreReadOnlyCommit<Profile>>;
-    using MappedWritableCommitPtr = SharedPtr<MappedSWMRStoreWritableCommit<Profile>>;
-    using MappedWritableCommitWeakPtr = WeakPtr<MappedSWMRStoreWritableCommit<Profile>>;
-
-    using CommitDescriptorT = CommitDescriptor<Profile>;
-    using BlockID = ProfileBlockID<Profile>;
-
-    struct CounterStorageT {
-        BlockID block_id;
-        uint64_t counter;
-    };
 
     static constexpr size_t  BASIC_BLOCK_SIZE = 4096;
     static constexpr size_t  HEADER_SIZE = BASIC_BLOCK_SIZE * 2;
@@ -110,11 +107,6 @@ class MappedSWMRStore: public ISWMRStore<ApiProfile<Profile>>, public ReferenceC
 
     std::unique_ptr<detail::FileLockHandler> lock_;
 
-    Span<uint8_t> buffer_;
-
-    MappedWritableCommitWeakPtr current_writer_;
-
-    SWMRBlockCounters<Profile> block_counters_;
 
 public:
     MappedSWMRStore(MaybeError& maybe_error, U8String file_name, uint64_t file_size_mb):
@@ -177,118 +169,17 @@ public:
     }
 
 
-    virtual Result<std::vector<CommitID>> persistent_commits() noexcept
-    {
-        MEMORIA_TRY_VOID(check_if_open());
-
-        LockGuard lock(reader_mutex_);
-
-        using ResultT = Result<std::vector<CommitID>>;
-
-        std::vector<CommitID> commits;
-
-        for (const auto& descr: persistent_commits_) {
-            commits.push_back(descr.first);
-        }
-
-        return ResultT::of(std::move(commits));
-    }
-
-    virtual Result<ReadOnlyCommitPtr> open(CommitID commit_id) noexcept
-    {
-        MEMORIA_TRY_VOID(check_if_open());        
-        LockGuard lock(reader_mutex_);
-
-        if (MMA_UNLIKELY(head_ptr_->superblock()->commit_id() == commit_id)) {
-            return open();
-        }
-        else if (MMA_UNLIKELY(former_head_ptr_->superblock()->commit_id() == commit_id)) {
-            return open_readonly(former_head_ptr_);
-        }
-
-        auto ii = persistent_commits_.find(commit_id);
-        if (ii != persistent_commits_.end())
-        {
-            return open_readonly(ii->second);
-        }
-        else {
-            return make_generic_error_with_source(MA_SRC, "Can't find commit {}", commit_id);
-        }
-    }
-
-    virtual Result<ReadOnlyCommitPtr> open() noexcept
-    {
-        MEMORIA_TRY_VOID(check_if_open());
-
-        using ResultT = Result<ReadOnlyCommitPtr>;
-        MaybeError maybe_error{};
-        ReadOnlyCommitPtr ptr{};
-
-        {
-            LockGuard lock(reader_mutex_);
-            ptr = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
-                maybe_error, this->shared_from_this(), buffer_, head_ptr_
-            );
-        }
-
-        if (!maybe_error) {
-            return ResultT::of(std::move(ptr));
-        }
-        else {
-            return std::move(maybe_error.get());
-        }
-    }
-
-    virtual BoolResult drop_persistent_commit(CommitID commit_id) noexcept {
-        MEMORIA_TRY_VOID(check_if_open());
-        return BoolResult::of();
-    }
-
-    virtual VoidResult rollback_last_commit() noexcept
-    {
-        MEMORIA_TRY_VOID(check_if_open());
-        return VoidResult::of();
-    }
-
     virtual VoidResult flush() noexcept {
         MEMORIA_TRY_VOID(check_if_open());
         MEMORIA_TRY_VOID(flush_data());
         return flush_header();
     }
 
-    virtual Result<WritableCommitPtr> begin() noexcept
-    {
-        MEMORIA_TRY_VOID(check_if_open());
 
-        using ResultT = Result<SnpSharedPtr<MappedSWMRStoreWritableCommit<Profile>>>;
-        writer_mutex_.lock();
-
-        ResultT res = wrap_throwing([&]() -> ResultT {
-            CommitDescriptorT* commit_descriptor = new CommitDescriptorT();
-            MaybeError maybe_error{};
-            auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
-                maybe_error, this->shared_from_this(), buffer_, head_ptr_, commit_descriptor
-            );
-
-            if (!maybe_error) {
-                return ResultT::of(std::move(ptr));
-            }
-            else {
-                return std::move(maybe_error.get());
-            }
-        });
-
-        if (res.is_error())
-        {
-            writer_mutex_.unlock();
-            return MEMORIA_PROPAGATE_ERROR(res);
-        }
-        else {
-            current_writer_ = res.get();
-            MEMORIA_TRY_VOID(res.get()->finish_commit_opening());
-            return Result<WritableCommitPtr>::of(std::move(res).get());
-        }
+    VoidResult init_store() noexcept {
+        return this->init_mapped_store();
     }
+
 
     virtual VoidResult close() noexcept
     {
@@ -380,7 +271,7 @@ public:
 
     Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>> history_view() noexcept {
 
-        MEMORIA_TRY(head, open_mapped_readonly(head_ptr_));
+        MEMORIA_TRY(head, do_open_readonly(head_ptr_));
 
         return Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>>::of(
             MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head)
@@ -388,44 +279,6 @@ public:
     }
 
 private:
-    VoidResult check_if_open() noexcept {
-        if (!file_) {
-            return make_generic_error("File {} has been already closed", file_name_);
-        }
-
-        return VoidResult::of();
-    }
-
-    VoidResult init_store()
-    {
-        Superblock* sb0 = get_superblock(0);
-        Superblock* sb1 = get_superblock(BASIC_BLOCK_SIZE);
-
-        MEMORIA_TRY_VOID(sb0->init(0, buffer_.size(), 0, BASIC_BLOCK_SIZE, 0));
-        MEMORIA_TRY_VOID(sb0->build_superblock_description());
-
-        MEMORIA_TRY_VOID(sb1->init(BASIC_BLOCK_SIZE, buffer_.size(), 0, BASIC_BLOCK_SIZE, 0));
-        MEMORIA_TRY_VOID(sb1->build_superblock_description());
-
-        MaybeError maybe_error{};
-        CommitDescriptorT* commit_descriptor = new CommitDescriptorT();
-
-        writer_mutex_.lock();
-
-        auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
-            maybe_error, this->shared_from_this(), buffer_, commit_descriptor, InitStoreTag{}
-        );
-
-        if (!maybe_error)
-        {
-            MEMORIA_TRY_VOID(ptr->finish_store_initialization());
-            head_ptr_ = commit_descriptor;
-            return VoidResult::of();
-        }
-        else {
-            return std::move(maybe_error.get());
-        }
-    }
 
     VoidResult check_file_size() noexcept
     {
@@ -444,125 +297,19 @@ private:
         return VoidResult::of();
     }
 
-    Superblock* get_superblock(uint64_t file_pos) noexcept {
-        return ptr_cast<Superblock>(buffer_.data() + file_pos);
+    VoidResult check_if_open() noexcept {
+        if (!file_) {
+            return make_generic_error("File {} has been already closed", file_name_);
+        }
+
+        return VoidResult::of();
     }
 
-    VoidResult do_open_file()
+
+
+    VoidResult do_open_file() noexcept
     {
-        Superblock* sb0 = ptr_cast<Superblock>(buffer_.data());
-        Superblock* sb1 = ptr_cast<Superblock>(buffer_.data() + BASIC_BLOCK_SIZE);
-
-        if (!sb0->match_magick()) {
-            return MEMORIA_MAKE_GENERIC_ERROR("First SWMR store header magick number mismatch");
-        }
-
-        if (!sb1->match_magick()) {
-            return MEMORIA_MAKE_GENERIC_ERROR("Second SWMR store header magick number mismatch");
-        }
-
-        if (sb0->sequence_id() > sb1->sequence_id())
-        {
-            head_ptr_ = new CommitDescriptorT(get_superblock(sb0->superblock_file_pos()));
-
-            if (sb1->sequence_id() > 0)
-            {
-                former_head_ptr_ = new CommitDescriptorT(get_superblock(sb1->superblock_file_pos()));
-            }
-        }
-        else {
-            head_ptr_ = new CommitDescriptorT(get_superblock(sb1->superblock_file_pos()));
-
-            if (sb0->sequence_id() > 0)
-            {
-                former_head_ptr_ = new CommitDescriptorT(get_superblock(sb0->superblock_file_pos()));
-            }
-        }
-
-        if (head_ptr_->superblock()->file_size() != buffer_.size()) {
-            return MEMORIA_MAKE_GENERIC_ERROR(
-                "SWMR Store file size mismatch with header: {} {}",
-                head_ptr_->superblock()->file_size(), buffer_.size()
-            );
-        }
-
-        // Read snapshot history and
-        // preload all transient snapshots into the
-        // eviction queue
-
-        MaybeError maybe_error{};
-        auto ptr = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
-            maybe_error, this->shared_from_this(), buffer_, head_ptr_
-        );
-
-        if (MMA_UNLIKELY((bool)maybe_error)) {
-            return std::move(maybe_error.get());
-        }
-
-        uint64_t head_pos = head_ptr_->superblock()->superblock_file_pos();
-
-        uint64_t former_head_pos{};
-        if (former_head_ptr_) {
-            former_head_pos = former_head_ptr_->superblock()->superblock_file_pos();
-        }
-
-        auto rr = ptr->for_each_history_entry([&](const auto& commit_id, int64_t root_block_addr) noexcept -> VoidResult {
-            if (root_block_addr < 0)
-            {
-                uint64_t superblock_pos = -root_block_addr;
-                if (superblock_pos != former_head_pos && superblock_pos != head_pos)
-                {
-                    auto res = wrap_throwing([&](){
-                        Superblock* superblock = ptr_cast<Superblock>(buffer_.data() + superblock_pos);
-                        CommitDescriptorT* commit_descr = new CommitDescriptorT(superblock);                        
-                        eviction_queue_.push_back(*commit_descr);
-                    });
-                    MEMORIA_RETURN_IF_ERROR(res);
-                }
-            }
-            else {
-                Superblock* superblock = ptr_cast<Superblock>(buffer_.data() + root_block_addr);
-                CommitDescriptorT* commit_descr = new CommitDescriptorT(superblock);
-                commit_descr->set_persistent(true);
-                persistent_commits_[commit_id] = commit_descr;
-            }
-
-            return VoidResult::of();
-        });
-        MEMORIA_RETURN_IF_ERROR(rr);
-
-        if (head_ptr_->superblock()->is_clean()) {
-            return read_block_counters();
-        }
-        else {
-            return rebuild_block_counters();
-        }
-
-        return VoidResult::of();
-    }
-
-    VoidResult read_block_counters() noexcept
-    {
-        auto ctr_file_pos = head_ptr_->superblock()->block_counters_file_pos();
-        auto size = head_ptr_->superblock()->block_counters_size();
-        const CounterStorageT* ctr_storage = ptr_cast<const CounterStorageT>(buffer_.data() + ctr_file_pos);
-
-        for (uint64_t c = 0; c < size; c++)
-        {
-            block_counters_.set(ctr_storage[c].block_id, ctr_storage[c].counter);
-        }
-
-        return VoidResult::of();
-    }
-
-    VoidResult rebuild_block_counters() noexcept {
-        MEMORIA_TRY(commits, build_ordered_commits_list());
-
-        for (auto& commit: commits) {
-            MEMORIA_TRY_VOID(commit->build_block_refcounters(block_counters_));
-        }
-
-        return VoidResult::of();
+        return this->do_open_buffer();
     }
 
     static uint64_t compute_file_size(uint64_t file_size_mb) noexcept
@@ -602,24 +349,9 @@ private:
         return VoidResult::of();
     }
 
-    void unlock_writer() noexcept {
-        writer_mutex_.unlock();
-    }
-
-    Result<ReadOnlyCommitPtr> open_readonly(CommitDescriptorT* commit_descr) noexcept
+    virtual Result<SWMRReadOnlyCommitPtr> do_open_readonly(CommitDescriptorT* commit_descr) noexcept
     {
-        MEMORIA_TRY(commit, open_mapped_readonly(commit_descr));
-
-        return Result<ReadOnlyCommitPtr>::of(
-            memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(commit)
-        );
-    }
-
-
-
-    Result<MappedReadOnlyCommitPtr> open_mapped_readonly(CommitDescriptorT* commit_descr) noexcept
-    {
-        using ResultT = Result<MappedReadOnlyCommitPtr>;
+        using ResultT = Result<SWMRReadOnlyCommitPtr>;
         MaybeError maybe_error{};
         MappedReadOnlyCommitPtr ptr{};
 
@@ -630,6 +362,25 @@ private:
         }
 
         if (!maybe_error) {
+            return ResultT::of(
+                std::move(ptr)
+            );
+        }
+        else {
+            return std::move(maybe_error.get());
+        }
+    }
+
+    virtual Result<SWMRWritableCommitPtr> do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) noexcept
+    {
+        using ResultT = Result<SWMRWritableCommitPtr>;
+
+        MaybeError maybe_error{};
+        auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
+            maybe_error, this->shared_from_this(), buffer_, head, commit_descr
+        );
+
+        if (!maybe_error) {
             return ResultT::of(std::move(ptr));
         }
         else {
@@ -637,158 +388,23 @@ private:
         }
     }
 
-
-
-    virtual Result<Optional<SequenceID>> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) noexcept
+    virtual Result<SWMRWritableCommitPtr> do_create_writable_for_init(CommitDescriptorT* commit_descr) noexcept
     {
-        MEMORIA_TRY_VOID(check_if_open());
-        return wrap_throwing([&]() {
-            return do_check(from, callback);
-        });
-    }
+        using ResultT = Result<SWMRWritableCommitPtr>;
 
-    Result<std::vector<MappedReadOnlyCommitPtr>> build_ordered_commits_list(
-            const Optional<SequenceID>& from = Optional<SequenceID>{}
-    ) noexcept {
-        using ResultT = Result<std::vector<MappedReadOnlyCommitPtr>>;
+        MaybeError maybe_error{};
 
-        std::vector<MappedReadOnlyCommitPtr> commits;
+        auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
+            maybe_error, this->shared_from_this(), buffer_, commit_descr, InitStoreTag{}
+        );
 
-        for (CommitDescriptorT& commit: eviction_queue_) {
-            MEMORIA_TRY(ptr, open_mapped_readonly(&commit));
-
-            if ((!from) || (from && from.get() < ptr->sequence_id())) {
-                commits.push_back(ptr);
-            }
-        }
-
-        for (auto pair: persistent_commits_) {
-            MEMORIA_TRY(ptr, open_mapped_readonly(pair.second));
-
-            if ((!from) || (from && from.get() < ptr->sequence_id())) {
-                commits.push_back(ptr);
-            }
-        }
-
-        if (former_head_ptr_) {
-            MEMORIA_TRY(ptr, open_mapped_readonly(former_head_ptr_));
-
-            if ((!from) || (from && from.get() < ptr->sequence_id())) {
-                commits.push_back(ptr);
-            }
-        }
-
-        if (head_ptr_) {
-            MEMORIA_TRY(ptr, open_mapped_readonly(head_ptr_));
-
-            if ((!from) || (from && from.get() < ptr->sequence_id())) {
-                commits.push_back(ptr);
-            }
-        }
-
-        std::sort(commits.begin(), commits.end(), [&](const auto& one, const auto& two) -> bool {
-            return one->sequence_id() < two->sequence_id();
-        });
-
-        return ResultT::of(commits);
-    }
-
-    Result<Optional<SequenceID>> do_check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback)
-    {        
-        using ResultT = Result<Optional<SequenceID>>;
-        LockGuard lock(writer_mutex_);
-
-        MEMORIA_TRY(commits, build_ordered_commits_list(from));
-
-        if (commits.size() > 0)
+        if (!maybe_error)
         {
-            CommitCheckState<Profile> check_state;
-
-            for (auto& commit: commits) {
-                MEMORIA_TRY_VOID(commit->check(callback));
-                if (!from) {
-                    MEMORIA_TRY_VOID(commit->build_block_refcounters(check_state.counters));
-                }
-            }
-
-            MappedWritableCommitPtr head = current_writer_.lock();
-
-            if (head) {
-                MEMORIA_TRY_VOID(head->check(callback));
-                if (!from) {
-                    MEMORIA_TRY_VOID(head->build_block_refcounters(check_state.counters));
-                }
-            }
-
-            if (!from) {
-                MEMORIA_TRY_VOID(check_refcounters(check_state.counters, callback));
-            }
-
-            return ResultT::of(commits[commits.size() - 1]->sequence_id());
+            return ResultT::of(std::move(ptr));
         }
         else {
-            return ResultT::of();
+            return std::move(maybe_error.get());
         }
-    }
-
-    VoidResult check_refcounters(const SWMRBlockCounters<Profile>& counters, StoreCheckCallbackFn callback) noexcept {
-        if (counters.size() != block_counters_.size())
-        {
-            LDDocument doc;
-            doc.set_varchar(fmt::format(
-                        "Check failure: mismatched number of counters. Expected: {}, actual: {}",
-                        block_counters_.size(),
-                        counters.size()));
-
-            MEMORIA_TRY_VOID(callback(doc));
-        }
-
-        auto res = counters.for_each([&](const BlockID& block_id, uint64_t counter) noexcept -> VoidResult {
-            auto res = block_counters_.get(block_id);
-
-            if (res) {
-                if (res.get() != counter) {
-                    LDDocument doc;
-                    doc.set_varchar(fmt::format(
-                                "Counter values mismatch for the block ID {}. Expected: {}, actual: {}",
-                                block_id,
-                                res.get(),
-                                counter));
-
-                    return callback(doc);
-                }
-
-                return VoidResult::of();
-            }
-            else {
-                LDDocument doc;
-                doc.set_varchar(fmt::format(
-                            "Expected counter for the block ID {} is not found in the store.",
-                            block_id
-                            ));
-
-                return callback(doc);
-            }
-        });
-
-        return res;
-    }
-
-    virtual VoidResult ref_block(const BlockID& block_id) noexcept {
-        block_counters_.inc(block_id);
-        return VoidResult::of();
-    }
-
-    virtual VoidResult unref_block(const BlockID& block_id, const std::function<VoidResult()>& on_zero) noexcept {
-        MEMORIA_TRY(zero, block_counters_.dec(block_id));
-        if (zero) {
-            return on_zero();
-        }
-        return VoidResult::of();
-    }
-
-    virtual VoidResult unref_ctr_root(const BlockID&) noexcept {
-        return make_generic_error("MappedSWMRStore::unref_ctr_root() should not be called");
     }
 };
 

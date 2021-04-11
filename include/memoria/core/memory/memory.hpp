@@ -39,6 +39,9 @@ template <typename T>
 using SnpSharedPtr = SharedPtr<T>;
 
 template <typename T>
+using SnpWeakPtr   = WeakPtr<T>;
+
+template <typename T>
 using SnpSharedFromThis = EnableSharedFromThis<T>;
 
 

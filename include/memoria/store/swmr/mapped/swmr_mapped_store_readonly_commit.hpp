@@ -1,5 +1,5 @@
 
-// Copyright 2020 Victor Smirnov
+// Copyright 2020-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/store/swmr/mapped/swmr_mapped_store_common.hpp>
+#include <memoria/store/swmr/common/swmr_store_readonly_commit_base.hpp>
 
 #include <functional>
 
@@ -24,11 +24,11 @@ namespace memoria {
 
 template <typename Profile>
 class MappedSWMRStoreReadOnlyCommit:
-        public MappedSWMRStoreCommitBase<Profile>,
+        public SWMRStoreReadOnlyCommitBase<Profile>,
         public EnableSharedFromThis<MappedSWMRStoreReadOnlyCommit<Profile>>
 {
 protected:
-    using Base = MappedSWMRStoreCommitBase<Profile>;
+    using Base = SWMRStoreReadOnlyCommitBase<Profile>;
 
     using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
 
@@ -38,6 +38,8 @@ protected:
     using typename Base::CtrReferenceableResult;
     using typename Base::AllocatorT;
     using typename Base::BlockID;
+    using typename Base::BlockG;
+    using typename Base::BlockType;
 
     using typename Base::DirectoryCtrType;
     using typename Base::HistoryCtrType;
@@ -48,12 +50,16 @@ protected:
 
     using typename Base::CommitID;
 
+    using Base::BASIC_BLOCK_SIZE;
+
     using Base::directory_ctr_;
     using Base::superblock_;
     using Base::commit_descriptor_;
     using Base::internal_find_by_root_typed;
     using Base::traverse_cow_containers;
     using Base::traverse_ctr_cow_tree;
+
+    Span<uint8_t> buffer_;
 
 
     template <typename>
@@ -70,7 +76,8 @@ public:
             CommitDescriptorT* commit_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate = nullptr
     ) noexcept:
-        Base(maybe_error, store, buffer, commit_descriptor, refcounter_delegate)
+        Base(store, commit_descriptor, refcounter_delegate),
+        buffer_(buffer)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             auto root_block_id = commit_descriptor->superblock()->directory_root_id();
@@ -114,9 +121,15 @@ protected:
         return commit_descriptor_->superblock()->sequence_id();
     }
 
-
     virtual SnpSharedPtr<AllocatorT> self_ptr() noexcept {
         return this->shared_from_this();
+    }
+
+    virtual Result<BlockG> getBlock(const BlockID& id) noexcept
+    {
+        using ResultT = Result<BlockG>;
+        BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value() * BASIC_BLOCK_SIZE);
+        return ResultT::of(BlockG{block});
     }
 };
 

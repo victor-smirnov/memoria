@@ -1,5 +1,5 @@
 
-// Copyright 2020 Victor Smirnov
+// Copyright 2020-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@
 #include <memoria/store/swmr/mapped/swmr_mapped_store_common.hpp>
 #include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_commit.hpp>
 
+#include <memoria/store/swmr/common/swmr_store_writable_commit_base.hpp>
+
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 
 #include <memoria/core/datatypes/type_registry.hpp>
@@ -30,20 +32,16 @@ class MappedSWMRStoreReadOnlyCommit;
 
 namespace memoria {
 
-struct InitStoreTag{};
-
 template <typename Profile>
 class MappedSWMRStoreWritableCommit:
-        public MappedSWMRStoreCommitBase<Profile>,
-        public ISWMRStoreWritableCommit<ApiProfile<Profile>>,
+        public SWMRStoreWritableCommitBase<Profile>,
         public EnableSharedFromThis<MappedSWMRStoreWritableCommit<Profile>>
 {
-    using Base = MappedSWMRStoreCommitBase<Profile>;
+    using Base = SWMRStoreWritableCommitBase<Profile>;
 
     using typename Base::Store;
     using typename Base::CommitDescriptorT;
-    using typename Base::CtrID;
-    using typename Base::CtrReferenceableResult;
+
     using typename Base::AllocatorT;
     using typename Base::CommitID;
     using typename Base::BlockID;
@@ -51,28 +49,39 @@ class MappedSWMRStoreWritableCommit:
     using typename Base::BlockType;
     using typename Base::ApiProfileT;
 
-
     using typename Base::AllocationMapCtr;
     using typename Base::AllocationMapCtrType;
 
     using typename Base::HistoryCtr;
     using typename Base::HistoryCtrType;
+    using typename Base::CounterStorageT;
 
     using typename Base::DirectoryCtrType;
+
+    using CtrID = ProfileCtrID<Profile>;
+    using CtrReferenceableResult = Result<CtrReferenceable<ApiProfile<Profile>>>;
+
     using AllocationMetadataT = AllocationMetadata<ApiProfileT>;
     using Superblock          = SWMRSuperblock<Profile>;
     using ParentCommit        = SnpSharedPtr<MappedSWMRStoreReadOnlyCommit<Profile>>;
 
-    using CounterStorageT     = typename Store::CounterStorageT;
+
 
     using BlockCleanupHandler = std::function<VoidResult ()>;
 
-    static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
+    using Base::BASIC_BLOCK_SIZE;
+
+    //static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
     static constexpr int32_t SUPERBLOCK_SIZE             = BASIC_BLOCK_SIZE;
-    static constexpr int32_t ALLOCATION_LEVELS           = Store::ALLOCATION_MAP_LEVELS;
+
+
+    static constexpr size_t  HEADER_SIZE = BASIC_BLOCK_SIZE * 2;
+    static constexpr int32_t ALLOCATION_MAP_LEVELS    = ICtrApi<AllocationMap, ApiProfileT>::LEVELS;
+    static constexpr int32_t ALLOCATION_MAP_SIZE_STEP = ICtrApi<AllocationMap, ApiProfileT>::ALLOCATION_SIZE * BASIC_BLOCK_SIZE;
+
     static constexpr int32_t SUPERBLOCK_ALLOCATION_LEVEL = Log2(SUPERBLOCK_SIZE / BASIC_BLOCK_SIZE) - 1;
-    static constexpr int32_t SUPERBLOCKS_RESERVED        = Store::HEADER_SIZE / BASIC_BLOCK_SIZE;
-    static constexpr int32_t ALLOCATION_MAP_SIZE_STEP    = Store::ALLOCATION_MAP_SIZE_STEP;
+    static constexpr int32_t SUPERBLOCKS_RESERVED        = HEADER_SIZE / BASIC_BLOCK_SIZE;
+    //static constexpr int32_t ALLOCATION_MAP_SIZE_STEP    = Store::ALLOCATION_MAP_SIZE_STEP;
 
 
     CtrSharedPtr<AllocationMapCtr> parent_allocation_map_ctr_;
@@ -85,11 +94,12 @@ class MappedSWMRStoreWritableCommit:
     using Base::getRootID;
     using Base::getBlock;
     using Base::instance_map_;
-    using Base::buffer_;
+
     using Base::store_;
     using Base::commit_descriptor_;
     using Base::refcounter_delegate_;
 
+    Span<uint8_t> buffer_;
 
     AllocationPool<ApiProfileT, 9> allocation_pool_;
 
@@ -117,7 +127,8 @@ public:
             CommitDescriptorT* parent_commit_descriptor,
             CommitDescriptorT* commit_descriptor
     ) noexcept:
-        Base(maybe_error, store, buffer, commit_descriptor, store.get())
+        Base(store, commit_descriptor, store.get()),
+        buffer_(buffer)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             parent_commit_ = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
@@ -180,11 +191,12 @@ public:
             CommitDescriptorT* commit_descriptor,
             InitStoreTag
     ) noexcept:
-        Base(maybe_error, store, buffer, commit_descriptor, store.get())
+        Base(store, commit_descriptor, store.get()),
+        buffer_(buffer)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            int64_t avaialble = (buffer_.size() / (BASIC_BLOCK_SIZE << (ALLOCATION_LEVELS - 1)));
-            allocation_pool_.add(AllocationMetadataT{0, avaialble, ALLOCATION_LEVELS - 1});
+            int64_t avaialble = (buffer_.size() / (BASIC_BLOCK_SIZE << (ALLOCATION_MAP_LEVELS - 1)));
+            allocation_pool_.add(AllocationMetadataT{0, avaialble, ALLOCATION_MAP_LEVELS - 1});
 
             int64_t reserved = SUPERBLOCKS_RESERVED;
             ArenaBuffer<AllocationMetadataT> allocations;
@@ -761,7 +773,7 @@ private:
 
         MEMORIA_TRY_VOID(flush_awaiting_allocations());
 
-        int64_t ranks[ALLOCATION_LEVELS] = {0,};
+        int64_t ranks[ALLOCATION_MAP_LEVELS] = {0,};
         MEMORIA_TRY_VOID(allocation_map_ctr->unallocated(ranks));
 
         if (ranks[level] >= minimal_amount)
@@ -773,7 +785,7 @@ private:
 
             if (MMA_LIKELY(desireable > 1))
             {
-                for (int32_t ll = ALLOCATION_LEVELS - 1; ll >= level; ll--)
+                for (int32_t ll = ALLOCATION_MAP_LEVELS - 1; ll >= level; ll--)
                 {
                     int64_t scale_factor = 1ll << (ll - level);
                     int64_t ll_desirable = divUp(desireable, scale_factor);
@@ -918,6 +930,13 @@ private:
 
     void add_postponed_deallocation(const AllocationMetadataT& meta) noexcept {
         postponed_deallocations_.append_value(meta);
+    }
+
+    virtual Result<BlockG> getBlock(const BlockID& id) noexcept
+    {
+        using ResultT = Result<BlockG>;
+        BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value() * BASIC_BLOCK_SIZE);
+        return ResultT::of(BlockG{block});
     }
 };
 

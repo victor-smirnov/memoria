@@ -26,13 +26,13 @@
 
 namespace memoria {
 
-template <typename Profile> class MappedSWMRStore;
+template <typename Profile> class SWMRStoreBase;
 
 template <typename Profile>
 class SWMRMappedStoreHistoryView: public ISWMRStoreHistoryView<ApiProfile<Profile>> {
     using Base = ISWMRStoreHistoryView<ApiProfile<Profile>>;
-    using StorePtr  = SharedPtr<MappedSWMRStore<Profile>>;
-    using CommitPtr = SharedPtr<MappedSWMRStoreReadOnlyCommit<Profile>>;
+    using StorePtr  = SharedPtr<SWMRStoreBase<Profile>>;
+    using CommitPtr = SharedPtr<SWMRStoreReadOnlyCommitBase<Profile>>;
 
     StorePtr store_;
     CommitPtr head_;

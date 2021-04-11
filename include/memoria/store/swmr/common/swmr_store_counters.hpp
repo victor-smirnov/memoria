@@ -30,6 +30,15 @@ using BlockRefCounterFn = std::function<BoolResult(const ProfileBlockID<Profile>
 
 
 template <typename Profile>
+struct CounterStorage {
+    using BlockID = ProfileBlockID<Profile>;
+
+    BlockID block_id;
+    uint64_t counter;
+};
+
+
+template <typename Profile>
 struct SWMRBlockCounters {
 
     using BlockID = ProfileBlockID<Profile>;

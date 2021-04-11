@@ -55,6 +55,8 @@ struct ReferenceCounterDelegate {
     virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept = 0;
 };
 
+template <typename Profile> class SWMRStoreBase;
+
 template <typename Profile>
 class SWMRStoreCommitBase:
         public ProfileAllocatorType<Profile>,
@@ -69,11 +71,16 @@ protected:
     using typename Base::SnapshotID;
     using typename Base::CtrID;
 
+    using Store = SWMRStoreBase<Profile>;
+
     using ApiProfileT = ApiProfile<Profile>;
 
     using BlockCounterCallbackFn = std::function<BoolResult(const ApiProfileBlockID<ApiProfileT>&)>;
 
     using CommitID = typename ISWMRStoreCommitBase<ApiProfileT>::CommitID;
+    using SequenceID = uint64_t;
+
+    using CounterStorageT = CounterStorage<Profile>;
 
     using CommitDescriptorT         = CommitDescriptor<Profile>;
     using CtrReferenceableResult    = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
@@ -91,6 +98,10 @@ protected:
     using HistoryCtrType    = Map<BigInt, BigInt>;
     using HistoryCtr        = ICtrApi<HistoryCtrType, ApiProfileT>;
 
+    static constexpr size_t BASIC_BLOCK_SIZE = 4096;
+
+    SharedPtr<Store> store_;
+
     CtrInstanceMap instance_map_;
 
     CommitDescriptorT* commit_descriptor_;
@@ -106,15 +117,19 @@ protected:
 
     mutable ObjectPools object_pools_;
 
+
+
     template <typename> friend class SWMRMappedStoreHistoryView;
 
 public:
     using Base::getBlock;
 
     SWMRStoreCommitBase(
+            SharedPtr<Store> store,
             CommitDescriptorT* commit_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate
     ) noexcept:
+        store_(store),
         commit_descriptor_(commit_descriptor),
         superblock_(commit_descriptor->superblock()),
         refcounter_delegate_(refcounter_delegate)
@@ -123,6 +138,10 @@ public:
     static void init_profile_metadata() noexcept {
         DirectoryCtr::template init_profile_metadata<Profile>();
         AllocationMapCtr::template init_profile_metadata<Profile>();
+    }
+
+    SequenceID sequence_id() const noexcept {
+        return commit_descriptor_->superblock()->sequence_id();
     }
 
     virtual ObjectPools& object_pools() const noexcept {
@@ -159,6 +178,8 @@ public:
 
         return ResultT::of();
     }
+
+
 
     virtual VoidResult setRoot(const CtrID& ctr_id, const BlockID& root) noexcept
     {
@@ -571,7 +592,7 @@ public:
     }
 
 
-protected:
+
 
     virtual VoidResult traverse_cow_containers(const BlockCounterCallbackFn& callback) noexcept {
         MEMORIA_TRY_VOID(traverse_ctr_cow_tree(commit_descriptor_->superblock()->directory_root_id(), callback));
