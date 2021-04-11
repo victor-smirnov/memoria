@@ -36,7 +36,7 @@ endif()
 if (BUILD_CLASSIC_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX_CLASSIC)
-        set(MEMORIA_SANDBOX_CLASSIC hana swmr_store lmdb_store)
+        set(MEMORIA_SANDBOX_CLASSIC hana swmr_store lmdb_store cow_store)
     endif()
 
     FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_CLASSIC})

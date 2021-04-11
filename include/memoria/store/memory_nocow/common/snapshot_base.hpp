@@ -72,6 +72,7 @@ public:
 
     using typename Base::CtrID;
     using typename Base::BlockID;
+    using typename Base::BlockGUID;
     using typename Base::BlockType;
     using typename Base::SnapshotID;
 
@@ -387,7 +388,7 @@ public:
 
         if (root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&](const BlockID&, const BlockID& id, const void*) noexcept -> VoidResult {
+            auto res = txn->for_each_ctr_node(name, [&](const BlockGUID&, const BlockID& id, const void*) noexcept -> VoidResult {
                 auto rc_handle = txn->export_block_rchandle(id);
     			using Value = typename PersistentTreeT::Value;
 
@@ -436,7 +437,7 @@ public:
 
     	if (root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&](const BlockID&, const BlockID&, const void* block_data) noexcept -> VoidResult {
+            auto res = txn->for_each_ctr_node(name, [&](const BlockGUID&, const BlockID&, const void* block_data) noexcept -> VoidResult {
                 return clone_foreign_block(ptr_cast<const BlockType>(block_data));
     		});
             MEMORIA_RETURN_IF_ERROR(res);
@@ -472,7 +473,7 @@ public:
 
         if (!root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&, this](const BlockID& uuid, const BlockID& id, const void*) noexcept -> VoidResult {
+            auto res = txn->for_each_ctr_node(name, [&, this](const BlockGUID& uuid, const BlockID& id, const void*) noexcept -> VoidResult {
                 MEMORIA_TRY(block, this->getBlock(id));
 
                 if (block && block->uuid() == uuid)
@@ -530,7 +531,7 @@ public:
 
         if (!root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&, this](const BlockID& uuid, const BlockID& id, const void* block_data) noexcept -> VoidResult {
+            auto res = txn->for_each_ctr_node(name, [&, this](const BlockGUID& uuid, const BlockID& id, const void* block_data) noexcept -> VoidResult {
                 MEMORIA_TRY(block, this->getBlock(id));
                 if (block && block->uuid() == uuid)
     			{

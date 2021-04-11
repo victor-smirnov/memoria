@@ -1,5 +1,5 @@
 
-// Copyright 2016-2020 Victor Smirnov
+// Copyright 2016-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,6 +52,82 @@ namespace memoria {
 namespace store {
 namespace memory_cow {
 
+namespace detail {
+
+template <typename ID> struct IDValueHolderH;
+
+template <typename ID>
+using IDValueHolderT = typename IDValueHolderH<ID>::IDValueHolder;
+
+template <typename ValueHolder>
+struct IDValueHolderH<CowBlockID<ValueHolder>> {
+    using IDType = CowBlockID<ValueHolder>;
+    using IDValueHolder = ValueHolder;
+
+    static IDValueHolder from_id(const IDType& id) noexcept {
+        return id.value();
+    }
+
+    static IDType to_id(const IDValueHolder& id) noexcept {
+        return IDType(id);
+    }
+
+    template <typename BlockType>
+    static BlockType* get_block_ptr(IDType id) noexcept {
+        return value_cast<BlockType*>(id.value());
+    }
+
+    template <typename BlockType>
+    static IDType to_id(BlockType* ptr) noexcept {
+        return IDType(value_cast<IDValueHolder>(ptr));
+    }
+
+    static IDValueHolder to_id_value(IDType id) noexcept {
+        return id.value();
+    }
+
+    template <typename T>
+    static IDValueHolder new_id(T* ptr) noexcept {
+        return ++ptr->id_counter_;
+    }
+};
+
+template <>
+struct IDValueHolderH<CowBlockID<UUID>> {
+    using IDType = CowBlockID<UUID>;
+    using IDValueHolder = uint64_t;
+
+    static IDValueHolder from_id(const IDType& id) noexcept {
+        return id.value().lo();
+    }
+
+    static IDType to_id(const IDValueHolder& id) noexcept {
+        return IDType(UUID{0, id});
+    }
+
+    template <typename BlockType>
+    static BlockType* get_block_ptr(IDType id) noexcept {
+        return value_cast<BlockType*>(id.value().lo());
+    }
+
+    template <typename BlockType>
+    static IDType to_id(BlockType* ptr) noexcept {
+        return IDType(UUID{0, value_cast<IDValueHolder>(ptr)});
+    }
+
+
+    static UUID to_id_value(IDType id) noexcept {
+        return id.value();
+    }
+
+    template <typename T>
+    static IDType new_id(T* ptr) noexcept {
+        return IDType{UUID::make_random()};
+    }
+};
+
+}
+
 template <typename Profile, typename PersistentAllocator, typename SnapshotType>
 class SnapshotBase:
         public ProfileAllocatorType<Profile>,
@@ -68,6 +144,7 @@ public:
 
     using typename Base::CtrID;
     using typename Base::BlockID;
+    using typename Base::BlockGUID;
     using typename Base::BlockType;
     using typename Base::SnapshotID;
 protected:
@@ -381,7 +458,7 @@ public:
 
         if (root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&](const BlockID&, const BlockID& id, const void*) noexcept -> VoidResult {
+            auto res = txn->for_each_ctr_node(name, [&](const BlockGUID&, const BlockID& id, const void*) noexcept -> VoidResult {
 //                auto rc_handle = txn->export_block_rchandle(id);
 //    			using Value = typename PersistentTreeT::Value;
 
@@ -429,7 +506,7 @@ public:
 
     	if (root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&](const BlockID&, const BlockID&, const void* block_data) noexcept -> VoidResult {
+            auto res = txn->for_each_ctr_node(name, [&](const BlockGUID&, const BlockID&, const void* block_data) noexcept -> VoidResult {
                 return clone_foreign_block(ptr_cast<const BlockType>(block_data));
     		});
             MEMORIA_RETURN_IF_ERROR(res);
@@ -465,7 +542,7 @@ public:
 
         if (!root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&](const BlockID& uuid, const BlockID& id, const void*) noexcept -> VoidResult {
+            auto res = txn->for_each_ctr_node(name, [&](const BlockGUID& uuid, const BlockID& id, const void*) noexcept -> VoidResult {
 //                MEMORIA_TRY(block, this->getBlock(id));
 
 //                if (block && block->uuid() == uuid)
@@ -522,26 +599,26 @@ public:
 
         if (!root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&, this](const BlockID& uuid, const BlockID& id, const void* block_data) noexcept -> VoidResult {
+            auto res = txn->for_each_ctr_node(name, [&, this](const BlockGUID& uuid, const BlockID& id, const void* block_data) noexcept -> VoidResult {
                 MEMORIA_TRY(block, this->getBlock(id));
                 if (block && block->uuid() == uuid)
-    			{
+                {
                     return VoidResult::of();
-    			}
+                }
 
                 return clone_foreign_block(ptr_cast<const BlockType>(block_data));
-    		});
+            });
 
             MEMORIA_RETURN_IF_ERROR(res);
 
             MEMORIA_TRY(root_id1, txn->getRootID(name));
             if (root_id1.is_set())
-    		{
+            {
                 MEMORIA_TRY_VOID(root_map_->assign(name, root_id1));
-    		}
-    		else {
+            }
+            else {
                 return MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn_id);
-    		}
+            }
 
             return VoidResult::of();
     	}
@@ -576,7 +653,7 @@ public:
     {
         using ResultT = Result<BlockG>;
 
-        BlockType* block = value_cast<BlockType*>(id.value());
+        BlockType* block = value_cast<BlockType*>(detail::IDValueHolderH<BlockID>::from_id(id));
         return ResultT::of(BlockG{block});
 
         return ResultT::of();
@@ -698,7 +775,7 @@ public:
     {
         MEMORIA_TRY_VOID(check_updates_allowed());
 
-        BlockType* block = value_cast<BlockType*>(id.value());
+        BlockType* block = detail::IDValueHolderH<BlockID>::template get_block_ptr<BlockType>(id);
         freeMemory(block);
 
         return VoidResult::of();
@@ -721,8 +798,8 @@ public:
         memset(buf, 0, static_cast<size_t>(initial_size));
 
         BlockType* p = new (buf) BlockType(id);
-        p->id_value() = id.value();
-        p->id() = BlockID{value_cast<typename BlockID::ValueHolder>(p)};
+        p->id_value() = detail::IDValueHolderH<BlockID>::to_id_value(id);
+        p->id() = detail::IDValueHolderH<BlockID>::to_id(p);
         p->snapshot_id() = uuid();
 
         p->memory_block_size() = initial_size;
@@ -739,8 +816,8 @@ public:
 
         MEMORIA_TRY(new_block, this->clone_block(block.block()));
 
-        new_block->id_value() = new_id.value();
-        new_block->id() = BlockID{value_cast<typename BlockID::ValueHolder>(new_block)};
+        new_block->id_value() = detail::IDValueHolderH<BlockID>::to_id_value(new_id);
+        new_block->id() = detail::IDValueHolderH<BlockID>::to_id(new_block);
 
         return Result<BlockG>::of(BlockG{new_block});
     }
@@ -1169,7 +1246,7 @@ protected:
             std::cout << "MEMORIA: DROP snapshot's DATA: " << history_node_->snapshot_id() << std::endl;
         }
 
-        BlockType* root_blk = value_cast<BlockType*>(history_node_->root_id().value());
+        BlockType* root_blk = detail::IDValueHolderH<BlockID>::template get_block_ptr<BlockType>(history_node_->root_id());
         if (root_blk->unref_block())
         {
             root_map_->internal_unref_cascade(

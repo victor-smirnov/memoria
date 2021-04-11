@@ -45,6 +45,7 @@
 #include <memoria/core/tools/result.hpp>
 
 #include <memoria/profiles/impl/cow_lite_profile.hpp>
+#include <memoria/profiles/impl/cow_profile.hpp>
 
 
 #include <type_traits>
@@ -67,11 +68,13 @@ public:
     using Header = Header_;
 
     using BlockID = typename Header::BlockID;
+    using BlockGUID = typename Header::BlockGUID;
 
 
     static_assert(IsPackedStructV<Metadata>, "TreeNodeBase: Metadata must satisfy IsPackedStructV<>");
     static_assert(IsPackedStructV<Header>,   "TreeNodeBase: Header must satisfy IsPackedStructV<>");
     static_assert(IsPackedStructV<BlockID>,  "TreeNodeBase: ID must satisfy IsPackedStructV<>");
+    static_assert(IsPackedStructV<BlockGUID>,  "TreeNodeBase: GUID must satisfy IsPackedStructV<>");
 
     enum {
             METADATA = 0,
@@ -114,8 +117,8 @@ public:
     BlockID& id() noexcept {return header_.id();}
     const BlockID& id() const noexcept {return header_.id();}
 
-    BlockID& uuid() noexcept {return header_.uuid();}
-    const BlockID& uuid() const noexcept {return header_.uuid();}
+    BlockGUID& uuid() noexcept {return header_.uuid();}
+    const BlockGUID& uuid() const noexcept {return header_.uuid();}
 
 
     uint64_t ctr_type_hash() const noexcept {
@@ -365,11 +368,11 @@ public:
 
 
     template <typename MetadataTypesList, typename SerializationData, typename IDResolver>
-    VoidResult mem_cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    VoidResult cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
     {
         static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
 
-        MEMORIA_TRY_VOID(header_.template mem_cow_serialize<FieldFactory>(buf, id_resolver));
+        MEMORIA_TRY_VOID(header_.template cow_serialize<FieldFactory>(buf, id_resolver));
 
         FieldFactory<int32_t>::serialize(buf, root_);
         FieldFactory<int32_t>::serialize(buf, leaf_);
@@ -381,9 +384,9 @@ public:
     }
 
     template <typename IDResolver>
-    VoidResult mem_cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    VoidResult cow_resolve_ids(const IDResolver* id_resolver) noexcept
     {
-        return header_.mem_cow_resolve_ids(id_resolver);
+        return header_.cow_resolve_ids(id_resolver);
     }
 
     template <typename List>
@@ -755,9 +758,9 @@ public:
 
 
     template <typename SerializationData, typename IDResolver>
-    VoidResult mem_cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    VoidResult cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
     {
-        MEMORIA_TRY_VOID(Base::template mem_cow_serialize<RootMetadataList>(buf, id_resolver));
+        MEMORIA_TRY_VOID(Base::template cow_serialize<RootMetadataList>(buf, id_resolver));
 
         MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf));
 
@@ -775,9 +778,9 @@ public:
     }
 
     template <typename IDResolver>
-    VoidResult mem_cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    VoidResult cow_resolve_ids(const IDResolver* id_resolver) noexcept
     {
-        MEMORIA_TRY_VOID(Base::mem_cow_resolve_ids(id_resolver));
+        MEMORIA_TRY_VOID(Base::cow_resolve_ids(id_resolver));
 
         MEMORIA_TRY(size, this->size());
 
@@ -860,13 +863,29 @@ namespace detail_ {
         template <typename BTNode, typename IDResolver>
         static VoidResult serialize(const BTNode* node, SerializationData& data, const IDResolver* id_resolver) noexcept
         {
-            return node->mem_cow_serialize(data, id_resolver);
+            return node->cow_serialize(data, id_resolver);
         }
 
         template <typename BTNode, typename IDResolver>
         static VoidResult resolve_ids(BTNode* node, const IDResolver* id_resolver) noexcept
         {
-            return node->mem_cow_resolve_ids(id_resolver);
+            return node->cow_resolve_ids(id_resolver);
+        }
+    };
+
+    template <>
+    struct BTNodeNodeMethodsSelector<CowProfile<>> {
+
+        template <typename BTNode, typename IDResolver>
+        static VoidResult serialize(const BTNode* node, SerializationData& data, const IDResolver* id_resolver) noexcept
+        {
+            return node->cow_serialize(data, id_resolver);
+        }
+
+        template <typename BTNode, typename IDResolver>
+        static VoidResult resolve_ids(BTNode* node, const IDResolver* id_resolver) noexcept
+        {
+            return node->cow_resolve_ids(id_resolver);
         }
     };
 
@@ -947,7 +966,7 @@ public:
         }
 
 
-        virtual VoidResult mem_cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const noexcept
+        virtual VoidResult cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const noexcept
         {
             return wrap_throwing([&]() -> VoidResult {
                 MyType* node = ptr_cast<MyType>(block);

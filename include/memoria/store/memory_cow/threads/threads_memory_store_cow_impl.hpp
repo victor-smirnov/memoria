@@ -1,5 +1,5 @@
 
-// Copyright 2016-2020 Victor Smirnov
+// Copyright 2016-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/containers/map/map_factory.hpp>
-
 
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/pair.hpp>
@@ -914,7 +913,7 @@ protected:
 
         virtual BoolResult proceed_with(const BlockID& block_id) const noexcept
         {
-            const BlockType* block = value_cast<const BlockType*>(block_id);
+            const BlockType* block = detail::IDValueHolderH<BlockID>::template get_block_ptr<BlockType>(block_id);
             return BoolResult::of(stored_blocks_.count(block) == 0);
         }
     };

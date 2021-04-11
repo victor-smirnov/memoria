@@ -1,5 +1,5 @@
 
-// Copyright 2016-2020 Victor Smirnov
+// Copyright 2016-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,12 +47,19 @@
 namespace memoria {
 
 template <typename ValueHolder>
-InputStreamHandler& operator>>(InputStreamHandler& in, CowLiteBlockID<ValueHolder>& value)
+InputStreamHandler& operator>>(InputStreamHandler& in, CowBlockID<ValueHolder>& value)
 {
     in >> value.value();
     return in;
 }
 
+
+static inline InputStreamHandler& operator>>(InputStreamHandler& in, CowBlockID<UUID>& value)
+{
+    in >> value.value().lo();
+    in >> value.value().hi();
+    return in;
+}
 
 namespace store {
 namespace memory_cow {
@@ -143,7 +150,7 @@ public:
 
         void ref_root(BlockID root) noexcept
         {
-            BlockType* root_block = value_cast<BlockType*>(root.value());
+            BlockType* root_block = detail::IDValueHolderH<BlockID>::template get_block_ptr<BlockType>(root);
             root_block->ref_block();
         }
 
@@ -221,7 +228,7 @@ public:
 
             if (root_id_.isSet())
             {
-                BlockType* current_root_block = value_cast<BlockType*>(root_id_.value());
+                BlockType* current_root_block = detail::IDValueHolderH<BlockID>::template get_block_ptr<BlockType>(root_id_);
                 if (current_root_block->unref_block())
                 {
                     to_remove = root_id_;
@@ -372,7 +379,11 @@ public:
 
     template <typename, typename, typename>
     friend class SnapshotBase;
-    
+
+    template <typename>
+    friend struct detail::IDValueHolderH;
+
+
 protected:
  
     class AllocatorMetadata {
@@ -442,10 +453,7 @@ protected:
 
 public:
 
-    virtual ~MemoryStoreBase() noexcept
-    {
-        
-    }
+    virtual ~MemoryStoreBase() noexcept = default;
 
     bool is_dump_snapshot_lifecycle() const noexcept {return dump_snapshot_lifecycle_.load();}
     void set_dump_snapshot_lifecycle(bool do_dump) noexcept {dump_snapshot_lifecycle_.store(do_dump);}
@@ -492,14 +500,13 @@ public:
         }
     }
 
-    uint64_t newBlockId() noexcept
-    {
-        return ++id_counter_;
+    auto newBlockId() noexcept {
+        return detail::IDValueHolderH<BlockID>::new_id(this);
     }
 
     class IDToMemBlockIDResolver: public IBlockOperations<Profile>::IDValueResolver {
         const BlockMap* block_map_;
-        using BlockIDValueHolder = typename BlockID::ValueHolder;
+        using BlockIDValueHolder = detail::IDValueHolderT<BlockID>;
 
     public:
         IDToMemBlockIDResolver(const BlockMap* block_map) noexcept:
@@ -515,7 +522,7 @@ public:
             {
                 BlockType* block = ii->second;
                 BlockIDValueHolder id_value = value_cast<BlockIDValueHolder>(block);
-                return ResultT::of(id_value);
+                return ResultT::of(detail::IDValueHolderH<BlockID>::to_id(id_value));
             }
 
             return MEMORIA_MAKE_GENERIC_ERROR("Requested block ID is not found");
@@ -613,7 +620,7 @@ public:
 
             MEMORIA_TRY_VOID(ProfileMetadata<Profile>::local()
                     ->get_block_operations(ctr_hash, block_hash)
-                    ->mem_cow_resolve_ids(block, &id_to_mem_resolver));
+                    ->cow_resolve_ids(block, &id_to_mem_resolver));
 
         }
 
@@ -1014,7 +1021,7 @@ protected:
 
         if (history_node->root_id().isSet())
         {
-            const BlockType* block = value_cast<const BlockType*>(history_node->root_id());
+            const BlockType* block = detail::IDValueHolderH<BlockID>::template get_block_ptr<BlockType>(history_node->root_id());
             if (stored_blocks.count(block) == 0)
             {
                 return serialize_snapshot(out, history_node, stored_blocks);
@@ -1027,7 +1034,7 @@ protected:
 
 
     class MemToIDBlockIDResolver: public IBlockOperations<Profile>::IDValueResolver {
-        using BlockIDValueHolder = typename BlockID::ValueHolder;
+        using BlockIDValueHolder = detail::IDValueHolderT<BlockID>;
 
 
     public:
@@ -1037,7 +1044,7 @@ protected:
         {
             using ResultT = Result<BlockID>;
 
-            BlockType* block = value_cast<BlockType*>(mem_block_id.value());
+            BlockType* block = value_cast<BlockType*>(detail::IDValueHolderH<BlockID>::from_id(mem_block_id));
             return ResultT::of(block->id_value());
         }
     };

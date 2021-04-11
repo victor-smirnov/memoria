@@ -86,6 +86,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             if (level >= 1)
             {
                 MEMORIA_TRY(node, self.ctr_create_node1(level, false, false));
+                MEMORIA_TRY_VOID(self.ctr_ref_block(node->id()));
 
                 self.layoutNonLeafNode(node, 0xFF);
 
@@ -328,6 +329,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             }
 
             MEMORIA_TRY(node, self.ctr_create_node(0, false, true, block_size));
+
+            MEMORIA_TRY_VOID(self.ctr_ref_block(node->id()));
 
             if (head.isSet())
             {

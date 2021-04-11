@@ -81,7 +81,8 @@ public:
                 int64_t //references
     >;
 
-    using BlockID  = PageIdType;
+    using BlockID   = PageIdType;
+    using BlockGUID = PageGuidType;
 
     AbstractPage() noexcept= default;
 
@@ -224,7 +225,7 @@ public:
     }
 
     template <template <typename T> class FieldFactory, typename SerializationData, typename IDResolver>
-    VoidResult mem_cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    VoidResult cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
     {
         FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
         FieldFactory<uint64_t>::serialize(buf, block_type_hash());
@@ -246,7 +247,7 @@ public:
     }
 
     template <typename IDResolver>
-    VoidResult mem_cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    VoidResult cow_resolve_ids(const IDResolver* id_resolver) noexcept
     {
         MEMORIA_TRY(memref_id, id_resolver->resolve_id(id_));
         id_ = memref_id;

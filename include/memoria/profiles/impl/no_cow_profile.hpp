@@ -36,10 +36,11 @@ struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using typename Base::CtrSizeT;
     using typename Base::SnapshotID;
 
+    using BlockGUID = UUID;
     using BlockID = UUID;
     using Profile = NoCowProfile<>;
 
-    using Block = AbstractPage <BlockID, BlockID, EmptyType, SnapshotID>;
+    using Block = AbstractPage <BlockGUID, BlockID, EmptyType, SnapshotID>;
     using BlockType = Block;
 
     using AllocatorType = IAllocator<Profile>;

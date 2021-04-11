@@ -165,12 +165,13 @@ struct ContainerOperationsBase {
 
     using BlockType = ProfileBlockType<Profile>;
     using BlockID   = ProfileBlockID<Profile>;
+    using BlockGUID = ProfileBlockGUID<Profile>;
     using CtrID     = ProfileCtrID<Profile>;
 
     virtual ~ContainerOperationsBase() noexcept {}
 
     // uuid, id, block data
-    using BlockCallbackFn = std::function<VoidResult (const BlockID&, const BlockID&, const BlockType*)>;
+    using BlockCallbackFn = std::function<VoidResult (const BlockGUID&, const BlockID&, const BlockType*)>;
     using Allocator = ProfileAllocatorType<Profile>;
     using AllocatorBasePtr = SnpSharedPtr<ProfileAllocatorType<Profile>>;
 

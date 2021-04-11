@@ -47,7 +47,10 @@ struct Date      {};
 struct Time      {};
 struct TimeWithTZ {};
 struct Boolean   {};
-struct CowLiteBlockIDDT {};
+
+
+struct UInt64CowBlockID {};
+struct UUIDCowBlockID {};
 
 class Decimal {
     bool default_;

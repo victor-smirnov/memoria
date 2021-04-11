@@ -50,6 +50,7 @@ struct IAllocatorBase: AllocatorApiBase<ApiProfile<Profile>> {
     using BlockType     = ProfileBlockType<Profile>;
     using ID            = ProfileBlockID<Profile>;
     using BlockID       = ProfileBlockID<Profile>;
+    using BlockGUID     = ProfileBlockGUID<Profile>;
     using SnapshotID    = ProfileSnapshotID<Profile>;
     using CtrID         = ProfileCtrID<Profile>;
 

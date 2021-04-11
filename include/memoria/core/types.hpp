@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -506,49 +506,6 @@ constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_tr
 [[noreturn]] void terminate(const char* msg) noexcept;
 
 
-template <typename ValueHolder_>
-class CowLiteBlockID {
-    ValueHolder_ holder_;
-public:
-    using ValueHolder = ValueHolder_;
-
-    CowLiteBlockID() noexcept = default;
-    explicit CowLiteBlockID(uint64_t value) noexcept:
-        holder_(value)
-    {}
-
-    ValueHolder& value() noexcept {
-        return holder_;
-    }
-
-    const ValueHolder& value() const noexcept {
-        return holder_;
-    }
-
-    bool operator==(const CowLiteBlockID& other) const noexcept {
-        return holder_ == other.holder_;
-    }
-
-    bool operator!=(const CowLiteBlockID& other) const noexcept {
-        return holder_ != other.holder_;
-    }
-
-    bool operator<(const CowLiteBlockID& other) const noexcept {
-        return holder_ < other.holder_;
-    }
-
-    bool isSet() const noexcept {
-        return holder_;
-    }
-
-    bool is_set() const noexcept {
-        return holder_;
-    }
-
-    bool is_null() const noexcept {
-        return !isSet();
-    }
-};
 
 template <typename Profile>
 struct AllocatorApiBase {
@@ -570,23 +527,13 @@ public:
     }
 };
 
-std::ostream& operator<<(std::ostream& out, const CowLiteBlockID<uint64_t>& block_id) noexcept;
 
-}
-
-namespace std {
-
-template <typename ValueHolder>
-class hash<memoria::CowLiteBlockID<ValueHolder>> {
-public:
-    size_t operator()(const memoria::CowLiteBlockID<ValueHolder>& obj) const noexcept {
-        return std::hash<ValueHolder>()(obj.value());
-    }
+template <typename IDType>
+struct BlockIDValueHolder {
+    IDType id;
 };
 
-template <typename ValueHolder>
-void swap(memoria::CowLiteBlockID<ValueHolder>& one, memoria::CowLiteBlockID<ValueHolder>& two) noexcept {
-    std::swap(one.value(), two.value());
-}
+
 
 }
+

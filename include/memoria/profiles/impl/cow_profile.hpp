@@ -19,11 +19,13 @@
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/profiles/common/block.hpp>
 #include <memoria/profiles/core_api/core_api_profile.hpp>
+#include <memoria/profiles/impl/cow_impl_common.hpp>
 
 #include <memoria/core/container/allocator.hpp>
 #include <memoria/core/tools/uuid.hpp>
 
 #include <unordered_set>
+#include <ostream>
 
 namespace memoria {
 
@@ -38,10 +40,12 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using typename Base::CtrSizeT;
     using typename Base::SnapshotID;
 
-    using BlockID       = UUID;
+    using BlockGUID     = UUID;
+
+    using BlockID       = CowBlockID<BlockGUID>;
     using Profile       = CowProfile<>;
 
-    using Block = AbstractPage<BlockID, BlockID, uint64_t, SnapshotID>;
+    using Block = AbstractPage<BlockID, BlockGUID, UUID, SnapshotID>;
     using BlockType = Block;
 
     using AllocatorType = ICoWAllocator<Profile>;
@@ -56,7 +60,7 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 
 
     static BlockID make_random_block_id() {
-        return BlockID::make_random();
+        return BlockID{UUID::make_random()};
     }
 
     static UUID make_random_block_guid() {
@@ -78,6 +82,22 @@ struct ProfileSpecificBlockTools<CowProfile<>>{
     static void after_deserialization(BlockT* block) noexcept {
         // do nothing here
     }
+};
+
+template <>
+struct IBlockOperations<CowProfile<>>: IBlockOperationsBase<CowProfile<>> {
+
+    using Base = IBlockOperationsBase<CowProfile<>>;
+    using typename Base::IDValueResolver;
+    using typename Base::BlockType;
+
+    virtual VoidResult cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const noexcept = 0;
+};
+
+
+template <>
+struct ContainerOperations<CowProfile<>>: ContainerOperationsBase<CowProfile<>> {
+
 };
 
 }

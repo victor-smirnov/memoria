@@ -244,6 +244,11 @@ Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> create_memory_store() noexcept
 Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> load_memory_store(U8String path) noexcept;
 Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> load_memory_store(InputStreamHandler* input_stream) noexcept;
 
+Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> create_memory_store_cowlite() noexcept;
+Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> load_memory_store_cowlite(U8String path) noexcept;
+Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> load_memory_store_cowlite(InputStreamHandler* input_stream) noexcept;
+
+
 Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> create_memory_store_noncow() noexcept;
 Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> load_memory_store_noncow(U8String path) noexcept;
 Result<SharedPtr<IMemoryStore<CoreApiProfile<>>>> load_memory_store_noncow(InputStreamHandler* input_stream) noexcept;

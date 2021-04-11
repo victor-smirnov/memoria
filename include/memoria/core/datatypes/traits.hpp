@@ -23,6 +23,7 @@
 
 namespace memoria {
 
+
 template <typename T> struct PrimitiveDataTypeName;
 
 #define MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(TypeName, TypeStr)  \
@@ -406,19 +407,31 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
     }
 };
 
-
-template <typename ValueHolder>
-struct DataTypeTraits<CowLiteBlockID<ValueHolder>>: FixedSizeDataTypeTraits<CowLiteBlockID<ValueHolder>, CowLiteBlockIDDT>
+template<>
+struct DataTypeTraits<CowBlockID<uint64_t>>: FixedSizeDataTypeTraits<CowBlockID<uint64_t>, UInt64CowBlockID>
 {
-    static void create_signature(SBuf& buf, const CowLiteBlockID<ValueHolder>& obj) {
-        buf << "CowLiteBlockIDDT";
+    static void create_signature(SBuf& buf, const CowBlockID<uint64_t>& obj) {
+        buf << "UInt64CowBlockID";
     }
 
     static void create_signature(SBuf& buf) {
-        buf << "CowLiteBlockIDDT";
+        buf << "UInt64CowBlockID";
     }
 };
 
+class UUID;
+
+template <>
+struct DataTypeTraits<CowBlockID<UUID>>: FixedSizeDataTypeTraits<CowBlockID<UUID>, UUIDCowBlockID>
+{
+    static void create_signature(SBuf& buf, const CowBlockID<UUID>& obj) {
+        buf << "UUIDCowBlockID";
+    }
+
+    static void create_signature(SBuf& buf) {
+        buf << "UUIDCowBlockID";
+    }
+};
 
 template<typename T>
 TypeSignature make_datatype_signature(T obj)

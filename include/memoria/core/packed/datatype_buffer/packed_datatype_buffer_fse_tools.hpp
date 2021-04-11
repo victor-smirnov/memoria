@@ -197,7 +197,7 @@ public:
     }
 
     template <typename SerializationData, typename Metadata, typename IDResolver>
-    VoidResult mem_cow_serialize(const Metadata& meta, SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    VoidResult cow_serialize(const Metadata& meta, SerializationData& buf, const IDResolver* id_resolver) const noexcept
     {
         auto size = meta.size();
         auto data = this->data();

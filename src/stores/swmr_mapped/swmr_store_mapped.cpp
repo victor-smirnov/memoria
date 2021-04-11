@@ -26,13 +26,6 @@ template class MappedSWMRStore<Profile>;
 template class MappedSWMRStoreWritableCommit<Profile>;
 template class MappedSWMRStoreReadOnlyCommit<Profile>;
 
-#if !defined(MEMORIA_BUILD_MEMORY_STORE_COW)
-std::ostream& operator<<(std::ostream& out, const CowLiteBlockID<uint64_t>& block_id) noexcept {
-    out << block_id.value();
-    return out;
-}
-#endif
-
 namespace {
 
 template <typename PP>

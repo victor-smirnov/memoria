@@ -115,7 +115,7 @@ public:
         return Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
     }
 
-    struct MemCowSerializeFn {
+    struct CowSerializeFn {
         template <typename Tree, typename SerializationData, typename IDResolver>
         VoidResult stream(const Tree* tree, SerializationData* buf, const IDResolver*) noexcept
         {
@@ -126,7 +126,7 @@ public:
         VoidResult stream(
                 const PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
-                            CowLiteBlockID<ValueHolder>,
+                            CowBlockID<ValueHolder>,
                             Indexed
                         >
                 >* pkd_buffer,
@@ -134,16 +134,16 @@ public:
                 const IDResolver* id_resolver
         ) noexcept
         {
-            return pkd_buffer->mem_cow_serialize(*buf, id_resolver);
+            return pkd_buffer->cow_serialize(*buf, id_resolver);
         }
     };
 
     template <typename SerializationData, typename IDResolver>
-    VoidResult mem_cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    VoidResult cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
     {
-        MEMORIA_TRY_VOID(Base::template mem_cow_serialize<RootMetadataList>(buf, id_resolver));
+        MEMORIA_TRY_VOID(Base::template cow_serialize<RootMetadataList>(buf, id_resolver));
 
-        return Dispatcher::dispatchNotEmpty(allocator(), MemCowSerializeFn(), &buf, id_resolver);
+        return Dispatcher::dispatchNotEmpty(allocator(), CowSerializeFn(), &buf, id_resolver);
     }
 
 
@@ -158,14 +158,14 @@ public:
         VoidResult stream(
                 PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
-                            CowLiteBlockID<IDValueHolder>,
+                            CowBlockID<IDValueHolder>,
                             Indexed
                         >
                 >* pkd_buffer,
                 const IDResolver* id_resolver
         ) noexcept
         {
-            using DataType = CowLiteBlockID<IDValueHolder>;
+            using DataType = CowBlockID<IDValueHolder>;
 
             using Buffer = PackedDataTypeBuffer<
                 PackedDataTypeBufferTypes<
@@ -201,9 +201,9 @@ public:
 
 
     template <typename IDResolver>
-    VoidResult mem_cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    VoidResult cow_resolve_ids(const IDResolver* id_resolver) noexcept
     {
-        MEMORIA_TRY_VOID(Base::mem_cow_resolve_ids(id_resolver));
+        MEMORIA_TRY_VOID(Base::cow_resolve_ids(id_resolver));
         return Dispatcher::dispatchNotEmpty(allocator(), MemCowResolveIDSFn(), id_resolver);
     }
 

@@ -22,6 +22,8 @@
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/strings/format.hpp>
 
+#include <memoria/core/tools/stream.hpp>
+
 #include <boost/uuid/uuid.hpp>
 
 #include <iostream>
@@ -116,6 +118,11 @@ public:
     std::string str() const {
         return to_u8().to_std_string();
     }
+
+
+    operator bool() const noexcept {
+        return isSet();
+    }
 };
 
 
@@ -174,6 +181,14 @@ void block_id_holder_to(const ApiBlockIDHolder<N>& holder, UUID& uuid) noexcept 
     static_assert(N >= 2, "");
     uuid.lo() = holder.array[0];
     uuid.hi() = holder.array[1];
+}
+
+std::ostream& operator<<(std::ostream& out, const BlockIDValueHolder<UUID>& block_id_value) noexcept;
+
+static inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const CowBlockID<UUID>& value) {
+    out.write(value.value().hi());
+    out.write(value.value().lo());
+    return out;
 }
 
 

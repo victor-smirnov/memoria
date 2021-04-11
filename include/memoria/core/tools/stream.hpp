@@ -18,6 +18,7 @@
 
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/strings/string.hpp>
+#include <memoria/core/container/cow.hpp>
 
 #include <memoria/filesystem/path.hpp>
 
@@ -198,9 +199,6 @@ inline InputStreamHandler& operator>>(InputStreamHandler& in, U16String& value)
 
     U8String u8_value(size, ' ');
 
-    //value.to_std_string().clear();
-    //value.to_std_string().insert(0, size, 0);
-
     in.read(u8_value.data(), size);
 
     value = u8_value.to_u16();
@@ -217,7 +215,7 @@ OutputStreamHandler& operator<<(OutputStreamHandler& out, const T& value) {
 }
 
 template <typename T>
-OutputStreamHandler& operator<<(OutputStreamHandler& out, const CowLiteBlockID<T>& value) {
+OutputStreamHandler& operator<<(OutputStreamHandler& out, const CowBlockID<T>& value) {
     out.write(value.value());
     return out;
 }

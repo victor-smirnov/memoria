@@ -19,9 +19,12 @@
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/profiles/common/block.hpp>
 #include <memoria/profiles/core_api/core_api_profile.hpp>
+#include <memoria/profiles/impl/cow_impl_common.hpp>
 
 #include <memoria/core/container/allocator.hpp>
 #include <memoria/core/tools/uuid.hpp>
+
+
 
 #include <unordered_set>
 
@@ -38,10 +41,11 @@ struct ProfileTraits<CowLiteProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using typename Base::CtrSizeT;
     using typename Base::SnapshotID;
 
-    using BlockID       = CowLiteBlockID<uint64_t>;
+    using BlockGUID     = uint64_t;
+    using BlockID       = CowBlockID<uint64_t>;
     using Profile       = CowLiteProfile<>;
 
-    using Block = AbstractPage<BlockID, BlockID, uint64_t, SnapshotID>;
+    using Block = AbstractPage<BlockID, BlockGUID, uint64_t, SnapshotID>;
     using BlockType = Block;
 
     using AllocatorType = ICoWAllocator<Profile>;
@@ -83,48 +87,6 @@ struct ProfileSpecificBlockTools<CowLiteProfile<>>{
 };
 
 
-template <typename ValueHolder>
-struct FieldFactory<CowLiteBlockID<ValueHolder>> {
-    using Type = CowLiteBlockID<ValueHolder>;
-
-    static constexpr size_t Size = sizeof(ValueHolder);
-
-    template <typename SerializationData>
-    static void serialize(SerializationData& data, const Type& field)
-    {
-        std::memcpy(data.buf, &field.value(), Size);
-        data.buf    += Size;
-        data.total  += Size;
-    }
-
-    template <typename DeserializationData>
-    static void deserialize(DeserializationData& data, Type& field)
-    {
-        std::memcpy(&field.value(), data.buf, Size);
-        data.buf += Size;
-    }
-
-    template <typename SerializationData>
-    static void serialize(SerializationData& data, const Type* field, int32_t size)
-    {
-        for (int32_t c = 0; c < size; c++)
-        {
-            std::memcpy(data.buf, &field[c].value(), Size);
-            data.buf    += Size;
-            data.total  += Size;
-        }
-    }
-
-    template <typename DeserializationData>
-    static void deserialize(DeserializationData& data, Type* field, int32_t size)
-    {
-        for (int32_t c = 0; c < size; c++)
-        {
-            std::memcpy(&field[c].value(), data.buf, Size);
-            data.buf += Size;
-        }
-    }
-};
 
 
 template <>
@@ -134,30 +96,11 @@ struct IBlockOperations<CowLiteProfile<>>: IBlockOperationsBase<CowLiteProfile<>
     using typename Base::IDValueResolver;
     using typename Base::BlockType;
 
-    virtual VoidResult mem_cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const noexcept = 0;
+    virtual VoidResult cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const noexcept = 0;
 };
 
 
 
-
-template <>
-struct ContainerOperations<CowLiteProfile<>>: ContainerOperationsBase<CowLiteProfile<>> {
-
-};
-
-
-template <typename ValueHolder>
-ApiBlockIDHolder<2> block_id_holder_from(const CowLiteBlockID<ValueHolder>& uuid) noexcept {
-    ApiBlockIDHolder<2> holder;
-    holder.array[0] = uuid.value();
-    return holder;
-}
-
-template <size_t N, typename ValueHolder>
-void block_id_holder_to(const ApiBlockIDHolder<N>& holder, CowLiteBlockID<ValueHolder>& uuid) noexcept {
-    static_assert(N >= 1, "");
-    uuid.value() = holder.array[0];
-}
 
 
 }

@@ -105,6 +105,7 @@ public:
                     }
                 }
 
+                //MEMORIA_TRY_VOID(self.ctr_ref_block(child->id()));
 
                 last_child = child;
             }
@@ -151,6 +152,8 @@ public:
             if (level >= 1)
             {
                 MEMORIA_TRY(node, self.ctr_create_node(level, false, false));
+
+                MEMORIA_TRY_VOID(self.ctr_ref_block(node->id()));
 
                 MEMORIA_TRY_VOID(self.ctr_layout_branch_node(node, 0xFF));
 

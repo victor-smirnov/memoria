@@ -228,7 +228,7 @@ public:
 
 
     template <typename SerializationData, typename IDResolver>
-    VoidResult mem_cow_serialize(SerializationData& buf, const IDResolver* resolver) const noexcept
+    VoidResult cow_serialize(SerializationData& buf, const IDResolver* resolver) const noexcept
     {
         MEMORIA_TRY_VOID(Base::serialize(buf));
 
@@ -238,7 +238,7 @@ public:
         FieldFactory<psize_t>::serialize(buf, meta.data_size(), Dimensions);
 
         return for_each_dimension_res([&, this](auto idx){
-            return this->dimension<idx>().mem_cow_serialize(meta, buf, resolver);
+            return this->dimension<idx>().cow_serialize(meta, buf, resolver);
         });
     }
 

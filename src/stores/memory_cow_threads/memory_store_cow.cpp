@@ -13,22 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/profiles/impl/cow_lite_profile.hpp>
+#include <memoria/profiles/impl/cow_profile.hpp>
 #include <memoria/store/memory_cow/threads/threads_memory_store_cow_impl.hpp>
 
 namespace memoria {
 
-using Profile = CowLiteProfile<>;
+using Profile = CowProfile<>;
 using ApiProfileT = ApiProfile<Profile>;
 template class IMemoryStore<ApiProfileT>;
-
-
-std::ostream& operator<<(std::ostream& out, const CowLiteBlockID<uint64_t>& block_id) noexcept {
-    out << block_id.value();
-    return out;
-}
-
-
 
 
 Result<SharedPtr<IMemoryStore<ApiProfileT>>> create_memory_store() noexcept

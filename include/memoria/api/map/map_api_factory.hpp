@@ -22,6 +22,7 @@
 
 #include <memoria/core/datatypes/io_vector_traits.hpp>
 
+
 namespace memoria {
 
 template <typename Key, typename Value>
