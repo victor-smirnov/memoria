@@ -430,11 +430,8 @@ public:
         std::memset(block_addr, 0, initial_size);
 
         MEMORIA_TRY(id, newId());
-        BlockType* block = new (block_addr) BlockType(BlockID{id});
+        BlockType* block = new (block_addr) BlockType(id, id);
         block->init();
-
-        block->id()   = id;
-        block->uuid() = id;
 
         block->memory_block_size() = initial_size;
 

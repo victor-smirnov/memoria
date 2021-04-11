@@ -797,8 +797,7 @@ public:
         void* buf = allocate_system<uint8_t>(static_cast<size_t>(initial_size)).release();
         memset(buf, 0, static_cast<size_t>(initial_size));
 
-        BlockType* p = new (buf) BlockType(id);
-        p->id_value() = detail::IDValueHolderH<BlockID>::to_id_value(id);
+        BlockType* p = new (buf) BlockType(id, id.value(), id.value());
         p->id() = detail::IDValueHolderH<BlockID>::to_id(p);
         p->snapshot_id() = uuid();
 
@@ -1169,7 +1168,7 @@ protected:
         BlockType* new_block = ptr_cast<BlockType>(buffer);
 
         MEMORIA_TRY(new_block_id, newId());
-        new_block->uuid() = new_block_id;
+        new_block->uuid() = new_block_id.value();
         new_block->snapshot_id() = uuid();
         new_block->set_references(0);
 

@@ -1,4 +1,4 @@
-# Copyright 2016 Victor Smirnov
+# Copyright 2021 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,3 +19,7 @@ endif()
 
 file(GLOB SRCS *.cpp)
 set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS} ${SRCS_PLATFORM})
+
+file(GLOB SRCS *.cpp)
+set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES_REACTOR ${SRCS} ${SRCS_PLATFORM})
+

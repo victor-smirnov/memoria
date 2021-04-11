@@ -31,7 +31,7 @@ int main(void) {
         const char* file = "file.mma2";
 
         filesystem::remove(file);
-        auto store1 = create_mapped_swmr_store(file, 1024).get_or_throw();
+        auto store1 = create_swmr_store(file, 1024).get_or_throw();
 
         UUID ctr_id = UUID::make_random();
 
@@ -81,7 +81,7 @@ int main(void) {
 
         store1.reset();
 
-//        auto store2 = open_mapped_swmr_store(file).get_or_throw();
+//        auto store2 = open_swmr_store(file).get_or_throw();
 
 //        auto snp2 = store2->begin().get_or_throw();
 //        auto ctr2 = find<CtrType>(snp2, ctr_id).get_or_throw();

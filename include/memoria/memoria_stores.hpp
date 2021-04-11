@@ -21,21 +21,14 @@
 namespace memoria {
 
 
-#ifdef MEMORIA_BUILD_MEMORY_STORE
+
 void InitNoCowInMemStore();
-#endif
-
-#if defined(MEMORIA_BUILD_MEMORY_STORE_COW)
 void InitCoWInMemStore();
-#endif
-
-#if defined(MEMORIA_BUILD_SWMR_STORE_MAPPED)
-void InitSWMRMappedStore();
-#endif
-
-#if defined(MEMORIA_BUILD_LMDB_STORE)
+void InitSWMRStore();
+void InitLiteSWMRStore();
+void InitLiteRawSWMRStore();
 void InitLMDBStore();
-#endif
+
 
 void InitMemoriaStoresExplicit();
 

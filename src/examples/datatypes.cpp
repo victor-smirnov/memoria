@@ -47,7 +47,7 @@ int main()
 
         const char* name = "/home/victor/memoria_swmr_file.mma4";
         memoria::filesystem::remove(name);
-        auto store1 = create_mapped_swmr_store(name, 16*1024).get_or_throw();
+        auto store1 = create_swmr_store(name, 16*1024).get_or_throw();
 
         UUID ctr_id = UUID::make_random();
 
@@ -99,7 +99,7 @@ int main()
                   <<  std::endl;
         store1.reset();
 
-        auto store2 = open_mapped_swmr_store(name).get_or_throw();
+        auto store2 = open_swmr_store(name).get_or_throw();
 
         auto txn3 = store2->open().get_or_throw();
         auto ctr3 = find<CtrName>(txn3, ctr_id).get_or_throw();

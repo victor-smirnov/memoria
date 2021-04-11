@@ -107,11 +107,14 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
     virtual Result<HistoryPtr> history_view() noexcept = 0;
 };
 
+Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> open_swmr_store(U8StringView path);
+Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> create_swmr_store(U8StringView path, uint64_t store_size_mb);
 
-Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> open_mapped_swmr_store(U8StringView path);
-Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> create_mapped_swmr_store(U8StringView path, uint64_t store_size_mb);
+Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> open_lite_swmr_store(U8StringView path);
+Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> create_lite_swmr_store(U8StringView path, uint64_t store_size_mb);
 
-
+Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> open_lite_raw_swmr_store(U8StringView path);
+Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> create_lite_raw_swmr_store(U8StringView path, uint64_t store_size_mb);
 
 template <typename Profile>
 struct ILMDBStore: IBasicSWMRStore<Profile> {

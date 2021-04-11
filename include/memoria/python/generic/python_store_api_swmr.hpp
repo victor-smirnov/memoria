@@ -81,8 +81,8 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
             .def("open", py::overload_cast<CommitID>(&Type::open))
             .def("open", py::overload_cast<>(&Type::open));
 
-        m.def("create_mapped_swmr_store", &create_mapped_swmr_store);
-        m.def("open_mapped_swmr_store", &open_mapped_swmr_store);
+        m.def("create_swmr_store", &create_swmr_store);
+        m.def("open_swmr_store", &open_swmr_store);
     }
 };
 

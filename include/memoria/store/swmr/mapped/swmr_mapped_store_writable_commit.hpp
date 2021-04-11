@@ -624,10 +624,9 @@ public:
 
         std::memset(block_addr, 0, initial_size);
 
-        BlockType* block = new (block_addr) BlockType(BlockID{id});
+        BlockType* block = new (block_addr) BlockType(BlockID{id}, id, id);
         block->init();
 
-        block->id_value() = id;
         block->snapshot_id() = superblock_->commit_uuid();
         block->memory_block_size() = initial_size;
 

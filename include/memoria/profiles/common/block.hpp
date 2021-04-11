@@ -86,7 +86,15 @@ public:
 
     AbstractPage() noexcept= default;
 
-    AbstractPage(const PageIdType &id) noexcept: id_(id), uuid_(id) {}
+    AbstractPage(const PageIdType &id, const PageGuidType &guid) noexcept:
+        id_(id),
+        uuid_(guid) {}
+
+    AbstractPage(const PageIdType &id, const PageGuidType &guid, const IdValueHolder& ivh) noexcept:
+        id_value_(ivh),
+        id_(id),
+        uuid_(guid)
+    {}
 
     const IdValueHolder &id_value() const noexcept {
         return id_value_;

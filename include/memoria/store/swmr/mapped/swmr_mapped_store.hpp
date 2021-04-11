@@ -94,9 +94,14 @@ class MappedSWMRStore: public ISWMRStore<ApiProfile<Profile>>, public ReferenceC
     template <typename> friend class MappedSWMRStoreCommitBase;
     template <typename> friend class SWMRMappedStoreHistoryView;
 
-    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_mapped_swmr_store(U8StringView);
-    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_mapped_swmr_store(U8StringView, uint64_t);
+    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_swmr_store(U8StringView);
+    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_swmr_store(U8StringView, uint64_t);
 
+    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_lite_raw_swmr_store(U8StringView);
+    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_lite_raw_swmr_store(U8StringView, uint64_t);
+
+    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_lite_swmr_store(U8StringView);
+    friend Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_lite_swmr_store(U8StringView, uint64_t);
 
     U8String file_name_;
     uint64_t file_size_;

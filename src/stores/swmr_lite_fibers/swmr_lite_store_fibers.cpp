@@ -37,13 +37,13 @@ struct Initializer {
 
 }
 
-void InitSWMRStore() {
+void InitLiteSWMRStore() {
     Initializer<Profile> init0;
 }
 
 
 
-Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_swmr_store(U8StringView path)
+Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_lite_swmr_store(U8StringView path)
 {
     using ResultT = Result<SharedPtr<ISWMRStore<ApiProfileT>>>;
 
@@ -59,7 +59,7 @@ Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_swmr_store(U8StringView path)
     return ResultT::of(ptr);
 }
 
-Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_swmr_store(U8StringView path, uint64_t store_size_mb)
+Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_lite_swmr_store(U8StringView path, uint64_t store_size_mb)
 {
     using ResultT = Result<SharedPtr<ISWMRStore<ApiProfileT>>>;
 

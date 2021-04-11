@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB SRCS *.cpp)
-set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES_REACTOR ${SRCS})
+if (BUILD_POSIX)
+    file(GLOB SRCS_PLATFORM posix/*.cpp)
+else()
+endif()
 
 file(GLOB SRCS *.cpp)
-set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS})
-
+set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS} ${SRCS_PLATFORM})

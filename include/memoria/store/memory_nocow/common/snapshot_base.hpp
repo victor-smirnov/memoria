@@ -766,7 +766,7 @@ public:
 
         MEMORIA_TRY(id, newId());
 
-        BlockType* p = new (buf) BlockType(id);
+        BlockType* p = new (buf) BlockType(id, id);
 
         p->memory_block_size() = initial_size;
 

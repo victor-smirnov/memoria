@@ -1,4 +1,4 @@
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,31 +18,15 @@
 
 #include <memoria/api/common/ctr_api.hpp>
 
-#ifdef MEMORIA_BUILD_CONTAINERS
-#   include <memoria/api/set/set_api.hpp>
-#   include <memoria/api/map/map_api.hpp>
-#   include <memoria/api/vector/vector_api.hpp>
-#   include <memoria/api/multimap/multimap_api.hpp>
-#   include <memoria/api/allocation_map/allocation_map_api.hpp>
-#else
-#   include <memoria/api/map/map_api.hpp>
-#   include <memoria/api/allocation_map/allocation_map_api.hpp>
-#   if defined (MEMORIA_BUILD_CONTAINERS_MULTIMAP)
-#       include <memoria/api/multimap/multimap_api.hpp>
-#   endif
-#   if defined (MEMORIA_BUILD_CONTAINERS_SET)
-#       include <memoria/api/set/set_api.hpp>
-#       include <memoria/api/allocation_map/allocation_map_api.hpp>
-#   endif
-#   if defined (MEMORIA_BUILD_CONTAINERS_VECTOR)
-#       include <memoria/api/vector/vector_api.hpp>
-#   endif
-#endif
+#include <memoria/api/set/set_api.hpp>
+#include <memoria/api/map/map_api.hpp>
+#include <memoria/api/vector/vector_api.hpp>
+#include <memoria/api/multimap/multimap_api.hpp>
+#include <memoria/api/allocation_map/allocation_map_api.hpp>
 
 #include <memoria/core/tools/fixed_array.hpp>
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/tools/uuid.hpp>
-
 
 namespace memoria {
 
@@ -58,7 +42,6 @@ template <typename ProfileT>
 struct StaticLibraryCtrs {
     static void init()
     {
-#ifdef MEMORIA_BUILD_CONTAINERS
         InitCtrMetadata<Set<FixedArray<16>>, ProfileT>();
         InitCtrMetadata<Set<Varchar>, ProfileT>();
         InitCtrMetadata<Set<UUID>, ProfileT>();
@@ -77,17 +60,6 @@ struct StaticLibraryCtrs {
         InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
 
         InitCtrMetadata<AllocationMap, ProfileT>();
-#endif
-
-#ifdef MEMORIA_BUILD_SWMR_STORE_MAPPED
-        InitCtrMetadata<Map<BigInt, BigInt>, ProfileT>();
-        InitCtrMetadata<AllocationMap, ProfileT>();
-#endif
-
-#ifdef MEMORIA_BUILD_LMDB_STORE
-        InitCtrMetadata<Map<UUID, UUID>, ProfileT>();
-#endif
-
     }
 };
 

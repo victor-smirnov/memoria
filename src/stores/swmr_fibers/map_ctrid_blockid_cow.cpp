@@ -1,5 +1,5 @@
 
-// Copyright 2021 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,17 +13,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/memoria_stores.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
+
+#include <memoria/containers/map/map_impl.hpp>
+
+#include <memoria/core/strings/string.hpp>
 
 namespace memoria {
 
-void InitMemoriaStoresExplicit() {
-    InitNoCowInMemStore();
-    InitCoWInMemStore();
-    InitSWMRStore();
-    InitLiteSWMRStore();
-    InitLiteRawSWMRStore();
-    InitLMDBStore();
-}
+using Profile = CowLiteProfile<>;
+using CtrName = Map<ProfileCtrID<Profile>, ProfileBlockID<Profile>>;
+
+MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_ctrid_blockid)
 
 }
+

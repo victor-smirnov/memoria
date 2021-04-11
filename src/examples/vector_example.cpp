@@ -20,6 +20,7 @@
 #include <memoria/api/store/memory_store_api.hpp>
 
 #include <memoria/api/map/map_api.hpp>
+#include <memoria/api/vector/vector_api.hpp>
 #include <memoria/core/tools/time.hpp>
 #include <memoria/memoria.hpp>
 

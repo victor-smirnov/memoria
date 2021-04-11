@@ -48,16 +48,7 @@ option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 
 option(BUILD_CLASSIC_MEMORIA_LIB "Build core library without Reactor support, using threads for concurrency" ON)
 option(BUILD_REACTOR_MEMORIA_LIB "Build core library WITH Reactor support, using fibers for concurrency" OFF)
-
-option(BUILD_CONTAINERS          "Build containers." ON)
-
-option(BUILD_MEMORY_STORE        "Build default in-memory store." ON)
-option(BUILD_MEMORY_STORE_COW    "Build default CoW in-memory store." ON)
-option(BUILD_SWMR_STORE_MAPPED   "Build memory-mapped SWMR store." ON)
-option(BUILD_LMDB_STORE          "Build LMDB-based SWMR store." ON)
-
 option(BUILD_PYTHON_BINDINGS     "Build Python bindings for certain Memoria libraries." OFF)
-
 
 option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
 option(BUILD_STATIC     "Build statically linked binaries" OFF)
@@ -100,46 +91,8 @@ endif()
 
 # Global definitions
 
-if (BUILD_TESTS AND BUILD_TESTS_CONTAINERS)
-    set(BUILD_CONTAINERS_MULTIMAP ON)
-    set(BUILD_CONTAINERS_SET ON)
-    set(BUILD_CONTAINERS_VECTOR ON)
-endif()
-
 add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
 add_definitions(-DMMA_ICU_CXX_NS=icu)
-
-if (BUILD_CONTAINERS)
-    add_definitions(-DMEMORIA_BUILD_CONTAINERS)
-endif()
-
-if (BUILD_CONTAINERS_MULTIMAP)
-    add_definitions(-DMEMORIA_BUILD_CONTAINERS_MULTIMAP)
-endif()
-
-if (BUILD_CONTAINERS_SET)
-    add_definitions(-DMEMORIA_BUILD_CONTAINERS_SET)
-endif()
-
-if (BUILD_CONTAINERS_VECTOR)
-    add_definitions(-DMEMORIA_BUILD_CONTAINERS_VECTOR)
-endif()
-
-if (BUILD_SWMR_STORE_MAPPED)
-    add_definitions(-DMEMORIA_BUILD_SWMR_STORE_MAPPED)
-endif()
-
-if (BUILD_LMDB_STORE)
-    add_definitions(-DMEMORIA_BUILD_LMDB_STORE)
-endif()
-
-if (BUILD_MEMORY_STORE)
-    add_definitions(-DMEMORIA_BUILD_MEMORY_STORE)
-endif()
-
-if (BUILD_MEMORY_STORE_COW)
-    add_definitions(-DMEMORIA_BUILD_MEMORY_STORE_COW)
-endif()
 
 if (BUILD_POSIX)
 

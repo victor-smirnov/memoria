@@ -63,14 +63,6 @@ public:
     bool is_null() const noexcept {
         return !isSet();
     }
-
-    operator ValueHolder&() noexcept {
-        return holder_;
-    }
-
-    operator const ValueHolder&() const noexcept {
-        return holder_;
-    }
 };
 
 template <typename VH>
