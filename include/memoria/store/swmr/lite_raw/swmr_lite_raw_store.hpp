@@ -1,5 +1,5 @@
 
-// Copyright 2019-2021 Victor Smirnov
+// Copyright 2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@
 namespace memoria {
 
 template <typename Profile>
-class MappedSWMRStore: public MappedSWMRStoreBase<Profile>, public EnableSharedFromThis<MappedSWMRStore<Profile>> {
+class SWMRLiteRawStore: public MappedSWMRStoreBase<Profile>, public EnableSharedFromThis<SWMRLiteRawStore<Profile>> {
 
     using Base = MappedSWMRStoreBase<Profile>;
 
@@ -58,6 +58,8 @@ protected:
     using typename Base::CommitDescriptorT;
     using typename Base::CounterStorageT;
     using typename Base::BlockID;
+    using typename Base::LockGuard;
+    using typename Base::ApiProfileT;
 
     using Base::block_counters_;
     using Base::get_superblock;
@@ -72,68 +74,23 @@ protected:
     using Base::ALLOCATION_MAP_SIZE_STEP;
     using Base::MB;
 
-    using ApiProfileT = ApiProfile<Profile>;
-
-    using LockGuard     = std::lock_guard<std::recursive_mutex>;
-    using Superblock    = SWMRSuperblock<Profile>;
+    bool closed_{false};
 
     template <typename> friend class MappedSWMRStoreReadonlyCommit;
     template <typename> friend class MappedSWMRStoreWritableCommit;
     template <typename> friend class MappedSWMRStoreCommitBase;
 
-    U8String file_name_;
-    uint64_t file_size_;
-    std::unique_ptr<boost::interprocess::file_mapping> file_;
-    boost::interprocess::mapped_region region_;
-
-    std::unique_ptr<detail::FileLockHandler> lock_;
-
 public:
-    MappedSWMRStore(MaybeError& maybe_error, U8String file_name, uint64_t file_size_mb):
-        file_name_(file_name),
-        file_size_(compute_file_size(file_size_mb))
-    {
-        wrap_construction(maybe_error, [&]() -> VoidResult {
-            if (filesystem::exists(file_name.to_std_string())) {                
-                return MEMORIA_MAKE_GENERIC_ERROR("Provided file {} already exists", file_name);
-            }
-            MEMORIA_TRY_VOID(acquire_lock(file_name.data(), true));
-
-            MEMORIA_TRY_VOID(make_file(file_name, file_size_));
-
-            file_   = std::make_unique<boost::interprocess::file_mapping>(file_name_.data(), boost::interprocess::read_write);
-            region_ = boost::interprocess::mapped_region(*file_.get(), boost::interprocess::read_write, 0, file_size_);
-            buffer_ = Span<uint8_t>(ptr_cast<uint8_t>(region_.get_address()), file_size_);
-
-            return VoidResult::of();
-        });
+    SWMRLiteRawStore(Span<uint8_t> buffer) noexcept {
+        buffer_ = buffer;
     }
 
-    MappedSWMRStore(MaybeError& maybe_error, U8String file_name):
-        file_name_(file_name)
-    {
-        wrap_construction(maybe_error, [&]() -> VoidResult {
-            MEMORIA_TRY_VOID(acquire_lock(file_name.data(), false));
-
-            file_       = std::make_unique<boost::interprocess::file_mapping>(file_name_.data(), boost::interprocess::read_write);
-            file_size_  = memoria::filesystem::file_size(file_name_);
-            MEMORIA_TRY_VOID(check_file_size());
-
-            region_ = boost::interprocess::mapped_region(*file_.get(), boost::interprocess::read_write);
-            buffer_ = Span<uint8_t>(ptr_cast<uint8_t>(region_.get_address()), file_size_);
-
-            return VoidResult::of();
-        });
-    }
-
-    ~MappedSWMRStore() noexcept {
+    ~SWMRLiteRawStore() noexcept {
         close().terminate_if_error();
     }
 
     virtual VoidResult flush() noexcept {
-        MEMORIA_TRY_VOID(check_if_open());
-        MEMORIA_TRY_VOID(flush_data());
-        return flush_header();
+        return VoidResult::of();
     }
 
 
@@ -141,10 +98,8 @@ public:
         return this->init_mapped_store();
     }
 
-
-    virtual VoidResult close() noexcept
-    {
-        if (file_)
+    virtual VoidResult close() noexcept {
+        if (!closed_)
         {
             LockGuard lock(writer_mutex_);
 
@@ -171,9 +126,7 @@ public:
 
             MEMORIA_TRY_VOID(flush_header());
 
-            MEMORIA_TRY_VOID(lock_->unlock());
-            region_.flush();
-            file_.reset();
+            closed_ = true;
         }
 
         return VoidResult::of();
@@ -183,105 +136,21 @@ public:
         MappedSWMRStoreWritableCommit<Profile>::init_profile_metadata();
     }
 
-    VoidResult flush_data(bool async = false) noexcept
-    {
-        MEMORIA_TRY_VOID(check_if_open());
-        if (!region_.flush(HEADER_SIZE, buffer_.size() - HEADER_SIZE, async)) {
-            return make_generic_error("DataFlush operation failed");
-        }
-
+    VoidResult flush_data(bool async = false) noexcept {
         return VoidResult::of();
     }
 
-    VoidResult flush_header(bool async = false) noexcept
-    {
-        MEMORIA_TRY_VOID(check_if_open());
-        if (!region_.flush(0, HEADER_SIZE, async)) {
-            return make_generic_error("HeaderFlush operation failed");
-        }
+    VoidResult flush_header(bool async = false) noexcept {
         return VoidResult::of();
     }
 
-    Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>> history_view() noexcept {
-
+    Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>> history_view() noexcept
+    {
         MEMORIA_TRY(head, do_open_readonly(head_ptr_));
 
         return Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>>::of(
             MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head)
         );
-    }
-
-    VoidResult do_open_file() noexcept
-    {
-        return this->do_open_buffer();
-    }
-
-private:
-
-    VoidResult check_file_size() noexcept
-    {
-        if (file_size_ % BASIC_BLOCK_SIZE) {
-            return MEMORIA_MAKE_GENERIC_ERROR(
-                "SWMR Store's file size is not multiple of {}: {}", BASIC_BLOCK_SIZE, file_size_
-            );
-        }
-
-        if (file_size_ < BASIC_BLOCK_SIZE * 2) {
-            return MEMORIA_MAKE_GENERIC_ERROR(
-                "SWMR Store's file size is too small {}", file_size_
-            );
-        }
-
-        return VoidResult::of();
-    }
-
-    VoidResult check_if_open() noexcept {
-        if (!file_) {
-            return make_generic_error("File {} has been already closed", file_name_);
-        }
-
-        return VoidResult::of();
-    }
-
-
-
-
-
-    static uint64_t compute_file_size(uint64_t file_size_mb) noexcept
-    {
-        uint64_t allocation_size_mb = ALLOCATION_MAP_SIZE_STEP / MB;
-        return (file_size_mb / allocation_size_mb) * allocation_size_mb * MB;
-    }
-
-    static VoidResult make_file(const U8String& name, uint64_t file_size) noexcept {
-        return wrap_throwing([&](){
-            std::filebuf fbuf;
-
-            fbuf.open(name.to_std_string(), std::ios_base::in | std::ios_base::out | std::ios_base::binary);
-
-            //Set the size
-            fbuf.pubseekoff(file_size - 1, std::ios_base::beg);
-            fbuf.sputc(0);
-            fbuf.close();
-        });
-    }
-
-    VoidResult acquire_lock(const char* file_name, bool create_file) noexcept {
-        auto lock = detail::FileLockHandler::lock_file(file_name, create_file);
-
-        if (!lock.is_error()) {
-            if (!lock.get()) {
-                return MEMORIA_MAKE_GENERIC_ERROR("Provided file {} has been already locked", file_name);
-            }
-            else {
-                lock_ = std::move(lock.get());
-            }
-        }
-        else {
-            return std::move(lock).transfer_error();
-        }
-
-        return VoidResult::of();
     }
 
     virtual Result<SWMRReadOnlyCommitPtr> do_open_readonly(CommitDescriptorT* commit_descr) noexcept
@@ -342,6 +211,10 @@ private:
         else {
             return std::move(maybe_error.get());
         }
+    }
+
+    virtual VoidResult check_if_open() noexcept {
+        return VoidResult::of();
     }
 };
 

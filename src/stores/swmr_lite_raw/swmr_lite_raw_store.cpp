@@ -14,7 +14,7 @@
 // limitations under the License.
 
 #include <memoria/profiles/impl/cow_lite_profile.hpp>
-#include <memoria/store/swmr/mapped/swmr_mapped_store.hpp>
+#include <memoria/store/swmr/lite_raw/swmr_lite_raw_store.hpp>
 
 namespace memoria {
 
@@ -22,7 +22,7 @@ using Profile = CowLiteProfile<>;
 using ApiProfileT = ApiProfile<Profile>;
 
 template struct ISWMRStore<ApiProfileT>;
-template class MappedSWMRStore<Profile>;
+template class SWMRLiteRawStore<Profile>;
 template class MappedSWMRStoreWritableCommit<Profile>;
 template class MappedSWMRStoreReadOnlyCommit<Profile>;
 
@@ -31,7 +31,7 @@ namespace {
 template <typename PP>
 struct Initializer {
     Initializer() {
-        MappedSWMRStore<Profile>::init_profile_metadata();
+        SWMRLiteRawStore<Profile>::init_profile_metadata();
     }
 };
 
@@ -43,32 +43,22 @@ void InitLiteRawSWMRStore() {
 
 
 
-Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_lite_raw_swmr_store(U8StringView path)
+Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_lite_raw_swmr_store(Span<uint8_t> buffer)
 {
     using ResultT = Result<SharedPtr<ISWMRStore<ApiProfileT>>>;
 
-    MaybeError maybe_error;
-    auto ptr = MakeShared<MappedSWMRStore<Profile>>(maybe_error, path);
+    auto ptr = MakeShared<SWMRLiteRawStore<Profile>>(buffer);
 
-    if (maybe_error) {
-        return std::move(maybe_error.get());
-    }
-
-    MEMORIA_TRY_VOID(ptr->do_open_file());
+    MEMORIA_TRY_VOID(ptr->do_open_buffer());
 
     return ResultT::of(ptr);
 }
 
-Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_lite_raw_swmr_store(U8StringView path, uint64_t store_size_mb)
+Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_lite_raw_swmr_store(Span<uint8_t> buffer)
 {
     using ResultT = Result<SharedPtr<ISWMRStore<ApiProfileT>>>;
 
-    MaybeError maybe_error;
-    auto ptr = MakeShared<MappedSWMRStore<Profile>>(maybe_error, path, store_size_mb);
-
-    if (maybe_error) {
-        return std::move(maybe_error.get());
-    }
+    auto ptr = MakeShared<SWMRLiteRawStore<Profile>>(buffer);
 
     MEMORIA_TRY_VOID(ptr->init_store());
 

@@ -263,17 +263,11 @@ public:
         writer_mutex_.unlock();
     }
 
-protected:
-
-
-
-
-
 
     virtual VoidResult check_if_open() noexcept  = 0;
 
 
-    virtual VoidResult check_file_size() noexcept = 0;
+    //virtual VoidResult check_file_size() noexcept = 0;
 
 
 

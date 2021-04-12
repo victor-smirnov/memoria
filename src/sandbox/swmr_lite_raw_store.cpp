@@ -28,10 +28,13 @@ using CtrType = Set<Varchar>;
 
 int main(void) {
     try {
-        const char* file = "file.mma2";
 
-        filesystem::remove(file);
-        auto store1 = create_swmr_store(file, 1024).get_or_throw();
+        size_t size = 1024 * 1024 * 128;
+        auto buffer_mem = std::make_unique<uint8_t[]>(size);
+
+        Span<uint8_t> buffer(buffer_mem.get(), size);
+
+        auto store1 = create_lite_raw_swmr_store(buffer).get_or_throw();
 
         UUID ctr_id = UUID::make_random();
 
@@ -51,29 +54,29 @@ int main(void) {
             }
 
 
-//            int cnt = 0;
-//            int b0  = 0;
-//            int batch_size = 100;
-//            int batches = 100;
-//            while (cnt < batch_size * batches) {
-//                auto snp1 = store1->begin().get_or_throw();
-//                auto ctr1 = find<CtrType>(snp1, ctr_id).get_or_throw();
+            int cnt = 0;
+            int b0  = 0;
+            int batch_size = 100;
+            int batches = 1000;
+            while (cnt < batch_size * batches) {
+                auto snp1 = store1->begin().get_or_throw();
+                auto ctr1 = find<CtrType>(snp1, ctr_id).get_or_throw();
 
-//                if (b0 % 100 == 0) {
-//                    std::cout << "Batch " << (b0) << std::endl;
-//                }
+                if (b0 % 100 == 0) {
+                    std::cout << "Batch " << (b0) << std::endl;
+                }
 
-//                b0++;
+                b0++;
 
-//                for (int c = 0; c < batch_size; c++, cnt++) {
-//                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str()).get_or_throw();
-//                }
+                for (int c = 0; c < batch_size; c++, cnt++) {
+                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str()).get_or_throw();
+                }
 
-//                snp1->commit(false).get_or_throw();
-//            }
+                snp1->commit(false).get_or_throw();
+            }
         }
 
-//        store1->check(callback).get_or_throw();
+        store1->check(callback).get_or_throw();
 
         auto t_end = getTimeInMillis();
 
@@ -81,18 +84,18 @@ int main(void) {
 
         store1->close().get_or_throw();
 
-//        auto store2 = open_swmr_store(file).get_or_throw();
+        auto store2 = open_lite_raw_swmr_store(buffer).get_or_throw();
 
-//        auto snp2 = store2->begin().get_or_throw();
-//        auto ctr2 = find<CtrType>(snp2, ctr_id).get_or_throw();
+        auto snp2 = store2->begin().get_or_throw();
+        auto ctr2 = find<CtrType>(snp2, ctr_id).get_or_throw();
 
-//        ctr2->for_each([](auto view){
-//            std::cout << view << std::endl;
-//        }).get_or_throw();
+        ctr2->for_each([](auto view){
+            std::cout << view << std::endl;
+        }).get_or_throw();
 
-//        snp2->commit().get_or_throw();
+        snp2->commit().get_or_throw();
 
-//        store2->check(callback).get_or_throw();
+        store2->check(callback).get_or_throw();
     }
     catch (std::exception& ee) {
         std::cerr << "Exception: " << ee.what() << std::endl;
