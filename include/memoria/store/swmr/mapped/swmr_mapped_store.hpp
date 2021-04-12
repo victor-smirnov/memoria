@@ -367,10 +367,11 @@ private:
 
         MaybeError maybe_error{};
         auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
-            maybe_error, this->shared_from_this(), buffer_, head, commit_descr
+            maybe_error, this->shared_from_this(), buffer_, commit_descr
         );
 
         if (!maybe_error) {
+            MEMORIA_TRY_VOID(ptr->init_commit(head));
             return ResultT::of(std::move(ptr));
         }
         else {
@@ -385,11 +386,12 @@ private:
         MaybeError maybe_error{};
 
         auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
-            maybe_error, this->shared_from_this(), buffer_, commit_descr, InitStoreTag{}
+            maybe_error, this->shared_from_this(), buffer_, commit_descr
         );
 
         if (!maybe_error)
         {
+            MEMORIA_TRY_VOID(ptr->init_store_commit());
             return ResultT::of(std::move(ptr));
         }
         else {

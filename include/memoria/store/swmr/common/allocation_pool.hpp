@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#pragma once
+
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 #include <memoria/core/tools/arena_buffer.hpp>
 

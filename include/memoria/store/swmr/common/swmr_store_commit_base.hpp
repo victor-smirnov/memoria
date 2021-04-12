@@ -748,6 +748,26 @@ public:
 
         return VoidResult::of();
     }
+
+    VoidResult for_each_root_block(const std::function<VoidResult (int64_t)>& fn) const noexcept
+    {
+        MEMORIA_TRY(scanner, history_ctr_->scanner_from(history_ctr_->iterator()));
+
+        bool has_next;
+        do {
+
+            for (auto superblock_ptr: scanner.values())
+            {
+                MEMORIA_TRY_VOID(fn(superblock_ptr));
+            }
+
+            MEMORIA_TRY(has_next_res, scanner.next_leaf());
+            has_next = has_next_res;
+        }
+        while (has_next);
+
+        return VoidResult::of();
+    }
 };
 
 }

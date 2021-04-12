@@ -20,53 +20,5 @@
 
 namespace memoria {
 
-/*
-template <typename Profile> class MappedSWMRStore;
-
-template <typename Profile>
-class MappedSWMRStoreCommitBase: public SWMRStoreCommitBase<Profile>
-{
-    using Base = SWMRStoreCommitBase<Profile>;
-protected:
-
-    using typename Base::BlockType;
-    using typename Base::BlockG;
-    using typename Base::BlockID;
-    using typename Base::ApiProfileT;
-    using typename Base::CommitDescriptorT;
-    using typename Base::Superblock;
-
-    using Store = MappedSWMRStore<Profile>;
-
-    static constexpr int32_t BASIC_BLOCK_SIZE = Store::BASIC_BLOCK_SIZE;
-
-    SharedPtr<Store> store_;
-    Span<uint8_t> buffer_;
-
-    template <typename> friend class SWMRMappedStoreHistoryView;
-
-public:
-    MappedSWMRStoreCommitBase(
-            MaybeError& maybe_error,
-            SharedPtr<Store> store,
-            Span<uint8_t> buffer,
-            CommitDescriptorT* commit_descriptor,
-            ReferenceCounterDelegate<Profile>* refcounter_delegate
-    ) noexcept:
-        Base(commit_descriptor, refcounter_delegate),
-        store_(store),
-        buffer_(buffer)
-    {}
-
-
-    virtual Result<BlockG> getBlock(const BlockID& id) noexcept
-    {
-        using ResultT = Result<BlockG>;
-        BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value() * BASIC_BLOCK_SIZE);
-        return ResultT::of(BlockG{block});
-    }
-};
-
-*/
 
 }

@@ -93,28 +93,6 @@ public:
         });
     }
 
-    VoidResult for_each_root_block(const std::function<VoidResult (int64_t)>& fn) noexcept
-    {
-        auto history_ctr_ref = this->template internal_find_by_root_typed<HistoryCtrType>(superblock_->history_root_id());
-        MEMORIA_RETURN_IF_ERROR(history_ctr_ref);
-        auto history_ctr = history_ctr_ref.get();
-
-        MEMORIA_TRY(scanner, history_ctr->scanner_from(history_ctr->iterator()));
-
-        bool has_next;
-        do {
-            for (auto superblock_ptr: scanner.values())
-            {
-                MEMORIA_TRY_VOID(fn(superblock_ptr));
-            }
-
-            MEMORIA_TRY(has_next_res, scanner.next_leaf());
-            has_next = has_next_res;
-        }
-        while (has_next);
-
-        return VoidResult::of();
-    }
 
 protected:
     uint64_t sequence_id() const {
