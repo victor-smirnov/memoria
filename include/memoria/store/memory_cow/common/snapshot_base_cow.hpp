@@ -147,6 +147,8 @@ public:
     using typename Base::BlockGUID;
     using typename Base::BlockType;
     using typename Base::SnapshotID;
+    using typename Base::Shared;
+
 protected:
 
 	using HistoryNode		= typename PersistentAllocator::HistoryNode;
@@ -1254,6 +1256,14 @@ protected:
         }
 
         history_node_->reset_root_id();
+    }
+
+    virtual VoidResult releaseBlock(Shared* block) noexcept {
+        return make_generic_error("releaseBlock is not implemented!!!");
+    }
+
+    virtual Result<BlockG> updateBlock(Shared* block) noexcept {
+        return make_generic_error("updateBlock is not implemented!!!");
     }
 };
 

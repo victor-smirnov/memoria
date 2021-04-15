@@ -47,33 +47,32 @@ int main(void) {
                 auto snp0 = store1->begin().get_or_throw();
                 auto ctr0 = create(snp0, CtrType(), ctr_id).get_or_throw();
                 snp0->commit().get_or_throw();
-                //snp0->describe_to_cout().get_or_throw();
             }
 
 
-//            int cnt = 0;
-//            int b0  = 0;
-//            int batch_size = 100;
-//            int batches = 100;
-//            while (cnt < batch_size * batches) {
-//                auto snp1 = store1->begin().get_or_throw();
-//                auto ctr1 = find<CtrType>(snp1, ctr_id).get_or_throw();
+            int cnt = 0;
+            int b0  = 0;
+            int batch_size = 100;
+            int batches = 100;
+            while (cnt < batch_size * batches) {
+                auto snp1 = store1->begin().get_or_throw();
+                auto ctr1 = find<CtrType>(snp1, ctr_id).get_or_throw();
 
-//                if (b0 % 100 == 0) {
-//                    std::cout << "Batch " << (b0) << std::endl;
-//                }
+                if (b0 % 100 == 0) {
+                    std::cout << "Batch " << (b0) << std::endl;
+                }
 
-//                b0++;
+                b0++;
 
-//                for (int c = 0; c < batch_size; c++, cnt++) {
-//                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str()).get_or_throw();
-//                }
+                for (int c = 0; c < batch_size; c++, cnt++) {
+                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str()).get_or_throw();
+                }
 
-//                snp1->commit(false).get_or_throw();
-//            }
+                snp1->commit(false).get_or_throw();
+            }
         }
 
-//        store1->check(callback).get_or_throw();
+        store1->check(callback).get_or_throw();
 
         auto t_end = getTimeInMillis();
 

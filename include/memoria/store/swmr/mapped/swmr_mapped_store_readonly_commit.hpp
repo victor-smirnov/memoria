@@ -50,6 +50,8 @@ protected:
 
     using typename Base::CommitID;
 
+    using typename Base::Shared;
+
     using Base::BASIC_BLOCK_SIZE;
 
     using Base::directory_ctr_;
@@ -61,6 +63,7 @@ protected:
 
     Span<uint8_t> buffer_;
 
+    mutable boost::object_pool<Shared> shared_pool_;
 
     template <typename>
     friend class MappedSWMRStore;
@@ -107,7 +110,20 @@ protected:
     {
         using ResultT = Result<BlockG>;
         BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value() * BASIC_BLOCK_SIZE);
-        return ResultT::of(BlockG{block});
+
+        Shared* shared = shared_pool_.construct(id, block, 0);
+        shared->set_allocator(this);
+
+        return ResultT::of(BlockG{shared});
+    }
+
+    virtual Result<BlockG> updateBlock(Shared* block) noexcept {
+        return Result<BlockG>::of(BlockG{block});
+    }
+
+    virtual VoidResult releaseBlock(Shared* block) noexcept {
+        shared_pool_.destroy(block);
+        return VoidResult::of();
     }
 };
 

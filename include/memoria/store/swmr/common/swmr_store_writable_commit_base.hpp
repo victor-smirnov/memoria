@@ -52,6 +52,7 @@ protected:
     using typename Base::HistoryCtrType;
     using typename Base::CounterStorageT;
     using typename Base::Superblock;
+    using typename Base::Shared;
 
     using typename Base::DirectoryCtrType;
 
@@ -118,7 +119,7 @@ public:
     virtual uint64_t get_memory_size() noexcept = 0;
     virtual Superblock* newSuperblock(uint64_t pos) noexcept = 0;
     virtual VoidResult store_superblock(Superblock* superblock, uint64_t slot) noexcept = 0;
-    virtual Result<uint8_t*> allocate_block(uint64_t at, size_t size) noexcept = 0;
+    virtual Result<Shared*> allocate_block(const BlockID& block_id, uint64_t at, size_t size) noexcept = 0;
 
     VoidResult init_commit(CommitDescriptorT* parent_commit_descriptor) noexcept {
         MaybeError maybe_error;
@@ -860,17 +861,19 @@ public:
 
         uint64_t id = allocation.get().position();
 
-        MEMORIA_TRY(block_addr, allocate_block(id, block_size));
+        MEMORIA_TRY(shared, allocate_block(BlockID{id}, id, block_size));
 
-        std::memcpy(block_addr, block.block(), block_size);
+        BlockType* new_block = shared->get();
 
-        BlockType* new_block = ptr_cast<BlockType>(block_addr);
+        std::memcpy(new_block, block.block(), block_size);
+
+
         new_block->id() = BlockID{id};
         new_block->id_value() = id;
         new_block->snapshot_id() = superblock_->commit_uuid();
         new_block->set_references(0);
 
-        return ResultT::of(BlockG{new_block});
+        return ResultT::of(BlockG{shared});
     }
 
     virtual Result<BlockG> createBlock(int32_t initial_size) noexcept
@@ -900,7 +903,9 @@ public:
 
         uint64_t id = allocation.get().position();
 
-        MEMORIA_TRY(block_addr, allocate_block(id, initial_size));
+        MEMORIA_TRY(shared, allocate_block(BlockID{id}, id, initial_size));
+
+        BlockType* block_addr = shared->get();
 
         std::memset(block_addr, 0, initial_size);
 
@@ -910,7 +915,7 @@ public:
         block->snapshot_id() = superblock_->commit_uuid();
         block->memory_block_size() = initial_size;
 
-        return ResultT::of(BlockG{block});
+        return ResultT::of(shared);
     }
 
 };

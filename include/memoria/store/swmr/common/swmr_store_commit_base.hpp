@@ -70,6 +70,7 @@ protected:
     using typename Base::BlockID;
     using typename Base::SnapshotID;
     using typename Base::CtrID;
+    using typename Base::Shared;
 
     using Store = SWMRStoreBase<Profile>;
 

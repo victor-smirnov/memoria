@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -53,14 +53,23 @@ struct ProfileTraits<CowLiteProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 
     using AllocatorType = ICoWAllocator<Profile>;
 
-    using BlockGuardT = LWBlockHandler<Block>;
-    using BlockG = BlockGuardT;
+//    using BlockGuardT = CowSharedBlockHandler<Block>;
+//    using BlockG = BlockGuardT;
+
+//    template <typename TargetBlockType>
+//    using BlockGuardTF = LWBlockHandler<TargetBlockType>;
+
+//    using AllocatorType = IAllocator<Profile>;
+
+    using BlockShared = PageShared<AllocatorType, Block, BlockID>;
 
     template <typename TargetBlockType>
-    using BlockGuardTF = LWBlockHandler<TargetBlockType>;
+    using BlockGuardTF = CowSharedBlockHandler<TargetBlockType, AllocatorType, BlockShared>;
+
+    using BlockGuardT  = CowSharedBlockHandler<Block, AllocatorType, BlockShared>;
+    using BlockG = BlockGuardT;
 
     static constexpr bool IsCoW = true;
-
 
     static BlockID make_random_block_id() {
         return BlockID(0);

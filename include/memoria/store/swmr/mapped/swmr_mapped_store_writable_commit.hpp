@@ -22,6 +22,8 @@
 
 #include <memoria/core/datatypes/type_registry.hpp>
 
+#include <boost/pool/object_pool.hpp>
+
 #include <type_traits>
 
 template <typename Profile>
@@ -55,6 +57,7 @@ class MappedSWMRStoreWritableCommit:
     using typename Base::CounterStorageT;
 
     using typename Base::DirectoryCtrType;
+    using typename Base::Shared;
 
     using CtrID = ProfileCtrID<Profile>;
     using CtrReferenceableResult = Result<CtrReferenceable<ApiProfile<Profile>>>;
@@ -65,6 +68,10 @@ class MappedSWMRStoreWritableCommit:
     using Base::committed_;
 
     Span<uint8_t> buffer_;
+
+
+    mutable boost::object_pool<Shared> shared_pool_;
+
 
 public:
     using Base::check;
@@ -77,8 +84,7 @@ public:
     ) noexcept:
         Base(store, commit_descriptor, store.get()),
         buffer_(buffer)
-    {
-    }
+    {}
 
 
     virtual ~MappedSWMRStoreWritableCommit() noexcept {
@@ -111,12 +117,30 @@ public:
     {
         using ResultT = Result<BlockG>;
         BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value() * BASIC_BLOCK_SIZE);
-        return ResultT::of(BlockG{block});
+
+        Shared* shared = shared_pool_.construct(id, block, 0);
+
+        shared->set_allocator(this);
+
+        return ResultT::of(BlockG{shared});
     }
 
-    virtual Result<uint8_t*> allocate_block(uint64_t at, size_t size) noexcept {
-        uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
-        return Result<uint8_t*>::of(block_addr);
+    virtual Result<Shared*> allocate_block(const BlockID& id, uint64_t at, size_t size) noexcept {
+        BlockType* block = ptr_cast<BlockType>(buffer_.data() + at * BASIC_BLOCK_SIZE);
+
+        Shared* shared = shared_pool_.construct(id, block, 0);
+        shared->set_allocator(this);
+
+        return Result<Shared*>::of(shared);
+    }
+
+    virtual Result<BlockG> updateBlock(Shared* block) noexcept {
+        return Result<BlockG>::of(BlockG{block});
+    }
+
+    virtual VoidResult releaseBlock(Shared* block) noexcept {
+        shared_pool_.destroy(block);
+        return VoidResult::of();
     }
 };
 

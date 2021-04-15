@@ -1,5 +1,5 @@
 
-// Copyright 2013 Victor Smirnov
+// Copyright 2013-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -54,9 +54,7 @@ struct IAllocatorBase: AllocatorApiBase<ApiProfile<Profile>> {
     using SnapshotID    = ProfileSnapshotID<Profile>;
     using CtrID         = ProfileCtrID<Profile>;
 
-
     using BlockG        = typename ProfileTraits<Profile>::BlockGuardT;
-
 
     virtual ~IAllocatorBase() noexcept {}
     
@@ -73,8 +71,6 @@ struct IAllocatorBase: AllocatorApiBase<ApiProfile<Profile>> {
 
     virtual Result<BlockG> cloneBlock(const BlockG& block) noexcept = 0;
 
-
-
     virtual Result<BlockID> newId() noexcept = 0;
     virtual SnapshotID currentTxnId() const noexcept = 0;
 
@@ -89,7 +85,6 @@ struct IAllocatorBase: AllocatorApiBase<ApiProfile<Profile>> {
     virtual VoidResult registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) noexcept = 0;
     virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) noexcept = 0;
     virtual VoidResult flush_open_containers() noexcept = 0;
-
 
     virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> find(const CtrID& ctr_id) noexcept = 0;
     virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> from_root_id(const BlockID& root_block_id, const CtrID& name) noexcept = 0;
@@ -112,7 +107,6 @@ struct IAllocator: IAllocatorBase<Profile> {
 
     using Shared = typename BlockG::Shared;
 
-
     virtual SnpSharedPtr<IAllocator> self_ptr() noexcept = 0;
 
     virtual Result<BlockG> updateBlock(Shared* block) noexcept = 0;
@@ -129,12 +123,16 @@ struct ICoWAllocator: IAllocatorBase<Profile> {
 
     using typename Base::BlockG;
     using typename Base::BlockID;
+    using Shared = typename BlockG::Shared;
 
     virtual SnpSharedPtr<ICoWAllocator> self_ptr() noexcept = 0;
 
     virtual VoidResult ref_block(const BlockID& block_id) noexcept = 0;
     virtual VoidResult unref_block(const BlockID& block_id, std::function<VoidResult()> on_zero) noexcept = 0;
     virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept = 0;
+
+    virtual VoidResult releaseBlock(Shared* block) noexcept = 0;
+    virtual Result<BlockG> updateBlock(Shared* block) noexcept = 0;
 
     virtual VoidResult traverse_ctr(
             const BlockID& root_block,
