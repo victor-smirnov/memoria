@@ -83,15 +83,15 @@ class BlockUpdateManager {
     using MyType = BlockUpdateManager<Types>;
 
     using CtrT = Ctr<Types>;
-    using NodeBasePtr = typename Types::NodeBasePtr;
-    using TxnRecord = std::tuple<NodeBasePtr, void*, int32_t>;
+    using TreeNodePtr = typename Types::TreeNodePtr;
+    using TxnRecord = std::tuple<TreeNodePtr, void*, int32_t>;
 
     CtrT& ctr_;
 
     struct ClearFn {
         void operator()(TxnRecord& rec)
         {
-            rec = TxnRecord(NodeBasePtr(), nullptr, 0);
+            rec = TxnRecord(TreeNodePtr(), nullptr, 0);
         }
     };
 
@@ -101,9 +101,9 @@ public:
 
     struct Remover {
         MyType& mgr_;
-        const NodeBasePtr& block_;
+        const TreeNodePtr& block_;
 
-        Remover(MyType& mgr, const NodeBasePtr& block) noexcept:
+        Remover(MyType& mgr, const TreeNodePtr& block) noexcept:
             mgr_(mgr), block_(block)
         {}
 
@@ -124,7 +124,7 @@ public:
         }
     }
 
-    bool contains(const NodeBasePtr& node) noexcept
+    bool contains(const TreeNodePtr& node) noexcept
     {
         //MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
@@ -139,7 +139,7 @@ public:
         return false;
     }
 
-    VoidResult add(NodeBasePtr& node) noexcept
+    VoidResult add(TreeNodePtr& node) noexcept
     {
         //MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
@@ -162,7 +162,7 @@ public:
         }
     }
 
-    void remove(const NodeBasePtr& node) noexcept
+    void remove(const TreeNodePtr& node) noexcept
     {
         //MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
@@ -178,7 +178,7 @@ public:
         }
     }
 
-    void checkpoint(NodeBasePtr& node) noexcept
+    void checkpoint(TreeNodePtr& node) noexcept
     {
         for (int32_t c = 0; c < blocks_.getSize(); c++)
         {
@@ -201,7 +201,7 @@ public:
     {
         for (int32_t c = 0; c < blocks_.getSize(); c++)
         {
-            NodeBasePtr& node     = std::get<0>(blocks_[c]);
+            TreeNodePtr& node     = std::get<0>(blocks_[c]);
             void* backup_buffer = std::get<1>(blocks_[c]);
             int32_t block_size       = std::get<2>(blocks_[c]);
 
@@ -213,7 +213,7 @@ public:
     {
         for (int32_t c = 0; c < blocks_.getSize(); c++)
         {
-            NodeBasePtr& node     = std::get<0>(blocks_[c]);
+            TreeNodePtr& node     = std::get<0>(blocks_[c]);
             void* backup_buffer = std::get<1>(blocks_[c]);
             int32_t block_size       = std::get<2>(blocks_[c]);
 

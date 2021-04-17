@@ -34,7 +34,7 @@ public:
     using typename Base::IteratorPtr;
 
 protected:
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
 

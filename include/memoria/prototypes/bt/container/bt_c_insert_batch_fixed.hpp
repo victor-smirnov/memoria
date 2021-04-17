@@ -32,7 +32,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchFixedName)
 
 
     using typename Base::BlockID;
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::BranchNodeEntry;
     using typename Base::CtrSizeT;
     using typename Base::TreePathT;
@@ -56,9 +56,9 @@ public:
     class BranchNodeEntryT {
         BranchNodeEntry accum_;
         BlockID child_id_;
-        NodeBasePtr node_;
+        TreeNodePtr node_;
     public:
-        BranchNodeEntryT(const BranchNodeEntryT& accum, const BlockID& id, NodeBasePtr node) noexcept:
+        BranchNodeEntryT(const BranchNodeEntryT& accum, const BlockID& id, TreeNodePtr node) noexcept:
             accum_(accum), child_id_(id)
         {}
 
@@ -70,7 +70,7 @@ public:
 
         BranchNodeEntry& accum() noexcept {return accum_;}
         BlockID& child_id() noexcept {return child_id_;}
-        NodeBasePtr& child_node() noexcept {return node_;}
+        TreeNodePtr& child_node() noexcept {return node_;}
     };
 
 
@@ -97,12 +97,12 @@ public:
         }
     };
 
-    Result<InsertBatchResult> ctr_insert_subtree(TreePathT& path, size_t level, int32_t idx, ILeafProvider& provider, std::function<Result<NodeBasePtr> ()> child_fn, bool update_hierarchy) noexcept
+    Result<InsertBatchResult> ctr_insert_subtree(TreePathT& path, size_t level, int32_t idx, ILeafProvider& provider, std::function<Result<TreeNodePtr> ()> child_fn, bool update_hierarchy) noexcept
     {
         using ResultT = Result<InsertBatchResult>;
         auto& self = this->self();
 
-        NodeBasePtr node = path[level];
+        TreeNodePtr node = path[level];
 
         MEMORIA_TRY(capacity, self.ctr_get_branch_node_capacity(node, -1ull));
         CtrSizeT provider_size0  = provider.size();
@@ -143,9 +143,9 @@ public:
     }
 
 
-    Result<NodeBasePtr> ctr_build_subtree(ILeafProvider& provider, size_t level) noexcept
+    Result<TreeNodePtr> ctr_build_subtree(ILeafProvider& provider, size_t level) noexcept
     {
-        using ResultT = Result<NodeBasePtr>;
+        using ResultT = Result<TreeNodePtr>;
         auto& self = this->self();
 
         if (provider.size() > 0)
@@ -182,20 +182,20 @@ public:
 
 
     class ListLeafProvider: public ILeafProvider {
-        NodeBasePtr   head_;
+        TreeNodePtr   head_;
         CtrSizeT    size_ = 0;
 
         MyType&     ctr_;
 
     public:
-        ListLeafProvider(MyType& ctr, NodeBasePtr head, CtrSizeT size): head_(head),  size_(size), ctr_(ctr) {}
+        ListLeafProvider(MyType& ctr, TreeNodePtr head, CtrSizeT size): head_(head),  size_(size), ctr_(ctr) {}
 
         virtual CtrSizeT size() const
         {
             return size_;
         }
 
-        virtual Result<NodeBasePtr> get_leaf() noexcept
+        virtual Result<TreeNodePtr> get_leaf() noexcept
         {
             if (head_.isSet())
             {
@@ -240,7 +240,7 @@ public:
     ) noexcept
     {
         auto& self = this->self();
-        return self.ctr_insert_subtree(path, level, idx, provider, [&provider, level, this]() -> Result<NodeBasePtr> {
+        return self.ctr_insert_subtree(path, level, idx, provider, [&provider, level, this]() -> Result<TreeNodePtr> {
             auto& self = this->self();
             return self.ctr_build_subtree(provider, level - 1);
         },

@@ -30,10 +30,10 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::LeafCommonName)
 
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::Position;
 
-    BoolResult ctr_is_at_the_end(const NodeBasePtr& leaf, const Position& pos) const noexcept
+    BoolResult ctr_is_at_the_end(const TreeNodePtr& leaf, const Position& pos) const noexcept
     {
         MEMORIA_TRY(sizes, self().ctr_get_node_sizes(leaf));
         return pos.sum() >= sizes.sum();

@@ -28,7 +28,7 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
 
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::Iterator;
     using typename Base::Position;
     using typename Base::TreePathT;

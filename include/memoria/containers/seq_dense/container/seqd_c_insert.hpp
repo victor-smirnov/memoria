@@ -35,7 +35,7 @@ public:
 
     typedef typename Base::ID                                                   ID;
 
-    typedef typename Types::NodeBasePtr                                           NodeBasePtr;
+    typedef typename Types::TreeNodePtr                                           TreeNodePtr;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::Metadata                                             Metadata;
@@ -76,7 +76,7 @@ public:
 //
 //
 //
-//    bool insertIntoLeaf(NodeBasePtr& leaf, int32_t idx, int32_t symbol, BranchNodeEntry& indexes)
+//    bool insertIntoLeaf(TreeNodePtr& leaf, int32_t idx, int32_t symbol, BranchNodeEntry& indexes)
 //    {
 //        auto& self = this->self();
 //

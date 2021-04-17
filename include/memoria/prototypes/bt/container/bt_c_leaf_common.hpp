@@ -30,7 +30,7 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafCommonName)
 
     using typename Base::Types;
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::Iterator;
     using typename Base::Position;
     using typename Base::BlockUpdateMgr;
@@ -45,7 +45,7 @@ public:
     {
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr_split_node(path, 0, [&self, &split_at](NodeBasePtr& left, NodeBasePtr& right) noexcept -> VoidResult {
+        MEMORIA_TRY_VOID(self.ctr_split_node(path, 0, [&self, &split_at](TreeNodePtr& left, TreeNodePtr& right) noexcept -> VoidResult {
             return self.ctr_split_leaf_node(left, right, split_at);
         }));
 
@@ -55,7 +55,7 @@ public:
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(SplitNodeFn, splitTo);
-    VoidResult ctr_split_leaf_node(NodeBasePtr& src, NodeBasePtr& tgt, const Position& split_at) noexcept
+    VoidResult ctr_split_leaf_node(TreeNodePtr& src, TreeNodePtr& tgt, const Position& split_at) noexcept
     {
         return self().leaf_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
     }
@@ -72,25 +72,25 @@ public:
     // TODO: apply noexcept expression
 
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
-    auto ctr_apply_substreams_fn(NodeBasePtr& leaf, Fn&& fn, Args&&... args)
+    auto ctr_apply_substreams_fn(TreeNodePtr& leaf, Fn&& fn, Args&&... args)
     {
         return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
-    auto ctr_apply_substreams_fn(const NodeBasePtr& leaf, Fn&& fn, Args&&... args) const
+    auto ctr_apply_substreams_fn(const TreeNodePtr& leaf, Fn&& fn, Args&&... args) const
     {
         return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename Fn, typename... Args>
-    auto ctr_apply_stream_fn(const NodeBasePtr& leaf, Fn&& fn, Args&&... args) const
+    auto ctr_apply_stream_fn(const TreeNodePtr& leaf, Fn&& fn, Args&&... args) const
     {
         return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
-    auto ctr_read_substreams(const NodeBasePtr& leaf, Args&&... args) const
+    auto ctr_read_substreams(const TreeNodePtr& leaf, Args&&... args) const
     {
          return self().template ctr_apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
@@ -98,7 +98,7 @@ public:
 
 
     template <int32_t Stream, typename... Args>
-    auto ctr_read_stream(const NodeBasePtr& leaf, Args&&... args) const
+    auto ctr_read_stream(const TreeNodePtr& leaf, Args&&... args) const
     {
          return self().template ctr_apply_stream_fn<Stream>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
@@ -134,7 +134,7 @@ public:
     };
 
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
-    auto ctr_find_forward(const NodeBasePtr& leaf, Args&&... args) const
+    auto ctr_find_forward(const TreeNodePtr& leaf, Args&&... args) const
     {
         return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
     }
@@ -155,7 +155,7 @@ public:
 
 
 
-    VoidResult complete_tree_path(TreePathT& path, const NodeBasePtr& node) const noexcept
+    VoidResult complete_tree_path(TreePathT& path, const TreeNodePtr& node) const noexcept
     {
         auto& self = this->self();
 

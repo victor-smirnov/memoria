@@ -116,7 +116,7 @@ protected:
 public:
     using MyType = AbstractCtrInputProviderBase<CtrT>;
 
-    using NodeBasePtr             = typename CtrT::Types::NodeBasePtr;
+    using TreeNodePtr             = typename CtrT::Types::TreeNodePtr;
     using CtrSizeT              = typename CtrT::Types::CtrSizeT;
     using Position              = typename CtrT::Types::Position;
     using DataPositions         = core::StaticVector<uint64_t, DataStreams>;
@@ -124,7 +124,7 @@ public:
 
 
     using Iterator = typename CtrT::Iterator;
-    using NodePair = std::pair<NodeBasePtr, NodeBasePtr>;
+    using NodePair = std::pair<TreeNodePtr, TreeNodePtr>;
 
 protected:
 
@@ -195,9 +195,9 @@ public:
         }
     }
 
-    virtual Result<Position> fill(NodeBasePtr& leaf, const Position& start) noexcept = 0;
+    virtual Result<Position> fill(TreeNodePtr& leaf, const Position& start) noexcept = 0;
 
-    VoidResult iter_next_leaf(const NodeBasePtr& leaf) noexcept {
+    VoidResult iter_next_leaf(const TreeNodePtr& leaf) noexcept {
         return VoidResult::of();
     }
 
@@ -331,7 +331,7 @@ class IOVectorCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: pub
 public:
     using MyType = IOVectorCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>;
 
-    using NodeBasePtr = typename CtrT::Types::NodeBasePtr;
+    using TreeNodePtr = typename CtrT::Types::TreeNodePtr;
     using CtrSizeT  = typename CtrT::Types::CtrSizeT;
     using Iterator  = typename CtrT::Iterator;
 
@@ -384,7 +384,7 @@ public:
         return ctr_end;
     }
 
-    virtual Result<Position> fill(NodeBasePtr& leaf, const Position& start) noexcept
+    virtual Result<Position> fill(TreeNodePtr& leaf, const Position& start) noexcept
     {
         using ResultT = Result<Position>;
 
@@ -425,7 +425,7 @@ public:
     }
 
 
-    virtual Result<DataPositions> insertBuffer(BlockUpdateMgr& mgr, NodeBasePtr& leaf, DataPositions at, const DataPositions& size) noexcept
+    virtual Result<DataPositions> insertBuffer(BlockUpdateMgr& mgr, TreeNodePtr& leaf, DataPositions at, const DataPositions& size) noexcept
     {
         using ResultT = Result<DataPositions>;
 
@@ -564,7 +564,7 @@ protected:
     }
 
 
-    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, NodeBasePtr& leaf, const DataPositions& at, const DataPositions& size) noexcept
+    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, TreeNodePtr& leaf, const DataPositions& at, const DataPositions& size) noexcept
     {
         InsertBuffersFn insert_fn;
 
@@ -590,7 +590,7 @@ protected:
         return BoolResult::of(true);
     }
 
-    static float getFreeSpacePart(const NodeBasePtr& node) noexcept
+    static float getFreeSpacePart(const TreeNodePtr& node) noexcept
     {
         float client_area = node->allocator()->client_area();
         float free_space = node->allocator()->free_space();
@@ -598,7 +598,7 @@ protected:
         return free_space / client_area;
     }
 
-    static bool hasFreeSpace(const NodeBasePtr& node) noexcept
+    static bool hasFreeSpace(const TreeNodePtr& node) noexcept
     {
         return getFreeSpacePart(node) > FREE_SPACE_THRESHOLD;
     }

@@ -32,7 +32,7 @@ public:
 
     using Allocator = typename Base::Allocator;
 
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::Iterator;
     using typename Base::IteratorPtr;
     using typename Base::Position;
@@ -102,12 +102,12 @@ public:
 
     struct NodeChain {
         const MyType& ctr_;
-        NodeBasePtr node;
+        TreeNodePtr node;
         int32_t start;
         int32_t end;
         NodeChain* ref;
 
-        NodeChain(const MyType& ctr, NodeBasePtr node_, int32_t start_, NodeChain* ref_ = nullptr):
+        NodeChain(const MyType& ctr, TreeNodePtr node_, int32_t start_, NodeChain* ref_ = nullptr):
             ctr_(ctr),
             node(node_), start(start_), end(0), ref(ref_)
         {}
@@ -205,7 +205,7 @@ public:
 
 
     template <typename Walker>
-    VoidResult ctr_walk_tree_up(NodeBasePtr node, int32_t idx, Walker&& walker) const noexcept
+    VoidResult ctr_walk_tree_up(TreeNodePtr node, int32_t idx, Walker&& walker) const noexcept
     {
         if (node->is_leaf())
         {

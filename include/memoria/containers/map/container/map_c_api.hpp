@@ -35,7 +35,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
     using Types = typename Base::Types;
 
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::IteratorPtr;
 
     using typename Base::Position;

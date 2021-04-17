@@ -34,7 +34,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
     using typename Base::CtrSizeT;
     using typename Base::Position;
     using typename Base::TreePathT;
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::NodeChain;
 
 

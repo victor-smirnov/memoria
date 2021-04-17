@@ -42,7 +42,7 @@ class Iter<BTIterTypes<Types1>>: public IterStart<BTIterTypes<Types1>>
     typedef IterStart<BTIterTypes<Types1>>                                       Base;
     typedef Ctr<typename Types1::CtrTypes>                                       ContainerType;
 
-    typedef typename ContainerType::Types::NodeBasePtr                             NodeBasePtr;
+    typedef typename ContainerType::Types::TreeNodePtr                             TreeNodePtr;
 
     using CtrPtr = CtrSharedPtr<ContainerType>;
 

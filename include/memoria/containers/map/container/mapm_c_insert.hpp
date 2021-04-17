@@ -33,7 +33,7 @@ public:
     using typename Base::IteratorPtr;
 
 protected:
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
     using typename Base::BlockUpdateMgr;

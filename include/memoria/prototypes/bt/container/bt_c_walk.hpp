@@ -30,7 +30,7 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
 
     using typename Base::Types;
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::Profile;
     using typename Base::CtrID;
     using typename Base::BlockID;
@@ -55,7 +55,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
     }
 
     // FIXME: error handling
-    void ctr_begin_node(const NodeBasePtr& node, ContainerWalker<Profile>* walker) noexcept
+    void ctr_begin_node(const TreeNodePtr& node, ContainerWalker<Profile>* walker) noexcept
     {
         if (node->is_root())
         {
@@ -77,7 +77,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
     }
 
     // TODO: error handling
-    void ctr_end_node(const NodeBasePtr& node, ContainerWalker<Profile>* walker) noexcept
+    void ctr_end_node(const TreeNodePtr& node, ContainerWalker<Profile>* walker) noexcept
     {
         if (node->is_root())
         {
@@ -104,9 +104,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
         MEMORIA_TRY(root_id, self.store().getRootID(new_name));
         if (root_id.is_null())
         {
-            NodeBasePtr root = self.ctr_get_root_node();
+            TreeNodePtr root = self.ctr_get_root_node();
 
-            NodeBasePtr new_root = self.ctr_clone_tree(root, root->parent_id());
+            TreeNodePtr new_root = self.ctr_clone_tree(root, root->parent_id());
 
             auto new_meta = self.ctr_get_ctr_root_metadata(new_root);
 
@@ -126,11 +126,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
 
 private:
 
-    Result<NodeBasePtr> ctr_clone_tree(const NodeBasePtr& node, const BlockID& parent_id) const noexcept
+    Result<TreeNodePtr> ctr_clone_tree(const TreeNodePtr& node, const BlockID& parent_id) const noexcept
     {
         auto& self = this->self();
 
-        NodeBasePtr new_node = self.store().cloneBlock(node.shared());
+        TreeNodePtr new_node = self.store().cloneBlock(node.shared());
         new_node->parent_id() = parent_id;
 
         if (!node->is_leaf())
@@ -138,7 +138,7 @@ private:
             self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&](const BlockID& id, int32_t idx)
             {
                 MEMORIA_TRY(child, self.ctr_get_block(id));
-                NodeBasePtr new_child = self.ctr_clone_tree(child, new_node->id());
+                TreeNodePtr new_child = self.ctr_clone_tree(child, new_node->id());
                 self.ctr_set_child_id(new_node, idx, new_child->id());
             });
         }
@@ -146,7 +146,7 @@ private:
         return new_node;
     }
 
-    VoidResult ctr_traverse_tree(const NodeBasePtr& node, ContainerWalker<Profile>* walker) noexcept
+    VoidResult ctr_traverse_tree(const TreeNodePtr& node, ContainerWalker<Profile>* walker) noexcept
     {
         auto& self = this->self();
 

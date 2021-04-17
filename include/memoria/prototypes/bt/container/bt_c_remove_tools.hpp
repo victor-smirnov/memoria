@@ -31,7 +31,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
 
     using typename Base::CtrID;
     using typename Base::BlockID;
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::Iterator;
     using typename Base::Position;
     using typename Base::TreePathT;
@@ -57,7 +57,7 @@ protected:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings);
-    BoolResult ctr_should_merge_node(const NodeBasePtr& node) const noexcept
+    BoolResult ctr_should_merge_node(const TreeNodePtr& node) const noexcept
     {
         return self().node_dispatcher().dispatch(node, ShouldBeMergedNodeFn());
     }
@@ -124,7 +124,7 @@ VoidResult M_TYPE::ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level,
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
 
-    NodeBasePtr node = path[level];
+    TreeNodePtr node = path[level];
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
@@ -142,7 +142,7 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(TreePathT& pat
     using ResultT = Result<Position>;
     auto& self = this->self();
 
-    NodeBasePtr node = path.leaf();
+    TreeNodePtr node = path.leaf();
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
     MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), start, end));
@@ -162,7 +162,7 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(
     using ResultT = Result<Position>;
     auto& self = this->self();
 
-    NodeBasePtr node = path.leaf();
+    TreeNodePtr node = path.leaf();
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
     MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), stream, start, end));

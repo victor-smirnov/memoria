@@ -30,7 +30,7 @@ namespace memoria {
 MEMORIA_V1_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
 public:
     using Types     = typename Base::Container::Types;
-    using NodeBasePtr = typename Types::NodeBasePtr;
+    using TreeNodePtr = typename Types::TreeNodePtr;
     using Allocator = typename Base::Container::Allocator;
     using Position  = typename Types::Position;
     using NodeChain = typename Base::Container::NodeChain;
@@ -52,7 +52,7 @@ public:
 
     using IOVectorViewT = typename Types::LeafNode::template SparseObject<CtrT>::IOVectorViewT;
 
-    using TreePathT = TreePath<NodeBasePtr>;
+    using TreePathT = TreePath<TreeNodePtr>;
 
     static constexpr int32_t Streams = Types::Streams;
 
@@ -172,15 +172,15 @@ public:
             path_(path), iter_(iter)
         {}
 
-        operator NodeBasePtr&() noexcept {return path_.leaf();}
+        operator TreeNodePtr&() noexcept {return path_.leaf();}
 
-        void assign(NodeBasePtr node) noexcept
+        void assign(TreeNodePtr node) noexcept
         {
             path_.leaf() = node;
             iter_.refresh_iovector_view();
         }
 
-        NodeBasePtr& node() noexcept {
+        TreeNodePtr& node() noexcept {
             return path_.leaf();
         }
 
@@ -197,13 +197,13 @@ public:
             path_(path)
         {}
 
-        operator const NodeBasePtr&() const noexcept {return path_.leaf();}
+        operator const TreeNodePtr&() const noexcept {return path_.leaf();}
 
         const auto operator->() const noexcept {
             return path_.leaf().operator->();
         }
 
-        const NodeBasePtr& node() const noexcept {
+        const TreeNodePtr& node() const noexcept {
             return path_.leaf();
         }
     };

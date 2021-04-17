@@ -29,7 +29,7 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::Iterator;
     using typename Base::Position;
     using typename Base::TreePathT;
@@ -71,7 +71,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
 
     template <int32_t Stream, typename Entry>
-    VoidResult ctr_try_insert_stream_entry_no_mgr(NodeBasePtr& leaf, int32_t idx, const Entry& entry) noexcept
+    VoidResult ctr_try_insert_stream_entry_no_mgr(TreeNodePtr& leaf, int32_t idx, const Entry& entry) noexcept
     {
         InsertStreamEntryFn<Stream> fn;
         return self().leaf_dispatcher().dispatch(leaf, fn, idx, entry);
@@ -113,7 +113,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
     }
 
     BoolResult ctr_with_block_manager(
-            NodeBasePtr& leaf,
+            TreeNodePtr& leaf,
             int structure_idx,
             int stream_idx,
             const std::function<VoidResult (int, int)>& insert_fn
@@ -302,8 +302,8 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
 
     BlockUpdateMgr mgr(self);
 
-    NodeBasePtr tgt = tgt_path.leaf();
-    NodeBasePtr src = src_path.leaf();
+    TreeNodePtr tgt = tgt_path.leaf();
+    TreeNodePtr src = src_path.leaf();
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
 

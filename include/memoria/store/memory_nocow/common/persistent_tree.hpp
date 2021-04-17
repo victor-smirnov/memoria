@@ -45,7 +45,7 @@ public:
     using Value         = typename LeafNodeT::Value;
     using NodeBaseT     = typename BranchNodeT::NodeBaseT;
 
-    using NodeBasePtr   = NodeBaseT*;
+    using TreeNodePtr   = NodeBaseT*;
 
     using Iterator      = PersistentTreeIterator<BranchNodeT, LeafNodeT>;
     using ConstIterator = PersistentTreeConstIterator<BranchNodeT, LeafNodeT>;
@@ -102,11 +102,11 @@ public:
     }
 
 
-    NodeBasePtr root() {
+    TreeNodePtr root() {
         return root_provider_->root();
     }
 
-    const NodeBasePtr root() const {
+    const TreeNodePtr root() const {
         return root_provider_->root();
     }
 

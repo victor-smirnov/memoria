@@ -31,7 +31,7 @@ public:
     using Types = typename Base::Types;
 
 protected:
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
 
     typedef typename Types::Key                                                 Key;
     using KeyView   = typename DataTypeTraits<Key>::ViewType;

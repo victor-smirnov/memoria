@@ -36,7 +36,7 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
 
     using typename Base::Iterator;
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::Position;
     using typename Base::Profile;
     using typename Base::TreePathT;
@@ -49,13 +49,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
     }
 
     template <typename SubstreamsIdxList, typename... Args>
-    auto iter_read_leaf_entry(const NodeBasePtr& leaf, Args&&... args) const noexcept
+    auto iter_read_leaf_entry(const TreeNodePtr& leaf, Args&&... args) const noexcept
     {
          return self().template ctr_apply_substreams_fn<0, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
-    BoolResult ctr_is_at_the_end(const NodeBasePtr& leaf, const Position& pos) noexcept
+    BoolResult ctr_is_at_the_end(const TreeNodePtr& leaf, const Position& pos) noexcept
     {
         MEMORIA_TRY(size, self().template ctr_get_leaf_stream_size<0>(leaf));
         return BoolResult::of(pos[0] >= size);

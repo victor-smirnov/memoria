@@ -30,7 +30,7 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
 
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::TreePathT;
     using typename Base::BlockID;
     using typename Base::Profile;
@@ -57,7 +57,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
         return path[level].resize(new_size);
     }
 
-    VoidResult ctr_update_block_guard(NodeBasePtr& node) noexcept
+    VoidResult ctr_update_block_guard(TreeNodePtr& node) noexcept
     {
         return node.update();
     }
@@ -71,7 +71,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
     {
         auto& self = this->self();
 
-        NodeBasePtr root = start_path.root();
+        TreeNodePtr root = start_path.root();
         start_path.clear();
         stop_path.clear();
 
@@ -92,7 +92,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
     }
 
 
-    VoidResult ctr_remove_node_recursively(NodeBasePtr& node) noexcept
+    VoidResult ctr_remove_node_recursively(TreeNodePtr& node) noexcept
     {
         auto& self = this->self();
 
@@ -154,7 +154,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
         auto& self = this->self();
         auto metadata = self.ctr_get_root_metadata();
 
-        NodeBasePtr new_root = self.ctr_create_node(0, true, true, metadata.memory_block_size());
+        TreeNodePtr new_root = self.ctr_create_node(0, true, true, metadata.memory_block_size());
 
         // FIXME: This method must preserve root metadata and
         // deligate metadata cleanup to actual containers.
@@ -185,7 +185,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
                 MEMORIA_TRY(size, self.ctr_get_node_size(parent, 0));
                 if (size == 1)
                 {
-                    NodeBasePtr node = path[level];
+                    TreeNodePtr node = path[level];
 
                     // FIXME redesign it to use tryConvertToRoot(node) instead
                     if (self.ctr_can_convert_to_root(node, parent->root_metadata_size()))
@@ -205,7 +205,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
         return VoidResult::of();
     }
 
-    VoidResult ctr_cow_ref_children_after_merge(NodeBasePtr block) noexcept
+    VoidResult ctr_cow_ref_children_after_merge(TreeNodePtr block) noexcept
     {
         return VoidResult::of();
     }

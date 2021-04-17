@@ -33,7 +33,7 @@ using bt::StreamTag;
 MEMORIA_V1_ITERATOR_PART_BEGIN(set::ItrNavName)
 
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBasePtr                                            NodeBasePtr;
+    typedef typename Base::TreeNodePtr                                            TreeNodePtr;
 
 
     typedef typename Base::Container::Types::Key                                Key;

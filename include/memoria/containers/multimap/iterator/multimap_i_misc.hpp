@@ -39,7 +39,7 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(multimap::ItrMiscName)
 
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using Container = typename Base::Container;
     using typename Base::BranchNodeEntry;
     using typename Base::CtrSizeT;

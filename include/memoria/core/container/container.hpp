@@ -86,7 +86,7 @@ public:
     using ProfileT          = typename Types::Profile;
     using ApiProfileT       = ApiProfile<ProfileT>;
 
-    using NodeBasePtr = typename Types::NodeBasePtr;
+    using TreeNodePtr = typename Types::TreeNodePtr;
     
     using Allocator = typename Types::Allocator;
     using BlockID   = typename Allocator::BlockID;

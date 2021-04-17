@@ -30,14 +30,14 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::ChecksName)
 
 public:
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
 
     using Base::Streams;
 
 
-    BoolResult ctr_check_content(const NodeBasePtr& node) const noexcept
+    BoolResult ctr_check_content(const TreeNodePtr& node) const noexcept
     {
     	auto& self = this->self();
 

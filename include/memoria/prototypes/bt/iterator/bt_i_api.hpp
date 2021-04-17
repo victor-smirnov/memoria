@@ -36,7 +36,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorAPIName)
     using typename Base::CtrSizeT;
     using typename Base::Position;
     using typename Base::TreePathT;
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
 
     static constexpr int32_t Streams = Base::Streams;
 
@@ -345,14 +345,14 @@ BoolResult M_TYPE::iter_find_next_leaf(Walker&& walker) noexcept
 {
     auto& self = this->self();
 
-    NodeBasePtr& leaf = self.iter_leaf();
+    TreeNodePtr& leaf = self.iter_leaf();
     int32_t stream  = self.iter_stream();
 
     if (!leaf->is_root())
     {
         walker.prepare(self);
 
-        NodeBasePtr parent = self.ctr().ctr_get_node_parent(leaf);
+        TreeNodePtr parent = self.ctr().ctr_get_node_parent(leaf);
 
         int32_t idx = self.ctr().findFw(parent, stream, leaf->parent_idx() + 1, walker);
 
@@ -392,14 +392,14 @@ BoolResult M_TYPE::iter_find_prev_leaf(Walker&& walker) noexcept
 {
     auto& self = this->self();
 
-    NodeBasePtr&  leaf    = self.iter_leaf();
+    TreeNodePtr&  leaf    = self.iter_leaf();
     int32_t stream      = self.iter_stream();
 
     if (!leaf->is_root())
     {
         walker.prepare(self);
 
-        NodeBasePtr parent = self.ctr().ctr_get_node_parent(leaf);
+        TreeNodePtr parent = self.ctr().ctr_get_node_parent(leaf);
 
         int32_t idx = self.model().findBw(parent, stream, leaf->parent_idx() - 1, walker);
 

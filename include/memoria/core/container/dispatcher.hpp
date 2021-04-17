@@ -32,7 +32,7 @@ class BlockDispatcher {
 
     typedef typename List::Head                                                 ContainerType;
     typedef typename ContainerType::Types::Blocks::NodeDispatcher               NodeDispatcher;
-    typedef typename ContainerType::Types::NodeBasePtr::BlockType                 NodeBase;
+    typedef typename ContainerType::Types::TreeNodePtr::BlockType                 NodeBase;
 
 public:
     void dispatch(BlockType *block) {

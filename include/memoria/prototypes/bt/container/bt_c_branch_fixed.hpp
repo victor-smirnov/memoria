@@ -30,11 +30,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::BranchFixedName)
 
 public:
     using typename Base::BlockID;
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::BranchNodeEntry;
     using typename Base::TreePathT;
 
-    using SplitFn = std::function<VoidResult (NodeBasePtr&, NodeBasePtr&)>;
+    using SplitFn = std::function<VoidResult (TreeNodePtr&, TreeNodePtr&)>;
 
 
 
@@ -97,7 +97,7 @@ public:
 
     MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
     BoolResult ctr_update_branch_node(
-            NodeBasePtr& node,
+            TreeNodePtr& node,
             int32_t idx,
             const BranchNodeEntry& entry
     ) noexcept;
@@ -114,7 +114,7 @@ public:
 
 
     MEMORIA_V1_DECLARE_NODE2_FN(CanMergeFn, canBeMergedWith);
-    BoolResult ctr_can_merge_nodes(const NodeBasePtr& tgt, const NodeBasePtr& src) noexcept
+    BoolResult ctr_can_merge_nodes(const TreeNodePtr& tgt, const TreeNodePtr& src) noexcept
     {
         return self().node_dispatcher().dispatch(src, tgt, CanMergeFn());
     }
@@ -149,7 +149,7 @@ VoidResult M_TYPE::ctr_insert_to_branch_node(
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
 
-    NodeBasePtr node = path[level];
+    TreeNodePtr node = path[level];
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
     MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node, InsertFn(), idx, keys, id));
@@ -182,7 +182,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
         MEMORIA_TRY_VOID(self.ctr_create_new_root_block(path));
     }
 
-    NodeBasePtr left_node = path[level];
+    TreeNodePtr left_node = path[level];
 
     MEMORIA_TRY(right_node, self.ctr_create_node(level, false, left_node->is_leaf(), left_node->header().memory_block_size()));
 
@@ -255,7 +255,7 @@ VoidResult M_TYPE::ctr_split_path(
     return ctr_split_node(
                 path,
                 level,
-                [&self, split_at](NodeBasePtr& left, NodeBasePtr& right) noexcept -> VoidResult
+                [&self, split_at](TreeNodePtr& left, TreeNodePtr& right) noexcept -> VoidResult
     {
         MEMORIA_TRY_VOID(self.ctr_split_branch_node(left, right, split_at));
         return VoidResult::of();
@@ -274,7 +274,7 @@ VoidResult M_TYPE::ctr_split_path_raw(
     return ctr_split_node_raw(
                 path,
                 level,
-                [&self, split_at](NodeBasePtr& left, NodeBasePtr& right) noexcept -> VoidResult
+                [&self, split_at](TreeNodePtr& left, TreeNodePtr& right) noexcept -> VoidResult
     {
         MEMORIA_TRY_VOID(self.ctr_split_branch_node(left, right, split_at));
         return VoidResult::of();
@@ -283,7 +283,7 @@ VoidResult M_TYPE::ctr_split_path_raw(
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_update_branch_node(NodeBasePtr& node, int32_t idx, const BranchNodeEntry& keys) noexcept
+BoolResult M_TYPE::ctr_update_branch_node(TreeNodePtr& node, int32_t idx, const BranchNodeEntry& keys) noexcept
 {
     MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
 
@@ -307,7 +307,7 @@ BoolResult M_TYPE::ctr_update_branch_nodes(
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
 
-    NodeBasePtr tmp = path[level];
+    TreeNodePtr tmp = path[level];
 
     MEMORIA_TRY_VOID(self.ctr_update_branch_node(tmp, idx, entry));
 
@@ -378,8 +378,8 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, const TreePath
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(tgt_path, level));
 
-    NodeBasePtr src = src_path[level];
-    NodeBasePtr tgt = tgt_path[level];
+    TreeNodePtr src = src_path[level];
+    TreeNodePtr tgt = tgt_path[level];
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
 

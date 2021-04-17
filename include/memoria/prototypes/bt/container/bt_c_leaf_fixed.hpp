@@ -29,7 +29,7 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
 
-    using typename Base::NodeBasePtr;
+    using typename Base::TreeNodePtr;
     using typename Base::Iterator;
     using typename Base::Position;
     using typename Base::TreePathT;
@@ -190,7 +190,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
     //==========================================================================================
 
     MEMORIA_V1_DECLARE_NODE2_FN(CanMergeFn, canBeMergedWith);
-    bool ctr_can_merge_nodes(const NodeBasePtr& tgt, const NodeBasePtr& src) noexcept
+    bool ctr_can_merge_nodes(const TreeNodePtr& tgt, const TreeNodePtr& src) noexcept
     {
         return self().node_dispatcher().dispatch(src, tgt, CanMergeFn());
     }
@@ -219,8 +219,8 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_p
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(tgt_path, 0));
 
-    NodeBasePtr src = src_path.leaf();
-    NodeBasePtr tgt = tgt_path.leaf();
+    TreeNodePtr src = src_path.leaf();
+    TreeNodePtr tgt = tgt_path.leaf();
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
 
@@ -287,8 +287,8 @@ BoolResult M_TYPE::ctr_merge_current_leaf_nodes(
 {
     auto& self = this->self();
 
-    NodeBasePtr src = src_path.leaf();
-    NodeBasePtr tgt = tgt_path.leaf();
+    TreeNodePtr src = src_path.leaf();
+    TreeNodePtr tgt = tgt_path.leaf();
 
     if (self.ctr_can_merge_nodes(tgt, src))
     {
