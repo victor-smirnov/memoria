@@ -17,7 +17,8 @@
 #pragma once
 
 #include <memoria/profiles/common/common.hpp>
-#include <memoria/profiles/common/block.hpp>
+#include <memoria/profiles/common/block_cow.hpp>
+#include <memoria/profiles/common/block_lw_cow.hpp>
 #include <memoria/profiles/core_api/core_api_profile.hpp>
 #include <memoria/profiles/impl/cow_impl_common.hpp>
 
@@ -54,7 +55,10 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using AllocatorType = ICoWAllocator<Profile>;
 
     using BlockGuardT = LWBlockHandler<Block>;
+    using ConstBlockGuardT = LWBlockHandler<const Block>;
+
     using BlockG = BlockGuardT;
+    using ConstBlockG = ConstBlockGuardT;
 
     template <typename TargetBlockType>
     using BlockGuardTF = LWBlockHandler<TargetBlockType>;

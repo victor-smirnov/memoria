@@ -247,8 +247,9 @@ public:
     using Position_         = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
     using BlockType         = typename ContainerTypes::Allocator::BlockType;
 
-    using TreeNodeBase      = bt::TreeNodeBase<typename ContainerTypes::Metadata, BlockType>;
-    using TreeNodeBaseG     = typename ProfileTraits<Profile>::template BlockGuardTF<TreeNodeBase>;
+    using TreeNodeBase          = bt::TreeNodeBase<typename ContainerTypes::Metadata, BlockType>;
+    using TreeNodeBaseG         = typename ProfileTraits<Profile>::template BlockGuardTF<TreeNodeBase>;
+    using ConstTreeNodeBaseG    = typename ProfileTraits<Profile>::template BlockGuardTF<const TreeNodeBase>;
 
     using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
 
@@ -303,6 +304,7 @@ public:
         using LeafNodeTypes     = typename MyType::LeafNodeTypes;
 
         using NodeBaseG         = TreeNodeBaseG;
+        using ConstNodeBaseG    = ConstTreeNodeBaseG;
     };
 
     using BlockDispatchers = bt::BTreeDispatchers<DispatcherTypes>;
@@ -347,6 +349,7 @@ public:
         using Metadata  = typename ContainerTypes::Metadata;
 
         using NodeBaseG = TreeNodeBaseG;
+        using ConstNodeBaseG = ConstTreeNodeBaseG;
 
         using CtrList  = typename MyType::CtrList;
         using IterList = typename MyType::IterList;

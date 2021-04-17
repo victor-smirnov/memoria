@@ -287,6 +287,8 @@ public:
 
 
 
+
+
 template <typename AllocatorT, typename PageT, typename BlockID, typename Base = EmptyType>
 class PageShared: public Base {
 
@@ -427,8 +429,7 @@ public:
 };
 
 
-
-
+/*
 template <typename PageT, typename AllocatorT, typename Shared_>
 class BlockGuard {
 public:
@@ -675,9 +676,9 @@ LogHandler* logIt(LogHandler* log, const BlockGuard<T, A, S>& value) noexcept {
     return log;
 }
 
+*/
 
-
-
+/*
 template <typename BlockType_>
 class LWBlockHandler {
     BlockType_* ptr_;
@@ -779,8 +780,9 @@ Result<T> static_cast_block(Result<LWBlockHandler<U>>&& src) noexcept {
     return std::move(src).transfer_error();
 }
 
+*/
 
-
+/*
 template <typename PageT, typename AllocatorT, typename Shared_>
 class CowSharedBlockHandler {
 public:
@@ -1019,6 +1021,6 @@ Result<T> static_cast_block(Result<CowSharedBlockHandler<U, AllocatorT, Shared>>
     }
     return std::move(src).transfer_error();
 }
-
+*/
 
 }

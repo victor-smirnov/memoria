@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/profiles/common/common.hpp>
-#include <memoria/profiles/common/block.hpp>
+#include <memoria/profiles/common/block_nocow.hpp>
 #include <memoria/profiles/core_api/core_api_profile.hpp>
 #include <memoria/core/container/allocator.hpp>
 
@@ -49,7 +49,8 @@ struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     template <typename TargetBlockType>
     using BlockGuardTF = BlockGuard<TargetBlockType, AllocatorType, BlockShared>;
 
-    using BlockGuardT  = BlockGuard<Block, AllocatorType, BlockShared>;
+    using BlockGuardT       = BlockGuard<Block, AllocatorType, BlockShared>;
+    using ConstBlockGuardT  = BlockGuard<const Block, AllocatorType, BlockShared>;
 
     static constexpr bool IsCoW = false;
 

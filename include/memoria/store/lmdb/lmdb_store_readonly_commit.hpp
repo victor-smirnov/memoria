@@ -42,6 +42,7 @@ protected:
     using typename Base::BlockID;
     using typename Base::Shared;
     using typename Base::BlockG;
+    using typename Base::ConstBlockG;
     using typename Base::Superblock;
     using typename Base::BlockType;
 
@@ -148,12 +149,12 @@ protected:
         return VoidResult::of();
     }
 
-    virtual Result<BlockG> getBlock(const BlockID& id) noexcept
+    virtual Result<ConstBlockG> getBlock(const BlockID& id) noexcept
     {
-        using ResultT = Result<BlockG>;
+        using ResultT = Result<ConstBlockG>;
 
         if (MMA_UNLIKELY(id.is_null())) {
-            return Result<BlockG>::of();
+            return ResultT::of();
         }
 
         auto block = block_shared_cache_.get(id);

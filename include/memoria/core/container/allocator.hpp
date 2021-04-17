@@ -55,6 +55,7 @@ struct IAllocatorBase: AllocatorApiBase<ApiProfile<Profile>> {
     using CtrID         = ProfileCtrID<Profile>;
 
     using BlockG        = typename ProfileTraits<Profile>::BlockGuardT;
+    using ConstBlockG   = typename ProfileTraits<Profile>::ConstBlockGuardT;
 
     virtual ~IAllocatorBase() noexcept {}
     
@@ -64,7 +65,7 @@ struct IAllocatorBase: AllocatorApiBase<ApiProfile<Profile>> {
     virtual BoolResult hasRoot(const CtrID& ctr_id) noexcept = 0;
     virtual Result<CtrID> createCtrName() noexcept = 0;
 
-    virtual Result<BlockG> getBlock(const BlockID& id) noexcept = 0;
+    virtual Result<ConstBlockG> getBlock(const BlockID& id) noexcept = 0;
 
     virtual VoidResult removeBlock(const BlockID& id) noexcept = 0;
     virtual Result<BlockG> createBlock(int32_t initial_size) noexcept = 0;
@@ -103,6 +104,7 @@ struct IAllocator: IAllocatorBase<Profile> {
     using Base = IAllocatorBase<Profile>;
 
     using typename Base::BlockG;
+    using typename Base::ConstBlockG;
     using typename Base::BlockType;
 
     using Shared = typename BlockG::Shared;
@@ -122,7 +124,9 @@ struct ICoWAllocator: IAllocatorBase<Profile> {
     using Base = IAllocatorBase<Profile>;
 
     using typename Base::BlockG;
+    using typename Base::ConstBlockG;
     using typename Base::BlockID;
+
     using Shared = typename BlockG::Shared;
 
     virtual SnpSharedPtr<ICoWAllocator> self_ptr() noexcept = 0;

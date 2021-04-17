@@ -173,6 +173,7 @@ public:
     using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
     using typename Base::BlockG;
+    using typename Base::ConstBlockG;
 
     using RootMapType = CtrT<Map<CtrID, BlockID>>;
 
@@ -363,14 +364,14 @@ public:
     {
         MEMORIA_TRY(block, this->getBlock(root_block_id));
 
-        if (block->unref_block())
+        if (block.as_mutable()->unref_block())
         {
             auto ctr_hash = block->ctr_type_hash();
 
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            MEMORIA_TRY(ctr, ctr_intf->new_ctr_instance(block, this));
+            MEMORIA_TRY(ctr, ctr_intf->new_ctr_instance(block.as_mutable(), this));
 
             MEMORIA_TRY_VOID(ctr->internal_unref_cascade(block_id_holder_from(root_block_id)));
         }
@@ -651,17 +652,17 @@ public:
         }
     }
 
-    Result<BlockG> findBlock(const BlockID& id) noexcept
+    Result<ConstBlockG> findBlock(const BlockID& id) noexcept
     {
-        using ResultT = Result<BlockG>;
+        using ResultT = Result<ConstBlockG>;
 
         BlockType* block = value_cast<BlockType*>(detail::IDValueHolderH<BlockID>::from_id(id));
-        return ResultT::of(BlockG{block});
+        return ResultT::of(ConstBlockG{block});
 
         return ResultT::of();
     }
 
-    virtual Result<BlockG> getBlock(const BlockID& id) noexcept
+    virtual Result<ConstBlockG> getBlock(const BlockID& id) noexcept
     {
         if (id.isSet())
         {
@@ -675,7 +676,7 @@ public:
             }
         }
         else {
-            return Result<BlockG>::of(BlockG());
+            return Result<ConstBlockG>::of(BlockG());
         }
     }
 
@@ -757,14 +758,14 @@ public:
     virtual VoidResult ref_block(const BlockID& block_id) noexcept
     {
         MEMORIA_TRY(block, getBlock(block_id));
-        block->ref_block(1);
+        block.as_mutable()->ref_block(1);
         return VoidResult::of();
     }
 
     virtual VoidResult unref_block(const BlockID& block_id, std::function<VoidResult()> on_zero) noexcept
     {
         MEMORIA_TRY(block, getBlock(block_id));
-        if (block->unref_block()) {
+        if (block.as_mutable()->unref_block()) {
             return on_zero();
         }
 
@@ -885,7 +886,7 @@ public:
             if (!name.is_null())
             {
                 MEMORIA_TRY(root_block, findBlock(root));
-                root_block->ref_block();
+                root_block.as_mutable()->ref_block();
 
                 MEMORIA_TRY(prev_id, root_map_->replace_and_return(name, root));
 

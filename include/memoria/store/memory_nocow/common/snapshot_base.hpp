@@ -109,6 +109,7 @@ public:
     using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
     using typename Base::BlockG;
+    using typename Base::ConstBlockG;
     using typename Base::Shared;
 
     using RootMapType = CtrT<Map<CtrID, BlockID>>;
@@ -581,9 +582,9 @@ public:
         }
     }
 
-    Result<BlockG> findBlock(const BlockID& id) noexcept
+    Result<ConstBlockG> findBlock(const BlockID& id) noexcept
     {
-        using ResultT = Result<BlockG>;
+        using ResultT = Result<ConstBlockG>;
         Shared* shared = get_shared(id, Shared::READ);
 
         if (!shared->get())
@@ -614,7 +615,7 @@ public:
         return ResultT::of(shared);
     }
 
-    virtual Result<BlockG> getBlock(const BlockID& id) noexcept
+    virtual Result<ConstBlockG> getBlock(const BlockID& id) noexcept
     {
         if (id.isSet())
         {
@@ -628,7 +629,7 @@ public:
             }
         }
         else {
-            return Result<BlockG>::of(BlockG());
+            return Result<ConstBlockG>::of(BlockG());
         }
     }
 

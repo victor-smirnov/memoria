@@ -47,6 +47,7 @@ class LMDBStoreWritableCommit:
     using typename Base::CommitID;
     using typename Base::BlockID;
     using typename Base::BlockG;
+    using typename Base::ConstBlockG;
     using typename Base::BlockType;
     using typename Base::ApiProfileT;
     using typename Base::Shared;
@@ -592,16 +593,16 @@ private:
         }
     }
 
-    virtual Result<BlockG> getBlock(const BlockID& id) noexcept
+    virtual Result<ConstBlockG> getBlock(const BlockID& id) noexcept
     {
         if (MMA_UNLIKELY(committed_)) {
             return make_generic_error("Snapshot has been already committed");
         }
 
-        using ResultT = Result<BlockG>;
+        using ResultT = Result<ConstBlockG>;
 
         if (MMA_UNLIKELY(id.is_null())) {
-            return Result<BlockG>::of();
+            return ResultT::of();
         }
 
         auto block = block_cache_.get(id);
@@ -635,7 +636,7 @@ private:
 
                 block_cache_.insert(entry);
 
-                return ResultT::of(BlockG(entry));
+                return ResultT::of(ConstBlockG(entry));
             }
             else {
                 return make_generic_error("Block {} is not found in the data_db", id);
