@@ -111,7 +111,7 @@ struct IAllocator: IAllocatorBase<Profile> {
 
     virtual SnpSharedPtr<IAllocator> self_ptr() noexcept = 0;
 
-    virtual Result<SharedBlockPtr> updateBlock(Shared* block) noexcept = 0;
+    virtual VoidResult updateBlock(Shared* block) noexcept = 0;
     virtual VoidResult resizeBlock(Shared* block, int32_t new_size) noexcept = 0;
     virtual VoidResult releaseBlock(Shared* block) noexcept = 0;
 
@@ -136,7 +136,7 @@ struct ICoWAllocator: IAllocatorBase<Profile> {
     virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept = 0;
 
     virtual VoidResult releaseBlock(Shared* block) noexcept = 0;
-    virtual Result<SharedBlockPtr> updateBlock(Shared* block) noexcept = 0;
+    virtual VoidResult updateBlock(Shared* block) noexcept = 0;
 
     virtual VoidResult traverse_ctr(
             const BlockID& root_block,

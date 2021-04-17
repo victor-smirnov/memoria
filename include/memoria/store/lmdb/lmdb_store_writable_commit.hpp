@@ -532,7 +532,7 @@ private:
     }
 
 private:
-    virtual Result<SharedBlockPtr> updateBlock(Shared* block) noexcept {
+    virtual VoidResult updateBlock(Shared* block) noexcept {
         MEMORIA_TRY_VOID(check_updates_allowed());
 
         BlockCacheEntry* entry = ptr_cast<BlockCacheEntry>(block);
@@ -541,7 +541,7 @@ private:
             updated_entries_.push_back(*entry);
         }
 
-        return Result<SharedBlockPtr>::of(block);
+        return VoidResult::of();
     }
 
     virtual VoidResult resizeBlock(Shared* block, int32_t new_size) noexcept

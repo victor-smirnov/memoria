@@ -222,11 +222,7 @@ public:
     {
         if (shared_)
         {
-            MEMORIA_TRY(guard, shared_->store()->updateBlock(shared_));
-            if (guard.shared() != shared_)
-            {
-                terminate("updateBlock() returned different shared");
-            }
+            MEMORIA_TRY_VOID(shared_->store()->updateBlock(shared_));
         }
 
         return VoidResult::of();
@@ -492,11 +488,7 @@ public:
     {
         if (shared_)
         {
-            MEMORIA_TRY(guard, shared_->store()->updateBlock(shared_));
-            if (guard.shared() != shared_)
-            {
-                terminate("updateBlock() returned different shared");
-            }
+            MEMORIA_TRY_VOID(shared_->store()->updateBlock(shared_));
         }
 
         return VoidResult::of();

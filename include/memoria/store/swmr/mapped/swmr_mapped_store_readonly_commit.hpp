@@ -118,8 +118,8 @@ protected:
         return ResultT::of(SharedBlockConstPtr{shared});
     }
 
-    virtual Result<SharedBlockPtr> updateBlock(Shared* block) noexcept {
-        return Result<SharedBlockPtr>::of(SharedBlockPtr{block});
+    virtual VoidResult updateBlock(Shared* block) noexcept {
+        return VoidResult::of();
     }
 
     virtual VoidResult releaseBlock(Shared* block) noexcept {

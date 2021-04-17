@@ -224,11 +224,7 @@ public:
     {
         if (shared_)
         {
-            MEMORIA_TRY(guard, shared_->store()->updateBlock(shared_));
-            if (guard.shared() != shared_)
-            {
-                terminate("Allocator returned different shared block for update()");
-            }
+            MEMORIA_TRY_VOID(shared_->store()->updateBlock(shared_));
         }
 
         return VoidResult::of();
@@ -475,11 +471,7 @@ public:
     {
         if (shared_)
         {
-            MEMORIA_TRY(guard, shared_->store()->updateBlock(shared_));
-            if (guard.shared() != shared_)
-            {
-                terminate("Allocator returned different shared block for update()");
-            }
+            MEMORIA_TRY_VOID(shared_->store()->updateBlock(shared_));
         }
 
         return VoidResult::of();

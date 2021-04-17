@@ -1263,7 +1263,7 @@ protected:
         return make_generic_error("releaseBlock is not implemented!!!");
     }
 
-    virtual Result<SharedBlockPtr> updateBlock(Shared* block) noexcept {
+    virtual VoidResult updateBlock(Shared* block) noexcept {
         return make_generic_error("updateBlock is not implemented!!!");
     }
 };

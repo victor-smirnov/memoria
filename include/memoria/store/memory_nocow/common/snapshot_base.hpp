@@ -702,9 +702,9 @@ public:
     }
 
 
-    virtual Result<SharedBlockPtr> updateBlock(Shared* shared) noexcept
+    virtual VoidResult updateBlock(Shared* shared) noexcept
     {
-        using ResultT = Result<SharedBlockPtr>;
+        using ResultT = VoidResult;
 
         // FIXME: Though this check prohibits new block acquiring for update,
         // already acquired updatable blocks can be updated further.
@@ -722,7 +722,7 @@ public:
             shared->state() = Shared::UPDATE;
         }
 
-        return ResultT::of(shared);
+        return ResultT::of();
     }
 
     virtual VoidResult removeBlock(const BlockID& id) noexcept

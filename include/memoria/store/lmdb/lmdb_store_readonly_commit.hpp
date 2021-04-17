@@ -132,7 +132,7 @@ protected:
         return this->shared_from_this();
     }
 
-    virtual Result<SharedBlockPtr> updateBlock(Shared* block) noexcept {
+    virtual VoidResult updateBlock(Shared* block) noexcept {
         return MEMORIA_MAKE_GENERIC_ERROR("updateBlock() is not implemented for ReadOnly commits");
     }
 
