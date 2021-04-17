@@ -54,14 +54,11 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 
     using AllocatorType = ICoWAllocator<Profile>;
 
-    using BlockGuardT = LWBlockHandler<Block>;
-    using ConstBlockGuardT = LWBlockHandler<const Block>;
-
-    using BlockG = BlockGuardT;
-    using ConstBlockG = ConstBlockGuardT;
+    using SharedBlockPtr = LWSharedBlockPtr<Block>;
+    using SharedBlockConstPtr = LWSharedBlockPtr<const Block>;
 
     template <typename TargetBlockType>
-    using BlockGuardTF = LWBlockHandler<TargetBlockType>;
+    using SharedBlockPtrTF = LWSharedBlockPtr<TargetBlockType>;
 
     static constexpr bool IsCoW = true;
 

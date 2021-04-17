@@ -24,7 +24,7 @@ namespace memoria {
 
 
 template <typename BlockType_>
-class LWBlockHandler {
+class LWSharedBlockPtr {
 
     template <typename BlkT>
     static constexpr bool IsConstCompatible = std::is_const<BlockType_>::value ? std::is_const<BlkT>::value : true;
@@ -35,37 +35,37 @@ public:
 private:
     MutableBlockType* ptr_;
 
-    template <typename> friend class LWBlockHandler;
+    template <typename> friend class LWSharedBlockPtr;
 
 public:
     enum {UNDEFINED, READ, UPDATE, _DELETE};
 
-    using Shared = LWBlockHandler;
+    using Shared = LWSharedBlockPtr;
     using BlockType = BlockType_;
 
 
-    LWBlockHandler() noexcept:
+    LWSharedBlockPtr() noexcept:
         ptr_()
     {}
 
     template <typename U, typename = std::enable_if_t<IsConstCompatible<U>>>
-    LWBlockHandler(LWBlockHandler<U>&& other) noexcept:
+    LWSharedBlockPtr(LWSharedBlockPtr<U>&& other) noexcept:
         ptr_(ptr_cast<MutableBlockType>(other.ptr_))
     {}
 
     template <typename U, typename = std::enable_if_t<IsConstCompatible<U>>>
-    LWBlockHandler(const LWBlockHandler<U>& other) noexcept:
+    LWSharedBlockPtr(const LWSharedBlockPtr<U>& other) noexcept:
         ptr_(ptr_cast<MutableBlockType>(other.ptr_))
     {}
 
-    LWBlockHandler(MutableBlockType* ptr) noexcept:
+    LWSharedBlockPtr(MutableBlockType* ptr) noexcept:
         ptr_(ptr)
     {}
 
-    ~LWBlockHandler() noexcept = default;
+    ~LWSharedBlockPtr() noexcept = default;
 
-    LWBlockHandler<MutableBlockType> as_mutable() noexcept {
-        return LWBlockHandler<MutableBlockType>{ptr_};
+    LWSharedBlockPtr<MutableBlockType> as_mutable() noexcept {
+        return LWSharedBlockPtr<MutableBlockType>{ptr_};
     }
 
 
@@ -82,7 +82,7 @@ public:
     }
 
     template <typename TT>
-    bool operator==(const LWBlockHandler<TT>& other) const noexcept {
+    bool operator==(const LWSharedBlockPtr<TT>& other) const noexcept {
         return ptr_ == other.ptr_;
     }
 
@@ -103,8 +103,8 @@ public:
     }
 
     template <typename ParentBlockType, typename = std::enable_if_t<std::is_base_of<ParentBlockType, BlockType>::value, void>>
-    operator LWBlockHandler<ParentBlockType>() noexcept {
-        return LWBlockHandler<ParentBlockType>(ptr_);
+    operator LWSharedBlockPtr<ParentBlockType>() noexcept {
+        return LWSharedBlockPtr<ParentBlockType>(ptr_);
     }
 
     VoidResult update() const noexcept {
@@ -129,7 +129,7 @@ public:
 };
 
 template <typename T, typename U>
-Result<T> static_cast_block(Result<LWBlockHandler<U>>&& src) noexcept {
+Result<T> static_cast_block(Result<LWSharedBlockPtr<U>>&& src) noexcept {
     if (MMA_LIKELY(src.is_ok()))
     {
         T tgt = std::move(src).get();

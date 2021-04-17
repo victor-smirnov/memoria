@@ -248,8 +248,8 @@ public:
     using BlockType         = typename ContainerTypes::Allocator::BlockType;
 
     using TreeNodeBase          = bt::TreeNodeBase<typename ContainerTypes::Metadata, BlockType>;
-    using TreeNodeBaseG         = typename ProfileTraits<Profile>::template BlockGuardTF<TreeNodeBase>;
-    using ConstTreeNodeBaseG    = typename ProfileTraits<Profile>::template BlockGuardTF<const TreeNodeBase>;
+    using TreeNodeBaseG         = typename ProfileTraits<Profile>::template SharedBlockPtrTF<TreeNodeBase>;
+    using ConstTreeNodeBaseG    = typename ProfileTraits<Profile>::template SharedBlockPtrTF<const TreeNodeBase>;
 
     using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
 

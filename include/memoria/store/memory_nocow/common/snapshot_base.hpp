@@ -108,8 +108,8 @@ public:
     template <typename CtrName>
     using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
-    using typename Base::BlockG;
-    using typename Base::ConstBlockG;
+    using typename Base::SharedBlockPtr;
+    using typename Base::SharedBlockConstPtr;
     using typename Base::Shared;
 
     using RootMapType = CtrT<Map<CtrID, BlockID>>;
@@ -582,9 +582,9 @@ public:
         }
     }
 
-    Result<ConstBlockG> findBlock(const BlockID& id) noexcept
+    Result<SharedBlockConstPtr> findBlock(const BlockID& id) noexcept
     {
-        using ResultT = Result<ConstBlockG>;
+        using ResultT = Result<SharedBlockConstPtr>;
         Shared* shared = get_shared(id, Shared::READ);
 
         if (!shared->get())
@@ -615,7 +615,7 @@ public:
         return ResultT::of(shared);
     }
 
-    virtual Result<ConstBlockG> getBlock(const BlockID& id) noexcept
+    virtual Result<SharedBlockConstPtr> getBlock(const BlockID& id) noexcept
     {
         if (id.isSet())
         {
@@ -629,7 +629,7 @@ public:
             }
         }
         else {
-            return Result<ConstBlockG>::of(ConstBlockG());
+            return Result<SharedBlockConstPtr>::of(SharedBlockConstPtr());
         }
     }
 
@@ -702,9 +702,9 @@ public:
     }
 
 
-    virtual Result<BlockG> updateBlock(Shared* shared) noexcept
+    virtual Result<SharedBlockPtr> updateBlock(Shared* shared) noexcept
     {
-        using ResultT = Result<BlockG>;
+        using ResultT = Result<SharedBlockPtr>;
 
         // FIXME: Though this check prohibits new block acquiring for update,
         // already acquired updatable blocks can be updated further.
@@ -752,7 +752,7 @@ public:
 
 
 
-    virtual Result<BlockG> createBlock(int32_t initial_size) noexcept
+    virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept
     {
         MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
 
@@ -778,11 +778,11 @@ public:
 
         block_shared_cache_.insert(shared);
 
-        return Result<BlockG>::of(shared);
+        return Result<SharedBlockPtr>::of(shared);
     }
 
 
-    virtual Result<BlockG> cloneBlock(const BlockG& block) noexcept
+    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockPtr& block) noexcept
     {
         MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
 
@@ -800,7 +800,7 @@ public:
 
         block_shared_cache_.insert(new_shared);
 
-        return Result<BlockG>::of(new_shared);
+        return Result<SharedBlockPtr>::of(new_shared);
     }
 
 
@@ -1137,7 +1137,7 @@ public:
         return describe_block(block);
     }
 
-    Result<CtrBlockDescription<ApiProfileT>> describe_block(const BlockG& block) noexcept
+    Result<CtrBlockDescription<ApiProfileT>> describe_block(const SharedBlockPtr& block) noexcept
     {
         auto ctr_intf = ProfileMetadata<Profile>::local()
                 ->get_container_operations(block->ctr_type_hash());

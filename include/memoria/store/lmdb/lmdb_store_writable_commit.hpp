@@ -46,8 +46,8 @@ class LMDBStoreWritableCommit:
     using typename Base::AllocatorT;
     using typename Base::CommitID;
     using typename Base::BlockID;
-    using typename Base::BlockG;
-    using typename Base::ConstBlockG;
+    using typename Base::SharedBlockPtr;
+    using typename Base::SharedBlockConstPtr;
     using typename Base::BlockType;
     using typename Base::ApiProfileT;
     using typename Base::Shared;
@@ -415,10 +415,10 @@ public:
         }
     }
 
-    virtual Result<BlockG> createBlock(int32_t initial_size) noexcept
+    virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept
     {
         MEMORIA_TRY_VOID(check_updates_allowed());
-        using ResultT = Result<BlockG>;
+        using ResultT = Result<SharedBlockPtr>;
 
         if (initial_size == -1) {
             initial_size = BASIC_BLOCK_SIZE;
@@ -445,10 +445,10 @@ public:
         return ResultT::of(entry);
     }
 
-    virtual Result<BlockG> cloneBlock(const BlockG& block) noexcept
+    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockPtr& block) noexcept
     {
         MEMORIA_TRY_VOID(check_updates_allowed());
-        using ResultT = Result<BlockG>;
+        using ResultT = Result<SharedBlockPtr>;
 
         int32_t block_size = block->memory_block_size();
 
@@ -469,7 +469,7 @@ public:
         block_cache_.insert(entry);
         updated_entries_.push_back(*entry);
 
-        return ResultT::of(BlockG{entry});
+        return ResultT::of(SharedBlockPtr{entry});
     }
 
 protected:
@@ -532,7 +532,7 @@ private:
     }
 
 private:
-    virtual Result<BlockG> updateBlock(Shared* block) noexcept {
+    virtual Result<SharedBlockPtr> updateBlock(Shared* block) noexcept {
         MEMORIA_TRY_VOID(check_updates_allowed());
 
         BlockCacheEntry* entry = ptr_cast<BlockCacheEntry>(block);
@@ -541,7 +541,7 @@ private:
             updated_entries_.push_back(*entry);
         }
 
-        return Result<BlockG>::of(block);
+        return Result<SharedBlockPtr>::of(block);
     }
 
     virtual VoidResult resizeBlock(Shared* block, int32_t new_size) noexcept
@@ -593,13 +593,13 @@ private:
         }
     }
 
-    virtual Result<ConstBlockG> getBlock(const BlockID& id) noexcept
+    virtual Result<SharedBlockConstPtr> getBlock(const BlockID& id) noexcept
     {
         if (MMA_UNLIKELY(committed_)) {
             return make_generic_error("Snapshot has been already committed");
         }
 
-        using ResultT = Result<ConstBlockG>;
+        using ResultT = Result<SharedBlockConstPtr>;
 
         if (MMA_UNLIKELY(id.is_null())) {
             return ResultT::of();
@@ -618,7 +618,7 @@ private:
                     BlockType* block_data = ptr_cast<BlockType>(::malloc(block_ptr.mv_size));
                     std::memcpy(block_data, block_ptr.mv_data, block_ptr.mv_size);
                     entry->set_block(block_data);
-                    return ResultT::of(ConstBlockG(entry));
+                    return ResultT::of(SharedBlockConstPtr(entry));
                 }
                 else {
                     return make_generic_error("Block {} is not found in the data_db", id);
@@ -636,7 +636,7 @@ private:
 
                 block_cache_.insert(entry);
 
-                return ResultT::of(ConstBlockG(entry));
+                return ResultT::of(SharedBlockConstPtr(entry));
             }
             else {
                 return make_generic_error("Block {} is not found in the data_db", id);

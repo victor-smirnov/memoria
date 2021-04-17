@@ -66,7 +66,7 @@ class SWMRStoreCommitBase:
 protected:
 
     using typename Base::BlockType;
-    using typename Base::BlockG;
+    using typename Base::SharedBlockPtr;
     using typename Base::BlockID;
     using typename Base::SnapshotID;
     using typename Base::CtrID;
@@ -232,11 +232,11 @@ public:
         return MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly commits");
     }
 
-    virtual Result<BlockG> createBlock(int32_t initial_size) noexcept {
+    virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept {
         return MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly commits");
     }
 
-    virtual Result<BlockG> cloneBlock(const BlockG& block) noexcept {
+    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockPtr& block) noexcept {
         return MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits");
     }
 

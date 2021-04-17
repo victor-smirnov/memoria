@@ -47,7 +47,7 @@ class LMDBStoreCommitBase:
 protected:
 
     using typename Base::BlockType;
-    using typename Base::BlockG;
+    using typename Base::SharedBlockPtr;
     using typename Base::BlockID;
     using typename Base::SnapshotID;
     using typename Base::CtrID;

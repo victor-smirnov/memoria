@@ -47,14 +47,12 @@ struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using BlockShared = PageShared<AllocatorType, Block, BlockID>;
 
     template <typename TargetBlockType>
-    using BlockGuardTF = BlockGuard<TargetBlockType, AllocatorType, BlockShared>;
+    using SharedBlockPtrTF = NoCowSharedBlockPtr<TargetBlockType, AllocatorType, BlockShared>;
 
-    using BlockGuardT       = BlockGuard<Block, AllocatorType, BlockShared>;
-    using ConstBlockGuardT  = BlockGuard<const Block, AllocatorType, BlockShared>;
+    using SharedBlockPtr       = NoCowSharedBlockPtr<Block, AllocatorType, BlockShared>;
+    using SharedBlockConstPtr  = NoCowSharedBlockPtr<const Block, AllocatorType, BlockShared>;
 
     static constexpr bool IsCoW = false;
-
-    using BlockG = BlockGuardT;
 
     static UUID make_random_block_id() {
         return UUID::make_random();

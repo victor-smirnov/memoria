@@ -92,7 +92,7 @@ public:
     using BlockID   = typename Allocator::BlockID;
     using BlockType = typename Allocator::BlockType;
     using CtrID     = typename Allocator::CtrID;
-    using BlockG    = typename Allocator::BlockG;
+    using SharedBlockPtr    = typename Allocator::SharedBlockPtr;
 
     using Iterator          = Iter<typename Types::IterTypes>;
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
@@ -401,7 +401,7 @@ public:
         }
         
         virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>> new_ctr_instance(
-            const ProfileBlockG<typename Types::Profile>& root_block,
+            const ProfileSharedBlockPtr<typename Types::Profile>& root_block,
             AllocatorPtr allocator
         ) const noexcept
         {
@@ -423,7 +423,7 @@ public:
         }
 
         virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>> new_ctr_instance(
-            const ProfileBlockG<typename Types::Profile>& root_block,
+            const ProfileSharedBlockPtr<typename Types::Profile>& root_block,
             ProfileAllocatorType<ProfileT>* allocator
         ) const noexcept
         {
@@ -596,7 +596,7 @@ public:
     using MyType = Ctr<Types>;
 
     using Allocator = typename Types::Allocator;
-    using BlockG    = typename Types::Allocator::BlockG;
+    using SharedBlockPtr    = typename Types::Allocator::SharedBlockPtr;
     using BlockID   = typename Allocator::BlockID;
     using CtrID     = typename Allocator::CtrID;
 
@@ -662,7 +662,7 @@ public:
     Ctr(
         MaybeError& maybe_error,
         const CtrSharedPtr<Allocator>& allocator,
-        const typename Allocator::BlockG& root_block
+        const typename Allocator::SharedBlockPtr& root_block
     ) noexcept :
         Base(maybe_error)
     {
@@ -688,7 +688,7 @@ public:
     Ctr(
         MaybeError& maybe_error,
         Allocator* allocator,
-        const typename Allocator::BlockG& root_block
+        const typename Allocator::SharedBlockPtr& root_block
     ) noexcept :
         Base(maybe_error)
     {

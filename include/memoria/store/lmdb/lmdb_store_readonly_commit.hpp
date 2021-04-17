@@ -41,8 +41,8 @@ protected:
     using typename Base::AllocatorT;
     using typename Base::BlockID;
     using typename Base::Shared;
-    using typename Base::BlockG;
-    using typename Base::ConstBlockG;
+    using typename Base::SharedBlockPtr;
+    using typename Base::SharedBlockConstPtr;
     using typename Base::Superblock;
     using typename Base::BlockType;
 
@@ -132,7 +132,7 @@ protected:
         return this->shared_from_this();
     }
 
-    virtual Result<BlockG> updateBlock(Shared* block) noexcept {
+    virtual Result<SharedBlockPtr> updateBlock(Shared* block) noexcept {
         return MEMORIA_MAKE_GENERIC_ERROR("updateBlock() is not implemented for ReadOnly commits");
     }
 
@@ -149,9 +149,9 @@ protected:
         return VoidResult::of();
     }
 
-    virtual Result<ConstBlockG> getBlock(const BlockID& id) noexcept
+    virtual Result<SharedBlockConstPtr> getBlock(const BlockID& id) noexcept
     {
-        using ResultT = Result<ConstBlockG>;
+        using ResultT = Result<SharedBlockConstPtr>;
 
         if (MMA_UNLIKELY(id.is_null())) {
             return ResultT::of();
@@ -183,11 +183,11 @@ protected:
         return MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly commits");
     }
 
-    virtual Result<BlockG> createBlock(int32_t initial_size) noexcept {
+    virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept {
         return MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly commits");
     }
 
-    virtual Result<BlockG> cloneBlock(const BlockG& block) noexcept {
+    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockPtr& block) noexcept {
         return MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits");
     }
 

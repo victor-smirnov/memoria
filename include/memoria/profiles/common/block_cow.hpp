@@ -27,7 +27,7 @@ namespace detail {
 }
 
 template <typename PageT, typename AllocatorT, typename Shared_>
-class CowSharedBlockHandler {
+class CowSharedBlockPtr {
 
     template <typename BlkT>
     static constexpr bool IsConstCompatible = std::is_const<PageT>::value ? std::is_const<BlkT>::value : true;
@@ -47,56 +47,56 @@ private:
     BlockType* ptr_;
     Shared* shared_;
 
-    CowSharedBlockHandler(BlockType* ptr, Shared* shared) noexcept:
+    CowSharedBlockPtr(BlockType* ptr, Shared* shared) noexcept:
         ptr_(ptr), shared_(shared)
     {}
 
 public:
-    CowSharedBlockHandler(Shared* shared) noexcept:
+    CowSharedBlockPtr(Shared* shared) noexcept:
         ptr_(cast_me(shared->ptr())), shared_(shared)
     {
         ref();
     }
 
-    CowSharedBlockHandler() noexcept: shared_(nullptr) {}
+    CowSharedBlockPtr() noexcept: shared_(nullptr) {}
 
-    CowSharedBlockHandler(const CowSharedBlockHandler& guard) noexcept:
+    CowSharedBlockPtr(const CowSharedBlockPtr& guard) noexcept:
         ptr_(cast_me(guard.ptr_)), shared_(guard.shared_)
     {
         ref();
     }
 
     template <typename Page, typename = std::enable_if_t<IsConstCompatible<Page>>>
-    CowSharedBlockHandler(const CowSharedBlockHandler<Page, AllocatorT, Shared>& guard) noexcept:
+    CowSharedBlockPtr(const CowSharedBlockPtr<Page, AllocatorT, Shared>& guard) noexcept:
         ptr_(cast_me(guard.ptr_)), shared_(guard.shared_)
     {
         ref();
     }
 
     template <typename Page, typename = std::enable_if_t<IsConstCompatible<Page>>>
-    CowSharedBlockHandler(CowSharedBlockHandler<Page, AllocatorT, Shared>&& guard) noexcept:
+    CowSharedBlockPtr(CowSharedBlockPtr<Page, AllocatorT, Shared>&& guard) noexcept:
         ptr_(cast_me(guard.ptr_)),
         shared_(guard.shared_)
     {
         guard.shared_ = nullptr;
     }
 
-    ~CowSharedBlockHandler() noexcept
+    ~CowSharedBlockPtr() noexcept
     {
         unref();
     }
 
-    CowSharedBlockHandler<MutableBlockType, AllocatorT, Shared> as_mutable() & noexcept {
-        return CowSharedBlockHandler<MutableBlockType, AllocatorT, Shared>{shared_};
+    CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared> as_mutable() & noexcept {
+        return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
     }
 
-    CowSharedBlockHandler<MutableBlockType, AllocatorT, Shared> as_mutable() && noexcept {
+    CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared> as_mutable() && noexcept {
         Shared* tmp = shared_;
         shared_ = nullptr;
-        return CowSharedBlockHandler<MutableBlockType, AllocatorT, Shared>{ptr_, shared_};
+        return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{ptr_, shared_};
     }
 
-    const CowSharedBlockHandler& operator=(const CowSharedBlockHandler& guard) noexcept
+    const CowSharedBlockPtr& operator=(const CowSharedBlockPtr& guard) noexcept
     {
         if (shared_ != guard.shared_)
         {
@@ -111,7 +111,7 @@ public:
 
 
     template <typename P, typename = std::enable_if_t<IsConstCompatible<P>>>
-    CowSharedBlockHandler& operator=(const CowSharedBlockHandler<P, AllocatorT, Shared>& guard) noexcept
+    CowSharedBlockPtr& operator=(const CowSharedBlockPtr<P, AllocatorT, Shared>& guard) noexcept
     {
         unref();
         ptr_ = cast_me(guard.ptr_);
@@ -120,7 +120,7 @@ public:
         return *this;
     }
 
-    CowSharedBlockHandler& operator=(CowSharedBlockHandler&& guard) noexcept
+    CowSharedBlockPtr& operator=(CowSharedBlockPtr&& guard) noexcept
     {
         if (this != &guard)
         {
@@ -135,7 +135,7 @@ public:
 
 
     template <typename P, typename = std::enable_if_t<IsConstCompatible<P>>>
-    CowSharedBlockHandler& operator=(CowSharedBlockHandler<P, AllocatorT, Shared>&& guard) noexcept
+    CowSharedBlockPtr& operator=(CowSharedBlockPtr<P, AllocatorT, Shared>&& guard) noexcept
     {
         if (this != &guard)
         {
@@ -167,12 +167,12 @@ public:
         return shared_ && shared_->get() != nullptr;
     }
 
-    bool operator==(const CowSharedBlockHandler& other) const noexcept
+    bool operator==(const CowSharedBlockPtr& other) const noexcept
     {
         return shared_ && other.shared_ && shared_->id() == other.shared_->id();
     }
 
-    bool operator!=(const CowSharedBlockHandler& other) const noexcept
+    bool operator!=(const CowSharedBlockPtr& other) const noexcept
     {
         return shared_ && other.shared_ && shared_->id() != other.shared_->id();
     }
@@ -244,7 +244,7 @@ public:
         return shared_;
     }
 
-    template <typename, typename, typename> friend class CowSharedBlockHandler;
+    template <typename, typename, typename> friend class CowSharedBlockPtr;
 
 private:
     void ref() noexcept
@@ -275,7 +275,7 @@ private:
 
 
 template <typename T, typename U, typename AllocatorT, typename Shared>
-Result<T> static_cast_block(Result<CowSharedBlockHandler<U, AllocatorT, Shared>>&& src) noexcept {
+Result<T> static_cast_block(Result<CowSharedBlockPtr<U, AllocatorT, Shared>>&& src) noexcept {
     if (MMA_LIKELY(src.is_ok()))
     {
         T tgt = std::move(src).get();

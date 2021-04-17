@@ -44,7 +44,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using Allocator = typename Base::Allocator;
 
 
-    using typename Base::BlockG;
+    using typename Base::SharedBlockPtr;
     using typename Base::BlockID;
     using typename Base::CtrID;
     using typename Base::ContainerTypeName;
@@ -760,7 +760,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
  protected:
 
-    Result<CtrID> do_init_ctr(const BlockG& node) noexcept
+    Result<CtrID> do_init_ctr(const SharedBlockPtr& node) noexcept
     {
         using ResultT = Result<CtrID>;
         auto& self = this->self();

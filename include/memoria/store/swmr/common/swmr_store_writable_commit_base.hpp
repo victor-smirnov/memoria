@@ -39,7 +39,7 @@ protected:
     using typename Base::CommitDescriptorT;
     using typename Base::CommitID;
     using typename Base::BlockID;
-    using typename Base::BlockG;
+    using typename Base::SharedBlockPtr;
     using typename Base::BlockType;
 
     using typename Base::ApiProfileT;
@@ -837,10 +837,10 @@ public:
         return VoidResult::of();
     }
 
-    virtual Result<BlockG> cloneBlock(const BlockG& block) noexcept
+    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockPtr& block) noexcept
     {
         MEMORIA_TRY_VOID(check_updates_allowed());
-        using ResultT = Result<BlockG>;
+        using ResultT = Result<SharedBlockPtr>;
 
         int32_t block_size = block->memory_block_size();
         int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
@@ -873,13 +873,13 @@ public:
         new_block->snapshot_id() = superblock_->commit_uuid();
         new_block->set_references(0);
 
-        return ResultT::of(BlockG{shared});
+        return ResultT::of(SharedBlockPtr{shared});
     }
 
-    virtual Result<BlockG> createBlock(int32_t initial_size) noexcept
+    virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept
     {
         MEMORIA_TRY_VOID(check_updates_allowed());
-        using ResultT = Result<BlockG>;
+        using ResultT = Result<SharedBlockPtr>;
 
         if (initial_size == -1)
         {

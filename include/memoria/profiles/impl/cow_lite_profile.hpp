@@ -57,13 +57,10 @@ struct ProfileTraits<CowLiteProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using BlockShared = PageShared<AllocatorType, Block, BlockID>;
 
     template <typename TargetBlockType>
-    using BlockGuardTF = CowSharedBlockHandler<TargetBlockType, AllocatorType, BlockShared>;
+    using SharedBlockPtrTF  = CowSharedBlockPtr<TargetBlockType, AllocatorType, BlockShared>;
 
-    using BlockGuardT  = CowSharedBlockHandler<Block, AllocatorType, BlockShared>;
-    using ConstBlockGuardT  = CowSharedBlockHandler<const Block, AllocatorType, BlockShared>;
-
-    using BlockG = BlockGuardT;
-    using ConstBlockG = ConstBlockGuardT;
+    using SharedBlockPtr        = CowSharedBlockPtr<Block, AllocatorType, BlockShared>;
+    using SharedBlockConstPtr   = CowSharedBlockPtr<const Block, AllocatorType, BlockShared>;
 
     static constexpr bool IsCoW = true;
 

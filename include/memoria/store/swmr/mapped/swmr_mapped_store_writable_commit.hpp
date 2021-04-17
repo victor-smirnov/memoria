@@ -44,8 +44,8 @@ class MappedSWMRStoreWritableCommit:
     using typename Base::AllocatorT;
     using typename Base::CommitID;
     using typename Base::BlockID;
-    using typename Base::BlockG;
-    using typename Base::ConstBlockG;
+    using typename Base::SharedBlockPtr;
+    using typename Base::SharedBlockConstPtr;
     using typename Base::BlockType;
     using typename Base::ApiProfileT;
     using typename Base::Superblock;
@@ -114,16 +114,16 @@ public:
     }
 
 
-    virtual Result<ConstBlockG> getBlock(const BlockID& id) noexcept
+    virtual Result<SharedBlockConstPtr> getBlock(const BlockID& id) noexcept
     {
-        using ResultT = Result<ConstBlockG>;
+        using ResultT = Result<SharedBlockConstPtr>;
         BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value() * BASIC_BLOCK_SIZE);
 
         Shared* shared = shared_pool_.construct(id, block, 0);
 
         shared->set_allocator(this);
 
-        return ResultT::of(ConstBlockG{shared});
+        return ResultT::of(SharedBlockConstPtr{shared});
     }
 
     virtual Result<Shared*> allocate_block(const BlockID& id, uint64_t at, size_t size) noexcept {
@@ -135,8 +135,8 @@ public:
         return Result<Shared*>::of(shared);
     }
 
-    virtual Result<BlockG> updateBlock(Shared* block) noexcept {
-        return Result<BlockG>::of(BlockG{block});
+    virtual Result<SharedBlockPtr> updateBlock(Shared* block) noexcept {
+        return Result<SharedBlockPtr>::of(SharedBlockPtr{block});
     }
 
     virtual VoidResult releaseBlock(Shared* block) noexcept {

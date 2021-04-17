@@ -172,8 +172,8 @@ public:
     template <typename CtrName>
     using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
-    using typename Base::BlockG;
-    using typename Base::ConstBlockG;
+    using typename Base::SharedBlockPtr;
+    using typename Base::SharedBlockConstPtr;
 
     using RootMapType = CtrT<Map<CtrID, BlockID>>;
 
@@ -652,17 +652,17 @@ public:
         }
     }
 
-    Result<ConstBlockG> findBlock(const BlockID& id) noexcept
+    Result<SharedBlockConstPtr> findBlock(const BlockID& id) noexcept
     {
-        using ResultT = Result<ConstBlockG>;
+        using ResultT = Result<SharedBlockConstPtr>;
 
         BlockType* block = value_cast<BlockType*>(detail::IDValueHolderH<BlockID>::from_id(id));
-        return ResultT::of(ConstBlockG{block});
+        return ResultT::of(SharedBlockConstPtr{block});
 
         return ResultT::of();
     }
 
-    virtual Result<ConstBlockG> getBlock(const BlockID& id) noexcept
+    virtual Result<SharedBlockConstPtr> getBlock(const BlockID& id) noexcept
     {
         if (id.isSet())
         {
@@ -676,7 +676,7 @@ public:
             }
         }
         else {
-            return Result<ConstBlockG>::of(BlockG());
+            return Result<SharedBlockConstPtr>::of(SharedBlockPtr());
         }
     }
 
@@ -786,7 +786,7 @@ public:
 
 
 
-    virtual Result<BlockG> createBlock(int32_t initial_size) noexcept
+    virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept
     {
         MEMORIA_TRY_VOID(check_updates_allowed());
 
@@ -806,11 +806,11 @@ public:
 
         p->memory_block_size() = initial_size;
 
-        return Result<BlockG>::of(BlockG{p});
+        return Result<SharedBlockPtr>::of(SharedBlockPtr{p});
     }
 
 
-    virtual Result<BlockG> cloneBlock(const BlockG& block) noexcept
+    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockPtr& block) noexcept
     {
         MEMORIA_TRY_VOID(check_updates_allowed());
 
@@ -821,7 +821,7 @@ public:
         new_block->id_value() = detail::IDValueHolderH<BlockID>::to_id_value(new_id);
         new_block->id() = detail::IDValueHolderH<BlockID>::to_id(new_block);
 
-        return Result<BlockG>::of(BlockG{new_block});
+        return Result<SharedBlockPtr>::of(SharedBlockPtr{new_block});
     }
 
 
@@ -1109,7 +1109,7 @@ public:
         return describe_block(block);
     }
 
-    Result<CtrBlockDescription<ApiProfileT>> describe_block(const BlockG& block) noexcept
+    Result<CtrBlockDescription<ApiProfileT>> describe_block(const SharedBlockPtr& block) noexcept
     {
         auto ctr_intf = ProfileMetadata<Profile>::local()
                 ->get_container_operations(block->ctr_type_hash());
@@ -1263,7 +1263,7 @@ protected:
         return make_generic_error("releaseBlock is not implemented!!!");
     }
 
-    virtual Result<BlockG> updateBlock(Shared* block) noexcept {
+    virtual Result<SharedBlockPtr> updateBlock(Shared* block) noexcept {
         return make_generic_error("updateBlock is not implemented!!!");
     }
 };
