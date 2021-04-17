@@ -783,13 +783,13 @@ public:
     }
 
 
-    virtual Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>> snapshot_ref_creation_allowed() noexcept {
-        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>>;
+    virtual Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>> snapshot_ref_creation_allowed() noexcept {
+        using ResultT = Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>>;
         return ResultT::of();
     }
 
 
-    virtual Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>> snapshot_ref_opening_allowed() noexcept {
+    virtual Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>> snapshot_ref_opening_allowed() noexcept {
         return Base::snapshot_ref_opening_allowed();
     }
 

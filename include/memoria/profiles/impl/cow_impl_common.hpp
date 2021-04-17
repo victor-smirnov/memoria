@@ -20,7 +20,7 @@
 #include <memoria/profiles/common/block.hpp>
 #include <memoria/profiles/core_api/core_api_profile.hpp>
 
-#include <memoria/core/container/allocator.hpp>
+#include <memoria/core/container/store.hpp>
 #include <memoria/core/container/cow.hpp>
 #include <memoria/core/tools/uuid.hpp>
 

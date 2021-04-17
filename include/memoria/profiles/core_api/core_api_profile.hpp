@@ -19,7 +19,7 @@
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/profiles/common/block.hpp>
 
-#include <memoria/core/container/allocator.hpp>
+#include <memoria/core/container/store.hpp>
 #include <memoria/core/tools/uuid.hpp>
 
 #include <unordered_set>

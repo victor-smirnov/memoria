@@ -239,7 +239,7 @@ public:
     struct CtrInstanceFactoryImpl: public CtrInstanceFactory<ProfileT> {
 
         template <typename CtrName>
-        using CtrT = SharedCtr<CtrName, ProfileAllocatorType<ProfileT>, ProfileT>;
+        using CtrT = SharedCtr<CtrName, ProfileStoreType<ProfileT>, ProfileT>;
 
         template <typename CtrName>
         using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
@@ -425,7 +425,7 @@ public:
 
         virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>> new_ctr_instance(
             const ProfileSharedBlockConstPtr<typename Types::Profile>& root_block,
-            ProfileAllocatorType<ProfileT>* allocator
+            ProfileStoreType<ProfileT>* allocator
         ) const noexcept
         {
             using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>>;

@@ -19,7 +19,7 @@
 
 #include <memoria/core/memory/memory.hpp>
 #include <memoria/core/tools/static_array.hpp>
-#include <memoria/core/container/allocator.hpp>
+#include <memoria/core/container/store.hpp>
 #include <memoria/core/container/ctr_referenceable.hpp>
 
 #include <memoria/core/tools/pair.hpp>

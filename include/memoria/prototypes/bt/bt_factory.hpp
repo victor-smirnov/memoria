@@ -144,7 +144,7 @@ struct BTTypes {
 
     using IteratorInterface = EmptyType;
 
-    using Allocator = ProfileAllocatorType<Profile_>;
+    using Allocator = ProfileStoreType<Profile_>;
     using ID        = ProfileBlockID<Profile_>;
 
     using Metadata  = BalancedTreeMetadata<Profile_>;

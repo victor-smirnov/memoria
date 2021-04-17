@@ -105,11 +105,6 @@ public:
         return ptr_;
     }
 
-//    template <typename ParentBlockType, typename = std::enable_if_t<std::is_base_of<ParentBlockType, BlockType>::value, void>>
-//    operator LWSharedBlockPtr<ParentBlockType>() noexcept {
-//        return LWSharedBlockPtr<ParentBlockType>(ptr_);
-//    }
-
     VoidResult update() const noexcept {
         return VoidResult::of();
     }
@@ -208,10 +203,6 @@ public:
         return ptr_;
     }
 
-//    template <typename ParentBlockType, typename = std::enable_if_t<std::is_base_of<ParentBlockType, BlockType>::value, void>>
-//    operator LWSharedBlockPtr<ParentBlockType>() noexcept {
-//        return LWSharedBlockPtr<ParentBlockType>(ptr_);
-//    }
 
     VoidResult update() const noexcept {
         return VoidResult::of();

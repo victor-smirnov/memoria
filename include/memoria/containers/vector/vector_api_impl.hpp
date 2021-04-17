@@ -52,7 +52,7 @@ template <typename Value, typename Profile>
 template <typename ImplProfile>
 void ICtrApi<Vector<Value>, Profile>::init_profile_metadata()
 {
-    SharedCtr<Vector<Value>, ProfileAllocatorType<ImplProfile>, ImplProfile>::init_profile_metadata();
+    SharedCtr<Vector<Value>, ProfileStoreType<ImplProfile>, ImplProfile>::init_profile_metadata();
 }
 
 }

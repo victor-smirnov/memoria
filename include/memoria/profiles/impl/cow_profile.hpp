@@ -22,7 +22,7 @@
 #include <memoria/profiles/core_api/core_api_profile.hpp>
 #include <memoria/profiles/impl/cow_impl_common.hpp>
 
-#include <memoria/core/container/allocator.hpp>
+#include <memoria/core/container/store.hpp>
 #include <memoria/core/tools/uuid.hpp>
 
 #include <unordered_set>
@@ -52,7 +52,7 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using Block = AbstractPage<BlockID, BlockGUID, UUID, SnapshotID>;
     using BlockType = Block;
 
-    using AllocatorType = ICoWAllocator<Profile>;
+    using StoreType = ICowStore<Profile>;
 
     using SharedBlockPtr = LWSharedBlockPtr<Block>;
     using SharedBlockConstPtr = LWSharedBlockPtr<const Block>;

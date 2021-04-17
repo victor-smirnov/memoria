@@ -19,7 +19,7 @@
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/profiles/common/block_nocow.hpp>
 #include <memoria/profiles/core_api/core_api_profile.hpp>
-#include <memoria/core/container/allocator.hpp>
+#include <memoria/core/container/store.hpp>
 
 #include <memoria/core/tools/uuid.hpp>
 
@@ -43,14 +43,14 @@ struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using Block = AbstractPage <BlockGUID, BlockID, EmptyType, SnapshotID>;
     using BlockType = Block;
 
-    using AllocatorType = IAllocator<Profile>;
-    using BlockShared = PageShared<AllocatorType, Block, BlockID>;
+    using StoreType = IStore<Profile>;
+    using BlockShared = PageShared<StoreType, Block, BlockID>;
 
     template <typename TargetBlockType>
-    using SharedBlockPtrTF = NoCowSharedBlockPtr<TargetBlockType, AllocatorType, BlockShared>;
+    using SharedBlockPtrTF = NoCowSharedBlockPtr<TargetBlockType, StoreType, BlockShared>;
 
-    using SharedBlockPtr       = NoCowSharedBlockPtr<Block, AllocatorType, BlockShared>;
-    using SharedBlockConstPtr  = NoCowSharedBlockPtr<const Block, AllocatorType, BlockShared>;
+    using SharedBlockPtr       = NoCowSharedBlockPtr<Block, StoreType, BlockShared>;
+    using SharedBlockConstPtr  = NoCowSharedBlockPtr<const Block, StoreType, BlockShared>;
 
     static constexpr bool IsCoW = false;
 

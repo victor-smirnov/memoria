@@ -20,7 +20,7 @@
 
 #include <memoria/core/tools/uuid.hpp>
 
-#include <memoria/core/container/allocator.hpp>
+#include <memoria/core/container/store.hpp>
 
 #include <memoria/core/iovector/io_vector.hpp>
 

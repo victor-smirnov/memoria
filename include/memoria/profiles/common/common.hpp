@@ -31,7 +31,7 @@ template <typename Profile>
 using ProfileBlockType = typename ProfileTraits<Profile>::BlockType;
 
 template <typename Profile>
-using ProfileAllocatorType = typename ProfileTraits<Profile>::AllocatorType;
+using ProfileStoreType = typename ProfileTraits<Profile>::StoreType;
 
 template <typename Profile>
 using ProfileBlockID = typename ProfileTraits<Profile>::BlockID;

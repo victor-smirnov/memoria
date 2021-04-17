@@ -28,7 +28,7 @@ template <typename Key, typename Profile>
 template <typename ImplProfile>
 void ICtrApi<Set<Key>, Profile>::init_profile_metadata()
 {
-    SharedCtr<Set<Key>, ProfileAllocatorType<ImplProfile>, ImplProfile>::init_profile_metadata();
+    SharedCtr<Set<Key>, ProfileStoreType<ImplProfile>, ImplProfile>::init_profile_metadata();
 }
 
 }

@@ -120,7 +120,7 @@ class IMemorySnapshot: public IStoreWritableSnapshotCtrOps<Profile> {
     using SnapshotID    = ApiProfileSnapshotID<Profile>;
     using CtrID         = ApiProfileCtrID<Profile>;
 
-    using AllocatorT    = AllocatorApiBase<Profile>;
+    using AllocatorT    = StoreApiBase<Profile>;
 
 public:
     template <typename CtrName>

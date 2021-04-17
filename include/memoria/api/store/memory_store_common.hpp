@@ -22,7 +22,7 @@
 
 #include <memoria/api/common/ctr_api.hpp>
 #include <memoria/core/container/container.hpp>
-#include <memoria/core/container/allocator.hpp>
+#include <memoria/core/container/store.hpp>
 #include <memoria/core/container/logs.hpp>
 
 #include <memoria/profiles/common/common.hpp>

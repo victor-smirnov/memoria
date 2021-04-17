@@ -22,7 +22,7 @@
 #include <memoria/profiles/core_api/core_api_profile.hpp>
 #include <memoria/profiles/impl/cow_impl_common.hpp>
 
-#include <memoria/core/container/allocator.hpp>
+#include <memoria/core/container/store.hpp>
 #include <memoria/core/tools/uuid.hpp>
 
 
@@ -52,15 +52,15 @@ struct ProfileTraits<CowLiteProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using Block = AbstractPage<BlockID, BlockGUID, uint64_t, SnapshotID>;
     using BlockType = Block;
 
-    using AllocatorType = ICoWAllocator<Profile>;
+    using StoreType = ICowStore<Profile>;
 
-    using BlockShared = PageShared<AllocatorType, Block, BlockID>;
+    using BlockShared = PageShared<StoreType, Block, BlockID>;
 
     template <typename TargetBlockType>
-    using SharedBlockPtrTF  = CowSharedBlockPtr<TargetBlockType, AllocatorType, BlockShared>;
+    using SharedBlockPtrTF  = CowSharedBlockPtr<TargetBlockType, StoreType, BlockShared>;
 
-    using SharedBlockPtr        = CowSharedBlockPtr<Block, AllocatorType, BlockShared>;
-    using SharedBlockConstPtr   = CowSharedBlockPtr<const Block, AllocatorType, BlockShared>;
+    using SharedBlockPtr        = CowSharedBlockPtr<Block, StoreType, BlockShared>;
+    using SharedBlockConstPtr   = CowSharedBlockPtr<const Block, StoreType, BlockShared>;
 
     static constexpr bool IsCoW = true;
 

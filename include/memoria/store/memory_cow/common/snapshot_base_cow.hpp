@@ -22,7 +22,7 @@
 
 #include <memoria/store/memory_cow/common/store_stat_cow.hpp>
 
-#include <memoria/core/container/allocator.hpp>
+#include <memoria/core/container/store.hpp>
 #include <memoria/core/container/ctr_impl.hpp>
 
 #include <memoria/core/exceptions/exceptions.hpp>
@@ -130,13 +130,13 @@ struct IDValueHolderH<CowBlockID<UUID>> {
 
 template <typename Profile, typename PersistentAllocator, typename SnapshotType>
 class SnapshotBase:
-        public ProfileAllocatorType<Profile>,
+        public ProfileStoreType<Profile>,
         public IMemorySnapshot<ApiProfile<Profile>>,
         public SnpSharedFromThis<SnapshotType>
 {    
 protected:
 	using MyType			= SnapshotType;
-    using Base              = ProfileAllocatorType<Profile>;
+    using Base              = ProfileStoreType<Profile>;
 
 public:
     using ProfileT = Profile;
@@ -167,7 +167,7 @@ protected:
 public:
 
     template <typename CtrName>
-    using CtrT = SharedCtr<CtrName, ProfileAllocatorType<Profile>, Profile>;
+    using CtrT = SharedCtr<CtrName, ProfileStoreType<Profile>, Profile>;
 
     template <typename CtrName>
     using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
@@ -271,7 +271,7 @@ public:
         return object_pools_;
     }
 
-    virtual SnpSharedPtr<ProfileAllocatorType<Profile>> self_ptr() noexcept {
+    virtual SnpSharedPtr<ProfileStoreType<Profile>> self_ptr() noexcept {
         return this->shared_from_this();
     }
     

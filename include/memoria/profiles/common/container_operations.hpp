@@ -156,7 +156,7 @@ public:
     uint64_t offset() const {return offset_;}
 };
 
-template <typename Profile> struct IAllocator;
+template <typename Profile> struct IStore;
 
 template <typename Profile>
 struct ContainerOperationsBase {
@@ -172,8 +172,8 @@ struct ContainerOperationsBase {
 
     // uuid, id, block data
     using BlockCallbackFn = std::function<VoidResult (const BlockGUID&, const BlockID&, const BlockType*)>;
-    using Allocator = ProfileAllocatorType<Profile>;
-    using AllocatorBasePtr = SnpSharedPtr<ProfileAllocatorType<Profile>>;
+    using Allocator = ProfileStoreType<Profile>;
+    using AllocatorBasePtr = SnpSharedPtr<ProfileStoreType<Profile>>;
 
     virtual U8String data_type_decl_signature() const noexcept = 0;
 
@@ -259,7 +259,7 @@ struct CtrInstanceFactory {
     virtual ~CtrInstanceFactory() noexcept {}
 
     using CtrID         = ProfileCtrID<Profile>;
-    using Allocator     = ProfileAllocatorType<Profile>;
+    using Allocator     = ProfileStoreType<Profile>;
     using AllocatorPtr  = SnpSharedPtr<Allocator>;
 
     virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> create_instance(

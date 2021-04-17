@@ -29,7 +29,7 @@ template <typename Profile>
 class IStoreSnapshotCtrOps {
 
 public:
-    using AllocatorT = AllocatorApiBase<Profile>;
+    using AllocatorT = StoreApiBase<Profile>;
 
     using CtrID = ApiProfileCtrID<Profile>;
     using CtrReferenceableResult = Result<CtrSharedPtr<CtrReferenceable<Profile>>>;
@@ -66,7 +66,7 @@ protected:
 
 template <typename Profile>
 class IStoreWritableSnapshotCtrOps: public virtual IStoreSnapshotCtrOps<Profile> {
-    using ApiAllocatorBaseT = AllocatorApiBase<Profile>;
+    using ApIStoreBaseT = StoreApiBase<Profile>;
 
 public:
     using CtrID = ApiProfileCtrID<Profile>;
@@ -100,7 +100,7 @@ public:
     virtual Result<CtrID> clone_ctr(const CtrID& name) noexcept = 0;
 
 protected:
-    virtual Result<SnpSharedPtr<ApiAllocatorBaseT>> snapshot_ref_creation_allowed() noexcept = 0;
+    virtual Result<SnpSharedPtr<ApIStoreBaseT>> snapshot_ref_creation_allowed() noexcept = 0;
 };
 
 

@@ -59,10 +59,10 @@ template <typename Profile> class SWMRStoreBase;
 
 template <typename Profile>
 class SWMRStoreCommitBase:
-        public ProfileAllocatorType<Profile>,
+        public ProfileStoreType<Profile>,
         public ISWMRStoreReadOnlyCommit<ApiProfile<Profile>>
 {
-    using Base = ProfileAllocatorType<Profile>;
+    using Base = ProfileStoreType<Profile>;
 protected:
 
     using typename Base::BlockType;
@@ -519,8 +519,8 @@ public:
         }
     }
 
-    virtual Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>> snapshot_ref_opening_allowed() noexcept {
-        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>>;
+    virtual Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>> snapshot_ref_opening_allowed() noexcept {
+        using ResultT = Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>>;
         return ResultT::of();
     }
 

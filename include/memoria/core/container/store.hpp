@@ -39,13 +39,11 @@
 namespace memoria {
 
 template <typename Profile>
-struct IAllocatorBase: AllocatorApiBase<ApiProfile<Profile>> {
+struct IStoreBase: StoreApiBase<ApiProfile<Profile>> {
 
     using ApiProfileT = ApiProfile<Profile>;
 
-    enum {UNDEFINED, READ, UPDATE};
-
-    using MyType        = IAllocator<Profile>;
+    using MyType        = IStore<Profile>;
 
     using BlockType     = ProfileBlockType<Profile>;
     using ID            = ProfileBlockID<Profile>;
@@ -57,7 +55,7 @@ struct IAllocatorBase: AllocatorApiBase<ApiProfile<Profile>> {
     using SharedBlockPtr        = typename ProfileTraits<Profile>::SharedBlockPtr;
     using SharedBlockConstPtr   = typename ProfileTraits<Profile>::SharedBlockConstPtr;
 
-    virtual ~IAllocatorBase() noexcept {}
+    virtual ~IStoreBase() noexcept {}
     
     virtual Result<BlockID> getRootID(const CtrID& ctr_id) noexcept = 0;
     virtual VoidResult setRoot(const CtrID& ctr_id, const BlockID& root) noexcept = 0;
@@ -100,8 +98,8 @@ struct IAllocatorBase: AllocatorApiBase<ApiProfile<Profile>> {
 
 
 template <typename Profile>
-struct IAllocator: IAllocatorBase<Profile> {
-    using Base = IAllocatorBase<Profile>;
+struct IStore: IStoreBase<Profile> {
+    using Base = IStoreBase<Profile>;
 
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
@@ -109,7 +107,7 @@ struct IAllocator: IAllocatorBase<Profile> {
 
     using Shared = typename SharedBlockPtr::Shared;
 
-    virtual SnpSharedPtr<IAllocator> self_ptr() noexcept = 0;
+    virtual SnpSharedPtr<IStore> self_ptr() noexcept = 0;
 
     virtual VoidResult updateBlock(Shared* block) noexcept = 0;
     virtual VoidResult resizeBlock(Shared* block, int32_t new_size) noexcept = 0;
@@ -120,8 +118,8 @@ struct IAllocator: IAllocatorBase<Profile> {
 
 
 template <typename Profile>
-struct ICoWAllocator: IAllocatorBase<Profile> {
-    using Base = IAllocatorBase<Profile>;
+struct ICowStore: IStoreBase<Profile> {
+    using Base = IStoreBase<Profile>;
 
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
@@ -129,7 +127,7 @@ struct ICoWAllocator: IAllocatorBase<Profile> {
 
     using Shared = typename SharedBlockPtr::Shared;
 
-    virtual SnpSharedPtr<ICoWAllocator> self_ptr() noexcept = 0;
+    virtual SnpSharedPtr<ICowStore> self_ptr() noexcept = 0;
 
     virtual VoidResult ref_block(const BlockID& block_id) noexcept = 0;
     virtual VoidResult unref_block(const BlockID& block_id, std::function<VoidResult()> on_zero) noexcept = 0;

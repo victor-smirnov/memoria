@@ -20,7 +20,7 @@
 
 #include <memoria/api/store/memory_store_api.hpp>
 
-#include <memoria/core/container/allocator.hpp>
+#include <memoria/core/container/store.hpp>
 #include <memoria/core/container/ctr_impl.hpp>
 
 #include <memoria/core/exceptions/exceptions.hpp>
@@ -330,19 +330,19 @@ public:
         return ResultT::of(this->do_compute_memory_stat());
     }
 
-    Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>> snapshot_ref_creation_allowed() noexcept
+    Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>> snapshot_ref_creation_allowed() noexcept
     {
-        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>>;
+        using ResultT = Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>>;
         MEMORIA_TRY_VOID(this->checkIfConainersCreationAllowed());
-        return ResultT::of(memoria_static_pointer_cast<AllocatorApiBase<ApiProfileT>>(this->shared_from_this()));
+        return ResultT::of(memoria_static_pointer_cast<StoreApiBase<ApiProfileT>>(this->shared_from_this()));
     }
 
 
-    Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>> snapshot_ref_opening_allowed() noexcept
+    Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>> snapshot_ref_opening_allowed() noexcept
     {
-        using ResultT = Result<SnpSharedPtr<AllocatorApiBase<ApiProfileT>>>;
+        using ResultT = Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>>;
         MEMORIA_TRY_VOID(this->checkIfConainersOpeneingAllowed());
-        return ResultT::of(memoria_static_pointer_cast<AllocatorApiBase<ApiProfileT>>(this->shared_from_this()));
+        return ResultT::of(memoria_static_pointer_cast<StoreApiBase<ApiProfileT>>(this->shared_from_this()));
     }
 };
 
