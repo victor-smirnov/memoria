@@ -44,7 +44,7 @@ private:
     using SharedBlockT = typename Shared_::BlockType;
 
 
-    BlockType* ptr_;
+    mutable BlockType* ptr_;
     Shared* shared_;
 
     CowSharedBlockPtr(BlockType* ptr, Shared* shared) noexcept:
@@ -223,6 +223,7 @@ public:
         if (shared_)
         {
             MEMORIA_TRY_VOID(shared_->store()->updateBlock(shared_));
+            ptr_ = ptr_cast<PageT>(shared_->get());
         }
 
         return VoidResult::of();
@@ -300,7 +301,7 @@ private:
     using SharedBlockT = typename Shared_::BlockType;
 
 
-    MutableBlockType* ptr_;
+    mutable MutableBlockType* ptr_;
     Shared* shared_;
 
     CowSharedBlockPtr(MutableBlockType* ptr, Shared* shared) noexcept:
@@ -489,6 +490,7 @@ public:
         if (shared_)
         {
             MEMORIA_TRY_VOID(shared_->store()->updateBlock(shared_));
+            ptr_ = ptr_cast<PageT>(shared_->get());
         }
 
         return VoidResult::of();
