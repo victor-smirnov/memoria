@@ -247,9 +247,9 @@ public:
     using Position_         = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
     using BlockType         = typename ContainerTypes::Allocator::BlockType;
 
-    using TreeNodeBase          = bt::TreeNodeBase<typename ContainerTypes::Metadata, BlockType>;
-    using TreeNodeBaseG         = typename ProfileTraits<Profile>::template SharedBlockPtrTF<TreeNodeBase>;
-    using ConstTreeNodeBaseG    = typename ProfileTraits<Profile>::template SharedBlockPtrTF<const TreeNodeBase>;
+    using TreeNodeBase         = bt::TreeNodeBase<typename ContainerTypes::Metadata, BlockType>;
+    using TreeNodePtrT         = typename ProfileTraits<Profile>::template SharedBlockPtrTF<TreeNodeBase>;
+    using TreeNodeConstPtrT    = typename ProfileTraits<Profile>::template SharedBlockPtrTF<const TreeNodeBase>;
 
     using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
 
@@ -303,8 +303,8 @@ public:
         using BranchNodeTypes   = typename MyType::BranchNodeTypes;
         using LeafNodeTypes     = typename MyType::LeafNodeTypes;
 
-        using TreeNodePtr         = TreeNodeBaseG;
-        using ConstNodeBaseG    = ConstTreeNodeBaseG;
+        using TreeNodePtr       = TreeNodePtrT;
+        using TreeNodeConstPtr  = TreeNodeConstPtrT;
     };
 
     using BlockDispatchers = bt::BTreeDispatchers<DispatcherTypes>;
@@ -348,8 +348,8 @@ public:
         using Allocator = typename ContainerTypes::Allocator;
         using Metadata  = typename ContainerTypes::Metadata;
 
-        using TreeNodePtr = TreeNodeBaseG;
-        using ConstNodeBaseG = ConstTreeNodeBaseG;
+        using TreeNodePtr = TreeNodePtrT;
+        using TreeNodeConstPtr = TreeNodeConstPtrT;
 
         using CtrList  = typename MyType::CtrList;
         using IterList = typename MyType::IterList;

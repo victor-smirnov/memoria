@@ -58,6 +58,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
     using TreeNodePtr = typename Types::TreeNodePtr;
+    using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
+
     using TreePathT = TreePath<TreeNodePtr>;
 
     using Position  = typename Types::Position;
