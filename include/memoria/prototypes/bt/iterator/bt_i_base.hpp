@@ -31,6 +31,7 @@ MEMORIA_V1_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
 public:
     using Types     = typename Base::Container::Types;
     using TreeNodePtr = typename Types::TreeNodePtr;
+    using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
     using Allocator = typename Base::Container::Allocator;
     using Position  = typename Types::Position;
     using NodeChain = typename Base::Container::NodeChain;
@@ -52,7 +53,7 @@ public:
 
     using IOVectorViewT = typename Types::LeafNode::template SparseObject<CtrT>::IOVectorViewT;
 
-    using TreePathT = TreePath<TreeNodePtr>;
+    using TreePathT = TreePath<TreeNodeConstPtr>;
 
     static constexpr int32_t Streams = Types::Streams;
 
@@ -172,15 +173,24 @@ public:
             path_(path), iter_(iter)
         {}
 
-        operator TreeNodePtr&() noexcept {return path_.leaf();}
+        operator TreeNodeConstPtr&() noexcept {return path_.leaf();}
+        operator const TreeNodeConstPtr&() const noexcept {return path_.leaf();}
 
-        void assign(TreeNodePtr node) noexcept
+        void assign(const TreeNodeConstPtr& node) noexcept
         {
             path_.leaf() = node;
             iter_.refresh_iovector_view();
         }
 
-        TreeNodePtr& node() noexcept {
+        TreeNodeConstPtr& node() noexcept {
+            return path_.leaf();
+        }
+
+        TreeNodePtr as_mutable() const noexcept {
+            return path_.leaf().as_mutable();
+        }
+
+        const TreeNodeConstPtr& node() const noexcept {
             return path_.leaf();
         }
 
@@ -197,14 +207,18 @@ public:
             path_(path)
         {}
 
-        operator const TreeNodePtr&() const noexcept {return path_.leaf();}
+        operator const TreeNodeConstPtr&() const noexcept {return path_.leaf();}
 
         const auto operator->() const noexcept {
             return path_.leaf().operator->();
         }
 
-        const TreeNodePtr& node() const noexcept {
+        const TreeNodeConstPtr& node() const noexcept {
             return path_.leaf();
+        }
+
+        TreeNodePtr as_mutable() const noexcept {
+            return path_.leaf().as_mutable();
         }
     };
 
@@ -213,7 +227,7 @@ public:
         return NodeAccessor(path_, self());
     }
 
-    ConstNodeAccessor iter_leaf() const
+    ConstNodeAccessor iter_leaf() const noexcept
     {
         return ConstNodeAccessor(path_);
     }

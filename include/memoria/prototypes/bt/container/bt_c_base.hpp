@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     using typename Base::SharedBlockPtr;
+    using typename Base::SharedBlockConstPtr;
     using typename Base::BlockID;
     using typename Base::CtrID;
     using typename Base::ContainerTypeName;
@@ -60,7 +61,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using TreeNodePtr = typename Types::TreeNodePtr;
     using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
 
-    using TreePathT = TreePath<TreeNodePtr>;
+    using TreePathT = TreePath<TreeNodeConstPtr>;
 
     using Position  = typename Types::Position;
     using CtrSizeT  = typename Types::CtrSizeT;
@@ -219,7 +220,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
             TreePathT path = TreePathT::build(root, 1);
 
-            CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root()->allocator(), CTR_PROPERTIES_IDX);
+            CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX);
 
             PackedMapSO<CtrPropertiesMap> map_so(map);
 
@@ -229,7 +230,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             if (upsize > map->compute_free_space_up())
             {
                 MEMORIA_TRY_VOID(self.ctr_upsize_node(path, 0, upsize));
-                map_so.setup(get<CtrPropertiesMap>(path.root()->allocator(), CTR_PROPERTIES_IDX));
+                map_so.setup(get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX));
             }
 
             return map_so.set(key, value);
@@ -253,7 +254,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             MEMORIA_TRY(root, self.ctr_get_root_node());
             TreePathT path = TreePathT::build(root, 1);
 
-            CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root()->allocator(), CTR_PROPERTIES_IDX);
+            CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX);
 
             PackedMapSO<CtrPropertiesMap> map_so(map);
 
@@ -270,7 +271,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         auto& self = this->self();
         MEMORIA_TRY(root, self.ctr_get_root_node());
 
-        CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+        const CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
 
         PackedMapSO<CtrPropertiesMap> map_so(map);
 
@@ -286,7 +287,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             MEMORIA_TRY(root, self.ctr_get_root_node());
             TreePathT path = TreePathT::build(root, 1);
 
-            CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root()->allocator(), CTR_PROPERTIES_IDX);
+            CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX);
 
             PackedMapSO<CtrPropertiesMap> map_so(map);
 
@@ -302,7 +303,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             if (upsize > map->compute_free_space_up())
             {
                 MEMORIA_TRY_VOID(self.ctr_upsize_node(path, 0, upsize));
-                map_so.setup(get<CtrPropertiesMap>(path.root()->allocator(), CTR_PROPERTIES_IDX));
+                map_so.setup(get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX));
             }
 
             return map_so.set_all(entries_view);
@@ -316,7 +317,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         auto& self = this->self();
         MEMORIA_TRY(root, self.ctr_get_root_node());
 
-        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+        const CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
         PackedMapSO<CtrReferencesMap> map_so(map);
 
@@ -330,7 +331,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             MEMORIA_TRY(root, self.ctr_get_root_node());
             TreePathT path = TreePathT::build(root, 1);
 
-            CtrReferencesMap* map = get<CtrReferencesMap>(path.root()->allocator(), CTR_REFERENCES_IDX);
+            CtrReferencesMap* map = get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX);
 
             PackedMapSO<CtrReferencesMap> map_so(map);
 
@@ -340,7 +341,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             if (upsize > map->compute_free_space_up())
             {
                 MEMORIA_TRY_VOID(self.ctr_upsize_node(path, 0, upsize));
-                map_so.setup(get<CtrReferencesMap>(path.root()->allocator(), CTR_REFERENCES_IDX));
+                map_so.setup(get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX));
             }
 
             return map_so.set(key, value);
@@ -354,7 +355,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             MEMORIA_TRY(root, self.ctr_get_root_node());
             TreePathT path = TreePathT::build(root, 1);
 
-            CtrReferencesMap* map = get<CtrReferencesMap>(path.root()->allocator(), CTR_REFERENCES_IDX);
+            CtrReferencesMap* map = get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX);
 
             PackedMapSO<CtrReferencesMap> map_so(map);
 
@@ -380,7 +381,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         auto& self = this->self();
         MEMORIA_TRY(root, self.ctr_get_root_node());
 
-        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+        const CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
         PackedMapSO<CtrReferencesMap> map_so(map);
 
@@ -394,7 +395,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             MEMORIA_TRY(root, self.ctr_get_root_node());
             TreePathT path = TreePathT::build(root, 1);
 
-            CtrReferencesMap* map = get<CtrReferencesMap>(path.root()->allocator(), CTR_REFERENCES_IDX);
+            CtrReferencesMap* map = get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX);
 
             PackedMapSO<CtrReferencesMap> map_so(map);
 
@@ -410,7 +411,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             if (upsize > map->compute_free_space_up())
             {
                 MEMORIA_TRY_VOID(self.ctr_upsize_node(path, 0, upsize));
-                map_so.setup(get<CtrReferencesMap>(path.root()->allocator(), CTR_REFERENCES_IDX));
+                map_so.setup(get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX));
             }
 
             return map_so.set_all(entries_view);
@@ -423,7 +424,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    VoidResult ctr_root_to_node(TreeNodePtr& node) noexcept
+    VoidResult ctr_root_to_node(const TreeNodePtr& node) noexcept
     {
         MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
 
@@ -434,7 +435,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return VoidResult::of();
     }
 
-    VoidResult ctr_node_to_root(TreeNodePtr& node) noexcept
+    VoidResult ctr_node_to_root(const TreeNodePtr& node) noexcept
     {
         auto& self = this->self();
         MEMORIA_TRY(root, self.ctr_get_root_node());
@@ -445,13 +446,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return self.ctr_copy_root_metadata(root, node);
     }
 
-    VoidResult ctr_copy_root_metadata(const TreeNodePtr& src, TreeNodePtr& tgt) noexcept
+    VoidResult ctr_copy_root_metadata(const TreeNodeConstPtr& src, const TreeNodePtr& tgt) noexcept
     {
         MEMORIA_TRY_VOID(self().ctr_update_block_guard(tgt));
         return tgt->copy_metadata_from(src.block());
     }
 
-    bool ctr_can_convert_to_root(const TreeNodePtr& node, psize_t metadata_size) const noexcept
+    bool ctr_can_convert_to_root(const TreeNodeConstPtr& node, psize_t metadata_size) const noexcept
     {
         return node->can_convert_to_root(metadata_size);
     }
@@ -459,7 +460,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    CtrID ctr_get_model_name_fn(Node& node) const noexcept
+    CtrID ctr_get_model_name_fn(const Node& node) const noexcept
     {
         return node.node()->root_metadata().model_name();
     }
@@ -468,7 +469,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    void ctr_set_model_name_fn(Node& node, const CtrID& name) noexcept
+    void ctr_set_model_name_fn(const Node& node, const CtrID& name) noexcept
     {
         node->root_metadata().model_name() = name;
     }
@@ -491,23 +492,23 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    static CtrID ctr_get_model_name(TreeNodePtr root) noexcept
+    static CtrID ctr_get_model_name(const TreeNodeConstPtr& root) noexcept
     {
         return ctr_get_root_metadata(root).model_name();
     }
 
-    static const Metadata& ctr_get_root_metadata(TreeNodePtr node) noexcept
+    static const Metadata& ctr_get_root_metadata(const TreeNodeConstPtr& node) noexcept
     {
         return node->root_metadata();
     }
 
-    static Metadata ctr_get_ctr_root_metadata(TreeNodePtr node) noexcept
+    static Metadata ctr_get_ctr_root_metadata(const TreeNodeConstPtr& node) noexcept
     {
         return node->root_metadata();
     }
 
 
-    VoidResult ctr_set_ctr_root_metadata(TreeNodePtr& node, const Metadata& metadata) const noexcept
+    VoidResult ctr_set_ctr_root_metadata(const TreeNodePtr& node, const Metadata& metadata) const noexcept
     {
         MEMORIA_V1_ASSERT_TRUE_RTN(node.isSet());
 
@@ -528,12 +529,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return ResultT::of(root->root_metadata());
     }
 
-//    VoidResult ctr_set_root_metadata(const Metadata& metadata) const noexcept
-//    {
-//        TreeNodePtr root = self().ctr_get_root_node_for_update();
-//        self().setRootMetadata(root, metadata);
-//    }
-
     VoidResult ctr_copy_all_root_metadata_from_to(const TreeNodePtr& from, TreeNodePtr& to) const noexcept
     {
         return to->copy_metadata_from(from.block());
@@ -545,7 +540,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
      * \param node Must be a root node
      * \param metadata to set
      */
-    VoidResult ctr_set_root_metadata(TreeNodePtr& node, const Metadata& metadata) const noexcept
+    VoidResult ctr_set_root_metadata(const TreeNodePtr& node, const Metadata& metadata) const noexcept
     {
         return ctr_set_ctr_root_metadata(node, metadata);
     }
@@ -585,7 +580,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         TreePathT path = TreePathT::build(root_block, 1);
         MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
 
-        Metadata* meta = get<Metadata>(path.root()->allocator(), METADATA_IDX);
+        Metadata* meta = get<Metadata>(path.root().as_mutable()->allocator(), METADATA_IDX);
         meta->memory_block_size() = block_size;
 
         return VoidResult::of();
@@ -740,7 +735,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     static Result<CtrBlockDescription<ApiProfileT>> describe_block(const BlockID& node_id, Allocator* alloc) noexcept
     {
         MEMORIA_TRY(tmp, alloc->getBlock(node_id));
-        TreeNodePtr node = tmp;
+        TreeNodeConstPtr node = tmp;
 
         int32_t size = node->header().memory_block_size();
         bool leaf = node->is_leaf();
@@ -762,14 +757,14 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
  protected:
 
-    Result<CtrID> do_init_ctr(const SharedBlockPtr& node) noexcept
+    Result<CtrID> do_init_ctr(const SharedBlockConstPtr& node) noexcept
     {
         using ResultT = Result<CtrID>;
         auto& self = this->self();
 
         if (node->ctr_type_hash() == CONTAINER_HASH)
         {
-            TreeNodePtr root_node = node;
+            TreeNodeConstPtr root_node = node;
 
             self.set_root_id(root_node->id());
 

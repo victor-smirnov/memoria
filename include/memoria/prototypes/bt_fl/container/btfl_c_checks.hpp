@@ -31,13 +31,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::ChecksName)
 
 public:
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
 
     using Base::Streams;
 
 
-    BoolResult ctr_check_content(const TreeNodePtr& node) const noexcept
+    BoolResult ctr_check_content(const TreeNodeConstPtr& node) const noexcept
     {
     	auto& self = this->self();
 
@@ -56,8 +57,8 @@ public:
 
     			if (data_streams_size != sizes[Streams - 1])
     			{
-    				MMA_ERROR(self, "Leaf streams sizes check failed", data_streams_size, sizes[Streams - 1]);
-                    return BoolResult::of(true);
+                            MMA_ERROR(self, "Leaf streams sizes check failed", data_streams_size, sizes[Streams - 1]);
+                            return BoolResult::of(true);
     			}
     		}
 

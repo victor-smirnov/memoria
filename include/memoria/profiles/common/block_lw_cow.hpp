@@ -27,10 +27,10 @@ template <typename BlockType_>
 class LWSharedBlockPtr {
 
     template <typename BlkT>
-    static constexpr bool IsConstCompatible = std::is_const<BlockType_>::value ? std::is_const<BlkT>::value : true;
+    static constexpr bool IsConstCompatible = !std::is_const<BlkT>::value;
 
 public:
-    using MutableBlockType = std::remove_const_t<BlockType_>;
+    using MutableBlockType = BlockType_;
 
 private:
     MutableBlockType* ptr_;
@@ -42,7 +42,6 @@ public:
 
     using Shared = LWSharedBlockPtr;
     using BlockType = BlockType_;
-
 
     LWSharedBlockPtr() noexcept:
         ptr_()
@@ -64,8 +63,12 @@ public:
 
     ~LWSharedBlockPtr() noexcept = default;
 
-    LWSharedBlockPtr<MutableBlockType> as_mutable() noexcept {
+    LWSharedBlockPtr<MutableBlockType> as_mutable() const noexcept {
         return LWSharedBlockPtr<MutableBlockType>{ptr_};
+    }
+
+    LWSharedBlockPtr<const BlockType> as_immutable() const noexcept {
+        return LWSharedBlockPtr<const BlockType>{ptr_};
     }
 
 
@@ -90,7 +93,7 @@ public:
         return ptr_;
     }
 
-    const BlockType* block() const noexcept {
+    BlockType* block() const noexcept {
         return ptr_;
     }
 
@@ -98,14 +101,14 @@ public:
         return ptr_;
     }
 
-    const BlockType* get() const noexcept {
+    BlockType* get() const noexcept {
         return ptr_;
     }
 
-    template <typename ParentBlockType, typename = std::enable_if_t<std::is_base_of<ParentBlockType, BlockType>::value, void>>
-    operator LWSharedBlockPtr<ParentBlockType>() noexcept {
-        return LWSharedBlockPtr<ParentBlockType>(ptr_);
-    }
+//    template <typename ParentBlockType, typename = std::enable_if_t<std::is_base_of<ParentBlockType, BlockType>::value, void>>
+//    operator LWSharedBlockPtr<ParentBlockType>() noexcept {
+//        return LWSharedBlockPtr<ParentBlockType>(ptr_);
+//    }
 
     VoidResult update() const noexcept {
         return VoidResult::of();
@@ -114,6 +117,106 @@ public:
     BlockType* operator->() noexcept {
         return ptr_;
     }
+
+    BlockType* operator->() const noexcept {
+        return ptr_;
+    }
+
+    Shared* shared() noexcept {
+        return this;
+    }
+
+    Shared* shared() const noexcept {
+        return this;
+    }
+};
+
+
+
+
+template <typename BlockType_>
+class LWSharedBlockPtr<const BlockType_> {
+
+    template <typename BlkT>
+    static constexpr bool IsConstCompatible = true;
+
+public:
+    using MutableBlockType = std::remove_const_t<BlockType_>;
+
+private:
+    MutableBlockType* ptr_;
+
+    template <typename> friend class LWSharedBlockPtr;
+
+public:
+    enum {UNDEFINED, READ, UPDATE, _DELETE};
+
+    using Shared = LWSharedBlockPtr;
+    using BlockType = BlockType_;
+
+    LWSharedBlockPtr() noexcept:
+        ptr_()
+    {}
+
+    template <typename U, typename = std::enable_if_t<IsConstCompatible<U>>>
+    LWSharedBlockPtr(LWSharedBlockPtr<U>&& other) noexcept:
+        ptr_(ptr_cast<MutableBlockType>(other.ptr_))
+    {}
+
+    template <typename U, typename = std::enable_if_t<IsConstCompatible<U>>>
+    LWSharedBlockPtr(const LWSharedBlockPtr<U>& other) noexcept:
+        ptr_(ptr_cast<MutableBlockType>(other.ptr_))
+    {}
+
+    LWSharedBlockPtr(MutableBlockType* ptr) noexcept:
+        ptr_(ptr)
+    {}
+
+    ~LWSharedBlockPtr() noexcept = default;
+
+    LWSharedBlockPtr<MutableBlockType> as_mutable() const noexcept {
+        return LWSharedBlockPtr<MutableBlockType>{ptr_};
+    }
+
+    LWSharedBlockPtr<const BlockType> as_immutable() const noexcept {
+        return LWSharedBlockPtr<const BlockType>{ptr_};
+    }
+
+
+    operator bool() const noexcept {
+        return ptr_;
+    }
+
+    bool isSet() const noexcept {
+        return ptr_;
+    }
+
+    bool is_null() const noexcept {
+        return ptr_ == nullptr;
+    }
+
+    template <typename TT>
+    bool operator==(const LWSharedBlockPtr<TT>& other) const noexcept {
+        return ptr_ == other.ptr_;
+    }
+
+    const BlockType* block() const noexcept {
+        return ptr_;
+    }
+
+    const BlockType* get() const noexcept {
+        return ptr_;
+    }
+
+//    template <typename ParentBlockType, typename = std::enable_if_t<std::is_base_of<ParentBlockType, BlockType>::value, void>>
+//    operator LWSharedBlockPtr<ParentBlockType>() noexcept {
+//        return LWSharedBlockPtr<ParentBlockType>(ptr_);
+//    }
+
+    VoidResult update() const noexcept {
+        return VoidResult::of();
+    }
+
 
     const BlockType* operator->() const noexcept {
         return ptr_;
@@ -128,16 +231,49 @@ public:
     }
 };
 
-template <typename T, typename U>
+
+
+
+
+
+
+
+template <
+        typename T,
+        typename U
+>
 Result<T> static_cast_block(Result<LWSharedBlockPtr<U>>&& src) noexcept {
+    using BlkPtrT = T;
+    using ResultT = Result<BlkPtrT>;
+
     if (MMA_LIKELY(src.is_ok()))
     {
-        T tgt = std::move(src).get();
-        return Result<T>::of(std::move(tgt));
+        BlkPtrT tgt(std::move(src).get());
+        return ResultT::of(std::move(tgt));
     }
+
     return std::move(src).transfer_error();
 }
 
+template <
+        typename T,
+        typename U,
+        typename = std::enable_if_t<
+            std::is_const<typename T::BlockType>::value
+        >
+>
+Result<T> static_cast_block(Result<LWSharedBlockPtr<const U>>&& src) noexcept {
+    using BlkPtrT = T;
+    using ResultT = Result<BlkPtrT>;
+
+    if (MMA_LIKELY(src.is_ok()))
+    {
+        BlkPtrT tgt(std::move(src).get());
+        return ResultT::of(std::move(tgt));
+    }
+
+    return std::move(src).transfer_error();
+}
 
 
 }

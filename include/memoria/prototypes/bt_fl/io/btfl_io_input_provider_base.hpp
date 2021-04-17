@@ -195,7 +195,7 @@ public:
         }
     }
 
-    virtual Result<Position> fill(TreeNodePtr& leaf, const Position& start) noexcept = 0;
+    virtual Result<Position> fill(const TreeNodePtr& leaf, const Position& start) noexcept = 0;
 
     VoidResult iter_next_leaf(const TreeNodePtr& leaf) noexcept {
         return VoidResult::of();
@@ -384,7 +384,7 @@ public:
         return ctr_end;
     }
 
-    virtual Result<Position> fill(TreeNodePtr& leaf, const Position& start) noexcept
+    virtual Result<Position> fill(const TreeNodePtr& leaf, const Position& start) noexcept
     {
         using ResultT = Result<Position>;
 
@@ -425,7 +425,7 @@ public:
     }
 
 
-    virtual Result<DataPositions> insertBuffer(BlockUpdateMgr& mgr, TreeNodePtr& leaf, DataPositions at, const DataPositions& size) noexcept
+    virtual Result<DataPositions> insertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, DataPositions at, const DataPositions& size) noexcept
     {
         using ResultT = Result<DataPositions>;
 
@@ -564,7 +564,7 @@ protected:
     }
 
 
-    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, TreeNodePtr& leaf, const DataPositions& at, const DataPositions& size) noexcept
+    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, const DataPositions& at, const DataPositions& size) noexcept
     {
         InsertBuffersFn insert_fn;
 

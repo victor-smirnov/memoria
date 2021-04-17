@@ -30,6 +30,7 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::Iterator;
     using typename Base::Position;
     using typename Base::TreePathT;
@@ -71,7 +72,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
 
     template <int32_t Stream, typename Entry>
-    VoidResult ctr_try_insert_stream_entry_no_mgr(TreeNodePtr& leaf, int32_t idx, const Entry& entry) noexcept
+    VoidResult ctr_try_insert_stream_entry_no_mgr(const TreeNodePtr& leaf, int32_t idx, const Entry& entry) noexcept
     {
         InsertStreamEntryFn<Stream> fn;
         return self().leaf_dispatcher().dispatch(leaf, fn, idx, entry);
@@ -95,9 +96,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
         MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
 
-        MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf()));
+        MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf().as_mutable()));
 
-        auto status = self.template ctr_try_insert_stream_entry_no_mgr<Stream>(iter.iter_leaf(), idx, entry);
+        auto status = self.template ctr_try_insert_stream_entry_no_mgr<Stream>(iter.iter_leaf().as_mutable(), idx, entry);
         if (status.is_error()) {
             if (status.is_packed_error())
             {
@@ -178,10 +179,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
         BlockUpdateMgr mgr(self);
 
         MEMORIA_TRY_VOID(self.ctr_update_block_guard(path.leaf()));
-        MEMORIA_TRY_VOID(mgr.add(path.leaf()));
+        MEMORIA_TRY_VOID(mgr.add(path.leaf().as_mutable()));
 
         RemoveFromLeafFn<Stream> fn;
-        VoidResult status = self.leaf_dispatcher().dispatch(path.leaf(), fn, idx);
+        VoidResult status = self.leaf_dispatcher().dispatch(path.leaf().as_mutable(), fn, idx);
 
         if (status.is_ok()) {
             return ResultT::of(true);
@@ -241,13 +242,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
         BlockUpdateMgr mgr(self);
 
-        MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
-        MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf()));
+        MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf().as_mutable()));
+        MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf().as_mutable()));
 
 
         UpdateStreamEntryBufferFn<SubstreamsList> fn;
         VoidResult status = self.leaf_dispatcher().dispatch(
-                    iter.iter_leaf(),
+                    iter.iter_leaf().as_mutable(),
                     fn,
                     idx,
                     entry
@@ -302,19 +303,19 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
 
     BlockUpdateMgr mgr(self);
 
-    TreeNodePtr tgt = tgt_path.leaf();
-    TreeNodePtr src = src_path.leaf();
+    TreeNodeConstPtr tgt = tgt_path.leaf();
+    TreeNodeConstPtr src = src_path.leaf();
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
 
     // FIXME: Need to leave src node untouched on merge.
-    MEMORIA_TRY_VOID(mgr.add(tgt));
+    MEMORIA_TRY_VOID(mgr.add(tgt.as_mutable()));
 
     //MEMORIA_TRY(tgt_sizes, self.ctr_get_node_sizes(tgt));
 
 
 
-    VoidResult res = self.leaf_dispatcher().dispatch_1st_const(src, tgt, TryMergeNodesFn());
+    VoidResult res = self.leaf_dispatcher().dispatch_1st_const(src, tgt.as_mutable(), TryMergeNodesFn());
 
     if (res.is_error())
     {
@@ -333,7 +334,7 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
 
     MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, 0));
 
-    MEMORIA_TRY_VOID(self.ctr_cow_ref_children_after_merge(src));
+    MEMORIA_TRY_VOID(self.ctr_cow_ref_children_after_merge(src.as_mutable()));
 
     MEMORIA_TRY_VOID(self.ctr_unref_block(src->id()));
 

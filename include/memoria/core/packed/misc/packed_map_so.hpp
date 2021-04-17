@@ -73,6 +73,12 @@ public:
         values_(&values_ext_data_, data->values())
     {}
 
+    PackedMapSO(const PkdStruct* data) noexcept:
+        data_(const_cast<PkdStruct*>(data)),
+        keys_(&keys_ext_data_, const_cast<PkdStruct*>(data)->keys()),
+        values_(&values_ext_data_, const_cast<PkdStruct*>(data)->values())
+    {}
+
     void setup() noexcept {
         keys_.setup();
         values_.setup();

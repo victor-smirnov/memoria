@@ -37,11 +37,11 @@ public:
         Base(maybe_error, allocator, name, type_decl)
     {}
 
-    SharedCtr(MaybeError& maybe_error, const CtrSharedPtr<Allocator>& allocator, const typename Allocator::SharedBlockPtr& root_block):
+    SharedCtr(MaybeError& maybe_error, const CtrSharedPtr<Allocator>& allocator, const typename Allocator::SharedBlockConstPtr& root_block):
         Base(maybe_error, allocator, root_block)
     {}
 
-    SharedCtr(MaybeError& maybe_error, Allocator* allocator, const typename Allocator::SharedBlockPtr& root_block):
+    SharedCtr(MaybeError& maybe_error, Allocator* allocator, const typename Allocator::SharedBlockConstPtr& root_block):
         Base(maybe_error, allocator, root_block)
     {}
 };

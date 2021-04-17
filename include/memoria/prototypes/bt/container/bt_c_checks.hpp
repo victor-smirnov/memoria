@@ -31,6 +31,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ChecksName)
     using typename Base::BlockID;
     using typename Base::TreePathT;
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::BranchNodeEntry;
 
     BoolResult check(void *) const noexcept
@@ -99,7 +100,7 @@ public:
     BoolResult ctr_check_tree() const noexcept;
 
     MEMORIA_V1_DECLARE_NODE_FN(CheckContentFn, check);
-    BoolResult ctr_check_content(const TreeNodePtr& node) const noexcept
+    BoolResult ctr_check_content(const TreeNodeConstPtr& node) const noexcept
     {
         VoidResult res = self().node_dispatcher().dispatch(node, CheckContentFn());
         if (res.is_ok()) {
@@ -116,7 +117,7 @@ public:
 
 
 private:
-    VoidResult ctr_check_tree_structure(const TreeNodePtr& parent, int32_t parent_idx, const TreeNodePtr& node, bool &errors) const noexcept;
+    VoidResult ctr_check_tree_structure(const TreeNodeConstPtr& parent, int32_t parent_idx, const TreeNodeConstPtr& node, bool &errors) const noexcept;
 
 
     template <typename Node1, typename Node2>
@@ -139,7 +140,7 @@ BoolResult M_TYPE::ctr_check_tree() const noexcept
     if (root)
     {
         bool errors = false;
-        MEMORIA_TRY_VOID(self.ctr_check_tree_structure(TreeNodePtr(), 0, root, errors));
+        MEMORIA_TRY_VOID(self.ctr_check_tree_structure(TreeNodeConstPtr(), 0, root, errors));
         return BoolResult::of(errors);
     }
     else {
@@ -157,7 +158,7 @@ BoolResult M_TYPE::ctr_check_tree() const noexcept
 
 
 M_PARAMS
-VoidResult M_TYPE::ctr_check_tree_structure(const TreeNodePtr& parent, int32_t parent_idx, const TreeNodePtr& node, bool &errors) const noexcept
+VoidResult M_TYPE::ctr_check_tree_structure(const TreeNodeConstPtr& parent, int32_t parent_idx, const TreeNodeConstPtr& node, bool &errors) const noexcept
 {
     auto& self = this->self();
 

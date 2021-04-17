@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ template <typename CtrT, typename Types, int Idx = ListSize<typename Types::List
 class NDTTree {
 
     using TreeNodePtr = typename Types::TreeNodePtr;
+    using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
+
     using Head      = Select<Idx, typename Types::List>;
 
     static const uint64_t HASH  = Head::BLOCK_HASH;
@@ -57,8 +59,8 @@ public:
     template <typename Functor, typename... Args>
     auto
     dispatchTree(
-            const TreeNodePtr& parent,
-            const TreeNodePtr& child,
+            const TreeNodeConstPtr& parent,
+            const TreeNodeConstPtr& child,
             Functor&& functor,
             Args&&... args
     ) const noexcept
@@ -87,6 +89,8 @@ class NDTTree<CtrT, Types, 0> {
     static const int32_t Idx = 0;
 
     using TreeNodePtr = typename Types::TreeNodePtr;
+    using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
+
     using Head      = Select<Idx, typename Types::List>;
 
     static const uint64_t HASH  = Head::BLOCK_HASH;
@@ -107,8 +111,8 @@ public:
     template <typename Functor, typename... Args>
     auto
     dispatchTree(
-            const TreeNodePtr& parent,
-            const TreeNodePtr& child,
+            const TreeNodeConstPtr& parent,
+            const TreeNodeConstPtr& child,
             Functor&& functor,
             Args&&... args
     ) const noexcept ->
@@ -139,6 +143,8 @@ template <typename CtrT, typename Types, int Idx>
 class NDT2 {
 
     using TreeNodePtr  = typename Types::TreeNodePtr;
+    using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
+
     using Head       = Select<Idx, typename Types::ChildList>;
 
     using NextNDT2 = NDT2<CtrT, Types, Idx - 1>;
@@ -155,7 +161,7 @@ public:
     template <typename Node, typename Functor, typename... Args>
     auto dispatchTree(
             Node&& parent,
-            const TreeNodePtr& child,
+            const TreeNodeConstPtr& child,
             Functor&& functor,
             Args&&... args
     ) const noexcept
@@ -184,7 +190,9 @@ class NDT2<CtrT, Types, 0> {
 
     static const int32_t Idx = 0;
 
-    using TreeNodePtr     = typename Types::TreeNodePtr;
+    using TreeNodePtr      = typename Types::TreeNodePtr;
+    using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
+
     using Head          = Select<Idx, typename Types::ChildList>;
 
     static const uint64_t HASH = Head::BLOCK_HASH;
@@ -199,7 +207,7 @@ public:
     template <typename Node, typename Functor, typename... Args>
     auto dispatchTree(
             Node&& parent,
-            const TreeNodePtr& child,
+            const TreeNodeConstPtr& child,
             Functor&& functor,
             Args&&... args
     ) const noexcept ->

@@ -70,7 +70,7 @@ struct IAllocatorBase: AllocatorApiBase<ApiProfile<Profile>> {
     virtual VoidResult removeBlock(const BlockID& id) noexcept = 0;
     virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept = 0;
 
-    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockPtr& block) noexcept = 0;
+    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockConstPtr& block) noexcept = 0;
 
     virtual Result<BlockID> newId() noexcept = 0;
     virtual SnapshotID currentTxnId() const noexcept = 0;

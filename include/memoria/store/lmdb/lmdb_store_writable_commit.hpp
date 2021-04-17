@@ -445,7 +445,7 @@ public:
         return ResultT::of(entry);
     }
 
-    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockPtr& block) noexcept
+    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockConstPtr& block) noexcept
     {
         MEMORIA_TRY_VOID(check_updates_allowed());
         using ResultT = Result<SharedBlockPtr>;

@@ -33,6 +33,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     using typename Base::ApiProfileT;
 
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::TreePathT;
     using typename Base::SnapshotID;
     using typename Base::BlockID;
@@ -40,7 +41,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     using typename Base::BlockType;
     using typename Base::ContainerTypeName;
 
-    bool ctr_is_mutable_node(const TreeNodePtr& node) const noexcept {
+    bool ctr_is_mutable_node(const TreeNodeConstPtr& node) const noexcept {
         return node->header().snapshot_id() == self().snapshot_id();
     }
 
@@ -51,18 +52,18 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
         size_t path_size = path.size();
 
-        if (level < path_size && !self.ctr_is_mutable_node(path[level]))
+        if (level < path_size && !self.ctr_is_mutable_node(path[level].as_immutable()))
         {
             MEMORIA_TRY_VOID(ctr_cow_clone_path(path, level + 1));
 
-            MEMORIA_TRY(new_node, ctr_clone_block(path[level]));
+            MEMORIA_TRY(new_node, ctr_clone_block(path[level].as_immutable()));
 
             if (level + 1 < path_size)
             {
                 MEMORIA_TRY_VOID(self.ctr_ref_block(new_node->id()));
 
                 MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(path, level));
-                MEMORIA_TRY(old_child_id, self.ctr_set_child_id(path[level + 1], parent_idx, new_node->id()));
+                MEMORIA_TRY(old_child_id, self.ctr_set_child_id(path[level + 1].as_mutable(), parent_idx, new_node->id()));
 
                 MEMORIA_TRY_VOID(self.ctr_unref_block(old_child_id));
             }
@@ -70,7 +71,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
                 MEMORIA_TRY_VOID(self.set_root(new_node->id()));
             }
 
-            path[level] = new_node;
+            path[level] = new_node.as_immutable();
         }
 
         return VoidResult::of();
@@ -96,7 +97,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
                 }));
             }
             else {
-                MEMORIA_TRY_VOID(this_ptr->leaf_dispatcher().dispatch(block, UnrefLeafChildren(), this_ptr->store()));
+                MEMORIA_TRY_VOID(this_ptr->leaf_dispatcher().dispatch(block.as_mutable(), UnrefLeafChildren(), this_ptr->store()));
             }
 
             return this_ptr->store().removeBlock(block->id());
@@ -117,7 +118,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
             }));
         }
         else {
-            MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(block, UnrefLeafChildren(), self.store()));
+            auto tmp = block.as_mutable();
+            MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(tmp, UnrefLeafChildren(), self.store()));
         }
 
         return self.store().removeBlock(block->id());
@@ -136,7 +138,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
 
     MEMORIA_V1_DECLARE_NODE_FN(RefLeafChildren, cow_ref_children);
-    Result<TreeNodePtr> ctr_clone_block(const TreeNodePtr& src) noexcept
+    Result<TreeNodePtr> ctr_clone_block(const TreeNodeConstPtr& src) noexcept
     {
         using ResultT = Result<TreeNodePtr>;
         auto& self = this->self();
@@ -146,7 +148,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
         if (!new_block->is_leaf())
         {
-            MEMORIA_TRY_VOID(self.ctr_for_all_ids(new_block, [&](const BlockID& block_id) noexcept {
+            MEMORIA_TRY_VOID(self.ctr_for_all_ids(new_block.as_immutable(), [&](const BlockID& block_id) noexcept {
                 return self.ctr_ref_block(block_id);
             }));
         }
@@ -179,17 +181,26 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
         }
         else {
             MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(path, level));
-            MEMORIA_TRY(old_child, self.ctr_set_child_id(path[level + 1], parent_idx, new_node->id()));
+            MEMORIA_TRY(old_child, self.ctr_set_child_id(path[level + 1].as_mutable(), parent_idx, new_node->id()));
             MEMORIA_TRY_VOID(self.ctr_ref_block(new_node->id()));
             MEMORIA_TRY_VOID(self.ctr_unref_block(old_child));
         }
 
-        path[level] = new_node;
+        path[level] = new_node.as_immutable();
 
         return VoidResult::of();
     }
 
-    VoidResult ctr_update_block_guard(TreeNodePtr& node) noexcept
+    VoidResult ctr_update_block_guard(const TreeNodePtr& node) noexcept
+    {
+        if (!ctr_is_mutable_node(node.as_immutable())) {
+            return MEMORIA_MAKE_GENERIC_ERROR("CoW Error: trying to update immutable node");
+        }
+
+        return self().store().check_updates_allowed();
+    }
+
+    VoidResult ctr_update_block_guard(const TreeNodeConstPtr& node) noexcept
     {
         if (!ctr_is_mutable_node(node)) {
             return MEMORIA_MAKE_GENERIC_ERROR("CoW Error: trying to update immutable node");
@@ -197,6 +208,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
         return self().store().check_updates_allowed();
     }
+
 
     bool is_cascade_tree_removal() const noexcept {
         return self().store().is_cascade_tree_removal();
@@ -216,7 +228,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
 private:
 
-    VoidResult ctr_do_cow_traverse_tree(BTreeTraverseNodeHandler<Profile>& node_handler, TreeNodePtr node) const noexcept
+    VoidResult ctr_do_cow_traverse_tree(BTreeTraverseNodeHandler<Profile>& node_handler, const TreeNodeConstPtr& node) const noexcept
     {
         auto& self = this->self();
 
@@ -262,7 +274,7 @@ private:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(ForAllCtrRooIDsFn, for_all_ctr_root_ids);
-    VoidResult ctr_for_all_leaf_ctr_refs(const TreeNodePtr& node, const std::function<VoidResult (const BlockID&)>& fn) const noexcept
+    VoidResult ctr_for_all_leaf_ctr_refs(const TreeNodeConstPtr& node, const std::function<VoidResult (const BlockID&)>& fn) const noexcept
     {
         return self().leaf_dispatcher().dispatch(node, ForAllCtrRooIDsFn(), fn);
     }
@@ -279,11 +291,11 @@ public:
 
         MEMORIA_TRY_VOID(self.set_root(new_root->id()));
 
-        start_path.add_root(new_root);
+        start_path.add_root(new_root.as_immutable());
 
         if (stop_path.size() == 0)
         {
-            stop_path.add_root(new_root);
+            stop_path.add_root(new_root.as_immutable());
         }
 
         return VoidResult::of();
@@ -356,7 +368,7 @@ public:
                 MEMORIA_TRY(size, self.ctr_get_node_size(parent, 0));
                 if (size == 1)
                 {
-                    TreeNodePtr node = path[level];
+                    TreeNodeConstPtr node = path[level];
 
                     // FIXME redesign it to use tryConvertToRoot(node) instead
                     if (self.ctr_can_convert_to_root(node, parent->root_metadata_size()))
@@ -364,7 +376,7 @@ public:
                         MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
 
                         MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
-                        MEMORIA_TRY_VOID(self.ctr_node_to_root(node));
+                        MEMORIA_TRY_VOID(self.ctr_node_to_root(node.as_mutable()));
 
                         MEMORIA_TRY_VOID(self.set_root(node->id()));
 
@@ -377,13 +389,13 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult ctr_cow_ref_children_after_merge(TreeNodePtr block) noexcept
+    VoidResult ctr_cow_ref_children_after_merge(const TreeNodePtr& block) noexcept
     {
         auto& self = this->self();
 
         if (!block->is_leaf())
         {
-            MEMORIA_TRY_VOID(self.ctr_for_all_ids(block, [&](const BlockID& child_id) noexcept {
+            MEMORIA_TRY_VOID(self.ctr_for_all_ids(block.as_immutable(), [&](const BlockID& child_id) noexcept {
                 return self.ctr_ref_block(child_id);
             }));
         }

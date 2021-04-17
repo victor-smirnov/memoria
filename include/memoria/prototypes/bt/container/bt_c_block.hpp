@@ -32,6 +32,7 @@ public:
     using Allocator = typename Base::Allocator;
 
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::Iterator;
     using typename Base::IteratorPtr;
     using typename Base::Position;
@@ -59,7 +60,7 @@ public:
 
         virtual BoolResult is_leaf() const noexcept
         {
-            MEMORIA_TRY(block, static_cast_block<TreeNodePtr>(store_->getBlock(block_id_)));
+            MEMORIA_TRY(block, static_cast_block<TreeNodeConstPtr>(store_->getBlock(block_id_)));
             return BoolResult::of(block->is_leaf());
         }
 
@@ -74,7 +75,7 @@ public:
 
             std::vector<CtrBlockPtr<ApiProfile<ProfileT>>> children;
 
-            MEMORIA_TRY(block, static_cast_block<TreeNodePtr>(store_->getBlock(block_id_)));
+            MEMORIA_TRY(block, static_cast_block<TreeNodeConstPtr>(store_->getBlock(block_id_)));
 
             if (!block->is_leaf())
             {

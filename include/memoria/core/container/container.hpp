@@ -92,7 +92,8 @@ public:
     using BlockID   = typename Allocator::BlockID;
     using BlockType = typename Allocator::BlockType;
     using CtrID     = typename Allocator::CtrID;
-    using SharedBlockPtr    = typename Allocator::SharedBlockPtr;
+    using SharedBlockPtr        = typename Allocator::SharedBlockPtr;
+    using SharedBlockConstPtr   = typename Allocator::SharedBlockConstPtr;
 
     using Iterator          = Iter<typename Types::IterTypes>;
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
@@ -401,7 +402,7 @@ public:
         }
         
         virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>> new_ctr_instance(
-            const ProfileSharedBlockPtr<typename Types::Profile>& root_block,
+            const ProfileSharedBlockConstPtr<typename Types::Profile>& root_block,
             AllocatorPtr allocator
         ) const noexcept
         {
@@ -423,7 +424,7 @@ public:
         }
 
         virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>> new_ctr_instance(
-            const ProfileSharedBlockPtr<typename Types::Profile>& root_block,
+            const ProfileSharedBlockConstPtr<typename Types::Profile>& root_block,
             ProfileAllocatorType<ProfileT>* allocator
         ) const noexcept
         {
@@ -662,7 +663,7 @@ public:
     Ctr(
         MaybeError& maybe_error,
         const CtrSharedPtr<Allocator>& allocator,
-        const typename Allocator::SharedBlockPtr& root_block
+        const typename Allocator::SharedBlockConstPtr& root_block
     ) noexcept :
         Base(maybe_error)
     {
@@ -688,7 +689,7 @@ public:
     Ctr(
         MaybeError& maybe_error,
         Allocator* allocator,
-        const typename Allocator::SharedBlockPtr& root_block
+        const typename Allocator::SharedBlockConstPtr& root_block
     ) noexcept :
         Base(maybe_error)
     {

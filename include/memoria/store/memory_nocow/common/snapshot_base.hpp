@@ -782,7 +782,7 @@ public:
     }
 
 
-    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockPtr& block) noexcept
+    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockConstPtr& block) noexcept
     {
         MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
 

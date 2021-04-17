@@ -40,6 +40,7 @@ protected:
     using typename Base::CommitID;
     using typename Base::BlockID;
     using typename Base::SharedBlockPtr;
+    using typename Base::SharedBlockConstPtr;
     using typename Base::BlockType;
 
     using typename Base::ApiProfileT;
@@ -837,7 +838,7 @@ public:
         return VoidResult::of();
     }
 
-    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockPtr& block) noexcept
+    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockConstPtr& block) noexcept
     {
         MEMORIA_TRY_VOID(check_updates_allowed());
         using ResultT = Result<SharedBlockPtr>;

@@ -86,14 +86,303 @@ public:
         unref();
     }
 
+
+    CowSharedBlockPtr& as_mutable() & noexcept {
+        return *this;
+    }
+
+    CowSharedBlockPtr as_mutable() const & noexcept {
+        return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
+    }
+
+
+    CowSharedBlockPtr as_mutable() && noexcept {
+        Shared* tmp = shared_;
+        shared_ = nullptr;
+        return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{ptr_, tmp};
+    }
+
+    CowSharedBlockPtr<const MutableBlockType, AllocatorT, Shared> as_immutable() & noexcept {
+        return CowSharedBlockPtr<const MutableBlockType, AllocatorT, Shared>{shared_};
+    }
+
+    CowSharedBlockPtr<const MutableBlockType, AllocatorT, Shared> as_immutable() const & noexcept {
+        return CowSharedBlockPtr<const MutableBlockType, AllocatorT, Shared>{shared_};
+    }
+
+    CowSharedBlockPtr<const MutableBlockType, AllocatorT, Shared> as_immutable() && noexcept {
+        Shared* tmp = shared_;
+        shared_ = nullptr;
+        return CowSharedBlockPtr<const MutableBlockType, AllocatorT, Shared>{ptr_, shared_};
+    }
+
+
+
+    const CowSharedBlockPtr& operator=(const CowSharedBlockPtr& guard) noexcept
+    {
+        if (shared_ != guard.shared_)
+        {
+            unref();
+            ptr_ = cast_me(guard.ptr_);
+            shared_ = guard.shared_;
+            ref();
+        }
+
+        return *this;
+    }
+
+
+    template <typename P, typename = std::enable_if_t<IsConstCompatible<P>>>
+    CowSharedBlockPtr& operator=(const CowSharedBlockPtr<P, AllocatorT, Shared>& guard) noexcept
+    {
+        unref();
+        ptr_ = cast_me(guard.ptr_);
+        shared_ = guard.shared_;
+        ref();
+        return *this;
+    }
+
+    CowSharedBlockPtr& operator=(CowSharedBlockPtr&& guard) noexcept
+    {
+        if (this != &guard)
+        {
+            unref();
+            ptr_ = cast_me(guard.ptr_);
+            shared_ = guard.shared_;
+            guard.shared_ = nullptr;
+        }
+
+        return *this;
+    }
+
+
+    template <typename P, typename = std::enable_if_t<IsConstCompatible<P>>>
+    CowSharedBlockPtr& operator=(CowSharedBlockPtr<P, AllocatorT, Shared>&& guard) noexcept
+    {
+        unref();
+        ptr_ = cast_me(guard.ptr_);
+        shared_ = guard.shared_;
+        guard.shared_ = nullptr;
+
+        return *this;
+    }
+
+
+    bool operator==(const PageT* block) const noexcept
+    {
+        return shared_ ? ptr_ == block : false;
+    }
+
+    bool operator!=(const PageT* block) const noexcept
+    {
+        return shared_ ? ptr_ != block : true;
+    }
+
+    bool isEmpty() const noexcept {
+        return (!shared_) || shared_->get() == nullptr;
+    }
+
+    bool isSet() const noexcept {
+        return shared_ && shared_->get() != nullptr;
+    }
+
+    bool operator==(const CowSharedBlockPtr& other) const noexcept
+    {
+        return shared_ && other.shared_ && shared_->id() == other.shared_->id();
+    }
+
+    bool operator!=(const CowSharedBlockPtr& other) const noexcept
+    {
+        return shared_ && other.shared_ && shared_->id() != other.shared_->id();
+    }
+
+    operator bool() const noexcept {
+        return this->isSet();
+    }
+
+    PageT* ptr() const noexcept {
+        return ptr_;
+    }
+
+    PageT* block() const noexcept {
+        return ptr_;
+    }
+
+    void set_block(PageT* block) noexcept
+    {
+        ptr_ = block;
+        shared_->set_block(block);
+    }
+
+    PageT* operator->() const noexcept {
+        return ptr_;
+    }
+
+    VoidResult update() const noexcept
+    {
+        if (shared_)
+        {
+            MEMORIA_TRY(guard, shared_->store()->updateBlock(shared_));
+            if (guard.shared() != shared_)
+            {
+                terminate("updateBlock() returned different shared");
+            }
+        }
+
+        return VoidResult::of();
+    }
+
+//    VoidResult resize(int32_t new_size) noexcept
+//    {
+//        if (shared_ != nullptr)
+//        {
+//            return shared_->store()->resizeBlock(shared_, new_size);
+//        }
+
+//        return VoidResult::of();
+//    }
+
+    void clear() noexcept {
+        *this = nullptr;
+    }
+
+    Shared* shared() const noexcept {
+        return shared_;
+    }
+
+    Shared* shared() noexcept{
+        return shared_;
+    }
+
+    template <typename, typename, typename> friend class CowSharedBlockPtr;
+
+private:
+    void ref() noexcept
+    {
+        if (shared_ != nullptr)
+        {
+            shared_->ref();
+        }
+    }
+
+    void unref() noexcept
+    {
+        if (shared_)
+        {
+            if (shared_->unref())
+            {
+                shared_->store()->releaseBlock(shared_).get_or_throw();
+            }
+        }
+    }
+
+
+    template <typename TT>
+    static BlockType* cast_me(TT* blk) {
+        return ptr_cast<BlockType>(blk);
+    }
+};
+
+
+
+
+template <typename PageT, typename AllocatorT, typename Shared_>
+class CowSharedBlockPtr<const PageT, AllocatorT, Shared_> {
+
+    template <typename BlkT>
+    static constexpr bool IsConstCompatible = std::is_const<BlkT>::value;
+
+public:
+    using Page      = PageT;
+    using BlockType = PageT;
+    using Allocator = AllocatorT;
+    using Shared    = Shared_;
+
+    using MutableBlockType = std::remove_const_t<PageT>;
+
+private:
+    using SharedBlockT = typename Shared_::BlockType;
+
+
+    MutableBlockType* ptr_;
+    Shared* shared_;
+
+    CowSharedBlockPtr(MutableBlockType* ptr, Shared* shared) noexcept:
+        ptr_(ptr), shared_(shared)
+    {}
+
+public:
+    CowSharedBlockPtr(Shared* shared) noexcept:
+        ptr_(cast_me(shared->ptr())), shared_(shared)
+    {
+        ref();
+    }
+
+    CowSharedBlockPtr() noexcept: shared_(nullptr) {}
+
+    CowSharedBlockPtr(const CowSharedBlockPtr& guard) noexcept:
+        ptr_(cast_me(guard.ptr_)), shared_(guard.shared_)
+    {
+        ref();
+    }
+
+    template <typename Page, typename = std::enable_if_t<IsConstCompatible<Page>>>
+    CowSharedBlockPtr(const CowSharedBlockPtr<Page, AllocatorT, Shared>& guard) noexcept:
+        ptr_(cast_me(guard.ptr_)), shared_(guard.shared_)
+    {
+        ref();
+    }
+
+    template <typename Page, typename = std::enable_if_t<IsConstCompatible<Page>>>
+    CowSharedBlockPtr(CowSharedBlockPtr<Page, AllocatorT, Shared>&& guard) noexcept:
+        ptr_(cast_me(guard.ptr_)),
+        shared_(guard.shared_)
+    {
+        guard.shared_ = nullptr;
+    }
+
+    ~CowSharedBlockPtr() noexcept
+    {
+        unref();
+    }
+
+//    CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared> as_mutable() & noexcept {
+//        return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
+//    }
+
+//    CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared> as_mutable() && noexcept {
+//        Shared* tmp = shared_;
+//        shared_ = nullptr;
+//        return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{ptr_, shared_};
+//    }
+
+
+    CowSharedBlockPtr& as_immutable() & noexcept {
+        return *this;
+    }
+
+    CowSharedBlockPtr as_immutable() const & noexcept {
+        return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
+    }
+
+    CowSharedBlockPtr as_immutable() && noexcept {
+        Shared* tmp = shared_;
+        shared_ = nullptr;
+        return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{ptr_, tmp};
+    }
+
     CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared> as_mutable() & noexcept {
+        return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
+    }
+
+    CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared> as_mutable() const & noexcept {
         return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
     }
 
     CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared> as_mutable() && noexcept {
         Shared* tmp = shared_;
         shared_ = nullptr;
-        return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{ptr_, shared_};
+        return CowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{ptr_, tmp};
     }
 
     const CowSharedBlockPtr& operator=(const CowSharedBlockPtr& guard) noexcept
@@ -181,15 +470,11 @@ public:
         return this->isSet();
     }
 
-    PageT* ptr() const {
+    const PageT* ptr() const {
         return ptr_;
     }
 
     const PageT* block() const noexcept {
-        return ptr_;
-    }
-
-    PageT* block() noexcept {
         return ptr_;
     }
 
@@ -203,19 +488,14 @@ public:
         return ptr_;
     }
 
-    PageT* operator->() noexcept {
-        return ptr_;
-    }
-
-
-    VoidResult update() noexcept
+    VoidResult update() const noexcept
     {
         if (shared_)
         {
             MEMORIA_TRY(guard, shared_->store()->updateBlock(shared_));
             if (guard.shared() != shared_)
             {
-                *this = guard;
+                terminate("updateBlock() returned different shared");
             }
         }
 
@@ -236,11 +516,7 @@ public:
         *this = nullptr;
     }
 
-    const Shared* shared() const noexcept {
-        return shared_;
-    }
-
-    Shared* shared() noexcept{
+    Shared* shared() const noexcept {
         return shared_;
     }
 
@@ -274,15 +550,48 @@ private:
 };
 
 
-template <typename T, typename U, typename AllocatorT, typename Shared>
+
+
+
+
+
+template <
+        typename T,
+        typename U,
+        typename AllocatorT,
+        typename Shared
+>
 Result<T> static_cast_block(Result<CowSharedBlockPtr<U, AllocatorT, Shared>>&& src) noexcept {
+    using BlkPtrT = T;
+    using ResultT = Result<BlkPtrT>;
+
     if (MMA_LIKELY(src.is_ok()))
     {
-        T tgt = std::move(src).get();
-        return Result<T>::of(std::move(tgt));
+        BlkPtrT tgt(std::move(src).get());
+        return ResultT::of(std::move(tgt));
     }
     return std::move(src).transfer_error();
 }
 
 
+template <
+        typename T,
+        typename U,
+        typename AllocatorT,
+        typename Shared,
+        typename = std::enable_if_t<
+            std::is_const<typename T::BlockType>::value
+        >
+>
+Result<T> static_cast_block(Result<CowSharedBlockPtr<const U, AllocatorT, Shared>>&& src) noexcept {
+    using BlkPtrT = T;
+    using ResultT = Result<BlkPtrT>;
+
+    if (MMA_LIKELY(src.is_ok()))
+    {
+        BlkPtrT tgt(std::move(src).get());
+        return ResultT::of(std::move(tgt));
+    }
+    return std::move(src).transfer_error();
+}
 }

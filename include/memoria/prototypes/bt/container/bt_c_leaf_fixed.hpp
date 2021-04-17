@@ -1,5 +1,5 @@
 
-// Copyright 2015 Victor Smirnov
+// Copyright 2015-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
 
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::Iterator;
     using typename Base::Position;
     using typename Base::TreePathT;
@@ -79,7 +80,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
         if (capacity)
         {
             MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
-            MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(iter.iter_leaf(), InsertStreamEntryFn<Stream>(), idx, entry));
+            MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(iter.iter_leaf().as_mutable(), InsertStreamEntryFn<Stream>(), idx, entry));
             return ResultT::of(true);
         }
         else {
@@ -120,7 +121,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
         using ResultT = BoolResult;
         MEMORIA_TRY_VOID(self().ctr_update_block_guard(path.leaf()));
 
-        MEMORIA_TRY_VOID(self().leaf_dispatcher().dispatch(path.leaf(), RemoveFromLeafFn<Stream>(), idx));
+        MEMORIA_TRY_VOID(self().leaf_dispatcher().dispatch(path.leaf().as_mutable(), RemoveFromLeafFn<Stream>(), idx));
 
         return ResultT::of(true);
     }
@@ -174,7 +175,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
         MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
 
         MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(
-                iter.iter_leaf(),
+                iter.iter_leaf().as_mutable(),
                 UpdateStreamEntryFn<SubstreamsList>(),
                 idx,
                 entry
@@ -190,7 +191,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
     //==========================================================================================
 
     MEMORIA_V1_DECLARE_NODE2_FN(CanMergeFn, canBeMergedWith);
-    bool ctr_can_merge_nodes(const TreeNodePtr& tgt, const TreeNodePtr& src) noexcept
+    bool ctr_can_merge_nodes(const TreeNodeConstPtr& tgt, const TreeNodeConstPtr& src) noexcept
     {
         return self().node_dispatcher().dispatch(src, tgt, CanMergeFn());
     }
@@ -219,12 +220,12 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_p
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(tgt_path, 0));
 
-    TreeNodePtr src = src_path.leaf();
-    TreeNodePtr tgt = tgt_path.leaf();
+    TreeNodeConstPtr src = src_path.leaf();
+    TreeNodeConstPtr tgt = tgt_path.leaf();
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
 
-    MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch_1st_const(src, tgt, MergeNodesFn()));
+    MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch_1st_const(src, tgt.as_mutable(), MergeNodesFn()));
 
     MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, 0));
 
@@ -234,7 +235,7 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_p
 
     MEMORIA_TRY_VOID(self.ctr_check_path(tgt_path, 0));
 
-    MEMORIA_TRY_VOID(self.ctr_cow_ref_children_after_merge(src));
+    MEMORIA_TRY_VOID(self.ctr_cow_ref_children_after_merge(src.as_mutable()));
     return self.ctr_unref_block(src->id());
 }
 

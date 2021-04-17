@@ -31,6 +31,7 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
 
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::TreePathT;
     using typename Base::BlockID;
     using typename Base::Profile;
@@ -57,7 +58,12 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
         return path[level].resize(new_size);
     }
 
-    VoidResult ctr_update_block_guard(TreeNodePtr& node) noexcept
+    VoidResult ctr_update_block_guard(const TreeNodePtr& node) noexcept
+    {
+        return node.update();
+    }
+
+    VoidResult ctr_update_block_guard(const TreeNodeConstPtr& node) noexcept
     {
         return node.update();
     }
@@ -71,7 +77,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
     {
         auto& self = this->self();
 
-        TreeNodePtr root = start_path.root();
+        TreeNodeConstPtr root = start_path.root();
         start_path.clear();
         stop_path.clear();
 
@@ -81,18 +87,18 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
 
         MEMORIA_TRY_VOID(self.set_root(new_root->id()));
 
-        start_path.add_root(new_root);
+        start_path.add_root(new_root.as_immutable());
 
         if (stop_path.size() == 0)
         {
-            stop_path.add_root(new_root);
+            stop_path.add_root(new_root.as_immutable());
         }
 
         return VoidResult::of();
     }
 
 
-    VoidResult ctr_remove_node_recursively(TreeNodePtr& node) noexcept
+    VoidResult ctr_remove_node_recursively(const TreeNodeConstPtr& node) noexcept
     {
         auto& self = this->self();
 
@@ -185,7 +191,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
                 MEMORIA_TRY(size, self.ctr_get_node_size(parent, 0));
                 if (size == 1)
                 {
-                    TreeNodePtr node = path[level];
+                    TreeNodeConstPtr node = path[level];
 
                     // FIXME redesign it to use tryConvertToRoot(node) instead
                     if (self.ctr_can_convert_to_root(node, parent->root_metadata_size()))

@@ -139,7 +139,7 @@ public:
         return false;
     }
 
-    VoidResult add(TreeNodePtr& node) noexcept
+    VoidResult add(const TreeNodePtr& node) noexcept
     {
         //MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
@@ -178,7 +178,7 @@ public:
         }
     }
 
-    void checkpoint(TreeNodePtr& node) noexcept
+    void checkpoint(const TreeNodePtr& node) noexcept
     {
         for (int32_t c = 0; c < blocks_.getSize(); c++)
         {

@@ -28,6 +28,7 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchVariableName)
 
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::BlockID;
     using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
@@ -61,7 +62,7 @@ public:
         using ResultT = Result<InsertBatchResult>;
         auto& self = this->self();
 
-        TreeNodePtr node = path[level];
+        TreeNodeConstPtr node = path[level];
 
         int32_t batch_size = 32;
 
@@ -74,7 +75,7 @@ public:
             auto checkpoint = provider.checkpoint();
 
             BlockUpdateMgr mgr(self);
-            MEMORIA_TRY_VOID(mgr.add(node));
+            MEMORIA_TRY_VOID(mgr.add(node.as_mutable()));
 
             int32_t c;
 
@@ -89,9 +90,9 @@ public:
                     return MEMORIA_MAKE_GENERIC_ERROR("Subtree is null");
                 }
 
-                MEMORIA_TRY(sums, self.ctr_get_node_max_keys(child));
+                MEMORIA_TRY(sums, self.ctr_get_node_max_keys(child.as_immutable()));
 
-                VoidResult ins_res = self.branch_dispatcher().dispatch(node, InsertChildFn(), idx + c, sums, child->id());
+                VoidResult ins_res = self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildFn(), idx + c, sums, child->id());
 
                 if(ins_res.is_error())
                 {
@@ -130,7 +131,7 @@ public:
         }
 
         if (last_child) {
-            MEMORIA_TRY_VOID(self.complete_tree_path(path, last_child));
+            MEMORIA_TRY_VOID(self.complete_tree_path(path, last_child.as_immutable()));
         }
 
         if (update_hierarchy)
@@ -158,7 +159,7 @@ public:
                 MEMORIA_TRY_VOID(self.ctr_layout_branch_node(node, 0xFF));
 
                 size_t height = level + 1;
-                TreePathT path = TreePathT::build(node, height);
+                TreePathT path = TreePathT::build(node.as_immutable(), height);
 
                 MEMORIA_TRY_VOID(self.ctr_insert_subtree(path, level, 0, provider, [this, level, &provider]() noexcept -> Result<TreeNodePtr> {
                     auto& self = this->self();
@@ -187,7 +188,7 @@ public:
         MyType&     ctr_;
 
     public:
-        ListLeafProvider(MyType& ctr, TreeNodePtr head, CtrSizeT size): head_(head),  size_(size), ctr_(ctr) {}
+        ListLeafProvider(MyType& ctr, const TreeNodePtr& head, CtrSizeT size): head_(head),  size_(size), ctr_(ctr) {}
 
         virtual CtrSizeT size() const
         {

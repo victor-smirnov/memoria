@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -80,12 +80,13 @@ private:
 
 public:
     using TreeNodePtr = typename Types::TreeNodePtr;
+    using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
 
 public:
     NDT0(CtrT& ctr) noexcept: ctr_(ctr) {}
 
     template <typename Functor, typename... Args>
-    auto dispatch(TreeNodePtr& node, Functor&& functor, Args&&... args) const noexcept
+    auto dispatch(const TreeNodePtr& node, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node->block_type_hash())
         {
@@ -98,7 +99,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch(TreeNodePtr& node1, TreeNodePtr& node2, Functor&& functor, Args&&... args) const noexcept
+    auto dispatch(const TreeNodePtr& node1, const TreeNodePtr& node2, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node1->block_type_hash())
         {
@@ -114,7 +115,7 @@ public:
 
 
     template <typename Functor, typename... Args>
-    auto dispatch_1st_const(const TreeNodePtr& node1, TreeNodePtr& node2, Functor&& functor, Args&&... args) const noexcept
+    auto dispatch_1st_const(const TreeNodeConstPtr& node1, const TreeNodePtr& node2, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node1->block_type_hash())
         {
@@ -129,7 +130,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch(const TreeNodePtr& node, Functor&& functor, Args&&... args) const noexcept
+    auto dispatch(const TreeNodeConstPtr& node, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node->block_type_hash())
         {
@@ -144,8 +145,8 @@ public:
 
     template <typename Functor, typename... Args>
     auto dispatch(
-            const TreeNodePtr& node1,
-            const TreeNodePtr& node2,
+            const TreeNodeConstPtr& node1,
+            const TreeNodeConstPtr& node2,
             Functor&& functor,
             Args&&... args
     ) const noexcept
@@ -230,6 +231,7 @@ private:
 
 public:
     using TreeNodePtr = typename Types::TreeNodePtr;
+    using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
 
 public:
     NDT0(CtrT& ctr) noexcept: ctr_(ctr) {}
@@ -237,7 +239,7 @@ public:
 
 
     template <typename Functor, typename... Args>
-    auto dispatch(TreeNodePtr& node, Functor&& functor, Args&&... args) const noexcept ->
+    auto dispatch(const TreeNodePtr& node, Functor&& functor, Args&&... args) const noexcept ->
         typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<NodeSO&>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node->block_type_hash())
@@ -251,7 +253,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch(TreeNodePtr& node1, TreeNodePtr& node2, Functor&& functor, Args&&... args) const noexcept ->
+    auto dispatch(const TreeNodePtr& node1, const TreeNodePtr& node2, Functor&& functor, Args&&... args) const noexcept ->
         typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<NodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node1->block_type_hash())
@@ -266,7 +268,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch_1st_const(const TreeNodePtr& node1, TreeNodePtr& node2, Functor&& functor, Args&&... args) const noexcept ->
+    auto dispatch_1st_const(const TreeNodeConstPtr& node1, const TreeNodePtr& node2, Functor&& functor, Args&&... args) const noexcept ->
         typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node1->block_type_hash())
@@ -283,7 +285,7 @@ public:
 
 
     template <typename Functor, typename... Args>
-    auto dispatch(const TreeNodePtr& node, Functor&& functor, Args&&... args) const noexcept ->
+    auto dispatch(const TreeNodeConstPtr& node, Functor&& functor, Args&&... args) const noexcept ->
         typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node->block_type_hash())
@@ -299,8 +301,8 @@ public:
 
     template <typename Functor, typename... Args>
     auto dispatch(
-            const TreeNodePtr& node1,
-            const TreeNodePtr& node2,
+            const TreeNodeConstPtr& node1,
+            const TreeNodeConstPtr& node2,
             Functor&& functor,
             Args&&... args
     ) const noexcept ->

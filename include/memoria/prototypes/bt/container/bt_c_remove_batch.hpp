@@ -293,7 +293,7 @@ VoidResult M_TYPE::ctr_remove_nodes_at_end(
     {
         MEMORIA_TRY(parent, self.ctr_get_node_parent_for_update(start_path, 0));
 
-        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, start_path.leaf()->id()));
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.as_immutable(), start_path.leaf()->id()));
 
         MEMORIA_TRY_VOID(self.ctr_remove_branch_nodes_at_end(start_path, 1, parent_idx + 1));
 

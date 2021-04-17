@@ -33,6 +33,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchFixedName)
 
     using typename Base::BlockID;
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::BranchNodeEntry;
     using typename Base::CtrSizeT;
     using typename Base::TreePathT;
@@ -102,7 +103,7 @@ public:
         using ResultT = Result<InsertBatchResult>;
         auto& self = this->self();
 
-        TreeNodePtr node = path[level];
+        TreeNodeConstPtr node = path[level];
 
         MEMORIA_TRY(capacity, self.ctr_get_branch_node_capacity(node, -1ull));
         CtrSizeT provider_size0  = provider.size();
@@ -119,13 +120,13 @@ public:
             {
                 MEMORIA_TRY(child, child_fn());
 
-                MEMORIA_TRY(max, self.ctr_get_node_max_keys(child));
+                MEMORIA_TRY(max, self.ctr_get_node_max_keys(child.as_immutable()));
                 subtrees[i].accum()         = max;
                 subtrees[i].child_id()      = child->id();
                 subtrees[i].child_node()    = child;
             }
 
-            MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node, InsertChildrenFn(), idx + c, idx + c + i, subtrees));
+            MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildrenFn(), idx + c, idx + c + i, subtrees));
 
             max = idx + c + i;
 
@@ -158,7 +159,7 @@ public:
                 MEMORIA_TRY_VOID(self.ctr_layout_branch_node(node, 0xFF));
 
                 TreePathT path;
-                path.add_root(node);
+                path.add_root(node.as_immutable());
 
                 auto res = self.ctr_insert_subtree(path, 0, 0, provider, [this, level, &provider]() -> ResultT {
                     auto& self = this->self();

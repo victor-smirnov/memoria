@@ -31,6 +31,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
 
     using typename Base::Types;
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::Profile;
     using typename Base::CtrID;
     using typename Base::BlockID;
@@ -55,7 +56,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
     }
 
     // FIXME: error handling
-    void ctr_begin_node(const TreeNodePtr& node, ContainerWalker<Profile>* walker) noexcept
+    void ctr_begin_node(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker) noexcept
     {
         if (node->is_root())
         {
@@ -77,7 +78,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
     }
 
     // TODO: error handling
-    void ctr_end_node(const TreeNodePtr& node, ContainerWalker<Profile>* walker) noexcept
+    void ctr_end_node(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker) noexcept
     {
         if (node->is_root())
         {
@@ -104,11 +105,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
         MEMORIA_TRY(root_id, self.store().getRootID(new_name));
         if (root_id.is_null())
         {
-            TreeNodePtr root = self.ctr_get_root_node();
+            TreeNodeConstPtr root = self.ctr_get_root_node();
 
             TreeNodePtr new_root = self.ctr_clone_tree(root, root->parent_id());
 
-            auto new_meta = self.ctr_get_ctr_root_metadata(new_root);
+            auto new_meta = self.ctr_get_ctr_root_metadata(new_root.as_immutable());
 
             new_meta.model_name() = new_name;
 
@@ -126,7 +127,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
 
 private:
 
-    Result<TreeNodePtr> ctr_clone_tree(const TreeNodePtr& node, const BlockID& parent_id) const noexcept
+    Result<TreeNodePtr> ctr_clone_tree(const TreeNodeConstPtr& node, const BlockID& parent_id) const noexcept
     {
         auto& self = this->self();
 
@@ -146,7 +147,7 @@ private:
         return new_node;
     }
 
-    VoidResult ctr_traverse_tree(const TreeNodePtr& node, ContainerWalker<Profile>* walker) noexcept
+    VoidResult ctr_traverse_tree(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker) noexcept
     {
         auto& self = this->self();
 

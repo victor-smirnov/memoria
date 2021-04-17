@@ -106,7 +106,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         }
     };
 
-    CtrSizeTResult ctr_enlarge_leaf(TreeNodePtr& node, CtrSizeT l0_size, bool update_path = true) noexcept
+    CtrSizeTResult ctr_enlarge_leaf(const TreeNodePtr& node, CtrSizeT l0_size, bool update_path = true) noexcept
     {
         return self().leaf_dispatcher().dispatch(node, ExpandBitmapFn(), l0_size);
     }
@@ -123,7 +123,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             TreePathT& path = ii->path();
 
             MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
-            MEMORIA_TRY(inserted, self.ctr_enlarge_leaf(path.leaf(), l0_size));
+            MEMORIA_TRY(inserted, self.ctr_enlarge_leaf(path.leaf().as_mutable(), l0_size));
 
             if (inserted > 0) {
                 MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
@@ -231,7 +231,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
             MEMORIA_TRY(leaf_inserted, self.ctr_enlarge_leaf(new_leaf, size));
 
-            MEMORIA_TRY(leaf_max, self.ctr_get_node_max_keys(new_leaf));
+            MEMORIA_TRY(leaf_max, self.ctr_get_node_max_keys(new_leaf.as_immutable()));
 
             MEMORIA_TRY(branch_capacity, self.ctr_get_branch_node_capacity(path[1], -1ull));
 
@@ -250,7 +250,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
             MEMORIA_TRY_VOID(self.ctr_insert_to_branch_node(path, 1, parent_idx, leaf_max, new_leaf->id()));
 
-            path[0] = new_leaf;
+            path[0] = new_leaf.as_immutable();
             MEMORIA_TRY_VOID(self.ctr_ref_block(new_leaf->id()));
             return CtrSizeTResult::of(leaf_inserted);
         }

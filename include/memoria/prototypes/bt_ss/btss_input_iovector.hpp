@@ -104,7 +104,7 @@ public:
         return BoolResult::of(buffer_has_data || res);
     }
 
-    virtual Result<Position> fill(TreeNodePtr& leaf, const Position& from) noexcept
+    virtual Result<Position> fill(const TreeNodePtr& leaf, const Position& from) noexcept
     {
         using ResultT = Result<Position>;
 
@@ -203,7 +203,7 @@ public:
     };
 
 
-    virtual VoidResult insertBuffer(TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
+    virtual VoidResult insertBuffer(const TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
     {
         using ResultT = VoidResult;
 
@@ -374,7 +374,7 @@ public:
     ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
     {}
 
-    virtual Result<Position> fill(TreeNodePtr& leaf, const Position& from) noexcept
+    virtual Result<Position> fill(const TreeNodePtr& leaf, const Position& from) noexcept
     {
         using ResultT = Result<Position>;
         int32_t pos = from[0];
@@ -411,7 +411,7 @@ public:
         return ResultT::of(pos);
     }
 
-    virtual Int32Result insertBuffer(BlockUpdateMgr& mgr, TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
+    virtual Int32Result insertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
     {
         MEMORIA_TRY(inserted, this->insertBuffer_(mgr, leaf, at, size));
 
@@ -420,7 +420,7 @@ public:
         return inserted_result;
     }
 
-    Int32Result insertBuffer_(BlockUpdateMgr& mgr, TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
+    Int32Result insertBuffer_(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
     {
         MEMORIA_TRY(ins_result, tryInsertBuffer(mgr, leaf, at, size));
 
@@ -481,7 +481,7 @@ protected:
     }
 
 
-    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
+    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
     {
         typename Base::InsertBufferFn fn;
 

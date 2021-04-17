@@ -31,10 +31,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::BranchFixedName)
 public:
     using typename Base::BlockID;
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::BranchNodeEntry;
     using typename Base::TreePathT;
 
-    using SplitFn = std::function<VoidResult (TreeNodePtr&, TreeNodePtr&)>;
+    using SplitFn = std::function<VoidResult (const TreeNodePtr&, const TreeNodePtr&)>;
 
 
 
@@ -97,7 +98,13 @@ public:
 
     MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
     BoolResult ctr_update_branch_node(
-            TreeNodePtr& node,
+            const TreeNodePtr& node,
+            int32_t idx,
+            const BranchNodeEntry& entry
+    ) noexcept;
+
+    BoolResult ctr_update_branch_node(
+            const TreeNodeConstPtr& node,
             int32_t idx,
             const BranchNodeEntry& entry
     ) noexcept;
@@ -114,7 +121,7 @@ public:
 
 
     MEMORIA_V1_DECLARE_NODE2_FN(CanMergeFn, canBeMergedWith);
-    BoolResult ctr_can_merge_nodes(const TreeNodePtr& tgt, const TreeNodePtr& src) noexcept
+    BoolResult ctr_can_merge_nodes(const TreeNodeConstPtr& tgt, const TreeNodeConstPtr& src) noexcept
     {
         return self().node_dispatcher().dispatch(src, tgt, CanMergeFn());
     }
@@ -149,17 +156,17 @@ VoidResult M_TYPE::ctr_insert_to_branch_node(
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
 
-    TreeNodePtr node = path[level];
+    TreeNodeConstPtr node = path[level];
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
-    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node, InsertFn(), idx, keys, id));
+    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node.as_mutable(), InsertFn(), idx, keys, id));
 
     if (!node->is_root())
     {
         MEMORIA_TRY(parent, self.ctr_get_node_parent_for_update(path, level));
 
         MEMORIA_TRY(max, self.ctr_get_node_max_keys(node));
-        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.as_immutable(), node->id()));
 
         MEMORIA_TRY_VOID(self.ctr_update_branch_nodes(path, level + 1, parent_idx, max));
     }
@@ -182,14 +189,14 @@ VoidResult M_TYPE::ctr_split_node_raw(
         MEMORIA_TRY_VOID(self.ctr_create_new_root_block(path));
     }
 
-    TreeNodePtr left_node = path[level];
+    TreeNodeConstPtr left_node = path[level];
 
     MEMORIA_TRY(right_node, self.ctr_create_node(level, false, left_node->is_leaf(), left_node->header().memory_block_size()));
 
-    MEMORIA_TRY_VOID(split_fn(left_node, right_node));
+    MEMORIA_TRY_VOID(split_fn(left_node.as_mutable(), right_node));
 
     MEMORIA_TRY(left_max, self.ctr_get_node_max_keys(left_node));
-    MEMORIA_TRY(right_max, self.ctr_get_node_max_keys(right_node));
+    MEMORIA_TRY(right_max, self.ctr_get_node_max_keys(right_node.as_immutable()));
 
     MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(path[level + 1], left_node->id()));
 
@@ -235,7 +242,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
         );
     }
 
-    path[level] = right_node;
+    path[level] = right_node.as_immutable();
 
     MEMORIA_TRY_VOID(self.ctr_ref_block(right_node->id()));
 
@@ -255,7 +262,7 @@ VoidResult M_TYPE::ctr_split_path(
     return ctr_split_node(
                 path,
                 level,
-                [&self, split_at](TreeNodePtr& left, TreeNodePtr& right) noexcept -> VoidResult
+                [&self, split_at](const TreeNodePtr& left, const TreeNodePtr& right) noexcept -> VoidResult
     {
         MEMORIA_TRY_VOID(self.ctr_split_branch_node(left, right, split_at));
         return VoidResult::of();
@@ -274,7 +281,7 @@ VoidResult M_TYPE::ctr_split_path_raw(
     return ctr_split_node_raw(
                 path,
                 level,
-                [&self, split_at](TreeNodePtr& left, TreeNodePtr& right) noexcept -> VoidResult
+                [&self, split_at](const TreeNodePtr& left, const TreeNodePtr& right) noexcept -> VoidResult
     {
         MEMORIA_TRY_VOID(self.ctr_split_branch_node(left, right, split_at));
         return VoidResult::of();
@@ -283,11 +290,22 @@ VoidResult M_TYPE::ctr_split_path_raw(
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_update_branch_node(TreeNodePtr& node, int32_t idx, const BranchNodeEntry& keys) noexcept
+BoolResult M_TYPE::ctr_update_branch_node(const TreeNodePtr& node, int32_t idx, const BranchNodeEntry& keys) noexcept
 {
     MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
 
     MEMORIA_TRY_VOID(self().branch_dispatcher().dispatch(node, UpdateNodeFn(), idx, keys));
+
+    return BoolResult::of(true);
+}
+
+
+M_PARAMS
+BoolResult M_TYPE::ctr_update_branch_node(const TreeNodeConstPtr& node, int32_t idx, const BranchNodeEntry& keys) noexcept
+{
+    MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
+
+    MEMORIA_TRY_VOID(self().branch_dispatcher().dispatch(node.as_mutable(), UpdateNodeFn(), idx, keys));
 
     return BoolResult::of(true);
 }
@@ -307,7 +325,7 @@ BoolResult M_TYPE::ctr_update_branch_nodes(
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
 
-    TreeNodePtr tmp = path[level];
+    TreeNodeConstPtr tmp = path[level];
 
     MEMORIA_TRY_VOID(self.ctr_update_branch_node(tmp, idx, entry));
 
@@ -317,9 +335,9 @@ BoolResult M_TYPE::ctr_update_branch_nodes(
 
         MEMORIA_TRY(parent, self.ctr_get_node_parent_for_update(path, level));
 
-        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, tmp->id()));
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.as_immutable(), tmp->id()));
 
-        tmp = parent;
+        tmp = parent.as_immutable();
 
         MEMORIA_TRY_VOID(self.ctr_update_branch_node(tmp, parent_idx, max));
 
@@ -378,12 +396,12 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, const TreePath
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(tgt_path, level));
 
-    TreeNodePtr src = src_path[level];
-    TreeNodePtr tgt = tgt_path[level];
+    TreeNodeConstPtr src = src_path[level];
+    TreeNodeConstPtr tgt = tgt_path[level];
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
 
-    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch_1st_const(src, tgt, MergeNodesFn()));
+    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch_1st_const(src, tgt.as_mutable(), MergeNodesFn()));
 
     MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, level));
 
@@ -393,7 +411,7 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, const TreePath
 
     MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, level, max));
 
-    MEMORIA_TRY_VOID(self.ctr_cow_ref_children_after_merge(src));
+    MEMORIA_TRY_VOID(self.ctr_cow_ref_children_after_merge(src.as_mutable()));
 
     return self.ctr_unref_block(src->id());
 }

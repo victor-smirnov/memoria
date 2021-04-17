@@ -29,6 +29,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
     using typename Base::BlockID;
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
     using typename Base::Position;
     using typename Base::CtrSizeT;
 
@@ -133,7 +134,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
                 MEMORIA_TRY(block, ctr_.store().getBlock(head_->next_leaf_id()));
 
-                head_ = block;
+                head_ = block.as_mutable();
                 size_--;
                 return ResultT::of(std::move(node));
             }
@@ -229,7 +230,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         MEMORIA_TRY(has_data, provider.hasData());
         if (has_data)
         {
-            TreeNodePtr leaf = path.leaf();
+            TreeNodeConstPtr leaf = path.leaf();
             MEMORIA_TRY(end_pos, ctr_insert_data_into_leaf(leaf, pos, provider));
 
             if ((end_pos - pos).sum() > 0) {
@@ -243,7 +244,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     }
 
     template <typename Provider>
-    Result<Position> ctr_insert_data_into_leaf(TreeNodePtr& leaf, const Position& pos, Provider& provider)
+    Result<Position> ctr_insert_data_into_leaf(const TreeNodeConstPtr& leaf, const Position& pos, Provider& provider)
     {
         using ResultT = Result<Position>;
         auto& self = this->self();
@@ -252,9 +253,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         if (has_data)
         {
             MEMORIA_TRY_VOID(self.ctr_update_block_guard(leaf));
-            MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(leaf, Position(0)));
+            MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(leaf.as_mutable(), Position(0)));
 
-            MEMORIA_TRY(end, provider.fill(leaf, pos));
+            MEMORIA_TRY(end, provider.fill(leaf.as_mutable(), pos));
 
             return ResultT::of(end);
         }
@@ -340,7 +341,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
                 head = node;
             }
 
-            MEMORIA_TRY_VOID(self.ctr_insert_data_into_leaf(node, Position(), provider));
+            MEMORIA_TRY_VOID(self.ctr_insert_data_into_leaf(node.as_immutable(), Position(), provider));
             MEMORIA_TRY_VOID(provider.iter_next_leaf(node));
 
             current = node;

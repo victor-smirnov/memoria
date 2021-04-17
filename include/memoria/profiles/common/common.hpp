@@ -70,6 +70,9 @@ bool ProfileIsCopyOnWrite = ProfileTraits<Profile>::IsCoW;
 template <typename Profile>
 using ProfileSharedBlockPtr = typename ProfileTraits<Profile>::SharedBlockPtr;
 
+template <typename Profile>
+using ProfileSharedBlockConstPtr = typename ProfileTraits<Profile>::SharedBlockConstPtr;
+
 template <typename ID> struct IDTools;
 
 template <typename Profile>

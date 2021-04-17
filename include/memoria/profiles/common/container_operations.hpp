@@ -207,12 +207,12 @@ struct ContainerOperationsBase {
     ) const noexcept = 0;
     
     virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> new_ctr_instance(
-        const ProfileSharedBlockPtr<Profile>& root_block,
+        const ProfileSharedBlockConstPtr<Profile>& root_block,
         AllocatorBasePtr allocator
     ) const noexcept = 0;
 
     virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> new_ctr_instance(
-        const ProfileSharedBlockPtr<Profile>& root_block,
+        const ProfileSharedBlockConstPtr<Profile>& root_block,
         Allocator* allocator
     ) const noexcept = 0;
 

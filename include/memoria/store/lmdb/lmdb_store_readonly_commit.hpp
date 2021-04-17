@@ -187,7 +187,7 @@ protected:
         return MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly commits");
     }
 
-    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockPtr& block) noexcept {
+    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockConstPtr& block) noexcept {
         return MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits");
     }
 
