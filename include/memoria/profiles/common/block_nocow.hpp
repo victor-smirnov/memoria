@@ -27,6 +27,10 @@ namespace memoria {
 
 template <typename PageT, typename AllocatorT, typename Shared_>
 class BlockGuard {
+
+    template <typename BlkT>
+    static constexpr bool IsConstCompatible = std::is_const<PageT>::value ? std::is_const<BlkT>::value : true;
+
 public:
     using Page      = PageT;
     using BlockType = PageT;
@@ -60,14 +64,14 @@ public:
         ref();
     }
 
-    template <typename Page>
+    template <typename Page, typename = std::enable_if_t<IsConstCompatible<Page>>>
     BlockGuard(const BlockGuard<Page, AllocatorT, Shared>& guard) noexcept:
         shared_(guard.shared_)
     {
         ref();
     }
 
-    template <typename Page>
+    template <typename Page, typename = std::enable_if_t<IsConstCompatible<Page>>>
     BlockGuard(BlockGuard<Page, AllocatorT, Shared>&& guard) noexcept: shared_(guard.shared_)
     {
         guard.shared_ = nullptr;
@@ -101,7 +105,7 @@ public:
     }
 
 
-    template <typename P>
+    template <typename P, typename = std::enable_if_t<IsConstCompatible<P>>>
     BlockGuard& operator=(const BlockGuard<P, AllocatorT, Shared>& guard) noexcept
     {
         unref();
@@ -124,7 +128,7 @@ public:
     }
 
 
-    template <typename P>
+    template <typename P, typename = std::enable_if_t<IsConstCompatible<P>>>
     BlockGuard& operator=(BlockGuard<P, AllocatorT, Shared>&& guard) noexcept
     {
         if (this != &guard)

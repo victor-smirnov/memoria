@@ -171,7 +171,7 @@ protected:
 
                 block_shared_cache_.insert(entry);
 
-                return ResultT::of(BlockG(entry));
+                return ResultT::of(entry);
             }
             else {
                 return make_generic_error("Block {} is not found in the data_db", id);

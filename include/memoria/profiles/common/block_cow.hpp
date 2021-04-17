@@ -22,8 +22,16 @@
 
 namespace memoria {
 
+namespace detail {
+
+}
+
 template <typename PageT, typename AllocatorT, typename Shared_>
 class CowSharedBlockHandler {
+
+    template <typename BlkT>
+    static constexpr bool IsConstCompatible = std::is_const<PageT>::value ? std::is_const<BlkT>::value : true;
+
 public:
     using Page      = PageT;
     using BlockType = PageT;
@@ -58,14 +66,14 @@ public:
         ref();
     }
 
-    template <typename Page>
+    template <typename Page, typename = std::enable_if_t<IsConstCompatible<Page>>>
     CowSharedBlockHandler(const CowSharedBlockHandler<Page, AllocatorT, Shared>& guard) noexcept:
         ptr_(cast_me(guard.ptr_)), shared_(guard.shared_)
     {
         ref();
     }
 
-    template <typename Page>
+    template <typename Page, typename = std::enable_if_t<IsConstCompatible<Page>>>
     CowSharedBlockHandler(CowSharedBlockHandler<Page, AllocatorT, Shared>&& guard) noexcept:
         ptr_(cast_me(guard.ptr_)),
         shared_(guard.shared_)
@@ -102,7 +110,7 @@ public:
     }
 
 
-    template <typename P>
+    template <typename P, typename = std::enable_if_t<IsConstCompatible<P>>>
     CowSharedBlockHandler& operator=(const CowSharedBlockHandler<P, AllocatorT, Shared>& guard) noexcept
     {
         unref();
@@ -126,7 +134,7 @@ public:
     }
 
 
-    template <typename P>
+    template <typename P, typename = std::enable_if_t<IsConstCompatible<P>>>
     CowSharedBlockHandler& operator=(CowSharedBlockHandler<P, AllocatorT, Shared>&& guard) noexcept
     {
         if (this != &guard)

@@ -25,6 +25,10 @@ namespace memoria {
 
 template <typename BlockType_>
 class LWBlockHandler {
+
+    template <typename BlkT>
+    static constexpr bool IsConstCompatible = std::is_const<BlockType_>::value ? std::is_const<BlkT>::value : true;
+
 public:
     using MutableBlockType = std::remove_const_t<BlockType_>;
 
@@ -44,12 +48,12 @@ public:
         ptr_()
     {}
 
-    template <typename U>
+    template <typename U, typename = std::enable_if_t<IsConstCompatible<U>>>
     LWBlockHandler(LWBlockHandler<U>&& other) noexcept:
         ptr_(ptr_cast<MutableBlockType>(other.ptr_))
     {}
 
-    template <typename U>
+    template <typename U, typename = std::enable_if_t<IsConstCompatible<U>>>
     LWBlockHandler(const LWBlockHandler<U>& other) noexcept:
         ptr_(ptr_cast<MutableBlockType>(other.ptr_))
     {}

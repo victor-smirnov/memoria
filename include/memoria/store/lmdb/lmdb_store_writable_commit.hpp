@@ -618,7 +618,7 @@ private:
                     BlockType* block_data = ptr_cast<BlockType>(::malloc(block_ptr.mv_size));
                     std::memcpy(block_data, block_ptr.mv_data, block_ptr.mv_size);
                     entry->set_block(block_data);
-                    return ResultT::of(BlockG(entry));
+                    return ResultT::of(ConstBlockG(entry));
                 }
                 else {
                     return make_generic_error("Block {} is not found in the data_db", id);

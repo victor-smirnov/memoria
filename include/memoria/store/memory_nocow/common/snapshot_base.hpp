@@ -629,7 +629,7 @@ public:
             }
         }
         else {
-            return Result<ConstBlockG>::of(BlockG());
+            return Result<ConstBlockG>::of(ConstBlockG());
         }
     }
 
