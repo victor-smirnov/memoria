@@ -30,7 +30,7 @@ namespace memoria {
 MEMORIA_V1_ITERATOR_PART_BEGIN(map::ItrNavName)
 public:
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    typedef typename Base::NodeBasePtr                                            NodeBasePtr;
 
     typedef typename Base::Container::Value                                     Value;
     typedef typename Base::Container::Key                                       Key;

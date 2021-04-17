@@ -42,12 +42,12 @@ class IOVectorBTSSInputProviderBase {
 
 public:
     using MyType = IOVectorBTSSInputProviderBase<CtrT>;
-    using NodeBaseG = typename CtrT::Types::NodeBaseG;
-    using TreePathT = TreePath<NodeBaseG>;
+    using NodeBasePtr = typename CtrT::Types::NodeBasePtr;
+    using TreePathT = TreePath<NodeBasePtr>;
     using CtrSizeT  = typename CtrT::Types::CtrSizeT;
 
     using Position  = typename CtrT::Types::Position;
-    using NodePair  = std::pair<NodeBaseG, NodeBaseG>;
+    using NodePair  = std::pair<NodeBasePtr, NodeBasePtr>;
 
 protected:
     uint64_t start_ = 0;
@@ -93,7 +93,7 @@ public:
         return total_symbols_;
     }
 
-    VoidResult iter_next_leaf(const NodeBaseG& leaf) noexcept{
+    VoidResult iter_next_leaf(const NodeBasePtr& leaf) noexcept{
         return VoidResult::of();
     }
 
@@ -104,7 +104,7 @@ public:
         return BoolResult::of(buffer_has_data || res);
     }
 
-    virtual Result<Position> fill(NodeBaseG& leaf, const Position& from) noexcept
+    virtual Result<Position> fill(NodeBasePtr& leaf, const Position& from) noexcept
     {
         using ResultT = Result<Position>;
 
@@ -148,7 +148,7 @@ public:
         }
     }
 
-    virtual Int32Result findCapacity(const NodeBaseG& leaf, int32_t size) noexcept = 0;
+    virtual Int32Result findCapacity(const NodeBasePtr& leaf, int32_t size) noexcept = 0;
 
     struct InsertBufferFn
     {
@@ -203,7 +203,7 @@ public:
     };
 
 
-    virtual VoidResult insertBuffer(NodeBaseG& leaf, int32_t at, int32_t size) noexcept
+    virtual VoidResult insertBuffer(NodeBasePtr& leaf, int32_t at, int32_t size) noexcept
     {
         using ResultT = VoidResult;
 
@@ -312,7 +312,7 @@ class IOVectorBTSSInputProvider<CtrT, LeafDataLengthType::FIXED>: public IOVecto
     using Base = IOVectorBTSSInputProviderBase<CtrT>;
 
 public:
-    using NodeBaseG = typename CtrT::Types::NodeBaseG;
+    using NodeBasePtr = typename CtrT::Types::NodeBasePtr;
     using CtrSizeT  = typename CtrT::Types::CtrSizeT;
 
     using Position  = typename Base::Position;
@@ -329,7 +329,7 @@ public:
     ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
     {}
 
-    virtual Int32Result findCapacity(const NodeBaseG& leaf, int32_t size) noexcept
+    virtual Int32Result findCapacity(const NodeBasePtr& leaf, int32_t size) noexcept
     {
         MEMORIA_TRY(capacity, this->ctr_.ctr_get_leaf_node_capacity(leaf));
 
@@ -350,7 +350,7 @@ class IOVectorBTSSInputProvider<CtrT, LeafDataLengthType::VARIABLE>: public IOVe
     using Base = IOVectorBTSSInputProviderBase<CtrT>;
 
 public:
-    using NodeBaseG = typename CtrT::Types::NodeBaseG;
+    using NodeBasePtr = typename CtrT::Types::NodeBasePtr;
     using CtrSizeT  = typename CtrT::Types::CtrSizeT;
 
     using Position  = typename Base::Position;
@@ -374,7 +374,7 @@ public:
     ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
     {}
 
-    virtual Result<Position> fill(NodeBaseG& leaf, const Position& from) noexcept
+    virtual Result<Position> fill(NodeBasePtr& leaf, const Position& from) noexcept
     {
         using ResultT = Result<Position>;
         int32_t pos = from[0];
@@ -411,7 +411,7 @@ public:
         return ResultT::of(pos);
     }
 
-    virtual Int32Result insertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size) noexcept
+    virtual Int32Result insertBuffer(BlockUpdateMgr& mgr, NodeBasePtr& leaf, int32_t at, int32_t size) noexcept
     {
         MEMORIA_TRY(inserted, this->insertBuffer_(mgr, leaf, at, size));
 
@@ -420,7 +420,7 @@ public:
         return inserted_result;
     }
 
-    Int32Result insertBuffer_(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size) noexcept
+    Int32Result insertBuffer_(BlockUpdateMgr& mgr, NodeBasePtr& leaf, int32_t at, int32_t size) noexcept
     {
         MEMORIA_TRY(ins_result, tryInsertBuffer(mgr, leaf, at, size));
 
@@ -476,12 +476,12 @@ public:
     }
 
 protected:
-    virtual Int32Result findCapacity(const NodeBaseG& leaf, int32_t size) noexcept {
+    virtual Int32Result findCapacity(const NodeBasePtr& leaf, int32_t size) noexcept {
         return 0;
     }
 
 
-    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size) noexcept
+    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, NodeBasePtr& leaf, int32_t at, int32_t size) noexcept
     {
         typename Base::InsertBufferFn fn;
 
@@ -503,7 +503,7 @@ protected:
         return BoolResult::of(true);
     }
 
-    float getFreeSpacePart(const NodeBaseG& node)
+    float getFreeSpacePart(const NodeBasePtr& node)
     {
         float client_area = node->allocator()->client_area();
         float free_space = node->allocator()->free_space();

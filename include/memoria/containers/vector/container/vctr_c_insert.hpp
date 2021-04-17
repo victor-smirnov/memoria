@@ -35,7 +35,7 @@ public:
 protected:
     typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Types::NodeBasePtr                                           NodeBasePtr;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;

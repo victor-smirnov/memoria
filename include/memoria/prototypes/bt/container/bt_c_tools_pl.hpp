@@ -29,7 +29,7 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsPLName)
 
-    using typename Base::NodeBaseG;
+    using typename Base::NodeBasePtr;
     using typename Base::TreePathT;
 
     VoidResult ctr_dump_path(const TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
@@ -48,9 +48,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsPLName)
 
 
 public:
-    Result<NodeBaseG> ctr_get_node_parent(const TreePathT& path, size_t level) const noexcept
+    Result<NodeBasePtr> ctr_get_node_parent(const TreePathT& path, size_t level) const noexcept
     {
-        using ResultT = Result<NodeBaseG>;
+        using ResultT = Result<NodeBasePtr>;
         if (MMA_LIKELY(level + 1 < path.size()))
         {
             return ResultT::of(path[level + 1]);
@@ -68,9 +68,9 @@ public:
 
 
 
-    Result<NodeBaseG> ctr_get_node_parent_for_update(TreePathT& path, size_t level) const noexcept
+    Result<NodeBasePtr> ctr_get_node_parent_for_update(TreePathT& path, size_t level) const noexcept
     {
-        using ResultT = Result<NodeBaseG>;
+        using ResultT = Result<NodeBasePtr>;
         if (MMA_LIKELY(level + 1 < path.size()))
         {
             MEMORIA_TRY_VOID(path[level + 1].update());
@@ -126,7 +126,7 @@ BoolResult M_TYPE::ctr_get_next_node(TreePathT& path, size_t level) const noexce
 
     auto& self = this->self();
 
-    NodeBaseG node = path[level];
+    NodeBasePtr node = path[level];
 
     if (!node->is_root())
     {
@@ -164,7 +164,7 @@ BoolResult M_TYPE::ctr_get_prev_node(TreePathT& path, size_t level) const noexce
     using ResultT = BoolResult;
     auto& self = this->self();
 
-    NodeBaseG node = path[level];
+    NodeBasePtr node = path[level];
 
     if (!node->is_root())
     {

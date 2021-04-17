@@ -37,7 +37,7 @@ public:
 
 
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    typedef typename Base::NodeBasePtr                                            NodeBasePtr;
 
     typedef typename Container::BranchNodeEntry                                 BranchNodeEntry;
     typedef typename Container::Iterator                                        Iterator;

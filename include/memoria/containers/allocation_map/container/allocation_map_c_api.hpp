@@ -44,7 +44,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     using typename Base::Profile;
     using typename Base::ApiProfileT;
     using typename Base::CtrSizeT;
-    using typename Base::NodeBaseG;
+    using typename Base::NodeBasePtr;
     using typename Base::TreePathT;
     using typename Base::Position;
 
@@ -62,7 +62,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     }
 
-    bool ctr_can_merge_nodes(const NodeBaseG& tgt, const NodeBaseG& src) noexcept
+    bool ctr_can_merge_nodes(const NodeBasePtr& tgt, const NodeBasePtr& src) noexcept
     {
         return false;
     }
@@ -106,7 +106,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         }
     };
 
-    CtrSizeTResult ctr_enlarge_leaf(NodeBaseG& node, CtrSizeT l0_size, bool update_path = true) noexcept
+    CtrSizeTResult ctr_enlarge_leaf(NodeBasePtr& node, CtrSizeT l0_size, bool update_path = true) noexcept
     {
         return self().leaf_dispatcher().dispatch(node, ExpandBitmapFn(), l0_size);
     }
@@ -210,7 +210,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     };
 
 
-    VoidResult ctr_layout_leaf_node(NodeBaseG& node, const Position& sizes) const noexcept
+    VoidResult ctr_layout_leaf_node(NodeBasePtr& node, const Position& sizes) const noexcept
     {
         return self().leaf_dispatcher().dispatch(node, LayoutLeafNodeFn());
     }

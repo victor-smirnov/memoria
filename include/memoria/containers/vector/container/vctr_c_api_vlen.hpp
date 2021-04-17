@@ -31,7 +31,7 @@ public:
     using Types = typename Base::Types;
 
 
-    using typename Base::NodeBaseG;
+    using typename Base::NodeBasePtr;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
     using typename Base::BlockUpdateMgr;

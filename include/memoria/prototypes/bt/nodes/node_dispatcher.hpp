@@ -79,13 +79,13 @@ private:
     CtrT& ctr_;
 
 public:
-    using NodeBaseG = typename Types::NodeBaseG;
+    using NodeBasePtr = typename Types::NodeBasePtr;
 
 public:
     NDT0(CtrT& ctr) noexcept: ctr_(ctr) {}
 
     template <typename Functor, typename... Args>
-    auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args) const noexcept
+    auto dispatch(NodeBasePtr& node, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node->block_type_hash())
         {
@@ -98,7 +98,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const noexcept
+    auto dispatch(NodeBasePtr& node1, NodeBasePtr& node2, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node1->block_type_hash())
         {
@@ -114,7 +114,7 @@ public:
 
 
     template <typename Functor, typename... Args>
-    auto dispatch_1st_const(const NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const noexcept
+    auto dispatch_1st_const(const NodeBasePtr& node1, NodeBasePtr& node2, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node1->block_type_hash())
         {
@@ -129,7 +129,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args) const noexcept
+    auto dispatch(const NodeBasePtr& node, Functor&& functor, Args&&... args) const noexcept
     {
         if (HASH == node->block_type_hash())
         {
@@ -144,8 +144,8 @@ public:
 
     template <typename Functor, typename... Args>
     auto dispatch(
-            const NodeBaseG& node1,
-            const NodeBaseG& node2,
+            const NodeBasePtr& node1,
+            const NodeBasePtr& node2,
             Functor&& functor,
             Args&&... args
     ) const noexcept
@@ -229,7 +229,7 @@ private:
     CtrT& ctr_;
 
 public:
-    using NodeBaseG = typename Types::NodeBaseG;
+    using NodeBasePtr = typename Types::NodeBasePtr;
 
 public:
     NDT0(CtrT& ctr) noexcept: ctr_(ctr) {}
@@ -237,7 +237,7 @@ public:
 
 
     template <typename Functor, typename... Args>
-    auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args) const noexcept ->
+    auto dispatch(NodeBasePtr& node, Functor&& functor, Args&&... args) const noexcept ->
         typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<NodeSO&>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node->block_type_hash())
@@ -251,7 +251,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const noexcept ->
+    auto dispatch(NodeBasePtr& node1, NodeBasePtr& node2, Functor&& functor, Args&&... args) const noexcept ->
         typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<NodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node1->block_type_hash())
@@ -266,7 +266,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch_1st_const(const NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const noexcept ->
+    auto dispatch_1st_const(const NodeBasePtr& node1, NodeBasePtr& node2, Functor&& functor, Args&&... args) const noexcept ->
         typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node1->block_type_hash())
@@ -283,7 +283,7 @@ public:
 
 
     template <typename Functor, typename... Args>
-    auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args) const noexcept ->
+    auto dispatch(const NodeBasePtr& node, Functor&& functor, Args&&... args) const noexcept ->
         typename detail::ResultOfFn<decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::forward<Args>(args)...))>::Type
     {
         if (HASH == node->block_type_hash())
@@ -299,8 +299,8 @@ public:
 
     template <typename Functor, typename... Args>
     auto dispatch(
-            const NodeBaseG& node1,
-            const NodeBaseG& node2,
+            const NodeBasePtr& node1,
+            const NodeBasePtr& node2,
             Functor&& functor,
             Args&&... args
     ) const noexcept ->

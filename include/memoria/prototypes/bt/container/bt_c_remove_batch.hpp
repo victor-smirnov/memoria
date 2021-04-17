@@ -23,7 +23,7 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveBatchName)
 
-    using typename Base::NodeBaseG;
+    using typename Base::NodeBasePtr;
     using typename Base::Position;
     using typename Base::TreePathT;
 

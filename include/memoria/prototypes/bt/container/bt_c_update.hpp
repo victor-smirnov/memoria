@@ -27,7 +27,7 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
 
-    using typename Base::NodeBaseG;
+    using typename Base::NodeBasePtr;
     using typename Base::Iterator;
 
     template <typename SubstreamsList, typename Buffer>

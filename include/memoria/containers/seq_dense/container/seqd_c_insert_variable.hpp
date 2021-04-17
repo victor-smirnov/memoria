@@ -35,7 +35,7 @@ public:
 
     typedef typename Base::ID                                                   ID;
 
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Types::NodeBasePtr                                           NodeBasePtr;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::Metadata                                             Metadata;
@@ -66,7 +66,7 @@ public:
 
 
     template <typename LeafPosition, typename Buffer>
-    MMA_NODISCARD bool doInsertBufferIntoLeaf(NodeBaseG& leaf, BlockUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+    MMA_NODISCARD bool doInsertBufferIntoLeaf(NodeBasePtr& leaf, BlockUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
     {
         InsertBufferIntoLeafFn fn;
         VoidResult status = self().leaf_dispatcher().dispatch(leaf, fn, pos, start, size - start, buffer);

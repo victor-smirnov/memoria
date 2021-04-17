@@ -303,7 +303,7 @@ public:
         using BranchNodeTypes   = typename MyType::BranchNodeTypes;
         using LeafNodeTypes     = typename MyType::LeafNodeTypes;
 
-        using NodeBaseG         = TreeNodeBaseG;
+        using NodeBasePtr         = TreeNodeBaseG;
         using ConstNodeBaseG    = ConstTreeNodeBaseG;
     };
 
@@ -348,7 +348,7 @@ public:
         using Allocator = typename ContainerTypes::Allocator;
         using Metadata  = typename ContainerTypes::Metadata;
 
-        using NodeBaseG = TreeNodeBaseG;
+        using NodeBasePtr = TreeNodeBaseG;
         using ConstNodeBaseG = ConstTreeNodeBaseG;
 
         using CtrList  = typename MyType::CtrList;

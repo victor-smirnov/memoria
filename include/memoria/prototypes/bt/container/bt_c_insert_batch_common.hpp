@@ -28,25 +28,25 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
     using typename Base::BlockID;
-    using typename Base::NodeBaseG;
+    using typename Base::NodeBasePtr;
     using typename Base::Position;
     using typename Base::CtrSizeT;
 
     using typename Base::TreePathT;
 
     class Checkpoint {
-        NodeBaseG head_;
+        NodeBasePtr head_;
         int32_t size_;
     public:
-        Checkpoint(NodeBaseG head, int32_t size): head_(head), size_(size) {}
+        Checkpoint(NodeBasePtr head, int32_t size): head_(head), size_(size) {}
 
-        NodeBaseG head() const {return head_;}
+        NodeBasePtr head() const {return head_;}
         int32_t size() const {return size_;}
     };
 
 
     struct ILeafProvider {
-        virtual Result<NodeBaseG> get_leaf() noexcept = 0;
+        virtual Result<NodeBasePtr> get_leaf() noexcept = 0;
 
         virtual Checkpoint checkpoint() = 0;
 
@@ -75,9 +75,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
 
-    Result<NodeBaseG> ctr_build_subtree(ILeafProvider& provider, int32_t level) noexcept
+    Result<NodeBasePtr> ctr_build_subtree(ILeafProvider& provider, int32_t level) noexcept
     {
-        using ResultT = Result<NodeBaseG>;
+        using ResultT = Result<NodeBasePtr>;
 
         auto& self = this->self();
 
@@ -111,22 +111,22 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
     class ListLeafProvider: public ILeafProvider {
-        NodeBaseG   head_;
+        NodeBasePtr   head_;
         CtrSizeT    size_ = 0;
 
         MyType&     ctr_;
 
     public:
-        ListLeafProvider(MyType& ctr, NodeBaseG head, CtrSizeT size): head_(head),  size_(size), ctr_(ctr) {}
+        ListLeafProvider(MyType& ctr, NodeBasePtr head, CtrSizeT size): head_(head),  size_(size), ctr_(ctr) {}
 
         virtual CtrSizeT size() const
         {
             return size_;
         }
 
-        virtual Result<NodeBaseG> get_leaf() noexcept
+        virtual Result<NodeBasePtr> get_leaf() noexcept
         {
-            using ResultT = Result<NodeBaseG>;
+            using ResultT = Result<NodeBasePtr>;
             if (head_.isSet())
             {
                 auto node = head_;
@@ -155,7 +155,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     };
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(IsEmptyFn, ctr_is_empty, bool);
-    bool ctr_is_empty(const NodeBaseG& node) noexcept {
+    bool ctr_is_empty(const NodeBasePtr& node) noexcept {
         return self().node_dispatcher().dispatch(node, IsEmptyFn());
     }
 
@@ -202,17 +202,17 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
     class LeafList {
         CtrSizeT size_;
-        NodeBaseG head_;
-        NodeBaseG tail_;
+        NodeBasePtr head_;
+        NodeBasePtr tail_;
     public:
-        LeafList(CtrSizeT size, NodeBaseG head, NodeBaseG tail): size_(size), head_(head), tail_(tail) {}
+        LeafList(CtrSizeT size, NodeBasePtr head, NodeBasePtr tail): size_(size), head_(head), tail_(tail) {}
 
         CtrSizeT size() const {return size_;}
-        const NodeBaseG& head() const {return head_;}
-        const NodeBaseG& tail() const {return tail_;}
+        const NodeBasePtr& head() const {return head_;}
+        const NodeBasePtr& tail() const {return tail_;}
 
-        NodeBaseG& head() {return head_;}
-        NodeBaseG& tail() {return tail_;}
+        NodeBasePtr& head() {return head_;}
+        NodeBasePtr& tail() {return tail_;}
     };
 
 
@@ -229,7 +229,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         MEMORIA_TRY(has_data, provider.hasData());
         if (has_data)
         {
-            NodeBaseG leaf = path.leaf();
+            NodeBasePtr leaf = path.leaf();
             MEMORIA_TRY(end_pos, ctr_insert_data_into_leaf(leaf, pos, provider));
 
             if ((end_pos - pos).sum() > 0) {
@@ -243,7 +243,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     }
 
     template <typename Provider>
-    Result<Position> ctr_insert_data_into_leaf(NodeBaseG& leaf, const Position& pos, Provider& provider)
+    Result<Position> ctr_insert_data_into_leaf(NodeBasePtr& leaf, const Position& pos, Provider& provider)
     {
         using ResultT = Result<Position>;
         auto& self = this->self();
@@ -314,8 +314,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         auto& self = this->self();
 
         CtrSizeT    total = 0;
-        NodeBaseG   head;
-        NodeBaseG   current;
+        NodeBasePtr   head;
+        NodeBasePtr   current;
 
         MEMORIA_TRY(meta, self.ctr_get_root_metadata());
         int32_t block_size = meta.memory_block_size();

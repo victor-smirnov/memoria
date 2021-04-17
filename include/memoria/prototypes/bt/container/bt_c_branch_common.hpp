@@ -27,7 +27,7 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::BranchCommonName)
 public:
-    using typename Base::NodeBaseG;
+    using typename Base::NodeBasePtr;
     using typename Base::TreePathT;
 
 public:
@@ -35,14 +35,14 @@ public:
     VoidResult ctr_create_new_root_block(TreePathT& path) noexcept;
 
     MEMORIA_V1_DECLARE_NODE_FN(GetNonLeafCapacityFn, capacity);
-    Int32Result ctr_get_branch_node_capacity(const NodeBaseG& node, uint64_t active_streams) const noexcept
+    Int32Result ctr_get_branch_node_capacity(const NodeBasePtr& node, uint64_t active_streams) const noexcept
     {
         return self().branch_dispatcher().dispatch(node, GetNonLeafCapacityFn(), active_streams);
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN(SplitNodeFn, splitTo);
-    VoidResult ctr_split_branch_node(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at) noexcept;
+    VoidResult ctr_split_branch_node(NodeBasePtr& src, NodeBasePtr& tgt, int32_t split_at) noexcept;
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -51,7 +51,7 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-VoidResult M_TYPE::ctr_split_branch_node(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at) noexcept
+VoidResult M_TYPE::ctr_split_branch_node(NodeBasePtr& src, NodeBasePtr& tgt, int32_t split_at) noexcept
 {
     auto& self = this->self();
     return self.branch_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
@@ -65,7 +65,7 @@ VoidResult M_TYPE::ctr_create_new_root_block(TreePathT& path) noexcept
 
     MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
 
-    NodeBaseG root = path.root();
+    NodeBasePtr root = path.root();
 
     MEMORIA_TRY(new_root, self.ctr_create_node(root->level() + 1, true, false, root->header().memory_block_size()));
 

@@ -33,7 +33,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorRemoveName)
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
     using typename Base::Container;
-    using typename Base::NodeBaseG;
+    using typename Base::NodeBasePtr;
     using typename Base::Position;
 
     static const int32_t Streams          		= Container::Types::Streams;

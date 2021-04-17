@@ -32,7 +32,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(seq_dense::IterSkipName)
 public:
     typedef Ctr<typename Types::CtrTypes>                                       Container;
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    typedef typename Base::NodeBasePtr                                            NodeBasePtr;
 
     typedef typename Container::BranchNodeEntry                                 BranchNodeEntry;
 

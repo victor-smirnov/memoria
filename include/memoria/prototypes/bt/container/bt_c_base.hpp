@@ -57,8 +57,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
-    using NodeBaseG = typename Types::NodeBaseG;
-    using TreePathT = TreePath<NodeBaseG>;
+    using NodeBasePtr = typename Types::NodeBasePtr;
+    using TreePathT = TreePath<NodeBasePtr>;
 
     using Position  = typename Types::Position;
     using CtrSizeT  = typename Types::CtrSizeT;
@@ -109,7 +109,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     ObjectPools& pools() const noexcept {return self().allocator().object_pools();}
 
-    Result<NodeBaseG> createRootLeaf() const noexcept {
+    Result<NodeBasePtr> createRootLeaf() const noexcept {
         return self().ctr_create_root_node(0, true, -1);
     }
 
@@ -421,7 +421,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    VoidResult ctr_root_to_node(NodeBaseG& node) noexcept
+    VoidResult ctr_root_to_node(NodeBasePtr& node) noexcept
     {
         MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
 
@@ -432,7 +432,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return VoidResult::of();
     }
 
-    VoidResult ctr_node_to_root(NodeBaseG& node) noexcept
+    VoidResult ctr_node_to_root(NodeBasePtr& node) noexcept
     {
         auto& self = this->self();
         MEMORIA_TRY(root, self.ctr_get_root_node());
@@ -443,13 +443,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return self.ctr_copy_root_metadata(root, node);
     }
 
-    VoidResult ctr_copy_root_metadata(const NodeBaseG& src, NodeBaseG& tgt) noexcept
+    VoidResult ctr_copy_root_metadata(const NodeBasePtr& src, NodeBasePtr& tgt) noexcept
     {
         MEMORIA_TRY_VOID(self().ctr_update_block_guard(tgt));
         return tgt->copy_metadata_from(src.block());
     }
 
-    bool ctr_can_convert_to_root(const NodeBaseG& node, psize_t metadata_size) const noexcept
+    bool ctr_can_convert_to_root(const NodeBasePtr& node, psize_t metadata_size) const noexcept
     {
         return node->can_convert_to_root(metadata_size);
     }
@@ -489,23 +489,23 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    static CtrID ctr_get_model_name(NodeBaseG root) noexcept
+    static CtrID ctr_get_model_name(NodeBasePtr root) noexcept
     {
         return ctr_get_root_metadata(root).model_name();
     }
 
-    static const Metadata& ctr_get_root_metadata(NodeBaseG node) noexcept
+    static const Metadata& ctr_get_root_metadata(NodeBasePtr node) noexcept
     {
         return node->root_metadata();
     }
 
-    static Metadata ctr_get_ctr_root_metadata(NodeBaseG node) noexcept
+    static Metadata ctr_get_ctr_root_metadata(NodeBasePtr node) noexcept
     {
         return node->root_metadata();
     }
 
 
-    VoidResult ctr_set_ctr_root_metadata(NodeBaseG& node, const Metadata& metadata) const noexcept
+    VoidResult ctr_set_ctr_root_metadata(NodeBasePtr& node, const Metadata& metadata) const noexcept
     {
         MEMORIA_V1_ASSERT_TRUE_RTN(node.isSet());
 
@@ -528,11 +528,11 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 //    VoidResult ctr_set_root_metadata(const Metadata& metadata) const noexcept
 //    {
-//        NodeBaseG root = self().ctr_get_root_node_for_update();
+//        NodeBasePtr root = self().ctr_get_root_node_for_update();
 //        self().setRootMetadata(root, metadata);
 //    }
 
-    VoidResult ctr_copy_all_root_metadata_from_to(const NodeBaseG& from, NodeBaseG& to) const noexcept
+    VoidResult ctr_copy_all_root_metadata_from_to(const NodeBasePtr& from, NodeBasePtr& to) const noexcept
     {
         return to->copy_metadata_from(from.block());
     }
@@ -543,7 +543,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
      * \param node Must be a root node
      * \param metadata to set
      */
-    VoidResult ctr_set_root_metadata(NodeBaseG& node, const Metadata& metadata) const noexcept
+    VoidResult ctr_set_root_metadata(NodeBasePtr& node, const Metadata& metadata) const noexcept
     {
         return ctr_set_ctr_root_metadata(node, metadata);
     }
@@ -592,12 +592,12 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    Result<NodeBaseG> ctr_create_node_fn(int32_t size) const noexcept
+    Result<NodeBasePtr> ctr_create_node_fn(int32_t size) const noexcept
     {
-        using ResultT = Result<NodeBaseG>;
+        using ResultT = Result<NodeBasePtr>;
         auto& self = this->self();
 
-        MEMORIA_TRY(node, static_cast_block<NodeBaseG>(self.store().createBlock(size)));
+        MEMORIA_TRY(node, static_cast_block<NodeBasePtr>(self.store().createBlock(size)));
 
         node->init();
         node->header().block_type_hash() = Node::NodeType::hash();
@@ -606,10 +606,10 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, ctr_create_node_fn, Result<NodeBaseG>);
-    Result<NodeBaseG> createNonRootNode(int16_t level, bool leaf, int32_t size = -1) const noexcept
+    MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, ctr_create_node_fn, Result<NodeBasePtr>);
+    Result<NodeBasePtr> createNonRootNode(int16_t level, bool leaf, int32_t size = -1) const noexcept
     {
-        using ResultT = Result<NodeBaseG>;
+        using ResultT = Result<NodeBasePtr>;
         auto& self = this->self();
 
         if (size == -1)
@@ -645,9 +645,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(InitRootMetadataFn, init_root_metadata);
-    Result<NodeBaseG> ctr_create_root_node(int16_t level, bool leaf, int32_t size = -1) const noexcept
+    Result<NodeBasePtr> ctr_create_root_node(int16_t level, bool leaf, int32_t size = -1) const noexcept
     {
-        using ResultT = Result<NodeBaseG>;
+        using ResultT = Result<NodeBasePtr>;
         auto& self = this->self();
 
         if (size == -1 && self.root().is_set())
@@ -705,7 +705,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return ResultT::of(node);
     }
 
-    Result<NodeBaseG> ctr_create_node(int16_t level, bool root, bool leaf, int32_t size = -1) const noexcept
+    Result<NodeBasePtr> ctr_create_node(int16_t level, bool root, bool leaf, int32_t size = -1) const noexcept
     {
         auto& self = this->self();
         if (root) {
@@ -724,7 +724,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     MEMORIA_V1_CONST_FN_WRAPPER(PrepareNodeFn, ctr_prepare_node);
 
-    VoidResult ctr_prepare_node(NodeBaseG& node) const noexcept
+    VoidResult ctr_prepare_node(NodeBasePtr& node) const noexcept
     {
         return self().node_dispatcher().dispatch(node, PrepareNodeFn(self()));
     }
@@ -738,7 +738,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     static Result<CtrBlockDescription<ApiProfileT>> describe_block(const BlockID& node_id, Allocator* alloc) noexcept
     {
         MEMORIA_TRY(tmp, alloc->getBlock(node_id));
-        NodeBaseG node = tmp;
+        NodeBasePtr node = tmp;
 
         int32_t size = node->header().memory_block_size();
         bool leaf = node->is_leaf();
@@ -767,7 +767,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if (node->ctr_type_hash() == CONTAINER_HASH)
         {
-            NodeBaseG root_node = node;
+            NodeBasePtr root_node = node;
 
             self.set_root_id(root_node->id());
 

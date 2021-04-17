@@ -33,7 +33,7 @@ public:
 
     typedef typename Base::ID                                                   ID;
 
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Types::NodeBasePtr                                           NodeBasePtr;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::Metadata                                             Metadata;

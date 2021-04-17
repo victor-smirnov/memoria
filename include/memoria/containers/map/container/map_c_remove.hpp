@@ -31,7 +31,7 @@ public:
     using Types = typename Base::Types;
 
 protected:
-    using typename Base::NodeBaseG;
+    using typename Base::NodeBasePtr;
 
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;

@@ -27,7 +27,7 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
-    using typename Base::NodeBaseG;
+    using typename Base::NodeBasePtr;
     using typename Base::Iterator;
 
     template <int32_t Stream, typename Entry>

@@ -32,7 +32,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
     using typename Base::ApiProfileT;
 
-    using typename Base::NodeBaseG;
+    using typename Base::NodeBasePtr;
     using typename Base::TreePathT;
     using typename Base::SnapshotID;
     using typename Base::BlockID;
@@ -40,7 +40,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     using typename Base::BlockType;
     using typename Base::ContainerTypeName;
 
-    bool ctr_is_mutable_node(const NodeBaseG& node) const noexcept {
+    bool ctr_is_mutable_node(const NodeBasePtr& node) const noexcept {
         return node->header().snapshot_id() == self().snapshot_id();
     }
 
@@ -136,13 +136,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
 
     MEMORIA_V1_DECLARE_NODE_FN(RefLeafChildren, cow_ref_children);
-    Result<NodeBaseG> ctr_clone_block(const NodeBaseG& src) noexcept
+    Result<NodeBasePtr> ctr_clone_block(const NodeBasePtr& src) noexcept
     {
-        using ResultT = Result<NodeBaseG>;
+        using ResultT = Result<NodeBasePtr>;
         auto& self = this->self();
 
         MEMORIA_TRY(new_block_tmp, self.store().cloneBlock(src));
-        NodeBaseG new_block = new_block_tmp;
+        NodeBasePtr new_block = new_block_tmp;
 
         if (!new_block->is_leaf())
         {
@@ -189,7 +189,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
         return VoidResult::of();
     }
 
-    VoidResult ctr_update_block_guard(NodeBaseG& node) noexcept
+    VoidResult ctr_update_block_guard(NodeBasePtr& node) noexcept
     {
         if (!ctr_is_mutable_node(node)) {
             return MEMORIA_MAKE_GENERIC_ERROR("CoW Error: trying to update immutable node");
@@ -216,7 +216,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
 private:
 
-    VoidResult ctr_do_cow_traverse_tree(BTreeTraverseNodeHandler<Profile>& node_handler, NodeBaseG node) const noexcept
+    VoidResult ctr_do_cow_traverse_tree(BTreeTraverseNodeHandler<Profile>& node_handler, NodeBasePtr node) const noexcept
     {
         auto& self = this->self();
 
@@ -262,7 +262,7 @@ private:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(ForAllCtrRooIDsFn, for_all_ctr_root_ids);
-    VoidResult ctr_for_all_leaf_ctr_refs(const NodeBaseG& node, const std::function<VoidResult (const BlockID&)>& fn) const noexcept
+    VoidResult ctr_for_all_leaf_ctr_refs(const NodeBasePtr& node, const std::function<VoidResult (const BlockID&)>& fn) const noexcept
     {
         return self().leaf_dispatcher().dispatch(node, ForAllCtrRooIDsFn(), fn);
     }
@@ -332,7 +332,7 @@ public:
         auto& self = this->self();
         auto metadata = self.ctr_get_root_metadata();
 
-        NodeBaseG new_root = self.ctr_create_node(0, true, true, metadata.memory_block_size());
+        NodeBasePtr new_root = self.ctr_create_node(0, true, true, metadata.memory_block_size());
 
         return self.set_root(new_root->id());
     }
@@ -356,7 +356,7 @@ public:
                 MEMORIA_TRY(size, self.ctr_get_node_size(parent, 0));
                 if (size == 1)
                 {
-                    NodeBaseG node = path[level];
+                    NodeBasePtr node = path[level];
 
                     // FIXME redesign it to use tryConvertToRoot(node) instead
                     if (self.ctr_can_convert_to_root(node, parent->root_metadata_size()))
@@ -377,7 +377,7 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult ctr_cow_ref_children_after_merge(NodeBaseG block) noexcept
+    VoidResult ctr_cow_ref_children_after_merge(NodeBasePtr block) noexcept
     {
         auto& self = this->self();
 

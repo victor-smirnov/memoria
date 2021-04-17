@@ -148,14 +148,14 @@ class BTreeDispatchers {
     using LeafTypes         = typename Types::LeafNodeTypes;
 
     using NodeTypesList     = typename Types::NodeTypesList;
-    using NodeBaseG_        = typename Types::NodeBaseG;
+    using NodeBaseG_        = typename Types::NodeBasePtr;
 
     using DefaultBranchNodeTypesList    = typename Types::DefaultBranchNodeTypesList;
     using DefaultLeafNodeTypesList      = typename Types::DefaultLeafNodeTypesList;
 
 public:
     struct NodeTypesBase {
-        using NodeBaseG = NodeBaseG_;
+        using NodeBasePtr = NodeBaseG_;
     };
 
     struct AllDTypes: NodeTypesBase {
