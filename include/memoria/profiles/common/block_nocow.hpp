@@ -83,17 +83,32 @@ public:
     }
 
     NoCowSharedBlockPtr& as_mutable() & noexcept {
-        return *this;
+        if (!shared_ || shared_->updated()) {
+            return *this;
+        }
+        else {
+            terminate("Trying to mutate immutable block");
+        }
     }
 
     NoCowSharedBlockPtr as_mutable() const & noexcept {
-        return NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
+        if (!shared_ || shared_->updated()) {
+            return NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
+        }
+        else {
+            terminate("Trying to mutate immutable block");
+        }
     }
 
     NoCowSharedBlockPtr as_mutable() && noexcept {
-        Shared* tmp = shared_;
-        shared_ = nullptr;
-        return NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{tmp, NoRef{}};
+        if (!shared_ || shared_->updated()) {
+            Shared* tmp = shared_;
+            shared_ = nullptr;
+            return NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{tmp, NoRef{}};
+        }
+        else {
+            terminate("Trying to mutate immutable block");
+        }
     }
 
     NoCowSharedBlockPtr<const MutableBlockType, AllocatorT, Shared> as_immutable() & noexcept {
@@ -232,7 +247,7 @@ public:
 
     VoidResult resize(int32_t new_size) noexcept
     {
-        if (shared_ != nullptr)
+        if (shared_)
         {
             return shared_->store()->resizeBlock(shared_, new_size);
         }
@@ -350,17 +365,33 @@ public:
     }
 
     NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared> as_mutable() & noexcept {
-        return NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
+        if (!shared_ || shared_->updated()) {
+            return NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
+        }
+        else {
+            terminate("Trying to mutate immutable block");
+        }
     }
 
-    NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared> as_mutable() const& noexcept {
-        return NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
+    NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared> as_mutable() const& noexcept {        
+        if (!shared_ || shared_->updated()) {
+            return NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{shared_};
+        }
+        else {
+            terminate("Trying to mutate immutable block");
+        }
     }
 
     NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared> as_mutable() && noexcept {
-        Shared* tmp = shared_;
-        shared_ = nullptr;
-        return NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{tmp, NoRef{}};
+        if (!shared_ || shared_->updated())
+        {
+            Shared* tmp = shared_;
+            shared_ = nullptr;
+            return NoCowSharedBlockPtr<MutableBlockType, AllocatorT, Shared>{tmp, NoRef{}};
+        }
+        else {
+            terminate("Trying to mutate immutable block");
+        }
     }
 
     const NoCowSharedBlockPtr& operator=(const NoCowSharedBlockPtr& guard) noexcept
