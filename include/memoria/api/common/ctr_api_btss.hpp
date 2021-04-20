@@ -34,17 +34,17 @@ namespace memoria {
 
 template <typename Profile>
 struct BTSSIterator {
-    virtual ~BTSSIterator() noexcept {}
+    virtual ~BTSSIterator() noexcept = default;
 
-    virtual const io::IOVector& iovector_view() const noexcept = 0;
-    virtual int32_t iovector_pos() const noexcept = 0;
+    virtual const io::IOVector& iovector_view() const = 0;
+    virtual int32_t iovector_pos() const    = 0;
 
-    virtual bool is_end() const noexcept        = 0;
-    virtual BoolResult next_leaf() noexcept     = 0;
-    virtual BoolResult next_entry() noexcept    = 0;
+    virtual bool is_end() const             = 0;
+    virtual bool next_leaf()                = 0;
+    virtual bool next_entry()               = 0;
 
-    virtual VoidResult dump(std::ostream& out = std::cout, const char* header = nullptr) const noexcept = 0;
-    virtual VoidResult dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const noexcept = 0;
+    virtual void dump(std::ostream& out = std::cout, const char* header = nullptr) const = 0;
+    virtual void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const = 0;
 };
 
 }

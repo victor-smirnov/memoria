@@ -59,26 +59,26 @@ public:
         return iter_->iter_is_end();
     }
 
-    virtual BoolResult next() noexcept
+    virtual bool next()
     {
-        MEMORIA_TRY(has_next, iter_->iter_next_leaf());
+        auto has_next = iter_->iter_next_leaf();
 
         if (has_next)
         {
             offsets_.clear();
             build_index();
-            return BoolResult::of(true);
+            return true;
         }
         else {
-            MEMORIA_TRY(leaf_sizes, iter_->iter_leaf_sizes());
+            auto leaf_sizes = iter_->iter_leaf_sizes();
             iter_->iter_local_pos() = leaf_sizes.sum();
-            return BoolResult::of(false);
+            return false;
         }
     }
 
     virtual void dump_iterator() const
     {
-        iter_->dump().get_or_throw();
+        iter_->dump();
 
         std::cout << "Buffer: " << std::endl;
 
@@ -89,7 +89,7 @@ public:
         }
     }
 
-    virtual VoidResult fill_suffix_buffer() noexcept
+    virtual void fill_suffix_buffer()
     {
         suffix_buffer_.clear();
 
@@ -97,7 +97,7 @@ public:
 
         while (!is_end())
         {
-            MEMORIA_TRY(has_next, next());
+            auto has_next = next();
             if (has_next)
             {
                 fill_buffer(0, prefix_.size());
@@ -107,8 +107,6 @@ public:
                 }
             }
         }
-
-        return VoidResult::of();
     }
 
 private:

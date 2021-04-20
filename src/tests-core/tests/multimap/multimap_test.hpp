@@ -131,10 +131,10 @@ public:
             sizes.entries_ += limit;
 
             return batch_start + limit >= data.size();
-        }).get_or_throw();
+        });
 
         int64_t t1 = getTimeInMillis();
-        println("Contianer of size {} was created in {} ms", ctr->size().get_or_throw(), t1 - t0);
+        println("Contianer of size {} was created in {} ms", ctr->size(), t1 - t0);
     }
 
     template <typename CtrApiT>
@@ -144,9 +144,9 @@ public:
 
         this->check("Store structure checking", MMA_SRC);
 
-        assert_equals(data.size(), ctr->size().get_or_throw());
+        assert_equals(data.size(), ctr->size());
 
-        auto scanner = ctr->entries_scanner().get_or_throw();
+        auto scanner = ctr->entries_scanner();
 
         size_t cnt{};
         scanner->for_each([&](auto key, auto values){
@@ -175,8 +175,8 @@ public:
     void testBatchOps()
     {
         auto snp = branch();
-        auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{}).get_or_throw();
-        ctr->set_new_block_size(2048).get_or_throw();
+        auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{});
+        ctr->set_new_block_size(2048);
 
         std::vector<Entry> data = build_entries(entries, mean_entry_size);
 
@@ -189,13 +189,13 @@ public:
 
         for (const auto& entry: data_unsored)
         {
-            bool contains = ctr->contains(entry.key).get_or_throw();
+            bool contains = ctr->contains(entry.key);
             assert_equals(true, contains);
         }
 
-        while (ctr->size().get_or_throw() > 0)
+        while (ctr->size() > 0)
         {
-            size_t ctr_size = static_cast<size_t>(ctr->size().get_or_throw());
+            size_t ctr_size = static_cast<size_t>(ctr->size());
 
             size_t from = getRandom(ctr_size);
             size_t del_size = getRandom(1024);
@@ -212,10 +212,10 @@ public:
             if (to < ctr_size)
             {
                 CxxKeyType key_to = data[to].key;
-                ctr->remove_all(key_from, key_to).get_or_throw();
+                ctr->remove_all(key_from, key_to);
             }
             else {
-                ctr->remove_from(key_from).get_or_throw();
+                ctr->remove_from(key_from);
             }
 
             data.erase(data.begin() + from, data.begin() + to);
@@ -228,8 +228,8 @@ public:
     void testUpsert()
     {
         auto snp = branch();
-        auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{}).get_or_throw();
-        ctr->set_new_block_size(2048).get_or_throw();
+        auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{});
+        ctr->set_new_block_size(2048);
 
         std::vector<Entry> data_unsorted;
 
@@ -246,10 +246,10 @@ public:
                 values.push_back(DTTestTools<ValueDataType>::generate_random());
             }
 
-            bool inserted = ctr->upsert(key, values).get_or_throw();
+            bool inserted = ctr->upsert(key, values);
             assert_equals(false, inserted);
 
-            bool contains = ctr->contains(key).get_or_throw();
+            bool contains = ctr->contains(key);
             assert_equals(true, contains);
 
             data_unsorted.emplace_back(Entry{std::move(key), std::move(values)});
@@ -272,8 +272,8 @@ public:
     void testRemove()
     {
         auto snp = branch();
-        auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{}).get_or_throw();
-        ctr->set_new_block_size(2048).get_or_throw();
+        auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{});
+        ctr->set_new_block_size(2048);
 
         size_t max_ctr_size = 16384;
 
@@ -286,7 +286,7 @@ public:
 
         for (const auto& entry: data_unsorted)
         {
-            bool contains = ctr->contains(entry.key).get_or_throw();
+            bool contains = ctr->contains(entry.key);
             assert_equals(true, contains);
         }
 
@@ -295,10 +295,10 @@ public:
             println("R={}", c);
             CxxKeyType key = data_unsorted[c].key;
 
-            bool removed = ctr->remove(key).get_or_throw();
+            bool removed = ctr->remove(key);
             assert_equals(true, removed);
 
-            assert_equals(max_ctr_size - c - 1, ctr->size().get_or_throw());
+            assert_equals(max_ctr_size - c - 1, ctr->size());
         }
 
         commit();

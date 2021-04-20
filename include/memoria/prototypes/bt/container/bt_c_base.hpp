@@ -112,7 +112,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     ObjectPools& pools() const noexcept {return self().allocator().object_pools();}
 
-    Result<TreeNodePtr> createRootLeaf() const noexcept {
+    TreeNodePtr createRootLeaf() const {
         return self().ctr_create_root_node(0, true, -1);
     }
 
@@ -141,7 +141,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     LeafNodeExtData& leaf_node_ext_data() const noexcept {return leaf_node_ext_data_;}
     BranchNodeExtData& branch_node_ext_data() const noexcept {return branch_node_ext_data_;}
 
-    VoidResult ctr_upsize_node(TreePathT& path, size_t level, size_t upsize) noexcept
+    void ctr_upsize_node(TreePathT& path, size_t level, size_t upsize)
     {
         size_t free_space = path[level]->allocator()->free_space();
 
@@ -160,14 +160,12 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 total_free_space += additional_free_space;
             }
 
-            MEMORIA_TRY_VOID(self().ctr_cow_clone_path(path, level));
+            self().ctr_cow_clone_path(path, level);
             return self().ctr_resize_block(path, level, memory_block_size);
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult ctr_downsize_node(TreePathT& path, size_t level) noexcept
+    void ctr_downsize_node(TreePathT& path, size_t level)
     {
         size_t memory_block_size = path[level]->header().memory_block_size();
 
@@ -183,19 +181,15 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 target_memory_block_size *= 2;
             }
 
-            MEMORIA_TRY_VOID(self().ctr_cow_clone_path(path, level));
+            self().ctr_cow_clone_path(path, level);
             return self().ctr_resize_block(path, level, target_memory_block_size);
         }
-
-        return VoidResult::of();
     }
 
-    virtual Result<Optional<U8String>> get_ctr_property(U8StringView key) const noexcept
+    virtual Optional<U8String> get_ctr_property(U8StringView key) const
     {
-        using ResultT = Result<Optional<U8String>>;
-
         auto& self     = this->self();
-        MEMORIA_TRY(root, self.ctr_get_root_node());
+        auto root = self.ctr_get_root_node();
 
         const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
 
@@ -204,218 +198,202 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         auto res = map_so.find(key);
 
         if (res) {
-            return ResultT::of(Optional<U8String>(res.get()));
+            return Optional<U8String>(res.get());
         }
         else {
-            return ResultT::of(Optional<U8String>());
+            return Optional<U8String>{};
         }
     }
 
-    virtual VoidResult set_ctr_property(U8StringView key, U8StringView value) noexcept
-    {
-        return wrap_throwing([&]() -> VoidResult {
-            auto& self = this->self();
-
-            MEMORIA_TRY(root, self.ctr_get_root_node());
-
-            TreePathT path = TreePathT::build(root, 1);
-
-            CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX);
-
-            PackedMapSO<CtrPropertiesMap> map_so(map);
-
-            MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
-
-            psize_t upsize = map_so.estimate_required_upsize(key, value);
-            if (upsize > map->compute_free_space_up())
-            {
-                MEMORIA_TRY_VOID(self.ctr_upsize_node(path, 0, upsize));
-                map_so.setup(get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX));
-            }
-
-            return map_so.set(key, value);
-        });
-    }
-
-    virtual Result<size_t> ctr_properties() const noexcept
+    virtual void set_ctr_property(U8StringView key, U8StringView value)
     {
         auto& self = this->self();
-        MEMORIA_TRY(root, self.ctr_get_root_node());
+
+        auto root = self.ctr_get_root_node();
+
+        TreePathT path = TreePathT::build(root, 1);
+
+        CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX);
+
+        PackedMapSO<CtrPropertiesMap> map_so(map);
+
+        self.ctr_cow_clone_path(path, 0);
+
+        psize_t upsize = map_so.estimate_required_upsize(key, value);
+        if (upsize > map->compute_free_space_up())
+        {
+            self.ctr_upsize_node(path, 0, upsize);
+            map_so.setup(get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX));
+        }
+
+        map_so.set(key, value).get_or_throw();
+    }
+
+    virtual size_t ctr_properties() const
+    {
+        auto& self = this->self();
+        auto root = self.ctr_get_root_node();
 
         const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
 
-        return Result<size_t>::of((size_t)map->size());
+        return map->size();
     }
 
-    virtual VoidResult remove_ctr_property(U8StringView key) noexcept
-    {
-        return wrap_throwing([&]() -> VoidResult {
-            auto& self = this->self();
-            MEMORIA_TRY(root, self.ctr_get_root_node());
-            TreePathT path = TreePathT::build(root, 1);
-
-            CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX);
-
-            PackedMapSO<CtrPropertiesMap> map_so(map);
-
-            MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
-            MEMORIA_TRY_VOID(map_so.remove(key));
-
-            MEMORIA_TRY_VOID(self.ctr_downsize_node(path, 0));
-            return VoidResult::of();
-        });
-    }
-
-    virtual VoidResult for_each_ctr_property(std::function<void (U8StringView, U8StringView)> consumer) const noexcept
+    virtual void remove_ctr_property(U8StringView key)
     {
         auto& self = this->self();
-        MEMORIA_TRY(root, self.ctr_get_root_node());
+        auto root = self.ctr_get_root_node();
+        TreePathT path = TreePathT::build(root, 1);
+
+        CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX);
+
+        PackedMapSO<CtrPropertiesMap> map_so(map);
+
+        self.ctr_cow_clone_path(path, 0);
+        map_so.remove(key).get_or_throw();
+
+        self.ctr_downsize_node(path, 0);
+    }
+
+    virtual void for_each_ctr_property(std::function<void (U8StringView, U8StringView)> consumer) const
+    {
+        auto& self = this->self();
+        auto root = self.ctr_get_root_node();
 
         const CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
 
         PackedMapSO<CtrPropertiesMap> map_so(map);
 
         map_so.for_each(consumer);
-
-        return VoidResult::of();
     }
 
-    virtual VoidResult set_ctr_properties(const std::vector<std::pair<U8String, U8String>>& entries) noexcept
+    virtual void set_ctr_properties(const std::vector<std::pair<U8String, U8String>>& entries)
     {
-        return wrap_throwing([&]() -> VoidResult {
-            auto& self = this->self();
-            MEMORIA_TRY(root, self.ctr_get_root_node());
-            TreePathT path = TreePathT::build(root, 1);
-
-            CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX);
-
-            PackedMapSO<CtrPropertiesMap> map_so(map);
-
-            std::vector<std::pair<U8StringView, U8StringView>> entries_view;
-
-            for (auto& entry: entries) {
-                entries_view.emplace_back(entry.first, entry.second);
-            }
-
-            MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
-
-            psize_t upsize = map_so.estimate_required_upsize(entries_view);
-            if (upsize > map->compute_free_space_up())
-            {
-                MEMORIA_TRY_VOID(self.ctr_upsize_node(path, 0, upsize));
-                map_so.setup(get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX));
-            }
-
-            return map_so.set_all(entries_view);
-        });
-    }
-
-
-    virtual Result<Optional<CtrID>> get_ctr_reference(U8StringView key) const noexcept
-    {
-        using ResultT = Result<Optional<CtrID>>;
         auto& self = this->self();
-        MEMORIA_TRY(root, self.ctr_get_root_node());
+        auto root = self.ctr_get_root_node();
+        TreePathT path = TreePathT::build(root, 1);
+
+        CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX);
+
+        PackedMapSO<CtrPropertiesMap> map_so(map);
+
+        std::vector<std::pair<U8StringView, U8StringView>> entries_view;
+
+        for (auto& entry: entries) {
+            entries_view.emplace_back(entry.first, entry.second);
+        }
+
+        self.ctr_cow_clone_path(path, 0);
+
+        psize_t upsize = map_so.estimate_required_upsize(entries_view);
+        if (upsize > map->compute_free_space_up())
+        {
+            self.ctr_upsize_node(path, 0, upsize);
+            map_so.setup(get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX));
+        }
+
+        return map_so.set_all(entries_view).get_or_throw();
+    }
+
+
+    virtual Optional<CtrID> get_ctr_reference(U8StringView key) const
+    {
+        auto& self = this->self();
+        auto root = self.ctr_get_root_node();
 
         const CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
         PackedMapSO<CtrReferencesMap> map_so(map);
 
-        return ResultT::of(map_so.find(key));
+        return map_so.find(key);
     }
 
-    virtual VoidResult set_ctr_reference(U8StringView key, const CtrID& value) noexcept
-    {
-        return wrap_throwing([&]() -> VoidResult {
-            auto& self = this->self();
-            MEMORIA_TRY(root, self.ctr_get_root_node());
-            TreePathT path = TreePathT::build(root, 1);
-
-            CtrReferencesMap* map = get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX);
-
-            PackedMapSO<CtrReferencesMap> map_so(map);
-
-            MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
-
-            psize_t upsize = map_so.estimate_required_upsize(key, value);
-            if (upsize > map->compute_free_space_up())
-            {
-                MEMORIA_TRY_VOID(self.ctr_upsize_node(path, 0, upsize));
-                map_so.setup(get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX));
-            }
-
-            return map_so.set(key, value);
-        });
-    }
-
-    virtual VoidResult remove_ctr_reference(U8StringView key) noexcept
-    {
-        return wrap_throwing([&]() -> VoidResult {
-            auto& self     = this->self();
-            MEMORIA_TRY(root, self.ctr_get_root_node());
-            TreePathT path = TreePathT::build(root, 1);
-
-            CtrReferencesMap* map = get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX);
-
-            PackedMapSO<CtrReferencesMap> map_so(map);
-
-            MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
-            MEMORIA_TRY_VOID(map_so.remove(key));
-
-            return self.ctr_downsize_node(path, 0);
-        });
-    }
-
-    virtual Result<size_t> ctr_references() const noexcept
+    virtual void set_ctr_reference(U8StringView key, const CtrID& value)
     {
         auto& self = this->self();
-        MEMORIA_TRY(root, self.ctr_get_root_node());
+        auto root = self.ctr_get_root_node();
+        TreePathT path = TreePathT::build(root, 1);
+
+        CtrReferencesMap* map = get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX);
+
+        PackedMapSO<CtrReferencesMap> map_so(map);
+
+        self.ctr_cow_clone_path(path, 0);
+
+        psize_t upsize = map_so.estimate_required_upsize(key, value);
+        if (upsize > map->compute_free_space_up())
+        {
+            self.ctr_upsize_node(path, 0, upsize);
+            map_so.setup(get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX));
+        }
+
+        map_so.set(key, value).get_or_throw();
+    }
+
+    virtual void remove_ctr_reference(U8StringView key)
+    {
+        auto& self = this->self();
+        auto root = self.ctr_get_root_node();
+        TreePathT path = TreePathT::build(root, 1);
+
+        CtrReferencesMap* map = get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX);
+
+        PackedMapSO<CtrReferencesMap> map_so(map);
+
+        self.ctr_cow_clone_path(path, 0);
+        map_so.remove(key).get_or_throw();
+
+        self.ctr_downsize_node(path, 0);
+    }
+
+    virtual size_t ctr_references() const
+    {
+        auto& self = this->self();
+        auto root = self.ctr_get_root_node();
 
         const CtrReferencesMap* map = get<const CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
-        return Result<size_t>::of((size_t)map->size());
+        return map->size();
     }
 
-    virtual VoidResult for_each_ctr_reference(std::function<VoidResult (U8StringView, const CtrID&)> consumer) const noexcept
+    virtual void for_each_ctr_reference(std::function<void (U8StringView, const CtrID&)> consumer) const
     {
         auto& self = this->self();
-        MEMORIA_TRY(root, self.ctr_get_root_node());
+        auto root = self.ctr_get_root_node();
 
         const CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
         PackedMapSO<CtrReferencesMap> map_so(map);
 
-        return map_so.for_each_noexcept(consumer);
+        map_so.for_each(consumer);
     }
 
-    virtual VoidResult set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries) noexcept
+    virtual void set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries)
     {
-        return wrap_throwing([&]() -> VoidResult {
-            auto& self = this->self();
-            MEMORIA_TRY(root, self.ctr_get_root_node());
-            TreePathT path = TreePathT::build(root, 1);
+        auto& self = this->self();
+        auto root = self.ctr_get_root_node();
+        TreePathT path = TreePathT::build(root, 1);
 
-            CtrReferencesMap* map = get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX);
+        CtrReferencesMap* map = get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX);
 
-            PackedMapSO<CtrReferencesMap> map_so(map);
+        PackedMapSO<CtrReferencesMap> map_so(map);
 
-            std::vector<std::pair<U8StringView, CtrID>> entries_view;
+        std::vector<std::pair<U8StringView, CtrID>> entries_view;
 
-            for (auto& entry: entries) {
-                entries_view.emplace_back(entry.first, entry.second);
-            }
+        for (auto& entry: entries) {
+            entries_view.emplace_back(entry.first, entry.second);
+        }
 
-            MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
+        self.ctr_cow_clone_path(path, 0);
 
-            psize_t upsize = map_so.estimate_required_upsize(entries_view);
-            if (upsize > map->compute_free_space_up())
-            {
-                MEMORIA_TRY_VOID(self.ctr_upsize_node(path, 0, upsize));
-                map_so.setup(get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX));
-            }
+        psize_t upsize = map_so.estimate_required_upsize(entries_view);
+        if (upsize > map->compute_free_space_up())
+        {
+            self.ctr_upsize_node(path, 0, upsize);
+            map_so.setup(get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX));
+        }
 
-            return map_so.set_all(entries_view);
-        });
+        map_so.set_all(entries_view).get_or_throw();
     }
 
 
@@ -424,35 +402,33 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    VoidResult ctr_root_to_node(const TreeNodePtr& node) noexcept
+    void ctr_root_to_node(const TreeNodePtr& node)
     {
-        MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
+        self().ctr_update_block_guard(node);
 
         node->set_root(false);
 
-        MEMORIA_TRY_VOID(node->clear_metadata());
-
-        return VoidResult::of();
+        node->clear_metadata().get_or_throw();
     }
 
-    VoidResult ctr_node_to_root(const TreeNodePtr& node) noexcept
+    void ctr_node_to_root(const TreeNodePtr& node)
     {
         auto& self = this->self();
-        MEMORIA_TRY(root, self.ctr_get_root_node());
+        auto root = self.ctr_get_root_node();
 
-        MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
+        self.ctr_update_block_guard(node);
 
         node->set_root(true);
         return self.ctr_copy_root_metadata(root, node);
     }
 
-    VoidResult ctr_copy_root_metadata(const TreeNodeConstPtr& src, const TreeNodePtr& tgt) noexcept
+    void ctr_copy_root_metadata(const TreeNodeConstPtr& src, const TreeNodePtr& tgt)
     {
-        MEMORIA_TRY_VOID(self().ctr_update_block_guard(tgt));
-        return tgt->copy_metadata_from(src.block());
+        self().ctr_update_block_guard(tgt);
+        return tgt->copy_metadata_from(src.block()).get_or_throw();
     }
 
-    bool ctr_can_convert_to_root(const TreeNodeConstPtr& node, psize_t metadata_size) const noexcept
+    bool ctr_can_convert_to_root(const TreeNodeConstPtr& node, psize_t metadata_size) const
     {
         return node->can_convert_to_root(metadata_size);
     }
@@ -482,54 +458,50 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
      * \brief Get model name from the root node
      * \param root_id must be a root node ID
      */
-    Result<CtrID> ctr_get_model_name(const BlockID& root_id) const noexcept
+    CtrID ctr_get_model_name(const BlockID& root_id) const
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(root, self.ctr_get_block(root_id));
+        auto root = self.ctr_get_block(root_id);
 
-        return self.node_dispatcher().dispatch(root.get(), GetModelNameFn(self));
+        return self.node_dispatcher().dispatch(root.get(), GetModelNameFn(self)).get_or_throw();
     }
 
 
-    static CtrID ctr_get_model_name(const TreeNodeConstPtr& root) noexcept
+    static CtrID ctr_get_model_name(const TreeNodeConstPtr& root)
     {
         return ctr_get_root_metadata(root).model_name();
     }
 
-    static const Metadata& ctr_get_root_metadata(const TreeNodeConstPtr& node) noexcept
+    static const Metadata& ctr_get_root_metadata(const TreeNodeConstPtr& node)
     {
         return node->root_metadata();
     }
 
-    static Metadata ctr_get_ctr_root_metadata(const TreeNodeConstPtr& node) noexcept
+    static Metadata ctr_get_ctr_root_metadata(const TreeNodeConstPtr& node)
     {
         return node->root_metadata();
     }
 
 
-    VoidResult ctr_set_ctr_root_metadata(const TreeNodePtr& node, const Metadata& metadata) const noexcept
+    void ctr_set_ctr_root_metadata(const TreeNodePtr& node, const Metadata& metadata) const
     {
-        MEMORIA_V1_ASSERT_TRUE_RTN(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
-        MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
+        self().ctr_update_block_guard(node);
         node->setMetadata(metadata);
-
-        return VoidResult::of();
     }
 
-    Result<Metadata> ctr_get_root_metadata() const noexcept
+    Metadata ctr_get_root_metadata() const
     {
-        using ResultT = Result<Metadata>;
-
         auto& self          = this->self();
         const auto& root_id = self.root();
 
-        MEMORIA_TRY(root, self.ctr_get_block(root_id));
-        return ResultT::of(root->root_metadata());
+        auto root = self.ctr_get_block(root_id);
+        return root->root_metadata();
     }
 
-    VoidResult ctr_copy_all_root_metadata_from_to(const TreeNodePtr& from, TreeNodePtr& to) const noexcept
+    void ctr_copy_all_root_metadata_from_to(const TreeNodePtr& from, TreeNodePtr& to) const
     {
         return to->copy_metadata_from(from.block());
     }
@@ -540,14 +512,14 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
      * \param node Must be a root node
      * \param metadata to set
      */
-    VoidResult ctr_set_root_metadata(const TreeNodePtr& node, const Metadata& metadata) const noexcept
+    void ctr_set_root_metadata(const TreeNodePtr& node, const Metadata& metadata) const
     {
         return ctr_set_ctr_root_metadata(node, metadata);
     }
 
-    Result<CtrID> ctr_get_container_name() const
+    CtrID ctr_get_container_name() const
     {
-        return Result<CtrID>::of(ctr_get_root_metadata().model_name());
+        return ctr_get_root_metadata().model_name();
     }
 
     Metadata ctr_create_new_root_metadata() const noexcept
@@ -563,64 +535,60 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return metadata;
     }
 
-    Int32Result get_new_block_size() const noexcept
+    int32_t get_new_block_size() const
     {
         auto& self = this->self();
-        MEMORIA_TRY(root_block, self.ctr_get_root_node());
+        auto root_block = self.ctr_get_root_node();
         const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
-        return Result<int32_t>::of(meta->memory_block_size());
+        return meta->memory_block_size();
     }
 
-    VoidResult set_new_block_size(int32_t block_size) noexcept
+    void set_new_block_size(int32_t block_size)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(root_block, self.ctr_get_root_node());
+        auto root_block = self.ctr_get_root_node();
 
         TreePathT path = TreePathT::build(root_block, 1);
-        MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
+        self.ctr_cow_clone_path(path, 0);
 
         Metadata* meta = get<Metadata>(path.root().as_mutable()->allocator(), METADATA_IDX);
         meta->memory_block_size() = block_size;
-
-        return VoidResult::of();
     }
 
 
 
     template <typename Node>
-    Result<TreeNodePtr> ctr_create_node_fn(int32_t size) const noexcept
+    TreeNodePtr ctr_create_node_fn(int32_t size) const
     {
-        using ResultT = Result<TreeNodePtr>;
         auto& self = this->self();
 
-        MEMORIA_TRY(node, static_cast_block<TreeNodePtr>(self.store().createBlock(size)));
+        auto node = static_cast_block<TreeNodePtr>(self.store().createBlock(size));
 
         node->init();
         node->header().block_type_hash() = Node::NodeType::hash();
 
-        return ResultT::of(node);
+        return node;
     }
 
 
     MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, ctr_create_node_fn, Result<TreeNodePtr>);
-    Result<TreeNodePtr> createNonRootNode(int16_t level, bool leaf, int32_t size = -1) const noexcept
+    TreeNodePtr createNonRootNode(int16_t level, bool leaf, int32_t size = -1) const
     {
-        using ResultT = Result<TreeNodePtr>;
         auto& self = this->self();
 
         if (size == -1)
         {
-            MEMORIA_TRY(root_block, self.ctr_get_block(self.root()));
+            auto root_block = self.ctr_get_block(self.root());
             const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
             size = meta->memory_block_size();
         }
 
-        MEMORIA_TRY(node, self.default_dispatcher().dispatch2(
-                        leaf,
-                        CreateNodeFn(self),
-						size
-        ));
+        auto node = self.default_dispatcher().dispatch2(
+            leaf,
+            CreateNodeFn(self),
+            size
+        ).get_or_throw();
 
         node->header().ctr_type_hash() = self.hash();
         
@@ -629,35 +597,34 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         node->level() = level;
 
-        MEMORIA_TRY_VOID(ctr_prepare_node(node));
+        ctr_prepare_node(node);
 
         if (leaf) {
-            MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(node, Position()));
+            self.ctr_layout_leaf_node(node, Position());
         }
         else {
-            MEMORIA_TRY_VOID(self.ctr_layout_branch_node(node, -1ull));
+            self.ctr_layout_branch_node(node, -1ull);
         }
 
-        return ResultT::of(node);
+        return node;
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(InitRootMetadataFn, init_root_metadata);
-    Result<TreeNodePtr> ctr_create_root_node(int16_t level, bool leaf, int32_t size = -1) const noexcept
+    TreeNodePtr ctr_create_root_node(int16_t level, bool leaf, int32_t size = -1) const
     {
-        using ResultT = Result<TreeNodePtr>;
         auto& self = this->self();
 
         if (size == -1 && self.root().is_set())
         {
-            MEMORIA_TRY(root_block, self.ctr_get_block(self.root()));
+            auto root_block = self.ctr_get_block(self.root());
             const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
             size = meta->memory_block_size();
         }
 
-        MEMORIA_TRY(node, self.node_dispatcher().dispatch2(
+        auto node = self.node_dispatcher().dispatch2(
             leaf,
             CreateNodeFn(self), size
-        ));
+        ).get_or_throw();
 
         node->header().ctr_type_hash() = self.hash();
         
@@ -666,15 +633,15 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         node->level() = level;
 
-        MEMORIA_TRY_VOID(ctr_prepare_node(node));
+        ctr_prepare_node(node);
 
         if (self.root().is_set())
         {
-            MEMORIA_TRY(root_block, self.ctr_get_block(self.root()));
-            MEMORIA_TRY_VOID(node->copy_metadata_from(root_block.block()));
+            auto root_block = self.ctr_get_block(self.root());
+            node->copy_metadata_from(root_block.block()).get_or_throw();
         }
         else {
-            MEMORIA_TRY_VOID(self.node_dispatcher().dispatch(node, InitRootMetadataFn()));
+            self.node_dispatcher().dispatch(node, InitRootMetadataFn()).get_or_throw();
 
             Metadata& meta = *get<Metadata>(node->allocator(), METADATA_IDX);
             meta = self.ctr_create_new_root_metadata();
@@ -693,16 +660,16 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         }
 
         if (leaf) {
-            MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(node, Position()));
+            self.ctr_layout_leaf_node(node, Position());
         }
         else {
-            MEMORIA_TRY_VOID(self.ctr_layout_branch_node(node, -1ull));
+            self.ctr_layout_branch_node(node, -1ull);
         }
 
-        return ResultT::of(node);
+        return node;
     }
 
-    Result<TreeNodePtr> ctr_create_node(int16_t level, bool root, bool leaf, int32_t size = -1) const noexcept
+    TreeNodePtr ctr_create_node(int16_t level, bool root, bool leaf, int32_t size = -1) const
     {
         auto& self = this->self();
         if (root) {
@@ -721,9 +688,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     MEMORIA_V1_CONST_FN_WRAPPER(PrepareNodeFn, ctr_prepare_node);
 
-    VoidResult ctr_prepare_node(TreeNodePtr& node) const noexcept
+    void ctr_prepare_node(TreeNodePtr& node) const
     {
-        return self().node_dispatcher().dispatch(node, PrepareNodeFn(self()));
+        return self().node_dispatcher().dispatch(node, PrepareNodeFn(self())).get_or_throw();
     }
 
 
@@ -732,9 +699,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
 
-    static Result<CtrBlockDescription<ApiProfileT>> describe_block(const BlockID& node_id, Allocator* alloc) noexcept
+    static CtrBlockDescription<ApiProfileT> describe_block(const BlockID& node_id, Allocator* alloc)
     {
-        MEMORIA_TRY(tmp, alloc->getBlock(node_id));
+        auto tmp = alloc->getBlock(node_id);
         TreeNodeConstPtr node = tmp;
 
         int32_t size = node->header().memory_block_size();
@@ -757,9 +724,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
  protected:
 
-    Result<CtrID> do_init_ctr(const SharedBlockConstPtr& node) noexcept
+    CtrID do_init_ctr(const SharedBlockConstPtr& node)
     {
-        using ResultT = Result<CtrID>;
         auto& self = this->self();
 
         if (node->ctr_type_hash() == CONTAINER_HASH)
@@ -776,27 +742,27 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             leaf_tuple->get_value(this->leaf_node_ext_data_);
 
             // TODO: Is CtrID correct here?
-            return ResultT::of(meta->model_name());
+            return meta->model_name();
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Invalid container type: {}", node->ctr_type_hash());
+            MEMORIA_MAKE_GENERIC_ERROR("Invalid container type: {}", node->ctr_type_hash()).do_throw();
         }
     }
 
-    VoidResult do_create_ctr(const CtrID& ctr_id, const ContainerTypeName& ctr_type_name) noexcept
+    void do_create_ctr(const CtrID& ctr_id, const ContainerTypeName& ctr_type_name)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(has_root, self.store().hasRoot(ctr_id));
+        auto has_root = self.store().hasRoot(ctr_id);
 
         if (has_root)
         {
-            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists", ctr_id);
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists", ctr_id).do_throw();
         }
 
         self.configure_types(ctr_type_name, branch_node_ext_data_, leaf_node_ext_data_);
 
-        MEMORIA_TRY(node, self.createRootLeaf());
+        auto node = self.createRootLeaf();
 
         return self.set_root(node->id());
     }

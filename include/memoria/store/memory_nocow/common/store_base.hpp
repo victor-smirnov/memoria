@@ -556,8 +556,8 @@ public:
     }
 
     // return true in case of errors
-    Result<bool> check() noexcept {
-        return Result<bool>::of(false);
+    bool check() noexcept {
+        return false;
     }
 
     const Logger& logger() const noexcept {
@@ -569,18 +569,16 @@ public:
     }
 
 
-    static Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> create() noexcept
+    static AllocSharedPtr<IMemoryStore<ApiProfileT>> create() noexcept
     {
-        using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>;
-
         MaybeError maybe_error;
         auto store = alloc_make_shared<MyType>(maybe_error);
 
         if (!maybe_error) {
-            return ResultT::of(std::move(store));
+            return std::move(store);
         }
         else {
-            return std::move(maybe_error.get());
+            std::move(maybe_error.get()).do_throw();
         }
     }
 
@@ -589,10 +587,8 @@ public:
         return ProfileTraits<Profile>::make_random_block_id();
     }
 
-    static Result<AllocSharedPtr<MyType>> load(InputStreamHandler *input) noexcept
+    static AllocSharedPtr<MyType> load(InputStreamHandler *input)
     {
-        using ResultT = Result<AllocSharedPtr<MyType>>;
-
         auto alloc_ptr = MakeLocalShared<MyType>(0);
 
         MyType* allocator = alloc_ptr.get();
@@ -611,17 +607,17 @@ public:
                 signature[6] == 'A'))
         {
             std::string sig_str(signature, 12);
-            return MEMORIA_MAKE_GENERIC_ERROR("The stream does not start from MEMORIA signature: {}", sig_str);
+            MEMORIA_MAKE_GENERIC_ERROR("The stream does not start from MEMORIA signature: {}", sig_str).do_throw();
         }
 
         if (!(signature[7] == 0 || signature[7] == 1))
         {
-            return MEMORIA_MAKE_GENERIC_ERROR("Endiannes filed value is out of bounds {}", (int32_t)signature[7]);
+            MEMORIA_MAKE_GENERIC_ERROR("Endiannes filed value is out of bounds {}", (int32_t)signature[7]).do_throw();
         }
 
         if (signature[8] != 0)
         {
-            return MEMORIA_MAKE_GENERIC_ERROR("This is not an in-memory container");
+            MEMORIA_MAKE_GENERIC_ERROR("This is not an in-memory container").do_throw();
         }
 
         allocator->master_ = allocator->history_tree_ = nullptr;
@@ -647,14 +643,14 @@ public:
             {
                 case TYPE_METADATA:     allocator->read_metadata(*input, metadata); break;
                 case TYPE_DATA_BLOCK:   {
-                    MEMORIA_TRY_VOID(allocator->read_data_block(*input, block_map)); break;
+                    allocator->read_data_block(*input, block_map); break;
                 }
                 case TYPE_LEAF_NODE:    allocator->read_leaf_node(*input, ptree_node_map); break;
                 case TYPE_BRANCH_NODE:  allocator->read_branch_node(*input, ptree_node_map); break;
                 case TYPE_HISTORY_NODE: allocator->read_history_node(*input, history_node_map); break;
                 case TYPE_CHECKSUM:     allocator->read_checksum(*input, checksum); proceed = false; break;
                 default:
-                    return MEMORIA_MAKE_GENERIC_ERROR("Unknown record type: {}", (int32_t)type);
+                    MEMORIA_MAKE_GENERIC_ERROR("Unknown record type: {}", (int32_t)type).do_throw();
             }
 
             allocator->records_++;
@@ -662,7 +658,7 @@ public:
 
         if (allocator->records_ != checksum.records())
         {
-            return MEMORIA_MAKE_GENERIC_ERROR("Invalid records checksum: actual={}, expected={}", allocator->records_, checksum.records());
+            MEMORIA_MAKE_GENERIC_ERROR("Invalid records checksum: actual={}, expected={}", allocator->records_, checksum.records()).do_throw();
         }
 
         for (auto& entry: ptree_node_map)
@@ -686,7 +682,7 @@ public:
                         leaf_node->data(c) = typename LeafNodeT::Value(block_iter->second, descr.snapshot_id());
                     }
                     else {
-                        return MEMORIA_MAKE_GENERIC_ERROR("Specified uuid {} is not found in the block map", descr.block_ptr());
+                        MEMORIA_MAKE_GENERIC_ERROR("Specified uuid {} is not found in the block map", descr.block_ptr()).do_throw();
                     }
                 }
             }
@@ -705,7 +701,7 @@ public:
                         branch_node->data(c) = iter->second.second;
                     }
                     else {
-                        return MEMORIA_MAKE_GENERIC_ERROR("Specified uuid {} is not found in the persistent tree node map", node_id);
+                        MEMORIA_MAKE_GENERIC_ERROR("Specified uuid {} is not found in the persistent tree node map", node_id).do_throw();
                     }
                 }
             }
@@ -718,7 +714,7 @@ public:
             allocator->master_ = allocator->snapshot_map_[metadata.master()];
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Specified master uuid {} is not found in the data", metadata.master());
+            MEMORIA_MAKE_GENERIC_ERROR("Specified master uuid {} is not found in the data", metadata.master()).do_throw();
         }
 
         for (auto& entry: metadata.named_branches())
@@ -730,7 +726,7 @@ public:
                 allocator->named_branches_[entry.first] = iter->second;
             }
             else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Specified snapshot uuid {} is not found", entry.first);
+                MEMORIA_MAKE_GENERIC_ERROR("Specified snapshot uuid {} is not found", entry.first).do_throw();
             }
         }
 
@@ -756,13 +752,13 @@ public:
         }
 
         allocator->do_delete_dropped();
-        MEMORIA_TRY_VOID(allocator->pack());
+        allocator->pack();
 
-        return ResultT::of(alloc_ptr);
+        return alloc_ptr;
     }
 
 protected:
-    virtual VoidResult walk_version_tree(HistoryNode* node, std::function<VoidResult (HistoryNode*)> fn) noexcept = 0;
+    virtual void walk_version_tree(HistoryNode* node, std::function<void (HistoryNode*)> fn) = 0;
     
     
     const auto& snapshot_labels_metadata() const {
@@ -785,11 +781,11 @@ protected:
     	}
     }
 
-    VoidResult build_snapshot_labels_metadata() noexcept
+    void build_snapshot_labels_metadata()
     {
     	snapshot_labels_metadata_.clear();
 
-        return walk_version_tree(history_tree_, [&, this](const HistoryNode* node) -> VoidResult {
+        return walk_version_tree(history_tree_, [&, this](const HistoryNode* node) {
             std::vector<U8String> labels;
 
     		if (node == history_tree_) {
@@ -830,8 +826,6 @@ protected:
 
                 snapshot_labels_metadata_[node] = U8String(labels_str.str());
     		}
-
-            return VoidResult::of();
     	});
     }
 
@@ -957,7 +951,7 @@ protected:
         in >> checksum.records();
     }
 
-    VoidResult read_data_block(InputStreamHandler& in, BlockMap& map) noexcept
+    void read_data_block(InputStreamHandler& in, BlockMap& map)
     {
         typename RCBlockPtr::RefCntT references;
 
@@ -980,19 +974,17 @@ protected:
 
         in.read(block_data.get(), 0, block_data_size);
 
-        MEMORIA_TRY_VOID(ProfileMetadata<Profile>::local()
+        ProfileMetadata<Profile>::local()
                 ->get_block_operations(ctr_hash, block_hash)
-                ->deserialize(block_data.get(), block_data_size, block));
+                ->deserialize(block_data.get(), block_data_size, block);
 
         if (map.find(block->uuid()) == map.end())
         {
             map[block->uuid()] = new RCBlockPtr(block, references);
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Block {} was already registered", block->uuid());
+            MEMORIA_MAKE_GENERIC_ERROR("Block {} was already registered", block->uuid()).do_throw();
         }
-
-        return VoidResult::of();
     }
 
 
@@ -1151,7 +1143,7 @@ protected:
 
 
 
-    VoidResult write_metadata(OutputStreamHandler& out) noexcept
+    void write_metadata(OutputStreamHandler& out)
     {
         uint8_t type = TYPE_METADATA;
         out << type;
@@ -1168,20 +1160,16 @@ protected:
         }
 
         records_++;
-
-        return VoidResult::of();
     }
 
-    VoidResult write(OutputStreamHandler& out, const Checksum& checksum) noexcept
+    void write(OutputStreamHandler& out, const Checksum& checksum)
     {
     	uint8_t type = TYPE_CHECKSUM;
         out << type;
         out << checksum.records() + 1;
-
-        return VoidResult::of();
     }
 
-    VoidResult write_history_node(OutputStreamHandler& out, const HistoryNode* history_node, RCBlockSet& stored_blocks) noexcept
+    void write_history_node(OutputStreamHandler& out, const HistoryNode* history_node, RCBlockSet& stored_blocks)
     {
     	uint8_t type = TYPE_HISTORY_NODE;
         out << type;
@@ -1221,11 +1209,9 @@ protected:
         {
             return write_persistent_tree(out, history_node->root(), stored_blocks);
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node, RCBlockSet& stored_blocks) noexcept
+    void write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node, RCBlockSet& stored_blocks)
     {
         if (stored_blocks.count(node) == 0)
         {
@@ -1236,14 +1222,14 @@ protected:
                 auto leaf = PersistentTreeT::to_leaf_node(node);
                 auto buf  = to_leaf_buffer(leaf);
 
-                MEMORIA_TRY_VOID(write(out, buf.get()));
+                write(out, buf.get());
                 for (int32_t c = 0; c < leaf->size(); c++)
                 {
                     const auto& data = leaf->data(c);
 
                     if (stored_blocks.count(data.block_ptr()) == 0)
                     {
-                        MEMORIA_TRY_VOID(write(out, data.block_ptr()));
+                        write(out, data.block_ptr());
                         stored_blocks.insert(data.block_ptr());
                     }
                 }
@@ -1252,31 +1238,27 @@ protected:
                 auto branch = PersistentTreeT::to_branch_node(node);
                 auto buf    = to_branch_buffer(branch);
 
-                MEMORIA_TRY_VOID(write(out, buf.get()));
+                write(out, buf.get());
                 for (int32_t c = 0; c < branch->size(); c++)
                 {
                     auto child = branch->data(c);
-                    MEMORIA_TRY_VOID(write_persistent_tree(out, child, stored_blocks));
+                    write_persistent_tree(out, child, stored_blocks);
                 }
             }
         }
-
-        return VoidResult::of();
     }
 
 
-    VoidResult write(OutputStreamHandler& out, const BranchNodeBufferT* node) noexcept
+    void write(OutputStreamHandler& out, const BranchNodeBufferT* node)
     {
         uint8_t type = TYPE_BRANCH_NODE;
         out << type;
         node->write(out);
 
         records_++;
-
-        return VoidResult::of();
     }
 
-    VoidResult write(OutputStreamHandler& out, const LeafNodeBufferT* node) noexcept
+    void write(OutputStreamHandler& out, const LeafNodeBufferT* node)
     {
         uint8_t type = TYPE_LEAF_NODE;
         out << type;
@@ -1284,11 +1266,9 @@ protected:
         node->write(out);
 
         records_++;
-
-        return VoidResult::of();
     }
 
-    VoidResult write(OutputStreamHandler& out, const RCBlockPtr* block_ptr) noexcept
+    void write(OutputStreamHandler& out, const RCBlockPtr* block_ptr)
     {
     	auto block = block_ptr->raw_data();
 
@@ -1301,9 +1281,9 @@ protected:
 
         auto buffer = allocate_system<uint8_t>(block_size);
 
-        MEMORIA_TRY(total_data_size, ProfileMetadata<Profile>::local()
+        auto total_data_size = ProfileMetadata<Profile>::local()
                 ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
-                ->serialize(block, buffer.get()));
+                ->serialize(block, buffer.get());
 
         out << total_data_size;
         out << block->memory_block_size();
@@ -1313,8 +1293,6 @@ protected:
         out.write(buffer.get(), 0, total_data_size);
 
         records_++;
-
-        return VoidResult::of();
     }
 
 
@@ -1342,10 +1320,10 @@ protected:
     	return set;
     }
 
-    Result<void> do_pack(HistoryNode* node) noexcept
+    void do_pack(HistoryNode* node)
     {
         std::unordered_set<HistoryNode*> branches = get_named_branch_nodeset();
-        MEMORIA_TRY_VOID(do_pack(history_tree_, 0, branches));
+        do_pack(history_tree_, 0, branches);
     	for (const auto& branch: named_branches_)
     	{
     		auto node = branch.second;
@@ -1354,11 +1332,9 @@ protected:
     			do_remove_history_node(node);
     		}
     	}
-
-        return Result<void>::of();
     }
     
-    virtual Result<void> do_pack(HistoryNode* node, int32_t depth, const std::unordered_set<HistoryNode*>& branches) noexcept = 0;
+    virtual void do_pack(HistoryNode* node, int32_t depth, const std::unordered_set<HistoryNode*>& branches) = 0;
 
     bool do_remove_history_node(HistoryNode* node)
     {
@@ -1376,7 +1352,7 @@ protected:
         }
         else if (node->children().size() == 1)
         {
-        	auto parent = node->parent();
+            auto parent = node->parent();
             auto child  = node->children()[0];
 
             node->remove_from_parent();
@@ -1427,14 +1403,12 @@ protected:
         }
     }
 
-    VoidResult walk_linear_history(
+    void walk_linear_history(
             const SnapshotID& start_id,
             const SnapshotID& stop_id,
-            std::function<VoidResult (const HistoryNode* history_node)> fn
-    ) noexcept
+            std::function<void (const HistoryNode* history_node)> fn
+    )
     {
-        using ResultT = VoidResult;
-
         auto ii = snapshot_map_.find(start_id);
         if (ii != snapshot_map_.end())
         {
@@ -1442,22 +1416,18 @@ protected:
 
             while (current && current->snapshot_id() != stop_id)
             {
-                MEMORIA_TRY_VOID(fn(current));
+                fn(current);
                 current = current->parent();
             }
-
-            return ResultT::of();
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is not found.", start_id);
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is not found.", start_id).do_throw();
         }
     }
 
 
-    MyType& self() {return *static_cast<MyType*>(this);}
-    const MyType& self() const {return *static_cast<const MyType*>(this);}
-
-
+    MyType& self() noexcept {return *static_cast<MyType*>(this);}
+    const MyType& self() const noexcept {return *static_cast<const MyType*>(this);}
 };
 
 }

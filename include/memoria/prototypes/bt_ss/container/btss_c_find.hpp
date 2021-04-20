@@ -35,26 +35,24 @@ public:
     using Base::Streams;
 
 public:
-    Result<CtrSizeT> size() const noexcept
+    CtrSizeT size() const
     {
-        using ResultT = Result<CtrSizeT>;
-        MEMORIA_TRY(sizes, self().sizes());
-
-        return ResultT::of(sizes[0]);
+        auto sizes = self().sizes();
+        return sizes[0];
     }
 
-    auto ctr_seek(CtrSizeT position) const noexcept
+    auto ctr_seek(CtrSizeT position) const
     {
         return self().template ctr_seek_stream<0>(position);
     }
 
-    auto ctr_begin() const noexcept {
+    auto ctr_begin() const  {
         return self().ctr_seek(0);
     }
 
-    Result<IteratorPtr> ctr_end() const noexcept
+    IteratorPtr ctr_end() const
     {
-        MEMORIA_TRY(size, self().size());
+        auto size = self().size();
 
         if (size > 0)
         {
@@ -64,9 +62,6 @@ public:
             return self().ctr_seek(0);
         }
     }
-
-
-
 MEMORIA_V1_CONTAINER_PART_END
 
 

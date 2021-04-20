@@ -298,7 +298,7 @@ public:
     }
 
 private:
-    void refresh_so() {
+    void refresh_so() noexcept {
         keys_.setup(data_->keys());
         values_.setup(data_->values());
     }

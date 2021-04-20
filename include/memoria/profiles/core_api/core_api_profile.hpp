@@ -49,7 +49,7 @@ struct CtrReferenceable<CoreApiProfile<TT>>: CtrReferenceableBase<CoreApiProfile
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfile>> shared_self() noexcept = 0;
 
-    virtual VoidResult traverse_ctr(void* node_handler) const noexcept = 0;
+    virtual void traverse_ctr(void* node_handler) const = 0;
 };
 
 }

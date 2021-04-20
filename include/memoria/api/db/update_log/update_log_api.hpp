@@ -38,7 +38,7 @@ template <typename Profile>
 class CtrApi<UpdateLog, Profile>: public CtrApiBTFLBase<UpdateLog, Profile> {
     
     using Base = CtrApiBTFLBase<UpdateLog, Profile>;
-    using typename Base::AllocatorT;
+    using typename Base::StoreT;
     using typename Base::CtrT;
     using typename Base::CtrPtr;
 

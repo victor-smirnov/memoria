@@ -53,39 +53,39 @@ protected:
 
 public:
 
-    Result<IteratorPtr> ctr_map_find(const KeyView& k) const noexcept
+    IteratorPtr ctr_map_find(const KeyView& k) const
     {
         return self().template ctr_find_max_ge<IntList<0, 1>>(0, k);
     }
 
 
-    Result<bool> remove(const KeyView& k) noexcept
+    bool remove(const KeyView& k)
     {
-        MEMORIA_TRY(iter, self().ctr_map_find(k));
+        auto iter = self().ctr_map_find(k);
 
         if (iter->is_found(k))
         {
-            MEMORIA_TRY_VOID(iter->remove());
-            return BoolResult::of(true);
+            iter->remove();
+            return true;
         }
         else {
-            return BoolResult::of(false);
+            return false;
         }
     }
 
-    Result<IteratorPtr> assign(const KeyView& key, const ValueView& value)
+    IteratorPtr assign(const KeyView& key, const ValueView& value)
     {
-        MEMORIA_TRY(iter, self().ctr_map_find(key));
+        auto iter = self().ctr_map_find(key);
 
         if (iter->is_found(key))
         {
-            MEMORIA_TRY_VOID(iter->assign(value));
+            iter->assign(value);
         }
         else {
-            MEMORIA_TRY_VOID(iter->insert(key, value));
+            iter->insert(key, value);
         }
 
-        return iter_result;
+        return iter;
     }
 
 MEMORIA_V1_CONTAINER_PART_END

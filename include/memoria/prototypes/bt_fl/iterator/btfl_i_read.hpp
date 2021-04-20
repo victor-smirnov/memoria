@@ -134,12 +134,12 @@ public:
 
 
 
-    VoidResult iter_refresh() noexcept
+    void iter_refresh()
     {
         return Base::iter_refresh();
     }
 
-    VoidResult refresh_prefixes() noexcept
+    void refresh_prefixes()
     {
         return Base::iter_refresh();
     }

@@ -55,18 +55,18 @@ public:
 
 
 
-    Result<CtrSizeT> iter_btfl_select_fw(CtrSizeT rank, int32_t stream) noexcept
+    CtrSizeT iter_btfl_select_fw(CtrSizeT rank, int32_t stream)
     {
         return self().template iter_select_fw<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
 
-    Result<CtrSizeT> iter_select_ge_fw(CtrSizeT rank, int32_t stream) noexcept
+    CtrSizeT iter_select_ge_fw(CtrSizeT rank, int32_t stream)
     {
     	typename Types::template SelectGEForwardWalker<Types, IntList<StructureStreamIdx, 1>> walker(stream, rank);
     	return self().iter_find_fw(walker);
     }
 
-    Result<CtrSizeT> iter_select_pos_fw(CtrSizeT rank, int32_t stream) const noexcept
+    CtrSizeT iter_select_pos_fw(CtrSizeT rank, int32_t stream) const
     {
         const auto& self = this->self();
 

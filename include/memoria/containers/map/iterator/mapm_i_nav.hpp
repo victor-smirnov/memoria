@@ -52,32 +52,28 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(map::ItrNavMaxName)
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
 public:
-    VoidResult insert(const KeyView& key, const ValueView& value) noexcept
+    void insert(const KeyView& key, const ValueView& value)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr().iter_insert_entry(
+        self.ctr().iter_insert_entry(
                 self,
                 map::KeyValueEntry<KeyView, ValueView, CtrSizeT>(key, value)
-        ));
-        MEMORIA_TRY_VOID(self.iter_btss_skip_fw(1));
-
-        return VoidResult::of();
+        );
+        self.iter_btss_skip_fw(1);
     }
 
 
-    VoidResult remove() noexcept
+    void remove()
     {
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr().ctr_remove_entry(self));
+        self.ctr().ctr_remove_entry(self);
 
         if (self.iter_is_end())
         {
-            MEMORIA_TRY_VOID(self.iter_btss_skip_fw(0));
+            self.iter_btss_skip_fw(0);
         }
-
-        return VoidResult::of();
     }
 
     auto remove(CtrSizeT size)
@@ -86,12 +82,12 @@ public:
     }
 
 
-    auto findFwGT(int32_t index, KeyView key) noexcept
+    auto findFwGT(int32_t index, KeyView key)
     {
         return self().template iter_find_fw_gt<IntList<1>>(index, key);
     }
 
-    auto iter_map_find_fw_ge(int32_t index, KeyView key) noexcept
+    auto iter_map_find_fw_ge(int32_t index, KeyView key)
     {
         return self().template iter_find_fw_ge<IntList<1>>(index, key);
     }
@@ -108,26 +104,26 @@ public:
 
     auto iter_key() const
     {
-        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), 0).get_or_throw());
+        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), 0));
     }
 
     auto iter_value() const
     {
-        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<2>>(self().iter_leaf(), self().iter_local_pos()).get_or_throw());
+        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<2>>(self().iter_leaf(), self().iter_local_pos()));
     }
 
-    virtual Datum<Key> key() const noexcept
+    virtual Datum<Key> key() const
     {
         return self().iter_key();
     }
 
-    virtual Datum<Value> value() const noexcept
+    virtual Datum<Value> value() const
     {
         using ValueTT = decltype(self().iter_value());
         return map::MapValueHelper<ValueTT>::convert(self().iter_value());
     }
 
-    VoidResult assign(const ValueView& v) noexcept
+    void assign(const ValueView& v)
     {
         return self().ctr().template ctr_update_entry<IntList<0, 2>>(self(), map::ValueBuffer<ValueView>(v));
     }

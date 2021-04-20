@@ -23,40 +23,29 @@ using ApiProfileT = ApiProfile<Profile>;
 template class IMemoryStore<ApiProfileT>;
 
 
-Result<SharedPtr<IMemoryStore<ApiProfileT>>> create_memory_store() noexcept
+SharedPtr<IMemoryStore<ApiProfileT>> create_memory_store()
 {
-    using ResultT = Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>;
+
     MaybeError maybe_error;
 
     auto snp = MakeShared<store::memory_cow::ThreadsMemoryStoreImpl<Profile>>(maybe_error);
 
     if (!maybe_error) {
-        return ResultT::of(std::move(snp));
+        return std::move(snp);
     }
     else {
-        return std::move(maybe_error.get());
+        std::move(maybe_error.get()).do_throw();
     }
 }
 
-Result<SharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store(U8String path) noexcept {
+SharedPtr<IMemoryStore<ApiProfileT>> load_memory_store(U8String path) {
     auto fileh = FileInputStreamHandler::create(path.data());
-    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(fileh.get());
-
-    if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
-    }
-
-    return std::move(rr).transfer_error();
+    return store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(fileh.get());
 }
 
-Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>> load_memory_store(InputStreamHandler* input_stream) noexcept
+AllocSharedPtr<IMemoryStore<ApiProfileT>> load_memory_store(InputStreamHandler* input_stream)
 {
-    auto rr = store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(input_stream);
-    if (rr.is_ok()) {
-        return Result<AllocSharedPtr<IMemoryStore<ApiProfileT>>>::of(rr.get());
-    }
-
-    return std::move(rr).transfer_error();
+    return store::memory_cow::ThreadsMemoryStoreImpl<Profile>::load(input_stream);
 }
 
 

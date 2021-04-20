@@ -48,11 +48,11 @@ template <typename Profile>
 struct ReferenceCounterDelegate {
     using BlockID = ProfileBlockID<Profile>;
 
-    virtual ~ReferenceCounterDelegate() noexcept {}
+    virtual ~ReferenceCounterDelegate() noexcept = default;
 
-    virtual VoidResult ref_block(const BlockID& block_id) noexcept = 0;
-    virtual VoidResult unref_block(const BlockID& block_id, const std::function<VoidResult()>& on_zero) noexcept = 0;
-    virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept = 0;
+    virtual void ref_block(const BlockID& block_id) = 0;
+    virtual void unref_block(const BlockID& block_id, const std::function<void ()>& on_zero) = 0;
+    virtual void unref_ctr_root(const BlockID& root_block_id) = 0;
 };
 
 template <typename Profile> class SWMRStoreBase;
@@ -77,7 +77,7 @@ protected:
 
     using ApiProfileT = ApiProfile<Profile>;
 
-    using BlockCounterCallbackFn = std::function<BoolResult(const ApiProfileBlockID<ApiProfileT>&)>;
+    using BlockCounterCallbackFn = std::function<bool (const ApiProfileBlockID<ApiProfileT>&)>;
 
     using CommitID = typename ISWMRStoreCommitBase<ApiProfileT>::CommitID;
     using SequenceID = uint64_t;
@@ -86,7 +86,7 @@ protected:
 
     using CommitDescriptorT         = CommitDescriptor<Profile>;
     using CtrReferenceableResult    = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
-    using AllocatorT                = Base;
+    using StoreT                    = Base;
     using Superblock                = SWMRSuperblock<Profile>;
 
     using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<ApiProfileT>*>;
@@ -158,91 +158,85 @@ public:
         return object_pools_;
     }
 
-    virtual Result<BlockID> getRootID(const CtrID& ctr_id) noexcept
+    virtual BlockID getRootID(const CtrID& ctr_id)
     {
-        using ResultT = Result<BlockID>;
-
         if (MMA_UNLIKELY(ctr_id == DirectoryCtrID))
         {
-            return ResultT::of(superblock_->directory_root_id());
+            return superblock_->directory_root_id();
         }
         else if (MMA_UNLIKELY(ctr_id == AllocationMapCtrID))
         {
-            return ResultT::of(superblock_->allocator_root_id());
+            return superblock_->allocator_root_id();
         }
         else if (MMA_UNLIKELY(ctr_id == HistoryCtrID))
         {
-            return ResultT::of(superblock_->history_root_id());
+            return superblock_->history_root_id();
         }
         else if (directory_ctr_)
         {
-            MEMORIA_TRY(iter, directory_ctr_->find(ctr_id));
+            auto iter = directory_ctr_->find(ctr_id);
 
             if (iter->is_found(ctr_id))
             {
-                return ResultT::of(iter->value().view());
+                return iter->value().view();
             }
-
-            return ResultT::of();
         }
 
-        return ResultT::of();
+        return BlockID{};
     }
 
 
 
-    virtual VoidResult setRoot(const CtrID& ctr_id, const BlockID& root) noexcept
+    virtual void setRoot(const CtrID& ctr_id, const BlockID& root)
     {
-        return MEMORIA_MAKE_GENERIC_ERROR("setRoot() is not implemented for ReadOnly commits");
+        MEMORIA_MAKE_GENERIC_ERROR("setRoot() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual BoolResult hasRoot(const CtrID& ctr_id) noexcept
+    virtual bool hasRoot(const CtrID& ctr_id)
     {
-        using ResultT = BoolResult;
-
         if (MMA_UNLIKELY(ctr_id == DirectoryCtrID))
         {
-            return ResultT::of(superblock_->directory_root_id().is_set());
+            return superblock_->directory_root_id().is_set();
         }
         else if (MMA_UNLIKELY(ctr_id == AllocationMapCtrID))
         {
-            return ResultT::of(superblock_->allocator_root_id().is_set());
+            return superblock_->allocator_root_id().is_set();
         }
         else if (MMA_UNLIKELY(ctr_id == HistoryCtrID))
         {
-            return ResultT::of(superblock_->history_root_id().is_set());
+            return superblock_->history_root_id().is_set();
         }
         else if (directory_ctr_)
         {
-            MEMORIA_TRY(iter, directory_ctr_->find(ctr_id));
+            auto iter = directory_ctr_->find(ctr_id);
 
             if (iter->is_found(ctr_id))
             {
-                return BoolResult::of(true);
+                return true;
             }
         }
 
-        return BoolResult::of(false);
+        return false;
     }
 
-    virtual Result<CtrID> createCtrName() noexcept {
-        return Result<CtrID>::of(ProfileTraits<Profile>::make_random_ctr_id());
+    virtual CtrID createCtrName() {
+        return ProfileTraits<Profile>::make_random_ctr_id();
     }
 
-    virtual VoidResult removeBlock(const BlockID& id) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly commits");
+    virtual void removeBlock(const BlockID& id) {
+        MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly commits");
+    virtual SharedBlockPtr createBlock(int32_t initial_size) {
+        MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockConstPtr& block) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits");
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block) {
+        MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual Result<BlockID> newId() noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("newId() is not implemented for ReadOnly commits");
+    virtual BlockID newId() {
+        MEMORIA_MAKE_GENERIC_ERROR("newId() is not implemented for ReadOnly commits").do_throw();
     }
 
     virtual SnapshotID currentTxnId() const noexcept {
@@ -250,9 +244,8 @@ public:
     }
 
     // memory pool allocator
-    virtual Result<void*> allocateMemory(size_t size) noexcept {
-        using ResultT = Result<void*>;
-        return ResultT::of(allocate_system<uint8_t>(size).release());
+    virtual void* allocateMemory(size_t size) {
+        return allocate_system<uint8_t>(size).release();
     }
 
     virtual void freeMemory(void* ptr) noexcept {
@@ -267,7 +260,7 @@ public:
         return false;
     }
 
-    virtual VoidResult registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) noexcept
+    virtual void registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance)
     {
         auto ii = instance_map_.find(ctr_id);
         if (ii == instance_map_.end())
@@ -275,31 +268,26 @@ public:
             instance_map_.insert({ctr_id, instance});
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} has been already registered", ctr_id);
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} has been already registered", ctr_id).do_throw();
         }
-
-        return VoidResult::of();
     }
 
-    virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>*) noexcept
+    virtual void unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>*)
     {
         instance_map_.erase(ctr_id);
-        return VoidResult::of();
     }
 
-    virtual VoidResult flush_open_containers() noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits");
+    virtual void flush_open_containers() {
+        MEMORIA_MAKE_GENERIC_ERROR("flush_open_containers() is not implemented for ReadOnly commits");
     }
 
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> find(const CtrID& ctr_id) noexcept
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id)
     {
-        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
-
-        MEMORIA_TRY(root_id, getRootID(ctr_id));
+        auto root_id = getRootID(ctr_id);
         if (root_id.is_set())
         {
-            MEMORIA_TRY(block, this->getBlock(root_id));
+            auto block = this->getBlock(root_id);
 
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
@@ -311,81 +299,76 @@ public:
                 auto instance_hash = ii->second->type_hash();
 
                 if (instance_hash == ctr_hash) {
-                    return ResultT::of(ii->second->shared_self());
+                    return ii->second->shared_self();
                 }
                 else {
-                    return MEMORIA_MAKE_GENERIC_ERROR(
+                    MEMORIA_MAKE_GENERIC_ERROR(
                                 "Exisitng ctr instance type hash mismatch: expected {}, actual {}",
                                 ctr_hash,
                                 instance_hash
-                    );
+                    ).do_throw();
                 }
             }
             else {
                 return ctr_intf->new_ctr_instance(block, this->self_ptr());
             }
         }
-        else {
-            return ResultT::of();
-        }
+
+        return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> from_root_id(
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> from_root_id(
             const BlockID& root_block_id,
             const CtrID& name
-    ) noexcept
+    )
     {
-        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
-
         if (root_block_id.is_set())
         {
-            MEMORIA_TRY(block, this->getBlock(root_block_id));
+            auto block = this->getBlock(root_block_id);
 
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
             return ctr_intf->new_ctr_instance(block, this);
         }
-        else {
-            return ResultT::of();
-        }
+
+        return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};
     }
 
-    virtual BoolResult check() noexcept  {
+    virtual bool check() {
         bool result = false;
 
-        MEMORIA_TRY(iter, directory_ctr_->iterator());
+        auto iter = directory_ctr_->iterator();
 
         while(!iter->is_end())
         {
             auto ctr_name = iter->key();
 
-            MEMORIA_TRY(block, this->getBlock(iter->value()));
+            auto block = this->getBlock(iter->value());
 
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            MEMORIA_TRY(res, ctr_intf->check(ctr_name, this->self_ptr()));
+            auto res = ctr_intf->check(ctr_name, this->self_ptr());
 
             result = res || result;
 
-            MEMORIA_TRY_VOID(iter->next());
+            iter->next();
         }
 
-        return BoolResult::of(result);
+        return result;
     }
 
-    virtual VoidResult walkContainers(
+    virtual void walkContainers(
             ContainerWalker<Profile>* walker, const
             char* allocator_descr = nullptr
-    ) noexcept {
-        return VoidResult::of();
+    ) {
     }
 
-    virtual VoidResult walk_containers(
+    virtual void walk_containers(
             ContainerWalker<Profile>* walker, const
             char* allocator_descr = nullptr
-    ) noexcept
+    )
     {
         if (allocator_descr != nullptr)
         {
@@ -399,47 +382,44 @@ public:
             );
         }
 
-        MEMORIA_TRY(iter, directory_ctr_->iterator());
+        auto iter = directory_ctr_->iterator();
         while (!iter->is_end())
         {
             auto ctr_name   = iter->key();
             auto root_id    = iter->value();
 
-            MEMORIA_TRY(block, getBlock(root_id));
+            auto block = getBlock(root_id);
 
             auto ctr_hash   = block->ctr_type_hash();
             auto ctr_intf   = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            MEMORIA_TRY_VOID(ctr_intf->walk(ctr_name, this->self_ptr(), walker));
+            ctr_intf->walk(ctr_name, this->self_ptr(), walker);
 
-            MEMORIA_TRY_VOID(iter->next());
+            iter->next();
         }
 
         walker->endSnapshot();
-
-        return VoidResult::of();
     }
 
-    virtual BoolResult drop_ctr(const CtrID& ctr_id) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("drop_ctr() is not implemented for ReadOnly commits");
+    virtual bool drop_ctr(const CtrID& ctr_id) {
+        MEMORIA_MAKE_GENERIC_ERROR("drop_ctr() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual Result<U8String> ctr_type_name(const CtrID& ctr_id) noexcept
+    virtual U8String ctr_type_name(const CtrID& ctr_id)
     {
-        using ResultT = Result<U8String>;
-        MEMORIA_TRY(root_id, this->getRootID(ctr_id));
+        auto root_id = this->getRootID(ctr_id);
         if (root_id.is_set())
         {
-            MEMORIA_TRY(block, getBlock(root_id));
+            auto block = getBlock(root_id);
 
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            return ResultT::of(ctr_intf->ctr_type_name());
+            return ctr_intf->ctr_type_name();
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't find container with id {}", ctr_id);
+            MEMORIA_MAKE_GENERIC_ERROR("Can't find container with id {}", ctr_id).do_throw();
         }
     }
 
@@ -463,47 +443,41 @@ public:
     }
 
 
-    virtual VoidResult dump_open_containers() noexcept
+    virtual void dump_open_containers()
     {
         for (const auto& pair: instance_map_)
         {
             std::cout << pair.first << " -- " << pair.second->describe_type() << std::endl;
         }
-
-        return VoidResult::of();
     }
 
-    virtual BoolResult has_open_containers() noexcept {
-        return Result<bool>::of(instance_map_.size() > 0);
+    virtual bool has_open_containers() {
+        return instance_map_.size() > 0;
     }
 
-    virtual Result<std::vector<CtrID>> container_names() const noexcept {
-        using ResultT = Result<std::vector<CtrID>>;
-
+    virtual std::vector<CtrID> container_names() const {
         std::vector<CtrID> names;
 
-        MEMORIA_TRY(ii, directory_ctr_->iterator());
+        auto ii = directory_ctr_->iterator();
 
         while (!ii->is_end())
         {
             names.push_back(ii->key());
-            MEMORIA_TRY_VOID(ii->next());
+            ii->next();
         }
 
-        return ResultT::of(std::move(names));
+        return std::move(names);
     }
 
-    virtual VoidResult drop() noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("drop() has to be implemented!!");
+    virtual void drop() {
+        MEMORIA_MAKE_GENERIC_ERROR("drop() has to be implemented!!").do_throw();
     }
 
 
-    virtual Result<Optional<U8String>> ctr_type_name_for(const CtrID& name) noexcept
+    virtual Optional<U8String> ctr_type_name_for(const CtrID& name)
     {
-        using ResultT = Result<Optional<U8String>>;
-
-        MEMORIA_TRY(root_id, getRootID(name));
-        MEMORIA_TRY(block, getBlock(root_id));
+        auto root_id = getRootID(name);
+        auto block = getBlock(root_id);
 
         if (block)
         {
@@ -512,191 +486,171 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            return ResultT::of(ctr_intf->ctr_type_name());
+            return ctr_intf->ctr_type_name();
         }
-        else {
-            return ResultT::of();
-        }
+
+        return Optional<U8String>{};
     }
 
-    virtual Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>> snapshot_ref_opening_allowed() noexcept {
-        using ResultT = Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>>;
-        return ResultT::of();
+    virtual SnpSharedPtr<StoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
+        return SnpSharedPtr<StoreApiBase<ApiProfileT>>{};
     }
 
-
-
-
-    virtual VoidResult ref_block(const BlockID& block_id) noexcept
+    virtual void ref_block(const BlockID& block_id)
     {
         if (refcounter_delegate_) {
-            return refcounter_delegate_->ref_block(block_id);
+            refcounter_delegate_->ref_block(block_id);
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("ref_block() is not implemented for ReadOnly commits");
+            MEMORIA_MAKE_GENERIC_ERROR("ref_block() is not implemented for ReadOnly commits").do_throw();
         }
     }
 
-    virtual VoidResult unref_block(const BlockID& block_id, std::function<VoidResult()> on_zero) noexcept
+    virtual void unref_block(const BlockID& block_id, std::function<void ()> on_zero)
     {
         if (refcounter_delegate_)
         {
             return refcounter_delegate_->unref_block(block_id, on_zero);
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("unref_block() is not implemented for ReadOnly commits");
+            MEMORIA_MAKE_GENERIC_ERROR("unref_block() is not implemented for ReadOnly commits").do_throw();
         }
     }
 
-    virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept
+    virtual void unref_ctr_root(const BlockID& root_block_id)
     {
         if (refcounter_delegate_)
         {
             return refcounter_delegate_->unref_ctr_root(root_block_id);
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("unref_ctr_root() is not implemented for ReadOnly commits");
+            MEMORIA_MAKE_GENERIC_ERROR("unref_ctr_root() is not implemented for ReadOnly commits").do_throw();
         }
     }
 
-    virtual VoidResult traverse_ctr(
+    virtual void traverse_ctr(
             const BlockID& root_block,
             BTreeTraverseNodeHandler<Profile>& node_handler
-    ) noexcept
+    )
     {
-        MEMORIA_TRY(instance, from_root_id(root_block, CtrID{}));
+        auto instance = from_root_id(root_block, CtrID{});
         return instance->traverse_ctr(&node_handler);
     }
 
-    virtual VoidResult check_updates_allowed() noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("updated are not allowed for ReadOnly commits");
+    virtual void check_updates_allowed() {
+        MEMORIA_MAKE_GENERIC_ERROR("updated are not allowed for ReadOnly commits").do_throw();
     }
 
-    virtual VoidResult check(std::function<VoidResult(LDDocument&)> callback) noexcept {
-        return VoidResult::of();
+    virtual void check(std::function<void (LDDocument&)> callback) {
     }
 
-    virtual VoidResult build_block_refcounters(SWMRBlockCounters<Profile>& counters) noexcept
+    virtual void build_block_refcounters(SWMRBlockCounters<Profile>& counters)
     {
-        auto counters_fn = [&](const ApiProfileBlockID<ApiProfileT>& block_id_holder) -> BoolResult {
-            return wrap_throwing([&](){
-                BlockID block_id;
-                block_id_holder_to(block_id_holder, block_id);
-                return BoolResult::of(counters.inc(block_id));
-            });
+        auto counters_fn = [&](const ApiProfileBlockID<ApiProfileT>& block_id_holder) {
+            BlockID block_id;
+            block_id_holder_to(block_id_holder, block_id);
+            return counters.inc(block_id);
         };
 
-        MEMORIA_TRY_VOID(traverse_cow_containers(counters_fn));
+        traverse_cow_containers(counters_fn);
 
-        MEMORIA_TRY_VOID(traverse_ctr_cow_tree(
+        traverse_ctr_cow_tree(
             commit_descriptor_->superblock()->history_root_id(),
             counters_fn
-        ));
+        );
 
-        MEMORIA_TRY_VOID(traverse_ctr_cow_tree(
+        traverse_ctr_cow_tree(
             commit_descriptor_->superblock()->allocator_root_id(),
             counters_fn
-        ));
-
-        return VoidResult::of();
+        );
     }
 
 
 
 
-    virtual VoidResult traverse_cow_containers(const BlockCounterCallbackFn& callback) noexcept {
-        MEMORIA_TRY_VOID(traverse_ctr_cow_tree(commit_descriptor_->superblock()->directory_root_id(), callback));
+    virtual void traverse_cow_containers(const BlockCounterCallbackFn& callback) {
+        traverse_ctr_cow_tree(commit_descriptor_->superblock()->directory_root_id(), callback);
 
-        MEMORIA_TRY(iter, directory_ctr_->iterator());
+        auto iter = directory_ctr_->iterator();
         while (!iter->is_end())
         {
             auto root_id = iter->value();
-            MEMORIA_TRY_VOID(traverse_ctr_cow_tree(root_id, callback));
-            MEMORIA_TRY_VOID(iter->next());
+            traverse_ctr_cow_tree(root_id, callback);
+            iter->next();
         }
-
-        return VoidResult::of();
     }
 
 
-    VoidResult traverse_ctr_cow_tree(const BlockID& root_block_id, const BlockCounterCallbackFn& callback) noexcept {
-        MEMORIA_TRY(ref, from_root_id(root_block_id, CtrID{}));
-        MEMORIA_TRY(root_block, ref->root_block());
+    void traverse_ctr_cow_tree(const BlockID& root_block_id, const BlockCounterCallbackFn& callback) {
+        auto ref = from_root_id(root_block_id, CtrID{});
+        auto root_block = ref->root_block();
         return traverse_block_tree(root_block, callback);
     }
 
-    VoidResult traverse_block_tree(
+    void traverse_block_tree(
             CtrBlockPtr<ApiProfileT> block,
-            const BlockCounterCallbackFn& callback) noexcept
+            const BlockCounterCallbackFn& callback)
     {
-        MEMORIA_TRY(traverse, callback(block->block_id()));
+        auto traverse = callback(block->block_id());
         if (traverse) {
-            MEMORIA_TRY(children, block->children());
+            auto children = block->children();
             for (size_t c = 0; c < children.size(); c++) {
-                MEMORIA_TRY_VOID(traverse_block_tree(children[c], callback));
+                traverse_block_tree(children[c], callback);
             }
         }
-
-        return VoidResult::of();
     }
 
     template<typename CtrName>
-    Result<CtrSharedPtr<ICtrApi<CtrName, ApiProfileT>>> internal_find_by_root_typed(const BlockID& root_block_id) noexcept
+    CtrSharedPtr<ICtrApi<CtrName, ApiProfileT>> internal_find_by_root_typed(const BlockID& root_block_id)
     {
         auto ref = from_root_id(root_block_id, CtrID{});
         return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfileT>>(std::move(ref));
     }
 
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> internal_create_by_name(
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
             const LDTypeDeclarationView& decl, const CtrID& ctr_id
-    ) noexcept
+    )
     {
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(this, ctr_id, decl);
     }
 
     template<typename CtrName>
-    Result<CtrSharedPtr<ICtrApi<CtrName, ApiProfileT>>> internal_create_by_name_typed(const CtrID& ctr_id) noexcept
+    CtrSharedPtr<ICtrApi<CtrName, ApiProfileT>> internal_create_by_name_typed(const CtrID& ctr_id)
     {
-        using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, ApiProfileT>>>;
-        return wrap_throwing([&]() -> ResultT {
-            U8String signature = make_datatype_signature(CtrName{}).name();
+        U8String signature = make_datatype_signature(CtrName{}).name();
 
-            LDDocument doc = TypeSignature::parse(signature.to_std_string());
-            LDTypeDeclarationView decl = doc.value().as_type_decl();
+        LDDocument doc = TypeSignature::parse(signature.to_std_string());
+        LDTypeDeclarationView decl = doc.value().as_type_decl();
 
-            MEMORIA_TRY(ctr_ref, internal_create_by_name(decl, ctr_id));
-            (void)ctr_ref;
+        auto ctr_ref = internal_create_by_name(decl, ctr_id);
 
-            return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfileT>>(std::move(ctr_ref_result));
-        });
+        return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfileT>>(std::move(ctr_ref));
     }
 
     void set_superblock(Superblock* superblock) noexcept {
         this->superblock_ = superblock;
     }
 
-    VoidResult for_each_history_entry(const std::function<VoidResult (CommitID, int64_t)>& fn) noexcept
+    void for_each_history_entry(const std::function<void (CommitID, int64_t)>& fn)
     {
-        MEMORIA_TRY_VOID(init_history_ctr());
-        MEMORIA_TRY(scanner, history_ctr_->scanner_from(history_ctr_->iterator()));
+        init_history_ctr();
+        auto scanner = history_ctr_->scanner();
 
         bool has_next;
         do {
             for (size_t c = 0; c < scanner.keys().size(); c++) {
-                MEMORIA_TRY_VOID(fn(scanner.keys()[c], scanner.values()[c]));
+                fn(scanner.keys()[c], scanner.values()[c]);
             }
 
-            MEMORIA_TRY(has_next_res, scanner.next_leaf());
+            auto has_next_res = scanner.next_leaf();
             has_next = has_next_res;
         }
         while (has_next);
-
-        return VoidResult::of();
     }
 
-    VoidResult init_allocator_ctr() noexcept
+    void init_allocator_ctr()
     {
         if (!allocation_map_ctr_)
         {
@@ -704,17 +658,15 @@ public:
             if (root_block_id.is_set())
             {
                 auto ctr_ref = this->template internal_find_by_root_typed<AllocationMapCtrType>(root_block_id);
-                MEMORIA_RETURN_IF_ERROR(ctr_ref);
-                allocation_map_ctr_ = ctr_ref.get();
+
+                allocation_map_ctr_ = ctr_ref;
                 allocation_map_ctr_->internal_reset_allocator_holder();
             }
         }
-
-        return VoidResult::of();
     }
 
 
-    VoidResult init_history_ctr() noexcept
+    void init_history_ctr()
     {
         if (!history_ctr_)
         {
@@ -722,53 +674,46 @@ public:
             if (root_block_id.is_set())
             {
                 auto ctr_ref = this->template internal_find_by_root_typed<HistoryCtrType>(root_block_id);
-                MEMORIA_RETURN_IF_ERROR(ctr_ref);
-                history_ctr_ = ctr_ref.get();
+                history_ctr_ = ctr_ref;
                 history_ctr_->internal_reset_allocator_holder();
             }
         }
-
-        return VoidResult::of();
     }
 
-    Result<Optional<int64_t>> find_root(const CommitID& commit_id) noexcept {
-        MEMORIA_TRY_VOID(init_history_ctr());
-        MEMORIA_TRY(iter, history_ctr_->find(commit_id));
+    Optional<int64_t> find_root(const CommitID& commit_id) {
+        init_history_ctr();
+        auto iter = history_ctr_->find(commit_id);
 
         if (iter->is_found(commit_id)) {
-            return Result<Optional<int64_t>>::of(iter->value().view());
+            return iter->value().view();
         }
 
-        return Result<Optional<int64_t>>::of(Optional<int64_t>{});
+        return Optional<int64_t>{};
     }
 
-    virtual VoidResult describe_to_cout() noexcept {
+    virtual void describe_to_cout() noexcept {
         if (allocation_map_ctr_) {
-            MEMORIA_TRY(ii, allocation_map_ctr_->iterator());
+            auto ii = allocation_map_ctr_->iterator();
             return ii->dump();
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult for_each_root_block(const std::function<VoidResult (int64_t)>& fn) const noexcept
+    void for_each_root_block(const std::function<void (int64_t)>& fn) const
     {
-        MEMORIA_TRY(scanner, history_ctr_->scanner_from(history_ctr_->iterator()));
+        auto scanner = history_ctr_->scanner_from(history_ctr_->iterator());
 
         bool has_next;
         do {
 
             for (auto superblock_ptr: scanner.values())
             {
-                MEMORIA_TRY_VOID(fn(superblock_ptr));
+                fn(superblock_ptr);
             }
 
-            MEMORIA_TRY(has_next_res, scanner.next_leaf());
+            auto has_next_res = scanner.next_leaf();
             has_next = has_next_res;
         }
         while (has_next);
-
-        return VoidResult::of();
     }
 };
 

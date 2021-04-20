@@ -39,26 +39,24 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafCommonName)
     using typename Base::CtrSizeT;
 
 public:
-    VoidResult ctr_split_leaf(
+    void ctr_split_leaf(
             TreePathT& path,
             const Position& split_at
-    ) noexcept
+    )
     {
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr_split_node(path, 0, [&self, &split_at](const TreeNodePtr& left, const TreeNodePtr& right) noexcept -> VoidResult {
+        self.ctr_split_node(path, 0, [&self, &split_at](const TreeNodePtr& left, const TreeNodePtr& right) {
             return self.ctr_split_leaf_node(left, right, split_at);
-        }));
+        });
 
-        MEMORIA_TRY_VOID(self.ctr_check_path(path));
-
-        return VoidResult::of();
+        self.ctr_check_path(path);
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(SplitNodeFn, splitTo);
-    VoidResult ctr_split_leaf_node(const TreeNodePtr& src, const TreeNodePtr& tgt, const Position& split_at) noexcept
+    void ctr_split_leaf_node(const TreeNodePtr& src, const TreeNodePtr& tgt, const Position& split_at)
     {
-        return self().leaf_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
+        return self().leaf_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at).get_or_throw();
     }
 
 public:
@@ -81,31 +79,31 @@ public:
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
     auto ctr_apply_substreams_fn(const TreeNodePtr& leaf, Fn&& fn, Args&&... args) const
     {
-        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
     auto ctr_apply_substreams_fn(const TreeNodeConstPtr& leaf, Fn&& fn, Args&&... args) const
     {
-        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <int32_t Stream, typename Fn, typename... Args>
     auto ctr_apply_stream_fn(const TreeNodePtr& leaf, Fn&& fn, Args&&... args) const
     {
-        return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <int32_t Stream, typename Fn, typename... Args>
     auto ctr_apply_stream_fn(const TreeNodeConstPtr& leaf, Fn&& fn, Args&&... args) const
     {
-        return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto ctr_read_substreams(const TreeNodeConstPtr& leaf, Args&&... args) const
     {
-         return self().template ctr_apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
+         return self().template ctr_apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -149,12 +147,12 @@ public:
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto ctr_find_forward(const TreeNodeConstPtr& leaf, Args&&... args) const
     {
-        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...).get_or_throw();
     }
 
 
-    // TODO: error handling
-    std::shared_ptr<io::IOVector> create_iovector() noexcept
+
+    std::shared_ptr<io::IOVector> create_iovector()
     {
         return std::static_pointer_cast<io::IOVector>(
             std::make_shared<typename Types::LeafNode::template SparseObject<MyType>::IOVectorT>()
@@ -168,7 +166,7 @@ public:
 
 
 
-    VoidResult complete_tree_path(TreePathT& path, const TreeNodeConstPtr& node) const noexcept
+    void complete_tree_path(TreePathT& path, const TreeNodeConstPtr& node) const
     {
         auto& self = this->self();
 
@@ -177,18 +175,14 @@ public:
 
         if (!node->is_leaf())
         {
-            MEMORIA_TRY(last_child, self.ctr_get_node_last_child(node));
+            auto last_child = self.ctr_get_node_last_child(node);
             return complete_tree_path(path, last_child);
         }
-
-        return VoidResult::of();
     }
 
     template <typename Fn, typename... Args>
-    Result<SplitStatus> ctr_update_atomic(Iterator& iter, Fn&& fn, Args&&... args) noexcept
+    SplitStatus ctr_update_atomic(Iterator& iter, Fn&& fn, Args&&... args)
     {
-        using ResultT = Result<SplitStatus>;
-
         auto& self = this->self();
 
         BlockUpdateMgr mgr(self);
@@ -205,7 +199,7 @@ public:
         );
 
         if (isOk(fn.status_)) {
-            return ResultT::of(SplitStatus::NONE);
+            return SplitStatus::NONE;
         }
 
         mgr.rollback();
@@ -218,13 +212,13 @@ public:
                     iter.iter_leaf().as_mutable(),
                     fn,
                     std::forward<Args>(args)...
-        );
+        ).get_or_throw();
 
         if (isFail(fn.status_)) {
-            return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
+            MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException").do_throw();
         }
 
-        return ResultT::of(status);
+        return status;
     }
 
 MEMORIA_V1_CONTAINER_PART_END

@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -183,22 +183,21 @@ public:
         return totals_;
     }
 
-    virtual BoolResult hasData() noexcept
+    virtual bool hasData()
     {
         bool buffer_has_data = start_.sum() < size_.sum();
 
         if (buffer_has_data) {
-            return BoolResult::of(true);
+            return true;
         }
         else {
             return populate_buffer();
         }
     }
 
-    virtual Result<Position> fill(const TreeNodePtr& leaf, const Position& start) noexcept = 0;
+    virtual Position fill(const TreeNodePtr& leaf, const Position& start) = 0;
 
-    VoidResult iter_next_leaf(const TreeNodePtr& leaf) noexcept {
-        return VoidResult::of();
+    void iter_next_leaf(const TreeNodePtr& leaf) {
     }
 
     DataPositions buffer_size() const
@@ -222,32 +221,31 @@ public:
         return buffer_size();
     }
 
-    virtual BoolResult populate_buffer() noexcept
+    virtual bool populate_buffer()
     {
         if (start_.sum() < size_.sum())
         {
-            return BoolResult::of(true);
+            return true;
         }
         else if (!finished_)
         {
-            MEMORIA_TRY_VOID(do_populate_iobuffer());
+            do_populate_iobuffer();
 
             if (finished_)
             {
-                return BoolResult::of(start_.sum() < size_.sum());
+                return start_.sum() < size_.sum();
             }
             else {
-                return BoolResult::of(true);
+                return true;
             }
         }
         else {
-            return BoolResult::of(false);
+            return false;
         }
     }
 
-    VoidResult do_populate_iobuffer() noexcept
+    void do_populate_iobuffer()
     {
-        return wrap_throwing([&]() -> VoidResult {
         const auto& seq = io_vector_->symbol_sequence();
 
         do
@@ -282,9 +280,6 @@ public:
             seq.rank_to(start_.sum() + remainder, &size_[0]);
             finished_ = true;
         }
-
-        return VoidResult::of();
-        });
     }
 
     DataPositions to_data_positions(const Position& pos)
@@ -384,20 +379,18 @@ public:
         return ctr_end;
     }
 
-    virtual Result<Position> fill(const TreeNodePtr& leaf, const Position& start) noexcept
+    virtual Position fill(const TreeNodePtr& leaf, const Position& start)
     {
-        using ResultT = Result<Position>;
-
         DataPositions data_start = to_data_positions(start);
         DataPositions pos        = data_start;
 
         BlockUpdateMgr mgr(ctr());
 
-        MEMORIA_TRY_VOID(mgr.add(leaf));
+        mgr.add(leaf);
 
         while(true)
         {
-            MEMORIA_TRY(has_data, this->hasData());
+            auto has_data = this->hasData();
 
             if (!has_data) {
                 break;
@@ -405,7 +398,7 @@ public:
 
             auto buffer_sizes = this->buffer_size();
 
-            MEMORIA_TRY(inserted, insertBuffer(mgr, leaf, pos, buffer_sizes));
+            auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);
 
             if (inserted.sum() > 0)
             {
@@ -421,21 +414,19 @@ public:
             }
         }
 
-        return ResultT::of(to_ctr_positions(start, data_start, pos));
+        return to_ctr_positions(start, data_start, pos);
     }
 
 
-    virtual Result<DataPositions> insertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, DataPositions at, const DataPositions& size) noexcept
+    virtual DataPositions insertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, DataPositions at, const DataPositions& size)
     {
-        using ResultT = Result<DataPositions>;
-
-        MEMORIA_TRY(status0, tryInsertBuffer(mgr, leaf, at, size));
+        auto status0 = tryInsertBuffer(mgr, leaf, at, size);
         if (status0)
         {
             start_ += size;
             totals_ += size;
             total_symbols_ += size.sum();
-            return ResultT::of(size);
+            return size;
         }
         else {
             auto imax = size.sum();
@@ -454,7 +445,7 @@ public:
 
                     auto sizes = rank(try_block_size);
 
-                    MEMORIA_TRY(status2, tryInsertBuffer(mgr, leaf, at, sizes));
+                    auto status2 = tryInsertBuffer(mgr, leaf, at, sizes);
                     if (status2)
                     {
                         imin = mid + 1;
@@ -473,7 +464,7 @@ public:
                 else {
                     auto sizes = rank(1);
 
-                    MEMORIA_TRY(status1, tryInsertBuffer(mgr, leaf, at, sizes));
+                    auto status1 = tryInsertBuffer(mgr, leaf, at, sizes);
                     if (status1)
                     {
                         start += 1;
@@ -487,7 +478,7 @@ public:
                 }
             }
 
-            return ResultT::of(at - tmp);
+            return at - tmp;
         }
     }
 
@@ -564,7 +555,7 @@ protected:
     }
 
 
-    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, const DataPositions& at, const DataPositions& size) noexcept
+    bool tryInsertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, const DataPositions& at, const DataPositions& size)
     {
         InsertBuffersFn insert_fn;
 
@@ -581,13 +572,13 @@ protected:
             if (status.is_packed_error())
             {
                 mgr.restoreNodeState();
-                return BoolResult::of(false);
+                return false;
             }
         }
 
         mgr.checkpoint(leaf);
 
-        return BoolResult::of(true);
+        return true;
     }
 
     static float getFreeSpacePart(const TreeNodePtr& node) noexcept

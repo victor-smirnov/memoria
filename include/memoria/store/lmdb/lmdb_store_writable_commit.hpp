@@ -43,7 +43,7 @@ class LMDBStoreWritableCommit:
     using typename Base::Store;
     using typename Base::CtrID;
     using typename Base::CtrReferenceableResult;
-    using typename Base::AllocatorT;
+    using typename Base::StoreT;
     using typename Base::CommitID;
     using typename Base::BlockID;
     using typename Base::SharedBlockPtr;
@@ -212,95 +212,90 @@ public:
         });
     }
 
-    VoidResult finish_store_initialization() noexcept {
+    void finish_store_initialization() {
         return commit(true);
     }
 
-    VoidResult finish_commit_opening() noexcept {
-        return VoidResult::of();
+    void finish_commit_opening() {
     }
 
-    virtual CommitID commit_id() noexcept {
+    virtual CommitID commit_id() {
         return Base::commit_id();
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
     {
-        MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
+        checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(self_ptr(), ctr_id, decl);
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> create(const LDTypeDeclarationView& decl) noexcept
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
     {
-        MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
+        checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
 
-        MEMORIA_TRY(ctr_name, createCtrName());
+        auto ctr_name = createCtrName();
         return factory->create_instance(self_ptr(), ctr_name, decl);
     }
 
-    virtual VoidResult commit(bool) noexcept {
+    virtual void commit(bool) {
         if (!committed_)
         {
-            MEMORIA_TRY_VOID(flush_open_containers());
-            MEMORIA_TRY_VOID(flush_updated_entries());
+            flush_open_containers();
+            flush_updated_entries();
 
             if (superblock_->is_updated()) {
                 superblock_->clear_updates();
-                MEMORIA_TRY_VOID(write_data(DirectoryCtrID, superblock_, superblock_->superblock_size(), system_db_));
+                write_data(DirectoryCtrID, superblock_, superblock_->superblock_size(), system_db_);
             }
 
             if (const int rc = mma_mdb_txn_commit(transaction_)) {
-                return make_generic_error("Can't commit read-write transaction, error = {}", mma_mdb_strerror(rc));
+                make_generic_error("Can't commit read-write transaction, error = {}", mma_mdb_strerror(rc)).do_throw();
             }
 
             committed_ = true;
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Transaction {} has been already committed", commit_id());
+            MEMORIA_MAKE_GENERIC_ERROR("Transaction {} has been already committed", commit_id()).do_throw();
         }
-
-        return VoidResult::of();
     }
 
-    virtual VoidResult flush_open_containers() noexcept {
+    virtual void flush_open_containers() {
         for (const auto& pair: instance_map_)
         {
-            MEMORIA_TRY_VOID(pair.second->flush());
+            pair.second->flush();
         }
-
-        return VoidResult::of();
     }
 
-    virtual BoolResult drop_ctr(const CtrID& name) noexcept
+    virtual bool drop_ctr(const CtrID& name)
     {
-        MEMORIA_TRY_VOID(check_updates_allowed());
+        check_updates_allowed();
 
-        MEMORIA_TRY(root_id, getRootID(name));
+        auto root_id = getRootID(name);
 
         if (root_id.is_set())
         {
-            MEMORIA_TRY(block, getBlock(root_id));
+            auto block = getBlock(root_id);
 
             auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(block->ctr_type_hash());
 
-            MEMORIA_TRY_VOID(ctr_intf->drop(name, self_ptr()));
-            return BoolResult::of(true);
+            ctr_intf->drop(name, self_ptr());
+            return true;
         }
         else {
-            return BoolResult::of(false);
+            return false;
         }
     }
 
-    Result<CtrID> clone_ctr(const CtrID& ctr_name) noexcept {
+    CtrID clone_ctr(const CtrID& ctr_name) {
         return clone_ctr(ctr_name, CtrID{});
     }
 
-    Result<CtrID> clone_ctr(const CtrID& ctr_name, const CtrID& new_ctr_name) noexcept
+    CtrID clone_ctr(const CtrID& ctr_name, const CtrID& new_ctr_name)
     {
-        MEMORIA_TRY(root_id, getRootID(ctr_name));
-        MEMORIA_TRY(block, getBlock(root_id));
+        auto root_id = getRootID(ctr_name);
+        auto block = getBlock(root_id);
 
         if (block)
         {
@@ -310,14 +305,14 @@ public:
             return ctr_intf->clone_ctr(ctr_name, new_ctr_name, self_ptr());
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot", ctr_name);
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot", ctr_name).do_throw();
         }
     }
 
 
-    virtual VoidResult set_persistent(bool persistent) noexcept
+    virtual void set_persistent(bool persistent)
     {
-        return make_generic_error("Method set_persistent(bool) is not implemented for LMDBStore commit");
+        make_generic_error("Method set_persistent(bool) is not implemented for LMDBStore commit").do_throw();
     }
 
     virtual bool is_persistent() noexcept {
@@ -325,7 +320,7 @@ public:
     }
 
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> find(const CtrID& ctr_id) noexcept {
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id) {
         return Base::find(ctr_id);
     }
 
@@ -342,31 +337,31 @@ public:
     }
 
 
-    virtual VoidResult dump_open_containers() noexcept {
+    virtual void dump_open_containers() {
         return Base::dump_open_containers();
     }
 
-    virtual BoolResult has_open_containers() noexcept {
+    virtual bool has_open_containers() {
         return Base::has_open_containers();
     }
 
-    virtual Result<std::vector<CtrID>> container_names() const noexcept {
+    virtual std::vector<CtrID> container_names() const {
         return Base::container_names();
     }
 
-    virtual BoolResult check() noexcept {
+    virtual bool check() {
         return Base::check();
     }
 
-    virtual Result<Optional<U8String>> ctr_type_name_for(const CtrID& name) noexcept {
+    virtual Optional<U8String> ctr_type_name_for(const CtrID& name) {
         return Base::ctr_type_name_for(name);
     }
 
-    virtual VoidResult walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept {
+    virtual void walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) {
         return Base::walk_containers(walker, allocator_descr);
     }
 
-    virtual VoidResult setRoot(const CtrID& ctr_id, const BlockID& root) noexcept
+    virtual void setRoot(const CtrID& ctr_id, const BlockID& root)
     {
         if (MMA_UNLIKELY(ctr_id == DirectoryCtrID))
         {
@@ -376,23 +371,21 @@ public:
                 superblock_->touch();
             }
             else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Containers directory removal attempted");
+                MEMORIA_MAKE_GENERIC_ERROR("Containers directory removal attempted").do_throw();
             }
         }
         else {
             if (root.is_set())
             {
-                MEMORIA_TRY_VOID(directory_ctr_->replace_and_return(ctr_id, root));
+                directory_ctr_->replace_and_return(ctr_id, root);
             }
             else {
-                MEMORIA_TRY_VOID(directory_ctr_->remove_and_return(ctr_id));
+                directory_ctr_->remove_and_return(ctr_id);
             }
         }
-
-        return VoidResult::of();
     }
 
-    virtual VoidResult removeBlock(const BlockID& id) noexcept
+    virtual void removeBlock(const BlockID& id)
     {
         auto res = block_cache_.has_entry(id);
 
@@ -410,15 +403,12 @@ public:
             else {
                 entry->state() = ENTRY_STATE_DELETED;
             }
-
-            return VoidResult::of();
         }
     }
 
-    virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept
+    virtual SharedBlockPtr createBlock(int32_t initial_size)
     {
-        MEMORIA_TRY_VOID(check_updates_allowed());
-        using ResultT = Result<SharedBlockPtr>;
+        check_updates_allowed();
 
         if (initial_size == -1) {
             initial_size = BASIC_BLOCK_SIZE;
@@ -430,7 +420,7 @@ public:
 
         std::memset(block_addr, 0, initial_size);
 
-        MEMORIA_TRY(id, newId());
+        auto id = newId();
         BlockType* block = new (block_addr) BlockType(id, id);
         block->init();
 
@@ -442,21 +432,19 @@ public:
         block_cache_.insert(entry);
         updated_entries_.push_back(*entry);
 
-        return ResultT::of(entry);
+        return entry;
     }
 
-    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockConstPtr& block) noexcept
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block)
     {
-        MEMORIA_TRY_VOID(check_updates_allowed());
-        using ResultT = Result<SharedBlockPtr>;
-
+        check_updates_allowed();
         int32_t block_size = block->memory_block_size();
 
         uint8_t* block_addr = ptr_cast<uint8_t>(::malloc(block_size));
 
         std::memcpy(block_addr, block.block(), block_size);
 
-        MEMORIA_TRY(id, newId());
+        auto id = newId();
         BlockType* new_block = ptr_cast<BlockType>(block_addr);
         new_block->id()   = id;
         new_block->uuid() = id;
@@ -469,22 +457,21 @@ public:
         block_cache_.insert(entry);
         updated_entries_.push_back(*entry);
 
-        return ResultT::of(SharedBlockPtr{entry});
+        return SharedBlockPtr{entry};
     }
 
 protected:
 
-    virtual Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>> snapshot_ref_creation_allowed() noexcept {
-        using ResultT = Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>>;
-        return ResultT::of();
+    virtual SnpSharedPtr<StoreApiBase<ApiProfileT>> snapshot_ref_creation_allowed() {
+        return SnpSharedPtr<StoreApiBase<ApiProfileT>>{};
     }
 
 
-    virtual Result<SnpSharedPtr<StoreApiBase<ApiProfileT>>> snapshot_ref_opening_allowed() noexcept {
+    virtual SnpSharedPtr<StoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
         return Base::snapshot_ref_opening_allowed();
     }
 
-    virtual SnpSharedPtr<AllocatorT> self_ptr() noexcept {
+    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
         return this->shared_from_this();
     }
 
@@ -501,13 +488,12 @@ private:
             if (root_block_id.is_set())
             {
                 auto ctr_ref = this->template internal_find_by_root_typed<CtrName>(root_block_id);
-                MEMORIA_RETURN_IF_ERROR(ctr_ref);
-                assign_to = ctr_ref.get();                
+                assign_to = ctr_ref;
             }
             else {
                 auto ctr_ref = this->template internal_create_by_name_typed<CtrName>(ctr_id);
-                MEMORIA_RETURN_IF_ERROR(ctr_ref);
-                assign_to = ctr_ref.get();
+
+                assign_to = ctr_ref;
             }
 
             assign_to->internal_reset_allocator_holder();
@@ -516,43 +502,40 @@ private:
         });
     }
 
-    VoidResult checkIfConainersCreationAllowed() noexcept {
+    void checkIfConainersCreationAllowed() {
         if (MMA_UNLIKELY(committed_)) {
-            return make_generic_error("Snapshot has been already committed");
+            make_generic_error("Snapshot has been already committed").do_throw();
         }
-        return VoidResult::of();
     }
 
-    VoidResult check_updates_allowed() noexcept {
+    void check_updates_allowed() {
         if (MMA_UNLIKELY(committed_)) {
-            return make_generic_error("Snapshot has been already committed");
+            make_generic_error("Snapshot has been already committed").do_throw();
         }
-
-        return VoidResult::of();
     }
 
 private:
-    virtual VoidResult updateBlock(Shared* block) noexcept {
-        MEMORIA_TRY_VOID(check_updates_allowed());
+    virtual void updateBlock(Shared* block) {
+        check_updates_allowed();
 
         BlockCacheEntry* entry = ptr_cast<BlockCacheEntry>(block);
 
         if (!entry->is_updated()) {
             updated_entries_.push_back(*entry);
         }
-
-        return VoidResult::of();
     }
 
-    virtual VoidResult resizeBlock(Shared* block, int32_t new_size) noexcept
+    virtual void resizeBlock(Shared* block, int32_t new_size)
     {
-        MEMORIA_TRY_VOID(check_updates_allowed());
+        check_updates_allowed();
 
         int32_t block_size = block->get()->memory_block_size();
 
         new_size = nearest_log2(new_size) - LMDB_HEADER_SIZE;
 
-        uint8_t* block_addr = ptr_cast<uint8_t>(::malloc(new_size));
+        auto block_ptr = allocate_system<uint8_t>(new_size);
+
+        uint8_t* block_addr = block_ptr.get();
 
         int32_t transfer_size = std::min(new_size, block_size);
 
@@ -560,14 +543,9 @@ private:
 
         BlockType* new_block = ptr_cast<BlockType>(block_addr);
 
-        auto res = ProfileMetadata<Profile>::local()
+        ProfileMetadata<Profile>::local()
                 ->get_block_operations(new_block->ctr_type_hash(), new_block->block_type_hash())
                 ->resize(block->get(), new_block, new_size);
-
-        if (MMA_UNLIKELY(res.is_error())) {
-            ::free(block_addr);
-            return std::move(res).transfer_error();
-        }
 
         block->set_block(new_block);
 
@@ -577,10 +555,10 @@ private:
             updated_entries_.push_back(*entry);
         }
 
-        return VoidResult::of();
+        block_ptr.release();
     }
 
-    virtual VoidResult releaseBlock(Shared* block) noexcept
+    virtual void releaseBlock(Shared* block)
     {
         BlockCacheEntry* entry = ptr_cast<BlockCacheEntry>(block);
 
@@ -589,44 +567,41 @@ private:
         }
         else {
             forget_entry(entry);
-            return VoidResult::of();
         }
     }
 
-    virtual Result<SharedBlockConstPtr> getBlock(const BlockID& id) noexcept
+    virtual SharedBlockConstPtr getBlock(const BlockID& id)
     {
         if (MMA_UNLIKELY(committed_)) {
-            return make_generic_error("Snapshot has been already committed");
+            make_generic_error("Snapshot has been already committed").do_throw();
         }
 
-        using ResultT = Result<SharedBlockConstPtr>;
-
         if (MMA_UNLIKELY(id.is_null())) {
-            return ResultT::of();
+            return SharedBlockConstPtr{};
         }
 
         auto block = block_cache_.get(id);
         if (block) {
             BlockCacheEntry* entry = block.get();
             if (entry->get()) {
-                return ResultT::of(block.get());
+                return block.get();
             }
             else {
-                MEMORIA_TRY(block_ptr, get_data_addr(id, data_db_));
+                auto block_ptr = get_data_addr(id, data_db_);
                 if (block_ptr.mv_data)
                 {
                     BlockType* block_data = ptr_cast<BlockType>(::malloc(block_ptr.mv_size));
                     std::memcpy(block_data, block_ptr.mv_data, block_ptr.mv_size);
                     entry->set_block(block_data);
-                    return ResultT::of(SharedBlockConstPtr(entry));
+                    return SharedBlockConstPtr(entry);
                 }
                 else {
-                    return make_generic_error("Block {} is not found in the data_db", id);
+                    make_generic_error("Block {} is not found in the data_db", id).do_throw();
                 }
             }
         }
         else {
-            MEMORIA_TRY(block_ptr, get_data_addr(id, data_db_));
+            auto block_ptr = get_data_addr(id, data_db_);
             if (block_ptr.mv_data) {
                 BlockType* block = ptr_cast<BlockType>(::malloc(block_ptr.mv_size));
                 std::memcpy(block, block_ptr.mv_data, block_ptr.mv_size);
@@ -636,10 +611,10 @@ private:
 
                 block_cache_.insert(entry);
 
-                return ResultT::of(SharedBlockConstPtr(entry));
+                return SharedBlockConstPtr(entry);
             }
             else {
-                return make_generic_error("Block {} is not found in the data_db", id);
+                make_generic_error("Block {} is not found in the data_db", id).do_throw();
             }
         }
     }
@@ -649,20 +624,20 @@ private:
         return is_active();
     }
 
-    virtual Result<BlockID> newId() noexcept {
+    virtual BlockID newId() noexcept {
         UUID uuid{};
         uuid.lo() = superblock_->new_block_id();
         return uuid;
     }
 
-    virtual VoidResult drop() noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("drop() is not supported for LMDB store");
+    virtual void drop() noexcept {
+        MEMORIA_MAKE_GENERIC_ERROR("drop() is not supported for LMDB store").do_throw();
     }
 
-    VoidResult evictionFn(bool keep_entry, BlockCacheEntry* entry) noexcept
+    void evictionFn(bool keep_entry, BlockCacheEntry* entry)
     {
         if (entry->is_updated()) {
-            MEMORIA_TRY_VOID(write_data(entry->id(), entry->get(), entry->get()->memory_block_size(), data_db_));
+            write_data(entry->id(), entry->get(), entry->get()->memory_block_size(), data_db_);
         }
 
         if (keep_entry) {
@@ -676,8 +651,6 @@ private:
         else {
             forget_entry(entry);
         }
-
-        return VoidResult::of();
     }
 
     void forget_entry(BlockCacheEntry* entry) noexcept
@@ -691,42 +664,36 @@ private:
         block_cache_entry_pool_.destroy(entry);
     }
 
-    VoidResult flush_updated_entries() noexcept
+    void flush_updated_entries()
     {
         while (updated_entries_.size())
         {
             auto ii = updated_entries_.begin();
             BlockCacheEntry* entry = ptr_cast<BlockCacheEntry>(&*ii);
-            MEMORIA_TRY_VOID(write_data(entry->id(), entry->get(), entry->get()->memory_block_size(), data_db_));
+            write_data(entry->id(), entry->get(), entry->get()->memory_block_size(), data_db_);
 
             updated_entries_.erase(ii);
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult write_data(const BlockID& block_id, void* bytes, size_t size, MDB_dbi dbi) noexcept
+    void write_data(const BlockID& block_id, void* bytes, size_t size, MDB_dbi dbi)
     {
         MDB_val key = {sizeof(block_id), ptr_cast<void>(&block_id)};
         MDB_val data = {size, bytes};
 
         if (int rc = mma_mdb_put(transaction_, dbi, &key, &data, 0)) {
-            return make_generic_error("Can't write block {} of {} bytes to the database, error = {}", block_id, size, mma_mdb_strerror(rc));
+            make_generic_error("Can't write block {} of {} bytes to the database, error = {}", block_id, size, mma_mdb_strerror(rc)).do_throw();
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult remove_data(const BlockID& block_id, MDB_dbi dbi) noexcept
+    void remove_data(const BlockID& block_id, MDB_dbi dbi)
     {
         MDB_val key = {sizeof(block_id), ptr_cast<void>(&block_id)};
         MDB_val data{};
 
         if (int rc = mma_mdb_del(transaction_, dbi, &key, &data)) {
-            return make_generic_error("Can't delete block {} from the database, error = {}", block_id, mma_mdb_strerror(rc));
+            make_generic_error("Can't delete block {} from the database, error = {}", block_id, mma_mdb_strerror(rc)).do_throw();
         }
-
-        return VoidResult::of();
     }
 
     static constexpr int32_t nearest_log2(int32_t value) noexcept {

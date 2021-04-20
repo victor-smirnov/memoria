@@ -168,65 +168,65 @@ struct ContainerOperationsBase {
     using BlockGUID = ProfileBlockGUID<Profile>;
     using CtrID     = ProfileCtrID<Profile>;
 
-    virtual ~ContainerOperationsBase() noexcept {}
+    virtual ~ContainerOperationsBase() noexcept = default;
 
     // uuid, id, block data
-    using BlockCallbackFn = std::function<VoidResult (const BlockGUID&, const BlockID&, const BlockType*)>;
+    using BlockCallbackFn = std::function<void (const BlockGUID&, const BlockID&, const BlockType*)>;
     using Allocator = ProfileStoreType<Profile>;
     using AllocatorBasePtr = SnpSharedPtr<ProfileStoreType<Profile>>;
 
-    virtual U8String data_type_decl_signature() const noexcept = 0;
+    virtual U8String data_type_decl_signature() const = 0;
 
     // FIXME: remove name from parameters, it's already in Ctr's block root metadata
-    virtual U8String ctr_name() const noexcept = 0;
+    virtual U8String ctr_name() const = 0;
 
-    virtual BoolResult check(
+    virtual bool check(
         const CtrID& name,
         AllocatorBasePtr allocator
-    ) const noexcept = 0;
+    ) const = 0;
 
-    virtual VoidResult walk(
+    virtual void walk(
             const CtrID& name,
             AllocatorBasePtr allocator,
             ContainerWalker<Profile>* walker
-    ) const noexcept = 0;
+    ) const = 0;
 
 
-    virtual U8String ctr_type_name() const noexcept = 0;
+    virtual U8String ctr_type_name() const = 0;
 
-    virtual VoidResult drop(
+    virtual void drop(
             const CtrID& name,
             AllocatorBasePtr allocator
-    ) const noexcept = 0;
+    ) const = 0;
 
 
-    virtual VoidResult for_each_ctr_node(
+    virtual void for_each_ctr_node(
         const CtrID& name,
         AllocatorBasePtr allocator,
         BlockCallbackFn consumer
-    ) const noexcept = 0;
+    ) const = 0;
     
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> new_ctr_instance(
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
         const ProfileSharedBlockConstPtr<Profile>& root_block,
         AllocatorBasePtr allocator
-    ) const noexcept = 0;
+    ) const  = 0;
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> new_ctr_instance(
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
         const ProfileSharedBlockConstPtr<Profile>& root_block,
         Allocator* allocator
-    ) const noexcept = 0;
+    ) const = 0;
 
 
-    virtual Result<CtrID> clone_ctr(
+    virtual CtrID clone_ctr(
         const CtrID& name,
         const CtrID& new_name,
         AllocatorBasePtr allocator
-    ) const noexcept = 0;
+    ) const = 0;
 
-    virtual Result<CtrBlockDescription<ApiProfileT>> describe_block1(
+    virtual CtrBlockDescription<ApiProfileT> describe_block1(
         const BlockID& block_id,
         AllocatorBasePtr allocator
-    ) const noexcept = 0;
+    ) const = 0;
 };
 
 
@@ -245,11 +245,11 @@ struct BTreeTraverseNodeHandler {
     using BlockID   = ProfileBlockID<Profile>;
 
 
-    virtual VoidResult process_branch_node(const BlockType* block) noexcept = 0;
-    virtual VoidResult process_leaf_node(const BlockType* block) noexcept = 0;
-    virtual VoidResult process_directory_leaf_node(const BlockType* block) noexcept = 0;
+    virtual void process_branch_node(const BlockType* block) = 0;
+    virtual void process_leaf_node(const BlockType* block) = 0;
+    virtual void process_directory_leaf_node(const BlockType* block) = 0;
 
-    virtual BoolResult proceed_with(const BlockID& block_id) const noexcept = 0;
+    virtual bool proceed_with(const BlockID& block_id) const = 0;
 };
 
 
@@ -262,19 +262,17 @@ struct CtrInstanceFactory {
     using Allocator     = ProfileStoreType<Profile>;
     using AllocatorPtr  = SnpSharedPtr<Allocator>;
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> create_instance(
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>> create_instance(
             const AllocatorPtr& allocator,
             const CtrID& ctr_id,
             const LDTypeDeclarationView& type_decl
     ) const = 0;
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>>> create_instance(
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfile<Profile>>> create_instance(
             Allocator* allocator,
             const CtrID& ctr_id,
             const LDTypeDeclarationView& type_decl
     ) const = 0;
-
-
 };
 
 template <typename Profile>

@@ -47,13 +47,13 @@ int main()
 
         const char* name = "/home/victor/memoria_swmr_file.mma4";
         memoria::filesystem::remove(name);
-        auto store1 = create_swmr_store(name, 16*1024).get_or_throw();
+        auto store1 = create_swmr_store(name, 16*1024);
 
         UUID ctr_id = UUID::make_random();
 
-        auto txn = store1->begin().get_or_throw();
-        auto ctr = create(txn, CtrName{}, ctr_id).get_or_throw();
-        txn->commit().get_or_throw();
+        auto txn = store1->begin();
+        auto ctr = create(txn, CtrName{}, ctr_id);
+        txn->commit();
 
         long t0 = getTimeInMillis();
 
@@ -70,27 +70,27 @@ int main()
                 std::cout << "C=" << c << std::endl;
             }
 
-            auto txn2 = store1->begin().get_or_throw();
-            auto ctr2 = find<CtrName>(txn2, ctr_id).get_or_throw();
+            auto txn2 = store1->begin();
+            auto ctr2 = find<CtrName>(txn2, ctr_id);
 
 
             int64_t val = getBIRandomG();
 
             int64_t ti0 = getTimeInNanos();
-            ctr2->insert(format_u8("AAAAAAAAAAAAAAAAAA: {}", val)).get_or_throw();
+            ctr2->insert(format_u8("AAAAAAAAAAAAAAAAAA: {}", val));
             int64_t ti1 = getTimeInNanos();
 
             tInsert += ti1 - ti0;
 
             long tc0 = getTimeInMillis();
-            txn2->commit(false).get_or_throw();
+            txn2->commit(false);
             long tc1 = getTimeInMillis();
 
             tCommit += tc1 - tc0;
         }
 
 
-        store1->flush().get_or_throw();
+        store1->flush();
         long t1 = getTimeInMillis();
 
         std::cout << "Insertion finished, time = " << (t1 - t0)
@@ -99,12 +99,12 @@ int main()
                   <<  std::endl;
         store1.reset();
 
-        auto store2 = open_swmr_store(name).get_or_throw();
+        auto store2 = open_swmr_store(name);
 
-        auto txn3 = store2->open().get_or_throw();
-        auto ctr3 = find<CtrName>(txn3, ctr_id).get_or_throw();
+        auto txn3 = store2->open();
+        auto ctr3 = find<CtrName>(txn3, ctr_id);
 
-        std::cout << ctr3->size().get_or_throw() << std::endl;
+        std::cout << ctr3->size() << std::endl;
 //        ctr3->for_each([](auto key){
 //            std::cout << "Key: " << key << std::endl;
 //        }).get_or_throw();

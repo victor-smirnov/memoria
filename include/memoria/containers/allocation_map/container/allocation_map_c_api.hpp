@@ -50,9 +50,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     using Base::LEVELS;
 
+    using ApiIteratorT = CtrSharedPtr<AllocationMapIterator<ApiProfileT>>;
     using CtrSizeTResult = Result<CtrSizeT>;
-
-    using ApiIteratorResult = Result<CtrSharedPtr<AllocationMapIterator<ApiProfileT>>>;
 
     void configure_types(
         const ContainerTypeName& type_name,
@@ -67,14 +66,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         return false;
     }
 
-    ApiIteratorResult iterator() noexcept
+    ApiIteratorT iterator()
     {
         auto iter = self().ctr_begin();
         return memoria_static_pointer_cast<AllocationMapIterator<ApiProfileT>>(std::move(iter));
     }
 
 
-    virtual ApiIteratorResult seek(CtrSizeT position) noexcept {
+    virtual ApiIteratorT seek(CtrSizeT position) noexcept {
         auto iter = self().ctr_seek(position);
         return memoria_static_pointer_cast<AllocationMapIterator<ApiProfileT>>(std::move(iter));
     }
@@ -106,77 +105,75 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         }
     };
 
-    CtrSizeTResult ctr_enlarge_leaf(const TreeNodePtr& node, CtrSizeT l0_size, bool update_path = true) noexcept
+    CtrSizeT ctr_enlarge_leaf(const TreeNodePtr& node, CtrSizeT l0_size, bool update_path = true)
     {
-        return self().leaf_dispatcher().dispatch(node, ExpandBitmapFn(), l0_size);
+        return self().leaf_dispatcher().dispatch(node, ExpandBitmapFn(), l0_size).get_or_throw();
     }
 
-    virtual Result<CtrSizeT> expand(CtrSizeT l0_size) noexcept
+    virtual CtrSizeT expand(CtrSizeT l0_size)
     {
         auto& self = this->self();
         CtrSizeT accum{};
 
         if (MMA_LIKELY(l0_size > 0))
         {
-            MEMORIA_TRY(ii, self.ctr_end());
+            auto ii = self.ctr_end();
 
             TreePathT& path = ii->path();
 
-            MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
-            MEMORIA_TRY(inserted, self.ctr_enlarge_leaf(path.leaf().as_mutable(), l0_size));
+            self.ctr_cow_clone_path(path, 0);
+            auto inserted = self.ctr_enlarge_leaf(path.leaf().as_mutable(), l0_size);
 
             if (inserted > 0) {
-                MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
+                self.ctr_update_path(path, 0);
             }
 
             accum += inserted;
 
             while (accum < l0_size)
             {
-                MEMORIA_TRY(leaf_inserted, self.ctr_append_leaf(path, l0_size - accum));
+                auto leaf_inserted = self.ctr_append_leaf(path, l0_size - accum);
                 accum += leaf_inserted;
             }
         }
 
-        return Result<CtrSizeT>::of(accum);
+        return accum;
     }
 
-    virtual VoidResult shrink(CtrSizeT up_to) noexcept {
+    virtual void shrink(CtrSizeT up_to) {
         auto& self = this->self();
 
-        MEMORIA_TRY(ii_start, self.ctr_seek(up_to));
+        auto ii_start = self.ctr_seek(up_to);
         return self.ctr_trim_tree(ii_start->path());
     }
 
-    virtual CtrSizeTResult rank(CtrSizeT pos) noexcept {
-        return CtrSizeTResult::of();
+    virtual CtrSizeT rank(CtrSizeT pos) {
+        return CtrSizeT{};
     }
 
-    virtual VoidResult find_unallocated(
+    virtual void find_unallocated(
         CtrSizeT from,
         int32_t level,
         CtrSizeT required,
         ArenaBuffer<AllocationMetadata<ApiProfileT>>& buffer
-    ) noexcept
+    )
     {
         auto& self = this->self();
         auto ii = self.template ctr_select<IntList<0, 1>>(level, 1);
-        MEMORIA_RETURN_IF_ERROR(ii);
 
         CtrSizeT sum{};
-        while (!ii.get()->is_end())
+        while (!ii->is_end())
         {
-            MEMORIA_TRY(level0_pos, ii.get()->level0_pos());
+            auto level0_pos = ii.get()->level0_pos();
 
-            MEMORIA_TRY(available, ii.get()->count_fw());
+            auto available = ii.get()->count_fw();
             sum += available;
 
             buffer.append_value(AllocationMetadata<ApiProfileT>{level0_pos, available, level});
 
             if (sum < required)
             {
-                auto res = ii.get()->template iter_select_fw<IntList<0, 1>>(level, 1);
-                MEMORIA_RETURN_IF_ERROR(res);
+                ii.get()->template iter_select_fw<IntList<0, 1>>(level, 1);
             }
             else {
                 break;
@@ -184,13 +181,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         }
 
         if (sum >= required) {
-            return VoidResult::of();
+            return;
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR(
+            MEMORIA_MAKE_GENERIC_ERROR(
                 "No enought unallocated blocks found at the level {}: avaliable={}, required={}",
                 level, sum, required
-            );
+            ).do_throw();
         }
     }
 
@@ -210,13 +207,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     };
 
 
-    VoidResult ctr_layout_leaf_node(TreeNodePtr& node, const Position& sizes) const noexcept
+    void ctr_layout_leaf_node(TreeNodePtr& node, const Position& sizes) const
     {
-        return self().leaf_dispatcher().dispatch(node, LayoutLeafNodeFn());
+        return self().leaf_dispatcher().dispatch(node, LayoutLeafNodeFn()).get_or_throw();
     }
 
 
-    CtrSizeTResult ctr_append_leaf(TreePathT& path, CtrSizeT size) noexcept
+    CtrSizeT ctr_append_leaf(TreePathT& path, CtrSizeT size)
     {
         auto& self = this->self();
 
@@ -224,23 +221,23 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         {
             if (path.size() == 1)
             {
-                MEMORIA_TRY_VOID(self.ctr_create_new_root_block(path));
+                self.ctr_create_new_root_block(path);
             }
 
-            MEMORIA_TRY(new_leaf, self.ctr_create_node(0, false, true));
+            auto new_leaf = self.ctr_create_node(0, false, true);
 
-            MEMORIA_TRY(leaf_inserted, self.ctr_enlarge_leaf(new_leaf, size));
+            auto leaf_inserted = self.ctr_enlarge_leaf(new_leaf, size);
 
-            MEMORIA_TRY(leaf_max, self.ctr_get_node_max_keys(new_leaf.as_immutable()));
+            auto leaf_max = self.ctr_get_node_max_keys(new_leaf.as_immutable());
 
-            MEMORIA_TRY(branch_capacity, self.ctr_get_branch_node_capacity(path[1], -1ull));
+            auto branch_capacity = self.ctr_get_branch_node_capacity(path[1], -1ull);
 
             int32_t parent_idx;
-            MEMORIA_TRY(branch_size, self.ctr_get_branch_node_size(path[1]));
+            auto branch_size = self.ctr_get_branch_node_size(path[1]);
             if (MMA_UNLIKELY(branch_capacity == 0))
             {
-                MEMORIA_TRY_VOID(self.ctr_split_path(path, 1, branch_size));
-                MEMORIA_TRY_VOID(self.ctr_expect_next_node(path, 1));
+                self.ctr_split_path(path, 1, branch_size);
+                self.ctr_expect_next_node(path, 1);
 
                 parent_idx = 0;
             }
@@ -248,37 +245,34 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 parent_idx = branch_size;
             }
 
-            MEMORIA_TRY_VOID(self.ctr_insert_to_branch_node(path, 1, parent_idx, leaf_max, new_leaf->id()));
+            self.ctr_insert_to_branch_node(path, 1, parent_idx, leaf_max, new_leaf->id()).get_or_throw();
 
             path[0] = new_leaf.as_immutable();
-            MEMORIA_TRY_VOID(self.ctr_ref_block(new_leaf->id()));
-            return CtrSizeTResult::of(leaf_inserted);
+            self.ctr_ref_block(new_leaf->id());
+            return leaf_inserted;
         }
         else {
-            return CtrSizeTResult::of(0);
+            return CtrSizeT{};
         }
     }
 
 
-    VoidResult ctr_trim_tree(TreePathT& start_path) noexcept
+    void ctr_trim_tree(TreePathT& start_path)
     {
         auto& self = this->self();
 
         if (start_path.size() > 1)
         {
-            MEMORIA_TRY_VOID(self.ctr_cow_clone_path(start_path, 0));
-            MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(start_path, 0));
-            MEMORIA_TRY_VOID(self.ctr_remove_branch_nodes_at_end(start_path, 1, parent_idx + 1));
+            self.ctr_cow_clone_path(start_path, 0);
+            auto parent_idx = self.ctr_get_parent_idx(start_path, 0);
+            self.ctr_remove_branch_nodes_at_end(start_path, 1, parent_idx + 1);
             return self.ctr_remove_redundant_root(start_path, 0);
         }
-
-        return VoidResult::of();
     }
 
 
-    virtual Result<CtrSizeT> setup_bits(Span<const AllocationMetadata<ApiProfileT>> allocations, bool set_bits) noexcept
+    virtual CtrSizeT setup_bits(Span<const AllocationMetadata<ApiProfileT>> allocations, bool set_bits)
     {
-        using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
 
         if (allocations.size() > 0)
@@ -289,16 +283,16 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             const auto& alloc0 = *alc_ii;
 
             CtrSizeT global_pos = alloc0.position();
-            MEMORIA_TRY(ii, self.ctr_seek(global_pos));
+            auto ii = self.ctr_seek(global_pos);
 
             if (ii->iter_is_end()) {
-                return ResultT::of();
+                return CtrSizeT{};
             }
 
             CtrSizeT size = alloc0.size();
             int32_t level = alloc0.level();
 
-            MEMORIA_TRY(processed, ii->iter_setup_bits(level, size, set_bits));
+            auto processed = ii->iter_setup_bits(level, size, set_bits);
 
             global_size += processed << level;
             global_pos  += processed << level;
@@ -312,7 +306,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 CtrSizeT next_pos = alc.position();
                 CtrSizeT skip_size = next_pos - global_pos;
 
-                MEMORIA_TRY_VOID(ii->skip(skip_size));
+                ii->skip(skip_size);
 
                 if (ii->iter_is_end()) {
                     break;
@@ -323,23 +317,22 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 CtrSizeT size_ii = alc.size();
                 int32_t level_ii = alc.level();
 
-                MEMORIA_TRY(processed_ii, ii->iter_setup_bits(level_ii, size_ii, set_bits));
+                auto processed_ii = ii->iter_setup_bits(level_ii, size_ii, set_bits);
 
                 global_size += processed_ii << level_ii;
                 global_pos  += (processed_ii << level_ii);
             }
 
-            return ResultT::of(global_size);
+            return global_size;
         }
         else {
-            return ResultT::of();
+            return CtrSizeT{};
         }
     }
 
 
-    virtual Result<CtrSizeT> touch_bits(Span<const AllocationMetadata<ApiProfileT>> allocations) noexcept
+    virtual CtrSizeT touch_bits(Span<const AllocationMetadata<ApiProfileT>> allocations)
     {
-        using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
 
         if (allocations.size() > 0)
@@ -350,16 +343,16 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             const auto& alloc0 = *alc_ii;
 
             CtrSizeT global_pos = alloc0.position();
-            MEMORIA_TRY(ii, self.ctr_seek(global_pos));
+            auto ii = self.ctr_seek(global_pos);
 
             if (ii->iter_is_end()) {
-                return ResultT::of();
+                return CtrSizeT{};
             }
 
             CtrSizeT size = alloc0.size();
             int32_t level = alloc0.level();
 
-            MEMORIA_TRY(processed, ii->iter_touch_bits(level, size));
+            auto processed = ii->iter_touch_bits(level, size);
 
             global_size += processed << level;
             global_pos  += processed << level;
@@ -373,7 +366,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 CtrSizeT next_pos = alc.position();
                 CtrSizeT skip_size = next_pos - global_pos;
 
-                MEMORIA_TRY_VOID(ii->skip(skip_size));
+                ii->skip(skip_size);
 
                 if (ii->iter_is_end()) {
                     break;
@@ -384,34 +377,34 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 CtrSizeT size_ii = alc.size();
                 int32_t level_ii = alc.level();
 
-                MEMORIA_TRY(processed_ii, ii->iter_touch_bits(level_ii, size_ii));
+                auto processed_ii = ii->iter_touch_bits(level_ii, size_ii);
 
                 global_size += processed_ii << level_ii;
                 global_pos  += (processed_ii << level_ii);
             }
 
-            return ResultT::of(global_size);
+            return global_size;
         }
         else {
-            return ResultT::of();
+            return CtrSizeT{};
         }
     }
 
 
-    virtual Result<CtrSizeT> mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size) noexcept
+    virtual CtrSizeT mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(ii, self.ctr_seek(pos << level));
+        auto ii = self.ctr_seek(pos << level);
 
         return ii->iter_setup_bits(level, size, true);
     }
 
-    virtual Result<CtrSizeT> mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size) noexcept
+    virtual CtrSizeT mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(ii, self.ctr_seek(pos << level));
+        auto ii = self.ctr_seek(pos << level);
 
         return ii->iter_setup_bits(level, size, false);
     }
@@ -458,38 +451,34 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         }
     };
 
-    virtual CtrSizeTResult unallocated_at(int32_t level) noexcept
+    virtual CtrSizeT unallocated_at(int32_t level)
     {
         auto& self = this->self();
-        MEMORIA_TRY(root_node, self.ctr_get_root_node());
-        return self.node_dispatcher().dispatch(root_node, UnallocatedFn(), level);
+        auto root_node = self.ctr_get_root_node();
+        return self.node_dispatcher().dispatch(root_node, UnallocatedFn(), level).get_or_throw();
     }
 
-    virtual VoidResult unallocated(Span<CtrSizeT> ranks) noexcept
+    virtual void unallocated(Span<CtrSizeT> ranks)
     {
         auto& self = this->self();
-        MEMORIA_TRY(root_node, self.ctr_get_root_node());
-        return self.node_dispatcher().dispatch(root_node, UnallocatedFn(), ranks);
+        auto root_node = self.ctr_get_root_node();
+        return self.node_dispatcher().dispatch(root_node, UnallocatedFn(), ranks).get_or_throw();
     }
 
-    virtual Result<Optional<AllocationMapEntryStatus>> get_allocation_status(int32_t level, CtrSizeT position) noexcept
+    virtual Optional<AllocationMapEntryStatus> get_allocation_status(int32_t level, CtrSizeT position)
     {
-        using ResultT = Result<Optional<AllocationMapEntryStatus>>;
         auto& self = this->self();
 
-        MEMORIA_TRY(ii, self.ctr_seek(position << level));
+        auto ii = self.ctr_seek(position << level);
 
         if (!ii->is_end())
         {
-            MEMORIA_TRY(bit_status, ii->iter_get_bit(level));
+            auto bit_status = ii->iter_get_bit(level);
             AllocationMapEntryStatus status = static_cast<AllocationMapEntryStatus>(bit_status);
-            return ResultT::of(status);
-        }
-        else {
-            return ResultT::of(Optional<AllocationMapEntryStatus>{});
+            return status;
         }
 
-        return ResultT::of();
+        return Optional<AllocationMapEntryStatus>{};
     }
 
 MEMORIA_V1_CONTAINER_PART_END

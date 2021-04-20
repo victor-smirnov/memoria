@@ -80,8 +80,8 @@ public:
 
     BTTestBase()
     {
-        store_ = create_memory_store().get_or_throw();
-        snapshot_  = store_->master().get_or_throw();
+        store_ = create_memory_store();
+        snapshot_  = store_->master();
     }
 
     auto& store() {
@@ -103,10 +103,10 @@ public:
     auto& branch()
     {
         if (snapshot_) {
-            snapshot_ = snapshot_->branch().get_or_throw();
+            snapshot_ = snapshot_->branch();
         }
         else {
-            snapshot_ = store_->master().get_or_throw()->branch().get_or_throw();
+            snapshot_ = store_->master()->branch();
         }
 
         snapshot_id_ = snapshot_->uuid();
@@ -116,17 +116,17 @@ public:
 
     void commit()
     {
-        snapshot_->commit().get_or_throw();
-        snapshot_->set_as_master().get_or_throw();
+        snapshot_->commit();
+        snapshot_->set_as_master();
 
         if (snapshot_->has_parent())
         {
-            auto parent = snapshot_->parent().get_or_throw();
+            auto parent = snapshot_->parent();
 
             if (parent->has_parent())
             {
-                parent->drop().get_or_throw();
-                store_->pack().get_or_throw();
+                parent->drop();
+                store_->pack();
             }
         }
     }
@@ -170,7 +170,7 @@ public:
     {
         if (is_replay())
         {
-            snapshot_ = store_->find(snapshot_id_).get_or_throw();
+            snapshot_ = store_->find(snapshot_id_);
         }
     }
 
@@ -182,10 +182,10 @@ public:
         try {
             if (snapshot_->is_active())
             {
-                snapshot_id_ = snapshot_->parent().get_or_throw()->uuid();
-                snapshot_->commit().get_or_throw();
+                snapshot_id_ = snapshot_->parent()->uuid();
+                snapshot_->commit();
 
-                store_->pack().get_or_throw();
+                store_->pack();
             }
         }
         catch (...) {
@@ -195,13 +195,13 @@ public:
 
     virtual void storeAllocator(U8String file_name)
     {   
-        store_->store(file_name.to_u8()).get_or_throw();
+        store_->store(file_name.to_u8());
     }
 
 
     virtual void loadAllocator(U8String file_name)
     {
-        store_ = load_memory_store(file_name.to_u8()).get_or_throw();
+        store_ = load_memory_store(file_name.to_u8());
     }
 
 

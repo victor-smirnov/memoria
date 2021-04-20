@@ -78,12 +78,12 @@ public:
 
 
     template <int32_t Stream, typename EntryFn>
-    VoidResult iter_insert_entry(EntryFn&& entry) noexcept
+    void iter_insert_entry(EntryFn&& entry)
     {
         auto& self = this->self();
 
-        std::function<VoidResult (int, int)> insert_fn = [&](int structure_idx, int stream_idx) -> VoidResult {
-            MEMORIA_TRY_VOID(self.ctr().template ctr_try_insert_stream_entry_no_mgr<StructureStreamIdx>(self.iter_leaf(), structure_idx, InsertSymbolFn<StructureStreamIdx>(Stream)));
+        std::function<VoidResult (int, int)> insert_fn = [&](int structure_idx, int stream_idx)  {
+            self.ctr().template ctr_try_insert_stream_entry_no_mgr<StructureStreamIdx>(self.iter_leaf(), structure_idx, InsertSymbolFn<StructureStreamIdx>(Stream));
             return self.ctr().template ctr_try_insert_stream_entry_no_mgr<Stream>(self.iter_leaf(), stream_idx, std::forward<EntryFn>(entry));
         };
 
@@ -95,7 +95,7 @@ public:
 
 
     template <int32_t Stream, typename SubstreamsList, typename EntryFn>
-    VoidResult iter_update_entry(EntryFn&& entry) noexcept
+    void iter_update_entry(EntryFn&& entry)
     {
         auto& self = this->self();
         int32_t key_idx = self.data_stream_idx(Stream);
@@ -104,10 +104,8 @@ public:
 
 
 
-    Result<SplitResult> split(int32_t stream, int32_t target_stream_idx) noexcept
+    SplitResult split(int32_t stream, int32_t target_stream_idx)
     {
-        using ResultT = Result<SplitResult>;
-
         auto& self  = this->self();
         auto leaf   = self.iter_leaf();
         
@@ -135,10 +133,10 @@ public:
 
                 self.iter_refresh();
                 
-                return ResultT::of(SplitStatus::RIGHT, target_stream_idx - half_ranks[stream]);
+                return SplitResult(SplitStatus::RIGHT, target_stream_idx - half_ranks[stream]);
             }
             else {
-                return ResultT::of(SplitStatus::LEFT, target_stream_idx);
+                return SplitResult(SplitStatus::LEFT, target_stream_idx);
             }
         }
         else {
@@ -151,7 +149,7 @@ public:
 
             self.iter_refresh_iov();
             
-            return ResultT::of(SplitStatus::LEFT, iter_leaf_sizes[stream]);
+            return SplitResult(SplitStatus::LEFT, iter_leaf_sizes[stream]);
         }
     }
 

@@ -27,19 +27,19 @@ template <typename Profile>
 struct ISWMRStoreCommitBase: virtual IStoreSnapshotCtrOps<Profile> {
     using CommitID = int64_t;
 
-    virtual CommitID commit_id() noexcept = 0;
-    virtual VoidResult describe_to_cout() noexcept = 0;
+    virtual CommitID commit_id() = 0;
+    virtual void describe_to_cout() = 0;
 };
 
 template <typename Profile>
 struct ISWMRStoreWritableCommit: virtual ISWMRStoreCommitBase<Profile>, virtual IStoreWritableSnapshotCtrOps<Profile> {
-    virtual VoidResult set_persistent(bool persistent) noexcept = 0;
-    virtual bool is_persistent() noexcept = 0;
+    virtual void set_persistent(bool persistent) = 0;
+    virtual bool is_persistent() = 0;
 };
 
 template <typename Profile>
 struct ISWMRStoreReadOnlyCommit: virtual ISWMRStoreCommitBase<Profile> {
-    virtual VoidResult drop() noexcept = 0;
+    virtual void drop() = 0;
 };
 
 template <typename Profile>
@@ -47,17 +47,17 @@ struct ISWMRStoreHistoryView {
     using CommitID = int64_t;
     using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
 
-    virtual ~ISWMRStoreHistoryView() noexcept {}
+    virtual ~ISWMRStoreHistoryView() noexcept = default;
 
-    virtual VoidResult check() noexcept = 0;
+    virtual void check() = 0;
 
-    virtual Result<std::vector<CommitID>> persistent_commits() noexcept = 0;
+    virtual std::vector<CommitID> persistent_commits() = 0;
 
-    virtual Result<std::vector<CommitID>> children(CommitID) noexcept = 0;
-    virtual Result<Optional<CommitID>> parent(CommitID) noexcept = 0;
+    virtual std::vector<CommitID> children(CommitID) = 0;
+    virtual Optional<CommitID> parent(CommitID) = 0;
 };
 
-using StoreCheckCallbackFn = std::function<VoidResult(LDDocument&)>;
+using StoreCheckCallbackFn = std::function<void (LDDocument&)>;
 
 template <typename Profile>
 struct IBasicSWMRStore {
@@ -69,12 +69,12 @@ struct IBasicSWMRStore {
 
     virtual ~IBasicSWMRStore() noexcept = default;
 
-    virtual Result<ReadOnlyCommitPtr> open() noexcept = 0;
-    virtual Result<WritableCommitPtr> begin() noexcept = 0;
+    virtual ReadOnlyCommitPtr open() = 0;
+    virtual WritableCommitPtr begin() = 0;
 
-    virtual VoidResult flush() noexcept = 0;
+    virtual void flush() = 0;
 
-    virtual Result<Optional<SequenceID>> check(StoreCheckCallbackFn callback) noexcept = 0;
+    virtual Optional<SequenceID> check(StoreCheckCallbackFn callback) = 0;
 };
 
 
@@ -90,33 +90,33 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
     using CommitID = int64_t;
     using SequenceID = uint64_t;
 
-    virtual Result<std::vector<CommitID>> persistent_commits() noexcept = 0;
+    virtual std::vector<CommitID> persistent_commits() = 0;
 
     using Base::open;
-    virtual Result<ReadOnlyCommitPtr> open(CommitID commit_id) noexcept = 0;
+    virtual ReadOnlyCommitPtr open(CommitID commit_id) = 0;
 
-    virtual BoolResult drop_persistent_commit(CommitID commit_id) noexcept = 0;
+    virtual bool drop_persistent_commit(CommitID commit_id) = 0;
 
-    virtual VoidResult rollback_last_commit() noexcept = 0;
+    virtual void rollback_last_commit() = 0;
 
-    virtual Result<Optional<SequenceID>> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) noexcept = 0;
-    virtual Result<Optional<SequenceID>> check(StoreCheckCallbackFn callback) noexcept {
+    virtual Optional<SequenceID> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) = 0;
+    virtual Optional<SequenceID> check(StoreCheckCallbackFn callback) {
         return check(Optional<SequenceID>{}, callback);
     };
 
-    virtual Result<HistoryPtr> history_view() noexcept = 0;
+    virtual HistoryPtr history_view() = 0;
 
-    virtual VoidResult close() noexcept = 0;
+    virtual void close() = 0;
 };
 
-Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> open_swmr_store(U8StringView path);
-Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> create_swmr_store(U8StringView path, uint64_t store_size_mb);
+SharedPtr<ISWMRStore<CoreApiProfile<>>> open_swmr_store(U8StringView path);
+SharedPtr<ISWMRStore<CoreApiProfile<>>> create_swmr_store(U8StringView path, uint64_t store_size_mb);
 
-Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> open_lite_swmr_store(U8StringView path);
-Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> create_lite_swmr_store(U8StringView path, uint64_t store_size_mb);
+SharedPtr<ISWMRStore<CoreApiProfile<>>> open_lite_swmr_store(U8StringView path);
+SharedPtr<ISWMRStore<CoreApiProfile<>>> create_lite_swmr_store(U8StringView path, uint64_t store_size_mb);
 
-Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> open_lite_raw_swmr_store(Span<uint8_t> buffer);
-Result<SharedPtr<ISWMRStore<CoreApiProfile<>>>> create_lite_raw_swmr_store(Span<uint8_t> buffer);
+SharedPtr<ISWMRStore<CoreApiProfile<>>> open_lite_raw_swmr_store(Span<uint8_t> buffer);
+SharedPtr<ISWMRStore<CoreApiProfile<>>> create_lite_raw_swmr_store(Span<uint8_t> buffer);
 
 template <typename Profile>
 struct ILMDBStore: IBasicSWMRStore<Profile> {
@@ -127,70 +127,64 @@ struct ILMDBStore: IBasicSWMRStore<Profile> {
     using typename Base::WritableCommitPtr;
     using typename Base::ReadOnlyCommitPtr;
 
-    virtual VoidResult set_async(bool is_async) noexcept = 0;
-    virtual VoidResult copy_to(U8String path, bool with_compaction = true) noexcept = 0;
-    virtual VoidResult flush(bool force = true) noexcept = 0;
+    virtual void set_async(bool is_async) = 0;
+    virtual void copy_to(U8String path, bool with_compaction = true) = 0;
+    virtual void flush(bool force = true) = 0;
 };
 
-Result<SharedPtr<ILMDBStore<CoreApiProfile<>>>> open_lmdb_store(U8StringView path);
-Result<SharedPtr<ILMDBStore<CoreApiProfile<>>>> open_lmdb_store_readonly(U8StringView path);
-Result<SharedPtr<ILMDBStore<CoreApiProfile<>>>> create_lmdb_store(U8StringView path, uint64_t store_size_mb);
+SharedPtr<ILMDBStore<CoreApiProfile<>>> open_lmdb_store(U8StringView path);
+SharedPtr<ILMDBStore<CoreApiProfile<>>> open_lmdb_store_readonly(U8StringView path);
+SharedPtr<ILMDBStore<CoreApiProfile<>>> create_lmdb_store(U8StringView path, uint64_t store_size_mb);
 
 
 
 
 template <typename CtrName, typename Profile>
-Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
+CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
         SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
-) noexcept
-{
+){
     auto ptr = memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(alloc);
     return create(ptr, ctr_type_name, ctr_id);
 }
 
 template <typename CtrName, typename Profile>
-Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
+CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
         SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
         const CtrName& ctr_type_name
-) noexcept
-{
+){
     auto ptr = memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(alloc);
     return create(ptr, ctr_type_name);
 }
 
 
 template <typename CtrName, typename Profile>
-Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
+CtrSharedPtr<ICtrApi<CtrName, Profile>> find_or_create(
         SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
-) noexcept
-{
+){
     auto ptr = memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(alloc);
     return find_or_create(ptr, ctr_type_name, ctr_id);
 }
 
 template <typename CtrName, typename Profile>
-Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
+CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
         SnpSharedPtr<ISWMRStoreReadOnlyCommit<Profile>> alloc,
         const ApiProfileCtrID<Profile>& ctr_id
-) noexcept
-{
+){
     auto ptr = memoria_static_pointer_cast<IStoreSnapshotCtrOps<Profile>>(alloc);
     return find<CtrName>(ptr, ctr_id);
 }
 
 template <typename CtrName, typename Profile>
-Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
+CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
         SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
         const ApiProfileCtrID<Profile>& ctr_id
-) noexcept
-{
+){
     auto ptr = memoria_static_pointer_cast<IStoreSnapshotCtrOps<Profile>>(alloc);
     return find<CtrName>(ptr, ctr_id);
 }
-
 
 }

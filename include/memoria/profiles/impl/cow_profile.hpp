@@ -95,7 +95,7 @@ struct IBlockOperations<CowProfile<>>: IBlockOperationsBase<CowProfile<>> {
     using typename Base::IDValueResolver;
     using typename Base::BlockType;
 
-    virtual VoidResult cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const noexcept = 0;
+    virtual void cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const = 0;
 };
 
 

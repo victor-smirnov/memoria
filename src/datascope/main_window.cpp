@@ -137,7 +137,7 @@ void MainWindow::item_selected()
             CtrBlockTreeItem* block_item = static_cast<CtrBlockTreeItem*>(item);
 
             std::stringstream ss;
-            block_item->block()->describe(ss).get_or_throw();
+            block_item->block()->describe(ss);
 
             plainTextEdit->clear();
             plainTextEdit->insertPlainText(QString::fromUtf8(ss.str().data()));

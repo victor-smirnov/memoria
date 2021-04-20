@@ -33,7 +33,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsPLName)
     using typename Base::TreeNodeConstPtr;
     using typename Base::TreePathT;
 
-    VoidResult ctr_dump_path(const TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
+    void ctr_dump_path(const TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const
     {
         auto& self = this->self();
 
@@ -41,27 +41,24 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsPLName)
 
         for (size_t ll = path.size(); ll > level; ll--)
         {
-            MEMORIA_TRY_VOID(self.ctr_dump_node(path[ll - 1], out));
+            self.ctr_dump_node(path[ll - 1], out);
         }
-
-        return VoidResult::of();
     }
 
 
 public:
-    Result<TreeNodeConstPtr> ctr_get_node_parent(const TreePathT& path, size_t level) const noexcept
+    TreeNodeConstPtr ctr_get_node_parent(const TreePathT& path, size_t level) const
     {
-        using ResultT = Result<TreeNodeConstPtr>;
         if (MMA_LIKELY(level + 1 < path.size()))
         {
-            return ResultT::of(path[level + 1]);
+            return path[level + 1];
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR(
+            MEMORIA_MAKE_GENERIC_ERROR(
                         "Invalid tree path parent access. Requesting level = {}, path size = {}",
                         level,
                         path.size()
-            );
+            ).do_throw();
         }
     }
 
@@ -69,20 +66,19 @@ public:
 
 
 
-    Result<TreeNodePtr> ctr_get_node_parent_for_update(TreePathT& path, size_t level) const noexcept
+    TreeNodePtr ctr_get_node_parent_for_update(TreePathT& path, size_t level) const
     {
-        using ResultT = Result<TreeNodePtr>;
         if (MMA_LIKELY(level + 1 < path.size()))
         {
-            MEMORIA_TRY_VOID(path[level + 1].update());
-            return ResultT::of(path[level + 1].as_mutable());
+            path[level + 1].update();
+            return path[level + 1].as_mutable();
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR(
+            MEMORIA_MAKE_GENERIC_ERROR(
                         "Invalid tree path parent access. Requesting level = {}, path size = {}",
                         level,
                         path.size()
-            );
+            ).do_throw();
         }
     }
 
@@ -90,25 +86,23 @@ public:
 
 public:
 
-    BoolResult ctr_get_next_node(TreePathT& path, size_t level) const noexcept;
-    BoolResult ctr_get_prev_node(TreePathT& path, size_t level) const noexcept;
+    bool ctr_get_next_node(TreePathT& path, size_t level) const;
+    bool ctr_get_prev_node(TreePathT& path, size_t level) const;
 
-    VoidResult ctr_expect_next_node(TreePathT& path, size_t level) const noexcept
+    void ctr_expect_next_node(TreePathT& path, size_t level) const
     {
-        MEMORIA_TRY(has_next, self().ctr_get_next_node(path, level));
+        auto has_next = self().ctr_get_next_node(path, level);
         if (!has_next) {
-            return MEMORIA_MAKE_GENERIC_ERROR("Next node not found");
+            MEMORIA_MAKE_GENERIC_ERROR("Next node not found").do_throw();
         }
-        return VoidResult::of();
     }
 
-    VoidResult ctr_expect_prev_node(TreePathT& path, size_t level) const noexcept
+    void ctr_expect_prev_node(TreePathT& path, size_t level) const
     {
-        MEMORIA_TRY(has_prev, self().ctr_get_prev_node(path, level));
+        auto has_prev = self().ctr_get_prev_node(path, level);
         if (!has_prev) {
-            return MEMORIA_MAKE_GENERIC_ERROR("Previous node not found");
+            MEMORIA_MAKE_GENERIC_ERROR("Previous node not found").do_throw();
         }
-        return VoidResult::of();
     }
 
 protected:
@@ -121,83 +115,75 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_get_next_node(TreePathT& path, size_t level) const noexcept
+bool M_TYPE::ctr_get_next_node(TreePathT& path, size_t level) const
 {
-    using ResultT = BoolResult;
-
     auto& self = this->self();
 
     TreeNodeConstPtr node = path[level];
 
     if (!node->is_root())
     {
-        MEMORIA_TRY(parent, self.ctr_get_node_parent(path, level));
+        auto parent = self.ctr_get_node_parent(path, level);
 
-        MEMORIA_TRY(size, self.ctr_get_node_size(parent, 0));
+        auto size = self.ctr_get_node_size(parent, 0);
 
-        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
+        auto parent_idx = self.ctr_get_child_idx(parent, node->id());
 
         if (parent_idx < size - 1)
         {
-            MEMORIA_TRY(child, self.ctr_get_node_child(parent, parent_idx + 1));
+            auto child = self.ctr_get_node_child(parent, parent_idx + 1);
             path[level] = child;
-            return BoolResult::of(true);
+            return true;
         }
         else {
-            MEMORIA_TRY(has_next_parent, ctr_get_next_node(path, level + 1));
+            auto has_next_parent = ctr_get_next_node(path, level + 1);
 
             if (has_next_parent)
             {
-                MEMORIA_TRY(child, self.ctr_get_node_child(path[level + 1], 0));
+                auto child = self.ctr_get_node_child(path[level + 1], 0);
                 path[level] = child;
-                return ResultT::of(true);
+                return true;
             }
         }
     }
 
-    return ResultT::of(false);
+    return false;
 }
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_get_prev_node(TreePathT& path, size_t level) const noexcept
+bool M_TYPE::ctr_get_prev_node(TreePathT& path, size_t level) const
 {
-    using ResultT = BoolResult;
     auto& self = this->self();
 
     TreeNodeConstPtr node = path[level];
 
     if (!node->is_root())
     {
-        MEMORIA_TRY(parent, self.ctr_get_node_parent(path, level));
-        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
+        auto parent = self.ctr_get_node_parent(path, level);
+        auto parent_idx = self.ctr_get_child_idx(parent, node->id());
 
         if (parent_idx > 0)
         {
-            MEMORIA_TRY(child, self.ctr_get_node_child(parent, parent_idx - 1));
+            auto child = self.ctr_get_node_child(parent, parent_idx - 1);
             path[level] = child;
-            return ResultT::of(true);
+            return true;
         }
         else {
-            MEMORIA_TRY(has_prev_parent, ctr_get_prev_node(path, level + 1));
+            auto has_prev_parent = ctr_get_prev_node(path, level + 1);
 
             if (has_prev_parent)
             {
-                MEMORIA_TRY(node_size, self.ctr_get_node_size(path[level + 1], 0));
-                MEMORIA_TRY(child, self.ctr_get_node_child(path[level + 1], node_size - 1));
+                auto node_size = self.ctr_get_node_size(path[level + 1], 0);
+                auto child = self.ctr_get_node_child(path[level + 1], node_size - 1);
                 path[level] = child;
-                return ResultT::of(true);
+                return true;
             }
         }
     }
 
-    return ResultT::of(false);
+    return false;
 }
-
-
-
-
-
 
 #undef M_TYPE
 #undef M_PARAMS

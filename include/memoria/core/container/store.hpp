@@ -55,45 +55,45 @@ struct IStoreBase: StoreApiBase<ApiProfile<Profile>> {
     using SharedBlockPtr        = typename ProfileTraits<Profile>::SharedBlockPtr;
     using SharedBlockConstPtr   = typename ProfileTraits<Profile>::SharedBlockConstPtr;
 
-    virtual ~IStoreBase() noexcept {}
+    virtual ~IStoreBase() noexcept = default;
     
-    virtual Result<BlockID> getRootID(const CtrID& ctr_id) noexcept = 0;
-    virtual VoidResult setRoot(const CtrID& ctr_id, const BlockID& root) noexcept = 0;
+    virtual BlockID getRootID(const CtrID& ctr_id) = 0;
+    virtual void setRoot(const CtrID& ctr_id, const BlockID& root) = 0;
 
-    virtual BoolResult hasRoot(const CtrID& ctr_id) noexcept = 0;
-    virtual Result<CtrID> createCtrName() noexcept = 0;
+    virtual bool hasRoot(const CtrID& ctr_id) = 0;
+    virtual CtrID createCtrName() = 0;
 
-    virtual Result<SharedBlockConstPtr> getBlock(const BlockID& id) noexcept = 0;
+    virtual SharedBlockConstPtr getBlock(const BlockID& id) = 0;
 
-    virtual VoidResult removeBlock(const BlockID& id) noexcept = 0;
-    virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept = 0;
+    virtual void removeBlock(const BlockID& id) = 0;
+    virtual SharedBlockPtr createBlock(int32_t initial_size) = 0;
 
-    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockConstPtr& block) noexcept = 0;
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block) = 0;
 
-    virtual Result<BlockID> newId() noexcept = 0;
-    virtual SnapshotID currentTxnId() const noexcept = 0;
+    virtual BlockID newId() = 0;
+    virtual SnapshotID currentTxnId() const = 0;
 
     // memory pool allocator
-    virtual Result<void*> allocateMemory(size_t size) noexcept = 0;
-    virtual void freeMemory(void* ptr) noexcept = 0;
+    virtual void* allocateMemory(size_t size) = 0;
+    virtual void freeMemory(void* ptr) = 0;
 
     virtual Logger& logger() noexcept = 0;
 
-    virtual bool isActive() const noexcept = 0;
+    virtual bool isActive() const = 0;
 
-    virtual VoidResult registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) noexcept = 0;
-    virtual VoidResult unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) noexcept = 0;
-    virtual VoidResult flush_open_containers() noexcept = 0;
+    virtual void registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) = 0;
+    virtual void unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) = 0;
+    virtual void flush_open_containers() = 0;
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> find(const CtrID& ctr_id) noexcept = 0;
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> from_root_id(const BlockID& root_block_id, const CtrID& name) noexcept = 0;
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> from_root_id(const BlockID& root_block_id, const CtrID& name) = 0;
 
-    virtual BoolResult check() noexcept = 0;
-    virtual VoidResult walkContainers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;
+    virtual bool check() = 0;
+    virtual void walkContainers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) = 0;
 
-    virtual BoolResult drop_ctr(const CtrID& ctr_id) noexcept = 0;
+    virtual bool drop_ctr(const CtrID& ctr_id) = 0;
 
-    virtual Result<U8String> ctr_type_name(const CtrID& ctr_id) noexcept = 0;
+    virtual U8String ctr_type_name(const CtrID& ctr_id) = 0;
 };
 
 
@@ -109,9 +109,9 @@ struct IStore: IStoreBase<Profile> {
 
     virtual SnpSharedPtr<IStore> self_ptr() noexcept = 0;
 
-    virtual VoidResult updateBlock(Shared* block) noexcept = 0;
-    virtual VoidResult resizeBlock(Shared* block, int32_t new_size) noexcept = 0;
-    virtual VoidResult releaseBlock(Shared* block) noexcept = 0;
+    virtual void updateBlock(Shared* block) = 0;
+    virtual void resizeBlock(Shared* block, int32_t new_size) = 0;
+    virtual void releaseBlock(Shared* block) = 0;
 
     virtual ObjectPools& object_pools() const noexcept = 0;
 };
@@ -129,19 +129,19 @@ struct ICowStore: IStoreBase<Profile> {
 
     virtual SnpSharedPtr<ICowStore> self_ptr() noexcept = 0;
 
-    virtual VoidResult ref_block(const BlockID& block_id) noexcept = 0;
-    virtual VoidResult unref_block(const BlockID& block_id, std::function<VoidResult()> on_zero) noexcept = 0;
-    virtual VoidResult unref_ctr_root(const BlockID& root_block_id) noexcept = 0;
+    virtual void ref_block(const BlockID& block_id) = 0;
+    virtual void unref_block(const BlockID& block_id, std::function<void ()> on_zero) = 0;
+    virtual void unref_ctr_root(const BlockID& root_block_id) = 0;
 
-    virtual VoidResult releaseBlock(Shared* block) noexcept = 0;
-    virtual VoidResult updateBlock(Shared* block) noexcept = 0;
+    virtual void releaseBlock(Shared* block) = 0;
+    virtual void updateBlock(Shared* block) = 0;
 
-    virtual VoidResult traverse_ctr(
+    virtual void traverse_ctr(
             const BlockID& root_block,
             BTreeTraverseNodeHandler<Profile>& node_handler
-    ) noexcept = 0;
+    ) = 0;
 
-    virtual VoidResult check_updates_allowed() noexcept = 0;
+    virtual void check_updates_allowed() = 0;
 };
 
 }

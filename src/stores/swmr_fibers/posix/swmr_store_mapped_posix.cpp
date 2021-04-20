@@ -78,30 +78,25 @@ public:
         }
     }
 
-    VoidResult unlock() noexcept {
-        return wrap_throwing([&]() -> VoidResult {
-            GuardT guard(locks_.mtx());
-            locks_.remove_lock(handle_);
-            int res = flock(handle_, LOCK_UN);
-            if (res) {
-                auto err = make_generic_error("Can't UNLOCK an SWMRStore file: {}, reason: {}", name_, strerror(errno));
-                close(handle_);
-                handle_ = -1;
-                return err;
-            }
-
+    void unlock() {
+        GuardT guard(locks_.mtx());
+        locks_.remove_lock(handle_);
+        int res = flock(handle_, LOCK_UN);
+        if (res) {
+            auto err = strerror(errno);
             close(handle_);
             handle_ = -1;
+            make_generic_error("Can't UNLOCK an SWMRStore file: {}, reason: {}", name_, err).do_throw();
+        }
 
-            return VoidResult::of();
-        });
+        close(handle_);
+        handle_ = -1;
     }
 };
 
+}
 
 using ResultT = Result<std::unique_ptr<detail::FileLockHandler>>;
-
-}
 
 ResultT detail::FileLockHandler::lock_file(const char* name, bool create_file) noexcept {
     static FileHandleThreadLocks locks;

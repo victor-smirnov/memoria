@@ -68,133 +68,120 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
 
 
-    VoidResult assign_key(KeyView key, ValueView value) noexcept
+    void assign_key(KeyView key, ValueView value)
     {
-        MEMORIA_TRY_VOID(self().assign(key, value));
-        return VoidResult::of();
+        self().assign(key, value);
     }
 
-    VoidResult remove_key(KeyView key) noexcept
+    void remove_key(KeyView key)
     {
-        MEMORIA_TRY_VOID(self().remove(key));
-        return VoidResult::of();
+        self().remove(key);
     }
 
-    Result<CtrSharedPtr<MapIterator<Key,Value, ApiProfileT>>> iterator() const noexcept
+    CtrSharedPtr<MapIterator<Key,Value, ApiProfileT>> iterator() const
     {
         auto iter = self().ctr_begin();
         return memoria_static_pointer_cast<MapIterator<Key,Value, ApiProfileT>>(std::move(iter));
     }
 
-    virtual Result<CtrSharedPtr<MapIterator<Key, Value, ApiProfileT>>> find(KeyView key) const noexcept
+    virtual CtrSharedPtr<MapIterator<Key, Value, ApiProfileT>> find(KeyView key) const
     {
         auto iter = self().ctr_map_find(key);
-        MEMORIA_RETURN_IF_ERROR(iter);
-
         return memoria_static_pointer_cast<MapIterator<Key, Value, ApiProfileT>>(std::move(iter));
     }
 
-    VoidResult append(io::IOVectorProducer& producer) noexcept
+    void append(io::IOVectorProducer& producer)
     {
         auto& self = this->self();
-        MEMORIA_TRY(iter, self.ctr_end());
+        auto iter = self.ctr_end();
 
-        MEMORIA_TRY_VOID(iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
-
-        return VoidResult::of();
+        iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
     }
 
-    virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept
+    virtual void prepend(io::IOVectorProducer& producer)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(iter, self.ctr_begin());
-        MEMORIA_TRY_VOID(iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
-
-        return VoidResult::of();
+        auto iter = self.ctr_begin();
+        iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
     }
 
-    virtual VoidResult insert(KeyView before, io::IOVectorProducer& producer) noexcept
+    virtual void insert(KeyView before, io::IOVectorProducer& producer)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(iter, self.ctr_map_find(before));
+        auto iter = self.ctr_map_find(before);
 
         if (iter->is_found(before))
         {
-            return MEMORIA_MAKE_GENERIC_ERROR("Requested key is found. Can't insert enties this way.");
+            MEMORIA_MAKE_GENERIC_ERROR("Requested key is found. Can't insert enties this way.").do_throw();
         }
         else {
-            MEMORIA_TRY_VOID(iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
-            return VoidResult::of();
+            iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
         }
     }
 
-    Result<Optional<Datum<Value>>> remove_and_return(KeyView key) noexcept
+    Optional<Datum<Value>> remove_and_return(KeyView key)
     {
-        using ResultT = Result<Optional<Datum<Value>>>;
         auto& self = this->self();
 
-        MEMORIA_TRY(iter, self.ctr_map_find(key));
+        auto iter = self.ctr_map_find(key);
 
         if (iter->is_found(key))
         {
             auto val = iter->value();
-            MEMORIA_TRY_VOID(iter->remove());
-            return ResultT::of(std::move(val));
+            iter->remove();
+            return std::move(val);
         }
         else {
-            return ResultT::of(Optional<Datum<Value>>{});
+            return Optional<Datum<Value>>{};
         }
     }
 
-    Result<Optional<Datum<Value>>> replace_and_return(KeyView key, ValueView value) noexcept
+    Optional<Datum<Value>> replace_and_return(KeyView key, ValueView value)
     {
-        using ResultT = Result<Optional<Datum<Value>>>;
         auto& self = this->self();
 
-        MEMORIA_TRY(iter, self.ctr_map_find(key));
+        auto iter = self.ctr_map_find(key);
 
         if (iter->is_found(key))
         {
             auto prev = iter->value();
-            MEMORIA_TRY_VOID(iter->assign(value));
-            return ResultT::of(std::move(prev));
+            iter->assign(value);
+            return std::move(prev);
         }
         else {
-            MEMORIA_TRY_VOID(iter->insert(key, value));
-            return ResultT::of(Optional<Datum<Value>>{});
+            iter->insert(key, value);
+            return Optional<Datum<Value>>{};
         }
     }
 
 
-    virtual VoidResult with_value(
+    virtual void with_value(
             KeyView key,
             std::function<Optional<Datum<Value>> (Optional<Datum<Value>>)> value_fn
-    ) noexcept
+    )
     {
         using OptionalValue = Optional<Datum<Value>>;
         auto& self = this->self();
 
-        MEMORIA_TRY(iter, self.ctr_map_find(key));
+        auto iter = self.ctr_map_find(key);
         if (iter->is_found(key))
         {
             auto new_value = value_fn(iter->value());
             if (new_value) {
-                MEMORIA_TRY_VOID(iter->assign(new_value.get()));
+                iter->assign(new_value.get());
             }
             else {
-                MEMORIA_TRY_VOID(iter->remove());
+                iter->remove();
             }
         }
         else {
             auto value = value_fn(OptionalValue{});
             if (value) {
-                MEMORIA_TRY_VOID(iter->insert(key, value.get()));
+                iter->insert(key, value.get());
             }
         }
-
-        return VoidResult::of();
     }
 
 MEMORIA_V1_CONTAINER_PART_END

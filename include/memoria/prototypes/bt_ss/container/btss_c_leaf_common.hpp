@@ -1,5 +1,5 @@
 
-// Copyright 2015 Victor Smirnov
+// Copyright 2015-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,47 +49,39 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
     }
 
     template <typename SubstreamsIdxList, typename... Args>
-    auto iter_read_leaf_entry(const TreeNodeConstPtr& leaf, Args&&... args) const noexcept
+    auto iter_read_leaf_entry(const TreeNodeConstPtr& leaf, Args&&... args) const
     {
          return self().template ctr_apply_substreams_fn<0, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
-    BoolResult ctr_is_at_the_end(const TreeNodeConstPtr& leaf, const Position& pos) noexcept
+    bool ctr_is_at_the_end(const TreeNodeConstPtr& leaf, const Position& pos)
     {
-        MEMORIA_TRY(size, self().template ctr_get_leaf_stream_size<0>(leaf));
-        return BoolResult::of(pos[0] >= size);
+        auto size = self().template ctr_get_leaf_stream_size<0>(leaf);
+        return pos[0] >= size;
     }
 
     template <typename EntryBuffer>
-    VoidResult iter_insert_entry(Iterator& iter, const EntryBuffer& entry) noexcept
+    void iter_insert_entry(Iterator& iter, const EntryBuffer& entry)
     {
-        MEMORIA_TRY_VOID(self().template ctr_insert_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos(), entry));
-        return VoidResult::of();
+        self().template ctr_insert_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
     }
 
 
 
 
     template <typename SubstreamsList, typename EntryBuffer>
-    VoidResult ctr_update_entry(Iterator& iter, const EntryBuffer& entry) noexcept
+    void ctr_update_entry(Iterator& iter, const EntryBuffer& entry)
     {
         return self().template ctr_update_stream_entry<SubstreamsList>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
     }
 
 
-
-
-
-
-
-
-    Result<CtrSizeT> ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& producer, CtrSizeT start, CtrSizeT length) noexcept
+    CtrSizeT ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& producer, CtrSizeT start, CtrSizeT length)
     {
-        using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
 
-        MEMORIA_TRY(iov, LeafNode::template SparseObject<MyType>::create_iovector());
+        auto iov = LeafNode::template SparseObject<MyType>::create_iovector().get_or_throw();
 
         auto id = iter.iter_leaf()->id();
 
@@ -97,7 +89,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
 
         auto pos = Position(iter.iter_local_pos());
 
-        MEMORIA_TRY_VOID(self.ctr_insert_provided_data(iter.path(), pos, streaming));
+        self.ctr_insert_provided_data(iter.path(), pos, streaming);
 
         iter.iter_local_pos() = pos.sum();
 
@@ -105,10 +97,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
 
         if (iter.iter_leaf()->id() != id)
         {
-            MEMORIA_TRY_VOID(iter.iter_refresh());
+            iter.iter_refresh();
         }
 
-        return ResultT::of(streaming.totals());
+        return streaming.totals();
     }
 
     struct BTSSIOVectorProducer: io::IOVectorProducer {
@@ -119,13 +111,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
     };
 
 
-    Result<CtrSizeT> ctr_insert_iovector(Iterator& iter, io::IOVector& io_vector, CtrSizeT start, CtrSizeT length) noexcept
+    CtrSizeT ctr_insert_iovector(Iterator& iter, io::IOVector& io_vector, CtrSizeT start, CtrSizeT length)
     {
-        using ResultT = Result<CtrSizeT>;
-
         auto& self = this->self();
 
-        std::unique_ptr<io::IOVector> iov = LeafNode::create_iovector();
+        //std::unique_ptr<io::IOVector> iov = LeafNode::create_iovector();
 
         auto id = iter.iter_leaf()->id();
 
@@ -135,37 +125,36 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
 
         auto pos = Position(iter.iter_local_pos());
 
-        MEMORIA_TRY(result, self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming));
+        auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
 
         iter.iter_local_pos() = result.position().sum();
         iter.iter_leaf().assign(result.iter_leaf());
 
         if (iter.iter_leaf()->id() != id)
         {
-            MEMORIA_TRY_VOID(iter.iter_refresh());
+            iter.iter_refresh();
         }
 
-        return ResultT::of(streaming.totals());
+        return streaming.totals();
     }
 
 
-    Result<SplitResult> split_leaf_in_a_half(TreePathT& path, int32_t target_idx) noexcept
+    SplitResult split_leaf_in_a_half(TreePathT& path, int32_t target_idx)
     {
-        using ResultT = Result<SplitResult>;
         auto& self = this->self();
 
-        MEMORIA_TRY(leaf_sizes, self.ctr_get_leaf_sizes(path.leaf()));
+        auto leaf_sizes = self.ctr_get_leaf_sizes(path.leaf());
         int32_t split_idx = leaf_sizes[0] / 2;
 
-        MEMORIA_TRY_VOID(self.ctr_split_leaf(path, Position::create(0, split_idx)));
+        self.ctr_split_leaf(path, Position::create(0, split_idx));
 
         if (target_idx > split_idx)
         {
-            MEMORIA_TRY_VOID(self.ctr_expect_next_node(path, 0));
-            return ResultT::of(SplitStatus::RIGHT, target_idx - split_idx);
+            self.ctr_expect_next_node(path, 0);
+            return SplitResult(SplitStatus::RIGHT, target_idx - split_idx);
         }
         else {
-            return ResultT::of(SplitStatus::LEFT, target_idx);
+            return SplitResult(SplitStatus::LEFT, target_idx);
         }
     }
 

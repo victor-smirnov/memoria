@@ -37,33 +37,30 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
     using typename Base::Profile;
     using typename Base::ApiProfileT;
 
-    VoidResult ctr_cow_clone_path(TreePathT& path, size_t level) const noexcept {
-        return VoidResult::of();
+    void ctr_cow_clone_path(TreePathT& path, size_t level) const {
     }
 
-    VoidResult ctr_ref_block(const BlockID& block_id) noexcept
-    {
-        return VoidResult::of();
+    void ctr_ref_block(const BlockID& block_id) {
     }
 
 
-    VoidResult ctr_unref_block(const BlockID& block_id) noexcept
+    void ctr_unref_block(const BlockID& block_id)
     {
         auto& self = this->self();
-        MEMORIA_TRY(block, self.ctr_get_block(block_id));
+        auto block = self.ctr_get_block(block_id);
         return self.ctr_remove_node_recursively(block);
     }
 
-    VoidResult ctr_resize_block(TreePathT& path, size_t level, int32_t new_size) noexcept {
+    void ctr_resize_block(TreePathT& path, size_t level, int32_t new_size) {
         return path[level].resize(new_size);
     }
 
-    VoidResult ctr_update_block_guard(const TreeNodePtr& node) noexcept
+    void ctr_update_block_guard(const TreeNodePtr& node)
     {
         return node.update();
     }
 
-    VoidResult ctr_update_block_guard(const TreeNodeConstPtr& node) noexcept
+    void ctr_update_block_guard(const TreeNodeConstPtr& node)
     {
         return node.update();
     }
@@ -73,7 +70,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
     }
 
 
-    VoidResult ctr_remove_all_nodes(TreePathT& start_path, TreePathT& stop_path) noexcept
+    void ctr_remove_all_nodes(TreePathT& start_path, TreePathT& stop_path)
     {
         auto& self = this->self();
 
@@ -81,11 +78,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
         start_path.clear();
         stop_path.clear();
 
-        MEMORIA_TRY(new_root, self.ctr_create_root_node(0, true, -1));
+        auto new_root = self.ctr_create_root_node(0, true, -1);
 
-        MEMORIA_TRY_VOID(self.ctr_unref_block(root->id()));
+        self.ctr_unref_block(root->id());
 
-        MEMORIA_TRY_VOID(self.set_root(new_root->id()));
+        self.set_root(new_root->id());
 
         start_path.add_root(new_root.as_immutable());
 
@@ -93,52 +90,44 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
         {
             stop_path.add_root(new_root.as_immutable());
         }
-
-        return VoidResult::of();
     }
 
 
-    VoidResult ctr_remove_node_recursively(const TreeNodeConstPtr& node) noexcept
+    void ctr_remove_node_recursively(const TreeNodeConstPtr& node)
     {
         auto& self = this->self();
 
         if (!node->is_leaf())
         {
-            auto res = self.ctr_for_all_ids(node, [&](const BlockID& id) noexcept -> VoidResult
+            self.ctr_for_all_ids(node, [&](const BlockID& id)
             {
-                MEMORIA_TRY(child, self.ctr_get_block(id));
+                auto child = self.ctr_get_block(id);
                 return self.ctr_remove_node_recursively(child);
             });
-
-            MEMORIA_RETURN_IF_ERROR(res);
         }
 
         return self.store().removeBlock(node->id());
     }
 
-    virtual VoidResult internal_unref_cascade(const ApiProfileBlockID<ApiProfileT>& root) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("unref_cascade(BlockID) should not be called fo this profile");
+    virtual void internal_unref_cascade(const ApiProfileBlockID<ApiProfileT>& root) {
+        MEMORIA_MAKE_GENERIC_ERROR("unref_cascade(BlockID) should not be called fo this profile").do_throw();
     }
 
 
-    VoidResult drop() noexcept
+    void drop()
     {
         auto& self = this->self();
 
         if (self.store().isActive())
         {
-
-            auto res0 = self.for_each_ctr_reference([&](auto prop_name, auto ctr_id) noexcept -> VoidResult {
-                    MEMORIA_TRY_VOID(self.store().drop_ctr(ctr_id));
-                    return VoidResult::of();
+            self.for_each_ctr_reference([&](auto prop_name, auto ctr_id){
+                self.store().drop_ctr(ctr_id);
             });
-            MEMORIA_RETURN_IF_ERROR(res0);
 
+            auto root = self.ctr_get_root_node();
+            self.ctr_remove_node_recursively(root);
 
-            MEMORIA_TRY(root, self.ctr_get_root_node());
-            MEMORIA_TRY_VOID(self.ctr_remove_node_recursively(root));
-
-            MEMORIA_TRY_VOID(self.set_root(BlockID{}));
+            self.set_root(BlockID{});
 
 
             if (this->do_unregister_)
@@ -146,16 +135,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
                 this->do_unregister_on_dtr_ = false;
                 return self.store().unregisterCtr(self.name(), this);
             }
-            else {
-                return VoidResult::of();
-            }
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot must be in active state to drop containers");
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot must be in active state to drop containers").do_throw();
         }
     }
 
-    VoidResult cleanup() noexcept
+    void cleanup()
     {
         auto& self = this->self();
         auto metadata = self.ctr_get_root_metadata();
@@ -173,22 +159,22 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
 
 
 
-    VoidResult ctr_remove_redundant_root(TreePathT& path, size_t level) noexcept
+    void ctr_remove_redundant_root(TreePathT& path, size_t level)
     {
         auto& self = this->self();
 
         if (level + 1 < path.size())
         {
-            MEMORIA_TRY(parent, self.ctr_get_node_parent(path, level));
+            auto parent = self.ctr_get_node_parent(path, level);
 
             if (!parent->is_root())
             {
-                MEMORIA_TRY_VOID(ctr_remove_redundant_root(path, level + 1));
+                ctr_remove_redundant_root(path, level + 1);
             }
 
             if (parent->is_root())
             {
-                MEMORIA_TRY(size, self.ctr_get_node_size(parent, 0));
+                auto size = self.ctr_get_node_size(parent, 0);
                 if (size == 1)
                 {
                     TreeNodeConstPtr node = path[level];
@@ -196,28 +182,25 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
                     // FIXME redesign it to use tryConvertToRoot(node) instead
                     if (self.ctr_can_convert_to_root(node, parent->root_metadata_size()))
                     {
-                        MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
+                        self.ctr_update_block_guard(node);
 
-                        MEMORIA_TRY_VOID(self.ctr_node_to_root(node));
-                        MEMORIA_TRY_VOID(self.store().removeBlock(parent->id()));
-                        MEMORIA_TRY_VOID(self.set_root(node->id()));
+                        self.ctr_node_to_root(node);
+                        self.store().removeBlock(parent->id());
+                        self.set_root(node->id());
 
                         path.remove_root();
                     }
                 }
             }
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult ctr_cow_ref_children_after_merge(TreeNodePtr block) noexcept
+    void ctr_cow_ref_children_after_merge(TreeNodePtr block)
     {
-        return VoidResult::of();
     }
 
-    virtual VoidResult traverse_ctr(void* node_handler) const noexcept {
-        return make_generic_error("Method is not implemented for this profile");
+    virtual void traverse_ctr(void* node_handler) const {
+        make_generic_error("Method is not implemented for this profile").do_throw();
     }
 
 MEMORIA_V1_CONTAINER_PART_END

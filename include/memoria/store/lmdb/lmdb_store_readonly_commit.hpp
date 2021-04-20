@@ -38,7 +38,7 @@ protected:
     using typename Base::Store;
     using typename Base::CtrID;
     using typename Base::CtrReferenceableResult;
-    using typename Base::AllocatorT;
+    using typename Base::StoreT;
     using typename Base::BlockID;
     using typename Base::Shared;
     using typename Base::SharedBlockPtr;
@@ -89,7 +89,7 @@ public:
                 return make_generic_error("Can't start read-only transaction, error = {}", mma_mdb_strerror(rc));
             }
 
-            MEMORIA_TRY(superblock_ptr, get_data_addr(DirectoryCtrID, system_db_));
+            auto superblock_ptr = get_data_addr(DirectoryCtrID, system_db_);
 
             // FIXME: handle errors here
             if (superblock_ptr.mv_data) {
@@ -102,7 +102,10 @@ public:
             auto root_block_id = superblock_->directory_root_id();
             if (root_block_id.is_set())
             {
-                auto directory_ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(root_block_id);
+                auto directory_ctr_ref = wrap_throwing([&](){
+                    return this->template internal_find_by_root_typed<DirectoryCtrType>(root_block_id);
+                });
+
                 if (!directory_ctr_ref.is_error()) {
                     directory_ctr_ = directory_ctr_ref.get();
                     directory_ctr_->internal_reset_allocator_holder();
@@ -128,41 +131,37 @@ protected:
         return mma_mdb_txn_id(transaction_);
     }
 
-    virtual SnpSharedPtr<AllocatorT> self_ptr() noexcept {
+    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
         return this->shared_from_this();
     }
 
-    virtual VoidResult updateBlock(Shared* block) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("updateBlock() is not implemented for ReadOnly commits");
+    virtual void updateBlock(Shared* block) {
+        MEMORIA_MAKE_GENERIC_ERROR("updateBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual VoidResult resizeBlock(Shared* block, int32_t new_size) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("resizeBlock() is not implemented for ReadOnly commits");
+    virtual void resizeBlock(Shared* block, int32_t new_size) {
+        MEMORIA_MAKE_GENERIC_ERROR("resizeBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual VoidResult releaseBlock(Shared* block) noexcept
+    virtual void releaseBlock(Shared* block) noexcept
     {
         block_shared_cache_.attach(static_cast<BlockCacheEntry*>(block), [&](BlockCacheEntry* entry){
             block_shared_cache_pool_.destroy(entry);
         });
-
-        return VoidResult::of();
     }
 
-    virtual Result<SharedBlockConstPtr> getBlock(const BlockID& id) noexcept
+    virtual SharedBlockConstPtr getBlock(const BlockID& id)
     {
-        using ResultT = Result<SharedBlockConstPtr>;
-
         if (MMA_UNLIKELY(id.is_null())) {
-            return ResultT::of();
+            return SharedBlockConstPtr{};
         }
 
         auto block = block_shared_cache_.get(id);
         if (block) {
-            return ResultT::of(block.get());
+            return block.get();
         }
         else {
-            MEMORIA_TRY(block_ptr, get_data_addr(id, data_db_));
+            auto block_ptr = get_data_addr(id, data_db_);
             if (block_ptr.mv_data) {
                 BlockType* block = ptr_cast<BlockType>(block_ptr.mv_data);
 
@@ -171,42 +170,42 @@ protected:
 
                 block_shared_cache_.insert(entry);
 
-                return ResultT::of(entry);
+                return entry;
             }
             else {
-                return make_generic_error("Block {} is not found in the data_db", id);
+                make_generic_error("Block {} is not found in the data_db", id).do_throw();
             }
         }
     }
 
-    virtual VoidResult removeBlock(const BlockID& id) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly commits");
+    virtual void removeBlock(const BlockID& id) {
+        MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly commits");
+    virtual SharedBlockPtr createBlock(int32_t initial_size) {
+        MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockConstPtr& block) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits");
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block) {
+        MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual VoidResult setRoot(const CtrID& ctr_id, const BlockID& root) noexcept
+    virtual void setRoot(const CtrID& ctr_id, const BlockID& root)
     {
-        return MEMORIA_MAKE_GENERIC_ERROR("setRoot() is not implemented for ReadOnly commits");
+        MEMORIA_MAKE_GENERIC_ERROR("setRoot() is not implemented for ReadOnly commits").do_throw();
     }
 
 
-    virtual Result<BlockID> newId() noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("newId() is not implemented for ReadOnly commits");
+    virtual BlockID newId() {
+        MEMORIA_MAKE_GENERIC_ERROR("newId() is not implemented for ReadOnly commits").do_throw();
     }
 
     virtual bool isActive() const noexcept {
         return false;
     }
 
-    virtual VoidResult flush_open_containers() noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("flush_open_containers() is not implemented for ReadOnly commits");
+    virtual void flush_open_containers() {
+        MEMORIA_MAKE_GENERIC_ERROR("flush_open_containers() is not implemented for ReadOnly commits").do_throw();
     }
 
     virtual bool is_committed() const noexcept {
@@ -221,8 +220,8 @@ protected:
         return false;
     }
 
-    virtual VoidResult drop() noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("drop() is not implemented for LMDB store");
+    virtual void drop() {
+        MEMORIA_MAKE_GENERIC_ERROR("drop() is not implemented for LMDB store").do_throw();
     }
 };
 

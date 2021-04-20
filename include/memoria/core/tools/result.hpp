@@ -190,7 +190,15 @@ enum class ResultStatus {
 
 
 namespace detail {
-    using ResultErrors = boost::variant2::variant<MemoriaErrorPtr, detail::UninitializedType>;
+
+struct ResultErrors {
+    using ErrorsT = boost::variant2::variant<MemoriaErrorPtr, detail::UninitializedType>;
+
+    ErrorsT error;
+
+    [[noreturn]] void do_throw();
+};
+
 }
 
 using MaybeError = Optional<detail::ResultErrors>;
@@ -198,19 +206,19 @@ using MaybeError = Optional<detail::ResultErrors>;
 
 template <typename... Args>
 detail::ResultErrors make_generic_error(const char* fmt, Args&&... args) noexcept {
-    return make_memoria_error<GenericMemoriaError>(format_u8(fmt, std::forward<Args>(args)...));
+    return detail::ResultErrors{make_memoria_error<GenericMemoriaError>(format_u8(fmt, std::forward<Args>(args)...))};
 }
 
 template <typename... Args>
 detail::ResultErrors make_generic_error_with_source(const char* source, const char* fmt, Args&&... args) noexcept {
-    return make_memoria_error<GenericMemoriaError>(source, format_u8(fmt, std::forward<Args>(args)...));
+    return detail::ResultErrors{make_memoria_error<GenericMemoriaError>(source, format_u8(fmt, std::forward<Args>(args)...))};
 }
 
 #define MEMORIA_MAKE_GENERIC_ERROR(FMT, ...) ::memoria::make_generic_error_with_source(MMA_SRC, FMT, ##__VA_ARGS__)
 
 
 inline detail::ResultErrors make_packed_oom_error() noexcept {
-    return make_memoria_error<PackedOOMError>();
+    return detail::ResultErrors{make_memoria_error<PackedOOMError>()};
 }
 
 #define MEMORIA_MAKE_PACKED_OOM_ERROR() ::memoria::make_packed_oom_error()
@@ -266,7 +274,7 @@ public:
     {}
 
     Result(detail::ResultErrors&& other) noexcept :
-        variant_(std::move(other))
+        variant_(std::move(other.error))
     {}
 
     Result& operator=(Result&&) noexcept = default;
@@ -467,8 +475,8 @@ public:
     {
         switch(status())
         {
-        case ResultStatus::RESULT_UNINITIALIZED: return std::move(*boost::variant2::get_if<detail::UninitializedType>(&variant_));
-        case ResultStatus::MEMORIA_ERROR: return std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_));
+        case ResultStatus::RESULT_UNINITIALIZED: return detail::ResultErrors{std::move(*boost::variant2::get_if<detail::UninitializedType>(&variant_))};
+        case ResultStatus::MEMORIA_ERROR: return detail::ResultErrors{std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))};
         default: terminate((SBuf() << "Unknown result status value: {}" << static_cast<int32_t>(status())).str().c_str());
         }
     }
@@ -532,7 +540,7 @@ public:
     Result(Result&&) noexcept = default;
 
     Result(detail::ResultErrors&& other) noexcept :
-        variant_(std::move(other))
+        variant_(std::move(other.error))
     {}
 
     Result& operator=(Result&&) noexcept = default;
@@ -628,8 +636,8 @@ public:
     {
         switch(status())
         {
-        case ResultStatus::RESULT_UNINITIALIZED: return std::move(*boost::variant2::get_if<detail::UninitializedType>(&variant_));
-        case ResultStatus::MEMORIA_ERROR: return std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_));
+        case ResultStatus::RESULT_UNINITIALIZED: return detail::ResultErrors{std::move(*boost::variant2::get_if<detail::UninitializedType>(&variant_))};
+        case ResultStatus::MEMORIA_ERROR: return detail::ResultErrors{std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))};
         default: terminate(format_u8("Unknown result status value: {}", static_cast<int32_t>(status())).data());
         }
     }

@@ -64,9 +64,9 @@ class LMDBStore:
     template <typename> friend class LMDBStoreWritableCommit;
     template <typename> friend class LMDBStoreCommitBase;
 
-    friend Result<SharedPtr<ILMDBStore<ApiProfileT>>> open_lmdb_store(U8StringView);
-    friend Result<SharedPtr<ILMDBStore<ApiProfileT>>> open_lmdb_store_readonly(U8StringView);
-    friend Result<SharedPtr<ILMDBStore<ApiProfileT>>> create_lmdb_store(U8StringView, uint64_t);
+    friend SharedPtr<ILMDBStore<ApiProfileT>> open_lmdb_store(U8StringView);
+    friend SharedPtr<ILMDBStore<ApiProfileT>> open_lmdb_store_readonly(U8StringView);
+    friend SharedPtr<ILMDBStore<ApiProfileT>> create_lmdb_store(U8StringView, uint64_t);
 
     Superblock* superblock_{};
 
@@ -225,33 +225,30 @@ public:
         ::free(superblock_);
     }
 
-    virtual VoidResult set_async(bool async) noexcept
+    virtual void set_async(bool async)
     {
         std::lock_guard<std::recursive_mutex> lock(store_mutex_);
         if (const int rc = mma_mdb_env_set_flags(mdb_env_, MDB_NOSYNC, async ? 1 : 0)) {
-            return make_generic_error("Can't set asynchronous mode ({}), error = {}", async, mma_mdb_strerror(rc));
-        }
-        return VoidResult::of();
+            make_generic_error("Can't set asynchronous mode ({}), error = {}", async, mma_mdb_strerror(rc)).do_throw();
+        }        
     }
 
-    virtual VoidResult copy_to(U8String path, bool with_compaction) noexcept
+    virtual void copy_to(U8String path, bool with_compaction)
     {
         if (const int rc = mma_mdb_env_copy2(mdb_env_, path.data(), with_compaction ? MDB_CP_COMPACT : 0)) {
-            return make_generic_error("Can't copy database to '{}', error = {}", path, mma_mdb_strerror(rc));
+            return make_generic_error("Can't copy database to '{}', error = {}", path, mma_mdb_strerror(rc)).do_throw();
         }
-        return VoidResult::of();
     }
 
-    virtual VoidResult flush(bool force) noexcept {
+    virtual void flush(bool force) {
         if (const int rc = mma_mdb_env_sync(mdb_env_, force)) {
-            return make_generic_error("Can't csync the environment error = {}", mma_mdb_strerror(rc));
+            return make_generic_error("Can't csync the environment error = {}", mma_mdb_strerror(rc)).do_throw();
         }
-        return VoidResult::of();
     }
 
-    virtual Result<ReadOnlyCommitPtr> open() noexcept
+    virtual ReadOnlyCommitPtr open()
     {
-        using ResultT = Result<ReadOnlyCommitPtr>;
+
         MaybeError maybe_error{};
         ReadOnlyCommitPtr ptr{};
 
@@ -262,47 +259,34 @@ public:
         }
 
         if (!maybe_error) {
-            return ResultT::of(std::move(ptr));
+            return std::move(ptr);
         }
         else {
-            return std::move(maybe_error.get());
+            std::move(maybe_error.get()).do_throw();
         }
     }
 
-    virtual VoidResult flush() noexcept {
-        return VoidResult::of();
+    virtual void flush() {
     }
 
-    virtual Result<WritableCommitPtr> begin() noexcept
+    virtual WritableCommitPtr begin()
     {
-        using ResultT = Result<SnpSharedPtr<LMDBStoreWritableCommit<Profile>>>;
+        MaybeError maybe_error{};
+        auto ptr = snp_make_shared<LMDBStoreWritableCommit<Profile>>(
+            maybe_error, this->shared_from_this(), mdb_env_, superblock_, system_db_, data_db_
+        );
 
-        ResultT res = wrap_throwing([&]() -> ResultT {
-            MaybeError maybe_error{};
-            auto ptr = snp_make_shared<LMDBStoreWritableCommit<Profile>>(
-                maybe_error, this->shared_from_this(), mdb_env_, superblock_, system_db_, data_db_
-            );
-
-            if (!maybe_error) {
-                return ResultT::of(std::move(ptr));
-            }
-            else {
-                return std::move(maybe_error.get());
-            }
-        });
-
-        if (res.is_error())
-        {
-            return MEMORIA_PROPAGATE_ERROR(res);
+        if (!maybe_error) {
+            ptr->finish_commit_opening();
+            return std::move(ptr);
         }
         else {
-            MEMORIA_TRY_VOID(res.get()->finish_commit_opening());
-            return Result<WritableCommitPtr>::of(std::move(res).get());
+            maybe_error.get().do_throw();
         }
     }
 
-    virtual VoidResult close() noexcept {
-        return make_generic_error("Explicitly closing LMDB store is not supported");
+    virtual void close() {
+        make_generic_error("Explicitly closing LMDB store is not supported").do_throw();
     }
 
     static void init_profile_metadata() noexcept {
@@ -311,7 +295,7 @@ public:
 
 
 private:
-    VoidResult init_store()
+    void init_store()
     {
         MaybeError maybe_error;
 
@@ -324,24 +308,19 @@ private:
             return ptr->finish_store_initialization();
         }
         else {
-            return std::move(maybe_error.get());
+            std::move(maybe_error.get()).do_throw();
         }
-
-        return VoidResult::of();
     }
 
-    virtual Result<Optional<SequenceID>> check(StoreCheckCallbackFn callback) noexcept
+    virtual Optional<SequenceID> check(StoreCheckCallbackFn callback)
     {
-        return wrap_throwing([&]() {
-            return do_check(callback);
-        });
+        return do_check(callback);
     }
 
 
-    Result<Optional<SequenceID>> do_check(StoreCheckCallbackFn callback)
+    Optional<SequenceID> do_check(StoreCheckCallbackFn callback)
     {        
-        using ResultT = Result<Optional<SequenceID>>;
-        return ResultT::of();
+        return Optional<SequenceID>{};
     }
 };
 

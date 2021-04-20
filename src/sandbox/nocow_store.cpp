@@ -29,37 +29,37 @@ using CtrType = Set<Varchar>;
 
 int main(void) {
     try {
-        auto store1 = create_memory_store_noncow().get_or_throw();
+        auto store1 = create_memory_store_noncow();
 
         UUID ctr_id = UUID::make_random();
         auto t_start = getTimeInMillis();
 
         {
             {
-                auto snp0 = store1->master().get_or_throw()->branch().get_or_throw();
-                auto ctr0 = create(snp0, CtrType(), ctr_id).get_or_throw();
+                auto snp0 = store1->master()->branch();
+                auto ctr0 = create(snp0, CtrType(), ctr_id);
 
                 ctr0->append([&](auto& buf, size_t){
                     for (int c = 0; c < 1000000; c++) {
                         buf.append(format_u8("Cool String via Buffer :: {}", c));
                     }
                     return true;
-                }).get_or_throw();
+                });
 
-                snp0->commit().get_or_throw();
-                snp0->set_as_master().get_or_throw();
+                snp0->commit();
+                snp0->set_as_master();
             }
 
-            auto snp2 = store1->master().get_or_throw();
-            auto ctr2 = find<CtrType>(snp2, ctr_id).get_or_throw();
+            auto snp2 = store1->master();
+            auto ctr2 = find<CtrType>(snp2, ctr_id);
 
             int cnt = 0;
             int b0  = 0;
             int batch_size = 100;
             int batches = 10000;
             while (cnt < batch_size * batches) {
-                auto snp1 = store1->master().get_or_throw()->branch().get_or_throw();
-                auto ctr1 = find<CtrType>(snp1, ctr_id).get_or_throw();
+                auto snp1 = store1->master()->branch();
+                auto ctr1 = find<CtrType>(snp1, ctr_id);
 
                 if (b0 % 100 == 0) {
                     std::cout << "Batch " << (b0) << std::endl;
@@ -68,11 +68,11 @@ int main(void) {
                 b0++;
 
                 for (int c = 0; c < batch_size; c++, cnt++) {
-                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str()).get_or_throw();
+                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str());
                 }
 
-                snp1->commit(false).get_or_throw();
-                snp1->set_as_master().get_or_throw();
+                snp1->commit(false);
+                snp1->set_as_master();
             }
         }
 
@@ -80,19 +80,19 @@ int main(void) {
 
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
 
-        store1->store("file_cow.mma4").get_or_throw();
+        store1->store("file_cow.mma4");
         store1.reset();
 
-//        auto store2 = open_lmdb_store_readonly(file).get_or_throw();
+//        auto store2 = open_lmdb_store_readonly(file);
 
-//        auto snp2 = store2->open().get_or_throw();
-//        auto ctr2 = find<CtrType>(snp2, ctr_id).get_or_throw();
+//        auto snp2 = store2->open();
+//        auto ctr2 = find<CtrType>(snp2, ctr_id);
 
 //        ctr2->for_each([](auto view){
 //            std::cout << view << std::endl;
-//        }).get_or_throw();
+//        });
 
-////        snp2->commit().get_or_throw();
+////        snp2->commit();
     }
     catch (std::exception& ee) {
         std::cerr << "Exception: " << ee.what() << std::endl;

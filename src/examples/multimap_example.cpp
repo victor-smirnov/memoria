@@ -37,11 +37,11 @@ int main()
         using MultimapType = Multimap<Varchar, Varchar>;
         using Entry   = std::pair<U8String, std::vector<U8String>>;
 
-        auto alloc = create_memory_store().get_or_throw();
+        auto alloc = create_memory_store();
 
-        auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
+        auto snp = alloc->master()->branch();
 
-        auto ctr0 = create(snp, MultimapType()).get_or_throw();
+        auto ctr0 = create(snp, MultimapType());
 
         //ctr0->set_new_block_size(64*1024).throw_if_error();
 
@@ -93,7 +93,7 @@ int main()
             std::cout << (batch_start + limit) << " " << entries_.size() << std::endl;
 
             return batch_start + limit >= entries_.size();
-        }).throw_if_error();
+        });
 
         int64_t t1_i = getTimeInMillis();
 
@@ -101,14 +101,14 @@ int main()
         std::cout << "Size = " << ctr0->size() << std::endl;
 
 
-        snp->commit().throw_if_error();
-        snp->set_as_master().throw_if_error();
-        alloc->store("store_multimap_ex.mma1").throw_if_error();
+        snp->commit();
+        snp->set_as_master();
+        alloc->store("store_multimap_ex.mma1");
 
 
         int64_t t2 = getTimeInMillis();
 
-        auto ii = ctr0->entries_scanner(ctr0->seek(0).get_or_throw());
+        auto ii = ctr0->entries_scanner(ctr0->seek(0));
 
         size_t sum0 = 0;
 
@@ -130,7 +130,7 @@ int main()
         std::cout << "Iterated over entries in " << (t3 - t2) << " ms " << sum0 << std::endl;
 
 
-        auto keys = ctr0->keys().get_or_throw();
+        auto keys = ctr0->keys();
 
         while (!keys->is_end())
         {
@@ -152,7 +152,7 @@ int main()
 
                     if (!vals->is_run_finished())
                     {
-                        vals->next_block().throw_if_error();
+                        vals->next_block();
                     }
                     else {
                         break;
@@ -160,7 +160,7 @@ int main()
                 }
             }
 
-            keys->next().throw_if_error();
+            keys->next();
         }
 
     }

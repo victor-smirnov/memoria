@@ -80,45 +80,43 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
 
     template <int32_t Stream, typename Entry>
-    Result<bool> ctr_try_insert_stream_entry(
+    bool ctr_try_insert_stream_entry(
             Iterator& iter,
             int32_t idx,
             const Entry& entry
-    ) noexcept
+    )
     {
-        using ResultT = Result<bool>;
-
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr_cow_clone_path(iter.path(), 0));
+        self.ctr_cow_clone_path(iter.path(), 0);
 
         BlockUpdateMgr mgr(self);
 
-        MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
+        self.ctr_update_block_guard(iter.iter_leaf());
 
-        MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf().as_mutable()));
+        mgr.add(iter.iter_leaf().as_mutable());
 
         auto status = self.template ctr_try_insert_stream_entry_no_mgr<Stream>(iter.iter_leaf().as_mutable(), idx, entry);
         if (status.is_error()) {
             if (status.is_packed_error())
             {
                 mgr.rollback();
-                return BoolResult::of(false);
+                return false;
             }
             else {
-                return MEMORIA_PROPAGATE_ERROR(status);
+                MEMORIA_PROPAGATE_ERROR(status).do_throw();
             }
         }
 
-        return ResultT::of(true);
+        return true;
     }
 
-    BoolResult ctr_with_block_manager(
+    bool ctr_with_block_manager(
             TreeNodePtr& leaf,
             int structure_idx,
             int stream_idx,
             const std::function<VoidResult (int, int)>& insert_fn
-    ) noexcept
+    )
     {
         auto& self = this->self();
 
@@ -126,20 +124,21 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
         self.ctr_update_block_guard(leaf);
 
-        MEMORIA_TRY_VOID(mgr.add(leaf));
+        mgr.add(leaf);
 
         VoidResult status = insert_fn(structure_idx, stream_idx);
 
         if (status.is_ok()) {
-            return BoolResult::of(true);
+            return true;
         }
         else if (status.memoria_error()->error_category() == ErrorCategory::PACKED)
         {
             mgr.rollback();
-            return BoolResult::of(false);
+            return false;
         }
         else {
-            return std::move(status).transfer_error();
+            status.get_or_throw();
+            return false;
         }
     }
 
@@ -169,30 +168,30 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
 
     template <int32_t Stream>
-    BoolResult ctr_try_remove_stream_entry(TreePathT& path, int32_t idx) noexcept
+    bool ctr_try_remove_stream_entry(TreePathT& path, int32_t idx)
     {
-        using ResultT = BoolResult;
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
+        self.ctr_cow_clone_path(path, 0);
 
         BlockUpdateMgr mgr(self);
 
-        MEMORIA_TRY_VOID(self.ctr_update_block_guard(path.leaf()));
-        MEMORIA_TRY_VOID(mgr.add(path.leaf().as_mutable()));
+        self.ctr_update_block_guard(path.leaf());
+        mgr.add(path.leaf().as_mutable());
 
         RemoveFromLeafFn<Stream> fn;
         VoidResult status = self.leaf_dispatcher().dispatch(path.leaf().as_mutable(), fn, idx);
 
         if (status.is_ok()) {
-            return ResultT::of(true);
+            return true;
         }
         else if (status.is_packed_error()) {
             mgr.rollback();
-            return ResultT::of(false);
+            return false;
         }
         else {
-            return std::move(status).transfer_error();
+            status.get_or_throw();
+            return false;
         }
     }
 
@@ -233,17 +232,16 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
 
     template <typename SubstreamsList, typename Entry>
-    BoolResult ctr_try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry) noexcept
+    bool ctr_try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
     {
-        using ResultT = BoolResult;
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr_cow_clone_path(iter.path(), 0));
+        self.ctr_cow_clone_path(iter.path(), 0);
 
         BlockUpdateMgr mgr(self);
 
-        MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf().as_mutable()));
-        MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf().as_mutable()));
+        self.ctr_update_block_guard(iter.iter_leaf().as_mutable());
+        mgr.add(iter.iter_leaf().as_mutable());
 
 
         UpdateStreamEntryBufferFn<SubstreamsList> fn;
@@ -255,20 +253,21 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
         );
 
         if (status.is_ok()) {
-            return ResultT::of(true);
+            return true;
         }
         else if (status.memoria_error()->error_category() == ErrorCategory::PACKED)
         {
             mgr.rollback();
-            return ResultT::of(false);
+            return false;
         }
         else {
-            return std::move(status).transfer_error();
+            status.get_or_throw();
+            return false;
         }
     }
 
     template <typename Fn, typename... Args>
-    BoolResult update(Iterator& iter, Fn&& fn, Args&&... args) noexcept
+    bool update(Iterator& iter, Fn&& fn, Args&&... args)
     {
         auto& self = this->self();
         return self.ctr_update_atomic(iter, std::forward<Fn>(fn), VLSelector(), std::forward<Fn>(args)...);
@@ -276,11 +275,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
 
     MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
-    BoolResult ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path) noexcept;
+    bool ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path);
 
-    BoolResult ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, bool only_if_same_parent = false) noexcept;
+    bool ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, bool only_if_same_parent = false);
 
-    BoolResult ctr_merge_current_leaf_nodes(TreePathT& tgt, TreePathT& src) noexcept;
+    bool ctr_merge_current_leaf_nodes(TreePathT& tgt, TreePathT& src);
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -290,26 +289,26 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path) noexcept
+bool M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path)
 {
     auto& self = this->self();
 
-    MEMORIA_TRY_VOID(self.ctr_check_same_paths(tgt_path, src_path, 1));
+    self.ctr_check_same_paths(tgt_path, src_path, 1);
 
-    MEMORIA_TRY(src_parent, self.ctr_get_node_parent(src_path, 0));
-    MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(src_parent, src_path.leaf()->id()));
+    auto src_parent = self.ctr_get_node_parent(src_path, 0);
+    auto parent_idx = self.ctr_get_child_idx(src_parent, src_path.leaf()->id());
 
-    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(tgt_path, 0));
+    self.ctr_cow_clone_path(tgt_path, 0);
 
     BlockUpdateMgr mgr(self);
 
     TreeNodeConstPtr tgt = tgt_path.leaf();
     TreeNodeConstPtr src = src_path.leaf();
 
-    MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
+    self.ctr_update_block_guard(tgt);
 
     // FIXME: Need to leave src node untouched on merge.
-    MEMORIA_TRY_VOID(mgr.add(tgt.as_mutable()));
+    mgr.add(tgt.as_mutable());
 
     //MEMORIA_TRY(tgt_sizes, self.ctr_get_node_sizes(tgt));
 
@@ -322,52 +321,52 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
         if (res.is_packed_error())
         {
             mgr.rollback();
-            return BoolResult::of(false);
+            return false;
         }
         else {
-            return MEMORIA_PROPAGATE_ERROR(res);
+            MEMORIA_PROPAGATE_ERROR(res).do_throw();
         }
     }
 
 
-    MEMORIA_TRY_VOID(self.ctr_remove_non_leaf_node_entry(tgt_path, 1, parent_idx));
+    self.ctr_remove_non_leaf_node_entry(tgt_path, 1, parent_idx).get_or_throw();
 
-    MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, 0));
+    self.ctr_update_path(tgt_path, 0);
 
-    MEMORIA_TRY_VOID(self.ctr_cow_ref_children_after_merge(src.as_mutable()));
+    self.ctr_cow_ref_children_after_merge(src.as_mutable());
 
-    MEMORIA_TRY_VOID(self.ctr_unref_block(src->id()));
+    self.ctr_unref_block(src->id());
 
-    MEMORIA_TRY_VOID(self.ctr_check_path(tgt_path, 0));
+    self.ctr_check_path(tgt_path, 0);
 
-    return BoolResult::of(true);
+    return true;
 }
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path, bool only_if_same_parent) noexcept
+bool M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path, bool only_if_same_parent)
 {
     auto& self = this->self();
 
-    MEMORIA_TRY(same_parent, self.ctr_is_the_same_parent(tgt_path, src_path, 0));
+    auto same_parent = self.ctr_is_the_same_parent(tgt_path, src_path, 0);
 
     if (same_parent)
     {
-        MEMORIA_TRY(merged, self.ctr_merge_current_leaf_nodes(tgt_path, src_path));
+        auto merged = self.ctr_merge_current_leaf_nodes(tgt_path, src_path);
         if (!merged)
         {
-            MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt_path, src_path));
-            MEMORIA_TRY_VOID(self.ctr_expect_next_node(src_path, 0));
+            self.ctr_assign_path_nodes(tgt_path, src_path);
+            self.ctr_expect_next_node(src_path, 0);
         }
 
-        return merged_result;
+        return merged;
     }
     else if (!only_if_same_parent)
     {
-        MEMORIA_TRY(merged, self.ctr_merge_branch_nodes(tgt_path, src_path, 1, only_if_same_parent));
+        auto merged = self.ctr_merge_branch_nodes(tgt_path, src_path, 1, only_if_same_parent);
 
-        MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt_path, src_path, 0));
-        MEMORIA_TRY_VOID(self.ctr_expect_next_node(src_path, 0));
+        self.ctr_assign_path_nodes(tgt_path, src_path, 0);
+        self.ctr_expect_next_node(src_path, 0);
 
         if (merged)
         {
@@ -375,25 +374,25 @@ BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path
         }
     }
 
-    return BoolResult::of(false);
+    return false;
 }
 
 
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_merge_current_leaf_nodes(TreePathT& tgt, TreePathT& src) noexcept
+bool M_TYPE::ctr_merge_current_leaf_nodes(TreePathT& tgt, TreePathT& src)
 {
     auto& self = this->self();
 
-    MEMORIA_TRY(merged, self.ctr_try_merge_leaf_nodes(tgt, src));
+    auto merged = self.ctr_try_merge_leaf_nodes(tgt, src);
     if (merged)
     {
-        MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(tgt, 0));
-        return BoolResult::of(true);
+        self.ctr_remove_redundant_root(tgt, 0);
+        return true;
     }
     else {
-        return BoolResult::of(false);
+        return false;
     }
 }
 

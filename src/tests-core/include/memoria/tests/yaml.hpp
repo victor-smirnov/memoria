@@ -35,14 +35,14 @@ struct IndirectStateFiledSerializer<AllocSharedPtr<IMemoryStore<T>>> {
     {
         auto path_str = path.to_u8();
         path_str += ".mma1";
-        alloc->store(path_str).get_or_throw();
+        alloc->store(path_str);
     }
 
     static void internalize(IMemoryStorePtr<T>& alloc, filesystem::path path, ConfigurationContext* context)
     {
         auto path_str = path.to_u8();
         path_str += ".mma1";
-        alloc = load_memory_store(path_str).get_or_throw();
+        alloc = load_memory_store(path_str);
     }
 };
 

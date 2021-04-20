@@ -41,23 +41,21 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorRemoveName)
     static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 public:
-    Result<Position> iter_remove_ge(CtrSizeT n) noexcept
+    Position iter_remove_ge(CtrSizeT n)
     {
-        using ResultT = Result<Position>;
-
         auto& self = this->self();
         CtrSizesT sizes{};
 
         if (!self.iter_is_end())
         {
             auto ii = self.iter_clone();
-            MEMORIA_TRY_VOID(ii->iter_select_ge_fw(n, self.iter_data_stream()));
+            ii->iter_select_ge_fw(n, self.iter_data_stream());
 
 
-        	auto start = self.iter_leafrank();
-        	auto end   = ii->iter_leafrank();
+            auto start = self.iter_leafrank();
+            auto end   = ii->iter_leafrank();
 
-            MEMORIA_TRY_VOID(self.ctr().ctr_remove_entries(self.path(), start, ii->path(), end, true));
+            self.ctr().ctr_remove_entries(self.path(), start, ii->path(), end, true);
 
             self.iter_local_pos() = end[StructureStreamIdx];
 
@@ -65,16 +63,14 @@ public:
             //self.path() = ii->path();
             //self.iter_leaf().assign(ii->iter_leaf());
 
-            MEMORIA_TRY_VOID(self.iter_refresh());
+            self.iter_refresh();
         }
 
-        return ResultT::of(sizes);
+        return sizes;
     }
     
-    Result<CtrSizeT> iter_remove_next(CtrSizeT n) noexcept
+    CtrSizeT iter_remove_next(CtrSizeT n)
     {
-        using ResultT = Result<CtrSizeT>;
-
         auto& self = this->self();
         CtrSizesT sizes;
         CtrSizeT size{};
@@ -83,26 +79,26 @@ public:
         {
             auto ii = self.iter_clone();
 
-            MEMORIA_TRY(distance, ii->iter_skip_fw(n));
+            auto distance = ii->iter_skip_fw(n);
             size = distance;
 
         	auto start = self.iter_leafrank();
         	auto end   = ii->iter_leafrank();
 
-            MEMORIA_TRY_VOID(self.ctr().ctr_remove_entries(self.path(), start, ii->path(), end, sizes, true));
+            self.ctr().ctr_remove_entries(self.path(), start, ii->path(), end, sizes, true);
 
             self.iter_local_pos() = end[StructureStreamIdx];
             //self.path() = ii->path();
             //self.iter_leaf().assign(ii->iter_leaf());
 
-            MEMORIA_TRY_VOID(self.iter_refresh());
+            self.iter_refresh();
         }
 
-        return ResultT::of(size);
+        return size;
     }
 
 
-    BoolResult iter_remove_all(MyType& to) noexcept
+    bool iter_remove_all(MyType& to)
     {
         auto& self = this->self();
         CtrSizesT sizes;
@@ -112,15 +108,15 @@ public:
             auto start = self.iter_leafrank();
             auto end   = to.iter_leafrank();
 
-            MEMORIA_TRY_VOID(self.ctr().ctr_remove_entries(self.path(), start, to.path(), end, true));
+            self.ctr().ctr_remove_entries(self.path(), start, to.path(), end, true);
 
             self.iter_local_pos() = end[StructureStreamIdx];
             self.iter_leaf().assign(to.iter_leaf());
 
-            MEMORIA_TRY_VOID(self.iter_refresh());
+            self.iter_refresh();
         }
 
-        return BoolResult::of(sizes.sum() != 0);
+        return sizes.sum() != 0;
     }
 
 

@@ -115,14 +115,14 @@ void SnapshotTreeItem::expand()
 {
     if (!expanded_)
     {
-        auto child_snps = store_->children_of(snapshot_id_).get_or_throw();
+        auto child_snps = store_->children_of(snapshot_id_);
 
         for (auto snp_id: child_snps) {
             children_.append(new SnapshotTreeItem(store_, snp_id, this));
         }
 
-        auto snp   = store_->find(snapshot_id_).get_or_throw();
-        auto names = snp->container_names().get_or_throw();
+        auto snp   = store_->find(snapshot_id_);
+        auto names = snp->container_names();
 
         for (auto name: names) {
             children_.append(new ContainerTreeItem(store_, snapshot_id_, name, this));
@@ -135,8 +135,8 @@ void SnapshotTreeItem::expand()
 
 QVariant ContainerTreeItem::data(int column)
 {
-    auto snp = store_->find(snapshot_id_).get_or_throw();
-    auto ctr = snp->find(ctr_id_).get_or_throw();
+    auto snp = store_->find(snapshot_id_);
+    auto ctr = snp->find(ctr_id_);
 
     switch (column) {
         case 0: return node_type();
@@ -153,10 +153,10 @@ void ContainerTreeItem::expand()
 {
     if (!expanded_)
     {
-        auto snp = store_->find(snapshot_id_).get_or_throw();
-        auto ctr = snp->find(ctr_id_).get_or_throw();
+        auto snp = store_->find(snapshot_id_);
+        auto ctr = snp->find(ctr_id_);
 
-        children_.append(new CtrBlockTreeItem(0, ctr->root_block().get_or_throw(), this));
+        children_.append(new CtrBlockTreeItem(0, ctr->root_block(), this));
 
         expanded_ = true;
     }
@@ -181,7 +181,7 @@ void CtrBlockTreeItem::expand()
 {
     if (!expanded_)
     {
-        auto children = block_->children().get_or_throw();
+        auto children = block_->children();
 
         size_t idx = 0;
         for (auto child: children) {

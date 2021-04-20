@@ -78,23 +78,23 @@ class SnapshotMemoryStat {
 public:
     SnapshotMemoryStat(
             const SnpID& snapshot_id, uint64_t total_ptree_size, uint64_t total_data_size, uint64_t total_size
-    ):
+    ) noexcept :
         snapshot_id_(snapshot_id),
         total_ptree_size_(total_ptree_size),
         total_data_size_(total_data_size),
         total_size_(total_size)
     {}
 
-    const SnpID& snapshot_id() const {return snapshot_id_;}
-    uint64_t total_size() const {return total_size_;}
+    const SnpID& snapshot_id() const noexcept {return snapshot_id_;}
+    uint64_t total_size() const noexcept {return total_size_;}
 
-    uint64_t total_ptree_size() const {return total_ptree_size_;}
-    uint64_t total_data_size() const {return total_data_size_;}
+    uint64_t total_ptree_size() const noexcept {return total_ptree_size_;}
+    uint64_t total_data_size() const noexcept {return total_data_size_;}
 };
 
 
 template <typename Profile>
-class AllocatorMemoryStat {
+class StoreMemoryStat {
     using SnpID = ApiProfileSnapshotID<Profile>;
     uint64_t total_size_;
 
@@ -102,20 +102,20 @@ class AllocatorMemoryStat {
     SnapshotMap snapshots_;
 
 public:
-    AllocatorMemoryStat(): total_size_(0) {}
+    StoreMemoryStat() noexcept : total_size_(0) {}
 
-    AllocatorMemoryStat(uint64_t total_size): total_size_(total_size) {}
-    const SnapshotMap& snapshots() const {return snapshots_;}
+    StoreMemoryStat(uint64_t total_size) noexcept: total_size_(total_size) {}
+    const SnapshotMap& snapshots() const noexcept {return snapshots_;}
 
-    uint64_t total_size() const {return total_size_;}
+    uint64_t total_size() const noexcept {return total_size_;}
 
     template <typename... Args>
-    void add_snapshot_stat(SharedPtr<SnapshotMemoryStat<Profile>> snapshot_stat)
+    void add_snapshot_stat(SharedPtr<SnapshotMemoryStat<Profile>> snapshot_stat) noexcept
     {
         snapshots_[snapshot_stat->snapshot_id()] = snapshot_stat;
     }
 
-    void compute_total_size()
+    void compute_total_size() noexcept
     {
         total_size_ = 0;
         for (const auto& snp: snapshots_)
@@ -129,12 +129,12 @@ template <typename Profile>
 void print(std::ostream& out, const SnapshotMemoryStat<Profile>& stat, int ntabs = 0);
 
 template <typename Profile>
-void print(std::ostream& out, const AllocatorMemoryStat<Profile>& stat);
+void print(std::ostream& out, const StoreMemoryStat<Profile>& stat);
 
 template <typename Profile>
 void print_json(std::ostream& out, const SnapshotMemoryStat<Profile>& stat);
 
 template <typename Profile>
-void print_json(std::ostream& out, const AllocatorMemoryStat<Profile>& stat);
+void print_json(std::ostream& out, const StoreMemoryStat<Profile>& stat);
 
 }

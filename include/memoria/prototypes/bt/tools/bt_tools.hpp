@@ -124,9 +124,9 @@ public:
         }
     }
 
-    bool contains(const TreeNodePtr& node) noexcept
+    bool contains(const TreeNodePtr& node)
     {
-        //MEMORIA_V1_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
         for (int32_t c = blocks_.getSize() - 1; c >= 0; c--)
         {
@@ -139,32 +139,30 @@ public:
         return false;
     }
 
-    VoidResult add(const TreeNodePtr& node) noexcept
+    void add(const TreeNodePtr& node)
     {
-        //MEMORIA_V1_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
         if (blocks_.capacity() > 0)
         {
             int32_t block_size = node->header().memory_block_size();
 
-            MEMORIA_TRY(allocate_res, ctr_.store().allocateMemory(block_size));
+            auto allocate_res = ctr_.store().allocateMemory(block_size);
 
             void* backup_buffer = allocate_res;
 
             CopyByteBuffer(node.block(), backup_buffer, block_size);
 
             blocks_.append(TxnRecord(node, backup_buffer, block_size));
-
-            return VoidResult::of();
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("No space left for new blocks in the BlockUpdateMgr");
+            MEMORIA_MAKE_GENERIC_ERROR("No space left for new blocks in the BlockUpdateMgr").do_throw();
         }
     }
 
-    void remove(const TreeNodePtr& node) noexcept
+    void remove(const TreeNodePtr& node)
     {
-        //MEMORIA_V1_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
         for (int32_t c = blocks_.getSize() - 1; c >= 0; c--)
         {
@@ -197,7 +195,7 @@ public:
 
 
     // FIXME: unify with rollback()
-    void restoreNodeState() noexcept
+    void restoreNodeState()
     {
         for (int32_t c = 0; c < blocks_.getSize(); c++)
         {
@@ -209,7 +207,7 @@ public:
         }
     }
 
-    void rollback() noexcept
+    void rollback()
     {
         for (int32_t c = 0; c < blocks_.getSize(); c++)
         {

@@ -152,7 +152,7 @@ public:
                     last_suffix_key = suffix_key();
                 }
 
-                fill_suffix_buffer().throw_if_error();
+                fill_suffix_buffer();
 
                 has_prefix = true;
             }
@@ -189,10 +189,10 @@ public:
     }
 
 
-    virtual VoidResult fill_suffix_buffer() noexcept = 0;
+    virtual void fill_suffix_buffer() = 0;
 
     virtual bool is_end() const = 0;
-    virtual BoolResult next() noexcept = 0;
+    virtual bool next() = 0;
 
 
     virtual void dump_iterator() const = 0;
@@ -236,11 +236,11 @@ public:
 
     bool is_run_finished() const {return run_is_finished_;}
 
-    virtual VoidResult fill_suffix_buffer() noexcept = 0;
+    virtual void fill_suffix_buffer() = 0;
 
 
     virtual bool is_end() const     = 0;
-    virtual BoolResult next_block() noexcept = 0;
+    virtual bool next_block() = 0;
     virtual void dump_iterator() const = 0;
 };
 
@@ -274,7 +274,7 @@ public:
     virtual CtrSharedPtr<IValuesScanner<Types, Profile>> values(size_t key_idx) = 0;
 
     virtual bool is_end() const         = 0;
-    virtual VoidResult next() noexcept  = 0;
+    virtual bool next() = 0;
     virtual void dump_iterator() const  = 0;
 };
 

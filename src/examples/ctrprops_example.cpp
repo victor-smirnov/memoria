@@ -34,36 +34,36 @@ int main()
         using MapType = Map<Varchar, Varchar>;
         //using Entry   = std::pair<U8String, U8String>;
 
-        auto alloc = create_memory_store().get_or_throw();
+        auto alloc = create_memory_store();
 
-        auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
+        auto snp = alloc->master()->branch();
 
-        auto ctr0 = create(snp, MapType()).get_or_throw();
+        auto ctr0 = create(snp, MapType());
 
         std::string value1(16, 'X');
         std::string value2(17, 'Y');
         std::string value3(18, 'Z');
 
-        ctr0->set_ctr_property("prop1", value1).throw_if_error();
-        ctr0->set_ctr_property("prop2", value2).throw_if_error();
-        ctr0->set_ctr_property("prop3", value3).throw_if_error();
+        ctr0->set_ctr_property("prop1", value1);
+        ctr0->set_ctr_property("prop2", value2);
+        ctr0->set_ctr_property("prop3", value3);
 
         ctr0->for_each_ctr_property([](auto key_view, auto value_view){
             std::cout << "Prop: " << key_view << " :: " << value_view << std::endl;
-        }).throw_if_error();
+        });
 
-        ctr0->iterator().get_or_throw()->dump().get_or_throw();
-
-        std::cout << "Props: " << ctr0->ctr_properties() << std::endl;
-
-        ctr0->remove_ctr_property("prop1").throw_if_error();
-        ctr0->remove_ctr_property("prop2").throw_if_error();
-
-        ctr0->iterator().get_or_throw()->dump().get_or_throw();
+        ctr0->iterator()->dump();
 
         std::cout << "Props: " << ctr0->ctr_properties() << std::endl;
 
-        snp->commit().throw_if_error();
+        ctr0->remove_ctr_property("prop1");
+        ctr0->remove_ctr_property("prop2");
+
+        ctr0->iterator()->dump();
+
+        std::cout << "Props: " << ctr0->ctr_properties() << std::endl;
+
+        snp->commit();
     }
     catch (MemoriaThrowable& th) {
         th.dump(std::cerr);

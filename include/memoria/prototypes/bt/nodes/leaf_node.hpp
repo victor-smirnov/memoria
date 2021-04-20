@@ -165,37 +165,39 @@ public:
                 const IDResolver* id_resolver
         ) noexcept
         {
-            using DataType = CowBlockID<IDValueHolder>;
+            return wrap_throwing([&] () -> VoidResult {
+                using DataType = CowBlockID<IDValueHolder>;
 
-            using Buffer = PackedDataTypeBuffer<
-                PackedDataTypeBufferTypes<
-                    DataType,
-                    Indexed
-                >
-            >;
+                using Buffer = PackedDataTypeBuffer<
+                    PackedDataTypeBufferTypes<
+                        DataType,
+                        Indexed
+                    >
+                >;
 
-            using ExtData = typename DataTypeTraits<DataType>::TypeDimensionsTuple;
+                using ExtData = typename DataTypeTraits<DataType>::TypeDimensionsTuple;
 
-            using BufferSO = PackedDataTypeBufferSO<
+                using BufferSO = PackedDataTypeBufferSO<
                 ExtData,
                 Buffer
-            >;
+                >;
 
-            ExtData ext_data{};
-            BufferSO buffer_so(&ext_data, pkd_buffer);
+                ExtData ext_data{};
+                BufferSO buffer_so(&ext_data, pkd_buffer);
 
-            psize_t size = buffer_so.size();
+                psize_t size = buffer_so.size();
 
-            for (psize_t c = 0; c < size; c++)
-            {
-                MEMORIA_TRY(memref_id, id_resolver->resolve_id(buffer_so.access(0, c)));
+                for (psize_t c = 0; c < size; c++)
+                {
+                    auto memref_id = id_resolver->resolve_id(buffer_so.access(0, c));
 
-                MEMORIA_TRY_VOID(buffer_so.update_entries(c, 1, [&](auto col, auto row) noexcept {
-                    return memref_id;
-                }));
-            }
+                    MEMORIA_TRY_VOID(buffer_so.update_entries(c, 1, [&](auto col, auto row) noexcept {
+                        return memref_id;
+                    }));
+                }
 
-            return VoidResult::of();
+                return VoidResult::of();
+            });
         }
     };
 

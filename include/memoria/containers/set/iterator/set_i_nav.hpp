@@ -48,34 +48,30 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(set::ItrNavName)
     using Profile   = typename Types::Profile;
 
 public:
-    VoidResult insert(const KeyView& key) noexcept
+    void insert(const KeyView& key)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr().iter_insert_entry(
+        self.ctr().iter_insert_entry(
                 self,
                 set::KeyEntry<KeyView, CtrSizeT>(key)
-        ));
+        );
 
-        MEMORIA_TRY_VOID(self.iter_btss_skip_fw(1));
-
-        return VoidResult::of();
+        self.iter_btss_skip_fw(1);
     }
 
 
-    VoidResult remove(bool update_iterator = true) noexcept
+    void remove(bool update_iterator = true)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr().ctr_remove_entry(self, update_iterator));
-        MEMORIA_TRY_VOID(self.ctr().ctr_check_path(self.path(), 0));
+        self.ctr().ctr_remove_entry(self, update_iterator);
+        self.ctr().ctr_check_path(self.path(), 0);
 
         if (self.iter_is_end())
         {
-            MEMORIA_TRY_VOID(self.iter_btss_skip_fw(0));
+            self.iter_btss_skip_fw(0);
         }
-
-        return VoidResult::of();
     }
 
     auto remove(CtrSizeT size)
@@ -106,7 +102,7 @@ public:
 
     auto key() const noexcept -> Datum<Key>
     {
-        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), 0).get_or_throw());
+        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), 0));
     }
 
     bool is_found(const KeyView& k) const noexcept

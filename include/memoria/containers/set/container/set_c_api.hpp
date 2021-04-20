@@ -75,7 +75,7 @@ public:
 
     }
 
-    Result<CtrSharedPtr<SetIterator<Key, ApiProfileT>>> find(KeyView key) const noexcept
+    CtrSharedPtr<SetIterator<Key, ApiProfileT>> find(KeyView key) const
     {
         return memoria_static_pointer_cast<SetIterator<Key, ApiProfileT>>(self().ctr_set_find(key));
     }
@@ -94,120 +94,114 @@ public:
 
 
 
-    Result<CtrSharedPtr<SetIterator<Key, ApiProfileT>>> iterator() const noexcept
+    CtrSharedPtr<SetIterator<Key, ApiProfileT>> iterator() const
     {
         auto iter = self().ctr_begin();
         return memoria_static_pointer_cast<SetIterator<Key, ApiProfileT>>(std::move(iter));
     }
 
-    VoidResult append(io::IOVectorProducer& producer) noexcept
+    void append(io::IOVectorProducer& producer)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(iter, self.ctr_end());
-        MEMORIA_TRY_VOID(iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
-
-        return VoidResult::of();
+        auto iter = self.ctr_end();
+        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
     }
 
-    virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept
+    virtual void prepend(io::IOVectorProducer& producer)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(iter, self.ctr_begin());
-        MEMORIA_TRY_VOID(iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
-
-        return VoidResult::of();
+        auto iter = self.ctr_begin();
+        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
     }
 
-    virtual VoidResult insert(KeyView before, io::IOVectorProducer& producer) noexcept
+    virtual void insert(KeyView before, io::IOVectorProducer& producer)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(iter, self.ctr_set_find(before));
+        auto iter = self.ctr_set_find(before);
 
         if (iter->is_found(before))
         {
-            return MEMORIA_MAKE_GENERIC_ERROR("Requested key is found. Can't insert enties this way.");
+            MEMORIA_MAKE_GENERIC_ERROR("Requested key is found. Can't insert enties this way.").do_throw();
         }
         else {
-            MEMORIA_TRY_VOID(iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
-            return VoidResult::of();
+            iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
         }
     }
 
     /**
      * Returns true if set is already containing the element
      */
-    BoolResult insert(KeyView k) noexcept
+    bool insert(KeyView k)
     {
-        MEMORIA_TRY(iter, self().ctr_set_find(k));
+        auto iter = self().ctr_set_find(k);
 
         if (iter->is_found(k))
         {
-            return BoolResult::of(true);
+            return true;
         }
         else {
-            MEMORIA_TRY_VOID(iter.get()->insert(k));
-            return BoolResult::of(false);
+            iter.get()->insert(k);
+            return false;
         }
     }
 
     /**
      * Returns true if the set contained the element
      */
-    BoolResult remove(KeyView key) noexcept
+    bool remove(KeyView key)
     {
-        MEMORIA_TRY(iter, self().ctr_set_find(key));
+        auto iter = self().ctr_set_find(key);
 
         if ((!iter->iter_is_end()) && iter->key() == key)
         {
-            MEMORIA_TRY_VOID(iter->remove(false));
-            return BoolResult::of(true);
+            iter->remove(false);
+            return true;
         }
 
-        return BoolResult::of(false);
+        return false;
     }
 
     /**
      * Returns true if the set contains the element
      */
-    BoolResult contains(KeyView k) noexcept
+    bool contains(KeyView k)
     {
-        MEMORIA_TRY(iter, self().ctr_set_find(k));
-        return BoolResult::of(iter->is_found(k));
+        auto iter = self().ctr_set_find(k);
+        return iter->is_found(k);
     }
 
-    Result<CtrSizeT> remove(CtrSizeT from, CtrSizeT to) noexcept
+    CtrSizeT remove(CtrSizeT from, CtrSizeT to)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(ii_from, self.ctr_seek(from));
+        auto ii_from = self.ctr_seek(from);
 
         return ii_from->remove_from(to - from);
     }
 
-    Result<CtrSizeT> remove_from(CtrSizeT from) noexcept
+    CtrSizeT remove_from(CtrSizeT from)
     {
-        MEMORIA_TRY(size, self().size());
+        auto size = self().size();
         return remove(from, size);
     }
 
-    Result<CtrSizeT> remove_up_to(CtrSizeT pos) noexcept
+    CtrSizeT remove_up_to(CtrSizeT pos)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(ii_from, self.ctr_begin());
+        auto ii_from = self.ctr_begin();
 
         return ii_from->remove_from(pos);
     }
 
-    virtual VoidResult read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const noexcept
+    virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const
     {
-        using ResultT = VoidResult;
         auto& self = this->self();
 
-        MEMORIA_TRY(ii, self.ctr_seek(start));
+        auto ii = self.ctr_seek(start);
 
         CtrSizeT cnt{};
         SetScanner<CtrApiTypes, ApiProfileT> scanner(ii);
@@ -231,20 +225,18 @@ public:
 
             if (cnt < length)
             {
-                MEMORIA_TRY_VOID(scanner.next_leaf());
+                scanner.next_leaf();
             }
         }
-
-        return ResultT::of();
     }
 
-    virtual VoidResult insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size) noexcept
+    virtual void insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size)
     {
         auto& self = this->self();
 
         if (start + size > buffer.size())
         {
-            return MEMORIA_MAKE_GENERIC_ERROR("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size());
+            MEMORIA_MAKE_GENERIC_ERROR("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size()).do_throw();
         }
 
         SetProducer<CtrApiTypes> producer([&](auto& values, auto appended_size){
@@ -258,10 +250,8 @@ public:
             return limit != batch_size;
         });
 
-        MEMORIA_TRY(ii, self.ctr_seek(at));
-        MEMORIA_TRY_VOID(ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max()));
-
-        return VoidResult::of();
+        auto ii = self.ctr_seek(at);
+        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
     }
 
 

@@ -36,12 +36,12 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
 
 
 
-    VoidResult ctr_remove_entry(Iterator& iter, bool update_iterator = true) noexcept
+    void ctr_remove_entry(Iterator& iter, bool update_iterator = true)
     {
         auto& self = this->self();
 
         int32_t idx = iter.iter_local_pos();
-        MEMORIA_TRY(remove_entry_result, self.ctr_remove_entry(iter.path(), idx));
+        auto remove_entry_result = self.ctr_remove_entry(iter.path(), idx);
 
         if (update_iterator)
         {
@@ -49,11 +49,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
             if (MMA_UNLIKELY(remove_entry_result.leaf_changed))
             {
                 iter.iter_local_pos() = remove_entry_result.new_idx;
-                MEMORIA_TRY_VOID(iter.iter_refresh());
+                iter.iter_refresh();
             }
         }
-
-        return VoidResult::of();
     }
 
 
@@ -62,19 +60,18 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
         int32_t new_idx;
     };
 
-    Result<RemoveEntryResult> ctr_remove_entry(TreePathT& path, int32_t idx) noexcept
+    RemoveEntryResult ctr_remove_entry(TreePathT& path, int32_t idx) noexcept
     {
-        using ResultT = Result<RemoveEntryResult>;
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, 0));
+        self.ctr_cow_clone_path(path, 0);
 
         RemoveEntryResult result{false, idx};
 
-        MEMORIA_TRY(removed, self.template ctr_try_remove_stream_entry<0>(path, idx));
+        auto removed = self.template ctr_try_remove_stream_entry<0>(path, idx);
         if (!removed)
         {
-            MEMORIA_TRY(split_result, self.split_leaf_in_a_half(path, idx));
+            auto split_result = self.split_leaf_in_a_half(path, idx);
 
             if (split_result.type() == SplitStatus::RIGHT)
             {
@@ -82,32 +79,32 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
                 result.new_idx = idx = split_result.stream_idx();
             }
 
-            MEMORIA_TRY(removed_try2, self.template ctr_try_remove_stream_entry<0>(path, idx));
+            auto removed_try2 = self.template ctr_try_remove_stream_entry<0>(path, idx);
 
             if (!removed_try2)
             {
-                return MEMORIA_MAKE_GENERIC_ERROR("BTSS error: second entry removal attempt failed");
+                MEMORIA_MAKE_GENERIC_ERROR("BTSS error: second entry removal attempt failed").do_throw();
             }
         }
 
-        MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
-        MEMORIA_TRY_VOID(self.ctr_check_path(path, 0));
+        self.ctr_update_path(path, 0);
+        self.ctr_check_path(path, 0);
 
         TreePathT next_path = path;
-        MEMORIA_TRY(has_next, self.ctr_get_next_node(next_path, 0));
+        auto has_next = self.ctr_get_next_node(next_path, 0);
         if (has_next)
         {
-            MEMORIA_TRY_VOID(self.ctr_merge_leaf_nodes(path, next_path));
+            self.ctr_merge_leaf_nodes(path, next_path);
         }
         else {
             TreePathT prev_path = path;
 
-            MEMORIA_TRY(has_prev, self.ctr_get_prev_node(prev_path, 0));
+            auto has_prev = self.ctr_get_prev_node(prev_path, 0);
 
             if (has_prev)
             {
-                MEMORIA_TRY(left_sizes, self.ctr_get_leaf_sizes(prev_path.leaf()));
-                MEMORIA_TRY(left_merge_result, self.ctr_merge_leaf_nodes(prev_path, path, false));
+                auto left_sizes = self.ctr_get_leaf_sizes(prev_path.leaf());
+                auto left_merge_result = self.ctr_merge_leaf_nodes(prev_path, path, false);
                 if (left_merge_result)
                 {
                     path = prev_path;
@@ -118,7 +115,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
             }
         }
 
-        return ResultT::of(result);
+        return result;
     }
 
 

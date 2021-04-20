@@ -68,8 +68,8 @@ public:
     virtual void fillRandom(CtrApi& ctr, int64_t size)
     {
         auto data = createRandomBuffer(size);
-        auto ctr_size = ctr.size().get_or_throw();
-        ctr.insert(ctr_size, *data).get_or_throw();
+        auto ctr_size = ctr.size();
+        ctr.insert(ctr_size, *data);
     }
 
 

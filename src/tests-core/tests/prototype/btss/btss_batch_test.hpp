@@ -72,12 +72,12 @@ namespace internal_ {
 template <
     typename CtrName,
     typename ProfileT       = CoreApiProfile<>,
-    typename AllocatorT     = IMemoryStorePtr<ProfileT>
+    typename StoreT     = IMemoryStorePtr<ProfileT>
 >
-class BTSSBatchTest: public BTSSTestBase<CtrName, ProfileT, AllocatorT> {
+class BTSSBatchTest: public BTSSTestBase<CtrName, ProfileT, StoreT> {
 
-    using Base    = BTSSTestBase<CtrName, ProfileT, AllocatorT>;
-    using MyType  = BTSSBatchTest<CtrName, ProfileT, AllocatorT>;
+    using Base    = BTSSTestBase<CtrName, ProfileT, StoreT>;
+    using MyType  = BTSSBatchTest<CtrName, ProfileT, StoreT>;
 
 protected:
 
@@ -169,7 +169,7 @@ public:
             return random_position_;
         }
         else {
-            int64_t size = array.size().get_or_throw();
+            int64_t size = array.size();
             return random_position_ = this->getBIRandom(size);
         }
     }
@@ -189,14 +189,14 @@ public:
         }
         else {
             int64_t current_pos  = pos;
-            int64_t size         = ctr.size().get_or_throw();
+            int64_t size         = ctr.size();
             int64_t remainder    = size - current_pos;
 
             suffix_size_ = length = check_size_ >= remainder ? remainder : check_size_;
         }
 
         auto buf = ctr_make_shared<MemBuffer>();
-        ctr.read_to(*buf, pos, length).get_or_throw();
+        ctr.read_to(*buf, pos, length);
         return buf;
     }
 
@@ -213,7 +213,7 @@ public:
         }
 
         auto buf = ctr_make_shared<MemBuffer>();
-        ctr.read_to(*buf, pos - length, length).get_or_throw();
+        ctr.read_to(*buf, pos - length, length);
         return buf;
     }
 
@@ -221,7 +221,7 @@ public:
     virtual void checkBufferWritten(CtrApi& ctr, int64_t pos, const MemBuffer& buffer, const char* source)
     {
         MemBuffer buf;
-        ctr.read_to(buf, pos, buffer.size()).get_or_throw();
+        ctr.read_to(buf, pos, buffer.size());
 
         compareBuffers(buffer, buf, source);
     }
@@ -243,11 +243,11 @@ public:
         auto suffix = createSuffixCheckBuffer(ctr, 0);
         auto data   = createDataBuffer();
 
-        int64_t size = ctr.size().get_or_throw();
+        int64_t size = ctr.size();
 
-        ctr.insert(0, *data).get_or_throw();
+        ctr.insert(0, *data);
 
-        int64_t size2 = ctr.size().get_or_throw();
+        int64_t size2 = ctr.size();
 
         assert_equals(size2, size + data->size());
 
@@ -266,11 +266,11 @@ public:
 
     void insertAtEnd(CtrApi& ctr)
     {
-        int64_t pos = ctr.size().get_or_throw();
+        int64_t pos = ctr.size();
         auto prefix = createPrefixCheckBuffer(ctr, pos);
         auto data   = createDataBuffer();
 
-        ctr.insert(pos, *data).get_or_throw();
+        ctr.insert(pos, *data);
 
         checkBufferWritten(ctr, pos - prefix->size(), *prefix.get(), MA_SRC);
         checkBufferWritten(ctr, pos, *data.get(), MA_SRC);
@@ -298,7 +298,7 @@ public:
 
 
 
-        ctr.insert(pos, *data).get_or_throw();
+        ctr.insert(pos, *data);
 
         checkBufferWritten(ctr, pos - prefix->size(), *prefix.get(), MA_SRC);
         checkBufferWritten(ctr, pos, *data.get(), MA_SRC);
@@ -326,13 +326,13 @@ public:
             size = block_size_;
         }
         else {
-            int64_t ctr_size = ctr.size().get_or_throw();
+            int64_t ctr_size = ctr.size();
             block_size_ = size = getRandomBufferSize(ctr_size < max_block_size_ ? ctr_size : max_block_size_);
         }
 
         auto suffix = createSuffixCheckBuffer(ctr, size);
 
-        ctr.remove_up_to(size).get_or_throw();
+        ctr.remove_up_to(size);
 
         checkBufferWritten(ctr, 0, *suffix, MA_SRC);
     }
@@ -351,7 +351,7 @@ public:
     {
         int32_t size;
 
-        int64_t ctr_size = ctr.size().get_or_throw();
+        int64_t ctr_size = ctr.size();
 
         if (this->isReplayMode()) {
             size = block_size_;
@@ -362,11 +362,11 @@ public:
 
         auto prefix = createPrefixCheckBuffer(ctr, ctr_size - size);
 
-        int64_t last_size = ctr.size().get_or_throw();
+        int64_t last_size = ctr.size();
 
-        ctr.remove_from(ctr_size - size).get_or_throw();
+        ctr.remove_from(ctr_size - size);
 
-        assert_equals(last_size - size, ctr.size().get_or_throw());
+        assert_equals(last_size - size, ctr.size());
 
         checkBufferWritten(ctr, ctr_size - size - prefix->size(), *prefix.get(), MA_SRC);
     }
@@ -391,7 +391,7 @@ public:
             size = block_size_;
         }
         else {
-            auto ctr_size  = ctr.size().get_or_throw();
+            auto ctr_size  = ctr.size();
             auto remainder = ctr_size - tgt_pos;
 
             if (max_block_size_ < remainder) {
@@ -408,7 +408,7 @@ public:
         auto suffix = createSuffixCheckBuffer(ctr, tgt_pos + size);
 
 
-        ctr.remove(tgt_pos, tgt_pos + size).get_or_throw();
+        ctr.remove(tgt_pos, tgt_pos + size);
 
         checkBufferWritten(ctr, tgt_pos - prefix->size(), *prefix, MA_SRC);
         checkBufferWritten(ctr, tgt_pos, *suffix, MA_SRC);
@@ -442,14 +442,14 @@ public:
         {
             auto snp = branch();
 
-            auto ctr = find_or_create(snp, CtrName{}, ctr_name_).get_or_throw();
-            ctr->set_new_block_size(1024).get_or_throw();
+            auto ctr = find_or_create(snp, CtrName{}, ctr_name_);
+            ctr->set_new_block_size(1024);
 
             test_fn(this, *ctr.get());
 
             if (iteration_ % 100 == 0)
             {
-                out() << "Size: " << ctr->size().get_or_throw() << std::endl;
+                out() << "Size: " << ctr->size() << std::endl;
                 //this->check("Store structure checking", MMA_SRC);
             }
 
@@ -460,7 +460,7 @@ public:
             commit();
 
 
-            size = ctr->size().get_or_throw();
+            size = ctr->size();
         }
 
         if (!isReplayMode())
@@ -475,8 +475,8 @@ public:
         ctr_name_ = UUID::make_random();
 
         auto snp = branch();
-        auto ctr = find_or_create(snp, CtrName{}, ctr_name_).get_or_throw();
-        ctr->set_new_block_size(1024).get_or_throw();
+        auto ctr = find_or_create(snp, CtrName{}, ctr_name_);
+        ctr->set_new_block_size(1024);
 
         fillRandom(*ctr.get(), size_);
 
@@ -484,24 +484,24 @@ public:
 
         iteration_ = 0;
 
-        int64_t size = ctr->size().get_or_throw();
+        int64_t size = ctr->size();
 
         while (size > 0)
         {
             snp = branch();
-            ctr = find<CtrName>(snp, ctr_name_).get_or_throw();
+            ctr = find<CtrName>(snp, ctr_name_);
 
             test_fn(this, *ctr.get());
 
             if (iteration_ % 100 == 0)
             {
-                out() << "Size: " << ctr->size().get_or_throw() << std::endl;
+                out() << "Size: " << ctr->size() << std::endl;
                 //this->check("Store structure checking", MMA_SRC);
             }
 
             //check("Remove: Container Check Failed", MA_SRC);
 
-            size = ctr->size().get_or_throw();
+            size = ctr->size();
 
             iteration_++;
             commit();
@@ -516,7 +516,7 @@ public:
     virtual void replay(TestFn test_fn)
     {
         auto snp = branch();
-        auto ctr = find_or_create(snp, CtrName{}, ctr_name_).get_or_throw();
+        auto ctr = find_or_create(snp, CtrName{}, ctr_name_);
 
         test_fn(this, *ctr.get());
 

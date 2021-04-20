@@ -18,6 +18,34 @@
 
 namespace memoria {
 
+namespace detail {
+
+void ResultErrors::do_throw() {
+    switch(error.index())
+    {
+        case 0:
+        {
+            MemoriaErrorPtr ptr(std::move(boost::variant2::get<MemoriaErrorPtr>(error)));
+
+            if (ptr->error_category() == ErrorCategory::EXCEPTION)
+            {
+                WrappedExceptionMemoriaError* err = static_cast<WrappedExceptionMemoriaError*>(ptr.get());
+                err->rethrow();
+            }
+
+            throw ResultException(
+                std::move(ptr)
+            );
+        }
+        case 1: {
+            throw ResultUninitializedException();
+        }
+        default : throw std::runtime_error("Invalid error index");
+    }
+}
+
+}
+
 void release(MemoriaError* error) noexcept {
     if (error) {
         error->release();

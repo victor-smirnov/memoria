@@ -29,38 +29,38 @@ template <typename Profile>
 class IStoreSnapshotCtrOps {
 
 public:
-    using AllocatorT = StoreApiBase<Profile>;
+    using StoreT = StoreApiBase<Profile>;
 
     using CtrID = ApiProfileCtrID<Profile>;
-    using CtrReferenceableResult = Result<CtrSharedPtr<CtrReferenceable<Profile>>>;
+    using CtrReferenceableT = CtrSharedPtr<CtrReferenceable<Profile>>;
 
     virtual ~IStoreSnapshotCtrOps() noexcept = default;
 
 
-    virtual CtrReferenceableResult find(const CtrID& ctr_id) noexcept = 0;
+    virtual CtrReferenceableT find(const CtrID& ctr_id) = 0;
 
-    virtual bool is_committed() const noexcept = 0;
-    virtual bool is_active() const noexcept = 0;
-    virtual bool is_marked_to_clear() const noexcept = 0;
+    virtual bool is_committed() const = 0;
+    virtual bool is_active() const = 0;
+    virtual bool is_marked_to_clear() const = 0;
 
 
-    virtual VoidResult dump_open_containers() noexcept = 0;
-    virtual BoolResult has_open_containers() noexcept = 0;
-    virtual Result<std::vector<CtrID>> container_names() const noexcept = 0;
-    virtual VoidResult drop() noexcept = 0;
-    virtual BoolResult check() noexcept = 0;
+    virtual void dump_open_containers() = 0;
+    virtual bool has_open_containers() = 0;
+    virtual std::vector<CtrID> container_names() const = 0;
+    virtual void drop() = 0;
+    virtual bool check() = 0;
 
-    virtual Result<Optional<U8String>> ctr_type_name_for(const CtrID& name) noexcept = 0;
+    virtual Optional<U8String> ctr_type_name_for(const CtrID& name) = 0;
 
-//    virtual VoidResult walk_containers(
+//    virtual void walk_containers(
 //            ContainerWalker<Profile>* walker,
 //            const char* allocator_descr = nullptr
-//    ) noexcept = 0;
+//    ) = 0;
 
 
 protected:
 
-    virtual Result<SnpSharedPtr<AllocatorT>> snapshot_ref_opening_allowed() noexcept = 0;
+    virtual SnpSharedPtr<StoreT> snapshot_ref_opening_allowed() = 0;
 };
 
 
@@ -70,127 +70,106 @@ class IStoreWritableSnapshotCtrOps: public virtual IStoreSnapshotCtrOps<Profile>
 
 public:
     using CtrID = ApiProfileCtrID<Profile>;
-    using CtrReferenceableResult = Result<CtrSharedPtr<CtrReferenceable<Profile>>>;
+    using CtrReferenceableT = CtrSharedPtr<CtrReferenceable<Profile>>;
 
-    virtual CtrReferenceableResult create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept = 0;
-    virtual CtrReferenceableResult create(const LDTypeDeclarationView& decl) noexcept = 0;
+    virtual CtrReferenceableT create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) = 0;
+    virtual CtrReferenceableT create(const LDTypeDeclarationView& decl) = 0;
 
-    virtual CtrReferenceableResult create(U8StringView type_def, const CtrID& ctr_id) noexcept {
-        return wrap_throwing([&] () -> CtrReferenceableResult {
-            LDDocument doc = TypeSignature::parse(type_def);
-            LDTypeDeclarationView decl = doc.value().as_type_decl();
-            return this->create(decl, ctr_id);
-        });
+    virtual CtrReferenceableT create(U8StringView type_def, const CtrID& ctr_id) {
+        LDDocument doc = TypeSignature::parse(type_def);
+        LDTypeDeclarationView decl = doc.value().as_type_decl();
+        return this->create(decl, ctr_id);
     }
 
-    virtual CtrReferenceableResult create(U8StringView type_def) noexcept {
-        return wrap_throwing([&] () -> CtrReferenceableResult {
-            LDDocument doc = TypeSignature::parse(type_def);
-            LDTypeDeclarationView decl = doc.value().as_type_decl();
-            return this->create(decl);
-        });
+    virtual CtrReferenceableT create(U8StringView type_def) {
+        LDDocument doc = TypeSignature::parse(type_def);
+        LDTypeDeclarationView decl = doc.value().as_type_decl();
+        return this->create(decl);
     }
 
-    virtual VoidResult commit(bool flush = true) noexcept = 0;
-    virtual VoidResult flush_open_containers() noexcept = 0;
+    virtual void commit(bool flush = true) = 0;
+    virtual void flush_open_containers() = 0;
 
-    virtual BoolResult drop_ctr(const CtrID& name) noexcept = 0;
+    virtual bool drop_ctr(const CtrID& name) = 0;
 
-    virtual Result<CtrID> clone_ctr(const CtrID& name, const CtrID& new_name) noexcept = 0;
-    virtual Result<CtrID> clone_ctr(const CtrID& name) noexcept = 0;
+    virtual CtrID clone_ctr(const CtrID& name, const CtrID& new_name) = 0;
+    virtual CtrID clone_ctr(const CtrID& name) = 0;
 
 protected:
-    virtual Result<SnpSharedPtr<ApIStoreBaseT>> snapshot_ref_creation_allowed() noexcept = 0;
+    virtual SnpSharedPtr<ApIStoreBaseT> snapshot_ref_creation_allowed() = 0;
 };
 
 
 template <typename CtrName, typename Profile>
-Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
+CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
         SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> alloc,
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
-) noexcept
+)
 {
-    using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
-    return wrap_throwing([&] () -> ResultT {
-        U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
-        LDDocument doc = TypeSignature::parse(signature.to_std_string());
-        LDTypeDeclarationView decl = doc.value().as_type_decl();
+    U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
+    LDDocument doc = TypeSignature::parse(signature.to_std_string());
+    LDTypeDeclarationView decl = doc.value().as_type_decl();
 
-        MEMORIA_TRY(ctr_ref, alloc->create(decl, ctr_id));
-        (void)ctr_ref;
-        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref_result));
-    });
+    auto ctr_ref = alloc->create(decl, ctr_id);
+    return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref));
 }
 
 
 
 template <typename CtrName, typename Profile>
-Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
+CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
         SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> alloc,
         const CtrName& ctr_type_name
-) noexcept
+)
 {
-    using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
-    return wrap_throwing([&] () -> ResultT {
-        U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
-        LDDocument doc = TypeSignature::parse(signature.to_std_string());
-        LDTypeDeclarationView decl = doc.value().as_type_decl();
-        MEMORIA_TRY(ctr_ref, alloc->create(decl));
-        (void)ctr_ref;
-        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref_result));
-    });
+    U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
+    LDDocument doc = TypeSignature::parse(signature.to_std_string());
+    LDTypeDeclarationView decl = doc.value().as_type_decl();
+    auto ctr_ref = alloc->create(decl);
+    return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref));
 }
 
 
 
 template <typename CtrName, typename Profile>
-Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
+CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
         SnpSharedPtr<IStoreSnapshotCtrOps<Profile>> alloc,
         const ApiProfileCtrID<Profile>& ctr_id
-) noexcept
+)
 {
-    using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
-    return wrap_throwing([&] () -> ResultT {
+    auto ctr_ref = alloc->find(ctr_id);
 
-        MEMORIA_TRY(ctr_ref, alloc->find(ctr_id));
+    U8String signature = make_datatype_signature<CtrName>().name();
 
-        U8String signature = make_datatype_signature<CtrName>().name();
-
-        if (ctr_ref->describe_datatype() == signature) {
-            return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref_result));
-        }
-        else {
-            return MEMORIA_MAKE_GENERIC_ERROR(
-                "Container type mismatch. Expected: {}, actual: {}",
-                signature,
-                ctr_ref->describe_datatype()
-            );
-        }
-    });
+    if (ctr_ref->describe_datatype() == signature) {
+        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref));
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR(
+                    "Container type mismatch. Expected: {}, actual: {}",
+                    signature,
+                    ctr_ref->describe_datatype()
+        ).do_throw();
+    }
 }
 
 
 template <typename CtrName, typename Profile>
-Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
+CtrSharedPtr<ICtrApi<CtrName, Profile>> find_or_create(
         SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> alloc,
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
-) noexcept
+)
 {
-    using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
-    return wrap_throwing([&] () -> ResultT {
-        MEMORIA_TRY(type_name, alloc->ctr_type_name_for(ctr_id));
-        if (type_name) {
-            return find<CtrName>(alloc, ctr_id);
-        }
-        else {
-            return create<CtrName>(alloc, ctr_type_name, ctr_id);
-        }
-    });
+    auto type_name = alloc->ctr_type_name_for(ctr_id);
+    if (type_name) {
+        return find<CtrName>(alloc, ctr_id);
+    }
+    else {
+        return create<CtrName>(alloc, ctr_type_name, ctr_id);
+    }
 }
-
-
 
 }
 

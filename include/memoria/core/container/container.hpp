@@ -185,7 +185,7 @@ public:
     PairPtr& pair() noexcept {return pair_;}
     const PairPtr& pair() const noexcept {return pair_;}
 
-    VoidResult set_root(const BlockID &root) noexcept
+    void set_root(const BlockID &root)
     {
         root_ = root;
         return self().store().setRoot(self().master_name(), root);
@@ -201,7 +201,7 @@ public:
         return root_;
     }
 
-    static uint64_t hash() {
+    static uint64_t hash() noexcept {
         return CONTAINER_HASH;
     }
 
@@ -244,17 +244,16 @@ public:
         template <typename CtrName>
         using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
-        using CtrReferenceableResult = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<ProfileT>>>>;
+        using CtrReferenceablePtrT = CtrSharedPtr<CtrReferenceable<ApiProfile<ProfileT>>>;
 
 
 
-        virtual CtrReferenceableResult create_instance(
+        virtual CtrReferenceablePtrT create_instance(
                 const AllocatorPtr& allocator,
                 const CtrID& ctr_id,
                 const LDTypeDeclarationView& type_decl
         ) const
         {
-            using ResultT = CtrReferenceableResult;
             boost::any obj = DataTypeRegistry::local().create_object(type_decl);
 
             MaybeError maybe_error;
@@ -264,21 +263,20 @@ public:
             );
 
             if (!maybe_error) {
-                return ResultT::of(std::move(instance));
+                return std::move(instance);
             }
             else {
-                return std::move(maybe_error.get());
+                std::move(maybe_error.get()).do_throw();
             }
         }
 
 
-        virtual CtrReferenceableResult create_instance(
+        virtual CtrReferenceablePtrT create_instance(
                 Allocator* allocator,
                 const CtrID& ctr_id,
                 const LDTypeDeclarationView& type_decl
         ) const
         {
-            using ResultT = CtrReferenceableResult;
             boost::any obj = DataTypeRegistry::local().create_object(type_decl);
 
             MaybeError maybe_error;
@@ -288,10 +286,10 @@ public:
             );
 
             if (!maybe_error) {
-                return ResultT::of(std::move(instance));
+                return std::move(instance);
             }
             else {
-                return std::move(maybe_error.get());
+                std::move(maybe_error.get()).do_throw();
             }
         }
     };
@@ -301,61 +299,58 @@ public:
         using CIBase = ContainerOperations<ProfileT>;    
         using typename CIBase::BlockCallbackFn;
 
-        virtual U8String data_type_decl_signature() const noexcept {
+        virtual U8String data_type_decl_signature() const {
             return make_datatype_signature<ContainerTypeName>().name();
         }
 
-        virtual U8String ctr_name() const noexcept
+        virtual U8String ctr_name() const
         {
             return TypeNameFactory<Name>::name();
         }
 
-        VoidResult with_ctr(const CtrID& ctr_id, const AllocatorPtr& allocator, std::function<VoidResult (MyType&)> fn) const noexcept
+        void with_ctr(const CtrID& ctr_id, const AllocatorPtr& allocator, std::function<void (MyType&)> fn) const
         {
-            MEMORIA_TRY(ctr_ref, allocator->find(ctr_id));
+            auto ctr_ref = allocator->find(ctr_id);
             if (ctr_ref)
             {
                 auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref);
                 return fn(*ctr_ptr.get());
             }
             else {
-                return MEMORIA_MAKE_GENERIC_ERROR("No container is found for id {}", ctr_id);
+                MEMORIA_MAKE_GENERIC_ERROR("No container is found for id {}", ctr_id).do_throw();
             }
         }
 
-        virtual BoolResult check(const CtrID& ctr_id, AllocatorPtr allocator) const noexcept
+        virtual bool check(const CtrID& ctr_id, AllocatorPtr allocator) const
         {
             bool result = false;
-
-            auto res = with_ctr(ctr_id, allocator, [&](MyType& ctr) noexcept -> VoidResult {
-                MEMORIA_TRY(res, ctr.check(nullptr));
+            with_ctr(ctr_id, allocator, [&](MyType& ctr) {
+                auto res = ctr.check(nullptr);
                 result = res;
-                return VoidResult::of();
             });
-            MEMORIA_RETURN_IF_ERROR(res);
 
-            return BoolResult::of(result);
+            return result;
         }
 
-        virtual VoidResult walk(
+        virtual void walk(
                 const UUID& ctr_id,
                 AllocatorPtr allocator,
                 ContainerWalker<ProfileT>* walker
-        ) const noexcept
+        ) const
         {
-            return with_ctr(ctr_id, allocator, [&](MyType& ctr) noexcept{
+            return with_ctr(ctr_id, allocator, [&](MyType& ctr) {
                 return ctr.ctr_walk_tree(walker);
             });
         }
 
-        virtual VoidResult drop(const CtrID& ctr_id, AllocatorPtr allocator) const noexcept
+        virtual void drop(const CtrID& ctr_id, AllocatorPtr allocator) const
         {
             return with_ctr(ctr_id, allocator, [&](MyType& ctr){
                 return ctr.drop();
             });
         }
 
-        virtual U8String ctr_type_name() const noexcept
+        virtual U8String ctr_type_name() const
         {
             return TypeNameFactory<ContainerTypeName>::name();
         }
@@ -363,10 +358,10 @@ public:
 
         class CtrNodesWalkerAdapter: public ContainerWalkerBase<ProfileT> {
 
-        	BlockCallbackFn consumer_;
+            BlockCallbackFn consumer_;
         public:
-        	CtrNodesWalkerAdapter(BlockCallbackFn consumer): consumer_(consumer)
-        	{}
+            CtrNodesWalkerAdapter(BlockCallbackFn consumer): consumer_(consumer)
+            {}
 
             virtual void beginRoot(int32_t idx, const BlockType* block) {
                 ctr_begin_node(idx, block);
@@ -374,7 +369,7 @@ public:
 
 
             virtual void ctr_begin_node(int32_t idx, const BlockType* block) {
-                consumer_(block->uuid(), block->id(), block).get_or_throw();
+                consumer_(block->uuid(), block->id(), block);
             }
 
             virtual void rootLeaf(int32_t idx, const BlockType* block) {
@@ -388,26 +383,24 @@ public:
 
 
 
-        virtual VoidResult for_each_ctr_node(
+        virtual void for_each_ctr_node(
             const CtrID& ctr_id,
             AllocatorPtr allocator,
             BlockCallbackFn consumer
-        ) const noexcept
+        ) const
         {
             CtrNodesWalkerAdapter walker(consumer);
 
-            return with_ctr(ctr_id, allocator, [&](MyType& ctr) noexcept {
+            return with_ctr(ctr_id, allocator, [&](MyType& ctr) {
                 return ctr.ctr_walk_tree(&walker);
             });
         }
         
-        virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>> new_ctr_instance(
+        virtual CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>> new_ctr_instance(
             const ProfileSharedBlockConstPtr<typename Types::Profile>& root_block,
             AllocatorPtr allocator
-        ) const noexcept
+        ) const
         {
-            using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>>;
-
             MaybeError maybe_error;
             auto instance = ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
                     maybe_error,
@@ -416,20 +409,18 @@ public:
             );
 
             if (!maybe_error) {
-                return ResultT::of(std::move(instance));
+                return std::move(instance);
             }
             else {
-                return std::move(maybe_error.get());
+                std::move(maybe_error.get()).do_throw();
             }
         }
 
-        virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>> new_ctr_instance(
+        virtual CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>> new_ctr_instance(
             const ProfileSharedBlockConstPtr<typename Types::Profile>& root_block,
             ProfileStoreType<ProfileT>* allocator
-        ) const noexcept
+        ) const
         {
-            using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>>>;
-
             MaybeError maybe_error;
             auto instance = ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
                     maybe_error,
@@ -438,30 +429,27 @@ public:
             );
 
             if (!maybe_error) {
-                return ResultT::of(std::move(instance));
+                return std::move(instance);
             }
             else {
-                return std::move(maybe_error.get());
+                std::move(maybe_error.get()).do_throw();
             }
         }
 
-        virtual Result<CtrID> clone_ctr(const CtrID& ctr_id, const CtrID& new_ctr_id, AllocatorPtr allocator) const noexcept
+        virtual CtrID clone_ctr(const CtrID& ctr_id, const CtrID& new_ctr_id, AllocatorPtr allocator) const
         {
-            using ResultT = Result<CtrID>;
-
             CtrID new_name_rtn{};
 
-            auto res = with_ctr(ctr_id, allocator, [&](MyType& ctr) noexcept -> VoidResult {
-                MEMORIA_TRY(clone_res, ctr.clone(new_ctr_id));
+            with_ctr(ctr_id, allocator, [&](MyType& ctr) {
+                auto clone_res = ctr.clone(new_ctr_id);
                 new_name_rtn = clone_res;
-                return VoidResult::of();
             });
-            MEMORIA_RETURN_IF_ERROR(res);
 
-            return ResultT::of(new_name_rtn);
+
+            return new_name_rtn;
         }
 
-        virtual Result<CtrBlockDescription<ApiProfile<ProfileT>>> describe_block1(const BlockID& block_id, AllocatorPtr allocator) const noexcept
+        virtual CtrBlockDescription<ApiProfile<ProfileT>> describe_block1(const BlockID& block_id, AllocatorPtr allocator) const
         {
             return MyType::describe_block(block_id, allocator.get());
         }
@@ -485,17 +473,16 @@ public:
         MMA_THROW(UnsupportedOperationException()) << WhatCInfo("getModelName");
     }
 
-    Result<CtrID> clone(const CtrID& new_name) noexcept
+    CtrID clone(const CtrID& new_name)
     {
-        return MEMORIA_MAKE_GENERIC_ERROR("Clone operation is not supported for this container");
+        MEMORIA_MAKE_GENERIC_ERROR("Clone operation is not supported for this container").do_throw();
     }
 
-    bool is_updatable() const noexcept {
+    bool is_updatable() const {
         return self().store().isActive();
     }
 
-    virtual VoidResult flush() noexcept {
-        return VoidResult::of();
+    virtual void flush() {
     }
 
 protected:
@@ -633,8 +620,8 @@ public:
             allocator_ = allocator.get();
             name_ = ctr_id;
 
-            MEMORIA_TRY_VOID(this->do_create_ctr(ctr_id, ctr_type_name));
-            MEMORIA_TRY_VOID(allocator_->registerCtr(ctr_id, this));
+            this->do_create_ctr(ctr_id, ctr_type_name);
+            allocator_->registerCtr(ctr_id, this);
             return VoidResult::of();
         });
     }
@@ -652,7 +639,7 @@ public:
             allocator_ = allocator;
             name_ = ctr_id;
 
-            MEMORIA_TRY_VOID(this->do_create_ctr(ctr_id, ctr_type_name));
+            this->do_create_ctr(ctr_id, ctr_type_name);
 
             this->do_unregister_ = false;
             return VoidResult::of();
@@ -674,11 +661,11 @@ public:
 
             initLogger();
 
-            MEMORIA_TRY(name, this->do_init_ctr(root_block));
+            auto name = this->do_init_ctr(root_block);
 
             name_ = name;
 
-            MEMORIA_TRY_VOID(allocator_->registerCtr(name_, this));
+            allocator_->registerCtr(name_, this);
 
             return VoidResult::of();
         });
@@ -698,7 +685,7 @@ public:
 
             initLogger();
 
-            MEMORIA_TRY(name, this->do_init_ctr(root_block));
+            auto name = this->do_init_ctr(root_block);
 
             name_ = name;
 
@@ -717,7 +704,7 @@ public:
         if (this->do_unregister_on_dtr_ && this->do_unregister_)
         {
             try {
-                allocator_->unregisterCtr(name_, this).get_or_throw();
+                allocator_->unregisterCtr(name_, this);
             }
             catch (Exception& ex) {
                 ex.dump(std::cout);

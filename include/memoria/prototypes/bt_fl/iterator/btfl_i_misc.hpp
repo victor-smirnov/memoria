@@ -53,7 +53,7 @@ public:
     }
 
 
-    VoidResult iter_refresh() noexcept
+    void iter_refresh()
     {
         return self().iter_refresh_branch_prefixes();
     }

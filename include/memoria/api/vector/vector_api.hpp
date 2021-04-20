@@ -41,22 +41,22 @@ struct VectorIterator: BTSSIterator<Profile> {
     using BufferT   = DataTypeBuffer<DataType>;
 
     virtual Datum<DataType> value() const = 0;
-    virtual VoidResult set(ViewType view) noexcept = 0;
-    virtual BoolResult next() noexcept = 0;
+    virtual void set(ViewType view) = 0;
+    virtual bool next() = 0;
 
-    virtual Result<CtrSizeT> remove_from(CtrSizeT size) noexcept = 0;
+    virtual CtrSizeT remove_from(CtrSizeT size) = 0;
 
-    virtual Result<CtrSharedPtr<BufferT>> read_buffer(CtrSizeT size) noexcept  = 0;
-    virtual VoidResult insert_buffer(const BufferT& buffer, size_t start, size_t size) noexcept = 0;
-    virtual VoidResult insert_buffer(const BufferT& buffer) noexcept {
+    virtual CtrSharedPtr<BufferT> read_buffer(CtrSizeT size) = 0;
+    virtual void insert_buffer(const BufferT& buffer, size_t start, size_t size) = 0;
+    virtual void insert_buffer(const BufferT& buffer) {
         return insert_buffer(buffer, 0, buffer.size());
     }
 
-    virtual Result<CtrSizeT> pos() const noexcept = 0;
+    virtual CtrSizeT pos() const = 0;
 
-    virtual Result<CtrSizeT> skip(CtrSizeT delta) noexcept = 0;
+    virtual CtrSizeT skip(CtrSizeT delta) = 0;
 
-    virtual CtrSharedPtr<ICtrApi<Vector<DataType>, Profile>> vector() noexcept = 0;
+    virtual CtrSharedPtr<ICtrApi<Vector<DataType>, Profile>> vector() = 0;
 };
 
 template <typename DataType, typename Profile, bool FixedSizeElement = DTTIs1DFixedSize<DataType>>
@@ -88,46 +88,46 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
     using BufferT       = DataTypeBuffer<DataType>;
     using DataTypeT     = DataType;
 
-    virtual VoidResult read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const noexcept = 0;
-    virtual VoidResult insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) noexcept = 0;
+    virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const = 0;
+    virtual void insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) = 0;
 
-    virtual VoidResult insert(CtrSizeT at, const BufferT& buffer) noexcept {
+    virtual void insert(CtrSizeT at, const BufferT& buffer) {
         return insert(at, buffer, 0, buffer.size());
     }
 
 
-    virtual Result<Datum<DataType>> get(CtrSizeT pos) const = 0;
-    virtual VoidResult set(CtrSizeT pos, ViewType view) noexcept = 0;
+    virtual Datum<DataType> get(CtrSizeT pos) const = 0;
+    virtual void set(CtrSizeT pos, ViewType view) = 0;
 
-    virtual Result<CtrSizeT> size() const noexcept = 0;
+    virtual CtrSizeT size() const = 0;
 
-    virtual Result<IteratorT> seek(CtrSizeT pos) const = 0;
+    virtual IteratorT seek(CtrSizeT pos) const = 0;
 
-    virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept = 0;
-    virtual VoidResult append(io::IOVectorProducer& producer) noexcept = 0;
-    virtual VoidResult insert(CtrSizeT at, io::IOVectorProducer& producer) noexcept = 0;
+    virtual void prepend(io::IOVectorProducer& producer) = 0;
+    virtual void append(io::IOVectorProducer& producer) = 0;
+    virtual void insert(CtrSizeT at, io::IOVectorProducer& producer) = 0;
 
     template <typename Fn>
     VectorScanner<ApiTypes, Profile> as_scanner(Fn&& fn) const {
         return VectorScanner<ApiTypes, Profile>(fn(this));
     }
 
-    VoidResult append(ProducerFn producer_fn) noexcept {
+    void append(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return append(producer);
     }
 
-    VoidResult prepend(ProducerFn producer_fn) noexcept {
+    void prepend(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return prepend(producer);
     }
 
-    VoidResult insert(CtrSizeT at, ProducerFn producer_fn) noexcept {
+    void insert(CtrSizeT at, ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return insert(at, producer);
     }
 
-    VoidResult insert(CtrSizeT at, Span<const ViewType> span) noexcept
+    void insert(CtrSizeT at, Span<const ViewType> span)
     {
         return insert(at, [&](auto& values, size_t){
             values.append(span);
@@ -135,9 +135,9 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
         });
     }
 
-    virtual Result<CtrSizeT> remove(CtrSizeT from, CtrSizeT to) noexcept = 0;
-    virtual Result<CtrSizeT> remove_from(CtrSizeT from) noexcept = 0;
-    virtual Result<CtrSizeT> remove_up_to(CtrSizeT pos) noexcept = 0;
+    virtual CtrSizeT remove(CtrSizeT from, CtrSizeT to) = 0;
+    virtual CtrSizeT remove_from(CtrSizeT from) = 0;
+    virtual CtrSizeT remove_up_to(CtrSizeT pos) = 0;
 
     MMA_DECLARE_ICTRAPI();
 };

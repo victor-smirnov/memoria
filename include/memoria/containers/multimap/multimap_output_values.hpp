@@ -53,42 +53,40 @@ public:
         return iter_->iter_is_end();
     }
 
-    virtual BoolResult next_block() noexcept
+    virtual bool next_block()
     {
-        MEMORIA_TRY(has_next, iter_->iter_next_leaf());
+        auto has_next = iter_->iter_next_leaf();
         if (has_next)
         {
             offsets_.clear();
             build_index();
         }
         else {
-            MEMORIA_TRY(leaf_sizes, iter_->iter_leaf_sizes());
+            auto leaf_sizes = iter_->iter_leaf_sizes();
             iter_->iter_local_pos() = leaf_sizes.sum();
             run_is_finished_ = true;
         }
 
-        return BoolResult::of(run_is_finished_);
+        return run_is_finished_;
     }
 
-    virtual VoidResult fill_suffix_buffer() noexcept
+    virtual void fill_suffix_buffer()
     {
         while (!is_end())
         {
             fill_buffer(values_start_, values_.size());
 
-            MEMORIA_TRY(has_next, next_block());
+            auto has_next = next_block();
             if (has_next) {
                 break;
             }
         }
-
-        return VoidResult::of();
     }
 
 
     virtual void dump_iterator() const
     {
-        iter_->dump().get_or_throw();
+        iter_->dump();
     }
 
 private:

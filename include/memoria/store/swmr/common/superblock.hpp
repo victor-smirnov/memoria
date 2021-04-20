@@ -121,7 +121,7 @@ public:
         return magick1_ == MAGICK1 && magick2_ == MAGICK2;
     }
 
-    VoidResult init(uint64_t superblock_file_pos, uint64_t file_size, int64_t commit_id, size_t superblock_size, SequenceID sequence_id = 1)
+    void init(uint64_t superblock_file_pos, uint64_t file_size, int64_t commit_id, size_t superblock_size, SequenceID sequence_id = 1)
     {
         magick1_ = MAGICK1;
         magick2_ = MAGICK2;
@@ -148,10 +148,10 @@ public:
 
         store_status_ = SWMRStoreStatus::UNCLEAN;
 
-        return allocator_.init(allocator_block_size(superblock_size), 1);
+        return allocator_.init(allocator_block_size(superblock_size), 1).get_or_throw();
     }
 
-    VoidResult init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, int64_t commit_id) noexcept
+    void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, int64_t commit_id)
     {
         magick1_ = other.magick1_;
         magick2_ = other.magick2_;
@@ -173,10 +173,10 @@ public:
         block_counters_size_ = other.block_counters_size_;
         store_status_        = other.store_status_;
 
-        return allocator_.init(allocator_block_size(other.superblock_size_), 1);
+        return allocator_.init(allocator_block_size(other.superblock_size_), 1).get_or_throw();
     }
 
-    VoidResult build_superblock_description() noexcept
+    void build_superblock_description()
     {
         return set_description(
             "MEMORIA SWMR MAPPED STORE. VERSION:{}; CommitID:{}, SequenceID:{}, SuperblockFilePos:{}, FileSize:{}",
@@ -186,7 +186,7 @@ public:
 
 
     template <typename... Args>
-    VoidResult set_description(const char* fmt, Args&&... args) noexcept
+    void set_description(const char* fmt, Args&&... args)
     {
         U8String str = format_u8(fmt, std::forward<Args>(args)...);
         if (str.length() < sizeof(magic_buffer_))
@@ -195,10 +195,8 @@ public:
             magic_buffer_[str.length()] = 0;
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Supplied SWMR Superblock magic string is too long: {}", str);
+            MEMORIA_MAKE_GENERIC_ERROR("Supplied SWMR Superblock magic string is too long: {}", str).do_throw();
         }
-
-        return VoidResult::of();
     }
 
 private:

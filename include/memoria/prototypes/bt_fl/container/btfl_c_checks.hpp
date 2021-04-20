@@ -38,16 +38,16 @@ public:
     using Base::Streams;
 
 
-    BoolResult ctr_check_content(const TreeNodeConstPtr& node) const noexcept
+    bool ctr_check_content(const TreeNodeConstPtr& node) const
     {
     	auto& self = this->self();
 
-        MEMORIA_TRY(base_check_res, Base::ctr_check_content(node));
+        auto base_check_res = Base::ctr_check_content(node);
         if (!base_check_res)
     	{
     		if (node->is_leaf())
     		{
-                MEMORIA_TRY(sizes, self.ctr_get_leaf_stream_sizes(node));
+                auto sizes = self.ctr_get_leaf_stream_sizes(node);
 
     			CtrSizeT data_streams_size = 0;
     			for (int32_t c = 0; c < CtrSizesT::Indexes - 1; c++)
@@ -57,15 +57,15 @@ public:
 
     			if (data_streams_size != sizes[Streams - 1])
     			{
-                            MMA_ERROR(self, "Leaf streams sizes check failed", data_streams_size, sizes[Streams - 1]);
-                            return BoolResult::of(true);
+                    MMA_ERROR(self, "Leaf streams sizes check failed", data_streams_size, sizes[Streams - 1]);
+                    return true;
     			}
     		}
 
-            return BoolResult::of(false);
+            return false;
     	}
     	else {
-            return BoolResult::of(true);
+            return true;
     	}
     }
 

@@ -48,7 +48,7 @@ private:
     using MapT = InvertedIndex;
     
     using Base = CtrApiBTFLBase<EdgeMap, Profile>;
-    using typename Base::AllocatorT;
+    using typename Base::StoreT;
     using typename Base::CtrT;
     using typename Base::CtrPtr;
 

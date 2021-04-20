@@ -26,24 +26,24 @@ using namespace memoria;
 int main()
 {
     // Creating new instance of in-memory store.
-    auto alloc = create_memory_store().get_or_throw();
+    auto alloc = create_memory_store();
 
     // Obtaining Master's branch head.
-    auto master = alloc->master().get_or_throw();
+    auto master = alloc->master();
 
     // Creating new writable snapshot from the Master's head.
-    auto snp = master->branch().get_or_throw();
+    auto snp = master->branch();
 
     // Do somethig with containers here
 
     // Committing snapshot. From this moment, all data is immutable.
-    snp->commit().throw_if_error();
+    snp->commit();
 
     // Chaning Master's head to point to the new snapshot
-    snp->set_as_master().throw_if_error();
+    snp->set_as_master();
 
     // Saving store's data to the file.
-    alloc->store("store.mma2").throw_if_error();
+    alloc->store("store.mma2");
 
     return 0;
 }

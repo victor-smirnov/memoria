@@ -90,26 +90,25 @@ public:
         }
     }
 
-    BoolResult dec(const BlockID& block_id) noexcept {
+    bool dec(const BlockID& block_id) noexcept {
         auto ii = map_.find(block_id);
         if (ii != map_.end()) {
             bool res = ii->second.dec();
             if (res) {
                 map_.erase(ii);
             }
-            return BoolResult::of(res);
+            return res;
         }
         else {
-            return make_generic_error_with_source(MA_SRC, "SWMRStore block counter is not found for block {}", block_id);
+            make_generic_error_with_source(MA_SRC, "SWMRStore block counter is not found for block {}", block_id).do_throw();
         }
     }
 
-    VoidResult for_each(std::function<VoidResult(const BlockID&, uint64_t)> fn) const noexcept
+    void for_each(std::function<void (const BlockID&, uint64_t)> fn) const noexcept
     {
         for (auto ii = map_.begin(); ii != map_.end(); ++ii) {
-            MEMORIA_TRY_VOID(fn(ii->first, ii->second.value));
+            fn(ii->first, ii->second.value);
         }
-        return VoidResult::of();
     }
 
     Optional<uint64_t> get(const BlockID& block_id) const noexcept {

@@ -31,7 +31,7 @@ class CtrApi<Sequence<BitsPerSymbol, Dense>, Profile>: public CtrApiBTSSBase<Seq
 public:
 
     using typename Base::CtrID;
-    using typename Base::AllocatorT;
+    using typename Base::StoreT;
     using typename Base::CtrT;
     using typename Base::CtrPtr;
 

@@ -109,8 +109,8 @@ public:
         auto snp = branch();
 
         UUID ctr_id = UUID::parse("30b33f35-96a4-4502-82f4-4bbe50e59c51");
-        auto ctr = create<Set<DataType>>(snp, Set<DataType>{}, ctr_id).get_or_throw();
-        ctr->set_new_block_size(1024).get_or_throw();
+        auto ctr = create<Set<DataType>>(snp, Set<DataType>{}, ctr_id);
+        ctr->set_new_block_size(1024);
 
         std::set<CxxValueType> entries_set;
         std::vector<CxxValueType> entries_list;
@@ -129,19 +129,19 @@ public:
             entries_set.insert(key);
             entries_list.push_back(key);
 
-            ctr->insert(key).get_or_throw();
+            ctr->insert(key);
         }
         int64_t t1 = getTimeInMillis();
         out() << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
 
-        out() << "Size: " << ctr->size().get_or_throw() << std::endl;
+        out() << "Size: " << ctr->size() << std::endl;
 
         this->check("Store structure checking", MMA_SRC);
 
         int64_t t2 = getTimeInMillis();
         for (auto key: entries_list)
         {
-            bool kk = ctr->contains(key).get_or_throw();
+            bool kk = ctr->contains(key);
             assert_equals(true, kk);
         }
         int64_t t3 = getTimeInMillis();
@@ -162,13 +162,13 @@ public:
                 en_ii++;
             }
 
-            scc.next_leaf().get_or_throw();
+            scc.next_leaf();
         }
 
 
         int64_t t4 = getTimeInMillis();
         size_t cnt = 0;
-        auto ctr_size = ctr->size().get_or_throw();
+        auto ctr_size = ctr->size();
         for (auto& key: entries_list)
         {
             if (cnt % 100000 == 0) {
@@ -176,17 +176,17 @@ public:
                 this->check("Store structure checking", MMA_SRC);
             }
 
-            ctr->remove(key).get_or_throw();
+            ctr->remove(key);
 
             cnt++;
             ctr_size--;
 
-            assert_equals(ctr_size, ctr->size().get_or_throw());
+            assert_equals(ctr_size, ctr->size());
         }
         int64_t t5 = getTimeInMillis();
         println("Removed entries in {} ms", t5 - t4);
 
-        out() << "Final Container Size: " << ctr->size().get_or_throw() << std::endl;
+        out() << "Final Container Size: " << ctr->size() << std::endl;
         this->check("Store structure checking", MMA_SRC);
 
         commit();

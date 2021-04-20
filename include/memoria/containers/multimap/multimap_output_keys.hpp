@@ -46,29 +46,29 @@ public:
         return iter_->iter_is_end();
     }
 
-    virtual VoidResult next() noexcept
+    virtual bool next()
     {
         size_t keys_size = keys_.array().size();
-        MEMORIA_TRY_VOID(iter_->iter_btfl_select_fw(keys_size, 0)); // next leaf with keys;
+        iter_->iter_btfl_select_fw(keys_size, 0); // next leaf with keys;
 
         idx_ = 0;
 
         build();
 
-        return VoidResult::of();
+        return true;
     }
 
     virtual void dump_iterator() const
     {
-        iter_->dump().get_or_throw();
+        iter_->dump();
     }
 
     virtual CtrSharedPtr<IValuesScanner<Types, Profile>> values(size_t key_idx)
     {
         auto ii = iter_->iter_clone();
 
-        ii.get()->iter_btfl_select_fw(key_idx, 0).get_or_throw();
-        ii.get()->to_values().get_or_throw();
+        ii->iter_btfl_select_fw(key_idx, 0);
+        ii->to_values();
 
         auto ptr = ctr_make_shared<multimap::ValuesIteratorImpl<Types, Profile, IteratorPtr>>(ii);
         return memoria_static_pointer_cast<IValuesScanner<Types, Profile>>(ptr);
@@ -79,7 +79,7 @@ private:
     void build()
     {
         const io::IOVector& buffer = iter_->iovector_view();
-        int32_t iter_leaf_size = iter_->iter_leaf_size(0).get_or_throw();
+        int32_t iter_leaf_size = iter_->iter_leaf_size(0);
 
         keys_.clear();
         KeysIOVSubstreamAdapter::read_to(buffer.substream(0), 0, idx_, iter_leaf_size - idx_, keys_.array());

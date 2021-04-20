@@ -86,19 +86,18 @@ public:
     }
 
     ~SWMRLiteRawStore() noexcept {
-        close().terminate_if_error();
+        close();
     }
 
-    virtual VoidResult flush() noexcept {
-        return VoidResult::of();
+    virtual void flush() {
     }
 
 
-    VoidResult init_store() noexcept {
+    void init_store() {
         return this->init_mapped_store();
     }
 
-    virtual VoidResult close() noexcept {
+    virtual void close() {
         if (!closed_)
         {
             LockGuard lock(writer_mutex_);
@@ -107,96 +106,75 @@ public:
             CounterStorageT* ctr_storage = ptr_cast<CounterStorageT>(buffer_.data() + ctr_file_pos);
 
             size_t idx{};
-            auto res = block_counters_.for_each([&](const BlockID& block_id, uint64_t counter) noexcept {
+            block_counters_.for_each([&](const BlockID& block_id, uint64_t counter) noexcept {
                 ctr_storage[idx].block_id = block_id;
                 ctr_storage[idx].counter  = counter;
                 ++idx;
-                return VoidResult::of();
             });
-
-            MEMORIA_RETURN_IF_ERROR(res);
 
             std::cout << "Written " << idx << " counters" << std::endl;
 
-            MEMORIA_TRY_VOID(flush_data());
+            flush_data();
 
             head_ptr_->superblock()->block_counters_size() = block_counters_.size();
 
             block_counters_.clear();
 
-            MEMORIA_TRY_VOID(flush_header());
+            flush_header();
 
             closed_ = true;
         }
-
-        return VoidResult::of();
     }
 
     static void init_profile_metadata() noexcept {
         MappedSWMRStoreWritableCommit<Profile>::init_profile_metadata();
     }
 
-    VoidResult flush_data(bool async = false) noexcept {
-        return VoidResult::of();
+    void flush_data(bool async = false) {
     }
 
-    VoidResult flush_header(bool async = false) noexcept {
-        return VoidResult::of();
+    void flush_header(bool async = false) {
     }
 
-    Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>> history_view() noexcept
+    SharedPtr<ISWMRStoreHistoryView<ApiProfileT>> history_view()
     {
-        MEMORIA_TRY(head, do_open_readonly(head_ptr_));
-
-        return Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>>::of(
-            MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head)
-        );
+        auto head = do_open_readonly(head_ptr_);
+        return MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head);
     }
 
-    virtual Result<SWMRReadOnlyCommitPtr> do_open_readonly(CommitDescriptorT* commit_descr) noexcept
+    virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr)
     {
-        using ResultT = Result<SWMRReadOnlyCommitPtr>;
         MaybeError maybe_error{};
-        MappedReadOnlyCommitPtr ptr{};
-
-        {
-            ptr = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
+        MappedReadOnlyCommitPtr ptr = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
                 maybe_error, this->shared_from_this(), buffer_, commit_descr
-            );
-        }
+        );
 
         if (!maybe_error) {
-            return ResultT::of(
-                std::move(ptr)
-            );
+            return std::move(ptr);
         }
         else {
-            return std::move(maybe_error.get());
+            std::move(maybe_error.get()).do_throw();
         }
     }
 
-    virtual Result<SWMRWritableCommitPtr> do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) noexcept
+    virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr)
     {
-        using ResultT = Result<SWMRWritableCommitPtr>;
-
         MaybeError maybe_error{};
         auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
             maybe_error, this->shared_from_this(), buffer_, commit_descr
         );
 
         if (!maybe_error) {
-            MEMORIA_TRY_VOID(ptr->init_commit(head));
-            return ResultT::of(std::move(ptr));
+            ptr->init_commit(head);
+            return std::move(ptr);
         }
         else {
-            return std::move(maybe_error.get());
+            std::move(maybe_error.get()).do_throw();
         }
     }
 
-    virtual Result<SWMRWritableCommitPtr> do_create_writable_for_init(CommitDescriptorT* commit_descr) noexcept
+    virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr)
     {
-        using ResultT = Result<SWMRWritableCommitPtr>;
-
         MaybeError maybe_error{};
 
         auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
@@ -205,16 +183,15 @@ public:
 
         if (!maybe_error)
         {
-            MEMORIA_TRY_VOID(ptr->init_store_commit());
-            return ResultT::of(std::move(ptr));
+            ptr->init_store_commit();
+            return std::move(ptr);
         }
         else {
-            return std::move(maybe_error.get());
+            std::move(maybe_error.get()).do_throw();
         }
     }
 
-    virtual VoidResult check_if_open() noexcept {
-        return VoidResult::of();
+    virtual void check_if_open() {
     }
 };
 

@@ -37,11 +37,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
     using typename Base::BlockID;
 
 
-    VoidResult ctr_walk_tree(ContainerWalker<Profile>* walker) noexcept
+    void ctr_walk_tree(ContainerWalker<Profile>* walker)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY(root, self.ctr_get_root_node());
+        auto root = self.ctr_get_root_node();
 
         walker->beginCtr(
             TypeNameFactory<typename Types::ContainerTypeName>::name().data(),
@@ -49,10 +49,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
             root->id()
         );
 
-        MEMORIA_TRY_VOID(this->ctr_traverse_tree(root, walker));
+        this->ctr_traverse_tree(root, walker);
 
         walker->endCtr();
-        return VoidResult::of();
     }
 
     // FIXME: error handling
@@ -93,7 +92,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
         }
     }
 
-    Result<CtrID> ctr_clone(const CtrID& new_name) const noexcept
+    CtrID ctr_clone(const CtrID& new_name) const
     {
         if (new_name.is_null())
         {
@@ -102,7 +101,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
 
         auto& self = this->self();
 
-        MEMORIA_TRY(root_id, self.store().getRootID(new_name));
+        auto root_id = self.store().getRootID(new_name);
         if (root_id.is_null())
         {
             TreeNodeConstPtr root = self.ctr_get_root_node();
@@ -120,14 +119,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
             return new_name;
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Requested container name of {} is already in use.", new_name);
+            MEMORIA_MAKE_GENERIC_ERROR("Requested container name of {} is already in use.", new_name).do_throw();
         }
     }
 
 
 private:
 
-    Result<TreeNodePtr> ctr_clone_tree(const TreeNodeConstPtr& node, const BlockID& parent_id) const noexcept
+    TreeNodePtr ctr_clone_tree(const TreeNodeConstPtr& node, const BlockID& parent_id) const
     {
         auto& self = this->self();
 
@@ -138,7 +137,7 @@ private:
         {
             self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&](const BlockID& id, int32_t idx)
             {
-                MEMORIA_TRY(child, self.ctr_get_block(id));
+                auto child = self.ctr_get_block(id);
                 TreeNodePtr new_child = self.ctr_clone_tree(child, new_node->id());
                 self.ctr_set_child_id(new_node, idx, new_child->id());
             });
@@ -147,7 +146,7 @@ private:
         return new_node;
     }
 
-    VoidResult ctr_traverse_tree(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker) noexcept
+    void ctr_traverse_tree(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker)
     {
         auto& self = this->self();
 
@@ -155,18 +154,15 @@ private:
 
         if (!node->is_leaf())
         {
-            MEMORIA_TRY(node_size, self.ctr_get_node_size(node, 0));
+            auto node_size = self.ctr_get_node_size(node, 0);
 
-            MEMORIA_TRY_VOID(self.ctr_for_all_ids(node, 0, node_size, [&self, walker](const BlockID& id) noexcept -> VoidResult
-            {
-                MEMORIA_TRY(child, self.ctr_get_block(id));
+            self.ctr_for_all_ids(node, 0, node_size, [&self, walker](const BlockID& id) {
+                auto child = self.ctr_get_block(id);
                 return self.ctr_traverse_tree(child, walker);
-            }));
+            });
         }
 
         self.ctr_end_node(node, walker);
-
-        return VoidResult::of();
     }
 
 MEMORIA_V1_CONTAINER_PART_END

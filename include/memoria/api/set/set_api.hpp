@@ -30,11 +30,11 @@ namespace memoria {
 template <typename Key, typename Profile>
 struct SetIterator: BTSSIterator<Profile> {
 
-    virtual ~SetIterator() noexcept {}
+    virtual ~SetIterator() noexcept = default;
 
-    virtual Datum<Key> key() const noexcept = 0;
-    virtual bool is_end() const noexcept = 0;
-    virtual BoolResult next() noexcept = 0;
+    virtual Datum<Key> key() const = 0;
+    virtual bool is_end() const = 0;
+    virtual bool next() = 0;
 
 };
     
@@ -53,50 +53,50 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
     using CtrSizeT      = ApiProfileCtrSizeT<Profile>;
 
 
-    virtual VoidResult read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const noexcept = 0;
-    virtual VoidResult insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) noexcept = 0;
+    virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const = 0;
+    virtual void insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) = 0;
 
-    virtual VoidResult insert(CtrSizeT at, const BufferT& buffer) noexcept {
+    virtual void insert(CtrSizeT at, const BufferT& buffer) {
         return insert(at, buffer, 0, buffer.size());
     }
 
-    virtual Result<CtrSizeT> remove(CtrSizeT from, CtrSizeT to) noexcept = 0;
-    virtual Result<CtrSizeT> remove_from(CtrSizeT from) noexcept = 0;
-    virtual Result<CtrSizeT> remove_up_to(CtrSizeT pos) noexcept = 0;
+    virtual CtrSizeT remove(CtrSizeT from, CtrSizeT to) = 0;
+    virtual CtrSizeT remove_from(CtrSizeT from) = 0;
+    virtual CtrSizeT remove_up_to(CtrSizeT pos) = 0;
 
 
-    virtual Result<ApiProfileCtrSizeT<Profile>> size() const noexcept = 0;
+    virtual ApiProfileCtrSizeT<Profile> size() const = 0;
 
-    virtual Result<CtrSharedPtr<SetIterator<Key, Profile>>> find(KeyView key) const noexcept = 0;
+    virtual CtrSharedPtr<SetIterator<Key, Profile>> find(KeyView key) const = 0;
 
-    virtual BoolResult contains(KeyView key) noexcept  = 0;
-    virtual BoolResult remove(KeyView key) noexcept    = 0;
-    virtual BoolResult insert(KeyView key) noexcept    = 0;
+    virtual bool contains(KeyView key)  = 0;
+    virtual bool remove(KeyView key)    = 0;
+    virtual bool insert(KeyView key)    = 0;
 
 
-    VoidResult append(ProducerFn producer_fn) noexcept {
+    void append(ProducerFn producer_fn)  {
         Producer producer(producer_fn);
         return append(producer);
     }
 
-    virtual VoidResult append(io::IOVectorProducer& producer) noexcept = 0;
+    virtual void append(io::IOVectorProducer& producer) = 0;
 
-    VoidResult prepend(ProducerFn producer_fn) noexcept {
+    void prepend(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return prepend(producer);
     }
 
-    virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept = 0;
+    virtual void prepend(io::IOVectorProducer& producer) = 0;
 
 
-    VoidResult insert(KeyView before, ProducerFn producer_fn) noexcept {
+    void insert(KeyView before, ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return insert(before, producer);
     }
 
-    virtual VoidResult insert(KeyView before, io::IOVectorProducer& producer) noexcept = 0;
+    virtual void insert(KeyView before, io::IOVectorProducer& producer) = 0;
 
-    virtual Result<CtrSharedPtr<SetIterator<Key, Profile>>> iterator() const noexcept = 0;
+    virtual CtrSharedPtr<SetIterator<Key, Profile>> iterator() const = 0;
 
     template <typename Fn>
     SetScanner<ApiTypes, Profile> scanner(Fn&& iterator_producer) const {
@@ -104,26 +104,20 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
     }
 
     SetScanner<ApiTypes, Profile> scanner() const {
-        return SetScanner<ApiTypes, Profile>(iterator().get_or_throw());
+        return SetScanner<ApiTypes, Profile>(iterator());
     }
 
     template <typename Fn>
-    VoidResult for_each(Fn&& fn) noexcept
+    void for_each(Fn&& fn)
     {
         auto ss = scanner();
-        while (!ss.is_end())
-        {
+        while (!ss.is_end()) {
             for (auto key_view: ss.keys()) {
-                auto res = wrap_throwing([&](){
-                    return fn(key_view);
-                });
-                MEMORIA_RETURN_IF_ERROR(res);
+                fn(key_view);
             }
 
-            MEMORIA_TRY_VOID(ss.next_leaf());
+            ss.next_leaf();
         }
-
-        return VoidResult::of();
     }
 
     MMA_DECLARE_ICTRAPI();

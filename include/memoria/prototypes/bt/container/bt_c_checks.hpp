@@ -34,14 +34,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ChecksName)
     using typename Base::TreeNodeConstPtr;
     using typename Base::BranchNodeEntry;
 
-    BoolResult check(void *) const noexcept
+    bool check(void *) const
     {
         return self().ctr_check_tree();
     }
 
 
 
-    VoidResult ctr_check_it() noexcept
+    bool ctr_check_it()
     {
         auto& self = this->self();
 
@@ -49,79 +49,69 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ChecksName)
 
         if (self.ctr_check_tree())
         {
-            return VoidResult::of((SBuf() << "Container " << self.name() << " (" << self.type_name_str() << ") check failed").str().c_str());
+            std::cout << "Container " << self.name() << " (" << self.type_name_str() << ") check failed" << std::endl;
         }
 
-        return VoidResult::of();
+        return false;
     }
 
-    VoidResult ctr_check_path(const TreePathT& path, size_t level = 0) const noexcept
+    void ctr_check_path(const TreePathT& path, size_t level = 0) const
     {
         auto& self = this->self();
         for (size_t ll = level + 1; ll < path.size(); ll++)
         {
             BlockID child_id = path[ll - 1]->id();
-            MEMORIA_TRY_VOID(self.ctr_get_child_idx(path[ll], child_id));
+
+            // FIXME: handle returned index!
+            self.ctr_get_child_idx(path[ll], child_id);
         }
-        return VoidResult::of();
     }
 
-    VoidResult ctr_check_same_paths(
+    void ctr_check_same_paths(
             const TreePathT& left_path,
             const TreePathT& right_path,
             size_t level = 0
-    ) const noexcept
+    ) const
     {
         if (left_path.size() == right_path.size())
         {
             for (size_t ll = level; ll < left_path.size(); ll++)
             {
                 if (left_path[ll] != right_path[ll]) {
-                    return MEMORIA_MAKE_GENERIC_ERROR(
+                    MEMORIA_MAKE_GENERIC_ERROR(
                                 "Path nodes are not equal at the level {} :: {} {}",
                                 ll,
                                 left_path[ll]->id(),
                                 right_path[ll]->id()
-                    );
+                    ).do_throw();
                 }
             }
-            return VoidResult::of();
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR(
+            MEMORIA_MAKE_GENERIC_ERROR(
                         "Path sizes are different: {} {}",
                         left_path.size(),
                         right_path.size()
-            );
+            ).do_throw();
         }
     }
 
 public:
-    BoolResult ctr_check_tree() const noexcept;
+    bool ctr_check_tree() const ;
 
     MEMORIA_V1_DECLARE_NODE_FN(CheckContentFn, check);
-    BoolResult ctr_check_content(const TreeNodeConstPtr& node) const noexcept
+    bool ctr_check_content(const TreeNodeConstPtr& node) const
     {
-        VoidResult res = self().node_dispatcher().dispatch(node, CheckContentFn());
-        if (res.is_ok()) {
-            return BoolResult::of(false);
-        }
-        else {
-            MEMORIA_TRY_VOID(self().ctr_dump_node(node));
-            MMA_ERROR(self(), "Node content check failed", res.memoria_error()->what());
-            return BoolResult::of(true);
-        }
+        self().node_dispatcher().dispatch(node, CheckContentFn()).get_or_throw();
+        return false;
     }
 
-
-
-
 private:
-    VoidResult ctr_check_tree_structure(const TreeNodeConstPtr& parent, int32_t parent_idx, const TreeNodeConstPtr& node, bool &errors) const noexcept;
+    void ctr_check_tree_structure(const TreeNodeConstPtr& parent, int32_t parent_idx, const TreeNodeConstPtr& node, bool &errors) const ;
 
 
     template <typename Node1, typename Node2>
-    BoolResult ctr_check_typed_node_content(Node1&& node, Node2&& parent, int32_t parent_idx) const noexcept;
+    bool ctr_check_typed_node_content(Node1&& node, Node2&& parent, int32_t parent_idx) const ;
 
     MEMORIA_V1_CONST_FN_WRAPPER_RTN(CheckTypedNodeContentFn, ctr_check_typed_node_content, BoolResult);
 
@@ -132,20 +122,20 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-BoolResult M_TYPE::ctr_check_tree() const noexcept
+bool M_TYPE::ctr_check_tree() const
 {
     auto& self = this->self();
 
-    MEMORIA_TRY(root, self.ctr_get_root_node());
+    auto root = self.ctr_get_root_node();
     if (root)
     {
         bool errors = false;
-        MEMORIA_TRY_VOID(self.ctr_check_tree_structure(TreeNodeConstPtr(), 0, root, errors));
-        return BoolResult::of(errors);
+        self.ctr_check_tree_structure(TreeNodeConstPtr(), 0, root, errors);
+        return errors;
     }
     else {
         MMA_ERROR(self, "No root node for container");
-        return BoolResult::of(true);
+        return true;
     }
 }
 
@@ -158,41 +148,41 @@ BoolResult M_TYPE::ctr_check_tree() const noexcept
 
 
 M_PARAMS
-VoidResult M_TYPE::ctr_check_tree_structure(const TreeNodeConstPtr& parent, int32_t parent_idx, const TreeNodeConstPtr& node, bool &errors) const noexcept
+void M_TYPE::ctr_check_tree_structure(const TreeNodeConstPtr& parent, int32_t parent_idx, const TreeNodeConstPtr& node, bool &errors) const
 {
     auto& self = this->self();
 
-    MEMORIA_TRY(node_check, self.ctr_check_content(node));
+    auto node_check = self.ctr_check_content(node);
 
     errors = node_check || errors;
 
     if (!node->is_root())
     {
-        MEMORIA_TRY(res_vv, self.tree_dispatcher().dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx));
+        auto res_vv = self.tree_dispatcher().dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx).get_or_throw();
 
         errors = res_vv || errors;
 
         if (!node->is_leaf())
         {
-            MEMORIA_TRY(children, self.ctr_get_node_size(node, 0));
+            auto children = self.ctr_get_node_size(node, 0);
             if (children == 0 && !node->is_root())
             {
                 errors = true;
                 MMA_ERROR(self, "children == 0 for non-root node", node->id());
-                MEMORIA_TRY_VOID(self.ctr_dump_node(node));
+                self.ctr_dump_node(node);
             }
         }
     }
 
     if (!node->is_leaf())
     {
-        MEMORIA_TRY(children, self.ctr_get_node_size(node, 0));
+        auto children = self.ctr_get_node_size(node, 0);
 
         // TODO: check children IDs findability;
         for (int32_t c = 0; c < children; c++)
         {
-            MEMORIA_TRY(child_id, self.ctr_get_child_id(node, c));
-            MEMORIA_TRY(child, self.ctr_get_node_child(node, c));
+            auto child_id = self.ctr_get_child_id(node, c);
+            auto child = self.ctr_get_node_child(node, c);
 
             if (child->id() != child_id)
             {
@@ -203,21 +193,19 @@ VoidResult M_TYPE::ctr_check_tree_structure(const TreeNodeConstPtr& parent, int3
             return self.ctr_check_tree_structure(node, c, child, errors);
         }
     }
-
-    return VoidResult::of();
 }
 
 M_PARAMS
 template <typename Node1, typename Node2>
-BoolResult M_TYPE::ctr_check_typed_node_content(Node1&& parent, Node2&& node, int32_t parent_idx) const noexcept
+bool M_TYPE::ctr_check_typed_node_content(Node1&& parent, Node2&& node, int32_t parent_idx) const
 {
     bool errors = false;
 
     BranchNodeEntry sums;
 
-    MEMORIA_TRY_VOID(node.max(sums));
+    node.max(sums).get_or_throw();
 
-    MEMORIA_TRY(keys, parent.keysAt(parent_idx));
+    auto keys = parent.keysAt(parent_idx).get_or_throw();
 
     if (sums != keys)
     {
@@ -237,7 +225,7 @@ BoolResult M_TYPE::ctr_check_typed_node_content(Node1&& parent, Node2&& node, in
         errors = true;
     }
 
-    return BoolResult::of(errors);
+    return errors;
 }
 
 #undef M_TYPE

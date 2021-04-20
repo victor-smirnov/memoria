@@ -44,56 +44,56 @@ public:
         return self().iter_local_pos();
     }
 
-    BoolResult next_leaf() noexcept {
+    bool next_leaf() {
         return self().iter_next_leaf();
     }
 
-    BoolResult next_entry() noexcept
+    bool next_entry()
     {
-        MEMORIA_TRY(res, self().iter_btss_skip_fw(1));
-        return BoolResult::of(res > 0);
+        auto res = self().iter_btss_skip_fw(1);
+        return res > 0;
     }
 
 
-    BoolResult operator++() noexcept
+    bool operator++()
     {
-        MEMORIA_TRY(res, self().iter_btss_skip_fw(1));
-        return BoolResult::of(res > 0);
+        auto res = self().iter_btss_skip_fw(1);
+        return res > 0;
     }
 
-    BoolResult next() noexcept
+    bool next()
     {
-        MEMORIA_TRY(res, self().iter_btss_skip_fw(1));
-        return BoolResult::of(res > 0);
+        auto res = self().iter_btss_skip_fw(1);
+        return res > 0;
     }
 
-    BoolResult prev() noexcept
+    bool prev()
     {
-        MEMORIA_TRY(res, self().iter_btss_skip_bw(1));
-        return BoolResult::of(res > 0);
+        auto res = self().iter_btss_skip_bw(1);
+        return res > 0;
     }
 
-    BoolResult operator--() noexcept {
+    bool operator--() {
         return prev();
     }
 
-    BoolResult operator++(int) noexcept {
+    bool operator++(int) {
         return next();
     }
 
-    BoolResult operator--(int) noexcept {
+    bool operator--(int) {
         return prev();
     }
 
-    Result<CtrSizeT> operator+=(CtrSizeT size) noexcept {
+    CtrSizeT operator+=(CtrSizeT size) {
         return self().iter_btss_skip_fw(size);
     }
 
-    Result<CtrSizeT> operator-=(CtrSizeT size) noexcept {
+    CtrSizeT operator-=(CtrSizeT size) {
         return self().iter_btss_skip_bw(size);
     }
 
-    int32_t iter_btss_leaf_size() const noexcept
+    int32_t iter_btss_leaf_size() const
     {
         return self().iter_leaf_size(0);
     }
@@ -106,15 +106,15 @@ public:
 //        return self().iter_local_pos() < 0;
 //    }
 
-    Result<CtrSizeT> iter_btss_skip_fw(CtrSizeT amount) noexcept {
+    CtrSizeT iter_btss_skip_fw(CtrSizeT amount) {
         return self().template iter_skip_fw<0>(amount);
     }
 
-    Result<CtrSizeT> iter_btss_skip_bw(CtrSizeT amount) noexcept {
+    CtrSizeT iter_btss_skip_bw(CtrSizeT amount) {
         return self().template iter_skip_bw<0>(amount);
     }
 
-    Result<CtrSizeT> skip(CtrSizeT amount) noexcept {
+    CtrSizeT skip(CtrSizeT amount) {
         return self().template iter_skip<0>(amount);
     }
 
@@ -139,20 +139,19 @@ public:
 
 
 
-    Result<CtrSizeT> pos() const noexcept
+    CtrSizeT pos() const
     {
-        using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
 
         PosWalker walker{};
-        MEMORIA_TRY_VOID(self.iter_walk_up_for_refresh(self.path(), 0, self.iter_local_pos(), walker));
+        self.iter_walk_up_for_refresh(self.path(), 0, self.iter_local_pos(), walker);
 
         //return ResultT::of(self.iter_local_pos() + self.iter_cache().size_prefix()[0]);
-        return ResultT::of(self.iter_local_pos() + walker.prefix_);
+        return self.iter_local_pos() + walker.prefix_;
     }
 
 
-    VoidResult iter_remove_current() noexcept
+    void iter_remove_current()
     {
         auto& self  = this->self();
         auto& ctr   = self.ctr();
@@ -163,19 +162,15 @@ public:
         {
             self.iter_skip_fw(0);
         }
-
-        return VoidResult::of();
     }
 
-    Result<CtrSizeT> remove_from(CtrSizeT size) noexcept
+    CtrSizeT remove_from(CtrSizeT size)
     {
-        using ResultT = Result<CtrSizeT>;
-
         auto& self = this->self();
 
         auto to = self.ctr().clone_iterator(self);
 
-        MEMORIA_TRY_VOID(to->iter_btss_skip_fw(size));
+        to->iter_btss_skip_fw(size);
 
         auto from_path      = self.path();
         Position from_pos   = Position(self.iter_local_pos());
@@ -184,19 +179,18 @@ public:
         Position to_pos     = Position(to->iter_local_pos());
 
 
-        MEMORIA_TRY_VOID(
-            self.ctr().ctr_remove_entries(from_path, from_pos, to_path, to_pos, true)
-        );
+
+        self.ctr().ctr_remove_entries(from_path, from_pos, to_path, to_pos, true);
 
         self.iter_local_pos() = to_pos.get();
 
-        //MEMORIA_TRY_VOID(self.iter_refresh());
+        //self.iter_refresh();
 
         Position sizes{};
-        return ResultT::of(sizes[0]);
+        return sizes[0];
     }
 
-    Result<CtrSizeT> iter_remove_to(IteratorPtr to) noexcept
+    CtrSizeT iter_remove_to(IteratorPtr to)
     {
         auto& self = this->self();
 
@@ -213,11 +207,11 @@ public:
         self.iter_local_pos() = to_pos.get();
         self.iter_refresh();
 
-        return Result<CtrSizeT>::of(sizes[0]);
+        return sizes[0];
     }
 
 
-    auto iter_bulk_insert(btss::io::IOVectorBTSSInputProvider<Container>& provider) noexcept
+    auto iter_bulk_insert(btss::io::IOVectorBTSSInputProvider<Container>& provider)
     {
         auto& self = this->self();
         return self.ctr().insert(self, provider);
@@ -244,7 +238,7 @@ public:
     };
 
     template <typename OutputIterator>
-    Result<CtrSizeT> iter_read_entries(OutputIterator begin, CtrSizeT length) noexcept
+    CtrSizeT iter_read_entries(OutputIterator begin, CtrSizeT length)
     {
         auto& self = this->self();
 
@@ -254,19 +248,19 @@ public:
     }
 
 
-    auto insert_iovector(io::IOVectorProducer& producer, int64_t start, int64_t length) noexcept
+    auto insert_iovector(io::IOVectorProducer& producer, int64_t start, int64_t length)
     {
         auto& self = this->self();
         return self.ctr().ctr_insert_iovector(self, producer, start, length);
     }
 
-    auto insert_iovector(io::IOVector& io_vector, int64_t start, int64_t length) noexcept
+    auto insert_iovector(io::IOVector& io_vector, int64_t start, int64_t length)
     {
         auto& self = this->self();
         return self.ctr().ctr_insert_iovector(self, io_vector, start, length);
     }
 
-    auto read_to(io::IOVectorConsumer& consumer, int64_t length) noexcept
+    auto read_to(io::IOVectorConsumer& consumer, int64_t length)
     {
         auto& self = this->self();
 
@@ -279,7 +273,7 @@ public:
         return processed;
     }
 
-    auto populate(io::IOVector& io_vector, int64_t length) noexcept
+    auto populate(io::IOVector& io_vector, int64_t length)
     {
         auto& self = this->self();
 
@@ -328,32 +322,31 @@ public:
         return 0;
     }
 
-    Result<SplitResult> iter_split_leaf(int32_t stream, int32_t target_idx) noexcept
+    SplitResult iter_split_leaf(int32_t stream, int32_t target_idx)
     {
-        using ResultT = Result<SplitResult>;
         auto& self = this->self();
 
         int32_t& idx = self.iter_local_pos();
 
-        MEMORIA_TRY(size, self.iter_leaf_size(0));
+        auto size = self.iter_leaf_size(0);
         int32_t split_idx = size/2;
 
-        MEMORIA_TRY_VOID(self.ctr().ctr_split_leaf(self.path(), Position::create(0, split_idx)));
+        self.ctr().ctr_split_leaf(self.path(), Position::create(0, split_idx));
 
         if (idx > split_idx)
         {
-            MEMORIA_TRY_VOID(self.ctr().ctr_get_next_node(self.path(), 0));
+            self.ctr().ctr_get_next_node(self.path(), 0);
             idx -= split_idx;
-            MEMORIA_TRY_VOID(self.iter_refresh());
+            self.iter_refresh();
             self.refresh_iovector_view();
         }
 
         if (target_idx > split_idx)
         {
-            return ResultT::of(SplitStatus::RIGHT, target_idx - split_idx);
+            return SplitResult{SplitStatus::RIGHT, target_idx - split_idx};
         }
         else {
-            return ResultT::of(SplitStatus::LEFT, target_idx);
+            return SplitResult{SplitStatus::LEFT, target_idx};
         }
     }
 

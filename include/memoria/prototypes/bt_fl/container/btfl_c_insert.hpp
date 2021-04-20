@@ -44,31 +44,26 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
     using CtrInputProviderPool = HeavyObjectPool<btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer>>;
 #endif
 
-    VoidResult ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
+    void ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
-        using ResultT = VoidResult;
-
         auto& self = this->self();
 
-        auto iov_res = LeafNode::template NodeSparseObject<MyType, LeafNode>::create_iovector();
-        MEMORIA_RETURN_IF_ERROR(iov_res);
+        auto iov_res = LeafNode::template NodeSparseObject<MyType, LeafNode>::create_iovector().get_or_throw();
 
         auto id = iter.iter_leaf()->id();
 
-        btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov_res.get().get(), start, length);
+        btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov_res.get(), start, length);
 
         auto pos = iter.iter_leafrank(iter.iter_local_pos());
 
-        MEMORIA_TRY_VOID(self.ctr_insert_provided_data(iter.path(), pos, streaming));
+        self.ctr_insert_provided_data(iter.path(), pos, streaming);
 
         iter.iter_local_pos() = pos.sum();
         iter.refresh_iovector_view();
 
         if (iter.iter_leaf()->id() != id) {
-            MEMORIA_TRY_VOID(iter.iter_refresh());
+            iter.iter_refresh();
         }
-
-        return ResultT::of();
     }
 
     struct BTFLIOVectorProducer: io::IOVectorProducer {
@@ -78,14 +73,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
         }
     };
 
-    VoidResult ctr_insert_iovector(Iterator& iter, io::IOVector& iovector, int64_t start, int64_t length)
+    void ctr_insert_iovector(Iterator& iter, io::IOVector& iovector, int64_t start, int64_t length)
     {
-        using ResultT = VoidResult;
-
         auto& self = this->self();
 
-//        auto iov_res = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
-//        MEMORIA_RETURN_IF_ERROR(iov_res);
 
         auto id = iter.iter_leaf()->id();
 
@@ -95,7 +86,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
 
         auto pos = iter.iter_leafrank(iter.iter_local_pos());
 
-        MEMORIA_TRY_VOID(self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming));
+        self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
 
         iter.iter_local_pos()  = pos.sum();
         iter.refresh_iovector_view();
@@ -103,8 +94,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
         if (iter.iter_leaf()->id() != id) {
             iter.iter_refresh();
         }
-
-        return ResultT::of();
     }
 
 MEMORIA_V1_CONTAINER_PART_END

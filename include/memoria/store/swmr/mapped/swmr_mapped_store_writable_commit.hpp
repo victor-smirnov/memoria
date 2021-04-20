@@ -41,7 +41,7 @@ class MappedSWMRStoreWritableCommit:
     using typename Base::Store;
     using typename Base::CommitDescriptorT;
 
-    using typename Base::AllocatorT;
+    using typename Base::StoreT;
     using typename Base::CommitID;
     using typename Base::BlockID;
     using typename Base::SharedBlockPtr;
@@ -95,12 +95,11 @@ public:
         }
     }
 
-    virtual VoidResult store_superblock(Superblock* superblock, uint64_t sb_slot) noexcept {
+    virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) {
         std::memcpy(buffer_.data() + sb_slot * BASIC_BLOCK_SIZE, superblock_, BASIC_BLOCK_SIZE);
-        return VoidResult::of();
     }
 
-    virtual SnpSharedPtr<AllocatorT> self_ptr() noexcept {
+    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
         return this->shared_from_this();
     }
 
@@ -109,12 +108,12 @@ public:
     }
 
 
-    virtual Superblock* newSuperblock(uint64_t pos) noexcept {
+    virtual Superblock* newSuperblock(uint64_t pos) {
         return new (buffer_.data() + pos) Superblock();
     }
 
 
-    virtual Result<SharedBlockConstPtr> getBlock(const BlockID& id) noexcept
+    virtual SharedBlockConstPtr getBlock(const BlockID& id)
     {
         using ResultT = Result<SharedBlockConstPtr>;
         BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value() * BASIC_BLOCK_SIZE);
@@ -123,25 +122,23 @@ public:
 
         shared->set_allocator(this);
 
-        return ResultT::of(SharedBlockConstPtr{shared});
+        return SharedBlockConstPtr{shared};
     }
 
-    virtual Result<Shared*> allocate_block(const BlockID& id, uint64_t at, size_t size) noexcept {
+    virtual Shared* allocate_block(const BlockID& id, uint64_t at, size_t size) {
         BlockType* block = ptr_cast<BlockType>(buffer_.data() + at * BASIC_BLOCK_SIZE);
 
         Shared* shared = shared_pool_.construct(id, block, 0);
         shared->set_allocator(this);
 
-        return Result<Shared*>::of(shared);
+        return shared;
     }
 
-    virtual VoidResult updateBlock(Shared* block) noexcept {
-        return VoidResult::of();
+    virtual void updateBlock(Shared* block) {
     }
 
-    virtual VoidResult releaseBlock(Shared* block) noexcept {
+    virtual void releaseBlock(Shared* block) {
         shared_pool_.destroy(block);
-        return VoidResult::of();
     }
 };
 

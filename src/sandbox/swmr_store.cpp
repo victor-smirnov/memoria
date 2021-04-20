@@ -31,7 +31,7 @@ int main(void) {
         const char* file = "file.mma2";
 
         filesystem::remove(file);
-        auto store1 = create_swmr_store(file, 1024).get_or_throw();
+        auto store1 = create_swmr_store(file, 1024);
 
         UUID ctr_id = UUID::make_random();
 
@@ -44,9 +44,9 @@ int main(void) {
 
         {
             {
-                auto snp0 = store1->begin().get_or_throw();
-                auto ctr0 = create(snp0, CtrType(), ctr_id).get_or_throw();
-                snp0->commit().get_or_throw();
+                auto snp0 = store1->begin();
+                auto ctr0 = create(snp0, CtrType(), ctr_id);
+                snp0->commit();
             }
 
 
@@ -55,8 +55,8 @@ int main(void) {
             int batch_size = 100;
             int batches = 100;
             while (cnt < batch_size * batches) {
-                auto snp1 = store1->begin().get_or_throw();
-                auto ctr1 = find<CtrType>(snp1, ctr_id).get_or_throw();
+                auto snp1 = store1->begin();
+                auto ctr1 = find<CtrType>(snp1, ctr_id);
 
                 if (b0 % 100 == 0) {
                     std::cout << "Batch " << (b0) << std::endl;
@@ -65,33 +65,33 @@ int main(void) {
                 b0++;
 
                 for (int c = 0; c < batch_size; c++, cnt++) {
-                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str()).get_or_throw();
+                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str());
                 }
 
-                snp1->commit(false).get_or_throw();
+                snp1->commit(false);
             }
         }
 
-        store1->check(callback).get_or_throw();
+        store1->check(callback);
 
         auto t_end = getTimeInMillis();
 
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
 
-        store1->close().get_or_throw();
+        store1->close();
 
-//        auto store2 = open_swmr_store(file).get_or_throw();
+//        auto store2 = open_swmr_store(file);
 
-//        auto snp2 = store2->begin().get_or_throw();
-//        auto ctr2 = find<CtrType>(snp2, ctr_id).get_or_throw();
+//        auto snp2 = store2->begin();
+//        auto ctr2 = find<CtrType>(snp2, ctr_id);
 
 //        ctr2->for_each([](auto view){
 //            std::cout << view << std::endl;
-//        }).get_or_throw();
+//        });
 
-//        snp2->commit().get_or_throw();
+//        snp2->commit();
 
-//        store2->check(callback).get_or_throw();
+//        store2->check(callback);
     }
     catch (std::exception& ee) {
         std::cerr << "Exception: " << ee.what() << std::endl;

@@ -37,6 +37,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorAPIName)
     using typename Base::Position;
     using typename Base::TreePathT;
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
 
     static constexpr int32_t Streams = Base::Streams;
 
@@ -47,70 +48,68 @@ public:
 
 
     auto iter_leaf_sizes() const {
-        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizesFn());
+        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizesFn()).get_or_throw();
     }
 
-    VoidResult iter_refresh() noexcept
+    void iter_refresh()
     {
-        MEMORIA_TRY_VOID(Base::iter_refresh());
+        Base::iter_refresh();
 
-        MEMORIA_TRY_VOID(self().iter_refresh_branch_prefixes());
+        self().iter_refresh_branch_prefixes();
         self().iter_refresh_leaf_prefixes();
-
-        return VoidResult::of();
     }
     
 
-    BoolResult iter_next_leaf() noexcept;
-    BoolResult iter_next_leaf_ms(uint64_t streams) noexcept;
+    bool iter_next_leaf();
+    bool iter_next_leaf_ms(uint64_t streams);
 
 
-    BoolResult iter_prev_leaf() noexcept;
+    bool iter_prev_leaf();
 
-    bool iter_is_found() noexcept {
+    bool iter_is_found(){
         auto& self = this->self();
         return (!self.iter_is_end()) && self.iter_is_not_empty();
     }
 
-    void iter_dump_keys(std::ostream& out) const noexcept
+    void iter_dump_keys(std::ostream& out) const
     {
         Base::iter_dump_keys(out);
     }
 
-    Result<CtrSizeT> iter_skip_stream_fw(int32_t stream, CtrSizeT distance) noexcept;
-    Result<CtrSizeT> iter_skip_stream_bw(int32_t stream, CtrSizeT distance) noexcept;
-    Result<CtrSizeT> iter_skip_stream(int32_t stream, CtrSizeT distance) noexcept;
+    CtrSizeT iter_skip_stream_fw(int32_t stream, CtrSizeT distance);
+    CtrSizeT iter_skip_stream_bw(int32_t stream, CtrSizeT distance);
+    CtrSizeT iter_skip_stream(int32_t stream, CtrSizeT distance);
 
     MEMORIA_V1_DECLARE_NODE_FN(SizeFn, size);
 
-    Int32Result iter_leaf_size(int32_t stream) const noexcept
+    int32_t iter_leaf_size(int32_t stream) const
     {
         return self().iter_leaf_size0(stream);
     }
 
-    Int32Result iter_leaf_size0(int32_t stream) const noexcept
+    int32_t iter_leaf_size0(int32_t stream) const
     {
-        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizeFn(), stream);
+        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizeFn(), stream).get_or_throw();
     }
 
-    Int32Result iter_leaf_size() const noexcept
+    int32_t iter_leaf_size() const
     {
-        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizeFn(), self().iter_stream());
+        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizeFn(), self().iter_stream()).get_or_throw();
     }
 
 
-    BoolResult iter_is_leaf_empty() const noexcept
+    bool iter_is_leaf_empty() const
     {
         return self().model().ctr_is_node_empty(self().iter_leaf());
     }
 
-    Int32Result iter_leaf_capacity(int32_t stream) const noexcept
+    int32_t iter_leaf_capacity(int32_t stream) const
     {
         auto& self = this->self();
         return self.iter_leaf_capacity(Position{}, stream);
     }
 
-    Int32Result iter_leaf_capacity(const Position& reserved, int32_t stream) const noexcept
+    int32_t iter_leaf_capacity(const Position& reserved, int32_t stream) const
     {
         auto& self = this->self();
         auto& ctr = self.model();
@@ -119,12 +118,12 @@ public:
     }
 
     template <typename Walker>
-    BoolResult iter_find_next_leaf(Walker&& walker) noexcept;
+    bool iter_find_next_leaf(Walker&& walker);
 
     template <typename Walker>
-    BoolResult iter_find_prev_leaf(Walker&& walker) noexcept;
+    bool iter_find_prev_leaf(Walker&& walker);
 
-    VoidResult iter_create_empty_leaf() noexcept
+    void iter_create_empty_leaf()
     {
         auto& self = this->self();
         auto& ctr  = self.model();
@@ -138,12 +137,10 @@ public:
         self.iter_leaf().assign(next);
 
         self.iter_local_pos() = 0;
-
-        return VoidResult::of();
     }
 
     template <int32_t Stream, typename SubstreamsList, typename... Args>
-    VoidResult iter_update_stream(Args&&... args) noexcept
+    void iter_update_stream(Args&&... args)
     {
         auto& self = this->self();
         auto& ctr  = self.model();
@@ -153,40 +150,36 @@ public:
 
 
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
-    auto iter_read_leaf_entry(Args&&... args) const noexcept
+    auto iter_read_leaf_entry(Args&&... args) const
     {
          return self().ctr().template ctr_apply_substreams_fn<Stream, SubstreamsIdxList>(self().iter_leaf(), bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
     template <typename Walker>
-    VoidResult iter_walk_up_for_refresh(const TreePathT& path, size_t level, int32_t idx, Walker&& walker) const noexcept
+    void iter_walk_up_for_refresh(const TreePathT& path, size_t level, int32_t idx, Walker&& walker) const
     {
-        MEMORIA_TRY_VOID(self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx));
+        self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx).get_or_throw();
 
         for (size_t ll = level + 1; ll < path.size(); ll++)
         {
-            MEMORIA_TRY(child_idx, self().ctr().ctr_get_child_idx(path[ll], path[ll - 1]->id()));
-            MEMORIA_TRY_VOID(self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx));
+            auto child_idx = self().ctr().ctr_get_child_idx(path[ll], path[ll - 1]->id());
+            self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx).get_or_throw();
         }
-
-        return VoidResult::of();
     }
 
     template <typename Walker>
-    VoidResult iter_walk_up_for_refresh(TreePathT& path, size_t level, int32_t idx, Walker&& walker) noexcept
+    void iter_walk_up_for_refresh(TreePathT& path, size_t level, int32_t idx, Walker&& walker)
     {
-        MEMORIA_TRY_VOID(self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx));
+        self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx).get_or_throw();
 
         for (size_t ll = level + 1; ll < path.size(); ll++)
         {
-            MEMORIA_TRY(child_idx, self().ctr().ctr_get_child_idx(path[ll], path[ll - 1]->id()));
-            MEMORIA_TRY_VOID(self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx));
+            auto child_idx = self().ctr().ctr_get_child_idx(path[ll], path[ll - 1]->id());
+            self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx).get_or_throw();
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult iter_refresh_branch_prefixes() noexcept
+    void iter_refresh_branch_prefixes()
     {
         auto& self  = this->self();
         auto& iter_cache = self.iter_cache();
@@ -195,11 +188,9 @@ public:
 
         iter_cache.reset();
 
-        MEMORIA_TRY_VOID(self.iter_walk_up_for_refresh(self.path(), 0, self.iter_local_pos(), walker));
+        self.iter_walk_up_for_refresh(self.path(), 0, self.iter_local_pos(), walker);
 
         walker.finish(self, self.iter_local_pos(), WalkCmd::REFRESH);
-
-        return VoidResult::of();
     }
 
     template <int StreamIdx>
@@ -209,7 +200,7 @@ public:
         auto idx    = self.iter_local_pos();
 
         bt::FindForwardWalker<bt::WalkerTypes<Types, IntList<StreamIdx>>> walker(0, 0);
-        self.ctr().leaf_dispatcher().dispatch(self.iter_leaf(), walker, WalkCmd::LAST_LEAF, 0, idx);
+        self.ctr().leaf_dispatcher().dispatch(self.iter_leaf(), walker, WalkCmd::LAST_LEAF, 0, idx).get_or_throw();
     }
 
 
@@ -234,10 +225,6 @@ public:
         ForEach<1, Streams>::process(RefreshLeafPrefixesFn(), self);
     }
 
-
-    
-
-
 MEMORIA_V1_ITERATOR_PART_END
 
 
@@ -248,7 +235,7 @@ MEMORIA_V1_ITERATOR_PART_END
 
 
 M_PARAMS
-Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream_fw(int32_t stream, CtrSizeT amount) noexcept
+typename M_TYPE::CtrSizeT M_TYPE::iter_skip_stream_fw(int32_t stream, CtrSizeT amount)
 {
     using Walker = typename Types::template SkipForwardWalker<Types>;
 
@@ -264,7 +251,7 @@ Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream_fw(int32_t stream, Ct
 }
 
 M_PARAMS
-Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream_bw(int32_t stream, CtrSizeT amount) noexcept
+typename M_TYPE::CtrSizeT M_TYPE::iter_skip_stream_bw(int32_t stream, CtrSizeT amount)
 {
     using Walker = typename Types::template SkipBackwardWalker<Types>;
 
@@ -283,7 +270,7 @@ Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream_bw(int32_t stream, Ct
 
 
 M_PARAMS
-Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream(int32_t stream, CtrSizeT amount) noexcept
+typename M_TYPE::CtrSizeT M_TYPE::iter_skip_stream(int32_t stream, CtrSizeT amount)
 {
     auto& self = this->self();
 
@@ -300,7 +287,7 @@ Result<typename M_TYPE::CtrSizeT> M_TYPE::iter_skip_stream(int32_t stream, CtrSi
 }
 
 M_PARAMS
-BoolResult M_TYPE::iter_next_leaf_ms(uint64_t streams) noexcept
+bool M_TYPE::iter_next_leaf_ms(uint64_t streams)
 {
     typedef typename Types::template NextLeafMutistreamWalker<Types, IntList<0>, IntList<0>> Walker;
 
@@ -313,7 +300,7 @@ BoolResult M_TYPE::iter_next_leaf_ms(uint64_t streams) noexcept
 
 
 M_PARAMS
-BoolResult M_TYPE::iter_next_leaf() noexcept
+bool M_TYPE::iter_next_leaf()
 {
     typedef typename Types::template NextLeafWalker<Types, IntList<0>> Walker;
     Walker walker(self().iter_stream(), 0);
@@ -325,7 +312,7 @@ BoolResult M_TYPE::iter_next_leaf() noexcept
 
 
 M_PARAMS
-BoolResult M_TYPE::iter_prev_leaf() noexcept
+bool M_TYPE::iter_prev_leaf()
 {
     typedef typename Types::template PrevLeafWalker<Types, IntList<0>> Walker;
 
@@ -341,24 +328,24 @@ BoolResult M_TYPE::iter_prev_leaf() noexcept
 
 M_PARAMS
 template <typename Walker>
-BoolResult M_TYPE::iter_find_next_leaf(Walker&& walker) noexcept
+bool M_TYPE::iter_find_next_leaf(Walker&& walker)
 {
     auto& self = this->self();
 
-    TreeNodePtr& leaf = self.iter_leaf();
+    TreeNodeConstPtr& leaf = self.iter_leaf();
     int32_t stream  = self.iter_stream();
 
     if (!leaf->is_root())
     {
         walker.prepare(self);
 
-        TreeNodePtr parent = self.ctr().ctr_get_node_parent(leaf);
+        TreeNodeConstPtr parent = self.ctr().ctr_get_node_parent(leaf);
 
         int32_t idx = self.ctr().findFw(parent, stream, leaf->parent_idx() + 1, walker);
 
         int32_t size = self.ctr().ctr_get_node_size(parent, stream);
 
-        MEMORIA_ASSERT_RTN(size, >, 0);
+        MEMORIA_ASSERT(size, >, 0);
 
         int32_t child_idx;
 
@@ -377,10 +364,10 @@ BoolResult M_TYPE::iter_find_next_leaf(Walker&& walker) noexcept
 
         self.iter_local_pos() = 0;
 
-        return BoolResult::of(idx < size);
+        return idx < size;
     }
     else {
-        return BoolResult::of(false);
+        return false;
     }
 }
 
@@ -388,24 +375,24 @@ BoolResult M_TYPE::iter_find_next_leaf(Walker&& walker) noexcept
 
 M_PARAMS
 template <typename Walker>
-BoolResult M_TYPE::iter_find_prev_leaf(Walker&& walker) noexcept
+bool M_TYPE::iter_find_prev_leaf(Walker&& walker)
 {
     auto& self = this->self();
 
-    TreeNodePtr&  leaf    = self.iter_leaf();
-    int32_t stream      = self.iter_stream();
+    TreeNodeConstPtr& leaf = self.iter_leaf();
+    int32_t stream         = self.iter_stream();
 
     if (!leaf->is_root())
     {
         walker.prepare(self);
 
-        TreeNodePtr parent = self.ctr().ctr_get_node_parent(leaf);
+        TreeNodeConstPtr parent = self.ctr().ctr_get_node_parent(leaf);
 
         int32_t idx = self.model().findBw(parent, stream, leaf->parent_idx() - 1, walker);
 
         int32_t size = self.model().ctr_get_node_size(parent, stream);
 
-        MEMORIA_ASSERT_RTN(size, >, 0);
+        MEMORIA_ASSERT(size, >, 0);
 
         int32_t child_idx;
 
@@ -424,16 +411,14 @@ BoolResult M_TYPE::iter_find_prev_leaf(Walker&& walker) noexcept
 
         self.iter_local_pos() = idx >= 0 ? self.iter_leaf_size(stream) - 1 : -1;
 
-        return BoolResult::of(idx >= 0);
+        return idx >= 0;
     }
     else {
-        return BoolResult::of(false);
+        return false;
     }
 }
 
 
 #undef M_TYPE
 #undef M_PARAMS
-
-
 }

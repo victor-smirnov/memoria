@@ -31,32 +31,28 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
     using typename Base::Iterator;
 
     template <typename SubstreamsList, typename Buffer>
-    VoidResult ctr_update_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Buffer& entry) noexcept
+    void ctr_update_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Buffer& entry)
     {
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr_cow_clone_path(iter.path(), 0));
+        self.ctr_cow_clone_path(iter.path(), 0);
 
         auto update_status0 = self.template ctr_try_update_stream_entry<SubstreamsList>(iter, idx, entry);
-        MEMORIA_RETURN_IF_ERROR(update_status0);
 
-        if (!update_status0.get())
+        if (!update_status0)
         {
-            MEMORIA_TRY(split_r, iter.iter_split_leaf(stream, idx));
+            auto split_r = iter.iter_split_leaf(stream, idx);
             idx = split_r.stream_idx();
 
             auto update_status1 = self.template ctr_try_update_stream_entry<SubstreamsList>(iter, idx, entry);
-            MEMORIA_RETURN_IF_ERROR(update_status1);
 
-            if (!update_status1.get())
+            if (!update_status1)
             {
-                return MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed");
+                MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed").do_throw();
             }
         }
 
-        MEMORIA_TRY_VOID(self.ctr_update_path(iter.path(), 0));
-
-        return VoidResult::of();
+        self.ctr_update_path(iter.path(), 0);
     }
 
 

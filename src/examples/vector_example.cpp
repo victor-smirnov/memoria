@@ -34,11 +34,11 @@ int main()
 
         using VectorType = Vector<Varchar>;
 
-        auto alloc = create_memory_store().get_or_throw();
+        auto alloc = create_memory_store();
 
-        auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
+        auto snp = alloc->master()->branch();
 
-        auto ctr0 = create(snp, VectorType()).get_or_throw();
+        auto ctr0 = create(snp, VectorType());
 
         //ctr0->set_new_block_size(64*1024);
 
@@ -65,7 +65,7 @@ int main()
             values.append(Span<const U8String>(entries.data() + batch_start, limit));
 
             return limit != batch_size;
-        }).throw_if_error();
+        });
 
 
         int64_t t1_i = getTimeInMillis();
@@ -75,16 +75,16 @@ int main()
 
 //        ctr0->seek(0)->dumpPath();
 
-        snp->commit().throw_if_error();
-        snp->set_as_master().throw_if_error();
+        snp->commit();
+        snp->set_as_master();
 
-        alloc->store("store-vector.mma1").throw_if_error();
+        alloc->store("store-vector.mma1");
 
         int64_t t2 = getTimeInMillis();
         size_t sum0 = 0;
 
         auto scanner = ctr0->as_scanner([](auto ctr){
-            return ctr->seek(0).get_or_throw();
+            return ctr->seek(0);
         });
 
         while (!scanner.is_end())
@@ -93,7 +93,7 @@ int main()
                 std::cout << vv << std::endl;
             }
 
-            scanner.next_leaf().throw_if_error();
+            scanner.next_leaf();
         }
 
         int64_t t3 = getTimeInMillis();

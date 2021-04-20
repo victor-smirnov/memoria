@@ -104,19 +104,19 @@ struct IBlockOperationsBase {
     using BlockID   = ProfileBlockID<Profile>;
 
     struct IDValueResolver {
-        virtual Result<BlockID> resolve_id(const BlockID& stored_block_id) const noexcept = 0;
+        virtual BlockID resolve_id(const BlockID& stored_block_id) const = 0;
     };
 
-    virtual Int32Result serialize(
+    virtual int32_t serialize(
             const BlockType* block,
             void* buf,
             const IDValueResolver* resolver = nullptr
-    ) const noexcept = 0;
+    ) const = 0;
 
-    virtual VoidResult deserialize(const void* buf, int32_t buf_size, BlockType* block) const noexcept = 0;
+    virtual void deserialize(const void* buf, int32_t buf_size, BlockType* block) const = 0;
 
     // FIXME: remove this method from here
-    virtual VoidResult resize(const BlockType* block, void* buffer, int32_t new_size) const noexcept = 0;
+    virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const = 0;
 
     virtual uint64_t block_type_hash() const noexcept = 0;
 };

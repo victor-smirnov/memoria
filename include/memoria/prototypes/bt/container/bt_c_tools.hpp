@@ -44,14 +44,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsName)
 
 
 public:
-    Result<TreeNodeConstPtr> ctr_get_block(const BlockID& block_id) const noexcept
+    TreeNodeConstPtr ctr_get_block(const BlockID& block_id) const
     {
         auto& self = this->self();
         return static_cast_block<TreeNodeConstPtr>(self.store().getBlock(block_id));
     }
 
 
-    Result<TreeNodeConstPtr> ctr_get_root_node() const noexcept
+    TreeNodeConstPtr ctr_get_root_node() const
     {
         auto& self = this->self();
         return self.ctr_get_block(self.root());
@@ -59,64 +59,64 @@ public:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(DumpBlockSizesFn, ctr_dump_block_sizes);
-    VoidResult ctr_dump_block_sizes(const TreeNodeConstPtr& node) const noexcept
+    void ctr_dump_block_sizes(const TreeNodeConstPtr& node) const
     {
-        return self().leaf_dispatcher().dispatch(node, DumpBlockSizesFn());
+        return self().leaf_dispatcher().dispatch(node, DumpBlockSizesFn()).get_or_throw();
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN(MaxFn, max);
-    Result<BranchNodeEntry> ctr_get_node_max_keys(const TreeNodeConstPtr& node) const noexcept
+    BranchNodeEntry ctr_get_node_max_keys(const TreeNodeConstPtr& node) const
     {
         BranchNodeEntry entry;
-        MEMORIA_TRY_VOID(self().node_dispatcher().dispatch(node, MaxFn(), entry));
-        return Result<BranchNodeEntry>::of(entry);
+        self().node_dispatcher().dispatch(node, MaxFn(), entry).get_or_throw();
+        return entry;
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(GetSizesFn, sizes);
-    Result<Position> ctr_get_node_sizes(const TreeNodeConstPtr& node) const noexcept
+    Position ctr_get_node_sizes(const TreeNodeConstPtr& node) const
     {
-        return self().node_dispatcher().dispatch(node, GetSizesFn());
+        return self().node_dispatcher().dispatch(node, GetSizesFn()).get_or_throw();
     }
 
-    Result<Position> ctr_get_leaf_sizes(const TreeNodeConstPtr& node) const noexcept
+    Position ctr_get_leaf_sizes(const TreeNodeConstPtr& node) const
     {
-        return self().leaf_dispatcher().dispatch(node, GetSizesFn());
+        return self().leaf_dispatcher().dispatch(node, GetSizesFn()).get_or_throw();
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(GetSizeFn, size);
-    auto ctr_get_node_size(const TreeNodeConstPtr& node, int32_t stream) const noexcept
+    auto ctr_get_node_size(const TreeNodeConstPtr& node, int32_t stream) const
     {
-        return self().node_dispatcher().dispatch(node, GetSizeFn(), stream);
+        return self().node_dispatcher().dispatch(node, GetSizeFn(), stream).get_or_throw();
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(FindChildIdx, find_child_idx);
-    auto ctr_find_child_idx(const TreeNodeConstPtr& node, const BlockID& child_id) const noexcept
+    auto ctr_find_child_idx(const TreeNodeConstPtr& node, const BlockID& child_id) const
     {
-        return self().branch_dispatcher().dispatch(node, FindChildIdx(), child_id);
+        return self().branch_dispatcher().dispatch(node, FindChildIdx(), child_id).get_or_throw();
     }
 
-    Int32Result ctr_get_child_idx(const TreeNodeConstPtr& node, const BlockID& child_id) const noexcept
+    int32_t ctr_get_child_idx(const TreeNodeConstPtr& node, const BlockID& child_id) const
     {
-        MEMORIA_TRY(idx, ctr_find_child_idx(node, child_id));
+        auto idx = ctr_find_child_idx(node, child_id);
         if (MMA_LIKELY(idx >= 0)) {
-            return Int32Result::of(idx);
+            return idx;
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Requested child is not found in the b-tree: {}", child_id);
+            MEMORIA_MAKE_GENERIC_ERROR("Requested child is not found in the b-tree: {}", child_id).do_throw();
         }
     }
 
-    Int32Result ctr_get_parent_idx(const TreePathT& path, size_t level) const noexcept
+    int32_t ctr_get_parent_idx(const TreePathT& path, size_t level) const
     {
         if (MMA_UNLIKELY(level + 1 >= path.size())) {
-            return Int32Result::of(0); // -1?
+            return 0; // -1?
         }
 
         return self().ctr_get_child_idx(path[level + 1], path[level]->id());
     }
 
-    VoidResult ctr_assign_path_nodes(const TreePathT& src, TreePathT& dst, size_t start_level = 0) const noexcept
+    void ctr_assign_path_nodes(const TreePathT& src, TreePathT& dst, size_t start_level = 0) const
     {
         if (src.size() != dst.size()) {
             dst.resize(src.size());
@@ -125,41 +125,35 @@ public:
         for (size_t ll = start_level; ll < src.size(); ll++) {
             dst[ll] = src[ll];
         }
-
-        return VoidResult::of();
     }
 
     // TODO: check noexcept
     MEMORIA_V1_DECLARE_NODE_FN(CheckCapacitiesFn, checkCapacities);
-    BoolResult ctr_check_node_capacities(const TreeNodeConstPtr& node, const Position& sizes) const noexcept
+    bool ctr_check_node_capacities(const TreeNodeConstPtr& node, const Position& sizes) const
     {
-        return self().node_dispatcher().dispatch(node, CheckCapacitiesFn(), sizes);
+        return self().node_dispatcher().dispatch(node, CheckCapacitiesFn(), sizes).get_or_throw();
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN(GenerateDataEventsFn, generateDataEvents);
-    VoidResult ctr_dump_node(const TreeNodeConstPtr& block, std::ostream& out = std::cout) const noexcept
+    void ctr_dump_node(const TreeNodeConstPtr& block, std::ostream& out = std::cout) const
     {
-        return wrap_throwing([&]() -> VoidResult {
-            const auto& self = this->self();
-            if (block)
-            {
-                TextBlockDumper dumper(out);
+        const auto& self = this->self();
+        if (block)
+        {
+            TextBlockDumper dumper(out);
 
-                MEMORIA_TRY_VOID(self.node_dispatcher().dispatch(block, GenerateDataEventsFn(), &dumper));
+            self.node_dispatcher().dispatch(block, GenerateDataEventsFn(), &dumper).get_or_throw();
 
-                out<<std::endl;
-                out<<std::endl;
-            }
-            else {
-                out << "NULL" << std::endl;
-            }
-
-            return VoidResult::of();
-        });
+            out<<std::endl;
+            out<<std::endl;
+        }
+        else {
+            out << "NULL" << std::endl;
+        }
     }
 
-    VoidResult ctr_dump_path(TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
+    void ctr_dump_path(TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const
     {
         auto& self = this->self();
 
@@ -167,10 +161,8 @@ public:
 
         for (size_t ll = level; ll < path.size(); ll++)
         {
-            MEMORIA_TRY_VOID(self.ctr_dump_node(path[ll], out));
+            self.ctr_dump_node(path[ll], out);
         }
-
-        return VoidResult::of();
     }
 
 
@@ -185,85 +177,82 @@ protected:
 
 
     template <typename Node>
-    Result<TreeNodeConstPtr> ctr_get_child_fn(Node&& node, int32_t idx) const noexcept
+    TreeNodeConstPtr ctr_get_child_fn(Node&& node, int32_t idx) const
     {
         auto& self = this->self();
         return self.ctr_get_block(node.value(idx));
     }
 
     template <typename Node>
-    Result<TreeNodeConstPtr> getLastChildFn(Node&& node) const noexcept
+    TreeNodeConstPtr getLastChildFn(Node&& node) const
     {
         auto& self = this->self();
-        MEMORIA_TRY(size, node.size());
+        auto size = node.size().get_or_throw();
         return self.ctr_get_block(node.value(size - 1));
     }
 
     MEMORIA_V1_CONST_FN_WRAPPER(GetChildFn, ctr_get_child_fn);
-    Result<TreeNodeConstPtr> ctr_get_node_child(const TreeNodeConstPtr& node, int32_t idx) const noexcept
+    TreeNodeConstPtr ctr_get_node_child(const TreeNodeConstPtr& node, int32_t idx) const
     {
-        using ResultT = Result<TreeNodeConstPtr>;
-        ResultT result = self().branch_dispatcher().dispatch(node, GetChildFn(self()), idx);
+        auto result = self().branch_dispatcher().dispatch(node, GetChildFn(self()), idx).get_or_throw();
 
-        if (result.get().isSet())
+        if (result.isSet())
         {
             return result;
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Child must not be NULL");
+            MEMORIA_MAKE_GENERIC_ERROR("Child must not be NULL").do_throw();
         }
     }
 
     MEMORIA_V1_CONST_FN_WRAPPER(GetLastChildFn, getLastChildFn);
-    Result<TreeNodeConstPtr> ctr_get_node_last_child(const TreeNodeConstPtr& node) const noexcept
+    TreeNodeConstPtr ctr_get_node_last_child(const TreeNodeConstPtr& node) const
     {
-        using ResultT = Result<TreeNodeConstPtr>;
-        ResultT result = self().branch_dispatcher().dispatch(node, GetLastChildFn(self()));
+        auto result = self().branch_dispatcher().dispatch(node, GetLastChildFn(self())).get_or_throw();
 
-        if (result.get().isSet())
+        if (result.isSet())
         {
             return result;
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Child must not be NULL");
+            MEMORIA_MAKE_GENERIC_ERROR("Child must not be NULL").do_throw();
         }
     }
 
 
 
     MEMORIA_V1_CONST_FN_WRAPPER(GetChildForUpdateFn, getChildForUpdateFn);
-    Result<TreeNodePtr> ctr_get_child_for_update(const TreeNodeConstPtr& node, int32_t idx) const noexcept
+    TreeNodePtr ctr_get_child_for_update(const TreeNodeConstPtr& node, int32_t idx) const
     {
-        using ResultT = Result<TreeNodePtr>;
-        ResultT result = self().branch_dispatcher().dispatch(node, GetChildForUpdateFn(self()), idx);
+        auto result = self().branch_dispatcher().dispatch(node, GetChildForUpdateFn(self()), idx).get_or_throw();
 
-        if (result.get().isSet())
+        if (result.isSet())
         {
             return result;
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Child must not be NULL");
+            MEMORIA_MAKE_GENERIC_ERROR("Child must not be NULL").do_throw();
         }
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(NodeStreamSizesFn, size_sums);
-    Result<Position> ctr_node_stream_sizes(const TreeNodeConstPtr& node) const noexcept
+    Position ctr_node_stream_sizes(const TreeNodeConstPtr& node) const
     {
-        return self().node_dispatcher().dispatch(node, NodeStreamSizesFn());
+        return self().node_dispatcher().dispatch(node, NodeStreamSizesFn()).get_or_throw();
     }
 
 
 
     MEMORIA_V1_DECLARE_NODE_FN(SumsFn, sums);
-    VoidResult ctr_sums(const TreeNodeConstPtr& node, int32_t start, int32_t end, BranchNodeEntry& sums) const noexcept
+    void ctr_sums(const TreeNodeConstPtr& node, int32_t start, int32_t end, BranchNodeEntry& sums) const
     {
-        return self().branch_dispatcher().dispatch(node, SumsFn(), start, end, sums);
+        return self().branch_dispatcher().dispatch(node, SumsFn(), start, end, sums).get_or_throw();
     }
 
 
-    VoidResult ctr_sums(const TreeNodeConstPtr& node, const Position& start, const Position& end, BranchNodeEntry& sums) const noexcept
+    void ctr_sums(const TreeNodeConstPtr& node, const Position& start, const Position& end, BranchNodeEntry& sums) const
     {
-        return self().leaf_dispatcher().dispatch(node, SumsFn(), start, end, sums);
+        return self().leaf_dispatcher().dispatch(node, SumsFn(), start, end, sums).get_or_throw();
     }
 
 
@@ -284,68 +273,68 @@ protected:
     };
 
     template <typename Path, typename... Args>
-    auto ctr_leaf_sums(const TreeNodeConstPtr& node, Args&&... args) const noexcept
+    auto ctr_leaf_sums(const TreeNodeConstPtr& node, Args&&... args) const
     {
-        return self().leaf_dispatcher().dispatch(node, LeafSumsFn<Path>(), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(node, LeafSumsFn<Path>(), std::forward<Args>(args)...).get_or_throw();
     }
 
 
-    auto ctr_leaf_sizes(const TreeNodeConstPtr& node) const noexcept
+    auto ctr_leaf_sizes(const TreeNodeConstPtr& node) const
     {
-        return self().leaf_dispatcher().dispatch(node, LeafSizesFn());
+        return self().leaf_dispatcher().dispatch(node, LeafSizesFn()).get_or_throw();
     }
 
 public:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, BlockID);
-    Result<BlockID> ctr_get_child_id(const TreeNodeConstPtr& node, int32_t idx) const noexcept
+    BlockID ctr_get_child_id(const TreeNodeConstPtr& node, int32_t idx) const
     {
-        return self().branch_dispatcher().dispatch(node, GetINodeDataFn(), idx);
+        return self().branch_dispatcher().dispatch(node, GetINodeDataFn(), idx).get_or_throw();
     }
 
 
 
     MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
-    VoidResult ctr_layout_branch_node(const TreeNodePtr& node, uint64_t active_streams) const noexcept
+    void ctr_layout_branch_node(const TreeNodePtr& node, uint64_t active_streams) const
     {
-        return self().branch_dispatcher().dispatch(node, LayoutNodeFn(), active_streams);
+        return self().branch_dispatcher().dispatch(node, LayoutNodeFn(), active_streams).get_or_throw();
     }
 
-    VoidResult ctr_layout_leaf_node(const TreeNodePtr& node, const Position& sizes) const noexcept
+    void ctr_layout_leaf_node(const TreeNodePtr& node, const Position& sizes) const
     {
-        return self().leaf_dispatcher().dispatch(node, LayoutNodeFn(), sizes);
+        return self().leaf_dispatcher().dispatch(node, LayoutNodeFn(), sizes).get_or_throw();
     }
 
 
 protected:
     MEMORIA_V1_DECLARE_NODE_FN(GetActiveStreamsFn, active_streams);
-    Result<uint64_t> ctr_get_active_streams(const TreeNodeConstPtr& node) const noexcept
+    uint64_t ctr_get_active_streams(const TreeNodeConstPtr& node) const
     {
-        return self().node_dispatcher().dispatch(node, GetActiveStreamsFn());
+        return self().node_dispatcher().dispatch(node, GetActiveStreamsFn()).get_or_throw();
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN(IsNodeEmpty, is_empty);
-    BoolResult ctr_is_node_empty(const TreeNodePtr& node) noexcept
+    bool ctr_is_node_empty(const TreeNodePtr& node)
     {
-        return self().node_dispatcher().dispatch(node, IsNodeEmpty());
+        return self().node_dispatcher().dispatch(node, IsNodeEmpty()).get_or_throw();
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
-    VoidResult ctr_for_all_ids(const TreeNodeConstPtr& node, int32_t start, int32_t end, std::function<VoidResult (const BlockID&)> fn) const noexcept
+    void ctr_for_all_ids(const TreeNodeConstPtr& node, int32_t start, int32_t end, std::function<void (const BlockID&)> fn) const
     {
-        return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), start, end, fn);
+        return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), start, end, fn).get_or_throw();
     }
 
     // TODO: errors handling
-    VoidResult ctr_for_all_ids(const TreeNodeConstPtr& node, int32_t start, std::function<VoidResult (const BlockID&)> fn) const noexcept
+    void ctr_for_all_ids(const TreeNodeConstPtr& node, int32_t start, std::function<void (const BlockID&)> fn) const
     {
-        return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), start, fn);
+        return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), start, fn).get_or_throw();
     }
 
-    VoidResult ctr_for_all_ids(const TreeNodeConstPtr& node, std::function<VoidResult (const BlockID&)> fn) const noexcept
+    void ctr_for_all_ids(const TreeNodeConstPtr& node, std::function<void (const BlockID&)> fn) const
     {
-        return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), fn);
+        return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), fn).get_or_throw();
     }
 
 
@@ -362,10 +351,10 @@ protected:
         }
     };
 
-    Result<BlockID> ctr_set_child_id(const TreeNodePtr& node, int32_t child_idx, const BlockID& child_id) noexcept
+    BlockID ctr_set_child_id(const TreeNodePtr& node, int32_t child_idx, const BlockID& child_id)
     {
-        MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
-        return self().branch_dispatcher().dispatch(node, SetChildIDFn(), child_idx, child_id);
+        self().ctr_update_block_guard(node);
+        return self().branch_dispatcher().dispatch(node, SetChildIDFn(), child_idx, child_id).get_or_throw();
     }
 
 
@@ -395,29 +384,29 @@ protected:
         }
     };
 
-    Int32Result ctr_get_node_children_count(const TreeNodeConstPtr& node) const noexcept
+    int32_t ctr_get_node_children_count(const TreeNodeConstPtr& node) const
     {
-        return self().branch_dispatcher().dispatch(node, GetBranchNodeChildernCount());
+        return self().branch_dispatcher().dispatch(node, GetBranchNodeChildernCount()).get_or_throw();
     }
 
 
 
-    Int32Result ctr_get_branch_node_size(const TreeNodeConstPtr& node) const noexcept
+    int32_t ctr_get_branch_node_size(const TreeNodeConstPtr& node) const
     {
-        return self().branch_dispatcher().dispatch(node, GetSizeFn());
+        return self().branch_dispatcher().dispatch(node, GetSizeFn()).get_or_throw();
     }
 
 public:
 
     template <int32_t StreamIdx>
-    Int32Result ctr_get_leaf_stream_size(const TreeNodeConstPtr& node) const noexcept
+    int32_t ctr_get_leaf_stream_size(const TreeNodeConstPtr& node) const
     {
-        return self().leaf_dispatcher().dispatch(node, GetLeafNodeStreamSize<StreamIdx>());
+        return self().leaf_dispatcher().dispatch(node, GetLeafNodeStreamSize<StreamIdx>()).get_or_throw();
     }
 
-    Result<Position> ctr_get_leaf_stream_sizes(const TreeNodeConstPtr& node) const noexcept
+    Position ctr_get_leaf_stream_sizes(const TreeNodeConstPtr& node) const
     {
-        return self().leaf_dispatcher().dispatch(node, GetLeafNodeStreamSizes());
+        return self().leaf_dispatcher().dispatch(node, GetLeafNodeStreamSizes()).get_or_throw();
     }
 
 
@@ -433,7 +422,7 @@ public:
     // TODO: error handling
     std::unique_ptr<io::IOVector> create_iovector_view(TreeNodePtr& node) noexcept
     {
-        return self().leaf_dispatcher().dispatch(node, CreateIOVectorViewFn());
+        return self().leaf_dispatcher().dispatch(node, CreateIOVectorViewFn()).get_or_throw();
     }
 
 
@@ -447,9 +436,9 @@ public:
     };
 
     // TODO: error handling
-    VoidResult configure_iovector_view(TreeNodePtr& node, io::IOVector& io_vector) noexcept
+    void configure_iovector_view(TreeNodePtr& node, io::IOVector& io_vector)
     {
-        return self().leaf_dispatcher().dispatch(node, ConfigureIOVectorViewFn(), io_vector);
+        return self().leaf_dispatcher().dispatch(node, ConfigureIOVectorViewFn(), io_vector).get_or_throw();
     }
 
 protected:
@@ -472,15 +461,15 @@ protected:
 
     // TODO: error handling
     template <typename SubstreamPath>
-    auto ctr_get_packed_struct(const TreeNodeConstPtr& leaf) const noexcept
+    auto ctr_get_packed_struct(const TreeNodeConstPtr& leaf) const
     {
-        return self().leaf_dispatcher().dispatch(leaf, GetPackedStructFn<SubstreamPath>());
+        return self().leaf_dispatcher().dispatch(leaf, GetPackedStructFn<SubstreamPath>()).get_or_throw();
     }
 
     template <typename SubstreamPath>
-    auto ctr_get_packed_struct(TreeNodePtr& leaf) noexcept
+    auto ctr_get_packed_struct(TreeNodePtr& leaf)
     {
-        return self().leaf_dispatcher().dispatch(leaf, GetPackedStructFn<SubstreamPath>());
+        return self().leaf_dispatcher().dispatch(leaf, GetPackedStructFn<SubstreamPath>()).get_or_throw();
     }
 
 MEMORIA_V1_CONTAINER_PART_END

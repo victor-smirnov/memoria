@@ -44,7 +44,7 @@ public:
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
 
-    VoidResult iter_insert_entry(Key key, Value value) noexcept
+    void iter_insert_entry(Key key, Value value)
     {
         auto& self = this->self();
 
@@ -57,7 +57,7 @@ public:
                 InputTupleAdapter<0>::convert(0, core::StaticVector<Key, 1>({delta}), core::StaticVector<Value, 1>{value})
         );
 
-        MEMORIA_TRY_VOID(self.iter_skip_fw(1));
+        self.iter_skip_fw(1);
 
         if (!self.iter_is_end())
         {
@@ -69,7 +69,7 @@ public:
         }
     }
 
-    VoidResult iter_remove_entry() noexcept
+    void iter_remove_entry()
     {
         auto& self = this->self();
 
@@ -79,7 +79,7 @@ public:
 
         if (self.iter_is_end())
         {
-            MEMORIA_TRY_VOID(self.iter_skip_fw(0));
+            self.iter_skip_fw(0);
         }
 
         if (!self.iter_is_end())
@@ -111,7 +111,7 @@ public:
         return self().template iter_find_bw_ge<IntList<0>>(index, key);
     }
 
-    Key iter_map_prefix() const noexcept
+    Key iter_map_prefix() const
     {
         auto& self = this->self();
         auto& iter_cache = self.iter_cache();
@@ -122,12 +122,12 @@ public:
     }
 
 
-    auto iter_raw_key() const noexcept
+    auto iter_raw_key() const
     {
         return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos()));
     }
 
-    auto key() const noexcept -> Key
+    auto key() const -> Key
     {
         return self().iter_raw_key(0) + self().prefix();
     }
@@ -137,12 +137,12 @@ public:
         return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), index));
     }
 
-    auto value() const noexcept
+    auto value() const
     {
         return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<2>>(self().iter_leaf(), self().iter_local_pos()));
     }
 
-    void assign(const Value& v) noexcept
+    void assign(const Value& v)
     {
         self().ctr().template ctr_update_entry<IntList<0, 1>>(self(), std::make_tuple(v));
     }

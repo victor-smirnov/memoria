@@ -56,12 +56,12 @@ struct PythonAPIBinder<ICtrApi<Set<Key>, Profile>> {
                 set_cls.def("insert", py::overload_cast<KeyView>(&CtrType::insert));
                 set_cls.def("insert_buf", py::overload_cast<CtrSizeT, const Buffer&>(&CtrType::insert));
                 //set_cls.def("append", py::overload_cast<ProducerFn>(&CtrType::append));
-                set_cls.def("append", [](CtrType& ctr, Producer2Fn fn) -> VoidResult {
+                set_cls.def("append", [](CtrType& ctr, Producer2Fn fn) {
                     return ctr.append([&](Buffer& buf, size_t size){
                         return fn(&buf, size);
                     });
                 });
-                set_cls.def("for_each", [](CtrType& ctr, std::function<VoidResult(KeyView)> fn) -> VoidResult {
+                set_cls.def("for_each", [](CtrType& ctr, std::function<void (KeyView)> fn) {
                     return ctr.for_each([&](auto key){
                         return fn(key);
                     });

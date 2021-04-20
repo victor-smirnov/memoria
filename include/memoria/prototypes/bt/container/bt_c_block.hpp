@@ -58,10 +58,10 @@ public:
             block_id_(block_id)
         {}
 
-        virtual BoolResult is_leaf() const noexcept
+        virtual bool is_leaf() const
         {
-            MEMORIA_TRY(block, static_cast_block<TreeNodeConstPtr>(store_->getBlock(block_id_)));
-            return BoolResult::of(block->is_leaf());
+            auto block = static_cast_block<TreeNodeConstPtr>(store_->getBlock(block_id_));
+            return block->is_leaf();
         }
 
         virtual ApiProfileBlockID<ApiProfile<ProfileT>> block_id() const noexcept
@@ -69,18 +69,16 @@ public:
             return block_id_holder_from(block_id_);
         }
 
-        virtual Result<std::vector<CtrBlockPtr<ApiProfile<ProfileT>>>> children() const noexcept
+        virtual std::vector<CtrBlockPtr<ApiProfile<ProfileT>>> children() const
         {
-            using ResultT = Result<std::vector<CtrBlockPtr<ApiProfile<ProfileT>>>>;
-
             std::vector<CtrBlockPtr<ApiProfile<ProfileT>>> children;
 
-            MEMORIA_TRY(block, static_cast_block<TreeNodeConstPtr>(store_->getBlock(block_id_)));
+            auto block = static_cast_block<TreeNodeConstPtr>(store_->getBlock(block_id_));
 
             if (!block->is_leaf())
             {
-                MEMORIA_TRY_VOID(with_ctr([&](auto& ctr) -> VoidResult {
-                    return ctr.ctr_for_all_ids(block, [&](const BlockID& child_id) -> VoidResult {
+                with_ctr([&](auto& ctr)  {
+                    return ctr.ctr_for_all_ids(block, [&](const BlockID& child_id) {
 
                         children.emplace_back(
                             std::make_shared<CtrBlockImpl>(
@@ -89,52 +87,47 @@ public:
                                 child_id
                             )
                         );
-
-                        return VoidResult::of();
                     });
-                }));
+                });
             }
 
-            return ResultT::of(children);
+            return children;
         }
 
-        virtual VoidResult describe(std::ostream& out)  const noexcept
+        virtual void describe(std::ostream& out)  const
         {
-            MEMORIA_TRY(block, store_->getBlock(block_id_));
+            auto block = store_->getBlock(block_id_);
 
-            return with_ctr([&](auto& ctr) -> VoidResult {
+            return with_ctr([&](auto& ctr) {
                 return ctr.ctr_dump_node(std::move(block), out);
             });
         }
 
     private:
-        VoidResult with_ctr(
-                std::function<VoidResult (MyType&)> fn
-        ) const noexcept
+        void with_ctr(
+                std::function<void (MyType&)> fn
+        ) const
         {
-            MEMORIA_TRY(ctr_ref, store_->find(ctr_id_));
+            auto ctr_ref = store_->find(ctr_id_);
             if (ctr_ref)
             {
                 auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref);
                 return fn(*ctr_ptr);
             }
             else {
-                return MEMORIA_MAKE_GENERIC_ERROR("No container is found for id {}", ctr_id_);
+                MEMORIA_MAKE_GENERIC_ERROR("No container is found for id {}", ctr_id_).do_throw();
             }
         }
     };
 
-    virtual Result<CtrBlockPtr<ApiProfile<ProfileT>>> root_block() noexcept
+    virtual CtrBlockPtr<ApiProfile<ProfileT>> root_block()
     {
-        using ResultT = Result<CtrBlockPtr<ApiProfile<ProfileT>>>;
         auto& self = this->self();
-
-
-        return ResultT::of(std::make_shared<CtrBlockImpl>(
+        return std::make_shared<CtrBlockImpl>(
             self.store().self_ptr(),
             self.name(),
             self.root()
-        ));
+        );
     }
 
 MEMORIA_V1_CONTAINER_PART_END

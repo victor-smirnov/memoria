@@ -302,7 +302,7 @@ void check(StorePtr store, const char* message,  const char* source)
 
     store->logger().level() = Logger::_ERROR;
 
-    if (store->check().get_or_throw())
+    if (store->check())
     {
         store->logger().level() = level;
 
@@ -319,7 +319,7 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 
     ctr.logger().level() = Logger::_ERROR;
 
-    if (ctr.check(NULL).get_or_throw())
+    if (ctr.check(nullptr))
     {
         ctr.logger().level() = level;
         MMA_THROW(TestException()) << WhatCInfo(message);

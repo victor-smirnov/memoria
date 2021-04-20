@@ -60,7 +60,7 @@ public:
         }
     };
 
-    using EvictionFn = std::function<VoidResult (bool, EntryT*)>;
+    using EvictionFn = std::function<void (bool, EntryT*)>;
 
 private:
     using QueueT = boost::intrusive::list<
@@ -152,7 +152,7 @@ public:
         map_.insert(std::make_pair(new_entry->id(), new_entry));
     }
 
-    VoidResult attach(EntryT* entry) noexcept
+    void attach(EntryT* entry)
     {
         if (entry->queue_type == QueueType::A1_In)
         {
@@ -164,7 +164,7 @@ public:
 
                 a1_out_queue_.push_back(*evicting);
 
-                MEMORIA_TRY_VOID(eviction_fn_(true, evicting));
+                eviction_fn_(true, evicting);
             }
 
             a1_in_queue_.push_back(*entry);
@@ -177,7 +177,7 @@ public:
                 map_.erase(evicting->id());
                 a1_out_queue_.erase(ii);
 
-                MEMORIA_TRY_VOID(eviction_fn_(false, evicting));
+                eviction_fn_(false, evicting);
             }
 
             a1_out_queue_.push_back(*entry);
@@ -187,11 +187,9 @@ public:
                 auto ii = am_queue_.begin();
                 am_queue_.erase(ii);
                 map_.erase((*ii).id());
-                MEMORIA_TRY_VOID(eviction_fn_(false, &*ii));
+                eviction_fn_(false, &*ii);
             }
         }
-
-        return VoidResult::of();
     }
 
     Optional<EntryT*> remove(const ID& id) noexcept {

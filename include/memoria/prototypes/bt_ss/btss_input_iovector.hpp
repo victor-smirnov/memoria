@@ -93,21 +93,18 @@ public:
         return total_symbols_;
     }
 
-    VoidResult iter_next_leaf(const TreeNodePtr& leaf) noexcept{
-        return VoidResult::of();
+    void iter_next_leaf(const TreeNodePtr& leaf) {
     }
 
-    virtual BoolResult hasData() noexcept
+    virtual bool hasData()
     {
         bool buffer_has_data = start_ < size_;
-        MEMORIA_TRY(res, populate_buffer());
-        return BoolResult::of(buffer_has_data || res);
+        auto res = populate_buffer();
+        return buffer_has_data || res;
     }
 
-    virtual Result<Position> fill(const TreeNodePtr& leaf, const Position& from) noexcept
+    virtual Position fill(const TreeNodePtr& leaf, const Position& from)
     {
-        using ResultT = Result<Position>;
-
         Position pos = from;
 
         while(true)
@@ -116,39 +113,39 @@ public:
 
             if (buffer_sizes == 0)
             {
-                MEMORIA_TRY(res, populate_buffer());
+                auto res = populate_buffer();
                 if (!res)
                 {
-                    return ResultT::of(pos);
+                    return pos;
                 }
                 else {
                     buffer_sizes = buffer_size();
                 }
             }
 
-            MEMORIA_TRY(capacity, findCapacity(leaf, buffer_sizes));
+            auto capacity = findCapacity(leaf, buffer_sizes);
 
             if (capacity > 0)
             {
-                MEMORIA_TRY_VOID(insertBuffer(leaf, pos[0], capacity));
+                insertBuffer(leaf, pos[0], capacity);
 
                 auto rest = buffer_size();
 
                 if (rest > 0)
                 {
-                    return ResultT::of(pos[0] + capacity);
+                    return Position{pos[0] + capacity};
                 }
                 else {
                     pos[0] += capacity;
                 }
             }
             else {
-                return ResultT::of(pos);
+                return pos;
             }
         }
     }
 
-    virtual Int32Result findCapacity(const TreeNodePtr& leaf, int32_t size) noexcept = 0;
+    virtual int32_t findCapacity(const TreeNodePtr& leaf, int32_t size) = 0;
 
     struct InsertBufferFn
     {
@@ -203,18 +200,14 @@ public:
     };
 
 
-    virtual VoidResult insertBuffer(const TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
+    virtual void insertBuffer(const TreeNodePtr& leaf, int32_t at, int32_t size)
     {
-        using ResultT = VoidResult;
-
         InsertBufferFn fn;
-        MEMORIA_TRY_VOID(ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, *io_vector_));
+        ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, *io_vector_).get_or_throw();
 
         start_ += size;
 
         total_symbols_ += size;
-
-        return ResultT::of();
     }
 
     int32_t buffer_size() const noexcept
@@ -222,32 +215,30 @@ public:
         return size_ - start_;
     }
 
-    virtual BoolResult populate_buffer() noexcept
+    virtual bool populate_buffer()
     {
         if (start_ < size_)
         {
-            return BoolResult::of(true);
+            return true;
         }
         else if (!finished_)
         {
-            MEMORIA_TRY_VOID(do_populate_iobuffer());
+            do_populate_iobuffer();
             if (finished_)
             {
-                return BoolResult::of(start_ < size_);
+                return start_ < size_;
             }
             else {
-                return BoolResult::of(true);
+                return true;
             }
         }
         else {
-            return BoolResult::of(false);
+            return false;
         }
     }
 
-    VoidResult do_populate_iobuffer() noexcept
+    void do_populate_iobuffer()
     {
-        return wrap_throwing([&]() -> VoidResult {
-
         auto& seq = io_vector_->symbol_sequence();
 
         do
@@ -287,10 +278,7 @@ public:
         {
             seq.rank_to(start_ + remainder, &size_);
             finished_ = true;
-        }
-
-        return VoidResult::of();
-        });
+        }    
     }
 };
 
@@ -329,16 +317,16 @@ public:
     ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
     {}
 
-    virtual Int32Result findCapacity(const TreeNodePtr& leaf, int32_t size) noexcept
+    virtual int32_t findCapacity(const TreeNodePtr& leaf, int32_t size)
     {
-        MEMORIA_TRY(capacity, this->ctr_.ctr_get_leaf_node_capacity(leaf));
+        auto capacity = this->ctr_.ctr_get_leaf_node_capacity(leaf.as_immutable());
 
         if (capacity > size)
         {
-            return Int32Result::of(size);
+            return size;
         }
         else {
-            return Int32Result::of(capacity);
+            return capacity;
         }
     }
 };
@@ -374,18 +362,17 @@ public:
     ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
     {}
 
-    virtual Result<Position> fill(const TreeNodePtr& leaf, const Position& from) noexcept
+    virtual Position fill(const TreeNodePtr& leaf, const Position& from)
     {
-        using ResultT = Result<Position>;
         int32_t pos = from[0];
 
         BlockUpdateMgr mgr(this->ctr());
 
-        MEMORIA_TRY_VOID(mgr.add(leaf));
+        mgr.add(leaf);
 
         while(true)
         {
-            MEMORIA_TRY(has_data, this->hasData());
+            auto has_data = this->hasData();
 
             if (!has_data) {
                 break;
@@ -393,7 +380,7 @@ public:
 
             auto buffer_sizes = this->buffer_size();
 
-            MEMORIA_TRY(inserted, insertBuffer(mgr, leaf, pos, buffer_sizes));
+            auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);
             if (inserted > 0)
             {
                 pos += inserted;
@@ -408,26 +395,26 @@ public:
             }
         }
 
-        return ResultT::of(pos);
+        return Position{pos};
     }
 
-    virtual Int32Result insertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
+    virtual int32_t insertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size)
     {
-        MEMORIA_TRY(inserted, this->insertBuffer_(mgr, leaf, at, size));
+        auto inserted = this->insertBuffer_(mgr, leaf, at, size);
 
         this->total_symbols_ += inserted;
 
-        return inserted_result;
+        return inserted;
     }
 
-    Int32Result insertBuffer_(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
+    int32_t insertBuffer_(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size)
     {
-        MEMORIA_TRY(ins_result, tryInsertBuffer(mgr, leaf, at, size));
+        auto ins_result = tryInsertBuffer(mgr, leaf, at, size);
 
         if (ins_result)
         {
             this->start_ += size;
-            return Int32Result::of(size);
+            return size;
         }
         else {
             auto imax = size;
@@ -444,7 +431,7 @@ public:
 
                     int32_t try_block_size = mid - start;
 
-                    MEMORIA_TRY(ins_result2, tryInsertBuffer(mgr, leaf, at, try_block_size));
+                    auto ins_result2 = tryInsertBuffer(mgr, leaf, at, try_block_size);
                     if (ins_result2)
                     {
                         imin = mid + 1;
@@ -460,7 +447,7 @@ public:
                     }
                 }
                 else {
-                    MEMORIA_TRY(ins_result3, tryInsertBuffer(mgr, leaf, at, 1));
+                    auto ins_result3 = tryInsertBuffer(mgr, leaf, at, 1);
                     if (ins_result3)
                     {
                         start += 1;
@@ -471,17 +458,17 @@ public:
                     break;
                 }
             }
-            return Int32Result::of(start);
+            return start;
         }
     }
 
 protected:
-    virtual Int32Result findCapacity(const TreeNodePtr& leaf, int32_t size) noexcept {
+    virtual int32_t findCapacity(const TreeNodePtr& leaf, int32_t size) noexcept {
         return 0;
     }
 
 
-    BoolResult tryInsertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size) noexcept
+    bool tryInsertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size)
     {
         typename Base::InsertBufferFn fn;
 
@@ -492,15 +479,15 @@ protected:
             if (status.is_packed_error())
             {
                 mgr.restoreNodeState();
-                return BoolResult::of(false);
+                return false;
             }
             else {
-                return MEMORIA_PROPAGATE_ERROR(status);
+                status.get_or_throw();
             }
         }
 
         mgr.checkpoint(leaf);
-        return BoolResult::of(true);
+        return true;
     }
 
     float getFreeSpacePart(const TreeNodePtr& node)

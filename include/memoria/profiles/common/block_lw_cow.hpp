@@ -204,8 +204,7 @@ public:
     }
 
 
-    VoidResult update() const noexcept {
-        return VoidResult::of();
+    void update() const noexcept {
     }
 
 
@@ -246,6 +245,18 @@ Result<T> static_cast_block(Result<LWSharedBlockPtr<U>>&& src) noexcept {
     return std::move(src).transfer_error();
 }
 
+
+template <
+        typename T,
+        typename U
+>
+T static_cast_block(LWSharedBlockPtr<U>&& src) noexcept {
+    T tgt(std::move(src));
+    return std::move(tgt);
+}
+
+
+
 template <
         typename T,
         typename U,
@@ -264,6 +275,20 @@ Result<T> static_cast_block(Result<LWSharedBlockPtr<const U>>&& src) noexcept {
     }
 
     return std::move(src).transfer_error();
+}
+
+
+
+template <
+        typename T,
+        typename U,
+        typename = std::enable_if_t<
+            std::is_const<typename T::BlockType>::value
+        >
+>
+T static_cast_block(LWSharedBlockPtr<const U>&& src) noexcept {
+    T tgt(std::move(src));
+    return std::move(tgt);
 }
 
 

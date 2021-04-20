@@ -47,7 +47,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
     struct ILeafProvider {
-        virtual Result<TreeNodePtr> get_leaf() noexcept = 0;
+        virtual TreeNodePtr get_leaf() = 0;
 
         virtual Checkpoint checkpoint() = 0;
 
@@ -67,7 +67,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
-    VoidResult ctr_remove_branch_nodes(const BlockID& node_id) noexcept
+    void ctr_remove_branch_nodes(const BlockID& node_id)
     {
         auto& self = this->self();
         return self.ctr_unref_block(node_id);
@@ -76,34 +76,29 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
 
-    Result<TreeNodePtr> ctr_build_subtree(ILeafProvider& provider, int32_t level) noexcept
+    TreeNodePtr ctr_build_subtree(ILeafProvider& provider, int32_t level)
     {
-        using ResultT = Result<TreeNodePtr>;
-
         auto& self = this->self();
 
         if (provider.size() > 0)
         {
             if (level >= 1)
             {
-                MEMORIA_TRY(node, self.ctr_create_node1(level, false, false));
-                MEMORIA_TRY_VOID(self.ctr_ref_block(node->id()));
+                auto node = self.ctr_create_node1(level, false, false);
+                self.ctr_ref_block(node->id());
 
                 self.layoutNonLeafNode(node, 0xFF);
 
-                MEMORIA_TRY_VOID(self.ctr_insert_subtree(node, 0, provider, [this, level, &provider]() -> ResultT {
+                self.ctr_insert_subtree(node, 0, provider, [this, level, &provider]() {
                     auto& self = this->self();
                     return self.ctr_build_subtree(provider, level - 1);
-                }, false));
+                }, false);
 
-                return node_result;
+                return node;
             }
             else {
                 return provider.get_leaf();
             }
-        }
-        else {
-            return ResultT::of();
         }
     }
 
@@ -125,21 +120,20 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             return size_;
         }
 
-        virtual Result<TreeNodePtr> get_leaf() noexcept
+        virtual TreeNodePtr get_leaf()
         {
-            using ResultT = Result<TreeNodePtr>;
             if (head_.isSet())
             {
                 auto node = head_;
 
-                MEMORIA_TRY(block, ctr_.store().getBlock(head_->next_leaf_id()));
+                auto block = ctr_.store().getBlock(head_->next_leaf_id());
 
                 head_ = block.as_mutable();
                 size_--;
-                return ResultT::of(std::move(node));
+                return std::move(node);
             }
             else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Leaf List is empty");
+                MEMORIA_MAKE_GENERIC_ERROR("Leaf List is empty").do_throw();
             }
         }
 
@@ -156,8 +150,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     };
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(IsEmptyFn, ctr_is_empty, bool);
-    bool ctr_is_empty(const TreeNodePtr& node) noexcept {
-        return self().node_dispatcher().dispatch(node, IsEmptyFn());
+    bool ctr_is_empty(const TreeNodePtr& node) {
+        return self().node_dispatcher().dispatch(node, IsEmptyFn()).get_or_throw();
     }
 
 
@@ -192,13 +186,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
 
-    Int32Result ctr_insert_subtree_one_pass(
+    int32_t ctr_insert_subtree_one_pass(
             TreePathT& path,
             size_t level,
             int32_t idx,
             ILeafProvider& leaf_provider,
             BatchInsertionState& state
-    ) noexcept;
+    );
 
 
     class LeafList {
@@ -222,45 +216,43 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
     template <typename Provider>
-    Result<Position> ctr_insert_data_into_leaf(TreePathT& path, const Position& pos, Provider& provider)
+    Position ctr_insert_data_into_leaf(TreePathT& path, const Position& pos, Provider& provider)
     {
-        using ResultT = Result<Position>;
         auto& self = this->self();
 
-        MEMORIA_TRY(has_data, provider.hasData());
+        auto has_data = provider.hasData();
         if (has_data)
         {
             TreeNodeConstPtr leaf = path.leaf();
-            MEMORIA_TRY(end_pos, ctr_insert_data_into_leaf(leaf, pos, provider));
+            auto end_pos = ctr_insert_data_into_leaf(leaf, pos, provider);
 
             if ((end_pos - pos).sum() > 0) {
-                MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
+                self.ctr_update_path(path, 0);
             }
 
-            return ResultT::of(end_pos);
+            return end_pos;
         }
 
-        return ResultT::of(pos);
+        return pos;
     }
 
     template <typename Provider>
-    Result<Position> ctr_insert_data_into_leaf(const TreeNodeConstPtr& leaf, const Position& pos, Provider& provider)
+    Position ctr_insert_data_into_leaf(const TreeNodeConstPtr& leaf, const Position& pos, Provider& provider)
     {
-        using ResultT = Result<Position>;
         auto& self = this->self();
 
-        MEMORIA_TRY(has_data, provider.hasData());
+        auto has_data = provider.hasData();
         if (has_data)
         {
-            MEMORIA_TRY_VOID(self.ctr_update_block_guard(leaf));
-            MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(leaf.as_mutable(), Position(0)));
+            self.ctr_update_block_guard(leaf);
+            self.ctr_layout_leaf_node(leaf.as_mutable(), Position(0));
 
-            MEMORIA_TRY(end, provider.fill(leaf.as_mutable(), pos));
+            auto end = provider.fill(leaf.as_mutable(), pos);
 
-            return ResultT::of(end);
+            return end;
         }
 
-        return ResultT::of(pos);
+        return pos;
     }
 
 
@@ -268,24 +260,23 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
     template <typename Provider>
-    VoidResult ctr_insert_provided_data(TreePathT& path, Position& pos, Provider& provider) noexcept
+    void ctr_insert_provided_data(TreePathT& path, Position& pos, Provider& provider)
     {
-        using ResultT = VoidResult;
         auto& self = this->self();
 
-        MEMORIA_TRY(last_pos, self.ctr_insert_data_into_leaf(path, pos, provider));
+        auto last_pos = self.ctr_insert_data_into_leaf(path, pos, provider);
 
-        MEMORIA_TRY(has_data, provider.hasData());
+        auto has_data = provider.hasData();
         if (has_data)
         {
             // has to be defined in subclasses
-            MEMORIA_TRY(at_end, self.ctr_is_at_the_end(path.leaf(), last_pos));
+            auto at_end = self.ctr_is_at_the_end(path.leaf(), last_pos);
             if (!at_end)
             {
-                MEMORIA_TRY_VOID(self.ctr_split_leaf(path, last_pos));
+                self.ctr_split_leaf(path, last_pos);
 
-                MEMORIA_TRY(last_leaf_pos, self.ctr_insert_data_into_leaf(path, last_pos, provider));
-                MEMORIA_TRY(has_data2, provider.hasData());
+                auto last_leaf_pos = self.ctr_insert_data_into_leaf(path, last_pos, provider);
+                auto has_data2 = provider.hasData();
 
                 if (has_data2)
                 {
@@ -302,36 +293,33 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         else {
             pos = last_pos;
         }
-
-        return ResultT::of();
     }
 
 
 
     template <typename Provider>
-    Result<LeafList> ctr_create_leaf_data_list(Provider& provider) noexcept
+    LeafList ctr_create_leaf_data_list(Provider& provider)
     {
-        using ResultT = Result<LeafList>;
         auto& self = this->self();
 
         CtrSizeT    total = 0;
         TreeNodePtr   head;
         TreeNodePtr   current;
 
-        MEMORIA_TRY(meta, self.ctr_get_root_metadata());
+        auto meta = self.ctr_get_root_metadata();
         int32_t block_size = meta.memory_block_size();
 
         while (true)
         {
-            MEMORIA_TRY(has_data, provider.hasData());
+            auto has_data = provider.hasData();
 
             if (!has_data) {
                 break;
             }
 
-            MEMORIA_TRY(node, self.ctr_create_node(0, false, true, block_size));
+            auto node = self.ctr_create_node(0, false, true, block_size);
 
-            MEMORIA_TRY_VOID(self.ctr_ref_block(node->id()));
+            self.ctr_ref_block(node->id());
 
             if (head.isSet())
             {
@@ -341,26 +329,25 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
                 head = node;
             }
 
-            MEMORIA_TRY_VOID(self.ctr_insert_data_into_leaf(node.as_immutable(), Position(), provider));
-            MEMORIA_TRY_VOID(provider.iter_next_leaf(node));
+            self.ctr_insert_data_into_leaf(node.as_immutable(), Position(), provider);
+            provider.iter_next_leaf(node);
 
             current = node;
             total++;
         }
 
-        return ResultT::of(total, head, current);
+        return LeafList(total, head, current);
     }
 
 
 
 
     template <typename Provider>
-    VoidResult ctr_insert_data_rest(TreePathT& path, Position& end_pos, Provider& provider) noexcept
+    void ctr_insert_data_rest(TreePathT& path, Position& end_pos, Provider& provider)
     {
-        using ResultT = VoidResult;
         auto& self = this->self();
 
-        MEMORIA_TRY(leaf_list, self.ctr_create_leaf_data_list(provider));
+        auto leaf_list = self.ctr_create_leaf_data_list(provider);
 
         if (leaf_list.size() > 0)
         {
@@ -369,22 +356,22 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
             if (path.leaf()->is_root())
             {
-                MEMORIA_TRY_VOID(self.ctr_create_new_root_block(path));
+                self.ctr_create_new_root_block(path);
             }
 
-            MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(path, 0));
+            auto parent_idx = self.ctr_get_parent_idx(path, 0);
             int32_t last_insertion_idx{};
 
             while (insertion_state.has_more())
             {
 
-                MEMORIA_TRY(insertion_idx, self.ctr_insert_subtree_one_pass(
+                auto insertion_idx = self.ctr_insert_subtree_one_pass(
                                 path,
                                 1,
                                 parent_idx + 1,
                                 list_provider,
                                 insertion_state
-                ));
+                );
 
                 last_insertion_idx = insertion_idx;
                 parent_idx = insertion_idx - 1;
@@ -392,31 +379,25 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
                 insertion_state.next_pass();
             }
 
-            MEMORIA_TRY(parent_size, self.ctr_get_branch_node_size(path[1]));
+            auto parent_size = self.ctr_get_branch_node_size(path[1]);
             if (last_insertion_idx < parent_size)
             {
-                MEMORIA_TRY(child, self.ctr_get_node_child(path[1], last_insertion_idx));
+                auto child = self.ctr_get_node_child(path[1], last_insertion_idx);
                 path[0] = child;
 
                 TreePathT prev_path = path;
-                MEMORIA_TRY_VOID(self.ctr_expect_prev_node(prev_path, 0));
+                self.ctr_expect_prev_node(prev_path, 0);
 
-                MEMORIA_TRY(
-                            has_merge,
-                            self.ctr_merge_leaf_nodes(prev_path, path);
-                );
-
+                auto has_merge = self.ctr_merge_leaf_nodes(prev_path, path);
                 if (has_merge) {
                     path = prev_path;
                 }
             }
             else {
-                MEMORIA_TRY(child, self.ctr_get_node_child(path[1], last_insertion_idx - 1));
+                auto child = self.ctr_get_node_child(path[1], last_insertion_idx - 1);
                 path[0] = child;
             }
         }
-
-        return ResultT::of();
     }
 
 MEMORIA_V1_CONTAINER_PART_END
@@ -428,110 +409,109 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-Int32Result M_TYPE::ctr_insert_subtree_one_pass(
+int32_t M_TYPE::ctr_insert_subtree_one_pass(
         TreePathT& path,
         size_t level,
         int32_t idx,
         ILeafProvider& leaf_provider,
         BatchInsertionState& state
-) noexcept
+)
 {
     auto& self = this->self();
 
-    MEMORIA_TRY(insertion_result, self.ctr_insert_batch_to_node(path, level, idx, leaf_provider));
+    auto insertion_result = self.ctr_insert_batch_to_node(path, level, idx, leaf_provider);
     state.inserted() += insertion_result.subtree_size();
 
     if (state.has_more())
     {
         if (state.shouldMoveUp())
         {
-            MEMORIA_TRY(node_size, self.ctr_get_branch_node_size(path[level]));
+            auto node_size = self.ctr_get_branch_node_size(path[level]);
             if (insertion_result.idx() < node_size)
             {
-                MEMORIA_TRY_VOID(self.ctr_split_path(path, level, insertion_result.idx()));
-                MEMORIA_TRY(insertion_result5, self.ctr_insert_batch_to_node(path, level, insertion_result.idx(), leaf_provider));
+                self.ctr_split_path(path, level, insertion_result.idx());
+                auto insertion_result5 = self.ctr_insert_batch_to_node(path, level, insertion_result.idx(), leaf_provider);
                 state.inserted() += insertion_result5.subtree_size();
 
                 if (!state.has_more()) {
-                    return Int32Result::of(insertion_result5.idx());
+                    return insertion_result5.idx();
                 }
             }
             else if (path[level]->is_root())
             {
-                 MEMORIA_TRY_VOID(self.ctr_create_new_root_block(path));
+                 self.ctr_create_new_root_block(path);
             }
 
-            MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(path, level));
-            MEMORIA_TRY(
-                        parent_insertion_result,
-                        self.ctr_insert_subtree_one_pass(
+            auto parent_idx = self.ctr_get_parent_idx(path, level);
+
+            auto parent_insertion_result =self.ctr_insert_subtree_one_pass(
                             path,
                             level + 1,
                             parent_idx + 1,
                             leaf_provider,
                             state
-                        )
             );
 
-            MEMORIA_TRY(parent_size, self.ctr_get_branch_node_size(path[level + 1]));
+
+            auto parent_size = self.ctr_get_branch_node_size(path[level + 1]);
             if (parent_insertion_result < parent_size)
             {
-                MEMORIA_TRY(child, self.ctr_get_node_child(path[level + 1], parent_insertion_result));
+                auto child = self.ctr_get_node_child(path[level + 1], parent_insertion_result);
                 path[level] = child;
 
                 if (state.has_more())
                 {
-                    MEMORIA_TRY(insertion_result4, self.ctr_insert_batch_to_node(path, level, 0, leaf_provider));
+                    auto insertion_result4 = self.ctr_insert_batch_to_node(path, level, 0, leaf_provider);
                     state.inserted() += insertion_result4.subtree_size();
 
-                    return Int32Result::of(insertion_result4.idx());
+                    return insertion_result4.idx();
                 }
                 else {
-                    return Int32Result::of(0);
+                    return 0;
                 }
             }
             else {
-                MEMORIA_TRY(child, self.ctr_get_node_child(path[level + 1], parent_insertion_result - 1));
+                auto child = self.ctr_get_node_child(path[level + 1], parent_insertion_result - 1);
                 path[level] = child;
                 return self.ctr_get_branch_node_size(child);
             }
         }
         else {
             int32_t last_idx = insertion_result.idx();
-            MEMORIA_TRY(node_size, self.ctr_get_branch_node_size(path[level]));
+            auto node_size = self.ctr_get_branch_node_size(path[level]);
 
             if (last_idx < node_size)
             {
-                MEMORIA_TRY_VOID(self.ctr_split_path(path, level, last_idx));
+                self.ctr_split_path(path, level, last_idx);
 
-                MEMORIA_TRY(insertion_result2, self.ctr_insert_batch_to_node(path, level, last_idx, leaf_provider));
+                auto insertion_result2 = self.ctr_insert_batch_to_node(path, level, last_idx, leaf_provider);
                 state.inserted() += insertion_result2.subtree_size();
 
                 if (state.has_more())
                 {
-                    MEMORIA_TRY_VOID(self.ctr_expect_next_node(path, level));
-                    MEMORIA_TRY(insertion_result3, self.ctr_insert_batch_to_node(path, level, 0, leaf_provider));
+                    self.ctr_expect_next_node(path, level);
+                    auto insertion_result3 = self.ctr_insert_batch_to_node(path, level, 0, leaf_provider);
                     state.inserted() += insertion_result3.subtree_size();
 
-                    return Int32Result::of(insertion_result3.idx());
+                    return insertion_result3.idx();
                 }
                 else {
-                    return Int32Result::of(insertion_result2.idx());
+                    return insertion_result2.idx();
                 }
             }
             else {
-                MEMORIA_TRY_VOID(self.ctr_split_path(path, level, last_idx));
-                MEMORIA_TRY_VOID(self.ctr_expect_next_node(path, level));
+                self.ctr_split_path(path, level, last_idx);
+                self.ctr_expect_next_node(path, level);
 
-                MEMORIA_TRY(insertion_result6, self.ctr_insert_batch_to_node(path, level, 0, leaf_provider));
+                auto insertion_result6 = self.ctr_insert_batch_to_node(path, level, 0, leaf_provider);
                 state.inserted() += insertion_result6.subtree_size();
 
-                return Int32Result::of(insertion_result6.idx());
+                return insertion_result6.idx();
             }
         }
     }
     else {
-        return Int32Result::of(insertion_result.idx());
+        return insertion_result.idx();
     }
 }
 

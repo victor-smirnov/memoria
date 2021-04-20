@@ -43,10 +43,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
     using TargetType = typename Base::Types::template TargetType<LeafPath>;
 
     template <typename Walker>
-    auto iter_find_fw(Walker&& walker) noexcept -> Result<decltype(walker.result())>
+    auto iter_find_fw(Walker&& walker)
     {
-        using ResultT = Result<decltype(walker.result())>;
-
         auto& self = this->self();
 
         walker.prepare(self);
@@ -55,7 +53,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         TreePathT end_path = self.path();
 
-        MEMORIA_TRY(result, self.ctr().ctr_find_fw(self.path(), end_path, 0, node_chain, walker));
+        auto result = self.ctr().ctr_find_fw(self.path(), end_path, 0, node_chain, walker);
 
         if (end_path.leaf() != self.path().leaf())
         {
@@ -67,14 +65,12 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         walker.finish(self, result.idx, result.cmd);
 
-        return ResultT::of(walker.result());
+        return walker.result();
     }
 
     template <typename Walker>
-    auto iter_find_bw(Walker&& walker) noexcept -> Result<decltype(walker.result())>
+    auto iter_find_bw(Walker&& walker)
     {
-        using ResultT = Result<decltype(walker.result())>;
-
         auto& self = this->self();
 
         walker.prepare(self);
@@ -83,7 +79,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         TreePathT end_path = self.path();
 
-        MEMORIA_TRY(result, self.ctr().ctr_find_bw(self.path(), end_path, 0, node_chain, walker));
+        auto result = self.ctr().ctr_find_bw(self.path(), end_path, 0, node_chain, walker);
 
         if (end_path.leaf() != self.path().leaf())
         {
@@ -95,13 +91,13 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         walker.finish(self, result.idx, result.cmd);
 
-        return ResultT::of(walker.result());
+        return walker.result();
     }
 
 
 
     template <typename LeafPath>
-    auto iter_find_fw_gt(int32_t index, TargetType<LeafPath> key) noexcept
+    auto iter_find_fw_gt(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_ASSERT(index, >=, 0);
         MEMORIA_ASSERT(key, >=, 0);
@@ -112,7 +108,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
     }
 
     template <typename LeafPath>
-    auto iter_find_fw_ge(int32_t index, TargetType<LeafPath> key) noexcept
+    auto iter_find_fw_ge(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_ASSERT(index, >=, 0);
         MEMORIA_ASSERT(key, >=, 0);
@@ -124,7 +120,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
 
     template <typename LeafPath>
-    auto iter_find_bw_gt(int32_t index, TargetType<LeafPath> key) noexcept
+    auto iter_find_bw_gt(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_ASSERT(index, >=, 0);
         MEMORIA_ASSERT(key, >=, 0);
@@ -135,7 +131,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
     }
 
     template <typename LeafPath>
-    auto iter_find_bw_ge(int32_t index, TargetType<LeafPath> key) noexcept
+    auto iter_find_bw_ge(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_ASSERT(index, >=, 0);
         MEMORIA_ASSERT(key, >=, 0);

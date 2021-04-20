@@ -35,7 +35,7 @@ namespace detail {
 
 struct FileLockHandler {
     virtual ~FileLockHandler() noexcept;
-    virtual VoidResult unlock() noexcept = 0;
+    virtual void unlock() = 0;
 
     static Result<std::unique_ptr<FileLockHandler>> lock_file(const char* name, bool create) noexcept;
 };
@@ -117,9 +117,9 @@ public:
     }
 
 
-    virtual Result<std::vector<CommitID>> persistent_commits() noexcept
+    virtual std::vector<CommitID> persistent_commits()
     {
-        MEMORIA_TRY_VOID(check_if_open());
+        check_if_open();
 
         LockGuard lock(reader_mutex_);
 
@@ -131,15 +131,13 @@ public:
             commits.push_back(descr.first);
         }
 
-        return ResultT::of(std::move(commits));
+        return std::move(commits);
     }
 
-    virtual Result<ReadOnlyCommitPtr> open(CommitID commit_id) noexcept
+    virtual ReadOnlyCommitPtr open(CommitID commit_id)
     {
-        MEMORIA_TRY_VOID(check_if_open());
+        check_if_open();
         LockGuard lock(reader_mutex_);
-
-        using ResultT = Result<ReadOnlyCommitPtr>;
 
         if (MMA_UNLIKELY(head_ptr_->superblock()->commit_id() == commit_id)) {
             return open();
@@ -151,104 +149,85 @@ public:
         auto ii = persistent_commits_.find(commit_id);
         if (ii != persistent_commits_.end())
         {
-            return ResultT{
-                memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(do_open_readonly(ii->second))
-            };
+            return memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(
+                do_open_readonly(ii->second)
+            );
         }
         else {
-            return make_generic_error_with_source(MA_SRC, "Can't find commit {}", commit_id);
+            make_generic_error_with_source(MA_SRC, "Can't find commit {}", commit_id).do_throw();
         }
     }
 
-    virtual Result<ReadOnlyCommitPtr> open() noexcept
+    virtual ReadOnlyCommitPtr open()
     {
-        MEMORIA_TRY_VOID(check_if_open());
-
-        using ResultT = Result<ReadOnlyCommitPtr>;
+        check_if_open();
 
         LockGuard lock(reader_mutex_);
-        return ResultT{
-            memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(do_open_readonly(head_ptr_))
-        };
+        return memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(do_open_readonly(head_ptr_));
     }
 
-    virtual BoolResult drop_persistent_commit(CommitID commit_id) noexcept {
-        MEMORIA_TRY_VOID(check_if_open());
-        return BoolResult::of();
+    virtual bool drop_persistent_commit(CommitID commit_id) {
+        check_if_open();
+        return false;
     }
 
-    virtual VoidResult rollback_last_commit() noexcept
+    virtual void rollback_last_commit()
     {
-        MEMORIA_TRY_VOID(check_if_open());
-        return VoidResult::of();
+        check_if_open();
     }
 
-    virtual VoidResult flush() noexcept = 0;
+    virtual void flush() = 0;
 
-    virtual Result<WritableCommitPtr> begin() noexcept
+    virtual WritableCommitPtr begin()
     {
-        MEMORIA_TRY_VOID(check_if_open());
-
-        using ResultT = Result<SWMRWritableCommitPtr>;
+        check_if_open();
         writer_mutex_.lock();
 
-        ResultT res = wrap_throwing([&]() -> ResultT {
-            CommitDescriptorT* commit_descriptor = new CommitDescriptorT();
+        try {
+            std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>();
 
-            Result<SWMRWritableCommitPtr> ptr_res = do_create_writable(head_ptr_, commit_descriptor);
+            SWMRWritableCommitPtr ptr = do_create_writable(head_ptr_, commit_descriptor.get());
 
-            if (ptr_res.is_ok())
-            {
-                return ResultT::of(std::move(ptr_res.get()));
-            }
-            else {
-                delete commit_descriptor;
-                return std::move(ptr_res).transfer_error();
-            }
-        });
+            ptr->finish_commit_opening();
 
-        if (MMA_UNLIKELY(res.is_error()))
-        {
-            writer_mutex_.unlock();
-            return MEMORIA_PROPAGATE_ERROR(res);
+            current_writer_ = ptr;
+
+            commit_descriptor.release();
+
+            return ptr;
         }
-        else {
-            current_writer_ = res.get();
-            MEMORIA_TRY_VOID(res.get()->finish_commit_opening());
-            return Result<WritableCommitPtr>::of(std::move(res).get());
+        catch (...) {
+            writer_mutex_.unlock();
+            throw;
         }
     }
 
-    virtual VoidResult close() noexcept = 0;
+    virtual void close() = 0;
 
-    virtual VoidResult flush_data(bool async = false) noexcept = 0;
-    virtual VoidResult flush_header(bool async = false) noexcept = 0;
+    virtual void flush_data(bool async = false) = 0;
+    virtual void flush_header(bool async = false) = 0;
 
-    VoidResult finish_commit(CommitDescriptorT* commit_descriptor) noexcept
+    void finish_commit(CommitDescriptorT* commit_descriptor)
     {
-        return wrap_throwing([&](){
-            {
-                LockGuard lock(reader_mutex_);
 
-                if (former_head_ptr_ && !former_head_ptr_->is_persistent()) {
-                    eviction_queue_.push_back(*former_head_ptr_);
-                }
+        LockGuard lock(reader_mutex_);
 
-                former_head_ptr_ = head_ptr_;
-                head_ptr_ = commit_descriptor;
+        if (former_head_ptr_ && !former_head_ptr_->is_persistent()) {
+            eviction_queue_.push_back(*former_head_ptr_);
+        }
 
-                if (commit_descriptor->is_persistent()) {
-                    auto commit_id = commit_descriptor->superblock()->commit_id();
-                    this->persistent_commits_[commit_id] = commit_descriptor;
-                }
-            }
+        former_head_ptr_ = head_ptr_;
+        head_ptr_ = commit_descriptor;
 
-            writer_mutex_.unlock();
-        });
+        if (commit_descriptor->is_persistent()) {
+            auto commit_id = commit_descriptor->superblock()->commit_id();
+            this->persistent_commits_[commit_id] = commit_descriptor;
+        }
+
+        writer_mutex_.unlock();
     }
 
-    VoidResult finish_rollback(CommitDescriptorT* commit_descriptor) noexcept {
-        return VoidResult::of();
+    void finish_rollback(CommitDescriptorT* commit_descriptor) {
     }
 
 //    Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>> history_view() noexcept {
@@ -264,41 +243,28 @@ public:
     }
 
 
-    virtual VoidResult check_if_open() noexcept  = 0;
+    virtual void check_if_open() = 0;
 
-
-    //virtual VoidResult check_file_size() noexcept = 0;
-
-
-
-    Result<ReadOnlyCommitPtr> open_readonly(CommitDescriptorT* commit_descr) noexcept {
-        using ResultT = Result<ReadOnlyCommitPtr>;
-        return ResultT {
-            memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(do_open_readonly(commit_descr))
-        };
+    ReadOnlyCommitPtr open_readonly(CommitDescriptorT* commit_descr) {
+        return memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(do_open_readonly(commit_descr));
     }
 
-    virtual Result<SWMRReadOnlyCommitPtr> do_open_readonly(CommitDescriptorT* commit_descr) noexcept = 0;
-    virtual Result<SWMRWritableCommitPtr> do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) noexcept = 0;
-    virtual Result<SWMRWritableCommitPtr> do_create_writable_for_init(CommitDescriptorT* commit_descr) noexcept = 0;
+    virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr) = 0;
+    virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) = 0;
+    virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr) = 0;
 
-    virtual Result<Optional<SequenceID>> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) noexcept
-    {
-        MEMORIA_TRY_VOID(check_if_open());
-        return wrap_throwing([&]() {
-            return do_check(from, callback);
-        });
+    virtual Optional<SequenceID> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) {
+        check_if_open();
+        return do_check(from, callback);
     }
 
-    Result<std::vector<SWMRReadOnlyCommitPtr>> build_ordered_commits_list(
+    std::vector<SWMRReadOnlyCommitPtr> build_ordered_commits_list(
             const Optional<SequenceID>& from = Optional<SequenceID>{}
-    ) noexcept {
-        using ResultT = Result<std::vector<SWMRReadOnlyCommitPtr>>;
-
+    ){
         std::vector<SWMRReadOnlyCommitPtr> commits;
 
         for (CommitDescriptorT& commit: eviction_queue_) {
-            MEMORIA_TRY(ptr, do_open_readonly(&commit));
+            auto ptr = do_open_readonly(&commit);
 
             if ((!from) || (from && from.get() < ptr->sequence_id())) {
                 commits.push_back(ptr);
@@ -306,7 +272,7 @@ public:
         }
 
         for (auto pair: persistent_commits_) {
-            MEMORIA_TRY(ptr, do_open_readonly(pair.second));
+            auto ptr = do_open_readonly(pair.second);
 
             if ((!from) || (from && from.get() < ptr->sequence_id())) {
                 commits.push_back(ptr);
@@ -314,7 +280,7 @@ public:
         }
 
         if (former_head_ptr_) {
-            MEMORIA_TRY(ptr, do_open_readonly(former_head_ptr_));
+            auto ptr = do_open_readonly(former_head_ptr_);
 
             if ((!from) || (from && from.get() < ptr->sequence_id())) {
                 commits.push_back(ptr);
@@ -322,7 +288,7 @@ public:
         }
 
         if (head_ptr_) {
-            MEMORIA_TRY(ptr, do_open_readonly(head_ptr_));
+            auto ptr = do_open_readonly(head_ptr_);
 
             if ((!from) || (from && from.get() < ptr->sequence_id())) {
                 commits.push_back(ptr);
@@ -333,48 +299,47 @@ public:
             return one->sequence_id() < two->sequence_id();
         });
 
-        return ResultT::of(commits);
+        return commits;
     }
 
-    Result<Optional<SequenceID>> do_check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback)
+    Optional<SequenceID> do_check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback)
     {
-        using ResultT = Result<Optional<SequenceID>>;
         LockGuard lock(writer_mutex_);
 
-        MEMORIA_TRY(commits, build_ordered_commits_list(from));
+        auto commits = build_ordered_commits_list(from);
 
         if (commits.size() > 0)
         {
             CommitCheckState<Profile> check_state;
 
             for (auto& commit: commits) {
-                MEMORIA_TRY_VOID(commit->check(callback));
+                commit->check(callback);
                 if (!from) {
-                    MEMORIA_TRY_VOID(commit->build_block_refcounters(check_state.counters));
+                    commit->build_block_refcounters(check_state.counters);
                 }
             }
 
             SWMRWritableCommitPtr head = current_writer_.lock();
 
             if (head) {
-                MEMORIA_TRY_VOID(head->check(callback));
+                head->check(callback);
                 if (!from) {
-                    MEMORIA_TRY_VOID(head->build_block_refcounters(check_state.counters));
+                    head->build_block_refcounters(check_state.counters);
                 }
             }
 
             if (!from) {
-                MEMORIA_TRY_VOID(check_refcounters(check_state.counters, callback));
+                check_refcounters(check_state.counters, callback);
             }
 
-            return ResultT::of(commits[commits.size() - 1]->sequence_id());
+            return commits[commits.size() - 1]->sequence_id();
         }
         else {
-            return ResultT::of();
+            return Optional<SequenceID>{};
         }
     }
 
-    VoidResult check_refcounters(const SWMRBlockCounters<Profile>& counters, StoreCheckCallbackFn callback) noexcept {
+    void check_refcounters(const SWMRBlockCounters<Profile>& counters, StoreCheckCallbackFn callback) {
         if (counters.size() != block_counters_.size())
         {
             LDDocument doc;
@@ -383,10 +348,10 @@ public:
                         block_counters_.size(),
                         counters.size()));
 
-            MEMORIA_TRY_VOID(callback(doc));
+            return callback(doc);
         }
 
-        auto res = counters.for_each([&](const BlockID& block_id, uint64_t counter) noexcept -> VoidResult {
+        counters.for_each([&](const BlockID& block_id, uint64_t counter) {
             auto res = block_counters_.get(block_id);
 
             if (res) {
@@ -400,8 +365,6 @@ public:
 
                     return callback(doc);
                 }
-
-                return VoidResult::of();
             }
             else {
                 LDDocument doc;
@@ -413,25 +376,21 @@ public:
                 return callback(doc);
             }
         });
-
-        return res;
     }
 
-    virtual VoidResult ref_block(const BlockID& block_id) noexcept {
+    virtual void ref_block(const BlockID& block_id) {
         block_counters_.inc(block_id);
-        return VoidResult::of();
     }
 
-    virtual VoidResult unref_block(const BlockID& block_id, const std::function<VoidResult()>& on_zero) noexcept {
-        MEMORIA_TRY(zero, block_counters_.dec(block_id));
+    virtual void unref_block(const BlockID& block_id, const std::function<void ()>& on_zero) {
+        auto zero = block_counters_.dec(block_id);
         if (zero) {
             return on_zero();
         }
-        return VoidResult::of();
     }
 
-    virtual VoidResult unref_ctr_root(const BlockID&) noexcept {
-        return make_generic_error("SWMRStoreBase::unref_ctr_root() should not be called");
+    virtual void unref_ctr_root(const BlockID&) {
+        return make_generic_error("SWMRStoreBase::unref_ctr_root() should not be called").do_throw();
     }
 };
 

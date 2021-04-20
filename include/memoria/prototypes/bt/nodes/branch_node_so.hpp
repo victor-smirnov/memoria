@@ -228,26 +228,26 @@ public:
     }
 
     template <typename V>
-    VoidResult forAllValues(int32_t start, int32_t end, const std::function<VoidResult (const V&)>& fn) const noexcept
+    VoidResult forAllValues(int32_t start, int32_t end, const std::function<void (const V&)>& fn) const
     {
         const Value* v = node_->values();
         for (int32_t c = start; c < end; c++)
         {
-            MEMORIA_TRY_VOID(fn(v[c]));
+            fn(v[c]);
         }
 
         return VoidResult::of();
     }
 
     template <typename V>
-    VoidResult forAllValues(int32_t start, const std::function<VoidResult (const V&)>& fn) const noexcept
+    VoidResult forAllValues(int32_t start, const std::function<void (const V&)>& fn) const
     {
-        MEMORIA_TRY(end, size());
+        auto end = size().get_or_throw();
         return forAllValues(start, end, fn);
     }
 
     template <typename V>
-    VoidResult forAllValues(const std::function<VoidResult (const V&)>& fn) const noexcept
+    VoidResult forAllValues(const std::function<void (const V&)>& fn) const
     {
         return forAllValues(0, fn);
     }

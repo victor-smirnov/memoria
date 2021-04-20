@@ -41,15 +41,13 @@ struct MapIterator: BTSSIterator<Profile> {
 
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
 
-    virtual ~MapIterator() noexcept {}
+    virtual Datum<Key> key() const = 0;
+    virtual Datum<Value> value() const = 0;
 
-    virtual Datum<Key> key() const noexcept = 0;
-    virtual Datum<Value> value() const noexcept = 0;
+    virtual bool is_end() const = 0;
+    virtual bool next() = 0;
 
-    virtual bool is_end() const noexcept = 0;
-    virtual BoolResult next() noexcept = 0;
-
-    virtual bool is_found(const KeyView& key) const noexcept = 0;
+    virtual bool is_found(const KeyView& key) const = 0;
 };
 
 
@@ -66,37 +64,37 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     using Producer      = MapProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
-    virtual Result<ApiProfileCtrSizeT<Profile>> size() const noexcept = 0;
-    virtual VoidResult assign_key(KeyView key, ValueView value) noexcept = 0;
-    virtual VoidResult remove_key(KeyView key) noexcept = 0;
+    virtual ApiProfileCtrSizeT<Profile> size() const = 0;
+    virtual void assign_key(KeyView key, ValueView value) = 0;
+    virtual void remove_key(KeyView key) = 0;
 
-    virtual Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>> find(KeyView key) const noexcept = 0;
+    virtual CtrSharedPtr<MapIterator<Key, Value, Profile>> find(KeyView key) const = 0;
 
-    VoidResult append(ProducerFn producer_fn) noexcept {
+    void append(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return append(producer);
     }
 
-    virtual VoidResult append(io::IOVectorProducer& producer) noexcept = 0;
+    virtual void append(io::IOVectorProducer& producer) = 0;
 
-    VoidResult prepend(ProducerFn producer_fn) noexcept {
+    void prepend(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return prepend(producer);
     }
 
-    virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept = 0;
+    virtual void prepend(io::IOVectorProducer& producer) = 0;
 
-    VoidResult insert(KeyView before, ProducerFn producer_fn) noexcept {
+    void insert(KeyView before, ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return insert(before, producer);
     }
 
-    virtual VoidResult insert(KeyView before, io::IOVectorProducer& producer) noexcept = 0;
+    virtual void insert(KeyView before, io::IOVectorProducer& producer) = 0;
 
-    virtual Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>> iterator() const noexcept = 0;
+    virtual CtrSharedPtr<MapIterator<Key, Value, Profile>> iterator() const = 0;
 
     MapScanner<ApiTypes, Profile> scanner() const {
-        return MapScanner<ApiTypes, Profile>(iterator().get_or_throw());
+        return MapScanner<ApiTypes, Profile>(iterator());
     }
 
     template <typename Fn>
@@ -104,27 +102,14 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         return MapScanner<ApiTypes, Profile>(iterator_producer(this));
     }
 
-    Result<MapScanner<ApiTypes, Profile>> scanner_from(
-            Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>>&& iterator_res
-    ) const noexcept
-    {
-        using ResultT = Result<MapScanner<ApiTypes, Profile>>;
-        if (iterator_res.is_ok()){
-            return ResultT::of(std::move(iterator_res).get());
-        }
-        else {
-            return std::move(iterator_res).transfer_error();
-        }
-    }
 
+    virtual Optional<Datum<Value>> remove_and_return(KeyView key) = 0;
+    virtual Optional<Datum<Value>> replace_and_return(KeyView key, ValueView value) = 0;
 
-    virtual Result<Optional<Datum<Value>>> remove_and_return(KeyView key) noexcept = 0;
-    virtual Result<Optional<Datum<Value>>> replace_and_return(KeyView key, ValueView value) noexcept = 0;
-
-    virtual VoidResult with_value(
+    virtual void with_value(
             KeyView key,
             std::function<Optional<Datum<Value>> (Optional<Datum<Value>>)> value_fn
-    ) noexcept = 0;
+    ) = 0;
 
     MMA_DECLARE_ICTRAPI();
 };

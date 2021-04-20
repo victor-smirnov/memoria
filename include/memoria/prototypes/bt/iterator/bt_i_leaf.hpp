@@ -29,12 +29,12 @@ namespace memoria {
 MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorLeafName)
 
 public:
-    BoolResult iter_next_leaf() noexcept
+    bool iter_next_leaf()
     {
         auto& self = this->self();
 
         auto current_leaf = self.iter_leaf();
-        MEMORIA_TRY(has_next_leaf, self.ctr().ctr_get_next_node(self.path(), 0));
+        auto has_next_leaf = self.ctr().ctr_get_next_node(self.path(), 0);
 
         if (has_next_leaf)
         {
@@ -42,26 +42,26 @@ public:
 
             walker.prepare(self);
 
-            MEMORIA_TRY_VOID(self.ctr().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0));
+            self.ctr().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0).get_or_throw();
 
             walker.finish(self, 0, WalkCmd::NONE);
 
             self.refresh_iovector_view();
 
-            return BoolResult::of(true);
+            return true;
         }
         else {
-            return BoolResult::of(false);
+            return false;
         }
     }
 
 
-    BoolResult iter_prev_leaf() noexcept
+    bool iter_prev_leaf()
     {
         auto& self = this->self();
 
         auto current_leaf = self.iter_leaf();
-        MEMORIA_TRY(has_prev_leaf, self.ctr().ctr_get_prev_node(self.path(), 0));
+        auto has_prev_leaf = self.ctr().ctr_get_prev_node(self.path(), 0);
 
         if (has_prev_leaf)
         {
@@ -70,14 +70,14 @@ public:
             walker.prepare(self);
 
             // FIXME need to refresh iterator's iovector view
-            self().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0);
+            self().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0).get_or_throw();
 
             walker.finish(self, 0, WalkCmd::NONE);
 
-            return BoolResult::of(true);
+            return true;
         }
         else {
-            return BoolResult::of(false);
+            return false;
         }
     }
 

@@ -336,15 +336,17 @@ public:
                 CtrT& ctr
                 ) const noexcept
         {
-            auto ii = buffer.begin();
-            auto end = buffer.end();
+            return wrap_throwing([&]() -> VoidResult {
+                auto ii = buffer.begin();
+                auto end = buffer.end();
 
-            for (; ii != end; ii++)
-            {
-                MEMORIA_TRY_VOID(ctr.ctr_ref_block(*ii));
-            }
+                for (; ii != end; ii++)
+                {
+                    ctr.ctr_ref_block(*ii);
+                }
 
-            return VoidResult::of();
+                return VoidResult::of();
+            });
         }
     };
 
@@ -374,15 +376,17 @@ public:
                 Store& store
                 ) const noexcept
         {
-            auto ii = buffer.begin();
-            auto end = buffer.end();
+            return wrap_throwing([&]() -> VoidResult {
+                auto ii = buffer.begin();
+                auto end = buffer.end();
 
-            for (; ii != end; ii++)
-            {
-                MEMORIA_TRY_VOID(store.unref_ctr_root(*ii));
-            }
+                for (; ii != end; ii++)
+                {
+                    store.unref_ctr_root(*ii);
+                }
 
-            return VoidResult::of();
+                return VoidResult::of();
+            });
         }
     };
 
@@ -418,20 +422,22 @@ public:
                 const BlockProcessorFn& fn
         ) const noexcept
         {
-            auto ii = buffer.begin();
-            auto end = buffer.end();
+            return wrap_throwing([&](){
+                auto ii = buffer.begin();
+                auto end = buffer.end();
 
-            for (; ii != end; ii++)
-            {
-                MEMORIA_TRY_VOID(fn(*ii));
-            }
+                for (; ii != end; ii++)
+                {
+                    fn(*ii);
+                }
 
-            return VoidResult::of();
+                return VoidResult::of();
+            });
         }
     };
 
     template <typename BlockID>
-    VoidResult for_all_ctr_root_ids(const std::function<VoidResult (const BlockID&)>& fn) const noexcept {
+    VoidResult for_all_ctr_root_ids(const std::function<void (const BlockID&)>& fn) const noexcept {
         return processAll(ForAllCtrRootIDsFn(), fn);
     }
 

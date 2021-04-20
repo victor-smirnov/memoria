@@ -50,17 +50,17 @@ public:
         return ptr_cast<Superblock>(buffer_.data() + file_pos);
     }
 
-    virtual VoidResult do_open_buffer() noexcept
+    virtual void do_open_buffer()
     {
         Superblock* sb0 = ptr_cast<Superblock>(buffer_.data());
         Superblock* sb1 = ptr_cast<Superblock>(buffer_.data() + BASIC_BLOCK_SIZE);
 
         if (!sb0->match_magick()) {
-            return MEMORIA_MAKE_GENERIC_ERROR("First SWMR store header magick number mismatch");
+            MEMORIA_MAKE_GENERIC_ERROR("First SWMR store header magick number mismatch").do_throw();
         }
 
         if (!sb1->match_magick()) {
-            return MEMORIA_MAKE_GENERIC_ERROR("Second SWMR store header magick number mismatch");
+            MEMORIA_MAKE_GENERIC_ERROR("Second SWMR store header magick number mismatch").do_throw();
         }
 
         if (sb0->sequence_id() > sb1->sequence_id())
@@ -82,16 +82,16 @@ public:
         }
 
         if (head_ptr_->superblock()->file_size() != buffer_.size()) {
-            return MEMORIA_MAKE_GENERIC_ERROR(
+            MEMORIA_MAKE_GENERIC_ERROR(
                 "SWMR Store file size mismatch with header: {} {}",
                 head_ptr_->superblock()->file_size(), buffer_.size()
-            );
+            ).do_throw();
         }
 
         // Read snapshot history and
         // preload all transient snapshots into the
         // eviction queue
-        MEMORIA_TRY(ptr, do_open_readonly(head_ptr_));
+        auto ptr = do_open_readonly(head_ptr_);
 
         uint64_t head_pos = head_ptr_->superblock()->superblock_file_pos();
 
@@ -100,18 +100,15 @@ public:
             former_head_pos = former_head_ptr_->superblock()->superblock_file_pos();
         }
 
-        auto rr = ptr->for_each_history_entry([&](const auto& commit_id, int64_t root_block_addr) noexcept -> VoidResult {
+        ptr->for_each_history_entry([&](const auto& commit_id, int64_t root_block_addr) {
             if (root_block_addr < 0)
             {
                 uint64_t superblock_pos = -root_block_addr;
                 if (superblock_pos != former_head_pos && superblock_pos != head_pos)
                 {
-                    auto res = wrap_throwing([&](){
-                        Superblock* superblock = ptr_cast<Superblock>(buffer_.data() + superblock_pos);
-                        CommitDescriptorT* commit_descr = new CommitDescriptorT(superblock);
-                        eviction_queue_.push_back(*commit_descr);
-                    });
-                    MEMORIA_RETURN_IF_ERROR(res);
+                    Superblock* superblock = ptr_cast<Superblock>(buffer_.data() + superblock_pos);
+                    CommitDescriptorT* commit_descr = new CommitDescriptorT(superblock);
+                    eviction_queue_.push_back(*commit_descr);
                 }
             }
             else {
@@ -120,10 +117,7 @@ public:
                 commit_descr->set_persistent(true);
                 persistent_commits_[commit_id] = commit_descr;
             }
-
-            return VoidResult::of();
         });
-        MEMORIA_RETURN_IF_ERROR(rr);
 
         if (head_ptr_->superblock()->is_clean()) {
             return read_block_counters();
@@ -131,11 +125,9 @@ public:
         else {
             return rebuild_block_counters();
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult read_block_counters() noexcept
+    void read_block_counters()
     {
         auto ctr_file_pos = head_ptr_->superblock()->block_counters_file_pos();
         auto size = head_ptr_->superblock()->block_counters_size();
@@ -145,52 +137,38 @@ public:
         {
             block_counters_.set(ctr_storage[c].block_id, ctr_storage[c].counter);
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult rebuild_block_counters() noexcept {
-        MEMORIA_TRY(commits, this->build_ordered_commits_list());
+    void rebuild_block_counters() noexcept {
+        auto commits = this->build_ordered_commits_list();
 
         for (auto& commit: commits) {
-            MEMORIA_TRY_VOID(commit->build_block_refcounters(block_counters_));
+            commit->build_block_refcounters(block_counters_);
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult init_mapped_store() noexcept
+    void init_mapped_store()
     {
         Superblock* sb0 = get_superblock(0);
         Superblock* sb1 = get_superblock(BASIC_BLOCK_SIZE);
 
-        MEMORIA_TRY_VOID(sb0->init(0, buffer_.size(), 0, BASIC_BLOCK_SIZE, 0));
-        MEMORIA_TRY_VOID(sb0->build_superblock_description());
+        sb0->init(0, buffer_.size(), 0, BASIC_BLOCK_SIZE, 0);
+        sb0->build_superblock_description();
 
-        MEMORIA_TRY_VOID(sb1->init(BASIC_BLOCK_SIZE, buffer_.size(), 0, BASIC_BLOCK_SIZE, 0));
-        MEMORIA_TRY_VOID(sb1->build_superblock_description());
+        sb1->init(BASIC_BLOCK_SIZE, buffer_.size(), 0, BASIC_BLOCK_SIZE, 0);
+        sb1->build_superblock_description();
 
-        //MaybeError maybe_error{};
-        CommitDescriptorT* commit_descriptor = new CommitDescriptorT();
+
+        auto commit_descriptor_ptr = std::make_unique<CommitDescriptorT>();
 
         writer_mutex_.lock();
 
-        auto ptr_res = do_create_writable_for_init(commit_descriptor);
+        auto ptr = do_create_writable_for_init(commit_descriptor_ptr.get());
 
-//        auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
-//            maybe_error, this->shared_from_this(), buffer_, commit_descriptor, InitStoreTag{}
-//        );
+        ptr->finish_store_initialization();
+        head_ptr_ = commit_descriptor_ptr.get();
 
-        if (ptr_res.is_ok())
-        {
-            MEMORIA_TRY_VOID(ptr_res.get()->finish_store_initialization());
-            head_ptr_ = commit_descriptor;
-            return VoidResult::of();
-        }
-        else {
-            delete commit_descriptor;
-            return std::move(ptr_res).transfer_error();
-        }
+        commit_descriptor_ptr.release();
     }
 
 

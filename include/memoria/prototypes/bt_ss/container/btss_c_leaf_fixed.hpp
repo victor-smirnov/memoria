@@ -29,12 +29,13 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafFixedName)
 
     using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
 
 
     MEMORIA_V1_DECLARE_NODE_FN(GetStreamCapacityFn, single_stream_capacity);
-    Int32Result ctr_get_leaf_node_capacity(const TreeNodePtr& node, int max_hops = 100) const noexcept
+    int32_t ctr_get_leaf_node_capacity(const TreeNodeConstPtr& node, int max_hops = 100) const
     {
-        return self().leaf_dispatcher().dispatch(node, GetStreamCapacityFn(), max_hops);
+        return self().leaf_dispatcher().dispatch(node, GetStreamCapacityFn(), max_hops).get_or_throw();
     }
 
 

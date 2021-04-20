@@ -44,10 +44,8 @@ public:
         store_(store), head_(head)
     {}
 
-    virtual VoidResult check() noexcept
+    virtual void check() noexcept
     {
-        return VoidResult::of();
-
 //        MEMORIA_TRY_VOID(store_->check_if_open());
 
 //        auto res = head_->for_each_history_entry([&](auto commit_id, auto file_pos) -> VoidResult {
@@ -65,16 +63,16 @@ public:
 //        });
     }
 
-    virtual Result<std::vector<CommitID>> persistent_commits() noexcept {
+    virtual std::vector<CommitID> persistent_commits() {
         return store_->persistent_commits();
     }
 
-    virtual Result<std::vector<CommitID>> children(CommitID) noexcept {
-        return Result<std::vector<CommitID>>::of();
+    virtual std::vector<CommitID> children(CommitID) {
+        return std::vector<CommitID>{};
     }
 
-    virtual Result<Optional<CommitID>> parent(CommitID) noexcept {
-        return Result<Optional<CommitID>>::of();
+    virtual Optional<CommitID> parent(CommitID) {
+        return Optional<CommitID>{};
     }
 };
 

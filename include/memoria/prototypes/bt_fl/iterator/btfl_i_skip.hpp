@@ -47,37 +47,37 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorSkipName)
     using DataSizesT = typename Container::Types::DataSizesT;
 
 public:
-    bool iter_is_begin() const noexcept
+    bool iter_is_begin() const
     {
         auto& self = this->self();
         return self.iter_local_pos() < 0 || self.iter_is_empty();
     }
 
-    bool iter_is_end() const noexcept
+    bool iter_is_end() const
     {
         auto& self = this->self();
-        return self.iter_leaf().node().isSet() ? self.iter_local_pos() >= self.iter_leaf_size(StructureStreamIdx).get_or_throw() : true;
+        return self.iter_leaf().node().isSet() ? self.iter_local_pos() >= self.iter_leaf_size(StructureStreamIdx) : true;
     }
 
-    bool is_end() const noexcept
+    bool is_end() const
     {
         auto& self = this->self();
-        return self.iter_leaf().node().isSet() ? self.iter_local_pos() >= self.iter_leaf_size(StructureStreamIdx).get_or_throw() : true;
+        return self.iter_leaf().node().isSet() ? self.iter_local_pos() >= self.iter_leaf_size(StructureStreamIdx) : true;
     }
 
-    bool iter_is_end(int32_t idx) const noexcept
+    bool iter_is_end(int32_t idx) const
     {
         auto& self = this->self();
-        return self.iter_leaf().node().isSet() ? idx >= self.iter_leaf_size(StructureStreamIdx).get_or_throw() : true;
+        return self.iter_leaf().node().isSet() ? idx >= self.iter_leaf_size(StructureStreamIdx) : true;
     }
 
-    bool iter_is_content() const noexcept
+    bool iter_is_content() const
     {
         auto& self = this->self();
         return !(self.iter_is_begin() || self.iter_is_end());
     }
 
-    bool iter_is_content(int32_t idx) const noexcept
+    bool iter_is_content(int32_t idx) const
     {
         auto& self = this->self();
 
@@ -88,23 +88,23 @@ public:
         return is_set && idx >= 0 && idx < iter_leaf_size;
     }
 
-    bool iter_is_not_end() const noexcept
+    bool iter_is_not_end() const
     {
         return !self().iter_is_end();
     }
 
-    bool iter_is_empty() const noexcept
+    bool iter_is_empty() const
     {
         auto& self = this->self();
-        return self.iter_leaf().node().isEmpty() || self.iter_leaf_size(StructureStreamIdx).get_or_throw() == 0;
+        return self.iter_leaf().node().isEmpty() || self.iter_leaf_size(StructureStreamIdx) == 0;
     }
 
-    bool iter_is_not_empty() const noexcept
+    bool iter_is_not_empty() const
     {
         return !self().iter_is_empty();
     }
 
-    void iter_dump_keys(std::ostream& out) const noexcept
+    void iter_dump_keys(std::ostream& out) const
     {
         auto& self = this->self();
 
@@ -116,16 +116,16 @@ public:
 
 
 
-    BoolResult next() noexcept
+    bool next()
     {
-        MEMORIA_TRY(res, self().iter_btfl_skip_fw(1));
-        return BoolResult::of(res > 0);
+        auto res = self().iter_btfl_skip_fw(1);
+        return res > 0;
     }
 
-    BoolResult prev() noexcept
+    bool prev()
     {
-        MEMORIA_TRY(res, self().iter_btfl_skip_bw(1));
-        return BoolResult::of(res > 0);
+        auto res = self().iter_btfl_skip_bw(1);
+        return res > 0;
     }
 
 
@@ -138,7 +138,7 @@ public:
     };
 
 
-    Result<CtrSizeT> iter_btfl_skip_fw(CtrSizeT n) noexcept
+    CtrSizeT iter_btfl_skip_fw(CtrSizeT n)
     {
     	auto& self = this->self();
     	int32_t stream = self.iter_stream();
@@ -153,14 +153,14 @@ public:
     	}
     };
 
-    Result<CtrSizeT> iter_btfl_skip_bw(CtrSizeT n) noexcept
+    CtrSizeT iter_btfl_skip_bw(CtrSizeT n)
     {
     	auto& self = this->self();
     	int32_t stream = self.iter_stream();
         return bt::ForEachStream<Streams - 1>::process(stream, SkipBWFn(), self, n);
     }
 
-    Result<CtrSizeT> skip(CtrSizeT n) noexcept
+    CtrSizeT skip(CtrSizeT n)
     {
         if (n > 0) {
             return iter_skip_fw(n);
@@ -170,10 +170,10 @@ public:
         }
     }
 
-    int32_t iter_data_stream() const noexcept
+    int32_t iter_data_stream() const
     {
         auto& self  = this->self();
-        auto s      = self.leaf_structure().get_or_throw();
+        auto s      = self.leaf_structure();
 
         if (s)
         {
@@ -188,10 +188,10 @@ public:
         return -1;//throw Exception(MA_SRC, "End Of Data Structure");
     }
 
-    int32_t iter_data_stream_s() const noexcept
+    int32_t iter_data_stream_s() const
     {
         auto& self  = this->self();
-        auto s = self.leaf_structure().get_or_throw();
+        auto s = self.leaf_structure();
 
         if (s)
         {
@@ -208,15 +208,13 @@ public:
 
 
 
-    Result<CtrSizeT> pos() const noexcept
+    CtrSizeT pos() const
     {
-        using ResultT = Result<CtrSizeT>;
-
         auto& self = this->self();
 
-        MEMORIA_TRY(res, self.template iter_stream_size_prefix<StructureStreamIdx>());
+        auto res = self.template iter_stream_size_prefix<StructureStreamIdx>();
 
-        return ResultT::get(res + self.iter_local_pos());
+        return res + self.iter_local_pos();
     }
 
 
@@ -247,23 +245,20 @@ private:
 
 public:
     template <int32_t Stream>
-    Result<CtrSizesT> iter_stream_size_prefix() const noexcept
+    CtrSizesT iter_stream_size_prefix() const
     {
-        using ResultT = Result<CtrSizeT>;
-
         auto& self = this->self();
         SizePrefix<Stream> fn;
 
-        MEMORIA_TRY_VOID(self.ctr().ctr_walk_tree_up(self.iter_leaf(), self.iter_local_pos(), fn));
+        self.ctr().ctr_walk_tree_up(self.iter_leaf(), self.iter_local_pos(), fn);
 
-        return ResultT::of(fn.pos_);
+        return fn.pos_;
     }
 
 public:
 
-    Int32Result iter_structure_stream_idx(int stream, int data_idx) noexcept
+    int32_t iter_structure_stream_idx(int stream, int data_idx)
     {
-        using ResultT = Int32Result;
         auto& self = this->self();
         auto s = self.leaf_structure();
 
@@ -273,18 +268,18 @@ public:
 
             if (result.is_found())
             {
-                return ResultT::of(result.iter_local_pos());
+                return result.iter_local_pos();
             }
             else {
-                return ResultT::of(self.iter_leaf_size(StructureStreamIdx));
+                return self.iter_leaf_size(StructureStreamIdx);
             }
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Structure stream is empty");
+            MEMORIA_MAKE_GENERIC_ERROR("Structure stream is empty").do_throw();
         }
     }
 
-    VoidResult iter_to_structure_stream() noexcept
+    void iter_to_structure_stream()
     {
     	auto& self = this->self();
 
@@ -293,7 +288,7 @@ public:
     		int32_t stream = self.iter_stream();
     		int32_t data_idx = self.iter_local_pos();
 
-            MEMORIA_TRY(s, self.leaf_structure());
+            auto s = self.leaf_structure();
 
             if (s)
     		{
@@ -307,22 +302,20 @@ public:
                     self.iter_local_pos() = result.local_pos();
     			}
     			else {
-                    MEMORIA_TRY(leaf_size, self.iter_leaf_size(StructureStreamIdx));
+                    auto leaf_size = self.iter_leaf_size(StructureStreamIdx);
                     self.iter_local_pos() = leaf_size;
     			}
-
-                return VoidResult::of();
     		}
     		else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Structure stream is empty");
+                MEMORIA_MAKE_GENERIC_ERROR("Structure stream is empty").do_throw();
     		}
     	}
     	else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Invalid stream: {}", self.iter_stream());
+            MEMORIA_MAKE_GENERIC_ERROR("Invalid stream: {}", self.iter_stream()).do_throw();
     	}
     }
 
-    VoidResult iter_to_data_stream(int32_t stream) noexcept
+    void iter_to_data_stream(int32_t stream)
     {
     	auto& self = this->self();
 
@@ -333,21 +326,21 @@ public:
             self.iter_stream() 	  = stream;
     	}
     	else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Invalid stream: {}", self.iter_stream());
+            MEMORIA_MAKE_GENERIC_ERROR("Invalid stream: {}", self.iter_stream()).do_throw();
     	}
     }
 
-    int32_t data_stream_idx(int32_t stream) const noexcept
+    int32_t data_stream_idx(int32_t stream) const
     {
         auto& self = this->self();
         return self.data_stream_idx(stream, self.iter_local_pos());
     }
 
-    int32_t data_stream_idx(int32_t stream, int32_t structure_idx) const noexcept
+    int32_t data_stream_idx(int32_t stream, int32_t structure_idx) const
     {
         auto& self = this->self();
 
-        auto s = self.leaf_structure().get_or_throw();
+        auto s = self.leaf_structure();
         if (s) {
             return s.rank(structure_idx, stream);
         }
@@ -356,16 +349,16 @@ public:
         }
     }
 
-    CtrSizesT iter_leafrank() const noexcept {
+    CtrSizesT iter_leafrank() const {
         return self().iter_leafrank(self().iter_local_pos());
     }
 
 
-    CtrSizesT iter_leafrank(int32_t structure_idx) const noexcept
+    CtrSizesT iter_leafrank(int32_t structure_idx) const
     {
         auto& self = this->self();
 
-        auto leaf_structure = self.leaf_structure().get_or_throw();
+        auto leaf_structure = self.leaf_structure();
 
         if (leaf_structure) {
 
@@ -387,11 +380,11 @@ public:
         }
     }
 
-    CtrSizeT iter_leafrank(int32_t stream, int32_t structure_idx) const noexcept
+    CtrSizeT iter_leafrank(int32_t stream, int32_t structure_idx) const
     {
         auto& self = this->self();
 
-        auto leaf_structure = self.leaf_structure().get_or_throw();
+        auto leaf_structure = self.leaf_structure();
 
         if (leaf_structure)
         {
@@ -403,27 +396,27 @@ public:
     }
 
 
-    int32_t iter_structure_size() const noexcept
+    int32_t iter_structure_size() const
     {
-        return self().iter_leaf_size(StructureStreamIdx).get_or_throw();
+        return self().iter_leaf_size(StructureStreamIdx);
     }
 
 
-    auto leaf_structure() const noexcept
+    auto leaf_structure() const
     {
         auto& self = this->self();
         return self.ctr().template ctr_get_packed_struct<IntList<StructureStreamIdx, 1>>(self.iter_leaf());
     }
 
-    int32_t symbol_idx(int32_t stream, int32_t position) const noexcept
+    int32_t symbol_idx(int32_t stream, int32_t position) const
     {
         auto& self = this->self();
 
-        auto s = self.leaf_structure().get_or_throw();
+        auto s = self.leaf_structure();
 
         if (s)
         {
-            return self.leaf_structure().get_or_throw().selectFW(position + 1, stream).local_pos();
+            return self.leaf_structure().selectFW(position + 1, stream).local_pos();
         }
         else {
         	return 0;

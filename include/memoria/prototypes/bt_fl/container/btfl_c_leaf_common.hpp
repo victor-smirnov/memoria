@@ -33,9 +33,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::LeafCommonName)
     using typename Base::TreeNodeConstPtr;
     using typename Base::Position;
 
-    BoolResult ctr_is_at_the_end(const TreeNodeConstPtr& leaf, const Position& pos) const noexcept
+    bool ctr_is_at_the_end(const TreeNodeConstPtr& leaf, const Position& pos) const
     {
-        MEMORIA_TRY(sizes, self().ctr_get_node_sizes(leaf));
+        auto sizes = self().ctr_get_node_sizes(leaf);
         return pos.sum() >= sizes.sum();
     }
 

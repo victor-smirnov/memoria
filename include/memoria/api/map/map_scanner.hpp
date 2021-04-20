@@ -144,9 +144,9 @@ public:
         return finished_ || btss_iterator_->is_end();
     }
 
-    BoolResult next_leaf() noexcept
+    bool next_leaf() noexcept
     {
-        MEMORIA_TRY(available, btss_iterator_->next_leaf());
+        auto available = btss_iterator_->next_leaf();
 
         if (available) {
             populate();
@@ -155,7 +155,7 @@ public:
             finished_ = true;
         }
 
-        return available_result;
+        return available;
     }
 
 private:

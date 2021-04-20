@@ -41,9 +41,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
 protected:
     MEMORIA_V1_DECLARE_NODE_FN(RemoveSpaceFn, removeSpace);
 
-    VoidResult ctr_remove_node_content(TreePathT& path, size_t level, int32_t start, int32_t end) noexcept;
-    Result<Position> ctr_remove_leaf_content(TreePathT& path, const Position& start, const Position& end) noexcept;
-    Result<Position> ctr_remove_leaf_content(TreePathT& path, int32_t stream, int32_t start, int32_t end) noexcept;
+    void ctr_remove_node_content(TreePathT& path, size_t level, int32_t start, int32_t end);
+    Position ctr_remove_leaf_content(TreePathT& path, const Position& start, const Position& end);
+    Position ctr_remove_leaf_content(TreePathT& path, int32_t stream, int32_t start, int32_t end);
 
     MEMORIA_V1_DECLARE_NODE_FN(RemoveNonLeafNodeEntryFn, removeSpaceAcc);
     VoidResult ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t idx) noexcept;
@@ -53,28 +53,28 @@ protected:
         Position original_left_sizes;
     };
 
-    Result<LeftMergeResult> ctr_merge_leaf_with_left_sibling(TreePathT& path) noexcept;
-    BoolResult ctr_merge_leaf_with_right_sibling(TreePathT& path) noexcept;
+    LeftMergeResult ctr_merge_leaf_with_left_sibling(TreePathT& path);
+    bool ctr_merge_leaf_with_right_sibling(TreePathT& path);
 
 
     MEMORIA_V1_DECLARE_NODE_FN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings);
-    BoolResult ctr_should_merge_node(const TreeNodeConstPtr& node) const noexcept
+    bool ctr_should_merge_node(const TreeNodeConstPtr& node) const
     {
-        return self().node_dispatcher().dispatch(node, ShouldBeMergedNodeFn());
+        return self().node_dispatcher().dispatch(node, ShouldBeMergedNodeFn()).get_or_throw();
     }
 
 
 
 
     ////  ------------------------ CONTAINER PART PRIVATE API ------------------------
-    BoolResult ctr_is_the_same_parent(const TreePathT& left, const TreePathT& right, size_t level) noexcept
+    bool ctr_is_the_same_parent(const TreePathT& left, const TreePathT& right, size_t level)
     {
         if (level + 1 < left.size())
         {
-            return BoolResult::of(left[level + 1]->id() == right[level + 1]->id());
+            return left[level + 1]->id() == right[level + 1]->id();
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Invalid tree path. Level = {}, height = {}", level, left.size());
+            MEMORIA_MAKE_GENERIC_ERROR("Invalid tree path. Level = {}, height = {}", level, left.size()).do_throw();
         }
     }
 
@@ -98,78 +98,77 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-VoidResult M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_t start, int32_t end) noexcept
-{
-    using ResultT = VoidResult;
+void M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_t start, int32_t end)
+{    
     auto& self = this->self();
 
-    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
-    MEMORIA_TRY_VOID(self.ctr_update_block_guard(path[level]));
+    self.ctr_cow_clone_path(path, level);
+    self.ctr_update_block_guard(path[level]);
 
-    auto res = self.ctr_for_all_ids(path[level], start, end, [&](const BlockID& id) noexcept -> VoidResult {
+    self.ctr_for_all_ids(path[level], start, end, [&](const BlockID& id) {
         return self.ctr_unref_block(id);
     });
-    MEMORIA_RETURN_IF_ERROR(res);
 
-    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(path[level].as_mutable(), RemoveSpaceFn(), start, end));
-    MEMORIA_TRY_VOID(self.ctr_update_path(path, level));
 
-    return ResultT::of();
+    self.branch_dispatcher().dispatch(path[level].as_mutable(), RemoveSpaceFn(), start, end).get_or_throw();
+    self.ctr_update_path(path, level);
 }
 
 
 M_PARAMS
 VoidResult M_TYPE::ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t start) noexcept
 {
-    auto& self = this->self();
+    return wrap_throwing([&]() -> VoidResult {
+        auto& self = this->self();
 
-    MEMORIA_TRY_VOID(self.ctr_cow_clone_path(path, level));
+        self.ctr_cow_clone_path(path, level);
 
-    TreeNodeConstPtr node = path[level];
+        TreeNodeConstPtr node = path[level];
 
-    MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
+        self.ctr_update_block_guard(node);
 
-    MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node.as_mutable(), RemoveNonLeafNodeEntryFn(), start, start + 1));
-    MEMORIA_TRY_VOID(self.ctr_update_path(path, level));
+        VoidResult res = self.branch_dispatcher().dispatch(node.as_mutable(), RemoveNonLeafNodeEntryFn(), start, start + 1);
+        MEMORIA_RETURN_IF_ERROR(res);
 
-    return VoidResult::of();
+        self.ctr_update_path(path, level);
+
+        return VoidResult::of();
+    });
 }
 
 
 
 M_PARAMS
-Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(TreePathT& path, const Position& start, const Position& end) noexcept
+typename M_TYPE::Position M_TYPE::ctr_remove_leaf_content(TreePathT& path, const Position& start, const Position& end)
 {
-    using ResultT = Result<Position>;
     auto& self = this->self();
 
     TreeNodeConstPtr node = path.leaf();
-    MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
+    self.ctr_update_block_guard(node);
 
-    MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(node.as_mutable(), RemoveSpaceFn(), start, end));
-    MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
+    self.leaf_dispatcher().dispatch(node.as_mutable(), RemoveSpaceFn(), start, end).get_or_throw();
+    self.ctr_update_path(path, 0);
 
-    return ResultT::of(end - start);
+    return end - start;
 }
 
 M_PARAMS
-Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(
+typename M_TYPE::Position M_TYPE::ctr_remove_leaf_content(
         TreePathT& path,
         int32_t stream,
         int32_t start,
         int32_t end
-) noexcept
+)
 {
-    using ResultT = Result<Position>;
     auto& self = this->self();
 
     TreeNodeConstPtr node = path.leaf();
-    MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
+    self.ctr_update_block_guard(node);
 
-    MEMORIA_TRY_VOID(self.leaf_dispatcher().dispatch(node.as_mutable(), RemoveSpaceFn(), stream, start, end));
-    MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
+    self.leaf_dispatcher().dispatch(node.as_mutable(), RemoveSpaceFn(), stream, start, end).get_or_throw();
+    self.ctr_update_path(path, 0);
 
-    return ResultT::of(end - start);
+    return end - start;
 }
 
 
@@ -177,24 +176,23 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(
 
 
 M_PARAMS
-Result<typename M_TYPE::LeftMergeResult> M_TYPE::ctr_merge_leaf_with_left_sibling(TreePathT& path) noexcept
+typename M_TYPE::LeftMergeResult M_TYPE::ctr_merge_leaf_with_left_sibling(TreePathT& path)
 {
-    using ResultT = Result<typename M_TYPE::LeftMergeResult>;
     auto& self = this->self();
 
     LeftMergeResult status{false};
 
-    MEMORIA_TRY(should_merge, self.ctr_should_merge_node(path.leaf()));
+    auto should_merge = self.ctr_should_merge_node(path.leaf());
 
     if (should_merge)
     {
         TreePathT prev = path;
-        MEMORIA_TRY(has_prev, self.ctr_get_prev_node(prev, 0));
+        auto has_prev = self.ctr_get_prev_node(prev, 0);
 
         if (has_prev)
         {
-            MEMORIA_TRY(left_sizes, self.ctr_get_leaf_sizes(prev.leaf()));
-            MEMORIA_TRY(merged, self.ctr_merge_leaf_nodes(prev, path, false));
+            auto left_sizes = self.ctr_get_leaf_sizes(prev.leaf());
+            auto merged = self.ctr_merge_leaf_nodes(prev, path, false);
             status.merged = merged;
 
             if (merged)
@@ -205,38 +203,33 @@ Result<typename M_TYPE::LeftMergeResult> M_TYPE::ctr_merge_leaf_with_left_siblin
         }
     }
 
-    return ResultT::of(status);
+    return status;
 }
 
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_merge_leaf_with_right_sibling(TreePathT& path) noexcept
+bool M_TYPE::ctr_merge_leaf_with_right_sibling(TreePathT& path)
 {
     bool merged = false;
 
     auto& self = this->self();
 
-    MEMORIA_TRY(should_merge, self.ctr_should_merge_node(path.leaf()));
+    auto should_merge = self.ctr_should_merge_node(path.leaf());
     if (should_merge)
     {
         TreePathT next_path = path;
-        MEMORIA_TRY(has_next, self.ctr_get_next_node(next_path, 0));
+        auto has_next = self.ctr_get_next_node(next_path, 0);
 
         if (has_next)
         {
-            MEMORIA_TRY(has_merge, self.ctr_merge_leaf_nodes(path, next_path));
+            auto has_merge = self.ctr_merge_leaf_nodes(path, next_path);
             merged = has_merge;
         }
     }
 
-    return BoolResult::of(merged);
+    return merged;
 }
-
-
-
-
-
 
 
 #undef M_TYPE

@@ -177,7 +177,7 @@ public:
         }
     }
     
-    VoidResult post_init() noexcept
+    void post_init()
     {
         auto ptr = this->shared_from_this();
 
@@ -186,7 +186,7 @@ public:
         MaybeError maybe_error;
         if (root_id.isSet())
         {
-            MEMORIA_TRY(root_block, findBlock(root_id));
+            auto root_block = findBlock(root_id);
             root_map_ = ctr_make_shared<RootMapType>(maybe_error, ptr, root_block);
         }
         else {
@@ -195,11 +195,8 @@ public:
 
         root_map_->reset_allocator_holder();
 
-        if (!maybe_error) {
-            return VoidResult::of();
-        }
-        else {
-            return std::move(maybe_error.get());
+        if (maybe_error) {
+            std::move(maybe_error.get()).do_throw();
         }
     }
     
@@ -252,67 +249,65 @@ public:
         return history_node_->is_committed();
     }
 
-    Result<std::vector<CtrID>> container_names() const noexcept
+    std::vector<CtrID> container_names() const
     {
         std::vector<CtrID> names;
 
-        MEMORIA_TRY(ii, root_map_->ctr_begin());
+        auto ii = root_map_->ctr_begin();
 
         while (!ii->iter_is_end())
         {
             names.push_back(ii->key());
-            MEMORIA_TRY_VOID(ii->next());
+            ii->next();
         }
 
-        return Result<std::vector<CtrID>>::of(std::move(names));
+        return std::move(names);
     }
 
-    Result<std::vector<U8String>> container_names_str() const noexcept
+    std::vector<U8String> container_names_str() const
     {
         std::vector<U8String> names;
 
-        MEMORIA_TRY(ii, root_map_->ctr_begin());
+        auto ii = root_map_->ctr_begin();
         while (!ii->iter_is_end())
         {
             std::stringstream ss;
             ss << ii->key().view();
 
             names.push_back(U8String(ss.str()));
-            MEMORIA_TRY_VOID(ii->next());
+            ii->next();
         }
 
-        return Result<std::vector<U8String>>::of(std::move(names));
+        return std::move(names);
     }
 
 
-    BoolResult drop_ctr(const CtrID& name) noexcept
+    bool drop_ctr(const CtrID& name)
     {
-        MEMORIA_TRY_VOID(checkUpdateAllowed());
+        checkUpdateAllowed();
 
-        MEMORIA_TRY(root_id, getRootID(name));
+        auto root_id = getRootID(name);
 
         if (root_id.is_set())
         {
-            MEMORIA_TRY(block, this->getBlock(root_id));
+            auto block = this->getBlock(root_id);
 
             auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(block->ctr_type_hash());
 
-            MEMORIA_TRY_VOID(ctr_intf->drop(name, this->shared_from_this()));
-            return BoolResult::of(true);
+            ctr_intf->drop(name, this->shared_from_this());
+            return true;
         }
         else {
-            return BoolResult::of(false);
+            return false;
         }
     }
 
 
-    Result<Optional<U8String>> ctr_type_name_for(const CtrID& name) noexcept
+    Optional<U8String> ctr_type_name_for(const CtrID& name)
     {
-        using ResultT = Result<Optional<U8String>>;
+        auto root_id = this->getRootID(name);
 
-        MEMORIA_TRY(root_id, this->getRootID(name));
-
-        MEMORIA_TRY(block, this->getBlock(root_id));
+        auto block = this->getBlock(root_id);
 
         if (block)
         {
@@ -321,29 +316,29 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            return ResultT::of(ctr_intf->ctr_type_name());
+            return ctr_intf->ctr_type_name();
         }
         else {
-            return ResultT::of();
+            return Optional<U8String>{};
         }
     }
 
-    VoidResult set_as_master() noexcept
+    void set_as_master()
     {
         return history_tree_raw_->set_master(uuid());
     }
 
-    VoidResult set_as_branch(U8StringRef name) noexcept
+    void set_as_branch(U8StringRef name)
     {
         return history_tree_raw_->set_branch(name, uuid());
     }
 
-    U8StringRef metadata() const noexcept
+    U8StringRef metadata() const
     {
         return history_node_->metadata();
     }
 
-    VoidResult set_metadata(U8StringRef metadata) noexcept
+    void set_metadata(U8StringRef metadata)
     {
         if (history_node_->is_active())
         {
@@ -351,14 +346,14 @@ public:
         }
         else
         {
-            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot is already committed.");
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot is already committed.").do_throw();
         }
     }
 
-    VoidResult for_each_ctr_node(const CtrID& name, typename ContainerOperations<Profile>::BlockCallbackFn fn) noexcept
+    void for_each_ctr_node(const CtrID& name, typename ContainerOperations<Profile>::BlockCallbackFn fn)
     {
-        MEMORIA_TRY(root_id, this->getRootID(name));
-        MEMORIA_TRY(block, this->getBlock(root_id));
+        auto root_id = this->getRootID(name);
+        auto block = this->getBlock(root_id);
 
         if (block)
     	{
@@ -368,148 +363,138 @@ public:
             return ctr_intf->for_each_ctr_node(name, this->shared_from_this(), fn);
     	}
     	else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {}", name, history_node_->snapshot_id());
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {}", name, history_node_->snapshot_id()).do_throw();
     	}
     }
 
 
 
-    VoidResult import_new_ctr_from(SnapshotApiPtr ptr, const CtrID& name) noexcept
+    void import_new_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
     {
-        MEMORIA_TRY_VOID(checkUpdateAllowed());
+        checkUpdateAllowed();
 
         SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
 
-        MEMORIA_TRY_VOID(txn->checkIfExportAllowed());
-        MEMORIA_TRY(root_id, this->getRootID(name));
+        txn->checkIfExportAllowed();
+        auto root_id = this->getRootID(name);
 
     	auto txn_id = currentTxnId();
 
         if (root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&](const BlockGUID&, const BlockID& id, const void*) noexcept -> VoidResult {
+            txn->for_each_ctr_node(name, [&](const BlockGUID&, const BlockID& id, const void*) {
                 auto rc_handle = txn->export_block_rchandle(id);
-    			using Value = typename PersistentTreeT::Value;
+                using Value = typename PersistentTreeT::Value;
 
-    			rc_handle->ref();
+                rc_handle->ref();
 
-    			auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
+                auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
 
                 if (old_value.block_ptr())
-    			{
-                    return MEMORIA_MAKE_GENERIC_ERROR("Block with ID {} is not new in snapshot {}", id, txn_id);
-    			}
+                {
+                    MEMORIA_MAKE_GENERIC_ERROR("Block with ID {} is not new in snapshot {}", id, txn_id).do_throw();
+                }
 
-                return VoidResult::of();
-    		});
+            });
 
-            MEMORIA_RETURN_IF_ERROR(res);
 
-            MEMORIA_TRY(root_id, txn->getRootID(name));
+
+            auto root_id = txn->getRootID(name);
 
             if (root_id.is_set())
-    		{
-                MEMORIA_TRY_VOID(root_map_->assign(name, root_id));
-    		}
-    		else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
-    		}
+            {
+                root_map_->assign(name, root_id);
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()).do_throw();
+            }
     	}
     	else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists in snapshot {}", name, txn_id);
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists in snapshot {}", name, txn_id).do_throw();
     	}
-
-        return VoidResult::of();
     }
 
 
-    VoidResult copy_new_ctr_from(SnapshotApiPtr ptr, const CtrID& name) noexcept
+    void copy_new_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
     {
         SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
 
-        MEMORIA_TRY_VOID(txn->checkReadAllowed());
-        MEMORIA_TRY_VOID(checkUpdateAllowed());
+        txn->checkReadAllowed();
+        checkUpdateAllowed();
 
-        MEMORIA_TRY(root_id, this->getRootID(name));
+        auto root_id = this->getRootID(name);
 
     	auto txn_id = currentTxnId();
 
     	if (root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&](const BlockGUID&, const BlockID&, const void* block_data) noexcept -> VoidResult {
+            txn->for_each_ctr_node(name, [&](const BlockGUID&, const BlockID&, const void* block_data) {
                 return clone_foreign_block(ptr_cast<const BlockType>(block_data));
-    		});
-            MEMORIA_RETURN_IF_ERROR(res);
+            });
 
-            MEMORIA_TRY(root_id1, txn->getRootID(name));
+            auto root_id1 = txn->getRootID(name);
 
             if (root_id1.is_set()) {
-                MEMORIA_TRY_VOID(root_map_->assign(name, root_id1));
-    		}
-    		else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
-    		}
+                root_map_->assign(name, root_id1);
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()).do_throw();
+            }
     	}
     	else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists in snapshot {}", name, txn_id);
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists in snapshot {}", name, txn_id).do_throw();
     	}
-
-        return VoidResult::of();
     }
 
 
-    Result<void> import_ctr_from(SnapshotApiPtr ptr, const CtrID& name) noexcept
+    void import_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
     {
-        MEMORIA_TRY_VOID(checkUpdateAllowed());
+        checkUpdateAllowed();
 
         SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
 
-        MEMORIA_TRY_VOID(txn->checkIfExportAllowed());
+        txn->checkIfExportAllowed();
 
-        MEMORIA_TRY(root_id, this->getRootID(name));
+        auto root_id = this->getRootID(name);
 
     	auto txn_id = uuid();
 
         if (!root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&, this](const BlockGUID& uuid, const BlockID& id, const void*) noexcept -> VoidResult {
-                MEMORIA_TRY(block, this->getBlock(id));
+            txn->for_each_ctr_node(name, [&, this](const BlockGUID& uuid, const BlockID& id, const void*) {
+                auto block = this->getBlock(id);
 
                 if (block && block->uuid() == uuid)
-    			{
-                    return VoidResult::of();
-    			}
+                {
+                    return;
+                }
 
                 auto rc_handle = txn->export_block_rchandle(id);
-    			using Value = typename PersistentTreeT::Value;
+                using Value = typename PersistentTreeT::Value;
 
-    			rc_handle->ref();
+                rc_handle->ref();
 
-    			auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
+                auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
 
                 if (old_value.block_ptr())
-    			{
+                {
                     if (old_value.block_ptr()->unref() == 0)
-    				{
+                    {
                         // FIXME: just delete the block?
-                        return MEMORIA_MAKE_GENERIC_ERROR("Unexpected refcount == 0 for block {}", old_value.block_ptr()->raw_data()->uuid());
-    				}
-    			}
+                        MEMORIA_MAKE_GENERIC_ERROR("Unexpected refcount == 0 for block {}", old_value.block_ptr()->raw_data()->uuid()).do_throw();
+                    }
+                }
+            });
 
-                return VoidResult::of();
-    		});
-            MEMORIA_RETURN_IF_ERROR(res);
 
-            MEMORIA_TRY(root_id, txn->getRootID(name));
+            auto root_id = txn->getRootID(name);
             if (root_id.is_set())
-    		{
-                MEMORIA_TRY_VOID(root_map_->assign(name, root_id));
-    		}
-    		else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
-    		}
-
-            return VoidResult::of();
+            {
+                root_map_->assign(name, root_id);
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()).do_throw();
+            }
     	}
     	else {
             return import_new_ctr_from(txn, name);
@@ -517,41 +502,37 @@ public:
     }
 
 
-    VoidResult copy_ctr_from(SnapshotApiPtr ptr, const CtrID& name) noexcept
+    void copy_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
     {
         SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
 
-        MEMORIA_TRY_VOID(txn->checkReadAllowed());
-        MEMORIA_TRY_VOID(checkUpdateAllowed());
+        txn->checkReadAllowed();
+        checkUpdateAllowed();
 
-        MEMORIA_TRY(root_id, this->getRootID(name));
+        auto root_id = this->getRootID(name);
 
     	auto txn_id = currentTxnId();
 
         if (!root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&, this](const BlockGUID& uuid, const BlockID& id, const void* block_data) noexcept -> VoidResult {
-                MEMORIA_TRY(block, this->getBlock(id));
+            txn->for_each_ctr_node(name, [&, this](const BlockGUID& uuid, const BlockID& id, const void* block_data) {
+                auto block = this->getBlock(id);
                 if (block && block->uuid() == uuid)
-    			{
-                    return VoidResult::of();
-    			}
+                {
+                    return ;
+                }
 
                 return clone_foreign_block(ptr_cast<const BlockType>(block_data));
-    		});
+            });
 
-            MEMORIA_RETURN_IF_ERROR(res);
-
-            MEMORIA_TRY(root_id1, txn->getRootID(name));
+            auto root_id1 = txn->getRootID(name);
             if (root_id1.is_set())
-    		{
-                MEMORIA_TRY_VOID(root_map_->assign(name, root_id1));
-    		}
-    		else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn_id);
-    		}
-
-            return VoidResult::of();
+            {
+                root_map_->assign(name, root_id1);
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn_id).do_throw();
+            }
     	}
     	else {
             return copy_new_ctr_from(txn, name);
@@ -559,14 +540,14 @@ public:
     }
 
 
-    Result<CtrID> clone_ctr(const CtrID& ctr_name) noexcept {
+    CtrID clone_ctr(const CtrID& ctr_name) {
         return clone_ctr(ctr_name, CtrID{});
     }
 
-    Result<CtrID> clone_ctr(const CtrID& ctr_name, const CtrID& new_ctr_name) noexcept
+    CtrID clone_ctr(const CtrID& ctr_name, const CtrID& new_ctr_name)
     {
-        MEMORIA_TRY(root_id, this->getRootID(ctr_name));
-        MEMORIA_TRY(block, this->getBlock(root_id));
+        auto root_id = this->getRootID(ctr_name);
+        auto block = this->getBlock(root_id);
 
         if (block)
         {
@@ -576,18 +557,17 @@ public:
             return ctr_intf->clone_ctr(ctr_name, new_ctr_name, this->shared_from_this());
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {} ", ctr_name, history_node_->snapshot_id());
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {} ", ctr_name, history_node_->snapshot_id()).do_throw();
         }
     }
 
-    Result<SharedBlockConstPtr> findBlock(const BlockID& id) noexcept
+    SharedBlockConstPtr findBlock(const BlockID& id)
     {
-        using ResultT = Result<SharedBlockConstPtr>;
         Shared* shared = get_shared(id, Shared::READ);
 
         if (!shared->get())
         {
-            MEMORIA_TRY_VOID(checkReadAllowed());
+            checkReadAllowed();
 
             auto block_opt = persistent_tree_.find(id);
 
@@ -606,28 +586,28 @@ public:
                 shared->set_block(block_opt.value().block_ptr()->raw_data());
             }
             else {
-                return ResultT::of();
+                return SharedBlockConstPtr{};
             }
         }
 
-        return ResultT::of(shared);
+        return SharedBlockConstPtr(shared);
     }
 
-    virtual Result<SharedBlockConstPtr> getBlock(const BlockID& id) noexcept
+    virtual SharedBlockConstPtr getBlock(const BlockID& id)
     {
         if (id.isSet())
         {
-            MEMORIA_TRY(block, findBlock(id));
+            auto block = findBlock(id);
 
             if (block) {
-                return block_result;
+                return block;
             }
             else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Block is not found for the specified id: {}", id);
+                MEMORIA_MAKE_GENERIC_ERROR("Block is not found for the specified id: {}", id).do_throw();
             }
         }
         else {
-            return Result<SharedBlockConstPtr>::of(SharedBlockConstPtr());
+            return SharedBlockConstPtr{};
         }
     }
 
@@ -637,7 +617,7 @@ public:
     }
 
 
-    virtual Result<void> registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) noexcept
+    virtual void registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance)
     {
         auto ii = instance_map_.find(ctr_id);
     	if (ii == instance_map_.end())
@@ -645,73 +625,62 @@ public:
             instance_map_.insert({ctr_id, instance});
         }
     	else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} has been already registered", ctr_id);
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} has been already registered", ctr_id).do_throw();
     	}
-
-        return Result<void>::of();
     }
 
-    virtual Result<void> unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>*) noexcept
+    virtual void unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>*)
     {
         instance_map_.erase(ctr_id);
-        return Result<void>::of();
     }
 
 public:
-    Result<bool> has_open_containers() noexcept {
-        return Result<bool>::of(instance_map_.size() > 1);
+    bool has_open_containers() {
+        return instance_map_.size() > 1;
     }
 
-    Result<void> dump_open_containers() noexcept
+    void dump_open_containers()
     {
     	for (const auto& pair: instance_map_)
     	{
             std::cout << pair.first << " -- " << pair.second->describe_type() << std::endl;
     	}
-
-        return Result<void>::of();
     }
 
-    VoidResult flush_open_containers() noexcept
+    void flush_open_containers()
     {
         for (const auto& pair: instance_map_)
         {
-            MEMORIA_TRY_VOID(pair.second->flush());
+            pair.second->flush();
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult dump_dictionary_blocks() noexcept
+    void dump_dictionary_blocks()
     {
-        MEMORIA_TRY(ii, root_map_->ctr_begin());
+        auto ii = root_map_->ctr_begin();
         if (!ii->iter_is_end())
         {
             do {
-                MEMORIA_TRY_VOID(ii->dump());
+                ii->dump();
 
-                MEMORIA_TRY(has_next, ii->iter_next_leaf());
+                auto has_next = ii->iter_next_leaf();
                 if (!has_next) break;
             }
             while (true);
         }
-
-        return VoidResult::of();
     }
 
 
-    virtual VoidResult updateBlock(Shared* shared) noexcept
+    virtual void updateBlock(Shared* shared)
     {
-        using ResultT = VoidResult;
-
         // FIXME: Though this check prohibits new block acquiring for update,
         // already acquired updatable blocks can be updated further.
         // To guarantee non-updatability, MMU-protection should be used
-        MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
+        checkUpdateAllowed(CtrID{});
 
         if (shared->state() == Shared::READ)
         {
-            MEMORIA_TRY(new_block, clone_block(shared->get()));
+            auto new_block = clone_block(shared->get());
 
             ptree_set_new_block(new_block);
 
@@ -719,13 +688,11 @@ public:
 
             shared->state() = Shared::UPDATE;
         }
-
-        return ResultT::of();
     }
 
-    virtual VoidResult removeBlock(const BlockID& id) noexcept
+    virtual void removeBlock(const BlockID& id)
     {
-        MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
+        checkUpdateAllowed(CtrID{});
 
         auto iter = persistent_tree_.locate(id);
 
@@ -741,8 +708,6 @@ public:
                 shared.get()->state() = Shared::_DELETE;
             }
         }
-
-        return VoidResult::of();
     }
 
 
@@ -750,9 +715,9 @@ public:
 
 
 
-    virtual Result<SharedBlockPtr> createBlock(int32_t initial_size) noexcept
+    virtual SharedBlockPtr createBlock(int32_t initial_size)
     {
-        MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
+        checkUpdateAllowed(CtrID{});
 
         if (initial_size == -1)
         {
@@ -763,7 +728,7 @@ public:
 
         memset(buf, 0, static_cast<size_t>(initial_size));
 
-        MEMORIA_TRY(id, newId());
+        auto id = newId();
 
         BlockType* p = new (buf) BlockType(id, id);
 
@@ -776,18 +741,18 @@ public:
 
         block_shared_cache_.insert(shared);
 
-        return Result<SharedBlockPtr>::of(shared);
+        return SharedBlockPtr(shared);
     }
 
 
-    virtual Result<SharedBlockPtr> cloneBlock(const SharedBlockConstPtr& block) noexcept
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block)
     {
-        MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
+        checkUpdateAllowed(CtrID{});
 
-        MEMORIA_TRY(new_id, newId());
+        auto new_id = newId();
 
 
-        MEMORIA_TRY(new_block, this->clone_block(block.block()));
+        auto new_block = this->clone_block(block.block());
 
         new_block->id() = new_id;
 
@@ -798,13 +763,13 @@ public:
 
         block_shared_cache_.insert(new_shared);
 
-        return Result<SharedBlockPtr>::of(new_shared);
+        return SharedBlockPtr(new_shared);
     }
 
 
-    virtual VoidResult resizeBlock(Shared* shared, int32_t new_size) noexcept
+    virtual void resizeBlock(Shared* shared, int32_t new_size)
     {
-        MEMORIA_TRY_VOID(checkUpdateAllowed());
+        checkUpdateAllowed();
 
         BlockType* block = shared->get();
 
@@ -818,9 +783,9 @@ public:
 
             std::memcpy(new_block, block, transfer_size);
 
-            MEMORIA_TRY_VOID(ProfileMetadata<Profile>::local()
+            ProfileMetadata<Profile>::local()
                     ->get_block_operations(new_block->ctr_type_hash(), new_block->block_type_hash())
-                    ->resize(block, new_block, new_size));
+                    ->resize(block, new_block, new_size);
 
             shared->set_block(new_block);
             shared->state() = Shared::UPDATE;
@@ -839,9 +804,9 @@ public:
 
             std::memcpy(new_block, block, transfer_size);
 
-            MEMORIA_TRY_VOID(ProfileMetadata<Profile>::local()
+            ProfileMetadata<Profile>::local()
                     ->get_block_operations(new_block->ctr_type_hash(), new_block->block_type_hash())
-                    ->resize(block, new_block, new_size));
+                    ->resize(block, new_block, new_size);
 
             shared->set_block(new_block);
 
@@ -849,11 +814,9 @@ public:
 
             buf.release();
         }
-
-        return VoidResult::of();
     }
 
-    virtual VoidResult releaseBlock(Shared* shared) noexcept
+    virtual void releaseBlock(Shared* shared)
     {
         if (shared->state() == Shared::_DELETE)
         {
@@ -866,13 +829,11 @@ public:
                 block_shared_cache_pool_.destroy(entry);
             });
         }
-
-        return VoidResult::of();
     }
 
 
-    virtual Result<BlockID> newId() noexcept {
-        return Result<BlockID>::of(history_tree_raw_->newBlockId());
+    virtual BlockID newId() {
+        return history_tree_raw_->newBlockId();
     }
 
     virtual CtrID currentTxnId() const noexcept {
@@ -880,10 +841,8 @@ public:
     }
 
     // memory pool allocator
-    virtual Result<void*> allocateMemory(size_t size) noexcept {
-        return wrap_throwing([&]() -> Result<void*> {
-            return Result<void*>::of(allocate_system<uint8_t>(size).release());
-        });
+    virtual void* allocateMemory(size_t size) {
+        return allocate_system<uint8_t>(size).release();
     }
 
     virtual void freeMemory(void* ptr) noexcept {
@@ -892,95 +851,93 @@ public:
 
     virtual Logger& logger() noexcept {return logger_;}
 
-    virtual Result<BlockID> getRootID(const CtrID& name) noexcept
+    virtual BlockID getRootID(const CtrID& name)
     {
         if (!name.is_null())
         {
-            MEMORIA_TRY(iter, root_map_->ctr_map_find(name));
+            auto iter = root_map_->ctr_map_find(name);
 
             if (iter->is_found(name))
             {
-                return Result<BlockID>::of(iter->value());
+                return iter->value();
             }
             else {
-                return Result<BlockID>::of();
+                return BlockID{};
             }
         }
         else {
-            return Result<BlockID>::of(history_node_->root_id());
+            return history_node_->root_id();
         }
     }
 
-    virtual VoidResult setRoot(const CtrID& name, const BlockID& root) noexcept
+    virtual void setRoot(const CtrID& name, const BlockID& root)
     {
         if (root.is_null())
         {
             if (!name.is_null())
             {
-                MEMORIA_TRY_VOID(root_map_->remove(name));
+                root_map_->remove(name);
             }
             else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Allocator directory removal attempted");
+                MEMORIA_MAKE_GENERIC_ERROR("Allocator directory removal attempted").do_throw();
             }
         }
         else {
             if (!name.is_null())
             {
-                MEMORIA_TRY_VOID(root_map_->assign(name, root));
+                root_map_->assign(name, root);
             }
             else {
                 history_node_->root_id() = root;
             }
         }
-
-        return VoidResult::of();
     }
 
-    virtual BoolResult hasRoot(const CtrID& name) noexcept
+    virtual bool hasRoot(const CtrID& name)
     {
         if (MMA_UNLIKELY(!root_map_)) {
-            return BoolResult::of(false);
+            return false;
         }
 
         if (!name.is_null())
         {
-            MEMORIA_TRY(iter, root_map_->ctr_map_find(name));
-            return BoolResult::of(iter->is_found(name));
+            auto iter = root_map_->ctr_map_find(name);
+            return iter->is_found(name);
         }
         else {
-            return BoolResult::of(!history_node_->root_id().is_null());
+            return !history_node_->root_id().is_null();
         }
     }
 
-    virtual Result<CtrID> createCtrName() noexcept
+    virtual CtrID createCtrName()
     {
-        return Result<CtrID>::of(ProfileTraits<Profile>::make_random_ctr_id());
+        return ProfileTraits<Profile>::make_random_ctr_id();
     }
 
 
-    virtual BoolResult check() noexcept
+    virtual bool check()
     {
         bool result = false;
 
-        MEMORIA_TRY(iter, root_map_->ctr_begin());
+        auto iter = root_map_->ctr_begin();
 
         while(!iter->is_end())
         {
             auto ctr_name = iter->key();
 
-            MEMORIA_TRY(block, this->getBlock(iter->value()));
+            auto block = this->getBlock(iter->value());
 
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            MEMORIA_TRY(res, ctr_intf->check(ctr_name, this->shared_from_this()));
+            auto res = ctr_intf->check(ctr_name, this->shared_from_this());
 
             result = res || result;
 
-            MEMORIA_TRY_VOID(iter->next());
+            iter->next();
         }
 
-        return BoolResult::of(result);
+        return result;
     }
 
     U8String get_branch_suffix() const
@@ -988,76 +945,72 @@ public:
         return "";
     }
 
-    virtual VoidResult walk_containers(ContainerWalker<ProfileT>* walker, const char* allocator_descr = nullptr) noexcept {
+    virtual void walk_containers(ContainerWalker<ProfileT>* walker, const char* allocator_descr = nullptr) {
         return walkContainers(walker, allocator_descr);
     }
 
-    virtual VoidResult walkContainers(ContainerWalker<ProfileT>* walker, const char* allocator_descr = nullptr) noexcept
+    virtual void walkContainers(ContainerWalker<ProfileT>* walker, const char* allocator_descr = nullptr)
     {
-		if (allocator_descr != nullptr)
-		{
+        if (allocator_descr != nullptr)
+        {
             walker->beginSnapshot(fmt::format("Snapshot-{} -- {}", history_node_->snapshot_id(), allocator_descr).data());
-		}
-		else {
+        }
+        else {
             walker->beginSnapshot(fmt::format("Snapshot-{}", history_node_->snapshot_id()).data());
-		}
+        }
 
-        MEMORIA_TRY(iter, root_map_->ctr_begin());
+        auto iter = root_map_->ctr_begin();
         while (!iter->iter_is_end())
         {
             auto ctr_name   = iter->key();
             auto root_id    = iter->value();
 
-            MEMORIA_TRY(block, this->getBlock(root_id));
+            auto block = this->getBlock(root_id);
 
             auto ctr_hash   = block->ctr_type_hash();
             auto ctr_intf   = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            MEMORIA_TRY_VOID(ctr_intf->walk(ctr_name, this->shared_from_this(), walker));
+            ctr_intf->walk(ctr_name, this->shared_from_this(), walker);
 
-            MEMORIA_TRY_VOID(iter->next());
+            iter->next();
         }
 
         walker->endSnapshot();
-
-        return VoidResult::of();
     }
 
 
 
-    virtual VoidResult dump_persistent_tree() noexcept {
+    virtual void dump_persistent_tree() {
         persistent_tree_.dump_tree();
-        return VoidResult::of();
     }
 
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
     {
-        MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
+        checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(this->shared_from_this(), ctr_id, decl);
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> create(const LDTypeDeclarationView& decl) noexcept
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
     {
-        MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
+        checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
 
-        MEMORIA_TRY(ctr_name, this->createCtrName());
+        auto ctr_name = this->createCtrName();
 
         return factory->create_instance(this->shared_from_this(), ctr_name, decl);
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> find(const CtrID& ctr_id) noexcept
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id)
     {
-        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
-        MEMORIA_TRY_VOID(checkIfConainersOpeneingAllowed());
+        checkIfConainersOpeneingAllowed();
 
-        MEMORIA_TRY(root_id, getRootID(ctr_id));
+        auto root_id = getRootID(ctr_id);
         if (root_id.is_set())
         {
-            MEMORIA_TRY(block, this->getBlock(root_id));
+            auto block = this->getBlock(root_id);
 
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
@@ -1069,14 +1022,14 @@ public:
                 auto instance_hash = ii->second->type_hash();
 
                 if (instance_hash == ctr_hash) {
-                    return ResultT::of(ii->second->shared_self());
+                    return ii->second->shared_self();
                 }
                 else {
-                    return MEMORIA_MAKE_GENERIC_ERROR(
+                    MEMORIA_MAKE_GENERIC_ERROR(
                                 "Exisitng ctr instance type hash mismatch: expected {}, actual {}",
                                 ctr_hash,
                                 instance_hash
-                    );
+                    ).do_throw();
                 }
             }
             else {
@@ -1084,7 +1037,7 @@ public:
             }
         }
         else {
-            return ResultT::of();
+            return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};
         }
     }
 
@@ -1093,31 +1046,29 @@ public:
         this->history_tree_raw_->pack();
     }
 
-    virtual Result<U8String> ctr_type_name(const CtrID& name) noexcept
+    virtual U8String ctr_type_name(const CtrID& name)
     {
-        using ResultT = Result<U8String>;
-        MEMORIA_TRY(root_id, getRootID(name));
+
+        auto root_id = getRootID(name);
         if (root_id.is_set())
         {
-            MEMORIA_TRY(block, this->getBlock(root_id));
+            auto block = this->getBlock(root_id);
 
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            return ResultT::of(ctr_intf->ctr_type_name());
+            return ctr_intf->ctr_type_name();
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't find container with name {}", name);
+            MEMORIA_MAKE_GENERIC_ERROR("Can't find container with name {}", name).do_throw();
         }
     }
 
-    virtual Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>> from_root_id(const BlockID& root_block_id, const CtrID& name) noexcept
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> from_root_id(const BlockID& root_block_id, const CtrID& name)
     {
-        using ResultT = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
-
         if (root_block_id.is_set())
         {
-            MEMORIA_TRY(block, this->getBlock(root_block_id));
+            auto block = this->getBlock(root_block_id);
 
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
@@ -1125,17 +1076,17 @@ public:
             return ctr_intf->new_ctr_instance(block, this->shared_from_this());
         }
         else {
-            return ResultT::of();
+            return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};
         }
     }
 
-    Result<CtrBlockDescription<ApiProfileT>> describe_block(const CtrID& block_id) noexcept
+    CtrBlockDescription<ApiProfileT> describe_block(const CtrID& block_id)
     {
-        MEMORIA_TRY(block, this->getBlock(block_id));
+        auto block = this->getBlock(block_id);
         return describe_block(block);
     }
 
-    Result<CtrBlockDescription<ApiProfileT>> describe_block(const SharedBlockPtr& block) noexcept
+    CtrBlockDescription<ApiProfileT> describe_block(const SharedBlockPtr& block)
     {
         auto ctr_intf = ProfileMetadata<Profile>::local()
                 ->get_container_operations(block->ctr_type_hash());
@@ -1194,28 +1145,24 @@ protected:
 
 
 
-    VoidResult clone_foreign_block(const BlockType* foreign_block) noexcept
+    void clone_foreign_block(const BlockType* foreign_block)
     {
-        MEMORIA_TRY(new_block, clone_block(foreign_block));
+        auto new_block = clone_block(foreign_block);
         ptree_set_new_block(new_block);
-
-        return VoidResult::of();
     }
 
 
-    Result<BlockType*> clone_block(const BlockType* block)
+    BlockType* clone_block(const BlockType* block)
     {
-        using ResultT = Result<BlockType*>;
-
         char* buffer = (char*) this->malloc(block->memory_block_size());
 
         CopyByteBuffer(block, buffer, block->memory_block_size());
         BlockType* new_block = ptr_cast<BlockType>(buffer);
 
-        MEMORIA_TRY(new_block_id, newId());
+        auto new_block_id = newId();
         new_block->uuid() = new_block_id;
 
-        return ResultT::of(new_block);
+        return new_block;
     }
 
     void put_into_cache(Shared* shared)
@@ -1287,89 +1234,75 @@ protected:
     }
 
 
-    VoidResult checkIfConainersOpeneingAllowed()
+    void checkIfConainersOpeneingAllowed()
     {
-        MEMORIA_TRY_VOID(checkReadAllowed());
+        checkReadAllowed();
 
     	if (is_data_locked())
     	{
-            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot's {} data is locked", uuid());
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot's {} data is locked", uuid()).do_throw();
     	}
-
-        return VoidResult::of();
     }
 
-    VoidResult checkIfConainersCreationAllowed()
+    void checkIfConainersCreationAllowed()
     {
     	if (!is_active())
     	{
-            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status());
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status()).do_throw();
     	}
-
-        return VoidResult::of();
     }
 
 
-    VoidResult checkIfExportAllowed()
+    void checkIfExportAllowed()
     {
     	if (history_node_->is_dropped())
     	{
-    		// Double checking. This shouldn't happen
-    		if (!history_node_->root())
-    		{
-                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been cleared", uuid());
-    		}
+            // Double checking. This shouldn't happen
+            if (!history_node_->root())
+            {
+                MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been cleared", uuid()).do_throw();
+            }
     	}
     	else if (history_node_->is_active()) {
-            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is still active", uuid());
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is still active", uuid()).do_throw();
     	}
-
-        return VoidResult::of();
     }
 
 
 
 
-    VoidResult checkReadAllowed() noexcept
+    void checkReadAllowed()
     {
-    	// read is always allowed
-        return VoidResult::of();
     }
 
-    VoidResult checkUpdateAllowed() noexcept
+    void checkUpdateAllowed()
     {
-        MEMORIA_TRY_VOID(checkReadAllowed());
+        checkReadAllowed();
 
         if (!history_node_->is_active())
         {
-            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been already committed or data is locked", uuid());
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been already committed or data is locked", uuid()).do_throw();
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult checkUpdateAllowed(const CtrID& ctrName) noexcept
+    void checkUpdateAllowed(const CtrID& ctrName)
     {
-        MEMORIA_TRY_VOID(checkReadAllowed());
+        checkReadAllowed();
 
         if ((!history_node_->is_active())) // && ctrName.is_set()
     	{
-            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been already committed or data is locked", uuid());
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been already committed or data is locked", uuid()).do_throw();
     	}
-
-        return VoidResult::of();
     }
 
-    VoidResult checkIfDataLocked() noexcept
+    void checkIfDataLocked()
     {
-        MEMORIA_TRY_VOID(checkReadAllowed());
+        checkReadAllowed();
 
     	if (!history_node_->is_data_locked())
     	{
-            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} hasn't been locked", uuid());
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} hasn't been locked", uuid()).do_throw();
     	}
-
-        return VoidResult::of();
     }
 
 

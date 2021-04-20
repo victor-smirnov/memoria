@@ -98,14 +98,13 @@ public:
         }
     };
 
-    Result<InsertBatchResult> ctr_insert_subtree(TreePathT& path, size_t level, int32_t idx, ILeafProvider& provider, std::function<Result<TreeNodePtr> ()> child_fn, bool update_hierarchy) noexcept
+    InsertBatchResult ctr_insert_subtree(TreePathT& path, size_t level, int32_t idx, ILeafProvider& provider, std::function<TreeNodePtr ()> child_fn, bool update_hierarchy)
     {
-        using ResultT = Result<InsertBatchResult>;
         auto& self = this->self();
 
         TreeNodeConstPtr node = path[level];
 
-        MEMORIA_TRY(capacity, self.ctr_get_branch_node_capacity(node, -1ull));
+        auto capacity = self.ctr_get_branch_node_capacity(node, -1ull);
         CtrSizeT provider_size0  = provider.size();
         const int32_t batch_size = 32;
 
@@ -118,15 +117,15 @@ public:
             int32_t i, batch_max = (c + batch_size) < capacity ? batch_size : (capacity - c);
             for (i = 0; i < batch_max && provider.size() > 0; i++)
             {
-                MEMORIA_TRY(child, child_fn());
+                auto child = child_fn();
 
-                MEMORIA_TRY(max, self.ctr_get_node_max_keys(child.as_immutable()));
+                auto max = self.ctr_get_node_max_keys(child.as_immutable());
                 subtrees[i].accum()         = max;
                 subtrees[i].child_id()      = child->id();
                 subtrees[i].child_node()    = child;
             }
 
-            MEMORIA_TRY_VOID(self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildrenFn(), idx + c, idx + c + i, subtrees));
+            self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildrenFn(), idx + c, idx + c + i, subtrees).get_or_throw();
 
             max = idx + c + i;
 
@@ -137,48 +136,45 @@ public:
 
         if (update_hierarchy)
         {
-            MEMORIA_TRY_VOID(self.ctr_update_path(path, level));
+            self.ctr_update_path(path, level);
         }
 
-        return ResultT::of(max, provider_size0 - provider.size());
+        return InsertBatchResult(max, provider_size0 - provider.size());
     }
 
 
-    Result<TreeNodePtr> ctr_build_subtree(ILeafProvider& provider, size_t level) noexcept
+    TreeNodePtr ctr_build_subtree(ILeafProvider& provider, size_t level)
     {
-        using ResultT = Result<TreeNodePtr>;
         auto& self = this->self();
 
         if (provider.size() > 0)
         {
             if (level >= 1)
             {
-                MEMORIA_TRY(node, self.ctr_create_node(level, false, false));
-                MEMORIA_TRY_VOID(self.ctr_ref_block(node->id()));
+                auto node = self.ctr_create_node(level, false, false);
+                self.ctr_ref_block(node->id());
 
-                MEMORIA_TRY_VOID(self.ctr_layout_branch_node(node, 0xFF));
+                self.ctr_layout_branch_node(node, 0xFF);
 
                 TreePathT path;
                 path.add_root(node.as_immutable());
 
-                auto res = self.ctr_insert_subtree(path, 0, 0, provider, [this, level, &provider]() -> ResultT {
+                self.ctr_insert_subtree(path, 0, 0, provider, [this, level, &provider]() {
                     auto& self = this->self();
                     return self.ctr_build_subtree(provider, level - 1);
                 }, false);
-                MEMORIA_RETURN_IF_ERROR(res);
 
-                return node_result;
+
+                return node;
             }
             else {
                 return provider.get_leaf();
             }
         }
         else {
-            return ResultT::of();
+            return TreeNodePtr{};
         }
     }
-
-
 
 
 
@@ -196,20 +192,20 @@ public:
             return size_;
         }
 
-        virtual Result<TreeNodePtr> get_leaf() noexcept
+        virtual TreeNodePtr get_leaf() noexcept
         {
             if (head_.isSet())
             {
                 auto node = head_;
 
-                MEMORIA_TRY(block, ctr_.store().getBlock(head_->next_leaf_id(), ctr_.master_name()));
+                auto block = ctr_.store().getBlock(head_->next_leaf_id(), ctr_.master_name());
 
                 head_ = block;
                 size_--;
                 return node;
             }
             else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Leaf List is empty");
+                MEMORIA_MAKE_GENERIC_ERROR("Leaf List is empty").do_throw();
             }
         }
 
@@ -232,16 +228,16 @@ public:
 
 
 
-    Result<InsertBatchResult> ctr_insert_batch_to_node(
+    InsertBatchResult ctr_insert_batch_to_node(
             TreePathT& path,
             size_t level,
             int32_t idx,
             ILeafProvider& provider,
             bool update_hierarchy = true
-    ) noexcept
+    )
     {
         auto& self = this->self();
-        return self.ctr_insert_subtree(path, level, idx, provider, [&provider, level, this]() -> Result<TreeNodePtr> {
+        return self.ctr_insert_subtree(path, level, idx, provider, [&provider, level, this]() {
             auto& self = this->self();
             return self.ctr_build_subtree(provider, level - 1);
         },

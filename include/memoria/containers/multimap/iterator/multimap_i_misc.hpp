@@ -66,7 +66,7 @@ public:
         if (stream == 0)
         {
             int32_t key_idx = self.data_stream_idx(stream);
-            return std::get<0>(self.template iter_read_leaf_entry<0, IntList<1>>(key_idx, 0).get_or_throw());
+            return std::get<0>(self.template iter_read_leaf_entry<0, IntList<1>>(key_idx, 0));
         }
         else {
             MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: {}", stream));
@@ -82,7 +82,7 @@ public:
         if (stream == 1)
         {
             int32_t value_idx = self.data_stream_idx(stream);
-            return std::get<0>(self.template iter_read_leaf_entry<1, IntList<1>>(value_idx, 0).get_or_throw());
+            return std::get<0>(self.template iter_read_leaf_entry<1, IntList<1>>(value_idx, 0));
         }
         else {
             MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: ", stream));
@@ -179,16 +179,16 @@ public:
     }
 
 
-    Result<CtrSizesT> remove(CtrSizeT length = 1) noexcept
+    CtrSizesT remove(CtrSizeT length = 1)
     {
         return self().iter_remove_ge(length);
     }
 
-    Result<CtrSizeT> values_size() const noexcept {
+    CtrSizeT values_size() const {
         return self().substream_size();
     }
 
-    bool is_found(const KeyView& key) noexcept
+    bool is_found(const KeyView& key)
     {
         auto& self = this->self();
 
@@ -201,28 +201,28 @@ public:
         }
     }
 
-    BoolResult to_values() noexcept
+    bool to_values()
     {
     	auto& self = this->self();
     	int32_t stream = self.iter_data_stream();
 
         if (stream == 1) 
         {
-            return BoolResult::of(true);
+            return true;
         }
         else {
-            MEMORIA_TRY_VOID(self.next());
+            self.next();
             if (self.is_end())
             {
-                return BoolResult::of(false);
+                return false;
             }
             else {
-                return BoolResult::of(self.iter_data_stream() == 1);
+                return self.iter_data_stream() == 1;
             }
         }
     }
 
-    VoidResult to_prev_key() noexcept
+    void to_prev_key()
     {
         return self().selectBw(1, 0);
     }

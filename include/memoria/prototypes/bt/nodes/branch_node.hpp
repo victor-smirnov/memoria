@@ -745,54 +745,60 @@ public:
     template <typename SerializationData>
     VoidResult serialize(SerializationData& buf) const noexcept
     {
-        MEMORIA_TRY_VOID(Base::template serialize<RootMetadataList>(buf));
+        return wrap_throwing([&]() -> VoidResult {
+            MEMORIA_TRY_VOID(Base::template serialize<RootMetadataList>(buf));
 
-        MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf));
+            MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf));
 
-        MEMORIA_TRY(size, this->size());
+            MEMORIA_TRY(size, this->size());
 
-        FieldFactory<Value>::serialize(buf, values(), size);
+            FieldFactory<Value>::serialize(buf, values(), size);
 
-        return VoidResult::of();
+            return VoidResult::of();
+        });
     }
 
 
     template <typename SerializationData, typename IDResolver>
     VoidResult cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
     {
-        MEMORIA_TRY_VOID(Base::template cow_serialize<RootMetadataList>(buf, id_resolver));
+        return wrap_throwing([&]() -> VoidResult {
+            MEMORIA_TRY_VOID(Base::template cow_serialize<RootMetadataList>(buf, id_resolver));
 
-        MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf));
+            MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf));
 
-        MEMORIA_TRY(size, this->size());
+            MEMORIA_TRY(size, this->size());
 
-        const Value* child_ids = values();
+            const Value* child_ids = values();
 
-        for (int32_t c = 0; c < size; c++)
-        {
-            MEMORIA_TRY(actual_id, id_resolver->resolve_id(child_ids[c]));
-            FieldFactory<Value>::serialize(buf, actual_id);
-        }
+            for (int32_t c = 0; c < size; c++)
+            {
+                auto actual_id = id_resolver->resolve_id(child_ids[c]);
+                FieldFactory<Value>::serialize(buf, actual_id);
+            }
 
-        return VoidResult::of();
+            return VoidResult::of();
+        });
     }
 
     template <typename IDResolver>
     VoidResult cow_resolve_ids(const IDResolver* id_resolver) noexcept
     {
-        MEMORIA_TRY_VOID(Base::cow_resolve_ids(id_resolver));
+        return wrap_throwing([&]() -> VoidResult {
+            MEMORIA_TRY_VOID(Base::cow_resolve_ids(id_resolver));
 
-        MEMORIA_TRY(size, this->size());
+            MEMORIA_TRY(size, this->size());
 
-        Value* child_ids = values();
+            Value* child_ids = values();
 
-        for (int32_t c = 0; c < size; c++)
-        {
-            MEMORIA_TRY(memref_id, id_resolver->resolve_id(child_ids[c]));
-            child_ids[c] = memref_id;
-        }
+            for (int32_t c = 0; c < size; c++)
+            {
+                auto memref_id = id_resolver->resolve_id(child_ids[c]);
+                child_ids[c] = memref_id;
+            }
 
-        return VoidResult::of();
+            return VoidResult::of();
+        });
     }
 
     struct DeserializeFn {
@@ -806,17 +812,19 @@ public:
     template <typename DeserializationData>
     VoidResult deserialize(DeserializationData& buf) noexcept
     {
-        MEMORIA_TRY_VOID(Base::template deserialize<RootMetadataList>(buf));
+        return wrap_throwing([&]() -> VoidResult {
+            MEMORIA_TRY_VOID(Base::template deserialize<RootMetadataList>(buf));
 
-        MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf));
+            MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf));
 
-        MEMORIA_TRY(size, this->size());
+            MEMORIA_TRY(size, this->size());
 
-        FieldFactory<Value>::deserialize(buf, values(), size);
+            FieldFactory<Value>::deserialize(buf, values(), size);
 
-        ProfileSpecificBlockTools<typename Types::Profile>::after_deserialization(this);
+            ProfileSpecificBlockTools<typename Types::Profile>::after_deserialization(this);
 
-        return VoidResult::of();
+            return VoidResult::of();
+        });
     }
 
 
@@ -935,52 +943,41 @@ public:
 
         virtual ~BlockOperations() noexcept {}
 
-        virtual Int32Result serialize(const BlockType* block, void* buf, const IDValueResolver* resolver) const noexcept
+        virtual int32_t serialize(const BlockType* block, void* buf, const IDValueResolver* resolver) const
         {
-            return wrap_throwing([&]() -> Int32Result {
-                const MyType* node = ptr_cast<const MyType>(block);
+            const MyType* node = ptr_cast<const MyType>(block);
 
-                SerializationData data;
-                data.buf = ptr_cast<char>(buf);
+            SerializationData data;
+            data.buf = ptr_cast<char>(buf);
 
-                MEMORIA_TRY_VOID(
-                    detail_::BTNodeNodeMethodsSelector<Profile>::serialize(node, data, resolver)
-                );
 
-                return Int32Result::of(data.total);
-            });
+            detail_::BTNodeNodeMethodsSelector<Profile>::serialize(node, data, resolver).get_or_throw();
+
+
+            return data.total;
         }
 
-        virtual VoidResult deserialize(const void* buf, int32_t buf_size, BlockType* block) const noexcept
+        virtual void deserialize(const void* buf, int32_t buf_size, BlockType* block) const
         {
-            return wrap_throwing([&]() -> VoidResult {
-                MyType* node = ptr_cast<MyType>(block);
+            MyType* node = ptr_cast<MyType>(block);
 
-                DeserializationData data;
-                data.buf = ptr_cast<const char>(buf);
+            DeserializationData data;
+            data.buf = ptr_cast<const char>(buf);
 
-                MEMORIA_TRY_VOID(node->deserialize(data));
-
-                return VoidResult::of();
-            });
+            node->deserialize(data).get_or_throw();
         }
 
-
-        virtual VoidResult cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const noexcept
+        virtual void cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const
         {
-            return wrap_throwing([&]() -> VoidResult {
-                MyType* node = ptr_cast<MyType>(block);
-                return detail_::BTNodeNodeMethodsSelector<Profile>::resolve_ids(node, id_resolver);
-            });
+            MyType* node = ptr_cast<MyType>(block);
+            detail_::BTNodeNodeMethodsSelector<Profile>::resolve_ids(node, id_resolver).get_or_throw();
         }
 
 
-        virtual VoidResult resize(const BlockType* block, void* buffer, int32_t new_size) const noexcept
+        virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const
         {
-            return wrap_throwing([&]() {
-                MyType* tgt = ptr_cast<MyType>(buffer);
-                return tgt->resizeBlock(new_size);
-            });
+            MyType* tgt = ptr_cast<MyType>(buffer);
+            tgt->resizeBlock(new_size).get_or_throw();
         }
 
         virtual uint64_t block_type_hash() const noexcept {

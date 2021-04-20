@@ -43,26 +43,22 @@ void InitLiteRawSWMRStore() {
 
 
 
-Result<SharedPtr<ISWMRStore<ApiProfileT>>> open_lite_raw_swmr_store(Span<uint8_t> buffer)
+SharedPtr<ISWMRStore<ApiProfileT>> open_lite_raw_swmr_store(Span<uint8_t> buffer)
 {
-    using ResultT = Result<SharedPtr<ISWMRStore<ApiProfileT>>>;
-
     auto ptr = MakeShared<SWMRLiteRawStore<Profile>>(buffer);
 
-    MEMORIA_TRY_VOID(ptr->do_open_buffer());
+    ptr->do_open_buffer();
 
-    return ResultT::of(ptr);
+    return ptr;
 }
 
-Result<SharedPtr<ISWMRStore<ApiProfileT>>> create_lite_raw_swmr_store(Span<uint8_t> buffer)
+SharedPtr<ISWMRStore<ApiProfileT>> create_lite_raw_swmr_store(Span<uint8_t> buffer)
 {
-    using ResultT = Result<SharedPtr<ISWMRStore<ApiProfileT>>>;
-
     auto ptr = MakeShared<SWMRLiteRawStore<Profile>>(buffer);
 
-    MEMORIA_TRY_VOID(ptr->init_store());
+    ptr->init_store();
 
-    return ResultT::of(ptr);
+    return ptr;
 }
 
 }

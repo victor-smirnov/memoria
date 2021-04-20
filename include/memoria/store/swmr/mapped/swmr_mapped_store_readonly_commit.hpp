@@ -36,7 +36,7 @@ protected:
     using typename Base::CommitDescriptorT;
     using typename Base::CtrID;
     using typename Base::CtrReferenceableResult;
-    using typename Base::AllocatorT;
+    using typename Base::StoreT;
     using typename Base::BlockID;
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
@@ -88,8 +88,8 @@ public:
             if (root_block_id.is_set())
             {
                 auto directory_ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(root_block_id);
-                MEMORIA_RETURN_IF_ERROR(directory_ctr_ref);
-                directory_ctr_ = directory_ctr_ref.get();
+
+                directory_ctr_ = directory_ctr_ref;
                 directory_ctr_->internal_reset_allocator_holder();
             }
 
@@ -103,28 +103,25 @@ protected:
         return commit_descriptor_->superblock()->sequence_id();
     }
 
-    virtual SnpSharedPtr<AllocatorT> self_ptr() noexcept {
+    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
         return this->shared_from_this();
     }
 
-    virtual Result<SharedBlockConstPtr> getBlock(const BlockID& id) noexcept
+    virtual SharedBlockConstPtr getBlock(const BlockID& id)
     {
-        using ResultT = Result<SharedBlockConstPtr>;
         BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value() * BASIC_BLOCK_SIZE);
 
         Shared* shared = shared_pool_.construct(id, block, 0);
         shared->set_allocator(this);
 
-        return ResultT::of(SharedBlockConstPtr{shared});
+        return SharedBlockConstPtr{shared};
     }
 
-    virtual VoidResult updateBlock(Shared* block) noexcept {
-        return VoidResult::of();
+    virtual void updateBlock(Shared* block) {
     }
 
-    virtual VoidResult releaseBlock(Shared* block) noexcept {
+    virtual void releaseBlock(Shared* block) {
         shared_pool_.destroy(block);
-        return VoidResult::of();
     }
 };
 

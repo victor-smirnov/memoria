@@ -34,11 +34,11 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
 
     using typename Base::CtrSizeT;
 
-    Result<CtrSizeT> count_fw() noexcept
+    CtrSizeT count_fw()
     {
         typename Types::template CountForwardWalker<Types, IntList<0, 1>> walker(0);
-        MEMORIA_TRY(res, self().iter_find_fw(walker));
-        return Result<CtrSizeT>::of(res);
+        auto res = self().iter_find_fw(walker);
+        return res;
     }
 
 
@@ -66,9 +66,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
         }
     };
 
-    Result<CtrSizeT> iter_setup_bits(int32_t level, CtrSizeT size, bool set_bits) noexcept
+    CtrSizeT iter_setup_bits(int32_t level, CtrSizeT size, bool set_bits)
     {
-        using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
 
         int32_t local_pos = self.iter_local_pos() >> level;
@@ -77,17 +76,17 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
         CtrSizeT remainder = size;
         while (accum < size)
         {
-            MEMORIA_TRY_VOID(self.ctr().ctr_cow_clone_path(self.path(), 0));
+            self.ctr().ctr_cow_clone_path(self.path(), 0);
 
-            MEMORIA_TRY(processed, self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), SetClearBitsFn(), local_pos, level, remainder, set_bits));
+            auto processed = self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), SetClearBitsFn(), local_pos, level, remainder, set_bits).get_or_throw();
 
             accum += processed;
 
-            MEMORIA_TRY_VOID(self.ctr().ctr_update_path(self.path(), 0));
+            self.ctr().ctr_update_path(self.path(), 0);
 
             if (accum < size)
             {
-                MEMORIA_TRY(has_next, self.next_leaf());
+                auto has_next = self.next_leaf();
                 if (!has_next) {
                     break;
                 }
@@ -99,14 +98,14 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
             }
         }
 
-        MEMORIA_TRY(leaf_size, self.iter_leaf_size());
+        auto leaf_size = self.iter_leaf_size();
 
         if (leaf_size == self.iter_local_pos())
         {
-            MEMORIA_TRY_VOID(self.next_leaf());
+            self.next_leaf();
         }
 
-        return ResultT::of(accum);
+        return accum;
     }
 
 
@@ -125,9 +124,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
     };
 
 
-    Result<CtrSizeT> iter_touch_bits(int32_t level, CtrSizeT size) noexcept
+    CtrSizeT iter_touch_bits(int32_t level, CtrSizeT size)
     {
-        using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
 
         int32_t local_pos = self.iter_local_pos() >> level;
@@ -136,15 +134,15 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
         CtrSizeT remainder = size;
         while (accum < size)
         {
-            MEMORIA_TRY_VOID(self.ctr().ctr_cow_clone_path(self.path(), 0));
+            self.ctr().ctr_cow_clone_path(self.path(), 0);
 
-            MEMORIA_TRY(processed, self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), TouchBitsFn(), local_pos, level, remainder));
+            auto processed = self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), TouchBitsFn(), local_pos, level, remainder).get_or_throw();
 
             accum += processed;
 
             if (accum < size)
             {
-                MEMORIA_TRY(has_next, self.next_leaf());
+                auto has_next = self.next_leaf();
                 if (!has_next) {
                     break;
                 }
@@ -156,14 +154,14 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
             }
         }
 
-        MEMORIA_TRY(leaf_size, self.iter_leaf_size());
+        auto leaf_size = self.iter_leaf_size();
 
         if (leaf_size == self.iter_local_pos())
         {
-            MEMORIA_TRY_VOID(self.next_leaf());
+            self.next_leaf();
         }
 
-        return ResultT::of(accum);
+        return accum;
     }
 
 
@@ -189,15 +187,14 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
     };
 
 
-    Result<CtrSizeT> level0_pos() const noexcept
+    CtrSizeT level0_pos() const
     {
-        using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
 
         PosWalker walker{};
-        MEMORIA_TRY_VOID(self.iter_walk_up_for_refresh(self.path(), 0, self.iter_local_pos(), walker));
+        self.iter_walk_up_for_refresh(self.path(), 0, self.iter_local_pos(), walker);
 
-        return ResultT::of(walker.prefix_);
+        return walker.prefix_;
     }
 
 
@@ -215,16 +212,16 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
         }
     };
 
-    Int32Result iter_get_bit(int32_t level, int32_t pos) const noexcept
+    int32_t iter_get_bit(int32_t level, int32_t pos) const
     {
         auto& self = this->self();
-        return self.ctr().leaf_dispatcher().dispatch(self.leaf(), GetBitsFn(), level, pos);
+        return self.ctr().leaf_dispatcher().dispatch(self.leaf(), GetBitsFn(), level, pos).get_or_throw();
     }
 
-    Int32Result iter_get_bit(int32_t level) const noexcept
+    int32_t iter_get_bit(int32_t level) const
     {
         auto& self = this->self();
-        return self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), GetBitsFn(), level, self.iter_local_pos() >> level);
+        return self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), GetBitsFn(), level, self.iter_local_pos() >> level).get_or_throw();
     }
 
 MEMORIA_V1_ITERATOR_PART_END

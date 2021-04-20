@@ -67,10 +67,8 @@ public:
 
 
 
-    virtual Result<CtrSharedPtr<BufferT>> read_buffer(CtrSizeT size) noexcept
+    virtual CtrSharedPtr<BufferT> read_buffer(CtrSizeT size)
     {
-        using ResultT = Result<CtrSharedPtr<BufferT>>;
-
         auto& self = this->self();
 
         auto buffer = ctr_make_shared<BufferT>();
@@ -95,28 +93,26 @@ public:
                 cnt += remainder;
             }
 
-
-
             if (cnt < size)
             {
-                MEMORIA_TRY_VOID(scanner.next_leaf());
+                scanner.next_leaf();
             }
         }
 
 
-        return ResultT::of(buffer);
+        return buffer;
     }
 
-    virtual VoidResult insert_buffer(const BufferT& buffer, size_t start, size_t size) noexcept
+    virtual void insert_buffer(const BufferT& buffer, size_t start, size_t size)
     {
         auto& self = this->self();
 
         if (start + size > buffer.size())
         {
-            return MEMORIA_MAKE_GENERIC_ERROR("Vector insert_buffer rancge check error: {}, {}, {}", start, size, buffer.size());
+            MEMORIA_MAKE_GENERIC_ERROR("Vector insert_buffer rancge check error: {}, {}, {}", start, size, buffer.size()).do_throw();
         }
 
-        MEMORIA_TRY(current_pos, self.pos());
+        auto current_pos = self.pos();
 
         VectorProducer<CtrApiTypes> producer([&](auto& values, auto appended_size){
             size_t batch_size = 8192;
@@ -129,15 +125,13 @@ public:
             return limit != batch_size;
         });
 
-        MEMORIA_TRY(totals, self.insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max()));
+        auto totals = self.insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
 
         CtrSizeT new_pos = current_pos + totals;
 
-        MEMORIA_TRY(ii, self.ctr().ctr_seek(new_pos));
+        auto ii = self.ctr().ctr_seek(new_pos);
 
         self.assign(std::move(*ii.get()));
-
-        return VoidResult::of();
     }
 
 
@@ -151,7 +145,7 @@ public:
 
         psize_t local_pos = self.iter_local_pos();
 
-        if (local_pos < self.iter_leaf_size(0).get_or_throw())
+        if (local_pos < self.iter_leaf_size(0))
         {
             auto& iovv = self.iovector_view();
 
@@ -168,7 +162,7 @@ public:
                        << format_ex(
                            "Requested index {} is outside of bounds [0, {})",
                            local_pos,
-                           self.iter_leaf_size(0).get_or_throw()
+                           self.iter_leaf_size(0)
                        )
             );
         }
@@ -191,22 +185,22 @@ public:
         }
     };
 
-    VoidResult set(ValueView v) noexcept
+    void set(ValueView v)
     {
         auto& self = this->self();
         psize_t local_pos = self.iter_local_pos();
 
-        MEMORIA_TRY(leaf_size, self.iter_leaf_size(0));
+        auto leaf_size = self.iter_leaf_size(0);
         if (local_pos < leaf_size)
         {
             return self.ctr().template ctr_update_entry<IntList<0, 1>>(self, EntryAdapter{v});
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR(
+            MEMORIA_MAKE_GENERIC_ERROR(
                 "Requested index {} is outside of bounds [0, {})",
                 local_pos,
                 self.iter_leaf_size(0)
-            );
+            ).do_throw();
         }
     }
 

@@ -42,11 +42,11 @@ int main()
         using MapType = Map<BigInt, Varchar>;
         using Entry   = std::pair<int64_t, U8String>;
 
-        auto alloc = create_memory_store_noncow().get_or_throw();
+        auto alloc = create_memory_store_noncow();
 
-        auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
+        auto snp = alloc->master()->branch();
 
-        auto ctr0 = create(snp, MapType()).get_or_throw();
+        auto ctr0 = create(snp, MapType());
 
         //ctr0->set_new_block_size(64*1024);
 
@@ -85,7 +85,7 @@ int main()
             }
 
             return limit != batch_size;
-        }).throw_if_error();
+        });
 
 
         int64_t t1_i = getTimeInMillis();
@@ -95,10 +95,10 @@ int main()
 
         //ctr0->iterator()->dumpPath();
 
-        snp->commit().throw_if_error();
-        snp->set_as_master().throw_if_error();
+        snp->commit();
+        snp->set_as_master();
 
-        alloc->store("store-map.mma1").throw_if_error();
+        alloc->store("store-map.mma1");
 
         int64_t t2 = getTimeInMillis();
 
@@ -117,7 +117,7 @@ int main()
                 std::cout << keys[c] << " = " << ii.values()[c] << std::endl;
             }
 
-            ii.next_leaf().throw_if_error();
+            ii.next_leaf();
         }
 
         int64_t t3 = getTimeInMillis();
