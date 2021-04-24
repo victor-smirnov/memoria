@@ -22,6 +22,7 @@
 #include <memoria/core/datatypes/default_datatype_ops.hpp>
 
 #include <memoria/core/tools/fixed_array.hpp>
+#include <memoria/core/container/cow.hpp>
 
 #include <memoria/api/set/set_api.hpp>
 #include <memoria/api/vector/vector_api.hpp>
@@ -30,6 +31,7 @@
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 
 #include <memoria/profiles/impl/cow_lite_profile.hpp>
+#include <memoria/profiles/impl/cow_profile.hpp>
 
 #include <string>
 
@@ -46,14 +48,19 @@ MMA_DEFINE_DEFAULT_DATATYPE_OPS(Vector<LinkedData>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Map<BigInt, Varchar>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Map<BigInt, BigInt>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Map<UUID, UUID>);
+MMA_DEFINE_DEFAULT_DATATYPE_OPS(Map<UUID, UBigInt>);
 //MMA_DEFINE_DEFAULT_DATATYPE_OPS(Multimap<BigInt, UTinyInt>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Multimap<UUID, UTinyInt>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Multimap<Varchar, Varchar>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(AllocationMap);
+//MMA_DEFINE_DEFAULT_DATATYPE_OPS(UUIDCowBlockID);
+//MMA_DEFINE_DEFAULT_DATATYPE_OPS(UInt64CowBlockID);
+//MMA_DEFINE_DEFAULT_DATATYPE_OPS(Map<UUID, UUIDCowBlockID>);
 
 template <typename Profile>
 using DirectoryCtrType = Map<ProfileCtrID<Profile>, ProfileBlockID<Profile>>;
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(DirectoryCtrType<CowLiteProfile<>>);
+MMA_DEFINE_DEFAULT_DATATYPE_OPS(DirectoryCtrType<CowProfile<>>);
 
 void InitCtrDatatypes()
 {
@@ -70,11 +77,13 @@ void InitCtrDatatypes()
     register_notctr_operations<Map<BigInt, Varchar>>();
     register_notctr_operations<Map<BigInt, BigInt>>();
     register_notctr_operations<Map<UUID, UUID>>();
+    register_notctr_operations<Map<UUID, UBigInt>>();
     //register_notctr_operations<Multimap<BigInt, UTinyInt>>();
     register_notctr_operations<Multimap<UUID, UTinyInt>>();
     register_notctr_operations<Multimap<Varchar, Varchar>>();
     register_notctr_operations<AllocationMap>();
     register_notctr_operations<DirectoryCtrType<CowLiteProfile<>>>();
+    register_notctr_operations<DirectoryCtrType<CowProfile<>>>();
 }
 
 }

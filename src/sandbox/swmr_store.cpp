@@ -70,6 +70,7 @@ int main(void) {
 
                 snp1->commit(false);
             }
+
         }
 
         store1->check(callback);
@@ -92,6 +93,12 @@ int main(void) {
 //        snp2->commit();
 
 //        store2->check(callback);
+    }
+    catch (MemoriaError& ee) {
+        ee.describe(std::cout);
+    }
+    catch (MemoriaThrowable& ee) {
+        ee.dump(std::cout);
     }
     catch (std::exception& ee) {
         std::cerr << "Exception: " << ee.what() << std::endl;

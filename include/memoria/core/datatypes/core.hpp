@@ -48,7 +48,6 @@ struct Time      {};
 struct TimeWithTZ {};
 struct Boolean   {};
 
-
 struct UInt64CowBlockID {};
 struct UUIDCowBlockID {};
 

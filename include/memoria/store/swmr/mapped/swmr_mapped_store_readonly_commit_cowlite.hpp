@@ -18,16 +18,23 @@
 
 #include <memoria/store/swmr/common/swmr_store_readonly_commit_base.hpp>
 
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
+
 #include <functional>
 
 namespace memoria {
 
-template <typename Profile>
-class MappedSWMRStoreReadOnlyCommit:
-        public SWMRStoreReadOnlyCommitBase<Profile>,
-        public EnableSharedFromThis<MappedSWMRStoreReadOnlyCommit<Profile>>
+template <typename>
+class MappedSWMRStoreReadOnlyCommit;
+
+template <typename ChildProfile>
+class MappedSWMRStoreReadOnlyCommit<CowLiteProfile<ChildProfile>>:
+        public SWMRStoreReadOnlyCommitBase<CowLiteProfile<ChildProfile>>,
+        public EnableSharedFromThis<MappedSWMRStoreReadOnlyCommit<CowLiteProfile<ChildProfile>>>
 {
 protected:
+    using Profile = CowLiteProfile<ChildProfile>;
+
     using Base = SWMRStoreReadOnlyCommitBase<Profile>;
 
     using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
@@ -98,7 +105,6 @@ public:
     }
 
 
-protected:
     uint64_t sequence_id() const {
         return commit_descriptor_->superblock()->sequence_id();
     }
@@ -107,20 +113,24 @@ protected:
         return this->shared_from_this();
     }
 
-    virtual SharedBlockConstPtr getBlock(const BlockID& id)
-    {
-        BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value() * BASIC_BLOCK_SIZE);
 
-        Shared* shared = shared_pool_.construct(id, block, 0);
+    using typename Base::ResolvedBlock;
+    virtual ResolvedBlock resolve_block(const BlockID& block_id)
+    {
+        BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value() * BASIC_BLOCK_SIZE);
+
+        Shared* shared = shared_pool_.construct(block_id, block, 0);
+
         shared->set_allocator(this);
 
-        return SharedBlockConstPtr{shared};
+        return {block_id.value(), SharedBlockConstPtr{shared}};
     }
+
 
     virtual void updateBlock(Shared* block) {
     }
 
-    virtual void releaseBlock(Shared* block) {
+    virtual void releaseBlock(Shared* block) noexcept {
         shared_pool_.destroy(block);
     }
 };

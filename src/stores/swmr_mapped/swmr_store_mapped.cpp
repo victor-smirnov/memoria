@@ -18,7 +18,7 @@
 
 namespace memoria {
 
-using Profile = CowLiteProfile<>;
+using Profile = CowProfile<>;
 using ApiProfileT = ApiProfile<Profile>;
 
 template struct ISWMRStore<ApiProfileT>;

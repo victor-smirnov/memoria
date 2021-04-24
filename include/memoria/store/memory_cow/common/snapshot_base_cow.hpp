@@ -204,6 +204,8 @@ protected:
     bool snapshot_removal_{false};
 
     mutable ObjectPools object_pools_;
+    mutable boost::object_pool<Shared> shared_pool_;
+
 
 public:
 
@@ -368,7 +370,7 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            auto ctr = ctr_intf->new_ctr_instance(block.as_mutable(), this);
+            auto ctr = ctr_intf->new_ctr_instance(block, this);
 
             ctr->internal_unref_cascade(block_id_holder_from(root_block_id));
         }
@@ -632,7 +634,13 @@ public:
     SharedBlockConstPtr findBlock(const BlockID& id)
     {
         BlockType* block = value_cast<BlockType*>(detail::IDValueHolderH<BlockID>::from_id(id));
-        return SharedBlockConstPtr{block};
+        if (block) {
+            Shared* shared = shared_pool_.construct(id, block, 0);
+            return SharedBlockConstPtr{shared};
+        }
+        else {
+            return SharedBlockConstPtr{};
+        }
     }
 
     virtual SharedBlockConstPtr getBlock(const BlockID& id)
@@ -745,7 +753,7 @@ public:
 
 
 
-    virtual SharedBlockPtr createBlock(int32_t initial_size)
+    virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID&)
     {
         check_updates_allowed();
 
@@ -765,11 +773,13 @@ public:
 
         p->memory_block_size() = initial_size;
 
-        return SharedBlockPtr{p};
+        Shared* shared = shared_pool_.construct(id, p, 0);
+
+        return SharedBlockPtr{shared};
     }
 
 
-    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block)
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID&)
     {
         check_updates_allowed();
 
@@ -780,7 +790,9 @@ public:
         new_block->id_value() = detail::IDValueHolderH<BlockID>::to_id_value(new_id);
         new_block->id() = detail::IDValueHolderH<BlockID>::to_id(new_block);
 
-        return SharedBlockPtr{new_block};
+        Shared* shared = shared_pool_.construct(new_id, new_block, 0);
+
+        return SharedBlockPtr{shared};
     }
 
 
@@ -1185,8 +1197,8 @@ protected:
         history_node_->reset_root_id();
     }
 
-    virtual void releaseBlock(Shared* block) {
-        make_generic_error("releaseBlock is not implemented!!!").do_throw();
+    virtual void releaseBlock(Shared* block) noexcept {
+        shared_pool_.destroy(block);
     }
 
     virtual void updateBlock(Shared* block) {

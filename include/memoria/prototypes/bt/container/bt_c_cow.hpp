@@ -84,7 +84,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
         auto& self = this->self();
 
         auto this_ptr = this->shared_from_this();        
-        return self.store().unref_block(block_id, [=]() {
+        return self.store().unref_block(block_id, [&]() {
             auto block = this_ptr->ctr_get_block(block_id);
 
             if (!block->is_leaf())
@@ -129,7 +129,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     void ctr_ref_block(const BlockID& block_id)
     {
         auto& self = this->self();
-        return  self.store().ref_block(block_id);
+        return self.store().ref_block(block_id);
     }
 
 
@@ -139,7 +139,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     {
         auto& self = this->self();
 
-        auto new_block_tmp = self.store().cloneBlock(src);
+        auto new_block_tmp = self.store().cloneBlock(src, self.name());
         TreeNodePtr new_block = new_block_tmp;
 
         if (!new_block->is_leaf())

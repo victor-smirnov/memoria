@@ -182,11 +182,11 @@ protected:
         MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual SharedBlockPtr createBlock(int32_t initial_size) {
+    virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID&) {
         MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block) {
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID&) {
         MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits").do_throw();
     }
 

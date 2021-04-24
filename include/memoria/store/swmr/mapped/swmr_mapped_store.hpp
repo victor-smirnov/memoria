@@ -18,8 +18,10 @@
 
 #include <memoria/store/swmr/common/mapped_swmr_store_base.hpp>
 
-#include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_commit.hpp>
-#include <memoria/store/swmr/mapped/swmr_mapped_store_writable_commit.hpp>
+#include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_commit_cow.hpp>
+#include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_commit_cowlite.hpp>
+#include <memoria/store/swmr/mapped/swmr_mapped_store_writable_commit_cow.hpp>
+#include <memoria/store/swmr/mapped/swmr_mapped_store_writable_commit_cowlite.hpp>
 
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
@@ -76,10 +78,6 @@ protected:
 
     using LockGuard     = std::lock_guard<std::recursive_mutex>;
     using Superblock    = SWMRSuperblock<Profile>;
-
-    template <typename> friend class MappedSWMRStoreReadonlyCommit;
-    template <typename> friend class MappedSWMRStoreWritableCommit;
-    template <typename> friend class MappedSWMRStoreCommitBase;
 
     U8String file_name_;
     uint64_t file_size_;
@@ -144,7 +142,7 @@ public:
 
     virtual void close()
     {
-        if (file_)
+        if (file_ && head_ptr_)
         {
             LockGuard lock(writer_mutex_);
 

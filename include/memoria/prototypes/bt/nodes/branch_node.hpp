@@ -133,10 +133,6 @@ public:
         return header_.memory_block_size() - allocator()->free_space();
     }
 
-    void init() noexcept {
-        header_.init();
-    }
-
     inline bool is_root() const noexcept {
         return root_;
     }

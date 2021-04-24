@@ -53,6 +53,7 @@ struct StaticLibraryCtrs {
         InitCtrMetadata<Map<BigInt, Varchar>, ProfileT>();
         InitCtrMetadata<Map<BigInt, BigInt>, ProfileT>();
         InitCtrMetadata<Map<UUID, UUID>, ProfileT>();
+        InitCtrMetadata<Map<UUID, UBigInt>, ProfileT>();
 
         InitCtrMetadata<Multimap<BigInt, UTinyInt>, ProfileT>();
         InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();

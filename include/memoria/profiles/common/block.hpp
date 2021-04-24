@@ -128,8 +128,6 @@ public:
         return snapshot_id_;
     }
 
-    void init() noexcept {}
-
     uint64_t &ctr_type_hash() noexcept {
         return ctr_type_hash_;
     }

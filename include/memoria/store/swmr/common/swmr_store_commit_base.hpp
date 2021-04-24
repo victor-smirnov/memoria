@@ -37,6 +37,9 @@ constexpr UUID AllocationMapCtrID = UUID(13207540296396918182ull, 16288549449461
 // 0bc70e1f-adaf-4454-afda-7f6ac7104790
 constexpr UUID HistoryCtrID = UUID(6072171355687536395ull, 10396296713479379631ull);
 
+// 177b946a-f700-421f-b5fc-0a177195b82f
+constexpr UUID BlockMapCtrID = UUID(2252363826283707159ull, 3438662628447812789ull);
+
 
 template <typename Profile>
 struct CommitCheckState {
@@ -54,6 +57,7 @@ struct ReferenceCounterDelegate {
     virtual void unref_block(const BlockID& block_id, const std::function<void ()>& on_zero) = 0;
     virtual void unref_ctr_root(const BlockID& root_block_id) = 0;
 };
+
 
 template <typename Profile> class SWMRStoreBase;
 
@@ -107,8 +111,6 @@ protected:
     static constexpr int32_t ALLOCATION_MAP_SIZE_STEP    = Store::ALLOCATION_MAP_SIZE_STEP;
     static constexpr int32_t SUPERBLOCK_ALLOCATION_LEVEL = Log2(SUPERBLOCK_SIZE / BASIC_BLOCK_SIZE) - 1;
     static constexpr int32_t SUPERBLOCKS_RESERVED        = HEADER_SIZE / BASIC_BLOCK_SIZE;
-
-
 
     SharedPtr<Store> store_;
 
@@ -172,6 +174,10 @@ public:
         {
             return superblock_->history_root_id();
         }
+        else if (MMA_UNLIKELY(ctr_id == BlockMapCtrID))
+        {
+            return superblock_->blockmap_root_id();
+        }
         else if (directory_ctr_)
         {
             auto iter = directory_ctr_->find(ctr_id);
@@ -206,6 +212,10 @@ public:
         {
             return superblock_->history_root_id().is_set();
         }
+        else if (MMA_UNLIKELY(ctr_id == BlockMapCtrID))
+        {
+            return superblock_->blockmap_root_id().is_set();
+        }
         else if (directory_ctr_)
         {
             auto iter = directory_ctr_->find(ctr_id);
@@ -227,11 +237,11 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual SharedBlockPtr createBlock(int32_t initial_size) {
+    virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID&) {
         MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block) {
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID&) {
         MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits").do_throw();
     }
 
@@ -563,6 +573,13 @@ public:
             commit_descriptor_->superblock()->allocator_root_id(),
             counters_fn
         );
+
+        if (commit_descriptor_->superblock()->blockmap_root_id().is_set()) {
+            traverse_ctr_cow_tree(
+                commit_descriptor_->superblock()->blockmap_root_id(),
+                counters_fn
+            );
+        }
     }
 
 
@@ -714,6 +731,17 @@ public:
             has_next = has_next_res;
         }
         while (has_next);
+    }
+
+    struct ResolvedBlock {
+        uint64_t file_pos;
+        SharedBlockConstPtr block;
+    };
+
+    virtual ResolvedBlock resolve_block(const BlockID& block_id) = 0;
+
+    SharedBlockConstPtr getBlock(const BlockID& block_id) {
+        return resolve_block(block_id).block;
     }
 };
 

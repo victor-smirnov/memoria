@@ -18,7 +18,8 @@
 
 #include <memoria/api/store/swmr_store_api.hpp>
 
-#include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_commit.hpp>
+#include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_commit_cow.hpp>
+#include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_commit_cowlite.hpp>
 
 #include <atomic>
 #include <memory>

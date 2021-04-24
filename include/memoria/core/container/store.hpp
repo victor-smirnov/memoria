@@ -66,16 +66,15 @@ struct IStoreBase: StoreApiBase<ApiProfile<Profile>> {
     virtual SharedBlockConstPtr getBlock(const BlockID& id) = 0;
 
     virtual void removeBlock(const BlockID& id) = 0;
-    virtual SharedBlockPtr createBlock(int32_t initial_size) = 0;
-
-    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block) = 0;
+    virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID& ctr_id) = 0;
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID& ctr_id) = 0;
 
     virtual BlockID newId() = 0;
     virtual SnapshotID currentTxnId() const = 0;
 
     // memory pool allocator
     virtual void* allocateMemory(size_t size) = 0;
-    virtual void freeMemory(void* ptr) = 0;
+    virtual void freeMemory(void* ptr) noexcept = 0;
 
     virtual Logger& logger() noexcept = 0;
 
@@ -104,6 +103,7 @@ struct IStore: IStoreBase<Profile> {
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
     using typename Base::BlockType;
+    using typename Base::CtrID;
 
     using Shared = typename SharedBlockPtr::Shared;
 
@@ -111,7 +111,7 @@ struct IStore: IStoreBase<Profile> {
 
     virtual void updateBlock(Shared* block) = 0;
     virtual void resizeBlock(Shared* block, int32_t new_size) = 0;
-    virtual void releaseBlock(Shared* block) = 0;
+    virtual void releaseBlock(Shared* block) noexcept = 0;
 
     virtual ObjectPools& object_pools() const noexcept = 0;
 };
@@ -124,6 +124,7 @@ struct ICowStore: IStoreBase<Profile> {
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
     using typename Base::BlockID;
+    using typename Base::CtrID;
 
     using Shared = typename SharedBlockPtr::Shared;
 
@@ -133,7 +134,7 @@ struct ICowStore: IStoreBase<Profile> {
     virtual void unref_block(const BlockID& block_id, std::function<void ()> on_zero) = 0;
     virtual void unref_ctr_root(const BlockID& root_block_id) = 0;
 
-    virtual void releaseBlock(Shared* block) = 0;
+    virtual void releaseBlock(Shared* block) noexcept = 0;
     virtual void updateBlock(Shared* block) = 0;
 
     virtual void traverse_ctr(

@@ -107,6 +107,7 @@ protected:
 
 public:
     using Base::check;
+    using Base::resolve_block;
 
     SWMRStoreWritableCommitBase(
             SharedPtr<Store> store,
@@ -120,34 +121,33 @@ public:
     virtual uint64_t get_memory_size() = 0;
     virtual Superblock* newSuperblock(uint64_t pos) = 0;
     virtual void store_superblock(Superblock* superblock, uint64_t slot) = 0;
-    virtual Shared* allocate_block(const BlockID& block_id, uint64_t at, size_t size) = 0;
+    virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) = 0;
+    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) = 0;
 
-    void init_commit(CommitDescriptorT* parent_commit_descriptor) {
+    void init_commit(CommitDescriptorT* parent_commit_descriptor)
+    {
+        auto parent_commit = store_->do_open_readonly(parent_commit_descriptor);
+
+        parent_commit_ = parent_commit;
+
+        auto parent_allocation_map_ctr = parent_commit_->find(AllocationMapCtrID);
+        parent_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(parent_allocation_map_ctr);
+
+        populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 1, 64);
+
+        CommitID parent_commit_id = parent_commit_descriptor->superblock()->commit_id();
+
+        auto superblock = allocate_superblock(
+            parent_commit_descriptor->superblock(),
+            parent_commit_id + 1
+        );
+
+        commit_descriptor_->set_superblock(superblock);
+        superblock_ = superblock;
+
+        init_idmap();
+
         MaybeError maybe_error;
-        wrap_construction(maybe_error, [&] {
-
-            auto parent_commit = store_->do_open_readonly(parent_commit_descriptor);
-
-            parent_commit_ = parent_commit;
-
-            auto parent_allocation_map_ctr = parent_commit_->find(AllocationMapCtrID);
-            parent_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(parent_allocation_map_ctr);
-
-            populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 1, 64);
-
-            CommitID parent_commit_id = parent_commit_descriptor->superblock()->commit_id();
-
-            auto superblock = allocate_superblock(
-                    parent_commit_descriptor->superblock(),
-                    parent_commit_id + 1
-            );
-
-
-            commit_descriptor_->set_superblock(superblock);
-            superblock_ = superblock;
-
-            return VoidResult::of();
-        });
 
         if (!maybe_error) {
             internal_init_system_ctr<AllocationMapCtrType>(
@@ -177,53 +177,55 @@ public:
         }
 
         if (maybe_error) {
+            init_commit(maybe_error);
+        }
+
+        if (maybe_error) {
             std::move(maybe_error.get()).do_throw();
         }
     }
 
-    void init_store_commit() {
+    void init_store_commit()
+    {
+        uint64_t buffer_size = get_memory_size();
+
+        int64_t avaialble = (buffer_size / (BASIC_BLOCK_SIZE << (ALLOCATION_MAP_LEVELS - 1)));
+        allocation_pool_.add(AllocationMetadataT{0, avaialble, ALLOCATION_MAP_LEVELS - 1});
+
+        int64_t reserved = SUPERBLOCKS_RESERVED;
+        ArenaBuffer<AllocationMetadataT> allocations;
+        allocation_pool_.allocate(SUPERBLOCK_ALLOCATION_LEVEL, reserved, allocations);
+
+        for (auto& alc: allocations.span()) {
+            add_awaiting_allocation(alc);
+        }
+
+        CommitID commit_id = 1;
+        auto superblock = allocate_superblock(nullptr, commit_id, buffer_size);
+        commit_descriptor_->set_superblock(superblock);
+
+        uint64_t total_blocks = buffer_size / BASIC_BLOCK_SIZE;
+        uint64_t counters_blocks = divUp(total_blocks, BASIC_BLOCK_SIZE / sizeof(CounterStorageT));
+
+        ArenaBuffer<AllocationMetadataT> counters;
+        allocation_pool_.allocate(0, counters_blocks, counters);
+
+        for (auto& alc: counters.span()) {
+            add_awaiting_allocation(alc);
+        }
+
+        uint64_t counters_file_pos = counters[0].position() * BASIC_BLOCK_SIZE;
+        superblock->block_counters_file_pos() = counters_file_pos;
+
+        Base::superblock_ = superblock;
+
+        allocator_initialization_mode_ = true;
+
+        init_idmap();
+
+        allocation_map_ctr_ = this->template internal_create_by_name_typed<AllocationMapCtrType>(AllocationMapCtrID);
+
         MaybeError maybe_error;
-        wrap_construction(maybe_error, [&] {
-            uint64_t buffer_size = get_memory_size();
-
-            int64_t avaialble = (buffer_size / (BASIC_BLOCK_SIZE << (ALLOCATION_MAP_LEVELS - 1)));
-            allocation_pool_.add(AllocationMetadataT{0, avaialble, ALLOCATION_MAP_LEVELS - 1});
-
-            int64_t reserved = SUPERBLOCKS_RESERVED;
-            ArenaBuffer<AllocationMetadataT> allocations;
-            allocation_pool_.allocate(SUPERBLOCK_ALLOCATION_LEVEL, reserved, allocations);
-
-            for (auto& alc: allocations.span()) {
-                add_awaiting_allocation(alc);
-            }
-
-            CommitID commit_id = 1;
-            auto superblock = allocate_superblock(nullptr, commit_id, buffer_size);
-            commit_descriptor_->set_superblock(superblock);
-
-            uint64_t total_blocks = buffer_size / BASIC_BLOCK_SIZE;
-            uint64_t counters_blocks = divUp(total_blocks, BASIC_BLOCK_SIZE / sizeof(CounterStorageT));
-
-            ArenaBuffer<AllocationMetadataT> counters;
-            allocation_pool_.allocate(0, counters_blocks, counters);
-
-            for (auto& alc: counters.span()) {
-                add_awaiting_allocation(alc);
-            }
-
-            uint64_t counters_file_pos = counters[0].position() * BASIC_BLOCK_SIZE;
-            superblock->block_counters_file_pos() = counters_file_pos;
-
-            Base::superblock_ = superblock;
-
-            allocator_initialization_mode_ = true;
-
-            auto ctr_ref = this->template internal_create_by_name_typed<AllocationMapCtrType>(AllocationMapCtrID);
-
-            allocation_map_ctr_ = ctr_ref;
-
-            return VoidResult::of();
-        });
 
         if (!maybe_error) {
             internal_init_system_ctr<HistoryCtrType>(
@@ -244,10 +246,18 @@ public:
         }
 
         if (maybe_error) {
+            init_store_commit(maybe_error);
+        }
+
+        if (maybe_error) {
             std::move(maybe_error.get()).do_throw();
         }
     }
 
+    virtual void init_idmap() {}
+
+    virtual void init_commit(MaybeError& maybe_error) noexcept {}
+    virtual void init_store_commit(MaybeError& maybe_error) noexcept {}
 
     void finish_commit_opening()
     {
@@ -269,6 +279,11 @@ public:
         if (superblock_->allocator_root_id().is_set())
         {
             ref_block(superblock_->allocator_root_id());
+        }
+
+        if (superblock_->blockmap_root_id().is_set())
+        {
+            ref_block(superblock_->blockmap_root_id());
         }
     }
 
@@ -513,6 +528,23 @@ public:
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Commit history removal attempted").do_throw();
+            }
+        }
+        else if (MMA_UNLIKELY(ctr_id == BlockMapCtrID))
+        {
+            if (!root.is_null())
+            {
+                ref_block(root);
+
+                auto prev_id = superblock_->blockmap_root_id();
+                superblock_->blockmap_root_id() = root;
+                if (prev_id.is_set())
+                {
+                    unref_ctr_root(prev_id);
+                }
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("BlockMap removal attempted").do_throw();
             }
         }
         else {
@@ -767,14 +799,13 @@ public:
 
     virtual void removeBlock(const BlockID& id)
     {
-        auto block = getBlock(id);
+        auto block_data = resolve_block(id);
 
-        int32_t block_size = block->memory_block_size();
+        int32_t block_size = block_data.block->memory_block_size();
         int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
         int32_t level = CustomLog2(scale_factor);
 
-        int64_t block_pos = block->id_value();
-        int64_t allocator_block_pos = block_pos;
+        int64_t allocator_block_pos = block_data.file_pos;
         int64_t ll_allocator_block_pos = allocator_block_pos >> level;
 
         AllocationMetadataT meta[1] = {AllocationMetadataT{allocator_block_pos, 1, level}};
@@ -807,10 +838,9 @@ public:
         }
     }
 
-    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block)
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID& ctr_id)
     {
         check_updates_allowed();
-        using ResultT = Result<SharedBlockPtr>;
 
         int32_t block_size = block->memory_block_size();
         int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
@@ -829,24 +859,19 @@ public:
 
         add_awaiting_allocation(allocation.get());
 
-        uint64_t id = allocation.get().position();
+        uint64_t position = allocation.get().position();
 
-        auto shared = allocate_block(BlockID{id}, id, block_size);
+        auto shared = allocate_block_from(block.block(), position, ctr_id == BlockMapCtrID);
 
         BlockType* new_block = shared->get();
 
-        std::memcpy(new_block, block.block(), block_size);
-
-
-        new_block->id() = BlockID{id};
-        new_block->id_value() = id;
         new_block->snapshot_id() = superblock_->commit_uuid();
         new_block->set_references(0);
 
         return SharedBlockPtr{shared};
     }
 
-    virtual SharedBlockPtr createBlock(int32_t initial_size)
+    virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID& ctr_id)
     {
         check_updates_allowed();
 
@@ -870,19 +895,13 @@ public:
 
         add_awaiting_allocation(allocation.get());
 
-        uint64_t id = allocation.get().position();
+        uint64_t position = allocation.get().position();
 
-        auto shared = allocate_block(BlockID{id}, id, initial_size);
+        auto shared = allocate_block(position, initial_size, ctr_id == BlockMapCtrID);
 
-        BlockType* block_addr = shared->get();
-
-        std::memset(block_addr, 0, initial_size);
-
-        BlockType* block = new (block_addr) BlockType(BlockID{id}, id, id);
-        block->init();
-
+        BlockType* block = shared->get();
         block->snapshot_id() = superblock_->commit_uuid();
-        block->memory_block_size() = initial_size;
+
 
         return shared;
     }

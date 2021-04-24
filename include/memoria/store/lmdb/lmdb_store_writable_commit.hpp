@@ -406,7 +406,7 @@ public:
         }
     }
 
-    virtual SharedBlockPtr createBlock(int32_t initial_size)
+    virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID&)
     {
         check_updates_allowed();
 
@@ -422,7 +422,6 @@ public:
 
         auto id = newId();
         BlockType* block = new (block_addr) BlockType(id, id);
-        block->init();
 
         block->memory_block_size() = initial_size;
 
@@ -435,7 +434,7 @@ public:
         return entry;
     }
 
-    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block)
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID&)
     {
         check_updates_allowed();
         int32_t block_size = block->memory_block_size();
@@ -558,7 +557,7 @@ private:
         block_ptr.release();
     }
 
-    virtual void releaseBlock(Shared* block)
+    virtual void releaseBlock(Shared* block) noexcept
     {
         BlockCacheEntry* entry = ptr_cast<BlockCacheEntry>(block);
 
@@ -625,13 +624,12 @@ private:
     }
 
     virtual BlockID newId() noexcept {
-        UUID uuid{};
-        uuid.lo() = superblock_->new_block_id();
+        UUID uuid = uuid_pack_uint64_t(superblock_->new_block_id());
         return uuid;
     }
 
     virtual void drop() noexcept {
-        MEMORIA_MAKE_GENERIC_ERROR("drop() is not supported for LMDB store").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("drop() is not supported for LMDBStore").do_throw();
     }
 
     void evictionFn(bool keep_entry, BlockCacheEntry* entry)

@@ -163,12 +163,12 @@ public:
 
         writer_mutex_.lock();
 
-        auto ptr = do_create_writable_for_init(commit_descriptor_ptr.get());
+        auto head_ptr = commit_descriptor_ptr.get();
+
+        auto ptr = do_create_writable_for_init(commit_descriptor_ptr.release());
 
         ptr->finish_store_initialization();
-        head_ptr_ = commit_descriptor_ptr.get();
-
-        commit_descriptor_ptr.release();
+        head_ptr_ = head_ptr;
     }
 
 

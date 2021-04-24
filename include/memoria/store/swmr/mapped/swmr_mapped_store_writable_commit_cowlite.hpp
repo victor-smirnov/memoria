@@ -22,21 +22,30 @@
 
 #include <memoria/core/datatypes/type_registry.hpp>
 
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
+
 #include <boost/pool/object_pool.hpp>
 
 #include <type_traits>
 
-template <typename Profile>
-class MappedSWMRStoreReadOnlyCommit;
 
 namespace memoria {
 
-template <typename Profile>
-class MappedSWMRStoreWritableCommit:
-        public SWMRStoreWritableCommitBase<Profile>,
-        public EnableSharedFromThis<MappedSWMRStoreWritableCommit<Profile>>
+template <typename>
+class MappedSWMRStoreReadOnlyCommit;
+
+
+template <typename>
+class MappedSWMRStoreWritableCommit;
+
+template <typename ChildProfile>
+class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
+        public SWMRStoreWritableCommitBase<CowLiteProfile<ChildProfile>>,
+        public EnableSharedFromThis<MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>>
 {
-    using Base = SWMRStoreWritableCommitBase<Profile>;
+    using Profile = CowLiteProfile<ChildProfile>;
+
+    using Base = SWMRStoreWritableCommitBase<CowLiteProfile<ChildProfile>>;
 
     using typename Base::Store;
     using typename Base::CommitDescriptorT;
@@ -67,6 +76,7 @@ class MappedSWMRStoreWritableCommit:
     using Base::superblock_;
     using Base::store_;
     using Base::committed_;
+    using Base::newId;
 
     Span<uint8_t> buffer_;
 
@@ -113,20 +123,28 @@ public:
     }
 
 
-    virtual SharedBlockConstPtr getBlock(const BlockID& id)
+    using typename Base::ResolvedBlock;
+
+    virtual ResolvedBlock resolve_block(const BlockID& block_id)
     {
-        using ResultT = Result<SharedBlockConstPtr>;
-        BlockType* block = ptr_cast<BlockType>(buffer_.data() + id.value() * BASIC_BLOCK_SIZE);
-
-        Shared* shared = shared_pool_.construct(id, block, 0);
-
+        BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value() * BASIC_BLOCK_SIZE);
+        Shared* shared = shared_pool_.construct(block_id, block, 0);
         shared->set_allocator(this);
-
-        return SharedBlockConstPtr{shared};
+        return {block_id.value(), SharedBlockConstPtr{shared}};
     }
 
-    virtual Shared* allocate_block(const BlockID& id, uint64_t at, size_t size) {
-        BlockType* block = ptr_cast<BlockType>(buffer_.data() + at * BASIC_BLOCK_SIZE);
+
+    virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap)
+    {
+        BlockID id{at};
+
+        uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
+
+        std::memset(block_addr, 0, size);
+
+        BlockType* block = new (block_addr) BlockType(id, at, at);
+
+        block->memory_block_size() = size;
 
         Shared* shared = shared_pool_.construct(id, block, 0);
         shared->set_allocator(this);
@@ -134,10 +152,30 @@ public:
         return shared;
     }
 
+    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) {
+        uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
+
+        std::memcpy(block_addr, source, source->memory_block_size());
+
+        auto id = BlockID{at};
+        BlockType* new_block = ptr_cast<BlockType>(block_addr);
+        new_block->id()   = id;
+        new_block->uuid() = at;
+        new_block->id_value() = at;
+
+        new_block->set_references(0);
+
+        Shared* shared = shared_pool_.construct(id, new_block, 0);
+        shared->set_allocator(this);
+
+        return shared;
+    }
+
+
     virtual void updateBlock(Shared* block) {
     }
 
-    virtual void releaseBlock(Shared* block) {
+    virtual void releaseBlock(Shared* block) noexcept {
         shared_pool_.destroy(block);
     }
 };

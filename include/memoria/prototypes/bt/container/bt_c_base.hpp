@@ -559,16 +559,17 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    TreeNodePtr ctr_create_node_fn(int32_t size) const
+    Result<TreeNodePtr> ctr_create_node_fn(int32_t size) const noexcept
     {
-        auto& self = this->self();
+        return wrap_throwing([&](){
+            auto& self = this->self();
 
-        auto node = static_cast_block<TreeNodePtr>(self.store().createBlock(size));
+            auto node = static_cast_block<TreeNodePtr>(self.store().createBlock(size, self.name()));
 
-        node->init();
-        node->header().block_type_hash() = Node::NodeType::hash();
+            node->header().block_type_hash() = Node::NodeType::hash();
 
-        return node;
+            return node;
+        });
     }
 
 

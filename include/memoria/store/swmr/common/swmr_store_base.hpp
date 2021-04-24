@@ -122,9 +122,6 @@ public:
         check_if_open();
 
         LockGuard lock(reader_mutex_);
-
-        using ResultT = Result<std::vector<CommitID>>;
-
         std::vector<CommitID> commits;
 
         for (const auto& descr: persistent_commits_) {

@@ -18,8 +18,8 @@
 
 #include <memoria/store/swmr/common/mapped_swmr_store_base.hpp>
 
-#include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_commit.hpp>
-#include <memoria/store/swmr/mapped/swmr_mapped_store_writable_commit.hpp>
+#include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_commit_cowlite.hpp>
+#include <memoria/store/swmr/mapped/swmr_mapped_store_writable_commit_cowlite.hpp>
 
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
@@ -75,10 +75,6 @@ protected:
     using Base::MB;
 
     bool closed_{false};
-
-    template <typename> friend class MappedSWMRStoreReadonlyCommit;
-    template <typename> friend class MappedSWMRStoreWritableCommit;
-    template <typename> friend class MappedSWMRStoreCommitBase;
 
 public:
     SWMRLiteRawStore(Span<uint8_t> buffer) noexcept {

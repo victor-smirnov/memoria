@@ -61,6 +61,7 @@ private:
     BlockID directory_root_id_;
     BlockID counters_root_id_;
     BlockID allocator_root_id_;
+    BlockID blockmap_root_id_;
 
     CommitUUID commit_uuid_;
 
@@ -75,11 +76,13 @@ public:
     BlockID& directory_root_id() noexcept {return directory_root_id_;}
     BlockID& counters_root_id() noexcept  {return counters_root_id_;}
     BlockID& allocator_root_id() noexcept {return allocator_root_id_;}
+    BlockID& blockmap_root_id() noexcept  {return blockmap_root_id_;}
 
     const BlockID& history_root_id() const noexcept   {return history_root_id_;}
     const BlockID& directory_root_id() const noexcept {return directory_root_id_;}
     const BlockID& counters_root_id() const noexcept  {return counters_root_id_;}
     const BlockID& allocator_root_id() const noexcept {return allocator_root_id_;}
+    const BlockID& blockmap_root_id() const noexcept {return blockmap_root_id_;}
 
     const char* magic_buffer() const noexcept {return magic_buffer_;}
     char* magic_buffer() noexcept {return magic_buffer_;}
@@ -143,6 +146,7 @@ public:
         directory_root_id_ = BlockID{};
         counters_root_id_  = BlockID{};
         allocator_root_id_ = BlockID{};
+        blockmap_root_id_  = BlockID{};
 
         commit_uuid_       = ProfileTraits<Profile>::make_random_snapshot_id();
 
@@ -160,6 +164,7 @@ public:
         directory_root_id_ = other.directory_root_id_;
         counters_root_id_  = other.counters_root_id_;
         allocator_root_id_ = other.allocator_root_id_;
+        blockmap_root_id_  = other.blockmap_root_id_;
 
         sequence_id_ = other.sequence_id_ + 1;
         commit_id_   = commit_id;

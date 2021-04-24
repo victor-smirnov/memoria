@@ -715,7 +715,7 @@ public:
 
 
 
-    virtual SharedBlockPtr createBlock(int32_t initial_size)
+    virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID&)
     {
         checkUpdateAllowed(CtrID{});
 
@@ -745,7 +745,7 @@ public:
     }
 
 
-    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block)
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID&)
     {
         checkUpdateAllowed(CtrID{});
 
@@ -816,7 +816,7 @@ public:
         }
     }
 
-    virtual void releaseBlock(Shared* shared)
+    virtual void releaseBlock(Shared* shared) noexcept
     {
         if (shared->state() == Shared::_DELETE)
         {

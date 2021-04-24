@@ -54,14 +54,23 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 
     using StoreType = ICowStore<Profile>;
 
-    using SharedBlockPtr = LWSharedBlockPtr<Block>;
-    using SharedBlockConstPtr = LWSharedBlockPtr<const Block>;
+//    using SharedBlockPtr = LWSharedBlockPtr<Block>;
+//    using SharedBlockConstPtr = LWSharedBlockPtr<const Block>;
+
+//    template <typename TargetBlockType>
+//    using SharedBlockPtrTF = LWSharedBlockPtr<TargetBlockType>;
+
+
+    using BlockShared = PageShared<StoreType, Block, BlockID>;
 
     template <typename TargetBlockType>
-    using SharedBlockPtrTF = LWSharedBlockPtr<TargetBlockType>;
+    using SharedBlockPtrTF  = CowSharedBlockPtr<TargetBlockType, StoreType, BlockShared>;
+
+    using SharedBlockPtr        = CowSharedBlockPtr<Block, StoreType, BlockShared>;
+    using SharedBlockConstPtr   = CowSharedBlockPtr<const Block, StoreType, BlockShared>;
+
 
     static constexpr bool IsCoW = true;
-
 
     static BlockID make_random_block_id() {
         return BlockID{UUID::make_random()};

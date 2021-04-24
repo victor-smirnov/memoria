@@ -79,6 +79,7 @@ ApiBlockIDHolder<2> block_id_holder_from(const CowBlockID<ValueHolder>& uuid) no
 static inline ApiBlockIDHolder<2> block_id_holder_from(const CowBlockID<UUID>& uuid) noexcept {
     ApiBlockIDHolder<2> holder;
     holder.array[0] = uuid.value().lo();
+    holder.array[1] = uuid.value().hi();
     return holder;
 }
 
@@ -92,8 +93,8 @@ void block_id_holder_to(const ApiBlockIDHolder<N>& holder, CowBlockID<ValueHolde
 
 template <size_t N>
 void block_id_holder_to(const ApiBlockIDHolder<N>& holder, CowBlockID<UUID>& uuid) noexcept {
-    static_assert(N >= 1, "");
-    uuid.value().hi() = 0;
+    static_assert(N >= 2, "");
+    uuid.value().hi() = holder.array[1];
     uuid.value().lo() = holder.array[0];
 }
 

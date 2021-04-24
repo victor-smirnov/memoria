@@ -37,11 +37,11 @@ int main(void) {
 
         UUID ctr_id = UUID::make_random();
 
-//        DataTypeBuffer<Varchar> buf0;
+        DataTypeBuffer<Varchar> buf0;
 
-//        for (int c = 0; c < 1000; c++) {
-//            buf0.append(format_u8("Cool String via Buffer :: {}", c));
-//        }
+        for (int c = 0; c < 1000; c++) {
+            buf0.append(format_u8("Cool String via Buffer :: {}", c));
+        }
 
         auto t_start = getTimeInMillis();
 
@@ -55,12 +55,12 @@ int main(void) {
                 auto snp0 = store1->begin();
                 auto ctr0 = create(snp0, CtrType(), ctr_id);
 
-                ctr0->append([&](auto& buf, size_t){
-                    for (int c = 0; c < 1000; c++) {
-                        buf.append(format_u8("Cool String via Buffer :: {}", c));
-                    }
-                    return true;
-                });
+//                ctr0->append([&](auto& buf, size_t){
+//                    for (int c = 0; c < 1000; c++) {
+//                        buf.append(format_u8("Cool String via Buffer :: {}", c));
+//                    }
+//                    return true;
+//                });
 
                 snp0->commit();
                 //snp0->describe_to_cout();
@@ -70,7 +70,7 @@ int main(void) {
             int cnt = 0;
             int b0  = 0;
             int batch_size = 100;
-            int batches = 10;
+            int batches = 100;
             while (cnt < batch_size * batches) {
                 auto snp1 = store1->begin();
                 auto ctr1 = find<CtrType>(snp1, ctr_id);

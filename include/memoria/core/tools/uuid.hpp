@@ -123,8 +123,39 @@ public:
     operator bool() const noexcept {
         return isSet();
     }
+
+    uint64_t version() const noexcept {
+        return (hi_ >> 52) & 0xF;
+    }
+
+    uint64_t variant() const noexcept {
+        return (lo_ >> 4) & 0x7;
+    }
+
+    void set_version(uint64_t version) noexcept {
+        hi_ &= 0xFF0FFFFFFFFFFFFF;
+        hi_ |= (version & 0xfull) << 52;
+    }
+
+    void set_variant(uint64_t variant) noexcept {
+        lo_ &= 0xFFFFFFFFFFFFFF1F;
+        lo_ |= (variant & 0x7ull) << 5;
+    }
 };
 
+static inline uint64_t unpack_uint64_t(const UUID& uuid) noexcept {
+    uint64_t main_val = uuid.lo() & 0xFFFFFFFFFFFFFF1Full;
+    uint64_t extra_bits = uuid.hi() & 0xe0ull;
+    return main_val | extra_bits;
+}
+
+static inline UUID uuid_pack_uint64_t(uint64_t value) noexcept
+{
+    uint64_t lo = value & 0xFFFFFFFFFFFFFF1Full;
+    uint64_t hi = (value & 0xe0ull) | 0x00F0000000000000; // Non-standard Version F of the UUID.
+
+    return UUID{hi, lo};
+}
 
 
 template <typename T>
