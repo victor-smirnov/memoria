@@ -101,7 +101,7 @@ protected:
     using AllocationMapCtrType = AllocationMap;
     using AllocationMapCtr  = ICtrApi<AllocationMapCtrType, ApiProfileT>;
 
-    using HistoryCtrType    = Map<BigInt, BigInt>;
+    using HistoryCtrType    = Map<UUID, UBigInt>;
     using HistoryCtr        = ICtrApi<HistoryCtrType, ApiProfileT>;
 
     static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;

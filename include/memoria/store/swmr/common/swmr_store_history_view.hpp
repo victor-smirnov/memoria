@@ -47,21 +47,7 @@ public:
 
     virtual void check() noexcept
     {
-//        MEMORIA_TRY_VOID(store_->check_if_open());
 
-//        auto res = head_->for_each_history_entry([&](auto commit_id, auto file_pos) -> VoidResult {
-//            MEMORIA_TRY(cmt, store_->open(commit_id));
-
-//            return cmt->check();
-
-//            //return VoidResult::of();
-//        });
-
-//        return res;
-
-//        return wrap_throwing([&](){
-//            return VoidResult::of();
-//        });
     }
 
     virtual std::vector<CommitID> persistent_commits() {

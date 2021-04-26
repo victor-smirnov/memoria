@@ -25,7 +25,7 @@ namespace memoria {
 
 template <typename Profile>
 struct ISWMRStoreCommitBase: virtual IStoreSnapshotCtrOps<Profile> {
-    using CommitID = int64_t;
+    using CommitID = ApiProfileSnapshotID<Profile>;
 
     virtual CommitID commit_id() = 0;
     virtual void describe_to_cout() = 0;
@@ -44,7 +44,7 @@ struct ISWMRStoreReadOnlyCommit: virtual ISWMRStoreCommitBase<Profile> {
 
 template <typename Profile>
 struct ISWMRStoreHistoryView {
-    using CommitID = int64_t;
+    using CommitID = ApiProfileSnapshotID<Profile>;
     using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
 
     virtual ~ISWMRStoreHistoryView() noexcept = default;
@@ -87,15 +87,15 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
 
     using HistoryPtr = SharedPtr<ISWMRStoreHistoryView<Profile>>;
 
-    using CommitID = int64_t;
+    using CommitID = ApiProfileSnapshotID<Profile>;
     using SequenceID = uint64_t;
 
     virtual std::vector<CommitID> persistent_commits() = 0;
 
     using Base::open;
-    virtual ReadOnlyCommitPtr open(CommitID commit_id) = 0;
+    virtual ReadOnlyCommitPtr open(const CommitID& commit_id) = 0;
 
-    virtual bool drop_persistent_commit(CommitID commit_id) = 0;
+    virtual bool drop_persistent_commit(const CommitID& commit_id) = 0;
 
     virtual void rollback_last_commit() = 0;
 

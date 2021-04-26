@@ -337,7 +337,7 @@ public:
     //=================================== R/O Commit Stuff ===========================
 
     virtual CommitID commit_id() {
-        return mma_mdb_txn_id(transaction_);
+        return uuid_pack_uint64_t(mma_mdb_txn_id(transaction_));
     }
 
 

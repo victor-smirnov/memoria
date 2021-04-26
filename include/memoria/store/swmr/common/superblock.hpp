@@ -49,7 +49,7 @@ public:
 
     using BlockID    = ProfileBlockID<Profile>;
     using CommitUUID = ProfileSnapshotID<Profile>;
-    using CommitID   = int64_t;
+    using CommitID   = ApiProfileSnapshotID<ApiProfile<Profile>>;
     using SequenceID = uint64_t;
 
 private:
@@ -134,7 +134,7 @@ public:
         return magick1_ == MAGICK1 && magick2_ == MAGICK2;
     }
 
-    void init(uint64_t superblock_file_pos, uint64_t file_size, int64_t commit_id, size_t superblock_size, SequenceID sequence_id = 1)
+    void init(uint64_t superblock_file_pos, uint64_t file_size, const CommitID& commit_id, size_t superblock_size, SequenceID sequence_id = 1)
     {
         magick1_ = MAGICK1;
         magick2_ = MAGICK2;
@@ -165,7 +165,7 @@ public:
         return allocator_.init(allocator_block_size(superblock_size), 1).get_or_throw();
     }
 
-    void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, int64_t commit_id)
+    void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, const CommitID& commit_id)
     {
         magick1_ = other.magick1_;
         magick2_ = other.magick2_;

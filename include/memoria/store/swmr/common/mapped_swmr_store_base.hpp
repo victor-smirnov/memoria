@@ -153,10 +153,10 @@ public:
         Superblock* sb0 = get_superblock(0);
         Superblock* sb1 = get_superblock(BASIC_BLOCK_SIZE);
 
-        sb0->init(0, buffer_.size(), 0, BASIC_BLOCK_SIZE, 0);
+        sb0->init(0, buffer_.size(), ProfileTraits<Profile>::make_random_snapshot_id(), BASIC_BLOCK_SIZE, 0);
         sb0->build_superblock_description();
 
-        sb1->init(BASIC_BLOCK_SIZE, buffer_.size(), 0, BASIC_BLOCK_SIZE, 0);
+        sb1->init(BASIC_BLOCK_SIZE, buffer_.size(), ProfileTraits<Profile>::make_random_snapshot_id(), BASIC_BLOCK_SIZE, 0);
         sb1->build_superblock_description();
 
 

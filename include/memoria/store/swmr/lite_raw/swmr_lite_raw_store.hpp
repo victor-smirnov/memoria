@@ -86,7 +86,7 @@ public:
         close();
     }
 
-    virtual void flush() {
+    virtual void flush() override {
     }
 
 
@@ -94,7 +94,7 @@ public:
         return this->init_mapped_store();
     }
 
-    virtual void close() {
+    virtual void close() override {
         if (!closed_)
         {
             LockGuard lock(writer_mutex_);
@@ -127,19 +127,19 @@ public:
         MappedSWMRStoreWritableCommit<Profile>::init_profile_metadata();
     }
 
-    void flush_data(bool async = false) {
+    void flush_data(bool async = false) override {
     }
 
-    void flush_header(bool async = false) {
+    void flush_header(bool async = false) override {
     }
 
-    SharedPtr<ISWMRStoreHistoryView<ApiProfileT>> history_view()
-    {
-        auto head = do_open_readonly(head_ptr_);
-        return MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head);
-    }
+//    SharedPtr<ISWMRStoreHistoryView<ApiProfileT>> history_view() override
+//    {
+//        auto head = do_open_readonly(head_ptr_);
+//        return MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head);
+//    }
 
-    virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr)
+    virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr) override
     {
         MaybeError maybe_error{};
         MappedReadOnlyCommitPtr ptr = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
@@ -154,7 +154,7 @@ public:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr)
+    virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) override
     {
         MaybeError maybe_error{};
         auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
@@ -170,7 +170,7 @@ public:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) {
+    virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) override {
         MaybeError maybe_error{};
         MappedWritableCommitPtr ptr{};
 
@@ -189,7 +189,7 @@ public:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr)
+    virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr) override
     {
         MaybeError maybe_error{};
 
@@ -207,7 +207,11 @@ public:
         }
     }
 
-    virtual void check_if_open() {
+    virtual void check_if_open() override {
+    }
+
+    virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept override {
+        return this->shared_from_this();
     }
 };
 

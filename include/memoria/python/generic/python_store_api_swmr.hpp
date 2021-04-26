@@ -71,18 +71,21 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
 
     using CtrID = ApiProfileCtrID<Profile>;
 
-    using CommitID = int64_t;
+    using CommitID = ApiProfileSnapshotID<Profile>;
     using typename Base::SequenceID;
 
     static void make_bindings(pybind11::module_& m) {
         namespace py = pybind11;
 
         py::class_<Type, IBasicSWMRStore<Profile>, SharedPtr<Type>>(m, "SWMRStore")
-            .def("open", py::overload_cast<CommitID>(&Type::open))
+            .def("open", py::overload_cast<const CommitID&>(&Type::open))
             .def("open", py::overload_cast<>(&Type::open));
 
         m.def("create_swmr_store", &create_swmr_store);
         m.def("open_swmr_store", &open_swmr_store);
+
+        m.def("create_lite_swmr_store", &create_lite_swmr_store);
+        m.def("open_lite_swmr_store", &open_lite_swmr_store);
     }
 };
 

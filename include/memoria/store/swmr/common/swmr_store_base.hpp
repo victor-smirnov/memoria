@@ -118,7 +118,7 @@ public:
     }
 
 
-    virtual std::vector<CommitID> persistent_commits()
+    virtual std::vector<CommitID> persistent_commits() override
     {
         check_if_open();
 
@@ -132,7 +132,7 @@ public:
         return std::move(commits);
     }
 
-    virtual ReadOnlyCommitPtr open(CommitID commit_id)
+    virtual ReadOnlyCommitPtr open(const CommitID& commit_id) override
     {
         check_if_open();
         LockGuard lock(reader_mutex_);
@@ -147,36 +147,34 @@ public:
         auto ii = persistent_commits_.find(commit_id);
         if (ii != persistent_commits_.end())
         {
-            return memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(
-                do_open_readonly(ii->second)
-            );
+            return do_open_readonly(ii->second);
         }
         else {
             make_generic_error_with_source(MA_SRC, "Can't find commit {}", commit_id).do_throw();
         }
     }
 
-    virtual ReadOnlyCommitPtr open()
+    virtual ReadOnlyCommitPtr open() override
     {
         check_if_open();
 
         LockGuard lock(reader_mutex_);
-        return memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(do_open_readonly(head_ptr_));
+        return do_open_readonly(head_ptr_);
     }
 
-    virtual bool drop_persistent_commit(CommitID commit_id) {
+    virtual bool drop_persistent_commit(const CommitID& commit_id) override {
         check_if_open();
         return false;
     }
 
-    virtual void rollback_last_commit()
+    virtual void rollback_last_commit() override
     {
         check_if_open();
     }
 
-    virtual void flush() = 0;
+    virtual void flush() override = 0;
 
-    virtual WritableCommitPtr begin()
+    virtual WritableCommitPtr begin() override
     {
         check_if_open();
         writer_mutex_.lock();
@@ -200,12 +198,12 @@ public:
         }
     }
 
-    virtual void close() = 0;
+    virtual void close() override = 0;
 
     virtual void flush_data(bool async = false) = 0;
     virtual void flush_header(bool async = false) = 0;
 
-    void finish_commit(CommitDescriptorT* commit_descriptor)
+    virtual void finish_commit(CommitDescriptorT* commit_descriptor)
     {
         LockGuard lock(reader_mutex_);
 
@@ -226,18 +224,18 @@ public:
         writer_mutex_.unlock();
     }
 
-    void finish_rollback(CommitDescriptorT* commit_descriptor) {
+    virtual void finish_rollback(CommitDescriptorT* commit_descriptor) {
     }
 
-//    Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>> history_view() noexcept {
-//        MEMORIA_TRY(head, open_mapped_readonly(head_ptr_));
+    SharedPtr<ISWMRStoreHistoryView<ApiProfileT>> history_view() override {
+        check_if_open();
 
-//        return Result<SharedPtr<ISWMRStoreHistoryView<ApiProfileT>>>::of(
-//            MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head)
-//        );
-//    }
+        LockGuard lock(reader_mutex_);
+        auto head = do_open_readonly(head_ptr_);
+        return MakeShared<SWMRMappedStoreHistoryView<Profile>>(self_ptr(), std::move(head));
+    }
 
-    void unlock_writer() noexcept {
+    void unlock_writer() {
         writer_mutex_.unlock();
     }
 
@@ -245,15 +243,16 @@ public:
     virtual void check_if_open() = 0;
 
     ReadOnlyCommitPtr open_readonly(CommitDescriptorT* commit_descr) {
-        return memoria_static_pointer_cast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(do_open_readonly(commit_descr));
+        return do_open_readonly(commit_descr);
     }
 
     virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr) = 0;
     virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) = 0;
     virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) = 0;
     virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr) = 0;
+    virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept = 0;
 
-    virtual Optional<SequenceID> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) {
+    virtual Optional<SequenceID> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) override {
         check_if_open();
         return do_check(from, callback);
     }
@@ -378,18 +377,18 @@ public:
         });
     }
 
-    virtual void ref_block(const BlockID& block_id) {
+    virtual void ref_block(const BlockID& block_id) override {
         block_counters_.inc(block_id);
     }
 
-    virtual void unref_block(const BlockID& block_id, const std::function<void ()>& on_zero) {
+    virtual void unref_block(const BlockID& block_id, const std::function<void ()>& on_zero) override {
         auto zero = block_counters_.dec(block_id);
         if (zero) {
             return on_zero();
         }
     }
 
-    virtual void unref_ctr_root(const BlockID&) {
+    virtual void unref_ctr_root(const BlockID&) override {
         return make_generic_error("SWMRStoreBase::unref_ctr_root() should not be called").do_throw();
     }
 

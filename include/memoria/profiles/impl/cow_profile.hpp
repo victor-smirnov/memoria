@@ -54,13 +54,6 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 
     using StoreType = ICowStore<Profile>;
 
-//    using SharedBlockPtr = LWSharedBlockPtr<Block>;
-//    using SharedBlockConstPtr = LWSharedBlockPtr<const Block>;
-
-//    template <typename TargetBlockType>
-//    using SharedBlockPtrTF = LWSharedBlockPtr<TargetBlockType>;
-
-
     using BlockShared = PageShared<StoreType, Block, BlockID>;
 
     template <typename TargetBlockType>

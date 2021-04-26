@@ -129,7 +129,7 @@ public:
         close();
     }
 
-    virtual void flush() {
+    virtual void flush() override {
         check_if_open();
         flush_data();
         return flush_header();
@@ -141,7 +141,7 @@ public:
     }
 
 
-    virtual void close()
+    virtual void close() override
     {
         if (file_ && head_ptr_)
         {
@@ -177,7 +177,7 @@ public:
         MappedSWMRStoreWritableCommit<Profile>::init_profile_metadata();
     }
 
-    void flush_data(bool async = false)
+    void flush_data(bool async = false) override
     {
         check_if_open();
         if (!region_.flush(HEADER_SIZE, buffer_.size() - HEADER_SIZE, async)) {
@@ -185,7 +185,7 @@ public:
         }
     }
 
-    void flush_header(bool async = false)
+    void flush_header(bool async = false) override
     {
         check_if_open();
         if (!region_.flush(0, HEADER_SIZE, async)) {
@@ -193,11 +193,11 @@ public:
         }
     }
 
-    SharedPtr<ISWMRStoreHistoryView<ApiProfileT>> history_view()
-    {
-        auto head = do_open_readonly(head_ptr_);
-        return MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head);
-    }
+//    SharedPtr<ISWMRStoreHistoryView<ApiProfileT>> history_view() override
+//    {
+//        auto head = do_open_readonly(head_ptr_);
+//        return MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head);
+//    }
 
     void do_open_file()
     {
@@ -221,7 +221,7 @@ private:
         }
     }
 
-    void check_if_open() {
+    void check_if_open() override {
         if (!file_) {
             make_generic_error("File {} has been already closed", file_name_).do_throw();
         }
@@ -265,7 +265,7 @@ private:
         }
     }
 
-    virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr)
+    virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr) override
     {
         MaybeError maybe_error{};
         MappedReadOnlyCommitPtr ptr{};
@@ -284,7 +284,7 @@ private:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) {
+    virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) override {
         MaybeError maybe_error{};
         MappedWritableCommitPtr ptr{};
 
@@ -302,7 +302,7 @@ private:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr)
+    virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) override
     {
         MaybeError maybe_error{};
         auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
@@ -318,7 +318,7 @@ private:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr)
+    virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr) override
     {
         MaybeError maybe_error{};
 
@@ -334,6 +334,10 @@ private:
         else {
             std::move(maybe_error.get()).do_throw();
         }
+    }
+
+    virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept override {
+        return this->shared_from_this();
     }
 };
 

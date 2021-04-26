@@ -204,11 +204,11 @@ public:
 
         populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 1, 64);
 
-        CommitID parent_commit_id = parent_commit_descriptor->superblock()->commit_id();
+        //CommitID parent_commit_id = parent_commit_descriptor->superblock()->commit_id();
 
         auto superblock = allocate_superblock(
             parent_commit_descriptor->superblock(),
-            parent_commit_id + 1
+            ProfileTraits<Profile>::make_random_snapshot_id()
         );
 
         commit_descriptor_->set_superblock(superblock);
@@ -269,7 +269,7 @@ public:
             add_awaiting_allocation(alc);
         }
 
-        CommitID commit_id = 1;
+        CommitID commit_id = ProfileTraits<Profile>::make_random_snapshot_id();
         auto superblock = allocate_superblock(nullptr, commit_id, buffer_size);
         commit_descriptor_->set_superblock(superblock);
 
@@ -770,9 +770,8 @@ public:
 
     Superblock* allocate_superblock(
             const Superblock* parent_sb,
-            int64_t commit_id,
-            uint64_t
-            file_size = 0
+            const CommitID& commit_id,
+            uint64_t file_size = 0
     )
     {
         ArenaBuffer<AllocationMetadataT> available;
