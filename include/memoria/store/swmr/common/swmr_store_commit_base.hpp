@@ -373,6 +373,7 @@ public:
             ContainerWalker<Profile>* walker, const
             char* allocator_descr = nullptr
     ) {
+        return walk_containers(walker, allocator_descr);
     }
 
     virtual void walk_containers(
@@ -650,7 +651,7 @@ public:
         this->superblock_ = superblock;
     }
 
-    void for_each_history_entry(const std::function<void (CommitID, int64_t)>& fn)
+    void for_each_history_entry(const std::function<void (CommitID, uint64_t, uint64_t)>& fn)
     {
         init_history_ctr();
         auto scanner = history_ctr_->scanner();
@@ -658,7 +659,12 @@ public:
         bool has_next;
         do {
             for (size_t c = 0; c < scanner.keys().size(); c++) {
-                fn(scanner.keys()[c], scanner.values()[c]);
+                uint64_t value = scanner.values()[c];
+                fn(
+                    scanner.keys()[c],
+                    (value >> val(SWMRCommitStateMetadataBits::STATE_BITS)) * BASIC_BLOCK_SIZE,
+                    value & val(SWMRCommitStateMetadataBits::ALL_STATES_MASK)
+                );
             }
 
             auto has_next_res = scanner.next_leaf();

@@ -30,6 +30,7 @@ protected:
     using typename Base::CounterStorageT;
 
     using Base::BASIC_BLOCK_SIZE;
+
     using Base::head_ptr_;
     using Base::former_head_ptr_;
     using Base::do_open_readonly;
@@ -100,10 +101,10 @@ public:
             former_head_pos = former_head_ptr_->superblock()->superblock_file_pos();
         }
 
-        ptr->for_each_history_entry([&](const auto& commit_id, int64_t root_block_addr) {
-            if (root_block_addr < 0)
+        ptr->for_each_history_entry([&](const auto& commit_id, uint64_t superblock_pos, uint64_t metadata_bits) {
+            if ((metadata_bits & val(SWMRCommitStateMetadataBits::PERSISTENT)) == 0)
             {
-                uint64_t superblock_pos = -root_block_addr;
+                // transient commit
                 if (superblock_pos != former_head_pos && superblock_pos != head_pos)
                 {
                     Superblock* superblock = ptr_cast<Superblock>(buffer_.data() + superblock_pos);
@@ -112,7 +113,7 @@ public:
                 }
             }
             else {
-                Superblock* superblock = ptr_cast<Superblock>(buffer_.data() + root_block_addr);
+                Superblock* superblock = ptr_cast<Superblock>(buffer_.data() + superblock_pos);
                 CommitDescriptorT* commit_descr = new CommitDescriptorT(superblock);
                 commit_descr->set_persistent(true);
                 persistent_commits_[commit_id] = commit_descr;

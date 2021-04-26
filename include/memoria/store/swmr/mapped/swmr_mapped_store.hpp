@@ -60,6 +60,7 @@ protected:
     using typename Base::CommitDescriptorT;
     using typename Base::CounterStorageT;
     using typename Base::BlockID;
+    using typename Base::RemovingBlockConsumerFn;
 
     using Base::block_counters_;
     using Base::get_superblock;
@@ -276,6 +277,24 @@ private:
         }
 
         if (!maybe_error) {
+            return std::move(ptr);
+        }
+        else {
+            std::move(maybe_error.get()).do_throw();
+        }
+    }
+
+    virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) {
+        MaybeError maybe_error{};
+        MappedWritableCommitPtr ptr{};
+
+
+        ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
+            maybe_error, this->shared_from_this(), buffer_, commit_descr, fn
+        );
+
+        if (!maybe_error) {
+            ptr->open_commit();
             return std::move(ptr);
         }
         else {

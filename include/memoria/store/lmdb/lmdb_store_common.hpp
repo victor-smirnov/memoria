@@ -272,6 +272,7 @@ public:
             ContainerWalker<Profile>* walker, const
             char* allocator_descr = nullptr
     ) {
+        return walk_containers(walker, allocator_descr);
     }
 
     virtual void walk_containers(

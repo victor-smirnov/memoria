@@ -141,7 +141,6 @@ public:
         BlockMapCtr::template init_profile_metadata<Profile>();
     }
 
-
     uint64_t sequence_id() const {
         return commit_descriptor_->superblock()->sequence_id();
     }

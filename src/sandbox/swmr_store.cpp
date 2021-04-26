@@ -31,7 +31,7 @@ int main(void) {
         const char* file = "file.mma2";
 
         filesystem::remove(file);
-        auto store1 = create_swmr_store(file, 1024);
+        auto store1 = create_lite_swmr_store(file, 1024);
 
         UUID ctr_id = UUID::make_random();
 
@@ -49,11 +49,10 @@ int main(void) {
                 snp0->commit();
             }
 
-
             int cnt = 0;
             int b0  = 0;
             int batch_size = 100;
-            int batches = 100;
+            int batches = 1000;
             while (cnt < batch_size * batches) {
                 auto snp1 = store1->begin();
                 auto ctr1 = find<CtrType>(snp1, ctr_id);
@@ -67,6 +66,8 @@ int main(void) {
                 for (int c = 0; c < batch_size; c++, cnt++) {
                     ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str());
                 }
+
+                //snp1->set_persistent(false);
 
                 snp1->commit(false);
             }
@@ -94,13 +95,13 @@ int main(void) {
 
 //        store2->check(callback);
     }
-    catch (MemoriaError& ee) {
+    catch (const MemoriaError& ee) {
         ee.describe(std::cout);
     }
-    catch (MemoriaThrowable& ee) {
+    catch (const MemoriaThrowable& ee) {
         ee.dump(std::cout);
     }
-    catch (std::exception& ee) {
+    catch (const std::exception& ee) {
         std::cerr << "Exception: " << ee.what() << std::endl;
     }
 }

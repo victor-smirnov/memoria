@@ -63,6 +63,7 @@ protected:
     using BlockID = ProfileBlockID<Profile>;
 
     using CounterStorageT = CounterStorage<Profile>;
+    using RemovingBlockConsumerFn = std::function<void (uint64_t, int32_t)>;
 
     static constexpr size_t  BASIC_BLOCK_SIZE = 4096;
     static constexpr size_t  HEADER_SIZE = BASIC_BLOCK_SIZE * 2;
@@ -206,8 +207,9 @@ public:
 
     void finish_commit(CommitDescriptorT* commit_descriptor)
     {
-
         LockGuard lock(reader_mutex_);
+
+        cleanup_eviction_queue();
 
         if (former_head_ptr_ && !former_head_ptr_->is_persistent()) {
             eviction_queue_.push_back(*former_head_ptr_);
@@ -248,6 +250,7 @@ public:
 
     virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr) = 0;
     virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) = 0;
+    virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) = 0;
     virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr) = 0;
 
     virtual Optional<SequenceID> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) {
@@ -388,6 +391,22 @@ public:
 
     virtual void unref_ctr_root(const BlockID&) {
         return make_generic_error("SWMRStoreBase::unref_ctr_root() should not be called").do_throw();
+    }
+
+    void for_all_evicting_commits(std::function<void (CommitDescriptorT*)> fn) {
+        for (auto& descr: eviction_queue_) {
+            fn(&descr);
+        }
+    }
+
+    void cleanup_eviction_queue() {
+        eviction_queue_.erase_and_dispose(
+            eviction_queue_.begin(),
+            eviction_queue_.end(),
+            [](CommitDescriptorT* commit_descr) noexcept {
+                delete commit_descr;
+            }
+        );
     }
 };
 

@@ -68,6 +68,7 @@ class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
 
     using typename Base::DirectoryCtrType;
     using typename Base::Shared;
+    using typename Base::RemovingBlocksConsumerFn;
 
     using CtrID = ProfileCtrID<Profile>;
     using CtrReferenceableResult = Result<CtrReferenceable<ApiProfile<Profile>>>;
@@ -91,9 +92,10 @@ public:
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             Span<uint8_t> buffer,
-            CommitDescriptorT* commit_descriptor
+            CommitDescriptorT* commit_descriptor,
+            RemovingBlocksConsumerFn removing_blocks_consumer_fn = RemovingBlocksConsumerFn{}
     ) noexcept:
-        Base(store, commit_descriptor, store.get()),
+        Base(store, commit_descriptor, store.get(), removing_blocks_consumer_fn),
         buffer_(buffer)
     {}
 

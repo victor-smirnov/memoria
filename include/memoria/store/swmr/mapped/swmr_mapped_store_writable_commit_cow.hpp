@@ -69,6 +69,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
 
     using typename Base::DirectoryCtrType;
     using typename Base::Shared;
+    using typename Base::RemovingBlocksConsumerFn;
 
     using CtrID = ProfileCtrID<Profile>;
     using CtrReferenceableResult = Result<CtrReferenceable<ApiProfile<Profile>>>;
@@ -95,7 +96,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
     using Base::superblock_;
     using Base::store_;
     using Base::committed_;
-    using Base::newId;
+    using Base::commit_descriptor_;
 
     Span<uint8_t> buffer_;
 
@@ -108,14 +109,17 @@ public:
     using Base::check;
     using Base::init_commit;
     using Base::init_store_commit;
+    using Base::newId;
+    using Base::unref_ctr_root;
 
     MappedSWMRStoreWritableCommit(
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             Span<uint8_t> buffer,
-            CommitDescriptorT* commit_descriptor
+            CommitDescriptorT* commit_descriptor,
+            RemovingBlocksConsumerFn removing_blocks_consumer_fn = RemovingBlocksConsumerFn{}
     ) noexcept:
-        Base(store, commit_descriptor, store.get()),
+        Base(store, commit_descriptor, store.get(), removing_blocks_consumer_fn),
         buffer_(buffer),
         block_cache_(1024*128)
     {}
@@ -128,7 +132,7 @@ public:
         }
     }
 
-    virtual void init_idmap() {
+    void init_idmap() override {
         MaybeError maybe_error{};
         this->template internal_init_system_ctr<BlockMapCtrType>(
             maybe_error,
@@ -142,31 +146,49 @@ public:
         }
     }
 
-    virtual BlockID newId() {
+    void open_idmap() override
+    {
+        auto blockmap_root_id = commit_descriptor_->superblock()->blockmap_root_id();
+        if (blockmap_root_id.is_set())
+        {
+            auto ctr_ref = this->template internal_find_by_root_typed<BlockMapCtrType>(blockmap_root_id);
+
+            blockmap_ctr_ = ctr_ref;
+            blockmap_ctr_->internal_reset_allocator_holder();
+        }
+    }
+
+    void drop_idmap() override {
+        if (superblock_->blockmap_root_id().is_set()) {
+            unref_ctr_root(superblock_->blockmap_root_id());
+        }
+    }
+
+    virtual BlockID newId() override {
         return ProfileTraits<Profile>::make_random_block_id();
     }
 
-    virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) {
+    virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) override {
         std::memcpy(buffer_.data() + sb_slot * BASIC_BLOCK_SIZE, superblock_, BASIC_BLOCK_SIZE);
     }
 
-    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
+    virtual SnpSharedPtr<StoreT> self_ptr() noexcept override {
         return this->shared_from_this();
     }
 
-    virtual uint64_t get_memory_size() noexcept {
+    virtual uint64_t get_memory_size() noexcept override {
         return buffer_.size();
     }
 
 
-    virtual Superblock* newSuperblock(uint64_t pos) {
+    virtual Superblock* newSuperblock(uint64_t pos) override {
         return new (buffer_.data() + pos) Superblock();
     }
 
 
     using typename Base::ResolvedBlock;
 
-    virtual ResolvedBlock resolve_block(const BlockID& block_id)
+    virtual ResolvedBlock resolve_block(const BlockID& block_id) override
     {
         auto existing_entry = block_cache_.get(block_id);
         if (existing_entry)
@@ -202,7 +224,7 @@ public:
     }
 
 
-    virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap)
+    virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) override
     {
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
@@ -230,7 +252,7 @@ public:
         return shared;
     }
 
-    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) {
+    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) override {
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
         std::memcpy(block_addr, source, source->memory_block_size());
@@ -261,10 +283,10 @@ public:
     }
 
 
-    virtual void updateBlock(Shared* block) {
+    virtual void updateBlock(Shared* block) override {
     }
 
-    virtual void releaseBlock(Shared* block) noexcept {
+    virtual void releaseBlock(Shared* block) noexcept override {
         block_cache_.attach(static_cast<BlockCacheEntry*>(block), [&](BlockCacheEntry* entry){
             cache_entry_pool_.destroy(entry);
         });

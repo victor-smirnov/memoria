@@ -90,11 +90,13 @@ protected:
 
     using BlockCleanupHandler = std::function<VoidResult ()>;
 
+    using RemovingBlocksConsumerFn = typename Store::RemovingBlockConsumerFn;
+
     CtrSharedPtr<AllocationMapCtr> parent_allocation_map_ctr_;
 
     AllocationPool<ApiProfileT, 9> allocation_pool_;
 
-    bool committed_{false};
+    bool committed_;
     bool allocator_initialization_mode_{false};
 
     ParentCommit parent_commit_;
@@ -105,6 +107,8 @@ protected:
 
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_;
 
+    RemovingBlocksConsumerFn removing_blocks_consumer_fn_{};
+
 public:
     using Base::check;
     using Base::resolve_block;
@@ -112,10 +116,14 @@ public:
     SWMRStoreWritableCommitBase(
             SharedPtr<Store> store,
             CommitDescriptorT* commit_descriptor,
-            ReferenceCounterDelegate<Profile>* refcounter_delegate
+            ReferenceCounterDelegate<Profile>* refcounter_delegate,
+            RemovingBlocksConsumerFn removing_blocks_consumer_fn
     ) noexcept :
-        Base(store, commit_descriptor, refcounter_delegate)
-    {}
+        Base(store, commit_descriptor, refcounter_delegate),
+        removing_blocks_consumer_fn_(removing_blocks_consumer_fn)
+    {
+        committed_ = (bool)removing_blocks_consumer_fn_;
+    }
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept = 0;
     virtual uint64_t get_memory_size() = 0;
@@ -123,6 +131,67 @@ public:
     virtual void store_superblock(Superblock* superblock, uint64_t slot) = 0;
     virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) = 0;
     virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) = 0;
+
+    virtual void init_idmap() {}
+    virtual void open_idmap() {}
+    virtual void drop_idmap() {}
+
+    virtual void init_commit(MaybeError& maybe_error) noexcept {}
+    virtual void init_store_commit(MaybeError& maybe_error) noexcept {}
+
+    void remove_all_blocks()
+    {
+        if (superblock_->directory_root_id().is_set()) {
+            unref_ctr_root(superblock_->directory_root_id());
+        }
+
+        if (superblock_->allocator_root_id().is_set()) {
+            unref_ctr_root(superblock_->allocator_root_id());
+        }
+
+        if (superblock_->history_root_id().is_set()) {
+            unref_ctr_root(superblock_->history_root_id());
+        }
+
+        drop_idmap();
+
+        removing_blocks_consumer_fn_(superblock_->superblock_file_pos(), superblock_->superblock_size());
+    }
+
+
+    void open_commit()
+    {
+        open_idmap();
+
+        auto directory_root_id = commit_descriptor_->superblock()->directory_root_id();
+        if (directory_root_id.is_set())
+        {
+            auto ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(directory_root_id);
+
+            directory_ctr_ = ctr_ref;
+            directory_ctr_->internal_reset_allocator_holder();
+        }
+
+        auto allocator_root_id = commit_descriptor_->superblock()->allocator_root_id();
+        if (allocator_root_id.is_set())
+        {
+            auto ctr_ref = this->template internal_find_by_root_typed<AllocationMapCtrType>(allocator_root_id);
+
+            allocation_map_ctr_ = ctr_ref;
+            allocation_map_ctr_->internal_reset_allocator_holder();
+        }
+
+        auto history_root_id = commit_descriptor_->superblock()->history_root_id();
+        if (history_root_id.is_set())
+        {
+            auto ctr_ref = this->template internal_find_by_root_typed<HistoryCtrType>(history_root_id);
+
+            history_ctr_ = ctr_ref;
+            history_ctr_->internal_reset_allocator_holder();
+        }
+    }
+
+
 
     void init_commit(CommitDescriptorT* parent_commit_descriptor)
     {
@@ -254,10 +323,7 @@ public:
         }
     }
 
-    virtual void init_idmap() {}
 
-    virtual void init_commit(MaybeError& maybe_error) noexcept {}
-    virtual void init_store_commit(MaybeError& maybe_error) noexcept {}
 
     void finish_commit_opening()
     {
@@ -308,6 +374,13 @@ public:
     }
 
 
+    void drain_deallocation_buffer(ArenaBuffer<AllocationMetadataT>& evicting_blocks) {
+        evicting_blocks.sort();
+        // Mark blocks as free
+        allocation_map_ctr_->setup_bits(evicting_blocks.span(), false);
+        evicting_blocks.clear();
+    }
+
 
     virtual void commit(bool flush = true)
     {
@@ -315,11 +388,20 @@ public:
         {
             flush_open_containers();
 
+            store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
+                CommitID commit_id = commit_descriptor->superblock()->commit_id();
+                history_ctr_->remove_key(commit_id);
+            });
+
             if (history_ctr_)
             {
-                int64_t sb_pos = superblock_->superblock_file_pos();
-                history_ctr_->assign_key(superblock_->commit_id(), sb_pos * (
-                                                              is_persistent() ? 1 : -1));
+                uint64_t commit_data = (superblock_->superblock_file_pos() / BASIC_BLOCK_SIZE) << val(SWMRCommitStateMetadataBits::STATE_BITS);
+
+                if (is_persistent()) {
+                    commit_data |= val(SWMRCommitStateMetadataBits::PERSISTENT);
+                }
+
+                history_ctr_->assign_key(superblock_->commit_id(), commit_data);
             }
 
             ArenaBuffer<AllocationMetadataT> all_postponed_deallocations;
@@ -348,6 +430,28 @@ public:
                 allocation_map_ctr_->setup_bits(all_postponed_deallocations.span(), false);
             }
 
+
+            ArenaBuffer<AllocationMetadataT> evicting_blocks;
+            store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
+                auto snp = store_->do_open_writable(commit_descriptor, [&](uint64_t block_file_pos, int32_t block_size){
+                    evicting_blocks.append_value(AllocationMetadataT(
+                        block_file_pos / BASIC_BLOCK_SIZE,
+                        block_size / BASIC_BLOCK_SIZE,
+                        0
+                    ));
+
+                    if (evicting_blocks.size() > 10000) {
+                        drain_deallocation_buffer(evicting_blocks);
+                    }
+                });
+
+                snp->remove_all_blocks();
+            });
+
+            if (evicting_blocks.size()) {
+                drain_deallocation_buffer(evicting_blocks);
+            }
+
             if (flush) {
                 store_->flush_data();
             }
@@ -355,7 +459,6 @@ public:
             superblock_->build_superblock_description();
 
             auto sb_slot = superblock_->sequence_id() % 2;
-
 
             store_superblock(superblock_, sb_slot);
 
@@ -707,9 +810,7 @@ public:
     }
 
 
-    static constexpr int32_t CustomLog2(int32_t value) noexcept {
-        return 31 - CtLZ((uint32_t)value);
-    }
+
 
     void add_awaiting_allocation(const AllocationMetadataT& meta) noexcept {
         if (!flushing_awaiting_allocations_) {
@@ -801,20 +902,35 @@ public:
     {
         auto block_data = resolve_block(id);
 
-        int32_t block_size = block_data.block->memory_block_size();
-        int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
-        int32_t level = CustomLog2(scale_factor);
-
-        int64_t allocator_block_pos = block_data.file_pos;
-        int64_t ll_allocator_block_pos = allocator_block_pos >> level;
-
-        AllocationMetadataT meta[1] = {AllocationMetadataT{allocator_block_pos, 1, level}};
-
-        if (parent_allocation_map_ctr_)
+        if (MMA_LIKELY(!removing_blocks_consumer_fn_))
         {
-            auto status = parent_allocation_map_ctr_->get_allocation_status(level, ll_allocator_block_pos);
-            if ((!status) || status.get() == AllocationMapEntryStatus::FREE)
+            int32_t block_size = block_data.block->memory_block_size();
+            int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
+            int32_t level = CustomLog2(scale_factor);
+
+            int64_t allocator_block_pos = block_data.file_pos;
+            int64_t ll_allocator_block_pos = allocator_block_pos >> level;
+
+            AllocationMetadataT meta[1] = {AllocationMetadataT{allocator_block_pos, 1, level}};
+
+            if (parent_allocation_map_ctr_)
             {
+                auto status = parent_allocation_map_ctr_->get_allocation_status(level, ll_allocator_block_pos);
+                if ((!status) || status.get() == AllocationMapEntryStatus::FREE)
+                {
+                    if (!flushing_awaiting_allocations_) {
+                        flush_awaiting_allocations();
+                        allocation_map_ctr_->setup_bits(meta, false); // clear bits
+                    }
+                    else {
+                        add_postponed_deallocation(meta[0]);
+                    }
+                }
+                else {
+                    add_postponed_deallocation(meta[0]);
+                }
+            }
+            else {
                 if (!flushing_awaiting_allocations_) {
                     flush_awaiting_allocations();
                     allocation_map_ctr_->setup_bits(meta, false); // clear bits
@@ -823,18 +939,9 @@ public:
                     add_postponed_deallocation(meta[0]);
                 }
             }
-            else {
-                add_postponed_deallocation(meta[0]);
-            }
         }
         else {
-            if (!flushing_awaiting_allocations_) {
-                flush_awaiting_allocations();
-                allocation_map_ctr_->setup_bits(meta, false); // clear bits
-            }
-            else {
-                add_postponed_deallocation(meta[0]);
-            }
+            removing_blocks_consumer_fn_(block_data.file_pos, block_data.block->memory_block_size());
         }
     }
 
@@ -906,6 +1013,9 @@ public:
         return shared;
     }
 
+    static constexpr int32_t CustomLog2(int32_t value) noexcept {
+        return 31 - CtLZ((uint32_t)value);
+    }
 };
 
 }
