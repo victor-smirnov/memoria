@@ -124,7 +124,6 @@ public:
         block_cache_(1024*128)
     {}
 
-
     virtual ~MappedSWMRStoreWritableCommit() noexcept {
         if (!committed_) {
             store_->unlock_writer();
@@ -166,10 +165,6 @@ public:
 
     virtual BlockID newId() override {
         return ProfileTraits<Profile>::make_random_block_id();
-    }
-
-    virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) override {
-        std::memcpy(buffer_.data() + sb_slot * BASIC_BLOCK_SIZE, superblock_, BASIC_BLOCK_SIZE);
     }
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept override {

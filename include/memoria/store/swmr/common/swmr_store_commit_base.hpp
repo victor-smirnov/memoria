@@ -77,6 +77,8 @@ protected:
     using typename Base::CtrID;
     using typename Base::Shared;
 
+    using BlockIDValueHolder = typename BlockID::ValueHolder;
+
     using Store = SWMRStoreBase<Profile>;
 
     using ApiProfileT = ApiProfile<Profile>;

@@ -302,6 +302,7 @@ private:
         }
     }
 
+
     virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) override
     {
         MaybeError maybe_error{};

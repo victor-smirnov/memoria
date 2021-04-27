@@ -97,6 +97,7 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
 
     virtual bool drop_persistent_commit(const CommitID& commit_id) = 0;
 
+    virtual bool can_rollback_last_commit() noexcept = 0;
     virtual void rollback_last_commit() = 0;
 
     virtual Optional<SequenceID> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) = 0;

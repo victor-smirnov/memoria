@@ -63,7 +63,7 @@ protected:
     using BlockID = ProfileBlockID<Profile>;
 
     using CounterStorageT = CounterStorage<Profile>;
-    using RemovingBlockConsumerFn = std::function<void (uint64_t, int32_t)>;
+    using RemovingBlockConsumerFn = std::function<void (const BlockID&, uint64_t, int32_t)>;
 
     static constexpr size_t  BASIC_BLOCK_SIZE = 4096;
     static constexpr size_t  HEADER_SIZE = BASIC_BLOCK_SIZE * 2;
@@ -118,6 +118,25 @@ public:
     }
 
 
+    virtual void close() override = 0;
+
+    virtual void flush_data(bool async = false) = 0;
+    virtual void flush_header(bool async = false) = 0;
+
+    virtual void flush() override = 0;
+
+    virtual void check_if_open() = 0;
+
+    virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr) = 0;
+    virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) = 0;
+
+    virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) = 0;
+
+    virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr) = 0;
+    virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept = 0;
+    virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) = 0;
+
+
     virtual std::vector<CommitID> persistent_commits() override
     {
         check_if_open();
@@ -167,12 +186,37 @@ public:
         return false;
     }
 
-    virtual void rollback_last_commit() override
-    {
-        check_if_open();
+    virtual bool can_rollback_last_commit() noexcept override {
+        return former_head_ptr_ != nullptr;
     }
 
-    virtual void flush() override = 0;
+    virtual void rollback_last_commit() override
+    {
+        LockGuard lock(writer_mutex_);
+
+        check_if_open();
+        if (former_head_ptr_)
+        {
+            // decrementing block counters
+            auto ptr = do_open_writable(head_ptr_, [&](const BlockID& block_id, uint64_t, uint64_t){});
+            ptr->remove_all_blocks();
+
+            head_ptr_->superblock()->mark_for_rollback();
+            head_ptr_->superblock()->build_superblock_description();
+
+            auto sb_slot = head_ptr_->superblock()->sequence_id() % 2;
+            store_superblock(head_ptr_->superblock(), sb_slot);
+
+            delete head_ptr_;
+            head_ptr_ = former_head_ptr_;
+            former_head_ptr_ = nullptr;
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Can't rollback the last commit").do_throw();
+        }
+    }
+
+
 
     virtual WritableCommitPtr begin() override
     {
@@ -198,10 +242,7 @@ public:
         }
     }
 
-    virtual void close() override = 0;
 
-    virtual void flush_data(bool async = false) = 0;
-    virtual void flush_header(bool async = false) = 0;
 
     virtual void finish_commit(CommitDescriptorT* commit_descriptor)
     {
@@ -225,6 +266,7 @@ public:
     }
 
     virtual void finish_rollback(CommitDescriptorT* commit_descriptor) {
+        writer_mutex_.unlock();
     }
 
     SharedPtr<ISWMRStoreHistoryView<ApiProfileT>> history_view() override {
@@ -239,18 +281,10 @@ public:
         writer_mutex_.unlock();
     }
 
-
-    virtual void check_if_open() = 0;
-
     ReadOnlyCommitPtr open_readonly(CommitDescriptorT* commit_descr) {
         return do_open_readonly(commit_descr);
     }
 
-    virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr) = 0;
-    virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) = 0;
-    virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) = 0;
-    virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr) = 0;
-    virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept = 0;
 
     virtual Optional<SequenceID> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) override {
         check_if_open();

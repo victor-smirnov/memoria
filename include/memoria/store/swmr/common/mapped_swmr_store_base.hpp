@@ -28,6 +28,7 @@ protected:
     using typename Base::Superblock;
     using typename Base::CommitDescriptorT;
     using typename Base::CounterStorageT;
+    using typename Base::CommitID;
 
     using Base::BASIC_BLOCK_SIZE;
 
@@ -47,6 +48,10 @@ protected:
 public:
     MappedSWMRStoreBase() noexcept : Base() {}
 
+    virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) override {
+        std::memcpy(buffer_.data() + sb_slot * BASIC_BLOCK_SIZE, superblock, BASIC_BLOCK_SIZE);
+    }
+
     Superblock* get_superblock(uint64_t file_pos) noexcept {
         return ptr_cast<Superblock>(buffer_.data() + file_pos);
     }
@@ -57,18 +62,44 @@ public:
         Superblock* sb1 = ptr_cast<Superblock>(buffer_.data() + BASIC_BLOCK_SIZE);
 
         if (!sb0->match_magick()) {
-            MEMORIA_MAKE_GENERIC_ERROR("First SWMR store header magick number mismatch").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("First SWMR store header magick number mismatch: {}, expected {};  {}, expected {}",
+                                       sb0->magick1(), Superblock::MAGICK1,
+                                       sb0->magick2(), Superblock::MAGICK2
+            ).do_throw();
         }
 
         if (!sb1->match_magick()) {
-            MEMORIA_MAKE_GENERIC_ERROR("Second SWMR store header magick number mismatch").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Second SWMR store header magick number mismatch: {}, expected {};  {}, expected {}",
+                                       sb1->magick1(), Superblock::MAGICK1,
+                                       sb1->magick2(), Superblock::MAGICK2
+            ).do_throw();
+        }
+
+        if (!sb0->match_profile_hash()) {
+            MEMORIA_MAKE_GENERIC_ERROR("First SWMR store header profile hash mismatch: {}, expected {}",
+                                       sb0->profile_hash(),
+                                       Superblock::PROFILE_HASH
+            ).do_throw();
+        }
+
+        if (!sb1->match_profile_hash()) {
+            MEMORIA_MAKE_GENERIC_ERROR("Second SWMR store header profile hash mismatch: {}, expected {}",
+                                       sb1->profile_hash(),
+                                       Superblock::PROFILE_HASH
+            ).do_throw();
+        }
+
+        if (sb0->commit_id().is_null() && sb0->commit_id().is_null()) {
+            // the file was only partially initialized, continue
+            // the process.
+            return init_mapped_store();
         }
 
         if (sb0->sequence_id() > sb1->sequence_id())
         {
             head_ptr_ = new CommitDescriptorT(get_superblock(sb0->superblock_file_pos()));
 
-            if (sb1->sequence_id() > 0)
+            if (sb1->commit_id().is_set())
             {
                 former_head_ptr_ = new CommitDescriptorT(get_superblock(sb1->superblock_file_pos()));
             }
@@ -76,7 +107,7 @@ public:
         else {
             head_ptr_ = new CommitDescriptorT(get_superblock(sb1->superblock_file_pos()));
 
-            if (sb0->sequence_id() > 0)
+            if (sb0->commit_id().is_set())
             {
                 former_head_ptr_ = new CommitDescriptorT(get_superblock(sb0->superblock_file_pos()));
             }
@@ -88,6 +119,7 @@ public:
                 head_ptr_->superblock()->file_size(), buffer_.size()
             ).do_throw();
         }
+
 
         // Read snapshot history and
         // preload all transient snapshots into the
@@ -153,10 +185,10 @@ public:
         Superblock* sb0 = get_superblock(0);
         Superblock* sb1 = get_superblock(BASIC_BLOCK_SIZE);
 
-        sb0->init(0, buffer_.size(), ProfileTraits<Profile>::make_random_snapshot_id(), BASIC_BLOCK_SIZE, 0);
+        sb0->init(0, buffer_.size(), CommitID{}, BASIC_BLOCK_SIZE, 0);
         sb0->build_superblock_description();
 
-        sb1->init(BASIC_BLOCK_SIZE, buffer_.size(), ProfileTraits<Profile>::make_random_snapshot_id(), BASIC_BLOCK_SIZE, 0);
+        sb1->init(BASIC_BLOCK_SIZE, buffer_.size(), CommitID{}, BASIC_BLOCK_SIZE, 1);
         sb1->build_superblock_description();
 
 

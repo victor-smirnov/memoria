@@ -42,10 +42,14 @@ static inline constexpr uint64_t val(SWMRCommitStateMetadataBits bits) {
 
 template <typename Profile>
 class SWMRSuperblock {
-    static constexpr uint64_t PROFILE_HASH = TypeHash<Profile>::Value;
 public:
-    static constexpr UUID MAGICK1 = UUID(15582486158405818875ull ^ PROFILE_HASH, 10745804754247616161ull ^ PROFILE_HASH);
-    static constexpr UUID MAGICK2 = UUID(11983071476558773143ull ^ PROFILE_HASH, 15192944415463971007ull ^ PROFILE_HASH);
+    static constexpr uint64_t PROFILE_HASH = TypeHash<Profile>::Value;
+
+    // b18ba23f-fb6d-4c70-a2c5-f759a3c38b5a
+    static constexpr UUID MAGICK1 = UUID(8091963556349774769ull, 6524523591532791202ull);
+
+    // 67ca2314-39fe-4264-ae0d-28fcc7e78ef6
+    static constexpr UUID MAGICK2 = UUID(7224616273360177767ull, 17766392426138176942ull);
 
     using BlockID    = ProfileBlockID<Profile>;
     using CommitUUID = ProfileSnapshotID<Profile>;
@@ -56,6 +60,7 @@ private:
 
     UUID magick1_;
     UUID magick2_;
+    uint64_t profile_hash_;
 
     char magic_buffer_[256];
     char reserved_[4 * 8];
@@ -97,8 +102,25 @@ public:
     const char* magic_buffer() const noexcept {return magic_buffer_;}
     char* magic_buffer() noexcept {return magic_buffer_;}
 
+    const UUID& magick1() const {
+        return magick1_;
+    }
+
+    const UUID& magick2() const {
+        return magick2_;
+    }
+
+    uint64_t profile_hash() const {
+        return profile_hash_;
+    }
+
     const SequenceID& sequence_id() const noexcept {return sequence_id_;}
     SequenceID& sequence_id() noexcept {return sequence_id_;}
+
+    void mark_for_rollback() noexcept {
+        sequence_id_ -= 2;
+        commit_id_ = CommitID{};
+    }
 
     const CommitID& commit_id() const noexcept {return commit_id_;}
     CommitID& commit_id() noexcept {return commit_id_;}
@@ -134,10 +156,15 @@ public:
         return magick1_ == MAGICK1 && magick2_ == MAGICK2;
     }
 
+    bool match_profile_hash() noexcept {
+        return profile_hash_ == PROFILE_HASH;
+    }
+
     void init(uint64_t superblock_file_pos, uint64_t file_size, const CommitID& commit_id, size_t superblock_size, SequenceID sequence_id = 1)
     {
         magick1_ = MAGICK1;
         magick2_ = MAGICK2;
+        profile_hash_ = PROFILE_HASH;
 
         std::memset(magic_buffer_, 0, sizeof(magic_buffer_));
         std::memset(reserved_, 0, sizeof(reserved_));
@@ -158,8 +185,6 @@ public:
         allocator_root_id_ = BlockID{};
         blockmap_root_id_  = BlockID{};
 
-        commit_uuid_       = ProfileTraits<Profile>::make_random_snapshot_id();
-
         store_status_ = SWMRStoreStatus::UNCLEAN;
 
         return allocator_.init(allocator_block_size(superblock_size), 1).get_or_throw();
@@ -169,6 +194,7 @@ public:
     {
         magick1_ = other.magick1_;
         magick2_ = other.magick2_;
+        profile_hash_ = other.profile_hash_;
 
         history_root_id_   = other.history_root_id_;
         directory_root_id_ = other.directory_root_id_;
@@ -178,8 +204,6 @@ public:
 
         sequence_id_ = other.sequence_id_ + 1;
         commit_id_   = commit_id;
-
-        commit_uuid_ = ProfileTraits<Profile>::make_random_snapshot_id();
 
         superblock_file_pos_ = superblock_file_pos;
         file_size_           = other.file_size_;

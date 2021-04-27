@@ -107,10 +107,6 @@ public:
         }
     }
 
-    virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) {
-        std::memcpy(buffer_.data() + sb_slot * BASIC_BLOCK_SIZE, superblock_, BASIC_BLOCK_SIZE);
-    }
-
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
         return this->shared_from_this();
     }

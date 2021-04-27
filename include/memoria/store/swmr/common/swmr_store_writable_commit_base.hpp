@@ -39,6 +39,7 @@ protected:
     using typename Base::CommitDescriptorT;
     using typename Base::CommitID;
     using typename Base::BlockID;
+    using typename Base::BlockIDValueHolder;
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
     using typename Base::BlockType;
@@ -127,8 +128,7 @@ public:
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept = 0;
     virtual uint64_t get_memory_size() = 0;
-    virtual Superblock* newSuperblock(uint64_t pos) = 0;
-    virtual void store_superblock(Superblock* superblock, uint64_t slot) = 0;
+    virtual Superblock* newSuperblock(uint64_t pos) = 0;    
     virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) = 0;
     virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) = 0;
 
@@ -155,7 +155,7 @@ public:
 
         drop_idmap();
 
-        removing_blocks_consumer_fn_(superblock_->superblock_file_pos(), superblock_->superblock_size());
+        removing_blocks_consumer_fn_(BlockID{BlockIDValueHolder{}}, superblock_->superblock_file_pos(), superblock_->superblock_size());
     }
 
 
@@ -203,8 +203,6 @@ public:
         parent_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(parent_allocation_map_ctr);
 
         populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 1, 64);
-
-        //CommitID parent_commit_id = parent_commit_descriptor->superblock()->commit_id();
 
         auto superblock = allocate_superblock(
             parent_commit_descriptor->superblock(),
@@ -433,7 +431,7 @@ public:
 
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
             store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
-                auto snp = store_->do_open_writable(commit_descriptor, [&](uint64_t block_file_pos, int32_t block_size){
+                auto snp = store_->do_open_writable(commit_descriptor, [&](const BlockID&, uint64_t block_file_pos, int32_t block_size){
                     evicting_blocks.append_value(AllocationMetadataT(
                         block_file_pos / BASIC_BLOCK_SIZE,
                         block_size / BASIC_BLOCK_SIZE,
@@ -460,7 +458,7 @@ public:
 
             auto sb_slot = superblock_->sequence_id() % 2;
 
-            store_superblock(superblock_, sb_slot);
+            store_->store_superblock(superblock_, sb_slot);
 
             if (flush) {
                 store_->flush_header();
@@ -901,7 +899,10 @@ public:
     {
         auto block_data = resolve_block(id);
 
-        if (MMA_LIKELY(!removing_blocks_consumer_fn_))
+        if (MMA_UNLIKELY((bool)removing_blocks_consumer_fn_)) {
+            removing_blocks_consumer_fn_(id, block_data.file_pos, block_data.block->memory_block_size());
+        }
+        else
         {
             int32_t block_size = block_data.block->memory_block_size();
             int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
@@ -938,9 +939,6 @@ public:
                     add_postponed_deallocation(meta[0]);
                 }
             }
-        }
-        else {
-            removing_blocks_consumer_fn_(block_data.file_pos, block_data.block->memory_block_size());
         }
     }
 
