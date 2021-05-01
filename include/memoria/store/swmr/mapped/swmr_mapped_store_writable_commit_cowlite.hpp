@@ -65,6 +65,7 @@ class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
     using typename Base::HistoryCtr;
     using typename Base::HistoryCtrType;
     using typename Base::CounterStorageT;
+    using typename Base::CountersBlockT;
 
     using typename Base::DirectoryCtrType;
     using typename Base::Shared;
@@ -107,23 +108,23 @@ public:
         }
     }
 
-    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
+    virtual SnpSharedPtr<StoreT> self_ptr() noexcept override {
         return this->shared_from_this();
     }
 
-    virtual uint64_t get_memory_size() noexcept {
+    virtual uint64_t get_memory_size() noexcept override {
         return buffer_.size();
     }
 
 
-    virtual Superblock* newSuperblock(uint64_t pos) {
+    virtual Superblock* newSuperblock(uint64_t pos) override {
         return new (buffer_.data() + pos) Superblock();
     }
 
 
     using typename Base::ResolvedBlock;
 
-    virtual ResolvedBlock resolve_block(const BlockID& block_id)
+    virtual ResolvedBlock resolve_block(const BlockID& block_id) override
     {
         BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value() * BASIC_BLOCK_SIZE);
         Shared* shared = shared_pool_.construct(block_id, block, 0);
@@ -132,7 +133,7 @@ public:
     }
 
 
-    virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap)
+    virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) override
     {
         BlockID id{at};
 
@@ -150,7 +151,7 @@ public:
         return shared;
     }
 
-    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) {
+    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) override {
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
         std::memcpy(block_addr, source, source->memory_block_size());
@@ -170,11 +171,16 @@ public:
     }
 
 
-    virtual void updateBlock(Shared* block) {
+    virtual void updateBlock(Shared* block) override {
     }
 
-    virtual void releaseBlock(Shared* block) noexcept {
+    virtual void releaseBlock(Shared* block) noexcept override {
         shared_pool_.destroy(block);
+    }
+
+    virtual CountersBlockT* new_counters_block(uint64_t pos) override {
+        uint8_t* block_addr = buffer_.data() + pos;
+        return  new (block_addr) CountersBlockT();
     }
 };
 

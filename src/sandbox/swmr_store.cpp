@@ -49,28 +49,29 @@ int main(void) {
                 snp0->commit();
             }
 
-//            int cnt = 0;
-//            int b0  = 0;
-//            int batch_size = 100;
-//            int batches = 1000;
-//            while (cnt < batch_size * batches) {
-//                auto snp1 = store1->begin();
-//                auto ctr1 = find<CtrType>(snp1, ctr_id);
+            int cnt = 0;
+            int b0  = 0;
+            int batch_size = 100;
+            int batches = 1000;
+            while (cnt < batch_size * batches) {
+                auto snp1 = store1->begin();
+                auto ctr1 = find<CtrType>(snp1, ctr_id);
 
-//                if (b0 % 100 == 0) {
-//                    std::cout << "Batch " << (b0) << std::endl;
-//                }
+                if (b0 % 100 == 0)
+                {
+                    std::cout << "Batch " << (b0) << " :: " << cnt << " :: " << (batch_size * batches) << std::endl;
+                }
 
-//                b0++;
+                b0++;
 
-//                for (int c = 0; c < batch_size; c++, cnt++) {
-//                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str());
-//                }
+                for (int c = 0; c < batch_size; c++, cnt++) {
+                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str());
+                }
 
-//                //snp1->set_persistent(false);
+                snp1->set_persistent(true);
 
-//                snp1->commit(false);
-//            }
+                snp1->commit(false);
+            }
 
         }
 
@@ -80,22 +81,22 @@ int main(void) {
 
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
 
-        store1->rollback_last_commit();
+        //store1->rollback_last_commit();
 
         store1->close();
 
-        auto store2 = open_swmr_store(file);
+//        auto store2 = open_swmr_store(file);
 
-        auto snp2 = store2->begin();
-        auto ctr2 = find<CtrType>(snp2, ctr_id);
+//        auto snp2 = store2->begin();
+//        auto ctr2 = find<CtrType>(snp2, ctr_id);
 
-        ctr2->for_each([](auto view){
-            std::cout << view << std::endl;
-        });
+//        ctr2->for_each([](auto view){
+//            std::cout << view << std::endl;
+//        });
 
-        snp2->commit();
+//        snp2->commit();
 
-        store2->check(callback);
+//        store2->check(callback);
     }
     catch (const MemoriaError& ee) {
         ee.describe(std::cout);

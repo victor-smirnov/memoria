@@ -23,8 +23,11 @@
 #include <memoria/core/strings/format.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
+#include <memoria/core/tools/span.hpp>
 
 namespace memoria {
+
+template <typename BlockID> class CounterCodec;
 
 enum class SWMRStoreStatus {
     UNCLEAN, CLEAN
@@ -44,6 +47,8 @@ template <typename Profile>
 class SWMRSuperblock {
 public:
     static constexpr uint64_t PROFILE_HASH = TypeHash<Profile>::Value;
+    static constexpr size_t   EMBEDDED_COUNTERS_CAPACITY = 3520 / sizeof(ProfileBlockID<Profile>);
+    static constexpr uint64_t VERSION = 1;
 
     // b18ba23f-fb6d-4c70-a2c5-f759a3c38b5a
     static constexpr UUID MAGICK1 = UUID(8091963556349774769ull, 6524523591532791202ull);
@@ -61,6 +66,7 @@ private:
     UUID magick1_;
     UUID magick2_;
     uint64_t profile_hash_;
+    uint64_t version_;
 
     char magic_buffer_[256];
     char reserved_[4 * 8];
@@ -69,12 +75,14 @@ private:
     uint64_t file_size_;
     uint64_t superblock_file_pos_;
     uint64_t superblock_size_;
-    uint64_t block_counters_file_pos_;
-    uint64_t block_counters_size_;
+    uint64_t global_block_counters_file_pos_;
+    uint64_t global_block_counters_size_;
+
+    uint64_t commit_block_counters_file_pos_;
+    uint64_t commit_block_counters_size_;
 
     BlockID history_root_id_;
     BlockID directory_root_id_;
-    BlockID counters_root_id_;
     BlockID allocator_root_id_;
     BlockID blockmap_root_id_;
 
@@ -82,36 +90,38 @@ private:
 
     SWMRStoreStatus store_status_;
 
-    PackedAllocator allocator_;
+    BlockID counters_[EMBEDDED_COUNTERS_CAPACITY];
 
 public:
-    SWMRSuperblock() noexcept {}
+    SWMRSuperblock() noexcept = default;
 
     BlockID& history_root_id() noexcept   {return history_root_id_;}
     BlockID& directory_root_id() noexcept {return directory_root_id_;}
-    BlockID& counters_root_id() noexcept  {return counters_root_id_;}
     BlockID& allocator_root_id() noexcept {return allocator_root_id_;}
     BlockID& blockmap_root_id() noexcept  {return blockmap_root_id_;}
 
     const BlockID& history_root_id() const noexcept   {return history_root_id_;}
     const BlockID& directory_root_id() const noexcept {return directory_root_id_;}
-    const BlockID& counters_root_id() const noexcept  {return counters_root_id_;}
     const BlockID& allocator_root_id() const noexcept {return allocator_root_id_;}
     const BlockID& blockmap_root_id() const noexcept {return blockmap_root_id_;}
 
     const char* magic_buffer() const noexcept {return magic_buffer_;}
     char* magic_buffer() noexcept {return magic_buffer_;}
 
-    const UUID& magick1() const {
+    const UUID& magick1() const noexcept {
         return magick1_;
     }
 
-    const UUID& magick2() const {
+    const UUID& magick2() const noexcept {
         return magick2_;
     }
 
-    uint64_t profile_hash() const {
+    uint64_t profile_hash() const noexcept {
         return profile_hash_;
+    }
+
+    uint64_t version() const noexcept {
+        return version_;
     }
 
     const SequenceID& sequence_id() const noexcept {return sequence_id_;}
@@ -134,11 +144,19 @@ public:
     uint64_t superblock_file_pos() const noexcept {return superblock_file_pos_;}
     uint64_t& superblock_file_pos() noexcept {return superblock_file_pos_;}
 
-    uint64_t block_counters_file_pos() const noexcept {return block_counters_file_pos_;}
-    uint64_t& block_counters_file_pos() noexcept {return block_counters_file_pos_;}
+    uint64_t global_block_counters_file_pos() const noexcept {return global_block_counters_file_pos_;}
+    uint64_t& global_block_counters_file_pos() noexcept {return global_block_counters_file_pos_;}
 
-    uint64_t block_counters_size() const noexcept {return block_counters_size_;}
-    uint64_t& block_counters_size() noexcept {return block_counters_size_;}
+    uint64_t global_block_counters_size() const noexcept {return global_block_counters_size_;}
+    uint64_t& global_block_counters_size() noexcept {return global_block_counters_size_;}
+
+    uint64_t commit_block_counters_file_pos() const noexcept {return global_block_counters_file_pos_;}
+    uint64_t& commit_block_counters_file_pos() noexcept {return global_block_counters_file_pos_;}
+
+    uint64_t commit_block_counters_size() const noexcept {return commit_block_counters_size_;}
+    uint64_t& commit_block_counters_size() noexcept {return commit_block_counters_size_;}
+
+
 
     const CommitUUID& commit_uuid() const noexcept {return commit_uuid_;}
     CommitUUID& commit_uuid() noexcept {return commit_uuid_;}
@@ -152,12 +170,16 @@ public:
         store_status_ = SWMRStoreStatus::CLEAN;
     }
 
-    bool match_magick() noexcept {
+    bool match_magick() const noexcept {
         return magick1_ == MAGICK1 && magick2_ == MAGICK2;
     }
 
-    bool match_profile_hash() noexcept {
+    bool match_profile_hash() const noexcept {
         return profile_hash_ == PROFILE_HASH;
+    }
+
+    bool match_version() const noexcept {
+        return version_ == VERSION;
     }
 
     void init(uint64_t superblock_file_pos, uint64_t file_size, const CommitID& commit_id, size_t superblock_size, SequenceID sequence_id = 1)
@@ -165,6 +187,7 @@ public:
         magick1_ = MAGICK1;
         magick2_ = MAGICK2;
         profile_hash_ = PROFILE_HASH;
+        version_ = VERSION;
 
         std::memset(magic_buffer_, 0, sizeof(magic_buffer_));
         std::memset(reserved_, 0, sizeof(reserved_));
@@ -176,18 +199,17 @@ public:
         file_size_           = file_size;
         superblock_size_     = superblock_size;
 
-        block_counters_file_pos_ = 0;
-        block_counters_size_ = 0;
+        global_block_counters_file_pos_ = 0;
+        global_block_counters_size_ = 0;
+        commit_block_counters_file_pos_ = 0;
+        commit_block_counters_size_ = 0;
 
         history_root_id_   = BlockID{};
         directory_root_id_ = BlockID{};
-        counters_root_id_  = BlockID{};
         allocator_root_id_ = BlockID{};
         blockmap_root_id_  = BlockID{};
 
         store_status_ = SWMRStoreStatus::UNCLEAN;
-
-        return allocator_.init(allocator_block_size(superblock_size), 1).get_or_throw();
     }
 
     void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, const CommitID& commit_id)
@@ -195,10 +217,10 @@ public:
         magick1_ = other.magick1_;
         magick2_ = other.magick2_;
         profile_hash_ = other.profile_hash_;
+        version_ = other.version_;
 
         history_root_id_   = other.history_root_id_;
         directory_root_id_ = other.directory_root_id_;
-        counters_root_id_  = other.counters_root_id_;
         allocator_root_id_ = other.allocator_root_id_;
         blockmap_root_id_  = other.blockmap_root_id_;
 
@@ -208,18 +230,19 @@ public:
         superblock_file_pos_ = superblock_file_pos;
         file_size_           = other.file_size_;
         superblock_size_     = other.superblock_size_;
-        block_counters_file_pos_ = other.block_counters_file_pos_;
-        block_counters_size_ = other.block_counters_size_;
+        global_block_counters_file_pos_ = other.global_block_counters_file_pos_;
+        global_block_counters_size_ = other.global_block_counters_size_;
         store_status_        = other.store_status_;
 
-        return allocator_.init(allocator_block_size(other.superblock_size_), 1).get_or_throw();
+        commit_block_counters_file_pos_ = 0;
+        commit_block_counters_size_ = 0;
     }
 
     void build_superblock_description()
     {
         return set_description(
             "MEMORIA SWMR MAPPED STORE. VERSION:{}; CommitID:{}, SequenceID:{}, SuperblockFilePos:{}, FileSize:{}",
-            0, commit_id_, sequence_id_, superblock_file_pos_, file_size_
+            version_, commit_id_, sequence_id_, superblock_file_pos_, file_size_
         );
     }
 
@@ -238,6 +261,14 @@ public:
         }
     }
 
+    auto get_counter(size_t idx) noexcept {
+        return CounterCodec<BlockID>::decode(counters_[idx]);
+    }
+
+    void set_counter(size_t idx, const BlockID& id, int32_t counter) noexcept {
+        counters_[idx] = CounterCodec<BlockID>::encode(id, counter);
+    }
+
 private:
     static int32_t allocator_block_size(size_t superblock_size) noexcept
     {
@@ -246,5 +277,155 @@ private:
         return superblock_size - (sb_size - alloc_size);
     }
 };
+
+
+
+
+template <typename Profile>
+class CountersBlock {
+    uint64_t block_size_;
+    uint64_t next_block_pos_;
+    uint64_t counters_size_;
+    uint64_t reserved_;
+
+    using BlockID = ProfileBlockID<Profile>;
+
+    BlockID counters_[1];
+
+public:
+    CountersBlock() noexcept = default;
+
+    uint64_t block_size() const noexcept {return block_size_;}
+    uint64_t next_block_pos() const noexcept {return next_block_pos_;}
+    uint64_t counters_size() const noexcept {return counters_size_;}
+
+    void set_next_block_pos(uint64_t pos) noexcept {
+        next_block_pos_ = pos;
+    }
+
+    void init(uint64_t block_size, uint64_t counters) {
+        block_size_ = block_size;
+        counters_size_ = counters;
+    }
+
+    auto get(size_t idx) noexcept {
+        return CounterCodec<BlockID>::decode(counters_[idx]);
+    }
+
+    void set(size_t idx, const BlockID& id, int32_t counter) noexcept {
+        counters_[idx] = CounterCodec<BlockID>::encode(id, counter);
+    }
+
+    static uint64_t estimate_block_size(uint64_t counters) noexcept {
+        return sizeof(CountersBlock) + sizeof(BlockID) * (counters - 1);
+    }
+
+    static uint64_t estimate_block_capacity(uint64_t block_size) noexcept {
+        uint64_t data_size = block_size - (sizeof(CountersBlock) - sizeof (BlockID));
+        return data_size / sizeof(BlockID);
+    }
+
+};
+
+
+template <>
+class CounterCodec<CowBlockID<UUID>> {
+    using BlockID = CowBlockID<UUID>;
+public:
+    CounterCodec() noexcept = default;
+
+    struct Counter {
+        BlockID block_id;
+        int32_t refs;
+    };
+
+    static Counter decode(BlockID id) noexcept {
+        int32_t cnt;
+
+        if (id.value().version() == 14) {
+            id.value().set_variant(15);
+            cnt = 1;
+        }
+        else if (id.value().version() == 13) {
+            id.value().set_variant(15);
+            cnt = -1;
+        }
+        else if (id.value().version() == 12) {
+            id.value().set_variant(4);
+            cnt = 1;
+        }
+        else {
+            id.value().set_variant(4);
+            cnt = -1;
+        }
+
+        return Counter{id, cnt};
+    }
+
+    static BlockID encode(BlockID id, int32_t counter) noexcept
+    {
+        if (counter == 1)
+        {
+            if (id.value().version() == 15) {
+                id.value().set_variant(14);
+            }
+            else {
+                id.value().set_variant(12);
+            }
+        }
+        else {
+            if (id.value().version() == 15) {
+                id.value().set_variant(13);
+            }
+            else {
+                id.value().set_variant(11);
+            }
+        }
+
+        return id;
+    }
+};
+
+
+template <>
+class CounterCodec<CowBlockID<uint64_t>> {
+    using BlockID = CowBlockID<uint64_t>;
+public:
+    CounterCodec() noexcept = default;
+
+    struct Counter {
+        BlockID block_id;
+        int32_t refs;
+    };
+
+    static Counter decode(BlockID id) noexcept {
+        int32_t cnt;
+
+        if (id.value() & 0x1ull) {
+            cnt = 1;
+        }
+        else {
+            cnt = -1;
+        }
+
+        id.value() >>= 2;
+
+        return Counter{id, cnt};
+    }
+
+    static BlockID encode(BlockID id, int32_t counter) noexcept
+    {
+        id.value() <<= 1;
+
+        if (counter == 1) {
+            id.value() |= 0x1ull;
+        }
+
+        return id;
+    }
+
+};
+
+
 
 }

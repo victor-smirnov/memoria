@@ -162,8 +162,8 @@ public:
 
     void read_block_counters()
     {
-        auto ctr_file_pos = head_ptr_->superblock()->block_counters_file_pos();
-        auto size = head_ptr_->superblock()->block_counters_size();
+        auto ctr_file_pos = head_ptr_->superblock()->global_block_counters_file_pos();
+        auto size = head_ptr_->superblock()->global_block_counters_size();
         const CounterStorageT* ctr_storage = ptr_cast<const CounterStorageT>(buffer_.data() + ctr_file_pos);
 
         for (uint64_t c = 0; c < size; c++)

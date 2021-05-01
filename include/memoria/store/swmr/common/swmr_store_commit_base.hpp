@@ -114,6 +114,8 @@ protected:
     static constexpr int32_t SUPERBLOCK_ALLOCATION_LEVEL = Log2(SUPERBLOCK_SIZE / BASIC_BLOCK_SIZE) - 1;
     static constexpr int32_t SUPERBLOCKS_RESERVED        = HEADER_SIZE / BASIC_BLOCK_SIZE;
 
+    static constexpr size_t MAX_BLOCK_SIZE               = (1ull << (ALLOCATION_MAP_LEVELS - 1)) * BASIC_BLOCK_SIZE;
+
     SharedPtr<Store> store_;
 
     CtrInstanceMap instance_map_;

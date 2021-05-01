@@ -80,8 +80,7 @@ protected:
     using Base::SUPERBLOCK_ALLOCATION_LEVEL;
     using Base::SUPERBLOCK_SIZE;
     using Base::SUPERBLOCKS_RESERVED;
-
-
+    using Base::MAX_BLOCK_SIZE;
 
     using CtrID = ProfileCtrID<Profile>;
     using CtrReferenceableResult = Result<CtrReferenceable<ApiProfile<Profile>>>;
@@ -92,6 +91,8 @@ protected:
     using BlockCleanupHandler = std::function<VoidResult ()>;
 
     using RemovingBlocksConsumerFn = typename Store::RemovingBlockConsumerFn;
+
+    using CountersBlockT      =  CountersBlock<Profile>;
 
     CtrSharedPtr<AllocationMapCtr> parent_allocation_map_ctr_;
 
@@ -109,6 +110,12 @@ protected:
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_;
 
     RemovingBlocksConsumerFn removing_blocks_consumer_fn_{};
+
+    struct Counter {
+        int32_t value;
+    };
+
+    std::unordered_map<BlockID, Counter> counters_;
 
 public:
     using Base::check;
@@ -128,7 +135,9 @@ public:
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept = 0;
     virtual uint64_t get_memory_size() = 0;
-    virtual Superblock* newSuperblock(uint64_t pos) = 0;    
+    virtual Superblock* newSuperblock(uint64_t pos) = 0;
+    virtual CountersBlockT* new_counters_block(uint64_t pos) = 0;
+
     virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) = 0;
     virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) = 0;
 
@@ -282,7 +291,7 @@ public:
         }
 
         uint64_t counters_file_pos = counters[0].position() * BASIC_BLOCK_SIZE;
-        superblock->block_counters_file_pos() = counters_file_pos;
+        superblock->global_block_counters_file_pos() = counters_file_pos;
 
         Base::superblock_ = superblock;
 
@@ -325,11 +334,6 @@ public:
 
     void finish_commit_opening()
     {
-        if (superblock_->counters_root_id().is_set())
-        {
-            ref_block(superblock_->counters_root_id());
-        }
-
         if (superblock_->history_root_id().is_set())
         {
             ref_block(superblock_->history_root_id());
@@ -372,11 +376,167 @@ public:
     }
 
 
-    void drain_deallocation_buffer(ArenaBuffer<AllocationMetadataT>& evicting_blocks) {
-        evicting_blocks.sort();
-        // Mark blocks as free
-        allocation_map_ctr_->setup_bits(evicting_blocks.span(), false);
-        evicting_blocks.clear();
+    Optional<AllocationMetadataT> allocate_largest_block(int32_t level)
+    {
+        while (level >= 0)
+        {
+            Optional<AllocationMetadataT> allocation = allocation_pool_.allocate_one(level);
+
+            if (!allocation) {
+                populate_allocation_pool(level, 1, allocation_prefetch_size(level));
+            }
+
+            Optional<AllocationMetadataT> allocation2 = allocation_pool_.allocate_one(level);
+
+            if (!allocation2) {
+                --level;
+            }
+            else {
+                return allocation2;
+            }
+        }
+
+        return {};
+    }
+
+    static constexpr uint64_t block_size_at(int32_t level) noexcept {
+        return (1ull << (level - 1)) * BASIC_BLOCK_SIZE;
+    }
+
+
+    int32_t compute_counters_block_allocation_level(uint64_t counters) noexcept
+    {
+        auto block_size = CountersBlockT::estimate_block_size(counters);
+
+        for (int32_t l = 0; l < ALLOCATION_MAP_LEVELS; l++)
+        {
+            uint64_t level_block_size = block_size_at(l);
+            if (block_size <= level_block_size) {
+                return l;
+            }
+        }
+
+        return ALLOCATION_MAP_LEVELS - 1;
+    }
+
+
+
+    AllocationMetadataT allocate_counters_block(uint64_t& counters)
+    {
+        int32_t level = compute_counters_block_allocation_level(counters);
+        Optional<AllocationMetadataT> allocation = allocate_largest_block(level);
+
+        if (!allocation) {
+            MEMORIA_MAKE_GENERIC_ERROR("Can't allocate a block for counters").do_throw();
+        }
+
+        uint64_t capacity = CountersBlockT::estimate_block_capacity(block_size_at(level));
+
+        if (capacity > counters) {
+            counters = 0;
+        }
+        else {
+            counters -= capacity;
+        }
+
+        return allocation.get();
+    }
+
+
+    void simulate_store_counters(ArenaBuffer<AllocationMetadataT>& counters_allocations)
+    {
+        uint64_t current_counters = counters_.size();
+
+        if (MMA_LIKELY(current_counters > 0))
+        {
+            uint64_t embedded_size;
+            if (current_counters > Superblock::EMBEDDED_COUNTERS_CAPACITY) {
+                embedded_size = Superblock::EMBEDDED_COUNTERS_CAPACITY;
+            }
+            else {
+                embedded_size = current_counters;
+            }
+
+            current_counters -= embedded_size;
+
+            for (AllocationMetadataT& alc: counters_allocations.span())
+            {
+                uint64_t block_size = block_size_at(alc.level());
+                uint64_t capacity = CountersBlockT::estimate_block_capacity(block_size);
+
+                if (capacity > current_counters) {
+                    return;
+                }
+                else {
+                    current_counters -= capacity;
+                }
+            }
+
+            while (current_counters > 0)
+            {
+                AllocationMetadataT alc = allocate_counters_block(current_counters);
+                counters_allocations.append_value(alc);
+            }
+        }
+    }
+
+
+    void store_counters(ArenaBuffer<AllocationMetadataT>& counters_allocations)
+    {
+        uint64_t current_counters = counters_.size();
+
+        if (MMA_LIKELY(current_counters > 0))
+        {
+            uint64_t embedded_size;
+            if (current_counters > Superblock::EMBEDDED_COUNTERS_CAPACITY) {
+                embedded_size = Superblock::EMBEDDED_COUNTERS_CAPACITY;
+            }
+            else {
+                embedded_size = current_counters;
+            }
+
+            auto ii = counters_.begin();
+
+            for (uint64_t c = 0; c < embedded_size; ++c, ++ii) {
+                superblock_->set_counter(c, ii->first, ii->second.value);
+            }
+
+            CountersBlockT* last_block{};
+
+            for (AllocationMetadataT& alc: counters_allocations.span())
+            {
+                uint64_t block_size = block_size_at(alc.level());
+                uint64_t capacity = CountersBlockT::estimate_block_capacity(block_size);
+                CountersBlockT* block = new_counters_block(alc.position() * BASIC_BLOCK_SIZE);
+
+                uint64_t c{};
+                for (; c < capacity && ii != counters_.end(); c++, ++ii) {
+                    block->set(c, ii->first, ii->second.value);
+                }
+
+                block->init(block_size, c);
+
+                uint64_t file_pos = alc.position() * BASIC_BLOCK_SIZE;
+
+                if (last_block) {
+                    last_block->set_next_block_pos(file_pos);
+                }
+                else {
+                    superblock_->commit_block_counters_file_pos() = file_pos;
+                }
+
+                if (c < capacity) {
+                    last_block = block;
+                }
+                else {
+                    break;
+                }
+            }
+
+            if (ii != counters_.end()) {
+                MEMORIA_MAKE_GENERIC_ERROR("Now all counters was stored in the commit metadata.").do_throw();
+            }
+        }
     }
 
 
@@ -402,33 +562,6 @@ public:
                 history_ctr_->assign_key(superblock_->commit_id(), commit_data);
             }
 
-            ArenaBuffer<AllocationMetadataT> all_postponed_deallocations;
-
-            while (awaiting_allocations_.size() > 0 || postponed_deallocations_.size() > 0)
-            {
-                flush_awaiting_allocations();
-
-                if (postponed_deallocations_.size() > 0)
-                {
-                    ArenaBuffer<AllocationMetadataT> postponed_deallocations;
-                    postponed_deallocations.append_values(postponed_deallocations_.span());
-                    all_postponed_deallocations.append_values(postponed_deallocations_.span());
-                    postponed_deallocations.sort();
-                    postponed_deallocations_.clear();
-
-                    // Just CoW allocation map's leafs that bits will be cleared later
-                    allocation_map_ctr_->touch_bits(postponed_deallocations.span());
-                }
-            }
-
-            if (all_postponed_deallocations.size() > 0)
-            {
-                all_postponed_deallocations.sort();
-                // Mark blocks as free
-                allocation_map_ctr_->setup_bits(all_postponed_deallocations.span(), false);
-            }
-
-
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
             store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
                 auto snp = store_->do_open_writable(commit_descriptor, [&](const BlockID&, uint64_t block_file_pos, int32_t block_size){
@@ -437,18 +570,62 @@ public:
                         block_size / BASIC_BLOCK_SIZE,
                         0
                     ));
-
-                    if (evicting_blocks.size() > 10000) {
-                        drain_deallocation_buffer(evicting_blocks);
-                    }
                 });
 
                 snp->remove_all_blocks();
             });
 
-            if (evicting_blocks.size()) {
-                drain_deallocation_buffer(evicting_blocks);
+            if (evicting_blocks.size() > 0) {
+                evicting_blocks.sort();
+                allocation_map_ctr_->touch_bits(evicting_blocks.span());
             }
+
+            uint64_t counters_num;
+            ArenaBuffer<AllocationMetadataT> counters_allocations;
+
+            do {
+                counters_num = counters_.size();
+                simulate_store_counters(counters_allocations);
+
+                ArenaBuffer<AllocationMetadataT> all_postponed_deallocations;
+                while (awaiting_allocations_.size() > 0 || postponed_deallocations_.size() > 0)
+                {
+                    flush_awaiting_allocations();
+
+                    if (postponed_deallocations_.size() > 0)
+                    {
+                        ArenaBuffer<AllocationMetadataT> postponed_deallocations;
+                        postponed_deallocations.append_values(postponed_deallocations_.span());
+                        all_postponed_deallocations.append_values(postponed_deallocations_.span());
+                        postponed_deallocations_.clear();
+
+                        // Just CoW allocation map's leafs that bits will be cleared later
+                        postponed_deallocations.sort();
+                        allocation_map_ctr_->touch_bits(postponed_deallocations.span());
+                    }
+                }
+
+
+                if (all_postponed_deallocations.size() > 0)
+                {
+                    all_postponed_deallocations.sort();
+                    // Mark blocks as free
+                    allocation_map_ctr_->setup_bits(all_postponed_deallocations.span(), false);
+                }
+            }
+            while (counters_num != counters_.size());
+
+            if (evicting_blocks.size()) {
+                allocation_map_ctr_->setup_bits(evicting_blocks.span(), false);
+            }
+
+            if (counters_allocations.size() > 0)
+            {
+                counters_allocations.sort();
+                allocation_map_ctr_->setup_bits(counters_allocations.span(), true);
+            }
+
+            store_counters(counters_allocations);
 
             if (flush) {
                 store_->flush_data();
@@ -859,16 +1036,47 @@ public:
         return commit();
     }
 
-    virtual void ref_block(const BlockID& block_id) {
+    virtual void ref_block(const BlockID& block_id)
+    {
+        auto ii = counters_.find(block_id);
+        if (ii != counters_.end()) {
+            if (ii->second.value > 0) {
+                int a = 0; a++;
+            }
+
+            ii->second.value++;
+        }
+        else {
+            counters_[block_id] = Counter{1};
+        }
+
         return refcounter_delegate_->ref_block(block_id);
     }
 
-    virtual void unref_block(const BlockID& block_id, BlockCleanupHandler on_zero) {
+    void unref_counter(const BlockID& block_id) {
+        auto ii = counters_.find(block_id);
+        if (ii != counters_.end()) {
+            ii->second.value--;
+            if (ii->second.value == 0) {
+                counters_.erase(ii);
+            }
+        }
+        else {
+            counters_[block_id] = Counter{-1};
+        }
+    }
+
+    virtual void unref_block(const BlockID& block_id, BlockCleanupHandler on_zero)
+    {
+        unref_counter(block_id);
+
         return refcounter_delegate_->unref_block(block_id, on_zero);
     }
 
     virtual void unref_ctr_root(const BlockID& root_block_id)
     {
+        unref_counter(root_block_id);
+
         return unref_block(root_block_id, [=]() {
             auto block = this->getBlock(root_block_id);
 
@@ -1005,7 +1213,6 @@ public:
 
         BlockType* block = shared->get();
         block->snapshot_id() = superblock_->commit_uuid();
-
 
         return shared;
     }

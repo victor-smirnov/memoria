@@ -66,6 +66,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
     using typename Base::HistoryCtr;
     using typename Base::HistoryCtrType;
     using typename Base::CounterStorageT;
+    using typename Base::CountersBlockT;
 
     using typename Base::DirectoryCtrType;
     using typename Base::Shared;
@@ -286,6 +287,13 @@ public:
             cache_entry_pool_.destroy(entry);
         });
     }
+
+
+    virtual CountersBlockT* new_counters_block(uint64_t pos) override {
+        uint8_t* block_addr = buffer_.data() + pos;
+        return  new (block_addr) CountersBlockT();
+    }
+
 };
 
 }

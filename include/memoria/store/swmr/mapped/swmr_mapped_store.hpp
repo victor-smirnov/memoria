@@ -147,7 +147,7 @@ public:
         {
             LockGuard lock(writer_mutex_);
 
-            auto ctr_file_pos = head_ptr_->superblock()->block_counters_file_pos();
+            auto ctr_file_pos = head_ptr_->superblock()->global_block_counters_file_pos();
             CounterStorageT* ctr_storage = ptr_cast<CounterStorageT>(buffer_.data() + ctr_file_pos);
 
             size_t idx{};
@@ -161,7 +161,7 @@ public:
 
             flush_data();
 
-            head_ptr_->superblock()->block_counters_size() = block_counters_.size();
+            head_ptr_->superblock()->global_block_counters_size() = block_counters_.size();
 
             block_counters_.clear();
 

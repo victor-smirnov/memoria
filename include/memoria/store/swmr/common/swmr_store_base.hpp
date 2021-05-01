@@ -71,6 +71,8 @@ protected:
     static constexpr int32_t ALLOCATION_MAP_SIZE_STEP = ICtrApi<AllocationMap, ApiProfileT>::ALLOCATION_SIZE * BASIC_BLOCK_SIZE;
     static constexpr size_t  MB = 1024*1024;
 
+    static_assert(sizeof(SWMRSuperblock<Profile>) <= 4096, "Check superblock size!");
+
     mutable std::recursive_mutex reader_mutex_;
     mutable std::recursive_mutex writer_mutex_;
 
@@ -113,8 +115,11 @@ public:
         );
 
         for (auto commit: persistent_commits_) {
-            delete commit.second;
+            if (commit.second != head_ptr_ && commit.second != former_head_ptr_) {
+                delete commit.second;
+            }
         }
+
     }
 
 
