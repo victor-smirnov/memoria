@@ -126,8 +126,6 @@ public:
     template <typename CtrName>
     using CtrT = ICtrApi<CtrName, Profile>;
 
-    //using BlockType = ProfileBlockType<Profile>;
-
     virtual const SnapshotID& uuid() const noexcept = 0;
 
     virtual void set_as_master() = 0;
@@ -230,15 +228,18 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find_or_create(
 SharedPtr<IMemoryStore<CoreApiProfile<>>> create_memory_store();
 SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store(U8String path);
 SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store(InputStreamHandler* input_stream);
+bool is_memory_store(U8String path);
 
 SharedPtr<IMemoryStore<CoreApiProfile<>>> create_memory_store_cowlite();
 SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store_cowlite(U8String path);
 SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store_cowlite(InputStreamHandler* input_stream);
+bool is_memory_store_cowlite(U8String path);
 
 
 SharedPtr<IMemoryStore<CoreApiProfile<>>> create_memory_store_noncow();
 SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store_noncow(U8String path);
 SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store_noncow(InputStreamHandler* input_stream);
+bool is_memory_store_noncow(U8String path);
 
 }
 

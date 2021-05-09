@@ -113,7 +113,7 @@ public:
 
             flush_data();
 
-            head_ptr_->superblock()->global_block_counters_size() = block_counters_.size();
+            head_ptr_->superblock()->set_global_block_counters_size(block_counters_.size());
 
             block_counters_.clear();
 
@@ -212,6 +212,17 @@ public:
 
     virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept override {
         return this->shared_from_this();
+    }
+
+    static bool is_my_block(Span<uint8_t> block) noexcept {
+        if (block.size() > BASIC_BLOCK_SIZE * 2) {
+            return Base::is_my_block(block.data());
+        }
+        return false;
+    }
+
+    virtual U8String describe() const override {
+        return format_u8("SWMRLiteRawStore<{}>", TypeNameFactory<Profile>::name());
     }
 };
 

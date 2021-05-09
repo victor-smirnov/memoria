@@ -82,4 +82,8 @@ SharedPtr<ILMDBStore<ApiProfileT>> create_lmdb_store(U8StringView path, uint64_t
     return ptr;
 }
 
+bool is_lmdb_store(U8StringView path) {
+    return LMDBStore<Profile>::is_my_file(path);
+}
+
 }

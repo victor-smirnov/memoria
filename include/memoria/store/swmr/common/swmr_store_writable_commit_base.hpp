@@ -111,12 +111,6 @@ protected:
 
     RemovingBlocksConsumerFn removing_blocks_consumer_fn_{};
 
-    struct Counter {
-        int32_t value;
-    };
-
-    std::unordered_map<BlockID, Counter> counters_;
-
 public:
     using Base::check;
     using Base::resolve_block;
@@ -291,7 +285,7 @@ public:
         }
 
         uint64_t counters_file_pos = counters[0].position() * BASIC_BLOCK_SIZE;
-        superblock->global_block_counters_file_pos() = counters_file_pos;
+        superblock->set_global_block_counters_file_pos(counters_file_pos);
 
         Base::superblock_ = superblock;
 
@@ -443,102 +437,6 @@ public:
     }
 
 
-    void simulate_store_counters(ArenaBuffer<AllocationMetadataT>& counters_allocations)
-    {
-        uint64_t current_counters = counters_.size();
-
-        if (MMA_LIKELY(current_counters > 0))
-        {
-            uint64_t embedded_size;
-            if (current_counters > Superblock::EMBEDDED_COUNTERS_CAPACITY) {
-                embedded_size = Superblock::EMBEDDED_COUNTERS_CAPACITY;
-            }
-            else {
-                embedded_size = current_counters;
-            }
-
-            current_counters -= embedded_size;
-
-            for (AllocationMetadataT& alc: counters_allocations.span())
-            {
-                uint64_t block_size = block_size_at(alc.level());
-                uint64_t capacity = CountersBlockT::estimate_block_capacity(block_size);
-
-                if (capacity > current_counters) {
-                    return;
-                }
-                else {
-                    current_counters -= capacity;
-                }
-            }
-
-            while (current_counters > 0)
-            {
-                AllocationMetadataT alc = allocate_counters_block(current_counters);
-                counters_allocations.append_value(alc);
-            }
-        }
-    }
-
-
-    void store_counters(ArenaBuffer<AllocationMetadataT>& counters_allocations)
-    {
-        uint64_t current_counters = counters_.size();
-
-        if (MMA_LIKELY(current_counters > 0))
-        {
-            uint64_t embedded_size;
-            if (current_counters > Superblock::EMBEDDED_COUNTERS_CAPACITY) {
-                embedded_size = Superblock::EMBEDDED_COUNTERS_CAPACITY;
-            }
-            else {
-                embedded_size = current_counters;
-            }
-
-            auto ii = counters_.begin();
-
-            for (uint64_t c = 0; c < embedded_size; ++c, ++ii) {
-                superblock_->set_counter(c, ii->first, ii->second.value);
-            }
-
-            CountersBlockT* last_block{};
-
-            for (AllocationMetadataT& alc: counters_allocations.span())
-            {
-                uint64_t block_size = block_size_at(alc.level());
-                uint64_t capacity = CountersBlockT::estimate_block_capacity(block_size);
-                CountersBlockT* block = new_counters_block(alc.position() * BASIC_BLOCK_SIZE);
-
-                uint64_t c{};
-                for (; c < capacity && ii != counters_.end(); c++, ++ii) {
-                    block->set(c, ii->first, ii->second.value);
-                }
-
-                block->init(block_size, c);
-
-                uint64_t file_pos = alc.position() * BASIC_BLOCK_SIZE;
-
-                if (last_block) {
-                    last_block->set_next_block_pos(file_pos);
-                }
-                else {
-                    superblock_->commit_block_counters_file_pos() = file_pos;
-                }
-
-                if (c < capacity) {
-                    last_block = block;
-                }
-                else {
-                    break;
-                }
-            }
-
-            if (ii != counters_.end()) {
-                MEMORIA_MAKE_GENERIC_ERROR("Now all counters was stored in the commit metadata.").do_throw();
-            }
-        }
-    }
-
 
     virtual void commit(bool flush = true)
     {
@@ -580,13 +478,7 @@ public:
                 allocation_map_ctr_->touch_bits(evicting_blocks.span());
             }
 
-            uint64_t counters_num;
-            ArenaBuffer<AllocationMetadataT> counters_allocations;
-
             do {
-                counters_num = counters_.size();
-                simulate_store_counters(counters_allocations);
-
                 ArenaBuffer<AllocationMetadataT> all_postponed_deallocations;
                 while (awaiting_allocations_.size() > 0 || postponed_deallocations_.size() > 0)
                 {
@@ -613,19 +505,11 @@ public:
                     allocation_map_ctr_->setup_bits(all_postponed_deallocations.span(), false);
                 }
             }
-            while (counters_num != counters_.size());
+            while (false);
 
             if (evicting_blocks.size()) {
                 allocation_map_ctr_->setup_bits(evicting_blocks.span(), false);
             }
-
-            if (counters_allocations.size() > 0)
-            {
-                counters_allocations.sort();
-                allocation_map_ctr_->setup_bits(counters_allocations.span(), true);
-            }
-
-            store_counters(counters_allocations);
 
             if (flush) {
                 store_->flush_data();
@@ -694,7 +578,7 @@ public:
             return ctr_intf->clone_ctr(ctr_name, new_ctr_name, self_ptr());
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {} ", ctr_name, superblock_->commit_uuid()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {} ", ctr_name, superblock_->commit_id()).do_throw();
         }
     }
 
@@ -1038,44 +922,20 @@ public:
 
     virtual void ref_block(const BlockID& block_id)
     {
-        auto ii = counters_.find(block_id);
-        if (ii != counters_.end()) {
-            if (ii->second.value > 0) {
-                int a = 0; a++;
-            }
-
-            ii->second.value++;
-        }
-        else {
-            counters_[block_id] = Counter{1};
-        }
+        std::cout << "refBlock " << block_id << std::endl;
 
         return refcounter_delegate_->ref_block(block_id);
     }
 
-    void unref_counter(const BlockID& block_id) {
-        auto ii = counters_.find(block_id);
-        if (ii != counters_.end()) {
-            ii->second.value--;
-            if (ii->second.value == 0) {
-                counters_.erase(ii);
-            }
-        }
-        else {
-            counters_[block_id] = Counter{-1};
-        }
-    }
-
-    virtual void unref_block(const BlockID& block_id, BlockCleanupHandler on_zero)
-    {
-        unref_counter(block_id);
+    virtual void unref_block(const BlockID& block_id, BlockCleanupHandler on_zero) {
+        std::cout << "UnrefBlock " << block_id << std::endl;
 
         return refcounter_delegate_->unref_block(block_id, on_zero);
     }
 
     virtual void unref_ctr_root(const BlockID& root_block_id)
     {
-        unref_counter(root_block_id);
+        std::cout << "UnrefCtrRoot " << root_block_id << std::endl;
 
         return unref_block(root_block_id, [=]() {
             auto block = this->getBlock(root_block_id);
@@ -1177,7 +1037,7 @@ public:
 
         BlockType* new_block = shared->get();
 
-        new_block->snapshot_id() = superblock_->commit_uuid();
+        new_block->snapshot_id() = superblock_->commit_id();
         new_block->set_references(0);
 
         return SharedBlockPtr{shared};
@@ -1212,7 +1072,7 @@ public:
         auto shared = allocate_block(position, initial_size, ctr_id == BlockMapCtrID);
 
         BlockType* block = shared->get();
-        block->snapshot_id() = superblock_->commit_uuid();
+        block->snapshot_id() = superblock_->commit_id();
 
         return shared;
     }

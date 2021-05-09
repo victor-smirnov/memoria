@@ -86,7 +86,7 @@ public:
             auto err = strerror(errno);
             close(handle_);
             handle_ = -1;
-            make_generic_error("Can't UNLOCK an SWMRStore file: {}, reason: {}", name_, err).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Can't UNLOCK an SWMRStore file: {}, reason: {}", name_, err).do_throw();
         }
 
         close(handle_);
@@ -112,7 +112,7 @@ ResultT detail::FileLockHandler::lock_file(const char* name, bool create_file) n
             handle = open64(name, O_RDWR);
         }
         if (handle < 0) {
-            return make_generic_error("Cant open file {} for locking", name);
+            return MEMORIA_MAKE_GENERIC_ERROR("Cant open file {} for locking", name);
         }
 
         if (locks.try_lock_for(handle)) {
@@ -121,13 +121,13 @@ ResultT detail::FileLockHandler::lock_file(const char* name, bool create_file) n
             if (res == 0) {
                 return ResultT::of(std::make_unique<PosixFileLockImpl>(name, handle, locks));
             }
-            else if (res == EWOULDBLOCK) {
+            else if (errno == EWOULDBLOCK) {
                 close(handle);
                 return ResultT::of();
             }
             else {
                 close(handle);
-                return make_generic_error("Can't LOCK an SWMRStore file: {}, reason: {}", name, strerror(errno));
+                return MEMORIA_MAKE_GENERIC_ERROR("Can't LOCK an SWMRStore file: {}, reason: {}", name, strerror(errno));
             }
         }
         else {

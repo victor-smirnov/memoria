@@ -100,14 +100,6 @@ public:
         buffer_(buffer)
     {}
 
-
-    virtual ~MappedSWMRStoreWritableCommit() noexcept {
-        if (!committed_) {
-            store_->unlock_writer();
-            delete Base::commit_descriptor_;
-        }
-    }
-
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept override {
         return this->shared_from_this();
     }
@@ -136,7 +128,6 @@ public:
     virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) override
     {
         BlockID id{at};
-
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
         std::memset(block_addr, 0, size);
@@ -151,7 +142,8 @@ public:
         return shared;
     }
 
-    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) override {
+    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) override
+    {
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
         std::memcpy(block_addr, source, source->memory_block_size());

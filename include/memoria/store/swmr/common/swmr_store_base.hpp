@@ -94,6 +94,8 @@ protected:
     SWMRWritableCommitWeakPtr current_writer_;
     SWMRBlockCounters<Profile> block_counters_;
 
+    bool read_only_{false};
+
 public:
     SWMRStoreBase() noexcept {}
 
@@ -142,10 +144,49 @@ public:
     virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) = 0;
 
 
-    virtual std::vector<CommitID> persistent_commits() override
+    virtual std::vector<CommitID> commits(bool persistent_only) override
     {
         check_if_open();
 
+        if (persistent_only) {
+            return persistent_commits();
+        }
+        else {
+            LockGuard lock(writer_mutex_);
+
+            std::vector<CommitDescriptorT*> commit_descrs;
+
+            for (auto& pp: persistent_commits_) {
+                if (pp.second != former_head_ptr_ && pp.second != head_ptr_) {
+                    commit_descrs.push_back(pp.second);
+                }
+            }
+
+            for (auto& descr: eviction_queue_) {
+                commit_descrs.push_back(&descr);
+            }
+
+            if (former_head_ptr_) {
+                commit_descrs.push_back(former_head_ptr_);
+            }
+
+            commit_descrs.push_back(head_ptr_);
+
+            std::sort(commit_descrs.begin(), commit_descrs.end(), [](const CommitDescriptorT* d1, const CommitDescriptorT* d2){
+                return d1->sequence_id() < d2->sequence_id();
+            });
+
+            std::vector<CommitID> commits;
+            for (const auto& descr: commit_descrs) {
+                commits.push_back(descr->commit_id());
+            }
+
+            return std::move(commits);
+        }
+    }
+
+    std::vector<CommitID> persistent_commits()
+    {
         LockGuard lock(reader_mutex_);
         std::vector<CommitID> commits;
 
@@ -156,12 +197,46 @@ public:
         return std::move(commits);
     }
 
-    virtual ReadOnlyCommitPtr open(const CommitID& commit_id) override
+
+    virtual ReadOnlyCommitPtr open(const CommitID& commit_id, bool persistent_only) override
     {
         check_if_open();
+        if (persistent_only) {
+            return open_persistent(commit_id);
+        }
+        else {
+            LockGuard lock(writer_mutex_);
+
+            if (MMA_UNLIKELY(head_ptr_->commit_id() == commit_id)) {
+                return open();
+            }
+            else if (MMA_UNLIKELY(former_head_ptr_->commit_id() == commit_id)) {
+                return open_readonly(former_head_ptr_);
+            }
+
+            auto ii = persistent_commits_.find(commit_id);
+            if (ii != persistent_commits_.end())
+            {
+                return do_open_readonly(ii->second);
+            }
+            else {
+                for (CommitDescriptorT& descr: eviction_queue_) {
+                    if (descr.commit_id() == commit_id)
+                    {
+                        return do_open_readonly(&descr);
+                    }
+                }
+
+                make_generic_error_with_source(MA_SRC, "Can't find commit {}", commit_id).do_throw();
+            }
+        }
+    }
+
+    ReadOnlyCommitPtr open_persistent(const CommitID& commit_id)
+    {
         LockGuard lock(reader_mutex_);
 
-        if (MMA_UNLIKELY(head_ptr_->superblock()->commit_id() == commit_id)) {
+        if (MMA_UNLIKELY(head_ptr_->commit_id() == commit_id)) {
             return open();
         }
         else if (MMA_UNLIKELY(former_head_ptr_->superblock()->commit_id() == commit_id)) {
@@ -178,6 +253,8 @@ public:
         }
     }
 
+
+
     virtual ReadOnlyCommitPtr open() override
     {
         check_if_open();
@@ -186,17 +263,22 @@ public:
         return do_open_readonly(head_ptr_);
     }
 
-    virtual bool drop_persistent_commit(const CommitID& commit_id) override {
+    virtual bool drop_commit(const CommitID& commit_id) override {
         check_if_open();
+        if (read_only_) {
+            MEMORIA_MAKE_GENERIC_ERROR("The store is in the read-only mode").do_throw();
+        }
+
         return false;
     }
 
     virtual bool can_rollback_last_commit() noexcept override {
-        return former_head_ptr_ != nullptr;
+        return (!read_only_) && former_head_ptr_ != nullptr;
     }
 
     virtual void rollback_last_commit() override
     {
+        throw_if_read_only();
         LockGuard lock(writer_mutex_);
 
         check_if_open();
@@ -226,6 +308,8 @@ public:
     virtual WritableCommitPtr begin() override
     {
         check_if_open();
+        throw_if_read_only();
+
         writer_mutex_.lock();
 
         try {
@@ -266,6 +350,8 @@ public:
             auto commit_id = commit_descriptor->superblock()->commit_id();
             this->persistent_commits_[commit_id] = commit_descriptor;
         }
+
+        current_writer_.reset();
 
         writer_mutex_.unlock();
     }
@@ -309,11 +395,15 @@ public:
             }
         }
 
-        for (auto pair: persistent_commits_) {
-            auto ptr = do_open_readonly(pair.second);
+        for (auto pair: persistent_commits_)
+        {
+            if (pair.second->commit_id() != former_head_ptr_->commit_id() && pair.second->commit_id() != head_ptr_->commit_id())
+            {
+                auto ptr = do_open_readonly(pair.second);
 
-            if ((!from) || (from && from.get() < ptr->sequence_id())) {
-                commits.push_back(ptr);
+                if ((!from) || (from && from.get() < ptr->sequence_id())) {
+                    commits.push_back(ptr);
+                }
             }
         }
 
@@ -407,7 +497,7 @@ public:
             else {
                 LDDocument doc;
                 doc.set_varchar(fmt::format(
-                            "Expected counter for the block ID {} is not found in the store.",
+                            "Actual counter for the block ID {} is not found in the store's block_counters structure.",
                             block_id
                             ));
 
@@ -445,6 +535,34 @@ public:
                 delete commit_descr;
             }
         );
+    }
+
+    static bool is_my_block(const uint8_t* mem_block) noexcept {
+        const Superblock* sb0 = ptr_cast<Superblock>(mem_block);
+        return sb0->match_magick() && sb0->match_profile_hash();
+    }
+
+    void throw_if_read_only() {
+        if (read_only_) {
+            MEMORIA_MAKE_GENERIC_ERROR("The store is in the read-only mode").do_throw();
+        }
+    }
+
+    virtual uint64_t count_refs(const ApiProfileBlockID<ApiProfile<Profile>>& block_id) override
+    {
+        LockGuard lock(writer_mutex_);
+
+        BlockID id;
+        block_id_holder_to(block_id, id);
+
+        auto val = block_counters_.get(id);
+
+        if (val) {
+            return val.get();
+        }
+        else {
+            return 0;
+        }
     }
 };
 

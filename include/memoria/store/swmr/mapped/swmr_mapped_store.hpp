@@ -38,6 +38,8 @@
 
 namespace memoria {
 
+struct CreateMappedStore{};
+
 template <typename Profile>
 class MappedSWMRStore: public MappedSWMRStoreBase<Profile>, public EnableSharedFromThis<MappedSWMRStore<Profile>> {
 
@@ -69,6 +71,7 @@ protected:
     using Base::writer_mutex_;
     using Base::head_ptr_;
     using Base::former_head_ptr_;
+    using Base::read_only_;
 
     using Base::HEADER_SIZE;
     using Base::BASIC_BLOCK_SIZE;
@@ -88,9 +91,9 @@ protected:
     std::unique_ptr<detail::FileLockHandler> lock_;
 
 public:
-    MappedSWMRStore(MaybeError& maybe_error, U8String file_name, uint64_t file_size_mb):
+    MappedSWMRStore(MaybeError& maybe_error, U8String file_name, const SWMRParams& params, CreateMappedStore):
         file_name_(file_name),
-        file_size_(compute_file_size(file_size_mb))
+        file_size_(compute_file_size(params.file_size().get()))
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             if (filesystem::exists(file_name.to_std_string())) {                
@@ -108,13 +111,17 @@ public:
         });
     }
 
-    MappedSWMRStore(MaybeError& maybe_error, U8String file_name):
+    MappedSWMRStore(MaybeError& maybe_error, U8String file_name, const SWMRParams& params):
         file_name_(file_name)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             acquire_lock(file_name.data(), false);
 
-            file_       = std::make_unique<boost::interprocess::file_mapping>(file_name_.data(), boost::interprocess::read_write);
+            auto mapping_params = params.is_read_only() ? boost::interprocess::read_only : boost::interprocess::read_write;
+
+            read_only_ = params.is_read_only();
+
+            file_       = std::make_unique<boost::interprocess::file_mapping>(file_name_.data(), mapping_params);
             file_size_  = memoria::filesystem::file_size(file_name_);
             check_file_size();
 
@@ -143,11 +150,13 @@ public:
 
     virtual void close() override
     {
-        if (file_ && head_ptr_)
+        if (file_ && head_ptr_ && !read_only_)
         {
             LockGuard lock(writer_mutex_);
 
-            auto ctr_file_pos = head_ptr_->superblock()->global_block_counters_file_pos();
+            Superblock* sb0 = ptr_cast<Superblock>(buffer_.data());
+
+            auto ctr_file_pos = sb0->global_block_counters_file_pos();
             CounterStorageT* ctr_storage = ptr_cast<CounterStorageT>(buffer_.data() + ctr_file_pos);
 
             size_t idx{};
@@ -155,13 +164,15 @@ public:
                 ctr_storage[idx].block_id = block_id;
                 ctr_storage[idx].counter  = counter;
                 ++idx;
-            });
 
-            std::cout << "Written " << idx << " counters" << std::endl;
+                std::cout << "Storing counter: " << block_id << " :: " << counter << std::endl;
+            });
 
             flush_data();
 
-            head_ptr_->superblock()->global_block_counters_size() = block_counters_.size();
+            sb0->set_global_block_counters_size(block_counters_.size());
+            sb0->set_clean_status();
+            sb0->build_superblock_description();
 
             block_counters_.clear();
 
@@ -193,15 +204,37 @@ public:
         }
     }
 
-//    SharedPtr<ISWMRStoreHistoryView<ApiProfileT>> history_view() override
-//    {
-//        auto head = do_open_readonly(head_ptr_);
-//        return MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head);
-//    }
-
     void do_open_file()
     {
         return this->do_open_buffer();
+    }
+
+    static bool is_my_file(U8String file_name)
+    {
+        auto name = file_name.to_std_string();
+
+        if (filesystem::exists(name)){
+            if (filesystem::file_size(name) > BASIC_BLOCK_SIZE * 2)
+            {
+                auto memblock = allocate_system<uint8_t>(BASIC_BLOCK_SIZE);
+
+                int fd = ::open(name.c_str(), O_RDONLY);
+                int rr = ::read(fd, memblock.get(), BASIC_BLOCK_SIZE);
+                ::close(fd);
+
+                if (rr < BASIC_BLOCK_SIZE) {
+                    return false;
+                }
+
+                return Base::is_my_block(memblock.get());
+            }
+        }
+
+        return false;
+    }
+
+    virtual U8String describe() const override {
+        return format_u8("MappedSWMRStore<{}>", TypeNameFactory<Profile>::name());
     }
 
 private:

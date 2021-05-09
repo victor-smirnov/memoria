@@ -62,4 +62,8 @@ SharedPtr<ISWMRStore<ApiProfileT>> create_lite_raw_swmr_store(Span<uint8_t> buff
     return ptr;
 }
 
+bool is_lite_raw_swmr_store(Span<uint8_t> buffer) {
+    return SWMRLiteRawStore<Profile>::is_my_block(buffer);
+}
+
 }

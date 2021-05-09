@@ -254,7 +254,7 @@ public:
     }
 
     virtual SnapshotID currentTxnId() const noexcept {
-        return superblock_->commit_uuid();
+        return superblock_->commit_id();
     }
 
     // memory pool allocator
@@ -388,12 +388,12 @@ public:
         if (allocator_descr != nullptr)
         {
             walker->beginSnapshot(
-                        fmt::format("Snapshot-{} -- {}", superblock_->commit_uuid(), allocator_descr).data()
+                        fmt::format("Snapshot-{} -- {}", superblock_->commit_id(), allocator_descr).data()
             );
         }
         else {
             walker->beginSnapshot(
-                        fmt::format("Snapshot-{}", superblock_->commit_uuid()).data()
+                        fmt::format("Snapshot-{}", superblock_->commit_id()).data()
             );
         }
 
@@ -561,9 +561,12 @@ public:
 
     virtual void build_block_refcounters(SWMRBlockCounters<Profile>& counters)
     {
+        std::cout << "Building refcounters for: " << this->commit_id() << " :: " << this->sequence_id() << std::endl;
+
         auto counters_fn = [&](const ApiProfileBlockID<ApiProfileT>& block_id_holder) {
             BlockID block_id;
             block_id_holder_to(block_id_holder, block_id);
+            std::cout << "\tInc " << block_id << std::endl;
             return counters.inc(block_id);
         };
 

@@ -75,13 +75,25 @@ RootTreeItem::RootTreeItem(QVector<QVariant> data):
 
 
 
-void RootTreeItem::add_inmem_allocator(IMemoryStorePtr<> allocator, QString label)
+void RootTreeItem::add_inmem_store(IMemoryStorePtr<> store, QString label)
 {
-    AbstractTreeItem* item = new InMemAllocatorTreeItem(allocator, label, this);
+    AbstractTreeItem* item = new MemStoreTreeItem(store, label, this);
     this->children_.append(item);
 }
 
-void RootTreeItem::remove_inmem_allocator(AbstractTreeItem* item)
+void RootTreeItem::add_swmr_store(SWMRStorePtr store, QString label)
+{
+    AbstractTreeItem* item = new SWMRStoreTreeItem(store, label, this);
+    this->children_.append(item);
+}
+
+void RootTreeItem::add_lmdb_store(LMDBStorePtr store, QString label)
+{
+    AbstractTreeItem* item = new LMDBStoreTreeItem(store, label, this);
+    this->children_.append(item);
+}
+
+void RootTreeItem::remove_store(AbstractTreeItem* item)
 {
     this->children_.removeAll(item);
 }
@@ -93,39 +105,81 @@ void RootTreeItem::remove_inmem_allocator(AbstractTreeItem* item)
 
 
 
-QVariant InMemAllocatorTreeItem::data(int column) {
+QVariant MemStoreTreeItem::data(int column) {
     return column == 0 ? node_type() : column == 1 ? label_ : QVariant();
 }
 
-void InMemAllocatorTreeItem::expand()
+void MemStoreTreeItem::expand()
 {
     if (!expanded_)
     {
-        children_.append(new SnapshotTreeItem(allocator_, allocator_->root_shaphot_id(), this));
+        children_.append(new MemStoreSnapshotTreeItem(allocator_, allocator_->root_shaphot_id(), this, this));
+        expanded_ = true;
+    }
+}
+
+QVariant SWMRStoreTreeItem::data(int column) {
+    return column == 0 ? node_type() : column == 1 ? label_ : QVariant();
+}
+
+
+void SWMRStoreTreeItem::expand()
+{
+    if (!expanded_)
+    {
+        auto commits = store_->commits(false);
+
+        for (const auto& commit_id: commits) {
+            children_.append(new SWMRStoreSnapshotTreeItem(store_, commit_id, this, this));
+        }
+
+        expanded_ = true;
+    }
+}
+
+QString SWMRStoreTreeItem::get_block_counter(const StoreBlockID& block_id) {
+    return "(" + QString::fromStdString(std::to_string(store_->count_refs(block_id))) + ")";
+}
+
+QVariant LMDBStoreTreeItem::data(int column) {
+    return column == 0 ? node_type() : column == 1 ? label_ : QVariant();
+}
+
+void LMDBStoreTreeItem::expand()
+{
+    if (!expanded_)
+    {
+        auto names = commit_->container_names();
+
+        for (auto name: names) {
+            children_.append(new LMDBStoreContainerTreeItem(commit_, name, this, this));
+        }
+
         expanded_ = true;
     }
 }
 
 
-QVariant SnapshotTreeItem::data(int column) {
+
+QVariant MemStoreSnapshotTreeItem::data(int column) {
     return column == 0 ? node_type() : column == 1 ? QVariant(QString::fromUtf8(toString(snapshot_id_).data())) : QVariant();
 }
 
-void SnapshotTreeItem::expand()
+void MemStoreSnapshotTreeItem::expand()
 {
     if (!expanded_)
     {
         auto child_snps = store_->children_of(snapshot_id_);
 
         for (auto snp_id: child_snps) {
-            children_.append(new SnapshotTreeItem(store_, snp_id, this));
+            children_.append(new MemStoreSnapshotTreeItem(store_, snp_id, this, counter_provider_));
         }
 
         auto snp   = store_->find(snapshot_id_);
         auto names = snp->container_names();
 
         for (auto name: names) {
-            children_.append(new ContainerTreeItem(store_, snapshot_id_, name, this));
+            children_.append(new MemStoreContainerTreeItem(store_, snapshot_id_, name, this, counter_provider_));
         }
 
         expanded_ = true;
@@ -133,7 +187,32 @@ void SnapshotTreeItem::expand()
 }
 
 
-QVariant ContainerTreeItem::data(int column)
+
+
+QVariant SWMRStoreSnapshotTreeItem::data(int column) {
+    return column == 0 ? node_type() : column == 1 ? QVariant(QString::fromUtf8(toString(snapshot_id_).data())) : QVariant();
+}
+
+void SWMRStoreSnapshotTreeItem::expand()
+{
+    if (!expanded_)
+    {
+        auto snp   = store_->open(snapshot_id_, false);
+        auto names = snp->container_names();
+
+        for (auto name: names) {
+            children_.append(new SWMRStoreContainerTreeItem(store_, snapshot_id_, name, this, counter_provider_));
+        }
+
+        expanded_ = true;
+    }
+}
+
+
+
+
+
+QVariant MemStoreContainerTreeItem::data(int column)
 {
     auto snp = store_->find(snapshot_id_);
     auto ctr = snp->find(ctr_id_);
@@ -149,24 +228,89 @@ QVariant ContainerTreeItem::data(int column)
     return QVariant{};
 }
 
-void ContainerTreeItem::expand()
+void MemStoreContainerTreeItem::expand()
 {
     if (!expanded_)
     {
         auto snp = store_->find(snapshot_id_);
         auto ctr = snp->find(ctr_id_);
 
-        children_.append(new CtrBlockTreeItem(0, ctr->root_block(), this));
+        children_.append(new CtrBlockTreeItem(0, ctr->root_block(), this, counter_provider_));
 
         expanded_ = true;
     }
 }
 
 
+QVariant SWMRStoreContainerTreeItem::data(int column)
+{
+    auto snp = store_->open(snapshot_id_, false);
+    auto ctr = snp->find(ctr_id_);
+
+    switch (column) {
+        case 0: return node_type();
+        case 1: return QString::fromUtf8(toString(ctr_id_).data());
+        case 2: {
+            return QString::fromUtf8(ctr->describe_datatype().data());
+        }
+    }
+
+    return QVariant{};
+}
+
+void SWMRStoreContainerTreeItem::expand()
+{
+    if (!expanded_)
+    {
+        auto snp = store_->open(snapshot_id_, false);
+        auto ctr = snp->find(ctr_id_);
+
+        children_.append(new CtrBlockTreeItem(0, ctr->root_block(), this, counter_provider_));
+
+        expanded_ = true;
+    }
+}
+
+
+QVariant LMDBStoreContainerTreeItem::data(int column)
+{
+    auto ctr = commit_->find(ctr_id_);
+
+    switch (column) {
+        case 0: return node_type();
+        case 1: return QString::fromUtf8(toString(ctr_id_).data());
+        case 2: {
+            return QString::fromUtf8(ctr->describe_datatype().data());
+        }
+    }
+
+    return QVariant{};
+}
+
+void LMDBStoreContainerTreeItem::expand()
+{
+    if (!expanded_)
+    {
+        auto ctr = commit_->find(ctr_id_);
+        children_.append(new CtrBlockTreeItem(0, ctr->root_block(), this, counter_provider_));
+        expanded_ = true;
+    }
+}
+
+
+
 QVariant CtrBlockTreeItem::data(int column)
 {
     switch (column) {
-    case 0: return node_type() + QString::fromUtf8((U8String(" :: ") + toString(idx_)).data());
+    case 0: {
+        QString descr = node_type() + QString::fromUtf8((U8String(" :: ") + toString(idx_)).data());
+
+        if (counter_provider_->has_block_counters()) {
+            descr = descr + " " + counter_provider_->get_block_counter(block_->block_id());
+        }
+
+        return descr;
+    }
     case 1: {
         UUID uuid;
         block_id_holder_to(block_->block_id(), uuid);
@@ -184,8 +328,8 @@ void CtrBlockTreeItem::expand()
         auto children = block_->children();
 
         size_t idx = 0;
-        for (auto child: children) {
-            children_.append(new CtrBlockTreeItem(idx, child, this));
+        for (auto& child: children) {
+            children_.append(new CtrBlockTreeItem(idx, child, this, counter_provider_));
             idx++;
         }
 

@@ -60,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>1600</width>
-     <height>27</height>
+     <height>39</height>
     </rect>
    </property>
    <widget class="QMenu" name="fileMenu">
@@ -92,7 +92,7 @@
   </action>
   <action name="openAllocatorAction">
    <property name="text">
-    <string>Open Allocator</string>
+    <string>Open Store</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>

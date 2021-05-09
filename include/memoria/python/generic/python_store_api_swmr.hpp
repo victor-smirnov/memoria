@@ -78,7 +78,7 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
         namespace py = pybind11;
 
         py::class_<Type, IBasicSWMRStore<Profile>, SharedPtr<Type>>(m, "SWMRStore")
-            .def("open", py::overload_cast<const CommitID&>(&Type::open))
+            .def("open", py::overload_cast<const CommitID&, bool>(&Type::open))
             .def("open", py::overload_cast<>(&Type::open));
 
         m.def("create_swmr_store", &create_swmr_store);

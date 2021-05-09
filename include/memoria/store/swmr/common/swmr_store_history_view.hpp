@@ -50,8 +50,8 @@ public:
 
     }
 
-    virtual std::vector<CommitID> persistent_commits() {
-        return store_->persistent_commits();
+    virtual std::vector<CommitID> commits() {
+        return store_->commits(true);
     }
 
     virtual std::vector<CommitID> children(CommitID) {

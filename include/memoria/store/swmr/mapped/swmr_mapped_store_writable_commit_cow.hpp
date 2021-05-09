@@ -125,13 +125,6 @@ public:
         block_cache_(1024*128)
     {}
 
-    virtual ~MappedSWMRStoreWritableCommit() noexcept {
-        if (!committed_) {
-            store_->unlock_writer();
-            delete Base::commit_descriptor_;
-        }
-    }
-
     void init_idmap() override {
         MaybeError maybe_error{};
         this->template internal_init_system_ctr<BlockMapCtrType>(

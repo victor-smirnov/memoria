@@ -41,6 +41,7 @@ protected:
     using Base::writer_mutex_;
     using Base::do_create_writable;
     using Base::do_create_writable_for_init;
+    using Base::read_only_;
 
     Span<uint8_t> buffer_;
 
@@ -152,11 +153,14 @@ public:
             }
         });
 
-        if (head_ptr_->superblock()->is_clean()) {
-            return read_block_counters();
-        }
-        else {
-            return rebuild_block_counters();
+        if (!read_only_)
+        {
+            if (head_ptr_->superblock()->is_clean()) {
+                read_block_counters();
+            }
+            else {
+                rebuild_block_counters();
+            }
         }
     }
 

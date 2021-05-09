@@ -47,7 +47,7 @@ template <typename Profile>
 class SWMRSuperblock {
 public:
     static constexpr uint64_t PROFILE_HASH = TypeHash<Profile>::Value;
-    static constexpr size_t   EMBEDDED_COUNTERS_CAPACITY = 3520 / sizeof(ProfileBlockID<Profile>);
+    //static constexpr size_t   EMBEDDED_COUNTERS_CAPACITY = 3520 / sizeof(ProfileBlockID<Profile>);
     static constexpr uint64_t VERSION = 1;
 
     // b18ba23f-fb6d-4c70-a2c5-f759a3c38b5a
@@ -57,7 +57,6 @@ public:
     static constexpr UUID MAGICK2 = UUID(7224616273360177767ull, 17766392426138176942ull);
 
     using BlockID    = ProfileBlockID<Profile>;
-    using CommitUUID = ProfileSnapshotID<Profile>;
     using CommitID   = ApiProfileSnapshotID<ApiProfile<Profile>>;
     using SequenceID = uint64_t;
 
@@ -68,8 +67,7 @@ private:
     uint64_t profile_hash_;
     uint64_t version_;
 
-    char magic_buffer_[256];
-    char reserved_[4 * 8];
+    char magic_buffer_[512];
     SequenceID sequence_id_;
     CommitID commit_id_;
     uint64_t file_size_;
@@ -78,19 +76,12 @@ private:
     uint64_t global_block_counters_file_pos_;
     uint64_t global_block_counters_size_;
 
-    uint64_t commit_block_counters_file_pos_;
-    uint64_t commit_block_counters_size_;
-
     BlockID history_root_id_;
     BlockID directory_root_id_;
     BlockID allocator_root_id_;
     BlockID blockmap_root_id_;
 
-    CommitUUID commit_uuid_;
-
     SWMRStoreStatus store_status_;
-
-    BlockID counters_[EMBEDDED_COUNTERS_CAPACITY];
 
 public:
     SWMRSuperblock() noexcept = default;
@@ -133,33 +124,22 @@ public:
     }
 
     const CommitID& commit_id() const noexcept {return commit_id_;}
-    CommitID& commit_id() noexcept {return commit_id_;}
+    void set_commit_id(const CommitID& id) noexcept {commit_id_ = id;}
 
     uint64_t file_size() const noexcept {return file_size_;}
-    uint64_t& file_size() noexcept {return file_size_;}
+    void set_file_size(uint64_t size) noexcept {file_size_ = size;}
 
     uint64_t superblock_size() const noexcept {return superblock_size_;}
-    uint64_t& superblock_size() noexcept {return superblock_size_;}
+    void set_superblock_size(uint64_t size) noexcept {superblock_size_ = size;}
 
     uint64_t superblock_file_pos() const noexcept {return superblock_file_pos_;}
-    uint64_t& superblock_file_pos() noexcept {return superblock_file_pos_;}
+    void set_superblock_file_pos(uint64_t pos) noexcept {superblock_file_pos_ = pos;}
 
     uint64_t global_block_counters_file_pos() const noexcept {return global_block_counters_file_pos_;}
-    uint64_t& global_block_counters_file_pos() noexcept {return global_block_counters_file_pos_;}
+    void set_global_block_counters_file_pos(uint64_t pos) noexcept {global_block_counters_file_pos_ = pos;}
 
     uint64_t global_block_counters_size() const noexcept {return global_block_counters_size_;}
-    uint64_t& global_block_counters_size() noexcept {return global_block_counters_size_;}
-
-    uint64_t commit_block_counters_file_pos() const noexcept {return global_block_counters_file_pos_;}
-    uint64_t& commit_block_counters_file_pos() noexcept {return global_block_counters_file_pos_;}
-
-    uint64_t commit_block_counters_size() const noexcept {return commit_block_counters_size_;}
-    uint64_t& commit_block_counters_size() noexcept {return commit_block_counters_size_;}
-
-
-
-    const CommitUUID& commit_uuid() const noexcept {return commit_uuid_;}
-    CommitUUID& commit_uuid() noexcept {return commit_uuid_;}
+    void set_global_block_counters_size(uint64_t size) noexcept {global_block_counters_size_ = size;}
 
     SWMRStoreStatus status() const noexcept {return store_status_;}
 
@@ -190,7 +170,6 @@ public:
         version_ = VERSION;
 
         std::memset(magic_buffer_, 0, sizeof(magic_buffer_));
-        std::memset(reserved_, 0, sizeof(reserved_));
 
         sequence_id_ = sequence_id;
         commit_id_   = commit_id;
@@ -201,8 +180,6 @@ public:
 
         global_block_counters_file_pos_ = 0;
         global_block_counters_size_ = 0;
-        commit_block_counters_file_pos_ = 0;
-        commit_block_counters_size_ = 0;
 
         history_root_id_   = BlockID{};
         directory_root_id_ = BlockID{};
@@ -233,16 +210,15 @@ public:
         global_block_counters_file_pos_ = other.global_block_counters_file_pos_;
         global_block_counters_size_ = other.global_block_counters_size_;
         store_status_        = other.store_status_;
-
-        commit_block_counters_file_pos_ = 0;
-        commit_block_counters_size_ = 0;
     }
 
     void build_superblock_description()
     {
         return set_description(
-            "MEMORIA SWMR MAPPED STORE. VERSION:{}; CommitID:{}, SequenceID:{}, SuperblockFilePos:{}, FileSize:{}",
-            version_, commit_id_, sequence_id_, superblock_file_pos_, file_size_
+            "MEMORIA SWMR MAPPED STORE. VERSION:{}; CommitID:{}, SequenceID:{}, SuperblockFilePos:{}, FileSize:{}, Status:{}, Counters:{}, Profile:{}",
+            version_, commit_id_, sequence_id_, superblock_file_pos_,
+            file_size_, (is_clean() ? "CLEAN" : "UNCLEAN"), global_block_counters_size_,
+                    TypeNameFactory<Profile>::name()
         );
     }
 
@@ -260,15 +236,6 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("Supplied SWMR Superblock magic string is too long: {}", str).do_throw();
         }
     }
-
-    auto get_counter(size_t idx) noexcept {
-        return CounterCodec<BlockID>::decode(counters_[idx]);
-    }
-
-    void set_counter(size_t idx, const BlockID& id, int32_t counter) noexcept {
-        counters_[idx] = CounterCodec<BlockID>::encode(id, counter);
-    }
-
 private:
     static int32_t allocator_block_size(size_t superblock_size) noexcept
     {
@@ -324,7 +291,6 @@ public:
         uint64_t data_size = block_size - (sizeof(CountersBlock) - sizeof (BlockID));
         return data_size / sizeof(BlockID);
     }
-
 };
 
 

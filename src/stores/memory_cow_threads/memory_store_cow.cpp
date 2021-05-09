@@ -49,6 +49,12 @@ AllocSharedPtr<IMemoryStore<ApiProfileT>> load_memory_store(InputStreamHandler* 
 }
 
 
+bool is_memory_store(U8String path) {
+    auto fileh = FileInputStreamHandler::create(path.data());
+    return store::memory_cow::ThreadsMemoryStoreImpl<Profile>::is_my_data(fileh.get());
+}
+
+
 namespace store {
 namespace memory_cow {
 

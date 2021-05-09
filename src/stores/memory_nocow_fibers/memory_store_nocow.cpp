@@ -25,7 +25,7 @@ using ApiProfileT = ApiProfile<Profile>;
 template class IMemoryStore<ApiProfile<Profile>>;
 
 
-SharedPtr<IMemoryStore<ApiProfileT>> create_memory_store_noncow()
+AllocSharedPtr<IMemoryStore<ApiProfileT>> create_memory_store_noncow()
 { 
     MaybeError maybe_error;
 
@@ -39,7 +39,7 @@ SharedPtr<IMemoryStore<ApiProfileT>> create_memory_store_noncow()
     }
 }
 
-SharedPtr<IMemoryStore<ApiProfileT>> load_memory_store_noncow(U8String path) {
+AllocSharedPtr<IMemoryStore<ApiProfileT>> load_memory_store_noncow(U8String path) {
     auto fileh = FileInputStreamHandler::create(path.data());
     return store::memory_nocow::FibersMemoryStoreImpl<Profile>::load(fileh.get());
 }
@@ -48,6 +48,14 @@ AllocSharedPtr<IMemoryStore<ApiProfileT>> load_memory_store_noncow(InputStreamHa
 {
     return store::memory_nocow::FibersMemoryStoreImpl<Profile>::load(input_stream);
 }
+
+bool is_memory_store_noncow(U8String path) {
+    auto fileh = FileInputStreamHandler::create(path.data());
+    return store::memory_nocow::FibersMemoryStoreImpl<Profile>::is_my_data(fileh.get());
+}
+
+
+
 
 namespace store {
 namespace memory_nocow {

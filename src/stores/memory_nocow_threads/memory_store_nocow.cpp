@@ -49,6 +49,11 @@ AllocSharedPtr<IMemoryStore<ApiProfileT>> load_memory_store_noncow(InputStreamHa
     return store::memory_nocow::ThreadsMemoryStoreImpl<Profile>::load(input_stream);
 }
 
+bool is_memory_store_noncow(U8String path) {
+    auto fileh = FileInputStreamHandler::create(path.data());
+    return store::memory_nocow::ThreadsMemoryStoreImpl<Profile>::is_my_data(fileh.get());
+}
+
 
 namespace store {
 namespace memory_nocow {

@@ -21,6 +21,7 @@
 
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
+#include <memoria/core/strings/string_buffer.hpp>
 
 #include <mutex>
 #include <unordered_set>
@@ -293,6 +294,41 @@ public:
         LMDBStoreWritableCommit<Profile>::init_profile_metadata();
     }
 
+    static bool is_my_file(U8String file_name)
+    {
+        auto name = file_name.to_std_string();
+
+        if (filesystem::exists(name)){
+            uint64_t mdb_block_size = 4096;
+
+            if (filesystem::file_size(name) >= mdb_block_size * 2)
+            {
+                auto memblock = allocate_system<uint8_t>(mdb_block_size);
+
+                int fd = ::open(name.c_str(), O_RDONLY);
+                int rr = ::read(fd, memblock.get(), mdb_block_size);
+                ::close(fd);
+
+                if (rr < mdb_block_size) {
+                    return false;
+                }
+
+                return is_my_block(memblock.get());
+            }
+        }
+
+        return false;
+    }
+
+    static bool is_my_block(const uint8_t* mem_block) noexcept {
+        uint32_t mdb_magick = 0xBEEFC0DE;
+        const uint32_t* meta = ptr_cast<uint32_t>(mem_block + 16);
+        return *meta == mdb_magick;
+    }
+
+    virtual U8String describe() const {
+        return format_u8("LMDBStore<{}>", TypeNameFactory<Profile>::name());
+    }
 
 private:
     void init_store()

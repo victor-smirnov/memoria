@@ -60,7 +60,7 @@ void MainWindow::open_store()
     QString fileName = QFileDialog::getOpenFileName(
             this, ("Open File"),
             ".",
-            ("Memoria Files (*.mma1)")
+            ("Memoria Files (*.mma* *.mdb)")
     );
 
     if (!fileName.isNull())
@@ -105,7 +105,7 @@ void MainWindow::update_actions()
         AbstractTreeItem* item = model->get_item(item_idx);
 
         AbstractTreeItem* top_level_item = model->get_top_level(item);
-        closeAllocatorAction->setEnabled(top_level_item->node_type() == "inmem_allocator");
+        closeAllocatorAction->setEnabled(top_level_item->node_type() == "Memory Store");
     }
     else {
         closeAllocatorAction->setEnabled(false);
@@ -149,13 +149,11 @@ void MainWindow::item_selected()
 }
 
 void MainWindow::closeEvent(QCloseEvent*) {
-    memoria::reactor::app().shutdown();
 }
 
 void MainWindow::quit()
 {
     QApplication::quit();
-    memoria::reactor::app().shutdown();
 }
 
 

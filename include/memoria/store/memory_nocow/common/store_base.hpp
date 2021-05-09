@@ -153,6 +153,7 @@ public:
 
     static constexpr int32_t NodeIndexSize  = 32;
     static constexpr int32_t NodeSize       = NodeIndexSize * 32;
+    static constexpr uint64_t PROFILE_HASH = TypeHash<Profile>::Value;
 
     using RCBlockPtr    = store::memory_nocow::_::BlockPtr<BlockType>;
 
@@ -587,13 +588,47 @@ public:
         return ProfileTraits<Profile>::make_random_block_id();
     }
 
+
+
+    static bool is_my_data(InputStreamHandler* input)
+    {
+        char signature[16] = {};
+        input->read(signature, sizeof(signature));
+
+        if (!(
+                signature[0] == 'M' &&
+                signature[1] == 'E' &&
+                signature[2] == 'M' &&
+                signature[3] == 'O' &&
+                signature[4] == 'R' &&
+                signature[5] == 'I' &&
+                signature[6] == 'A'))
+        {
+            return false;
+        }
+
+        if (!(signature[7] == 0 || signature[7] == 1))
+        {
+            return false;
+        }
+
+        uint64_t profile_hash = *ptr_cast<uint64_t>(signature + 8);
+
+        if (profile_hash != PROFILE_HASH)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     static AllocSharedPtr<MyType> load(InputStreamHandler *input)
     {
         auto alloc_ptr = MakeLocalShared<MyType>(0);
 
         MyType* allocator = alloc_ptr.get();
 
-        char signature[12] = {};
+        char signature[16] = {};
 
         input->read(signature, sizeof(signature));
 
@@ -606,7 +641,9 @@ public:
                 signature[5] == 'I' &&
                 signature[6] == 'A'))
         {
-            std::string sig_str(signature, 12);
+            std::string sig_str;
+            for (int c = 0; c < 7; c++) sig_str.append(1, signature[c]);
+
             MEMORIA_MAKE_GENERIC_ERROR("The stream does not start from MEMORIA signature: {}", sig_str).do_throw();
         }
 
@@ -615,9 +652,11 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("Endiannes filed value is out of bounds {}", (int32_t)signature[7]).do_throw();
         }
 
-        if (signature[8] != 0)
+        uint64_t profile_hash = *ptr_cast<uint64_t>(signature + 8);
+
+        if (profile_hash != PROFILE_HASH)
         {
-            MEMORIA_MAKE_GENERIC_ERROR("This is not an in-memory container").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Profile hash value does not match").do_throw();
         }
 
         allocator->master_ = allocator->history_tree_ = nullptr;

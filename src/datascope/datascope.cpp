@@ -37,20 +37,14 @@
 using namespace memoria;
 using namespace memoria::reactor;
 
-int main(int argc, char** argv, char** envp)
+int main(int argc, char** argv)
 {
     QApplication q_app(argc, argv);
-    Application app(argc, argv, envp);
-
-    app.start_engines();
 
     MainWindow mwin;
     mwin.show();
 
-
-    return app.run([&]{
-        return QtEventLoopFiberFn()();
-    });
+    return q_app.exec();
 }
 
 

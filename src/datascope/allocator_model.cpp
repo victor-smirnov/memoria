@@ -152,16 +152,65 @@ void AllocatorModel::open_allocator(const QString& file, const QModelIndex& afte
     auto row_pos = root_item_->children();
 
     try {
-        auto alloc = load_memory_store(U8String(file.toUtf8().data()));
+        U8String fname = U8String(file.toUtf8().data());
 
-        beginInsertRows(root_idx, row_pos, row_pos);
-        root_item_->add_inmem_allocator(alloc, file);
-        endInsertRows();
+        if (is_memory_store(fname))
+        {
+            auto alloc = load_memory_store(fname);
+
+            beginInsertRows(root_idx, row_pos, row_pos);
+            root_item_->add_inmem_store(alloc, file);
+            endInsertRows();
+        }
+        else if (is_memory_store_noncow(fname))
+        {
+            auto alloc = load_memory_store_noncow(fname);
+
+            beginInsertRows(root_idx, row_pos, row_pos);
+            root_item_->add_inmem_store(alloc, file);
+            endInsertRows();
+        }
+        else if (is_swmr_store(fname))
+        {
+            auto alloc = open_swmr_store(fname);
+
+            beginInsertRows(root_idx, row_pos, row_pos);
+            root_item_->add_swmr_store(alloc, file);
+            endInsertRows();
+        }
+        else if (is_lite_swmr_store(fname))
+        {
+            auto alloc = open_lite_swmr_store(fname);
+
+            beginInsertRows(root_idx, row_pos, row_pos);
+            root_item_->add_swmr_store(alloc, file);
+            endInsertRows();
+        }
+        else if (is_lmdb_store(fname))
+        {
+            auto alloc = open_lmdb_store(fname);
+
+            beginInsertRows(root_idx, row_pos, row_pos);
+            root_item_->add_lmdb_store(alloc, file);
+            endInsertRows();
+        }
+        else {
+            std::cout << "Unknown file type" << std::endl;
+        }
 
         emit layoutChanged();
     }
-    catch (MemoriaThrowable& ex) {
+    catch (const MemoriaThrowable& ex) {
         ex.dump(std::cout);
+    }
+    catch (const MemoriaError& ex) {
+        ex.describe(std::cout);
+    }
+    catch (const std::exception& ex) {
+        std::cout << ex.what() << std::endl;
+    }
+    catch (const boost::exception& ex) {
+        std::cout << "Boost exception" << std::endl;
     }
     catch (...) {
         std::cout << "Unknown exception" << std::endl;

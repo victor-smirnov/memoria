@@ -17,7 +17,9 @@
 #pragma once
 
 #include <memoria/api/store/store_api_common.hpp>
+#include <memoria/core/strings/string.hpp>
 #include <memoria/core/linked/linked.hpp>
+
 
 #include <functional>
 
@@ -51,7 +53,7 @@ struct ISWMRStoreHistoryView {
 
     virtual void check() = 0;
 
-    virtual std::vector<CommitID> persistent_commits() = 0;
+    virtual std::vector<CommitID> commits() = 0;
 
     virtual std::vector<CommitID> children(CommitID) = 0;
     virtual Optional<CommitID> parent(CommitID) = 0;
@@ -75,6 +77,8 @@ struct IBasicSWMRStore {
     virtual void flush() = 0;
 
     virtual Optional<SequenceID> check(StoreCheckCallbackFn callback) = 0;
+
+    virtual U8String describe() const = 0;
 };
 
 
@@ -90,12 +94,12 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
     using CommitID = ApiProfileSnapshotID<Profile>;
     using SequenceID = uint64_t;
 
-    virtual std::vector<CommitID> persistent_commits() = 0;
+    virtual std::vector<CommitID> commits(bool persistent_only = true) = 0;
 
     using Base::open;
-    virtual ReadOnlyCommitPtr open(const CommitID& commit_id) = 0;
+    virtual ReadOnlyCommitPtr open(const CommitID& commit_id, bool persistent_only = true) = 0;
 
-    virtual bool drop_persistent_commit(const CommitID& commit_id) = 0;
+    virtual bool drop_commit(const CommitID& commit_id) = 0;
 
     virtual bool can_rollback_last_commit() noexcept = 0;
     virtual void rollback_last_commit() = 0;
@@ -108,16 +112,49 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
     virtual HistoryPtr history_view() = 0;
 
     virtual void close() = 0;
+
+    virtual uint64_t count_refs(const ApiProfileBlockID<Profile>& block_id) = 0;
 };
 
-SharedPtr<ISWMRStore<CoreApiProfile<>>> open_swmr_store(U8StringView path);
-SharedPtr<ISWMRStore<CoreApiProfile<>>> create_swmr_store(U8StringView path, uint64_t store_size_mb);
 
-SharedPtr<ISWMRStore<CoreApiProfile<>>> open_lite_swmr_store(U8StringView path);
-SharedPtr<ISWMRStore<CoreApiProfile<>>> create_lite_swmr_store(U8StringView path, uint64_t store_size_mb);
+class SWMRParams {
+    Optional<uint64_t> file_size_; // in MB
+    bool read_only_{false};
+public:
+    SWMRParams(uint64_t file_size) noexcept :
+        file_size_(file_size)
+    {}
+
+    SWMRParams() noexcept :
+        file_size_()
+    {}
+
+    SWMRParams& open_read_only(bool ro_mode = true) noexcept {
+        read_only_ = ro_mode;
+        return *this;
+    }
+
+    const Optional<uint64_t>& file_size() const noexcept {
+        return file_size_;
+    }
+
+    bool is_read_only() const noexcept {
+        return read_only_;
+    }
+};
+
+
+SharedPtr<ISWMRStore<CoreApiProfile<>>> open_swmr_store(U8StringView path, const SWMRParams& params = SWMRParams());
+SharedPtr<ISWMRStore<CoreApiProfile<>>> create_swmr_store(U8StringView path, const SWMRParams& params);
+bool is_swmr_store(U8StringView path);
+
+SharedPtr<ISWMRStore<CoreApiProfile<>>> open_lite_swmr_store(U8StringView path, const SWMRParams& params = SWMRParams());
+SharedPtr<ISWMRStore<CoreApiProfile<>>> create_lite_swmr_store(U8StringView path, const SWMRParams& params);
+bool is_lite_swmr_store(U8StringView path);
 
 SharedPtr<ISWMRStore<CoreApiProfile<>>> open_lite_raw_swmr_store(Span<uint8_t> buffer);
 SharedPtr<ISWMRStore<CoreApiProfile<>>> create_lite_raw_swmr_store(Span<uint8_t> buffer);
+bool is_lite_raw_swmr_store(Span<uint8_t> buffer);
 
 template <typename Profile>
 struct ILMDBStore: IBasicSWMRStore<Profile> {
@@ -136,7 +173,7 @@ struct ILMDBStore: IBasicSWMRStore<Profile> {
 SharedPtr<ILMDBStore<CoreApiProfile<>>> open_lmdb_store(U8StringView path);
 SharedPtr<ILMDBStore<CoreApiProfile<>>> open_lmdb_store_readonly(U8StringView path);
 SharedPtr<ILMDBStore<CoreApiProfile<>>> create_lmdb_store(U8StringView path, uint64_t store_size_mb);
-
+bool is_lmdb_store(U8StringView path);
 
 
 

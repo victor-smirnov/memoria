@@ -548,8 +548,10 @@ public:
 
             records_ = 0;
 
-            char signature[12] = "MEMORIA";
+            char signature[16] = "MEMORIA";
             for (size_t c = 7; c < sizeof(signature); c++) signature[c] = 0;
+
+            *ptr_cast<uint64_t>(signature + 8) = Base::PROFILE_HASH;
 
             output->write(&signature, 0, sizeof(signature));
 

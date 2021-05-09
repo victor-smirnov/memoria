@@ -17,7 +17,10 @@
 #pragma once
 
 #include <memoria/profiles/core_api/core_api_profile.hpp>
+
 #include <memoria/api/store/memory_store_api.hpp>
+#include <memoria/api/store/swmr_store_api.hpp>
+
 #include <memoria/api/common/ctr_api.hpp>
 
 
@@ -27,6 +30,10 @@
 #include <QVector>
 
 namespace memoria {
+
+
+using SWMRStorePtr = SharedPtr<ISWMRStore<CoreApiProfile<>>>;
+using LMDBStorePtr = SharedPtr<ILMDBStore<CoreApiProfile<>>>;
 
 class AbstractTreeItem {
 protected:
@@ -66,8 +73,11 @@ public:
         return data_[column];
     }
 
-    void add_inmem_allocator(IMemoryStorePtr<> allocator, QString label);
-    void remove_inmem_allocator(AbstractTreeItem* item);
+    void add_inmem_store(IMemoryStorePtr<> store, QString label);
+    void add_swmr_store(SWMRStorePtr store, QString label);
+    void add_lmdb_store(LMDBStorePtr store, QString label);
+
+    void remove_store(AbstractTreeItem* item);
 
     virtual QString node_type() const {
         return QString::fromUtf8("root");
@@ -79,14 +89,21 @@ protected:
     }
 };
 
+struct BlockCounterProvider {
+    using StoreBlockID = ApiProfileBlockID<CoreApiProfile<>>;
 
+    virtual ~BlockCounterProvider() noexcept = default;
 
-class InMemAllocatorTreeItem: public AbstractTreeItem {
+    virtual bool has_block_counters() const noexcept = 0;
+    virtual QString get_block_counter(const StoreBlockID& block_id) = 0;
+};
+
+class MemStoreTreeItem: public AbstractTreeItem, public BlockCounterProvider  {
 protected:
     IMemoryStorePtr<> allocator_;
     QString label_;
 public:
-    InMemAllocatorTreeItem(IMemoryStorePtr<> allocator, const QString& label, AbstractTreeItem* parent):
+    MemStoreTreeItem(IMemoryStorePtr<> allocator, const QString& label, AbstractTreeItem* parent):
         AbstractTreeItem(parent),
         allocator_(allocator),
         label_(label)
@@ -95,23 +112,130 @@ public:
     virtual QVariant data(int column);
 
     virtual QString node_type() const {
-        return QString::fromUtf8("inmem_allocator");
+        return QString::fromUtf8("Memory Store");
+    }
+
+protected:
+    virtual void expand();
+
+    virtual bool has_block_counters() const noexcept {return false;}
+    virtual QString get_block_counter(const StoreBlockID& block_id) {
+        return QString();
+    }
+};
+
+
+
+
+
+class SWMRStoreTreeItem: public AbstractTreeItem, public BlockCounterProvider {
+protected:
+    SWMRStorePtr store_;
+    QString label_;
+public:
+    SWMRStoreTreeItem(SWMRStorePtr store, const QString& label, AbstractTreeItem* parent):
+        AbstractTreeItem(parent),
+        store_(store),
+        label_(label)
+    {}
+
+    virtual QVariant data(int column);
+
+    virtual QString node_type() const {
+        return QString::fromUtf8(store_->describe().data());
+    }
+
+protected:
+    virtual void expand();
+
+    virtual bool has_block_counters() const noexcept {return true;}
+    virtual QString get_block_counter(const StoreBlockID& block_id);
+};
+
+
+
+class LMDBStoreTreeItem: public AbstractTreeItem, public BlockCounterProvider {
+    using CommitPtr = typename ILMDBStore<CoreApiProfile<>>::ReadOnlyCommitPtr;
+
+protected:
+    LMDBStorePtr store_;
+    CommitPtr commit_;
+
+    QString label_;
+public:
+    LMDBStoreTreeItem(
+            LMDBStorePtr store,
+            const QString& label,
+            AbstractTreeItem* parent
+    ):
+        AbstractTreeItem(parent),
+        store_(store),
+        label_(label)
+    {
+        commit_ = store_->open();
+    }
+
+    virtual QVariant data(int column);
+
+    virtual QString node_type() const {
+        return QString::fromUtf8(store_->describe().data());
+    }
+
+protected:
+    virtual void expand();
+
+    virtual bool has_block_counters() const noexcept {return false;}
+    virtual QString get_block_counter(const StoreBlockID& block_id) {
+        return QString();
+    }
+};
+
+
+class MemStoreSnapshotTreeItem: public AbstractTreeItem {
+protected:
+    IMemoryStorePtr<> store_;
+    UUID snapshot_id_;
+
+    BlockCounterProvider* counter_provider_;
+public:
+    MemStoreSnapshotTreeItem(
+            IMemoryStorePtr<> store,
+            const UUID& snapshot_id,
+            AbstractTreeItem* parent,
+            BlockCounterProvider* counter_provider
+    ):
+        AbstractTreeItem(parent),
+        store_(store),
+        snapshot_id_(snapshot_id),
+        counter_provider_(counter_provider)
+    {}
+
+    virtual QVariant data(int column);
+
+    virtual QString node_type() const {
+        return QString::fromUtf8("snapshot");
     }
 
 protected:
     virtual void expand();
 };
 
-
-class SnapshotTreeItem: public AbstractTreeItem {
+class SWMRStoreSnapshotTreeItem: public AbstractTreeItem {
 protected:
-    IMemoryStorePtr<> store_;
+    SWMRStorePtr store_;
     UUID snapshot_id_;
+    BlockCounterProvider* counter_provider_;
 public:
-    SnapshotTreeItem(IMemoryStorePtr<> store, const UUID& snapshot_id, AbstractTreeItem* parent):
+    SWMRStoreSnapshotTreeItem(
+            SWMRStorePtr store,
+            const UUID& snapshot_id,
+            AbstractTreeItem* parent,
+            BlockCounterProvider* counter_provider
+    ):
         AbstractTreeItem(parent),
         store_(store),
-        snapshot_id_(snapshot_id)
+        snapshot_id_(snapshot_id),
+        counter_provider_(counter_provider)
     {}
 
     virtual QVariant data(int column);
@@ -125,17 +249,87 @@ protected:
 };
 
 
-class ContainerTreeItem: public AbstractTreeItem {
+class MemStoreContainerTreeItem: public AbstractTreeItem {
 protected:
     IMemoryStorePtr<> store_;
     UUID snapshot_id_;
     UUID ctr_id_;
+    BlockCounterProvider* counter_provider_;
 public:
-    ContainerTreeItem(IMemoryStorePtr<> store, const UUID& snapshot_id, const UUID& ctr_id, AbstractTreeItem* parent):
+    MemStoreContainerTreeItem(
+            IMemoryStorePtr<> store,
+            const UUID& snapshot_id,
+            const UUID& ctr_id,
+            AbstractTreeItem* parent,
+            BlockCounterProvider* counter_provider
+    ):
         AbstractTreeItem(parent),
         store_(store),
         snapshot_id_(snapshot_id),
-        ctr_id_(ctr_id)
+        ctr_id_(ctr_id),
+        counter_provider_(counter_provider)
+    {}
+
+    virtual QVariant data(int column);
+
+    virtual QString node_type() const {
+        return QString::fromUtf8("container");
+    }
+
+protected:
+    virtual void expand();
+};
+
+
+class SWMRStoreContainerTreeItem: public AbstractTreeItem {
+protected:
+    SWMRStorePtr store_;
+    UUID snapshot_id_;
+    UUID ctr_id_;
+    BlockCounterProvider* counter_provider_;
+public:
+    SWMRStoreContainerTreeItem(
+            SWMRStorePtr store,
+            const UUID& snapshot_id,
+            const UUID& ctr_id,
+            AbstractTreeItem* parent,
+            BlockCounterProvider* counter_provider
+    ):
+        AbstractTreeItem(parent),
+        store_(store),
+        snapshot_id_(snapshot_id),
+        ctr_id_(ctr_id),
+        counter_provider_(counter_provider)
+    {}
+
+    virtual QVariant data(int column);
+
+    virtual QString node_type() const {
+        return QString::fromUtf8("container");
+    }
+
+protected:
+    virtual void expand();
+};
+
+class LMDBStoreContainerTreeItem: public AbstractTreeItem {
+protected:
+    using CommitPtr = typename ILMDBStore<CoreApiProfile<>>::ReadOnlyCommitPtr;
+    CommitPtr commit_;
+    UUID snapshot_id_;
+    UUID ctr_id_;
+    BlockCounterProvider* counter_provider_;
+public:
+    LMDBStoreContainerTreeItem(
+            CommitPtr commit,
+            const UUID& ctr_id,
+            AbstractTreeItem* parent,
+            BlockCounterProvider* counter_provider
+    ):
+        AbstractTreeItem(parent),
+        commit_(commit),
+        ctr_id_(ctr_id),
+        counter_provider_(counter_provider)
     {}
 
     virtual QVariant data(int column);
@@ -153,11 +347,18 @@ class CtrBlockTreeItem: public AbstractTreeItem {
 protected:
     size_t idx_;
     CtrBlockPtr<CoreApiProfile<>> block_;
+    BlockCounterProvider* counter_provider_;
 public:
-    CtrBlockTreeItem(size_t idx, CtrBlockPtr<CoreApiProfile<>> block, AbstractTreeItem* parent):
+    CtrBlockTreeItem(
+            size_t idx,
+            CtrBlockPtr<CoreApiProfile<>> block,
+            AbstractTreeItem* parent,
+            BlockCounterProvider* counter_provider
+    ):
         AbstractTreeItem(parent),
         idx_(idx),
-        block_(block)
+        block_(block),
+        counter_provider_(counter_provider)
     {}
 
     CtrBlockPtr<CoreApiProfile<>> block() const {

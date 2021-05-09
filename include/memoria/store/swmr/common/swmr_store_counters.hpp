@@ -90,7 +90,7 @@ public:
         }
     }
 
-    bool dec(const BlockID& block_id) noexcept {
+    bool dec(const BlockID& block_id) {
         auto ii = map_.find(block_id);
         if (ii != map_.end()) {
             bool res = ii->second.dec();

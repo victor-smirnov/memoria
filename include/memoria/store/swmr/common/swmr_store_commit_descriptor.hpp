@@ -31,10 +31,13 @@ class CommitDescriptor: public boost::intrusive::list_base_hook<> {
     using Superblock = SWMRSuperblock<Profile>;
     using BlockID    = ProfileBlockID<Profile>;
     using CommitID   = typename Superblock::CommitID;
+    using SequenceID   = typename Superblock::SequenceID;
 
     std::atomic<int32_t> uses_{};
     Superblock* superblock_;
     bool persistent_{false};
+    SequenceID sequence_id_{};
+    CommitID commit_id_{};
 
 public:
     CommitDescriptor() noexcept:
@@ -43,7 +46,10 @@ public:
 
     CommitDescriptor(Superblock* superblock) noexcept:
         superblock_(superblock)
-    {}
+    {
+        sequence_id_ = superblock_->sequence_id();
+        commit_id_   = superblock_->commit_id();
+    }
 
     Superblock* superblock() noexcept {
         return superblock_;
@@ -53,13 +59,17 @@ public:
         superblock_ = superblock;
     }
 
-    bool is_persistent() const {
+    bool is_persistent() const noexcept {
         return persistent_;
     }
 
-    void set_persistent(bool persistent) {
+    void set_persistent(bool persistent) noexcept {
         persistent_ = persistent;
     };
+
+    const SequenceID& sequence_id() const noexcept {
+        return sequence_id_;
+    }
 
     void ref() noexcept {
         uses_.fetch_add(1);
@@ -71,6 +81,10 @@ public:
 
     bool is_in_use() noexcept {
         return uses_.load() > 0;
+    }
+
+    const CommitID& commit_id() const noexcept {
+        return commit_id_;
     }
 };
 

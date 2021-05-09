@@ -43,24 +43,28 @@ void InitSWMRStore() {
 
 
 
-SharedPtr<ISWMRStore<ApiProfileT>> open_swmr_store(U8StringView path)
+SharedPtr<ISWMRStore<ApiProfileT>> open_swmr_store(U8StringView path, const SWMRParams& params)
 {
     MaybeError maybe_error;
-    auto ptr = MakeShared<MappedSWMRStore<Profile>>(maybe_error, path);
+    auto ptr = MakeShared<MappedSWMRStore<Profile>>(maybe_error, path, params);
 
     ptr->do_open_file();
 
     return ptr;
 }
 
-SharedPtr<ISWMRStore<ApiProfileT>> create_swmr_store(U8StringView path, uint64_t store_size_mb)
+SharedPtr<ISWMRStore<ApiProfileT>> create_swmr_store(U8StringView path, const SWMRParams& params)
 {
     MaybeError maybe_error;
-    auto ptr = MakeShared<MappedSWMRStore<Profile>>(maybe_error, path, store_size_mb);
+    auto ptr = MakeShared<MappedSWMRStore<Profile>>(maybe_error, path, params, CreateMappedStore{});
 
     ptr->init_store();
 
     return ptr;
+}
+
+bool is_swmr_store(U8StringView path) {
+    return MappedSWMRStore<Profile>::is_my_file(path);
 }
 
 }
