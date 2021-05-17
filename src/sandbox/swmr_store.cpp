@@ -50,13 +50,14 @@ int main(void) {
             {
                 auto snp0 = store1->begin();
                 auto ctr0 = create(snp0, CtrType(), ctr_id);
+                ctr0->set_ctr_property("CtrName", "SimpleCtr");
                 snp0->commit();
             }
 
             int cnt = 0;
             int b0  = 0;
             int batch_size = 100;
-            int batches = 2;
+            int batches = 10;
             while (cnt < batch_size * batches) {
                 auto snp1 = store1->begin();
                 auto ctr1 = find<CtrType>(snp1, ctr_id);
@@ -72,7 +73,7 @@ int main(void) {
                     ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str());
                 }
 
-               // snp1->set_persistent(true);
+                //snp1->set_persistent(true);
 
                 snp1->commit(false);
             }
@@ -86,6 +87,9 @@ int main(void) {
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
 
         //store1->rollback_last_commit();
+
+        auto vv = create_graphviz_dot_visitor("swmr-write.dot");
+        store1->traverse(*vv.get());
 
         store1->close();
     }

@@ -164,8 +164,6 @@ public:
                 ctr_storage[idx].block_id = block_id;
                 ctr_storage[idx].counter  = counter;
                 ++idx;
-
-                std::cout << "Storing counter: " << block_id << " :: " << counter << std::endl;
             });
 
             flush_data();

@@ -56,8 +56,6 @@ protected:
 
     using ApiProfileT = ApiProfile<Profile>;
 
-    using BlockCounterCallbackFn = std::function<BoolResult(const ApiProfileBlockID<ApiProfileT>&)>;
-
     using CommitID = typename ISWMRStoreCommitBase<ApiProfileT>::CommitID;
 
     using Store                     = LMDBStore<Profile>;

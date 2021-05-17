@@ -69,6 +69,11 @@ public:
             return block_id_holder_from(block_id_);
         }
 
+        virtual U8String block_id_str() const noexcept
+        {
+            return format_u8("{}", block_id_);
+        }
+
         virtual std::vector<CtrBlockPtr<ApiProfile<ProfileT>>> children() const
         {
             std::vector<CtrBlockPtr<ApiProfile<ProfileT>>> children;

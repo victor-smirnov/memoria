@@ -29,19 +29,27 @@ using CtrType = Set<Varchar>;
 int main(void) {
     try {
         const char* file = "file.mma2";
+        const char* new_file = "file-to-read.mma2";
+
+        filesystem::copy_file(file, new_file, filesystem::copy_option::overwrite_if_exists);
 
         UUID ctr_id = UUID::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
 
-        auto store2 = open_lite_swmr_store(file);
+        auto store2 = open_lite_swmr_store(new_file);
 
         auto snp2 = store2->begin();
         auto ctr2 = find<CtrType>(snp2, ctr_id);
+
+        ctr2->insert((SBuf() << " Cool String ABCDEFGH :: " << 11111111).str());
 
         ctr2->for_each([](auto view){
             std::cout << view << std::endl;
         });
 
         snp2->commit();
+
+        auto vv = create_graphviz_dot_visitor("swmr-read.dot");
+        store2->traverse(*vv.get());
 
         StoreCheckCallbackFn callback = [](LDDocument& doc){
             std::cout << doc.to_string() << std::endl;

@@ -22,6 +22,7 @@
 
 #include <functional>
 #include <absl/container/btree_map.h>
+#include <absl/container/btree_set.h>
 
 namespace memoria {
 
@@ -55,6 +56,7 @@ struct SWMRBlockCounters {
     };
 
 private:
+    absl::btree_set<BlockID> ctr_roots_;
     absl::btree_map<BlockID, Counter> map_;
 public:
 
@@ -72,6 +74,18 @@ public:
 
     size_t size() const noexcept {
         return map_.size();
+    }
+
+    bool add_root(const BlockID& block_id)
+    {
+        auto ii = ctr_roots_.find(block_id);
+        if (ii != ctr_roots_.end()) {
+            return false;
+        }
+        else {
+            ctr_roots_.insert(block_id);
+            return true;
+        }
     }
 
     void set(const BlockID& block_id, uint64_t counter) noexcept {

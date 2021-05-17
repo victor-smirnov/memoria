@@ -1,4 +1,4 @@
-# Copyright 2016 Victor Smirnov
+# Copyright 2021 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-add_subdirectory(memory_nocow_fibers)
-add_subdirectory(memory_nocow_threads)
-add_subdirectory(memory_cow_threads)
-add_subdirectory(swmr_mapped)
-add_subdirectory(swmr_fibers)
-add_subdirectory(swmr_lite_fibers)
-add_subdirectory(swmr_lite_mapped)
-add_subdirectory(swmr_lite_raw)
-add_subdirectory(lmdb)
-add_subdirectory(common)
-
 file(GLOB SRCS *.cpp)
-set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS})
+
 set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES_REACTOR ${SRCS})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS})

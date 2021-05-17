@@ -54,6 +54,8 @@ struct CtrBlock {
 
     virtual bool is_leaf() const = 0;
     virtual ApiBlockID block_id() const = 0;
+
+    virtual U8String block_id_str() const = 0;
 };
 
 

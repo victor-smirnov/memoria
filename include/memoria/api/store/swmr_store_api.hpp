@@ -79,6 +79,37 @@ struct IBasicSWMRStore {
     virtual Optional<SequenceID> check(StoreCheckCallbackFn callback) = 0;
 
     virtual U8String describe() const = 0;
+
+    virtual U8String to_string(const ApiProfileBlockID<Profile>&) = 0;
+};
+
+
+template <typename Profile>
+struct SWMRStoreGraphVisitor {
+
+    enum class CtrType {
+        ALLOCATOR, HISTORY, BLOCKMAP, DIRECTORY, DATA
+    };
+
+    using CommitID   = ApiProfileSnapshotID<Profile>;
+    using SequenceID = uint64_t;
+
+    using CtrPtrT   = CtrSharedPtr<CtrReferenceable<Profile>>;
+    using BlockPtrT = CtrBlockPtr<Profile>;
+
+    virtual ~SWMRStoreGraphVisitor() noexcept = default;
+
+    virtual void start_graph() = 0;
+    virtual void end_graph() = 0;
+
+    virtual void start_commit(const CommitID&, const SequenceID&) = 0;
+    virtual void end_commit() = 0;
+
+    virtual void start_ctr(CtrPtrT, bool updated, CtrType ctr_type) = 0;
+    virtual void end_ctr()   = 0;
+
+    virtual void start_block(BlockPtrT, bool updated, uint64_t counters) = 0;
+    virtual void end_block() = 0;
 };
 
 
@@ -114,6 +145,7 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
     virtual void close() = 0;
 
     virtual uint64_t count_refs(const ApiProfileBlockID<Profile>& block_id) = 0;
+    virtual void traverse(SWMRStoreGraphVisitor<Profile>& visitor) = 0;
 };
 
 
@@ -143,6 +175,9 @@ public:
     }
 };
 
+std::unique_ptr<SWMRStoreGraphVisitor<CoreApiProfile<>>> create_graphviz_dot_visitor(U8StringView path);
+
+
 
 SharedPtr<ISWMRStore<CoreApiProfile<>>> open_swmr_store(U8StringView path, const SWMRParams& params = SWMRParams());
 SharedPtr<ISWMRStore<CoreApiProfile<>>> create_swmr_store(U8StringView path, const SWMRParams& params);
@@ -155,6 +190,7 @@ bool is_lite_swmr_store(U8StringView path);
 SharedPtr<ISWMRStore<CoreApiProfile<>>> open_lite_raw_swmr_store(Span<uint8_t> buffer);
 SharedPtr<ISWMRStore<CoreApiProfile<>>> create_lite_raw_swmr_store(Span<uint8_t> buffer);
 bool is_lite_raw_swmr_store(Span<uint8_t> buffer);
+
 
 template <typename Profile>
 struct ILMDBStore: IBasicSWMRStore<Profile> {

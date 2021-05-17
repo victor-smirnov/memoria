@@ -58,7 +58,6 @@ struct ReferenceCounterDelegate {
     virtual void unref_ctr_root(const BlockID& root_block_id) = 0;
 };
 
-
 template <typename Profile> class SWMRStoreBase;
 
 template <typename Profile>
@@ -82,8 +81,12 @@ protected:
     using Store = SWMRStoreBase<Profile>;
 
     using ApiProfileT = ApiProfile<Profile>;
+    using ApiBlockID = ApiProfileBlockID<ApiProfileT>;
 
-    using BlockCounterCallbackFn = std::function<bool (const ApiProfileBlockID<ApiProfileT>&)>;
+    using BlockCounterCallbackFn = std::function<bool (const BlockID&, const BlockID&)>;
+    using GraphVisitor = SWMRStoreGraphVisitor<ApiProfileT>;
+    using VisitedBlocks = std::unordered_set<BlockID>;
+
 
     using CommitID = typename ISWMRStoreCommitBase<ApiProfileT>::CommitID;
     using SequenceID = uint64_t;
@@ -561,16 +564,11 @@ public:
 
     virtual void build_block_refcounters(SWMRBlockCounters<Profile>& counters)
     {
-        std::cout << "Building refcounters for: " << this->commit_id() << " :: " << this->sequence_id() << std::endl;
-
-        auto counters_fn = [&](const ApiProfileBlockID<ApiProfileT>& block_id_holder) {
-            BlockID block_id;
-            block_id_holder_to(block_id_holder, block_id);
-            std::cout << "\tInc " << block_id << std::endl;
+        auto counters_fn = [&](const BlockID& block_id, const BlockID& parent_id) {
             return counters.inc(block_id);
         };
 
-        traverse_cow_containers(counters_fn);
+        traverse_cow_containers(counters, counters_fn);
 
         traverse_ctr_cow_tree(
             commit_descriptor_->superblock()->history_root_id(),
@@ -593,36 +591,118 @@ public:
 
 
 
-    virtual void traverse_cow_containers(const BlockCounterCallbackFn& callback) {
-        traverse_ctr_cow_tree(commit_descriptor_->superblock()->directory_root_id(), callback);
+    virtual void traverse_cow_containers(SWMRBlockCounters<Profile>& counters, const BlockCounterCallbackFn& callback)
+    {
+        auto directory_root_id = commit_descriptor_->superblock()->directory_root_id();
+        traverse_ctr_cow_tree(directory_root_id, callback);
 
         auto iter = directory_ctr_->iterator();
         while (!iter->is_end())
         {
             auto root_id = iter->value();
-            traverse_ctr_cow_tree(root_id, callback);
+
+            if (counters.add_root(root_id)){
+                traverse_ctr_cow_tree(root_id, callback);
+            }
             iter->next();
         }
     }
 
+    bool contains_or_add(VisitedBlocks& vb, const BlockID& id)
+    {
+        if (!contains(vb, id)) {
+            vb.insert(id);
+            return false;
+        }
+        return true;
+    }
 
-    void traverse_ctr_cow_tree(const BlockID& root_block_id, const BlockCounterCallbackFn& callback) {
+    bool contains(VisitedBlocks& vb, const BlockID& id)
+    {
+        auto ii = vb.find(id);
+        return ii != vb.end();
+    }
+
+
+    virtual void traverse_cow_containers(VisitedBlocks& vb, GraphVisitor& visitor)
+    {
+        if (superblock_->directory_root_id().is_set())
+        {
+            traverse_ctr_cow_tree(superblock_->directory_root_id(), vb, visitor, GraphVisitor::CtrType::DIRECTORY);
+
+            auto iter = directory_ctr_->iterator();
+            while (!iter->is_end())
+            {
+                auto root_id = iter->value();
+                traverse_ctr_cow_tree(root_id, vb, visitor, GraphVisitor::CtrType::DATA);
+                iter->next();
+            }
+        }
+    }
+
+
+    void traverse_ctr_cow_tree(const BlockID& root_block_id, const BlockCounterCallbackFn& callback)
+    {
         auto ref = from_root_id(root_block_id, CtrID{});
         auto root_block = ref->root_block();
-        return traverse_block_tree(root_block, callback);
+        return traverse_block_tree(root_block, BlockID{}, callback);
+    }
+
+    void traverse_ctr_cow_tree(const BlockID& root_block_id, VisitedBlocks& vb, GraphVisitor& visitor, typename GraphVisitor::CtrType ctr_type)
+    {
+        bool updated = contains(vb, root_block_id);
+        if (ctr_type != GraphVisitor::CtrType::DATA || !updated)
+        {
+            auto ref = from_root_id(root_block_id, CtrID{});
+
+            visitor.start_ctr(ref, updated, ctr_type);
+
+            auto root_block = ref->root_block();
+            traverse_block_tree(root_block, vb, visitor);
+
+            visitor.end_ctr();
+        }
+    }
+
+
+    void traverse_block_tree(
+            CtrBlockPtr<ApiProfileT> block,
+            const BlockID& parent_id,
+            const BlockCounterCallbackFn& callback)
+    {
+        BlockID block_id;
+        block_id_holder_to(block->block_id(), block_id);
+
+        auto traverse = callback(block_id, parent_id);
+        if (traverse)
+        {
+            auto children = block->children();
+            for (size_t c = 0; c < children.size(); c++) {
+                traverse_block_tree(children[c], block_id, callback);
+            }
+        }
     }
 
     void traverse_block_tree(
             CtrBlockPtr<ApiProfileT> block,
-            const BlockCounterCallbackFn& callback)
+            VisitedBlocks& vb,
+            GraphVisitor& visitor)
     {
-        auto traverse = callback(block->block_id());
-        if (traverse) {
+        BlockID block_id;
+        block_id_holder_to(block->block_id(), block_id);
+
+        bool updated = contains_or_add(vb, block_id);
+        visitor.start_block(block, updated, store_->count_blocks(block_id));
+
+        if (!updated)
+        {
             auto children = block->children();
             for (size_t c = 0; c < children.size(); c++) {
-                traverse_block_tree(children[c], callback);
+                traverse_block_tree(children[c], vb, visitor);
             }
         }
+
+        visitor.end_block();
     }
 
     template<typename CtrName>

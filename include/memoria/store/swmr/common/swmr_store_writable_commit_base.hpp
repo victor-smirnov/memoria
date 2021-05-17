@@ -922,20 +922,20 @@ public:
 
     virtual void ref_block(const BlockID& block_id)
     {
-        std::cout << "refBlock " << block_id << std::endl;
+        //std::cout << "refBlock " << block_id << std::endl;
 
         return refcounter_delegate_->ref_block(block_id);
     }
 
     virtual void unref_block(const BlockID& block_id, BlockCleanupHandler on_zero) {
-        std::cout << "UnrefBlock " << block_id << std::endl;
+        //std::cout << "UnrefBlock " << block_id << std::endl;
 
         return refcounter_delegate_->unref_block(block_id, on_zero);
     }
 
     virtual void unref_ctr_root(const BlockID& root_block_id)
     {
-        std::cout << "UnrefCtrRoot " << root_block_id << std::endl;
+        //std::cout << "UnrefCtrRoot " << root_block_id << std::endl;
 
         return unref_block(root_block_id, [=]() {
             auto block = this->getBlock(root_block_id);

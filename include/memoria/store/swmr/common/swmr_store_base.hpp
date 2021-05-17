@@ -61,6 +61,8 @@ protected:
 
     using CommitDescriptorT = CommitDescriptor<Profile>;
     using BlockID = ProfileBlockID<Profile>;
+    using CtrID = ProfileCtrID<Profile>;
+    using ApiBlockID = ApiProfileBlockID<ApiProfileT>;
 
     using CounterStorageT = CounterStorage<Profile>;
     using RemovingBlockConsumerFn = std::function<void (const BlockID&, uint64_t, int32_t)>;
@@ -143,6 +145,32 @@ public:
     virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept = 0;
     virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) = 0;
 
+    std::vector<CommitDescriptorT*> all_commit_descriptors()
+    {
+        std::vector<CommitDescriptorT*> commit_descrs;
+
+        for (auto& pp: persistent_commits_) {
+            if (pp.second != former_head_ptr_ && pp.second != head_ptr_) {
+                commit_descrs.push_back(pp.second);
+            }
+        }
+
+        for (auto& descr: eviction_queue_) {
+            commit_descrs.push_back(&descr);
+        }
+
+        if (former_head_ptr_) {
+            commit_descrs.push_back(former_head_ptr_);
+        }
+
+        commit_descrs.push_back(head_ptr_);
+
+        std::sort(commit_descrs.begin(), commit_descrs.end(), [](const CommitDescriptorT* d1, const CommitDescriptorT* d2){
+            return d1->sequence_id() < d2->sequence_id();
+        });
+
+        return commit_descrs;
+    }
 
     virtual std::vector<CommitID> commits(bool persistent_only) override
     {
@@ -154,27 +182,7 @@ public:
         else {
             LockGuard lock(writer_mutex_);
 
-            std::vector<CommitDescriptorT*> commit_descrs;
-
-            for (auto& pp: persistent_commits_) {
-                if (pp.second != former_head_ptr_ && pp.second != head_ptr_) {
-                    commit_descrs.push_back(pp.second);
-                }
-            }
-
-            for (auto& descr: eviction_queue_) {
-                commit_descrs.push_back(&descr);
-            }
-
-            if (former_head_ptr_) {
-                commit_descrs.push_back(former_head_ptr_);
-            }
-
-            commit_descrs.push_back(head_ptr_);
-
-            std::sort(commit_descrs.begin(), commit_descrs.end(), [](const CommitDescriptorT* d1, const CommitDescriptorT* d2){
-                return d1->sequence_id() < d2->sequence_id();
-            });
+            std::vector<CommitDescriptorT*> commit_descrs = all_commit_descriptors();
 
             std::vector<CommitID> commits;
             for (const auto& descr: commit_descrs) {
@@ -548,7 +556,7 @@ public:
         }
     }
 
-    virtual uint64_t count_refs(const ApiProfileBlockID<ApiProfile<Profile>>& block_id) override
+    uint64_t count_refs(const ApiProfileBlockID<ApiProfile<Profile>>& block_id) override
     {
         LockGuard lock(writer_mutex_);
 
@@ -563,6 +571,54 @@ public:
         else {
             return 0;
         }
+    }
+
+    void traverse(SWMRStoreGraphVisitor<ApiProfileT>& visitor) override
+    {
+        LockGuard lock(writer_mutex_);
+
+        using VisitedBlocks = std::unordered_set<BlockID>;
+        using CtrType = typename SWMRStoreGraphVisitor<ApiProfileT>::CtrType;
+
+        VisitedBlocks visited_blocks;
+
+        visitor.start_graph();
+
+        auto commits = all_commit_descriptors();
+
+        std::unordered_set<BlockID> visited_nodes;
+
+        for (auto commit_descr: commits)
+        {
+            visitor.start_commit(commit_descr->commit_id(), commit_descr->sequence_id());
+
+            auto commit = do_open_readonly(commit_descr);
+            Superblock* sb = commit_descr->superblock();
+
+            if (sb->blockmap_root_id().is_set()) {
+                commit->traverse_ctr_cow_tree(sb->blockmap_root_id(), visited_blocks, visitor, CtrType::BLOCKMAP);
+            }
+
+            commit->traverse_ctr_cow_tree(sb->allocator_root_id(), visited_blocks, visitor, CtrType::ALLOCATOR);
+            commit->traverse_ctr_cow_tree(sb->history_root_id(), visited_blocks, visitor, CtrType::HISTORY);
+            commit->traverse_cow_containers(visited_blocks, visitor);
+
+            visitor.end_commit();
+        }
+
+        visitor.end_graph();
+    }
+
+    virtual U8String to_string(const ApiBlockID& block_id) override {
+        BlockID id;
+        block_id_holder_to(block_id, id);
+        return format_u8("{}", id);
+    }
+
+    uint64_t count_blocks(const BlockID& block_id)
+    {
+        auto ii = block_counters_.get(block_id);
+        return boost::get_optional_value_or(ii, 0ull);
     }
 };
 

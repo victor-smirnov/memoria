@@ -57,6 +57,9 @@ public:
 
     void set_superblock(Superblock* superblock) noexcept {
         superblock_ = superblock;
+
+        sequence_id_ = superblock_->sequence_id();
+        commit_id_   = superblock_->commit_id();
     }
 
     bool is_persistent() const noexcept {

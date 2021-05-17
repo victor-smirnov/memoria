@@ -96,7 +96,11 @@ public:
         return hi_ > other.hi_ || (hi_ == other.hi_ && lo_ >= other.lo_);
     }
 
-    bool isSet() const noexcept {
+    constexpr operator bool() const noexcept {
+        return hi_ != 0 || lo_ != 0;
+    }
+
+    constexpr bool isSet() const noexcept {
         return hi_ != 0 || lo_ != 0;
     }
 
@@ -117,11 +121,6 @@ public:
 
     std::string str() const {
         return to_u8().to_std_string();
-    }
-
-
-    operator bool() const noexcept {
-        return isSet();
     }
 
     uint64_t version() const noexcept {
