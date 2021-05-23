@@ -414,11 +414,18 @@ public:
 
     SelectResult select0(int64_t rank, int32_t level) const noexcept
     {
+        if (DebugCounter1 == 3) {
+            println("HERE!!");
+        }
+
         int32_t bm_size  = bitmap_level_size(size(), level);
         int32_t idx_size = index_level_size(bm_size);
 
         size_t bm_start = 0;
         int64_t sum{};
+
+        int64_t rank_tmp = rank;
+
         if (idx_size > 0)
         {
             const IndexType* idxs = this->index(level);
@@ -426,15 +433,18 @@ public:
             for (int32_t c = 0; c < idx_size; c++, bm_start += ValuesPerBranch)
             {
                 sum += idxs[c];
-                if (sum >= rank) {
+                if (sum >= rank) {                    
                     break;
+                }
+                else {
+                    rank_tmp -= idxs[c];
                 }
             }
         }
 
         const BitmapType* bitmap = this->symbols(level);
 
-        auto result = Select0FW(bitmap, bm_start, bm_size, rank);
+        auto result = Select0FW(bitmap, bm_start, bm_size, rank_tmp);
 
         return SelectResult{
             static_cast<int32_t>(result.local_pos()),

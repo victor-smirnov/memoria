@@ -35,6 +35,8 @@
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 #include <memoria/core/tools/span.hpp>
 
+#include <memoria/core/strings/format.hpp>
+
 namespace memoria {
 
 template <typename Profile>
@@ -173,5 +175,19 @@ void swap(memoria::AllocationMetadata<Profile>& one, memoria::AllocationMetadata
     one = two;
     two = tmp;
 }
+
+}
+
+namespace fmt {
+
+template <typename Profile>
+struct formatter<memoria::AllocationMetadata<Profile>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::AllocationMetadata<Profile>& alc, FormatContext& ctx) {
+        return format_to(ctx.out(), "[{}, {}, {}]", alc.position(), alc.size(), alc.level());
+    }
+};
 
 }

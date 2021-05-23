@@ -200,6 +200,19 @@ void SWMRStoreSnapshotTreeItem::expand()
         auto snp   = store_->open(snapshot_id_, false);
         auto names = snp->container_names();
 
+        UUID sp_names[] = {
+            UUID::parse("cc2cd24f-6518-4977-81d3-dad21d4f45cc"),
+            UUID::parse("a64d654b-ec9b-4ab7-870f-83816c8d0ce2"),
+            UUID::parse("0bc70e1f-adaf-4454-afda-7f6ac7104790"),
+            UUID::parse("177b946a-f700-421f-b5fc-0a177195b82f"),
+        };
+
+        for (auto name: sp_names){
+            if (snp->find(name)) {
+                children_.append(new SWMRStoreContainerTreeItem(store_, snapshot_id_, name, this, counter_provider_));
+            }
+        }
+
         for (auto name: names) {
             children_.append(new SWMRStoreContainerTreeItem(store_, snapshot_id_, name, this, counter_provider_));
         }

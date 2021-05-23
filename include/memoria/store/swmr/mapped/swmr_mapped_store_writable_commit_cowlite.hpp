@@ -118,16 +118,28 @@ public:
 
     virtual ResolvedBlock resolve_block(const BlockID& block_id) override
     {
+//        println("----- Reading block {} at {}", block_id, block_id.value() * BASIC_BLOCK_SIZE);
+
         BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value() * BASIC_BLOCK_SIZE);
         Shared* shared = shared_pool_.construct(block_id, block, 0);
         shared->set_allocator(this);
-        return {block_id.value(), SharedBlockConstPtr{shared}};
+        return {block_id.value() * BASIC_BLOCK_SIZE, SharedBlockConstPtr{shared}};
     }
 
 
     virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) override
     {
+//        if (at == 24) {
+//            int a = 0;
+//            a++;
+
+//            this->allocation_pool_.dump();
+//        }
+
         BlockID id{at};
+
+        //println("Allocating1 block {} at {}", id, id.value() * BASIC_BLOCK_SIZE);
+
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
         std::memset(block_addr, 0, size);
@@ -144,6 +156,8 @@ public:
 
     virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) override
     {
+        //println("Allocating2 block {} at {}", at, at * BASIC_BLOCK_SIZE);
+
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
         std::memcpy(block_addr, source, source->memory_block_size());

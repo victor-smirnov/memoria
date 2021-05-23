@@ -205,7 +205,7 @@ public:
         auto parent_allocation_map_ctr = parent_commit_->find(AllocationMapCtrID);
         parent_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(parent_allocation_map_ctr);
 
-        populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 1, 64);
+        populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 64, 192);
 
         auto superblock = allocate_superblock(
             parent_commit_descriptor->superblock(),
@@ -462,7 +462,9 @@ public:
 
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
             store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
-                auto snp = store_->do_open_writable(commit_descriptor, [&](const BlockID&, uint64_t block_file_pos, int32_t block_size){
+                //println("Opening commit for cleanup: {}", commit_descriptor->commit_id());
+                auto snp = store_->do_open_writable(commit_descriptor, [&](const BlockID& id, uint64_t block_file_pos, int32_t block_size){
+                    //println("Removing block {} at {}", id, block_file_pos);
                     evicting_blocks.append_value(AllocationMetadataT(
                         block_file_pos / BASIC_BLOCK_SIZE,
                         block_size / BASIC_BLOCK_SIZE,
@@ -526,6 +528,8 @@ public:
             }
 
             store_->finish_commit(Base::commit_descriptor_);
+
+            //allocation_map_ctr_->iterator()->dump();
 
             committed_ = true;
         }
@@ -790,25 +794,29 @@ public:
             int32_t target_level = level;
             int32_t target_desirable = desireable;
 
-            if (MMA_LIKELY(desireable > 1))
-            {
-                for (int32_t ll = ALLOCATION_MAP_LEVELS - 1; ll >= level; ll--)
-                {
-                    int64_t scale_factor = 1ll << (ll - level);
-                    int64_t ll_desirable = divUp(desireable, scale_factor);
-                    int64_t ll_required  = divUp(minimal_amount, scale_factor);
+            // Disabling the follwing code for the this time.
+            // Need better multilevel allocation.
 
-                    if (ranks[ll] >= ll_required && ll_desirable > 1)
-                    {
-                        target_level = ll;
-                        target_desirable = ranks[ll] >= ll_desirable ? ll_desirable : ranks[ll];
-                        break;
-                    }
-                }
-            }
+//            if (MMA_LIKELY(desireable > 1))
+//            {
+//                for (int32_t ll = ALLOCATION_MAP_LEVELS - 1; ll >= level; ll--)
+//                {
+//                    int64_t scale_factor = 1ll << (ll - level);
+//                    int64_t ll_desirable = divUp(desireable, scale_factor);
+//                    int64_t ll_required  = divUp(minimal_amount, scale_factor);
+
+//                    if (ranks[ll] >= ll_required && ll_desirable > 1)
+//                    {
+//                        target_level = ll;
+//                        target_desirable = ranks[ll] >= ll_desirable ? ll_desirable : ranks[ll];
+//                        break;
+//                    }
+//                }
+//            }
 
             auto& level_buffer = allocation_pool_.level_buffer(target_level);
 
+            // check the scale of position value across the pool!
             allocation_map_ctr->find_unallocated(
                 0, target_level, target_desirable, level_buffer
             );
@@ -839,7 +847,10 @@ public:
         {
             AllocationMetadataT allocation = available.tail();
 
+            // FIXME: <<SUPERBLOCK_ALLOCATION_LEVEL is not needed below
             uint64_t pos = (allocation.position() << SUPERBLOCK_ALLOCATION_LEVEL) * BASIC_BLOCK_SIZE;
+
+            //println("Allocating superblock at {} :: {}", allocation.position(), pos);
 
             Superblock* superblock = newSuperblock(pos);
             if (parent_sb)
@@ -1018,7 +1029,9 @@ public:
         int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
         int32_t level = CustomLog2(scale_factor);
 
+//        allocation_pool_.dump();
         Optional<AllocationMetadataT> allocation = allocation_pool_.allocate_one(level);
+//        allocation_pool_.dump();
 
         if (!allocation) {
             if (!allocator_initialization_mode_) {
@@ -1045,7 +1058,7 @@ public:
 
     virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID& ctr_id)
     {
-        check_updates_allowed();
+       check_updates_allowed();
 
         if (initial_size == -1)
         {
@@ -1054,7 +1067,10 @@ public:
 
         int32_t scale_factor = initial_size / BASIC_BLOCK_SIZE;
         int32_t level = CustomLog2(scale_factor);
+//        DebugCounter++;
+//        allocation_pool_.dump();
         Optional<AllocationMetadataT> allocation = allocation_pool_.allocate_one(level);
+//        allocation_pool_.dump();
 
         if (!allocation) {
             if (!allocator_initialization_mode_) {

@@ -26,7 +26,7 @@
 #include <string>
 #include <sstream>
 #include <memory>
-#include <ostream>
+#include <iostream>
 #include <functional>
 
 #include <fmt/format.h>
@@ -56,6 +56,33 @@ WhatInfo format_ex(const char* fmt, Args&&... args) {
     return WhatInfo(format_u8(fmt, std::forward<Args>(args)...));
 }
 
+template <typename... Args>
+std::ostream& println(const char* fmt_str, Args&&... args)
+{
+    std::cout << format_u8(fmt_str, std::forward<Args>(args)...) << std::endl;
+    return std::cout;
+}
+
+template <typename... Args>
+std::ostream& print(const char* fmt_str, Args&&... args)
+{
+    std::cout << format_u8(fmt_str, std::forward<Args>(args)...);
+    return std::cout;
+}
+
+template <typename... Args>
+std::ostream& print(std::ostream& out, const char* fmt_str, Args&&... args)
+{
+    out << format_u8(fmt_str, std::forward<Args>(args)...);
+    return out;
+}
+
+template <typename... Args>
+std::ostream& println(std::ostream& out, const char* fmt_str, Args&&... args)
+{
+    out << format_u8(fmt_str, std::forward<Args>(args)...) << std::endl;
+    return out;
+}
 
 }
 

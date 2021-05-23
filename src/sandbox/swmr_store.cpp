@@ -35,7 +35,7 @@ int main(void) {
         const char* file = "file.mma2";
 
         filesystem::remove(file);
-        auto store1 = create_lite_swmr_store(file, 16);
+        auto store1 = create_lite_swmr_store(file, 256);
 
         UUID ctr_id = UUID::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
 
@@ -57,7 +57,7 @@ int main(void) {
             int cnt = 0;
             int b0  = 0;
             int batch_size = 100;
-            int batches = 10;
+            int batches = 10000;
             while (cnt < batch_size * batches) {
                 auto snp1 = store1->begin();
                 auto ctr1 = find<CtrType>(snp1, ctr_id);

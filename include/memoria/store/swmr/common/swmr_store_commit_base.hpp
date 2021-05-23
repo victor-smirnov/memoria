@@ -301,7 +301,23 @@ public:
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id)
     {
-        auto root_id = getRootID(ctr_id);
+        BlockID root_id;
+        if (ctr_id == HistoryCtrID) {
+            root_id = superblock_->history_root_id();
+        }
+        else if (ctr_id == DirectoryCtrID) {
+            root_id = superblock_->directory_root_id();
+        }
+        else if (ctr_id == AllocationMapCtrID) {
+            root_id = superblock_->allocator_root_id();
+        }
+        else if (ctr_id == BlockMapCtrID) {
+            root_id = superblock_->blockmap_root_id();
+        }
+        else {
+            root_id = getRootID(ctr_id);
+        }
+
         if (root_id.is_set())
         {
             auto block = this->getBlock(root_id);

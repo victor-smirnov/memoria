@@ -99,6 +99,8 @@ class GraphvizDotWritingVisitor: public SWMRStoreGraphVisitor<CoreApiProfile<>> 
 
     std::unordered_map<U8String, U8String> id_remapping_;
 
+    std::unordered_set<U8String> same_rank_nodes_;
+
 public:
     GraphvizDotWritingVisitor(U8StringView file_name):
         file_name_(file_name),
@@ -123,14 +125,17 @@ public:
     }
 
     void start_graph() override {
-        file_ << "digraph {\n";
+        println(file_, "digraph {{");
     }
+
     void end_graph() override {
-        file_ << "}\n";
+        println(file_, "}}");
     }
 
     void start_commit(const CommitID& commit_id, const SequenceID& sequence_id) override
     {
+        same_rank_nodes_.clear();
+
         current_commit_seq_id_ = sequence_id;
 
         U8String id = format_u8("{}", commit_id);
@@ -143,10 +148,23 @@ public:
 
         nodes_[id] = std::move(style);
         node_stack_.push(id);
+
+        same_rank_nodes_.insert(id);
     }
 
     void end_commit() override {
         node_stack_.pop();
+
+        println(file_, "subgraph cluster_sg_{} {{", nodes_.size());
+        //println(file_, "rank = \"same\"");
+        //println(file_, "rankdir=\"TB\"");
+
+        for (const U8String& id: same_rank_nodes_)
+        {
+            println(file_, "\"{}\"", id);
+        }
+
+        println(file_, "}}");
     }
 
     U8String escape_angle_brackets(U8String text) {
@@ -187,6 +205,7 @@ public:
         file_ << "\"" << commit_id << "\" -> \"" << id << "\"\n";
 
         node_stack_.push(id);
+        same_rank_nodes_.insert(id);
     }
 
     void end_ctr() override {
@@ -208,6 +227,7 @@ public:
 
         nodes_[id] = std::move(style);
         node_stack_.push(id);
+        same_rank_nodes_.insert(id);
     }
 
     void end_block() override {

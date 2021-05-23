@@ -108,12 +108,13 @@ public:
         }
     }
 
-    void dump() const noexcept {
-        std::cout << "Allocation Pool :: Levels: " << Levels << std::endl;
+    void dump(std::ostream& out = std::cout) const noexcept
+    {
+        out << "Allocation Pool :: Levels: " << Levels << std::endl;
         for (int c = 0; c < Levels; c++) {
-            std::cout << "total(" << c << "): " << totals_[c] << std::endl;
+            out << "total(" << c << "): " << totals_[c] << std::endl;
             for (const auto& alc: levels_[c].span()) {
-                std::cout << "    " << alc << std::endl;
+                out << "    " << alc << std::endl;
             }
         }
     }
@@ -163,6 +164,10 @@ private:
                         totals_[level] += meta_ll.size();
 
                         totals_[ll] -= ll_remainder;
+
+                        if (avl_alc.size() == 0) {
+                            ++cc;
+                        }
 
                         break;
                     }
