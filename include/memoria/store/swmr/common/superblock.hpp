@@ -215,9 +215,10 @@ public:
     void build_superblock_description()
     {
         return set_description(
-            "MEMORIA SWMR MAPPED STORE. VERSION:{}; CommitID:{}, SequenceID:{}, SuperblockFilePos:{}, FileSize:{}, Status:{}, Counters:{}, Profile:{}",
+            "MEMORIA SWMR MAPPED STORE. VERSION:{}; CommitID:{}, SequenceID:{}, SuperblockFilePos:{}, FileSize:{}, Status:{}, Counters:{}, CounterAt:{}, Profile:{}",
             version_, commit_id_, sequence_id_, superblock_file_pos_,
             file_size_, (is_clean() ? "CLEAN" : "UNCLEAN"), global_block_counters_size_,
+                    global_block_counters_file_pos_,
                     TypeNameFactory<Profile>::name()
         );
     }

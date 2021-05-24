@@ -462,9 +462,7 @@ public:
 
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
             store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
-                //println("Opening commit for cleanup: {}", commit_descriptor->commit_id());
                 auto snp = store_->do_open_writable(commit_descriptor, [&](const BlockID& id, uint64_t block_file_pos, int32_t block_size){
-                    //println("Removing block {} at {}", id, block_file_pos);
                     evicting_blocks.append_value(AllocationMetadataT(
                         block_file_pos / BASIC_BLOCK_SIZE,
                         block_size / BASIC_BLOCK_SIZE,
@@ -528,8 +526,6 @@ public:
             }
 
             store_->finish_commit(Base::commit_descriptor_);
-
-            //allocation_map_ctr_->iterator()->dump();
 
             committed_ = true;
         }
@@ -933,21 +929,15 @@ public:
 
     virtual void ref_block(const BlockID& block_id)
     {
-        //std::cout << "refBlock " << block_id << std::endl;
-
         return refcounter_delegate_->ref_block(block_id);
     }
 
     virtual void unref_block(const BlockID& block_id, BlockCleanupHandler on_zero) {
-        //std::cout << "UnrefBlock " << block_id << std::endl;
-
         return refcounter_delegate_->unref_block(block_id, on_zero);
     }
 
     virtual void unref_ctr_root(const BlockID& root_block_id)
     {
-        //std::cout << "UnrefCtrRoot " << root_block_id << std::endl;
-
         return unref_block(root_block_id, [=]() {
             auto block = this->getBlock(root_block_id);
 
@@ -1029,9 +1019,7 @@ public:
         int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
         int32_t level = CustomLog2(scale_factor);
 
-//        allocation_pool_.dump();
         Optional<AllocationMetadataT> allocation = allocation_pool_.allocate_one(level);
-//        allocation_pool_.dump();
 
         if (!allocation) {
             if (!allocator_initialization_mode_) {
@@ -1067,10 +1055,8 @@ public:
 
         int32_t scale_factor = initial_size / BASIC_BLOCK_SIZE;
         int32_t level = CustomLog2(scale_factor);
-//        DebugCounter++;
-//        allocation_pool_.dump();
+
         Optional<AllocationMetadataT> allocation = allocation_pool_.allocate_one(level);
-//        allocation_pool_.dump();
 
         if (!allocation) {
             if (!allocator_initialization_mode_) {

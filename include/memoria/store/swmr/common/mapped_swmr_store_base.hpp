@@ -90,7 +90,7 @@ public:
             ).do_throw();
         }
 
-        if (sb0->commit_id().is_null() && sb0->commit_id().is_null()) {
+        if (sb0->commit_id().is_null() && sb1->commit_id().is_null()) {
             // the file was only partially initialized, continue
             // the process.
             return init_mapped_store();

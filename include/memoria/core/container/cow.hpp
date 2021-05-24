@@ -62,6 +62,10 @@ public:
     bool is_null() const noexcept {
         return !isSet();
     }
+
+    operator bool() const noexcept {
+        return (bool)holder_;
+    }
 };
 
 template <typename VH>

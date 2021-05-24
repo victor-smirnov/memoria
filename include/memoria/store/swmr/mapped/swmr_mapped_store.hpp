@@ -154,7 +154,8 @@ public:
         {
             LockGuard lock(writer_mutex_);
 
-            Superblock* sb0 = ptr_cast<Superblock>(buffer_.data());
+            auto sb_slot = head_ptr_->sequence_id() % 2;
+            Superblock* sb0 = ptr_cast<Superblock>(buffer_.data() + BASIC_BLOCK_SIZE * sb_slot);
 
             auto ctr_file_pos = sb0->global_block_counters_file_pos();
             CounterStorageT* ctr_storage = ptr_cast<CounterStorageT>(buffer_.data() + ctr_file_pos);
@@ -172,9 +173,9 @@ public:
             sb0->set_clean_status();
             sb0->build_superblock_description();
 
-            block_counters_.clear();
-
             flush_header();
+
+            block_counters_.clear();
 
             lock_->unlock();
             region_.flush();

@@ -218,7 +218,7 @@ public:
             if (MMA_UNLIKELY(head_ptr_->commit_id() == commit_id)) {
                 return open();
             }
-            else if (MMA_UNLIKELY(former_head_ptr_->commit_id() == commit_id)) {
+            else if (MMA_UNLIKELY(former_head_ptr_ && former_head_ptr_->commit_id() == commit_id)) {
                 return open_readonly(former_head_ptr_);
             }
 
@@ -292,8 +292,14 @@ public:
         check_if_open();
         if (former_head_ptr_)
         {
+            println("Rolling back to: {}", former_head_ptr_->commit_id());
+
             // decrementing block counters
-            auto ptr = do_open_writable(head_ptr_, [&](const BlockID& block_id, uint64_t, uint64_t){});
+            auto ptr = do_open_writable(head_ptr_, [&](const BlockID& block_id, uint64_t, uint64_t){
+                // no need to do anything here
+            });
+
+            // Decrementing counters
             ptr->remove_all_blocks();
 
             head_ptr_->superblock()->mark_for_rollback();
@@ -301,6 +307,8 @@ public:
 
             auto sb_slot = head_ptr_->superblock()->sequence_id() % 2;
             store_superblock(head_ptr_->superblock(), sb_slot);
+
+            flush_header();
 
             delete head_ptr_;
             head_ptr_ = former_head_ptr_;
