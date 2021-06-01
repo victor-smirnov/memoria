@@ -26,6 +26,8 @@
 #include <memoria/store/swmr/common/swmr_store_commit_descriptor.hpp>
 #include <memoria/store/swmr/common/swmr_store_counters.hpp>
 
+#include <memoria/store/swmr/common/swmr_store_datatypes.hpp>
+
 namespace memoria {
 
 // cc2cd24f-6518-4977-81d3-dad21d4f45cc
@@ -106,7 +108,7 @@ protected:
     using AllocationMapCtrType = AllocationMap;
     using AllocationMapCtr  = ICtrApi<AllocationMapCtrType, ApiProfileT>;
 
-    using HistoryCtrType    = Map<UUID, UBigInt>;
+    using HistoryCtrType    = Map<UUID, CommitMetadataDT<DataTypeFromProfile<ApiProfileT>>>;
     using HistoryCtr        = ICtrApi<HistoryCtrType, ApiProfileT>;
 
     static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
@@ -754,7 +756,7 @@ public:
         this->superblock_ = superblock;
     }
 
-    void for_each_history_entry(const std::function<void (CommitID, uint64_t, uint64_t)>& fn)
+    void for_each_history_entry(const std::function<void (const CommitID&, const CommitMetadata<ApiProfileT>&)>& fn)
     {
         init_history_ctr();
         auto scanner = history_ctr_->scanner();
@@ -762,11 +764,10 @@ public:
         bool has_next;
         do {
             for (size_t c = 0; c < scanner.keys().size(); c++) {
-                uint64_t value = scanner.values()[c];
+                const auto& meta = scanner.values()[c];
                 fn(
                     scanner.keys()[c],
-                    (value >> val(SWMRCommitStateMetadataBits::STATE_BITS)) * BASIC_BLOCK_SIZE,
-                    value & val(SWMRCommitStateMetadataBits::ALL_STATES_MASK)
+                    meta
                 );
             }
 

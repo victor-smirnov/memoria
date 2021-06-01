@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <memoria/core/memory/ptr_cast.hpp>
 
 #include <string.h>
+#include <cstring>
 #include <tuple>
 
 namespace memoria {
@@ -90,40 +91,40 @@ template <typename Type>
 struct FieldFactoryBase {
     template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field) {
-        memcpy(data.buf, &field, sizeof(Type));
+        std::memcpy(data.buf, &field, sizeof(Type));
         data.buf += sizeof(Type);
         data.total += sizeof(Type);
     }
 
     template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field) {
-        memcpy(&field, data.buf, sizeof(Type));
+        std::memcpy(&field, data.buf, sizeof(Type));
         data.buf += sizeof(Type);
     }
 
     template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field, int32_t count) {
-        memcpy(data.buf, &field, count*sizeof(Type));
+        std::memcpy(data.buf, &field, count*sizeof(Type));
         data.buf += count * sizeof(Type);
         data.total += count * sizeof(Type);
     }
 
     template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field, int32_t count) {
-        memcpy(&field, data.buf, count*sizeof(Type));
+        std::memcpy(&field, data.buf, count*sizeof(Type));
         data.buf += count*sizeof(Type);
     }
 
     template <typename SerializationData>
     static void serialize(SerializationData& data, const Type* field, int32_t count) {
-        memcpy(data.buf, field, count*sizeof(Type));
+        std::memcpy(data.buf, field, count*sizeof(Type));
         data.buf += count * sizeof(Type);
         data.total += count * sizeof(Type);
     }
 
     template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type* field, int32_t count) {
-        memcpy(field, data.buf, count*sizeof(Type));
+        std::memcpy(field, data.buf, count*sizeof(Type));
         data.buf += count*sizeof(Type);
     }
 };

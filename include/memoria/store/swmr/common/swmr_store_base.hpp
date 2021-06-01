@@ -21,6 +21,7 @@
 #include <memoria/store/swmr/common/swmr_store_writable_commit_base.hpp>
 
 #include <memoria/store/swmr/common/swmr_store_history_view.hpp>
+#include <memoria/store/swmr/common/swmr_store_history_tree.hpp>
 
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
@@ -81,13 +82,9 @@ protected:
     using LockGuard     = std::lock_guard<std::recursive_mutex>;
     using Superblock    = SWMRSuperblock<Profile>;
 
-    CommitDescriptorT* head_ptr_{};
-    CommitDescriptorT* former_head_ptr_{};
+    HistoryTree<Profile> history_tree_;
 
-    CommitDescriptorsList<Profile> eviction_queue_;
     std::unordered_set<CommitID> removing_persistent_commits_;
-
-    std::unordered_map<CommitID, CommitDescriptorT*> persistent_commits_;
 
     template <typename> friend class SWMRStoreReadonlyCommitBase;
     template <typename> friend class SWMRStoreWritableCommitBase;
@@ -99,33 +96,11 @@ protected:
     bool read_only_{false};
 
 public:
-    SWMRStoreBase() noexcept {}
-
-    virtual ~SWMRStoreBase() noexcept {
-        if (head_ptr_) {
-            delete head_ptr_;
-        }
-
-        if (former_head_ptr_) {
-            delete former_head_ptr_;
-        }
-
-        eviction_queue_.erase_and_dispose(
-            eviction_queue_.begin(),
-            eviction_queue_.end(),
-            [](CommitDescriptorT* commit_descr) noexcept {
-                delete commit_descr;
-            }
-        );
-
-        for (auto commit: persistent_commits_) {
-            if (commit.second != head_ptr_ && commit.second != former_head_ptr_) {
-                delete commit.second;
-            }
-        }
-
+    SWMRStoreBase() noexcept {
+        history_tree_.set_superblock_fn([&](uint64_t file_pos){
+            return this->get_superblock(file_pos * BASIC_BLOCK_SIZE);
+        });
     }
-
 
     virtual void close() override = 0;
 
@@ -144,26 +119,15 @@ public:
     virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr) = 0;
     virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept = 0;
     virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) = 0;
+    virtual Superblock* get_superblock(uint64_t file_pos) = 0;
 
     std::vector<CommitDescriptorT*> all_commit_descriptors()
     {
         std::vector<CommitDescriptorT*> commit_descrs;
 
-        for (auto& pp: persistent_commits_) {
-            if (pp.second != former_head_ptr_ && pp.second != head_ptr_) {
-                commit_descrs.push_back(pp.second);
-            }
-        }
-
-        for (auto& descr: eviction_queue_) {
-            commit_descrs.push_back(&descr);
-        }
-
-        if (former_head_ptr_) {
-            commit_descrs.push_back(former_head_ptr_);
-        }
-
-        commit_descrs.push_back(head_ptr_);
+        history_tree_.traverse_tree_preorder([&](CommitDescriptorT* descr){
+            commit_descrs.push_back(descr);
+        });
 
         std::sort(commit_descrs.begin(), commit_descrs.end(), [](const CommitDescriptorT* d1, const CommitDescriptorT* d2){
             return d1->sequence_id() < d2->sequence_id();
@@ -198,9 +162,11 @@ public:
         LockGuard lock(reader_mutex_);
         std::vector<CommitID> commits;
 
-        for (const auto& descr: persistent_commits_) {
-            commits.push_back(descr.first);
-        }
+        history_tree_.traverse_tree_preorder([&](CommitDescriptorT* descr){
+            if (descr->is_persistent()) {
+                commits.push_back(descr->commit_id());
+            }
+        });
 
         return std::move(commits);
     }
@@ -215,26 +181,12 @@ public:
         else {
             LockGuard lock(writer_mutex_);
 
-            if (MMA_UNLIKELY(head_ptr_->commit_id() == commit_id)) {
-                return open();
-            }
-            else if (MMA_UNLIKELY(former_head_ptr_ && former_head_ptr_->commit_id() == commit_id)) {
-                return open_readonly(former_head_ptr_);
-            }
+            auto commit = history_tree_.get(commit_id);
 
-            auto ii = persistent_commits_.find(commit_id);
-            if (ii != persistent_commits_.end())
-            {
-                return do_open_readonly(ii->second);
+            if (commit) {
+                return open_readonly(commit.get());
             }
             else {
-                for (CommitDescriptorT& descr: eviction_queue_) {
-                    if (descr.commit_id() == commit_id)
-                    {
-                        return do_open_readonly(&descr);
-                    }
-                }
-
                 make_generic_error_with_source(MA_SRC, "Can't find commit {}", commit_id).do_throw();
             }
         }
@@ -244,17 +196,16 @@ public:
     {
         LockGuard lock(reader_mutex_);
 
-        if (MMA_UNLIKELY(head_ptr_->commit_id() == commit_id)) {
-            return open();
-        }
-        else if (MMA_UNLIKELY(former_head_ptr_->superblock()->commit_id() == commit_id)) {
-            return open_readonly(former_head_ptr_);
-        }
+        auto commit = history_tree_.get(commit_id);
 
-        auto ii = persistent_commits_.find(commit_id);
-        if (ii != persistent_commits_.end())
+        if (commit)
         {
-            return do_open_readonly(ii->second);
+            if (commit.get()->is_persistent()) {
+                return open_readonly(commit.get());
+            }
+            else {
+                make_generic_error_with_source(MA_SRC, "Requested commit {} is not persistent", commit_id).do_throw();
+            }
         }
         else {
             make_generic_error_with_source(MA_SRC, "Can't find commit {}", commit_id).do_throw();
@@ -268,7 +219,7 @@ public:
         check_if_open();
 
         LockGuard lock(reader_mutex_);
-        return do_open_readonly(head_ptr_);
+        return do_open_readonly(history_tree_.last_commit());
     }
 
     virtual bool drop_commit(const CommitID& commit_id) override {
@@ -281,7 +232,7 @@ public:
     }
 
     virtual bool can_rollback_last_commit() noexcept override {
-        return (!read_only_) && former_head_ptr_ != nullptr;
+        return (!read_only_) && history_tree_.can_rollback_last_commit();
     }
 
     virtual void rollback_last_commit() override
@@ -290,29 +241,32 @@ public:
         LockGuard lock(writer_mutex_);
 
         check_if_open();
-        if (former_head_ptr_)
+
+        CommitDescriptorT* former_head_ptr = history_tree_.previous_last_commit();
+
+        if (former_head_ptr)
         {
-            println("Rolling back to: {}", former_head_ptr_->commit_id());
+            CommitDescriptorT* head_ptr = history_tree_.last_commit();
+
+            println("Rolling back to: {}", former_head_ptr->commit_id());
 
             // decrementing block counters
-            auto ptr = do_open_writable(head_ptr_, [&](const BlockID& block_id, uint64_t, uint64_t){
+            auto ptr = do_open_writable(head_ptr, [&](const BlockID& block_id, uint64_t, uint64_t){
                 // no need to do anything here
             });
 
             // Decrementing counters
             ptr->remove_all_blocks();
 
-            head_ptr_->superblock()->mark_for_rollback();
-            head_ptr_->superblock()->build_superblock_description();
+            head_ptr->superblock()->mark_for_rollback();
+            head_ptr->superblock()->build_superblock_description();
 
-            auto sb_slot = head_ptr_->superblock()->sequence_id() % 2;
-            store_superblock(head_ptr_->superblock(), sb_slot);
+            auto sb_slot = head_ptr->superblock()->sequence_id() % 2;
+            store_superblock(head_ptr->superblock(), sb_slot);
 
             flush_header();
 
-            delete head_ptr_;
-            head_ptr_ = former_head_ptr_;
-            former_head_ptr_ = nullptr;
+            history_tree_.do_rollback_last_commit();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Can't rollback the last commit").do_throw();
@@ -331,7 +285,7 @@ public:
         try {
             std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>();
 
-            SWMRWritableCommitPtr ptr = do_create_writable(head_ptr_, commit_descriptor.get());
+            SWMRWritableCommitPtr ptr = do_create_writable(history_tree_.last_commit(), commit_descriptor.get());
 
             ptr->finish_commit_opening();
 
@@ -355,17 +309,7 @@ public:
 
         cleanup_eviction_queue();
 
-        if (former_head_ptr_ && !former_head_ptr_->is_persistent()) {
-            eviction_queue_.push_back(*former_head_ptr_);
-        }
-
-        former_head_ptr_ = head_ptr_;
-        head_ptr_ = commit_descriptor;
-
-        if (commit_descriptor->is_persistent()) {
-            auto commit_id = commit_descriptor->superblock()->commit_id();
-            this->persistent_commits_[commit_id] = commit_descriptor;
-        }
+        history_tree_.attach_commit(commit_descriptor);
 
         current_writer_.reset();
 
@@ -380,7 +324,7 @@ public:
         check_if_open();
 
         LockGuard lock(reader_mutex_);
-        auto head = do_open_readonly(head_ptr_);
+        auto head = do_open_readonly(history_tree_.last_commit());
         return MakeShared<SWMRMappedStoreHistoryView<Profile>>(self_ptr(), std::move(head));
     }
 
@@ -403,41 +347,10 @@ public:
     ){
         std::vector<SWMRReadOnlyCommitPtr> commits;
 
-        for (CommitDescriptorT& commit: eviction_queue_) {
-            auto ptr = do_open_readonly(&commit);
-
-            if ((!from) || (from && from.get() < ptr->sequence_id())) {
-                commits.push_back(ptr);
-            }
-        }
-
-        for (auto pair: persistent_commits_)
-        {
-            if (pair.second->commit_id() != former_head_ptr_->commit_id() && pair.second->commit_id() != head_ptr_->commit_id())
-            {
-                auto ptr = do_open_readonly(pair.second);
-
-                if ((!from) || (from && from.get() < ptr->sequence_id())) {
-                    commits.push_back(ptr);
-                }
-            }
-        }
-
-        if (former_head_ptr_) {
-            auto ptr = do_open_readonly(former_head_ptr_);
-
-            if ((!from) || (from && from.get() < ptr->sequence_id())) {
-                commits.push_back(ptr);
-            }
-        }
-
-        if (head_ptr_) {
-            auto ptr = do_open_readonly(head_ptr_);
-
-            if ((!from) || (from && from.get() < ptr->sequence_id())) {
-                commits.push_back(ptr);
-            }
-        }
+        history_tree_.traverse_tree_preorder([&](CommitDescriptorT* descr){
+            auto ptr = do_open_readonly(descr);
+            commits.push_back(ptr);
+        });
 
         std::sort(commits.begin(), commits.end(), [&](const auto& one, const auto& two) -> bool {
             return one->sequence_id() < two->sequence_id();
@@ -538,19 +451,13 @@ public:
     }
 
     void for_all_evicting_commits(std::function<void (CommitDescriptorT*)> fn) {
-        for (auto& descr: eviction_queue_) {
+        for (auto& descr: history_tree_.eviction_queue()) {
             fn(&descr);
         }
     }
 
     void cleanup_eviction_queue() {
-        eviction_queue_.erase_and_dispose(
-            eviction_queue_.begin(),
-            eviction_queue_.end(),
-            [](CommitDescriptorT* commit_descr) noexcept {
-                delete commit_descr;
-            }
-        );
+        history_tree_.cleanup_eviction_queue();
     }
 
     static bool is_my_block(const uint8_t* mem_block) noexcept {
@@ -627,6 +534,10 @@ public:
     {
         auto ii = block_counters_.get(block_id);
         return boost::get_optional_value_or(ii, 0ull);
+    }
+
+    HistoryTree<Profile>& history_tree() noexcept {
+        return history_tree_;
     }
 };
 

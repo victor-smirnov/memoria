@@ -124,7 +124,11 @@ LDTypeDeclarationView::ParamsVector* LDTypeDeclarationView::ensure_params_capaci
     TypeDeclState* state = this->state_mutable();
     if (!state->type_params)
     {
-        state->type_params = allocate<ParamsVector>(doc_->arena_.make_mutable(), capacity, 0);
+        auto ptr = allocate<ParamsVector>(doc_->arena_.make_mutable(), capacity, 0);
+
+        state = this->state_mutable();
+        state->type_params = ptr;
+
         return state->type_params.get_mutable(&doc_->arena_);
     }
 
@@ -157,7 +161,11 @@ LDTypeDeclarationView::ArgsVector* LDTypeDeclarationView::ensure_args_capacity(s
     TypeDeclState* state = this->state_mutable();
     if (!state->ctr_args)
     {
-        state->ctr_args = allocate<ArgsVector>(doc_->arena_.make_mutable(), capacity, 0);
+        auto ptr = allocate<ArgsVector>(doc_->arena_.make_mutable(), capacity, 0);
+
+        state = this->state_mutable();
+        state->ctr_args = ptr;
+
         return state->ctr_args.get_mutable(&doc_->arena_);
     }
 

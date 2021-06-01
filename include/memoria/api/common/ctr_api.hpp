@@ -92,4 +92,9 @@ template void ICtrApi<CtrName, ApiProfile<Profile>>::init_profile_metadata<Profi
 template struct ICtrApi<CtrName, ApiProfile<Profile>>;  \
 template void ICtrApi<CtrName, ApiProfile<Profile>>::init_profile_metadata<Profile>();
 
+template <typename T, typename ProfileT>
+void InitCtrMetadata() {
+    ICtrApi<T, ApiProfile<ProfileT>>::template init_profile_metadata<ProfileT>();
+}
+
 }

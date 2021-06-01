@@ -16,6 +16,8 @@
 #include <memoria/profiles/impl/cow_lite_profile.hpp>
 #include <memoria/store/swmr/mapped/swmr_mapped_store.hpp>
 
+
+
 namespace memoria {
 
 using Profile = CowLiteProfile<>;
@@ -37,6 +39,7 @@ struct Initializer {
 };
 
 }
+
 
 void InitLiteSWMRStore() {
     Initializer<Profile> init0;

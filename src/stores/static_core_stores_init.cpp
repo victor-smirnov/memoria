@@ -18,6 +18,8 @@
 namespace memoria {
 
 void InitMemoriaStoresExplicit() {
+    InitCoreApiSWMRDatatypes();
+
     InitNoCowInMemStore();
     InitCoWInMemStore();
     InitSWMRStore();

@@ -1,4 +1,4 @@
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-//#define BOOST_SPIRIT_X3_DEBUG 1
+//#define BOOST_SPIRIT_QI_DEBUG
 
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
@@ -36,6 +36,7 @@
 //#include <boost/spirit/home/x3/char/unicode.hpp>
 
 #include <boost/config/warning_disable.hpp>
+
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_int.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
@@ -43,6 +44,15 @@
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
+
+
+#include <boost/spirit/include/qi_operator.hpp>
+#include <boost/spirit/include/qi_char.hpp>
+#include <boost/spirit/include/qi_string.hpp>
+#include <boost/spirit/include/qi_numeric.hpp>
+#include <boost/spirit/include/qi_auxiliary.hpp>
+#include <boost/spirit/include/qi_nonterminal.hpp>
+#include <boost/spirit/include/qi_action.hpp>
 
 #include <boost/variant/recursive_variant.hpp>
 #include <boost/foreach.hpp>
@@ -571,6 +581,10 @@ struct SDNParser : qi::grammar<Iterator, LDDocument(), qi::space_type>
 
         standalone_type_decl = type_declaration;
         standalone_sdn_value = sdn_value;
+
+
+        BOOST_SPIRIT_DEBUG_NODE(sdn_document);
+        BOOST_SPIRIT_DEBUG_NODE(type_declaration);
     }
 
     qi::real_parser<double, qi::strict_real_policies<double>> strict_double;

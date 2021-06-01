@@ -1,4 +1,5 @@
-// Copyright 2011-2021 Victor Smirnov
+
+// Copyright 2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +13,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
+#include <memoria/containers/map/map_impl.hpp>
 
+#include <memoria/store/swmr/common/swmr_store_datatypes.hpp>
 
-#pragma once
-
-#include <memoria/core/types.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 namespace memoria {
 
-void InitCoreApiSWMRDatatypes();
+using Profile = CowLiteProfile<>;
+using ApiProfileT = ApiProfile<Profile>;
 
-void InitNoCowInMemStore();
-void InitCoWInMemStore();
-void InitSWMRStore();
-void InitLiteSWMRStore();
-void InitLiteRawSWMRStore();
-void InitLMDBStore();
+using CommitMetadata_DT = CommitMetadataDT<DataTypeFromProfile<ApiProfileT>>;
+using CtrName  = Map<UUID, CommitMetadata_DT>;
 
-
-void InitMemoriaStoresExplicit();
+MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
 
 }
+

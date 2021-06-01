@@ -51,6 +51,24 @@ struct Boolean   {};
 struct UInt64CowBlockID {};
 struct UUIDCowBlockID {};
 
+template <typename ProfileDT> struct ProfileFromDataTypeTF;
+template <typename Profile> struct DataTypeFromProfileTF;
+
+struct CoreApiProfileDT {};
+
+template <>
+struct ProfileFromDataTypeTF<CoreApiProfileDT>: HasType<CoreApiProfile<>> {};
+
+template <>
+struct DataTypeFromProfileTF<CoreApiProfile<>>: HasType<CoreApiProfileDT> {};
+
+template <typename DT>
+using ProfileFromDataType = typename ProfileFromDataTypeTF<DT>::Type;
+
+template <typename DT>
+using DataTypeFromProfile = typename DataTypeFromProfileTF<DT>::Type;
+
+
 class Decimal {
     bool default_;
     short precision_;
@@ -156,10 +174,13 @@ template <>
 struct TypeHash<Boolean>: UInt64Value<37>   {};
 
 template <>
-struct TypeHash<BigDecimal>: UInt64Value<38>{};
+struct TypeHash<BigDecimal>: UInt64Value<38> {};
 
 template <>
-struct TypeHash<Decimal>: UInt64Value<39>{};
+struct TypeHash<Decimal>: UInt64Value<39> {};
+
+template <>
+struct TypeHash<CoreApiProfileDT>: UInt64Value<40> {};
 
 
 }

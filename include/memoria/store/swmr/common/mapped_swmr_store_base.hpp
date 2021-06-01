@@ -32,12 +32,9 @@ protected:
 
     using Base::BASIC_BLOCK_SIZE;
 
-    using Base::head_ptr_;
-    using Base::former_head_ptr_;
+    using Base::history_tree_;
     using Base::do_open_readonly;
-    using Base::eviction_queue_;
     using Base::block_counters_;
-    using Base::persistent_commits_;
     using Base::writer_mutex_;
     using Base::do_create_writable;
     using Base::do_create_writable_for_init;
@@ -53,7 +50,7 @@ public:
         std::memcpy(buffer_.data() + sb_slot * BASIC_BLOCK_SIZE, superblock, BASIC_BLOCK_SIZE);
     }
 
-    Superblock* get_superblock(uint64_t file_pos) noexcept {
+    Superblock* get_superblock(uint64_t file_pos) noexcept override {
         return ptr_cast<Superblock>(buffer_.data() + file_pos);
     }
 
@@ -96,28 +93,31 @@ public:
             return init_mapped_store();
         }
 
+        std::unique_ptr<CommitDescriptorT> head_ptr;
+        std::unique_ptr<CommitDescriptorT> former_head_ptr;
+
         if (sb0->sequence_id() > sb1->sequence_id())
         {
-            head_ptr_ = new CommitDescriptorT(get_superblock(sb0->superblock_file_pos()));
+            head_ptr = std::make_unique<CommitDescriptorT>(get_superblock(sb0->superblock_file_pos()));
 
             if (sb1->commit_id().is_set())
             {
-                former_head_ptr_ = new CommitDescriptorT(get_superblock(sb1->superblock_file_pos()));
+                former_head_ptr = std::make_unique<CommitDescriptorT>(get_superblock(sb1->superblock_file_pos()));
             }
         }
         else {
-            head_ptr_ = new CommitDescriptorT(get_superblock(sb1->superblock_file_pos()));
+            head_ptr = std::make_unique<CommitDescriptorT>(get_superblock(sb1->superblock_file_pos()));
 
             if (sb0->commit_id().is_set())
             {
-                former_head_ptr_ = new CommitDescriptorT(get_superblock(sb0->superblock_file_pos()));
+                former_head_ptr = std::make_unique<CommitDescriptorT>(get_superblock(sb0->superblock_file_pos()));
             }
         }
 
-        if (head_ptr_->superblock()->file_size() != buffer_.size()) {
+        if (head_ptr->superblock()->file_size() != buffer_.size()) {
             MEMORIA_MAKE_GENERIC_ERROR(
                 "SWMR Store file size mismatch with header: {} {}",
-                head_ptr_->superblock()->file_size(), buffer_.size()
+                head_ptr->superblock()->file_size(), buffer_.size()
             ).do_throw();
         }
 
@@ -125,37 +125,20 @@ public:
         // Read snapshot history and
         // preload all transient snapshots into the
         // eviction queue
-        auto ptr = do_open_readonly(head_ptr_);
+        auto ptr = do_open_readonly(head_ptr.get());
 
-        uint64_t head_pos = head_ptr_->superblock()->superblock_file_pos();
+        using MetaT = std::pair<CommitID, CommitMetadata<ApiProfile<Profile>>>;
+        std::vector<MetaT> metas;
 
-        uint64_t former_head_pos{};
-        if (former_head_ptr_) {
-            former_head_pos = former_head_ptr_->superblock()->superblock_file_pos();
-        }
-
-        ptr->for_each_history_entry([&](const auto& commit_id, uint64_t superblock_pos, uint64_t metadata_bits) {
-            if ((metadata_bits & val(SWMRCommitStateMetadataBits::PERSISTENT)) == 0)
-            {
-                // transient commit
-                if (superblock_pos != former_head_pos && superblock_pos != head_pos)
-                {
-                    Superblock* superblock = ptr_cast<Superblock>(buffer_.data() + superblock_pos);
-                    CommitDescriptorT* commit_descr = new CommitDescriptorT(superblock);
-                    eviction_queue_.push_back(*commit_descr);
-                }
-            }
-            else {
-                Superblock* superblock = ptr_cast<Superblock>(buffer_.data() + superblock_pos);
-                CommitDescriptorT* commit_descr = new CommitDescriptorT(superblock);
-                commit_descr->set_persistent(true);
-                persistent_commits_[commit_id] = commit_descr;
-            }
+        ptr->for_each_history_entry([&](const auto& commit_id, const auto& commit_meta) {
+            metas.push_back(MetaT(commit_id, commit_meta));
         });
+
+        history_tree_.load(metas, head_ptr->commit_id(), former_head_ptr ? former_head_ptr->commit_id() : CommitID{});
 
         if (!read_only_)
         {
-            if (head_ptr_->superblock()->is_clean()) {
+            if (head_ptr->superblock()->is_clean()) {
                 read_block_counters();
             }
             else {
@@ -166,8 +149,10 @@ public:
 
     void read_block_counters()
     {
-        auto ctr_file_pos = head_ptr_->superblock()->global_block_counters_file_pos();
-        auto size = head_ptr_->superblock()->global_block_counters_size();
+        CommitDescriptorT* head_ptr = history_tree_.last_commit();
+
+        auto ctr_file_pos = head_ptr->superblock()->global_block_counters_file_pos();
+        auto size = head_ptr->superblock()->global_block_counters_size();
         const CounterStorageT* ctr_storage = ptr_cast<const CounterStorageT>(buffer_.data() + ctr_file_pos);
 
         for (uint64_t c = 0; c < size; c++)
@@ -205,7 +190,7 @@ public:
         auto ptr = do_create_writable_for_init(commit_descriptor_ptr.release());
 
         ptr->finish_store_initialization();
-        head_ptr_ = head_ptr;
+        history_tree_.init_store(head_ptr);
     }
 
 

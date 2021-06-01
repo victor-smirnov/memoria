@@ -33,16 +33,6 @@ enum class SWMRStoreStatus {
     UNCLEAN, CLEAN
 };
 
-enum class SWMRCommitStateMetadataBits: uint64_t {
-    PERSISTENT = 1,
-    STATE_BITS = 8,
-    ALL_STATES_MASK = PERSISTENT
-};
-
-static inline constexpr uint64_t val(SWMRCommitStateMetadataBits bits) {
-    return static_cast<uint64_t>(bits);
-}
-
 template <typename Profile>
 class SWMRSuperblock {
 public:

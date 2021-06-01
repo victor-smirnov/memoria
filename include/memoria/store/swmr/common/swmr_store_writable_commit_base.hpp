@@ -198,6 +198,8 @@ public:
 
     void init_commit(CommitDescriptorT* parent_commit_descriptor)
     {
+        commit_descriptor_->set_parent(parent_commit_descriptor);
+
         auto parent_commit = store_->do_open_readonly(parent_commit_descriptor);
 
         parent_commit_ = parent_commit;
@@ -444,20 +446,34 @@ public:
         {
             flush_open_containers();
 
-            store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
-                CommitID commit_id = commit_descriptor->superblock()->commit_id();
-                history_ctr_->remove_key(commit_id);
+            store_->history_tree().prepare_eviction([&](const auto& update_op){
+                if (update_op.reparent)
+                {
+                    history_ctr_->with_value(update_op.commit_id, [&](auto value) {
+                        using ResultT = std::decay_t<decltype(value)>;
+                        auto vv = value.get().view();
+                        vv.set_parent_commit_id(update_op.new_parent_id);
+                        return ResultT{vv};
+                    });
+                }
+                else {
+                    history_ctr_->remove_key(update_op.commit_id);
+                }
             });
 
+            // FIXME: can history_ctr_ be null here?
             if (history_ctr_)
             {
-                uint64_t commit_data = (superblock_->superblock_file_pos() / BASIC_BLOCK_SIZE) << val(SWMRCommitStateMetadataBits::STATE_BITS);
+                CommitMetadata<ApiProfileT> meta;
 
-                if (is_persistent()) {
-                    commit_data |= val(SWMRCommitStateMetadataBits::PERSISTENT);
+                uint64_t sb_file_pos = (superblock_->superblock_file_pos() / BASIC_BLOCK_SIZE);
+                meta.set_superblock_file_pos(sb_file_pos);
+                meta.set_persistent(is_persistent());
+                if (parent_commit_) {
+                    meta.set_parent_commit_id(parent_commit_->commit_id());
                 }
 
-                history_ctr_->assign_key(superblock_->commit_id(), commit_data);
+                history_ctr_->assign_key(superblock_->commit_id(), meta);
             }
 
             ArenaBuffer<AllocationMetadataT> evicting_blocks;

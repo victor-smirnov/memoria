@@ -44,7 +44,7 @@ public:
     }
 
     const T* data() const {
-        return pkd_buf_->template get<T>(DataBlock);
+        return pkd_buf_->template get<const T>(DataBlock);
     }
 
     static VoidResult allocateEmpty(PkdStruct* alloc) noexcept {

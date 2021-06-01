@@ -13,43 +13,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/store/swmr/common/allocation_pool.hpp>
-#include <memoria/profiles/impl/cow_lite_profile.hpp>
-#include <memoria/profiles/core_api/core_api_profile.hpp>
-
+#include <memoria/core/linked/document/linked_document.hpp>
 
 #include <iostream>
 
 using namespace memoria;
 
-using Profile = ApiProfile<CowLiteProfile<>>;
 
-using AlcPool = AllocationPool<Profile, 7>;
-using AlcMeta = AllocationMetadata<Profile>;
+namespace memoria {
+    void InitCoreLDDatatypes();
+}
 
 int main(void) {
+    InitCoreLDDatatypes();
+
     try {
-        AlcPool pool;
+        LDDocument doc = LDDocument::parse_type_decl("Map<UUID, CommitMetadataDT<CoreApiProfile>>");
 
-        AlcMeta meta(20, 1, 2);
+        auto td = doc.value().as_type_decl();
 
-        pool.add(meta);
+        println("params: {}", td.is_parametric());
 
-        pool.dump();
+        auto p2 = td.get_type_declration(1);
 
-        auto alc1 = pool.allocate_one(0).get();
-//        auto alc2 = pool.allocate_one(0).get();
-//        auto alc3 = pool.allocate_one(0).get();
-//        auto alc4 = pool.allocate_one(0).get();
+        println("params: {}", p2.is_parametric());
 
-        //println("{} {} {} {}", alc1, alc2, alc3, alc4);
-
-        println("{}", alc1);
-
-        pool.dump();
-    }
-    catch (const MemoriaError& ee) {
-        ee.describe(std::cout);
+        println("{}", p2.to_standard_string());
     }
     catch (const MemoriaThrowable& ee) {
         ee.dump(std::cout);

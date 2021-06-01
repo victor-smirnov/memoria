@@ -23,6 +23,7 @@
 #include <boost/intrusive/list.hpp>
 
 #include <atomic>
+#include <unordered_set>
 
 namespace memoria {
 
@@ -33,19 +34,34 @@ class CommitDescriptor: public boost::intrusive::list_base_hook<> {
     using CommitID   = typename Superblock::CommitID;
     using SequenceID   = typename Superblock::SequenceID;
 
+    using Children = std::unordered_set<CommitDescriptor*>;
+
+public:
+
+    using ChildIterator = typename Children::iterator;
+    using ConstChildIterator = typename Children::const_iterator;
+
+private:
+
     std::atomic<int32_t> uses_{};
     Superblock* superblock_;
     bool persistent_{false};
     SequenceID sequence_id_{};
     CommitID commit_id_{};
 
+    CommitDescriptor* parent_;
+
+    Children children_;
+
 public:
     CommitDescriptor() noexcept:
-        superblock_(nullptr)
+        superblock_(),
+        parent_()
     {}
 
     CommitDescriptor(Superblock* superblock) noexcept:
-        superblock_(superblock)
+        superblock_(superblock),
+        parent_()
     {
         sequence_id_ = superblock_->sequence_id();
         commit_id_   = superblock_->commit_id();
@@ -53,6 +69,14 @@ public:
 
     Superblock* superblock() noexcept {
         return superblock_;
+    }
+
+    CommitDescriptor* parent() const noexcept {
+        return parent_;
+    }
+
+    void set_parent(CommitDescriptor* parent) noexcept {
+        parent_ = parent;
     }
 
     void set_superblock(Superblock* superblock) noexcept {
@@ -88,6 +112,14 @@ public:
 
     const CommitID& commit_id() const noexcept {
         return commit_id_;
+    }
+
+    std::unordered_set<CommitDescriptor*>& children() noexcept {
+        return children_;
+    }
+
+    const std::unordered_set<CommitDescriptor*>& children() const noexcept {
+        return children_;
     }
 };
 

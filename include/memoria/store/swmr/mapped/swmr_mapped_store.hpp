@@ -69,8 +69,7 @@ protected:
     using Base::init_mapped_store;
     using Base::buffer_;
     using Base::writer_mutex_;
-    using Base::head_ptr_;
-    using Base::former_head_ptr_;
+    using Base::history_tree_;
     using Base::read_only_;
 
     using Base::HEADER_SIZE;
@@ -150,11 +149,12 @@ public:
 
     virtual void close() override
     {
-        if (file_ && head_ptr_ && !read_only_)
+        CommitDescriptorT* head_ptr = history_tree_.last_commit();
+        if (file_ && head_ptr && !read_only_)
         {
             LockGuard lock(writer_mutex_);
 
-            auto sb_slot = head_ptr_->sequence_id() % 2;
+            auto sb_slot = head_ptr->sequence_id() % 2;
             Superblock* sb0 = ptr_cast<Superblock>(buffer_.data() + BASIC_BLOCK_SIZE * sb_slot);
 
             auto ctr_file_pos = sb0->global_block_counters_file_pos();

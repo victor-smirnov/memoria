@@ -357,7 +357,6 @@ struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
 {
     using Parameters = TL<>;
 
-    static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = true;
 
     static void create_signature(SBuf& buf, const Decimal& obj)
@@ -385,7 +384,6 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
     using Parameters = TL<>;
 
     static constexpr bool isDataType          = true;
-    static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = true;
 
     static void create_signature(SBuf& buf, const Decimal& obj)
@@ -432,6 +430,25 @@ struct DataTypeTraits<CowBlockID<UUID>>: FixedSizeDataTypeTraits<CowBlockID<UUID
         buf << "UUIDCowBlockID";
     }
 };
+
+
+template <>
+struct DataTypeTraits<CoreApiProfileDT>: DataTypeTraitsBase<CoreApiProfileDT>
+{
+    using Parameters = TL<>;
+
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const CoreApiProfileDT& obj) {
+        create_signature(buf);
+    }
+
+    static void create_signature(SBuf& buf) {
+        buf << "CoreApiProfileDT";
+    }
+};
+
+
 
 template<typename T>
 TypeSignature make_datatype_signature(T obj)

@@ -33,10 +33,7 @@ namespace memoria {
 void InitCtrDatatypes();
 void InitMemoriaCtrsExplicit();
 
-template <typename T, typename ProfileT>
-void InitCtrMetadata() {
-    ICtrApi<T, ApiProfile<ProfileT>>::template init_profile_metadata<ProfileT>();
-}
+
 
 template <typename ProfileT>
 struct StaticLibraryCtrs {
