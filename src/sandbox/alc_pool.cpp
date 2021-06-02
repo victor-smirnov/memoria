@@ -14,6 +14,8 @@
 // limitations under the License.
 
 #include <memoria/core/linked/document/linked_document.hpp>
+#include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/strings/format.hpp>
 
 #include <iostream>
 
@@ -28,6 +30,13 @@ int main(void) {
     InitCoreLDDatatypes();
 
     try {
+        UUID a1 = UUID::parse("d4cde295-5a91-422c-9be7-9caf6ff8e08a");
+        UUID a2 = UUID::parse("7f9a674f-5e6c-4c8c-a60d-b084786453be");
+
+
+        println("a1 < a2 :: {}", a1 < a2);
+
+
         LDDocument doc = LDDocument::parse_type_decl("Map<UUID, CommitMetadataDT<CoreApiProfile>>");
 
         auto td = doc.value().as_type_decl();

@@ -57,7 +57,7 @@ int main(void) {
             int cnt = 0;
             int b0  = 0;
             int batch_size = 100;
-            int batches = 100;
+            int batches = 1000;
             while (cnt < batch_size * batches) {
                 auto snp1 = store1->begin();
                 auto ctr1 = find<CtrType>(snp1, ctr_id);
@@ -72,7 +72,7 @@ int main(void) {
                     ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str());
                 }
 
-                snp1->set_persistent(true);
+//                snp1->set_persistent(true);
 
                 snp1->commit(false);
             }

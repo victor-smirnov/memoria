@@ -102,12 +102,6 @@ public:
         );
     }
 
-    void init_store(CommitDescriptorT* initial) noexcept {
-        root_ = last_commit_ = initial;
-        commits_[initial->commit_id()] = initial;
-        branch_heads_[get_branch_name(initial)] = initial;
-    }
-
     bool can_rollback_last_commit() const noexcept {
         return previous_last_commit_ != nullptr;
     }
@@ -143,16 +137,6 @@ public:
     CommitDescriptorT* previous_last_commit() const noexcept {
         return previous_last_commit_;
     }
-
-    void set_last_commit(CommitDescriptorT* descr) noexcept {
-        last_commit_ = descr;
-    }
-
-    void set_previous_last_commit(CommitDescriptorT* descr) noexcept {
-        previous_last_commit_ = descr;
-    }
-
-
 
     const CommitDescriptorsList<Profile>& eviction_queue() const noexcept {
         return eviction_queue_;
@@ -237,9 +221,14 @@ public:
 
     void attach_commit(CommitDescriptorT* descr) noexcept
     {
-        CommitDescriptorT* tmp = previous_last_commit_;
-        previous_last_commit_ = last_commit_;
-        last_commit_ = descr;
+        if (descr->parent()) {
+            descr->parent()->children().insert(descr);
+        }
+        else {
+            root_ = descr;
+        }
+
+        CommitDescriptorT* tmp = enqueue_last_2(descr);
 
         U8String branch_name = get_branch_name(descr);
 
@@ -249,20 +238,16 @@ public:
         branch_heads_[branch_name] = descr;
 
         if (tmp) {
-            enqueue_for_eviction(tmp);
-            if (tmp != last_head) {
+            if (!is_branch_head(tmp)) {
+                enqueue_for_eviction(tmp);
+            }
+
+            if (last_head &&  tmp != last_head && !is_in_last_2_queue(last_head)) {
                 enqueue_for_eviction(last_head);
             }
         }
-        else {
+        else if (last_head && !is_in_last_2_queue(last_head)) {
             enqueue_for_eviction(last_head);
-        }
-
-        if (descr->parent()) {
-            descr->parent()->children().insert(descr);
-        }
-        else {
-            root_ = descr;
         }
     }
 
@@ -459,11 +444,27 @@ private:
         return false;
     }
 
-    void enqueue_for_eviction(CommitDescriptorT* descr) noexcept {
-        if (!descr->is_persistent() && !descr->is_linked()) {
+    void enqueue_for_eviction(CommitDescriptorT* descr) noexcept
+    {
+        bool persistent = descr->is_persistent();
+        if (!persistent) {
             eviction_queue_.push_back(*descr);
         }
     }
+
+    CommitDescriptorT* enqueue_last_2(CommitDescriptorT* descr) noexcept
+    {
+        CommitDescriptorT* tmp = previous_last_commit_;
+        previous_last_commit_ = last_commit_;
+        last_commit_ = descr;
+
+        return tmp;
+    }
+
+    bool is_in_last_2_queue(CommitDescriptorT* descr) noexcept {
+        return descr == last_commit_ || descr == previous_last_commit_;
+    }
+
 
 };
 

@@ -185,12 +185,8 @@ public:
 
         writer_mutex_.lock();
 
-        auto head_ptr = commit_descriptor_ptr.get();
-
         auto ptr = do_create_writable_for_init(commit_descriptor_ptr.release());
-
         ptr->finish_store_initialization();
-        history_tree_.init_store(head_ptr);
     }
 
 
