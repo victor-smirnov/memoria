@@ -18,6 +18,48 @@
 
 namespace memoria {
 
+template <>
+struct PythonAPIBinder<SWMRParams> {
+    using Type = SWMRParams;
+
+    static void make_bindings(pybind11::module_& m) {
+        namespace py = pybind11;
+
+        pybind11::class_<Type, SharedPtr<Type>> clazz(m, "SWMRParams");
+
+        clazz.def(py::init<uint64_t>());
+        clazz.def(py::init<>());
+        clazz.def("open_readonly", &Type::open_read_only);
+        clazz.def("file_size", &Type::file_size);
+        clazz.def("is_read_only", &Type::is_read_only);
+    }
+};
+
+
+template <typename Profile>
+struct PythonAPIBinder<ISWMRStoreHistoryView<Profile>> {
+    using Type = ISWMRStoreHistoryView<Profile>;
+
+    using CtrID     = ApiProfileCtrID<Profile>;
+    using CommitID  = ApiProfileSnapshotID<Profile>;
+
+    using SequenceID = uint64_t;
+
+    static void make_bindings(pybind11::module_& m) {
+        namespace py = pybind11;
+
+        pybind11::class_<Type, SharedPtr<Type>> clazz(m, "SWMRStoreHistoryView");
+
+        clazz.def("is_persistent", &Type::is_persistent);
+        clazz.def("parent", &Type::parent);
+        clazz.def("children", &Type::children);
+        clazz.def("commits", &Type::commits);
+        clazz.def("branch_head", &Type::branch_head);
+        clazz.def("branch_names", &Type::branch_names);
+    }
+};
+
+
 template <typename Profile>
 struct PythonAPIBinder<IBasicSWMRStore<Profile>> {
     using Type = IBasicSWMRStore<Profile>;
@@ -79,7 +121,22 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
 
         py::class_<Type, IBasicSWMRStore<Profile>, SharedPtr<Type>>(m, "SWMRStore")
             .def("open", py::overload_cast<const CommitID&, bool>(&Type::open))
-            .def("open", py::overload_cast<>(&Type::open));
+            .def("open", py::overload_cast<U8StringView>(&Type::open))
+            .def("history_view", &Type::history_view)
+            .def("is_persistent", &Type::is_persistent)
+            .def("parent", &Type::parent)
+            .def("children", &Type::children)
+            .def("commits", &Type::commits)
+            .def("branch_names", &Type::branches)
+            .def("close", &Type::close)
+            .def("begin", py::overload_cast<U8StringView>(&Type::begin))
+            .def("branch_from", py::overload_cast<const CommitID&, U8StringView>(&Type::branch_from))
+            .def("branch_from", py::overload_cast<U8StringView, U8StringView>(&Type::branch_from))
+            .def("remove_branch", &Type::remove_branch)
+            .def("remove_commit", &Type::remove_commit)
+            .def("can_rollback_last_commit", &Type::can_rollback_last_commit)
+            .def("rollback_last_commit", &Type::rollback_last_commit)
+            ;
 
         m.def("create_swmr_store", &create_swmr_store);
         m.def("open_swmr_store", &open_swmr_store);

@@ -451,7 +451,10 @@ public:
         {
             flush_open_containers();
 
-            store_->history_tree().prepare_eviction([&](const auto& update_op){
+            auto eviction_ops = store_->prepare_eviction(); // reader synchronous
+
+            for (const auto& update_op: eviction_ops)
+            {
                 if (update_op.reparent)
                 {
                     history_ctr_->with_value(update_op.commit_id, [&](auto value) {
@@ -464,7 +467,7 @@ public:
                 else {
                     history_ctr_->remove_key(update_op.commit_id);
                 }
-            });
+            }
 
             // FIXME: can history_ctr_ be null here?
             if (history_ctr_)

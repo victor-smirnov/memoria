@@ -121,57 +121,94 @@ public:
     virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) = 0;
     virtual Superblock* get_superblock(uint64_t file_pos) = 0;
 
-    std::vector<CommitDescriptorT*> all_commit_descriptors()
+    virtual Optional<std::vector<CommitID>> commits(U8StringView branch) override
     {
-        std::vector<CommitDescriptorT*> commit_descrs;
+        using ResultT = Optional<std::vector<CommitID>>;
 
-        history_tree_.traverse_tree_preorder([&](CommitDescriptorT* descr){
-            commit_descrs.push_back(descr);
-        });
-
-        std::sort(commit_descrs.begin(), commit_descrs.end(), [](const CommitDescriptorT* d1, const CommitDescriptorT* d2){
-            return d1->sequence_id() < d2->sequence_id();
-        });
-
-        return commit_descrs;
-    }
-
-    virtual std::vector<CommitID> commits() override
-    {
         check_if_open();
+        LockGuard lock(reader_mutex_);
 
-//        if () {
-//            return persistent_commits();
-//        }
-//        else
+        auto head_opt = history_tree_.get_branch_head(branch);
+        if (head_opt)
         {
-            LockGuard lock(writer_mutex_);
-
-            std::vector<CommitDescriptorT*> commit_descrs = all_commit_descriptors();
-
             std::vector<CommitID> commits;
-            for (const auto& descr: commit_descrs) {
-                commits.push_back(descr->commit_id());
+
+            CommitDescriptorT* node = head_opt.get();
+            while (node) {
+                commits.push_back(node->commit_id());
+                node = node->parent();
             }
 
-            return std::move(commits);
+            return ResultT{commits};
+        }
+        else {
+            return ResultT{};
         }
     }
 
-    std::vector<CommitID> persistent_commits()
+    virtual Optional<CommitID> parent(const CommitID& commit_id) override
     {
+        using ResultT = Optional<CommitID>;
+
+        check_if_open();
         LockGuard lock(reader_mutex_);
-        std::vector<CommitID> commits;
 
-        history_tree_.traverse_tree_preorder([&](CommitDescriptorT* descr){
-            if (descr->is_persistent()) {
-                commits.push_back(descr->commit_id());
+        auto descr_opt = history_tree_.get(commit_id);
+        if (descr_opt)
+        {
+            CommitDescriptorT* descr = descr_opt.get();
+            if (descr->parent()) {
+                return ResultT{descr->parent()->commit_id()};
             }
-        });
-
-        return std::move(commits);
+            else {
+                return ResultT{};
+            }
+        }
+        else {
+            return ResultT{};
+        }
     }
 
+    virtual Optional<bool> is_persistent(const CommitID& commit_id) override
+    {
+        using ResultT = Optional<bool>;
+
+        check_if_open();
+        LockGuard lock(reader_mutex_);
+
+        auto descr_opt = history_tree_.get(commit_id);
+        if (descr_opt)
+        {
+            CommitDescriptorT* descr = descr_opt.get();
+            return ResultT{descr->is_persistent()};
+        }
+        else {
+            return ResultT{};
+        }
+    }
+
+    virtual Optional<std::vector<CommitID>> children(const CommitID& commit_id) override
+    {
+        using ResultT = Optional<std::vector<CommitID>>;
+
+        check_if_open();
+        LockGuard lock(reader_mutex_);
+
+        auto descr_opt = history_tree_.get(commit_id);
+        if (descr_opt)
+        {
+            std::vector<CommitID> commits;
+
+            for (auto chl: descr_opt.get()->children()) {
+                commits.push_back(chl->commit_id());
+            }
+
+            return ResultT{commits};
+        }
+        else {
+            return ResultT{};
+        }
+    }
 
     virtual ReadOnlyCommitPtr open(const CommitID& commit_id, bool open_transient_commits) override
     {
@@ -181,9 +218,12 @@ public:
         }
         else
         {
-            LockGuard lock(writer_mutex_);
+            LockGuard wlock(writer_mutex_);
 
-            auto commit = history_tree_.get(commit_id);
+            auto commit = [&]{
+                LockGuard rlock(reader_mutex_);
+                return history_tree_.get(commit_id);
+            }();
 
             if (commit) {
                 return open_readonly(commit.get());
@@ -194,11 +234,14 @@ public:
         }
     }
 
+
+
     ReadOnlyCommitPtr open_persistent(const CommitID& commit_id)
     {
-        LockGuard lock(reader_mutex_);
-
-        auto commit = history_tree_.get(commit_id);
+        auto commit = [&]{
+            LockGuard lock(reader_mutex_);
+            return history_tree_.get(commit_id);
+        }();
 
         if (commit)
         {
@@ -216,8 +259,7 @@ public:
 
 
 
-    virtual ReadOnlyCommitPtr open() override
-    {
+    virtual ReadOnlyCommitPtr open() override {
         return open("main");
     }
 
@@ -226,9 +268,7 @@ public:
     {
         check_if_open();
 
-        LockGuard lock(reader_mutex_);
-
-        auto descr = history_tree_.get_branch_head("main");
+        auto descr = get_branch_head_read_sync("main");
 
         if (descr) {
             return do_open_readonly(descr.get());
@@ -246,16 +286,17 @@ public:
     }
 
     virtual bool can_rollback_last_commit() noexcept override {
+        LockGuard lock(reader_mutex_);
         return (!read_only_) && history_tree_.can_rollback_last_commit();
     }
 
     virtual void rollback_last_commit() override
     {
         throw_if_read_only();
-        LockGuard lock(writer_mutex_);
+        LockGuard wlock(writer_mutex_);
+        LockGuard rlock(reader_mutex_);
 
         check_if_open();
-
         CommitDescriptorT* former_head_ptr = history_tree_.previous_last_commit();
 
         if (former_head_ptr)
@@ -287,8 +328,6 @@ public:
         }
     }
 
-
-
     virtual WritableCommitPtr begin() override {
         return begin("main");
     }
@@ -306,7 +345,7 @@ public:
         writer_mutex_.lock();
 
         try {
-            auto descr = history_tree_.get_branch_head(source);
+            auto descr = get_branch_head_read_sync(source);
             if (descr)
             {
                 std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(branch_name);
@@ -336,7 +375,11 @@ public:
         writer_mutex_.lock();
 
         try {
-            auto descr = history_tree_.get(commit_id);
+            auto descr = [&]{
+                LockGuard lock(reader_mutex_);
+                return history_tree_.get(commit_id);
+            }();
+
             if (descr)
             {
                 if (descr.get()->is_persistent())
@@ -374,20 +417,41 @@ public:
         writer_mutex_.lock();
 
         try {
-            auto descr = history_tree_.get_branch_head(branch_name);
-            if (descr)
+            auto result_opt = [&]{
+                using TupleT = std::tuple<CommitDescriptorT*, std::unique_ptr<CommitDescriptorT>, bool>;
+
+                LockGuard lock(reader_mutex_);
+                auto descr = history_tree_.get_branch_head(branch_name);
+                if (descr)
+                {
+                    U8String last_branch = history_tree_.last_commit()->branch();
+                    U8String new_branch = history_tree_.mark_branch_not_persistent(descr.get(), branch_name);
+                    bool do_cleanup_data = history_tree_.branches_size() == 1;
+
+                    std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(new_branch);
+
+                    return Optional<TupleT>{TupleT{descr.get(), std::move(commit_descriptor), do_cleanup_data}};
+                }
+                else {
+                    return Optional<TupleT>{};
+                }
+            }();
+
+            if (result_opt)
             {
-                U8String last_branch = history_tree_.last_commit()->branch();
-                U8String new_branch = history_tree_.mark_branch_not_persistent(descr.get(), branch_name);
+                auto& result = result_opt.get();
 
-                std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(new_branch);
+                CommitDescriptorT* descr = std::get<0>(result);
+                std::unique_ptr<CommitDescriptorT> commit_descriptor = std::move(std::get<1>(result));
+                bool do_cleanup_data = std::get<2>(result);
 
-                SWMRWritableCommitPtr ptr = do_create_writable(descr.get(), commit_descriptor.get());
+                SWMRWritableCommitPtr ptr = do_create_writable(descr, commit_descriptor.get());
+                commit_descriptor.release();
                 ptr->finish_commit_opening();
 
                 // If we are removing the only branch, so we need to clean also the data,
                 // because the 'main' branch should be recreated with empty state.
-                if (history_tree_.branches_size() == 1) {
+                if (do_cleanup_data) {
                     ptr->cleanup_data();
                 }
 
@@ -416,6 +480,8 @@ public:
         writer_mutex_.lock();
 
         try {
+            LockGuard lock(reader_mutex_);
+
             if (history_tree_.mark_commit_not_persistent(commit_id))
             {
                 U8String last_branch = history_tree_.last_commit()->branch();
@@ -424,6 +490,7 @@ public:
 
                 SWMRWritableCommitPtr ptr = do_create_writable(history_tree_.last_commit(), commit_descriptor.get());
                 ptr->finish_commit_opening();
+                commit_descriptor.release();
 
                 // This will remove all non-persistent commits from the history.
                 ptr->commit();
@@ -443,14 +510,13 @@ public:
 
     virtual void finish_commit(CommitDescriptorT* commit_descriptor)
     {
-        LockGuard lock(reader_mutex_);
-
-        cleanup_eviction_queue();
-
-        history_tree_.attach_commit(commit_descriptor);
+        {
+            LockGuard lock(reader_mutex_);
+            cleanup_eviction_queue();
+            history_tree_.attach_commit(commit_descriptor);
+        }
 
         current_writer_.reset();
-
         writer_mutex_.unlock();
     }
 
@@ -458,7 +524,8 @@ public:
         writer_mutex_.unlock();
     }
 
-    SharedPtr<ISWMRStoreHistoryView<ApiProfileT>> history_view() override {
+    SharedPtr<ISWMRStoreHistoryView<ApiProfileT>> history_view() override
+    {
         check_if_open();
 
         LockGuard lock(reader_mutex_);
@@ -494,6 +561,16 @@ public:
         check_if_open();
         return do_check(from, callback);
     }
+
+    void for_all_evicting_commits(std::function<void (CommitDescriptorT*)> fn)
+    {
+        LockGuard lock(reader_mutex_);
+        for (auto& descr: history_tree_.eviction_queue()) {
+            fn(&descr);
+        }
+    }
+
+protected:
 
     std::vector<SWMRReadOnlyCommitPtr> build_ordered_commits_list(
             const Optional<SequenceID>& from = Optional<SequenceID>{}
@@ -603,11 +680,7 @@ public:
         return make_generic_error("SWMRStoreBase::unref_ctr_root() should not be called").do_throw();
     }
 
-    void for_all_evicting_commits(std::function<void (CommitDescriptorT*)> fn) {
-        for (auto& descr: history_tree_.eviction_queue()) {
-            fn(&descr);
-        }
-    }
+
 
     void cleanup_eviction_queue() {
         history_tree_.cleanup_eviction_queue();
@@ -643,7 +716,7 @@ public:
 
     void traverse(SWMRStoreGraphVisitor<ApiProfileT>& visitor) override
     {
-        LockGuard lock(writer_mutex_);
+        LockGuard lock(reader_mutex_);
 
         using VisitedBlocks = std::unordered_set<BlockID>;
         using CtrType = typename SWMRStoreGraphVisitor<ApiProfileT>::CtrType;
@@ -652,12 +725,10 @@ public:
 
         visitor.start_graph();
 
-        auto commits = all_commit_descriptors();
-
         std::unordered_set<BlockID> visited_nodes;
 
-        for (auto commit_descr: commits)
-        {
+        history_tree_.traverse_tree_preorder([&](CommitDescriptorT* commit_descr){
+
             visitor.start_commit(commit_descr->commit_id(), commit_descr->sequence_id());
 
             auto commit = do_open_readonly(commit_descr);
@@ -672,7 +743,7 @@ public:
             commit->traverse_cow_containers(visited_blocks, visitor);
 
             visitor.end_commit();
-        }
+        });
 
         visitor.end_graph();
     }
@@ -691,6 +762,26 @@ public:
 
     HistoryTree<Profile>& history_tree() noexcept {
         return history_tree_;
+    }
+
+    std::vector<typename HistoryTree<Profile>::UpdateOp> prepare_eviction()
+    {
+        using UpdateOp = typename HistoryTree<Profile>::UpdateOp;
+
+        LockGuard lock(reader_mutex_);
+        std::vector<UpdateOp> data;
+
+        history_tree_.prepare_eviction([&](const UpdateOp& op){
+            data.push_back(op);
+        });
+
+        return data;
+    }
+
+private:
+    Optional<CommitDescriptorT*> get_branch_head_read_sync(U8StringView name) const noexcept {
+        LockGuard lock(reader_mutex_);
+        return history_tree_.get_branch_head(name);
     }
 };
 

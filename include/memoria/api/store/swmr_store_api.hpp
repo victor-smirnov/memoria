@@ -127,7 +127,11 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
     using CommitID = ApiProfileSnapshotID<Profile>;
     using SequenceID = uint64_t;
 
-    virtual std::vector<CommitID> commits() = 0;
+    virtual Optional<std::vector<CommitID>> commits(U8StringView branch) = 0;
+
+    virtual Optional<CommitID> parent(const CommitID& commit_id) = 0;
+    virtual Optional<std::vector<CommitID>> children(const CommitID& commit_id) = 0;
+    virtual Optional<bool> is_persistent(const CommitID& commit_id) = 0;
 
     using Base::open;
     using Base::begin;

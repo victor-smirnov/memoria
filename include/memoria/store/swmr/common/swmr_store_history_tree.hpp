@@ -43,11 +43,14 @@ class HistoryTree {
     using CommitMetadataT   = CommitMetadata<ApiProfile<Profile>>;
     using SuperblockT       = SWMRSuperblock<Profile>;
 
+public:
     struct UpdateOp {
         bool reparent;
         CommitID commit_id;
         CommitID new_parent_id;
     };
+
+private:
 
     using EvictionFn        = std::function<void (const UpdateOp&)>;
     using SuperblockFn      = std::function<SuperblockT* (uint64_t)>;

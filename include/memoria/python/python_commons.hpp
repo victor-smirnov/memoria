@@ -17,6 +17,7 @@
 
 #include <memoria/core/types.hpp>
 #include <memoria/core/memory/smart_ptrs.hpp>
+#include <memoria/core/tools/optional.hpp>
 
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/tools/lifetime_guard.hpp>
@@ -25,11 +26,17 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
+#include <pybind11/stl.h>
 
 #include <memory>
 
 PYBIND11_DECLARE_HOLDER_TYPE(T, memoria::SharedPtr<T>);
 PYBIND11_DECLARE_HOLDER_TYPE(T, memoria::LocalSharedPtr<T>);
+
+namespace pybind11 { namespace detail {
+    template <typename T>
+    struct type_caster<memoria::Optional<T>> : optional_caster<memoria::Optional<T>> {};
+}}
 
 namespace pybind11 {
 namespace detail {

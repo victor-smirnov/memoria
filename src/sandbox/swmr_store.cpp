@@ -35,7 +35,7 @@ int main(void) {
         const char* file = "file.mma2";
 
         filesystem::remove(file);
-        auto store1 = create_lite_swmr_store(file, 256);
+        auto store1 = create_swmr_store(file, 256);
 
         UUID ctr_id = UUID::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
 
