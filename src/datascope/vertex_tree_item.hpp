@@ -33,6 +33,7 @@ namespace memoria {
 
 
 using SWMRStorePtr = SharedPtr<ISWMRStore<CoreApiProfile<>>>;
+using SWMRStoreHistoryViewPtr = SharedPtr<ISWMRStoreHistoryView<CoreApiProfile<>>>;
 using LMDBStorePtr = SharedPtr<ILMDBStore<CoreApiProfile<>>>;
 
 class AbstractTreeItem {
@@ -131,11 +132,14 @@ protected:
 class SWMRStoreTreeItem: public AbstractTreeItem, public BlockCounterProvider {
 protected:
     SWMRStorePtr store_;
+    SWMRStoreHistoryViewPtr history_;
+
     QString label_;
 public:
     SWMRStoreTreeItem(SWMRStorePtr store, const QString& label, AbstractTreeItem* parent):
         AbstractTreeItem(parent),
         store_(store),
+        history_(store->history_view()),
         label_(label)
     {}
 
@@ -219,6 +223,42 @@ public:
 protected:
     virtual void expand();
 };
+
+
+class SWMRStoreBranchTreeItem: public AbstractTreeItem {
+protected:
+    SWMRStorePtr store_;
+    SWMRStoreHistoryViewPtr history_;
+
+    U8String branch_name_;
+    BlockCounterProvider* counter_provider_;
+public:
+    SWMRStoreBranchTreeItem(
+            SWMRStorePtr store,
+            SWMRStoreHistoryViewPtr history,
+            U8String branch_name,
+            AbstractTreeItem* parent,
+            BlockCounterProvider* counter_provider
+    ):
+        AbstractTreeItem(parent),
+        store_(store),
+        history_(history),
+        branch_name_(branch_name),
+        counter_provider_(counter_provider)
+    {}
+
+    virtual QVariant data(int column);
+
+    virtual QString node_type() const {
+        return QString::fromUtf8("branch");
+    }
+
+protected:
+    virtual void expand();
+};
+
+
+
 
 class SWMRStoreSnapshotTreeItem: public AbstractTreeItem {
 protected:

@@ -136,14 +136,15 @@ public:
         return commit_descrs;
     }
 
-    virtual std::vector<CommitID> commits(bool persistent_only) override
+    virtual std::vector<CommitID> commits() override
     {
         check_if_open();
 
-        if (persistent_only) {
-            return persistent_commits();
-        }
-        else {
+//        if () {
+//            return persistent_commits();
+//        }
+//        else
+        {
             LockGuard lock(writer_mutex_);
 
             std::vector<CommitDescriptorT*> commit_descrs = all_commit_descriptors();
@@ -172,13 +173,14 @@ public:
     }
 
 
-    virtual ReadOnlyCommitPtr open(const CommitID& commit_id, bool persistent_only) override
+    virtual ReadOnlyCommitPtr open(const CommitID& commit_id, bool open_transient_commits) override
     {
         check_if_open();
-        if (persistent_only) {
+        if (!open_transient_commits) {
             return open_persistent(commit_id);
         }
-        else {
+        else
+        {
             LockGuard lock(writer_mutex_);
 
             auto commit = history_tree_.get(commit_id);
@@ -216,19 +218,31 @@ public:
 
     virtual ReadOnlyCommitPtr open() override
     {
+        return open("main");
+    }
+
+
+    virtual ReadOnlyCommitPtr open(U8StringView branch) override
+    {
         check_if_open();
 
         LockGuard lock(reader_mutex_);
-        return do_open_readonly(history_tree_.last_commit());
+
+        auto descr = history_tree_.get_branch_head("main");
+
+        if (descr) {
+            return do_open_readonly(descr.get());
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Branch '{}' is not found", branch).do_throw();
+        }
     }
 
-    virtual bool drop_commit(const CommitID& commit_id) override {
+    virtual std::vector<U8String> branches() override
+    {
         check_if_open();
-        if (read_only_) {
-            MEMORIA_MAKE_GENERIC_ERROR("The store is in the read-only mode").do_throw();
-        }
-
-        return false;
+        LockGuard lock(reader_mutex_);
+        return history_tree_.branch_names();
     }
 
     virtual bool can_rollback_last_commit() noexcept override {
@@ -275,7 +289,16 @@ public:
 
 
 
-    virtual WritableCommitPtr begin() override
+    virtual WritableCommitPtr begin() override {
+        return begin("main");
+    }
+
+
+    virtual WritableCommitPtr begin(U8StringView branch) override {
+        return branch_from("main", branch);
+    }
+
+    virtual WritableCommitPtr branch_from(U8StringView source, U8StringView branch_name) override
     {
         check_if_open();
         throw_if_read_only();
@@ -283,17 +306,21 @@ public:
         writer_mutex_.lock();
 
         try {
-            std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>();
+            auto descr = history_tree_.get_branch_head(source);
+            if (descr)
+            {
+                std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(branch_name);
 
-            SWMRWritableCommitPtr ptr = do_create_writable(history_tree_.last_commit(), commit_descriptor.get());
+                SWMRWritableCommitPtr ptr = do_create_writable(descr.get(), commit_descriptor.get());
+                ptr->finish_commit_opening();
 
-            ptr->finish_commit_opening();
-
-            current_writer_ = ptr;
-
-            commit_descriptor.release();
-
-            return ptr;
+                current_writer_ = ptr;
+                commit_descriptor.release();
+                return ptr;
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Requested branch '{}' does not exist", branch_name).do_throw();
+            }
         }
         catch (...) {
             writer_mutex_.unlock();
@@ -301,6 +328,117 @@ public:
         }
     }
 
+    virtual WritableCommitPtr branch_from(const CommitID& commit_id, U8StringView branch_name) override
+    {
+        check_if_open();
+        throw_if_read_only();
+
+        writer_mutex_.lock();
+
+        try {
+            auto descr = history_tree_.get(commit_id);
+            if (descr)
+            {
+                if (descr.get()->is_persistent())
+                {
+                    std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(branch_name);
+
+                    SWMRWritableCommitPtr ptr = do_create_writable(descr.get(), commit_descriptor.get());
+                    ptr->finish_commit_opening();
+
+                    current_writer_ = ptr;
+                    commit_descriptor.release();
+                    return ptr;
+                }
+                else {
+                    MEMORIA_MAKE_GENERIC_ERROR("Requested commit '{}' is not persistent", commit_id).do_throw();
+                }
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Requested branch '{}' does not exist", branch_name).do_throw();
+            }
+        }
+        catch (...) {
+            writer_mutex_.unlock();
+            throw;
+        }
+    }
+
+    virtual Optional<CommitID> remove_branch(U8StringView branch_name) override
+    {
+        using Result = Optional<CommitID>;
+
+        check_if_open();
+        throw_if_read_only();
+
+        writer_mutex_.lock();
+
+        try {
+            auto descr = history_tree_.get_branch_head(branch_name);
+            if (descr)
+            {
+                U8String last_branch = history_tree_.last_commit()->branch();
+                U8String new_branch = history_tree_.mark_branch_not_persistent(descr.get(), branch_name);
+
+                std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(new_branch);
+
+                SWMRWritableCommitPtr ptr = do_create_writable(descr.get(), commit_descriptor.get());
+                ptr->finish_commit_opening();
+
+                // If we are removing the only branch, so we need to clean also the data,
+                // because the 'main' branch should be recreated with empty state.
+                if (history_tree_.branches_size() == 1) {
+                    ptr->cleanup_data();
+                }
+
+                // This will remove all non-persistent commits from the history.
+                ptr->commit();
+                return ptr->commit_id();
+            }
+            else {
+                return Result{};
+            }
+        }
+        catch (...) {
+            writer_mutex_.unlock();
+            throw;
+        }
+    }
+
+
+    virtual Optional<CommitID> remove_commit(const CommitID& commit_id) override
+    {
+        using Result = Optional<CommitID>;
+
+        check_if_open();
+        throw_if_read_only();
+
+        writer_mutex_.lock();
+
+        try {
+            if (history_tree_.mark_commit_not_persistent(commit_id))
+            {
+                U8String last_branch = history_tree_.last_commit()->branch();
+
+                std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(last_branch);
+
+                SWMRWritableCommitPtr ptr = do_create_writable(history_tree_.last_commit(), commit_descriptor.get());
+                ptr->finish_commit_opening();
+
+                // This will remove all non-persistent commits from the history.
+                ptr->commit();
+
+                return ptr->commit_id();
+            }
+            else {
+                return Result{};
+            }
+        }
+        catch (...) {
+            writer_mutex_.unlock();
+            throw;
+        }
+    }
 
 
     virtual void finish_commit(CommitDescriptorT* commit_descriptor)
@@ -325,7 +463,22 @@ public:
 
         LockGuard lock(reader_mutex_);
         auto head = do_open_readonly(history_tree_.last_commit());
-        return MakeShared<SWMRMappedStoreHistoryView<Profile>>(self_ptr(), std::move(head));
+
+        auto view = MakeShared<SWMRStoreHistoryViewImpl<Profile>>();
+
+        head->for_each_history_entry_batch([&](auto commits, auto metas){
+            view->load(commits, metas);
+        });
+
+        for (auto& name: history_tree_.branch_names())
+        {
+            Optional<CommitDescriptorT*> head = history_tree_.get_branch_head(name);
+            view->load_branch(name, head.get()->commit_id());
+        }
+
+        view->build_tree();
+
+        return view;
     }
 
     void unlock_writer() {

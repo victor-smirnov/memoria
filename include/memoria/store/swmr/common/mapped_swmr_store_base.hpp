@@ -181,7 +181,7 @@ public:
         sb1->build_superblock_description();
 
 
-        auto commit_descriptor_ptr = std::make_unique<CommitDescriptorT>();
+        auto commit_descriptor_ptr = std::make_unique<CommitDescriptorT>("main");
 
         writer_mutex_.lock();
 

@@ -91,6 +91,7 @@ protected:
 
 
     using CommitID = typename ISWMRStoreCommitBase<ApiProfileT>::CommitID;
+    using CommitMetadataT = CommitMetadata<ApiProfileT>;
     using SequenceID = uint64_t;
 
     using CounterStorageT = CounterStorage<Profile>;
@@ -827,6 +828,8 @@ public:
 
     void for_each_root_block(const std::function<void (int64_t)>& fn) const
     {
+        init_history_ctr();
+
         auto scanner = history_ctr_->scanner_from(history_ctr_->iterator());
 
         bool has_next;
@@ -852,6 +855,20 @@ public:
 
     SharedBlockConstPtr getBlock(const BlockID& block_id) {
         return resolve_block(block_id).block;
+    }
+
+    void for_each_history_entry_batch(const std::function<void (Span<const CommitID>, Span<const CommitMetadataT>)>& fn)
+    {
+        init_history_ctr();
+
+        auto ss = history_ctr_->scanner();
+
+        bool has_next;
+        do {
+            fn(ss.keys(), ss.values());
+            has_next = ss.next_leaf();
+        }
+        while (has_next);
     }
 };
 

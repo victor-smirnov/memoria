@@ -121,7 +121,11 @@ public:
         return names;
     }
 
-    Optional<CommitDescriptorT*> get_branch_head(const U8String& name) const noexcept
+    size_t branches_size() const noexcept {
+        return branch_heads_.size();
+    }
+
+    Optional<CommitDescriptorT*> get_branch_head(U8StringView name) const noexcept
     {
         auto ii = branch_heads_.find(name);
         if (ii != branch_heads_.end()) {
@@ -146,6 +150,37 @@ public:
         return eviction_queue_;
     }
 
+    U8String mark_branch_not_persistent(CommitDescriptorT* descr, U8StringView branch)
+    {        
+        CommitDescriptorT* dd = descr;
+
+        while (true) {
+            if (dd->parent() && dd->children().size() <= 1) {
+                if (dd->is_persistent()) {
+                    dd->set_persistent(false);
+
+                    if (!is_in_last_2_queue(dd)) {
+                        eviction_queue_.push_back(*dd);
+                    }
+                }
+            }
+            else {
+                break;
+            }
+
+            dd = dd->parent();
+        }
+
+        branch_heads_.erase(branch_heads_.find(U8String(branch)));
+
+        if (!dd->parent() && branch_heads_.empty()) {
+            branch_heads_["main"] = descr;
+            return "main";
+        }
+
+        return branch;
+    }
+
     bool mark_commit_not_persistent(const CommitID& commit_id)
     {
         auto commit = get(commit_id);
@@ -156,8 +191,7 @@ public:
             {
                 // TODO: Need to check the following code for more
                 // cases of tree consistency violation.
-                if (descr->parent())
-                {
+                if (descr->parent()) {
                     // OK
                 }
                 else if (descr->children().size() > 1) {
@@ -168,6 +202,7 @@ public:
                 }
 
                 descr->set_persistent(false);
+
                 eviction_queue_.push_back(*descr);
             }
 
@@ -384,7 +419,6 @@ public:
         while (!stack.empty())
         {
             TraverseState& state = stack.top();
-
             if (!state.is_done()) {
                 if (!fn(state.descr()))
                 {
@@ -395,7 +429,6 @@ public:
             }
 
             CommitDescriptorT* child = state.next_child();
-
             if (child) {
                 stack.push(TraverseState{child});
             }
@@ -407,8 +440,8 @@ public:
 
 
 private:
-    U8String get_branch_name(CommitDescriptorT* descr) {
-        return "main";
+    const U8String& get_branch_name(CommitDescriptorT* descr) noexcept {
+        return descr->branch();
     }
 
     void parse_commit_tree()
@@ -464,8 +497,6 @@ private:
     bool is_in_last_2_queue(CommitDescriptorT* descr) noexcept {
         return descr == last_commit_ || descr == previous_last_commit_;
     }
-
-
 };
 
 

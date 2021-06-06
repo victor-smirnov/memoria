@@ -95,8 +95,9 @@ struct CtrReferenceableBase {
 
     virtual std::shared_ptr<io::IOVector> create_iovector() = 0;
 
-    virtual void drop() = 0;
-    virtual void flush() = 0;
+    virtual void drop()    = 0;
+    virtual void cleanup() = 0;
+    virtual void flush()   = 0;
 
     virtual CtrBlockPtr<Profile> root_block() = 0;
 

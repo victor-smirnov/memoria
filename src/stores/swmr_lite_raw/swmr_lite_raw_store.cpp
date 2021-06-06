@@ -25,7 +25,7 @@ template struct ISWMRStore<ApiProfileT>;
 template class SWMRLiteRawStore<Profile>;
 template class MappedSWMRStoreWritableCommit<Profile>;
 template class MappedSWMRStoreReadOnlyCommit<Profile>;
-template class SWMRMappedStoreHistoryView<Profile>;
+template class SWMRStoreHistoryViewImpl<Profile>;
 
 namespace {
 

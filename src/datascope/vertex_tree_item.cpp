@@ -127,10 +127,10 @@ void SWMRStoreTreeItem::expand()
 {
     if (!expanded_)
     {
-        auto commits = store_->commits(false);
+        auto branch_names = history_->branch_names();
 
-        for (const auto& commit_id: commits) {
-            children_.append(new SWMRStoreSnapshotTreeItem(store_, commit_id, this, this));
+        for (const auto& name: branch_names) {
+            children_.append(new SWMRStoreBranchTreeItem(store_, history_, name, this, this));
         }
 
         expanded_ = true;
@@ -187,6 +187,24 @@ void MemStoreSnapshotTreeItem::expand()
 }
 
 
+QVariant SWMRStoreBranchTreeItem::data(int column) {
+    return column == 0 ? node_type() : column == 1 ? QVariant(QString::fromUtf8(branch_name_.data())) : QVariant();
+}
+
+void SWMRStoreBranchTreeItem::expand()
+{
+    if (!expanded_)
+    {
+        auto commits = history_->commits(branch_name_).get();
+
+        for (const auto& commit_id: commits) {
+            children_.append(new SWMRStoreSnapshotTreeItem(store_, commit_id, this, counter_provider_));
+        }
+
+        expanded_ = true;
+    }
+}
+
 
 
 QVariant SWMRStoreSnapshotTreeItem::data(int column) {
@@ -197,7 +215,7 @@ void SWMRStoreSnapshotTreeItem::expand()
 {
     if (!expanded_)
     {
-        auto snp   = store_->open(snapshot_id_, false);
+        auto snp   = store_->open(snapshot_id_, true);
         auto names = snp->container_names();
 
         UUID sp_names[] = {
@@ -257,7 +275,7 @@ void MemStoreContainerTreeItem::expand()
 
 QVariant SWMRStoreContainerTreeItem::data(int column)
 {
-    auto snp = store_->open(snapshot_id_, false);
+    auto snp = store_->open(snapshot_id_, true);
     auto ctr = snp->find(ctr_id_);
 
     switch (column) {
@@ -275,7 +293,7 @@ void SWMRStoreContainerTreeItem::expand()
 {
     if (!expanded_)
     {
-        auto snp = store_->open(snapshot_id_, false);
+        auto snp = store_->open(snapshot_id_, true);
         auto ctr = snp->find(ctr_id_);
 
         children_.append(new CtrBlockTreeItem(0, ctr->root_block(), this, counter_provider_));

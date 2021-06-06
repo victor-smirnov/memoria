@@ -127,6 +127,7 @@ public:
         committed_ = (bool)removing_blocks_consumer_fn_;
     }
 
+
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept = 0;
     virtual uint64_t get_memory_size() = 0;
     virtual Superblock* newSuperblock(uint64_t pos) = 0;
@@ -159,6 +160,10 @@ public:
         drop_idmap();
 
         removing_blocks_consumer_fn_(BlockID{BlockIDValueHolder{}}, superblock_->superblock_file_pos(), superblock_->superblock_size());
+    }
+
+    void cleanup_data() {
+        directory_ctr_->cleanup();
     }
 
 

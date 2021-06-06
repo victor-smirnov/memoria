@@ -53,19 +53,25 @@ private:
 
     Children children_;
 
+    U8String branch_;
+
 public:
-    CommitDescriptor() noexcept:
+    CommitDescriptor(U8StringView branch = "main") noexcept:
         superblock_(),
-        parent_()
+        parent_(),
+        branch_(branch)
     {}
 
-    CommitDescriptor(Superblock* superblock) noexcept:
+    CommitDescriptor(Superblock* superblock, U8StringView branch = "main") noexcept:
         superblock_(superblock),
-        parent_()
+        parent_(),
+        branch_(branch)
     {
         sequence_id_ = superblock_->sequence_id();
         commit_id_   = superblock_->commit_id();
     }
+
+    const U8String& branch() const noexcept {return branch_;}
 
     Superblock* superblock() noexcept {
         return superblock_;

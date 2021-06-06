@@ -51,37 +51,14 @@ struct ISWMRStoreHistoryView {
 
     virtual ~ISWMRStoreHistoryView() noexcept = default;
 
-    virtual void check() = 0;
-
-    virtual std::vector<CommitID> commits() = 0;
-
-    virtual std::vector<CommitID> children(CommitID) = 0;
-    virtual Optional<CommitID> parent(CommitID) = 0;
+    virtual Optional<bool> is_persistent(const CommitID& commit_id) = 0;
+    virtual Optional<CommitID> parent(const CommitID& commit_id) = 0;
+    virtual Optional<std::vector<CommitID>> children(const CommitID& commit_id) = 0;
+    virtual Optional<std::vector<CommitID>> commits(U8StringView branch) = 0;
+    virtual Optional<CommitID> branch_head(U8StringView name) = 0;
+    virtual std::vector<U8String> branch_names() = 0;
 };
 
-using StoreCheckCallbackFn = std::function<void (LDDocument&)>;
-
-template <typename Profile>
-struct IBasicSWMRStore {
-
-    using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
-    using WritableCommitPtr = SharedPtr<ISWMRStoreWritableCommit<Profile>>;
-
-    using SequenceID = uint64_t;
-
-    virtual ~IBasicSWMRStore() noexcept = default;
-
-    virtual ReadOnlyCommitPtr open() = 0;
-    virtual WritableCommitPtr begin() = 0;
-
-    virtual void flush() = 0;
-
-    virtual Optional<SequenceID> check(StoreCheckCallbackFn callback) = 0;
-
-    virtual U8String describe() const = 0;
-
-    virtual U8String to_string(const ApiProfileBlockID<Profile>&) = 0;
-};
 
 
 template <typename Profile>
@@ -113,6 +90,31 @@ struct SWMRStoreGraphVisitor {
 };
 
 
+using StoreCheckCallbackFn = std::function<void (LDDocument&)>;
+
+template <typename Profile>
+struct IBasicSWMRStore {
+
+    using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
+    using WritableCommitPtr = SharedPtr<ISWMRStoreWritableCommit<Profile>>;
+
+    using SequenceID = uint64_t;
+
+    virtual ~IBasicSWMRStore() noexcept = default;
+
+    virtual ReadOnlyCommitPtr open()  = 0;
+    virtual WritableCommitPtr begin() = 0;
+
+    virtual void flush() = 0;
+
+    virtual Optional<SequenceID> check(StoreCheckCallbackFn callback) = 0;
+
+    virtual U8String describe() const = 0;
+
+    virtual U8String to_string(const ApiProfileBlockID<Profile>&) = 0;
+};
+
+
 template <typename Profile>
 struct ISWMRStore: IBasicSWMRStore<Profile> {
     using Base = IBasicSWMRStore<Profile>;
@@ -125,12 +127,22 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
     using CommitID = ApiProfileSnapshotID<Profile>;
     using SequenceID = uint64_t;
 
-    virtual std::vector<CommitID> commits(bool persistent_only = true) = 0;
+    virtual std::vector<CommitID> commits() = 0;
 
     using Base::open;
-    virtual ReadOnlyCommitPtr open(const CommitID& commit_id, bool persistent_only = true) = 0;
+    using Base::begin;
 
-    virtual bool drop_commit(const CommitID& commit_id) = 0;
+    virtual std::vector<U8String> branches() = 0;
+    virtual ReadOnlyCommitPtr open(U8StringView branch)  = 0;
+    virtual ReadOnlyCommitPtr open(const CommitID& commit_id, bool open_transient_commits = false) = 0;
+
+    virtual WritableCommitPtr begin(U8StringView branch) = 0;
+
+    virtual WritableCommitPtr branch_from(U8StringView source, U8StringView branch_name) = 0;
+    virtual WritableCommitPtr branch_from(const CommitID& commit_id, U8StringView branch_name) = 0;
+
+    virtual Optional<CommitID> remove_branch(U8StringView branch_name)  = 0;
+    virtual Optional<CommitID> remove_commit(const CommitID& commit_id) = 0;
 
     virtual bool can_rollback_last_commit() noexcept = 0;
     virtual void rollback_last_commit() = 0;
