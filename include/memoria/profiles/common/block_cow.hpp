@@ -341,16 +341,6 @@ public:
         unref();
     }
 
-//    CowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() & noexcept {
-//        return CowSharedBlockPtr<MutableBlockType, StoreT, Shared>{shared_};
-//    }
-
-//    CowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() && noexcept {
-//        Shared* tmp = shared_;
-//        shared_ = nullptr;
-//        return CowSharedBlockPtr<MutableBlockType, StoreT, Shared>{ptr_, shared_};
-//    }
-
 
     CowSharedBlockPtr& as_immutable() & noexcept {
         return *this;

@@ -53,7 +53,7 @@ public:
 private:
 
     using EvictionFn        = std::function<void (const UpdateOp&)>;
-    using SuperblockFn      = std::function<SuperblockT* (uint64_t)>;
+    using SuperblockFn      = std::function<SharedSBPtr<SuperblockT>(uint64_t)>;
 
     std::unordered_map<CommitID, CommitDescriptorT*> commits_;
 
@@ -302,9 +302,9 @@ public:
 
             CommitDescriptorT* descr = new CommitDescriptorT();
 
-            SuperblockT* superblock = superblock_fn_(meta.superblock_file_pos());
+            auto superblock = superblock_fn_(meta.superblock_file_pos());
 
-            descr->set_superblock(superblock);
+            descr->set_superblock(meta.superblock_file_pos(), superblock.get());
             descr->set_persistent(meta.is_persistent());
 
             commits_[commit_id] = descr;

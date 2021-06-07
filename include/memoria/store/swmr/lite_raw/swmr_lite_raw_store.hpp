@@ -56,6 +56,7 @@ protected:
     using typename Base::CommitID;
     using typename Base::SequenceID;
     using typename Base::CommitDescriptorT;
+    using typename Base::SuperblockT;
     using typename Base::CounterStorageT;
     using typename Base::BlockID;
     using typename Base::LockGuard;
@@ -100,7 +101,9 @@ public:
 
             CommitDescriptorT* head_ptr = history_tree_.last_commit();
 
-            auto ctr_file_pos = head_ptr->superblock()->global_block_counters_file_pos();
+            auto head_sb = get_superblock(head_ptr->superblock_ptr());
+
+            auto ctr_file_pos = head_sb->global_block_counters_file_pos();
             CounterStorageT* ctr_storage = ptr_cast<CounterStorageT>(buffer_.data() + ctr_file_pos);
 
             size_t idx{};
@@ -114,7 +117,7 @@ public:
 
             flush_data();
 
-            head_ptr->superblock()->set_global_block_counters_size(block_counters_.size());
+            head_sb->set_global_block_counters_size(block_counters_.size());
 
             block_counters_.clear();
 

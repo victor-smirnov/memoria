@@ -50,6 +50,7 @@ protected:
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
     using typename Base::BlockType;
+    using typename Base::Superblock;
 
     using typename Base::DirectoryCtrType;
     using typename Base::HistoryCtrType;
@@ -70,7 +71,6 @@ protected:
     using Base::BASIC_BLOCK_SIZE;
 
     using Base::directory_ctr_;
-    using Base::superblock_;
     using Base::commit_descriptor_;
     using Base::internal_find_by_root_typed;
 
@@ -94,6 +94,8 @@ protected:
     mutable boost::object_pool<BlockCacheEntry> cache_entry_pool_;
     mutable SharedBlockCache block_cache_;
 
+    mutable boost::object_pool<detail::MMapSBPtrPooledSharedImpl> sb_shared_pool_;
+
     template <typename>
     friend class MappedSWMRStore;
 
@@ -102,6 +104,7 @@ public:
     using Base::getBlock;
     using Base::traverse_cow_containers;
     using Base::traverse_ctr_cow_tree;
+    using Base::get_superblock;
 
 
     MappedSWMRStoreReadOnlyCommit(
@@ -116,7 +119,7 @@ public:
         block_cache_(1024*128)
     {
         wrap_construction(maybe_error, [&] {
-            auto blockmap_root_id = commit_descriptor->superblock()->blockmap_root_id();
+            auto blockmap_root_id = get_superblock()->blockmap_root_id();
             if (blockmap_root_id.is_set())
             {
                 auto ctr_ref = this->template internal_find_by_root_typed<BlockMapCtrType>(blockmap_root_id);
@@ -125,7 +128,7 @@ public:
                 blockmap_ctr_->internal_reset_allocator_holder();
             }
 
-            auto directory_root_id = commit_descriptor->superblock()->directory_root_id();
+            auto directory_root_id = get_superblock()->directory_root_id();
             if (directory_root_id.is_set())
             {
                 auto ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(directory_root_id);
@@ -141,8 +144,8 @@ public:
         BlockMapCtr::template init_profile_metadata<Profile>();
     }
 
-    uint64_t sequence_id() const {
-        return commit_descriptor_->superblock()->sequence_id();
+    uint64_t sequence_id() {
+        return get_superblock()->sequence_id();
     }
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
@@ -193,6 +196,11 @@ public:
         block_cache_.attach(static_cast<BlockCacheEntry*>(block), [&](BlockCacheEntry* entry){
             cache_entry_pool_.destroy(entry);
         });
+    }
+
+    virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) {
+        Superblock* sb = ptr_cast<Superblock>(buffer_.data() + pos);
+        return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
     }
 };
 

@@ -44,7 +44,7 @@ public:
 private:
 
     std::atomic<int32_t> uses_{};
-    Superblock* superblock_;
+    uint64_t superblock_ptr_;
     bool persistent_{false};
     SequenceID sequence_id_{};
     CommitID commit_id_{};
@@ -57,24 +57,24 @@ private:
 
 public:
     CommitDescriptor(U8StringView branch = "main") noexcept:
-        superblock_(),
+        superblock_ptr_(),
         parent_(),
         branch_(branch)
     {}
 
-    CommitDescriptor(Superblock* superblock, U8StringView branch = "main") noexcept:
-        superblock_(superblock),
+    CommitDescriptor(uint64_t superblock_ptr, Superblock* superblock, U8StringView branch = "main") noexcept:
+        superblock_ptr_(superblock_ptr),
         parent_(),
         branch_(branch)
     {
-        sequence_id_ = superblock_->sequence_id();
-        commit_id_   = superblock_->commit_id();
+        sequence_id_ = superblock->sequence_id();
+        commit_id_   = superblock->commit_id();
     }
 
     const U8String& branch() const noexcept {return branch_;}
 
-    Superblock* superblock() noexcept {
-        return superblock_;
+    uint64_t superblock_ptr() const noexcept {
+        return superblock_ptr_;
     }
 
     CommitDescriptor* parent() const noexcept {
@@ -85,11 +85,11 @@ public:
         parent_ = parent;
     }
 
-    void set_superblock(Superblock* superblock) noexcept {
-        superblock_ = superblock;
+    void set_superblock(uint64_t ptr, Superblock* superblock) noexcept {
+        superblock_ptr_ = ptr;
 
-        sequence_id_ = superblock_->sequence_id();
-        commit_id_   = superblock_->commit_id();
+        sequence_id_ = superblock->sequence_id();
+        commit_id_   = superblock->commit_id();
     }
 
     bool is_persistent() const noexcept {

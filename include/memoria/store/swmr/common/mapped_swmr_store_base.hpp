@@ -43,6 +43,7 @@ protected:
     Span<uint8_t> buffer_;
 
 
+
 public:
     MappedSWMRStoreBase() noexcept : Base() {}
 
@@ -50,8 +51,11 @@ public:
         std::memcpy(buffer_.data() + sb_slot * BASIC_BLOCK_SIZE, superblock, BASIC_BLOCK_SIZE);
     }
 
-    Superblock* get_superblock(uint64_t file_pos) noexcept override {
-        return ptr_cast<Superblock>(buffer_.data() + file_pos);
+    SharedSBPtr<Superblock> get_superblock(uint64_t file_pos) noexcept override
+    {
+        Superblock* sb = ptr_cast<Superblock>(buffer_.data() + file_pos);
+        auto shared = new detail::MMapSBPtrNewSharedImpl();
+        return SharedSBPtr<Superblock>{sb, shared};
     }
 
     virtual void do_open_buffer()
@@ -98,26 +102,40 @@ public:
 
         if (sb0->sequence_id() > sb1->sequence_id())
         {
-            head_ptr = std::make_unique<CommitDescriptorT>(get_superblock(sb0->superblock_file_pos()));
+            head_ptr = std::make_unique<CommitDescriptorT>(
+                        sb0->superblock_file_pos(),
+                        get_superblock(sb0->superblock_file_pos()).get()
+            );
 
             if (sb1->commit_id().is_set())
             {
-                former_head_ptr = std::make_unique<CommitDescriptorT>(get_superblock(sb1->superblock_file_pos()));
+                former_head_ptr = std::make_unique<CommitDescriptorT>(
+                            sb1->superblock_file_pos(),
+                            get_superblock(sb1->superblock_file_pos()).get()
+                );
             }
         }
         else {
-            head_ptr = std::make_unique<CommitDescriptorT>(get_superblock(sb1->superblock_file_pos()));
+            head_ptr = std::make_unique<CommitDescriptorT>(
+                        sb1->superblock_file_pos(),
+                        get_superblock(sb1->superblock_file_pos()).get()
+            );
 
             if (sb0->commit_id().is_set())
             {
-                former_head_ptr = std::make_unique<CommitDescriptorT>(get_superblock(sb0->superblock_file_pos()));
+                former_head_ptr = std::make_unique<CommitDescriptorT>(
+                            sb0->superblock_file_pos(),
+                            get_superblock(sb0->superblock_file_pos()).get()
+                );
             }
         }
 
-        if (head_ptr->superblock()->file_size() != buffer_.size()) {
+        auto head_sb = get_superblock(head_ptr->superblock_ptr());
+
+        if (head_sb->file_size() != buffer_.size()) {
             MEMORIA_MAKE_GENERIC_ERROR(
                 "SWMR Store file size mismatch with header: {} {}",
-                head_ptr->superblock()->file_size(), buffer_.size()
+                head_sb->file_size(), buffer_.size()
             ).do_throw();
         }
 
@@ -138,7 +156,7 @@ public:
 
         if (!read_only_)
         {
-            if (head_ptr->superblock()->is_clean()) {
+            if (head_sb->is_clean()) {
                 read_block_counters();
             }
             else {
@@ -150,9 +168,10 @@ public:
     void read_block_counters()
     {
         CommitDescriptorT* head_ptr = history_tree_.last_commit();
+        auto head_sb = get_superblock(head_ptr->superblock_ptr());
 
-        auto ctr_file_pos = head_ptr->superblock()->global_block_counters_file_pos();
-        auto size = head_ptr->superblock()->global_block_counters_size();
+        auto ctr_file_pos = head_sb->global_block_counters_file_pos();
+        auto size = head_sb->global_block_counters_size();
         const CounterStorageT* ctr_storage = ptr_cast<const CounterStorageT>(buffer_.data() + ctr_file_pos);
 
         for (uint64_t c = 0; c < size; c++)
@@ -171,8 +190,8 @@ public:
 
     void init_mapped_store()
     {
-        Superblock* sb0 = get_superblock(0);
-        Superblock* sb1 = get_superblock(BASIC_BLOCK_SIZE);
+        auto sb0 = get_superblock(0);
+        auto sb1 = get_superblock(BASIC_BLOCK_SIZE);
 
         sb0->init(0, buffer_.size(), CommitID{}, BASIC_BLOCK_SIZE, 0);
         sb0->build_superblock_description();

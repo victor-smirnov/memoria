@@ -127,7 +127,6 @@ protected:
     CtrInstanceMap instance_map_;
 
     CommitDescriptorT* commit_descriptor_;
-    Superblock* superblock_;
 
     Logger logger_;
 
@@ -139,10 +138,6 @@ protected:
 
     mutable ObjectPools object_pools_;
 
-
-
-    template <typename> friend class SWMRMappedStoreHistoryView;
-
 public:
     using Base::getBlock;
 
@@ -153,7 +148,6 @@ public:
     ) noexcept:
         store_(store),
         commit_descriptor_(commit_descriptor),
-        superblock_(commit_descriptor->superblock()),
         refcounter_delegate_(refcounter_delegate)
     {}
 
@@ -162,8 +156,18 @@ public:
         AllocationMapCtr::template init_profile_metadata<Profile>();
     }
 
-    SequenceID sequence_id() const noexcept {
-        return commit_descriptor_->superblock()->sequence_id();
+    virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) = 0;
+
+    SharedSBPtr<Superblock> get_superblock() {
+        return get_superblock(commit_descriptor_->superblock_ptr());
+    }
+
+    SharedSBPtr<Superblock> get_superblock() const {
+        return const_cast<SWMRStoreCommitBase*>(this)->get_superblock(commit_descriptor_->superblock_ptr());
+    }
+
+    SequenceID sequence_id() noexcept {
+        return get_superblock()->sequence_id();
     }
 
     virtual ObjectPools& object_pools() const noexcept {
@@ -172,21 +176,23 @@ public:
 
     virtual BlockID getRootID(const CtrID& ctr_id)
     {
+        auto sb = get_superblock();
+
         if (MMA_UNLIKELY(ctr_id == DirectoryCtrID))
         {
-            return superblock_->directory_root_id();
+            return sb->directory_root_id();
         }
         else if (MMA_UNLIKELY(ctr_id == AllocationMapCtrID))
         {
-            return superblock_->allocator_root_id();
+            return sb->allocator_root_id();
         }
         else if (MMA_UNLIKELY(ctr_id == HistoryCtrID))
         {
-            return superblock_->history_root_id();
+            return sb->history_root_id();
         }
         else if (MMA_UNLIKELY(ctr_id == BlockMapCtrID))
         {
-            return superblock_->blockmap_root_id();
+            return sb->blockmap_root_id();
         }
         else if (directory_ctr_)
         {
@@ -210,21 +216,23 @@ public:
 
     virtual bool hasRoot(const CtrID& ctr_id)
     {
+        auto sb = get_superblock();
+
         if (MMA_UNLIKELY(ctr_id == DirectoryCtrID))
         {
-            return superblock_->directory_root_id().is_set();
+            return sb->directory_root_id().is_set();
         }
         else if (MMA_UNLIKELY(ctr_id == AllocationMapCtrID))
         {
-            return superblock_->allocator_root_id().is_set();
+            return sb->allocator_root_id().is_set();
         }
         else if (MMA_UNLIKELY(ctr_id == HistoryCtrID))
         {
-            return superblock_->history_root_id().is_set();
+            return sb->history_root_id().is_set();
         }
         else if (MMA_UNLIKELY(ctr_id == BlockMapCtrID))
         {
-            return superblock_->blockmap_root_id().is_set();
+            return sb->blockmap_root_id().is_set();
         }
         else if (directory_ctr_)
         {
@@ -260,7 +268,7 @@ public:
     }
 
     virtual SnapshotID currentTxnId() const noexcept {
-        return superblock_->commit_id();
+        return get_superblock()->commit_id();
     }
 
     // memory pool allocator
@@ -304,18 +312,20 @@ public:
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id)
     {
+        auto sb = get_superblock();
+
         BlockID root_id;
         if (ctr_id == HistoryCtrID) {
-            root_id = superblock_->history_root_id();
+            root_id = sb->history_root_id();
         }
         else if (ctr_id == DirectoryCtrID) {
-            root_id = superblock_->directory_root_id();
+            root_id = sb->directory_root_id();
         }
         else if (ctr_id == AllocationMapCtrID) {
-            root_id = superblock_->allocator_root_id();
+            root_id = sb->allocator_root_id();
         }
         else if (ctr_id == BlockMapCtrID) {
-            root_id = superblock_->blockmap_root_id();
+            root_id = sb->blockmap_root_id();
         }
         else {
             root_id = getRootID(ctr_id);
@@ -407,15 +417,17 @@ public:
             char* allocator_descr = nullptr
     )
     {
+        auto sb = get_superblock();
+
         if (allocator_descr != nullptr)
         {
             walker->beginSnapshot(
-                        fmt::format("Snapshot-{} -- {}", superblock_->commit_id(), allocator_descr).data()
+                        fmt::format("Snapshot-{} -- {}", sb->commit_id(), allocator_descr).data()
             );
         }
         else {
             walker->beginSnapshot(
-                        fmt::format("Snapshot-{}", superblock_->commit_id()).data()
+                        fmt::format("Snapshot-{}", sb->commit_id()).data()
             );
         }
 
@@ -464,7 +476,7 @@ public:
     //=================================== R/O Commit Stuff ===========================
 
     virtual CommitID commit_id() noexcept {
-        return superblock_->commit_id();
+        return get_superblock()->commit_id();
     }
 
     virtual bool is_committed() const noexcept {
@@ -589,19 +601,21 @@ public:
 
         traverse_cow_containers(counters, counters_fn);
 
+        auto sb = get_superblock();
+
         traverse_ctr_cow_tree(
-            commit_descriptor_->superblock()->history_root_id(),
+            sb->history_root_id(),
             counters_fn
         );
 
         traverse_ctr_cow_tree(
-            commit_descriptor_->superblock()->allocator_root_id(),
+            sb->allocator_root_id(),
             counters_fn
         );
 
-        if (commit_descriptor_->superblock()->blockmap_root_id().is_set()) {
+        if (get_superblock()->blockmap_root_id().is_set()) {
             traverse_ctr_cow_tree(
-                commit_descriptor_->superblock()->blockmap_root_id(),
+                sb->blockmap_root_id(),
                 counters_fn
             );
         }
@@ -612,7 +626,7 @@ public:
 
     virtual void traverse_cow_containers(SWMRBlockCounters<Profile>& counters, const BlockCounterCallbackFn& callback)
     {
-        auto directory_root_id = commit_descriptor_->superblock()->directory_root_id();
+        auto directory_root_id = get_superblock()->directory_root_id();
         traverse_ctr_cow_tree(directory_root_id, callback);
 
         auto iter = directory_ctr_->iterator();
@@ -645,9 +659,10 @@ public:
 
     virtual void traverse_cow_containers(VisitedBlocks& vb, GraphVisitor& visitor)
     {
-        if (superblock_->directory_root_id().is_set())
+        auto sb = get_superblock();
+        if (sb->directory_root_id().is_set())
         {
-            traverse_ctr_cow_tree(superblock_->directory_root_id(), vb, visitor, GraphVisitor::CtrType::DIRECTORY);
+            traverse_ctr_cow_tree(sb->directory_root_id(), vb, visitor, GraphVisitor::CtrType::DIRECTORY);
 
             auto iter = directory_ctr_->iterator();
             while (!iter->is_end())
@@ -782,7 +797,7 @@ public:
     {
         if (!allocation_map_ctr_)
         {
-            auto root_block_id = commit_descriptor_->superblock()->allocator_root_id();
+            auto root_block_id = get_superblock()->allocator_root_id();
             if (root_block_id.is_set())
             {
                 auto ctr_ref = this->template internal_find_by_root_typed<AllocationMapCtrType>(root_block_id);
@@ -798,7 +813,7 @@ public:
     {
         if (!history_ctr_)
         {
-            auto root_block_id = commit_descriptor_->superblock()->history_root_id();
+            auto root_block_id = get_superblock()->history_root_id();
             if (root_block_id.is_set())
             {
                 auto ctr_ref = this->template internal_find_by_root_typed<HistoryCtrType>(root_block_id);

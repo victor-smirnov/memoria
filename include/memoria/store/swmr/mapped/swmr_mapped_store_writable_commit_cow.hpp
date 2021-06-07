@@ -94,7 +94,6 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
     using BlockCacheEntry = typename SharedBlockCache::EntryT;
 
     using Base::BASIC_BLOCK_SIZE;
-    using Base::superblock_;
     using Base::store_;
     using Base::committed_;
     using Base::commit_descriptor_;
@@ -105,6 +104,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
 
     mutable boost::object_pool<BlockCacheEntry> cache_entry_pool_;
     mutable SharedBlockCache block_cache_;
+    mutable boost::object_pool<detail::MMapSBPtrPooledSharedImpl> sb_shared_pool_;
 
 public:
     using Base::check;
@@ -112,6 +112,7 @@ public:
     using Base::init_store_commit;
     using Base::newId;
     using Base::unref_ctr_root;
+    using Base::get_superblock;
 
     MappedSWMRStoreWritableCommit(
             MaybeError& maybe_error,
@@ -125,12 +126,15 @@ public:
         block_cache_(1024*128)
     {}
 
-    void init_idmap() override {
+    void init_idmap() override
+    {
+        auto sb = get_superblock();
+
         MaybeError maybe_error{};
         this->template internal_init_system_ctr<BlockMapCtrType>(
             maybe_error,
             blockmap_ctr_,
-            superblock_->blockmap_root_id(),
+            sb->blockmap_root_id(),
             BlockMapCtrID
         );
 
@@ -141,7 +145,7 @@ public:
 
     void open_idmap() override
     {
-        auto blockmap_root_id = commit_descriptor_->superblock()->blockmap_root_id();
+        auto blockmap_root_id = get_superblock()->blockmap_root_id();
         if (blockmap_root_id.is_set())
         {
             auto ctr_ref = this->template internal_find_by_root_typed<BlockMapCtrType>(blockmap_root_id);
@@ -151,9 +155,11 @@ public:
         }
     }
 
-    void drop_idmap() override {
-        if (superblock_->blockmap_root_id().is_set()) {
-            unref_ctr_root(superblock_->blockmap_root_id());
+    void drop_idmap() override
+    {
+        auto sb = get_superblock();
+        if (sb->blockmap_root_id().is_set()) {
+            unref_ctr_root(sb->blockmap_root_id());
         }
     }
 
@@ -170,8 +176,9 @@ public:
     }
 
 
-    virtual Superblock* newSuperblock(uint64_t pos) override {
-        return new (buffer_.data() + pos) Superblock();
+    virtual SharedSBPtr<Superblock> new_superblock(uint64_t pos) override {
+        Superblock* sb = new (buffer_.data() + pos) Superblock();
+        return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
     }
 
 
@@ -281,12 +288,10 @@ public:
         });
     }
 
-
-    virtual CountersBlockT* new_counters_block(uint64_t pos) override {
-        uint8_t* block_addr = buffer_.data() + pos;
-        return  new (block_addr) CountersBlockT();
+    virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) override {
+        Superblock* sb = ptr_cast<Superblock>(buffer_.data() + pos);
+        return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
     }
-
 };
 
 }

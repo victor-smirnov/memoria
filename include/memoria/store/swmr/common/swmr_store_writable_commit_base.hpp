@@ -66,7 +66,6 @@ protected:
     using Base::allocation_map_ctr_;
     using Base::history_ctr_;
     using Base::createCtrName;
-    using Base::superblock_;
     using Base::getRootID;
     using Base::getBlock;
     using Base::instance_map_;
@@ -74,6 +73,7 @@ protected:
     using Base::store_;
     using Base::commit_descriptor_;
     using Base::refcounter_delegate_;
+    using Base::get_superblock;
 
     using Base::ALLOCATION_MAP_LEVELS;
     using Base::BASIC_BLOCK_SIZE;
@@ -130,8 +130,7 @@ public:
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept = 0;
     virtual uint64_t get_memory_size() = 0;
-    virtual Superblock* newSuperblock(uint64_t pos) = 0;
-    virtual CountersBlockT* new_counters_block(uint64_t pos) = 0;
+    virtual SharedSBPtr<Superblock> new_superblock(uint64_t pos) = 0;
 
     virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) = 0;
     virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) = 0;
@@ -145,21 +144,23 @@ public:
 
     void remove_all_blocks()
     {
-        if (superblock_->directory_root_id().is_set()) {
-            unref_ctr_root(superblock_->directory_root_id());
+        auto sb = get_superblock();
+
+        if (sb->directory_root_id().is_set()) {
+            unref_ctr_root(sb->directory_root_id());
         }
 
-        if (superblock_->allocator_root_id().is_set()) {
-            unref_ctr_root(superblock_->allocator_root_id());
+        if (sb->allocator_root_id().is_set()) {
+            unref_ctr_root(sb->allocator_root_id());
         }
 
-        if (superblock_->history_root_id().is_set()) {
-            unref_ctr_root(superblock_->history_root_id());
+        if (sb->history_root_id().is_set()) {
+            unref_ctr_root(sb->history_root_id());
         }
 
         drop_idmap();
 
-        removing_blocks_consumer_fn_(BlockID{BlockIDValueHolder{}}, superblock_->superblock_file_pos(), superblock_->superblock_size());
+        removing_blocks_consumer_fn_(BlockID{BlockIDValueHolder{}}, sb->superblock_file_pos(), sb->superblock_size());
     }
 
     void cleanup_data() {
@@ -171,7 +172,9 @@ public:
     {
         open_idmap();
 
-        auto directory_root_id = commit_descriptor_->superblock()->directory_root_id();
+        auto sb = get_superblock();
+
+        auto directory_root_id = sb->directory_root_id();
         if (directory_root_id.is_set())
         {
             auto ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(directory_root_id);
@@ -180,7 +183,7 @@ public:
             directory_ctr_->internal_reset_allocator_holder();
         }
 
-        auto allocator_root_id = commit_descriptor_->superblock()->allocator_root_id();
+        auto allocator_root_id = sb->allocator_root_id();
         if (allocator_root_id.is_set())
         {
             auto ctr_ref = this->template internal_find_by_root_typed<AllocationMapCtrType>(allocator_root_id);
@@ -189,7 +192,7 @@ public:
             allocation_map_ctr_->internal_reset_allocator_holder();
         }
 
-        auto history_root_id = commit_descriptor_->superblock()->history_root_id();
+        auto history_root_id = sb->history_root_id();
         if (history_root_id.is_set())
         {
             auto ctr_ref = this->template internal_find_by_root_typed<HistoryCtrType>(history_root_id);
@@ -214,13 +217,17 @@ public:
 
         populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 64, 192);
 
+        auto parent_sb = get_superblock(parent_commit_descriptor->superblock_ptr());
+
         auto superblock = allocate_superblock(
-            parent_commit_descriptor->superblock(),
+            parent_sb.get(),
             ProfileTraits<Profile>::make_random_snapshot_id()
         );
 
-        commit_descriptor_->set_superblock(superblock);
-        superblock_ = superblock;
+        uint64_t sb_pos = std::get<0>(superblock);
+        auto sb = std::get<1>(superblock);
+
+        commit_descriptor_->set_superblock(sb_pos, sb.get());
 
         init_idmap();
 
@@ -230,7 +237,7 @@ public:
             internal_init_system_ctr<AllocationMapCtrType>(
                 maybe_error,
                 allocation_map_ctr_,
-                superblock_->allocator_root_id(),
+                sb->allocator_root_id(),
                 AllocationMapCtrID
             );
         }
@@ -239,7 +246,7 @@ public:
             internal_init_system_ctr<HistoryCtrType>(
                 maybe_error,
                 history_ctr_,
-                superblock_->history_root_id(),
+                sb->history_root_id(),
                 HistoryCtrID
             );
         }
@@ -248,7 +255,7 @@ public:
             internal_init_system_ctr<DirectoryCtrType>(
                 maybe_error,
                 directory_ctr_,
-                superblock_->directory_root_id(),
+                sb->directory_root_id(),
                 DirectoryCtrID
             );
         }
@@ -279,7 +286,10 @@ public:
 
         CommitID commit_id = ProfileTraits<Profile>::make_random_snapshot_id();
         auto superblock = allocate_superblock(nullptr, commit_id, buffer_size);
-        commit_descriptor_->set_superblock(superblock);
+        uint64_t sb_pos = std::get<0>(superblock);
+        auto sb = std::get<1>(superblock);
+
+        commit_descriptor_->set_superblock(sb_pos, sb.get());
 
         uint64_t total_blocks = buffer_size / BASIC_BLOCK_SIZE;
         uint64_t counters_blocks = divUp(total_blocks, BASIC_BLOCK_SIZE / sizeof(CounterStorageT));
@@ -292,9 +302,7 @@ public:
         }
 
         uint64_t counters_file_pos = counters[0].position() * BASIC_BLOCK_SIZE;
-        superblock->set_global_block_counters_file_pos(counters_file_pos);
-
-        Base::superblock_ = superblock;
+        sb->set_global_block_counters_file_pos(counters_file_pos);
 
         allocator_initialization_mode_ = true;
 
@@ -308,7 +316,7 @@ public:
             internal_init_system_ctr<HistoryCtrType>(
                 maybe_error,
                 history_ctr_,
-                superblock_->history_root_id(),
+                sb->history_root_id(),
                 HistoryCtrID
             );
         }
@@ -317,7 +325,7 @@ public:
             internal_init_system_ctr<DirectoryCtrType>(
                 maybe_error,
                 directory_ctr_,
-                superblock_->directory_root_id(),
+                sb->directory_root_id(),
                 DirectoryCtrID
             );
         }
@@ -335,24 +343,26 @@ public:
 
     void finish_commit_opening()
     {
-        if (superblock_->history_root_id().is_set())
+        auto sb = get_superblock();
+
+        if (sb->history_root_id().is_set())
         {
-            ref_block(superblock_->history_root_id());
+            ref_block(sb->history_root_id());
         }
 
-        if (superblock_->directory_root_id().is_set())
+        if (sb->directory_root_id().is_set())
         {
-            ref_block(superblock_->directory_root_id());
+            ref_block(sb->directory_root_id());
         }
 
-        if (superblock_->allocator_root_id().is_set())
+        if (sb->allocator_root_id().is_set())
         {
-            ref_block(superblock_->allocator_root_id());
+            ref_block(sb->allocator_root_id());
         }
 
-        if (superblock_->blockmap_root_id().is_set())
+        if (sb->blockmap_root_id().is_set())
         {
-            ref_block(superblock_->blockmap_root_id());
+            ref_block(sb->blockmap_root_id());
         }
     }
 
@@ -449,6 +459,8 @@ public:
     {
         if (this->is_active())
         {
+            auto sb = get_superblock();
+
             flush_open_containers();
 
             auto eviction_ops = store_->prepare_eviction(); // reader synchronous
@@ -474,14 +486,14 @@ public:
             {
                 CommitMetadata<ApiProfileT> meta;
 
-                uint64_t sb_file_pos = (superblock_->superblock_file_pos() / BASIC_BLOCK_SIZE);
+                uint64_t sb_file_pos = (sb->superblock_file_pos() / BASIC_BLOCK_SIZE);
                 meta.set_superblock_file_pos(sb_file_pos);
                 meta.set_persistent(is_persistent());
                 if (parent_commit_) {
                     meta.set_parent_commit_id(parent_commit_->commit_id());
                 }
 
-                history_ctr_->assign_key(superblock_->commit_id(), meta);
+                history_ctr_->assign_key(sb->commit_id(), meta);
             }
 
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
@@ -539,11 +551,11 @@ public:
                 store_->flush_data();
             }
 
-            superblock_->build_superblock_description();
+            sb->build_superblock_description();
 
-            auto sb_slot = superblock_->sequence_id() % 2;
+            auto sb_slot = sb->sequence_id() % 2;
 
-            store_->store_superblock(superblock_, sb_slot);
+            store_->store_superblock(sb.get(), sb_slot);
 
             if (flush) {
                 store_->flush_header();
@@ -602,7 +614,8 @@ public:
             return ctr_intf->clone_ctr(ctr_name, new_ctr_name, self_ptr());
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {} ", ctr_name, superblock_->commit_id()).do_throw();
+            auto sb = get_superblock();
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {} ", ctr_name, sb->commit_id()).do_throw();
         }
     }
 
@@ -665,14 +678,15 @@ public:
 
     virtual void setRoot(const CtrID& ctr_id, const BlockID& root)
     {
+        auto sb = get_superblock();
         if (MMA_UNLIKELY(ctr_id == DirectoryCtrID))
         {
             if (!root.is_null())
             {
                 ref_block(root);
 
-                auto prev_id = superblock_->directory_root_id();
-                superblock_->directory_root_id() = root;
+                auto prev_id = sb->directory_root_id();
+                sb->directory_root_id() = root;
                 if (prev_id.is_set())
                 {
                     unref_ctr_root(prev_id);
@@ -688,8 +702,8 @@ public:
             {
                 ref_block(root);
 
-                auto prev_id = superblock_->allocator_root_id();
-                superblock_->allocator_root_id() = root;
+                auto prev_id = sb->allocator_root_id();
+                sb->allocator_root_id() = root;
                 if (prev_id.is_set())
                 {
                     unref_ctr_root(prev_id);
@@ -705,8 +719,8 @@ public:
             {
                 ref_block(root);
 
-                auto prev_id = superblock_->history_root_id();
-                superblock_->history_root_id() = root;
+                auto prev_id = sb->history_root_id();
+                sb->history_root_id() = root;
                 if (prev_id.is_set())
                 {
                     unref_ctr_root(prev_id);
@@ -722,8 +736,8 @@ public:
             {
                 ref_block(root);
 
-                auto prev_id = superblock_->blockmap_root_id();
-                superblock_->blockmap_root_id() = root;
+                auto prev_id = sb->blockmap_root_id();
+                sb->blockmap_root_id() = root;
                 if (prev_id.is_set())
                 {
                     unref_ctr_root(prev_id);
@@ -855,12 +869,14 @@ public:
 
 
 
-    Superblock* allocate_superblock(
+    std::pair<uint64_t, SharedSBPtr<Superblock>> allocate_superblock(
             const Superblock* parent_sb,
             const CommitID& commit_id,
             uint64_t file_size = 0
     )
     {
+        using ResultT = std::pair<uint64_t, SharedSBPtr<Superblock>>;
+
         ArenaBuffer<AllocationMetadataT> available;
         allocation_pool_.allocate(SUPERBLOCK_ALLOCATION_LEVEL, 1, available);
         if (available.size() > 0)
@@ -872,7 +888,7 @@ public:
 
             //println("Allocating superblock at {} :: {}", allocation.position(), pos);
 
-            Superblock* superblock = newSuperblock(pos);
+            auto superblock = new_superblock(pos);
             if (parent_sb)
             {
                 superblock->init_from(*parent_sb, pos, commit_id);
@@ -885,7 +901,7 @@ public:
 
             add_awaiting_allocation(allocation);
 
-            return superblock;
+            return ResultT{pos, superblock};
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("No free space for Superblock").do_throw();
@@ -1062,7 +1078,7 @@ public:
 
         BlockType* new_block = shared->get();
 
-        new_block->snapshot_id() = superblock_->commit_id();
+        new_block->snapshot_id() = commit_id();
         new_block->set_references(0);
 
         return SharedBlockPtr{shared};
@@ -1098,7 +1114,7 @@ public:
         auto shared = allocate_block(position, initial_size, ctr_id == BlockMapCtrID);
 
         BlockType* block = shared->get();
-        block->snapshot_id() = superblock_->commit_id();
+        block->snapshot_id() = commit_id();
 
         return shared;
     }

@@ -41,6 +41,7 @@ protected:
 
     using typename Base::Store;
     using typename Base::CommitDescriptorT;
+    using typename Base::Superblock;
     using typename Base::CtrID;
     using typename Base::CtrReferenceableResult;
     using typename Base::StoreT;
@@ -62,16 +63,18 @@ protected:
 
     using Base::BASIC_BLOCK_SIZE;
 
+    using Base::store_;
     using Base::directory_ctr_;
-    using Base::superblock_;
     using Base::commit_descriptor_;
     using Base::internal_find_by_root_typed;
     using Base::traverse_cow_containers;
     using Base::traverse_ctr_cow_tree;
+    using Base::get_superblock;
 
     Span<uint8_t> buffer_;
 
     mutable boost::object_pool<Shared> shared_pool_;
+    mutable boost::object_pool<detail::MMapSBPtrPooledSharedImpl> sb_shared_pool_;
 
     template <typename>
     friend class MappedSWMRStore;
@@ -91,7 +94,9 @@ public:
         buffer_(buffer)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            auto root_block_id = commit_descriptor->superblock()->directory_root_id();
+            auto sb = this->get_superblock(commit_descriptor->superblock_ptr());
+
+            auto root_block_id = sb->directory_root_id();
             if (root_block_id.is_set())
             {
                 auto directory_ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(root_block_id);
@@ -106,7 +111,8 @@ public:
 
 
     uint64_t sequence_id() const {
-        return commit_descriptor_->superblock()->sequence_id();
+        auto sb = get_superblock();
+        return sb->sequence_id();
     }
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
@@ -132,6 +138,11 @@ public:
 
     virtual void releaseBlock(Shared* block) noexcept {
         shared_pool_.destroy(block);
+    }
+
+    virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) {
+        Superblock* sb = ptr_cast<Superblock>(buffer_.data() + pos);
+        return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
     }
 };
 

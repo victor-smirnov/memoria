@@ -75,16 +75,14 @@ class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
     using CtrReferenceableResult = Result<CtrReferenceable<ApiProfile<Profile>>>;
 
     using Base::BASIC_BLOCK_SIZE;
-    using Base::superblock_;
     using Base::store_;
     using Base::committed_;
     using Base::newId;
 
     Span<uint8_t> buffer_;
 
-
     mutable boost::object_pool<Shared> shared_pool_;
-
+    mutable boost::object_pool<detail::MMapSBPtrPooledSharedImpl> sb_shared_pool_;
 
 public:
     using Base::check;
@@ -109,8 +107,9 @@ public:
     }
 
 
-    virtual Superblock* newSuperblock(uint64_t pos) override {
-        return new (buffer_.data() + pos) Superblock();
+    virtual SharedSBPtr<Superblock> new_superblock(uint64_t pos) override {
+        Superblock* sb = new (buffer_.data() + pos) Superblock();
+        return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
     }
 
 
@@ -118,8 +117,6 @@ public:
 
     virtual ResolvedBlock resolve_block(const BlockID& block_id) override
     {
-//        println("----- Reading block {} at {}", block_id, block_id.value() * BASIC_BLOCK_SIZE);
-
         BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value() * BASIC_BLOCK_SIZE);
         Shared* shared = shared_pool_.construct(block_id, block, 0);
         shared->set_allocator(this);
@@ -129,17 +126,7 @@ public:
 
     virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) override
     {
-//        if (at == 24) {
-//            int a = 0;
-//            a++;
-
-//            this->allocation_pool_.dump();
-//        }
-
         BlockID id{at};
-
-        //println("Allocating1 block {} at {}", id, id.value() * BASIC_BLOCK_SIZE);
-
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
         std::memset(block_addr, 0, size);
@@ -156,8 +143,6 @@ public:
 
     virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) override
     {
-        //println("Allocating2 block {} at {}", at, at * BASIC_BLOCK_SIZE);
-
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
         std::memcpy(block_addr, source, source->memory_block_size());
@@ -184,9 +169,9 @@ public:
         shared_pool_.destroy(block);
     }
 
-    virtual CountersBlockT* new_counters_block(uint64_t pos) override {
-        uint8_t* block_addr = buffer_.data() + pos;
-        return  new (block_addr) CountersBlockT();
+    virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) override {
+        Superblock* sb = ptr_cast<Superblock>(buffer_.data() + pos);
+        return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
     }
 };
 

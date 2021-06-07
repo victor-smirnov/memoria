@@ -64,6 +64,7 @@ protected:
     using BlockID = ProfileBlockID<Profile>;
     using CtrID = ProfileCtrID<Profile>;
     using ApiBlockID = ApiProfileBlockID<ApiProfileT>;
+    using SuperblockT = SWMRSuperblock<Profile>;
 
     using CounterStorageT = CounterStorage<Profile>;
     using RemovingBlockConsumerFn = std::function<void (const BlockID&, uint64_t, int32_t)>;
@@ -119,7 +120,7 @@ public:
     virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr) = 0;
     virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept = 0;
     virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) = 0;
-    virtual Superblock* get_superblock(uint64_t file_pos) = 0;
+    virtual SharedSBPtr<Superblock> get_superblock(uint64_t file_pos) = 0;
 
     virtual Optional<std::vector<CommitID>> commits(U8StringView branch) override
     {
@@ -313,11 +314,13 @@ public:
             // Decrementing counters
             ptr->remove_all_blocks();
 
-            head_ptr->superblock()->mark_for_rollback();
-            head_ptr->superblock()->build_superblock_description();
+            auto head_sb = get_superblock(head_ptr->superblock_ptr());
 
-            auto sb_slot = head_ptr->superblock()->sequence_id() % 2;
-            store_superblock(head_ptr->superblock(), sb_slot);
+            head_sb->mark_for_rollback();
+            head_sb->build_superblock_description();
+
+            auto sb_slot = head_sb->sequence_id() % 2;
+            store_superblock(head_sb.get(), sb_slot);
 
             flush_header();
 
@@ -728,11 +731,10 @@ protected:
         std::unordered_set<BlockID> visited_nodes;
 
         history_tree_.traverse_tree_preorder([&](CommitDescriptorT* commit_descr){
-
             visitor.start_commit(commit_descr->commit_id(), commit_descr->sequence_id());
 
             auto commit = do_open_readonly(commit_descr);
-            Superblock* sb = commit_descr->superblock();
+            auto sb = get_superblock(commit_descr->superblock_ptr());
 
             if (sb->blockmap_root_id().is_set()) {
                 commit->traverse_ctr_cow_tree(sb->blockmap_root_id(), visited_blocks, visitor, CtrType::BLOCKMAP);
