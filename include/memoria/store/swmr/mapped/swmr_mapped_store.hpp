@@ -66,7 +66,7 @@ protected:
 
     using Base::block_counters_;
     using Base::get_superblock;
-    using Base::init_mapped_store;
+    using Base::prepare_to_close;
     using Base::buffer_;
     using Base::writer_mutex_;
     using Base::history_tree_;
@@ -90,12 +90,14 @@ protected:
     std::unique_ptr<detail::FileLockHandler> lock_;
 
 public:
+    using Base::init_store;
+
     MappedSWMRStore(MaybeError& maybe_error, U8String file_name, const SWMRParams& params, CreateMappedStore):
         file_name_(file_name),
         file_size_(compute_file_size(params.file_size().get()))
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            if (filesystem::exists(file_name.to_std_string())) {                
+            if (filesystem::exists(file_name.to_std_string())) {
                 return MEMORIA_MAKE_GENERIC_ERROR("Provided file {} already exists", file_name);
             }
             acquire_lock(file_name.data(), true);
@@ -142,40 +144,12 @@ public:
     }
 
 
-    void init_store() {
-        return this->init_mapped_store();
-    }
-
-
     virtual void close() override
     {
-        CommitDescriptorT* head_ptr = history_tree_.last_commit();
-        if (file_ && head_ptr && !read_only_)
-        {
-            LockGuard lock(writer_mutex_);
+        LockGuard lock(writer_mutex_);
 
-            auto sb_slot = head_ptr->sequence_id() % 2;
-            Superblock* sb0 = ptr_cast<Superblock>(buffer_.data() + BASIC_BLOCK_SIZE * sb_slot);
-
-            auto ctr_file_pos = sb0->global_block_counters_file_pos();
-            CounterStorageT* ctr_storage = ptr_cast<CounterStorageT>(buffer_.data() + ctr_file_pos);
-
-            size_t idx{};
-            block_counters_.for_each([&](const BlockID& block_id, uint64_t counter) noexcept {
-                ctr_storage[idx].block_id = block_id;
-                ctr_storage[idx].counter  = counter;
-                ++idx;
-            });
-
-            flush_data();
-
-            sb0->set_global_block_counters_size(block_counters_.size());
-            sb0->set_clean_status();
-            sb0->build_superblock_description();
-
-            flush_header();
-
-            block_counters_.clear();
+        if (file_) {
+            prepare_to_close();
 
             lock_->unlock();
             region_.flush();
@@ -203,10 +177,7 @@ public:
         }
     }
 
-    void do_open_file()
-    {
-        return this->do_open_buffer();
-    }
+
 
     static bool is_my_file(U8String file_name)
     {

@@ -36,6 +36,9 @@
 namespace memoria {
 
 template <typename Profile>
+class SWMRStoreBase;
+
+template <typename Profile>
 class HistoryTree {
 
     using CommitDescriptorT = CommitDescriptor<Profile>;
@@ -51,6 +54,8 @@ public:
     };
 
 private:
+
+    static constexpr uint64_t BASIC_BLOCK_SIZE = SWMRStoreBase<Profile>::BASIC_BLOCK_SIZE;
 
     using EvictionFn        = std::function<void (const UpdateOp&)>;
     using SuperblockFn      = std::function<SharedSBPtr<SuperblockT>(uint64_t)>;
@@ -304,7 +309,7 @@ public:
 
             auto superblock = superblock_fn_(meta.superblock_file_pos());
 
-            descr->set_superblock(meta.superblock_file_pos(), superblock.get());
+            descr->set_superblock(meta.superblock_file_pos() * BASIC_BLOCK_SIZE, superblock.get());
             descr->set_persistent(meta.is_persistent());
 
             commits_[commit_id] = descr;

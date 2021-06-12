@@ -92,7 +92,7 @@ public:
         for (int32_t ll = 0; ll < Levels; ll++)
         {
             levels_[ll].clear();
-            totals_[ll].clear();
+            totals_[ll] = 0;
         }
     }
 

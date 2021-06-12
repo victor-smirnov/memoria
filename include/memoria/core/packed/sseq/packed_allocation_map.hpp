@@ -19,12 +19,11 @@
 #include <memoria/core/datatypes/datatypes.hpp>
 
 #include <memoria/core/packed/sseq/packed_allocation_map_so.hpp>
+#include <memoria/core/packed/sseq/packed_allocation_map_view.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/bitmap_select.hpp>
-
-#include <memoria/core/packed/sseq/packed_allocation_map_view.hpp>
 
 #include <ostream>
 
@@ -414,10 +413,6 @@ public:
 
     SelectResult select0(int64_t rank, int32_t level) const noexcept
     {
-        if (DebugCounter1 == 3) {
-            println("HERE!!");
-        }
-
         int32_t bm_size  = bitmap_level_size(size(), level);
         int32_t idx_size = index_level_size(bm_size);
 
@@ -651,12 +646,6 @@ private:
         return l0_bitmap_size >> level;
     }
 
-//    constexpr static BitmapType make_half_mask() noexcept
-//    {
-//        size_t bits_size = (sizeof(BitmapType) * 8);
-//        return (static_cast<BitmapType>(0x1) << (bits_size / 2 + 1)) - 1;
-//    }
-
     constexpr static BitmapType gather_bits(BitmapType bits) noexcept
     {
         BitmapType src = (bits | bits >> 1);
@@ -702,19 +691,6 @@ private:
             }
         }
     }
-
-//private:
-//    BitmapType gather_bits(BitmapType bits) noexcept
-//    {
-//        BitmapType rs{};
-
-//        for (size_t c = 0; c < sizeof(BitmapType) * 4; c++)
-//        {
-
-//        }
-
-//        return rs;
-//    }
 };
 
 

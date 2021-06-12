@@ -66,9 +66,9 @@ protected:
     using Base::history_tree_;
     using Base::block_counters_;
     using Base::get_superblock;
-    using Base::init_mapped_store;
     using Base::buffer_;
     using Base::writer_mutex_;
+    using Base::prepare_to_close;
 
     using Base::HEADER_SIZE;
     using Base::BASIC_BLOCK_SIZE;
@@ -78,6 +78,9 @@ protected:
     bool closed_{false};
 
 public:
+    using Base::init_store;
+    using Base::do_open_store;
+
     SWMRLiteRawStore(Span<uint8_t> buffer) noexcept {
         buffer_ = buffer;
     }
@@ -89,40 +92,12 @@ public:
     virtual void flush() override {
     }
 
-
-    void init_store() {
-        return this->init_mapped_store();
-    }
-
     virtual void close() override {
+        LockGuard lock(writer_mutex_);
+
         if (!closed_)
         {
-            LockGuard lock(writer_mutex_);
-
-            CommitDescriptorT* head_ptr = history_tree_.last_commit();
-
-            auto head_sb = get_superblock(head_ptr->superblock_ptr());
-
-            auto ctr_file_pos = head_sb->global_block_counters_file_pos();
-            CounterStorageT* ctr_storage = ptr_cast<CounterStorageT>(buffer_.data() + ctr_file_pos);
-
-            size_t idx{};
-            block_counters_.for_each([&](const BlockID& block_id, uint64_t counter) noexcept {
-                ctr_storage[idx].block_id = block_id;
-                ctr_storage[idx].counter  = counter;
-                ++idx;
-            });
-
-            std::cout << "Written " << idx << " counters" << std::endl;
-
-            flush_data();
-
-            head_sb->set_global_block_counters_size(block_counters_.size());
-
-            block_counters_.clear();
-
-            flush_header();
-
+            prepare_to_close();
             closed_ = true;
         }
     }
@@ -136,12 +111,6 @@ public:
 
     void flush_header(bool async = false) override {
     }
-
-//    SharedPtr<ISWMRStoreHistoryView<ApiProfileT>> history_view() override
-//    {
-//        auto head = do_open_readonly(head_ptr_);
-//        return MakeShared<SWMRMappedStoreHistoryView<Profile>>(this->shared_from_this(), head);
-//    }
 
     virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr) override
     {

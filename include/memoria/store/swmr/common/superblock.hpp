@@ -25,7 +25,7 @@
 
 #include <memoria/core/tools/span.hpp>
 
-#include <boost/pool/object_pool.hpp>
+
 
 namespace memoria {
 
@@ -239,7 +239,7 @@ private:
 };
 
 
-
+/*
 
 template <typename Profile>
 class CountersBlock {
@@ -384,136 +384,8 @@ public:
     }
 };
 
+*/
 
-namespace detail {
-
-class SBPtrSharedBase {
-    int32_t references_{};
-public:
-    virtual ~SBPtrSharedBase() noexcept = default;
-
-    virtual void release() noexcept = 0;
-
-    void ref() noexcept {
-        references_++;
-    }
-
-    bool unref() noexcept {
-        return --references_;
-    }
-};
-
-class MMapSBPtrPooledSharedImpl: public SBPtrSharedBase {
-    boost::object_pool<MMapSBPtrPooledSharedImpl>* pool_;
-
-public:
-    MMapSBPtrPooledSharedImpl(boost::object_pool<MMapSBPtrPooledSharedImpl>* pool) noexcept :
-        pool_(pool)
-    {}
-
-    void release() noexcept {
-        pool_->destroy(this);
-    }
-};
-
-class MMapSBPtrNewSharedImpl: public SBPtrSharedBase {
-public:
-    void release() noexcept {
-        delete this;
-    }
-};
-
-}
-
-
-template <typename BlockT>
-class SharedSBPtr {
-    BlockT* block_ptr_;
-    detail::SBPtrSharedBase* shared_;
-public:
-    SharedSBPtr() noexcept:
-        block_ptr_(), shared_()
-    {}
-
-    SharedSBPtr(BlockT* ptr, detail::SBPtrSharedBase* shared) noexcept:
-        block_ptr_(ptr), shared_(shared)
-    {
-        shared->ref();
-    }
-
-    SharedSBPtr(const SharedSBPtr& other) noexcept:
-        block_ptr_(other.block_ptr_), shared_(other.shared_)
-    {
-        shared_->ref();
-    }
-
-    SharedSBPtr(SharedSBPtr&& other) noexcept:
-        block_ptr_(other.block_ptr_), shared_(other.shared_)
-    {
-        other.shared_ = nullptr;
-    }
-
-    ~SharedSBPtr() noexcept {
-        if (shared_) {
-            shared_->unref();
-        }
-    }
-
-    SharedSBPtr& operator=(const SharedSBPtr& other) noexcept
-    {
-        auto old_shared = shared_;
-
-        block_ptr_ = other.block_ptr_;
-        shared_ = other.shared_;
-
-        shared_->ref();
-
-        if (old_shared) {
-            old_shared->unref();
-        }
-
-        return *this;
-    }
-
-    SharedSBPtr& operator=(SharedSBPtr&& other) noexcept
-    {
-        if (&other != this)
-        {
-            auto old_shared = shared_;
-
-            block_ptr_ = other.block_ptr_;
-            shared_ = other.shared_;
-            other.shared_ = nullptr;
-
-            shared_->ref();
-
-            if (old_shared) {
-                old_shared->unref();
-            }
-        }
-
-        return *this;
-    }
-
-    BlockT* operator->() const noexcept {
-        return block_ptr_;
-    }
-
-    BlockT* get() const noexcept {
-        return block_ptr_;
-    }
-
-    void reset() noexcept {
-        if (shared_ && shared_->unref())
-        {
-
-        }
-    }
-
-    BlockT& operator*() const {
-        return *block_ptr_;
-    }
-};
 
 
 }

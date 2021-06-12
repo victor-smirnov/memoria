@@ -27,6 +27,7 @@
 #include <memoria/store/swmr/common/swmr_store_counters.hpp>
 
 #include <memoria/store/swmr/common/swmr_store_datatypes.hpp>
+#include <memoria/store/swmr/common/swmr_store_smart_ptr.hpp>
 
 namespace memoria {
 
@@ -88,6 +89,7 @@ protected:
     using BlockCounterCallbackFn = std::function<bool (const BlockID&, const BlockID&)>;
     using GraphVisitor = SWMRStoreGraphVisitor<ApiProfileT>;
     using VisitedBlocks = std::unordered_set<BlockID>;
+    using AllocationMetadataT = AllocationMetadata<ApiProfileT>;
 
 
     using CommitID = typename ISWMRStoreCommitBase<ApiProfileT>::CommitID;
@@ -884,6 +886,17 @@ public:
             has_next = ss.next_leaf();
         }
         while (has_next);
+    }
+
+    bool find_unallocated(int32_t level, ProfileCtrSizeT<Profile> size, ArenaBuffer<AllocationMetadata<ApiProfileT>>& arena)
+    {
+        init_allocator_ctr();
+        return allocation_map_ctr_->find_unallocated(0, level, size, arena);
+    }
+
+    void scan_unallocated(const std::function<bool (Span<AllocationMetadataT>)>& fn) {
+        init_allocator_ctr();
+        return allocation_map_ctr_->scan(fn);
     }
 };
 

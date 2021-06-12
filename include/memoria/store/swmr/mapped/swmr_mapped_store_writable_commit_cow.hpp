@@ -66,7 +66,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
     using typename Base::HistoryCtr;
     using typename Base::HistoryCtrType;
     using typename Base::CounterStorageT;
-    using typename Base::CountersBlockT;
+    using typename Base::CounterBlockT;
 
     using typename Base::DirectoryCtrType;
     using typename Base::Shared;

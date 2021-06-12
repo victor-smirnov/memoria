@@ -67,6 +67,7 @@ public:
         position_(position), size_(size), level_(level)
     {}
 
+    // Position is Level_0-scaled.
     CtrSizeT position() const noexcept {
         return position_;
     }
@@ -77,6 +78,10 @@ public:
 
     int32_t level() const noexcept {
         return level_;
+    }
+
+    void enlarge(CtrSizeT amnt) noexcept {
+        size_ += amnt;
     }
 
     bool operator<(const AllocationMetadata& other) noexcept {
@@ -129,6 +134,7 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
 
     using IteratorPtr = CtrSharedPtr<AllocationMapIterator<Profile>>;
 
+    using ALCMeta = AllocationMetadata<Profile>;
 
     static constexpr int32_t  LEVELS          = 9;
     static constexpr CtrSizeT ALLOCATION_SIZE = 512;
@@ -145,15 +151,16 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
 
     virtual CtrSizeT rank(CtrSizeT pos) = 0;
 
-    virtual void find_unallocated(
-            CtrSizeT from,
+    virtual CtrSizeT find_unallocated(
             int32_t level,
             CtrSizeT required,
-            ArenaBuffer<AllocationMetadata<Profile>>& buffer
+            ArenaBuffer<ALCMeta>& buffer
     ) = 0;
 
-    virtual CtrSizeT setup_bits(Span<const AllocationMetadata<Profile>> allocations, bool set_bits) = 0;
-    virtual CtrSizeT touch_bits(Span<const AllocationMetadata<Profile>> allocations) = 0;
+    virtual void scan(const std::function<bool (Span<ALCMeta>)>& fn) = 0;
+
+    virtual CtrSizeT setup_bits(Span<const ALCMeta> allocations, bool set_bits) = 0;
+    virtual CtrSizeT touch_bits(Span<const ALCMeta> allocations) = 0;
 
     virtual CtrSizeT mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size) = 0;
     virtual CtrSizeT mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size) = 0;

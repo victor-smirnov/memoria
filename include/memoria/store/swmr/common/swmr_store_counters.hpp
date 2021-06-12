@@ -64,11 +64,11 @@ public:
         map_.clear();
     }
 
-    auto begin() const {
+    auto begin() const noexcept {
         return map_.begin();
     }
 
-    auto end() const {
+    auto end() const noexcept {
         return map_.end();
     }
 
@@ -133,5 +133,65 @@ public:
         return Optional<uint64_t>{};
     }
 };
+
+
+template <typename Profile>
+class SWMRCounterBlock {
+    using CounterStorageT = CounterStorage<Profile>;
+    uint64_t next_block_pos_;
+    uint64_t size_;
+    uint64_t capacity_;
+    CounterStorageT counters_[1];
+public:
+    void init(int32_t block_size) noexcept
+    {
+        capacity_ = capacity_for(block_size);
+        size_ = 0;
+        next_block_pos_ = 0;
+    }
+
+    uint64_t size() const noexcept {
+        return size_;
+    }
+
+    uint64_t next_block_pos() const noexcept {
+        return next_block_pos_;
+    }
+
+    void set_next_block_pos(uint64_t val) noexcept {
+        next_block_pos_ = val;
+    }
+
+    Span<CounterStorageT> counters() noexcept {
+        return Span<CounterStorageT>{counters_, size_};
+    }
+
+    Span<const CounterStorageT> counters() const noexcept {
+        return Span<const CounterStorageT>{counters_, size_};
+    }
+
+    bool add_counter(const CounterStorageT& cnt) noexcept
+    {
+        if (size_ < capacity_) {
+            counters_[size_++] = cnt;
+            return true;
+        }
+        return false;
+    }
+
+    uint64_t capacity() const noexcept {
+        return capacity_;
+    }
+
+    uint64_t available() const noexcept {
+        return capacity_ - size_;
+    }
+
+    static uint64_t capacity_for(int32_t block_size) noexcept
+    {
+        return (block_size - offsetof(SWMRCounterBlock, counters_)) / sizeof(CounterStorageT);
+    }
+};
+
 
 }

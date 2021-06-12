@@ -50,8 +50,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     using Base::LEVELS;
 
-    using ApiIteratorT = CtrSharedPtr<AllocationMapIterator<ApiProfileT>>;
-    using CtrSizeTResult = Result<CtrSizeT>;
+    using ALCMeta           = AllocationMetadata<ApiProfileT>;
+    using ApiIteratorT      = CtrSharedPtr<AllocationMapIterator<ApiProfileT>>;
+    using CtrSizeTResult    = Result<CtrSizeT>;
+
 
     void configure_types(
         const ContainerTypeName& type_name,
@@ -61,8 +63,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     }
 
-    bool ctr_can_merge_nodes(const TreeNodePtr& tgt, const TreeNodePtr& src) noexcept
-    {
+    bool ctr_can_merge_nodes(const TreeNodePtr& tgt, const TreeNodePtr& src) noexcept {
         return false;
     }
 
@@ -151,11 +152,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         return CtrSizeT{};
     }
 
-    virtual void find_unallocated(
-        CtrSizeT from,
+    virtual CtrSizeT find_unallocated(
         int32_t level,
         CtrSizeT required,
-        ArenaBuffer<AllocationMetadata<ApiProfileT>>& buffer
+        ArenaBuffer<ALCMeta>& buffer
     )
     {
         auto& self = this->self();
@@ -180,16 +180,94 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             }
         }
 
-        if (sum >= required) {
-            return;
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR(
-                "No enought unallocated blocks found at the level {}: avaliable={}, required={}",
-                level, sum, required
-            ).do_throw();
-        }
+        return sum;
     }
+
+    struct ScanUnallocatedFn {
+        template <typename T>
+        VoidResult treeNode(T&& node_so, ArenaBuffer<ALCMeta>& arena, CtrSizeT offset) const noexcept
+        {
+            auto bitmap_stream_so = node_so.template substream_by_idx<1>();
+            const auto bitmaps = bitmap_stream_so.data();
+
+            for (int32_t lvl = LEVELS - 1; lvl >= 0; lvl--)
+            {
+                ALCMeta meta;
+                int32_t size = bitmaps->size(lvl);
+                int32_t rank = bitmaps->sum(lvl);
+
+                if (rank > 0) {
+                    // There are unallocated blocks, scan the bitmap for them.
+                    for (int32_t c = 0; c < size; c++)
+                    {
+                        bool upper_size_is_occupied = true;
+                        if (lvl < LEVELS - 1) {
+                            upper_size_is_occupied = bitmaps->get_bit(lvl + 1, c / 2);
+                        }
+
+                        if (upper_size_is_occupied && !bitmaps->get_bit(lvl, c))
+                        {
+                            if (!meta.size()) {
+                                meta = ALCMeta{(c << lvl) + offset, 1, lvl};
+                            }
+                            else {
+                                meta.enlarge(1);
+                            }
+                        }
+                        else if (meta.size()) {
+                            arena.append_value(meta);
+                            meta = ALCMeta{0, 0, 0};
+                        }
+                    }
+
+                    if (meta.size()) {
+                        arena.append_value(meta);
+                    }
+                }
+            }
+
+            return VoidResult::of();
+        }
+    };
+
+
+    virtual void scan(const std::function<bool (Span<ALCMeta>)>& fn)
+    {
+        auto& self = this->self();
+
+        int32_t level = 0;
+        auto iter = self.template ctr_select<IntList<0, 1>>(level, 1);
+
+        ArenaBuffer<ALCMeta> arena;
+
+        while (!iter->is_end())
+        {
+            CtrSizeT offset = iter->level0_pos();
+
+            arena.clear();
+            self.leaf_dispatcher().dispatch(
+                        iter->path().leaf(),
+                        ScanUnallocatedFn(),
+                        arena,
+                        offset
+            ).get_or_throw();
+
+            if (arena.size()) {
+                if (!fn(arena.span())) {
+                    return;
+                }
+            }
+
+            if (iter->next_leaf()) {
+                iter->template iter_select_fw<IntList<0, 1>>(level, 1);
+            }
+            else {
+                break;
+            }
+        }
+
+    }
+
 
     struct LayoutLeafNodeFn {
         template <typename T>
@@ -271,7 +349,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     }
 
 
-    virtual CtrSizeT setup_bits(Span<const AllocationMetadata<ApiProfileT>> allocations, bool set_bits)
+    virtual CtrSizeT setup_bits(Span<const ALCMeta> allocations, bool set_bits)
     {
         auto& self = this->self();
 
@@ -331,7 +409,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     }
 
 
-    virtual CtrSizeT touch_bits(Span<const AllocationMetadata<ApiProfileT>> allocations)
+    virtual CtrSizeT touch_bits(Span<const ALCMeta> allocations)
     {
         auto& self = this->self();
 
@@ -480,6 +558,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
         return Optional<AllocationMapEntryStatus>{};
     }
+
+
 
 MEMORIA_V1_CONTAINER_PART_END
 

@@ -25,7 +25,8 @@ template <typename Profile>
 class MappedSWMRStoreBase: public SWMRStoreBase<Profile> {
     using Base = SWMRStoreBase<Profile>;
 protected:
-    using typename Base::Superblock;
+    using typename Base::SuperblockT;
+    using typename Base::CounterBlockT;
     using typename Base::CommitDescriptorT;
     using typename Base::CounterStorageT;
     using typename Base::CommitID;
@@ -45,170 +46,30 @@ protected:
 
 
 public:
+    using Base::do_open_store;
+
     MappedSWMRStoreBase() noexcept : Base() {}
 
-    virtual void store_superblock(Superblock* superblock, uint64_t sb_slot) override {
+    virtual void store_superblock(SuperblockT* superblock, uint64_t sb_slot) override {
         std::memcpy(buffer_.data() + sb_slot * BASIC_BLOCK_SIZE, superblock, BASIC_BLOCK_SIZE);
     }
 
-    SharedSBPtr<Superblock> get_superblock(uint64_t file_pos) noexcept override
+    SharedSBPtr<SuperblockT> get_superblock(uint64_t file_pos) noexcept override
     {
-        Superblock* sb = ptr_cast<Superblock>(buffer_.data() + file_pos);
+        SuperblockT* sb = ptr_cast<SuperblockT>(buffer_.data() + file_pos);
         auto shared = new detail::MMapSBPtrNewSharedImpl();
-        return SharedSBPtr<Superblock>{sb, shared};
+        return SharedSBPtr<SuperblockT>{sb, shared};
     }
 
-    virtual void do_open_buffer()
-    {
-        Superblock* sb0 = ptr_cast<Superblock>(buffer_.data());
-        Superblock* sb1 = ptr_cast<Superblock>(buffer_.data() + BASIC_BLOCK_SIZE);
-
-        if (!sb0->match_magick()) {
-            MEMORIA_MAKE_GENERIC_ERROR("First SWMR store header magick number mismatch: {}, expected {};  {}, expected {}",
-                                       sb0->magick1(), Superblock::MAGICK1,
-                                       sb0->magick2(), Superblock::MAGICK2
-            ).do_throw();
-        }
-
-        if (!sb1->match_magick()) {
-            MEMORIA_MAKE_GENERIC_ERROR("Second SWMR store header magick number mismatch: {}, expected {};  {}, expected {}",
-                                       sb1->magick1(), Superblock::MAGICK1,
-                                       sb1->magick2(), Superblock::MAGICK2
-            ).do_throw();
-        }
-
-        if (!sb0->match_profile_hash()) {
-            MEMORIA_MAKE_GENERIC_ERROR("First SWMR store header profile hash mismatch: {}, expected {}",
-                                       sb0->profile_hash(),
-                                       Superblock::PROFILE_HASH
-            ).do_throw();
-        }
-
-        if (!sb1->match_profile_hash()) {
-            MEMORIA_MAKE_GENERIC_ERROR("Second SWMR store header profile hash mismatch: {}, expected {}",
-                                       sb1->profile_hash(),
-                                       Superblock::PROFILE_HASH
-            ).do_throw();
-        }
-
-        if (sb0->commit_id().is_null() && sb1->commit_id().is_null()) {
-            // the file was only partially initialized, continue
-            // the process.
-            return init_mapped_store();
-        }
-
-        std::unique_ptr<CommitDescriptorT> head_ptr;
-        std::unique_ptr<CommitDescriptorT> former_head_ptr;
-
-        if (sb0->sequence_id() > sb1->sequence_id())
-        {
-            head_ptr = std::make_unique<CommitDescriptorT>(
-                        sb0->superblock_file_pos(),
-                        get_superblock(sb0->superblock_file_pos()).get()
-            );
-
-            if (sb1->commit_id().is_set())
-            {
-                former_head_ptr = std::make_unique<CommitDescriptorT>(
-                            sb1->superblock_file_pos(),
-                            get_superblock(sb1->superblock_file_pos()).get()
-                );
-            }
-        }
-        else {
-            head_ptr = std::make_unique<CommitDescriptorT>(
-                        sb1->superblock_file_pos(),
-                        get_superblock(sb1->superblock_file_pos()).get()
-            );
-
-            if (sb0->commit_id().is_set())
-            {
-                former_head_ptr = std::make_unique<CommitDescriptorT>(
-                            sb0->superblock_file_pos(),
-                            get_superblock(sb0->superblock_file_pos()).get()
-                );
-            }
-        }
-
-        auto head_sb = get_superblock(head_ptr->superblock_ptr());
-
-        if (head_sb->file_size() != buffer_.size()) {
-            MEMORIA_MAKE_GENERIC_ERROR(
-                "SWMR Store file size mismatch with header: {} {}",
-                head_sb->file_size(), buffer_.size()
-            ).do_throw();
-        }
-
-
-        // Read snapshot history and
-        // preload all transient snapshots into the
-        // eviction queue
-        auto ptr = do_open_readonly(head_ptr.get());
-
-        using MetaT = std::pair<CommitID, CommitMetadata<ApiProfile<Profile>>>;
-        std::vector<MetaT> metas;
-
-        ptr->for_each_history_entry([&](const auto& commit_id, const auto& commit_meta) {
-            metas.push_back(MetaT(commit_id, commit_meta));
-        });
-
-        history_tree_.load(metas, head_ptr->commit_id(), former_head_ptr ? former_head_ptr->commit_id() : CommitID{});
-
-        if (!read_only_)
-        {
-            if (head_sb->is_clean()) {
-                read_block_counters();
-            }
-            else {
-                rebuild_block_counters();
-            }
-        }
+    SharedSBPtr<CounterBlockT> get_counter_block(uint64_t file_pos) noexcept override {
+        CounterBlockT* sb = ptr_cast<CounterBlockT>(buffer_.data() + file_pos);
+        auto shared = new detail::MMapSBPtrNewSharedImpl();
+        return SharedSBPtr<CounterBlockT>{sb, shared};
     }
 
-    void read_block_counters()
-    {
-        CommitDescriptorT* head_ptr = history_tree_.last_commit();
-        auto head_sb = get_superblock(head_ptr->superblock_ptr());
-
-        auto ctr_file_pos = head_sb->global_block_counters_file_pos();
-        auto size = head_sb->global_block_counters_size();
-        const CounterStorageT* ctr_storage = ptr_cast<const CounterStorageT>(buffer_.data() + ctr_file_pos);
-
-        for (uint64_t c = 0; c < size; c++)
-        {
-            block_counters_.set(ctr_storage[c].block_id, ctr_storage[c].counter);
-        }
+    virtual uint64_t buffer_size() override {
+        return buffer_.size();
     }
-
-    void rebuild_block_counters() noexcept {
-        auto commits = this->build_ordered_commits_list();
-
-        for (auto& commit: commits) {
-            commit->build_block_refcounters(block_counters_);
-        }
-    }
-
-    void init_mapped_store()
-    {
-        auto sb0 = get_superblock(0);
-        auto sb1 = get_superblock(BASIC_BLOCK_SIZE);
-
-        sb0->init(0, buffer_.size(), CommitID{}, BASIC_BLOCK_SIZE, 0);
-        sb0->build_superblock_description();
-
-        sb1->init(BASIC_BLOCK_SIZE, buffer_.size(), CommitID{}, BASIC_BLOCK_SIZE, 1);
-        sb1->build_superblock_description();
-
-
-        auto commit_descriptor_ptr = std::make_unique<CommitDescriptorT>("main");
-
-        writer_mutex_.lock();
-
-        auto ptr = do_create_writable_for_init(commit_descriptor_ptr.release());
-        ptr->finish_store_initialization();
-    }
-
-
 };
 
 }

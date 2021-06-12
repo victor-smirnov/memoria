@@ -48,7 +48,7 @@ SharedPtr<ISWMRStore<ApiProfileT>> open_lite_raw_swmr_store(Span<uint8_t> buffer
 {
     auto ptr = MakeShared<SWMRLiteRawStore<Profile>>(buffer);
 
-    ptr->do_open_buffer();
+    ptr->do_open_store();
 
     return ptr;
 }

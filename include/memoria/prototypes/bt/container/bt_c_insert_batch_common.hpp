@@ -126,7 +126,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             {
                 auto node = head_;
 
-                auto block = ctr_.store().getBlock(head_->next_leaf_id());
+                TreeNodePtr block;
+
+                if (head_->next_leaf_id()) {
+                    block = ctr_.store().getBlock(head_->next_leaf_id());
+                }
 
                 head_ = block.as_mutable();
                 size_--;

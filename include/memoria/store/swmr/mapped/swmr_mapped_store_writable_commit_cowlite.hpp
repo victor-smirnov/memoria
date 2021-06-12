@@ -65,7 +65,7 @@ class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
     using typename Base::HistoryCtr;
     using typename Base::HistoryCtrType;
     using typename Base::CounterStorageT;
-    using typename Base::CountersBlockT;
+    using typename Base::CounterBlockT;
 
     using typename Base::DirectoryCtrType;
     using typename Base::Shared;
@@ -117,10 +117,16 @@ public:
 
     virtual ResolvedBlock resolve_block(const BlockID& block_id) override
     {
-        BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value() * BASIC_BLOCK_SIZE);
-        Shared* shared = shared_pool_.construct(block_id, block, 0);
-        shared->set_allocator(this);
-        return {block_id.value() * BASIC_BLOCK_SIZE, SharedBlockConstPtr{shared}};
+        if (block_id)
+        {
+            BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value() * BASIC_BLOCK_SIZE);
+            Shared* shared = shared_pool_.construct(block_id, block, 0);
+            shared->set_allocator(this);
+            return {block_id.value() * BASIC_BLOCK_SIZE, SharedBlockConstPtr{shared}};
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("BlockId is null").do_throw();
+        }
     }
 
 

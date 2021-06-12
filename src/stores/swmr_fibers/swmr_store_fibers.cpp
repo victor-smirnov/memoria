@@ -48,7 +48,7 @@ SharedPtr<ISWMRStore<ApiProfileT>> open_swmr_store(U8StringView path, const SWMR
     MaybeError maybe_error;
     auto ptr = MakeShared<MappedSWMRStore<Profile>>(maybe_error, path, params);
 
-    ptr->do_open_file();
+    ptr->do_open_store();
 
     return ptr;
 }

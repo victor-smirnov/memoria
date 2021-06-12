@@ -18,6 +18,7 @@
 
 #include <memoria/store/swmr/common/swmr_store_commit_base.hpp>
 #include <memoria/store/swmr/common/allocation_pool.hpp>
+#include <memoria/store/swmr/common/swmr_store_counters.hpp>
 
 namespace memoria {
 
@@ -92,10 +93,9 @@ protected:
 
     using RemovingBlocksConsumerFn = typename Store::RemovingBlockConsumerFn;
 
-    using CountersBlockT      =  CountersBlock<Profile>;
+    using CounterBlockT       = SWMRCounterBlock<Profile>;
 
     CtrSharedPtr<AllocationMapCtr> parent_allocation_map_ctr_;
-
     AllocationPool<ApiProfileT, 9> allocation_pool_;
 
     bool committed_;
@@ -215,7 +215,7 @@ public:
         auto parent_allocation_map_ctr = parent_commit_->find(AllocationMapCtrID);
         parent_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(parent_allocation_map_ctr);
 
-        populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 64, 192);
+        populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 64);
 
         auto parent_sb = get_superblock(parent_commit_descriptor->superblock_ptr());
 
@@ -292,10 +292,12 @@ public:
         commit_descriptor_->set_superblock(sb_pos, sb.get());
 
         uint64_t total_blocks = buffer_size / BASIC_BLOCK_SIZE;
-        uint64_t counters_blocks = divUp(total_blocks, BASIC_BLOCK_SIZE / sizeof(CounterStorageT));
+        uint64_t counters_block_capacity = CounterBlockT::capacity_for(BASIC_BLOCK_SIZE * (1 << (ALLOCATION_MAP_LEVELS - 1)));
+
+        uint64_t counters_blocks = divUp(total_blocks, counters_block_capacity);
 
         ArenaBuffer<AllocationMetadataT> counters;
-        allocation_pool_.allocate(0, counters_blocks, counters);
+        allocation_pool_.allocate(ALLOCATION_MAP_LEVELS - 1, counters_blocks, counters);
 
         for (auto& alc: counters.span()) {
             add_awaiting_allocation(alc);
@@ -386,73 +388,9 @@ public:
         return factory->create_instance(self_ptr(), ctr_name, decl);
     }
 
-
-    Optional<AllocationMetadataT> allocate_largest_block(int32_t level)
-    {
-        while (level >= 0)
-        {
-            Optional<AllocationMetadataT> allocation = allocation_pool_.allocate_one(level);
-
-            if (!allocation) {
-                populate_allocation_pool(level, 1, allocation_prefetch_size(level));
-            }
-
-            Optional<AllocationMetadataT> allocation2 = allocation_pool_.allocate_one(level);
-
-            if (!allocation2) {
-                --level;
-            }
-            else {
-                return allocation2;
-            }
-        }
-
-        return {};
-    }
-
     static constexpr uint64_t block_size_at(int32_t level) noexcept {
         return (1ull << (level - 1)) * BASIC_BLOCK_SIZE;
     }
-
-
-    int32_t compute_counters_block_allocation_level(uint64_t counters) noexcept
-    {
-        auto block_size = CountersBlockT::estimate_block_size(counters);
-
-        for (int32_t l = 0; l < ALLOCATION_MAP_LEVELS; l++)
-        {
-            uint64_t level_block_size = block_size_at(l);
-            if (block_size <= level_block_size) {
-                return l;
-            }
-        }
-
-        return ALLOCATION_MAP_LEVELS - 1;
-    }
-
-
-
-    AllocationMetadataT allocate_counters_block(uint64_t& counters)
-    {
-        int32_t level = compute_counters_block_allocation_level(counters);
-        Optional<AllocationMetadataT> allocation = allocate_largest_block(level);
-
-        if (!allocation) {
-            MEMORIA_MAKE_GENERIC_ERROR("Can't allocate a block for counters").do_throw();
-        }
-
-        uint64_t capacity = CountersBlockT::estimate_block_capacity(block_size_at(level));
-
-        if (capacity > counters) {
-            counters = 0;
-        }
-        else {
-            counters -= capacity;
-        }
-
-        return allocation.get();
-    }
-
 
 
     virtual void commit(bool flush = true)
@@ -806,11 +744,11 @@ public:
     }
 
 
-    void populate_allocation_pool(int32_t level, int64_t minimal_amount, int64_t prefetch = 0) {
-        return populate_allocation_pool(allocation_map_ctr_, level, minimal_amount, prefetch);
+    void populate_allocation_pool(int32_t level, int64_t minimal_amount) {
+        return populate_allocation_pool(allocation_map_ctr_, level, minimal_amount);
     }
 
-    void populate_allocation_pool(CtrSharedPtr<AllocationMapCtr> allocation_map_ctr, int32_t level, int64_t minimal_amount, int64_t prefetch = 0)
+    void populate_allocation_pool(CtrSharedPtr<AllocationMapCtr> allocation_map_ctr, int32_t level, int64_t minimal_amount)
     {
         if (flushing_awaiting_allocations_) {
             MEMORIA_MAKE_GENERIC_ERROR("Internal Error. Invoking populate_allocation_pool() while flushing awaiting allocations.").do_throw();
@@ -818,44 +756,30 @@ public:
 
         flush_awaiting_allocations();
 
+        allocation_pool_.clear();
+
         int64_t ranks[ALLOCATION_MAP_LEVELS] = {0,};
         allocation_map_ctr->unallocated(ranks);
 
         if (ranks[level] >= minimal_amount)
         {
-            int64_t desireable = minimal_amount + prefetch;
-
-            int32_t target_level = level;
-            int32_t target_desirable = desireable;
-
-            // Disabling the follwing code for the this time.
-            // Need better multilevel allocation.
-
-//            if (MMA_LIKELY(desireable > 1))
-//            {
-//                for (int32_t ll = ALLOCATION_MAP_LEVELS - 1; ll >= level; ll--)
-//                {
-//                    int64_t scale_factor = 1ll << (ll - level);
-//                    int64_t ll_desirable = divUp(desireable, scale_factor);
-//                    int64_t ll_required  = divUp(minimal_amount, scale_factor);
-
-//                    if (ranks[ll] >= ll_required && ll_desirable > 1)
-//                    {
-//                        target_level = ll;
-//                        target_desirable = ranks[ll] >= ll_desirable ? ll_desirable : ranks[ll];
-//                        break;
-//                    }
-//                }
-//            }
-
-            auto& level_buffer = allocation_pool_.level_buffer(target_level);
+            auto& level_buffer = allocation_pool_.level_buffer(level);
 
             // check the scale of position value across the pool!
-            allocation_map_ctr->find_unallocated(
-                0, target_level, target_desirable, level_buffer
+            auto exists = allocation_map_ctr->find_unallocated(
+                level, minimal_amount, level_buffer
             );
 
-            allocation_pool_.refresh(target_level);
+            if (exists < minimal_amount) {
+                MEMORIA_MAKE_GENERIC_ERROR(
+                    "No enough free space among {}K blocks. Requested = {} blocks, available = {}",
+                    (BASIC_BLOCK_SIZE / 1024) << level,
+                    minimal_amount,
+                    ranks[level]
+                ).do_throw();
+            }
+
+            allocation_pool_.refresh(level);
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR(
@@ -907,14 +831,6 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("No free space for Superblock").do_throw();
         }
     }
-
-    int32_t allocation_prefetch_size(int32_t level) noexcept
-    {
-        int32_t l0_prefetch_size = 256 * 4;
-        return l0_prefetch_size >> level;
-    }
-
-
 
 
     void add_awaiting_allocation(const AllocationMetadataT& meta) noexcept {
@@ -1063,7 +979,7 @@ public:
 
         if (!allocation) {
             if (!allocator_initialization_mode_) {
-                populate_allocation_pool(level, 1, allocation_prefetch_size(level));
+                populate_allocation_pool(level, 1);
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Internal block allocation error while initilizing the store").do_throw();
@@ -1100,7 +1016,7 @@ public:
 
         if (!allocation) {
             if (!allocator_initialization_mode_) {
-                populate_allocation_pool(level, 1, allocation_prefetch_size(level));
+                populate_allocation_pool(level, 1);
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Internal block allocation error while initilizing the store").do_throw();

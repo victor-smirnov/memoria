@@ -20,6 +20,8 @@
 #include <memoria/profiles/common/block_operations.hpp>
 #include <memoria/core/iovector/io_substream_base.hpp>
 
+#include <memoria/api/allocation_map/allocation_map_api.hpp>
+
 namespace memoria {
 
 template <typename ExtData, typename PkdStruct>

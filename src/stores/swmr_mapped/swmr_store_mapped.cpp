@@ -53,7 +53,7 @@ SharedPtr<ISWMRStore<ApiProfileT>> open_swmr_store(U8StringView path, const SWMR
         std::move(maybe_error.get()).do_throw();
     }
 
-    ptr->do_open_file();
+    ptr->do_open_store();
 
     return ptr;
 }
