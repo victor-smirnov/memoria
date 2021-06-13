@@ -32,17 +32,13 @@ using bt::StreamTag;
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(set::ItrNavName)
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::TreeNodePtr                                            TreeNodePtr;
-
-
+    typedef typename Base::TreeNodePtr                                          TreeNodePtr;
     typedef typename Base::Container::Types::Key                                Key;
     typedef typename Base::Container::Types::BranchNodeEntry                    BranchNodeEntry;
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
     using CtrSizeT  = typename Container::Types::CtrSizeT;
-
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
 
     using Profile   = typename Types::Profile;

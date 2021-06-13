@@ -33,19 +33,6 @@ public:
     using typename Base::Iterator;
 
 protected:
-    typedef typename Base::Allocator                                            Allocator;
-
-    typedef typename Types::TreeNodePtr                                           TreeNodePtr;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-
-    typedef typename Types::CtrSizeT                                            CtrSizeT;
-    typedef typename Types::Value                                               Value;
-
-    static const int32_t Streams                                                    = Types::Streams;
-
 
 MEMORIA_V1_CONTAINER_PART_END
 

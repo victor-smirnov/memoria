@@ -21,38 +21,17 @@
 #include <memory>
 
 namespace memoria {
-/*
-template <typename Value, typename IteratorPtr>
-class VectorIteratorImpl: public VectorIterator<Value> {
-    using ValueV   = typename DataTypeTraits<Value>::ValueType;
-    IteratorPtr iter_;
-
-public:
-    VectorIteratorImpl(IteratorPtr iter):
-        iter_(iter)
-    {}
-
-    virtual ValueV value() const
-    {
-        return iter_->value();
-    }
-
-    virtual bool is_end() const
-    {
-        return iter_->iter_is_end();
-    }
-
-    virtual void next() {
-        iter_->next();
-    }
-};
-*/
 
 template <typename Value, typename Profile>
 template <typename ImplProfile>
 void ICtrApi<Vector<Value>, Profile>::init_profile_metadata()
 {
-    SharedCtr<Vector<Value>, ProfileStoreType<ImplProfile>, ImplProfile>::init_profile_metadata();
+    SharedCtr<
+            Vector<Value>,
+            ProfileROStoreType<ImplProfile>,
+            ProfileRWStoreType<ImplProfile>,
+            ImplProfile
+    >::init_profile_metadata();
 }
 
 }

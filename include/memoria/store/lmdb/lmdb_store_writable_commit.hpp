@@ -35,6 +35,7 @@ struct InitLMDBStoreTag{};
 template <typename Profile>
 class LMDBStoreWritableCommit:
         public LMDBStoreCommitBase<Profile>,
+        public ProfileRWStoreType<Profile>,
         public ISWMRStoreWritableCommit<ApiProfile<Profile>>,
         public EnableSharedFromThis<LMDBStoreWritableCommit<Profile>>
 {
@@ -54,6 +55,8 @@ class LMDBStoreWritableCommit:
     using typename Base::Superblock;
 
     using typename Base::DirectoryCtrType;
+
+    using RWStoreT = ProfileRWStoreType<Profile>;
 
     enum {ENTRY_STATE_ACTIVE, ENTRY_STATE_DELETED};
 
@@ -149,16 +152,21 @@ public:
         });
 
         if (!maybe_error) {
-            internal_init_system_ctr<DirectoryCtrType>(
-                maybe_error,
-                directory_ctr_,
-                superblock_->directory_root_id(),
-                DirectoryCtrID
-            );
 
-            if (maybe_error) {                
-                mma_mdb_txn_abort(transaction_);
-            }
+        }
+    }
+
+    void post_init(MaybeError& maybe_error) noexcept
+    {
+        internal_init_system_ctr<DirectoryCtrType>(
+            maybe_error,
+            directory_ctr_,
+            superblock_->directory_root_id(),
+            DirectoryCtrID
+        );
+
+        if (maybe_error) {
+            mma_mdb_txn_abort(transaction_);
         }
     }
 
@@ -227,7 +235,7 @@ public:
     {
         checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(self_ptr(), ctr_id, decl);
+        return factory->create_mutable_instance(self_ptr(), rw_self_ptr(), ctr_id, decl);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
@@ -236,7 +244,7 @@ public:
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
 
         auto ctr_name = createCtrName();
-        return factory->create_instance(self_ptr(), ctr_name, decl);
+        return factory->create_mutable_instance(self_ptr(), rw_self_ptr(), ctr_name, decl);
     }
 
     virtual void commit(bool) {
@@ -280,7 +288,7 @@ public:
 
             auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(block->ctr_type_hash());
 
-            ctr_intf->drop(name, self_ptr());
+            ctr_intf->drop(name, self_ptr(), rw_self_ptr());
             return true;
         }
         else {
@@ -295,14 +303,14 @@ public:
     CtrID clone_ctr(const CtrID& ctr_name, const CtrID& new_ctr_name)
     {
         auto root_id = getRootID(ctr_name);
-        auto block = getBlock(root_id);
+        auto block   = getBlock(root_id);
 
         if (block)
         {
             auto ctr_hash = block->ctr_type_hash();
             auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(ctr_hash);
 
-            return ctr_intf->clone_ctr(ctr_name, new_ctr_name, self_ptr());
+            return ctr_intf->clone_ctr(ctr_name, new_ctr_name, self_ptr(), rw_self_ptr());
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot", ctr_name).do_throw();
@@ -461,16 +469,20 @@ public:
 
 protected:
 
-    virtual SnpSharedPtr<StoreApiBase<ApiProfileT>> snapshot_ref_creation_allowed() {
-        return SnpSharedPtr<StoreApiBase<ApiProfileT>>{};
+    virtual SnpSharedPtr<ROStoreApiBase<ApiProfileT>> snapshot_ref_creation_allowed() {
+        return SnpSharedPtr<ROStoreApiBase<ApiProfileT>>{};
     }
 
 
-    virtual SnpSharedPtr<StoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
+    virtual SnpSharedPtr<ROStoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
         return Base::snapshot_ref_opening_allowed();
     }
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
+        return this->shared_from_this();
+    }
+
+    virtual SnpSharedPtr<RWStoreT> rw_self_ptr() noexcept {
         return this->shared_from_this();
     }
 
@@ -697,6 +709,22 @@ private:
     static constexpr int32_t nearest_log2(int32_t value) noexcept {
         int32_t vv = (1 << (Log2(value)));
         return (vv / 2 == value) ? value : vv;
+    }
+
+    CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
+            ContainerOperationsPtr<Profile> ctr_intf,
+            SharedBlockConstPtr block
+    )
+    {
+        return ctr_intf->new_mutable_ctr_instance(block, self_ptr(), rw_self_ptr());
+    }
+
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
+            const LDTypeDeclarationView& decl, const CtrID& ctr_id
+    )
+    {
+        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
+        return factory->create_mutable_instance(this, this, ctr_id, decl);
     }
 };
 

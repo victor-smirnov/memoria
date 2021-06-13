@@ -26,15 +26,15 @@
 namespace memoria {
 
 template <typename Profile>
-class IStoreSnapshotCtrOps {
+class IROStoreSnapshotCtrOps {
 
 public:
-    using StoreT = StoreApiBase<Profile>;
+    using StoreT = ROStoreApiBase<Profile>;
 
     using CtrID = ApiProfileCtrID<Profile>;
     using CtrReferenceableT = CtrSharedPtr<CtrReferenceable<Profile>>;
 
-    virtual ~IStoreSnapshotCtrOps() noexcept = default;
+    virtual ~IROStoreSnapshotCtrOps() noexcept = default;
 
 
     virtual CtrReferenceableT find(const CtrID& ctr_id) = 0;
@@ -65,8 +65,8 @@ protected:
 
 
 template <typename Profile>
-class IStoreWritableSnapshotCtrOps: public virtual IStoreSnapshotCtrOps<Profile> {
-    using ApIStoreBaseT = StoreApiBase<Profile>;
+class IROStoreWritableSnapshotCtrOps: public virtual IROStoreSnapshotCtrOps<Profile> {
+    using ApIROStoreBaseT = ROStoreApiBase<Profile>;
 
 public:
     using CtrID = ApiProfileCtrID<Profile>;
@@ -96,13 +96,13 @@ public:
     virtual CtrID clone_ctr(const CtrID& name) = 0;
 
 protected:
-    virtual SnpSharedPtr<ApIStoreBaseT> snapshot_ref_creation_allowed() = 0;
+    virtual SnpSharedPtr<ApIROStoreBaseT> snapshot_ref_creation_allowed() = 0;
 };
 
 
 template <typename CtrName, typename Profile>
 CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
-        SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> alloc,
+        SnpSharedPtr<IROStoreWritableSnapshotCtrOps<Profile>> alloc,
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
 )
@@ -119,7 +119,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 
 template <typename CtrName, typename Profile>
 CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
-        SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> alloc,
+        SnpSharedPtr<IROStoreWritableSnapshotCtrOps<Profile>> alloc,
         const CtrName& ctr_type_name
 )
 {
@@ -134,7 +134,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 
 template <typename CtrName, typename Profile>
 CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
-        SnpSharedPtr<IStoreSnapshotCtrOps<Profile>> alloc,
+        SnpSharedPtr<IROStoreSnapshotCtrOps<Profile>> alloc,
         const ApiProfileCtrID<Profile>& ctr_id
 )
 {
@@ -165,7 +165,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
 
 template <typename CtrName, typename Profile>
 CtrSharedPtr<ICtrApi<CtrName, Profile>> find_or_create(
-        SnpSharedPtr<IStoreWritableSnapshotCtrOps<Profile>> alloc,
+        SnpSharedPtr<IROStoreWritableSnapshotCtrOps<Profile>> alloc,
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
 )

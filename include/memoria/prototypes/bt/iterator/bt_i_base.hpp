@@ -32,7 +32,6 @@ public:
     using Types     = typename Base::Container::Types;
     using TreeNodePtr = typename Types::TreeNodePtr;
     using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
-    using Allocator = typename Base::Container::Allocator;
     using Position  = typename Types::Position;
     using NodeChain = typename Base::Container::NodeChain;
 

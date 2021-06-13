@@ -45,6 +45,7 @@ protected:
     using typename Base::SharedBlockConstPtr;
     using typename Base::Superblock;
     using typename Base::BlockType;
+    using typename Base::ApiProfileT;
 
     using typename Base::DirectoryCtrType;
     using typename Base::CommitID;
@@ -99,25 +100,31 @@ public:
                 return make_generic_error("Superblock is empty!");
             }
 
-            auto root_block_id = superblock_->directory_root_id();
-            if (root_block_id.is_set())
-            {
-                auto directory_ctr_ref = wrap_throwing([&](){
-                    return this->template internal_find_by_root_typed<DirectoryCtrType>(root_block_id);
-                });
-
-                if (!directory_ctr_ref.is_error()) {
-                    directory_ctr_ = directory_ctr_ref.get();
-                    directory_ctr_->internal_reset_allocator_holder();
-                }
-                else {
-                    mma_mdb_txn_abort(transaction_);
-                    return std::move(directory_ctr_ref).transfer_error();
-                }
-            }
-
             return VoidResult::of();
         });
+    }
+
+
+    VoidResult post_init() noexcept
+    {
+        auto root_block_id = superblock_->directory_root_id();
+        if (root_block_id.is_set())
+        {
+            auto directory_ctr_ref = wrap_throwing([&](){
+                return this->template internal_find_by_root_typed<DirectoryCtrType>(root_block_id);
+            });
+
+            if (!directory_ctr_ref.is_error()) {
+                directory_ctr_ = directory_ctr_ref.get();
+                directory_ctr_->internal_reset_allocator_holder();
+            }
+            else {
+                mma_mdb_txn_abort(transaction_);
+                return std::move(directory_ctr_ref).transfer_error();
+            }
+        }
+
+        return VoidResult::of();
     }
 
     virtual ~LMDBStoreReadOnlyCommit() noexcept {
@@ -126,12 +133,32 @@ public:
         }
     }
 
+    CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
+            ContainerOperationsPtr<Profile> ctr_intf,
+            SharedBlockConstPtr block
+    )
+    {
+        return ctr_intf->new_ctr_instance(block, this->self_ptr());
+    }
+
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
+            const LDTypeDeclarationView& decl, const CtrID& ctr_id
+    )
+    {
+        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
+        return factory->create_instance(this, ctr_id, decl);
+    }
+
 protected:
     uint64_t sequence_id() const {
         return mma_mdb_txn_id(transaction_);
     }
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
+        return this->shared_from_this();
+    }
+
+    virtual SnpSharedPtr<StoreT> rw_self_ptr() noexcept {
         return this->shared_from_this();
     }
 

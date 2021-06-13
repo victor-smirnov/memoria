@@ -29,8 +29,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::BlockName)
 public:
     using Types = TypesType;
 
-    using Allocator = typename Base::Allocator;
-
     using typename Base::TreeNodePtr;
     using typename Base::TreeNodeConstPtr;
     using typename Base::Iterator;
@@ -41,15 +39,15 @@ public:
     using typename Base::ProfileT;
     using typename Base::BlockID;
     using typename Base::CtrID;
-    using typename Base::AllocatorPtr;
+    using typename Base::ROAllocatorPtr;
 
     class CtrBlockImpl: public CtrBlock<ApiProfile<ProfileT>> {
-        AllocatorPtr store_;
+        ROAllocatorPtr store_;
         CtrID ctr_id_;
         BlockID block_id_;
     public:
         CtrBlockImpl(
-                const AllocatorPtr& store,
+                const ROAllocatorPtr& store,
                 CtrID ctr_id,
                 BlockID block_id
         ) noexcept:

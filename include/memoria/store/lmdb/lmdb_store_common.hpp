@@ -40,14 +40,15 @@ template <typename Profile> class LMDBStore;
 
 template <typename Profile>
 class LMDBStoreCommitBase:
-        public ProfileStoreType<Profile>,
+        public ProfileROStoreType<Profile>,
         public ISWMRStoreReadOnlyCommit<ApiProfile<Profile>>
 {
-    using Base = ProfileStoreType<Profile>;
+    using Base = ProfileROStoreType<Profile>;
 protected:
 
     using typename Base::BlockType;
     using typename Base::SharedBlockPtr;
+    using typename Base::SharedBlockConstPtr;
     using typename Base::BlockID;
     using typename Base::SnapshotID;
     using typename Base::CtrID;
@@ -60,7 +61,8 @@ protected:
 
     using Store                     = LMDBStore<Profile>;
     using CtrReferenceableResult    = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
-    using StoreT                = Base;
+    using StoreT                    = Base;
+
     using Superblock                = LMDBSuperblock<Profile>;
 
     using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<ApiProfileT>*>;
@@ -186,15 +188,12 @@ public:
         instance_map_.erase(ctr_id);
     }
 
-
-
-
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id)
     {
         auto root_id = getRootID(ctr_id);
         if (root_id.is_set())
         {
-            auto block = this->getBlock(root_id);
+            auto block = getBlock(root_id);
 
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
@@ -217,16 +216,25 @@ public:
                 }
             }
             else {
-                return ctr_intf->new_ctr_instance(block, this->self_ptr());
+                return new_ctr_instance(ctr_intf, block);
             }
         }
 
         return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};
     }
 
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
+            ContainerOperationsPtr<Profile> ctr_intf,
+            SharedBlockConstPtr block
+    ) = 0;
+
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
+            const LDTypeDeclarationView& decl, const CtrID& ctr_id
+    ) = 0;
+
+
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> from_root_id(
-            const BlockID& root_block_id,
-            const CtrID& name
+            const BlockID& root_block_id
     )
     {
         if (root_block_id.is_set())
@@ -236,7 +244,28 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            return ctr_intf->new_ctr_instance(block, this);
+            CtrID ctr_id = ctr_intf->get_ctr_id(block);
+
+            auto ii = instance_map_.find(ctr_id);
+            if (ii != instance_map_.end())
+            {
+                auto ctr_hash = block->ctr_type_hash();
+                auto instance_hash = ii->second->type_hash();
+
+                if (instance_hash == ctr_hash) {
+                    return ii->second->shared_self();
+                }
+                else {
+                    MEMORIA_MAKE_GENERIC_ERROR(
+                                "Exisitng ctr instance type hash mismatch: expected {}, actual {}",
+                                ctr_hash,
+                                instance_hash
+                    ).do_throw();
+                }
+            }
+            else {
+                return new_ctr_instance(ctr_intf, block);
+            }
         }
 
         return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};
@@ -389,8 +418,8 @@ public:
         return Optional<U8String>{};
     }
 
-    virtual SnpSharedPtr<StoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
-        return SnpSharedPtr<StoreApiBase<ApiProfileT>>{};
+    virtual SnpSharedPtr<ROStoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
+        return SnpSharedPtr<ROStoreApiBase<ApiProfileT>>{};
     }
 
 
@@ -399,7 +428,7 @@ public:
             BTreeTraverseNodeHandler<Profile>& node_handler
     )
     {
-        auto instance = from_root_id(root_block, CtrID{});
+        auto instance = from_root_id(root_block);
         return instance->traverse_ctr(&node_handler);
     }
 
@@ -412,25 +441,13 @@ public:
 
 protected:
 
-
-
-
-
     template<typename CtrName>
     CtrSharedPtr<ICtrApi<CtrName, ApiProfileT>> internal_find_by_root_typed(const BlockID& root_block_id)
     {
-        auto ref = from_root_id(root_block_id, CtrID{});
+        auto ref = from_root_id(root_block_id);
         return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfileT>>(std::move(ref));
     }
 
-
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
-            const LDTypeDeclarationView& decl, const CtrID& ctr_id
-    )
-    {
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(this, ctr_id, decl);
-    }
 
     template<typename CtrName>
     CtrSharedPtr<ICtrApi<CtrName, ApiProfileT>> internal_create_by_name_typed(const CtrID& ctr_id)

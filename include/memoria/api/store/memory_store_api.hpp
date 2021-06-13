@@ -114,13 +114,13 @@ using IMemoryStorePtr = typename IMemoryStore<Profile>::StorePtr;
 
 
 template <typename Profile>
-class IMemorySnapshot: public IStoreWritableSnapshotCtrOps<Profile> {
+class IMemorySnapshot: public IROStoreWritableSnapshotCtrOps<Profile> {
 
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot>;
     using SnapshotID    = ApiProfileSnapshotID<Profile>;
     using CtrID         = ApiProfileCtrID<Profile>;
 
-    using StoreT    = StoreApiBase<Profile>;
+    using StoreT    = ROStoreApiBase<Profile>;
 
 public:
     template <typename CtrName>

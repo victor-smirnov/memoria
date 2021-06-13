@@ -43,14 +43,16 @@ struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using Block = AbstractPage <BlockGUID, BlockID, EmptyType, SnapshotID>;
     using BlockType = Block;
 
-    using StoreType = IStore<Profile>;
-    using BlockShared = PageShared<StoreType, Block, BlockID>;
+    using ROStoreType = IROStore<Profile>;
+    using RWStoreType = IRWStore<Profile>;
+
+    using BlockShared = PageShared<ROStoreType, Block, BlockID>;
 
     template <typename TargetBlockType>
-    using SharedBlockPtrTF = NoCowSharedBlockPtr<TargetBlockType, StoreType, BlockShared>;
+    using SharedBlockPtrTF = NoCowSharedBlockPtr<TargetBlockType, ROStoreType, BlockShared>;
 
-    using SharedBlockPtr       = NoCowSharedBlockPtr<Block, StoreType, BlockShared>;
-    using SharedBlockConstPtr  = NoCowSharedBlockPtr<const Block, StoreType, BlockShared>;
+    using SharedBlockPtr       = NoCowSharedBlockPtr<Block, ROStoreType, BlockShared>;
+    using SharedBlockConstPtr  = NoCowSharedBlockPtr<const Block, ROStoreType, BlockShared>;
 
     static constexpr bool IsCoW = false;
 

@@ -22,10 +22,10 @@
 template <                                                                              \
         typename TypesType                                                              \
 >                                                                                       \
-class BTreeCtrBaseClassName: public CtrBase<TypesType> {                                \
+class BTreeCtrBaseClassName: public ROCtrBase<TypesType> {                              \
                                                                                         \
     typedef BTreeCtrBaseClassName<TypesType>                              ThisType;     \
-    typedef CtrBase<TypesType>                                            Base;         \
+    typedef ROCtrBase<TypesType>                                          Base;         \
     typedef Ctr<TypesType>                                                MyType;       \
                                                                                         \
     template <typename, typename, typename > friend class CtrPart;                      \

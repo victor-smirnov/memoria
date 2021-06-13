@@ -39,11 +39,11 @@
 namespace memoria {
 
 template <typename Profile>
-struct IStoreBase: StoreApiBase<ApiProfile<Profile>> {
+struct IROStoreBase: ROStoreApiBase<ApiProfile<Profile>> {
 
     using ApiProfileT = ApiProfile<Profile>;
 
-    using MyType        = IStore<Profile>;
+    using MyType        = IROStoreBase<Profile>;
 
     using BlockType     = ProfileBlockType<Profile>;
     using ID            = ProfileBlockID<Profile>;
@@ -54,8 +54,6 @@ struct IStoreBase: StoreApiBase<ApiProfile<Profile>> {
 
     using SharedBlockPtr        = typename ProfileTraits<Profile>::SharedBlockPtr;
     using SharedBlockConstPtr   = typename ProfileTraits<Profile>::SharedBlockConstPtr;
-
-    virtual ~IStoreBase() noexcept = default;
     
     virtual BlockID getRootID(const CtrID& ctr_id) = 0;
     virtual void setRoot(const CtrID& ctr_id, const BlockID& root) = 0;
@@ -85,7 +83,7 @@ struct IStoreBase: StoreApiBase<ApiProfile<Profile>> {
     virtual void flush_open_containers() = 0;
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id) = 0;
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> from_root_id(const BlockID& root_block_id, const CtrID& name) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> from_root_id(const BlockID& root_block_id) = 0;
 
     virtual bool check() = 0;
     virtual void walkContainers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) = 0;
@@ -96,9 +94,55 @@ struct IStoreBase: StoreApiBase<ApiProfile<Profile>> {
 };
 
 
+
 template <typename Profile>
-struct IStore: IStoreBase<Profile> {
-    using Base = IStoreBase<Profile>;
+struct IRWStoreBase: RWStoreApiBase<ApiProfile<Profile>> {
+/*
+    using ApiProfileT   = ApiProfile<Profile>;
+
+    using MyType        = IRWStoreBase<Profile>;
+
+    using BlockType     = ProfileBlockType<Profile>;
+    using ID            = ProfileBlockID<Profile>;
+    using BlockID       = ProfileBlockID<Profile>;
+    using BlockGUID     = ProfileBlockGUID<Profile>;
+    using SnapshotID    = ProfileSnapshotID<Profile>;
+    using CtrID         = ProfileCtrID<Profile>;
+
+    using SharedBlockPtr        = typename ProfileTraits<Profile>::SharedBlockPtr;
+    using SharedBlockConstPtr   = typename ProfileTraits<Profile>::SharedBlockConstPtr;
+
+
+    virtual void setRoot(const CtrID& ctr_id, const BlockID& root) = 0;
+
+
+    virtual CtrID createCtrName() = 0;
+
+    virtual SharedBlockConstPtr getBlock(const BlockID& id) = 0;
+
+    virtual void removeBlock(const BlockID& id) = 0;
+    virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID& ctr_id) = 0;
+    virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID& ctr_id) = 0;
+
+    virtual BlockID newId() = 0;
+
+    virtual bool isActive() const = 0;
+
+    virtual void flush_open_containers() = 0;
+
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> from_root_id(const BlockID& root_block_id) = 0;
+
+    virtual bool drop_ctr(const CtrID& ctr_id) = 0;
+
+    */
+};
+
+
+
+template <typename Profile>
+struct IROStore: IROStoreBase<Profile> {
+    using Base = IROStoreBase<Profile>;
 
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
@@ -107,7 +151,8 @@ struct IStore: IStoreBase<Profile> {
 
     using Shared = typename SharedBlockPtr::Shared;
 
-    virtual SnpSharedPtr<IStore> self_ptr() noexcept = 0;
+    virtual SnpSharedPtr<IROStore> self_ptr() noexcept = 0;
+    //virtual SnpSharedPtr<IROStore> rw_self_ptr() noexcept = 0;
 
     virtual void updateBlock(Shared* block) = 0;
     virtual void resizeBlock(Shared* block, int32_t new_size) = 0;
@@ -118,8 +163,29 @@ struct IStore: IStoreBase<Profile> {
 
 
 template <typename Profile>
-struct ICowStore: IStoreBase<Profile> {
-    using Base = IStoreBase<Profile>;
+struct IRWStore: IRWStoreBase<Profile> {
+    /*
+    using Base = IRWStoreBase<Profile>;
+
+    using typename Base::SharedBlockPtr;
+    using typename Base::SharedBlockConstPtr;
+    using typename Base::BlockType;
+    using typename Base::CtrID;
+
+    using Shared = typename SharedBlockPtr::Shared;
+
+    virtual SnpSharedPtr<IRWStore> rw_self_ptr() noexcept = 0;
+
+    virtual void updateBlock(Shared* block) = 0;
+    virtual void resizeBlock(Shared* block, int32_t new_size) = 0;
+    virtual void releaseBlock(Shared* block) noexcept = 0;
+    */
+};
+
+
+template <typename Profile>
+struct IROCowStore: IROStoreBase<Profile> {
+    using Base = IROStoreBase<Profile>;
 
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
@@ -128,7 +194,8 @@ struct ICowStore: IStoreBase<Profile> {
 
     using Shared = typename SharedBlockPtr::Shared;
 
-    virtual SnpSharedPtr<ICowStore> self_ptr() noexcept = 0;
+    virtual SnpSharedPtr<IROCowStore> self_ptr() noexcept = 0;
+    //virtual SnpSharedPtr<IROCowStore> rw_self_ptr() noexcept = 0;
 
     virtual void ref_block(const BlockID& block_id) = 0;
     virtual void unref_block(const BlockID& block_id, std::function<void ()> on_zero) = 0;
@@ -144,5 +211,32 @@ struct ICowStore: IStoreBase<Profile> {
 
     virtual void check_updates_allowed() = 0;
 };
+
+
+template <typename Profile>
+struct IRWCowStore: IRWStoreBase<Profile> {
+    /*
+    using Base = IRWStoreBase<Profile>;
+
+    using typename Base::SharedBlockPtr;
+    using typename Base::SharedBlockConstPtr;
+    using typename Base::BlockID;
+    using typename Base::CtrID;
+
+    using Shared = typename SharedBlockPtr::Shared;
+
+    virtual SnpSharedPtr<IRWCowStore> rw_self_ptr() noexcept = 0;
+
+    virtual void ref_block(const BlockID& block_id) = 0;
+    virtual void unref_block(const BlockID& block_id, std::function<void ()> on_zero) = 0;
+    virtual void unref_ctr_root(const BlockID& root_block_id) = 0;
+
+    virtual void releaseBlock(Shared* block) noexcept = 0;
+    virtual void updateBlock(Shared* block) = 0;
+
+    virtual void check_updates_allowed() = 0;
+    */
+};
+
 
 }

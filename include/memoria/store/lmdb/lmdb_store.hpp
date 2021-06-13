@@ -252,15 +252,13 @@ public:
     {
 
         MaybeError maybe_error{};
-        ReadOnlyCommitPtr ptr{};
-
-        {            
-            ptr = snp_make_shared<LMDBStoreReadOnlyCommit<Profile>>(
+        auto ptr = snp_make_shared<LMDBStoreReadOnlyCommit<Profile>>(
                 maybe_error, this->shared_from_this(), mdb_env_, system_db_, data_db_
-            );
-        }
+        );
+
 
         if (!maybe_error) {
+            ptr->post_init().throw_if_error();
             return std::move(ptr);
         }
         else {
@@ -279,12 +277,15 @@ public:
         );
 
         if (!maybe_error) {
-            ptr->finish_commit_opening();
-            return std::move(ptr);
+            ptr->post_init(maybe_error);
+            if (!maybe_error)
+            {
+                ptr->finish_commit_opening();
+                return std::move(ptr);
+            }
         }
-        else {
-            maybe_error.get().do_throw();
-        }
+
+        maybe_error.get().do_throw();
     }
 
     virtual void close() {

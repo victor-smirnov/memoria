@@ -315,17 +315,17 @@ public:
     }
 
 
-    SnpSharedPtr<StoreApiBase<ApiProfileT>> snapshot_ref_creation_allowed()
+    SnpSharedPtr<ROStoreApiBase<ApiProfileT>> snapshot_ref_creation_allowed()
     {
         this->checkIfConainersCreationAllowed();
-        return memoria_static_pointer_cast<StoreApiBase<ApiProfileT>>(this->shared_from_this());
+        return memoria_static_pointer_cast<ROStoreApiBase<ApiProfileT>>(this->shared_from_this());
     }
 
 
-    SnpSharedPtr<StoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed()
+    SnpSharedPtr<ROStoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed()
     {
         this->checkIfConainersOpeneingAllowed();
-        return memoria_static_pointer_cast<StoreApiBase<ApiProfileT>>(this->shared_from_this());
+        return memoria_static_pointer_cast<ROStoreApiBase<ApiProfileT>>(this->shared_from_this());
     }
 };
 

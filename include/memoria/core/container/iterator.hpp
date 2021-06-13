@@ -126,7 +126,7 @@ class IteratorBase: public TypesType::IteratorInterface, public CtrSharedFromThi
 public:
 
     typedef Ctr<typename TypesType::CtrTypes>                                       Container;
-    typedef typename Container::Allocator                                           Allocator;
+    typedef typename Container::ROAllocator                                         ROAllocator;
 
     typedef Iter<TypesType>                                                         MyType;
 

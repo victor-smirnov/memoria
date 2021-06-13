@@ -37,8 +37,7 @@ using bt::StreamTag;
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(map::ItrNavMaxName)
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::TreeNodePtr                                            TreeNodePtr;
+    typedef typename Base::TreeNodePtr                                          TreeNodePtr;
 
     typedef typename Base::Container::Value                                     Value;
     typedef typename Base::Container::Key                                       Key;

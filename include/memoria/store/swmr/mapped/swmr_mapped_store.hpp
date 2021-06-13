@@ -280,6 +280,7 @@ private:
         }
 
         if (!maybe_error) {
+            ptr->post_init();
             return std::move(ptr);
         }
         else {

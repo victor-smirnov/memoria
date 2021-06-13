@@ -30,6 +30,7 @@ struct InitStoreTag{};
 template <typename Profile>
 class SWMRStoreWritableCommitBase:
         public SWMRStoreCommitBase<Profile>,
+        public ProfileRWStoreType<Profile>,
         public ISWMRStoreWritableCommit<ApiProfile<Profile>>
 {
 protected:
@@ -58,6 +59,8 @@ protected:
     using typename Base::Shared;
 
     using typename Base::DirectoryCtrType;
+
+    using RWStoreT = ProfileRWStoreType<Profile>;
 
     using Base::ref_block;
     using Base::unref_block;
@@ -129,6 +132,8 @@ public:
 
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept = 0;
+    virtual SnpSharedPtr<RWStoreT> rw_self_ptr() noexcept = 0;
+
     virtual uint64_t get_memory_size() = 0;
     virtual SharedSBPtr<Superblock> new_superblock(uint64_t pos) = 0;
 
@@ -376,7 +381,7 @@ public:
     {
         checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(self_ptr(), ctr_id, decl);
+        return factory->create_mutable_instance(self_ptr(), rw_self_ptr(), ctr_id, decl);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
@@ -385,7 +390,7 @@ public:
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
 
         auto ctr_name = createCtrName();
-        return factory->create_instance(self_ptr(), ctr_name, decl);
+        return factory->create_mutable_instance(self_ptr(), rw_self_ptr(), ctr_name, decl);
     }
 
     static constexpr uint64_t block_size_at(int32_t level) noexcept {
@@ -527,7 +532,7 @@ public:
 
             auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(block->ctr_type_hash());
 
-            ctr_intf->drop(name, self_ptr());
+            ctr_intf->drop(name, self_ptr(), rw_self_ptr());
             return true;
         }
         else {
@@ -549,7 +554,7 @@ public:
             auto ctr_hash = block->ctr_type_hash();
             auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(ctr_hash);
 
-            return ctr_intf->clone_ctr(ctr_name, new_ctr_name, self_ptr());
+            return ctr_intf->clone_ctr(ctr_name, new_ctr_name, self_ptr(), rw_self_ptr());
         }
         else {
             auto sb = get_superblock();
@@ -910,12 +915,12 @@ public:
     }
 
 
-    virtual SnpSharedPtr<StoreApiBase<ApiProfileT>> snapshot_ref_creation_allowed() {
-        return SnpSharedPtr<StoreApiBase<ApiProfileT>>{};
+    virtual SnpSharedPtr<ROStoreApiBase<ApiProfileT>> snapshot_ref_creation_allowed() {
+        return SnpSharedPtr<ROStoreApiBase<ApiProfileT>>{};
     }
 
 
-    virtual SnpSharedPtr<StoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
+    virtual SnpSharedPtr<ROStoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
         return Base::snapshot_ref_opening_allowed();
     }
 
@@ -1037,6 +1042,22 @@ public:
 
     static constexpr int32_t CustomLog2(int32_t value) noexcept {
         return 31 - CtLZ((uint32_t)value);
+    }
+
+    CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
+            ContainerOperationsPtr<Profile> ctr_intf,
+            SharedBlockConstPtr block
+    )
+    {
+        return ctr_intf->new_mutable_ctr_instance(block, self_ptr(), rw_self_ptr());
+    }
+
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
+            const LDTypeDeclarationView& decl, const CtrID& ctr_id
+    )
+    {
+        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
+        return factory->create_mutable_instance(this, this, ctr_id, decl);
     }
 };
 

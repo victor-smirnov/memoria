@@ -68,8 +68,8 @@ struct PythonAPIBinder<IBasicSWMRStore<Profile>> {
     using ROCommitType   = ISWMRStoreReadOnlyCommit<Profile>;
     using CommitBaseType = ISWMRStoreCommitBase<Profile>;
 
-    using SnpCtrOpsType  = IStoreSnapshotCtrOps<Profile>;
-    using WritableSnpCtrOpsType = IStoreWritableSnapshotCtrOps<Profile>;
+    using SnpCtrOpsType  = IROStoreSnapshotCtrOps<Profile>;
+    using WritableSnpCtrOpsType = IROStoreWritableSnapshotCtrOps<Profile>;
     using CtrReferenceableType = CtrReferenceable<Profile>;
 
     using CtrID = ApiProfileCtrID<Profile>;
@@ -107,8 +107,8 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
     using ROCommitType   = ISWMRStoreReadOnlyCommit<Profile>;
     using CommitBaseType = ISWMRStoreCommitBase<Profile>;
 
-    using SnpCtrOpsType         = IStoreSnapshotCtrOps<Profile>;
-    using WritableSnpCtrOpsType = IStoreWritableSnapshotCtrOps<Profile>;
+    using SnpCtrOpsType         = IROStoreSnapshotCtrOps<Profile>;
+    using WritableSnpCtrOpsType = IROStoreWritableSnapshotCtrOps<Profile>;
     using CtrReferenceableType  = CtrReferenceable<Profile>;
 
     using CtrID = ApiProfileCtrID<Profile>;
@@ -156,8 +156,8 @@ struct PythonAPIBinder<ILMDBStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
     using ROCommitType   = ISWMRStoreReadOnlyCommit<Profile>;
     using CommitBaseType = ISWMRStoreCommitBase<Profile>;
 
-    using SnpCtrOpsType         = IStoreSnapshotCtrOps<Profile>;
-    using WritableSnpCtrOpsType = IStoreWritableSnapshotCtrOps<Profile>;
+    using SnpCtrOpsType         = IROStoreSnapshotCtrOps<Profile>;
+    using WritableSnpCtrOpsType = IROStoreWritableSnapshotCtrOps<Profile>;
     using CtrReferenceableType  = CtrReferenceable<Profile>;
 
     using CtrID = ApiProfileCtrID<Profile>;

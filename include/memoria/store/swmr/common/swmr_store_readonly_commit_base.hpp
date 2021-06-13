@@ -28,6 +28,10 @@ protected:
 
     using typename Base::Store;
     using typename Base::CommitDescriptorT;
+    using typename Base::ApiProfileT;
+    using typename Base::SharedBlockConstPtr;
+    using typename Base::CtrID;
+
 
 public:
     SWMRStoreReadOnlyCommitBase(
@@ -37,6 +41,22 @@ public:
     ) noexcept :
         Base(store, commit_descriptor, refcounter_delegate)
     {}
+
+    CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
+            ContainerOperationsPtr<Profile> ctr_intf,
+            SharedBlockConstPtr block
+    )
+    {
+        return ctr_intf->new_ctr_instance(block, this->self_ptr());
+    }
+
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
+            const LDTypeDeclarationView& decl, const CtrID& ctr_id
+    )
+    {
+        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
+        return factory->create_instance(this, ctr_id, decl);
+    }
 };
 
 }

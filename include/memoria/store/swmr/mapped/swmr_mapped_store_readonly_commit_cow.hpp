@@ -117,26 +117,28 @@ public:
         Base(store, commit_descriptor, refcounter_delegate),
         buffer_(buffer),
         block_cache_(1024*128)
-    {
-        wrap_construction(maybe_error, [&] {
-            auto blockmap_root_id = get_superblock()->blockmap_root_id();
-            if (blockmap_root_id.is_set())
-            {
-                auto ctr_ref = this->template internal_find_by_root_typed<BlockMapCtrType>(blockmap_root_id);
+    {}
 
-                blockmap_ctr_ = ctr_ref;
-                blockmap_ctr_->internal_reset_allocator_holder();
-            }
+    void post_init() {
+        auto sb = get_superblock();
 
-            auto directory_root_id = get_superblock()->directory_root_id();
-            if (directory_root_id.is_set())
-            {
-                auto ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(directory_root_id);
+        auto blockmap_root_id = sb->blockmap_root_id();
+        if (blockmap_root_id.is_set())
+        {
+            auto ctr_ref = this->template internal_find_by_root_typed<BlockMapCtrType>(blockmap_root_id);
 
-                directory_ctr_ = ctr_ref;
-                directory_ctr_->internal_reset_allocator_holder();
-            }
-        });
+            blockmap_ctr_ = ctr_ref;
+            blockmap_ctr_->internal_reset_allocator_holder();
+        }
+
+        auto directory_root_id = sb->directory_root_id();
+        if (directory_root_id.is_set())
+        {
+            auto ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(directory_root_id);
+
+            directory_ctr_ = ctr_ref;
+            directory_ctr_->internal_reset_allocator_holder();
+        }
     }
 
     static void init_profile_metadata() noexcept {

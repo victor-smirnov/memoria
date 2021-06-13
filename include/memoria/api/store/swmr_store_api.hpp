@@ -26,7 +26,7 @@
 namespace memoria {
 
 template <typename Profile>
-struct ISWMRStoreCommitBase: virtual IStoreSnapshotCtrOps<Profile> {
+struct ISWMRStoreCommitBase: virtual IROStoreSnapshotCtrOps<Profile> {
     using CommitID = ApiProfileSnapshotID<Profile>;
 
     virtual CommitID commit_id() = 0;
@@ -34,7 +34,7 @@ struct ISWMRStoreCommitBase: virtual IStoreSnapshotCtrOps<Profile> {
 };
 
 template <typename Profile>
-struct ISWMRStoreWritableCommit: virtual ISWMRStoreCommitBase<Profile>, virtual IStoreWritableSnapshotCtrOps<Profile> {
+struct ISWMRStoreWritableCommit: virtual ISWMRStoreCommitBase<Profile>, virtual IROStoreWritableSnapshotCtrOps<Profile> {
     virtual void set_persistent(bool persistent) = 0;
     virtual bool is_persistent() = 0;
 };
@@ -235,7 +235,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
 ){
-    auto ptr = memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(alloc);
+    auto ptr = memoria_static_pointer_cast<IROStoreWritableSnapshotCtrOps<Profile>>(alloc);
     return create(ptr, ctr_type_name, ctr_id);
 }
 
@@ -244,7 +244,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
         SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
         const CtrName& ctr_type_name
 ){
-    auto ptr = memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(alloc);
+    auto ptr = memoria_static_pointer_cast<IROStoreWritableSnapshotCtrOps<Profile>>(alloc);
     return create(ptr, ctr_type_name);
 }
 
@@ -255,7 +255,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find_or_create(
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
 ){
-    auto ptr = memoria_static_pointer_cast<IStoreWritableSnapshotCtrOps<Profile>>(alloc);
+    auto ptr = memoria_static_pointer_cast<IROStoreWritableSnapshotCtrOps<Profile>>(alloc);
     return find_or_create(ptr, ctr_type_name, ctr_id);
 }
 
@@ -264,7 +264,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
         SnpSharedPtr<ISWMRStoreReadOnlyCommit<Profile>> alloc,
         const ApiProfileCtrID<Profile>& ctr_id
 ){
-    auto ptr = memoria_static_pointer_cast<IStoreSnapshotCtrOps<Profile>>(alloc);
+    auto ptr = memoria_static_pointer_cast<IROStoreSnapshotCtrOps<Profile>>(alloc);
     return find<CtrName>(ptr, ctr_id);
 }
 
@@ -273,7 +273,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
         SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
         const ApiProfileCtrID<Profile>& ctr_id
 ){
-    auto ptr = memoria_static_pointer_cast<IStoreSnapshotCtrOps<Profile>>(alloc);
+    auto ptr = memoria_static_pointer_cast<IROStoreSnapshotCtrOps<Profile>>(alloc);
     return find<CtrName>(ptr, ctr_id);
 }
 

@@ -52,6 +52,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
     using typename Base::CommitDescriptorT;
 
     using typename Base::StoreT;
+    using typename Base::RWStoreT;
     using typename Base::CommitID;
     using typename Base::BlockID;
     using typename Base::SharedBlockPtr;
@@ -168,6 +169,10 @@ public:
     }
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept override {
+        return this->shared_from_this();
+    }
+
+    virtual SnpSharedPtr<RWStoreT> rw_self_ptr() noexcept override {
         return this->shared_from_this();
     }
 

@@ -30,8 +30,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::FindName)
 public:
     using Types = TypesType;
 
-    using Allocator = typename Base::Allocator;
-
     using typename Base::TreeNodeConstPtr;
     using typename Base::Iterator;
     using typename Base::IteratorPtr;

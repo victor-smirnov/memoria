@@ -29,8 +29,8 @@ class StoreSnapshotOps {};
 template <typename Profile>
 struct PythonAPIBinder<StoreSnapshotOps<Profile>> {
 
-    using SnpCtrOpsType             = IStoreSnapshotCtrOps<Profile>;
-    using WritableSnpCtrOpsType     = IStoreWritableSnapshotCtrOps<Profile>;
+    using SnpCtrOpsType             = IROStoreSnapshotCtrOps<Profile>;
+    using WritableSnpCtrOpsType     = IROStoreWritableSnapshotCtrOps<Profile>;
     using CtrReferenceableType      = CtrReferenceable<Profile>;
 
     using CtrID = ApiProfileCtrID<Profile>;

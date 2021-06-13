@@ -93,20 +93,19 @@ public:
         Base(store, commit_descriptor, refcounter_delegate),
         buffer_(buffer)
     {
-        wrap_construction(maybe_error, [&]() -> VoidResult {
-            auto sb = this->get_superblock(commit_descriptor->superblock_ptr());
+    }
 
-            auto root_block_id = sb->directory_root_id();
-            if (root_block_id.is_set())
-            {
-                auto directory_ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(root_block_id);
+    void post_init() {
+        auto sb = this->get_superblock(commit_descriptor_->superblock_ptr());
 
-                directory_ctr_ = directory_ctr_ref;
-                directory_ctr_->internal_reset_allocator_holder();
-            }
+        auto root_block_id = sb->directory_root_id();
+        if (root_block_id.is_set())
+        {
+            auto directory_ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(root_block_id);
 
-            return VoidResult::of();
-        });
+            directory_ctr_ = directory_ctr_ref;
+            directory_ctr_->internal_reset_allocator_holder();
+        }
     }
 
 
@@ -118,7 +117,6 @@ public:
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
         return this->shared_from_this();
     }
-
 
     using typename Base::ResolvedBlock;
     virtual ResolvedBlock resolve_block(const BlockID& block_id)

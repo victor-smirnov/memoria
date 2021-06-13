@@ -25,24 +25,49 @@
 namespace memoria {
 
 
-template <typename CtrName, typename Allocator, typename Profile>
+template <typename CtrName, typename ROAllocator, typename RWAllocator, typename Profile>
 class SharedCtr: public CtrTF<Profile, CtrName, CtrName>::Type {
     using Base = typename CtrTF<Profile, CtrName, CtrName>::Type;
 public:
-    SharedCtr(MaybeError& maybe_error, const CtrSharedPtr<Allocator>& allocator, const ProfileCtrID<Profile>& name, CtrName type_decl):
-        Base(maybe_error, allocator, name, type_decl)
+    SharedCtr(const SharedCtr&) = delete;
+    SharedCtr(SharedCtr&&) = delete;
+
+    SharedCtr(
+            MaybeError& maybe_error,
+            const CtrSharedPtr<ROAllocator>& allocator,
+            const CtrSharedPtr<RWAllocator>& rw_allocator,
+            const ProfileCtrID<Profile>& name,
+            CtrName type_decl
+    ):
+        Base(maybe_error, allocator, rw_allocator, name, type_decl)
     {}
 
-    SharedCtr(MaybeError& maybe_error, Allocator* allocator, const ProfileCtrID<Profile>& name, CtrName type_decl):
-        Base(maybe_error, allocator, name, type_decl)
+    SharedCtr(
+            MaybeError& maybe_error,
+            ROAllocator* allocator,
+            RWAllocator* rw_allocator,
+            const ProfileCtrID<Profile>& name,
+            CtrName type_decl
+    ):
+        Base(maybe_error, allocator, rw_allocator, name, type_decl)
     {}
 
-    SharedCtr(MaybeError& maybe_error, const CtrSharedPtr<Allocator>& allocator, const typename Allocator::SharedBlockConstPtr& root_block):
-        Base(maybe_error, allocator, root_block)
+    SharedCtr(
+            MaybeError& maybe_error,
+            const CtrSharedPtr<ROAllocator>& allocator,
+            const CtrSharedPtr<RWAllocator>& rw_allocator,
+            const typename ROAllocator::SharedBlockConstPtr& root_block
+    ):
+        Base(maybe_error, allocator, rw_allocator, root_block)
     {}
 
-    SharedCtr(MaybeError& maybe_error, Allocator* allocator, const typename Allocator::SharedBlockConstPtr& root_block):
-        Base(maybe_error, allocator, root_block)
+    SharedCtr(
+            MaybeError& maybe_error,
+            ROAllocator* allocator,
+            RWAllocator* rw_allocator,
+            const typename ROAllocator::SharedBlockConstPtr& root_block
+    ):
+        Base(maybe_error, allocator, rw_allocator, root_block)
     {}
 };
 

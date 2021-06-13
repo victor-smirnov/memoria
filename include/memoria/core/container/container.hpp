@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -62,21 +62,18 @@ template <typename Name, typename Base, typename Types> class CtrPart;
 template <typename Types> class Ctr;
 template <typename Types> class Iter;
 template <typename CtrName, typename Profile> class SharedIter;
-template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
-
+template <typename CtrName, typename ROAllocator, typename RWAllocator, typename Profile> class SharedCtr;
 
 constexpr UUID CTR_DEFAULT_NAME = UUID(-1ull, -1ull);
 
-
-
 template <typename TypesType>
-class CtrBase:
+class ROCtrBase:
         public ::memoria::ICtrApi<typename TypesType::ContainerTypeName, ApiProfile<typename TypesType::Profile>>,
         public CtrSharedFromThis<Ctr<TypesType>>
 {
 public:
 
-    using ThisType  = CtrBase<TypesType>;
+    using ThisType  = ROCtrBase<TypesType>;
     using MyType    = Ctr<TypesType>;
 
     using ContainerTypeName = typename TypesType::ContainerTypeName;
@@ -88,17 +85,22 @@ public:
 
     using TreeNodePtr = typename Types::TreeNodePtr;
     
-    using Allocator = typename Types::Allocator;
-    using BlockID   = typename Allocator::BlockID;
-    using BlockType = typename Allocator::BlockType;
-    using CtrID     = typename Allocator::CtrID;
-    using SharedBlockPtr        = typename Allocator::SharedBlockPtr;
-    using SharedBlockConstPtr   = typename Allocator::SharedBlockConstPtr;
+    using ROAllocator = ProfileROStoreType<ProfileT>;
+    using RWAllocator = ProfileRWStoreType<ProfileT>;
+
+
+    using BlockID   = typename ROAllocator::BlockID;
+    using BlockType = typename ROAllocator::BlockType;
+    using CtrID     = typename ROAllocator::CtrID;
+    using SharedBlockPtr        = typename ROAllocator::SharedBlockPtr;
+    using SharedBlockConstPtr   = typename ROAllocator::SharedBlockConstPtr;
 
     using Iterator          = Iter<typename Types::IterTypes>;
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
     using IteratorPtr       = CtrSharedPtr<SharedIterator>;
-    using AllocatorPtr      = SnpSharedPtr<Allocator>;
+
+    using ROAllocatorPtr    = SnpSharedPtr<ROAllocator>;
+    using RWAllocatorPtr    = SnpSharedPtr<RWAllocator>;
 
     using NodeDispatcher = typename Types::Blocks::template NodeDispatcher<MyType>;
 
@@ -111,7 +113,7 @@ public:
     template <typename> friend class IterStart;
 
     template <typename> friend class CtrStart;
-    //template <typename, typename, typename> friend class CtrPart;
+    template <typename, typename, typename> friend class CtrPart;
     template <typename> friend class Ctr;
 
 protected:
@@ -119,15 +121,15 @@ protected:
 
     PairPtr pair_;
     
-    AllocatorPtr allocator_holder_;
+    ROAllocatorPtr store_holder_;
 
     bool do_unregister_on_dtr_{true};
     bool do_unregister_{true};
 
 public:
-    CtrBase(MaybeError&) noexcept {}
+    ROCtrBase(MaybeError&) noexcept {}
 
-    virtual ~CtrBase() noexcept {}
+    virtual ~ROCtrBase() noexcept {}
 
     const std::type_info& api_type_info() const noexcept {
         return typeid(::memoria::ICtrApi<typename TypesType::ContainerTypeName, ApiProfile<typename TypesType::Profile>>);
@@ -155,15 +157,15 @@ public:
     }
     
     void reset_allocator_holder() noexcept {
-        allocator_holder_.reset();
+        store_holder_.reset();
     }
 
     void internal_reset_allocator_holder() noexcept {
         reset_allocator_holder();
     }
 
-    AllocatorPtr allocator_holder() noexcept {
-        return allocator_holder_;
+    ROAllocatorPtr allocator_holder() noexcept {
+        return store_holder_;
     }
     
     virtual bool is_castable_to(uint64_t type_code) const noexcept {
@@ -239,7 +241,12 @@ public:
     struct CtrInstanceFactoryImpl: public CtrInstanceFactory<ProfileT> {
 
         template <typename CtrName>
-        using CtrT = SharedCtr<CtrName, ProfileStoreType<ProfileT>, ProfileT>;
+        using CtrT = SharedCtr<
+            CtrName,
+            ROAllocator,
+            RWAllocator,
+            ProfileT
+        >;
 
         template <typename CtrName>
         using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
@@ -249,7 +256,7 @@ public:
 
 
         virtual CtrReferenceablePtrT create_instance(
-                const AllocatorPtr& allocator,
+                const ROAllocatorPtr& allocator,
                 const CtrID& ctr_id,
                 const LDTypeDeclarationView& type_decl
         ) const
@@ -259,7 +266,30 @@ public:
             MaybeError maybe_error;
 
             auto instance = ctr_make_shared<CtrT<ContainerTypeName>>(
-                maybe_error, allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
+                maybe_error, allocator, RWAllocatorPtr{}, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
+            );
+
+            if (!maybe_error) {
+                return std::move(instance);
+            }
+            else {
+                std::move(maybe_error.get()).do_throw();
+            }
+        }
+
+        virtual CtrReferenceablePtrT create_mutable_instance(
+                const ROAllocatorPtr& allocator,
+                const RWAllocatorPtr& rw_allocator,
+                const CtrID& ctr_id,
+                const LDTypeDeclarationView& type_decl
+        ) const
+        {
+            boost::any obj = DataTypeRegistry::local().create_object(type_decl);
+
+            MaybeError maybe_error;
+
+            auto instance = ctr_make_shared<CtrT<ContainerTypeName>>(
+                maybe_error, allocator, rw_allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
             );
 
             if (!maybe_error) {
@@ -271,8 +301,9 @@ public:
         }
 
 
+
         virtual CtrReferenceablePtrT create_instance(
-                Allocator* allocator,
+                ROAllocator* allocator,
                 const CtrID& ctr_id,
                 const LDTypeDeclarationView& type_decl
         ) const
@@ -282,7 +313,31 @@ public:
             MaybeError maybe_error;
 
             auto instance = ctr_make_shared<CtrT<ContainerTypeName>>(
-                maybe_error, allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
+                maybe_error, allocator, nullptr, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
+            );
+
+            if (!maybe_error) {
+                return std::move(instance);
+            }
+            else {
+                std::move(maybe_error.get()).do_throw();
+            }
+        }
+
+
+        virtual CtrReferenceablePtrT create_mutable_instance(
+                ROAllocator* allocator,
+                RWAllocator* rw_allocator,
+                const CtrID& ctr_id,
+                const LDTypeDeclarationView& type_decl
+        ) const
+        {
+            boost::any obj = DataTypeRegistry::local().create_object(type_decl);
+
+            MaybeError maybe_error;
+
+            auto instance = ctr_make_shared<CtrT<ContainerTypeName>>(
+                maybe_error, allocator, rw_allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
             );
 
             if (!maybe_error) {
@@ -299,6 +354,8 @@ public:
         using CIBase = ContainerOperations<ProfileT>;    
         using typename CIBase::BlockCallbackFn;
 
+        using CtrReferenceablePtrT = CtrSharedPtr<CtrReferenceable<ApiProfile<ProfileT>>>;
+
         virtual U8String data_type_decl_signature() const {
             return make_datatype_signature<ContainerTypeName>().name();
         }
@@ -308,7 +365,7 @@ public:
             return TypeNameFactory<Name>::name();
         }
 
-        void with_ctr(const CtrID& ctr_id, const AllocatorPtr& allocator, std::function<void (MyType&)> fn) const
+        void with_ctr(const CtrID& ctr_id, const ROAllocatorPtr& allocator, std::function<void (MyType&)> fn) const
         {
             auto ctr_ref = allocator->find(ctr_id);
             if (ctr_ref)
@@ -321,7 +378,25 @@ public:
             }
         }
 
-        virtual bool check(const CtrID& ctr_id, AllocatorPtr allocator) const
+        void with_ctr(
+                const CtrID& ctr_id,
+                const ROAllocatorPtr& allocator,
+                const RWAllocatorPtr& rw_allocator,
+                std::function<void (MyType&)> fn
+        ) const
+        {
+            auto ctr_ref = allocator->find(ctr_id);
+            if (ctr_ref)
+            {
+                auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref);
+                return fn(*ctr_ptr.get());
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("No container is found for id {}", ctr_id).do_throw();
+            }
+        }
+
+        virtual bool check(const CtrID& ctr_id, ROAllocatorPtr allocator) const
         {
             bool result = false;
             with_ctr(ctr_id, allocator, [&](MyType& ctr) {
@@ -334,7 +409,7 @@ public:
 
         virtual void walk(
                 const UUID& ctr_id,
-                AllocatorPtr allocator,
+                ROAllocatorPtr allocator,
                 ContainerWalker<ProfileT>* walker
         ) const
         {
@@ -343,9 +418,9 @@ public:
             });
         }
 
-        virtual void drop(const CtrID& ctr_id, AllocatorPtr allocator) const
+        virtual void drop(const CtrID& ctr_id, ROAllocatorPtr allocator, RWAllocatorPtr rw_allocator) const
         {
-            return with_ctr(ctr_id, allocator, [&](MyType& ctr){
+            return with_ctr(ctr_id, allocator, rw_allocator, [&](MyType& ctr){
                 return ctr.drop();
             });
         }
@@ -385,7 +460,7 @@ public:
 
         virtual void for_each_ctr_node(
             const CtrID& ctr_id,
-            AllocatorPtr allocator,
+            ROAllocatorPtr allocator,
             BlockCallbackFn consumer
         ) const
         {
@@ -395,16 +470,25 @@ public:
                 return ctr.ctr_walk_tree(&walker);
             });
         }
+
+        virtual CtrID get_ctr_id(
+            const SharedBlockConstPtr& root_block
+        ) const {
+            return MyType::ctr_get_model_name(root_block);
+        }
         
-        virtual CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>> new_ctr_instance(
-            const ProfileSharedBlockConstPtr<typename Types::Profile>& root_block,
-            AllocatorPtr allocator
+        virtual CtrReferenceablePtrT new_ctr_instance(
+            const SharedBlockConstPtr& root_block,
+            ROAllocatorPtr allocator
         ) const
         {
             MaybeError maybe_error;
-            auto instance = ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
+            auto instance = ctr_make_shared<
+                    SharedCtr<ContainerTypeName, ROAllocator, RWAllocator, ProfileT>
+            > (
                     maybe_error,
                     allocator,
+                    RWAllocatorPtr{},
                     root_block
             );
 
@@ -416,15 +500,19 @@ public:
             }
         }
 
-        virtual CtrSharedPtr<CtrReferenceable<ApiProfile<typename Types::Profile>>> new_ctr_instance(
-            const ProfileSharedBlockConstPtr<typename Types::Profile>& root_block,
-            ProfileStoreType<ProfileT>* allocator
+        virtual CtrReferenceablePtrT new_mutable_ctr_instance(
+            const SharedBlockConstPtr& root_block,
+            ROAllocatorPtr allocator,
+            RWAllocatorPtr rw_allocator
         ) const
         {
             MaybeError maybe_error;
-            auto instance = ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
+            auto instance = ctr_make_shared<
+                    SharedCtr<ContainerTypeName, ROAllocator, RWAllocator, ProfileT>
+            > (
                     maybe_error,
                     allocator,
+                    rw_allocator,
                     root_block
             );
 
@@ -436,21 +524,73 @@ public:
             }
         }
 
-        virtual CtrID clone_ctr(const CtrID& ctr_id, const CtrID& new_ctr_id, AllocatorPtr allocator) const
+        virtual CtrReferenceablePtrT new_ctr_instance(
+            const SharedBlockConstPtr& root_block,
+            ROAllocator* allocator
+        ) const
         {
+            MaybeError maybe_error;
+            auto instance = ctr_make_shared<
+                    SharedCtr<ContainerTypeName, ROAllocator, RWAllocator, ProfileT>
+            > (
+                    maybe_error,
+                    allocator,
+                    nullptr,
+                    root_block
+            );
+
+            if (!maybe_error) {
+                return std::move(instance);
+            }
+            else {
+                std::move(maybe_error.get()).do_throw();
+            }
+        }
+
+        virtual CtrReferenceablePtrT new_mutable_ctr_instance(
+            const SharedBlockConstPtr& root_block,
+            ROAllocator* allocator,
+            RWAllocator* rw_allocator
+        ) const
+        {
+            MaybeError maybe_error;
+            auto instance = ctr_make_shared<
+                    SharedCtr<ContainerTypeName, ROAllocator, RWAllocator, ProfileT>
+            > (
+                    maybe_error,
+                    allocator,
+                    rw_allocator,
+                    root_block
+            );
+
+            if (!maybe_error) {
+                return std::move(instance);
+            }
+            else {
+                std::move(maybe_error.get()).do_throw();
+            }
+        }
+
+        virtual CtrID clone_ctr(
+                const CtrID& ctr_id,
+                const CtrID& new_ctr_id,
+                ROAllocatorPtr allocator,
+                RWAllocatorPtr rw_allocator
+        ) const {
             CtrID new_name_rtn{};
 
-            with_ctr(ctr_id, allocator, [&](MyType& ctr) {
+            with_ctr(ctr_id, allocator, rw_allocator, [&](MyType& ctr) {
                 auto clone_res = ctr.clone(new_ctr_id);
                 new_name_rtn = clone_res;
             });
 
-
             return new_name_rtn;
         }
 
-        virtual CtrBlockDescription<ApiProfile<ProfileT>> describe_block1(const BlockID& block_id, AllocatorPtr allocator) const
-        {
+        virtual CtrBlockDescription<ApiProfile<ProfileT>> describe_block1(
+                const BlockID& block_id,
+                ROAllocatorPtr allocator
+        ) const {
             return MyType::describe_block(block_id, allocator.get());
         }
     };
@@ -468,13 +608,11 @@ public:
         return container_factories_ptr;
     }
 
-    CtrID getModelName(const BlockID root_id)
-    {
+    CtrID getModelName(const BlockID root_id) {
         MMA_THROW(UnsupportedOperationException()) << WhatCInfo("getModelName");
     }
 
-    CtrID clone(const CtrID& new_name)
-    {
+    CtrID clone(const CtrID& new_name) {
         MEMORIA_MAKE_GENERIC_ERROR("Clone operation is not supported for this container").do_throw();
     }
 
@@ -482,8 +620,7 @@ public:
         return self().store().isActive();
     }
 
-    virtual void flush() {
-    }
+    virtual void flush() {}
 
 protected:
 
@@ -582,11 +719,16 @@ class Ctr: public CtrStart<Types> {
 
 public:
     using MyType = Ctr<Types>;
+    using ProfileT = typename Types::Profile;
 
-    using Allocator = typename Types::Allocator;
-    using SharedBlockPtr    = typename Types::Allocator::SharedBlockPtr;
-    using BlockID   = typename Allocator::BlockID;
-    using CtrID     = typename Allocator::CtrID;
+    using ROAllocator = ProfileROStoreType<ProfileT>;
+    using RWAllocator = ProfileRWStoreType<ProfileT>;
+
+    using SharedBlockPtr = ProfileSharedBlockPtr<ProfileT>;
+    using SharedBlockConstPtr = ProfileSharedBlockConstPtr<ProfileT>;
+
+    using BlockID   = ProfileBlockID<ProfileT>;
+    using CtrID     = ProfileCtrID<ProfileT>;
 
 public:
 
@@ -595,29 +737,34 @@ public:
 
 private:
 
-    Allocator*  allocator_;
+    ROAllocator*  allocator_;
+    RWAllocator*  rw_allocator_;
+
     CtrID       name_;
     Logger      logger_;
     static Logger class_logger_;
 
 protected:
-    CtrSharedPtr<Allocator> alloc_holder_;
+    CtrSharedPtr<ROAllocator> alloc_holder_;
 
 public:
 
     // create new ctr
     Ctr(
         MaybeError& maybe_error,
-        const CtrSharedPtr<Allocator>& allocator,
+        const CtrSharedPtr<ROAllocator>& allocator,
+        const CtrSharedPtr<RWAllocator>& rw_allocator,
         const CtrID& ctr_id,
         const ContainerTypeName& ctr_type_name
     ) noexcept:
         Base(maybe_error)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            Base::allocator_holder_ = allocator;
+            Base::store_holder_ = allocator;
 
             allocator_ = allocator.get();
+            rw_allocator_ = rw_allocator.get();
+
             name_ = ctr_id;
 
             this->do_create_ctr(ctr_id, ctr_type_name);
@@ -629,7 +776,8 @@ public:
     // create new ctr
     Ctr(
         MaybeError& maybe_error,
-        Allocator* allocator,
+        ROAllocator* allocator,
+        RWAllocator* rw_allocator,
         const CtrID& ctr_id,
         const ContainerTypeName& ctr_type_name
     ) noexcept:
@@ -637,6 +785,8 @@ public:
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             allocator_ = allocator;
+            rw_allocator_ = rw_allocator;
+
             name_ = ctr_id;
 
             this->do_create_ctr(ctr_id, ctr_type_name);
@@ -649,15 +799,17 @@ public:
     // find existing ctr
     Ctr(
         MaybeError& maybe_error,
-        const CtrSharedPtr<Allocator>& allocator,
-        const typename Allocator::SharedBlockConstPtr& root_block
+        const CtrSharedPtr<ROAllocator>& allocator,
+        const CtrSharedPtr<RWAllocator>& rw_allocator,
+        const SharedBlockConstPtr& root_block
     ) noexcept :
         Base(maybe_error)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            Base::allocator_holder_ = allocator;
+            Base::store_holder_ = allocator;
 
             allocator_ = allocator.get();
+            rw_allocator_ = rw_allocator.get();
 
             initLogger();
 
@@ -675,13 +827,15 @@ public:
     // find existing ctr
     Ctr(
         MaybeError& maybe_error,
-        Allocator* allocator,
-        const typename Allocator::SharedBlockConstPtr& root_block
+        ROAllocator* allocator,
+        RWAllocator* rw_allocator,
+        const typename ROAllocator::SharedBlockConstPtr& root_block
     ) noexcept :
         Base(maybe_error)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             allocator_ = allocator;
+            rw_allocator_ = rw_allocator;
 
             initLogger();
 
@@ -724,12 +878,20 @@ public:
 
 
 
-    Allocator& store() noexcept {
+    ROAllocator& store() noexcept {
         return *allocator_;
     }
 
-    Allocator& store() const noexcept {
+    ROAllocator& store() const noexcept {
         return *allocator_;
+    }
+
+    RWAllocator& rw_store() noexcept {
+        return *rw_allocator_;
+    }
+
+    RWAllocator& rw_store() const noexcept {
+        return *rw_allocator_;
     }
 
     static U8String type_name_str() noexcept

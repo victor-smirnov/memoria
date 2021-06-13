@@ -30,16 +30,6 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(seq_dense::IterSkipName)
 public:
-    typedef Ctr<typename Types::CtrTypes>                                       Container;
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::TreeNodePtr                                            TreeNodePtr;
-
-    typedef typename Container::BranchNodeEntry                                 BranchNodeEntry;
-
-    typedef typename Container::Position                                        Position;
-
-    using CtrSizeT = typename Container::Types::CtrSizeT;
-
 MEMORIA_V1_ITERATOR_PART_END
 
 

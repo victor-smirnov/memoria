@@ -29,7 +29,12 @@ template <typename Profile>
 template <typename ImplProfile>
 void ICtrApi<AllocationMap, Profile>::init_profile_metadata()
 {
-    SharedCtr<AllocationMap, ProfileStoreType<ImplProfile>, ImplProfile>::init_profile_metadata();
+    SharedCtr<
+            AllocationMap,
+            ProfileROStoreType<ImplProfile>,
+            ProfileRWStoreType<ImplProfile>,
+            ImplProfile
+    >::init_profile_metadata();
 }
 
 }

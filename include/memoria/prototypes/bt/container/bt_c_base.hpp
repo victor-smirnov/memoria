@@ -41,7 +41,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     using Types = typename Base::Types;
 
-    using Allocator = typename Base::Allocator;
+    using ROAllocator = typename Base::ROAllocator;
 
 
     using typename Base::SharedBlockPtr;
@@ -700,7 +700,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
 
-    static CtrBlockDescription<ApiProfileT> describe_block(const BlockID& node_id, Allocator* alloc)
+    static CtrBlockDescription<ApiProfileT> describe_block(const BlockID& node_id, ROAllocator* alloc)
     {
         auto tmp = alloc->getBlock(node_id);
         TreeNodeConstPtr node = tmp;
