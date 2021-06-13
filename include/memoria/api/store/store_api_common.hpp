@@ -29,7 +29,7 @@ template <typename Profile>
 class IROStoreSnapshotCtrOps {
 
 public:
-    using StoreT = ROStoreApiBase<Profile>;
+    using StoreT = IStoreApiBase<Profile>;
 
     using CtrID = ApiProfileCtrID<Profile>;
     using CtrReferenceableT = CtrSharedPtr<CtrReferenceable<Profile>>;
@@ -66,7 +66,7 @@ protected:
 
 template <typename Profile>
 class IROStoreWritableSnapshotCtrOps: public virtual IROStoreSnapshotCtrOps<Profile> {
-    using ApIROStoreBaseT = ROStoreApiBase<Profile>;
+    using ApIROStoreBaseT = IStoreApiBase<Profile>;
 
 public:
     using CtrID = ApiProfileCtrID<Profile>;

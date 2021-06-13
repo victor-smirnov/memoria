@@ -51,7 +51,6 @@ class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
     using typename Base::CommitDescriptorT;
 
     using typename Base::StoreT;
-    using typename Base::RWStoreT;
     using typename Base::CommitID;
     using typename Base::BlockID;
     using typename Base::SharedBlockPtr;
@@ -103,10 +102,6 @@ public:
         return this->shared_from_this();
     }
 
-    virtual SnpSharedPtr<RWStoreT> rw_self_ptr() noexcept override {
-        return this->shared_from_this();
-    }
-
     virtual uint64_t get_memory_size() noexcept override {
         return buffer_.size();
     }
@@ -127,6 +122,8 @@ public:
             BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value() * BASIC_BLOCK_SIZE);
             Shared* shared = shared_pool_.construct(block_id, block, 0);
             shared->set_allocator(this);
+            shared->set_mutable(true);
+
             return {block_id.value() * BASIC_BLOCK_SIZE, SharedBlockConstPtr{shared}};
         }
         else {
@@ -148,6 +145,7 @@ public:
 
         Shared* shared = shared_pool_.construct(id, block, 0);
         shared->set_allocator(this);
+        shared->set_mutable(true);
 
         return shared;
     }
@@ -168,6 +166,7 @@ public:
 
         Shared* shared = shared_pool_.construct(id, new_block, 0);
         shared->set_allocator(this);
+        shared->set_mutable(true);
 
         return shared;
     }

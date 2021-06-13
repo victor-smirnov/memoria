@@ -56,7 +56,7 @@ template <
 struct IOSubstreamAdapter;
 
 
-template <typename CtrName, typename ROAllocator, typename RWAllocator, typename Profile> class SharedCtr;
+template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 template <typename CtrName, typename Profile> class SharedIter;
 
 namespace _ {

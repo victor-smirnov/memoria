@@ -52,16 +52,15 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using Block = AbstractPage<BlockID, BlockGUID, UUID, SnapshotID>;
     using BlockType = Block;
 
-    using ROStoreType = IROCowStore<Profile>;
-    using RWStoreType = IRWCowStore<Profile>;
+    using StoreType = ICowStore<Profile>;
 
-    using BlockShared = PageShared<ROStoreType, Block, BlockID>;
+    using BlockShared = PageShared<StoreType, Block, BlockID>;
 
     template <typename TargetBlockType>
-    using SharedBlockPtrTF  = CowSharedBlockPtr<TargetBlockType, ROStoreType, BlockShared>;
+    using SharedBlockPtrTF  = CowSharedBlockPtr<TargetBlockType, StoreType, BlockShared>;
 
-    using SharedBlockPtr        = CowSharedBlockPtr<Block, ROStoreType, BlockShared>;
-    using SharedBlockConstPtr   = CowSharedBlockPtr<const Block, ROStoreType, BlockShared>;
+    using SharedBlockPtr        = CowSharedBlockPtr<Block, StoreType, BlockShared>;
+    using SharedBlockConstPtr   = CowSharedBlockPtr<const Block, StoreType, BlockShared>;
 
     static constexpr bool IsCoW = true;
 

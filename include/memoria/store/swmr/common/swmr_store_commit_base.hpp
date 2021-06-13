@@ -65,10 +65,10 @@ template <typename Profile> class SWMRStoreBase;
 
 template <typename Profile>
 class SWMRStoreCommitBase:
-        public ProfileROStoreType<Profile>,
+        public ProfileStoreType<Profile>,
         public ISWMRStoreReadOnlyCommit<ApiProfile<Profile>>
 {
-    using Base = ProfileROStoreType<Profile>;
+    using Base = ProfileStoreType<Profile>;
 protected:
 
     using typename Base::BlockType;
@@ -571,8 +571,8 @@ public:
         return Optional<U8String>{};
     }
 
-    virtual SnpSharedPtr<ROStoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
-        return SnpSharedPtr<ROStoreApiBase<ApiProfileT>>{};
+    virtual SnpSharedPtr<IStoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
+        return SnpSharedPtr<IStoreApiBase<ApiProfileT>>{};
     }
 
     virtual void ref_block(const BlockID& block_id)

@@ -356,17 +356,20 @@ public:
         return CowSharedBlockPtr<MutableBlockType, StoreT, Shared>{ptr_, tmp};
     }
 
-    CowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() & noexcept {
+    CowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() & {
+        shared_->assert_mutable();
         return CowSharedBlockPtr<MutableBlockType, StoreT, Shared>{shared_};
     }
 
-    CowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() const & noexcept {
+    CowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() const & {
+        shared_->assert_mutable();
         return CowSharedBlockPtr<MutableBlockType, StoreT, Shared>{shared_};
     }
 
-    CowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() && noexcept {
+    CowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() && {
         Shared* tmp = shared_;
         shared_ = nullptr;
+        tmp->assert_mutable();
         return CowSharedBlockPtr<MutableBlockType, StoreT, Shared>{ptr_, tmp};
     }
 

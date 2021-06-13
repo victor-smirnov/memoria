@@ -33,8 +33,7 @@ void ICtrApi<Multimap<Key, Value>, Profile>::init_profile_metadata()
 {
     SharedCtr<
             Multimap<Key, Value>,
-            ProfileROStoreType<ImplProfile>,
-            ProfileRWStoreType<ImplProfile>,
+            ProfileStoreType<ImplProfile>,
             ImplProfile
     >::init_profile_metadata();
 }

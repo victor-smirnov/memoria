@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ struct BTTypes {
 
     using IteratorInterface = EmptyType;
 
-    using Allocator = ProfileROStoreType<Profile_>;
+    using Allocator = ProfileStoreType<Profile_>;
     using ID        = ProfileBlockID<Profile_>;
 
     using Metadata  = BalancedTreeMetadata<Profile_>;
@@ -161,7 +161,6 @@ struct BTTypes {
     using DefaultLeafNodeTypesList = TypeList<
             bt::TreeNodeType<bt::LeafNode>
     >;
-    //FIXME DefaultNodeTypesList is not used anymore
 
     using StreamDescriptors = TypeList<>;
 

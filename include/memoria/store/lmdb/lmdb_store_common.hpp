@@ -40,10 +40,10 @@ template <typename Profile> class LMDBStore;
 
 template <typename Profile>
 class LMDBStoreCommitBase:
-        public ProfileROStoreType<Profile>,
+        public ProfileStoreType<Profile>,
         public ISWMRStoreReadOnlyCommit<ApiProfile<Profile>>
 {
-    using Base = ProfileROStoreType<Profile>;
+    using Base = ProfileStoreType<Profile>;
 protected:
 
     using typename Base::BlockType;
@@ -87,6 +87,8 @@ protected:
     MDB_txn* transaction_;
     MDB_dbi system_db_;
     MDB_dbi data_db_;
+
+    bool mutable_{false};
 
     template <typename> friend class SWMRMappedStoreHistoryView;
 
@@ -418,8 +420,8 @@ public:
         return Optional<U8String>{};
     }
 
-    virtual SnpSharedPtr<ROStoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
-        return SnpSharedPtr<ROStoreApiBase<ApiProfileT>>{};
+    virtual SnpSharedPtr<IStoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
+        return SnpSharedPtr<IStoreApiBase<ApiProfileT>>{};
     }
 
 

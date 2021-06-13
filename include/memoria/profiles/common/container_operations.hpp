@@ -156,7 +156,7 @@ public:
     uint64_t offset() const {return offset_;}
 };
 
-template <typename Profile> struct IROStore;
+template <typename Profile> struct IStore;
 
 template <typename Profile>
 struct ContainerOperationsBase {
@@ -172,11 +172,9 @@ struct ContainerOperationsBase {
 
     // uuid, id, block data
     using BlockCallbackFn = std::function<void (const BlockGUID&, const BlockID&, const BlockType*)>;
-    using ROAllocator = ProfileROStoreType<Profile>;
-    using RWAllocator = ProfileRWStoreType<Profile>;
-
+    using ROAllocator = ProfileStoreType<Profile>;
     using ROAllocatorBasePtr = SnpSharedPtr<ROAllocator>;
-    using RWAllocatorBasePtr = SnpSharedPtr<RWAllocator>;
+
 
     using SharedBlockConstPtr = ProfileSharedBlockConstPtr<Profile>;
     using CtrReferenceableT   = CtrSharedPtr<CtrReferenceable<ApiProfileT>>;
@@ -206,8 +204,7 @@ struct ContainerOperationsBase {
 
     virtual void drop(
             const CtrID& name,
-            ROAllocatorBasePtr allocator,
-            RWAllocatorBasePtr rw_allocator
+            ROAllocatorBasePtr allocator
     ) const = 0;
 
 
@@ -222,28 +219,16 @@ struct ContainerOperationsBase {
         ROAllocatorBasePtr allocator
     ) const  = 0;
 
-    virtual CtrReferenceableT new_mutable_ctr_instance(
-        const SharedBlockConstPtr& root_block,
-        ROAllocatorBasePtr allocator,
-        RWAllocatorBasePtr rw_allocator
-    ) const  = 0;
-
     virtual CtrReferenceableT new_ctr_instance(
         const SharedBlockConstPtr& root_block,
         ROAllocator* allocator
     ) const = 0;
 
-    virtual CtrReferenceableT new_mutable_ctr_instance(
-        const SharedBlockConstPtr& root_block,
-        ROAllocator* allocator,
-        RWAllocator* rw_allocator
-    ) const = 0;
 
     virtual CtrID clone_ctr(
         const CtrID& name,
         const CtrID& new_name,
-        ROAllocatorBasePtr allocator,
-        RWAllocatorBasePtr rw_allocator
+        ROAllocatorBasePtr allocator
     ) const = 0;
 
     virtual CtrBlockDescription<ApiProfileT> describe_block1(
@@ -282,10 +267,8 @@ struct CtrInstanceFactory {
     virtual ~CtrInstanceFactory() noexcept = default;
 
     using CtrID         = ProfileCtrID<Profile>;
-    using ROAllocator   = ProfileROStoreType<Profile>;
-    using RWAllocator   = ProfileRWStoreType<Profile>;
+    using ROAllocator   = ProfileStoreType<Profile>;
     using ROAllocatorPtr  = SnpSharedPtr<ROAllocator>;
-    using RWAllocatorPtr  = SnpSharedPtr<RWAllocator>;
 
     using ApiProfileT = ApiProfile<Profile>;
 
@@ -297,22 +280,9 @@ struct CtrInstanceFactory {
             const LDTypeDeclarationView& type_decl
     ) const = 0;
 
-    virtual CtrReferenceableT create_mutable_instance(
-            const ROAllocatorPtr& allocator,
-            const RWAllocatorPtr& rw_allocator,
-            const CtrID& ctr_id,
-            const LDTypeDeclarationView& type_decl
-    ) const = 0;
 
     virtual CtrReferenceableT create_instance(
             ROAllocator* allocator,
-            const CtrID& ctr_id,
-            const LDTypeDeclarationView& type_decl
-    ) const = 0;
-
-    virtual CtrReferenceableT create_mutable_instance(
-            ROAllocator* allocator,
-            RWAllocator* rw_allocator,
             const CtrID& ctr_id,
             const LDTypeDeclarationView& type_decl
     ) const = 0;

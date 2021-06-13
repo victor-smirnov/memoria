@@ -30,8 +30,7 @@ void ICtrApi<Set<Key>, Profile>::init_profile_metadata()
 {
     SharedCtr<
         Set<Key>,
-        ProfileROStoreType<ImplProfile>,
-        ProfileRWStoreType<ImplProfile>,
+        ProfileStoreType<ImplProfile>,
         ImplProfile
     >::init_profile_metadata();
 }

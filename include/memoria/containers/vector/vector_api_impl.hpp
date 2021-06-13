@@ -28,8 +28,7 @@ void ICtrApi<Vector<Value>, Profile>::init_profile_metadata()
 {
     SharedCtr<
             Vector<Value>,
-            ProfileROStoreType<ImplProfile>,
-            ProfileRWStoreType<ImplProfile>,
+            ProfileStoreType<ImplProfile>,
             ImplProfile
     >::init_profile_metadata();
 }

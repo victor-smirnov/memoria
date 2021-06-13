@@ -59,14 +59,13 @@ namespace memory_nocow {
 
 template <typename Profile, typename PersistentAllocator, typename SnapshotType>
 class SnapshotBase:
-        public ProfileROStoreType<Profile>,
-        public ProfileRWStoreType<Profile>,
+        public ProfileStoreType<Profile>,
         public IMemorySnapshot<ApiProfile<Profile>>,
         public SnpSharedFromThis<SnapshotType>
 {
 protected:
 	using MyType			= SnapshotType;
-    using Base              = ProfileROStoreType<Profile>;
+    using Base              = ProfileStoreType<Profile>;
 
 public:
     using ProfileT = Profile;
@@ -104,7 +103,7 @@ protected:
 public:
 
     template <typename CtrName>
-    using CtrT = SharedCtr<CtrName, ProfileROStoreType<Profile>, ProfileRWStoreType<Profile>, Profile>;
+    using CtrT = SharedCtr<CtrName, ProfileStoreType<Profile>, Profile>;
 
     template <typename CtrName>
     using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
@@ -188,10 +187,10 @@ public:
         if (root_id.isSet())
         {
             auto root_block = findBlock(root_id);
-            root_map_ = ctr_make_shared<RootMapType>(maybe_error, ptr, ptr, root_block);
+            root_map_ = ctr_make_shared<RootMapType>(maybe_error, ptr, root_block);
         }
         else {
-            root_map_ = ctr_make_shared<RootMapType>(maybe_error, ptr, ptr, CtrID{}, Map<CtrID, BlockID>());
+            root_map_ = ctr_make_shared<RootMapType>(maybe_error, ptr, CtrID{}, Map<CtrID, BlockID>());
         }
 
         root_map_->reset_allocator_holder();
@@ -214,14 +213,10 @@ public:
         return object_pools_;
     }
     
-    virtual SnpSharedPtr<ProfileROStoreType<Profile>> self_ptr() noexcept {
+    virtual SnpSharedPtr<ProfileStoreType<Profile>> self_ptr() noexcept {
         return this->shared_from_this();
     }
 
-    virtual SnpSharedPtr<ProfileROStoreType<Profile>> rw_self_ptr() noexcept {
-        return this->shared_from_this();
-    }
-    
     PairPtr& pair() noexcept {
         return pair_;
     }
@@ -299,7 +294,7 @@ public:
 
             auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(block->ctr_type_hash());
 
-            ctr_intf->drop(name, this->shared_from_this(), this->shared_from_this());
+            ctr_intf->drop(name, this->shared_from_this());
             return true;
         }
         else {
@@ -559,7 +554,7 @@ public:
             auto ctr_hash = block->ctr_type_hash();
             auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(ctr_hash);
 
-            return ctr_intf->clone_ctr(ctr_name, new_ctr_name, this->shared_from_this(), this->shared_from_this());
+            return ctr_intf->clone_ctr(ctr_name, new_ctr_name, this->shared_from_this());
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {} ", ctr_name, history_node_->snapshot_id()).do_throw();
@@ -995,8 +990,7 @@ public:
     {
         checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_mutable_instance(
-                    this->shared_from_this(),
+        return factory->create_instance(
                     this->shared_from_this(),
                     ctr_id,
                     decl);
@@ -1009,8 +1003,7 @@ public:
 
         auto ctr_name = this->createCtrName();
 
-        return factory->create_mutable_instance(
-                    this->shared_from_this(),
+        return factory->create_instance(
                     this->shared_from_this(),
                     ctr_name,
                     decl
@@ -1047,7 +1040,7 @@ public:
                 }
             }
             else {
-                return ctr_intf->new_mutable_ctr_instance(block, this->shared_from_this(), this->shared_from_this());
+                return ctr_intf->new_ctr_instance(block, this->shared_from_this());
             }
         }
         else {
@@ -1107,7 +1100,7 @@ public:
                 }
             }
             else {
-                return ctr_intf->new_mutable_ctr_instance(block, this->shared_from_this(), this->shared_from_this());
+                return ctr_intf->new_ctr_instance(block, this->shared_from_this());
             }
         }
         else {

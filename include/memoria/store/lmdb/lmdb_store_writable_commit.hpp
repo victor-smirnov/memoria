@@ -35,7 +35,6 @@ struct InitLMDBStoreTag{};
 template <typename Profile>
 class LMDBStoreWritableCommit:
         public LMDBStoreCommitBase<Profile>,
-        public ProfileRWStoreType<Profile>,
         public ISWMRStoreWritableCommit<ApiProfile<Profile>>,
         public EnableSharedFromThis<LMDBStoreWritableCommit<Profile>>
 {
@@ -55,8 +54,6 @@ class LMDBStoreWritableCommit:
     using typename Base::Superblock;
 
     using typename Base::DirectoryCtrType;
-
-    using RWStoreT = ProfileRWStoreType<Profile>;
 
     enum {ENTRY_STATE_ACTIVE, ENTRY_STATE_DELETED};
 
@@ -110,8 +107,7 @@ class LMDBStoreWritableCommit:
     using Base::data_db_;
     using Base::store_;
     using Base::get_data_addr;
-
-
+    using Base::mutable_;
 
     boost::object_pool<BlockCacheEntry> block_cache_entry_pool_;
     BlockCache block_cache_;
@@ -139,6 +135,8 @@ public:
             return this->evictionFn(keep_entry, entry);
         })
     {
+        mutable_ = true;
+
         superblock_ = superblock;
         system_db_ = system_db;
         data_db_ = data_db;
@@ -150,10 +148,6 @@ public:
 
             return VoidResult::of();
         });
-
-        if (!maybe_error) {
-
-        }
     }
 
     void post_init(MaybeError& maybe_error) noexcept
@@ -235,7 +229,7 @@ public:
     {
         checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_mutable_instance(self_ptr(), rw_self_ptr(), ctr_id, decl);
+        return factory->create_instance(self_ptr(), ctr_id, decl);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
@@ -244,7 +238,7 @@ public:
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
 
         auto ctr_name = createCtrName();
-        return factory->create_mutable_instance(self_ptr(), rw_self_ptr(), ctr_name, decl);
+        return factory->create_instance(self_ptr(), ctr_name, decl);
     }
 
     virtual void commit(bool) {
@@ -288,7 +282,7 @@ public:
 
             auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(block->ctr_type_hash());
 
-            ctr_intf->drop(name, self_ptr(), rw_self_ptr());
+            ctr_intf->drop(name, self_ptr());
             return true;
         }
         else {
@@ -310,7 +304,7 @@ public:
             auto ctr_hash = block->ctr_type_hash();
             auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(ctr_hash);
 
-            return ctr_intf->clone_ctr(ctr_name, new_ctr_name, self_ptr(), rw_self_ptr());
+            return ctr_intf->clone_ctr(ctr_name, new_ctr_name, self_ptr());
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot", ctr_name).do_throw();
@@ -469,20 +463,16 @@ public:
 
 protected:
 
-    virtual SnpSharedPtr<ROStoreApiBase<ApiProfileT>> snapshot_ref_creation_allowed() {
-        return SnpSharedPtr<ROStoreApiBase<ApiProfileT>>{};
+    virtual SnpSharedPtr<IStoreApiBase<ApiProfileT>> snapshot_ref_creation_allowed() {
+        return SnpSharedPtr<IStoreApiBase<ApiProfileT>>{};
     }
 
 
-    virtual SnpSharedPtr<ROStoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
+    virtual SnpSharedPtr<IStoreApiBase<ApiProfileT>> snapshot_ref_opening_allowed() {
         return Base::snapshot_ref_opening_allowed();
     }
 
     virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
-        return this->shared_from_this();
-    }
-
-    virtual SnpSharedPtr<RWStoreT> rw_self_ptr() noexcept {
         return this->shared_from_this();
     }
 
@@ -716,7 +706,7 @@ private:
             SharedBlockConstPtr block
     )
     {
-        return ctr_intf->new_mutable_ctr_instance(block, self_ptr(), rw_self_ptr());
+        return ctr_intf->new_ctr_instance(block, self_ptr());
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
@@ -724,7 +714,7 @@ private:
     )
     {
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_mutable_instance(this, this, ctr_id, decl);
+        return factory->create_instance(this, ctr_id, decl);
     }
 };
 

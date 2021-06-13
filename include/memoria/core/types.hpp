@@ -508,8 +508,8 @@ constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_tr
 
 
 template <typename Profile>
-struct ROStoreApiBase {
-    virtual ~ROStoreApiBase() noexcept = default;
+struct IStoreApiBase {
+    virtual ~IStoreApiBase() noexcept = default;
 };
 
 template <typename Profile>

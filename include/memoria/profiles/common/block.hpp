@@ -306,7 +306,10 @@ class PageShared: public Base {
 
     StoreT* allocator_;
 
+    bool mutable_{false};
 public:
+    enum {UNDEFINED, READ, UPDATE, _DELETE};
+
     using BlockType = PageT;
 
     PageShared() noexcept {}
@@ -329,7 +332,16 @@ public:
 
     virtual ~PageShared() noexcept = default;
 
-    enum {UNDEFINED, READ, UPDATE, _DELETE};
+    bool is_mutable() const noexcept {return mutable_;}
+    void set_mutable(bool value) noexcept {
+        mutable_ = value;
+    }
+
+    void assert_mutable() const {
+        if (!mutable_) {
+            MEMORIA_MAKE_GENERIC_ERROR("Block {} is immutable", id_).do_throw();
+        }
+    }
 
     template <typename Page>
     const Page* block() const noexcept {

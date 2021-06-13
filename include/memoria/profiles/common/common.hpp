@@ -31,10 +31,8 @@ template <typename Profile>
 using ProfileBlockType = typename ProfileTraits<Profile>::BlockType;
 
 template <typename Profile>
-using ProfileROStoreType = typename ProfileTraits<Profile>::ROStoreType;
+using ProfileStoreType = typename ProfileTraits<Profile>::StoreType;
 
-template <typename Profile>
-using ProfileRWStoreType = typename ProfileTraits<Profile>::RWStoreType;
 
 template <typename Profile>
 using ProfileBlockID = typename ProfileTraits<Profile>::BlockID;

@@ -158,10 +158,6 @@ protected:
         return this->shared_from_this();
     }
 
-    virtual SnpSharedPtr<StoreT> rw_self_ptr() noexcept {
-        return this->shared_from_this();
-    }
-
     virtual void updateBlock(Shared* block) {
         MEMORIA_MAKE_GENERIC_ERROR("updateBlock() is not implemented for ReadOnly commits").do_throw();
     }

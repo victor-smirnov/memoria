@@ -120,7 +120,7 @@ class IMemorySnapshot: public IROStoreWritableSnapshotCtrOps<Profile> {
     using SnapshotID    = ApiProfileSnapshotID<Profile>;
     using CtrID         = ApiProfileCtrID<Profile>;
 
-    using StoreT    = ROStoreApiBase<Profile>;
+    using StoreT    = IStoreApiBase<Profile>;
 
 public:
     template <typename CtrName>

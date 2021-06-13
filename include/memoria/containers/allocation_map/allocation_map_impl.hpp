@@ -31,8 +31,7 @@ void ICtrApi<AllocationMap, Profile>::init_profile_metadata()
 {
     SharedCtr<
             AllocationMap,
-            ProfileROStoreType<ImplProfile>,
-            ProfileRWStoreType<ImplProfile>,
+            ProfileStoreType<ImplProfile>,
             ImplProfile
     >::init_profile_metadata();
 }
