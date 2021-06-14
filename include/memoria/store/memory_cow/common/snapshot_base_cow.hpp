@@ -164,6 +164,8 @@ protected:
 
     using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<ApiProfileT>*>;
 
+    using typename IMemorySnapshot<ApiProfile<Profile>>::ROStoreSnapshotPtr;
+
 public:
 
     template <typename CtrName>
@@ -443,11 +445,11 @@ public:
 
 
 
-    void import_new_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
+    void import_new_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)
     {
         check_updates_allowed();
 
-        SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
+        SnapshotPtr txn = memoria_dynamic_pointer_cast<MyType>(ptr);
 
         txn->checkIfExportAllowed();
         auto root_id = this->getRootID(name);
@@ -456,23 +458,6 @@ public:
 
         if (root_id.is_null())
     	{
-            txn->for_each_ctr_node(name, [&](const BlockGUID&, const BlockID& id, const void*) {
-//                auto rc_handle = txn->export_block_rchandle(id);
-//    			using Value = typename PersistentTreeT::Value;
-
-//    			rc_handle->ref();
-
-//    			auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
-
-//                if (old_value.block_ptr())
-//    			{
-//                    return MEMORIA_MAKE_GENERIC_ERROR("Block with ID {} is not new in snapshot {}", id, txn_id);
-//    			}
-
-                return VoidResult::of();
-            });
-
-
             auto root_id = txn->getRootID(name);
 
             if (root_id.is_set())
@@ -488,10 +473,36 @@ public:
     	}
     }
 
-
-    void copy_new_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
+    void import_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)
     {
-        SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
+        check_updates_allowed();
+
+        SnapshotPtr txn = memoria_dynamic_pointer_cast<MyType>(ptr);
+
+        txn->checkIfExportAllowed();
+
+        auto root_id = this->getRootID(name);
+
+        if (!root_id.is_null())
+        {
+            auto root_id = txn->getRootID(name);
+            if (root_id.is_set())
+            {
+                root_map_->assign(name, root_id);
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()).do_throw();
+            }
+        }
+        else {
+            return import_new_ctr_from(txn, name);
+        }
+    }
+
+
+    void copy_new_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)
+    {
+        SnapshotPtr txn = memoria_dynamic_pointer_cast<MyType>(ptr);
 
         check_updates_allowed();
 
@@ -520,62 +531,12 @@ public:
     }
 
 
-    void import_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
+
+
+
+    void copy_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)
     {
-        check_updates_allowed();
-
-        SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
-
-        txn->checkIfExportAllowed();
-
-        auto root_id = this->getRootID(name);
-
-        if (!root_id.is_null())
-    	{
-            txn->for_each_ctr_node(name, [&](const BlockGUID& uuid, const BlockID& id, const void*) {
-//                MEMORIA_TRY(block, this->getBlock(id));
-
-//                if (block && block->uuid() == uuid)
-//    			{
-//                    return VoidResult::of();
-//    			}
-
-//                auto rc_handle = txn->export_block_rchandle(id);
-//    			using Value = typename PersistentTreeT::Value;
-
-//    			rc_handle->ref();
-
-//    			auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
-
-//                if (old_value.block_ptr())
-//    			{
-//                    if (old_value.block_ptr()->unref() == 0)
-//    				{
-//                        // FIXME: just delete the block?
-//                        return MEMORIA_MAKE_GENERIC_ERROR("Unexpected refcount == 0 for block {}", old_value.block_ptr()->raw_data()->uuid());
-//    				}
-//    			}
-
-            });
-
-            auto root_id = txn->getRootID(name);
-            if (root_id.is_set())
-            {
-                root_map_->assign(name, root_id);
-            }
-            else {
-                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()).do_throw();
-            }
-    	}
-    	else {
-            return import_new_ctr_from(txn, name);
-    	}
-    }
-
-
-    void copy_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
-    {
-        SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
+        SnapshotPtr txn = memoria_dynamic_pointer_cast<MyType>(ptr);
 
         check_updates_allowed();
 

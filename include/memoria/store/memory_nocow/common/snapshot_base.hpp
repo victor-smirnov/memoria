@@ -99,6 +99,7 @@ protected:
 
     using BlockGuardCache = SimpleTwoQueueCache<BlockID, typename Base::Shared>;
     using BlockCacheEntry = typename BlockGuardCache::EntryT;
+    using typename IMemorySnapshot<ApiProfile<Profile>>::ROStoreSnapshotPtr;
 
 public:
 
@@ -369,11 +370,11 @@ public:
 
 
 
-    void import_new_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
+    void import_new_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)
     {
         checkUpdateAllowed();
 
-        SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
+        SnapshotPtr txn = memoria_dynamic_pointer_cast<MyType>(ptr);
 
         txn->checkIfExportAllowed();
         auto root_id = this->getRootID(name);
@@ -415,9 +416,9 @@ public:
     }
 
 
-    void copy_new_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
+    void copy_new_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)
     {
-        SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
+        SnapshotPtr txn = memoria_dynamic_pointer_cast<MyType>(ptr);
 
         txn->checkReadAllowed();
         checkUpdateAllowed();
@@ -447,11 +448,11 @@ public:
     }
 
 
-    void import_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
+    void import_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)
     {
         checkUpdateAllowed();
 
-        SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
+        SnapshotPtr txn = memoria_dynamic_pointer_cast<MyType>(ptr);
 
         txn->checkIfExportAllowed();
 
@@ -502,9 +503,9 @@ public:
     }
 
 
-    void copy_ctr_from(SnapshotApiPtr ptr, const CtrID& name)
+    void copy_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)
     {
-        SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
+        SnapshotPtr txn = memoria_dynamic_pointer_cast<MyType>(ptr);
 
         txn->checkReadAllowed();
         checkUpdateAllowed();

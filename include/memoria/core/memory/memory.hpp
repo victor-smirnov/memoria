@@ -103,6 +103,25 @@ auto memoria_static_pointer_cast(const SharedPtr<TT>& ptr)
     return StaticPointerCast<T>(ptr);
 }
 
+template <typename T, typename TT>
+auto memoria_dynamic_pointer_cast(const std::shared_ptr<TT>& ptr)
+{
+    return std::dynamic_pointer_cast<T>(ptr);
+}
+
+
+template <typename T, typename TT>
+auto memoria_dynamic_pointer_cast(const LocalSharedPtr<TT>& ptr)
+{
+    return DynamicPointerCast<T>(ptr);
+}
+
+template <typename T, typename TT>
+auto memoria_dynamic_pointer_cast(const SharedPtr<TT>& ptr)
+{
+    return DynamicPointerCast<T>(ptr);
+}
+
 
 template <typename T, typename TT>
 Result<SharedPtr<T>> memoria_static_pointer_cast(Result<SharedPtr<TT>>&& ptr) noexcept

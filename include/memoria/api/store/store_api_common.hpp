@@ -69,6 +69,7 @@ class IROStoreWritableSnapshotCtrOps: public virtual IROStoreSnapshotCtrOps<Prof
     using ApIROStoreBaseT = IStoreApiBase<Profile>;
 
 public:
+    using ROStoreSnapshotPtr = SnpSharedPtr<IROStoreSnapshotCtrOps<Profile>>;
     using CtrID = ApiProfileCtrID<Profile>;
     using CtrReferenceableT = CtrSharedPtr<CtrReferenceable<Profile>>;
 
@@ -94,6 +95,9 @@ public:
 
     virtual CtrID clone_ctr(const CtrID& name, const CtrID& new_name) = 0;
     virtual CtrID clone_ctr(const CtrID& name) = 0;
+
+    virtual void import_new_ctr_from(ROStoreSnapshotPtr txn, const CtrID& name) = 0;
+    virtual void import_ctr_from(ROStoreSnapshotPtr txn, const CtrID& name) = 0;
 
 protected:
     virtual SnpSharedPtr<ApIROStoreBaseT> snapshot_ref_creation_allowed() = 0;

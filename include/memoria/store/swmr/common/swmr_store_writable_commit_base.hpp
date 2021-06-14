@@ -35,6 +35,8 @@ class SWMRStoreWritableCommitBase:
 protected:
     using Base = SWMRStoreCommitBase<Profile>;
 
+    using typename ISWMRStoreWritableCommit<ApiProfile<Profile>>::ROStoreSnapshotPtr;
+    using MyType = SWMRStoreWritableCommitBase;
 
     using typename Base::Store;
     using typename Base::CommitDescriptorT;
@@ -110,6 +112,8 @@ protected:
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_;
 
     RemovingBlocksConsumerFn removing_blocks_consumer_fn_{};
+
+
 
 public:
     using Base::check;
@@ -1053,6 +1057,53 @@ public:
     {
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(this, ctr_id, decl);
+    }
+
+    void import_new_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)
+    {
+        check_updates_allowed();
+
+        MyType* txn = memoria_dynamic_pointer_cast<MyType>(ptr).get();
+
+        auto root_id = getRootID(name);
+        if (root_id)
+        {
+            auto root_id = txn->getRootID(name);
+
+            if (root_id)
+            {
+                setRoot(name, root_id);
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->commit_id()).do_throw();
+            }
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists in snapshot {}", name, commit_id()).do_throw();
+        }
+    }
+
+    void import_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)
+    {
+        check_updates_allowed();
+
+        MyType* txn = memoria_dynamic_pointer_cast<MyType>(ptr).get();
+
+        auto root_id = getRootID(name);
+        if (root_id)
+        {
+            auto root_id = txn->getRootID(name);
+            if (root_id)
+            {
+                setRoot(name, root_id);
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->commit_id()).do_throw();
+            }
+        }
+        else {
+            return import_new_ctr_from(ptr, name);
+        }
     }
 };
 

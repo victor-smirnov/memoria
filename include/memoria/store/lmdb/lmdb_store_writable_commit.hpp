@@ -39,6 +39,7 @@ class LMDBStoreWritableCommit:
         public EnableSharedFromThis<LMDBStoreWritableCommit<Profile>>
 {
     using Base = LMDBStoreCommitBase<Profile>;
+    using typename ISWMRStoreWritableCommit<ApiProfile<Profile>>::ROStoreSnapshotPtr;
 
     using typename Base::Store;
     using typename Base::CtrID;
@@ -716,6 +717,9 @@ private:
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(this, ctr_id, decl);
     }
+
+    virtual void import_new_ctr_from(ROStoreSnapshotPtr txn, const CtrID& name) {}
+    virtual void import_ctr_from(ROStoreSnapshotPtr txn, const CtrID& name) {}
 };
 
 }

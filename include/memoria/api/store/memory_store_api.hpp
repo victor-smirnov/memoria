@@ -116,6 +116,8 @@ using IMemoryStorePtr = typename IMemoryStore<Profile>::StorePtr;
 template <typename Profile>
 class IMemorySnapshot: public IROStoreWritableSnapshotCtrOps<Profile> {
 
+    using Base = IROStoreWritableSnapshotCtrOps<Profile>;
+
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot>;
     using SnapshotID    = ApiProfileSnapshotID<Profile>;
     using CtrID         = ApiProfileCtrID<Profile>;
@@ -123,6 +125,8 @@ class IMemorySnapshot: public IROStoreWritableSnapshotCtrOps<Profile> {
     using StoreT    = IStoreApiBase<Profile>;
 
 public:
+    using typename Base::ROStoreSnapshotPtr;
+
     template <typename CtrName>
     using CtrT = ICtrApi<CtrName, Profile>;
 
@@ -136,10 +140,10 @@ public:
     virtual SnapshotPtr branch() = 0;
     virtual bool has_parent() const = 0;
     virtual SnapshotPtr parent() = 0;
-    virtual void import_new_ctr_from(SnapshotPtr txn, const CtrID& name) = 0;
-    virtual void copy_new_ctr_from(SnapshotPtr txn, const CtrID& name) = 0;
-    virtual void import_ctr_from(SnapshotPtr txn, const CtrID& name) = 0;
-    virtual void copy_ctr_from(SnapshotPtr txn, const CtrID& name) = 0;
+    //virtual void import_new_ctr_from(SnapshotPtr txn, const CtrID& name) = 0;
+    virtual void copy_new_ctr_from(ROStoreSnapshotPtr txn, const CtrID& name) = 0;
+    //virtual void import_ctr_from(SnapshotPtr txn, const CtrID& name) = 0;
+    virtual void copy_ctr_from(ROStoreSnapshotPtr txn, const CtrID& name) = 0;
 
     virtual std::vector<U8String> container_names_str() const = 0;
 
