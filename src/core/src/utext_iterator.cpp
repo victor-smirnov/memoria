@@ -323,7 +323,7 @@ codeunit_iterator_text_extract(
             }
         }
 
-        codeunit_iterator_text_access(ut, srci + processed, TRUE);
+        codeunit_iterator_text_access(ut, srci + processed, 1);
         terminate_uchars(dest, dest_capacity, srci + processed, status);
 
         return processed + extra;

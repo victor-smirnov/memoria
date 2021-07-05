@@ -109,9 +109,6 @@ struct BTTypes {
             IfThenElse<ProfileTraits<Profile>::IsCoW, bt::CoWOpsName, bt::NoCoWOpsName>
     >;
 
-
-
-
     using FixedBranchContainerPartsList = TypeList<
             bt::BranchFixedName,
             bt::InsertBatchFixedName
@@ -238,13 +235,13 @@ class CtrTF<Profile, BT, ContainerTypeName_> {
 public:
 
     using ContainerTypes = BTTypes<Profile, ContainerTypeName_>;
-    using BlockID        = typename ContainerTypes::Allocator::BlockID;
+    using BlockID        = ProfileBlockID<Profile>;
 
     using StreamDescriptors         = typename ContainerTypes::StreamDescriptors;
     static const int32_t Streams    = ListSize<StreamDescriptors>;
 
     using Position_         = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
-    using BlockType         = typename ContainerTypes::Allocator::BlockType;
+    using BlockType         = ProfileBlockType<Profile>;
 
     using TreeNodeBase         = bt::TreeNodeBase<typename ContainerTypes::Metadata, BlockType>;
     using TreeNodePtrT         = typename ProfileTraits<Profile>::template SharedBlockPtrTF<TreeNodeBase>;
@@ -312,8 +309,6 @@ public:
     static const PackedDataTypeSize LeafSizeType    = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
 
     static const PackedDataTypeSize TotalSizeType   = PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
-
-
 
     using CtrListBranch = IfThenElse<
                         BranchSizeType == PackedDataTypeSize::FIXED,

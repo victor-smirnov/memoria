@@ -27,8 +27,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Memoria.cmake)
 
-set (MEMORIA_API_CXX_STANDARD 14)
-set (MEMORIA_INTERNAL_CXX_STANDARD 17)
+set (MEMORIA_API_CXX_STANDARD 17)
+set (MEMORIA_INTERNAL_CXX_STANDARD 20)
 
 set(CMAKE_CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
 
@@ -67,6 +67,8 @@ option(BUILD_TESTS_FIBERS       "Build Fibers tests" OFF)
 option(BUILD_TESTS_DISRUPTOR    "Build Disriptor MPSC queue tests" OFF)
 option(BUILD_TESTS_CONTEXT      "Build Disriptor MPSC queue tests" OFF)
 
+option(BUILD_CODEGENERATOR_EXPLICITLY  "Build code generator explictly (for its development)" OFF)
+
 option(ICU_DEBUG   "Debug FindICU" OFF)
 option(Boost_DEBUG "Debug FindBoost" OFF)
 
@@ -100,6 +102,8 @@ if (BUILD_POSIX)
         set (CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -flto -fuse-ld=lld -Wl,-save-temps")
         add_definitions(-Wl,-save-temps -flto)
     endif()
+
+    #add_definitions(-stdlib=libc++)
 
     add_definitions(-Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
     add_definitions(-Wno-old-style-cast)
@@ -177,6 +181,7 @@ if (MSVC)
 endif()
 
 include_directories(${Boost_INCLUDE_DIRS})
+
 link_directories(${Boost_LIBRARY_DIRS})
 link_libraries(Boost::program_options Boost::serialization)
 
@@ -201,5 +206,4 @@ endif()
 find_package(Qt5 COMPONENTS Widgets QUIET)
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
-
 add_subdirectory(src)

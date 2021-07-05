@@ -64,12 +64,12 @@ public:
 
     bool alerted() const
     {
-        return alerted_.load ( std::memory_order::memory_order_acquire );
+        return alerted_.load ( std::memory_order_acquire );
     }
 
     void set_alerted ( bool alert )
     {
-        alerted_.store ( alert, std::memory_order::memory_order_release );
+        alerted_.store ( alert, std::memory_order_release );
     }
 
 private:

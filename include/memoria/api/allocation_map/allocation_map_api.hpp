@@ -84,10 +84,6 @@ public:
         size_ += amnt;
     }
 
-    bool operator<(const AllocationMetadata& other) noexcept {
-        return position_ < other.position_;
-    }
-
     AllocationMetadata take(int64_t amount) noexcept
     {
         AllocationMetadata meta{position_, amount, level_};
@@ -113,6 +109,11 @@ public:
         return meta;
     }
 };
+
+template <typename Profile>
+bool operator<(const AllocationMetadata<Profile>& one, const AllocationMetadata<Profile>& two) noexcept {
+    return one.position() < two.position();
+}
 
 template <typename Profile>
 std::ostream& operator<<(std::ostream& out, const AllocationMetadata<Profile>& meta)

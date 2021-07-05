@@ -1,4 +1,5 @@
-// Copyright 2011 Victor Smirnov
+
+// Copyright 2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,21 +15,20 @@
 
 #pragma once
 
-#include <memoria/core/tools/fixed_array.hpp>
-#include <memoria/core/strings/string.hpp>
-#include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/strings/format.hpp>
 
+#include <memory>
+#include <string>
+
+namespace clang {
+class Decl;
+}
 
 namespace memoria {
+namespace codegen {
 
-void InitCoreLDDatatypes();
-void InitCoreDatatypes();
-void InitSimpleNumericDatatypes();
+U8String describe_decl(const clang::Decl* decl);
 
-void InitMemoriaCoreExplicit();
+std::vector<U8String> get_annotations(const clang::Decl* decl);
 
-void InitProfileMetadata();
-
-
-
-}
+}}

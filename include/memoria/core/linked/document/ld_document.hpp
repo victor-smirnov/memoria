@@ -181,6 +181,14 @@ public:
         return ss.str();
     }
 
+    U8String to_pretty_string() const
+    {
+        LDDumpFormatState fmt = LDDumpFormatState();
+        std::stringstream ss;
+        dump(ss, fmt);
+        return ss.str();
+    }
+
     LDTypeDeclarationView create_named_type(U8StringView name, U8StringView type_decl);
 
     Optional<LDTypeDeclarationView> get_named_type_declaration(U8StringView name) const;

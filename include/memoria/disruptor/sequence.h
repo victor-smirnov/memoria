@@ -69,7 +69,7 @@ public:
     // @return the current value.
     int64_t sequence() const
     {
-        return sequence_.load ( std::memory_order::memory_order_acquire );
+        return sequence_.load ( std::memory_order_acquire );
     }
 
     // Set the current value of the {@link Sequence}.
@@ -77,7 +77,7 @@ public:
     // @param the value to which the {@link Sequence} will be set.
     void set_sequence ( int64_t value )
     {
-        sequence_.store ( value, std::memory_order::memory_order_release );
+        sequence_.store ( value, std::memory_order_release );
     }
 
     // Increment and return the value of the {@link Sequence}.
@@ -86,7 +86,7 @@ public:
     // @return the new value incremented.
     int64_t IncrementAndGet ( const int64_t& increment )
     {
-        return sequence_.fetch_add ( increment, std::memory_order::memory_order_release ) + increment;
+        return sequence_.fetch_add ( increment, std::memory_order_release ) + increment;
     }
 
 private:

@@ -17,6 +17,8 @@
 
 #include <memoria/core/linked/document/ld_document.hpp>
 
+#include <fmt/format.h>
+
 namespace memoria {
 
 class LDStringView {
@@ -65,5 +67,20 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& out, const LDStringView& value);
+
+}
+
+
+namespace fmt {
+
+template <>
+struct formatter<memoria::LDStringView> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::LDStringView& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "{}", d.view().to_string());
+    }
+};
 
 }

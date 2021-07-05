@@ -474,8 +474,6 @@ public:
     void operator=(value_type vv) {}
 };
 
-
-
 template <typename Iterator>
 struct SDNParser : qi::grammar<Iterator, LDDocument(), qi::space_type>
 {
@@ -491,35 +489,35 @@ struct SDNParser : qi::grammar<Iterator, LDDocument(), qi::space_type>
         using bp::construct;
         using bp::val;
 
-        constexpr auto dummy = [](const auto& attrib, auto& ctx){};
+        auto dummy = [](const auto& attrib, auto& ctx){};
 
-        static constexpr auto finish_identifier = [](auto& attrib, auto& ctx) {
+        static auto finish_identifier = [](auto& attrib, auto& ctx) {
             bf::at_c<0>(ctx.attributes) = attrib.finish();
         };
 
-        static constexpr auto finish_string = [](auto& attrib, auto& ctx) {
+        static auto finish_string = [](auto& attrib, auto& ctx) {
             bf::at_c<0>(ctx.attributes) = attrib.finish();
         };
 
-        static constexpr auto set_bool_true = [](const auto& attrib, auto& ctx) {
+        static auto set_bool_true = [](const auto& attrib, auto& ctx) {
             bf::at_c<0>(ctx.attributes) = true;
         };
 
-        static constexpr auto set_bool_false = [](const auto& attrib, auto& ctx) {
+        static auto set_bool_false = [](const auto& attrib, auto& ctx) {
             bf::at_c<0>(ctx.attributes) = false;
         };
 
-        static constexpr auto clear_string_buffer = [](const auto& attrib, const auto& ctx){
+        static auto clear_string_buffer = [](const auto& attrib, const auto& ctx){
             LDDocumentBuilder::current()->clear_string_buffer();
         };
 
-        static constexpr auto finish_value = [](auto& attrib, auto& ctx){
+        static auto finish_value = [](auto& attrib, auto& ctx){
             LDDValueVisitor visitor;
             boost::apply_visitor(visitor, attrib);
             bf::at_c<0>(ctx.attributes) = visitor.value;
         };
 
-        static constexpr auto set_doc_value = [](auto& attrib, auto& ctx){
+        static auto set_doc_value = [](auto& attrib, auto& ctx){
             LDDocumentBuilder::current()->set_doc_value(bf::at_c<1>(attrib));
         };
 

@@ -22,6 +22,8 @@
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/result.hpp>
 
+#include <memoria/core/datatypes/varchars/varchar_dt.hpp>
+
 namespace memoria {
 
 
@@ -66,8 +68,6 @@ public:
 
         return ViewType(data + offsets[row], length);
     }
-
-
 
     static size_t length(const ViewType& element) {
         return element.length();

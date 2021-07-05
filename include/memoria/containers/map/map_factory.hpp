@@ -41,6 +41,9 @@
 
 #include <memoria/api/map/map_api.hpp>
 
+#include <memoria/core/datatypes/traits.hpp>
+#include <memoria/core/datatypes/varchars/varchar_dt.hpp>
+
 #include <tuple>
 
 namespace memoria {

@@ -33,7 +33,17 @@
 PYBIND11_DECLARE_HOLDER_TYPE(T, memoria::SharedPtr<T>);
 PYBIND11_DECLARE_HOLDER_TYPE(T, memoria::LocalSharedPtr<T>);
 
+
+
 namespace pybind11 { namespace detail {
+    template <typename C, typename R, typename... A> struct remove_class<R (C::*)(A...) noexcept> {
+        using type = R (A...) noexcept;
+    };
+
+    template <typename C, typename R, typename... A> struct remove_class<R (C::*)(A...) const noexcept> {
+        using type = R (A...) noexcept;
+    };
+
     template <typename T>
     struct type_caster<memoria::Optional<T>> : optional_caster<memoria::Optional<T>> {};
 }}

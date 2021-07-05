@@ -13,3 +13,5 @@ _generate/
 *.egg-info
 *env*
 make_wheel.sh
+__pycache__/
+generated/

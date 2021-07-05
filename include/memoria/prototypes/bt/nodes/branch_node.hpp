@@ -98,7 +98,10 @@ private:
 
     PackedAllocator allocator_;
 
-    static_assert(std::is_pod<PackedAllocator>::value, "PackedAllocator must be a POD tpye");
+    static_assert(
+        std::is_standard_layout_v<PackedAllocator> &&
+        std::is_trivial_v<PackedAllocator>,
+        "PackedAllocator must be a POD tpye");
 
 public:
 

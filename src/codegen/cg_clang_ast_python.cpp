@@ -1,4 +1,5 @@
-// Copyright 2011 Victor Smirnov
+
+// Copyright 2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,23 +13,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <memoria/core/strings/format.hpp>
+#include <memoria/python/python_commons.hpp>
 
-#include <memoria/core/tools/fixed_array.hpp>
-#include <memoria/core/strings/string.hpp>
-#include <memoria/core/tools/uuid.hpp>
+#include <codegen.hpp>
 
+#include <pybind11/embed.h>
+
+#include <fstream>
+
+namespace py = pybind11;
+
+using namespace clang;
 
 namespace memoria {
+namespace codegen {
 
-void InitCoreLDDatatypes();
-void InitCoreDatatypes();
-void InitSimpleNumericDatatypes();
-
-void InitMemoriaCoreExplicit();
-
-void InitProfileMetadata();
-
-
-
+void create_ast_module(pybind11::module mm) {
+    py::class_<QualType> qual_type(mm, "QualType");
+    qual_type.def("__str__", [](const QualType& qt){
+        return qt.getAsString();
+    });
 }
+
+
+}}

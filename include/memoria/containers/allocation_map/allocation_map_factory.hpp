@@ -27,9 +27,10 @@
 
 #include <memoria/core/packed/packed.hpp>
 
+#include <memoria/core/datatypes/traits.hpp>
+#include <memoria/core/datatypes/varchars/varchar_dt.hpp>
 
 namespace memoria {
-
 
 template <
     typename Profile

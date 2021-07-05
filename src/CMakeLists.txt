@@ -18,21 +18,107 @@ include_directories(core/include)
 
 add_subdirectory(app_init)
 add_subdirectory(core)
-add_subdirectory(stores)
 
-add_subdirectory(containers)
 
 add_subdirectory(context)
 add_subdirectory(fiber)
 add_subdirectory(reactor)
 add_subdirectory(filesystem_reactor)
 add_subdirectory(filesystem_common)
+add_subdirectory(filesystem_classic)
+
+get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
+
+add_subdirectory(codegen)
+
+#if (BUILD_CODEGENERATOR_EXPLICITLY)
+#    add_subdirectory(codegen)
+#else()
+#    STRING( REPLACE ";" "^^" GLOBAL_CORE_SRCS_STR "${GLOBAL_CORE_SRCS}" )
+
+#    execute_process(COMMAND ${CMAKE_COMMAND}
+#        -Wno-dev
+#        -DBUILD_POSIX=${BUILD_POSIX}
+#        -DMEMORIA_CORE_SRCS_STR=${GLOBAL_CORE_SRCS_STR}
+#        -DCMAKE_BUILD_TYPE=ReleaseWithDebugInfo
+#        -DCMAKE_TOOLCHAIN_FILE:INTERNAL=${CMAKE_TOOLCHAIN_FILE}
+#        -S ${CMAKE_SOURCE_DIR}/src/codegen
+#        -B ${CMAKE_BINARY_DIR}/src/codegen
+#        -G ${CMAKE_GENERATOR}
+
+#        COMMAND_ERROR_IS_FATAL ANY
+#    )
+
+#    execute_process(
+#        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/src/codegen
+#        COMMAND_ERROR_IS_FATAL ANY
+#    )
+#endif()
+
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/src/containers/generated)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/src/codegen/generated)
+
+find_package(Clang CONFIG REQUIRED)
+
+execute_process(
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMAND
+        ${CMAKE_BINARY_DIR}/src/codegen/MemoriaCodeGen
+        --print-output-file-names
+        -I ${CMAKE_SOURCE_DIR}/include
+        -I ${CMAKE_SOURCE_DIR}/codegen/include
+        -I ${Boost_INCLUDE_DIRS}
+        -I ${CLANG_INSTALL_PREFIX}/tools/llvm/lib/clang/11.1.0/include
+        -D MMA_ICU_CXX_NS=icu
+        --config codegen_memoria.hpp
+        --output ${CMAKE_SOURCE_DIR}/src/containers/generated
+    OUTPUT_VARIABLE GENERATED_SOURCES
+    COMMAND_ERROR_IS_FATAL ANY
+)
+
+SET (GENERATED_CTR_SOURCES )
+SET (GENERATED_BYPRODUCTS )
+
+foreach(FNAME ${GENERATED_SOURCES})
+    if (FNAME MATCHES "^BYPRODUCT:")
+        string(SUBSTRING ${FNAME} 10 -1 FNAME_OUT)
+        list(APPEND GENERATED_BYPRODUCTS ${FNAME_OUT})
+    endif()
+
+    if (FNAME MATCHES "^SOURCE:")
+        string(SUBSTRING ${FNAME} 7 -1 FNAME_OUT)
+        list(APPEND GENERATED_CTR_SOURCES ${FNAME_OUT})
+    endif()
+endforeach()
+
+#message ("========================|${GENERATED_CTR_SOURCES}|============================")
+#message ("========================|${GENERATED_BYPRODUCTS}|============================")
+
+add_custom_command(
+    OUTPUT ${GENERATED_CTR_SOURCES}
+    DEPENDS ${CODEGEN_DEPS}
+    BYPRODUCTS ${GENERATED_BYPRODUCTS}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMAND
+        ${CMAKE_BINARY_DIR}/src/codegen/MemoriaCodeGen
+        -I ${CMAKE_SOURCE_DIR}/include
+        -I ${CMAKE_SOURCE_DIR}/codegen/include
+        -I ${Boost_INCLUDE_DIRS}
+        -I ${CLANG_INSTALL_PREFIX}/tools/llvm/lib/clang/11.1.0/include
+        -D MMA_ICU_CXX_NS=icu
+        --config codegen_memoria.hpp
+        --output ${CMAKE_SOURCE_DIR}/src/containers/generated
+
+    COMMAND_ERROR_IS_FATAL ANY
+)
+
+#add_custom_target(CodeGenConfigs SOURCES ${CODEGEN_DEPS})
+
+add_subdirectory(containers)
+add_subdirectory(stores)
 
 if (BUILD_REACTOR_MEMORIA_LIB)
     get_property(GLOBAL_CORE_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_CORE_SOURCES_REACTOR)
-    get_property(GLOBAL_INIT_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_INIT_SOURCES_REACTOR)
-    get_property(GLOBAL_CONTAINERS_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_CONTAINERS_SOURCES_REACTOR)
-    get_property(GLOBAL_SRORES_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_STORES_SOURCES_REACTOR)
 
     if (MSVC)
         enable_language(ASM_MASM)
@@ -41,8 +127,19 @@ if (BUILD_REACTOR_MEMORIA_LIB)
     endif()
 
     add_library(MemoriaCoreReactor STATIC ${GLOBAL_CORE_SRCS_REACTOR})
+endif()
+
+if (BUILD_CLASSIC_MEMORIA_LIB)
+    add_library(MemoriaCore STATIC ${GLOBAL_CORE_SRCS})
+endif()
+
+if (BUILD_REACTOR_MEMORIA_LIB)
+    get_property(GLOBAL_INIT_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_INIT_SOURCES_REACTOR)
+    get_property(GLOBAL_CONTAINERS_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_CONTAINERS_SOURCES_REACTOR)
+    get_property(GLOBAL_SRORES_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_STORES_SOURCES_REACTOR)
+
     add_library(MemoriaInitReactor STATIC ${GLOBAL_INIT_SRCS_REACTOR})
-    add_library(MemoriaCtrsReactor STATIC ${GLOBAL_CONTAINERS_SRCS_REACTOR})
+    add_library(MemoriaCtrsReactor STATIC ${GLOBAL_CONTAINERS_SRCS_REACTOR} ${GENERATED_CTR_SOURCES})
     add_library(MemoriaStoresReactor STATIC ${GLOBAL_SRORES_SRCS_REACTOR})
 
     target_include_directories(MemoriaStoresReactor PRIVATE "stores/lmdb")
@@ -69,17 +166,14 @@ if (BUILD_REACTOR_MEMORIA_LIB)
 endif()
 
 
-if (BUILD_CLASSIC_MEMORIA_LIB)
-    add_subdirectory(filesystem_classic)
 
-    get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
+if (BUILD_CLASSIC_MEMORIA_LIB)
     get_property(GLOBAL_INIT_SRCS GLOBAL PROPERTY GLOBAL_INIT_SOURCES)
     get_property(GLOBAL_CONTAINERS_SRCS GLOBAL PROPERTY GLOBAL_CONTAINERS_SOURCES)
     get_property(GLOBAL_SRORES_SRCS GLOBAL PROPERTY GLOBAL_STORES_SOURCES)
 
-    add_library(MemoriaCore STATIC ${GLOBAL_CORE_SRCS})
     add_library(MemoriaInit STATIC ${GLOBAL_INIT_SRCS})
-    add_library(MemoriaCtrs STATIC ${GLOBAL_CONTAINERS_SRCS})
+    add_library(MemoriaCtrs STATIC ${GLOBAL_CONTAINERS_SRCS} ${GENERATED_CTR_SOURCES})
     add_library(MemoriaStores STATIC ${GLOBAL_SRORES_SRCS})
 
     target_include_directories(MemoriaStores PRIVATE "stores/lmdb")
@@ -100,8 +194,6 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
     target_link_libraries(MemoriaCtrs MemoriaCore)
     target_link_libraries(MemoriaStores MemoriaCore)
     target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
-
-
 
     set_property(TARGET MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
     export(TARGETS MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
