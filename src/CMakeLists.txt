@@ -29,31 +29,31 @@ add_subdirectory(filesystem_classic)
 
 get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
 
-add_subdirectory(codegen)
+if (BUILD_CODEGENERATOR_EXPLICITLY)
+    add_subdirectory(codegen)
+else()
+    STRING( REPLACE ";" "^^" GLOBAL_CORE_SRCS_STR "${GLOBAL_CORE_SRCS}" )
 
-#if (BUILD_CODEGENERATOR_EXPLICITLY)
-#    add_subdirectory(codegen)
-#else()
-#    STRING( REPLACE ";" "^^" GLOBAL_CORE_SRCS_STR "${GLOBAL_CORE_SRCS}" )
+    execute_process(COMMAND ${CMAKE_COMMAND}
+        -Wno-dev
+        -DBUILD_POSIX=${BUILD_POSIX}
+        -DMEMORIA_CORE_SRCS_STR=${GLOBAL_CORE_SRCS_STR}
+        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_TOOLCHAIN_FILE:INTERNAL=${CMAKE_TOOLCHAIN_FILE}
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+        -S ${CMAKE_SOURCE_DIR}/src/codegen
+        -B ${CMAKE_BINARY_DIR}/src/codegen
+        -G ${CMAKE_GENERATOR}
 
-#    execute_process(COMMAND ${CMAKE_COMMAND}
-#        -Wno-dev
-#        -DBUILD_POSIX=${BUILD_POSIX}
-#        -DMEMORIA_CORE_SRCS_STR=${GLOBAL_CORE_SRCS_STR}
-#        -DCMAKE_BUILD_TYPE=ReleaseWithDebugInfo
-#        -DCMAKE_TOOLCHAIN_FILE:INTERNAL=${CMAKE_TOOLCHAIN_FILE}
-#        -S ${CMAKE_SOURCE_DIR}/src/codegen
-#        -B ${CMAKE_BINARY_DIR}/src/codegen
-#        -G ${CMAKE_GENERATOR}
+        COMMAND_ERROR_IS_FATAL ANY
+    )
 
-#        COMMAND_ERROR_IS_FATAL ANY
-#    )
-
-#    execute_process(
-#        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/src/codegen
-#        COMMAND_ERROR_IS_FATAL ANY
-#    )
-#endif()
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/src/codegen
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+endif()
 
 file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/src/containers/generated)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/src/codegen/generated)
@@ -92,7 +92,7 @@ foreach(FNAME ${GENERATED_SOURCES})
 endforeach()
 
 #message ("========================|${GENERATED_CTR_SOURCES}|============================")
-#message ("========================|${GENERATED_BYPRODUCTS}|============================")
+message ("========================|${GENERATED_BYPRODUCTS}|============================")
 
 add_custom_command(
     OUTPUT ${GENERATED_CTR_SOURCES}

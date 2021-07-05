@@ -2,25 +2,26 @@
 add_definitions("-Wno-ambiguous-reversed-operator")
 
 if (BUILD_CODEGENERATOR_EXPLICITLY)
-    find_package(inja CONFIG REQUIRED)
     find_package(Clang CONFIG REQUIRED)
 
     #message("==========================|${MEMORIA_CXX_STANDARD}|===========================")
 
-    message("####=====================|${CLANG_INSTALL_PREFIX}|===========================")
+    #message("####=====================|${CLANG_INSTALL_PREFIX}|===========================")
 
     file(GLOB CTRGEN_SRCS *.cpp)
     add_executable(MemoriaCodeGen ${CTRGEN_SRCS} ${GLOBAL_CORE_SRCS})
     set_property(TARGET MemoriaCodeGen PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 
-    target_include_directories(MemoriaCodeGen PRIVATE ../codegen)
+
 
     target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options )
     target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options pybind11::embed)
-    target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja)
 
+
+    target_include_directories(MemoriaCodeGen PRIVATE ../codegen/include)
     target_include_directories(MemoriaCodeGen PRIVATE include)
     target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
+
     target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling)
 else()
 
@@ -29,7 +30,7 @@ cmake_minimum_required(VERSION 3.19.0)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/Memoria.cmake)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 include_directories(../../include)
 include_directories(../core/include)
@@ -38,7 +39,6 @@ add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
 add_definitions(-DMMA_ICU_CXX_NS=icu)
 
 if (BUILD_POSIX)
-
     add_definitions(-fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0)
     add_definitions(-Wno-comment -Wno-unknown-warning-option -Wunused-variable)
     add_definitions(-Wno-unused-function -Wno-unused-but-set-variable)
@@ -69,8 +69,8 @@ else()
     link_libraries(ICU::i18n ICU::uc ICU::data)
 endif()
 
+
 find_package(pybind11 CONFIG REQUIRED)
-find_package(inja CONFIG REQUIRED)
 
 find_package(Boost 1.75.0 COMPONENTS context program_options serialization unit_test_framework REQUIRED)
 
@@ -86,14 +86,13 @@ STRING( REPLACE "^^" ";" MEMORIA_CORE_SRCS "${MEMORIA_CORE_SRCS_STR}" )
 
 file(GLOB CTRGEN_SRCS *.cpp)
 add_executable(MemoriaCodeGen ${CTRGEN_SRCS} ${MEMORIA_CORE_SRCS})
-set_property(TARGET MemoriaCodeGen PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 
+target_include_directories(MemoriaCodeGen PRIVATE ../codegen/include)
 target_include_directories(MemoriaCodeGen PRIVATE include)
 target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
 target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options )
 target_link_libraries(MemoriaCodeGen PRIVATE pybind11::embed)
-target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja)
 target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling)
 
 endif()

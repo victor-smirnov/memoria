@@ -42,7 +42,7 @@ namespace py = pybind11;
 
 class ProjectImpl;
 
-namespace {
+
 
 class ConfigVisitor: public RecursiveASTVisitor<ConfigVisitor> {
     using Base = RecursiveASTVisitor<ConfigVisitor>;
@@ -58,7 +58,7 @@ public:
     bool VisitCXXRecordDecl(CXXRecordDecl* RD);
 };
 
-}
+
 
 class ProjectImpl: public Project, public std::enable_shared_from_this<ProjectImpl> {
 
