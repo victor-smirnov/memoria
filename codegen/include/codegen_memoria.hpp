@@ -55,6 +55,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "fixed_array_set_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/set/set_api.hpp"
         ]
@@ -65,6 +66,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "varchar_set_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/set/set_api.hpp"
         ]
@@ -75,6 +77,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "uuid_set_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/set/set_api.hpp"
         ]
@@ -85,6 +88,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "varchar_vector_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/vector/vector_api.hpp"
         ]
@@ -95,6 +99,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "uint8_vector_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/vector/vector_api.hpp"
         ]
@@ -105,6 +110,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "lddoc_vector_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/vector/vector_api.hpp"
         ]
@@ -116,6 +122,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "varchar_varchar_map_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/map/map_api.hpp"
         ]
@@ -127,6 +134,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "int64_varchar_map_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/map/map_api.hpp"
         ]
@@ -137,6 +145,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "int64_int64_map_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/map/map_api.hpp"
         ]
@@ -147,6 +156,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "uuid_uuid_map_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/map/map_api.hpp"
         ]
@@ -157,6 +167,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "uuid_uint8_map_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/map/map_api.hpp"
         ]
@@ -167,6 +178,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "int64_uint8_multimap_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/multimap/multimap_api.hpp"
         ]
@@ -177,6 +189,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "uuid_uint8_multimap_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/multimap/multimap_api.hpp"
         ]
@@ -187,6 +200,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "varchar_varchar_multimap_ctr",
+        "profiles": "ALL",
         "includes": [
             "memoria/api/multimap/multimap_api.hpp"
         ]
@@ -197,6 +211,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "name": "allocation_map_ctr",
+        "profiles": ["CowProfile<>", "CowLiteProfile<>"],
         "includes": [
             "memoria/api/allocation_map/allocation_map_api.hpp"
         ]

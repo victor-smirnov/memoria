@@ -92,27 +92,26 @@ foreach(FNAME ${GENERATED_SOURCES})
 endforeach()
 
 #message ("========================|${GENERATED_CTR_SOURCES}|============================")
-message ("========================|${GENERATED_BYPRODUCTS}|============================")
+#message ("========================|${GENERATED_BYPRODUCTS}|============================")
 
-add_custom_command(
-    OUTPUT ${GENERATED_CTR_SOURCES}
-    DEPENDS ${CODEGEN_DEPS}
-    BYPRODUCTS ${GENERATED_BYPRODUCTS}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMAND
-        ${CMAKE_BINARY_DIR}/src/codegen/MemoriaCodeGen
-        -I ${CMAKE_SOURCE_DIR}/include
-        -I ${CMAKE_SOURCE_DIR}/codegen/include
-        -I ${Boost_INCLUDE_DIRS}
-        -I ${CLANG_INSTALL_PREFIX}/tools/llvm/lib/clang/11.1.0/include
-        -D MMA_ICU_CXX_NS=icu
-        --config codegen_memoria.hpp
-        --output ${CMAKE_SOURCE_DIR}/src/containers/generated
+#add_custom_command(
+#    IMPLICIT_DEPENDS C++ ../codegen/include/codegen_memoria.hpp
+#    OUTPUT ${GENERATED_CTR_SOURCES}
+#    DEPENDS ${CODEGEN_DEPS}
+#    BYPRODUCTS ${GENERATED_BYPRODUCTS}
+#    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+#    COMMAND
+#        ${CMAKE_BINARY_DIR}/src/codegen/MemoriaCodeGen
+#        -I ${CMAKE_SOURCE_DIR}/include
+#        -I ${CMAKE_SOURCE_DIR}/codegen/include
+#        -I ${Boost_INCLUDE_DIRS}
+#        -I ${CLANG_INSTALL_PREFIX}/tools/llvm/lib/clang/11.1.0/include
+#        -D MMA_ICU_CXX_NS=icu
+#        --config codegen_memoria.hpp
+#        --output ${CMAKE_SOURCE_DIR}/src/containers/generated
 
-    COMMAND_ERROR_IS_FATAL ANY
-)
-
-#add_custom_target(CodeGenConfigs SOURCES ${CODEGEN_DEPS})
+#    COMMAND_ERROR_IS_FATAL ANY
+#)
 
 add_subdirectory(containers)
 add_subdirectory(stores)

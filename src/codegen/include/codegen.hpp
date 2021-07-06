@@ -63,11 +63,14 @@ struct Project {
 
     virtual ShPtr<CodeModule> config_unit() const noexcept = 0;
     virtual LDDocumentView config() const noexcept = 0;
+    virtual LDDMapView config_map() const = 0;
     virtual U8String target_folder() const = 0;
 
     virtual std::vector<ShPtr<TypeInstance>> type_instances() const = 0;
     virtual std::vector<ShPtr<TypeFactory>> type_factories() const = 0;
     virtual std::vector<ShPtr<FileGenerator>> file_generators() const = 0;
+
+    virtual std::vector<U8String> profiles() const = 0;
 
     virtual std::vector<U8String> build_file_names() = 0;
     virtual void generate_artifacts() = 0;
@@ -87,7 +90,12 @@ struct TypeInstance: CodegenEntity {
 
     virtual void precompile_headers() = 0;
     virtual void generate_artifacts() = 0;
-    virtual std::vector<U8String> generated_files() const = 0;
+    virtual std::vector<U8String> generated_files() = 0;
+    virtual Optional<std::vector<U8String>> profiles() const = 0;
+
+    virtual U8String name() const = 0;
+
+    virtual void configure() = 0;
 
     static ShPtr<TypeInstance> create(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr);
 };
@@ -111,7 +119,7 @@ struct TypeFactory: CodegenEntity {
 
     virtual const clang::ClassTemplateSpecializationDecl* factory_descr() const = 0;
 
-
+    virtual void configure() = 0;
 
     static ShPtr<TypeFactory> create(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr);
 };
@@ -131,5 +139,6 @@ void create_ast_module(pybind11::module mm);
 
 std::pair<U8String, U8String> split_path(U8String class_path);
 
+U8String get_profile_id(U8String profile_name);
 
 }}

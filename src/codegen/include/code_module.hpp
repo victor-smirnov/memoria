@@ -120,5 +120,7 @@ void add_parser_clang_option(const U8String& text);
 U8String load_text_file(U8String file_name);
 void write_text_file(U8String file_name, U8String data);
 
+void write_text_file_if_different(U8String file_name, U8String data);
+
 
 }}

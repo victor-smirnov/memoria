@@ -44,25 +44,36 @@ namespace codegen {
 
 void create_codegen_python_bindings() {}
 
-void create_codegen_module(py::module mm) {
+void create_codegen_module(py::module mm)
+{
+    mm.def("get_profile_id", &get_profile_id);
+    mm.def("load_text_file", &load_text_file);
+    mm.def("write_text_file", &write_text_file);
+    mm.def("write_text_file_if_different", &write_text_file_if_different);
+
     py::class_<CodegenEntity, ShPtr<CodegenEntity>> cg_entity(mm, "CodegenEntiry");
     cg_entity.def("describe", &CodegenEntity::describe);
     cg_entity.def("project", &CodegenEntity::project);
 
     py::class_<Project, ShPtr<Project>> project(mm, "Project");
     project.def("config_unit", &Project::config_unit);
+    project.def("profiles", &Project::profiles);
+    project.def("target_folder", &Project::target_folder);
 
     py::class_<TypeInstance, ShPtr<TypeInstance>> type_instance(mm, "TypeInstance", cg_entity);
     type_instance.def("type_factory", &TypeInstance::type_factory);
     type_instance.def("type", &TypeInstance::type);
+    type_instance.def("name", &TypeInstance::name);
 
     py::class_<TypeFactory, ShPtr<TypeFactory>> type_factory(mm, "TypeFactory", cg_entity);
+    type_factory.def("name", &TypeFactory::name);
+    type_factory.def("factory_id", &TypeFactory::factory_id);
+
     py::class_<FileGenerator, ShPtr<FileGenerator>> file_generator(mm, "FileGenerator", cg_entity);
 
     py::enum_<InferenceType>(mm, "InferenceType", py::arithmetic())
         .value("TYPE", InferenceType::TYPE)
         .value("VALUE", InferenceType::VALUE);
-
 
     py::class_<Inference> inference(mm, "Inference");
     inference.def(py::init<U8String>());
@@ -82,7 +93,6 @@ void create_codegen_module(py::module mm) {
     pch.def("target_folder", &PreCompiledHeader::target_folder);
     pch.def("compile_with", &PreCompiledHeader::compile_with);
     pch.def("infer", &PreCompiledHeader::infer);
-
 }
 
 

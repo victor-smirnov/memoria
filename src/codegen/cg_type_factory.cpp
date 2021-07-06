@@ -109,7 +109,7 @@ public:
         U8String target_folder = project()->target_folder();
 
         U8String header_name = name_ + ".hpp";
-        write_text_file(target_folder + "/" + header_name, code);
+        write_text_file_if_different(target_folder + "/" + header_name, code);
 
         precompiled_header_ = PreCompiledHeader::create({"-std=c++20"}, target_folder, header_name);
     }
@@ -192,6 +192,10 @@ public:
         files.push_back(file_path + ".pch");
 
         return files;
+    }
+
+    void configure() override {
+
     }
 };
 

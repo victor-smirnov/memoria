@@ -437,16 +437,18 @@ U8String regenerate_pch(
 
 U8String load_text_file(U8String file_name)
 {
-    std::string str;
-
     std::fstream ff(file_name, std::ios_base::in);
     if (!ff.is_open()) {
         auto msg = format_u8("Can't open file {}", file_name);
         throw std::runtime_error(msg.to_std_string());
     }
 
-    ff >> str;
-    ff.flush();
+    size_t size = std::filesystem::file_size(file_name.to_std_string());
+    std::string str;
+    str.resize(size, ' ');
+
+    ff.read(str.data(), size);
+
     ff.close();
 
     return str;
@@ -464,5 +466,25 @@ void write_text_file(U8String file_name, U8String data)
     ff.flush();
     ff.close();
 }
+
+
+void write_text_file_if_different(U8String file_name, U8String data)
+{
+    if (!std::filesystem::exists(file_name.to_std_string())) {
+        write_text_file(file_name, data);
+    }
+    else {
+        U8String exisitng_data = load_text_file(file_name);
+        if (exisitng_data != data) {
+            println("Refreshing the file: {}", file_name);
+            println("==={}====", exisitng_data);
+            println("***{}****", data);
+
+
+            write_text_file(file_name, data);
+        }
+    }
+}
+
 
 }}

@@ -16,6 +16,7 @@
 #include <memoria/core/strings/format.hpp>
 
 #include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/result.hpp>
 
 #include <codegen.hpp>
 #include <codegen_ast_tools.hpp>
@@ -31,6 +32,7 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <vector>
+#include <cctype>
 
 namespace memoria {
 namespace codegen {
@@ -79,6 +81,8 @@ class ProjectImpl: public Project, public std::enable_shared_from_this<ProjectIm
     U8String codegen_config_file_name_{"codegen.hpp"};
     U8String codegen_config_file_name_pch_;
 
+    std::vector<U8String> profiles_;
+
 public:
     ProjectImpl(U8String config_file_name, U8String output_folder) noexcept:
         config_file_name_(std::move(config_file_name)),
@@ -123,6 +127,27 @@ public:
             else {
                 println("Warning: TypeInstance<{}> has not associated TypeFactory!", type_instances_[c]->type().getAsString());
             }
+        }
+
+        auto profiles = config_map().get("profiles");
+        if (profiles)
+        {
+            auto arr = profiles.get().as_array();
+            for (size_t c = 0; c < arr.size(); c++) {
+                profiles_.push_back(arr.get(c).as_varchar().view());
+            }
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("No profiles are defined for this configuration").do_throw();
+        }
+
+
+        for (auto& ptr: type_factories_) {
+            ptr->configure();
+        }
+
+        for (auto& ptr: type_instances_) {
+            ptr->configure();
         }
     }
 
@@ -193,6 +218,14 @@ public:
     LDDocumentView config() const noexcept override {
         return config_;
     }
+
+    LDDMapView config_map() const override {
+        return config_.value().as_typed_value().constructor().as_map();
+    }
+
+    std::vector<U8String> profiles() const override {
+        return profiles_;
+    }
 };
 
 
@@ -249,5 +282,18 @@ std::pair<U8String, U8String> split_path(U8String class_path)
     return std::make_pair(U8String(), class_path);
 }
 
+U8String get_profile_id(U8String profile_name)
+{
+    U8String str;
+
+    for (size_t c = 0; c < profile_name.size(); c++) {
+        char ch = profile_name[c];
+        if (std::isalnum(ch)) {
+            str.to_std_string().push_back(ch);
+        }
+    }
+
+    return str;
+}
 
 }}
