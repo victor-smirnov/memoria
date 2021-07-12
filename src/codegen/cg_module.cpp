@@ -476,11 +476,6 @@ void write_text_file_if_different(U8String file_name, U8String data)
     else {
         U8String exisitng_data = load_text_file(file_name);
         if (exisitng_data != data) {
-            println("Refreshing the file: {}", file_name);
-            println("==={}====", exisitng_data);
-            println("***{}****", data);
-
-
             write_text_file(file_name, data);
         }
     }

@@ -54,9 +54,9 @@ ld_::LDPtr<LDDTypedValueView::State> LDDTypedValueView::deep_copy_to(LDDocumentV
 {
     const State* src_state = state();
 
-    ld_::LDDPtrHolder src_ptr = src_state->type_decl.get();
+    ld_::LDDPtrHolder src_type_ptr = src_state->type_decl.get();
 
-    auto mapped_tgt_type = mapping.resolve(src_ptr);
+    auto mapped_tgt_type = mapping.resolve(src_type_ptr);
 
     ld_::LDPtr<ld_::TypeDeclState> tgt_type{};
 
@@ -73,14 +73,26 @@ ld_::LDPtr<LDDTypedValueView::State> LDDTypedValueView::deep_copy_to(LDDocumentV
         }
         else if (mapping.is_export())
         {
-            auto named_type = mapping.is_src_named_type(src_ptr);
-            if (named_type && !named_type.get().imported)
+            auto named_type = mapping.is_src_named_type(src_type_ptr);
+            if (named_type)
             {
-                tgt_type = src_td.deep_copy_to(tgt, mapping);
+                if (named_type.get().tgt_type)
+                {
+                    tgt_type = named_type.get().tgt_type;
+                }
+                else
+                {
+                    // FIXME: Reenterability!
 
-                LDTypeDeclarationView tgt_td(tgt, tgt_type);
-                mapping.finish_src_named_type(src_ptr);
-                tgt->set_named_type_declaration(named_type.get().name, tgt_td);
+                    tgt_type = src_td.deep_copy_to(tgt, mapping);
+
+                    LDTypeDeclarationView tgt_td(tgt, tgt_type);
+                    mapping.finish_src_named_type(src_type_ptr, tgt_type);
+                    tgt->set_named_type_declaration(named_type.get().name, tgt_td);
+                }
+            }
+            else {
+                tgt_type = src_td.deep_copy_to(tgt, mapping);
             }
         }
         else {
@@ -94,7 +106,7 @@ ld_::LDPtr<LDDTypedValueView::State> LDDTypedValueView::deep_copy_to(LDDocumentV
             else {
                 tgt_type = src_td.deep_copy_to(tgt, mapping);
 
-                auto named_type = mapping.is_src_named_type(src_ptr);
+                auto named_type = mapping.is_src_named_type(src_type_ptr);
                 if (named_type)
                 {
                     LDTypeDeclarationView tgt_td(tgt, tgt_type);
@@ -104,7 +116,7 @@ ld_::LDPtr<LDDTypedValueView::State> LDDTypedValueView::deep_copy_to(LDDocumentV
             }
         }
 
-        mapping.map_ptrs(src_ptr, tgt_type.get());
+        mapping.map_ptrs(src_type_ptr, tgt_type.get());
     }
 
     LDDValueView src_value(doc_, src_state->value_ptr);

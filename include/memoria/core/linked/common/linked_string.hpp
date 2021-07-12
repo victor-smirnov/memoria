@@ -105,7 +105,9 @@ public:
 
     ViewType view() const noexcept
     {
-        return ViewType(data(), size());
+        auto dd = data();
+        auto ss = size();
+        return ViewType(dd, ss);
     }
 
     const CharT* data() const noexcept {

@@ -15,7 +15,10 @@
 
 #include <memoria/core/linked/document/linked_document.hpp>
 #include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/result.hpp>
 #include <memoria/core/strings/format.hpp>
+
+#include <memoria/core/regexp/icu_regexp.hpp>
 
 #include <iostream>
 
@@ -26,10 +29,50 @@ namespace memoria {
     void InitCoreLDDatatypes();
 }
 
+
 int main(void) {
     InitCoreLDDatatypes();
 
     try {
+
+    LDDocument doc1 = LDDocument::parse(R"(
+    @CodegenConfig = {
+        "groups": {
+            "default": {
+                "datatypes": @FileGenerator = {
+                    "filename": "src/contianers/generated/ctr_datatypes.cpp",
+                    "handler": "codegen.datatypes.DatatypesInitSink"
+                },
+                "containers": @TypeInstance = {
+                    "path": "src/containers/generated"
+                }
+            },
+
+            "stores": {
+                "datatypes": @FileGenerator = {
+                    "filename": "src/stores/generated/ctr_datatypes.cpp",
+                    "handler": "codegen.datatypes.DatatypesInitSink"
+                },
+                "containers": @TypeInstance = {
+                    "path": "src/stores/generated"
+                }
+            }
+        },
+        "profiles": ["CowProfile<>", "NoCowProfile<>", "CowLiteProfile<>"],
+        "script": "codegen/python/codegen.py"
+    }
+)");
+
+        println("{}", doc1.to_pretty_string());
+
+        LDDocumentView dv = doc1;
+
+
+        auto vv0 = dv.value();
+        auto res = find_value(vv0, "$/groups/default/containers/$/path");
+
+        println("{} :: {}", res, vv0.to_standard_string());
+
         UUID a1 = UUID::parse("d4cde295-5a91-422c-9be7-9caf6ff8e08a");
         UUID a2 = UUID::parse("7f9a674f-5e6c-4c8c-a60d-b084786453be");
 

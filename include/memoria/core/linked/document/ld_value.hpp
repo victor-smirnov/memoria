@@ -48,9 +48,19 @@ public:
         type_tag_(tag)
     {}
 
+    const LDDocumentView* doc() const noexcept {
+        return doc_;
+    }
+
+    uint64_t ptr() const noexcept {
+        return value_ptr_;
+    }
+
     bool operator==(const LDDValueView& other) const noexcept {
         return doc_->equals(other.doc_) && value_ptr_ == other.value_ptr_;
     }
+
+    void dbg() const;
 
 
     LDDMapView as_map() const;
@@ -197,5 +207,10 @@ template <typename T>
 DTTLDViewType<T> unchecked_cast_as(const LDDValueView& view) {
     return view.template unchecked_cast_as<T>();
 }
+
+std::vector<U8String> parse_path_expression(U8StringView path);
+
+bool find_value(LDDValueView& view, U8StringView path_str);
+LDDValueView get_value(LDDValueView src, U8StringView path);
 
 }

@@ -180,7 +180,7 @@ template <>
 struct TypeHash<Decimal>: UInt64Value<39> {};
 
 template <>
-struct TypeHash<CoreApiProfileDT>: UInt64Value<40> {};
+struct TypeHash<CoreApiProfileDT>: UInt64Value<75796829474235345ull> {};
 
 
 }

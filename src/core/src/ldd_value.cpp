@@ -19,6 +19,10 @@
 #include <memoria/core/linked/document/linked_document.hpp>
 #include <memoria/core/datatypes/type_registry.hpp>
 
+#include <memoria/core/tools/result.hpp>
+#include <memoria/core/regexp/icu_regexp.hpp>
+
+
 namespace memoria {
 
 std::ostream& LDDValueView::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
@@ -73,9 +77,11 @@ ld_::LDDPtrHolder LDDValueView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAd
 }
 
 
-ld_::LDPtr<U8LinkedString> LDStringView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
+ld_::LDPtr<U8LinkedString> LDStringView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping&) const
 {
-    return tgt->new_varchar(string_.get(&doc_->arena_)->view()).string_;
+    const LinkedString<char>* vv0 = string_.get(&doc_->arena_);
+    U8StringView view = vv0->view();
+    return tgt->new_varchar(view).string_;
 }
 
 
@@ -106,7 +112,7 @@ LDDocument LDStringView::clone(bool compactify) const {
     return vv.clone(compactify);
 }
 
-std::ostream& LDStringView::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
+std::ostream& LDStringView::dump(std::ostream& out, LDDumpFormatState&, LDDumpState&) const
 {
     U8StringView str = view();
     U8StringView str_escaped = SDNStringEscaper::current().escape_quotes(str);
@@ -116,6 +122,60 @@ std::ostream& LDStringView::dump(std::ostream& out, LDDumpFormatState& state, LD
     SDNStringEscaper::current().reset();
 
     return out;
+}
+
+std::vector<U8String> parse_path_expression(U8StringView path) {
+    auto pattern = ICURegexPattern::compile(u"(/)+");
+    return pattern.split(path);
+}
+
+bool find_value(LDDValueView& res, U8StringView path_str)
+{
+    auto path = parse_path_expression(path_str);
+
+    for (size_t c = 0; c < path.size(); c++)
+    {
+        const U8String& step = path[c];
+        if (!step.is_empty())
+        {
+            if (step == "$") {
+                if (res.is_typed_value()) {
+                    auto res2 = res.as_typed_value().constructor();
+                    res = std::move(res2);
+                }
+                else {
+                    MEMORIA_MAKE_GENERIC_ERROR("Value has invalid type for step {} in path expression '{}'", c, step).do_throw();
+                }
+            }
+            else if (res.is_map())
+            {
+                auto res2 = res.as_map().get(step);
+                if (!res2) {
+                    return false;
+                }
+                else {
+                    res = std::move(res2.get());
+                }
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Value has invalid type for step {} in path expression '{}'", c, step).do_throw();
+            }
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Empty step {} in the path expression '{}'", c, step).do_throw();
+        }
+    }
+
+    return true;
+}
+
+LDDValueView get_value(LDDValueView src, U8StringView path) {
+    if (find_value(src, path)) {
+        return src;
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Value for path '{}' is not found", path).do_throw();
+    }
 }
 
 }

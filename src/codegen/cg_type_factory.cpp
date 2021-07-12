@@ -54,7 +54,8 @@ public:
             config_ = LDDocument::parse(anns[anns.size() - 1]);
         }
 
-        for (auto dd: tf_decl_->decls()){
+        for (auto dd: tf_decl_->decls())
+        {
             if (clang::VarDecl* vd = clang::dyn_cast_or_null<clang::VarDecl>(dd)) {
                 if (vd->getNameAsString() == "ID")
                 {
@@ -69,28 +70,6 @@ public:
             }
         }
 
-        auto includes = ld_config().get("includes");
-        if (includes)
-        {
-            LDDArrayView arr = includes.get().as_array();
-            for (size_t c = 0; c < arr.size(); c++)
-            {
-                U8String file_name = arr.get(c).as_varchar().view();
-                includes_.push_back(file_name);
-            }
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} must define 'includes' config attribute", type_pattern()).do_throw();
-        }
-
-        auto name = ld_config().get("name");
-        if (name)
-        {
-            name_ = name.get().as_varchar().view();
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} must define 'name' config attribute", type_pattern()).do_throw();
-        }
     }
 
     U8String name() const override {
@@ -106,7 +85,7 @@ public:
             code += format_u8("#include <{}>\n", include);
         }
 
-        U8String target_folder = project()->target_folder();
+        U8String target_folder = project()->project_output_folder();
 
         U8String header_name = name_ + ".hpp";
         write_text_file_if_different(target_folder + "/" + header_name, code);
@@ -182,11 +161,13 @@ public:
         return config_.value().as_typed_value().constructor().as_map();
     }
 
-    std::vector<U8String> generated_files() const override
+    void generate_artifacts() override {}
+
+    std::vector<U8String> generated_files() override
     {
         std::vector<U8String> files;
 
-        U8String file_path = U8String("BYPRODUCT:") + project()->target_folder() + "/" + name_ + ".hpp";
+        U8String file_path = U8String("BYPRODUCT:") + project()->project_output_folder() + "/" + name_ + ".hpp";
 
         files.push_back(file_path);
         files.push_back(file_path + ".pch");
@@ -194,8 +175,30 @@ public:
         return files;
     }
 
-    void configure() override {
+    void configure() override
+    {
+        auto includes = ld_config().get("includes");
+        if (includes)
+        {
+            LDDArrayView arr = includes.get().as_array();
+            for (size_t c = 0; c < arr.size(); c++)
+            {
+                U8String file_name = arr.get(c).as_varchar().view();
+                includes_.push_back(file_name);
+            }
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} must define 'includes' config attribute", type_pattern()).do_throw();
+        }
 
+        auto name = ld_config().get("name");
+        if (name)
+        {
+            name_ = name.get().as_varchar().view();
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} must define 'name' config attribute", type_pattern()).do_throw();
+        }
     }
 };
 

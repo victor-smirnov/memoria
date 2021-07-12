@@ -104,7 +104,7 @@ struct formatter<memoria::U8StringView> {
 
     template <typename FormatContext>
     auto format(const memoria::U8StringView& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", d.data());
+        return format_to(ctx.out(), "{}", d.to_string());
     }
 };
 

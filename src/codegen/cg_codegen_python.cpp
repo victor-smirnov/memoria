@@ -58,18 +58,31 @@ void create_codegen_module(py::module mm)
     py::class_<Project, ShPtr<Project>> project(mm, "Project");
     project.def("config_unit", &Project::config_unit);
     project.def("profiles", &Project::profiles);
-    project.def("target_folder", &Project::target_folder);
+    project.def("project_output_folder", &Project::project_output_folder);
+    project.def("components_output_folder", &Project::components_output_folder);
 
     py::class_<TypeInstance, ShPtr<TypeInstance>> type_instance(mm, "TypeInstance", cg_entity);
     type_instance.def("type_factory", &TypeInstance::type_factory);
     type_instance.def("type", &TypeInstance::type);
     type_instance.def("name", &TypeInstance::name);
+    type_instance.def("target_folder", &TypeInstance::target_folder);
+    type_instance.def("target_file", &TypeInstance::target_file);
+    type_instance.def("config_sdn_path", &TypeInstance::config_sdn_path);
+    type_instance.def("initializer", &TypeInstance::initializer);
+    type_instance.def("generate_full_include_header", &TypeInstance::generate_full_include_header);
+    type_instance.def("generate_include_header", &TypeInstance::generate_include_header);
+
 
     py::class_<TypeFactory, ShPtr<TypeFactory>> type_factory(mm, "TypeFactory", cg_entity);
     type_factory.def("name", &TypeFactory::name);
     type_factory.def("factory_id", &TypeFactory::factory_id);
 
     py::class_<FileGenerator, ShPtr<FileGenerator>> file_generator(mm, "FileGenerator", cg_entity);
+    file_generator.def("add_snippet", &FileGenerator::add_snippet);
+    file_generator.def("snippets", &FileGenerator::snippets);
+    file_generator.def("describe", &FileGenerator::describe);
+    file_generator.def("target_file", &FileGenerator::target_file);
+    file_generator.def("target_folder", &FileGenerator::target_folder);
 
     py::enum_<InferenceType>(mm, "InferenceType", py::arithmetic())
         .value("TYPE", InferenceType::TYPE)

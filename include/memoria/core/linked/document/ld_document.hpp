@@ -69,9 +69,9 @@ protected:
     using TypeDeclsMap  = ld_::TypeDeclsMap;
     using DocumentState = ld_::DocumentState;
     using DocumentPtr   = ld_::LDPtr<DocumentState>;
-
+public:
     ld_::LDArenaView arena_;
-
+protected:
     friend class LDDocumentBuilder;
     friend class LDDMapView;
     friend class LDDArrayView;
@@ -108,11 +108,22 @@ public:
         arena_(span)
     {}
 
+    LDDocumentView(const LDDocumentView&) noexcept = default;
+    LDDocumentView(LDDocumentView&&) noexcept = default;
+
+    LDDocumentView& operator=(const LDDocumentView&) noexcept = default;
+    LDDocumentView& operator=(LDDocumentView&&) noexcept = default;
+
     LDDocumentView as_immutable_view() const noexcept
     {
         LDDocumentView view = *this;
         view.arena_.clear_arena_ptr();
         view.arena_.set_size(this->arena_.data_size());
+
+        if (*this != view) {
+            terminate(format_u8("Invalid LDDocumentview!").data());
+        }
+
         return view;
     }
 

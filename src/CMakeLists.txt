@@ -15,6 +15,8 @@
 
 include_directories(../include)
 include_directories(core/include)
+include_directories(../generated)
+include_directories(../codegen)
 
 add_subdirectory(app_init)
 add_subdirectory(core)
@@ -29,52 +31,56 @@ add_subdirectory(filesystem_classic)
 
 get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
 
-if (BUILD_CODEGENERATOR_EXPLICITLY)
+#if (BUILD_CODEGENERATOR_EXPLICITLY)
     add_subdirectory(codegen)
-else()
-    STRING( REPLACE ";" "^^" GLOBAL_CORE_SRCS_STR "${GLOBAL_CORE_SRCS}" )
+#else()
+#    STRING( REPLACE ";" "^^" GLOBAL_CORE_SRCS_STR "${GLOBAL_CORE_SRCS}" )
 
-    execute_process(COMMAND ${CMAKE_COMMAND}
-        -Wno-dev
-        -DBUILD_POSIX=${BUILD_POSIX}
-        -DMEMORIA_CORE_SRCS_STR=${GLOBAL_CORE_SRCS_STR}
-        -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_TOOLCHAIN_FILE:INTERNAL=${CMAKE_TOOLCHAIN_FILE}
-        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-        -S ${CMAKE_SOURCE_DIR}/src/codegen
-        -B ${CMAKE_BINARY_DIR}/src/codegen
-        -G ${CMAKE_GENERATOR}
+#    execute_process(COMMAND ${CMAKE_COMMAND}
+#        -Wno-dev
+#        -DBUILD_POSIX=${BUILD_POSIX}
+#        -DMEMORIA_CORE_SRCS_STR=${GLOBAL_CORE_SRCS_STR}
+#        -DCMAKE_BUILD_TYPE=Release
+#        -DCMAKE_TOOLCHAIN_FILE:INTERNAL=${CMAKE_TOOLCHAIN_FILE}
+#        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+#        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+#        -S ${CMAKE_SOURCE_DIR}/src/codegen
+#        -B ${CMAKE_BINARY_DIR}/src/codegen
+#        -G ${CMAKE_GENERATOR}
 
-        COMMAND_ERROR_IS_FATAL ANY
-    )
+#        COMMAND_ERROR_IS_FATAL ANY
+#    )
 
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/src/codegen
-        COMMAND_ERROR_IS_FATAL ANY
-    )
-endif()
+#    execute_process(
+#        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/src/codegen
+#        COMMAND_ERROR_IS_FATAL ANY
+#    )
+#endif()
 
-file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/src/containers/generated)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/src/codegen/generated)
+#file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/src/containers/generated)
+#file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/src/stores/generated)
+#file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/src/codegen/generated)
+
+include_directories(containers/generated)
 
 find_package(Clang CONFIG REQUIRED)
 
-execute_process(
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMAND
-        ${CMAKE_BINARY_DIR}/src/codegen/MemoriaCodeGen
-        --print-output-file-names
-        -I ${CMAKE_SOURCE_DIR}/include
-        -I ${CMAKE_SOURCE_DIR}/codegen/include
-        -I ${Boost_INCLUDE_DIRS}
-        -I ${CLANG_INSTALL_PREFIX}/tools/llvm/lib/clang/11.1.0/include
-        -D MMA_ICU_CXX_NS=icu
-        --config codegen_memoria.hpp
-        --output ${CMAKE_SOURCE_DIR}/src/containers/generated
-    OUTPUT_VARIABLE GENERATED_SOURCES
-    COMMAND_ERROR_IS_FATAL ANY
-)
+#execute_process(
+#    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+#    COMMAND
+#        ${CMAKE_BINARY_DIR}/src/codegen/MemoriaCodeGen
+#        --print-output-file-names
+#        -I ${CMAKE_SOURCE_DIR}/include
+#        -I ${CMAKE_SOURCE_DIR}/codegen/include
+#        -I ${Boost_INCLUDE_DIRS}
+#        -I ${CLANG_INSTALL_PREFIX}/tools/llvm/lib/clang/11.1.0/include
+#        -D MMA_ICU_CXX_NS=icu
+#        --config codegen_memoria.hpp
+#        --project-output ${CMAKE_BINARY_DIR}/generated
+#        --components-output-base ${CMAKE_BINARY_DIR}
+#    OUTPUT_VARIABLE GENERATED_SOURCES
+#    COMMAND_ERROR_IS_FATAL ANY
+#)
 
 SET (GENERATED_CTR_SOURCES )
 SET (GENERATED_BYPRODUCTS )
@@ -91,8 +97,8 @@ foreach(FNAME ${GENERATED_SOURCES})
     endif()
 endforeach()
 
-#message ("========================|${GENERATED_CTR_SOURCES}|============================")
-#message ("========================|${GENERATED_BYPRODUCTS}|============================")
+message ("========================|${GENERATED_CTR_SOURCES}|============================")
+message ("========================|${GENERATED_BYPRODUCTS}|============================")
 
 #add_custom_command(
 #    IMPLICIT_DEPENDS C++ ../codegen/include/codegen_memoria.hpp
@@ -108,7 +114,8 @@ endforeach()
 #        -I ${CLANG_INSTALL_PREFIX}/tools/llvm/lib/clang/11.1.0/include
 #        -D MMA_ICU_CXX_NS=icu
 #        --config codegen_memoria.hpp
-#        --output ${CMAKE_SOURCE_DIR}/src/containers/generated
+#        --project-output ${CMAKE_BINARY_DIR}/generated
+#        --components-output-base ${CMAKE_BINARY_DIR}
 
 #    COMMAND_ERROR_IS_FATAL ANY
 #)

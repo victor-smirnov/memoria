@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <memoria/core/tools/result.hpp>
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/tools/optional.hpp>
 
@@ -53,6 +54,11 @@ struct CodegenEntity {
     virtual ~CodegenEntity() noexcept = default;
     virtual U8String describe() const = 0;
     virtual ShPtr<Project> project() const noexcept = 0;
+
+    virtual std::vector<U8String> includes() const = 0;
+    virtual std::vector<U8String> generated_files() = 0;
+    virtual void generate_artifacts() = 0;
+    virtual void configure() = 0;
 };
 
 
@@ -64,7 +70,8 @@ struct Project {
     virtual ShPtr<CodeModule> config_unit() const noexcept = 0;
     virtual LDDocumentView config() const noexcept = 0;
     virtual LDDMapView config_map() const = 0;
-    virtual U8String target_folder() const = 0;
+    virtual U8String project_output_folder() const = 0;
+    virtual U8String components_output_folder() const = 0;
 
     virtual std::vector<ShPtr<TypeInstance>> type_instances() const = 0;
     virtual std::vector<ShPtr<TypeFactory>> type_factories() const = 0;
@@ -75,7 +82,9 @@ struct Project {
     virtual std::vector<U8String> build_file_names() = 0;
     virtual void generate_artifacts() = 0;
 
-    static std::shared_ptr<Project> create(U8String config_file_name, U8String output_folder);
+    virtual ShPtr<FileGenerator> generator(const U8String& sdn_path) const = 0;
+
+    static std::shared_ptr<Project> create(U8String config_file_name, U8String project_output_folder, U8String components_output_folder);
 };
 
 struct TypeInstance: CodegenEntity {
@@ -84,18 +93,22 @@ struct TypeInstance: CodegenEntity {
     virtual const clang::ClassTemplateSpecializationDecl* ctr_descr() const = 0;
     virtual clang::QualType type() const = 0;
     virtual LDDocumentView config() const = 0;
+    virtual U8String name() const = 0;
+    virtual U8String target_folder() const = 0;
+    virtual U8String target_file(const U8String& profile) const = 0;
+
+    virtual U8String config_sdn_path() const = 0;
 
     virtual ShPtr<TypeFactory> type_factory() const = 0;
     virtual void set_type_factory(ShPtr<TypeFactory> tf) = 0;
 
     virtual void precompile_headers() = 0;
-    virtual void generate_artifacts() = 0;
-    virtual std::vector<U8String> generated_files() = 0;
     virtual Optional<std::vector<U8String>> profiles() const = 0;
 
-    virtual U8String name() const = 0;
+    virtual ShPtr<FileGenerator> initializer() = 0;
 
-    virtual void configure() = 0;
+    virtual U8String generate_include_header() const = 0;
+    virtual U8String generate_full_include_header() const = 0;
 
     static ShPtr<TypeInstance> create(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr);
 };
@@ -109,9 +122,6 @@ struct TypeFactory: CodegenEntity {
     virtual LDDocumentView config() const = 0;
     virtual U8String type_pattern() const = 0;
 
-    virtual std::vector<U8String> includes() const = 0;
-    virtual std::vector<U8String> generated_files() const = 0;
-
     virtual void precompile_headers() = 0;
     virtual ShPtr<PreCompiledHeader> precompiled_header() const = 0;
 
@@ -119,17 +129,21 @@ struct TypeFactory: CodegenEntity {
 
     virtual const clang::ClassTemplateSpecializationDecl* factory_descr() const = 0;
 
-    virtual void configure() = 0;
-
     static ShPtr<TypeFactory> create(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr);
 };
 
 
 
-struct FileGenerator {
+struct FileGenerator: CodegenEntity {
     virtual ~FileGenerator() noexcept = default;
 
-    //static ShPtr<FileGenerato> create(ShPtr<Project> project, U8String output_folder, const clang::ClassTemplatePartialSpecializationDecl* descr);
+    virtual void add_snippet(const U8String& collection, const U8String& text) = 0;
+    virtual std::vector<U8String> snippets(const U8String& collection) const = 0;
+
+    virtual U8String target_file() const = 0;
+    virtual U8String target_folder() const = 0;
+
+    static ShPtr<FileGenerator> create(ShPtr<Project> project, const U8String& sdn_path, LDDocument&& config);
 };
 
 void create_codegen_python_bindings();
@@ -140,5 +154,21 @@ void create_ast_module(pybind11::module mm);
 std::pair<U8String, U8String> split_path(U8String class_path);
 
 U8String get_profile_id(U8String profile_name);
+
+U8String get_same_level_path(U8String path, U8String step);
+U8String join_sdn_path(Span<const U8String> path);
+
+void for_each_value(LDDValueView elem, const std::function<bool (const std::vector<U8String>&, LDDValueView)>& consumer);
+
+template <typename T>
+T&& get_or_fail(Optional<T>&& opt, U8StringView msg)
+{
+    if (opt.has_value()) {
+        return std::move(opt.get());
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("{}", msg).do_throw();
+    }
+}
 
 }}

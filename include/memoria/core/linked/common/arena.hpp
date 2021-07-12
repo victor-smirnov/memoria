@@ -64,23 +64,38 @@ public:
     LinkedPtr() = default;
     LinkedPtr(HolderT value): ptr_value_(value) {}
 
-    HolderT get() const {
+    HolderT get() const noexcept {
         return ptr_value_;
     }
 
-    T* get(Arena* arena) {
-        return ptr_cast<T>(arena->data() + ptr_value_);
+    T* get(Arena* arena) noexcept {
+        if (ptr_value_ < arena->size()) {
+            return ptr_cast<T>(arena->data() + ptr_value_);
+        }
+        else {
+            terminate(format_u8("Invalid ptr value! {} {} {} {}", ptr_value_, arena->size(), (const void*)arena->data(), arena->arena()).data());
+        }
     }
 
     T* get_mutable(const Arena* arena) {
-        return ptr_cast<T>(arena->mutable_data() + ptr_value_);
+        if (ptr_value_ < arena->size()) {
+            return ptr_cast<T>(arena->mutable_data() + ptr_value_);
+        }
+        else {
+            terminate(format_u8("Invalid ptr value! {} {} {} {}", ptr_value_, arena->size(), (const void*)arena->data(), arena->arena()).data());
+        }
     }
 
-    const T* get(const Arena* arena) const {
-        return ptr_cast<const T>(arena->data() + ptr_value_);
+    const T* get(const Arena* arena) const noexcept {
+        if (ptr_value_ < arena->size()) {
+            return ptr_cast<const T>(arena->data() + ptr_value_);
+        }
+        else {
+            terminate(format_u8("Invalid ptr value! {} {} {} {}", ptr_value_, arena->size(), (const void*)arena->data(), arena->arena()).data());
+        }
     }
 
-    operator HolderT() const {
+    operator HolderT() const noexcept {
         return ptr_value_;
     }
 };
@@ -185,13 +200,23 @@ public:
     template <typename T>
     using GenericPtrT = GenericLinkedPtr<T, PtrHolderT, LinkedArenaView>;
 
-    LinkedArenaView() = default;
+    LinkedArenaView() noexcept: data_(), size_(), arena_() {}
+    LinkedArenaView(const LinkedArenaView&) noexcept = default;
+    LinkedArenaView(LinkedArenaView&&) noexcept = default;
 
     LinkedArenaView(Span<const AtomType> span):
         data_(const_cast<AtomType*>(span.data())),
         size_(span.size()),
         arena_()
-    {}
+    {
+    }
+
+    LinkedArenaView& operator=(const LinkedArenaView&) noexcept = default;
+    LinkedArenaView& operator=(LinkedArenaView&&) noexcept = default;
+
+    const void* arena() const noexcept {
+        return arena_;
+    }
 
     void clear_arena_ptr() noexcept {
         arena_ = nullptr;
@@ -207,6 +232,16 @@ public:
 
     void set_size(size_t size) {
         this->size_ = size;
+    }
+
+    size_t size() const noexcept
+    {
+        if (arena_) {
+            return arena_->size();
+        }
+        else {
+            return size_;
+        }
     }
 
     AddressMapping make_address_mapping() const noexcept {

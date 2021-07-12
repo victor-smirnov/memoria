@@ -36,6 +36,7 @@
 #include <pybind11/pybind11.h>
 
 #include <vector>
+#include <filesystem>
 
 namespace memoria {
 namespace codegen {
@@ -53,45 +54,52 @@ class TypeInstanceImpl: public TypeInstance, public std::enable_shared_from_this
     const clang::ClassTemplateSpecializationDecl* ctr_descr_;
 
     LDDocument config_;
+    LDDocument project_config_;
 
     ShPtr<PreCompiledHeader> precompiled_header_;
     std::vector<U8String> includes_;
 
     U8String name_;
 
+    U8String target_folder_;
+    U8String target_file_;
+
     Optional<std::vector<U8String>> profiles_;
+
+    U8String config_sdn_path_;
 
 public:
     TypeInstanceImpl(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr) noexcept:
         project_ptr_(project), project_(project.get()), ctr_descr_(descr)
     {
-        auto anns = get_annotations(ctr_descr_);
-        if (anns.size()) {
-            config_ = LDDocument::parse(anns[anns.size() - 1]);
 
-            auto name = ld_config().get("name");
-            if (name) {
-                name_ = name.get().as_varchar().view();
-            }
-            else {
-                MEMORIA_MAKE_GENERIC_ERROR("Configuration attribute 'name' must be specified for TypeInstance {}", type().getAsString()).do_throw();
-            }
+    }
 
-            auto includes = ld_config().get("includes");
-            if (includes) {
-                LDDArrayView arr = includes.get().as_array();
-                for (size_t c = 0; c < arr.size(); c++)
-                {
-                    U8String file_name = arr.get(c).as_varchar().view();
-                    includes_.push_back(file_name);
-                }
-            }
-            else {
-                MEMORIA_MAKE_GENERIC_ERROR("Configuration attribute 'includes' must be specified for TypeInstance {}", type().getAsString()).do_throw();
-            }
+    ShPtr<FileGenerator> initializer() override
+    {
+        U8String sdn_path = config_sdn_path_ + "/init";
+        return project_->generator(sdn_path);
+    }
+
+    std::vector<U8String> includes() const override {
+        return includes_;
+    }
+
+    U8String config_sdn_path() const override {
+        return config_sdn_path_;
+    }
+
+    U8String target_folder() const override {
+        return target_folder_;
+    }
+
+    U8String target_file(const U8String& profile) const override
+    {
+        if (profile != "") {
+            return target_folder_ + "/" + name_ + "_" + get_profile_id(profile) + "_.cpp";
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Configuration must be specified for TypeInstance {}", type().getAsString()).do_throw();
+            return target_folder_ + "/" + name_ + ".cpp";
         }
     }
 
@@ -112,6 +120,10 @@ public:
     }
 
     clang::QualType type() const override {
+        return type_();
+    }
+
+    clang::QualType type_() const {
         return ctr_descr_->getTemplateArgs()[0].getAsType();
     }
 
@@ -123,7 +135,7 @@ public:
         type_factory_ = tf;
     }
 
-    U8String generate_include_header()
+    U8String generate_include_header() const override
     {
         U8String code;
         for (const auto& include: includes_)
@@ -134,7 +146,7 @@ public:
         return code;
     }
 
-    U8String generate_full_include_header()
+    U8String generate_full_include_header() const override
     {
         U8String code;
 
@@ -157,16 +169,14 @@ public:
     {
         if (type_factory_)
         {
-            U8String target_folder = project()->target_folder();
-
             U8String code = generate_include_header();
 
             U8String header_name = name_ + ".hpp";
-            write_text_file_if_different(target_folder + "/" + header_name, code);
+            write_text_file_if_different(target_folder_ + "/" + header_name, code);
 
             precompiled_header_ = PreCompiledHeader::create(
                         type_factory_->precompiled_header(),
-                        target_folder,
+                        target_folder_,
                         header_name
             );
         }
@@ -184,16 +194,18 @@ public:
 
             if (profiles_)
             {
+                py::object tf_ii = tf(self(), type_factory_, nullptr);
+                py::object ii_init = tf_ii.attr("generate_init");
+                if (!ii_init.is_none()) {
+                    ii_init();
+                }
+
                 for (const U8String& profile: profiles_.get())
                 {
                     py::object tf_i = tf(self(), type_factory_, py::str(profile.data()));
                     py::object hw = tf_i.attr("generate_files");
 
                     hw();
-
-                    U8String src_path = project()->target_folder() + "/" + name_ + "_" + get_profile_id(profile) + "_.cpp";
-                    U8String code = generate_full_include_header();
-                    write_text_file_if_different(src_path, code);
                 }
             }
             else {
@@ -201,10 +213,6 @@ public:
                 py::object hw = tf_i.attr("generate_files");
 
                 hw();
-
-                U8String src_path = project()->target_folder() + "/" + name_ + ".cpp";
-                U8String code = generate_full_include_header();
-                write_text_file_if_different(src_path, code);
             }
         }
         else {
@@ -216,7 +224,7 @@ public:
     {
         std::vector<U8String> files;
 
-        U8String file_path = U8String("BYPRODUCT:") + project()->target_folder() + "/" + name_ + ".hpp";
+        U8String file_path = U8String("BYPRODUCT:") + target_folder_ + "/" + name_ + ".hpp";
 
         files.push_back(file_path);
         files.push_back(file_path + ".pch");
@@ -267,12 +275,69 @@ public:
 
     void configure() override
     {
-        auto pp = ld_config().get("profiles");
-        if (pp)
+        auto anns = get_annotations(ctr_descr_);
+        if (anns.size()) {
+            config_ = LDDocument::parse(anns[anns.size() - 1]);
+
+            auto name = ld_config().get("name");
+            if (name) {
+                name_ = name.get().as_varchar().view();
+            }
+            else {
+                U8String type_name = type_().getAsString();
+                name_ = get_profile_id(type_name);
+            }
+
+            auto includes = ld_config().get("includes");
+            if (includes) {
+                LDDArrayView arr = includes.get().as_array();
+                for (size_t c = 0; c < arr.size(); c++)
+                {
+                    U8String file_name = arr.get(c).as_varchar().view();
+                    includes_.push_back(file_name);
+                }
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Configuration attribute 'includes' must be specified for TypeInstance {}", type_().getAsString()).do_throw();
+            }
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Configuration must be specified for TypeInstance {}", type_().getAsString()).do_throw();
+        }
+
+        auto cfg = config_.value();
+        if (find_value(cfg, "$/config")) {
+            config_sdn_path_ = cfg.as_varchar().view();
+        }
+        else {
+            config_sdn_path_ = "$/groups/default/containers";
+        }
+
+        LDDValueView vv = project_->config().value();
+        if (find_value(vv, config_sdn_path_)) {
+            project_config_ = vv.clone();
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                "CodeGen Project configuration '{}' must be specified for TypeInstance {}",
+                config_sdn_path_,
+                type_().getAsString()
+            ).do_throw();
+        }
+
+        target_folder_ = project_->components_output_folder() + "/" + get_value(project_config_.value(), "$/path").as_varchar().view();
+
+        std::error_code ec;
+        if ((!std::filesystem::create_directories(target_folder_.to_std_string(), ec)) && ec) {
+            MEMORIA_MAKE_GENERIC_ERROR("Can't create directory '{}': {}", target_folder_, ec.message()).do_throw();
+        }
+
+        auto pp = config_.value();
+        if (find_value(pp, "$/profiles"))
         {
-            if (pp.get().is_varchar())
+            if (pp.is_varchar())
             {
-                U8String val = pp.get().as_varchar().view();
+                U8String val = pp.as_varchar().view();
                 if (val == "ALL") {
                     profiles_ = project_->profiles();
                 }
@@ -280,9 +345,9 @@ public:
                     MEMORIA_MAKE_GENERIC_ERROR("Invalid profile attribute '{}' value for TypeInstance for {}", type().getAsString()).do_throw();
                 }
             }
-            else if (pp.get().is_array())
+            else if (pp.is_array())
             {
-                auto arr = pp.get().as_array();
+                auto arr = pp.as_array();
                 profiles_ = std::vector<U8String>();
                 for (size_t c = 0; c < arr.size(); c++) {
                     profiles_.get().push_back(arr.get(c).as_varchar().view());

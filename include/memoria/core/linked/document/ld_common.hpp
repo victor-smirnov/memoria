@@ -117,11 +117,11 @@ struct LDTypeDeclaration {};
 
 using LDString = Varchar;
 
-template <> struct TypeHash<LinkedData>:        UInt64Value<30> {};
-template <> struct TypeHash<LDArray>:           UInt64Value<31> {};
-template <> struct TypeHash<LDMap>:             UInt64Value<32> {};
-template <> struct TypeHash<LDTypedValue>:      UInt64Value<33> {};
-template <> struct TypeHash<LDTypeDeclaration>: UInt64Value<34> {};
+template <> struct TypeHash<LinkedData>:        UInt64Value<40> {};
+template <> struct TypeHash<LDArray>:           UInt64Value<41> {};
+template <> struct TypeHash<LDMap>:             UInt64Value<42> {};
+template <> struct TypeHash<LDTypedValue>:      UInt64Value<43> {};
+template <> struct TypeHash<LDTypeDeclaration>: UInt64Value<44> {};
 
 template <>
 struct TypeHash<LDDocument>: UInt64Value<3457983275945243> {};
@@ -216,7 +216,7 @@ namespace ld_ {
 
         struct TypeNameData {
             U8StringView name;
-            bool imported;
+            LDDPtrHolder tgt_type;
         };
 
 
@@ -289,8 +289,8 @@ namespace ld_ {
             return Optional<LDDPtrHolder>{};
         }
 
-        void finish_src_named_type(LDDPtrHolder holder) {
-            type_names_[holder].imported = true;
+        void finish_src_named_type(LDDPtrHolder holder, LDDPtrHolder tgt_holder) {
+            type_names_[holder].tgt_type = tgt_holder;
         }
 
         void finish_dst_named_type(const U8String& data, LDDPtrHolder holder) {

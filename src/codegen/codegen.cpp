@@ -49,7 +49,8 @@ int main(int argc, char** argv)
         ("include,I", po::value<StringOpts>(), "Add include directory (-I)")
         ("define,D", po::value<StringOpts>(), "Add preprocessor definition (-D)")
         ("config", po::value<std::string>(), "Config file")
-        ("output", po::value<std::string>(), "Output folder")
+        ("project-output", po::value<std::string>(), "Main output folder")
+        ("components-output-base", po::value<std::string>(), "Output folder prefix for compoments")
         ("verbose,v", po::value<std::string>(), "Provide additional debug info")
         ("print-output-file-names", "Only print filenames that will be created during full run (for CMake integration)")        
         ;
@@ -87,7 +88,6 @@ int main(int argc, char** argv)
         add_parser_clang_option("-isysroot " + sysroot);
     }
 
-
     boost::program_options::notify(map);
 
     if (!map.count("config")) {
@@ -95,21 +95,27 @@ int main(int argc, char** argv)
         exit(1);
     }
 
-    if (!map.count("output")) {
-        println(std::cerr, "Error: --output option must be specified (output folder)");
+    if (!map.count("project-output")) {
+        println(std::cerr, "Error: --project-output option must be specified (output folder)");
         exit(2);
     }
 
-    auto config_file = map["config"].as<std::string>();
-    auto out_folder  = map["output"].as<std::string>();
+    if (!map.count("components-output-base")) {
+        println(std::cerr, "Error: --components-output-base option must be specified (components output folder base)");
+        exit(3);
+    }
 
-    add_parser_clang_option("-I" + out_folder);
+    auto config_file = map["config"].as<std::string>();
+    auto project_output_folder  = map["project-output"].as<std::string>();
+    auto components_output_base  = map["components-output-base"].as<std::string>();
+
+    add_parser_clang_option("-I" + project_output_folder);
 
     if (map.count("print-output-file-names"))
     {
         add_parser_clang_option("-Wno-everything");
 
-        auto project = Project::create(config_file, out_folder);
+        auto project = Project::create(config_file, project_output_folder, components_output_base);
         project->parse_configuration();
 
         auto names = project->build_file_names();        
@@ -123,7 +129,7 @@ int main(int argc, char** argv)
         }
     }
     else {
-        auto project = Project::create(config_file, out_folder);
+        auto project = Project::create(config_file, project_output_folder, components_output_base);
         project->parse_configuration();
         project->generate_artifacts();
     }

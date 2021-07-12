@@ -113,6 +113,4 @@ TypeFactory<AllocationMap> {
     static constexpr uint64_t ID = 9503245888843438934ull;
 };
 
-
-
 }
