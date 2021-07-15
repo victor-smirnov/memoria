@@ -44,8 +44,10 @@ template <typename Key, typename Value>
 struct [[clang::annotate(R"(
 @CtrTF = {
     "name": "map_tf",
+    "type": "BTSS",
     "includes": [
-        "memoria/containers/map/map_factory.hpp"
+        "memoria/containers/map/map_factory.hpp",
+        "memoria/containers/map/map_impl.hpp"
     ],
     "generator": "codegen.ctr_typefactory.CtrTypeFactory"
 })")]]
@@ -58,8 +60,10 @@ template <typename Key>
 struct [[clang::annotate(R"(
     @CtrTF = {
         "name": "set_tf",
+        "type": "BTSS",
         "includes": [
-            "memoria/containers/set/set_factory.hpp"
+            "memoria/containers/set/set_factory.hpp",
+            "memoria/containers/set/set_api_impl.hpp"
         ],
         "generator": "codegen.ctr_typefactory.CtrTypeFactory"
     }
@@ -73,8 +77,10 @@ template <typename Value>
 struct [[clang::annotate(R"(
     @CtrTF = {
         "name": "vector_tf",
+        "type": "BTSS",
         "includes": [
-            "memoria/containers/vector/vctr_factory.hpp"
+            "memoria/containers/vector/vctr_factory.hpp",
+            "memoria/containers/vector/vector_api_impl.hpp"
         ],
         "generator": "codegen.ctr_typefactory.CtrTypeFactory"
     }
@@ -88,8 +94,10 @@ template <typename Key, typename Value>
 struct [[clang::annotate(R"(
     @CtrTF = {
         "name": "multimap_tf",
+        "type": "BTFL",
         "includes": [
-            "memoria/containers/multimap/multimap_factory.hpp"
+            "memoria/containers/multimap/multimap_factory.hpp",
+            "memoria/containers/multimap/multimap_impl.hpp"
         ],
         "generator": "codegen.ctr_typefactory.CtrTypeFactory"
     }
@@ -103,8 +111,11 @@ template <>
 struct [[clang::annotate(R"(
     @CtrTF = {
         "name": "allocation_map_tf",
+        "type": "BTSS",
         "includes": [
-            "memoria/containers/allocation_map/allocation_map_factory.hpp"
+            "memoria/containers/allocation_map/allocation_map_factory.hpp",
+            "memoria/containers/allocation_map/allocation_map_api_impl.hpp",
+            "memoria/containers/allocation_map/allocation_map_impl.hpp"
         ],
         "generator": "codegen.ctr_typefactory.CtrTypeFactory"
     }

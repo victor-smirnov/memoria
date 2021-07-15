@@ -149,6 +149,10 @@ public:
         }
     }
 
+    virtual U8String type() const override {
+        return get_value(config_.value(), "$/type").as_varchar().view();
+    }
+
     ShPtr<TypeFactory> self() {
         return shared_from_this();
     }

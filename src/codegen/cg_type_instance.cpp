@@ -135,7 +135,22 @@ public:
         type_factory_ = tf;
     }
 
-    U8String generate_include_header() const override
+    std::vector<U8String> full_includes() const override
+    {
+        std::vector<U8String> list;
+
+        if (type_factory_)
+        {
+            auto ii = type_factory_->includes();
+            list.insert(list.end(), ii.begin(), ii.end());
+        }
+
+        list.insert(list.end(), includes_.begin(), includes_.end());
+
+        return list;
+    }
+
+    U8String generate_include_header() const
     {
         U8String code;
         for (const auto& include: includes_)
@@ -146,24 +161,6 @@ public:
         return code;
     }
 
-    U8String generate_full_include_header() const override
-    {
-        U8String code;
-
-        if (type_factory_) {
-            for (const auto& include: type_factory_->includes())
-            {
-                code += format_u8("#include <{}>\n", include);
-            }
-        }
-
-        for (const auto& include: includes_)
-        {
-            code += format_u8("#include <{}>\n", include);
-        }
-
-        return code;
-    }
 
     void precompile_headers() override
     {

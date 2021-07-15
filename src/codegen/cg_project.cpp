@@ -114,10 +114,10 @@ public:
         auto profiles = config_map().get("profiles");
         if (profiles)
         {
-            auto arr = profiles.get().as_array();
-            for (size_t c = 0; c < arr.size(); c++) {
-                profiles_.push_back(arr.get(c).as_varchar().view());
-            }
+            auto map = profiles.get().as_map();
+            map.for_each([&](auto key, auto){
+                profiles_.push_back(key);
+            });
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("No profiles are defined for this configuration").do_throw();
@@ -284,6 +284,20 @@ public:
         else {
             MEMORIA_MAKE_GENERIC_ERROR("FileGenerator for '{}' is not found", sdn_path).do_throw();
         }
+    }
+
+    std::vector<U8String> profile_includes(const U8String& profile) const override
+    {
+        U8String path = U8String("$/profiles/") + profile + "/includes";
+        LDDArrayView ii = get_value(config_.value(), path).as_array();
+
+        std::vector<U8String> incs;
+
+        ii.for_each([&](auto value){
+            incs.push_back(value.as_varchar().view());
+        });
+
+        return incs;
     }
 };
 

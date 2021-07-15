@@ -54,12 +54,15 @@ void create_codegen_module(py::module mm)
     py::class_<CodegenEntity, ShPtr<CodegenEntity>> cg_entity(mm, "CodegenEntiry");
     cg_entity.def("describe", &CodegenEntity::describe);
     cg_entity.def("project", &CodegenEntity::project);
+    cg_entity.def("includes", &CodegenEntity::includes);
+    cg_entity.def("generated_files", &CodegenEntity::generated_files);
 
     py::class_<Project, ShPtr<Project>> project(mm, "Project");
     project.def("config_unit", &Project::config_unit);
     project.def("profiles", &Project::profiles);
     project.def("project_output_folder", &Project::project_output_folder);
     project.def("components_output_folder", &Project::components_output_folder);
+    project.def("profile_includes", &Project::profile_includes);
 
     py::class_<TypeInstance, ShPtr<TypeInstance>> type_instance(mm, "TypeInstance", cg_entity);
     type_instance.def("type_factory", &TypeInstance::type_factory);
@@ -69,13 +72,12 @@ void create_codegen_module(py::module mm)
     type_instance.def("target_file", &TypeInstance::target_file);
     type_instance.def("config_sdn_path", &TypeInstance::config_sdn_path);
     type_instance.def("initializer", &TypeInstance::initializer);
-    type_instance.def("generate_full_include_header", &TypeInstance::generate_full_include_header);
-    type_instance.def("generate_include_header", &TypeInstance::generate_include_header);
-
+    type_instance.def("full_includes", &TypeInstance::full_includes);
 
     py::class_<TypeFactory, ShPtr<TypeFactory>> type_factory(mm, "TypeFactory", cg_entity);
     type_factory.def("name", &TypeFactory::name);
     type_factory.def("factory_id", &TypeFactory::factory_id);
+    type_factory.def("type", &TypeFactory::type);
 
     py::class_<FileGenerator, ShPtr<FileGenerator>> file_generator(mm, "FileGenerator", cg_entity);
     file_generator.def("add_snippet", &FileGenerator::add_snippet);

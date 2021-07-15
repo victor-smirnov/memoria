@@ -100,6 +100,7 @@ public:
     {
         std::vector<U8String> files;
         U8String file_path = U8String("SOURCE:") + target_file_;
+        files.push_back(file_path);
         return files;
     }
 

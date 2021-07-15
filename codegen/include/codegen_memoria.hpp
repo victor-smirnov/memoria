@@ -39,6 +39,9 @@ class [[clang::annotate(R"(
                 "containers": @TypeInstance = {
                     "path": "src/containers/generated",
                     "init": @FileGenerator = {
+                        "includes": [
+                            "memoria/codegen/codegen_ctrinit.hpp"
+                        ],
                         "filename": "src/containers/generated/ctr_init.cpp",
                         "handler": "codegen.ctr_init.CtrInitGenerator"
                     }
@@ -53,14 +56,32 @@ class [[clang::annotate(R"(
                 "containers": @TypeInstance = {
                     "path": "src/stores/generated",
                     "init": @FileGenerator = {
+                        "includes": [
+                            "memoria/codegen/codegen_ctrinit.hpp"
+                        ],
                         "filename": "src/stores/generated/ctr_init.cpp",
                         "handler": "codegen.ctr_init.CtrInitGenerator"
                     }
                 }
             }
         },
-        "profiles": ["CowProfile<>", "NoCowProfile<>", "CowLiteProfile<>"],
-        "script": "codegen/python/codegen.py"
+        "profiles": {
+            "CowProfile<>": {
+                "includes": [
+                    "memoria/profiles/impl/cow_profile.hpp"
+                ]
+            },
+            "NoCowProfile<>": {
+                "includes": [
+                    "memoria/profiles/impl/no_cow_profile.hpp"
+                ]
+            },
+            "CowLiteProfile<>": {
+                "includes": [
+                    "memoria/profiles/impl/cow_lite_profile.hpp"
+                ]
+            }
+        }
     }
 )")]] CodegenConfig<> {};
 
@@ -71,7 +92,8 @@ class [[clang::annotate(R"(
     @TypeInstance = {
         "profiles": "ALL",
         "includes": [
-            "memoria/api/set/set_api.hpp"
+            "memoria/api/set/set_api.hpp",
+            "memoria/core/tools/fixed_array.hpp"
         ]
     }
 )")]] TypeInstance<Set<FixedArray<16>>> {};
@@ -91,7 +113,8 @@ class [[clang::annotate(R"(
     @TypeInstance = {
         "profiles": "ALL",
         "includes": [
-            "memoria/api/set/set_api.hpp"
+            "memoria/api/set/set_api.hpp",
+            "memoria/core/tools/uuid.hpp"
         ]
     }
 )")]] TypeInstance<Set<UUID>> {};
@@ -163,7 +186,8 @@ class [[clang::annotate(R"(
     @TypeInstance = {
         "profiles": "ALL",
         "includes": [
-            "memoria/api/map/map_api.hpp"
+            "memoria/api/map/map_api.hpp",
+            "memoria/core/tools/uuid.hpp"
         ]
     }
 )")]] TypeInstance<Map<UUID, UUID>> {};
@@ -173,7 +197,8 @@ class [[clang::annotate(R"(
     @TypeInstance = {
         "profiles": "ALL",
         "includes": [
-            "memoria/api/map/map_api.hpp"
+            "memoria/api/map/map_api.hpp",
+            "memoria/core/tools/uuid.hpp"
         ]
     }
 )")]] TypeInstance<Map<UUID, UBigInt>> {};
@@ -193,7 +218,8 @@ class [[clang::annotate(R"(
     @TypeInstance = {
         "profiles": "ALL",
         "includes": [
-            "memoria/api/multimap/multimap_api.hpp"
+            "memoria/api/multimap/multimap_api.hpp",
+            "memoria/core/tools/uuid.hpp"
         ]
     }
 )")]] TypeInstance<Multimap<UUID, UTinyInt>> {};
@@ -212,7 +238,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "config": "$/groups/stores/containers",
-        "profiles": ["CowProfile<>", "CowLiteProfile<>"],
+        "profiles": ["CowProfile<>", "CowLiteProfile<>", "NoCowProfile<>"],
         "includes": [
             "memoria/api/allocation_map/allocation_map_api.hpp"
         ]

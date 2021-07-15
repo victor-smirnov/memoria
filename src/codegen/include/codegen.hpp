@@ -84,6 +84,8 @@ struct Project {
 
     virtual ShPtr<FileGenerator> generator(const U8String& sdn_path) const = 0;
 
+    virtual std::vector<U8String> profile_includes(const U8String& profile) const = 0;
+
     static std::shared_ptr<Project> create(U8String config_file_name, U8String project_output_folder, U8String components_output_folder);
 };
 
@@ -107,8 +109,7 @@ struct TypeInstance: CodegenEntity {
 
     virtual ShPtr<FileGenerator> initializer() = 0;
 
-    virtual U8String generate_include_header() const = 0;
-    virtual U8String generate_full_include_header() const = 0;
+    virtual std::vector<U8String> full_includes() const = 0;
 
     static ShPtr<TypeInstance> create(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr);
 };
@@ -126,6 +127,8 @@ struct TypeFactory: CodegenEntity {
     virtual ShPtr<PreCompiledHeader> precompiled_header() const = 0;
 
     virtual U8String generator() const = 0;
+    virtual U8String type() const = 0;
+
 
     virtual const clang::ClassTemplateSpecializationDecl* factory_descr() const = 0;
 
