@@ -16,49 +16,12 @@
 
 #pragma once
 
-#include <memoria/api/common/ctr_api.hpp>
-
-#include <memoria/api/set/set_api.hpp>
-#include <memoria/api/map/map_api.hpp>
-#include <memoria/api/vector/vector_api.hpp>
-#include <memoria/api/multimap/multimap_api.hpp>
-#include <memoria/api/allocation_map/allocation_map_api.hpp>
-
-#include <memoria/core/tools/fixed_array.hpp>
-#include <memoria/core/strings/string.hpp>
-#include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/types.hpp>
 
 namespace memoria {
 
 void InitCtrDatatypes();
 void InitMemoriaCtrsExplicit();
-
-
-
-template <typename ProfileT>
-struct StaticLibraryCtrs {
-    static void init()
-    {
-        InitCtrMetadata<Set<FixedArray<16>>, ProfileT>();
-        InitCtrMetadata<Set<Varchar>, ProfileT>();
-        InitCtrMetadata<Set<UUID>, ProfileT>();
-        InitCtrMetadata<Vector<Varchar>, ProfileT>();
-        InitCtrMetadata<Vector<UTinyInt>, ProfileT>();
-        InitCtrMetadata<Map<Varchar, Varchar>, ProfileT>();
-
-        InitCtrMetadata<Vector<LinkedData>, ProfileT>();
-        InitCtrMetadata<Map<BigInt, Varchar>, ProfileT>();
-        InitCtrMetadata<Map<BigInt, BigInt>, ProfileT>();
-        InitCtrMetadata<Map<UUID, UUID>, ProfileT>();
-        InitCtrMetadata<Map<UUID, UBigInt>, ProfileT>();
-
-        InitCtrMetadata<Multimap<BigInt, UTinyInt>, ProfileT>();
-        InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();
-
-        InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
-
-        InitCtrMetadata<AllocationMap, ProfileT>();
-    }
-};
+void init_core_containers();
 
 }

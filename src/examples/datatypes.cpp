@@ -23,6 +23,7 @@
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/random.hpp>
 
 #include <memoria/memoria.hpp>
 

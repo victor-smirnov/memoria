@@ -31,35 +31,31 @@ add_subdirectory(filesystem_classic)
 
 get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
 
-#if (BUILD_CODEGENERATOR_EXPLICITLY)
+if (BUILD_CODEGENERATOR_EXPLICITLY)
     add_subdirectory(codegen)
-#else()
-#    STRING( REPLACE ";" "^^" GLOBAL_CORE_SRCS_STR "${GLOBAL_CORE_SRCS}" )
+else()
+    STRING( REPLACE ";" "^^" GLOBAL_CORE_SRCS_STR "${GLOBAL_CORE_SRCS}" )
 
-#    execute_process(COMMAND ${CMAKE_COMMAND}
-#        -Wno-dev
-#        -DBUILD_POSIX=${BUILD_POSIX}
-#        -DMEMORIA_CORE_SRCS_STR=${GLOBAL_CORE_SRCS_STR}
-#        -DCMAKE_BUILD_TYPE=Release
-#        -DCMAKE_TOOLCHAIN_FILE:INTERNAL=${CMAKE_TOOLCHAIN_FILE}
-#        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-#        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-#        -S ${CMAKE_SOURCE_DIR}/src/codegen
-#        -B ${CMAKE_BINARY_DIR}/src/codegen
-#        -G ${CMAKE_GENERATOR}
+    execute_process(COMMAND ${CMAKE_COMMAND}
+        -Wno-dev
+        -DBUILD_POSIX=${BUILD_POSIX}
+        -DMEMORIA_CORE_SRCS_STR=${GLOBAL_CORE_SRCS_STR}
+        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_TOOLCHAIN_FILE:INTERNAL=${CMAKE_TOOLCHAIN_FILE}
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+        -S ${CMAKE_SOURCE_DIR}/src/codegen
+        -B ${CMAKE_BINARY_DIR}/src/codegen
+        -G ${CMAKE_GENERATOR}
 
-#        COMMAND_ERROR_IS_FATAL ANY
-#    )
+        COMMAND_ERROR_IS_FATAL ANY
+    )
 
-#    execute_process(
-#        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/src/codegen
-#        COMMAND_ERROR_IS_FATAL ANY
-#    )
-#endif()
-
-#file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/src/containers/generated)
-#file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/src/stores/generated)
-#file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/src/codegen/generated)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/src/codegen
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+endif()
 
 include_directories(containers/generated)
 
@@ -82,29 +78,53 @@ execute_process(
     COMMAND_ERROR_IS_FATAL ANY
 )
 
-SET (GENERATED_CTR_SOURCES )
-SET (GENERATED_BYPRODUCTS )
+SET (GENERATED_MAIN_SOURCES)
+SET (GENERATED_STORE_SOURCES)
+
+SET (GENERATED_MAIN_BYPRODUCTS)
+SET (GENERATED_STORE_BYPRODUCTS)
+SET (GENERATED_OTHER_BYPRODUCTS)
 
 foreach(FNAME ${GENERATED_SOURCES})
     if (FNAME MATCHES "^BYPRODUCT:")
         string(SUBSTRING ${FNAME} 10 -1 FNAME_OUT)
-        list(APPEND GENERATED_BYPRODUCTS ${FNAME_OUT})
+        if (FNAME_OUT MATCHES "src/containers")
+            list(APPEND GENERATED_MAIN_BYPRODUCTS ${FNAME_OUT})
+        elseif (FNAME_OUT MATCHES "src/stores")
+            list(APPEND GENERATED_STORE_BYPRODUCTS ${FNAME_OUT})
+        else()
+            list(APPEND GENERATED_OTHER_BYPRODUCTS ${FNAME_OUT})
+        endif()
     endif()
 
     if (FNAME MATCHES "^SOURCE:")
         string(SUBSTRING ${FNAME} 7 -1 FNAME_OUT)
         list(APPEND GENERATED_CTR_SOURCES ${FNAME_OUT})
+
+        if (FNAME_OUT MATCHES "src/containers")
+            list(APPEND GENERATED_MAIN_SOURCES ${FNAME_OUT})
+        elseif (FNAME_OUT MATCHES "src/stores")
+            list(APPEND GENERATED_STORE_SOURCES ${FNAME_OUT})
+        else()
+            #message(FATAL_ERROR "Unknown destination for generated source: ${FNAME_OUT}")
+        endif()
+
     endif()
 endforeach()
 
-message ("========================|${GENERATED_CTR_SOURCES}|============================")
-message ("========================|${GENERATED_BYPRODUCTS}|============================")
+# For debugging
+#message ("========================  MAIN SRC: |${GENERATED_MAIN_SOURCES}|============================")
+#message ("======================== STORE SRC: |${GENERATED_STORE_SOURCES}|===========================")
+
+#message ("========================  MAIN BP: |${GENERATED_MAIN_BYPRODUCTS}|============================")
+#message ("======================== STORE BP: |${GENERATED_STORE_BYPRODUCTS}|===========================")
+#message ("======================== OTHER BP: |${GENERATED_OTHER_BYPRODUCTS}|===========================")
 
 add_custom_command(
     IMPLICIT_DEPENDS C++ ../codegen/include/codegen_memoria.hpp
-    OUTPUT ${GENERATED_CTR_SOURCES}
+    OUTPUT ${GENERATED_MAIN_SOURCES} ${GENERATED_STORE_SOURCES}
     DEPENDS ${CODEGEN_DEPS}
-    BYPRODUCTS ${GENERATED_BYPRODUCTS}
+    BYPRODUCTS ${GENERATED_MAIN_BYPRODUCTS} ${GENERATED_STORE_BYPRODUCTS} ${GENERATED_OTHER_BYPRODUCTS}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMAND
         ${CMAKE_BINARY_DIR}/src/codegen/MemoriaCodeGen
@@ -145,8 +165,8 @@ if (BUILD_REACTOR_MEMORIA_LIB)
     get_property(GLOBAL_SRORES_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_STORES_SOURCES_REACTOR)
 
     add_library(MemoriaInitReactor STATIC ${GLOBAL_INIT_SRCS_REACTOR})
-    add_library(MemoriaCtrsReactor STATIC ${GLOBAL_CONTAINERS_SRCS_REACTOR} ${GENERATED_CTR_SOURCES})
-    add_library(MemoriaStoresReactor STATIC ${GLOBAL_SRORES_SRCS_REACTOR})
+    add_library(MemoriaCtrsReactor STATIC ${GLOBAL_CONTAINERS_SRCS_REACTOR} ${GENERATED_MAIN_SOURCES})
+    add_library(MemoriaStoresReactor STATIC ${GLOBAL_SRORES_SRCS_REACTOR} ${GENERATED_STORE_SOURCES})
 
     target_include_directories(MemoriaStoresReactor PRIVATE "stores/lmdb")
 
@@ -179,8 +199,8 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
     get_property(GLOBAL_SRORES_SRCS GLOBAL PROPERTY GLOBAL_STORES_SOURCES)
 
     add_library(MemoriaInit STATIC ${GLOBAL_INIT_SRCS})
-    add_library(MemoriaCtrs STATIC ${GLOBAL_CONTAINERS_SRCS} ${GENERATED_CTR_SOURCES})
-    add_library(MemoriaStores STATIC ${GLOBAL_SRORES_SRCS})
+    add_library(MemoriaCtrs STATIC ${GLOBAL_CONTAINERS_SRCS} ${GENERATED_MAIN_SOURCES})
+    add_library(MemoriaStores STATIC ${GLOBAL_SRORES_SRCS} ${GENERATED_STORE_SOURCES})
 
     target_include_directories(MemoriaStores PRIVATE "stores/lmdb")
 

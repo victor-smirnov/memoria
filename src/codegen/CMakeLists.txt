@@ -4,24 +4,15 @@ add_definitions("-Wno-ambiguous-reversed-operator")
 if (BUILD_CODEGENERATOR_EXPLICITLY)
     find_package(Clang CONFIG REQUIRED)
 
-    #message("==========================|${MEMORIA_CXX_STANDARD}|===========================")
-
-    #message("####=====================|${CLANG_INSTALL_PREFIX}|===========================")
-
     file(GLOB CTRGEN_SRCS *.cpp)
     add_executable(MemoriaCodeGen ${CTRGEN_SRCS} ${GLOBAL_CORE_SRCS})
     set_property(TARGET MemoriaCodeGen PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
-
-
-
-    target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options )
-    target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options pybind11::embed)
-
 
     target_include_directories(MemoriaCodeGen PRIVATE ../codegen/include)
     target_include_directories(MemoriaCodeGen PRIVATE include)
     target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
+    target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options pybind11::embed)
     target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling)
 else()
 

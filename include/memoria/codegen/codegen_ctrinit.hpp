@@ -20,15 +20,4 @@
 #include <memoria/core/datatypes/datum.hpp>
 
 #include <memoria/core/datatypes/default_datatype_ops.hpp>
-
-#include <memoria/core/tools/fixed_array.hpp>
 #include <memoria/core/container/cow.hpp>
-
-#include <memoria/api/set/set_api.hpp>
-#include <memoria/api/vector/vector_api.hpp>
-#include <memoria/api/map/map_api.hpp>
-#include <memoria/api/multimap/multimap_api.hpp>
-#include <memoria/api/allocation_map/allocation_map_api.hpp>
-
-#include <memoria/profiles/impl/cow_lite_profile.hpp>
-#include <memoria/profiles/impl/cow_profile.hpp>

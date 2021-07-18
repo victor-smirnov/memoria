@@ -75,6 +75,10 @@ public:
 
     }
 
+    U8String config_string(const U8String& sdn_path) const override {
+        return get_value(config_.value(), sdn_path).as_varchar().view();
+    }
+
     ShPtr<FileGenerator> initializer() override
     {
         U8String sdn_path = config_sdn_path_ + "/init";

@@ -25,6 +25,8 @@
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/tools/uuid.hpp>
 
+#include <memoria/store/swmr/common/swmr_store_datatypes.hpp>
+
 namespace memoria {
 
 template<>
@@ -33,7 +35,7 @@ class [[clang::annotate(R"(
         "groups": {
             "default": {
                 "datatypes": @FileGenerator = {
-                    "filename": "src/contianers/generated/ctr_datatypes.cpp",
+                    "filename": "src/containers/generated/ctr_datatypes.cpp",
                     "handler": "codegen.datatype_init.DatatypeInitGenerator"
                 },
                 "containers": @TypeInstance = {
@@ -43,7 +45,8 @@ class [[clang::annotate(R"(
                             "memoria/codegen/codegen_ctrinit.hpp"
                         ],
                         "filename": "src/containers/generated/ctr_init.cpp",
-                        "handler": "codegen.ctr_init.CtrInitGenerator"
+                        "handler": "codegen.ctr_init.CtrInitGenerator",
+                        "function": "init_core_containers"
                     }
                 }
             },
@@ -60,7 +63,8 @@ class [[clang::annotate(R"(
                             "memoria/codegen/codegen_ctrinit.hpp"
                         ],
                         "filename": "src/stores/generated/ctr_init.cpp",
-                        "handler": "codegen.ctr_init.CtrInitGenerator"
+                        "handler": "codegen.ctr_init.CtrInitGenerator",
+                        "function": "init_store_containers"
                     }
                 }
             }
@@ -238,11 +242,50 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "config": "$/groups/stores/containers",
-        "profiles": ["CowProfile<>", "CowLiteProfile<>", "NoCowProfile<>"],
+        "profiles": ["CowProfile<>", "CowLiteProfile<>"],
         "includes": [
             "memoria/api/allocation_map/allocation_map_api.hpp"
         ]
     }
 )")]] TypeInstance<AllocationMap> {};
+
+
+template<>
+class [[clang::annotate(R"(
+    @TypeInstance = {
+        "config": "$/groups/stores/containers",
+        "profiles": ["CowLiteProfile<>"],
+        "includes": [
+            "memoria/api/map/map_api.hpp",
+            "memoria/core/container/cow.hpp"
+        ]
+    }
+)")]] TypeInstance<Map<UUID, CowBlockID<uint64_t>>> {};
+
+
+template<>
+class [[clang::annotate(R"(
+    @TypeInstance = {
+        "config": "$/groups/stores/containers",
+        "profiles": ["CowProfile<>"],
+        "includes": [
+            "memoria/api/map/map_api.hpp",
+            "memoria/core/container/cow.hpp"
+        ]
+    }
+)")]] TypeInstance<Map<UUID, CowBlockID<UUID>>> {};
+
+
+template<>
+class [[clang::annotate(R"(
+    @TypeInstance = {
+        "config": "$/groups/stores/containers",
+        "profiles": ["CowProfile<>", "CowLiteProfile<>"],
+        "includes": [
+            "memoria/api/map/map_api.hpp",
+            "memoria/store/swmr/common/swmr_store_datatypes.hpp"
+        ]
+    }
+)")]] TypeInstance<Map<UUID, CommitMetadataDT<DataTypeFromProfile<ApiProfile<CowProfile<>>>>>> {};
 
 }

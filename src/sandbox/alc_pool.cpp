@@ -40,7 +40,7 @@ int main(void) {
         "groups": {
             "default": {
                 "datatypes": @FileGenerator = {
-                    "filename": "src/contianers/generated/ctr_datatypes.cpp",
+                    "filename": "src/containers/generated/ctr_datatypes.cpp",
                     "handler": "codegen.datatypes.DatatypesInitSink"
                 },
                 "containers": @TypeInstance = {

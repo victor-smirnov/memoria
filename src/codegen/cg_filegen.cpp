@@ -75,8 +75,16 @@ public:
         return format_u8("FileGenerator for: {}", config_.to_pretty_string());
     }
 
-    void add_snippet(const U8String& collection, const U8String& text) override
+    void add_snippet(const U8String& collection, const U8String& text, bool distinct) override
     {
+        if (distinct && snippets_.find(collection) != snippets_.end()){
+            for (const auto& str: snippets_[collection]){
+                if (str == text) {
+                    return;
+                }
+            }
+        }
+
         snippets_[collection].push_back(text);
     }
 
@@ -153,6 +161,10 @@ public:
         else {
             return std::vector<U8String>{};
         }
+    }
+
+    U8String config_string(const U8String& sdn_path) const override {
+        return get_value(config_.value(), sdn_path).as_varchar().view();
     }
 
     ShPtr<FileGenerator> self() {

@@ -17,8 +17,9 @@
 
 namespace memoria {
 
-void InitMemoriaStoresExplicit() {
-    InitCoreApiSWMRDatatypes();
+void InitMemoriaStoresExplicit() 
+{
+    init_store_containers();
 
     InitNoCowInMemStore();
     InitCoWInMemStore();

@@ -59,6 +59,8 @@ struct CodegenEntity {
     virtual std::vector<U8String> generated_files() = 0;
     virtual void generate_artifacts() = 0;
     virtual void configure() = 0;
+
+    virtual U8String config_string(const U8String& sdn_path) const = 0;
 };
 
 
@@ -72,6 +74,7 @@ struct Project {
     virtual LDDMapView config_map() const = 0;
     virtual U8String project_output_folder() const = 0;
     virtual U8String components_output_folder() const = 0;
+    virtual U8String config_string(const U8String& sdn_path) const = 0;
 
     virtual std::vector<ShPtr<TypeInstance>> type_instances() const = 0;
     virtual std::vector<ShPtr<TypeFactory>> type_factories() const = 0;
@@ -140,7 +143,7 @@ struct TypeFactory: CodegenEntity {
 struct FileGenerator: CodegenEntity {
     virtual ~FileGenerator() noexcept = default;
 
-    virtual void add_snippet(const U8String& collection, const U8String& text) = 0;
+    virtual void add_snippet(const U8String& collection, const U8String& text, bool distinct = false) = 0;
     virtual std::vector<U8String> snippets(const U8String& collection) const = 0;
 
     virtual U8String target_file() const = 0;

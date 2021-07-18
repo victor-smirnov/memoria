@@ -20,8 +20,6 @@
 
 namespace memoria {
 
-void InitCoreApiSWMRDatatypes();
-
 void InitNoCowInMemStore();
 void InitCoWInMemStore();
 void InitSWMRStore();
@@ -29,7 +27,8 @@ void InitLiteSWMRStore();
 void InitLiteRawSWMRStore();
 void InitLMDBStore();
 
-
 void InitMemoriaStoresExplicit();
+
+void init_store_containers();
 
 }

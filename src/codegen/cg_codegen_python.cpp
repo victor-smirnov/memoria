@@ -56,6 +56,7 @@ void create_codegen_module(py::module mm)
     cg_entity.def("project", &CodegenEntity::project);
     cg_entity.def("includes", &CodegenEntity::includes);
     cg_entity.def("generated_files", &CodegenEntity::generated_files);
+    cg_entity.def("config_string", &CodegenEntity::config_string);
 
     py::class_<Project, ShPtr<Project>> project(mm, "Project");
     project.def("config_unit", &Project::config_unit);
@@ -63,6 +64,8 @@ void create_codegen_module(py::module mm)
     project.def("project_output_folder", &Project::project_output_folder);
     project.def("components_output_folder", &Project::components_output_folder);
     project.def("profile_includes", &Project::profile_includes);
+    project.def("generator", &Project::generator);
+    project.def("config_string", &Project::config_string);
 
     py::class_<TypeInstance, ShPtr<TypeInstance>> type_instance(mm, "TypeInstance", cg_entity);
     type_instance.def("type_factory", &TypeInstance::type_factory);
@@ -80,7 +83,7 @@ void create_codegen_module(py::module mm)
     type_factory.def("type", &TypeFactory::type);
 
     py::class_<FileGenerator, ShPtr<FileGenerator>> file_generator(mm, "FileGenerator", cg_entity);
-    file_generator.def("add_snippet", &FileGenerator::add_snippet);
+    file_generator.def("add_snippet", &FileGenerator::add_snippet, py::arg("collection"), py::arg("text"), py::arg("distinct") = false);
     file_generator.def("snippets", &FileGenerator::snippets);
     file_generator.def("describe", &FileGenerator::describe);
     file_generator.def("target_file", &FileGenerator::target_file);
