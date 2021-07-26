@@ -180,7 +180,7 @@ public:
         });
     }
 
-    void commit(bool flush = true)
+    void commit(ConsistencyPoint)
     {
         return reactor::engine().run_at_v(cpu_, [&]
     	{

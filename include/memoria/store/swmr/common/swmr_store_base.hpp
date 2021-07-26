@@ -117,7 +117,11 @@ public:
     virtual void check_if_open() = 0;
 
     virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr) = 0;
-    virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) = 0;
+    virtual SWMRWritableCommitPtr do_create_writable(
+            CommitDescriptorT* consistency_point,
+            CommitDescriptorT* head,
+            CommitDescriptorT* commit_descr
+    ) = 0;
 
     virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) = 0;
 
@@ -292,46 +296,55 @@ public:
         return history_tree_.branch_names();
     }
 
-    virtual bool can_rollback_last_commit() noexcept override {
+    virtual bool can_rollback_last_consistency_point() noexcept override {
         LockGuard lock(reader_mutex_);
-        return (!read_only_) && history_tree_.can_rollback_last_commit();
+        return (!read_only_) && history_tree_.can_rollback_last_consistency_point();
     }
 
-    virtual void rollback_last_commit() override
+    virtual int64_t count_volatile_commits() override {
+        LockGuard lock(reader_mutex_);
+        return history_tree_.count_volatile_commits();
+    }
+
+    virtual void rollback_last_consistency_point() override
     {
         throw_if_read_only();
         LockGuard wlock(writer_mutex_);
 
         check_if_open();
 
-        auto head_ptr_opt = get_last_commit_for_rollback_sync();
-        if (head_ptr_opt)
+        auto rollback_span = get_last_commit_for_rollback_sync();
+        if (rollback_span.size())
         {
-            CommitDescriptorT* head_ptr = head_ptr_opt.get();
+            for (CommitDescriptorT* descr: rollback_span)
+            {
+                auto ptr = do_open_writable(descr, [&](const BlockID& block_id, uint64_t, uint64_t){
+                    // no need to do anything here
+                });
 
-            // decrementing block counters
-            auto ptr = do_open_writable(head_ptr, [&](const BlockID& block_id, uint64_t, uint64_t){
-                // no need to do anything here
-            });
+                // Decrementing counters
+                ptr->remove_all_blocks();
+            }
 
-            // Decrementing counters
-            ptr->remove_all_blocks();
-
-            auto head_sb = get_superblock(head_ptr->superblock_ptr());
+            auto head_sb = get_superblock(history_tree_.consistency_point1()->superblock_ptr());
 
             head_sb->mark_for_rollback();
             head_sb->build_superblock_description();
 
-            auto sb_slot = head_sb->sequence_id() % 2;
+            auto sb_slot = head_sb->consistency_point_sequence_id() % 2;
             store_superblock(head_sb.get(), sb_slot);
 
             flush_header();
 
-            history_tree_.do_rollback_last_commit();
+            history_tree_.do_remove_rollback_span(rollback_span);
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Can't rollback the last commit").do_throw();
         }
+    }
+
+    virtual void rollback_volatile_commits() override {
+
     }
 
     virtual WritableCommitPtr begin() override {
@@ -356,7 +369,12 @@ public:
             {
                 std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(branch_name);
 
-                SWMRWritableCommitPtr ptr = do_create_writable(descr.get(), commit_descriptor.get());
+                SWMRWritableCommitPtr ptr = do_create_writable(
+                            history_tree_.consistency_point1(),
+                            descr.get(),
+                            commit_descriptor.get()
+                );
+
                 ptr->finish_commit_opening();
 
                 current_writer_ = ptr;
@@ -392,7 +410,11 @@ public:
                 {
                     std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(branch_name);
 
-                    SWMRWritableCommitPtr ptr = do_create_writable(descr.get(), commit_descriptor.get());
+                    SWMRWritableCommitPtr ptr = do_create_writable(
+                                history_tree_.consistency_point1(),
+                                descr.get(),
+                                commit_descriptor.get()
+                    );
                     ptr->finish_commit_opening();
 
                     current_writer_ = ptr;
@@ -430,7 +452,7 @@ public:
                 auto descr = history_tree_.get_branch_head(branch_name);
                 if (descr)
                 {
-                    U8String last_branch = history_tree_.last_commit()->branch();
+                    U8String last_branch = history_tree_.consistency_point1()->branch();
                     U8String new_branch = history_tree_.mark_branch_not_persistent(descr.get(), branch_name);
                     bool do_cleanup_data = history_tree_.branches_size() == 1;
 
@@ -451,7 +473,11 @@ public:
                 std::unique_ptr<CommitDescriptorT> commit_descriptor = std::move(std::get<1>(result));
                 bool do_cleanup_data = std::get<2>(result);
 
-                SWMRWritableCommitPtr ptr = do_create_writable(descr, commit_descriptor.get());
+                SWMRWritableCommitPtr ptr = do_create_writable(
+                            history_tree_.consistency_point1(),
+                            descr,
+                            commit_descriptor.get()
+                );
                 commit_descriptor.release();
                 ptr->finish_commit_opening();
 
@@ -462,7 +488,7 @@ public:
                 }
 
                 // This will remove all non-persistent commits from the history.
-                ptr->commit();
+                ptr->commit(ConsistencyPoint::AUTO);
                 return ptr->commit_id();
             }
             else {
@@ -490,16 +516,20 @@ public:
 
             if (history_tree_.mark_commit_not_persistent(commit_id))
             {
-                U8String last_branch = history_tree_.last_commit()->branch();
+                U8String last_branch = history_tree_.consistency_point1()->branch();
 
                 std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(last_branch);
 
-                SWMRWritableCommitPtr ptr = do_create_writable(history_tree_.last_commit(), commit_descriptor.get());
+                SWMRWritableCommitPtr ptr = do_create_writable(
+                            history_tree_.consistency_point1(),
+                            history_tree_.consistency_point1(),
+                            commit_descriptor.get()
+                );
                 ptr->finish_commit_opening();
                 commit_descriptor.release();
 
                 // This will remove all non-persistent commits from the history.
-                ptr->commit();
+                ptr->commit(ConsistencyPoint::AUTO);
 
                 return ptr->commit_id();
             }
@@ -514,12 +544,31 @@ public:
     }
 
 
-    virtual void finish_commit(CommitDescriptorT* commit_descriptor)
+    virtual void finish_commit(CommitDescriptorT* commit_descriptor, ConsistencyPoint cp, SharedSBPtr<SuperblockT> sb)
     {
+        bool consistency_point = cp != ConsistencyPoint::NO;
+
+        if (consistency_point) // AUTO is YES for now
+        {
+            sb->inc_consistency_point_sequence_id();
+
+            sb->build_superblock_description();
+
+            flush_data();
+
+            auto sb_slot = sb->consistency_point_sequence_id() % 2;
+            store_superblock(sb.get(), sb_slot);
+
+            flush_header();
+        }
+        else {
+            sb->build_superblock_description();
+        }
+
         {
             LockGuard lock(reader_mutex_);
             cleanup_eviction_queue();
-            history_tree_.attach_commit(commit_descriptor);
+            history_tree_.attach_commit(commit_descriptor, consistency_point);
         }
 
         current_writer_.reset();
@@ -532,7 +581,7 @@ public:
         check_if_open();
 
         LockGuard lock(reader_mutex_);
-        auto head = do_open_readonly(history_tree_.last_commit());
+        auto head = do_open_readonly(history_tree_.consistency_point1());
 
         auto view = MakeShared<SWMRStoreHistoryViewImpl<Profile>>();
 
@@ -820,10 +869,10 @@ protected:
 
     virtual void prepare_to_close()
     {
-        CommitDescriptorT* head_ptr = history_tree_.last_commit();
+        CommitDescriptorT* head_ptr = history_tree_.consistency_point1();
         if (head_ptr && !read_only_)
         {
-            auto sb_slot = head_ptr->sequence_id() % 2;
+            auto sb_slot = head_ptr->consistency_point_sequence_id() % 2;
             SharedSBPtr<SuperblockT> sb0 = get_superblock(sb_slot);
 
             this->store_counters(sb0.get());
@@ -879,40 +928,40 @@ protected:
             return init_store();
         }
 
-        std::unique_ptr<CommitDescriptorT> head_ptr;
-        std::unique_ptr<CommitDescriptorT> former_head_ptr;
+        std::unique_ptr<CommitDescriptorT> consistency_point1_ptr;
+        std::unique_ptr<CommitDescriptorT> consistency_point2_ptr;
 
-        if (sb0->sequence_id() > sb1->sequence_id())
+        if (sb0->consistency_point_sequence_id() > sb1->consistency_point_sequence_id())
         {
-            head_ptr = std::make_unique<CommitDescriptorT>(
+            consistency_point1_ptr = std::make_unique<CommitDescriptorT>(
                         sb0->superblock_file_pos(),
                         get_superblock(sb0->superblock_file_pos()).get()
             );
 
             if (sb1->commit_id().is_set())
             {
-                former_head_ptr = std::make_unique<CommitDescriptorT>(
+                consistency_point2_ptr = std::make_unique<CommitDescriptorT>(
                             sb1->superblock_file_pos(),
                             get_superblock(sb1->superblock_file_pos()).get()
                 );
             }
         }
         else {
-            head_ptr = std::make_unique<CommitDescriptorT>(
+            consistency_point1_ptr = std::make_unique<CommitDescriptorT>(
                         sb1->superblock_file_pos(),
                         get_superblock(sb1->superblock_file_pos()).get()
             );
 
             if (sb0->commit_id().is_set())
             {
-                former_head_ptr = std::make_unique<CommitDescriptorT>(
+                consistency_point2_ptr = std::make_unique<CommitDescriptorT>(
                             sb0->superblock_file_pos(),
                             get_superblock(sb0->superblock_file_pos()).get()
                 );
             }
         }
 
-        auto head_sb = get_superblock(head_ptr->superblock_ptr());
+        auto cp1_sb = get_superblock(consistency_point1_ptr->superblock_ptr());
 
 //        if (head_sb->file_size() != buffer_.size()) {
 //            MEMORIA_MAKE_GENERIC_ERROR(
@@ -925,7 +974,7 @@ protected:
         // Read snapshot history and
         // preload all transient snapshots into the
         // eviction queue
-        auto ptr = do_open_readonly(head_ptr.get());
+        auto ptr = do_open_readonly(consistency_point1_ptr.get());
 
         using MetaT = std::pair<CommitID, CommitMetadata<ApiProfile<Profile>>>;
         std::vector<MetaT> metas;
@@ -934,11 +983,11 @@ protected:
             metas.push_back(MetaT(commit_id, commit_meta));
         });
 
-        history_tree_.load(metas, head_ptr->commit_id(), former_head_ptr ? former_head_ptr->commit_id() : CommitID{});
+        history_tree_.load(metas, consistency_point1_ptr.get(), consistency_point2_ptr.get());
 
         if (!read_only_)
         {
-            if (head_sb->is_clean()) {
+            if (cp1_sb->is_clean()) {
                 read_block_counters();
             }
             else {
@@ -950,7 +999,7 @@ protected:
 
     void read_block_counters()
     {
-        CommitDescriptorT* head_ptr = history_tree_.last_commit();
+        CommitDescriptorT* head_ptr = history_tree_.consistency_point1();
         auto head_sb = get_superblock(head_ptr->superblock_ptr());
 
         auto ctr_file_pos = head_sb->global_block_counters_file_pos();
@@ -1004,18 +1053,10 @@ private:
         return history_tree_.get_branch_head(name);
     }
 
-    Optional<CommitDescriptorT*> get_last_commit_for_rollback_sync() const noexcept
+    std::vector<CommitDescriptorT*> get_last_commit_for_rollback_sync() const noexcept
     {
-        using ResultT = Optional<CommitDescriptorT*>;
-
         LockGuard lock(reader_mutex_);
-        CommitDescriptorT* former_head_ptr = history_tree_.previous_last_commit();
-
-        if (former_head_ptr) {
-            return ResultT{history_tree_.last_commit()};
-        }
-
-        return ResultT{};
+        return history_tree_.get_rollback_span();
     }
 
     template <typename T1, typename T2>

@@ -63,12 +63,15 @@ protected:
     virtual SnpSharedPtr<StoreT> snapshot_ref_opening_allowed() = 0;
 };
 
+enum class ConsistencyPoint {
+    NO, YES, AUTO
+};
 
 template <typename Profile>
 class IROStoreWritableSnapshotCtrOps: public virtual IROStoreSnapshotCtrOps<Profile> {
     using ApIROStoreBaseT = IStoreApiBase<Profile>;
 
-public:
+public:    
     using ROStoreSnapshotPtr = SnpSharedPtr<IROStoreSnapshotCtrOps<Profile>>;
     using CtrID = ApiProfileCtrID<Profile>;
     using CtrReferenceableT = CtrSharedPtr<CtrReferenceable<Profile>>;
@@ -88,7 +91,7 @@ public:
         return this->create(decl);
     }
 
-    virtual void commit(bool flush = true) = 0;
+    virtual void commit(ConsistencyPoint cp = ConsistencyPoint::AUTO) = 0;
     virtual void flush_open_containers() = 0;
 
     virtual bool drop_ctr(const CtrID& name) = 0;

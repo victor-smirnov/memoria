@@ -47,6 +47,7 @@ private:
     uint64_t superblock_ptr_;
     bool persistent_{false};
     SequenceID sequence_id_{};
+    SequenceID consistency_point_sequence_id_{};
     CommitID commit_id_{};
 
     CommitDescriptor* parent_;
@@ -68,7 +69,21 @@ public:
         branch_(branch)
     {
         sequence_id_ = superblock->sequence_id();
+        consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
         commit_id_   = superblock->commit_id();
+    }
+
+    void detach_from_tree() noexcept
+    {
+        if (parent_) {
+            parent_->children_.erase(this);
+        }
+
+        for (CommitDescriptor* chl: children_) {
+            chl->parent_ = nullptr;
+        }
+
+        children_.clear();
     }
 
     const U8String& branch() const noexcept {return branch_;}
@@ -89,6 +104,13 @@ public:
         superblock_ptr_ = ptr;
 
         sequence_id_ = superblock->sequence_id();
+        consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
+        commit_id_   = superblock->commit_id();
+    }
+
+    void refresh_descriptor(Superblock* superblock) noexcept {
+        sequence_id_ = superblock->sequence_id();
+        consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
         commit_id_   = superblock->commit_id();
     }
 
@@ -103,6 +125,11 @@ public:
     const SequenceID& sequence_id() const noexcept {
         return sequence_id_;
     }
+
+    const SequenceID& consistency_point_sequence_id() const noexcept {
+        return sequence_id_;
+    }
+
 
     void ref() noexcept {
         uses_.fetch_add(1);

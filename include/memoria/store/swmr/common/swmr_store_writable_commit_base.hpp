@@ -103,7 +103,7 @@ protected:
     bool committed_;
     bool allocator_initialization_mode_{false};
 
-    ParentCommit parent_commit_;
+    CommitID parent_commit_id_;
 
     bool flushing_awaiting_allocations_{false};
     ArenaBuffer<AllocationMetadataT> awaiting_allocations_;
@@ -209,15 +209,17 @@ public:
 
 
 
-    void init_commit(CommitDescriptorT* parent_commit_descriptor)
+    void init_commit(
+            CommitDescriptorT* consistency_point,
+            CommitDescriptorT* parent_commit_descriptor
+    )
     {
         commit_descriptor_->set_parent(parent_commit_descriptor);
+        parent_commit_id_ = parent_commit_descriptor->commit_id();
 
-        auto parent_commit = store_->do_open_readonly(parent_commit_descriptor);
+        auto consistency_point_snp = store_->do_open_readonly(consistency_point);
+        auto parent_allocation_map_ctr = consistency_point_snp->find(AllocationMapCtrID);
 
-        parent_commit_ = parent_commit;
-
-        auto parent_allocation_map_ctr = parent_commit_->find(AllocationMapCtrID);
         parent_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(parent_allocation_map_ctr);
 
         populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 64);
@@ -398,7 +400,7 @@ public:
     }
 
 
-    virtual void commit(bool flush = true)
+    void commit(ConsistencyPoint cp)
     {
         if (this->is_active())
         {
@@ -424,20 +426,17 @@ public:
                 }
             }
 
-            // FIXME: can history_ctr_ be null here?
-            if (history_ctr_)
-            {
-                CommitMetadata<ApiProfileT> meta;
+            CommitMetadata<ApiProfileT> meta;
 
-                uint64_t sb_file_pos = (sb->superblock_file_pos() / BASIC_BLOCK_SIZE);
-                meta.set_superblock_file_pos(sb_file_pos);
-                meta.set_persistent(is_persistent());
-                if (parent_commit_) {
-                    meta.set_parent_commit_id(parent_commit_->commit_id());
-                }
+            uint64_t sb_file_pos = (sb->superblock_file_pos() / BASIC_BLOCK_SIZE);
+            meta.set_superblock_file_pos(sb_file_pos);
+            meta.set_persistent(is_persistent());
 
-                history_ctr_->assign_key(sb->commit_id(), meta);
+            if (parent_commit_id_) {
+                meta.set_parent_commit_id(parent_commit_id_);
             }
+
+            history_ctr_->assign_key(sb->commit_id(), meta);
 
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
             store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
@@ -490,21 +489,7 @@ public:
                 allocation_map_ctr_->setup_bits(evicting_blocks.span(), false);
             }
 
-            if (flush) {
-                store_->flush_data();
-            }
-
-            sb->build_superblock_description();
-
-            auto sb_slot = sb->sequence_id() % 2;
-
-            store_->store_superblock(sb.get(), sb_slot);
-
-            if (flush) {
-                store_->flush_header();
-            }
-
-            store_->finish_commit(Base::commit_descriptor_);
+            store_->finish_commit(Base::commit_descriptor_, cp, sb);
 
             committed_ = true;
         }
@@ -885,7 +870,7 @@ public:
 
         // MEMORIA_TRY_VOID(finish_commit_opening());
 
-        return commit();
+        return commit(ConsistencyPoint::YES);
     }
 
     virtual void ref_block(const BlockID& block_id)

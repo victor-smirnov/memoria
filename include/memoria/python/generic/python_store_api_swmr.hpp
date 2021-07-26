@@ -134,8 +134,9 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
             .def("branch_from", py::overload_cast<U8StringView, U8StringView>(&Type::branch_from))
             .def("remove_branch", &Type::remove_branch)
             .def("remove_commit", &Type::remove_commit)
-            .def("can_rollback_last_commit", &Type::can_rollback_last_commit)
-            .def("rollback_last_commit", &Type::rollback_last_commit)
+            .def("can_rollback_last_consistency_point", &Type::can_rollback_last_consistency_point)
+            .def("rollback_last_consistency_point", &Type::rollback_last_consistency_point)
+            .def("rollback_volatile_commits", &Type::rollback_volatile_commits)
             ;
 
         m.def("create_swmr_store", &create_swmr_store);

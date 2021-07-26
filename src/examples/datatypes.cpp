@@ -84,7 +84,7 @@ int main()
             tInsert += ti1 - ti0;
 
             long tc0 = getTimeInMillis();
-            txn2->commit(false);
+            txn2->commit(ConsistencyPoint::NO);
             long tc1 = getTimeInMillis();
 
             tCommit += tc1 - tc0;

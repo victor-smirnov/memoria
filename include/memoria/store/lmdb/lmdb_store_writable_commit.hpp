@@ -216,7 +216,7 @@ public:
     }
 
     void finish_store_initialization() {
-        return commit(true);
+        return commit(ConsistencyPoint::YES);
     }
 
     void finish_commit_opening() {
@@ -242,7 +242,7 @@ public:
         return factory->create_instance(self_ptr(), ctr_name, decl);
     }
 
-    virtual void commit(bool) {
+    virtual void commit(ConsistencyPoint) {
         if (!committed_)
         {
             flush_open_containers();

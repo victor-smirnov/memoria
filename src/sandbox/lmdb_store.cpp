@@ -85,7 +85,7 @@ int main(void) {
                     ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str());
                 }
 
-                snp1->commit(false);
+                snp1->commit(ConsistencyPoint::NO);
             }
         }
 

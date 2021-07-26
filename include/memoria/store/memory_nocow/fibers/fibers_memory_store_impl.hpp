@@ -132,7 +132,7 @@ public:
         wrap_construction(maybe_error, [&]{
             cpu_ = reactor::engine().cpu();
             auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this, OperationType::OP_CREATE);
-            snapshot->commit();
+            snapshot->commit(ConsistencyPoint::AUTO);
         });
     }
     

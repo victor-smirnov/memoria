@@ -15,3 +15,4 @@ _generate/
 make_wheel.sh
 __pycache__/
 generated/
+generated-files-list.txt

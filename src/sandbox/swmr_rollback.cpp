@@ -35,7 +35,7 @@ int main(void) {
 
         auto store2 = open_lite_swmr_store(new_file);
 
-        store2->rollback_last_commit();
+        store2->rollback_last_consistency_point();
 
         StoreCheckCallbackFn callback = [](LDDocument& doc){
             println("{}", doc.to_string());

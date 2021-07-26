@@ -118,7 +118,7 @@ public:
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this);
-            snapshot->commit();
+            snapshot->commit(ConsistencyPoint::AUTO);
             return VoidResult::of();
         });
     }

@@ -25,6 +25,7 @@
 #include <pybind11/embed.h>
 
 #include <fstream>
+#include <filesystem>
 
 using namespace memoria;
 using namespace memoria::codegen;
@@ -52,7 +53,8 @@ int main(int argc, char** argv)
         ("project-output", po::value<std::string>(), "Main output folder")
         ("components-output-base", po::value<std::string>(), "Output folder prefix for compoments")
         ("verbose,v", po::value<std::string>(), "Provide additional debug info")
-        ("print-output-file-names", "Only print filenames that will be created during full run (for CMake integration)")        
+        ("print-output-file-names", "Only print filenames that will be created during full run (for CMake integration)")
+        ("reuse-output-file-names", "Reuse previously generated filenames list that will be created during full run (for CMake integration, faster build)")
         ;
 
     po::variables_map map;
@@ -111,22 +113,41 @@ int main(int argc, char** argv)
 
     add_parser_clang_option("-I" + project_output_folder);
 
+    std::string file_name = project_output_folder + "/generated-files-list.txt";
+    bool list_exists = std::filesystem::exists(file_name);
+
     if (map.count("print-output-file-names"))
     {
-        add_parser_clang_option("-Wno-everything");
-
-        auto project = Project::create(config_file, project_output_folder, components_output_base);
-        project->parse_configuration();
-
-        auto names = project->build_file_names();        
-        size_t cnt = 0;
-        for (const auto& name: names) {
-            std::cout << name;
-            if (cnt < names.size() - 1) {
-                std::cout << ";";
-            }
-            cnt++;
+        if (map.count("reuse-output-file-names") && list_exists)
+        {
+            std::string text = load_text_file(file_name);
+            std::cout << text;
         }
+        else {
+            add_parser_clang_option("-Wno-everything");
+
+            auto project = Project::create(config_file, project_output_folder, components_output_base);
+            project->parse_configuration();
+
+            std::stringstream ss;
+
+            auto names = project->build_file_names();
+            size_t cnt = 0;
+            for (const auto& name: names) {
+                std::cout << name;
+                ss << name;
+                if (cnt < names.size() - 1) {
+                    std::cout << ";";
+                    ss << ";";
+                }
+                cnt++;
+            }
+
+            write_text_file(file_name, ss.str());
+        }
+    }
+    else if (map.count("reuse-output-file-names") && list_exists) {
+        std::cout << "Reusing previously generated files" << std::endl;
     }
     else {
         auto project = Project::create(config_file, project_output_folder, components_output_base);

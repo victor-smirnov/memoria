@@ -69,6 +69,8 @@ option(BUILD_TESTS_CONTEXT      "Build Disriptor MPSC queue tests" OFF)
 
 option(BUILD_CODEGENERATOR_EXPLICITLY  "Build code generator explictly (for its development)" OFF)
 
+option(REUSE_GNERATED_SOURCES  "Reuse source files generated on previous runs (faster iteration)" OFF)
+
 option(ICU_DEBUG   "Debug FindICU" OFF)
 option(Boost_DEBUG "Debug FindBoost" OFF)
 

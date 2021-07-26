@@ -39,7 +39,6 @@ template <typename Profile>
 class SWMRSuperblock {
 public:
     static constexpr uint64_t PROFILE_HASH = TypeHash<Profile>::Value;
-    //static constexpr size_t   EMBEDDED_COUNTERS_CAPACITY = 3520 / sizeof(ProfileBlockID<Profile>);
     static constexpr uint64_t VERSION = 1;
 
     // b18ba23f-fb6d-4c70-a2c5-f759a3c38b5a
@@ -61,6 +60,7 @@ private:
 
     char magic_buffer_[512];
     SequenceID sequence_id_;
+    SequenceID consistency_point_sequence_id_;
     CommitID commit_id_;
     uint64_t file_size_;
     uint64_t superblock_file_pos_;
@@ -110,8 +110,17 @@ public:
     const SequenceID& sequence_id() const noexcept {return sequence_id_;}
     SequenceID& sequence_id() noexcept {return sequence_id_;}
 
-    void mark_for_rollback() noexcept {
-        sequence_id_ -= 2;
+    SequenceID consistency_point_sequence_id() const noexcept {
+        return consistency_point_sequence_id_;
+    }
+
+    void inc_consistency_point_sequence_id() noexcept {
+        consistency_point_sequence_id_++;
+    }
+
+    void mark_for_rollback() noexcept
+    {
+        consistency_point_sequence_id_ -= 2;
         commit_id_ = CommitID{};
     }
 
@@ -154,7 +163,14 @@ public:
         return version_ == VERSION;
     }
 
-    void init(uint64_t superblock_file_pos, uint64_t file_size, const CommitID& commit_id, size_t superblock_size, SequenceID sequence_id = 1)
+    void init(
+            uint64_t superblock_file_pos,
+            uint64_t file_size,
+            const CommitID& commit_id,
+            size_t superblock_size,
+            SequenceID sequence_id = 1,
+            SequenceID cp_sequence_id = 1
+    )
     {
         magick1_ = MAGICK1;
         magick2_ = MAGICK2;
@@ -164,6 +180,7 @@ public:
         std::memset(magic_buffer_, 0, sizeof(magic_buffer_));
 
         sequence_id_ = sequence_id;
+        consistency_point_sequence_id_ = cp_sequence_id;
         commit_id_   = commit_id;
 
         superblock_file_pos_ = superblock_file_pos;
@@ -194,6 +211,7 @@ public:
         blockmap_root_id_  = other.blockmap_root_id_;
 
         sequence_id_ = other.sequence_id_ + 1;
+        consistency_point_sequence_id_ = other.consistency_point_sequence_id_;
         commit_id_   = commit_id;
 
         superblock_file_pos_ = superblock_file_pos;

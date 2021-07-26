@@ -59,7 +59,8 @@ int main(void) {
                 auto snp1 = store1->begin();
                 auto ctr1 = find<CtrType>(snp1, ctr_id);
 
-                if (b0 % 100 == 0) {
+                //if (b0 % 100 == 0)
+                {
                     std::cout << "Batch " << (b0) << " :: " << cnt << " :: " << (batch_size * batches) << std::endl;
                 }
 
@@ -69,9 +70,8 @@ int main(void) {
                     ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str());
                 }
 
-//                snp1->set_persistent(true);
-
-                snp1->commit(false);
+                snp1->set_persistent(true);
+                snp1->commit(ConsistencyPoint::NO);
             }
         }
 

@@ -158,7 +158,7 @@ public:
         return SnapshotMetadata<ApiProfileT>(parent_id, history_node_->snapshot_id(), children, history_node_->metadata(), history_node_->status());
     }
 
-    void commit(bool flush = true)
+    void commit(ConsistencyPoint)
     {
     	LockGuardT lock_guard(history_node_->snapshot_mutex());
 

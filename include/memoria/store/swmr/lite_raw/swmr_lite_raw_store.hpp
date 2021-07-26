@@ -128,7 +128,11 @@ public:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_create_writable(CommitDescriptorT* head, CommitDescriptorT* commit_descr) override
+    virtual SWMRWritableCommitPtr do_create_writable(
+            CommitDescriptorT* consistency_point,
+            CommitDescriptorT* head,
+            CommitDescriptorT* commit_descr
+    ) override
     {
         MaybeError maybe_error{};
         auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
@@ -136,7 +140,7 @@ public:
         );
 
         if (!maybe_error) {
-            ptr->init_commit(head);
+            ptr->init_commit(consistency_point, head);
             return std::move(ptr);
         }
         else {

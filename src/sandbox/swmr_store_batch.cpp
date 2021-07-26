@@ -62,7 +62,7 @@ int main(void) {
                 println("{}", U8String(key));
             });
 
-            snp1->commit(false);
+            snp1->commit(ConsistencyPoint::NO);
         }
 
         store1->check(callback);

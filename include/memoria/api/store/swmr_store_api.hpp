@@ -148,8 +148,10 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
     virtual Optional<CommitID> remove_branch(U8StringView branch_name)  = 0;
     virtual Optional<CommitID> remove_commit(const CommitID& commit_id) = 0;
 
-    virtual bool can_rollback_last_commit() noexcept = 0;
-    virtual void rollback_last_commit() = 0;
+    virtual bool can_rollback_last_consistency_point() noexcept = 0;
+    virtual void rollback_last_consistency_point() = 0;
+    virtual void rollback_volatile_commits() = 0;
+    virtual int64_t count_volatile_commits() = 0;
 
     virtual Optional<SequenceID> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) = 0;
     virtual Optional<SequenceID> check(StoreCheckCallbackFn callback) {

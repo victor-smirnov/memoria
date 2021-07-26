@@ -120,6 +120,10 @@ endforeach()
 #message ("======================== STORE BP: |${GENERATED_STORE_BYPRODUCTS}|===========================")
 #message ("======================== OTHER BP: |${GENERATED_OTHER_BYPRODUCTS}|===========================")
 
+if (REUSE_GNERATED_SOURCES)
+    SET(REUSE_GNERATED_SOURCES_OPT "--reuse-output-file-names")
+endif()
+
 add_custom_command(
     IMPLICIT_DEPENDS C++ ../codegen/include/codegen_memoria.hpp
     OUTPUT ${GENERATED_MAIN_SOURCES} ${GENERATED_STORE_SOURCES}
@@ -136,6 +140,7 @@ add_custom_command(
         --config codegen_memoria.hpp
         --project-output ${CMAKE_BINARY_DIR}/generated
         --components-output-base ${CMAKE_BINARY_DIR}
+        ${REUSE_GNERATED_SOURCES_OPT}
 
     COMMAND_ERROR_IS_FATAL ANY
 )
