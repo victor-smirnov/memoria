@@ -158,6 +158,12 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
             ArenaBuffer<ALCMeta>& buffer
     ) = 0;
 
+    virtual CtrSizeT allocate(
+            int32_t level,
+            CtrSizeT required,
+            ArenaBuffer<ALCMeta>& buffer
+    ) = 0;
+
     virtual void scan(const std::function<bool (Span<ALCMeta>)>& fn) = 0;
 
     virtual CtrSizeT setup_bits(Span<const ALCMeta> allocations, bool set_bits) = 0;

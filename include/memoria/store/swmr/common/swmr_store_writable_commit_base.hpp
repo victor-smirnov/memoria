@@ -19,7 +19,7 @@
 #include <memoria/store/swmr/common/swmr_store_commit_base.hpp>
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 #include <memoria/store/swmr/common/swmr_store_counters.hpp>
-
+#include <memoria/store/swmr/common/swmr_store_commit_id_proxy.hpp>
 namespace memoria {
 
 template <typename Profile> class SWMRStoreBase;
@@ -77,6 +77,8 @@ protected:
     using Base::commit_descriptor_;
     using Base::refcounter_delegate_;
     using Base::get_superblock;
+    using Base::is_transient;
+    using Base::is_system_commit;
 
     using Base::ALLOCATION_MAP_LEVELS;
     using Base::BASIC_BLOCK_SIZE;
@@ -96,24 +98,37 @@ protected:
     using RemovingBlocksConsumerFn = typename Store::RemovingBlockConsumerFn;
 
     using CounterBlockT       = SWMRCounterBlock<Profile>;
+    using AllocationPoolT = AllocationPool<ApiProfileT, 9>;
 
-    CtrSharedPtr<AllocationMapCtr> parent_allocation_map_ctr_;
-    AllocationPool<ApiProfileT, 9> allocation_pool_;
+
+    CtrSharedPtr<AllocationMapCtr> consistency_point_allocation_map_ctr_;
+    CtrSharedPtr<AllocationMapCtr> head_allocation_map_ctr_;
+    AllocationPoolT allocation_pool_;
+    ArenaBuffer<AllocationMetadataT> awaiting_init_allocations_;
+    Optional<AllocationMetadataT> preallocated_;
 
     bool committed_;
-    bool allocator_initialization_mode_{false};
+    bool populating_allocation_pool_{};
+    bool allocate_from_superblock_{};
+    bool forbid_allocations_{};
+
+    class FlagScope {
+        bool& flag_;
+    public:
+        FlagScope(bool& flag) noexcept : flag_(flag) {
+            flag_ = true;
+        }
+        ~FlagScope() noexcept {
+            flag_ = false;
+        }
+    };
 
     CommitID parent_commit_id_;
-
-    bool flushing_awaiting_allocations_{false};
-    ArenaBuffer<AllocationMetadataT> awaiting_allocations_;
-    ArenaBuffer<AllocationMetadataT> awaiting_allocations_reentry_;
 
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_;
 
     RemovingBlocksConsumerFn removing_blocks_consumer_fn_{};
-
-
+    CommitDescriptorT* head_commit_descriptor_{};
 
 public:
     using Base::check;
@@ -132,7 +147,11 @@ public:
     }
 
 
-    virtual SnpSharedPtr<StoreT> self_ptr() noexcept = 0;
+    virtual SnpSharedPtr<StoreT> my_self_ptr() noexcept = 0;
+    virtual SnpSharedPtr<StoreT> self_ptr() noexcept
+    {
+        return my_self_ptr();
+    }
 
     virtual uint64_t get_memory_size() = 0;
     virtual SharedSBPtr<Superblock> new_superblock(uint64_t pos) = 0;
@@ -146,6 +165,68 @@ public:
 
     virtual void init_commit(MaybeError& maybe_error) noexcept {}
     virtual void init_store_commit(MaybeError& maybe_error) noexcept {}
+
+    AllocationMetadataT do_allocate_from_superblock(size_t reserve = 1)
+    {
+        auto alc = get_superblock()->allocate_one(reserve);
+        if (alc) {
+            return alc.get();
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Internal error. Superblock's allocation pool is empty.").do_throw();
+        }
+    }
+
+    AllocationMetadataT allocate_one_or_throw(int32_t level = 0, size_t reserve = 1) {
+        auto alc = allocate_one_or_throw_(level, reserve);
+        return alc;
+    }
+
+    AllocationMetadataT allocate_one_or_throw_(int32_t level = 0, size_t reserve = 1)
+    {
+        if (MMA_UNLIKELY(forbid_allocations_))
+        {
+            MEMORIA_MAKE_GENERIC_ERROR("Internal error. Block allocations are fordidden at this stage.").do_throw();
+        }
+        else if (MMA_UNLIKELY((bool)preallocated_))
+        {
+            AllocationMetadataT alc = preallocated_.get();
+            preallocated_ = Optional<AllocationMetadataT>{};
+            return alc;
+        }
+        else if (MMA_LIKELY(!allocate_from_superblock_))
+        {
+            auto alc = allocation_pool_.allocate_one(level);
+            if (alc) {
+                return alc.get();
+            }
+            else if (populating_allocation_pool_) {
+                // Level must be 0 here
+                return do_allocate_from_superblock(reserve);
+            }
+            else {
+                populate_allocation_pool(level, 1);
+                auto alc1 = allocation_pool_.allocate_one(level);
+                if (alc1) {
+                    return alc1.get();
+                }
+                else {
+                    populate_allocation_pool(level, 1);
+                    auto alc2 = allocation_pool_.allocate_one(level);
+                    if (alc2) {
+                        return alc1.get();
+                    }
+                    else {
+                        MEMORIA_MAKE_GENERIC_ERROR("FIXME: Tried multiple times to allocate from the pool and failed.").do_throw();
+                    }
+                }
+            }
+        }
+        else {
+            // Level must be 0 here
+            return do_allocate_from_superblock(reserve);
+        }
+    }
 
     void remove_all_blocks()
     {
@@ -211,23 +292,36 @@ public:
 
     void init_commit(
             CommitDescriptorT* consistency_point,
+            CommitDescriptorT* head,
             CommitDescriptorT* parent_commit_descriptor
     )
     {
         commit_descriptor_->set_parent(parent_commit_descriptor);
         parent_commit_id_ = parent_commit_descriptor->commit_id();
 
-        auto consistency_point_snp = store_->do_open_readonly(consistency_point);
-        auto parent_allocation_map_ctr = consistency_point_snp->find(AllocationMapCtrID);
+        // HEAD is always defined here
+        head_commit_descriptor_ = head;
+        auto head_snp = store_->do_open_readonly(head);
+        auto head_allocation_map_ctr = head_snp->find(AllocationMapCtrID);
+        head_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(head_allocation_map_ctr);
 
-        parent_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(parent_allocation_map_ctr);
+        // HEAD commit is not a consistency point
+        if (head != consistency_point)
+        {
+            auto consistency_point_snp = store_->do_open_readonly(consistency_point);
+            auto cp_allocation_map_ctr = consistency_point_snp->find(AllocationMapCtrID);
+            consistency_point_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(cp_allocation_map_ctr);
+        }
 
-        populate_allocation_pool(parent_allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 64);
+        auto head_sb = get_superblock(head_commit_descriptor_->superblock_ptr());
 
-        auto parent_sb = get_superblock(parent_commit_descriptor->superblock_ptr());
+        AllocationMetadataT sb_alc;
+        size_t alc_idx;
+        std::tie(alc_idx, sb_alc) = head_sb->get_allocation();
 
+        preallocated_ = sb_alc;
         auto superblock = allocate_superblock(
-            parent_sb.get(),
+            head_sb.get(),
             ProfileTraits<Profile>::make_random_snapshot_id()
         );
 
@@ -236,18 +330,25 @@ public:
 
         commit_descriptor_->set_superblock(sb_pos, sb.get());
 
+        // Marking the new SB as allocated in the new SB.
+        sb->remove_block_from_pool(alc_idx);
+
         init_idmap();
 
         MaybeError maybe_error;
 
-        if (!maybe_error) {
+        if (!maybe_error)
+        {
             internal_init_system_ctr<AllocationMapCtrType>(
-                maybe_error,
-                allocation_map_ctr_,
-                sb->allocator_root_id(),
-                AllocationMapCtrID
+                        maybe_error,
+                        allocation_map_ctr_,
+                        sb->allocator_root_id(),
+                        AllocationMapCtrID
             );
         }
+
+        populate_allocation_pool(allocation_map_ctr_, SUPERBLOCK_ALLOCATION_LEVEL, 64);
+        sb->preallocate_from_pool(allocation_pool_);
 
         if (!maybe_error) {
             internal_init_system_ctr<HistoryCtrType>(
@@ -278,20 +379,24 @@ public:
 
     void init_store_commit()
     {
+        // FIXME: need to configure 'emergency' block allocation pool here.
         uint64_t buffer_size = get_memory_size();
 
-        int64_t avaialble = (buffer_size / (BASIC_BLOCK_SIZE << (ALLOCATION_MAP_LEVELS - 1)));
-        allocation_pool_.add(AllocationMetadataT{0, avaialble, ALLOCATION_MAP_LEVELS - 1});
+        int64_t avaialble = buffer_size / BASIC_BLOCK_SIZE;
 
-        int64_t reserved = SUPERBLOCKS_RESERVED;
-        ArenaBuffer<AllocationMetadataT> allocations;
-        allocation_pool_.allocate(SUPERBLOCK_ALLOCATION_LEVEL, reserved, allocations);
+        AllocationPool<ApiProfileT, 1> init_allocation_pool;
 
-        for (auto& alc: allocations.span()) {
-            add_awaiting_allocation(alc);
-        }
+        //int64_t reserved = SUPERBLOCKS_RESERVED;
+        init_allocation_pool.add(AllocationMetadataT{0, avaialble, 0});
+
+        awaiting_init_allocations_.append_value(init_allocation_pool.allocate_one(0).get());
+        awaiting_init_allocations_.append_value(init_allocation_pool.allocate_one(0).get());
 
         CommitID commit_id = ProfileTraits<Profile>::make_random_snapshot_id();
+
+        preallocated_ = init_allocation_pool.allocate_one(0);
+        awaiting_init_allocations_.append_value(preallocated_.get());
+
         auto superblock = allocate_superblock(nullptr, commit_id, buffer_size);
         uint64_t sb_pos = std::get<0>(superblock);
         auto sb = std::get<1>(superblock);
@@ -299,21 +404,29 @@ public:
         commit_descriptor_->set_superblock(sb_pos, sb.get());
 
         uint64_t total_blocks = buffer_size / BASIC_BLOCK_SIZE;
-        uint64_t counters_block_capacity = CounterBlockT::capacity_for(BASIC_BLOCK_SIZE * (1 << (ALLOCATION_MAP_LEVELS - 1)));
 
-        uint64_t counters_blocks = divUp(total_blocks, counters_block_capacity);
+        constexpr uint64_t ctr_blk_scale = (1 << (ALLOCATION_MAP_LEVELS - 1));
+        uint64_t counters_block_capacity = CounterBlockT::capacity_for(BASIC_BLOCK_SIZE * ctr_blk_scale);
+
+        uint64_t counters_blocks = divUp(total_blocks, counters_block_capacity) * ctr_blk_scale;
 
         ArenaBuffer<AllocationMetadataT> counters;
-        allocation_pool_.allocate(ALLOCATION_MAP_LEVELS - 1, counters_blocks, counters);
-
-        for (auto& alc: counters.span()) {
-            add_awaiting_allocation(alc);
-        }
+        init_allocation_pool.allocate(0, counters_blocks, counters);
+        awaiting_init_allocations_.append_values(counters.span());
 
         uint64_t counters_file_pos = counters[0].position() * BASIC_BLOCK_SIZE;
         sb->set_global_block_counters_file_pos(counters_file_pos);
 
-        allocator_initialization_mode_ = true;
+        if (!sb->preallocate_from_fn([&]{
+            auto alc = init_allocation_pool.allocate_one(0);
+            if (alc) {
+                awaiting_init_allocations_.append_value(alc.get());
+            }
+            return alc;
+        })) {
+            MEMORIA_MAKE_GENERIC_ERROR("Internal Error. InitAllocationPool is empty").do_throw();
+        }
+        allocate_from_superblock_ = true;
 
         init_idmap();
 
@@ -323,19 +436,19 @@ public:
 
         if (!maybe_error) {
             internal_init_system_ctr<HistoryCtrType>(
-                maybe_error,
-                history_ctr_,
-                sb->history_root_id(),
-                HistoryCtrID
+                        maybe_error,
+                        history_ctr_,
+                        sb->history_root_id(),
+                        HistoryCtrID
             );
         }
 
         if (!maybe_error) {
             internal_init_system_ctr<DirectoryCtrType>(
-                maybe_error,
-                directory_ctr_,
-                sb->directory_root_id(),
-                DirectoryCtrID
+                        maybe_error,
+                        directory_ctr_,
+                        sb->directory_root_id(),
+                        DirectoryCtrID
             );
         }
 
@@ -348,7 +461,17 @@ public:
         }
     }
 
+    void finish_store_initialization()
+    {
+        allocation_map_ctr_->expand(get_memory_size() / BASIC_BLOCK_SIZE);
 
+        // FIXME: This should not trigger any block allocation
+        allocation_map_ctr_->setup_bits(awaiting_init_allocations_.span(), true);
+
+        allocate_from_superblock_ = false;
+
+        return commit(ConsistencyPoint::YES);
+    }
 
     void finish_commit_opening()
     {
@@ -375,35 +498,160 @@ public:
         }
     }
 
-    virtual CommitID commit_id() noexcept {
-        return Base::commit_id();
-    }
-
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
+    void populate_allocation_pool(int32_t level, int64_t minimal_amount)
     {
-        checkIfConainersCreationAllowed();
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(self_ptr(), ctr_id, decl);
+        populate_allocation_pool(allocation_map_ctr_, level, minimal_amount);
+
+        auto sb = get_superblock();
+        if (sb->preallocated_pool_capacity() > 0) {
+            sb->preallocate_from_pool(allocation_pool_);
+        }
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
+    void populate_allocation_pool(CtrSharedPtr<AllocationMapCtr> allocation_map_ctr, int32_t level, int64_t minimal_amount)
     {
-        checkIfConainersCreationAllowed();
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
+        if (populating_allocation_pool_){
+            MEMORIA_MAKE_GENERIC_ERROR("Internal Error: populate_allocation_pool() re-entry.").do_throw();
+        }
 
-        auto ctr_name = createCtrName();
-        return factory->create_instance(self_ptr(), ctr_name, decl);
+        FlagScope scope(populating_allocation_pool_);
+
+        int64_t ranks[ALLOCATION_MAP_LEVELS] = {0,};
+        allocation_map_ctr->unallocated(ranks);
+
+        if (ranks[level] >= minimal_amount)
+        {
+            auto& level_buffer = allocation_pool_.level_buffer(level);
+
+            // check the scale of position value across the pool!
+            auto exists = allocation_map_ctr->allocate(
+                        level, minimal_amount, level_buffer
+            );
+
+            if (exists < minimal_amount) {
+                MEMORIA_MAKE_GENERIC_ERROR(
+                            "No enough free space among {}K blocks. Requested = {} blocks, available = {}",
+                            (BASIC_BLOCK_SIZE / 1024) << level,
+                            minimal_amount,
+                            ranks[level]
+                ).do_throw();
+            }
+
+            allocation_pool_.refresh(level);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "No enough free space among {}K blocks. Requested = {} blocks, available = {}",
+                        (BASIC_BLOCK_SIZE / 1024) << level,
+                        minimal_amount,
+                        ranks[level]
+                        ).do_throw();
+        }
     }
 
-    static constexpr uint64_t block_size_at(int32_t level) noexcept {
-        return (1ull << (level - 1)) * BASIC_BLOCK_SIZE;
+    std::pair<uint64_t, SharedSBPtr<Superblock>> allocate_superblock(
+            const Superblock* parent_sb,
+            const CommitID& commit_id,
+            uint64_t file_size = 0
+    )
+    {
+        using ResultT = std::pair<uint64_t, SharedSBPtr<Superblock>>;
+
+        AllocationMetadataT allocation = allocate_one_or_throw(0, 0);
+
+        // FIXME: <<SUPERBLOCK_ALLOCATION_LEVEL is not needed below
+        uint64_t pos = (allocation.position() << SUPERBLOCK_ALLOCATION_LEVEL) * BASIC_BLOCK_SIZE;
+
+        auto superblock = new_superblock(pos);
+        if (parent_sb) {
+            superblock->init_from(*parent_sb, pos, commit_id);
+        }
+        else {
+            superblock->init(pos, file_size, commit_id, SUPERBLOCK_SIZE, 1);
+        }
+
+        superblock->build_superblock_description();
+
+        return ResultT{pos, superblock};
     }
 
+    void add_postponed_deallocation(const AllocationMetadataT& meta) noexcept {
+        postponed_deallocations_.append_value(meta);
+    }
+
+    void add_cp_postponed_deallocation(const AllocationMetadataT& meta) noexcept {
+        head_commit_descriptor_->postponed_deallocations().append_value(meta);
+    }
+
+
+    void do_postponed_deallocations(bool consistency_point)
+    {
+        // CoW pages with bits for CP-wide postponed deallocations.
+        // Those bits will be cleared later
+        if (consistency_point && head_commit_descriptor_)
+        {
+            head_commit_descriptor_->postponed_deallocations().sort();
+            allocation_map_ctr_->touch_bits(head_commit_descriptor_->postponed_deallocations().span());
+        }
+
+        // First, pre-build CoW-tree for postopend deallocations
+        // made in this commit
+        ArenaBuffer<AllocationMetadataT> all_postponed_deallocations;
+        while (postponed_deallocations_.size() > 0)
+        {
+            ArenaBuffer<AllocationMetadataT> postponed_deallocations;
+            postponed_deallocations.append_values(postponed_deallocations_.span());
+            all_postponed_deallocations.append_values(postponed_deallocations_.span());
+            postponed_deallocations_.clear();
+
+            // Just CoW allocation map's leafs that bits will be cleared later
+            postponed_deallocations.sort();
+            allocation_map_ctr_->touch_bits(postponed_deallocations.span());
+        }
+
+        while (postponed_deallocations_.size() > 0)
+        {
+            ArenaBuffer<AllocationMetadataT> postponed_deallocations;
+            postponed_deallocations.append_values(postponed_deallocations_.span());
+            all_postponed_deallocations.append_values(postponed_deallocations_.span());
+            postponed_deallocations_.clear();
+
+            // Just CoW allocation map's leafs that bits will be cleared later
+            postponed_deallocations.sort();
+            allocation_map_ctr_->touch_bits(postponed_deallocations.span());
+        }
+
+        if (all_postponed_deallocations.size() > 0)
+        {
+            all_postponed_deallocations.sort();
+            // Mark blocks as free
+            allocation_map_ctr_->setup_bits(all_postponed_deallocations.span(), false);
+        }
+
+        if (consistency_point && head_commit_descriptor_) {
+            allocation_map_ctr_->setup_bits(head_commit_descriptor_->postponed_deallocations().span(), false);
+            head_commit_descriptor_->clear_postponed_deallocations();
+        }
+    }
+
+    template <typename Fn>
+    auto do_with_sb_allocator(Fn&& fn) {
+        FlagScope scope(allocate_from_superblock_);
+        return fn();
+    }
+
+    template <typename Fn>
+    auto without_allocations(Fn&& fn) {
+        FlagScope scope(forbid_allocations_);
+        return fn();
+    }
 
     void commit(ConsistencyPoint cp)
     {
         if (this->is_active())
         {
+            bool do_conistency_point = cp != ConsistencyPoint::NO;
+
             auto sb = get_superblock();
 
             flush_open_containers();
@@ -430,7 +678,8 @@ public:
 
             uint64_t sb_file_pos = (sb->superblock_file_pos() / BASIC_BLOCK_SIZE);
             meta.set_superblock_file_pos(sb_file_pos);
-            meta.set_persistent(is_persistent());
+            meta.set_transient(is_transient());
+            meta.set_system_commit(is_system_commit());
 
             if (parent_commit_id_) {
                 meta.set_parent_commit_id(parent_commit_id_);
@@ -456,37 +705,62 @@ public:
                 allocation_map_ctr_->touch_bits(evicting_blocks.span());
             }
 
-            do {
-                ArenaBuffer<AllocationMetadataT> all_postponed_deallocations;
-                while (awaiting_allocations_.size() > 0 || postponed_deallocations_.size() > 0)
-                {
-                    flush_awaiting_allocations();
+            // Note: All deallocation before MUST do 'touch bits' to
+            // build corresponding CoW-tree, but not marking blocks
+            // ass avalable. Otherwise they can be reused immediately.
+            // That will make 'fast' rolling back the last commit or
+            // conistency point impossible. (Regular commit reloval
+            // will still be possible though).
 
-                    if (postponed_deallocations_.size() > 0)
-                    {
-                        ArenaBuffer<AllocationMetadataT> postponed_deallocations;
-                        postponed_deallocations.append_values(postponed_deallocations_.span());
-                        all_postponed_deallocations.append_values(postponed_deallocations_.span());
-                        postponed_deallocations_.clear();
+            // TODO: Collect all allocated but unused blocks here
+            // and 'touch_bits' them.
 
-                        // Just CoW allocation map's leafs that bits will be cleared later
-                        postponed_deallocations.sort();
-                        allocation_map_ctr_->touch_bits(postponed_deallocations.span());
-                    }
-                }
+            // All 'touch bits' calls must be done before this line.
+            do_postponed_deallocations(do_conistency_point);
 
+            // Note that it's not possible to extend CoW-tree further
+            // afther the do_postponed_deallocations() is done IF
+            // we want the to be able to do the fast rollback.
+            //
+            // For exabple, when the store is closeing, we have to
+            // make flush, to force the conistency point. The flush()
+            // will call do_postponed_deallocations() again, and it _may_
+            // allocate memory. If so, fast rollback will not be possible
+            // and regular commit removal (with extra system commit) will
+            // be necessary.
 
-                if (all_postponed_deallocations.size() > 0)
-                {
-                    all_postponed_deallocations.sort();
-                    // Mark blocks as free
-                    allocation_map_ctr_->setup_bits(all_postponed_deallocations.span(), false);
-                }
-            }
-            while (false);
-
+            // Now it's safe to actually mark blocks as free
             if (evicting_blocks.size()) {
                 allocation_map_ctr_->setup_bits(evicting_blocks.span(), false);
+            }
+
+            // Moving some preallocated blocks into the superblock, if any.
+            sb->preallocate_from_pool(allocation_pool_);
+
+            // All preallocated blocks which are still in the allocation pool,
+            // we have to return them back to the allocation map.
+            // It's safe to do here, because on the pre-allocation all
+            // blocks have been already CoW-ed in this commit.
+            // So, we are just setting all the allocations them to false.
+
+            // But to ensure that the following procedure do not actually make
+            // new allocations, we are douing it in a special closure.
+
+            without_allocations([&]{
+                for (int32_t ll = 0; ll < ALLOCATION_MAP_LEVELS; ll++) {
+                    allocation_map_ctr_->setup_bits(allocation_pool_.level_buffer(ll).span(), false);
+                }
+            });
+
+            allocation_pool_.reset();
+
+            if (MMA_UNLIKELY(sb->preallocated_pool_size() == 0))
+            {
+                // We must ensure that at the end of a commit, at least
+                // one preallocated block must be in the superblock's pool.
+                MEMORIA_MAKE_GENERIC_ERROR(
+                    "Superblock's allocation pool is empty at the end of the commit"
+                ).do_throw();
             }
 
             store_->finish_commit(Base::commit_descriptor_, cp, sb);
@@ -496,6 +770,30 @@ public:
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Transaction {} has been already committed", commit_id()).do_throw();
         }
+    }
+
+    virtual CommitID commit_id() noexcept {
+        return Base::commit_id();
+    }
+
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
+    {
+        checkIfConainersCreationAllowed();
+        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
+        return factory->create_instance(self_ptr(), ctr_id, decl);
+    }
+
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
+    {
+        checkIfConainersCreationAllowed();
+        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
+
+        auto ctr_name = createCtrName();
+        return factory->create_instance(self_ptr(), ctr_name, decl);
+    }
+
+    static constexpr uint64_t block_size_at(int32_t level) noexcept {
+        return (1ull << (level - 1)) * BASIC_BLOCK_SIZE;
     }
 
     virtual void flush_open_containers() {
@@ -548,15 +846,13 @@ public:
     }
 
 
-    virtual void set_persistent(bool persistent)
+    virtual void set_transient(bool transient)
     {
         check_updates_allowed();
-        commit_descriptor_->set_persistent(persistent);
+        commit_descriptor_->set_transient(transient);
     }
 
-    virtual bool is_persistent() noexcept {
-        return commit_descriptor_->is_persistent();
-    }
+
 
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id) {
@@ -632,6 +928,7 @@ public:
 
                 auto prev_id = sb->allocator_root_id();
                 sb->allocator_root_id() = root;
+
                 if (prev_id.is_set())
                 {
                     unref_ctr_root(prev_id);
@@ -702,139 +999,7 @@ public:
     void check_updates_allowed() {
     }
 
-    void flush_awaiting_allocations()
-    {
-        if (awaiting_allocations_.size() > 0 && allocation_map_ctr_)
-        {
-            if (flushing_awaiting_allocations_){
-                MEMORIA_MAKE_GENERIC_ERROR("Internal error. flush_awaiting_allocations() reentry.").do_throw();
-            }
 
-            flushing_awaiting_allocations_ = true;
-            do {
-                awaiting_allocations_.sort();
-
-                auto res = wrap_throwing([&] {
-                    return allocation_map_ctr_->setup_bits(awaiting_allocations_.span(), true); // set bits
-                });
-
-                if (res.is_error())
-                {
-                    flushing_awaiting_allocations_ = false;
-                    std::move(res).transfer_error().do_throw();
-                }
-
-                awaiting_allocations_.clear();
-
-                awaiting_allocations_.append_values(awaiting_allocations_reentry_.span());
-                awaiting_allocations_reentry_.clear();
-            }
-            while (awaiting_allocations_.size() > 0);
-        }
-    }
-
-
-    void populate_allocation_pool(int32_t level, int64_t minimal_amount) {
-        return populate_allocation_pool(allocation_map_ctr_, level, minimal_amount);
-    }
-
-    void populate_allocation_pool(CtrSharedPtr<AllocationMapCtr> allocation_map_ctr, int32_t level, int64_t minimal_amount)
-    {
-        if (flushing_awaiting_allocations_) {
-            MEMORIA_MAKE_GENERIC_ERROR("Internal Error. Invoking populate_allocation_pool() while flushing awaiting allocations.").do_throw();
-        }
-
-        flush_awaiting_allocations();
-
-        allocation_pool_.clear();
-
-        int64_t ranks[ALLOCATION_MAP_LEVELS] = {0,};
-        allocation_map_ctr->unallocated(ranks);
-
-        if (ranks[level] >= minimal_amount)
-        {
-            auto& level_buffer = allocation_pool_.level_buffer(level);
-
-            // check the scale of position value across the pool!
-            auto exists = allocation_map_ctr->find_unallocated(
-                level, minimal_amount, level_buffer
-            );
-
-            if (exists < minimal_amount) {
-                MEMORIA_MAKE_GENERIC_ERROR(
-                    "No enough free space among {}K blocks. Requested = {} blocks, available = {}",
-                    (BASIC_BLOCK_SIZE / 1024) << level,
-                    minimal_amount,
-                    ranks[level]
-                ).do_throw();
-            }
-
-            allocation_pool_.refresh(level);
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR(
-                "No enough free space among {}K blocks. Requested = {} blocks, available = {}",
-                (BASIC_BLOCK_SIZE / 1024) << level,
-                minimal_amount,
-                ranks[level]
-            ).do_throw();
-        }
-    }
-
-
-
-    std::pair<uint64_t, SharedSBPtr<Superblock>> allocate_superblock(
-            const Superblock* parent_sb,
-            const CommitID& commit_id,
-            uint64_t file_size = 0
-    )
-    {
-        using ResultT = std::pair<uint64_t, SharedSBPtr<Superblock>>;
-
-        ArenaBuffer<AllocationMetadataT> available;
-        allocation_pool_.allocate(SUPERBLOCK_ALLOCATION_LEVEL, 1, available);
-        if (available.size() > 0)
-        {
-            AllocationMetadataT allocation = available.tail();
-
-            // FIXME: <<SUPERBLOCK_ALLOCATION_LEVEL is not needed below
-            uint64_t pos = (allocation.position() << SUPERBLOCK_ALLOCATION_LEVEL) * BASIC_BLOCK_SIZE;
-
-            //println("Allocating superblock at {} :: {}", allocation.position(), pos);
-
-            auto superblock = new_superblock(pos);
-            if (parent_sb)
-            {
-                superblock->init_from(*parent_sb, pos, commit_id);
-            }
-            else {
-                superblock->init(pos, file_size, commit_id, SUPERBLOCK_SIZE, 1);
-            }
-
-            superblock->build_superblock_description();
-
-            add_awaiting_allocation(allocation);
-
-            return ResultT{pos, superblock};
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("No free space for Superblock").do_throw();
-        }
-    }
-
-
-    void add_awaiting_allocation(const AllocationMetadataT& meta) noexcept {
-        if (!flushing_awaiting_allocations_) {
-            awaiting_allocations_.append_value(meta);
-        }
-        else {
-            awaiting_allocations_reentry_.append_value(meta);
-        }
-    }
-
-    void add_postponed_deallocation(const AllocationMetadataT& meta) noexcept {
-        postponed_deallocations_.append_value(meta);
-    }
 
     template <typename CtrName, typename CtrInstanceVar>
     void internal_init_system_ctr(
@@ -861,17 +1026,7 @@ public:
         });
     }
 
-    void finish_store_initialization()
-    {
-        allocation_map_ctr_->expand(get_memory_size() / BASIC_BLOCK_SIZE);
 
-        // FIXME: finish_commit_opening should be removed completely?
-        // Uncommenting the next line will result in counters values mismatch faulure.
-
-        // MEMORIA_TRY_VOID(finish_commit_opening());
-
-        return commit(ConsistencyPoint::YES);
-    }
 
     virtual void ref_block(const BlockID& block_id)
     {
@@ -910,6 +1065,15 @@ public:
     }
 
 
+    bool is_transient() noexcept {
+        return commit_descriptor_->is_transient();
+    }
+
+    bool is_system_commit() noexcept {
+        return commit_descriptor_->is_system_commit();
+    }
+
+
     virtual void removeBlock(const BlockID& id)
     {
         auto block_data = resolve_block(id);
@@ -923,39 +1087,56 @@ public:
             int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
             int32_t level = CustomLog2(scale_factor);
 
-            int64_t allocator_block_pos = block_data.file_pos;
+            int64_t allocator_block_pos = block_data.file_pos / BASIC_BLOCK_SIZE;
             int64_t ll_allocator_block_pos = allocator_block_pos >> level;
 
-            AllocationMetadataT meta[1] = {AllocationMetadataT{allocator_block_pos, 1, level}};
+            AllocationMetadataT meta{allocator_block_pos, 1, level};
 
-            if (parent_allocation_map_ctr_)
+            if (head_allocation_map_ctr_)
             {
-                auto status = parent_allocation_map_ctr_->get_allocation_status(level, ll_allocator_block_pos);
-                if ((!status) || status.get() == AllocationMapEntryStatus::FREE)
+                // Checking first in the head commit
+                auto head_blk_status = head_allocation_map_ctr_->get_allocation_status(level, ll_allocator_block_pos);
+                if ((!head_blk_status) || head_blk_status.get() == AllocationMapEntryStatus::FREE)
                 {
-                    if (!flushing_awaiting_allocations_) {
-                        flush_awaiting_allocations();
-                        allocation_map_ctr_->setup_bits(meta, false); // clear bits
+                    // If the block is FREE in the HEAD commit, it is also FREE
+                    // in the CONSISTENCY POINT commit. So we are just marking it FREE
+                    // in this commit. It's immediately reusable.
+
+                    // Returning the block to the pool of available blocks
+                    allocation_pool_.add(meta);
+                }
+                else if (consistency_point_allocation_map_ctr_)
+                {
+                    auto cp_blk_status = consistency_point_allocation_map_ctr_->get_allocation_status(level, ll_allocator_block_pos);
+                    if ((!cp_blk_status) || cp_blk_status.get() == AllocationMapEntryStatus::FREE)
+                    {
+                        // The block is allocated in the HEAD commit, but free in the
+                        // CONSISTENCY POINT commit.
+                        add_postponed_deallocation(meta);
                     }
                     else {
-                        add_postponed_deallocation(meta[0]);
+                        // The block is allocated in the HEAD commit, AND it's allocated in the
+                        // CONSISTENCY POINT commit.
+                        // This block will be freed at the consistency point commit.
+                        add_cp_postponed_deallocation(meta);
                     }
                 }
                 else {
-                    add_postponed_deallocation(meta[0]);
+                    // The block is allocated in the head commit AND there is no
+                    // consistency point yet. Can't free the block now.
+                    // Postoponing it until the commit. The block will be reuable
+                    // in the next commit
+                    add_postponed_deallocation(meta);
                 }
             }
             else {
-                if (!flushing_awaiting_allocations_) {
-                    flush_awaiting_allocations();
-                    allocation_map_ctr_->setup_bits(meta, false); // clear bits
-                }
-                else {
-                    add_postponed_deallocation(meta[0]);
-                }
+                // Returning the block to the pool of available blocks
+                allocation_pool_.add(meta);
             }
         }
     }
+
+
 
     virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID& ctr_id)
     {
@@ -965,20 +1146,8 @@ public:
         int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
         int32_t level = CustomLog2(scale_factor);
 
-        Optional<AllocationMetadataT> allocation = allocation_pool_.allocate_one(level);
-
-        if (!allocation) {
-            if (!allocator_initialization_mode_) {
-                populate_allocation_pool(level, 1);
-            }
-            else {
-                MEMORIA_MAKE_GENERIC_ERROR("Internal block allocation error while initilizing the store").do_throw();
-            }
-        }
-
-        add_awaiting_allocation(allocation.get());
-
-        uint64_t position = allocation.get().position();
+        AllocationMetadataT allocation = allocate_one_or_throw(level);
+        uint64_t position = allocation.position();
 
         auto shared = allocate_block_from(block.block(), position, ctr_id == BlockMapCtrID);        
         BlockType* new_block = shared->get();
@@ -991,7 +1160,7 @@ public:
 
     virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID& ctr_id)
     {
-       check_updates_allowed();
+        check_updates_allowed();
 
         if (initial_size == -1)
         {
@@ -1001,20 +1170,8 @@ public:
         int32_t scale_factor = initial_size / BASIC_BLOCK_SIZE;
         int32_t level = CustomLog2(scale_factor);
 
-        Optional<AllocationMetadataT> allocation = allocation_pool_.allocate_one(level);
-
-        if (!allocation) {
-            if (!allocator_initialization_mode_) {
-                populate_allocation_pool(level, 1);
-            }
-            else {
-                MEMORIA_MAKE_GENERIC_ERROR("Internal block allocation error while initilizing the store").do_throw();
-            }
-        }
-
-        add_awaiting_allocation(allocation.get());
-
-        uint64_t position = allocation.get().position();
+        AllocationMetadataT allocation = allocate_one_or_throw(level);
+        uint64_t position = allocation.position();
 
         auto shared = allocate_block(position, initial_size, ctr_id == BlockMapCtrID);
 

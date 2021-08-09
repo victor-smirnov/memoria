@@ -98,7 +98,7 @@ public:
         buffer_(buffer)
     {}
 
-    virtual SnpSharedPtr<StoreT> self_ptr() noexcept override {
+    SnpSharedPtr<StoreT> my_self_ptr() noexcept override {
         return this->shared_from_this();
     }
 

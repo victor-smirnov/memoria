@@ -137,10 +137,17 @@ public:
         close();
     }
 
-    virtual void flush() override {
+    virtual ReadOnlyCommitPtr flush() override {
+        LockGuard lock(writer_mutex_);
+
         check_if_open();
+
+
+
         flush_data();
-        return flush_header();
+        flush_header();
+
+        return ReadOnlyCommitPtr{};
     }
 
 
@@ -310,6 +317,7 @@ private:
     virtual SWMRWritableCommitPtr do_create_writable(
             CommitDescriptorT* consistency_point,
             CommitDescriptorT* head,
+            CommitDescriptorT* parent,
             CommitDescriptorT* commit_descr
     ) override
     {
@@ -319,7 +327,7 @@ private:
         );
 
         if (!maybe_error) {
-            ptr->init_commit(consistency_point, head);
+            ptr->init_commit(consistency_point, head, parent);
             return std::move(ptr);
         }
         else {

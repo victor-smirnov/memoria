@@ -68,6 +68,7 @@ private:
     CommitDescriptorT* root_;
     CommitDescriptorT* consistency_point1_;
     CommitDescriptorT* consistency_point2_;
+    CommitDescriptorT* head_;
 
     CommitDescriptorsList<Profile> eviction_queue_;
 
@@ -75,11 +76,14 @@ private:
 
     SuperblockFn superblock_fn_;
 
+
+
 public:
     HistoryTree() noexcept :
         root_(),
         consistency_point1_(),
-        consistency_point2_()
+        consistency_point2_(),
+        head_()
     {}
 
     ~HistoryTree() noexcept {
@@ -98,7 +102,7 @@ public:
     {
         remove_tree_nodes(span);
 
-        consistency_point1_ = consistency_point2_;
+        head_ = consistency_point1_ = consistency_point2_;
         consistency_point2_ = nullptr;
 
         volatile_commits_.clear();
@@ -134,6 +138,7 @@ public:
     void remove_volatile_commits(std::vector<CommitDescriptorT*>& nodes)
     {
         remove_tree_nodes(nodes);
+        head_ = consistency_point1_;
         volatile_commits_.clear();
     }
 
@@ -153,7 +158,7 @@ public:
     }
 
     bool can_rollback_last_consistency_point() const noexcept {
-        return volatile_commits_.size() == 0 && consistency_point2_ != nullptr;
+        return head_ == consistency_point1_ && consistency_point2_ != nullptr;
     }
 
     void set_superblock_fn(SuperblockFn fn) noexcept {
@@ -184,6 +189,10 @@ public:
         return Optional<CommitDescriptorT*>{};
     }
 
+    CommitDescriptorT* head() const noexcept {
+        return head_;
+    }
+
     CommitDescriptorT* consistency_point1() const noexcept {
         return consistency_point1_;
     }
@@ -200,14 +209,15 @@ public:
         return eviction_queue_;
     }
 
-    U8String mark_branch_not_persistent(CommitDescriptorT* descr, U8StringView branch)
+    U8String mark_branch_transient(CommitDescriptorT* descr, U8StringView branch)
     {        
         CommitDescriptorT* dd = descr;
 
         while (true) {
             if (dd->parent() && dd->children().size() <= 1) {
-                if (dd->is_persistent()) {
-                    dd->set_persistent(false);
+                if (!dd->is_transient())
+                {
+                    dd->set_transient(true);
 
                     if (!is_in_last_2_queue(dd)) {
                         eviction_queue_.push_back(*dd);
@@ -231,13 +241,13 @@ public:
         return branch;
     }
 
-    bool mark_commit_not_persistent(const CommitID& commit_id)
+    bool mark_commit_transient(const CommitID& commit_id)
     {
         auto commit = get(commit_id);
         if (commit)
         {
             CommitDescriptorT* descr = commit.get();
-            if (descr->is_persistent())
+            if (!descr->is_transient())
             {
                 // TODO: Need to check the following code for more
                 // cases of tree consistency violation.
@@ -251,7 +261,7 @@ public:
                     MEMORIA_MAKE_GENERIC_ERROR("Can't remove root commit {} without children.", descr->commit_id()).do_throw();
                 }
 
-                descr->set_persistent(false);
+                descr->set_transient(true);
 
                 eviction_queue_.push_back(*descr);
             }
@@ -275,8 +285,7 @@ public:
                 parent->children().erase(&descr);
                 parent_id = parent->commit_id();
 
-                for (auto* chl: descr.children())
-                {
+                for (auto* chl: descr.children()) {
                     chl->set_parent(parent);
                     eviction_fn(UpdateOp{true, chl->commit_id(), parent->commit_id()});
                 }
@@ -340,6 +349,7 @@ public:
         }
         else {
             volatile_commits_.append_value(descr);
+            head_ = descr;
         }
     }
 
@@ -360,7 +370,8 @@ public:
             auto superblock = superblock_fn_(meta.superblock_file_pos());
 
             descr->set_superblock(meta.superblock_file_pos() * BASIC_BLOCK_SIZE, superblock.get());
-            descr->set_persistent(meta.is_persistent());
+            descr->set_transient(meta.is_transient());
+            descr->set_system_commit(meta.is_system_commit());
 
             commits_[commit_id] = descr;
         }
@@ -397,7 +408,7 @@ public:
         {
             auto cp = get(consistency_point1->commit_id());
             if (cp) {
-                consistency_point1_ = cp.get();
+                head_ = consistency_point1_ = cp.get();
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Last commit ID is not found {}", consistency_point1->commit_id()).do_throw();
@@ -514,7 +525,7 @@ private:
             else if (descr == consistency_point2_ || descr == consistency_point1_) {
                 // do nothing
             }
-            else if (!descr->is_persistent()) {
+            else if (descr->is_transient()) {
                 eviction_queue_.push_back(*descr);
             }
         });
@@ -537,8 +548,8 @@ private:
 
     void enqueue_for_eviction(CommitDescriptorT* descr) noexcept
     {
-        bool persistent = descr->is_persistent();
-        if (!persistent) {
+        bool transient = descr->is_transient();
+        if (transient) {
             eviction_queue_.push_back(*descr);
         }
     }
@@ -547,13 +558,13 @@ private:
     {
         CommitDescriptorT* tmp = consistency_point2_;
         consistency_point2_ = consistency_point1_;
-        consistency_point1_ = descr;
+        head_ = consistency_point1_ = descr;
 
         return tmp;
     }
 
     bool is_in_last_2_queue(CommitDescriptorT* descr) noexcept {
-        return descr == consistency_point1_ || descr == consistency_point2_;
+        return descr == head_ || descr == consistency_point1_ || descr == consistency_point2_;
     }
 
     void remove_tree_nodes(std::vector<CommitDescriptorT*>& nodes) noexcept

@@ -313,15 +313,20 @@ public:
     }
 
 
-    virtual void set_persistent(bool persistent)
+    virtual void set_transient(bool transient)
     {
-        make_generic_error("Method set_persistent(bool) is not implemented for LMDBStore commit").do_throw();
+        if (!transient) {
+            make_generic_error("Method set_transient(false) is not implemented for LMDBStore commit").do_throw();
+        }
     }
 
-    virtual bool is_persistent() noexcept {
+    virtual bool is_transient() noexcept {
+        return true;
+    }
+
+    virtual bool is_system_commit() noexcept {
         return false;
     }
-
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id) {
         return Base::find(ctr_id);

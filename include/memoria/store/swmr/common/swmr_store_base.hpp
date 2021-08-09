@@ -101,6 +101,8 @@ protected:
     bool read_only_{false};
 
 public:
+    using Base::flush;
+
     SWMRStoreBase() noexcept {
         history_tree_.set_superblock_fn([&](uint64_t file_pos){
             return this->get_superblock(file_pos * BASIC_BLOCK_SIZE);
@@ -112,7 +114,7 @@ public:
     virtual void flush_data(bool async = false) = 0;
     virtual void flush_header(bool async = false) = 0;
 
-    virtual void flush() override = 0;
+
 
     virtual void check_if_open() = 0;
 
@@ -120,6 +122,7 @@ public:
     virtual SWMRWritableCommitPtr do_create_writable(
             CommitDescriptorT* consistency_point,
             CommitDescriptorT* head,
+            CommitDescriptorT* parent,
             CommitDescriptorT* commit_descr
     ) = 0;
 
@@ -180,7 +183,7 @@ public:
         }
     }
 
-    virtual Optional<bool> is_persistent(const CommitID& commit_id) override
+    virtual Optional<bool> is_transient(const CommitID& commit_id) override
     {
         using ResultT = Optional<bool>;
 
@@ -191,12 +194,31 @@ public:
         if (descr_opt)
         {
             CommitDescriptorT* descr = descr_opt.get();
-            return ResultT{descr->is_persistent()};
+            return ResultT{descr->is_transient()};
         }
         else {
             return ResultT{};
         }
     }
+
+    virtual Optional<bool> is_system_commit(const CommitID& commit_id) override
+    {
+        using ResultT = Optional<bool>;
+
+        check_if_open();
+        LockGuard lock(reader_mutex_);
+
+        auto descr_opt = history_tree_.get(commit_id);
+        if (descr_opt)
+        {
+            CommitDescriptorT* descr = descr_opt.get();
+            return ResultT{descr->is_system_commit()};
+        }
+        else {
+            return ResultT{};
+        }
+    }
+
 
     virtual Optional<std::vector<CommitID>> children(const CommitID& commit_id) override
     {
@@ -256,7 +278,7 @@ public:
 
         if (commit)
         {
-            if (commit.get()->is_persistent()) {
+            if (!commit.get()->is_transient()) {
                 return open_readonly(commit.get());
             }
             else {
@@ -371,6 +393,7 @@ public:
 
                 SWMRWritableCommitPtr ptr = do_create_writable(
                             history_tree_.consistency_point1(),
+                            history_tree_.head(),
                             descr.get(),
                             commit_descriptor.get()
                 );
@@ -406,12 +429,13 @@ public:
 
             if (descr)
             {
-                if (descr.get()->is_persistent())
+                if (!descr.get()->is_transient())
                 {
                     std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(branch_name);
 
                     SWMRWritableCommitPtr ptr = do_create_writable(
                                 history_tree_.consistency_point1(),
+                                history_tree_.head(),
                                 descr.get(),
                                 commit_descriptor.get()
                     );
@@ -453,7 +477,7 @@ public:
                 if (descr)
                 {
                     U8String last_branch = history_tree_.consistency_point1()->branch();
-                    U8String new_branch = history_tree_.mark_branch_not_persistent(descr.get(), branch_name);
+                    U8String new_branch = history_tree_.mark_branch_transient(descr.get(), branch_name);
                     bool do_cleanup_data = history_tree_.branches_size() == 1;
 
                     std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(new_branch);
@@ -475,6 +499,7 @@ public:
 
                 SWMRWritableCommitPtr ptr = do_create_writable(
                             history_tree_.consistency_point1(),
+                            history_tree_.head(),
                             descr,
                             commit_descriptor.get()
                 );
@@ -514,7 +539,7 @@ public:
         try {
             LockGuard lock(reader_mutex_);
 
-            if (history_tree_.mark_commit_not_persistent(commit_id))
+            if (history_tree_.mark_commit_transient(commit_id))
             {
                 U8String last_branch = history_tree_.consistency_point1()->branch();
 
@@ -522,7 +547,8 @@ public:
 
                 SWMRWritableCommitPtr ptr = do_create_writable(
                             history_tree_.consistency_point1(),
-                            history_tree_.consistency_point1(),
+                            history_tree_.head(),
+                            history_tree_.head(),
                             commit_descriptor.get()
                 );
                 ptr->finish_commit_opening();
@@ -551,7 +577,6 @@ public:
         if (consistency_point) // AUTO is YES for now
         {
             sb->inc_consistency_point_sequence_id();
-
             sb->build_superblock_description();
 
             flush_data();

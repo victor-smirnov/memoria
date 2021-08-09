@@ -246,6 +246,15 @@ protected:
     virtual void drop() {
         MEMORIA_MAKE_GENERIC_ERROR("drop() is not implemented for LMDB store").do_throw();
     }
+
+
+    bool is_transient() noexcept {
+        return true;
+    }
+
+    bool is_system_commit() noexcept {
+        return false;
+    }
 };
 
 }

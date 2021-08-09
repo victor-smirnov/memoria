@@ -19,12 +19,14 @@
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/tools/arena_buffer.hpp>
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/strings/format.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
 #include <memoria/core/tools/span.hpp>
 
+#include <memoria/api/allocation_map/allocation_map_api.hpp>
 
 
 namespace memoria {
@@ -50,6 +52,9 @@ public:
     using BlockID    = ProfileBlockID<Profile>;
     using CommitID   = ApiProfileSnapshotID<ApiProfile<Profile>>;
     using SequenceID = uint64_t;
+    using CtrSizeT   = ProfileCtrSizeT<Profile>;
+
+    using AllocationMetadataT = AllocationMetadata<ApiProfile<Profile>>;
 
 private:
 
@@ -74,6 +79,11 @@ private:
     BlockID blockmap_root_id_;
 
     SWMRStoreStatus store_status_;
+
+    size_t preallocated_pool_size_;
+
+    static constexpr size_t PREALLOCATED_BLOCKS = 64;
+    uint64_t preallocated_blocks_[PREALLOCATED_BLOCKS];
 
 public:
     SWMRSuperblock() noexcept = default;
@@ -163,6 +173,94 @@ public:
         return version_ == VERSION;
     }
 
+    Span<const uint64_t> preallocated_blocks() const noexcept {
+        return Span<const uint64_t>(preallocated_blocks_, PREALLOCATED_BLOCKS);
+    }
+
+    size_t preallocated_pool_size() const noexcept {
+        return preallocated_pool_size_;
+    }
+
+    size_t preallocated_pool_capacity() const noexcept {
+        return PREALLOCATED_BLOCKS - preallocated_pool_size_;
+    }
+
+    Optional<AllocationMetadataT> allocate_one(size_t reserve = 0)
+    {
+        for (size_t i = 0, rcnt = 0; i < PREALLOCATED_BLOCKS && preallocated_pool_size_ > 0; i++)
+        {
+            if (preallocated_blocks_[i])
+            {
+                if (rcnt == reserve)
+                {
+                    AllocationMetadataT meta{(CtrSizeT)preallocated_blocks_[i], 1, 0};
+                    preallocated_blocks_[i] = 0;
+                    preallocated_pool_size_--;
+                    return meta;
+                }
+
+                rcnt++;
+            }
+        }
+
+        return Optional<AllocationMetadataT>{};
+    }
+
+    template <typename AllocationPool>
+    size_t preallocate_from_pool(AllocationPool& allocation_pool)
+    {
+        return preallocate_from_fn([&]{
+            return allocation_pool.allocate_one(0);
+        });
+    }
+
+    template <typename Fn>
+    size_t preallocate_from_fn(Fn&& fn)
+    {
+        size_t c = 0;
+        for (size_t i = 0; i < PREALLOCATED_BLOCKS; i++) {
+            if (preallocated_blocks_[i] == 0) {
+                auto alc = fn();
+                if (alc) {
+                    preallocated_blocks_[i] = alc.get().position();
+                    preallocated_pool_size_++;
+                    c++;
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        return c;
+    }
+
+    std::pair<size_t, AllocationMetadataT> get_allocation() const
+    {
+        for (size_t i = 0; i < PREALLOCATED_BLOCKS; i++) {
+            if (preallocated_blocks_[i]) {
+                return std::make_pair(
+                    i, AllocationMetadataT{(CtrSizeT)preallocated_blocks_[i], 1, 0}
+                );
+            }
+        }
+
+        MEMORIA_MAKE_GENERIC_ERROR("Superblock's allocation pool is empty").do_throw();
+    }
+
+    void remove_block_from_pool(size_t idx)
+    {
+        if (MMA_LIKELY(preallocated_blocks_[idx])) {
+            preallocated_blocks_[idx] = 0;
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                "Trying to mark unallocated block {} as allocated in the superblock {}",
+                idx,
+                commit_id_
+            ).do_throw();
+        }
+    }
+
     void init(
             uint64_t superblock_file_pos,
             uint64_t file_size,
@@ -196,6 +294,9 @@ public:
         blockmap_root_id_  = BlockID{};
 
         store_status_ = SWMRStoreStatus::UNCLEAN;
+
+        preallocated_pool_size_ = 0;
+        std::memset(preallocated_blocks_, 0, PREALLOCATED_BLOCKS * sizeof(uint64_t));
     }
 
     void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, const CommitID& commit_id)
@@ -220,6 +321,9 @@ public:
         global_block_counters_file_pos_ = other.global_block_counters_file_pos_;
         global_block_counters_size_ = other.global_block_counters_size_;
         store_status_        = other.store_status_;
+
+        preallocated_pool_size_ = other.preallocated_pool_size_;
+        std::memcpy(preallocated_blocks_, other.preallocated_blocks_, PREALLOCATED_BLOCKS * sizeof(uint64_t));
     }
 
     void build_superblock_description()
@@ -247,6 +351,7 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("Supplied SWMR Superblock magic string is too long: {}", str).do_throw();
         }
     }
+
 private:
     static int32_t allocator_block_size(size_t superblock_size) noexcept
     {
@@ -255,155 +360,5 @@ private:
         return superblock_size - (sb_size - alloc_size);
     }
 };
-
-
-/*
-
-template <typename Profile>
-class CountersBlock {
-    uint64_t block_size_;
-    uint64_t next_block_pos_;
-    uint64_t counters_size_;
-    uint64_t reserved_;
-
-    using BlockID = ProfileBlockID<Profile>;
-
-    BlockID counters_[1];
-
-public:
-    CountersBlock() noexcept = default;
-
-    uint64_t block_size() const noexcept {return block_size_;}
-    uint64_t next_block_pos() const noexcept {return next_block_pos_;}
-    uint64_t counters_size() const noexcept {return counters_size_;}
-
-    void set_next_block_pos(uint64_t pos) noexcept {
-        next_block_pos_ = pos;
-    }
-
-    void init(uint64_t block_size, uint64_t counters) {
-        block_size_ = block_size;
-        counters_size_ = counters;
-    }
-
-    auto get(size_t idx) noexcept {
-        return CounterCodec<BlockID>::decode(counters_[idx]);
-    }
-
-    void set(size_t idx, const BlockID& id, int32_t counter) noexcept {
-        counters_[idx] = CounterCodec<BlockID>::encode(id, counter);
-    }
-
-    static uint64_t estimate_block_size(uint64_t counters) noexcept {
-        return sizeof(CountersBlock) + sizeof(BlockID) * (counters - 1);
-    }
-
-    static uint64_t estimate_block_capacity(uint64_t block_size) noexcept {
-        uint64_t data_size = block_size - (sizeof(CountersBlock) - sizeof (BlockID));
-        return data_size / sizeof(BlockID);
-    }
-};
-
-
-template <>
-class CounterCodec<CowBlockID<UUID>> {
-    using BlockID = CowBlockID<UUID>;
-public:
-    CounterCodec() noexcept = default;
-
-    struct Counter {
-        BlockID block_id;
-        int32_t refs;
-    };
-
-    static Counter decode(BlockID id) noexcept {
-        int32_t cnt;
-
-        if (id.value().version() == 14) {
-            id.value().set_variant(15);
-            cnt = 1;
-        }
-        else if (id.value().version() == 13) {
-            id.value().set_variant(15);
-            cnt = -1;
-        }
-        else if (id.value().version() == 12) {
-            id.value().set_variant(4);
-            cnt = 1;
-        }
-        else {
-            id.value().set_variant(4);
-            cnt = -1;
-        }
-
-        return Counter{id, cnt};
-    }
-
-    static BlockID encode(BlockID id, int32_t counter) noexcept
-    {
-        if (counter == 1)
-        {
-            if (id.value().version() == 15) {
-                id.value().set_variant(14);
-            }
-            else {
-                id.value().set_variant(12);
-            }
-        }
-        else {
-            if (id.value().version() == 15) {
-                id.value().set_variant(13);
-            }
-            else {
-                id.value().set_variant(11);
-            }
-        }
-
-        return id;
-    }
-};
-
-
-template <>
-class CounterCodec<CowBlockID<uint64_t>> {
-    using BlockID = CowBlockID<uint64_t>;
-public:
-    CounterCodec() noexcept = default;
-
-    struct Counter {
-        BlockID block_id;
-        int32_t refs;
-    };
-
-    static Counter decode(BlockID id) noexcept {
-        int32_t cnt;
-
-        if (id.value() & 0x1ull) {
-            cnt = 1;
-        }
-        else {
-            cnt = -1;
-        }
-
-        id.value() >>= 2;
-
-        return Counter{id, cnt};
-    }
-
-    static BlockID encode(BlockID id, int32_t counter) noexcept
-    {
-        id.value() <<= 1;
-
-        if (counter == 1) {
-            id.value() |= 0x1ull;
-        }
-
-        return id;
-    }
-};
-
-*/
-
-
 
 }

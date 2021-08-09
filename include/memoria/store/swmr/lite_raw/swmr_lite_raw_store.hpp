@@ -89,7 +89,8 @@ public:
         close();
     }
 
-    virtual void flush() override {
+    virtual ReadOnlyCommitPtr flush() override {
+        return ReadOnlyCommitPtr{};
     }
 
     virtual void close() override {
@@ -131,6 +132,7 @@ public:
     virtual SWMRWritableCommitPtr do_create_writable(
             CommitDescriptorT* consistency_point,
             CommitDescriptorT* head,
+            CommitDescriptorT* parent,
             CommitDescriptorT* commit_descr
     ) override
     {
@@ -140,7 +142,7 @@ public:
         );
 
         if (!maybe_error) {
-            ptr->init_commit(consistency_point, head);
+            ptr->init_commit(consistency_point, head, parent);
             return std::move(ptr);
         }
         else {

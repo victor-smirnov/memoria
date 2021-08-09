@@ -149,14 +149,27 @@ public:
         return ResultT{};
     }
 
-    Optional<bool> is_persistent(const CommitID& commit_id) override
+    Optional<bool> is_transient(const CommitID& commit_id) override
     {
         using ResultT = Optional<bool>;
 
         auto ii = commits_.find(commit_id);
         if (ii != commits_.end())
         {
-            return ResultT{ii->second->metadata.is_persistent()};
+            return ResultT{ii->second->metadata.is_transient()};
+        }
+
+        return ResultT{};
+    }
+
+    Optional<bool> is_system_commit(const CommitID& commit_id) override
+    {
+        using ResultT = Optional<bool>;
+
+        auto ii = commits_.find(commit_id);
+        if (ii != commits_.end())
+        {
+            return ResultT{ii->second->metadata.is_system_commit()};
         }
 
         return ResultT{};

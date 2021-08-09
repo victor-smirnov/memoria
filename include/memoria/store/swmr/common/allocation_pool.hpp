@@ -96,6 +96,14 @@ public:
         }
     }
 
+    void reset() noexcept {
+        for (int32_t ll = 0; ll < Levels; ll++)
+        {
+            levels_[ll].reset();
+            totals_[ll] = 0;
+        }
+    }
+
     ArenaBuffer<AlcMetadata>& level_buffer(int32_t ll) noexcept {
         return levels_[ll];
     }

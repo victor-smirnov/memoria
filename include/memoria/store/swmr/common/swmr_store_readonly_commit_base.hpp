@@ -32,6 +32,7 @@ protected:
     using typename Base::SharedBlockConstPtr;
     using typename Base::CtrID;
 
+    using Base::commit_descriptor_;
 
 public:
     SWMRStoreReadOnlyCommitBase(
@@ -56,6 +57,14 @@ public:
     {
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(this, ctr_id, decl);
+    }
+
+    bool is_transient() noexcept {
+        return commit_descriptor_->is_transient();
+    }
+
+    bool is_system_commit() noexcept {
+        return commit_descriptor_->is_system_commit();
     }
 };
 

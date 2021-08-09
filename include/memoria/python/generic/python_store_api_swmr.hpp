@@ -50,7 +50,8 @@ struct PythonAPIBinder<ISWMRStoreHistoryView<Profile>> {
 
         pybind11::class_<Type, SharedPtr<Type>> clazz(m, "SWMRStoreHistoryView");
 
-        clazz.def("is_persistent", &Type::is_persistent);
+        clazz.def("is_transient", &Type::is_transient);
+        //clazz.def("is_system_commit", &Type::is_system_commit);
         clazz.def("parent", &Type::parent);
         clazz.def("children", &Type::children);
         clazz.def("commits", &Type::commits);
@@ -82,13 +83,16 @@ struct PythonAPIBinder<IBasicSWMRStore<Profile>> {
         pybind11::class_<CommitBaseType, SnpCtrOpsType, SharedPtr<CommitBaseType>> commit_base(m, "SWMRStoreCommitBase");
         commit_base.def("commit_id", &CommitBaseType::commit_id);
         commit_base.def("describe_to_cout", &CommitBaseType::describe_to_cout);
+        commit_base.def("is_system_commit", &ROCommitType::is_system_commit);
+        commit_base.def("is_persistent", &ROCommitType::is_transient);
 
         pybind11::class_<ROCommitType, CommitBaseType, SharedPtr<ROCommitType>>(m, "SWMRStoreReanOnlyCommit")
-            .def("drop", &ROCommitType::drop);
+            .def("drop", &ROCommitType::drop)
+            ;
 
         pybind11::class_<RWCommitType, CommitBaseType, WritableSnpCtrOpsType, SharedPtr<RWCommitType>>(m, "SWMRStoreWritableCommit")
-            .def("set_persistent", &RWCommitType::set_persistent)
-            .def("is_persistent", &RWCommitType::is_persistent);
+            .def("set_transient", &RWCommitType::set_transient)
+            ;
 
         py::class_<Type, SharedPtr<Type>>(m, "BasicSWMRStore")
             .def("flush", &Type::flush)
@@ -123,7 +127,8 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
             .def("open", py::overload_cast<const CommitID&, bool>(&Type::open))
             .def("open", py::overload_cast<U8StringView>(&Type::open))
             .def("history_view", &Type::history_view)
-            .def("is_persistent", &Type::is_persistent)
+            .def("is_transient", &Type::is_transient)
+            .def("is_system_commit", &Type::is_system_commit)
             .def("parent", &Type::parent)
             .def("children", &Type::children)
             .def("commits", &Type::commits)

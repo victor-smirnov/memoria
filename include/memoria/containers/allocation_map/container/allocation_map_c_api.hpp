@@ -183,6 +183,21 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         return sum;
     }
 
+    virtual CtrSizeT allocate(
+            int32_t level,
+            CtrSizeT required,
+            ArenaBuffer<ALCMeta>& buffer
+    ) {
+        auto size0 = buffer.size();
+        auto total = find_unallocated(level, required, buffer);
+
+        if (total >= required) {
+            setup_bits(buffer.span(size0), true); // mark all regions as allocated
+        }
+
+        return total;
+    }
+
     struct ScanUnallocatedFn {
         template <typename T>
         VoidResult treeNode(T&& node_so, ArenaBuffer<ALCMeta>& arena, CtrSizeT offset) const noexcept

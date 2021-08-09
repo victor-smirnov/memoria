@@ -42,7 +42,8 @@ class CommitMetadata {
 public:
     static constexpr uint64_t VERSION = 1;
     enum Bits {
-        PERSISTENT = 0x1
+        TRANSIENT = 0x1,
+        SYSTEM_COMMIT = 0x2
     };
 
     CommitMetadata() noexcept :
@@ -73,16 +74,29 @@ public:
         flags_ = ff;
     }
 
-    bool is_persistent() const noexcept {
-        return flags_ & PERSISTENT;
+    bool is_transient() const noexcept {
+        return flags_ & TRANSIENT;
     }
 
-    void set_persistent(bool value) noexcept {
+    bool is_system_commit() const noexcept {
+        return flags_ & SYSTEM_COMMIT;
+    }
+
+    void set_transient(bool value) noexcept {
         if (value) {
-            flags_ |= (uint64_t)PERSISTENT;
+            flags_ |= (uint64_t)TRANSIENT;
         }
         else {
-            flags_ &= ~(uint64_t)PERSISTENT;
+            flags_ &= ~(uint64_t)TRANSIENT;
+        }
+    }
+
+    void set_system_commit(bool value) noexcept {
+        if (value) {
+            flags_ |= (uint64_t)SYSTEM_COMMIT;
+        }
+        else {
+            flags_ &= ~(uint64_t)SYSTEM_COMMIT;
         }
     }
 

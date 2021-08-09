@@ -31,12 +31,14 @@ struct ISWMRStoreCommitBase: virtual IROStoreSnapshotCtrOps<Profile> {
 
     virtual CommitID commit_id() = 0;
     virtual void describe_to_cout() = 0;
+
+    virtual bool is_transient() = 0;
+    virtual bool is_system_commit() = 0;
 };
 
 template <typename Profile>
 struct ISWMRStoreWritableCommit: virtual ISWMRStoreCommitBase<Profile>, virtual IROStoreWritableSnapshotCtrOps<Profile> {
-    virtual void set_persistent(bool persistent) = 0;
-    virtual bool is_persistent() = 0;
+    virtual void set_transient(bool transient) = 0;
 };
 
 template <typename Profile>
@@ -51,7 +53,9 @@ struct ISWMRStoreHistoryView {
 
     virtual ~ISWMRStoreHistoryView() noexcept = default;
 
-    virtual Optional<bool> is_persistent(const CommitID& commit_id) = 0;
+    virtual Optional<bool> is_transient(const CommitID& commit_id) = 0;
+    virtual Optional<bool> is_system_commit(const CommitID& commit_id) = 0;
+
     virtual Optional<CommitID> parent(const CommitID& commit_id) = 0;
     virtual Optional<std::vector<CommitID>> children(const CommitID& commit_id) = 0;
     virtual Optional<std::vector<CommitID>> commits(U8StringView branch) = 0;
@@ -105,7 +109,7 @@ struct IBasicSWMRStore {
     virtual ReadOnlyCommitPtr open()  = 0;
     virtual WritableCommitPtr begin() = 0;
 
-    virtual void flush() = 0;
+    virtual ReadOnlyCommitPtr flush() = 0;
 
     virtual Optional<SequenceID> check(StoreCheckCallbackFn callback) = 0;
 
@@ -131,7 +135,8 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
 
     virtual Optional<CommitID> parent(const CommitID& commit_id) = 0;
     virtual Optional<std::vector<CommitID>> children(const CommitID& commit_id) = 0;
-    virtual Optional<bool> is_persistent(const CommitID& commit_id) = 0;
+    virtual Optional<bool> is_transient(const CommitID& commit_id) = 0;
+    virtual Optional<bool> is_system_commit(const CommitID& commit_id) = 0;
 
     using Base::open;
     using Base::begin;

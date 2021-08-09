@@ -266,7 +266,8 @@ public:
         }
     }
 
-    virtual void flush() {
+    virtual ReadOnlyCommitPtr flush() {
+        return ReadOnlyCommitPtr{};
     }
 
     virtual WritableCommitPtr begin()

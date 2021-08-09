@@ -167,7 +167,7 @@ public:
         return ProfileTraits<Profile>::make_random_block_id();
     }
 
-    virtual SnpSharedPtr<StoreT> self_ptr() noexcept override {
+    virtual SnpSharedPtr<StoreT> my_self_ptr() noexcept override {
         return this->shared_from_this();
     }
 

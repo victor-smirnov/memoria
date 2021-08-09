@@ -16,9 +16,14 @@
 
 #pragma once
 
+#include <memoria/api/allocation_map/allocation_map_api.hpp>
+#include <memoria/core/tools/arena_buffer.hpp>
+#include <memoria/core/tools/optional.hpp>
+
 #include <memoria/profiles/common/common.hpp>
 
 #include <memoria/store/swmr/common/superblock.hpp>
+
 
 #include <boost/intrusive/list.hpp>
 
@@ -41,20 +46,29 @@ public:
     using ChildIterator = typename Children::iterator;
     using ConstChildIterator = typename Children::const_iterator;
 
+    using Allocations = ArenaBuffer<AllocationMetadata<ApiProfile<Profile>>>;
+
 private:
 
     std::atomic<int32_t> uses_{};
     uint64_t superblock_ptr_;
-    bool persistent_{false};
+    bool transient_{true};
+    bool system_commit_{false};
     SequenceID sequence_id_{};
     SequenceID consistency_point_sequence_id_{};
     CommitID commit_id_{};
+
+    CommitID allocation_map_commit_id_{};
+    BlockID allocation_map_root_id_{};
 
     CommitDescriptor* parent_;
 
     Children children_;
 
     U8String branch_;
+
+    Allocations postponed_deallocations_;
+    size_t saved_deallocations_size_{};
 
 public:
     CommitDescriptor(U8StringView branch = "main") noexcept:
@@ -71,6 +85,58 @@ public:
         sequence_id_ = superblock->sequence_id();
         consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
         commit_id_   = superblock->commit_id();
+    }
+
+    const Allocations& postponed_deallocations() const noexcept {
+        return postponed_deallocations_;
+    }
+
+    Allocations& postponed_deallocations() noexcept {
+        return postponed_deallocations_;
+    }
+
+    void transfer_postponed_deallocations_to(CommitDescriptor* other)
+    {
+        if (other->postponed_deallocations_.size() == 0)
+        {
+            other->postponed_deallocations_ = std::move(postponed_deallocations_);
+            // FIXME: is it necessary?
+            other->saved_deallocations_size_ = saved_deallocations_size_;
+        }
+    }
+
+    void clear_postponed_deallocations() noexcept
+    {
+        postponed_deallocations_.reset();
+        saved_deallocations_size_ = 0;
+    }
+
+    void save_deallocations_size() noexcept {
+        saved_deallocations_size_ = postponed_deallocations_.size();
+    }
+
+    size_t saved_deallocations_size() const noexcept {
+        return saved_deallocations_size_;
+    }
+
+    const BlockID& allocation_map_root_id() const noexcept {
+        return allocation_map_root_id_;
+    }
+
+    BlockID* allocation_map_root_id_ptr() noexcept {
+        return &allocation_map_root_id_;
+    }
+
+    void set_allocation_map_root_id(const BlockID& id){
+        allocation_map_root_id_ = id;
+    }
+
+    const CommitID& allocation_map_commit_id() const noexcept {
+        return allocation_map_commit_id_;
+    }
+
+    void set_allocation_map_commit_id(const CommitID& id){
+        allocation_map_commit_id_ = id;
     }
 
     void detach_from_tree() noexcept
@@ -114,12 +180,20 @@ public:
         commit_id_   = superblock->commit_id();
     }
 
-    bool is_persistent() const noexcept {
-        return persistent_;
+    bool is_transient() const noexcept {
+        return transient_;
     }
 
-    void set_persistent(bool persistent) noexcept {
-        persistent_ = persistent;
+    void set_transient(bool transient) noexcept {
+        transient_ = transient;
+    };
+
+    bool is_system_commit() const noexcept {
+        return system_commit_;
+    }
+
+    void set_system_commit(bool value) noexcept {
+        system_commit_ = value;
     };
 
     const SequenceID& sequence_id() const noexcept {
