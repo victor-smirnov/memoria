@@ -70,21 +70,20 @@ int main(void) {
                     ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str());
                 }
 
-                snp1->set_transient(false);
-                snp1->commit(ConsistencyPoint::YES);
+                snp1->set_transient(true);
+                snp1->commit(ConsistencyPoint::NO);
             }
         }
-
-        store1->check(callback);
+//        store1->check(callback);
 
         auto t_end = getTimeInMillis();
 
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
 
-        store1->check(callback);
+//        store1->check(callback);
 
-        auto vv = create_graphviz_dot_visitor("swmr-write.dot");
-        store1->traverse(*vv.get());
+//        auto vv = create_graphviz_dot_visitor("swmr-write.dot");
+//        store1->traverse(*vv.get());
 
         store1->close();
     }

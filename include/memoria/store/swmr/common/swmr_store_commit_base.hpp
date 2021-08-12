@@ -46,7 +46,7 @@ constexpr UUID BlockMapCtrID = UUID(2252363826283707159ull, 3438662628447812789u
 
 template <typename Profile>
 struct CommitCheckState {
-    SWMRBlockCounters<Profile> counters;
+    SWMRBlockCounters<Profile> counters{"CheckState"};
 };
 
 

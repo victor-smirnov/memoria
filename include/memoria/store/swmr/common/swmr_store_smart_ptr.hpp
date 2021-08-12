@@ -35,11 +35,11 @@ public:
         references_++;
     }
 
-    bool unref() noexcept {
-        return --references_;
+    void unref() noexcept {
+        if (--references_ == 0) {
+            release();
+        }
     }
-
-
 };
 
 class MMapSBPtrPooledSharedImpl: public SBPtrSharedBase {
@@ -147,9 +147,9 @@ public:
     }
 
     void reset() noexcept {
-        if (shared_ && shared_->unref())
+        if (shared_)
         {
-
+            shared_->unref();
         }
     }
 

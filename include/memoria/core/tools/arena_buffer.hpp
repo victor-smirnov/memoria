@@ -310,7 +310,7 @@ public:
     bool append_values(const ValueT* values, SizeT size) noexcept
     {
         bool resized = ensure(size);
-        MemCpyBuffer(values, buffer_ + size_, size);
+        MemMoveBuffer(values, buffer_ + size_, size);
         size_ += size;
         return resized;
     }
@@ -319,7 +319,7 @@ public:
     {
         SizeT size = values.size();
         bool resized = ensure(size);
-        MemCpyBuffer(values.data(), buffer_ + size_, size);
+        MemMoveBuffer(values.data(), buffer_ + size_, size);
         size_ += size;
         return resized;
     }
@@ -376,7 +376,8 @@ public:
         size_ = 0;
     }
 
-    void reset() noexcept
+
+    void reset(size_t capacity = 0)
     {
         invalidate_guard();
 
@@ -385,16 +386,26 @@ public:
         }
 
         size_ = 0;
-        capacity_ = 64;
+        capacity_ = capacity;
 
-        buffer_ = allocate_buffer(capacity_);
+        buffer_ = capacity_ > 0 ? allocate_buffer(capacity_) : 0;
     }
 
     void remove(size_t from, size_t to) noexcept
     {
-        invalidate_guard();
-        MemCpyBuffer(buffer_ + to, buffer_ + from, size_ - to);
-        size_ -= to - from;
+        //std::cout << "ArenaBuffer: invalid range: " << from << " :: " << to << " :: " << size_ << std::endl;
+
+        //if (to > from)
+        {
+            invalidate_guard();
+
+            if (to < from || from >= size_ || to >= size_) {
+                std::cout << "ArenaBuffer: invalid range: " << from << " :: " << to << " :: " << size_ << std::endl;
+            }
+
+            MemMoveBuffer(buffer_ + to, buffer_ + from, size_ - to);
+            size_ -= to - from;
+        }
     }
 
     GuardedView<ValueT> get_guarded(size_t idx) noexcept {

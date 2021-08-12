@@ -112,6 +112,8 @@ protected:
     bool allocate_from_superblock_{};
     bool forbid_allocations_{};
 
+    bool allocator_map_cloned_{};
+
     class FlagScope {
         bool& flag_;
     public:
@@ -330,8 +332,10 @@ public:
 
         commit_descriptor_->set_superblock(sb_pos, sb.get());
 
-        // Marking the new SB as allocated in the new SB.
+        // Marking that the new SB as allocated in the new SB.
         sb->remove_block_from_pool(alc_idx);
+
+        do_ref_system_containers();
 
         init_idmap();
 
@@ -473,7 +477,7 @@ public:
         return commit(ConsistencyPoint::YES);
     }
 
-    void finish_commit_opening()
+    void do_ref_system_containers()
     {
         auto sb = get_superblock();
 
@@ -496,6 +500,11 @@ public:
         {
             ref_block(sb->blockmap_root_id());
         }
+    }
+
+    void finish_commit_opening()
+    {
+
     }
 
     void populate_allocation_pool(int32_t level, int64_t minimal_amount)
@@ -925,6 +934,7 @@ public:
             if (!root.is_null())
             {
                 ref_block(root);
+                allocator_map_cloned_ = true;
 
                 auto prev_id = sb->allocator_root_id();
                 sb->allocator_root_id() = root;

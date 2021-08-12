@@ -57,8 +57,14 @@ struct SWMRBlockCounters {
 
 private:
     absl::btree_set<BlockID> ctr_roots_;
-    absl::btree_map<BlockID, Counter> map_;
+    //absl::btree_map<BlockID, Counter> map_;
+    std::unordered_map<BlockID, Counter> map_;
+
+    std::string id_;
+
 public:
+    SWMRBlockCounters() {}
+    SWMRBlockCounters(std::string id): id_(id) {}
 
     void clear() noexcept {
         map_.clear();
@@ -92,7 +98,8 @@ public:
         map_[block_id] = Counter{counter};
     }
 
-    bool inc(const BlockID& block_id) noexcept {
+    bool inc(const BlockID& block_id) noexcept
+    {
         auto ii = map_.find(block_id);
         if (ii != map_.end()) {
             ii->second.inc();
