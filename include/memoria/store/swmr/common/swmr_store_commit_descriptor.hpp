@@ -19,6 +19,7 @@
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 #include <memoria/core/tools/arena_buffer.hpp>
 #include <memoria/core/tools/optional.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #include <memoria/profiles/common/common.hpp>
 
@@ -62,13 +63,19 @@ private:
     BlockID allocation_map_root_id_{};
 
     CommitDescriptor* parent_;
-
     Children children_;
-
     U8String branch_;
 
     Allocations postponed_deallocations_;
     size_t saved_deallocations_size_{};
+
+    uint64_t allocated_basic_blocks_{};
+    uint64_t allocated_basic_blocks_threshold_{};
+    int64_t t_start_{};
+
+    uint64_t commits_since_{};
+    uint64_t commits_threshold_{};
+    int64_t cp_timeout_{};
 
 public:
     CommitDescriptor(U8StringView branch = "main") noexcept:
@@ -85,6 +92,41 @@ public:
         sequence_id_ = superblock->sequence_id();
         consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
         commit_id_   = superblock->commit_id();
+    }
+
+    uint64_t allocated_basic_blocks() const noexcept {
+        return allocated_basic_blocks_;
+    }
+
+    void set_allocated_basic_blocks_threshold(uint64_t val) noexcept {
+        allocated_basic_blocks_threshold_ = val;
+    }
+
+    void add_allocated(uint64_t value) noexcept {
+        allocated_basic_blocks_ += value;
+    }
+
+    void inc_commits() noexcept {
+        commits_since_++;
+    }
+
+    void set_commits_threshold(uint64_t val) noexcept {
+        commits_threshold_ = val;
+    }
+
+    void set_cp_timeout(int64_t val) noexcept {
+        cp_timeout_ = val;
+    }
+
+    void set_start_time(int64_t val) noexcept {
+        t_start_ = val;
+    }
+
+    bool should_make_consistency_point(const CommitDescriptor* head) noexcept
+    {
+        return allocated_basic_blocks_ >= head->allocated_basic_blocks_threshold_ ||
+                commits_since_ >= head->commits_threshold_ ||
+                head->cp_timeout_ >= 0 ? getTimeInMillis() - t_start_ >= head->cp_timeout_ : false;
     }
 
     const Allocations& postponed_deallocations() const noexcept {

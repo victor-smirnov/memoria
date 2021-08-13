@@ -133,6 +133,15 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
 
     virtual Optional<std::vector<CommitID>> commits(U8StringView branch) = 0;
 
+    virtual uint64_t cp_allocation_threshold() const = 0;
+    virtual uint64_t set_cp_allocation_threshold(uint64_t value) = 0;
+
+    virtual uint64_t cp_commit_threshold() const  = 0;
+    virtual uint64_t set_cp_commit_threshold(uint64_t value) = 0;
+
+    virtual int64_t cp_timeout() const = 0;
+    virtual int64_t set_cp_timeout(int64_t value) = 0;
+
     virtual Optional<CommitID> parent(const CommitID& commit_id) = 0;
     virtual Optional<std::vector<CommitID>> children(const CommitID& commit_id) = 0;
     virtual Optional<bool> is_transient(const CommitID& commit_id) = 0;

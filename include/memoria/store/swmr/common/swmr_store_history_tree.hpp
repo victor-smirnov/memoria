@@ -153,6 +153,10 @@ public:
         );
     }
 
+    bool is_clean() const noexcept {
+        return head_ == consistency_point1_;
+    }
+
     int64_t count_volatile_commits() const noexcept {
         return volatile_commits_.size();
     }

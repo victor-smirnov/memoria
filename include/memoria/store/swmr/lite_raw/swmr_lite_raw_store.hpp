@@ -89,8 +89,7 @@ public:
         close();
     }
 
-    virtual ReadOnlyCommitPtr flush() override {
-        return ReadOnlyCommitPtr{};
+    void do_flush() override {
     }
 
     virtual void close() override {

@@ -64,7 +64,7 @@ protected:
 };
 
 enum class ConsistencyPoint {
-    NO, YES, AUTO
+    NO, YES, AUTO, FULL
 };
 
 template <typename Profile>

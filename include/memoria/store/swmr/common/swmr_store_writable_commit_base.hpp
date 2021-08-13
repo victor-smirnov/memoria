@@ -131,6 +131,7 @@ protected:
 
     RemovingBlocksConsumerFn removing_blocks_consumer_fn_{};
     CommitDescriptorT* head_commit_descriptor_{};
+    CommitDescriptorT* consistency_point_commit_descriptor_{};
 
 public:
     using Base::check;
@@ -303,6 +304,8 @@ public:
 
         // HEAD is always defined here
         head_commit_descriptor_ = head;
+        consistency_point_commit_descriptor_ = consistency_point;
+
         auto head_snp = store_->do_open_readonly(head);
         auto head_allocation_map_ctr = head_snp->find(AllocationMapCtrID);
         head_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(head_allocation_map_ctr);
@@ -659,7 +662,20 @@ public:
     {
         if (this->is_active())
         {
-            bool do_conistency_point = cp != ConsistencyPoint::NO;
+            bool do_conistency_point;
+
+            if (consistency_point_commit_descriptor_) {
+                consistency_point_commit_descriptor_->inc_commits();
+            }
+
+            if (cp == ConsistencyPoint::AUTO) {
+                do_conistency_point =
+                        consistency_point_commit_descriptor_
+                    ->should_make_consistency_point(commit_descriptor_);
+            }
+            else {
+                do_conistency_point = cp == ConsistencyPoint::YES || cp == ConsistencyPoint::FULL;
+            }
 
             auto sb = get_superblock();
 
@@ -772,7 +788,7 @@ public:
                 ).do_throw();
             }
 
-            store_->finish_commit(Base::commit_descriptor_, cp, sb);
+            store_->finish_commit(Base::commit_descriptor_, cp, do_conistency_point, sb);
 
             committed_ = true;
         }
@@ -1184,6 +1200,10 @@ public:
         uint64_t position = allocation.position();
 
         auto shared = allocate_block(position, initial_size, ctr_id == BlockMapCtrID);
+
+        if (consistency_point_commit_descriptor_) {
+            consistency_point_commit_descriptor_->add_allocated(scale_factor);
+        }
 
         BlockType* block = shared->get();
         block->snapshot_id() = commit_id();

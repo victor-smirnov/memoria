@@ -59,7 +59,7 @@ int main(void) {
                 auto snp1 = store1->begin();
                 auto ctr1 = find<CtrType>(snp1, ctr_id);
 
-                //if (b0 % 100 == 0)
+                if (b0 % 100 == 0)
                 {
                     std::cout << "Batch " << (b0) << " :: " << cnt << " :: " << (batch_size * batches) << std::endl;
                 }
@@ -75,6 +75,8 @@ int main(void) {
             }
         }
 //        store1->check(callback);
+
+        store1->flush();
 
         auto t_end = getTimeInMillis();
 

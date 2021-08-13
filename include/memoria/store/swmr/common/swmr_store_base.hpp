@@ -100,6 +100,10 @@ protected:
 
     bool read_only_{false};
 
+    uint64_t cp_allocation_threshold_{100 * 1024 * 1024 / 4096};
+    uint64_t cp_commits_threshold_{10000};
+    uint64_t cp_timeout_{1000}; // 1 secons
+
 public:
     using Base::flush;
 
@@ -109,12 +113,47 @@ public:
         });
     }
 
+    uint64_t cp_allocation_threshold() const override {
+        LockGuard lock(reader_mutex_);
+        return cp_allocation_threshold_;
+    }
+
+    uint64_t cp_commit_threshold() const override {
+        LockGuard lock(reader_mutex_);
+        return cp_commits_threshold_;
+    }
+
+    uint64_t set_cp_allocation_threshold(uint64_t value) override {
+        LockGuard lock(reader_mutex_);
+        auto tmp = cp_allocation_threshold_;
+        cp_allocation_threshold_ = value;
+        return tmp;
+    }
+
+    uint64_t set_cp_commit_threshold(uint64_t value) override {
+        LockGuard lock(reader_mutex_);
+        auto tmp = cp_commits_threshold_;
+        cp_commits_threshold_ = value;
+        return tmp;
+    }
+
+    int64_t cp_timeout() const override {
+        LockGuard lock(reader_mutex_);
+        return cp_timeout_;
+    }
+
+    int64_t set_cp_timeout(int64_t value) override
+    {
+        LockGuard lock(reader_mutex_);
+        auto tmp = cp_timeout_;
+        cp_timeout_ = value;
+        return tmp;
+    }
+
     virtual void close() override = 0;
 
     virtual void flush_data(bool async = false) = 0;
     virtual void flush_header(bool async = false) = 0;
-
-
 
     virtual void check_if_open() = 0;
 
@@ -134,6 +173,31 @@ public:
     virtual SharedSBPtr<SuperblockT> get_superblock(uint64_t file_pos) = 0;
     virtual SharedSBPtr<CounterBlockT> get_counter_block(uint64_t file_pos) = 0;
     virtual uint64_t buffer_size() = 0;
+
+    virtual void do_flush() = 0;
+
+    virtual ReadOnlyCommitPtr flush() override
+    {
+        LockGuard lock(writer_mutex_);
+        check_if_open();
+
+        bool clean;
+        {
+            LockGuard rlock(reader_mutex_);
+            clean = history_tree_.is_clean();
+        }
+
+        if (!clean)
+        {
+            auto ii = create_system_commit();
+            ii->commit(ConsistencyPoint::YES);
+            do_flush();
+            return DynamicPointerCast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(ii);
+        }
+        else {
+            return ReadOnlyCommitPtr{};
+        }
+    }
 
     virtual Optional<std::vector<CommitID>> commits(U8StringView branch) override
     {
@@ -378,6 +442,22 @@ public:
         return branch_from("main", branch);
     }
 
+    std::unique_ptr<CommitDescriptorT> create_commit_descriptor(U8StringView branch_name)
+    {
+        std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(branch_name);
+
+        commit_descriptor->set_start_time(getTimeInMillis());
+
+        {
+            LockGuard lock(reader_mutex_);
+            commit_descriptor->set_allocated_basic_blocks_threshold(cp_allocation_threshold_);
+            commit_descriptor->set_commits_threshold(cp_commits_threshold_);
+            commit_descriptor->set_cp_timeout(cp_timeout_);
+        }
+
+        return commit_descriptor;
+    }
+
     virtual WritableCommitPtr branch_from(U8StringView source, U8StringView branch_name) override
     {
         check_if_open();
@@ -389,7 +469,7 @@ public:
             auto descr = get_branch_head_read_sync(source);
             if (descr)
             {
-                std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(branch_name);
+                std::unique_ptr<CommitDescriptorT> commit_descriptor = create_commit_descriptor(branch_name);
 
                 SWMRWritableCommitPtr ptr = do_create_writable(
                             history_tree_.consistency_point1(),
@@ -431,7 +511,7 @@ public:
             {
                 if (!descr.get()->is_transient())
                 {
-                    std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(branch_name);
+                    std::unique_ptr<CommitDescriptorT> commit_descriptor = create_commit_descriptor(branch_name);
 
                     SWMRWritableCommitPtr ptr = do_create_writable(
                                 history_tree_.consistency_point1(),
@@ -480,7 +560,7 @@ public:
                     U8String new_branch = history_tree_.mark_branch_transient(descr.get(), branch_name);
                     bool do_cleanup_data = history_tree_.branches_size() == 1;
 
-                    std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(new_branch);
+                    std::unique_ptr<CommitDescriptorT> commit_descriptor = create_commit_descriptor(new_branch);
 
                     return Optional<TupleT>{TupleT{descr.get(), std::move(commit_descriptor), do_cleanup_data}};
                 }
@@ -526,6 +606,38 @@ public:
         }
     }
 
+    WritableCommitPtr create_system_commit()
+    {
+        check_if_open();
+        throw_if_read_only();
+
+        writer_mutex_.lock();
+
+        try {
+            LockGuard lock(reader_mutex_);
+
+            U8String last_branch = history_tree_.head()->branch();
+            std::unique_ptr<CommitDescriptorT> commit_descriptor = create_commit_descriptor(last_branch);
+            commit_descriptor->set_system_commit(true);
+
+            SWMRWritableCommitPtr ptr = do_create_writable(
+                        history_tree_.consistency_point1(),
+                        history_tree_.head(),
+                        history_tree_.head(),
+                        commit_descriptor.get()
+            );
+
+            ptr->finish_commit_opening();
+            commit_descriptor.release();
+
+            return ptr;
+        }
+        catch (...) {
+            writer_mutex_.unlock();
+            throw;
+        }
+    }
+
 
     virtual Optional<CommitID> remove_commit(const CommitID& commit_id) override
     {
@@ -541,9 +653,8 @@ public:
 
             if (history_tree_.mark_commit_transient(commit_id))
             {
-                U8String last_branch = history_tree_.consistency_point1()->branch();
-
-                std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(last_branch);
+                U8String last_branch = history_tree_.head()->branch();
+                std::unique_ptr<CommitDescriptorT> commit_descriptor = create_commit_descriptor(last_branch);
 
                 SWMRWritableCommitPtr ptr = do_create_writable(
                             history_tree_.consistency_point1(),
@@ -556,7 +667,6 @@ public:
 
                 // This will remove all non-persistent commits from the history.
                 ptr->commit(ConsistencyPoint::AUTO);
-
                 return ptr->commit_id();
             }
             else {
@@ -570,11 +680,14 @@ public:
     }
 
 
-    virtual void finish_commit(CommitDescriptorT* commit_descriptor, ConsistencyPoint cp, SharedSBPtr<SuperblockT> sb)
+    virtual void finish_commit(
+            CommitDescriptorT* commit_descriptor,
+            ConsistencyPoint cp,
+            bool do_consistency_point,
+            SharedSBPtr<SuperblockT> sb
+    )
     {
-        bool consistency_point = cp != ConsistencyPoint::NO;
-
-        if (consistency_point) // AUTO is YES for now
+        if (do_consistency_point)
         {
             sb->inc_consistency_point_sequence_id();
             sb->build_superblock_description();
@@ -593,7 +706,7 @@ public:
         {
             LockGuard lock(reader_mutex_);
             cleanup_eviction_queue();
-            history_tree_.attach_commit(commit_descriptor, consistency_point);
+            history_tree_.attach_commit(commit_descriptor, do_consistency_point);
         }
 
         current_writer_.reset();
@@ -894,6 +1007,8 @@ protected:
 
     virtual void prepare_to_close()
     {
+        flush();
+
         CommitDescriptorT* head_ptr = history_tree_.consistency_point1();
         if (head_ptr && !read_only_)
         {

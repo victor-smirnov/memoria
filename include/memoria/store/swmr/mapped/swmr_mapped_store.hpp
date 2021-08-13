@@ -137,17 +137,10 @@ public:
         close();
     }
 
-    virtual ReadOnlyCommitPtr flush() override {
-        LockGuard lock(writer_mutex_);
-
-        check_if_open();
-
-
-
+    virtual void do_flush() override
+    {
         flush_data();
         flush_header();
-
-        return ReadOnlyCommitPtr{};
     }
 
 
