@@ -27,11 +27,15 @@
 
 
 #include <boost/intrusive/list.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 #include <atomic>
 #include <unordered_set>
 
 namespace memoria {
+
+template <typename Profile>
+class HistoryTree;
 
 template <typename Profile>
 class CommitDescriptor: public boost::intrusive::list_base_hook<> {
@@ -40,16 +44,38 @@ class CommitDescriptor: public boost::intrusive::list_base_hook<> {
     using CommitID   = typename Superblock::CommitID;
     using SequenceID   = typename Superblock::SequenceID;
 
-    using Children = std::unordered_set<CommitDescriptor*>;
+public:
+    using SharedPtrT = boost::intrusive_ptr<CommitDescriptor>;
+
+private:
+    using Children = std::unordered_set<SharedPtrT>;
+    using HistoryTreeT = HistoryTree<Profile>;
 
 public:
-
     using ChildIterator = typename Children::iterator;
     using ConstChildIterator = typename Children::const_iterator;
 
     using Allocations = ArenaBuffer<AllocationMetadata<ApiProfile<Profile>>>;
 
 private:
+    enum class Status {
+        NEW, ATTACHED
+    };
+
+    template <typename TT>
+    friend void intrusive_ptr_add_ref(CommitDescriptor<TT>*) noexcept;
+
+    template <typename TT>
+    friend void intrusive_ptr_release(CommitDescriptor<TT>*) noexcept;
+
+    template <typename> friend class HistoryTree;
+
+    // FIXME: Do we need the refcounter to be thread safe?
+public:
+    int32_t references_{};
+private:
+
+    HistoryTreeT* history_tree_;
 
     std::atomic<int32_t> uses_{};
     uint64_t superblock_ptr_;
@@ -77,14 +103,23 @@ private:
     uint64_t commits_threshold_{};
     int64_t cp_timeout_{};
 
-public:
-    CommitDescriptor(U8StringView branch = "main") noexcept:
+    Status status_{Status::NEW};
+
+private:
+    CommitDescriptor(HistoryTreeT* history_tree, U8StringView branch) noexcept:
+        history_tree_(history_tree),
         superblock_ptr_(),
         parent_(),
         branch_(branch)
     {}
 
-    CommitDescriptor(uint64_t superblock_ptr, Superblock* superblock, U8StringView branch = "main") noexcept:
+    CommitDescriptor(
+            HistoryTreeT* history_tree,
+            uint64_t superblock_ptr,
+            Superblock* superblock,
+            U8StringView branch
+    ) noexcept:
+        history_tree_(history_tree),
         superblock_ptr_(superblock_ptr),
         parent_(),
         branch_(branch)
@@ -93,6 +128,26 @@ public:
         consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
         commit_id_   = superblock->commit_id();
     }
+
+public:
+
+    bool is_new() const noexcept {
+        return status_ == Status::NEW;
+    }
+
+    bool is_attached() const noexcept {
+        return status_ == Status::ATTACHED;
+    }
+
+    void set_attached() noexcept {
+        status_ = Status::ATTACHED;
+    }
+
+    void set_new() noexcept {
+        status_ = Status::NEW;
+    }
+
+    void enque_for_eviction();
 
     uint64_t allocated_basic_blocks() const noexcept {
         return allocated_basic_blocks_;
@@ -122,7 +177,7 @@ public:
         t_start_ = val;
     }
 
-    bool should_make_consistency_point(const CommitDescriptor* head) noexcept
+    bool should_make_consistency_point(const SharedPtrT& head) noexcept
     {
         return allocated_basic_blocks_ >= head->allocated_basic_blocks_threshold_ ||
                 commits_since_ >= head->commits_threshold_ ||
@@ -208,15 +263,16 @@ public:
         parent_ = parent;
     }
 
-    void set_superblock(uint64_t ptr, Superblock* superblock) noexcept {
+    void set_superblock(uint64_t ptr, Superblock* superblock) noexcept
+    {
         superblock_ptr_ = ptr;
-
         sequence_id_ = superblock->sequence_id();
         consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
         commit_id_   = superblock->commit_id();
     }
 
-    void refresh_descriptor(Superblock* superblock) noexcept {
+    void refresh_descriptor(Superblock* superblock) noexcept
+    {
         sequence_id_ = superblock->sequence_id();
         consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
         commit_id_   = superblock->commit_id();
@@ -263,16 +319,72 @@ public:
         return commit_id_;
     }
 
-    std::unordered_set<CommitDescriptor*>& children() noexcept {
+    auto& children() noexcept {
         return children_;
     }
 
-    const std::unordered_set<CommitDescriptor*>& children() const noexcept {
+    const auto& children() const noexcept {
         return children_;
     }
+
+    bool try_enqueue_for_eviction() noexcept
+    {
+        if (!is_linked())
+        {
+            if (is_attached() && references_ == 1 && parent_) {
+                enque_for_eviction();
+                return true;
+            }
+
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    void unlink_from_eviction_queue();
 };
 
 template <typename Profile>
 using CommitDescriptorsList = boost::intrusive::list<CommitDescriptor<Profile>>;
+
+template <typename Profile>
+inline void intrusive_ptr_add_ref(CommitDescriptor<Profile>* x) noexcept {
+//    auto val =
+    ++x->references_;
+
+    //println("CD ref: {} {} {} {}", x->commit_id(), (int)x->is_new(), (int)x->is_transient(), val);
+}
+
+template <typename Profile>
+inline void intrusive_ptr_release(CommitDescriptor<Profile>* x) noexcept {
+    auto val = --x->references_;
+
+//    if (val > 10) {
+//        int a = 0;
+//        a++;
+//    }
+
+//    println("CD unref: {} {} {} {}", x->commit_id(), (int)x->is_new(), (int)x->is_transient(), val);
+
+    if(x->is_attached())
+    {
+        if (val == 2) {
+            if (x->is_transient() && x->parent() && !x->is_linked()) {
+                x->enque_for_eviction();
+            }
+        }
+        else if (val == 0) {
+            println("Zero refcounter for attached commit descriptor! {}", x->commit_id());
+        }
+    }
+    else if(val == 0) { // is_new() == true
+        if (x->is_linked()) {
+            x->unlink_from_eviction_queue();
+        }
+        delete x;
+    }
+}
 
 }

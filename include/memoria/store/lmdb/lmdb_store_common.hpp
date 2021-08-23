@@ -90,6 +90,8 @@ protected:
 
     bool mutable_{false};
 
+    LDDocumentView metadata_;
+
     template <typename> friend class SWMRMappedStoreHistoryView;
 
 public:
@@ -105,6 +107,10 @@ public:
 
     static void init_profile_metadata() noexcept {
         DirectoryCtr::template init_profile_metadata<Profile>();
+    }
+
+    LDDocumentView metadata() {
+        return metadata_;
     }
 
     virtual ObjectPools& object_pools() const noexcept {

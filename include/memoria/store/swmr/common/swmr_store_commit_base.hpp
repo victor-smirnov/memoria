@@ -46,7 +46,7 @@ constexpr UUID BlockMapCtrID = UUID(2252363826283707159ull, 3438662628447812789u
 
 template <typename Profile>
 struct CommitCheckState {
-    SWMRBlockCounters<Profile> counters{"CheckState"};
+    SWMRBlockCounters<Profile> counters;
 };
 
 
@@ -58,7 +58,7 @@ struct ReferenceCounterDelegate {
 
     virtual void ref_block(const BlockID& block_id) = 0;
     virtual void unref_block(const BlockID& block_id, const std::function<void ()>& on_zero) = 0;
-    virtual void unref_ctr_root(const BlockID& root_block_id) = 0;
+    virtual Optional<int64_t> count_refs(const BlockID& block_id) = 0;
 };
 
 template <typename Profile> class SWMRStoreBase;
@@ -99,6 +99,8 @@ protected:
     using CounterStorageT = CounterStorage<Profile>;
 
     using CommitDescriptorT         = CommitDescriptor<Profile>;
+    using CDescrPtr                 = typename CommitDescriptorT::SharedPtrT;
+
     using CtrReferenceableResult    = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
     using StoreT                    = Base;
     using Superblock                = SWMRSuperblock<Profile>;
@@ -128,7 +130,7 @@ protected:
 
     CtrInstanceMap instance_map_;
 
-    CommitDescriptorT* commit_descriptor_;
+    CDescrPtr commit_descriptor_;
 
     Logger logger_;
 
@@ -140,22 +142,32 @@ protected:
 
     mutable ObjectPools object_pools_;
 
+    LDDocumentView metadata_;
+
 public:
     using Base::getBlock;
 
     SWMRStoreCommitBase(
             SharedPtr<Store> store,
-            CommitDescriptorT* commit_descriptor,
+            CDescrPtr& commit_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate
     ) noexcept:
         store_(store),
         commit_descriptor_(commit_descriptor),
         refcounter_delegate_(refcounter_delegate)
-    {}
+    {
+        if (MMA_UNLIKELY(!commit_descriptor_)) {
+            MEMORIA_MAKE_GENERIC_ERROR("commit_descriptor is null").do_throw();
+        }
+    }
 
     static void init_profile_metadata() noexcept {
         DirectoryCtr::template init_profile_metadata<Profile>();
         AllocationMapCtr::template init_profile_metadata<Profile>();
+    }
+
+    virtual LDDocumentView metadata() {
+        return metadata_;
     }
 
     virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) = 0;
@@ -598,13 +610,13 @@ public:
 
     virtual void unref_ctr_root(const BlockID& root_block_id)
     {
-        if (refcounter_delegate_)
-        {
-            return refcounter_delegate_->unref_ctr_root(root_block_id);
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("unref_ctr_root() is not implemented for ReadOnly commits").do_throw();
-        }
+//        if (refcounter_delegate_)
+//        {
+//            return refcounter_delegate_->unref_ctr_root(root_block_id);
+//        }
+//        else {
+//            MEMORIA_MAKE_GENERIC_ERROR("unref_ctr_root() is not implemented for ReadOnly commits").do_throw();
+//        }
     }
 
     virtual void traverse_ctr(
@@ -625,7 +637,10 @@ public:
 
     virtual void build_block_refcounters(SWMRBlockCounters<Profile>& counters)
     {
+        //println("   %%%%%%%%%%%%%%%%%%% Building refcounters for {}", commit_id());
+
         auto counters_fn = [&](const BlockID& block_id, const BlockID& parent_id) {
+            //println("Inc: {}", block_id);
             return counters.inc(block_id);
         };
 

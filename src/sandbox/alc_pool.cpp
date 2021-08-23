@@ -33,6 +33,8 @@ namespace memoria {
 int main(void) {
     InitCoreLDDatatypes();
 
+    println("{}", UUID{0, 617});
+
     try {
 
     LDDocument doc1 = LDDocument::parse(R"(

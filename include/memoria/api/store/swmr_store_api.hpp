@@ -34,11 +34,21 @@ struct ISWMRStoreCommitBase: virtual IROStoreSnapshotCtrOps<Profile> {
 
     virtual bool is_transient() = 0;
     virtual bool is_system_commit() = 0;
+
+    virtual LDDocumentView metadata() = 0;
 };
 
 template <typename Profile>
 struct ISWMRStoreWritableCommit: virtual ISWMRStoreCommitBase<Profile>, virtual IROStoreWritableSnapshotCtrOps<Profile> {
+    using CommitID = ApiProfileSnapshotID<Profile>;
+
     virtual void set_transient(bool transient) = 0;
+
+    virtual void prepare(ConsistencyPoint cp = ConsistencyPoint::AUTO) = 0;
+    virtual void rollback() = 0;
+
+    virtual bool remove_commit(const CommitID& commit_id) = 0;
+    virtual bool remove_branch(U8StringView branch_name)  = 0;
 };
 
 template <typename Profile>
@@ -96,6 +106,7 @@ struct SWMRStoreGraphVisitor {
 
 using StoreCheckCallbackFn = std::function<void (LDDocument&)>;
 
+
 template <typename Profile>
 struct IBasicSWMRStore {
 
@@ -109,8 +120,6 @@ struct IBasicSWMRStore {
     virtual ReadOnlyCommitPtr open()  = 0;
     virtual WritableCommitPtr begin() = 0;
 
-    virtual ReadOnlyCommitPtr flush() = 0;
-
     virtual Optional<SequenceID> check(StoreCheckCallbackFn callback) = 0;
 
     virtual U8String describe() const = 0;
@@ -118,6 +127,10 @@ struct IBasicSWMRStore {
     virtual U8String to_string(const ApiProfileBlockID<Profile>&) = 0;
 };
 
+
+enum class FlushType {
+    DEFAULT, FULL
+};
 
 template <typename Profile>
 struct ISWMRStore: IBasicSWMRStore<Profile> {
@@ -150,6 +163,8 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
     using Base::open;
     using Base::begin;
 
+    virtual ReadOnlyCommitPtr flush(FlushType ft = FlushType::DEFAULT) = 0;
+
     virtual std::vector<U8String> branches() = 0;
     virtual ReadOnlyCommitPtr open(U8StringView branch)  = 0;
     virtual ReadOnlyCommitPtr open(const CommitID& commit_id, bool open_transient_commits = false) = 0;
@@ -159,12 +174,6 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
     virtual WritableCommitPtr branch_from(U8StringView source, U8StringView branch_name) = 0;
     virtual WritableCommitPtr branch_from(const CommitID& commit_id, U8StringView branch_name) = 0;
 
-    virtual Optional<CommitID> remove_branch(U8StringView branch_name)  = 0;
-    virtual Optional<CommitID> remove_commit(const CommitID& commit_id) = 0;
-
-    virtual bool can_rollback_last_consistency_point() noexcept = 0;
-    virtual void rollback_last_consistency_point() = 0;
-    virtual void rollback_volatile_commits() = 0;
     virtual int64_t count_volatile_commits() = 0;
 
     virtual Optional<SequenceID> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) = 0;

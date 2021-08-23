@@ -43,7 +43,7 @@ int main(void) {
         ctr2->insert((SBuf() << " Cool String ABCDEFGH :: " << 11111111).str());
 
         ctr2->for_each([](auto view){
-            std::cout << view << std::endl;
+            //std::cout << view << std::endl;
         });
 
         snp2->commit();

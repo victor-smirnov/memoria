@@ -27,6 +27,19 @@ template <typename Profile> class SWMRStoreReadOnlyCommitBase;
 
 struct InitStoreTag{};
 
+struct RWBlkCounter {
+    int64_t value{};
+    void inc() {
+        value++;
+    }
+
+    bool dec(int64_t other)
+    {
+        value--;
+        return (other + value) == 0;
+    }
+};
+
 template <typename Profile>
 class SWMRStoreWritableCommitBase:
         public SWMRStoreCommitBase<Profile>,
@@ -39,6 +52,7 @@ protected:
     using MyType = SWMRStoreWritableCommitBase;
 
     using typename Base::Store;
+    using typename Base::CDescrPtr;
     using typename Base::CommitDescriptorT;
     using typename Base::CommitID;
     using typename Base::BlockID;
@@ -93,7 +107,7 @@ protected:
     using AllocationMetadataT = AllocationMetadata<ApiProfileT>;
     using ParentCommit        = SnpSharedPtr<SWMRStoreReadOnlyCommitBase<Profile>>;
 
-    using BlockCleanupHandler = std::function<VoidResult ()>;
+    using BlockCleanupHandler = std::function<void ()>;
 
     using RemovingBlocksConsumerFn = typename Store::RemovingBlockConsumerFn;
 
@@ -107,7 +121,6 @@ protected:
     ArenaBuffer<AllocationMetadataT> awaiting_init_allocations_;
     Optional<AllocationMetadataT> preallocated_;
 
-    bool committed_;
     bool populating_allocation_pool_{};
     bool allocate_from_superblock_{};
     bool forbid_allocations_{};
@@ -130,8 +143,24 @@ protected:
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_;
 
     RemovingBlocksConsumerFn removing_blocks_consumer_fn_{};
-    CommitDescriptorT* head_commit_descriptor_{};
-    CommitDescriptorT* consistency_point_commit_descriptor_{};
+    CDescrPtr head_commit_descriptor_{};
+    CDescrPtr consistency_point_commit_descriptor_{};
+
+    LDDocument metadata_doc_;
+
+    enum class State {
+        ACTIVE, PREPARED, COMMITTED, ROLLED_BACK
+    };
+
+    State state_{State::ACTIVE};
+
+    bool do_consistency_point_{false};
+
+
+    using CountersT = std::unordered_map<BlockID, RWBlkCounter>;
+
+    CountersT counters_;
+    CountersT* counters_ptr_ {&counters_};
 
 public:
     using Base::check;
@@ -139,14 +168,14 @@ public:
 
     SWMRStoreWritableCommitBase(
             SharedPtr<Store> store,
-            CommitDescriptorT* commit_descriptor,
+            CDescrPtr& commit_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate,
             RemovingBlocksConsumerFn removing_blocks_consumer_fn
     ) noexcept :
         Base(store, commit_descriptor, refcounter_delegate),
         removing_blocks_consumer_fn_(removing_blocks_consumer_fn)
     {
-        committed_ = (bool)removing_blocks_consumer_fn_;
+        state_ = removing_blocks_consumer_fn_ ? State::COMMITTED : State::ACTIVE;
     }
 
 
@@ -231,25 +260,35 @@ public:
         }
     }
 
-    void remove_all_blocks()
+    void remove_all_blocks(CountersT* counters)
     {
-        auto sb = get_superblock();
+        try {
+            counters_ptr_ = counters;
 
-        if (sb->directory_root_id().is_set()) {
-            unref_ctr_root(sb->directory_root_id());
+            auto sb = get_superblock();
+
+            if (sb->directory_root_id().is_set()) {
+                unref_ctr_root(sb->directory_root_id());
+            }
+
+            if (sb->allocator_root_id().is_set()) {
+                unref_ctr_root(sb->allocator_root_id());
+            }
+
+            if (sb->history_root_id().is_set()) {
+                unref_ctr_root(sb->history_root_id());
+            }
+
+            drop_idmap();
+
+            removing_blocks_consumer_fn_(BlockID{BlockIDValueHolder{}}, sb->superblock_file_pos(), sb->superblock_size());
+
+            counters_ptr_ = &counters_;
         }
-
-        if (sb->allocator_root_id().is_set()) {
-            unref_ctr_root(sb->allocator_root_id());
+        catch (...) {
+            counters_ptr_ = &counters_;
+            throw;
         }
-
-        if (sb->history_root_id().is_set()) {
-            unref_ctr_root(sb->history_root_id());
-        }
-
-        drop_idmap();
-
-        removing_blocks_consumer_fn_(BlockID{BlockIDValueHolder{}}, sb->superblock_file_pos(), sb->superblock_size());
     }
 
     void cleanup_data() {
@@ -294,12 +333,12 @@ public:
 
 
     void init_commit(
-            CommitDescriptorT* consistency_point,
-            CommitDescriptorT* head,
-            CommitDescriptorT* parent_commit_descriptor
+            CDescrPtr& consistency_point,
+            CDescrPtr& head,
+            CDescrPtr& parent_commit_descriptor
     )
     {
-        commit_descriptor_->set_parent(parent_commit_descriptor);
+        commit_descriptor_->set_parent(parent_commit_descriptor.get());
         parent_commit_id_ = parent_commit_descriptor->commit_id();
 
         // HEAD is always defined here
@@ -571,17 +610,19 @@ public:
 
         AllocationMetadataT allocation = allocate_one_or_throw(0, 0);
 
-        // FIXME: <<SUPERBLOCK_ALLOCATION_LEVEL is not needed below
         uint64_t pos = (allocation.position() << SUPERBLOCK_ALLOCATION_LEVEL) * BASIC_BLOCK_SIZE;
+
+        LDDocument meta;
+        LDDMapView map = meta.set_map();
+        map.set_varchar("branch_name", commit_descriptor_->branch());
 
         auto superblock = new_superblock(pos);
         if (parent_sb) {
-            superblock->init_from(*parent_sb, pos, commit_id);
+            superblock->init_from(*parent_sb, pos, commit_id, meta);
         }
         else {
-            superblock->init(pos, file_size, commit_id, SUPERBLOCK_SIZE, 1);
+            superblock->init(pos, file_size, commit_id, SUPERBLOCK_SIZE, 1, 1, meta);
         }
-
         superblock->build_superblock_description();
 
         return ResultT{pos, superblock};
@@ -658,23 +699,21 @@ public:
         return fn();
     }
 
-    void commit(ConsistencyPoint cp)
+    void prepare(ConsistencyPoint cp)
     {
-        if (this->is_active())
+        if (is_active())
         {
-            bool do_conistency_point;
-
             if (consistency_point_commit_descriptor_) {
                 consistency_point_commit_descriptor_->inc_commits();
             }
 
             if (cp == ConsistencyPoint::AUTO) {
-                do_conistency_point =
+                do_consistency_point_ =
                         consistency_point_commit_descriptor_
                     ->should_make_consistency_point(commit_descriptor_);
             }
             else {
-                do_conistency_point = cp == ConsistencyPoint::YES || cp == ConsistencyPoint::FULL;
+                do_consistency_point_ = cp == ConsistencyPoint::YES || cp == ConsistencyPoint::FULL;
             }
 
             auto sb = get_superblock();
@@ -689,9 +728,14 @@ public:
                 {
                     history_ctr_->with_value(update_op.commit_id, [&](auto value) {
                         using ResultT = std::decay_t<decltype(value)>;
-                        auto vv = value.get().view();
-                        vv.set_parent_commit_id(update_op.new_parent_id);
-                        return ResultT{vv};
+                        if (value) {
+                            auto vv = value.get().view();
+                            vv.set_parent_commit_id(update_op.new_parent_id);
+                            return ResultT{vv};
+                        }
+                        else {
+                            return ResultT{};
+                        }
                     });
                 }
                 else {
@@ -714,6 +758,7 @@ public:
 
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
             store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
+                //println("    ############# Removing commit: {}", commit_descriptor->commit_id());
                 auto snp = store_->do_open_writable(commit_descriptor, [&](const BlockID& id, uint64_t block_file_pos, int32_t block_size){
                     evicting_blocks.append_value(AllocationMetadataT(
                         block_file_pos / BASIC_BLOCK_SIZE,
@@ -722,7 +767,7 @@ public:
                     ));
                 });
 
-                snp->remove_all_blocks();
+                snp->remove_all_blocks(&counters_);
             });
 
             if (evicting_blocks.size() > 0) {
@@ -730,7 +775,7 @@ public:
                 allocation_map_ctr_->touch_bits(evicting_blocks.span());
             }
 
-            // Note: All deallocation before MUST do 'touch bits' to
+            // Note: All deallocation before this line MUST do 'touch bits' to
             // build corresponding CoW-tree, but not marking blocks
             // ass avalable. Otherwise they can be reused immediately.
             // That will make 'fast' rolling back the last commit or
@@ -741,7 +786,7 @@ public:
             // and 'touch_bits' them.
 
             // All 'touch bits' calls must be done before this line.
-            do_postponed_deallocations(do_conistency_point);
+            do_postponed_deallocations(do_consistency_point_);
 
             // Note that it's not possible to extend CoW-tree further
             // afther the do_postponed_deallocations() is done IF
@@ -788,13 +833,33 @@ public:
                 ).do_throw();
             }
 
-            store_->finish_commit(Base::commit_descriptor_, cp, do_conistency_point, sb);
+            store_->do_prepare(Base::commit_descriptor_, cp, do_consistency_point_, sb);
 
-            committed_ = true;
+            state_ = State::PREPARED;
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Transaction {} has been already committed", commit_id()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Commit {} has been already closed", commit_id()).do_throw();
         }
+    }
+
+    void commit(ConsistencyPoint cp)
+    {
+        if (is_active()) {
+            prepare(cp);
+        }
+
+//        for (const auto& entry: counters_) {
+//            println("    ********* Counter: {} {} {}", commit_id(), entry.first, entry.second.value);
+//        }
+
+        store_->do_commit(Base::commit_descriptor_, do_consistency_point_, counters_);
+        state_ = State::COMMITTED;
+    }
+
+    void rollback()
+    {
+        store_->do_rollback(Base::commit_descriptor_);
+        state_ = State::ROLLED_BACK;
     }
 
     virtual CommitID commit_id() noexcept {
@@ -885,11 +950,11 @@ public:
     }
 
     virtual bool is_committed() const noexcept {
-        return committed_;
+        return state_ == State::COMMITTED;
     }
 
     virtual bool is_active() const noexcept {
-        return !committed_;
+        return state_ == State::ACTIVE;
     }
 
     virtual bool is_marked_to_clear() const noexcept {
@@ -1056,11 +1121,44 @@ public:
 
     virtual void ref_block(const BlockID& block_id)
     {
-        return refcounter_delegate_->ref_block(block_id);
+//        if (block_id.value() == 614) {
+//            int a = 0;
+//            a++;
+//        }
+
+        auto ii = counters_ptr_->find(block_id);
+        if (ii != counters_ptr_->end()) {
+            ii->second.inc();
+        }
+        else {
+            counters_ptr_->insert(std::make_pair(block_id, RWBlkCounter{1}));
+        }
+
+//        println("RefBlock: {} {} {}", commit_id(), block_id, (*counters_ptr_)[block_id].value);
     }
 
-    virtual void unref_block(const BlockID& block_id, BlockCleanupHandler on_zero) {
-        return refcounter_delegate_->unref_block(block_id, on_zero);
+    virtual void unref_block(const BlockID& block_id, BlockCleanupHandler on_zero)
+    {
+        auto refs = refcounter_delegate_->count_refs(block_id);
+        auto cnt = get_optional_value_or(refs, 0);
+
+        bool zero = false;
+
+        auto ii = counters_ptr_->find(block_id);
+        if (ii != counters_ptr_->end()) {
+            zero = ii->second.dec(cnt);
+        }
+        else {
+            RWBlkCounter cntr{0};
+            zero = cntr.dec(cnt);
+            counters_ptr_->insert(std::make_pair(block_id, cntr));
+        }
+
+//        println("UnRefBlock: {} {} {}", commit_id(), block_id, (*counters_ptr_)[block_id].value);
+
+        if (zero) {
+            on_zero();
+        }
     }
 
     virtual void unref_ctr_root(const BlockID& root_block_id)
@@ -1276,6 +1374,80 @@ public:
         else {
             return import_new_ctr_from(ptr, name);
         }
+    }
+
+
+    virtual bool remove_branch(U8StringView branch_name)
+    {
+        return true;
+
+
+
+//        try {
+//            auto result_opt = [&]{
+//                using TupleT = std::tuple<CDescrPtr, CDescrPtr, bool>;
+
+//                LockGuard lock(reader_mutex_);
+//                auto descr = history_tree_.get_branch_head(branch_name);
+//                if (descr)
+//                {
+//                    U8String last_branch = history_tree_.consistency_point1()->branch();
+//                    U8String new_branch = history_tree_.mark_branch_transient(descr.get(), branch_name);
+//                    bool do_cleanup_data = history_tree_.branches_size() == 1;
+
+//                    CDescrPtr commit_descriptor = create_commit_descriptor(new_branch);
+
+//                    return Optional<TupleT>{TupleT{descr, std::move(commit_descriptor), do_cleanup_data}};
+//                }
+//                else {
+//                    return Optional<TupleT>{};
+//                }
+//            }();
+
+//            if (result_opt)
+//            {
+//                auto& result = result_opt.get();
+
+//                CDescrPtr descr = std::get<0>(result);
+//                CDescrPtr commit_descriptor = std::move(std::get<1>(result));
+//                bool do_cleanup_data = std::get<2>(result);
+
+//                SWMRWritableCommitPtr ptr = do_create_writable(
+//                            history_tree_.consistency_point1(),
+//                            history_tree_.head(),
+//                            descr,
+//                            std::move(commit_descriptor)
+//                );
+//                ptr->finish_commit_opening();
+
+//                // If we are removing the only branch, so we need to clean also the data,
+//                // because the 'main' branch should be recreated with empty state.
+//                if (do_cleanup_data) {
+//                    ptr->cleanup_data();
+//                }
+
+//                // This will remove all non-persistent commits from the history.
+//                ptr->commit(ConsistencyPoint::AUTO);
+//                return ptr->commit_id();
+//            }
+//            else {
+//                return Result{};
+//            }
+//        }
+//        catch (...) {
+//            writer_mutex_.unlock();
+//            throw;
+//        }
+    }
+
+
+
+
+    bool remove_commit(const CommitID& commit_id)
+    {
+
+
+        return true;
     }
 };
 

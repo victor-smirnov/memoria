@@ -43,6 +43,8 @@ template <typename Profile>
 class HistoryTree {
 
     using CommitDescriptorT = CommitDescriptor<Profile>;
+    using CDescrPtr         = typename CommitDescriptorT::SharedPtrT;
+
     using CommitID          = ProfileSnapshotID<Profile>;
     using SequeceID         = uint64_t;
     using CommitMetadataT   = CommitMetadata<ApiProfile<Profile>>;
@@ -62,21 +64,17 @@ private:
     using EvictionFn        = std::function<void (const UpdateOp&)>;
     using SuperblockFn      = std::function<SharedSBPtr<SuperblockT>(uint64_t)>;
 
-    std::unordered_map<CommitID, CommitDescriptorT*> commits_;
-    std::unordered_map<U8String, CommitDescriptorT*> branch_heads_;
+    std::unordered_map<CommitID, CDescrPtr> commits_;
+    std::unordered_map<U8String, CDescrPtr> branch_heads_;
 
-    CommitDescriptorT* root_;
-    CommitDescriptorT* consistency_point1_;
-    CommitDescriptorT* consistency_point2_;
-    CommitDescriptorT* head_;
+    CDescrPtr root_;
+    CDescrPtr consistency_point1_;
+    CDescrPtr consistency_point2_;
+    CDescrPtr head_;
 
     CommitDescriptorsList<Profile> eviction_queue_;
 
-    ArenaBuffer<CommitDescriptorT*> volatile_commits_;
-
     SuperblockFn superblock_fn_;
-
-
 
 public:
     HistoryTree() noexcept :
@@ -86,79 +84,27 @@ public:
         head_()
     {}
 
-    ~HistoryTree() noexcept {
-        for (auto commit: commits_) {
-            if (commit.second->is_linked()) {
-                eviction_queue_.erase(eviction_queue_.iterator_to(*commit.second));
-            }
-
-            delete commit.second;
+    ~HistoryTree() noexcept
+    {
+        for (const auto& entry: commits_) {
+            entry.second->set_new();
         }
     }
 
-
-
-    void do_remove_rollback_span(std::vector<CommitDescriptorT*>& span) noexcept
-    {
-        remove_tree_nodes(span);
-
-        head_ = consistency_point1_ = consistency_point2_;
-        consistency_point2_ = nullptr;
-
-        volatile_commits_.clear();
+    template <typename... Args>
+    CDescrPtr new_commit_descriptor(Args&&... args) {
+        return new CommitDescriptorT(this, std::forward<Args>(args)...);
     }
 
-    std::vector<CommitDescriptorT*> get_rollback_span() const
-    {
-        std::vector<CommitDescriptorT*> buffer;
 
-        if (consistency_point1_ && consistency_point2_)
-        {
-            if (consistency_point1_->sequence_id() - consistency_point2_->sequence_id() > 1) {
-                auto cp2_seq_id = consistency_point2_->sequence_id();
-                for (const auto& pair: commits_) {
-                    if (pair.second->sequence_id() > cp2_seq_id) {
-                        buffer.push_back(pair.second);
-                    }
-                }
-            }
-            else {
-                buffer.push_back(consistency_point1_);
-            }
-        }
-
-        return buffer;
-    }
-
-    std::vector<CommitDescriptorT*> get_volatile_commits() const {
-        std::vector<CommitDescriptorT*> buffer(volatile_commits_.span().begin(), volatile_commits_.span().end());
-        return buffer;
-    }
-
-    void remove_volatile_commits(std::vector<CommitDescriptorT*>& nodes)
-    {
-        remove_tree_nodes(nodes);
-        head_ = consistency_point1_;
-        volatile_commits_.clear();
-    }
-
-    void cleanup_eviction_queue()
-    {
-        eviction_queue_.erase_and_dispose(
-            eviction_queue_.begin(),
-            eviction_queue_.end(),
-            [](CommitDescriptorT* commit_descr) noexcept {
-                delete commit_descr;
-            }
-        );
-    }
 
     bool is_clean() const noexcept {
         return head_ == consistency_point1_;
     }
 
     int64_t count_volatile_commits() const noexcept {
-        return volatile_commits_.size();
+        // FIXME: implement volatile commits counter
+        return 0;
     }
 
     bool can_rollback_last_consistency_point() const noexcept {
@@ -184,24 +130,24 @@ public:
         return branch_heads_.size();
     }
 
-    Optional<CommitDescriptorT*> get_branch_head(U8StringView name) const noexcept
+    CDescrPtr get_branch_head(U8StringView name) const noexcept
     {
         auto ii = branch_heads_.find(name);
         if (ii != branch_heads_.end()) {
-            return Optional<CommitDescriptorT*>{ii->second};
+            return ii->second;
         }
-        return Optional<CommitDescriptorT*>{};
+        return CDescrPtr{};
     }
 
-    CommitDescriptorT* head() const noexcept {
+    CDescrPtr head() const noexcept {
         return head_;
     }
 
-    CommitDescriptorT* consistency_point1() const noexcept {
+    CDescrPtr consistency_point1() const noexcept {
         return consistency_point1_;
     }
 
-    CommitDescriptorT* consistency_point2() const noexcept {
+    CDescrPtr consistency_point2() const noexcept {
         return consistency_point2_;
     }
 
@@ -217,13 +163,14 @@ public:
     {        
         CommitDescriptorT* dd = descr;
 
-        while (true) {
+        while (true)
+        {
             if (dd->parent() && dd->children().size() <= 1) {
                 if (!dd->is_transient())
                 {
                     dd->set_transient(true);
 
-                    if (!is_in_last_2_queue(dd)) {
+                    if (!is_pinned(dd)) {
                         eviction_queue_.push_back(*dd);
                     }
                 }
@@ -247,10 +194,8 @@ public:
 
     bool mark_commit_transient(const CommitID& commit_id)
     {
-        auto commit = get(commit_id);
-        if (commit)
-        {
-            CommitDescriptorT* descr = commit.get();
+        auto descr = get(commit_id);
+        if (descr) {
             if (!descr->is_transient())
             {
                 // TODO: Need to check the following code for more
@@ -267,10 +212,8 @@ public:
 
                 descr->set_transient(true);
 
-                eviction_queue_.push_back(*descr);
+                return true;
             }
-
-            return true;
         }
 
         return false;
@@ -280,45 +223,71 @@ public:
     {
         for (CommitDescriptorT& descr: eviction_queue_)
         {
-            CommitID parent_id{};
-
             if (descr.parent())
             {
                 CommitDescriptorT* parent = descr.parent();
+                CommitID parent_id = parent->commit_id();
 
-                parent->children().erase(&descr);
-                parent_id = parent->commit_id();
-
-                for (auto* chl: descr.children()) {
-                    chl->set_parent(parent);
-                    eviction_fn(UpdateOp{true, chl->commit_id(), parent->commit_id()});
+                for (auto chl: descr.children()) {
+                    eviction_fn(UpdateOp{true, chl->commit_id(), parent_id});
                 }
             }
             else {
-                for (auto* chl: descr.children()) {
-                    chl->set_parent(nullptr);
-                    root_ = chl;
+                for (auto chl: descr.children()) {
                     eviction_fn(UpdateOp{true, chl->commit_id(), CommitID{}});
                 }
             }
 
-            commits_.erase(descr.commit_id());
             eviction_fn(UpdateOp{false, descr.commit_id()});
         }
     }
 
-    Optional<CommitDescriptorT*> get(const CommitID& id) noexcept
+    void cleanup_eviction_queue() noexcept
+    {
+        for (CommitDescriptorT& descr: eviction_queue_)
+        {
+            if (descr.parent())
+            {
+                CommitDescriptorT* parent = descr.parent();
+                parent->children().erase(&descr);
+
+                for (auto chl: descr.children()) {
+                    chl->set_parent(parent);
+                    parent->children().insert(chl);
+                }
+            }
+            else {
+                for (auto chl: descr.children()) {
+                    chl->set_parent(nullptr);
+                    root_ = chl;
+                }
+            }
+        }
+
+        eviction_queue_.erase_and_dispose(
+            eviction_queue_.begin(),
+            eviction_queue_.end(),
+            [&](CommitDescriptorT* commit_descr) noexcept {
+                commit_descr->set_new();
+                commits_.erase(commit_descr->commit_id());
+            }
+        );
+    }
+
+    CDescrPtr get(const CommitID& id) noexcept
     {
         auto ii = commits_.find(id);
         if (ii != commits_.end()) {
-            return Optional<CommitDescriptorT*>{ii->second};
+            return ii->second;
         }
-        return Optional<CommitDescriptorT*>{};
+        return CDescrPtr{};
     }
 
 
-    void attach_commit(CommitDescriptorT* descr, bool consistency_point) noexcept
+    void attach_commit(CDescrPtr descr, bool consistency_point) noexcept
     {
+        descr->set_attached();
+
         if (descr->parent()) {
             descr->parent()->children().insert(descr);
         }
@@ -327,51 +296,54 @@ public:
         }
 
         U8String branch_name = get_branch_name(descr);
-        CommitDescriptorT* last_head = branch_heads_[branch_name];
+        CDescrPtr last_head = branch_heads_[branch_name];
 
         commits_[descr->commit_id()] = descr;
         branch_heads_[branch_name] = descr;
 
         if (consistency_point)
         {
-            CommitDescriptorT* tmp = enqueue_last_2(descr);
-
-            if (tmp) {
-                if (!is_branch_head(tmp)) {
-                    enqueue_for_eviction(tmp);
-                }
-
-                if (last_head &&  tmp != last_head && !is_in_last_2_queue(last_head)) {
-                    enqueue_for_eviction(last_head);
-                }
-            }
-            else if (last_head && !is_in_last_2_queue(last_head)) {
-                enqueue_for_eviction(last_head);
-            }
-
-            volatile_commits_.clear();
+            consistency_point2_ = consistency_point1_;
+            consistency_point1_ = descr;
         }
-        else {
-            volatile_commits_.append_value(descr);
-            head_ = descr;
-        }
+
+        head_ = descr;
+
+//        println("Attaching commit: {} {} || {} {} {}",
+//                descr->commit_id(),
+//                descr->references_,
+//                consistency_point1_ ? consistency_point1_->commit_id() : UUID{},
+//                consistency_point2_ ? consistency_point2_->commit_id() : UUID{},
+//                head_->commit_id()
+//                );
     }
 
     void load(
             Span<const std::pair<CommitID, CommitMetadataT>> metas,
-            const CommitDescriptorT* consistency_point1,
-            const CommitDescriptorT* consistency_point2
+            CDescrPtr consistency_point1,
+            CDescrPtr consistency_point2
     )
     {
-        // FIXME: fill eviction_queue here!
         for (const auto& pair: metas)
         {
             const CommitMetadataT& meta = std::get<1>(pair);
             const CommitID& commit_id   = std::get<0>(pair);
 
-            CommitDescriptorT* descr = new CommitDescriptorT();
-
             auto superblock = superblock_fn_(meta.superblock_file_pos());
+
+            LDDocumentView doc = superblock->metadata_doc();
+            LDDMapView map = doc.value().as_map();
+
+            U8String branch_name;
+            auto bname_opt = map.get("branch_name");
+            if (bname_opt) {
+                branch_name = bname_opt.get().as_varchar().view();
+            }
+            else {
+                branch_name = "";
+            }
+
+            CDescrPtr descr = new_commit_descriptor(branch_name);
 
             descr->set_superblock(meta.superblock_file_pos() * BASIC_BLOCK_SIZE, superblock.get());
             descr->set_transient(meta.is_transient());
@@ -385,15 +357,15 @@ public:
             const CommitMetadataT& meta = std::get<1>(pair);
             const CommitID& commit_id   = std::get<0>(pair);
 
-            CommitDescriptorT* current = commits_[commit_id];
+            CDescrPtr current = commits_[commit_id];
 
             if (meta.parent_commit_id())
             {
                 auto ii = commits_.find(meta.parent_commit_id());
                 if (ii != commits_.end())
                 {
-                    CommitDescriptorT* parent = ii->second;
-                    current->set_parent(parent);
+                    CDescrPtr parent = ii->second;
+                    current->set_parent(parent.get());
                     parent->children().insert(current);
                 }
                 else {
@@ -433,14 +405,16 @@ public:
         parse_commit_tree();
     }
 
+
+
 private:
     class TraverseState {
-        CommitDescriptorT* descr_;
+        CDescrPtr descr_;
         typename CommitDescriptorT::ChildIterator ii_;
         bool done_{false};
 
     public:
-        TraverseState(CommitDescriptorT* descr) noexcept :
+        TraverseState(CDescrPtr descr) noexcept :
             descr_(descr),
             ii_(descr->children().begin())
         {}
@@ -453,13 +427,13 @@ private:
             done_ = true;
         }
 
-        CommitDescriptorT* descr() const noexcept {
+        CDescrPtr descr() const noexcept {
             return descr_;
         }
 
-        CommitDescriptorT* next_child() noexcept {
+        CDescrPtr next_child() noexcept {
             if (ii_ != descr_->children().end()) {
-                CommitDescriptorT* tmp = *ii_;
+                CDescrPtr tmp = *ii_;
                 ++ii_;
                 return tmp;
             }
@@ -469,18 +443,18 @@ private:
         }
     };
 public:
-    void traverse_tree_preorder(const std::function<bool (CommitDescriptorT*)>& fn) {
+    void traverse_tree_preorder(const std::function<bool (CDescrPtr)>& fn) {
         traverse_tree_preorder(root_, fn);
     }
 
-    void traverse_tree_preorder(const std::function<void (CommitDescriptorT*)>& fn) {
-        traverse_tree_preorder(root_, [&](CommitDescriptorT* dd){
+    void traverse_tree_preorder(const std::function<void (CDescrPtr)>& fn) {
+        traverse_tree_preorder(root_, [&](CDescrPtr dd){
             fn(dd);
             return true;
         });
     }
 
-    void traverse_tree_preorder(CommitDescriptorT* start, const std::function<bool (CommitDescriptorT*)>& fn)
+    void traverse_tree_preorder(CDescrPtr start, const std::function<bool (CDescrPtr)>& fn)
     {
         if (!start) {
             return;
@@ -501,7 +475,7 @@ public:
                 state.done();
             }
 
-            CommitDescriptorT* child = state.next_child();
+            CDescrPtr child = state.next_child();
             if (child) {
                 stack.push(TraverseState{child});
             }
@@ -511,16 +485,15 @@ public:
         }
     }
 
-
 private:
-    const U8String& get_branch_name(CommitDescriptorT* descr) noexcept {
+    const U8String& get_branch_name(CDescrPtr descr) noexcept {
         return descr->branch();
     }
 
     void parse_commit_tree()
     {
         uint64_t counter{};
-        traverse_tree_preorder([&](CommitDescriptorT* descr){
+        traverse_tree_preorder([&](CDescrPtr descr){
             ++counter;
 
             if (descr->children().empty()) {
@@ -530,7 +503,7 @@ private:
                 // do nothing
             }
             else if (descr->is_transient()) {
-                eviction_queue_.push_back(*descr);
+                eviction_queue_.push_back(*descr.get());
             }
         });
 
@@ -538,57 +511,19 @@ private:
             println("Inconsistent history tree: {} :: {}", counter, commits_.size());
         }
     }
-
-    bool is_branch_head(CommitDescriptorT* descr)
-    {
-        for (auto pair: branch_heads_) {
-            if (pair.second == descr) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    void enqueue_for_eviction(CommitDescriptorT* descr) noexcept
-    {
-        bool transient = descr->is_transient();
-        if (transient) {
-            eviction_queue_.push_back(*descr);
-        }
-    }
-
-    CommitDescriptorT* enqueue_last_2(CommitDescriptorT* descr) noexcept
-    {
-        CommitDescriptorT* tmp = consistency_point2_;
-        consistency_point2_ = consistency_point1_;
-        head_ = consistency_point1_ = descr;
-
-        return tmp;
-    }
-
-    bool is_in_last_2_queue(CommitDescriptorT* descr) noexcept {
-        return descr == head_ || descr == consistency_point1_ || descr == consistency_point2_;
-    }
-
-    void remove_tree_nodes(std::vector<CommitDescriptorT*>& nodes) noexcept
-    {
-        std::sort(nodes.begin(), nodes.end(), [](const auto* one, const auto* two){
-            return one->sequence_id() > two->sequence_id();
-        });
-
-        for (CommitDescriptorT* descr: nodes) {
-            if (descr->is_linked()) {
-                eviction_queue_.erase(eviction_queue_.iterator_to(*descr));
-            }
-
-            commits_.erase(descr->commit_id());
-
-            descr->detach_from_tree();
-            delete descr;
-        }
-    }
 };
 
+template <typename Profile>
+inline void CommitDescriptor<Profile>::enque_for_eviction() {
+    history_tree_->eviction_queue().push_back(*this);
+}
+
+template <typename Profile>
+inline void CommitDescriptor<Profile>::unlink_from_eviction_queue() {
+    auto& queue = history_tree_->eviction_queue();
+    queue.erase(
+        queue.iterator_to(*this)
+    );
+}
 
 }

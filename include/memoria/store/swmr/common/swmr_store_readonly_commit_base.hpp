@@ -27,7 +27,7 @@ protected:
     using Base = SWMRStoreCommitBase<Profile>;
 
     using typename Base::Store;
-    using typename Base::CommitDescriptorT;
+    using typename Base::CDescrPtr;
     using typename Base::ApiProfileT;
     using typename Base::SharedBlockConstPtr;
     using typename Base::CtrID;
@@ -37,7 +37,7 @@ protected:
 public:
     SWMRStoreReadOnlyCommitBase(
             SharedPtr<Store> store,
-            CommitDescriptorT* commit_descriptor,
+            CDescrPtr& commit_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate
     ) noexcept :
         Base(store, commit_descriptor, refcounter_delegate)

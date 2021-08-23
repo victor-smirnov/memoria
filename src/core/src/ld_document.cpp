@@ -496,6 +496,7 @@ public:
 };
 
 
+
 LDDocument::LDDocument(U8StringView sdn): LDDocument() {
     set_sdn(sdn);
 }
@@ -503,6 +504,15 @@ LDDocument::LDDocument(U8StringView sdn): LDDocument() {
 LDDocument::LDDocument(const char* sdn): LDDocument() {
     set_sdn(sdn);
 }
+
+LDDocument::LDDocument(LDDocumentView view): LDDocument(view.span()){}
+
+
+
+LDDocument::LDDocument(Span<const uint8_t> data):
+    LDDocumentView(),
+    ld_arena_(data, &arena_)
+{}
 
 LDDocument LDDocument::compactify() const
 {

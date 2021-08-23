@@ -60,7 +60,7 @@ struct PythonAPIBinder<StoreSnapshotOps<Profile>> {
         > writable_snp_ctr_ops(m, "WritableSnpCtrOps", snp_ctr_ops);
 
         writable_snp_ctr_ops.def("flush_open_containers", &WritableSnpCtrOpsType::flush_open_containers);
-        writable_snp_ctr_ops.def("commit", &WritableSnpCtrOpsType::commit);
+        writable_snp_ctr_ops.def("commit", &WritableSnpCtrOpsType::commit, py::arg("cp") = ConsistencyPoint::AUTO);
         writable_snp_ctr_ops.def("drop_ctr", &WritableSnpCtrOpsType::drop_ctr);
         writable_snp_ctr_ops.def("clone_ctr2", py::overload_cast<const CtrID&, const CtrID&>(&WritableSnpCtrOpsType::clone_ctr));
         writable_snp_ctr_ops.def("clone_ctr", py::overload_cast<const CtrID&>(&WritableSnpCtrOpsType::clone_ctr));

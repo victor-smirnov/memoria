@@ -40,7 +40,7 @@ protected:
     using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
 
     using typename Base::Store;
-    using typename Base::CommitDescriptorT;
+    using typename Base::CDescrPtr;
     using typename Base::Superblock;
     using typename Base::CtrID;
     using typename Base::CtrReferenceableResult;
@@ -87,7 +87,7 @@ public:
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             Span<uint8_t> buffer,
-            CommitDescriptorT* commit_descriptor,
+            CDescrPtr& commit_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate = nullptr
     ) noexcept:
         Base(store, commit_descriptor, refcounter_delegate),

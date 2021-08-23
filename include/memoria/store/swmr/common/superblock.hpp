@@ -56,6 +56,8 @@ public:
 
     using AllocationMetadataT = AllocationMetadata<ApiProfile<Profile>>;
 
+    static constexpr size_t METADATA_SIZE = 2800;
+
 private:
 
     UUID magick1_;
@@ -85,6 +87,8 @@ private:
     static constexpr size_t PREALLOCATED_BLOCKS = 64;
     uint64_t preallocated_blocks_[PREALLOCATED_BLOCKS];
 
+    uint8_t metadata_[METADATA_SIZE];
+
 public:
     SWMRSuperblock() noexcept = default;
 
@@ -97,6 +101,14 @@ public:
     const BlockID& directory_root_id() const noexcept {return directory_root_id_;}
     const BlockID& allocator_root_id() const noexcept {return allocator_root_id_;}
     const BlockID& blockmap_root_id() const noexcept {return blockmap_root_id_;}
+
+    Span<uint8_t> metadata() noexcept {
+        return Span<uint8_t>(metadata_, METADATA_SIZE);
+    }
+
+    Span<const uint8_t> metadata() const noexcept {
+        return Span<const uint8_t>(metadata_, METADATA_SIZE);
+    }
 
     const char* magic_buffer() const noexcept {return magic_buffer_;}
     char* magic_buffer() noexcept {return magic_buffer_;}
@@ -261,13 +273,26 @@ public:
         }
     }
 
+    void init_metadata(LDDocumentView doc)
+    {
+        auto span = doc.span();
+
+        if (span.length() <= METADATA_SIZE) {
+            std::memcpy(metadata_, span.data(), span.length());
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Initial superblock metadata size is too big: {}", span.length()).do_throw();
+        }
+    }
+
     void init(
             uint64_t superblock_file_pos,
             uint64_t file_size,
             const CommitID& commit_id,
             size_t superblock_size,
-            SequenceID sequence_id = 1,
-            SequenceID cp_sequence_id = 1
+            SequenceID sequence_id,
+            SequenceID cp_sequence_id,
+            LDDocumentView meta
     )
     {
         magick1_ = MAGICK1;
@@ -297,9 +322,11 @@ public:
 
         preallocated_pool_size_ = 0;
         std::memset(preallocated_blocks_, 0, PREALLOCATED_BLOCKS * sizeof(uint64_t));
+
+        init_metadata(meta);
     }
 
-    void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, const CommitID& commit_id)
+    void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, const CommitID& commit_id, LDDocumentView meta)
     {
         magick1_ = other.magick1_;
         magick2_ = other.magick2_;
@@ -324,6 +351,20 @@ public:
 
         preallocated_pool_size_ = other.preallocated_pool_size_;
         std::memcpy(preallocated_blocks_, other.preallocated_blocks_, PREALLOCATED_BLOCKS * sizeof(uint64_t));
+
+        init_metadata(meta);
+    }
+
+    LDDocumentView cmetadata_doc() const noexcept {
+        return LDDocumentView{metadata()};
+    }
+
+    LDDocumentView metadata_doc() noexcept {
+        return LDDocumentView{metadata()};
+    }
+
+    void set_metadata_doc(LDDocumentView view) {
+        init_metadata(view);
     }
 
     void build_superblock_description()

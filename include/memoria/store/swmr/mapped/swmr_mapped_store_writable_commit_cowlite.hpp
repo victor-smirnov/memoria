@@ -48,7 +48,7 @@ class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
     using Base = SWMRStoreWritableCommitBase<CowLiteProfile<ChildProfile>>;
 
     using typename Base::Store;
-    using typename Base::CommitDescriptorT;
+    using typename Base::CDescrPtr;
 
     using typename Base::StoreT;
     using typename Base::CommitID;
@@ -74,9 +74,10 @@ class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
     using CtrID = ProfileCtrID<Profile>;
     using CtrReferenceableResult = Result<CtrReferenceable<ApiProfile<Profile>>>;
 
+    using typename Base::State;
     using Base::BASIC_BLOCK_SIZE;
     using Base::store_;
-    using Base::committed_;
+    using Base::state_;
     using Base::newId;
 
     Span<uint8_t> buffer_;
@@ -86,12 +87,13 @@ class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
 
 public:
     using Base::check;
+    using Base::commit_id;
 
     MappedSWMRStoreWritableCommit(
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             Span<uint8_t> buffer,
-            CommitDescriptorT* commit_descriptor,
+            CDescrPtr& commit_descriptor,
             RemovingBlocksConsumerFn removing_blocks_consumer_fn = RemovingBlocksConsumerFn{}
     ) noexcept:
         Base(store, commit_descriptor, store.get(), removing_blocks_consumer_fn),
@@ -122,7 +124,7 @@ public:
             BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value() * BASIC_BLOCK_SIZE);
             Shared* shared = shared_pool_.construct(block_id, block, 0);
             shared->set_allocator(this);
-            shared->set_mutable(true);
+            shared->set_mutable(block->snapshot_id() == commit_id());
 
             return {block_id.value() * BASIC_BLOCK_SIZE, SharedBlockConstPtr{shared}};
         }
@@ -142,6 +144,7 @@ public:
         BlockType* block = new (block_addr) BlockType(id, at, at);
 
         block->memory_block_size() = size;
+        block->snapshot_id() = commit_id();
 
         Shared* shared = shared_pool_.construct(id, block, 0);
         shared->set_allocator(this);
@@ -161,6 +164,7 @@ public:
         new_block->id()   = id;
         new_block->uuid() = at;
         new_block->id_value() = at;
+        new_block->snapshot_id() = commit_id();
 
         new_block->set_references(0);
 

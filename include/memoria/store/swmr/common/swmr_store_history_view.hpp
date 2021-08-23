@@ -31,9 +31,6 @@ namespace memoria {
 
 template <typename Profile> class SWMRStoreBase;
 
-
-
-
 template <typename Profile>
 class SWMRStoreHistoryViewImpl: public ISWMRStoreHistoryView<ApiProfile<Profile>> {
     using ApiProfileT = ApiProfile<Profile>;

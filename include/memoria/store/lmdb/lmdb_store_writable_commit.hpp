@@ -725,6 +725,21 @@ private:
 
     virtual void import_new_ctr_from(ROStoreSnapshotPtr txn, const CtrID& name) {}
     virtual void import_ctr_from(ROStoreSnapshotPtr txn, const CtrID& name) {}
+
+    void prepare(ConsistencyPoint cp) {
+        MEMORIA_MAKE_GENERIC_ERROR("Method prepare() is not yet implemented").do_throw();
+    }
+
+    void rollback() {
+        MEMORIA_MAKE_GENERIC_ERROR("Method rollback() is not yet implemented").do_throw();
+    }
+
+    bool remove_commit(const CommitID&) {
+        MEMORIA_MAKE_GENERIC_ERROR("Method remove_commit() is not supported").do_throw();
+    }
+    bool remove_branch(U8StringView branch_name) {
+        MEMORIA_MAKE_GENERIC_ERROR("Method remove_branch() is not summported").do_throw();
+    }
 };
 
 }

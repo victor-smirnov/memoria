@@ -55,7 +55,7 @@ protected:
 
     using typename Base::CommitID;
     using typename Base::SequenceID;
-    using typename Base::CommitDescriptorT;
+    using typename Base::CDescrPtr;
     using typename Base::SuperblockT;
     using typename Base::CounterStorageT;
     using typename Base::BlockID;
@@ -112,7 +112,7 @@ public:
     void flush_header(bool async = false) override {
     }
 
-    virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr) override
+    virtual SWMRReadOnlyCommitPtr do_open_readonly(CDescrPtr commit_descr) override
     {
         MaybeError maybe_error{};
         MappedReadOnlyCommitPtr ptr = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
@@ -129,10 +129,10 @@ public:
     }
 
     virtual SWMRWritableCommitPtr do_create_writable(
-            CommitDescriptorT* consistency_point,
-            CommitDescriptorT* head,
-            CommitDescriptorT* parent,
-            CommitDescriptorT* commit_descr
+            CDescrPtr consistency_point,
+            CDescrPtr head,
+            CDescrPtr parent,
+            CDescrPtr commit_descr
     ) override
     {
         MaybeError maybe_error{};
@@ -149,7 +149,7 @@ public:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) override {
+    virtual SWMRWritableCommitPtr do_open_writable(CDescrPtr commit_descr, RemovingBlockConsumerFn fn) override {
         MaybeError maybe_error{};
         MappedWritableCommitPtr ptr{};
 
@@ -168,7 +168,7 @@ public:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr) override
+    virtual SWMRWritableCommitPtr do_create_writable_for_init(CDescrPtr commit_descr) override
     {
         MaybeError maybe_error{};
 

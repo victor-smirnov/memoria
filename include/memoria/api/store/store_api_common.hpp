@@ -64,7 +64,7 @@ protected:
 };
 
 enum class ConsistencyPoint {
-    NO, YES, AUTO, FULL
+    AUTO, NO, YES, FULL
 };
 
 template <typename Profile>
@@ -92,6 +92,7 @@ public:
     }
 
     virtual void commit(ConsistencyPoint cp = ConsistencyPoint::AUTO) = 0;
+
     virtual void flush_open_containers() = 0;
 
     virtual bool drop_ctr(const CtrID& name) = 0;

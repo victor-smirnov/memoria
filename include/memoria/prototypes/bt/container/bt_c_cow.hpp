@@ -94,7 +94,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
                 });
             }
             else {
-                this_ptr->leaf_dispatcher().dispatch(block.as_mutable(), UnrefLeafChildren(), this_ptr->store()).get_or_throw();
+                this_ptr->leaf_dispatcher().dispatch(block, UnrefLeafChildren(), this_ptr->store()).get_or_throw();
             }
 
             return this_ptr->store().removeBlock(block->id());
@@ -115,8 +115,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
             });
         }
         else {
-            auto tmp = block.as_mutable();
-            self.leaf_dispatcher().dispatch(tmp, UnrefLeafChildren(), self.store()).get_or_throw();
+            self.leaf_dispatcher().dispatch(block, UnrefLeafChildren(), self.store()).get_or_throw();
         }
 
         return self.store().removeBlock(block->id());

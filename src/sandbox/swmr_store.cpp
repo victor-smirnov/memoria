@@ -53,13 +53,13 @@ int main(void) {
             int cnt = 0;
             int b0  = 0;
             int batch_size = 100;
-            int batches = 1000;
+            int batches = 3;
             while (cnt < batch_size * batches)
             {
                 auto snp1 = store1->begin();
                 auto ctr1 = find<CtrType>(snp1, ctr_id);
 
-                if (b0 % 100 == 0)
+                //if (b0 % 100 == 0)
                 {
                     std::cout << "Batch " << (b0) << " :: " << cnt << " :: " << (batch_size * batches) << std::endl;
                 }
@@ -71,21 +71,14 @@ int main(void) {
                 }
 
                 snp1->set_transient(true);
-                snp1->commit(ConsistencyPoint::NO);
+                snp1->commit(ConsistencyPoint::YES);
             }
         }
-//        store1->check(callback);
-
-        store1->flush();
-
+//        store1->flush();
         auto t_end = getTimeInMillis();
-
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
 
-//        store1->check(callback);
-
-//        auto vv = create_graphviz_dot_visitor("swmr-write.dot");
-//        store1->traverse(*vv.get());
+        store1->check(callback);
 
         store1->close();
     }

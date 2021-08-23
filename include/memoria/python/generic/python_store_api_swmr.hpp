@@ -92,10 +92,13 @@ struct PythonAPIBinder<IBasicSWMRStore<Profile>> {
 
         pybind11::class_<RWCommitType, CommitBaseType, WritableSnpCtrOpsType, SharedPtr<RWCommitType>>(m, "SWMRStoreWritableCommit")
             .def("set_transient", &RWCommitType::set_transient)
+            .def("prepare", &RWCommitType::prepare)
+            .def("rollback", &RWCommitType::rollback)
+            .def("remove_branch", &RWCommitType::remove_branch)
+            .def("remove_commit", &RWCommitType::remove_commit)
             ;
 
         py::class_<Type, SharedPtr<Type>>(m, "BasicSWMRStore")
-            .def("flush", &Type::flush)
             .def("begin", &Type::begin)
             .def("open", &Type::open)
             ;
@@ -123,6 +126,18 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
     static void make_bindings(pybind11::module_& m) {
         namespace py = pybind11;
 
+        py::enum_<FlushType> ft(m, "FlushType");
+        ft.value("DEFAULT", FlushType::DEFAULT);
+        ft.value("FULL", FlushType::FULL);
+        ft.export_values();
+
+        py::enum_<ConsistencyPoint> cp(m, "ConsistencyPoint");
+        cp.value("YES", ConsistencyPoint::YES);
+        cp.value("NO", ConsistencyPoint::NO);
+        cp.value("AUTO", ConsistencyPoint::AUTO);
+        cp.value("FULL", ConsistencyPoint::FULL);
+        cp.export_values();
+
         py::class_<Type, IBasicSWMRStore<Profile>, SharedPtr<Type>>(m, "SWMRStore")
             .def("open", py::overload_cast<const CommitID&, bool>(&Type::open))
             .def("open", py::overload_cast<U8StringView>(&Type::open))
@@ -134,14 +149,11 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
             .def("commits", &Type::commits)
             .def("branch_names", &Type::branches)
             .def("close", &Type::close)
+            .def("flush", &Type::flush, py::arg("ft") = FlushType::DEFAULT)
             .def("begin", py::overload_cast<U8StringView>(&Type::begin))
             .def("branch_from", py::overload_cast<const CommitID&, U8StringView>(&Type::branch_from))
             .def("branch_from", py::overload_cast<U8StringView, U8StringView>(&Type::branch_from))
-            .def("remove_branch", &Type::remove_branch)
-            .def("remove_commit", &Type::remove_commit)
-            .def("can_rollback_last_consistency_point", &Type::can_rollback_last_consistency_point)
-            .def("rollback_last_consistency_point", &Type::rollback_last_consistency_point)
-            .def("rollback_volatile_commits", &Type::rollback_volatile_commits)
+            .def("count_volatile_commits", &Type::count_volatile_commits)
             ;
 
         m.def("create_swmr_store", &create_swmr_store);

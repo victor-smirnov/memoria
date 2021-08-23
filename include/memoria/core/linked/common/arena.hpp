@@ -355,7 +355,9 @@ typename LinkedArenaView<HeaderT, PtrHolderT>::template PtrT<T> allocate_tagged(
 
 template <typename HeaderT, typename PtrHolderT>
 class LinkedArena {
-    using ArenaBufferT = ArenaBuffer<uint8_t>;
+    using AtomT = uint8_t;
+
+    using ArenaBufferT = ArenaBuffer<AtomT>;
     using ArenaView = LinkedArenaView<HeaderT, PtrHolderT>;
 
     ArenaView* arena_view_;
@@ -373,6 +375,14 @@ public:
         arena_.add_size(sizeof(HeaderT));
 
         (void)new (arena_.data()) HeaderT{};
+    }
+
+    LinkedArena(Span<const AtomT> data, ArenaView* arena_view):
+        arena_view_(arena_view),
+        arena_(data.length(), make_memory_mgr())
+    {
+        arena_view_->arena_ = this;
+        arena_.append_values(data);
     }
 
 

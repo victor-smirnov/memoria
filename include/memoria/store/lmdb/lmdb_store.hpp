@@ -244,7 +244,7 @@ public:
 
     virtual void flush(bool force) {
         if (const int rc = mma_mdb_env_sync(mdb_env_, force)) {
-            return make_generic_error("Can't csync the environment error = {}", mma_mdb_strerror(rc)).do_throw();
+            return make_generic_error("Can't sync the environment error = {}", mma_mdb_strerror(rc)).do_throw();
         }
     }
 

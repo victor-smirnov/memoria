@@ -91,16 +91,16 @@ class [[clang::annotate(R"(
 
 
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/set/set_api.hpp",
-            "memoria/core/tools/fixed_array.hpp"
-        ]
-    }
-)")]] TypeInstance<Set<FixedArray<16>>> {};
+//template<>
+//class [[clang::annotate(R"(
+//    @TypeInstance = {
+//        "profiles": "ALL",
+//        "includes": [
+//            "memoria/api/set/set_api.hpp",
+//            "memoria/core/tools/fixed_array.hpp"
+//        ]
+//    }
+//)")]] TypeInstance<Set<FixedArray<16>>> {};
 
 template<>
 class [[clang::annotate(R"(
@@ -112,36 +112,36 @@ class [[clang::annotate(R"(
     }
 )")]] TypeInstance<Set<Varchar>>;
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/set/set_api.hpp",
-            "memoria/core/tools/uuid.hpp"
-        ]
-    }
-)")]] TypeInstance<Set<UUID>> {};
+//template<>
+//class [[clang::annotate(R"(
+//    @TypeInstance = {
+//        "profiles": "ALL",
+//        "includes": [
+//            "memoria/api/set/set_api.hpp",
+//            "memoria/core/tools/uuid.hpp"
+//        ]
+//    }
+//)")]] TypeInstance<Set<UUID>> {};
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/vector/vector_api.hpp"
-        ]
-    }
-)")]] TypeInstance<Vector<Varchar>> {};
+//template<>
+//class [[clang::annotate(R"(
+//    @TypeInstance = {
+//        "profiles": "ALL",
+//        "includes": [
+//            "memoria/api/vector/vector_api.hpp"
+//        ]
+//    }
+//)")]] TypeInstance<Vector<Varchar>> {};
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/vector/vector_api.hpp"
-        ]
-    }
-)")]] TypeInstance<Vector<UTinyInt>> {};
+//template<>
+//class [[clang::annotate(R"(
+//    @TypeInstance = {
+//        "profiles": "ALL",
+//        "includes": [
+//            "memoria/api/vector/vector_api.hpp"
+//        ]
+//    }
+//)")]] TypeInstance<Vector<UTinyInt>> {};
 
 template<>
 class [[clang::annotate(R"(
@@ -154,36 +154,36 @@ class [[clang::annotate(R"(
 )")]] TypeInstance<Vector<LinkedData>> {};
 
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/map/map_api.hpp"
-        ]
-    }
-)")]] TypeInstance<Map<Varchar, Varchar>> {};
+//template<>
+//class [[clang::annotate(R"(
+//    @TypeInstance = {
+//        "profiles": "ALL",
+//        "includes": [
+//            "memoria/api/map/map_api.hpp"
+//        ]
+//    }
+//)")]] TypeInstance<Map<Varchar, Varchar>> {};
 
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/map/map_api.hpp"
-        ]
-    }
-)")]] TypeInstance<Map<BigInt, Varchar>> {};
+//template<>
+//class [[clang::annotate(R"(
+//    @TypeInstance = {
+//        "profiles": "ALL",
+//        "includes": [
+//            "memoria/api/map/map_api.hpp"
+//        ]
+//    }
+//)")]] TypeInstance<Map<BigInt, Varchar>> {};
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/map/map_api.hpp"
-        ]
-    }
-)")]] TypeInstance<Map<BigInt, BigInt>> {};
+//template<>
+//class [[clang::annotate(R"(
+//    @TypeInstance = {
+//        "profiles": "ALL",
+//        "includes": [
+//            "memoria/api/map/map_api.hpp"
+//        ]
+//    }
+//)")]] TypeInstance<Map<BigInt, BigInt>> {};
 
 template<>
 class [[clang::annotate(R"(
@@ -207,36 +207,36 @@ class [[clang::annotate(R"(
     }
 )")]] TypeInstance<Map<UUID, UBigInt>> {};
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/multimap/multimap_api.hpp"
-        ]
-    }
-)")]] TypeInstance<Multimap<BigInt, UTinyInt>> {};
+//template<>
+//class [[clang::annotate(R"(
+//    @TypeInstance = {
+//        "profiles": "ALL",
+//        "includes": [
+//            "memoria/api/multimap/multimap_api.hpp"
+//        ]
+//    }
+//)")]] TypeInstance<Multimap<BigInt, UTinyInt>> {};
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/multimap/multimap_api.hpp",
-            "memoria/core/tools/uuid.hpp"
-        ]
-    }
-)")]] TypeInstance<Multimap<UUID, UTinyInt>> {};
+//template<>
+//class [[clang::annotate(R"(
+//    @TypeInstance = {
+//        "profiles": "ALL",
+//        "includes": [
+//            "memoria/api/multimap/multimap_api.hpp",
+//            "memoria/core/tools/uuid.hpp"
+//        ]
+//    }
+//)")]] TypeInstance<Multimap<UUID, UTinyInt>> {};
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/multimap/multimap_api.hpp"
-        ]
-    }
-)")]] TypeInstance<Multimap<Varchar, Varchar>> {};
+//template<>
+//class [[clang::annotate(R"(
+//    @TypeInstance = {
+//        "profiles": "ALL",
+//        "includes": [
+//            "memoria/api/multimap/multimap_api.hpp"
+//        ]
+//    }
+//)")]] TypeInstance<Multimap<Varchar, Varchar>> {};
 
 template<>
 class [[clang::annotate(R"(

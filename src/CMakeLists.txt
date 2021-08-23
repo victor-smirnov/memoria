@@ -113,8 +113,8 @@ foreach(FNAME ${GENERATED_SOURCES})
 endforeach()
 
 # For debugging
-#message ("========================  MAIN SRC: |${GENERATED_MAIN_SOURCES}|============================")
-#message ("======================== STORE SRC: |${GENERATED_STORE_SOURCES}|===========================")
+message ("========================  MAIN SRC: |${GENERATED_MAIN_SOURCES}|============================")
+message ("======================== STORE SRC: |${GENERATED_STORE_SOURCES}|===========================")
 
 #message ("========================  MAIN BP: |${GENERATED_MAIN_BYPRODUCTS}|============================")
 #message ("======================== STORE BP: |${GENERATED_STORE_BYPRODUCTS}|===========================")
@@ -277,7 +277,7 @@ if (BUILD_PYTHON_BINDINGS)
     add_subdirectory(python)
 endif()
 
-if (BUILD_REACTOR_MEMORIA_LIB AND BUILD_MEMORY_STORE)
+if (BUILD_REACTOR_MEMORIA_LIB)
     FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
         add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
         SET_TARGET_PROPERTIES(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")

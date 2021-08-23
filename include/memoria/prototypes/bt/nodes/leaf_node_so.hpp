@@ -391,7 +391,7 @@ public:
     };
 
     template <typename Store>
-    VoidResult cow_unref_children(Store& store) noexcept {
+    VoidResult cow_unref_children(Store& store) const noexcept {
         return processAll(CoWUnRefChildrenFn(), store);
     }
 

@@ -49,7 +49,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
     using Base = SWMRStoreWritableCommitBase<Profile>;
 
     using typename Base::Store;
-    using typename Base::CommitDescriptorT;
+    using typename Base::CDescrPtr;
 
     using typename Base::StoreT;
     using typename Base::CommitID;
@@ -71,6 +71,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
     using typename Base::DirectoryCtrType;
     using typename Base::Shared;
     using typename Base::RemovingBlocksConsumerFn;
+
 
     using CtrID = ProfileCtrID<Profile>;
     using CtrReferenceableResult = Result<CtrReferenceable<ApiProfile<Profile>>>;
@@ -95,7 +96,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
 
     using Base::BASIC_BLOCK_SIZE;
     using Base::store_;
-    using Base::committed_;
+    using Base::state_;
     using Base::commit_descriptor_;
 
     Span<uint8_t> buffer_;
@@ -113,12 +114,13 @@ public:
     using Base::newId;
     using Base::unref_ctr_root;
     using Base::get_superblock;
+    using Base::commit_id;
 
     MappedSWMRStoreWritableCommit(
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             Span<uint8_t> buffer,
-            CommitDescriptorT* commit_descriptor,
+            CDescrPtr& commit_descriptor,
             RemovingBlocksConsumerFn removing_blocks_consumer_fn = RemovingBlocksConsumerFn{}
     ) noexcept:
         Base(store, commit_descriptor, store.get(), removing_blocks_consumer_fn),
@@ -212,7 +214,8 @@ public:
             BlockType* block = ptr_cast<BlockType>(buffer_.data() + at * BASIC_BLOCK_SIZE);
             BlockCacheEntry* shared = cache_entry_pool_.construct(block_id, block, at);
             shared->set_allocator(this);
-            shared->set_mutable(true);
+
+            shared->set_mutable(block->snapshot_id() == commit_id());
 
             block_cache_.insert(shared);
 
@@ -240,16 +243,20 @@ public:
         BlockType* block = new (block_addr) BlockType(id, id.value(), id.value());
 
         block->memory_block_size() = size;
+        block->snapshot_id() = commit_id();
+
 
         BlockCacheEntry* shared = cache_entry_pool_.construct(id, block, at);
         shared->set_allocator(this);
+        shared->set_mutable(true);
 
         block_cache_.insert(shared);
 
         return shared;
     }
 
-    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) override {
+    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) override
+    {
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
         std::memcpy(block_addr, source, source->memory_block_size());
@@ -268,11 +275,13 @@ public:
         new_block->id()   = id;
         new_block->uuid() = id.value();
         new_block->id_value() = id.value();
+        new_block->snapshot_id() = commit_id();
 
         new_block->set_references(0);
 
         BlockCacheEntry* shared = cache_entry_pool_.construct(id, new_block, at);
         shared->set_allocator(this);
+        shared->set_mutable(true);
 
         block_cache_.insert(shared);
 

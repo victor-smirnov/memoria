@@ -62,6 +62,8 @@ protected:
     using SWMRWritableCommitWeakPtr = SnpWeakPtr<SWMRStoreWritableCommitBase<Profile>>;
 
     using CommitDescriptorT = CommitDescriptor<Profile>;
+    using CDescrPtr = typename CommitDescriptorT::SharedPtrT;
+
     using BlockID = ProfileBlockID<Profile>;
     using CtrID = ProfileCtrID<Profile>;
     using ApiBlockID = ApiProfileBlockID<ApiProfileT>;
@@ -95,7 +97,6 @@ protected:
     template <typename> friend class SWMRStoreWritableCommitBase;
     template <typename> friend class SWMRStoreCommitBase;
 
-    SWMRWritableCommitWeakPtr current_writer_;
     SWMRBlockCounters<Profile> block_counters_;
 
     bool read_only_{false};
@@ -103,6 +104,10 @@ protected:
     uint64_t cp_allocation_threshold_{100 * 1024 * 1024 / 4096};
     uint64_t cp_commits_threshold_{10000};
     uint64_t cp_timeout_{1000}; // 1 secons
+
+    LDDocument store_params_;
+
+    bool active_writer_{false};
 
 public:
     using Base::flush;
@@ -157,17 +162,17 @@ public:
 
     virtual void check_if_open() = 0;
 
-    virtual SWMRReadOnlyCommitPtr do_open_readonly(CommitDescriptorT* commit_descr) = 0;
+    virtual SWMRReadOnlyCommitPtr do_open_readonly(CDescrPtr commit_descr) = 0;
     virtual SWMRWritableCommitPtr do_create_writable(
-            CommitDescriptorT* consistency_point,
-            CommitDescriptorT* head,
-            CommitDescriptorT* parent,
-            CommitDescriptorT* commit_descr
+            CDescrPtr consistency_point,
+            CDescrPtr head,
+            CDescrPtr parent,
+            CDescrPtr commit_descr
     ) = 0;
 
-    virtual SWMRWritableCommitPtr do_open_writable(CommitDescriptorT* commit_descr, RemovingBlockConsumerFn fn) = 0;
+    virtual SWMRWritableCommitPtr do_open_writable(CDescrPtr commit_descr, RemovingBlockConsumerFn fn) = 0;
 
-    virtual SWMRWritableCommitPtr do_create_writable_for_init(CommitDescriptorT* commit_descr) = 0;
+    virtual SWMRWritableCommitPtr do_create_writable_for_init(CDescrPtr commit_descr) = 0;
     virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept = 0;
     virtual void store_superblock(SuperblockT* superblock, uint64_t sb_slot) = 0;
     virtual SharedSBPtr<SuperblockT> get_superblock(uint64_t file_pos) = 0;
@@ -176,7 +181,7 @@ public:
 
     virtual void do_flush() = 0;
 
-    virtual ReadOnlyCommitPtr flush() override
+    virtual ReadOnlyCommitPtr flush(FlushType ft) override
     {
         LockGuard lock(writer_mutex_);
         check_if_open();
@@ -191,7 +196,6 @@ public:
         {
             auto ii = create_system_commit();
             ii->commit(ConsistencyPoint::YES);
-            do_flush();
             return DynamicPointerCast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(ii);
         }
         else {
@@ -211,7 +215,7 @@ public:
         {
             std::vector<CommitID> commits;
 
-            CommitDescriptorT* node = head_opt.get();
+            CDescrPtr node = head_opt.get();
             while (node) {
                 commits.push_back(node->commit_id());
                 node = node->parent();
@@ -234,7 +238,7 @@ public:
         auto descr_opt = history_tree_.get(commit_id);
         if (descr_opt)
         {
-            CommitDescriptorT* descr = descr_opt.get();
+            CDescrPtr descr = descr_opt.get();
             if (descr->parent()) {
                 return ResultT{descr->parent()->commit_id()};
             }
@@ -257,7 +261,7 @@ public:
         auto descr_opt = history_tree_.get(commit_id);
         if (descr_opt)
         {
-            CommitDescriptorT* descr = descr_opt.get();
+            CDescrPtr descr = descr_opt.get();
             return ResultT{descr->is_transient()};
         }
         else {
@@ -275,7 +279,7 @@ public:
         auto descr_opt = history_tree_.get(commit_id);
         if (descr_opt)
         {
-            CommitDescriptorT* descr = descr_opt.get();
+            CDescrPtr descr = descr_opt.get();
             return ResultT{descr->is_system_commit()};
         }
         else {
@@ -382,55 +386,9 @@ public:
         return history_tree_.branch_names();
     }
 
-    virtual bool can_rollback_last_consistency_point() noexcept override {
-        LockGuard lock(reader_mutex_);
-        return (!read_only_) && history_tree_.can_rollback_last_consistency_point();
-    }
-
     virtual int64_t count_volatile_commits() override {
         LockGuard lock(reader_mutex_);
         return history_tree_.count_volatile_commits();
-    }
-
-    virtual void rollback_last_consistency_point() override
-    {
-        throw_if_read_only();
-        LockGuard wlock(writer_mutex_);
-
-        check_if_open();
-
-        auto rollback_span = get_last_commit_for_rollback_sync();
-        if (rollback_span.size())
-        {
-            for (CommitDescriptorT* descr: rollback_span)
-            {
-                auto ptr = do_open_writable(descr, [&](const BlockID& block_id, uint64_t, uint64_t){
-                    // no need to do anything here
-                });
-
-                // Decrementing counters
-                ptr->remove_all_blocks();
-            }
-
-            auto head_sb = get_superblock(history_tree_.consistency_point1()->superblock_ptr());
-
-            head_sb->mark_for_rollback();
-            head_sb->build_superblock_description();
-
-            auto sb_slot = head_sb->consistency_point_sequence_id() % 2;
-            store_superblock(head_sb.get(), sb_slot);
-
-            flush_header();
-
-            history_tree_.do_remove_rollback_span(rollback_span);
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("Can't rollback the last commit").do_throw();
-        }
-    }
-
-    virtual void rollback_volatile_commits() override {
-
     }
 
     virtual WritableCommitPtr begin() override {
@@ -442,9 +400,9 @@ public:
         return branch_from("main", branch);
     }
 
-    std::unique_ptr<CommitDescriptorT> create_commit_descriptor(U8StringView branch_name)
+    CDescrPtr create_commit_descriptor(U8StringView branch_name)
     {
-        std::unique_ptr<CommitDescriptorT> commit_descriptor = std::make_unique<CommitDescriptorT>(branch_name);
+        auto commit_descriptor = history_tree_.new_commit_descriptor(branch_name);
 
         commit_descriptor->set_start_time(getTimeInMillis());
 
@@ -458,6 +416,20 @@ public:
         return commit_descriptor;
     }
 
+    void check_no_writers()
+    {
+        if (MMA_UNLIKELY(active_writer_)) {
+            writer_mutex_.unlock();
+            MEMORIA_MAKE_GENERIC_ERROR("Another writer commit is still active. Commit/rollback it first.").do_throw();
+        }
+        active_writer_ = 1;
+    }
+
+    void unlock_writer() {
+        active_writer_ = 0;
+        writer_mutex_.unlock();
+    }
+
     virtual WritableCommitPtr branch_from(U8StringView source, U8StringView branch_name) override
     {
         check_if_open();
@@ -465,23 +437,24 @@ public:
 
         writer_mutex_.lock();
 
+        check_no_writers();
+
         try {
             auto descr = get_branch_head_read_sync(source);
             if (descr)
             {
-                std::unique_ptr<CommitDescriptorT> commit_descriptor = create_commit_descriptor(branch_name);
+                CDescrPtr commit_descriptor = create_commit_descriptor(branch_name);
 
                 SWMRWritableCommitPtr ptr = do_create_writable(
                             history_tree_.consistency_point1(),
                             history_tree_.head(),
-                            descr.get(),
-                            commit_descriptor.get()
+                            descr,
+                            std::move(commit_descriptor)
                 );
 
-                ptr->finish_commit_opening();
 
-                current_writer_ = ptr;
-                commit_descriptor.release();
+
+                ptr->finish_commit_opening();
                 return ptr;
             }
             else {
@@ -489,7 +462,7 @@ public:
             }
         }
         catch (...) {
-            writer_mutex_.unlock();
+            unlock_writer();
             throw;
         }
     }
@@ -500,6 +473,7 @@ public:
         throw_if_read_only();
 
         writer_mutex_.lock();
+        check_no_writers();
 
         try {
             auto descr = [&]{
@@ -511,18 +485,15 @@ public:
             {
                 if (!descr.get()->is_transient())
                 {
-                    std::unique_ptr<CommitDescriptorT> commit_descriptor = create_commit_descriptor(branch_name);
+                    CDescrPtr commit_descriptor = create_commit_descriptor(branch_name);
 
                     SWMRWritableCommitPtr ptr = do_create_writable(
                                 history_tree_.consistency_point1(),
                                 history_tree_.head(),
-                                descr.get(),
-                                commit_descriptor.get()
+                                descr,
+                                std::move(commit_descriptor)
                     );
                     ptr->finish_commit_opening();
-
-                    current_writer_ = ptr;
-                    commit_descriptor.release();
                     return ptr;
                 }
                 else {
@@ -534,78 +505,13 @@ public:
             }
         }
         catch (...) {
-            writer_mutex_.unlock();
+            unlock_writer();
             throw;
         }
     }
 
-    virtual Optional<CommitID> remove_branch(U8StringView branch_name) override
-    {
-        using Result = Optional<CommitID>;
 
-        check_if_open();
-        throw_if_read_only();
-
-        writer_mutex_.lock();
-
-        try {
-            auto result_opt = [&]{
-                using TupleT = std::tuple<CommitDescriptorT*, std::unique_ptr<CommitDescriptorT>, bool>;
-
-                LockGuard lock(reader_mutex_);
-                auto descr = history_tree_.get_branch_head(branch_name);
-                if (descr)
-                {
-                    U8String last_branch = history_tree_.consistency_point1()->branch();
-                    U8String new_branch = history_tree_.mark_branch_transient(descr.get(), branch_name);
-                    bool do_cleanup_data = history_tree_.branches_size() == 1;
-
-                    std::unique_ptr<CommitDescriptorT> commit_descriptor = create_commit_descriptor(new_branch);
-
-                    return Optional<TupleT>{TupleT{descr.get(), std::move(commit_descriptor), do_cleanup_data}};
-                }
-                else {
-                    return Optional<TupleT>{};
-                }
-            }();
-
-            if (result_opt)
-            {
-                auto& result = result_opt.get();
-
-                CommitDescriptorT* descr = std::get<0>(result);
-                std::unique_ptr<CommitDescriptorT> commit_descriptor = std::move(std::get<1>(result));
-                bool do_cleanup_data = std::get<2>(result);
-
-                SWMRWritableCommitPtr ptr = do_create_writable(
-                            history_tree_.consistency_point1(),
-                            history_tree_.head(),
-                            descr,
-                            commit_descriptor.get()
-                );
-                commit_descriptor.release();
-                ptr->finish_commit_opening();
-
-                // If we are removing the only branch, so we need to clean also the data,
-                // because the 'main' branch should be recreated with empty state.
-                if (do_cleanup_data) {
-                    ptr->cleanup_data();
-                }
-
-                // This will remove all non-persistent commits from the history.
-                ptr->commit(ConsistencyPoint::AUTO);
-                return ptr->commit_id();
-            }
-            else {
-                return Result{};
-            }
-        }
-        catch (...) {
-            writer_mutex_.unlock();
-            throw;
-        }
-    }
-
+    // FIXME: needed only for flush
     WritableCommitPtr create_system_commit()
     {
         check_if_open();
@@ -613,75 +519,35 @@ public:
 
         writer_mutex_.lock();
 
+        check_no_writers();
+
         try {
             LockGuard lock(reader_mutex_);
 
             U8String last_branch = history_tree_.head()->branch();
-            std::unique_ptr<CommitDescriptorT> commit_descriptor = create_commit_descriptor(last_branch);
+            CDescrPtr commit_descriptor = create_commit_descriptor(last_branch);
             commit_descriptor->set_system_commit(true);
 
             SWMRWritableCommitPtr ptr = do_create_writable(
                         history_tree_.consistency_point1(),
                         history_tree_.head(),
                         history_tree_.head(),
-                        commit_descriptor.get()
+                        std::move(commit_descriptor)
             );
 
             ptr->finish_commit_opening();
-            commit_descriptor.release();
-
             return ptr;
         }
         catch (...) {
-            writer_mutex_.unlock();
+            unlock_writer();
             throw;
         }
     }
 
 
-    virtual Optional<CommitID> remove_commit(const CommitID& commit_id) override
-    {
-        using Result = Optional<CommitID>;
 
-        check_if_open();
-        throw_if_read_only();
-
-        writer_mutex_.lock();
-
-        try {
-            LockGuard lock(reader_mutex_);
-
-            if (history_tree_.mark_commit_transient(commit_id))
-            {
-                U8String last_branch = history_tree_.head()->branch();
-                std::unique_ptr<CommitDescriptorT> commit_descriptor = create_commit_descriptor(last_branch);
-
-                SWMRWritableCommitPtr ptr = do_create_writable(
-                            history_tree_.consistency_point1(),
-                            history_tree_.head(),
-                            history_tree_.head(),
-                            commit_descriptor.get()
-                );
-                ptr->finish_commit_opening();
-                commit_descriptor.release();
-
-                // This will remove all non-persistent commits from the history.
-                ptr->commit(ConsistencyPoint::AUTO);
-                return ptr->commit_id();
-            }
-            else {
-                return Result{};
-            }
-        }
-        catch (...) {
-            writer_mutex_.unlock();
-            throw;
-        }
-    }
-
-
-    virtual void finish_commit(
-            CommitDescriptorT* commit_descriptor,
+    virtual void do_prepare(
+            CDescrPtr commit_descriptor,
             ConsistencyPoint cp,
             bool do_consistency_point,
             SharedSBPtr<SuperblockT> sb
@@ -690,6 +556,12 @@ public:
         if (do_consistency_point)
         {
             sb->inc_consistency_point_sequence_id();
+
+            if (cp == ConsistencyPoint::FULL) {
+                store_counters(sb.get());
+                sb->set_clean_status();
+            }
+
             sb->build_superblock_description();
 
             flush_data();
@@ -697,20 +569,44 @@ public:
             auto sb_slot = sb->consistency_point_sequence_id() % 2;
             store_superblock(sb.get(), sb_slot);
 
+            auto sb0 = get_superblock(sb_slot * BASIC_BLOCK_SIZE);
+            sb0->set_metadata_doc(store_params_);
+            store_superblock(sb0.get(), sb_slot);
+
             flush_header();
         }
         else {
             sb->build_superblock_description();
         }
+    }
+
+    virtual void do_commit(
+        CDescrPtr commit_descriptor,
+        bool do_consistency_point,
+        std::unordered_map<BlockID, RWBlkCounter>& counters
+    )
+    {
+        for (const auto& entry: counters) {
+            block_counters_.apply(entry.first, entry.second.value);
+        }
 
         {
             LockGuard lock(reader_mutex_);
+
+            // We need to cleanup eviction queue before attaching the new commit
+            // to the history tree. Because attaching may add a new entry to
+            // the queue.
             cleanup_eviction_queue();
+
             history_tree_.attach_commit(commit_descriptor, do_consistency_point);
         }
 
-        current_writer_.reset();
-        writer_mutex_.unlock();
+        unlock_writer();
+    }
+
+    virtual void do_rollback(CDescrPtr commit_descriptor)
+    {
+        unlock_writer();
     }
 
 
@@ -729,8 +625,8 @@ public:
 
         for (auto& name: history_tree_.branch_names())
         {
-            Optional<CommitDescriptorT*> head = history_tree_.get_branch_head(name);
-            view->load_branch(name, head.get()->commit_id());
+            CDescrPtr head = history_tree_.get_branch_head(name);
+            view->load_branch(name, head->commit_id());
         }
 
         view->build_tree();
@@ -738,11 +634,7 @@ public:
         return view;
     }
 
-    void unlock_writer() {
-        writer_mutex_.unlock();
-    }
-
-    ReadOnlyCommitPtr open_readonly(CommitDescriptorT* commit_descr) {
+    ReadOnlyCommitPtr open_readonly(CDescrPtr commit_descr) {
         return do_open_readonly(commit_descr);
     }
 
@@ -767,7 +659,7 @@ protected:
     ){
         std::vector<SWMRReadOnlyCommitPtr> commits;
 
-        history_tree_.traverse_tree_preorder([&](CommitDescriptorT* descr){
+        history_tree_.traverse_tree_preorder([&](CDescrPtr descr){
             auto ptr = do_open_readonly(descr);
             commits.push_back(ptr);
         });
@@ -781,6 +673,11 @@ protected:
 
     Optional<SequenceID> do_check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback)
     {
+        // FIXME:
+        // Writer mutex is needed because we are touching counters here.
+        // Need another lightweight method to check the data only without
+        // taking writer lock
+
         LockGuard lock(writer_mutex_);
 
         auto commits = build_ordered_commits_list(from);
@@ -796,15 +693,6 @@ protected:
                 }
             }
 
-            SWMRWritableCommitPtr head = current_writer_.lock();
-
-            if (head) {
-                head->check(callback);
-                if (!from) {
-                    head->build_block_refcounters(check_state.counters);
-                }
-            }
-
             if (!from) {
                 check_refcounters(check_state.counters, callback);
             }
@@ -816,7 +704,8 @@ protected:
         }
     }
 
-    void check_refcounters(const SWMRBlockCounters<Profile>& counters, StoreCheckCallbackFn callback) {
+    void check_refcounters(const SWMRBlockCounters<Profile>& counters, StoreCheckCallbackFn callback)
+    {
         if (counters.size() != block_counters_.size())
         {
             LDDocument doc;
@@ -866,10 +755,9 @@ protected:
         }
     }
 
-    virtual void unref_ctr_root(const BlockID&) override {
-        return make_generic_error("SWMRStoreBase::unref_ctr_root() should not be called").do_throw();
+    virtual Optional<int64_t> count_refs(const BlockID& block_id) override {
+        return block_counters_.get(block_id);
     }
-
 
 
     void cleanup_eviction_queue() {
@@ -917,7 +805,7 @@ protected:
 
         std::unordered_set<BlockID> visited_nodes;
 
-        history_tree_.traverse_tree_preorder([&](CommitDescriptorT* commit_descr){
+        history_tree_.traverse_tree_preorder([&](CDescrPtr commit_descr){
             visitor.start_commit(commit_descr->commit_id(), commit_descr->sequence_id());
 
             auto commit = do_open_readonly(commit_descr);
@@ -1005,22 +893,26 @@ protected:
         superblock->set_global_block_counters_size(block_counters_.size());
     }
 
+
+
     virtual void prepare_to_close()
     {
-        flush();
+        flush(FlushType::DEFAULT);
 
-        CommitDescriptorT* head_ptr = history_tree_.consistency_point1();
+        CDescrPtr head_ptr = history_tree_.consistency_point1();
         if (head_ptr && !read_only_)
         {
             auto sb_slot = head_ptr->consistency_point_sequence_id() % 2;
-            SharedSBPtr<SuperblockT> sb0 = get_superblock(sb_slot);
+            SharedSBPtr<SuperblockT> sb0 = get_superblock(sb_slot * BASIC_BLOCK_SIZE);
+            sb0->set_metadata_doc(store_params_);
 
-            this->store_counters(sb0.get());
+            store_counters(sb0.get());
 
             flush_data();
 
             sb0->set_clean_status();
             sb0->build_superblock_description();
+            store_superblock(sb0.get(), sb_slot);
 
             flush_header();
 
@@ -1068,48 +960,48 @@ protected:
             return init_store();
         }
 
-        std::unique_ptr<CommitDescriptorT> consistency_point1_ptr;
-        std::unique_ptr<CommitDescriptorT> consistency_point2_ptr;
+        CDescrPtr consistency_point1_ptr;
+        CDescrPtr consistency_point2_ptr;
 
         if (sb0->consistency_point_sequence_id() > sb1->consistency_point_sequence_id())
         {
-            consistency_point1_ptr = std::make_unique<CommitDescriptorT>(
+            consistency_point1_ptr = history_tree_.new_commit_descriptor(
                         sb0->superblock_file_pos(),
-                        get_superblock(sb0->superblock_file_pos()).get()
+                        get_superblock(sb0->superblock_file_pos()).get(),
+                        ""
             );
+
+            store_params_ = LDDocument{sb0->cmetadata_doc()};
 
             if (sb1->commit_id().is_set())
             {
-                consistency_point2_ptr = std::make_unique<CommitDescriptorT>(
+                consistency_point2_ptr = history_tree_.new_commit_descriptor(
                             sb1->superblock_file_pos(),
-                            get_superblock(sb1->superblock_file_pos()).get()
+                            get_superblock(sb1->superblock_file_pos()).get(),
+                            ""
                 );
             }
         }
         else {
-            consistency_point1_ptr = std::make_unique<CommitDescriptorT>(
+            consistency_point1_ptr = history_tree_.new_commit_descriptor(
                         sb1->superblock_file_pos(),
-                        get_superblock(sb1->superblock_file_pos()).get()
+                        get_superblock(sb1->superblock_file_pos()).get(),
+                        ""
             );
+
+            store_params_ = LDDocument{sb1->cmetadata_doc()};
 
             if (sb0->commit_id().is_set())
             {
-                consistency_point2_ptr = std::make_unique<CommitDescriptorT>(
+                consistency_point2_ptr = history_tree_.new_commit_descriptor(
                             sb0->superblock_file_pos(),
-                            get_superblock(sb0->superblock_file_pos()).get()
+                            get_superblock(sb0->superblock_file_pos()).get(),
+                            ""
                 );
             }
         }
 
         auto cp1_sb = get_superblock(consistency_point1_ptr->superblock_ptr());
-
-//        if (head_sb->file_size() != buffer_.size()) {
-//            MEMORIA_MAKE_GENERIC_ERROR(
-//                "SWMR Store file size mismatch with header: {} {}",
-//                head_sb->file_size(), buffer_.size()
-//            ).do_throw();
-//        }
-
 
         // Read snapshot history and
         // preload all transient snapshots into the
@@ -1139,7 +1031,7 @@ protected:
 
     void read_block_counters()
     {
-        CommitDescriptorT* head_ptr = history_tree_.consistency_point1();
+        CDescrPtr head_ptr = history_tree_.consistency_point1();
         auto head_sb = get_superblock(head_ptr->superblock_ptr());
 
         auto ctr_file_pos = head_sb->global_block_counters_file_pos();
@@ -1173,27 +1065,27 @@ protected:
         auto sb0 = get_superblock(0);
         auto sb1 = get_superblock(BASIC_BLOCK_SIZE);
 
-        sb0->init(0, buffer_size(), CommitID{}, BASIC_BLOCK_SIZE, 0);
+        sb0->init(0, buffer_size(), CommitID{}, BASIC_BLOCK_SIZE, 0, 0, store_params_);
         sb0->build_superblock_description();
 
-        sb1->init(BASIC_BLOCK_SIZE, buffer_size(), CommitID{}, BASIC_BLOCK_SIZE, 1);
+        sb1->init(BASIC_BLOCK_SIZE, buffer_size(), CommitID{}, BASIC_BLOCK_SIZE, 1, 1, store_params_);
         sb1->build_superblock_description();
 
-        auto commit_descriptor_ptr = std::make_unique<CommitDescriptorT>("main");
+        auto commit_descriptor_ptr = history_tree_.new_commit_descriptor("main");
 
         writer_mutex_.lock();
 
-        auto ptr = do_create_writable_for_init(commit_descriptor_ptr.release());
+        auto ptr = do_create_writable_for_init(commit_descriptor_ptr);
         ptr->finish_store_initialization();
     }
 
 private:
-    Optional<CommitDescriptorT*> get_branch_head_read_sync(U8StringView name) const noexcept {
+    CDescrPtr get_branch_head_read_sync(U8StringView name) const noexcept {
         LockGuard lock(reader_mutex_);
         return history_tree_.get_branch_head(name);
     }
 
-    std::vector<CommitDescriptorT*> get_last_commit_for_rollback_sync() const noexcept
+    std::vector<CDescrPtr> get_last_commit_for_rollback_sync() const noexcept
     {
         LockGuard lock(reader_mutex_);
         return history_tree_.get_rollback_span();

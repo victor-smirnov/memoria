@@ -69,7 +69,7 @@ protected:
     using TypeDeclsMap  = ld_::TypeDeclsMap;
     using DocumentState = ld_::DocumentState;
     using DocumentPtr   = ld_::LDPtr<DocumentState>;
-public:
+
     ld_::LDArenaView arena_;
 protected:
     friend class LDDocumentBuilder;
@@ -108,6 +108,14 @@ public:
         arena_(span)
     {}
 
+    Span<const AtomType> span() const noexcept {
+        return arena_.span();
+    }
+
+    Span<AtomType> span() noexcept {
+        return arena_.span();
+    }
+
     LDDocumentView(const LDDocumentView&) noexcept = default;
     LDDocumentView(LDDocumentView&&) noexcept = default;
 
@@ -126,6 +134,8 @@ public:
 
         return view;
     }
+
+    LDDocument clone();
 
     bool equals(const LDDocumentView* other) const noexcept {
         return arena_.data() == other->arena_.data();
@@ -230,14 +240,6 @@ public:
 
 protected:
     Optional<ld_::LDPtr<DTTLDStorageType<LDString>>> is_shared(DTTViewType<LDString> string) const;
-
-    Span<const AtomType> span() const {
-        return arena_.span();
-    }
-
-    Span<AtomType> span() {
-        return arena_.span();
-    }
 
     DocumentPtr doc_ptr() const {
         return DocumentPtr{sizeof(LDDocumentHeader)};
@@ -356,6 +358,9 @@ public:
         LDDocumentView(),
         ld_arena_(&arena_, std::move(other.ld_arena_))
     {}
+
+    LDDocument(LDDocumentView view);
+    LDDocument(Span<const uint8_t> data);
 
     LDDocument(U8StringView sdn);
     LDDocument(const char* sdn);

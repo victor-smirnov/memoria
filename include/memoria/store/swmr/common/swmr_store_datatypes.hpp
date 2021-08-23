@@ -38,12 +38,19 @@ class CommitMetadata {
     CommitID parent_commit_id_;
     uint64_t superblock_file_pos_;
     uint64_t flags_;
+    uint64_t timestamp_;
+    uint64_t ttl_;
 
 public:
+    template<typename> friend struct FieldFactory;
+
     static constexpr uint64_t VERSION = 1;
-    enum Bits {
+    enum Bits: uint64_t {
+        NONE = 0x0,
         TRANSIENT = 0x1,
-        SYSTEM_COMMIT = 0x2
+        SYSTEM_COMMIT = 0x2,
+        DATA_COMMIT = 0x4,
+        HAS_TTL = 0x8
     };
 
     CommitMetadata() noexcept :
@@ -66,6 +73,8 @@ public:
         superblock_file_pos_ = pos;
     }
 
+
+
     uint64_t flags() const noexcept {
         return flags_;
     }
@@ -82,34 +91,76 @@ public:
         return flags_ & SYSTEM_COMMIT;
     }
 
+    bool is_data_commit() const noexcept {
+        return flags_ & DATA_COMMIT;
+    }
+
+    bool has_ttl() const noexcept {
+        return flags_ & HAS_TTL;
+    }
+
     void set_transient(bool value) noexcept {
         if (value) {
-            flags_ |= (uint64_t)TRANSIENT;
+            flags_ |= TRANSIENT;
         }
         else {
-            flags_ &= ~(uint64_t)TRANSIENT;
+            flags_ &= ~TRANSIENT;
         }
     }
 
     void set_system_commit(bool value) noexcept {
         if (value) {
-            flags_ |= (uint64_t)SYSTEM_COMMIT;
+            flags_ |= SYSTEM_COMMIT;
         }
         else {
-            flags_ &= ~(uint64_t)SYSTEM_COMMIT;
+            flags_ &= ~SYSTEM_COMMIT;
         }
     }
+
+    void set_data_commit(bool value) noexcept {
+        if (value) {
+            flags_ |= DATA_COMMIT;
+        }
+        else {
+            flags_ &= ~DATA_COMMIT;
+        }
+    }
+
+    void set_ttl(uint64_t ttl) noexcept
+    {
+        flags_ |= HAS_TTL;
+        ttl_ = ttl;
+    }
+
+    uint64_t ttl() const noexcept {
+        return ttl_;
+    }
+
+
+    void set_timestamp(uint64_t value) noexcept {
+        timestamp_ = value;
+    }
+
+    uint64_t timestamp() const noexcept {
+        return timestamp_;
+    }
+
 
     bool operator==(const CommitMetadata& other) const noexcept {
         return parent_commit_id_ == other.parent_commit_id_ &&
                 superblock_file_pos_ == other.superblock_file_pos_ &&
-                flags_ == other.flags_;
+                flags_ == other.flags_ &&
+                timestamp_ == other.timestamp_ &&
+                ttl_ = other.ttl_;
     }
 
     bool operator!=(const CommitMetadata& other) const noexcept {
         return parent_commit_id_ != other.parent_commit_id_ ||
                 superblock_file_pos_ != other.superblock_file_pos_ ||
-                flags_ != other.flags_;
+                flags_ != other.flags_ ||
+                timestamp_ != other.timestamp_ ||
+                ttl_ != other.ttl_
+                ;
     }
 };
 
@@ -143,6 +194,8 @@ public:
         FieldFactory<CommitID>::serialize(data, field.parent_commit_id());
         FieldFactory<uint64_t>::serialize(data, field.superblock_file_pos());
         FieldFactory<uint64_t>::serialize(data, field.flags());
+        FieldFactory<uint64_t>::serialize(data, field.timestamp());
+        FieldFactory<uint64_t>::serialize(data, field.ttl());
     }
 
     static void serialize(SerializationData& data, const Type* field, int32_t count = 1){
@@ -162,9 +215,17 @@ public:
         uint64_t flags{};
         FieldFactory<uint64_t>::deserialize(data, flags);
 
+        uint64_t timestamp{};
+        FieldFactory<uint64_t>::deserialize(data, timestamp);
+
+        uint64_t ttl{};
+        FieldFactory<uint64_t>::deserialize(data, ttl);
+
         field.set_parent_commit_id(commit_id);
         field.set_superblock_file_pos(file_pos);
         field.set_flags(flags);
+        field.set_timestamp(timestamp);
+        field.ttl_ = ttl;
     }
 
 

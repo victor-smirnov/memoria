@@ -35,7 +35,7 @@ struct CounterStorage {
     using BlockID = ProfileBlockID<Profile>;
 
     BlockID block_id;
-    uint64_t counter;
+    int64_t counter;
 };
 
 
@@ -45,7 +45,7 @@ struct SWMRBlockCounters {
     using BlockID = ProfileBlockID<Profile>;
 
     struct Counter {
-        uint64_t value;
+        int64_t value;
         void inc() noexcept {
             ++value;
         }
@@ -57,14 +57,32 @@ struct SWMRBlockCounters {
 
 private:
     absl::btree_set<BlockID> ctr_roots_;
-    //absl::btree_map<BlockID, Counter> map_;
-    std::unordered_map<BlockID, Counter> map_;
-
-    std::string id_;
+    absl::btree_map<BlockID, Counter> map_;
 
 public:
     SWMRBlockCounters() {}
-    SWMRBlockCounters(std::string id): id_(id) {}
+
+    void apply(const BlockID& block_id, int64_t value)
+    {
+        if (value != 0)
+        {
+            auto ii = map_.find(block_id);
+            if (ii != map_.end()) {
+                ii->second.value += value;
+
+                if (ii->second.value == 0)
+                {                    
+                    map_.erase(ii);
+                }
+            }
+            else if (value > 0) {
+                map_[block_id] = Counter{value};
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Negative new counter value for block {} :: {}", block_id, value);
+            }
+        }
+    }
 
     void clear() noexcept {
         map_.clear();
@@ -94,7 +112,7 @@ public:
         }
     }
 
-    void set(const BlockID& block_id, uint64_t counter) noexcept {
+    void set(const BlockID& block_id, int64_t counter) noexcept {
         map_[block_id] = Counter{counter};
     }
 
@@ -105,13 +123,14 @@ public:
             ii->second.inc();
             return false;
         }
-        else {
+        else {            
             map_.insert(std::make_pair(block_id, Counter{1}));
             return true;
         }
     }
 
-    bool dec(const BlockID& block_id) {
+    bool dec(const BlockID& block_id)
+    {
         auto ii = map_.find(block_id);
         if (ii != map_.end()) {
             bool res = ii->second.dec();
@@ -125,19 +144,19 @@ public:
         }
     }
 
-    void for_each(std::function<void (const BlockID&, uint64_t)> fn) const noexcept
+    void for_each(std::function<void (const BlockID&, int64_t)> fn) const noexcept
     {
         for (auto ii = map_.begin(); ii != map_.end(); ++ii) {
             fn(ii->first, ii->second.value);
         }
     }
 
-    Optional<uint64_t> get(const BlockID& block_id) const noexcept {
+    Optional<int64_t> get(const BlockID& block_id) const noexcept {
         auto ii = map_.find(block_id);
         if (ii != map_.end()) {
             return ii->second.value;
         }
-        return Optional<uint64_t>{};
+        return Optional<int64_t>{};
     }
 };
 
