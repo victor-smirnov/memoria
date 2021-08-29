@@ -57,8 +57,10 @@ protected:
 
     using ApiProfileT = ApiProfile<Profile>;
 
+    using WritableCommitT = SWMRStoreWritableCommitBase<Profile>;
+
     using SWMRReadOnlyCommitPtr     = SnpSharedPtr<SWMRStoreReadOnlyCommitBase<Profile>>;
-    using SWMRWritableCommitPtr     = SnpSharedPtr<SWMRStoreWritableCommitBase<Profile>>;
+    using SWMRWritableCommitPtr     = SnpSharedPtr<WritableCommitT>;
     using SWMRWritableCommitWeakPtr = SnpWeakPtr<SWMRStoreWritableCommitBase<Profile>>;
 
     using CommitDescriptorT = CommitDescriptor<Profile>;
@@ -170,7 +172,9 @@ public:
             CDescrPtr commit_descr
     ) = 0;
 
-    virtual SWMRWritableCommitPtr do_open_writable(CDescrPtr commit_descr, RemovingBlockConsumerFn fn) = 0;
+    virtual SWMRWritableCommitPtr do_open_writable(
+            CDescrPtr commit_descr,
+            RemovingBlockConsumerFn fn, bool force = false) = 0;
 
     virtual SWMRWritableCommitPtr do_create_writable_for_init(CDescrPtr commit_descr) = 0;
     virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept = 0;
@@ -511,6 +515,38 @@ public:
     }
 
 
+
+    bool mark_branch_transient(
+            const U8String& branch_name,
+            std::function<void (const CommitID&)> set_transient_fn,
+            std::function<void (const CommitID&)> set_removed_fn
+    )
+    {
+        LockGuard rlock(reader_mutex_);
+        auto head = history_tree_.get_branch_head(branch_name);
+
+        if (head)
+        {
+            CommitDescriptorT* cd = head.get();
+
+            while (cd && cd->children().size() == 1)
+            {
+                if (!cd->is_transient()) {
+                    set_transient_fn(cd->commit_id());
+                }
+
+                cd = cd->parent();
+            }
+
+            set_removed_fn(head->commit_id());
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+
     // FIXME: needed only for flush
     WritableCommitPtr create_system_commit()
     {
@@ -583,10 +619,10 @@ public:
     virtual void do_commit(
         CDescrPtr commit_descriptor,
         bool do_consistency_point,
-        std::unordered_map<BlockID, RWBlkCounter>& counters
+        WritableCommitT* commit
     )
     {
-        for (const auto& entry: counters) {
+        for (const auto& entry: commit->counters()) {
             block_counters_.apply(entry.first, entry.second.value);
         }
 
@@ -599,6 +635,18 @@ public:
             cleanup_eviction_queue();
 
             history_tree_.attach_commit(commit_descriptor, do_consistency_point);
+
+            for (const auto& commit_id: commit->removing_commits())
+            {
+                auto descr = history_tree_.get(commit_id);
+                if (descr) {
+                    descr->set_transient(true);
+                }
+            }
+
+            for (const auto& branch_name: commit->removing_branches()) {
+                history_tree_.remove_branch(branch_name);
+            }
         }
 
         unlock_writer();
@@ -706,6 +754,8 @@ protected:
 
     void check_refcounters(const SWMRBlockCounters<Profile>& counters, StoreCheckCallbackFn callback)
     {
+        block_counters_.diff(counters);
+
         if (counters.size() != block_counters_.size())
         {
             LDDocument doc;

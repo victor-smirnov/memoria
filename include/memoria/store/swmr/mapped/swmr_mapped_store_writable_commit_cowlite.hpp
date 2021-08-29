@@ -136,6 +136,11 @@ public:
 
     virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) override
     {
+        if (at == 594) {
+            int a = 0;
+            a++;
+        }
+
         BlockID id{at};
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
@@ -155,6 +160,11 @@ public:
 
     virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) override
     {
+        if (at == 594) {
+            int a = 0;
+            a++;
+        }
+
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
         std::memcpy(block_addr, source, source->memory_block_size());

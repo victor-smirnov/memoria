@@ -637,10 +637,7 @@ public:
 
     virtual void build_block_refcounters(SWMRBlockCounters<Profile>& counters)
     {
-        //println("   %%%%%%%%%%%%%%%%%%% Building refcounters for {}", commit_id());
-
         auto counters_fn = [&](const BlockID& block_id, const BlockID& parent_id) {
-            //println("Inc: {}", block_id);
             return counters.inc(block_id);
         };
 

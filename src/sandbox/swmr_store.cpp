@@ -17,6 +17,7 @@
 
 #include <memoria/api/set/set_api.hpp>
 #include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/random.hpp>
 #include <memoria/filesystem/operations.hpp>
 #include <memoria/memoria.hpp>
 
@@ -31,7 +32,7 @@ int main(void) {
         const char* file = "file.mma2";
 
         filesystem::remove(file);
-        auto store1 = create_lite_swmr_store(file, 256);
+        auto store1 = create_lite_swmr_store(file, 1024*10);
 
         UUID ctr_id = UUID::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
 
@@ -47,34 +48,34 @@ int main(void) {
                 auto snp0 = store1->begin();
                 auto ctr0 = create(snp0, CtrType(), ctr_id);
                 ctr0->set_ctr_property("CtrName", "SimpleCtr");
+                //snp0->set_transient(false);
                 snp0->commit();
             }
 
             int cnt = 0;
             int b0  = 0;
             int batch_size = 100;
-            int batches = 3;
+            int batches = 1000;
             while (cnt < batch_size * batches)
             {
                 auto snp1 = store1->begin();
                 auto ctr1 = find<CtrType>(snp1, ctr_id);
 
-                //if (b0 % 100 == 0)
+                if (b0 % 100 == 0)
                 {
                     std::cout << "Batch " << (b0) << " :: " << cnt << " :: " << (batch_size * batches) << std::endl;
                 }
 
                 b0++;
-
                 for (int c = 0; c < batch_size; c++, cnt++) {
-                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << cnt).str());
+                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << getBIRandomG()).str()); //
                 }
 
                 snp1->set_transient(true);
                 snp1->commit(ConsistencyPoint::YES);
             }
         }
-//        store1->flush();
+        store1->flush();
         auto t_end = getTimeInMillis();
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
 

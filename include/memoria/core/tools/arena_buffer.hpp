@@ -399,7 +399,7 @@ public:
         {
             invalidate_guard();
 
-            if (to < from || from >= size_ || to >= size_) {
+            if (to < from || from > size_ || to > size_) {
                 std::cout << "ArenaBuffer: invalid range: " << from << " :: " << to << " :: " << size_ << std::endl;
             }
 

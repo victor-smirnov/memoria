@@ -38,7 +38,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
         self.ctr_cow_clone_path(iter.path(), 0);
 
         auto update_status0 = self.template ctr_try_update_stream_entry<SubstreamsList>(iter, idx, entry);
-
         if (!update_status0)
         {
             auto split_r = iter.iter_split_leaf(stream, idx);

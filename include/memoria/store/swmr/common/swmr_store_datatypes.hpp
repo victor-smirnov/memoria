@@ -50,7 +50,8 @@ public:
         TRANSIENT = 0x1,
         SYSTEM_COMMIT = 0x2,
         DATA_COMMIT = 0x4,
-        HAS_TTL = 0x8
+        HAS_TTL = 0x8,
+        REMOVED_BRANCH = 0x10
     };
 
     CommitMetadata() noexcept :
@@ -99,6 +100,11 @@ public:
         return flags_ & HAS_TTL;
     }
 
+    bool is_removed_branch() const noexcept {
+        return flags_ & REMOVED_BRANCH;
+    }
+
+
     void set_transient(bool value) noexcept {
         if (value) {
             flags_ |= TRANSIENT;
@@ -126,6 +132,15 @@ public:
         }
     }
 
+    void set_removed_branch(bool value) noexcept {
+        if (value) {
+            flags_ |= REMOVED_BRANCH;
+        }
+        else {
+            flags_ &= ~REMOVED_BRANCH;
+        }
+    }
+
     void set_ttl(uint64_t ttl) noexcept
     {
         flags_ |= HAS_TTL;
@@ -135,6 +150,8 @@ public:
     uint64_t ttl() const noexcept {
         return ttl_;
     }
+
+
 
 
     void set_timestamp(uint64_t value) noexcept {

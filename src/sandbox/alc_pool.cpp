@@ -33,7 +33,7 @@ namespace memoria {
 int main(void) {
     InitCoreLDDatatypes();
 
-    println("{}", UUID{0, 617});
+    println("{}", UUID{0, 594});
 
     try {
 

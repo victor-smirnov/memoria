@@ -147,7 +147,7 @@ public:
         status_ = Status::NEW;
     }
 
-    void enque_for_eviction();
+    void enqueue_for_eviction();
 
     uint64_t allocated_basic_blocks() const noexcept {
         return allocated_basic_blocks_;
@@ -284,6 +284,7 @@ public:
 
     void set_transient(bool transient) noexcept {
         transient_ = transient;
+        handle_descriptior_state();
     };
 
     bool is_system_commit() const noexcept {
@@ -327,23 +328,38 @@ public:
         return children_;
     }
 
-    bool try_enqueue_for_eviction() noexcept
-    {
-        if (!is_linked())
-        {
-            if (is_attached() && references_ == 1 && parent_) {
-                enque_for_eviction();
-                return true;
-            }
-
-            return false;
-        }
-        else {
-            return true;
-        }
+    bool is_read_only_openable() const noexcept {
+        return (!transient_) || references_ > 2;
     }
 
     void unlink_from_eviction_queue();
+
+private:
+
+    void handle_descriptior_state() noexcept
+    {
+        auto val = references_;
+
+        if(is_attached())
+        {
+            if (val == 2) {
+                if (is_transient() && parent_ && !is_linked()) {
+                    enqueue_for_eviction();
+                }
+            }
+            else if (val == 0) {
+                println("Zero refcounter for attached commit descriptor! {}", commit_id());
+            }
+        }
+        else if(val == 0) { // is_new() == true
+            if (is_linked()) {
+                unlink_from_eviction_queue();
+            }
+
+            delete this;
+        }
+    }
+
 };
 
 template <typename Profile>
@@ -351,40 +367,13 @@ using CommitDescriptorsList = boost::intrusive::list<CommitDescriptor<Profile>>;
 
 template <typename Profile>
 inline void intrusive_ptr_add_ref(CommitDescriptor<Profile>* x) noexcept {
-//    auto val =
     ++x->references_;
-
-    //println("CD ref: {} {} {} {}", x->commit_id(), (int)x->is_new(), (int)x->is_transient(), val);
 }
 
 template <typename Profile>
 inline void intrusive_ptr_release(CommitDescriptor<Profile>* x) noexcept {
-    auto val = --x->references_;
-
-//    if (val > 10) {
-//        int a = 0;
-//        a++;
-//    }
-
-//    println("CD unref: {} {} {} {}", x->commit_id(), (int)x->is_new(), (int)x->is_transient(), val);
-
-    if(x->is_attached())
-    {
-        if (val == 2) {
-            if (x->is_transient() && x->parent() && !x->is_linked()) {
-                x->enque_for_eviction();
-            }
-        }
-        else if (val == 0) {
-            println("Zero refcounter for attached commit descriptor! {}", x->commit_id());
-        }
-    }
-    else if(val == 0) { // is_new() == true
-        if (x->is_linked()) {
-            x->unlink_from_eviction_queue();
-        }
-        delete x;
-    }
+    --x->references_;
+    x->handle_descriptior_state();
 }
 
 }

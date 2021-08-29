@@ -62,6 +62,9 @@ private:
 public:
     SWMRBlockCounters() {}
 
+    int ccnt_{};
+    int dcnt_{};
+
     void apply(const BlockID& block_id, int64_t value)
     {
         if (value != 0)
@@ -71,11 +74,11 @@ public:
                 ii->second.value += value;
 
                 if (ii->second.value == 0)
-                {                    
+                {                                        
                     map_.erase(ii);
                 }
             }
-            else if (value > 0) {
+            else if (value > 0) {                
                 map_[block_id] = Counter{value};
             }
             else {
@@ -116,6 +119,8 @@ public:
         map_[block_id] = Counter{counter};
     }
 
+    int cnt_{};
+
     bool inc(const BlockID& block_id) noexcept
     {
         auto ii = map_.find(block_id);
@@ -123,7 +128,7 @@ public:
             ii->second.inc();
             return false;
         }
-        else {            
+        else {
             map_.insert(std::make_pair(block_id, Counter{1}));
             return true;
         }
@@ -157,6 +162,31 @@ public:
             return ii->second.value;
         }
         return Optional<int64_t>{};
+    }
+
+    void diff(const SWMRBlockCounters& other) const noexcept
+    {
+        for (const auto& entry: map_)
+        {
+            auto val = other.get(entry.first);
+            if (!val) {
+                println("Counter for block {} is missing in the second map", entry.first);
+            }
+            else if (val.get() != entry.second.value) {
+                println("Counter value mismatch for block {}. Expected {}, actual {}", entry.second.value, val.get());
+            }
+        }
+
+        for (const auto& entry: other.map_)
+        {
+            auto val = get(entry.first);
+            if (!val) {
+                println("Counter for block {} is missing in the first map", entry.first);
+            }
+            else if (val.get() != entry.second.value) {
+                println("Counter value mismatch for block {}. Expected {}, actual {}", val.get(), entry.second.value);
+            }
+        }
     }
 };
 

@@ -167,15 +167,19 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             auto level0_pos = ii.get()->level0_pos();
             auto available = ii.get()->count_fw();
 
-            sum += available;
+            auto len = available / (1 << level);            
 
-            auto len = available / (1 << level);
-            buffer.append_value(AllocationMetadata<ApiProfileT>{level0_pos, len, level});
 
-            if (sum < required) {
+            if (sum + len < required)
+            {
+                buffer.append_value(AllocationMetadata<ApiProfileT>{level0_pos, len, level});
                 ii.get()->template iter_select_fw<IntList<0, 1>>(level, 1);
+                sum += len;
             }
             else {
+                auto remainder = required - sum;
+                buffer.append_value(AllocationMetadata<ApiProfileT>{level0_pos, remainder, level});
+                sum += remainder;
                 break;
             }
         }

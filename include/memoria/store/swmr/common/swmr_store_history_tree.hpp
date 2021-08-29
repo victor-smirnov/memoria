@@ -139,6 +139,10 @@ public:
         return CDescrPtr{};
     }
 
+    void remove_branch(U8StringView name) noexcept {
+        branch_heads_.erase(name);
+    }
+
     CDescrPtr head() const noexcept {
         return head_;
     }
@@ -308,14 +312,6 @@ public:
         }
 
         head_ = descr;
-
-//        println("Attaching commit: {} {} || {} {} {}",
-//                descr->commit_id(),
-//                descr->references_,
-//                consistency_point1_ ? consistency_point1_->commit_id() : UUID{},
-//                consistency_point2_ ? consistency_point2_->commit_id() : UUID{},
-//                head_->commit_id()
-//                );
     }
 
     void load(
@@ -514,7 +510,7 @@ private:
 };
 
 template <typename Profile>
-inline void CommitDescriptor<Profile>::enque_for_eviction() {
+inline void CommitDescriptor<Profile>::enqueue_for_eviction() {
     history_tree_->eviction_queue().push_back(*this);
 }
 

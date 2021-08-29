@@ -273,6 +273,11 @@ private:
         MaybeError maybe_error{};
         MappedReadOnlyCommitPtr ptr{};
 
+        if (!commit_descr->is_read_only_openable()) {
+            MEMORIA_MAKE_GENERIC_ERROR("Commit {} is transient.", commit_descr->commit_id()).do_throw();
+        }
+
+
         {
             ptr = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
                 maybe_error, this->shared_from_this(), buffer_, commit_descr
@@ -288,10 +293,13 @@ private:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_open_writable(CDescrPtr commit_descr, RemovingBlockConsumerFn fn) override {
+    virtual SWMRWritableCommitPtr do_open_writable(CDescrPtr commit_descr, RemovingBlockConsumerFn fn, bool force) override {
         MaybeError maybe_error{};
         MappedWritableCommitPtr ptr{};
 
+        if ((!force) && commit_descr->is_linked()) {
+            MEMORIA_MAKE_GENERIC_ERROR("Commit {} is already being removed", commit_descr->commit_id()).do_throw();
+        }
 
         ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
             maybe_error, this->shared_from_this(), buffer_, commit_descr, fn

@@ -107,7 +107,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
         auto& self = this->self();
 
         auto block = self.ctr_get_block(block_id);
-
         if (!block->is_leaf())
         {
             self.ctr_for_all_ids(block, [&](const BlockID& block_id) {

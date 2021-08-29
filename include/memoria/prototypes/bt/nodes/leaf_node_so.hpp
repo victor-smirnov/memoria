@@ -356,15 +356,26 @@ public:
 
 
     struct CoWUnRefChildrenFn {
+
         template <typename Tree, typename Store>
-        VoidResult stream(Tree&&, Store&) const noexcept
+        VoidResult stream(Tree&& tree, Store&) const noexcept
         {
+            (void)tree;
             return VoidResult::of();
         }
 
+        // Note that the way how this handler is implemented
+        // is fallible to one hard-to-spot error. If, because of
+        // whatever reason, PackedDataTypeBufferSO<...> has different
+        // type than it is specified in the signature below,
+        // the compilation sielently will go to the generic method
+        // above, that does nothing.
+        //
+        // As the result, underling blocks will not be unref()-ed.
+
         template <typename ExtData, bool Indexed, typename Store, typename ValueHolder>
         VoidResult stream(
-                PackedDataTypeBufferSO<
+                const PackedDataTypeBufferSO<
                     ExtData,
                     PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<

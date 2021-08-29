@@ -124,6 +124,7 @@ protected:
     bool populating_allocation_pool_{};
     bool allocate_from_superblock_{};
     bool forbid_allocations_{};
+    bool init_store_mode_{};
 
     bool allocator_map_cloned_{};
 
@@ -162,6 +163,9 @@ protected:
     CountersT counters_;
     CountersT* counters_ptr_ {&counters_};
 
+    std::unordered_set<U8String> removing_branches_;
+    std::unordered_set<CommitID> removing_commits_;
+
 public:
     using Base::check;
     using Base::resolve_block;
@@ -198,9 +202,15 @@ public:
     virtual void init_commit(MaybeError& maybe_error) noexcept {}
     virtual void init_store_commit(MaybeError& maybe_error) noexcept {}
 
+    std::unordered_set<U8String>& removing_branches() noexcept {return removing_branches_;}
+    std::unordered_set<CommitID> removing_commits() noexcept {return removing_commits_;}
+
+    CountersT& counters() noexcept {return counters_;}
+
     AllocationMetadataT do_allocate_from_superblock(size_t reserve = 1)
     {
-        auto alc = get_superblock()->allocate_one(reserve);
+        auto sb = get_superblock();
+        auto alc = sb->allocate_one(reserve);
         if (alc) {
             return alc.get();
         }
@@ -229,7 +239,12 @@ public:
         else if (MMA_LIKELY(!allocate_from_superblock_))
         {
             auto alc = allocation_pool_.allocate_one(level);
-            if (alc) {
+            if (alc)
+            {
+                if (MMA_UNLIKELY(init_store_mode_)) {
+                    awaiting_init_allocations_.append_value(alc.get());
+                }
+
                 return alc.get();
             }
             else if (populating_allocation_pool_) {
@@ -246,7 +261,7 @@ public:
                     populate_allocation_pool(level, 1);
                     auto alc2 = allocation_pool_.allocate_one(level);
                     if (alc2) {
-                        return alc1.get();
+                        return alc2.get();
                     }
                     else {
                         MEMORIA_MAKE_GENERIC_ERROR("FIXME: Tried multiple times to allocate from the pool and failed.").do_throw();
@@ -329,8 +344,6 @@ public:
             history_ctr_->internal_reset_allocator_holder();
         }
     }
-
-
 
     void init_commit(
             CDescrPtr& consistency_point,
@@ -425,23 +438,22 @@ public:
 
     void init_store_commit()
     {
+        init_store_mode_ = true;
+
         // FIXME: need to configure 'emergency' block allocation pool here.
         uint64_t buffer_size = get_memory_size();
 
-        int64_t avaialble = buffer_size / BASIC_BLOCK_SIZE;
+        int64_t avaialble = buffer_size / (BASIC_BLOCK_SIZE << (ALLOCATION_MAP_LEVELS - 1));
 
-        AllocationPool<ApiProfileT, 1> init_allocation_pool;
+        allocation_pool_.add(AllocationMetadataT{0, avaialble, ALLOCATION_MAP_LEVELS - 1});
 
-        //int64_t reserved = SUPERBLOCKS_RESERVED;
-        init_allocation_pool.add(AllocationMetadataT{0, avaialble, 0});
-
-        awaiting_init_allocations_.append_value(init_allocation_pool.allocate_one(0).get());
-        awaiting_init_allocations_.append_value(init_allocation_pool.allocate_one(0).get());
+        awaiting_init_allocations_.append_value(allocation_pool_.allocate_one(0).get());
+        awaiting_init_allocations_.append_value(allocation_pool_.allocate_one(0).get());
 
         CommitID commit_id = ProfileTraits<Profile>::make_random_snapshot_id();
 
-        preallocated_ = init_allocation_pool.allocate_one(0);
-        awaiting_init_allocations_.append_value(preallocated_.get());
+        //preallocated_ = allocation_pool_.allocate_one(0);
+        //awaiting_init_allocations_.append_value(preallocated_.get());
 
         auto superblock = allocate_superblock(nullptr, commit_id, buffer_size);
         uint64_t sb_pos = std::get<0>(superblock);
@@ -457,14 +469,14 @@ public:
         uint64_t counters_blocks = divUp(total_blocks, counters_block_capacity) * ctr_blk_scale;
 
         ArenaBuffer<AllocationMetadataT> counters;
-        init_allocation_pool.allocate(0, counters_blocks, counters);
+        allocation_pool_.allocate(0, counters_blocks, counters);
         awaiting_init_allocations_.append_values(counters.span());
 
         uint64_t counters_file_pos = counters[0].position() * BASIC_BLOCK_SIZE;
         sb->set_global_block_counters_file_pos(counters_file_pos);
 
         if (!sb->preallocate_from_fn([&]{
-            auto alc = init_allocation_pool.allocate_one(0);
+            auto alc = allocation_pool_.allocate_one(0);
             if (alc) {
                 awaiting_init_allocations_.append_value(alc.get());
             }
@@ -472,7 +484,7 @@ public:
         })) {
             MEMORIA_MAKE_GENERIC_ERROR("Internal Error. InitAllocationPool is empty").do_throw();
         }
-        allocate_from_superblock_ = true;
+        //allocate_from_superblock_ = true;
 
         init_idmap();
 
@@ -514,7 +526,9 @@ public:
         // FIXME: This should not trigger any block allocation
         allocation_map_ctr_->setup_bits(awaiting_init_allocations_.span(), true);
 
-        allocate_from_superblock_ = false;
+        allocation_pool_.clear();
+
+        init_store_mode_ = false;
 
         return commit(ConsistencyPoint::YES);
     }
@@ -758,14 +772,13 @@ public:
 
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
             store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
-                //println("    ############# Removing commit: {}", commit_descriptor->commit_id());
                 auto snp = store_->do_open_writable(commit_descriptor, [&](const BlockID& id, uint64_t block_file_pos, int32_t block_size){
                     evicting_blocks.append_value(AllocationMetadataT(
                         block_file_pos / BASIC_BLOCK_SIZE,
                         block_size / BASIC_BLOCK_SIZE,
                         0
                     ));
-                });
+                }, true);
 
                 snp->remove_all_blocks(&counters_);
             });
@@ -848,11 +861,7 @@ public:
             prepare(cp);
         }
 
-//        for (const auto& entry: counters_) {
-//            println("    ********* Counter: {} {} {}", commit_id(), entry.first, entry.second.value);
-//        }
-
-        store_->do_commit(Base::commit_descriptor_, do_consistency_point_, counters_);
+        store_->do_commit(Base::commit_descriptor_, do_consistency_point_, this);
         state_ = State::COMMITTED;
     }
 
@@ -1121,11 +1130,6 @@ public:
 
     virtual void ref_block(const BlockID& block_id)
     {
-//        if (block_id.value() == 614) {
-//            int a = 0;
-//            a++;
-//        }
-
         auto ii = counters_ptr_->find(block_id);
         if (ii != counters_ptr_->end()) {
             ii->second.inc();
@@ -1133,8 +1137,6 @@ public:
         else {
             counters_ptr_->insert(std::make_pair(block_id, RWBlkCounter{1}));
         }
-
-//        println("RefBlock: {} {} {}", commit_id(), block_id, (*counters_ptr_)[block_id].value);
     }
 
     virtual void unref_block(const BlockID& block_id, BlockCleanupHandler on_zero)
@@ -1153,8 +1155,6 @@ public:
             zero = cntr.dec(cnt);
             counters_ptr_->insert(std::make_pair(block_id, cntr));
         }
-
-//        println("UnRefBlock: {} {} {}", commit_id(), block_id, (*counters_ptr_)[block_id].value);
 
         if (zero) {
             on_zero();
@@ -1376,78 +1376,55 @@ public:
         }
     }
 
+    bool update_commit_metadata(const CommitID& commit_id, std::function<void (CommitMetadata<ApiProfileT>&)> fn)
+    {
+        bool exists = true;
+        history_ctr_->with_value(commit_id, [&](const auto& value) {
+            using ResultT = std::decay_t<decltype(value)>;
+            if (value) {
+                auto vv = value.get().view();
+                fn(vv);
+                return ResultT{vv};
+            }
+            else {
+                exists = false;
+                return ResultT{};
+            }
+        });
+        return exists;
+    }
+
+    bool set_transient(const CommitID& commit_id, bool value) {
+        return update_commit_metadata(commit_id, [](auto& meta){
+            meta.set_transient(true);
+        });
+    }
+
+    bool set_removed_branch(const CommitID& commit_id, bool value) {
+        return update_commit_metadata(commit_id, [](auto& meta){
+            meta.set_removed_branch(true);
+        });
+    }
 
     virtual bool remove_branch(U8StringView branch_name)
     {
-        return true;
-
-
-
-//        try {
-//            auto result_opt = [&]{
-//                using TupleT = std::tuple<CDescrPtr, CDescrPtr, bool>;
-
-//                LockGuard lock(reader_mutex_);
-//                auto descr = history_tree_.get_branch_head(branch_name);
-//                if (descr)
-//                {
-//                    U8String last_branch = history_tree_.consistency_point1()->branch();
-//                    U8String new_branch = history_tree_.mark_branch_transient(descr.get(), branch_name);
-//                    bool do_cleanup_data = history_tree_.branches_size() == 1;
-
-//                    CDescrPtr commit_descriptor = create_commit_descriptor(new_branch);
-
-//                    return Optional<TupleT>{TupleT{descr, std::move(commit_descriptor), do_cleanup_data}};
-//                }
-//                else {
-//                    return Optional<TupleT>{};
-//                }
-//            }();
-
-//            if (result_opt)
-//            {
-//                auto& result = result_opt.get();
-
-//                CDescrPtr descr = std::get<0>(result);
-//                CDescrPtr commit_descriptor = std::move(std::get<1>(result));
-//                bool do_cleanup_data = std::get<2>(result);
-
-//                SWMRWritableCommitPtr ptr = do_create_writable(
-//                            history_tree_.consistency_point1(),
-//                            history_tree_.head(),
-//                            descr,
-//                            std::move(commit_descriptor)
-//                );
-//                ptr->finish_commit_opening();
-
-//                // If we are removing the only branch, so we need to clean also the data,
-//                // because the 'main' branch should be recreated with empty state.
-//                if (do_cleanup_data) {
-//                    ptr->cleanup_data();
-//                }
-
-//                // This will remove all non-persistent commits from the history.
-//                ptr->commit(ConsistencyPoint::AUTO);
-//                return ptr->commit_id();
-//            }
-//            else {
-//                return Result{};
-//            }
-//        }
-//        catch (...) {
-//            writer_mutex_.unlock();
-//            throw;
-//        }
+        removing_branches_.insert(branch_name);
+        return store_->mark_branch_transient(
+                    branch_name,
+                    [&](const auto& commit_id){
+                        set_transient(commit_id, true);
+                    },
+                    [&](const auto& commit_id) {
+                        set_removed_branch(commit_id, true);
+                    }
+        );
     }
-
-
 
 
     bool remove_commit(const CommitID& commit_id)
     {
-
-
-        return true;
+        removing_commits_.insert(commit_id);
+        return set_transient(commit_id, true);
     }
 };
 
