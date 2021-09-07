@@ -77,8 +77,6 @@ protected:
     SharedPtr<Store> store_;
     Superblock* superblock_;
 
-    Logger logger_;
-
     CtrSharedPtr<DirectoryCtr> directory_ctr_;
 
     mutable ObjectPools object_pools_;
@@ -173,11 +171,6 @@ public:
     virtual void freeMemory(void* ptr) noexcept {
         free_system(ptr);
     }
-
-    virtual Logger& logger() noexcept {
-        return logger_;
-    }
-
 
     virtual void registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance)
     {
@@ -279,9 +272,8 @@ public:
         return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};
     }
 
-    virtual bool check() {
-        bool result = false;
-
+    virtual void check(const CheckResultConsumerFn& consumer)
+    {
         auto iter = directory_ctr_->iterator();
 
         while(!iter->is_end())
@@ -293,14 +285,10 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            auto res = ctr_intf->check(ctr_name, this->self_ptr());
-
-            result = res || result;
+            ctr_intf->check(ctr_name, this->self_ptr(), consumer);
 
             iter->next();
         }
-
-        return result;
     }
 
     virtual void walkContainers(
@@ -500,6 +488,9 @@ protected:
             return data;
         }
     }
+
+    void start_no_reentry(const CtrID& ctr_id) {}
+    void finish_no_reentry(const CtrID& ctr_id) noexcept {}
 };
 
 }

@@ -127,11 +127,13 @@ int main(int argc, char** argv)
             add_parser_clang_option("-Wno-everything");
 
             auto project = Project::create(config_file, project_output_folder, components_output_base);
+
             project->parse_configuration();
 
             std::stringstream ss;
 
             auto names = project->build_file_names();
+
             size_t cnt = 0;
             for (const auto& name: names) {
                 std::cout << name;
@@ -151,7 +153,9 @@ int main(int argc, char** argv)
     }
     else {
         auto project = Project::create(config_file, project_output_folder, components_output_base);
+        println("About to parse the Configuration");
         project->parse_configuration();
+        println("Configuration has been parsed");
         project->generate_artifacts();
     }
 

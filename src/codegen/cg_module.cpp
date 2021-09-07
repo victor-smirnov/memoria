@@ -274,6 +274,7 @@ ShPtr<CodeModule> parse_file(const std::vector<U8String>& extra_opts, const U8St
 
     std::vector<std::string> Args;
     Args.push_back("MemoriaCodeGen");
+    Args.push_back("-stdlib=libc++");
     Args.push_back("-Wfatal-errors");
     Args.push_back("-DMEMORIA_CODEGEN");
     Args.push_back("-fsyntax-only");
@@ -357,6 +358,8 @@ U8String regenerate_pch(
 
     std::vector<std::string> Args;
     Args.push_back("MemoriaCodeGen");
+
+    Args.push_back("-stdlib=libc++");
 
     for (const auto& option: parser_options) {
         Args.push_back(option);

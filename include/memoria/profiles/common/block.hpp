@@ -23,11 +23,7 @@
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/tools/assert.hpp>
 #include <memoria/core/tools/result.hpp>
-
 #include <memoria/core/types/typehash.hpp>
-
-#include <memoria/core/container/logs.hpp>
-
 #include <memoria/core/memory/ptr_cast.hpp>
 
 #include <type_traits>

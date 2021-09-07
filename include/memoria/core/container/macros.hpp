@@ -50,6 +50,14 @@ public:
     const MyType& self() const {                                                \
         return *static_cast<const MyType*>(this);                               \
     }                                                                           \
+                                                                                \
+    MyType& the_self() {                                                        \
+        return *static_cast<MyType*>(this);                                     \
+    }                                                                           \
+                                                                                \
+    const MyType& the_self() const {                                            \
+        return *static_cast<const MyType*>(this);                               \
+    }                                                                           \
 };
 
 
@@ -98,6 +106,13 @@ public:
     }                                                                           \
                                                                                 \
     const MyType& self() const {                                                \
+        return *static_cast<const MyType*>(this);                               \
+    }                                                                           \
+    MyType& the_self() {                                                        \
+        return *static_cast<MyType*>(this);                                     \
+    }                                                                           \
+                                                                                \
+    const MyType& the_self() const {                                            \
         return *static_cast<const MyType*>(this);                               \
     }                                                                           \
 };

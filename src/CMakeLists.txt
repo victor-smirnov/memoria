@@ -61,6 +61,8 @@ include_directories(containers/generated)
 
 find_package(Clang CONFIG REQUIRED)
 
+SET (MMA_CLANG_INCLUDES_DIR ${Boost_INCLUDE_DIRS})
+
 execute_process(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMAND
@@ -69,14 +71,17 @@ execute_process(
         -I ${CMAKE_SOURCE_DIR}/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${Boost_INCLUDE_DIRS}
-        -I ${CLANG_INSTALL_PREFIX}/tools/llvm/lib/clang/11.1.0/include
+        -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
+        -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/12.0.1/include
         -D MMA_ICU_CXX_NS=icu
         --config codegen_memoria.hpp
         --project-output ${CMAKE_BINARY_DIR}/generated
         --components-output-base ${CMAKE_BINARY_DIR}
+
     OUTPUT_VARIABLE GENERATED_SOURCES
     COMMAND_ERROR_IS_FATAL ANY
 )
+
 
 SET (GENERATED_MAIN_SOURCES)
 SET (GENERATED_STORE_SOURCES)
@@ -135,7 +140,8 @@ add_custom_command(
         -I ${CMAKE_SOURCE_DIR}/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${Boost_INCLUDE_DIRS}
-        -I ${CLANG_INSTALL_PREFIX}/tools/llvm/lib/clang/11.1.0/include
+        -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
+        -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/12.0.1/include
         -D MMA_ICU_CXX_NS=icu
         --config codegen_memoria.hpp
         --project-output ${CMAKE_BINARY_DIR}/generated
@@ -170,7 +176,7 @@ if (BUILD_REACTOR_MEMORIA_LIB)
     get_property(GLOBAL_SRORES_SRCS_REACTOR GLOBAL PROPERTY GLOBAL_STORES_SOURCES_REACTOR)
 
     add_library(MemoriaInitReactor STATIC ${GLOBAL_INIT_SRCS_REACTOR})
-    add_library(MemoriaCtrsReactor STATIC ${GLOBAL_CONTAINERS_SRCS_REACTOR} ${GENERATED_MAIN_SOURCES})
+    add_library(MemoriaCtrsReactor STATIC ${GLOBAL_CONTAINERS_SRCS_REACTOR} ${GENERATED_MAIN_SOURCES} none.cpp)
     add_library(MemoriaStoresReactor STATIC ${GLOBAL_SRORES_SRCS_REACTOR} ${GENERATED_STORE_SOURCES})
 
     target_include_directories(MemoriaStoresReactor PRIVATE "stores/lmdb")
@@ -204,7 +210,7 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
     get_property(GLOBAL_SRORES_SRCS GLOBAL PROPERTY GLOBAL_STORES_SOURCES)
 
     add_library(MemoriaInit STATIC ${GLOBAL_INIT_SRCS})
-    add_library(MemoriaCtrs STATIC ${GLOBAL_CONTAINERS_SRCS} ${GENERATED_MAIN_SOURCES})
+    add_library(MemoriaCtrs STATIC ${GLOBAL_CONTAINERS_SRCS} ${GENERATED_MAIN_SOURCES} none.cpp)
     add_library(MemoriaStores STATIC ${GLOBAL_SRORES_SRCS} ${GENERATED_STORE_SOURCES})
 
     target_include_directories(MemoriaStores PRIVATE "stores/lmdb")

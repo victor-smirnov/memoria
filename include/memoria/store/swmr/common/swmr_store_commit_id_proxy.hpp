@@ -114,10 +114,6 @@ public:
         return delegate_->freeMemory(ptr);
     }
 
-    virtual Logger& logger() noexcept {
-        return delegate_->logger();
-    }
-
     virtual bool isActive() const {
         return delegate_->isActive();
     }

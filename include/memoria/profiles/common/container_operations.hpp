@@ -22,6 +22,7 @@
 #include <memoria/core/tools/assert.hpp>
 #include <memoria/core/tools/platform.hpp>
 #include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/checks.hpp>
 #include <memoria/core/memory/memory.hpp>
 #include <memoria/core/container/ctr_referenceable.hpp>
 
@@ -184,9 +185,10 @@ struct ContainerOperationsBase {
     // FIXME: remove name from parameters, it's already in Ctr's block root metadata
     virtual U8String ctr_name() const = 0;
 
-    virtual bool check(
+    virtual void check(
         const CtrID& name,
-        ROAllocatorBasePtr allocator
+        ROAllocatorBasePtr allocator,
+        const CheckResultConsumerFn& consumer
     ) const = 0;
 
     virtual CtrID get_ctr_id(

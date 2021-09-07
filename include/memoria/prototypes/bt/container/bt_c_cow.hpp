@@ -121,16 +121,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     }
 
 
-
-
-
     void ctr_ref_block(const BlockID& block_id)
     {
         auto& self = this->self();
         return self.store().ref_block(block_id);
     }
-
-
 
     MEMORIA_V1_DECLARE_NODE_FN(RefLeafChildren, cow_ref_children);
     TreeNodePtr ctr_clone_block(const TreeNodeConstPtr& src)

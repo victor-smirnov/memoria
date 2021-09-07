@@ -40,7 +40,7 @@ int main(void) {
 
         auto t_start = getTimeInMillis();
 
-        StoreCheckCallbackFn callback = [](LDDocument& doc){
+        CheckResultConsumerFn callback = [](CheckSeverity, const LDDocument& doc){
             std::cout << doc.to_string() << std::endl;
             return VoidResult::of();
         };

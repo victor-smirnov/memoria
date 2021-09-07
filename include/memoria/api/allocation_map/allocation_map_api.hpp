@@ -53,62 +53,108 @@ struct AllocationMapIterator: BTSSIterator<Profile> {
 };
 
 template <typename Profile>
-class AllocationMetadata {
+class BasicBlockAllocation {
+protected:
     using CtrSizeT = ApiProfileCtrSizeT<Profile>;
     CtrSizeT position_;
     CtrSizeT size_;
-    int32_t level_;
 public:
-    AllocationMetadata() noexcept :
-        position_(), size_(), level_()
-    {}
+    BasicBlockAllocation(CtrSizeT position, CtrSizeT size) noexcept :
+        position_(position), size_(size) {}
 
-    AllocationMetadata(CtrSizeT position, CtrSizeT size, int32_t level) noexcept :
-        position_(position), size_(size), level_(level)
-    {}
+    BasicBlockAllocation() noexcept :
+        position_(), size_() {}
 
     // Position is Level_0-scaled.
     CtrSizeT position() const noexcept {
         return position_;
     }
 
-    CtrSizeT size() const noexcept {
+    CtrSizeT size1() const noexcept {
         return size_;
     }
+
+    void enlarge1(CtrSizeT amnt) noexcept {
+        size_ += amnt;
+    }
+
+    bool joinable_with(const BasicBlockAllocation& alc) const noexcept {
+        return alc.position_ == position_ + size_;
+    }
+
+    void join(const BasicBlockAllocation& alc) noexcept {
+        size_ += alc.size_;
+    }
+};
+
+template <typename Profile>
+class AllocationMetadata: public BasicBlockAllocation<Profile> {
+protected:
+    using Base = BasicBlockAllocation<Profile>;
+    using typename Base::CtrSizeT;
+    int32_t level_;
+
+    using Base::position_;
+    using Base::size_;
+
+public:
+    AllocationMetadata() noexcept :
+        level_()
+    {}
+
+    AllocationMetadata(CtrSizeT position, CtrSizeT size, int32_t level) noexcept :
+        Base(position, size), level_(level)
+    {}
+
+    AllocationMetadata(const BasicBlockAllocation<Profile>& alloc, int32_t level) noexcept :
+        Base(alloc.position(), alloc.size1()), level_(level)
+    {}
+
 
     int32_t level() const noexcept {
         return level_;
     }
 
-    void enlarge(CtrSizeT amnt) noexcept {
-        size_ += amnt;
+    AllocationMetadata as_level(int32_t level) const noexcept {
+        return AllocationMetadata{position_, size_, level};
+    }
+
+    CtrSizeT size_at_level() const noexcept {
+        return size_ >> level_;
     }
 
     AllocationMetadata take(int64_t amount) noexcept
     {
-        AllocationMetadata meta{position_, amount, level_};
-        size_ -= amount;
-        position_ += (amount << level_);
+        CtrSizeT blocks_l0 = amount << level_;
+
+        AllocationMetadata meta{position_, blocks_l0, level_};
+        size_ -= blocks_l0;
+        position_ += blocks_l0;
         return meta;
     }
 
 
     AllocationMetadata take_for(int64_t amount, int32_t level) noexcept
     {
-        AllocationMetadata meta{position_, amount << (level_ - level), level};
-        size_ -= amount;
-        position_ += (amount << level_);
+        CtrSizeT blocks_l0 = amount << level;
+        AllocationMetadata meta{position_, blocks_l0, level};
+        size_ -= blocks_l0;
+        position_ += blocks_l0;
         return meta;
     }
 
     AllocationMetadata take_all_for(int32_t level) noexcept
     {
-        AllocationMetadata meta{position_, size_ << (level_ - level), level};
+        AllocationMetadata meta{position_, size_, level};
         size_ = 0;
-        position_ += size_ << level_;
+        position_ += size_;
         return meta;
     }
 };
+
+
+template <typename Profile, int32_t Levels> class AllocationPool;
+
 
 template <typename Profile>
 bool operator<(const AllocationMetadata<Profile>& one, const AllocationMetadata<Profile>& two) noexcept {
@@ -118,7 +164,7 @@ bool operator<(const AllocationMetadata<Profile>& one, const AllocationMetadata<
 template <typename Profile>
 std::ostream& operator<<(std::ostream& out, const AllocationMetadata<Profile>& meta)
 {
-    out << "[" << meta.position() << ", " << meta.size() << ", " << meta.level() << "]";
+    out << "[" << meta.position() << ", " << meta.size1() << ", " << meta.level() << "]";
     return out;
 }
 
@@ -149,6 +195,7 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
     virtual void shrink(CtrSizeT size) = 0;
 
     virtual Optional<AllocationMapEntryStatus> get_allocation_status(int32_t level, CtrSizeT position) = 0;
+    virtual bool check_allocated(const ALCMeta& meta) = 0;
 
     virtual CtrSizeT rank(CtrSizeT pos) = 0;
 
@@ -164,10 +211,20 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
             ArenaBuffer<ALCMeta>& buffer
     ) = 0;
 
+    using OnLeafListener = std::function<void()>;
+
     virtual void scan(const std::function<bool (Span<ALCMeta>)>& fn) = 0;
 
-    virtual CtrSizeT setup_bits(Span<const ALCMeta> allocations, bool set_bits) = 0;
-    virtual CtrSizeT touch_bits(Span<const ALCMeta> allocations) = 0;
+    virtual void setup_bits(
+            Span<ALCMeta> allocations,
+            bool set_bits,
+            const OnLeafListener& lestener = []{}
+    ) = 0;
+
+    virtual void touch_bits(
+            Span<ALCMeta> allocations,
+            const OnLeafListener& lestener = []{}
+    ) = 0;
 
     virtual CtrSizeT mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size) = 0;
     virtual CtrSizeT mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size) = 0;
@@ -175,6 +232,7 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
     virtual CtrSizeT unallocated_at(int32_t level) = 0;
     virtual void unallocated(Span<CtrSizeT> ranks) = 0;
 
+    virtual bool populate_allocation_pool(AllocationPool<Profile, LEVELS>&pool, int32_t level) = 0;
 
     MMA_DECLARE_ICTRAPI();
 };
@@ -200,7 +258,17 @@ struct formatter<memoria::AllocationMetadata<Profile>> {
 
     template <typename FormatContext>
     auto format(const memoria::AllocationMetadata<Profile>& alc, FormatContext& ctx) {
-        return format_to(ctx.out(), "[{}, {}, {}]", alc.position(), alc.size(), alc.level());
+        return format_to(ctx.out(), "[{}, {}, {}, {}]", alc.position(), alc.size1(), alc.level(), alc.size_at_level());
+    }
+};
+
+template <typename Profile>
+struct formatter<memoria::BasicBlockAllocation<Profile>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::BasicBlockAllocation<Profile>& alc, FormatContext& ctx) {
+        return format_to(ctx.out(), "[{}, {}]", alc.position(), alc.size1());
     }
 };
 

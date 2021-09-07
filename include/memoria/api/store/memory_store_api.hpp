@@ -19,9 +19,9 @@
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/memory/memory.hpp>
-#include <memoria/core/container/logs.hpp>
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/tools/result.hpp>
+#include <memoria/core/tools/checks.hpp>
 
 #include <memoria/api/store/memory_store_common.hpp>
 
@@ -64,10 +64,8 @@ public:
 
     //virtual void walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;
 
-    virtual Logger& logger() noexcept = 0;
-
     virtual void pack() = 0;
-    virtual bool check() = 0;
+    virtual void check(const CheckResultConsumerFn& consumer) = 0;
 
     virtual void lock() = 0;
     virtual void unlock() = 0;
@@ -153,7 +151,6 @@ public:
     virtual const PairPtr& pair() const = 0;
     virtual PairPtr& pair() noexcept = 0;
 
-    virtual Logger& logger() noexcept = 0;
     virtual SharedPtr<SnapshotMemoryStat<Profile>> memory_stat() = 0;
 };
 

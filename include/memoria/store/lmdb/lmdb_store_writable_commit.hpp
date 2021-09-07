@@ -357,8 +357,8 @@ public:
         return Base::container_names();
     }
 
-    virtual bool check() {
-        return Base::check();
+    virtual void check(const CheckResultConsumerFn& consumer) {
+        return Base::check(consumer);
     }
 
     virtual Optional<U8String> ctr_type_name_for(const CtrID& name) {

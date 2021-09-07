@@ -123,8 +123,6 @@ protected:
 
     PersistentTreeT persistent_tree_;
 
-    Logger logger_;
-
     CtrInstanceMap instance_map_;
 
     template <typename>
@@ -152,7 +150,6 @@ public:
         history_tree_(history_tree),
         history_tree_raw_(history_tree.get()),
         persistent_tree_(history_node_),
-        logger_("PersistentInMemStoreSnp", Logger::DERIVED, &history_tree->logger_),
         block_shared_cache_(1024)
     {
         history_node_->ref();
@@ -167,7 +164,6 @@ public:
         history_node_(history_node),
         history_tree_raw_(history_tree),
         persistent_tree_(history_node_),
-        logger_("PersistentInMemStoreSnp"),
         block_shared_cache_(1024)
     {
         history_node_->ref();
@@ -850,8 +846,6 @@ public:
         free_system(ptr);
     }
 
-    virtual Logger& logger() noexcept {return logger_;}
-
     virtual BlockID getRootID(const CtrID& name)
     {
         if (!name.is_null())
@@ -916,10 +910,8 @@ public:
     }
 
 
-    virtual bool check()
+    virtual void check(const CheckResultConsumerFn& consumer)
     {
-        bool result = false;
-
         auto iter = root_map_->ctr_begin();
 
         while(!iter->is_end())
@@ -931,14 +923,10 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            auto res = ctr_intf->check(ctr_name, this->shared_from_this());
-
-            result = res || result;
+            ctr_intf->check(ctr_name, this->shared_from_this(), consumer);
 
             iter->next();
         }
-
-        return result;
     }
 
     U8String get_branch_suffix() const
@@ -1413,6 +1401,9 @@ protected:
 //          }
 //      }
     }
+
+    void start_no_reentry(const CtrID& ctr_id) {}
+    void finish_no_reentry(const CtrID& ctr_id) noexcept {}
 };
 
 }}}

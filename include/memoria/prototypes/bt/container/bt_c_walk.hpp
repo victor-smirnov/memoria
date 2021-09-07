@@ -18,7 +18,6 @@
 
 #include <iostream>
 
-#include <memoria/core/container/logs.hpp>
 #include <memoria/core/container/macros.hpp>
 #include <memoria/core/tools/result.hpp>
 

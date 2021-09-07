@@ -28,6 +28,7 @@
 
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/tools/object_pool.hpp>
+#include <memoria/core/tools/checks.hpp>
 
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
@@ -74,8 +75,6 @@ struct IStoreBase: IStoreApiBase<ApiProfile<Profile>> {
     virtual void* allocateMemory(size_t size) = 0;
     virtual void freeMemory(void* ptr) noexcept = 0;
 
-    virtual Logger& logger() noexcept = 0;
-
     virtual bool isActive() const = 0;
 
     virtual void registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) = 0;
@@ -85,12 +84,41 @@ struct IStoreBase: IStoreApiBase<ApiProfile<Profile>> {
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id) = 0;
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> from_root_id(const BlockID& root_block_id) = 0;
 
-    virtual bool check() = 0;
+    virtual void check(const CheckResultConsumerFn& consumer) = 0;
     virtual void walkContainers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) = 0;
 
     virtual bool drop_ctr(const CtrID& ctr_id) = 0;
 
     virtual U8String ctr_type_name(const CtrID& ctr_id) = 0;
+
+    virtual void start_no_reentry(const CtrID& ctr_id) = 0;
+    virtual void finish_no_reentry(const CtrID& ctr_id) noexcept = 0;
+
+    void with_no_reentry(const CtrID& ctr_id, const std::function<void ()>& fn) {
+        start_no_reentry(ctr_id);
+        try {
+            fn();
+            finish_no_reentry(ctr_id);
+        }
+        catch (...) {
+            finish_no_reentry(ctr_id);
+            throw;
+        }
+    }
+
+    template <typename T>
+    T with_no_reentry(const CtrID& ctr_id, const std::function<T ()>& fn) {
+        start_no_reentry(ctr_id);
+        try {
+            auto rtn = fn();
+            finish_no_reentry(ctr_id);
+            return std::move(rtn);
+        }
+        catch (...) {
+            finish_no_reentry(ctr_id);
+            throw;
+        }
+    }
 };
 
 

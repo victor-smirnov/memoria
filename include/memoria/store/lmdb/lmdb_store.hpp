@@ -351,14 +351,15 @@ private:
         }
     }
 
-    virtual Optional<SequenceID> check(StoreCheckCallbackFn callback)
+    virtual Optional<SequenceID> check(const CheckResultConsumerFn& consumer)
     {
-        return do_check(callback);
+        return do_check(consumer);
     }
 
 
-    Optional<SequenceID> do_check(StoreCheckCallbackFn callback)
-    {        
+    Optional<SequenceID> do_check(const CheckResultConsumerFn& consumer)
+    {
+        // FIXME: Implementation!
         return Optional<SequenceID>{};
     }
 

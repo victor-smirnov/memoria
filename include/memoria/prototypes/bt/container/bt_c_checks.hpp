@@ -18,7 +18,6 @@
 
 #include <iostream>
 
-#include <memoria/core/container/logs.hpp>
 #include <memoria/core/container/macros.hpp>
 
 #include <memoria/prototypes/bt/bt_macros.hpp>
@@ -34,25 +33,15 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ChecksName)
     using typename Base::TreeNodeConstPtr;
     using typename Base::BranchNodeEntry;
 
-    bool check(void *) const
-    {
-        return self().ctr_check_tree();
+
+
+    void check(const CheckResultConsumerFn& fn) {
+        self().ctr_check_tree(fn);
     }
 
-
-
-    bool ctr_check_it()
+    void ctr_check_it(const CheckResultConsumerFn& fn)
     {
-        auto& self = this->self();
-
-        self.logger().level() = Logger::_ERROR;
-
-        if (self.ctr_check_tree())
-        {
-            std::cout << "Container " << self.name() << " (" << self.type_name_str() << ") check failed" << std::endl;
-        }
-
-        return false;
+        self().ctr_check_tree(fn);
     }
 
     void ctr_check_path(const TreePathT& path, size_t level = 0) const
@@ -97,23 +86,32 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ChecksName)
     }
 
 public:
-    bool ctr_check_tree() const ;
+    void ctr_check_tree(const CheckResultConsumerFn& fn) const ;
 
     MEMORIA_V1_DECLARE_NODE_FN(CheckContentFn, check);
-    bool ctr_check_content(const TreeNodeConstPtr& node) const
+    void ctr_check_content(const TreeNodeConstPtr& node, const CheckResultConsumerFn& fn) const
     {
-        self().node_dispatcher().dispatch(node, CheckContentFn()).get_or_throw();
-        return false;
+        self().node_dispatcher().dispatch(node, CheckContentFn(), fn).get_or_throw();
     }
 
 private:
-    void ctr_check_tree_structure(const TreeNodeConstPtr& parent, int32_t parent_idx, const TreeNodeConstPtr& node, bool &errors) const ;
+    void ctr_check_tree_structure(
+            const TreeNodeConstPtr& parent,
+            int32_t parent_idx,
+            const TreeNodeConstPtr& node,
+            const CheckResultConsumerFn& fn
+    ) const ;
 
 
     template <typename Node1, typename Node2>
-    bool ctr_check_typed_node_content(Node1&& node, Node2&& parent, int32_t parent_idx) const ;
+    VoidResult ctr_check_typed_node_content(
+            Node1&& node,
+            Node2&& parent,
+            int32_t parent_idx,
+            const CheckResultConsumerFn& fn
+    ) const ;
 
-    MEMORIA_V1_CONST_FN_WRAPPER_RTN(CheckTypedNodeContentFn, ctr_check_typed_node_content, BoolResult);
+    MEMORIA_V1_CONST_FN_WRAPPER(CheckTypedNodeContentFn, ctr_check_typed_node_content);
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -122,20 +120,17 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::ctr_check_tree() const
+void M_TYPE::ctr_check_tree(const CheckResultConsumerFn& fn) const
 {
     auto& self = this->self();
 
     auto root = self.ctr_get_root_node();
     if (root)
     {
-        bool errors = false;
-        self.ctr_check_tree_structure(TreeNodeConstPtr(), 0, root, errors);
-        return errors;
+        self.ctr_check_tree_structure(TreeNodeConstPtr(), 0, root, fn);
     }
     else {
-        MMA_ERROR(self, "No root node for container");
-        return true;
+        fn(CheckSeverity::ERROR, make_string_document("No root node is specified for container {}", self.name()));
     }
 }
 
@@ -148,28 +143,27 @@ bool M_TYPE::ctr_check_tree() const
 
 
 M_PARAMS
-void M_TYPE::ctr_check_tree_structure(const TreeNodeConstPtr& parent, int32_t parent_idx, const TreeNodeConstPtr& node, bool &errors) const
+void M_TYPE::ctr_check_tree_structure(
+        const TreeNodeConstPtr& parent,
+        int32_t parent_idx,
+        const TreeNodeConstPtr& node,
+        const CheckResultConsumerFn& fn
+) const
 {
     auto& self = this->self();
 
-    auto node_check = self.ctr_check_content(node);
-
-    errors = node_check || errors;
+    self.ctr_check_content(node, fn);
 
     if (!node->is_root())
     {
-        auto res_vv = self.tree_dispatcher().dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx).get_or_throw();
-
-        errors = res_vv || errors;
+        self.tree_dispatcher().dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx, fn).get_or_throw();
 
         if (!node->is_leaf())
         {
             auto children = self.ctr_get_node_size(node, 0);
             if (children == 0 && !node->is_root())
             {
-                errors = true;
-                MMA_ERROR(self, "children == 0 for non-root node", node->id());
-                self.ctr_dump_node(node);
+                fn(CheckSeverity::ERROR, make_string_document("children == 0 for non-root node, node = {}", self.ctr_describe_node(node)));
             }
         }
     }
@@ -186,21 +180,23 @@ void M_TYPE::ctr_check_tree_structure(const TreeNodeConstPtr& parent, int32_t pa
 
             if (child->id() != child_id)
             {
-                errors = true;
-                MMA_ERROR(self, "child.id != child_id", child->id(), child->id(), child_id);
+                fn(CheckSeverity::ERROR, make_string_document("child.id != child_id :: {} {} {}", child->id(), child->id(), child_id));
             }
 
-            return self.ctr_check_tree_structure(node, c, child, errors);
+            return self.ctr_check_tree_structure(node, c, child, fn);
         }
     }
 }
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::ctr_check_typed_node_content(Node1&& parent, Node2&& node, int32_t parent_idx) const
+VoidResult M_TYPE::ctr_check_typed_node_content(
+        Node1&& parent,
+        Node2&& node,
+        int32_t parent_idx,
+        const CheckResultConsumerFn& fn
+) const
 {
-    bool errors = false;
-
     BranchNodeEntry sums;
 
     node.max(sums).get_or_throw();
@@ -209,23 +205,20 @@ bool M_TYPE::ctr_check_typed_node_content(Node1&& parent, Node2&& node, int32_t 
 
     if (sums != keys)
     {
-        MMA_ERROR(
-                self(),
-                "Invalid parent-child nodes chain",
-                (SBuf() << sums).str(),
-                (SBuf() << keys).str(),
-                "for node.id=",
-                node.node()->id(),
-                "parent.id=",
-                parent.node()->id(),
-                "parent_idx",
-                parent_idx
+        fn(
+            CheckSeverity::ERROR,
+            make_string_document(
+                        "Invalid parent-child nodes chain :: {} {} for node.id={} parent.id={}, parent_idx={}",
+                        (SBuf() << sums).str(),
+                        (SBuf() << keys).str(),
+                        node.node()->id(),
+                        parent.node()->id(),
+                        parent_idx
+            )
         );
-
-        errors = true;
     }
 
-    return errors;
+    return VoidResult::of();
 }
 
 #undef M_TYPE

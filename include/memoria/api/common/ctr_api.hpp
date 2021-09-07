@@ -29,7 +29,11 @@
 #include <memoria/core/iovector/io_vector.hpp>
 #include <memoria/core/datatypes/datatypes.hpp>
 
+#include <memoria/core/linked/document/linked_document.hpp>
+
 namespace memoria {
+
+
 
 template <typename CtrName, typename Profile>
 struct ICtrApi;

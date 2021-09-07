@@ -94,7 +94,7 @@ public:
         U8String header_name = name_ + ".hpp";
         write_text_file_if_different(target_folder + "/" + header_name, code);
 
-        precompiled_header_ = PreCompiledHeader::create({"-std=c++20"}, target_folder, header_name);
+        precompiled_header_ = PreCompiledHeader::create({"-std=c++20", "-stdlib=libc++"}, target_folder, header_name);
     }
 
     std::vector<U8String> includes() const override {

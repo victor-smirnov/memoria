@@ -26,7 +26,6 @@
 
 #include <memoria/profiles/common/container_operations.hpp>
 
-#include <memoria/core/container/logs.hpp>
 #include <memoria/core/container/names.hpp>
 #include <memoria/core/container/builder.hpp>
 #include <memoria/core/container/iterator.hpp>
@@ -328,15 +327,11 @@ public:
             }
         }
 
-        virtual bool check(const CtrID& ctr_id, ROAllocatorPtr allocator) const
+        virtual void check(const CtrID& ctr_id, ROAllocatorPtr allocator, const CheckResultConsumerFn& consumer) const
         {
-            bool result = false;
             with_ctr(ctr_id, allocator, [&](MyType& ctr) {
-                auto res = ctr.check(nullptr);
-                result = res;
+                ctr.check(consumer);
             });
-
-            return result;
         }
 
         virtual void walk(
@@ -620,10 +615,7 @@ public:
 private:
 
     ROAllocator*  allocator_;
-
-    CtrID       name_;
-    Logger      logger_;
-    static Logger class_logger_;
+    CtrID name_;
 
 protected:
     CtrSharedPtr<ROAllocator> alloc_holder_;
@@ -685,8 +677,6 @@ public:
 
             allocator_ = allocator.get();
 
-            initLogger();
-
             auto name = this->do_init_ctr(root_block);
 
             name_ = name;
@@ -708,8 +698,6 @@ public:
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             allocator_ = allocator;
-
-            initLogger();
 
             auto name = this->do_init_ctr(root_block);
 
@@ -743,13 +731,6 @@ public:
         }
     }
 
-    void initLogger() noexcept
-    {
-        logger_.configure(TypeNameFactory<ContainerTypeName>::cname(), Logger::DERIVED, &allocator_->logger());
-    }
-
-
-
     ROAllocator& store() noexcept {
         return *allocator_;
     }
@@ -769,23 +750,6 @@ public:
     }
 
 
-    bool is_log(int32_t level) const noexcept
-    {
-        return logger_.isLogEnabled(level);
-    }
-
-    const Logger& logger() const noexcept {
-        return logger_;
-    }
-
-    Logger& logger() noexcept {
-        return logger_;
-    }
-
-    static Logger& class_logger() noexcept {
-        return class_logger_;
-    }
-
     virtual const CtrID& name() const noexcept {
         return name_;
     }
@@ -795,11 +759,5 @@ public:
         return name_;
     }
 };
-
-template<
-        typename Types
->
-Logger Ctr<Types>::class_logger_(typeid(typename Types::ContainerTypeName).name(), Logger::DERIVED, &logger);
-
 
 }

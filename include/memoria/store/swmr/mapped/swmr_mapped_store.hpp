@@ -273,10 +273,9 @@ private:
         MaybeError maybe_error{};
         MappedReadOnlyCommitPtr ptr{};
 
-        if (!commit_descr->is_read_only_openable()) {
-            MEMORIA_MAKE_GENERIC_ERROR("Commit {} is transient.", commit_descr->commit_id()).do_throw();
-        }
-
+//        if (!commit_descr->is_read_only_openable()) {
+//            MEMORIA_MAKE_GENERIC_ERROR("Commit {} is transient.", commit_descr->commit_id()).do_throw();
+//        }
 
         {
             ptr = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(

@@ -503,10 +503,13 @@ typename M_TYPE::IteratorPtr M_TYPE::ctr_find(Walker&& walker) const
 
     i->path().resize(node->level() + 1);
 
+//    println("\n\nctr_find:");
+
     if (node.isSet())
     {
         while (!node->is_leaf())
         {
+//            println("Node: {}", node->id());
             i->path().set(node->level(), node);
 
             auto result = self.branch_dispatcher().dispatch(node, walker, WalkDirection::DOWN, 0).get_or_throw();

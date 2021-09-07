@@ -3,6 +3,7 @@ add_definitions("-Wno-ambiguous-reversed-operator")
 
 if (BUILD_CODEGENERATOR_EXPLICITLY)
     find_package(Clang CONFIG REQUIRED)
+    find_package(pybind11 CONFIG REQUIRED)
 
     file(GLOB CTRGEN_SRCS *.cpp)
     add_executable(MemoriaCodeGen ${CTRGEN_SRCS} ${GLOBAL_CORE_SRCS})
@@ -12,7 +13,7 @@ if (BUILD_CODEGENERATOR_EXPLICITLY)
     target_include_directories(MemoriaCodeGen PRIVATE include)
     target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
-    target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options pybind11::embed)
+    target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options pybind11::embed pybind11::module)
     target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling)
 else()
 
@@ -75,6 +76,10 @@ find_package(Clang CONFIG REQUIRED)
 
 STRING( REPLACE "^^" ";" MEMORIA_CORE_SRCS "${MEMORIA_CORE_SRCS_STR}" )
 
+#set (MEMORIA_CORE_SRCS "/home/victor/cxx/memoria/src/core/src/exceptions.cpp;/home/victor/cxx/memoria/src/core/src/fixed_size_datum.cpp;/home/victor/cxx/memoria/src/core/src/graph.cpp;/home/victor/cxx/memoria/src/core/src/icu_regexp.cpp;/home/victor/cxx/memoria/src/core/src/ld_document.cpp;/home/victor/cxx/memoria/src/core/src/ld_sdn_qi_parser.cpp;/home/victor/cxx/memoria/src/core/src/ld_type_decl.cpp;/home/victor/cxx/memoria/src/core/src/ldd_array.cpp;/home/victor/cxx/memoria/src/core/src/ldd_map.cpp;/home/victor/cxx/memoria/src/core/src/ldd_typed_value.cpp;/home/victor/cxx/memoria/src/core/src/ldd_value.cpp;/home/victor/cxx/memoria/src/core/src/md5.cpp;/home/victor/cxx/memoria/src/core/src/metadata_tools.cpp;/home/victor/cxx/memoria/src/core/src/models.cpp;/home/victor/cxx/memoria/src/core/src/object_pool.cpp;/home/victor/cxx/memoria/src/core/src/profile_metadata.cpp;/home/victor/cxx/memoria/src/core/src/random.cpp;/home/victor/cxx/memoria/src/core/src/reflection.cpp;/home/victor/cxx/memoria/src/core/src/result.cpp;/home/victor/cxx/memoria/src/core/src/static_core_init.cpp;/home/victor/cxx/memoria/src/core/src/stream.cpp;/home/victor/cxx/memoria/src/core/src/strings.cpp;/home/victor/cxx/memoria/src/core/src/terminal.cpp;/home/victor/cxx/memoria/src/core/src/time.cpp;/home/victor/cxx/memoria/src/core/src/type_registry.cpp;/home/victor/cxx/memoria/src/core/src/ustrings.cpp;/home/victor/cxx/memoria/src/core/src/utext_iterator.cpp;/home/victor/cxx/memoria/src/core/src/utext_strings.cpp;/home/victor/cxx/memoria/src/core/src/uuid.cpp;/home/victor/cxx/memoria/src/core/src/varchars.cpp;/home/victor/cxx/memoria/src/core/src/datatypes/dt_ldd_core.cpp;/home/victor/cxx/memoria/src/core/src/datatypes/dt_simple_numerics.cpp;/home/victor/cxx/memoria/src/core/src/datatypes/dt_system_core.cpp;/home/victor/cxx/memoria/src/core/platforms/posix/posix_exceptions.cpp;/home/victor/cxx/memoria/src/core/platforms/posix/posix_logs.cpp;/home/victor/cxx/memoria/src/core/platforms/posix/posix_platform.cpp;/home/victor/cxx/memoria/src/core/platforms/posix/posix_stream.cpp;/home/victor/cxx/memoria/src/core/platforms/posix/posix_terminal.cpp;/home/victor/cxx/memoria/src/filesystem_common/codecvt_error_category.cpp;/home/victor/cxx/memoria/src/filesystem_common/exception.cpp;/home/victor/cxx/memoria/src/filesystem_common/path.cpp;/home/victor/cxx/memoria/src/filesystem_common/path_traits.cpp;/home/victor/cxx/memoria/src/filesystem_common/portability.cpp;/home/victor/cxx/memoria/src/filesystem_common/utf8_codecvt_facet.cpp;/home/victor/cxx/memoria/src/filesystem_common/windows_file_codecvt.cpp;/home/victor/cxx/memoria/src/filesystem_classic/directory.cpp;/home/victor/cxx/memoria/src/filesystem_classic/operations.cpp;/home/victor/cxx/memoria/src/filesystem_classic/unique_path.cpp")
+
+message("${MEMORIA_CORE_SRCS}")
+
 file(GLOB CTRGEN_SRCS *.cpp)
 add_executable(MemoriaCodeGen ${CTRGEN_SRCS} ${MEMORIA_CORE_SRCS})
 
@@ -83,7 +88,7 @@ target_include_directories(MemoriaCodeGen PRIVATE include)
 target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
 target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options )
-target_link_libraries(MemoriaCodeGen PRIVATE pybind11::embed)
+target_link_libraries(MemoriaCodeGen PRIVATE pybind11::embed pybind11::module)
 target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling)
 
 endif()

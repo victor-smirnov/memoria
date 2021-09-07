@@ -107,7 +107,7 @@ public:
 
         write_text_file(tgt_header, format_u8("#include <{}>", config_file_name_));
 
-        precompiled_config_ = PreCompiledHeader::create({"-std=c++20"}, project_output_folder_, codegen_config_file_name_);
+        precompiled_config_ = PreCompiledHeader::create({"-std=c++20", "-stdlib=libc++"}, project_output_folder_, codegen_config_file_name_);
         codegen_config_file_name_pch_ = precompiled_config_->file_path();
 
         config_unit_ = precompiled_config_->compile_with("");

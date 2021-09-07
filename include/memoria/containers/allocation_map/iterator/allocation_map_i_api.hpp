@@ -32,7 +32,12 @@ namespace memoria {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
 
+    using ProfileT = typename Base::Container::Types::Profile;
     using typename Base::CtrSizeT;
+
+    using ApiProfileT = ApiProfile<ProfileT>;
+    using AllocationMetadataT = AllocationMetadata<ApiProfileT>;
+
 
     CtrSizeT count_fw()
     {
@@ -164,6 +169,41 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
         return accum;
     }
 
+    void iter_clone_path()
+    {
+        auto& self = the_self();
+        self.ctr().ctr_cow_clone_path(self.path(), 0);
+    }
+
+    struct PopulateLeafFn {
+        template <typename T>
+        VoidResult treeNode(T&& node_so, Span<const AllocationMetadataT> leaf_allocations, bool set_bits, CtrSizeT base) const noexcept
+        {
+            auto bitmap = node_so.template substream_by_idx<1>();
+
+            if (set_bits) {
+                for (auto alc: leaf_allocations) {
+                    int32_t pos = (alc.position() - base) >> alc.level();
+                    MEMORIA_TRY_VOID(bitmap.set_bits(alc.level(), pos, alc.size_at_level()));
+                }
+            }
+            else {
+                for (auto alc: leaf_allocations) {
+                    int32_t pos = (alc.position() - base) >> alc.level();
+                    MEMORIA_TRY_VOID(bitmap.clear_bits(alc.level(), pos, alc.size_at_level()));
+                }
+            }
+
+            return bitmap.reindex(false);
+        }
+    };
+
+    void iter_populate_leaf(Span<const AllocationMetadataT> leaf_allocations, bool set_bits, CtrSizeT leaf_base)
+    {
+        auto& self = the_self();
+        self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), PopulateLeafFn(), leaf_allocations, set_bits, leaf_base).get_or_throw();
+        self.ctr().ctr_update_path(self.path(), 0);
+    }
 
 
     struct PosWalker {

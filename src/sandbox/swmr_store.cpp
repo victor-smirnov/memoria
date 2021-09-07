@@ -32,13 +32,18 @@ int main(void) {
         const char* file = "file.mma2";
 
         filesystem::remove(file);
-        auto store1 = create_lite_swmr_store(file, 1024*10);
+        auto store1 = create_lite_swmr_store(file, 128);
 
         UUID ctr_id = UUID::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
 
         auto t_start = getTimeInMillis();
 
-        StoreCheckCallbackFn callback = [](LDDocument& doc){
+        // Looks like I'm not handling properly the case when
+        // the case then AllocationPool is empty while
+        // updating AllocationMap explicitly. We will have reenterability
+        // issue then.
+
+        CheckResultConsumerFn callback = [](CheckSeverity, const LDDocument& doc){
             std::cout << doc.to_string() << std::endl;
             return VoidResult::of();
         };
@@ -48,32 +53,39 @@ int main(void) {
                 auto snp0 = store1->begin();
                 auto ctr0 = create(snp0, CtrType(), ctr_id);
                 ctr0->set_ctr_property("CtrName", "SimpleCtr");
-                //snp0->set_transient(false);
+                snp0->set_transient(true);
                 snp0->commit();
             }
 
             int cnt = 0;
             int b0  = 0;
             int batch_size = 100;
-            int batches = 1000;
-            while (cnt < batch_size * batches)
+            int num_entries = 120000;
+
+            while (cnt < num_entries)
             {
                 auto snp1 = store1->begin();
                 auto ctr1 = find<CtrType>(snp1, ctr_id);
 
-                if (b0 % 100 == 0)
+                if (b0 % (num_entries / batch_size / 10) == 0)
                 {
-                    std::cout << "Batch " << (b0) << " :: " << cnt << " :: " << (batch_size * batches) << std::endl;
+                    std::cout << "Batch " << (b0) << " :: " << cnt << " :: " << (num_entries) << std::endl;
                 }
 
-                b0++;
                 for (int c = 0; c < batch_size; c++, cnt++) {
                     ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << getBIRandomG()).str()); //
+                    //ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << c).str()); //
                 }
 
+
                 snp1->set_transient(true);
-                snp1->commit(ConsistencyPoint::YES);
+                snp1->commit(ConsistencyPoint::AUTO);
+
+                b0++;
+
+                store1->check(callback);
             }
+
         }
         store1->flush();
         auto t_end = getTimeInMillis();

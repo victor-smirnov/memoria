@@ -19,22 +19,20 @@
 #include <memoria/core/types.hpp>
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/memory/memory.hpp>
-
 #include <memoria/core/strings/string.hpp>
-
 #include <memoria/profiles/common/common.hpp>
-
 #include <memoria/core/iovector/io_vector.hpp>
-
 #include <memoria/core/tools/optional.hpp>
-
 #include <memoria/core/tools/result.hpp>
 
+#include <memoria/core/tools/checks.hpp>
 
 #include <string>
 #include <functional>
 
 namespace memoria {
+
+
 
 template <typename Profile>
 struct CtrBlock;
@@ -98,6 +96,8 @@ struct CtrReferenceableBase {
     virtual void drop()    = 0;
     virtual void cleanup() = 0;
     virtual void flush()   = 0;
+
+    virtual void check(const CheckResultConsumerFn& fn) = 0;
 
     virtual CtrBlockPtr<Profile> root_block() = 0;
 

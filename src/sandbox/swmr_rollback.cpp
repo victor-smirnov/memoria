@@ -37,7 +37,7 @@ int main(void) {
 
         //store2->rollback_last_consistency_point();
 
-        StoreCheckCallbackFn callback = [](LDDocument& doc){
+        CheckResultConsumerFn callback = [](CheckSeverity, const LDDocument& doc){
             println("{}", doc.to_string());
             return VoidResult::of();
         };

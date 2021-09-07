@@ -417,10 +417,8 @@ protected:
 
     enum {TYPE_UNKNOWN = 0, TYPE_METADATA = 1, TYPE_HISTORY_NODE = 2, TYPE_DATA_BLOCK = 3, TYPE_CHECKSUM = 4};
 
-    Logger logger_;
-
     HistoryNode* history_tree_  = nullptr;
-    HistoryNode* master_ 		= nullptr;
+    HistoryNode* master_ 	= nullptr;
 
     SnapshotMap snapshot_map_;
 
@@ -437,8 +435,7 @@ protected:
     uint64_t id_counter_{1};
 
 public:
-    MemoryStoreBase(MaybeError& maybe_error):
-        logger_("PersistentInMemCoWAllocator")
+    MemoryStoreBase(MaybeError& maybe_error)
     {
         wrap_construction(maybe_error, [&](){
             master_ = history_tree_ = new HistoryNode(&self(), HistoryNode::Status::ACTIVE);
@@ -470,17 +467,8 @@ public:
         return pair_;
     }
 
-    // return true in case of errors
-    bool check() noexcept {
-        return false;
-    }
-
-    const Logger& logger() const noexcept {
-        return logger_;
-    }
-
-    Logger& logger() noexcept {
-        return logger_;
+    void check(const CheckResultConsumerFn&) noexcept {
+        //FIXME: Implementation!
     }
 
 
@@ -1218,8 +1206,6 @@ protected:
 
     MyType& self() noexcept {return *static_cast<MyType*>(this);}
     const MyType& self() const noexcept {return *static_cast<const MyType*>(this);}
-
-
 };
 
 }

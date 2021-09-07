@@ -185,8 +185,6 @@ protected:
     PersistentAllocatorPtr  history_tree_;
     PersistentAllocator*    history_tree_raw_ = nullptr;
 
-    Logger logger_;
-
     CtrInstanceMap instance_map_;
 
     template <typename>
@@ -214,8 +212,7 @@ public:
     SnapshotBase(MaybeError& maybe_error, HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
         history_node_(history_node),
         history_tree_(history_tree),
-        history_tree_raw_(history_tree.get()),
-        logger_("PersistentInMemStoreSnp", Logger::DERIVED, &history_tree->logger_)
+        history_tree_raw_(history_tree.get())
     {
         history_node_->ref();
 
@@ -227,8 +224,7 @@ public:
 
     SnapshotBase(MaybeError& maybe_error, HistoryNode* history_node, PersistentAllocator* history_tree):
         history_node_(history_node),
-        history_tree_raw_(history_tree),
-        logger_("PersistentInMemStoreSnp")
+        history_tree_raw_(history_tree)
     {
         history_node_->ref();
 
@@ -775,8 +771,6 @@ public:
         free_system(ptr);
     }
 
-    virtual Logger& logger() noexcept {return logger_;}
-
     virtual BlockID getRootID(const CtrID& name)
     {
         if (!name.is_null())
@@ -861,10 +855,8 @@ public:
     }
 
 
-    virtual bool check()
+    virtual void check(const CheckResultConsumerFn& consumer)
     {
-        bool result = false;
-
         auto iter = root_map_->ctr_begin();
 
         while(!iter->is_end())
@@ -876,14 +868,10 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            auto res = ctr_intf->check(ctr_name, this->shared_from_this());
-
-            result = res || result;
+            ctr_intf->check(ctr_name, this->shared_from_this(), consumer);
 
             iter->next();
         }
-
-        return result;
     }
 
     U8String get_branch_suffix() const
@@ -1198,6 +1186,9 @@ protected:
     void clone_foreign_block(const BlockType* foreign_block)
     {
     }
+
+    void start_no_reentry(const CtrID& ctr_id) {}
+    void finish_no_reentry(const CtrID& ctr_id) noexcept {}
 };
 
 }}}

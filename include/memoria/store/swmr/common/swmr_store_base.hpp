@@ -86,7 +86,9 @@ protected:
 
     static_assert(sizeof(SWMRSuperblock<Profile>) <= 4096, "Check superblock size!");
 
-    mutable std::recursive_mutex reader_mutex_;
+    AllocationPool<ApiProfileT, ALLOCATION_MAP_LEVELS> allocation_pool_;
+
+    mutable std::recursive_mutex history_mutex_;
     mutable std::recursive_mutex writer_mutex_;
 
     using LockGuard     = std::lock_guard<std::recursive_mutex>;
@@ -120,38 +122,50 @@ public:
         });
     }
 
+    auto& allocation_pool() noexcept {
+        return allocation_pool_;
+    }
+
+    auto& history_tree() noexcept {
+        return history_tree_;
+    }
+
+    auto& history_mutex() noexcept {
+        return history_mutex_;
+    }
+
     uint64_t cp_allocation_threshold() const override {
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         return cp_allocation_threshold_;
     }
 
     uint64_t cp_commit_threshold() const override {
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         return cp_commits_threshold_;
     }
 
     uint64_t set_cp_allocation_threshold(uint64_t value) override {
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         auto tmp = cp_allocation_threshold_;
         cp_allocation_threshold_ = value;
         return tmp;
     }
 
     uint64_t set_cp_commit_threshold(uint64_t value) override {
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         auto tmp = cp_commits_threshold_;
         cp_commits_threshold_ = value;
         return tmp;
     }
 
     int64_t cp_timeout() const override {
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         return cp_timeout_;
     }
 
     int64_t set_cp_timeout(int64_t value) override
     {
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         auto tmp = cp_timeout_;
         cp_timeout_ = value;
         return tmp;
@@ -192,7 +206,7 @@ public:
 
         bool clean;
         {
-            LockGuard rlock(reader_mutex_);
+            LockGuard rlock(history_mutex_);
             clean = history_tree_.is_clean();
         }
 
@@ -212,7 +226,7 @@ public:
         using ResultT = Optional<std::vector<CommitID>>;
 
         check_if_open();
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
 
         auto head_opt = history_tree_.get_branch_head(branch);
         if (head_opt)
@@ -237,7 +251,7 @@ public:
         using ResultT = Optional<CommitID>;
 
         check_if_open();
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
 
         auto descr_opt = history_tree_.get(commit_id);
         if (descr_opt)
@@ -260,7 +274,7 @@ public:
         using ResultT = Optional<bool>;
 
         check_if_open();
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
 
         auto descr_opt = history_tree_.get(commit_id);
         if (descr_opt)
@@ -278,7 +292,7 @@ public:
         using ResultT = Optional<bool>;
 
         check_if_open();
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
 
         auto descr_opt = history_tree_.get(commit_id);
         if (descr_opt)
@@ -297,7 +311,7 @@ public:
         using ResultT = Optional<std::vector<CommitID>>;
 
         check_if_open();
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
 
         auto descr_opt = history_tree_.get(commit_id);
         if (descr_opt)
@@ -326,7 +340,7 @@ public:
             LockGuard wlock(writer_mutex_);
 
             auto commit = [&]{
-                LockGuard rlock(reader_mutex_);
+                LockGuard rlock(history_mutex_);
                 return history_tree_.get(commit_id);
             }();
 
@@ -344,7 +358,7 @@ public:
     ReadOnlyCommitPtr open_persistent(const CommitID& commit_id)
     {
         auto commit = [&]{
-            LockGuard lock(reader_mutex_);
+            LockGuard lock(history_mutex_);
             return history_tree_.get(commit_id);
         }();
 
@@ -386,12 +400,12 @@ public:
     virtual std::vector<U8String> branches() override
     {
         check_if_open();
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         return history_tree_.branch_names();
     }
 
     virtual int64_t count_volatile_commits() override {
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         return history_tree_.count_volatile_commits();
     }
 
@@ -411,7 +425,7 @@ public:
         commit_descriptor->set_start_time(getTimeInMillis());
 
         {
-            LockGuard lock(reader_mutex_);
+            LockGuard lock(history_mutex_);
             commit_descriptor->set_allocated_basic_blocks_threshold(cp_allocation_threshold_);
             commit_descriptor->set_commits_threshold(cp_commits_threshold_);
             commit_descriptor->set_cp_timeout(cp_timeout_);
@@ -481,7 +495,7 @@ public:
 
         try {
             auto descr = [&]{
-                LockGuard lock(reader_mutex_);
+                LockGuard lock(history_mutex_);
                 return history_tree_.get(commit_id);
             }();
 
@@ -515,38 +529,6 @@ public:
     }
 
 
-
-    bool mark_branch_transient(
-            const U8String& branch_name,
-            std::function<void (const CommitID&)> set_transient_fn,
-            std::function<void (const CommitID&)> set_removed_fn
-    )
-    {
-        LockGuard rlock(reader_mutex_);
-        auto head = history_tree_.get_branch_head(branch_name);
-
-        if (head)
-        {
-            CommitDescriptorT* cd = head.get();
-
-            while (cd && cd->children().size() == 1)
-            {
-                if (!cd->is_transient()) {
-                    set_transient_fn(cd->commit_id());
-                }
-
-                cd = cd->parent();
-            }
-
-            set_removed_fn(head->commit_id());
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-
     // FIXME: needed only for flush
     WritableCommitPtr create_system_commit()
     {
@@ -558,7 +540,7 @@ public:
         check_no_writers();
 
         try {
-            LockGuard lock(reader_mutex_);
+            LockGuard lock(history_mutex_);
 
             U8String last_branch = history_tree_.head()->branch();
             CDescrPtr commit_descriptor = create_commit_descriptor(last_branch);
@@ -627,7 +609,7 @@ public:
         }
 
         {
-            LockGuard lock(reader_mutex_);
+            LockGuard lock(history_mutex_);
 
             // We need to cleanup eviction queue before attaching the new commit
             // to the history tree. Because attaching may add a new entry to
@@ -662,7 +644,7 @@ public:
     {
         check_if_open();
 
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         auto head = do_open_readonly(history_tree_.consistency_point1());
 
         auto view = MakeShared<SWMRStoreHistoryViewImpl<Profile>>();
@@ -687,14 +669,14 @@ public:
     }
 
 
-    virtual Optional<SequenceID> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) override {
+    virtual Optional<SequenceID> check(const Optional<SequenceID>& from, const CheckResultConsumerFn& consumer) override {
         check_if_open();
-        return do_check(from, callback);
+        return do_check(from, consumer);
     }
 
     void for_all_evicting_commits(std::function<void (CommitDescriptorT*)> fn)
     {
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         for (auto& descr: history_tree_.eviction_queue()) {
             fn(&descr);
         }
@@ -719,7 +701,7 @@ protected:
         return commits;
     }
 
-    Optional<SequenceID> do_check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback)
+    Optional<SequenceID> do_check(const Optional<SequenceID>& from, const CheckResultConsumerFn& consumer)
     {
         // FIXME:
         // Writer mutex is needed because we are touching counters here.
@@ -735,14 +717,14 @@ protected:
             CommitCheckState<Profile> check_state;
 
             for (auto& commit: commits) {
-                commit->check(callback);
+                commit->check(consumer);
                 if (!from) {
                     commit->build_block_refcounters(check_state.counters);
                 }
             }
 
             if (!from) {
-                check_refcounters(check_state.counters, callback);
+                check_refcounters(check_state.counters, consumer);
             }
 
             return commits[commits.size() - 1]->sequence_id();
@@ -752,7 +734,7 @@ protected:
         }
     }
 
-    void check_refcounters(const SWMRBlockCounters<Profile>& counters, StoreCheckCallbackFn callback)
+    void check_refcounters(const SWMRBlockCounters<Profile>& counters, const CheckResultConsumerFn& consumer)
     {
         block_counters_.diff(counters);
 
@@ -764,7 +746,7 @@ protected:
                         block_counters_.size(),
                         counters.size()));
 
-            return callback(doc);
+            return consumer(CheckSeverity::ERROR, doc);
         }
 
         counters.for_each([&](const BlockID& block_id, uint64_t counter) {
@@ -779,7 +761,7 @@ protected:
                                 res.get(),
                                 counter));
 
-                    return callback(doc);
+                    return consumer(CheckSeverity::ERROR, doc);
                 }
             }
             else {
@@ -789,7 +771,7 @@ protected:
                             block_id
                             ));
 
-                return callback(doc);
+                return consumer(CheckSeverity::ERROR, doc);
             }
         });
     }
@@ -844,7 +826,7 @@ protected:
 
     void traverse(SWMRStoreGraphVisitor<ApiProfileT>& visitor) override
     {
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
 
         using VisitedBlocks = std::unordered_set<BlockID>;
         using CtrType = typename SWMRStoreGraphVisitor<ApiProfileT>::CtrType;
@@ -887,15 +869,12 @@ protected:
         return boost::get_optional_value_or(ii, 0ull);
     }
 
-    HistoryTree<Profile>& history_tree() noexcept {
-        return history_tree_;
-    }
 
     std::vector<typename HistoryTree<Profile>::UpdateOp> prepare_eviction()
     {
         using UpdateOp = typename HistoryTree<Profile>::UpdateOp;
 
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         std::vector<UpdateOp> data;
 
         history_tree_.prepare_eviction([&](const UpdateOp& op){
@@ -947,6 +926,8 @@ protected:
 
     virtual void prepare_to_close()
     {
+        if (!this->active_writer_) {
+
         flush(FlushType::DEFAULT);
 
         CDescrPtr head_ptr = history_tree_.consistency_point1();
@@ -967,6 +948,7 @@ protected:
             flush_header();
 
             block_counters_.clear();
+        }
         }
     }
 
@@ -1131,13 +1113,13 @@ protected:
 
 private:
     CDescrPtr get_branch_head_read_sync(U8StringView name) const noexcept {
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         return history_tree_.get_branch_head(name);
     }
 
     std::vector<CDescrPtr> get_last_commit_for_rollback_sync() const noexcept
     {
-        LockGuard lock(reader_mutex_);
+        LockGuard lock(history_mutex_);
         return history_tree_.get_rollback_span();
     }
 

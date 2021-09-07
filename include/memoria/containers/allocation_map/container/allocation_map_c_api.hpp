@@ -32,6 +32,8 @@
 
 #include <memoria/core/tools/optional.hpp>
 
+#include <memoria/store/swmr/common/allocation_pool.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -47,12 +49,15 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     using typename Base::TreeNodePtr;
     using typename Base::TreePathT;
     using typename Base::Position;
+    using typename Base::IteratorPtr;
+    using typename Base::OnLeafListener;
 
     using Base::LEVELS;
 
     using ALCMeta           = AllocationMetadata<ApiProfileT>;
     using ApiIteratorT      = CtrSharedPtr<AllocationMapIterator<ApiProfileT>>;
     using CtrSizeTResult    = Result<CtrSizeT>;
+    using AllocationPoolT   = AllocationPool<ApiProfileT, LEVELS>;
 
 
     void configure_types(
@@ -196,7 +201,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         auto total = find_unallocated(level, required, buffer);
 
         if (total >= required) {
-            setup_bits(buffer.span(size0), true); // mark all regions as allocated
+            setup_bits(buffer.span(size0), true, [](){}); // mark all regions as allocated
         }
 
         return total;
@@ -226,20 +231,20 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
                         if (upper_size_is_occupied && !bitmaps->get_bit(lvl, c))
                         {
-                            if (!meta.size()) {
-                                meta = ALCMeta{(c << lvl) + offset, 1, lvl};
+                            if (!meta.size_at_level()) {
+                                meta = ALCMeta{(c << lvl) + offset, 1 << lvl, lvl};
                             }
                             else {
-                                meta.enlarge(1);
+                                meta.enlarge1(1);
                             }
                         }
-                        else if (meta.size()) {
+                        else if (meta.size_at_level()) {
                             arena.append_value(meta);
                             meta = ALCMeta{0, 0, 0};
                         }
                     }
 
-                    if (meta.size()) {
+                    if (meta.size_at_level()) {
                         arena.append_value(meta);
                     }
                 }
@@ -367,124 +372,100 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         }
     }
 
-
-    virtual CtrSizeT setup_bits(Span<const ALCMeta> allocations, bool set_bits)
+    void for_allocations(
+            Span<ALCMeta> allocations,
+            const std::function<void (IteratorPtr, Span<const ALCMeta>, CtrSizeT)>& leaf_updater
+    )
     {
-        auto& self = this->self();
+        auto& self = the_self();
+
+        // FIXME: sort the allocations span here!
+        size_t start = 0;
+
+        if (allocations.size() > 0)
+        {            
+            IteratorPtr ii = self.ctr_seek(allocations[start].position());
+
+            ArenaBuffer<ALCMeta> buf;
+
+            while (!ii->is_end())
+            {                
+                int32_t local_pos = ii->iter_local_pos();
+                CtrSizeT leaf_base = ii->level0_pos() - local_pos;
+
+                CtrSizeT leaf_limit = leaf_base + ii->iter_leaf_size();
+
+                size_t end;
+                for (end = start; end < allocations.size(); end++)
+                {
+                    ALCMeta& alc = allocations[end];
+
+                    if (alc.position() >= leaf_limit) {
+                        break;
+                    }
+                    else if (alc.position() + alc.size1() <= leaf_limit) {
+                        buf.append_value(alc);
+                    }
+                    else {
+                        auto alc_limit = alc.position() + alc.size1();
+                        buf.append_value(alc.take(leaf_limit - alc_limit));
+                        break;
+                    }
+                }
+
+                if (end > start) {
+                    leaf_updater(ii, allocations.subspan(start, end), leaf_base);
+                }
+
+                if (end < allocations.size())
+                {
+                    CtrSizeT skip_size = allocations[end].position() - allocations[start].position();
+                    ii->skip(skip_size);
+                    start = end;
+                    buf.clear();
+                }
+                else {
+                    break;
+                }
+            }
+        }
+    }
+
+    virtual void setup_bits(
+            Span<ALCMeta> allocations,
+            bool set_bits,
+            const OnLeafListener& on_leaf
+    )
+    {
+        auto& self = the_self();
+
+        std::sort(allocations.begin(), allocations.end());
 
         if (allocations.size() > 0)
         {
-            CtrSizeT global_size{};
+            for_allocations(allocations, [&](IteratorPtr ii, Span<const ALCMeta> leaf_alc, CtrSizeT leaf_base){
+                self.store().with_no_reentry(self.name(), [&](){
+                    ii->iter_clone_path();
+                    ii->iter_populate_leaf(leaf_alc, set_bits, leaf_base);
+                });
 
-            auto alc_ii = allocations.begin();
-            const auto& alloc0 = *alc_ii;
-
-            CtrSizeT global_pos = alloc0.position();
-            auto ii = self.ctr_seek(global_pos);
-
-            if (ii->iter_is_end()) {
-                return CtrSizeT{};
-            }
-
-            CtrSizeT size = alloc0.size();
-            int32_t level = alloc0.level();
-
-            auto processed = ii->iter_setup_bits(level, size, set_bits);
-
-            global_size += processed << level;
-            global_pos  += processed << level;
-
-            alc_ii++;
-
-            for (;alc_ii != allocations.end(); alc_ii++)
-            {
-                const auto& alc = *alc_ii;
-
-                CtrSizeT next_pos = alc.position();
-                CtrSizeT skip_size = next_pos - global_pos;
-
-                ii->skip(skip_size);
-
-                if (ii->iter_is_end()) {
-                    break;
-                }
-
-                global_pos += skip_size;
-
-                CtrSizeT size_ii = alc.size();
-                int32_t level_ii = alc.level();
-
-                auto processed_ii = ii->iter_setup_bits(level_ii, size_ii, set_bits);
-
-                global_size += processed_ii << level_ii;
-                global_pos  += (processed_ii << level_ii);
-            }
-
-            return global_size;
-        }
-        else {
-            return CtrSizeT{};
+                on_leaf();
+            });
         }
     }
 
 
-    virtual CtrSizeT touch_bits(Span<const ALCMeta> allocations)
+
+
+    virtual void touch_bits(Span<ALCMeta> allocations, const OnLeafListener& on_leaf)
     {
-        auto& self = this->self();
-
-        if (allocations.size() > 0)
-        {
-            CtrSizeT global_size{};
-
-            auto alc_ii = allocations.begin();
-            const auto& alloc0 = *alc_ii;
-
-            CtrSizeT global_pos = alloc0.position();
-            auto ii = self.ctr_seek(global_pos);
-
-            if (ii->iter_is_end()) {
-                return CtrSizeT{};
-            }
-
-            CtrSizeT size = alloc0.size();
-            int32_t level = alloc0.level();
-
-            auto processed = ii->iter_touch_bits(level, size);
-
-            global_size += processed << level;
-            global_pos  += processed << level;
-
-            alc_ii++;
-
-            for (;alc_ii != allocations.end(); alc_ii++)
-            {
-                const auto& alc = *alc_ii;
-
-                CtrSizeT next_pos = alc.position();
-                CtrSizeT skip_size = next_pos - global_pos;
-
-                ii->skip(skip_size);
-
-                if (ii->iter_is_end()) {
-                    break;
-                }
-
-                global_pos += skip_size;
-
-                CtrSizeT size_ii = alc.size();
-                int32_t level_ii = alc.level();
-
-                auto processed_ii = ii->iter_touch_bits(level_ii, size_ii);
-
-                global_size += processed_ii << level_ii;
-                global_pos  += (processed_ii << level_ii);
-            }
-
-            return global_size;
-        }
-        else {
-            return CtrSizeT{};
-        }
+        auto& self = the_self();
+        for_allocations(allocations, [&](IteratorPtr ii, Span<const ALCMeta>, CtrSizeT){
+            self.store().with_no_reentry(self.name(), [&](){
+                ii->iter_clone_path();
+            });
+            on_leaf();
+        });
     }
 
 
@@ -566,7 +547,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     {
         auto& self = this->self();
 
-        auto ii = self.ctr_seek(position << level);
+        auto ii = self.ctr_seek(position);
 
         if (!ii->is_end())
         {
@@ -576,6 +557,70 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         }
 
         return Optional<AllocationMapEntryStatus>{};
+    }
+
+
+    virtual bool check_allocated(const ALCMeta& meta)
+    {
+        for (CtrSizeT c = 0; c < meta.size_at_level(); c++) {
+            auto status = get_allocation_status(meta.level(), meta.position() + (c << meta.level()));
+            if ((!status) || status.get() == AllocationMapEntryStatus::FREE) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+
+    struct PopulateAllocationPoolFn {
+
+        template <typename CtrT, typename NodeT>
+        BoolResult treeNode(LeafNodeSO<CtrT, NodeT>& node_so, CtrSizeT base, AllocationPoolT& pool) noexcept
+        {
+            auto ss = node_so.template substream<IntList<0, 1>>();
+            return ss.populate_allocation_pool(base, pool);
+        }
+    };
+
+
+    bool populate_allocation_pool(AllocationPoolT& pool, int32_t level)
+    {
+        auto& self = this->self();
+        auto ii = self.template ctr_select<IntList<0, 1>>(level, 1);
+
+        uint64_t cnt = 0;
+        while (!ii->is_end())
+        {
+            CtrSizeT base = ii->level0_pos() - ii->iter_local_pos();
+            self.ctr_cow_clone_path(ii->path(), 0);
+
+            bool updated = self.leaf_dispatcher().dispatch(
+                        ii->path().leaf().as_mutable(),
+                        PopulateAllocationPoolFn(),
+                        base,
+                        pool
+            ).get_or_throw();
+
+            if (updated)
+            {
+                cnt++;
+                self.ctr_update_path(ii->path(), 0);
+
+                if (pool.has_room(level) && ii->next_leaf()) {
+                    ii->template iter_select_fw<IntList<0, 1>>(level, 1);
+                }
+                else {
+                    break;
+                }
+            }
+            else {
+                break;
+            }
+        }
+
+        return cnt > 0;
     }
 
 

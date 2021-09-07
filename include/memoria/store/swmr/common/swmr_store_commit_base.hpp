@@ -132,8 +132,6 @@ protected:
 
     CDescrPtr commit_descriptor_;
 
-    Logger logger_;
-
     CtrSharedPtr<DirectoryCtr>      directory_ctr_;
     CtrSharedPtr<AllocationMapCtr>  allocation_map_ctr_;
     CtrSharedPtr<HistoryCtr>        history_ctr_;
@@ -302,10 +300,6 @@ public:
         free_system(ptr);
     }
 
-    virtual Logger& logger() noexcept {
-        return logger_;
-    }
-
     virtual bool isActive() const noexcept {
         return false;
     }
@@ -423,8 +417,18 @@ public:
         return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};
     }
 
-    virtual bool check() {
-        bool result = false;
+    virtual void check(const CheckResultConsumerFn& consumer)
+    {
+        directory_ctr_->check(consumer);
+
+        init_history_ctr();
+
+        history_ctr_->check(consumer);
+
+        init_allocator_ctr();
+
+        allocation_map_ctr_->check(consumer);
+        check_allocation_pool(consumer);
 
         auto iter = directory_ctr_->iterator();
 
@@ -437,14 +441,10 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            auto res = ctr_intf->check(ctr_name, this->self_ptr());
-
-            result = res || result;
+            ctr_intf->check(ctr_name, this->self_ptr(), consumer);
 
             iter->next();
         }
-
-        return result;
     }
 
     virtual void walkContainers(
@@ -632,8 +632,7 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("updated are not allowed for ReadOnly commits").do_throw();
     }
 
-    virtual void check(std::function<void (LDDocument&)> callback) {
-    }
+
 
     virtual void build_block_refcounters(SWMRBlockCounters<Profile>& counters)
     {
@@ -929,6 +928,24 @@ public:
     void scan_unallocated(const std::function<bool (Span<AllocationMetadataT>)>& fn) {
         init_allocator_ctr();
         return allocation_map_ctr_->scan(fn);
+    }
+
+    void check_allocation_pool(const CheckResultConsumerFn& consumer)
+    {
+        auto sb = get_superblock();
+        AllocationPool<ApiProfileT, ALLOCATION_MAP_LEVELS> pool;
+        pool.load(sb->allocation_pool_data());
+
+        init_allocator_ctr();
+        pool.for_each([&](const AllocationMetadataT& meta) {
+            if (!allocation_map_ctr_->check_allocated(meta))
+            {
+                consumer(
+                    CheckSeverity::ERROR,
+                    make_string_document("AllocationMap entry check failure: {}", meta)
+                );
+            }
+        });
     }
 };
 

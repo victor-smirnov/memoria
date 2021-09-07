@@ -27,6 +27,7 @@
 #include <memoria/core/tools/span.hpp>
 
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
+#include <memoria/store/swmr/common/allocation_pool.hpp>
 
 
 namespace memoria {
@@ -56,7 +57,8 @@ public:
 
     using AllocationMetadataT = AllocationMetadata<ApiProfile<Profile>>;
 
-    static constexpr size_t METADATA_SIZE = 2800;
+    static constexpr size_t METADATA_SIZE = 2048;
+    static constexpr int32_t ALLOCATION_MAP_LEVELS = ICtrApi<AllocationMap, ApiProfile<Profile>>::LEVELS;
 
 private:
 
@@ -82,10 +84,12 @@ private:
 
     SWMRStoreStatus store_status_;
 
-    size_t preallocated_pool_size_;
+//    size_t preallocated_pool_size_;
 
-    static constexpr size_t PREALLOCATED_BLOCKS = 64;
-    uint64_t preallocated_blocks_[PREALLOCATED_BLOCKS];
+    AllocationPoolData<ApiProfile<Profile>, ALLOCATION_MAP_LEVELS> allocation_pool_data_;
+
+//    static constexpr size_t PREALLOCATED_BLOCKS = 8;
+//    uint64_t preallocated_blocks_[PREALLOCATED_BLOCKS];
 
     uint8_t metadata_[METADATA_SIZE];
 
@@ -101,6 +105,14 @@ public:
     const BlockID& directory_root_id() const noexcept {return directory_root_id_;}
     const BlockID& allocator_root_id() const noexcept {return allocator_root_id_;}
     const BlockID& blockmap_root_id() const noexcept {return blockmap_root_id_;}
+
+    auto& allocation_pool_data() {
+        return allocation_pool_data_;
+    }
+
+    const auto& allocation_pool_data() const {
+        return allocation_pool_data_;
+    }
 
     Span<uint8_t> metadata() noexcept {
         return Span<uint8_t>(metadata_, METADATA_SIZE);
@@ -185,93 +197,93 @@ public:
         return version_ == VERSION;
     }
 
-    Span<const uint64_t> preallocated_blocks() const noexcept {
-        return Span<const uint64_t>(preallocated_blocks_, PREALLOCATED_BLOCKS);
-    }
+//    Span<const uint64_t> preallocated_blocks() const noexcept {
+//        return Span<const uint64_t>(preallocated_blocks_, PREALLOCATED_BLOCKS);
+//    }
 
-    size_t preallocated_pool_size() const noexcept {
-        return preallocated_pool_size_;
-    }
+//    size_t preallocated_pool_size() const noexcept {
+//        return preallocated_pool_size_;
+//    }
 
-    size_t preallocated_pool_capacity() const noexcept {
-        return PREALLOCATED_BLOCKS - preallocated_pool_size_;
-    }
+//    size_t preallocated_pool_capacity() const noexcept {
+//        return PREALLOCATED_BLOCKS - preallocated_pool_size_;
+//    }
 
-    Optional<AllocationMetadataT> allocate_one(size_t reserve = 0)
-    {
-        for (size_t i = 0, rcnt = 0; i < PREALLOCATED_BLOCKS && preallocated_pool_size_ > 0; i++)
-        {
-            if (preallocated_blocks_[i])
-            {
-                if (rcnt == reserve)
-                {
-                    AllocationMetadataT meta{(CtrSizeT)preallocated_blocks_[i], 1, 0};
-                    preallocated_blocks_[i] = 0;
-                    preallocated_pool_size_--;
-                    return meta;
-                }
+//    Optional<AllocationMetadataT> allocate_one(size_t reserve = 0)
+//    {
+//        for (size_t i = 0, rcnt = 0; i < PREALLOCATED_BLOCKS && preallocated_pool_size_ > 0; i++)
+//        {
+//            if (preallocated_blocks_[i])
+//            {
+//                if (rcnt == reserve)
+//                {
+//                    AllocationMetadataT meta{(CtrSizeT)preallocated_blocks_[i], 1, 0};
+//                    preallocated_blocks_[i] = 0;
+//                    preallocated_pool_size_--;
+//                    return meta;
+//                }
 
-                rcnt++;
-            }
-        }
+//                rcnt++;
+//            }
+//        }
 
-        return Optional<AllocationMetadataT>{};
-    }
+//        return Optional<AllocationMetadataT>{};
+//    }
 
-    template <typename AllocationPool>
-    size_t preallocate_from_pool(AllocationPool& allocation_pool)
-    {
-        return preallocate_from_fn([&]{
-            return allocation_pool.allocate_one(0);
-        });
-    }
+//    template <typename AllocationPool>
+//    size_t preallocate_from_pool(AllocationPool& allocation_pool)
+//    {
+//        return preallocate_from_fn([&]{
+//            return allocation_pool->allocate_one(0);
+//        });
+//    }
 
-    template <typename Fn>
-    size_t preallocate_from_fn(Fn&& fn)
-    {
-        size_t c = 0;
-        for (size_t i = 0; i < PREALLOCATED_BLOCKS; i++) {
-            if (preallocated_blocks_[i] == 0) {
-                auto alc = fn();
-                if (alc) {
-                    preallocated_blocks_[i] = alc.get().position();
-                    preallocated_pool_size_++;
-                    c++;
-                }
-                else {
-                    break;
-                }
-            }
-        }
-        return c;
-    }
+//    template <typename Fn>
+//    size_t preallocate_from_fn(Fn&& fn)
+//    {
+//        size_t c = 0;
+//        for (size_t i = 0; i < PREALLOCATED_BLOCKS; i++) {
+//            if (preallocated_blocks_[i] == 0) {
+//                auto alc = fn();
+//                if (alc) {
+//                    preallocated_blocks_[i] = alc.get().position();
+//                    preallocated_pool_size_++;
+//                    c++;
+//                }
+//                else {
+//                    break;
+//                }
+//            }
+//        }
+//        return c;
+//    }
 
-    std::pair<size_t, AllocationMetadataT> get_allocation() const
-    {
-        for (size_t i = 0; i < PREALLOCATED_BLOCKS; i++) {
-            if (preallocated_blocks_[i]) {
-                return std::make_pair(
-                    i, AllocationMetadataT{(CtrSizeT)preallocated_blocks_[i], 1, 0}
-                );
-            }
-        }
+//    std::pair<size_t, AllocationMetadataT> get_allocation() const
+//    {
+//        for (size_t i = 0; i < PREALLOCATED_BLOCKS; i++) {
+//            if (preallocated_blocks_[i]) {
+//                return std::make_pair(
+//                    i, AllocationMetadataT{(CtrSizeT)preallocated_blocks_[i], 1, 0}
+//                );
+//            }
+//        }
 
-        MEMORIA_MAKE_GENERIC_ERROR("Superblock's allocation pool is empty").do_throw();
-    }
+//        MEMORIA_MAKE_GENERIC_ERROR("Superblock's allocation pool is empty").do_throw();
+//    }
 
-    void remove_block_from_pool(size_t idx)
-    {
-        if (MMA_LIKELY(preallocated_blocks_[idx])) {
-            preallocated_blocks_[idx] = 0;
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR(
-                "Trying to mark unallocated block {} as allocated in the superblock {}",
-                idx,
-                commit_id_
-            ).do_throw();
-        }
-    }
+//    void remove_block_from_pool(size_t idx)
+//    {
+//        if (MMA_LIKELY(preallocated_blocks_[idx])) {
+//            preallocated_blocks_[idx] = 0;
+//        }
+//        else {
+//            MEMORIA_MAKE_GENERIC_ERROR(
+//                "Trying to mark unallocated block {} as allocated in the superblock {}",
+//                idx,
+//                commit_id_
+//            ).do_throw();
+//        }
+//    }
 
     void init_metadata(LDDocumentView doc)
     {
@@ -320,8 +332,10 @@ public:
 
         store_status_ = SWMRStoreStatus::UNCLEAN;
 
-        preallocated_pool_size_ = 0;
-        std::memset(preallocated_blocks_, 0, PREALLOCATED_BLOCKS * sizeof(uint64_t));
+        allocation_pool_data_.clear();
+
+//        preallocated_pool_size_ = 0;
+//        std::memset(preallocated_blocks_, 0, PREALLOCATED_BLOCKS * sizeof(uint64_t));
 
         init_metadata(meta);
     }
@@ -349,8 +363,10 @@ public:
         global_block_counters_size_ = other.global_block_counters_size_;
         store_status_        = other.store_status_;
 
-        preallocated_pool_size_ = other.preallocated_pool_size_;
-        std::memcpy(preallocated_blocks_, other.preallocated_blocks_, PREALLOCATED_BLOCKS * sizeof(uint64_t));
+        allocation_pool_data_ = other.allocation_pool_data_;
+
+//        preallocated_pool_size_ = other.preallocated_pool_size_;
+//        std::memcpy(preallocated_blocks_, other.preallocated_blocks_, PREALLOCATED_BLOCKS * sizeof(uint64_t));
 
         init_metadata(meta);
     }

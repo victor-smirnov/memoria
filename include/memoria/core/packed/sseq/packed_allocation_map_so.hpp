@@ -68,6 +68,20 @@ public:
     const PkdStruct* data() const noexcept {return data_;}
     PkdStruct* data() noexcept {return data_;}
 
+    VoidResult set_bits(int32_t level, int32_t idx, int32_t size) noexcept
+    {
+        return data_->set_bits(level, idx, size);
+    }
+
+    VoidResult clear_bits(int32_t level, int32_t idx, int32_t size) noexcept
+    {
+        return data_->clear_bits(level, idx, size);
+    }
+
+    VoidResult reindex(bool recompute_bitmaps) noexcept {
+        return data_->reindex(recompute_bitmaps);
+    }
+
     VoidResult splitTo(MyType& other, int32_t idx) noexcept
     {
         return MEMORIA_MAKE_GENERIC_ERROR("Splitting PackedAllocationMap is not supported");
@@ -149,6 +163,13 @@ public:
     {
         //return data_->removeSpace(row_at, row_at + size);
         return VoidResult::of();
+    }
+
+
+    template <typename AllocationPool>
+    BoolResult populate_allocation_pool(int64_t base, AllocationPool& pool) noexcept
+    {
+        return data_->populate_allocation_pool(base, pool);
     }
 };
 

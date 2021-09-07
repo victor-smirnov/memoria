@@ -305,22 +305,46 @@ public:
             }
         }
 
-        local_bitmap_size = bitmap_size;
-        for (int32_t c = 0; c < Indexes; c++, local_bitmap_size /= 2)
+//        local_bitmap_size = bitmap_size;
+        for (int32_t c = 0; c < Indexes; c++) //, local_bitmap_size /= 2
         {
-            int32_t index_size = index_level_size(local_bitmap_size);
-            if (index_size > 0)
+            MEMORIA_TRY_VOID(reindex_level(c));
+
+//            int32_t index_size = index_level_size(local_bitmap_size);
+//            if (index_size > 0)
+//            {
+//                IndexType* index = this->index(c);
+//                const BitmapType* bitmap = symbols(c);
+
+//                for (int32_t bi = 0, icnt = 0; bi < local_bitmap_size; bi += ValuesPerBranch, icnt++)
+//                {
+//                    int32_t limit = (bi + ValuesPerBranch <= local_bitmap_size) ? (bi + ValuesPerBranch) : local_bitmap_size;
+//                    size_t span_size = static_cast<size_t>(limit - bi);
+
+//                    index[icnt] = static_cast<IndexType>(span_size - PopCount(bitmap, bi, limit));
+//                }
+//            }
+        }
+
+        return VoidResult::of();
+    }
+
+    VoidResult reindex_level(int32_t level) noexcept
+    {
+        int32_t local_bitmap_size = this->size() >> level;
+
+        int32_t index_size = index_level_size(local_bitmap_size);
+        if (index_size > 0)
+        {
+            IndexType* index = this->index(level);
+            const BitmapType* bitmap = symbols(level);
+
+            for (int32_t bi = 0, icnt = 0; bi < local_bitmap_size; bi += ValuesPerBranch, icnt++)
             {
-                IndexType* index = this->index(c);
-                const BitmapType* bitmap = symbols(c);
+                int32_t limit = (bi + ValuesPerBranch <= local_bitmap_size) ? (bi + ValuesPerBranch) : local_bitmap_size;
+                size_t span_size = static_cast<size_t>(limit - bi);
 
-                for (int32_t bi = 0, icnt = 0; bi < local_bitmap_size; bi += ValuesPerBranch, icnt++)
-                {
-                    int32_t limit = (bi + ValuesPerBranch <= local_bitmap_size) ? (bi + ValuesPerBranch) : local_bitmap_size;
-                    size_t span_size = static_cast<size_t>(limit - bi);
-
-                    index[icnt] = static_cast<IndexType>(span_size - PopCount(bitmap, bi, limit));
-                }
+                index[icnt] = static_cast<IndexType>(span_size - PopCount(bitmap, bi, limit));
             }
         }
 
@@ -328,6 +352,25 @@ public:
     }
 
     VoidResult set_bits(int32_t level, int32_t idx, int32_t size) noexcept
+    {
+        MEMORIA_TRY_VOID(set_bits_down(level, idx, size));
+
+        size_t start = idx;
+        size_t stop  = idx + size;
+
+        for (int32_t ll = level + 1; ll < Indexes; ll++)
+        {
+            start = start / 2;
+            stop  = divUp(stop, static_cast<size_t>(2));
+
+            BitmapType* bitmap = this->symbols(ll);
+            FillOne(bitmap, start, stop);
+        }
+
+        return VoidResult::of();
+    }
+
+    VoidResult set_bits_down(int32_t level, int32_t idx, int32_t size) noexcept
     {
         size_t start = idx;
         size_t stop  = idx + size;
@@ -339,18 +382,6 @@ public:
 
             start *= 2;
             stop  *= 2;
-        }
-
-        start = idx;
-        stop  = idx + size;
-
-        for (int32_t ll = level + 1; ll < Indexes; ll++)
-        {
-            start = start / 2;
-            stop  = divUp(stop, static_cast<size_t>(2));
-
-            BitmapType* bitmap = this->symbols(ll);
-            FillOne(bitmap, start, stop);
         }
 
         return VoidResult::of();
@@ -635,6 +666,61 @@ public:
     }
 
 
+    VoidResult scan_unallocated(int32_t level, const std::function<BoolResult (int32_t, int32_t)>& fn) const noexcept
+    {
+        int32_t idx = 0;
+        while (true)
+        {
+            memoria::SelectResult sel_res = selectFW(idx, 1, level);
+            if (sel_res.is_found())
+            {
+                int32_t l_pos = sel_res.local_pos() >> level;
+                CountResult cnt_res = countFW(l_pos, level);
+
+                MEMORIA_TRY(cont, fn(l_pos, cnt_res.count()));
+
+                if (cont) {
+                    idx += cnt_res.count();
+                }
+                else {
+                    break;
+                }
+            }
+            else {
+                break;
+            }
+        }
+
+        return VoidResult::of();
+    }
+
+
+    template <typename AllocationPool>
+    BoolResult populate_allocation_pool(int64_t base, AllocationPool& pool) noexcept
+    {
+        bool updated = false;
+        for (int32_t level = Indexes - 1; level >= 0; level--)
+        {
+            VoidResult res = scan_unallocated(level, [&](int32_t pos, int32_t size) -> BoolResult {
+                if (pool.add(base + (pos << level), size << level, level)) {
+                    updated = true;
+                    MEMORIA_TRY_VOID(set_bits_down(level, pos, size));
+                    return BoolResult::of(true);
+                }
+                else {
+                    return BoolResult::of(false);
+                }
+            });
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            MEMORIA_TRY_VOID(reindex_level(level));
+            if (level > 0) {
+                MEMORIA_TRY_VOID(reindex_level(level - 1));
+            }
+        }
+
+        return BoolResult::of(updated);
+    }
 
 private:
 

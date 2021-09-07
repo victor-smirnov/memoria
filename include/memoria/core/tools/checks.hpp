@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,14 +13,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
+#pragma once
+
+#include <memoria/core/linked/document/linked_document.hpp>
 
 namespace memoria {
 
-int64_t DebugCounter = 0;
-int64_t DebugCounter1 = 0;
-int64_t DebugCounter2 = -1;
+enum class CheckSeverity {
+    ERROR
+};
+
+using CheckResultConsumerFn = std::function<void (CheckSeverity, const LDDocument&)>;
+
+
+template <typename... Args>
+LDDocument make_string_document(const char* fmt, Args&&... args)
+{
+    LDDocument doc;
+    doc.set_varchar(format_u8(fmt, std::forward<Args>(args)...));
+    return doc;
+}
 
 }

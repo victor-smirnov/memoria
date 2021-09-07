@@ -66,6 +66,9 @@ public:
     bool is_system_commit() noexcept {
         return commit_descriptor_->is_system_commit();
     }
+
+    void start_no_reentry(const CtrID& ctr_id) {}
+    void finish_no_reentry(const CtrID& ctr_id) noexcept {}
 };
 
 }

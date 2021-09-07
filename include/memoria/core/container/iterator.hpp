@@ -20,9 +20,6 @@
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/container/names.hpp>
 #include <memoria/profiles/common/common.hpp>
-
-#include <memoria/core/container/logs.hpp>
-
 #include <memoria/core/memory/memory.hpp>
 #include <memoria/core/tools/pair.hpp>
 
@@ -137,7 +134,6 @@ protected:
     CtrSharedPtr<Container> ctr_holder_;
 
 private:
-    Logger logger_;
 
     int32_t type_;
 
@@ -145,18 +141,17 @@ private:
 
 public:
     IteratorBase():
-        logger_("Iterator", Logger::DERIVED, &memoria::logger),
         type_(NORMAL)
     {}
 
     IteratorBase(ThisType&& other):
         ctr_holder_(std::move(other.ctr_holder_)),
-        logger_(std::move(other.logger_)), type_(other.type_)
+        type_(other.type_)
     {}
 
     IteratorBase(const ThisType& other):
         ctr_holder_(other.ctr_holder_),
-        logger_(other.logger_), type_(other.type_)
+        type_(other.type_)
     {}
 
 
@@ -185,14 +180,12 @@ public:
     void assign(const ThisType& other)
     {
         ctr_holder_ = other.ctr_holder_;
-        logger_ = other.logger_;
         type_   = other.type_;
     }
 
     void assign(ThisType&& other)
     {
         ctr_holder_ = std::move(other.ctr_holder_);
-        logger_ = std::move(other.logger_);
         type_   = other.type_;
     }
 
@@ -204,16 +197,6 @@ public:
         return static_cast<const MyType*>(this);
     }
 
-
-    bool is_log(int32_t level)
-    {
-        return logger_.isLogEnabled(level);
-    }
-
-    Logger& logger()
-    {
-          return logger_;
-    }
 
     const char* typeName() const {
         return me()->model().typeName();

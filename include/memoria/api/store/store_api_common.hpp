@@ -19,6 +19,7 @@
 #include <memoria/core/datatypes/type_signature.hpp>
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/tools/result.hpp>
+#include <memoria/core/tools/checks.hpp>
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/api/common/ctr_api.hpp>
 
@@ -48,7 +49,7 @@ public:
     virtual bool has_open_containers() = 0;
     virtual std::vector<CtrID> container_names() const = 0;
     virtual void drop() = 0;
-    virtual bool check() = 0;
+    virtual void check(const CheckResultConsumerFn& consumer) = 0;
 
     virtual Optional<U8String> ctr_type_name_for(const CtrID& name) = 0;
 

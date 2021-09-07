@@ -957,7 +957,7 @@ MMA_V1_ALWAYS_INLINE inline size_t CountTrailingZeroes(const T* buf, size_t pos,
             length += CountTrailingZeroes(val);
         }
         else {
-            length += suffix;
+            length += (suffix - prefix);
         }
     }
 

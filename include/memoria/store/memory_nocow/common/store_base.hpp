@@ -498,10 +498,8 @@ protected:
 
     enum {TYPE_UNKNOWN, TYPE_METADATA, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_BLOCK, TYPE_CHECKSUM};
 
-    Logger logger_;
-
     HistoryNode* history_tree_  = nullptr;
-    HistoryNode* master_ 		= nullptr;
+    HistoryNode* master_        = nullptr;
 
     SnapshotMap snapshot_map_;
 
@@ -516,8 +514,7 @@ protected:
     std::atomic<bool> dump_snapshot_lifecycle_{false};
 
 public:
-    MemoryStoreBase(MaybeError& maybe_error):
-        logger_("PersistentInMemAllocator")
+    MemoryStoreBase(MaybeError& maybe_error)
     {
         wrap_construction(maybe_error, [&](){
             master_ = history_tree_ = new HistoryNode(&self(), HistoryNode::Status::ACTIVE);
@@ -557,18 +554,8 @@ public:
     }
 
     // return true in case of errors
-    bool check() noexcept {
-        return false;
+    void check(const CheckResultConsumerFn&) noexcept {
     }
-
-    const Logger& logger() const noexcept {
-        return logger_;
-    }
-
-    Logger& logger() noexcept {
-        return logger_;
-    }
-
 
     static AllocSharedPtr<IMemoryStore<ApiProfileT>> create() noexcept
     {

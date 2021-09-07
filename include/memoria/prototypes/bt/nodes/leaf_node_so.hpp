@@ -30,6 +30,7 @@
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
+#include <memoria/core/tools/checks.hpp>
 
 
 namespace memoria {
@@ -514,7 +515,7 @@ public:
         }
     };
 
-    VoidResult check() const noexcept
+    VoidResult check(const CheckResultConsumerFn& consumer) const noexcept
     {
         return Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn());
     }

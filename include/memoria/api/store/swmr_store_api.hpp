@@ -18,7 +18,7 @@
 
 #include <memoria/api/store/store_api_common.hpp>
 #include <memoria/core/strings/string.hpp>
-#include <memoria/core/linked/linked.hpp>
+#include <memoria/core/tools/checks.hpp>
 
 
 #include <functional>
@@ -103,10 +103,6 @@ struct SWMRStoreGraphVisitor {
     virtual void end_block() = 0;
 };
 
-
-using StoreCheckCallbackFn = std::function<void (LDDocument&)>;
-
-
 template <typename Profile>
 struct IBasicSWMRStore {
 
@@ -120,7 +116,7 @@ struct IBasicSWMRStore {
     virtual ReadOnlyCommitPtr open()  = 0;
     virtual WritableCommitPtr begin() = 0;
 
-    virtual Optional<SequenceID> check(StoreCheckCallbackFn callback) = 0;
+    virtual Optional<SequenceID> check(const CheckResultConsumerFn& consumer) = 0;
 
     virtual U8String describe() const = 0;
 
@@ -176,9 +172,9 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
 
     virtual int64_t count_volatile_commits() = 0;
 
-    virtual Optional<SequenceID> check(const Optional<SequenceID>& from, StoreCheckCallbackFn callback) = 0;
-    virtual Optional<SequenceID> check(StoreCheckCallbackFn callback) {
-        return check(Optional<SequenceID>{}, callback);
+    virtual Optional<SequenceID> check(const Optional<SequenceID>& from, const CheckResultConsumerFn& consumer) = 0;
+    virtual Optional<SequenceID> check(const CheckResultConsumerFn& consumer) {
+        return check(Optional<SequenceID>{}, consumer);
     };
 
     virtual HistoryPtr history_view() = 0;

@@ -153,6 +153,13 @@ public:
         }
     }
 
+    U8String ctr_describe_node(const TreeNodeConstPtr& block) const
+    {
+        std::stringstream ss;
+        self().ctr_dump_node(block, ss);
+        return ss.str();
+    }
+
     void ctr_dump_path(TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const
     {
         auto& self = this->self();

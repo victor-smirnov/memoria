@@ -51,7 +51,7 @@ int main(void) {
         auto vv = create_graphviz_dot_visitor("swmr-read.dot");
         store2->traverse(*vv.get());
 
-        StoreCheckCallbackFn callback = [](LDDocument& doc){
+        CheckResultConsumerFn callback = [](CheckSeverity, const LDDocument& doc){
             std::cout << doc.to_string() << std::endl;
             return VoidResult::of();
         };

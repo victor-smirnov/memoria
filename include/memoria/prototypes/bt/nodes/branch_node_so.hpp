@@ -19,6 +19,7 @@
 #include <memoria/prototypes/bt/pkd_adapters/bt_pkd_adapter_generic.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
 #include <memoria/core/tools/result.hpp>
+#include <memoria/core/tools/checks.hpp>
 
 namespace memoria {
 
@@ -329,7 +330,7 @@ public:
         }
     };
 
-    VoidResult check() const noexcept
+    VoidResult check(const CheckResultConsumerFn& consumer) const noexcept
     {
         return Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn());
     }
