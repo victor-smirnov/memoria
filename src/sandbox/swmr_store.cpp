@@ -32,7 +32,7 @@ int main(void) {
         const char* file = "file.mma2";
 
         filesystem::remove(file);
-        auto store1 = create_lite_swmr_store(file, 128);
+        auto store1 = create_lite_swmr_store(file, 10240);
 
         UUID ctr_id = UUID::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
 
@@ -43,10 +43,14 @@ int main(void) {
         // updating AllocationMap explicitly. We will have reenterability
         // issue then.
 
-        CheckResultConsumerFn callback = [](CheckSeverity, const LDDocument& doc){
+        CheckResultConsumerFn callback = [](CheckSeverity svr, const LDDocument& doc){
             std::cout << doc.to_string() << std::endl;
-            return VoidResult::of();
+            if (svr == CheckSeverity::ERROR) {
+                MEMORIA_MAKE_GENERIC_ERROR("Container check error").do_throw();
+            }
         };
+
+
 
         {
             {
@@ -59,8 +63,8 @@ int main(void) {
 
             int cnt = 0;
             int b0  = 0;
-            int batch_size = 100;
-            int num_entries = 120000;
+            int batch_size = 1000;
+            int num_entries = 1000000;
 
             while (cnt < num_entries)
             {
@@ -72,13 +76,21 @@ int main(void) {
                     std::cout << "Batch " << (b0) << " :: " << cnt << " :: " << (num_entries) << std::endl;
                 }
 
-                for (int c = 0; c < batch_size; c++, cnt++) {
-                    ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << getBIRandomG()).str()); //
-                    //ctr1->insert((SBuf() << " Cool String ABCDEFGH :: " << c).str()); //
+                for (int c = 0; c < batch_size; c++, cnt++)
+                {
+                    auto val = getBIRandomG();
+
+                    U8String str = (SBuf() << "Cool String ABCDEFGH :: " << val).str();
+
+                    ctr1->insert(str);
+
+//                    if (!ctr1->contains(str)) {
+//                        MEMORIA_MAKE_GENERIC_ERROR("Can't find key {} in the container", str).do_throw();
+//                    }
                 }
 
 
-                snp1->set_transient(true);
+                //snp1->set_transient(false);
                 snp1->commit(ConsistencyPoint::AUTO);
 
                 b0++;
@@ -87,10 +99,13 @@ int main(void) {
             }
 
         }
-        store1->flush();
+
+
+
         auto t_end = getTimeInMillis();
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
 
+        store1->flush();
         store1->check(callback);
 
         store1->close();

@@ -704,7 +704,7 @@ public:
             VoidResult res = scan_unallocated(level, [&](int32_t pos, int32_t size) -> BoolResult {
                 if (pool.add(base + (pos << level), size << level, level)) {
                     updated = true;
-                    MEMORIA_TRY_VOID(set_bits_down(level, pos, size));
+                    MEMORIA_TRY_VOID(set_bits(level, pos, size));
                     return BoolResult::of(true);
                 }
                 else {

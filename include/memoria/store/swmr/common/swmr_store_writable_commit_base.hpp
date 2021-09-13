@@ -202,8 +202,7 @@ public:
 
 
     virtual SnpSharedPtr<StoreT> my_self_ptr() noexcept = 0;
-    virtual SnpSharedPtr<StoreT> self_ptr() noexcept
-    {
+    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
         return my_self_ptr();
     }
 
@@ -391,6 +390,8 @@ public:
         auto sb = std::get<1>(superblock);
 
         commit_descriptor_->set_superblock(sb_pos, sb.get());
+
+        //println("SeqNum: {} {}", sb->commit_id(), sb->sequence_id());
 
         do_ref_system_containers();
 
@@ -1149,6 +1150,7 @@ public:
     virtual void removeBlock(const BlockID& id)
     {
         auto block_data = resolve_block(id);
+
         if (MMA_UNLIKELY((bool)removing_blocks_consumer_fn_)) {
             removing_blocks_consumer_fn_(id, block_data.file_pos, block_data.block->memory_block_size());
         }

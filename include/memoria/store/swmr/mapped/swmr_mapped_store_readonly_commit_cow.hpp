@@ -58,6 +58,7 @@ protected:
 
     using typename Base::AllocationMapCtr;
     using typename Base::AllocationMapCtrType;
+    using typename Base::AllocationMetadataT;
 
     using typename Base::CommitID;
 
@@ -203,6 +204,10 @@ public:
     virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) {
         Superblock* sb = ptr_cast<Superblock>(buffer_.data() + pos);
         return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
+    }
+
+    virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) {
+        return AllocationMetadataT{block_id.value(), 1, 0};
     }
 };
 

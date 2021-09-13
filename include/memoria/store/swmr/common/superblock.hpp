@@ -83,13 +83,7 @@ private:
     BlockID blockmap_root_id_;
 
     SWMRStoreStatus store_status_;
-
-//    size_t preallocated_pool_size_;
-
     AllocationPoolData<ApiProfile<Profile>, ALLOCATION_MAP_LEVELS> allocation_pool_data_;
-
-//    static constexpr size_t PREALLOCATED_BLOCKS = 8;
-//    uint64_t preallocated_blocks_[PREALLOCATED_BLOCKS];
 
     uint8_t metadata_[METADATA_SIZE];
 

@@ -33,6 +33,7 @@
 #include <memoria/core/packed/misc/packed_map_so.hpp>
 
 #include <iostream>
+#include <type_traits>
 
 namespace memoria {
 namespace bt {
@@ -42,7 +43,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using Types = typename Base::Types;
 
     using ROAllocator = typename Base::ROAllocator;
-
 
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
@@ -104,11 +104,11 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     mutable LeafNodeExtData leaf_node_ext_data_;
     mutable BranchNodeExtData branch_node_ext_data_;
 
-    NodeDispatcher node_dispatcher_{self()};
-    LeafDispatcher leaf_dispatcher_{self()};
-    BranchDispatcher branch_dispatcher_{self()};
-    DefaultDispatcher default_dispatcher_{self()};
-    TreeDispatcher tree_dispatcher_{self()};
+    NodeDispatcher node_dispatcher_;
+    LeafDispatcher leaf_dispatcher_;
+    BranchDispatcher branch_dispatcher_;
+    DefaultDispatcher default_dispatcher_;
+    TreeDispatcher tree_dispatcher_;
 
     ObjectPools& pools() const noexcept {return self().allocator().object_pools();}
 
@@ -727,6 +727,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     CtrID do_init_ctr(const SharedBlockConstPtr& node)
     {
+        init_dispatchers();
+
         auto& self = this->self();
 
         if (node->ctr_type_hash() == CONTAINER_HASH)
@@ -752,6 +754,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void do_create_ctr(const CtrID& ctr_id, const ContainerTypeName& ctr_type_name)
     {
+        init_dispatchers();
+
         auto& self = this->self();
 
         auto has_root = self.store().hasRoot(ctr_id);
@@ -768,6 +772,15 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return self.set_root(node->id());
     }
 
+private:
+    void init_dispatchers() noexcept
+    {
+        node_dispatcher_.set_ctr(&self());
+        leaf_dispatcher_.set_ctr(&self());
+        branch_dispatcher_.set_ctr(&self());
+        default_dispatcher_.set_ctr(&self());
+        tree_dispatcher_.set_ctr(&self());
+    }
 
 MEMORIA_V1_BT_MODEL_BASE_CLASS_END
 

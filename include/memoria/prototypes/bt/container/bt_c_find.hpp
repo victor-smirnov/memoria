@@ -224,6 +224,15 @@ public:
 
 protected:
 
+    void ctr_check_path_td(const TreePathT& path, int32_t up_to) const
+    {
+        for (int32_t c = path.size() - 1; c >= up_to; c--) {
+            if (!path[c]) {
+                MEMORIA_MAKE_GENERIC_ERROR("Null path element at {}", c).do_throw();
+            }
+        }
+    }
+
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::FindName)
@@ -493,31 +502,38 @@ M_PARAMS
 template <typename Walker>
 typename M_TYPE::IteratorPtr M_TYPE::ctr_find(Walker&& walker) const
 {
-    auto& self = this->self();
+    auto& self = the_self();
 
     IteratorPtr i = self.make_iterator();
-
     i->iter_prepare();
 
     auto node = self.ctr_get_root_node();
 
-    i->path().resize(node->level() + 1);
+    if (MMA_UNLIKELY(!node->is_root())) {
+        MEMORIA_MAKE_GENERIC_ERROR("The node {} is not root", node->id()).do_throw();
+    }
 
-//    println("\n\nctr_find:");
+    TreePathT& path = i->path();
+
+    path.resize(node->level() + 1);
+
+    int32_t level = node->level();
+
+    std::vector<int32_t> levels;
 
     if (node.isSet())
     {
-        while (!node->is_leaf())
+        while (level > 0)
         {
-//            println("Node: {}", node->id());
-            i->path().set(node->level(), node);
+            levels.push_back(node->level());
+            path.set(level, node);
 
             auto result = self.branch_dispatcher().dispatch(node, walker, WalkDirection::DOWN, 0).get_or_throw();
             int32_t idx = result.local_pos();
 
             if (result.out_of_range())
             {
-                idx--;
+                --idx;
                 self.branch_dispatcher().dispatch(node, walker, WalkCmd::FIX_TARGET, 0, idx).get_or_throw();
             }
 
@@ -525,9 +541,12 @@ typename M_TYPE::IteratorPtr M_TYPE::ctr_find(Walker&& walker) const
 
             auto child = self.ctr_get_node_child(node, idx);
             node = child;
+
+            --level;
         }
 
-        i->path().set(node->level(), node);
+        levels.push_back(node->level());
+        path.set(level, node);
 
         auto result = self.leaf_dispatcher().dispatch(node, walker, WalkDirection::DOWN, 0).get_or_throw();
 

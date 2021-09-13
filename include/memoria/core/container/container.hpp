@@ -212,6 +212,8 @@ public:
                 std::move(ctr_factory)
             );
 
+            //println("Registering Container hash {} for {}", CONTAINER_HASH, TypeNameFactory<ContainerTypeName>::name());
+
             ProfileMetadataStore<ProfileT>::global().add_container_operations(
                 static_cast<uint64_t>(CONTAINER_HASH),
                 std::move(ctr_ops)
@@ -222,6 +224,8 @@ public:
 
             for (auto& ptr: list)
             {
+                //println("Registeing block hash {} for ctr {}", ptr->block_type_hash(), CONTAINER_HASH);
+
                 ProfileMetadataStore<ProfileT>::global().add_block_operations(
                         static_cast<uint64_t>(CONTAINER_HASH),
                         std::move(ptr)
@@ -589,12 +593,11 @@ public:
 };
 
 
-
+template <typename> class BTreeCtrBase;
 
 template <typename Types>
 class Ctr: public CtrStart<Types> {
     using Base = CtrStart<Types>;
-
 public:
     using MyType = Ctr<Types>;
     using ProfileT = typename Types::Profile;
@@ -750,12 +753,11 @@ public:
     }
 
 
-    virtual const CtrID& name() const noexcept {
+    const CtrID& name() const noexcept {
         return name_;
     }
 
-    const auto& master_name() const noexcept
-    {
+    const auto& master_name() const noexcept {
         return name_;
     }
 };

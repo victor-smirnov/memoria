@@ -18,6 +18,8 @@
 
 #include <memoria/core/types.hpp>
 
+#include <memoria/core/tools/result.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -78,7 +80,7 @@ public:
 
     NodeT& operator[](size_t idx) noexcept
     {
-        if (idx >= path_.size()) {
+        if (MMA_UNLIKELY(idx >= path_.size())) {
             terminate("Invalid tree path access");
         }
 
@@ -87,15 +89,20 @@ public:
 
     const NodeT& operator[](size_t idx) const noexcept
     {
-        if (idx >= path_.size()) {
+        if (MMA_UNLIKELY(idx >= path_.size())) {
             terminate("Invalid tree path access");
         }
 
         return path_[idx];
     }
 
-    void set(size_t idx, const NodeT& node) noexcept {
-        path_[idx] = node;
+    void set(size_t idx, const NodeT& node) {
+        if (MMA_LIKELY(idx >= 0 && idx <= path_.size())) {
+            path_[idx] = node;
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Range check in TreePath: {} {}", idx, size()).do_throw();
+        }
     }
 
     size_t size() const noexcept {

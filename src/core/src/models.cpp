@@ -21,6 +21,7 @@ namespace memoria {
 
 int64_t DebugCounter = 0;
 int64_t DebugCounter1 = 0;
-int64_t DebugCounter2 = -1;
+int64_t DebugCounter2 = 0;
+int64_t DebugCounter3 = 0;
 
 }

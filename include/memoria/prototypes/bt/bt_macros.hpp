@@ -34,17 +34,19 @@ public:
 #define MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBaseClassName)                     \
     MEMORIA_V1_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)                 \
                                                                                         \
-    BTreeCtrBaseClassName(MaybeError& maybe_error): Base(maybe_error) {}
+    BTreeCtrBaseClassName(MaybeError& maybe_error): Base(maybe_error) { \
+        static_assert(std::is_base_of_v<BTreeCtrBaseClassName, Ctr<TypesType>>, ""); \
+    }
 
 
 
 
 #define MEMORIA_V1_BT_MODEL_BASE_CLASS_END                                              \
 private:                                                                                \
-    MyType& self() {                                                                    \
+    MyType& self() noexcept {                                                           \
         return *static_cast<MyType*>(this);                                             \
     }                                                                                   \
-    const MyType& self() const {                                                        \
+    const MyType& self() const noexcept {                                               \
         return *static_cast<const MyType*>(this);                                       \
     }                                                                                   \
 };

@@ -119,6 +119,10 @@ struct IStoreBase: IStoreApiBase<ApiProfile<Profile>> {
             throw;
         }
     }
+
+    virtual bool is_allocated(const BlockID& block_id) {
+        return true;
+    }
 };
 
 

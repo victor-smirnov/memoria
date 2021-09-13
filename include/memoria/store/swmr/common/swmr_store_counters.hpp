@@ -173,7 +173,7 @@ public:
                 println("Counter for block {} is missing in the second map", entry.first);
             }
             else if (val.get() != entry.second.value) {
-                println("Counter value mismatch for block {}. Expected {}, actual {}", entry.second.value, val.get());
+                println("Counter value mismatch for block {}. Expected {}, actual {}", entry.first, entry.second.value, val.get());
             }
         }
 
@@ -184,7 +184,7 @@ public:
                 println("Counter for block {} is missing in the first map", entry.first);
             }
             else if (val.get() != entry.second.value) {
-                println("Counter value mismatch for block {}. Expected {}, actual {}", val.get(), entry.second.value);
+                println("Counter value mismatch for block {}. Expected {}, actual {}", entry.first, val.get(), entry.second.value);
             }
         }
     }

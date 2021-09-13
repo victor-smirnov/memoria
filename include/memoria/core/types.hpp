@@ -337,6 +337,7 @@ public:
 extern int64_t DebugCounter;
 extern int64_t DebugCounter1;
 extern int64_t DebugCounter2;
+extern int64_t DebugCounter3;
 
 template <typename T>
 using IL = std::initializer_list<T>;

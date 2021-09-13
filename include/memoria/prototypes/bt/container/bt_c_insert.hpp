@@ -33,7 +33,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
     template <int32_t Stream, typename Entry>
     SplitStatus ctr_insert_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Entry& entry)
     {
-        auto& self = this->self();
+        auto& self = the_self();
+
+        auto& path = iter.path();
+        self.ctr_check_path(path);
 
         auto status0 = self.template ctr_try_insert_stream_entry<Stream>(iter, idx, entry);
 

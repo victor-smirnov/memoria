@@ -70,6 +70,7 @@ class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
     using typename Base::DirectoryCtrType;
     using typename Base::Shared;
     using typename Base::RemovingBlocksConsumerFn;
+    using typename Base::AllocationMetadataT;
 
     using CtrID = ProfileCtrID<Profile>;
     using CtrReferenceableResult = Result<CtrReferenceable<ApiProfile<Profile>>>;
@@ -156,7 +157,6 @@ public:
     virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) override
     {
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
-
         std::memcpy(block_addr, source, source->memory_block_size());
 
         auto id = BlockID{at};
@@ -186,6 +186,10 @@ public:
     virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) override {
         Superblock* sb = ptr_cast<Superblock>(buffer_.data() + pos);
         return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
+    }
+
+    virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) override {
+        return AllocationMetadataT{(int64_t)block_id.value(), 1, 0};
     }
 };
 

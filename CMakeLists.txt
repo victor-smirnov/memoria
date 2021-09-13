@@ -131,7 +131,7 @@ if (BUILD_POSIX)
     add_definitions(-pthread)
     
     if (USE_ASAN)
-        add_definitions(-fsanitize=address -DMEMORIA_USE_ASAN -DMEMORIA_USE_UCONTEXT)
+        add_definitions(-fsanitize=address -fsanitize-address-use-after-scope -DMEMORIA_USE_ASAN -DMEMORIA_USE_UCONTEXT)
         add_global_linker(-fsanitize=address)
     endif()
     

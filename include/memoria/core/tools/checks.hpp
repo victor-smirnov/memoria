@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memoria/core/linked/document/linked_document.hpp>
+#include <memoria/core/tools/result.hpp>
 
 namespace memoria {
 
@@ -25,6 +26,17 @@ enum class CheckSeverity {
 
 using CheckResultConsumerFn = std::function<void (CheckSeverity, const LDDocument&)>;
 
+struct NullCheckResultConsumer {
+    void operator()(CheckSeverity, const LDDocument&) {}
+};
+
+struct ThrowingCheckResultConsumer {
+    void operator()(CheckSeverity svr, const LDDocument& doc) {
+        if (svr == CheckSeverity::ERROR) {
+            MEMORIA_MAKE_GENERIC_ERROR("{}", doc.to_pretty_string()).do_throw();
+        }
+    }
+};
 
 template <typename... Args>
 LDDocument make_string_document(const char* fmt, Args&&... args)

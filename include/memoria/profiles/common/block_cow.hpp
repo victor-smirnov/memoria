@@ -43,13 +43,13 @@ public:
 private:
     using SharedBlockT = typename Shared_::BlockType;
 
-
     mutable BlockType* ptr_;
     Shared* shared_;
 
     CowSharedBlockPtr(BlockType* ptr, Shared* shared) noexcept:
         ptr_(ptr), shared_(shared)
-    {}
+    {
+    }
 
 public:
     CowSharedBlockPtr(Shared* shared) noexcept:
@@ -58,7 +58,7 @@ public:
         ref();
     }
 
-    CowSharedBlockPtr() noexcept: shared_(nullptr) {}
+    CowSharedBlockPtr() noexcept: ptr_(nullptr), shared_(nullptr) {}
 
     CowSharedBlockPtr(const CowSharedBlockPtr& guard) noexcept:
         ptr_(cast_me(guard.ptr_)), shared_(guard.shared_)
@@ -79,6 +79,7 @@ public:
         shared_(guard.shared_)
     {
         guard.shared_ = nullptr;
+        guard.ptr_ = nullptr;
     }
 
     ~CowSharedBlockPtr() noexcept
@@ -99,6 +100,7 @@ public:
     CowSharedBlockPtr as_mutable() && noexcept {
         Shared* tmp = shared_;
         shared_ = nullptr;
+        ptr_ = nullptr;
         return CowSharedBlockPtr<MutableBlockType, StoreT, Shared>{ptr_, tmp};
     }
 
@@ -113,6 +115,7 @@ public:
     CowSharedBlockPtr<const MutableBlockType, StoreT, Shared> as_immutable() && noexcept {
         Shared* tmp = shared_;
         shared_ = nullptr;
+        ptr_ = nullptr;
         return CowSharedBlockPtr<const MutableBlockType, StoreT, Shared>{ptr_, shared_};
     }
 
@@ -150,6 +153,7 @@ public:
             ptr_ = cast_me(guard.ptr_);
             shared_ = guard.shared_;
             guard.shared_ = nullptr;
+            guard.ptr_ = nullptr;
         }
 
         return *this;
@@ -163,7 +167,7 @@ public:
         ptr_ = cast_me(guard.ptr_);
         shared_ = guard.shared_;
         guard.shared_ = nullptr;
-
+        guard.ptr_ = nullptr;
         return *this;
     }
 
@@ -254,7 +258,7 @@ public:
 private:
     void ref() noexcept
     {
-        if (shared_ != nullptr)
+        if (shared_)
         {
             shared_->ref();
         }
@@ -304,7 +308,8 @@ private:
 
     CowSharedBlockPtr(MutableBlockType* ptr, Shared* shared) noexcept:
         ptr_(ptr), shared_(shared)
-    {}
+    {
+    }
 
 public:
     CowSharedBlockPtr(Shared* shared) noexcept:
@@ -313,7 +318,9 @@ public:
         ref();
     }
 
-    CowSharedBlockPtr() noexcept: shared_(nullptr) {}
+    CowSharedBlockPtr() noexcept:
+        ptr_(nullptr), shared_(nullptr)
+    {}
 
     CowSharedBlockPtr(const CowSharedBlockPtr& guard) noexcept:
         ptr_(cast_me(guard.ptr_)), shared_(guard.shared_)
@@ -334,6 +341,7 @@ public:
         shared_(guard.shared_)
     {
         guard.shared_ = nullptr;
+        guard.ptr_ = nullptr;
     }
 
     ~CowSharedBlockPtr() noexcept
@@ -353,6 +361,7 @@ public:
     CowSharedBlockPtr as_immutable() && noexcept {
         Shared* tmp = shared_;
         shared_ = nullptr;
+        ptr_ = nullptr;
         return CowSharedBlockPtr<MutableBlockType, StoreT, Shared>{ptr_, tmp};
     }
 
@@ -369,6 +378,7 @@ public:
     CowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() && {
         Shared* tmp = shared_;
         shared_ = nullptr;
+        ptr_ = nullptr;
         tmp->assert_mutable();
         return CowSharedBlockPtr<MutableBlockType, StoreT, Shared>{ptr_, tmp};
     }
@@ -405,6 +415,7 @@ public:
             ptr_ = cast_me(guard.ptr_);
             shared_ = guard.shared_;
             guard.shared_ = nullptr;
+            guard.ptr_ = nullptr;
         }
 
         return *this;
@@ -420,6 +431,7 @@ public:
             ptr_ = cast_me(guard.ptr_);
             shared_ = guard.shared_;
             guard.shared_ = nullptr;
+            guard.ptr_ = nullptr;
         }
 
         return *this;

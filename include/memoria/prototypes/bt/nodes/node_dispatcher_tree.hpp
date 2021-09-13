@@ -51,10 +51,15 @@ class NDTTree {
 
     using ConstNodeSO = typename Head::template SparseObject<CtrT>;
 
-    CtrT& ctr_;
+    CtrT* ctr_;
 
 public:
-    NDTTree(CtrT& ctr) noexcept: ctr_(ctr) {}
+    NDTTree() noexcept {}
+    NDTTree(CtrT* ctr) noexcept: ctr_(ctr) {}
+
+    void set_ctr(CtrT* ctr) noexcept {
+        ctr_ = ctr;
+    }
 
     template <typename Functor, typename... Args>
     auto
@@ -67,7 +72,7 @@ public:
     {
         if (HASH == parent->block_type_hash())
         {
-            const ConstNodeSO parent_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(parent.block())));
+            const ConstNodeSO parent_so(ctr_, const_cast<Head*>(static_cast<const Head*>(parent.block())));
 
             return NDT2<CtrT, Types, ListSize<typename Types::ChildList> - 1>(ctr_).dispatchTreeConst(
                     parent_so,
@@ -100,12 +105,17 @@ class NDTTree<CtrT, Types, 0> {
 
     using ConstNodeSO = typename Head::template SparseObject<CtrT>;
 
-    CtrT& ctr_;
+    CtrT* ctr_;
 
 public:
     using NDT2Start = NDT2<CtrT, Types, ListSize<typename Types::ChildList> - 1>;
 
-    NDTTree(CtrT& ctr) noexcept: ctr_(ctr) {}
+    NDTTree() noexcept {}
+    NDTTree(CtrT* ctr) noexcept: ctr_(ctr) {}
+
+    void set_ctr(CtrT* ctr) noexcept {
+        ctr_ = ctr;
+    }
 
 
     template <typename Functor, typename... Args>
@@ -122,7 +132,7 @@ public:
     {
         if (HASH == parent->block_type_hash())
         {
-            const ConstNodeSO parent_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(parent.block())));
+            const ConstNodeSO parent_so(ctr_, const_cast<Head*>(static_cast<const Head*>(parent.block())));
 
             return NDT2Start(ctr_).dispatchTree(
                     parent_so,
@@ -153,10 +163,15 @@ class NDT2 {
 
     using ConstNodeSO = typename Head::template SparseObject<CtrT>;
 
-    CtrT& ctr_;
+    CtrT* ctr_;
 
 public:
-    NDT2(CtrT& ctr) noexcept: ctr_(ctr) {}
+    NDT2() noexcept {}
+    NDT2(CtrT* ctr) noexcept: ctr_(ctr) {}
+
+    void set_ctr(CtrT* ctr) noexcept {
+        ctr_ = ctr;
+    }
 
     template <typename Node, typename Functor, typename... Args>
     auto dispatchTree(
@@ -168,7 +183,7 @@ public:
     {
         if (HASH == child->block_type_hash())
         {
-            const ConstNodeSO child_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(child.block())));
+            const ConstNodeSO child_so(ctr_, const_cast<Head*>(static_cast<const Head*>(child.block())));
 
             return functor.treeNode(
                     std::forward<Node>(parent),
@@ -199,10 +214,15 @@ class NDT2<CtrT, Types, 0> {
 
     using ConstNodeSO = typename Head::template SparseObject<CtrT>;
 
-    CtrT& ctr_;
+    CtrT* ctr_;
 
 public:
-    NDT2(CtrT& ctr) noexcept: ctr_(ctr) {}
+    NDT2() noexcept {}
+    NDT2(CtrT* ctr) noexcept: ctr_(ctr) {}
+
+    void set_ctr(CtrT* ctr) noexcept {
+        ctr_ = ctr;
+    }
 
     template <typename Node, typename Functor, typename... Args>
     auto dispatchTree(
@@ -217,7 +237,7 @@ public:
     {
         if (HASH == child->block_type_hash())
         {
-            const ConstNodeSO child_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(child.block())));
+            const ConstNodeSO child_so(ctr_, const_cast<Head*>(static_cast<const Head*>(child.block())));
             return functor.treeNode(
                     std::forward<Node>(parent),
                     child_so,

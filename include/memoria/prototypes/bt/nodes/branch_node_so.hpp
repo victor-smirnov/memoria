@@ -332,7 +332,23 @@ public:
 
     VoidResult check(const CheckResultConsumerFn& consumer) const noexcept
     {
-        return Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn());
+        MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn()));
+
+        std::unordered_map<Value, int32_t> map;
+
+        MEMORIA_TRY(node_size, size());
+        for (int32_t c = 0; c < node_size; c++) {
+            Value vv = value(c);
+            auto ii = map.find(vv);
+            if (ii == map.end()) {
+                map[vv] = c;
+            }
+            else {
+                return MEMORIA_MAKE_GENERIC_ERROR("Duplicate child id found: {} :: {} :: {}", vv, ii->second, c);
+            }
+        }
+
+        return VoidResult::of();
     }
 
 
@@ -452,8 +468,6 @@ public:
 
         return VoidResult::of();
     }
-
-
 
 
     VoidResult insertValuesSpace(int32_t old_size, int32_t room_start, int32_t room_length) noexcept

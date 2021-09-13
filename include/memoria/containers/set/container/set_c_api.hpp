@@ -136,7 +136,7 @@ public:
      */
     bool insert(KeyView k)
     {
-        auto iter = self().ctr_set_find(k);
+        IteratorPtr iter = self().ctr_set_find(k);
 
         if (iter->is_found(k))
         {

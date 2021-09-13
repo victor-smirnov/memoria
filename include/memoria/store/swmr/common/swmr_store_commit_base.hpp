@@ -168,6 +168,15 @@ public:
         return metadata_;
     }
 
+    virtual bool is_allocated(const BlockID& block_id)
+    {
+        init_allocator_ctr();
+
+        auto alc = get_allocation_metadata(block_id);
+
+        return allocation_map_ctr_->check_allocated(alc);
+    }
+
     virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) = 0;
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
             ContainerOperationsPtr<Profile> ctr_intf,
@@ -177,6 +186,8 @@ public:
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
             const LDTypeDeclarationView& decl, const CtrID& ctr_id
     ) = 0;
+
+    virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) = 0;
 
     SharedSBPtr<Superblock> get_superblock() {
         return get_superblock(commit_descriptor_->superblock_ptr());

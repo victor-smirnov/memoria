@@ -71,6 +71,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
     using typename Base::DirectoryCtrType;
     using typename Base::Shared;
     using typename Base::RemovingBlocksConsumerFn;
+    using typename Base::AllocationMetadataT;
 
 
     using CtrID = ProfileCtrID<Profile>;
@@ -301,6 +302,10 @@ public:
     virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) override {
         Superblock* sb = ptr_cast<Superblock>(buffer_.data() + pos);
         return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
+    }
+
+    virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) override {
+        return AllocationMetadataT{block_id.value(), 1, 0};
     }
 };
 

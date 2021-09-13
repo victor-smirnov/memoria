@@ -73,6 +73,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
             path[level] = new_node.as_immutable();
         }
+
+        self.ctr_check_path(path, level);
     }
 
 

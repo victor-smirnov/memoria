@@ -41,7 +41,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::BranchVariableName)
 public:
     void ctr_update_path(TreePathT& path, size_t level)
     {
-        auto& self = this->self();
+        auto& self = the_self();
 
         if (!path[level]->is_root())
         {
@@ -126,6 +126,8 @@ VoidResult M_TYPE::ctr_insert_to_branch_node(
 
         VoidResult res = self.branch_dispatcher().dispatch(node.as_mutable(), InsertFn(), idx, sums, id);
         MEMORIA_RETURN_IF_ERROR(res);
+
+        self.ctr_check_content(node, NullCheckResultConsumer());
 
         if (!node->is_root())
         {
@@ -229,6 +231,8 @@ void M_TYPE::ctr_split_node_raw(
 
     path[level] = right_node.as_immutable();
     self.ctr_ref_block(right_node->id());
+
+    self.ctr_check_path(path, level);
 }
 
 M_PARAMS
@@ -312,6 +316,7 @@ bool M_TYPE::ctr_update_branch_node(const TreeNodeConstPtr& node, int32_t idx, c
             return false;
         }
         else {
+            self.ctr_dump_node(node);
             MEMORIA_PROPAGATE_ERROR(res).do_throw();
         }
     }
@@ -398,6 +403,8 @@ void M_TYPE::ctr_update_path(TreePathT& path, size_t level, const BranchNodeEntr
             MEMORIA_MAKE_GENERIC_ERROR("ctr_update_path() internal error").do_throw();
         }
     }
+
+    self.ctr_check_path(path, level);
 }
 
 
