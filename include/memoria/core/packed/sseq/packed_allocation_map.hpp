@@ -274,7 +274,30 @@ public:
         return reindex(true);
     }
 
-    VoidResult check() const noexcept {
+    VoidResult check() const noexcept
+    {
+        for (int32_t ll = 0; ll < Indexes - 1; ll++)
+        {
+            int32_t ll_size = size(ll);
+            for (int32_t ii = 0; ii < ll_size; ii += 2)
+            {
+                int32_t b0 = get_bit(ll, ii);
+                int32_t b1 = get_bit(ll, ii + 1);
+
+                int32_t b_up_expect = b0 || b1;
+                int32_t b_up_actual = get_bit(ll + 1, ii / 2);
+
+                if (b_up_expect != b_up_actual) {
+                    return MEMORIA_MAKE_GENERIC_ERROR("Bitmap leyering mismatch: level: {}, idx: {}, bits: {} {} {}", ll, ii, b0, b1, b_up_actual);
+                }
+            }
+        }
+
+        for (int32_t ll = 0; ll < Indexes; ll++)
+        {
+            MEMORIA_TRY_VOID(check_level_index(ll));
+        }
+
         return VoidResult::of();
     }
 
@@ -305,25 +328,9 @@ public:
             }
         }
 
-//        local_bitmap_size = bitmap_size;
         for (int32_t c = 0; c < Indexes; c++) //, local_bitmap_size /= 2
         {
             MEMORIA_TRY_VOID(reindex_level(c));
-
-//            int32_t index_size = index_level_size(local_bitmap_size);
-//            if (index_size > 0)
-//            {
-//                IndexType* index = this->index(c);
-//                const BitmapType* bitmap = symbols(c);
-
-//                for (int32_t bi = 0, icnt = 0; bi < local_bitmap_size; bi += ValuesPerBranch, icnt++)
-//                {
-//                    int32_t limit = (bi + ValuesPerBranch <= local_bitmap_size) ? (bi + ValuesPerBranch) : local_bitmap_size;
-//                    size_t span_size = static_cast<size_t>(limit - bi);
-
-//                    index[icnt] = static_cast<IndexType>(span_size - PopCount(bitmap, bi, limit));
-//                }
-//            }
         }
 
         return VoidResult::of();
@@ -345,6 +352,33 @@ public:
                 size_t span_size = static_cast<size_t>(limit - bi);
 
                 index[icnt] = static_cast<IndexType>(span_size - PopCount(bitmap, bi, limit));
+            }
+        }
+
+        return VoidResult::of();
+    }
+
+    VoidResult check_level_index(int32_t level) const noexcept
+    {
+        int32_t local_bitmap_size = this->size() >> level;
+
+        int32_t index_size = index_level_size(local_bitmap_size);
+        if (index_size > 0)
+        {
+            const IndexType* index = this->index(level);
+            const BitmapType* bitmap = symbols(level);
+
+            for (int32_t bi = 0, icnt = 0; bi < local_bitmap_size; bi += ValuesPerBranch, icnt++)
+            {
+                int32_t limit = (bi + ValuesPerBranch <= local_bitmap_size) ? (bi + ValuesPerBranch) : local_bitmap_size;
+                size_t span_size = static_cast<size_t>(limit - bi);
+
+                int32_t expected = static_cast<IndexType>(span_size - PopCount(bitmap, bi, limit));
+                int32_t actual = index[icnt];
+
+                if (expected != actual) {
+                    return MEMORIA_MAKE_GENERIC_ERROR("Invalid bitmap index: level: {}, expected: {}, actual: {}, [{}, {})", level, expected, actual, bi, limit);
+                }
             }
         }
 
@@ -375,6 +409,12 @@ public:
         size_t start = idx;
         size_t stop  = idx + size;
 
+        int32_t local_bitmap_size = this->size() >> level;
+
+        if (!(idx >= 0 && idx <= local_bitmap_size && (idx + size <= local_bitmap_size))) {
+            return MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size);
+        }
+
         for (int32_t ll = level; ll >= 0; ll--)
         {
             BitmapType* bitmap = this->symbols(ll);
@@ -399,6 +439,12 @@ public:
         size_t start = idx;
         size_t stop  = idx + size;
 
+        int32_t local_bitmap_size = this->size() >> level;
+
+        if (!(idx >= 0 && idx <= local_bitmap_size && (idx + size <= local_bitmap_size))) {
+            return MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size);
+        }
+
         for (int32_t ll = level; ll >= 0; ll--)
         {
             BitmapType* bitmap = this->symbols(ll);
@@ -410,6 +456,29 @@ public:
 
         rebuild_bitmaps(level);
         return reindex(false);
+    }
+
+    VoidResult clear_bits_opt(int32_t level, int32_t idx, int32_t size) noexcept
+    {
+        size_t start = idx;
+        size_t stop  = idx + size;
+
+        int32_t local_bitmap_size = this->size() >> level;
+
+        if (!(idx >= 0 && idx <= local_bitmap_size && (idx + size <= local_bitmap_size))) {
+            return MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size);
+        }
+
+        for (int32_t ll = level; ll >= 0; ll--)
+        {
+            BitmapType* bitmap = this->symbols(ll);
+            FillZero(bitmap, start, stop);
+
+            start *= 2;
+            stop  *= 2;
+        }
+
+        return VoidResult::of();
     }
 
     int32_t sum(int32_t level) const noexcept
@@ -719,6 +788,10 @@ public:
             }
         }
 
+        if (updated) {
+            MEMORIA_TRY_VOID(reindex(false));
+        }
+
         return BoolResult::of(updated);
     }
 
@@ -752,6 +825,7 @@ private:
         return tgt;
     }
 
+public:
     void rebuild_bitmaps(int32_t level_from) noexcept
     {
         int32_t bitmap_size = this->size();

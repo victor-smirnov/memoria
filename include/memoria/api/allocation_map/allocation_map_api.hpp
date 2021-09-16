@@ -70,6 +70,10 @@ public:
         return position_;
     }
 
+    CtrSizeT limit() const noexcept {
+        return position_+ size_;
+    }
+
     CtrSizeT size1() const noexcept {
         return size_;
     }

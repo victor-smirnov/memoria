@@ -32,16 +32,11 @@ int main(void) {
         const char* file = "file.mma2";
 
         filesystem::remove(file);
-        auto store1 = create_lite_swmr_store(file, 10240);
+        auto store1 = create_lite_swmr_store(file, 256);
 
         UUID ctr_id = UUID::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
 
         auto t_start = getTimeInMillis();
-
-        // Looks like I'm not handling properly the case when
-        // the case then AllocationPool is empty while
-        // updating AllocationMap explicitly. We will have reenterability
-        // issue then.
 
         CheckResultConsumerFn callback = [](CheckSeverity svr, const LDDocument& doc){
             std::cout << doc.to_string() << std::endl;
@@ -49,8 +44,6 @@ int main(void) {
                 MEMORIA_MAKE_GENERIC_ERROR("Container check error").do_throw();
             }
         };
-
-
 
         {
             {
@@ -68,13 +61,14 @@ int main(void) {
 
             while (cnt < num_entries)
             {
-                auto snp1 = store1->begin();
-                auto ctr1 = find<CtrType>(snp1, ctr_id);
-
                 if (b0 % (num_entries / batch_size / 10) == 0)
                 {
                     std::cout << "Batch " << (b0) << " :: " << cnt << " :: " << (num_entries) << std::endl;
+                    store1->check(callback);
                 }
+
+                auto snp1 = store1->begin();
+                auto ctr1 = find<CtrType>(snp1, ctr_id);
 
                 for (int c = 0; c < batch_size; c++, cnt++)
                 {
@@ -84,28 +78,23 @@ int main(void) {
 
                     ctr1->insert(str);
 
-//                    if (!ctr1->contains(str)) {
-//                        MEMORIA_MAKE_GENERIC_ERROR("Can't find key {} in the container", str).do_throw();
-//                    }
+                    if (!ctr1->contains(str)) {
+                        MEMORIA_MAKE_GENERIC_ERROR("Can't find key {} in the container", str).do_throw();
+                    }
                 }
-
 
                 //snp1->set_transient(false);
                 snp1->commit(ConsistencyPoint::AUTO);
 
                 b0++;
-
-                store1->check(callback);
             }
-
         }
 
-
+        store1->flush();
 
         auto t_end = getTimeInMillis();
         std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
 
-        store1->flush();
         store1->check(callback);
 
         store1->close();

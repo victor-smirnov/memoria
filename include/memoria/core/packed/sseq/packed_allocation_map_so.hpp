@@ -33,6 +33,8 @@ class PackedAllocationMapSO {
 
 public:
     using PkdStructT = PkdStruct;
+    static constexpr size_t LEVELS = PkdStruct::Indexes;
+    static constexpr int32_t Indexes = PkdStruct::Indexes;
 
     PackedAllocationMapSO() noexcept: ext_data_(), data_() {}
     PackedAllocationMapSO(ExtData* ext_data, PkdStruct* data) noexcept:
@@ -76,6 +78,16 @@ public:
     VoidResult clear_bits(int32_t level, int32_t idx, int32_t size) noexcept
     {
         return data_->clear_bits(level, idx, size);
+    }
+
+
+    VoidResult clear_bits_opt(int32_t level, int32_t idx, int32_t size) noexcept
+    {
+        return data_->clear_bits_opt(level, idx, size);
+    }
+
+    void rebuild_bitmaps(int32_t level) noexcept {
+        data_->rebuild_bitmaps(level);
     }
 
     VoidResult reindex(bool recompute_bitmaps) noexcept {

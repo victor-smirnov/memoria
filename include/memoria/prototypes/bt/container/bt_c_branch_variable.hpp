@@ -127,7 +127,7 @@ VoidResult M_TYPE::ctr_insert_to_branch_node(
         VoidResult res = self.branch_dispatcher().dispatch(node.as_mutable(), InsertFn(), idx, sums, id);
         MEMORIA_RETURN_IF_ERROR(res);
 
-        self.ctr_check_content(node, NullCheckResultConsumer());
+        //self.ctr_check_content(node, NullCheckResultConsumer());
 
         if (!node->is_root())
         {

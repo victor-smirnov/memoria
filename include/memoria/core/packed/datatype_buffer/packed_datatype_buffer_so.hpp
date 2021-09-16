@@ -462,13 +462,12 @@ public:
     {
         MEMORIA_ASSERT_RTN(row_at, <=, this->size());
 
-        VoidResult rr = check();
-
-        bool val = 0;
-        if (rr.is_error()) {
-            val = 1;
-            println("Before insert check failed {}", val);
-        }
+//        VoidResult rr = check();
+//        bool val = 0;
+//        if (rr.is_error()) {
+//            val = 1;
+//            println("Before insert check failed {}", val);
+//        }
 
         DataLengths data_lengths{};
 
@@ -496,8 +495,8 @@ public:
             });
         }
 
-        //return VoidResult::of();
-        return check();
+        return VoidResult::of();
+        //return check();
     }
 
     template <typename AccessorFn>

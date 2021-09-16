@@ -393,7 +393,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 int32_t local_pos = ii->iter_local_pos();
                 CtrSizeT leaf_base = ii->level0_pos() - local_pos;
 
-                CtrSizeT leaf_limit = leaf_base + ii->iter_leaf_size();
+                int32_t leaf_size = ii->iter_leaf_size();
+                CtrSizeT leaf_limit = leaf_base + leaf_size;
 
                 size_t end;
                 for (end = start; end < allocations.size(); end++)
@@ -414,7 +415,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 }
 
                 if (end > start) {
-                    leaf_updater(ii, allocations.subspan(start, end), leaf_base);
+                    leaf_updater(ii, allocations.subspan(start, end - start), leaf_base);
                 }
 
                 if (end < allocations.size())
@@ -580,7 +581,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         BoolResult treeNode(LeafNodeSO<CtrT, NodeT>& node_so, CtrSizeT base, AllocationPoolT& pool) noexcept
         {
             auto ss = node_so.template substream<IntList<0, 1>>();
-            return ss.populate_allocation_pool(base, pool);
+            BoolResult res = ss.populate_allocation_pool(base, pool);
+            return res;
         }
     };
 

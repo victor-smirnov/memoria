@@ -188,9 +188,19 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
                 }
             }
             else {
+                constexpr size_t Levels = std::remove_pointer_t<decltype(bitmap)>::LEVELS;
+                bool levels[Levels]{false,};
+
                 for (auto alc: leaf_allocations) {
                     int32_t pos = (alc.position() - base) >> alc.level();
-                    MEMORIA_TRY_VOID(bitmap.clear_bits(alc.level(), pos, alc.size_at_level()));
+                    MEMORIA_TRY_VOID(bitmap.clear_bits_opt(alc.level(), pos, alc.size_at_level()));
+                    levels[alc.level()] = true;
+                }
+
+                for (size_t ll = 0; ll < Levels; ll++) {
+                    if (levels[ll]) {
+                        bitmap.rebuild_bitmaps(ll);
+                    }
                 }
             }
 

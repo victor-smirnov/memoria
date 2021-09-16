@@ -91,7 +91,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
             if (!block->is_leaf())
             {
-                this_ptr->ctr_for_all_ids(block, [&](const BlockID& child_id) noexcept {
+                this_ptr->ctr_for_all_ids(block, [&](const BlockID& child_id) {
                     return this_ptr->ctr_unref_block(child_id);
                 });
             }
