@@ -93,36 +93,36 @@ struct IDValueHolderH<CowBlockID<ValueHolder>> {
 };
 
 template <>
-struct IDValueHolderH<CowBlockID<UUID>> {
-    using IDType = CowBlockID<UUID>;
+struct IDValueHolderH<CowBlockID<UID256>> {
+    using IDType = CowBlockID<UID256>;
     using IDValueHolder = uint64_t;
 
     static IDValueHolder from_id(const IDType& id) noexcept {
-        return id.value().lo();
+        return id.value().counter();
     }
 
     static IDType to_id(const IDValueHolder& id) noexcept {
-        return IDType(UUID{0, id});
+        return IDType(UID256::make_type2(UID256{}, id));
     }
 
     template <typename BlockType>
     static BlockType* get_block_ptr(IDType id) noexcept {
-        return value_cast<BlockType*>(id.value().lo());
+        return value_cast<BlockType*>(id.value().counter());
     }
 
     template <typename BlockType>
     static IDType to_id(BlockType* ptr) noexcept {
-        return IDType(UUID{0, value_cast<IDValueHolder>(ptr)});
+        return IDType(UID256::make_type2(UID256{}, value_cast<IDValueHolder>(ptr)));
     }
 
 
-    static UUID to_id_value(IDType id) noexcept {
+    static UID256 to_id_value(IDType id) noexcept {
         return id.value();
     }
 
     template <typename T>
     static IDType new_id(T* ptr) noexcept {
-        return IDType{UUID::make_random()};
+        return IDType{UID256::make_random()};
     }
 };
 

@@ -21,7 +21,7 @@
 #include <memoria/profiles/core_api/core_api_profile.hpp>
 #include <memoria/core/container/store.hpp>
 
-#include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/uid_256.hpp>
 
 namespace memoria {
 
@@ -36,8 +36,8 @@ struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using typename Base::CtrSizeT;
     using typename Base::SnapshotID;
 
-    using BlockGUID = UUID;
-    using BlockID = UUID;
+    using BlockGUID = UID256;
+    using BlockID = UID256;
     using Profile = NoCowProfile<>;
 
     using Block = AbstractPage <BlockGUID, BlockID, EmptyType, SnapshotID>;
@@ -55,12 +55,12 @@ struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 
     static constexpr bool IsCoW = false;
 
-    static UUID make_random_block_id() {
-        return UUID::make_random();
+    static BlockID make_random_block_id() {
+        return BlockID::make_random();
     }
 
-    static UUID make_random_block_guid() {
-        return UUID::make_random();
+    static BlockID make_random_block_guid() {
+        return BlockID::make_random();
     }
 };
 

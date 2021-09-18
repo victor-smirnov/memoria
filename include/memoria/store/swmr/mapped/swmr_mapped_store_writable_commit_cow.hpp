@@ -198,9 +198,9 @@ public:
         else {
             uint64_t at;
 
-            if (MMA_UNLIKELY(block_id.value().version() == 15))
+            if (MMA_UNLIKELY(block_id.value().is_type2()))
             {
-                at = unpack_uint64_t(block_id.value());
+                at = block_id.value().counter();
             }
             else {
                 auto ii = blockmap_ctr_->find(block_id.value());
@@ -238,7 +238,7 @@ public:
             blockmap_ctr_->assign_key(id.value(), at);
         }
         else {
-            id = BlockID{uuid_pack_uint64_t(at)};
+            id = BlockID{UID256::make_type2(UID256{}, 0, at)};
         }
 
         BlockType* block = new (block_addr) BlockType(id, id.value(), id.value());
@@ -269,7 +269,7 @@ public:
             blockmap_ctr_->assign_key(id.value(), at);
         }
         else {
-            id = BlockID{uuid_pack_uint64_t(at)};
+            id = BlockID{UID256::make_type2(UID256{}, 0, at)};
         }
 
         BlockType* new_block = ptr_cast<BlockType>(block_addr);

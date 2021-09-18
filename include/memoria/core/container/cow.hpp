@@ -114,17 +114,17 @@ struct DataTypeTraits<CowBlockID<UID64>>: FixedSizeDataTypeTraits<CowBlockID<UID
     }
 };
 
-class UUID;
+
 
 template <>
-struct DataTypeTraits<CowBlockID<UUID>>: FixedSizeDataTypeTraits<CowBlockID<UUID>, UUIDCowBlockID>
+struct DataTypeTraits<CowBlockID<UID256>>: FixedSizeDataTypeTraits<CowBlockID<UID256>, UID256CowBlockID>
 {
-    static void create_signature(SBuf& buf, const CowBlockID<UUID>& obj) {
-        buf << "UUIDCowBlockID";
+    static void create_signature(SBuf& buf, const CowBlockID<UID256>& obj) {
+        buf << "UID256CowBlockID";
     }
 
     static void create_signature(SBuf& buf) {
-        buf << "UUIDCowBlockID";
+        buf << "UID256CowBlockID";
     }
 };
 

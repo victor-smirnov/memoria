@@ -172,15 +172,6 @@ public:
     AnyID as_any_id() const;
 };
 
-static inline uint64_t unpack_uint64_t(const UID64& uuid) noexcept {
-    return uuid.value();
-}
-
-static inline UID64 UID64_pack_uint64_t(uint64_t value) noexcept
-{
-    return UID64{value, 0};
-}
-
 
 template <typename T>
 struct TypeHash;

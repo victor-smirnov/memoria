@@ -193,11 +193,10 @@ class [[clang::annotate(R"(
         "profiles": "ALL",
         "includes": [
             "memoria/api/map/map_api.hpp",
-            "memoria/core/tools/uuid.hpp",
             "memoria/core/tools/uid_256.hpp"
         ]
     }
-)")]] TypeInstance<Map<UID256, UUID>> {};
+)")]] TypeInstance<Map<UID256, UID256>> {};
 
 template<>
 class [[clang::annotate(R"(
@@ -205,10 +204,10 @@ class [[clang::annotate(R"(
         "profiles": "ALL",
         "includes": [
             "memoria/api/map/map_api.hpp",
-            "memoria/core/tools/uuid.hpp"
+            "memoria/core/tools/uid_256.hpp"
         ]
     }
-)")]] TypeInstance<Map<UUID, UBigInt>> {};
+)")]] TypeInstance<Map<UID256, UBigInt>> {};
 
 //template<>
 //class [[clang::annotate(R"(
@@ -276,11 +275,10 @@ class [[clang::annotate(R"(
         "includes": [
             "memoria/api/map/map_api.hpp",
             "memoria/core/container/cow.hpp",
-            "memoria/core/tools/uuid.hpp",
             "memoria/core/tools/uid_256.hpp"
         ]
     }
-)")]] TypeInstance<Map<UID256, CowBlockID<UUID>>> {};
+)")]] TypeInstance<Map<UID256, CowBlockID<UID256>>> {};
 
 
 template<>

@@ -111,20 +111,20 @@ public:
         return 0;
     }
 
-    const AtomT& hi() const noexcept {
-        return atoms_[1];
+    bool is_type0() const noexcept {
+        return type() == Type::TYPE0;
     }
 
-    AtomT& hi() noexcept {
-        return atoms_[1];
+    bool is_type1() const noexcept {
+        return type() == Type::TYPE1;
     }
 
-    const AtomT& lo() const noexcept {
-        return atoms_[0];
+    bool is_type2() const noexcept {
+        return type() == Type::TYPE2;
     }
 
-    AtomT& lo() noexcept {
-        return atoms_[0];
+    bool is_type3() const noexcept {
+        return type() == Type::TYPE3;
     }
 
     size_t ctz() const noexcept
@@ -395,15 +395,6 @@ public:
 
     AnyID as_any_id() const;
 };
-
-static inline uint64_t unpack_uint64_t(const UID256& uuid) noexcept {
-    return uuid.counter();
-}
-
-static inline UID256 UID256_pack_uint64_t(uint64_t value) noexcept
-{
-    return UID256{value, 0};
-}
 
 
 template <typename T>

@@ -50,7 +50,6 @@ struct Boolean   {};
 
 struct UID64CowBlockID {};
 struct UID256CowBlockID {};
-struct UUIDCowBlockID {};
 
 template <typename ProfileDT> struct ProfileFromDataTypeTF;
 template <typename Profile> struct DataTypeFromProfileTF;

@@ -489,7 +489,8 @@ protected:
         }
     }
 
-    MDB_val get_data_addr(const CtrID& ctr_id, MDB_dbi dbi)
+    /*
+    std::enable_if_t<!std::is_same_v<CtrID, BlockID>, MDB_val> get_data_addr(const CtrID& ctr_id, MDB_dbi dbi)
     {
         MDB_val key = {sizeof(ctr_id), ptr_cast<void>(&ctr_id)};
         MDB_val data;
@@ -506,7 +507,7 @@ protected:
         else {
             return data;
         }
-    }
+    }*/
 
     void start_no_reentry(const CtrID& ctr_id) {}
     void finish_no_reentry(const CtrID& ctr_id) noexcept {}

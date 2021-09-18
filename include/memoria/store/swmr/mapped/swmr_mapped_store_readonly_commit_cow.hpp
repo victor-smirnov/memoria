@@ -168,9 +168,9 @@ public:
         else {
             uint64_t at;
 
-            if (MMA_UNLIKELY(block_id.value().version() == 15))
+            if (MMA_UNLIKELY(block_id.value().is_type2()))
             {
-                at = unpack_uint64_t(block_id.value());
+                at = block_id.value().counter();
             }
             else {
                 auto ii = blockmap_ctr_->find(block_id.value());

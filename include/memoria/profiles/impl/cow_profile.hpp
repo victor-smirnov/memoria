@@ -23,7 +23,7 @@
 #include <memoria/profiles/impl/cow_impl_common.hpp>
 
 #include <memoria/core/container/store.hpp>
-#include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/uid_256.hpp>
 
 #include <unordered_set>
 #include <ostream>
@@ -44,12 +44,12 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using typename Base::CtrSizeT;
     using typename Base::SnapshotID;
 
-    using BlockGUID     = UUID;
+    using BlockGUID     = UID256;
 
     using BlockID       = CowBlockID<BlockGUID>;
     using Profile       = CowProfile<>;
 
-    using Block = AbstractPage<BlockID, BlockGUID, UUID, SnapshotID>;
+    using Block = AbstractPage<BlockID, BlockGUID, BlockGUID, SnapshotID>;
     using BlockType = Block;
 
     using StoreType = ICowStore<Profile>;
@@ -65,11 +65,11 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     static constexpr bool IsCoW = true;
 
     static BlockID make_random_block_id() {
-        return BlockID{UUID::make_random()};
+        return BlockID{BlockGUID::make_random()};
     }
 
-    static UUID make_random_block_guid() {
-        return UUID::make_random();
+    static BlockGUID make_random_block_guid() {
+        return BlockGUID::make_random();
     }
 
     static CtrID make_random_ctr_id() {

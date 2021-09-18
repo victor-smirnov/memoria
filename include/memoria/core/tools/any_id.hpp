@@ -47,6 +47,9 @@ class AnyID {
     template <typename T>
     friend T cast_to(const AnyID&);
 
+    template <typename T>
+    friend bool is_a(const AnyID&) noexcept;
+
 public:
     AnyID() {}
     AnyID(AnyID&& other) noexcept:
@@ -126,6 +129,11 @@ T cast_to(const AnyID& id)
     }
 }
 
+template <typename T>
+bool is_a(const AnyID& id) noexcept {
+    return id.id_ && id.id_->type_info() == typeid(T);
+}
+
 template <typename ID>
 class DefaultAnyIDImpl: public IAnyID {
     static_assert (std::is_trivially_copyable<ID>::value, "");
@@ -164,8 +172,8 @@ public:
     }
 
 protected:
-    // It's guaranteed that other has correct type
-    const DefaultAnyIDImpl<ID>& cast(const IAnyID& other) const noexcept {
+    // It's guaranteed that 'other' has correct type
+    static const DefaultAnyIDImpl<ID>& cast(const IAnyID& other) noexcept {
         return *static_cast<const DefaultAnyIDImpl<ID>*>(&other);
     }
 };
