@@ -36,7 +36,7 @@ int main(void) {
         filesystem::remove(file);
         auto store1 = create_swmr_store(file, 1024);
 
-        UUID ctr_id = UUID::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
+        UID256 ctr_id = UID256::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
 
         auto t_start = getTimeInMillis();
 

@@ -1146,7 +1146,7 @@ protected:
     }
 
     // FIXME: use noexcept
-    auto export_block_rchandle(const CtrID& id)
+    auto export_block_rchandle(const BlockID& id)
     {
     	auto opt = persistent_tree_.find(id);
 

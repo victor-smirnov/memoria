@@ -35,7 +35,7 @@ int main(void) {
         auto store1 = create_lmdb_store(file, 1024);
         store1->set_async(true);
 
-        UUID ctr_id = UUID::make_random();
+        UID256 ctr_id = UID256::make_random();
 
         DataTypeBuffer<Varchar> buf0;
 

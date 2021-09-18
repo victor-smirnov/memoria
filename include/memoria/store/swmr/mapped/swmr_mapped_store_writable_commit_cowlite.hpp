@@ -122,12 +122,14 @@ public:
     {
         if (block_id)
         {
-            BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value() * BASIC_BLOCK_SIZE);
+            auto vv = block_id.value().value() * BASIC_BLOCK_SIZE;
+
+            BlockType* block = ptr_cast<BlockType>(buffer_.data() + vv );
             Shared* shared = shared_pool_.construct(block_id, block, 0);
             shared->set_allocator(this);
             shared->set_mutable(block->snapshot_id() == commit_id());
 
-            return {block_id.value() * BASIC_BLOCK_SIZE, SharedBlockConstPtr{shared}};
+            return {block_id.value().value() * BASIC_BLOCK_SIZE, SharedBlockConstPtr{shared}};
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("BlockId is null").do_throw();
@@ -137,12 +139,13 @@ public:
 
     virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) override
     {
-        BlockID id{at};
+        UID64 bid{at, 0};
+        BlockID id{bid};
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
         std::memset(block_addr, 0, size);
 
-        BlockType* block = new (block_addr) BlockType(id, at, at);
+        BlockType* block = new (block_addr) BlockType(id, bid, bid);
 
         block->memory_block_size() = size;
         block->snapshot_id() = commit_id();
@@ -159,11 +162,12 @@ public:
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
         std::memcpy(block_addr, source, source->memory_block_size());
 
-        auto id = BlockID{at};
+        UID64 bid{at, 0};
+        auto id = BlockID{bid};
         BlockType* new_block = ptr_cast<BlockType>(block_addr);
         new_block->id()   = id;
-        new_block->uuid() = at;
-        new_block->id_value() = at;
+        new_block->uuid() = bid;
+        new_block->id_value() = bid;
         new_block->snapshot_id() = commit_id();
 
         new_block->set_references(0);

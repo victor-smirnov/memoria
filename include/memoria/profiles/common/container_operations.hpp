@@ -140,7 +140,7 @@ class CtrBlockDescription {
     using CtrID = ApiProfileCtrID<Profile>;
 
     int32_t size_;
-    UUID ctr_name_;
+    CtrID ctr_name_;
     bool root_;
     bool leaf_;
     uint64_t offset_;

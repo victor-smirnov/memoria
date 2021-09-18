@@ -72,7 +72,7 @@ struct FieldFactory<CowBlockID<ValueHolder>> {
 template <typename ValueHolder>
 ApiBlockIDHolder<2> block_id_holder_from(const CowBlockID<ValueHolder>& uuid) noexcept {
     ApiBlockIDHolder<2> holder;
-    holder.array[0] = uuid.value();
+    holder.array[0] = uuid.value().value();
     holder.array[1] = 0;
     return holder;
 }
@@ -89,7 +89,7 @@ static inline ApiBlockIDHolder<2> block_id_holder_from(const CowBlockID<UUID>& u
 template <size_t N, typename ValueHolder>
 void block_id_holder_to(const ApiBlockIDHolder<N>& holder, CowBlockID<ValueHolder>& uuid) noexcept {
     static_assert(N >= 1, "");
-    uuid.value() = holder.array[0];
+    uuid.value().set_value(holder.array[0]);
 }
 
 template <size_t N>

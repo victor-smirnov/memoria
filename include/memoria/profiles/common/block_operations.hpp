@@ -19,6 +19,8 @@
 #include <memoria/core/tools/id.hpp>
 #include <memoria/core/tools/dump.hpp>
 #include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/uid_64.hpp>
+#include <memoria/core/tools/uid_256.hpp>
 #include <memoria/core/tools/result.hpp>
 
 
@@ -74,12 +76,15 @@ struct IBlockDataEventHandler {
     virtual void value(const char* name, const float* value, int32_t count = 1, int32_t kind = 0)       = 0;
     virtual void value(const char* name, const double* value, int32_t count = 1, int32_t kind = 0)      = 0;
     virtual void value(const char* name, const UUID* value, int32_t count = 1, int32_t kind = 0)        = 0;
+    virtual void value(const char* name, const UID64* value, int32_t count = 1, int32_t kind = 0)       = 0;
+    virtual void value(const char* name, const UID256* value, int32_t count = 1, int32_t kind = 0)      = 0;
     virtual void value(const char* name, const UAcc64T* value, int32_t count = 1, int32_t kind = 0)     = 0;
     virtual void value(const char* name, const UAcc128T* value, int32_t count = 1, int32_t kind = 0)    = 0;
     virtual void value(const char* name, const UAcc192T* value, int32_t count = 1, int32_t kind = 0)    = 0;
     virtual void value(const char* name, const UAcc256T* value, int32_t count = 1, int32_t kind = 0)    = 0;
-    virtual void value(const char* name, const CowBlockID<uint64_t>* value, int32_t count = 1, int32_t kind = 0)    = 0;
-    virtual void value(const char* name, const CowBlockID<UUID>* value, int32_t count = 1, int32_t kind = 0)        = 0;
+    virtual void value(const char* name, const CowBlockID<UID64>* value, int32_t count = 1, int32_t kind = 0)  = 0;
+    virtual void value(const char* name, const CowBlockID<UID256>* value, int32_t count = 1, int32_t kind = 0) = 0;
+    virtual void value(const char* name, const CowBlockID<UUID>* value, int32_t count = 1, int32_t kind = 0)   = 0;
 
     virtual void symbols(const char* name, const uint64_t* value, int32_t count, int32_t bits_per_symbol)    = 0;
     virtual void symbols(const char* name, const uint8_t* value, int32_t count, int32_t bits_per_symbol)     = 0;
@@ -522,6 +527,28 @@ public:
         }
     }
 
+    virtual void value(const char* name, const UID64* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            dumpArray<UID64>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const UID256* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            dumpArray<UID256>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
     virtual void value(const char* name, const UAcc64T* value, int32_t count = 1, int32_t kind = 0)
     {
         if (kind == BYTE_ARRAY)
@@ -566,16 +593,28 @@ public:
         }
     }
 
-    virtual void value(const char* name, const CowBlockID<uint64_t>* value, int32_t count = 1, int32_t kind = 0)
+    virtual void value(const char* name, const CowBlockID<UID64>* value, int32_t count = 1, int32_t kind = 0)
     {
         if (kind == BYTE_ARRAY)
         {
-            dumpArray<CowBlockID<uint64_t>>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<CowBlockID<UID64>>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
         }
     }
+
+    virtual void value(const char* name, const CowBlockID<UID256>* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            dumpArray<CowBlockID<UID256>>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
 
     virtual void value(const char* name, const CowBlockID<UUID>* value, int32_t count = 1, int32_t kind = 0)
     {

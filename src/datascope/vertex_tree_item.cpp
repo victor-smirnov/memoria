@@ -218,11 +218,11 @@ void SWMRStoreSnapshotTreeItem::expand()
         auto snp   = store_->open(snapshot_id_, true);
         auto names = snp->container_names();
 
-        UUID sp_names[] = {
-            UUID::parse("cc2cd24f-6518-4977-81d3-dad21d4f45cc"),
-            UUID::parse("a64d654b-ec9b-4ab7-870f-83816c8d0ce2"),
-            UUID::parse("0bc70e1f-adaf-4454-afda-7f6ac7104790"),
-            UUID::parse("177b946a-f700-421f-b5fc-0a177195b82f"),
+        UID256 sp_names[] = {
+            UID256::parse("{1|942dcb76868c1d3cada1947784ca9146995aa486d7965fddc153a57846a6cf}"),
+            UID256::parse("{1|4b9352517f5be15025dcd68b7d490ed14a55d1675218d872b489a6c5a4c82f}"),
+            UID256::parse("{1|cd18ea71da4c4ff035824a9fabcf3cd9f028eeacb6226b765411158ad17f55}"),
+            UID256::parse("{1|30e0ee4a7012fde4fc983c6d4d8aeb95bf63183fa51816298b582da10c0803}"),
         };
 
         for (auto name: sp_names){

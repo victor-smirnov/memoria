@@ -33,8 +33,8 @@
 
 namespace memoria {
 
-// cc2cd24f-6518-4977-81d3-dad21d4f45cc
-constexpr UUID DirectoryCtrID = UUID(8595428187223239884ull, 14719257946640536449ull);
+// {1|5251c5c1590990a213b87c5e741feed021fab6bf71fe7bfd52154a7344eb5c}
+constexpr UID256 DirectoryCtrID = UID256(3029111194483692837ull, 1004005058050231089ull, 16120616277477404434ull, 127717364650496293ull);
 
 template <typename Profile> class LMDBStore;
 
@@ -360,7 +360,7 @@ public:
     //=================================== R/O Commit Stuff ===========================
 
     virtual CommitID commit_id() {
-        return uuid_pack_uint64_t(mma_mdb_txn_id(transaction_));
+        return CommitID::make_type2(CommitID(), 0, mma_mdb_txn_id(transaction_));
     }
 
 
@@ -482,6 +482,25 @@ protected:
             }
             else {
                 make_generic_error("Can't read data block {}, error = {}", block_id, mma_mdb_strerror(rc)).do_throw();
+            }
+        }
+        else {
+            return data;
+        }
+    }
+
+    MDB_val get_data_addr(const CtrID& ctr_id, MDB_dbi dbi)
+    {
+        MDB_val key = {sizeof(ctr_id), ptr_cast<void>(&ctr_id)};
+        MDB_val data;
+
+        if (int rc = mma_mdb_get(transaction_, dbi, &key, &data)) {
+            if (rc == MDB_NOTFOUND) {
+                //No value found
+                return MDB_val{0, nullptr};
+            }
+            else {
+                make_generic_error("Can't read data block {}, error = {}", ctr_id, mma_mdb_strerror(rc)).do_throw();
             }
         }
         else {

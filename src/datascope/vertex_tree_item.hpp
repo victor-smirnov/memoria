@@ -23,7 +23,7 @@
 
 #include <memoria/api/common/ctr_api.hpp>
 
-
+#include <memoria/core/tools/uid_256.hpp>
 
 #include <QList>
 #include <QVariant>
@@ -198,13 +198,13 @@ protected:
 class MemStoreSnapshotTreeItem: public AbstractTreeItem {
 protected:
     IMemoryStorePtr<> store_;
-    UUID snapshot_id_;
+    UID256 snapshot_id_;
 
     BlockCounterProvider* counter_provider_;
 public:
     MemStoreSnapshotTreeItem(
             IMemoryStorePtr<> store,
-            const UUID& snapshot_id,
+            const UID256& snapshot_id,
             AbstractTreeItem* parent,
             BlockCounterProvider* counter_provider
     ):
@@ -263,12 +263,12 @@ protected:
 class SWMRStoreSnapshotTreeItem: public AbstractTreeItem {
 protected:
     SWMRStorePtr store_;
-    UUID snapshot_id_;
+    UID256 snapshot_id_;
     BlockCounterProvider* counter_provider_;
 public:
     SWMRStoreSnapshotTreeItem(
             SWMRStorePtr store,
-            const UUID& snapshot_id,
+            const UID256& snapshot_id,
             AbstractTreeItem* parent,
             BlockCounterProvider* counter_provider
     ):
@@ -292,14 +292,14 @@ protected:
 class MemStoreContainerTreeItem: public AbstractTreeItem {
 protected:
     IMemoryStorePtr<> store_;
-    UUID snapshot_id_;
-    UUID ctr_id_;
+    UID256 snapshot_id_;
+    UID256 ctr_id_;
     BlockCounterProvider* counter_provider_;
 public:
     MemStoreContainerTreeItem(
             IMemoryStorePtr<> store,
-            const UUID& snapshot_id,
-            const UUID& ctr_id,
+            const UID256& snapshot_id,
+            const UID256& ctr_id,
             AbstractTreeItem* parent,
             BlockCounterProvider* counter_provider
     ):
@@ -324,14 +324,14 @@ protected:
 class SWMRStoreContainerTreeItem: public AbstractTreeItem {
 protected:
     SWMRStorePtr store_;
-    UUID snapshot_id_;
-    UUID ctr_id_;
+    UID256 snapshot_id_;
+    UID256 ctr_id_;
     BlockCounterProvider* counter_provider_;
 public:
     SWMRStoreContainerTreeItem(
             SWMRStorePtr store,
-            const UUID& snapshot_id,
-            const UUID& ctr_id,
+            const UID256& snapshot_id,
+            const UID256& ctr_id,
             AbstractTreeItem* parent,
             BlockCounterProvider* counter_provider
     ):
@@ -356,13 +356,13 @@ class LMDBStoreContainerTreeItem: public AbstractTreeItem {
 protected:
     using CommitPtr = typename ILMDBStore<CoreApiProfile<>>::ReadOnlyCommitPtr;
     CommitPtr commit_;
-    UUID snapshot_id_;
-    UUID ctr_id_;
+    //UID256 snapshot_id_;
+    UID256 ctr_id_;
     BlockCounterProvider* counter_provider_;
 public:
     LMDBStoreContainerTreeItem(
             CommitPtr commit,
-            const UUID& ctr_id,
+            const UID256& ctr_id,
             AbstractTreeItem* parent,
             BlockCounterProvider* counter_provider
     ):

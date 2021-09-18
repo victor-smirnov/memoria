@@ -63,8 +63,6 @@ template <typename Types> class Iter;
 template <typename CtrName, typename Profile> class SharedIter;
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 
-constexpr UUID CTR_DEFAULT_NAME = UUID(-1ull, -1ull);
-
 template <typename TypesType>
 class ROCtrBase:
         public ::memoria::ICtrApi<typename TypesType::ContainerTypeName, ApiProfile<typename TypesType::Profile>>,
@@ -339,7 +337,7 @@ public:
         }
 
         virtual void walk(
-                const UUID& ctr_id,
+                const CtrID& ctr_id,
                 ROAllocatorPtr allocator,
                 ContainerWalker<ProfileT>* walker
         ) const

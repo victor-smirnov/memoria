@@ -405,15 +405,18 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
     }
 };
 
+class UID64;
+class UID256;
+
 template<>
-struct DataTypeTraits<CowBlockID<uint64_t>>: FixedSizeDataTypeTraits<CowBlockID<uint64_t>, UInt64CowBlockID>
+struct DataTypeTraits<CowBlockID<UID64>>: FixedSizeDataTypeTraits<CowBlockID<UID64>, UID64CowBlockID>
 {
-    static void create_signature(SBuf& buf, const CowBlockID<uint64_t>& obj) {
-        buf << "UInt64CowBlockID";
+    static void create_signature(SBuf& buf, const CowBlockID<UID64>& obj) {
+        buf << "UID64CowBlockID";
     }
 
     static void create_signature(SBuf& buf) {
-        buf << "UInt64CowBlockID";
+        buf << "UID64CowBlockID";
     }
 };
 

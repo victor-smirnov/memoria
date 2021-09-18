@@ -36,7 +36,7 @@ int main(void) {
 
         auto store1 = create_lite_raw_swmr_store(buffer);
 
-        UUID ctr_id = UUID::make_random();
+        UID256 ctr_id = UID256::make_random();
 
         auto t_start = getTimeInMillis();
 

@@ -24,6 +24,8 @@
 #include <memoria/core/tools/fixed_array.hpp>
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/uid_64.hpp>
+#include <memoria/core/tools/uid_256.hpp>
 
 #include <memoria/store/swmr/common/swmr_store_datatypes.hpp>
 
@@ -191,10 +193,11 @@ class [[clang::annotate(R"(
         "profiles": "ALL",
         "includes": [
             "memoria/api/map/map_api.hpp",
-            "memoria/core/tools/uuid.hpp"
+            "memoria/core/tools/uuid.hpp",
+            "memoria/core/tools/uid_256.hpp"
         ]
     }
-)")]] TypeInstance<Map<UUID, UUID>> {};
+)")]] TypeInstance<Map<UID256, UUID>> {};
 
 template<>
 class [[clang::annotate(R"(
@@ -257,10 +260,12 @@ class [[clang::annotate(R"(
         "profiles": ["CowLiteProfile<>"],
         "includes": [
             "memoria/api/map/map_api.hpp",
-            "memoria/core/container/cow.hpp"
+            "memoria/core/container/cow.hpp",
+            "memoria/core/tools/uid_64.hpp",
+            "memoria/core/tools/uid_256.hpp"
         ]
     }
-)")]] TypeInstance<Map<UUID, CowBlockID<uint64_t>>> {};
+)")]] TypeInstance<Map<UID256, CowBlockID<UID64>>> {};
 
 
 template<>
@@ -270,10 +275,12 @@ class [[clang::annotate(R"(
         "profiles": ["CowProfile<>"],
         "includes": [
             "memoria/api/map/map_api.hpp",
-            "memoria/core/container/cow.hpp"
+            "memoria/core/container/cow.hpp",
+            "memoria/core/tools/uuid.hpp",
+            "memoria/core/tools/uid_256.hpp"
         ]
     }
-)")]] TypeInstance<Map<UUID, CowBlockID<UUID>>> {};
+)")]] TypeInstance<Map<UID256, CowBlockID<UUID>>> {};
 
 
 template<>
@@ -283,9 +290,10 @@ class [[clang::annotate(R"(
         "profiles": ["CowProfile<>", "CowLiteProfile<>"],
         "includes": [
             "memoria/api/map/map_api.hpp",
-            "memoria/store/swmr/common/swmr_store_datatypes.hpp"
+            "memoria/store/swmr/common/swmr_store_datatypes.hpp",
+            "memoria/core/tools/uid_256.hpp"
         ]
     }
-)")]] TypeInstance<Map<UUID, CommitMetadataDT<DataTypeFromProfile<ApiProfile<CowProfile<>>>>>> {};
+)")]] TypeInstance<Map<UID256, CommitMetadataDT<DataTypeFromProfile<ApiProfile<CowProfile<>>>>>> {};
 
 }

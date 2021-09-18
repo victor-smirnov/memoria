@@ -23,18 +23,6 @@
 #include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/strings/format.hpp>
 
-
-//#include <boost/config/warning_disable.hpp>
-//#include <boost/spirit/home/x3.hpp>
-//#include <boost/spirit/include/phoenix_core.hpp>
-//#include <boost/spirit/include/phoenix_operator.hpp>
-//#include <boost/spirit/include/phoenix_fusion.hpp>
-//#include <boost/spirit/include/phoenix_stl.hpp>
-//#include <boost/spirit/include/phoenix_object.hpp>
-//#include <boost/fusion/include/std_tuple.hpp>
-
-//#include <boost/spirit/home/x3/char/unicode.hpp>
-
 #include <boost/config/warning_disable.hpp>
 
 #include <boost/spirit/include/qi.hpp>
@@ -44,7 +32,6 @@
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
-
 
 #include <boost/spirit/include/qi_operator.hpp>
 #include <boost/spirit/include/qi_char.hpp>
@@ -847,38 +834,5 @@ bool LDDocumentView::is_identifier(CharIterator start, CharIterator end)
 {
     return parse_identifier(start, end);
 }
-
-/*
-
-LDDocument LDDocument::parse_type_decl_qi(
-        CharIterator start,
-        CharIterator end,
-        const SDNParserConfiguration& cfg
-) {
-
-    static thread_local SDNParser<U8StringView::const_iterator> const grammar;
-
-    //SDNDocument decl;
-
-//    CharCollection cc;
-
-    LDDocument doc;
-
-    auto ii = start;
-    bool result = qi::phrase_parse(ii, end, grammar, qi::standard::space_type(), doc);
-
-    if ((!result) || ii != end)
-    {
-        //MMA_THROW(RuntimeException()) << format_ex("Can't parse data type signature: \"{}\", unparsed: \"{}\"", (std::string)str, (std::string)U8StringView(ii));
-    }
-    else {
-        //decl.resolve_maps();
-        //return std::move(decl);
-    }
-
-    return doc;
-}
-
-*/
 
 }

@@ -48,7 +48,8 @@ struct Time      {};
 struct TimeWithTZ {};
 struct Boolean   {};
 
-struct UInt64CowBlockID {};
+struct UID64CowBlockID {};
+struct UID256CowBlockID {};
 struct UUIDCowBlockID {};
 
 template <typename ProfileDT> struct ProfileFromDataTypeTF;

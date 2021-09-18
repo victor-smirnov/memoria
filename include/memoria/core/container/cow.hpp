@@ -39,6 +39,10 @@ public:
         return holder_;
     }
 
+    void set_value(const ValueHolder& value) noexcept {
+        holder_ = value;
+    }
+
     bool operator==(const CowBlockID& other) const noexcept {
         return holder_ == other.holder_;
     }

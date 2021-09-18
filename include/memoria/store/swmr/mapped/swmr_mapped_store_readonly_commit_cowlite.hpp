@@ -122,13 +122,13 @@ public:
     using typename Base::ResolvedBlock;
     virtual ResolvedBlock resolve_block(const BlockID& block_id)
     {
-        BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value() * BASIC_BLOCK_SIZE);
+        BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value().value() * BASIC_BLOCK_SIZE);
 
         Shared* shared = shared_pool_.construct(block_id, block, 0);
 
         shared->set_allocator(this);
 
-        return {block_id.value(), SharedBlockConstPtr{shared}};
+        return {block_id.value().value(), SharedBlockConstPtr{shared}};
     }
 
 

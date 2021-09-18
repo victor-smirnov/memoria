@@ -72,12 +72,12 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
         return UUID::make_random();
     }
 
-    static UUID make_random_ctr_id() {
-        return UUID::make_random();
+    static CtrID make_random_ctr_id() {
+        return CtrID::make_random();
     }
 
-    static UUID make_random_snapshot_id() {
-        return UUID::make_random();
+    static SnapshotID make_random_snapshot_id() {
+        return SnapshotID::make_random();
     }
 };
 

@@ -33,7 +33,7 @@ int main(void) {
 
         filesystem::copy_file(file, new_file, filesystem::copy_option::overwrite_if_exists);
 
-        UUID ctr_id = UUID::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
+        UID256 ctr_id = UID256::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
 
         auto store2 = open_lite_swmr_store(new_file);
 

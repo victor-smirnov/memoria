@@ -29,19 +29,21 @@
 #include <memoria/store/swmr/common/swmr_store_datatypes.hpp>
 #include <memoria/store/swmr/common/swmr_store_smart_ptr.hpp>
 
+#include <memoria/core/tools/uid_256.hpp>
+
 namespace memoria {
 
-// cc2cd24f-6518-4977-81d3-dad21d4f45cc
-constexpr UUID DirectoryCtrID = UUID(8595428187223239884ull, 14719257946640536449ull);
+// {1|942dcb76868c1d3cada1947784ca9146995aa486d7965fddc153a57846a6cf}
+constexpr UID256 DirectoryCtrID = UID256(14110279458271056457ull, 7212985705449462490ull, 15993805639017735577ull, 143106268169123100ull);
 
-// a64d654b-ec9b-4ab7-870f-83816c8d0ce2
-constexpr UUID AllocationMapCtrID = UUID(13207540296396918182ull, 16288549449461075847ull);
+// {1|4b9352517f5be15025dcd68b7d490ed14a55d1675218d872b489a6c5a4c82f}
+constexpr UID256 AllocationMapCtrID = UID256(368932292307270068ull, 2152884276116180306ull, 2850076137090799012ull, 140328789407864907ull);
 
-// 0bc70e1f-adaf-4454-afda-7f6ac7104790
-constexpr UUID HistoryCtrID = UUID(6072171355687536395ull, 10396296713479379631ull);
+// {1|cd18ea71da4c4ff035824a9fabcf3cd9f028eeacb6226b765411158ad17f55}
+constexpr UID256 HistoryCtrID = UID256(1149760052592017884ull, 11368207764395665491ull, 7473198478029390351ull, 96254673808331077ull);
 
-// 177b946a-f700-421f-b5fc-0a177195b82f
-constexpr UUID BlockMapCtrID = UUID(2252363826283707159ull, 3438662628447812789ull);
+// {1|30e0ee4a7012fde4fc983c6d4d8aeb95bf63183fa51816298b582da10c0803}
+constexpr UID256 BlockMapCtrID = UID256(5683297571480407555ull, 6466791747040283087ull, 10547854029910783739ull, 85709955492119992ull);
 
 
 template <typename Profile>
@@ -113,7 +115,7 @@ protected:
     using AllocationMapCtrType = AllocationMap;
     using AllocationMapCtr  = ICtrApi<AllocationMapCtrType, ApiProfileT>;
 
-    using HistoryCtrType    = Map<UUID, CommitMetadataDT<DataTypeFromProfile<ApiProfileT>>>;
+    using HistoryCtrType    = Map<CommitID, CommitMetadataDT<DataTypeFromProfile<ApiProfileT>>>;
     using HistoryCtr        = ICtrApi<HistoryCtrType, ApiProfileT>;
 
     static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;

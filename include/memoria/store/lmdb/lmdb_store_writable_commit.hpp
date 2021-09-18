@@ -692,6 +692,16 @@ private:
         }
     }
 
+    void write_data(const CtrID& ctr_id, void* bytes, size_t size, MDB_dbi dbi)
+    {
+        MDB_val key = {sizeof(ctr_id), ptr_cast<void>(&ctr_id)};
+        MDB_val data = {size, bytes};
+
+        if (int rc = mma_mdb_put(transaction_, dbi, &key, &data, 0)) {
+            make_generic_error("Can't write block {} of {} bytes to the database, error = {}", ctr_id, size, mma_mdb_strerror(rc)).do_throw();
+        }
+    }
+
     void remove_data(const BlockID& block_id, MDB_dbi dbi)
     {
         MDB_val key = {sizeof(block_id), ptr_cast<void>(&block_id)};

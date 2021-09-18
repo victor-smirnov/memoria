@@ -21,6 +21,7 @@
 
 #include <memoria/core/container/store.hpp>
 #include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/uid_256.hpp>
 
 #include <unordered_set>
 
@@ -28,18 +29,18 @@ namespace memoria {
 
 template <typename TT>
 struct ApiProfileTraits<CoreApiProfile<TT>> {
-    using SnapshotID    = UUID;
-    using CtrID         = UUID;
+    using SnapshotID    = UID256;
+    using CtrID         = UID256;
     using CtrSizeT      = int64_t;
     using ApiProfileT   = CoreApiProfile<TT>;
     using ApiBlockID    = ApiBlockIDHolder<2>;
 
-    static UUID make_random_ctr_id() {
-        return UUID::make_random();
+    static CtrID make_random_ctr_id() {
+        return CtrID::make_random();
     }
 
-    static UUID make_random_snapshot_id() {
-        return UUID::make_random();
+    static SnapshotID make_random_snapshot_id() {
+        return SnapshotID::make_random();
     }
 };
 

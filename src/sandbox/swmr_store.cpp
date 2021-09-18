@@ -34,7 +34,7 @@ int main(void) {
         filesystem::remove(file);
         auto store1 = create_lite_swmr_store(file, 256);
 
-        UUID ctr_id = UUID::parse("e92f1f6d-5ab1-46dc-ba2e-c7718234e71d");
+        UID256 ctr_id = UID256::make_random();
 
         auto t_start = getTimeInMillis();
 
@@ -57,7 +57,7 @@ int main(void) {
             int cnt = 0;
             int b0  = 0;
             int batch_size = 1000;
-            int num_entries = 1000000;
+            int num_entries = 100000;
 
             while (cnt < num_entries)
             {

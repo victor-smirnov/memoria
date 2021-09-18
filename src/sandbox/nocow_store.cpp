@@ -31,7 +31,7 @@ int main(void) {
     try {
         auto store1 = create_memory_store_noncow();
 
-        UUID ctr_id = UUID::make_random();
+        UID256 ctr_id = UID256::make_random();
         auto t_start = getTimeInMillis();
 
         {

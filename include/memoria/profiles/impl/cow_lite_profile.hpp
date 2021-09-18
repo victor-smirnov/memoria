@@ -24,6 +24,7 @@
 
 #include <memoria/core/container/store.hpp>
 #include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/uid_64.hpp>
 
 
 
@@ -45,11 +46,11 @@ struct ProfileTraits<CowLiteProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using typename Base::CtrSizeT;
     using typename Base::SnapshotID;
 
-    using BlockGUID     = uint64_t;
-    using BlockID       = CowBlockID<uint64_t>;
+    using BlockGUID     = UID64;
+    using BlockID       = CowBlockID<UID64>;
     using Profile       = CowLiteProfile<>;
 
-    using Block = AbstractPage<BlockID, BlockGUID, uint64_t, SnapshotID>;
+    using Block = AbstractPage<BlockID, BlockGUID, UID64, SnapshotID>;
     using BlockType = Block;
 
     using StoreType = ICowStore<Profile>;
@@ -65,19 +66,19 @@ struct ProfileTraits<CowLiteProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     static constexpr bool IsCoW = true;
 
     static BlockID make_random_block_id() {
-        return BlockID(0);
+        return BlockID();
     }
 
     static UUID make_random_block_guid() {
         return UUID::make_random();
     }
 
-    static UUID make_random_ctr_id() {
-        return UUID::make_random();
+    static CtrID make_random_ctr_id() {
+        return CtrID::make_random();
     }
 
-    static UUID make_random_snapshot_id() {
-        return UUID::make_random();
+    static SnapshotID make_random_snapshot_id() {
+        return SnapshotID::make_random();
     }
 };
 
