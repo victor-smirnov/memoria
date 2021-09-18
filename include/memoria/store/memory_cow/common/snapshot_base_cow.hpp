@@ -370,7 +370,7 @@ public:
 
             auto ctr = ctr_intf->new_ctr_instance(block, this);
 
-            ctr->internal_unref_cascade(block_id_holder_from(root_block_id));
+            ctr->internal_unref_cascade(AnyID::wrap(root_block_id));
         }
     }
 
@@ -826,7 +826,7 @@ public:
 
                     // TODO: Do we need to unref the block here first?
                     return instance->internal_unref_cascade(
-                        block_id_holder_from(root_id_to_remove)
+                        AnyID::wrap(root_id_to_remove)
                     );
                 }
             }
@@ -1168,7 +1168,7 @@ protected:
         if (root_blk->unref_block())
         {
             root_map_->internal_unref_cascade(
-                block_id_holder_from(root_blk->id())
+                AnyID::wrap(root_blk->id())
             );
         }
 

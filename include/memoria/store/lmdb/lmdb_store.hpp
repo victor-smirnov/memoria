@@ -49,7 +49,6 @@ class LMDBStore:
     using LMDBStoreWritableCommitWeakPtr = WeakPtr<LMDBStoreWritableCommit<Profile>>;
 
     using BlockID = ProfileBlockID<Profile>;
-    using ApiBlockID = ApiProfileBlockID<ApiProfileT>;
 
     struct CounterStorageT {
         BlockID block_id;
@@ -362,13 +361,6 @@ private:
         // FIXME: Implementation!
         return Optional<SequenceID>{};
     }
-
-    virtual U8String to_string(const ApiBlockID& block_id) {
-        BlockID id;
-        block_id_holder_to(block_id, id);
-        return format_u8("{}", id);
-    }
-
 };
 
 }

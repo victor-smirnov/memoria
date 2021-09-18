@@ -33,7 +33,6 @@ struct ApiProfileTraits<CoreApiProfile<TT>> {
     using CtrID         = UID256;
     using CtrSizeT      = int64_t;
     using ApiProfileT   = CoreApiProfile<TT>;
-    using ApiBlockID    = ApiBlockIDHolder<2>;
 
     static CtrID make_random_ctr_id() {
         return CtrID::make_random();

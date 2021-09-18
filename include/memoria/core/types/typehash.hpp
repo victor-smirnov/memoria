@@ -171,9 +171,6 @@ struct TypeHash<Table<Key, Value, PackedDataTypeSize::VARIABLE>>: UInt64Value <
 > {};
 
 
-template <typename ValueHolder>
-struct TypeHash<CowBlockID<ValueHolder>>: UInt64Value <
-    HashHelper<345630986034956, TypeHashV<ValueHolder>>
-> {};
+
 
 }

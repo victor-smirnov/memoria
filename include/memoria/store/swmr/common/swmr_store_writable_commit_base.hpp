@@ -1122,7 +1122,7 @@ public:
 
             auto ctr = ctr_intf->new_ctr_instance(block, this);
 
-            ApiProfileBlockID<ApiProfileT> holder = block_id_holder_from(root_block_id);
+            AnyID holder = AnyID::wrap(root_block_id);
             ctr->internal_unref_cascade(holder);
         });
     }

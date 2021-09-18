@@ -41,10 +41,6 @@ template <typename Profile>
 using ProfileBlockGUID = typename ProfileTraits<Profile>::BlockGUID;
 
 template <typename Profile>
-using ApiProfileBlockID = typename ApiProfileTraits<Profile>::ApiBlockID;
-
-
-template <typename Profile>
 using ProfileCtrID = typename ProfileTraits<Profile>::CtrID;
 
 template <typename Profile>

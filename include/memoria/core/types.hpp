@@ -507,7 +507,6 @@ constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_tr
 [[noreturn]] void terminate(const char* msg) noexcept;
 
 
-
 template <typename Profile>
 struct IStoreApiBase {
     virtual ~IStoreApiBase() noexcept = default;
@@ -517,22 +516,6 @@ template <typename Profile>
 struct RWStoreApiBase {
     virtual ~RWStoreApiBase() noexcept = default;
 };
-
-template <size_t N>
-class ApiBlockIDHolder {
-    static_assert(N > 0, "");
-
-public:
-    static constexpr size_t Size = N;
-    uint64_t array[N];
-
-    ApiBlockIDHolder() noexcept {
-        for (auto& v: array) {
-            v = 0;
-        }
-    }
-};
-
 
 template <typename IDType>
 struct BlockIDValueHolder {

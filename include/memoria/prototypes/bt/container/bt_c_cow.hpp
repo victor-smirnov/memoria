@@ -280,10 +280,9 @@ public:
         }
     }
 
-    virtual void internal_unref_cascade(const ApiProfileBlockID<ApiProfileT>& root_block_id_api)
+    virtual void internal_unref_cascade(const AnyID& root_block_id_api)
     {
-        BlockID root_block_id;
-        block_id_holder_to(root_block_id_api, root_block_id);
+        BlockID root_block_id = cast_to<BlockID>(root_block_id_api);
         return self().ctr_unref_block_cascade(root_block_id);
     }
 

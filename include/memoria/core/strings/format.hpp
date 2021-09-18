@@ -20,7 +20,6 @@
 
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/exceptions/core.hpp>
-#include <memoria/core/container/cow.hpp>
 #include <memoria/filesystem/path.hpp>
 
 #include <string>
@@ -139,18 +138,6 @@ struct formatter<memoria::filesystem::path> {
     }
 };
 
-template <typename ValueHolder>
-struct formatter<memoria::CowBlockID<ValueHolder>> {
-    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
-
-    template <typename FormatContext>
-    auto format(const memoria::CowBlockID<ValueHolder>& d, FormatContext& ctx)
-    {
-        std::stringstream ss;
-        ss << d;
-        return format_to(ctx.out(), "{}", ss.str());
-    }
-};
 
 
 }

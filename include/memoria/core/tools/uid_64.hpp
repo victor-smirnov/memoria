@@ -26,6 +26,7 @@
 
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/span.hpp>
+#include <memoria/core/tools/any_id.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
 
@@ -167,6 +168,8 @@ public:
     void set_value(AtomT value) noexcept {
         atom_ |= value << METADATA_BITSIZE;
     }
+
+    AnyID as_any_id() const;
 };
 
 static inline uint64_t unpack_uint64_t(const UID64& uuid) noexcept {
@@ -215,21 +218,6 @@ MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(UID64, UID64);
 
 template <>
 struct DataTypeTraits<UID64>: SdnFixedSizeDataTypeTraits<UID64, UID64> {};
-
-static inline ApiBlockIDHolder<2> block_id_holder_from(const UID64& uuid) noexcept {
-    ApiBlockIDHolder<2> holder;
-
-    holder.array[0] = uuid.value();
-    holder.array[1] = 0;
-
-    return holder;
-}
-
-template <size_t N>
-void block_id_holder_to(const ApiBlockIDHolder<N>& holder, UID64& uuid) noexcept {
-    static_assert(N >= 2, "");
-    uuid.set_atom(holder.array[0]);
-}
 
 std::ostream& operator<<(std::ostream& out, const BlockIDValueHolder<UID64>& block_id_value) noexcept;
 

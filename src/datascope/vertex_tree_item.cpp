@@ -137,7 +137,7 @@ void SWMRStoreTreeItem::expand()
     }
 }
 
-QString SWMRStoreTreeItem::get_block_counter(const StoreBlockID& block_id) {
+QString SWMRStoreTreeItem::get_block_counter(const AnyID& block_id) {
     return "(" + QString::fromStdString(std::to_string(store_->count_refs(block_id))) + ")";
 }
 
@@ -343,9 +343,7 @@ QVariant CtrBlockTreeItem::data(int column)
         return descr;
     }
     case 1: {
-        UUID uuid;
-        block_id_holder_to(block_->block_id(), uuid);
-        return QString::fromUtf8(toString(uuid).data());
+        return QString::fromUtf8(block_->block_id().to_u8().data());
     }
     }
 

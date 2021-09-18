@@ -62,14 +62,9 @@ public:
             return block->is_leaf();
         }
 
-        virtual ApiProfileBlockID<ApiProfile<ProfileT>> block_id() const noexcept
+        virtual AnyID block_id() const noexcept
         {
-            return block_id_holder_from(block_id_);
-        }
-
-        virtual U8String block_id_str() const noexcept
-        {
-            return format_u8("{}", block_id_);
+            return block_id_.as_any_id();
         }
 
         virtual std::vector<CtrBlockPtr<ApiProfile<ProfileT>>> children() const

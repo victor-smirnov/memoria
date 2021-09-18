@@ -86,7 +86,6 @@ protected:
     using Store = SWMRStoreBase<Profile>;
 
     using ApiProfileT = ApiProfile<Profile>;
-    using ApiBlockID = ApiProfileBlockID<ApiProfileT>;
 
     using BlockCounterCallbackFn = std::function<bool (const BlockID&, const BlockID&)>;
     using GraphVisitor = SWMRStoreGraphVisitor<ApiProfileT>;
@@ -758,8 +757,7 @@ public:
             const BlockID& parent_id,
             const BlockCounterCallbackFn& callback)
     {
-        BlockID block_id;
-        block_id_holder_to(block->block_id(), block_id);
+        BlockID block_id = cast_to<BlockID>(block->block_id());
 
         auto traverse = callback(block_id, parent_id);
         if (traverse)
@@ -776,8 +774,7 @@ public:
             VisitedBlocks& vb,
             GraphVisitor& visitor)
     {
-        BlockID block_id;
-        block_id_holder_to(block->block_id(), block_id);
+        BlockID block_id = cast_to<BlockID>(block->block_id());
 
         bool updated = contains_or_add(vb, block_id);
         visitor.start_block(block, updated, store_->count_blocks(block_id));

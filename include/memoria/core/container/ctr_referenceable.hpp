@@ -24,6 +24,7 @@
 #include <memoria/core/iovector/io_vector.hpp>
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/tools/result.hpp>
+#include <memoria/core/tools/any_id.hpp>
 
 #include <memoria/core/tools/checks.hpp>
 
@@ -43,7 +44,6 @@ using CtrBlockPtr = std::shared_ptr<CtrBlock<Profile>>;
 
 template <typename Profile>
 struct CtrBlock {
-    using ApiBlockID = ApiProfileBlockID<Profile>;
 
     virtual ~CtrBlock() noexcept = default;
 
@@ -51,9 +51,7 @@ struct CtrBlock {
     virtual void describe(std::ostream& out) const = 0;
 
     virtual bool is_leaf() const = 0;
-    virtual ApiBlockID block_id() const = 0;
-
-    virtual U8String block_id_str() const = 0;
+    virtual AnyID block_id() const = 0;
 };
 
 
@@ -101,7 +99,7 @@ struct CtrReferenceableBase {
 
     virtual CtrBlockPtr<Profile> root_block() = 0;
 
-    virtual void internal_unref_cascade(const ApiProfileBlockID<Profile>& block_id) = 0;
+    virtual void internal_unref_cascade(const AnyID& block_id) = 0;
 
     virtual void internal_reset_allocator_holder() noexcept = 0;
 };

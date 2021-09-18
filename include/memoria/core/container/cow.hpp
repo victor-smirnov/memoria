@@ -17,8 +17,15 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
+#include <memoria/core/strings/u8_string.hpp>
+#include <memoria/core/strings/format.hpp>
+#include <memoria/core/tools/any_id.hpp>
+#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/datatypes/traits.hpp>
 
 namespace memoria {
+
+class AnyID;
 
 template <typename ValueHolder_>
 class CowBlockID {
@@ -70,16 +77,56 @@ public:
     operator bool() const noexcept {
         return (bool)holder_;
     }
+
+    U8String to_u8() const {
+        return U8String("COW<") + holder_.to_u8() + ">";
+    }
+
+    AnyID as_any_id() const {
+        return AnyID{std::make_unique<DefaultAnyIDImpl<CowBlockID>>(*this)};
+    }
 };
 
 template <typename VH>
 std::ostream& operator<<(std::ostream& out, const CowBlockID<VH>& block_id) noexcept {
     out << block_id.value();
-
     return out;
 }
 
+template <typename ValueHolder>
+struct TypeHash<CowBlockID<ValueHolder>>: UInt64Value <
+    HashHelper<345630986034956, TypeHashV<ValueHolder>>
+> {};
 
+
+class UID64;
+class UID256;
+
+template<>
+struct DataTypeTraits<CowBlockID<UID64>>: FixedSizeDataTypeTraits<CowBlockID<UID64>, UID64CowBlockID>
+{
+    static void create_signature(SBuf& buf, const CowBlockID<UID64>& obj) {
+        buf << "UID64CowBlockID";
+    }
+
+    static void create_signature(SBuf& buf) {
+        buf << "UID64CowBlockID";
+    }
+};
+
+class UUID;
+
+template <>
+struct DataTypeTraits<CowBlockID<UUID>>: FixedSizeDataTypeTraits<CowBlockID<UUID>, UUIDCowBlockID>
+{
+    static void create_signature(SBuf& buf, const CowBlockID<UUID>& obj) {
+        buf << "UUIDCowBlockID";
+    }
+
+    static void create_signature(SBuf& buf) {
+        buf << "UUIDCowBlockID";
+    }
+};
 
 
 }
@@ -98,5 +145,22 @@ template <typename ValueHolder>
 void swap(memoria::CowBlockID<ValueHolder>& one, memoria::CowBlockID<ValueHolder>& two) noexcept {
     std::swap(one.value(), two.value());
 }
+
+}
+
+namespace fmt {
+
+template <typename ValueHolder>
+struct formatter<memoria::CowBlockID<ValueHolder>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::CowBlockID<ValueHolder>& d, FormatContext& ctx)
+    {
+        std::stringstream ss;
+        ss << d;
+        return format_to(ctx.out(), "{}", ss.str());
+    }
+};
 
 }

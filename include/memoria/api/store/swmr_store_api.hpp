@@ -19,6 +19,7 @@
 #include <memoria/api/store/store_api_common.hpp>
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/tools/checks.hpp>
+#include <memoria/core/tools/any_id.hpp>
 
 
 #include <functional>
@@ -119,8 +120,6 @@ struct IBasicSWMRStore {
     virtual Optional<SequenceID> check(const CheckResultConsumerFn& consumer) = 0;
 
     virtual U8String describe() const = 0;
-
-    virtual U8String to_string(const ApiProfileBlockID<Profile>&) = 0;
 };
 
 
@@ -181,7 +180,7 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
 
     virtual void close() = 0;
 
-    virtual uint64_t count_refs(const ApiProfileBlockID<Profile>& block_id) = 0;
+    virtual uint64_t count_refs(const AnyID& block_id) = 0;
     virtual void traverse(SWMRStoreGraphVisitor<Profile>& visitor) = 0;
 };
 

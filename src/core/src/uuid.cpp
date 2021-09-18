@@ -160,6 +160,11 @@ U16String UUID::to_u16() const
     return to_u8().to_u16();
 }
 
+AnyID UUID::as_any_id() const {
+    return AnyID{std::make_unique<DefaultAnyIDImpl<UUID>>(*this)};
+}
+
+
 template <>
 Datum<UUID> datum_from_sdn_value(const UUID*, int64_t value)
 {
@@ -180,5 +185,8 @@ Datum<UUID> datum_from_sdn_value(const UUID*, const U8StringView& str)
 
     return Datum<UUID>(uuid);
 }
+
+
+
 
 }

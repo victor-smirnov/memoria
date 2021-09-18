@@ -143,6 +143,10 @@ U8String UID256::to_cxx_decl() const
     return ss.str();
 }
 
+AnyID UID256::as_any_id() const {
+    return AnyID{std::make_unique<DefaultAnyIDImpl<UID256>>(*this)};
+}
+
 template <>
 Datum<UID256> datum_from_sdn_value(const UID256*, int64_t value)
 {

@@ -26,6 +26,7 @@
 
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/span.hpp>
+#include <memoria/core/tools/any_id.hpp>
 
 #include <boost/uuid/uuid.hpp>
 
@@ -391,6 +392,8 @@ public:
 
         return limit >> 2;
     }
+
+    AnyID as_any_id() const;
 };
 
 static inline uint64_t unpack_uint64_t(const UID256& uuid) noexcept {
@@ -443,22 +446,6 @@ MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(UID256, UID256);
 
 template <>
 struct DataTypeTraits<UID256>: SdnFixedSizeDataTypeTraits<UID256, UID256> {};
-
-static inline ApiBlockIDHolder<2> block_id_holder_from(const UID256& uuid) noexcept {
-    ApiBlockIDHolder<2> holder;
-
-    holder.array[0] = uuid.lo();
-    holder.array[1] = uuid.hi();
-
-    return holder;
-}
-
-template <size_t N>
-void block_id_holder_to(const ApiBlockIDHolder<N>& holder, UID256& uuid) noexcept {
-    static_assert(N >= 2, "");
-    uuid.lo() = holder.array[0];
-    uuid.hi() = holder.array[1];
-}
 
 std::ostream& operator<<(std::ostream& out, const BlockIDValueHolder<UID256>& block_id_value) noexcept;
 

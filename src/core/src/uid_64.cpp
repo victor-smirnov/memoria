@@ -175,6 +175,10 @@ UID64 UID64::parse(U8StringView in)
     return UID64_parse(in.begin(), in.end());
 }
 
+AnyID UID64::as_any_id() const {
+    return AnyID{std::make_unique<DefaultAnyIDImpl<UID64>>(*this)};
+}
+
 std::ostream& operator<<(std::ostream& out, const UID64& uuid)
 {
     std::ios_base::fmtflags flags( out.flags() );

@@ -91,12 +91,10 @@ protected:
 };
 
 struct BlockCounterProvider {
-    using StoreBlockID = ApiProfileBlockID<CoreApiProfile<>>;
-
     virtual ~BlockCounterProvider() noexcept = default;
 
     virtual bool has_block_counters() const noexcept = 0;
-    virtual QString get_block_counter(const StoreBlockID& block_id) = 0;
+    virtual QString get_block_counter(const AnyID& block_id) = 0;
 };
 
 class MemStoreTreeItem: public AbstractTreeItem, public BlockCounterProvider  {
@@ -120,7 +118,7 @@ protected:
     virtual void expand();
 
     virtual bool has_block_counters() const noexcept {return false;}
-    virtual QString get_block_counter(const StoreBlockID& block_id) {
+    virtual QString get_block_counter(const AnyID& block_id) {
         return QString();
     }
 };
@@ -153,7 +151,7 @@ protected:
     virtual void expand();
 
     virtual bool has_block_counters() const noexcept {return true;}
-    virtual QString get_block_counter(const StoreBlockID& block_id);
+    virtual QString get_block_counter(const AnyID& block_id);
 };
 
 
@@ -189,7 +187,7 @@ protected:
     virtual void expand();
 
     virtual bool has_block_counters() const noexcept {return false;}
-    virtual QString get_block_counter(const StoreBlockID& block_id) {
+    virtual QString get_block_counter(const AnyID& block_id) {
         return QString();
     }
 };

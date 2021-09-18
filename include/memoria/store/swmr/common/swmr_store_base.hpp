@@ -68,7 +68,7 @@ protected:
 
     using BlockID = ProfileBlockID<Profile>;
     using CtrID = ProfileCtrID<Profile>;
-    using ApiBlockID = ApiProfileBlockID<ApiProfileT>;
+
     using SuperblockT = SWMRSuperblock<Profile>;
     using CounterBlockT = SWMRCounterBlock<Profile>;
 
@@ -807,13 +807,11 @@ protected:
         }
     }
 
-    uint64_t count_refs(const ApiProfileBlockID<ApiProfile<Profile>>& block_id) override
+    uint64_t count_refs(const AnyID& block_id) override
     {
         LockGuard lock(writer_mutex_);
 
-        BlockID id;
-        block_id_holder_to(block_id, id);
-
+        BlockID id = cast_to<BlockID>(block_id);
         auto val = block_counters_.get(id);
 
         if (val) {
@@ -857,11 +855,6 @@ protected:
         visitor.end_graph();
     }
 
-    virtual U8String to_string(const ApiBlockID& block_id) override {
-        BlockID id;
-        block_id_holder_to(block_id, id);
-        return format_u8("{}", id);
-    }
 
     uint64_t count_blocks(const BlockID& block_id)
     {

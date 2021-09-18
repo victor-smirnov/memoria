@@ -214,7 +214,7 @@ public:
 
     void start_block(BlockPtrT block, bool, uint64_t counters) override
     {
-        U8String id = format_u8("{}", block->block_id_str());
+        U8String id = format_u8("{}", block->block_id());
         auto style = make_style(&block_style_);
         style->set("label", format_u8("\"{}|{}\"", id, counters));
 
