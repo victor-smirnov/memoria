@@ -131,6 +131,14 @@ public:
         return {block_id.value().value(), SharedBlockConstPtr{shared}};
     }
 
+    AllocationMetadataT resolve_block_allocation(const BlockID& block_id)
+    {
+        int32_t level = block_id.value().metadata();
+        int64_t id_value = static_cast<int64_t>(block_id.value().value());
+
+        return AllocationMetadataT{id_value, 1, level};
+    }
+
 
     virtual void updateBlock(Shared* block) {
     }

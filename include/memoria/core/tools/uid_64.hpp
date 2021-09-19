@@ -170,6 +170,28 @@ public:
     }
 
     AnyID as_any_id() const;
+
+    static AtomT wrap(AtomT value, AtomT metadata) noexcept
+    {
+        AtomT mask = 1;
+        mask <<= METADATA_BITSIZE;
+        mask -= 1;
+
+        return (value << METADATA_BITSIZE) | (metadata & mask);
+    }
+
+    static AtomT unwrap_value(AtomT atom) noexcept {
+        return atom >> METADATA_BITSIZE;
+    }
+
+    static AtomT wrap_metadata(AtomT atom) noexcept
+    {
+        AtomT mask = 1;
+        mask <<= METADATA_BITSIZE;
+        mask -= 1;
+
+        return atom & mask;
+    }
 };
 
 

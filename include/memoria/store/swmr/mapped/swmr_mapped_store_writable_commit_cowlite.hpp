@@ -89,6 +89,7 @@ class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
 public:
     using Base::check;
     using Base::commit_id;
+    using Base::CustomLog2;
 
     MappedSWMRStoreWritableCommit(
             MaybeError& maybe_error,
@@ -136,10 +137,21 @@ public:
         }
     }
 
+    AllocationMetadataT resolve_block_allocation(const BlockID& block_id) override
+    {
+        int32_t level = block_id.value().metadata();
+        int64_t id_value = static_cast<int64_t>(block_id.value().value());
+
+        return AllocationMetadataT{id_value, 1, level};
+    }
+
 
     virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) override
     {
-        UID64 bid{at, 0};
+        int32_t scale_factor = size / BASIC_BLOCK_SIZE;
+        uint64_t level = CustomLog2(scale_factor);
+
+        UID64 bid{at, level};
         BlockID id{bid};
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
@@ -162,7 +174,11 @@ public:
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
         std::memcpy(block_addr, source, source->memory_block_size());
 
-        UID64 bid{at, 0};
+        int32_t size = source->memory_block_size();
+        int32_t scale_factor = size / BASIC_BLOCK_SIZE;
+        uint64_t level = CustomLog2(scale_factor);
+
+        UID64 bid{at, level};
         auto id = BlockID{bid};
         BlockType* new_block = ptr_cast<BlockType>(block_addr);
         new_block->id()   = id;

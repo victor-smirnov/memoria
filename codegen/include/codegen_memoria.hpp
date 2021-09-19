@@ -204,10 +204,11 @@ class [[clang::annotate(R"(
         "profiles": "ALL",
         "includes": [
             "memoria/api/map/map_api.hpp",
-            "memoria/core/tools/uid_256.hpp"
+            "memoria/core/tools/uid_256.hpp",
+            "memoria/core/tools/uid_64.hpp"
         ]
     }
-)")]] TypeInstance<Map<UID256, UBigInt>> {};
+)")]] TypeInstance<Map<UID256, UID64>> {};
 
 //template<>
 //class [[clang::annotate(R"(

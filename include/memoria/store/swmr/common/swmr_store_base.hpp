@@ -73,7 +73,7 @@ protected:
     using CounterBlockT = SWMRCounterBlock<Profile>;
 
     using CounterStorageT = CounterStorage<Profile>;
-    using RemovingBlockConsumerFn = std::function<void (const BlockID&, uint64_t, int32_t)>;
+    using RemovingBlockConsumerFn = std::function<void (const BlockID&, const AllocationMetadata<ApiProfileT>&)>;
 
 public:
     static constexpr size_t  BASIC_BLOCK_SIZE = 4096;

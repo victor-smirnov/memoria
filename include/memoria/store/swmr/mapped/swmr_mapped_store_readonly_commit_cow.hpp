@@ -18,6 +18,7 @@
 
 #include <memoria/store/swmr/common/swmr_store_readonly_commit_base.hpp>
 #include <memoria/core/tools/simple_2q_cache.hpp>
+#include <memoria/core/tools/uid_64.hpp>
 
 #include <memoria/profiles/impl/cow_profile.hpp>
 
@@ -66,7 +67,7 @@ protected:
 
     using BlockIDValueHolder = typename BlockID::ValueHolder;
 
-    using BlockMapCtrType    = Map<BlockIDValueHolder, UBigInt>;
+    using BlockMapCtrType    = Map<BlockIDValueHolder, UID64>;
     using BlockMapCtr        = ICtrApi<BlockMapCtrType, ApiProfileT>;
 
     using Base::BASIC_BLOCK_SIZE;
@@ -106,6 +107,7 @@ public:
     using Base::traverse_cow_containers;
     using Base::traverse_ctr_cow_tree;
     using Base::get_superblock;
+    using Base::allocation_level;
 
 
     MappedSWMRStoreReadOnlyCommit(
@@ -168,14 +170,14 @@ public:
         else {
             uint64_t at;
 
-            if (MMA_UNLIKELY(block_id.value().is_type2()))
+            if (MMA_UNLIKELY(block_id.value().is_type3()))
             {
                 at = block_id.value().counter();
             }
             else {
                 auto ii = blockmap_ctr_->find(block_id.value());
                 if (ii->is_found(block_id.value())) {
-                    at = ii->value();
+                    at = ii->value().view().value();
                 }
                 else {
                     MEMORIA_MAKE_GENERIC_ERROR("Can't find block ID {} in the BlockMap", block_id).do_throw();
@@ -189,6 +191,42 @@ public:
             block_cache_.insert(shared);
 
             return {at * BASIC_BLOCK_SIZE, SharedBlockConstPtr{shared}};
+        }
+    }
+
+    AllocationMetadataT resolve_block_allocation(const BlockID& block_id) {
+        auto existing_entry = block_cache_.get(block_id);
+        if (existing_entry)
+        {
+            BlockCacheEntry* shared = existing_entry.get();
+            return AllocationMetadataT{
+                static_cast<int64_t>(shared->file_pos()),
+                1,
+                static_cast<int32_t>(allocation_level(shared->ptr()->memory_block_size()))
+            };
+        }
+        else {
+            uint64_t at;
+            int64_t level;
+
+            if (MMA_UNLIKELY(block_id.value().is_type3()))
+            {
+                at = block_id.value().counter();
+                level = block_id.value().metadata();
+            }
+            else {
+                auto ii = blockmap_ctr_->find(block_id.value());
+                if (ii->is_found(block_id.value()))
+                {
+                    at = ii->value().view().value();
+                    level = ii->value().view().metadata();
+                }
+                else {
+                    MEMORIA_MAKE_GENERIC_ERROR("Can't find block ID {} in the BlockMap", block_id).do_throw();
+                }
+            }
+
+            return AllocationMetadataT{static_cast<int64_t>(at), 1, static_cast<int32_t>(level)};
         }
     }
 

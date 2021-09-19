@@ -22,6 +22,7 @@
 
 #include <memoria/core/datatypes/type_registry.hpp>
 #include <memoria/core/tools/simple_2q_cache.hpp>
+#include <memoria/core/tools/uid_64.hpp>
 
 #include <memoria/profiles/impl/cow_profile.hpp>
 
@@ -79,7 +80,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
 
     using BlockIDValueHolder = typename BlockID::ValueHolder;
 
-    using BlockMapCtrType    = Map<BlockIDValueHolder, UBigInt>;
+    using BlockMapCtrType    = Map<BlockIDValueHolder, UID64>;
     using BlockMapCtr        = ICtrApi<BlockMapCtrType, ApiProfileT>;
 
     class CacheEntryBase: public Shared {
@@ -116,6 +117,8 @@ public:
     using Base::unref_ctr_root;
     using Base::get_superblock;
     using Base::commit_id;
+    using Base::CustomLog2;
+    using Base::allocation_level;
 
     MappedSWMRStoreWritableCommit(
             MaybeError& maybe_error,
@@ -198,14 +201,14 @@ public:
         else {
             uint64_t at;
 
-            if (MMA_UNLIKELY(block_id.value().is_type2()))
+            if (MMA_UNLIKELY(block_id.value().is_type3()))
             {
                 at = block_id.value().counter();
             }
             else {
                 auto ii = blockmap_ctr_->find(block_id.value());
                 if (ii->is_found(block_id.value())) {
-                    at = ii->value();
+                    at = ii->value().view().value();
                 }
                 else {
                     MEMORIA_MAKE_GENERIC_ERROR("Can't find block ID {} in the BlockMap", block_id).do_throw();
@@ -224,6 +227,44 @@ public:
         }
     }
 
+    AllocationMetadataT resolve_block_allocation(const BlockID& block_id) override
+    {
+        auto existing_entry = block_cache_.get(block_id);
+        if (existing_entry)
+        {
+            BlockCacheEntry* shared = existing_entry.get();
+            return AllocationMetadataT{
+                static_cast<int64_t>(shared->file_pos()),
+                1,
+                static_cast<int32_t>(allocation_level(shared->ptr()->memory_block_size()))
+            };
+        }
+        else {
+            uint64_t at;
+            int64_t level;
+
+            if (MMA_UNLIKELY(block_id.value().is_type3()))
+            {
+                at = block_id.value().counter();
+                level = block_id.value().metadata();
+            }
+            else {
+                auto ii = blockmap_ctr_->find(block_id.value());
+                if (ii->is_found(block_id.value()))
+                {
+                    at = ii->value().view().value();
+                    level = ii->value().view().metadata();
+                }
+                else {
+                    MEMORIA_MAKE_GENERIC_ERROR("Can't find block ID {} in the BlockMap", block_id).do_throw();
+                }
+            }
+
+            return AllocationMetadataT{static_cast<int64_t>(at), 1, static_cast<int32_t>(level)};
+        }
+    }
+
+
 
     virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) override
     {
@@ -235,17 +276,16 @@ public:
 
         if (!for_idmap) {
             id = newId();
-            blockmap_ctr_->assign_key(id.value(), at);
+            blockmap_ctr_->assign_key(id.value(), UID64{at, static_cast<uint64_t>(allocation_level(size))});
         }
         else {
-            id = BlockID{UID256::make_type2(UID256{}, 0, at)};
+            id = BlockID{UID256::make_type3(UID256{}, static_cast<uint64_t>(allocation_level(size)), at)};
         }
 
         BlockType* block = new (block_addr) BlockType(id, id.value(), id.value());
 
         block->memory_block_size() = size;
         block->snapshot_id() = commit_id();
-
 
         BlockCacheEntry* shared = cache_entry_pool_.construct(id, block, at);
         shared->set_allocator(this);
@@ -260,16 +300,18 @@ public:
     {
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
 
-        std::memcpy(block_addr, source, source->memory_block_size());
+        size_t block_size = source->memory_block_size();
+
+        std::memcpy(block_addr, source, block_size);
 
         BlockID id;
 
         if (!for_idmap) {
             id = newId();
-            blockmap_ctr_->assign_key(id.value(), at);
+            blockmap_ctr_->assign_key(id.value(), UID64{at, static_cast<uint64_t>(allocation_level(block_size))});
         }
         else {
-            id = BlockID{UID256::make_type2(UID256{}, 0, at)};
+            id = BlockID{UID256::make_type3(UID256{}, static_cast<uint64_t>(allocation_level(block_size)), at)};
         }
 
         BlockType* new_block = ptr_cast<BlockType>(block_addr);

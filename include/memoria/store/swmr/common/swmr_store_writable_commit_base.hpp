@@ -186,6 +186,8 @@ protected:
 public:
     using Base::check;
     using Base::resolve_block;
+    using Base::resolve_block_allocation;
+    using Base::CustomLog2;
 
     SWMRStoreWritableCommitBase(
             SharedPtr<Store> store,
@@ -306,7 +308,14 @@ public:
 
             drop_idmap();
 
-            removing_blocks_consumer_fn_(BlockID{BlockIDValueHolder{}}, sb->superblock_file_pos(), sb->superblock_size());
+            removing_blocks_consumer_fn_(
+                BlockID{BlockIDValueHolder{}},
+                AllocationMetadataT{
+                    static_cast<int64_t>(sb->superblock_file_pos()/ BASIC_BLOCK_SIZE),
+                    1,
+                    CustomLog2(sb->superblock_size() / BASIC_BLOCK_SIZE)
+                }
+            );
 
             counters_ptr_ = &counters_;
         }
@@ -740,12 +749,8 @@ public:
 
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
             store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
-                auto snp = store_->do_open_writable(commit_descriptor, [&](const BlockID& id, uint64_t block_file_pos, int32_t block_size){
-                    evicting_blocks.append_value(AllocationMetadataT(
-                        block_file_pos / BASIC_BLOCK_SIZE,
-                        block_size / BASIC_BLOCK_SIZE,
-                        0
-                    ));
+                auto snp = store_->do_open_writable(commit_descriptor, [&](const BlockID& id, const AllocationMetadataT& meta){
+                    evicting_blocks.append_value(meta);
                 }, true);
 
                 snp->remove_all_blocks(&counters_);
@@ -1149,21 +1154,15 @@ public:
 
     virtual void removeBlock(const BlockID& id)
     {
-        auto block_data = resolve_block(id);
+        auto block_alc = resolve_block_allocation(id);
 
         if (MMA_UNLIKELY((bool)removing_blocks_consumer_fn_)) {
-            removing_blocks_consumer_fn_(id, block_data.file_pos, block_data.block->memory_block_size());
+            removing_blocks_consumer_fn_(id, block_alc);
         }
         else
         {
-            int32_t block_size = block_data.block->memory_block_size();
-            int32_t scale_factor = block_size / BASIC_BLOCK_SIZE;
-            int32_t level = CustomLog2(scale_factor);
-
-            int64_t allocator_block_pos = block_data.file_pos / BASIC_BLOCK_SIZE;
-            int64_t ll_allocator_block_pos = allocator_block_pos >> level;
-
-            AllocationMetadataT meta{allocator_block_pos, 1 << level, level};
+            int32_t level = block_alc.level();
+            int64_t ll_allocator_block_pos = block_alc.position() >> block_alc.level();
 
             if (head_allocation_map_ctr_)
             {
@@ -1176,9 +1175,9 @@ public:
                     // in this commit. It's immediately reusable.
 
                     // Returning the block to the pool of available blocks
-                    if (!allocation_pool_->add(meta)) {
+                    if (!allocation_pool_->add(block_alc)) {
                         // FIXME: Add it into an 'extra' local pool instead of postponing
-                        add_postponed_deallocation(meta);
+                        add_postponed_deallocation(block_alc);
                     }
                 }
                 else if (consistency_point_allocation_map_ctr_)
@@ -1188,13 +1187,13 @@ public:
                     {
                         // The block is allocated in the HEAD commit, but free in the
                         // CONSISTENCY POINT commit.
-                        add_postponed_deallocation(meta);
+                        add_postponed_deallocation(block_alc);
                     }
                     else {
                         // The block is allocated in the HEAD commit, AND it's allocated in the
                         // CONSISTENCY POINT commit.
                         // This block will be freed at the consistency point commit.
-                        add_cp_postponed_deallocation(meta);
+                        add_cp_postponed_deallocation(block_alc);
                     }
                 }
                 else {
@@ -1202,14 +1201,14 @@ public:
                     // consistency point yet. Can't free the block now.
                     // Postoponing it until the commit. The block will be reuable
                     // in the next commit
-                    add_postponed_deallocation(meta);
+                    add_postponed_deallocation(block_alc);
                 }
             }
             else {
                 // Returning the block to the pool of available blocks
-                if (!allocation_pool_->add(meta)) {
+                if (!allocation_pool_->add(block_alc)) {
                     // FIXME: Add it into an 'extra' local pool instead of postponing
-                    add_postponed_deallocation(meta);
+                    add_postponed_deallocation(block_alc);
                 }
             }
         }
@@ -1264,9 +1263,7 @@ public:
         return shared;
     }
 
-    static constexpr int32_t CustomLog2(int32_t value) noexcept {
-        return 31 - CtLZ((uint32_t)value);
-    }
+
 
     CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
             ContainerOperationsPtr<Profile> ctr_intf,

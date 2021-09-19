@@ -904,12 +904,21 @@ public:
         while (has_next);
     }
 
+    int32_t allocation_level(size_t size) const noexcept {
+        return CustomLog2(size / BASIC_BLOCK_SIZE);
+    }
+
+    static constexpr int32_t CustomLog2(int32_t value) noexcept {
+        return 31 - CtLZ((uint32_t)value);
+    }
+
     struct ResolvedBlock {
         uint64_t file_pos;
         SharedBlockConstPtr block;
     };
 
     virtual ResolvedBlock resolve_block(const BlockID& block_id) = 0;
+    virtual AllocationMetadataT resolve_block_allocation(const BlockID& block_id) = 0;
 
     SharedBlockConstPtr getBlock(const BlockID& block_id) {
         return resolve_block(block_id).block;
