@@ -111,22 +111,22 @@ foreach(FNAME ${GENERATED_SOURCES})
         elseif (FNAME_OUT MATCHES "src/stores")
             list(APPEND GENERATED_STORE_SOURCES ${FNAME_OUT})
         else()
-            #message(FATAL_ERROR "Unknown destination for generated source: ${FNAME_OUT}")
+            message(FATAL_ERROR "Unknown destination for generated source: ${FNAME_OUT}")
         endif()
 
     endif()
 endforeach()
 
 # For debugging
-message ("========================  MAIN SRC: |${GENERATED_MAIN_SOURCES}|============================")
-message ("======================== STORE SRC: |${GENERATED_STORE_SOURCES}|===========================")
+#message ("========================  MAIN SRC: |${GENERATED_MAIN_SOURCES}|============================")
+#message ("======================== STORE SRC: |${GENERATED_STORE_SOURCES}|===========================")
 
 #message ("========================  MAIN BP: |${GENERATED_MAIN_BYPRODUCTS}|============================")
 #message ("======================== STORE BP: |${GENERATED_STORE_BYPRODUCTS}|===========================")
 #message ("======================== OTHER BP: |${GENERATED_OTHER_BYPRODUCTS}|===========================")
 
-if (REUSE_GNERATED_SOURCES)
-    SET(REUSE_GNERATED_SOURCES_OPT "--reuse-output-file-names")
+if (REUSE_GENERATED_SOURCES)
+    SET(REUSE_GENERATED_SOURCES_OPT "--reuse-output-file-names")
 endif()
 
 add_custom_command(
@@ -146,7 +146,7 @@ add_custom_command(
         --config codegen_memoria.hpp
         --project-output ${CMAKE_BINARY_DIR}/generated
         --components-output-base ${CMAKE_BINARY_DIR}
-        ${REUSE_GNERATED_SOURCES_OPT}
+        ${REUSE_GENERATED_SOURCES_OPT}
 
     COMMAND_ERROR_IS_FATAL ANY
 )

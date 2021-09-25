@@ -91,7 +91,7 @@ class [[clang::annotate(R"(
     }
 )")]] CodegenConfig<> {};
 
-
+#ifdef MEMORIA_BUILD_EXTRA_CONTAINERS
 
 template<>
 class [[clang::annotate(R"(
@@ -182,6 +182,19 @@ class [[clang::annotate(R"(
     @TypeInstance = {
         "profiles": "ALL",
         "includes": [
+            "memoria/api/multimap/multimap_api.hpp"
+        ]
+    }
+)")]] TypeInstance<Multimap<Varchar, Varchar>> {};
+
+
+#endif
+
+template<>
+class [[clang::annotate(R"(
+    @TypeInstance = {
+        "profiles": "ALL",
+        "includes": [
             "memoria/api/map/map_api.hpp"
         ]
     }
@@ -231,15 +244,6 @@ class [[clang::annotate(R"(
     }
 )")]] TypeInstance<Multimap<UUID, UTinyInt>> {};
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/multimap/multimap_api.hpp"
-        ]
-    }
-)")]] TypeInstance<Multimap<Varchar, Varchar>> {};
 
 template<>
 class [[clang::annotate(R"(

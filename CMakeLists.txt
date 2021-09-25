@@ -56,6 +56,7 @@ option(BUILD_EXAMPLES   "Build project examples" OFF)
 option(BUILD_BENCHMARKS "Build project benchmarks" OFF)
 option(BUILD_WITH_STATIC_BOOST "Use static boost libraries" OFF)
 option(BUILD_EMIT_LLVM  "Emit LLVM bytecode for compiled binaries. Implies Clang is the compiler." OFF)
+option(BUILD_EXTRA_CONTAINERS  "Build additional containers" ON)
 
 option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" OFF)
 option(BUILD_TESTS_PACKED       "Build Packed Structires tests" ON)
@@ -69,7 +70,7 @@ option(BUILD_TESTS_CONTEXT      "Build Disriptor MPSC queue tests" OFF)
 
 option(BUILD_CODEGENERATOR_EXPLICITLY  "Build code generator explictly (for its development)" OFF)
 
-option(REUSE_GNERATED_SOURCES  "Reuse source files generated on previous runs (faster iteration)" OFF)
+option(REUSE_GENERATED_SOURCES  "Reuse source files generated on previous runs (faster iteration)" OFF)
 
 option(ICU_DEBUG   "Debug FindICU" OFF)
 option(Boost_DEBUG "Debug FindBoost" OFF)
@@ -99,6 +100,10 @@ add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
 add_definitions(-DMMA_ICU_CXX_NS=icu)
 
 if (BUILD_POSIX)
+
+    if (BUILD_EXTRA_CONTAINERS)
+        add_definitions(-DMEMORIA_BUILD_EXTRA_CONTAINERS)
+    endif()
 
     if (BUILD_EMIT_LLVM)
         set (CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -flto -fuse-ld=lld -Wl,-save-temps")
