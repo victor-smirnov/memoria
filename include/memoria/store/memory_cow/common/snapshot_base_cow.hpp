@@ -593,6 +593,8 @@ public:
         BlockType* block = value_cast<BlockType*>(detail::IDValueHolderH<BlockID>::from_id(id));
         if (block) {
             Shared* shared = shared_pool_.construct(id, block, 0);
+            shared->set_allocator(this);
+            shared->set_mutable(block->snapshot_id() == uuid());
             return SharedBlockConstPtr{shared};
         }
         else {
@@ -731,6 +733,8 @@ public:
         p->memory_block_size() = initial_size;
 
         Shared* shared = shared_pool_.construct(id, p, 0);
+        shared->set_allocator(this);
+        shared->set_mutable(true);
 
         return SharedBlockPtr{shared};
     }
@@ -748,6 +752,8 @@ public:
         new_block->id() = detail::IDValueHolderH<BlockID>::to_id(new_block);
 
         Shared* shared = shared_pool_.construct(new_id, new_block, 0);
+        shared->set_allocator(this);
+        shared->set_mutable(true);
 
         return SharedBlockPtr{shared};
     }
@@ -873,6 +879,8 @@ public:
             iter->next();
         }
     }
+
+    void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer) {}
 
     U8String get_branch_suffix() const
     {
@@ -1180,7 +1188,7 @@ protected:
     }
 
     virtual void updateBlock(Shared* block) {
-        make_generic_error("updateBlock is not implemented!!!").do_throw();
+        //make_generic_error("updateBlock is not implemented!!!").do_throw();
     }
 
     void clone_foreign_block(const BlockType* foreign_block)

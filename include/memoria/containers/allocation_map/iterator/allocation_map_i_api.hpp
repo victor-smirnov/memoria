@@ -78,11 +78,12 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
         int32_t local_pos = self.iter_local_pos() >> level;
 
         CtrSizeT accum{};
-        CtrSizeT remainder = size;
+
         while (accum < size)
         {
             self.ctr().ctr_cow_clone_path(self.path(), 0);
 
+            CtrSizeT remainder = size - accum;
             auto processed = self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), SetClearBitsFn(), local_pos, level, remainder, set_bits).get_or_throw();
 
             accum += processed;
@@ -272,6 +273,28 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
     {
         auto& self = this->self();
         return self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), GetBitsFn(), level, self.iter_local_pos() >> level).get_or_throw();
+    }
+
+    virtual int32_t leaf_size() const {
+        return self().iter_leaf_size();
+    }
+
+    struct GetBitmapFn {
+        template <typename T>
+        Result<const PkdAllocationMap<PkdAllocationMapTypes>*> treeNode(T&& node_so) const noexcept
+        {
+            using ResultT = Result<const PkdAllocationMap<PkdAllocationMapTypes>*>;
+            return ResultT::of(node_so.template substream_by_idx<1>().data());
+        }
+    };
+
+    virtual const PkdAllocationMap<PkdAllocationMapTypes>* bitmap() const
+    {
+        auto& self = the_self();
+        return self.ctr().leaf_dispatcher().dispatch(
+                    self.path().leaf(),
+                    GetBitmapFn()
+        ).get_or_throw();
     }
 
 MEMORIA_V1_ITERATOR_PART_END

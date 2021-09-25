@@ -34,10 +34,16 @@
 
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 #include <memoria/core/tools/span.hpp>
+#include <memoria/core/tools/any_id.hpp>
 
 #include <memoria/core/strings/format.hpp>
 
 namespace memoria {
+
+struct PkdAllocationMapTypes {};
+
+template <typename Types>
+class PkdAllocationMap;
 
 template <typename Profile>
 struct AllocationMapIterator: BTSSIterator<Profile> {
@@ -50,6 +56,9 @@ struct AllocationMapIterator: BTSSIterator<Profile> {
 
     virtual CtrSizeT count_fw() = 0;
     virtual CtrSizeT level0_pos() const = 0;
+
+    virtual int32_t leaf_size() const = 0;
+    virtual const PkdAllocationMap<PkdAllocationMapTypes>* bitmap() const = 0;
 };
 
 template <typename Profile>
@@ -154,6 +163,10 @@ public:
         position_ += size_;
         return meta;
     }
+
+    bool operator==(const AllocationMetadata& other) const noexcept {
+        return position_ == other.position_;
+    }
 };
 
 
@@ -174,6 +187,29 @@ std::ostream& operator<<(std::ostream& out, const AllocationMetadata<Profile>& m
 
 enum class AllocationMapEntryStatus: int32_t {
     FREE = 0, ALLOCATED = 1
+};
+
+template <typename Profile>
+struct AllocationMapCompareHelper {
+    using CtrSizeT = ApiProfileCtrSizeT<Profile>;
+
+    virtual ~AllocationMapCompareHelper() noexcept = default;
+
+    virtual AnyID my_id() const = 0;
+    virtual AnyID other_id() const = 0;
+
+    virtual int32_t my_idx() const = 0;
+    virtual int32_t other_idx() const = 0;
+    virtual int32_t level() const = 0;
+
+    virtual int32_t my_bit() const = 0;
+    virtual int32_t other_bit() const = 0;
+
+    virtual CtrSizeT my_base() const = 0;
+    virtual CtrSizeT other_base() const = 0;
+
+    virtual void dump_my_leaf() = 0;
+    virtual void dump_other_leaf() = 0;
 };
 
 
@@ -231,12 +267,18 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
     ) = 0;
 
     virtual CtrSizeT mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size) = 0;
+    virtual CtrSizeT mark_allocated(const ALCMeta& allocation) = 0;
     virtual CtrSizeT mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size) = 0;
 
     virtual CtrSizeT unallocated_at(int32_t level) = 0;
     virtual void unallocated(Span<CtrSizeT> ranks) = 0;
 
     virtual bool populate_allocation_pool(AllocationPool<Profile, LEVELS>&pool, int32_t level) = 0;
+
+    virtual CtrSizeT compare_with(
+            CtrSharedPtr<ICtrApi> other,
+            const std::function<bool (AllocationMapCompareHelper<Profile>&)>& consumer
+    ) = 0;
 
     MMA_DECLARE_ICTRAPI();
 };
@@ -251,6 +293,14 @@ void swap(memoria::AllocationMetadata<Profile>& one, memoria::AllocationMetadata
     one = two;
     two = tmp;
 }
+
+template <typename Profile>
+class hash<memoria::AllocationMetadata<Profile>> {
+public:
+    size_t operator()(const memoria::AllocationMetadata<Profile>& alc) const noexcept {
+        return std::hash<int64_t>()(alc.position());
+    }
+};
 
 }
 

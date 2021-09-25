@@ -160,7 +160,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
         SnpSharedPtr<IMemorySnapshot<Profile>>& alloc,
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
-) noexcept
+)
 {
     U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
     LDDocument doc = TypeSignature::parse(signature.to_std_string());
@@ -175,7 +175,7 @@ template <typename CtrName, typename Profile>
 CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
         SnpSharedPtr<IMemorySnapshot<Profile>>& alloc,
         const CtrName& ctr_type_name
-) noexcept
+)
 {
     U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
     LDDocument doc = TypeSignature::parse(signature.to_std_string());
@@ -213,7 +213,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find_or_create(
         SnpSharedPtr<IMemorySnapshot<Profile>>& alloc,
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
-) noexcept
+)
 {
     auto type_name = alloc->ctr_type_name_for(ctr_id);
     if (type_name) {

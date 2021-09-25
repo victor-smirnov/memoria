@@ -102,6 +102,8 @@ struct CtrReferenceableBase {
     virtual void internal_unref_cascade(const AnyID& block_id) = 0;
 
     virtual void internal_reset_allocator_holder() noexcept = 0;
+
+    virtual void dump_leafs(ApiProfileCtrSizeT<Profile> leafs = -1) = 0;
 };
 
 template <typename Profile>

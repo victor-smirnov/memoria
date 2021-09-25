@@ -617,6 +617,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if (size == -1 && self.root().is_set())
         {
+            self.root().is_set();
+
             auto root_block = self.ctr_get_block(self.root());
             const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
             size = meta->memory_block_size();
@@ -722,6 +724,19 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 //    }
 
 
+    void dump_leafs(CtrSizeT leafs)
+    {
+        auto ii = self().ctr_begin();
+
+        CtrSizeT lim = leafs >= 0? leafs : std::numeric_limits<CtrSizeT>::max();
+
+        for (CtrSizeT cc = 0; cc < lim && !ii->is_end(); cc++) {
+        ii->dump();
+            if (!ii->iter_next_leaf()) {
+                break;
+            }
+        }
+    }
 
  protected:
 

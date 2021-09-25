@@ -29,8 +29,6 @@
 
 namespace memoria {
 
-struct PkdAllocationMapTypes {};
-
 template <typename Types>
 class PkdAllocationMap: public PackedAllocator {
 
@@ -793,6 +791,33 @@ public:
         }
 
         return BoolResult::of(updated);
+    }
+
+    template <typename Fn>
+    BoolResult compare_with(const PkdAllocationMap* other, int32_t my_start, int32_t other_start, int32_t size, Fn&& fn) const noexcept
+    {
+        for (int32_t ll = 0; ll < Indexes; ll++)
+        {
+            int32_t ll_size = size >> ll;
+            int32_t my_ll_start = my_start >> ll;
+            int32_t other_ll_start = other_start >> ll;
+
+            for (int32_t ii = 0; ii < ll_size ; ii++)
+            {
+                int32_t my_bit = this->get_bit(ll, ii + my_ll_start);
+                int32_t other_bit = other->get_bit(ll, ii + other_ll_start);
+
+                if (my_bit != other_bit)
+                {
+                    MEMORIA_TRY(do_continue, fn(ii + my_ll_start, ii + other_ll_start, ll, my_bit, other_bit));
+                    if (!do_continue) {
+                        return BoolResult::of(false);
+                    }
+                }
+            }
+        }
+
+        return BoolResult::of(true);
     }
 
 private:

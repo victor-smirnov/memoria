@@ -153,7 +153,19 @@ public:
     }
 
     virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) {
-        return AllocationMetadataT{(int64_t)block_id.value(), 1, 0};
+        return AllocationMetadataT{(int64_t)block_id.value().value(), 1, (int32_t)block_id.value().metadata()};
+    }
+
+    void check_storage_specific(
+            SharedBlockConstPtr block,
+            const CheckResultConsumerFn& consumer
+    ) {
+        int32_t block_size = block->memory_block_size();
+        int32_t expected_block_size = (1 << block->id().value().metadata()) * BASIC_BLOCK_SIZE;
+
+        if (block_size != expected_block_size) {
+            consumer(CheckSeverity::ERROR, make_string_document("Block size mismatch for block {}. Expected {}, actual {}", expected_block_size, block_size));
+        }
     }
 };
 

@@ -226,7 +226,8 @@ public:
 
     CountersT& counters() noexcept {return counters_;}
 
-    AllocationMetadataT do_allocate_reserved(int64_t remainder) {
+    AllocationMetadataT do_allocate_reserved(int64_t remainder)
+    {
         auto alc = allocation_pool_->allocate_reserved(remainder);
         if (alc) {
             return alc.get();
@@ -264,21 +265,16 @@ public:
                 return do_allocate_reserved(1);
             }
             else {
-                populate_allocation_pool(level);
-                auto alc1 = allocation_pool_->allocate_one(level);
-                if (alc1) {
-                    return alc1.get();
-                }
-                else {
+                // FIXME: More clever logic is needed here
+                for (size_t cc = 0; cc < 10; cc++) {
                     populate_allocation_pool(level);
-                    auto alc2 = allocation_pool_->allocate_one(level);
-                    if (alc2) {
-                        return alc2.get();
-                    }
-                    else {
-                        MEMORIA_MAKE_GENERIC_ERROR("FIXME: Tried multiple times to allocate from the pool and failed.").do_throw();
+                    auto alc1 = allocation_pool_->allocate_one(level);
+                    if (alc1) {
+                        return alc1.get();
                     }
                 }
+
+                MEMORIA_MAKE_GENERIC_ERROR("FIXME: Tried multiple times to allocate from the pool and failed.").do_throw();
             }
         }
         else {
@@ -491,6 +487,7 @@ public:
         }
 
         sb->set_global_block_counters_file_pos(counters_file_pos);
+        sb->set_global_block_counters_blocks(counters_blocks);
 
         init_idmap();
 
@@ -689,6 +686,8 @@ public:
         CounterScope<int32_t> scope(forbid_allocations_);
         return fn();
     }
+
+    void register_allocation(const AllocationMetadataT&) {}
 
     void prepare(ConsistencyPoint cp)
     {

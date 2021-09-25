@@ -24,6 +24,8 @@
 #include <memoria/store/swmr/common/swmr_store_history_view.hpp>
 #include <memoria/store/swmr/common/swmr_store_history_tree.hpp>
 
+#include <memoria/store/swmr/common/lite_allocation_map.hpp>
+
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
 
@@ -75,6 +77,8 @@ protected:
     using CounterStorageT = CounterStorage<Profile>;
     using RemovingBlockConsumerFn = std::function<void (const BlockID&, const AllocationMetadata<ApiProfileT>&)>;
 
+    using AllocationMetadataT = AllocationMetadata<ApiProfileT>;
+
 public:
     static constexpr size_t  BASIC_BLOCK_SIZE = 4096;
 
@@ -112,6 +116,8 @@ protected:
     LDDocument store_params_;
 
     bool active_writer_{false};
+
+    std::unique_ptr<LiteAllocationMap<ApiProfileT>> allocations_;
 
 public:
     using Base::flush;
@@ -682,6 +688,13 @@ public:
         }
     }
 
+    void register_allocation(const AllocationMetadataT& alc)
+    {
+        if (allocations_) {
+            allocations_->append(alc);
+        }
+    }
+
 protected:
 
     std::vector<SWMRReadOnlyCommitPtr> build_ordered_commits_list(
@@ -710,14 +723,19 @@ protected:
 
         LockGuard lock(writer_mutex_);
 
+        allocations_ = make_lite_allocation_map();
+
         auto commits = build_ordered_commits_list(from);
 
         if (commits.size() > 0)
         {
             CommitCheckState<Profile> check_state;
 
-            for (auto& commit: commits) {
+            for (auto& commit: commits)
+            {
+                commit->add_superblock(*allocations_.get());
                 commit->check(consumer);
+
                 if (!from) {
                     commit->build_block_refcounters(check_state.counters);
                 }
@@ -727,11 +745,23 @@ protected:
                 check_refcounters(check_state.counters, consumer);
             }
 
+            do_check_allocations(consumer);
+
+            allocations_->close();
+            allocations_.reset();
             return commits[commits.size() - 1]->sequence_id();
         }
         else {
+            allocations_->close();
+            allocations_.reset();
             return Optional<SequenceID>{};
         }
+    }
+
+    std::unique_ptr<LiteAllocationMap<ApiProfileT>> make_lite_allocation_map()
+    {
+        auto ptr = do_open_readonly(history_tree_.head());
+        return std::make_unique<LiteAllocationMap<ApiProfileT>>(ptr->allocation_map_size());
     }
 
     void check_refcounters(const SWMRBlockCounters<Profile>& counters, const CheckResultConsumerFn& consumer)
@@ -775,6 +805,15 @@ protected:
             }
         });
     }
+
+    void do_check_allocations(const CheckResultConsumerFn& consumer)
+    {
+        auto ptr = do_open_readonly(history_tree_.head());
+        ptr->add_system_blocks(*allocations_.get());
+        ptr->check_allocation_map(*allocations_.get(), consumer);
+    }
+
+
 
     virtual void ref_block(const BlockID& block_id) override {
         block_counters_.inc(block_id);

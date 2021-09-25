@@ -19,7 +19,7 @@
 #include <memoria/core/container/container.hpp>
 
 
-#include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/any_id.hpp>
 
 #include <memoria/core/container/store.hpp>
 
@@ -45,6 +45,8 @@ struct BTSSIterator {
 
     virtual void dump(std::ostream& out = std::cout, const char* header = nullptr) const = 0;
     virtual void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const = 0;
+
+    virtual AnyID leaf_id() const = 0;
 };
 
 }

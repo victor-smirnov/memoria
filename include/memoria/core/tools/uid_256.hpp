@@ -150,7 +150,7 @@ public:
     }
 
     bool is_set() const noexcept {
-        return ctz() > 0;
+        return ctz() != NUM_ATOMS;
     }
 
     bool operator==(const UID256& uuid) const noexcept {

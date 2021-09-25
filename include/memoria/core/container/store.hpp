@@ -85,11 +85,17 @@ struct IStoreBase: IStoreApiBase<ApiProfile<Profile>> {
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> from_root_id(const BlockID& root_block_id) = 0;
 
     virtual void check(const CheckResultConsumerFn& consumer) = 0;
+    virtual void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer) = 0;
+
     virtual void walkContainers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) = 0;
 
     virtual bool drop_ctr(const CtrID& ctr_id) = 0;
 
     virtual U8String ctr_type_name(const CtrID& ctr_id) = 0;
+
+
+
+
 
     virtual void start_no_reentry(const CtrID& ctr_id) = 0;
     virtual void finish_no_reentry(const CtrID& ctr_id) noexcept = 0;

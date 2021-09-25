@@ -45,6 +45,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorAPIName)
 
 public:
 
+    virtual AnyID leaf_id() const {
+        return AnyID::wrap(self().path().leaf()->id());
+    }
 
 
     auto iter_leaf_sizes() const {

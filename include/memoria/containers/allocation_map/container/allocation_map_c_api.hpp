@@ -32,6 +32,7 @@
 
 #include <memoria/core/tools/optional.hpp>
 
+
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 
 #include <vector>
@@ -469,22 +470,22 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         });
     }
 
+    virtual CtrSizeT mark_allocated(const ALCMeta& alc) {
+        return mark_allocated(alc.position(), alc.level(), alc.size_at_level());
+    }
+
 
     virtual CtrSizeT mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size)
     {
         auto& self = this->self();
-
-        auto ii = self.ctr_seek(pos << level);
-
+        auto ii = self.ctr_seek(pos);
         return ii->iter_setup_bits(level, size, true);
     }
 
     virtual CtrSizeT mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size)
     {
         auto& self = this->self();
-
-        auto ii = self.ctr_seek(pos << level);
-
+        auto ii = self.ctr_seek(pos);
         return ii->iter_setup_bits(level, size, false);
     }
 
@@ -625,6 +626,157 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         return cnt > 0;
     }
 
+
+    class CompareHelper: public AllocationMapCompareHelper<ApiProfileT> {
+        using MapIteratorPtr = CtrSharedPtr<AllocationMapIterator<ApiProfileT>>;
+
+        MapIteratorPtr my_ii_;
+        MapIteratorPtr other_ii_;
+
+        int32_t my_idx_{};
+        int32_t other_idx_{};
+        int32_t level_{};
+
+        int32_t my_bit_{};
+        int32_t other_bit_{};
+
+        CtrSizeT my_base_{};
+        CtrSizeT other_base_{};
+
+    public:
+        CompareHelper(
+                MapIteratorPtr my_ii,
+                MapIteratorPtr other_ii
+        ): my_ii_(my_ii), other_ii_(other_ii)
+        {}
+
+
+        AnyID my_id() const {return my_ii_->leaf_id();}
+        AnyID other_id() const {return other_ii_->leaf_id();}
+
+        int32_t my_idx() const {return my_idx_;}
+        int32_t other_idx() const {return other_idx_;}
+        int32_t level() const {return level_;}
+
+        int32_t my_bit() const {return my_bit_;}
+        int32_t other_bit() const {return other_bit_;}
+
+        CtrSizeT my_base() const {
+            return my_base_;
+        }
+
+        CtrSizeT other_base() const {
+            return other_base_;
+        }
+
+        void dump_my_leaf() {my_ii_->dump();}
+        void dump_other_leaf() {other_ii_->dump();}
+
+        void set_my_idx(int32_t v) {
+            my_idx_ = v;
+        }
+
+        void set_other_idx(int32_t v) {
+            other_idx_ = v;
+        }
+
+        void set_level(int32_t v) {
+            level_ = v;
+        }
+
+        void set_my_bit(int32_t v) {
+            my_bit_ = v;
+        }
+
+        void set_other_bit(int32_t v) {
+            other_bit_ = v;
+        }
+
+        void add_to_my_base(CtrSizeT v) {
+            my_base_ += v;
+        }
+
+        void add_to_other_base(CtrSizeT v) {
+            other_base_ += v;
+        }
+    };
+
+
+    CtrSizeT compare_with(
+        CtrSharedPtr<ICtrApi<AllocationMap, ApiProfileT>> other,
+        const std::function<bool (AllocationMapCompareHelper<ApiProfileT>&)>& consumer
+    ) {
+        auto my_ii = self().iterator();
+        auto other_ii = other->iterator();
+
+        CompareHelper helper(my_ii, other_ii);
+
+        CtrSizeT mismatches = 0;
+
+        int32_t my_pos = 0;
+        int32_t other_pos = 0;
+
+        while (!my_ii->is_end())
+        {
+            auto my_bitmap = my_ii->bitmap();
+            auto other_bitmap = other_ii->bitmap();
+
+            int32_t my_limit = my_bitmap->size();
+            int32_t other_limit = other_bitmap->size();
+
+            auto fn = [&](int32_t my_idx, int32_t other_idx, int32_t level, int32_t my_value, int32_t other_value) {
+                return wrap_throwing([&]() -> bool {
+                    mismatches++;
+
+                    helper.set_my_idx(my_idx);
+                    helper.set_other_idx(other_idx);
+                    helper.set_level(level);
+
+                    helper.set_my_bit(my_value);
+                    helper.set_other_bit(other_value);
+
+                    return consumer(helper);
+                });
+            };
+
+            if (my_limit - my_pos <= other_limit - other_pos)
+            {
+                int32_t size = my_limit - my_pos;
+                bool do_continue = my_bitmap->compare_with(other_bitmap, my_pos, other_pos, size, fn).get_or_throw();
+
+                if (!do_continue) {
+                    break;
+                }
+
+                other_pos += size;
+
+                if (!my_ii->next_leaf()) {
+                    break;
+                }
+                my_pos = 0;
+                helper.add_to_my_base(my_limit);
+            }
+            else {
+                int32_t size = other_limit - other_pos;
+                bool do_continue = my_bitmap->compare_with(other_bitmap, my_pos, other_pos, size, fn).get_or_throw();
+
+                if (!do_continue) {
+                    break;
+                }
+
+                my_pos += size;
+
+                if (!other_ii->next_leaf()) {
+                    break;
+                }
+
+                other_pos = 0;
+                helper.add_to_other_base(other_limit);
+            }
+        }
+
+        return mismatches;
+    }
 
 
 MEMORIA_V1_CONTAINER_PART_END

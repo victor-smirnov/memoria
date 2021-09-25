@@ -291,6 +291,8 @@ public:
         }
     }
 
+    void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer) {}
+
     virtual void walkContainers(
             ContainerWalker<Profile>* walker, const
             char* allocator_descr = nullptr

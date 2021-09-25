@@ -733,6 +733,7 @@ public:
 
         BlockCacheEntry* shared = block_shared_cache_pool_.construct(id, p, Shared::UPDATE);
         shared->set_allocator(this);
+        shared->set_mutable(true);
 
         ptree_set_new_block(p);
 
@@ -755,6 +756,7 @@ public:
 
         BlockCacheEntry* new_shared  = block_shared_cache_pool_.construct(new_id, new_block, Shared::UPDATE);
         new_shared->set_allocator(this);
+        new_shared->set_mutable(true);
 
         ptree_set_new_block(new_block);
 
@@ -928,6 +930,8 @@ public:
             iter->next();
         }
     }
+
+    void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer) {}
 
     U8String get_branch_suffix() const
     {
@@ -1206,6 +1210,7 @@ protected:
             shared->state() = Shared::UNDEFINED;
             shared->set_block(block);
             shared->set_allocator(this);
+            shared->set_mutable(true);
 
             block_shared_cache_.insert(shared);
 
@@ -1223,6 +1228,8 @@ protected:
         {
             BlockCacheEntry* shared  = block_shared_cache_pool_.construct(id, (BlockType*)nullptr, state);
             shared->set_allocator(this);
+            shared->set_mutable(true);
+
             block_shared_cache_.insert(shared);
 
             return shared;

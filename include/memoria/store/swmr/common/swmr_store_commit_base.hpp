@@ -28,6 +28,8 @@
 
 #include <memoria/store/swmr/common/swmr_store_datatypes.hpp>
 #include <memoria/store/swmr/common/swmr_store_smart_ptr.hpp>
+#include <memoria/store/swmr/common/lite_allocation_map.hpp>
+#include <memoria/store/swmr/common/allocation_pool.hpp>
 
 #include <memoria/core/tools/uid_256.hpp>
 
@@ -105,6 +107,7 @@ protected:
     using CtrReferenceableResult    = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
     using StoreT                    = Base;
     using Superblock                = SWMRSuperblock<Profile>;
+    using CtrSizeT                  = ProfileCtrSizeT<Profile>;
 
     using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<ApiProfileT>*>;
 
@@ -190,6 +193,16 @@ public:
 
     virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) = 0;
 
+    virtual void check_storage_specific(
+            SharedBlockConstPtr block,
+            const CheckResultConsumerFn& consumer
+    ) = 0;
+
+    virtual void register_allocation(
+            const AllocationMetadataT& alc
+    ) = 0;
+
+
     SharedSBPtr<Superblock> get_superblock() {
         return get_superblock(commit_descriptor_->superblock_ptr());
     }
@@ -200,6 +213,11 @@ public:
 
     SequenceID sequence_id() noexcept {
         return get_superblock()->sequence_id();
+    }
+
+    CtrSizeT allocation_map_size() {
+        init_allocator_ctr();
+        return allocation_map_ctr_->size();
     }
 
     virtual ObjectPools& object_pools() const noexcept {
@@ -457,6 +475,33 @@ public:
 
             iter->next();
         }
+    }
+
+
+
+    void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer)
+    {
+        init_allocator_ctr();
+        check_storage_specific(block, consumer);
+
+        AllocationMetadataT alc = get_allocation_metadata(block->id());
+        Optional<AllocationMapEntryStatus> status = allocation_map_ctr_->get_allocation_status(alc.level(), alc.position());
+
+        if (status.is_initialized())
+        {
+            if (status.get() == AllocationMapEntryStatus::FREE) {
+                consumer(
+                    CheckSeverity::ERROR,
+                    make_string_document("Missing allocation info for {}", alc));
+            }
+        }
+        else {
+            consumer(
+                CheckSeverity::ERROR,
+                make_string_document("Missing allocation info for {}", alc));
+        }
+
+        register_allocation(alc);
     }
 
     virtual void walkContainers(
@@ -964,6 +1009,58 @@ public:
                     make_string_document("AllocationMap entry check failure: {}", meta)
                 );
             }
+        });
+    }
+
+    void add_superblock(LiteAllocationMap<ApiProfileT>& allocations)
+    {
+        uint64_t sb_ptr = commit_descriptor_->superblock_ptr() / BASIC_BLOCK_SIZE;
+        allocations.append(AllocationMetadataT{(CtrSizeT)sb_ptr, 1, SUPERBLOCK_ALLOCATION_LEVEL});
+    }
+
+    void add_system_blocks(LiteAllocationMap<ApiProfileT>& allocations)
+    {
+        auto sb = get_superblock();
+        allocations.append(AllocationMetadataT{0, 2, SUPERBLOCK_ALLOCATION_LEVEL});
+
+        allocations.append(AllocationMetadataT{
+            (CtrSizeT)sb->global_block_counters_file_pos() / BASIC_BLOCK_SIZE,
+            (CtrSizeT)sb->global_block_counters_blocks(),
+            0
+        });
+
+        AllocationPool<ApiProfileT, ALLOCATION_MAP_LEVELS> pool;
+        pool.load(sb->allocation_pool_data());
+
+        pool.for_each([&](const AllocationMetadataT& alc){
+            allocations.append(alc);
+        });
+    }
+
+    void dump_allocation_map(int64_t num = -1) {
+        init_allocator_ctr();
+        allocation_map_ctr_->dump_leafs(num);
+    }
+
+    void check_allocation_map(
+        const LiteAllocationMap<ApiProfileT>& allocations,
+        const CheckResultConsumerFn& consumer
+    )
+    {
+        init_allocator_ctr();
+
+        allocation_map_ctr_->compare_with(allocations.ctr(), [&](auto& helper){
+            consumer(CheckSeverity::ERROR, make_string_document(
+                         "Allocation map mismatch at {} :: {}/{} :: {}, level {}. Expected: {}, actual: {}",
+                         helper.my_base(),
+                         helper.my_idx(),
+                         helper.other_base(),
+                         helper.other_idx(),
+                         helper.level(),
+                         helper.other_bit(), helper.my_bit()
+            ));
+
+            return true; // continue
         });
     }
 };

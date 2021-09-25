@@ -247,6 +247,13 @@ public:
     virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) {
         return AllocationMetadataT{block_id.value(), 1, 0};
     }
+
+    void check_storage_specific(
+            SharedBlockConstPtr block,
+            const CheckResultConsumerFn& consumer
+    ) {
+
+    }
 };
 
 }

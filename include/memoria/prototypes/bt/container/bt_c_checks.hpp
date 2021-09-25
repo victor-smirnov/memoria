@@ -33,8 +33,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ChecksName)
     using typename Base::TreeNodeConstPtr;
     using typename Base::BranchNodeEntry;
 
-
-
     void check(const CheckResultConsumerFn& fn) {
         self().ctr_check_tree(fn);
     }
@@ -179,6 +177,7 @@ void M_TYPE::ctr_check_tree_structure(
         fn(CheckSeverity::ERROR, make_string_document("Invalid tree node level for node {}. Expected: {}, actual: {}", node->id(), level, node->level()));
     }
 
+    self.store().check_storage(node, fn);
     self.ctr_check_content(node, fn);
 
     if (!node->is_root())
@@ -216,7 +215,7 @@ void M_TYPE::ctr_check_tree_structure(
                 fn(CheckSeverity::ERROR, make_string_document("child.id != child_id :: {} {} {}", child->id(), child->id(), child_id));
             }
 
-            return self.ctr_check_tree_structure(node, c, level - 1, child, fn);
+            self.ctr_check_tree_structure(node, c, level - 1, child, fn);
         }
     }
     else {

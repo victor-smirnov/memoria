@@ -31,6 +31,7 @@ protected:
     using typename Base::ApiProfileT;
     using typename Base::SharedBlockConstPtr;
     using typename Base::CtrID;
+    using typename Base::AllocationMetadataT;
 
     using Base::commit_descriptor_;
 
@@ -69,6 +70,10 @@ public:
 
     void start_no_reentry(const CtrID& ctr_id) {}
     void finish_no_reentry(const CtrID& ctr_id) noexcept {}
+
+    void register_allocation(const AllocationMetadataT& alc) {
+        this->store_->register_allocation(alc);
+    }
 };
 
 }

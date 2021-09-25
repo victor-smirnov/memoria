@@ -182,7 +182,7 @@ public:
     {
         auto refs = references_.fetch_sub(1, std::memory_order_acq_rel);
         if (refs < 1) {
-            terminate(format_u8("Internal error. Negative refcount detected for block {}", id_value_).data());
+             terminate(format_u8("Internal error. Negative refcount detected for block {}", id_value_).data());
         }
         return refs == 1;
     }

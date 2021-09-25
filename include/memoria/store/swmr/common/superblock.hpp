@@ -76,6 +76,7 @@ private:
     uint64_t superblock_size_;
     uint64_t global_block_counters_file_pos_;
     uint64_t global_block_counters_size_;
+    uint64_t global_block_counters_blocks_;
 
     BlockID history_root_id_;
     BlockID directory_root_id_;
@@ -170,6 +171,10 @@ public:
     uint64_t global_block_counters_size() const noexcept {return global_block_counters_size_;}
     void set_global_block_counters_size(uint64_t size) noexcept {global_block_counters_size_ = size;}
 
+    uint64_t global_block_counters_blocks() const noexcept {return global_block_counters_blocks_;}
+    void set_global_block_counters_blocks(uint64_t blocks) noexcept {global_block_counters_blocks_ = blocks;}
+
+
     SWMRStoreStatus status() const noexcept {return store_status_;}
 
     bool is_clean() const noexcept {return store_status_ == SWMRStoreStatus::CLEAN;}
@@ -191,93 +196,6 @@ public:
         return version_ == VERSION;
     }
 
-//    Span<const uint64_t> preallocated_blocks() const noexcept {
-//        return Span<const uint64_t>(preallocated_blocks_, PREALLOCATED_BLOCKS);
-//    }
-
-//    size_t preallocated_pool_size() const noexcept {
-//        return preallocated_pool_size_;
-//    }
-
-//    size_t preallocated_pool_capacity() const noexcept {
-//        return PREALLOCATED_BLOCKS - preallocated_pool_size_;
-//    }
-
-//    Optional<AllocationMetadataT> allocate_one(size_t reserve = 0)
-//    {
-//        for (size_t i = 0, rcnt = 0; i < PREALLOCATED_BLOCKS && preallocated_pool_size_ > 0; i++)
-//        {
-//            if (preallocated_blocks_[i])
-//            {
-//                if (rcnt == reserve)
-//                {
-//                    AllocationMetadataT meta{(CtrSizeT)preallocated_blocks_[i], 1, 0};
-//                    preallocated_blocks_[i] = 0;
-//                    preallocated_pool_size_--;
-//                    return meta;
-//                }
-
-//                rcnt++;
-//            }
-//        }
-
-//        return Optional<AllocationMetadataT>{};
-//    }
-
-//    template <typename AllocationPool>
-//    size_t preallocate_from_pool(AllocationPool& allocation_pool)
-//    {
-//        return preallocate_from_fn([&]{
-//            return allocation_pool->allocate_one(0);
-//        });
-//    }
-
-//    template <typename Fn>
-//    size_t preallocate_from_fn(Fn&& fn)
-//    {
-//        size_t c = 0;
-//        for (size_t i = 0; i < PREALLOCATED_BLOCKS; i++) {
-//            if (preallocated_blocks_[i] == 0) {
-//                auto alc = fn();
-//                if (alc) {
-//                    preallocated_blocks_[i] = alc.get().position();
-//                    preallocated_pool_size_++;
-//                    c++;
-//                }
-//                else {
-//                    break;
-//                }
-//            }
-//        }
-//        return c;
-//    }
-
-//    std::pair<size_t, AllocationMetadataT> get_allocation() const
-//    {
-//        for (size_t i = 0; i < PREALLOCATED_BLOCKS; i++) {
-//            if (preallocated_blocks_[i]) {
-//                return std::make_pair(
-//                    i, AllocationMetadataT{(CtrSizeT)preallocated_blocks_[i], 1, 0}
-//                );
-//            }
-//        }
-
-//        MEMORIA_MAKE_GENERIC_ERROR("Superblock's allocation pool is empty").do_throw();
-//    }
-
-//    void remove_block_from_pool(size_t idx)
-//    {
-//        if (MMA_LIKELY(preallocated_blocks_[idx])) {
-//            preallocated_blocks_[idx] = 0;
-//        }
-//        else {
-//            MEMORIA_MAKE_GENERIC_ERROR(
-//                "Trying to mark unallocated block {} as allocated in the superblock {}",
-//                idx,
-//                commit_id_
-//            ).do_throw();
-//        }
-//    }
 
     void init_metadata(LDDocumentView doc)
     {
@@ -318,6 +236,7 @@ public:
 
         global_block_counters_file_pos_ = 0;
         global_block_counters_size_ = 0;
+        global_block_counters_blocks_ = 0;
 
         history_root_id_   = BlockID{};
         directory_root_id_ = BlockID{};
@@ -328,8 +247,6 @@ public:
 
         allocation_pool_data_.clear();
 
-//        preallocated_pool_size_ = 0;
-//        std::memset(preallocated_blocks_, 0, PREALLOCATED_BLOCKS * sizeof(uint64_t));
 
         init_metadata(meta);
     }
@@ -355,12 +272,12 @@ public:
         superblock_size_     = other.superblock_size_;
         global_block_counters_file_pos_ = other.global_block_counters_file_pos_;
         global_block_counters_size_ = other.global_block_counters_size_;
+        global_block_counters_blocks_ = other.global_block_counters_blocks_;
+
         store_status_        = other.store_status_;
 
         allocation_pool_data_ = other.allocation_pool_data_;
 
-//        preallocated_pool_size_ = other.preallocated_pool_size_;
-//        std::memcpy(preallocated_blocks_, other.preallocated_blocks_, PREALLOCATED_BLOCKS * sizeof(uint64_t));
 
         init_metadata(meta);
     }
