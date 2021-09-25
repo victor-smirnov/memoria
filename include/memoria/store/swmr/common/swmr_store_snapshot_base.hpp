@@ -315,7 +315,7 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("newId() is not implemented for ReadOnly snapshots").do_throw();
     }
 
-    virtual SnapshotID currentTxnId() const noexcept {
+    virtual SnapshotID snaphsot_Id() const noexcept {
         return get_superblock()->snapshot_id();
     }
 

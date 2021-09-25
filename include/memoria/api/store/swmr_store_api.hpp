@@ -171,10 +171,7 @@ struct ISWMRStore: IBasicSWMRStore<Profile> {
 
     virtual int64_t count_volatile_snapshots() = 0;
 
-    virtual Optional<SequenceID> check(const Optional<SequenceID>& from, const CheckResultConsumerFn& consumer) = 0;
-    virtual Optional<SequenceID> check(const CheckResultConsumerFn& consumer) {
-        return check(Optional<SequenceID>{}, consumer);
-    };
+    virtual Optional<SequenceID> check(const CheckResultConsumerFn& consumer) = 0;
 
     virtual HistoryPtr history_view() = 0;
 

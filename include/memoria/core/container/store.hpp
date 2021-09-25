@@ -69,7 +69,7 @@ struct IStoreBase: IStoreApiBase<ApiProfile<Profile>> {
     virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID& ctr_id) = 0;
 
     virtual BlockID newId() = 0;
-    virtual SnapshotID currentTxnId() const = 0;
+    virtual SnapshotID snaphsot_Id() const = 0;
 
     // memory pool allocator
     virtual void* allocateMemory(size_t size) = 0;

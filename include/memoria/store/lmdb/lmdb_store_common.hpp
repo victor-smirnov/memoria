@@ -157,7 +157,7 @@ public:
         return ProfileTraits<Profile>::make_random_ctr_id();
     }
 
-    virtual SnapshotID currentTxnId() const {
+    virtual SnapshotID snaphsot_Id() const {
         return SnapshotID{0, mma_mdb_txn_id(transaction_)};
     }
 

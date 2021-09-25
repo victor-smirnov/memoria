@@ -450,7 +450,7 @@ public:
         txn->checkIfExportAllowed();
         auto root_id = this->getRootID(name);
 
-    	auto txn_id = currentTxnId();
+    	auto txn_id = snaphsot_Id();
 
         if (root_id.is_null())
     	{
@@ -461,7 +461,7 @@ public:
                 root_map_->assign(name, root_id);
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->snaphsot_Id()).do_throw();
             }
     	}
     	else {
@@ -487,7 +487,7 @@ public:
                 root_map_->assign(name, root_id);
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->snaphsot_Id()).do_throw();
             }
         }
         else {
@@ -504,7 +504,7 @@ public:
 
         auto root_id = this->getRootID(name);
 
-    	auto txn_id = currentTxnId();
+    	auto txn_id = snaphsot_Id();
 
     	if (root_id.is_null())
     	{
@@ -518,7 +518,7 @@ public:
                 root_map_->assign(name, root_id1);
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->snaphsot_Id()).do_throw();
             }
     	}
     	else {
@@ -538,7 +538,7 @@ public:
 
         auto root_id = this->getRootID(name);
 
-    	auto txn_id = currentTxnId();
+    	auto txn_id = snaphsot_Id();
 
         if (!root_id.is_null())
     	{
@@ -764,7 +764,7 @@ public:
         return BlockID{history_tree_raw_->newBlockId()};
     }
 
-    virtual CtrID currentTxnId() const {
+    virtual CtrID snaphsot_Id() const {
         return history_node_->snapshot_id();
     }
 

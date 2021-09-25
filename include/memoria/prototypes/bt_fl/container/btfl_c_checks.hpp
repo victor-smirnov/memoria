@@ -19,6 +19,7 @@
 #include <memoria/prototypes/bt_fl/btfl_names.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
+#include <memoria/core/tools/checks.hpp>
 
 #include <memoria/prototypes/bt_fl/btfl_tools.hpp>
 
@@ -38,35 +39,27 @@ public:
     using Base::Streams;
 
 
-    bool ctr_check_content(const TreeNodeConstPtr& node) const
+    void ctr_check_content(const TreeNodeConstPtr& node, const CheckResultConsumerFn& fn) const
     {
     	auto& self = this->self();
 
-        auto base_check_res = Base::ctr_check_content(node);
-        if (!base_check_res)
-    	{
-    		if (node->is_leaf())
-    		{
-                auto sizes = self.ctr_get_leaf_stream_sizes(node);
+        Base::ctr_check_content(node, fn);
 
-    			CtrSizeT data_streams_size = 0;
-    			for (int32_t c = 0; c < CtrSizesT::Indexes - 1; c++)
-    			{
-    				data_streams_size += sizes[c];
-    			}
+        if (node->is_leaf())
+        {
+            auto sizes = self.ctr_get_leaf_stream_sizes(node);
 
-    			if (data_streams_size != sizes[Streams - 1])
-    			{
-                    MMA_ERROR(self, "Leaf streams sizes check failed", data_streams_size, sizes[Streams - 1]);
-                    return true;
-    			}
-    		}
+            CtrSizeT data_streams_size = 0;
+            for (int32_t c = 0; c < CtrSizesT::Indexes - 1; c++)
+            {
+                data_streams_size += sizes[c];
+            }
 
-            return false;
-    	}
-    	else {
-            return true;
-    	}
+            if (data_streams_size != sizes[Streams - 1])
+            {
+                fn(CheckSeverity::ERROR, make_string_document("Leaf streams sizes check failed: {} {}", data_streams_size, sizes[Streams - 1]));
+            }
+        }
     }
 
 

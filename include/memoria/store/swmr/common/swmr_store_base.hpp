@@ -675,9 +675,9 @@ public:
     }
 
 
-    virtual Optional<SequenceID> check(const Optional<SequenceID>& from, const CheckResultConsumerFn& consumer) override {
+    virtual Optional<SequenceID> check(const CheckResultConsumerFn& consumer) override {
         check_if_open();
-        return do_check(from, consumer);
+        return do_check(consumer);
     }
 
     void for_all_evicting_snapshots(std::function<void (SnapshotDescriptorT*)> fn)
@@ -697,9 +697,7 @@ public:
 
 protected:
 
-    std::vector<SWMRReadOnlySnapshotPtr> build_ordered_snapshots_list(
-            const Optional<SequenceID>& from = Optional<SequenceID>{}
-    ){
+    std::vector<SWMRReadOnlySnapshotPtr> build_ordered_snapshots_list(){
         std::vector<SWMRReadOnlySnapshotPtr> snapshot;
 
         history_tree_.traverse_tree_preorder([&](CDescrPtr descr){
@@ -714,7 +712,7 @@ protected:
         return snapshot;
     }
 
-    Optional<SequenceID> do_check(const Optional<SequenceID>& from, const CheckResultConsumerFn& consumer)
+    Optional<SequenceID> do_check(const CheckResultConsumerFn& consumer)
     {
         // FIXME:
         // Writer mutex is needed because we are touching counters here.
@@ -725,7 +723,7 @@ protected:
 
         allocations_ = make_lite_allocation_map();
 
-        auto snapshots = build_ordered_snapshots_list(from);
+        auto snapshots = build_ordered_snapshots_list();
 
         if (snapshots.size() > 0)
         {
@@ -735,15 +733,10 @@ protected:
             {
                 snapshot->add_superblock(*allocations_.get());
                 snapshot->check(consumer);
-
-                if (!from) {
-                    snapshot->build_block_refcounters(check_state.counters);
-                }
+                snapshot->build_block_refcounters(check_state.counters);
             }
 
-            if (!from) {
-                check_refcounters(check_state.counters, consumer);
-            }
+            check_refcounters(check_state.counters, consumer);
 
             do_check_allocations(consumer);
 

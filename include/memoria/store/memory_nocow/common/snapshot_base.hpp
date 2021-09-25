@@ -375,7 +375,7 @@ public:
         txn->checkIfExportAllowed();
         auto root_id = this->getRootID(name);
 
-    	auto txn_id = currentTxnId();
+    	auto txn_id = snaphsot_Id();
 
         if (root_id.is_null())
     	{
@@ -403,7 +403,7 @@ public:
                 root_map_->assign(name, root_id);
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->snaphsot_Id()).do_throw();
             }
     	}
     	else {
@@ -421,7 +421,7 @@ public:
 
         auto root_id = this->getRootID(name);
 
-    	auto txn_id = currentTxnId();
+    	auto txn_id = snaphsot_Id();
 
     	if (root_id.is_null())
     	{
@@ -435,7 +435,7 @@ public:
                 root_map_->assign(name, root_id1);
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->snaphsot_Id()).do_throw();
             }
     	}
     	else {
@@ -490,7 +490,7 @@ public:
                 root_map_->assign(name, root_id);
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->snaphsot_Id()).do_throw();
             }
     	}
     	else {
@@ -508,7 +508,7 @@ public:
 
         auto root_id = this->getRootID(name);
 
-    	auto txn_id = currentTxnId();
+    	auto txn_id = snaphsot_Id();
 
         if (!root_id.is_null())
     	{
@@ -835,7 +835,7 @@ public:
         return history_tree_raw_->newBlockId();
     }
 
-    virtual CtrID currentTxnId() const noexcept {
+    virtual CtrID snaphsot_Id() const noexcept {
         return history_node_->snapshot_id();
     }
 
@@ -1159,7 +1159,7 @@ protected:
             return opt.value().block_ptr();
     	}
     	else {
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Block with id {} does not exist in snapshot {}", id, currentTxnId()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Block with id {} does not exist in snapshot {}", id, snaphsot_Id()));
     	}
     }
 

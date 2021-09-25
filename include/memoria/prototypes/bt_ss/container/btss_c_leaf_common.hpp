@@ -48,6 +48,20 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
         return self().ctr_begin();
     }
 
+    void dump_leafs(CtrSizeT leafs)
+    {
+        auto ii = self().ctr_begin();
+
+        CtrSizeT lim = leafs >= 0? leafs : std::numeric_limits<CtrSizeT>::max();
+
+        for (CtrSizeT cc = 0; cc < lim && !ii->is_end(); cc++) {
+        ii->dump();
+            if (!ii->iter_next_leaf()) {
+                break;
+            }
+        }
+    }
+
     template <typename SubstreamsIdxList, typename... Args>
     auto iter_read_leaf_entry(const TreeNodeConstPtr& leaf, Args&&... args) const
     {

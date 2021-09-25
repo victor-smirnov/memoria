@@ -398,16 +398,14 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     SnapshotID snapshot_id() const noexcept {
-        return self().store().currentTxnId();
+        return self().store().snaphsot_Id();
     }
 
 
     void ctr_root_to_node(const TreeNodePtr& node)
     {
         self().ctr_update_block_guard(node);
-
         node->set_root(false);
-
         node->clear_metadata().get_or_throw();
     }
 
@@ -724,19 +722,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 //    }
 
 
-    void dump_leafs(CtrSizeT leafs)
-    {
-        auto ii = self().ctr_begin();
 
-        CtrSizeT lim = leafs >= 0? leafs : std::numeric_limits<CtrSizeT>::max();
-
-        for (CtrSizeT cc = 0; cc < lim && !ii->is_end(); cc++) {
-        ii->dump();
-            if (!ii->iter_next_leaf()) {
-                break;
-            }
-        }
-    }
 
  protected:
 

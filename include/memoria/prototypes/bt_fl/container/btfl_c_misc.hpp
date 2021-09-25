@@ -42,6 +42,21 @@ protected:
     static const int32_t StructureStreamIdx     = Types::StructureStreamIdx;
 
 public:
+
+    void dump_leafs(CtrSizeT leafs)
+    {
+        auto ii = self().ctr_seq_begin();
+
+        CtrSizeT lim = leafs >= 0? leafs : std::numeric_limits<CtrSizeT>::max();
+
+        for (CtrSizeT cc = 0; cc < lim && !ii->is_end(); cc++) {
+        ii->dump();
+            if (!ii->iter_next_leaf()) {
+                break;
+            }
+        }
+    }
+
     auto ctr_seq_begin() {
         return self().template ctr_seek_stream<StructureStreamIdx>(0);
     }
