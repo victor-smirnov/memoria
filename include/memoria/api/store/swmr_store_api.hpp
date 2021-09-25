@@ -27,50 +27,50 @@
 namespace memoria {
 
 template <typename Profile>
-struct ISWMRStoreCommitBase: virtual IROStoreSnapshotCtrOps<Profile> {
-    using CommitID = ApiProfileSnapshotID<Profile>;
+struct ISWMRStoreSnapshotBase: virtual IROStoreSnapshotCtrOps<Profile> {
+    using SnapshotID = ApiProfileSnapshotID<Profile>;
 
-    virtual CommitID commit_id() = 0;
+    virtual SnapshotID snapshot_id() = 0;
     virtual void describe_to_cout() = 0;
 
     virtual bool is_transient() = 0;
-    virtual bool is_system_commit() = 0;
+    virtual bool is_system_snapshot() = 0;
 
     virtual LDDocumentView metadata() = 0;
 };
 
 template <typename Profile>
-struct ISWMRStoreWritableCommit: virtual ISWMRStoreCommitBase<Profile>, virtual IROStoreWritableSnapshotCtrOps<Profile> {
-    using CommitID = ApiProfileSnapshotID<Profile>;
+struct ISWMRStoreWritableSnapshot: virtual ISWMRStoreSnapshotBase<Profile>, virtual IROStoreWritableSnapshotCtrOps<Profile> {
+    using SnapshotID = ApiProfileSnapshotID<Profile>;
 
     virtual void set_transient(bool transient) = 0;
 
     virtual void prepare(ConsistencyPoint cp = ConsistencyPoint::AUTO) = 0;
     virtual void rollback() = 0;
 
-    virtual bool remove_commit(const CommitID& commit_id) = 0;
+    virtual bool remove_snapshot(const SnapshotID& snapshot_id) = 0;
     virtual bool remove_branch(U8StringView branch_name)  = 0;
 };
 
 template <typename Profile>
-struct ISWMRStoreReadOnlyCommit: virtual ISWMRStoreCommitBase<Profile> {
+struct ISWMRStoreReadOnlySnapshot: virtual ISWMRStoreSnapshotBase<Profile> {
     virtual void drop() = 0;
 };
 
 template <typename Profile>
 struct ISWMRStoreHistoryView {
-    using CommitID = ApiProfileSnapshotID<Profile>;
-    using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
+    using SnapshotID = ApiProfileSnapshotID<Profile>;
+    using ReadOnlySnapshotPtr = SharedPtr<ISWMRStoreReadOnlySnapshot<Profile>>;
 
     virtual ~ISWMRStoreHistoryView() noexcept = default;
 
-    virtual Optional<bool> is_transient(const CommitID& commit_id) = 0;
-    virtual Optional<bool> is_system_commit(const CommitID& commit_id) = 0;
+    virtual Optional<bool> is_transient(const SnapshotID& snapshot_id) = 0;
+    virtual Optional<bool> is_system_snapshot(const SnapshotID& snapshot_id) = 0;
 
-    virtual Optional<CommitID> parent(const CommitID& commit_id) = 0;
-    virtual Optional<std::vector<CommitID>> children(const CommitID& commit_id) = 0;
-    virtual Optional<std::vector<CommitID>> commits(U8StringView branch) = 0;
-    virtual Optional<CommitID> branch_head(U8StringView name) = 0;
+    virtual Optional<SnapshotID> parent(const SnapshotID& snapshot_id) = 0;
+    virtual Optional<std::vector<SnapshotID>> children(const SnapshotID& snapshot_id) = 0;
+    virtual Optional<std::vector<SnapshotID>> snapshots(U8StringView branch) = 0;
+    virtual Optional<SnapshotID> branch_head(U8StringView name) = 0;
     virtual std::vector<U8String> branch_names() = 0;
 };
 
@@ -83,7 +83,7 @@ struct SWMRStoreGraphVisitor {
         ALLOCATOR, HISTORY, BLOCKMAP, DIRECTORY, DATA
     };
 
-    using CommitID   = ApiProfileSnapshotID<Profile>;
+    using SnapshotID   = ApiProfileSnapshotID<Profile>;
     using SequenceID = uint64_t;
 
     using CtrPtrT   = CtrSharedPtr<CtrReferenceable<Profile>>;
@@ -94,8 +94,8 @@ struct SWMRStoreGraphVisitor {
     virtual void start_graph() = 0;
     virtual void end_graph() = 0;
 
-    virtual void start_commit(const CommitID&, const SequenceID&) = 0;
-    virtual void end_commit() = 0;
+    virtual void start_snapshot(const SnapshotID&, const SequenceID&) = 0;
+    virtual void end_snapshot() = 0;
 
     virtual void start_ctr(CtrPtrT, bool updated, CtrType ctr_type) = 0;
     virtual void end_ctr()   = 0;
@@ -107,15 +107,15 @@ struct SWMRStoreGraphVisitor {
 template <typename Profile>
 struct IBasicSWMRStore {
 
-    using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
-    using WritableCommitPtr = SharedPtr<ISWMRStoreWritableCommit<Profile>>;
+    using ReadOnlySnapshotPtr = SharedPtr<ISWMRStoreReadOnlySnapshot<Profile>>;
+    using WritableSnapshotPtr = SharedPtr<ISWMRStoreWritableSnapshot<Profile>>;
 
     using SequenceID = uint64_t;
 
     virtual ~IBasicSWMRStore() noexcept = default;
 
-    virtual ReadOnlyCommitPtr open()  = 0;
-    virtual WritableCommitPtr begin() = 0;
+    virtual ReadOnlySnapshotPtr open()  = 0;
+    virtual WritableSnapshotPtr begin() = 0;
 
     virtual Optional<SequenceID> check(const CheckResultConsumerFn& consumer) = 0;
 
@@ -131,45 +131,45 @@ template <typename Profile>
 struct ISWMRStore: IBasicSWMRStore<Profile> {
     using Base = IBasicSWMRStore<Profile>;
 
-    using typename Base::WritableCommitPtr;
-    using typename Base::ReadOnlyCommitPtr;
+    using typename Base::WritableSnapshotPtr;
+    using typename Base::ReadOnlySnapshotPtr;
 
     using HistoryPtr = SharedPtr<ISWMRStoreHistoryView<Profile>>;
 
-    using CommitID = ApiProfileSnapshotID<Profile>;
+    using SnapshotID = ApiProfileSnapshotID<Profile>;
     using SequenceID = uint64_t;
 
-    virtual Optional<std::vector<CommitID>> commits(U8StringView branch) = 0;
+    virtual Optional<std::vector<SnapshotID>> snapshots(U8StringView branch) = 0;
 
     virtual uint64_t cp_allocation_threshold() const = 0;
     virtual uint64_t set_cp_allocation_threshold(uint64_t value) = 0;
 
-    virtual uint64_t cp_commit_threshold() const  = 0;
-    virtual uint64_t set_cp_commit_threshold(uint64_t value) = 0;
+    virtual uint64_t cp_snapshot_threshold() const  = 0;
+    virtual uint64_t set_cp_snapshot_threshold(uint64_t value) = 0;
 
     virtual int64_t cp_timeout() const = 0;
     virtual int64_t set_cp_timeout(int64_t value) = 0;
 
-    virtual Optional<CommitID> parent(const CommitID& commit_id) = 0;
-    virtual Optional<std::vector<CommitID>> children(const CommitID& commit_id) = 0;
-    virtual Optional<bool> is_transient(const CommitID& commit_id) = 0;
-    virtual Optional<bool> is_system_commit(const CommitID& commit_id) = 0;
+    virtual Optional<SnapshotID> parent(const SnapshotID& snapshot_id) = 0;
+    virtual Optional<std::vector<SnapshotID>> children(const SnapshotID& snapshot_id) = 0;
+    virtual Optional<bool> is_transient(const SnapshotID& snapshot_id) = 0;
+    virtual Optional<bool> is_system_snapshot(const SnapshotID& snapshot_id) = 0;
 
     using Base::open;
     using Base::begin;
 
-    virtual ReadOnlyCommitPtr flush(FlushType ft = FlushType::DEFAULT) = 0;
+    virtual ReadOnlySnapshotPtr flush(FlushType ft = FlushType::DEFAULT) = 0;
 
     virtual std::vector<U8String> branches() = 0;
-    virtual ReadOnlyCommitPtr open(U8StringView branch)  = 0;
-    virtual ReadOnlyCommitPtr open(const CommitID& commit_id, bool open_transient_commits = false) = 0;
+    virtual ReadOnlySnapshotPtr open(U8StringView branch)  = 0;
+    virtual ReadOnlySnapshotPtr open(const SnapshotID& snapshot_id, bool open_transient_snapshots = false) = 0;
 
-    virtual WritableCommitPtr begin(U8StringView branch) = 0;
+    virtual WritableSnapshotPtr begin(U8StringView branch) = 0;
 
-    virtual WritableCommitPtr branch_from(U8StringView source, U8StringView branch_name) = 0;
-    virtual WritableCommitPtr branch_from(const CommitID& commit_id, U8StringView branch_name) = 0;
+    virtual WritableSnapshotPtr branch_from(U8StringView source, U8StringView branch_name) = 0;
+    virtual WritableSnapshotPtr branch_from(const SnapshotID& snapshot_id, U8StringView branch_name) = 0;
 
-    virtual int64_t count_volatile_commits() = 0;
+    virtual int64_t count_volatile_snapshots() = 0;
 
     virtual Optional<SequenceID> check(const Optional<SequenceID>& from, const CheckResultConsumerFn& consumer) = 0;
     virtual Optional<SequenceID> check(const CheckResultConsumerFn& consumer) {
@@ -232,10 +232,10 @@ template <typename Profile>
 struct ILMDBStore: IBasicSWMRStore<Profile> {
     using Base = IBasicSWMRStore<Profile>;
 
-    using CommitID = int64_t;
+    using SnapshotID = int64_t;
 
-    using typename Base::WritableCommitPtr;
-    using typename Base::ReadOnlyCommitPtr;
+    using typename Base::WritableSnapshotPtr;
+    using typename Base::ReadOnlySnapshotPtr;
 
     virtual void set_async(bool is_async) = 0;
     virtual void copy_to(U8String path, bool with_compaction = true) = 0;
@@ -251,7 +251,7 @@ bool is_lmdb_store(U8StringView path);
 
 template <typename CtrName, typename Profile>
 CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
-        SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
+        SnpSharedPtr<ISWMRStoreWritableSnapshot<Profile>> alloc,
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
 ){
@@ -261,7 +261,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 
 template <typename CtrName, typename Profile>
 CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
-        SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
+        SnpSharedPtr<ISWMRStoreWritableSnapshot<Profile>> alloc,
         const CtrName& ctr_type_name
 ){
     auto ptr = memoria_static_pointer_cast<IROStoreWritableSnapshotCtrOps<Profile>>(alloc);
@@ -271,7 +271,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 
 template <typename CtrName, typename Profile>
 CtrSharedPtr<ICtrApi<CtrName, Profile>> find_or_create(
-        SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
+        SnpSharedPtr<ISWMRStoreWritableSnapshot<Profile>> alloc,
         const CtrName& ctr_type_name,
         const ApiProfileCtrID<Profile>& ctr_id
 ){
@@ -281,7 +281,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find_or_create(
 
 template <typename CtrName, typename Profile>
 CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
-        SnpSharedPtr<ISWMRStoreReadOnlyCommit<Profile>> alloc,
+        SnpSharedPtr<ISWMRStoreReadOnlySnapshot<Profile>> alloc,
         const ApiProfileCtrID<Profile>& ctr_id
 ){
     auto ptr = memoria_static_pointer_cast<IROStoreSnapshotCtrOps<Profile>>(alloc);
@@ -290,7 +290,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
 
 template <typename CtrName, typename Profile>
 CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
-        SnpSharedPtr<ISWMRStoreWritableCommit<Profile>> alloc,
+        SnpSharedPtr<ISWMRStoreWritableSnapshot<Profile>> alloc,
         const ApiProfileCtrID<Profile>& ctr_id
 ){
     auto ptr = memoria_static_pointer_cast<IROStoreSnapshotCtrOps<Profile>>(alloc);

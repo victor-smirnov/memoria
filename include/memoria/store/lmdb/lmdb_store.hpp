@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <memoria/store/lmdb/lmdb_store_readonly_commit.hpp>
-#include <memoria/store/lmdb/lmdb_store_writable_commit.hpp>
+#include <memoria/store/lmdb/lmdb_store_readonly_snapshot.hpp>
+#include <memoria/store/lmdb/lmdb_store_writable_snapshot.hpp>
 
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
@@ -37,16 +37,16 @@ class LMDBStore:
     public EnableSharedFromThis<LMDBStore<Profile>>
 {
     using Base = ILMDBStore<ApiProfile<Profile>>;
-    using typename Base::ReadOnlyCommitPtr;
-    using typename Base::WritableCommitPtr;
-    using typename Base::CommitID;
+    using typename Base::ReadOnlySnapshotPtr;
+    using typename Base::WritableSnapshotPtr;
+    using typename Base::SnapshotID;
     using typename Base::SequenceID;
 
     using ApiProfileT = ApiProfile<Profile>;
 
-    using LMDBStoreReadOnlyCommitPtr = SharedPtr<LMDBStoreReadOnlyCommit<Profile>>;
-    using LMDBStoreWritableCommitPtr = SharedPtr<LMDBStoreWritableCommit<Profile>>;
-    using LMDBStoreWritableCommitWeakPtr = WeakPtr<LMDBStoreWritableCommit<Profile>>;
+    using LMDBStoreReadOnlySnapshotPtr = SharedPtr<LMDBStoreReadOnlySnapshot<Profile>>;
+    using LMDBStoreWritableSnapshotPtr = SharedPtr<LMDBStoreWritableSnapshot<Profile>>;
+    using LMDBStoreWritableSnapshotWeakPtr = WeakPtr<LMDBStoreWritableSnapshot<Profile>>;
 
     using BlockID = ProfileBlockID<Profile>;
 
@@ -61,9 +61,9 @@ class LMDBStore:
     using LockGuard     = std::lock_guard<std::recursive_mutex>;
     using Superblock    = LMDBSuperblock<Profile>;
 
-    template <typename> friend class LMDBStoreReadonlyCommit;
-    template <typename> friend class LMDBStoreWritableCommit;
-    template <typename> friend class LMDBStoreCommitBase;
+    template <typename> friend class LMDBStoreReadonlySnapshot;
+    template <typename> friend class LMDBStoreWritableSnapshot;
+    template <typename> friend class LMDBStoreSnapshotBase;
 
     friend SharedPtr<ILMDBStore<ApiProfileT>> open_lmdb_store(U8StringView);
     friend SharedPtr<ILMDBStore<ApiProfileT>> open_lmdb_store_readonly(U8StringView);
@@ -247,11 +247,11 @@ public:
         }
     }
 
-    virtual ReadOnlyCommitPtr open()
+    virtual ReadOnlySnapshotPtr open()
     {
 
         MaybeError maybe_error{};
-        auto ptr = snp_make_shared<LMDBStoreReadOnlyCommit<Profile>>(
+        auto ptr = snp_make_shared<LMDBStoreReadOnlySnapshot<Profile>>(
                 maybe_error, this->shared_from_this(), mdb_env_, system_db_, data_db_
         );
 
@@ -265,14 +265,14 @@ public:
         }
     }
 
-    virtual ReadOnlyCommitPtr flush() {
-        return ReadOnlyCommitPtr{};
+    virtual ReadOnlySnapshotPtr flush() {
+        return ReadOnlySnapshotPtr{};
     }
 
-    virtual WritableCommitPtr begin()
+    virtual WritableSnapshotPtr begin()
     {
         MaybeError maybe_error{};
-        auto ptr = snp_make_shared<LMDBStoreWritableCommit<Profile>>(
+        auto ptr = snp_make_shared<LMDBStoreWritableSnapshot<Profile>>(
             maybe_error, this->shared_from_this(), mdb_env_, superblock_, system_db_, data_db_
         );
 
@@ -280,7 +280,7 @@ public:
             ptr->post_init(maybe_error);
             if (!maybe_error)
             {
-                ptr->finish_commit_opening();
+                ptr->finish_snapshot_opening();
                 return std::move(ptr);
             }
         }
@@ -293,7 +293,7 @@ public:
     }
 
     static void init_profile_metadata() noexcept {
-        LMDBStoreWritableCommit<Profile>::init_profile_metadata();
+        LMDBStoreWritableSnapshot<Profile>::init_profile_metadata();
     }
 
     static bool is_my_file(U8String file_name)
@@ -337,7 +337,7 @@ private:
     {
         MaybeError maybe_error;
 
-        auto ptr = snp_make_shared<LMDBStoreWritableCommit<Profile>>(
+        auto ptr = snp_make_shared<LMDBStoreWritableSnapshot<Profile>>(
             maybe_error, this->shared_from_this(), mdb_env_, superblock_, system_db_, data_db_, InitLMDBStoreTag{}
         );
 

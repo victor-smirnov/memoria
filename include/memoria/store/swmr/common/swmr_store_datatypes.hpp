@@ -32,10 +32,10 @@
 namespace memoria {
 
 template <typename Profile>
-class CommitMetadata {
+class SWMRSnapshotMetadata {
 
-    using CommitID = ApiProfileSnapshotID<Profile>;
-    CommitID parent_commit_id_;
+    using SnapshotID = ApiProfileSnapshotID<Profile>;
+    SnapshotID parent_snapshot_id_;
     uint64_t superblock_file_pos_;
     uint64_t flags_;
     uint64_t timestamp_;
@@ -48,22 +48,22 @@ public:
     enum Bits: uint64_t {
         NONE = 0x0,
         TRANSIENT = 0x1,
-        SYSTEM_COMMIT = 0x2,
-        DATA_COMMIT = 0x4,
+        SYSTEM_SNAPSHOT = 0x2,
+        DATA_SNAPSHOT = 0x4,
         HAS_TTL = 0x8,
         REMOVED_BRANCH = 0x10
     };
 
-    CommitMetadata() noexcept :
+    SWMRSnapshotMetadata() noexcept :
         superblock_file_pos_(), flags_()
     {}
 
-    const CommitID& parent_commit_id() const noexcept {
-        return parent_commit_id_;
+    const SnapshotID& parent_snapshot_id() const noexcept {
+        return parent_snapshot_id_;
     }
 
-    void set_parent_commit_id(const CommitID& id) noexcept {
-        parent_commit_id_ = id;
+    void set_parent_snapshot_id(const SnapshotID& id) noexcept {
+        parent_snapshot_id_ = id;
     }
 
     uint64_t superblock_file_pos() const noexcept {
@@ -88,12 +88,12 @@ public:
         return flags_ & TRANSIENT;
     }
 
-    bool is_system_commit() const noexcept {
-        return flags_ & SYSTEM_COMMIT;
+    bool is_system_snapshot() const noexcept {
+        return flags_ & SYSTEM_SNAPSHOT;
     }
 
-    bool is_data_commit() const noexcept {
-        return flags_ & DATA_COMMIT;
+    bool is_data_snapshot() const noexcept {
+        return flags_ & DATA_SNAPSHOT;
     }
 
     bool has_ttl() const noexcept {
@@ -114,21 +114,21 @@ public:
         }
     }
 
-    void set_system_commit(bool value) noexcept {
+    void set_system_snapshot(bool value) noexcept {
         if (value) {
-            flags_ |= SYSTEM_COMMIT;
+            flags_ |= SYSTEM_SNAPSHOT;
         }
         else {
-            flags_ &= ~SYSTEM_COMMIT;
+            flags_ &= ~SYSTEM_SNAPSHOT;
         }
     }
 
-    void set_data_commit(bool value) noexcept {
+    void set_data_snapshot(bool value) noexcept {
         if (value) {
-            flags_ |= DATA_COMMIT;
+            flags_ |= DATA_SNAPSHOT;
         }
         else {
-            flags_ &= ~DATA_COMMIT;
+            flags_ &= ~DATA_SNAPSHOT;
         }
     }
 
@@ -163,16 +163,16 @@ public:
     }
 
 
-    bool operator==(const CommitMetadata& other) const noexcept {
-        return parent_commit_id_ == other.parent_commit_id_ &&
+    bool operator==(const SWMRSnapshotMetadata& other) const noexcept {
+        return parent_snapshot_id_ == other.parent_snapshot_id_ &&
                 superblock_file_pos_ == other.superblock_file_pos_ &&
                 flags_ == other.flags_ &&
                 timestamp_ == other.timestamp_ &&
                 ttl_ = other.ttl_;
     }
 
-    bool operator!=(const CommitMetadata& other) const noexcept {
-        return parent_commit_id_ != other.parent_commit_id_ ||
+    bool operator!=(const SWMRSnapshotMetadata& other) const noexcept {
+        return parent_snapshot_id_ != other.parent_snapshot_id_ ||
                 superblock_file_pos_ != other.superblock_file_pos_ ||
                 flags_ != other.flags_ ||
                 timestamp_ != other.timestamp_ ||
@@ -183,10 +183,10 @@ public:
 
 
 template <typename Profile>
-std::ostream& operator<<(std::ostream& out, const CommitMetadata<Profile>& meta) {
+std::ostream& operator<<(std::ostream& out, const SWMRSnapshotMetadata<Profile>& meta) {
 
     out << "[";
-    out << meta.parent_commit_id();
+    out << meta.parent_snapshot_id();
     out << ", ";
     out << meta.superblock_file_pos();
     out << ", ";
@@ -200,15 +200,15 @@ std::ostream& operator<<(std::ostream& out, const CommitMetadata<Profile>& meta)
 template <typename T> struct FieldFactory;
 
 template <typename Profile>
-struct FieldFactory<CommitMetadata<Profile> > {
+struct FieldFactory<SWMRSnapshotMetadata<Profile> > {
 private:
-    using Type = CommitMetadata<Profile>;
-    using CommitID = ApiProfileSnapshotID<Profile>;
+    using Type = SWMRSnapshotMetadata<Profile>;
+    using SnapshotID = ApiProfileSnapshotID<Profile>;
 
 public:
     static void serialize(SerializationData& data, const Type& field)
     {
-        FieldFactory<CommitID>::serialize(data, field.parent_commit_id());
+        FieldFactory<SnapshotID>::serialize(data, field.parent_snapshot_id());
         FieldFactory<uint64_t>::serialize(data, field.superblock_file_pos());
         FieldFactory<uint64_t>::serialize(data, field.flags());
         FieldFactory<uint64_t>::serialize(data, field.timestamp());
@@ -223,8 +223,8 @@ public:
 
     static void deserialize(DeserializationData& data, Type& field)
     {
-        CommitID commit_id{};
-        FieldFactory<CommitID>::deserialize(data, commit_id);
+        SnapshotID snapshot_id{};
+        FieldFactory<SnapshotID>::deserialize(data, snapshot_id);
 
         uint64_t file_pos{};
         FieldFactory<uint64_t>::deserialize(data, file_pos);
@@ -238,7 +238,7 @@ public:
         uint64_t ttl{};
         FieldFactory<uint64_t>::deserialize(data, ttl);
 
-        field.set_parent_commit_id(commit_id);
+        field.set_parent_snapshot_id(snapshot_id);
         field.set_superblock_file_pos(file_pos);
         field.set_flags(flags);
         field.set_timestamp(timestamp);
@@ -255,40 +255,40 @@ public:
 
 
 template <typename Profile>
-struct TypeHash<CommitMetadata<Profile>>: UInt64Value<
+struct TypeHash<SWMRSnapshotMetadata<Profile>>: UInt64Value<
     HashHelper<
         459350639468,
         TypeHashV<ApiProfileSnapshotID<Profile>>,
         TypeHashV<uint64_t>,
         TypeHashV<uint64_t>,
-        CommitMetadata<Profile>::VERSION,
+        SWMRSnapshotMetadata<Profile>::VERSION,
         TypeHashV<Profile>
     >
 > {};
 
 
 template <typename ProfileDT>
-struct CommitMetadataDT {};
+struct SnapshotMetadataDT {};
 
 template <typename ProfileDT>
-struct TypeHash<CommitMetadataDT<ProfileDT>>: UInt64Value<
+struct TypeHash<SnapshotMetadataDT<ProfileDT>>: UInt64Value<
     HashHelper<
         32495987114593,
-        TypeHashV<CommitMetadata<ProfileFromDataType<ProfileDT>>>
+        TypeHashV<SWMRSnapshotMetadata<ProfileFromDataType<ProfileDT>>>
     >
 > {};
 
 template <typename ProfileDT>
-struct DataTypeTraits<CommitMetadataDT<ProfileDT>>: FixedSizeDataTypeTraits<CommitMetadata<ProfileFromDataType<ProfileDT>>, CommitMetadataDT<ProfileDT>> {
+struct DataTypeTraits<SnapshotMetadataDT<ProfileDT>>: FixedSizeDataTypeTraits<SWMRSnapshotMetadata<ProfileFromDataType<ProfileDT>>, SnapshotMetadataDT<ProfileDT>> {
 
     using Parameters = TL<ProfileDT>;
 
-    static void create_signature(SBuf& buf, const CommitMetadataDT<ProfileDT>&) {
+    static void create_signature(SBuf& buf, const SnapshotMetadataDT<ProfileDT>&) {
         create_signature(buf);
     }
 
     static void create_signature(SBuf& buf) {
-        buf << "CommitMetadataDT<";
+        buf << "SnapshotMetadataDT<";
         DataTypeTraits<ProfileDT>::create_signature(buf);
         buf << ">";
     }

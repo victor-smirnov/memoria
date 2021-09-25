@@ -39,9 +39,9 @@ constexpr UID256 DirectoryCtrID = UID256(3029111194483692837ull, 100400505805023
 template <typename Profile> class LMDBStore;
 
 template <typename Profile>
-class LMDBStoreCommitBase:
+class LMDBStoreSnapshotBase:
         public ProfileStoreType<Profile>,
-        public ISWMRStoreReadOnlyCommit<ApiProfile<Profile>>
+        public ISWMRStoreReadOnlySnapshot<ApiProfile<Profile>>
 {
     using Base = ProfileStoreType<Profile>;
 protected:
@@ -56,8 +56,6 @@ protected:
     using Base::getBlock;
 
     using ApiProfileT = ApiProfile<Profile>;
-
-    using CommitID = typename ISWMRStoreCommitBase<ApiProfileT>::CommitID;
 
     using Store                     = LMDBStore<Profile>;
     using CtrReferenceableResult    = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
@@ -93,7 +91,7 @@ protected:
     template <typename> friend class SWMRMappedStoreHistoryView;
 
 public:
-    LMDBStoreCommitBase(
+    LMDBStoreSnapshotBase(
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             MDB_env* mdb_env
@@ -308,12 +306,12 @@ public:
         if (allocator_descr != nullptr)
         {
             walker->beginSnapshot(
-                        fmt::format("Snapshot-{} -- {}", commit_id(), allocator_descr).data()
+                        fmt::format("Snapshot-{} -- {}", snapshot_id(), allocator_descr).data()
             );
         }
         else {
             walker->beginSnapshot(
-                        fmt::format("Snapshot-{}", commit_id()).data()
+                        fmt::format("Snapshot-{}", snapshot_id()).data()
             );
         }
 
@@ -361,8 +359,8 @@ public:
 
     //=================================== R/O Commit Stuff ===========================
 
-    virtual CommitID commit_id() {
-        return CommitID::make_type2(CommitID(), 0, mma_mdb_txn_id(transaction_));
+    virtual SnapshotID snapshot_id() {
+        return SnapshotID::make_type2(SnapshotID(), 0, mma_mdb_txn_id(transaction_));
     }
 
 

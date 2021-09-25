@@ -26,14 +26,14 @@
 namespace memoria {
 
 template <typename Profile>
-class LMDBStoreReadOnlyCommit:
-        public LMDBStoreCommitBase<Profile>,
-        public EnableSharedFromThis<LMDBStoreReadOnlyCommit<Profile>>
+class LMDBStoreReadOnlySnapshot:
+        public LMDBStoreSnapshotBase<Profile>,
+        public EnableSharedFromThis<LMDBStoreReadOnlySnapshot<Profile>>
 {
 protected:
-    using Base = LMDBStoreCommitBase<Profile>;
+    using Base = LMDBStoreSnapshotBase<Profile>;
 
-    using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
+    using ReadOnlySnapshotPtr = SharedPtr<ISWMRStoreReadOnlySnapshot<Profile>>;
 
     using typename Base::Store;
     using typename Base::CtrID;
@@ -48,7 +48,7 @@ protected:
     using typename Base::ApiProfileT;
 
     using typename Base::DirectoryCtrType;
-    using typename Base::CommitID;
+    using typename Base::SnapshotID;
 
     using Base::directory_ctr_;
     using Base::superblock_;
@@ -72,7 +72,7 @@ public:
     using Base::find;
     using Base::getBlock;
 
-    LMDBStoreReadOnlyCommit(
+    LMDBStoreReadOnlySnapshot(
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             MDB_env* mdb_env,
@@ -127,7 +127,7 @@ public:
         return VoidResult::of();
     }
 
-    virtual ~LMDBStoreReadOnlyCommit() noexcept {
+    virtual ~LMDBStoreReadOnlySnapshot() noexcept {
         if (transaction_) {
             mma_mdb_txn_abort(transaction_);
         }
@@ -159,11 +159,11 @@ protected:
     }
 
     virtual void updateBlock(Shared* block) {
-        MEMORIA_MAKE_GENERIC_ERROR("updateBlock() is not implemented for ReadOnly commits").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("updateBlock() is not implemented for ReadOnly snapshots").do_throw();
     }
 
     virtual void resizeBlock(Shared* block, int32_t new_size) {
-        MEMORIA_MAKE_GENERIC_ERROR("resizeBlock() is not implemented for ReadOnly commits").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("resizeBlock() is not implemented for ReadOnly snapshots").do_throw();
     }
 
     virtual void releaseBlock(Shared* block) noexcept
@@ -202,25 +202,25 @@ protected:
     }
 
     virtual void removeBlock(const BlockID& id) {
-        MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly commits").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly snapshots").do_throw();
     }
 
     virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID&) {
-        MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly commits").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly snapshots").do_throw();
     }
 
     virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID&) {
-        MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly snapshots").do_throw();
     }
 
     virtual void setRoot(const CtrID& ctr_id, const BlockID& root)
     {
-        MEMORIA_MAKE_GENERIC_ERROR("setRoot() is not implemented for ReadOnly commits").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("setRoot() is not implemented for ReadOnly snapshots").do_throw();
     }
 
 
     virtual BlockID newId() {
-        MEMORIA_MAKE_GENERIC_ERROR("newId() is not implemented for ReadOnly commits").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("newId() is not implemented for ReadOnly snapshots").do_throw();
     }
 
     virtual bool isActive() const noexcept {
@@ -252,7 +252,7 @@ protected:
         return true;
     }
 
-    bool is_system_commit() noexcept {
+    bool is_system_snapshot() noexcept {
         return false;
     }
 };

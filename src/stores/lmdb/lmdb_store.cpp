@@ -23,8 +23,8 @@ using ApiProfileT = ApiProfile<Profile>;
 
 template struct ILMDBStore<ApiProfileT>;
 template class LMDBStore<Profile>;
-template class LMDBStoreWritableCommit<Profile>;
-template class LMDBStoreReadOnlyCommit<Profile>;
+template class LMDBStoreWritableSnapshot<Profile>;
+template class LMDBStoreReadOnlySnapshot<Profile>;
 
 
 namespace {

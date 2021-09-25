@@ -27,9 +27,9 @@ class MappedSWMRStoreBase: public SWMRStoreBase<Profile> {
 protected:
     using typename Base::SuperblockT;
     using typename Base::CounterBlockT;
-    using typename Base::CommitDescriptorT;
+    using typename Base::SnapshotDescriptorT;
     using typename Base::CounterStorageT;
-    using typename Base::CommitID;
+    using typename Base::SnapshotID;
 
     using Base::BASIC_BLOCK_SIZE;
 

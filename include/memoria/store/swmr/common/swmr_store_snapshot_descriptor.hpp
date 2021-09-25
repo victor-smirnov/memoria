@@ -38,14 +38,14 @@ template <typename Profile>
 class HistoryTree;
 
 template <typename Profile>
-class CommitDescriptor: public boost::intrusive::list_base_hook<> {
+class SnapshotDescriptor: public boost::intrusive::list_base_hook<> {
     using Superblock = SWMRSuperblock<Profile>;
     using BlockID    = ProfileBlockID<Profile>;
-    using CommitID   = typename Superblock::CommitID;
+    using SnapshotID   = typename Superblock::SnapshotID;
     using SequenceID   = typename Superblock::SequenceID;
 
 public:
-    using SharedPtrT = boost::intrusive_ptr<CommitDescriptor>;
+    using SharedPtrT = boost::intrusive_ptr<SnapshotDescriptor>;
 
 private:
     using Children = std::unordered_set<SharedPtrT>;
@@ -63,10 +63,10 @@ private:
     };
 
     template <typename TT>
-    friend void intrusive_ptr_add_ref(CommitDescriptor<TT>*) noexcept;
+    friend void intrusive_ptr_add_ref(SnapshotDescriptor<TT>*) noexcept;
 
     template <typename TT>
-    friend void intrusive_ptr_release(CommitDescriptor<TT>*) noexcept;
+    friend void intrusive_ptr_release(SnapshotDescriptor<TT>*) noexcept;
 
     template <typename> friend class HistoryTree;
 
@@ -80,15 +80,15 @@ private:
     std::atomic<int32_t> uses_{};
     uint64_t superblock_ptr_;
     bool transient_{true};
-    bool system_commit_{false};
+    bool system_snapshot_{false};
     SequenceID sequence_id_{};
     SequenceID consistency_point_sequence_id_{};
-    CommitID commit_id_{};
+    SnapshotID snapshot_id_{};
 
-    CommitID allocation_map_commit_id_{};
+    SnapshotID allocation_map_snapshot_id_{};
     BlockID allocation_map_root_id_{};
 
-    CommitDescriptor* parent_;
+    SnapshotDescriptor* parent_;
     Children children_;
     U8String branch_;
 
@@ -99,21 +99,21 @@ private:
     uint64_t allocated_basic_blocks_threshold_{};
     int64_t t_start_{};
 
-    uint64_t commits_since_{};
-    uint64_t commits_threshold_{};
-    int64_t cp_timeout_{};
+    uint64_t snapshots_since_{};
+    uint64_t snapshots_threshold_{};
+    int64_t  cp_timeout_{};
 
     Status status_{Status::NEW};
 
 private:
-    CommitDescriptor(HistoryTreeT* history_tree, U8StringView branch) noexcept:
+    SnapshotDescriptor(HistoryTreeT* history_tree, U8StringView branch) noexcept:
         history_tree_(history_tree),
         superblock_ptr_(),
         parent_(),
         branch_(branch)
     {}
 
-    CommitDescriptor(
+    SnapshotDescriptor(
             HistoryTreeT* history_tree,
             uint64_t superblock_ptr,
             Superblock* superblock,
@@ -126,7 +126,7 @@ private:
     {
         sequence_id_ = superblock->sequence_id();
         consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
-        commit_id_   = superblock->commit_id();
+        snapshot_id_   = superblock->snapshot_id();
     }
 
 public:
@@ -161,12 +161,12 @@ public:
         allocated_basic_blocks_ += value;
     }
 
-    void inc_commits() noexcept {
-        commits_since_++;
+    void inc_snapshots() noexcept {
+        snapshots_since_++;
     }
 
-    void set_commits_threshold(uint64_t val) noexcept {
-        commits_threshold_ = val;
+    void set_snapshots_threshold(uint64_t val) noexcept {
+        snapshots_threshold_ = val;
     }
 
     void set_cp_timeout(int64_t val) noexcept {
@@ -180,7 +180,7 @@ public:
     bool should_make_consistency_point(const SharedPtrT& head) noexcept
     {
         return allocated_basic_blocks_ >= head->allocated_basic_blocks_threshold_ ||
-                commits_since_ >= head->commits_threshold_ ||
+                snapshots_since_ >= head->snapshots_threshold_ ||
                 head->cp_timeout_ >= 0 ? getTimeInMillis() - t_start_ >= head->cp_timeout_ : false;
     }
 
@@ -192,7 +192,7 @@ public:
         return postponed_deallocations_;
     }
 
-    void transfer_postponed_deallocations_to(CommitDescriptor* other)
+    void transfer_postponed_deallocations_to(SnapshotDescriptor* other)
     {
         if (other->postponed_deallocations_.size() == 0)
         {
@@ -228,12 +228,12 @@ public:
         allocation_map_root_id_ = id;
     }
 
-    const CommitID& allocation_map_commit_id() const noexcept {
-        return allocation_map_commit_id_;
+    const SnapshotID& allocation_map_snapshot_id() const noexcept {
+        return allocation_map_snapshot_id_;
     }
 
-    void set_allocation_map_commit_id(const CommitID& id){
-        allocation_map_commit_id_ = id;
+    void set_allocation_map_snapshot_id(const SnapshotID& id){
+        allocation_map_snapshot_id_ = id;
     }
 
     void detach_from_tree() noexcept
@@ -242,7 +242,7 @@ public:
             parent_->children_.erase(this);
         }
 
-        for (CommitDescriptor* chl: children_) {
+        for (SnapshotDescriptor* chl: children_) {
             chl->parent_ = nullptr;
         }
 
@@ -255,11 +255,11 @@ public:
         return superblock_ptr_;
     }
 
-    CommitDescriptor* parent() const noexcept {
+    SnapshotDescriptor* parent() const noexcept {
         return parent_;
     }
 
-    void set_parent(CommitDescriptor* parent) noexcept {
+    void set_parent(SnapshotDescriptor* parent) noexcept {
         parent_ = parent;
     }
 
@@ -268,14 +268,14 @@ public:
         superblock_ptr_ = ptr;
         sequence_id_ = superblock->sequence_id();
         consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
-        commit_id_   = superblock->commit_id();
+        snapshot_id_   = superblock->snapshot_id();
     }
 
     void refresh_descriptor(Superblock* superblock) noexcept
     {
         sequence_id_ = superblock->sequence_id();
         consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
-        commit_id_   = superblock->commit_id();
+        snapshot_id_   = superblock->snapshot_id();
     }
 
     bool is_transient() const noexcept {
@@ -287,12 +287,12 @@ public:
         handle_descriptior_state();
     };
 
-    bool is_system_commit() const noexcept {
-        return system_commit_;
+    bool is_system_snapshot() const noexcept {
+        return system_snapshot_;
     }
 
-    void set_system_commit(bool value) noexcept {
-        system_commit_ = value;
+    void set_system_snapshot(bool value) noexcept {
+        system_snapshot_ = value;
     };
 
     const SequenceID& sequence_id() const noexcept {
@@ -316,8 +316,8 @@ public:
         return uses_.load() > 0;
     }
 
-    const CommitID& commit_id() const noexcept {
-        return commit_id_;
+    const SnapshotID& snapshot_id() const noexcept {
+        return snapshot_id_;
     }
 
     auto& children() noexcept {
@@ -348,7 +348,7 @@ private:
                 }
             }
             else if (val == 0) {
-                println("Zero refcounter for attached commit descriptor! {}", commit_id());
+                println("Zero refcounter for attached snapshot descriptor! {}", snapshot_id());
             }
         }
         else if(val == 0) { // is_new() == true
@@ -363,15 +363,15 @@ private:
 };
 
 template <typename Profile>
-using CommitDescriptorsList = boost::intrusive::list<CommitDescriptor<Profile>>;
+using SnapshotDescriptorsList = boost::intrusive::list<SnapshotDescriptor<Profile>>;
 
 template <typename Profile>
-inline void intrusive_ptr_add_ref(CommitDescriptor<Profile>* x) noexcept {
+inline void intrusive_ptr_add_ref(SnapshotDescriptor<Profile>* x) noexcept {
     ++x->references_;
 }
 
 template <typename Profile>
-inline void intrusive_ptr_release(CommitDescriptor<Profile>* x) noexcept {
+inline void intrusive_ptr_release(SnapshotDescriptor<Profile>* x) noexcept {
     --x->references_;
     x->handle_descriptior_state();
 }

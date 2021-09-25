@@ -51,7 +51,7 @@ public:
     static constexpr UUID MAGICK2 = UUID(7224616273360177767ull, 17766392426138176942ull);
 
     using BlockID    = ProfileBlockID<Profile>;
-    using CommitID   = ApiProfileSnapshotID<ApiProfile<Profile>>;
+    using SnapshotID   = ApiProfileSnapshotID<ApiProfile<Profile>>;
     using SequenceID = uint64_t;
     using CtrSizeT   = ProfileCtrSizeT<Profile>;
 
@@ -70,7 +70,7 @@ private:
     char magic_buffer_[512];
     SequenceID sequence_id_;
     SequenceID consistency_point_sequence_id_;
-    CommitID commit_id_;
+    SnapshotID snapshot_id_;
     uint64_t file_size_;
     uint64_t superblock_file_pos_;
     uint64_t superblock_size_;
@@ -150,11 +150,11 @@ public:
     void mark_for_rollback() noexcept
     {
         consistency_point_sequence_id_ -= 2;
-        commit_id_ = CommitID{};
+        snapshot_id_ = SnapshotID{};
     }
 
-    const CommitID& commit_id() const noexcept {return commit_id_;}
-    void set_commit_id(const CommitID& id) noexcept {commit_id_ = id;}
+    const SnapshotID& snapshot_id() const noexcept {return snapshot_id_;}
+    void set_snapshot_id(const SnapshotID& id) noexcept {snapshot_id_ = id;}
 
     uint64_t file_size() const noexcept {return file_size_;}
     void set_file_size(uint64_t size) noexcept {file_size_ = size;}
@@ -212,7 +212,7 @@ public:
     void init(
             uint64_t superblock_file_pos,
             uint64_t file_size,
-            const CommitID& commit_id,
+            const SnapshotID& commit_id,
             size_t superblock_size,
             SequenceID sequence_id,
             SequenceID cp_sequence_id,
@@ -228,7 +228,7 @@ public:
 
         sequence_id_ = sequence_id;
         consistency_point_sequence_id_ = cp_sequence_id;
-        commit_id_   = commit_id;
+        snapshot_id_   = commit_id;
 
         superblock_file_pos_ = superblock_file_pos;
         file_size_           = file_size;
@@ -251,7 +251,7 @@ public:
         init_metadata(meta);
     }
 
-    void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, const CommitID& commit_id, LDDocumentView meta)
+    void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, const SnapshotID& commit_id, LDDocumentView meta)
     {
         magick1_ = other.magick1_;
         magick2_ = other.magick2_;
@@ -265,7 +265,7 @@ public:
 
         sequence_id_ = other.sequence_id_ + 1;
         consistency_point_sequence_id_ = other.consistency_point_sequence_id_;
-        commit_id_   = commit_id;
+        snapshot_id_   = commit_id;
 
         superblock_file_pos_ = superblock_file_pos;
         file_size_           = other.file_size_;
@@ -297,8 +297,8 @@ public:
     void build_superblock_description()
     {
         return set_description(
-            "MEMORIA SWMR MAPPED STORE. VERSION:{}; CommitID:{}, SequenceID:{}, SuperblockFilePos:{}, FileSize:{}, Status:{}, Counters:{}, CounterAt:{}, Profile:{}",
-            version_, commit_id_, sequence_id_, superblock_file_pos_,
+            "MEMORIA SWMR MAPPED STORE. VERSION:{}; SnapshotID:{}, SequenceID:{}, SuperblockFilePos:{}, FileSize:{}, Status:{}, Counters:{}, CounterAt:{}, Profile:{}",
+            version_, snapshot_id_, sequence_id_, superblock_file_pos_,
             file_size_, (is_clean() ? "CLEAN" : "UNCLEAN"), global_block_counters_size_,
                     global_block_counters_file_pos_,
                     TypeNameFactory<Profile>::name()

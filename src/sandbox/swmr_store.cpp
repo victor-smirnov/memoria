@@ -32,7 +32,7 @@ int main(void) {
         const char* file = "file.mma2";
 
         filesystem::remove(file);
-        auto store1 = create_lite_swmr_store(file, 10240);
+        auto store1 = create_lite_swmr_store(file, 256);
 
         UID256 ctr_id = UID256::make_random();
 
@@ -57,7 +57,7 @@ int main(void) {
             int cnt = 0;
             int b0  = 0;
             int batch_size = 1000;
-            int num_entries = 100000000;
+            int num_entries = 100000;
 
             while (cnt < num_entries)
             {

@@ -18,8 +18,8 @@
 
 #include <memoria/store/swmr/common/mapped_swmr_store_base.hpp>
 
-#include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_commit_cowlite.hpp>
-#include <memoria/store/swmr/mapped/swmr_mapped_store_writable_commit_cowlite.hpp>
+#include <memoria/store/swmr/mapped/swmr_mapped_store_readonly_snapshot_cowlite.hpp>
+#include <memoria/store/swmr/mapped/swmr_mapped_store_writable_snapshot_cowlite.hpp>
 
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
@@ -41,19 +41,19 @@ class SWMRLiteRawStore: public MappedSWMRStoreBase<Profile>, public EnableShared
 
     using Base = MappedSWMRStoreBase<Profile>;
 
-    using MappedReadOnlyCommitPtr = SnpSharedPtr<MappedSWMRStoreReadOnlyCommit<Profile>>;
-    using MappedWritableCommitPtr = SnpSharedPtr<MappedSWMRStoreWritableCommit<Profile>>;
+    using MappedReadOnlySnapshotPtr = SnpSharedPtr<MappedSWMRStoreReadOnlySnapshot<Profile>>;
+    using MappedWritableSnapshotPtr = SnpSharedPtr<MappedSWMRStoreWritableSnapshot<Profile>>;
 
 protected:
 
-    using typename Base::ReadOnlyCommitPtr;
-    using typename Base::WritableCommitPtr;
+    using typename Base::ReadOnlySnapshotPtr;
+    using typename Base::WritableSnapshotPtr;
 
-    using typename Base::SWMRReadOnlyCommitPtr;
-    using typename Base::SWMRWritableCommitPtr;
+    using typename Base::SWMRReadOnlySnapshotPtr;
+    using typename Base::SWMRWritableSnapshotPtr;
 
 
-    using typename Base::CommitID;
+    using typename Base::SnapshotID;
     using typename Base::SequenceID;
     using typename Base::CDescrPtr;
     using typename Base::SuperblockT;
@@ -103,7 +103,7 @@ public:
     }
 
     static void init_profile_metadata() noexcept {
-        MappedSWMRStoreWritableCommit<Profile>::init_profile_metadata();
+        MappedSWMRStoreWritableSnapshot<Profile>::init_profile_metadata();
     }
 
     void flush_data(bool async = false) override {
@@ -112,15 +112,15 @@ public:
     void flush_header(bool async = false) override {
     }
 
-    virtual SWMRReadOnlyCommitPtr do_open_readonly(CDescrPtr commit_descr) override
+    virtual SWMRReadOnlySnapshotPtr do_open_readonly(CDescrPtr snapshot_descr) override
     {        
-        if (!commit_descr->is_read_only_openable()) {
-            MEMORIA_MAKE_GENERIC_ERROR("Commit {} is transient.", commit_descr->commit_id()).do_throw();
+        if (!snapshot_descr->is_read_only_openable()) {
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is transient.", snapshot_descr->snapshot_id()).do_throw();
         }
 
         MaybeError maybe_error{};
-        MappedReadOnlyCommitPtr ptr = snp_make_shared<MappedSWMRStoreReadOnlyCommit<Profile>>(
-                maybe_error, this->shared_from_this(), buffer_, commit_descr
+        MappedReadOnlySnapshotPtr ptr = snp_make_shared<MappedSWMRStoreReadOnlySnapshot<Profile>>(
+                maybe_error, this->shared_from_this(), buffer_, snapshot_descr
         );
 
         if (!maybe_error) {
@@ -132,20 +132,20 @@ public:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_create_writable(
+    virtual SWMRWritableSnapshotPtr do_create_writable(
             CDescrPtr consistency_point,
             CDescrPtr head,
             CDescrPtr parent,
-            CDescrPtr commit_descr
+            CDescrPtr snapshot_descr
     ) override
     {
         MaybeError maybe_error{};
-        auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
-            maybe_error, this->shared_from_this(), buffer_, commit_descr
+        auto ptr = snp_make_shared<MappedSWMRStoreWritableSnapshot<Profile>>(
+            maybe_error, this->shared_from_this(), buffer_, snapshot_descr
         );
 
         if (!maybe_error) {
-            ptr->init_commit(consistency_point, head, parent);
+            ptr->init_snapshot(consistency_point, head, parent);
             return std::move(ptr);
         }
         else {
@@ -153,21 +153,21 @@ public:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_open_writable(CDescrPtr commit_descr, RemovingBlockConsumerFn fn, bool force) override {
+    virtual SWMRWritableSnapshotPtr do_open_writable(CDescrPtr snapshot_descr, RemovingBlockConsumerFn fn, bool force) override {
         MaybeError maybe_error{};
-        MappedWritableCommitPtr ptr{};
+        MappedWritableSnapshotPtr ptr{};
 
-        if ((!force) && commit_descr->is_linked()) {
-            MEMORIA_MAKE_GENERIC_ERROR("Commit {} is already being removed", commit_descr->commit_id()).do_throw();
+        if ((!force) && snapshot_descr->is_linked()) {
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is already being removed", snapshot_descr->snapshot_id()).do_throw();
         }
 
-        ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
-            maybe_error, this->shared_from_this(), buffer_, commit_descr, fn
+        ptr = snp_make_shared<MappedSWMRStoreWritableSnapshot<Profile>>(
+            maybe_error, this->shared_from_this(), buffer_, snapshot_descr, fn
         );
 
 
         if (!maybe_error) {
-            ptr->open_commit();
+            ptr->open_snapshot();
             return std::move(ptr);
         }
         else {
@@ -175,17 +175,17 @@ public:
         }
     }
 
-    virtual SWMRWritableCommitPtr do_create_writable_for_init(CDescrPtr commit_descr) override
+    virtual SWMRWritableSnapshotPtr do_create_writable_for_init(CDescrPtr snapshot_descr) override
     {
         MaybeError maybe_error{};
 
-        auto ptr = snp_make_shared<MappedSWMRStoreWritableCommit<Profile>>(
-            maybe_error, this->shared_from_this(), buffer_, commit_descr
+        auto ptr = snp_make_shared<MappedSWMRStoreWritableSnapshot<Profile>>(
+            maybe_error, this->shared_from_this(), buffer_, snapshot_descr
         );
 
         if (!maybe_error)
         {
-            ptr->init_store_commit();
+            ptr->init_store_snapshot();
             return std::move(ptr);
         }
         else {

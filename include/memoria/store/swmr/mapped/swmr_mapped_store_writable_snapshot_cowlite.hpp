@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/store/swmr/mapped/swmr_mapped_store_common.hpp>
-#include <memoria/store/swmr/common/swmr_store_writable_commit_base.hpp>
+#include <memoria/store/swmr/common/swmr_store_writable_snapshot_base.hpp>
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 
 #include <memoria/core/datatypes/type_registry.hpp>
@@ -32,26 +32,26 @@
 namespace memoria {
 
 template <typename>
-class MappedSWMRStoreReadOnlyCommit;
+class MappedSWMRStoreReadOnlySnapshot;
 
 
 template <typename>
-class MappedSWMRStoreWritableCommit;
+class MappedSWMRStoreWritableSnapshot;
 
 template <typename ChildProfile>
-class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
-        public SWMRStoreWritableCommitBase<CowLiteProfile<ChildProfile>>,
-        public EnableSharedFromThis<MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>>
+class MappedSWMRStoreWritableSnapshot<CowLiteProfile<ChildProfile>>:
+        public SWMRStoreWritableSnapshotBase<CowLiteProfile<ChildProfile>>,
+        public EnableSharedFromThis<MappedSWMRStoreWritableSnapshot<CowLiteProfile<ChildProfile>>>
 {
     using Profile = CowLiteProfile<ChildProfile>;
 
-    using Base = SWMRStoreWritableCommitBase<CowLiteProfile<ChildProfile>>;
+    using Base = SWMRStoreWritableSnapshotBase<CowLiteProfile<ChildProfile>>;
 
     using typename Base::Store;
     using typename Base::CDescrPtr;
 
     using typename Base::StoreT;
-    using typename Base::CommitID;
+    using typename Base::SnapshotID;
     using typename Base::BlockID;
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
@@ -88,17 +88,17 @@ class MappedSWMRStoreWritableCommit<CowLiteProfile<ChildProfile>>:
 
 public:
     using Base::check;
-    using Base::commit_id;
+    using Base::snapshot_id;
     using Base::CustomLog2;
 
-    MappedSWMRStoreWritableCommit(
+    MappedSWMRStoreWritableSnapshot(
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             Span<uint8_t> buffer,
-            CDescrPtr& commit_descriptor,
+            CDescrPtr& snapshot_descriptor,
             RemovingBlocksConsumerFn removing_blocks_consumer_fn = RemovingBlocksConsumerFn{}
     ) noexcept:
-        Base(store, commit_descriptor, store.get(), removing_blocks_consumer_fn),
+        Base(store, snapshot_descriptor, store.get(), removing_blocks_consumer_fn),
         buffer_(buffer)
     {}
 
@@ -128,7 +128,7 @@ public:
             BlockType* block = ptr_cast<BlockType>(buffer_.data() + vv );
             Shared* shared = shared_pool_.construct(block_id, block, 0);
             shared->set_allocator(this);
-            shared->set_mutable(block->snapshot_id() == commit_id());
+            shared->set_mutable(block->snapshot_id() == snapshot_id());
 
             return {block_id.value().value() * BASIC_BLOCK_SIZE, SharedBlockConstPtr{shared}};
         }
@@ -160,7 +160,7 @@ public:
         BlockType* block = new (block_addr) BlockType(id, bid, bid);
 
         block->memory_block_size() = size;
-        block->snapshot_id() = commit_id();
+        block->snapshot_id() = snapshot_id();
 
         Shared* shared = shared_pool_.construct(id, block, 0);
         shared->set_allocator(this);
@@ -184,7 +184,7 @@ public:
         new_block->id()   = id;
         new_block->uuid() = bid;
         new_block->id_value() = bid;
-        new_block->snapshot_id() = commit_id();
+        new_block->snapshot_id() = snapshot_id();
 
         new_block->set_references(0);
 

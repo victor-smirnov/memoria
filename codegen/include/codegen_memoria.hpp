@@ -293,6 +293,6 @@ class [[clang::annotate(R"(
             "memoria/core/tools/uid_256.hpp"
         ]
     }
-)")]] TypeInstance<Map<UID256, CommitMetadataDT<DataTypeFromProfile<ApiProfile<CowProfile<>>>>>> {};
+)")]] TypeInstance<Map<UID256, SnapshotMetadataDT<DataTypeFromProfile<ApiProfile<CowProfile<>>>>>> {};
 
 }

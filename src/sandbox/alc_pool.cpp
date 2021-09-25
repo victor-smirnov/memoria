@@ -118,7 +118,7 @@ int main(void) {
         println("a1 < a2 :: {}", a1 < a2);
 
 
-        LDDocument doc = LDDocument::parse_type_decl("Map<UUID, CommitMetadataDT<CoreApiProfile>>");
+        LDDocument doc = LDDocument::parse_type_decl("Map<UUID, SnapshotMetadataDT<CoreApiProfile>>");
 
         auto td = doc.value().as_type_decl();
 

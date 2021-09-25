@@ -35,7 +35,7 @@ struct PythonAPIBinder<StoreSnapshotOps<Profile>> {
 
     using CtrID = ApiProfileCtrID<Profile>;
 
-    using CommitID   = int64_t;
+    using SnapshotID   = int64_t;
     using SequenceID = uint64_t;
 
     static void make_bindings(pybind11::module_& m) {

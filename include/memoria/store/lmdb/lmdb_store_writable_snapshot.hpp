@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/store/lmdb/lmdb_store_common.hpp>
-#include <memoria/store/lmdb/lmdb_store_readonly_commit.hpp>
+#include <memoria/store/lmdb/lmdb_store_readonly_snapshot.hpp>
 
 #include <memoria/core/datatypes/type_registry.hpp>
 
@@ -26,26 +26,26 @@
 #include <type_traits>
 
 template <typename Profile>
-class LMDBStoreReadOnlyCommit;
+class LMDBStoreReadOnlySnapshot;
 
 namespace memoria {
 
 struct InitLMDBStoreTag{};
 
 template <typename Profile>
-class LMDBStoreWritableCommit:
-        public LMDBStoreCommitBase<Profile>,
-        public ISWMRStoreWritableCommit<ApiProfile<Profile>>,
-        public EnableSharedFromThis<LMDBStoreWritableCommit<Profile>>
+class LMDBStoreWritableSnapshot:
+        public LMDBStoreSnapshotBase<Profile>,
+        public ISWMRStoreWritableSnapshot<ApiProfile<Profile>>,
+        public EnableSharedFromThis<LMDBStoreWritableSnapshot<Profile>>
 {
-    using Base = LMDBStoreCommitBase<Profile>;
-    using typename ISWMRStoreWritableCommit<ApiProfile<Profile>>::ROStoreSnapshotPtr;
+    using Base = LMDBStoreSnapshotBase<Profile>;
+    using typename ISWMRStoreWritableSnapshot<ApiProfile<Profile>>::ROStoreSnapshotPtr;
 
     using typename Base::Store;
     using typename Base::CtrID;
     using typename Base::CtrReferenceableResult;
     using typename Base::StoreT;
-    using typename Base::CommitID;
+    using typename Base::SnapshotID;
     using typename Base::BlockID;
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
@@ -123,7 +123,7 @@ class LMDBStoreWritableCommit:
 public:
     using Base::check;
 
-    LMDBStoreWritableCommit(
+    LMDBStoreWritableSnapshot(
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             MDB_env* mdb_env,
@@ -165,7 +165,7 @@ public:
         }
     }
 
-    LMDBStoreWritableCommit(
+    LMDBStoreWritableSnapshot(
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             MDB_env* mdb_env,
@@ -205,7 +205,7 @@ public:
         }
     }
 
-    virtual ~LMDBStoreWritableCommit() noexcept {
+    virtual ~LMDBStoreWritableSnapshot() noexcept {
         if (transaction_ && !committed_) {
             mma_mdb_txn_abort(transaction_);
         }
@@ -219,11 +219,11 @@ public:
         return commit(ConsistencyPoint::YES);
     }
 
-    void finish_commit_opening() {
+    void finish_snapshot_opening() {
     }
 
-    virtual CommitID commit_id() {
-        return Base::commit_id();
+    virtual SnapshotID snapshot_id() {
+        return Base::snapshot_id();
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
@@ -260,7 +260,7 @@ public:
             committed_ = true;
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Transaction {} has been already committed", commit_id()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Transaction {} has been already committed", snapshot_id()).do_throw();
         }
     }
 
@@ -324,7 +324,7 @@ public:
         return true;
     }
 
-    virtual bool is_system_commit() noexcept {
+    virtual bool is_system_snapshot() noexcept {
         return false;
     }
 
@@ -744,8 +744,8 @@ private:
         MEMORIA_MAKE_GENERIC_ERROR("Method rollback() is not yet implemented").do_throw();
     }
 
-    bool remove_commit(const CommitID&) {
-        MEMORIA_MAKE_GENERIC_ERROR("Method remove_commit() is not supported").do_throw();
+    bool remove_snapshot(const SnapshotID&) {
+        MEMORIA_MAKE_GENERIC_ERROR("Method remove_snapshot() is not supported").do_throw();
     }
     bool remove_branch(U8StringView branch_name) {
         MEMORIA_MAKE_GENERIC_ERROR("Method remove_branch() is not summported").do_throw();

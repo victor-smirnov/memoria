@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/store/swmr/common/swmr_store_readonly_commit_base.hpp>
+#include <memoria/store/swmr/common/swmr_store_readonly_snapshot_base.hpp>
 
 #include <memoria/profiles/impl/cow_lite_profile.hpp>
 
@@ -25,19 +25,19 @@
 namespace memoria {
 
 template <typename>
-class MappedSWMRStoreReadOnlyCommit;
+class MappedSWMRStoreReadOnlySnapshot;
 
 template <typename ChildProfile>
-class MappedSWMRStoreReadOnlyCommit<CowLiteProfile<ChildProfile>>:
-        public SWMRStoreReadOnlyCommitBase<CowLiteProfile<ChildProfile>>,
-        public EnableSharedFromThis<MappedSWMRStoreReadOnlyCommit<CowLiteProfile<ChildProfile>>>
+class MappedSWMRStoreReadOnlySnapshot<CowLiteProfile<ChildProfile>>:
+        public SWMRStoreReadOnlySnapshotBase<CowLiteProfile<ChildProfile>>,
+        public EnableSharedFromThis<MappedSWMRStoreReadOnlySnapshot<CowLiteProfile<ChildProfile>>>
 {
 protected:
     using Profile = CowLiteProfile<ChildProfile>;
 
-    using Base = SWMRStoreReadOnlyCommitBase<Profile>;
+    using Base = SWMRStoreReadOnlySnapshotBase<Profile>;
 
-    using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
+    using ReadOnlySnapshotPtr = SharedPtr<ISWMRStoreReadOnlySnapshot<Profile>>;
 
     using typename Base::Store;
     using typename Base::CDescrPtr;
@@ -58,7 +58,7 @@ protected:
     using typename Base::AllocationMapCtrType;
     using typename Base::AllocationMetadataT;
 
-    using typename Base::CommitID;
+    using typename Base::SnapshotID;
 
     using typename Base::Shared;
 
@@ -66,7 +66,7 @@ protected:
 
     using Base::store_;
     using Base::directory_ctr_;
-    using Base::commit_descriptor_;
+    using Base::snapshot_descriptor_;
     using Base::internal_find_by_root_typed;
     using Base::traverse_cow_containers;
     using Base::traverse_ctr_cow_tree;
@@ -84,20 +84,20 @@ public:
     using Base::find;
     using Base::getBlock;
 
-    MappedSWMRStoreReadOnlyCommit(
+    MappedSWMRStoreReadOnlySnapshot(
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             Span<uint8_t> buffer,
-            CDescrPtr& commit_descriptor,
+            CDescrPtr& snapshot_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate = nullptr
     ) noexcept:
-        Base(store, commit_descriptor, refcounter_delegate),
+        Base(store, snapshot_descriptor, refcounter_delegate),
         buffer_(buffer)
     {
     }
 
     void post_init() {
-        auto sb = this->get_superblock(commit_descriptor_->superblock_ptr());
+        auto sb = this->get_superblock(snapshot_descriptor_->superblock_ptr());
 
         auto root_block_id = sb->directory_root_id();
         if (root_block_id.is_set())

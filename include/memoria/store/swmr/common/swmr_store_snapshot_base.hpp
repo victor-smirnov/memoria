@@ -23,7 +23,7 @@
 #include <memoria/api/map/map_api.hpp>
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 
-#include <memoria/store/swmr/common/swmr_store_commit_descriptor.hpp>
+#include <memoria/store/swmr/common/swmr_store_snapshot_descriptor.hpp>
 #include <memoria/store/swmr/common/swmr_store_counters.hpp>
 
 #include <memoria/store/swmr/common/swmr_store_datatypes.hpp>
@@ -49,7 +49,7 @@ constexpr UID256 BlockMapCtrID = UID256(5683297571480407555ull, 6466791747040283
 
 
 template <typename Profile>
-struct CommitCheckState {
+struct SnapshotCheckState {
     SWMRBlockCounters<Profile> counters;
 };
 
@@ -68,9 +68,9 @@ struct ReferenceCounterDelegate {
 template <typename Profile> class SWMRStoreBase;
 
 template <typename Profile>
-class SWMRStoreCommitBase:
+class SWMRStoreSnapshotBase:
         public ProfileStoreType<Profile>,
-        public ISWMRStoreReadOnlyCommit<ApiProfile<Profile>>
+        public ISWMRStoreReadOnlySnapshot<ApiProfile<Profile>>
 {
     using Base = ProfileStoreType<Profile>;
 protected:
@@ -94,15 +94,13 @@ protected:
     using VisitedBlocks = std::unordered_set<BlockID>;
     using AllocationMetadataT = AllocationMetadata<ApiProfileT>;
 
-
-    using CommitID = typename ISWMRStoreCommitBase<ApiProfileT>::CommitID;
-    using CommitMetadataT = CommitMetadata<ApiProfileT>;
+    using SnapshotMetadataT = SWMRSnapshotMetadata<ApiProfileT>;
     using SequenceID = uint64_t;
 
     using CounterStorageT = CounterStorage<Profile>;
 
-    using CommitDescriptorT         = CommitDescriptor<Profile>;
-    using CDescrPtr                 = typename CommitDescriptorT::SharedPtrT;
+    using SnapshotDescriptorT       = SnapshotDescriptor<Profile>;
+    using CDescrPtr                 = typename SnapshotDescriptorT::SharedPtrT;
 
     using CtrReferenceableResult    = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
     using StoreT                    = Base;
@@ -117,7 +115,7 @@ protected:
     using AllocationMapCtrType = AllocationMap;
     using AllocationMapCtr  = ICtrApi<AllocationMapCtrType, ApiProfileT>;
 
-    using HistoryCtrType    = Map<CommitID, CommitMetadataDT<DataTypeFromProfile<ApiProfileT>>>;
+    using HistoryCtrType    = Map<SnapshotID, SnapshotMetadataDT<DataTypeFromProfile<ApiProfileT>>>;
     using HistoryCtr        = ICtrApi<HistoryCtrType, ApiProfileT>;
 
     static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
@@ -134,7 +132,7 @@ protected:
 
     CtrInstanceMap instance_map_;
 
-    CDescrPtr commit_descriptor_;
+    CDescrPtr snapshot_descriptor_;
 
     CtrSharedPtr<DirectoryCtr>      directory_ctr_;
     CtrSharedPtr<AllocationMapCtr>  allocation_map_ctr_;
@@ -149,17 +147,17 @@ protected:
 public:
     using Base::getBlock;
 
-    SWMRStoreCommitBase(
+    SWMRStoreSnapshotBase(
             SharedPtr<Store> store,
-            CDescrPtr& commit_descriptor,
+            CDescrPtr& snapshot_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate
     ) noexcept:
         store_(store),
-        commit_descriptor_(commit_descriptor),
+        snapshot_descriptor_(snapshot_descriptor),
         refcounter_delegate_(refcounter_delegate)
     {
-        if (MMA_UNLIKELY(!commit_descriptor_)) {
-            MEMORIA_MAKE_GENERIC_ERROR("commit_descriptor is null").do_throw();
+        if (MMA_UNLIKELY(!snapshot_descriptor_)) {
+            MEMORIA_MAKE_GENERIC_ERROR("snapshot_descriptor is null").do_throw();
         }
     }
 
@@ -204,11 +202,11 @@ public:
 
 
     SharedSBPtr<Superblock> get_superblock() {
-        return get_superblock(commit_descriptor_->superblock_ptr());
+        return get_superblock(snapshot_descriptor_->superblock_ptr());
     }
 
     SharedSBPtr<Superblock> get_superblock() const {
-        return const_cast<SWMRStoreCommitBase*>(this)->get_superblock(commit_descriptor_->superblock_ptr());
+        return const_cast<SWMRStoreSnapshotBase*>(this)->get_superblock(snapshot_descriptor_->superblock_ptr());
     }
 
     SequenceID sequence_id() noexcept {
@@ -302,23 +300,23 @@ public:
     }
 
     virtual void removeBlock(const BlockID& id) {
-        MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly commits").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("removeBlock() is not implemented for ReadOnly snapshots").do_throw();
     }
 
     virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID&) {
-        MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly commits").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("createBlock() is not implemented for ReadOnly snapshots").do_throw();
     }
 
     virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID&) {
-        MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly commits").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("cloneBlock() is not implemented for ReadOnly snapshots").do_throw();
     }
 
     virtual BlockID newId() {
-        MEMORIA_MAKE_GENERIC_ERROR("newId() is not implemented for ReadOnly commits").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("newId() is not implemented for ReadOnly snapshots").do_throw();
     }
 
     virtual SnapshotID currentTxnId() const noexcept {
-        return get_superblock()->commit_id();
+        return get_superblock()->snapshot_id();
     }
 
     // memory pool allocator
@@ -521,12 +519,12 @@ public:
         if (allocator_descr != nullptr)
         {
             walker->beginSnapshot(
-                        fmt::format("Snapshot-{} -- {}", sb->commit_id(), allocator_descr).data()
+                        fmt::format("Snapshot-{} -- {}", sb->snapshot_id(), allocator_descr).data()
             );
         }
         else {
             walker->beginSnapshot(
-                        fmt::format("Snapshot-{}", sb->commit_id()).data()
+                        fmt::format("Snapshot-{}", sb->snapshot_id()).data()
             );
         }
 
@@ -574,8 +572,8 @@ public:
 
     //=================================== R/O Commit Stuff ===========================
 
-    virtual CommitID commit_id() noexcept {
-        return get_superblock()->commit_id();
+    virtual SnapshotID snapshot_id() noexcept {
+        return get_superblock()->snapshot_id();
     }
 
     virtual bool is_committed() const noexcept {
@@ -860,7 +858,7 @@ public:
         this->superblock_ = superblock;
     }
 
-    void for_each_history_entry(const std::function<void (const CommitID&, const CommitMetadata<ApiProfileT>&)>& fn)
+    void for_each_history_entry(const std::function<void (const SnapshotID&, const SWMRSnapshotMetadata<ApiProfileT>&)>& fn)
     {
         init_history_ctr();
         auto scanner = history_ctr_->scanner();
@@ -911,11 +909,11 @@ public:
         }
     }
 
-    Optional<int64_t> find_root(const CommitID& commit_id) {
+    Optional<int64_t> find_root(const SnapshotID& snapshot_id) {
         init_history_ctr();
-        auto iter = history_ctr_->find(commit_id);
+        auto iter = history_ctr_->find(snapshot_id);
 
-        if (iter->is_found(commit_id)) {
+        if (iter->is_found(snapshot_id)) {
             return iter->value().view();
         }
 
@@ -969,7 +967,7 @@ public:
         return resolve_block(block_id).block;
     }
 
-    void for_each_history_entry_batch(const std::function<void (Span<const CommitID>, Span<const CommitMetadataT>)>& fn)
+    void for_each_history_entry_batch(const std::function<void (Span<const SnapshotID>, Span<const SnapshotMetadataT>)>& fn)
     {
         init_history_ctr();
 
@@ -1014,7 +1012,7 @@ public:
 
     void add_superblock(LiteAllocationMap<ApiProfileT>& allocations)
     {
-        uint64_t sb_ptr = commit_descriptor_->superblock_ptr() / BASIC_BLOCK_SIZE;
+        uint64_t sb_ptr = snapshot_descriptor_->superblock_ptr() / BASIC_BLOCK_SIZE;
         allocations.append(AllocationMetadataT{(CtrSizeT)sb_ptr, 1, SUPERBLOCK_ALLOCATION_LEVEL});
     }
 

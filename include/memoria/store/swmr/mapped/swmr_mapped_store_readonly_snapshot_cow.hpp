@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/store/swmr/common/swmr_store_readonly_commit_base.hpp>
+#include <memoria/store/swmr/common/swmr_store_readonly_snapshot_base.hpp>
 #include <memoria/core/tools/simple_2q_cache.hpp>
 #include <memoria/core/tools/uid_64.hpp>
 
@@ -27,19 +27,19 @@
 namespace memoria {
 
 template <typename>
-class MappedSWMRStoreReadOnlyCommit;
+class MappedSWMRStoreReadOnlySnapshot;
 
 template <typename ChildProfile>
-class MappedSWMRStoreReadOnlyCommit<CowProfile<ChildProfile>>:
-        public SWMRStoreReadOnlyCommitBase<CowProfile<ChildProfile>>,
-        public EnableSharedFromThis<MappedSWMRStoreReadOnlyCommit<CowProfile<ChildProfile>>>
+class MappedSWMRStoreReadOnlySnapshot<CowProfile<ChildProfile>>:
+        public SWMRStoreReadOnlySnapshotBase<CowProfile<ChildProfile>>,
+        public EnableSharedFromThis<MappedSWMRStoreReadOnlySnapshot<CowProfile<ChildProfile>>>
 {
 protected:
     using Profile = CowProfile<ChildProfile>;
 
-    using Base = SWMRStoreReadOnlyCommitBase<Profile>;
+    using Base = SWMRStoreReadOnlySnapshotBase<Profile>;
 
-    using ReadOnlyCommitPtr = SharedPtr<ISWMRStoreReadOnlyCommit<Profile>>;
+    using ReadOnlySnapshotPtr = SharedPtr<ISWMRStoreReadOnlySnapshot<Profile>>;
 
     using typename Base::ApiProfileT;
     using typename Base::Store;
@@ -61,7 +61,7 @@ protected:
     using typename Base::AllocationMapCtrType;
     using typename Base::AllocationMetadataT;
 
-    using typename Base::CommitID;
+    using typename Base::SnapshotID;
 
     using typename Base::Shared;
 
@@ -73,7 +73,7 @@ protected:
     using Base::BASIC_BLOCK_SIZE;
 
     using Base::directory_ctr_;
-    using Base::commit_descriptor_;
+    using Base::snapshot_descriptor_;
     using Base::internal_find_by_root_typed;
 
     class CacheEntryBase: public Shared {
@@ -110,14 +110,14 @@ public:
     using Base::allocation_level;
 
 
-    MappedSWMRStoreReadOnlyCommit(
+    MappedSWMRStoreReadOnlySnapshot(
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             Span<uint8_t> buffer,
-            CDescrPtr& commit_descriptor,
+            CDescrPtr& snapshot_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate = nullptr
     ) noexcept:
-        Base(store, commit_descriptor, refcounter_delegate),
+        Base(store, snapshot_descriptor, refcounter_delegate),
         buffer_(buffer),
         block_cache_(1024*128)
     {}

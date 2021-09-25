@@ -157,7 +157,7 @@ protected:
 
 
 class LMDBStoreTreeItem: public AbstractTreeItem, public BlockCounterProvider {
-    using CommitPtr = typename ILMDBStore<CoreApiProfile<>>::ReadOnlyCommitPtr;
+    using CommitPtr = typename ILMDBStore<CoreApiProfile<>>::ReadOnlySnapshotPtr;
 
 protected:
     LMDBStorePtr store_;
@@ -352,7 +352,7 @@ protected:
 
 class LMDBStoreContainerTreeItem: public AbstractTreeItem {
 protected:
-    using CommitPtr = typename ILMDBStore<CoreApiProfile<>>::ReadOnlyCommitPtr;
+    using CommitPtr = typename ILMDBStore<CoreApiProfile<>>::ReadOnlySnapshotPtr;
     CommitPtr commit_;
     //UID256 snapshot_id_;
     UID256 ctr_id_;

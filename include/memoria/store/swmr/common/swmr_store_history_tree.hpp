@@ -22,7 +22,7 @@
 #include <memoria/core/tools/arena_buffer.hpp>
 
 #include <memoria/profiles/common/common.hpp>
-#include <memoria/store/swmr/common/swmr_store_commit_descriptor.hpp>
+#include <memoria/store/swmr/common/swmr_store_snapshot_descriptor.hpp>
 #include <memoria/store/swmr/common/swmr_store_datatypes.hpp>
 #include <memoria/store/swmr/common/superblock.hpp>
 
@@ -42,19 +42,19 @@ class SWMRStoreBase;
 template <typename Profile>
 class HistoryTree {
 
-    using CommitDescriptorT = CommitDescriptor<Profile>;
-    using CDescrPtr         = typename CommitDescriptorT::SharedPtrT;
+    using SnapshotDescriptorT = SnapshotDescriptor<Profile>;
+    using CDescrPtr         = typename SnapshotDescriptorT::SharedPtrT;
 
-    using CommitID          = ProfileSnapshotID<Profile>;
+    using SnapshotID        = ProfileSnapshotID<Profile>;
     using SequeceID         = uint64_t;
-    using CommitMetadataT   = CommitMetadata<ApiProfile<Profile>>;
+    using SnapshotMetadataT = SWMRSnapshotMetadata<ApiProfile<Profile>>;
     using SuperblockT       = SWMRSuperblock<Profile>;
 
 public:
     struct UpdateOp {
         bool reparent;
-        CommitID commit_id;
-        CommitID new_parent_id;
+        SnapshotID snapshot_id;
+        SnapshotID new_parent_id;
     };
 
 private:
@@ -64,7 +64,7 @@ private:
     using EvictionFn        = std::function<void (const UpdateOp&)>;
     using SuperblockFn      = std::function<SharedSBPtr<SuperblockT>(uint64_t)>;
 
-    std::unordered_map<CommitID, CDescrPtr> commits_;
+    std::unordered_map<SnapshotID, CDescrPtr> snapshots_;
     std::unordered_map<U8String, CDescrPtr> branch_heads_;
 
     CDescrPtr root_;
@@ -72,7 +72,7 @@ private:
     CDescrPtr consistency_point2_;
     CDescrPtr head_;
 
-    CommitDescriptorsList<Profile> eviction_queue_;
+    SnapshotDescriptorsList<Profile> eviction_queue_;
 
     SuperblockFn superblock_fn_;
 
@@ -86,14 +86,14 @@ public:
 
     ~HistoryTree() noexcept
     {
-        for (const auto& entry: commits_) {
+        for (const auto& entry: snapshots_) {
             entry.second->set_new();
         }
     }
 
     template <typename... Args>
-    CDescrPtr new_commit_descriptor(Args&&... args) {
-        return new CommitDescriptorT(this, std::forward<Args>(args)...);
+    CDescrPtr new_snapshot_descriptor(Args&&... args) {
+        return new SnapshotDescriptorT(this, std::forward<Args>(args)...);
     }
 
 
@@ -102,8 +102,8 @@ public:
         return head_ == consistency_point1_;
     }
 
-    int64_t count_volatile_commits() const noexcept {
-        // FIXME: implement volatile commits counter
+    int64_t count_volatile_snapshots() const noexcept {
+        // FIXME: implement volatile snapshots counter
         return 0;
     }
 
@@ -155,17 +155,17 @@ public:
         return consistency_point2_;
     }
 
-    const CommitDescriptorsList<Profile>& eviction_queue() const noexcept {
+    const SnapshotDescriptorsList<Profile>& eviction_queue() const noexcept {
         return eviction_queue_;
     }
 
-    CommitDescriptorsList<Profile>& eviction_queue() noexcept {
+    SnapshotDescriptorsList<Profile>& eviction_queue() noexcept {
         return eviction_queue_;
     }
 
-    U8String mark_branch_transient(CommitDescriptorT* descr, U8StringView branch)
+    U8String mark_branch_transient(SnapshotDescriptorT* descr, U8StringView branch)
     {        
-        CommitDescriptorT* dd = descr;
+        SnapshotDescriptorT* dd = descr;
 
         while (true)
         {
@@ -196,9 +196,9 @@ public:
         return branch;
     }
 
-    bool mark_commit_transient(const CommitID& commit_id)
+    bool mark_snapshot_transient(const SnapshotID& snapshot_id)
     {
-        auto descr = get(commit_id);
+        auto descr = get(snapshot_id);
         if (descr) {
             if (!descr->is_transient())
             {
@@ -208,10 +208,10 @@ public:
                     // OK
                 }
                 else if (descr->children().size() > 1) {
-                    MEMORIA_MAKE_GENERIC_ERROR("Can't remove root commit {} with multiple children.", descr->commit_id()).do_throw();
+                    MEMORIA_MAKE_GENERIC_ERROR("Can't remove root snapshot {} with multiple children.", descr->snapshot_id()).do_throw();
                 }
                 else if (descr->children().size() == 0) {
-                    MEMORIA_MAKE_GENERIC_ERROR("Can't remove root commit {} without children.", descr->commit_id()).do_throw();
+                    MEMORIA_MAKE_GENERIC_ERROR("Can't remove root snapshot {} without children.", descr->snapshot_id()).do_throw();
                 }
 
                 descr->set_transient(true);
@@ -225,34 +225,34 @@ public:
 
     void prepare_eviction(const EvictionFn& eviction_fn)
     {
-        for (CommitDescriptorT& descr: eviction_queue_)
+        for (SnapshotDescriptorT& descr: eviction_queue_)
         {
             if (descr.parent())
             {
-                CommitDescriptorT* parent = descr.parent();
-                CommitID parent_id = parent->commit_id();
+                SnapshotDescriptorT* parent = descr.parent();
+                SnapshotID parent_id = parent->snapshot_id();
 
                 for (auto chl: descr.children()) {
-                    eviction_fn(UpdateOp{true, chl->commit_id(), parent_id});
+                    eviction_fn(UpdateOp{true, chl->snapshot_id(), parent_id});
                 }
             }
             else {
                 for (auto chl: descr.children()) {
-                    eviction_fn(UpdateOp{true, chl->commit_id(), CommitID{}});
+                    eviction_fn(UpdateOp{true, chl->snapshot_id(), SnapshotID{}});
                 }
             }
 
-            eviction_fn(UpdateOp{false, descr.commit_id()});
+            eviction_fn(UpdateOp{false, descr.snapshot_id()});
         }
     }
 
     void cleanup_eviction_queue() noexcept
     {
-        for (CommitDescriptorT& descr: eviction_queue_)
+        for (SnapshotDescriptorT& descr: eviction_queue_)
         {
             if (descr.parent())
             {
-                CommitDescriptorT* parent = descr.parent();
+                SnapshotDescriptorT* parent = descr.parent();
                 parent->children().erase(&descr);
 
                 for (auto chl: descr.children()) {
@@ -271,24 +271,24 @@ public:
         eviction_queue_.erase_and_dispose(
             eviction_queue_.begin(),
             eviction_queue_.end(),
-            [&](CommitDescriptorT* commit_descr) noexcept {
-                commit_descr->set_new();
-                commits_.erase(commit_descr->commit_id());
+            [&](SnapshotDescriptorT* snapshot_descr) noexcept {
+                snapshot_descr->set_new();
+                snapshots_.erase(snapshot_descr->snapshot_id());
             }
         );
     }
 
-    CDescrPtr get(const CommitID& id) noexcept
+    CDescrPtr get(const SnapshotID& id) noexcept
     {
-        auto ii = commits_.find(id);
-        if (ii != commits_.end()) {
+        auto ii = snapshots_.find(id);
+        if (ii != snapshots_.end()) {
             return ii->second;
         }
         return CDescrPtr{};
     }
 
 
-    void attach_commit(CDescrPtr descr, bool consistency_point) noexcept
+    void attach_snapshot(CDescrPtr descr, bool consistency_point) noexcept
     {
         descr->set_attached();
 
@@ -302,7 +302,7 @@ public:
         U8String branch_name = get_branch_name(descr);
         CDescrPtr last_head = branch_heads_[branch_name];
 
-        commits_[descr->commit_id()] = descr;
+        snapshots_[descr->snapshot_id()] = descr;
         branch_heads_[branch_name] = descr;
 
         if (consistency_point)
@@ -315,15 +315,15 @@ public:
     }
 
     void load(
-            Span<const std::pair<CommitID, CommitMetadataT>> metas,
+            Span<const std::pair<SnapshotID, SnapshotMetadataT>> metas,
             CDescrPtr consistency_point1,
             CDescrPtr consistency_point2
     )
     {
         for (const auto& pair: metas)
         {
-            const CommitMetadataT& meta = std::get<1>(pair);
-            const CommitID& commit_id   = std::get<0>(pair);
+            const SnapshotMetadataT& meta = std::get<1>(pair);
+            const SnapshotID& snapshot_id   = std::get<0>(pair);
 
             auto superblock = superblock_fn_(meta.superblock_file_pos());
 
@@ -339,66 +339,66 @@ public:
                 branch_name = "";
             }
 
-            CDescrPtr descr = new_commit_descriptor(branch_name);
+            CDescrPtr descr = new_snapshot_descriptor(branch_name);
 
             descr->set_superblock(meta.superblock_file_pos() * BASIC_BLOCK_SIZE, superblock.get());
             descr->set_transient(meta.is_transient());
-            descr->set_system_commit(meta.is_system_commit());
+            descr->set_system_snapshot(meta.is_system_snapshot());
 
-            commits_[commit_id] = descr;
+            snapshots_[snapshot_id] = descr;
         }
 
         for (const auto& pair: metas)
         {
-            const CommitMetadataT& meta = std::get<1>(pair);
-            const CommitID& commit_id   = std::get<0>(pair);
+            const SnapshotMetadataT& meta = std::get<1>(pair);
+            const SnapshotID& snapshot_id   = std::get<0>(pair);
 
-            CDescrPtr current = commits_[commit_id];
+            CDescrPtr current = snapshots_[snapshot_id];
 
-            if (meta.parent_commit_id())
+            if (meta.parent_snapshot_id())
             {
-                auto ii = commits_.find(meta.parent_commit_id());
-                if (ii != commits_.end())
+                auto ii = snapshots_.find(meta.parent_snapshot_id());
+                if (ii != snapshots_.end())
                 {
                     CDescrPtr parent = ii->second;
                     current->set_parent(parent.get());
                     parent->children().insert(current);
                 }
                 else {
-                    MEMORIA_MAKE_GENERIC_ERROR("Cannot find parent commit: {}", meta.parent_commit_id()).do_throw();
+                    MEMORIA_MAKE_GENERIC_ERROR("Cannot find parent snapshot: {}", meta.parent_snapshot_id()).do_throw();
                 }
             }
             else if (!root_) {
                 root_ = current;
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Multiple root commits in the store: {} and {}", root_->commit_id(), commit_id).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Multiple root snapshots in the store: {} and {}", root_->snapshot_id(), snapshot_id).do_throw();
             }
         }
 
         if (consistency_point1)
         {
-            auto cp = get(consistency_point1->commit_id());
+            auto cp = get(consistency_point1->snapshot_id());
             if (cp) {
                 head_ = consistency_point1_ = cp.get();
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Last commit ID is not found {}", consistency_point1->commit_id()).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Last snapshot ID is not found {}", consistency_point1->snapshot_id()).do_throw();
             }
         }
 
         if (consistency_point2)
         {
-            auto cp = get(consistency_point2->commit_id());
+            auto cp = get(consistency_point2->snapshot_id());
             if (cp) {
                 consistency_point2_ = cp.get();
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Previous last commit ID is not found {}", consistency_point2->commit_id()).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Previous last snapshot ID is not found {}", consistency_point2->snapshot_id()).do_throw();
             }
         }
 
-        parse_commit_tree();
+        parse_snapshot_tree();
     }
 
 
@@ -406,7 +406,7 @@ public:
 private:
     class TraverseState {
         CDescrPtr descr_;
-        typename CommitDescriptorT::ChildIterator ii_;
+        typename SnapshotDescriptorT::ChildIterator ii_;
         bool done_{false};
 
     public:
@@ -486,7 +486,7 @@ private:
         return descr->branch();
     }
 
-    void parse_commit_tree()
+    void parse_snapshot_tree()
     {
         uint64_t counter{};
         traverse_tree_preorder([&](CDescrPtr descr){
@@ -503,19 +503,19 @@ private:
             }
         });
 
-        if (counter != commits_.size()) {
-            println("Inconsistent history tree: {} :: {}", counter, commits_.size());
+        if (counter != snapshots_.size()) {
+            println("Inconsistent history tree: {} :: {}", counter, snapshots_.size());
         }
     }
 };
 
 template <typename Profile>
-inline void CommitDescriptor<Profile>::enqueue_for_eviction() {
+inline void SnapshotDescriptor<Profile>::enqueue_for_eviction() {
     history_tree_->eviction_queue().push_back(*this);
 }
 
 template <typename Profile>
-inline void CommitDescriptor<Profile>::unlink_from_eviction_queue() {
+inline void SnapshotDescriptor<Profile>::unlink_from_eviction_queue() {
     auto& queue = history_tree_->eviction_queue();
     queue.erase(
         queue.iterator_to(*this)

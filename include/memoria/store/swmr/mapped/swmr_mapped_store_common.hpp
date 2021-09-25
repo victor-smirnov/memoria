@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/store/swmr/common/swmr_store_commit_base.hpp>
+#include <memoria/store/swmr/common/swmr_store_snapshot_base.hpp>
 
 namespace memoria {
 

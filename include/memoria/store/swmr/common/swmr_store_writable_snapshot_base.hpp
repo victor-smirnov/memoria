@@ -16,14 +16,13 @@
 
 #pragma once
 
-#include <memoria/store/swmr/common/swmr_store_commit_base.hpp>
+#include <memoria/store/swmr/common/swmr_store_snapshot_base.hpp>
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 #include <memoria/store/swmr/common/swmr_store_counters.hpp>
-#include <memoria/store/swmr/common/swmr_store_commit_id_proxy.hpp>
 namespace memoria {
 
 template <typename Profile> class SWMRStoreBase;
-template <typename Profile> class SWMRStoreReadOnlyCommitBase;
+template <typename Profile> class SWMRStoreReadOnlySnapshotBase;
 
 struct InitStoreTag{};
 
@@ -41,20 +40,20 @@ struct RWCounter {
 };
 
 template <typename Profile>
-class SWMRStoreWritableCommitBase:
-        public SWMRStoreCommitBase<Profile>,
-        public ISWMRStoreWritableCommit<ApiProfile<Profile>>
+class SWMRStoreWritableSnapshotBase:
+        public SWMRStoreSnapshotBase<Profile>,
+        public ISWMRStoreWritableSnapshot<ApiProfile<Profile>>
 {
 protected:
-    using Base = SWMRStoreCommitBase<Profile>;
+    using Base = SWMRStoreSnapshotBase<Profile>;
 
-    using typename ISWMRStoreWritableCommit<ApiProfile<Profile>>::ROStoreSnapshotPtr;
-    using MyType = SWMRStoreWritableCommitBase;
+    using typename ISWMRStoreWritableSnapshot<ApiProfile<Profile>>::ROStoreSnapshotPtr;
+    using MyType = SWMRStoreWritableSnapshotBase;
 
     using typename Base::Store;
     using typename Base::CDescrPtr;
-    using typename Base::CommitDescriptorT;
-    using typename Base::CommitID;
+    using typename Base::SnapshotDescriptorT;
+    using typename Base::SnapshotID;
     using typename Base::BlockID;
     using typename Base::BlockIDValueHolder;
     using typename Base::SharedBlockPtr;
@@ -88,11 +87,11 @@ protected:
     using Base::instance_map_;
 
     using Base::store_;
-    using Base::commit_descriptor_;
+    using Base::snapshot_descriptor_;
     using Base::refcounter_delegate_;
     using Base::get_superblock;
     using Base::is_transient;
-    using Base::is_system_commit;
+    using Base::is_system_snapshot;
 
     using Base::ALLOCATION_MAP_LEVELS;
     using Base::BASIC_BLOCK_SIZE;
@@ -105,7 +104,7 @@ protected:
     using CtrReferenceableResult = Result<CtrReferenceable<ApiProfile<Profile>>>;
 
     using AllocationMetadataT = AllocationMetadata<ApiProfileT>;
-    using ParentCommit        = SnpSharedPtr<SWMRStoreReadOnlyCommitBase<Profile>>;
+    using ParentCommit        = SnpSharedPtr<SWMRStoreReadOnlySnapshotBase<Profile>>;
 
     using BlockCleanupHandler = std::function<void ()>;
 
@@ -151,13 +150,13 @@ protected:
         }
     };
 
-    CommitID parent_commit_id_;
+    SnapshotID parent_snapshot_id_;
 
     ArenaBuffer<AllocationMetadataT> postponed_deallocations_;
 
     RemovingBlocksConsumerFn removing_blocks_consumer_fn_{};
-    CDescrPtr head_commit_descriptor_{};
-    CDescrPtr consistency_point_commit_descriptor_{};
+    CDescrPtr head_snapshot_descriptor_{};
+    CDescrPtr consistency_point_snapshot_descriptor_{};
 
     LDDocument metadata_doc_;
 
@@ -176,12 +175,12 @@ protected:
     CountersT* counters_ptr_ {&counters_};
 
     std::unordered_set<U8String> removing_branches_;
-    std::unordered_set<CommitID> removing_commits_;
+    std::unordered_set<SnapshotID> removing_snapshots_;
 
     // It's used to accomodate branch removal to keep the number of
     // times the branch node is traversed. If all children are
     // removed, we can proceed proceed removing node's ancestors.
-    std::unordered_map<CommitID, RWCounter> branch_removal_counters_;
+    std::unordered_map<SnapshotID, RWCounter> branch_removal_counters_;
 
 public:
     using Base::check;
@@ -189,13 +188,13 @@ public:
     using Base::resolve_block_allocation;
     using Base::CustomLog2;
 
-    SWMRStoreWritableCommitBase(
+    SWMRStoreWritableSnapshotBase(
             SharedPtr<Store> store,
-            CDescrPtr& commit_descriptor,
+            CDescrPtr& snapshot_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate,
             RemovingBlocksConsumerFn removing_blocks_consumer_fn
     ) noexcept :
-        Base(store, commit_descriptor, refcounter_delegate),
+        Base(store, snapshot_descriptor, refcounter_delegate),
         removing_blocks_consumer_fn_(removing_blocks_consumer_fn)
     {
         state_ = removing_blocks_consumer_fn_ ? State::COMMITTED : State::ACTIVE;
@@ -218,11 +217,11 @@ public:
     virtual void open_idmap() {}
     virtual void drop_idmap() {}
 
-    virtual void init_commit(MaybeError& maybe_error) noexcept {}
-    virtual void init_store_commit(MaybeError& maybe_error) noexcept {}
+    virtual void init_snapshot(MaybeError& maybe_error) noexcept {}
+    virtual void init_store_snapshot(MaybeError& maybe_error) noexcept {}
 
     auto& removing_branches() noexcept {return removing_branches_;}
-    auto& removing_commits() noexcept {return removing_commits_;}
+    auto& removing_snapshots() noexcept {return removing_snapshots_;}
 
     CountersT& counters() noexcept {return counters_;}
 
@@ -326,7 +325,7 @@ public:
     }
 
 
-    void open_commit()
+    void open_snapshot()
     {
         open_idmap();
 
@@ -360,24 +359,24 @@ public:
         }
     }
 
-    void init_commit(
+    void init_snapshot(
             CDescrPtr& consistency_point,
             CDescrPtr& head,
-            CDescrPtr& parent_commit_descriptor
+            CDescrPtr& parent_snapshot_descriptor
     )
     {
-        commit_descriptor_->set_parent(parent_commit_descriptor.get());
-        parent_commit_id_ = parent_commit_descriptor->commit_id();
+        snapshot_descriptor_->set_parent(parent_snapshot_descriptor.get());
+        parent_snapshot_id_ = parent_snapshot_descriptor->snapshot_id();
 
         // HEAD is always defined here
-        head_commit_descriptor_ = head;
-        consistency_point_commit_descriptor_ = consistency_point;
+        head_snapshot_descriptor_ = head;
+        consistency_point_snapshot_descriptor_ = consistency_point;
 
         auto head_snp = store_->do_open_readonly(head);
         auto head_allocation_map_ctr = head_snp->find(AllocationMapCtrID);
         head_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(head_allocation_map_ctr);
 
-        // HEAD commit is not a consistency point
+        // HEAD snapshot is not a consistency point
         if (head != consistency_point)
         {
             auto consistency_point_snp = store_->do_open_readonly(consistency_point);
@@ -385,7 +384,7 @@ public:
             consistency_point_allocation_map_ctr_ = memoria_static_pointer_cast<AllocationMapCtr>(cp_allocation_map_ctr);
         }
 
-        auto head_sb = get_superblock(head_commit_descriptor_->superblock_ptr());
+        auto head_sb = get_superblock(head_snapshot_descriptor_->superblock_ptr());
         auto superblock = allocate_superblock(
             head_sb.get(),
             ProfileTraits<Profile>::make_random_snapshot_id()
@@ -394,9 +393,9 @@ public:
         uint64_t sb_pos = std::get<0>(superblock);
         auto sb = std::get<1>(superblock);
 
-        commit_descriptor_->set_superblock(sb_pos, sb.get());
+        snapshot_descriptor_->set_superblock(sb_pos, sb.get());
 
-        //println("SeqNum: {} {}", sb->commit_id(), sb->sequence_id());
+        //println("SeqNum: {} {}", sb->snapshot_id(), sb->sequence_id());
 
         do_ref_system_containers();
 
@@ -433,7 +432,7 @@ public:
         }
 
         if (maybe_error) {
-            init_commit(maybe_error);
+            init_snapshot(maybe_error);
         }
 
         if (maybe_error) {
@@ -441,7 +440,7 @@ public:
         }
     }
 
-    void init_store_commit()
+    void init_store_snapshot()
     {
         init_store_mode_ = true;
 
@@ -455,13 +454,13 @@ public:
         awaiting_init_allocations_.append_value(allocation_pool_->allocate_one(0).get());
         awaiting_init_allocations_.append_value(allocation_pool_->allocate_one(0).get());
 
-        CommitID commit_id = ProfileTraits<Profile>::make_random_snapshot_id();
+        SnapshotID snapshot_id = ProfileTraits<Profile>::make_random_snapshot_id();
 
-        auto superblock = allocate_superblock(nullptr, commit_id, buffer_size);
+        auto superblock = allocate_superblock(nullptr, snapshot_id, buffer_size);
         uint64_t sb_pos = std::get<0>(superblock);
         auto sb = std::get<1>(superblock);
 
-        commit_descriptor_->set_superblock(sb_pos, sb.get());
+        snapshot_descriptor_->set_superblock(sb_pos, sb.get());
 
         uint64_t total_blocks = buffer_size / BASIC_BLOCK_SIZE;
 
@@ -514,7 +513,7 @@ public:
         }
 
         if (maybe_error) {
-            init_store_commit(maybe_error);
+            init_store_snapshot(maybe_error);
         }
 
         if (maybe_error) {
@@ -563,7 +562,7 @@ public:
         }
     }
 
-    void finish_commit_opening()
+    void finish_snapshot_opening()
     {
 
     }
@@ -588,7 +587,7 @@ public:
 
     std::pair<uint64_t, SharedSBPtr<Superblock>> allocate_superblock(
             const Superblock* parent_sb,
-            const CommitID& commit_id,
+            const SnapshotID& snapshot_id,
             uint64_t file_size = 0
     ){
         using ResultT = std::pair<uint64_t, SharedSBPtr<Superblock>>;
@@ -603,14 +602,14 @@ public:
 
         LDDocument meta;
         LDDMapView map = meta.set_map();
-        map.set_varchar("branch_name", commit_descriptor_->branch());
+        map.set_varchar("branch_name", snapshot_descriptor_->branch());
 
         auto superblock = new_superblock(pos);
         if (parent_sb) {
-            superblock->init_from(*parent_sb, pos, commit_id, meta);
+            superblock->init_from(*parent_sb, pos, snapshot_id, meta);
         }
         else {
-            superblock->init(pos, file_size, commit_id, SUPERBLOCK_SIZE, 1, 1, meta);
+            superblock->init(pos, file_size, snapshot_id, SUPERBLOCK_SIZE, 1, 1, meta);
         }
         superblock->build_superblock_description();
 
@@ -622,7 +621,7 @@ public:
     }
 
     void add_cp_postponed_deallocation(const AllocationMetadataT& meta) noexcept {
-        head_commit_descriptor_->postponed_deallocations().append_value(meta);
+        head_snapshot_descriptor_->postponed_deallocations().append_value(meta);
     }
 
 
@@ -630,14 +629,14 @@ public:
     {
         // CoW pages with bits for CP-wide postponed deallocations.
         // Those bits will be cleared later
-        if (consistency_point && head_commit_descriptor_)
+        if (consistency_point && head_snapshot_descriptor_)
         {
-            head_commit_descriptor_->postponed_deallocations().sort();
-            allocation_map_ctr_->touch_bits(head_commit_descriptor_->postponed_deallocations().span());
+            head_snapshot_descriptor_->postponed_deallocations().sort();
+            allocation_map_ctr_->touch_bits(head_snapshot_descriptor_->postponed_deallocations().span());
         }
 
         // First, pre-build CoW-tree for postopend deallocations
-        // made in this commit
+        // made in this snapshot
         ArenaBuffer<AllocationMetadataT> all_postponed_deallocations;
         while (postponed_deallocations_.size() > 0)
         {
@@ -669,9 +668,9 @@ public:
             allocation_map_ctr_->setup_bits(all_postponed_deallocations.span(), false);
         }
 
-        if (consistency_point && head_commit_descriptor_) {
-            allocation_map_ctr_->setup_bits(head_commit_descriptor_->postponed_deallocations().span(), false);
-            head_commit_descriptor_->clear_postponed_deallocations();
+        if (consistency_point && head_snapshot_descriptor_) {
+            allocation_map_ctr_->setup_bits(head_snapshot_descriptor_->postponed_deallocations().span(), false);
+            head_snapshot_descriptor_->clear_postponed_deallocations();
         }
     }
 
@@ -693,14 +692,14 @@ public:
     {
         if (is_active())
         {
-            if (consistency_point_commit_descriptor_) {
-                consistency_point_commit_descriptor_->inc_commits();
+            if (consistency_point_snapshot_descriptor_) {
+                consistency_point_snapshot_descriptor_->inc_snapshots();
             }
 
             if (cp == ConsistencyPoint::AUTO) {
                 do_consistency_point_ =
-                        consistency_point_commit_descriptor_
-                    ->should_make_consistency_point(commit_descriptor_);
+                        consistency_point_snapshot_descriptor_
+                    ->should_make_consistency_point(snapshot_descriptor_);
             }
             else {
                 do_consistency_point_ = cp == ConsistencyPoint::YES || cp == ConsistencyPoint::FULL;
@@ -716,11 +715,11 @@ public:
             {
                 if (update_op.reparent)
                 {
-                    history_ctr_->with_value(update_op.commit_id, [&](auto value) {
+                    history_ctr_->with_value(update_op.snapshot_id, [&](auto value) {
                         using ResultT = std::decay_t<decltype(value)>;
                         if (value) {
                             auto vv = value.get().view();
-                            vv.set_parent_commit_id(update_op.new_parent_id);
+                            vv.set_parent_snapshot_id(update_op.new_parent_id);
                             return ResultT{vv};
                         }
                         else {
@@ -729,26 +728,26 @@ public:
                     });
                 }
                 else {
-                    history_ctr_->remove_key(update_op.commit_id);
+                    history_ctr_->remove_key(update_op.snapshot_id);
                 }
             }
 
-            CommitMetadata<ApiProfileT> meta;
+            SWMRSnapshotMetadata<ApiProfileT> meta;
 
             uint64_t sb_file_pos = (sb->superblock_file_pos() / BASIC_BLOCK_SIZE);
             meta.set_superblock_file_pos(sb_file_pos);
             meta.set_transient(is_transient());
-            meta.set_system_commit(is_system_commit());
+            meta.set_system_snapshot(is_system_snapshot());
 
-            if (parent_commit_id_) {
-                meta.set_parent_commit_id(parent_commit_id_);
+            if (parent_snapshot_id_) {
+                meta.set_parent_snapshot_id(parent_snapshot_id_);
             }
 
-            history_ctr_->assign_key(sb->commit_id(), meta);
+            history_ctr_->assign_key(sb->snapshot_id(), meta);
 
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
-            store_->for_all_evicting_commits([&](CommitDescriptorT* commit_descriptor){
-                auto snp = store_->do_open_writable(commit_descriptor, [&](const BlockID& id, const AllocationMetadataT& meta){
+            store_->for_all_evicting_snapshots([&](SnapshotDescriptorT* snapshot_descriptor){
+                auto snp = store_->do_open_writable(snapshot_descriptor, [&](const BlockID& id, const AllocationMetadataT& meta){
                     evicting_blocks.append_value(meta);
                 }, true);
 
@@ -763,8 +762,8 @@ public:
             // Note: All deallocation before this line MUST do 'touch bits' to
             // build corresponding CoW-tree, but not marking blocks
             // ass avalable. Otherwise they can be reused immediately.
-            // That will make 'fast' rolling back the last commit or
-            // conistency point impossible. (Regular commit reloval
+            // That will make 'fast' rolling back the last snapshot or
+            // conistency point impossible. (Regular snapshot reloval
             // will still be possible though).
 
             // TODO: Collect all allocated but unused blocks here
@@ -781,7 +780,7 @@ public:
             // make flush, to force the conistency point. The flush()
             // will call do_postponed_deallocations() again, and it _may_
             // allocate memory. If so, fast rollback will not be possible
-            // and regular commit removal (with extra system commit) will
+            // and regular snapshot removal (with extra system snapshot) will
             // be necessary.
 
             // Now it's safe to actually mark blocks as free
@@ -793,19 +792,19 @@ public:
 
             if (MMA_UNLIKELY(allocation_pool_->level0_total() < 1))
             {
-                // We must ensure that at the end of a commit, at least
+                // We must ensure that at the end of a snapshot, at least
                 // one preallocated block must be in the superblock's pool.
                 MEMORIA_MAKE_GENERIC_ERROR(
-                    "Superblock's allocation pool is empty at the end of the commit"
+                    "Superblock's allocation pool is empty at the end of the snapshot"
                 ).do_throw();
             }
 
-            store_->do_prepare(Base::commit_descriptor_, cp, do_consistency_point_, sb);
+            store_->do_prepare(Base::snapshot_descriptor_, cp, do_consistency_point_, sb);
 
             state_ = State::PREPARED;
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Commit {} has been already closed", commit_id()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been already closed", snapshot_id()).do_throw();
         }
     }
 
@@ -815,18 +814,18 @@ public:
             prepare(cp);
         }
 
-        store_->do_commit(Base::commit_descriptor_, do_consistency_point_, this);
+        store_->do_commit(Base::snapshot_descriptor_, do_consistency_point_, this);
         state_ = State::COMMITTED;
     }
 
     void rollback()
     {
-        store_->do_rollback(Base::commit_descriptor_);
+        store_->do_rollback(Base::snapshot_descriptor_);
         state_ = State::ROLLED_BACK;
     }
 
-    virtual CommitID commit_id() noexcept {
-        return Base::commit_id();
+    virtual SnapshotID snapshot_id() noexcept {
+        return Base::snapshot_id();
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
@@ -893,7 +892,7 @@ public:
         }
         else {
             auto sb = get_superblock();
-            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {} ", ctr_name, sb->commit_id()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {} ", ctr_name, sb->snapshot_id()).do_throw();
         }
     }
 
@@ -901,7 +900,7 @@ public:
     virtual void set_transient(bool transient)
     {
         check_updates_allowed();
-        commit_descriptor_->set_transient(transient);
+        snapshot_descriptor_->set_transient(transient);
     }
 
 
@@ -1005,7 +1004,7 @@ public:
                 }
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Commit history removal attempted").do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Snapshot history removal attempted").do_throw();
             }
         }
         else if (MMA_UNLIKELY(ctr_id == BlockMapCtrID))
@@ -1143,11 +1142,11 @@ public:
 
 
     bool is_transient() noexcept {
-        return commit_descriptor_->is_transient();
+        return snapshot_descriptor_->is_transient();
     }
 
-    bool is_system_commit() noexcept {
-        return commit_descriptor_->is_system_commit();
+    bool is_system_snapshot() noexcept {
+        return snapshot_descriptor_->is_system_snapshot();
     }
 
 
@@ -1165,13 +1164,13 @@ public:
 
             if (head_allocation_map_ctr_)
             {
-                // Checking first in the head commit
+                // Checking first in the head snapshot
                 auto head_blk_status = head_allocation_map_ctr_->get_allocation_status(level, ll_allocator_block_pos);
                 if ((!head_blk_status) || head_blk_status.get() == AllocationMapEntryStatus::FREE)
                 {
-                    // If the block is FREE in the HEAD commit, it is also FREE
-                    // in the CONSISTENCY POINT commit. So we are just marking it FREE
-                    // in this commit. It's immediately reusable.
+                    // If the block is FREE in the HEAD snapshot, it is also FREE
+                    // in the CONSISTENCY POINT snapshot. So we are just marking it FREE
+                    // in this snapshot. It's immediately reusable.
 
                     // Returning the block to the pool of available blocks
                     if (!allocation_pool_->add(block_alc)) {
@@ -1184,22 +1183,22 @@ public:
                     auto cp_blk_status = consistency_point_allocation_map_ctr_->get_allocation_status(level, ll_allocator_block_pos);
                     if ((!cp_blk_status) || cp_blk_status.get() == AllocationMapEntryStatus::FREE)
                     {
-                        // The block is allocated in the HEAD commit, but free in the
-                        // CONSISTENCY POINT commit.
+                        // The block is allocated in the HEAD snapshot, but free in the
+                        // CONSISTENCY POINT snapshot.
                         add_postponed_deallocation(block_alc);
                     }
                     else {
-                        // The block is allocated in the HEAD commit, AND it's allocated in the
-                        // CONSISTENCY POINT commit.
-                        // This block will be freed at the consistency point commit.
+                        // The block is allocated in the HEAD snapshot, AND it's allocated in the
+                        // CONSISTENCY POINT snapshot.
+                        // This block will be freed at the consistency point snapshot.
                         add_cp_postponed_deallocation(block_alc);
                     }
                 }
                 else {
-                    // The block is allocated in the head commit AND there is no
+                    // The block is allocated in the head snapshot AND there is no
                     // consistency point yet. Can't free the block now.
-                    // Postoponing it until the commit. The block will be reuable
-                    // in the next commit
+                    // Postoponing it until the snapshot. The block will be reuable
+                    // in the next snapshot
                     add_postponed_deallocation(block_alc);
                 }
             }
@@ -1229,7 +1228,7 @@ public:
         auto shared = allocate_block_from(block.block(), position, ctr_id == BlockMapCtrID);        
         BlockType* new_block = shared->get();
 
-        new_block->snapshot_id() = commit_id();
+        new_block->snapshot_id() = snapshot_id();
         new_block->set_references(0);
 
         return SharedBlockPtr{shared};
@@ -1252,12 +1251,12 @@ public:
 
         auto shared = allocate_block(position, initial_size, ctr_id == BlockMapCtrID);
 
-        if (consistency_point_commit_descriptor_) {
-            consistency_point_commit_descriptor_->add_allocated(scale_factor);
+        if (consistency_point_snapshot_descriptor_) {
+            consistency_point_snapshot_descriptor_->add_allocated(scale_factor);
         }
 
         BlockType* block = shared->get();
-        block->snapshot_id() = commit_id();
+        block->snapshot_id() = snapshot_id();
 
         return shared;
     }
@@ -1296,11 +1295,11 @@ public:
                 setRoot(name, root_id);
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->commit_id()).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->snapshot_id()).do_throw();
             }
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists in snapshot {}", name, commit_id()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists in snapshot {}", name, snapshot_id()).do_throw();
         }
     }
 
@@ -1319,7 +1318,7 @@ public:
                 setRoot(name, root_id);
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->commit_id()).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->snapshot_id()).do_throw();
             }
         }
         else {
@@ -1327,10 +1326,10 @@ public:
         }
     }
 
-    bool update_commit_metadata(const CommitID& commit_id, std::function<void (CommitMetadata<ApiProfileT>&)> fn)
+    bool update_snapshot_metadata(const SnapshotID& snapshot_id, std::function<void (SWMRSnapshotMetadata<ApiProfileT>&)> fn)
     {
         bool exists = true;
-        history_ctr_->with_value(commit_id, [&](const auto& value) {
+        history_ctr_->with_value(snapshot_id, [&](const auto& value) {
             using ResultT = std::decay_t<decltype(value)>;
             if (value) {
                 auto vv = value.get().view();
@@ -1345,22 +1344,22 @@ public:
         return exists;
     }
 
-    bool set_transient(const CommitID& commit_id, bool value) {
-        return update_commit_metadata(commit_id, [](auto& meta){
+    bool set_transient(const SnapshotID& snapshot_id, bool value) {
+        return update_snapshot_metadata(snapshot_id, [](auto& meta){
             meta.set_transient(true);
         });
     }
 
-    bool set_removed_branch(const CommitID& commit_id, bool value) {
-        return update_commit_metadata(commit_id, [](auto& meta){
+    bool set_removed_branch(const SnapshotID& snapshot_id, bool value) {
+        return update_snapshot_metadata(snapshot_id, [](auto& meta){
             meta.set_removed_branch(true);
         });
     }
 
 
-    bool visit_commit(const CommitDescriptorT* descr)
+    bool visit_snapshot(const SnapshotDescriptorT* descr)
     {
-        auto ii = branch_removal_counters_.find(descr->commit_id());
+        auto ii = branch_removal_counters_.find(descr->snapshot_id());
         if (ii != branch_removal_counters_.end())
         {
             if (ii->second.inc() < descr->children().size()) {
@@ -1371,7 +1370,7 @@ public:
             }
         }
         else {
-            branch_removal_counters_.insert(std::make_pair(descr->commit_id(), RWCounter{1}));
+            branch_removal_counters_.insert(std::make_pair(descr->snapshot_id(), RWCounter{1}));
             return descr->children().size() <= 1;
         }
     }
@@ -1390,18 +1389,18 @@ public:
         auto head = store_->history_tree().get_branch_head(branch_name);
         if (head)
         {
-            CommitDescriptorT* cd = head.get();
+            SnapshotDescriptorT* cd = head.get();
 
-            while (cd && visit_commit(cd))
+            while (cd && visit_snapshot(cd))
             {
                 if (!cd->is_transient()){
-                    remove_commit(cd->commit_id());
+                    remove_snapshot(cd->snapshot_id());
                 }
 
                 cd = cd->parent();
             }
 
-            set_removed_branch(cd->commit_id(), true);
+            set_removed_branch(cd->snapshot_id(), true);
             return true;
         }
         else {
@@ -1411,13 +1410,13 @@ public:
 
 
 
-    bool remove_commit(const CommitID& commit_id)
+    bool remove_snapshot(const SnapshotID& snapshot_id)
     {
-        auto ii = removing_commits_.find(commit_id);
-        if (ii == removing_commits_.end())
+        auto ii = removing_snapshots_.find(snapshot_id);
+        if (ii == removing_snapshots_.end())
         {
-            if (set_transient(commit_id, true)) {
-                removing_commits_.insert(commit_id);
+            if (set_transient(snapshot_id, true)) {
+                removing_snapshots_.insert(snapshot_id);
             }
             else {
                 return false;

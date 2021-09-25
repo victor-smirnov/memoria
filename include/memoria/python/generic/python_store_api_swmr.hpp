@@ -41,7 +41,7 @@ struct PythonAPIBinder<ISWMRStoreHistoryView<Profile>> {
     using Type = ISWMRStoreHistoryView<Profile>;
 
     using CtrID     = ApiProfileCtrID<Profile>;
-    using CommitID  = ApiProfileSnapshotID<Profile>;
+    using SnapshotID  = ApiProfileSnapshotID<Profile>;
 
     using SequenceID = uint64_t;
 
@@ -51,10 +51,10 @@ struct PythonAPIBinder<ISWMRStoreHistoryView<Profile>> {
         pybind11::class_<Type, SharedPtr<Type>> clazz(m, "SWMRStoreHistoryView");
 
         clazz.def("is_transient", &Type::is_transient);
-        //clazz.def("is_system_commit", &Type::is_system_commit);
+        clazz.def("is_system_snapshot", &Type::is_system_snapshot);
         clazz.def("parent", &Type::parent);
         clazz.def("children", &Type::children);
-        clazz.def("commits", &Type::commits);
+        clazz.def("snapshots", &Type::snapshots);
         clazz.def("branch_head", &Type::branch_head);
         clazz.def("branch_names", &Type::branch_names);
     }
@@ -65,9 +65,9 @@ template <typename Profile>
 struct PythonAPIBinder<IBasicSWMRStore<Profile>> {
     using Type = IBasicSWMRStore<Profile>;
 
-    using RWCommitType   = ISWMRStoreWritableCommit<Profile>;
-    using ROCommitType   = ISWMRStoreReadOnlyCommit<Profile>;
-    using CommitBaseType = ISWMRStoreCommitBase<Profile>;
+    using RWSnapshotType   = ISWMRStoreWritableSnapshot<Profile>;
+    using ROSnapshotType   = ISWMRStoreReadOnlySnapshot<Profile>;
+    using SnapshotBaseType = ISWMRStoreSnapshotBase<Profile>;
 
     using SnpCtrOpsType  = IROStoreSnapshotCtrOps<Profile>;
     using WritableSnpCtrOpsType = IROStoreWritableSnapshotCtrOps<Profile>;
@@ -80,22 +80,22 @@ struct PythonAPIBinder<IBasicSWMRStore<Profile>> {
     static void make_bindings(pybind11::module_& m) {
         namespace py = pybind11;
 
-        pybind11::class_<CommitBaseType, SnpCtrOpsType, SharedPtr<CommitBaseType>> commit_base(m, "SWMRStoreCommitBase");
-        commit_base.def("commit_id", &CommitBaseType::commit_id);
-        commit_base.def("describe_to_cout", &CommitBaseType::describe_to_cout);
-        commit_base.def("is_system_commit", &ROCommitType::is_system_commit);
-        commit_base.def("is_persistent", &ROCommitType::is_transient);
+        pybind11::class_<SnapshotBaseType, SnpCtrOpsType, SharedPtr<SnapshotBaseType>> snapshot_base(m, "SWMRStoreSnapshotBase");
+        snapshot_base.def("snapshot_id", &SnapshotBaseType::snapshot_id);
+        snapshot_base.def("describe_to_cout", &SnapshotBaseType::describe_to_cout);
+        snapshot_base.def("is_system_snapshot", &ROSnapshotType::is_system_snapshot);
+        snapshot_base.def("is_persistent", &ROSnapshotType::is_transient);
 
-        pybind11::class_<ROCommitType, CommitBaseType, SharedPtr<ROCommitType>>(m, "SWMRStoreReanOnlyCommit")
-            .def("drop", &ROCommitType::drop)
+        pybind11::class_<ROSnapshotType, SnapshotBaseType, SharedPtr<ROSnapshotType>>(m, "SWMRStoreReanOnlySnapshot")
+            .def("drop", &ROSnapshotType::drop)
             ;
 
-        pybind11::class_<RWCommitType, CommitBaseType, WritableSnpCtrOpsType, SharedPtr<RWCommitType>>(m, "SWMRStoreWritableCommit")
-            .def("set_transient", &RWCommitType::set_transient)
-            .def("prepare", &RWCommitType::prepare)
-            .def("rollback", &RWCommitType::rollback)
-            .def("remove_branch", &RWCommitType::remove_branch)
-            .def("remove_commit", &RWCommitType::remove_commit)
+        pybind11::class_<RWSnapshotType, SnapshotBaseType, WritableSnpCtrOpsType, SharedPtr<RWSnapshotType>>(m, "SWMRStoreWritableSnapshot")
+            .def("set_transient", &RWSnapshotType::set_transient)
+            .def("prepare", &RWSnapshotType::prepare)
+            .def("rollback", &RWSnapshotType::rollback)
+            .def("remove_branch", &RWSnapshotType::remove_branch)
+            .def("remove_snapshot", &RWSnapshotType::remove_snapshot)
             ;
 
         py::class_<Type, SharedPtr<Type>>(m, "BasicSWMRStore")
@@ -110,9 +110,9 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
     using Base = PythonAPIBinder<IBasicSWMRStore<Profile>>;
     using Type = ISWMRStore<Profile>;
 
-    using RWCommitType   = ISWMRStoreWritableCommit<Profile>;
-    using ROCommitType   = ISWMRStoreReadOnlyCommit<Profile>;
-    using CommitBaseType = ISWMRStoreCommitBase<Profile>;
+    using RWSnapshotType   = ISWMRStoreWritableSnapshot<Profile>;
+    using ROSnapshotType   = ISWMRStoreReadOnlySnapshot<Profile>;
+    using SnapshotBaseType = ISWMRStoreSnapshotBase<Profile>;
 
     using SnpCtrOpsType         = IROStoreSnapshotCtrOps<Profile>;
     using WritableSnpCtrOpsType = IROStoreWritableSnapshotCtrOps<Profile>;
@@ -120,7 +120,7 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
 
     using CtrID = ApiProfileCtrID<Profile>;
 
-    using CommitID = ApiProfileSnapshotID<Profile>;
+    using SnapshotID = ApiProfileSnapshotID<Profile>;
     using typename Base::SequenceID;
 
     static void make_bindings(pybind11::module_& m) {
@@ -139,21 +139,21 @@ struct PythonAPIBinder<ISWMRStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
         cp.export_values();
 
         py::class_<Type, IBasicSWMRStore<Profile>, SharedPtr<Type>>(m, "SWMRStore")
-            .def("open", py::overload_cast<const CommitID&, bool>(&Type::open))
+            .def("open", py::overload_cast<const SnapshotID&, bool>(&Type::open))
             .def("open", py::overload_cast<U8StringView>(&Type::open))
             .def("history_view", &Type::history_view)
             .def("is_transient", &Type::is_transient)
-            .def("is_system_commit", &Type::is_system_commit)
+            .def("is_system_snapshot", &Type::is_system_snapshot)
             .def("parent", &Type::parent)
             .def("children", &Type::children)
-            .def("commits", &Type::commits)
+            .def("snapshots", &Type::snapshots)
             .def("branch_names", &Type::branches)
             .def("close", &Type::close)
             .def("flush", &Type::flush, py::arg("ft") = FlushType::DEFAULT)
             .def("begin", py::overload_cast<U8StringView>(&Type::begin))
-            .def("branch_from", py::overload_cast<const CommitID&, U8StringView>(&Type::branch_from))
+            .def("branch_from", py::overload_cast<const SnapshotID&, U8StringView>(&Type::branch_from))
             .def("branch_from", py::overload_cast<U8StringView, U8StringView>(&Type::branch_from))
-            .def("count_volatile_commits", &Type::count_volatile_commits)
+            .def("count_volatile_snapshots", &Type::count_volatile_snapshots)
             ;
 
         m.def("create_swmr_store", &create_swmr_store);
@@ -170,9 +170,9 @@ struct PythonAPIBinder<ILMDBStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
     using Base = PythonAPIBinder<IBasicSWMRStore<Profile>>;
     using Type = ILMDBStore<Profile>;
 
-    using RWCommitType   = ISWMRStoreWritableCommit<Profile>;
-    using ROCommitType   = ISWMRStoreReadOnlyCommit<Profile>;
-    using CommitBaseType = ISWMRStoreCommitBase<Profile>;
+    using RWSnapshotType   = ISWMRStoreWritableSnapshot<Profile>;
+    using ROSnapshotType   = ISWMRStoreReadOnlySnapshot<Profile>;
+    using SnapshotBaseType = ISWMRStoreSnapshotBase<Profile>;
 
     using SnpCtrOpsType         = IROStoreSnapshotCtrOps<Profile>;
     using WritableSnpCtrOpsType = IROStoreWritableSnapshotCtrOps<Profile>;
@@ -180,7 +180,7 @@ struct PythonAPIBinder<ILMDBStore<Profile>>: PythonAPIBinder<IBasicSWMRStore<Pro
 
     using CtrID = ApiProfileCtrID<Profile>;
 
-    using CommitID = int64_t;
+    using SnapshotID = int64_t;
     using typename Base::SequenceID;
 
     static void make_bindings(pybind11::module_& m) {

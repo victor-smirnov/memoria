@@ -23,8 +23,8 @@ using ApiProfileT = ApiProfile<Profile>;
 
 template struct ISWMRStore<ApiProfileT>;
 template class MappedSWMRStore<Profile>;
-template class MappedSWMRStoreWritableCommit<Profile>;
-template class MappedSWMRStoreReadOnlyCommit<Profile>;
+template class MappedSWMRStoreWritableSnapshot<Profile>;
+template class MappedSWMRStoreReadOnlySnapshot<Profile>;
 template class SWMRStoreHistoryViewImpl<Profile>;
 
 namespace {

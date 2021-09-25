@@ -79,13 +79,13 @@ class GraphvizDotWritingVisitor: public SWMRStoreGraphVisitor<CoreApiProfile<>> 
     };
 
 
-    SequenceID current_commit_seq_id_{};
+    SequenceID current_snapshot_seq_id_{};
 
     U8String file_name_;
     std::fstream file_;
 
     StyleMap node_style_;
-    StyleMap commit_style_;
+    StyleMap snapshot_style_;
     StyleMap allocator_style_;
     StyleMap blockmap_style_;
     StyleMap history_style_;
@@ -105,7 +105,7 @@ public:
     GraphvizDotWritingVisitor(U8StringView file_name):
         file_name_(file_name),
         node_style_(create_node_style()),
-        commit_style_(create_commit_style(&node_style_)),
+        snapshot_style_(create_snapshot_style(&node_style_)),
         allocator_style_(create_allocator_style(&node_style_)),
         blockmap_style_(create_blockmap_style(&node_style_)),
         history_style_(create_history_style(&node_style_)),
@@ -132,15 +132,15 @@ public:
         println(file_, "}}");
     }
 
-    void start_commit(const CommitID& commit_id, const SequenceID& sequence_id) override
+    void start_snapshot(const SnapshotID& snapshot_id, const SequenceID& sequence_id) override
     {
         same_rank_nodes_.clear();
 
-        current_commit_seq_id_ = sequence_id;
+        current_snapshot_seq_id_ = sequence_id;
 
-        U8String id = format_u8("{}", commit_id);
-        auto style = make_style(&commit_style_);
-        style->set("label", format_u8("\"{}|{}\"", sequence_id, commit_id));
+        U8String id = format_u8("{}", snapshot_id);
+        auto style = make_style(&snapshot_style_);
+        style->set("label", format_u8("\"{}|{}\"", sequence_id, snapshot_id));
 
         file_ << "\"" << id << "\" [";
         style->write_to(file_);
@@ -152,7 +152,7 @@ public:
         same_rank_nodes_.insert(id);
     }
 
-    void end_commit() override {
+    void end_snapshot() override {
         node_stack_.pop();
 
         println(file_, "subgraph cluster_sg_{} {{", nodes_.size());
@@ -187,7 +187,7 @@ public:
 
     void start_ctr(CtrPtrT ctr, bool, CtrType ctr_type) override
     {
-        U8String id = format_u8("{}__{}", ctr->name(), current_commit_seq_id_);
+        U8String id = format_u8("{}__{}", ctr->name(), current_snapshot_seq_id_);
 
         switch (ctr_type) {
             case CtrType::ALLOCATOR : nodes_[id] = make_allocator_style(ctr); break;
@@ -201,8 +201,8 @@ public:
         nodes_[id]->write_to(file_);
         file_ << "]\n";
 
-        const auto& commit_id = node_stack_.top();
-        file_ << "\"" << commit_id << "\" -> \"" << id << "\"\n";
+        const auto& snapshot_id = node_stack_.top();
+        file_ << "\"" << snapshot_id << "\" -> \"" << id << "\"\n";
 
         node_stack_.push(id);
         same_rank_nodes_.insert(id);
@@ -305,7 +305,7 @@ private:
         return map;
     }
 
-    static StyleMap create_commit_style(StyleMap* parent) {
+    static StyleMap create_snapshot_style(StyleMap* parent) {
         StyleMap map(parent);
         map.set("shape", "Mrecord");
         return map;

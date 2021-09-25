@@ -15,16 +15,16 @@
 
 
 #pragma once
-#include <memoria/store/swmr/common/swmr_store_commit_base.hpp>
+#include <memoria/store/swmr/common/swmr_store_snapshot_base.hpp>
 
 namespace memoria {
 
 template <typename Profile> class SWMRStoreBase;
 
 template <typename Profile>
-class SWMRStoreReadOnlyCommitBase: public SWMRStoreCommitBase<Profile> {
+class SWMRStoreReadOnlySnapshotBase: public SWMRStoreSnapshotBase<Profile> {
 protected:
-    using Base = SWMRStoreCommitBase<Profile>;
+    using Base = SWMRStoreSnapshotBase<Profile>;
 
     using typename Base::Store;
     using typename Base::CDescrPtr;
@@ -33,15 +33,15 @@ protected:
     using typename Base::CtrID;
     using typename Base::AllocationMetadataT;
 
-    using Base::commit_descriptor_;
+    using Base::snapshot_descriptor_;
 
 public:
-    SWMRStoreReadOnlyCommitBase(
+    SWMRStoreReadOnlySnapshotBase(
             SharedPtr<Store> store,
-            CDescrPtr& commit_descriptor,
+            CDescrPtr& snapshot_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate
     ) noexcept :
-        Base(store, commit_descriptor, refcounter_delegate)
+        Base(store, snapshot_descriptor, refcounter_delegate)
     {}
 
     CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
@@ -61,11 +61,11 @@ public:
     }
 
     bool is_transient() noexcept {
-        return commit_descriptor_->is_transient();
+        return snapshot_descriptor_->is_transient();
     }
 
-    bool is_system_commit() noexcept {
-        return commit_descriptor_->is_system_commit();
+    bool is_system_snapshot() noexcept {
+        return snapshot_descriptor_->is_system_snapshot();
     }
 
     void start_no_reentry(const CtrID& ctr_id) {}

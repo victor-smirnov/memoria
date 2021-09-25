@@ -1580,7 +1580,7 @@ static int  mma_mdb_page_touch(MDB_cursor *mc);
 	"reset-tmp", "fail-begin", "fail-beginchild"}
 enum {
 	/* mma_mdb_txn_end operation number, for logging */
-	MDB_END_COMMITTED, MDB_END_EMPTY_COMMIT, MDB_END_ABORT, MDB_END_RESET,
+	MDB_END_SNAPSHOTTED, MDB_END_EMPTY_COMMIT, MDB_END_ABORT, MDB_END_RESET,
 	MDB_END_RESET_TMP, MDB_END_FAIL_BEGIN, MDB_END_FAIL_BEGINCHILD
 };
 #define MDB_END_OPMASK	0x0F	/**< mask for #mma_mdb_txn_end() operation number */
@@ -4111,7 +4111,7 @@ mma_mdb_txn_commit(MDB_txn *txn)
 		goto fail;
 	if ((rc = mma_mdb_env_write_meta(txn)))
 		goto fail;
-	end_mode = MDB_END_COMMITTED|MDB_END_UPDATE;
+	end_mode = MDB_END_SNAPSHOTTED|MDB_END_UPDATE;
 	if (env->me_flags & MDB_PREVSNAPSHOT) {
 		if (!(env->me_flags & MDB_NOLOCK)) {
 			int excl;

@@ -18,8 +18,8 @@
 
 #include <memoria/store/swmr/common/swmr_store_counters.hpp>
 #include <memoria/store/swmr/common/swmr_store_smart_ptr.hpp>
-#include <memoria/store/swmr/common/swmr_store_readonly_commit_base.hpp>
-#include <memoria/store/swmr/common/swmr_store_writable_commit_base.hpp>
+#include <memoria/store/swmr/common/swmr_store_readonly_snapshot_base.hpp>
+#include <memoria/store/swmr/common/swmr_store_writable_snapshot_base.hpp>
 
 #include <memoria/store/swmr/common/swmr_store_history_view.hpp>
 #include <memoria/store/swmr/common/swmr_store_history_tree.hpp>
@@ -52,21 +52,21 @@ class SWMRStoreBase: public ISWMRStore<ApiProfile<Profile>>, public ReferenceCou
 protected:
     using Base = ISWMRStore<ApiProfile<Profile>>;
 
-    using typename Base::ReadOnlyCommitPtr;
-    using typename Base::WritableCommitPtr;
-    using typename Base::CommitID;
+    using typename Base::ReadOnlySnapshotPtr;
+    using typename Base::WritableSnapshotPtr;
+    using typename Base::SnapshotID;
     using typename Base::SequenceID;
 
     using ApiProfileT = ApiProfile<Profile>;
 
-    using WritableCommitT = SWMRStoreWritableCommitBase<Profile>;
+    using WritableSnapshotT = SWMRStoreWritableSnapshotBase<Profile>;
 
-    using SWMRReadOnlyCommitPtr     = SnpSharedPtr<SWMRStoreReadOnlyCommitBase<Profile>>;
-    using SWMRWritableCommitPtr     = SnpSharedPtr<WritableCommitT>;
-    using SWMRWritableCommitWeakPtr = SnpWeakPtr<SWMRStoreWritableCommitBase<Profile>>;
+    using SWMRReadOnlySnapshotPtr     = SnpSharedPtr<SWMRStoreReadOnlySnapshotBase<Profile>>;
+    using SWMRWritableSnapshotPtr     = SnpSharedPtr<WritableSnapshotT>;
+    using SWMRWritableSnapshotWeakPtr = SnpWeakPtr<SWMRStoreWritableSnapshotBase<Profile>>;
 
-    using CommitDescriptorT = CommitDescriptor<Profile>;
-    using CDescrPtr = typename CommitDescriptorT::SharedPtrT;
+    using SnapshotDescriptorT = SnapshotDescriptor<Profile>;
+    using CDescrPtr = typename SnapshotDescriptorT::SharedPtrT;
 
     using BlockID = ProfileBlockID<Profile>;
     using CtrID = ProfileCtrID<Profile>;
@@ -99,18 +99,18 @@ protected:
 
     HistoryTree<Profile> history_tree_;
 
-    std::unordered_set<CommitID> removing_persistent_commits_;
+    std::unordered_set<SnapshotID> removing_persistent_snapshots_;
 
-    template <typename> friend class SWMRStoreReadonlyCommitBase;
-    template <typename> friend class SWMRStoreWritableCommitBase;
-    template <typename> friend class SWMRStoreCommitBase;
+    template <typename> friend class SWMRStoreReadonlySnapshotBase;
+    template <typename> friend class SWMRStoreWritableSnapshotBase;
+    template <typename> friend class SWMRStoreSnapshotBase;
 
     SWMRBlockCounters<Profile> block_counters_;
 
     bool read_only_{false};
 
     uint64_t cp_allocation_threshold_{100 * 1024 * 1024 / 4096};
-    uint64_t cp_commits_threshold_{10000};
+    uint64_t cp_snapshots_threshold_{10000};
     uint64_t cp_timeout_{1000}; // 1 secons
 
     LDDocument store_params_;
@@ -145,9 +145,9 @@ public:
         return cp_allocation_threshold_;
     }
 
-    uint64_t cp_commit_threshold() const override {
+    uint64_t cp_snapshot_threshold() const override {
         LockGuard lock(history_mutex_);
-        return cp_commits_threshold_;
+        return cp_snapshots_threshold_;
     }
 
     uint64_t set_cp_allocation_threshold(uint64_t value) override {
@@ -157,10 +157,10 @@ public:
         return tmp;
     }
 
-    uint64_t set_cp_commit_threshold(uint64_t value) override {
+    uint64_t set_cp_snapshot_threshold(uint64_t value) override {
         LockGuard lock(history_mutex_);
-        auto tmp = cp_commits_threshold_;
-        cp_commits_threshold_ = value;
+        auto tmp = cp_snapshots_threshold_;
+        cp_snapshots_threshold_ = value;
         return tmp;
     }
 
@@ -184,19 +184,19 @@ public:
 
     virtual void check_if_open() = 0;
 
-    virtual SWMRReadOnlyCommitPtr do_open_readonly(CDescrPtr commit_descr) = 0;
-    virtual SWMRWritableCommitPtr do_create_writable(
+    virtual SWMRReadOnlySnapshotPtr do_open_readonly(CDescrPtr snapshot_descr) = 0;
+    virtual SWMRWritableSnapshotPtr do_create_writable(
             CDescrPtr consistency_point,
             CDescrPtr head,
             CDescrPtr parent,
-            CDescrPtr commit_descr
+            CDescrPtr snapshot_descr
     ) = 0;
 
-    virtual SWMRWritableCommitPtr do_open_writable(
-            CDescrPtr commit_descr,
+    virtual SWMRWritableSnapshotPtr do_open_writable(
+            CDescrPtr snapshot_descr,
             RemovingBlockConsumerFn fn, bool force = false) = 0;
 
-    virtual SWMRWritableCommitPtr do_create_writable_for_init(CDescrPtr commit_descr) = 0;
+    virtual SWMRWritableSnapshotPtr do_create_writable_for_init(CDescrPtr snapshot_descr) = 0;
     virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept = 0;
     virtual void store_superblock(SuperblockT* superblock, uint64_t sb_slot) = 0;
     virtual SharedSBPtr<SuperblockT> get_superblock(uint64_t file_pos) = 0;
@@ -205,7 +205,7 @@ public:
 
     virtual void do_flush() = 0;
 
-    virtual ReadOnlyCommitPtr flush(FlushType ft) override
+    virtual ReadOnlySnapshotPtr flush(FlushType ft) override
     {
         LockGuard lock(writer_mutex_);
         check_if_open();
@@ -218,18 +218,18 @@ public:
 
         if (!clean)
         {
-            auto ii = create_system_commit();
+            auto ii = create_system_snapshot();
             ii->commit(ConsistencyPoint::YES);
-            return DynamicPointerCast<ISWMRStoreReadOnlyCommit<ApiProfileT>>(ii);
+            return DynamicPointerCast<ISWMRStoreReadOnlySnapshot<ApiProfileT>>(ii);
         }
         else {
-            return ReadOnlyCommitPtr{};
+            return ReadOnlySnapshotPtr{};
         }
     }
 
-    virtual Optional<std::vector<CommitID>> commits(U8StringView branch) override
+    virtual Optional<std::vector<SnapshotID>> snapshots(U8StringView branch) override
     {
-        using ResultT = Optional<std::vector<CommitID>>;
+        using ResultT = Optional<std::vector<SnapshotID>>;
 
         check_if_open();
         LockGuard lock(history_mutex_);
@@ -237,34 +237,34 @@ public:
         auto head_opt = history_tree_.get_branch_head(branch);
         if (head_opt)
         {
-            std::vector<CommitID> commits;
+            std::vector<SnapshotID> snapshots;
 
             CDescrPtr node = head_opt.get();
             while (node) {
-                commits.push_back(node->commit_id());
+                snapshots.push_back(node->snapshot_id());
                 node = node->parent();
             }
 
-            return ResultT{commits};
+            return ResultT{snapshots};
         }
         else {
             return ResultT{};
         }
     }
 
-    virtual Optional<CommitID> parent(const CommitID& commit_id) override
+    virtual Optional<SnapshotID> parent(const SnapshotID& snapshot_id) override
     {
-        using ResultT = Optional<CommitID>;
+        using ResultT = Optional<SnapshotID>;
 
         check_if_open();
         LockGuard lock(history_mutex_);
 
-        auto descr_opt = history_tree_.get(commit_id);
+        auto descr_opt = history_tree_.get(snapshot_id);
         if (descr_opt)
         {
             CDescrPtr descr = descr_opt.get();
             if (descr->parent()) {
-                return ResultT{descr->parent()->commit_id()};
+                return ResultT{descr->parent()->snapshot_id()};
             }
             else {
                 return ResultT{};
@@ -275,14 +275,14 @@ public:
         }
     }
 
-    virtual Optional<bool> is_transient(const CommitID& commit_id) override
+    virtual Optional<bool> is_transient(const SnapshotID& snapshot_id) override
     {
         using ResultT = Optional<bool>;
 
         check_if_open();
         LockGuard lock(history_mutex_);
 
-        auto descr_opt = history_tree_.get(commit_id);
+        auto descr_opt = history_tree_.get(snapshot_id);
         if (descr_opt)
         {
             CDescrPtr descr = descr_opt.get();
@@ -293,18 +293,18 @@ public:
         }
     }
 
-    virtual Optional<bool> is_system_commit(const CommitID& commit_id) override
+    virtual Optional<bool> is_system_snapshot(const SnapshotID& snapshot_id) override
     {
         using ResultT = Optional<bool>;
 
         check_if_open();
         LockGuard lock(history_mutex_);
 
-        auto descr_opt = history_tree_.get(commit_id);
+        auto descr_opt = history_tree_.get(snapshot_id);
         if (descr_opt)
         {
             CDescrPtr descr = descr_opt.get();
-            return ResultT{descr->is_system_commit()};
+            return ResultT{descr->is_system_snapshot()};
         }
         else {
             return ResultT{};
@@ -312,84 +312,84 @@ public:
     }
 
 
-    virtual Optional<std::vector<CommitID>> children(const CommitID& commit_id) override
+    virtual Optional<std::vector<SnapshotID>> children(const SnapshotID& snapshot_id) override
     {
-        using ResultT = Optional<std::vector<CommitID>>;
+        using ResultT = Optional<std::vector<SnapshotID>>;
 
         check_if_open();
         LockGuard lock(history_mutex_);
 
-        auto descr_opt = history_tree_.get(commit_id);
+        auto descr_opt = history_tree_.get(snapshot_id);
         if (descr_opt)
         {
-            std::vector<CommitID> commits;
+            std::vector<SnapshotID> snapshots;
 
             for (auto chl: descr_opt.get()->children()) {
-                commits.push_back(chl->commit_id());
+                snapshots.push_back(chl->snapshot_id());
             }
 
-            return ResultT{commits};
+            return ResultT{snapshots};
         }
         else {
             return ResultT{};
         }
     }
 
-    virtual ReadOnlyCommitPtr open(const CommitID& commit_id, bool open_transient_commits) override
+    virtual ReadOnlySnapshotPtr open(const SnapshotID& snapshot_id, bool open_transient_snapshots) override
     {
         check_if_open();
-        if (!open_transient_commits) {
-            return open_persistent(commit_id);
+        if (!open_transient_snapshots) {
+            return open_persistent(snapshot_id);
         }
         else
         {
             LockGuard wlock(writer_mutex_);
 
-            auto commit = [&]{
+            auto snapshot = [&]{
                 LockGuard rlock(history_mutex_);
-                return history_tree_.get(commit_id);
+                return history_tree_.get(snapshot_id);
             }();
 
-            if (commit) {
-                return open_readonly(commit.get());
+            if (snapshot) {
+                return open_readonly(snapshot.get());
             }
             else {
-                make_generic_error_with_source(MA_SRC, "Can't find commit {}", commit_id).do_throw();
+                make_generic_error_with_source(MA_SRC, "Can't find snapshot {}", snapshot_id).do_throw();
             }
         }
     }
 
 
 
-    ReadOnlyCommitPtr open_persistent(const CommitID& commit_id)
+    ReadOnlySnapshotPtr open_persistent(const SnapshotID& snapshot_id)
     {
-        auto commit = [&]{
+        auto snapshot = [&]{
             LockGuard lock(history_mutex_);
-            return history_tree_.get(commit_id);
+            return history_tree_.get(snapshot_id);
         }();
 
-        if (commit)
+        if (snapshot)
         {
-            if (!commit.get()->is_transient()) {
-                return open_readonly(commit.get());
+            if (!snapshot.get()->is_transient()) {
+                return open_readonly(snapshot.get());
             }
             else {
-                make_generic_error_with_source(MA_SRC, "Requested commit {} is not persistent", commit_id).do_throw();
+                make_generic_error_with_source(MA_SRC, "Requested snapshot {} is not persistent", snapshot_id).do_throw();
             }
         }
         else {
-            make_generic_error_with_source(MA_SRC, "Can't find commit {}", commit_id).do_throw();
+            make_generic_error_with_source(MA_SRC, "Can't find snapshot {}", snapshot_id).do_throw();
         }
     }
 
 
 
-    virtual ReadOnlyCommitPtr open() override {
+    virtual ReadOnlySnapshotPtr open() override {
         return open("main");
     }
 
 
-    virtual ReadOnlyCommitPtr open(U8StringView branch) override
+    virtual ReadOnlySnapshotPtr open(U8StringView branch) override
     {
         check_if_open();
 
@@ -410,41 +410,41 @@ public:
         return history_tree_.branch_names();
     }
 
-    virtual int64_t count_volatile_commits() override {
+    virtual int64_t count_volatile_snapshots() override {
         LockGuard lock(history_mutex_);
-        return history_tree_.count_volatile_commits();
+        return history_tree_.count_volatile_snapshots();
     }
 
-    virtual WritableCommitPtr begin() override {
+    virtual WritableSnapshotPtr begin() override {
         return begin("main");
     }
 
 
-    virtual WritableCommitPtr begin(U8StringView branch) override {
+    virtual WritableSnapshotPtr begin(U8StringView branch) override {
         return branch_from("main", branch);
     }
 
-    CDescrPtr create_commit_descriptor(U8StringView branch_name)
+    CDescrPtr create_snapshot_descriptor(U8StringView branch_name)
     {
-        auto commit_descriptor = history_tree_.new_commit_descriptor(branch_name);
+        auto snapshot_descriptor = history_tree_.new_snapshot_descriptor(branch_name);
 
-        commit_descriptor->set_start_time(getTimeInMillis());
+        snapshot_descriptor->set_start_time(getTimeInMillis());
 
         {
             LockGuard lock(history_mutex_);
-            commit_descriptor->set_allocated_basic_blocks_threshold(cp_allocation_threshold_);
-            commit_descriptor->set_commits_threshold(cp_commits_threshold_);
-            commit_descriptor->set_cp_timeout(cp_timeout_);
+            snapshot_descriptor->set_allocated_basic_blocks_threshold(cp_allocation_threshold_);
+            snapshot_descriptor->set_snapshots_threshold(cp_snapshots_threshold_);
+            snapshot_descriptor->set_cp_timeout(cp_timeout_);
         }
 
-        return commit_descriptor;
+        return snapshot_descriptor;
     }
 
     void check_no_writers()
     {
         if (MMA_UNLIKELY(active_writer_)) {
             writer_mutex_.unlock();
-            MEMORIA_MAKE_GENERIC_ERROR("Another writer commit is still active. Commit/rollback it first.").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Another writer snapshot is still active. Commit/rollback it first.").do_throw();
         }
         active_writer_ = 1;
     }
@@ -454,7 +454,7 @@ public:
         writer_mutex_.unlock();
     }
 
-    virtual WritableCommitPtr branch_from(U8StringView source, U8StringView branch_name) override
+    virtual WritableSnapshotPtr branch_from(U8StringView source, U8StringView branch_name) override
     {
         check_if_open();
         throw_if_read_only();
@@ -467,18 +467,18 @@ public:
             auto descr = get_branch_head_read_sync(source);
             if (descr)
             {
-                CDescrPtr commit_descriptor = create_commit_descriptor(branch_name);
+                CDescrPtr snapshot_descriptor = create_snapshot_descriptor(branch_name);
 
-                SWMRWritableCommitPtr ptr = do_create_writable(
+                SWMRWritableSnapshotPtr ptr = do_create_writable(
                             history_tree_.consistency_point1(),
                             history_tree_.head(),
                             descr,
-                            std::move(commit_descriptor)
+                            std::move(snapshot_descriptor)
                 );
 
 
 
-                ptr->finish_commit_opening();
+                ptr->finish_snapshot_opening();
                 return ptr;
             }
             else {
@@ -491,7 +491,7 @@ public:
         }
     }
 
-    virtual WritableCommitPtr branch_from(const CommitID& commit_id, U8StringView branch_name) override
+    virtual WritableSnapshotPtr branch_from(const SnapshotID& snapshot_id, U8StringView branch_name) override
     {
         check_if_open();
         throw_if_read_only();
@@ -502,26 +502,26 @@ public:
         try {
             auto descr = [&]{
                 LockGuard lock(history_mutex_);
-                return history_tree_.get(commit_id);
+                return history_tree_.get(snapshot_id);
             }();
 
             if (descr)
             {
                 if (!descr.get()->is_transient())
                 {
-                    CDescrPtr commit_descriptor = create_commit_descriptor(branch_name);
+                    CDescrPtr snapshot_descriptor = create_snapshot_descriptor(branch_name);
 
-                    SWMRWritableCommitPtr ptr = do_create_writable(
+                    SWMRWritableSnapshotPtr ptr = do_create_writable(
                                 history_tree_.consistency_point1(),
                                 history_tree_.head(),
                                 descr,
-                                std::move(commit_descriptor)
+                                std::move(snapshot_descriptor)
                     );
-                    ptr->finish_commit_opening();
+                    ptr->finish_snapshot_opening();
                     return ptr;
                 }
                 else {
-                    MEMORIA_MAKE_GENERIC_ERROR("Requested commit '{}' is not persistent", commit_id).do_throw();
+                    MEMORIA_MAKE_GENERIC_ERROR("Requested snapshot '{}' is not persistent", snapshot_id).do_throw();
                 }
             }
             else {
@@ -536,7 +536,7 @@ public:
 
 
     // FIXME: needed only for flush
-    WritableCommitPtr create_system_commit()
+    WritableSnapshotPtr create_system_snapshot()
     {
         check_if_open();
         throw_if_read_only();
@@ -549,17 +549,17 @@ public:
             LockGuard lock(history_mutex_);
 
             U8String last_branch = history_tree_.head()->branch();
-            CDescrPtr commit_descriptor = create_commit_descriptor(last_branch);
-            commit_descriptor->set_system_commit(true);
+            CDescrPtr snapshot_descriptor = create_snapshot_descriptor(last_branch);
+            snapshot_descriptor->set_system_snapshot(true);
 
-            SWMRWritableCommitPtr ptr = do_create_writable(
+            SWMRWritableSnapshotPtr ptr = do_create_writable(
                         history_tree_.consistency_point1(),
                         history_tree_.head(),
                         history_tree_.head(),
-                        std::move(commit_descriptor)
+                        std::move(snapshot_descriptor)
             );
 
-            ptr->finish_commit_opening();
+            ptr->finish_snapshot_opening();
             return ptr;
         }
         catch (...) {
@@ -571,7 +571,7 @@ public:
 
 
     virtual void do_prepare(
-            CDescrPtr commit_descriptor,
+            CDescrPtr snapshot_descriptor,
             ConsistencyPoint cp,
             bool do_consistency_point,
             SharedSBPtr<SuperblockT> sb
@@ -605,34 +605,34 @@ public:
     }
 
     virtual void do_commit(
-        CDescrPtr commit_descriptor,
+        CDescrPtr snapshot_descriptor,
         bool do_consistency_point,
-        WritableCommitT* commit
+        WritableSnapshotT* snapshot
     )
     {
-        for (const auto& entry: commit->counters()) {
+        for (const auto& entry: snapshot->counters()) {
             block_counters_.apply(entry.first, entry.second.value);
         }
 
         {
             LockGuard lock(history_mutex_);
 
-            // We need to cleanup eviction queue before attaching the new commit
+            // We need to cleanup eviction queue before attaching the new snapshot
             // to the history tree. Because attaching may add a new entry to
             // the queue.
             cleanup_eviction_queue();
 
-            history_tree_.attach_commit(commit_descriptor, do_consistency_point);
+            history_tree_.attach_snapshot(snapshot_descriptor, do_consistency_point);
 
-            for (const auto& commit_id: commit->removing_commits())
+            for (const auto& snapshot_id: snapshot->removing_snapshots())
             {
-                auto descr = history_tree_.get(commit_id);
+                auto descr = history_tree_.get(snapshot_id);
                 if (descr) {
                     descr->set_transient(true);
                 }
             }
 
-            for (const auto& branch_name: commit->removing_branches()) {
+            for (const auto& branch_name: snapshot->removing_branches()) {
                 history_tree_.remove_branch(branch_name);
             }
         }
@@ -640,7 +640,7 @@ public:
         unlock_writer();
     }
 
-    virtual void do_rollback(CDescrPtr commit_descriptor)
+    virtual void do_rollback(CDescrPtr snapshot_descriptor)
     {
         unlock_writer();
     }
@@ -655,14 +655,14 @@ public:
 
         auto view = MakeShared<SWMRStoreHistoryViewImpl<Profile>>();
 
-        head->for_each_history_entry_batch([&](auto commits, auto metas){
-            view->load(commits, metas);
+        head->for_each_history_entry_batch([&](auto snapshot, auto metas){
+            view->load(snapshot, metas);
         });
 
         for (auto& name: history_tree_.branch_names())
         {
             CDescrPtr head = history_tree_.get_branch_head(name);
-            view->load_branch(name, head->commit_id());
+            view->load_branch(name, head->snapshot_id());
         }
 
         view->build_tree();
@@ -670,8 +670,8 @@ public:
         return view;
     }
 
-    ReadOnlyCommitPtr open_readonly(CDescrPtr commit_descr) {
-        return do_open_readonly(commit_descr);
+    ReadOnlySnapshotPtr open_readonly(CDescrPtr snapshot_descr) {
+        return do_open_readonly(snapshot_descr);
     }
 
 
@@ -680,7 +680,7 @@ public:
         return do_check(from, consumer);
     }
 
-    void for_all_evicting_commits(std::function<void (CommitDescriptorT*)> fn)
+    void for_all_evicting_snapshots(std::function<void (SnapshotDescriptorT*)> fn)
     {
         LockGuard lock(history_mutex_);
         for (auto& descr: history_tree_.eviction_queue()) {
@@ -697,21 +697,21 @@ public:
 
 protected:
 
-    std::vector<SWMRReadOnlyCommitPtr> build_ordered_commits_list(
+    std::vector<SWMRReadOnlySnapshotPtr> build_ordered_snapshots_list(
             const Optional<SequenceID>& from = Optional<SequenceID>{}
     ){
-        std::vector<SWMRReadOnlyCommitPtr> commits;
+        std::vector<SWMRReadOnlySnapshotPtr> snapshot;
 
         history_tree_.traverse_tree_preorder([&](CDescrPtr descr){
             auto ptr = do_open_readonly(descr);
-            commits.push_back(ptr);
+            snapshot.push_back(ptr);
         });
 
-        std::sort(commits.begin(), commits.end(), [&](const auto& one, const auto& two) -> bool {
+        std::sort(snapshot.begin(), snapshot.end(), [&](const auto& one, const auto& two) -> bool {
             return one->sequence_id() < two->sequence_id();
         });
 
-        return commits;
+        return snapshot;
     }
 
     Optional<SequenceID> do_check(const Optional<SequenceID>& from, const CheckResultConsumerFn& consumer)
@@ -725,19 +725,19 @@ protected:
 
         allocations_ = make_lite_allocation_map();
 
-        auto commits = build_ordered_commits_list(from);
+        auto snapshots = build_ordered_snapshots_list(from);
 
-        if (commits.size() > 0)
+        if (snapshots.size() > 0)
         {
-            CommitCheckState<Profile> check_state;
+            SnapshotCheckState<Profile> check_state;
 
-            for (auto& commit: commits)
+            for (auto& snapshot: snapshots)
             {
-                commit->add_superblock(*allocations_.get());
-                commit->check(consumer);
+                snapshot->add_superblock(*allocations_.get());
+                snapshot->check(consumer);
 
                 if (!from) {
-                    commit->build_block_refcounters(check_state.counters);
+                    snapshot->build_block_refcounters(check_state.counters);
                 }
             }
 
@@ -749,7 +749,7 @@ protected:
 
             allocations_->close();
             allocations_.reset();
-            return commits[commits.size() - 1]->sequence_id();
+            return snapshots[snapshots.size() - 1]->sequence_id();
         }
         else {
             allocations_->close();
@@ -874,21 +874,21 @@ protected:
 
         std::unordered_set<BlockID> visited_nodes;
 
-        history_tree_.traverse_tree_preorder([&](CDescrPtr commit_descr){
-            visitor.start_commit(commit_descr->commit_id(), commit_descr->sequence_id());
+        history_tree_.traverse_tree_preorder([&](CDescrPtr snapshot_descr){
+            visitor.start_snapshot(snapshot_descr->snapshot_id(), snapshot_descr->sequence_id());
 
-            auto commit = do_open_readonly(commit_descr);
-            auto sb = get_superblock(commit_descr->superblock_ptr());
+            auto snapshot = do_open_readonly(snapshot_descr);
+            auto sb = get_superblock(snapshot_descr->superblock_ptr());
 
             if (sb->blockmap_root_id().is_set()) {
-                commit->traverse_ctr_cow_tree(sb->blockmap_root_id(), visited_blocks, visitor, CtrType::BLOCKMAP);
+                snapshot->traverse_ctr_cow_tree(sb->blockmap_root_id(), visited_blocks, visitor, CtrType::BLOCKMAP);
             }
 
-            commit->traverse_ctr_cow_tree(sb->allocator_root_id(), visited_blocks, visitor, CtrType::ALLOCATOR);
-            commit->traverse_ctr_cow_tree(sb->history_root_id(), visited_blocks, visitor, CtrType::HISTORY);
-            commit->traverse_cow_containers(visited_blocks, visitor);
+            snapshot->traverse_ctr_cow_tree(sb->allocator_root_id(), visited_blocks, visitor, CtrType::ALLOCATOR);
+            snapshot->traverse_ctr_cow_tree(sb->history_root_id(), visited_blocks, visitor, CtrType::HISTORY);
+            snapshot->traverse_cow_containers(visited_blocks, visitor);
 
-            visitor.end_commit();
+            visitor.end_snapshot();
         });
 
         visitor.end_graph();
@@ -1018,7 +1018,7 @@ protected:
             ).do_throw();
         }
 
-        if (sb0->commit_id().is_null() && sb1->commit_id().is_null()) {
+        if (sb0->snapshot_id().is_null() && sb1->snapshot_id().is_null()) {
             // the file was only partially initialized, continue
             // the process with full initialization.
             return init_store();
@@ -1029,7 +1029,7 @@ protected:
 
         if (sb0->consistency_point_sequence_id() > sb1->consistency_point_sequence_id())
         {
-            consistency_point1_ptr = history_tree_.new_commit_descriptor(
+            consistency_point1_ptr = history_tree_.new_snapshot_descriptor(
                         sb0->superblock_file_pos(),
                         get_superblock(sb0->superblock_file_pos()).get(),
                         ""
@@ -1037,9 +1037,9 @@ protected:
 
             store_params_ = LDDocument{sb0->cmetadata_doc()};
 
-            if (sb1->commit_id().is_set())
+            if (sb1->snapshot_id().is_set())
             {
-                consistency_point2_ptr = history_tree_.new_commit_descriptor(
+                consistency_point2_ptr = history_tree_.new_snapshot_descriptor(
                             sb1->superblock_file_pos(),
                             get_superblock(sb1->superblock_file_pos()).get(),
                             ""
@@ -1047,7 +1047,7 @@ protected:
             }
         }
         else {
-            consistency_point1_ptr = history_tree_.new_commit_descriptor(
+            consistency_point1_ptr = history_tree_.new_snapshot_descriptor(
                         sb1->superblock_file_pos(),
                         get_superblock(sb1->superblock_file_pos()).get(),
                         ""
@@ -1055,9 +1055,9 @@ protected:
 
             store_params_ = LDDocument{sb1->cmetadata_doc()};
 
-            if (sb0->commit_id().is_set())
+            if (sb0->snapshot_id().is_set())
             {
-                consistency_point2_ptr = history_tree_.new_commit_descriptor(
+                consistency_point2_ptr = history_tree_.new_snapshot_descriptor(
                             sb0->superblock_file_pos(),
                             get_superblock(sb0->superblock_file_pos()).get(),
                             ""
@@ -1072,11 +1072,11 @@ protected:
         // eviction queue
         auto ptr = do_open_readonly(consistency_point1_ptr.get());
 
-        using MetaT = std::pair<CommitID, CommitMetadata<ApiProfile<Profile>>>;
+        using MetaT = std::pair<SnapshotID, SWMRSnapshotMetadata<ApiProfile<Profile>>>;
         std::vector<MetaT> metas;
 
-        ptr->for_each_history_entry([&](const auto& commit_id, const auto& commit_meta) {
-            metas.push_back(MetaT(commit_id, commit_meta));
+        ptr->for_each_history_entry([&](const auto& snapshot_id, const auto& snapshot_meta) {
+            metas.push_back(MetaT(snapshot_id, snapshot_meta));
         });
 
         history_tree_.load(metas, consistency_point1_ptr.get(), consistency_point2_ptr.get());
@@ -1115,10 +1115,10 @@ protected:
     }
 
     void rebuild_block_counters() noexcept {
-        auto commits = this->build_ordered_commits_list();
+        auto snapshots = this->build_ordered_snapshots_list();
 
-        for (auto& commit: commits) {
-            commit->build_block_refcounters(block_counters_);
+        for (auto& snapshot: snapshots) {
+            snapshot->build_block_refcounters(block_counters_);
         }
     }
 
@@ -1129,17 +1129,17 @@ protected:
         auto sb0 = get_superblock(0);
         auto sb1 = get_superblock(BASIC_BLOCK_SIZE);
 
-        sb0->init(0, buffer_size(), CommitID{}, BASIC_BLOCK_SIZE, 0, 0, store_params_);
+        sb0->init(0, buffer_size(), SnapshotID{}, BASIC_BLOCK_SIZE, 0, 0, store_params_);
         sb0->build_superblock_description();
 
-        sb1->init(BASIC_BLOCK_SIZE, buffer_size(), CommitID{}, BASIC_BLOCK_SIZE, 1, 1, store_params_);
+        sb1->init(BASIC_BLOCK_SIZE, buffer_size(), SnapshotID{}, BASIC_BLOCK_SIZE, 1, 1, store_params_);
         sb1->build_superblock_description();
 
-        auto commit_descriptor_ptr = history_tree_.new_commit_descriptor("main");
+        auto snapshot_descriptor_ptr = history_tree_.new_snapshot_descriptor("main");
 
         writer_mutex_.lock();
 
-        auto ptr = do_create_writable_for_init(commit_descriptor_ptr);
+        auto ptr = do_create_writable_for_init(snapshot_descriptor_ptr);
         ptr->finish_store_initialization();
     }
 
@@ -1149,7 +1149,7 @@ private:
         return history_tree_.get_branch_head(name);
     }
 
-    std::vector<CDescrPtr> get_last_commit_for_rollback_sync() const noexcept
+    std::vector<CDescrPtr> get_last_snapshot_for_rollback_sync() const noexcept
     {
         LockGuard lock(history_mutex_);
         return history_tree_.get_rollback_span();

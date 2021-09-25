@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/store/swmr/mapped/swmr_mapped_store_common.hpp>
-#include <memoria/store/swmr/common/swmr_store_writable_commit_base.hpp>
+#include <memoria/store/swmr/common/swmr_store_writable_snapshot_base.hpp>
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 
 #include <memoria/core/datatypes/type_registry.hpp>
@@ -35,25 +35,25 @@
 namespace memoria {
 
 template <typename>
-class MappedSWMRStoreReadOnlyCommit;
+class MappedSWMRStoreReadOnlySnapshot;
 
 template <typename>
-class MappedSWMRStoreWritableCommit;
+class MappedSWMRStoreWritableSnapshot;
 
 template <typename ChildProfile>
-class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
-        public SWMRStoreWritableCommitBase<CowProfile<ChildProfile>>,
-        public EnableSharedFromThis<MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>>
+class MappedSWMRStoreWritableSnapshot<CowProfile<ChildProfile>>:
+        public SWMRStoreWritableSnapshotBase<CowProfile<ChildProfile>>,
+        public EnableSharedFromThis<MappedSWMRStoreWritableSnapshot<CowProfile<ChildProfile>>>
 {
     using Profile = CowProfile<ChildProfile>;
 
-    using Base = SWMRStoreWritableCommitBase<Profile>;
+    using Base = SWMRStoreWritableSnapshotBase<Profile>;
 
     using typename Base::Store;
     using typename Base::CDescrPtr;
 
     using typename Base::StoreT;
-    using typename Base::CommitID;
+    using typename Base::SnapshotID;
     using typename Base::BlockID;
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
@@ -99,7 +99,7 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
     using Base::BASIC_BLOCK_SIZE;
     using Base::store_;
     using Base::state_;
-    using Base::commit_descriptor_;
+    using Base::snapshot_descriptor_;
 
     Span<uint8_t> buffer_;
 
@@ -111,23 +111,23 @@ class MappedSWMRStoreWritableCommit<CowProfile<ChildProfile>>:
 
 public:
     using Base::check;
-    using Base::init_commit;
-    using Base::init_store_commit;
+    using Base::init_snapshot;
+    using Base::init_store_snapshot;
     using Base::newId;
     using Base::unref_ctr_root;
     using Base::get_superblock;
-    using Base::commit_id;
+    using Base::snapshot_id;
     using Base::CustomLog2;
     using Base::allocation_level;
 
-    MappedSWMRStoreWritableCommit(
+    MappedSWMRStoreWritableSnapshot(
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             Span<uint8_t> buffer,
-            CDescrPtr& commit_descriptor,
+            CDescrPtr& snapshot_descriptor,
             RemovingBlocksConsumerFn removing_blocks_consumer_fn = RemovingBlocksConsumerFn{}
     ) noexcept:
-        Base(store, commit_descriptor, store.get(), removing_blocks_consumer_fn),
+        Base(store, snapshot_descriptor, store.get(), removing_blocks_consumer_fn),
         buffer_(buffer),
         block_cache_(1024*128)
     {}
@@ -219,7 +219,7 @@ public:
             BlockCacheEntry* shared = cache_entry_pool_.construct(block_id, block, at);
             shared->set_allocator(this);
 
-            shared->set_mutable(block->snapshot_id() == commit_id());
+            shared->set_mutable(block->snapshot_id() == snapshot_id());
 
             block_cache_.insert(shared);
 
@@ -285,7 +285,7 @@ public:
         BlockType* block = new (block_addr) BlockType(id, id.value(), id.value());
 
         block->memory_block_size() = size;
-        block->snapshot_id() = commit_id();
+        block->snapshot_id() = snapshot_id();
 
         BlockCacheEntry* shared = cache_entry_pool_.construct(id, block, at);
         shared->set_allocator(this);
@@ -318,7 +318,7 @@ public:
         new_block->id()   = id;
         new_block->uuid() = id.value();
         new_block->id_value() = id.value();
-        new_block->snapshot_id() = commit_id();
+        new_block->snapshot_id() = snapshot_id();
 
         new_block->set_references(0);
 

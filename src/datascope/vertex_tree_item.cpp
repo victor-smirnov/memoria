@@ -195,10 +195,10 @@ void SWMRStoreBranchTreeItem::expand()
 {
     if (!expanded_)
     {
-        auto commits = history_->commits(branch_name_).get();
+        auto snapshots = history_->snapshots(branch_name_).get();
 
-        for (const auto& commit_id: commits) {
-            children_.append(new SWMRStoreSnapshotTreeItem(store_, commit_id, this, counter_provider_));
+        for (const auto& snapshot_id: snapshots) {
+            children_.append(new SWMRStoreSnapshotTreeItem(store_, snapshot_id, this, counter_provider_));
         }
 
         expanded_ = true;
