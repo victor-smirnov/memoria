@@ -78,6 +78,7 @@ class [[clang::annotate(R"(
                 ]
             },
             "NoCowProfile<>": {
+                "enabled": true,
                 "includes": [
                     "memoria/profiles/impl/no_cow_profile.hpp"
                 ]

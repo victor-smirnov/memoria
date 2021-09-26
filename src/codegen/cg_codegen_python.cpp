@@ -55,7 +55,6 @@ void create_codegen_module(py::module mm)
     cg_entity.def("describe", &CodegenEntity::describe);
     cg_entity.def("project", &CodegenEntity::project);
     cg_entity.def("includes", &CodegenEntity::includes);
-    cg_entity.def("generated_files", &CodegenEntity::generated_files);
     cg_entity.def("config_string", &CodegenEntity::config_string);
 
     py::class_<Project, ShPtr<Project>> project(mm, "Project");
@@ -66,6 +65,7 @@ void create_codegen_module(py::module mm)
     project.def("profile_includes", &Project::profile_includes);
     project.def("generator", &Project::generator);
     project.def("config_string", &Project::config_string);
+    project.def("is_profile_enabled", &Project::is_profile_enabled);
 
     py::class_<TypeInstance, ShPtr<TypeInstance>> type_instance(mm, "TypeInstance", cg_entity);
     type_instance.def("type_factory", &TypeInstance::type_factory);
@@ -111,6 +111,10 @@ void create_codegen_module(py::module mm)
     pch.def("target_folder", &PreCompiledHeader::target_folder);
     pch.def("compile_with", &PreCompiledHeader::compile_with);
     pch.def("infer", &PreCompiledHeader::infer);
+
+    py::class_<ResourceNameConsumer> rs_consumer(mm, "ResourceNameConsumer");
+    rs_consumer.def("add_source_file", &ResourceNameConsumer::add_source_file);
+    rs_consumer.def("add_byproduct_file", &ResourceNameConsumer::add_byproduct_file);
 }
 
 

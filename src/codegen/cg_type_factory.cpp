@@ -171,6 +171,19 @@ public:
 
     void generate_artifacts() override {}
 
+    void dry_run(LDDMapView map) override
+    {
+        auto sources = get_or_add_array(map, "sources");
+        auto byproducts = get_or_add_array(map, "byproducts");
+
+        DefaultResourceNameConsumerImpl consumer(sources, byproducts);
+
+        U8String file_path = project()->project_output_folder() + "/" + name_ + ".hpp";
+
+        consumer.add_byproduct_file(file_path);
+        consumer.add_byproduct_file(file_path + ".pch");
+    }
+
     std::vector<U8String> generated_files() override
     {
         std::vector<U8String> files;

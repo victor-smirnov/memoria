@@ -32,41 +32,9 @@ namespace memoria {
 }
 
 
-int main(void) {
+int main(void)
+{
     InitCoreLDDatatypes();
-
-    for (size_t c = 0; c < 10; c++) {
-        UID256 uid = UID256::make_random();
-        println("{}", uid);
-        println("{}", uid.to_cxx_decl());
-        println("");
-    }
-
-    auto uuid = UID256::parse("{3|abcdef123246246354624353454567890|3444|213232342}");
-
-    println("UID256: {}", uuid);
-
-    std::stringstream ss;
-    println(ss, "{}", uuid);
-
-    UID256 uuid2;
-    ss >> uuid2;
-
-    println("UID256: {}", uuid2);
-
-    auto u0 = UID256::make_random();
-    println("UID256: {}", u0);
-    println("UID256: {}", UID256::make_type3(u0, 3444, 213232342));
-
-    UID64 uu0 = UID64::parse("{1|513}");
-    println("UID64: {}", uu0);
-
-
-    UID256 uid00;
-    if (uid00) {
-        println("Error!");
-    }
-
 
     /*
     println("{}", UUID{0, 594});

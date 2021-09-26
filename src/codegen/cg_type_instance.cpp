@@ -203,10 +203,13 @@ public:
 
                 for (const U8String& profile: profiles_.get())
                 {
-                    py::object tf_i = tf(self(), type_factory_, py::str(profile.data()));
-                    py::object hw = tf_i.attr("generate_files");
+                    if (project_->is_profile_enabled(profile))
+                    {
+                        py::object tf_i = tf(self(), type_factory_, py::str(profile.data()));
+                        py::object hw = tf_i.attr("generate_files");
 
-                    hw();
+                        hw();
+                    }
                 }
             }
             else {
@@ -221,18 +224,17 @@ public:
         }
     }
 
-    std::vector<U8String> generated_files() override
+    void dry_run(LDDMapView map) override
     {
-        std::vector<U8String> files;
+        auto sources = get_or_add_array(map, "sources");
+        auto byproducts = get_or_add_array(map, "byproducts");
 
-        U8String file_path = U8String("BYPRODUCT:") + target_folder_ + "/" + name_ + ".hpp";
+        DefaultResourceNameConsumerImpl consumer(sources, byproducts);
 
-        files.push_back(file_path);
-        files.push_back(file_path + ".pch");
+        U8String file_path = target_folder_ + "/" + name_ + ".hpp";
 
-        std::function<void(std::string)> fn = [&](std::string str){
-            files.push_back(str);
-        };
+        consumer.add_byproduct_file(file_path);
+        consumer.add_byproduct_file(file_path + ".pch");
 
         U8String generator_class_name = type_factory()->generator();
         auto path = split_path(generator_class_name);
@@ -240,13 +242,20 @@ public:
         py::object cg = py::module_::import(path.first.data());
         py::object tf = cg.attr(path.second.data());
 
+        std::function<void(std::string)> fn = [&](std::string str){
+            consumer.add_source_file(str);
+        };
+
         if (profiles_)
         {
             for (const U8String& profile: profiles_.get())
             {
-                py::object tf_i = tf(self(), type_factory_, py::str(profile.to_std_string()));
-                py::object hw = tf_i.attr("dry_run");
-                hw(fn);
+                if (project_->is_profile_enabled(profile))
+                {
+                    py::object tf_i = tf(self(), type_factory_, py::str(profile.to_std_string()));
+                    py::object hw = tf_i.attr("dry_run");
+                    hw(fn);
+                }
             }
         }
         else {
@@ -254,9 +263,44 @@ public:
             py::object hw = tf_i.attr("dry_run");
             hw(fn);
         }
-
-        return files;
     }
+
+    std::vector<U8String> generated_files() override
+    {
+         std::vector<U8String> files;
+
+         U8String file_path = U8String("BYPRODUCT:") + target_folder_ + "/" + name_ + ".hpp";
+
+         files.push_back(file_path);
+         files.push_back(file_path + ".pch");
+
+         std::function<void(std::string)> fn = [&](std::string str){
+             files.push_back(str);
+         };
+
+         U8String generator_class_name = type_factory()->generator();
+         auto path = split_path(generator_class_name);
+
+         py::object cg = py::module_::import(path.first.data());
+         py::object tf = cg.attr(path.second.data());
+
+         if (profiles_)
+         {
+             for (const U8String& profile: profiles_.get())
+             {
+                 py::object tf_i = tf(self(), type_factory_, py::str(profile.to_std_string()));
+                 py::object hw = tf_i.attr("dry_run1");
+                 hw(fn);
+             }
+         }
+         else {
+             py::object tf_i = tf(self(), type_factory_, nullptr);
+             py::object hw = tf_i.attr("dry_run1");
+             hw(fn);
+         }
+
+         return files;
+     }
 
     Optional<std::vector<U8String>> profiles() const override {
         return profiles_;

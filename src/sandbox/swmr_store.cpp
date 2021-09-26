@@ -57,11 +57,11 @@ int main(void) {
             int cnt = 0;
             int b0  = 0;
             int batch_size = 1000;
-            int num_entries = 100000;
+            int num_entries = 1000000;
 
             while (cnt < num_entries)
             {
-                if (b0 % (num_entries / batch_size / 100) == 0)
+                if (b0 % (num_entries / batch_size / 10) == 0)
                 {
                     std::cout << "Batch " << (b0) << " :: " << cnt << " :: " << (num_entries) << std::endl;
                     store1->check(callback);
@@ -84,7 +84,7 @@ int main(void) {
                 }
 
                 //snp1->set_transient(false);
-                snp1->commit(ConsistencyPoint::AUTO);
+                snp1->commit();
 
                 b0++;
             }

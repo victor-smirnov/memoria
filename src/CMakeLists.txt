@@ -1,5 +1,5 @@
 
-# Copyright 2016 Victor Smirnov
+# Copyright 2016-2021 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -63,6 +63,13 @@ find_package(Clang CONFIG REQUIRED)
 
 SET (MMA_CLANG_INCLUDES_DIR ${Boost_INCLUDE_DIRS})
 
+if (BUILD_EXTRA_CONTAINERS)
+    set(BUILD_EXTRA_CONTAINERS_OPT "MEMORIA_BUILD_EXTRA_CONTAINERS")
+else()
+    set(BUILD_EXTRA_CONTAINERS_OPT "MEMORIA_NONE")
+endif()
+
+
 execute_process(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMAND
@@ -74,6 +81,7 @@ execute_process(
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
         -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/12.0.1/include
         -D MMA_ICU_CXX_NS=icu
+        -D ${BUILD_EXTRA_CONTAINERS_OPT}
         --config codegen_memoria.hpp
         --project-output ${CMAKE_BINARY_DIR}/generated
         --components-output-base ${CMAKE_BINARY_DIR}
@@ -82,6 +90,7 @@ execute_process(
     COMMAND_ERROR_IS_FATAL ANY
 )
 
+#message ("========================  GENERATED SOURCES: |${GENERATED_SOURCES}|============================")
 
 SET (GENERATED_MAIN_SOURCES)
 SET (GENERATED_STORE_SOURCES)
@@ -89,6 +98,7 @@ SET (GENERATED_STORE_SOURCES)
 SET (GENERATED_MAIN_BYPRODUCTS)
 SET (GENERATED_STORE_BYPRODUCTS)
 SET (GENERATED_OTHER_BYPRODUCTS)
+SET (ACTIVE_PROFILES)
 
 foreach(FNAME ${GENERATED_SOURCES})
     if (FNAME MATCHES "^BYPRODUCT:")
@@ -113,7 +123,11 @@ foreach(FNAME ${GENERATED_SOURCES})
         else()
             message(FATAL_ERROR "Unknown destination for generated source: ${FNAME_OUT}")
         endif()
+    endif()
 
+    if (FNAME MATCHES "^PROFILE:")
+        string(SUBSTRING ${FNAME} 8 -1 FNAME_OUT)
+        list(APPEND ACTIVE_PROFILES ${FNAME_OUT})
     endif()
 endforeach()
 
@@ -125,9 +139,13 @@ endforeach()
 #message ("======================== STORE BP: |${GENERATED_STORE_BYPRODUCTS}|===========================")
 #message ("======================== OTHER BP: |${GENERATED_OTHER_BYPRODUCTS}|===========================")
 
+message ("======================== ACTIVe PROFILES: |${ACTIVE_PROFILES}|===========================")
+
 if (REUSE_GENERATED_SOURCES)
     SET(REUSE_GENERATED_SOURCES_OPT "--reuse-output-file-names")
 endif()
+
+message ("Reusing generated sources is ${REUSE_GENERATED_SOURCES}")
 
 add_custom_command(
     IMPLICIT_DEPENDS C++ ../codegen/include/codegen_memoria.hpp
@@ -143,6 +161,7 @@ add_custom_command(
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
         -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/12.0.1/include
         -D MMA_ICU_CXX_NS=icu
+        -D ${BUILD_EXTRA_CONTAINERS_OPT}
         --config codegen_memoria.hpp
         --project-output ${CMAKE_BINARY_DIR}/generated
         --components-output-base ${CMAKE_BINARY_DIR}

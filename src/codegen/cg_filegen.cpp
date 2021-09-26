@@ -104,6 +104,14 @@ public:
         }
     }
 
+    void dry_run(LDDMapView map) override
+    {
+        auto sources = get_or_add_array(map, "sources");
+
+        U8String file_path = target_file_;
+        sources.add_varchar(file_path);
+    }
+
     std::vector<U8String> generated_files() override
     {
         std::vector<U8String> files;

@@ -28,6 +28,10 @@ MMA_INSTANTIATE_CTR_{{factory_type}}(CtrName, Profile)
 """)
 
     def dry_run(self, consumer):
+        consumer(self.target_file)
+        pass
+
+    def dry_run1(self, consumer):
         consumer("SOURCE:" + self.target_file)
 
     def generate_init(self):

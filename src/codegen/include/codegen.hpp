@@ -56,7 +56,10 @@ struct CodegenEntity {
     virtual ShPtr<Project> project() const noexcept = 0;
 
     virtual std::vector<U8String> includes() const = 0;
+
+    virtual void dry_run(LDDMapView consumer) = 0;
     virtual std::vector<U8String> generated_files() = 0;
+
     virtual void generate_artifacts() = 0;
     virtual void configure() = 0;
 
@@ -82,12 +85,18 @@ struct Project {
 
     virtual std::vector<U8String> profiles() const = 0;
 
+    virtual LDDocument dry_run() = 0;
     virtual std::vector<U8String> build_file_names() = 0;
+
     virtual void generate_artifacts() = 0;
 
     virtual ShPtr<FileGenerator> generator(const U8String& sdn_path) const = 0;
 
     virtual std::vector<U8String> profile_includes(const U8String& profile) const = 0;
+    virtual bool is_profile_enabled(const U8String& profile) const = 0;
+
+    virtual void add_enabled_profile(const U8String& profile_name) = 0;
+    virtual void add_disabled_profile(const U8String& profile_name) = 0;
 
     static std::shared_ptr<Project> create(U8String config_file_name, U8String project_output_folder, U8String components_output_folder);
 };
@@ -176,5 +185,32 @@ T&& get_or_fail(Optional<T>&& opt, U8StringView msg)
         MEMORIA_MAKE_GENERIC_ERROR("{}", msg).do_throw();
     }
 }
+
+LDDArrayView get_or_add_array(LDDMapView map, const U8String& name);
+
+struct ResourceNameConsumer {
+    virtual ~ResourceNameConsumer() noexcept = default;
+
+    virtual void add_source_file(std::string name) = 0;
+    virtual void add_byproduct_file(std::string name) = 0;
+};
+
+class DefaultResourceNameConsumerImpl: public ResourceNameConsumer {
+    LDDArrayView sources_;
+    LDDArrayView byproducts_;
+
+public:
+    DefaultResourceNameConsumerImpl(LDDArrayView sources, LDDArrayView byproducts):
+        sources_(sources), byproducts_(byproducts)
+    {}
+
+    void add_source_file(std::string name) {
+        sources_.add_varchar(name);
+    }
+
+    void add_byproduct_file(std::string name) {
+        byproducts_.add_varchar(name);
+    }
+};
 
 }}

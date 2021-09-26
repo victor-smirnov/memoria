@@ -33,6 +33,7 @@
 
 #include <fstream>
 #include <unordered_map>
+#include <unordered_set>
 #include <filesystem>
 
 namespace memoria {
@@ -43,6 +44,8 @@ using namespace llvm;
 
 namespace {
 std::vector<std::string> parser_options;
+//std::unordered_set<std::string> enabled_profiles;
+//std::unordered_set<std::string> disabled_profiles;
 }
 
 class BuildASTAction : public tooling::ToolAction {

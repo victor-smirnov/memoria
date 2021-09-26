@@ -115,15 +115,20 @@ public:
     template <typename KeyView>
     Optional<Value> get(const KeyView& key) const
     {
-        const Array* array = this->array();
-        size_t slot  = array_slot(array, key);
-
-        BucketPtr bucket = array->access(slot);
-        if (MMA_LIKELY(bucket))
+        const State* state = this->state();
+        if (MMA_LIKELY(state->array_))
         {
-            Optional<size_t> idx = locate(bucket, key);
-            if (idx) {
-                return Optional<Value>(deref(bucket)->access(idx.get()).value);
+            const Array* array = this->array();
+
+            size_t slot  = array_slot(array, key);
+
+            BucketPtr bucket = array->access(slot);
+            if (MMA_LIKELY(bucket))
+            {
+                Optional<size_t> idx = locate(bucket, key);
+                if (idx) {
+                    return Optional<Value>(deref(bucket)->access(idx.get()).value);
+                }
             }
         }
 

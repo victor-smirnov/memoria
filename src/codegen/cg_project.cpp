@@ -33,6 +33,7 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <vector>
+#include <unordered_set>
 #include <cctype>
 #include <filesystem>
 
@@ -82,7 +83,10 @@ class ProjectImpl: public Project, public std::enable_shared_from_this<ProjectIm
     U8String codegen_config_file_name_{"generated-codegen.hpp"};
     U8String codegen_config_file_name_pch_;
 
-    std::vector<U8String> profiles_;
+    std::unordered_set<U8String> profiles_;
+
+    std::unordered_set<U8String> enabled_profiles_;
+    std::unordered_set<U8String> disabled_profiles_;
 
 public:
     ProjectImpl(U8String config_file_name, U8String project_output_folder, U8String components_output_folder) noexcept:
@@ -119,8 +123,26 @@ public:
         if (profiles)
         {
             auto map = profiles.get().as_map();
-            map.for_each([&](auto key, auto){
-                profiles_.push_back(key);
+            map.for_each([&](auto profile_name, auto value){
+                profiles_.insert(profile_name);
+
+                if (value.is_map()) {
+                    LDDMapView map = value.as_map();
+                    auto enabled = map.get("enabled");
+                    if (enabled.is_initialized() && enabled.get().is_boolean())
+                    {
+                        if (enabled.get().as_boolean())
+                        {
+                            enabled_profiles_.insert(profile_name);
+                        }
+                        else {
+                            disabled_profiles_.insert(profile_name);
+                        }
+                    }
+                    else {
+                        enabled_profiles_.insert(profile_name);
+                    }
+                }
             });
         }
         else {
@@ -136,7 +158,7 @@ public:
                     U8String full_path = join_sdn_path(path);
                     LDDocument cfg = value.clone();
 
-                    println("Generator: {}", full_path);
+                    //println("Generator: {}", full_path);
 
                     file_generators_[full_path] = FileGenerator::create(self(), full_path, std::move(cfg));
                     return false;
@@ -218,6 +240,42 @@ public:
         return files;
     }
 
+    LDDocument dry_run()  override
+    {
+        LDDocument doc;
+        LDDMapView map = doc.set_map();
+
+        LDDArrayView profiles = get_or_add_array(map, "active_profiles");
+
+        for (const auto& profile: enabled_profiles_) {
+            profiles.add_varchar(profile);
+        }
+
+        LDDArrayView byproducts = get_or_add_array(map, "byproducts");
+
+        U8String file_path = project_output_folder_ + "/" + config_file_name_;
+
+        byproducts.add_varchar(file_path);
+        byproducts.add_varchar(file_path + ".pch");
+
+        for (auto& tf: type_factories_)
+        {
+            tf->dry_run(map);
+        }
+
+        for (auto& ti: type_instances_)
+        {
+            ti->dry_run(map);
+        }
+
+        for (auto& tg: file_generators_)
+        {
+            tg.second->dry_run(map);
+        }
+
+        return std::move(doc);
+    }
+
 
     std::vector<ShPtr<TypeFactory>> type_factories() const override {
         return type_factories_;
@@ -275,8 +333,15 @@ public:
         return config_.value().as_typed_value().constructor().as_map();
     }
 
-    std::vector<U8String> profiles() const override {
-        return profiles_;
+    std::vector<U8String> profiles() const override
+    {
+        std::vector<U8String> pp;
+
+        for (const auto& profile: profiles_) {
+            pp.push_back(profile);
+        }
+
+        return pp;
     }
 
     ShPtr<FileGenerator> generator(const U8String& sdn_path) const override
@@ -302,6 +367,27 @@ public:
         });
 
         return incs;
+    }
+
+    void add_enabled_profile(const U8String& profile_name) override {
+        if (profiles_.count(profile_name))
+        {
+            enabled_profiles_.insert(profile_name);
+            disabled_profiles_.erase(profile_name);
+        }
+    }
+
+    void add_disabled_profile(const U8String& profile_name) override
+    {
+        if (profiles_.count(profile_name))
+        {
+            disabled_profiles_.insert(profile_name);
+            enabled_profiles_.erase(profile_name);
+        }
+    }
+
+    bool is_profile_enabled(const U8String& profile) const override {
+        return enabled_profiles_.count(profile) > 0;
     }
 };
 
@@ -428,6 +514,18 @@ void for_each_value(LDDValueView elem, const std::function<bool(const std::vecto
 {
     std::vector<U8String> path;
     for_each_value(path, elem, consumer);
+}
+
+
+LDDArrayView get_or_add_array(LDDMapView map, const U8String& name)
+{
+    auto res = map.get(name);
+
+    if (res.is_initialized()) {
+        return res.get().as_array();
+    }
+
+    return map.set_array(name);
 }
 
 }}
