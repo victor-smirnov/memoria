@@ -213,4 +213,6 @@ public:
     }
 };
 
+std::string build_output_list(const LDDocumentView& doc);
+
 }}

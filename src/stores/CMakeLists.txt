@@ -12,16 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if (NO_COW_PROFILE)
+    add_subdirectory(memory_nocow_fibers)
+    add_subdirectory(memory_nocow_threads)
+    add_subdirectory(lmdb)
+endif()
 
-add_subdirectory(memory_nocow_fibers)
-add_subdirectory(memory_nocow_threads)
-add_subdirectory(memory_cow_threads)
-add_subdirectory(swmr_mapped)
-add_subdirectory(swmr_fibers)
-add_subdirectory(swmr_lite_fibers)
-add_subdirectory(swmr_lite_mapped)
-add_subdirectory(swmr_lite_raw)
-add_subdirectory(lmdb)
+if (COW_PROFILE)
+    add_subdirectory(memory_cow_threads)
+    add_subdirectory(swmr_mapped)
+endif()
+
+if (COW_LITE_PROFILE)
+    add_subdirectory(swmr_fibers)
+    add_subdirectory(swmr_lite_fibers)
+    add_subdirectory(swmr_lite_mapped)
+    add_subdirectory(swmr_lite_raw)
+endif()
+
 add_subdirectory(common)
 
 file(GLOB SRCS *.cpp)

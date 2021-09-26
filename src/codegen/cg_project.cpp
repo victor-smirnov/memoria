@@ -369,20 +369,33 @@ public:
         return incs;
     }
 
-    void add_enabled_profile(const U8String& profile_name) override {
-        if (profiles_.count(profile_name))
-        {
-            enabled_profiles_.insert(profile_name);
-            disabled_profiles_.erase(profile_name);
+    void add_enabled_profile(const U8String& profile_name) override
+    {
+        U8String name = profile_name;
+        if (!name.ends_with("<>")) {
+            name += "<>";
+        }
+
+        println("Enabling profile {}", name);
+
+        if (profiles_.count(name)) {
+            enabled_profiles_.insert(name);
+            disabled_profiles_.erase(name);
         }
     }
 
     void add_disabled_profile(const U8String& profile_name) override
     {
-        if (profiles_.count(profile_name))
-        {
-            disabled_profiles_.insert(profile_name);
-            enabled_profiles_.erase(profile_name);
+        U8String name = profile_name;
+        if (!name.ends_with("<>")) {
+            name += "<>";
+        }
+
+        println("Disabling profile {}", name);
+
+        if (profiles_.count(name)) {
+            disabled_profiles_.insert(name);
+            enabled_profiles_.erase(name);
         }
     }
 
@@ -526,6 +539,70 @@ LDDArrayView get_or_add_array(LDDMapView map, const U8String& name)
     }
 
     return map.set_array(name);
+}
+
+
+std::string build_output_list(const LDDocumentView& doc)
+{
+    std::stringstream ss;
+    std::vector<U8String> files;
+
+    if (doc.value().is_map())
+    {
+        LDDMapView mm = doc.value().as_map();
+        auto byproducts = mm.get("byproducts");
+        if (byproducts.is_initialized()) {
+            if (byproducts.get().is_array())
+            {
+                LDDArrayView arr = byproducts.get().as_array();
+                for (size_t c = 0; c < arr.size(); c++) {
+                    files.push_back(U8String("BYPRODUCT:") + arr.get(c).as_varchar().view());
+                }
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("byproducts list is not an SDN array").do_throw();
+            }
+        }
+
+        auto sources = mm.get("sources");
+        if (sources.is_initialized()) {
+            if (sources.get().is_array())
+            {
+                LDDArrayView arr = sources.get().as_array();
+                for (size_t c = 0; c < arr.size(); c++) {
+                    files.push_back(U8String("SOURCE:") + arr.get(c).as_varchar().view());
+                }
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("sources list is not an SDN array").do_throw();
+            }
+        }
+
+        auto profiles = mm.get("active_profiles");
+        if (profiles.is_initialized()) {
+            if (profiles.get().is_array())
+            {
+                LDDArrayView arr = profiles.get().as_array();
+                for (size_t c = 0; c < arr.size(); c++) {
+                    files.push_back(U8String("PROFILE:") + arr.get(c).as_varchar().view());
+                }
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("active_profiles list is not an SDN array").do_throw();
+            }
+        }
+    }
+
+    for (size_t c = 0; c < files.size(); c++)
+    {
+        U8String name = files[c];
+        ss << name;
+        if (c < files.size() - 1) {
+            ss << ";";
+        }
+    }
+
+    return ss.str();
 }
 
 }}

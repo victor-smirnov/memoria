@@ -57,7 +57,7 @@ int main(void) {
             int cnt = 0;
             int b0  = 0;
             int batch_size = 1000;
-            int num_entries = 1000000;
+            int num_entries = 100000;
 
             while (cnt < num_entries)
             {

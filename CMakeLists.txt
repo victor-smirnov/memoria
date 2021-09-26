@@ -54,9 +54,15 @@ option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
 option(BUILD_STATIC     "Build statically linked binaries" OFF)
 option(BUILD_EXAMPLES   "Build project examples" OFF)
 option(BUILD_BENCHMARKS "Build project benchmarks" OFF)
-option(BUILD_WITH_STATIC_BOOST "Use static boost libraries" OFF)
 option(BUILD_EMIT_LLVM  "Emit LLVM bytecode for compiled binaries. Implies Clang is the compiler." OFF)
-option(BUILD_EXTRA_CONTAINERS  "Build additional containers" ON)
+
+option(BUILD_WITH_STATIC_BOOST     "Use static boost libraries" OFF)
+option(BUILD_EXTRA_CONTAINERS      "Build additional containers" ON)
+option(BUILD_REUSE_CODEGEN_CONFIG  "Reuse previously generated codegen configuration (faster iteration)" OFF)
+
+option(BUILD_COW_PROFILE        "Build CowProfile" ON)
+option(BUILD_COW_LITE_PROFILE   "Build CowLiteProfile" ON)
+option(BUILD_NO_COW_PROFILE     "Build NoCowProfile" OFF)
 
 option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" OFF)
 option(BUILD_TESTS_PACKED       "Build Packed Structires tests" ON)
@@ -68,9 +74,10 @@ option(BUILD_TESTS_FIBERS       "Build Fibers tests" OFF)
 option(BUILD_TESTS_DISRUPTOR    "Build Disriptor MPSC queue tests" OFF)
 option(BUILD_TESTS_CONTEXT      "Build Disriptor MPSC queue tests" OFF)
 
+
 option(BUILD_CODEGENERATOR_EXPLICITLY  "Build code generator explictly (for its development)" OFF)
 
-option(REUSE_GENERATED_SOURCES  "Reuse source files generated on previous runs (faster iteration)" OFF)
+
 
 option(ICU_DEBUG   "Debug FindICU" OFF)
 option(Boost_DEBUG "Debug FindBoost" OFF)

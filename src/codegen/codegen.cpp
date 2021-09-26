@@ -34,72 +34,6 @@ using namespace memoria::codegen;
 namespace po = boost::program_options;
 namespace py = pybind11;
 
-std::string build_generated_files_list(const LDDocumentView& doc)
-{
-    std::stringstream ss;
-    std::vector<U8String> files;
-
-    if (doc.value().is_map())
-    {
-        LDDMapView mm = doc.value().as_map();
-        auto byproducts = mm.get("byproducts");
-        if (byproducts.is_initialized()) {
-            if (byproducts.get().is_array())
-            {
-                LDDArrayView arr = byproducts.get().as_array();
-                for (size_t c = 0; c < arr.size(); c++) {
-                    files.push_back(U8String("BYPRODUCT:") + arr.get(c).as_varchar().view());
-                }
-            }
-            else {
-                MEMORIA_MAKE_GENERIC_ERROR("byproducts list is not an SDN array").do_throw();
-            }
-        }
-
-        auto sources = mm.get("sources");
-        if (sources.is_initialized()) {
-            if (sources.get().is_array())
-            {
-                LDDArrayView arr = sources.get().as_array();
-                for (size_t c = 0; c < arr.size(); c++) {
-                    files.push_back(U8String("SOURCE:") + arr.get(c).as_varchar().view());
-                }
-            }
-            else {
-                MEMORIA_MAKE_GENERIC_ERROR("sources list is not an SDN array").do_throw();
-            }
-        }
-
-        auto profiles = mm.get("active_profiles");
-        if (profiles.is_initialized()) {
-            if (profiles.get().is_array())
-            {
-                LDDArrayView arr = profiles.get().as_array();
-                for (size_t c = 0; c < arr.size(); c++) {
-                    files.push_back(U8String("PROFILE:") + arr.get(c).as_varchar().view());
-                }
-            }
-            else {
-                MEMORIA_MAKE_GENERIC_ERROR("active_profiles list is not an SDN array").do_throw();
-            }
-        }
-    }
-
-    for (size_t c = 0; c < files.size(); c++)
-    {
-        U8String name = files[c];
-        ss << name;
-        if (c < files.size() - 1) {
-            ss << ";";
-        }
-    }
-
-    return ss.str();
-}
-
-
-
-
 int main(int argc, char** argv)
 {
     InitMemoriaCoreExplicit();
@@ -122,8 +56,8 @@ int main(int argc, char** argv)
                 ("project-output", po::value<std::string>(), "Main output folder")
                 ("components-output-base", po::value<std::string>(), "Output folder prefix for compoments")
                 ("verbose,v", po::value<std::string>(), "Provide additional debug info")
-                ("print-output-file-names", "Only print filenames that will be created during full run (for CMake integration)")
-                ("reuse-output-file-names", "Reuse previously generated filenames list that will be created during full run (for CMake integration, faster build)")
+                ("dry-run", "Only print resources that will be created during full run (for CMake integration)")
+                ("reuse-config", "Reuse previously generated resources (for CMake integration, faster build)")
                 ;
 
         po::variables_map map;
@@ -185,14 +119,13 @@ int main(int argc, char** argv)
         std::string file_name = project_output_folder + "/generator_state.sdn";
         bool list_exists = std::filesystem::exists(file_name);
 
-        if (map.count("print-output-file-names"))
+        if (map.count("dry-run"))
         {
-            if (map.count("reuse-output-file-names") && list_exists)
+            if (map.count("reuse-config") && list_exists)
             {
                 std::string text = load_text_file(file_name);
                 LDDocument doc = LDDocument::parse(text);
-
-                std::cout << build_generated_files_list(doc);
+                std::cout << build_output_list(doc);
             }
             else {
                 add_parser_clang_option("-Wno-everything");
@@ -209,36 +142,28 @@ int main(int argc, char** argv)
                     }
                 }
 
-                if (map.count("enable"))
+                if (map.count("disable"))
                 {
-                    for (const auto& opt: map["enable"].as<StringOpts>()) {
+                    for (const auto& opt: map["disable"].as<StringOpts>()) {
                         if (verbose) println("Disable profile opt: {}", opt);
                         project->add_disabled_profile(opt);
                     }
                 }
+
                 LDDocument doc = project->dry_run();
-                //LDDMapView map = doc.set_map();
-                //LDDArrayView arr = map.set_array("generated_files");
-                //auto names = project->build_file_names();
-
-//                for (const auto& name: names) {
-//                    arr.add_varchar(name);
-//                }
-
                 write_text_file(file_name, doc.to_pretty_string());
 
-                std::cout << build_generated_files_list(doc);
+                std::cout << build_output_list(doc);
             }
         }
-        else if (map.count("reuse-output-file-names") && list_exists) {
+        else if (map.count("reuse-config") && list_exists) {
             std::cout << "Reusing previously generated files" << std::endl;
         }
         else {
-            println("About to create project");
-
             auto project = Project::create(config_file, project_output_folder, components_output_base);
-            println("About to parse the Configuration");
+
             project->parse_configuration();
+            println("Configuration has been parsed");
 
             if (map.count("enable"))
             {
@@ -248,15 +173,19 @@ int main(int argc, char** argv)
                 }
             }
 
-            if (map.count("enable"))
+            if (map.count("disable"))
             {
-                for (const auto& opt: map["enable"].as<StringOpts>()) {
+                for (const auto& opt: map["disable"].as<StringOpts>()) {
                     if (verbose) println("Disable profile opt: {}", opt);
                     project->add_disabled_profile(opt);
                 }
             }
 
-            println("Configuration has been parsed");
+            println("Generating reusable configuration");
+            LDDocument doc = project->dry_run();
+            write_text_file(file_name, doc.to_pretty_string());
+
+            println("Generating artifacts");
             project->generate_artifacts();
         }
 

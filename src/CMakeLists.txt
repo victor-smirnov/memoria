@@ -69,12 +69,30 @@ else()
     set(BUILD_EXTRA_CONTAINERS_OPT "MEMORIA_NONE")
 endif()
 
+if (BUILD_COW_PROFILE)
+    set (BUILD_COW_PROFILE_OPT "--enable")
+else()
+    set (BUILD_COW_PROFILE_OPT "--disable")
+endif()
+
+if (BUILD_COW_LITE_PROFILE)
+    set (BUILD_COW_LITE_PROFILE_OPT "--enable")
+else()
+    set (BUILD_COW_LITE_PROFILE_OPT "--disable")
+endif()
+
+if (BUILD_NO_COW_PROFILE)
+    set (BUILD_NO_COW_PROFILE_OPT "--enable")
+else()
+    set (BUILD_NO_COW_PROFILE_OPT "--disable")
+endif()
+
 
 execute_process(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMAND
         ${CMAKE_BINARY_DIR}/src/codegen/MemoriaCodeGen
-        --print-output-file-names
+        --dry-run
         -I ${CMAKE_SOURCE_DIR}/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${Boost_INCLUDE_DIRS}
@@ -82,6 +100,9 @@ execute_process(
         -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/12.0.1/include
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
+        ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
+        ${BUILD_COW_PROFILE_OPT} CowProfile
+        ${BUILD_NO_COW_PROFILE_OPT} NoCowProfile
         --config codegen_memoria.hpp
         --project-output ${CMAKE_BINARY_DIR}/generated
         --components-output-base ${CMAKE_BINARY_DIR}
@@ -90,7 +111,7 @@ execute_process(
     COMMAND_ERROR_IS_FATAL ANY
 )
 
-#message ("========================  GENERATED SOURCES: |${GENERATED_SOURCES}|============================")
+message ("========================  GENERATED SOURCES OUTPUT: |${GENERATED_SOURCES}|============================")
 
 SET (GENERATED_MAIN_SOURCES)
 SET (GENERATED_STORE_SOURCES)
@@ -131,6 +152,36 @@ foreach(FNAME ${GENERATED_SOURCES})
     endif()
 endforeach()
 
+list(FIND ACTIVE_PROFILES "CowLiteProfile<>" COW_LITE_PROFILE_IDX)
+if (COW_LITE_PROFILE_IDX EQUAL -1)
+    set(COW_LITE_PROFILE OFF)
+else()
+    set(COW_LITE_PROFILE ON)
+    add_definitions(-DMEMORIA_COW_LITE_PROFILE)
+endif()
+
+list(FIND ACTIVE_PROFILES "CowProfile<>" COW_PROFILE_IDX)
+if (COW_PROFILE_IDX EQUAL -1)
+    set(COW_PROFILE OFF)
+else()
+    set(COW_PROFILE ON)
+    add_definitions(-DMEMORIA_COW_PROFILE)
+endif()
+
+list(FIND ACTIVE_PROFILES "NoCowProfile<>" NO_COW_PROFILE_IDX)
+if (NO_COW_PROFILE_IDX EQUAL -1)
+    set(NO_COW_PROFILE OFF)
+else()
+    set(NO_COW_PROFILE ON)
+    add_definitions(-DMEMORIA_NO_COW_PROFILE)
+endif()
+
+message ("ActiveProfiles:")
+message ("\tCowLiteProfile: ${COW_LITE_PROFILE}")
+message ("\tCowProfile: ${COW_PROFILE}")
+message ("\tNoCowProfile: ${NO_COW_PROFILE}")
+message ("")
+
 # For debugging
 #message ("========================  MAIN SRC: |${GENERATED_MAIN_SOURCES}|============================")
 #message ("======================== STORE SRC: |${GENERATED_STORE_SOURCES}|===========================")
@@ -139,13 +190,13 @@ endforeach()
 #message ("======================== STORE BP: |${GENERATED_STORE_BYPRODUCTS}|===========================")
 #message ("======================== OTHER BP: |${GENERATED_OTHER_BYPRODUCTS}|===========================")
 
-message ("======================== ACTIVe PROFILES: |${ACTIVE_PROFILES}|===========================")
+#message ("======================== ACTIVE PROFILES: |${ACTIVE_PROFILES} |===========================")
 
-if (REUSE_GENERATED_SOURCES)
-    SET(REUSE_GENERATED_SOURCES_OPT "--reuse-output-file-names")
+if (BUILD_REUSE_CODEGEN_CONFIG)
+    SET(BUILD_REUSE_CODEGEN_CONFIG_OPT "--reuse-config")
 endif()
 
-message ("Reusing generated sources is ${REUSE_GENERATED_SOURCES}")
+message ("Reusing codegen config is ${REUSE_GENERATED_SOURCES}")
 
 add_custom_command(
     IMPLICIT_DEPENDS C++ ../codegen/include/codegen_memoria.hpp
@@ -162,10 +213,13 @@ add_custom_command(
         -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/12.0.1/include
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
+        ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
+        ${BUILD_COW_PROFILE_OPT} CowProfile
+        ${BUILD_NO_COW_PROFILE_OPT} NoCowProfile
         --config codegen_memoria.hpp
         --project-output ${CMAKE_BINARY_DIR}/generated
         --components-output-base ${CMAKE_BINARY_DIR}
-        ${REUSE_GENERATED_SOURCES_OPT}
+        ${BUILD_REUSE_CODEGEN_CONFIG_OPT}
 
     COMMAND_ERROR_IS_FATAL ANY
 )

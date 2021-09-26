@@ -154,6 +154,9 @@ void AllocatorModel::open_allocator(const QString& file, const QModelIndex& afte
     try {
         U8String fname = U8String(file.toUtf8().data());
 
+        bool known = false;
+
+#ifdef MEMORIA_COW_PROFILE
         if (is_memory_store(fname))
         {
             auto alloc = load_memory_store(fname);
@@ -161,40 +164,59 @@ void AllocatorModel::open_allocator(const QString& file, const QModelIndex& afte
             beginInsertRows(root_idx, row_pos, row_pos);
             root_item_->add_inmem_store(alloc, file);
             endInsertRows();
-        }
-        else if (is_memory_store_noncow(fname))
-        {
-            auto alloc = load_memory_store_noncow(fname);
 
-            beginInsertRows(root_idx, row_pos, row_pos);
-            root_item_->add_inmem_store(alloc, file);
-            endInsertRows();
+            known = true;
         }
-        else if (is_swmr_store(fname))
+
+        if (is_swmr_store(fname))
         {
             auto alloc = open_swmr_store(fname);
 
             beginInsertRows(root_idx, row_pos, row_pos);
             root_item_->add_swmr_store(alloc, file);
             endInsertRows();
+
+            known = true;
         }
-        else if (is_lite_swmr_store(fname))
+#endif
+
+#ifdef MEMORIA_COW_LITE_PROFILE
+        if (is_lite_swmr_store(fname))
         {
             auto alloc = open_lite_swmr_store(fname);
 
             beginInsertRows(root_idx, row_pos, row_pos);
             root_item_->add_swmr_store(alloc, file);
             endInsertRows();
+
+            known = true;
         }
-        else if (is_lmdb_store(fname))
+#endif
+
+#ifdef MEMORIA_NO_COW_PROFILE
+        if (is_memory_store_noncow(fname))
+        {
+            auto alloc = load_memory_store_noncow(fname);
+
+            beginInsertRows(root_idx, row_pos, row_pos);
+            root_item_->add_inmem_store(alloc, file);
+            endInsertRows();
+
+            known = true;
+        }
+
+        if (is_lmdb_store(fname))
         {
             auto alloc = open_lmdb_store(fname);
 
             beginInsertRows(root_idx, row_pos, row_pos);
             root_item_->add_lmdb_store(alloc, file);
             endInsertRows();
+
+            known = true;
         }
-        else {
+#endif
+        if (!known) {
             std::cout << "Unknown file type" << std::endl;
         }
 

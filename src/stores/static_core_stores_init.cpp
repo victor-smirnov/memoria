@@ -21,12 +21,20 @@ void InitMemoriaStoresExplicit()
 {
     init_store_containers();
 
-    InitNoCowInMemStore();
-    InitCoWInMemStore();
-    InitSWMRStore();
+#ifdef MEMORIA_COW_LITE_PROFILE
     InitLiteSWMRStore();
     InitLiteRawSWMRStore();
+#endif
+
+#ifdef MEMORIA_COW_PROFILE
+    InitCoWInMemStore();
+    InitSWMRStore();
+#endif
+
+#ifdef MEMORIA_NO_COW_PROFILE
+    InitNoCowInMemStore();
     InitLMDBStore();
+#endif
 }
 
 }
