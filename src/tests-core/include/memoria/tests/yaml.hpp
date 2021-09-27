@@ -15,13 +15,19 @@
 
 #pragma once
 
+
+
 #include <memoria/core/types.hpp>
-#include <yaml-cpp/yaml.h>
+#include <memoria/core/tools/uid_256.hpp>
+#include <memoria/core/tools/uid_64.hpp>
+
 #include <memoria/filesystem/path.hpp>
 
 #include <memoria/api/store/memory_store_api.hpp>
 
 #include <memoria/tests/tests.hpp>
+
+#include <yaml-cpp/yaml.h>
 
 namespace memoria {
 namespace tests {
@@ -65,6 +71,23 @@ struct convert<memoria::UUID> {
             return false;
 
         rhs = memoria::UUID::parse(node.Scalar().c_str());
+
+        return true;
+    }
+};
+
+template <>
+struct convert<memoria::UID256> {
+    static Node encode(const memoria::UID256& rhs) {
+        return Node(rhs.to_u8().data());
+    }
+
+    static bool decode(const Node& node, memoria::UID256& rhs)
+    {
+        if (!node.IsScalar())
+            return false;
+
+        rhs = memoria::UID256::parse(node.Scalar().c_str());
 
         return true;
     }

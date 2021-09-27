@@ -84,6 +84,7 @@ protected:
     using typename Base::StorePtr;
     using typename Base::CtrApi;
     using typename Base::MemBuffer;
+    using typename Base::CtrID;
 
     using DataType = typename CtrApi::DataTypeT;
 
@@ -109,7 +110,7 @@ public:
     int32_t max_block_size_ = 1024 * 256;
     int32_t check_size_     = 1000;
 
-    UUID ctr_name_;
+    CtrID ctr_name_;
     int32_t prefix_size_;
     int32_t suffix_size_;
     int32_t block_size_;
@@ -432,7 +433,7 @@ public:
 
     virtual void testInsert(TestFn test_fn)
     {
-        ctr_name_ = UUID::make_random();
+        ctr_name_ = CtrID::make_random();
 
         iteration_ = 0;
 
@@ -472,7 +473,7 @@ public:
 
     virtual void testRemove(TestFn test_fn)
     {
-        ctr_name_ = UUID::make_random();
+        ctr_name_ = CtrID::make_random();
 
         auto snp = branch();
         auto ctr = find_or_create(snp, CtrName{}, ctr_name_);

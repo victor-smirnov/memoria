@@ -161,4 +161,26 @@ Result<std::shared_ptr<T>> memoria_static_pointer_cast(Result<std::shared_ptr<TT
     }
 }
 
+
+namespace detail_ {
+
+template <typename T>
+struct UnPtrH: HasType<T> {};
+
+template <typename T>
+struct UnPtrH<std::shared_ptr<T>>: HasType<T> {};
+
+template <typename T, typename Delete>
+struct UnPtrH<std::unique_ptr<T, Delete>>: HasType<T> {};
+
+template <typename T>
+struct UnPtrH<boost::shared_ptr<T>>: HasType<T> {};
+
+}
+
+template <typename T>
+using UnPtr = typename detail_::UnPtrH<T>::Type;
+
+
+
 }

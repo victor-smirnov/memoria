@@ -65,11 +65,14 @@ protected:
     using StorePtr = StoreType;
     using SnapshotPtr = typename Store::SnapshotPtr;
 
+    using SnapshotID    = ApiProfileSnapshotID<Profile>;
+    using CtrID         = ApiProfileCtrID<Profile>;
+
     StorePtr store_;
     SnapshotPtr snapshot_;
 
     int64_t size_{};
-    UUID snapshot_id_{};
+    SnapshotID snapshot_id_{};
 
     RngInt int_generator_{};
     RngInt64 bigint_generator_{};

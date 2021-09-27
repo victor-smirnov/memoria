@@ -23,7 +23,6 @@
 #include <memoria/core/tools/random.hpp>
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/strings/string.hpp>
-#include <memoria/core/container/logs.hpp>
 
 #include <memoria/containers/vector/vctr_names.hpp>
 
@@ -298,34 +297,17 @@ std::vector<T> createRandomBuffer(T fill_value, int32_t max_size)
 template <typename StorePtr>
 void check(StorePtr store, const char* message,  const char* source)
 {
-    int32_t level = store->logger().level();
-
-    store->logger().level() = Logger::_ERROR;
-
-    if (store->check())
-    {
-        store->logger().level() = level;
-
-        MMA_THROW(TestException()) << WhatCInfo(message);
-    }
-
-    store->logger().level() = level;
+//    if (store->check())
+//    {
+//        MMA_THROW(TestException()) << WhatCInfo(message);
+//    }
 }
 
 template <typename Ctr>
 void checkCtr(Ctr& ctr, const char* message,  const char* source)
 {
-    int32_t level = ctr.logger().level();
 
-    ctr.logger().level() = Logger::_ERROR;
 
-    if (ctr.check(nullptr))
-    {
-        ctr.logger().level() = level;
-        MMA_THROW(TestException()) << WhatCInfo(message);
-    }
-
-    ctr.logger().level() = level;
 }
 
 

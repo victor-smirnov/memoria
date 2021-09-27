@@ -36,10 +36,10 @@ endif()
 if (BUILD_CLASSIC_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX_CLASSIC)
-        set(MEMORIA_SANDBOX_CLASSIC hana swmr_store swmr_store_read cow_store swmr_lite_raw_store alc_pool swmr_rollback swmr_store_batch)
+        set(MEMORIA_SANDBOX_CLASSIC swmr_store)
 
         if (NO_COW_PROFILE)
-            set(MEMORIA_SANDBOX_CLASSIC ${MEMORIA_SANDBOX_CLASSIC} lmdb_store nocow_store)
+            set(MEMORIA_SANDBOX_CLASSIC ${MEMORIA_SANDBOX_CLASSIC})
         endif()
     endif()
 

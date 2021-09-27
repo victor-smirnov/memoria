@@ -37,7 +37,7 @@ public:
 
 	bool is_threshold()
 	{
-		if (threshold_ != ticks_) {
+        if (threshold_ > ticks_) {
 			return false;
 		}
 

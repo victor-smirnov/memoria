@@ -76,6 +76,7 @@ class SetTest: public BTTestBase<Set<DataType>, ProfileT, StoreT>
 
     using typename Base::Store;
     using typename Base::StorePtr;
+    using typename Base::CtrID;
 
     using CxxElementViewType  = DTTViewType<DataType>;
 
@@ -108,7 +109,7 @@ public:
     {
         auto snp = branch();
 
-        UUID ctr_id = UUID::parse("30b33f35-96a4-4502-82f4-4bbe50e59c51");
+        CtrID ctr_id = CtrID::make_random();
         auto ctr = create<Set<DataType>>(snp, Set<DataType>{}, ctr_id);
         ctr->set_new_block_size(1024);
 

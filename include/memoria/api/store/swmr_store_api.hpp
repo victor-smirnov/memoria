@@ -107,6 +107,8 @@ struct SWMRStoreGraphVisitor {
 template <typename Profile>
 struct IBasicSWMRStore {
 
+    using ProfileT = Profile;
+
     using ReadOnlySnapshotPtr = SharedPtr<ISWMRStoreReadOnlySnapshot<Profile>>;
     using WritableSnapshotPtr = SharedPtr<ISWMRStoreWritableSnapshot<Profile>>;
 
@@ -130,6 +132,8 @@ enum class FlushType {
 template <typename Profile>
 struct ISWMRStore: IBasicSWMRStore<Profile> {
     using Base = IBasicSWMRStore<Profile>;
+
+    using ProfileT = Profile;
 
     using typename Base::WritableSnapshotPtr;
     using typename Base::ReadOnlySnapshotPtr;

@@ -111,7 +111,7 @@ execute_process(
     COMMAND_ERROR_IS_FATAL ANY
 )
 
-message ("========================  GENERATED SOURCES OUTPUT: |${GENERATED_SOURCES}|============================")
+#message ("========================  GENERATED SOURCES OUTPUT: |${GENERATED_SOURCES}|============================")
 
 SET (GENERATED_MAIN_SOURCES)
 SET (GENERATED_STORE_SOURCES)

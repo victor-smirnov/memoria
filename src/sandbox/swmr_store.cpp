@@ -21,83 +21,28 @@
 #include <memoria/filesystem/operations.hpp>
 #include <memoria/memoria.hpp>
 
+#include "store_tools.hpp"
+
 #include <iostream>
 
 using namespace memoria;
 
-using CtrType = Set<Varchar>;
+using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile<>>>;
 
 int main(void) {
     try {
-        const char* file = "file.mma2";
+        U8String file = "file.mma2";
 
-        filesystem::remove(file);
-        auto store1 = create_lite_swmr_store(file, 256);
+        auto store = std::make_shared<LiteSWMRStoreOperation>(file, 1024);
 
-        UID256 ctr_id = UID256::make_random();
+        StoreTestBench<StorePtrT> bench(store);
 
-        auto t_start = getTimeInMillis();
+        bench.set_entries(1000000);
+        bench.set_check_epocs(false);
+        bench.set_consistency_point(ConsistencyPoint::AUTO);
 
-        CheckResultConsumerFn callback = [](CheckSeverity svr, const LDDocument& doc){
-            std::cout << doc.to_string() << std::endl;
-            if (svr == CheckSeverity::ERROR) {
-                MEMORIA_MAKE_GENERIC_ERROR("Container check error").do_throw();
-            }
-        };
-
-        {
-            {
-                auto snp0 = store1->begin();
-                auto ctr0 = create(snp0, CtrType(), ctr_id);
-                ctr0->set_ctr_property("CtrName", "SimpleCtr");
-                snp0->set_transient(true);
-                snp0->commit();
-            }
-
-            int cnt = 0;
-            int b0  = 0;
-            int batch_size = 1000;
-            int num_entries = 100000;
-
-            while (cnt < num_entries)
-            {
-                if (b0 % (num_entries / batch_size / 10) == 0)
-                {
-                    std::cout << "Batch " << (b0) << " :: " << cnt << " :: " << (num_entries) << std::endl;
-                    store1->check(callback);
-                }
-
-                auto snp1 = store1->begin();
-                auto ctr1 = find<CtrType>(snp1, ctr_id);
-
-                for (int c = 0; c < batch_size; c++, cnt++)
-                {
-                    auto val = getBIRandomG();
-
-                    U8String str = (SBuf() << "Cool String ABCDEFGH :: " << val).str();
-
-                    ctr1->insert(str);
-
-                    if (!ctr1->contains(str)) {
-                        MEMORIA_MAKE_GENERIC_ERROR("Can't find key {} in the container", str).do_throw();
-                    }
-                }
-
-                //snp1->set_transient(false);
-                snp1->commit();
-
-                b0++;
-            }
-        }
-
-        store1->flush();
-
-        auto t_end = getTimeInMillis();
-        std::cout << "Store creation time: " << FormatTime(t_end - t_start) << std::endl;
-
-        store1->check(callback);
-
-        store1->close();
+        bench.run_insertions();
+        bench.run_queries();
     }
     catch (const MemoriaError& ee) {
         ee.describe(std::cout);

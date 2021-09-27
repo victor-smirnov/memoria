@@ -24,7 +24,7 @@ if(BUILD_TESTS_PACKED)
     set (SRCS ${SRCS} packed/sequence/rle/rleseq_test_suite.cpp)
 endif()
 
-if(BUILD_TESTS_CONTAINERS AND BUILD_MEMORY_STORE)
+if(BUILD_TESTS_CONTAINERS AND BUILD_COW_PROFILE)
 set (SRCS ${SRCS} prototype/btss/btss_test_suite.cpp)
 set (SRCS ${SRCS} set/set_test_suite.cpp)
 set (SRCS ${SRCS} multimap/multimap_test_suite.cpp)
