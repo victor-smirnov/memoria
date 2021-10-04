@@ -72,18 +72,18 @@ class [[clang::annotate(R"(
             }
         },
         "profiles": {
-            "CowProfile<>": {
+            "CowProfile": {
                 "includes": [
                     "memoria/profiles/impl/cow_profile.hpp"
                 ]
             },
-            "NoCowProfile<>": {
+            "NoCowProfile": {
                 "enabled": false,
                 "includes": [
                     "memoria/profiles/impl/no_cow_profile.hpp"
                 ]
             },
-            "CowLiteProfile<>": {
+            "CowLiteProfile": {
                 "includes": [
                     "memoria/profiles/impl/cow_lite_profile.hpp"
                 ]
@@ -250,7 +250,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "config": "$/groups/stores/containers",
-        "profiles": ["CowProfile<>", "CowLiteProfile<>"],
+        "profiles": ["CowProfile", "CowLiteProfile"],
         "includes": [
             "memoria/api/allocation_map/allocation_map_api.hpp"
         ]
@@ -262,7 +262,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "config": "$/groups/stores/containers",
-        "profiles": ["CowLiteProfile<>"],
+        "profiles": ["CowLiteProfile"],
         "includes": [
             "memoria/api/map/map_api.hpp",
             "memoria/core/container/cow.hpp",
@@ -277,7 +277,7 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "config": "$/groups/stores/containers",
-        "profiles": ["CowProfile<>"],
+        "profiles": ["CowProfile"],
         "includes": [
             "memoria/api/map/map_api.hpp",
             "memoria/core/container/cow.hpp",
@@ -291,13 +291,13 @@ template<>
 class [[clang::annotate(R"(
     @TypeInstance = {
         "config": "$/groups/stores/containers",
-        "profiles": ["CowProfile<>", "CowLiteProfile<>"],
+        "profiles": ["CowProfile", "CowLiteProfile"],
         "includes": [
             "memoria/api/map/map_api.hpp",
             "memoria/store/swmr/common/swmr_store_datatypes.hpp",
             "memoria/core/tools/uid_256.hpp"
         ]
     }
-)")]] TypeInstance<Map<UID256, SnapshotMetadataDT<DataTypeFromProfile<ApiProfile<CowProfile<>>>>>> {};
+)")]] TypeInstance<Map<UID256, SnapshotMetadataDT<DataTypeFromProfile<ApiProfile<CowProfile>>>>> {};
 
 }

@@ -1,5 +1,5 @@
 
-// Copyright 2018 Victor Smirnov
+// Copyright 2018-2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 
 #include <memoria/tests/tests.hpp>
 #include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/process.hpp>
+#include <memoria/reactor/socket.hpp>
 
 #include <yaml-cpp/yaml.h>
 
@@ -111,5 +113,102 @@ TestStatus run_single_test(const U8String& test_path);
 TestStatus replay_single_test(const U8String& test_path);
 
 void run_tests();
+void run_tests2(size_t threads);
+
+class Worker {
+    reactor::ClientSocket socket_;
+    reactor::IPAddress server_address_;
+    uint16_t port_;
+    size_t worker_num_;
+    filesystem::path output_folder_;
+public:
+    Worker(reactor::IPAddress server_address, uint16_t port, size_t worker_num, filesystem::path output_folder):
+        server_address_(server_address),
+        port_(port),
+        worker_num_(worker_num),
+        output_folder_(output_folder)
+    {}
+
+    void run();
+};
+
+class WorkerProcess: public std::enable_shared_from_this<WorkerProcess> {
+    reactor::Process process_;
+    fibers::fiber process_watcher_;
+
+    reactor::File out_file_;
+    reactor::File err_file_;
+    std::unique_ptr<reactor::InputStreamReaderWriter> out_reader_;
+    std::unique_ptr<reactor::InputStreamReaderWriter> err_reader_;
+
+    reactor::IPAddress socket_addr_;
+    uint16_t port_;
+    filesystem::path output_folder_;
+    size_t worker_num_;
+public:
+
+    using StatusListener = std::function<void (reactor::Process::Status, int32_t)>;
+private:
+
+    StatusListener status_listener_;
+
+public:
+    WorkerProcess(reactor::IPAddress socket_addr, uint16_t port, filesystem::path output_folder, size_t num):
+        socket_addr_(socket_addr),
+        port_(port),
+        output_folder_(output_folder),
+        worker_num_(num)
+    {}
+
+    ~WorkerProcess() noexcept;
+
+    void set_status_listener(const StatusListener& ll) {
+        status_listener_ = ll;
+    }
+
+    reactor::Process::Status status() const;
+
+    void start();
+
+    void join() {
+        process_.join();
+    }
+
+    void terminate() {
+        process_.terminate();
+    }
+
+    void kill() {
+        process_.kill();
+    }
+};
+
+
+class MultiProcessRunner: public std::enable_shared_from_this<MultiProcessRunner> {
+    reactor::ServerSocket socket_;
+    std::vector<std::shared_ptr<WorkerProcess>> worker_processes_;
+    size_t workers_num_;
+    reactor::IPAddress address_;
+    uint16_t port_;
+
+    size_t crashes_{};
+    std::map<size_t, U8String> heads_;
+
+public:
+    MultiProcessRunner(size_t workers_num, const reactor::IPAddress& address = reactor::IPAddress(), uint16_t port = 0):
+        workers_num_(workers_num),
+        address_(address),
+        port_(port)
+    {}
+
+    void start();
+
+private:
+    std::shared_ptr<WorkerProcess> create_worker(size_t num);
+
+    void handle_connections();
+
+    void ping_socket();
+};
 
 }}

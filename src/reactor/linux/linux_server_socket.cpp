@@ -69,6 +69,19 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
         MMA_THROW(SystemException(err_code)) << format_ex("Can't bind socket to {}:{}", ip_address_, ip_port_);
     }
 
+    if (!ip_port || !ip_address)  {
+        ::socklen_t addrlen = sizeof(sock_address_);
+        int gres = ::getsockname(fd_, ptr_cast<sockaddr>(&sock_address_), &addrlen);
+        if (gres < 0) {
+            int32_t err_code = errno;
+            ::close(fd_);
+            MMA_THROW(SystemException(err_code)) << format_ex("Can't obtain actual socket address and port to {}:{}", ip_address_, ip_port_);
+        }
+
+        ip_port_ = ntohs(sock_address_.sin_port);
+        ip_address_ = IPAddress(sock_address_.sin_addr);
+    }
+
     epoll_event event = tools::make_zeroed<epoll_event>();
 
     event.data.ptr = &fiber_io_message_;

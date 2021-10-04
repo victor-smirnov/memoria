@@ -30,12 +30,12 @@ template <typename>
 class MappedSWMRStoreReadOnlySnapshot;
 
 template <typename ChildProfile>
-class MappedSWMRStoreReadOnlySnapshot<CowProfile<ChildProfile>>:
-        public SWMRStoreReadOnlySnapshotBase<CowProfile<ChildProfile>>,
-        public EnableSharedFromThis<MappedSWMRStoreReadOnlySnapshot<CowProfile<ChildProfile>>>
+class MappedSWMRStoreReadOnlySnapshot<CowProfileT<ChildProfile>>:
+        public SWMRStoreReadOnlySnapshotBase<CowProfileT<ChildProfile>>,
+        public EnableSharedFromThis<MappedSWMRStoreReadOnlySnapshot<CowProfileT<ChildProfile>>>
 {
 protected:
-    using Profile = CowProfile<ChildProfile>;
+    using Profile = CowProfileT<ChildProfile>;
 
     using Base = SWMRStoreReadOnlySnapshotBase<Profile>;
 

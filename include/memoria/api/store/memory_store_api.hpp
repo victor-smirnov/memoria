@@ -105,7 +105,7 @@ public:
     virtual SharedPtr<StoreMemoryStat<Profile>> memory_stat() = 0;
 };
 
-template <typename Profile = CoreApiProfile<>>
+template <typename Profile = CoreApiProfile>
 using IMemoryStorePtr = typename IMemoryStore<Profile>::StorePtr;
 
 
@@ -226,20 +226,20 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find_or_create(
 
 
 
-SharedPtr<IMemoryStore<CoreApiProfile<>>> create_memory_store();
-SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store(U8String path);
-SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store(InputStreamHandler* input_stream);
+SharedPtr<IMemoryStore<CoreApiProfile>> create_memory_store();
+SharedPtr<IMemoryStore<CoreApiProfile>> load_memory_store(U8String path);
+SharedPtr<IMemoryStore<CoreApiProfile>> load_memory_store(InputStreamHandler* input_stream);
 bool is_memory_store(U8String path);
 
-SharedPtr<IMemoryStore<CoreApiProfile<>>> create_memory_store_cowlite();
-SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store_cowlite(U8String path);
-SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store_cowlite(InputStreamHandler* input_stream);
+SharedPtr<IMemoryStore<CoreApiProfile>> create_memory_store_cowlite();
+SharedPtr<IMemoryStore<CoreApiProfile>> load_memory_store_cowlite(U8String path);
+SharedPtr<IMemoryStore<CoreApiProfile>> load_memory_store_cowlite(InputStreamHandler* input_stream);
 bool is_memory_store_cowlite(U8String path);
 
 
-SharedPtr<IMemoryStore<CoreApiProfile<>>> create_memory_store_noncow();
-SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store_noncow(U8String path);
-SharedPtr<IMemoryStore<CoreApiProfile<>>> load_memory_store_noncow(InputStreamHandler* input_stream);
+SharedPtr<IMemoryStore<CoreApiProfile>> create_memory_store_noncow();
+SharedPtr<IMemoryStore<CoreApiProfile>> load_memory_store_noncow(U8String path);
+SharedPtr<IMemoryStore<CoreApiProfile>> load_memory_store_noncow(InputStreamHandler* input_stream);
 bool is_memory_store_noncow(U8String path);
 
 }

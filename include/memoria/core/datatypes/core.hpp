@@ -57,10 +57,10 @@ template <typename Profile> struct DataTypeFromProfileTF;
 struct CoreApiProfileDT {};
 
 template <>
-struct ProfileFromDataTypeTF<CoreApiProfileDT>: HasType<CoreApiProfile<>> {};
+struct ProfileFromDataTypeTF<CoreApiProfileDT>: HasType<CoreApiProfile> {};
 
 template <>
-struct DataTypeFromProfileTF<CoreApiProfile<>>: HasType<CoreApiProfileDT> {};
+struct DataTypeFromProfileTF<CoreApiProfile>: HasType<CoreApiProfileDT> {};
 
 template <typename DT>
 using ProfileFromDataType = typename ProfileFromDataTypeTF<DT>::Type;

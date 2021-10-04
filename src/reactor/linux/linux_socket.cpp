@@ -47,6 +47,14 @@ bool ServerSocket::is_closed() {
     return ptr_->is_closed();
 }
 
+uint16_t ServerSocket::port() const {
+    return ptr_->port();
+}
+
+const IPAddress& ServerSocket::address() const {
+    return ptr_->address();
+}
+
 ServerSocketConnection::ServerSocketConnection(SocketConnectionData&& data):
     Base(MakeLocalShared<ServerSocketConnectionImpl>(std::move(data)))
 {}

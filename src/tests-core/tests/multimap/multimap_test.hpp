@@ -31,7 +31,7 @@ namespace tests {
 template <
     typename KeyDataType,
     typename ValueDataType,
-    typename ProfileT = CoreApiProfile<>,
+    typename ProfileT = CoreApiProfile,
     typename StoreT   = IMemoryStorePtr<ProfileT>
 >
 class MultimapTest: public BTTestBase<Multimap<KeyDataType, ValueDataType>, ProfileT, StoreT>

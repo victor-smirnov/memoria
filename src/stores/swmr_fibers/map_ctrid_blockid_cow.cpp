@@ -21,7 +21,7 @@
 
 namespace memoria {
 
-using Profile = CowLiteProfile<>;
+using Profile = CowLiteProfile;
 using CtrName = Map<ProfileCtrID<Profile>, ProfileBlockID<Profile>>;
 
 MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_ctrid_blockid)

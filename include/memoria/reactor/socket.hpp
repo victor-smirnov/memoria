@@ -60,6 +60,9 @@ public:
     int fd() const;
     void close();
     bool is_closed();
+
+    uint16_t port() const;
+    const IPAddress& address() const;
     
     SocketConnectionData accept();
 };
@@ -121,6 +124,8 @@ public:
     bool is_closed();
 };
 
+IPAddress parse_ipv4(U8StringView str);
+IPAddress parse_ipv6(U8StringView str);
 
 void InitSockets();
 void DestroySockets();

@@ -187,7 +187,9 @@ template <bool Dense = true>
 using BitVector = Sequence<1, Dense>;
 
 template <typename ChildType = void>
-class CoreApiProfile {};
+class CoreApiProfileT {};
+
+using CoreApiProfile = CoreApiProfileT<>;
 
 enum class Granularity  {Bit, Byte};
 enum class Indexed      {No, Yes};

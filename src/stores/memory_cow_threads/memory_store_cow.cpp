@@ -18,7 +18,7 @@
 
 namespace memoria {
 
-using Profile = CowProfile<>;
+using Profile = CowProfile;
 using ApiProfileT = ApiProfile<Profile>;
 template class IMemoryStore<ApiProfileT>;
 

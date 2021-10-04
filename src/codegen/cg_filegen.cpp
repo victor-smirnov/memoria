@@ -112,14 +112,6 @@ public:
         sources.add_varchar(file_path);
     }
 
-    std::vector<U8String> generated_files() override
-    {
-        std::vector<U8String> files;
-        U8String file_path = U8String("SOURCE:") + target_file_;
-        files.push_back(file_path);
-        return files;
-    }
-
     virtual std::vector<U8String> includes() const override {
         return includes_;
     }

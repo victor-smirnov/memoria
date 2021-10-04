@@ -326,6 +326,13 @@ public:
     }
 
     template <typename... Args>
+    std::basic_ostream<char>& println(const char* fmt, Args&&... args)
+    {
+        memoria::println(cout_, fmt, std::forward<Args>(args)...);
+        return cout_;
+    }
+
+    template <typename... Args>
     std::basic_ostream<char>& coutln(const char* fmt, Args&&... args)
     {
         cout_ << fmt::format(fmt, std::forward<Args>(args)...) << std::flush << std::endl;

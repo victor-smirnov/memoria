@@ -49,7 +49,7 @@ protected:
     IPAddress ip_address_;
     uint16_t  ip_port_;
 
-    sockaddr_in sock_address_;
+    sockaddr_in sock_address_{};
 
     SocketIOMessage fiber_io_message_;
 public:

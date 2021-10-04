@@ -58,7 +58,6 @@ struct CodegenEntity {
     virtual std::vector<U8String> includes() const = 0;
 
     virtual void dry_run(LDDMapView consumer) = 0;
-    virtual std::vector<U8String> generated_files() = 0;
 
     virtual void generate_artifacts() = 0;
     virtual void configure() = 0;
@@ -86,7 +85,6 @@ struct Project {
     virtual std::vector<U8String> profiles() const = 0;
 
     virtual LDDocument dry_run() = 0;
-    virtual std::vector<U8String> build_file_names() = 0;
 
     virtual void generate_artifacts() = 0;
 
@@ -98,7 +96,7 @@ struct Project {
     virtual void add_enabled_profile(const U8String& profile_name) = 0;
     virtual void add_disabled_profile(const U8String& profile_name) = 0;
 
-    static std::shared_ptr<Project> create(U8String config_file_name, U8String project_output_folder, U8String components_output_folder);
+    static std::shared_ptr<Project> create(std::vector<U8String> config_file_names, U8String project_output_folder, U8String components_output_folder);
 };
 
 struct TypeInstance: CodegenEntity {

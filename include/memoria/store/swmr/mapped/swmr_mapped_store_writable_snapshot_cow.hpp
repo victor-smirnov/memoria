@@ -41,11 +41,11 @@ template <typename>
 class MappedSWMRStoreWritableSnapshot;
 
 template <typename ChildProfile>
-class MappedSWMRStoreWritableSnapshot<CowProfile<ChildProfile>>:
-        public SWMRStoreWritableSnapshotBase<CowProfile<ChildProfile>>,
-        public EnableSharedFromThis<MappedSWMRStoreWritableSnapshot<CowProfile<ChildProfile>>>
+class MappedSWMRStoreWritableSnapshot<CowProfileT<ChildProfile>>:
+        public SWMRStoreWritableSnapshotBase<CowProfileT<ChildProfile>>,
+        public EnableSharedFromThis<MappedSWMRStoreWritableSnapshot<CowProfileT<ChildProfile>>>
 {
-    using Profile = CowProfile<ChildProfile>;
+    using Profile = CowProfileT<ChildProfile>;
 
     using Base = SWMRStoreWritableSnapshotBase<Profile>;
 

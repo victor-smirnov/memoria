@@ -31,14 +31,16 @@
 namespace memoria {
 
 template <typename ChildType = void>
-class CowProfile  {};
+class CowProfileT  {};
+
+using CowProfile = CowProfileT<>;
 
 template<>
-struct TypeHash<CowProfile<>>: HasValue<uint64_t, 4863967982592845444ull> {};
+struct TypeHash<CowProfile>: HasValue<uint64_t, 4863967982592845444ull> {};
 
 template <>
-struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
-    using Base = ApiProfileTraits<CoreApiProfile<>>;
+struct ProfileTraits<CowProfile>: ApiProfileTraits<CoreApiProfile> {
+    using Base = ApiProfileTraits<CoreApiProfile>;
 
     using typename Base::CtrID;
     using typename Base::CtrSizeT;
@@ -47,7 +49,7 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
     using BlockGUID     = UID256;
 
     using BlockID       = CowBlockID<BlockGUID>;
-    using Profile       = CowProfile<>;
+    using Profile       = CowProfile;
 
     using Block = AbstractPage<BlockID, BlockGUID, BlockGUID, SnapshotID>;
     using BlockType = Block;
@@ -82,7 +84,7 @@ struct ProfileTraits<CowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 };
 
 template <>
-struct ProfileSpecificBlockTools<CowProfile<>>{
+struct ProfileSpecificBlockTools<CowProfile>{
     template <typename BlockT>
     static void after_deserialization(BlockT* block) noexcept {
         // do nothing here
@@ -90,9 +92,9 @@ struct ProfileSpecificBlockTools<CowProfile<>>{
 };
 
 template <>
-struct IBlockOperations<CowProfile<>>: IBlockOperationsBase<CowProfile<>> {
+struct IBlockOperations<CowProfile>: IBlockOperationsBase<CowProfile> {
 
-    using Base = IBlockOperationsBase<CowProfile<>>;
+    using Base = IBlockOperationsBase<CowProfile>;
     using typename Base::IDValueResolver;
     using typename Base::BlockType;
 
@@ -101,7 +103,7 @@ struct IBlockOperations<CowProfile<>>: IBlockOperationsBase<CowProfile<>> {
 
 
 template <>
-struct ContainerOperations<CowProfile<>>: ContainerOperationsBase<CowProfile<>> {
+struct ContainerOperations<CowProfile>: ContainerOperationsBase<CowProfile> {
 
 };
 

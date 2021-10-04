@@ -111,7 +111,7 @@ execute_process(
     COMMAND_ERROR_IS_FATAL ANY
 )
 
-#message ("========================  GENERATED SOURCES OUTPUT: |${GENERATED_SOURCES}|============================")
+message ("========================  GENERATED SOURCES OUTPUT: |${GENERATED_SOURCES}|============================")
 
 SET (GENERATED_MAIN_SOURCES)
 SET (GENERATED_STORE_SOURCES)
@@ -152,7 +152,7 @@ foreach(FNAME ${GENERATED_SOURCES})
     endif()
 endforeach()
 
-list(FIND ACTIVE_PROFILES "CowLiteProfile<>" COW_LITE_PROFILE_IDX)
+list(FIND ACTIVE_PROFILES "CowLiteProfile" COW_LITE_PROFILE_IDX)
 if (COW_LITE_PROFILE_IDX EQUAL -1)
     set(COW_LITE_PROFILE OFF)
 else()
@@ -160,7 +160,7 @@ else()
     add_definitions(-DMEMORIA_COW_LITE_PROFILE)
 endif()
 
-list(FIND ACTIVE_PROFILES "CowProfile<>" COW_PROFILE_IDX)
+list(FIND ACTIVE_PROFILES "CowProfile" COW_PROFILE_IDX)
 if (COW_PROFILE_IDX EQUAL -1)
     set(COW_PROFILE OFF)
 else()
@@ -168,7 +168,7 @@ else()
     add_definitions(-DMEMORIA_COW_PROFILE)
 endif()
 
-list(FIND ACTIVE_PROFILES "NoCowProfile<>" NO_COW_PROFILE_IDX)
+list(FIND ACTIVE_PROFILES "NoCowProfile" NO_COW_PROFILE_IDX)
 if (NO_COW_PROFILE_IDX EQUAL -1)
     set(NO_COW_PROFILE OFF)
 else()
@@ -190,7 +190,7 @@ message ("")
 #message ("======================== STORE BP: |${GENERATED_STORE_BYPRODUCTS}|===========================")
 #message ("======================== OTHER BP: |${GENERATED_OTHER_BYPRODUCTS}|===========================")
 
-#message ("======================== ACTIVE PROFILES: |${ACTIVE_PROFILES} |===========================")
+message ("======================== ACTIVE PROFILES: |${ACTIVE_PROFILES} |===========================")
 
 if (BUILD_REUSE_CODEGEN_CONFIG)
     SET(BUILD_REUSE_CODEGEN_CONFIG_OPT "--reuse-config")

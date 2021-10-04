@@ -28,11 +28,11 @@
 namespace memoria {
 
 template <typename TT>
-struct ApiProfileTraits<CoreApiProfile<TT>> {
+struct ApiProfileTraits<CoreApiProfileT<TT>> {
     using SnapshotID    = UID256;
     using CtrID         = UID256;
     using CtrSizeT      = int64_t;
-    using ApiProfileT   = CoreApiProfile<TT>;
+    using ApiProfileT   = CoreApiProfileT<TT>;
 
     static CtrID make_random_ctr_id() {
         return CtrID::make_random();
@@ -44,8 +44,8 @@ struct ApiProfileTraits<CoreApiProfile<TT>> {
 };
 
 template <typename TT>
-struct CtrReferenceable<CoreApiProfile<TT>>: CtrReferenceableBase<CoreApiProfile<TT>> {
-    using ApiProfile = CoreApiProfile<TT>;
+struct CtrReferenceable<CoreApiProfileT<TT>>: CtrReferenceableBase<CoreApiProfileT<TT>> {
+    using ApiProfile = CoreApiProfileT<TT>;
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfile>> shared_self() noexcept = 0;
 

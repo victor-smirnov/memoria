@@ -71,7 +71,7 @@ namespace internal_ {
 
 template <
     typename CtrName,
-    typename ProfileT       = CoreApiProfile<>,
+    typename ProfileT       = CoreApiProfile,
     typename StoreT     = IMemoryStorePtr<ProfileT>
 >
 class BTSSBatchTest: public BTSSTestBase<CtrName, ProfileT, StoreT> {

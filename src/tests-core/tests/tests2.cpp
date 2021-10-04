@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/memoria_core.hpp>
+
 #include <memoria/reactor/application.hpp>
 
 #include <memoria/tests/runner.hpp>
@@ -27,14 +29,19 @@ namespace po = boost::program_options;
 
 int main(int argc, char** argv, char** envp)
 {
-    tests::ThreadsArgHelper helper(argv);
+     InitMemoriaCoreExplicit();
 
+    tests::ThreadsArgHelper helper(argv);
     po::options_description options;
 
     options.add_options()
         ("runs", "Number of runs for entire test suites set")
         ("test", po::value<std::string>(), "Specific test name to run")
         ("replay", "Run the test in replay mode, implies --test is specified")
+        ("server", po::value<std::string>(), "Run as worker and specify the server address")
+        ("port", po::value<uint16_t>(), "Run as worker and specify the server port")
+        ("worker-num", po::value<size_t>(), "Worker's numeric identifier")
+        ("workers", po::value<size_t>(), "Number of workers (default is number of cores/2)")
         ("print", "Print available test names")
         ("config", po::value<std::string>(), "Path to config file, defaults to tests2.yaml")
         ("output", po::value<std::string>(), "Path to tests' output directory, defaults to tests2.out in the CWD")
@@ -50,7 +57,7 @@ int main(int argc, char** argv, char** envp)
         std::string coverage = app().options()["coverage"].as<std::string>();
         if (!tests::coverage_from_string(coverage))
         {
-            engine().coutln("Invalid test coverage type: {}", coverage);
+            engine().println("Invalid test coverage type: {}", coverage);
             return 1;
         }
 
@@ -73,8 +80,48 @@ int main(int argc, char** argv, char** envp)
                 return (tests::run_single_test(test_name) == tests::TestStatus::PASSED ? 0 : 1);
             }
         }
+        else if (app().options().count("server"))
+        {
+            if (app().options().count("port") == 0) {
+                engine().println("Server --port number must be specified");
+                return 1;
+            }
+
+            if (app().options().count("worker-num") == 0) {
+                engine().println("Worker's number must be specified (--worker-num)");
+                return 1;
+            }
+
+            if (app().options().count("output") == 0) {
+                engine().println("Worker's output folder must be specified (--output)");
+                return 1;
+            }
+
+            IPAddress address = parse_ipv4(app().options()["server"].as<std::string>());
+            uint16_t port = app().options()["port"].as<uint16_t>();
+            size_t worker_num = app().options()["worker-num"].as<size_t>();
+
+            println("Starting worker {}, server {}, port {}", worker_num, address.to_string(), port);
+
+            filesystem::path output_folder(app().options()["output"].as<std::string>());
+
+            tests::Worker worker(address, port, worker_num, output_folder);
+            worker.run();
+            return 0;
+        }
         else {
-            tests::run_tests();
+            size_t workers = std::thread::hardware_concurrency() / 2;
+
+            if (workers == 0) {
+                workers = 1;
+            }
+
+            if (app().options().count("workers") != 0) {
+                workers = app().options()["workers"].as<size_t>();
+            }
+
+            tests::run_tests2(workers);
+            terminate("Forcefully stopping the test executor, as there is a bug in the fiber engine");
         }
 
         return 0;

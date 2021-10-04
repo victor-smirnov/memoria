@@ -184,17 +184,7 @@ public:
         consumer.add_byproduct_file(file_path + ".pch");
     }
 
-    std::vector<U8String> generated_files() override
-    {
-        std::vector<U8String> files;
 
-        U8String file_path = U8String("BYPRODUCT:") + project()->project_output_folder() + "/" + name_ + ".hpp";
-
-        files.push_back(file_path);
-        files.push_back(file_path + ".pch");
-
-        return files;
-    }
 
     void configure() override
     {

@@ -26,11 +26,13 @@
 namespace memoria {
 
 template <typename ChildType = void>
-class NoCowProfile  {};
+class NoCowProfileT  {};
+
+using NoCowProfile = NoCowProfileT<>;
 
 template <>
-struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
-    using Base = ApiProfileTraits<CoreApiProfile<>>;
+struct ProfileTraits<NoCowProfile>: ApiProfileTraits<CoreApiProfile> {
+    using Base = ApiProfileTraits<CoreApiProfile>;
 
     using typename Base::CtrID;
     using typename Base::CtrSizeT;
@@ -38,7 +40,7 @@ struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 
     using BlockGUID = UID256;
     using BlockID = UID256;
-    using Profile = NoCowProfile<>;
+    using Profile = NoCowProfile;
 
     using Block = AbstractPage <BlockGUID, BlockID, EmptyType, SnapshotID>;
     using BlockType = Block;
@@ -65,7 +67,7 @@ struct ProfileTraits<NoCowProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 };
 
 template <>
-struct ProfileSpecificBlockTools<NoCowProfile<>>{
+struct ProfileSpecificBlockTools<NoCowProfile>{
     template <typename BlockT>
     static void after_deserialization(BlockT*) noexcept {
         // do nothing here

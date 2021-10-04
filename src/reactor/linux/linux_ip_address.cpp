@@ -83,6 +83,8 @@ IPAddress::IPAddress(const uint8_t* octets, bool v4)
         boost::get<in6_addr>(address_) = addr;
     }
 }    
+
+IPAddress::IPAddress(in_addr addr): address_(addr) {}
     
 
 std::string IPAddress::to_string() const
@@ -126,13 +128,20 @@ bool IPAddress::is_v4() const
     boost::apply_visitor(visitor, address_);
     return visitor.v4_;
 }
+
+IPAddress::operator bool () const {
+    if (is_v4()) {
+        return boost::get<in_addr>(address()).s_addr != 0;
+    }
+    else {
+        return std::memcmp(&boost::get<in6_addr>(address()), &in6addr_any, sizeof(in6_addr)) != 0;
+    }
+}
+
 std::ostream& operator<<(std::ostream& out, const IPAddress& addr)
 {
     out << addr.to_string();
     return out;
 }
-
-
-
     
 }}

@@ -55,8 +55,9 @@ public:
     IPAddress(uint8_t oct3, uint8_t oct2, uint8_t oct1, uint8_t oct0);
     
     IPAddress(const uint8_t* octets, bool v4 = true);
+    IPAddress(in_addr addr);
     
-    bool is_v4() const; 
+    bool is_v4() const;
     
     std::string to_string() const;
     
@@ -68,6 +69,8 @@ public:
     
     in6_addr& to_in6_addr() {return boost::get<in6_addr>(address_);}
     const in6_addr& to_in6_addr() const {return boost::get<in6_addr>(address_);}
+
+    operator bool () const;
 };
 
 std::ostream& operator<<(std::ostream& out, const IPAddress& addr);

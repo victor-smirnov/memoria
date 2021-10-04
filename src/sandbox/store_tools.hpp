@@ -204,7 +204,7 @@ public:
 
 
 
-template <typename Store = ISWMRStore<CoreApiProfile<>>>
+template <typename Store = ISWMRStore<CoreApiProfile>>
 class AbstractSWMRStoreOperation: public StoreOperations<AllocSharedPtr<Store>> {
 protected:
     using Base = memoria::StoreOperations<AllocSharedPtr<Store>>;
@@ -313,9 +313,9 @@ public:
 };
 
 
-class LMDBStoreOperation: public AbstractSWMRStoreOperation<ILMDBStore<CoreApiProfile<>>> {
+class LMDBStoreOperation: public AbstractSWMRStoreOperation<ILMDBStore<CoreApiProfile>> {
 protected:
-    using Base = AbstractSWMRStoreOperation<ILMDBStore<CoreApiProfile<>>>;
+    using Base = AbstractSWMRStoreOperation<ILMDBStore<CoreApiProfile>>;
     using typename Base::StoreT;
 
 

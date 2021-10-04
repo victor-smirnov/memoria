@@ -39,13 +39,13 @@ template <typename>
 class MappedSWMRStoreWritableSnapshot;
 
 template <typename ChildProfile>
-class MappedSWMRStoreWritableSnapshot<CowLiteProfile<ChildProfile>>:
-        public SWMRStoreWritableSnapshotBase<CowLiteProfile<ChildProfile>>,
-        public EnableSharedFromThis<MappedSWMRStoreWritableSnapshot<CowLiteProfile<ChildProfile>>>
+class MappedSWMRStoreWritableSnapshot<CowLiteProfileT<ChildProfile>>:
+        public SWMRStoreWritableSnapshotBase<CowLiteProfileT<ChildProfile>>,
+        public EnableSharedFromThis<MappedSWMRStoreWritableSnapshot<CowLiteProfileT<ChildProfile>>>
 {
-    using Profile = CowLiteProfile<ChildProfile>;
+    using Profile = CowLiteProfileT<ChildProfile>;
 
-    using Base = SWMRStoreWritableSnapshotBase<CowLiteProfile<ChildProfile>>;
+    using Base = SWMRStoreWritableSnapshotBase<CowLiteProfileT<ChildProfile>>;
 
     using typename Base::Store;
     using typename Base::CDescrPtr;

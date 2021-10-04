@@ -212,20 +212,20 @@ public:
     }
 };
 
-std::unique_ptr<SWMRStoreGraphVisitor<CoreApiProfile<>>> create_graphviz_dot_visitor(U8StringView path);
+std::unique_ptr<SWMRStoreGraphVisitor<CoreApiProfile>> create_graphviz_dot_visitor(U8StringView path);
 
 
 
-SharedPtr<ISWMRStore<CoreApiProfile<>>> open_swmr_store(U8StringView path, const SWMRParams& params = SWMRParams());
-SharedPtr<ISWMRStore<CoreApiProfile<>>> create_swmr_store(U8StringView path, const SWMRParams& params);
+SharedPtr<ISWMRStore<CoreApiProfile>> open_swmr_store(U8StringView path, const SWMRParams& params = SWMRParams());
+SharedPtr<ISWMRStore<CoreApiProfile>> create_swmr_store(U8StringView path, const SWMRParams& params);
 bool is_swmr_store(U8StringView path);
 
-SharedPtr<ISWMRStore<CoreApiProfile<>>> open_lite_swmr_store(U8StringView path, const SWMRParams& params = SWMRParams());
-SharedPtr<ISWMRStore<CoreApiProfile<>>> create_lite_swmr_store(U8StringView path, const SWMRParams& params);
+SharedPtr<ISWMRStore<CoreApiProfile>> open_lite_swmr_store(U8StringView path, const SWMRParams& params = SWMRParams());
+SharedPtr<ISWMRStore<CoreApiProfile>> create_lite_swmr_store(U8StringView path, const SWMRParams& params);
 bool is_lite_swmr_store(U8StringView path);
 
-SharedPtr<ISWMRStore<CoreApiProfile<>>> open_lite_raw_swmr_store(Span<uint8_t> buffer);
-SharedPtr<ISWMRStore<CoreApiProfile<>>> create_lite_raw_swmr_store(Span<uint8_t> buffer);
+SharedPtr<ISWMRStore<CoreApiProfile>> open_lite_raw_swmr_store(Span<uint8_t> buffer);
+SharedPtr<ISWMRStore<CoreApiProfile>> create_lite_raw_swmr_store(Span<uint8_t> buffer);
 bool is_lite_raw_swmr_store(Span<uint8_t> buffer);
 
 
@@ -243,9 +243,9 @@ struct ILMDBStore: IBasicSWMRStore<Profile> {
     virtual void flush(bool force = true) = 0;
 };
 
-SharedPtr<ILMDBStore<CoreApiProfile<>>> open_lmdb_store(U8StringView path);
-SharedPtr<ILMDBStore<CoreApiProfile<>>> open_lmdb_store_readonly(U8StringView path);
-SharedPtr<ILMDBStore<CoreApiProfile<>>> create_lmdb_store(U8StringView path, uint64_t store_size_mb);
+SharedPtr<ILMDBStore<CoreApiProfile>> open_lmdb_store(U8StringView path);
+SharedPtr<ILMDBStore<CoreApiProfile>> open_lmdb_store_readonly(U8StringView path);
+SharedPtr<ILMDBStore<CoreApiProfile>> create_lmdb_store(U8StringView path, uint64_t store_size_mb);
 bool is_lmdb_store(U8StringView path);
 
 

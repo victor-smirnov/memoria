@@ -32,9 +32,9 @@
 namespace memoria {
 
 
-using SWMRStorePtr = SharedPtr<ISWMRStore<CoreApiProfile<>>>;
-using SWMRStoreHistoryViewPtr = SharedPtr<ISWMRStoreHistoryView<CoreApiProfile<>>>;
-using LMDBStorePtr = SharedPtr<ILMDBStore<CoreApiProfile<>>>;
+using SWMRStorePtr = SharedPtr<ISWMRStore<CoreApiProfile>>;
+using SWMRStoreHistoryViewPtr = SharedPtr<ISWMRStoreHistoryView<CoreApiProfile>>;
+using LMDBStorePtr = SharedPtr<ILMDBStore<CoreApiProfile>>;
 
 class AbstractTreeItem {
 protected:
@@ -157,7 +157,7 @@ protected:
 
 
 class LMDBStoreTreeItem: public AbstractTreeItem, public BlockCounterProvider {
-    using CommitPtr = typename ILMDBStore<CoreApiProfile<>>::ReadOnlySnapshotPtr;
+    using CommitPtr = typename ILMDBStore<CoreApiProfile>::ReadOnlySnapshotPtr;
 
 protected:
     LMDBStorePtr store_;
@@ -352,7 +352,7 @@ protected:
 
 class LMDBStoreContainerTreeItem: public AbstractTreeItem {
 protected:
-    using CommitPtr = typename ILMDBStore<CoreApiProfile<>>::ReadOnlySnapshotPtr;
+    using CommitPtr = typename ILMDBStore<CoreApiProfile>::ReadOnlySnapshotPtr;
     CommitPtr commit_;
     //UID256 snapshot_id_;
     UID256 ctr_id_;
@@ -384,12 +384,12 @@ protected:
 class CtrBlockTreeItem: public AbstractTreeItem {
 protected:
     size_t idx_;
-    CtrBlockPtr<CoreApiProfile<>> block_;
+    CtrBlockPtr<CoreApiProfile> block_;
     BlockCounterProvider* counter_provider_;
 public:
     CtrBlockTreeItem(
             size_t idx,
-            CtrBlockPtr<CoreApiProfile<>> block,
+            CtrBlockPtr<CoreApiProfile> block,
             AbstractTreeItem* parent,
             BlockCounterProvider* counter_provider
     ):
@@ -399,7 +399,7 @@ public:
         counter_provider_(counter_provider)
     {}
 
-    CtrBlockPtr<CoreApiProfile<>> block() const {
+    CtrBlockPtr<CoreApiProfile> block() const {
         return block_;
     }
 

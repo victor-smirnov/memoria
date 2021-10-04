@@ -34,6 +34,16 @@ using namespace memoria::codegen;
 namespace po = boost::program_options;
 namespace py = pybind11;
 
+std::vector<U8String> repack_string_vector(const std::vector<std::string>& vv) {
+    std::vector<U8String> res;
+
+    for (const auto& item: vv) {
+        res.emplace_back(item);
+    }
+
+    return res;
+}
+
 int main(int argc, char** argv)
 {
     InitMemoriaCoreExplicit();
@@ -52,7 +62,7 @@ int main(int argc, char** argv)
                 ("define,D", po::value<StringOpts>(), "Add preprocessor definition (-D)")
                 ("enable", po::value<StringOpts>(), "Enable profile")
                 ("disable", po::value<StringOpts>(), "Disable profile")
-                ("config", po::value<std::string>(), "Config file")
+                ("config", po::value<StringOpts>(), "Config file. Multiple config files will be merged together.")
                 ("project-output", po::value<std::string>(), "Main output folder")
                 ("components-output-base", po::value<std::string>(), "Output folder prefix for compoments")
                 ("verbose,v", po::value<std::string>(), "Provide additional debug info")
@@ -96,7 +106,7 @@ int main(int argc, char** argv)
         boost::program_options::notify(map);
 
         if (!map.count("config")) {
-            println(std::cerr, "Error: --config option must be specified (input file)");
+            println(std::cerr, "Error: at least one --config option must be specified (input file)");
             exit(1);
         }
 
@@ -110,7 +120,7 @@ int main(int argc, char** argv)
             exit(3);
         }
 
-        auto config_file = map["config"].as<std::string>();
+        auto config_files = repack_string_vector(map["config"].as<StringOpts>());
         auto project_output_folder  = map["project-output"].as<std::string>();
         auto components_output_base  = map["components-output-base"].as<std::string>();
 
@@ -130,7 +140,7 @@ int main(int argc, char** argv)
             else {
                 add_parser_clang_option("-Wno-everything");
 
-                auto project = Project::create(config_file, project_output_folder, components_output_base);
+                auto project = Project::create(config_files, project_output_folder, components_output_base);
 
                 project->parse_configuration();
 
@@ -160,7 +170,7 @@ int main(int argc, char** argv)
             std::cout << "Reusing previously generated files" << std::endl;
         }
         else {
-            auto project = Project::create(config_file, project_output_folder, components_output_base);
+            auto project = Project::create(config_files, project_output_folder, components_output_base);
 
             project->parse_configuration();
             println("Configuration has been parsed");

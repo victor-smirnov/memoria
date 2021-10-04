@@ -21,7 +21,7 @@
 
 namespace memoria {
 
-class GraphvizDotWritingVisitor: public SWMRStoreGraphVisitor<CoreApiProfile<>> {
+class GraphvizDotWritingVisitor: public SWMRStoreGraphVisitor<CoreApiProfile> {
 
     enum class NodeType {COMMIT, CONTAINER, BLOCK};
 
@@ -337,7 +337,7 @@ private:
     }
 };
 
-std::unique_ptr<SWMRStoreGraphVisitor<CoreApiProfile<>>> create_graphviz_dot_visitor(U8StringView path) {
+std::unique_ptr<SWMRStoreGraphVisitor<CoreApiProfile>> create_graphviz_dot_visitor(U8StringView path) {
     auto rr = std::make_unique<GraphvizDotWritingVisitor>(path);
     return std::move(rr);
 }

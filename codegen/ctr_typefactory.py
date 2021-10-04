@@ -31,9 +31,6 @@ MMA_INSTANTIATE_CTR_{{factory_type}}(CtrName, Profile)
         consumer(self.target_file)
         pass
 
-    def dry_run1(self, consumer):
-        consumer("SOURCE:" + self.target_file)
-
     def generate_init(self):
         self.init_gen.add_snippet("ctr_datatype_init_decl", "MMA_DEFINE_DEFAULT_DATATYPE_OPS({});".format(self.data_type))
         self.init_gen.add_snippet("ctr_datatype_init_def", "register_notctr_operations<{}>();".format(self.data_type))

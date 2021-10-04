@@ -33,14 +33,15 @@
 namespace memoria {
 
 template <typename ChildType = void>
-class CowLiteProfile  {};
+class CowLiteProfileT  {};
+using CowLiteProfile = CowLiteProfileT<>;
 
 template<>
-struct TypeHash<CowLiteProfile<>>: HasValue<uint64_t, 348752398579234857ull> {};
+struct TypeHash<CowLiteProfile>: HasValue<uint64_t, 348752398579234857ull> {};
 
 template <>
-struct ProfileTraits<CowLiteProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
-    using Base = ApiProfileTraits<CoreApiProfile<>>;
+struct ProfileTraits<CowLiteProfile>: ApiProfileTraits<CoreApiProfile> {
+    using Base = ApiProfileTraits<CoreApiProfile>;
 
     using typename Base::CtrID;
     using typename Base::CtrSizeT;
@@ -48,7 +49,7 @@ struct ProfileTraits<CowLiteProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 
     using BlockGUID     = UID64;
     using BlockID       = CowBlockID<UID64>;
-    using Profile       = CowLiteProfile<>;
+    using Profile       = CowLiteProfile;
 
     using Block = AbstractPage<BlockID, BlockGUID, UID64, SnapshotID>;
     using BlockType = Block;
@@ -84,7 +85,7 @@ struct ProfileTraits<CowLiteProfile<>>: ApiProfileTraits<CoreApiProfile<>> {
 
 
 template <>
-struct ProfileSpecificBlockTools<CowLiteProfile<>>{
+struct ProfileSpecificBlockTools<CowLiteProfile>{
 
     template <typename BlockT>
     static void after_deserialization(BlockT* block) noexcept {
@@ -96,9 +97,9 @@ struct ProfileSpecificBlockTools<CowLiteProfile<>>{
 
 
 template <>
-struct IBlockOperations<CowLiteProfile<>>: IBlockOperationsBase<CowLiteProfile<>> {
+struct IBlockOperations<CowLiteProfile>: IBlockOperationsBase<CowLiteProfile> {
 
-    using Base = IBlockOperationsBase<CowLiteProfile<>>;
+    using Base = IBlockOperationsBase<CowLiteProfile>;
     using typename Base::IDValueResolver;
     using typename Base::BlockType;
 

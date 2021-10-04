@@ -27,7 +27,7 @@
 
 using namespace memoria;
 
-using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile<>>>;
+using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile>>;
 
 int main(void) {
     try {

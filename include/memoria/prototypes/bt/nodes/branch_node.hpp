@@ -865,7 +865,7 @@ namespace detail_ {
     };
 
     template <>
-    struct BTNodeNodeMethodsSelector<CowLiteProfile<>> {
+    struct BTNodeNodeMethodsSelector<CowLiteProfile> {
 
         template <typename BTNode, typename IDResolver>
         static VoidResult serialize(const BTNode* node, SerializationData& data, const IDResolver* id_resolver) noexcept
@@ -881,7 +881,7 @@ namespace detail_ {
     };
 
     template <>
-    struct BTNodeNodeMethodsSelector<CowProfile<>> {
+    struct BTNodeNodeMethodsSelector<CowProfile> {
 
         template <typename BTNode, typename IDResolver>
         static VoidResult serialize(const BTNode* node, SerializationData& data, const IDResolver* id_resolver) noexcept

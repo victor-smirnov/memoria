@@ -43,19 +43,19 @@ const ProfileMetadataPtr<Profile>& ProfileMetadata<Profile>::local()
     return metadata;
 }
 
-template class ProfileMetadataStore<NoCowProfile<>>;
-template class ProfileMetadata<NoCowProfile<>>;
+template class ProfileMetadataStore<NoCowProfile>;
+template class ProfileMetadata<NoCowProfile>;
 
-template class ProfileMetadataStore<CowLiteProfile<>>;
-template class ProfileMetadata<CowLiteProfile<>>;
+template class ProfileMetadataStore<CowLiteProfile>;
+template class ProfileMetadata<CowLiteProfile>;
 
-template class ProfileMetadataStore<CowProfile<>>;
-template class ProfileMetadata<CowProfile<>>;
+template class ProfileMetadataStore<CowProfile>;
+template class ProfileMetadata<CowProfile>;
 
 void InitProfileMetadata() {
-    ProfileMetadataStore<NoCowProfile<>>::Init init_store1;
-    ProfileMetadataStore<CowLiteProfile<>>::Init init_store2;
-    ProfileMetadataStore<CowProfile<>>::Init init_store3;
+    ProfileMetadataStore<NoCowProfile>::Init init_store1;
+    ProfileMetadataStore<CowLiteProfile>::Init init_store2;
+    ProfileMetadataStore<CowProfile>::Init init_store3;
 }
 
 

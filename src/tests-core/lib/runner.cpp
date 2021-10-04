@@ -22,12 +22,17 @@
 
 #include <memoria/core/tools/random.hpp>
 #include <memoria/core/tools/time.hpp>
+#include <memoria/core/strings/format.hpp>
 
-#include <yaml-cpp/yaml.h>
+#include <memoria/core/linked/document/linked_document.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 
+
+
+#include <yaml-cpp/yaml.h>
 #include <sstream>
+#include <thread>
 
 namespace memoria {
 namespace tests {
@@ -115,7 +120,6 @@ Optional<TestCoverage> get_test_coverage()
         return TestCoverage::SMALL;
     }
 }
-
 
 }
 
@@ -233,8 +237,6 @@ TestStatus replay_single_test(const U8String& test_path)
             {
                 seed = config["seed"].as<int64_t>();
             }
-
-
         }
 
         reactor::engine().coutln("seed = {}", seed);
@@ -550,6 +552,374 @@ void DefaultTestContext::failed(TestStatus detail, std::exception_ptr ex, TestSt
 
         stream.flush();
     }
+}
+
+
+
+void MultiProcessRunner::start()
+{
+    socket_ = ServerSocket(address_, port_);
+    socket_.listen();
+
+    address_ = socket_.address();
+    port_ = socket_.port();
+
+    worker_processes_.resize(workers_num_);
+
+    for (size_t c = 0; c < workers_num_; c++) {
+        worker_processes_[c] = create_worker(c);        
+    }
+
+    for (size_t c = 0; c < workers_num_; c++) {
+        worker_processes_[c]->start();
+    }
+
+    handle_connections();
+}
+
+std::shared_ptr<WorkerProcess> MultiProcessRunner::create_worker(size_t num)
+{
+    filesystem::path output_dir_base = get_tests_output_path();
+    output_dir_base.append(std::to_string(num));
+    filesystem::create_directories(output_dir_base);
+
+    auto proc = std::make_shared<WorkerProcess>(address_, port_, output_dir_base, num);
+
+    proc->set_status_listener([weak_self = weak_from_this(), address = address_, port = port_, num, output_dir_base](auto status, auto exit_code)
+    {
+        auto self = weak_self.lock();
+        if (!self) {
+            return;
+        }
+
+        bool restart{false};
+
+        if (status != reactor::Process::Status::EXITED || (status == reactor::Process::Status::EXITED && exit_code != 0))
+        {
+            auto ii = self->heads_.find(num);
+            if (ii != self->heads_.end()) {
+                println("CRASHED: {} :: {}", ii->second, num);
+                self->heads_.erase(ii);
+                self->crashes_++;
+            }
+
+            restart = true;
+        }
+        else {
+            self->heads_.erase(num);
+            restart = exit_code != 0;
+        }
+
+        if (restart)
+        {
+            self->worker_processes_[num] = std::make_shared<WorkerProcess>(address, port, output_dir_base, num);
+            self->worker_processes_[num]->start();
+        }
+    });
+
+    return proc;
+}
+
+void write_message(BinaryOutputStream output, const U8StringView& msg)
+{
+    uint64_t size = msg.size();
+    output.write(ptr_cast<const uint8_t>(&size), sizeof(size));
+    output.write(ptr_cast<const uint8_t>(msg.data()), size);
+    output.flush();
+}
+
+LDDocument read_message(BinaryInputStream input)
+{
+    uint64_t size{0};
+    if (input.read(ptr_cast<uint8_t>(&size), sizeof(size)) < sizeof(size))
+    {
+        MEMORIA_MAKE_GENERIC_ERROR("Connection has been closed").do_throw();
+    }
+
+    U8String str(size, ' ');
+    if (input.read(ptr_cast<uint8_t>(str.data()), size) < size) {
+        MEMORIA_MAKE_GENERIC_ERROR("Connection has been closed").do_throw();
+    }
+
+    return LDDocument::parse(str);
+}
+
+
+
+void MultiProcessRunner::handle_connections()
+{
+    const auto& suites  = tests_registry().suites();
+
+    std::list<U8String> tests;
+
+
+    for (const auto& suite: suites)
+    {
+        for (const auto& test: suite.second->tests()) {
+            U8String full_test_name = suite.first + "/" + test.first;
+            tests.push_back(full_test_name);
+        }
+    }
+
+    size_t total_tests = tests.size();
+    size_t processed{};
+    size_t sent{};
+
+    std::set<U8String> sent_tasks;
+    std::set<U8String> processed_tasks;
+
+
+    bool do_finish = false;
+
+    while (processed + crashes_ < total_tests)
+    {
+        //println("   ******** New fiber: {} {}", processed + crashes_, total_tests);
+
+        fibers::fiber ff([&](SocketConnectionData&& conn_data){
+            //println("   ####### Starting fiber");
+
+            std::shared_ptr<WorkerProcess> worker_process;
+            size_t worker_num = -1ull;
+
+            try {
+                ServerSocketConnection conn(std::move(conn_data));
+                BinaryInputStream input  = conn.input();
+                BinaryOutputStream output = conn.output();
+
+                while (tests.size() || heads_.count(worker_num) > 0)
+                {
+                    LDDocument msg = read_message(input);
+                    U8String code = get_value(msg.value(), "code").as_varchar().view();
+
+                    if (code == "GREETING")
+                    {
+                        worker_num = get_value(msg.value(), "worker_id").as_bigint();
+                        worker_process = worker_processes_.at(worker_num);
+                    }
+                    else if (code == "GET_TASK")
+                    {
+                        if (tests.size()) {
+                            U8String new_test = tests.front();
+                            tests.pop_front();
+
+                            heads_[worker_num] = new_test;
+
+                            sent_tasks.insert(new_test);
+                            write_message(output, format_u8("{{'code': 'RUN_TASK', 'test_path': '{}'}}", new_test));
+                            sent++;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    else if (code == "TASK_RESULT")
+                    {
+                        processed++;
+
+                        U8String test_path = get_value(msg.value(), "test_path").as_varchar().view();
+                        int32_t status = get_value(msg.value(), "status").as_bigint();
+
+                        heads_.erase(worker_num);
+
+                        processed_tasks.insert(test_path);
+
+                        if (status > 0) {
+                            println("*FAILED: {} :: {}({}) of {}", test_path, processed + crashes_, crashes_, total_tests);
+                        }
+                        else {
+                            println("PASSED: {} :: {}({}) of {}", test_path, processed + crashes_, crashes_, total_tests);
+                        }
+
+//                        if (processed + crashes_ >= 205) {
+//                            for (const auto& pp: sent_tasks) {
+//                                if (processed_tasks.count(pp) == 0) {
+//                                    println("Missing: {}", pp);
+//                                }
+//                            }
+//                        }
+                    }
+                }
+
+                if (worker_num != -1ull) {
+                    write_message(output, "{'code': 'TERMINATE'}");
+                }
+
+                if (processed + crashes_ >= total_tests) {
+                    if (!do_finish) {
+                        do_finish = true;
+                        for (size_t c = 0; c < 3; c++) {
+                            //println("Ping {} of {}", c + 1, workers_num_);
+                            ping_socket();
+                        }
+                    }
+                }
+            }
+            catch (const std::exception& ex)
+            {
+                if (worker_process) {
+                    worker_process->terminate();
+                    worker_process->join();
+
+                    println("Exception in worker {} listener fiber: {}, process status: {}", worker_num, ex.what(), (int)worker_process->status());
+                }
+                else {
+                    println("Exception in worker listener fiber: {}, no worker", ex.what());
+                }
+            }
+            catch (...) {
+                println("Unknown exception, worker = {}", worker_num);
+            }
+
+            //println("   ####### Finished fiber");
+        }, socket_.accept());
+
+        ff.detach();
+    }
+
+    for (auto proc: worker_processes_) {
+        proc->kill();
+        proc->join();
+    }
+
+    socket_.close();
+}
+
+
+void MultiProcessRunner::ping_socket()
+{
+    reactor::ClientSocket c_socket(address_, port_);
+    BinaryOutputStream output = c_socket.output();
+
+    write_message(output, "{'code': 'NONE'}");
+
+    output.close();
+    c_socket.close();
+}
+
+
+reactor::Process::Status WorkerProcess::status() const {
+    if (process_) {
+        return process_.status();
+    }
+    else {
+        return reactor::Process::Status::TERMINATED;
+    }
+}
+
+WorkerProcess::~WorkerProcess() noexcept {
+    if (process_watcher_.joinable()) {
+        process_watcher_.detach();
+    }
+}
+
+void WorkerProcess::start()
+{
+    filesystem::path output_dir_base(output_folder_);
+
+    std::vector<U8String> args;
+
+    args.emplace_back("tests2");
+    args.emplace_back("--server");
+    args.emplace_back(socket_addr_.to_string());
+    args.emplace_back("--port");
+    args.emplace_back(std::to_string(port_));
+
+    args.emplace_back("--worker-num");
+    args.emplace_back(std::to_string(worker_num_));
+
+    args.emplace_back("--output");
+    args.emplace_back(U8String(output_dir_base.string()));
+
+    args.emplace_back("--coverage");
+    args.emplace_back(get_test_coverage_str());
+
+    process_ = reactor::ProcessBuilder::create(reactor::get_program_path())
+            .with_args(args)
+            .run();
+
+    filesystem::path std_output = output_dir_base;
+    std_output.append("stdout.txt");
+    out_file_ = open_buffered_file(std_output, FileFlags::CREATE | FileFlags::RDWR | FileFlags::TRUNCATE);
+
+    filesystem::path std_error = output_dir_base;
+    std_error.append("stderr.txt");
+    err_file_ = open_buffered_file(std_error, FileFlags::CREATE | FileFlags::RDWR | FileFlags::TRUNCATE);
+
+    out_reader_ = std::make_unique<reactor::InputStreamReaderWriter>(process_.out_stream(), out_file_.ostream());
+    err_reader_ = std::make_unique<reactor::InputStreamReaderWriter>(process_.err_stream(), err_file_.ostream());
+
+    process_watcher_ = fibers::fiber([&]{
+        auto holder = this->shared_from_this();
+
+        process_.join();
+
+        out_reader_->join();
+        err_reader_->join();
+
+        out_file_.close();
+        err_file_.close();
+
+        auto status = process_.status();
+
+        int32_t code{-1};
+
+        if (status == reactor::Process::Status::EXITED)
+        {
+            code = process_.exit_code();
+        }
+
+        if (status_listener_) {
+            //println("Process {} exited with status {}, code {}", worker_num_, (int)status, code);
+            status_listener_(status, code);
+        }
+    });
+}
+
+
+
+
+
+void Worker::run()
+{
+    socket_ = reactor::ClientSocket(server_address_, port_);
+
+    BinaryInputStream input = socket_.input();
+    BinaryOutputStream output = socket_.output();
+
+    write_message(output, format_u8("{{'code': 'GREETING', 'worker_id':{}}}", worker_num_));
+
+    while (true)
+    {
+        write_message(output, "{'code': 'GET_TASK'}");
+
+        LDDocument msg = read_message(input);
+        U8String code = get_value(msg.value(), "code").as_varchar().view();
+
+        if (code == "RUN_TASK")
+        {
+            U8String test_path = get_value(msg.value(), "test_path").as_varchar().view();
+            TestStatus status = run_single_test(test_path);
+
+            write_message(output, format_u8(
+R"({{
+    'code': 'TASK_RESULT',
+    'test_path': '{}',
+    'status': {}
+}})", test_path, (int)status));
+        }
+        else {
+            input.close();
+            output.close();
+            socket_.close();
+            return;
+        }
+    }
+}
+
+void run_tests2(size_t threads)
+{
+    auto runner = std::make_shared<MultiProcessRunner>(threads);
+    runner->start();
 }
 
 }}

@@ -65,7 +65,8 @@ public:
 
 class ProjectImpl: public Project, public std::enable_shared_from_this<ProjectImpl> {
 
-    U8String config_file_name_;
+    std::vector<U8String> config_file_names_;
+
     U8String project_output_folder_;
     U8String components_output_folder_;
 
@@ -89,8 +90,8 @@ class ProjectImpl: public Project, public std::enable_shared_from_this<ProjectIm
     std::unordered_set<U8String> disabled_profiles_;
 
 public:
-    ProjectImpl(U8String config_file_name, U8String project_output_folder, U8String components_output_folder) noexcept:
-        config_file_name_(std::move(config_file_name)),
+    ProjectImpl(std::vector<U8String> config_file_names, U8String project_output_folder, U8String components_output_folder) noexcept:
+        config_file_names_(std::move(config_file_names)),
         project_output_folder_(std::move(project_output_folder)),
         components_output_folder_(std::move(components_output_folder))
     {
@@ -109,7 +110,13 @@ public:
 
         U8String tgt_header = project_output_folder_ + "/" + codegen_config_file_name_;
 
-        write_text_file(tgt_header, format_u8("#include <{}>", config_file_name_));
+        std::stringstream ss;
+
+        for (const U8String& f_name: config_file_names_) {
+            println(ss, "#include <{}>", f_name);
+        }
+
+        write_text_file(tgt_header, ss.str());
 
         precompiled_config_ = PreCompiledHeader::create({"-std=c++20", "-stdlib=libc++"}, project_output_folder_, codegen_config_file_name_);
         codegen_config_file_name_pch_ = precompiled_config_->file_path();
@@ -157,8 +164,6 @@ public:
                 {
                     U8String full_path = join_sdn_path(path);
                     LDDocument cfg = value.clone();
-
-                    //println("Generator: {}", full_path);
 
                     file_generators_[full_path] = FileGenerator::create(self(), full_path, std::move(cfg));
                     return false;
@@ -210,35 +215,7 @@ public:
         return type_instances_;
     }
 
-    std::vector<U8String> build_file_names() override
-    {
-        std::vector<U8String> files{};
 
-        U8String file_path = U8String("BYPRODUCT:") + project_output_folder_ + "/" + config_file_name_;
-
-        files.push_back(file_path);
-        files.push_back(file_path + ".pch");
-
-        for (auto& tf: type_factories_)
-        {
-            auto names = tf->generated_files();
-            files.insert(files.end(), names.begin(), names.end());
-        }
-
-        for (auto& ti: type_instances_)
-        {
-            auto names = ti->generated_files();
-            files.insert(files.end(), names.begin(), names.end());
-        }
-
-        for (auto& ti: file_generators_)
-        {
-            auto names = ti.second->generated_files();
-            files.insert(files.end(), names.begin(), names.end());
-        }
-
-        return files;
-    }
 
     LDDocument dry_run()  override
     {
@@ -253,7 +230,7 @@ public:
 
         LDDArrayView byproducts = get_or_add_array(map, "byproducts");
 
-        U8String file_path = project_output_folder_ + "/" + config_file_name_;
+        U8String file_path = project_output_folder_ + "/" + codegen_config_file_name_;
 
         byproducts.add_varchar(file_path);
         byproducts.add_varchar(file_path + ".pch");
@@ -372,12 +349,6 @@ public:
     void add_enabled_profile(const U8String& profile_name) override
     {
         U8String name = profile_name;
-        if (!name.ends_with("<>")) {
-            name += "<>";
-        }
-
-        println("Enabling profile {}", name);
-
         if (profiles_.count(name)) {
             enabled_profiles_.insert(name);
             disabled_profiles_.erase(name);
@@ -387,12 +358,6 @@ public:
     void add_disabled_profile(const U8String& profile_name) override
     {
         U8String name = profile_name;
-        if (!name.ends_with("<>")) {
-            name += "<>";
-        }
-
-        println("Disabling profile {}", name);
-
         if (profiles_.count(name)) {
             disabled_profiles_.insert(name);
             enabled_profiles_.erase(name);
@@ -405,8 +370,8 @@ public:
 };
 
 
-ShPtr<Project> Project::create(U8String config_file_name, U8String project_output_folder, U8String components_output_folder) {
-    return std::make_shared<ProjectImpl>(config_file_name, project_output_folder, components_output_folder);
+ShPtr<Project> Project::create(std::vector<U8String> config_file_names, U8String project_output_folder, U8String components_output_folder) {
+    return std::make_shared<ProjectImpl>(config_file_names, project_output_folder, components_output_folder);
 }
 
 
