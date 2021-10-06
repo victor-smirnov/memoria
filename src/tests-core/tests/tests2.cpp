@@ -121,7 +121,8 @@ int main(int argc, char** argv, char** envp)
             }
 
             tests::run_tests2(workers);
-            terminate("Forcefully stopping the test executor, as there is a bug in the fiber engine");
+
+            engine().println("Done...");
         }
 
         return 0;

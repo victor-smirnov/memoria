@@ -134,7 +134,6 @@ public:
 
 class WorkerProcess: public std::enable_shared_from_this<WorkerProcess> {
     reactor::Process process_;
-    fibers::fiber process_watcher_;
 
     reactor::File out_file_;
     reactor::File err_file_;
@@ -168,7 +167,7 @@ public:
 
     reactor::Process::Status status() const;
 
-    void start();
+    fibers::fiber start();
 
     void join() {
         process_.join();
@@ -193,6 +192,10 @@ class MultiProcessRunner: public std::enable_shared_from_this<MultiProcessRunner
 
     size_t crashes_{};
     std::map<size_t, U8String> heads_;
+
+    std::list<std::pair<U8String, fibers::fiber>> fibers_;
+
+    bool respawn_workers_{true};
 
 public:
     MultiProcessRunner(size_t workers_num, const reactor::IPAddress& address = reactor::IPAddress(), uint16_t port = 0):

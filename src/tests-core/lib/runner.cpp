@@ -571,7 +571,7 @@ void MultiProcessRunner::start()
     }
 
     for (size_t c = 0; c < workers_num_; c++) {
-        worker_processes_[c]->start();
+        fibers_.push_back(std::make_pair(format_u8("Process Watcher {}", c), worker_processes_[c]->start()));
     }
 
     handle_connections();
@@ -585,7 +585,7 @@ std::shared_ptr<WorkerProcess> MultiProcessRunner::create_worker(size_t num)
 
     auto proc = std::make_shared<WorkerProcess>(address_, port_, output_dir_base, num);
 
-    proc->set_status_listener([weak_self = weak_from_this(), address = address_, port = port_, num, output_dir_base](auto status, auto exit_code)
+    proc->set_status_listener([weak_self = weak_from_this(), address = address_, port = port_, num, output_dir_base, this](auto status, auto exit_code)
     {
         auto self = weak_self.lock();
         if (!self) {
@@ -598,6 +598,7 @@ std::shared_ptr<WorkerProcess> MultiProcessRunner::create_worker(size_t num)
         {
             auto ii = self->heads_.find(num);
             if (ii != self->heads_.end()) {
+                //engine().
                 println("CRASHED: {} :: {}", ii->second, num);
                 self->heads_.erase(ii);
                 self->crashes_++;
@@ -610,10 +611,10 @@ std::shared_ptr<WorkerProcess> MultiProcessRunner::create_worker(size_t num)
             restart = exit_code != 0;
         }
 
-        if (restart)
+        if (restart && respawn_workers_)
         {
             self->worker_processes_[num] = std::make_shared<WorkerProcess>(address, port, output_dir_base, num);
-            self->worker_processes_[num]->start();
+            self->fibers_.push_back(std::make_pair(format_u8("Process Watcher {}", num), self->worker_processes_[num]->start()));
         }
     });
 
@@ -673,10 +674,7 @@ void MultiProcessRunner::handle_connections()
 
     while (processed + crashes_ < total_tests)
     {
-        //println("   ******** New fiber: {} {}", processed + crashes_, total_tests);
-
-        fibers::fiber ff([&](SocketConnectionData&& conn_data){
-            //println("   ####### Starting fiber");
+        fibers::fiber ff([&](SocketConnectionData&& conn_data) {
 
             std::shared_ptr<WorkerProcess> worker_process;
             size_t worker_num = -1ull;
@@ -724,19 +722,13 @@ void MultiProcessRunner::handle_connections()
                         processed_tasks.insert(test_path);
 
                         if (status > 0) {
+                            //engine().
                             println("*FAILED: {} :: {}({}) of {}", test_path, processed + crashes_, crashes_, total_tests);
                         }
                         else {
+                            //engine().
                             println("PASSED: {} :: {}({}) of {}", test_path, processed + crashes_, crashes_, total_tests);
                         }
-
-//                        if (processed + crashes_ >= 205) {
-//                            for (const auto& pp: sent_tasks) {
-//                                if (processed_tasks.count(pp) == 0) {
-//                                    println("Missing: {}", pp);
-//                                }
-//                            }
-//                        }
                     }
                 }
 
@@ -759,26 +751,42 @@ void MultiProcessRunner::handle_connections()
                 if (worker_process) {
                     worker_process->terminate();
                     worker_process->join();
-
-                    println("Exception in worker {} listener fiber: {}, process status: {}", worker_num, ex.what(), (int)worker_process->status());
                 }
-                else {
-                    println("Exception in worker listener fiber: {}, no worker", ex.what());
+            }
+            catch (const std::runtime_error& ex)
+            {
+                if (worker_process) {
+                    worker_process->terminate();
+                    worker_process->join();
+                }
+            }
+            catch (const MemoriaThrowable& ex)
+            {
+                if (worker_process) {
+                    worker_process->terminate();
+                    worker_process->join();
                 }
             }
             catch (...) {
-                println("Unknown exception, worker = {}", worker_num);
+                engine().println("Unknown exception, worker = {}", worker_num);
             }
-
-            //println("   ####### Finished fiber");
         }, socket_.accept());
 
-        ff.detach();
+        fibers_.push_back(std::make_pair(format_u8("WorkerFacacde"), std::move(ff)));
     }
 
+    respawn_workers_ = false;
+
     for (auto proc: worker_processes_) {
-        proc->kill();
         proc->join();
+    }
+
+    for (auto& pair: fibers_)
+    {
+        if (pair.second.joinable()) {
+
+            pair.second.join();
+        }
     }
 
     socket_.close();
@@ -806,13 +814,9 @@ reactor::Process::Status WorkerProcess::status() const {
     }
 }
 
-WorkerProcess::~WorkerProcess() noexcept {
-    if (process_watcher_.joinable()) {
-        process_watcher_.detach();
-    }
-}
+WorkerProcess::~WorkerProcess() noexcept {}
 
-void WorkerProcess::start()
+fibers::fiber WorkerProcess::start()
 {
     filesystem::path output_dir_base(output_folder_);
 
@@ -848,7 +852,7 @@ void WorkerProcess::start()
     out_reader_ = std::make_unique<reactor::InputStreamReaderWriter>(process_.out_stream(), out_file_.ostream());
     err_reader_ = std::make_unique<reactor::InputStreamReaderWriter>(process_.err_stream(), err_file_.ostream());
 
-    process_watcher_ = fibers::fiber([&]{
+    return fibers::fiber([&]{
         auto holder = this->shared_from_this();
 
         process_.join();
@@ -863,13 +867,12 @@ void WorkerProcess::start()
 
         int32_t code{-1};
 
-        if (status == reactor::Process::Status::EXITED)
-        {
+        if (status == reactor::Process::Status::EXITED) {
             code = process_.exit_code();
         }
 
         if (status_listener_) {
-            //println("Process {} exited with status {}, code {}", worker_num_, (int)status, code);
+            //engine().println("Process {} exited with status {}, code {}", worker_num_, (int)status, code);
             status_listener_(status, code);
         }
     });
