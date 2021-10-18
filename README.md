@@ -36,8 +36,7 @@ Primary development platform is Linux with Clang 6.0+. Memoria uses CMake 3.6+ a
 
 First, download and build Memoria-specific version of Vcpkg:
 
-```
-#!console
+```console
 # Assuming current folder is /home/guest/cxx
 $ git clone https://github.com/victor-smirnov/vcpkg-memoria.git
 $ cd vcpkg-memoria
@@ -48,8 +47,7 @@ $ ./vcpkg install boost icu
 
 After libraries are built, download and build Memoria with tests:
 
-```
-#!console
+```console
 # Assuming current folder is /home/guest/cxx
 $ git clone https://vsmirnov@bitbucket.org/vsmirnov/memoria.git
 $ ./memoria/mkbuild/setup-vcpkg.sh
@@ -59,16 +57,14 @@ $ make -j6
 
 When the build is finished, try:
 
-```
-#!console
+```console
 $ cd memoria-build/src/tests-core/tests
 $ ./tests2
 ```
 
 To get available test options and configuration parameters:
 
-```
-#!console
+```console
 $ ./tests --help
 ```
 
