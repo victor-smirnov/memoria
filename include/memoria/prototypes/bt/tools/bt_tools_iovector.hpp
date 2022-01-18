@@ -24,6 +24,10 @@
 #include <memoria/core/iovector/io_substream_rle_symbol_sequence_1.hpp>
 #include <memoria/core/iovector/io_substream_rle_symbol_sequence_view_1.hpp>
 
+#include <memoria/core/iovector/io_substream_ssrle_symbol_sequence.hpp>
+#include <memoria/core/iovector/io_substream_ssrle_symbol_sequence_view.hpp>
+
+
 namespace memoria {
 namespace bt {
 namespace _ {

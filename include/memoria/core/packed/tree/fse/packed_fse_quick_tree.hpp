@@ -742,6 +742,14 @@ public:
 
         return VoidResult::of();
     }
+
+    Values access(int32_t row_idx) const noexcept {
+        Values vv{};
+        for (int32_t c = 0; c < Blocks; c++) {
+            vv[c] = this->value(c, row_idx);
+        }
+        return vv;
+    }
 };
 
 template <typename Types>

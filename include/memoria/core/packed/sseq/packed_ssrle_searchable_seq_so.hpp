@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2021 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,29 +19,22 @@
 #include <memoria/core/types.hpp>
 
 #include <memoria/profiles/common/block_operations.hpp>
-#include <memoria/core/tools/static_array.hpp>
+#include <memoria/core/iovector/io_substream_base.hpp>
 
 namespace memoria {
 
 template <typename ExtData, typename PkdStruct>
-class PackedFSEQuickTreeSO {
+class PackedSSRLESeqSO {
     ExtData* ext_data_;
     PkdStruct* data_;
 
-    using Values = typename PkdStruct::Values;
-    using Value = typename PkdStruct::Value;
-    using IndexValue = typename PkdStruct::IndexValue;
-
-    using MyType = PackedFSEQuickTreeSO;
-
+    using MyType = PackedSSRLESeqSO;
 
 public:
     using PkdStructT = PkdStruct;
 
-    static constexpr int32_t Blocks = PkdStruct::Blocks;
-
-    PackedFSEQuickTreeSO() noexcept: ext_data_(), data_() {}
-    PackedFSEQuickTreeSO(ExtData* ext_data, PkdStruct* data) noexcept:
+    PackedSSRLESeqSO() noexcept: ext_data_(), data_() {}
+    PackedSSRLESeqSO(ExtData* ext_data, PkdStruct* data) noexcept:
         ext_data_(ext_data), data_(data)
     {}
 
@@ -87,65 +80,27 @@ public:
         return data_->removeSpace(room_start, room_end);
     }
 
-
-    VoidResult reindex() noexcept {
-        return data_->reindex();
-    }
-
-
-    const Value& access(int32_t column, int32_t row) const noexcept {
-        return data_->value(column, row);
-    }
-
-    const Values& access(int32_t row) const noexcept {
-        return data_->get_values(row);
-    }
-
-    template <typename T>
-    VoidResult setValues(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
-        return data_->setValues(idx, values);
-    }
-
-    int32_t size() const {
+    int32_t size() const noexcept {
         return data_->size();
     }
 
-    auto findForward(SearchType search_type, int32_t block, int32_t start, IndexValue val) const {
-        return data_->findForward(search_type, block, start, val);
+    int32_t get_symbol(int32_t idx) const noexcept {
+        return data_->get_symbol(idx);
     }
 
-    auto findBackward(SearchType search_type, int32_t block, int32_t start, IndexValue val) const {
-        return data_->findBackward(search_type, block, start, val);
-    }
-
-    const Value& value(int32_t block, int32_t idx) const {
-        return data_->value(block, idx);
-    }
-
-    template <typename T>
-    void _add(int32_t block, int32_t start, int32_t end, T& value) const
-    {
-        value += data_->sum(block, start, end);
-    }
-
-
-
-    template <typename T>
-    void _sub(int32_t block, int32_t start, int32_t end, T& value) const
-    {
-        value -= data_->sum(block, start, end);
+    auto rank(int32_t pos, int32_t symbol) const noexcept {
+        return data_->rank(pos, symbol);
     }
 
     template <typename... Args>
-    auto sum(Args&&... args) const {
-        return data_->sum(std::forward<Args>(args)...);
+    auto selectGEFW(Args&&... args) const {
+        return data_->selectGEFW(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    auto findNZLT(Args&&... args) const {
-        return data_->findNZLT(std::forward<Args>(args)...);
+    auto selectFW(Args&&... args) const {
+        return data_->selectFW(std::forward<Args>(args)...);
     }
-
 
     VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept {
         return data_->generateDataEvents(handler);
@@ -155,10 +110,32 @@ public:
         return data_->check();
     }
 
+    auto sum(int32_t symbol) const noexcept {
+        return data_->rank(symbol);
+    }
+
+    void configure_io_substream(io::IOSubstream& substream) const {
+        return data_->configure_io_substream(substream);
+    }
+
+    Int32Result insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size) noexcept
+    {
+        MEMORIA_TRY_VOID(data_->insert_io_substream(at, substream, start, size));
+        return Int32Result::of(at + size);
+    }
+
     template <typename AccessorFn>
     VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
     {
-        return data_->insert_entries(row_at, size, std::forward<AccessorFn>(elements));
+        MEMORIA_TRY_VOID(data_->insertSpace(row_at, size));
+
+        for (psize_t c = 0; c < size; c++)
+        {
+            int32_t symbol = elements(c);
+            data_->insert(row_at, symbol, 1);
+        }
+
+        return VoidResult::of();
     }
 
     template <typename AccessorFn>
@@ -171,20 +148,11 @@ public:
     template <typename AccessorFn>
     VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
     {
-        MEMORIA_TRY_VOID(data_->removeSpace(row_at, row_at + size));
-        return data_->reindex();
+        return data_->removeSpace(row_at, row_at + size);
     }
 
-    auto iterator(int32_t idx) const {
-        return data_->iterator(idx);
-    }
-
-
-    auto iterator(int32_t block, int32_t idx) const {
-        return data_->iterator(block, idx);
-    }
+private:
 };
-
 
 
 

@@ -19,6 +19,7 @@
 #include <memoria/core/types.hpp>
 
 #include <memoria/core/tools/optional.hpp>
+#include <memoria/core/tools/span.hpp>
 #include <memoria/core/strings/strings.hpp>
 
 #include <memoria/core/strings/format.hpp>
@@ -218,6 +219,14 @@ public:
         }
 
         size_ = 0;
+    }
+
+    Span<Value> span() noexcept {
+        return Span<Value>(values_, size_);
+    }
+
+    Span<const Value> span() const noexcept {
+        return Span<const Value>(values_, size_);
     }
 };
 

@@ -18,11 +18,15 @@
 #include <memoria/core/types.hpp>
 
 #include <memoria/core/iovector/io_symbol_sequence_base.hpp>
+
 #include <memoria/core/iovector/io_substream_rle_symbol_sequence.hpp>
 #include <memoria/core/iovector/io_substream_rle_symbol_sequence_view.hpp>
 
 #include <memoria/core/iovector/io_substream_rle_symbol_sequence_1.hpp>
 #include <memoria/core/iovector/io_substream_rle_symbol_sequence_view_1.hpp>
+
+#include <memoria/core/iovector/io_substream_ssrle_symbol_sequence.hpp>
+#include <memoria/core/iovector/io_substream_ssrle_symbol_sequence_view.hpp>
 
 #include <functional>
 

@@ -119,7 +119,7 @@ if (BUILD_POSIX)
 
     #add_definitions(-stdlib=libc++)
 
-    add_definitions(-Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
+    add_definitions(-mbmi2 -Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
     add_definitions(-Wno-old-style-cast)
 
     if (BUILD_MACOSX)

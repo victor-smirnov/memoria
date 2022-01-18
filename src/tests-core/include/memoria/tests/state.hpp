@@ -159,19 +159,23 @@ public:
     virtual void pre_configure(TestCoverage coverage)  {}
     virtual void post_configure(TestCoverage coverage) {}
 
-    int32_t getRandom() {
+    int32_t getRandom() const {
         return getRandomG();
     }
 
-    int32_t getRandom(int32_t max) {
+    int32_t getRandom(int32_t max) const {
         return getRandomG(max);
     }
 
-    int64_t getBIRandom() {
+    int32_t getRandom1(int32_t max) const {
+        return getRandomG(max - 1) + 1;
+    }
+
+    int64_t getBIRandom() const {
         return getBIRandomG();
     }
 
-    int64_t getBIRandom(int64_t max) {
+    int64_t getBIRandom(int64_t max) const {
         return getBIRandomG(max);
     }
 

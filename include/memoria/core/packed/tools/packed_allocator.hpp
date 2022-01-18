@@ -25,6 +25,7 @@
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/dump.hpp>
 #include <memoria/core/tools/assert.hpp>
+#include <memoria/core/tools/span.hpp>
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
@@ -219,6 +220,33 @@ public:
         }
 
         return Int32Result::of(allocation_size);
+    }
+
+    BoolResult try_allocation(int32_t idx, int32_t new_size) noexcept
+    {
+        int32_t allocation_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(new_size);
+
+        int32_t size  = element_size(idx);
+        int32_t delta = allocation_size - size;
+
+        if (delta > 0)
+        {
+            int32_t free_space = this->free_space();
+            if (delta > free_space)
+            {
+                if (allocatable_.allocator_offset() > 0)
+                {
+                    Allocator* alloc = allocatable_.allocator();
+                    MEMORIA_TRY(my_idx, findElement(this));
+                    return alloc->try_allocation(my_idx, delta);
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
 
@@ -796,8 +824,21 @@ Result<T*> allocate(PackedAllocator& alloc, psize_t idx) noexcept {
     return alloc.template allocate<T>(idx);
 }
 
+template <typename T>
+Span<T> span(PackedAllocator* alloc, psize_t idx) noexcept {
+    int32_t offset  = alloc->element_offset(idx);
+    int32_t size    = alloc->element_size(idx);
 
+    return Span<T>(ptr_cast<T>(alloc->base() + offset), size / sizeof(T));
+}
 
+template <typename T>
+Span<const T> span(const PackedAllocator* alloc, psize_t idx) noexcept {
+    int32_t offset  = alloc->element_offset(idx);
+    int32_t size    = alloc->element_size(idx);
+
+    return Span<const T>(ptr_cast<const T>(alloc->base() + offset), size / sizeof(T));
+}
 
 
 

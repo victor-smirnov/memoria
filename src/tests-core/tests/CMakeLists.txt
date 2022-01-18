@@ -22,6 +22,7 @@ if(BUILD_TESTS_PACKED)
     set (SRCS ${SRCS} packed/tree/packed_tree_test_suite.cpp)
     set (SRCS ${SRCS} packed/sequence/fse/pseq_test_suite.cpp)
     set (SRCS ${SRCS} packed/sequence/rle/rleseq_test_suite.cpp)
+    set (SRCS ${SRCS} packed/sequence/ssrle/ssrleseq_test_suite.cpp)
 endif()
 
 if(BUILD_TESTS_CONTAINERS AND BUILD_COW_PROFILE)

@@ -203,7 +203,6 @@ public:
         return values(block)[idx];
     }
 
-
     struct FindGEWalker {
         IndexValue sum_{};
         IndexValue target_;

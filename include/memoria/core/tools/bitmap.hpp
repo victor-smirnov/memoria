@@ -902,6 +902,10 @@ constexpr int32_t Log2(uint64_t value) {
     return 64 - CtLZ(value);
 }
 
+constexpr uint64_t Log2U(uint64_t value) {
+    return 64 - CtLZ(value);
+}
+
 //static inline int32_t Log2(int64_t value) {
 //    return 64 - CtLZ((uint64_t)value);
 //}
