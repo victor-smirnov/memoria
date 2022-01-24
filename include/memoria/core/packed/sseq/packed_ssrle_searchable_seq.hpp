@@ -132,14 +132,14 @@ public:
     using SizeIndex = PkdFQTreeT<int64_t, 1>;
 
     class Metadata {
-        psize_t size_;
-        psize_t data_size_;
+        uint64_t size_;
+        uint64_t data_size_;
     public:
-        psize_t& size()                 {return size_;}
-        const psize_t& size() const     {return size_;}
+        uint64_t& size()                 {return size_;}
+        const uint64_t& size() const     {return size_;}
 
-        psize_t& data_size()                 {return data_size_;}
-        const psize_t& data_size() const     {return data_size_;}
+        uint64_t& data_size()                 {return data_size_;}
+        const uint64_t& data_size() const     {return data_size_;}
     };
 
     using SizesT = core::StaticVector<int32_t, 1>;
@@ -164,11 +164,11 @@ public:
 public:
     PkdSSRLESeq() = default;
 
-    psize_t& size() noexcept {return metadata()->size();}
-    const psize_t& size() const noexcept {return metadata()->size();}
+    uint64_t& size() noexcept {return metadata()->size();}
+    const uint64_t& size() const noexcept {return metadata()->size();}
 
-    psize_t& data_size() noexcept {return metadata()->data_size();}
-    const psize_t& data_size() const noexcept {return metadata()->data_size();}
+    uint64_t& data_size() noexcept {return metadata()->data_size();}
+    const uint64_t& data_size() const noexcept {return metadata()->data_size();}
 
 
 
@@ -273,7 +273,9 @@ public:
     {
         int32_t metadata_length     = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
-        int32_t symbols_block_capacity_aligned = PackedAllocatable::roundUpBytesToAlignmentBlocks(symbols_block_capacity);
+        int32_t symbols_block_capacity_aligned = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+                    symbols_block_capacity
+        );
 
         int32_t index_size          = number_of_indexes(symbols_block_capacity_aligned);
 
@@ -929,202 +931,901 @@ public:
         return other->reindex();
     }
 
-
-    int32_t rank(int32_t symbol) const
+    size_t access(uint64_t pos) const
     {
-        if (has_index())
-        {
-            const auto* index = this->sum_index();
-            return index->sum(symbol);
+        const Metadata* meta = this->metadata();
+        size_t size = meta->size();
+
+        MEMORIA_V1_ASSERT_TRUE(pos < size);
+
+        size_t atom_pos;
+        uint64_t sum;
+
+        if (has_index()) {
+            const auto* index = this->size_index();
+            auto res = index->find_gt(0, pos);
+            atom_pos = res.local_pos() * AtomsPerBlock;
+            sum = res.prefix();
         }
         else {
-            return rank(size(), symbol);
+            atom_pos = 0;
+            sum = 0;
         }
-    }
 
-    int32_t rank(int32_t start, int32_t end, int32_t symbol) const
-    {
-        int32_t rank_start  = rank(start, symbol);
-        int32_t rank_end    = rank(end, symbol);
+        auto ii = this->iterator(atom_pos);
 
-        return rank_end - rank_start;
-    }
-
-//    uint64_t rank(int32_t end, int32_t symbol) const
-//    {
-//        auto meta = this->metadata();
-//        int32_t size = meta->size();
-
-//        MEMORIA_V1_ASSERT_TRUE(end >= 0);
-//        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
-
-//        if (has_index())
-//        {
-//            const SumIndex* sum_index  = this->sum_index();
-
-//            if (end < size)
-//            {
-//                auto location       = find_run(end);
-//                auto block          = location.data_pos() / ValuesPerBranch;
-//                auto block_start    = block * ValuesPerBranch;
-
-//                auto rank_base      = sum_index->sum(symbol, block);
-
-//                auto block_offset = offsets()[block];
-
-//                auto local_rank = block_rank(meta, block_start + block_offset, end - location.block_base(), symbol);
-
-//                return local_rank + rank_base;
-//            }
-//            else {
-//                return sum_index->sum(symbol);
-//            }
-//        }
-//        else {
-//            return block_rank(meta, 0, end, symbol);
-//        }
-//    }
-
-//    SelectResult selectFW(uint64_t rank, int32_t symbol) const
-//    {
-//        auto meta    = this->metadata();
-//        auto symbols = this->symbols();
-
-//        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
-
-//        if (has_index())
-//        {
-//            const SumIndex* sum_index   = this->sum_index();
-//            auto find_result            = sum_index->find_ge(symbol, rank);
-//            int32_t blocks                  = sum_index->size();
-
-//            if (find_result.local_pos() < blocks)
-//            {
-//                auto block_start   = find_result.local_pos() * ValuesPerBranch;
-//                auto block_offset  = offsets()[find_result.local_pos()];
-//                uint64_t local_rank = rank - find_result.prefix();
-
-//                auto block_size_start  = this->size_index()->sum(0, find_result.local_pos());
-
-//                auto result = block_select(meta, symbols, block_start + block_offset, local_rank, block_size_start, symbol);
-
-//                result.rank() += find_result.prefix();
-
-//                return result;
-//            }
-//            else {
-//                return SelectResult(meta->size(), find_result.prefix(), false);
-//            }
-//        }
-//        else {
-//            return block_select(meta, symbols, 0, rank, 0, symbol);
-//        }
-//    }
-
-    SelectResult selectBW(uint64_t rank, int32_t symbol) const
-    {
-        return selectBW(size(), rank, symbol);
-    }
-
-
-    SelectResult selectFW(int32_t pos, uint64_t rank, int32_t symbol) const
-    {
-        MEMORIA_ASSERT(rank, >=, 0);
-        MEMORIA_ASSERT(pos, >=, -1);
-
-        auto meta = this->metadata();
-
-        if (pos < meta->size())
-        {
-            uint64_t rank_prefix = this->rank(pos + 1, symbol);
-            auto result = selectFW(rank_prefix + rank, symbol);
-
-            result.rank() -= rank_prefix;
-
-            return result;
-        }
-        else {
-            return SelectResult(meta->size(), 0, false);
-        }
-    }
-
-    SelectResult selectBW(int32_t pos, uint64_t rank, int32_t symbol) const
-    {
-        auto meta = this->metadata();
-
-        MEMORIA_ASSERT(rank, >=, 1);
-        MEMORIA_ASSERT(pos, >=, 0);
-        MEMORIA_ASSERT(pos, <=, meta->size());
-
-        uint64_t rank_prefix = this->rank(pos, symbol);
-        if (rank_prefix >= rank)
-        {
-            auto target_rank = rank_prefix - (rank - 1);
-            auto result = selectFW(target_rank, symbol);
-
-            if (result.is_found())
-            {
-                result.rank() = rank;
+        SymbolsRunT tgt;
+        ii.do_while([&](const SymbolsRunT& run){
+            size_t size = run.full_run_length();
+            if (pos < sum + size) {
+                tgt = run;
+                return false;
             }
             else {
-                result.rank() = rank_prefix;
+                sum += size;
+                return true;
+            }
+        });
+
+        if (tgt) {            
+            return tgt.symbol(pos - sum);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Invalid SSRLE sequence").do_throw();
+        }
+    }
+
+
+
+
+
+    struct SelectResult {
+        size_t idx;
+        uint64_t rank;
+    };
+
+
+private:
+    using FindResult = typename SumIndex::WalkerBase;
+
+    struct SelectFwEqFn {
+        FindResult index_fn(const SumIndex* index, uint64_t rank, size_t symbol) const {
+            return index->find_ge(symbol, rank);
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_eq(symbol);
+        }
+
+        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+            return run.select_fw_eq(rank, symbol);
+        }
+    };
+
+    template<typename Fn>
+    struct SelectFwFnBase {
+        FindResult index_fn(const SumIndex* index, uint64_t rank, int32_t symbol) const
+        {
+            uint64_t sum{};
+            int32_t size = index->size();
+            int32_t c;
+
+            for (c = 0; c < size; c++) {
+                uint64_t value = self().sum(index, c, symbol);
+                if (rank < sum + value) {
+                    break;
+                }
+                else {
+                    sum += value;
+                }
             }
 
-            return result;
+            return FindResult(c, sum);
+        }
+
+        const Fn& self() const {return *static_cast<const Fn*>(this);}
+    };
+
+    struct SelectFwLtFn: SelectFwFnBase<SelectFwLtFn> {
+        uint64_t sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
+            uint64_t sum{};
+            for (int32_t c = 0; c < symbol; c++) {
+                sum += index->value(c, idx);
+            }
+            return sum;
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_lt(symbol);
+        }
+
+        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+            return run.select_fw_lt(rank, symbol);
+        }
+    };
+
+    struct SelectFwLeFn: SelectFwFnBase<SelectFwLeFn> {
+        uint64_t sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
+            uint64_t sum{};
+            for (int32_t c = 0; c <= symbol; c++) {
+                sum += index->value(c, idx);
+            }
+            return sum;
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_le(symbol);
+        }
+
+        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+            return run.select_fw_le(rank, symbol);
+        }
+    };
+
+    struct SelectFwGtFn: SelectFwFnBase<SelectFwGtFn> {
+        uint64_t sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
+            uint64_t sum{};
+            for (int32_t c = symbol + 1; c < Symbols; c++) {
+                sum += index->value(c, idx);
+            }
+            return sum;
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_gt(symbol);
+        }
+
+        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+            return run.select_fw_gt(rank, symbol);
+        }
+    };
+
+    struct SelectFwGeFn: SelectFwFnBase<SelectFwGeFn> {
+        uint64_t sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
+            uint64_t sum{};
+            for (int32_t c = symbol; c < Symbols; c++) {
+                sum += index->value(c, idx);
+            }
+            return sum;
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_ge(symbol);
+        }
+
+        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+            return run.select_fw_ge(rank, symbol);
+        }
+    };
+
+    struct SelectFwNeqFn: SelectFwFnBase<SelectFwNeqFn> {
+        uint64_t sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
+            uint64_t sum{};
+            for (int32_t c = 0; c < Symbols; c++) {
+                sum += c != symbol ? index->value(c, idx) : 0;
+            }
+            return sum;
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_neq(symbol);
+        }
+
+        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+            return run.select_fw_neq(rank, symbol);
+        }
+    };
+
+
+
+    template <typename Fn>
+    SelectResult select_fw_fn(uint64_t rank, size_t symbol, Fn&& fn) const
+    {
+        MEMORIA_V1_ASSERT_TRUE(symbol < Symbols);
+
+        size_t atom_pos;
+        uint64_t rank_sum;
+        uint64_t size_sum;
+
+        if (has_index()) {
+            const auto* sums = this->sum_index();
+
+            auto res = fn.index_fn(sums, rank, symbol);
+            if (res.idx() < sums->size())
+            {
+                atom_pos = res.idx() * AtomsPerBlock;
+                rank_sum = res.prefix();
+
+                const auto* sizes  = this->size_index();
+                size_sum = sizes->sum(0, res.idx());
+            }
+            else {
+                return SelectResult{size(), (uint64_t)res.prefix()};
+            }
         }
         else {
-            return SelectResult(0, rank_prefix, false);
+            atom_pos = 0;
+            rank_sum = 0;
+            size_sum = 0;
+        }
+
+        auto ii = this->iterator(atom_pos);
+
+        bool res{};
+        size_t idx;
+
+        ii.do_while([&](const SymbolsRunT& run) {
+            uint64_t run_rank = fn.full_rank_fn(run, symbol);
+            if (MMA_UNLIKELY(rank < rank_sum + run_rank)) {
+                idx = fn.select_fn(run, rank - rank_sum, symbol);
+                res = true;
+                return false;
+            }
+            else {
+                rank_sum += run_rank;
+                size_sum += run.full_run_length();
+                return true;
+            }
+        });
+
+        if (res) {
+            return SelectResult{idx + size_sum, rank_sum};
+        }
+        else {
+            return SelectResult{size(), rank_sum};
         }
     }
 
 
-    SelectResult selectGEFW(uint64_t rank, int32_t symbol) const
-    {
-        auto meta    = this->metadata();
-        auto symbols = this->symbols();
+    struct RankEqFn {
+        uint64_t sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const {
+            return index->sum(symbol, idx);
+        }
 
-        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
+        uint64_t sum_all_fn(const SumIndex* index, int32_t symbol) const {
+            return index->sum(symbol);
+        }
+
+        uint64_t rank_fn(const SymbolsRunT& run, uint64_t idx, size_t symbol) const {
+            return run.rank_eq(idx, symbol);
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_eq(symbol);
+        }
+    };
 
 
-        return block_select_ge(meta, symbols, 0, rank, 0, symbol);
-    }
 
-    SelectResult selectGEFW(int32_t pos, uint64_t rank, int32_t symbol) const
-    {
-        auto meta    = this->metadata();
-        auto symbols = this->symbols();
-
-        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
-
-        auto location = find_run(pos);
-
-        if (location.run().symbol() == symbol)
+    struct RankLtFn {
+        uint64_t sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
         {
-        	rank += location.local_idx() + 1;
+            uint64_t sum{};
+            for (int32_t c = 0; c < symbol; c++) {
+                sum += index->sum(c, idx);
+            }
+            return sum;
+        }
 
-        	auto result = block_select_ge(meta, symbols, location.data_pos(), rank, location.block_base() + location.run_base(), symbol);
+        uint64_t sum_all_fn(const SumIndex* index, int32_t symbol) const {
+            return sum_fn(index, index->size(), symbol);
+        }
 
-        	result.rank() -= (location.local_idx() + 1);
-        	return result;
+        uint64_t rank_fn(const SymbolsRunT& run, uint64_t idx, size_t symbol) const {
+            return run.rank_lt(idx, symbol);
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_lt(symbol);
+        }
+    };
+
+    struct RankLeFn {
+        uint64_t sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
+        {
+            uint64_t sum{};
+            for (int32_t c = 0; c <= symbol; c++) {
+                sum += index->sum(c, idx);
+            }
+            return sum;
+        }
+
+        uint64_t sum_all_fn(const SumIndex* index, int32_t symbol) const {
+            return sum_fn(index, index->size(), symbol);
+        }
+
+        uint64_t rank_fn(const SymbolsRunT& run, uint64_t idx, size_t symbol) const {
+            return run.rank_le(idx, symbol);
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_le(symbol);
+        }
+    };
+
+    struct RankGtFn {
+        uint64_t sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
+        {
+            uint64_t sum{};
+            for (int32_t c = symbol + 1; c < Symbols; c++) {
+                sum += index->sum(c, idx);
+            }
+            return sum;
+        }
+
+        uint64_t sum_all_fn(const SumIndex* index, int32_t symbol) const {
+            return sum_fn(index, index->size(), symbol);
+        }
+
+        uint64_t rank_fn(const SymbolsRunT& run, uint64_t idx, size_t symbol) const {
+            return run.rank_gt(idx, symbol);
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_gt(symbol);
+        }
+    };
+
+    struct RankGeFn {
+        uint64_t sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
+        {
+            uint64_t sum{};
+            for (int32_t c = symbol; c < Symbols; c++) {
+                sum += index->sum(c, idx);
+            }
+            return sum;
+        }
+
+        uint64_t sum_all_fn(const SumIndex* index, int32_t symbol) const {
+            return sum_fn(index, index->size(), symbol);
+        }
+
+        uint64_t rank_fn(const SymbolsRunT& run, uint64_t idx, size_t symbol) const {
+            return run.rank_ge(idx, symbol);
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_ge(symbol);
+        }
+    };
+
+    struct RankNeqFn {
+        uint64_t sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
+        {
+            uint64_t sum{};
+            for (int32_t c = 0; c < Symbols; c++) {
+                sum += c != symbol ? index->sum(c, idx) : 0;
+            }
+            return sum;
+        }
+
+        uint64_t sum_all_fn(const SumIndex* index, int32_t symbol) const {
+            return sum_fn(index, index->size(), symbol);
+        }
+
+        uint64_t rank_fn(const SymbolsRunT& run, uint64_t idx, size_t symbol) const {
+            return run.rank_neq(idx, symbol);
+        }
+
+        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+            return run.full_rank_neq(symbol);
+        }
+    };
+
+
+    template <typename Fn>
+    uint64_t rank_fn(size_t pos, size_t symbol, Fn&& fn) const
+    {
+        if (MMA_UNLIKELY(pos == 0)) {
+            return 0;
+        }
+
+        const Metadata* meta = this->metadata();
+        size_t size = meta->size();
+
+        MEMORIA_V1_ASSERT_TRUE(pos <= size && symbol < Symbols);
+
+        size_t atom_pos;
+        uint64_t size_sum;
+        uint64_t rank_sum;
+
+        if (has_index()) {
+            const auto* index = this->size_index();
+
+            if (pos < size)
+            {
+                auto res = index->find_gt(0, pos);
+                atom_pos = res.local_pos() * AtomsPerBlock;
+                size_sum = res.prefix();
+
+                const auto* sums  = this->sum_index();
+                rank_sum = fn.sum_fn(sums, res.local_pos(), symbol);
+            }
+            else {
+                const auto* sums  = this->sum_index();
+                return fn.sum_all_fn(sums, symbol);
+            }
         }
         else {
-        	return block_select_ge(meta, symbols, location.data_pos(), rank, location.block_base() + location.run_base(), symbol);
+            atom_pos = 0;
+            size_sum = 0;
+            rank_sum = 0;
+        }
+
+        auto ii = this->iterator(atom_pos);
+
+        ii.do_while([&](const SymbolsRunT& run){
+            size_t size = run.full_run_length();
+            if (pos < size_sum + size) {
+                rank_sum += fn.rank_fn(run, pos - size_sum, symbol);
+                return false;
+            }
+            else {
+                size_sum += size;
+                rank_sum += fn.full_rank_fn(run, symbol);
+                return true;
+            }
+        });
+
+        return rank_sum;
+    }
+
+
+public:
+    SelectResult select_fw(uint64_t rank, size_t symbol, SeqOpType op_type) const {
+        switch (op_type) {
+            case SeqOpType::EQ : return select_fw_eq(rank, symbol, op_type);
+            case SeqOpType::NEQ: return select_fw_neq(rank, symbol, op_type);
+            case SeqOpType::LT : return select_fw_lt(rank, symbol, op_type);
+            case SeqOpType::LE : return select_fw_le(rank, symbol, op_type);
+            case SeqOpType::GT : return select_fw_gt(rank, symbol, op_type);
+            case SeqOpType::GE : return select_fw_ge(rank, symbol, op_type);
+
+            default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
+        }
+    }
+
+    SelectResult select_fw(uint64_t idx, uint64_t rank, size_t symbol, SeqOpType op_type) const {
+        switch (op_type) {
+            case SeqOpType::EQ : return select_fw_eq(idx, rank, symbol, op_type);
+            case SeqOpType::NEQ: return select_fw_neq(idx, rank, symbol, op_type);
+            case SeqOpType::LT : return select_fw_lt(idx, rank, symbol, op_type);
+            case SeqOpType::LE : return select_fw_le(idx, rank, symbol, op_type);
+            case SeqOpType::GT : return select_fw_gt(idx, rank, symbol, op_type);
+            case SeqOpType::GE : return select_fw_ge(idx, rank, symbol, op_type);
+
+            default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
+        }
+    }
+
+    SelectResult select_bw(uint64_t rank, size_t symbol, SeqOpType op_type) const {
+        switch (op_type) {
+            case SeqOpType::EQ : return select_bw_eq(rank, symbol, op_type);
+            case SeqOpType::NEQ: return select_bw_neq(rank, symbol, op_type);
+            case SeqOpType::LT : return select_bw_lt(rank, symbol, op_type);
+            case SeqOpType::LE : return select_bw_le(rank, symbol, op_type);
+            case SeqOpType::GT : return select_bw_gt(rank, symbol, op_type);
+            case SeqOpType::GE : return select_bw_ge(rank, symbol, op_type);
+
+            default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
+        }
+    }
+
+    SelectResult select_bw(uint64_t idx, uint64_t rank, size_t symbol, SeqOpType op_type) const {
+        switch (op_type) {
+            case SeqOpType::EQ : return select_bw_eq(idx, rank, symbol, op_type);
+            case SeqOpType::NEQ: return select_bw_neq(idx, rank, symbol, op_type);
+            case SeqOpType::LT : return select_bw_lt(idx, rank, symbol, op_type);
+            case SeqOpType::LE : return select_bw_le(idx, rank, symbol, op_type);
+            case SeqOpType::GT : return select_bw_gt(idx, rank, symbol, op_type);
+            case SeqOpType::GE : return select_bw_ge(idx, rank, symbol, op_type);
+
+            default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
+        }
+    }
+
+
+    SelectResult rank(uint64_t pos, size_t symbol, SeqOpType op_type) const {
+        switch (op_type) {
+            case SeqOpType::EQ : return rank_eq(pos, symbol, op_type);
+            case SeqOpType::NEQ: return rank_neq(pos, symbol, op_type);
+            case SeqOpType::LT : return rank_lt(pos, symbol, op_type);
+            case SeqOpType::LE : return rank_le(pos, symbol, op_type);
+            case SeqOpType::GT : return rank_gt(pos, symbol, op_type);
+            case SeqOpType::GE : return rank_ge(pos, symbol, op_type);
+
+            default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
+        }
+    }
+
+    SelectResult rank(uint64_t start, uint64_t end, size_t symbol, SeqOpType op_type) const {
+        switch (op_type) {
+            case SeqOpType::EQ : return rank_eq(start, end, symbol, op_type);
+            case SeqOpType::NEQ: return rank_neq(start, end, symbol, op_type);
+            case SeqOpType::LT : return rank_lt(start, end, symbol, op_type);
+            case SeqOpType::LE : return rank_le(start, end, symbol, op_type);
+            case SeqOpType::GT : return rank_gt(start, end, symbol, op_type);
+            case SeqOpType::GE : return rank_ge(start, end, symbol, op_type);
+
+            default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
+        }
+    }
+
+    SelectResult rank(size_t symbol, SeqOpType op_type) const {
+        switch (op_type) {
+            case SeqOpType::EQ : return rank_eq(symbol, op_type);
+            case SeqOpType::NEQ: return rank_neq(symbol, op_type);
+            case SeqOpType::LT : return rank_lt(symbol, op_type);
+            case SeqOpType::LE : return rank_le(symbol, op_type);
+            case SeqOpType::GT : return rank_gt(symbol, op_type);
+            case SeqOpType::GE : return rank_ge(symbol, op_type);
+
+            default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
+        }
+    }
+
+
+    SelectResult select_fw_eq(uint64_t rank, size_t symbol) const {
+        return select_fw_fn(rank, symbol, SelectFwEqFn());
+    }
+
+    SelectResult select_fw_neq(uint64_t rank, size_t symbol) const {
+        return select_fw_fn(rank, symbol, SelectFwNeqFn());
+    }
+
+    SelectResult select_fw_lt(uint64_t rank, size_t symbol) const {
+        return select_fw_fn(rank, symbol, SelectFwLtFn());
+    }
+
+    SelectResult select_fw_le(uint64_t rank, size_t symbol) const {
+        return select_fw_fn(rank, symbol, SelectFwLeFn());
+    }
+
+    SelectResult select_fw_gt(uint64_t rank, size_t symbol) const {
+        return select_fw_fn(rank, symbol, SelectFwGtFn());
+    }
+
+    SelectResult select_fw_ge(uint64_t rank, size_t symbol) const {
+        return select_fw_fn(rank, symbol, SelectFwGeFn());
+    }
+
+    SelectResult select_fw_ge(uint64_t idx, uint64_t rank, size_t symbol) const {
+        uint64_t rank_base = rank_ge(idx, symbol);
+        return select_fw_ge(rank - rank_base, symbol);
+    }
+
+    SelectResult select_fw_gt(uint64_t idx, uint64_t rank, size_t symbol) const {
+        uint64_t rank_base = rank_gt(idx, symbol);
+        return select_fw_gt(rank - rank_base, symbol);
+    }
+
+    SelectResult select_fw_le(uint64_t idx, uint64_t rank, size_t symbol) const {
+        uint64_t rank_base = rank_le(idx, symbol);
+        return select_fw_le(rank - rank_base, symbol);
+    }
+
+    SelectResult select_fw_lt(uint64_t idx, uint64_t rank, size_t symbol) const {
+        uint64_t rank_base = rank_lt(idx, symbol);
+        return select_fw_lt(rank - rank_base, symbol);
+    }
+
+    SelectResult select_fw_eq(uint64_t idx, uint64_t rank, size_t symbol) const {
+        uint64_t rank_base = rank_eq(idx, symbol);
+        return select_fw_eq(rank - rank_base, symbol);
+    }
+
+    SelectResult select_fw_neq(uint64_t idx, uint64_t rank, size_t symbol) const {
+        uint64_t rank_base = rank_neq(idx, symbol);
+        return select_fw_neq(rank - rank_base, symbol);
+    }
+
+
+
+    SelectResult select_bw_eq(uint64_t rank, size_t symbol) const
+    {
+        uint64_t size = this->size();
+        uint64_t full_rank = rank_eq(size, symbol);
+        if (rank < full_rank) {
+            return select_fw_eq(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{size, full_rank};
+        }
+    }
+
+    SelectResult select_bw_neq(uint64_t rank, size_t symbol) const
+    {
+        uint64_t size = this->size();
+        uint64_t full_rank = rank_neq(size, symbol);
+        if (rank < full_rank) {
+            return select_fw_neq(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{size, full_rank};
+        }
+    }
+
+    SelectResult select_bw_lt(uint64_t rank, size_t symbol) const
+    {
+        uint64_t size = this->size();
+        uint64_t full_rank = rank_lt(size, symbol);
+        if (rank < full_rank) {
+            return select_fw_lt(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{size, full_rank};
+        }
+    }
+
+    SelectResult select_bw_le(uint64_t rank, size_t symbol) const
+    {
+        uint64_t size = this->size();
+        uint64_t full_rank = rank_le(size, symbol);
+        if (rank < full_rank) {
+            return select_fw_le(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{size, full_rank};
+        }
+    }
+
+    SelectResult select_bw_gt(uint64_t rank, size_t symbol) const
+    {
+        uint64_t size = this->size();
+        uint64_t full_rank = rank_neq(size, symbol);
+        if (rank < full_rank) {
+            return select_fw_gt(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{size, full_rank};
+        }
+    }
+
+    SelectResult select_bw_ge(uint64_t rank, size_t symbol) const
+    {
+        uint64_t size = this->size();
+        uint64_t full_rank = rank_neq(size, symbol);
+        if (rank < full_rank) {
+            return select_fw_ge(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{size, full_rank};
+        }
+    }
+
+
+    SelectResult select_bw_eq(uint64_t idx, uint64_t rank, size_t symbol) const
+    {
+        uint64_t full_rank = rank_eq(idx + 1, symbol);
+        if (rank < full_rank) {
+            return select_fw_eq(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{idx + 1, full_rank};
+        }
+    }
+
+    SelectResult select_bw_neq(uint64_t idx, uint64_t rank, size_t symbol) const
+    {
+        uint64_t full_rank = rank_neq(idx + 1, symbol);
+        if (rank < full_rank) {
+            return select_fw_neq(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{idx + 1, full_rank};
+        }
+    }
+
+    SelectResult select_bw_gt(uint64_t idx, uint64_t rank, size_t symbol) const
+    {
+        uint64_t full_rank = rank_gt(idx + 1, symbol);
+        if (rank < full_rank) {
+            return select_fw_gt(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{idx + 1, full_rank};
+        }
+    }
+
+    SelectResult select_bw_ge(uint64_t idx, uint64_t rank, size_t symbol) const
+    {
+        uint64_t full_rank = rank_ge(idx + 1, symbol);
+        if (rank < full_rank) {
+            return select_fw_ge(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{idx + 1, full_rank};
+        }
+    }
+
+    SelectResult select_bw_lt(uint64_t idx, uint64_t rank, size_t symbol) const
+    {
+        uint64_t full_rank = rank_lt(idx + 1, symbol);
+        if (rank < full_rank) {
+            return select_fw_lt(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{idx + 1, full_rank};
+        }
+    }
+
+    SelectResult select_bw_le(uint64_t idx, uint64_t rank, size_t symbol) const
+    {
+        uint64_t full_rank = rank_le(idx + 1, symbol);
+        if (rank < full_rank) {
+            return select_fw_le(full_rank - rank - 1, symbol);
+        }
+        else {
+            return SelectResult{idx + 1, full_rank};
         }
     }
 
 
 
-//    rleseq::CountResult countFW(int32_t start_pos) const
-//    {
-//        auto location = find_run(start_pos);
-//        return block_count_fw(metadata(), symbols(), location);
-//    }
 
-//    rleseq::CountResult countBW(int32_t start_pos) const
-//    {
-//        MEMORIA_ASSERT(start_pos, >=, 0);
-//        return block_count_bw(metadata(), symbols(), start_pos);
-//    }
+    uint64_t rank_eq(uint64_t idx, size_t symbol) const {
+        return rank_fn(idx, symbol, RankEqFn());
+    }
+
+    uint64_t rank_lt(uint64_t idx, size_t symbol) const {
+        return rank_fn(idx, symbol, RankLtFn());
+    }
+
+    uint64_t rank_le(uint64_t idx, size_t symbol) const {
+        return rank_fn(idx, symbol, RankLeFn());
+    }
+
+    uint64_t rank_gt(uint64_t idx, size_t symbol) const {
+        return rank_fn(idx, symbol, RankGtFn());
+    }
+
+    uint64_t rank_ge(uint64_t idx, size_t symbol) const {
+        return rank_fn(idx, symbol, RankGeFn());
+    }
+
+    uint64_t rank_neq(uint64_t idx, size_t symbol) const {
+        return rank_fn(idx, symbol, RankNeqFn());
+    }
+
+
+    uint64_t rank_eq(uint64_t start, size_t end, size_t symbol) const {
+        uint64_t r1 = rank_eq(end, symbol);
+        uint64_t r0 = rank_eq(start, symbol);
+        return r1 - r0;
+    }
+
+    uint64_t rank_neq(uint64_t start, size_t end, size_t symbol) const {
+        uint64_t r1 = rank_neq(end, symbol);
+        uint64_t r0 = rank_neq(start, symbol);
+        return r1 - r0;
+    }
+
+    uint64_t rank_lt(uint64_t start, size_t end, size_t symbol) const {
+        uint64_t r1 = rank_lt(end, symbol);
+        uint64_t r0 = rank_lt(start, symbol);
+        return r1 - r0;
+    }
+
+    uint64_t rank_le(uint64_t start, size_t end, size_t symbol) const {
+        uint64_t r1 = rank_le(end, symbol);
+        uint64_t r0 = rank_le(start, symbol);
+        return r1 - r0;
+    }
+
+    uint64_t rank_gt(uint64_t start, size_t end, size_t symbol) const {
+        uint64_t r1 = rank_gt(end, symbol);
+        uint64_t r0 = rank_gt(start, symbol);
+        return r1 - r0;
+    }
+
+    uint64_t rank_ge(uint64_t start, size_t end, size_t symbol) const {
+        uint64_t r1 = rank_ge(end, symbol);
+        uint64_t r0 = rank_ge(start, symbol);
+        return r1 - r0;
+    }
+
+
+
+
+
+    uint64_t rank_eq(size_t symbol) const {
+        uint64_t size = this->size();
+        return rank_eq(size, symbol);
+    }
+
+    uint64_t rank_neq(size_t symbol) const {
+        uint64_t size = this->size();
+        return rank_neq(size, symbol);
+    }
+
+    uint64_t rank_lt(size_t symbol) const {
+        uint64_t size = this->size();
+        return rank_lt(size, symbol);
+    }
+
+    uint64_t rank_le(size_t symbol) const {
+        uint64_t size = this->size();
+        return rank_le(size, symbol);
+    }
+
+    uint64_t rank_gt(size_t symbol) const {
+        uint64_t size = this->size();
+        return rank_gt(size, symbol);
+    }
+
+    uint64_t rank_ge(size_t symbol) const {
+        uint64_t size = this->size();
+        return rank_ge(size, symbol);
+    }
+
+    template <typename T>
+    void ranks(size_t pos, Span<T> symbols) const
+    {
+        const Metadata* meta = this->metadata();
+        size_t size = meta->size();
+
+        MEMORIA_V1_ASSERT_TRUE(pos <= size);
+
+        size_t atom_pos;
+        uint64_t size_sum;
+        uint64_t rank_sum;
+
+        if (has_index()) {
+            const auto* index = this->size_index();
+            auto res = index->find_gt(0, pos);
+            atom_pos = res.local_pos() * AtomsPerBlock;
+            size_sum = res.prefix();
+
+            const auto* sums  = this->sum_index();
+
+            for (size_t c = 0; c < Symbols; c++) {
+                symbols[c] += sums->sum(c, res.local_pos());
+            }
+        }
+        else {
+            atom_pos = 0;
+            size_sum = 0;
+            rank_sum = 0;
+        }
+
+        auto ii = this->iterator(atom_pos);
+
+        ii.do_while([&](const SymbolsRunT& run){
+            size_t size = run.full_run_length();
+            if (pos < size_sum + size) {
+                run.ranks(pos - size_sum, symbols);
+                return false;
+            }
+            else {
+                size_sum += size;
+                run.full_ranks(symbols);
+                return true;
+            }
+        });
+    }
+
+
+
+    uint64_t count_fw(uint64_t idx, size_t symbol) const
+    {
+        uint64_t rank = rank_neq(idx, symbol);
+        uint64_t next_idx = select_fw_neq(rank, symbol).idx;
+        return next_idx - idx;
+    }
+
+    uint64_t count_bw(uint64_t idx, size_t symbol) const
+    {
+        uint64_t rank = rank_neq(idx, symbol);
+        if (rank > 0) {
+            uint64_t next_idx = select_fw_neq(rank - 1, symbol).idx;
+            return idx + 1 - next_idx;
+        }
+        else {
+            return idx + 1;
+        }
+    }
+
+
 
     VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {

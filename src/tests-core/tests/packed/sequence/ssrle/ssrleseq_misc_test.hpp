@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <memoria/core/tools/time.hpp>
+
 #include <memory>
 
 #include "ssrleseq_test_base.hpp"
@@ -23,11 +25,11 @@
 namespace memoria {
 namespace tests {
 
-template <int32_t Symbols>
-class PackedSSRLESearchableSequenceMiscTest: public PackedSSRLESequenceTestBase<Symbols> {
+template <int32_t Bps>
+class PackedSSRLESearchableSequenceMiscTest: public PackedSSRLESequenceTestBase<Bps> {
 
-    using MyType = PackedSSRLESearchableSequenceMiscTest<Symbols>;
-    using Base = PackedSSRLESequenceTestBase<Symbols>;
+    using MyType = PackedSSRLESearchableSequenceMiscTest<Bps>;
+    using Base = PackedSSRLESequenceTestBase<Bps>;
 
     using typename Base::SymbolsRunT;
     using typename Base::RunTraits;
@@ -35,7 +37,13 @@ class PackedSSRLESearchableSequenceMiscTest: public PackedSSRLESequenceTestBase<
     using typename Base::Seq;    
     using typename Base::SeqPtr;
 
+    using typename Base::BlockSize;
+    using typename Base::BlockRank;
+    using typename Base::LocateResult;
+
     using Value = typename Seq::Value;
+
+    using Base::Symbols;
 
     using Base::getRandom;
     using Base::getRandom1;
@@ -43,24 +51,61 @@ class PackedSSRLESearchableSequenceMiscTest: public PackedSSRLESequenceTestBase<
     using Base::make_random_sequence;
     using Base::make_sequence;
     using Base::assert_spans_equal;
+    using Base::count;
+
+
+    using Base::build_size_index;
+    using Base::get_symbol;
+
+    using Base::build_rank_index;
+    using Base::get_rank_eq;
+    using Base::get_ranks;
+
+    using Base::select_fw_eq;
+
     using Base::push_back;
     using Base::split_runs;
     using Base::out;
     using Base::size_;
     using Base::iterations_;
 
-
 public:
 
     PackedSSRLESearchableSequenceMiscTest()
-    {
-        this->size_ = 2048;
-    }
+    {}
 
-    static void init_suite(TestSuite& suite)
-    {
+    static void init_suite(TestSuite& suite){
         MMA_CLASS_TESTS(suite, testRunSequence, testCreate);
     }
+
+    void testCreate()
+    {
+        std::vector<SymbolsRunT> syms1    = make_random_sequence(10240);
+        std::vector<BlockRank> rank_index = build_rank_index(syms1);
+        uint64_t size = count(syms1);
+
+        size_t sym = 0;
+        uint64_t rank0_max = get_rank_eq(rank_index, syms1, size, sym);
+
+        SeqPtr seq = make_sequence(syms1);
+
+        size_t queries = 10000;
+        std::vector<size_t> ranks;
+        for (size_t c = 0; c < queries; c++) {
+            ranks.push_back(getBIRandomG(rank0_max));
+        }
+
+        for (size_t c = 0; c < queries; c++)
+        {
+            uint64_t rank = ranks[c];
+
+            size_t pos1 = select_fw_eq(rank_index, syms1, rank, sym).global_pos();
+            size_t pos2 = seq->select_fw_eq(rank, sym).idx;
+
+            assert_equals(pos1, pos2);
+        }
+    }
+
 
 
     void testRunSequence()
@@ -70,14 +115,49 @@ public:
         assert_spans_equal(seq1, seq2);
     }
 
-    void testCreate()
+    void testAccess()
     {
-        println("Select: {}", RunTraits::bitmap_select(0xf0, 5));
+        std::vector<SymbolsRunT> syms1    = make_random_sequence(10240);
+        std::vector<BlockSize> size_index = build_size_index(syms1);
+        uint64_t size = count(syms1);
 
-//        std::vector<SymbolsRunT> syms1 = make_random_sequence(10240);
-//        SeqPtr seq = make_sequence(syms1);
-//        std::vector<SymbolsRunT> syms2 = seq->iterator().as_vector();
-//        assert_equals(syms1, syms2);
+        SeqPtr seq = make_sequence(syms1);
+
+        size_t queries = 10000;
+
+        std::vector<size_t> poss;
+
+        for (size_t c = 0; c < queries; c++) {
+            poss.push_back(getBIRandomG(size));
+        }
+
+        for (size_t c = 0; c < queries; c++)
+        {
+            uint64_t pos = poss[c];
+
+            size_t sym1 = get_symbol(size_index, syms1, pos);
+            size_t sym2 = seq->access(pos);
+
+            assert_equals(sym1, sym2);
+        }
+    }
+
+
+
+
+    void testCreate1()
+    {
+        std::vector<SymbolsRunT> syms1 = make_random_sequence(3*10000);
+        uint64_t size = count(syms1);
+
+        SeqPtr seq = make_sequence(syms1);
+
+        seq->check().get_or_throw();
+
+        assert_equals(size, seq->size());
+
+        std::vector<SymbolsRunT> syms2 = seq->iterator().as_vector();
+        assert_spans_equal(syms1, syms2);
     }
 
 /*    void testCreate()

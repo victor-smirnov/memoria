@@ -116,23 +116,23 @@ public:
 
         size_t pattern_length = run.pattern_length();
 
-        size_t pos1 = run.select_fw_eq(1, 0);
+        size_t pos1 = run.select_fw_eq(0, 0);
         assert_equals(1, pos1);
 
         size_t patterns = 5;
-        size_t pos2 = run.select_fw_eq(ranks[0] * patterns + 2, 0);
+        size_t pos2 = run.select_fw_eq(ranks[0] * patterns + 1, 0);
         assert_equals(pattern_length * patterns + 4, pos2);
 
-        size_t pos3 = run.select_fw_lt(17, 1);
+        size_t pos3 = run.select_fw_lt(16, 1);
         assert_equals(39, pos3);
 
-        size_t pos4 = run.select_fw_le(22, 1);
+        size_t pos4 = run.select_fw_le(21, 1);
         assert_equals(21, pos4);
 
-        size_t pos5 = run.select_bw_lt(22, 1);
+        size_t pos5 = run.select_bw_lt(21, 1);
         assert_equals(20, pos5);
 
-        size_t pos6 = run.select_bw_le(22, 1);
+        size_t pos6 = run.select_bw_le(21, 1);
         assert_equals(48, pos6);
     }
 
@@ -155,18 +155,18 @@ public:
         assert_equals(ranks[0] * run_length, ranks1[0]);
         assert_equals(ranks[1] * run_length, ranks1[1]);
 
-        size_t sym0_full_rank = run.full_rank(0);
+        size_t sym0_full_rank = run.full_rank_eq(0);
         assert_equals(ranks[0] * run_length, sym0_full_rank);
 
         std::vector<size_t> ranks2(1 << Bps);
 
         size_t patterns = 2;
-        run.full_ranks(pattern_length * patterns + 4, make_span(ranks2));
+        run.ranks(pattern_length * patterns + 4, make_span(ranks2));
 
         assert_equals(ranks[0] * patterns + 1, ranks2[0]);
         assert_equals(ranks[1] * patterns + 3, ranks2[1]);
 
-        size_t sym0_rank = run.rank(pattern_length * patterns + 4, 0);
+        size_t sym0_rank = run.rank_eq(pattern_length * patterns + 4, 0);
         assert_equals(ranks[0] * patterns + 1, sym0_rank);
     }
 

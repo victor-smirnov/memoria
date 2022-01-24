@@ -26,7 +26,7 @@ namespace tests {
 
 TestState::~TestState() noexcept {}
 
-std::ostream& TestState::out() {
+std::ostream& TestState::out() const {
     return reactor::engine().cout();
 }
 

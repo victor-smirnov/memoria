@@ -145,11 +145,12 @@ struct SSRLERunTraits<1>: SSRLERunCommonTraits<1> {
     static uint64_t bitmap_select(uint64_t arg, uint64_t rank) noexcept
     {
 #ifdef __BMI2__
-        return _tzcnt_u64(_pdep_u64(1ULL << (rank - 1), arg));
+        return _tzcnt_u64(_pdep_u64(1ULL << rank, arg));
 #else
         // Naive implementation for now
         uint64_t mask = 1;
         uint64_t rr{};
+        ++rank;
         for (size_t c = 0; c < 64; c++) {
             rr += (arg & mask) != 0;
             if (rr == rank) {
@@ -172,11 +173,11 @@ struct SSRLERunTraits<1>: SSRLERunCommonTraits<1> {
 
     static size_t pattern_count_fw(const RunT& run, size_t start_idx, size_t symbol) noexcept {
         if (symbol) {
-            return bitmap_select((~run.pattern_) >> start_idx, 1);
+            return bitmap_select((~run.pattern_) >> start_idx, 0);
         }
         else {
             size_t mask = ~make_mask_safe(run.pattern_length());
-            return bitmap_select((run.pattern_ | mask) >> start_idx, 1);
+            return bitmap_select((run.pattern_ | mask) >> start_idx, 0);
         }
     }
 };

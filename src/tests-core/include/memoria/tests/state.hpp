@@ -179,10 +179,10 @@ public:
         return getBIRandomG(max);
     }
 
-    std::ostream& out();
+    std::ostream& out() const;
 
     template <typename... Args>
-    std::ostream& println(const char* fmt, Args&&... args)
+    std::ostream& println(const char* fmt, Args&&... args) const
     {
         out() << format_u8(fmt, std::forward<Args>(args)...) << std::endl;
         return out();

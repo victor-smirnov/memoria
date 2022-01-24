@@ -13,24 +13,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//#include "rleseq_rank_test.hpp"
-//#include "rleseq_select_test.hpp"
-//#include "rleseq_count_test.hpp"
+
+#include "ssrleseq_select_test.hpp"
+#include "ssrleseq_count_test.hpp"
 #include "ssrleseq_rle_test.hpp"
 #include "ssrleseq_misc_test.hpp"
+#include "ssrleseq_rank_test.hpp"
 
 namespace memoria {
 namespace tests {
 
 namespace {
 
-//auto Suite1 = register_class_suite<PackedRLESearchableSequenceRankTest<2>>("RleSeq.Rank.2");
-//auto Suite2 = register_class_suite<PackedRLESearchableSequenceSelectTest<2>>("RleSeq.Select.2");
-//auto Suite3 = register_class_suite<PackedRLESearchableSequenceCountTest<2>>("RleSeq.Count.2");
-
-auto Suite0 = register_class_suite<PackedSSRLESearchableSequenceRLETest<1>>("SSRleSeq.RLE.1");
+auto Suite0 = register_class_suite<PackedSSRLESearchableSequenceRLETest<1>> ("SSRleSeq.RLE.1");
 auto Suite1 = register_class_suite<PackedSSRLESearchableSequenceMiscTest<1>>("SSRleSeq.Misc.1");
-
+auto Suite2 = register_class_suite<PackedSSRLESearchableSequenceRankTest<1>>("SSRleSeq.Rank.1");
+auto Suite3 = register_class_suite<PackedSSRLESearchableSequenceSelectTest<1>>("SSRleSeq.Select.1");
+auto Suite4 = register_class_suite<PackedSSRLESearchableSequenceCountTest<1>>("SSRleSeq.Count.1");
 
 }
 

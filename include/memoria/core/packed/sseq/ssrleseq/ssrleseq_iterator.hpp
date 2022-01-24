@@ -184,6 +184,54 @@ public:
             }
         }
     }
+
+    template <typename Fn>
+    void do_while(Fn&& fn)
+    {
+        while (!is_eos())
+        {
+            RunT run = this->get();
+
+            if (run) {
+                if (fn(run)) {
+                    next();
+                }
+                else {
+                    return;
+                }
+            }
+            else if (run.is_padding()) {
+                next(run.run_length());
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    template <typename Fn>
+    void do_while1(Fn&& fn)
+    {
+        while (!is_eos())
+        {
+            RunT run = this->get();
+
+            if (run) {
+                if (fn(run, idx_)) {
+                    next();
+                }
+                else {
+                    return;
+                }
+            }
+            else if (run.is_padding()) {
+                next(run.run_length());
+            }
+            else {
+                break;
+            }
+        }
+    }
 };
 
 }}

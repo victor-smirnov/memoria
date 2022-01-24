@@ -203,15 +203,28 @@ public:
         return values(block)[idx];
     }
 
-    struct FindGEWalker {
-        IndexValue sum_{};
-        IndexValue target_;
-
-        IndexValue next_{};
-
-        int32_t idx_{};
+    class WalkerBase {
+    protected:
+        int32_t idx_;
+        IndexValue sum_;
     public:
-        FindGEWalker(IndexValue target): target_(target) {}
+        WalkerBase(int32_t idx, IndexValue sum): idx_(idx), sum_(sum) {}
+
+        auto idx() const {return idx_;}
+        auto prefix() const {return sum_;}
+    };
+
+    struct FindGEWalker: WalkerBase {
+    protected:
+        IndexValue target_;
+        IndexValue next_{};
+        using WalkerBase::idx_;
+        using WalkerBase::sum_;
+    public:
+        FindGEWalker(IndexValue target):
+            WalkerBase(0,0),
+            target_(target)
+        {}
 
         template <typename T>
         bool compare(T value)
@@ -231,21 +244,19 @@ public:
             idx_ = value;
             return *this;
         }
-
-        IndexValue prefix() const {
-            return sum_;
-        }
     };
 
-    struct FindGTWalker {
-        IndexValue sum_{};
+    struct FindGTWalker: WalkerBase {
+    protected:
         IndexValue target_;
-
         IndexValue next_{};
-
-        int32_t idx_{};
+        using WalkerBase::idx_;
+        using WalkerBase::sum_;
     public:
-        FindGTWalker(IndexValue target): target_(target) {}
+        FindGTWalker(IndexValue target):
+            WalkerBase(0, 0),
+            target_(target)
+        {}
 
         template <typename T>
         bool compare(T value)
@@ -264,10 +275,6 @@ public:
         FindGTWalker& idx(int32_t value) {
             idx_ = value;
             return *this;
-        }
-
-        IndexValue prefix() const {
-            return sum_;
         }
     };
 

@@ -36,27 +36,31 @@ class ReindexFn {
     using SymbolsRunT   = typename Seq::SymbolsRunT;
     using RunTraits     = typename Seq::RunTraits;
 
-    static const int32_t Symbols                                                    = Seq::Symbols;
-    static const size_t  BytesPerBlock                                              = Seq::BytesPerBlock;
-    static const int32_t Indxes                                                     = Seq::Indexes;
+    static const int32_t Symbols        = Seq::Symbols;
+    static const size_t  BytesPerBlock  = Seq::BytesPerBlock;
+    static const size_t  AtomsPerBlock  = Seq::AtomsPerBlock;
+    static const int32_t Indxes         = Seq::Indexes;
 
 public:
     VoidResult reindex(Seq& seq) noexcept
     {
         std::vector<SymbolsRunT> syms = seq.iterator().as_vector();
         RunTraits::compactify_runs(syms);
-        size_t symbols_block_size = RunTraits::compute_size(syms);
+        size_t symbols_block_size_atoms = RunTraits::compute_size(syms);
 
         auto meta = seq.metadata();
 
-        if (meta->data_size() != symbols_block_size) {
-            MEMORIA_TRY_VOID(seq.resizeBlock(Seq::SYMBOLS, symbols_block_size));
+        if (meta->data_size() != symbols_block_size_atoms)
+        {
+            meta->data_size() = symbols_block_size_atoms;
+
+            MEMORIA_TRY_VOID(seq.resizeBlock(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::AtomT)));
             RunTraits::write_segments_to(syms, seq.symbols(), 0);
         }
 
-        if (symbols_block_size > BytesPerBlock)
+        if (symbols_block_size_atoms > AtomsPerBlock)
         {
-            size_t symbols_blocks = seq.divUp(symbols_block_size, BytesPerBlock);
+            size_t symbols_blocks = seq.divUp(symbols_block_size_atoms, AtomsPerBlock);
             MEMORIA_TRY_VOID(seq.createIndex(symbols_blocks));
 
             auto size_index = seq.size_index();
@@ -65,15 +69,20 @@ public:
             uint64_t symbols_total_{};
             typename Seq::SumIndex::Values sums(0);
 
-            size_t next_block_start_idx = BytesPerBlock;
+            size_t next_block_start_idx = AtomsPerBlock;
+
+            size_t cnt{};
+            size_t block_cnt{};
 
             auto push_indexes = [&]() -> VoidResult {
+                cnt++;
                 MEMORIA_TRY_VOID(sum_index->append(sums));
 
                 typename Seq::SizeIndex::Values sizes(symbols_total_);
                 symbols_total_ = 0;
                 sums = typename Seq::SumIndex::Values(0);
-                next_block_start_idx += BytesPerBlock;
+                next_block_start_idx += AtomsPerBlock;
+                block_cnt = 0;
 
                 return size_index->append(sizes);
             };
@@ -92,6 +101,8 @@ public:
                         sums[sym] += run.run_length();
                     }
 
+                    block_cnt++;
+
                     ii.next();
                 }
                 else if (run.is_padding())
@@ -106,6 +117,10 @@ public:
                 if (ii.idx() == next_block_start_idx) {
                     MEMORIA_TRY_VOID(push_indexes());
                 }
+            }
+
+            if (block_cnt) {
+                MEMORIA_TRY_VOID(push_indexes());
             }
 
             MEMORIA_TRY_VOID(size_index->reindex());
