@@ -65,7 +65,7 @@ struct SSRLERunCommonTraitsBase {
 
     using RunT = SSRLERun<Bps>;
 
-    static constexpr CodeUnitT make_mask(size_t len)
+    static constexpr CodeUnitT make_mask(size_t len) noexcept
     {
         if (len >= SEGMENT_BITS) {
             return ~static_cast<CodeUnitT>(0);
@@ -78,13 +78,13 @@ struct SSRLERunCommonTraitsBase {
 
 
 protected:
-    static constexpr CodeUnitT make_mask_safe(size_t len)
+    static constexpr CodeUnitT make_mask_safe(size_t len) noexcept
     {
         CodeUnitT atom = static_cast<CodeUnitT>(1) << len;
         return atom - 1;
     }
 
-    static constexpr size_t run_length_bitsize(size_t value) {
+    static constexpr size_t run_length_bitsize(size_t value) noexcept {
         return value <= 1 ? 0 : Log2U(value);
     }
 
@@ -116,14 +116,20 @@ public:
         SSRLERunArray<Bps, 2> right;
     };
 
-    static Optional<SplitResult> split(const RunT& run, size_t at) noexcept
+    static SplitResult split(const RunT& run, size_t at)
     {
-        using OptionalT = Optional<SplitResult>;
+        if (at > run.full_run_length()) {
+            MEMORIA_MAKE_GENERIC_ERROR("Split position {} is outside of length {} for SSRLE run {}",
+                at,
+                run.full_run_length(),
+                run
+            ).do_throw();
+        }
 
         SplitResult split;
 
         if (run.pattern_length() == 0) {
-            return OptionalT{};
+            MEMORIA_MAKE_GENERIC_ERROR("SSLRERun is empty").do_throw();
         }
         else if (run.run_length() == 1)
         {
@@ -229,175 +235,18 @@ public:
             }
         }
 
-        return OptionalT{};
+        MEMORIA_MAKE_GENERIC_ERROR("Can't split run {} at {}", run.to_string(), at).do_throw();
     }
 
-    static Optional<SSRLERunArray<Bps>> remove(const RunT& run, size_t from, size_t to) noexcept
+    static SSRLERunArray<Bps> insert(const RunT& self, const RunT& run, size_t at)
     {
-        using OptionalT = Optional<SSRLERunArray<Bps>>;
-
-        SSRLERunArray<Bps> result;
-
-        if (MMA_UNLIKELY(run.run_length() == 1))
-        {
-            // This is an uncompressed segment
-            if (MMA_LIKELY(from <= to && to <= run.pattern_length()))
-            {
-                auto r_run = run;
-
-                if (MMA_LIKELY(from < to))
-                {
-                    r_run.pattern_ &= make_mask_safe(from * Bps);
-                    r_run.pattern_ |= run.pattern() >> ((to - from) * Bps);
-
-                    r_run.pattern_length_ -= (to - from);
-                }
-
-                result.append(r_run);
-
-                return result;
-            }
+        if (at > run.full_run_length()) {
+            MEMORIA_MAKE_GENERIC_ERROR("Insert position {} is outside of length {} for SSRLE run {}",
+                at,
+                run.full_run_length(),
+                run
+            ).do_throw();
         }
-        else if (run.pattern_length() == 1)
-        {
-            // This is classical RLE segment
-
-            if (MMA_LIKELY(from <= to && to <= run.run_length()))
-            {
-                auto r_run = run;
-                r_run.run_length_ -= to - from;
-
-                result.append(r_run);
-
-                return result;
-            }
-        }
-        else if (MMA_LIKELY(run.run_length() > 1))
-        {
-            // Repeating pattern segment
-
-            size_t len = to - from;
-            size_t from_start = from % run.pattern_length();
-            size_t from_base  = from - from_start;
-
-            if (from_start == 0 && (len % run.pattern_length() == 0))
-            {
-                // Removing entire patterns
-
-                auto r_run = run;
-                r_run.run_length_ -= (len / run.pattern_length());
-
-                result.append(r_run);
-
-                return result;
-            }
-            else if (from_start + len <= run.pattern_length())
-            {
-                // Removing bits from a single pattern
-
-                auto prefix = run;
-                auto r_run  = run;
-                auto suffix = run;
-
-                r_run.run_length_ = 1;
-                r_run.pattern_ &= make_mask_safe(from_start * Bps);
-                r_run.pattern_ |= (run.pattern() >> ((to - from_base) * Bps)) << (from_start * Bps);
-                r_run.pattern_length_ -= len;
-
-                prefix.run_length_ = (from_base / run.pattern_length());
-                suffix.run_length_ = run.run_length() - prefix.run_length() - 1;
-
-                if (prefix.run_length()) result.append(prefix);
-                if (r_run)  result.append(r_run);
-                if (suffix.run_length()) result.append(suffix);
-
-                return result;
-            }
-            else {
-                // Removing bits across patterns
-
-                size_t r_len   = len / run.pattern_length();
-                size_t to_start = to % run.pattern_length();
-
-                size_t splits = 0;
-
-                RunT prefix, r_run, extra;
-
-                if (MMA_UNLIKELY(from_base))
-                {
-                    prefix = run;
-                    prefix.run_length_ = from_base / run.pattern_length();
-                    result.append(prefix);
-                }
-
-                if (from_start == 0 && to_start != 0)
-                {
-                    r_run = run;
-                    r_run.pattern_ = run.pattern() >> (to_start * Bps);
-                    r_run.pattern_length_ -= to_start;
-                    r_run.run_length_ = 1;
-                    splits = 1;
-                }
-                else if (to_start == 0)
-                {
-                    r_run = run;
-                    r_run.pattern_ &= make_mask_safe(from_start * Bps);
-                    r_run.pattern_length_ = from_start;
-                    r_run.run_length_ = 1;
-
-                    splits = 1;
-                }
-                else if ((run.pattern_length() - to_start) + from_start <= SSRLERunTraits<Bps>::max_pattern_length())
-                {
-                    r_run = run;
-                    r_run.pattern_ &= make_mask_safe(from_start * Bps);
-                    r_run.pattern_ |= (run.pattern() >> (to_start * Bps)) << (from_start * Bps);
-
-                    r_run.pattern_length_ = from_start + run.pattern_length() - to_start;
-                    r_run.run_length_ = 1;
-
-                    splits = 2;
-                }
-                else  {
-                    r_run = run;
-                    r_run.pattern_ &= make_mask_safe(from_start * Bps);
-                    r_run.pattern_length_ = from_start;
-                    r_run.run_length_ = 1;
-
-                    extra = run;
-                    extra.pattern_ = run.pattern() >> (to_start * Bps);
-                    extra.pattern_length_ -= to_start;
-                    extra.run_length_ = 1;
-
-                    splits = 2;
-                }
-
-                if (r_run) {
-                    result.append(r_run);
-                }
-
-                if (extra) {
-                    result.append(extra);
-                }
-
-                CodeUnitT suffix_len = run.run_length() - prefix.run_length() - r_len - splits;
-                if (suffix_len)
-                {
-                    auto suffix = run;
-                    suffix.run_length_ = suffix_len;
-                    result.append(suffix);
-                }
-
-                return result;
-            }
-        }
-
-        return OptionalT{};
-    }
-
-    static Optional<SSRLERunArray<Bps>> insert(const RunT& self, const RunT& run, size_t at) noexcept
-    {
-        using OptionalT = Optional<SSRLERunArray<Bps>>;
 
         SSRLERunArray<Bps> result;
 
@@ -489,8 +338,6 @@ public:
                     suffix = self;
                     suffix.run_length_ = self.run_length() - prefix.run_length();
                 }
-
-
             }
             else if (run.run_length() == 1 && RunTraits::is_fit(self.pattern_length() + run.pattern_length(), 1))
             {
@@ -541,8 +388,6 @@ public:
 
             return result;
         }
-
-        return OptionalT{};
     }
 
 
@@ -747,11 +592,6 @@ public:
             if (source[c])
             {
                 size_t units = RunTraits::estimate_size(source[c]);
-
-                if (units > 4) {
-                    println("Compute size: {} :: {}", units, source[c]);
-                }
-
                 if (MMA_UNLIKELY(tgt_idx + units > next_limit))
                 {
                     tgt_idx = next_limit;
@@ -993,9 +833,6 @@ public:
 
         return run.pattern_length();
     }
-
-
-
 
 
 
@@ -1264,17 +1101,17 @@ public:
     }
 
 
-    Optional<typename SSRLERunTraits<Bps>::SplitResult> split(size_t at) const noexcept
+    typename SSRLERunTraits<Bps>::SplitResult split(size_t at) const
     {
         return Traits::split(*this, at);
     }
 
-    Optional<SSRLERunArray<Bps>> remove(size_t from, size_t to) const noexcept
+    SSRLERunArray<Bps> remove(size_t from, size_t to) const
     {
         return Traits::remove(*this, from, to);
     }
 
-    Optional<SSRLERunArray<Bps>> insert(const SSRLERun& run, size_t at) const noexcept
+    SSRLERunArray<Bps> insert(const SSRLERun& run, size_t at) const
     {
         return Traits::insert(*this, run, at);
     }

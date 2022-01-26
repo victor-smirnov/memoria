@@ -595,13 +595,8 @@ public:
 
             if (runs.size() == 1)
             {
-                auto res = RunTraits::insert(loc.run, runs[0], len);
-                if (res) {
-                    return do_append(meta, loc.atom_idx, len, res.get().span());
-                }
-                else {
-                    return MEMORIA_MAKE_GENERIC_ERROR("Can't insert run {} into {} at ", runs[0], loc.run, loc.run.full_run_length());
-                }
+                auto res = RunTraits::insert(loc.run, runs[0], len);                
+                return do_append(meta, loc.atom_idx, len, res.span());
             }            
             else {
                 return do_append(meta, meta->data_size(), 0, runs);
@@ -677,19 +672,14 @@ private:
         if (res.run_idx < runs.size())
         {
             auto s_res = runs[res.run_idx].split(res.local_offset);
-            if (s_res)
-            {
-                append_all(left, to_const_span(runs, 0, res.run_idx));
-                append_all(left, s_res.get().left.span());
 
-                append_all(right, s_res.get().right.span());
+            append_all(left, to_const_span(runs, 0, res.run_idx));
+            append_all(left, s_res.left.span());
 
-                if (res.run_idx + 1 < runs.size()) {
-                    append_all(right, to_span(runs).subspan(res.run_idx + 1));
-                }
-            }
-            else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Can't split run {} at {}", runs[res.run_idx].to_string(), res.local_offset);
+            append_all(right, s_res.right.span());
+
+            if (res.run_idx + 1 < runs.size()) {
+                append_all(right, to_span(runs).subspan(res.run_idx + 1));
             }
         }
         else {
@@ -839,44 +829,36 @@ public:
 
             auto location = this->find_run(idx);
 
-            auto split = RunTraits::split(location.run, location.local_idx);
+            auto result = RunTraits::split(location.run, location.local_idx);
 
-            if (split)
-            {
-                auto& result = split.get();
+            size_t adjustment = location.run.atom_size();
+            std::vector<SymbolsRunT> right_runs = this->iterator(location.atom_idx + adjustment).as_vector();
 
-                size_t adjustment = location.run.atom_size();
-                std::vector<SymbolsRunT> right_runs = this->iterator(location.atom_idx + adjustment).as_vector();
+            size_t left_data_size = RunTraits::compute_size(result.left.span(), location.atom_idx);
 
-                size_t left_data_size = RunTraits::compute_size(result.left.span(), location.atom_idx);
+            MEMORIA_TRY_VOID(this->resizeBlock(SYMBOLS, left_data_size * sizeof(AtomT)));
 
-                MEMORIA_TRY_VOID(this->resizeBlock(SYMBOLS, left_data_size * sizeof(AtomT)));
+            Span<AtomT> left_syms = symbols();
+            RunTraits::write_segments_to(result.left.span(), left_syms, location.atom_idx);
 
-                Span<AtomT> left_syms = symbols();
-                RunTraits::write_segments_to(result.left.span(), left_syms, location.atom_idx);
+            size_t right_atoms_size = RunTraits::compute_size(result.right.span(), right_runs);
 
-                size_t right_atoms_size = RunTraits::compute_size(result.right.span(), right_runs);
+            auto right_block_size = MyType::block_size(right_atoms_size * sizeof(AtomT));
+            MEMORIA_TRY_VOID(other->init_bs(right_block_size));
+            MEMORIA_TRY_VOID(other->resizeBlock(SYMBOLS, right_atoms_size * sizeof(AtomT)));
 
-                auto right_block_size = MyType::block_size(right_atoms_size * sizeof(AtomT));
-                MEMORIA_TRY_VOID(other->init_bs(right_block_size));
-                MEMORIA_TRY_VOID(other->resizeBlock(SYMBOLS, right_atoms_size * sizeof(AtomT)));
+            Span<AtomT> right_syms = other->symbols();
+            size_t right_data_size = RunTraits::write_segments_to(result.right.span(), right_runs, right_syms);
 
-                Span<AtomT> right_syms = other->symbols();
-                size_t right_data_size = RunTraits::write_segments_to(result.right.span(), right_runs, right_syms);
+            other_meta->size() = meta->size() - idx;
+            other_meta->data_size() = right_data_size;
 
-                other_meta->size() = meta->size() - idx;
-                other_meta->data_size() = right_data_size;
+            meta->size() = idx;
+            meta->data_size() = left_data_size;
 
-                meta->size() = idx;
-                meta->data_size() = left_data_size;
+            MEMORIA_TRY_VOID(other->reindex());
 
-                MEMORIA_TRY_VOID(other->reindex());
-
-                return reindex();
-            }
-            else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Invalid Symbols Run Split: {} {}", location.run, location.local_idx);
-            }
+            return reindex();
         }
         else {
             return MEMORIA_MAKE_GENERIC_ERROR("Split index is out of range: {} :: {}", idx, meta->size());

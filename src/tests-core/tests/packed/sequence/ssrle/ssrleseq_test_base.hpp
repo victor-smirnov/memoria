@@ -263,15 +263,9 @@ public:
             if (this->getRandom(2))
             {
                 size_t pos = getRandom1(run.full_run_length());
-
                 auto split_res = run.split(pos);
-                if (split_res) {
-                    push_back(res, split_res.get().left.span());
-                    push_back(res, split_res.get().right.span());
-                }
-                else {
-                    MEMORIA_MAKE_GENERIC_ERROR("Can't split run {} at {}", run, pos);
-                }
+                push_back(res, split_res.left.span());
+                push_back(res, split_res.right.span());
             }
             else {
                 res.push_back(run);
@@ -819,23 +813,17 @@ public:
 
         auto s_res = runs[res.run_idx].split(res.local_offset);
 
-        if (s_res)
-        {
-            std::vector<SymbolsRunT> left(runs.begin(), runs.begin() + res.run_idx);
-            append_all(left, s_res.get().left.span());
+        std::vector<SymbolsRunT> left(runs.begin(), runs.begin() + res.run_idx);
+        append_all(left, s_res.left.span());
 
-            std::vector<SymbolsRunT> right;
-            append_all(right, s_res.get().right.span());
+        std::vector<SymbolsRunT> right;
+        append_all(right, s_res.right.span());
 
-            if (res.run_idx + 1 < runs.size()) {
-                append_all(right, runs.subspan(res.run_idx + 1));
-            }
-
-            return SplitBufResult{left, right};
+        if (res.run_idx + 1 < runs.size()) {
+            append_all(right, runs.subspan(res.run_idx + 1));
         }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("Can't split run {} at {}", runs[res.run_idx].to_string(), res.local_offset).do_throw();
-        }
+
+        return SplitBufResult{left, right};
     }
 
     std::vector<SymbolsRunT> insert_to_buffer(const std::vector<SymbolsRunT>& target, Span<const SymbolsRunT> source, uint64_t at) const
