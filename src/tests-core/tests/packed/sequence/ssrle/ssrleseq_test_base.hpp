@@ -103,11 +103,11 @@ public:
         return symbols;
     }
 
-    SeqPtr make_sequence(Span<const SymbolsRunT> span) const
+    SeqPtr make_sequence(Span<const SymbolsRunT> span, size_t capacity_multiplier = 1) const
     {
         size_t num_atoms = RunTraits::compute_size(span);
 
-        SeqPtr ptr = make_empty_sequence(num_atoms * sizeof(AtomT));
+        SeqPtr ptr = make_empty_sequence(num_atoms * sizeof(AtomT) * capacity_multiplier);
 
         ptr->append(span).get_or_throw();
 
@@ -324,15 +324,22 @@ public:
         return index.size() - 1;
     }
 
-    template <typename BlockT>
-    LocateResult locate(Span<const BlockT> index, Span<const SymbolsRunT> runs, size_t idx) const
-    {
-        LocateResult bs{runs.size(), 0, 0};
 
+
+    template <typename BlockT>
+    LocateResult locate(Span<const BlockT> index, Span<const SymbolsRunT> runs, uint64_t idx) const
+    {
         size_t i = locate_block(index, runs, idx);
         size_t offset = index[i].offset;
 
-        for (size_t c = i * SIZE_INDEX_BLOCK; c < runs.size(); c++)
+        return do_locate(runs, idx, i, offset);
+    }
+
+    LocateResult do_locate(Span<const SymbolsRunT> runs, uint64_t idx, uint64_t block = 0, uint64_t offset = 0) const
+    {
+        LocateResult bs{runs.size(), 0, 0};
+
+        for (size_t c = block * SIZE_INDEX_BLOCK; c < runs.size(); c++)
         {
             size_t local_size = runs[c].full_run_length();
             if (offset + local_size <= idx) {
@@ -348,6 +355,8 @@ public:
 
         return bs;
     }
+
+
 
     size_t get_symbol(Span<const BlockSize> index, Span<const SymbolsRunT> runs, size_t idx) const
     {
@@ -789,7 +798,65 @@ public:
         }
     }
 
+    struct SplitBufResult {
+        std::vector<SymbolsRunT> left;
+        std::vector<SymbolsRunT> right;
+    };
 
+    template <typename T>
+    void append_all(std::vector<T>& vv, Span<const T> span) const {
+        vv.insert(vv.end(), span.begin(), span.end());
+    }
+
+    template <typename T1, typename T2>
+    void append_all(std::vector<T1>& vv, Span<T2> span) const {
+        vv.insert(vv.end(), span.begin(), span.end());
+    }
+
+    SplitBufResult split_buffer(Span<const SymbolsRunT> runs, uint64_t pos) const
+    {
+        LocateResult res = do_locate(runs, pos);
+
+        auto s_res = runs[res.run_idx].split(res.local_offset);
+
+        if (s_res)
+        {
+            std::vector<SymbolsRunT> left(runs.begin(), runs.begin() + res.run_idx);
+            append_all(left, s_res.get().left.span());
+
+            std::vector<SymbolsRunT> right;
+            append_all(right, s_res.get().right.span());
+
+            if (res.run_idx + 1 < runs.size()) {
+                append_all(right, runs.subspan(res.run_idx + 1));
+            }
+
+            return SplitBufResult{left, right};
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Can't split run {} at {}", runs[res.run_idx].to_string(), res.local_offset).do_throw();
+        }
+    }
+
+    std::vector<SymbolsRunT> insert_to_buffer(const std::vector<SymbolsRunT>& target, Span<const SymbolsRunT> source, uint64_t at) const
+    {
+        SplitBufResult res = split_buffer(target, at);
+
+        append_all(res.left, source);
+        append_all(res.left, to_const_span(res.right));
+
+        return res.left;
+    }
+
+    std::vector<SymbolsRunT> remove_from_buffer(const std::vector<SymbolsRunT>& buffer, uint64_t start, uint64_t end) const
+    {
+        SplitBufResult res1 = split_buffer(buffer, start);
+        SplitBufResult res2 = split_buffer(res1.right, end - start);
+
+        append_all(res1.left, to_const_span(res2.right));
+
+        return res1.left;
+    }
 };
 
 

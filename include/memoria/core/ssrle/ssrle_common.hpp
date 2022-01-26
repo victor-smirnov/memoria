@@ -808,19 +808,21 @@ public:
 
     static void compactify_runs(Span<RunT> runs) noexcept
     {
-        for (size_t c = 0; c < runs.size() - 1;)
-        {
-            size_t d;
-            for (d = c + 1; d < runs.size(); d++)
+        if (runs.size() > 1) {
+            for (size_t c = 0; c < runs.size() - 1;)
             {
-                if (runs[c].merge(runs[d])) {
-                    runs[d] = RunT{};
+                size_t d;
+                for (d = c + 1; d < runs.size(); d++)
+                {
+                    if (runs[c].merge(runs[d])) {
+                        runs[d] = RunT{};
+                    }
+                    else {
+                        break;
+                    }
                 }
-                else {
-                    break;
-                }
+                c = d;
             }
-            c = d;
         }
     }
 
@@ -1596,6 +1598,10 @@ public:
 
     size_t to_pattern(size_t global_idx) const {
         return global_idx % pattern_length_;
+    }
+
+    size_t atom_size() const noexcept {
+        return SSRLERunTraits<Bps>::estimate_size(*this);
     }
 };
 

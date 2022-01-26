@@ -199,32 +199,36 @@ public:
     template <typename Fn>
     void testSelectFwFn(Fn&& fn)
     {
-        std::vector<SymbolsRunT> syms1    = make_random_sequence(10240);
-        std::vector<BlockRank> rank_index = build_rank_index(syms1);
-        uint64_t size = count(syms1);
+        for (size_t data_size = 2; data_size <= 32768; data_size *= 2)
+        {
+            println("DataSize: {}", data_size);
+            std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
+            std::vector<BlockRank> rank_index = build_rank_index(syms1);
+            uint64_t size = count(syms1);
 
-        size_t sym = fn.get_sym();
-        uint64_t rank0_max = fn.get_rank_fn(this, rank_index, syms1, size, sym);
+            size_t sym = fn.get_sym();
+            uint64_t rank0_max = fn.get_rank_fn(this, rank_index, syms1, size, sym);
 
-        SeqPtr seq = make_sequence(syms1);
+            SeqPtr seq = make_sequence(syms1);
 
-        size_t queries = 10000;
-        std::vector<size_t> ranks;
-        for (size_t c = 0; c < queries; c++) {
-            ranks.push_back(getBIRandomG(rank0_max));
-        }
-
-        for (size_t c = 0; c < queries; c++) {
-            uint64_t rank = ranks[c];
-
-            size_t pos1 = fn.test_select_fw(this, rank_index, syms1, rank, sym).global_pos();
-            size_t pos2 = fn.seq_select_fw(seq, rank, sym).idx;
-
-            try {
-                assert_equals(pos1, pos2);
+            size_t queries = data_size / 2;
+            std::vector<size_t> ranks;
+            for (size_t c = 0; c < queries; c++) {
+                ranks.push_back(getBIRandomG(rank0_max));
             }
-            catch (...) {
-                throw;
+
+            for (size_t c = 0; c < queries; c++) {
+                uint64_t rank = ranks[c];
+
+                size_t pos1 = fn.test_select_fw(this, rank_index, syms1, rank, sym).global_pos();
+                size_t pos2 = fn.seq_select_fw(seq, rank, sym).idx;
+
+                try {
+                    assert_equals(pos1, pos2);
+                }
+                catch (...) {
+                    throw;
+                }
             }
         }
     }

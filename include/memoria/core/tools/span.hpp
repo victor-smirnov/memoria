@@ -20,6 +20,7 @@
 
 #include <absl/types/span.h>
 #include <ostream>
+#include <vector>
 
 
 namespace memoria {
@@ -51,5 +52,52 @@ std::ostream& operator<<(std::ostream& out, Span<const T> span)
 
     return out;
 }
+
+template <typename T>
+Span<T> to_span(std::vector<T>& vv) {
+    return Span<T>(vv.data(), vv.size());
+}
+
+template <typename T>
+Span<T> to_span(std::vector<T>& vv, size_t from) {
+    return Span<T>(vv.data() + from, vv.size() - from);
+}
+
+template <typename T>
+Span<T> to_span(std::vector<T>& vv, size_t from, size_t size) {
+    return Span<T>(vv.data() + from, size);
+}
+
+template <typename T>
+Span<const T> to_span(const std::vector<T>& vv) {
+    return Span<const T>(vv.data(), vv.size());
+}
+
+template <typename T>
+Span<const T> to_span(const std::vector<T>& vv, size_t from) {
+    return Span<const T>(vv.data() + from, vv.size() - from);
+}
+
+template <typename T>
+Span<const T> to_span(const std::vector<T>& vv, size_t from, size_t size) {
+    return Span<const T>(vv.data() + from, size);
+}
+
+
+template <typename T>
+Span<const T> to_const_span(const std::vector<T>& vv) {
+    return Span<const T>(vv.data(), vv.size());
+}
+
+template <typename T>
+Span<const T> to_const_span(const std::vector<T>& vv, size_t from) {
+    return Span<const T>(vv.data() + from, vv.size() - from);
+}
+
+template <typename T>
+Span<const T> to_const_span(const std::vector<T>& vv, size_t from, size_t size) {
+    return Span<const T>(vv.data() + from, size);
+}
+
 
 }

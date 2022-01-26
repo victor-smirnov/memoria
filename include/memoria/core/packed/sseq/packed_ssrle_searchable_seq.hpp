@@ -171,18 +171,6 @@ public:
     const uint64_t& data_size() const noexcept {return metadata()->data_size();}
 
 
-
-//    static constexpr RLESymbolsRun decode_run(uint64_t value) noexcept
-//    {
-//        return rleseq::DecodeRun<Symbols>(value);
-//    }
-
-//    static constexpr uint64_t encode_run(int32_t symbol, uint64_t length) noexcept
-//    {
-//        return rleseq::EncodeRun<Symbols, MaxRunLength>(symbol, length);
-//    }
-
-
     // ====================================== Accessors ================================= //
 
     Metadata* metadata() noexcept {
@@ -316,7 +304,6 @@ public:
         Base::setBlockType(SYMBOLS, PackedBlockType::RAW_MEMORY);
 
         return VoidResult::of();
-        // other sections are empty at this moment
     }
 
     VoidResult clear() noexcept
@@ -499,11 +486,21 @@ public:
     // ========================================= Update ================================= //
 
     MMA_PKD_OOM_SAFE
-    VoidResult reindex() noexcept
+    VoidResult reindex(bool compactify = true) noexcept {
+        return do_reindex(Optional<Span<SymbolsRunT>>{}, compactify);
+    }
+
+private:
+    MMA_PKD_OOM_SAFE
+    VoidResult do_reindex(
+            Optional<Span<SymbolsRunT>> data,
+            bool compactify = false
+    ) noexcept
     {
         ssrleseq::ReindexFn<MyType> reindex_fn;
-        return reindex_fn.reindex(*this);
+        return reindex_fn.reindex(*this, data, compactify);
     }
+public:
 
     VoidResult check() const noexcept
     {
@@ -652,85 +649,92 @@ private:
         return ResultT::of(size_t{});
     }
 
+    template <typename T1, typename T2>
+    void append_all(std::vector<T1>& vv, Span<T2> span) const {
+        vv.insert(vv.end(), span.begin(), span.end());
+    }
+
+    UInt64Result split_buffer(
+            std::vector<SymbolsRunT>& left,
+            std::vector<SymbolsRunT>& right,
+            uint64_t pos) const noexcept
+    {
+        std::vector<SymbolsRunT> runs = iterator().as_vector();
+        return split_buffer(runs, left, right, pos);
+    }
+
+    UInt64Result split_buffer(
+            const std::vector<SymbolsRunT>& runs,
+            std::vector<SymbolsRunT>& left,
+            std::vector<SymbolsRunT>& right,
+            uint64_t pos) const noexcept
+    {
+        uint64_t size;
+
+        auto res = find_in_syms(runs, pos);
+        size = res.offset;
+
+        if (res.run_idx < runs.size())
+        {
+            auto s_res = runs[res.run_idx].split(res.local_offset);
+            if (s_res)
+            {
+                append_all(left, to_const_span(runs, 0, res.run_idx));
+                append_all(left, s_res.get().left.span());
+
+                append_all(right, s_res.get().right.span());
+
+                if (res.run_idx + 1 < runs.size()) {
+                    append_all(right, to_span(runs).subspan(res.run_idx + 1));
+                }
+            }
+            else {
+                return MEMORIA_MAKE_GENERIC_ERROR("Can't split run {} at {}", runs[res.run_idx].to_string(), res.local_offset);
+            }
+        }
+        else {
+            left = std::move(runs);
+        }
+
+        return UInt64Result::of(size);
+    }
+
+
+
 public:
 
-    VoidResult insert(size_t idx, Span<const SymbolsRunT> runs, bool compactify = true) noexcept
+    VoidResult insert(uint64_t idx, Span<const SymbolsRunT> runs) noexcept
     {
-        if (runs.size() > 0)
+        std::vector<SymbolsRunT> left;
+        std::vector<SymbolsRunT> right;
+
+        uint64_t size = this->size();
+
+        if (idx <= size)
         {
-            std::vector<SymbolsRunT> syms;
+            MEMORIA_TRY_VOID(split_buffer(left, right, idx));
 
-            Iterator ii = iterator();
-            size_t offset{};
+            append_all(left, runs);
+            append_all(left, to_const_span(right));
 
-            auto rr = ii.for_each([&](const SymbolsRunT& run) -> VoidResult {
-                size_t len = run.full_run_length();
+            compactify_runs(left);
 
-                if (idx < offset || idx > offset + len) {
-                    syms.push_back(run);
-                }
-                else if (runs.size() == 1)
-                {
-                    auto res = RunTraits::insert(run, runs[0], idx - offset);
-                    if (res) {
-                        for (SymbolsRunT rr: res.get().span()) {
-                            syms.push_back(rr);
-                        }
-                    }
-                    else {
-                        return MEMORIA_MAKE_GENERIC_ERROR("Can't insert run {} into {} at ", runs[0], run, idx - offset);
-                    }
-                }
-                else {
-                    auto res = RunTraits::split(run, idx - offset);
-                    if (res) {
-                        auto& split = res.get();
+            size_t new_data_size = RunTraits::compute_size(left, 0);
 
-                        for (SymbolsRunT rr: split.left.span()) {
-                            syms.push_back(rr);
-                        }
-
-                        for (SymbolsRunT rr: runs) {
-                            syms.push_back(rr);
-                        }
-
-                        for (SymbolsRunT rr: split.right.span()) {
-                            syms.push_back(rr);
-                        }
-                    }
-                    else {
-                        return MEMORIA_MAKE_GENERIC_ERROR("Can't split run {} at ", run, idx - offset);
-                    }
-                }
-
-                offset += len;
-
-                return VoidResult::of();
-            });
-
-            MEMORIA_RETURN_IF_ERROR(rr);
-
-            if (compactify) {
-                compactify_runs(syms);
-            }
-
-            size_t new_data_size = RunTraits::compute_size(syms, 0);
-
-            auto new_block_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(new_data_size * sizeof(AtomT));
-            MEMORIA_TRY_VOID(this->resizeBlock(SYMBOLS, new_block_size));
+            MEMORIA_TRY_VOID(resizeBlock(SYMBOLS, new_data_size * sizeof(AtomT)));
 
             Span<AtomT> atoms = symbols();
-            RunTraits::write_segments_to(syms, atoms, 0);
+            RunTraits::write_segments_to(left, atoms, 0);
 
             Metadata* meta = metadata();
             meta->data_size() = new_data_size;
-            meta->size() = count_symbols(syms);
+            meta->size() += count_symbols(runs);
 
             MEMORIA_TRY_VOID(shrink_to_data());
-            return reindex();
+            return do_reindex(to_span(left));
         }
         else {
-            return VoidResult::of();
+            return MEMORIA_MAKE_GENERIC_ERROR("Range check in SSRLE sequence insert: idx={}, size={}", idx, size);
         }
     }
 
@@ -740,91 +744,58 @@ public:
 
     VoidResult remove(size_t start, size_t end, bool compactify = false) noexcept
     {
-        auto meta = this->metadata();
-
-        MEMORIA_ASSERT_RTN(start, <=, end);
-        MEMORIA_ASSERT_RTN(end, <=, meta->size());
-
-        Iterator ii = iterator();
-
-        std::vector<SymbolsRunT> runs;
-
-        size_t offset{};
-
-        auto is_outer = [&](size_t len){
-            return offset + len < start || offset > end;
-        };
-
-        auto is_single_run = [&](size_t len){
-            return (start < offset + len) && (end <= offset + len);
-        };
-
-        auto is_left_range = [&](size_t len){
-            return (start >= offset) && (start < offset + len);
-        };
-
-        auto is_right_range = [&](size_t len){
-            return (end >= offset) && (end <= offset + len);
-        };
-
-        auto process_run = [&](const SymbolsRunT& run, size_t start0, size_t end0) -> VoidResult {
-            auto res = RunTraits::remove(run, start0, end0);
-            if (res) {
-                for (auto rr: res.get().span()) {
-                    runs.push_back(rr);
-                }
-
-                return VoidResult::of();
-            }
-            else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Can remove symbols from run {} {} {}", run, start0, end0);
-            }
-        };
-
-
-        while (!ii.is_eos())
+        if (end - start > 0)
         {
-            SymbolsRunT run = ii.get();
+            auto meta = this->metadata();
 
-            if (run)
-            {
-                size_t len = run.full_run_length();
-                if (is_outer(len)) {
-                    runs.push_back(run);
-                }
-                else if (is_single_run(len))
-                {
-                    MEMORIA_TRY_VOID(process_run(run, start - offset, end - offset));
-                }
-                else if (is_left_range(len))
-                {
-                    MEMORIA_TRY_VOID(process_run(run, start - offset, len));
-                }
-                else if (is_right_range(len))
-                {
-                    MEMORIA_TRY_VOID(process_run(run, 0, end - offset));
+            MEMORIA_ASSERT_RTN(start, <=, end);
+            MEMORIA_ASSERT_RTN(end, <=, meta->size());
+
+            std::vector<SymbolsRunT> runs = iterator().as_vector();
+
+            std::vector<SymbolsRunT> runs_res;
+
+            if (end < meta->size()) {
+                if (start > 0) {
+                    std::vector<SymbolsRunT> right1;
+                    MEMORIA_TRY_VOID(split_buffer(runs, runs_res, right1, start));
+
+                    std::vector<SymbolsRunT> left2;
+                    std::vector<SymbolsRunT> right2;
+                    MEMORIA_TRY_VOID(split_buffer(right1, left2, right2, end - start));
+
+                    append_all(runs_res, to_const_span(right2));
                 }
                 else {
-                    // inner run, just skip it.
+                    std::vector<SymbolsRunT> left;
+                    MEMORIA_TRY_VOID(split_buffer(runs, left, runs_res, end));
                 }
-
-                offset += len;
-            }
-            else if (run.is_padding()) {
-                ii.next(run.run_length());
             }
             else {
-                break;
+                if (start > 0) {
+                    std::vector<SymbolsRunT> right;
+                    MEMORIA_TRY_VOID(split_buffer(runs, runs_res, right, start));
+                }
+                else {
+                    return clear();
+                }
             }
-        }
 
-        if (compactify)
-        {
-            return this->compactify();
+            compactify_runs(runs_res);
+
+            size_t new_data_size = RunTraits::compute_size(runs_res, 0);
+            MEMORIA_TRY_VOID(resizeBlock(SYMBOLS, new_data_size * sizeof(AtomT)));
+
+            Span<AtomT> atoms = symbols();
+            RunTraits::write_segments_to(runs_res, atoms, 0);
+
+            meta->data_size() = new_data_size;
+            meta->size() -= end - start;
+
+            return do_reindex(to_span(runs_res));
         }
         else {
-            MEMORIA_TRY_VOID(shrink_to_data());
-            return reindex();
+            return VoidResult::of();
         }
     }
 
@@ -874,21 +845,21 @@ public:
             {
                 auto& result = split.get();
 
-                size_t adjustment = 1;
+                size_t adjustment = location.run.atom_size();
                 std::vector<SymbolsRunT> right_runs = this->iterator(location.atom_idx + adjustment).as_vector();
 
                 size_t left_data_size = RunTraits::compute_size(result.left.span(), location.atom_idx);
 
-                auto new_left_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(left_data_size * sizeof(AtomT));
-                MEMORIA_TRY_VOID(this->resizeBlock(SYMBOLS, new_left_size));
+                MEMORIA_TRY_VOID(this->resizeBlock(SYMBOLS, left_data_size * sizeof(AtomT)));
 
                 Span<AtomT> left_syms = symbols();
-                RunTraits::write_segments_to(result.left, left_syms, location.atom_idx);
+                RunTraits::write_segments_to(result.left.span(), left_syms, location.atom_idx);
 
                 size_t right_atoms_size = RunTraits::compute_size(result.right.span(), right_runs);
 
                 auto right_block_size = MyType::block_size(right_atoms_size * sizeof(AtomT));
-                other->init_bs(right_block_size);
+                MEMORIA_TRY_VOID(other->init_bs(right_block_size));
+                MEMORIA_TRY_VOID(other->resizeBlock(SYMBOLS, right_atoms_size * sizeof(AtomT)));
 
                 Span<AtomT> right_syms = other->symbols();
                 size_t right_data_size = RunTraits::write_segments_to(result.right.span(), right_runs, right_syms);
@@ -897,7 +868,9 @@ public:
                 other_meta->data_size() = right_data_size;
 
                 meta->size() = idx;
-                meta->data_size() = new_left_size;
+                meta->data_size() = left_data_size;
+
+                MEMORIA_TRY_VOID(other->reindex());
 
                 return reindex();
             }
@@ -916,19 +889,22 @@ public:
         auto other_meta = other->metadata();
 
         std::vector<SymbolsRunT> syms = other->iterator().as_vector();
-        this->iterator().read_to(syms);
+        iterator().read_to(syms);
 
         compactify_runs(syms);
 
         size_t new_data_size = RunTraits::compute_size(syms, 0);
 
-        auto new_block_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(new_data_size * sizeof(AtomT));
-        MEMORIA_TRY_VOID(this->resizeBlock(SYMBOLS, new_block_size));
+        auto new_block_size = new_data_size * sizeof(AtomT);
+        MEMORIA_TRY_VOID(other->resizeBlock(SYMBOLS, new_block_size));
 
-        Span<AtomT> atoms = symbols();
+        Span<AtomT> atoms = other->symbols();
         RunTraits::write_segments_to(syms, atoms, 0);
 
-        return other->reindex();
+        other_meta->size() += meta->size();
+        other_meta->data_size() = new_data_size;
+
+        return other->do_reindex(to_span(syms));
     }
 
     size_t access(uint64_t pos) const
@@ -1911,6 +1887,7 @@ public:
         return find_run(this->metadata(), symbol_pos);
     }
 
+
     VoidResult insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size) noexcept
     {
 //        const MyType* buffer = ptr_cast<const MyType>(io::substream_cast<io::IOSymbolSequence>(substream).buffer());
@@ -2016,6 +1993,30 @@ private:
         else {
             return Location{};
         }
+    }
+
+    struct FindInSymsResult {
+        size_t run_idx;
+        uint64_t local_offset;
+        uint64_t offset;
+    };
+
+    FindInSymsResult find_in_syms(Span<const SymbolsRunT> runs, uint64_t pos) const
+    {
+        uint64_t offset{};
+        size_t c;
+        for (c = 0; c < runs.size(); c++)
+        {
+            uint64_t len = runs[c].full_run_length();
+            if (pos < offset + len) {
+                break;
+            }
+            else {
+                offset += len;
+            }
+        }
+
+        return FindInSymsResult{c, pos - offset, offset};
     }
 };
 

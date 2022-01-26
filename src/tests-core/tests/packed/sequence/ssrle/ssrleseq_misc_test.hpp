@@ -40,6 +40,7 @@ class PackedSSRLESearchableSequenceMiscTest: public PackedSSRLESequenceTestBase<
     using typename Base::BlockSize;
     using typename Base::BlockRank;
     using typename Base::LocateResult;
+    using typename Base::SplitBufResult;
 
     using Value = typename Seq::Value;
 
@@ -60,6 +61,10 @@ class PackedSSRLESearchableSequenceMiscTest: public PackedSSRLESequenceTestBase<
     using Base::build_rank_index;
     using Base::get_rank_eq;
     using Base::get_ranks;
+    using Base::split_buffer;
+    using Base::insert_to_buffer;
+    using Base::remove_from_buffer;
+    using Base::append_all;
 
     using Base::select_fw_eq;
 
@@ -75,56 +80,37 @@ public:
     {}
 
     static void init_suite(TestSuite& suite){
-        MMA_CLASS_TESTS(suite, testRunSequence, testCreate);
+        MMA_CLASS_TESTS(suite,
+            testRunSequence,
+            testCreate,
+            testAccess,
+            testSplitBuffer,
+            testSplit,
+            testMerge,
+            testInsert,
+            testRemove
+        );
     }
-
-    void testCreate()
-    {
-        std::vector<SymbolsRunT> syms1    = make_random_sequence(10240);
-        std::vector<BlockRank> rank_index = build_rank_index(syms1);
-        uint64_t size = count(syms1);
-
-        size_t sym = 0;
-        uint64_t rank0_max = get_rank_eq(rank_index, syms1, size, sym);
-
-        SeqPtr seq = make_sequence(syms1);
-
-        size_t queries = 10000;
-        std::vector<size_t> ranks;
-        for (size_t c = 0; c < queries; c++) {
-            ranks.push_back(getBIRandomG(rank0_max));
-        }
-
-        for (size_t c = 0; c < queries; c++)
-        {
-            uint64_t rank = ranks[c];
-
-            size_t pos1 = select_fw_eq(rank_index, syms1, rank, sym).global_pos();
-            size_t pos2 = seq->select_fw_eq(rank, sym).idx;
-
-            assert_equals(pos1, pos2);
-        }
-    }
-
-
 
     void testRunSequence()
     {
-        auto seq1 = make_random_sequence(10240000);
-        std::vector<SymbolsRunT> seq2 = split_runs(seq1);
-        assert_spans_equal(seq1, seq2);
+        for (size_t data_size = 2; data_size <= 32768; data_size *= 2)
+        {
+            println("DataSize: {}", data_size);
+            auto seq1 = make_random_sequence(data_size);
+            std::vector<SymbolsRunT> seq2 = split_runs(seq1);
+            assert_spans_equal(seq1, seq2);
+        }
     }
 
-    void testAccess()
-    {
-        std::vector<SymbolsRunT> syms1    = make_random_sequence(10240);
-        std::vector<BlockSize> size_index = build_size_index(syms1);
-        uint64_t size = count(syms1);
-
-        SeqPtr seq = make_sequence(syms1);
-
-        size_t queries = 10000;
-
+    template <typename T>
+    void doQueries(
+            SeqPtr seq,
+            const std::vector<SymbolsRunT>& syms,
+            std::vector<T> size_index,
+            size_t queries
+    ) const {
+        uint64_t size = count(syms);
         std::vector<size_t> poss;
 
         for (size_t c = 0; c < queries; c++) {
@@ -135,216 +121,206 @@ public:
         {
             uint64_t pos = poss[c];
 
-            size_t sym1 = get_symbol(size_index, syms1, pos);
+            size_t sym1 = get_symbol(size_index, syms, pos);
             size_t sym2 = seq->access(pos);
 
             assert_equals(sym1, sym2);
         }
     }
 
-
-
-
-    void testCreate1()
+    void testAccess()
     {
-        std::vector<SymbolsRunT> syms1 = make_random_sequence(3*10000);
-        uint64_t size = count(syms1);
-
-        SeqPtr seq = make_sequence(syms1);
-
-        seq->check().get_or_throw();
-
-        assert_equals(size, seq->size());
-
-        std::vector<SymbolsRunT> syms2 = seq->iterator().as_vector();
-        assert_spans_equal(syms1, syms2);
-    }
-
-/*    void testCreate()
-    {
-        for (int32_t size = 64; size <= this->size_; size *= 2)
+        for (size_t data_size = 2; data_size <= 32768; data_size *= 2)
         {
-            out() << size << std::endl;
+            println("DataSize: {}", data_size);
+            std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
+            std::vector<BlockSize> size_index = build_size_index(syms1);
 
-            auto seq = createEmptySequence();
+            SeqPtr seq = make_sequence(syms1);
 
-            auto symbols = this->fillRandom(seq, size);
-
-            assertIndexCorrect(MA_SRC, seq);
-            assertEqual(seq, symbols);
+            size_t queries = data_size / 2;
+            doQueries(seq, syms1, size_index, queries);
         }
     }
 
 
-    void testInsertSingle()
+
+
+    void testCreate()
     {
-        for (int32_t size = 1; size <= this->size_; size *= 2)
+        for (size_t data_size = 2; data_size <= 32768; data_size *= 2)
         {
-            out() << size << std::endl;
+            println("DataSize: {}", data_size);
+            std::vector<SymbolsRunT> syms1 = make_random_sequence(data_size);
+            uint64_t size = count(syms1);
 
-            auto seq = createEmptySequence();
-            auto symbols = fillRandom(seq, size);
+            SeqPtr seq = make_sequence(syms1);
+            seq->check().get_or_throw();
 
-            for (int32_t c = 0; c < this->iterations_; c++)
-            {
-                int32_t idx     = getRandom(seq->size());
-                int32_t symbol  = getRandom(Blocks);
+            assert_equals(size, seq->size());
 
-                out() << "Insert " << symbol << " at " << idx << std::endl;
-
-                seq->insert(idx, symbol).get_or_throw();
-
-                symbols.insert(symbols.begin() + idx, symbol);
-
-                assertIndexCorrect(MA_SRC, seq);
-                assertEqual(seq, symbols);
-            }
+            std::vector<SymbolsRunT> syms2 = seq->iterator().as_vector();
+            assert_spans_equal(syms1, syms2);
         }
     }
+
+    void testSplitBuffer()
+    {
+        std::vector<SymbolsRunT> syms1 = make_random_sequence(51);
+        uint64_t pos = count(syms1);
+        SplitBufResult res = split_buffer(syms1, pos / 2);
+
+        auto buf = res.left;
+        append_all(buf, to_const_span(res.right));
+        assert_spans_equal(syms1, buf);
+    }
+
 
     void testSplit()
     {
-        for (int32_t size = 16; size <= this->size_; size *= 2)
+        for (size_t data_size = 8; data_size <= 32768; data_size *= 2)
         {
-            out() << size << std::endl;
+            println("DataSize: {}", data_size);
 
-            for (int32_t c = 0; c < this->iterations_; c++)
-            {
-                auto seq = createEmptySequence();
-                auto symbols = fillRandom(seq, size);
+            std::vector<SymbolsRunT> syms1 = make_random_sequence(data_size);
 
-                int32_t idx = getRandom(seq->size());
+            uint64_t size = count(syms1);
+            uint64_t split_at = size / 2;
 
-                auto seq2 = createEmptySequence();
+            SplitBufResult res = split_buffer(syms1, split_at);
 
-                out() << "Split at " << idx << std::endl;
+            SeqPtr seq1 = make_sequence(syms1);
+            seq1->check().get_or_throw();
 
-                seq->splitTo(seq2.get(), idx).get_or_throw();
+            assert_equals(size, seq1->size());
 
-                seq2->check().get_or_throw();
-                seq->check().get_or_throw();
+            SeqPtr seq2 = make_sequence(syms1);
+            seq2->clear().get_or_throw();
+            assert_equals(0, seq2->size());
+            assert_equals(0, seq2->data_size());
 
-                std::vector<int32_t> symbols2(symbols.begin() + idx, symbols.end());
+            seq1->splitTo(seq2.get(), split_at).get_or_throw();
 
-                symbols.erase(symbols.begin() + idx, symbols.end());
+            std::vector<SymbolsRunT> vec1 = seq1->iterator().as_vector();
+            assert_equals(split_at, count(vec1));
+            assert_spans_equal(res.left, vec1);
 
+            assert_equals(split_at, seq1->size());
+            assert_equals(size - split_at, seq2->size());
 
-                assertEqual(seq, symbols);
-                assertEqual(seq2, symbols2);
-            }
+            std::vector<SymbolsRunT> vec2 = seq2->iterator().as_vector();
+            assert_equals(size - split_at, count(vec2));
+
+            assert_spans_equal(res.right, vec2);
+
+            std::vector<BlockSize> size_index = build_size_index(res.right);
+            size_t queries = data_size / 2;
+            doQueries(seq2, res.right, size_index, queries);
         }
     }
+
+
 
     void testMerge()
     {
-        for (int32_t size = 16; size <= this->size_; size *= 2)
+        for (size_t data_size = 8; data_size <= 32768; data_size *= 2)
         {
-            out() << size << std::endl;
+            println("DataSize: {}", data_size);
 
-            for (int32_t c = 0; c < this->iterations_; c++)
+            std::vector<SymbolsRunT> syms1 = make_random_sequence(data_size);
+            std::vector<SymbolsRunT> syms2 = make_random_sequence(data_size);
+            std::vector<SymbolsRunT> syms3 = syms2;
+            append_all(syms3, to_span(syms1));
+
+            uint64_t size3 = count(syms3);
+
+            SeqPtr seq1 = make_sequence(syms1);
+            seq1->check().get_or_throw();
+            SeqPtr seq2 = make_sequence(syms2, 3);
+            seq2->check().get_or_throw();
+
+            seq1->mergeWith(seq2.get()).get_or_throw();
+            assert_equals(size3, seq2->size());
+
+            std::vector<SymbolsRunT> vec3 = seq2->iterator().as_vector();
+            assert_equals(size3, count(vec3));
+
+            assert_spans_equal(syms3, vec3);
+
+            std::vector<BlockSize> size_index = build_size_index(syms3);
+            size_t queries = data_size / 2;
+            doQueries(seq2, syms3, size_index, queries);
+        }
+    }
+
+
+    void testInsert()
+    {
+        for (size_t data_size = 8; data_size <= 32768; data_size *= 2)
+        {
+            println("DataSize: {}", data_size);
+
+            std::vector<SymbolsRunT> syms = make_random_sequence(data_size);
+            uint64_t size = count(syms);
+
+            size_t times = 16;
+            SeqPtr seq = make_sequence(syms, times);
+
+            for (size_t cc = 0; cc < times; cc++)
             {
-                auto seq1 = createEmptySequence();
-                auto symbols1 = fillRandom(seq1, size);
+                std::vector<SymbolsRunT> src = make_random_sequence(data_size / 8);
+                uint64_t pos = getBIRandomG(size + 1);
 
-                auto seq2 = createEmptySequence();
-                auto symbols2 = fillRandom(seq2, size);
-                
-                //out() << "Seq1" << std::endl;
-                seq1->dump(out());
-                this->dumpAsSymbols(symbols1);
-                
-                //out() << "Seq2" << std::endl;
-                seq2->dump(out());
-                this->dumpAsSymbols(symbols2);
+                syms = insert_to_buffer(syms, src, pos);
 
-                seq1->mergeWith(seq2.get()).get_or_throw();
+                seq->insert(pos, src).get_or_throw();
+                seq->check().get_or_throw();
 
-                //out() << "Seq1" << std::endl;
-                seq1->dump(out());
-                
-                //out() << "Seq2" << std::endl;
-                seq2->dump(out());
-                
-                seq2->check().get_or_throw();
+                std::vector<SymbolsRunT> vv = seq->iterator().as_vector();
 
-                symbols2.insert(symbols2.end(), symbols1.begin(), symbols1.end());
+                assert_spans_equal(syms, vv);
 
-                assertEqual(seq2, symbols2);
+                std::vector<BlockSize> size_index = build_size_index(syms);
+                size_t queries = data_size / 2;
+                doQueries(seq, syms, size_index, queries);
             }
         }
     }
 
-
-
-    void testRemoveMulti()
+    void testRemove()
     {
-        for (int32_t size = 1; size <= this->size_; size *= 2)
+        for (size_t data_size = 8; data_size <= 32768; data_size *= 2)
         {
-            out() << "Sequence size: " << size << std::endl;
+            println("DataSize: {}", data_size);
 
-            auto seq = createEmptySequence();
+            std::vector<SymbolsRunT> syms = make_random_sequence(data_size);
 
-            auto symbols = fillRandom(seq, size);
+            SeqPtr seq = make_sequence(syms, 2);
 
-            for (int32_t c = 0; c < this->iterations_; c++)
+            for (size_t cc = 0; cc < 8; cc++)
             {
-                int32_t start   = getRandom(seq->size());
-                int32_t end     = start + getRandom(seq->size() - start);
+                uint64_t size = count(syms);
 
-                out() << "Remove from " << start << " to " << end << std::endl;
+                std::vector<SymbolsRunT> src = make_random_sequence(data_size / 8);
+                uint64_t start = getBIRandomG(size);
+                uint64_t end   = start + getBIRandomG(size - start + 1);
 
-                int32_t block_size = seq->block_size();
+                syms = remove_from_buffer(syms, start, end);
 
-                seq->remove(start, end).get_or_throw();
+                seq->removeSpace(start, end).get_or_throw();
+                seq->check().get_or_throw();
 
-                symbols.erase(symbols.begin() + start, symbols.begin() + end);
+                std::vector<SymbolsRunT> vv = seq->iterator().as_vector();
 
-                assertIndexCorrect(MA_SRC, seq);
-                assertEqual(seq, symbols);
+                assert_spans_equal(syms, vv);
 
-                assert_le(seq->block_size(), block_size);
+                std::vector<BlockSize> size_index = build_size_index(syms);
+                size_t queries = data_size / 2;
+                doQueries(seq, syms, size_index, queries);
             }
         }
     }
 
-    void testRemoveAll()
-    {
-        for (int32_t size = 1; size <= this->size_; size *= 2)
-        {
-            this->out() << size << std::endl;
-
-            auto seq = this->createEmptySequence();
-
-            auto symbols = this->fillRandom(seq, size);
-            assertEqual(seq, symbols);
-
-            seq->remove(0, seq->size()).get_or_throw();
-
-            assertEmpty(seq);
-        }
-    }
-
-    void testClear()
-    {
-        for (int32_t size = 1; size <= this->size_; size *= 2)
-        {
-            this->out() << size << std::endl;
-
-            auto seq = this->createEmptySequence();
-
-            assertEmpty(seq);
-
-            fillRandom(seq, size);
-
-            assert_gt(seq->size(), 0);
-            assert_gt(seq->block_size(), Seq::empty_size());
-
-            seq->clear().get_or_throw();
-
-            assertEmpty(seq);
-        }
-    }
-*/
 };
 
 

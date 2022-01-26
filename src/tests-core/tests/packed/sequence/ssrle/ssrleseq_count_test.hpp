@@ -79,84 +79,94 @@ public:
 
     void testCountFw()
     {
-        std::vector<SymbolsRunT> syms1    = make_random_sequence(10240);
-        std::vector<BlockSize> size_index = build_size_index(syms1);
-        std::vector<BlockRank> rank_index = build_rank_index(syms1);
-        uint64_t size = count(syms1);
-
-        SeqPtr seq = make_sequence(syms1);
-
-        size_t queries = 10000;
-
-        std::vector<size_t> poss;
-
-        for (size_t c = 0; c < queries; c++) {
-            poss.push_back(getBIRandomG(size));
-        }
-
-        int64_t t0 = getTimeInMillis();
-
-        for (size_t c = 30; c < queries; c++)
+        for (size_t data_size = 2; data_size <= 32768; data_size *= 2)
         {
-            uint64_t pos = poss[c];
+            println("DataSize: {}", data_size);
 
-            size_t sym = get_symbol(size_index, syms1, pos);
+            std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
+            std::vector<BlockSize> size_index = build_size_index(syms1);
+            std::vector<BlockRank> rank_index = build_rank_index(syms1);
+            uint64_t size = count(syms1);
 
-            uint64_t pos1 = count_fw(rank_index, syms1, pos, sym);
-            uint64_t pos2 = seq->count_fw(pos, sym);
+            SeqPtr seq = make_sequence(syms1);
 
-            try {
-                assert_equals(pos1, pos2);
+            size_t queries = data_size / 2;
+
+            std::vector<size_t> poss;
+
+            for (size_t c = 0; c < queries; c++) {
+                poss.push_back(getBIRandomG(size));
             }
-            catch (...) {
-                throw;
+
+            int64_t t0 = getTimeInMillis();
+
+            for (size_t c = 30; c < queries; c++)
+            {
+                uint64_t pos = poss[c];
+
+                size_t sym = get_symbol(size_index, syms1, pos);
+
+                uint64_t pos1 = count_fw(rank_index, syms1, pos, sym);
+                uint64_t pos2 = seq->count_fw(pos, sym);
+
+                try {
+                    assert_equals(pos1, pos2);
+                }
+                catch (...) {
+                    throw;
+                }
             }
+
+            int64_t t1 = getTimeInMillis();
+
+            println("Query time: {}", FormatTime(t1 - t0));
         }
-
-        int64_t t1 = getTimeInMillis();
-
-        println(out(), "Query time: {}", FormatTime(t1 - t0));
     }
 
     void testCountBw()
     {
-        std::vector<SymbolsRunT> syms1    = make_random_sequence(10240);
-        std::vector<BlockSize> size_index = build_size_index(syms1);
-        std::vector<BlockRank> rank_index = build_rank_index(syms1);
-        uint64_t size = count(syms1);
-
-        SeqPtr seq = make_sequence(syms1);
-
-        size_t queries = 10000;
-
-        std::vector<size_t> poss;
-
-        for (size_t c = 0; c < queries; c++) {
-            poss.push_back(getBIRandomG(size));
-        }
-
-        int64_t t0 = getTimeInMillis();
-
-        for (size_t c = 30; c < queries; c++)
+        for (size_t data_size = 2; data_size <= 32768; data_size *= 2)
         {
-            uint64_t pos = poss[c];
+            println("DataSize: {}", data_size);
 
-            size_t sym = get_symbol(size_index, syms1, pos);
+            std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
+            std::vector<BlockSize> size_index = build_size_index(syms1);
+            std::vector<BlockRank> rank_index = build_rank_index(syms1);
+            uint64_t size = count(syms1);
 
-            uint64_t pos1 = count_bw(rank_index, syms1, pos, sym);
-            uint64_t pos2 = seq->count_bw(pos, sym);
+            SeqPtr seq = make_sequence(syms1);
 
-            try {
-                assert_equals(pos1, pos2);
+            size_t queries = data_size / 2;
+
+            std::vector<size_t> poss;
+
+            for (size_t c = 0; c < queries; c++) {
+                poss.push_back(getBIRandomG(size));
             }
-            catch (...) {
-                throw;
+
+            int64_t t0 = getTimeInMillis();
+
+            for (size_t c = 30; c < queries; c++)
+            {
+                uint64_t pos = poss[c];
+
+                size_t sym = get_symbol(size_index, syms1, pos);
+
+                uint64_t pos1 = count_bw(rank_index, syms1, pos, sym);
+                uint64_t pos2 = seq->count_bw(pos, sym);
+
+                try {
+                    assert_equals(pos1, pos2);
+                }
+                catch (...) {
+                    throw;
+                }
             }
+
+            int64_t t1 = getTimeInMillis();
+
+            println("Query time: {}", FormatTime(t1 - t0));
         }
-
-        int64_t t1 = getTimeInMillis();
-
-        println(out(), "Query time: {}", FormatTime(t1 - t0));
     }
 };
 

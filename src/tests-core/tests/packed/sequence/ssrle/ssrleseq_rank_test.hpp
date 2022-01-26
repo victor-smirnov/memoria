@@ -137,41 +137,47 @@ public:
     template <typename Fn>
     void testRankFn(Fn&& fn)
     {
-        std::vector<SymbolsRunT> syms1    = make_random_sequence(10240);
-        std::vector<BlockRank> rank_index = build_rank_index(syms1);
-        uint64_t size = count(syms1);
-
-        SeqPtr seq = make_sequence(syms1);
-
-        size_t queries = 10000;
-
-        std::vector<size_t> poss;
-
-        for (size_t c = 0; c < queries; c++) {
-            poss.push_back(getBIRandomG(size));
-        }
-
-        int64_t t0 = getTimeInMillis();
-
-        for (size_t c = 0; c < queries; c++)
+        for (size_t data_size = 2; data_size <= 32768; data_size *= 2)
         {
-            uint64_t pos = poss[c];
+            println("DataSize: {}", data_size);
+            std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
+            std::vector<BlockRank> rank_index = build_rank_index(syms1);
+            uint64_t size = count(syms1);
 
-            uint64_t rank1 = fn.get_rank(this, rank_index, syms1, pos, 0);
-            uint64_t rank2 = fn.rank(seq, pos, 0);
+            SeqPtr seq = make_sequence(syms1);
 
-            try {
-                assert_equals(rank1, rank2);
+            size_t queries = data_size / 2;
+
+            std::vector<size_t> poss;
+
+            for (size_t c = 0; c < queries; c++) {
+                poss.push_back(getBIRandomG(size));
             }
-            catch (...) {
-                throw;
+
+            int64_t t0 = getTimeInMillis();
+
+            for (size_t c = 0; c < queries; c++)
+            {
+                uint64_t pos = poss[c];
+
+                uint64_t rank1 = fn.get_rank(this, rank_index, syms1, pos, 0);
+                uint64_t rank2 = fn.rank(seq, pos, 0);
+
+                try {
+                    assert_equals(rank1, rank2);
+                }
+                catch (...) {
+                    throw;
+                }
             }
+
+            int64_t t1 = getTimeInMillis();
+
+            println(out(), "Query time: {}", FormatTime(t1 - t0));
         }
-
-        int64_t t1 = getTimeInMillis();
-
-        println(out(), "Query time: {}", FormatTime(t1 - t0));
     }
+
+
 
     void testRankEq()
     {
@@ -205,39 +211,43 @@ public:
 
     void testRanks()
     {
-        std::vector<SymbolsRunT> syms1    = make_random_sequence(10240);
-        std::vector<BlockRank> rank_index = build_rank_index(syms1);
-        uint64_t size = count(syms1);
-
-        SeqPtr seq = make_sequence(syms1);
-
-        size_t queries = 10000;
-
-        std::vector<size_t> poss;
-
-        for (size_t c = 0; c < queries; c++) {
-            poss.push_back(getBIRandomG(size));
-        }
-
-        int64_t t0 = getTimeInMillis();
-
-        for (size_t c = 0; c < queries; c++)
+        for (size_t data_size = 2; data_size <= 32768; data_size *= 2)
         {
-            uint64_t pos = poss[c];
+            println("DataSize: {}", data_size);
+            std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
+            std::vector<BlockRank> rank_index = build_rank_index(syms1);
+            uint64_t size = count(syms1);
 
-            uint64_t ranks1[Symbols]{0,};
-            get_ranks(rank_index, syms1, pos, Span<uint64_t>(ranks1, Symbols));
+            SeqPtr seq = make_sequence(syms1);
 
-            uint64_t ranks2[Symbols]{0,};
-            seq->ranks(pos, Span<uint64_t>(ranks2, Symbols));
+            size_t queries = data_size / 2;
 
-            for (size_t c = 0; c < Symbols; c++) {
-                assert_equals(ranks1[c], ranks2[c]);
+            std::vector<size_t> poss;
+
+            for (size_t c = 0; c < queries; c++) {
+                poss.push_back(getBIRandomG(size));
             }
-        }
 
-        int64_t t1 = getTimeInMillis();
-        println(out(), "Query time: {}", FormatTime(t1 - t0));
+            int64_t t0 = getTimeInMillis();
+
+            for (size_t c = 0; c < queries; c++)
+            {
+                uint64_t pos = poss[c];
+
+                uint64_t ranks1[Symbols]{0,};
+                get_ranks(rank_index, syms1, pos, Span<uint64_t>(ranks1, Symbols));
+
+                uint64_t ranks2[Symbols]{0,};
+                seq->ranks(pos, Span<uint64_t>(ranks2, Symbols));
+
+                for (size_t c = 0; c < Symbols; c++) {
+                    assert_equals(ranks1[c], ranks2[c]);
+                }
+            }
+
+            int64_t t1 = getTimeInMillis();
+            println(out(), "Query time: {}", FormatTime(t1 - t0));
+        }
     }
 };
 

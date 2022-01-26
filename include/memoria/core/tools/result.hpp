@@ -230,6 +230,8 @@ class Result;
 using VoidResult  = Result<void>;
 using BoolResult  = Result<bool>;
 using Int32Result = Result<int32_t>;
+using Int64Result = Result<int64_t>;
+using UInt64Result = Result<uint64_t>;
 
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const Result<T>& res) noexcept;

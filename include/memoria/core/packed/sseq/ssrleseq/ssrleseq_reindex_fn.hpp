@@ -42,11 +42,24 @@ class ReindexFn {
     static const int32_t Indxes         = Seq::Indexes;
 
 public:
-    VoidResult reindex(Seq& seq) noexcept
+    VoidResult reindex(Seq& seq, Optional<Span<SymbolsRunT>> runs, bool compactify) noexcept
     {
-        std::vector<SymbolsRunT> syms = seq.iterator().as_vector();
-        RunTraits::compactify_runs(syms);
-        size_t symbols_block_size_atoms = RunTraits::compute_size(syms);
+        Span<const SymbolsRunT> syms_span;
+        std::vector<SymbolsRunT> syms;
+
+        size_t symbols_block_size_atoms;
+        if (runs) {
+            symbols_block_size_atoms = RunTraits::compute_size(runs.get());
+            syms_span = runs.get();
+        }
+        else {
+            syms = seq.iterator().as_vector();
+            if (compactify) {
+                RunTraits::compactify_runs(syms);
+            }
+            symbols_block_size_atoms = RunTraits::compute_size(syms);
+            syms_span = to_const_span(syms);
+        }
 
         auto meta = seq.metadata();
 
@@ -55,7 +68,7 @@ public:
             meta->data_size() = symbols_block_size_atoms;
 
             MEMORIA_TRY_VOID(seq.resizeBlock(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::AtomT)));
-            RunTraits::write_segments_to(syms, seq.symbols(), 0);
+            RunTraits::write_segments_to(syms_span, seq.symbols(), 0);
         }
 
         if (symbols_block_size_atoms > AtomsPerBlock)
@@ -139,7 +152,7 @@ public:
 
         auto symbols_block_size = ii.span().size();
 
-        if (symbols_block_size > BytesPerBlock)
+        if (symbols_block_size > AtomsPerBlock)
         {
             auto size_index = seq.size_index();
             MEMORIA_TRY_VOID(size_index->check());
@@ -150,9 +163,10 @@ public:
             uint64_t symbols_total_{};
             typename Seq::SumIndex::Values sums(0);
 
-            size_t next_block_start_idx = BytesPerBlock;
+            size_t next_block_start_idx = AtomsPerBlock;
 
             size_t blk_idx{};
+            size_t block_cnt{};
             auto check_indexes = [&]() -> VoidResult {
                 if (sum_index->access(blk_idx) != sums) {
                     return MEMORIA_MAKE_GENERIC_ERROR("SSRLESeq SumIndex check error: blk:{}, idx:{}, sum:{}",
@@ -172,8 +186,9 @@ public:
 
                 symbols_total_ = 0;
                 sums = typename Seq::SumIndex::Values(0);
-                next_block_start_idx += BytesPerBlock;
+                next_block_start_idx += AtomsPerBlock;
                 blk_idx++;
+                block_cnt = 0;
 
                 return VoidResult::of();
             };
@@ -181,16 +196,19 @@ public:
             while (!ii.is_eos())
             {
                 auto run = ii.get();
-                symbols_total_ += run.full_run_length();
-
-                for (size_t s = 0; s < run.pattern_length(); s++)
+                if (run)
                 {
-                    auto sym = run.symbol(s);
-                    sums[sym] += run.run_length();
-                }
+                    symbols_total_ += run.full_run_length();
 
-                if (run) {
-                    ii.next();
+                    for (size_t s = 0; s < run.pattern_length(); s++)
+                    {
+                        auto sym = run.symbol(s);
+                        sums[sym] += run.run_length();
+                    }
+
+                    block_cnt++;
+
+                    ii.next();                    
                 }
                 else if (run.is_padding())
                 {
@@ -204,6 +222,10 @@ public:
                 if (ii.idx() == next_block_start_idx) {
                     MEMORIA_TRY_VOID(check_indexes());
                 }
+            }
+
+            if (block_cnt) {
+                MEMORIA_TRY_VOID(check_indexes());
             }
         }
 
