@@ -996,26 +996,6 @@ public:
 
 
 
-    template <typename Fn>
-    static size_t pattern_select_bw_fn(const RunT& run, size_t rank, size_t symbol, Fn&& compare) noexcept
-    {
-        size_t rr{};
-
-        ++rank;
-        for (size_t c = run.pattern_length(); c > 0; c--)
-        {
-            size_t sym = run.symbol(c - 1);
-            rr += compare(sym, symbol);
-
-            if (rr == rank) {
-                return c - 1;
-            }
-        }
-
-        return run.pattern_length();
-    }
-
-
 
 
 
@@ -1096,48 +1076,6 @@ public:
 
 
     template <typename Fn>
-    static size_t select_bw_eq(const RunT& run, size_t rank, size_t symbol) noexcept
-    {
-        if (run.run_length() == 1) {
-            return RunTraits::pattern_select_bw_fn(run, rank, symbol, FindEQFn());
-        }
-        else {
-            size_t rr = RunTraits::pattern_rank(run, symbol);
-
-            size_t rank_base = rank / rr;
-            size_t rank_local = rank - rank_base * rr;
-
-            size_t idx = RunTraits::pattern_select_bw(run, rank_local, symbol, FindEQFn());
-
-            return run.full_run_length() - idx + run.patter_length() * rank_base;
-        }
-    }
-
-
-
-    static size_t select_bw_gt(const RunT& run, size_t rank, size_t symbol) noexcept {
-        return select_bw_fn(run, rank, symbol, FindGTFn());
-    }
-
-    static size_t select_bw_lt(const RunT& run, size_t rank, size_t symbol) noexcept {
-        return select_bw_fn(run, rank, symbol, FindLTFn());
-    }
-
-    static size_t select_bw_ge(const RunT& run, size_t rank, size_t symbol) noexcept {
-        return select_bw_fn(run, rank, symbol, FindGEFn());
-    }
-
-    static size_t select_bw_le(const RunT& run, size_t rank, size_t symbol) noexcept {
-        return select_bw_fn(run, rank, symbol, FindLEFn());
-    }
-
-    static size_t select_bw_neq(const RunT& run, size_t rank, size_t symbol) noexcept {
-        return select_bw_fn(run, rank, symbol, FindNEQFn());
-    }
-
-
-
-    template <typename Fn>
     static size_t select_fw_fn(const RunT& run, size_t rank, size_t symbol, Fn&& compare) noexcept
     {
         if (run.run_length() == 1) {
@@ -1150,25 +1088,6 @@ public:
 
             size_t idx = RunTraits::pattern_select_fw_fn(run, rank_local, symbol, std::forward<Fn>(compare));
             return idx + run.pattern_length() * rank_base;
-        }
-    }
-
-
-
-    template <typename Fn>
-    static size_t select_bw_fn(const RunT& run, size_t rank, size_t symbol, Fn&& compare) noexcept
-    {
-        if (run.run_length() == 1) {
-            return RunTraits::pattern_select_bw_fn(run, rank, symbol, std::forward<Fn>(compare));
-        }
-        else {
-            size_t rr = RunTraits::pattern_rank_fn(run, symbol, std::forward<Fn>(compare));
-            size_t rank_base = rank / rr;
-            size_t rank_local = rank - rank_base * rr;
-
-            size_t idx = RunTraits::pattern_select_bw_fn(run, rank_local, symbol, std::forward<Fn>(compare));
-
-            return run.full_run_length() - ((run.pattern_length() - idx) + run.pattern_length() * rank_base);
         }
     }
 
@@ -1219,87 +1138,6 @@ public:
 
     static size_t rank_neq(const RunT& run, size_t idx, size_t symbol) noexcept {
         return rank_fn(run, idx, symbol, FindNEQFn());
-    }
-
-
-
-    static size_t pattern_count_fw(const RunT& run, size_t start_idx, size_t symbol) noexcept
-    {
-        size_t c = start_idx;
-        for (; c < run.pattern_length(); c++) {
-            if (run.symbol(c) != symbol) {
-                break;
-            }
-        }
-
-        return c - start_idx;
-    }
-
-    static size_t pattern_count_bw(const RunT& run, size_t start_idx, size_t symbol) noexcept
-    {
-        size_t c = start_idx + 1;
-        for (; c > 0; c--) {
-            if (run.symbol(c - 1) != symbol) {
-                return start_idx - (c - 1);
-            }
-        }
-        return start_idx + 1;
-    }
-
-
-    static size_t count_fw(const RunT& run, size_t start_idx, size_t symbol) noexcept
-    {
-        if (run.run_length() == 1) {
-            return RunTraits::pattern_count_fw(run, start_idx, symbol);
-        }
-        else {
-            size_t idx_base  = start_idx / run.pattern_length();
-            size_t idx_local = start_idx - idx_base * run.pattern_length();
-
-            size_t suffix_cnt = RunTraits::pattern_count_fw(run, idx_local, symbol);
-
-            if (MMA_UNLIKELY(suffix_cnt == run.pattern_length() - idx_local) && (idx_base + 1 < run.run_length()))
-            {
-                size_t prefix_cnt = RunTraits::pattern_count_fw(run, 0, symbol);
-                if (prefix_cnt == run.pattern_length()) {
-                    return suffix_cnt + run.pattern_length() * (run.run_length() - idx_base - 1);
-                }
-                else {
-                    return suffix_cnt + prefix_cnt;
-                }
-            }
-            else {
-                return suffix_cnt;
-            }
-        }
-    }
-
-    static size_t count_bw(const RunT& run, size_t start_idx, size_t symbol) noexcept
-    {
-        if (run.run_length() == 1) {
-            return RunTraits::pattern_count_bw(run, start_idx, symbol);
-        }
-        else {
-            size_t idx_base  = start_idx / run.pattern_length();
-            size_t idx_local = start_idx - idx_base * run.pattern_length();
-
-            size_t prefix_cnt = RunTraits::pattern_count_bw(run, idx_local, symbol);
-
-            if (MMA_UNLIKELY(prefix_cnt == (idx_local + 1) && idx_base > 0))
-            {
-                size_t suffix_cnt = RunTraits::pattern_count_bw(run, run.pattern_length() - 1, symbol);
-                if (prefix_cnt == run.pattern_length())
-                {
-                    return prefix_cnt + run.pattern_length() * idx_base;
-                }
-                else {
-                    return suffix_cnt + prefix_cnt;
-                }
-            }
-            else {
-                return prefix_cnt;
-            }
-        }
     }
 };
 
@@ -1536,14 +1374,6 @@ public:
         return SSRLERunCommonTraits<Bps>::full_ranks(*this, sink);
     }
 
-    size_t count_fw(size_t start_idx, size_t symbol) const noexcept {
-        return SSRLERunCommonTraits<Bps>::count_fw(*this, start_idx, symbol);
-    }
-
-    size_t count_bw(size_t start_idx, size_t symbol) const noexcept {
-        return SSRLERunCommonTraits<Bps>::count_bw(*this, start_idx, symbol);
-    }
-
     size_t select_fw_eq(size_t rank, size_t symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::select_fw_eq(*this, rank, symbol);
     }
@@ -1566,30 +1396,6 @@ public:
 
     size_t select_fw_neq(size_t rank, size_t symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::select_fw_neq(*this, rank, symbol);
-    }
-
-    size_t select_bw_eq(size_t rank, size_t symbol) const noexcept {
-        return SSRLERunCommonTraits<Bps>::select_bw_eq(*this, rank, symbol);
-    }
-
-    size_t select_bw_lt(size_t rank, size_t symbol) const noexcept {
-        return SSRLERunCommonTraits<Bps>::select_bw_lt(*this, rank, symbol);
-    }
-
-    size_t select_bw_le(size_t rank, size_t symbol) const noexcept {
-        return SSRLERunCommonTraits<Bps>::select_bw_le(*this, rank, symbol);
-    }
-
-    size_t select_bw_gt(size_t rank, size_t symbol) const noexcept {
-        return SSRLERunCommonTraits<Bps>::select_bw_gt(*this, rank, symbol);
-    }
-
-    size_t select_bw_ge(size_t rank, size_t symbol) const noexcept {
-        return SSRLERunCommonTraits<Bps>::select_bw_ge(*this, rank, symbol);
-    }
-
-    size_t select_bw_neq(size_t rank, size_t symbol) const noexcept {
-        return SSRLERunCommonTraits<Bps>::select_bw_neq(*this, rank, symbol);
     }
 
     static SSRLERun make_run(std::initializer_list<size_t> symbols, size_t run_length) noexcept {

@@ -56,49 +56,7 @@ public:
     PackedSSRLESearchableSequenceRLETest(){}
 
     static void init_suite(TestSuite& suite) {
-        MMA_CLASS_TESTS(suite, testCreate, testRank, testCount, testSelect);
-    }
-
-    void testCount()
-    {
-        std::initializer_list<size_t> syms1 = {1,1,1,0,0,1,1};
-
-        size_t run_length = 10;
-        SymbolsRunT run1 = SymbolsRunT::make_run(syms1, run_length);
-
-        size_t cnt1 = run1.count_fw(0, 1);
-        assert_equals(3, cnt1);
-
-        size_t cnt2 = run1.count_fw(1, 1);
-        assert_equals(2, cnt2);
-
-        size_t cnt3 = run1.count_fw(2, 1);
-        assert_equals(1, cnt3);
-
-        size_t cnt4 = run1.count_fw(3, 1);
-        assert_equals(0, cnt4);
-
-        size_t cnt5 = run1.count_fw(5, 1);
-        assert_equals(5, cnt5);
-
-        std::initializer_list<size_t> syms2 = {0,0,0,1,0,0,0};
-
-        SymbolsRunT run2 = SymbolsRunT::make_run(syms2, run_length);
-
-        size_t cnt6 = run2.count_fw(4, 0);
-        assert_equals(6, cnt6);
-
-        size_t cnt7 = run1.count_bw(2, 1);
-        assert_equals(3, cnt7);
-
-        size_t cnt8 = run1.count_bw(2 + run1.pattern_length(), 1);
-        assert_equals(5, cnt8);
-
-        size_t cnt9 = run2.count_bw(2, 0);
-        assert_equals(3, cnt9);
-
-        size_t cnt10 = run2.count_bw(2 + run1.pattern_length(), 0);
-        assert_equals(6, cnt10);
+        MMA_CLASS_TESTS(suite, testCreate, testRank, testSelect);
     }
 
 
@@ -128,12 +86,6 @@ public:
 
         size_t pos4 = run.select_fw_le(21, 1);
         assert_equals(21, pos4);
-
-        size_t pos5 = run.select_bw_lt(21, 1);
-        assert_equals(20, pos5);
-
-        size_t pos6 = run.select_bw_le(21, 1);
-        assert_equals(48, pos6);
     }
 
     void testRank()
