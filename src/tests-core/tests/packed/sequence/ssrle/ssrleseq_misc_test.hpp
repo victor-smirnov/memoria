@@ -41,8 +41,9 @@ class PackedSSRLESearchableSequenceMiscTest: public PackedSSRLESequenceTestBase<
     using typename Base::BlockRank;
     using typename Base::LocateResult;
     using typename Base::SplitBufResult;
-
-    using Value = typename Seq::Value;
+    using typename Base::SeqSizeT;
+    using typename Base::RunSizeT;
+    using typename Base::SymbolT;
 
     using Base::Symbols;
 
@@ -72,7 +73,6 @@ class PackedSSRLESearchableSequenceMiscTest: public PackedSSRLESequenceTestBase<
     using Base::split_runs;
     using Base::out;
     using Base::size_;
-    using Base::iterations_;
 
 public:
 
@@ -110,21 +110,26 @@ public:
             std::vector<T> size_index,
             size_t queries
     ) const {
-        uint64_t size = count(syms);
+        SeqSizeT size = count(syms);
         std::vector<size_t> poss;
 
         for (size_t c = 0; c < queries; c++) {
-            poss.push_back(getBIRandomG(size));
+            poss.push_back(getBIRandomG(static_cast<size_t>(size)));
         }
 
         for (size_t c = 0; c < queries; c++)
         {
             uint64_t pos = poss[c];
 
-            size_t sym1 = get_symbol(size_index, syms, pos);
-            size_t sym2 = seq->access(pos);
+            SymbolT sym1 = get_symbol(size_index, syms, pos);
+            SymbolT sym2 = seq->access(pos);
 
-            assert_equals(sym1, sym2);
+            try {
+                assert_equals(sym1, sym2);
+            }
+            catch (...) {
+                throw;
+            }
         }
     }
 
@@ -152,7 +157,7 @@ public:
         {
             println("DataSize: {}", data_size);
             std::vector<SymbolsRunT> syms1 = make_random_sequence(data_size);
-            uint64_t size = count(syms1);
+            SeqSizeT size = count(syms1);
 
             SeqPtr seq = make_sequence(syms1);
             seq->check().get_or_throw();
@@ -184,8 +189,8 @@ public:
 
             std::vector<SymbolsRunT> syms1 = make_random_sequence(data_size);
 
-            uint64_t size = count(syms1);
-            uint64_t split_at = size / 2;
+            SeqSizeT size = count(syms1);
+            SeqSizeT split_at = static_cast<uint64_t>(size) / 2;
 
             SplitBufResult res = split_buffer(syms1, split_at);
 
@@ -196,7 +201,7 @@ public:
 
             SeqPtr seq2 = make_sequence(syms1);
             seq2->clear().get_or_throw();
-            assert_equals(0, seq2->size());
+            assert_equals(SeqSizeT{0}, seq2->size());
             assert_equals(0, seq2->data_size());
 
             seq1->splitTo(seq2.get(), split_at).get_or_throw();
@@ -232,7 +237,7 @@ public:
             std::vector<SymbolsRunT> syms3 = syms2;
             append_all(syms3, to_span(syms1));
 
-            uint64_t size3 = count(syms3);
+            SeqSizeT size3 = count(syms3);
 
             SeqPtr seq1 = make_sequence(syms1);
             seq1->check().get_or_throw();
@@ -261,7 +266,7 @@ public:
             println("DataSize: {}", data_size);
 
             std::vector<SymbolsRunT> syms = make_random_sequence(data_size);
-            uint64_t size = count(syms);
+            SeqSizeT size = count(syms);
 
             size_t times = 16;
             SeqPtr seq = make_sequence(syms, times);
@@ -269,7 +274,7 @@ public:
             for (size_t cc = 0; cc < times; cc++)
             {
                 std::vector<SymbolsRunT> src = make_random_sequence(data_size / 8);
-                uint64_t pos = getBIRandomG(size + 1);
+                SeqSizeT pos = getBIRandomG(static_cast<uint64_t>(size) + 1);
 
                 syms = insert_to_buffer(syms, src, pos);
 

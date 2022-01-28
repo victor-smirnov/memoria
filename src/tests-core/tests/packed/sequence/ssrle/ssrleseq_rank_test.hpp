@@ -40,8 +40,9 @@ class PackedSSRLESearchableSequenceRankTest: public PackedSSRLESequenceTestBase<
     using typename Base::BlockSize;
     using typename Base::BlockRank;
     using typename Base::LocateResult;
-
-    using Value = typename Seq::Value;
+    using typename Base::SeqSizeT;
+    using typename Base::RunSizeT;
+    using typename Base::SymbolT;
 
     using Base::Symbols;
 
@@ -65,7 +66,6 @@ class PackedSSRLESearchableSequenceRankTest: public PackedSSRLESequenceTestBase<
     using Base::split_runs;
     using Base::out;
     using Base::size_;
-    using Base::iterations_;
 
 public:
     PackedSSRLESearchableSequenceRankTest(){}
@@ -142,7 +142,7 @@ public:
             println("DataSize: {}", data_size);
             std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
             std::vector<BlockRank> rank_index = build_rank_index(syms1);
-            uint64_t size = count(syms1);
+            SeqSizeT size = count(syms1);
 
             SeqPtr seq = make_sequence(syms1);
 
@@ -151,7 +151,7 @@ public:
             std::vector<size_t> poss;
 
             for (size_t c = 0; c < queries; c++) {
-                poss.push_back(getBIRandomG(size));
+                poss.push_back(getBIRandomG(static_cast<size_t>(size)));
             }
 
             int64_t t0 = getTimeInMillis();
@@ -160,8 +160,8 @@ public:
             {
                 uint64_t pos = poss[c];
 
-                uint64_t rank1 = fn.get_rank(this, rank_index, syms1, pos, 0);
-                uint64_t rank2 = fn.rank(seq, pos, 0);
+                SeqSizeT rank1 = fn.get_rank(this, rank_index, syms1, pos, 0);
+                SeqSizeT rank2 = fn.rank(seq, pos, 0);
 
                 try {
                     assert_equals(rank1, rank2);
@@ -216,7 +216,7 @@ public:
             println("DataSize: {}", data_size);
             std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
             std::vector<BlockRank> rank_index = build_rank_index(syms1);
-            uint64_t size = count(syms1);
+            SeqSizeT size = count(syms1);
 
             SeqPtr seq = make_sequence(syms1);
 
@@ -225,20 +225,20 @@ public:
             std::vector<size_t> poss;
 
             for (size_t c = 0; c < queries; c++) {
-                poss.push_back(getBIRandomG(size));
+                poss.push_back(getBIRandomG(static_cast<size_t>(size)));
             }
 
             int64_t t0 = getTimeInMillis();
 
             for (size_t c = 0; c < queries; c++)
             {
-                uint64_t pos = poss[c];
+                SeqSizeT pos = poss[c];
 
-                uint64_t ranks1[Symbols]{0,};
-                get_ranks(rank_index, syms1, pos, Span<uint64_t>(ranks1, Symbols));
+                SeqSizeT ranks1[Symbols]{0,};
+                get_ranks(rank_index, syms1, pos, Span<SeqSizeT>(ranks1, Symbols));
 
-                uint64_t ranks2[Symbols]{0,};
-                seq->ranks(pos, Span<uint64_t>(ranks2, Symbols));
+                SeqSizeT ranks2[Symbols]{0,};
+                seq->ranks(pos, Span<SeqSizeT>(ranks2, Symbols));
 
                 for (size_t c = 0; c < Symbols; c++) {
                     assert_equals(ranks1[c], ranks2[c]);

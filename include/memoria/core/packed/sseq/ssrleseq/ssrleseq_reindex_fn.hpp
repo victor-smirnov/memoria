@@ -35,11 +35,13 @@ class ReindexFn {
     using SumIndex      = typename Seq::SumIndex;
     using SymbolsRunT   = typename Seq::SymbolsRunT;
     using RunTraits     = typename Seq::RunTraits;
+    using SeqSizeT      = typename Seq::SeqSizeT;
+    using RunSizeT      = typename Seq::RunSizeT;
+    using SymbolT       = typename Seq::SymbolT;
 
-    static const int32_t Symbols        = Seq::Symbols;
+    static const SymbolT Symbols        = Seq::Symbols;
     static const size_t  BytesPerBlock  = Seq::BytesPerBlock;
     static const size_t  AtomsPerBlock  = Seq::AtomsPerBlock;
-    static const int32_t Indxes         = Seq::Indexes;
 
 public:
     VoidResult reindex(Seq& seq, Optional<Span<SymbolsRunT>> runs, bool compactify) noexcept
@@ -67,7 +69,7 @@ public:
         {
             meta->data_size() = symbols_block_size_atoms;
 
-            MEMORIA_TRY_VOID(seq.resizeBlock(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::AtomT)));
+            MEMORIA_TRY_VOID(seq.resizeBlock(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::CodeUnitT)));
             RunTraits::write_segments_to(syms_span, seq.symbols(), 0);
         }
 
@@ -79,8 +81,8 @@ public:
             auto size_index = seq.size_index();
             auto sum_index  = seq.sum_index();
 
-            uint64_t symbols_total_{};
-            typename Seq::SumIndex::Values sums(0);
+            SeqSizeT symbols_total_{};
+            typename Seq::SumIndex::Values sums(SeqSizeT{});
 
             size_t next_block_start_idx = AtomsPerBlock;
 
@@ -92,8 +94,8 @@ public:
                 MEMORIA_TRY_VOID(sum_index->append(sums));
 
                 typename Seq::SizeIndex::Values sizes(symbols_total_);
-                symbols_total_ = 0;
-                sums = typename Seq::SumIndex::Values(0);
+                symbols_total_ = SeqSizeT{};
+                sums = typename Seq::SumIndex::Values(SeqSizeT{});
                 next_block_start_idx += AtomsPerBlock;
                 block_cnt = 0;
 
@@ -160,8 +162,8 @@ public:
             auto sum_index  = seq.sum_index();
             MEMORIA_TRY_VOID(sum_index->check());
 
-            uint64_t symbols_total_{};
-            typename Seq::SumIndex::Values sums(0);
+            SeqSizeT symbols_total_{};
+            typename Seq::SumIndex::Values sums(SeqSizeT{});
 
             size_t next_block_start_idx = AtomsPerBlock;
 
@@ -184,8 +186,8 @@ public:
                                                       sizes);
                 }
 
-                symbols_total_ = 0;
-                sums = typename Seq::SumIndex::Values(0);
+                symbols_total_ = SeqSizeT{};
+                sums = typename Seq::SumIndex::Values(SeqSizeT{});
                 next_block_start_idx += AtomsPerBlock;
                 blk_idx++;
                 block_cnt = 0;

@@ -18,11 +18,13 @@
 
 #include <memoria/core/types.hpp>
 #include <memoria/core/strings/string.hpp>
+#include <memoria/core/tools/dump.hpp>
 
 #include <string>
 #include <sstream>
 
 namespace memoria {
+
 
 
 U8String trimString(U8StringRef str);
@@ -40,7 +42,9 @@ U8String toString(const T& value, bool hex = false)
     if (hex) {
         str << hex;
     }
-    str << value;
+
+    detail::OutputHelepr<T>::out(str, value);
+//    str << value;
     return str.str();
 }
 

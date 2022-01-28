@@ -226,7 +226,7 @@ public:
     static int32_t find_max_bitmap_size(int32_t client_area) noexcept
     {
         int32_t max_blk_size = 0;
-        int32_t last_bitmap_size;
+        int32_t last_bitmap_size{};
 
         for (int32_t bitmap_size = 0; bitmap_size < client_area * 8; bitmap_size += ValuesPerBranch)
         {

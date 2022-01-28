@@ -42,22 +42,21 @@ template <size_t Bps>
 struct SSRLERunCommonTraitsBase {
     static_assert(Bps <= 8, "Unsupported bits-per-symbol value");
 
-    using AtomT     = uint16_t;
-    using CodeUnitT = uint64_t;
+    using CodeUnitT     = uint16_t;
+    using RunDataT      = uint64_t;
+    using SymbolT       = size_t;
+    using RunSizeT      = uint64_t;
 
-    // A group of up to 4 atoms.
-    using SegmentT  = uint64_t;
-
-    static constexpr size_t SEGMENT_BITS = sizeof(SegmentT) * 8; // Should be 64
+    static constexpr size_t SEGMENT_BITS = sizeof(RunDataT) * 8; // Should be 64
     static constexpr size_t CODE_UNIT_SIZE_BITS = 2;
 
-    static constexpr size_t CODE_UNIT_BITS_MIN = sizeof(AtomT) * 8;
+    static constexpr size_t CODE_UNIT_BITS_MIN = sizeof(CodeUnitT) * 8;
     static constexpr size_t CODE_UNIT_BITS_MAX = SEGMENT_BITS;
 
     static constexpr size_t CODE_UNITS_PER_SEGMENT_MAX = SEGMENT_BITS / CODE_UNIT_BITS_MIN;
 
     static constexpr size_t SEGMENT_SIZE_BYTES = 64;
-    static constexpr size_t SEGMENT_SIZE_UNITS = SEGMENT_SIZE_BYTES / sizeof(AtomT);
+    static constexpr size_t SEGMENT_SIZE_UNITS = SEGMENT_SIZE_BYTES / sizeof(CodeUnitT);
 
     static constexpr size_t SYMBOLS = size_t(1) << Bps;
 
@@ -65,22 +64,22 @@ struct SSRLERunCommonTraitsBase {
 
     using RunT = SSRLERun<Bps>;
 
-    static constexpr CodeUnitT make_mask(size_t len) noexcept
+    static constexpr RunDataT make_mask(size_t len) noexcept
     {
         if (len >= SEGMENT_BITS) {
-            return ~static_cast<CodeUnitT>(0);
+            return ~static_cast<RunDataT>(0);
         }
         else {
-            CodeUnitT atom = static_cast<CodeUnitT>(1) << len;
-            return atom - 1;
+            RunDataT value = static_cast<RunDataT>(1) << len;
+            return value - 1;
         }
     }
 
 
 protected:
-    static constexpr CodeUnitT make_mask_safe(size_t len) noexcept
+    static constexpr RunDataT make_mask_safe(size_t len) noexcept
     {
-        CodeUnitT atom = static_cast<CodeUnitT>(1) << len;
+        RunDataT atom = static_cast<RunDataT>(1) << len;
         return atom - 1;
     }
 
@@ -89,19 +88,19 @@ protected:
     }
 
 public:
-    static constexpr CodeUnitT SYMBOL_MASK = make_mask_safe(Bps);
+    static constexpr RunDataT SYMBOL_MASK = make_mask_safe(Bps);
 
 
-    static RunT make_run(std::initializer_list<size_t> symbols, size_t run_length) noexcept
+    static RunT make_run(std::initializer_list<SymbolT> symbols, RunSizeT run_length) noexcept
     {
         size_t max_len = RunTraits::max_pattern_length();
 
         size_t cnt{};
-        size_t pattern{};
+        RunDataT pattern{};
 
         for (size_t sym: symbols) {
             if (cnt < max_len) {
-                size_t mask = make_mask_safe(Bps);
+                RunDataT mask = make_mask_safe(Bps);
                 pattern |= (sym & mask) << (cnt * Bps);
             }
             cnt++;
@@ -238,7 +237,7 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("Can't split run {} at {}", run.to_string(), at).do_throw();
     }
 
-    static SSRLERunArray<Bps> insert(const RunT& self, const RunT& run, size_t at)
+    static SSRLERunArray<Bps> insert(const RunT& self, const RunT& run, RunSizeT at)
     {
         if (at > run.full_run_length()) {
             MEMORIA_MAKE_GENERIC_ERROR("Insert position {} is outside of length {} for SSRLE run {}",
@@ -279,8 +278,8 @@ public:
             // What is special about this branch as we will need to do a pattern split.
             // Because all other cases have been handled above.
 
-            size_t at_start = at % self.pattern_length();
-            size_t at_base  = at - at_start;
+            RunSizeT at_start = at % self.pattern_length();
+            RunSizeT at_base  = at - at_start;
 
             RunT prefix, suffix;
 
@@ -344,7 +343,7 @@ public:
                 auto r_run = self;
                 r_run.run_length_ = 1;
 
-                CodeUnitT tmp = r_run.pattern_ >> (at_start * Bps);
+                RunDataT tmp = r_run.pattern_ >> (at_start * Bps);
                 r_run.pattern_ &= make_mask_safe(at_start * Bps);
                 r_run.pattern_ |= run.pattern() << (at_start * Bps);
                 r_run.pattern_ |= tmp << ((at_start + run.pattern_length()) * Bps);
@@ -353,7 +352,7 @@ public:
 
                 result.append(r_run);
 
-                size_t suffix_length = self.run_length() - prefix.run_length() - 1;
+                RunSizeT suffix_length = self.run_length() - prefix.run_length() - 1;
                 if (suffix_length)
                 {
                     suffix = self;
@@ -403,7 +402,7 @@ public:
         else if (self.run_length_ == 1 && run.run_length() == 1)
         {
             if (RunTraits::is_fit(self.pattern_length_ + run.pattern_length(), 1)) {
-                CodeUnitT atom = run.pattern() << self.pattern_length_;
+                RunDataT atom = run.pattern() << self.pattern_length_;
                 self.pattern_ |= atom;
                 self.pattern_length_ += run.pattern_length();
                 return true;
@@ -414,19 +413,19 @@ public:
     }
 
 
-    static void encode_run(const RunT& run, AtomT* atoms, size_t unit_size) noexcept
+    static void encode_run(const RunT& run, CodeUnitT* atoms, size_t unit_size) noexcept
     {
-        SegmentT segment{};
+        RunDataT segment{};
         SSRLERunTraits<Bps>::encode_run(run, segment, unit_size);
         for (size_t c = 0; c < unit_size; c++)
         {
-            AtomT atom = static_cast<AtomT>(segment);
+            CodeUnitT atom = static_cast<CodeUnitT>(segment);
             atoms[c] = atom;
-            segment >>= sizeof(AtomT) * 8;
+            segment >>= sizeof(CodeUnitT) * 8;
         }
     }
 
-    static void encode_run(const RunT& run, SegmentT& segment, size_t unit_size) noexcept
+    static void encode_run(const RunT& run, RunDataT& segment, size_t unit_size) noexcept
     {
         constexpr size_t PATTERN_LEN = RunTraits::LEN_BITS;
 
@@ -442,21 +441,21 @@ public:
         segment |= run.run_length() << (CODE_UNIT_SIZE_BITS + PATTERN_LEN + run.pattern_length() * Bps);
     }
 
-    static size_t decode_unit_to(const AtomT* atoms, RunT& run) noexcept
+    static size_t decode_unit_to(const CodeUnitT* atoms, RunT& run) noexcept
     {
-        AtomT atom = atoms[0];
+        CodeUnitT atom = atoms[0];
         size_t unit_size = (atom & make_mask_safe(CODE_UNIT_SIZE_BITS)) + 1;
 
-        SegmentT segment{};
+        RunDataT segment{};
         for (size_t c = 0; c < unit_size; c++) {
-            segment |= static_cast<SegmentT>(atoms[c]) << (c * sizeof(AtomT) * 8);
+            segment |= static_cast<RunDataT>(atoms[c]) << (c * sizeof(CodeUnitT) * 8);
         }
 
         return decode_unit_to(segment, run, unit_size);
     }
 
 
-    static size_t decode_unit_to(SegmentT segment, RunT& run, size_t unit_size) noexcept
+    static size_t decode_unit_to(RunDataT segment, RunT& run, size_t unit_size) noexcept
     {
         constexpr size_t PATTERN_LEN = RunTraits::LEN_BITS;
 
@@ -480,7 +479,7 @@ public:
         return unit_size;
     }
 
-    static size_t decode_segment_to(SegmentT& segment, Span<RunT> span) noexcept
+    static size_t decode_segment_to(RunDataT& segment, Span<RunT> span) noexcept
     {
         size_t units = 0;
 
@@ -501,7 +500,7 @@ public:
 
     static void write_segments_to(
             Span<const RunT> source,
-            Span<AtomT> target,
+            Span<CodeUnitT> target,
             size_t& tgt_idx,
             size_t next_limit
     ) noexcept
@@ -559,7 +558,7 @@ public:
         }
     }
 
-    static size_t write_segments_to(Span<const RunT> prefix, Span<const RunT> source, Span<AtomT> target) noexcept
+    static size_t write_segments_to(Span<const RunT> prefix, Span<const RunT> source, Span<CodeUnitT> target) noexcept
     {
         size_t tgt_idx{};
         size_t next_limit = SEGMENT_SIZE_UNITS;
@@ -571,7 +570,7 @@ public:
         return tgt_idx;
     }
 
-    static size_t write_segments_to(Span<const RunT> source, Span<AtomT> target, size_t start) noexcept
+    static size_t write_segments_to(Span<const RunT> source, Span<CodeUnitT> target, size_t start) noexcept
     {
         size_t tgt_idx = start;
 
@@ -631,7 +630,7 @@ public:
         return tgt_idx;
     }
 
-    static void finish_setgment(Span<AtomT> span, size_t start) noexcept {
+    static void finish_setgment(Span<CodeUnitT> span, size_t start) noexcept {
         for (size_t c = start; c < span.size(); c++) {
             span[c] = 0;
         }
@@ -666,9 +665,9 @@ public:
         }
     }
 
-    static size_t pattern_rank(const RunT& run, size_t symbol) noexcept
+    static RunSizeT pattern_rank(const RunT& run, SymbolT symbol) noexcept
     {
-        size_t rank{};
+        RunSizeT rank{};
 
         for (size_t c = 0; c < run.pattern_length(); c++) {
             rank += run.symbol(c) == symbol;
@@ -677,9 +676,9 @@ public:
         return rank;
     }
 
-    static size_t pattern_rank(const RunT& run, size_t idx, size_t symbol) noexcept
+    static RunSizeT pattern_rank(const RunT& run, RunSizeT idx, SymbolT symbol) noexcept
     {
-        size_t rank{};
+        RunSizeT rank{};
 
         for (size_t c = 0; c < idx; c++) {
             rank += run.symbol(c) == symbol;
@@ -690,22 +689,22 @@ public:
 
 
 
-    static size_t rank_eq(const RunT& run, size_t idx, size_t symbol) noexcept
+    static size_t rank_eq(const RunT& run, RunSizeT idx, SymbolT symbol) noexcept
     {
         if (run.run_length() == 1) {
-            size_t pattern_rank = RunTraits::pattern_rank(run, idx, symbol);
+            RunSizeT pattern_rank = RunTraits::pattern_rank(run, idx, symbol);
             return pattern_rank;
         }
         else {
-            size_t full_rank = pattern_rank(run, symbol);
+            RunSizeT full_rank = pattern_rank(run, symbol);
 
-            size_t run_prefix = idx / run.pattern_length();
-            size_t idx_prefix = run_prefix * run.pattern_length();
-            size_t idx_local  = idx - idx_prefix;
+            RunSizeT run_prefix = idx / run.pattern_length();
+            RunSizeT idx_prefix = run_prefix * run.pattern_length();
+            RunSizeT idx_local  = idx - idx_prefix;
 
-            size_t pattern_rank = RunTraits::pattern_rank(run, idx_local, symbol);
+            RunSizeT pattern_rank = RunTraits::pattern_rank(run, idx_local, symbol);
 
-            size_t rank = run_prefix * full_rank;
+            RunSizeT rank = run_prefix * full_rank;
 
             rank += pattern_rank;
 
@@ -714,22 +713,22 @@ public:
     }
 
     template <typename Fn>
-    static size_t rank_fn(const RunT& run, size_t idx, size_t symbol, Fn&& fn) noexcept
+    static RunSizeT rank_fn(const RunT& run, RunSizeT idx, SymbolT symbol, Fn&& fn) noexcept
     {
         if (run.run_length() == 1) {
-            size_t pattern_rank = RunTraits::pattern_rank_fn(run, idx, symbol, std::forward<Fn>(fn));
+            RunSizeT pattern_rank = RunTraits::pattern_rank_fn(run, idx, symbol, std::forward<Fn>(fn));
             return pattern_rank;
         }
         else {
-            size_t full_rank = RunTraits::pattern_rank_fn(run, symbol, std::forward<Fn>(fn));
+            RunSizeT full_rank = RunTraits::pattern_rank_fn(run, symbol, std::forward<Fn>(fn));
 
-            size_t run_prefix = idx / run.pattern_length();
-            size_t idx_prefix = run_prefix * run.pattern_length();
-            size_t idx_local  = idx - idx_prefix;
+            RunSizeT run_prefix = idx / run.pattern_length();
+            RunSizeT idx_prefix = run_prefix * run.pattern_length();
+            RunSizeT idx_local  = idx - idx_prefix;
 
-            size_t pattern_rank = RunTraits::pattern_rank_fn(run, idx_local, symbol, std::forward<Fn>(fn));
+            RunSizeT pattern_rank = RunTraits::pattern_rank_fn(run, idx_local, symbol, std::forward<Fn>(fn));
 
-            size_t rank = run_prefix * full_rank;
+            RunSizeT rank = run_prefix * full_rank;
 
             rank += pattern_rank;
 
@@ -750,8 +749,8 @@ public:
     {
         if (run.run_length() > 1)
         {
-            uint64_t tmp[SYMBOLS]{0,};
-            RunTraits::pattern_ranks(run, Span<uint64_t>(tmp, SYMBOLS));
+            RunSizeT tmp[SYMBOLS]{0,};
+            RunTraits::pattern_ranks(run, Span<RunSizeT>(tmp, SYMBOLS));
 
             for (size_t s = 0; s < SYMBOLS; s++)
             {
@@ -764,20 +763,20 @@ public:
     }
 
     template <typename T>
-    static void ranks(const RunT& run, size_t idx, Span<T> sink) noexcept
+    static void ranks(const RunT& run, RunSizeT idx, Span<T> sink) noexcept
     {
         if (run.run_length() == 1) {
             RunTraits::pattern_ranks(run, idx, sink);
         }
         else {
-            size_t run_prefix = idx / run.pattern_length();
-            size_t idx_prefix = run_prefix * run.pattern_length();
-            size_t idx_local  = idx - idx_prefix;
+            RunSizeT run_prefix = idx / run.pattern_length();
+            RunSizeT idx_prefix = run_prefix * run.pattern_length();
+            RunSizeT idx_local  = idx - idx_prefix;
 
             if (run_prefix)
             {
-                uint64_t tmp[SYMBOLS]{0,};
-                RunTraits::pattern_ranks(run, Span<uint64_t>(tmp, SYMBOLS));
+                RunSizeT tmp[SYMBOLS]{0,};
+                RunTraits::pattern_ranks(run, Span<RunSizeT>(tmp, SYMBOLS));
 
                 for (size_t s = 0; s < SYMBOLS; s++)
                 {
@@ -790,10 +789,10 @@ public:
     }
 
     template <typename Fn>
-    static size_t pattern_rank_fn(const RunT& run, size_t symbol, Fn&& fn) noexcept {
-        size_t rank{};
+    static size_t pattern_rank_fn(const RunT& run, SymbolT symbol, Fn&& fn) noexcept {
+        RunSizeT rank{};
         for (size_t c = 0; c < run.pattern_length(); c++) {
-            size_t sym = run.symbol(c);
+            SymbolT sym = run.symbol(c);
             rank += fn(sym, symbol);
         }
         return rank;
@@ -801,29 +800,29 @@ public:
 
 
     template <typename Fn>
-    static size_t pattern_rank_fn(const RunT& run, size_t idx, size_t symbol, Fn&& fn) noexcept {
-        size_t rank{};
+    static size_t pattern_rank_fn(const RunT& run, RunSizeT idx, SymbolT symbol, Fn&& fn) noexcept {
+        RunSizeT rank{};
         for (size_t c = 0; c < idx; c++) {
-            size_t sym = run.symbol(c);
+            SymbolT sym = run.symbol(c);
             rank += fn(sym, symbol);
         }
         return rank;
     }
 
 
-    static size_t pattern_select_fw(const RunT& run, size_t rank, size_t symbol) noexcept {
+    static RunSizeT pattern_select_fw(const RunT& run, RunSizeT rank, SymbolT symbol) noexcept {
         return pattern_select_fw_fn(run, rank, symbol, [](size_t run_sym, size_t sym){return run_sym == sym;});
     }
 
 
     template <typename Fn>
-    static size_t pattern_select_fw_fn(const RunT& run, size_t rank, size_t symbol, Fn&& compare) noexcept
+    static RunSizeT pattern_select_fw_fn(const RunT& run, RunSizeT rank, SymbolT symbol, Fn&& compare) noexcept
     {
-        size_t rr{};
+        RunSizeT rr{};
         ++rank;
         for (size_t c = 0; c < run.pattern_length(); c++)
         {
-            size_t sym = run.symbol(c);
+            SymbolT sym = run.symbol(c);
             rr += compare(sym, symbol);
 
             if (rr == rank) {
@@ -836,18 +835,18 @@ public:
 
 
 
-    static size_t select_fw_eq(const RunT& run, size_t rank, size_t symbol) noexcept
+    static RunSizeT select_fw_eq(const RunT& run, RunSizeT rank, SymbolT symbol) noexcept
     {
         if (run.run_length() == 1) {
             return RunTraits::pattern_select_fw(run, rank, symbol);
         }
         else {
-            size_t rr = RunTraits::pattern_rank(run, symbol);
+            RunSizeT rr = RunTraits::pattern_rank(run, symbol);
 
-            size_t rank_base = rank / rr;
-            size_t rank_local = rank - rank_base * rr;
+            RunSizeT rank_base = rank / rr;
+            RunSizeT rank_local = rank - rank_base * rr;
 
-            size_t idx = RunTraits::pattern_select_fw(run, rank_local, symbol);
+            RunSizeT idx = RunTraits::pattern_select_fw(run, rank_local, symbol);
 
             return idx + run.pattern_length() * rank_base;
         }
@@ -855,65 +854,65 @@ public:
 
 private:
     struct FindGTFn {
-        bool operator()(size_t run_sym, size_t sym) const noexcept {
+        bool operator()(SymbolT run_sym, SymbolT sym) const noexcept {
             return run_sym > sym;
         }
     };
 
     struct FindGEFn {
-        bool operator()(size_t run_sym, size_t sym) const noexcept {
+        bool operator()(SymbolT run_sym, SymbolT sym) const noexcept {
             return run_sym >= sym;
         }
     };
 
     struct FindLTFn {
-        bool operator()(size_t run_sym, size_t sym) const noexcept {
+        bool operator()(SymbolT run_sym, SymbolT sym) const noexcept {
             return run_sym < sym;
         }
     };
 
     struct FindLEFn {
-        bool operator()(size_t run_sym, size_t sym) const noexcept {
+        bool operator()(SymbolT run_sym, SymbolT sym) const noexcept {
             return run_sym <= sym;
         }
     };
 
     struct FindEQFn {
-        bool operator()(size_t run_sym, size_t sym) const noexcept {
+        bool operator()(SymbolT run_sym, SymbolT sym) const noexcept {
             return run_sym == sym;
         }
     };
 
     struct FindNEQFn {
-        bool operator()(size_t run_sym, size_t sym) const noexcept {
+        bool operator()(SymbolT run_sym, SymbolT sym) const noexcept {
             return run_sym != sym;
         }
     };
 
 public:
-    static size_t select_fw_gt(const RunT& run, size_t rank, size_t symbol) noexcept {
+    static RunSizeT select_fw_gt(const RunT& run, RunSizeT rank, SymbolT symbol) noexcept {
         return select_fw_fn(run, rank, symbol, FindGTFn());
     }
 
-    static size_t select_fw_lt(const RunT& run, size_t rank, size_t symbol) noexcept {
+    static RunSizeT select_fw_lt(const RunT& run, RunSizeT rank, SymbolT symbol) noexcept {
         return select_fw_fn(run, rank, symbol, FindLTFn());
     }
 
-    static size_t select_fw_ge(const RunT& run, size_t rank, size_t symbol) noexcept {
+    static RunSizeT select_fw_ge(const RunT& run, RunSizeT rank, SymbolT symbol) noexcept {
         return select_fw_fn(run, rank, symbol, FindGEFn());
     }
 
-    static size_t select_fw_le(const RunT& run, size_t rank, size_t symbol) noexcept {
+    static RunSizeT select_fw_le(const RunT& run, RunSizeT rank, SymbolT symbol) noexcept {
         return select_fw_fn(run, rank, symbol, FindLEFn());
     }
 
-    static size_t select_fw_neq(const RunT& run, size_t rank, size_t symbol) noexcept {
+    static RunSizeT select_fw_neq(const RunT& run, RunSizeT rank, SymbolT symbol) noexcept {
         return select_fw_fn(run, rank, symbol, FindNEQFn());
     }
 
 
     template <typename Fn>
-    static size_t select_fw_fn(const RunT& run, size_t rank, size_t symbol, Fn&& compare) noexcept
+    static RunSizeT select_fw_fn(const RunT& run, RunSizeT rank, SymbolT symbol, Fn&& compare) noexcept
     {
         if (run.run_length() == 1) {
             return RunTraits::pattern_select_fw_fn(run, rank, symbol, std::forward<Fn>(compare));
@@ -929,51 +928,47 @@ public:
     }
 
 
-    static size_t full_rank_eq(const RunT& run, size_t symbol) noexcept {
+    static RunSizeT full_rank_eq(const RunT& run, SymbolT symbol) noexcept {
         return RunTraits::pattern_rank(run, symbol) * run.run_length();
     }
 
-    static size_t full_rank_gt(const RunT& run, size_t symbol) noexcept {
+    static RunSizeT full_rank_gt(const RunT& run, SymbolT symbol) noexcept {
         return RunTraits::pattern_rank_fn(run, symbol, FindGTFn()) * run.run_length();
     }
 
-    static size_t full_rank_ge(const RunT& run, size_t symbol) noexcept {
+    static RunSizeT full_rank_ge(const RunT& run, SymbolT symbol) noexcept {
         return RunTraits::pattern_rank_fn(run, symbol, FindGEFn()) * run.run_length();
     }
 
-    static size_t full_rank_lt(const RunT& run, size_t symbol) noexcept {
+    static RunSizeT full_rank_lt(const RunT& run, SymbolT symbol) noexcept {
         return RunTraits::pattern_rank_fn(run, symbol, FindLTFn()) * run.run_length();
     }
 
-    static size_t full_rank_le(const RunT& run, size_t symbol) noexcept {
+    static RunSizeT full_rank_le(const RunT& run, SymbolT symbol) noexcept {
         return RunTraits::pattern_rank_fn(run, symbol, FindLEFn()) * run.run_length();
     }
 
-    static size_t full_rank_neq(const RunT& run, size_t symbol) noexcept {
+    static RunSizeT full_rank_neq(const RunT& run, SymbolT symbol) noexcept {
         return RunTraits::pattern_rank_fn(run, symbol, FindNEQFn()) * run.run_length();
     }
 
-
-
-
-
-    static size_t rank_gt(const RunT& run, size_t idx, size_t symbol) noexcept {
+    static RunSizeT rank_gt(const RunT& run, RunSizeT idx, SymbolT symbol) noexcept {
         return rank_fn(run, idx, symbol, FindGTFn());
     }
 
-    static size_t rank_ge(const RunT& run, size_t idx, size_t symbol) noexcept {
+    static RunSizeT rank_ge(const RunT& run, RunSizeT idx, SymbolT symbol) noexcept {
         return rank_fn(run, idx, symbol, FindGEFn());
     }
 
-    static size_t rank_lt(const RunT& run, size_t idx, size_t symbol) noexcept {
+    static RunSizeT rank_lt(const RunT& run, RunSizeT idx, SymbolT symbol) noexcept {
         return rank_fn(run, idx, symbol, FindLTFn());
     }
 
-    static size_t rank_le(const RunT& run, size_t idx, size_t symbol) noexcept {
+    static RunSizeT rank_le(const RunT& run, RunSizeT idx, SymbolT symbol) noexcept {
         return rank_fn(run, idx, symbol, FindLEFn());
     }
 
-    static size_t rank_neq(const RunT& run, size_t idx, size_t symbol) noexcept {
+    static RunSizeT rank_neq(const RunT& run, RunSizeT idx, SymbolT symbol) noexcept {
         return rank_fn(run, idx, symbol, FindNEQFn());
     }
 };
@@ -989,16 +984,18 @@ class SSRLERun {
 
     using Traits = SSRLERunTraits<Bps>;
 
-    using CodeUnitT = typename Traits::CodeUnitT;
+    using RunDataT = typename Traits::RunDataT;
+    using RunSizeT = typename Traits::RunSizeT;
+    using SymbolT = typename Traits::SymbolT;
 
-    CodeUnitT pattern_;
-    CodeUnitT pattern_length_;
-    CodeUnitT run_length_;
+    RunDataT pattern_;
+    RunDataT pattern_length_;
+    RunSizeT run_length_;
 
-    static constexpr CodeUnitT SYMBOL_MASK          = Traits::SYMBOL_MASK;
-    static constexpr CodeUnitT MAX_PATTERN_LENGTH   = Traits::MAX_PATTERN_LENGTH;
+    static constexpr RunDataT SYMBOL_MASK          = Traits::SYMBOL_MASK;
+    static constexpr RunDataT MAX_PATTERN_LENGTH   = Traits::MAX_PATTERN_LENGTH;
 
-    static constexpr CodeUnitT MAX_RUN_LENGTH       = Traits::MAX_RUN_LENGTH;
+    static constexpr RunDataT MAX_RUN_LENGTH       = Traits::MAX_RUN_LENGTH;
 
     friend struct SSRLERunTraits<Bps>;
     friend struct SSRLERunCommonTraitsBase<Bps>;
@@ -1007,9 +1004,9 @@ class SSRLERun {
 public:
     constexpr SSRLERun() noexcept : pattern_(), pattern_length_(), run_length_() {}
     constexpr SSRLERun(
-        CodeUnitT pattern_length,
-        CodeUnitT pattern,
-        CodeUnitT run_length
+        RunDataT pattern_length,
+        RunDataT pattern,
+        RunSizeT run_length
     ) noexcept :
         pattern_(pattern & SSRLERunTraits<Bps>::make_mask(pattern_length * Bps)),
         pattern_length_(pattern_length),
@@ -1050,28 +1047,28 @@ public:
         return (pattern_length_ == 0) && (run_length_ > 0);
     }
 
-    CodeUnitT run_length() const noexcept {
+    constexpr RunDataT run_length() const noexcept {
         return run_length_;
     }
 
-    CodeUnitT full_run_length() const noexcept {
+    constexpr RunSizeT full_run_length() const noexcept {
         return run_length_ * pattern_length_;
     }
 
-    CodeUnitT pattern_length() const noexcept {
+    constexpr RunDataT pattern_length() const noexcept {
         return pattern_length_;
     }
 
-    CodeUnitT pattern() const noexcept {
+    constexpr RunDataT pattern() const noexcept {
         return pattern_;
     }
 
-    void set_pattern(CodeUnitT pattern) noexcept {
+    constexpr void set_pattern(RunDataT pattern) noexcept {
         pattern_ = pattern;
     }
 
-    CodeUnitT symbol(size_t idx) const noexcept {
-        size_t p_idx;
+    constexpr SymbolT symbol(RunSizeT idx) const noexcept {
+        size_t p_idx{};
         if (run_length_ == 1) {
             p_idx = idx;
         }
@@ -1081,11 +1078,11 @@ public:
         return (pattern_ >> (p_idx * Bps)) & SYMBOL_MASK;
     }
 
-    void set_symbol(size_t idx, CodeUnitT symbol) noexcept
+    constexpr void set_symbol(RunSizeT idx, SymbolT symbol) noexcept
     {
-        CodeUnitT mask = ((static_cast<CodeUnitT>(1) << Bps) - 1);
+        RunDataT mask = ((static_cast<RunDataT>(1) << Bps) - 1);
 
-        size_t p_idx;
+        size_t p_idx{};
         if (run_length_ == 1) {
             p_idx = idx;
         }
@@ -1101,17 +1098,17 @@ public:
     }
 
 
-    typename SSRLERunTraits<Bps>::SplitResult split(size_t at) const
+    typename SSRLERunTraits<Bps>::SplitResult split(RunSizeT at) const
     {
         return Traits::split(*this, at);
     }
 
-    SSRLERunArray<Bps> remove(size_t from, size_t to) const
+    SSRLERunArray<Bps> remove(RunSizeT from, RunSizeT to) const
     {
         return Traits::remove(*this, from, to);
     }
 
-    SSRLERunArray<Bps> insert(const SSRLERun& run, size_t at) const
+    SSRLERunArray<Bps> insert(const SSRLERun& run, RunSizeT at) const
     {
         return Traits::insert(*this, run, at);
     }
@@ -1120,26 +1117,6 @@ public:
     bool merge(const SSRLERun& run) noexcept
     {
         return Traits::merge(*this, run);
-
-        if (pattern_ == run.pattern())
-        {
-            if (Traits::is_fit(pattern_length_, run_length_ + run.run_length())) {
-                run_length_ += run.run_length();
-                return true;
-            }
-        }
-        else if (run_length_ == 1 && run.run_length() == 1)
-        {
-            if (Traits::is_fit(pattern_length_ + run.pattern_length(), 1)) {
-                CodeUnitT atom = run.pattern() << run.pattern_length();
-                pattern_ |= atom;
-                pattern_length_ += run.pattern_length();
-
-                return true;
-            }
-        }
-
-        return false;
     }
 
     std::string to_string() const
@@ -1153,56 +1130,56 @@ public:
         return ss.str();
     }
 
-    size_t full_rank_eq(size_t symbol) const noexcept {
+    RunSizeT full_rank_eq(SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::full_rank_eq(*this, symbol);
     }
 
-    size_t full_rank_lt(size_t symbol) const noexcept {
+    RunSizeT full_rank_lt(SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::full_rank_lt(*this, symbol);
     }
 
-    size_t full_rank_le(size_t symbol) const noexcept {
+    RunSizeT full_rank_le(SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::full_rank_le(*this, symbol);
     }
 
-    size_t full_rank_gt(size_t symbol) const noexcept {
+    RunSizeT full_rank_gt(SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::full_rank_gt(*this, symbol);
     }
 
-    size_t full_rank_ge(size_t symbol) const noexcept {
+    RunSizeT full_rank_ge(SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::full_rank_ge(*this, symbol);
     }
 
-    size_t full_rank_neq(size_t symbol) const noexcept {
+    RunSizeT full_rank_neq(SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::full_rank_neq(*this, symbol);
     }
 
-    size_t rank_eq(size_t idx, size_t symbol) const noexcept {
+    RunSizeT rank_eq(RunSizeT idx, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::rank_eq(*this, idx, symbol);
     }
 
-    size_t rank_lt(size_t idx, size_t symbol) const noexcept {
+    RunSizeT rank_lt(RunSizeT idx, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::rank_lt(*this, idx, symbol);
     }
 
-    size_t rank_le(size_t idx, size_t symbol) const noexcept {
+    RunSizeT rank_le(RunSizeT idx, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::rank_le(*this, idx, symbol);
     }
 
-    size_t rank_gt(size_t idx, size_t symbol) const noexcept {
+    RunSizeT rank_gt(RunSizeT idx, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::rank_gt(*this, idx, symbol);
     }
 
-    size_t rank_ge(size_t idx, size_t symbol) const noexcept {
+    RunSizeT rank_ge(RunSizeT idx, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::rank_ge(*this, idx, symbol);
     }
 
-    size_t rank_neq(size_t idx, size_t symbol) const noexcept {
+    RunSizeT rank_neq(RunSizeT idx, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::rank_neq(*this, idx, symbol);
     }
 
     template <typename T>
-    void ranks(size_t idx, Span<T> sink) const noexcept {
+    void ranks(RunSizeT idx, Span<T> sink) const noexcept {
         return SSRLERunCommonTraits<Bps>::ranks(*this, idx, sink);
     }
 
@@ -1211,39 +1188,39 @@ public:
         return SSRLERunCommonTraits<Bps>::full_ranks(*this, sink);
     }
 
-    size_t select_fw_eq(size_t rank, size_t symbol) const noexcept {
+    RunSizeT select_fw_eq(RunSizeT rank, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::select_fw_eq(*this, rank, symbol);
     }
 
-    size_t select_fw_lt(size_t rank, size_t symbol) const noexcept {
+    RunSizeT select_fw_lt(RunSizeT rank, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::select_fw_lt(*this, rank, symbol);
     }
 
-    size_t select_fw_le(size_t rank, size_t symbol) const noexcept {
+    RunSizeT select_fw_le(RunSizeT rank, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::select_fw_le(*this, rank, symbol);
     }
 
-    size_t select_fw_gt(size_t rank, size_t symbol) const noexcept {
+    RunSizeT select_fw_gt(RunSizeT rank, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::select_fw_gt(*this, rank, symbol);
     }
 
-    size_t select_fw_ge(size_t rank, size_t symbol) const noexcept {
+    RunSizeT select_fw_ge(RunSizeT rank, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::select_fw_ge(*this, rank, symbol);
     }
 
-    size_t select_fw_neq(size_t rank, size_t symbol) const noexcept {
+    RunSizeT select_fw_neq(RunSizeT rank, SymbolT symbol) const noexcept {
         return SSRLERunCommonTraits<Bps>::select_fw_neq(*this, rank, symbol);
     }
 
-    static SSRLERun make_run(std::initializer_list<size_t> symbols, size_t run_length) noexcept {
+    static SSRLERun make_run(std::initializer_list<SymbolT> symbols, RunSizeT run_length) noexcept {
         return SSRLERunTraits<Bps>::make_run(symbols, run_length);
     }
 
-    size_t to_pattern(size_t global_idx) const {
+    RunSizeT to_pattern(RunSizeT global_idx) const {
         return global_idx % pattern_length_;
     }
 
-    size_t atom_size() const noexcept {
+    size_t size_in_units() const noexcept {
         return SSRLERunTraits<Bps>::estimate_size(*this);
     }
 };

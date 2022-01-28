@@ -31,6 +31,9 @@ struct UnsignedAccumulator<64> {
 
     ValueT value_;
 
+    UnsignedAccumulator() noexcept : value_()  {}
+    UnsignedAccumulator(ValueT vv) noexcept : value_(vv)  {}
+
     bool operator<(const UnsignedAccumulator& other) const {
         return value_ < other.value_;
     }
@@ -109,6 +112,14 @@ struct UnsignedAccumulator<64> {
     UnsignedAccumulator& operator=(const ValueT& other) {
         this->value_ = other;
         return *this;
+    }
+
+    operator ValueT() const noexcept {
+        return value_;
+    }
+
+    operator bool() const noexcept {
+        return value_;
     }
 };
 

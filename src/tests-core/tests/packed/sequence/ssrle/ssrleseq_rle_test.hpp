@@ -35,8 +35,6 @@ class PackedSSRLESearchableSequenceRLETest: public PackedSSRLESequenceTestBase<B
     using typename Base::Seq;    
     using typename Base::SeqPtr;
 
-    using Value = typename Seq::Value;
-
     using Base::getRandom;
     using Base::getRandom1;
     using Base::make_empty_sequence;
@@ -48,8 +46,6 @@ class PackedSSRLESearchableSequenceRLETest: public PackedSSRLESequenceTestBase<B
     using Base::make_span;
     using Base::out;
     using Base::size_;
-    using Base::iterations_;
-
 
 public:
 

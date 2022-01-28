@@ -19,6 +19,7 @@
 #include <memoria/core/tools/md5.hpp>
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
+#include <memoria/core/integer/accumulator_common.hpp>
 
 #include <string.h>
 #include <cstring>
@@ -139,6 +140,12 @@ template <> struct FieldFactory<uint8_t>: FieldFactoryBase<uint8_t> {};
 template <> struct FieldFactory<uint16_t>: FieldFactoryBase<uint16_t> {};
 template <> struct FieldFactory<uint32_t>: FieldFactoryBase<uint32_t> {};
 template <> struct FieldFactory<uint64_t>: FieldFactoryBase<uint64_t> {};
+template <> struct FieldFactory<UInt128T>: FieldFactoryBase<UInt128T> {};
+template <> struct FieldFactory<Int128T>: FieldFactoryBase<Int128T> {};
+template <> struct FieldFactory<UAcc64T>: FieldFactoryBase<UAcc64T> {};
+template <> struct FieldFactory<UAcc128T>: FieldFactoryBase<UAcc128T> {};
+template <> struct FieldFactory<UAcc192T>: FieldFactoryBase<UAcc192T> {};
+template <> struct FieldFactory<UAcc256T>: FieldFactoryBase<UAcc256T> {};
 template <> struct FieldFactory<float>: FieldFactoryBase<float> {};
 template <> struct FieldFactory<double>: FieldFactoryBase<double> {};
 template <> struct FieldFactory<bool>: FieldFactoryBase<bool> {};

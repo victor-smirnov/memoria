@@ -41,8 +41,6 @@ class PackedSSRLESearchableSequenceCountTest: public PackedSSRLESequenceTestBase
     using typename Base::BlockRank;
     using typename Base::LocateResult;
 
-    using Value = typename Seq::Value;
-
     using Base::Symbols;
 
     using Base::getRandom;
@@ -67,7 +65,6 @@ class PackedSSRLESearchableSequenceCountTest: public PackedSSRLESequenceTestBase
     using Base::split_runs;
     using Base::out;
     using Base::size_;
-    using Base::iterations_;
 
 public:
 

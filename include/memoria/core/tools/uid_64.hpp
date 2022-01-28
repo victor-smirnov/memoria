@@ -62,7 +62,7 @@ public:
         set_metadata(metadata);
     }
 
-    AtomT atom() const noexcept {
+    constexpr AtomT atom() const noexcept {
         return atom_;
     }
 
@@ -75,11 +75,11 @@ public:
         return Span<const AtomT>(&atom_, NUM_ATOMS);
     }
 
-    AtomT value() const noexcept {
+    constexpr AtomT value() const noexcept {
         return atom_ >> METADATA_BITSIZE;
     }
 
-    AtomT metadata() const noexcept
+    constexpr AtomT metadata() const noexcept
     {
         AtomT mask = 1;
         mask <<= METADATA_BITSIZE;

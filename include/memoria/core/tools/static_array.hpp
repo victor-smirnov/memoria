@@ -929,7 +929,7 @@ std::ostream& operator<<(std::ostream& out, const core::StaticVector<Key, Indexe
 
     for (int32_t c = 0; c < Indexes; c++)
     {
-        out << accum.value(c);
+        detail::OutputHelepr<Key>::out(out, accum.value(c));
 
         if (c < Indexes - 1)
         {

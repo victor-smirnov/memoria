@@ -19,6 +19,7 @@
 #include <memoria/core/datatypes/type_signature.hpp>
 #include <memoria/core/strings/string_buffer.hpp>
 #include <memoria/core/tools/type_name.hpp>
+#include <memoria/core/integer/accumulator_common.hpp>
 
 
 namespace memoria {
@@ -349,8 +350,30 @@ struct DataTypeTraits<int32_t>: MinimalDataTypeTraits<int32_t, Integer> {};
 template <>
 struct DataTypeTraits<int64_t>: MinimalDataTypeTraits<int64_t, int64_t> {};
 
+template <>
+struct DataTypeTraits<uint64_t>: MinimalDataTypeTraits<uint64_t, uint64_t> {};
 
 
+#ifdef MMA_HAS_INT128
+template <>
+struct DataTypeTraits<UInt128T>: MinimalDataTypeTraits<UInt128T, UInt128T> {};
+
+template <>
+struct DataTypeTraits<Int128T>: MinimalDataTypeTraits<Int128T, Int128T> {};
+#endif
+
+
+template <>
+struct DataTypeTraits<UAcc64T>: MinimalDataTypeTraits<UAcc64T, UAcc64T> {};
+
+template <>
+struct DataTypeTraits<UAcc128T>: MinimalDataTypeTraits<UAcc128T, UAcc128T> {};
+
+template <>
+struct DataTypeTraits<UAcc192T>: MinimalDataTypeTraits<UAcc192T, UAcc192T> {};
+
+template <>
+struct DataTypeTraits<UAcc256T>: MinimalDataTypeTraits<UAcc256T, UAcc256T> {};
 
 template <>
 struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>

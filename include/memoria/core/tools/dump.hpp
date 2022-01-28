@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <functional>
+#include <string>
 
 namespace memoria {
 
@@ -36,6 +37,27 @@ namespace detail {
             return o;
         }
     };
+
+#ifdef MMA_HAS_INT128
+    template <>
+    struct OutputHelepr<UInt128T> {
+        static std::ostream& out(std::ostream& o, const UInt128T& value)
+        {
+            uint64_t v0 = value;
+            o << v0;
+            return o;
+        }
+    };
+
+    template <>
+    struct OutputHelepr<Int128T> {
+        static std::ostream& out(std::ostream& o, const Int128T& value)
+        {
+            o << static_cast<int64_t>(value);
+            return o;
+        }
+    };
+#endif
 
     template <>
     struct OutputHelepr<int8_t> {

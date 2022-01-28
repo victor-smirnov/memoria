@@ -299,6 +299,8 @@ public:
     template <typename T>
     const T* get(int32_t idx) const noexcept
     {
+        static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
+
         const T* addr = ptr_cast<const T>(base() + element_offset(idx));
         return addr;
     }
@@ -306,6 +308,7 @@ public:
     template <typename T>
     T* get(int32_t idx) noexcept
     {
+        static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
         T* addr = ptr_cast<T>(base() + element_offset(idx));
         return addr;
     }
@@ -334,8 +337,10 @@ public:
     template <typename T>
     Result<T*> allocate(int32_t idx, int32_t block_size) noexcept
     {
-        using ResultT = Result<T*>;
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
+        static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
+
+        using ResultT = Result<T*>;
 
         MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
 
@@ -350,6 +355,7 @@ public:
     Result<T*> allocateSpace(int32_t idx, int32_t block_size) noexcept
     {
         using ResultT = Result<T*>;
+        static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
         MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
@@ -363,6 +369,7 @@ public:
         using ResultT = Result<T*>;
 
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
+        static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
 
         int32_t block_size = T::empty_size();
 
@@ -382,6 +389,7 @@ public:
         using ResultT = Result<T*>;
 
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
+        static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
 
         int32_t available_client_area = this->free_space();
         int32_t block_size = T::default_size(available_client_area);
@@ -416,6 +424,7 @@ public:
     Result<T*> allocate(int32_t idx) noexcept
     {
         using ResultT = Result<T*>;
+        static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
@@ -428,6 +437,7 @@ public:
     Result<T*> allocateArrayByLength(int32_t idx, int32_t length) noexcept
     {
         using ResultT = Result<T*>;
+        static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
@@ -440,6 +450,7 @@ public:
     Result<T*> allocateArrayBySize(int32_t idx, int32_t size) noexcept
     {
         using ResultT = Result<T*>;
+        static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");

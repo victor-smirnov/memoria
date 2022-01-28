@@ -34,21 +34,21 @@ namespace ssrleseq {
 template <typename Seq>
 class SymbolsRunIterator {
     using RunT      = typename Seq::SymbolsRunT;
-    using AtomT     = typename Seq::AtomT;
+    using CodeUnitT = typename Seq::CodeUnitT;
     using RunTraits = typename Seq::RunTraits;
 
-    Span<const AtomT> span_;
+    Span<const CodeUnitT> span_;
 
     size_t idx_;
     size_t idx_next_;
 
 public:
     SymbolsRunIterator() noexcept: span_(), idx_(), idx_next_() {}
-    SymbolsRunIterator(Span<const AtomT> span) noexcept:
+    SymbolsRunIterator(Span<const CodeUnitT> span) noexcept:
         span_(span), idx_(), idx_next_()
     {}
 
-    SymbolsRunIterator(Span<const AtomT> span, size_t idx) noexcept:
+    SymbolsRunIterator(Span<const CodeUnitT> span, size_t idx) noexcept:
         span_(span), idx_(idx), idx_next_()
     {}
 
@@ -74,7 +74,7 @@ public:
         return idx_;
     }
 
-    Span<const AtomT> span() const noexcept {
+    Span<const CodeUnitT> span() const noexcept {
         return span_;
     }
 
@@ -149,8 +149,6 @@ public:
     {
         while (!is_eos())
         {
-            DebugCounter++;
-
             RunT run = this->get();
 
             if (run) {

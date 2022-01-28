@@ -118,6 +118,13 @@ struct UnsignedAccumulator {
         value_[0] = v;
     }
 
+    constexpr UnsignedAccumulator(std::initializer_list<ValueT> ilist): value_{} {
+        size_t cnt{};
+        for (ValueT v: ilist) {
+            value_[cnt++] = v;
+        }
+    }
+
     UnsignedAccumulator(const std::string& digits):
         UnsignedAccumulator(_::UAccBmpInt<BitLength>(digits))
     {}
@@ -389,6 +396,19 @@ struct UnsignedAccumulator {
         return tgt;
     }
 
+    operator ValueT () const noexcept {
+        return value_[0];
+    }
+
+    operator bool() const noexcept {
+        for (size_t c = 0; c < Size; c++) {
+            if (value_[c]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 private:
     template <typename T, typename IntT, size_t N> friend struct _::UAccCvtHelper;
 
@@ -551,6 +571,16 @@ struct formatter<memoria::UnsignedAccumulator<BitLength>> {
     template <typename FormatContext>
     auto format(const memoria::UnsignedAccumulator<BitLength>& d, FormatContext& ctx) {
         return format_to(ctx.out(), "{}", d.to_bmp().str());
+    }
+};
+
+template <>
+struct formatter<memoria::UnsignedAccumulator<64>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::UnsignedAccumulator<64>& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "{}", static_cast<uint64_t>(d));
     }
 };
 

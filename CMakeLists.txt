@@ -119,7 +119,7 @@ if (BUILD_POSIX)
 
     #add_definitions(-stdlib=libc++)
 
-    add_definitions(-mbmi2 -Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
+    add_definitions(-march=native -Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
     add_definitions(-Wno-old-style-cast)
 
     if (BUILD_MACOSX)
@@ -129,7 +129,7 @@ if (BUILD_POSIX)
         #add_global_linker(-static-libstdc++)
     endif()
 
-    add_definitions(-fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0)
+    add_definitions(-Wstringop-overflow=1 -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0)
     add_definitions(-Wno-comment -Wno-unknown-warning-option -Wunused-variable)
     add_definitions(-Wno-unused-function -Wno-unused-but-set-variable)
     add_definitions(-Wno-unused-private-field -Wno-pessimizing-move)

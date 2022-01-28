@@ -1,5 +1,5 @@
 
-// Copyright 2011-2021 Victor Smirnov
+// Copyright 2011-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,6 +51,8 @@ static constexpr psize_t PkdSizeSup  = std::numeric_limits<psize_t>::max() - 1;
 static constexpr psize_t PkdSizeInf  = std::numeric_limits<psize_t>::min();
 static constexpr psize_t PkdNotFound = PkdSizeMax;
 
+
+
 enum class PackedDataTypeSize {FIXED, VARIABLE};
 
 namespace internal {
@@ -88,9 +90,9 @@ inline bool is_branch(CtrBlockType type) {
 
 
 enum {
-    CTR_NONE                = 0,
-    CTR_CREATE              = 1,
-    CTR_FIND                = 1 << 1
+    CTR_NONE   = 0,
+    CTR_CREATE = 1,
+    CTR_FIND   = 1 << 1
 };
 
 /**
@@ -102,7 +104,11 @@ typedef internal::PlatformLongHelper<sizeof(void*)>::LongType                   
 typedef internal::PlatformLongHelper<sizeof(void*)>::ULongType                  ULongType;
 typedef internal::PlatformLongHelper<sizeof(void*)>::SizeTType                  SizeT;
 
-
+// Require Gcc or Clang for now.
+#ifdef MMA_HAS_INT128
+using UInt128T = __uint128_t;
+using Int128T  = __int128_t;
+#endif
 
 template <typename T, T V> struct ConstValue {
     static constexpr T Value = V;
@@ -504,6 +510,9 @@ enum class MMA_NODISCARD OpStatus: int32_t {
 
 template <typename T>
 constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_trivially_copyable<T>::value;
+
+template <typename T>
+constexpr bool IsPackedAlignedV = alignof (T) <= 8;
 
 
 [[noreturn]] void terminate(const char* msg) noexcept;

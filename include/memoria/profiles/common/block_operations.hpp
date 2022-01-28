@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -72,6 +72,10 @@ struct IBlockDataEventHandler {
     virtual void value(const char* name, const uint32_t* value, int32_t count = 1, int32_t kind = 0)    = 0;
     virtual void value(const char* name, const int64_t* value, int32_t count = 1, int32_t kind = 0)     = 0;
     virtual void value(const char* name, const uint64_t* value, int32_t count = 1, int32_t kind = 0)    = 0;
+#ifdef MMA_HAS_INT128
+    virtual void value(const char* name, const Int128T* value, int32_t count = 1, int32_t kind = 0)     = 0;
+    virtual void value(const char* name, const UInt128T* value, int32_t count = 1, int32_t kind = 0)    = 0;
+#endif
     virtual void value(const char* name, const IDValue* value, int32_t count = 1, int32_t kind = 0)     = 0;
     virtual void value(const char* name, const float* value, int32_t count = 1, int32_t kind = 0)       = 0;
     virtual void value(const char* name, const double* value, int32_t count = 1, int32_t kind = 0)      = 0;
@@ -467,6 +471,30 @@ public:
         }
     }
 
+#ifdef MMA_HAS_INT128
+    virtual void value(const char* name, const UInt128T* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            dumpArray<UInt128T>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const Int128T* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            dumpArray<Int128T>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+#endif
+
     virtual void value(const char* name, const float* value, int32_t count = 1, int32_t kind = 0)
     {
         if (kind == BYTE_ARRAY)
@@ -701,7 +729,9 @@ private:
         for (int32_t c = 0; c < count; c++)
         {
             out_.width(12);
-            out_ << *(value + c);
+            detail::OutputHelepr<T>::out(out_, *(value + c));
+
+            //out_ << *(value + c);
 
             if (c < count - 1)
             {

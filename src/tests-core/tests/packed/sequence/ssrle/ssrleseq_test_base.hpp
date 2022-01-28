@@ -45,21 +45,20 @@ protected:
     using Seq    = PkdSSRLESeqT<Bps>;
     using SeqPtr = PkdStructSPtr<Seq>;
 
-    using Value  = typename Seq::Value;
-
-    int64_t size_{32768};
-    int32_t iterations_{100};
-
+    size_t size_{32768};
 
     using SymbolsRunT   = SSRLERun<Bps>;
     using RunTraits     = SSRLERunTraits<Bps>;
-    using AtomT         = typename RunTraits::AtomT;
+    using CodeUnitT     = typename RunTraits::CodeUnitT;
+    using SeqSizeT      = typename Seq::SeqSizeT;
+    using RunSizeT      = typename Seq::RunSizeT;
+    using SymbolT       = typename Seq::SymbolT;
 
     static constexpr size_t Symbols = 1 << Bps;
 
 public:
 
-    MMA_STATE_FILEDS(size_, iterations_);
+    MMA_STATE_FILEDS(size_);
 
     template <typename T1, typename T2>
     void push_back(std::vector<T1>& vv, Span<T2> span) const {
@@ -78,6 +77,7 @@ public:
     SeqPtr make_empty_sequence(size_t syms_block_size = 1024*1024) const
     {
         size_t block_size = Seq::block_size(syms_block_size);
+        println("Blocksize: {}", block_size);
         return MakeSharedPackedStructByBlock<Seq>(block_size);
     }
 
@@ -107,7 +107,7 @@ public:
     {
         size_t num_atoms = RunTraits::compute_size(span);
 
-        SeqPtr ptr = make_empty_sequence(num_atoms * sizeof(AtomT) * capacity_multiplier);
+        SeqPtr ptr = make_empty_sequence(num_atoms * sizeof(CodeUnitT) * capacity_multiplier);
 
         ptr->append(span).get_or_throw();
 
@@ -277,22 +277,22 @@ public:
     }
 
     struct BlockSize {
-        size_t offset;
+        SeqSizeT offset;
     };
 
     std::vector<BlockSize> build_size_index(Span<const SymbolsRunT> runs) const
     {
         std::vector<BlockSize> blocks;
 
-        size_t offset{};
+        SeqSizeT offset{};
         for (size_t c = 0; c < runs.size(); c++)
         {
             if (c % SIZE_INDEX_BLOCK == 0) {
                 blocks.push_back(BlockSize{offset});
             }
 
-            size_t local_size = runs[c].full_run_length();
-            offset += local_size;
+            RunSizeT local_size = runs[c].full_run_length();
+            offset += SeqSizeT{local_size};
         }
 
         return blocks;
@@ -300,14 +300,14 @@ public:
 
     struct LocateResult {
         size_t run_idx;
-        size_t local_offset;
-        size_t size_prefix;
+        RunSizeT local_offset;
+        SeqSizeT size_prefix;
 
-        size_t global_pos() const {return size_prefix + local_offset;}
+        SeqSizeT global_pos() const {return size_prefix + SeqSizeT{local_offset};}
     };
 
     template <typename BlockT>
-    size_t locate_block(Span<const BlockT> index, Span<const SymbolsRunT> runs, size_t idx) const
+    size_t locate_block(Span<const BlockT> index, Span<const SymbolsRunT> runs, SeqSizeT idx) const
     {
         for (size_t i = 0; i < index.size(); i++) {
             if (idx <= index[i].offset) {
@@ -321,23 +321,25 @@ public:
 
 
     template <typename BlockT>
-    LocateResult locate(Span<const BlockT> index, Span<const SymbolsRunT> runs, uint64_t idx) const
+    LocateResult locate(Span<const BlockT> index, Span<const SymbolsRunT> runs, SeqSizeT idx) const
     {
         size_t i = locate_block(index, runs, idx);
-        size_t offset = index[i].offset;
+        SeqSizeT offset = index[i].offset;
 
         return do_locate(runs, idx, i, offset);
     }
 
-    LocateResult do_locate(Span<const SymbolsRunT> runs, uint64_t idx, uint64_t block = 0, uint64_t offset = 0) const
+    LocateResult do_locate(Span<const SymbolsRunT> runs, SeqSizeT idx, size_t block = 0, SeqSizeT offset = SeqSizeT{}) const
     {
-        LocateResult bs{runs.size(), 0, 0};
+        LocateResult bs{runs.size()};
 
         for (size_t c = block * SIZE_INDEX_BLOCK; c < runs.size(); c++)
         {
-            size_t local_size = runs[c].full_run_length();
-            if (offset + local_size <= idx) {
-                offset += local_size;
+            RunSizeT local_size = runs[c].full_run_length();
+
+            SeqSizeT tmp = offset + SeqSizeT{local_size};
+            if (tmp <= idx) {
+                offset += SeqSizeT{local_size};
             }
             else {
                 bs.run_idx = c;
@@ -352,7 +354,7 @@ public:
 
 
 
-    size_t get_symbol(Span<const BlockSize> index, Span<const SymbolsRunT> runs, size_t idx) const
+    SymbolT get_symbol(Span<const BlockSize> index, Span<const SymbolsRunT> runs, SeqSizeT idx) const
     {
         LocateResult res = locate(index, runs, idx);
         if (res.run_idx < runs.size())
@@ -365,7 +367,7 @@ public:
 
 
     struct BlockRank: BlockSize {
-        std::array<uint64_t, Symbols> rank;
+        std::array<SeqSizeT, Symbols> rank;
     };
 
 
@@ -373,9 +375,9 @@ public:
     {
         std::vector<BlockRank> blocks;
 
-        size_t offset{};
-        std::array<uint64_t, Symbols> total_ranks{};
-        total_ranks.fill(size_t{});
+        SeqSizeT offset{};
+        std::array<SeqSizeT, Symbols> total_ranks{};
+        total_ranks.fill(SeqSizeT{});
 
         for (size_t c = 0; c < runs.size(); c++)
         {
@@ -383,32 +385,32 @@ public:
                 blocks.push_back(BlockRank{offset, total_ranks});
             }
 
-            size_t local_size = runs[c].full_run_length();
-            runs[c].full_ranks(Span<uint64_t>(total_ranks.data(), total_ranks.size()));
+            SeqSizeT local_size = runs[c].full_run_length();
+            runs[c].full_ranks(Span<SeqSizeT>(total_ranks.data(), total_ranks.size()));
 
-            offset += local_size;            
+            offset += local_size;
         }
 
         return blocks;
     }
 
-    uint64_t get_rank_eq(Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const
+    uint64_t get_rank_eq(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
         size_t i = locate_block(index, runs, idx);
-        uint64_t offset = index[i].offset;
-        uint64_t rank   = index[i].rank[symbol];
+        SeqSizeT offset = index[i].offset;
+        SeqSizeT rank   = index[i].rank[symbol];
 
         for (size_t c = i * SIZE_INDEX_BLOCK; c < runs.size(); c++)
         {
-            uint64_t local_size = runs[c].full_run_length();
+            SeqSizeT local_size = runs[c].full_run_length();
 
             if (offset + local_size <= idx) {
-                uint64_t local_rank = runs[c].full_rank_eq(symbol);
+                SeqSizeT local_rank = runs[c].full_rank_eq(symbol);
                 offset += local_size;
                 rank += local_rank;
             }
             else {
-                uint64_t local_idx = idx - offset;
+                RunSizeT local_idx = idx - offset;
                 rank += runs[c].rank_eq(local_idx, symbol);
                 break;
             }
@@ -417,12 +419,12 @@ public:
         return rank;
     }
 
-    uint64_t get_rank_gt(Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const
+    SeqSizeT get_rank_gt(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
-        uint64_t ranks[Symbols]{0, };
-        get_ranks(index, runs, idx, Span<uint64_t>(ranks, Symbols));
+        SeqSizeT ranks[Symbols]{0, };
+        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, Symbols));
 
-        uint64_t sum{};
+        SeqSizeT sum{};
 
         for (size_t c = symbol + 1; c < Symbols; c++) {
             sum += ranks[c];
@@ -431,12 +433,12 @@ public:
         return sum;
     }
 
-    uint64_t get_rank_ge(Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const
+    SeqSizeT get_rank_ge(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
-        uint64_t ranks[Symbols]{0, };
-        get_ranks(index, runs, idx, Span<uint64_t>(ranks, Symbols));
+        SeqSizeT ranks[Symbols]{0, };
+        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, Symbols));
 
-        uint64_t sum{};
+        SeqSizeT sum{};
 
         for (size_t c = symbol; c < Symbols; c++) {
             sum += ranks[c];
@@ -446,12 +448,12 @@ public:
     }
 
 
-    uint64_t get_rank_lt(Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const
+    SeqSizeT get_rank_lt(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
-        uint64_t ranks[Symbols]{0, };
-        get_ranks(index, runs, idx, Span<uint64_t>(ranks, Symbols));
+        SeqSizeT ranks[Symbols]{0, };
+        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, Symbols));
 
-        uint64_t sum{};
+        SeqSizeT sum{};
 
         for (size_t c = 0; c < symbol; c++) {
             sum += ranks[c];
@@ -460,12 +462,12 @@ public:
         return sum;
     }
 
-    uint64_t get_rank_le(Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const
+    SeqSizeT get_rank_le(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
-        uint64_t ranks[Symbols]{0, };
-        get_ranks(index, runs, idx, Span<uint64_t>(ranks, Symbols));
+        SeqSizeT ranks[Symbols]{0, };
+        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, Symbols));
 
-        uint64_t sum{};
+        SeqSizeT sum{};
 
         for (size_t c = 0; c <= symbol; c++) {
             sum += ranks[c];
@@ -474,25 +476,25 @@ public:
         return sum;
     }
 
-    uint64_t get_rank_neq(Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const
+    SeqSizeT get_rank_neq(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
-        uint64_t ranks[Symbols]{0, };
-        get_ranks(index, runs, idx, Span<uint64_t>(ranks, Symbols));
+        SeqSizeT ranks[Symbols]{0, };
+        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, Symbols));
 
-        uint64_t sum{};
+        SeqSizeT sum{};
 
         for (size_t c = 0; c < Symbols; c++) {
-            sum += c != symbol ? ranks[c] : 0;
+            sum += c != symbol ? ranks[c] : SeqSizeT{0};
         }
 
         return sum;
     }
 
     template <typename T>
-    void get_ranks(Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, Span<T> symbols) const
+    void get_ranks(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, Span<T> symbols) const
     {
         size_t i = locate_block(index, runs, idx);
-        uint64_t offset = index[i].offset;
+        SeqSizeT offset = index[i].offset;
 
         for (size_t c = 0; c < Symbols; c++) {
             symbols[c] += index[i].rank[c];
@@ -500,14 +502,14 @@ public:
 
         for (size_t c = i * SIZE_INDEX_BLOCK; c < runs.size(); c++)
         {
-            uint64_t local_size = runs[c].full_run_length();
+            SeqSizeT local_size = runs[c].full_run_length();
 
             if (offset + local_size <= idx) {
                 offset += local_size;
                 runs[c].full_ranks(symbols);
             }
             else {
-                size_t local_idx = idx - offset;
+                SeqSizeT local_idx = idx - offset;
                 runs[c].ranks(local_idx, symbols);
                 break;
             }
@@ -517,105 +519,105 @@ public:
 private:
 
     struct SelectFwEqFn {
-        uint64_t index_fn(const BlockRank& index, size_t symbol) const {
+        SeqSizeT index_fn(const BlockRank& index, SymbolT symbol) const {
             return index.rank[symbol];
         }
 
-        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+        SeqSizeT full_rank_fn(const SymbolsRunT& run, SymbolT symbol) const {
             return run.full_rank_eq(symbol);
         }
 
-        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+        SeqSizeT select_fn(const SymbolsRunT& run, SeqSizeT rank, SymbolT symbol) const {
             return run.select_fw_eq(rank, symbol);
         }
     };
 
     struct SelectFwNeqFn {
-        uint64_t index_fn(const BlockRank& index, size_t symbol) const {
-            uint64_t sum{};
+        SeqSizeT index_fn(const BlockRank& index, SymbolT symbol) const {
+            SeqSizeT sum{};
             for (size_t c = 0; c < Symbols; c++) {
-                sum += c != symbol ? index.rank[c] : 0;
+                sum += c != symbol ? index.rank[c] : SeqSizeT{0};
             }
             return sum;
         }
 
-        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+        SeqSizeT full_rank_fn(const SymbolsRunT& run, SymbolT symbol) const {
             return run.full_rank_neq(symbol);
         }
 
-        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+        SeqSizeT select_fn(const SymbolsRunT& run, SeqSizeT rank, SymbolT symbol) const {
             return run.select_fw_neq(rank, symbol);
         }
     };
 
     struct SelectFwGtFn {
-        uint64_t index_fn(const BlockRank& index, size_t symbol) const {
-            uint64_t sum{};
+        SeqSizeT index_fn(const BlockRank& index, SymbolT symbol) const {
+            SeqSizeT sum{};
             for (size_t c = symbol + 1; c < Symbols; c++) {
                 sum += index.rank[c];
             }
             return sum;
         }
 
-        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+        SeqSizeT full_rank_fn(const SymbolsRunT& run, SymbolT symbol) const {
             return run.full_rank_gt(symbol);
         }
 
-        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+        SeqSizeT select_fn(const SymbolsRunT& run, SeqSizeT rank, SymbolT symbol) const {
             return run.select_fw_gt(rank, symbol);
         }
     };
 
     struct SelectFwGeFn {
-        uint64_t index_fn(const BlockRank& index, size_t symbol) const {
-            uint64_t sum{};
+        SeqSizeT index_fn(const BlockRank& index, SymbolT symbol) const {
+            SeqSizeT sum{};
             for (size_t c = symbol; c < Symbols; c++) {
                 sum += index.rank[c];
             }
             return sum;
         }
 
-        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+        SeqSizeT full_rank_fn(const SymbolsRunT& run, SymbolT symbol) const {
             return run.full_rank_ge(symbol);
         }
 
-        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+        SeqSizeT select_fn(const SymbolsRunT& run, SeqSizeT rank, SymbolT symbol) const {
             return run.select_fw_ge(rank, symbol);
         }
     };
 
     struct SelectFwLtFn {
-        uint64_t index_fn(const BlockRank& index, size_t symbol) const {
-            uint64_t sum{};
+        SeqSizeT index_fn(const BlockRank& index, SymbolT symbol) const {
+            SeqSizeT sum{};
             for (size_t c = 0; c < symbol; c++) {
                 sum += index.rank[c];
             }
             return sum;
         }
 
-        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+        SeqSizeT full_rank_fn(const SymbolsRunT& run, SymbolT symbol) const {
             return run.full_rank_lt(symbol);
         }
 
-        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+        SeqSizeT select_fn(const SymbolsRunT& run, uint64_t rank, SymbolT symbol) const {
             return run.select_fw_lt(rank, symbol);
         }
     };
 
     struct SelectFwLeFn {
-        uint64_t index_fn(const BlockRank& index, size_t symbol) const {
-            uint64_t sum{};
+        SeqSizeT index_fn(const BlockRank& index, SymbolT symbol) const {
+            SeqSizeT sum{};
             for (size_t c = 0; c <= symbol; c++) {
                 sum += index.rank[c];
             }
             return sum;
         }
 
-        uint64_t full_rank_fn(const SymbolsRunT& run, size_t symbol) const {
+        SeqSizeT full_rank_fn(const SymbolsRunT& run, SymbolT symbol) const {
             return run.full_rank_le(symbol);
         }
 
-        size_t select_fn(const SymbolsRunT& run, uint64_t rank, size_t symbol) const {
+        SeqSizeT select_fn(const SymbolsRunT& run, SeqSizeT rank, SymbolT symbol) const {
             return run.select_fw_le(rank, symbol);
         }
     };
@@ -625,38 +627,38 @@ private:
     LocateResult select_fw_fn(
             Span<const BlockRank> index,
             Span<const SymbolsRunT> runs,
-            uint64_t rank,
-            size_t symbol,
+            SeqSizeT rank,
+            SymbolT symbol,
             Fn&& fn
     ) const
     {
         LocateResult res{runs.size()};
 
         size_t i;
-        uint64_t total_rank{};
+        SeqSizeT total_rank{};
         for (i = 1; i < index.size(); i++) {
-            uint64_t sum = fn.index_fn(index[i], symbol);
+            SeqSizeT sum = fn.index_fn(index[i], symbol);
             if (rank < sum) {
                 break;
             }
             total_rank = sum;
         }
 
-        size_t offset = index[i - 1].offset;
+        SeqSizeT offset = index[i - 1].offset;
         for (size_t c = (i - 1) * SIZE_INDEX_BLOCK; c < runs.size(); c++)
         {
-            size_t run_rank = fn.full_rank_fn(runs[c], symbol);
+            SeqSizeT run_rank = fn.full_rank_fn(runs[c], symbol);
 
             if (MMA_UNLIKELY(rank < total_rank + run_rank))
             {
-                size_t local_rank = rank - total_rank;
+                SeqSizeT local_rank = rank - total_rank;
                 res.local_offset = fn.select_fn(runs[c], local_rank, symbol);
                 res.run_idx = c;
                 res.size_prefix = offset;
                 break;
             }
             else {
-                size_t local_size = runs[c].full_run_length();
+                SeqSizeT local_size = runs[c].full_run_length();
                 offset += local_size;
                 total_rank += run_rank;
             }
@@ -670,8 +672,8 @@ public:
     LocateResult select_fw_eq(
             Span<const BlockRank> index,
             Span<const SymbolsRunT> runs,
-            size_t rank,
-            size_t symbol
+            SeqSizeT rank,
+            SymbolT symbol
     ) const {
         return select_fw_fn(index, runs, rank, symbol, SelectFwEqFn());
     }
@@ -679,8 +681,8 @@ public:
     LocateResult select_fw_neq(
             Span<const BlockRank> index,
             Span<const SymbolsRunT> runs,
-            size_t rank,
-            size_t symbol
+            SeqSizeT rank,
+            SymbolT symbol
     ) const {
         return select_fw_fn(index, runs, rank, symbol, SelectFwNeqFn());
     }
@@ -688,8 +690,8 @@ public:
     LocateResult select_fw_lt(
             Span<const BlockRank> index,
             Span<const SymbolsRunT> runs,
-            size_t rank,
-            size_t symbol
+            SeqSizeT rank,
+            SymbolT symbol
     ) const {
         return select_fw_fn(index, runs, rank, symbol, SelectFwLtFn());
     }
@@ -697,8 +699,8 @@ public:
     LocateResult select_fw_le(
             Span<const BlockRank> index,
             Span<const SymbolsRunT> runs,
-            size_t rank,
-            size_t symbol
+            SeqSizeT rank,
+            SymbolT symbol
     ) const {
         return select_fw_fn(index, runs, rank, symbol, SelectFwLeFn());
     }
@@ -706,8 +708,8 @@ public:
     LocateResult select_fw_gt(
             Span<const BlockRank> index,
             Span<const SymbolsRunT> runs,
-            size_t rank,
-            size_t symbol
+            SeqSizeT rank,
+            SymbolT symbol
     ) const {
         return select_fw_fn(index, runs, rank, symbol, SelectFwGtFn());
     }
@@ -715,8 +717,8 @@ public:
     LocateResult select_fw_ge(
             Span<const BlockRank> index,
             Span<const SymbolsRunT> runs,
-            size_t rank,
-            size_t symbol
+            SeqSizeT rank,
+            SymbolT symbol
     ) const {
         return select_fw_fn(index, runs, rank, symbol, SelectFwGeFn());
     }
@@ -726,69 +728,41 @@ public:
         return Span<T>(vv.data(), vv.size());
     }
 
-    uint64_t count(Span<const SymbolsRunT> runs) const noexcept
+    SeqSizeT count(Span<const SymbolsRunT> runs) const noexcept
     {
-        uint64_t size{};
+        SeqSizeT size{};
         for (const SymbolsRunT& run: runs) {
             size += run.full_run_length();
         }
         return size;
     }
 
-    /*uint64_t count_fw(
+    SeqSizeT count_fw(
             Span<const BlockRank> index,
             Span<const SymbolsRunT> runs,
-            uint64_t idx,
-            size_t symbol
+            SeqSizeT idx,
+            SymbolT symbol
     ) const
     {
-        LocateResult res = locate(index, runs, idx);
-
-        uint64_t total_count{};
-        size_t lpos = res.local_offset;
-
-        for (size_t c = res.run_idx; c < runs.size(); c++)
-        {
-            size_t epos = runs[c].count_fw(lpos, symbol);
-            if (lpos + epos < runs[c].full_run_length()) {
-                total_count += epos;
-                break;
-            }
-            else {
-                total_count += epos;
-                lpos = 0;
-            }
-        }
-
-        return total_count;
-    }*/
-
-    uint64_t count_fw(
-            Span<const BlockRank> index,
-            Span<const SymbolsRunT> runs,
-            uint64_t idx,
-            size_t symbol
-    ) const
-    {
-        uint64_t rank = get_rank_neq(index, runs, idx, symbol);
-        uint64_t next_idx = select_fw_neq(index, runs, rank, symbol).global_pos();
+        SeqSizeT rank = get_rank_neq(index, runs, idx, symbol);
+        SeqSizeT next_idx = select_fw_neq(index, runs, rank, symbol).global_pos();
         return next_idx - idx;
     }
 
-    uint64_t count_bw(
+    SeqSizeT count_bw(
             Span<const BlockRank> index,
             Span<const SymbolsRunT> runs,
-            uint64_t idx,
-            size_t symbol
+            SeqSizeT idx,
+            SymbolT symbol
     ) const
     {
-        uint64_t rank = get_rank_neq(index, runs, idx, symbol);
-        if (rank > 0) {
-            uint64_t next_idx = select_fw_neq(index, runs, rank - 1, symbol).global_pos();
-            return idx + 1 - next_idx;
+        SeqSizeT rank = get_rank_neq(index, runs, idx, symbol);
+        if (rank) {
+            SeqSizeT next_idx = select_fw_neq(index, runs, rank - SeqSizeT{1}, symbol).global_pos();
+            return idx + SeqSizeT{1} - next_idx;
         }
         else {
-            return idx + 1;
+            return idx + SeqSizeT{1};
         }
     }
 
@@ -807,7 +781,7 @@ public:
         vv.insert(vv.end(), span.begin(), span.end());
     }
 
-    SplitBufResult split_buffer(Span<const SymbolsRunT> runs, uint64_t pos) const
+    SplitBufResult split_buffer(Span<const SymbolsRunT> runs, SeqSizeT pos) const
     {
         LocateResult res = do_locate(runs, pos);
 
@@ -826,7 +800,11 @@ public:
         return SplitBufResult{left, right};
     }
 
-    std::vector<SymbolsRunT> insert_to_buffer(const std::vector<SymbolsRunT>& target, Span<const SymbolsRunT> source, uint64_t at) const
+    std::vector<SymbolsRunT> insert_to_buffer(
+            const std::vector<SymbolsRunT>& target,
+            Span<const SymbolsRunT> source,
+            SeqSizeT at
+    ) const
     {
         SplitBufResult res = split_buffer(target, at);
 
@@ -836,7 +814,10 @@ public:
         return res.left;
     }
 
-    std::vector<SymbolsRunT> remove_from_buffer(const std::vector<SymbolsRunT>& buffer, uint64_t start, uint64_t end) const
+    std::vector<SymbolsRunT> remove_from_buffer(
+            const std::vector<SymbolsRunT>& buffer,
+            SeqSizeT start, SeqSizeT end
+    ) const
     {
         SplitBufResult res1 = split_buffer(buffer, start);
         SplitBufResult res2 = split_buffer(res1.right, end - start);

@@ -127,7 +127,7 @@ public:
         return type() == Type::TYPE3;
     }
 
-    size_t ctz() const noexcept
+    constexpr size_t ctz() const noexcept
     {
         size_t cnt{};
         for (size_t c = 0; c < NUM_ATOMS; c++) {
@@ -136,7 +136,7 @@ public:
         return cnt;
     }
 
-    size_t cte(const UID256& other) const noexcept
+    constexpr size_t cte(const UID256& other) const noexcept
     {
         size_t cnt{};
         for (size_t c = 0; c < NUM_ATOMS; c++) {
@@ -145,11 +145,11 @@ public:
         return cnt;
     }
 
-    bool is_null() const noexcept {
+    constexpr bool is_null() const noexcept {
         return ctz() == NUM_ATOMS;
     }
 
-    bool is_set() const noexcept {
+    constexpr bool is_set() const noexcept {
         return ctz() != NUM_ATOMS;
     }
 
