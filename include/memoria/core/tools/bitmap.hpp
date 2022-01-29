@@ -866,59 +866,61 @@ size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
 }
 
 namespace details {
-
-	
-    constexpr uint64_t CtLZ_(uint64_t val, uint64_t mask) noexcept {
+    constexpr size_t CtLZ_(uint64_t val, uint64_t mask) noexcept {
 		uint64_t bit_off = (val & mask) == 0;
 		return bit_off ? 1 + ((mask > 1) ? CtLZ_(val, mask >> 1) : 0) : 0;
 	}
 
-    constexpr uint32_t CtLZ_(uint32_t val, uint32_t mask) noexcept {
+    constexpr size_t CtLZ_(uint32_t val, uint32_t mask) noexcept {
 		uint32_t bit_off = (val & mask) == 0;
 		return bit_off ? 1 + ((mask > 1) ? CtLZ_(val, mask >> 1) : 0) : 0;
 	}
-
 }
 
-//template <typename Val>
-constexpr uint32_t CtLZ(uint32_t val) noexcept {
+
+constexpr size_t CtLZ(uint32_t val) noexcept {
 	return memoria::details::CtLZ_(val, 0x80000000u);
 }
 
-constexpr uint64_t CtLZ(uint64_t val) noexcept {
+constexpr size_t CtLZ(uint64_t val) noexcept {
 	return memoria::details::CtLZ_(val, 0x8000000000000000ull);
 }
 
-//constexpr int32_t Log2(uint32_t value) { //constexpr
-//    return 32 - CtLZ(value);
-//}
-
-//constexpr int32_t Log2(int32_t value) {
-//    return 32 - CtLZ((uint32_t)value);
-//}
 
 
-constexpr int32_t Log2(uint64_t value) {
+
+constexpr size_t Log2Contexpr(uint64_t value) {
     return 64 - CtLZ(value);
 }
 
-constexpr uint64_t Log2U(uint64_t value) {
+constexpr size_t Log2UContexpr(uint64_t value) {
     return 64 - CtLZ(value);
 }
 
-//static inline int32_t Log2(int64_t value) {
-//    return 64 - CtLZ((uint64_t)value);
-//}
+constexpr size_t Log2(uint64_t value) {
+    return 64 - __builtin_clzll(value);
+}
+
+constexpr size_t Log2U(uint64_t value) {
+    return 64 - __builtin_clzll(value);
+}
 
 
-static inline int32_t CountTrailingZeroes(uint32_t value) noexcept {
+constexpr static size_t BitsPerSymbol(size_t symbols) {
+    return symbols <= 2 ? 1 : Log2U(symbols - 1);
+}
+
+constexpr static size_t BitsPerSymbolConstexpr(size_t symbols) {
+    return symbols <= 2 ? 1 : Log2UContexpr(symbols - 1);
+}
+
+static constexpr size_t CountTrailingZeroes(uint32_t value) noexcept {
     return __builtin_ctz(value);
 }
 
-static inline int32_t CountTrailingZeroes(uint64_t value) noexcept {
+static constexpr size_t CountTrailingZeroes(uint64_t value) noexcept {
     return __builtin_ctzll(value);
 }
-
 
 
 

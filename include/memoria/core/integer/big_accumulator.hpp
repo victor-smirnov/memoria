@@ -272,27 +272,27 @@ struct UnsignedAccumulator {
         return (*this) -= tmp;
     }
 
-    UnsignedAccumulator operator++()
+    UnsignedAccumulator operator++(int)
     {
         UnsignedAccumulator tmp{*this};
-        tmp += 1;
+        (*this) += 1;
 
         return tmp;
     }
 
-    UnsignedAccumulator& operator++(int)
+    UnsignedAccumulator& operator++()
     {
         return operator+=(1);
     }
 
-    UnsignedAccumulator operator--()
+    UnsignedAccumulator operator--(int)
     {
         UnsignedAccumulator tmp{*this};
-        tmp -= 1;
+        (*this) -= 1;
         return tmp;
     }
 
-    UnsignedAccumulator& operator--(int)
+    UnsignedAccumulator& operator--()
     {
         return operator-=(1);
     }
@@ -451,7 +451,7 @@ private:
 
         for (unsigned c = 0; c < size; c += 2)
         {
-#ifdef BOOST_LITTLE_ENDIAN
+#ifdef MEMORIA_LITTLE_ENDIAN
             limbs[c]     = value_[c / 2] & 0xFFFFFFFFull;
             limbs[c + 1] = (value_[c / 2] >> 32) & 0xFFFFFFFFull;
 #else
@@ -477,7 +477,7 @@ private:
             LimbT v0 = value_[c];
             LimbT v1 = value_[c + 1];
 
-#ifdef BOOST_LITTLE_ENDIAN
+#ifdef MEMORIA_LITTLE_ENDIAN
             limbs[c / 2] = v0 | (v1 << 64);
 #else
             limbs[c / 2] = v1 | (v0 << 64);

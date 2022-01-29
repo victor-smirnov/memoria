@@ -79,7 +79,9 @@ struct UnsignedAccumulator<64> {
     }
 
     UnsignedAccumulator operator++() {
-        return UnsignedAccumulator{value_ + 1};
+        ValueT tmp = value_;
+        value_++;
+        return UnsignedAccumulator{tmp};
     }
 
     UnsignedAccumulator& operator++(int) {
@@ -88,7 +90,9 @@ struct UnsignedAccumulator<64> {
     }
 
     UnsignedAccumulator operator--() {
-        return UnsignedAccumulator{value_ - 1};
+        ValueT tmp = value_;
+        value_--;
+        return UnsignedAccumulator{tmp};
     }
 
     UnsignedAccumulator& operator--(int) {

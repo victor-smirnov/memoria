@@ -31,18 +31,20 @@ namespace memoria {
 namespace tests {
 
 template <
-    size_t Bps
+    size_t Symbols_
 >
 class PackedSSRLESequenceTestBase: public TestState {
 
     using Base = TestState;
-    using MyType = PackedSSRLESequenceTestBase<Bps>;
+    using MyType = PackedSSRLESequenceTestBase<Symbols_>;
 
 protected:
 
     static constexpr size_t SIZE_INDEX_BLOCK = 128;
+    static constexpr size_t Bps = BitsPerSymbolConstexpr(Symbols_);
+    static constexpr size_t Symbols = Symbols_;
 
-    using Seq    = PkdSSRLESeqT<Bps>;
+    using Seq    = PkdSSRLESeqT<Symbols>;
     using SeqPtr = PkdStructSPtr<Seq>;
 
     size_t size_{32768};
@@ -54,7 +56,7 @@ protected:
     using RunSizeT      = typename Seq::RunSizeT;
     using SymbolT       = typename Seq::SymbolT;
 
-    static constexpr size_t Symbols = 1 << Bps;
+
 
 public:
 
@@ -77,12 +79,11 @@ public:
     SeqPtr make_empty_sequence(size_t syms_block_size = 1024*1024) const
     {
         size_t block_size = Seq::block_size(syms_block_size);
-        println("Blocksize: {}", block_size);
         return MakeSharedPackedStructByBlock<Seq>(block_size);
     }
 
-    std::vector<SymbolsRunT> make_random_sequence(size_t size) const {
-
+    std::vector<SymbolsRunT> make_random_sequence(size_t size) const
+    {
         std::vector<SymbolsRunT> symbols;
 
         for (size_t c = 0; c < size; c++)
@@ -655,7 +656,7 @@ private:
                 res.local_offset = fn.select_fn(runs[c], local_rank, symbol);
                 res.run_idx = c;
                 res.size_prefix = offset;
-                break;
+                return res;
             }
             else {
                 SeqSizeT local_size = runs[c].full_run_length();
@@ -663,6 +664,9 @@ private:
                 total_rank += run_rank;
             }
         }
+
+        res.local_offset = 0;
+        res.size_prefix = offset;
 
         return res;
     }

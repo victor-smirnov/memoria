@@ -1,5 +1,5 @@
 
-// Copyright 2013 Victor Smirnov
+// Copyright 2013-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -742,35 +742,27 @@ private:
     void moveElementsUp(int32_t idx, int delta) noexcept
     {
         int32_t layout_size = layout_size_/4;
-
-        if (idx < layout_size - 1)
-        {
-            AllocationBlock block = describe(idx);
-
-            moveElementsUp(idx + 1, delta);
-
-            moveElementData(idx, block, delta);
+        for (int32_t ii = layout_size - 1; ii >= idx; ii--) {
+            AllocationBlock block = describe(ii);
+            moveElementData(ii, block, delta);
         }
 
-        set_element_offset(idx) += delta;
+        for (int32_t ii = idx; ii < layout_size ; ii++) {
+            set_element_offset(ii) += delta;
+        }
     }
 
     void moveElementsDown(int32_t idx, int delta) noexcept
     {
         int32_t layout_size = layout_size_/4;
 
-        if (idx < layout_size - 1)
-        {
-            AllocationBlock block = describe(idx);
-
-            moveElementData(idx, block, delta);
-
-            set_element_offset(idx) += delta;
-
-            moveElementsDown(idx + 1, delta);
+        for (int32_t e_idx = idx; e_idx < layout_size; e_idx++) {
+            AllocationBlock block = describe(e_idx);
+            moveElementData(e_idx, block, delta);
         }
-        else {
-            set_element_offset(idx) += delta;
+
+        for (int32_t e_idx = idx; e_idx < layout_size; e_idx++) {
+            set_element_offset(e_idx) += delta;
         }
     }
 

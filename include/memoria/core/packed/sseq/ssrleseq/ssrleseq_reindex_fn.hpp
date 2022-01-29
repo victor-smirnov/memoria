@@ -102,6 +102,8 @@ public:
                 return size_index->append(sizes);
             };
 
+            std::vector<SymbolsRunT> vv = seq.iterator().as_vector();
+
             for (auto ii = seq.iterator(); !ii.is_eos();)
             {
                 auto run = ii.get();

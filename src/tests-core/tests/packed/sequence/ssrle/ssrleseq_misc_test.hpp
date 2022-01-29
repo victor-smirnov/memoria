@@ -135,7 +135,7 @@ public:
 
     void testAccess()
     {
-        for (size_t data_size = 2; data_size <= 32768; data_size *= 2)
+        for (size_t data_size = 64; data_size <= 32768; data_size *= 2)
         {
             println("DataSize: {}", data_size);
             std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);

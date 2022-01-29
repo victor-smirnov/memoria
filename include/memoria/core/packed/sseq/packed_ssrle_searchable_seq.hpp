@@ -41,28 +41,28 @@ namespace memoria {
 
 namespace io {
 
-template <int32_t AlphabetSize> class PackedSSRLESymbolSequence;
-template <int32_t AlphabetSize> class PackedSSRLESymbolSequenceView;
+template <size_t AlphabetSize> class PackedSSRLESymbolSequence;
+template <size_t AlphabetSize> class PackedSSRLESymbolSequenceView;
 
 }
 
 
 template <
-    int32_t BitsPerSymbol_,
+    int32_t Symbols_,
     int32_t BytesPerBlock_
 >
 struct PkdSSRLSeqTypes {
-    static const int32_t BitsPerSymbol       = BitsPerSymbol_;
-    static const int32_t BytesPerBlock       = BytesPerBlock_;
+    static const size_t Symbols             = Symbols_;
+    static const size_t BytesPerBlock       = BytesPerBlock_;
 };
 
 template <typename Types> class PkdSSRLESeq;
 
 template <
-    int32_t BitsPerSymbol,
+    int32_t Symbols,
     int32_t BytesPerBlock = 256
 >
-using PkdSSRLESeqT = PkdSSRLESeq<PkdSSRLSeqTypes<BitsPerSymbol, BytesPerBlock>>;
+using PkdSSRLESeqT = PkdSSRLESeq<PkdSSRLSeqTypes<Symbols, BytesPerBlock>>;
 
 template <typename Types_>
 class PkdSSRLESeq: public PackedAllocator {
@@ -80,9 +80,12 @@ public:
     static const PackedDataTypeSize SizeType            = PackedDataTypeSize::VARIABLE;
 
 
-    static constexpr int32_t Indexes                    = 1 << Types::BitsPerSymbol;
-    static constexpr int32_t BitsPerSymbol              = Types::BitsPerSymbol;
-    static constexpr int32_t Symbols                    = Indexes;
+    static constexpr size_t Symbols                    = Types::Symbols;
+    static_assert(Symbols >= 2 && Symbols <= 256, "Number of symbols must be in [2, ... 256]");
+
+    static constexpr size_t Indexes                    = Symbols;
+    static constexpr size_t BitsPerSymbol              = BitsPerSymbolConstexpr(Symbols);
+
 
     using SymbolsRunT = SSRLERun<BitsPerSymbol>;
     using RunTraits   = SSRLERunTraits<BitsPerSymbol>;
@@ -93,11 +96,10 @@ public:
 
     using Iterator = ssrleseq::SymbolsRunIterator<MyType>;
 
-    static constexpr size_t BytesPerBlock              = Types::BytesPerBlock;
-    static constexpr size_t BytesPerBlockLog2          = NumberOfBits(Types::BytesPerBlock);
+    static constexpr size_t BytesPerBlockBase          = Types::BytesPerBlock;
+    static constexpr size_t BytesPerBlock              = BytesPerBlockBase * BitsPerSymbol;
     static constexpr size_t AtomsPerBlock              = BytesPerBlock / sizeof(typename RunTraits::CodeUnitT);
     static constexpr size_t SegmentSizeInAtoms         = RunTraits::SEGMENT_SIZE_UNITS;
-
 
     static_assert(BytesPerBlock % 8 == 0, "Must be multiple of 8 bytes");
 
@@ -105,14 +107,8 @@ public:
         METADATA, SIZE_INDEX, SUM_INDEX, SYMBOLS, TOTAL_SEGMENTS_
     };
 
-
     using Base::clear;
 
-    //using Value = uint8_t;
-    //using IndexValue    = int64_t;
-    //using IndexDataType = int64_t;
-
-    //using Values = core::StaticVector<int64_t, Indexes>;
 
     using SumValueT  = SeqSizeT;
     using SizeValueT = SeqSizeT;
@@ -131,12 +127,10 @@ public:
         const uint64_t& data_size() const     {return data_size_;}
     };
 
-    //using SizesT = core::StaticVector<int32_t, 1>;
-
     struct Tools {};
 
-    using GrowableIOSubstream = io::PackedSSRLESymbolSequence<BitsPerSymbol>;
-    using IOSubstreamView     = io::PackedSSRLESymbolSequenceView<BitsPerSymbol>;
+    using GrowableIOSubstream = io::PackedSSRLESymbolSequence<Symbols>;
+    using IOSubstreamView     = io::PackedSSRLESymbolSequenceView<Symbols>;
 
     using ExtData = std::tuple<>;
     using SparseObject = PackedSSRLESeqSO<ExtData, MyType>;
@@ -526,27 +520,6 @@ public:
 
 protected:
 
-//    MMA_PKD_OOM_SAFE
-//    VoidResult shrinkData(size_t length) noexcept
-//    {
-//        size_t current_size = this->element_size(SYMBOLS);
-
-//        if (current_size > length)
-//        {
-//            size_t new_size = current_size - length;
-//            MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, new_size));
-//        }
-
-//        return VoidResult::of();
-//    }
-
-
-//    MMA_PKD_OOM_SAFE
-//    VoidResult shrink_to_data() noexcept
-//    {
-//        return shrinkData(this->symbols_block_capacity());
-//    }
-
     SeqSizeT count_symbols(Span<const SymbolsRunT> runs) noexcept
     {
         SeqSizeT sum{};
@@ -792,7 +765,7 @@ public:
 
 
     // ========================================= Node ================================== //
-    VoidResult splitTo(MyType* other, SeqSizeT idx) noexcept
+    VoidResult splitTo(MyType* other, SeqSizeT idx)
     {
         Metadata* meta = this->metadata();
 

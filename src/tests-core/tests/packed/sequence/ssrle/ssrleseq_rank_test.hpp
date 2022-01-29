@@ -75,61 +75,61 @@ public:
     }
 
     struct RankEq {
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const {
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_eq(index, runs, idx, symbol);
         }
 
-        uint64_t rank(SeqPtr seq, size_t idx, size_t symbol) const {
+        uint64_t rank(SeqPtr seq, SeqSizeT idx, SymbolT symbol) const {
             return seq->rank_eq(idx, symbol);
         }
     };
 
     struct RankLt {
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const {
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_lt(index, runs, idx, symbol);
         }
 
-        uint64_t rank(SeqPtr seq, size_t idx, size_t symbol) const {
+        uint64_t rank(SeqPtr seq, SeqSizeT idx, SymbolT symbol) const {
             return seq->rank_lt(idx, symbol);
         }
     };
 
     struct RankLe {
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const {
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_le(index, runs, idx, symbol);
         }
 
-        uint64_t rank(SeqPtr seq, size_t idx, size_t symbol) const {
+        uint64_t rank(SeqPtr seq, SeqSizeT idx, size_t symbol) const {
             return seq->rank_le(idx, symbol);
         }
     };
 
     struct RankGt {
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const {
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_gt(index, runs, idx, symbol);
         }
 
-        uint64_t rank(SeqPtr seq, size_t idx, size_t symbol) const {
+        uint64_t rank(SeqPtr seq, SeqSizeT idx, SymbolT symbol) const {
             return seq->rank_gt(idx, symbol);
         }
     };
 
     struct RankGe {
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const {
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_ge(index, runs, idx, symbol);
         }
 
-        uint64_t rank(SeqPtr seq, size_t idx, size_t symbol) const {
+        uint64_t rank(SeqPtr seq, SeqSizeT idx, SymbolT symbol) const {
             return seq->rank_ge(idx, symbol);
         }
     };
 
     struct RankNeq {
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, size_t idx, size_t symbol) const {
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_neq(index, runs, idx, symbol);
         }
 
-        uint64_t rank(SeqPtr seq, size_t idx, size_t symbol) const {
+        uint64_t rank(SeqPtr seq, SeqSizeT idx, SymbolT symbol) const {
             return seq->rank_neq(idx, symbol);
         }
     };

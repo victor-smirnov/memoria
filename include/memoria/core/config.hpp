@@ -126,3 +126,6 @@
     int Name##_compilation_referencing_tag() {return 0;}
 
 #define MEMORIA_API
+
+// Only little endian is currently supported
+#define MEMORIA_LITTLE_ENDIAN 1

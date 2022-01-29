@@ -64,14 +64,15 @@ struct IOSSRLESymbolSequence: IOSubstream {
 
 
 
-template <int32_t Bps>
+template <size_t Symbols>
 class PackedSSRLESymbolSequence: public IOSSRLESymbolSequence {
 
-    static_assert (Bps >= 1 && Bps <= 8, "");
+    static_assert (Symbols >= 2 && Symbols <= 256, "");
 
-    static constexpr size_t AlphabetSize = 1 << Bps;
+    static constexpr size_t AlphabetSize = Symbols;
+    static constexpr size_t Bps = BitsPerSymbolConstexpr(Symbols);
 
-    using SeqT = PkdSSRLESeqT<Bps>;
+    using SeqT = PkdSSRLESeqT<Symbols>;
 
     SeqT* sequence_;
 
@@ -239,7 +240,7 @@ private:
 static inline std::unique_ptr<IOSSRLESymbolSequence> make_packed_ssrle_symbol_sequence(int32_t bps)
 {
     if (bps == 1) {
-        return std::make_unique<PackedSSRLESymbolSequence<1>>();
+        return std::make_unique<PackedSSRLESymbolSequence<2>>();
     }
 //    else if (alphabet_size == 2) {
 //        return std::make_unique<PackedSSRLESymbolSequence<2>>();

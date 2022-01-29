@@ -47,18 +47,18 @@ struct SSRLERunCommonTraitsBase {
     using SymbolT       = size_t;
     using RunSizeT      = uint64_t;
 
-    static constexpr size_t SEGMENT_BITS = sizeof(RunDataT) * 8; // Should be 64
-    static constexpr size_t CODE_UNIT_SIZE_BITS = 2;
+    static constexpr size_t CODE_WORD_BITS = sizeof(RunDataT) * 8; // Should be 64
+    static constexpr size_t CODE_WORD_SIZE_BITS = 2;
 
-    static constexpr size_t CODE_UNIT_BITS_MIN = sizeof(CodeUnitT) * 8;
-    static constexpr size_t CODE_UNIT_BITS_MAX = SEGMENT_BITS;
+    static constexpr size_t CODE_WORD_BITS_MIN = sizeof(CodeUnitT) * 8;
+    static constexpr size_t CODE_WORD_BITS_MAX = CODE_WORD_BITS;
 
-    static constexpr size_t CODE_UNITS_PER_SEGMENT_MAX = SEGMENT_BITS / CODE_UNIT_BITS_MIN;
+    static constexpr size_t CODE_UNITS_PER_WORD_MAX = CODE_WORD_BITS / CODE_WORD_BITS_MIN;
 
     static constexpr size_t SEGMENT_SIZE_BYTES = 64;
     static constexpr size_t SEGMENT_SIZE_UNITS = SEGMENT_SIZE_BYTES / sizeof(CodeUnitT);
 
-    static constexpr size_t SYMBOLS = size_t(1) << Bps;
+    static constexpr size_t SYMBOLS = size_t{1} << Bps;
 
     using RunTraits = SSRLERunTraits<Bps>;
 
@@ -66,7 +66,7 @@ struct SSRLERunCommonTraitsBase {
 
     static constexpr RunDataT make_mask(size_t len) noexcept
     {
-        if (len >= SEGMENT_BITS) {
+        if (len >= CODE_WORD_BITS) {
             return ~static_cast<RunDataT>(0);
         }
         else {
@@ -402,8 +402,8 @@ public:
         else if (self.run_length_ == 1 && run.run_length() == 1)
         {
             if (RunTraits::is_fit(self.pattern_length_ + run.pattern_length(), 1)) {
-                RunDataT atom = run.pattern() << self.pattern_length_;
-                self.pattern_ |= atom;
+                RunDataT code_word = run.pattern() << (self.pattern_length_ * Bps);
+                self.pattern_ |= code_word;
                 self.pattern_length_ += run.pattern_length();
                 return true;
             }
@@ -413,64 +413,59 @@ public:
     }
 
 
-    static void encode_run(const RunT& run, CodeUnitT* atoms, size_t unit_size) noexcept
+    static void encode_run(const RunT& run, CodeUnitT* units, size_t unit_size) noexcept
     {
-        RunDataT segment{};
-        SSRLERunTraits<Bps>::encode_run(run, segment, unit_size);
+        RunDataT code_word{};
+        SSRLERunTraits<Bps>::encode_run(run, code_word, unit_size);
         for (size_t c = 0; c < unit_size; c++)
         {
-            CodeUnitT atom = static_cast<CodeUnitT>(segment);
-            atoms[c] = atom;
-            segment >>= sizeof(CodeUnitT) * 8;
+            CodeUnitT unit = static_cast<CodeUnitT>(code_word);
+            units[c] = unit;
+            code_word >>= sizeof(CodeUnitT) * 8;
         }
     }
 
-    static void encode_run(const RunT& run, RunDataT& segment, size_t unit_size) noexcept
+    static void encode_run(const RunT& run, RunDataT& code_word, size_t unit_size) noexcept
     {
         constexpr size_t PATTERN_LEN = RunTraits::LEN_BITS;
 
-        if (run.pattern_length() == 56) {
-            int a = 0;
-            a++;
-        }
+        code_word = unit_size - 1;
+        code_word |= run.pattern_length() << CODE_WORD_SIZE_BITS;
+        code_word |= (run.pattern() & make_mask_safe(run.pattern_length() * Bps)) << (CODE_WORD_SIZE_BITS + PATTERN_LEN);
 
-        segment = unit_size - 1;
-        segment |= run.pattern_length() << CODE_UNIT_SIZE_BITS;
-        segment |= run.pattern() << (CODE_UNIT_SIZE_BITS + PATTERN_LEN);
-
-        segment |= run.run_length() << (CODE_UNIT_SIZE_BITS + PATTERN_LEN + run.pattern_length() * Bps);
+        code_word |= run.run_length() << (CODE_WORD_SIZE_BITS + PATTERN_LEN + run.pattern_length() * Bps);
     }
 
-    static size_t decode_unit_to(const CodeUnitT* atoms, RunT& run) noexcept
+    static size_t decode_unit_to(const CodeUnitT* units, RunT& run) noexcept
     {
-        CodeUnitT atom = atoms[0];
-        size_t unit_size = (atom & make_mask_safe(CODE_UNIT_SIZE_BITS)) + 1;
+        CodeUnitT unit = units[0];
+        size_t unit_size = (unit & make_mask_safe(CODE_WORD_SIZE_BITS)) + 1;
 
-        RunDataT segment{};
+        RunDataT code_word{};
         for (size_t c = 0; c < unit_size; c++) {
-            segment |= static_cast<RunDataT>(atoms[c]) << (c * sizeof(CodeUnitT) * 8);
+            code_word |= static_cast<RunDataT>(units[c]) << (c * sizeof(CodeUnitT) * 8);
         }
 
-        return decode_unit_to(segment, run, unit_size);
+        return decode_unit_to(code_word, run, unit_size);
     }
 
 
-    static size_t decode_unit_to(RunDataT segment, RunT& run, size_t unit_size) noexcept
+    static size_t decode_unit_to(RunDataT code_word, RunT& run, size_t unit_size) noexcept
     {
         constexpr size_t PATTERN_LEN = RunTraits::LEN_BITS;
 
-        segment >>= CODE_UNIT_SIZE_BITS;
+        code_word >>= CODE_WORD_SIZE_BITS;
 
-        run.pattern_length_ = segment & make_mask_safe(PATTERN_LEN);
+        run.pattern_length_ = code_word & make_mask_safe(PATTERN_LEN);
 
-        segment >>= PATTERN_LEN;
-        run.pattern_ = segment & make_mask_safe(run.pattern_length_);
-        segment >>= run.pattern_length_;
+        code_word >>= PATTERN_LEN;
+        run.pattern_ = code_word & make_mask_safe(run.pattern_length_ * Bps);
+        code_word >>= (run.pattern_length_ * Bps);
 
-        size_t run_len_bits = unit_size * CODE_UNIT_BITS_MIN - PATTERN_LEN - CODE_UNIT_SIZE_BITS - run.pattern_length() * Bps;
+        size_t run_len_bits = unit_size * CODE_WORD_BITS_MIN - PATTERN_LEN - CODE_WORD_SIZE_BITS - run.pattern_length() * Bps;
 
         if (run_len_bits) {
-            run.run_length_ = segment & make_mask_safe(run_len_bits);
+            run.run_length_ = code_word & make_mask_safe(run_len_bits);
         }
         else {
             run.run_length_ = 1;
@@ -479,16 +474,16 @@ public:
         return unit_size;
     }
 
-    static size_t decode_segment_to(RunDataT& segment, Span<RunT> span) noexcept
+    static size_t decode_segment_to(RunDataT& code_word, Span<RunT> span) noexcept
     {
         size_t units = 0;
 
-        for (size_t c = 0; c < CODE_UNITS_PER_SEGMENT_MAX;)
+        for (size_t c = 0; c < CODE_UNITS_PER_WORD_MAX;)
         {
-            size_t unit_size = RunTraits::decode_unit_to(segment, span[units]);
+            size_t unit_size = RunTraits::decode_unit_to(code_word, span[units]);
             c += unit_size;
 
-            segment >>= (unit_size * CODE_UNIT_BITS_MIN);
+            code_word >>= (unit_size * CODE_WORD_BITS_MIN);
         }
 
         for (size_t u = units; u < span.size(); u++) {
@@ -510,11 +505,6 @@ public:
             if (source[c])
             {
                 size_t units = RunTraits::estimate_size(source[c]);
-
-                if (units > 4) {
-                    println("Run size: {} {} {}", units, c, source[c]);
-                }
-
                 if (MMA_UNLIKELY(tgt_idx + units > next_limit))
                 {
                     size_t remainder = next_limit - tgt_idx;
@@ -523,7 +513,7 @@ public:
                     // or splitting paddings into mutiple paddings runs.
 
                     // Code below assumes that CODE_UNITS_PER_SEGMENT_MAX is less than 256
-                    static_assert(CODE_UNITS_PER_SEGMENT_MAX < 256);
+                    static_assert(CODE_UNITS_PER_WORD_MAX < 256);
 
                     RunT padding = RunT::make_padding(remainder);
                     RunTraits::encode_run(
@@ -665,12 +655,28 @@ public:
         }
     }
 
+    template <typename T>
+    static void pattern_ranks(const RunT& run, Span<T> sync) noexcept
+    {
+        pattern_ranks(run, run.pattern_length(), sync);
+    }
+
+
+    template <typename T>
+    static void pattern_ranks(const RunT& run, size_t idx, Span<T> sink) noexcept
+    {
+        for (size_t c = 0; c < idx; c++) {
+            SymbolT sym = run.pattern_symbol(c);
+            ++sink[sym];
+        }
+    }
+
     static RunSizeT pattern_rank(const RunT& run, SymbolT symbol) noexcept
     {
         RunSizeT rank{};
 
         for (size_t c = 0; c < run.pattern_length(); c++) {
-            rank += run.symbol(c) == symbol;
+            rank += run.pattern_symbol(c) == symbol;
         }
 
         return rank;
@@ -681,7 +687,7 @@ public:
         RunSizeT rank{};
 
         for (size_t c = 0; c < idx; c++) {
-            rank += run.symbol(c) == symbol;
+            rank += run.pattern_symbol(c) == symbol;
         }
 
         return rank;
@@ -736,13 +742,7 @@ public:
         }
     }
 
-    template <typename T>
-    static void pattern_ranks(const RunT& run, Span<T> sink) noexcept {
-        for (size_t c = 0; c < run.pattern_length(); c++) {
-            size_t sym = run.symbol(c);
-            ++sink[sym];
-        }
-    }
+
 
     template <typename T>
     static void full_ranks(const RunT& run, Span<T> sink) noexcept
@@ -792,7 +792,7 @@ public:
     static size_t pattern_rank_fn(const RunT& run, SymbolT symbol, Fn&& fn) noexcept {
         RunSizeT rank{};
         for (size_t c = 0; c < run.pattern_length(); c++) {
-            SymbolT sym = run.symbol(c);
+            SymbolT sym = run.pattern_symbol(c);
             rank += fn(sym, symbol);
         }
         return rank;
@@ -803,7 +803,7 @@ public:
     static size_t pattern_rank_fn(const RunT& run, RunSizeT idx, SymbolT symbol, Fn&& fn) noexcept {
         RunSizeT rank{};
         for (size_t c = 0; c < idx; c++) {
-            SymbolT sym = run.symbol(c);
+            SymbolT sym = run.pattern_symbol(c);
             rank += fn(sym, symbol);
         }
         return rank;
@@ -822,7 +822,7 @@ public:
         ++rank;
         for (size_t c = 0; c < run.pattern_length(); c++)
         {
-            SymbolT sym = run.symbol(c);
+            SymbolT sym = run.pattern_symbol(c);
             rr += compare(sym, symbol);
 
             if (rr == rank) {
@@ -1076,6 +1076,10 @@ public:
             p_idx = idx % pattern_length_;
         }
         return (pattern_ >> (p_idx * Bps)) & SYMBOL_MASK;
+    }
+
+    constexpr SymbolT pattern_symbol(RunSizeT idx) const noexcept {
+        return (pattern_ >> (idx * Bps)) & SYMBOL_MASK;
     }
 
     constexpr void set_symbol(RunSizeT idx, SymbolT symbol) noexcept

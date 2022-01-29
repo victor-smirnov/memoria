@@ -25,11 +25,25 @@ namespace tests {
 
 namespace {
 
-auto Suite0 = register_class_suite<PackedSSRLESearchableSequenceRLETest<1>> ("SSRleSeq.RLE.1");
-auto Suite1 = register_class_suite<PackedSSRLESearchableSequenceMiscTest<1>>("SSRleSeq.Misc.1");
-auto Suite2 = register_class_suite<PackedSSRLESearchableSequenceRankTest<1>>("SSRleSeq.Rank.1");
-auto Suite3 = register_class_suite<PackedSSRLESearchableSequenceSelectTest<1>>("SSRleSeq.Select.1");
-auto Suite4 = register_class_suite<PackedSSRLESearchableSequenceCountTest<1>>("SSRleSeq.Count.1");
+auto Suite0 = register_class_suite<PackedSSRLESearchableSequenceRLETest<2>> ("SSRleSeq.RLE.2");
+auto Suite1 = register_class_suite<PackedSSRLESearchableSequenceMiscTest<2>>("SSRleSeq.Misc.2");
+auto Suite2 = register_class_suite<PackedSSRLESearchableSequenceRankTest<2>>("SSRleSeq.Rank.2");
+auto Suite3 = register_class_suite<PackedSSRLESearchableSequenceSelectTest<2>>("SSRleSeq.Select.2");
+auto Suite4 = register_class_suite<PackedSSRLESearchableSequenceCountTest<2>>("SSRleSeq.Count.2");
+
+
+auto Suite5 = register_class_suite<PackedSSRLESearchableSequenceRLETest<4>> ("SSRleSeq.RLE.4");
+auto Suite6 = register_class_suite<PackedSSRLESearchableSequenceMiscTest<4>>("SSRleSeq.Misc.4");
+auto Suite7 = register_class_suite<PackedSSRLESearchableSequenceRankTest<4>>("SSRleSeq.Rank.4");
+auto Suite8 = register_class_suite<PackedSSRLESearchableSequenceSelectTest<4>>("SSRleSeq.Select.4");
+auto Suite9 = register_class_suite<PackedSSRLESearchableSequenceCountTest<4>>("SSRleSeq.Count.4");
+
+auto Suite10 = register_class_suite<PackedSSRLESearchableSequenceRLETest<256>> ("SSRleSeq.RLE.256");
+auto Suite11 = register_class_suite<PackedSSRLESearchableSequenceMiscTest<256>>("SSRleSeq.Misc.256");
+auto Suite12 = register_class_suite<PackedSSRLESearchableSequenceRankTest<256>>("SSRleSeq.Rank.256");
+auto Suite13 = register_class_suite<PackedSSRLESearchableSequenceSelectTest<256>>("SSRleSeq.Select.256");
+auto Suite14 = register_class_suite<PackedSSRLESearchableSequenceCountTest<256>>("SSRleSeq.Count.256");
+
 
 }
 

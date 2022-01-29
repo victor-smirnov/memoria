@@ -27,38 +27,23 @@ namespace memoria {
 template<>
 struct SSRLERunTraits<1>: SSRLERunCommonTraits<1> {
     using Base = SSRLERunCommonTraits<1>;
-    using Base::SEGMENT_BITS;
-    using Base::CODE_UNIT_SIZE_BITS;
-    using Base::CODE_UNITS_PER_SEGMENT_MAX;
+    using Base::CODE_WORD_BITS;
+    using Base::CODE_WORD_SIZE_BITS;
+    using Base::CODE_UNITS_PER_WORD_MAX;
     using Base::make_mask;
     using Base::run_length_bitsize;
 
     using typename Base::RunDataT;
 
     static constexpr size_t LEN_BITS = 6;
+    static constexpr size_t HEADER_BITS = LEN_BITS + CODE_WORD_SIZE_BITS;
 
-    static constexpr size_t MAX_LEN  = SEGMENT_BITS - CODE_UNIT_SIZE_BITS - LEN_BITS;
-    static constexpr RunDataT  LEN_MASK = make_mask(LEN_BITS);
-
-    static constexpr uint64_t L8 = 0x0101010101010101;
-    static constexpr uint64_t H8 = 0x8080808080808080;
-
-    static constexpr RunDataT symbols_length(RunDataT atom) {
-        return (atom >> CODE_UNIT_SIZE_BITS) & LEN_MASK;
-    }
-
-    static constexpr RunDataT symbols(RunDataT atom) {
-        return atom >> (CODE_UNIT_SIZE_BITS + LEN_BITS);
-    }
-
-    static constexpr RunDataT run_length(RunDataT atom) {
-        return atom >> (CODE_UNIT_SIZE_BITS + LEN_BITS);
-    }
+    static constexpr size_t DATA_BITS  = CODE_WORD_BITS - CODE_WORD_SIZE_BITS - LEN_BITS;
 
     static constexpr bool is_fit(RunDataT pattern_length, size_t run_length)
     {
         size_t rl_size = run_length_bitsize(run_length);
-        return pattern_length + rl_size <= 56;
+        return pattern_length + rl_size <= DATA_BITS;
     }
 
     static std::string pattern_to_string(const SSRLERun<1>& run)
@@ -76,13 +61,13 @@ struct SSRLERunTraits<1>: SSRLERunCommonTraits<1> {
     }
 
     static size_t max_pattern_length() {
-        return 56;
+        return DATA_BITS;
     }
 
     static size_t max_run_length(size_t pattern_length)
     {
-        if (pattern_length < 56) {
-            size_t run_len_size = 56 - pattern_length;
+        if (pattern_length < DATA_BITS) {
+            size_t run_len_size = DATA_BITS - pattern_length;
             return (static_cast<size_t>(1) << run_len_size) - 1;
         }
         else {
@@ -93,7 +78,7 @@ struct SSRLERunTraits<1>: SSRLERunCommonTraits<1> {
     static constexpr size_t estimate_size(const SSRLERun<1>& run) noexcept
     {
         size_t rl_size = run_length_bitsize(run.run_length());
-        size_t bitlen = 8 + run.pattern_length() + rl_size;
+        size_t bitlen = HEADER_BITS + run.pattern_length() + rl_size;
 
         return divUp(bitlen, sizeof(CodeUnitT) * 8);
     }

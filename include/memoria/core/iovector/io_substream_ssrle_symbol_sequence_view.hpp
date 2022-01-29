@@ -26,7 +26,7 @@
 namespace memoria {
 namespace io {
 
-template <int32_t AlphabetSize>
+template <size_t AlphabetSize>
 class PackedSSRLESymbolSequenceView final: public IOSubstream {
 
     using SeqT = PkdSSRLESeqT<AlphabetSize>;

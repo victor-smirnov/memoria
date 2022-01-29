@@ -23,11 +23,11 @@
 namespace memoria {
 namespace tests {
 
-template <int32_t Bps>
-class PackedSSRLESearchableSequenceRLETest: public PackedSSRLESequenceTestBase<Bps> {
+template <int32_t Symbols>
+class PackedSSRLESearchableSequenceRLETest: public PackedSSRLESequenceTestBase<Symbols> {
 
-    using MyType = PackedSSRLESearchableSequenceRLETest<Bps>;
-    using Base = PackedSSRLESequenceTestBase<Bps>;
+    using MyType = PackedSSRLESearchableSequenceRLETest<Symbols>;
+    using Base = PackedSSRLESequenceTestBase<Symbols>;
 
     using typename Base::SymbolsRunT;
     using typename Base::RunTraits;
@@ -46,6 +46,8 @@ class PackedSSRLESearchableSequenceRLETest: public PackedSSRLESequenceTestBase<B
     using Base::make_span;
     using Base::out;
     using Base::size_;
+
+    using Base::Bps;
 
 public:
 
@@ -97,7 +99,7 @@ public:
         SymbolsRunT run = SymbolsRunT::make_run(syms, run_length);
         size_t pattern_length = run.pattern_length();
 
-        std::vector<size_t> ranks1(1 << Bps);
+        std::vector<size_t> ranks1(Symbols);
         run.full_ranks(make_span(ranks1));
 
         assert_equals(ranks[0] * run_length, ranks1[0]);
@@ -106,7 +108,7 @@ public:
         size_t sym0_full_rank = run.full_rank_eq(0);
         assert_equals(ranks[0] * run_length, sym0_full_rank);
 
-        std::vector<size_t> ranks2(1 << Bps);
+        std::vector<size_t> ranks2(Symbols);
 
         size_t patterns = 2;
         run.ranks(pattern_length * patterns + 4, make_span(ranks2));

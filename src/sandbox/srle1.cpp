@@ -24,32 +24,19 @@
 
 using namespace memoria;
 
+size_t BitsPerSym(size_t syms) {
+    return syms <= 2 ? 1 : Log2U(syms - 1);
+}
+
 int main(int, char**)
 {
-    using Run1T = SSRLERun<1>;
+    //using Run1T = SSRLERun<1>;
 
-    Run1T run1(32, std::bitset<32>("01100100100011011101001").to_ullong(), 50);
-    Run1T run2(32, std::bitset<32>("01100100100011011101001").to_ullong(), 25);
-    Run1T run3(32, std::bitset<32>("001011100011110111010011101").to_ullong(), 15);
+//    for (size_t c = 1; c <= 256; c++ )
+//    println("BitsPerSym({}) = {}", c, BitsPerSymbolConstexpr(c));
 
-    println("{}", run1);
-    println("{}", run2);
-    println("{}", run3);
+    UAcc128T aa(10);
+    println("AccP: {}", aa);
 
-    auto seq0 = io::make_packed_ssrle_symbol_sequence(1);
-    auto& seq = io::substream_cast<io::PackedSSRLESymbolSequence<1>>(*seq0.get());
-
-    seq.append(Span<const Run1T>{&run1, 1});
-    seq.append(Span<const Run1T>{&run2, 1});
-    for (size_t c = 0; c < 1000; c++) {
-        //println("C: {}", c);
-
-        Run1T run0 (run3.pattern_length(), run3.pattern() + c, run3.run_length());
-
-        seq.append(Span<const Run1T>{&run0, 1});
-    }
-
-    seq.reindex();
-
-    seq.dump(std::cout);
+    std::cout << "AccC:" << aa << std::endl;
 }
