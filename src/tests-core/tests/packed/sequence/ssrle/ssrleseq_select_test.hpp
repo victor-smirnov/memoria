@@ -86,7 +86,7 @@ public:
 
     struct SelectFwEq {
         size_t get_sym() const {
-            return 0;
+            return Symbols / 2;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
@@ -104,7 +104,7 @@ public:
 
     struct SelectFwNeq {
         size_t get_sym() const {
-            return 0;
+            return Symbols/2;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
@@ -122,7 +122,7 @@ public:
 
     struct SelectFwLt {
         size_t get_sym() const {
-            return 1;
+            return Symbols / 2;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
@@ -141,7 +141,7 @@ public:
 
     struct SelectFwLe {
         size_t get_sym() const {
-            return 0;
+            return Symbols / 2 - 1;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
@@ -160,7 +160,7 @@ public:
 
     struct SelectFwGt {
         size_t get_sym() const {
-            return 0;
+            return Symbols / 2 - 1;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
@@ -178,7 +178,7 @@ public:
 
     struct SelectFwGe {
         size_t get_sym() const {
-            return 1;
+            return Symbols / 2;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {

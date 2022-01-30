@@ -89,7 +89,7 @@ public:
         for (size_t c = 0; c < size; c++)
         {
             size_t pattern_length = getRandom1(RunTraits::max_pattern_length());
-            size_t pattern = getBIRandom();
+            //uint64_t pattern = getBIRandom();
             size_t max_run_len = RunTraits::max_run_length(pattern_length);
 
             if (max_run_len > 10000) {
@@ -98,7 +98,13 @@ public:
 
             size_t run_len = max_run_len > 1 ? getRandom1(max_run_len + 1) : 1;
 
-            symbols.push_back(SymbolsRunT(pattern_length, pattern, run_len));
+            SymbolsRunT run(pattern_length, 0, run_len);
+
+            for (size_t s = 0; s < run.pattern_length(); s++) {
+                run.set_pattern_symbol(s, getRandom(Symbols));
+            }
+
+            symbols.push_back(run);
         }
 
         return symbols;

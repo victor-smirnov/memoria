@@ -752,7 +752,7 @@ public:
             RunSizeT tmp[SYMBOLS]{0,};
             RunTraits::pattern_ranks(run, Span<RunSizeT>(tmp, SYMBOLS));
 
-            for (size_t s = 0; s < SYMBOLS; s++)
+            for (size_t s = 0; s < sink.size(); s++)
             {
                 sink[s] += tmp[s] * run.run_length();
             }
@@ -778,7 +778,7 @@ public:
                 RunSizeT tmp[SYMBOLS]{0,};
                 RunTraits::pattern_ranks(run, Span<RunSizeT>(tmp, SYMBOLS));
 
-                for (size_t s = 0; s < SYMBOLS; s++)
+                for (size_t s = 0; s < sink.size(); s++)
                 {
                     sink[s] += tmp[s] * run_prefix;
                 }
@@ -1099,6 +1099,17 @@ public:
 
         pattern_ = pattern_ & ~mask ;
         pattern_ = pattern_ | (symbol << (p_idx * Bps));
+    }
+
+    constexpr void set_pattern_symbol(RunSizeT idx, SymbolT symbol) noexcept
+    {
+        RunDataT mask = ((static_cast<RunDataT>(1) << Bps) - 1);
+
+        symbol &= mask;
+        mask <<= (idx * Bps);
+
+        pattern_ = pattern_ & ~mask ;
+        pattern_ = pattern_ | (symbol << (idx * Bps));
     }
 
 

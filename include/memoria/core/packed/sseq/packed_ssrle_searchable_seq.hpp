@@ -80,11 +80,10 @@ public:
     static const PackedDataTypeSize SizeType            = PackedDataTypeSize::VARIABLE;
 
 
-    static constexpr size_t Symbols                    = Types::Symbols;
-    static_assert(Symbols >= 2 && Symbols <= 256, "Number of symbols must be in [2, ... 256]");
+    static constexpr size_t Symbols         = Types::Symbols;
+    static constexpr size_t BitsPerSymbol   = BitsPerSymbolConstexpr(Symbols);
 
-    static constexpr size_t Indexes                    = Symbols;
-    static constexpr size_t BitsPerSymbol              = BitsPerSymbolConstexpr(Symbols);
+    static_assert(Symbols >= 2 && Symbols <= 256, "Number of symbols must be in [2, ... 256]");
 
 
     using SymbolsRunT = SSRLERun<BitsPerSymbol>;
@@ -108,7 +107,6 @@ public:
     };
 
     using Base::clear;
-
 
     using SumValueT  = SeqSizeT;
     using SizeValueT = SeqSizeT;
@@ -1956,7 +1954,7 @@ struct PackedStructTraits<PkdSSRLESeq<Types>> {
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
-    static constexpr int32_t Indexes = PkdSSRLESeq<Types>::Indexes;
+    static constexpr int32_t Indexes = PkdSSRLESeq<Types>::Symbols;
 };
 
 
