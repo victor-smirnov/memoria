@@ -13,30 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/core/packed/sseq/packed_ssrle_searchable_seq.hpp>
+
 #include <memoria/core/ssrle/ssrle.hpp>
 #include <memoria/core/strings/format.hpp>
 
-#include <memoria/core/iovector/io_substream_ssrle_symbol_sequence.hpp>
+#include <memoria/core/iovector/io_substream_ssrle.hpp>
 
 #include <bitset>
 #include <iostream>
 
 using namespace memoria;
 
-size_t BitsPerSym(size_t syms) {
-    return syms <= 2 ? 1 : Log2U(syms - 1);
-}
-
 int main(int, char**)
 {
-    //using Run1T = SSRLERun<1>;
+    auto buf = io::make_packed_ssrle_buffer(2);
 
-//    for (size_t c = 1; c <= 256; c++ )
-//    println("BitsPerSym({}) = {}", c, BitsPerSymbolConstexpr(c));
-
-    UAcc128T aa(10);
-    println("AccP: {}", aa);
-
-    std::cout << "AccC:" << aa << std::endl;
+    SSRLERun<8> rr(7, 0x010203040506AA, 9);
+    println("Run: {}", rr);
 }

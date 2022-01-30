@@ -24,7 +24,8 @@
 
 #include <memoria/profiles/common/block_operations.hpp>
 
-#include <memoria/core/packed/sseq/packed_ssrle_searchable_seq_so.hpp>
+#include <memoria/core/iovector/io_substream_ssrle.hpp>
+#include <memoria/core/packed/sseq/packed_ssrle_seq_so.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
@@ -41,28 +42,28 @@ namespace memoria {
 
 namespace io {
 
-template <size_t AlphabetSize> class PackedSSRLESymbolSequence;
-template <size_t AlphabetSize> class PackedSSRLESymbolSequenceView;
+template <size_t AlphabetSize> class IOSSRLEBufferImpl;
+template <size_t AlphabetSize> class IOSSRLEBufferView;
 
 }
 
 
 template <
-    int32_t Symbols_,
-    int32_t BytesPerBlock_
+    size_t AlphabetSize_,
+    size_t BytesPerBlock_
 >
 struct PkdSSRLSeqTypes {
-    static const size_t Symbols             = Symbols_;
+    static const size_t AlphabetSize        = AlphabetSize_;
     static const size_t BytesPerBlock       = BytesPerBlock_;
 };
 
 template <typename Types> class PkdSSRLESeq;
 
 template <
-    int32_t Symbols,
-    int32_t BytesPerBlock = 256
+    size_t AlphabetSize,
+    size_t BytesPerBlock = 256
 >
-using PkdSSRLESeqT = PkdSSRLESeq<PkdSSRLSeqTypes<Symbols, BytesPerBlock>>;
+using PkdSSRLESeqT = PkdSSRLESeq<PkdSSRLSeqTypes<AlphabetSize, BytesPerBlock>>;
 
 template <typename Types_>
 class PkdSSRLESeq: public PackedAllocator {
@@ -80,11 +81,10 @@ public:
     static const PackedDataTypeSize SizeType            = PackedDataTypeSize::VARIABLE;
 
 
-    static constexpr size_t Symbols         = Types::Symbols;
-    static constexpr size_t BitsPerSymbol   = BitsPerSymbolConstexpr(Symbols);
+    static constexpr size_t AlphabetSize         = Types::AlphabetSize;
+    static constexpr size_t BitsPerSymbol   = BitsPerSymbolConstexpr(AlphabetSize);
 
-    static_assert(Symbols >= 2 && Symbols <= 256, "Number of symbols must be in [2, ... 256]");
-
+    static_assert(AlphabetSize >= 2 && AlphabetSize <= 256, "AlphabetSize must be in [2, ... 256]");
 
     using SymbolsRunT = SSRLERun<BitsPerSymbol>;
     using RunTraits   = SSRLERunTraits<BitsPerSymbol>;
@@ -111,7 +111,7 @@ public:
     using SumValueT  = SeqSizeT;
     using SizeValueT = SeqSizeT;
 
-    using SumIndex  = PkdFQTreeT<SumValueT, Symbols>;
+    using SumIndex  = PkdFQTreeT<SumValueT, AlphabetSize>;
     using SizeIndex = PkdFQTreeT<SizeValueT, 1>;
 
     class Metadata {
@@ -127,8 +127,8 @@ public:
 
     struct Tools {};
 
-    using GrowableIOSubstream = io::PackedSSRLESymbolSequence<Symbols>;
-    using IOSubstreamView     = io::PackedSSRLESymbolSequenceView<Symbols>;
+    using GrowableIOSubstream = io::IOSSRLEBufferImpl<AlphabetSize>;
+    using IOSubstreamView     = io::IOSSRLEBufferView<AlphabetSize>;
 
     using ExtData = std::tuple<>;
     using SparseObject = PackedSSRLESeqSO<ExtData, MyType>;
@@ -206,6 +206,10 @@ public:
 
     Iterator iterator() const noexcept {
         return Iterator(span<CodeUnitT>(this, SYMBOLS));
+    }
+
+    static Iterator iterator_from(Span<const CodeUnitT> units) {
+        return Iterator(units);
     }
 
     Iterator iterator(size_t atom_idx) const noexcept {
@@ -356,103 +360,6 @@ public:
 
         return VoidResult::of();
     }
-
-
-//    uint64_t populate_entry(io::SymbolsBuffer& buffer, uint64_t idx, int32_t symbol, bool entry_start) const
-//    {
-//        auto iter = this->iterator(idx);
-//        if (MMA_LIKELY(iter.has_data()))
-//        {
-//            if (MMA_UNLIKELY(entry_start && iter.symbol() == symbol))
-//            {
-//                if (MMA_UNLIKELY(iter.remaining_run_length() > 1))
-//                {
-//                    buffer.append_run(iter.symbol(), iter.remaining_run_length());
-//                    return idx + 1;
-//                }
-//                else
-//                {
-//                    iter.next_run();
-//                }
-//            }
-
-//            while (iter.has_data())
-//            {
-//                if (iter.symbol() >= symbol)
-//                {
-//                    buffer.append_run(iter.symbol(), iter.remaining_run_length());
-//                    iter.next_run();
-//                }
-//                else {
-//                    return iter.local_pos();
-//                }
-//            }
-//        }
-
-//        return this->size();
-//    }
-
-//    uint64_t populate_while(io::SymbolsBuffer& buffer, uint64_t idx, int32_t symbol) const
-//    {
-//        auto iter = this->iterator(idx);
-//        while (iter.has_data())
-//        {
-//            if (iter.symbol() >= symbol)
-//            {
-//                buffer.append_run(iter.symbol(), iter.remaining_run_length());
-//                iter.next_run();
-//            }
-//            else {
-//                buffer.finish();
-//                return iter.local_pos();
-//            }
-//        }
-
-//        buffer.finish();
-
-//        return this->size();
-//    }
-
-//    uint64_t populate(io::SymbolsBuffer& buffer, uint64_t idx) const
-//    {
-//        auto iter = this->iterator(idx);
-//        while (iter.has_data())
-//        {
-//            buffer.append_run(iter.symbol(), iter.remaining_run_length());
-//            iter.next_run();
-//        }
-
-//        buffer.finish();
-
-//        return this->size();
-//    }
-
-//    uint64_t populate(io::SymbolsBuffer& buffer, uint64_t idx, uint64_t size) const
-//    {
-//        auto iter = this->iterator(idx);
-//        uint64_t total{};
-//        while (iter.has_data())
-//        {
-//            auto len = iter.remaining_run_length();
-
-//            if (MMA_LIKELY(len + total <= size))
-//            {
-//                total += len;
-//                buffer.append_run(iter.symbol(), len);
-//                iter.next_run();
-//            }
-//            else {
-//                auto remaining = size - total;
-//                buffer.append_run(iter.symbol(), remaining);
-//                total += remaining;
-//            }
-//        }
-
-//        buffer.finish();
-
-//        return idx + total;
-//    }
-
 
 
     // ========================================= Update ================================= //
@@ -876,6 +783,46 @@ public:
         }
     }
 
+    std::vector<SymbolsRunT> symbol_runs(SeqSizeT pos, SeqSizeT length) const
+    {
+        Location loc = find_run(pos);
+
+        std::vector<SymbolsRunT> runs{};
+
+        if (loc.run)
+        {
+            RunSizeT start = loc.local_symbol_idx;
+            RunSizeT run_len = loc.run.full_run_length();
+            RunSizeT remainder = run_len - start;
+
+            if (SeqSizeT{remainder} >= length) {
+                loc.run.extract_to(runs, loc.run, start, length);
+            }
+            else {
+                loc.run.extract_to(runs, loc.run, start, remainder);
+
+                Iterator ii = iterator(loc.unit_idx + loc.run.size_in_units());
+
+                SeqSizeT sum{remainder};
+                ii.do_while([&](const SymbolsRunT& run){
+                    SeqSizeT size = run.full_run_length();
+                    if (length < sum + size)
+                    {
+                        run.extract_to(runs, run, 0, length - sum);
+                        return false;
+                    }
+                    else {
+                        sum += size;
+                        runs.push_back(run);
+                        return true;
+                    }
+                });
+            }
+        }
+
+        return runs;
+    }
+
 
 
     struct SelectResult {
@@ -964,7 +911,7 @@ private:
     struct SelectFwGtFn: SelectFwFnBase<SelectFwGtFn> {
         SeqSizeT sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
             SeqSizeT sum{};
-            for (int32_t c = symbol + 1; c < Symbols; c++) {
+            for (int32_t c = symbol + 1; c < AlphabetSize; c++) {
                 sum += index->value(c, idx);
             }
             return sum;
@@ -982,7 +929,7 @@ private:
     struct SelectFwGeFn: SelectFwFnBase<SelectFwGeFn> {
         SeqSizeT sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
             SeqSizeT sum{};
-            for (int32_t c = symbol; c < Symbols; c++) {
+            for (int32_t c = symbol; c < AlphabetSize; c++) {
                 sum += index->value(c, idx);
             }
             return sum;
@@ -1000,7 +947,7 @@ private:
     struct SelectFwNeqFn: SelectFwFnBase<SelectFwNeqFn> {
         SeqSizeT sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
             SeqSizeT sum{};
-            for (int32_t c = 0; c < Symbols; c++) {
+            for (int32_t c = 0; c < AlphabetSize; c++) {
                 sum += c != symbol ? index->value(c, idx) : SeqSizeT{0};
             }
             return sum;
@@ -1020,7 +967,7 @@ private:
     template <typename Fn>
     SelectResult select_fw_fn(SeqSizeT rank, SymbolT symbol, Fn&& fn) const
     {
-        MEMORIA_V1_ASSERT_TRUE(symbol < Symbols);
+        MEMORIA_V1_ASSERT_TRUE(symbol < AlphabetSize);
 
         size_t unit_pos;
         SeqSizeT rank_sum;
@@ -1146,7 +1093,7 @@ private:
         SumValueT sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
         {
             SumValueT sum{};
-            for (int32_t c = symbol + 1; c < Symbols; c++) {
+            for (int32_t c = symbol + 1; c < AlphabetSize; c++) {
                 sum += index->sum(c, idx);
             }
             return sum;
@@ -1169,7 +1116,7 @@ private:
         SumValueT sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
         {
             SumValueT sum{};
-            for (int32_t c = symbol; c < Symbols; c++) {
+            for (int32_t c = symbol; c < AlphabetSize; c++) {
                 sum += index->sum(c, idx);
             }
             return sum;
@@ -1192,7 +1139,7 @@ private:
         SumValueT sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
         {
             SumValueT sum{};
-            for (int32_t c = 0; c < Symbols; c++) {
+            for (int32_t c = 0; c < AlphabetSize; c++) {
                 sum += c != symbol ? index->sum(c, idx) : SeqSizeT{0};
             }
             return sum;
@@ -1222,7 +1169,7 @@ private:
         const Metadata* meta = this->metadata();
         SeqSizeT size = meta->size();
 
-        MEMORIA_V1_ASSERT_TRUE(pos <= size && symbol < Symbols);
+        MEMORIA_V1_ASSERT_TRUE(pos <= size && symbol < AlphabetSize);
 
         size_t unit_pos;
         SeqSizeT size_sum;
@@ -1677,7 +1624,7 @@ public:
 
             const auto* sums  = this->sum_index();
 
-            for (size_t c = 0; c < Symbols; c++) {
+            for (size_t c = 0; c < AlphabetSize; c++) {
                 symbols[c] += sums->sum(c, res.local_pos());
             }
         }
@@ -1772,8 +1719,7 @@ public:
         FieldFactory<SeqSizeT>::serialize(buf, meta->size());
         FieldFactory<uint64_t>::serialize(buf, meta->data_size());
 
-        if (has_index())
-        {
+        if (has_index()){
             MEMORIA_TRY_VOID(size_index()->serialize(buf));
             MEMORIA_TRY_VOID(sum_index()->serialize(buf));
         }
@@ -1811,12 +1757,13 @@ public:
     }
 
 
-    VoidResult insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size) noexcept
+    VoidResult insert_io_substream(SeqSizeT at, const io::IOSubstream& substream, SeqSizeT start, SeqSizeT size) noexcept
     {
-//        const MyType* buffer = ptr_cast<const MyType>(io::substream_cast<io::IOSymbolSequence>(substream).buffer());
-//        return this->insert_from(at, buffer, start, size);
+        using BufferT = io::IOSSRLEBuffer<AlphabetSize>;
+        const BufferT& buffer = io::substream_cast<BufferT>(substream);
 
-        return VoidResult::of();
+        std::vector<SymbolsRunT> syms = buffer.symbol_runs(start, size);
+        return this->insert(at, syms);
     }
 
 
@@ -1860,7 +1807,7 @@ private:
         }
     }
 
-    Location locate_run(const Metadata* meta, size_t start, SeqSizeT local_idx, size_t size_base) const noexcept
+    Location locate_run(const Metadata* meta, size_t start, SeqSizeT local_idx, size_t size_base) const
     {
         auto ii = iterator(start);
 
@@ -1891,7 +1838,7 @@ private:
         return Location{};
     }
 
-    Location locate_last_run(const Metadata* meta) const noexcept
+    Location locate_last_run(const Metadata* meta) const
     {
         SymbolsRunT last;
         size_t last_unit_idx{};
@@ -1954,7 +1901,7 @@ struct PackedStructTraits<PkdSSRLESeq<Types>> {
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
-    static constexpr int32_t Indexes = PkdSSRLESeq<Types>::Symbols;
+    static constexpr int32_t Indexes = PkdSSRLESeq<Types>::AlphabetSize;
 };
 
 

@@ -39,7 +39,7 @@ class ReindexFn {
     using RunSizeT      = typename Seq::RunSizeT;
     using SymbolT       = typename Seq::SymbolT;
 
-    static const SymbolT Symbols        = Seq::Symbols;
+    static const SymbolT AlphabetSize   = Seq::AlphabetSize;
     static const size_t  BytesPerBlock  = Seq::BytesPerBlock;
     static const size_t  AtomsPerBlock  = Seq::AtomsPerBlock;
 

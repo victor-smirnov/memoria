@@ -66,8 +66,8 @@ template <
     int32_t BytesPerBlock
 >
 struct PkdRLSeqTypes {
-    static const int32_t Blocks                 = Symbols_;
-    static const int32_t ValuesPerBranch        = BytesPerBlock;
+    static const int32_t Blocks             = Symbols_;
+    static const int32_t ValuesPerBranch    = BytesPerBlock;
 };
 
 template <typename Types> class PkdRLESeq;

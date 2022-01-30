@@ -109,6 +109,57 @@ public:
         return RunT(cnt, pattern, run_length);
     }
 
+protected:
+    static RunT sub_pattern(const RunT& run, RunSizeT start, RunSizeT size, RunSizeT len = 1) noexcept
+    {
+        RunT n_run;
+        n_run.pattern_ = (run.pattern() >> start * Bps) & make_mask_safe(size * Bps);
+        n_run.pattern_length_ = size;
+        n_run.run_length_ = len;
+        return n_run;
+    }
+
+public:
+    static void extract_to(std::vector<RunT>& runs, const RunT& run, RunSizeT start, RunSizeT size)
+    {
+        RunSizeT full_len = run.full_run_length();
+        if (start + size <= full_len)
+        {
+            if (run.run_length() == 1) {
+                runs.push_back(sub_pattern(run, start, size));
+            }
+            else {
+                RunSizeT rr_start = start / run.pattern_length();
+                RunSizeT rr_start_base = rr_start * run.pattern_length();
+                RunSizeT rr_start_local_pos = start - rr_start_base;
+
+                if (rr_start_local_pos + size <= run.pattern_length())
+                {
+                    runs.push_back(sub_pattern(run, rr_start_local_pos, size));
+                }
+                else {
+                    runs.push_back(sub_pattern(run, rr_start_local_pos, run.pattern_length() - rr_start_local_pos));
+
+                    RunSizeT rr_end = (start + size) / run.pattern_length();
+                    RunSizeT rr_end_base = rr_end * run.pattern_length();
+                    RunSizeT rr_end_local_pos = (start + size) - rr_end_base;
+
+                    if (rr_end > rr_start + 1)
+                    {
+                        RunT m_run = run;
+                        m_run.run_length_ = rr_end - rr_start;
+                        runs.push_back(m_run);
+                    }
+
+                    runs.push_back(sub_pattern(run, rr_end_local_pos, run.pattern_length() - rr_end_local_pos));
+                }
+            }
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Invalid start/size in extract_to: {} :: {} :: {}", start, size, full_len).do_throw();
+        }
+    }
+
 
     struct SplitResult {
         SSRLERunArray<Bps, 2> left;
@@ -1237,6 +1288,11 @@ public:
 
     size_t size_in_units() const noexcept {
         return SSRLERunTraits<Bps>::estimate_size(*this);
+    }
+
+    void extract_to(std::vector<SSRLERun>& runs, const SSRLERun& run, RunSizeT start, RunSizeT size) const
+    {
+        SSRLERunTraits<Bps>::extract_to(runs, run, start, size);
     }
 };
 

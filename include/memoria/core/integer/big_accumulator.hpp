@@ -104,6 +104,15 @@ struct UnsignedAccumulator {
 
     constexpr UnsignedAccumulator(const UnsignedAccumulator& other) = default;
 
+    static constexpr UnsignedAccumulator max() noexcept
+    {
+        UnsignedAccumulator res;
+        for (size_t c = 0; c < Size; c++) {
+            res.value_[c] = std::numeric_limits<ValueT>::max();
+        }
+        return res;
+    }
+
     template <unsigned BmpBitLength>
     constexpr UnsignedAccumulator(
             const _::UAccBmpInt<BmpBitLength>& bmp_value

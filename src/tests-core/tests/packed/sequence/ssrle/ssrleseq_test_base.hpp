@@ -19,7 +19,7 @@
 #include <memoria/tests/tests.hpp>
 #include <memoria/tests/assertions.hpp>
 
-#include <memoria/core/packed/sseq/packed_ssrle_searchable_seq.hpp>
+#include <memoria/core/packed/sseq/packed_ssrle_seq.hpp>
 #include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <memoria/reactor/reactor.hpp>
