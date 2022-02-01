@@ -26,7 +26,7 @@ namespace memoria {
 
 template<typename...> struct False: HasValue<bool, false> {};
 
-namespace _ {
+namespace detail {
 
     template <typename List> struct ListSizeH {
         static_assert(False<List>::Value, "Type supplied to ListSize<> template is not allowed");
@@ -40,7 +40,7 @@ namespace _ {
 }
 
 template <typename List>
-constexpr int32_t ListSize = memoria::_::ListSizeH<List>::Value;
+constexpr int32_t ListSize = memoria::detail::ListSizeH<List>::Value;
 
 template <typename ... List> struct ListHead;
 

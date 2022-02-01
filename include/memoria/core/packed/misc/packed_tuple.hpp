@@ -32,7 +32,7 @@
 
 namespace memoria {
 
-namespace _ {
+namespace detail {
 
     template <typename PkdTuple, typename T, bool HasFF = HasFieldFactory<T>::Value>
     struct PkdTupleValueHandler;
@@ -220,7 +220,7 @@ public:
         static bool process(Tuple& tuple, MyType& pkd_tuple)
         {
             using T = std::tuple_element_t<Idx, Tuple>;
-            _::PkdTupleValueHandler<MyType, T>::set_value(std::get<Idx>(tuple), Idx, pkd_tuple);
+            detail::PkdTupleValueHandler<MyType, T>::set_value(std::get<Idx>(tuple), Idx, pkd_tuple);
             return true;
         }
     };
@@ -234,7 +234,7 @@ public:
         static bool process(Tuple& tuple, const MyType& pkd_tuple)
         {
             using T = std::tuple_element_t<Idx, Tuple>;
-            _::PkdTupleValueHandler<MyType, T>::get_value(std::get<Idx>(tuple), Idx, pkd_tuple);
+            detail::PkdTupleValueHandler<MyType, T>::get_value(std::get<Idx>(tuple), Idx, pkd_tuple);
             return true;
         }
     };
@@ -260,7 +260,7 @@ public:
         BoolResult process(IBlockDataEventHandler* handler, const MyType& pkd_tuple) noexcept
         {
             using T = std::tuple_element_t<Idx, Tuple>;
-            auto res = _::PkdTupleValueHandler<MyType, T>::generateDataEvents("ENTRY", Idx, handler, pkd_tuple);
+            auto res = detail::PkdTupleValueHandler<MyType, T>::generateDataEvents("ENTRY", Idx, handler, pkd_tuple);
             MEMORIA_RETURN_IF_ERROR(res);
 
             return BoolResult::of(true);
@@ -293,7 +293,7 @@ public:
         BoolResult process(SerializationData& buffer, const MyType& pkd_tuple) noexcept
         {
             using T = std::tuple_element_t<Idx, Tuple>;
-            auto res = _::PkdTupleValueHandler<MyType, T>::serialize(buffer, Idx, pkd_tuple);
+            auto res = detail::PkdTupleValueHandler<MyType, T>::serialize(buffer, Idx, pkd_tuple);
             MEMORIA_RETURN_IF_ERROR(res);
 
             return BoolResult::of(true);
@@ -314,7 +314,7 @@ public:
         BoolResult process(DeserializationData& buffer, MyType& pkd_tuple) noexcept
         {
             using T = std::tuple_element_t<Idx, Tuple>;
-            auto res = _::PkdTupleValueHandler<MyType, T>::deserialize(buffer, Idx, pkd_tuple);
+            auto res = detail::PkdTupleValueHandler<MyType, T>::deserialize(buffer, Idx, pkd_tuple);
             MEMORIA_RETURN_IF_ERROR(res);
 
             return BoolResult::of(true);

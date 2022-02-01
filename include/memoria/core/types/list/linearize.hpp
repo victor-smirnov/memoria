@@ -61,7 +61,7 @@ struct IsPlainList<TypeList<List...>> {
 
 
 
-namespace _ {
+namespace detail {
 
     template <typename T, int32_t MaxDepth = 1>
     struct LinearizeT {
@@ -96,10 +96,10 @@ namespace _ {
 }
 
 template <typename T, int32_t MaxDepth = 1>
-using Linearize = typename memoria::_::LinearizeT<T, MaxDepth>::Type;
+using Linearize = typename memoria::detail::LinearizeT<T, MaxDepth>::Type;
 
 
-namespace _ {
+namespace detail {
     template <typename List, typename Set> struct ListSubsetH;
 
     template <
@@ -123,6 +123,6 @@ namespace _ {
 }
 
 template <typename List, typename Set>
-using ListSubset = typename memoria::_::ListSubsetH<List, Set>::Type;
+using ListSubset = typename memoria::detail::ListSubsetH<List, Set>::Type;
 
 }

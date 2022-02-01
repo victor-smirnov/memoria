@@ -22,7 +22,7 @@
 namespace memoria {
 namespace reactor {
 
-namespace _ {
+namespace detail {
 
 template <bool IsNoexcept>
 struct NoexceptHelper {
@@ -86,7 +86,7 @@ public:
     {
         BOOST_ASSERT_MSG(fiber_context_ != nullptr, "FiberContext is not set for a Message object");
 
-        _::NoexceptHelper<noexcept(fn_(std::declval<Args>()...))>::process(rtn_fn_, result_, exception_, fiber_context_);
+        detail::NoexceptHelper<noexcept(fn_(std::declval<Args>()...))>::process(rtn_fn_, result_, exception_, fiber_context_);
 
         reactor_->thread_pool_.release(this);
 
@@ -116,7 +116,7 @@ public:
     {
         BOOST_ASSERT_MSG(fiber_context_ != nullptr, "FiberContext is not set for a Message object");
 
-        _::VoidNoexceptHelper<noexcept(fn_(std::declval<Args>()...))>::process(rtn_fn_, exception_, fiber_context_);
+        detail::VoidNoexceptHelper<noexcept(fn_(std::declval<Args>()...))>::process(rtn_fn_, exception_, fiber_context_);
 
         reactor_->thread_pool_.release(this);
 

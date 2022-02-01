@@ -42,7 +42,7 @@ class DataTypeBuffer<
     using SizeT = size_t;
 
     template <typename T>
-    using DimensionTypeToBuffer = _::DataTypeBufferDimension<T, SizeT>;
+    using DimensionTypeToBuffer = detail::DataTypeBufferDimension<T, SizeT>;
 
     using DataBuffersTuple = boost::mp11::mp_transform<DimensionTypeToBuffer, DataDimensionsTuple>;
 

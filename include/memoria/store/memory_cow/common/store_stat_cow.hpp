@@ -27,16 +27,16 @@ namespace memoria {
 namespace store {
 namespace memory_cow {
 
-namespace _ {
+namespace detail {
     using BlockSet = std::unordered_set<const void*>;
 }
 
 class PersistentTreeStatVisitAccumulatingConsumer {
 
-    _::BlockSet& visited_blocks_;
+    detail::BlockSet& visited_blocks_;
 
 public:
-    PersistentTreeStatVisitAccumulatingConsumer(_::BlockSet& visits):
+    PersistentTreeStatVisitAccumulatingConsumer(detail::BlockSet& visits):
         visited_blocks_(visits)
     {}
 
@@ -79,7 +79,7 @@ template <typename Snapshot>
 class SnapshotStatsCountingConsumer {
 
     Snapshot* current_snapshot_{};
-    _::BlockSet& visited_blocks_;
+    detail::BlockSet& visited_blocks_;
 
     using CtrID = typename Snapshot::CtrID;
     using Profile = typename Snapshot::ProfileT;
@@ -91,7 +91,7 @@ class SnapshotStatsCountingConsumer {
 
 
 public:
-    SnapshotStatsCountingConsumer(_::BlockSet& visits, Snapshot* snp):
+    SnapshotStatsCountingConsumer(detail::BlockSet& visits, Snapshot* snp):
         current_snapshot_(snp),
         visited_blocks_(visits)
     {}

@@ -36,7 +36,7 @@
 namespace memoria {
 
 
-namespace _ {
+namespace detail {
 
 template <int32_t Streams>
 class ConfigureIOVectorViewFn {
@@ -241,8 +241,8 @@ public:
     static constexpr int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
     static constexpr int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
 
-    using IOVectorT     = typename bt::_::IOVectorsTF<Streams, LeafSubstreamsStructList>::IOVectorT;
-    using IOVectorViewT = typename bt::_::IOVectorViewTF<Streams, LeafSubstreamsStructList>::IOVectorT;
+    using IOVectorT     = typename bt::detail::IOVectorsTF<Streams, LeafSubstreamsStructList>::IOVectorT;
+    using IOVectorViewT = typename bt::detail::IOVectorViewTF<Streams, LeafSubstreamsStructList>::IOVectorT;
 
 
 
@@ -298,7 +298,7 @@ public:
 
     VoidResult configure_iovector_view(io::IOVector& io_vector) const noexcept
     {
-        return Dispatcher(state()).dispatchAll(allocator(), _::ConfigureIOVectorViewFn<Streams>(io_vector));
+        return Dispatcher(state()).dispatchAll(allocator(), detail::ConfigureIOVectorViewFn<Streams>(io_vector));
     }
 
     template <typename OtherNode>

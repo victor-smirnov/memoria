@@ -21,7 +21,7 @@
 
 namespace memoria {
 
-namespace _ {
+namespace detail {
     template <typename List, template <typename> class MapFn>
     struct TransformTL {
         template <typename Item>
@@ -33,7 +33,7 @@ namespace _ {
 
 
 template <typename List, template <typename> class MapFn>
-using TransformTL = typename _::TransformTL<List, MapFn>::Type;
+using TransformTL = typename detail::TransformTL<List, MapFn>::Type;
 
 
 }

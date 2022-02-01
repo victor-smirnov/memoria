@@ -57,7 +57,7 @@ public:
 };
 
 
-namespace _ {
+namespace detail {
 struct UErrorCodeStatus {
     UErrorCode status_ {U_ZERO_ERROR};
 
@@ -69,7 +69,7 @@ struct UErrorCodeStatus {
 
 template <typename Fn>
 auto with_icu_error(Fn&& fn) {
-    _::UErrorCodeStatus status;
+    detail::UErrorCodeStatus status;
     return fn(&status.status_);
 }
 

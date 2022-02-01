@@ -673,7 +673,7 @@ public:
     {
         LockGuardT lock_guard(mutex_);
 
-        _::BlockSet visited_blocks;
+        detail::BlockSet visited_blocks;
 
         SharedPtr<StoreMemoryStat<ApiProfileT>> alloc_stat = MakeShared<StoreMemoryStat<ApiProfileT>>(0);
 

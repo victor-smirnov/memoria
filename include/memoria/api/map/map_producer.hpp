@@ -60,7 +60,7 @@ public:
 
         total_size_ += keys.size();
 
-        io_vector.symbol_sequence().append(0, keys.size());
+        io_vector.symbol_sequence().append_run(0, keys.size());
 
         return has_more;
     }

@@ -25,11 +25,11 @@
 namespace memoria {
 namespace tests {
 
-template <int32_t Bps>
-class PackedSSRLESearchableSequenceSelectTest: public PackedSSRLESequenceTestBase<Bps> {
+template <size_t AlphabetSize, bool Use64BitSize = false>
+class PackedSSRLESearchableSequenceSelectTest: public PackedSSRLESequenceTestBase<AlphabetSize, Use64BitSize> {
 
-    using MyType = PackedSSRLESearchableSequenceSelectTest<Bps>;
-    using Base = PackedSSRLESequenceTestBase<Bps>;
+    using MyType = PackedSSRLESearchableSequenceSelectTest<AlphabetSize, Use64BitSize>;
+    using Base = PackedSSRLESequenceTestBase<AlphabetSize, Use64BitSize>;
 
     using typename Base::SymbolsRunT;
     using typename Base::RunTraits;
@@ -43,8 +43,6 @@ class PackedSSRLESearchableSequenceSelectTest: public PackedSSRLESequenceTestBas
 
     using typename Base::SymbolT;
     using typename Base::SeqSizeT;
-
-    using Base::Symbols;
 
     using Base::getRandom;
     using Base::getRandom1;
@@ -86,7 +84,7 @@ public:
 
     struct SelectFwEq {
         size_t get_sym() const {
-            return Symbols / 2;
+            return AlphabetSize / 2;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
@@ -104,7 +102,7 @@ public:
 
     struct SelectFwNeq {
         size_t get_sym() const {
-            return Symbols/2;
+            return AlphabetSize / 2;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
@@ -122,7 +120,7 @@ public:
 
     struct SelectFwLt {
         size_t get_sym() const {
-            return Symbols / 2;
+            return AlphabetSize / 2;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
@@ -141,7 +139,7 @@ public:
 
     struct SelectFwLe {
         size_t get_sym() const {
-            return Symbols / 2 - 1;
+            return AlphabetSize / 2 - 1;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
@@ -160,7 +158,7 @@ public:
 
     struct SelectFwGt {
         size_t get_sym() const {
-            return Symbols / 2 - 1;
+            return AlphabetSize / 2 - 1;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
@@ -178,7 +176,7 @@ public:
 
     struct SelectFwGe {
         size_t get_sym() const {
-            return Symbols / 2;
+            return AlphabetSize / 2;
         }
 
         uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {

@@ -103,7 +103,7 @@ private:
         auto& ss = iter_->iovector_view().symbol_sequence();
 
         int32_t idx = parser_.start_idx();
-        ss.rank_to(idx, offsets_.values());
+        ss.rank_to(idx, offsets_.span());
 
         build_index();
     }
@@ -116,7 +116,7 @@ private:
 
         parser_.parse(ss);
 
-        if (MMA_LIKELY((!parser_.is_empty()) || ss.size() > 0))
+        if (MMA_LIKELY((!parser_.is_empty()) || (size_t)ss.size() > 0))
         {
             size_t run_size = (!parser_.is_empty()) ? parser_.run_size() : 0;
 

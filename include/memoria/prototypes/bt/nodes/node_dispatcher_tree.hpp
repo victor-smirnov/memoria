@@ -126,7 +126,7 @@ public:
             Functor&& functor,
             Args&&... args
     ) const noexcept ->
-        typename detail::ResultOfFn<
+        typename memoria::detail::ResultOfFn<
             decltype(NDT2Start(ctr_).dispatchTree(std::declval<ConstNodeSO>(), child, std::forward<Functor>(functor), std::forward<Args>(args)...))
         >::Type
     {
@@ -231,7 +231,7 @@ public:
             Functor&& functor,
             Args&&... args
     ) const noexcept ->
-        typename detail::ResultOfFn<
+        typename memoria::detail::ResultOfFn<
             decltype(functor.treeNode(std::forward<Node>(parent), std::declval<ConstNodeSO>(), std::forward<Args>(args)...))
         >::Type
     {

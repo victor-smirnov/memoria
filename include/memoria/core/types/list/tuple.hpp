@@ -22,7 +22,7 @@
 
 namespace memoria {
 
-namespace _ {
+namespace detail {
     template <typename T> struct MakeTupleH;
 
     template <typename... List>
@@ -37,6 +37,6 @@ namespace _ {
 }
 
 template <typename List>
-using MakeTuple = typename _::MakeTupleH<List>::Type;
+using MakeTuple = typename detail::MakeTupleH<List>::Type;
 
 }

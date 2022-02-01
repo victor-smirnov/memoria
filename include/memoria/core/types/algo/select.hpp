@@ -26,7 +26,7 @@ namespace memoria {
 template <int32_t Num, typename List>
 using Select = boost::mp11::mp_at_c<List, Num>;
 
-namespace _ {
+namespace detail {
 
     template <int32_t Pos, typename List>
     struct SelectVH;
@@ -52,10 +52,10 @@ namespace _ {
 }
 
 template <int32_t Pos, typename List> 
-constexpr auto SelectV = memoria::_::SelectVH<Pos, List>::get();
+constexpr auto SelectV = memoria::detail::SelectVH<Pos, List>::get();
 
 template <int32_t Pos, typename List>
-constexpr auto SelectVOrDefault = memoria::_::SelectVHD<Pos, List>::get();
+constexpr auto SelectVOrDefault = memoria::detail::SelectVHD<Pos, List>::get();
 
 
 template <bool Value, typename ResultIfTrue, typename Else>

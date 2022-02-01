@@ -27,7 +27,7 @@
 
 namespace memoria {
 
-namespace _ {
+namespace detail {
 
 template <typename DataType, bool FixedSizeKey = DTTIs1DFixedSize<DataType>>
 struct SetKeys;
@@ -76,7 +76,7 @@ private:
 
     bool finished_{false};
 
-    _::SetKeys<typename Types::Key> entries_;
+    detail::SetKeys<typename Types::Key> entries_;
 
     CtrSharedPtr<BTSSIterator<Profile>> btss_iterator_;
 

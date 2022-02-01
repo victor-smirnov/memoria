@@ -21,6 +21,7 @@
 
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/optional.hpp>
+#include <memoria/core/types/algo/select.hpp>
 
 #include <memoria/profiles/common/block_operations.hpp>
 
@@ -50,20 +51,23 @@ template <size_t AlphabetSize> class IOSSRLEBufferView;
 
 template <
     size_t AlphabetSize_,
-    size_t BytesPerBlock_
+    size_t BytesPerBlock_,
+    bool Use64BitSize_ = false
 >
 struct PkdSSRLSeqTypes {
-    static const size_t AlphabetSize        = AlphabetSize_;
-    static const size_t BytesPerBlock       = BytesPerBlock_;
+    static constexpr size_t AlphabetSize    = AlphabetSize_;
+    static constexpr size_t BytesPerBlock   = BytesPerBlock_;
+    static constexpr bool Use64BitSize      = Use64BitSize_;
 };
 
 template <typename Types> class PkdSSRLESeq;
 
 template <
     size_t AlphabetSize,
-    size_t BytesPerBlock = 256
+    size_t BytesPerBlock = 256,
+    bool Use64BitSize = false
 >
-using PkdSSRLESeqT = PkdSSRLESeq<PkdSSRLSeqTypes<AlphabetSize, BytesPerBlock>>;
+using PkdSSRLESeqT = PkdSSRLESeq<PkdSSRLSeqTypes<AlphabetSize, BytesPerBlock, Use64BitSize>>;
 
 template <typename Types_>
 class PkdSSRLESeq: public PackedAllocator {
@@ -81,7 +85,7 @@ public:
     static const PackedDataTypeSize SizeType            = PackedDataTypeSize::VARIABLE;
 
 
-    static constexpr size_t AlphabetSize         = Types::AlphabetSize;
+    static constexpr size_t AlphabetSize    = Types::AlphabetSize;
     static constexpr size_t BitsPerSymbol   = BitsPerSymbolConstexpr(AlphabetSize);
 
     static_assert(AlphabetSize >= 2 && AlphabetSize <= 256, "AlphabetSize must be in [2, ... 256]");
@@ -91,7 +95,7 @@ public:
     using CodeUnitT   = typename RunTraits::CodeUnitT;
     using SymbolT     = typename RunTraits::SymbolT;
     using RunSizeT    = typename RunTraits::RunSizeT;
-    using SeqSizeT    = UAcc128T;
+    using SeqSizeT    = IfThenElse<Types::Use64BitSize, uint64_t, UAcc128T>;
 
     using Iterator = ssrleseq::SymbolsRunIterator<MyType>;
 
@@ -739,8 +743,9 @@ public:
         return other->do_reindex(to_span(syms));
     }
 
-    SymbolT access(SeqSizeT pos) const
-    {
+private:
+
+    Iterator do_access(SeqSizeT pos, RunSizeT& offset) const {
         const Metadata* meta = this->metadata();
         SeqSizeT size = meta->size();
 
@@ -775,12 +780,23 @@ public:
             }
         });
 
-        if (tgt) {            
-            return tgt.symbol(pos - sum);
+        if (tgt) {
+            offset = pos - sum;
+            return ii;
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Invalid SSRLE sequence").do_throw();
         }
+    }
+
+public:
+
+    SymbolT access(SeqSizeT pos) const
+    {
+        RunSizeT offset;
+        Iterator ii = do_access(pos, offset);
+
+        return ii.get().symbol(offset);
     }
 
     std::vector<SymbolsRunT> symbol_runs(SeqSizeT pos, SeqSizeT length) const
@@ -1625,7 +1641,7 @@ public:
             const auto* sums  = this->sum_index();
 
             for (size_t c = 0; c < AlphabetSize; c++) {
-                symbols[c] += sums->sum(c, res.local_pos());
+                symbols[c] += (T)sums->sum(c, res.local_pos());
             }
         }
         else {
@@ -1650,8 +1666,6 @@ public:
         });
     }
 
-
-
     SeqSizeT count_fw(SeqSizeT idx, SymbolT symbol) const
     {
         SeqSizeT rank = rank_neq(idx, symbol);
@@ -1669,6 +1683,165 @@ public:
         else {
             return idx + SeqSizeT{1};
         }
+    }
+
+private:
+
+    RunSizeT append_run(io::SymbolsBuffer& buffer, const SymbolsRunT& run) const
+    {
+        if (run.pattern_length() == 1) {
+            buffer.append_run(run.symbol(0), run.run_length());
+            return run.run_length();
+        }
+        else {
+            for (size_t x = 0; x < run.pattern_length(); x++) {
+                SymbolT sym = run.symbol(x);
+                buffer.append_run(sym, 1);
+            }
+
+            return run.full_run_length();
+        }
+    }
+
+    void append_run(io::SymbolsBuffer& buffer, const SymbolsRunT& run, RunSizeT start, RunSizeT size) const
+    {
+        if (run.pattern_length() == 1)
+        {
+            buffer.append_run(run.symbol(0), size);
+        }
+        else {
+            for (size_t x = start; x < start + size; x++) {
+                SymbolT sym = run.symbol(x);
+                buffer.append_run(sym, 1);
+            }
+        }
+    }
+
+    RunSizeT append_run_ge(
+            io::SymbolsBuffer& buffer,
+            const SymbolsRunT& run,
+            RunSizeT start,
+            SymbolT symbol,
+            bool& more
+    ) const
+    {
+        if (run.pattern_length() == 1)
+        {
+            if (run.symbol(0) >= symbol)
+            {
+                RunSizeT size = run.run_length() - start;
+                buffer.append_run(run.symbol(0), size);
+
+                more = true;
+                return size;
+            }
+            else {
+                more = false;
+                return 0;
+            }
+        }
+        else {
+            RunSizeT size{};
+            more = true;
+
+            for (size_t x = start; x < run.full_run_length(); x++) {
+                SymbolT sym = run.symbol(x);
+                if (run.symbol(0) >= symbol) {
+                    buffer.append_run(sym, 1);
+                    ++size;
+                }
+                else {
+                    more = false;
+                    break;
+                }
+            }
+
+            return size;
+        }
+    }
+
+public:
+    SeqSizeT populate_buffer(io::SymbolsBuffer& buffer, SeqSizeT idx) const
+    {
+        RunSizeT offset;
+        Iterator ii = do_access(idx, offset);
+
+        ii.do_while([&](const SymbolsRunT& run){
+            if (MMA_UNLIKELY(offset > 0)) {
+                RunSizeT l_size = run.full_run_length() - offset;
+                append_run(buffer, run, offset, l_size);
+                offset = 0;
+                idx += l_size;
+            }
+            else {
+                idx += append_run(buffer, run);
+            }
+            return true;
+        });
+
+        buffer.finish();
+
+        return idx;
+    }
+
+    SeqSizeT populate_buffer(io::SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT size) const
+    {
+        RunSizeT offset;
+        Iterator ii = do_access(idx, offset);
+
+        SeqSizeT read_size = this->size();
+
+        SeqSizeT limit = idx + size;
+
+        if (limit > read_size) {
+            limit = read_size;
+        }
+
+        ii.do_while([&](const SymbolsRunT& run){
+            SeqSizeT run_len = SeqSizeT{run.full_run_length() - offset};
+
+            RunSizeT l_size;
+            if (idx + run_len < read_size) {
+                l_size = (RunSizeT)run_len;
+            }
+            else {
+                l_size = (RunSizeT)(limit - idx);
+            }
+
+            append_run(buffer, run, offset, l_size);
+
+            idx += l_size;
+            offset = 0;
+
+            return idx < limit;
+        });
+
+        buffer.finish();
+
+        return idx;
+    }
+
+    SeqSizeT populate_buffer_while_ge(io::SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT symbol) const
+    {
+        RunSizeT offset;
+        Iterator ii = do_access(idx, offset);
+
+        ii.do_while([&](const SymbolsRunT& run){
+            if (MMA_UNLIKELY(offset > 0)) {
+                RunSizeT l_size = run.full_run_length() - offset;
+                append_run(buffer, run, offset, l_size);
+                offset = 0;
+                idx += l_size;
+            }
+            else {
+                idx += append_run(buffer, run);
+            }
+            return true;
+        });
+
+        buffer.finish();
+
+        return idx;
     }
 
 
@@ -1724,7 +1897,7 @@ public:
             MEMORIA_TRY_VOID(sum_index()->serialize(buf));
         }
 
-        FieldFactory<CodeUnitT>::serialize(buf, symbols(), meta->data_size());
+        FieldFactory<CodeUnitT>::serialize(buf, symbols().data(), meta->data_size());
 
         return VoidResult::of();
     }
@@ -1745,7 +1918,7 @@ public:
             MEMORIA_TRY_VOID(sum_index()->deserialize(buf));
         }
 
-        FieldFactory<CodeUnitT>::deserialize(buf, symbols(), meta->data_size());
+        FieldFactory<CodeUnitT>::deserialize(buf, symbols().data(), meta->data_size());
 
         return VoidResult::of();
     }

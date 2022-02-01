@@ -30,7 +30,7 @@
 namespace memoria {
 namespace bt {
 
-namespace _ {
+namespace detail {
 
     template <typename BranchSubstream, typename LeafSubstream>
     struct ValidateSubstreams {

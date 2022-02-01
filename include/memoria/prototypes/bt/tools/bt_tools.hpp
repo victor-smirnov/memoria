@@ -435,7 +435,7 @@ struct SingleValueEntryFn: EntryFnBase<Stream, CtrSizeT> {
     }
 };
 
-namespace _ {
+namespace detail {
 
     template <
         bool Selector,
@@ -471,7 +471,7 @@ template <
     typename Types1,
     typename Types2
 >
-using PkdStructSelector = typename _::PkdStructSelectorH<Selector, PkdStruct1, PkdStruct2, Types1, Types2>::Type;
+using PkdStructSelector = typename detail::PkdStructSelectorH<Selector, PkdStruct1, PkdStruct2, Types1, Types2>::Type;
 
 
 

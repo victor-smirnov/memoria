@@ -49,7 +49,7 @@ namespace memoria {
 namespace store {
 namespace memory_nocow {
 
-namespace _ {
+namespace detail {
 
     template <typename BlockT>
     struct BlockPtr {
@@ -113,7 +113,7 @@ namespace _ {
 }}
 
 template <typename V, typename T>
-OutputStreamHandler& operator<<(OutputStreamHandler& out, const store::memory_nocow::_::PersistentTreeValue<V, T>& value)
+OutputStreamHandler& operator<<(OutputStreamHandler& out, const store::memory_nocow::detail::PersistentTreeValue<V, T>& value)
 {
     out << value.block_ptr();
     out << value.snapshot_id();
@@ -121,7 +121,7 @@ OutputStreamHandler& operator<<(OutputStreamHandler& out, const store::memory_no
 }
 
 template <typename V, typename T>
-InputStreamHandler& operator>>(InputStreamHandler& in, store::memory_nocow::_::PersistentTreeValue<V, T>& value)
+InputStreamHandler& operator>>(InputStreamHandler& in, store::memory_nocow::detail::PersistentTreeValue<V, T>& value)
 {
     in >> value.block_ptr();
     in >> value.snapshot_id();
@@ -129,7 +129,7 @@ InputStreamHandler& operator>>(InputStreamHandler& in, store::memory_nocow::_::P
 }
 
 template <typename V, typename T>
-std::ostream& operator<<(std::ostream& out, const store::memory_nocow::_::PersistentTreeValue<V, T>& value)
+std::ostream& operator<<(std::ostream& out, const store::memory_nocow::detail::PersistentTreeValue<V, T>& value)
 {
     out << "PersistentTreeValue[";
     out << value.block_ptr()->raw_data();
@@ -155,7 +155,7 @@ public:
     static constexpr int32_t NodeSize       = NodeIndexSize * 32;
     static constexpr uint64_t PROFILE_HASH = TypeHash<Profile>::Value;
 
-    using RCBlockPtr    = store::memory_nocow::_::BlockPtr<BlockType>;
+    using RCBlockPtr    = store::memory_nocow::detail::BlockPtr<BlockType>;
 
     using Key           = ProfileBlockID<Profile>;
     using Value         = BlockType*;
@@ -164,8 +164,8 @@ public:
     using BlockID           = ProfileBlockID<Profile>;
     using CtrID             = ProfileCtrID<Profile>;
 
-    using LeafNodeT         = store::memory_nocow::LeafNode<Key, store::memory_nocow::_::PersistentTreeValue<RCBlockPtr*, SnapshotID>, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
-    using LeafNodeBufferT   = store::memory_nocow::LeafNode<Key, store::memory_nocow::_::PersistentTreeValue<BlockID, SnapshotID>, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
+    using LeafNodeT         = store::memory_nocow::LeafNode<Key, store::memory_nocow::detail::PersistentTreeValue<RCBlockPtr*, SnapshotID>, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
+    using LeafNodeBufferT   = store::memory_nocow::LeafNode<Key, store::memory_nocow::detail::PersistentTreeValue<BlockID, SnapshotID>, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
 
     using BranchNodeT       = store::memory_nocow::BranchNode<Key, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
     using BranchNodeBufferT = store::memory_nocow::BranchNode<Key, NodeSize, NodeIndexSize, BlockID, SnapshotID, BlockID>;

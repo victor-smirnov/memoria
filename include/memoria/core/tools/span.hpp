@@ -99,5 +99,9 @@ Span<const T> to_const_span(const std::vector<T>& vv, size_t from, size_t size) 
     return Span<const T>(vv.data() + from, size);
 }
 
+template <typename T>
+Span<T> unit_span_of(T* var) {
+    return Span<T>(var, 1);
+}
 
 }

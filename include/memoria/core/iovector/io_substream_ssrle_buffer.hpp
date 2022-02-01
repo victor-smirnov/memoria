@@ -28,10 +28,10 @@
 namespace memoria {
 namespace io {
 
-template <size_t Symbols>
-class IOSSRLEBufferImpl: public IOSSRLEBuffer<Symbols> {
+template <size_t AlphabetSize>
+class IOSSRLEBufferImpl: public IOSSRLEBuffer<AlphabetSize> {
 
-    using Base = IOSSRLEBuffer<Symbols>;
+    using Base = IOSSRLEBuffer<AlphabetSize>;
 
     using typename Base::SeqSizeT;
     using typename Base::SymbolT;
@@ -39,12 +39,10 @@ class IOSSRLEBufferImpl: public IOSSRLEBuffer<Symbols> {
     using typename Base::RunTraits;
     using typename Base::CodeUnitT;
 
-    static_assert (Symbols >= 2 && Symbols <= 256, "");
+    static_assert (AlphabetSize >= 2 && AlphabetSize <= 256, "");
+    static constexpr size_t Bps = BitsPerSymbolConstexpr(AlphabetSize);
 
-    static constexpr size_t AlphabetSize = Symbols;
-    static constexpr size_t Bps = BitsPerSymbolConstexpr(Symbols);
-
-    using SeqT = PkdSSRLESeqT<Symbols>;
+    using SeqT = PkdSSRLESeqT<AlphabetSize, 256, true>;
 
     SeqT* sequence_;
 
@@ -88,7 +86,21 @@ public:
 
     virtual void rank_to(SeqSizeT idx, Span<SeqSizeT> values) const
     {
+        for (SeqSizeT& vv: values) {
+            vv = SeqSizeT{};
+        }
         sequence_->ranks(idx, values);
+    }
+
+    virtual SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx) const {
+        return sequence_->populate_buffer(buffer, idx);
+    }
+    virtual SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT size) const {
+        return sequence_->populate_buffer(buffer, idx, size);
+    }
+
+    virtual SeqSizeT populate_buffer_while_ge(SymbolsBuffer& buffer, SeqSizeT idx, SymbolT symbol) const {
+        return sequence_->populate_buffer_while_ge(buffer, idx, symbol);
     }
 
     virtual void check()
@@ -128,11 +140,17 @@ public:
         }
     }
 
+    virtual void append_run(SymbolT symbol, size_t size)
+    {
+        RunT run{1, symbol, size};
+        append(Span<const RunT>{&run, 1});
+    }
+
     Span<const CodeUnitT> code_units() const {
         return sequence_->symbols();
     }
 
-    std::vector<RunT> symbol_runs(SeqSizeT start = SeqSizeT{}, SeqSizeT size = SeqSizeT::max()) const {
+    std::vector<RunT> symbol_runs(SeqSizeT start, SeqSizeT size) const {
         return sequence_->symbol_runs(start, size);
     }
 
@@ -193,5 +211,149 @@ private:
         return typeid(IOSSRLEBuffer<AlphabetSize>);
     }
 };
+
+
+template <>
+class IOSSRLEBufferImpl<1>: public IOSSRLEBuffer<1> {
+
+    using Base = IOSSRLEBuffer<1>;
+
+    using typename Base::SeqSizeT;
+    using typename Base::RunSizeT;
+    using typename Base::SymbolT;
+    using typename Base::RunT;
+    using typename Base::RunTraits;
+    using typename Base::CodeUnitT;
+
+    static constexpr size_t AlphabetSize = 1;
+    static constexpr size_t Bps = 1;
+
+    size_t size_{0};
+
+
+public:
+    IOSSRLEBufferImpl(){}
+
+    IOSSRLEBufferImpl(IOSSRLEBufferImpl&&) = delete;
+    IOSSRLEBufferImpl(const IOSSRLEBufferImpl&) = delete;
+
+    virtual ~IOSSRLEBufferImpl() noexcept {}
+
+    virtual bool is_indexed() const {
+        return true;
+    }
+
+    virtual SymbolT alphabet_size() const {
+        return AlphabetSize;
+    }
+
+    virtual bool is_const() const {
+        return false;
+    }
+
+    virtual SymbolT symbol(SeqSizeT idx) const {
+        return 0;
+    }
+
+    virtual SeqSizeT size() const {
+        return size_;
+    }
+
+
+    virtual void rank_to(SeqSizeT idx, Span<SeqSizeT> values) const
+    {
+        values[0] = SeqSizeT{idx};
+    }
+
+    SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx) const
+    {
+        MEMORIA_V1_ASSERT_TRUE(idx <= size_);
+        buffer.append_run(0, size_ - idx);
+        return size_;
+    }
+
+    SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT size) const
+    {
+        MEMORIA_V1_ASSERT_TRUE(idx + size <= size_)
+        buffer.append_run(0, size);
+        return idx + size;
+    }
+
+    SeqSizeT populate_buffer_while_ge(SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT symbol) const
+    {
+        MEMORIA_V1_ASSERT_TRUE(idx <= size_);
+
+        if (symbol == 0)
+        {
+            if (idx < size_)
+            {
+                buffer.append_run(0, size_ - idx);
+            }
+
+            return size_;
+        }
+        else {
+            return idx;
+        }
+    }
+
+    virtual void check() {}
+
+    virtual void reindex() {}
+
+    virtual void reset() {
+        size_ = 0;
+    }
+
+    virtual void dump(std::ostream& out) const
+    {
+        out << "IOSSRLEBufferImpl<1>::size_ = " << size_;
+    }
+
+    virtual const std::type_info& sequence_type() const {
+        return typeid(IOSSRLEBufferImpl);
+    }
+
+    void append(Span<const RunT> runs)
+    {
+        for (const RunT& run: runs){
+            size_ += run.run_length();
+        }
+    }
+
+    virtual void append_run(SymbolT symbol, size_t size) {
+        size_ += size;
+    }
+
+    Span<const CodeUnitT> code_units() const {
+        return Span<const CodeUnitT>{};
+    }
+
+    std::vector<RunT> symbol_runs(SeqSizeT start, SeqSizeT size) const
+    {
+        std::vector<RunT> runs;
+
+        SeqSizeT max = (start + size <= SeqSizeT{size_}) ? size : SeqSizeT{size_} - start;
+        runs.push_back(RunT{1, 0, (RunSizeT)max});
+
+        return runs;
+    }
+
+
+    void configure(const void* ptr) {
+        MMA_THROW(UnsupportedOperationException());
+    }
+
+private:
+
+    virtual U8String describe() const {
+        return TypeNameFactory<IOSSRLEBufferImpl>::name();
+    }
+
+    virtual const std::type_info& substream_type() const {
+        return typeid(IOSSRLEBuffer<AlphabetSize>);
+    }
+};
+
 
 }}

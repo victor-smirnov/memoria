@@ -1068,7 +1068,7 @@ protected:
 
     SharedPtr<SnapshotMemoryStat<ApiProfileT>> do_compute_memory_stat()
     {
-        _::BlockSet visited_blocks;
+        detail::BlockSet visited_blocks;
 
         PersistentTreeStatVisitAccumulatingConsumer vp_accum(visited_blocks);
 
@@ -1089,7 +1089,7 @@ protected:
         return consumer.finish();
     }
 
-    SharedPtr<SnapshotMemoryStat<ApiProfileT>> do_compute_memory_stat(_::BlockSet& visited_blocks)
+    SharedPtr<SnapshotMemoryStat<ApiProfileT>> do_compute_memory_stat(detail::BlockSet& visited_blocks)
     {
         SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_blocks, this);
 

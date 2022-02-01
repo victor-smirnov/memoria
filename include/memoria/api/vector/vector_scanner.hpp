@@ -27,7 +27,7 @@
 
 namespace memoria {
 
-namespace _ {
+namespace detail {
 
 template <typename ValueT, bool FixedSizeValue>
 struct VectorValues;
@@ -75,7 +75,7 @@ private:
 
     bool finished_{false};
 
-    _::VectorValues<ValueView, DirectValues> entries_;
+    detail::VectorValues<ValueView, DirectValues> entries_;
 
     CtrSharedPtr<BTSSIterator<Profile>> btss_iterator_;
 

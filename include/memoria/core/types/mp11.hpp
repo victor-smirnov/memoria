@@ -23,7 +23,7 @@
 
 namespace memoria {
 
-namespace _ {
+namespace detail {
     template <typename T> struct ToMp11H;
 
     template <typename... Type>
@@ -39,9 +39,9 @@ namespace _ {
 
 
 template <typename T>
-using ToMp11 = typename _::ToMp11H<T>::Type;
+using ToMp11 = typename detail::ToMp11H<T>::Type;
 
 template <typename T>
-using FromMp11 = typename _::FromMp11H<T>::Type;
+using FromMp11 = typename detail::FromMp11H<T>::Type;
 
 }

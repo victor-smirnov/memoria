@@ -18,6 +18,7 @@
 #include <memoria/core/types.hpp>
 
 #include <memoria/core/iovector/io_substream.hpp>
+#include <memoria/core/iovector/io_symbol_sequence_base.hpp>
 
 #include <memoria/core/memory/malloc.hpp>
 #include <memoria/core/strings/format.hpp>
@@ -29,6 +30,8 @@
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
+
+
 #include <functional>
 
 namespace memoria {
@@ -37,7 +40,7 @@ namespace io {
 
 struct IOSSRLEBufferBase: IOSubstream {
 
-    using SeqSizeT = UAcc128T;
+    using SeqSizeT = uint64_t;
     using SymbolT  = size_t;
 
     virtual bool is_indexed() const                 = 0;
@@ -46,11 +49,17 @@ struct IOSSRLEBufferBase: IOSubstream {
 
     virtual SymbolT symbol(SeqSizeT idx) const      = 0;
     virtual SeqSizeT size() const                   = 0;
+    virtual void append_run(SymbolT symbol, size_t size) = 0;
 
     virtual void reindex()                          = 0;
     virtual void dump(std::ostream& out) const      = 0;
 
     virtual void rank_to(SeqSizeT idx, Span<SeqSizeT> values) const  = 0;
+
+    virtual SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx) const = 0;
+    virtual SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT size) const = 0;
+
+    virtual SeqSizeT populate_buffer_while_ge(SymbolsBuffer& buffer, SeqSizeT idx, SymbolT symbol) const = 0;
 
     virtual U8String describe() const {
         return TypeNameFactory<IOSSRLEBufferBase>::name();
@@ -62,7 +71,7 @@ struct IOSSRLEBufferBase: IOSubstream {
     }
 
     virtual void reset()                            = 0;
-    virtual void configure(const void* ptr)         = 0;
+    virtual void configure(const void* ptr)         = 0;    
 };
 
 
@@ -78,10 +87,11 @@ public:
     using RunTraits = SSRLERunTraits<BITS_PER_SYMBOL>;
     using RunT      = SSRLERun<BITS_PER_SYMBOL>;
     using CodeUnitT = typename RunTraits::CodeUnitT;
+    using RunSizeT  = typename RunTraits::RunSizeT;
 
     virtual void append(Span<const RunT> runs) = 0;
     virtual Span<const CodeUnitT> code_units() const = 0;
-    virtual std::vector<RunT> symbol_runs(SeqSizeT start = SeqSizeT{}, SeqSizeT size = SeqSizeT::max()) const = 0;
+    virtual std::vector<RunT> symbol_runs(SeqSizeT start, SeqSizeT size) const = 0;
 };
 
 

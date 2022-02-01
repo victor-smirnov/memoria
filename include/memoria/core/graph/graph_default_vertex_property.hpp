@@ -17,6 +17,7 @@
 
 
 #include <memoria/core/graph/graph_property.hpp>
+#include <memoria/core/graph/graph_vertex.hpp>
 #include <memoria/core/graph/graph_collection.hpp>
 #include <memoria/core/memory/smart_ptrs.hpp>
 
@@ -128,7 +129,7 @@ static VertexProperty make_fn_vertex_property(Vertex vertex, const U8String& key
 
 
 
-namespace _ {
+namespace detail {
 
 struct MakeFnVertexPropertiesHelper
 {
@@ -180,7 +181,7 @@ Collection<VertexProperty> make_fn_vertex_properties(Vertex vertex, Args&&... ar
 
     std::vector<VertexProperty> properties;
 
-    _::MakeFnVertexPropertiesHelper::process(properties, vertex, std::forward<Args>(args)...);
+    detail::MakeFnVertexPropertiesHelper::process(properties, vertex, std::forward<Args>(args)...);
 
     return STLCollection<VertexProperty, std::vector<VertexProperty>>::make(std::move(properties));
 }
@@ -193,7 +194,7 @@ Collection<VertexProperty> make_default_vertex_properties(Vertex vertex, Args&&.
 
     std::vector<VertexProperty> properties;
 
-    _::MakeDefaultVertexPropertiesHelper::process(properties, vertex, std::forward<Args>(args)...);
+    detail::MakeDefaultVertexPropertiesHelper::process(properties, vertex, std::forward<Args>(args)...);
 
     return STLCollection<VertexProperty, std::vector<VertexProperty>>::make(std::move(properties));
 }

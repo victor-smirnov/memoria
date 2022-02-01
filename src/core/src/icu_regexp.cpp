@@ -213,11 +213,11 @@ ICURegexMatcher ICURegexPattern::matcher(const char* input, int32_t length) {
 
 
 ICURegexPattern ICURegexPattern::compile(U16String pattern, uint32_t flags) {
-    return _::ICURegexPatternImpl::compile(pattern, flags);
+    return detail::ICURegexPatternImpl::compile(pattern, flags);
 }
 
 ICURegexPattern ICURegexPattern::compile(const CU16ProviderPtr& pattern, uint32_t flags, int32_t buffer_size) {
-    return _::ICURegexPatternImpl::compile(pattern, flags, buffer_size);
+    return detail::ICURegexPatternImpl::compile(pattern, flags, buffer_size);
 }
 
 

@@ -58,7 +58,7 @@ public:
 
         total_size_ += buffer.size();
 
-        io_vector.symbol_sequence().append(0, buffer.size());
+        io_vector.symbol_sequence().append_run(0, buffer.size());
 
         return has_more;
     }

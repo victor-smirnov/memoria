@@ -19,7 +19,10 @@ namespace io {
 
 std::unique_ptr<IOSSRLEBufferBase> make_packed_ssrle_buffer(size_t alphabet_size)
 {
-    if (alphabet_size == 2) {
+    if (alphabet_size == 1) {
+        return std::make_unique<IOSSRLEBufferImpl<1>>();
+    }
+    else if (alphabet_size == 2) {
         return std::make_unique<IOSSRLEBufferImpl<2>>();
     }
     else if (alphabet_size == 3) {

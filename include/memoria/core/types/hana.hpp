@@ -34,7 +34,7 @@ struct ToHana<TL<Type...>>
 };
 
 
-namespace _ {
+namespace detail {
     template <typename Tuple> struct FromHanaH;
 
     template <typename... Type>
@@ -54,7 +54,7 @@ constexpr auto to_hana() {
 
 template <typename Tuple>
 constexpr auto from_hana(Tuple&& v) {
-    return _::FromHanaH<std::decay_t<decltype(v)>>::cvt();
+    return detail::FromHanaH<std::decay_t<decltype(v)>>::cvt();
 }
 
 

@@ -30,7 +30,7 @@
 
 namespace memoria {
 namespace bt {
-namespace _ {
+namespace detail {
 
 
 template <typename List> struct SelectNonSizedStruct;
@@ -146,7 +146,7 @@ protected:
 
     struct IOVTypes {
         using PackedStructsList = NonSizedPackedStructsList;
-        using SymbolSequence    = io::PackedRLESymbolSequence<1>;
+        using SymbolSequence    = io::IOSSRLEBufferImpl<1>;
         using StreamsSchema     = IntList<ListSize<NonSizedPackedStructsList>>;
     };
 
@@ -168,7 +168,7 @@ protected:
 
     struct IOVTypes {
         using PackedStructsList = NonSizedPackedStructsList;
-        using SymbolSequence    = io::PackedRLESymbolSequenceView<1>;
+        using SymbolSequence    = io::IOSSRLEBufferView<1>;
         using StreamsSchema = IntList<ListSize<NonSizedPackedStructsList>>;
     };
 

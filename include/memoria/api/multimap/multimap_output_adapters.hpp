@@ -29,7 +29,7 @@
 
 namespace memoria {
 
-namespace _ {
+namespace detail {
 
     template <
         typename DataType,

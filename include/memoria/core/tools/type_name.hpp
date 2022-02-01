@@ -37,7 +37,7 @@
 
 namespace memoria {
 
-namespace _ {
+namespace detail {
 namespace tn {
 
 template<typename>
@@ -122,7 +122,7 @@ static inline U8String demangle(const char* name)
 
 
 template <typename T>
-struct HasStandardTypeName: _::tn::STTNHelper<T> {};
+struct HasStandardTypeName: detail::tn::STTNHelper<T> {};
 
 template<typename T, bool Special = HasStandardTypeName<T>::value>
 struct StandardTypeName;

@@ -881,6 +881,14 @@ public:
         return value;
     }
 
+    Span<ElementType> span() {
+        return Span<ElementType>(values_, Indexes);
+    }
+
+    Span<const ElementType> span() const {
+        return Span<ElementType>(values_, Indexes);
+    }
+
 private:
     static void check(int32_t idx)
     {

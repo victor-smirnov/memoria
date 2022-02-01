@@ -21,6 +21,8 @@
 #include <memoria/profiles/common/block_operations.hpp>
 #include <memoria/core/iovector/io_substream_base.hpp>
 
+#include <memoria/core/tools/bitmap_select.hpp>
+
 namespace memoria {
 
 template <typename ExtData, typename PkdStruct>
@@ -31,6 +33,9 @@ class PackedSSRLESeqSO {
     using MyType = PackedSSRLESeqSO;
 
 public:
+    using SeqSizeT = typename PkdStruct::SeqSizeT;
+    using SymbolT = typename PkdStruct::SymbolT;
+
     using PkdStructT = PkdStruct;
 
     PackedSSRLESeqSO() noexcept: ext_data_(), data_() {}
@@ -80,27 +85,44 @@ public:
         return data_->removeSpace(room_start, room_end);
     }
 
-    int32_t size() const noexcept {
-        return data_->size();
+    size_t size() const noexcept {
+        return (size_t)data_->size();
     }
 
-    int32_t get_symbol(int32_t idx) const noexcept {
-        return data_->get_symbol(idx);
+    SymbolT get_symbol(SeqSizeT idx) const noexcept {
+        return data_->access(idx);
     }
 
-    auto rank(int32_t pos, int32_t symbol) const noexcept {
-        return data_->rank(pos, symbol);
+    auto rank(SeqSizeT pos, SymbolT symbol) const noexcept {
+        return (size_t)data_->rank_eq(pos, symbol);
+    }
+
+
+
+    template <typename... Args>
+    auto selectGEFW(size_t rank, size_t symbol) const {
+        auto res = data_->select_fw_ge(rank, symbol);
+        return SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
     }
 
     template <typename... Args>
-    auto selectGEFW(Args&&... args) const {
-        return data_->selectGEFW(std::forward<Args>(args)...);
+    auto selectGEFW(size_t start, size_t rank, size_t symbol) const {
+        auto res = data_->select_fw_ge(start, rank, symbol);
+        return SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
     }
 
     template <typename... Args>
-    auto selectFW(Args&&... args) const {
-        return data_->selectFW(std::forward<Args>(args)...);
+    auto selectFW(size_t rank, size_t symbol) const {
+        auto res = data_->select_fw_eq(rank, symbol);
+        return SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
     }
+
+    template <typename... Args>
+    auto selectFW(size_t start, size_t rank, size_t symbol) const {
+        auto res = data_->select_fw_eq(start, rank, symbol);
+        return SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
+    }
+
 
     VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept {
         return data_->generateDataEvents(handler);
@@ -111,7 +133,7 @@ public:
     }
 
     auto sum(int32_t symbol) const noexcept {
-        return data_->rank(symbol);
+        return (uint64_t)data_->rank_eq(symbol);
     }
 
     void configure_io_substream(io::IOSubstream& substream) const {

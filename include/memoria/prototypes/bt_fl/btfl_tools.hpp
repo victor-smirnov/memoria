@@ -20,12 +20,13 @@
 #include <memoria/core/container/container.hpp>
 
 #include <memoria/core/packed/sseq/packed_rle_searchable_seq.hpp>
+#include <memoria/core/packed/sseq/packed_ssrle_seq.hpp>
 
 namespace memoria {
 namespace btfl {
 
 
-template <int32_t DataStreams> struct StructureStreamTF: HasType<PkdRLESeqT<DataStreams>> {};
+template <int32_t DataStreams> struct StructureStreamTF: HasType<PkdSSRLESeqT<DataStreams>> {};
 
 
 

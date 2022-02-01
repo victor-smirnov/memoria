@@ -36,7 +36,7 @@ namespace memoria {
 namespace btfl {
 namespace io {
 
-namespace _ {
+namespace detail {
 
     enum class StreamSelectorType {DATA, STRUCTURE};
 
@@ -212,7 +212,7 @@ public:
 
         int32_t start_pos = start_.sum();
 
-        io_vector_->symbol_sequence().rank_to(start_pos + idx, &rnk[0]);
+        io_vector_->symbol_sequence().rank_to(start_pos + idx, unit_span_of(&rnk[0]));
 
         return rnk - start_;
     }
@@ -257,14 +257,14 @@ public:
             finished_ = producer_->populate(*io_vector_);
             io_vector_->reindex();
 
-            seq.rank_to(io_vector_->symbol_sequence().size(), &size_[0]);
+            seq.rank_to(io_vector_->symbol_sequence().size(), unit_span_of(&size_[0]));
 
             if (MMA_UNLIKELY(start_pos_ > 0))
             {
                 int32_t ctr_seq_size = seq.size();
                 if (start_pos_ < ctr_seq_size)
                 {
-                    seq.rank_to(start_pos_, &start_[0]);
+                    seq.rank_to(start_pos_, unit_span_of(&start_[0]));
                     start_pos_ -= start_.sum();
                 }
                 else {
@@ -277,7 +277,7 @@ public:
         CtrSizeT remainder = length_ - total_symbols_;
         if (MMA_UNLIKELY(length_ < std::numeric_limits<CtrSizeT>::max() && (size_ - start_).sum() > remainder))
         {
-            seq.rank_to(start_.sum() + remainder, &size_[0]);
+            seq.rank_to(start_.sum() + remainder, unit_span_of(&size_[0]));
             finished_ = true;
         }
     }
@@ -502,8 +502,8 @@ protected:
                 const Position& sizes,
                 const memoria::io::IOVector& io_vector) noexcept
         {
-            return _::StreamSelector<
-                    StreamIdx < DataStreams ? _::StreamSelectorType::DATA : _::StreamSelectorType::STRUCTURE,
+            return detail::StreamSelector<
+                    StreamIdx < DataStreams ? detail::StreamSelectorType::DATA : detail::StreamSelectorType::STRUCTURE,
                     DataStreams
             >::template io_stream<StreamIdx>(
                     stream,

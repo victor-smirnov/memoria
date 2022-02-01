@@ -30,7 +30,7 @@ using SublistFromStart = boost::mp11::mp_take_c<List, Len>;
 template <typename List, int32_t From>
 using SublistToEnd = boost::mp11::mp_drop_c<List, From>;
 
-namespace _ {
+namespace detail {
     template <typename List, int32_t From, int32_t To>
     struct SublistH {
         static_assert(From <= To, "Form must be <= To");
@@ -43,6 +43,6 @@ namespace _ {
 }
 
 template <typename List, int32_t From, int32_t To>
-using Sublist = typename _::SublistH<List, From, To>::Type;
+using Sublist = typename detail::SublistH<List, From, To>::Type;
 
 }

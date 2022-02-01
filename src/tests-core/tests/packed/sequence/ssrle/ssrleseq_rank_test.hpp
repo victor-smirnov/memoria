@@ -25,11 +25,11 @@
 namespace memoria {
 namespace tests {
 
-template <int32_t Bps>
-class PackedSSRLESearchableSequenceRankTest: public PackedSSRLESequenceTestBase<Bps> {
+template <size_t AlphabetSize, bool Use64BitSize = false>
+class PackedSSRLESearchableSequenceRankTest: public PackedSSRLESequenceTestBase<AlphabetSize, Use64BitSize> {
 
-    using MyType = PackedSSRLESearchableSequenceRankTest<Bps>;
-    using Base = PackedSSRLESequenceTestBase<Bps>;
+    using MyType = PackedSSRLESearchableSequenceRankTest<AlphabetSize, Use64BitSize>;
+    using Base = PackedSSRLESequenceTestBase<AlphabetSize, Use64BitSize>;
 
     using typename Base::SymbolsRunT;
     using typename Base::RunTraits;
@@ -43,8 +43,6 @@ class PackedSSRLESearchableSequenceRankTest: public PackedSSRLESequenceTestBase<
     using typename Base::SeqSizeT;
     using typename Base::RunSizeT;
     using typename Base::SymbolT;
-
-    using Base::Symbols;
 
     using Base::getRandom;
     using Base::getRandom1;
@@ -234,13 +232,13 @@ public:
             {
                 SeqSizeT pos = poss[c];
 
-                SeqSizeT ranks1[Symbols]{0,};
-                get_ranks(rank_index, syms1, pos, Span<SeqSizeT>(ranks1, Symbols));
+                SeqSizeT ranks1[AlphabetSize]{0,};
+                get_ranks(rank_index, syms1, pos, Span<SeqSizeT>(ranks1, AlphabetSize));
 
-                SeqSizeT ranks2[Symbols]{0,};
-                seq->ranks(pos, Span<SeqSizeT>(ranks2, Symbols));
+                SeqSizeT ranks2[AlphabetSize]{0,};
+                seq->ranks(pos, Span<SeqSizeT>(ranks2, AlphabetSize));
 
-                for (size_t c = 0; c < Symbols; c++) {
+                for (size_t c = 0; c < AlphabetSize; c++) {
                     assert_equals(ranks1[c], ranks2[c]);
                 }
             }

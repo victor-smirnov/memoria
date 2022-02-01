@@ -28,7 +28,7 @@
 
 namespace memoria {
 
-namespace _ {
+namespace detail {
 class ICURegexMatcherImpl;
 class ICURegexPatternImpl;
 }
@@ -68,7 +68,7 @@ class ICURegexPattern;
 
 class ICURegexMatcher {
 public:
-    using Ptr = LocalSharedPtr<_::ICURegexMatcherImpl>;
+    using Ptr = LocalSharedPtr<detail::ICURegexMatcherImpl>;
 private:
     Ptr ptr_;
 public:
@@ -150,12 +150,12 @@ using ICURangeConsumerFn = std::function<void (const ICUPatternMatch&)>;
 
 
 class ICURegexPattern {
-    LocalSharedPtr<_::ICURegexPatternImpl> pattern_;
+    LocalSharedPtr<detail::ICURegexPatternImpl> pattern_;
 public:
 
 
     ICURegexPattern() {}
-    ICURegexPattern(LocalSharedPtr<_::ICURegexPatternImpl> pattern): pattern_(std::move(pattern)) {}
+    ICURegexPattern(LocalSharedPtr<detail::ICURegexPatternImpl> pattern): pattern_(std::move(pattern)) {}
 
     ~ICURegexPattern() noexcept;
 

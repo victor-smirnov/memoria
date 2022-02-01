@@ -101,11 +101,11 @@ public:
     bool upsert(KeyView key, Span<const ValueView> data)
     {
         return upsert(key, [&](auto& seq, auto& keys, auto& values, auto& sizes) {
-            seq.append(0, 1);
+            seq.append_run(0, 1);
             keys.append(key);
 
             if (data.size() > 0) {
-                seq.append(1, data.size());
+                seq.append_run(1, data.size());
                 values.append(data);
             }
 
@@ -124,10 +124,10 @@ public:
     void append_entry(KeyView key, Span<const ValueView> data)
     {
         return append_entries([&](auto& seq, auto& keys, auto& values, auto& sizes){
-            seq.append(0, 1);
+            seq.append_run(0, 1);
             keys.append(key);
 
-            seq.append(1, data.size());
+            seq.append_run(1, data.size());
             values.append(data);
 
             return true;
@@ -145,10 +145,10 @@ public:
     void prepend_entry(KeyView key, Span<const ValueView> data)
     {
         return prepend_entries([&](auto& seq, auto& keys, auto& values, auto& sizes){
-            seq.append(0, 1);
+            seq.append_run(0, 1);
             keys.append(key);
 
-            seq.append(1, data.size());
+            seq.append_run(1, data.size());
             values.append(data);
 
             return true;
@@ -167,10 +167,10 @@ public:
     void insert_entry(KeyView before, KeyView key, Span<const ValueView> data)
     {
         return insert_entries(before, [&](auto& seq, auto& keys, auto& values, auto& sizes){
-            seq.append(0, 1);
+            seq.append_run(0, 1);
             keys.append(key);
 
-            seq.append(1, data.size());
+            seq.append_run(1, data.size());
             values.append(data);
 
             return true;

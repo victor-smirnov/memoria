@@ -27,7 +27,7 @@
 
 namespace memoria {
 /*
-namespace _ {
+namespace detail {
 
 template <
         typename KeyDataType,
@@ -126,7 +126,7 @@ private:
 
     bool finished_{false};
 
-    _::MapKeysValues<typename Types::Key, typename Types::Value> entries_;
+    detail::MapKeysValues<typename Types::Key, typename Types::Value> entries_;
 
     CtrSharedPtr<BTSSIterator<Profile>> btss_iterator_;
 

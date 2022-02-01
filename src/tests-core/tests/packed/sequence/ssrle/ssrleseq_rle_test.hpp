@@ -23,11 +23,11 @@
 namespace memoria {
 namespace tests {
 
-template <int32_t Symbols>
-class PackedSSRLESearchableSequenceRLETest: public PackedSSRLESequenceTestBase<Symbols> {
+template <size_t AlphabetSize, bool Use64BitSize = false>
+class PackedSSRLESearchableSequenceRLETest: public PackedSSRLESequenceTestBase<AlphabetSize, Use64BitSize> {
 
-    using MyType = PackedSSRLESearchableSequenceRLETest<Symbols>;
-    using Base = PackedSSRLESequenceTestBase<Symbols>;
+    using MyType = PackedSSRLESearchableSequenceRLETest<AlphabetSize, Use64BitSize>;
+    using Base = PackedSSRLESequenceTestBase<AlphabetSize, Use64BitSize>;
 
     using typename Base::SymbolsRunT;
     using typename Base::RunTraits;
@@ -99,7 +99,7 @@ public:
         SymbolsRunT run = SymbolsRunT::make_run(syms, run_length);
         size_t pattern_length = run.pattern_length();
 
-        std::vector<size_t> ranks1(Symbols);
+        std::vector<size_t> ranks1(AlphabetSize);
         run.full_ranks(make_span(ranks1));
 
         assert_equals(ranks[0] * run_length, ranks1[0]);
@@ -108,7 +108,7 @@ public:
         size_t sym0_full_rank = run.full_rank_eq(0);
         assert_equals(ranks[0] * run_length, sym0_full_rank);
 
-        std::vector<size_t> ranks2(Symbols);
+        std::vector<size_t> ranks2(AlphabetSize);
 
         size_t patterns = 2;
         run.ranks(pattern_length * patterns + 4, make_span(ranks2));

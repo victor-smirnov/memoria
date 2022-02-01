@@ -256,14 +256,14 @@ public:
                 io_vector_->reindex();
             }
 
-            seq.rank_to(io_vector_->symbol_sequence().size(), &size_);
+            seq.rank_to(io_vector_->symbol_sequence().size(), unit_span_of(&size_));
 
             if (MMA_UNLIKELY(start_pos_ > 0))
             {
                 int32_t ctr_seq_size = seq.size();
                 if (start_pos_ < ctr_seq_size)
                 {
-                    seq.rank_to(start_pos_, &start_);
+                    seq.rank_to(start_pos_, unit_span_of(&start_));
                     start_pos_ -= start_;
                 }
                 else {
@@ -276,7 +276,7 @@ public:
         CtrSizeT remainder = length_ - total_symbols_;
         if (MMA_UNLIKELY(length_ < std::numeric_limits<CtrSizeT>::max() && (size_ - start_) > remainder))
         {
-            seq.rank_to(start_ + remainder, &size_);
+            seq.rank_to(start_ + remainder, unit_span_of(&size_));
             finished_ = true;
         }    
     }

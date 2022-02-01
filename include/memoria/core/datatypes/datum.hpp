@@ -430,7 +430,7 @@ public:
 
 
 
-namespace _ {
+namespace detail {
 
     template <typename T, typename SelectorTag = typename DataTypeTraits<T>::DatumSelector>
     struct AnyDatumConverter {
@@ -458,7 +458,7 @@ namespace _ {
 template <typename T>
 Datum<T> datum_cast(AnyDatum&& any)
 {
-    return _::AnyDatumConverter<T>::cast(std::move(any));
+    return detail::AnyDatumConverter<T>::cast(std::move(any));
 }
 
 

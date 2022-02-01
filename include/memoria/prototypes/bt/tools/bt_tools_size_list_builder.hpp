@@ -76,7 +76,7 @@ template <
 struct StreamTF {};
 
 
-namespace _ {
+namespace detail {
 
     template <
         typename OffsetList,
@@ -186,16 +186,16 @@ namespace _ {
 template <typename LeafTree>
 class LeafOffsetListBuilder {
     using LinearLeafList = FlattenLeafTree<LeafTree>;
-    using OffsetList = bt::_::OffsetBuilder<LinearLeafList>;
+    using OffsetList = bt::detail::OffsetBuilder<LinearLeafList>;
 public:
-    using Type = bt::_::TagStreamsStart<OffsetList, LeafTree>;
+    using Type = bt::detail::TagStreamsStart<OffsetList, LeafTree>;
 };
 
 
 
 
 template <typename List, typename Path>
-using LeafSubsetInf = typename bt::_::ForAllTopLevelElements<
+using LeafSubsetInf = typename bt::detail::ForAllTopLevelElements<
         list_tree::Subtree<List, Path>,
         list_tree::LeafCount<List, Path>
 >::Type;
@@ -237,7 +237,7 @@ struct FindTopLevelIdx<TypeList<>, Idx, Pos>: HasValue<int32_t, -1> {};
 template <typename List, int32_t Idx, int32_t Pos = 0> struct FindLocalLeafOffsetV;
 template <typename List, int32_t Idx, int32_t Pos = 0> struct FindLocalLeafOffsetT;
 
-namespace _ {
+namespace detail {
 
     template <typename List, int32_t Idx, int32_t Pos, bool Condition> struct FindLocalLeafOffsetHelperV;
     template <typename List, int32_t Idx, int32_t Pos, bool Condition> struct FindLocalLeafOffsetHelperT;
@@ -346,7 +346,7 @@ private:
     static const int32_t LocalSize = ListSize<LocalList>;
 public:
 
-    static const int32_t Value = bt::_::FindLocalLeafOffsetHelperV<
+    static const int32_t Value = bt::detail::FindLocalLeafOffsetHelperV<
         FailIf<false, TypeList<TypeList<List...>, Tail...>>,
         Idx,
         Pos,
@@ -366,7 +366,7 @@ struct FindLocalLeafOffsetT<TypeList<IntList<List...>, Tail...>, Idx, Pos> {
 private:
     static const int32_t LocalSize = ListSize<IntList<List...>>;
 public:
-    using Type = typename bt::_::FindLocalLeafOffsetHelperT<
+    using Type = typename bt::detail::FindLocalLeafOffsetHelperT<
             TypeList<IntList<List...>, Tail...>,
             Idx,
             Pos,
@@ -386,7 +386,7 @@ struct FindLocalLeafOffsetT<TypeList<StreamStartTag<IntList<List...>>, Tail...>,
 private:
     static const int32_t LocalSize = ListSize<IntList<List...>>;
 public:
-    using Type = typename bt::_::FindLocalLeafOffsetHelperT<
+    using Type = typename bt::detail::FindLocalLeafOffsetHelperT<
             TypeList<StreamStartTag<IntList<List...>>, Tail...>,
             Idx,
             Pos,
@@ -467,7 +467,7 @@ struct IsStreamStart<IntList<>, Idx>: HasValue<bool, true> {};
 
 
 
-namespace _ {
+namespace detail {
     template <typename List> struct IsStreamStartTag;
 
     template <int32_t... List>
@@ -498,7 +498,7 @@ public:
 
     static constexpr int32_t BranchStructIdx = list_tree::LeafCount<LeafStructList, LeafPath, 2> - FailIfV<LeafIdx == 10, LocalLeafOffset>;
 
-    static constexpr bool IsStreamStart = LocalLeafOffset == 0 && bt::_::IsStreamStartTag<LocalLeafGroup>::Value;
+    static constexpr bool IsStreamStart = LocalLeafOffset == 0 && bt::detail::IsStreamStartTag<LocalLeafGroup>::Value;
 };
 
 

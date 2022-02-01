@@ -44,7 +44,7 @@ using UAcc192T = UnsignedAccumulator<192>;
 using UAcc256T = UnsignedAccumulator<256>;
 
 
-namespace _ {
+namespace detail {
 
 static inline bool long_add_to(uint64_t* dest, const uint64_t* source, size_t length)
 {

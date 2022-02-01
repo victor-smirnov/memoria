@@ -31,20 +31,21 @@ namespace memoria {
 namespace tests {
 
 template <
-    size_t Symbols_
+    size_t AlphabetSize_,
+    bool Use64BitSize = false
 >
 class PackedSSRLESequenceTestBase: public TestState {
 
     using Base = TestState;
-    using MyType = PackedSSRLESequenceTestBase<Symbols_>;
+    using MyType = PackedSSRLESequenceTestBase<AlphabetSize_, Use64BitSize>;
 
 protected:
 
     static constexpr size_t SIZE_INDEX_BLOCK = 128;
-    static constexpr size_t Bps = BitsPerSymbolConstexpr(Symbols_);
-    static constexpr size_t Symbols = Symbols_;
+    static constexpr size_t Bps = BitsPerSymbolConstexpr(AlphabetSize_);
+    static constexpr size_t AlphabetSize = AlphabetSize_;
 
-    using Seq    = PkdSSRLESeqT<Symbols>;
+    using Seq    = PkdSSRLESeqT<AlphabetSize, 256, Use64BitSize>;
     using SeqPtr = PkdStructSPtr<Seq>;
 
     size_t size_{32768};
@@ -55,8 +56,6 @@ protected:
     using SeqSizeT      = typename Seq::SeqSizeT;
     using RunSizeT      = typename Seq::RunSizeT;
     using SymbolT       = typename Seq::SymbolT;
-
-
 
 public:
 
@@ -101,7 +100,7 @@ public:
             SymbolsRunT run(pattern_length, 0, run_len);
 
             for (size_t s = 0; s < run.pattern_length(); s++) {
-                run.set_pattern_symbol(s, getRandom(Symbols));
+                run.set_pattern_symbol(s, getRandom(AlphabetSize));
             }
 
             symbols.push_back(run);
@@ -374,7 +373,7 @@ public:
 
 
     struct BlockRank: BlockSize {
-        std::array<SeqSizeT, Symbols> rank;
+        std::array<SeqSizeT, AlphabetSize> rank;
     };
 
 
@@ -383,7 +382,7 @@ public:
         std::vector<BlockRank> blocks;
 
         SeqSizeT offset{};
-        std::array<SeqSizeT, Symbols> total_ranks{};
+        std::array<SeqSizeT, AlphabetSize> total_ranks{};
         total_ranks.fill(SeqSizeT{});
 
         for (size_t c = 0; c < runs.size(); c++)
@@ -428,12 +427,12 @@ public:
 
     SeqSizeT get_rank_gt(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
-        SeqSizeT ranks[Symbols]{0, };
-        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, Symbols));
+        SeqSizeT ranks[AlphabetSize]{0, };
+        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, AlphabetSize));
 
         SeqSizeT sum{};
 
-        for (size_t c = symbol + 1; c < Symbols; c++) {
+        for (size_t c = symbol + 1; c < AlphabetSize; c++) {
             sum += ranks[c];
         }
 
@@ -442,12 +441,12 @@ public:
 
     SeqSizeT get_rank_ge(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
-        SeqSizeT ranks[Symbols]{0, };
-        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, Symbols));
+        SeqSizeT ranks[AlphabetSize]{0, };
+        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, AlphabetSize));
 
         SeqSizeT sum{};
 
-        for (size_t c = symbol; c < Symbols; c++) {
+        for (size_t c = symbol; c < AlphabetSize; c++) {
             sum += ranks[c];
         }
 
@@ -457,8 +456,8 @@ public:
 
     SeqSizeT get_rank_lt(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
-        SeqSizeT ranks[Symbols]{0, };
-        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, Symbols));
+        SeqSizeT ranks[AlphabetSize]{0, };
+        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, AlphabetSize));
 
         SeqSizeT sum{};
 
@@ -471,8 +470,8 @@ public:
 
     SeqSizeT get_rank_le(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
-        SeqSizeT ranks[Symbols]{0, };
-        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, Symbols));
+        SeqSizeT ranks[AlphabetSize]{0, };
+        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, AlphabetSize));
 
         SeqSizeT sum{};
 
@@ -485,12 +484,12 @@ public:
 
     SeqSizeT get_rank_neq(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
-        SeqSizeT ranks[Symbols]{0, };
-        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, Symbols));
+        SeqSizeT ranks[AlphabetSize]{0, };
+        get_ranks(index, runs, idx, Span<SeqSizeT>(ranks, AlphabetSize));
 
         SeqSizeT sum{};
 
-        for (size_t c = 0; c < Symbols; c++) {
+        for (size_t c = 0; c < AlphabetSize; c++) {
             sum += c != symbol ? ranks[c] : SeqSizeT{0};
         }
 
@@ -503,7 +502,7 @@ public:
         size_t i = locate_block(index, runs, idx);
         SeqSizeT offset = index[i].offset;
 
-        for (size_t c = 0; c < Symbols; c++) {
+        for (size_t c = 0; c < AlphabetSize; c++) {
             symbols[c] += index[i].rank[c];
         }
 
@@ -542,7 +541,7 @@ private:
     struct SelectFwNeqFn {
         SeqSizeT index_fn(const BlockRank& index, SymbolT symbol) const {
             SeqSizeT sum{};
-            for (size_t c = 0; c < Symbols; c++) {
+            for (size_t c = 0; c < AlphabetSize; c++) {
                 sum += c != symbol ? index.rank[c] : SeqSizeT{0};
             }
             return sum;
@@ -560,7 +559,7 @@ private:
     struct SelectFwGtFn {
         SeqSizeT index_fn(const BlockRank& index, SymbolT symbol) const {
             SeqSizeT sum{};
-            for (size_t c = symbol + 1; c < Symbols; c++) {
+            for (size_t c = symbol + 1; c < AlphabetSize; c++) {
                 sum += index.rank[c];
             }
             return sum;
@@ -578,7 +577,7 @@ private:
     struct SelectFwGeFn {
         SeqSizeT index_fn(const BlockRank& index, SymbolT symbol) const {
             SeqSizeT sum{};
-            for (size_t c = symbol; c < Symbols; c++) {
+            for (size_t c = symbol; c < AlphabetSize; c++) {
                 sum += index.rank[c];
             }
             return sum;

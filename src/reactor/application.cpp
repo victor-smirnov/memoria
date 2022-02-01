@@ -35,7 +35,7 @@
 namespace memoria {
 namespace reactor {
 
-namespace _ {
+namespace detail {
 	std::vector<U8String> arg_list_as_vector(const char* const * args)
 	{
 		std::vector<U8String> v;
@@ -64,7 +64,7 @@ Application::Application(const options_description& descr, int argc, char** argv
     smp_{},
     reactors_(),
     shutdown_hook_([](){engine().stop();}),
-	args_(_::arg_list_as_vector(argv)),
+    args_(detail::arg_list_as_vector(argv)),
     env_(Environment::create(envp))
 {
     default_options(descr_);

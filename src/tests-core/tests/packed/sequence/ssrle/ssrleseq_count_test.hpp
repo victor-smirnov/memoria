@@ -25,11 +25,11 @@
 namespace memoria {
 namespace tests {
 
-template <int32_t Bps>
-class PackedSSRLESearchableSequenceCountTest: public PackedSSRLESequenceTestBase<Bps> {
+template <size_t AlphabetSize, bool Use64BitSize = false>
+class PackedSSRLESearchableSequenceCountTest: public PackedSSRLESequenceTestBase<AlphabetSize, Use64BitSize> {
 
-    using MyType = PackedSSRLESearchableSequenceCountTest<Bps>;
-    using Base = PackedSSRLESequenceTestBase<Bps>;
+    using MyType = PackedSSRLESearchableSequenceCountTest<AlphabetSize, Use64BitSize>;
+    using Base = PackedSSRLESequenceTestBase<AlphabetSize, Use64BitSize>;
 
     using typename Base::SymbolsRunT;
     using typename Base::RunTraits;
@@ -40,8 +40,6 @@ class PackedSSRLESearchableSequenceCountTest: public PackedSSRLESequenceTestBase
     using typename Base::BlockSize;
     using typename Base::BlockRank;
     using typename Base::LocateResult;
-
-    using Base::Symbols;
 
     using Base::getRandom;
     using Base::getRandom1;

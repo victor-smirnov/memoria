@@ -23,7 +23,7 @@
 
 namespace memoria {
 
-namespace _ {
+namespace detail {
 
 template <typename V> struct BuiltinAddCH;
 template <typename V> struct BuiltinSubCH;

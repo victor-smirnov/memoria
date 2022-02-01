@@ -50,7 +50,7 @@ static inline std::ostream& operator<<(std::ostream& out, const CallDuration& st
 }
 
 
-namespace _ {
+namespace detail {
     struct TimeHolder {
         CallDuration& stat;
         uint64_t start;
@@ -67,7 +67,7 @@ namespace _ {
 
 template <typename Fn>
 auto withTime(CallDuration& stat, Fn&& fn) {
-    memoria::_::TimeHolder holder(stat);
+    memoria::detail::TimeHolder holder(stat);
     return fn();
 }
 

@@ -55,18 +55,18 @@ protected:
 
 protected:
 
-    _::MMapSubstreamAdapter<Key_> keys_;
-    _::MMapValueGroupsAdapter<Value_> values_;
+    detail::MMapSubstreamAdapter<Key_> keys_;
+    detail::MMapValueGroupsAdapter<Value_> values_;
 
-    _::MMapSubstreamAdapter<Value_> prefix_;
+    detail::MMapSubstreamAdapter<Value_> prefix_;
 
 
     bool has_suffix_;
 
     KeyView suffix_key_;
-    _::MMapSubstreamAdapter<Value_> suffix_;
+    detail::MMapSubstreamAdapter<Value_> suffix_;
 
-    _::MMapValuesBufferAdapter<Value_, ValuesBufferAtomType> suffix_buffer_;
+    detail::MMapValuesBufferAdapter<Value_, ValuesBufferAtomType> suffix_buffer_;
 
     uint64_t iteration_num_{};
 
@@ -213,8 +213,8 @@ protected:
     using ValuesIOVSubstreamAdapter = IOSubstreamAdapter<Select<1, IOVSchema>>;
     using ValuesBufferAtomType      = typename ValuesIOVSubstreamAdapter::AtomType;
 
-    _::MMapSubstreamAdapter<Value_> values_;
-    _::MMapValuesBufferAdapter<Value_, ValuesBufferAtomType> values_buffer_;
+    detail::MMapSubstreamAdapter<Value_> values_;
+    detail::MMapValuesBufferAdapter<Value_, ValuesBufferAtomType> values_buffer_;
 
     size_t size_{};
 
@@ -260,7 +260,7 @@ protected:
 
     using KeysIOVSubstreamAdapter = IOSubstreamAdapter<Select<0, IOVSchema>>;
 
-    _::MMapSubstreamAdapter<Key_> keys_;
+    detail::MMapSubstreamAdapter<Key_> keys_;
 
 public:
     IKeysScanner() {}

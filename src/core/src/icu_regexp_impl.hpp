@@ -24,7 +24,7 @@ namespace memoria {
 using RegexMatcher = MMA_ICU_CXX_NS::RegexMatcher;
 using RegexPattern = MMA_ICU_CXX_NS::RegexPattern;
 
-namespace _ {
+namespace detail {
 
 class ICURegexMatcherImpl {
 
@@ -318,7 +318,7 @@ public:
 
         ICUParseException::assertOk(pattern, status, pe);
 
-        return MakeLocalShared<_::ICURegexPatternImpl>(std::move(pattern_ptr));
+        return MakeLocalShared<detail::ICURegexPatternImpl>(std::move(pattern_ptr));
     }
 
     static LocalSharedPtr<ICURegexPatternImpl> compile(const CU16ProviderPtr& pattern, uint32_t flags, int32_t buffer_size)
@@ -338,7 +338,7 @@ public:
             ICUParseException::assertOk(to_u16string(&ut), status, pe);
         }
 
-        return MakeLocalShared<_::ICURegexPatternImpl>(std::move(pattern_ptr));
+        return MakeLocalShared<detail::ICURegexPatternImpl>(std::move(pattern_ptr));
     }
 
 

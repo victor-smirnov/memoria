@@ -27,7 +27,7 @@
 
 namespace memoria {
 
-namespace _ {
+namespace detail {
 
 template <typename T>
 struct RNGTool {
@@ -119,12 +119,12 @@ public:
 
     Key getRandomKey()
     {
-        return _::RNGTool<Key>::next(this);
+        return detail::RNGTool<Key>::next(this);
     }
 
     Value getRandomValue()
     {
-        return _::RNGTool<Value>::next(this);
+        return detail::RNGTool<Value>::next(this);
     }
 
     virtual MemBuffer createRandomBuffer(int32_t size)

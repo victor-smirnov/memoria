@@ -59,12 +59,12 @@ public:
     MyType& self() {return *static_cast<MyType*>(this);}
     const MyType& self() const {return *static_cast<const MyType*>(this);}
 
-    void parse(const io::IOSymbolSequence& sequence)
+    void parse(const io::IOSSRLEBufferBase& sequence)
     {
         buffer_.clear();
 
-        uint64_t last_idx = sequence.populate_buffer_while(buffer_, start_idx_, data_sym_);
-        finished_ = last_idx < sequence.size();
+        uint64_t last_idx = sequence.populate_buffer_while_ge(buffer_, start_idx_, data_sym_);
+        finished_ = last_idx < (size_t)sequence.size();
 
         last_idx_ = last_idx;
 

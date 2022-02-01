@@ -31,7 +31,7 @@ struct IBTFLPopulateWalker: Referenceable {
     virtual int32_t populate(IOBuffer* buffer) = 0;
 };
 
-namespace _ {
+namespace detail {
 
 template <typename CtrT, typename WalkerT, typename IOBuffer>
 class PopulateWalkerHanlder: public IBTFLPopulateWalker<IOBuffer> {
@@ -53,7 +53,7 @@ public:
 template <typename IOBuffer, typename CtrT, typename WalkerT>
 auto make_btfl_populate_walker_handler(CtrT& ctr, WalkerT&& walker)
 {
-    return std::unique_ptr<IBTFLPopulateWalker<IOBuffer>>(new _::PopulateWalkerHanlder<CtrT, WalkerT, IOBuffer>{
+    return std::unique_ptr<IBTFLPopulateWalker<IOBuffer>>(new detail::PopulateWalkerHanlder<CtrT, WalkerT, IOBuffer>{
         &ctr, std::move(walker)
     });
 }
@@ -64,25 +64,28 @@ class BTFLSequenceParserBase {
 
     bool process_prefix_{};
 
+    using SeqSizeT = typename io::IOSSRLEBufferBase::SeqSizeT;
+    using SymbolT  = typename io::IOSSRLEBufferBase::SeqSizeT;
+
     size_t prefix_size_{};
     size_t suffix_size_{};
 
     io::SymbolsBuffer buffer_;
 
-    int32_t keys_sym_{0};
-    int32_t data_sym_{1};
+    SymbolT keys_sym_{0};
+    SymbolT data_sym_{1};
 
-    int32_t start_idx_{};
+    SeqSizeT start_idx_{};
 
 public:
-    BTFLSequenceParserBase(uint64_t start_idx, int32_t alphabet_size):
+    BTFLSequenceParserBase(uint64_t start_idx, SymbolT alphabet_size):
         buffer_(alphabet_size),
         start_idx_(start_idx)
     {
         self().on_parse_start(start_idx_);
     }
 
-    void on_parse_start(uint64_t start_idx) {}
+    void on_parse_start(SeqSizeT start_idx) {}
     void on_next_block() {}
 
     void process_prefix(const io::SymbolsBuffer& buffer) {}
@@ -90,11 +93,10 @@ public:
     void process_body(const io::SymbolsBuffer& buffer, size_t body_start_idx, size_t body_end_idx) {}
     void process_suffix(const io::SymbolsBuffer& buffer, size_t suffix_start_idx) {}
 
-
     MyType& self() {return *static_cast<MyType*>(this);}
     const MyType& self() const {return *static_cast<const MyType*>(this);}
 
-    void parse(const io::IOSymbolSequence& sequence)
+    void parse(const io::IOSSRLEBufferBase& sequence)
     {
         buffer_.clear();
 
@@ -108,7 +110,7 @@ public:
 
         if (MMA_LIKELY(buffer_size > 2))
         {
-            int32_t first_symbol = buffer_[0].symbol;
+            SymbolT first_symbol = buffer_[0].symbol;
             if (MMA_LIKELY(process_prefix_))
             {
                 if (MMA_LIKELY(first_symbol == data_sym_ && process_prefix_))
@@ -139,8 +141,8 @@ public:
         }
         else if (MMA_LIKELY(buffer_size == 2))
         {
-            int32_t s0 = buffer_[0].symbol;
-            int32_t s1 = buffer_[1].symbol;
+            SymbolT s0 = buffer_[0].symbol;
+            SymbolT s1 = buffer_[1].symbol;
 
             if (s0 == keys_sym_ && s1 == data_sym_)
             {
@@ -158,12 +160,12 @@ public:
                 suffix_size_ = 1;
             }
             else {
-                MMA_THROW(RuntimeException()) << WhatCInfo("Incorrect stream format: double data runs");
+                MEMORIA_MAKE_GENERIC_ERROR("Incorrect stream format: double data runs").do_throw();
             }
         }
         else if (buffer_size == 1)
         {
-            int32_t s0 = buffer_[0].symbol;
+            SymbolT s0 = buffer_[0].symbol;
             if (s0 == keys_sym_)
             {
                 prefix_size_ = 0;
@@ -183,7 +185,7 @@ public:
         start_idx_ = 0;
     }
 
-    int32_t start_idx() const {
+    SeqSizeT start_idx() const {
         return start_idx_;
     }
 

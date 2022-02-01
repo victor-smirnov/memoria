@@ -29,20 +29,20 @@
 namespace memoria {
 namespace io {
 
-namespace _ {
+namespace detail {
 
 struct SymbolsRun {
-    int32_t symbol;
+    size_t symbol;
     uint64_t length;
 };
 
 }
 
-class SymbolsBuffer: IOBufferBase<_::SymbolsRun> {
-    using Base = IOBufferBase<_::SymbolsRun>;
+class SymbolsBuffer: IOBufferBase<detail::SymbolsRun> {
+    using Base = IOBufferBase<detail::SymbolsRun>;
 
     using typename Base::ValueT;
-    int32_t last_symbol_;
+    size_t last_symbol_;
 public:
     using Base::clear;
     using Base::reset;
@@ -50,19 +50,19 @@ public:
     using Base::head;
     using Base::span;
 
-    SymbolsBuffer(int32_t symbols):
+    SymbolsBuffer(size_t symbols):
         SymbolsBuffer(symbols, 64)
     {}
 
-    SymbolsBuffer(int32_t symbols, size_t capacity):
+    SymbolsBuffer(size_t symbols, size_t capacity):
         Base(capacity), last_symbol_(symbols - 1)
     {}
 
-    void append_run(int32_t symbol, uint64_t length)
+    void append_run(size_t symbol, uint64_t length)
     {
         if (MMA_UNLIKELY(size_ == 0))
         {
-            append_value(_::SymbolsRun{symbol, length});
+            append_value(detail::SymbolsRun{symbol, length});
         }
         else if (MMA_LIKELY(head().symbol != symbol))
         {
@@ -72,18 +72,18 @@ public:
                 split_head();
             }
 
-            append_value(_::SymbolsRun{symbol, length});
+            append_value(detail::SymbolsRun{symbol, length});
         }
         else {
             head().length += length;
         }
     }
 
-    _::SymbolsRun& operator[](size_t idx) {
+    detail::SymbolsRun& operator[](size_t idx) {
         return access(idx);
     }
 
-    const _::SymbolsRun& operator[](size_t idx) const {
+    const detail::SymbolsRun& operator[](size_t idx) const {
         return access(idx);
     }
 
@@ -94,7 +94,7 @@ public:
         }
     }
 
-    size_t rank(int32_t symbol) const
+    size_t rank(size_t symbol) const
     {
         size_t sum{};
 
@@ -116,7 +116,7 @@ private:
         if (element.length > 1)
         {
             element.length--;
-            append_value(_::SymbolsRun{element.symbol, 1});
+            append_value(detail::SymbolsRun{element.symbol, 1});
         }
     }
 };

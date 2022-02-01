@@ -67,7 +67,7 @@ public:
 };
 
 
-namespace _ {
+namespace detail {
 
     std::vector<U8String> arg_list_as_vector(const char* const* args);
     U8String get_image_name();

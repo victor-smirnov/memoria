@@ -36,7 +36,7 @@
 namespace memoria {
 namespace reactor {
 
-namespace _ {
+namespace detail {
 
 static U8String get_image_name(const U8String& filename)
 {
@@ -135,7 +135,7 @@ public:
 	{
         with_env(app().env().entries_list());
 
-        U8String name = _::get_image_name(exe_path_.filename().string());
+        U8String name = detail::get_image_name(exe_path_.filename().string());
         args_.add(name.data(), name.size());
         args_.finish();
 	}

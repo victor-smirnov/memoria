@@ -59,12 +59,12 @@ public:
         for (int r = 0; r < entries_per_batch_; r++)
         {
             int32_t len = getRandomG(mean_value_size_ * 2) + 1;
-            seq.append(0, 1);
+            seq.append_run(0, 1);
             s0.append(key_cnt_);
 
             total_ += sizeof(Key);
 
-            seq.append(1, len);
+            seq.append_run(1, len);
 
             for (int c = 0; c < len; c++)
             {

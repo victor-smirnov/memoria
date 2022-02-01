@@ -122,7 +122,7 @@ private:
         auto& ss = iter_->iovector_view().symbol_sequence();
 
         int32_t idx = parser_.start_idx();
-        ss.rank_to(idx, offsets_.values());
+        ss.rank_to(idx, offsets_.span());
 
         build_index();
     }

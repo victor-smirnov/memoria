@@ -44,7 +44,7 @@ public:
 
     using ProducerFn = std::function<
         bool (
-            io::IOSymbolSequence&,
+            io::IOSSRLEBufferBase&,
             KeysSubstream&,
             ValuesSubstream&,
             Sizes&

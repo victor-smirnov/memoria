@@ -70,7 +70,7 @@ struct DataTypeOperations {
 
 template <typename T> struct DataTypeOperationsImpl;
 
-namespace _ {
+namespace detail {
     template <typename T, typename ParamsList, typename... CtrArgsLists> struct DataTypeCreator;
 
     template <
@@ -256,7 +256,7 @@ public:
 
             if (declared_params_size == actual_parameters_size)
             {
-                return _::DataTypeCreator<
+                return detail::DataTypeCreator<
                         T,
                         DTTParameters<T>,
                         ArgTypesLists...
@@ -272,7 +272,7 @@ public:
             }
         };
 
-        auto parser_fn = _::SDNSerializerFactory<T, DataTypeRegistry, SdnParserFn>::get_deserializer();
+        auto parser_fn = detail::SDNSerializerFactory<T, DataTypeRegistry, SdnParserFn>::get_deserializer();
 
         register_creator<T>(creator_fn, parser_fn);
     }
@@ -329,7 +329,7 @@ private:
 
 
 
-namespace _ {
+namespace detail {
 
     template <typename CxxType>
     struct CtrArgsConverter {
@@ -530,7 +530,7 @@ namespace _ {
 
         if (typedecl.constructor_args() > 0)
         {
-            using Checker = _::DataTypeCtrArgsCheckerProc<0, Types>;
+            using Checker = detail::DataTypeCtrArgsCheckerProc<0, Types>;
             return Checker::check(typedecl);
         }
         else if (list_size == 0){
@@ -547,14 +547,14 @@ namespace _ {
     {
         static T create(const DataTypeRegistry& registry, const LDTypeDeclarationView& typedecl)
         {
-            if (_::try_to_convert_args<TL<ArgsList...>>(typedecl))
+            if (detail::try_to_convert_args<TL<ArgsList...>>(typedecl))
             {
                 std::tuple<ParamsList..., ArgsList...> tpl;
 
-                _::FillDTTypesList<0, sizeof...(ParamsList)>
+                detail::FillDTTypesList<0, sizeof...(ParamsList)>
                         ::process(registry, typedecl, tpl);
 
-                _::FillDTCtrArgsList<sizeof...(ParamsList), sizeof...(ParamsList) + sizeof...(ArgsList)>
+                detail::FillDTCtrArgsList<sizeof...(ParamsList), sizeof...(ParamsList) + sizeof...(ArgsList)>
                         ::process(typedecl, tpl);
 
                 auto constructorFn = [](auto... args) {

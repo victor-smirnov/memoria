@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/core/iovector/io_symbol_sequence.hpp>
+#include <memoria/core/iovector/io_substream_ssrle.hpp>
 #include <memoria/core/iovector/io_substream.hpp>
 #include <memoria/core/tools/static_array.hpp>
 
@@ -36,9 +36,9 @@ struct IOVector {
     virtual void reindex() = 0;
 
     virtual void add_substream(std::unique_ptr<IOSubstream>&& ptr) = 0;
-    virtual IOSymbolSequence& symbol_sequence() = 0;
+    virtual IOSSRLEBufferBase& symbol_sequence() = 0;
 
-    virtual const IOSymbolSequence& symbol_sequence() const = 0;
+    virtual const IOSSRLEBufferBase& symbol_sequence() const = 0;
 
     virtual size_t substreams() const = 0;
 
@@ -53,7 +53,7 @@ struct IOVector {
 template <int32_t SubstreamsNum>
 class DefaultIOVector: public IOVector {
 
-    std::unique_ptr<IOSymbolSequence> symbol_sequence_;
+    std::unique_ptr<IOSSRLEBufferBase> symbol_sequence_;
 
     struct CleanupFn {
         template <typename Value>
@@ -67,7 +67,7 @@ class DefaultIOVector: public IOVector {
 
 public:
     DefaultIOVector(int32_t symbols):
-        symbol_sequence_(make_packed_rle_symbol_sequence(symbols))
+        symbol_sequence_(make_packed_ssrle_buffer(symbols))
     {}
 
     void reset()
@@ -89,11 +89,11 @@ public:
         schema_.push_back(substreams);
     }
 
-    IOSymbolSequence& symbol_sequence() {
+    IOSSRLEBufferBase& symbol_sequence() {
         return *symbol_sequence_.get();
     }
 
-    const IOSymbolSequence& symbol_sequence() const {
+    const IOSSRLEBufferBase& symbol_sequence() const {
         return *symbol_sequence_.get();
     }
 
@@ -127,7 +127,7 @@ public:
     }
 };
 
-namespace _ {
+namespace detail {
 
     template <typename Tuple, int32_t Idx = 0, int32_t Max = std::tuple_size<Tuple>::value>
     struct IOVectorSubstreamsInitializer {
@@ -194,8 +194,8 @@ public:
         symbol_sequence_(),
         substreams_(SubstreamsNum)
     {
-        _::IOVectorSubstreamsInitializer<IVTuple>::process(streams_tuple_, substreams_);
-        _::ValueListToArray<StreamsSchema>::append_to(schema_);
+        detail::IOVectorSubstreamsInitializer<IVTuple>::process(streams_tuple_, substreams_);
+        detail::ValueListToArray<StreamsSchema>::append_to(schema_);
     }
 
     void reset()
@@ -221,11 +221,11 @@ public:
         MMA_THROW(UnsupportedOperationException());
     }
 
-    IOSymbolSequence& symbol_sequence() {
+    IOSSRLEBufferBase& symbol_sequence() {
         return symbol_sequence_;
     }
 
-    const IOSymbolSequence& symbol_sequence() const {
+    const IOSSRLEBufferBase& symbol_sequence() const {
         return symbol_sequence_;
     }
 

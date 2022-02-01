@@ -47,7 +47,7 @@ template <
 class DataTypeBuffer;
 
 
-namespace _ {
+namespace detail {
 
     template <typename T, typename SizeT = size_t>
     class DataTypeBufferDimension;

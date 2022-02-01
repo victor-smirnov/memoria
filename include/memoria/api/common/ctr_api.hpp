@@ -63,7 +63,7 @@ struct IOSubstreamAdapter;
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 template <typename CtrName, typename Profile> class SharedIter;
 
-namespace _ {
+namespace detail {
 
 template <typename Profile, int32_t Streams> struct ProfileCtrSizesTS: HasType<
     core::StaticVector<ProfileCtrSizeT<Profile>, Streams>
@@ -76,10 +76,10 @@ template <typename Profile, int32_t Streams> struct ApiProfileCtrSizesTS: HasTyp
 }
 
 template <typename Profile, int32_t Streams> 
-using ProfileCtrSizesT = typename _::ProfileCtrSizesTS<Profile, Streams>::Type;
+using ProfileCtrSizesT = typename detail::ProfileCtrSizesTS<Profile, Streams>::Type;
 
 template <typename Profile, int32_t Streams>
-using ApiProfileCtrSizesT = typename _::ApiProfileCtrSizesTS<Profile, Streams>::Type;
+using ApiProfileCtrSizesT = typename detail::ApiProfileCtrSizesTS<Profile, Streams>::Type;
 
 
 #define MMA_DECLARE_ICTRAPI()           \
