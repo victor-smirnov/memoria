@@ -121,7 +121,7 @@ public:
         return data_->selectFW(rank, level);
     }
 
-    auto selectFW(int32_t start, int64_t rank, int32_t level) const noexcept {
+    auto select_fw(int32_t start, int64_t rank, int32_t level, SeqOpType) const noexcept {
         return data_->selectFW(start, rank, level);
     }
 

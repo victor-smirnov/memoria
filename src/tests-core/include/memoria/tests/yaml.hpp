@@ -41,6 +41,7 @@ struct IndirectStateFiledSerializer<AllocSharedPtr<IMemoryStore<T>>> {
     {
         auto path_str = path.to_u8();
         path_str += ".mma1";
+
         alloc->store(path_str);
     }
 

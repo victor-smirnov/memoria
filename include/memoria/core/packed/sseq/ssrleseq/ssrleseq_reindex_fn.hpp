@@ -65,9 +65,9 @@ public:
 
         auto meta = seq.metadata();
 
-        if (meta->data_size() != symbols_block_size_atoms)
+        if (meta->code_units() != symbols_block_size_atoms)
         {
-            meta->data_size() = symbols_block_size_atoms;
+            meta->code_units() = symbols_block_size_atoms;
 
             MEMORIA_TRY_VOID(seq.resizeBlock(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::CodeUnitT)));
             RunTraits::write_segments_to(syms_span, seq.symbols(), 0);

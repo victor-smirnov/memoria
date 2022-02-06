@@ -18,7 +18,7 @@
 
 #include <memoria/prototypes/bt/bt_factory.hpp>
 
-#include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
+//#include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
 #include <memoria/containers/seq_dense/seqd_names.hpp>
 #include <memoria/containers/seq_dense/seqd_tools.hpp>

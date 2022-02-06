@@ -55,16 +55,16 @@ public:
 
 
 
-    CtrSizeT iter_btfl_select_fw(CtrSizeT rank, int32_t stream)
+    CtrSizeT iter_btfl_select_fw(CtrSizeT rank, int32_t stream, SeqOpType op_type)
     {
-        return self().template iter_select_fw<IntList<StructureStreamIdx, 1>>(stream, rank);
+        return self().template iter_select_fw<IntList<StructureStreamIdx, 1>>(stream, rank, op_type);
     }
 
-    CtrSizeT iter_select_ge_fw(CtrSizeT rank, int32_t stream)
-    {
-    	typename Types::template SelectGEForwardWalker<Types, IntList<StructureStreamIdx, 1>> walker(stream, rank);
-    	return self().iter_find_fw(walker);
-    }
+//    CtrSizeT iter_select_ge_fw(CtrSizeT rank, int32_t stream)
+//    {
+//    	typename Types::template SelectGEForwardWalker<Types, IntList<StructureStreamIdx, 1>> walker(stream, rank);
+//    	return self().iter_find_fw(walker);
+//    }
 
     CtrSizeT iter_select_pos_fw(CtrSizeT rank, int32_t stream) const
     {
@@ -75,9 +75,9 @@ public:
         return ii->pos();
     }
 
-    CtrSizeT iter_btfl_select_bw(CtrSizeT rank, int32_t stream)
+    CtrSizeT iter_btfl_select_bw(CtrSizeT rank, int32_t stream, SeqOpType op_type)
     {
-        return self().template iter_select_bw<IntList<StructureStreamIdx, 1>>(stream, rank);
+        return self().template iter_select_bw<IntList<StructureStreamIdx, 1>>(stream, rank, op_type);
     }
 
 

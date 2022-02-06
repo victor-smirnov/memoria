@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/memoria_core.hpp>
+#include <memoria/memoria.hpp>
 
 #include <memoria/reactor/application.hpp>
 
@@ -29,7 +29,8 @@ namespace po = boost::program_options;
 
 int main(int argc, char** argv, char** envp)
 {
-     InitMemoriaCoreExplicit();
+    //InitMemoriaCoreExplicit();
+    InitMemoriaExplicit();
 
     tests::ThreadsArgHelper helper(argv);
     po::options_description options;

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/prototypes/bt/walkers/bt_walker_base.hpp>
+#include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
@@ -35,11 +35,34 @@ protected:
     using Base  = FindForwardWalkerBase<Types, MyType>;
     using CtrSizeT   = typename Types::CtrSizeT;
 
+    SeqOpType op_type_;
+
 public:
 
-    SelectForwardWalkerBase(int32_t symbol, CtrSizeT rank):
-        Base(symbol, rank, SearchType::GE)
+    SelectForwardWalkerBase(int32_t symbol, CtrSizeT rank, SeqOpType op_type):
+        Base(symbol, rank, SearchType::GE),
+        op_type_(op_type)
     {}
+
+    template <int32_t StreamIdx, typename Tree>
+    StreamOpResult find_non_leaf(const Tree& tree, bool root, int32_t index, int32_t start)
+    {
+        auto size = tree.size();
+
+        if (start < size)
+        {
+            auto rank = Base::target_ - Base::sum_;
+
+            auto result = tree.find_for_select_fw(start, rank, index, op_type_);
+
+            Base::sum_ += result.rank;
+
+            return StreamOpResult(result.idx, start, result.idx >= size, false);
+        }
+        else {
+            return StreamOpResult(size, start, true, true);
+        }
+    }
 
 
     template <int32_t StreamIdx, typename Seq>
@@ -83,23 +106,17 @@ class SelectForwardWalker: public SelectForwardWalkerBase<Types,SelectForwardWal
 
 protected:
     using Base::direction_;
+    using Base::op_type_;
 
 public:
-    SelectForwardWalker(int32_t symbol, CtrSizeT rank):
-        Base(symbol, rank)
+    SelectForwardWalker(int32_t symbol, CtrSizeT rank, SeqOpType op_type):
+        Base(symbol, rank, op_type)
     {}
 
     template <int32_t StreamIdx, typename Seq>
     SelectResult select(const Seq& seq, int32_t start, int32_t symbol, CtrSizeT rank)
     {
-        if (direction_ == WalkDirection::DOWN)
-        {
-            MEMORIA_ASSERT(start, ==, 0);
-            return seq.selectFW(rank, symbol);
-        }
-        else {
-            return seq.selectFW(start, rank, symbol);
-        }
+        return seq.select_fw(start, rank, symbol, op_type_);
     }
 };
 
@@ -116,12 +133,34 @@ protected:
     using Base  = FindBackwardWalkerBase<Types, MyType>;
     using CtrSizeT = typename Types::CtrSizeT;
 
+    SeqOpType op_type_;
+
 public:
 
-    SelectBackwardWalkerBase(int32_t symbol, CtrSizeT rank):
-        Base(symbol, rank, SearchType::GE)
+    SelectBackwardWalkerBase(int32_t symbol, CtrSizeT rank, SeqOpType op_type):
+        Base(symbol, rank, SearchType::GE),
+        op_type_(op_type)
     {}
 
+
+    template <int32_t StreamIdx, typename Tree>
+    StreamOpResult find_non_leaf(Tree&& tree, bool root, int32_t index, int32_t start)
+    {
+        if (start > tree.size()) start = tree.size() - 1;
+
+        if (start >= 0)
+        {
+            auto rank       = Base::target_ - Base::sum_;
+
+            auto result     = tree.find_for_select_bw(start, rank, index, op_type_);
+            Base::sum_      += result.prefix();
+
+            return StreamOpResult(result.idx, start, result.is_end());
+        }
+        else {
+            return StreamOpResult(start, start, true, true);
+        }
+    }
 
     template <int32_t StreamIdx, typename Seq>
     StreamOpResult find_leaf(const Seq& seq, int32_t start)
@@ -164,16 +203,18 @@ class SelectBackwardWalker: public SelectBackwardWalkerBase<Types, SelectBackwar
     using Base  = SelectBackwardWalkerBase<Types, SelectBackwardWalker<Types>>;
     using CtrSizeT   = typename Base::CtrSizeT;
 
+protected:
+    using Base::op_type_;
 public:
 
-    SelectBackwardWalker(int32_t symbol, CtrSizeT target):
-        Base(symbol, target)
+    SelectBackwardWalker(int32_t symbol, CtrSizeT target, SeqOpType op_type):
+        Base(symbol, target, op_type)
     {}
 
     template <int32_t StreamIdx, typename Seq>
     SelectResult select(const Seq& seq, int32_t start, int32_t symbol, CtrSizeT rank)
     {
-        return seq.selectBW(start, rank, symbol);
+        return seq.select_bw(start, rank, symbol, op_type_);
     }
 };
 

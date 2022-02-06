@@ -95,6 +95,10 @@ struct IBlockDataEventHandler {
 
     virtual void value(const char* name, const BlockDataValueProvider& value)                    = 0;
 
+    virtual void as_uint8_array(const char* name, int32_t count, std::function<uint8_t(int32_t)> fn) {
+        MEMORIA_MAKE_GENERIC_ERROR("IBlockDataEventHandler::as_uint8_array is not implemented").do_throw();
+    }
+
     virtual void startStruct()                                                                  = 0;
     virtual void endStruct()                                                                    = 0;
 };
@@ -237,7 +241,7 @@ public:
             return toString(fn_(idx));
         }
         else {
-            MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid index access in BlockValueProviderT: idx = {}, size = {}", idx, size_));
+            MEMORIA_MAKE_GENERIC_ERROR("Invalid index access in BlockValueProviderT: idx = {}, size = {}", idx, size_).do_throw();
         }
     }
 };
@@ -260,7 +264,7 @@ public:
             return toString(value_);
         }
         else {
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid index access in BlockValueProviderT: idx = {}, size = 1", idx));
+            MEMORIA_MAKE_GENERIC_ERROR("Invalid index access in BlockValueProviderT: idx = {}, size = 1", idx).do_throw();
         }
     }
 };
@@ -283,7 +287,7 @@ public:
             return value_;
         }
         else {
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid index access in BlockValueProviderT: idx = {}, size = 1", idx));
+            MEMORIA_MAKE_GENERIC_ERROR("Invalid index access in BlockValueProviderT: idx = {}, size = 1", idx).do_throw();
         }
     }
 };
@@ -679,6 +683,13 @@ public:
             OutValueInLine(name, value);
         }
     }
+
+    virtual void as_uint8_array(const char* name, int32_t count, std::function<uint8_t(int32_t)> fn)
+    {
+        OutLine(name);
+        dumpArray<uint8_t>(out_, count, fn);
+    }
+
 
 
     virtual void startStruct() {

@@ -596,7 +596,7 @@ private:
         write_metadata(*output);
         RCBlockSet stored_blocks;
 
-        walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) noexcept {
+        walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) {
             return write_history_node(*output, history_tree_node, stored_blocks);
         });
 

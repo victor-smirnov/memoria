@@ -44,10 +44,6 @@ template <typename T> struct MMapBranchStructTF;
 template <typename KeyType>
 struct MMapSumKeyStructTF<KeyType, true>: HasType<PkdFQTreeT<KeyType>> {};
 
-template <typename KeyType>
-struct MMapSumKeyStructTF<KeyType, false>: HasType<PkdVQTreeT<KeyType>> {};
-
-
 template <typename DataType>
 struct MMapValueStructTF: HasType<PackedDataTypeBufferT<DataType, false>> {};
 
@@ -73,12 +69,7 @@ struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
 
     //FIXME: Extend KeyType to contain enough space to represent practically large sums
     //Should be done systematically on the level of BT
-
-    using Type = IfThenElse <
-            HasFieldFactory<KeyType>::Value,
-            PkdFQTreeT<KeyType, Indexes>,
-            PkdVQTreeT<KeyType, Indexes>
-    >;
+    using Type = PkdFQTreeT<KeyType, Indexes>;
 
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };

@@ -21,8 +21,6 @@
 #include <memoria/core/bignum/int64_codec.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/tools/static_array.hpp>
-#include <memoria/core/iovector/io_symbol_sequence.hpp>
-
 
 namespace memoria {
 

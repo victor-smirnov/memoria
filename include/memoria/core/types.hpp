@@ -534,7 +534,7 @@ struct BlockIDValueHolder {
 };
 
 enum class SeqOpType: size_t {
-    EQ, NEQ, LT, LE, GT, GE
+    EQ, NEQ, LT, LE, GT, GE, EQ_NLT
 };
 
 

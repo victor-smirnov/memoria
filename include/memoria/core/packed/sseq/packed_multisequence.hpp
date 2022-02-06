@@ -17,8 +17,8 @@
 #pragma once
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
-#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+//#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+//#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 #include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
 

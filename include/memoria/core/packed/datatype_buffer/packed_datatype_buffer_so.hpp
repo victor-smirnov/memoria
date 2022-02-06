@@ -172,12 +172,18 @@ public:
 
         handler->startGroup("DATA", meta.size());
 
-        for (int32_t c = 0; c < meta.size(); c++)
-        {
-            handler->value("VALUES", BlockValueProviderFactory::provider(Columns, [&](int32_t column) {
-                return access(c);
-            }));
-        }
+//        for (int32_t c = 0; c < meta.size(); c++)
+//        {
+//            handler->value("VALUES", BlockValueProviderFactory::provider(Columns, [&](int32_t column) {
+//                return access(c);
+//            }));
+//        }
+
+        pdtbuf_::DTBufferPrintHelper<
+            typename PkdStructT::DataType,
+            BlockValueProviderFactory,
+            Columns
+        >::handle(this, handler);
 
         handler->endGroup();
 

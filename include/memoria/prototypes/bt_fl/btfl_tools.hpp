@@ -19,7 +19,6 @@
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/core/container/container.hpp>
 
-#include <memoria/core/packed/sseq/packed_rle_searchable_seq.hpp>
 #include <memoria/core/packed/sseq/packed_ssrle_seq.hpp>
 
 namespace memoria {

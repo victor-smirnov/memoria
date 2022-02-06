@@ -30,8 +30,5 @@
 #include <memoria/core/packed/misc/packed_map.hpp>
 #include <memoria/core/packed/misc/packed_tuple.hpp>
 
-#include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
-#include <memoria/core/packed/sseq/packed_rle_searchable_seq.hpp>
-
 #include <memoria/core/packed/sseq/packed_allocation_map.hpp>
 

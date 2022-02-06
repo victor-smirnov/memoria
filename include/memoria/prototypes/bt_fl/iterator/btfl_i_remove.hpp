@@ -46,11 +46,10 @@ public:
         auto& self = this->self();
         CtrSizesT sizes{};
 
-        if (!self.iter_is_end())
+        if (n > 0 && !self.iter_is_end())
         {
             auto ii = self.iter_clone();
-            ii->iter_select_ge_fw(n, self.iter_data_stream());
-
+            ii->iter_btfl_select_fw(n - 1, self.iter_data_stream(), SeqOpType::EQ_NLT);
 
             auto start = self.iter_leafrank();
             auto end   = ii->iter_leafrank();

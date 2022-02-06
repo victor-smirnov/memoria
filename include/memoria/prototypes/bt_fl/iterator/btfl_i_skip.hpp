@@ -290,25 +290,24 @@ public:
 
             auto s = self.leaf_structure();
 
-            if (s)
-    		{
+            if (s) {
                 //auto result = s->selectFW(stream, data_idx);
-                auto result = s.selectFW(data_idx + 1, stream);
+                auto result = s.select_fw(data_idx + 1, stream, SeqOpType::EQ);
 
-    			self.iter_stream() = StructureStreamIdx;
+                self.iter_stream() = StructureStreamIdx;
 
-    			if (result.is_found())
-    			{
+                if (result.is_found())
+                {
                     self.iter_local_pos() = result.local_pos();
-    			}
-    			else {
+                }
+                else {
                     auto leaf_size = self.iter_leaf_size(StructureStreamIdx);
                     self.iter_local_pos() = leaf_size;
-    			}
-    		}
-    		else {
+                }
+            }
+            else {
                 MEMORIA_MAKE_GENERIC_ERROR("Structure stream is empty").do_throw();
-    		}
+            }
     	}
     	else {
             MEMORIA_MAKE_GENERIC_ERROR("Invalid stream: {}", self.iter_stream()).do_throw();
@@ -342,7 +341,7 @@ public:
 
         auto s = self.leaf_structure();
         if (s) {
-            return s.rank(structure_idx, stream);
+            return s.rank(structure_idx, stream, SeqOpType::EQ);
         }
         else {
         	return 0;
@@ -366,7 +365,7 @@ public:
 
         	for (int32_t c = 0; c < DataStreams; c++)
         	{
-                ranks[c] = leaf_structure.rank(structure_idx, c);
+                    ranks[c] = leaf_structure.rank(structure_idx, c, SeqOpType::EQ);
         	}
 
         	ranks[StructureStreamIdx] = structure_idx;
@@ -388,7 +387,7 @@ public:
 
         if (leaf_structure)
         {
-            return leaf_structure.rank(structure_idx, stream);
+            return leaf_structure.rank(structure_idx, stream, SeqOpType::EQ);
         }
         else {
             return 0;
@@ -416,7 +415,7 @@ public:
 
         if (s)
         {
-            return self.leaf_structure().selectFW(position + 1, stream).local_pos();
+            return self.leaf_structure().select_fw(position + 1, stream, SeqOpType::EQ).local_pos();
         }
         else {
         	return 0;

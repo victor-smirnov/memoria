@@ -236,4 +236,41 @@ public:
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::FIXED;
 };
 
+
+template <typename DataType, typename BlockValueProviderFactory, size_t Columns>
+struct DTBufferPrintHelper {
+
+    template <typename PkdStructSo, typename Handler>
+    static void handle(const PkdStructSo* buffer, Handler* handler) {
+        const auto& meta = buffer->data()->metadata();
+        for (int32_t c = 0; c < meta.size(); c++)
+        {
+            handler->value("VALUES", BlockValueProviderFactory::provider(Columns, [&](int32_t column) {
+                return buffer->access(c);
+            }));
+        }
+    }
+};
+
+template <typename T>
+struct DTBufferPrintHelper<UTinyInt, T, 1> {
+
+    template <typename PkdStructSo, typename Handler>
+    static void handle(const PkdStructSo* buffer, Handler* handler) {
+        const auto& meta = buffer->data()->metadata();
+
+        handler->as_uint8_array("VALUES", meta.size(), [&](int32_t idx) -> uint8_t {
+            return buffer->access(idx);
+        });
+
+//        for (int32_t c = 0; c < meta.size(); c++)
+//        {
+//            handler->value("VALUES_X", T::provider(1, [&](int32_t column) {
+//                return buffer->access(c);
+//            }));
+//        }
+    }
+};
+
+
 }}

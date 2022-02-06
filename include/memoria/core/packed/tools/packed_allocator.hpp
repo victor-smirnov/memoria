@@ -742,7 +742,7 @@ private:
     void moveElementsUp(int32_t idx, int delta) noexcept
     {
         int32_t layout_size = layout_size_/4;
-        for (int32_t ii = layout_size - 1; ii >= idx; ii--) {
+        for (int32_t ii = layout_size - 2; ii >= idx; ii--) {
             AllocationBlock block = describe(ii);
             moveElementData(ii, block, delta);
         }
@@ -756,7 +756,7 @@ private:
     {
         int32_t layout_size = layout_size_/4;
 
-        for (int32_t e_idx = idx; e_idx < layout_size; e_idx++) {
+        for (int32_t e_idx = idx; e_idx < layout_size - 1; e_idx++) {
             AllocationBlock block = describe(e_idx);
             moveElementData(e_idx, block, delta);
         }

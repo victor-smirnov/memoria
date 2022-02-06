@@ -84,16 +84,16 @@ public:
     }
 
     template <typename LeafPath>
-    IteratorPtr ctr_rank(int32_t index, CtrSizeT pos) const
+    IteratorPtr ctr_rank(int32_t index, CtrSizeT pos, SeqOpType op_type) const
     {
-        typename Types::template RankForwardWalker<Types, LeafPath> walker(index, pos);
+        typename Types::template RankForwardWalker<Types, LeafPath> walker(index, pos, op_type);
         return self().ctr_find(walker);
     }
 
     template <typename LeafPath>
-    IteratorPtr ctr_select(int32_t index, CtrSizeT rank) const
+    IteratorPtr ctr_select(int32_t index, CtrSizeT rank, SeqOpType op_type) const
     {
-        typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank);
+        typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank, op_type);
         return self().ctr_find(walker);
     }
 

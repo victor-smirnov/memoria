@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include <memoria/core/iovector/io_symbol_sequence.hpp>
 #include <memoria/core/iovector/io_substream_base.hpp>
 
 #include <vector>

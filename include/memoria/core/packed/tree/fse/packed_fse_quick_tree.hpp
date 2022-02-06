@@ -750,7 +750,261 @@ public:
         }
         return vv;
     }
+
+    Value sum_for_rank(int32_t start, int32_t end, int32_t symbol, SeqOpType seq_op) const {
+        switch (seq_op) {
+            case SeqOpType::EQ : return sum_for_rank_eq(start, end, symbol);
+            case SeqOpType::NEQ: return sum_for_rank_neq(start, end, symbol);
+            case SeqOpType::LT : return sum_for_rank_lt(start, end, symbol);
+            case SeqOpType::LE : return sum_for_rank_le(start, end, symbol);
+            case SeqOpType::GT : return sum_for_rank_gt(start, end, symbol);
+            case SeqOpType::GE : return sum_for_rank_ge(start, end, symbol);
+
+            default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)seq_op).do_throw();
+        }
+    }
+
+    struct SelectResult {
+        int32_t idx;
+        int32_t size;
+        Value rank;
+
+        bool is_end() const {return idx >= size;}
+    };
+
+    SelectResult find_for_select_fw(int32_t start, Value rank, int32_t symbol, SeqOpType seq_op) const {
+        switch (seq_op) {
+            case SeqOpType::EQ : return find_for_select_fw_eq(start, rank, symbol);
+            case SeqOpType::NEQ: return find_for_select_fw_fn(start, rank, symbol, FindFwNEQFn());
+            case SeqOpType::LT : return find_for_select_fw_fn(start, rank, symbol, FindFwLTFn());
+            case SeqOpType::LE : return find_for_select_fw_fn(start, rank, symbol, FindFwLEFn());
+            case SeqOpType::GT : return find_for_select_fw_fn(start, rank, symbol, FindFwGTFn());
+            case SeqOpType::GE : return find_for_select_fw_fn(start, rank, symbol, FindFwGEFn());
+            case SeqOpType::EQ_NLT : return find_for_select_fw_nlt(start, rank, symbol);
+
+            default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)seq_op).do_throw();
+        }
+    }
+
+    SelectResult find_for_select_bw(int32_t start, Value rank, int32_t symbol, SeqOpType seq_op) const {
+        switch (seq_op) {
+            case SeqOpType::EQ : return find_for_select_bw_eq(start, rank, symbol);
+            case SeqOpType::NEQ: return find_for_select_bw_fn(start, rank, symbol, FindFwNEQFn());
+            case SeqOpType::LT : return find_for_select_bw_fn(start, rank, symbol, FindFwLTFn());
+            case SeqOpType::LE : return find_for_select_bw_fn(start, rank, symbol, FindFwLEFn());
+            case SeqOpType::GT : return find_for_select_bw_fn(start, rank, symbol, FindFwGTFn());
+            case SeqOpType::GE : return find_for_select_bw_fn(start, rank, symbol, FindFwGEFn());
+            case SeqOpType::EQ_NLT : return find_for_select_bw_nlt(start, rank, symbol);
+
+            default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)seq_op).do_throw();
+        }
+    }
+
+    Value sum_for_rank_eq(int32_t start, int32_t end, int32_t symbol) const {
+        return this->sum(symbol, start, end);
+    }
+
+    Value sum_for_rank_neq(int32_t start, int32_t end, int32_t symbol) const
+    {
+        Value val{};
+
+        for (int32_t c = 0; c < Blocks; c++) {
+            val += symbol != c ? this->sum(symbol, start, end) : 0;
+        }
+
+        return val;
+    }
+
+    Value sum_for_rank_lt(int32_t start, int32_t end, int32_t symbol) const
+    {
+        Value val{};
+
+        for (int32_t c = 0; c < symbol; c++) {
+            val += this->sum(symbol, start, end);
+        }
+
+        return val;
+    }
+
+    Value sum_for_rank_gt(int32_t start, int32_t end, int32_t symbol) const
+    {
+        Value val{};
+
+        for (int32_t c = symbol + 1; c < Blocks; c++) {
+            val += this->sum(symbol, start, end);
+        }
+
+        return val;
+    }
+
+    Value sum_for_rank_le(int32_t start, int32_t end, int32_t symbol) const
+    {
+        Value val{};
+
+        for (int32_t c = 0; c <= symbol; c++) {
+            val += this->sum(symbol, start, end);
+        }
+
+        return val;
+    }
+
+    Value sum_for_rank_ge(int32_t start, int32_t end, int32_t symbol) const
+    {
+        Value val{};
+
+        for (int32_t c = symbol; c < Blocks; c++) {
+            val += this->sum(symbol, start, end);
+        }
+
+        return val;
+    }
+
+
+    SelectResult find_for_select_fw_eq(int32_t start, Value rank, int32_t symbol) const
+    {
+        auto res = this->find_gt_fw(symbol, start, rank);
+        return SelectResult{res.idx(), this->size(), res.prefix()};
+    }
+
+
+
+    SelectResult find_for_select_fw_nlt(int32_t start, Value rank, int32_t symbol) const
+    {
+        auto res_eq = find_for_select_fw_eq(start, rank, symbol);
+        if (symbol > 0)
+        {
+            auto res_lt = find_for_select_fw_fn(start, rank, symbol, FindFwLTFn());
+            if (res_lt.idx < res_eq.idx) {
+                return res_lt;
+            }
+        }
+
+        return res_eq;
+    }
+
+    struct FindFwNEQFn {
+        Value sum(const MyType& tree, int32_t idx, int32_t symbol) const {
+            Value tmp{};
+            for (int32_t c = 0; c < Blocks; c++) {
+                tmp += c != symbol ? tree.value(c, idx) : 0;
+            }
+            return tmp;
+        }
+    };
+
+    struct FindFwLTFn {
+        Value sum(const MyType& tree, int32_t idx, int32_t symbol) const {
+            Value tmp{};
+            for (int32_t c = 0; c < symbol; c++) {
+                tmp += tree.value(c, idx);
+            }
+            return tmp;
+        }
+    };
+
+    struct FindFwLEFn {
+        Value sum(const MyType& tree, int32_t idx, int32_t symbol) const {
+            Value tmp{};
+            for (int32_t c = 0; c <= symbol; c++) {
+                tmp += tree.value(c, idx);
+            }
+            return tmp;
+        }
+    };
+
+    struct FindFwGTFn {
+        Value sum(const MyType& tree, int32_t idx, int32_t symbol) const {
+            Value tmp{};
+            for (int32_t c = symbol + 1; c < Blocks; c++) {
+                tmp += tree.value(c, idx);
+            }
+            return tmp;
+        }
+    };
+
+    struct FindFwGEFn {
+        Value sum(const MyType& tree, int32_t idx, int32_t symbol) const {
+            Value tmp{};
+            for (int32_t c = symbol; c < Blocks; c++) {
+                tmp += tree.value(c, idx);
+            }
+            return tmp;
+        }
+    };
+
+    template <typename Fn>
+    SelectResult find_for_select_fw_fn(int32_t start, Value rank, int32_t symbol, Fn&& fn) const
+    {
+        Value prefix{};
+        int32_t size = this->size();
+
+        for (int32_t c = start; c < size; c++)
+        {
+            Value tmp = fn.sum(*this, c, symbol);
+
+            if (rank < prefix + tmp) {
+                return SelectResult{c, size, prefix};
+            }
+            else {
+                prefix += tmp;
+            }
+        }
+
+        return SelectResult{size, size, prefix};
+    }
+
+
+
+
+
+
+
+    template <typename Fn>
+    SelectResult find_for_select_bw_fn(int32_t start, Value rank, int32_t symbol, Fn&& fn) const
+    {
+        Value prefix{};
+        int32_t size = this->size();
+
+        for (int32_t c = start; c >= 0; c--)
+        {
+            Value tmp = fn.sum(*this, c, symbol);
+
+            if (rank < prefix + tmp) {
+                return SelectResult{c, size, prefix};
+            }
+            else {
+                prefix += tmp;
+            }
+        }
+
+        return SelectResult{size, size, prefix};
+    }
+
+    SelectResult find_for_select_bw_eq(int32_t start, Value rank, int32_t symbol) const
+    {
+        auto res = this->find_gt_bw(symbol, start, rank);
+        return SelectResult{res.idx(), this->size(), res.prefix()};
+    }
+
+
+
+    SelectResult find_for_select_bw_nlt(int32_t start, Value rank, int32_t symbol) const
+    {
+        auto res_eq = find_for_select_bw_eq(start, rank, symbol);
+        if (symbol > 0)
+        {
+            auto res_lt = find_for_select_bw_fn(start, rank, symbol, FindFwLTFn());
+
+            if ((!res_lt.is_end()) && res_lt.idx > res_eq.idx) {
+                return res_lt;
+            }
+        }
+
+        return res_eq;
+    }
 };
+
+
 
 template <typename Types>
 struct PackedStructTraits<PkdFQTree<Types>>

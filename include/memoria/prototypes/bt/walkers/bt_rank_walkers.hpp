@@ -46,19 +46,21 @@ class RankForwardWalker: public SkipForwardWalkerBase<Types, RankForwardWalker<T
     CtrSizeT rank_ = 0;
     int32_t symbol_;
 
+    SeqOpType seq_op_ = SeqOpType::EQ;
+
     struct BranchFn {
         template <typename StreamType>
-        auto stream(const StreamType& stream, int32_t symbol, int32_t start, int32_t end)
+        auto stream(const StreamType& stream, int32_t symbol, int32_t start, int32_t end, SeqOpType seq_op)
         {
-            return stream.sum(symbol, start, end);
+            return stream.sum_for_rank(start, end, symbol, seq_op);
         }
     };
 
     struct LeafFn {
         template <typename StreamType>
-        auto stream(const StreamType& stream, int32_t symbol, int32_t start, int32_t end)
+        auto stream(const StreamType& stream, int32_t symbol, int32_t start, int32_t end, SeqOpType seq_op)
         {
-            return stream.rank(start, end, symbol);
+            return stream.rank(start, end, symbol, seq_op);
         }
     };
 
@@ -66,14 +68,16 @@ class RankForwardWalker: public SkipForwardWalkerBase<Types, RankForwardWalker<T
 public:
     using Base::processCmd;
 
-    RankForwardWalker(int32_t, int32_t symbol, CtrSizeT target):
+    RankForwardWalker(int32_t, int32_t symbol, CtrSizeT target, SeqOpType seq_op):
         Base(target),
-        symbol_(symbol)
+        symbol_(symbol),
+        seq_op_(seq_op)
     {}
 
-    RankForwardWalker(int32_t symbol, CtrSizeT target):
+    RankForwardWalker(int32_t symbol, CtrSizeT target, SeqOpType seq_op):
         Base(target),
-        symbol_(symbol)
+        symbol_(symbol),
+        seq_op_(seq_op)
     {}
 
 
@@ -83,6 +87,10 @@ public:
 
     CtrSizeT result() const {
         return rank_;
+    }
+
+    SeqOpType seq_op() const {
+        return seq_op_;
     }
 
     template <typename CtrT, typename NodeT, typename... Args>
@@ -95,7 +103,7 @@ public:
             using BranchPath = typename NodeT::template BuildBranchPath<RankLeafSubstreamPath>;
             const int32_t index = NodeT::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
 
-            rank_ -= node->template processStream<BranchPath>(BranchFn(), index, end, end + 1);
+            rank_ -= node->template processStream<BranchPath>(BranchFn(), index, end, end + 1, seq_op());
         }
     }
 
@@ -110,16 +118,17 @@ public:
     template <typename Node, typename Result>
     void postProcessBranchNode(Node& node, WalkDirection direction, int32_t start, Result&& result)
     {
-        using BranchPath = typename Node::NodeType::template BuildBranchPath<RankLeafSubstreamPath>;
-        const int32_t index = Node::NodeType::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
+        using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
+        const int32_t index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
 
-        rank_ += node.template processStream<BranchPath>(BranchFn(), index, start, result.local_pos());
+        rank_ += node.template processStream<BranchPath>(BranchFn(), index, start, result.local_pos(), seq_op()).get_or_throw();
     }
 
     template <typename Node, typename Result>
     void postProcessLeafNode(Node& node, WalkDirection direction, int32_t start, Result&& result)
     {
-        rank_ += node.template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.local_pos());
+        auto val = node.template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.local_pos(), seq_op()).get_or_throw();
+        rank_ += val;
     }
 };
 
@@ -144,25 +153,25 @@ class RankBackwardWalker: public SkipBackwardWalkerBase<Types, RankBackwardWalke
 
     int32_t symbol_;
 
+    SeqOpType seq_op_;
 
     struct BranchFn {
         template <typename StreamType>
-        auto stream(const StreamType& stream, int32_t symbol, int32_t start, int32_t end)
+        auto stream(const StreamType& stream, int32_t symbol, int32_t start, int32_t end, SeqOpType seq_op)
         {
-            if (start > stream->size()) start = stream.size() - 1;
-
-            return stream->sum(symbol, end + 1, start + 1);
+            if (start > stream.size()) start = stream.size() - 1;
+            return stream.sum_for_rank(end + 1, start + 1, symbol, seq_op);
         }
     };
 
     struct LeafFn {
         template <typename StreamType>
-        auto stream(const StreamType& stream, int32_t symbol, int32_t start, int32_t end)
+        auto stream(const StreamType& stream, int32_t symbol, int32_t start, int32_t end, SeqOpType seq_op)
         {
             if (start > stream.size()) start = stream.size();
             if (end < 0) end = 0;
 
-            return stream.rank(end, start, symbol);
+            return stream.rank(end, start, symbol, seq_op);
         }
     };
 
@@ -171,14 +180,16 @@ class RankBackwardWalker: public SkipBackwardWalkerBase<Types, RankBackwardWalke
 public:
     using Base::processCmd;
 
-    RankBackwardWalker(int32_t, int32_t symbol, CtrSizeT target):
+    RankBackwardWalker(int32_t, int32_t symbol, CtrSizeT target, SeqOpType seq_op):
         Base(target),
-        symbol_(symbol)
+        symbol_(symbol),
+        seq_op_(seq_op)
     {}
 
-    RankBackwardWalker(int32_t symbol, CtrSizeT target):
+    RankBackwardWalker(int32_t symbol, CtrSizeT target, SeqOpType seq_op):
         Base(target),
-        symbol_(symbol)
+        symbol_(symbol),
+        seq_op_(seq_op)
     {}
 
     CtrSizeT rank() const {
@@ -189,6 +200,9 @@ public:
         return rank_;
     }
 
+    SeqOpType seq_op() const {
+        return seq_op_;
+    }
 
 //    template <int32_t StreamIdx, typename StreamType>
 //    void postProcessLeafStream(const StreamType* stream, int32_t start, int32_t end)
@@ -214,13 +228,13 @@ public:
         using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
         const int32_t index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
 
-        rank_ += node.template processStream<BranchPath>(BranchFn(), index, start, result.local_pos());
+        rank_ += node.template processStream<BranchPath>(BranchFn(), index, start, result.local_pos(), seq_op()).get_or_throw();
     }
 
     template <typename Node, typename Result>
     void postProcessLeafNode(const Node& node, WalkDirection direction, int32_t start, Result&& result)
     {
-        rank_ += node.template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.local_pos());
+        rank_ += node.template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.local_pos(), seq_op()).get_or_throw();
     }
 
 
@@ -236,7 +250,7 @@ public:
             using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
             const int32_t index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
 
-            rank_ -= node.template processStream<BranchPath>(BranchFn(), index, end + 1, end + 2);
+            rank_ -= node.template processStream<BranchPath>(BranchFn(), index, end + 1, end + 2, seq_op()).get_or_throw();
         }
     }
 

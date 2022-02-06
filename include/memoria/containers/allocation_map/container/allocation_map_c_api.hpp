@@ -165,7 +165,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     )
     {
         auto& self = this->self();
-        auto ii = self.template ctr_select<IntList<0, 1>>(level, 1);
+        auto ii = self.template ctr_select<IntList<0, 1>>(level, 0, SeqOpType::EQ);
 
         CtrSizeT sum{};
         while (!ii->is_end())
@@ -179,7 +179,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             if (sum + len < required)
             {
                 buffer.append_value(AllocationMetadata<ApiProfileT>{level0_pos, len, level});
-                ii.get()->template iter_select_fw<IntList<0, 1>>(level, 1);
+                ii.get()->template iter_select_fw<IntList<0, 1>>(level, 0, SeqOpType::EQ);
                 sum += len;
             }
             else {
@@ -261,7 +261,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         auto& self = this->self();
 
         int32_t level = 0;
-        auto iter = self.template ctr_select<IntList<0, 1>>(level, 1);
+        auto iter = self.template ctr_select<IntList<0, 1>>(level, 0, SeqOpType::EQ);
 
         ArenaBuffer<ALCMeta> arena;
 
@@ -284,7 +284,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             }
 
             if (iter->next_leaf()) {
-                iter->template iter_select_fw<IntList<0, 1>>(level, 1);
+                iter->template iter_select_fw<IntList<0, 1>>(level, 0, SeqOpType::EQ);
             }
             else {
                 break;
@@ -591,7 +591,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     bool populate_allocation_pool(AllocationPoolT& pool, int32_t level)
     {
         auto& self = this->self();
-        auto ii = self.template ctr_select<IntList<0, 1>>(level, 1);
+        auto ii = self.template ctr_select<IntList<0, 1>>(level, 0, SeqOpType::EQ);
 
         uint64_t cnt = 0;
         while (!ii->is_end())
@@ -612,7 +612,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 self.ctr_update_path(ii->path(), 0);
 
                 if (pool.has_room(level) && ii->next_leaf()) {
-                    ii->template iter_select_fw<IntList<0, 1>>(level, 1);
+                    ii->template iter_select_fw<IntList<0, 1>>(level, 0, SeqOpType::EQ);
                 }
                 else {
                     break;

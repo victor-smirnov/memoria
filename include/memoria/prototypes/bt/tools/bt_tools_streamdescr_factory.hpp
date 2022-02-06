@@ -76,33 +76,33 @@ struct FSEBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
 };
 
 
-template <typename T> struct VLQBranchStructTF;
+//template <typename T> struct VLQBranchStructTF;
 
-template <typename KeyType, int32_t Indexes>
-struct VLQBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
-    using Type = PkdVQTreeT<KeyType, Indexes, ValueCodec>;
-};
+//template <typename KeyType, int32_t Indexes>
+//struct VLQBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
+//    using Type = PkdVQTreeT<KeyType, Indexes, ValueCodec>;
+//};
 
-template <typename KeyType>
-struct VLQBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
-    using Type = PackedEmptyStruct<KeyType, PkdSearchType::MAX>;
-};
+//template <typename KeyType>
+//struct VLQBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
+//    using Type = PackedEmptyStruct<KeyType, PkdSearchType::MAX>;
+//};
 
-template <typename KeyType>
-struct VLQBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
-    using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
-};
-
-
+//template <typename KeyType>
+//struct VLQBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
+//    using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
+//};
 
 
 
-template <typename T> struct VLDBranchStructTF;
 
-template <typename KeyType, int32_t Indexes>
-struct VLDBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
-    using Type = PkdVDTreeT<KeyType, Indexes, UByteI7Codec>;
-};
+
+//template <typename T> struct VLDBranchStructTF;
+
+//template <typename KeyType, int32_t Indexes>
+//struct VLDBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
+//    using Type = PkdVDTreeT<KeyType, Indexes, UByteI7Codec>;
+//};
 
 
 

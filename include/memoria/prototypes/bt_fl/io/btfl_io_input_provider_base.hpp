@@ -19,7 +19,6 @@
 #include <memoria/core/types.hpp>
 
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
-#include <memoria/core/packed/sseq/packed_rle_searchable_seq.hpp>
 
 #include <memoria/prototypes/bt/nodes/leaf_node.hpp>
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
@@ -212,7 +211,7 @@ public:
 
         int32_t start_pos = start_.sum();
 
-        io_vector_->symbol_sequence().rank_to(start_pos + idx, unit_span_of(&rnk[0]));
+        io_vector_->symbol_sequence().rank_to(start_pos + idx, rnk.span());
 
         return rnk - start_;
     }
@@ -257,14 +256,14 @@ public:
             finished_ = producer_->populate(*io_vector_);
             io_vector_->reindex();
 
-            seq.rank_to(io_vector_->symbol_sequence().size(), unit_span_of(&size_[0]));
+            seq.rank_to(io_vector_->symbol_sequence().size(), size_.span());
 
             if (MMA_UNLIKELY(start_pos_ > 0))
             {
                 int32_t ctr_seq_size = seq.size();
                 if (start_pos_ < ctr_seq_size)
                 {
-                    seq.rank_to(start_pos_, unit_span_of(&start_[0]));
+                    seq.rank_to(start_pos_, start_.span());
                     start_pos_ -= start_.sum();
                 }
                 else {
@@ -277,7 +276,7 @@ public:
         CtrSizeT remainder = length_ - total_symbols_;
         if (MMA_UNLIKELY(length_ < std::numeric_limits<CtrSizeT>::max() && (size_ - start_).sum() > remainder))
         {
-            seq.rank_to(start_.sum() + remainder, unit_span_of(&size_[0]));
+            seq.rank_to(start_.sum() + remainder, size_.span());
             finished_ = true;
         }
     }
@@ -577,7 +576,6 @@ protected:
         }
 
         mgr.checkpoint(leaf);
-
         return true;
     }
 

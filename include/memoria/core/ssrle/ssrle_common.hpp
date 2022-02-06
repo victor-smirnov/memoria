@@ -128,6 +128,11 @@ public:
             if (run.run_length() == 1) {
                 runs.push_back(sub_pattern(run, start, size));
             }
+            else if (run.pattern_length() == 1) {
+                RunT r_run = run;
+                r_run.run_length_ = size;
+                runs.push_back(r_run);
+            }
             else {
                 RunSizeT rr_start = start / run.pattern_length();
                 RunSizeT rr_start_base = rr_start * run.pattern_length();
@@ -290,10 +295,10 @@ public:
 
     static SSRLERunArray<Bps> insert(const RunT& self, const RunT& run, RunSizeT at)
     {
-        if (at > run.full_run_length()) {
+        if (at > self.full_run_length()) {
             MEMORIA_MAKE_GENERIC_ERROR("Insert position {} is outside of length {} for SSRLE run {}",
                 at,
-                run.full_run_length(),
+                self.full_run_length(),
                 run
             ).do_throw();
         }
@@ -310,12 +315,37 @@ public:
 
             return result;
         }
-        else if (self.pattern_length() == run.pattern_length() && self.pattern() == run.pattern() && at % self.pattern_length() == 0)
+        else if (is_same_pattern(self, run) && at % self.pattern_length() == 0)
         {
             auto r_run = self;
             r_run.run_length_ += run.run_length();
 
             result.append(r_run);
+
+            return result;
+        }
+        else if (at == self.full_run_length())
+        {
+            if (self.run_length() == 1 && run.run_length() == 1)
+            {
+                if (RunTraits::is_fit(self.pattern_length() + run.pattern_length(), 1))
+                {
+                    auto r_run = self;
+
+                    r_run.pattern_ |= run.pattern_ << (r_run.pattern_length_ * Bps);
+                    r_run.pattern_length_ += run.pattern_length();
+
+                    result.append(r_run);
+                }
+                else {
+                    result.append(self);
+                    result.append(run);
+                }
+            }
+            else {
+                result.append(self);
+                result.append(run);
+            }
 
             return result;
         }

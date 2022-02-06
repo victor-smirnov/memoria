@@ -21,9 +21,6 @@
 
 #include <memoria/core/packed/misc/packed_sized_struct.hpp>
 
-#include <memoria/core/iovector/io_substream_rle_symbol_sequence_1.hpp>
-#include <memoria/core/iovector/io_substream_rle_symbol_sequence_view_1.hpp>
-
 #include <memoria/core/iovector/io_substream_ssrle_buffer.hpp>
 #include <memoria/core/iovector/io_substream_ssrle_buffer_view.hpp>
 

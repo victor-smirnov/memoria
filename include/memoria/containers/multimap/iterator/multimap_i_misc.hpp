@@ -181,6 +181,9 @@ public:
 
     CtrSizesT remove(CtrSizeT length = 1)
     {
+        self().template iter_rank_fw<IntList<2, 1>>(0, 0, SeqOpType::EQ);
+        self().template iter_rank_bw<IntList<2, 1>>(0, 0, SeqOpType::EQ);
+
         return self().iter_remove_ge(length);
     }
 

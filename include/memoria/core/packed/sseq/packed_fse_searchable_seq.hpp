@@ -18,9 +18,6 @@
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
-#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-
 
 #include <memoria/core/packed/sseq/sseq_fn/pkd_f_sseq_rank_fn.hpp>
 #include <memoria/core/packed/sseq/sseq_fn/pkd_f_sseq_reindex_fn.hpp>
@@ -848,8 +845,7 @@ struct PkdFSSeqTF: HasType<
                     BitmapRankFn,
                     BitmapToolsFn
                 >,
-                IfThenElse<
-                    (BitsPerSymbol > 1 && BitsPerSymbol < 8),
+
                     PkdFSSeqTypes<
                         BitsPerSymbol,
                         1024,
@@ -858,17 +854,7 @@ struct PkdFSSeqTF: HasType<
                         SeqSelectFn,
                         SeqRankFn,
                         SeqToolsFn
-                    >,
-                    PkdFSSeqTypes<
-                        BitsPerSymbol,
-                        1024,
-                        PkdVDTreeT<int64_t, 1 << BitsPerSymbol, UByteI7Codec>,
-                        VLEReindex8BlkFn,
-                        Seq8SelectFn,
-                        Seq8RankFn,
-                        Seq8ToolsFn
                     >
-                >
     >
 > {};
 

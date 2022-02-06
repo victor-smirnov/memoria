@@ -45,7 +45,7 @@ class MultimapTest: public BTTestBase<Multimap<KeyDataType, ValueDataType>, Prof
     using typename Base::Store;
     using typename Base::StorePtr;
 
-    int64_t entries = 1024 * 16;
+    int64_t entries = 1024;// * 16;
     int64_t mean_entry_size = 1024;
 
     using Base::store;
@@ -116,14 +116,14 @@ public:
 
             for (size_t c = 0; c < limit; c++)
             {
-                seq.append(0, 1);
+                seq.append_run(0, 1);
                 keys.append(data[batch_start + c].key);
 
                 auto& entry_data = data[batch_start + c].values;
 
                 if (entry_data.size() > 0)
                 {
-                    seq.append(1, entry_data.size());
+                    seq.append_run(1, entry_data.size());
                     values.append(entry_data);
                 }
             }
@@ -151,6 +151,7 @@ public:
         size_t cnt{};
         scanner->for_each([&](auto key, auto values){
             assert_equals(data[cnt].key, key);
+            assert_equals(data[cnt].values.size(), values.size());
 
             size_t vcnt{};
             for (auto& value: values) {
@@ -229,20 +230,22 @@ public:
     {
         auto snp = branch();
         auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{});
-        ctr->set_new_block_size(2048);
 
         std::vector<Entry> data_unsorted;
 
         for (size_t c = 0; c < entries; c++)
         {
-            if (c % 1024 == 0) println("C={}", c);
+            if (c % 1024 == 0)
+            {
+                println("C={}", c);
+            }
+
             CxxKeyType key = DTTestTools<KeyDataType>::generate_random();
 
             size_t entry_size = static_cast<size_t>(getRandomG(this->mean_entry_size * 2));
 
             std::vector<CxxValueType> values;
-            for (size_t v = 0; v < entry_size; v++)
-            {
+            for (size_t v = 0; v < entry_size; v++) {
                 values.push_back(DTTestTools<ValueDataType>::generate_random());
             }
 
@@ -275,7 +278,7 @@ public:
         auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{});
         ctr->set_new_block_size(2048);
 
-        size_t max_ctr_size = 16384;
+        size_t max_ctr_size = 1024;
 
         std::vector<Entry> data = build_entries(max_ctr_size, mean_entry_size);
         auto data_unsorted = data;
@@ -295,6 +298,8 @@ public:
             println("R={}", c);
             CxxKeyType key = data_unsorted[c].key;
 
+
+            DebugCounter = c == 2;
             bool removed = ctr->remove(key);
             assert_equals(true, removed);
 

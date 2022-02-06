@@ -49,7 +49,7 @@ public:
     virtual bool next()
     {
         size_t keys_size = keys_.array().size();
-        iter_->iter_btfl_select_fw(keys_size, 0); // next leaf with keys;
+        iter_->iter_btfl_select_fw(keys_size, 0, SeqOpType::EQ); // next leaf with keys;
 
         idx_ = 0;
 
@@ -67,7 +67,7 @@ public:
     {
         auto ii = iter_->iter_clone();
 
-        ii->iter_btfl_select_fw(key_idx, 0);
+        ii->iter_btfl_select_fw(key_idx, 0, SeqOpType::EQ);
         ii->to_values();
 
         auto ptr = ctr_make_shared<multimap::ValuesIteratorImpl<Types, Profile, IteratorPtr>>(ii);

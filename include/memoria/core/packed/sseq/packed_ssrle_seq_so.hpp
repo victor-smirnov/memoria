@@ -93,33 +93,35 @@ public:
         return data_->access(idx);
     }
 
-    auto rank(SeqSizeT pos, SymbolT symbol) const noexcept {
-        return (size_t)data_->rank_eq(pos, symbol);
+    auto rank(SeqSizeT pos, SymbolT symbol, SeqOpType seq_op) const noexcept {
+        return (size_t)data_->rank(pos, symbol, seq_op);
     }
 
+    auto rank(SeqSizeT start, SeqSizeT end, SymbolT symbol, SeqOpType seq_op) const noexcept {
+        return (size_t)data_->rank(start, end, symbol, seq_op);
+    }
 
-
-    template <typename... Args>
-    auto selectGEFW(size_t rank, size_t symbol) const {
-        auto res = data_->select_fw_ge(rank, symbol);
+    auto select_fw(size_t rank, size_t symbol, SeqOpType op_type) const
+    {
+        auto res = data_->select_fw(rank, symbol, op_type);
         return SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
     }
 
-    template <typename... Args>
-    auto selectGEFW(size_t start, size_t rank, size_t symbol) const {
-        auto res = data_->select_fw_ge(start, rank, symbol);
+
+    auto select_fw(uint64_t start, uint64_t rank, size_t symbol, SeqOpType op_type) const {
+        auto res = data_->select_fw(start, rank, symbol, op_type);
         return SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
     }
 
-    template <typename... Args>
-    auto selectFW(size_t rank, size_t symbol) const {
-        auto res = data_->select_fw_eq(rank, symbol);
+    auto select_bw(size_t rank, size_t symbol, SeqOpType op_type) const
+    {
+        auto res = data_->select_bw(rank, symbol, op_type);
         return SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
     }
 
-    template <typename... Args>
-    auto selectFW(size_t start, size_t rank, size_t symbol) const {
-        auto res = data_->select_fw_eq(start, rank, symbol);
+
+    auto select_bw(uint64_t start, uint64_t rank, size_t symbol, SeqOpType op_type) const {
+        auto res = data_->select_bw(start, rank, symbol, op_type);
         return SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
     }
 

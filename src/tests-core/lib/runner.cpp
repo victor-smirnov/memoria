@@ -537,20 +537,26 @@ void DefaultTestContext::failed(TestStatus detail, std::exception_ptr ex, TestSt
     {
         state->on_test_failure();
 
-        filesystem::path config_path = this->data_directory();
-        config_path.append("config.yaml");
+        try {
+            filesystem::path config_path = this->data_directory();
+            config_path.append("config.yaml");
 
-        CommonConfigurationContext configuration_context(data_directory());
-        YAML::Node config;
-        state->externalize(config, &configuration_context);
+            CommonConfigurationContext configuration_context(data_directory());
+            YAML::Node config;
 
-        FileOutputStream<char> stream(open_buffered_file(config_path, FileFlags::RDWR | FileFlags::CREATE | FileFlags::TRUNCATE));
-        YAML::Emitter emitter(stream);
+            state->externalize(config, &configuration_context);
 
-        emitter.SetIndent(4);
-        emitter << config;
+            FileOutputStream<char> stream(open_buffered_file(config_path, FileFlags::RDWR | FileFlags::CREATE | FileFlags::TRUNCATE));
+            YAML::Emitter emitter(stream);
 
-        stream.flush();
+            emitter.SetIndent(4);
+            emitter << config;
+
+            stream.flush();
+        }
+        catch (...) {
+            println("Can't externalize the test's state");
+        }
     }
 }
 

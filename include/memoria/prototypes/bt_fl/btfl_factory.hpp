@@ -47,7 +47,9 @@
 #include <memoria/prototypes/bt_fl/tools/btfl_tools_streamdescr.hpp>
 
 #include <memoria/prototypes/bt/walkers/bt_count_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_selectge_walkers.hpp>
+#include <memoria/prototypes/bt/walkers/bt_select_walkers.hpp>
+#include <memoria/prototypes/bt/walkers/bt_rank_walkers.hpp>
+#include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
 
 #include <memoria/prototypes/bt_fl/io/btfl_io_input_provider_base.hpp>
 
@@ -108,9 +110,6 @@ struct BTTypes<Profile, BTFreeLayout>: public BTTypes<Profile, BT> {
                 btfl::IteratorReadName
     >;
 
-
-
-
     template <typename Iterator, typename Container>
     using IteratorCacheFactory = btfl::BTFLIteratorPrefixCache<Iterator, Container>;
 
@@ -119,10 +118,6 @@ struct BTTypes<Profile, BTFreeLayout>: public BTTypes<Profile, BT> {
 
     template <typename Types, typename LeafPath>
     using CountBackwardWalker  = bt::CountBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-
-    template <typename Types, typename LeafPath>
-    using SelectGEForwardWalker  = bt::SelectGEForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 };
 
 

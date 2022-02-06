@@ -128,7 +128,7 @@ void dumpArray(std::ostream& out, int32_t count, std::function<V (int32_t)> fn)
 {
     bool is_char = std::is_same<V, uint8_t>::value || std::is_same<V, int8_t>::value || std::is_same<V, char>::value;
 
-    auto width = 5;//max_width(count, is_char, fn) + 1;
+    auto width = is_char ? 3 : 5;//max_width(count, is_char, fn) + 1;
 
     if (width < 2) width = 2;
 
@@ -136,8 +136,8 @@ void dumpArray(std::ostream& out, int32_t count, std::function<V (int32_t)> fn)
 
     switch (sizeof(V))
     {
-        case 1: columns = 32; break;
-        case 2: columns = 16; break;
+        case 1: columns = 16; break;
+        case 2: columns = 8; break;
         default: columns = (80 / width > 0 ? 80 / width : 1);
     }
 

@@ -120,13 +120,13 @@ public:
 
     class Metadata {
         SeqSizeT size_;
-        uint64_t data_size_;
+        uint64_t code_units_;
     public:
         SeqSizeT& size()                 {return size_;}
         const SeqSizeT& size() const     {return size_;}
 
-        uint64_t& data_size()                 {return data_size_;}
-        const uint64_t& data_size() const     {return data_size_;}
+        uint64_t& code_units()                 {return code_units_;}
+        const uint64_t& code_units() const     {return code_units_;}
     };
 
     struct Tools {};
@@ -150,7 +150,7 @@ public:
     PkdSSRLESeq() = default;
 
     SeqSizeT size() const noexcept {return metadata()->size();}
-    uint64_t data_size() noexcept {return metadata()->data_size();}
+    uint64_t code_units() noexcept {return metadata()->code_units();}
 
     // FIXME: Make setters private/protected
 
@@ -193,7 +193,7 @@ public:
     }
 
     size_t symbols_block_capacity(const Metadata* meta) const noexcept {
-        return symbols_block_size() - meta->data_size();
+        return symbols_block_size() - meta->code_units();
     }
 
     size_t symbols_block_size() const noexcept {
@@ -277,7 +277,7 @@ public:
         MEMORIA_TRY(meta, Base::template allocate<Metadata>(METADATA));
 
         meta->size() = SeqSizeT{};
-        meta->data_size() = 0;
+        meta->code_units() = 0;
 
         Base::setBlockType(SIZE_INDEX, PackedBlockType::ALLOCATABLE);
         Base::setBlockType(SUM_INDEX,  PackedBlockType::ALLOCATABLE);
@@ -295,7 +295,7 @@ public:
         auto meta = this->metadata();
 
         meta->size()        = SeqSizeT{};
-        meta->data_size()   = 0;
+        meta->code_units()   = 0;
 
         return VoidResult::of();
     }
@@ -304,7 +304,7 @@ public:
         auto meta = this->metadata();
 
         meta->size()        = SeqSizeT{};
-        meta->data_size()   = 0;
+        meta->code_units()   = 0;
     }
 
 
@@ -460,7 +460,7 @@ public:
                 return do_append(meta, loc.unit_idx, len, res.span());
             }            
             else {
-                return do_append(meta, meta->data_size(), 0, runs);
+                return do_append(meta, meta->code_units(), 0, runs);
             }
         }
         else {
@@ -471,11 +471,11 @@ private:
 
     SizeTResult do_append(Metadata* meta, size_t start, SeqSizeT run_len0, Span<const SymbolsRunT> runs) noexcept
     {
-        size_t data_size = RunTraits::compute_size(runs, start);
+        size_t code_units = RunTraits::compute_size(runs, start);
         size_t syms_size = element_size(SYMBOLS) / sizeof (CodeUnitT);
-        if (data_size > syms_size)
+        if (code_units > syms_size)
         {
-            size_t bs = data_size * sizeof(CodeUnitT);
+            size_t bs = code_units * sizeof(CodeUnitT);
             MEMORIA_TRY(can_alocate, try_allocation(SYMBOLS, bs));
             if (can_alocate)
             {
@@ -483,7 +483,7 @@ private:
             }
             else {
                 size_t new_syms_size = syms_size > 0 ? syms_size : 4;
-                while (new_syms_size < data_size) {
+                while (new_syms_size < code_units) {
                     new_syms_size *= 2;
                 }
 
@@ -494,12 +494,11 @@ private:
         Span<CodeUnitT> syms = symbols();
         RunTraits::write_segments_to(runs, syms, start);
 
-        meta->data_size() = data_size;
+        meta->code_units() = code_units;
         meta->size() -= run_len0;
         meta->size() += count_symbols(runs);
 
         MEMORIA_TRY_VOID(reindex());
-
         return SizeTResult::of(size_t{});
     }
 
@@ -565,18 +564,20 @@ public:
 
             compactify_runs(left);
 
-            size_t new_data_size = RunTraits::compute_size(left, 0);
+            size_t new_code_units = RunTraits::compute_size(left, 0);
 
-            MEMORIA_TRY_VOID(resizeBlock(SYMBOLS, new_data_size * sizeof(CodeUnitT)));
+            MEMORIA_TRY_VOID(resizeBlock(SYMBOLS, new_code_units * sizeof(CodeUnitT)));
 
             Span<CodeUnitT> atoms = symbols();
             RunTraits::write_segments_to(left, atoms, 0);
 
             Metadata* meta = metadata();
-            meta->data_size() = new_data_size;
+            meta->code_units() = new_code_units;
             meta->size() += count_symbols(runs);
 
-            return do_reindex(to_span(left));
+            MEMORIA_TRY_VOID(do_reindex(to_span(left)));
+
+            return VoidResult::of();
         }
         else {
             return MEMORIA_MAKE_GENERIC_ERROR("Range check in SSRLE sequence insert: idx={}, size={}", idx, size);
@@ -628,13 +629,13 @@ public:
 
             compactify_runs(runs_res);
 
-            size_t new_data_size = RunTraits::compute_size(runs_res, 0);
-            MEMORIA_TRY_VOID(resizeBlock(SYMBOLS, new_data_size * sizeof(CodeUnitT)));
+            size_t new_code_units = RunTraits::compute_size(runs_res, 0);
+            MEMORIA_TRY_VOID(resizeBlock(SYMBOLS, new_code_units * sizeof(CodeUnitT)));
 
             Span<CodeUnitT> atoms = symbols();
             RunTraits::write_segments_to(runs_res, atoms, 0);
 
-            meta->data_size() = new_data_size;
+            meta->code_units() = new_code_units;
             meta->size() -= end - start;
 
             return do_reindex(to_span(runs_res));
@@ -650,9 +651,9 @@ public:
 
         compactify_runs(syms);
 
-        size_t new_data_size = RunTraits::compute_size(syms, 0);
+        size_t new_code_units = RunTraits::compute_size(syms, 0);
 
-        auto new_block_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(new_data_size * sizeof(CodeUnitT));
+        auto new_block_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(new_code_units * sizeof(CodeUnitT));
         MEMORIA_TRY_VOID(this->resizeBlock(SYMBOLS, new_block_size));
 
         Span<CodeUnitT> atoms = symbols();
@@ -689,8 +690,8 @@ public:
             size_t adjustment = location.run.size_in_units();
             std::vector<SymbolsRunT> right_runs = this->iterator(location.unit_idx + adjustment).as_vector();
 
-            size_t left_data_size = RunTraits::compute_size(result.left.span(), location.unit_idx);
-            MEMORIA_TRY_VOID(this->resizeBlock(SYMBOLS, left_data_size * sizeof(CodeUnitT)));
+            size_t left_code_units = RunTraits::compute_size(result.left.span(), location.unit_idx);
+            MEMORIA_TRY_VOID(this->resizeBlock(SYMBOLS, left_code_units * sizeof(CodeUnitT)));
 
             Span<CodeUnitT> left_syms = symbols();
             RunTraits::write_segments_to(result.left.span(), left_syms, location.unit_idx);
@@ -702,13 +703,13 @@ public:
             MEMORIA_TRY_VOID(other->resizeBlock(SYMBOLS, right_atoms_size * sizeof(CodeUnitT)));
 
             Span<CodeUnitT> right_syms = other->symbols();
-            size_t right_data_size = RunTraits::write_segments_to(result.right.span(), right_runs, right_syms);
+            size_t right_code_units = RunTraits::write_segments_to(result.right.span(), right_runs, right_syms);
 
             other_meta->size() = meta->size() - idx;
-            other_meta->data_size() = right_data_size;
+            other_meta->code_units() = right_code_units;
 
             meta->size() = idx;
-            meta->data_size() = left_data_size;
+            meta->code_units() = left_code_units;
 
             MEMORIA_TRY_VOID(other->reindex());
 
@@ -729,16 +730,16 @@ public:
 
         compactify_runs(syms);
 
-        size_t new_data_size = RunTraits::compute_size(syms, 0);
+        size_t new_code_units = RunTraits::compute_size(syms, 0);
 
-        auto new_block_size = new_data_size * sizeof(CodeUnitT);
+        auto new_block_size = new_code_units * sizeof(CodeUnitT);
         MEMORIA_TRY_VOID(other->resizeBlock(SYMBOLS, new_block_size));
 
         Span<CodeUnitT> atoms = other->symbols();
         RunTraits::write_segments_to(syms, atoms, 0);
 
         other_meta->size() += meta->size();
-        other_meta->data_size() = new_data_size;
+        other_meta->code_units() = new_code_units;
 
         return other->do_reindex(to_span(syms));
     }
@@ -1236,12 +1237,12 @@ private:
 public:
     SelectResult select_fw(SeqSizeT rank, SymbolT symbol, SeqOpType op_type) const {
         switch (op_type) {
-            case SeqOpType::EQ : return select_fw_eq(rank, symbol, op_type);
-            case SeqOpType::NEQ: return select_fw_neq(rank, symbol, op_type);
-            case SeqOpType::LT : return select_fw_lt(rank, symbol, op_type);
-            case SeqOpType::LE : return select_fw_le(rank, symbol, op_type);
-            case SeqOpType::GT : return select_fw_gt(rank, symbol, op_type);
-            case SeqOpType::GE : return select_fw_ge(rank, symbol, op_type);
+            case SeqOpType::EQ : return select_fw_eq(rank, symbol);
+            case SeqOpType::NEQ: return select_fw_neq(rank, symbol);
+            case SeqOpType::LT : return select_fw_lt(rank, symbol);
+            case SeqOpType::LE : return select_fw_le(rank, symbol);
+            case SeqOpType::GT : return select_fw_gt(rank, symbol);
+            case SeqOpType::GE : return select_fw_ge(rank, symbol);
 
             default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
         }
@@ -1249,12 +1250,12 @@ public:
 
     SelectResult select_fw(SeqSizeT idx, SeqSizeT rank, SymbolT symbol, SeqOpType op_type) const {
         switch (op_type) {
-            case SeqOpType::EQ : return select_fw_eq(idx, rank, symbol, op_type);
-            case SeqOpType::NEQ: return select_fw_neq(idx, rank, symbol, op_type);
-            case SeqOpType::LT : return select_fw_lt(idx, rank, symbol, op_type);
-            case SeqOpType::LE : return select_fw_le(idx, rank, symbol, op_type);
-            case SeqOpType::GT : return select_fw_gt(idx, rank, symbol, op_type);
-            case SeqOpType::GE : return select_fw_ge(idx, rank, symbol, op_type);
+            case SeqOpType::EQ : return select_fw_eq(idx, rank, symbol);
+            case SeqOpType::NEQ: return select_fw_neq(idx, rank, symbol);
+            case SeqOpType::LT : return select_fw_lt(idx, rank, symbol);
+            case SeqOpType::LE : return select_fw_le(idx, rank, symbol);
+            case SeqOpType::GT : return select_fw_gt(idx, rank, symbol);
+            case SeqOpType::GE : return select_fw_ge(idx, rank, symbol);
 
             default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
         }
@@ -1262,12 +1263,12 @@ public:
 
     SelectResult select_bw(SeqSizeT rank, SymbolT symbol, SeqOpType op_type) const {
         switch (op_type) {
-            case SeqOpType::EQ : return select_bw_eq(rank, symbol, op_type);
-            case SeqOpType::NEQ: return select_bw_neq(rank, symbol, op_type);
-            case SeqOpType::LT : return select_bw_lt(rank, symbol, op_type);
-            case SeqOpType::LE : return select_bw_le(rank, symbol, op_type);
-            case SeqOpType::GT : return select_bw_gt(rank, symbol, op_type);
-            case SeqOpType::GE : return select_bw_ge(rank, symbol, op_type);
+            case SeqOpType::EQ : return select_bw_eq(rank, symbol);
+            case SeqOpType::NEQ: return select_bw_neq(rank, symbol);
+            case SeqOpType::LT : return select_bw_lt(rank, symbol);
+            case SeqOpType::LE : return select_bw_le(rank, symbol);
+            case SeqOpType::GT : return select_bw_gt(rank, symbol);
+            case SeqOpType::GE : return select_bw_ge(rank, symbol);
 
             default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
         }
@@ -1275,52 +1276,52 @@ public:
 
     SelectResult select_bw(SeqSizeT idx, SeqSizeT rank, SymbolT symbol, SeqOpType op_type) const {
         switch (op_type) {
-            case SeqOpType::EQ : return select_bw_eq(idx, rank, symbol, op_type);
-            case SeqOpType::NEQ: return select_bw_neq(idx, rank, symbol, op_type);
-            case SeqOpType::LT : return select_bw_lt(idx, rank, symbol, op_type);
-            case SeqOpType::LE : return select_bw_le(idx, rank, symbol, op_type);
-            case SeqOpType::GT : return select_bw_gt(idx, rank, symbol, op_type);
-            case SeqOpType::GE : return select_bw_ge(idx, rank, symbol, op_type);
+            case SeqOpType::EQ : return select_bw_eq(idx, rank, symbol);
+            case SeqOpType::NEQ: return select_bw_neq(idx, rank, symbol);
+            case SeqOpType::LT : return select_bw_lt(idx, rank, symbol);
+            case SeqOpType::LE : return select_bw_le(idx, rank, symbol);
+            case SeqOpType::GT : return select_bw_gt(idx, rank, symbol);
+            case SeqOpType::GE : return select_bw_ge(idx, rank, symbol);
 
             default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
         }
     }
 
 
-    SelectResult rank(SeqSizeT pos, SymbolT symbol, SeqOpType op_type) const {
+    SeqSizeT rank(SeqSizeT pos, SymbolT symbol, SeqOpType op_type) const {
         switch (op_type) {
-            case SeqOpType::EQ : return rank_eq(pos, symbol, op_type);
-            case SeqOpType::NEQ: return rank_neq(pos, symbol, op_type);
-            case SeqOpType::LT : return rank_lt(pos, symbol, op_type);
-            case SeqOpType::LE : return rank_le(pos, symbol, op_type);
-            case SeqOpType::GT : return rank_gt(pos, symbol, op_type);
-            case SeqOpType::GE : return rank_ge(pos, symbol, op_type);
+            case SeqOpType::EQ : return rank_eq(pos, symbol);
+            case SeqOpType::NEQ: return rank_neq(pos, symbol);
+            case SeqOpType::LT : return rank_lt(pos, symbol);
+            case SeqOpType::LE : return rank_le(pos, symbol);
+            case SeqOpType::GT : return rank_gt(pos, symbol);
+            case SeqOpType::GE : return rank_ge(pos, symbol);
 
             default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
         }
     }
 
-    SelectResult rank(SeqSizeT start, SeqSizeT end, SymbolT symbol, SeqOpType op_type) const {
+    SeqSizeT rank(SeqSizeT start, SeqSizeT end, SymbolT symbol, SeqOpType op_type) const {
         switch (op_type) {
-            case SeqOpType::EQ : return rank_eq(start, end, symbol, op_type);
-            case SeqOpType::NEQ: return rank_neq(start, end, symbol, op_type);
-            case SeqOpType::LT : return rank_lt(start, end, symbol, op_type);
-            case SeqOpType::LE : return rank_le(start, end, symbol, op_type);
-            case SeqOpType::GT : return rank_gt(start, end, symbol, op_type);
-            case SeqOpType::GE : return rank_ge(start, end, symbol, op_type);
+            case SeqOpType::EQ : return rank_eq(start, end, symbol);
+            case SeqOpType::NEQ: return rank_neq(start, end, symbol);
+            case SeqOpType::LT : return rank_lt(start, end, symbol);
+            case SeqOpType::LE : return rank_le(start, end, symbol);
+            case SeqOpType::GT : return rank_gt(start, end, symbol);
+            case SeqOpType::GE : return rank_ge(start, end, symbol);
 
             default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
         }
     }
 
-    SelectResult rank(SymbolT symbol, SeqOpType op_type) const {
+    SeqSizeT rank(SymbolT symbol, SeqOpType op_type) const {
         switch (op_type) {
-            case SeqOpType::EQ : return rank_eq(symbol, op_type);
-            case SeqOpType::NEQ: return rank_neq(symbol, op_type);
-            case SeqOpType::LT : return rank_lt(symbol, op_type);
-            case SeqOpType::LE : return rank_le(symbol, op_type);
-            case SeqOpType::GT : return rank_gt(symbol, op_type);
-            case SeqOpType::GE : return rank_ge(symbol, op_type);
+            case SeqOpType::EQ : return rank_eq(symbol);
+            case SeqOpType::NEQ: return rank_neq(symbol);
+            case SeqOpType::LT : return rank_lt(symbol);
+            case SeqOpType::LE : return rank_le(symbol);
+            case SeqOpType::GT : return rank_gt(symbol);
+            case SeqOpType::GE : return rank_ge(symbol);
 
             default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
         }
@@ -1381,6 +1382,38 @@ public:
         return select_fw_neq(rank - rank_base, symbol);
     }
 
+
+    SelectResult select_fw_eq_ge(SeqSizeT idx, SeqSizeT rank, SymbolT symbol) const
+    {
+        if (DebugCounter) {
+            DumpStruct(this);
+        }
+
+        SelectResult res_eq = select_fw_eq(idx, rank, symbol);
+        if (symbol > 0) {
+            SelectResult res_lt = select_fw_lt(idx, rank, symbol);
+
+            if (res_lt.idx < res_eq.idx) {
+                return res_lt;
+            }
+        }
+
+        return res_eq;
+    }
+
+    SelectResult select_fw_eq_ge(SeqSizeT rank, SymbolT symbol) const
+    {
+        SelectResult res_eq = select_fw_eq(rank, symbol);
+        SelectResult res_lt = select_fw_lt(rank, symbol);
+
+        if (symbol > 0) {
+            if (res_lt.idx < res_eq.idx) {
+                return res_lt;
+            }
+        }
+
+        return res_eq;
+    }
 
 
     SelectResult select_bw_eq(SeqSizeT rank, SymbolT symbol) const
@@ -1763,83 +1796,95 @@ private:
 public:
     SeqSizeT populate_buffer(io::SymbolsBuffer& buffer, SeqSizeT idx) const
     {
-        RunSizeT offset;
-        Iterator ii = do_access(idx, offset);
+        SeqSizeT size = this->size();
+        if (size)
+        {
+            RunSizeT offset;
+            Iterator ii = do_access(idx, offset);
 
-        ii.do_while([&](const SymbolsRunT& run){
-            if (MMA_UNLIKELY(offset > 0)) {
-                RunSizeT l_size = run.full_run_length() - offset;
-                append_run(buffer, run, offset, l_size);
-                offset = 0;
-                idx += l_size;
-            }
-            else {
-                idx += append_run(buffer, run);
-            }
-            return true;
-        });
+            ii.do_while([&](const SymbolsRunT& run){
+                if (MMA_UNLIKELY(offset > 0)) {
+                    RunSizeT l_size = run.full_run_length() - offset;
+                    append_run(buffer, run, offset, l_size);
+                    offset = 0;
+                    idx += l_size;
+                }
+                else {
+                    idx += append_run(buffer, run);
+                }
+                return true;
+            });
 
-        buffer.finish();
+            buffer.finish();
+        }
 
         return idx;
     }
 
     SeqSizeT populate_buffer(io::SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT size) const
     {
-        RunSizeT offset;
-        Iterator ii = do_access(idx, offset);
+        SeqSizeT seq_size = this->size();
+        if (seq_size)
+        {
+            RunSizeT offset;
+            Iterator ii = do_access(idx, offset);
 
-        SeqSizeT read_size = this->size();
+            SeqSizeT read_size = this->size();
 
-        SeqSizeT limit = idx + size;
+            SeqSizeT limit = idx + size;
 
-        if (limit > read_size) {
-            limit = read_size;
+            if (limit > read_size) {
+                limit = read_size;
+            }
+
+            ii.do_while([&](const SymbolsRunT& run){
+                SeqSizeT run_len = SeqSizeT{run.full_run_length() - offset};
+
+                RunSizeT l_size;
+                if (idx + run_len < read_size) {
+                    l_size = (RunSizeT)run_len;
+                }
+                else {
+                    l_size = (RunSizeT)(limit - idx);
+                }
+
+                append_run(buffer, run, offset, l_size);
+
+                idx += l_size;
+                offset = 0;
+
+                return idx < limit;
+            });
+
+            buffer.finish();
         }
-
-        ii.do_while([&](const SymbolsRunT& run){
-            SeqSizeT run_len = SeqSizeT{run.full_run_length() - offset};
-
-            RunSizeT l_size;
-            if (idx + run_len < read_size) {
-                l_size = (RunSizeT)run_len;
-            }
-            else {
-                l_size = (RunSizeT)(limit - idx);
-            }
-
-            append_run(buffer, run, offset, l_size);
-
-            idx += l_size;
-            offset = 0;
-
-            return idx < limit;
-        });
-
-        buffer.finish();
 
         return idx;
     }
 
     SeqSizeT populate_buffer_while_ge(io::SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT symbol) const
     {
-        RunSizeT offset;
-        Iterator ii = do_access(idx, offset);
+        SeqSizeT size = this->size();
+        if (size)
+        {
+            RunSizeT offset;
+            Iterator ii = do_access(idx, offset);
 
-        ii.do_while([&](const SymbolsRunT& run){
-            if (MMA_UNLIKELY(offset > 0)) {
-                RunSizeT l_size = run.full_run_length() - offset;
-                append_run(buffer, run, offset, l_size);
-                offset = 0;
-                idx += l_size;
-            }
-            else {
-                idx += append_run(buffer, run);
-            }
-            return true;
-        });
+            ii.do_while([&](const SymbolsRunT& run){
+                if (MMA_UNLIKELY(offset > 0)) {
+                    RunSizeT l_size = run.full_run_length() - offset;
+                    append_run(buffer, run, offset, l_size);
+                    offset = 0;
+                    idx += l_size;
+                }
+                else {
+                    idx += append_run(buffer, run);
+                }
+                return true;
+            });
 
-        buffer.finish();
+            buffer.finish();
+        }
 
         return idx;
     }
@@ -1852,7 +1897,7 @@ public:
         auto meta = this->metadata();
 
         handler->value("SIZE", &meta->size());
-        handler->value("DATA_SIZE", &meta->data_size());
+        handler->value("CODE_UNITS", &meta->code_units());
 
         if (has_index())
         {
@@ -1865,8 +1910,6 @@ public:
         handler->startGroup("SYMBOL RUNS", size());
 
         Iterator iter = this->iterator();
-
-        DebugCounter = 1;
 
         size_t offset{};
         iter.for_each([&](const SymbolsRunT& run){
@@ -1890,14 +1933,14 @@ public:
         const Metadata* meta = this->metadata();
 
         FieldFactory<SeqSizeT>::serialize(buf, meta->size());
-        FieldFactory<uint64_t>::serialize(buf, meta->data_size());
+        FieldFactory<uint64_t>::serialize(buf, meta->code_units());
 
         if (has_index()){
             MEMORIA_TRY_VOID(size_index()->serialize(buf));
             MEMORIA_TRY_VOID(sum_index()->serialize(buf));
         }
 
-        FieldFactory<CodeUnitT>::serialize(buf, symbols().data(), meta->data_size());
+        FieldFactory<CodeUnitT>::serialize(buf, symbols().data(), meta->code_units());
 
         return VoidResult::of();
     }
@@ -1911,14 +1954,14 @@ public:
         Metadata* meta = this->metadata();
 
         FieldFactory<SeqSizeT>::deserialize(buf, meta->size());
-        FieldFactory<uint64_t>::deserialize(buf, meta->data_size());
+        FieldFactory<uint64_t>::deserialize(buf, meta->code_units());
 
         if (has_index()) {
             MEMORIA_TRY_VOID(size_index()->deserialize(buf));
             MEMORIA_TRY_VOID(sum_index()->deserialize(buf));
         }
 
-        FieldFactory<CodeUnitT>::deserialize(buf, symbols().data(), meta->data_size());
+        FieldFactory<CodeUnitT>::deserialize(buf, symbols().data(), meta->code_units());
 
         return VoidResult::of();
     }
@@ -1975,7 +2018,7 @@ private:
             }
         }
         else {
-            //return Location(meta->data_size(), 0, 0, meta->data_size(), symbol_pos, RLESymbolsRun(), true);
+            //return Location(meta->code_units(), 0, 0, meta->code_units(), symbol_pos, RLESymbolsRun(), true);
             return Location{};
         }
     }
@@ -2016,13 +2059,13 @@ private:
         SymbolsRunT last;
         size_t last_unit_idx{};
 
-        size_t remainder = meta->data_size() % SegmentSizeInAtoms;
+        size_t remainder = meta->code_units() % SegmentSizeInAtoms;
 
-        if (remainder == 0 && meta->data_size() > 0) {
+        if (remainder == 0 && meta->code_units() > 0) {
             remainder = SegmentSizeInAtoms;
         }
 
-        size_t segment_start = meta->data_size() - remainder;
+        size_t segment_start = meta->code_units() - remainder;
         auto ii = iterator(segment_start);
 
         ii.for_each([&](const SymbolsRunT& run, size_t offset){

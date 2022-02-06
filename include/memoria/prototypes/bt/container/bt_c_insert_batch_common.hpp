@@ -267,7 +267,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     void ctr_insert_provided_data(TreePathT& path, Position& pos, Provider& provider)
     {
         auto& self = this->self();
-
         auto last_pos = self.ctr_insert_data_into_leaf(path, pos, provider);
 
         auto has_data = provider.hasData();

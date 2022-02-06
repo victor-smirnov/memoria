@@ -24,93 +24,93 @@
 namespace memoria {
 namespace ssrleseq {
 
-class CountResult {
-    uint64_t count_;
-    int32_t symbol_;
-public:
-    CountResult(uint64_t count, int32_t symbol): count_(count), symbol_(symbol) {}
+//class CountResult {
+//    uint64_t count_;
+//    int32_t symbol_;
+//public:
+//    CountResult(uint64_t count, int32_t symbol): count_(count), symbol_(symbol) {}
 
-    uint64_t count() const {return count_;}
-    int32_t symbol() const {return symbol_;}
-};
-
-
-class RLESymbolsRun {
-    int32_t symbol_;
-    uint64_t length_;
-public:
-    constexpr RLESymbolsRun(): symbol_(0), length_(0) {}
-    constexpr RLESymbolsRun(int32_t symbol, uint64_t length): symbol_(symbol), length_(length) {}
-
-    int32_t symbol() const {return symbol_;}
-    uint64_t length() const {return length_;}
-};
+//    uint64_t count() const {return count_;}
+//    int32_t symbol() const {return symbol_;}
+//};
 
 
-template <int32_t Symbols>
-static constexpr RLESymbolsRun DecodeRun(uint64_t value)
-{
-    constexpr uint64_t BitsPerSymbol = NumberOfBits(Symbols - 1);
-    constexpr int32_t SymbolMask = (1 << BitsPerSymbol) - 1;
+//class RLESymbolsRun {
+//    int32_t symbol_;
+//    uint64_t length_;
+//public:
+//    constexpr RLESymbolsRun(): symbol_(0), length_(0) {}
+//    constexpr RLESymbolsRun(int32_t symbol, uint64_t length): symbol_(symbol), length_(length) {}
 
-    return RLESymbolsRun(value & SymbolMask, value >> BitsPerSymbol);
-}
-
-template <int32_t Symbols, int32_t MaxRunLength>
-static constexpr uint64_t EncodeRun(int32_t symbol, uint64_t length)
-{
-    constexpr uint64_t BitsPerSymbol = NumberOfBits(Symbols - 1);
-    constexpr int32_t SymbolMask = (1 << BitsPerSymbol) - 1;
-
-    if (length <= MaxRunLength)
-    {
-        if (length > 0)
-        {
-            return (symbol & SymbolMask) | (length << BitsPerSymbol);
-        }
-        else {
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Symbols run length must be >= 0 : {}", length));
-        }
-    }
-    else {
-        MMA_THROW(Exception()) << WhatInfo(format_u8("Symbols run length of {} exceeds limit ({})", length, (size_t)MaxRunLength));
-    }
-}
+//    int32_t symbol() const {return symbol_;}
+//    uint64_t length() const {return length_;}
+//};
 
 
-struct Location {
-    size_t data_pos_;
-    size_t data_length_;
-    size_t local_idx_;
-    size_t block_base_;
-    size_t run_base_;
+//template <int32_t Symbols>
+//static constexpr RLESymbolsRun DecodeRun(uint64_t value)
+//{
+//    constexpr uint64_t BitsPerSymbol = NumberOfBits(Symbols - 1);
+//    constexpr int32_t SymbolMask = (1 << BitsPerSymbol) - 1;
 
-    RLESymbolsRun run_;
-    bool out_of_range_;
+//    return RLESymbolsRun(value & SymbolMask, value >> BitsPerSymbol);
+//}
 
-    Location(size_t data_pos, size_t data_length, size_t local_idx, size_t block_base, size_t run_base, RLESymbolsRun run, bool out_of_range = false):
-        data_pos_(data_pos), data_length_(data_length), local_idx_(local_idx), block_base_(block_base), run_base_(run_base), run_(run), out_of_range_(out_of_range)
-    {}
+//template <int32_t Symbols, int32_t MaxRunLength>
+//static constexpr uint64_t EncodeRun(int32_t symbol, uint64_t length)
+//{
+//    constexpr uint64_t BitsPerSymbol = NumberOfBits(Symbols - 1);
+//    constexpr int32_t SymbolMask = (1 << BitsPerSymbol) - 1;
 
-    Location() {}
+//    if (length <= MaxRunLength)
+//    {
+//        if (length > 0)
+//        {
+//            return (symbol & SymbolMask) | (length << BitsPerSymbol);
+//        }
+//        else {
+//            MMA_THROW(Exception()) << WhatInfo(format_u8("Symbols run length must be >= 0 : {}", length));
+//        }
+//    }
+//    else {
+//        MMA_THROW(Exception()) << WhatInfo(format_u8("Symbols run length of {} exceeds limit ({})", length, (size_t)MaxRunLength));
+//    }
+//}
 
-    size_t run_suffix() const {return run_.length() - local_idx_;}
-    size_t run_prefix() const {return local_idx_;}
 
-    size_t local_idx()  const {return local_idx_;}
-    //auto symbol()       const {return run_.symbol();}
-    //auto length()       const {return run_.length();}
+//struct Location {
+//    size_t data_pos_;
+//    size_t data_length_;
+//    size_t local_idx_;
+//    size_t block_base_;
+//    size_t run_base_;
 
-    auto data_pos()     const {return data_pos_;}
-    auto data_length()  const {return data_length_;}
-    auto data_end()     const {return data_pos_ + data_length_;}
-    auto block_base()   const {return block_base_;}
-    auto run_base()     const {return run_base_;}
+//    RLESymbolsRun run_;
+//    bool out_of_range_;
 
-    bool out_of_range1() const {return out_of_range_;}
+//    Location(size_t data_pos, size_t data_length, size_t local_idx, size_t block_base, size_t run_base, RLESymbolsRun run, bool out_of_range = false):
+//        data_pos_(data_pos), data_length_(data_length), local_idx_(local_idx), block_base_(block_base), run_base_(run_base), run_(run), out_of_range_(out_of_range)
+//    {}
 
-    const RLESymbolsRun& run() const {return run_;}
-};
+//    Location() {}
+
+//    size_t run_suffix() const {return run_.length() - local_idx_;}
+//    size_t run_prefix() const {return local_idx_;}
+
+//    size_t local_idx()  const {return local_idx_;}
+//    //auto symbol()       const {return run_.symbol();}
+//    //auto length()       const {return run_.length();}
+
+//    auto data_pos()     const {return data_pos_;}
+//    auto data_length()  const {return data_length_;}
+//    auto data_end()     const {return data_pos_ + data_length_;}
+//    auto block_base()   const {return block_base_;}
+//    auto run_base()     const {return run_base_;}
+
+//    bool out_of_range1() const {return out_of_range_;}
+
+//    const RLESymbolsRun& run() const {return run_;}
+//};
 
 
 

@@ -183,6 +183,14 @@ public:
     auto iterator(int32_t block, int32_t idx) const {
         return data_->iterator(block, idx);
     }
+
+    auto sum_for_rank(int32_t start, int32_t end, int32_t symbol, SeqOpType seq_op) const {
+        return data_->sum_for_rank(start, end, symbol, seq_op);
+    }
+
+    auto find_for_select_fw(int32_t start, Value rank, int32_t symbol, SeqOpType seq_op) const {
+        return data_->find_for_select_fw(start, rank, symbol, seq_op);
+    }
 };
 
 

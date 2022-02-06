@@ -221,6 +221,8 @@ public:
         using WalkerBase::idx_;
         using WalkerBase::sum_;
     public:
+        using WalkerBase::idx;
+
         FindGEWalker(IndexValue target):
             WalkerBase(0,0),
             target_(target)
@@ -253,6 +255,8 @@ public:
         using WalkerBase::idx_;
         using WalkerBase::sum_;
     public:
+        using WalkerBase::idx;
+
         FindGTWalker(IndexValue target):
             WalkerBase(0, 0),
             target_(target)
