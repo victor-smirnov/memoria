@@ -1243,6 +1243,7 @@ public:
             case SeqOpType::LE : return select_fw_le(rank, symbol);
             case SeqOpType::GT : return select_fw_gt(rank, symbol);
             case SeqOpType::GE : return select_fw_ge(rank, symbol);
+            case SeqOpType::EQ_NLT : return select_fw_eq_nlt(rank, symbol);
 
             default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
         }
@@ -1256,6 +1257,7 @@ public:
             case SeqOpType::LE : return select_fw_le(idx, rank, symbol);
             case SeqOpType::GT : return select_fw_gt(idx, rank, symbol);
             case SeqOpType::GE : return select_fw_ge(idx, rank, symbol);
+            case SeqOpType::EQ_NLT : return select_fw_eq_nlt(idx, rank, symbol);
 
             default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", (size_t)op_type).do_throw();
         }
@@ -1383,12 +1385,8 @@ public:
     }
 
 
-    SelectResult select_fw_eq_ge(SeqSizeT idx, SeqSizeT rank, SymbolT symbol) const
+    SelectResult select_fw_eq_nlt(SeqSizeT idx, SeqSizeT rank, SymbolT symbol) const
     {
-        if (DebugCounter) {
-            DumpStruct(this);
-        }
-
         SelectResult res_eq = select_fw_eq(idx, rank, symbol);
         if (symbol > 0) {
             SelectResult res_lt = select_fw_lt(idx, rank, symbol);
@@ -1401,7 +1399,7 @@ public:
         return res_eq;
     }
 
-    SelectResult select_fw_eq_ge(SeqSizeT rank, SymbolT symbol) const
+    SelectResult select_fw_eq_nlt(SeqSizeT rank, SymbolT symbol) const
     {
         SelectResult res_eq = select_fw_eq(rank, symbol);
         SelectResult res_lt = select_fw_lt(rank, symbol);

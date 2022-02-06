@@ -56,7 +56,11 @@ public:
     bool iter_is_end() const
     {
         auto& self = this->self();
-        return self.iter_leaf().node().isSet() ? self.iter_local_pos() >= self.iter_leaf_size(StructureStreamIdx) : true;
+
+        auto pos = self.iter_local_pos();
+        auto size = self.iter_leaf_size(StructureStreamIdx);
+
+        return self.iter_leaf().node().isSet() ? pos >= size : true;
     }
 
     bool is_end() const
@@ -292,7 +296,7 @@ public:
 
             if (s) {
                 //auto result = s->selectFW(stream, data_idx);
-                auto result = s.select_fw(data_idx + 1, stream, SeqOpType::EQ);
+                auto result = s.select_fw(data_idx, stream, SeqOpType::EQ);
 
                 self.iter_stream() = StructureStreamIdx;
 
@@ -415,7 +419,7 @@ public:
 
         if (s)
         {
-            return self.leaf_structure().select_fw(position + 1, stream, SeqOpType::EQ).local_pos();
+            return self.leaf_structure().select_fw(position, stream, SeqOpType::EQ).local_pos();
         }
         else {
         	return 0;

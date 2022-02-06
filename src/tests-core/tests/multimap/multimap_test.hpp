@@ -250,10 +250,10 @@ public:
             }
 
             bool inserted = ctr->upsert(key, values);
-            assert_equals(false, inserted);
+            assert_equals(false, inserted, "Upsert");
 
             bool contains = ctr->contains(key);
-            assert_equals(true, contains);
+            assert_equals(true, contains, "Contains");
 
             data_unsorted.emplace_back(Entry{std::move(key), std::move(values)});
 
