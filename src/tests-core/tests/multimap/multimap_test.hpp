@@ -45,7 +45,7 @@ class MultimapTest: public BTTestBase<Multimap<KeyDataType, ValueDataType>, Prof
     using typename Base::Store;
     using typename Base::StorePtr;
 
-    int64_t entries = 1024;// * 16;
+    int64_t entries = 1024 * 16;
     int64_t mean_entry_size = 1024;
 
     using Base::store;
@@ -177,7 +177,7 @@ public:
     {
         auto snp = branch();
         auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{});
-        ctr->set_new_block_size(2048);
+        //ctr->set_new_block_size(2048);
 
         std::vector<Entry> data = build_entries(entries, mean_entry_size);
 
@@ -276,9 +276,9 @@ public:
     {
         auto snp = branch();
         auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{});
-        ctr->set_new_block_size(2048);
+        //ctr->set_new_block_size(2048);
 
-        size_t max_ctr_size = 1024;
+        size_t max_ctr_size = entries;
 
         std::vector<Entry> data = build_entries(max_ctr_size, mean_entry_size);
         auto data_unsorted = data;
@@ -298,13 +298,16 @@ public:
             println("R={}", c);
             CxxKeyType key = data_unsorted[c].key;
 
-
-            DebugCounter = c == 2;
             bool removed = ctr->remove(key);
-            assert_equals(true, removed);
+            assert_equals(true, removed, "Remove");
+            assert_equals(max_ctr_size - c - 1, ctr->size(), "Size");
 
-            assert_equals(max_ctr_size - c - 1, ctr->size());
+            if (c % 1000 == 0) {
+                this->check("Store structure checking", MMA_SRC);
+            }
         }
+
+        this->check("Store structure checking", MMA_SRC);
 
         commit();
     }

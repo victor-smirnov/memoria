@@ -200,7 +200,7 @@ public:
             SeqPtr seq2 = make_sequence(syms1);
             seq2->clear().get_or_throw();
             assert_equals(SeqSizeT{0}, seq2->size());
-            assert_equals(0, seq2->data_size());
+            assert_equals(0, seq2->code_units());
 
             seq1->splitTo(seq2.get(), split_at).get_or_throw();
 

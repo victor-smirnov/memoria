@@ -122,7 +122,7 @@ public:
 
     auto select_bw(uint64_t start, uint64_t rank, size_t symbol, SeqOpType op_type) const {
         auto res = data_->select_bw(start, rank, symbol, op_type);
-        return SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
+        return SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx <= start };
     }
 
 

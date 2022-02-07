@@ -316,7 +316,7 @@ public:
     size_t locate_block(Span<const BlockT> index, Span<const SymbolsRunT> runs, SeqSizeT idx) const
     {
         for (size_t i = 0; i < index.size(); i++) {
-            if (idx <= index[i].offset) {
+            if (idx < index[i].offset) {
                 return i - 1;
             }
         }

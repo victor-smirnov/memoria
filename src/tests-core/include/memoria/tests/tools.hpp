@@ -297,10 +297,9 @@ std::vector<T> createRandomBuffer(T fill_value, int32_t max_size)
 template <typename StorePtr>
 void check(StorePtr store, const char* message,  const char* source)
 {
-//    if (store->check())
-//    {
-//        MMA_THROW(TestException()) << WhatCInfo(message);
-//    }
+    store->check([&](CheckSeverity sv, const LDDocument& doc){
+        MEMORIA_MAKE_GENERIC_ERROR("Container check failuer: {}", doc.to_pretty_string());
+    });
 }
 
 template <typename Ctr>

@@ -284,7 +284,7 @@ public:
 
     void testSelect0FW()
     {
-        testSelectBW(&MyType::assertSelect0FW);
+        testSelectFW(&MyType::assertSelect0FW);
     }
 
     void testSelectFW(AssertSelectBWFn assert_fn)

@@ -845,6 +845,16 @@ public:
     struct SelectResult {
         SeqSizeT idx;
         SeqSizeT rank;
+
+        SelectResult dec_rank(const SeqSizeT& rr) {
+            rank -= rr;
+            return *this;
+        }
+
+        SelectResult inc_rank(const SeqSizeT& rr) {
+            rank += rr;
+            return *this;
+        }
     };
 
 
@@ -1356,32 +1366,32 @@ public:
 
     SelectResult select_fw_ge(SeqSizeT idx, SeqSizeT rank, SymbolT symbol) const {
         SeqSizeT rank_base = rank_ge(idx, symbol);
-        return select_fw_ge(rank - rank_base, symbol);
+        return select_fw_ge(rank + rank_base, symbol).dec_rank(rank_base);
     }
 
     SelectResult select_fw_gt(SeqSizeT idx, SeqSizeT rank, SymbolT symbol) const {
         SeqSizeT rank_base = rank_gt(idx, symbol);
-        return select_fw_gt(rank - rank_base, symbol);
+        return select_fw_gt(rank + rank_base, symbol).dec_rank(rank_base);
     }
 
     SelectResult select_fw_le(SeqSizeT idx, SeqSizeT rank, SymbolT symbol) const {
         SeqSizeT rank_base = rank_le(idx, symbol);
-        return select_fw_le(rank - rank_base, symbol);
+        return select_fw_le(rank + rank_base, symbol).dec_rank(rank_base);
     }
 
     SelectResult select_fw_lt(SeqSizeT idx, SeqSizeT rank, SymbolT symbol) const {
         SeqSizeT rank_base = rank_lt(idx, symbol);
-        return select_fw_lt(rank - rank_base, symbol);
+        return select_fw_lt(rank + rank_base, symbol).dec_rank(rank_base);
     }
 
     SelectResult select_fw_eq(SeqSizeT idx, SeqSizeT rank, SymbolT symbol) const {
         SeqSizeT rank_base = rank_eq(idx, symbol);
-        return select_fw_eq(rank - rank_base, symbol);
+        return select_fw_eq(rank + rank_base, symbol).dec_rank(rank_base);
     }
 
     SelectResult select_fw_neq(SeqSizeT idx, SeqSizeT rank, SymbolT symbol) const {
         SeqSizeT rank_base = rank_neq(idx, symbol);
-        return select_fw_neq(rank - rank_base, symbol);
+        return select_fw_neq(rank + rank_base, symbol).dec_rank(rank_base);
     }
 
 

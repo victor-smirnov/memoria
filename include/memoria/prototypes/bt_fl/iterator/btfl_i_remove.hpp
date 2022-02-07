@@ -41,7 +41,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorRemoveName)
     static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 public:
-    Position iter_remove_ge(CtrSizeT n)
+    Position iter_remove_eq_nlt(CtrSizeT n)
     {
         auto& self = this->self();
         CtrSizesT sizes{};
@@ -49,7 +49,7 @@ public:
         if (n > 0 && !self.iter_is_end())
         {
             auto ii = self.iter_clone();
-            ii->iter_btfl_select_fw(n - 1, self.iter_data_stream(), SeqOpType::EQ_NLT);
+            ii->iter_btfl_select_fw(n, self.iter_data_stream(), SeqOpType::EQ_NLT);
 
             auto start = self.iter_leafrank();
             auto end   = ii->iter_leafrank();
