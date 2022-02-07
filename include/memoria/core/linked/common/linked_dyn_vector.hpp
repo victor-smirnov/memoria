@@ -79,10 +79,17 @@ public:
     static PtrT<State> create_tagged_ptr(size_t tag_size, Arena* arena, uint32_t capacity)
     {
         PtrT<State> ptr = allocate_tagged<State>(tag_size, arena, State{capacity, 0});
-        PtrT<T> data = arena->template allocate_space<T>(capacity * sizeof(T));
 
         State* state = ptr.get(arena);
-        state->data_ = data;
+
+        if (capacity)
+        {
+            PtrT<T> data = arena->template allocate_space<T>(capacity * sizeof(T));
+            state->data_ = data;
+        }
+        else {
+            state->data_ = PtrT<T>{0};
+        }
 
         return ptr;
     }
