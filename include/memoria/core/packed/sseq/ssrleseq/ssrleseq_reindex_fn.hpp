@@ -150,7 +150,7 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult check(const Seq& seq) noexcept
+    void check(const Seq& seq)
     {
         auto ii = seq.iterator();
 
@@ -159,10 +159,10 @@ public:
         if (symbols_block_size > AtomsPerBlock)
         {
             auto size_index = seq.size_index();
-            MEMORIA_TRY_VOID(size_index->check());
+            size_index->check();
 
             auto sum_index  = seq.sum_index();
-            MEMORIA_TRY_VOID(sum_index->check());
+            sum_index->check();
 
             SeqSizeT symbols_total_{};
             typename Seq::SumIndex::Values sums(SeqSizeT{});
@@ -171,21 +171,21 @@ public:
 
             size_t blk_idx{};
             size_t block_cnt{};
-            auto check_indexes = [&]() -> VoidResult {
+            auto check_indexes = [&]() {
                 if (sum_index->access(blk_idx) != sums) {
-                    return MEMORIA_MAKE_GENERIC_ERROR("SSRLESeq SumIndex check error: blk:{}, idx:{}, sum:{}",
+                    MEMORIA_MAKE_GENERIC_ERROR("SSRLESeq SumIndex check error: blk:{}, idx:{}, sum:{}",
                                                       blk_idx,
                                                       sum_index->access(blk_idx),
-                                                      sums);
+                                                      sums).do_throw();
                 }
 
                 typename Seq::SizeIndex::Values sizes(symbols_total_);
 
                 if (size_index->access(blk_idx) != sizes) {
-                    return MEMORIA_MAKE_GENERIC_ERROR("SSRLESeq SizeIndex check error: blk:{}, idx:{}, sum:{}",
+                    MEMORIA_MAKE_GENERIC_ERROR("SSRLESeq SizeIndex check error: blk:{}, idx:{}, sum:{}",
                                                       blk_idx,
                                                       size_index->access(blk_idx),
-                                                      sizes);
+                                                      sizes).do_throw();
                 }
 
                 symbols_total_ = SeqSizeT{};
@@ -193,8 +193,6 @@ public:
                 next_block_start_idx += AtomsPerBlock;
                 blk_idx++;
                 block_cnt = 0;
-
-                return VoidResult::of();
             };
 
             while (!ii.is_eos())
@@ -219,21 +217,19 @@ public:
                     ii.next(run.run_length());
                 }
                 else {
-                    MEMORIA_TRY_VOID(check_indexes());
+                    check_indexes();
                     break;
                 }
 
                 if (ii.idx() == next_block_start_idx) {
-                    MEMORIA_TRY_VOID(check_indexes());
+                    check_indexes();
                 }
             }
 
             if (block_cnt) {
-                MEMORIA_TRY_VOID(check_indexes());
+                check_indexes();
             }
         }
-
-        return VoidResult::of();
     }
 };
 

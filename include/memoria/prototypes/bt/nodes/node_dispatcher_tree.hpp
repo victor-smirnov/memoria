@@ -125,7 +125,7 @@ public:
             const TreeNodeConstPtr& child,
             Functor&& functor,
             Args&&... args
-    ) const noexcept ->
+    ) const ->
         typename memoria::detail::ResultOfFn<
             decltype(NDT2Start(ctr_).dispatchTree(std::declval<ConstNodeSO>(), child, std::forward<Functor>(functor), std::forward<Args>(args)...))
         >::Type
@@ -179,7 +179,7 @@ public:
             const TreeNodeConstPtr& child,
             Functor&& functor,
             Args&&... args
-    ) const noexcept
+    ) const
     {
         if (HASH == child->block_type_hash())
         {
@@ -230,7 +230,7 @@ public:
             const TreeNodeConstPtr& child,
             Functor&& functor,
             Args&&... args
-    ) const noexcept ->
+    ) const ->
         typename memoria::detail::ResultOfFn<
             decltype(functor.treeNode(std::forward<Node>(parent), std::declval<ConstNodeSO>(), std::forward<Args>(args)...))
         >::Type

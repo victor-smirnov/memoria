@@ -799,7 +799,7 @@ template <typename Struct>
 void DumpStruct(const Struct* s, std::ostream& out = std::cout)
 {
     TextBlockDumper dumper(out);
-    s->generateDataEvents(&dumper).get_or_throw();
+    s->generateDataEvents(&dumper);
 }
 
 

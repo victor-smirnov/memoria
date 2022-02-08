@@ -324,19 +324,19 @@ public:
 
     struct CheckFn {
         template <typename Tree>
-        VoidResult stream(Tree&& tree) noexcept
+        void stream(Tree&& tree)
         {
             return tree.check();
         }
     };
 
-    VoidResult check(const CheckResultConsumerFn& consumer) const noexcept
+    VoidResult check(const CheckResultConsumerFn& consumer) const
     {
-        MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn()));
+        Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn()).get_or_throw();
 
         std::unordered_map<Value, int32_t> map;
 
-        MEMORIA_TRY(node_size, size());
+        auto node_size = size().get_or_throw();
         for (int32_t c = 0; c < node_size; c++) {
             Value vv = value(c);
             auto ii = map.find(vv);
@@ -344,7 +344,7 @@ public:
                 map[vv] = c;
             }
             else {
-                return MEMORIA_MAKE_GENERIC_ERROR("Duplicate child id found: {} :: {} :: {}", vv, ii->second, c);
+                MEMORIA_MAKE_GENERIC_ERROR("Duplicate child id found: {} :: {} :: {}", vv, ii->second, c).do_throw();
             }
         }
 
@@ -850,12 +850,12 @@ public:
         }
     };
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const
     {
-        MEMORIA_TRY_VOID(node_->template generateDataEvents<RootMetadataList>(handler));
-        MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler));
+        node_->template generateDataEvents<RootMetadataList>(handler);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler).get_or_throw();
 
-        MEMORIA_TRY(size, this->size());
+        auto size = this->size().get_or_throw();
 
         handler->startGroup("TREE_VALUES", size);
 

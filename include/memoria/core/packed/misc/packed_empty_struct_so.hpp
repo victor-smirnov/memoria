@@ -107,13 +107,11 @@ public:
         return data_->setValues(idx, values);
     }
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept {
+    void generateDataEvents(IBlockDataEventHandler* handler) const {
         return data_->generateDataEvents(handler);
     }
 
-    VoidResult check() const noexcept {
-        return VoidResult::of();
-    }
+    void check() const {}
 
     int32_t size() const {
         return data_->size();

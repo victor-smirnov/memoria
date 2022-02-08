@@ -212,47 +212,47 @@ public:
 
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
-        MEMORIA_TRY_VOID(Base::serialize(buf));
+        Base::serialize(buf);
 
         auto& meta = this->metadata();
 
         FieldFactory<psize_t>::serialize(buf, meta.size());
         FieldFactory<psize_t>::serialize(buf, meta.data_size(), Dimensions);
 
-        return for_each_dimension_res([&, this](auto idx){
+        return for_each_dimension([&, this](auto idx){
             return this->dimension<idx>().serialize(meta, buf);
         });
     }
 
 
     template <typename SerializationData, typename IDResolver>
-    VoidResult cow_serialize(SerializationData& buf, const IDResolver* resolver) const noexcept
+    void cow_serialize(SerializationData& buf, const IDResolver* resolver) const
     {
-        MEMORIA_TRY_VOID(Base::serialize(buf));
+        Base::serialize(buf);
 
         auto& meta = this->metadata();
 
         FieldFactory<psize_t>::serialize(buf, meta.size());
         FieldFactory<psize_t>::serialize(buf, meta.data_size(), Dimensions);
 
-        return for_each_dimension_res([&, this](auto idx){
+        return for_each_dimension([&, this](auto idx){
             return this->dimension<idx>().cow_serialize(meta, buf, resolver);
         });
     }
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
-        MEMORIA_TRY_VOID(Base::deserialize(buf));
+        Base::deserialize(buf);
 
         auto& meta = this->metadata();
 
         FieldFactory<psize_t>::deserialize(buf, meta.size());
         FieldFactory<psize_t>::deserialize(buf, meta.data_size(), Dimensions);
 
-        return for_each_dimension_res([&, this](auto idx){
+        return for_each_dimension([&, this](auto idx){
             return this->dimension<idx>().deserialize(meta, buf);
         });
     }

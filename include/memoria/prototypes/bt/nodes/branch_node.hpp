@@ -294,7 +294,7 @@ public:
     template <typename List>
     struct GenerateDataEventsFn {
         template <int32_t Idx>
-        static BoolResult process(IBlockDataEventHandler* handler, const PackedAllocator* allocator)
+        static bool process(IBlockDataEventHandler* handler, const PackedAllocator* allocator)
         {
             using T = Select<Idx, List>;
             if (!allocator->is_empty(Idx))
@@ -305,20 +305,20 @@ public:
 
                 SparseObject so(const_cast<T*>(value));
 
-                MEMORIA_TRY_VOID(so.generateDataEvents(handler));
+                so.generateDataEvents(handler);
             }
 
-            return BoolResult::of(true);
+            return true;
         }
     };
 
 
     template <typename MetadataTypesList>
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
 
-        MEMORIA_TRY_VOID(header_.generateDataEvents(handler));
+        header_.generateDataEvents(handler);
 
         handler->value("ROOT",  &root_);
         handler->value("LEAF",  &leaf_);
@@ -326,60 +326,60 @@ public:
 
         handler->value("NEXT_LEAF_ID_", &next_leaf_id_);
 
-        MEMORIA_TRY_VOID(allocator()->generateDataEvents(handler));
+        allocator()->generateDataEvents(handler);
 
-        return ForEach<0, StreamsStart>::process_res(GenerateDataEventsFn<MetadataTypesList>(), handler, allocator());
+        return ForEach<0, StreamsStart>::process(GenerateDataEventsFn<MetadataTypesList>(), handler, allocator());
     }
 
 
     template <typename List>
     struct SerializeFn {
         template <int32_t Idx, typename SerializationData>
-        static BoolResult process(SerializationData& buf, const PackedAllocator* allocator) noexcept
+        static bool process(SerializationData& buf, const PackedAllocator* allocator) noexcept
         {
             using T = Select<Idx, List>;
             if (!allocator->is_empty(Idx))
             {
                 const T* value = get<T>(allocator, Idx);
-                MEMORIA_TRY_VOID(value->serialize(buf));
+                value->serialize(buf);
             }
 
-            return BoolResult::of(true);
+            return true;
         }
     };
 
 
     template <typename MetadataTypesList, typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
         static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
 
-        MEMORIA_TRY_VOID(header_.template serialize<FieldFactory>(buf));
+        header_.template serialize<FieldFactory>(buf);
 
         FieldFactory<int32_t>::serialize(buf, root_);
         FieldFactory<int32_t>::serialize(buf, leaf_);
         FieldFactory<int32_t>::serialize(buf, level_);
 
-        MEMORIA_TRY_VOID(allocator()->serialize(buf));
+        allocator()->serialize(buf);
 
-        return ForEach<0, StreamsStart>::process_res(SerializeFn<MetadataTypesList>(), buf, allocator());
+        return ForEach<0, StreamsStart>::process(SerializeFn<MetadataTypesList>(), buf, allocator());
     }
 
 
     template <typename MetadataTypesList, typename SerializationData, typename IDResolver>
-    VoidResult cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    void cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const
     {
         static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
 
-        MEMORIA_TRY_VOID(header_.template cow_serialize<FieldFactory>(buf, id_resolver));
+        header_.template cow_serialize<FieldFactory>(buf, id_resolver);
 
         FieldFactory<int32_t>::serialize(buf, root_);
         FieldFactory<int32_t>::serialize(buf, leaf_);
         FieldFactory<int32_t>::serialize(buf, level_);
 
-        MEMORIA_TRY_VOID(allocator()->serialize(buf));
+        allocator()->serialize(buf);
 
-        return ForEach<0, StreamsStart>::process_res(SerializeFn<MetadataTypesList>(), buf, allocator());
+        return ForEach<0, StreamsStart>::process(SerializeFn<MetadataTypesList>(), buf, allocator());
     }
 
     template <typename IDResolver>
@@ -391,24 +391,24 @@ public:
     template <typename List>
     struct DeserializeFn {
         template <int32_t Idx, typename DeserializationData>
-        static BoolResult process(DeserializationData& buf, PackedAllocator* allocator) noexcept
+        static bool process(DeserializationData& buf, PackedAllocator* allocator) noexcept
         {
             using T = Select<Idx, List>;
             if (!allocator->is_empty(Idx))
             {
                 T* value = get<T>(allocator, Idx);
-                MEMORIA_TRY_VOID(value->deserialize(buf));
+                value->deserialize(buf);
             }
 
-            return BoolResult::of(true);
+            return true;
         }
     };
 
     template <typename MetadataTypesList, typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
         static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
-        MEMORIA_TRY_VOID(header_.template deserialize<FieldFactory>(buf));
+        header_.template deserialize<FieldFactory>(buf);
 
         FieldFactory<int32_t>::deserialize(buf, root_);
         FieldFactory<int32_t>::deserialize(buf, leaf_);
@@ -416,9 +416,9 @@ public:
 
         next_leaf_id_ = BlockID{};
 
-        MEMORIA_TRY_VOID(allocator()->deserialize(buf));
+        allocator()->deserialize(buf);
 
-        return ForEach<0, StreamsStart>::process_res(DeserializeFn<MetadataTypesList>(), buf, allocator());
+        return ForEach<0, StreamsStart>::process(DeserializeFn<MetadataTypesList>(), buf, allocator());
     }
 
 
@@ -735,49 +735,41 @@ public:
 
     struct SerializeFn {
         template <typename StreamObj, typename SerializationData>
-        VoidResult stream(const StreamObj* stream, SerializationData* buf) noexcept
+        void stream(const StreamObj* stream, SerializationData* buf)
         {
             return stream->serialize(*buf);
         }
     };
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
-        return wrap_throwing([&]() -> VoidResult {
-            MEMORIA_TRY_VOID(Base::template serialize<RootMetadataList>(buf));
+        Base::template serialize<RootMetadataList>(buf);
 
-            MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf));
+        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf).get_or_throw();
 
-            MEMORIA_TRY(size, this->size());
+        auto size = this->size().get_or_throw();
 
-            FieldFactory<Value>::serialize(buf, values(), size);
-
-            return VoidResult::of();
-        });
+        FieldFactory<Value>::serialize(buf, values(), size);
     }
 
 
     template <typename SerializationData, typename IDResolver>
-    VoidResult cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    void cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const
     {
-        return wrap_throwing([&]() -> VoidResult {
-            MEMORIA_TRY_VOID(Base::template cow_serialize<RootMetadataList>(buf, id_resolver));
+        Base::template cow_serialize<RootMetadataList>(buf, id_resolver);
 
-            MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf));
+        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf).get_or_throw();
 
-            MEMORIA_TRY(size, this->size());
+        auto size = this->size().get_or_throw();
 
-            const Value* child_ids = values();
+        const Value* child_ids = values();
 
-            for (int32_t c = 0; c < size; c++)
-            {
-                auto actual_id = id_resolver->resolve_id(child_ids[c]);
-                FieldFactory<Value>::serialize(buf, actual_id);
-            }
-
-            return VoidResult::of();
-        });
+        for (int32_t c = 0; c < size; c++)
+        {
+            auto actual_id = id_resolver->resolve_id(child_ids[c]);
+            FieldFactory<Value>::serialize(buf, actual_id);
+        }
     }
 
     template <typename IDResolver>
@@ -802,28 +794,24 @@ public:
 
     struct DeserializeFn {
         template <typename StreamObj, typename DeserializationData>
-        VoidResult stream(StreamObj* obj, DeserializationData* buf) noexcept
+        void stream(StreamObj* obj, DeserializationData* buf)
         {
             return obj->deserialize(*buf);
         }
     };
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
-        return wrap_throwing([&]() -> VoidResult {
-            MEMORIA_TRY_VOID(Base::template deserialize<RootMetadataList>(buf));
+        Base::template deserialize<RootMetadataList>(buf);
 
-            MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf));
+        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf).get_or_throw();
 
-            MEMORIA_TRY(size, this->size());
+        auto size = this->size().get_or_throw();
 
-            FieldFactory<Value>::deserialize(buf, values(), size);
+        FieldFactory<Value>::deserialize(buf, values(), size);
 
-            ProfileSpecificBlockTools<typename Types::Profile>::after_deserialization(this);
-
-            return VoidResult::of();
-        });
+        ProfileSpecificBlockTools<typename Types::Profile>::after_deserialization(this);
     }
 
 
@@ -852,13 +840,13 @@ namespace detail_ {
         using BlockType = ProfileBlockType<Profile>;
 
         template <typename BTNode, typename IDResolver>
-        static VoidResult serialize(const BTNode* node, SerializationData& data, const IDResolver*) noexcept
+        static void serialize(const BTNode* node, SerializationData& data, const IDResolver*)
         {
             return node->serialize(data);
         }
 
         template <typename BTNode, typename IDResolver>
-        static VoidResult resolve_ids(BTNode* node, const IDResolver*) noexcept
+        static VoidResult resolve_ids(BTNode* node, const IDResolver*)
         {
             return VoidResult::of();
         }
@@ -868,13 +856,13 @@ namespace detail_ {
     struct BTNodeNodeMethodsSelector<CowLiteProfile> {
 
         template <typename BTNode, typename IDResolver>
-        static VoidResult serialize(const BTNode* node, SerializationData& data, const IDResolver* id_resolver) noexcept
+        static void serialize(const BTNode* node, SerializationData& data, const IDResolver* id_resolver)
         {
             return node->cow_serialize(data, id_resolver);
         }
 
         template <typename BTNode, typename IDResolver>
-        static VoidResult resolve_ids(BTNode* node, const IDResolver* id_resolver) noexcept
+        static VoidResult resolve_ids(BTNode* node, const IDResolver* id_resolver)
         {
             return node->cow_resolve_ids(id_resolver);
         }
@@ -884,13 +872,13 @@ namespace detail_ {
     struct BTNodeNodeMethodsSelector<CowProfile> {
 
         template <typename BTNode, typename IDResolver>
-        static VoidResult serialize(const BTNode* node, SerializationData& data, const IDResolver* id_resolver) noexcept
+        static void serialize(const BTNode* node, SerializationData& data, const IDResolver* id_resolver)
         {
             return node->cow_serialize(data, id_resolver);
         }
 
         template <typename BTNode, typename IDResolver>
-        static VoidResult resolve_ids(BTNode* node, const IDResolver* id_resolver) noexcept
+        static VoidResult resolve_ids(BTNode* node, const IDResolver* id_resolver)
         {
             return node->cow_resolve_ids(id_resolver);
         }
@@ -950,7 +938,7 @@ public:
             data.buf = ptr_cast<char>(buf);
 
 
-            detail_::BTNodeNodeMethodsSelector<Profile>::serialize(node, data, resolver).get_or_throw();
+            detail_::BTNodeNodeMethodsSelector<Profile>::serialize(node, data, resolver);
 
 
             return data.total;
@@ -963,7 +951,7 @@ public:
             DeserializationData data;
             data.buf = ptr_cast<const char>(buf);
 
-            node->deserialize(data).get_or_throw();
+            node->deserialize(data);
         }
 
         virtual void cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const

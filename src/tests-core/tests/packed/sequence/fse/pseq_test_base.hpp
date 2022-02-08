@@ -122,7 +122,7 @@ public:
             return sym;
         }).get_or_throw();
 
-        seq->check().get_or_throw();
+        seq->check();
 
         this->assertIndexCorrect(MA_SRC, seq);
         this->assertEqual(seq, symbols);
@@ -145,7 +145,7 @@ public:
     void assertIndexCorrect(const char* src, const SeqPtr& seq)
     {
         try {
-            seq->check().get_or_throw();
+            seq->check();
         }
         catch (Exception& e) {
             out() << "Sequence structure check failed" << std::endl;

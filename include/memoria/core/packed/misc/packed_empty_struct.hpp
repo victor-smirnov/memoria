@@ -149,24 +149,22 @@ public:
     }
 
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startStruct();
         handler->startGroup("EMPTY_STRUCT");
         handler->endGroup();
         handler->endStruct();
-
-        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
         return header_.serialize(buf);
     }
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
         return header_.deserialize(buf);
     }

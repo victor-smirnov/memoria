@@ -509,13 +509,13 @@ public:
 
     struct CheckFn {
         template <typename Tree>
-        VoidResult stream(Tree&& tree) noexcept
+        void stream(Tree&& tree)
         {
             return tree.check();
         }
     };
 
-    VoidResult check(const CheckResultConsumerFn& consumer) const noexcept
+    VoidResult check(const CheckResultConsumerFn& consumer) const
     {
         return Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn());
     }
@@ -955,15 +955,15 @@ public:
 
     struct GenerateDataEventsFn {
         template <int32_t Idx, typename Tree>
-        VoidResult stream(Tree&& tree, IBlockDataEventHandler* handler) noexcept
+        void stream(Tree&& tree, IBlockDataEventHandler* handler) noexcept
         {
             return tree.generateDataEvents(handler);
         }
     };
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const
     {
-        MEMORIA_TRY_VOID(node_->template generateDataEvents<RootMetadataList>(handler));
+        node_->template generateDataEvents<RootMetadataList>(handler);
         return Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
     }
 

@@ -187,71 +187,59 @@ public:
         return refs == 1;
     }
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
-        return wrap_throwing([&]{
-            handler->value("GID",               &uuid_);
-            handler->value("ID",                &id_);
-            handler->value("SNAPSHOT_ID",       &snapshot_id_);
-            handler->value("CTR_HASH",          &ctr_type_hash_);
-            handler->value("PAGE_TYPE_HASH",    &block_type_hash_);
-            handler->value("PAGE_SIZE",         &memory_block_size_);
+        handler->value("GID",               &uuid_);
+        handler->value("ID",                &id_);
+        handler->value("SNAPSHOT_ID",       &snapshot_id_);
+        handler->value("CTR_HASH",          &ctr_type_hash_);
+        handler->value("PAGE_TYPE_HASH",    &block_type_hash_);
+        handler->value("PAGE_SIZE",         &memory_block_size_);
 
-            handler->value("NEXT_BLOCK_POS",    &next_block_pos_);
-            handler->value("TARGET_BLOCK_POS",  &target_block_pos_);
+        handler->value("NEXT_BLOCK_POS",    &next_block_pos_);
+        handler->value("TARGET_BLOCK_POS",  &target_block_pos_);
 
-            int64_t refs = references();
-            handler->value("REFERENCES",        &refs);
-
-            return VoidResult::of();
-        });
+        int64_t refs = references();
+        handler->value("REFERENCES",        &refs);
     }
 
 
     template <template <typename T> class FieldFactory, typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
-        return wrap_throwing([&]{
-            FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
-            FieldFactory<uint64_t>::serialize(buf, block_type_hash());
-            FieldFactory<int32_t>::serialize(buf, memory_block_size());
+        FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
+        FieldFactory<uint64_t>::serialize(buf, block_type_hash());
+        FieldFactory<int32_t>::serialize(buf, memory_block_size());
 
-            FieldFactory<uint64_t>::serialize(buf, next_block_pos());
-            FieldFactory<uint64_t>::serialize(buf, target_block_pos());
+        FieldFactory<uint64_t>::serialize(buf, next_block_pos());
+        FieldFactory<uint64_t>::serialize(buf, target_block_pos());
 
-            FieldFactory<PageIdType>::serialize(buf, id());
-            FieldFactory<PageGuidType>::serialize(buf, uuid());
-            FieldFactory<SnapshotID>::serialize(buf, snapshot_id());
+        FieldFactory<PageIdType>::serialize(buf, id());
+        FieldFactory<PageGuidType>::serialize(buf, uuid());
+        FieldFactory<SnapshotID>::serialize(buf, snapshot_id());
 
-            int64_t refs = references();
-            FieldFactory<int64_t>::serialize(buf, refs);
-
-            return VoidResult::of();
-        });
+        int64_t refs = references();
+        FieldFactory<int64_t>::serialize(buf, refs);
     }
 
     template <template <typename T> class FieldFactory, typename SerializationData, typename IDResolver>
-    VoidResult cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    void cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const
     {
-        return wrap_throwing([&]{
-            FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
-            FieldFactory<uint64_t>::serialize(buf, block_type_hash());
-            FieldFactory<int32_t>::serialize(buf, memory_block_size());
+        FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
+        FieldFactory<uint64_t>::serialize(buf, block_type_hash());
+        FieldFactory<int32_t>::serialize(buf, memory_block_size());
 
-            FieldFactory<uint64_t>::serialize(buf, next_block_pos());
-            FieldFactory<uint64_t>::serialize(buf, target_block_pos());
+        FieldFactory<uint64_t>::serialize(buf, next_block_pos());
+        FieldFactory<uint64_t>::serialize(buf, target_block_pos());
 
-            BlockID actual_id(id_value_);
+        BlockID actual_id(id_value_);
 
-            FieldFactory<PageIdType>::serialize(buf, actual_id);
-            FieldFactory<PageGuidType>::serialize(buf, uuid());
-            FieldFactory<SnapshotID>::serialize(buf, snapshot_id());
+        FieldFactory<PageIdType>::serialize(buf, actual_id);
+        FieldFactory<PageGuidType>::serialize(buf, uuid());
+        FieldFactory<SnapshotID>::serialize(buf, snapshot_id());
 
-            int64_t refs = references();
-            FieldFactory<int64_t>::serialize(buf, refs);
-
-            return VoidResult::of();
-        });
+        int64_t refs = references();
+        FieldFactory<int64_t>::serialize(buf, refs);
     }
 
     template <typename IDResolver>
@@ -265,26 +253,22 @@ public:
     }
 
     template <template <typename T> class FieldFactory, typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
-        return wrap_throwing([&]{
-            FieldFactory<uint64_t>::deserialize(buf, ctr_type_hash());
-            FieldFactory<uint64_t>::deserialize(buf, block_type_hash());
-            FieldFactory<int32_t>::deserialize(buf,  memory_block_size());
+        FieldFactory<uint64_t>::deserialize(buf, ctr_type_hash());
+        FieldFactory<uint64_t>::deserialize(buf, block_type_hash());
+        FieldFactory<int32_t>::deserialize(buf,  memory_block_size());
 
-            FieldFactory<uint64_t>::deserialize(buf, next_block_pos());
-            FieldFactory<uint64_t>::deserialize(buf, target_block_pos());
+        FieldFactory<uint64_t>::deserialize(buf, next_block_pos());
+        FieldFactory<uint64_t>::deserialize(buf, target_block_pos());
 
-            FieldFactory<PageIdType>::deserialize(buf,   id());
-            FieldFactory<PageGuidType>::deserialize(buf, uuid());
-            FieldFactory<SnapshotID>::deserialize(buf,   snapshot_id());
+        FieldFactory<PageIdType>::deserialize(buf,   id());
+        FieldFactory<PageGuidType>::deserialize(buf, uuid());
+        FieldFactory<SnapshotID>::deserialize(buf,   snapshot_id());
 
-            int64_t refs;
-            FieldFactory<int64_t>::deserialize(buf, refs);
-            set_references(refs);
-
-            return VoidResult::of();
-        });
+        int64_t refs;
+        FieldFactory<int64_t>::deserialize(buf, refs);
+        set_references(refs);
     }
 };
 

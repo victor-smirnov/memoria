@@ -45,14 +45,13 @@ namespace detail_ {
 
     template <typename BufferSO, bool Indexed = BufferSO::Indexed>
     struct BufferContentChecker {
-        static VoidResult check(const BufferSO& buffer) {
-            return VoidResult::of();
+        static void check(const BufferSO& buffer) {
         }
     };
 
     template <typename BufferSO>
     struct BufferContentChecker<BufferSO, true> {
-        static VoidResult check(const BufferSO& buffer)
+        static void check(const BufferSO& buffer)
         {
             for (int32_t c = 0; c < BufferSO::Indexes; c++) {
                 for (psize_t idx = 1; idx < buffer.size(); idx++)
@@ -64,12 +63,10 @@ namespace detail_ {
                                     c,
                                     buffer.access(c, idx - 1),
                                     buffer.access(c, idx)
-                        );
+                        ).do_throw();
                     }
                 }
             }
-
-            return VoidResult::of();
         }
     };
 }
@@ -161,7 +158,7 @@ public:
         return lengths;
     }
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         const auto& meta = data_->metadata();
 
@@ -189,11 +186,9 @@ public:
 
         handler->endGroup();
         handler->endStruct();
-
-        return VoidResult::of();
     }
 
-    VoidResult check() const noexcept
+    void check() const
     {
         return detail_::BufferContentChecker<MyType>::check(*this);
     }

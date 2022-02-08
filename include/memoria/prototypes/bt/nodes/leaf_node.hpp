@@ -101,29 +101,29 @@ public:
 
     struct SerializeFn {
         template <typename Tree, typename SerializationData>
-        VoidResult stream(const Tree* tree, SerializationData* buf) noexcept
+        void stream(const Tree* tree, SerializationData* buf)
         {
             return tree->serialize(*buf);
         }
     };
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
-        MEMORIA_TRY_VOID(Base::template serialize<RootMetadataList>(buf));
+        Base::template serialize<RootMetadataList>(buf);
 
-        return Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
+        return Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf).get_or_throw();
     }
 
     struct CowSerializeFn {
         template <typename Tree, typename SerializationData, typename IDResolver>
-        VoidResult stream(const Tree* tree, SerializationData* buf, const IDResolver*) noexcept
+        void stream(const Tree* tree, SerializationData* buf, const IDResolver*)
         {
             return tree->serialize(*buf);
         }
 
         template <typename SerializationData, typename IDResolver, bool Indexed, typename ValueHolder>
-        VoidResult stream(
+        void stream(
                 const PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
                             CowBlockID<ValueHolder>,
@@ -132,18 +132,18 @@ public:
                 >* pkd_buffer,
                 SerializationData* buf,
                 const IDResolver* id_resolver
-        ) noexcept
+        )
         {
             return pkd_buffer->cow_serialize(*buf, id_resolver);
         }
     };
 
     template <typename SerializationData, typename IDResolver>
-    VoidResult cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    void cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const
     {
-        MEMORIA_TRY_VOID(Base::template cow_serialize<RootMetadataList>(buf, id_resolver));
+        Base::template cow_serialize<RootMetadataList>(buf, id_resolver);
 
-        return Dispatcher::dispatchNotEmpty(allocator(), CowSerializeFn(), &buf, id_resolver);
+        return Dispatcher::dispatchNotEmpty(allocator(), CowSerializeFn(), &buf, id_resolver).get_or_throw();
     }
 
 
@@ -213,21 +213,19 @@ public:
 
     struct DeserializeFn {
         template <typename Tree, typename DeserializationData>
-        VoidResult stream(Tree* tree, DeserializationData* buf) noexcept
+        void stream(Tree* tree, DeserializationData* buf)
         {
             return tree->deserialize(*buf);
         }
     };
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
-        MEMORIA_TRY_VOID(Base::template deserialize<RootMetadataList>(buf));
-        MEMORIA_TRY_VOID(Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf));
+        Base::template deserialize<RootMetadataList>(buf);
+        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf).get_or_throw();
 
         ProfileSpecificBlockTools<typename Types::Profile>::after_deserialization(this);
-
-        return VoidResult::of();
     }
 
 };

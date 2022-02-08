@@ -98,38 +98,34 @@ public:
 
 
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startStruct();
         handler->startGroup("DATA_TYPE_OPT_BUFFER");
 
-        MEMORIA_TRY_VOID(data_->bitmap()->generateDataEvents(handler));
-        MEMORIA_TRY_VOID(array_.generateDataEvents(handler));
+        data_->bitmap()->generateDataEvents(handler);
+        array_.generateDataEvents(handler);
 
         handler->endGroup();
         handler->endStruct();
-
-        return VoidResult::of();
     }
 
-    VoidResult check() const noexcept
+    void check() const
     {
-        MEMORIA_TRY_VOID(data_->bitmap()->check());
-        MEMORIA_TRY_VOID(array_.check());
+        data_->bitmap()->check();
+        array_.check();
 
         auto rnk1 = data_->bitmap()->rank(1);
         auto array_size = array_.size();
 
         if (rnk1 != array_size)
         {
-            return MEMORIA_MAKE_GENERIC_ERROR(
+            MEMORIA_MAKE_GENERIC_ERROR(
                 "PackedDataTypeOptBufferSO: Bitmap.rank(1) != array.size(): {} {}",
                 rnk1,
                 array_size
-            );
+            ).do_throw();
         }
-
-        return VoidResult::of();
     }
 
     psize_t size() const noexcept {

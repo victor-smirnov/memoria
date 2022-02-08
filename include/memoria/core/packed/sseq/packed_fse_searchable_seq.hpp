@@ -232,19 +232,19 @@ public:
 
     // ===================================== Allocation ================================= //
 
-    VoidResult init() noexcept
+    VoidResult init()
     {
         return init_bs(empty_size());
     }
 
-    VoidResult init(int32_t block_size) noexcept
+    VoidResult init(int32_t block_size)
     {
         MEMORIA_ASSERT_RTN(block_size, >=, empty_size());
 
         return init_bs(empty_size());
     }
 
-    VoidResult init_bs(int32_t block_size) noexcept
+    VoidResult init_bs(int32_t block_size)
     {
         MEMORIA_TRY_VOID(Base::init(block_size, 3));
 
@@ -291,7 +291,7 @@ public:
     }
 
 
-    static int32_t empty_size() noexcept
+    static int32_t empty_size()
     {
         int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
         int32_t index_length    = 0;
@@ -300,7 +300,7 @@ public:
         return block_size;
     }
 
-    static int32_t estimate_block_size(int32_t size, int32_t density_hi = 1, int32_t density_lo = 1) noexcept
+    static int32_t estimate_block_size(int32_t size, int32_t density_hi = 1, int32_t density_lo = 1)
     {
         int32_t symbols_block_size  = PackedAllocatable::roundUpBitsToAlignmentBlocks(size * BitsPerSymbol);
         int32_t index_size          = PackedAllocatable::divUp(size , ValuesPerBranch);
@@ -313,14 +313,14 @@ public:
         return block_size;
     }
 
-    VoidResult removeIndex() noexcept
+    VoidResult removeIndex()
     {
         MEMORIA_TRY_VOID(Base::free(INDEX));
         return VoidResult::of();
     }
 
     template <typename IndexSizeT>
-    VoidResult createIndex(IndexSizeT&& index_size) noexcept
+    VoidResult createIndex(IndexSizeT&& index_size)
     {
         int32_t index_block_size = Index::block_size(index_size);
         MEMORIA_TRY_VOID(Base::resizeBlock(INDEX, index_block_size));
@@ -341,24 +341,21 @@ public:
 
     // ========================================= Update ================================= //
 
-    VoidResult reindex() noexcept
+    VoidResult reindex()
     {
         typename Types::template ReindexFn<MyType> reindex_fn;
         return reindex_fn.reindex(*this);
     }
 
-    VoidResult check() const noexcept
+    void check() const
     {
-        return wrap_throwing([&]() -> VoidResult {
-            if (has_index())
-            {
-                MEMORIA_TRY_VOID(index()->check());
+        if (has_index())
+        {
+            index()->check();
 
-                typename Types::template ReindexFn<MyType> reindex_fn;
-                return reindex_fn.check(*this);
-            }
-            return VoidResult::of();
-        });
+            typename Types::template ReindexFn<MyType> reindex_fn;
+            return reindex_fn.check(*this);
+        }
     }
 
     void set(int32_t idx, int32_t symbol)
@@ -368,7 +365,7 @@ public:
         tools().set(symbols(), idx, symbol);
     }
 
-    VoidResult clear() noexcept
+    VoidResult clear()
     {
         MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, 0));
 
@@ -381,7 +378,7 @@ public:
 
 
 
-    VoidResult enlargeData(int32_t length) noexcept
+    VoidResult enlargeData(int32_t length)
     {
         int32_t capacity = this->capacity();
 
@@ -396,7 +393,7 @@ public:
     }
 
     template <typename AccessorFn>
-    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements)
     {
         MEMORIA_ASSERT_RTN(row_at, <=, this->size());
 
@@ -410,14 +407,14 @@ public:
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements)
     {
         MEMORIA_TRY_VOID(remove_entries(row_at, size));
         return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
     }
 
     template <typename AccessorFn>
-    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
+    VoidResult remove_entries(psize_t row_at, psize_t size)
     {
         MEMORIA_ASSERT_RTN(row_at + size, <=, this->size());
         return removeSpace(row_at, row_at + size);
@@ -425,7 +422,7 @@ public:
 
 
 protected:
-    VoidResult insertDataRoom(int32_t pos, int32_t length) noexcept
+    VoidResult insertDataRoom(int32_t pos, int32_t length)
     {
         MEMORIA_TRY_VOID(enlargeData(length));
 
@@ -440,7 +437,7 @@ protected:
         return VoidResult::of();
     }
 
-    VoidResult shrinkData(int32_t length) noexcept
+    VoidResult shrinkData(int32_t length)
     {
         int32_t new_size = size() - length;
 
@@ -455,7 +452,7 @@ protected:
 
 public:
 
-    VoidResult insert(int32_t pos, int32_t symbol) noexcept
+    VoidResult insert(int32_t pos, int32_t symbol)
     {
         MEMORIA_TRY_VOID(insertDataRoom(pos, 1));
 
@@ -466,7 +463,7 @@ public:
         return reindex();
     }
 
-    VoidResult remove(int32_t start, int32_t end) noexcept
+    VoidResult remove(int32_t start, int32_t end)
     {
         int32_t& size = this->size();
 
@@ -489,12 +486,12 @@ public:
         return reindex();
     }
 
-    VoidResult removeSpace(int32_t start, int32_t end) noexcept {
+    VoidResult removeSpace(int32_t start, int32_t end) {
         return remove(start, end);
     }
 
 
-    VoidResult removeSymbol(int32_t idx) noexcept {
+    VoidResult removeSymbol(int32_t idx) {
         return remove(idx, idx + 1);
     }
 
@@ -515,7 +512,7 @@ public:
     }
 
 
-    VoidResult insert(int32_t start, int32_t length, std::function<Value ()> fn) noexcept
+    VoidResult insert(int32_t start, int32_t length, std::function<Value ()> fn)
     {
         MEMORIA_ASSERT_RTN(start, >=, 0);
         MEMORIA_ASSERT_RTN(start, <=, size());
@@ -531,7 +528,7 @@ public:
 
 
     template <typename Adaptor>
-    VoidResult fill_with_buf(int32_t start, int32_t length, Adaptor&& adaptor) noexcept
+    VoidResult fill_with_buf(int32_t start, int32_t length, Adaptor&& adaptor)
     {
         int32_t size = this->size();
 
@@ -558,7 +555,7 @@ public:
     }
 
 
-    VoidResult update(int32_t start, int32_t end, std::function<Value ()> fn) noexcept
+    VoidResult update(int32_t start, int32_t end, std::function<Value ()> fn)
     {
         MEMORIA_ASSERT_RTN(start, >=, 0);
         MEMORIA_ASSERT_RTN(start, <=, end);
@@ -588,7 +585,7 @@ public:
 
 
 
-    VoidResult splitTo(MyType* other, int32_t idx) noexcept
+    VoidResult splitTo(MyType* other, int32_t idx)
     {
         int32_t to_move     = this->size() - idx;
         int32_t other_size  = other->size();
@@ -606,7 +603,7 @@ public:
         return remove(idx, this->size());
     }
 
-    VoidResult mergeWith(MyType* other) const noexcept
+    VoidResult mergeWith(MyType* other) const
     {
         int32_t my_size     = this->size();
         int32_t other_size  = other->size();
@@ -754,7 +751,7 @@ public:
     }
 
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startGroup("PACKED_SEQUENCE");
 
@@ -765,7 +762,7 @@ public:
 
         if (has_index())
         {
-            MEMORIA_TRY_VOID(index()->generateDataEvents(handler));
+            index()->generateDataEvents(handler);
         }
 
         handler->startGroup("DATA", size());
@@ -775,44 +772,38 @@ public:
         handler->endGroup();
 
         handler->endGroup();
-
-        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
-        MEMORIA_TRY_VOID(Base::serialize(buf));
+        Base::serialize(buf);
 
         const Metadata* meta = this->metadata();
 
         FieldFactory<int32_t>::serialize(buf, meta->size());
 
         if (has_index()) {
-            MEMORIA_TRY_VOID(index()->serialize(buf));
+            index()->serialize(buf);
         }
 
         FieldFactory<Value>::serialize(buf, symbols(), symbol_buffer_size());
-
-        return VoidResult::of();
     }
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
-        MEMORIA_TRY_VOID(Base::deserialize(buf));
+        Base::deserialize(buf);
 
         Metadata* meta = this->metadata();
 
         FieldFactory<int32_t>::deserialize(buf, meta->size());
 
         if (has_index()) {
-            MEMORIA_TRY_VOID(index()->deserialize(buf));
+            index()->deserialize(buf);
         }
 
         FieldFactory<Value>::deserialize(buf, symbols(), symbol_buffer_size());
-
-        return VoidResult::of();
     }
 
 

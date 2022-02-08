@@ -378,20 +378,20 @@ public:
 
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
-        MEMORIA_TRY_VOID(Base::serialize(buf));
+        Base::serialize(buf);
 
-        MEMORIA_TRY_VOID(bitmap()->serialize(buf));
+        bitmap()->serialize(buf);
         return array()->serialize(buf);
     }
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
-        MEMORIA_TRY_VOID(Base::deserialize(buf));
+        Base::deserialize(buf);
 
-        MEMORIA_TRY_VOID(bitmap()->deserialize(buf));
+        bitmap()->deserialize(buf);
         return array()->deserialize(buf);
     }
 

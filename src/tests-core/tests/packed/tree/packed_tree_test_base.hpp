@@ -250,7 +250,7 @@ public:
     void assertIndexCorrect(const char* src, const TreePtr& tree)
     {
         try {
-            tree->check().get_or_throw();
+            tree->check();
         }
         catch (Exception& e)
         {

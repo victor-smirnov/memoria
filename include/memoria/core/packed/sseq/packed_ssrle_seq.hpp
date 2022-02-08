@@ -260,17 +260,17 @@ public:
         return block_size;
     }
 
-    VoidResult init(size_t block_size) noexcept
+    VoidResult init(size_t block_size)
     {
         MEMORIA_ASSERT_RTN(block_size, >=, empty_size());
         return init();
     }
 
-    VoidResult init() noexcept {
+    VoidResult init() {
         return init_bs(empty_size());
     }
 
-    VoidResult init_bs(size_t block_size) noexcept
+    VoidResult init_bs(size_t block_size)
     {
         MEMORIA_TRY_VOID(Base::init(block_size, TOTAL_SEGMENTS_));
 
@@ -286,7 +286,7 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult clear() noexcept
+    VoidResult clear()
     {
         MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, 0));
 
@@ -300,7 +300,7 @@ public:
         return VoidResult::of();
     }
 
-    void reset() noexcept {
+    void reset() {
         auto meta = this->metadata();
 
         meta->size()        = SeqSizeT{};
@@ -309,12 +309,12 @@ public:
 
 
 public:
-    static constexpr size_t default_size(size_t available_space) noexcept
+    static constexpr size_t default_size(size_t available_space)
     {
         return empty_size();
     }
 
-    VoidResult init_default(size_t block_size) noexcept {
+    VoidResult init_default(size_t block_size) {
         return init();
     }
 
@@ -337,7 +337,7 @@ public:
     }
 
 
-    VoidResult removeIndex() noexcept
+    VoidResult removeIndex()
     {
         MEMORIA_TRY_VOID(Base::free(SIZE_INDEX));
         MEMORIA_TRY_VOID(Base::free(SUM_INDEX));
@@ -346,7 +346,7 @@ public:
     }
 
 
-    VoidResult createIndex(size_t index_size) noexcept
+    VoidResult createIndex(size_t index_size)
     {
         size_t size_index_block_size = SizeIndex::block_size(index_size);
         MEMORIA_TRY_VOID(Base::resizeBlock(SIZE_INDEX, size_index_block_size));
@@ -369,7 +369,7 @@ public:
     // ========================================= Update ================================= //
 
     MMA_PKD_OOM_SAFE
-    VoidResult reindex(bool compactify = true) noexcept {
+    VoidResult reindex(bool compactify = true) {
         return do_reindex(Optional<Span<SymbolsRunT>>{}, compactify);
     }
 
@@ -378,30 +378,26 @@ private:
     VoidResult do_reindex(
             Optional<Span<SymbolsRunT>> data,
             bool compactify = false
-    ) noexcept
+    )
     {
         ssrleseq::ReindexFn<MyType> reindex_fn;
         return reindex_fn.reindex(*this, data, compactify);
     }
 public:
 
-    VoidResult check() const noexcept
+    void check() const
     {
-        return wrap_throwing([&]() -> VoidResult {
-            if (has_index())
-            {
-                MEMORIA_TRY_VOID(size_index()->check());
-                MEMORIA_TRY_VOID(sum_index()->check());
+        if (has_index())
+        {
+            size_index()->check();
+            sum_index()->check();
 
-                ssrleseq::ReindexFn<MyType> reindex_fn;
-                return reindex_fn.check(*this);
-            }
-
-            return VoidResult::of();
-        });
+            ssrleseq::ReindexFn<MyType> reindex_fn;
+            return reindex_fn.check(*this);
+        }
     }
 
-    VoidResult ensure_capacity(int32_t capacity) noexcept
+    VoidResult ensure_capacity(int32_t capacity)
     {
         int32_t current_capacity = this->symbols_block_capacity();
 
@@ -420,7 +416,7 @@ public:
     }
 
 
-    VoidResult enlargeData(int32_t length) noexcept
+    VoidResult enlargeData(int32_t length)
     {
         int32_t new_size = this->element_size(SYMBOLS) + length;
         MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, new_size));
@@ -429,7 +425,7 @@ public:
 
 protected:
 
-    SeqSizeT count_symbols(Span<const SymbolsRunT> runs) noexcept
+    SeqSizeT count_symbols(Span<const SymbolsRunT> runs)
     {
         SeqSizeT sum{};
         for (const auto& run: runs) {
@@ -440,7 +436,7 @@ protected:
 
 public:
 
-    Result<size_t> append(Span<const SymbolsRunT> runs) noexcept
+    Result<size_t> append(Span<const SymbolsRunT> runs)
     {
         using ResultT = Result<size_t>;
 
@@ -469,7 +465,7 @@ public:
     }
 private:
 
-    SizeTResult do_append(Metadata* meta, size_t start, SeqSizeT run_len0, Span<const SymbolsRunT> runs) noexcept
+    SizeTResult do_append(Metadata* meta, size_t start, SeqSizeT run_len0, Span<const SymbolsRunT> runs)
     {
         size_t code_units = RunTraits::compute_size(runs, start);
         size_t syms_size = element_size(SYMBOLS) / sizeof (CodeUnitT);
@@ -507,20 +503,20 @@ private:
         vv.insert(vv.end(), span.begin(), span.end());
     }
 
-    VoidResult split_buffer(
+    void split_buffer(
             std::vector<SymbolsRunT>& left,
             std::vector<SymbolsRunT>& right,
-            SeqSizeT pos) const noexcept
+            SeqSizeT pos) const
     {
         std::vector<SymbolsRunT> runs = iterator().as_vector();
         return split_buffer(runs, left, right, pos);
     }
 
-    VoidResult split_buffer(
+    void split_buffer(
             const std::vector<SymbolsRunT>& runs,
             std::vector<SymbolsRunT>& left,
             std::vector<SymbolsRunT>& right,
-            SeqSizeT pos) const noexcept
+            SeqSizeT pos) const
     {
         auto res = find_in_syms(runs, pos);
 
@@ -540,15 +536,13 @@ private:
         else {
             left = std::move(runs);
         }
-
-        return VoidResult::of();
     }
 
 
 
 public:
 
-    VoidResult insert(SeqSizeT idx, Span<const SymbolsRunT> runs) noexcept
+    VoidResult insert(SeqSizeT idx, Span<const SymbolsRunT> runs)
     {
         std::vector<SymbolsRunT> left;
         std::vector<SymbolsRunT> right;
@@ -557,7 +551,7 @@ public:
 
         if (idx <= size)
         {
-            MEMORIA_TRY_VOID(split_buffer(left, right, idx));
+            split_buffer(left, right, idx);
 
             append_all(left, runs);
             append_all(left, to_const_span(right));
@@ -584,11 +578,11 @@ public:
         }
     }
 
-    VoidResult removeSpace(SeqSizeT start, SeqSizeT end) noexcept {
+    VoidResult removeSpace(SeqSizeT start, SeqSizeT end) {
         return remove(start, end);
     }
 
-    VoidResult remove(SeqSizeT start, SeqSizeT end, bool compactify = false) noexcept
+    VoidResult remove(SeqSizeT start, SeqSizeT end, bool compactify = false)
     {
         if (end > start)
         {
@@ -604,23 +598,23 @@ public:
             if (end < meta->size()) {
                 if (start > SeqSizeT{0}) {
                     std::vector<SymbolsRunT> right1;
-                    MEMORIA_TRY_VOID(split_buffer(runs, runs_res, right1, start));
+                    split_buffer(runs, runs_res, right1, start);
 
                     std::vector<SymbolsRunT> left2;
                     std::vector<SymbolsRunT> right2;
-                    MEMORIA_TRY_VOID(split_buffer(right1, left2, right2, end - start));
+                    split_buffer(right1, left2, right2, end - start);
 
                     append_all(runs_res, to_const_span(right2));
                 }
                 else {
                     std::vector<SymbolsRunT> left;
-                    MEMORIA_TRY_VOID(split_buffer(runs, left, runs_res, end));
+                    split_buffer(runs, left, runs_res, end);
                 }
             }
             else {
                 if (start > SeqSizeT{0}) {
                     std::vector<SymbolsRunT> right;
-                    MEMORIA_TRY_VOID(split_buffer(runs, runs_res, right, start));
+                    split_buffer(runs, runs_res, right, start);
                 }
                 else {
                     return clear();
@@ -645,7 +639,7 @@ public:
         }
     }
 
-    VoidResult compactify() noexcept
+    VoidResult compactify()
     {
         std::vector<SymbolsRunT> syms = this->iterator().as_vector();
 
@@ -662,12 +656,12 @@ public:
         return this->reindex();
     }
 
-    void compactify_runs(Span<SymbolsRunT> runs) const noexcept
+    void compactify_runs(Span<SymbolsRunT> runs) const
     {
         RunTraits::compactify_runs(runs);
     }
 
-    void compactify_runs(std::vector<SymbolsRunT>& runs) const noexcept
+    void compactify_runs(std::vector<SymbolsRunT>& runs) const
     {
         RunTraits::compactify_runs(runs);
     }
@@ -720,7 +714,7 @@ public:
         }
     }
 
-    VoidResult mergeWith(MyType* other) const noexcept
+    VoidResult mergeWith(MyType* other) const
     {
         auto meta       = this->metadata();
         auto other_meta = other->metadata();
@@ -1899,7 +1893,7 @@ public:
 
 
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startGroup("PACKED_RLE_SEQUENCE");
         auto meta = this->metadata();
@@ -1910,8 +1904,8 @@ public:
         if (has_index())
         {
             handler->startGroup("INDEXES");
-            MEMORIA_TRY_VOID(size_index()->generateDataEvents(handler));
-            MEMORIA_TRY_VOID(sum_index()->generateDataEvents(handler));
+            size_index()->generateDataEvents(handler);
+            sum_index()->generateDataEvents(handler);
             handler->endGroup();
         }
 
@@ -1929,14 +1923,12 @@ public:
         handler->endGroup();
 
         handler->endGroup();
-
-        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
-        MEMORIA_TRY_VOID(Base::serialize(buf));
+        Base::serialize(buf);
 
         const Metadata* meta = this->metadata();
 
@@ -1944,20 +1936,18 @@ public:
         FieldFactory<uint64_t>::serialize(buf, meta->code_units());
 
         if (has_index()){
-            MEMORIA_TRY_VOID(size_index()->serialize(buf));
-            MEMORIA_TRY_VOID(sum_index()->serialize(buf));
+            size_index()->serialize(buf);
+            sum_index()->serialize(buf);
         }
 
         FieldFactory<CodeUnitT>::serialize(buf, symbols().data(), meta->code_units());
-
-        return VoidResult::of();
     }
 
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
-        MEMORIA_TRY_VOID(Base::deserialize(buf));
+        Base::deserialize(buf);
 
         Metadata* meta = this->metadata();
 
@@ -1965,13 +1955,11 @@ public:
         FieldFactory<uint64_t>::deserialize(buf, meta->code_units());
 
         if (has_index()) {
-            MEMORIA_TRY_VOID(size_index()->deserialize(buf));
-            MEMORIA_TRY_VOID(sum_index()->deserialize(buf));
+            size_index()->deserialize(buf);
+            sum_index()->deserialize(buf);
         }
 
         FieldFactory<CodeUnitT>::deserialize(buf, symbols().data(), meta->code_units());
-
-        return VoidResult::of();
     }
 
 
@@ -1981,7 +1969,7 @@ public:
     }
 
 
-    VoidResult insert_io_substream(SeqSizeT at, const io::IOSubstream& substream, SeqSizeT start, SeqSizeT size) noexcept
+    VoidResult insert_io_substream(SeqSizeT at, const io::IOSubstream& substream, SeqSizeT start, SeqSizeT size)
     {
         using BufferT = io::IOSSRLEBuffer<AlphabetSize>;
         const BufferT& buffer = io::substream_cast<BufferT>(substream);
@@ -2007,7 +1995,7 @@ private:
     };
 
 
-    auto find_run(const Metadata* meta, SeqSizeT symbol_pos) const noexcept
+    auto find_run(const Metadata* meta, SeqSizeT symbol_pos) const
     {
         if (symbol_pos < meta->size())
         {

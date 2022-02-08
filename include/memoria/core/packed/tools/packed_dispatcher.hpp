@@ -115,7 +115,7 @@ public:
     using ForAllStructs = TransformTL<List, MapFn>;
 
     template <typename Fn, typename... Args>
-    static auto dispatch(int32_t idx, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static auto dispatch(int32_t idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (idx == ListIdx)
         {
@@ -135,7 +135,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static auto dispatch(int32_t idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static auto dispatch(int32_t idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (idx == ListIdx)
         {
@@ -155,7 +155,7 @@ public:
 
 
     template <int32_t StreamIdx, typename Fn, typename... Args>
-    static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
@@ -174,7 +174,7 @@ public:
 
 
     template <int32_t StreamIdx, typename Fn, typename... Args>
-    static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
@@ -198,7 +198,7 @@ public:
             !HasVoid<Fn, Args...>::Value,
             Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchAllStatic(Fn&& fn, Args&&... args) noexcept
+    dispatchAllStatic(Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -214,7 +214,7 @@ public:
             HasVoid<Fn, Args...>::Value,
             VoidResult
     >::type
-    dispatchAllStatic(Fn&& fn, Args&&... args) noexcept
+    dispatchAllStatic(Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
 
@@ -228,7 +228,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (!alloc->is_empty(AllocatorIdx))
         {
@@ -244,7 +244,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (!alloc->is_empty(AllocatorIdx))
         {
@@ -260,7 +260,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchNotEmpty(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
@@ -275,7 +275,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchNotEmpty(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
@@ -295,7 +295,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         VoidResult
     >::type
-    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -316,7 +316,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         RtnTuple<Fn, Args...> tuple;
 
@@ -331,7 +331,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         VoidResult
     >::type
-    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -352,7 +352,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -368,7 +368,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         VoidResult
     >::type
-    dispatchAll2(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll2(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx))) {
@@ -388,7 +388,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchAll2(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll2(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         RtnTuple<Fn, Args...> tuple;
 
@@ -403,7 +403,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         VoidResult
     >::type
-    dispatchAll2(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll2(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -424,7 +424,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchAll2(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll2(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -441,7 +441,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         VoidResult
     >::type
-    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args) noexcept
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
     {
         if (idx == ListIdx)
         {
@@ -460,7 +460,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args) noexcept
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -476,7 +476,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -491,7 +491,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         VoidResult
     >::type
-    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -512,7 +512,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         RtnTuple<Fn, Args...> tuple;
 
@@ -527,7 +527,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         VoidResult
     >::type
-    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx))){
@@ -545,7 +545,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx))){
@@ -562,7 +562,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -581,7 +581,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllTupleStatic(Tuple& tuple, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllTupleStatic(Tuple& tuple, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
 
@@ -596,7 +596,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllTuple(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllTuple(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -614,7 +614,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllTuple(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllTuple(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -632,7 +632,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllStaticTuple(Tuple& tuple, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllStaticTuple(Tuple& tuple, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
 
@@ -706,7 +706,7 @@ public:
     using ForAllStructs = TransformTL<List, MapFn>;
 
     template <typename Fn, typename... Args>
-    static auto dispatch(int32_t idx, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static auto dispatch(int32_t idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (idx == ListIdx)
         {
@@ -727,7 +727,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static auto dispatch(int32_t idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept ->
+    static auto dispatch(int32_t idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args) ->
         Result<decltype(memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), alloc->template get<Head>(AllocatorIdx), std::forward<Args>(args)...))>
     {
         if (idx == ListIdx)
@@ -749,7 +749,7 @@ public:
 
 
     template <int32_t StreamIdx, typename Fn, typename... Args>
-    static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
@@ -769,7 +769,7 @@ public:
 
 
     template <int32_t StreamIdx, typename Fn, typename... Args>
-    static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
@@ -793,7 +793,7 @@ public:
             !HasVoid<Fn, Args...>::Value,
             Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchAllStatic(Fn&& fn, Args&&... args) noexcept
+    dispatchAllStatic(Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -809,7 +809,7 @@ public:
             HasVoid<Fn, Args...>::Value,
             VoidResult
     >::type
-    dispatchAllStatic(Fn&& fn, Args&&... args) noexcept
+    dispatchAllStatic(Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         return wrap_throwing([&](){
@@ -821,7 +821,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (!alloc->is_empty(AllocatorIdx))
         {
@@ -836,7 +836,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (!alloc->is_empty(AllocatorIdx))
         {
@@ -851,7 +851,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchNotEmpty(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
@@ -866,7 +866,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchNotEmpty(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
@@ -886,7 +886,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         VoidResult
     >::type
-    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args) noexcept
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
     {
         if (idx == ListIdx)
         {
@@ -906,7 +906,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args) noexcept
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -923,7 +923,7 @@ public:
             !HasVoid<Fn, Args...>::Value,
             Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         RtnTuple<Fn, Args...> tuple;
 
@@ -938,7 +938,7 @@ public:
             !HasVoid<Fn, Args...>::Value,
             Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         RtnTuple<Fn, Args...> tuple;
 
@@ -953,7 +953,7 @@ public:
             HasVoid<Fn, Args...>::Value,
             VoidResult
     >::type
-    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -974,7 +974,7 @@ public:
             HasVoidConst<Fn, Args...>::Value,
             VoidResult
     >::type
-    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -998,7 +998,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -1013,7 +1013,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         VoidResult
     >::type
-    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -1032,7 +1032,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         RtnTuple<Fn, Args...> tuple;
 
@@ -1047,7 +1047,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         VoidResult
     >::type
-    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -1064,7 +1064,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -1080,7 +1080,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -1096,7 +1096,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllTupleStatic(Tuple& tuple, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllTupleStatic(Tuple& tuple, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
 
@@ -1109,7 +1109,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllTuple(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllTuple(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -1125,7 +1125,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllTuple(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllTuple(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -1141,7 +1141,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static VoidResult dispatchAllStaticTuple(Tuple& tuple, Fn&& fn, Args&&... args) noexcept
+    static VoidResult dispatchAllStaticTuple(Tuple& tuple, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
 
@@ -1162,55 +1162,55 @@ public:
     template<typename, int32_t, int32_t> friend class PackedDispatcher;
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchAllStatic(Fn&&, Args&&...) noexcept {
+    static VoidResult dispatchAllStatic(Fn&&, Args&&...) {
         return VoidResult::of();
     }
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(PackedAllocator*, Fn&&, Args&&...) noexcept
+    static VoidResult dispatchNotEmpty(PackedAllocator*, Fn&&, Args&&...)
     {
         return VoidResult::of();
     }
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(const PackedAllocator*, Fn&&, Args&&...) noexcept
+    static VoidResult dispatchNotEmpty(const PackedAllocator*, Fn&&, Args&&...)
     {
         return VoidResult::of();
     }
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(uint64_t, PackedAllocator*, Fn&&, Args&&...) noexcept
+    static VoidResult dispatchNotEmpty(uint64_t, PackedAllocator*, Fn&&, Args&&...)
     {
         return VoidResult::of();
     }
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmpty(uint64_t, const PackedAllocator*, Fn&&, Args&&...) noexcept
+    static VoidResult dispatchNotEmpty(uint64_t, const PackedAllocator*, Fn&&, Args&&...)
     {
         return VoidResult::of();
     }
 
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmptySelected(const PackedAllocator*, Fn&&, Args&&...) noexcept
+    static VoidResult dispatchNotEmptySelected(const PackedAllocator*, Fn&&, Args&&...)
     {
         return VoidResult::of();
     }
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchNotEmptySelected(PackedAllocator*, Fn&&, Args&&...) noexcept
+    static VoidResult dispatchNotEmptySelected(PackedAllocator*, Fn&&, Args&&...)
     {
         return VoidResult::of();
     }
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchAll(PackedAllocator*, Fn&&, Args&&...) noexcept
+    static VoidResult dispatchAll(PackedAllocator*, Fn&&, Args&&...)
     {
         return VoidResult::of();
     }
 
     template <typename Fn, typename... Args>
-    static VoidResult dispatchAll(const PackedAllocator*, Fn&&, Args&&...) noexcept
+    static VoidResult dispatchAll(const PackedAllocator*, Fn&&, Args&&...)
     {
         return VoidResult::of();
     }

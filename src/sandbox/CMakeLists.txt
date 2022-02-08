@@ -36,7 +36,7 @@ endif()
 if (BUILD_CLASSIC_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX_CLASSIC)
-        set(MEMORIA_SANDBOX_CLASSIC swmr_store srle1)
+        set(MEMORIA_SANDBOX_CLASSIC srle1)
 
         if (NO_COW_PROFILE)
             set(MEMORIA_SANDBOX_CLASSIC ${MEMORIA_SANDBOX_CLASSIC})
@@ -47,7 +47,8 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
         add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
         set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMMA1_NO_REACTOR")
         set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-        target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit ${MEMORIA_LIBS})
+        #target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit ${MEMORIA_LIBS})
+        target_link_libraries(${MEMORIA_TARGET} MemoriaCore ${MEMORIA_LIBS})
 
         target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS})
     ENDFOREACH(MEMORIA_TARGET )

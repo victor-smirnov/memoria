@@ -147,11 +147,11 @@ public:
     }
 
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept {
+    void generateDataEvents(IBlockDataEventHandler* handler) const {
         return data_->generateDataEvents(handler);
     }
 
-    VoidResult check() const noexcept {
+    void check() const {
         return data_->check();
     }
 

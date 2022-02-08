@@ -76,7 +76,7 @@ public:
         return block_size_;
     }
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startGroup("ROOT_METADATA");
 
@@ -85,26 +85,20 @@ public:
         handler->value("BLOCK_SIZE", &block_size_);
 
         handler->endGroup();
-
-        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
         FieldFactory<CtrID>::serialize(buf, model_name_);
         FieldFactory<int32_t>::serialize(buf,  block_size_);
-
-        return VoidResult::of();
     }
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
         FieldFactory<CtrID>::deserialize(buf, model_name_);
         FieldFactory<int32_t>::deserialize(buf,  block_size_);
-
-        return VoidResult::of();
     }
 
     static int32_t empty_size() {

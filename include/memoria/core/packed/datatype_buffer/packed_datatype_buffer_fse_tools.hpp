@@ -190,33 +190,27 @@ public:
     }
 
     template <typename SerializationData, typename Metadata>
-    VoidResult serialize(const Metadata& meta, SerializationData& buf) const noexcept
+    void serialize(const Metadata& meta, SerializationData& buf) const
     {
-        return wrap_throwing([&] {
-            FieldFactory<T>::serialize(buf, data(), meta.size());
-        });
+        FieldFactory<T>::serialize(buf, data(), meta.size());
     }
 
     template <typename SerializationData, typename Metadata, typename IDResolver>
-    VoidResult cow_serialize(const Metadata& meta, SerializationData& buf, const IDResolver* id_resolver) const noexcept
+    void cow_serialize(const Metadata& meta, SerializationData& buf, const IDResolver* id_resolver) const
     {
-        return wrap_throwing([&] {
-            auto size = meta.size();
-            auto data = this->data();
-            for (psize_t c = 0; c < size; c++)
-            {
-                auto new_id = id_resolver->resolve_id(data[c]);
-                FieldFactory<T>::serialize(buf, new_id);
-            }
-        });
+        auto size = meta.size();
+        auto data = this->data();
+        for (psize_t c = 0; c < size; c++)
+        {
+            auto new_id = id_resolver->resolve_id(data[c]);
+            FieldFactory<T>::serialize(buf, new_id);
+        }
     }
 
     template <typename DeserializationData, typename Metadata>
-    VoidResult deserialize(Metadata& meta, DeserializationData& buf) noexcept
+    void deserialize(Metadata& meta, DeserializationData& buf)
     {
-        return wrap_throwing([&] {
-            FieldFactory<T>::deserialize(buf, data(), meta.size());
-        });
+        FieldFactory<T>::deserialize(buf, data(), meta.size());
     }
 };
 

@@ -183,8 +183,8 @@ message ("\tNoCowProfile: ${NO_COW_PROFILE}")
 message ("")
 
 # For debugging
-#message ("========================  MAIN SRC: |${GENERATED_MAIN_SOURCES}|============================")
-#message ("======================== STORE SRC: |${GENERATED_STORE_SOURCES}|===========================")
+message ("========================  MAIN SRC: |${GENERATED_MAIN_SOURCES}|============================")
+message ("======================== STORE SRC: |${GENERATED_STORE_SOURCES}|===========================")
 
 #message ("========================  MAIN BP: |${GENERATED_MAIN_BYPRODUCTS}|============================")
 #message ("======================== STORE BP: |${GENERATED_STORE_BYPRODUCTS}|===========================")

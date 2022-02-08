@@ -99,38 +99,34 @@ public:
     const PkdStruct* data() const noexcept {return data_;}
     PkdStruct* data() noexcept {return data_;}
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startStruct();
         handler->startGroup("PACKED_MAP");
 
-        MEMORIA_TRY_VOID(keys_.generateDataEvents(handler));
-        MEMORIA_TRY_VOID(values_.generateDataEvents(handler));
+        keys_.generateDataEvents(handler);
+        values_.generateDataEvents(handler);
 
         handler->endGroup();
         handler->endStruct();
-
-        return VoidResult::of();
     }
 
-    VoidResult check() const noexcept
+    void check() const
     {
-        MEMORIA_TRY_VOID(keys_.check());
-        MEMORIA_TRY_VOID(values_.check());
+        keys_.check();
+        values_.check();
 
         auto keys_size = keys_.size();
         auto values_size = values_.size();
 
         if (keys_size != values_size)
         {
-            return MEMORIA_MAKE_GENERIC_ERROR(
+            MEMORIA_MAKE_GENERIC_ERROR(
                 "PackedMap: keys size != values size: {} {}",
                 keys_size,
                 values_size
-            );
+            ).do_throw();
         }
-
-        return VoidResult::of();
     }
 
     psize_t size() const {

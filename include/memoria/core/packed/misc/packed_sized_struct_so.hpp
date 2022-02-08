@@ -79,7 +79,7 @@ public:
         return data_->removeSpace(room_start, room_end);
     }
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept {
+    void generateDataEvents(IBlockDataEventHandler* handler) const {
         return data_->generateDataEvents(handler);
     }
 
@@ -87,7 +87,7 @@ public:
         return data_->size();
     }
 
-    VoidResult check() const noexcept {
+    void check() const {
         return data_->check();
     }
 

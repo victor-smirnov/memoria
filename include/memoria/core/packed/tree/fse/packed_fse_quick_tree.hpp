@@ -613,8 +613,7 @@ public:
         }
     }
 
-    VoidResult check() const noexcept {
-        return VoidResult::of();
+    void check() const {
     }
 
     VoidResult clear() noexcept
@@ -646,7 +645,7 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startStruct();
         handler->startGroup("FSQ_TREE");
@@ -698,14 +697,12 @@ public:
         handler->endGroup();
 
         handler->endStruct();
-
-        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
-        MEMORIA_TRY_VOID(Base::serialize(buf));
+        Base::serialize(buf);
 
         const Metadata* meta = this->metadata();
 
@@ -718,15 +715,13 @@ public:
             FieldFactory<IndexValue>::serialize(buf, this->index(b), meta->index_size());
             FieldFactory<Value>::serialize(buf, this->values(b), meta->size());
         }
-
-        return VoidResult::of();
     }
 
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
-        MEMORIA_TRY_VOID(Base::deserialize(buf));
+        Base::deserialize(buf);
 
         Metadata* meta = this->metadata();
 
@@ -739,8 +734,6 @@ public:
             FieldFactory<IndexValue>::deserialize(buf, this->index(b), meta->index_size());
             FieldFactory<Value>::deserialize(buf, this->values(b), meta->size());
         }
-
-        return VoidResult::of();
     }
 
     Values access(int32_t row_idx) const noexcept {

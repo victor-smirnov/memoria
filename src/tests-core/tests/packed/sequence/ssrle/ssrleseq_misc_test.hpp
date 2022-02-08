@@ -158,7 +158,7 @@ public:
             SeqSizeT size = count(syms1);
 
             SeqPtr seq = make_sequence(syms1);
-            seq->check().get_or_throw();
+            seq->check();
 
             assert_equals(size, seq->size());
 
@@ -193,7 +193,7 @@ public:
             SplitBufResult res = split_buffer(syms1, split_at);
 
             SeqPtr seq1 = make_sequence(syms1);
-            seq1->check().get_or_throw();
+            seq1->check();
 
             assert_equals(size, seq1->size());
 
@@ -238,9 +238,9 @@ public:
             SeqSizeT size3 = count(syms3);
 
             SeqPtr seq1 = make_sequence(syms1);
-            seq1->check().get_or_throw();
+            seq1->check();
             SeqPtr seq2 = make_sequence(syms2, 3);
-            seq2->check().get_or_throw();
+            seq2->check();
 
             seq1->mergeWith(seq2.get()).get_or_throw();
             assert_equals(size3, seq2->size());
@@ -277,7 +277,7 @@ public:
                 syms = insert_to_buffer(syms, src, pos);
 
                 seq->insert(pos, src).get_or_throw();
-                seq->check().get_or_throw();
+                seq->check();
 
                 std::vector<SymbolsRunT> vv = seq->iterator().as_vector();
 
@@ -311,7 +311,7 @@ public:
                 syms = remove_from_buffer(syms, start, end);
 
                 seq->removeSpace(start, end).get_or_throw();
-                seq->check().get_or_throw();
+                seq->check();
 
                 std::vector<SymbolsRunT> vv = seq->iterator().as_vector();
 

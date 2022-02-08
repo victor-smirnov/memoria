@@ -157,10 +157,9 @@ public:
 
     VoidResult reindex() noexcept {return VoidResult::of();}
 
-    VoidResult check() const noexcept
+    void check() const
     {
-        MEMORIA_ASSERT_RTN(size_, >=, 0);
-        return VoidResult::of();
+        MEMORIA_ASSERT(size_, >=, 0);
     }
 
     VoidResult remove(int32_t start, int32_t end) noexcept
@@ -220,7 +219,7 @@ public:
     }
 
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startStruct();
         handler->startGroup("SIZED_STRUCT");
@@ -229,26 +228,20 @@ public:
 
         handler->endGroup();
         handler->endStruct();
-
-        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
-        MEMORIA_TRY_VOID(header_.serialize(buf));
+        header_.serialize(buf);
         FieldFactory<int32_t>::serialize(buf, size_);
-
-        return VoidResult::of();
     }
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
-        MEMORIA_TRY_VOID(header_.deserialize(buf));
+        header_.deserialize(buf);
         FieldFactory<int32_t>::deserialize(buf, size_);
-
-        return VoidResult::of();
     }
 };
 

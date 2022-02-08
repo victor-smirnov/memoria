@@ -272,7 +272,7 @@ public:
         return reindex(true);
     }
 
-    VoidResult check() const noexcept
+    void check() const
     {
         for (int32_t ll = 0; ll < Indexes - 1; ll++)
         {
@@ -286,17 +286,15 @@ public:
                 int32_t b_up_actual = get_bit(ll + 1, ii / 2);
 
                 if (b_up_expect != b_up_actual) {
-                    return MEMORIA_MAKE_GENERIC_ERROR("Bitmap leyering mismatch: level: {}, idx: {}, bits: {} {} {}", ll, ii, b0, b1, b_up_actual);
+                    MEMORIA_MAKE_GENERIC_ERROR("Bitmap leyering mismatch: level: {}, idx: {}, bits: {} {} {}", ll, ii, b0, b1, b_up_actual).do_throw();
                 }
             }
         }
 
         for (int32_t ll = 0; ll < Indexes; ll++)
         {
-            MEMORIA_TRY_VOID(check_level_index(ll));
+            check_level_index(ll);
         }
-
-        return VoidResult::of();
     }
 
     VoidResult reindex(bool recompute_bitmaps = false) noexcept
@@ -356,7 +354,7 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult check_level_index(int32_t level) const noexcept
+    void check_level_index(int32_t level) const
     {
         int32_t local_bitmap_size = this->size() >> level;
 
@@ -375,12 +373,10 @@ public:
                 int32_t actual = index[icnt];
 
                 if (expected != actual) {
-                    return MEMORIA_MAKE_GENERIC_ERROR("Invalid bitmap index: level: {}, expected: {}, actual: {}, [{}, {})", level, expected, actual, bi, limit);
+                    MEMORIA_MAKE_GENERIC_ERROR("Invalid bitmap index: level: {}, expected: {}, actual: {}, [{}, {})", level, expected, actual, bi, limit).do_throw();
                 }
             }
         }
-
-        return VoidResult::of();
     }
 
     VoidResult set_bits(int32_t level, int32_t idx, int32_t size) noexcept
@@ -649,7 +645,7 @@ public:
     }
 
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startGroup("PACKED_ALLOCATION_MAP");
 
@@ -674,14 +670,12 @@ public:
         handler->endGroup();
 
         handler->endGroup();
-
-        return VoidResult::of();
     }
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
-        MEMORIA_TRY_VOID(Base::serialize(buf));
+        Base::serialize(buf);
 
         const Metadata* meta = this->metadata();
 
@@ -701,14 +695,12 @@ public:
             int32_t bm_atoms = divUp(bm_level_size, static_cast<int32_t>(sizeof(BitmapType) * 8));
             FieldFactory<BitmapType>::serialize(buf, symbols(ll), bm_atoms);
         }
-
-        return VoidResult::of();
     }
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
-        MEMORIA_TRY_VOID(Base::deserialize(buf));
+        Base::deserialize(buf);
 
         Metadata* meta = this->metadata();
 
@@ -728,8 +720,6 @@ public:
             int32_t bm_atoms = divUp(bm_level_size, static_cast<int32_t>(sizeof(BitmapType) * 8));
             FieldFactory<BitmapType>::deserialize(buf, symbols(ll), bm_atoms);
         }
-
-        return VoidResult::of();
     }
 
 

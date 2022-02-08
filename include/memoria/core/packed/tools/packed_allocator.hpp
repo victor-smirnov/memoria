@@ -650,7 +650,7 @@ public:
     }
 
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startGroup("ALLOCATOR");
 
@@ -668,13 +668,11 @@ public:
         handler->value("BITMAP_SIZE",   &bitmap_size_);
 
         handler->endGroup();
-
-        return VoidResult::of();
     }
 
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
         FieldFactory<int32_t>::serialize(buf, allocatable_.allocator_offset_);
         FieldFactory<int32_t>::serialize(buf, block_size_);
@@ -686,13 +684,11 @@ public:
         FieldFactory<int32_t>::serialize(buf, layout(), layout_size);
 
         FieldFactory<Bitmap>::serialize(buf, bitmap(), bitmap_size_/sizeof(Bitmap));
-
-        return VoidResult::of();
     }
 
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
         FieldFactory<int32_t>::deserialize(buf, allocatable_.allocator_offset_);
         FieldFactory<int32_t>::deserialize(buf, block_size_);
@@ -704,26 +700,20 @@ public:
         FieldFactory<int32_t>::deserialize(buf, layout(), layout_size);
 
         FieldFactory<Bitmap>::deserialize(buf, bitmap(), bitmap_size_/sizeof(Bitmap));
-
-        return VoidResult::of();
     }
 
     template <typename T, typename SerializationData>
-    VoidResult serializeSegment(SerializationData& buf, int32_t segment) const noexcept
+    void serializeSegment(SerializationData& buf, int32_t segment) const
     {
         auto data = this->describe(segment);
         FieldFactory<T>::serialize(buf, ptr_cast<const T>(data.ptr()), data.size() / (int32_t)sizeof(T));
-
-        return VoidResult::of();
     }
 
     template <typename T, typename DeserializationData>
-    VoidResult deserializeSegment(DeserializationData& buf, int32_t segment) noexcept
+    void deserializeSegment(DeserializationData& buf, int32_t segment)
     {
         auto data = this->describe(segment);
         FieldFactory<T>::deserialize(buf, ptr_cast<T>(data.ptr()), data.size() / (int32_t)sizeof(T));
-
-        return VoidResult::of();
     }
 
 

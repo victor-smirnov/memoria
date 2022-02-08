@@ -105,7 +105,7 @@ public:
 
     virtual void check()
     {
-        sequence_->check().get_or_throw();
+        sequence_->check();
     }
 
     virtual void reindex()

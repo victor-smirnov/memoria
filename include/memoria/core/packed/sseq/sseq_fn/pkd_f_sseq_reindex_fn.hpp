@@ -149,7 +149,7 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult check(const Seq& seq) noexcept
+    void check(const Seq& seq)
     {
         int32_t size = seq.size();
 
@@ -159,7 +159,7 @@ public:
 
             auto index = seq.index();
 
-            MEMORIA_ASSERT_RTN(index->size(), ==, index_size);
+            MEMORIA_ASSERT(index->size(), ==, index_size);
 
 
             auto symbols = seq.symbols();
@@ -184,7 +184,7 @@ public:
                 {
                     for (int32_t c = 0; c < buffer_size; c++)
                     {
-                        MEMORIA_ASSERT_RTN(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
                 }
 
@@ -192,10 +192,8 @@ public:
             }
         }
         else {
-            MEMORIA_ASSERT_RTN(seq.has_index(), ==, false);
+            MEMORIA_ASSERT(seq.has_index(), ==, false);
         }
-
-        return VoidResult::of();
     }
 };
 
@@ -270,7 +268,7 @@ public:
     }
 
 
-    VoidResult check(const Seq& seq) noexcept
+    void check(const Seq& seq)
     {
         int32_t size = seq.size();
 
@@ -280,7 +278,7 @@ public:
 
             auto index = seq.index();
 
-            MEMORIA_ASSERT_RTN(index->size(), ==, index_size);
+            MEMORIA_ASSERT(index->size(), ==, index_size);
 
             auto symbols = seq.symbols();
 
@@ -307,7 +305,7 @@ public:
                 {
                     for (int32_t c = 0; c < buffer_size; c++)
                     {
-                        MEMORIA_ASSERT_RTN(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
                 }
 
@@ -317,8 +315,6 @@ public:
         else {
             MEMORIA_ASSERT(seq.has_index(), ==, false);
         }
-
-        return VoidResult::of();
     }
 };
 
@@ -419,7 +415,7 @@ public:
     }
 
 
-    VoidResult check(const Seq& seq) noexcept
+    void check(const Seq& seq)
     {
         int32_t size = seq.size();
 
@@ -454,7 +450,7 @@ public:
                         auto idx_value = index->value(b, c + at);
                         auto buf_value = buffer.buffer()[c][b];
 
-                        MEMORIA_ASSERT_RTN(idx_value, ==, buf_value);
+                        MEMORIA_ASSERT(idx_value, ==, buf_value);
                     }
                 }
 
@@ -462,10 +458,8 @@ public:
             }
         }
         else {
-            MEMORIA_ASSERT_RTN(seq.has_index(), ==, false);
+            MEMORIA_ASSERT(seq.has_index(), ==, false);
         }
-
-        return VoidResult::of();
     }
 };
 
@@ -565,7 +559,7 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult check(const Seq& seq) noexcept
+    void check(const Seq& seq)
     {
         int32_t size = seq.size();
 
@@ -597,7 +591,7 @@ public:
                 {
                     for (int32_t c = 0; c < buffer_size; c++)
                     {
-                        MEMORIA_ASSERT_RTN(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
                 }
 
@@ -605,10 +599,10 @@ public:
             }
         }
         else {
-            MEMORIA_ASSERT_RTN(seq.has_index(), ==, false);
+            MEMORIA_ASSERT(seq.has_index(), ==, false);
         }
 
-        return VoidResult::of();
+
     }
 
 };

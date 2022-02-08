@@ -226,18 +226,15 @@ public:
     }
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
         FieldFactory<int32_t>::serialize(buf, allocator_offset_);
-
-        return VoidResult::of();
     }
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
         FieldFactory<int32_t>::deserialize(buf, allocator_offset_);
-        return VoidResult::of();
     }
 };
 

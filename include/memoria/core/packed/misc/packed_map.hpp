@@ -102,20 +102,20 @@ public:
 
 
     template <typename SerializationData>
-    VoidResult serialize(SerializationData& buf) const noexcept
+    void serialize(SerializationData& buf) const
     {
-        MEMORIA_TRY_VOID(Base::serialize(buf));
+        Base::serialize(buf);
 
-        MEMORIA_TRY_VOID(keys()->serialize(buf));
+        keys()->serialize(buf);
         return values()->serialize(buf);
     }
 
     template <typename DeserializationData>
-    VoidResult deserialize(DeserializationData& buf) noexcept
+    void deserialize(DeserializationData& buf)
     {
-        MEMORIA_TRY_VOID(Base::deserialize(buf));
+        Base::deserialize(buf);
 
-        MEMORIA_TRY_VOID(keys()->deserialize(buf));
+        keys()->deserialize(buf);
         return values()->deserialize(buf);
     }
 };

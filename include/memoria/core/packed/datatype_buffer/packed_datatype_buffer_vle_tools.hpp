@@ -377,21 +377,17 @@ public:
     }
 
     template <typename SerializationData, typename Metadata>
-    VoidResult serialize(const Metadata& meta, SerializationData& buf) const noexcept
+    void serialize(const Metadata& meta, SerializationData& buf) const
     {
         FieldFactory<psize_t>::serialize(buf, offsets(), meta.offsets_size());
         FieldFactory<T>::serialize(buf, data(), meta.data_size(Dimension));
-
-        return VoidResult::of();
     }
 
     template <typename DeserializationData, typename Metadata>
-    VoidResult deserialize(const Metadata& meta, DeserializationData& buf) noexcept
+    void deserialize(const Metadata& meta, DeserializationData& buf)
     {
         FieldFactory<psize_t>::deserialize(buf, offsets(), meta.offsets_size());
         FieldFactory<T>::deserialize(buf, data(), meta.data_size(Dimension));
-
-        return VoidResult::of();
     }
 
 

@@ -80,14 +80,17 @@ public:
     {
         PtrT<State> ptr = allocate_tagged<State>(tag_size, arena, State{capacity, 0});
 
-        State* state = ptr.get(arena);
-
         if (capacity)
         {
             PtrT<T> data = arena->template allocate_space<T>(capacity * sizeof(T));
+
+            // Note that we need to retake raw pointer after each memory allocation
+            State* state = ptr.get(arena);
             state->data_ = data;
         }
-        else {
+        else
+        {
+            State* state = ptr.get(arena);
             state->data_ = PtrT<T>{0};
         }
 

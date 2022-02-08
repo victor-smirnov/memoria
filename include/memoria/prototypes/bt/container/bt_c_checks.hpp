@@ -104,8 +104,7 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN(CheckContentFn, check);
     void ctr_check_content(const TreeNodeConstPtr& node, const CheckResultConsumerFn& fn) const
     {
-        VoidResult res = self().node_dispatcher().dispatch(node, CheckContentFn(), fn);
-        res.get_or_throw();
+        self().node_dispatcher().dispatch(node, CheckContentFn(), fn).get_or_throw();
     }
 
 private:
