@@ -51,7 +51,7 @@ public:
         TT value = 0;
         TT one = 1;
 
-        for (int32_t c = 0; c < length; c++)
+        for (size_t c = 0; c < length; c++)
         {
             value = value | (one << (start + c));
         }
@@ -63,7 +63,7 @@ public:
     {
         uint32_t value = 0xF;
 
-        for (int32_t c = 0; c < 32 - 5; c++, value <<= 1)
+        for (size_t c = 0; c < 32 - 5; c++, value <<= 1)
         {
             assert_equals(makeMask<uint32_t>(c, 4), value);
         }
@@ -73,11 +73,11 @@ public:
     {
         out() << "MakeMask " << TypeNameFactory<T>::name() << std::endl;
 
-        int32_t bitsize = TypeBitsize<T>();
+        size_t bitsize = TypeBitsize<T>();
 
-        for (int32_t size = 0; size < bitsize; size++)
+        for (size_t size = 0; size < bitsize; size++)
         {
-            for (int32_t pos = 0; pos < bitsize - size; pos++)
+            for (size_t pos = 0; pos < bitsize - size; pos++)
             {
                 T mask1 = MakeMask<T>(pos, size);
                 T mask2 = makeMask<T>(pos, size);
@@ -92,9 +92,9 @@ public:
         out() << "TestSetBit: " << TypeNameFactory<T>::name() << std::endl;
 
         T values[4];
-        int32_t bitsize = sizeof(values) * 8;
+        size_t bitsize = sizeof(values) * 8;
 
-        for (int32_t c = 0; c < bitsize; c++)
+        for (size_t c = 0; c < bitsize; c++)
         {
             for (size_t d = 0; d < sizeof(values)/sizeof(T); d++)
             {
@@ -102,7 +102,7 @@ public:
             }
 
             SetBit(values, c, 1);
-            int32_t value = GetBit(values, c);
+            size_t value = GetBit(values, c);
 
             assert_equals(value, 1);
 
@@ -125,12 +125,12 @@ public:
 
         T values[4];
 
-        int32_t bitsize     = sizeof(values) * 8;
-        int32_t atomsize    = sizeof(T) * 8;
+        size_t bitsize     = sizeof(values) * 8;
+        size_t atomsize    = sizeof(T) * 8;
 
-        for (int32_t length = 1; length <= atomsize; length++)
+        for (size_t length = 1; length <= atomsize; length++)
         {
-            for (int32_t start = 0; start < bitsize - length; start++)
+            for (size_t start = 0; start < bitsize - length; start++)
             {
                 for (size_t d = 0; d < sizeof(values)/sizeof(T); d++)
                 {
@@ -141,27 +141,27 @@ public:
 
                 SetBits(values, start, bits1, length);
 
-                for (int32_t c = 0; c < length; c++)
+                for (size_t c = 0; c < length; c++)
                 {
-                    int32_t v1 = GetBit(values, start + c);
-                    int32_t v2 = (bits1 >> c) & 0x1;
+                    size_t v1 = GetBit(values, start + c);
+                    size_t v2 = (bits1 >> c) & 0x1;
 
                     assert_equals(v1, v2, "{}", (start + c));
                 }
 
                 T bits2 = GetBits(values, start, length);
 
-                for (int32_t c = 0; c < length; c++)
+                for (size_t c = 0; c < length; c++)
                 {
-                    int32_t v1 = GetBit(values, start + c);
-                    int32_t v2 = (bits2 >> c) & 0x1;
+                    size_t v1 = GetBit(values, start + c);
+                    size_t v2 = (bits2 >> c) & 0x1;
 
                     assert_equals(v1, v2, "{}", (start + c));
                 }
             }
         }
 
-        for (int32_t c = 0; c < bitsize; c++)
+        for (size_t c = 0; c < bitsize; c++)
         {
             for (size_t d = 0; d < sizeof(values)/sizeof(T); d++)
             {
@@ -169,7 +169,7 @@ public:
             }
 
             SetBit(values, c, 1);
-            int32_t value = GetBit(values, c);
+            size_t value = GetBit(values, c);
 
             assert_equals(value, 1);
 
@@ -190,17 +190,17 @@ public:
         T bitmap1[5];
         T bitmap2[5];
 
-        int32_t bitsize = sizeof(bitmap1) * 8;
+        size_t bitsize = sizeof(bitmap1) * 8;
 
-        for (int32_t length = 0; length < bitsize; length++)
+        for (size_t length = 0; length < bitsize; length++)
         {
             makeRandomBitmap(bitmap1, bitsize);
 
             out() << "length: " << length << std::endl;
 
-            for (int32_t src_bit = 0; src_bit < bitsize - length; src_bit++)
+            for (size_t src_bit = 0; src_bit < bitsize - length; src_bit++)
             {
-                for (int32_t dst_bit = 0; dst_bit < bitsize - length; dst_bit++)
+                for (size_t dst_bit = 0; dst_bit < bitsize - length; dst_bit++)
                 {
                     MoveBitsFW(bitmap1, bitmap2, src_bit, dst_bit, length);
 
@@ -222,7 +222,7 @@ public:
 
         size_t bitsize = sizeof(bitmap) * 8;
 
-        for (int32_t c = 0; c < 1000; c++)
+        for (size_t c = 0; c < 1000; c++)
         {
             size_t start = getRandom(bitsize - 1);
             size_t stop  = getRandom(bitsize - start);
@@ -251,7 +251,7 @@ public:
 
         size_t bitsize = sizeof(bitmap) * 8;
 
-        for (int32_t c = 0; c < 1000; c++)
+        for (size_t c = 0; c < 1000; c++)
         {
             size_t start = getRandom(bitsize - 1);
             size_t stop  = getRandom(bitsize - start);
@@ -277,16 +277,16 @@ public:
     {
         uint64_t bitmap[5];
 
-        for (int32_t c = 0; c < 1000000; c++)
+        for (size_t c = 0; c < 1000000; c++)
         {
             memset(bitmap, 0, sizeof(bitmap));
 
-            int32_t bit = getRandom(sizeof(bitmap)*8);
-            int32_t start = getRandom(bit + 1);
+            size_t bit = getRandom(sizeof(bitmap)*8);
+            size_t start = getRandom(bit + 1);
 
             SetBit(bitmap, bit, 1);
 
-            int32_t length = CountTrailingZeroes(bitmap, start, sizeof(bitmap) * 8);
+            size_t length = CountTrailingZeroes(bitmap, start, sizeof(bitmap) * 8);
 
             assert_equals(length, bit - start, "{}", c);
         }

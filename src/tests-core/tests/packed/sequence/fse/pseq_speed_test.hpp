@@ -26,7 +26,7 @@ namespace memoria {
 namespace tests {
 
 template <
-    int32_t Bits,
+    size_t Bits,
     typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
     template <typename> class SelectFnType  = BitmapSelectFn,
@@ -66,9 +66,9 @@ class PackedSearchableSequenceSpeedTest: public PackedSearchableSequenceTestBase
     using Value = typename Seq::Value;
 
 
-    static const int32_t Blocks                 = Seq::Indexes;
-    static const int32_t Symbols                = 1 << Bits;
-    static const int32_t VPB                    = Seq::ValuesPerBranch;
+    static const size_t Blocks                 = Seq::Indexes;
+    static const size_t Symbols                = 1 << Bits;
+    static const size_t VPB                    = Seq::ValuesPerBranch;
 
 
     using Base::getRandom;
@@ -104,12 +104,12 @@ public:
 
         int64_t t1 = getTimeInMillis();
 
-        for (int32_t c = 0; c < this->iterations_; c++)
+        for (size_t c = 0; c < this->iterations_; c++)
         {
-            int32_t idx1 = getRandom(this->size_);
-            int32_t idx2 = getRandom(this->size_);
+            size_t idx1 = getRandom(this->size_);
+            size_t idx2 = getRandom(this->size_);
 
-            int32_t symbol = getRandom(Symbols);
+            size_t symbol = getRandom(Symbols);
 
             seq->remove(idx2, idx2 + 1).get_or_throw();
             seq->insert(idx1, symbol).get_or_throw();

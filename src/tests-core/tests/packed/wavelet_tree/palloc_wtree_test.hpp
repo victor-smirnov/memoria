@@ -41,9 +41,9 @@ class PackedWaveletTreeTest: public TestTask {
 
     typedef typename WaveletTree::CardinalTree::LoudsTree                   LoudsTree;
 
-    typedef pair<uint32_t, int32_t>                                                 Pair;
+    typedef pair<uint32_t, size_t>                                                 Pair;
 
-    int32_t alphabet_size_ = 10;
+    size_t alphabet_size_ = 10;
 
 public:
 
@@ -61,7 +61,7 @@ public:
 
 
 
-    void traverseTreePaths(const LoudsTree* tree, function<void (const PackedLoudsNode&, int32_t)> fn, int32_t level = 0)
+    void traverseTreePaths(const LoudsTree* tree, function<void (const PackedLoudsNode&, size_t)> fn, size_t level = 0)
     {
         traverseTreePaths(tree, tree->root(), PackedLoudsNode(), fn, level);
     }
@@ -70,7 +70,7 @@ public:
             const LoudsTree* tree,
             const PackedLoudsNode& node,
             const PackedLoudsNode& parent,
-            function<void (const PackedLoudsNode&, int32_t)> fn, int32_t level = 0)
+            function<void (const PackedLoudsNode&, size_t)> fn, size_t level = 0)
     {
         if (tree->isLeaf(node))
         {
@@ -89,12 +89,12 @@ public:
 
 
 
-    WaveletTreePtr createTree(int32_t block_size = 128*1024)
+    WaveletTreePtr createTree(size_t block_size = 128*1024)
     {
         return MakeSharedPackedStructByBlock<WaveletTree>(block_size);
     }
 
-    vector<uint32_t> createRandomAlphabet(int32_t size)
+    vector<uint32_t> createRandomAlphabet(size_t size)
     {
         vector<uint32_t> text(size);
 
@@ -106,7 +106,7 @@ public:
         return text;
     }
 
-    vector<uint32_t> createRandomText(int32_t size, const vector<uint32_t>& alphabet)
+    vector<uint32_t> createRandomText(size_t size, const vector<uint32_t>& alphabet)
     {
         vector <uint32_t> text(size);
 
@@ -122,7 +122,7 @@ public:
     {
         vector<Pair> result;
 
-        std::map<uint32_t, int32_t> ranks;
+        std::map<uint32_t, size_t> ranks;
 
         for (uint32_t c = 0; c < text.size(); c++)
         {
@@ -148,11 +148,11 @@ public:
         return result;
     }
 
-    int32_t rank(const vector<uint32_t>& text, int32_t idx, uint32_t symbol)
+    size_t rank(const vector<uint32_t>& text, size_t idx, uint32_t symbol)
     {
-        int32_t sum = 0;
+        size_t sum = 0;
 
-        for (int32_t c = 0; c <= idx; c++)
+        for (size_t c = 0; c <= idx; c++)
         {
             sum += text[c] == symbol;
         }
@@ -160,7 +160,7 @@ public:
         return sum;
     }
 
-    int32_t select(const vector<uint32_t>& text, int32_t rank, uint32_t symbol)
+    size_t select(const vector<uint32_t>& text, size_t rank, uint32_t symbol)
     {
         for (uint32_t c = 0; c < text.size(); c++)
         {
@@ -177,7 +177,7 @@ public:
 
     void assertText(const WaveletTreePtr& tree, const vector<uint32_t>& text)
     {
-        AssertEQ(MA_SRC, tree->size(), (int32_t)text.size());
+        AssertEQ(MA_SRC, tree->size(), (size_t)text.size());
 
         for (uint32_t c = 0; c < text.size(); c++)
         {
@@ -195,7 +195,7 @@ public:
 
         tree->prepare();
 
-        auto fn = [](const PackedLoudsNode& node, int32_t level) {
+        auto fn = [](const PackedLoudsNode& node, size_t level) {
             AssertEQ(MA_SRC, level, 3);
         };
 
@@ -223,8 +223,8 @@ public:
 
             for (uint32_t c = 0; c < text.size(); c++)
             {
-                int32_t rank1 = tree->rank(c, sym);
-                int32_t rank2 = rank(text, c, sym);
+                size_t rank1 = tree->rank(c, sym);
+                size_t rank2 = rank(text, c, sym);
 
                 AssertEQ(MA_SRC, rank1, rank2);
             }
@@ -233,12 +233,12 @@ public:
         for (auto& rnk: ranks)
         {
             uint32_t sym = rnk.first;
-            int32_t rank = rnk.second;
+            size_t rank = rnk.second;
 
-            for (int32_t r = 1; r <= rank; r++)
+            for (size_t r = 1; r <= rank; r++)
             {
-                int32_t idx1 = tree->select(r, sym);
-                int32_t idx2 = select(text, r, sym);
+                size_t idx1 = tree->select(r, sym);
+                size_t idx2 = select(text, r, sym);
 
                 AssertEQ(MA_SRC, idx1, idx2);
             }
@@ -262,7 +262,7 @@ public:
 
     void testRemoveTree(WaveletTreePtr& tree)
     {
-        auto fn = [](const PackedLoudsNode& node, int32_t level) {
+        auto fn = [](const PackedLoudsNode& node, size_t level) {
             AssertEQ(MA_SRC, level, 3);
         };
 
@@ -286,7 +286,7 @@ public:
 
         while (tree->size() > 0)
         {
-            int32_t idx = getRandom(tree->size());
+            size_t idx = getRandom(tree->size());
 
             out()<<"Remove: "<<idx<<" "<<hex<<tree->value(idx)<<dec<<std::endl;
 

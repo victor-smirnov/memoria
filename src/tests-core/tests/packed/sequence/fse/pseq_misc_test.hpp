@@ -25,7 +25,7 @@ namespace memoria {
 namespace tests {
 
 template <
-    int32_t Bits,
+    size_t Bits,
     typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
     template <typename> class SelectFnType  = BitmapSelectFn,
@@ -63,9 +63,9 @@ class PackedSearchableSequenceMiscTest: public PackedSearchableSequenceTestBase<
     using typename Base::Seq;
     using typename Base::SeqPtr;
 
-    static const int32_t Blocks                 = Seq::Indexes;
-    static const int32_t Symbols                = 1 << Bits;
-    static const int32_t VPB                    = Seq::ValuesPerBranch;
+    static const size_t Blocks                 = Seq::Indexes;
+    static const size_t Symbols                = 1 << Bits;
+    static const size_t VPB                    = Seq::ValuesPerBranch;
 
     using Value = typename Seq::Value;
 
@@ -96,7 +96,7 @@ public:
 
     void testCreate()
     {
-        for (int32_t size = 2048; size <= this->size_; size *= 2)
+        for (size_t size = 2048; size <= this->size_; size *= 2)
         {
             out() << size << std::endl;
 
@@ -112,7 +112,7 @@ public:
 
     void testInsertSingle()
     {
-        for (int32_t size = 1; size <= this->size_; size *= 2)
+        for (size_t size = 1; size <= this->size_; size *= 2)
         {
             out() << size << std::endl;
 
@@ -120,10 +120,10 @@ public:
 
             auto symbols = fillRandom(seq, size);
 
-            for (int32_t c = 0; c < this->iterations_; c++)
+            for (size_t c = 0; c < this->iterations_; c++)
             {
-                int32_t idx     = getRandom(seq->size());
-                int32_t symbol  = getRandom(Blocks);
+                size_t idx     = getRandom(seq->size());
+                size_t symbol  = getRandom(Blocks);
 
                 seq->insert(idx, symbol).get_or_throw();
 
@@ -137,7 +137,7 @@ public:
 
     void testInsertMultiple()
     {
-        for (int32_t size = 8192; size <= this->size_; size *= 2)
+        for (size_t size = 8192; size <= this->size_; size *= 2)
         {
             out() << size << std::endl;
 
@@ -145,17 +145,17 @@ public:
 
             auto symbols = fillRandom(seq, size);
 
-            for (int32_t c = 0; c < this->iterations_; c++)
+            for (size_t c = 0; c < this->iterations_; c++)
             {
-                int32_t idx     = getRandom(seq->size());
+                size_t idx     = getRandom(seq->size());
 
-                std::vector<int32_t> block(10);
-                for (int32_t d = 0; d < block.size(); d++)
+                std::vector<size_t> block(10);
+                for (size_t d = 0; d < block.size(); d++)
                 {
                     block[d] = getRandom(Blocks);
                 }
 
-                int32_t cnt = 0;
+                size_t cnt = 0;
                 seq->insert(idx, block.size(), [&](){
                     return block[cnt++];
                 }).get_or_throw();
@@ -170,7 +170,7 @@ public:
 
     void testRemoveMulti()
     {
-        for (int32_t size = 1; size <= this->size_; size *= 2)
+        for (size_t size = 1; size <= this->size_; size *= 2)
         {
             out() << size << std::endl;
 
@@ -178,12 +178,12 @@ public:
 
             auto symbols = this->fillRandom(seq, size);
 
-            for (int32_t c = 0; c < this->iterations_; c++)
+            for (size_t c = 0; c < this->iterations_; c++)
             {
-                int32_t start   = getRandom(seq->size());
-                int32_t end     = start + getRandom(seq->size() - start);
+                size_t start   = getRandom(seq->size());
+                size_t end     = start + getRandom(seq->size() - start);
 
-                int32_t block_size = seq->block_size();
+                size_t block_size = seq->block_size();
 
                 seq->remove(start, end).get_or_throw();
 
@@ -199,7 +199,7 @@ public:
 
     void testRemoveAll()
     {
-        for (int32_t size = 1; size <= this->size_; size *= 2)
+        for (size_t size = 1; size <= this->size_; size *= 2)
         {
             this->out() << size << std::endl;
 
@@ -216,7 +216,7 @@ public:
 
     void testClear()
     {
-        for (int32_t size = 1; size <= this->size_; size *= 2)
+        for (size_t size = 1; size <= this->size_; size *= 2)
         {
             this->out() << size << std::endl;
 

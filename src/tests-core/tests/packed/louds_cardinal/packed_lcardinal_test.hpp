@@ -49,19 +49,19 @@ public:
 
     virtual ~PackedLoudsCardinalTest() noexcept {}
 
-    CardinalTreePtr createCardinalTree(int32_t block_size = 64*1024)
+    CardinalTreePtr createCardinalTree(size_t block_size = 64*1024)
     {
         return MakeSharedPackedStructByBlock<CardinalTree>(block_size);
     }
 
-    uint64_t buildPath(PackedLoudsNode node, int32_t level, const CardinalTreePtr& ctree)
+    uint64_t buildPath(PackedLoudsNode node, size_t level, const CardinalTreePtr& ctree)
     {
         const LoudsTree* tree       = ctree->tree();
         const LabelArray* labels    = ctree->labels();
 
         uint64_t path = 0;
 
-        for (int32_t l = level - 1; l >= 0; l--)
+        for (size_t l = level - 1; l >= 0; l--)
         {
             uint64_t label = labels->value(node.rank1() - 1);
 
@@ -75,7 +75,7 @@ public:
 
     void checkTreeContent(const CardinalTreePtr& tree, set<uint64_t>& paths)
     {
-        traverseTreePaths(tree, [this, tree, &paths](const PackedLoudsNode& node, int32_t level) {
+        traverseTreePaths(tree, [this, tree, &paths](const PackedLoudsNode& node, size_t level) {
             AssertEQ(MA_SRC, level, 4);
             uint64_t path = buildPath(node, level, tree);
             AssertTrue(MA_SRC, paths.find(path) != paths.end());
@@ -89,11 +89,11 @@ public:
 
         tree->prepare();
 
-        auto fn = [](const PackedLoudsNode& node, int32_t label, int32_t level){};
+        auto fn = [](const PackedLoudsNode& node, size_t label, size_t level){};
 
         set<uint64_t> paths;
 
-        for (int32_t c = 0; c < 1000; c++)
+        for (size_t c = 0; c < 1000; c++)
         {
             uint32_t path = getRandom();
 
@@ -116,11 +116,11 @@ public:
 
         tree->prepare();
 
-        auto fn = [](const PackedLoudsNode& node, int32_t label, int32_t level){};
+        auto fn = [](const PackedLoudsNode& node, size_t label, size_t level){};
 
         set<uint64_t> paths;
 
-        for (int32_t c = 0; c < 100; c++)
+        for (size_t c = 0; c < 100; c++)
         {
             uint32_t path = getRandom();
 
@@ -137,7 +137,7 @@ public:
 
         while (paths.size() > 0)
         {
-            int32_t idx = getRandom(paths.size());
+            size_t idx = getRandom(paths.size());
             uint64_t path;
 
             for (auto p: paths)

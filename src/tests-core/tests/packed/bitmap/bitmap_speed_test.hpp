@@ -48,8 +48,8 @@ public:
 
     void testSpeed1()
     {
-        int32_t bufsize = 1024*1024*128;
-        int32_t bitsize = bufsize * 8;
+        size_t bufsize = 1024*1024*128;
+        size_t bitsize = bufsize * 8;
 
         T* buf = allocate_system<T>(bufsize).release();
 
@@ -66,19 +66,19 @@ public:
 
     void testSpeed2()
     {
-        int32_t bufsize = 1024*1024*128;
-        int32_t bitsize = bufsize * 8;
+        size_t bufsize = 1024*1024*128;
+        size_t bitsize = bufsize * 8;
 
         T* buf = allocate_system<T>(bufsize).release();
 
         int64_t t0 = getTimeInMillis();
 
-        int32_t pos = 0;
-        int32_t length = 17;
+        size_t pos = 0;
+        size_t length = 17;
 
         int64_t sum = 0;
 
-        int32_t cnt = 0;
+        size_t cnt = 0;
 
         while(pos < bitsize)
         {
@@ -110,10 +110,10 @@ public:
     template <
         template <typename, typename> class Codec
     >
-    void testCodec(int32_t max)
+    void testCodec(size_t max)
     {
-        std::vector<int32_t> values(1024*1024*4);
-        std::vector<int32_t> values2(1024*1024*4);
+        std::vector<size_t> values(1024*1024*4);
+        std::vector<size_t> values2(1024*1024*4);
 
         for (auto& v: values)
         {
@@ -126,14 +126,14 @@ public:
 
         int64_t t0 = getTimeInMillis();
 
-        for (int32_t c = 0, pos = 0; c < values.size(); c++)
+        for (size_t c = 0, pos = 0; c < values.size(); c++)
         {
             pos += codec.encode(buf, values[c], pos);
         }
 
         int64_t t1 = getTimeInMillis();
 
-        for (int32_t c = 0, pos = 0; c < values2.size(); c++)
+        for (size_t c = 0, pos = 0; c < values2.size(); c++)
         {
             int64_t value;
 
@@ -144,7 +144,7 @@ public:
 
         int64_t t2 = getTimeInMillis();
 
-        for (int32_t c = 0; c < values.size(); c++)
+        for (size_t c = 0; c < values.size(); c++)
         {
             assert_equals(values[c], values2[c]);
         }

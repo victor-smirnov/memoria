@@ -45,7 +45,7 @@ public:
             const LoudsTree* tree,
             const PackedLoudsNode& node,
             const PackedLoudsNode& parent,
-            int32_t& count
+            size_t& count
         )
     {
         count++;
@@ -74,7 +74,7 @@ public:
 
     void checkTreeStructure(const LoudsTree* tree, const PackedLoudsNode& node)
     {
-        int32_t count = 0;
+        size_t count = 0;
 
         if (node.idx() > 0)
         {
@@ -88,7 +88,7 @@ public:
 
     void checkTreeStructure(const LoudsTree* tree, const PackedLoudsNode& node, const PackedLoudsNode& parent)
     {
-        int32_t count = 0;
+        size_t count = 0;
         checkTreeStructure(tree, node, parent, count);
     }
 
@@ -96,7 +96,7 @@ public:
     {
         if (tree->size() > 2)
         {
-            int32_t count = 0;
+            size_t count = 0;
             checkTreeStructure(tree, tree->root(), tree->root(), count);
 
             AssertEQ(MA_SRC, count, tree->rank1(tree->size() - 1));
@@ -107,7 +107,7 @@ public:
         }
     }
 
-    void traverseTreePaths(const LoudsTree* tree, function<void (const PackedLoudsNode&, int32_t)> fn, int32_t level = 0)
+    void traverseTreePaths(const LoudsTree* tree, function<void (const PackedLoudsNode&, size_t)> fn, size_t level = 0)
     {
         traverseTreePaths(tree, tree->root(), PackedLoudsNode(), fn, level);
     }
@@ -116,7 +116,7 @@ public:
             const LoudsTree* tree,
             const PackedLoudsNode& node,
             const PackedLoudsNode& parent,
-            function<void (const PackedLoudsNode&, int32_t)> fn, int32_t level = 0)
+            function<void (const PackedLoudsNode&, size_t)> fn, size_t level = 0)
     {
         if (tree->isLeaf(node))
         {
@@ -133,7 +133,7 @@ public:
         }
     }
 
-    LoudsTreePtr createEmptyLouds(int32_t block_size = 64*1024)
+    LoudsTreePtr createEmptyLouds(size_t block_size = 64*1024)
     {
         return MakeSharedPackedStructByBlock<LoudsTree>(block_size);
     }
@@ -153,27 +153,27 @@ public:
         return tree;
     }
 
-    LoudsTreePtr createRandomTree(int32_t size, int32_t max_children = 10)
+    LoudsTreePtr createRandomTree(size_t size, size_t max_children = 10)
     {
         auto tree = createEmptyLouds();
 
-        vector<int32_t> level;
+        vector<size_t> level;
 
         tree->appendUDS(1);
 
         level.push_back(1);
 
-        int32_t node_count = 0;
+        size_t node_count = 0;
 
         while (level.size() > 0)
         {
-            vector<int32_t> next_level;
+            vector<size_t> next_level;
 
-            for (int32_t parent_degree: level)
+            for (size_t parent_degree: level)
             {
-                for (int32_t c = 0; c < parent_degree; c++)
+                for (size_t c = 0; c < parent_degree; c++)
                 {
-                    int32_t child_degree = getRandom(max_children);
+                    size_t child_degree = getRandom(max_children);
 
                     if (child_degree + node_count > size)
                     {

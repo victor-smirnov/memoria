@@ -301,6 +301,8 @@ protected:
     template <typename IndexT, typename Walker>
     size_t walk_index_bw(const IndexedTreeLayout<IndexT>& data, size_t start, size_t level, Walker&& walker) const
     {
+        size_t start0 = start;
+
         size_t level_start = data.level_starts[level];
         size_t level_size  = data.level_sizes[level];
 
@@ -344,11 +346,11 @@ protected:
                 );
             }
             else {
-                return -1;
+                return start0 + 1;
             }
         }
         else {
-            return -1;
+            return start0 + 1;
         }
     }
 

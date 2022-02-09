@@ -59,7 +59,7 @@ public:
     }
 
 
-    size_t selectFW(uint64_t x, int32_t rank)
+    size_t selectFW(uint64_t x, size_t rank)
     {
         for (size_t c = 0; c <= TypeBitsize<uint64_t>(); c++)
         {
@@ -72,7 +72,7 @@ public:
         return 100 + PopCnt(x);
     }
 
-    size_t selectBW(uint64_t x, int32_t rank)
+    size_t selectBW(uint64_t x, size_t rank)
     {
         size_t bitsize = TypeBitsize<uint64_t>();
 
@@ -118,7 +118,7 @@ public:
 
         size_t bitsize = TypeBitsize<uint64_t>();
 
-        for (int32_t c = 0; c < 10000; c++)
+        for (size_t c = 0; c < 10000; c++)
         {
             uint64_t value = getBIRandom();
 
@@ -138,7 +138,7 @@ public:
 
         size_t bitsize = TypeBitsize<uint64_t>();
 
-        for (int32_t c = 0; c < 10000; c++)
+        for (size_t c = 0; c < 10000; c++)
         {
             uint64_t value = getBIRandom();
 
@@ -151,7 +151,7 @@ public:
 
     void dumpRanks(uint64_t value)
     {
-        for (int32_t c = 0; c < 64; c++)
+        for (size_t c = 0; c < 64; c++)
         {
             out() << c << " ";
             out() << PopCnt(value & MakeMask<uint64_t>(0, c)) << std::endl;

@@ -53,11 +53,11 @@ public:
 
 
 
-    IndexValue sum(const TreePtr& tree, int32_t block, int32_t start, int32_t end)
+    IndexValue sum(const TreePtr& tree, size_t block, size_t start, size_t end)
     {
         IndexValue sum = 0;
 
-        for (int32_t c = start; c < end; c++)
+        for (size_t c = start; c < end; c++)
         {
             sum += tree->value(block, c);
         }
@@ -67,13 +67,13 @@ public:
 
     void testBlockSum()
     {
-        for (int32_t c = 1024; c <= size_; c += 1024)
+        for (size_t c = 1024; c <= size_; c += 1024)
         {
             testBlockSum(c);
         }
     }
 
-    void testBlockSum(int32_t tree_size)
+    void testBlockSum(size_t tree_size)
     {
         out() << tree_size << std::endl;
 
@@ -81,14 +81,14 @@ public:
 
         auto values = Base::fillRandom(tree, tree_size);
 
-        int32_t size = tree->size();
+        size_t size = tree->size();
 
-        for (int32_t c = 0; c < iterations_; c++)
+        for (size_t c = 0; c < iterations_; c++)
         {
-            int32_t end     = this->getRandom(size / 2) + size / 2;
-            int32_t start   = this->getRandom(size / 2);
+            size_t end     = this->getRandom(size / 2) + size / 2;
+            size_t start   = this->getRandom(size / 2);
 
-            int32_t block   = this->getRandom(Tree::Blocks);
+            size_t block   = this->getRandom(Tree::Blocks);
 
             auto sum1 = tree->sum(block, start, end);
             auto sum2 = Base::sum(values, block, start, end);

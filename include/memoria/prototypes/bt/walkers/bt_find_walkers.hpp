@@ -386,7 +386,7 @@ public:
 
             int32_t idx = result.local_pos();
 
-            return StreamOpResult(idx, start, idx < 0);
+            return StreamOpResult(idx, start, idx > start);
         }
         else {
             return StreamOpResult(start, start, true, true);
@@ -401,7 +401,7 @@ public:
 
         if (start >= 0)
         {
-            auto k          = Base::target_ - Base::sum_;
+            auto k = Base::target_ - Base::sum_;
 
             int32_t index       = this->leaf_index();
 
@@ -412,19 +412,12 @@ public:
 
             int32_t idx = result.local_pos();
 
-            return StreamOpResult(idx, start, idx < 0);
+            return StreamOpResult(idx, start, idx > start1);
         }
         else {
             return StreamOpResult(start, start, true, true);
         }
     }
-
-//    template <typename... Args>
-//    auto treeNode(Args&&... args) ->
-//    decltype(std::declval<Base>().treeNode(std::declval<Args>()...))
-//    {
-//        return Base::treeNode(std::forward<Args>(args)...);
-//    }
 
     using Base::treeNode;
 

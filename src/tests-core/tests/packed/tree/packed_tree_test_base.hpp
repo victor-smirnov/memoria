@@ -62,7 +62,7 @@ class PackedTreeTestBase: public TestState {
     using Base = TestState;
 protected:
 
-    static constexpr int32_t MEMBUF_SIZE = 1024*1024*8;
+    static constexpr size_t MEMBUF_SIZE = 1024*1024*8;
 
     using Tree      = PackedTreeT;
     using TreePtr   = PkdStructSPtr<Tree>;
@@ -71,10 +71,10 @@ protected:
     typedef typename Tree::IndexValue                                           IndexValue;
     typedef typename Tree::DataValues                                           Values;
 
-    static constexpr int32_t Blocks = Tree::Blocks;
+    static constexpr size_t Blocks = Tree::Blocks;
 
     int64_t size_{4096};
-    int32_t iterations_ {10};
+    size_t iterations_ {10};
 
 public:
 
@@ -84,11 +84,11 @@ public:
     MMA_STATE_FILEDS(size_, iterations_);
 
     template <typename T>
-    IndexValue sum(const std::vector<T>& tree, int32_t block, int32_t start, int32_t end)
+    IndexValue sum(const std::vector<T>& tree, size_t block, size_t start, size_t end)
     {
         IndexValue sum = 0;
 
-        for (int32_t c = start; c < end; c++)
+        for (size_t c = start; c < end; c++)
         {
             sum += tree[c][block];
         }
@@ -97,37 +97,37 @@ public:
     }
 
 
-    TreePtr createEmptyTree(int32_t block_size = MEMBUF_SIZE)
+    TreePtr createEmptyTree(size_t block_size = MEMBUF_SIZE)
     {
         return MakeSharedPackedStructByBlock<Tree>(block_size);
     }
 
-    TreePtr createTree(int32_t tree_capacity, int32_t free_space = 0)
+    TreePtr createTree(size_t tree_capacity, size_t free_space = 0)
     {
-        int32_t tree_block_size = Tree::block_size(tree_capacity);
+        size_t tree_block_size = Tree::block_size(tree_capacity);
         return MakeSharedPackedStructByBlock<Tree>(tree_block_size + free_space);
     }
 
-    void truncate(std::vector<Values>& v, int32_t size) {
-        int32_t delta = v.size() - size;
+    void truncate(std::vector<Values>& v, size_t size) {
+        size_t delta = v.size() - size;
 
-        for (int32_t idx = 0; idx < delta; idx++)
+        for (size_t idx = 0; idx < delta; idx++)
         {
             v.erase(v.end() - 1);
         }
     }
 
-    std::vector<Values> fillRandom(TreePtr& tree, int32_t size, int32_t max_value = 300, int32_t min = 1)
+    std::vector<Values> fillRandom(TreePtr& tree, size_t size, size_t max_value = 300, size_t min = 1)
     {
         std::vector<Values> vals(size);
         for (auto& v: vals)
         {
-            for (int32_t b = 0; b < Blocks; b++) {
+            for (size_t b = 0; b < Blocks; b++) {
                 v[b] = from_number(TypeTag<Value>(), getRandom(max_value) + min);
             }
         }
 
-        tree->insert_entries(0, size, [&](int32_t block, int32_t idx) noexcept {
+        tree->insert_entries(0, size, [&](size_t block, size_t idx) noexcept {
             return vals[idx][block];
         }).get_or_throw();
 
@@ -135,10 +135,10 @@ public:
 
         assert_equals(size, tree->size());
 
-        for (int32_t b = 0; b < Blocks; b++)
+        for (size_t b = 0; b < Blocks; b++)
         {
-            int32_t idx = 0;
-            tree->read(b, 0, tree->size(), make_fn_with_next([&](int32_t block, auto v){
+            size_t idx = 0;
+            tree->read(b, 0, tree->size(), make_fn_with_next([&](size_t block, auto v){
                 assert_equals(v, vals[idx][block]);
             }, [&]{idx++;}));
         }
@@ -150,7 +150,7 @@ public:
     {
         std::vector<Values> vals;
 
-        int32_t size = tree->insert(0, [&](Values& v) -> bool {
+        size_t size = tree->insert(0, [&](Values& v) -> bool {
             v = values;
             vals.push_back(values);
 
@@ -162,12 +162,12 @@ public:
         return vals;
     }
 
-    std::vector<Values> fillSolid(Tree* tree, int32_t value)
+    std::vector<Values> fillSolid(Tree* tree, size_t value)
     {
         std::vector<Values> vals;
 
-        int32_t size = tree->insert(0, [&](Values& v) -> bool {
-            for (int32_t b = 0; b < Blocks; b++) {
+        size_t size = tree->insert(0, [&](Values& v) -> bool {
+            for (size_t b = 0; b < Blocks; b++) {
                 v[b] = value;
             }
 
@@ -183,29 +183,29 @@ public:
 
     void fillVector(TreePtr& tree, const std::vector<Values>& vals)
     {
-        tree->insert_entries(0, vals.size(), [&](int32_t block, int32_t idx) noexcept {
+        tree->insert_entries(0, vals.size(), [&](size_t block, size_t idx) noexcept {
             return vals[idx][block];
         }).get_or_throw();
     }
 
-    Values createRandom(int32_t max = 100)
+    Values createRandom(size_t max = 100)
     {
         Values values;
 
-        for (int32_t c = 0; c < Blocks; c++) {
+        for (size_t c = 0; c < Blocks; c++) {
             values[c] = from_number(TypeTag<Value>(), getRandom(max));
         }
 
         return values;
     }
 
-    std::vector<Values> createRandomValuesVector(int32_t size, int32_t max_value = 300)
+    std::vector<Values> createRandomValuesVector(size_t size, size_t max_value = 300)
     {
         std::vector<Values> vals(size);
 
-        for (int32_t c = 0; c < size; c++)
+        for (size_t c = 0; c < size; c++)
         {
-            for (int32_t b = 0; b < Blocks; b++)
+            for (size_t b = 0; b < Blocks; b++)
             {
                 vals[c][b] = from_number(TypeTag<Value>(), getRandom(max_value));
             }
@@ -216,12 +216,12 @@ public:
 
     void assertEqual(const TreePtr& tree, const std::vector<Values>& vals)
     {
-        assert_equals(tree->size(), (int32_t)vals.size());
+        assert_equals(tree->size(), (size_t)vals.size());
 
-        for (int32_t c = 0; c < tree->size(); c++)
+        for (size_t c = 0; c < tree->size(); c++)
         {
             Values v;
-            for (int32_t b = 0; b < Blocks; b++)
+            for (size_t b = 0; b < Blocks; b++)
             {
                 v[b] = tree->value(b, c);
             }
@@ -234,10 +234,10 @@ public:
     {
         AssertEQ(MA_SRC, tree1->size(), tree2->size());
 
-        for (int32_t c = 0; c < tree1->size(); c++)
+        for (size_t c = 0; c < tree1->size(); c++)
         {
             Values v1, v2;
-            for (int32_t b = 0; b < Blocks; b++)
+            for (size_t b = 0; b < Blocks; b++)
             {
                 v1[b] = tree1->value(b, c);
                 v2[b] = tree2->value(b, c);
@@ -268,7 +268,7 @@ public:
     template <typename T>
     void dump(const std::vector<T>& v, std::ostream& out)
     {
-        for (int32_t c = 0; c < v.size(); c++) {
+        for (size_t c = 0; c < v.size(); c++) {
             out << c << ": " << v[c] << std::endl;
         }
     }

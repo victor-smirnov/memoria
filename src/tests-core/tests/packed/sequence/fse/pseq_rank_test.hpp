@@ -26,7 +26,7 @@ namespace tests {
 
 
 template <
-    int32_t Bits,
+    size_t Bits,
     typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
     template <typename> class SelectFnType  = BitmapSelectFn,
@@ -70,9 +70,9 @@ class PackedSearchableSequenceRankTest: public PackedSearchableSequenceTestBase<
     using Value = typename Seq::Value;
 
 
-    static const int32_t Blocks                 = Seq::Indexes;
-    static const int32_t Symbols                = 1 << Bits;
-    static const int32_t VPB                    = Seq::ValuesPerBranch;
+    static const size_t Blocks                 = Seq::Indexes;
+    static const size_t Symbols                = 1 << Bits;
+    static const size_t VPB                    = Seq::ValuesPerBranch;
 
     using Base::getRandom;
     using Base::createEmptySequence;
@@ -162,16 +162,16 @@ public:
 
     void assertRank(const SeqPtr& seq, size_t start, size_t end, Value symbol)
     {
-        int32_t localrank_  = seq->rank(start, end, symbol);
-        int32_t popc        = this->rank(seq, start, end, symbol);
+        size_t localrank_  = seq->rank(start, end, symbol);
+        size_t popc        = this->rank(seq, start, end, symbol);
 
         assert_equals(localrank_, popc);
     }
 
     void assertRank(const SeqPtr& seq, size_t end, Value symbol)
     {
-        int32_t rank = seq->rank(end, symbol);
-        int32_t popc = seq->rank(0, end, symbol);
+        size_t rank = seq->rank(end, symbol);
+        size_t popc = seq->rank(0, end, symbol);
 
         assert_equals(rank, popc, "{}", end);
     }
@@ -210,9 +210,9 @@ public:
 
         fillRandom(seq, this->size_);
 
-        int32_t stop = seq->size() - 1;
+        size_t stop = seq->size() - 1;
 
-        for (int32_t start = 0; start < seq->size(); start++)
+        for (size_t start = 0; start < seq->size(); start++)
         {
             assertRank(seq, start, stop, 0);
             assertRank(seq, start, stop, Symbols - 1);
@@ -227,7 +227,7 @@ public:
 
         fillRandom(seq, this->size_);
 
-        for (int32_t c = 0; c <= seq->size(); c++)
+        for (size_t c = 0; c <= seq->size(); c++)
         {
             assertRank(seq, c, 0);
         }

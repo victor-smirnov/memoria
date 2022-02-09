@@ -30,7 +30,7 @@ class PackedLoudsCardinalTreeTestBase: public TestTask {
 
 protected:
     struct CardinalTreeTypes {
-        static const int32_t BitsPerLabel = 8;
+        static const size_t BitsPerLabel = 8;
     };
 
     using Tree = PackedLoudsCardinalTree<CardinalTreeTypes>;
@@ -46,12 +46,12 @@ public:
 
     virtual ~PackedLoudsCardinalTreeTestBase() noexcept {}
 
-    TreePtr createEmptyTree(int32_t block_size = 1024*1024)
+    TreePtr createEmptyTree(size_t block_size = 1024*1024)
     {
         return MakeSharedPackedStructByBlock<Tree>(block_size);
     }
 
-    void traverseTreePaths(const TreePtr& ctree, function<void (const PackedLoudsNode&, int32_t)> fn, int32_t level = 0)
+    void traverseTreePaths(const TreePtr& ctree, function<void (const PackedLoudsNode&, size_t)> fn, size_t level = 0)
     {
         auto tree = ctree->tree();
         traverseTreePaths(tree, tree->root(), PackedLoudsNode(), fn, level);
@@ -61,7 +61,7 @@ public:
             const LoudsTree* tree,
             const PackedLoudsNode& node,
             const PackedLoudsNode& parent,
-            function<void (const PackedLoudsNode&, int32_t)> fn, int32_t level = 0)
+            function<void (const PackedLoudsNode&, size_t)> fn, size_t level = 0)
     {
         if (tree->isLeaf(node))
         {

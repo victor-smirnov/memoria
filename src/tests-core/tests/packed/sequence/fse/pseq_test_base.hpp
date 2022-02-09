@@ -30,7 +30,7 @@ namespace memoria {
 namespace tests {
 
 template <
-    int32_t Bits,
+    size_t Bits,
     typename IndexType,
     template <typename> class ReindexFnType,
     template <typename> class SelectFnType,
@@ -69,11 +69,11 @@ protected:
     typedef typename Seq::Value                                                 Value;
 
 
-    static const int32_t Blocks                 = Seq::Indexes;
-    static const int32_t Symbols                = 1 << Bits;
-    static const int32_t VPB                    = Seq::ValuesPerBranch;
+    static const size_t Blocks                 = Seq::Indexes;
+    static const size_t Symbols                = 1 << Bits;
+    static const size_t VPB                    = Seq::ValuesPerBranch;
 
-    int32_t iterations_ = 100;
+    size_t iterations_ = 100;
     int64_t size_{32768};
 
 public:
@@ -82,16 +82,16 @@ public:
 
 
 
-    SeqPtr createEmptySequence(int32_t block_size = 1024*1024)
+    SeqPtr createEmptySequence(size_t block_size = 1024*1024)
     {
         return MakeSharedPackedStructByBlock<Seq>(block_size);
     }
 
 
 
-    std::vector<int32_t> populate(SeqPtr& seq, int32_t size, Value value = 0)
+    std::vector<size_t> populate(SeqPtr& seq, size_t size, Value value = 0)
     {
-        std::vector<int32_t> symbols(size);
+        std::vector<size_t> symbols(size);
 
         for (auto& s: symbols) s = value;
 
@@ -106,18 +106,18 @@ public:
         return symbols;
     }
 
-    std::vector<int32_t> populateRandom(SeqPtr& seq, int32_t size)
+    std::vector<size_t> populateRandom(SeqPtr& seq, size_t size)
     {
         seq->clear().get_or_throw();
         return fillRandom(seq, size);
     }
 
-    std::vector<int32_t> fillRandom(SeqPtr& seq, int32_t size)
+    std::vector<size_t> fillRandom(SeqPtr& seq, size_t size)
     {
-        std::vector<int32_t> symbols;
+        std::vector<size_t> symbols;
 
         seq->insert(0, size, [&]() {
-            int32_t sym = getRandom(Blocks);
+            size_t sym = getRandom(Blocks);
             symbols.push_back(sym);
             return sym;
         }).get_or_throw();
@@ -130,11 +130,11 @@ public:
         return symbols;
     }
 
-    int32_t rank(const SeqPtr& seq, int32_t start, int32_t end, int32_t symbol)
+    size_t rank(const SeqPtr& seq, size_t start, size_t end, size_t symbol)
     {
-        int32_t rank = 0;
+        size_t rank = 0;
 
-        for (int32_t c = start; c < end; c++)
+        for (size_t c = start; c < end; c++)
         {
             rank += seq->test(c, symbol);
         }
@@ -160,12 +160,12 @@ public:
         assert_equals(false, seq->has_index());
     }
 
-    void assertEqual(const SeqPtr& seq, const std::vector<int32_t>& symbols)
+    void assertEqual(const SeqPtr& seq, const std::vector<size_t>& symbols)
     {
-        assert_equals(seq->size(), (int32_t)symbols.size());
+        assert_equals(seq->size(), (size_t)symbols.size());
 
         try {
-            for (int32_t c = 0; c < seq->size(); c++)
+            for (size_t c = 0; c < seq->size(); c++)
             {
                 assert_equals((uint64_t)seq->symbol(c), (uint64_t)symbols[c], "Index: {}", c);
             }

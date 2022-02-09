@@ -52,23 +52,23 @@ public:
     }
 
 
-    void testCountFW(int32_t value)
+    void testCountFW(size_t value)
     {
         out() << "TestCountFw: " << TypeNameFactory<T>::name() << " " << value << std::endl;
 
         T values[10];
 
-        int32_t bitsize = sizeof(values) * 8;
+        size_t bitsize = sizeof(values) * 8;
 
-        for (int32_t length = 0; length < bitsize; length++)
+        for (size_t length = 0; length < bitsize; length++)
         {
-            for (int32_t start = 0; start < bitsize - length; start++)
+            for (size_t start = 0; start < bitsize - length; start++)
             {
                 makeBitmap(values, bitsize, start, length, value);
 
-                int32_t count;
+                size_t count;
 
-                int32_t limit = start + length + 1;
+                size_t limit = start + length + 1;
 
                 if (limit > bitsize)
                 {
@@ -100,30 +100,33 @@ public:
     }
 
 
-    void testCountBW(int32_t value)
+    void testCountBW(size_t value)
     {
         out() << "TestCountBw: " << TypeNameFactory<T>::name() << " " << value << std::endl;
 
         T values[10];
 
-        int32_t bitsize = sizeof(values) * 8;
+        size_t bitsize = sizeof(values) * 8;
 
-        for (int32_t length = 0; length < bitsize; length++)
+        for (size_t length = 0; length < bitsize; length++)
         {
-            for (int32_t start = 0; start < bitsize - length; start++)
+            for (size_t start = 0; start < bitsize - length; start++)
             {
                 makeBitmap(values, bitsize, start, length, value);
 
-                int32_t count;
+                size_t count;
 
-                int32_t limit = start - 1;
+                size_t limit;
 
-                if (limit < 0)
+                if (start == 0)
                 {
                     limit = 0;
                 }
+                else {
+                     limit = start - 1;
+                }
 
-                int32_t begin = start + length;
+                size_t begin = start + length;
 
                 if (value)
                 {

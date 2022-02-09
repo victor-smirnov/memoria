@@ -45,11 +45,11 @@ public:
 
     void testPopCnt()
     {
-        for (int32_t c = 0; c < 100000; c++)
+        for (size_t c = 0; c < 100000; c++)
         {
             T v = sizeof(T) == 8 ? getBIRandom() : getRandom();
 
-            int32_t cnt = PopCnt(v);
+            size_t cnt = PopCnt(v);
 
             if (sizeof(T) == 8)
             {
@@ -64,15 +64,15 @@ public:
     void testPopCount()
     {
         T bitmap[10];
-        int32_t bitsize     = sizeof(bitmap) * 8;
+        size_t bitsize     = sizeof(bitmap) * 8;
 
         clearBitmap(bitmap, bitsize, 0);
 
-        for (int32_t length = 1; length <= bitsize; length++)
+        for (size_t length = 1; length <= bitsize; length++)
         {
-            for (int32_t start = 0; start < bitsize - length; start++)
+            for (size_t start = 0; start < bitsize - length; start++)
             {
-                int32_t cnt = PopCount(bitmap, start, start + length);
+                size_t cnt = PopCount(bitmap, start, start + length);
 
                 assert_equals(cnt, length, "{} {}", start, length);
             }

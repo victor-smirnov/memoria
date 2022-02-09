@@ -37,7 +37,7 @@ class BitmapTestBase: public TestState {
 
 public:
 
-    void clearBitmap(T* bitmap, int32_t size, int32_t value = 0)
+    void clearBitmap(T* bitmap, size_t size, size_t value = 0)
     {
         for (size_t c = 0; c < size/sizeof(T)/8; c++)
         {
@@ -46,18 +46,18 @@ public:
     }
 
 
-    void makeBitmap(T* buffer, int32_t size, int32_t start, int32_t length, int32_t value)
+    void makeBitmap(T* buffer, size_t size, size_t start, size_t length, size_t value)
     {
         clearBitmap(buffer, size, value);
 
-        for (int32_t c = 0; c < length; c++)
+        for (size_t c = 0; c < length; c++)
         {
             SetBit(buffer, c + start, value);
         }
     }
 
 
-    void makeRandomBitmap(T* buffer, int32_t size)
+    void makeRandomBitmap(T* buffer, size_t size)
     {
         for (size_t c = 0; c < size/sizeof(T)/8; c++)
         {
@@ -66,7 +66,7 @@ public:
     }
 
 
-    void compareBitmaps(const char* src, const T* bitmap1, const T* bitmap2, int32_t start1, int32_t start2, int32_t length)
+    void compareBitmaps(const char* src, const T* bitmap1, const T* bitmap2, size_t start1, size_t start2, size_t length)
     {
         size_t bitsize  = TypeBitsize<T>();
         size_t mask     = TypeBitmask<T>();

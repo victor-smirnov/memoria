@@ -454,8 +454,10 @@ public:
 
         if (start < ValuesPerBranch * 2)
         {
-            for (size_t c = start; c >= 0; c--)
+            for (size_t cc = start + 1; cc > 0; cc--)
             {
+                size_t c = cc - 1;
+
                 if (walker.compare(values[c]))
                 {
                     return walker.idx(c);
@@ -465,7 +467,7 @@ public:
                 }
             }
 
-            return walker.idx(-1);
+            return walker.idx(start + 1);
         }
         else {
             size_t window_end = (start & ~ValuesPerBranchMask) - 1;
@@ -487,19 +489,22 @@ public:
 
             data.indexes = this->index(block);
 
+            size_t idx_start = window_end >> ValuesPerBranchLog2;
             size_t idx = this->walk_index_bw(
                     data,
-                    window_end >> ValuesPerBranchLog2,
+                    idx_start,
                     data.levels_max,
                     std::forward<Walker>(walker)
             );
 
-            if (idx >= 0)
+            if (idx <= idx_start)
             {
                 size_t window_start = ((idx + 1) << ValuesPerBranchLog2) - 1;
 
-                for (size_t c = window_start; c >= 0; c--)
+                for (size_t cc = window_start + 1; cc > 0; cc--)
                 {
+                    size_t c = cc - 1;
+
                     if (walker.compare(values[c]))
                     {
                         return walker.idx(c);
@@ -509,10 +514,10 @@ public:
                     }
                 }
 
-                return walker.idx(-1);
+                return walker.idx(start + 1);
             }
             else {
-                return walker.idx(-1);
+                return walker.idx(start + 1);
             }
         }
     }
