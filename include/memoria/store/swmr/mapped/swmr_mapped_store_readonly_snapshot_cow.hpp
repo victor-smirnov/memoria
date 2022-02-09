@@ -79,11 +79,11 @@ protected:
     class CacheEntryBase: public Shared {
         uint64_t file_pos_;
     public:
-        CacheEntryBase(const BlockID& id, BlockType* block, uint64_t file_pos) noexcept :
+        CacheEntryBase(const BlockID& id, BlockType* block, uint64_t file_pos)  :
             Shared(id, block, 0), file_pos_(file_pos)
         {}
 
-        uint64_t file_pos() const noexcept {return file_pos_;}
+        uint64_t file_pos() const  {return file_pos_;}
     };
 
     using SharedBlockCache = SimpleTwoQueueCache<BlockID, CacheEntryBase>;
@@ -116,7 +116,7 @@ public:
             Span<uint8_t> buffer,
             CDescrPtr& snapshot_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate = nullptr
-    ) noexcept:
+    ) :
         Base(store, snapshot_descriptor, refcounter_delegate),
         buffer_(buffer),
         block_cache_(1024*128)
@@ -144,7 +144,7 @@ public:
         }
     }
 
-    static void init_profile_metadata() noexcept {
+    static void init_profile_metadata()  {
         Base::init_profile_metadata();
         BlockMapCtr::template init_profile_metadata<Profile>();
     }
@@ -153,7 +153,7 @@ public:
         return get_superblock()->sequence_id();
     }
 
-    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
+    virtual SnpSharedPtr<StoreT> self_ptr()  {
         return this->shared_from_this();
     }
 

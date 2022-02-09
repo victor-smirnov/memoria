@@ -41,7 +41,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     using typename Base::BlockType;
     using typename Base::ContainerTypeName;
 
-    bool ctr_is_mutable_node(const TreeNodeConstPtr& node) const noexcept {
+    bool ctr_is_mutable_node(const TreeNodeConstPtr& node) const {
         return node->header().snapshot_id() == self().snapshot_id();
     }
 
@@ -96,7 +96,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
                 });
             }
             else {
-                this_ptr->leaf_dispatcher().dispatch(block, UnrefLeafChildren(), this_ptr->store()).get_or_throw();
+                this_ptr->leaf_dispatcher().dispatch(block, UnrefLeafChildren(), this_ptr->store());
             }
 
             return this_ptr->store().removeBlock(block->id());
@@ -116,7 +116,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
             });
         }
         else {
-            self.leaf_dispatcher().dispatch(block, UnrefLeafChildren(), self.store()).get_or_throw();
+            self.leaf_dispatcher().dispatch(block, UnrefLeafChildren(), self.store());
         }
 
         return self.store().removeBlock(block->id());
@@ -144,7 +144,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
             });
         }
         else {
-            self.leaf_dispatcher().dispatch(new_block, RefLeafChildren(), self).get_or_throw();
+            self.leaf_dispatcher().dispatch(new_block, RefLeafChildren(), self);
         }
 
         return new_block;
@@ -199,13 +199,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     }
 
 
-    bool is_cascade_tree_removal() const noexcept {
+    bool is_cascade_tree_removal() const {
         return self().store().is_cascade_tree_removal();
     }
 
     void traverse_ctr(
             void* node_handler_ptr
-    ) const noexcept
+    ) const
     {
         auto& self = this->self();
 
@@ -257,7 +257,7 @@ private:
     MEMORIA_V1_DECLARE_NODE_FN(ForAllCtrRooIDsFn, for_all_ctr_root_ids);
     void ctr_for_all_leaf_ctr_refs(const TreeNodeConstPtr& node, const std::function<void (const BlockID&)>& fn) const
     {
-        return self().leaf_dispatcher().dispatch(node, ForAllCtrRooIDsFn(), fn).get_or_throw();
+        return self().leaf_dispatcher().dispatch(node, ForAllCtrRooIDsFn(), fn);
     }
 
 public:
@@ -369,7 +369,7 @@ public:
             });
         }
         else {
-            self.leaf_dispatcher().dispatch(block, RefLeafChildren(), self).get_or_throw();
+            self.leaf_dispatcher().dispatch(block, RefLeafChildren(), self);
         }
 
     }

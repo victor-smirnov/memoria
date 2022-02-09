@@ -25,6 +25,7 @@
 
 
 #include <memoria/core/packed/tools/packed_stateful_dispatcher.hpp>
+#include <memoria/core/packed/tools/packed_stateful_dispatcher_res.hpp>
 
 #include <memoria/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
 
@@ -149,9 +150,17 @@ public:
         NodeType_::StreamsStart
     >;
 
+    using DispatcherWithResult = PackedStatefulDispatcherWithResult<
+        LeafExtData,
+        StreamDispatcherStructList,
+        NodeType_::StreamsStart
+    >;
+
     template <int32_t StartIdx, int32_t EndIdx>
     using SubrangeDispatcher = typename Dispatcher::template SubrangeDispatcher<StartIdx, EndIdx>;
 
+    template <int32_t StartIdx, int32_t EndIdx>
+    using SubrangeDispatcherWithResult = typename DispatcherWithResult::template SubrangeDispatcher<StartIdx, EndIdx>;
 
     template <typename SubstreamsPath>
     using SubstreamsDispatcher = SubrangeDispatcher<
@@ -159,8 +168,17 @@ public:
             list_tree::LeafCountSup<LeafSubstreamsStructList, SubstreamsPath>
     >;
 
+    template <typename SubstreamsPath>
+    using SubstreamsDispatcherWithResult = SubrangeDispatcherWithResult<
+            list_tree::LeafCountInf<LeafSubstreamsStructList, SubstreamsPath>,
+            list_tree::LeafCountSup<LeafSubstreamsStructList, SubstreamsPath>
+    >;
+
     template <int32_t StreamIdx>
     using StreamDispatcher = SubstreamsDispatcher<IntList<StreamIdx>>;
+
+    template <int32_t StreamIdx>
+    using StreamDispatcherWithResult = SubstreamsDispatcherWithResult<IntList<StreamIdx>>;
 
     template <int32_t StreamIdx>
     using StreamStartIdx = IntValue<
@@ -183,9 +201,25 @@ public:
             Stream
     >;
 
+    template <int32_t Stream, typename SubstreamIdxList>
+    using SubstreamsByIdxDispatcherWithResult = typename DispatcherWithResult::template SubsetDispatcher<
+            list_tree::AddToValueList<
+                list_tree::LeafCount<LeafSubstreamsStructList, IntList<Stream>>,
+                SubstreamIdxList
+            >,
+            Stream
+    >;
+
+
 
     template <int32_t Stream>
     using BTTLStreamDataDispatcher = SubrangeDispatcher<
+            StreamStartIdx<Stream>::Value,
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1
+    >;
+
+    template <int32_t Stream>
+    using BTTLStreamDataDispatcherWithResult = SubrangeDispatcherWithResult<
             StreamStartIdx<Stream>::Value,
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1
     >;
@@ -197,12 +231,26 @@ public:
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
     >;
 
+    template <int32_t Stream>
+    using BTTLLastStreamDataDispatcherWithResult = SubrangeDispatcherWithResult<
+            StreamStartIdx<Stream>::Value,
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
+    >;
+
 
     template <int32_t Stream>
     using BTTLStreamSizesDispatcher = SubrangeDispatcher<
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1,
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
     >;
+
+
+    template <int32_t Stream>
+    using BTTLStreamSizesDispatcherWithResult = SubrangeDispatcherWithResult<
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1,
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
+    >;
+
 
     template <int32_t SubstreamIdx>
     using LeafPathT = typename list_tree::BuildTreePath<LeafSubstreamsStructList, SubstreamIdx>::Type;
@@ -246,70 +294,70 @@ public:
 
 
 
-    LeafNodeSO() noexcept: Base() {}
-    LeafNodeSO(CtrT* ctr) noexcept: Base(ctr, nullptr) {}
-    LeafNodeSO(CtrT* ctr, NodeType_* node) noexcept:
+    LeafNodeSO() : Base() {}
+    LeafNodeSO(CtrT* ctr) : Base(ctr, nullptr) {}
+    LeafNodeSO(CtrT* ctr, NodeType_* node) :
         Base(ctr, node)
     {}
 
-    void setup() noexcept {
+    void setup()  {
         ctr_ = nullptr;
         node_ = nullptr;
     }
 
-    void setup(CtrT* ctr) noexcept {
+    void setup(CtrT* ctr)  {
         ctr_ = ctr;
         node_ = nullptr;
     }
 
-    void setup(CtrT* ctr, NodeType_* node) noexcept {
+    void setup(CtrT* ctr, NodeType_* node)  {
         ctr_ = ctr;
         node_ = node;
     }
 
-    void setup(NodeType_* node) noexcept {
+    void setup(NodeType_* node)  {
         node_ = node;
     }
 
-    LeafExtData& state() const noexcept {
+    LeafExtData& state() const  {
         return ctr_->leaf_node_ext_data();
     }
 
     template <typename LeafPath, typename ExtData>
-    void set_ext_data(ExtData&& data) const noexcept
+    void set_ext_data(ExtData&& data) const
     {
         constexpr int32_t substream_idx = SubstreamIdxByLeafPath<LeafPath>;
         std::get<substream_idx>(ctr_->leaf_node_ext_data()) = std::forward<ExtData>(data);
     }
 
 
-    static Result<std::unique_ptr<io::IOVector>> create_iovector() noexcept
+    static Result<std::unique_ptr<io::IOVector>> create_iovector()
     {
         using ResultT = Result<std::unique_ptr<io::IOVector>>;
         return ResultT::of(std::make_unique<IOVectorT>());
     }
 
-    Result<std::unique_ptr<io::IOVector>> create_iovector_view() const noexcept
+    Result<std::unique_ptr<io::IOVector>> create_iovector_view() const
     {
         auto iov = std::make_unique<IOVectorViewT>();
         configure_iovector_view(*iov.get());
         return std::move(iov);
     }
 
-    VoidResult configure_iovector_view(io::IOVector& io_vector) const noexcept
+    void configure_iovector_view(io::IOVector& io_vector) const
     {
         return Dispatcher(state()).dispatchAll(allocator(), detail::ConfigureIOVectorViewFn<Streams>(io_vector));
     }
 
     template <typename OtherNode>
-    VoidResult copy_node_data_to(OtherNode&& other) const noexcept
+    VoidResult copy_node_data_to(OtherNode&& other) const
     {
         PackedAllocator* other_alloc = other.allocator();
         const PackedAllocator* my_alloc = this->allocator();
 
         for (int32_t c = 0; c < SubstreamsEnd; c++)
         {
-            MEMORIA_TRY_VOID(other_alloc->importBlock(c, my_alloc, c));
+            MEMORIA_TRY_VOID(other_alloc->import_block(c, my_alloc, c));
         }
 
         return VoidResult::of();
@@ -318,13 +366,12 @@ public:
 
     struct CoWRefChildrenFn {
         template <typename Tree>
-        VoidResult stream(Tree&&, CtrT&) const noexcept
+        void stream(Tree&&, CtrT&) const
         {
-            return VoidResult::of();
         }
 
         template <typename ExtData, bool Indexed, typename ValueHolder>
-        VoidResult stream(
+        void stream(
                 PackedDataTypeBufferSO<
                     ExtData,
                     PackedDataTypeBuffer<
@@ -335,23 +382,19 @@ public:
                     >
                 >& buffer,
                 CtrT& ctr
-                ) const noexcept
-        {
-            return wrap_throwing([&]() -> VoidResult {
-                auto ii = buffer.begin();
-                auto end = buffer.end();
+                ) const
+        {            
+            auto ii = buffer.begin();
+            auto end = buffer.end();
 
-                for (; ii != end; ii++)
-                {
-                    ctr.ctr_ref_block(*ii);
-                }
-
-                return VoidResult::of();
-            });
+            for (; ii != end; ii++)
+            {
+                ctr.ctr_ref_block(*ii);
+            }
         }
     };
 
-    VoidResult cow_ref_children(CtrT& ctr) noexcept {
+    void cow_ref_children(CtrT& ctr)  {
         return processAll(CoWRefChildrenFn(), ctr);
     }
 
@@ -359,10 +402,9 @@ public:
     struct CoWUnRefChildrenFn {
 
         template <typename Tree, typename Store>
-        VoidResult stream(Tree&& tree, Store&) const noexcept
+        void stream(Tree&& tree, Store&) const
         {
             (void)tree;
-            return VoidResult::of();
         }
 
         // Note that the way how this handler is implemented
@@ -375,7 +417,7 @@ public:
         // As the result, underling blocks will not be unref()-ed.
 
         template <typename ExtData, bool Indexed, typename Store, typename ValueHolder>
-        VoidResult stream(
+        void stream(
                 const PackedDataTypeBufferSO<
                     ExtData,
                     PackedDataTypeBuffer<
@@ -386,33 +428,29 @@ public:
                     >
                 >& buffer,
                 Store& store
-                ) const noexcept
+                ) const
         {
-            return wrap_throwing([&]() -> VoidResult {
-                auto ii = buffer.begin();
-                auto end = buffer.end();
+            auto ii = buffer.begin();
+            auto end = buffer.end();
 
-                for (; ii != end; ii++)
-                {
-                    store.unref_ctr_root(*ii);
-                }
-
-                return VoidResult::of();
-            });
+            for (; ii != end; ii++)
+            {
+                store.unref_ctr_root(*ii);
+            }
         }
     };
 
     template <typename Store>
-    VoidResult cow_unref_children(Store& store) const noexcept {
+    void cow_unref_children(Store& store) const  {
         return processAll(CoWUnRefChildrenFn(), store);
     }
 
 
     struct ForAllCtrRootIDsFn {
         template <typename Tree, typename BlockProcessorFn>
-        VoidResult stream(const Tree&, const BlockProcessorFn&) const noexcept
+        void stream(const Tree&, const BlockProcessorFn&) const
         {
-            return VoidResult::of();
+
         }
 
         template <
@@ -421,7 +459,7 @@ public:
                 typename ValueHolder,
                 typename BlockProcessorFn
         >
-        VoidResult stream(
+        void stream(
                 const PackedDataTypeBufferSO<
                     ExtData,
                     PackedDataTypeBuffer<
@@ -432,35 +470,31 @@ public:
                     >
                 >& buffer,
                 const BlockProcessorFn& fn
-        ) const noexcept
+        ) const
         {
-            return wrap_throwing([&](){
-                auto ii = buffer.begin();
-                auto end = buffer.end();
+            auto ii = buffer.begin();
+            auto end = buffer.end();
 
-                for (; ii != end; ii++)
-                {
-                    fn(*ii);
-                }
-
-                return VoidResult::of();
-            });
+            for (; ii != end; ii++)
+            {
+                fn(*ii);
+            }
         }
     };
 
     template <typename BlockID>
-    VoidResult for_all_ctr_root_ids(const std::function<void (const BlockID&)>& fn) const noexcept {
+    void for_all_ctr_root_ids(const std::function<void (const BlockID&)>& fn) const  {
         return processAll(ForAllCtrRootIDsFn(), fn);
     }
 
 
-    VoidResult prepare() noexcept
+    VoidResult prepare()
     {
         return node_->initAllocator(SubstreamsStart + Substreams); // FIXME +1?
     }
 
 
-    VoidResult layout(const Position& sizes) noexcept
+    VoidResult layout(const Position& sizes)
     {
         return layout(-1ull);
     }
@@ -469,14 +503,14 @@ public:
     struct LayoutFn
     {
         template <int32_t AllocatorIdx, int32_t Idx, typename Stream>
-        VoidResult stream(Stream&, PackedAllocator* alloc, uint64_t streams) noexcept
+        VoidResult stream(Stream&, PackedAllocator* alloc, uint64_t streams)
         {
             if (streams & (1<<Idx))
             {
                 if (alloc->is_empty(AllocatorIdx))
                 {
                     MEMORIA_TRY_VOID(
-                        alloc->template allocateDefault<
+                        alloc->template allocate_default<
                                 typename Stream::PkdStructT
                         >(AllocatorIdx)
                     );
@@ -488,15 +522,14 @@ public:
     };
 
 
-    VoidResult layout(uint64_t streams) noexcept
+    VoidResult layout(uint64_t streams)
     {
-        return Dispatcher::dispatchAllStatic(LayoutFn(), this->allocator(), streams);
+        return DispatcherWithResult::dispatchAllStatic(LayoutFn(), this->allocator(), streams);
     }
 
 
-    Result<uint64_t> active_streams() const noexcept
+    uint64_t active_streams() const
     {
-        using ResultT = Result<uint64_t>;
         uint64_t streams = 0;
         for (int32_t c = 0; c < Streams; c++)
         {
@@ -504,7 +537,7 @@ public:
             streams += (bit << c);
         }
 
-        return ResultT::of(streams);
+        return streams;
     }
 
     struct CheckFn {
@@ -515,21 +548,21 @@ public:
         }
     };
 
-    VoidResult check(const CheckResultConsumerFn& consumer) const
+    void check(const CheckResultConsumerFn& consumer) const
     {
-        return Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn());
+        Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn());
     }
 
     struct Size2Fn {
         template <int32_t StreamIdx, typename T>
-        Int32Result process(const T* node)
+        int32_t process(const T* node)
         {
             return node->template streamSize<StreamIdx>();
         }
     };
 
 
-    Int32Result size(int32_t stream) const noexcept
+    int32_t size(int32_t stream) const
     {
         return bt::ForEachStream<Streams - 1>::process(stream, Size2Fn(), this);
     }
@@ -543,7 +576,7 @@ public:
     };
 
     template <int32_t StreamIdx>
-    Int32Result streamSize() const noexcept
+    int32_t streamSize() const
     {
         return this->processStream<IntList<StreamIdx>>(SizeFn());
     }
@@ -597,9 +630,9 @@ public:
     };
 
 
-    BoolResult checkCapacities(const Position& sizes) const noexcept
+    bool checkCapacities(const Position& sizes) const
     {
-        MEMORIA_TRY(fillment, this->sizes());
+        auto fillment = this->sizes();
 
         for (int32_t c = 0; c < Streams; c++)
         {
@@ -608,18 +641,18 @@ public:
 
         int32_t mem_size = 0;
 
-        MEMORIA_TRY_VOID(this->processSubstreamGroups(CheckCapacitiesFn(), fillment, &mem_size));
+        this->processSubstreamGroups(CheckCapacitiesFn(), fillment, &mem_size);
 
         int32_t client_area = node_->compute_streams_available_space();
 
-        return BoolResult::of(client_area >= mem_size);
+        return client_area >= mem_size;
     }
 
 
     template <typename Entropy>
-    BoolResult checkCapacities(const Entropy& entropy, const Position& sizes) const noexcept
+    bool checkCapacities(const Entropy& entropy, const Position& sizes) const
     {
-        MEMORIA_TRY(fillment, this->sizes());
+        auto fillment = this->sizes();
 
         for (int32_t c = 0; c < Streams; c++)
         {
@@ -628,10 +661,10 @@ public:
 
         int32_t mem_size = 0;
 
-        MEMORIA_TTRY_VOID(processSubstreamGroups(CheckCapacitiesFn(), entropy, fillment, &mem_size));
+        processSubstreamGroups(CheckCapacitiesFn(), entropy, fillment, &mem_size);
 
         int32_t client_area = node_->compute_streams_available_space();
-        return BoolResult::of(client_area >= mem_size);
+        return client_area >= mem_size;
     }
 
     struct SizesFn {
@@ -642,31 +675,29 @@ public:
         }
     };
 
-    Result<Position> sizes() const noexcept
+    Position sizes() const
     {
-        using ResultT = Result<Position>;
         Position pos;
-        MEMORIA_TRY_VOID(processStreamsStart(SizesFn(), pos));
-        return ResultT::of(pos);
+        processStreamsStart(SizesFn(), pos);
+        return pos;
     }
 
-    Int32Result single_stream_capacity(int32_t max_hops) const noexcept
+    int32_t single_stream_capacity(int32_t max_hops) const
     {
-        MEMORIA_TRY(sizes, this->sizes());
+        auto sizes = this->sizes();
         int32_t min = sizes[0];
         int32_t max = node_->header().memory_block_size() * 8;
 
         int32_t client_area = node_->compute_streams_available_space();
 
-        MEMORIA_TRY(total, FindTotalElementsNumber(min, max, client_area, max_hops, [&](int32_t stream_size){
+        auto total = FindTotalElementsNumber(min, max, client_area, max_hops, [&](int32_t stream_size){
             return stream_block_size(stream_size);
-        }));
+        });
 
-        return Int32Result::of(total - min);
+        return total - min;
     }
 
     struct SingleStreamCapacityFn {
-
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
         void stream(Tree&& tree, int32_t size, int32_t& mem_size)
         {
@@ -676,11 +707,11 @@ public:
     };
 
 
-    Int32Result stream_block_size(int32_t size) const noexcept
+    int32_t stream_block_size(int32_t size) const
     {
         int32_t mem_size = 0;
-        MEMORIA_TRY_VOID(StreamDispatcher<0>::dispatchAllStatic(SingleStreamCapacityFn(), size, mem_size));
-        return Int32Result::of(mem_size);
+        StreamDispatcher<0>::dispatchAllStatic(SingleStreamCapacityFn(), size, mem_size);
+        return mem_size;
     }
 
 
@@ -688,69 +719,64 @@ public:
     struct BranchNodeEntriesSumHandler
     {
         template <int32_t Offset, bool StreamStart, int32_t ListIdx, typename StreamType, typename TupleItem>
-        VoidResult stream(StreamType&& obj, TupleItem& accum, const Position& start, const Position& end) noexcept
+        void stream(StreamType&& obj, TupleItem& accum, const Position& start, const Position& end)
         {
             if (obj)
             {
                 bt::BTPkdStructAdaper<StreamType> adapter(obj);
                 adapter.template sum<Offset>(start, end, accum);
             }
-
-            return VoidResult::of();
         }
     };
 
     struct BranchNodeEntryMaxHandler
     {
         template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamType, typename TupleItem>
-        VoidResult stream(const StreamType& obj, TupleItem& accum) noexcept
+        void stream(const StreamType& obj, TupleItem& accum)
         {
             if (obj)
             {
                 bt::BTPkdStructAdaper<StreamType> adapter(obj);
                 adapter.template leaf_max_entry<Offset>(accum);
             }
-
-            return VoidResult::of();
         }
     };
 
-    VoidResult max(BranchNodeEntry& entry) const noexcept
+    void max(BranchNodeEntry& entry) const
     {
-        return processAllSubstreamsAcc(BranchNodeEntryMaxHandler(), entry);
+        processAllSubstreamsAcc(BranchNodeEntryMaxHandler(), entry);
     }
 
 
-    VoidResult sums(const Position& start, const Position& end, BranchNodeEntry& sums) const noexcept
+    void sums(const Position& start, const Position& end, BranchNodeEntry& sums) const
     {
         return processAllSubstreamsAcc(BranchNodeEntriesSumHandler(), sums, start, end);
     }
 
     struct RemoveSpaceFn {
-
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        VoidResult stream(Tree&& tree, const Position& room_start, const Position& room_end) noexcept
+        VoidResult stream(Tree&& tree, const Position& room_start, const Position& room_end)
         {
             return tree.removeSpace(room_start[StreamIdx], room_end[StreamIdx]);
         }
 
         template <typename Tree>
-        VoidResult stream(Tree&& tree, int32_t room_start, int32_t room_end) noexcept
+        VoidResult stream(Tree&& tree, int32_t room_start, int32_t room_end)
         {
             return tree.removeSpace(room_start, room_end);
         }
     };
 
-    VoidResult removeSpace(int32_t stream, int32_t room_start, int32_t room_end) noexcept
+    VoidResult removeSpace(int32_t stream, int32_t room_start, int32_t room_end)
     {
         RemoveSpaceFn fn;
-        return Dispatcher(state()).dispatch(stream, allocator(), fn, room_start, room_end);
+        return DispatcherWithResult(state()).dispatch(stream, allocator(), fn, room_start, room_end);
     }
 
-    VoidResult removeSpace(const Position& room_start, const Position& room_end) noexcept
+    VoidResult removeSpace(const Position& room_start, const Position& room_end)
     {
         RemoveSpaceFn fn;
-        return processSubstreamGroups(fn, room_start, room_end);
+        return processSubstreamGroupsVoidRes(fn, room_start, room_end);
     }
 
 
@@ -779,7 +805,7 @@ public:
 
 
     template <typename Path, typename... Args>
-    auto leaf_sums(Args&&... args) const noexcept
+    auto leaf_sums(Args&&... args) const
     {
         return processStream<Path>(LeafSumsFn(), std::forward<Args>(args)...);
     }
@@ -787,7 +813,7 @@ public:
     struct MergeWithFn {
 
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        VoidResult stream(const Tree& tree, OtherNodeT&& other) noexcept
+        VoidResult stream(const Tree& tree, OtherNodeT&& other)
         {
             int32_t size = tree.size();
 
@@ -797,7 +823,7 @@ public:
 
                 if (other.allocator()->is_empty(AllocatorIdx))
                 {
-                    MEMORIA_TRY_VOID(other_disp.template allocateEmpty<Idx>(other.allocator()));
+                    MEMORIA_TRY_VOID(other_disp.template allocate_empty<Idx>(other.allocator()));
                 }
 
                 Tree other_tree = other_disp.template get<Idx>(other.allocator());
@@ -809,10 +835,10 @@ public:
     };
 
     template <typename OtherNodeT>
-    VoidResult mergeWith(OtherNodeT&& other) const noexcept
+    VoidResult mergeWith(OtherNodeT&& other) const
     {
         MergeWithFn fn;
-        return Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other));
+        return DispatcherWithResult(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other));
     }
 
 
@@ -832,7 +858,7 @@ public:
                 }
                 else {
                     const PkdTree* other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
-                    mem_used_ += tree.data()->block_size(other_tree);
+                    mem_used_ += tree.data()->block_size_for(other_tree);
                 }
             }
             else {
@@ -846,17 +872,17 @@ public:
     };
 
     template <typename OtherNodeT>
-    BoolResult canBeMergedWith(OtherNodeT&& other) const noexcept
+    BoolResult canBeMergedWith(OtherNodeT&& other) const
     {
         CanMergeWithFn fn;
-        MEMORIA_TRY_VOID(Dispatcher(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other)));
+        MEMORIA_TRY_VOID(DispatcherWithResult(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other)));
 
         int32_t client_area = other.allocator()->client_area();
 
         return BoolResult::of(client_area >= fn.mem_used_);
     }
 
-    BoolResult shouldBeMergedWithSiblings() const noexcept
+    BoolResult shouldBeMergedWithSiblings() const
     {
         return node_->shouldBeMergedWithSiblings();
     }
@@ -889,13 +915,13 @@ public:
         MEMORIA_V1_ASSERT_TRUE((copy_from + count).lteAll(sizes()));
         MEMORIA_V1_ASSERT_TRUE((copy_to + count).lteAll(other->max_sizes()));
 
-        processSubstreamGroups(CopyToFn(), std::forward<OtherNodeT>(other), copy_from, count, copy_to);
+        processSubstreamGroupsVoidRes(CopyToFn(), std::forward<OtherNodeT>(other), copy_from, count, copy_to);
     }
 
     struct SplitToFn {
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        VoidResult stream(Tree& tree, OtherNodeT&& other, const Position& indexes) noexcept
+        VoidResult stream(Tree& tree, OtherNodeT&& other, const Position& indexes)
         {
             if (tree)
             {
@@ -916,7 +942,7 @@ public:
                     other_tree = other_disp.template get<ListIdx>(other.allocator());
                 }
                 else {
-                    MEMORIA_TRY(other_tree_tmp, other_disp.template allocateEmpty<ListIdx>(other.allocator()));
+                    MEMORIA_TRY(other_tree_tmp, other_disp.template allocate_empty<ListIdx>(other.allocator()));
                     other_tree = std::move(other_tree_tmp);
                 }
 
@@ -929,10 +955,10 @@ public:
 
 
     template <typename OtherNodeT>
-    VoidResult splitTo(OtherNodeT&& other, const Position& from) noexcept
+    VoidResult splitTo(OtherNodeT&& other, const Position& from)
     {
         SplitToFn split_fn;
-        return processSubstreamGroups(split_fn, std::forward<OtherNodeT>(other), from);
+        return processSubstreamGroupsVoidRes(split_fn, std::forward<OtherNodeT>(other), from);
     }
 
 
@@ -944,30 +970,29 @@ public:
         }
     };
 
-    Result<Position> size_sums() const noexcept
+    Position size_sums() const
     {
-        using ResultT = Result<Position>;
         Position sums;
-        MEMORIA_TRY_VOID(processStreamsStart(SizeSumsFn(), sums));
-        return ResultT::of(sums);
+        processStreamsStart(SizeSumsFn(), sums);
+        return sums;
     }
 
 
     struct GenerateDataEventsFn {
         template <int32_t Idx, typename Tree>
-        void stream(Tree&& tree, IBlockDataEventHandler* handler) noexcept
+        void stream(Tree&& tree, IBlockDataEventHandler* handler)
         {
             return tree.generateDataEvents(handler);
         }
     };
 
-    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         node_->template generateDataEvents<RootMetadataList>(handler);
-        return Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
     }
 
-    VoidResult init_root_metadata() noexcept {
+    VoidResult init_root_metadata() {
         return node_->template init_root_metadata<RootMetadataList>();
     }
 
@@ -982,8 +1007,8 @@ public:
     };
 
 
-    VoidResult dump() const noexcept {
-        return Dispatcher(state()).dispatchNotEmpty(allocator(), DumpFn());
+    void dump() const {
+        Dispatcher(state()).dispatchNotEmpty(allocator(), DumpFn());
     }
 
 
@@ -995,8 +1020,8 @@ public:
         }
     };
 
-    VoidResult dumpBlockSizes() const noexcept {
-        return Dispatcher(state()).dispatchNotEmpty(allocator(), DumpBlockSizesFn());
+    void dumpBlockSizes() const {
+        Dispatcher(state()).dispatchNotEmpty(allocator(), DumpBlockSizesFn());
     }
 
 
@@ -1007,13 +1032,13 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    VoidResult dispatchAll(Fn&& fn, Args&&... args) const noexcept
+    void dispatchAll(Fn&& fn, Args&&... args) const
     {
         return Dispatcher(state()).dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename Fn, typename... Args>
-    auto process(int32_t stream, Fn&& fn, Args&&... args) const noexcept
+    auto process(int32_t stream, Fn&& fn, Args&&... args) const
     {
         return Dispatcher(state()).dispatch(
                 stream,
@@ -1024,7 +1049,7 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    auto process(int32_t stream, Fn&& fn, Args&&... args) noexcept
+    auto process(int32_t stream, Fn&& fn, Args&&... args)
     {
         return Dispatcher(state())
                 .dispatch(stream, allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -1032,7 +1057,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    auto processAll(Fn&& fn, Args&&... args) const noexcept
+    auto processAll(Fn&& fn, Args&&... args) const
     {
         return Dispatcher(state())
                 .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -1040,14 +1065,14 @@ public:
 
 
     template <typename Fn, typename... Args>
-    auto processAll(Fn&& fn, Args&&... args) noexcept
+    auto processAll(Fn&& fn, Args&&... args)
     {
         return Dispatcher(state())
                 .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamsPath, typename Fn, typename... Args>
-    auto processSubstreams(Fn&& fn, Args&&... args) const noexcept
+    auto processSubstreams(Fn&& fn, Args&&... args) const
     {
         return SubstreamsDispatcher<SubstreamsPath>(state())
                 .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -1055,9 +1080,25 @@ public:
 
 
     template <typename SubstreamsPath, typename Fn, typename... Args>
-    auto processSubstreams(Fn&& fn, Args&&... args) noexcept
+    auto processSubstreams(Fn&& fn, Args&&... args)
     {
         return SubstreamsDispatcher<SubstreamsPath>(state())
+                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename SubstreamsPath, typename Fn, typename... Args>
+    auto processSubstreamsVoidRes(Fn&& fn, Args&&... args) const
+    {
+        return SubstreamsDispatcherWithResult<SubstreamsPath>(state())
+                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename SubstreamsPath, typename Fn, typename... Args>
+    auto processSubstreamsVoidRes(Fn&& fn, Args&&... args)
+    {
+        return SubstreamsDispatcherWithResult<SubstreamsPath>(state())
                 .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
@@ -1073,7 +1114,7 @@ public:
             typename Fn,
             typename... Args
         >
-        VoidResult stream(StreamType&& obj, Fn&& fn, Accum&& accum, Args&&... args) noexcept
+        auto stream(StreamType&& obj, Fn&& fn, Accum&& accum, Args&&... args)
         {
             constexpr int32_t LeafIdx = BranchNodeEntryIdx - SubstreamsStart;
 
@@ -1096,7 +1137,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processStreamAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const noexcept
+    auto processStreamAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const
     {
         return StreamDispatcher<Stream>(state()).dispatchAll(
                 allocator(),
@@ -1112,7 +1153,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processStreamAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) noexcept
+    auto processStreamAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args)
     {
         return StreamDispatcher<Stream>(state()).dispatchAll(
                 allocator(),
@@ -1129,7 +1170,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processStreamAccP(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const noexcept
+    auto processStreamAccP(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const
     {
         const int32_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
         return SubrangeDispatcher<SubstreamIdx, SubstreamIdx + 1>(state()).dispatchAll(
@@ -1147,7 +1188,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processStreamAccP(Fn&& fn, BranchNodeEntry& accum, Args&&... args) noexcept
+    auto processStreamAccP(Fn&& fn, BranchNodeEntry& accum, Args&&... args)
     {
         const int32_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
         return SubrangeDispatcher<SubstreamIdx, SubstreamIdx + 1>(state()).dispatchAll(
@@ -1166,7 +1207,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processSubstreamsByIdxAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const noexcept
+    auto processSubstreamsByIdxAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const
     {
         return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>(state()).dispatchAll(
                 allocator(),
@@ -1184,7 +1225,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processSubstreamsByIdxAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) noexcept
+    auto processSubstreamsByIdxAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args)
     {
         return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>(state()).dispatchAll(
                 allocator(),
@@ -1200,7 +1241,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processAllSubstreamsAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const noexcept
+    auto processAllSubstreamsAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const
     {
         return Dispatcher(state()).dispatchAll(
                 allocator(),
@@ -1215,7 +1256,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processAllSubstreamsAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) noexcept
+    auto processAllSubstreamsAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args)
     {
         return Dispatcher(state()).dispatchAll(
                 allocator(),
@@ -1235,7 +1276,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processSubstreamsByIdx(Fn&& fn, Args&&... args) const noexcept
+    auto processSubstreamsByIdx(Fn&& fn, Args&&... args) const
     {
         return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>(state()).dispatchAll(
                 allocator(),
@@ -1250,7 +1291,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processSubstreamsByIdx(Fn&& fn, Args&&... args) noexcept
+    auto processSubstreamsByIdx(Fn&& fn, Args&&... args)
     {
         return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>(state()).dispatchAll(
                 allocator(),
@@ -1292,14 +1333,14 @@ public:
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    auto processStream(Fn&& fn, Args&&... args) const noexcept
+    auto processStream(Fn&& fn, Args&&... args) const
     {
         const int32_t StreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
         return Dispatcher(state()).template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    auto processStream(Fn&& fn, Args&&... args) noexcept
+    auto processStream(Fn&& fn, Args&&... args)
     {
         const int32_t StreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
         return Dispatcher(state()).template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -1307,7 +1348,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    auto processSubstreamGroups(Fn&& fn, Args&&... args) noexcept
+    auto processSubstreamGroups(Fn&& fn, Args&&... args)
     {
         using GroupsList = bt::BuildTopLevelLeafSubsets<LeafSubstreamsStructList>;
 
@@ -1320,7 +1361,20 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    auto processSubstreamGroups(Fn&& fn, Args&&... args) const noexcept
+    auto processSubstreamGroupsVoidRes(Fn&& fn, Args&&... args)
+    {
+        using GroupsList = bt::BuildTopLevelLeafSubsets<LeafSubstreamsStructList>;
+
+        return bt::GroupDispatcherWithResult<DispatcherWithResult, GroupsList>::dispatchGroups(
+                state(),
+                allocator(),
+                std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+
+    template <typename Fn, typename... Args>
+    auto processSubstreamGroups(Fn&& fn, Args&&... args) const
     {
         using GroupsList = bt::BuildTopLevelLeafSubsets<LeafSubstreamsStructList>;
 
@@ -1333,7 +1387,7 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    static auto processSubstreamGroupsStatic(Fn&& fn, Args&&... args) noexcept
+    static auto processSubstreamGroupsStatic(Fn&& fn, Args&&... args)
     {
         using GroupsList = bt::BuildTopLevelLeafSubsets<LeafSubstreamsStructList>;
         return bt::GroupDispatcher<Dispatcher, GroupsList>::dispatchGroupsStatic(
@@ -1346,7 +1400,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    auto processStreamsStart(Fn&& fn, Args&&... args) noexcept
+    auto processStreamsStart(Fn&& fn, Args&&... args)
     {
         using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
         return typename Dispatcher::template SubsetDispatcher<Subset>(state()).template dispatchAll(
@@ -1358,7 +1412,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    auto processStreamsStart(Fn&& fn, Args&&... args) const noexcept
+    auto processStreamsStart(Fn&& fn, Args&&... args) const
     {
         using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
         return typename Dispatcher::template SubsetDispatcher<Subset>(state()).template dispatchAll(
@@ -1370,7 +1424,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static auto processStreamsStartStatic(Fn&& fn, Args&&... args) noexcept
+    static auto processStreamsStartStatic(Fn&& fn, Args&&... args)
     {
         using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
         return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllStatic(
@@ -1383,7 +1437,7 @@ public:
 
 
     template <typename Fn, typename Accum, typename... Args>
-    static auto processStreamsStartStaticAcc(Fn&& fn, Accum&& accum, Args&&... args) noexcept
+    static auto processStreamsStartStaticAcc(Fn&& fn, Accum&& accum, Args&&... args)
     {
         using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
         return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllStatic(

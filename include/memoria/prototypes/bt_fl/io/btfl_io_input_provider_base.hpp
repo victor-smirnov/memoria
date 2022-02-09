@@ -53,7 +53,7 @@ namespace detail {
                 const Position& sizes,
                 const memoria::io::IOVector& io_vector,
                 int32_t& current_substream
-        ) noexcept
+        )
         {
             static_assert(StreamIdx < DataStreams, "");
 
@@ -82,7 +82,7 @@ namespace detail {
                 const Position& sizes,
                 const memoria::io::IOVector& io_vector,
                 int32_t& current_substream
-        ) noexcept
+        )
         {
             static_assert(StreamIdx == DataStreams, "");
             MEMORIA_TRY_VOID(stream.insert_io_substream(
@@ -499,7 +499,7 @@ protected:
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                const memoria::io::IOVector& io_vector) noexcept
+                const memoria::io::IOVector& io_vector)
         {
             return detail::StreamSelector<
                     StreamIdx < DataStreams ? detail::StreamSelectorType::DATA : detail::StreamSelectorType::STRUCTURE,
@@ -525,17 +525,17 @@ protected:
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                memoria::io::IOVector& io_vector) noexcept
+                memoria::io::IOVector& io_vector)
         {
             static_assert(StreamIdx < Streams, "");
             return stream.insertSpace(at[StreamIdx], sizes[StreamIdx]);
         }
 
         template <typename LCtrT, typename NodeT, typename... Args>
-        VoidResult treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args) noexcept
+        VoidResult treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args)
         {
             MEMORIA_TRY_VOID(leaf.layout(255));
-            return leaf.processSubstreamGroups(*this, leaf.allocator(), std::forward<Args>(args)...);
+            return leaf.processSubstreamGroupsVoidRes(*this, leaf.allocator(), std::forward<Args>(args)...);
         }
     };
 
@@ -579,7 +579,7 @@ protected:
         return true;
     }
 
-    static float getFreeSpacePart(const TreeNodePtr& node) noexcept
+    static float getFreeSpacePart(const TreeNodePtr& node)
     {
         float client_area = node->allocator()->client_area();
         float free_space = node->allocator()->free_space();
@@ -587,7 +587,7 @@ protected:
         return free_space / client_area;
     }
 
-    static bool hasFreeSpace(const TreeNodePtr& node) noexcept
+    static bool hasFreeSpace(const TreeNodePtr& node)
     {
         return getFreeSpacePart(node) > FREE_SPACE_THRESHOLD;
     }

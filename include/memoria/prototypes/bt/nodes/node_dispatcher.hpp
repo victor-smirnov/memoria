@@ -16,14 +16,41 @@
 
 #pragma once
 
-#include <memoria/profiles/common/block.hpp>
+#include <memoria/core/tools/result.hpp>
 
+#include <memoria/profiles/common/block.hpp>
 #include <memoria/prototypes/bt/nodes/node_dispatcher_tree.hpp>
 
 #include <vector>
 
 namespace memoria {
 namespace bt {
+
+//namespace detail {
+//    template <typename Fn>
+//    struct ReturnsResultT {
+//        static constexpr bool Value = false;
+//        using ReturnType = Fn;
+//    };
+
+//    template <typename T>
+//    struct ReturnsResultT<Result<T>> {
+//        static constexpr bool Value = true;
+//        using ReturnType = Result<T>;
+//    };
+//}
+
+
+//template <typename Fn, typename... Args>
+//bool NodeHasResultT = detail::ReturnsResultT<
+//    decltype(std::declval<Fn>().treeNode(std::declval<Args>()...))
+//>::Value;
+
+
+//template <typename Fn, typename... Args>
+//using NodeResultT = typename detail::ReturnsResultT<
+//    decltype(std::declval<Fn>().treeNode(std::declval<Args>()...))
+//>::ReturnType;
 
 template <
     template <typename> class TreeNode,
@@ -36,8 +63,8 @@ template <typename CtrT, typename Types> class NDT0<CtrT, Types, -1>;
 
 template <typename CtrT, typename Types>
 struct NDT: public NDT0<CtrT, Types, ListSize<typename Types::List> - 1> {
-    NDT() noexcept: NDT0<CtrT, Types, ListSize<typename Types::List> - 1>() {}
-    NDT(CtrT* ctr) noexcept: NDT0<CtrT, Types, ListSize<typename Types::List> - 1>(ctr)
+    NDT() : NDT0<CtrT, Types, ListSize<typename Types::List> - 1>() {}
+    NDT(CtrT* ctr) : NDT0<CtrT, Types, ListSize<typename Types::List> - 1>(ctr)
     {}
 };
 
@@ -84,15 +111,16 @@ public:
     using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
 
 public:
-    NDT0() noexcept {}
-    NDT0(CtrT* ctr) noexcept: ctr_(ctr) {}
+    NDT0()  {}
+    NDT0(CtrT* ctr) : ctr_(ctr) {}
 
-    void set_ctr(CtrT* ctr) noexcept {
+    void set_ctr(CtrT* ctr)  {
         ctr_ = ctr;
     }
 
-    template <typename Functor, typename... Args>
-    auto dispatch(const TreeNodePtr& node, Functor&& functor, Args&&... args) const
+    template <typename Functor, typename... Args>    
+    auto dispatch(const TreeNodePtr& node, Functor&& functor, Args&&... args) const ->
+        decltype(functor.treeNode(std::declval<NodeSO&>(), std::forward<Args>(args)...))
     {
         if (HASH == node->block_type_hash())
         {
@@ -105,7 +133,8 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch(const TreeNodePtr& node1, const TreeNodePtr& node2, Functor&& functor, Args&&... args) const
+    auto dispatch(const TreeNodePtr& node1, const TreeNodePtr& node2, Functor&& functor, Args&&... args) const ->
+        decltype(functor.treeNode(std::declval<NodeSO&>(), std::declval<NodeSO&>(), std::forward<Args>(args)...))
     {
         if (HASH == node1->block_type_hash())
         {
@@ -121,7 +150,8 @@ public:
 
 
     template <typename Functor, typename... Args>
-    auto dispatch_1st_const(const TreeNodeConstPtr& node1, const TreeNodePtr& node2, Functor&& functor, Args&&... args) const
+    auto dispatch_1st_const(const TreeNodeConstPtr& node1, const TreeNodePtr& node2, Functor&& functor, Args&&... args) const ->
+        decltype(functor.treeNode(std::declval<ConstNodeSO&>(), std::declval<NodeSO&>(), std::forward<Args>(args)...))
     {
         if (HASH == node1->block_type_hash())
         {
@@ -136,7 +166,8 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    auto dispatch(const TreeNodeConstPtr& node, Functor&& functor, Args&&... args) const
+    auto dispatch(const TreeNodeConstPtr& node, Functor&& functor, Args&&... args) const ->
+        decltype(functor.treeNode(std::declval<ConstNodeSO&>(), std::forward<Args>(args)...))
     {
         if (HASH == node->block_type_hash())
         {
@@ -155,7 +186,8 @@ public:
             const TreeNodeConstPtr& node2,
             Functor&& functor,
             Args&&... args
-    ) const
+    ) const ->
+        decltype(functor.treeNode(std::declval<ConstNodeSO&>(), std::declval<ConstNodeSO&>(), std::forward<Args>(args)...))
     {
         if (HASH == node1->block_type_hash())
         {
@@ -176,7 +208,8 @@ public:
         typename Functor,
         typename... Args
     >
-    auto dispatch(bool leaf, Functor&& fn, Args&&... args) const
+    auto dispatch(bool leaf, Functor&& fn, Args&&... args) const ->
+        decltype(fn.treeNode(std::declval<ConstNodeSO&>(), std::forward<Args>(args)...))
     {
         bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
@@ -194,7 +227,8 @@ public:
         typename Functor,
         typename... Args
     >
-    auto dispatch2(bool leaf, Functor&& fn, Args&&... args) const
+    auto dispatch2(bool leaf, Functor&& fn, Args&&... args) const ->
+        decltype(fn.treeNode(std::declval<ConstNodeSO&>(), std::forward<Args>(args)...))
     {
         if (leaf == Leaf)
         {
@@ -240,16 +274,18 @@ public:
     using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
 
 public:
-    NDT0() noexcept {}
-    NDT0(CtrT* ctr) noexcept: ctr_(ctr) {}
+    NDT0()  {}
+    NDT0(CtrT* ctr) : ctr_(ctr) {}
 
-    void set_ctr(CtrT* ctr) noexcept {
+    void set_ctr(CtrT* ctr) {
         ctr_ = ctr;
     }
 
     template <typename Functor, typename... Args>
+
+
     auto dispatch(const TreeNodePtr& node, Functor&& functor, Args&&... args) const ->
-        typename memoria::detail::ResultOfFn<decltype(functor.treeNode(std::declval<NodeSO&>(), std::forward<Args>(args)...))>::Type
+        decltype(functor.treeNode(std::declval<NodeSO&>(), std::forward<Args>(args)...))
     {
         if (HASH == node->block_type_hash())
         {
@@ -257,13 +293,13 @@ public:
             return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node->block_type_hash());
+            MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node->block_type_hash()).do_throw();
         }
     }
 
     template <typename Functor, typename... Args>
     auto dispatch(const TreeNodePtr& node1, const TreeNodePtr& node2, Functor&& functor, Args&&... args) const ->
-        typename memoria::detail::ResultOfFn<decltype(functor.treeNode(std::declval<NodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))>::Type
+        decltype(functor.treeNode(std::declval<NodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))
     {
         if (HASH == node1->block_type_hash())
         {
@@ -272,13 +308,13 @@ public:
             return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node1->block_type_hash());
+            MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node1->block_type_hash()).do_throw();
         }
     }
 
     template <typename Functor, typename... Args>
     auto dispatch_1st_const(const TreeNodeConstPtr& node1, const TreeNodePtr& node2, Functor&& functor, Args&&... args) const ->
-        typename memoria::detail::ResultOfFn<decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))>::Type
+        decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))
     {
         if (HASH == node1->block_type_hash())
         {
@@ -287,15 +323,14 @@ public:
             return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node1->block_type_hash());
+            MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node1->block_type_hash()).do_throw();
         }
-
     }
 
 
     template <typename Functor, typename... Args>
     auto dispatch(const TreeNodeConstPtr& node, Functor&& functor, Args&&... args) const ->
-        typename memoria::detail::ResultOfFn<decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::forward<Args>(args)...))>::Type
+        decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::forward<Args>(args)...))
     {
         if (HASH == node->block_type_hash())
         {
@@ -303,7 +338,7 @@ public:
             return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node->block_type_hash());
+            MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node->block_type_hash()).do_throw();
         }
     }
 
@@ -315,7 +350,7 @@ public:
             Functor&& functor,
             Args&&... args
     ) const ->
-        typename memoria::detail::ResultOfFn<decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::declval<ConstNodeSO>(), std::forward<Args>(args)...))>::Type
+        decltype(functor.treeNode(std::declval<ConstNodeSO>(), std::declval<ConstNodeSO>(), std::forward<Args>(args)...))
     {
         if (HASH == node1->block_type_hash())
         {
@@ -324,7 +359,7 @@ public:
             return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node1->block_type_hash());
+            MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", node1->block_type_hash()).do_throw();
         }
     }
 
@@ -334,7 +369,7 @@ public:
         typename... Args
     >
     auto dispatch(bool leaf, Functor&& fn, Args&&... args) const ->
-        typename memoria::detail::ResultOfFn<decltype(fn.treeNode(std::declval<ConstNodeSO>(), std::forward<Args>(args)...))>::Type
+        decltype(fn.treeNode(std::declval<ConstNodeSO>(), std::forward<Args>(args)...))
     {
         bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
@@ -344,7 +379,7 @@ public:
             return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type");
+            MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type").do_throw();
         }
     }
 
@@ -353,7 +388,7 @@ public:
         typename... Args
     >
     auto dispatch2(bool leaf, Functor&& fn, Args&&... args) const ->
-        typename memoria::detail::ResultOfFn<decltype(fn.treeNode(std::declval<ConstNodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))>::Type
+        decltype(fn.treeNode(std::declval<ConstNodeSO>(), std::declval<NodeSO>(), std::forward<Args>(args)...))
     {
         if (leaf == Leaf)
         {

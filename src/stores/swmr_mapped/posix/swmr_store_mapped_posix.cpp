@@ -98,7 +98,7 @@ public:
 
 using ResultT = Result<std::unique_ptr<detail::FileLockHandler>>;
 
-ResultT detail::FileLockHandler::lock_file(const char* name, bool create_file) noexcept {
+ResultT detail::FileLockHandler::lock_file(const char* name, bool create_file) {
     static FileHandleThreadLocks locks;
 
     return wrap_throwing([&]() -> ResultT {

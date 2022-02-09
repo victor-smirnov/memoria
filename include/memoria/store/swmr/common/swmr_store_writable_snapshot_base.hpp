@@ -28,7 +28,7 @@ struct InitStoreTag{};
 
 struct RWCounter {
     int64_t value{};
-    auto inc() noexcept {
+    auto inc()  {
         return ++value;
     }
 
@@ -130,10 +130,10 @@ protected:
     class FlagScope {
         bool& flag_;
     public:
-        FlagScope(bool& flag) noexcept : flag_(flag) {
+        FlagScope(bool& flag)  : flag_(flag) {
             flag_ = true;
         }
-        ~FlagScope() noexcept {
+        ~FlagScope() noexcept  {
             flag_ = false;
         }
     };
@@ -142,7 +142,7 @@ protected:
     class CounterScope {
         TT& cntr_;
     public:
-        CounterScope(TT& cntr) noexcept : cntr_(cntr) {
+        CounterScope(TT& cntr)  : cntr_(cntr) {
             ++cntr_;
         }
         ~CounterScope() noexcept {
@@ -202,8 +202,8 @@ public:
     }
 
 
-    virtual SnpSharedPtr<StoreT> my_self_ptr() noexcept = 0;
-    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
+    virtual SnpSharedPtr<StoreT> my_self_ptr()  = 0;
+    virtual SnpSharedPtr<StoreT> self_ptr()  {
         return my_self_ptr();
     }
 
@@ -217,13 +217,13 @@ public:
     virtual void open_idmap() {}
     virtual void drop_idmap() {}
 
-    virtual void init_snapshot(MaybeError& maybe_error) noexcept {}
-    virtual void init_store_snapshot(MaybeError& maybe_error) noexcept {}
+    virtual void init_snapshot(MaybeError& maybe_error)  {}
+    virtual void init_store_snapshot(MaybeError& maybe_error)  {}
 
-    auto& removing_branches() noexcept {return removing_branches_;}
-    auto& removing_snapshots() noexcept {return removing_snapshots_;}
+    auto& removing_branches()  {return removing_branches_;}
+    auto& removing_snapshots()  {return removing_snapshots_;}
 
-    CountersT& counters() noexcept {return counters_;}
+    CountersT& counters()  {return counters_;}
 
     AllocationMetadataT do_allocate_reserved(int64_t remainder)
     {
@@ -467,7 +467,7 @@ public:
         constexpr uint64_t ctr_blk_scale = (1 << (ALLOCATION_MAP_LEVELS - 1));
         uint64_t counters_block_capacity = CounterBlockT::capacity_for(BASIC_BLOCK_SIZE * ctr_blk_scale);
 
-        uint64_t counters_blocks = divUp(total_blocks, counters_block_capacity) * ctr_blk_scale;
+        uint64_t counters_blocks = div_up(total_blocks, counters_block_capacity) * ctr_blk_scale;
 
         uint64_t counters_file_pos {};
         for (uint64_t c = 0; c < counters_blocks; c++)
@@ -616,11 +616,11 @@ public:
         return ResultT{pos, superblock};
     }
 
-    void add_postponed_deallocation(const AllocationMetadataT& meta) noexcept {
+    void add_postponed_deallocation(const AllocationMetadataT& meta)  {
         postponed_deallocations_.append_value(meta);
     }
 
-    void add_cp_postponed_deallocation(const AllocationMetadataT& meta) noexcept {
+    void add_cp_postponed_deallocation(const AllocationMetadataT& meta)  {
         head_snapshot_descriptor_->postponed_deallocations().append_value(meta);
     }
 
@@ -824,7 +824,7 @@ public:
         state_ = State::ROLLED_BACK;
     }
 
-    virtual SnapshotID snapshot_id() noexcept {
+    virtual SnapshotID snapshot_id()  {
         return Base::snapshot_id();
     }
 
@@ -844,7 +844,7 @@ public:
         return factory->create_instance(self_ptr(), ctr_name, decl);
     }
 
-    static constexpr uint64_t block_size_at(int32_t level) noexcept {
+    static constexpr uint64_t block_size_at(int32_t level)  {
         return (1ull << (level - 1)) * BASIC_BLOCK_SIZE;
     }
 
@@ -910,15 +910,15 @@ public:
         return Base::find(ctr_id);
     }
 
-    virtual bool is_committed() const noexcept {
+    virtual bool is_committed() const  {
         return state_ == State::COMMITTED;
     }
 
-    virtual bool is_active() const noexcept {
+    virtual bool is_active() const  {
         return state_ == State::ACTIVE;
     }
 
-    virtual bool is_marked_to_clear() const noexcept {
+    virtual bool is_marked_to_clear() const  {
         return Base::is_marked_to_clear();
     }
 
@@ -1059,7 +1059,7 @@ public:
             CtrInstanceVar& assign_to,
             const BlockID& root_block_id,
             const CtrID& ctr_id
-    ) noexcept
+    )
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             if (root_block_id.is_set())
@@ -1141,11 +1141,11 @@ public:
     }
 
 
-    bool is_transient() noexcept {
+    bool is_transient()  {
         return snapshot_descriptor_->is_transient();
     }
 
-    bool is_system_snapshot() noexcept {
+    bool is_system_snapshot()  {
         return snapshot_descriptor_->is_system_snapshot();
     }
 

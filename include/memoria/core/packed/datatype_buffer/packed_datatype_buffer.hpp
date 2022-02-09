@@ -46,9 +46,9 @@ public:
     using DataDimenstionsList = typename DataTypeTraits<DataType>::DataDimensionsList;
 
     static constexpr uint32_t VERSION   = 1;
-    static constexpr int32_t Dimensions = ListSize<DataDimenstionsList>;
+    static constexpr size_t Dimensions  = ListSize<DataDimenstionsList>;
     static constexpr bool Indexed       = Indexed_;
-    static constexpr int32_t Indexes    = Indexed ? 1 : 0;
+    static constexpr size_t Indexes     = Indexed ? 1 : 0;
 
 
     using MyType    = PackedDataTypeBuffer;
@@ -61,7 +61,7 @@ public:
         1
     >::Type;
 
-    template <int32_t Idx>
+    template <size_t Idx>
     using Dimension = Select<Idx, DataDimensionsStructs>;
 
     using ExtData       = DTTTypeDimensionsTuple<DataType>;
@@ -95,8 +95,8 @@ public:
     using PackedAllocator::block_size;
     using PackedAllocator::init;
     using PackedAllocator::allocate;
-    using PackedAllocator::allocateEmpty;
-    using PackedAllocator::allocateArrayBySize;
+    using PackedAllocator::allocate_empty;
+    using PackedAllocator::allocate_array_by_size;
 
     PackedDataTypeBuffer() = default;
 
@@ -106,24 +106,24 @@ public:
     }
 
     template <typename Fn>
-    static VoidResult for_each_dimension_res(Fn&& fn) noexcept {
+    static VoidResult for_each_dimension_res(Fn&& fn)  {
         return ForEach<0, Dimensions>::process_res_fn(fn);
     }
 
-    static constexpr int32_t default_size(int32_t available_space) noexcept
+    static constexpr size_t default_size(size_t available_space)
     {
         return empty_size();
     }
 
-    VoidResult init_default(int32_t block_size) noexcept {
+    VoidResult init_default(size_t block_size)  {
         return init();
     }
 
 
 
-    static psize_t empty_size() noexcept
+    static size_t empty_size()
     {
-        psize_t dimensions_size{};
+        size_t dimensions_size{};
 
         for_each_dimension([&](auto idx){
             dimensions_size += Dimension<idx>::empty_size_aligned();
@@ -132,18 +132,18 @@ public:
         return base_size(dimensions_size);
     }
 
-    static psize_t base_size(psize_t dimensions_size) noexcept
+    static size_t base_size(size_t dimensions_size)
     {
-        psize_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        size_t metadata_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
 
         return PackedAllocator::block_size(
             metadata_length + dimensions_size, Dimensions + 1
         );
     }
 
-    static psize_t packed_block_size(psize_t capacity) noexcept
+    static size_t packed_block_size(size_t capacity)
     {
-        psize_t aligned_data_size{};
+        size_t aligned_data_size{};
 
         for_each_dimension([&](auto idx){
             aligned_data_size += Dimension<idx>::data_block_size(capacity);
@@ -152,17 +152,17 @@ public:
         return base_size(aligned_data_size);
     }
 
-    VoidResult init() noexcept
+    VoidResult init()
     {
         MEMORIA_TRY_VOID(init(empty_size(), Dimensions + 1));
 
         MEMORIA_TRY(meta, allocate<Metadata>(METADATA));
         meta->size() = 0;
 
-        return for_each_dimension_res([&](auto idx) noexcept -> VoidResult {
+        return for_each_dimension_res([&](auto idx)  -> VoidResult {
             using DimensionStruct = Dimension<idx>;
 
-            MEMORIA_TRY_VOID(DimensionStruct::allocateEmpty(this));
+            MEMORIA_TRY_VOID(DimensionStruct::allocate_empty(this));
 
             DimensionStruct::init_metadata(*meta);
             return VoidResult::of();
@@ -170,12 +170,12 @@ public:
     }
 
 
-    psize_t block_size(const PackedDataTypeBuffer* other) const noexcept
+    size_t block_size_for(const PackedDataTypeBuffer* other) const
     {
         auto& my_meta = metadata();
         auto& other_meta = other->metadata();
 
-        psize_t values_length{};
+        size_t values_length{};
 
         for_each_dimension([&values_length, my_meta, other, other_meta, this](auto dim_idx){
             values_length += this->dimension<dim_idx>().joint_data_length(my_meta, other, other_meta);
@@ -184,29 +184,29 @@ public:
         return base_size(values_length);
     }
 
-    Metadata& metadata() noexcept {
+    Metadata& metadata()  {
         return *get<Metadata>(METADATA);
     }
 
-    const Metadata& metadata() const noexcept {
+    const Metadata& metadata() const  {
         return *get<Metadata>(METADATA);
     }
 
-    template <int32_t Idx>
-    Dimension<Idx> dimension() noexcept {
+    template <size_t Idx>
+    Dimension<Idx> dimension()  {
         return Dimension<Idx>(this);
     }
 
-    template <int32_t Idx>
-    const Dimension<Idx> dimension() const noexcept {
+    template <size_t Idx>
+    const Dimension<Idx> dimension() const  {
         return Dimension<Idx>(const_cast<PackedDataTypeBuffer*>(this));
     }
 
-    psize_t& size() noexcept {
+    psize_t& size()  {
         return metadata().size();
     }
 
-    const psize_t& size() const noexcept {
+    const psize_t& size() const {
         return metadata().size();
     }
 
@@ -270,8 +270,8 @@ struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataTyp
     >::DataTypeSize;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
-    static constexpr int32_t Blocks = 1;
-    static constexpr int32_t Indexes = Indexed ? 1 : 0;
+    static constexpr size_t Blocks = 1;
+    static constexpr size_t Indexes = Indexed ? 1 : 0;
 };
 
 

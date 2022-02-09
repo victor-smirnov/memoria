@@ -157,7 +157,7 @@ public:
         }
     }
 
-    static void init_profile_metadata() noexcept {
+    static void init_profile_metadata()  {
         MappedSWMRStoreWritableSnapshot<Profile>::init_profile_metadata();
     }
 
@@ -234,7 +234,7 @@ private:
 
 
 
-    static uint64_t compute_file_size(uint64_t file_size_mb) noexcept
+    static uint64_t compute_file_size(uint64_t file_size_mb)
     {
         uint64_t allocation_size_mb = ALLOCATION_MAP_SIZE_STEP / MB;
         return (file_size_mb / allocation_size_mb) * allocation_size_mb * MB;
@@ -353,7 +353,7 @@ private:
         }
     }
 
-    virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept override {
+    virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr()  override {
         return this->shared_from_this();
     }
 };

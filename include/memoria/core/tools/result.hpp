@@ -767,7 +767,8 @@ namespace detail {
 }
 
 
-
+template <typename T>
+bool IsResultT = detail::IsResultH<T>::Value;
 
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const Result<T>& res) noexcept

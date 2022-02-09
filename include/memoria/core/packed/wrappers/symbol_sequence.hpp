@@ -229,7 +229,7 @@ public:
 
         OOM_THROW_IF_FAILED(alloc->init(block_size, 1), MMA_SRC);
 
-        sequence_ = alloc->template allocateEmpty<Seq>(0);
+        sequence_ = alloc->template allocate_empty<Seq>(0);
 
         OOM_THROW_IF_FAILED(sequence_, MMA_SRC);
     }

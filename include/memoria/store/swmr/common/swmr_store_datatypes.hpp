@@ -54,58 +54,58 @@ public:
         REMOVED_BRANCH = 0x10
     };
 
-    SWMRSnapshotMetadata() noexcept :
+    SWMRSnapshotMetadata()  :
         superblock_file_pos_(), flags_()
     {}
 
-    const SnapshotID& parent_snapshot_id() const noexcept {
+    const SnapshotID& parent_snapshot_id() const  {
         return parent_snapshot_id_;
     }
 
-    void set_parent_snapshot_id(const SnapshotID& id) noexcept {
+    void set_parent_snapshot_id(const SnapshotID& id)  {
         parent_snapshot_id_ = id;
     }
 
-    uint64_t superblock_file_pos() const noexcept {
+    uint64_t superblock_file_pos() const  {
         return superblock_file_pos_;
     }
 
-    void set_superblock_file_pos(uint64_t pos) noexcept {
+    void set_superblock_file_pos(uint64_t pos)  {
         superblock_file_pos_ = pos;
     }
 
 
 
-    uint64_t flags() const noexcept {
+    uint64_t flags() const  {
         return flags_;
     }
 
-    void set_flags(uint64_t ff) noexcept {
+    void set_flags(uint64_t ff)  {
         flags_ = ff;
     }
 
-    bool is_transient() const noexcept {
+    bool is_transient() const  {
         return flags_ & TRANSIENT;
     }
 
-    bool is_system_snapshot() const noexcept {
+    bool is_system_snapshot() const  {
         return flags_ & SYSTEM_SNAPSHOT;
     }
 
-    bool is_data_snapshot() const noexcept {
+    bool is_data_snapshot() const  {
         return flags_ & DATA_SNAPSHOT;
     }
 
-    bool has_ttl() const noexcept {
+    bool has_ttl() const  {
         return flags_ & HAS_TTL;
     }
 
-    bool is_removed_branch() const noexcept {
+    bool is_removed_branch() const  {
         return flags_ & REMOVED_BRANCH;
     }
 
 
-    void set_transient(bool value) noexcept {
+    void set_transient(bool value)  {
         if (value) {
             flags_ |= TRANSIENT;
         }
@@ -114,7 +114,7 @@ public:
         }
     }
 
-    void set_system_snapshot(bool value) noexcept {
+    void set_system_snapshot(bool value)  {
         if (value) {
             flags_ |= SYSTEM_SNAPSHOT;
         }
@@ -123,7 +123,7 @@ public:
         }
     }
 
-    void set_data_snapshot(bool value) noexcept {
+    void set_data_snapshot(bool value)  {
         if (value) {
             flags_ |= DATA_SNAPSHOT;
         }
@@ -132,7 +132,7 @@ public:
         }
     }
 
-    void set_removed_branch(bool value) noexcept {
+    void set_removed_branch(bool value)  {
         if (value) {
             flags_ |= REMOVED_BRANCH;
         }
@@ -141,29 +141,29 @@ public:
         }
     }
 
-    void set_ttl(uint64_t ttl) noexcept
+    void set_ttl(uint64_t ttl)
     {
         flags_ |= HAS_TTL;
         ttl_ = ttl;
     }
 
-    uint64_t ttl() const noexcept {
+    uint64_t ttl() const  {
         return ttl_;
     }
 
 
 
 
-    void set_timestamp(uint64_t value) noexcept {
+    void set_timestamp(uint64_t value)  {
         timestamp_ = value;
     }
 
-    uint64_t timestamp() const noexcept {
+    uint64_t timestamp() const  {
         return timestamp_;
     }
 
 
-    bool operator==(const SWMRSnapshotMetadata& other) const noexcept {
+    bool operator==(const SWMRSnapshotMetadata& other) const  {
         return parent_snapshot_id_ == other.parent_snapshot_id_ &&
                 superblock_file_pos_ == other.superblock_file_pos_ &&
                 flags_ == other.flags_ &&
@@ -171,7 +171,7 @@ public:
                 ttl_ = other.ttl_;
     }
 
-    bool operator!=(const SWMRSnapshotMetadata& other) const noexcept {
+    bool operator!=(const SWMRSnapshotMetadata& other) const  {
         return parent_snapshot_id_ != other.parent_snapshot_id_ ||
                 superblock_file_pos_ != other.superblock_file_pos_ ||
                 flags_ != other.flags_ ||

@@ -54,7 +54,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
     }
 
     // FIXME: error handling
-    void ctr_begin_node(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker) noexcept
+    void ctr_begin_node(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker)
     {
         if (node->is_root())
         {
@@ -76,7 +76,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
     }
 
     // TODO: error handling
-    void ctr_end_node(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker) noexcept
+    void ctr_end_node(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker)
     {
         if (node->is_root())
         {

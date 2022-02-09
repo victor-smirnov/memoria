@@ -54,10 +54,10 @@ class NDTTree {
     CtrT* ctr_;
 
 public:
-    NDTTree() noexcept {}
-    NDTTree(CtrT* ctr) noexcept: ctr_(ctr) {}
+    NDTTree()  {}
+    NDTTree(CtrT* ctr) : ctr_(ctr) {}
 
-    void set_ctr(CtrT* ctr) noexcept {
+    void set_ctr(CtrT* ctr)  {
         ctr_ = ctr;
     }
 
@@ -68,7 +68,7 @@ public:
             const TreeNodeConstPtr& child,
             Functor&& functor,
             Args&&... args
-    ) const noexcept
+    ) const
     {
         if (HASH == parent->block_type_hash())
         {
@@ -110,10 +110,10 @@ class NDTTree<CtrT, Types, 0> {
 public:
     using NDT2Start = NDT2<CtrT, Types, ListSize<typename Types::ChildList> - 1>;
 
-    NDTTree() noexcept {}
-    NDTTree(CtrT* ctr) noexcept: ctr_(ctr) {}
+    NDTTree()  {}
+    NDTTree(CtrT* ctr) : ctr_(ctr) {}
 
-    void set_ctr(CtrT* ctr) noexcept {
+    void set_ctr(CtrT* ctr)  {
         ctr_ = ctr;
     }
 
@@ -126,9 +126,7 @@ public:
             Functor&& functor,
             Args&&... args
     ) const ->
-        typename memoria::detail::ResultOfFn<
-            decltype(NDT2Start(ctr_).dispatchTree(std::declval<ConstNodeSO>(), child, std::forward<Functor>(functor), std::forward<Args>(args)...))
-        >::Type
+        decltype(NDT2Start(ctr_).dispatchTree(std::declval<ConstNodeSO>(), child, std::forward<Functor>(functor), std::forward<Args>(args)...))
     {
         if (HASH == parent->block_type_hash())
         {
@@ -142,7 +140,7 @@ public:
             );
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", parent->block_type_hash());
+            MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", parent->block_type_hash()).do_throw();
         }
     }
 };
@@ -166,10 +164,10 @@ class NDT2 {
     CtrT* ctr_;
 
 public:
-    NDT2() noexcept {}
-    NDT2(CtrT* ctr) noexcept: ctr_(ctr) {}
+    NDT2()  {}
+    NDT2(CtrT* ctr) : ctr_(ctr) {}
 
-    void set_ctr(CtrT* ctr) noexcept {
+    void set_ctr(CtrT* ctr) {
         ctr_ = ctr;
     }
 
@@ -217,10 +215,10 @@ class NDT2<CtrT, Types, 0> {
     CtrT* ctr_;
 
 public:
-    NDT2() noexcept {}
-    NDT2(CtrT* ctr) noexcept: ctr_(ctr) {}
+    NDT2()  {}
+    NDT2(CtrT* ctr) : ctr_(ctr) {}
 
-    void set_ctr(CtrT* ctr) noexcept {
+    void set_ctr(CtrT* ctr)  {
         ctr_ = ctr;
     }
 
@@ -231,9 +229,7 @@ public:
             Functor&& functor,
             Args&&... args
     ) const ->
-        typename memoria::detail::ResultOfFn<
-            decltype(functor.treeNode(std::forward<Node>(parent), std::declval<ConstNodeSO>(), std::forward<Args>(args)...))
-        >::Type
+        decltype(functor.treeNode(std::forward<Node>(parent), std::declval<ConstNodeSO>(), std::forward<Args>(args)...))
     {
         if (HASH == child->block_type_hash())
         {
@@ -245,12 +241,9 @@ public:
             );
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", child->block_type_hash());
+            MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type: {}", child->block_type_hash()).do_throw();
         }
     }
 };
-
-
-
 
 }}

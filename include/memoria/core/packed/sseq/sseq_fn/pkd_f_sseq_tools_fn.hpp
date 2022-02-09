@@ -26,7 +26,7 @@ class BitmapToolsFn {
     typedef typename Seq::Values                                               Values;
     typedef typename Seq::Value                                                 Value;
 
-    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const size_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
 
     static_assert(BitsPerSymbol == 1, "BitmapToolsFn<> can only be used with 1-bit sequences");
 
@@ -34,7 +34,7 @@ class BitmapToolsFn {
 public:
     BitmapToolsFn(const Seq& seq): seq_(seq) {}
 
-    Values sum(int32_t start, int32_t end)
+    Values sum(size_t start, size_t end)
     {
         Values values;
 
@@ -46,27 +46,27 @@ public:
         return values;
     }
 
-    Value get(const Value* symbols, int32_t idx)
+    Value get(const Value* symbols, size_t idx)
     {
         return GetBit(symbols, idx);
     }
 
-    bool test(const Value* symbols, int32_t idx, Value value)
+    bool test(const Value* symbols, size_t idx, Value value)
     {
         return TestBit(symbols, idx) == value;
     }
 
-    void set(Value* symbols, int32_t idx, Value value)
+    void set(Value* symbols, size_t idx, Value value)
     {
         return SetBit(symbols, idx, value);
     }
 
-    void move(Value* symbols, int32_t from, int32_t to, int32_t lenght)
+    void move(Value* symbols, size_t from, size_t to, size_t lenght)
     {
         MoveBits(symbols, symbols, from, to, lenght);
     }
 
-    void move(const Value* src, Value* dst, int32_t from, int32_t to, int32_t lenght)
+    void move(const Value* src, Value* dst, size_t from, size_t to, size_t lenght)
     {
         MoveBits(src, dst, from, to, lenght);
     }
@@ -80,7 +80,7 @@ class SeqToolsFn {
     typedef typename Seq::Values           Values;
     typedef typename Seq::Value             Value;
 
-    static const int32_t BitsPerSymbol          = Seq::BitsPerSymbol;
+    static const size_t BitsPerSymbol          = Seq::BitsPerSymbol;
 
     static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
                 "SeqToolsFn<> can only be used with 2-7-bit sequences");
@@ -89,42 +89,42 @@ class SeqToolsFn {
 public:
     SeqToolsFn(const Seq& seq): seq_(seq) {}
 
-    Values sum(int32_t start, int32_t end)
+    Values sum(size_t start, size_t end)
     {
         Values values;
 
         auto symbols = seq_.symbols();
 
-        for (int32_t idx = start * BitsPerSymbol; idx < end * BitsPerSymbol; idx += BitsPerSymbol)
+        for (size_t idx = start * BitsPerSymbol; idx < end * BitsPerSymbol; idx += BitsPerSymbol)
         {
-            int32_t symbol = GetBits(symbols, idx, BitsPerSymbol);
+            size_t symbol = GetBits(symbols, idx, BitsPerSymbol);
             values[symbol]++;
         }
 
         return values;
     }
 
-    Value get(const Value* symbols, int32_t idx)
+    Value get(const Value* symbols, size_t idx)
     {
         return GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
     }
 
-    bool test(const Value* symbols, int32_t idx, Value value)
+    bool test(const Value* symbols, size_t idx, Value value)
     {
         return TestBits(symbols, idx * BitsPerSymbol, value, BitsPerSymbol);
     }
 
-    void set(Value* symbols, int32_t idx, Value value)
+    void set(Value* symbols, size_t idx, Value value)
     {
         return SetBits(symbols, idx * BitsPerSymbol, value, BitsPerSymbol);
     }
 
-    void move(Value* symbols, int32_t from, int32_t to, int32_t lenght)
+    void move(Value* symbols, size_t from, size_t to, size_t lenght)
     {
         MoveBits(symbols, symbols, from * BitsPerSymbol, to * BitsPerSymbol, lenght * BitsPerSymbol);
     }
 
-    void move(const Value* src, Value* dst, int32_t from, int32_t to, int32_t lenght)
+    void move(const Value* src, Value* dst, size_t from, size_t to, size_t lenght)
     {
         MoveBits(src, dst, from * BitsPerSymbol, to * BitsPerSymbol, lenght * BitsPerSymbol);
     }
@@ -138,7 +138,7 @@ class Seq8ToolsFn {
     typedef typename Seq::Values           Values;
     typedef typename Seq::Value             Value;
 
-    static const int32_t BitsPerSymbol          = Seq::BitsPerSymbol;
+    static const size_t BitsPerSymbol          = Seq::BitsPerSymbol;
 
     static_assert(BitsPerSymbol == 8, "Seq8ToolsFn<> can only be used with 8-bit sequences");
 
@@ -146,42 +146,42 @@ class Seq8ToolsFn {
 public:
     Seq8ToolsFn(const Seq& seq): seq_(seq) {}
 
-    Values sum(int32_t start, int32_t end)
+    Values sum(size_t start, size_t end)
     {
         Values values;
 
         auto symbols = seq_.symbols();
 
-        for (int32_t idx = start; idx < end; idx++)
+        for (size_t idx = start; idx < end; idx++)
         {
-            int32_t symbol = symbols[idx];
+            size_t symbol = symbols[idx];
             values[symbol]++;
         }
 
         return values;
     }
 
-    Value get(const Value* symbols, int32_t idx)
+    Value get(const Value* symbols, size_t idx)
     {
         return symbols[idx];
     }
 
-    bool test(const Value* symbols, int32_t idx, Value value)
+    bool test(const Value* symbols, size_t idx, Value value)
     {
         return symbols[idx] == value;
     }
 
-    void set(Value* symbols, int32_t idx, Value value)
+    void set(Value* symbols, size_t idx, Value value)
     {
         symbols[idx] = value;
     }
 
-    void move(Value* symbols, int32_t from, int32_t to, int32_t lenght)
+    void move(Value* symbols, size_t from, size_t to, size_t lenght)
     {
         CopyByteBuffer(symbols + from, symbols + to, lenght);
     }
 
-    void move(const Value* src, Value* dst, int32_t from, int32_t to, int32_t lenght)
+    void move(const Value* src, Value* dst, size_t from, size_t to, size_t lenght)
     {
         CopyByteBuffer(src + from, dst + to, lenght);
     }

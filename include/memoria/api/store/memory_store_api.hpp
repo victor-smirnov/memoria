@@ -62,7 +62,7 @@ public:
     virtual void set_master(const SnapshotID& txn_id) = 0;
     virtual void set_branch(U8StringRef name, const SnapshotID& txn_id) = 0;
 
-    //virtual void walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;
+    //virtual void walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) = 0;
 
     virtual void pack() = 0;
     virtual void check(const CheckResultConsumerFn& consumer) = 0;
@@ -99,8 +99,8 @@ public:
 
     virtual U8String snapshot_description(const SnapshotID& snapshot_id) = 0;
 
-    virtual PairPtr& pair() noexcept = 0;
-    virtual const PairPtr& pair() const noexcept = 0;
+    virtual PairPtr& pair() = 0;
+    virtual const PairPtr& pair() const = 0;
 
     virtual SharedPtr<StoreMemoryStat<Profile>> memory_stat() = 0;
 };
@@ -128,7 +128,7 @@ public:
     template <typename CtrName>
     using CtrT = ICtrApi<CtrName, Profile>;
 
-    virtual const SnapshotID& uuid() const noexcept = 0;
+    virtual const SnapshotID& uuid() const = 0;
 
     virtual void set_as_master() = 0;
     virtual void set_as_branch(U8StringRef name) = 0;
@@ -149,7 +149,7 @@ public:
     virtual void dump_persistent_tree() = 0;
 
     virtual const PairPtr& pair() const = 0;
-    virtual PairPtr& pair() noexcept = 0;
+    virtual PairPtr& pair() = 0;
 
     virtual SharedPtr<SnapshotMemoryStat<Profile>> memory_stat() = 0;
 };

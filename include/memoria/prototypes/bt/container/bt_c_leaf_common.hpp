@@ -60,16 +60,6 @@ public:
     }
 
 public:
-
-
-
-
-
-
-
-
-    // TODO: apply noexcept expression
-
 //    template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
 //    auto ctr_apply_substreams_fn(TreeNodePtr& leaf, Fn&& fn, Args&&... args)
 //    {
@@ -79,31 +69,31 @@ public:
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
     auto ctr_apply_substreams_fn(const TreeNodePtr& leaf, Fn&& fn, Args&&... args) const
     {
-        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
+        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
     auto ctr_apply_substreams_fn(const TreeNodeConstPtr& leaf, Fn&& fn, Args&&... args) const
     {
-        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
+        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename Fn, typename... Args>
     auto ctr_apply_stream_fn(const TreeNodePtr& leaf, Fn&& fn, Args&&... args) const
     {
-        return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
+        return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename Fn, typename... Args>
     auto ctr_apply_stream_fn(const TreeNodeConstPtr& leaf, Fn&& fn, Args&&... args) const
     {
-        return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
+        return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto ctr_read_substreams(const TreeNodeConstPtr& leaf, Args&&... args) const
     {
-         return self().template ctr_apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...).get_or_throw();
+         return self().template ctr_apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
@@ -147,7 +137,7 @@ public:
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto ctr_find_forward(const TreeNodeConstPtr& leaf, Args&&... args) const
     {
-        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...).get_or_throw();
+        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
     }
 
 
@@ -212,7 +202,7 @@ public:
                     iter.iter_leaf().as_mutable(),
                     fn,
                     std::forward<Args>(args)...
-        ).get_or_throw();
+        );
 
         if (isFail(fn.status_)) {
             MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException").do_throw();

@@ -46,11 +46,11 @@ struct SWMRBlockCounters {
 
     struct Counter {
         int64_t value;
-        void inc() noexcept {
+        void inc()  {
             ++value;
         }
 
-        bool dec() noexcept {
+        bool dec()  {
             return --value == 0;
         }
     };
@@ -87,19 +87,19 @@ public:
         }
     }
 
-    void clear() noexcept {
+    void clear()  {
         map_.clear();
     }
 
-    auto begin() const noexcept {
+    auto begin() const  {
         return map_.begin();
     }
 
-    auto end() const noexcept {
+    auto end() const  {
         return map_.end();
     }
 
-    size_t size() const noexcept {
+    size_t size() const  {
         return map_.size();
     }
 
@@ -115,13 +115,13 @@ public:
         }
     }
 
-    void set(const BlockID& block_id, int64_t counter) noexcept {
+    void set(const BlockID& block_id, int64_t counter)  {
         map_[block_id] = Counter{counter};
     }
 
     int cnt_{};
 
-    bool inc(const BlockID& block_id) noexcept
+    bool inc(const BlockID& block_id)
     {
         auto ii = map_.find(block_id);
         if (ii != map_.end()) {
@@ -149,14 +149,14 @@ public:
         }
     }
 
-    void for_each(std::function<void (const BlockID&, int64_t)> fn) const noexcept
+    void for_each(std::function<void (const BlockID&, int64_t)> fn) const
     {
         for (auto ii = map_.begin(); ii != map_.end(); ++ii) {
             fn(ii->first, ii->second.value);
         }
     }
 
-    Optional<int64_t> get(const BlockID& block_id) const noexcept {
+    Optional<int64_t> get(const BlockID& block_id) const  {
         auto ii = map_.find(block_id);
         if (ii != map_.end()) {
             return ii->second.value;
@@ -164,7 +164,7 @@ public:
         return Optional<int64_t>{};
     }
 
-    void diff(const SWMRBlockCounters& other) const noexcept
+    void diff(const SWMRBlockCounters& other) const
     {
         for (const auto& entry: map_)
         {
@@ -199,34 +199,34 @@ class SWMRCounterBlock {
     uint64_t capacity_;
     CounterStorageT counters_[1];
 public:
-    void init(int32_t block_size) noexcept
+    void init(int32_t block_size)
     {
         capacity_ = capacity_for(block_size);
         size_ = 0;
         next_block_pos_ = 0;
     }
 
-    uint64_t size() const noexcept {
+    uint64_t size() const  {
         return size_;
     }
 
-    uint64_t next_block_pos() const noexcept {
+    uint64_t next_block_pos() const  {
         return next_block_pos_;
     }
 
-    void set_next_block_pos(uint64_t val) noexcept {
+    void set_next_block_pos(uint64_t val)  {
         next_block_pos_ = val;
     }
 
-    Span<CounterStorageT> counters() noexcept {
+    Span<CounterStorageT> counters()  {
         return Span<CounterStorageT>{counters_, size_};
     }
 
-    Span<const CounterStorageT> counters() const noexcept {
+    Span<const CounterStorageT> counters() const  {
         return Span<const CounterStorageT>{counters_, size_};
     }
 
-    bool add_counter(const CounterStorageT& cnt) noexcept
+    bool add_counter(const CounterStorageT& cnt)
     {
         if (size_ < capacity_) {
             counters_[size_++] = cnt;
@@ -235,15 +235,15 @@ public:
         return false;
     }
 
-    uint64_t capacity() const noexcept {
+    uint64_t capacity() const  {
         return capacity_;
     }
 
-    uint64_t available() const noexcept {
+    uint64_t available() const  {
         return capacity_ - size_;
     }
 
-    static uint64_t capacity_for(int32_t block_size) noexcept
+    static uint64_t capacity_for(int32_t block_size)
     {
         return (block_size - offsetof(SWMRCounterBlock, counters_)) / sizeof(CounterStorageT);
     }

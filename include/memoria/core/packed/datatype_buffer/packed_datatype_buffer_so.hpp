@@ -54,7 +54,7 @@ namespace detail_ {
         static void check(const BufferSO& buffer)
         {
             for (int32_t c = 0; c < BufferSO::Indexes; c++) {
-                for (psize_t idx = 1; idx < buffer.size(); idx++)
+                for (size_t idx = 1; idx < buffer.size(); idx++)
                 {
                     if (buffer.access(c, idx - 1) > buffer.access(c, idx)) {
                         return MEMORIA_MAKE_GENERIC_ERROR(
@@ -79,7 +79,7 @@ class PackedDataTypeBufferSO {
     using MyType = PackedDataTypeBufferSO;
 
 public:
-    static constexpr psize_t Columns = 1;
+    static constexpr size_t Columns = 1;
     static constexpr int32_t Dimensions = PkdStruct::Dimensions;
     static constexpr int32_t Indexes = PkdStruct::Indexes;
     static constexpr bool Indexed = PkdStruct::Indexed;
@@ -93,7 +93,7 @@ public:
 
     using PkdStructT = PkdStruct;
 
-    using DataLengths = core::StaticVector<psize_t, Dimensions>;
+    using DataLengths = core::StaticVector<size_t, Dimensions>;
 
     using Values = core::StaticVector<ViewType, Columns>;
 
@@ -122,14 +122,14 @@ public:
         data_ = data;
     }
 
-    ConstIterator begin(psize_t column = 0) const noexcept
+    ConstIterator begin(size_t column = 0) const noexcept
     {
         return ConstIterator(Accessor(*this), 0, data_->size());
     }
 
-    ConstIterator end(psize_t column = 0) const noexcept
+    ConstIterator end(size_t column = 0) const noexcept
     {
-        psize_t size = data_->size();
+        size_t size = data_->size();
         return ConstIterator(Accessor(*this), size, size);
     }
 
@@ -147,7 +147,7 @@ public:
         return VoidResult::of();
     }
 
-    DataLengths data_lengts(psize_t row, psize_t size) const noexcept
+    DataLengths data_lengts(size_t row, size_t size) const noexcept
     {
         DataLengths lengths{};
 
@@ -193,26 +193,26 @@ public:
         return detail_::BufferContentChecker<MyType>::check(*this);
     }
 
-    psize_t size() const noexcept {
+    size_t size() const noexcept {
         return data_->metadata().size();
     }
 
-    psize_t max_element_idx() const noexcept {
+    size_t max_element_idx() const noexcept {
         return size() - 1;
     }
 
-    ViewType access(psize_t column, psize_t row) const noexcept
+    ViewType access(size_t column, size_t row) const noexcept
     {
         return access(row);
     }
 
-    ViewType access(psize_t row) const noexcept
+    ViewType access(size_t row) const noexcept
     {
         DataDimensionsTuple data = access_data(row);
         return DataTypeTraits<DataType>::make_view(*ext_data_, data);
     }
 
-    DataDimensionsTuple access_data(psize_t row) const noexcept
+    DataDimensionsTuple access_data(size_t row) const noexcept
     {
         DataDimensionsTuple data{};
 
@@ -230,13 +230,13 @@ public:
 
 
 
-    VoidResult splitTo(MyType& other, psize_t idx) noexcept
+    VoidResult splitTo(MyType& other, size_t idx) noexcept
     {
         auto& meta = data_->metadata();
 
         MEMORIA_ASSERT_RTN(other.size(), ==, 0);
 
-        psize_t split_size = meta.size() - idx;
+        size_t split_size = meta.size() - idx;
         DataLengths data_lengths = this->data_lengts(idx, split_size);
 
         MEMORIA_TRY_VOID(other.insertSpace(0, split_size, data_lengths));
@@ -250,8 +250,8 @@ public:
 
     VoidResult mergeWith(MyType& other) const noexcept
     {
-        psize_t my_size     = this->size();
-        psize_t other_size  = other.size();
+        size_t my_size     = this->size();
+        size_t other_size  = other.size();
 
         DataLengths data_lengths = this->data_lengts(0, my_size);
 
@@ -262,11 +262,11 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult removeSpace(psize_t room_start, psize_t room_end) noexcept
+    VoidResult removeSpace(size_t room_start, size_t room_end) noexcept
     {
         auto& meta = data_->metadata();
-        psize_t size = meta.size();
-        psize_t room_length = room_end - room_start;
+        size_t size = meta.size();
+        size_t room_length = room_end - room_start;
 
         MEMORIA_ASSERT_RTN(room_start, <=, size);
         MEMORIA_ASSERT_RTN(room_end, <=, size);
@@ -283,26 +283,26 @@ public:
         return VoidResult::of();
     }
 
-    ViewType get_values(psize_t idx) const noexcept {
+    ViewType get_values(size_t idx) const noexcept {
         return get_values(idx, 0);
     }
 
-    ViewType get_values(psize_t idx, psize_t column) const noexcept {
+    ViewType get_values(size_t idx, size_t column) const noexcept {
         return access(idx);
     }
 
 
     template <typename T>
-    VoidResult setValues(psize_t pos, const core::StaticVector<T, Columns>& values) noexcept
+    VoidResult setValues(size_t pos, const core::StaticVector<T, Columns>& values) noexcept
     {
         MEMORIA_TRY_VOID(removeSpace(pos, pos + 1));
         return insert(pos, values);
     }
 
     template <typename T>
-    VoidResult insert(psize_t pos, const core::StaticVector<T, Columns>& values)
+    VoidResult insert(size_t pos, const core::StaticVector<T, Columns>& values)
     {
-        return insert_from_fn(pos, 1, [&](psize_t row){
+        return insert_from_fn(pos, 1, [&](size_t row){
             return values[0];
         });
     }
@@ -317,7 +317,7 @@ public:
 
 
 
-    Int32Result insert_io_substream(psize_t at, const io::IOSubstream& substream, psize_t start, psize_t size) noexcept
+    Int32Result insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size) noexcept
     {
         using IOBuffer = typename PkdStruct::GrowableIOSubstream;
         const IOBuffer& buffer = io::substream_cast<IOBuffer>(substream);
@@ -356,7 +356,7 @@ public:
         }
     };
 
-    FindResult findGTForward(psize_t column, const ViewType& val) const
+    FindResult findGTForward(size_t column, const ViewType& val) const
     {
         auto end = this->end();
         auto ii = std::upper_bound(begin(), end, val);
@@ -369,7 +369,7 @@ public:
         return FindResult(data_->size());
     }
 
-    FindResult findGEForward(psize_t column, const ViewType& val) const
+    FindResult findGEForward(size_t column, const ViewType& val) const
     {
         auto end = this->end();
         auto ii = std::lower_bound(begin(), end, val);
@@ -382,7 +382,7 @@ public:
         return FindResult(data_->size());
     }
 
-    auto findForward(SearchType search_type, psize_t column, const ViewType& val) const
+    auto findForward(SearchType search_type, size_t column, const ViewType& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -393,7 +393,7 @@ public:
         }
     }
 
-    auto findForward(SearchType search_type, psize_t column, const Optional<ViewType>& val) const
+    auto findForward(SearchType search_type, size_t column, const Optional<ViewType>& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -404,11 +404,11 @@ public:
         }
     }
 
-    psize_t estimate_insert_upsize(const ViewType& view) const noexcept
+    size_t estimate_insert_upsize(const ViewType& view) const noexcept
     {
         auto& meta = data_->metadata();
 
-        psize_t total_size{};
+        size_t total_size{};
 
         auto data = DataTypeTraits<DataType>::describe_data(&view);
 
@@ -421,11 +421,11 @@ public:
         return total_size;
     }
 
-    psize_t estimate_replace_upsize(psize_t idx, const ViewType& view) const noexcept
+    size_t estimate_replace_upsize(size_t idx, const ViewType& view) const noexcept
     {
         auto& meta = data_->metadata();
 
-        psize_t total_size{};
+        size_t total_size{};
 
         auto data = DataTypeTraits<DataType>::describe_data(&view);
 
@@ -438,7 +438,7 @@ public:
         return total_size;
     }
 
-    VoidResult replace(psize_t column, psize_t idx, const ViewType& view) noexcept
+    VoidResult replace(size_t column, size_t idx, const ViewType& view) noexcept
     {
         DataDimensionsTuple data = DataTypeTraits<DataType>::describe_data(&view);
 
@@ -453,13 +453,13 @@ public:
 
     VoidResult insert(int32_t idx, int32_t size, std::function<Values (int32_t)> provider) noexcept
     {
-        return insert_from_fn(idx, size, [&](psize_t row){
+        return insert_from_fn(idx, size, [&](size_t row){
             return provider(row)[0];
         });
     }
 
     template <typename AccessorFn>
-    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    VoidResult insert_entries(size_t row_at, size_t size, AccessorFn&& elements) noexcept
     {
         MEMORIA_ASSERT_RTN(row_at, <=, this->size());
 
@@ -484,7 +484,7 @@ public:
 
         MEMORIA_TRY_VOID(insertSpace(row_at, size, data_lengths));
 
-        for (psize_t row = 0; row < size; row++)
+        for (size_t row = 0; row < size; row++)
         {
             auto elem = elements(0, row);
             auto data = DataTypeTraits<DataType>::describe_data(&elem);
@@ -501,7 +501,7 @@ public:
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    VoidResult update_entries(size_t row_at, size_t size, AccessorFn&& elements) noexcept
     {
         MEMORIA_ASSERT_RTN(row_at, <=, this->size());
 
@@ -509,7 +509,7 @@ public:
         return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
     }
 
-    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
+    VoidResult remove_entries(size_t row_at, size_t size) noexcept
     {
         return removeSpace(row_at, row_at + size);
     }
@@ -517,7 +517,7 @@ public:
 
 
     template <typename AccessorFn>
-    VoidResult insert_from_fn(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    VoidResult insert_from_fn(size_t row_at, size_t size, AccessorFn&& elements) noexcept
     {
         DataLengths data_lengths{};
 
@@ -533,7 +533,7 @@ public:
 
         MEMORIA_TRY_VOID(insertSpace(row_at, size, data_lengths));
 
-        for (psize_t row = 0; row < size; row++)
+        for (size_t row = 0; row < size; row++)
         {
             auto elem = elements(row);
             auto data = DataTypeTraits<DataType>::describe_data(&elem);
@@ -550,7 +550,7 @@ public:
 
 
 
-    VoidResult insert(psize_t idx, const ViewType& view) noexcept
+    VoidResult insert(size_t idx, const ViewType& view) noexcept
     {
         static_assert(Columns == 1, "");
 
@@ -560,7 +560,7 @@ public:
         return insert(idx, vv);
     }
 
-    VoidResult remove(psize_t idx) noexcept
+    VoidResult remove(size_t idx) noexcept
     {
         return removeSpace(idx, idx + 1);
     }
@@ -573,12 +573,12 @@ private:
     }
 
     template <typename T>
-    static psize_t data_length(const T*) noexcept {
+    static size_t data_length(const T*) noexcept {
         return 1;
     }
 
 
-    void copyTo(MyType& other, psize_t copy_from, psize_t count, psize_t copy_to, const DataLengths& data_lengths) const noexcept
+    void copyTo(MyType& other, size_t copy_from, size_t count, size_t copy_to, const DataLengths& data_lengths) const noexcept
     {
         for_each_dimension([&](auto idx){
             auto dimension = data_->template dimension<idx>();
@@ -587,17 +587,17 @@ private:
     }
 
 
-    VoidResult insertSpace(psize_t idx, psize_t room_length, const DataLengths& data_lengths) noexcept
+    VoidResult insertSpace(size_t idx, size_t room_length, const DataLengths& data_lengths) noexcept
     {
         auto& meta = data_->metadata();
 
-        psize_t size = meta.size();
+        size_t size = meta.size();
 
         MEMORIA_ASSERT_RTN(idx, <=, size);
         MEMORIA_ASSERT_RTN(idx, >=, 0);
         MEMORIA_ASSERT_RTN(room_length, >=, 0);
 
-        psize_t extra_data{};
+        size_t extra_data{};
 
         for_each_dimension([&](auto dim_idx) {
             extra_data += data_->template dimension<dim_idx>().compute_new_size(
@@ -619,11 +619,11 @@ private:
     }
 
 
-    VoidResult resize(psize_t idx, const DataDimensionsTuple& new_value_sizes) noexcept
+    VoidResult resize(size_t idx, const DataDimensionsTuple& new_value_sizes) noexcept
     {
         auto& meta = data_->metadata();
 
-        psize_t size = meta.size();
+        size_t size = meta.size();
 
         MEMORIA_ASSERT_RTN(idx, <=, size);
         MEMORIA_ASSERT_RTN(idx, >=, 0);

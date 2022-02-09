@@ -206,43 +206,43 @@ public:
     {
     }
 
-    virtual ObjectPools& object_pools() const noexcept {
+    virtual ObjectPools& object_pools() const  {
         return object_pools_;
     }
     
-    virtual SnpSharedPtr<ProfileStoreType<Profile>> self_ptr() noexcept {
+    virtual SnpSharedPtr<ProfileStoreType<Profile>> self_ptr()  {
         return this->shared_from_this();
     }
 
-    PairPtr& pair() noexcept {
+    PairPtr& pair()  {
         return pair_;
     }
 
-    const PairPtr& pair() const noexcept {
+    const PairPtr& pair() const  {
         return pair_;
     }
 
-    const CtrID& uuid() const noexcept {
+    const CtrID& uuid() const  {
         return history_node_->snapshot_id();
     }
 
-    bool is_active() const noexcept {
+    bool is_active() const  {
         return history_node_->is_active();
     }
 
-    bool is_data_locked() const noexcept {
+    bool is_data_locked() const  {
     	return history_node_->is_data_locked();
     }
 
-    virtual bool isActive() const noexcept {
+    virtual bool isActive() const  {
         return is_active();
     }
 
-    bool is_marked_to_clear() const noexcept {
+    bool is_marked_to_clear() const  {
         return history_node_->is_dropped();
     }
 
-    bool is_committed() const noexcept {
+    bool is_committed() const  {
         return history_node_->is_committed();
     }
 
@@ -835,7 +835,7 @@ public:
         return history_tree_raw_->newBlockId();
     }
 
-    virtual CtrID snaphsot_Id() const noexcept {
+    virtual CtrID snaphsot_Id() const  {
         return history_node_->snapshot_id();
     }
 
@@ -844,7 +844,7 @@ public:
         return allocate_system<uint8_t>(size).release();
     }
 
-    virtual void freeMemory(void* ptr) noexcept {
+    virtual void freeMemory(void* ptr)  {
         free_system(ptr);
     }
 
@@ -1149,7 +1149,7 @@ protected:
         return consumer.finish();
     }
 
-    // FIXME: use noexcept
+
     auto export_block_rchandle(const BlockID& id)
     {
     	auto opt = persistent_tree_.find(id);
@@ -1238,7 +1238,7 @@ protected:
         return shared_opt.get();
     }
 
-    void* malloc(size_t size) noexcept {
+    void* malloc(size_t size)  {
         return ::malloc(size);
     }
 
@@ -1330,7 +1330,7 @@ protected:
     }
 
 
-    void do_drop() noexcept
+    void do_drop()
     {
         if (history_tree_raw_->is_dump_snapshot_lifecycle()) {
             std::cout << "MEMORIA: DROP snapshot's DATA: " << history_node_->snapshot_id() << std::endl;
@@ -1356,7 +1356,7 @@ protected:
         });
     }
 
-    static void delete_snapshot(HistoryNode* node) noexcept
+    static void delete_snapshot(HistoryNode* node)
     {
         PersistentTreeT persistent_tree(node);
 
@@ -1410,7 +1410,7 @@ protected:
     }
 
     void start_no_reentry(const CtrID& ctr_id) {}
-    void finish_no_reentry(const CtrID& ctr_id) noexcept {}
+    void finish_no_reentry(const CtrID& ctr_id)  {}
 };
 
 }}}

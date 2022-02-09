@@ -243,13 +243,10 @@ public:
     }
 
     template <typename IDResolver>
-    VoidResult cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    void cow_resolve_ids(const IDResolver* id_resolver)
     {
-        return wrap_throwing([&]{
-            auto memref_id = id_resolver->resolve_id(id_);
-            id_ = memref_id;
-            return VoidResult::of();
-        });
+        auto memref_id = id_resolver->resolve_id(id_);
+        id_ = memref_id;
     }
 
     template <template <typename T> class FieldFactory, typename DeserializationData>

@@ -97,16 +97,16 @@ public:
             Span<uint8_t> buffer,
             CDescrPtr& snapshot_descriptor,
             RemovingBlocksConsumerFn removing_blocks_consumer_fn = RemovingBlocksConsumerFn{}
-    ) noexcept:
+    ) :
         Base(store, snapshot_descriptor, store.get(), removing_blocks_consumer_fn),
         buffer_(buffer)
     {}
 
-    SnpSharedPtr<StoreT> my_self_ptr() noexcept override {
+    SnpSharedPtr<StoreT> my_self_ptr()  override {
         return this->shared_from_this();
     }
 
-    virtual uint64_t get_memory_size() noexcept override {
+    virtual uint64_t get_memory_size()  override {
         return buffer_.size();
     }
 

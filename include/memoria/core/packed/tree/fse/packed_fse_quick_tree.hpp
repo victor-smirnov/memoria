@@ -27,7 +27,7 @@
 
 namespace memoria {
 
-template <typename IndexDataTypeT, int32_t kBlocks, typename ValueDataTypeT = IndexDataTypeT, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
+template <typename IndexDataTypeT, size_t kBlocks, typename ValueDataTypeT = IndexDataTypeT, size_t kBranchingFactor = PackedTreeBranchingFactor, size_t kValuesPerBranch = PackedTreeBranchingFactor>
 struct PkdFQTreeTypes {
     using IndexDataType    = IndexDataTypeT;
     using ValueDataType    = IndexDataTypeT;
@@ -35,15 +35,15 @@ struct PkdFQTreeTypes {
     using IndexType = typename DataTypeTraits<IndexDataType>::ViewType;
     using ValueType = typename DataTypeTraits<ValueDataType>::ViewType;
 
-    static constexpr int32_t Blocks = kBlocks;
-    static constexpr int32_t BranchingFactor = kBranchingFactor;
-    static constexpr int32_t ValuesPerBranch = kValuesPerBranch;
+    static constexpr size_t Blocks = kBlocks;
+    static constexpr size_t BranchingFactor = kBranchingFactor;
+    static constexpr size_t ValuesPerBranch = kValuesPerBranch;
 };
 
 template <typename Types> class PkdFQTree;
 
 
-template <typename IndexValueT, int32_t kBlocks = 1, typename ValueT = IndexValueT, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
+template <typename IndexValueT, size_t kBlocks = 1, typename ValueT = IndexValueT, size_t kBranchingFactor = PackedTreeBranchingFactor, size_t kValuesPerBranch = PackedTreeBranchingFactor>
 using PkdFQTreeT = PkdFQTree<PkdFQTreeTypes<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>>;
 
 
@@ -58,7 +58,7 @@ class PkdFQTree: public PkdFQTreeBase<typename Types::IndexType, typename Types:
 public:
 
     static constexpr uint32_t VERSION = 1;
-    static constexpr int32_t Blocks   = Types::Blocks;
+    static constexpr size_t Blocks   = Types::Blocks;
 
 
     using Base::METADATA;
@@ -82,7 +82,7 @@ public:
 
     using Metadata = typename Base::Metadata;
 
-    using SizesT = core::StaticVector<int32_t, Blocks>;
+    using SizesT = core::StaticVector<size_t, Blocks>;
 
     using ConstPtrsT = core::StaticVector<const Value*, Blocks>;
 
@@ -94,41 +94,41 @@ public:
     class ReadState {
     protected:
         ConstPtrsT values_;
-        int32_t idx_ = 0;
+        size_t idx_ = 0;
     public:
         ReadState() {}
-        ReadState(const ConstPtrsT& values, int32_t idx): values_(values), idx_(idx) {}
+        ReadState(const ConstPtrsT& values, size_t idx): values_(values), idx_(idx) {}
 
         ConstPtrsT& values() {return values_;}
-        int32_t& local_pos() {return idx_;}
+        size_t& local_pos() {return idx_;}
         const ConstPtrsT& values() const {return values_;}
-        const int32_t& local_pos() const {return idx_;}
+        const size_t& local_pos() const {return idx_;}
     };
 
 
     class Iterator: public ReadState {
-        int32_t size_;
+        size_t size_;
         Values data_values_;
 
         using ReadState::idx_;
         using ReadState::values_;
 
-        int32_t idx_backup_;
+        size_t idx_backup_;
 
     public:
         Iterator() {}
-        Iterator(const ConstPtrsT& values, int32_t idx, int32_t size):
+        Iterator(const ConstPtrsT& values, size_t idx, size_t size):
             ReadState(values, idx),
             size_(size)
         {}
 
-        int32_t size() const {return size_;}
+        size_t size() const {return size_;}
 
         bool has_next() const {return idx_ < size_;}
 
         void next()
         {
-            for (int32_t b = 0; b < Blocks; b++)
+            for (size_t b = 0; b < Blocks; b++)
             {
                 data_values_[b] = values_[b][idx_];
             }
@@ -136,7 +136,7 @@ public:
             idx_++;
         }
 
-        const auto& value(int32_t block) {return data_values_[block];}
+        const auto& value(size_t block) {return data_values_[block];}
 
         void mark() {
             idx_backup_ = idx_;
@@ -149,15 +149,15 @@ public:
 
     class BlockIterator {
         const Value* values_;
-        int32_t idx_ = 0;
+        size_t idx_ = 0;
 
-        int32_t size_;
+        size_t size_;
         Value data_value_;
 
-        int32_t idx_backup_;
+        size_t idx_backup_;
     public:
         BlockIterator() {}
-        BlockIterator(const Value* values, int32_t idx, int32_t size):
+        BlockIterator(const Value* values, size_t idx, size_t size):
             values_(values),
             idx_(idx),
             size_(size),
@@ -165,13 +165,13 @@ public:
             idx_backup_()
         {}
 
-        int32_t size() const {return size_;}
+        size_t size() const {return size_;}
 
         bool has_next() const {return idx_ < size_;}
 
         void next()
         {
-            for (int32_t b = 0; b < Blocks; b++)
+            for (size_t b = 0; b < Blocks; b++)
             {
                 data_value_ = values_[idx_];
             }
@@ -192,7 +192,7 @@ public:
 
 
 
-    static int32_t estimate_block_size(int32_t tree_capacity, int32_t density_hi = 1, int32_t density_lo = 1)
+    static size_t estimate_block_size(size_t tree_capacity, size_t density_hi = 1, size_t density_lo = 1)
     {
         MEMORIA_ASSERT(density_hi, ==, 1); // data density should not be set for this type of trees
         MEMORIA_ASSERT(density_lo, ==, 1);
@@ -200,12 +200,12 @@ public:
         return block_size(tree_capacity);
     }
 
-    VoidResult init_tl(int32_t data_block_size) noexcept
+    VoidResult init_tl(size_t data_block_size)
     {
         return Base::init_tl(data_block_size, Blocks);
     }
 
-    VoidResult init(int32_t capacity = 0) noexcept
+    VoidResult init(size_t capacity = 0)
     {
         MEMORIA_TRY_VOID(Base::init(empty_size(), Blocks * SegmentsPerBlock + 1));
 
@@ -214,22 +214,22 @@ public:
         meta->max_size()    = capacity;
         meta->index_size()  = MyType::index_size(capacity);
 
-        for (int32_t block = 0; block < Blocks; block++)
+        for (size_t block = 0; block < Blocks; block++)
         {
-            MEMORIA_TRY_VOID(this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size()));
-            MEMORIA_TRY_VOID(this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity));
+            MEMORIA_TRY_VOID(this->template allocate_array_by_size<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size()));
+            MEMORIA_TRY_VOID(this->template allocate_array_by_size<Value>(block * SegmentsPerBlock + 2, capacity));
         }
 
         return VoidResult::of();
     }
 
-    VoidResult init_bs(int32_t block_size) noexcept
+    VoidResult init_bs(size_t block_size)
     {
-        MEMORIA_TRY(elements_num, elements_for(block_size));
+        auto elements_num = elements_for(block_size);
         return init_by_block(block_size, elements_num);
     }
 
-    VoidResult init_by_block(int32_t block_size, int32_t capacity = 0) noexcept
+    VoidResult init_by_block(size_t block_size, size_t capacity = 0)
     {
         MEMORIA_TRY_VOID(Base::init(block_size, Blocks * SegmentsPerBlock + 1));
 
@@ -239,37 +239,37 @@ public:
         meta->max_size()    = capacity;
         meta->index_size()  = MyType::index_size(capacity);
 
-        for (int32_t block = 0; block < Blocks; block++)
+        for (size_t block = 0; block < Blocks; block++)
         {
-            MEMORIA_TRY_VOID(this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size()));
-            MEMORIA_TRY_VOID(this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity));
+            MEMORIA_TRY_VOID(this->template allocate_array_by_size<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size()));
+            MEMORIA_TRY_VOID(this->template allocate_array_by_size<Value>(block * SegmentsPerBlock + 2, capacity));
         }
 
         return VoidResult::of();
     }
 
-    VoidResult init(const SizesT& sizes) noexcept
+    VoidResult init(const SizesT& sizes)
     {
         return MyType::init(sizes[0]);
     }
 
-    static int32_t block_size(int32_t capacity) noexcept
+    static size_t block_size(size_t capacity)
     {
         return Base::block_size(Blocks, capacity);
     }
 
-    static int32_t packed_block_size(int32_t tree_capacity) noexcept
+    static size_t packed_block_size(size_t tree_capacity)
     {
         return block_size(tree_capacity);
     }
 
 
-    int32_t block_size() const
+    size_t block_size() const
     {
         return Base::block_size();
     }
 
-    int32_t block_size(const MyType* other) const
+    size_t block_size_for(const MyType* other) const
     {
         return block_size(this->size() + other->size());
     }
@@ -277,23 +277,23 @@ public:
 
 
 
-    static Int32Result elements_for(int32_t block_size) noexcept
+    static size_t elements_for(size_t block_size)
     {
         return Base::tree_size(Blocks, block_size);
     }
 
 
-    static constexpr int32_t default_size(int32_t available_space) noexcept
+    static constexpr size_t default_size(size_t available_space)
     {
         return empty_size();
     }
 
-    VoidResult init_default(int32_t block_size) noexcept {
+    VoidResult init_default(size_t block_size) {
         return init();
     }
 
 
-    static int32_t empty_size()
+    static size_t empty_size()
     {
         return block_size(0);
     }
@@ -309,16 +309,16 @@ public:
         Base::dump_index(Blocks, out);
     }
 
-    bool check_capacity(int32_t size) const
+    bool check_capacity(size_t size) const
     {
         MEMORIA_V1_ASSERT_TRUE(size >= 0);
 
         auto alloc = this->allocator();
 
-        int32_t total_size          = this->size() + size;
-        int32_t total_block_size    = MyType::block_size(total_size);
-        int32_t my_block_size       = alloc->element_size(this);
-        int32_t delta               = total_block_size - my_block_size;
+        size_t total_size          = this->size() + size;
+        size_t total_block_size    = MyType::block_size(total_size);
+        size_t my_block_size       = alloc->element_size(this);
+        size_t delta               = total_block_size - my_block_size;
 
         return alloc->free_space() >= delta;
     }
@@ -329,7 +329,7 @@ public:
 
 
     template <typename Fn>
-    void read(int32_t block, int32_t start, int32_t end, Fn&& fn) const
+    void read(size_t block, size_t start, size_t end, Fn&& fn) const
     {
         MEMORIA_ASSERT(end, <=, this->size());
         MEMORIA_ASSERT(start, >=, 0);
@@ -337,7 +337,7 @@ public:
 
         auto values = this->values(block);
 
-        for (int32_t c = start; c < end; c++)
+        for (size_t c = start; c < end; c++)
         {
             fn(block, values[c]);
             fn.next();
@@ -349,15 +349,15 @@ public:
     // ========================================= Insert/Remove/Resize ============================================== //
 
 
-    VoidResult resize(Metadata* meta, int32_t size) noexcept
+    VoidResult resize(Metadata* meta, size_t size)
     {
-        int32_t new_data_size  = meta->max_size() + size;
-        int32_t new_index_size = MyType::index_size(new_data_size);
+        size_t new_data_size  = meta->max_size() + size;
+        size_t new_index_size = MyType::index_size(new_data_size);
 
-        for (int32_t block = 0; block < Blocks; block++)
+        for (size_t block = 0; block < Blocks; block++)
         {
-            MEMORIA_TRY_VOID(Base::resizeBlock(SegmentsPerBlock * block + 1, new_index_size * sizeof(IndexValue)));
-            MEMORIA_TRY_VOID(Base::resizeBlock(SegmentsPerBlock * block + 2, new_data_size * sizeof(Value)));
+            MEMORIA_TRY_VOID(Base::resize_block(SegmentsPerBlock * block + 1, new_index_size * sizeof(IndexValue)));
+            MEMORIA_TRY_VOID(Base::resize_block(SegmentsPerBlock * block + 2, new_data_size * sizeof(Value)));
         }
 
         meta->max_size()    += size;
@@ -366,18 +366,18 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult insertSpace(int32_t idx, int32_t room_length) noexcept
+    VoidResult insertSpace(size_t idx, size_t room_length)
     {
         auto meta = this->metadata();
 
-        int32_t capacity  = meta->capacity();
+        size_t capacity  = meta->capacity();
 
         if (capacity < room_length)
         {
             MEMORIA_TRY_VOID(resize(meta, room_length - capacity));
         }
 
-        for (int32_t block = 0; block < Blocks; block++)
+        for (size_t block = 0; block < Blocks; block++)
         {
             auto* values = this->values(block);
 
@@ -387,7 +387,7 @@ public:
                     meta->size() - idx
             );
 
-            for (int32_t c = idx; c < idx + room_length; c++) {
+            for (size_t c = idx; c < idx + room_length; c++) {
                 values[c] = Value{};
             }
         }
@@ -399,12 +399,12 @@ public:
 
 
 
-    VoidResult copyTo(MyType* other, int32_t copy_from, int32_t count, int32_t copy_to) const noexcept
+    VoidResult copyTo(MyType* other, size_t copy_from, size_t count, size_t copy_to) const
     {
         MEMORIA_V1_ASSERT_TRUE_RTN(copy_from >= 0);
         MEMORIA_V1_ASSERT_TRUE_RTN(count >= 0);
 
-        for (int32_t block = 0; block < Blocks; block++)
+        for (size_t block = 0; block < Blocks; block++)
         {
             auto my_values    = this->values(block);
             auto other_values = other->values(block);
@@ -420,9 +420,9 @@ public:
     }
 
 public:
-    VoidResult splitTo(MyType* other, int32_t idx) noexcept
+    VoidResult splitTo(MyType* other, size_t idx)
     {
-        int32_t total = this->size() - idx;
+        size_t total = this->size() - idx;
         if (total > 0)
         {
             MEMORIA_TRY_VOID(other->insertSpace(0, total));
@@ -437,10 +437,10 @@ public:
         }
     }
 
-    VoidResult mergeWith(MyType* other) const noexcept
+    VoidResult mergeWith(MyType* other) const
     {
-        int32_t my_size     = this->size();
-        int32_t other_size  = other->size();
+        size_t my_size     = this->size();
+        size_t other_size  = other->size();
 
         MEMORIA_TRY_VOID(other->insertSpace(other_size, my_size));
         MEMORIA_TRY_VOID(copyTo(other, 0, my_size, other_size));
@@ -451,22 +451,24 @@ public:
 
 
 
-    VoidResult removeSpace(int32_t start, int32_t end) noexcept
+    VoidResult removeSpace(size_t start, size_t end)
     {
         return remove(start, end);
     }
 
-    VoidResult remove(int32_t start, int32_t end) noexcept
+    VoidResult remove(size_t start, size_t end)
     {
         auto meta = this->metadata();
 
-        int32_t room_length = end - start;
-        int32_t size = meta->size();
+        size_t room_length = end - start;
+        size_t size = meta->size();
 
         MEMORIA_ASSERT_RTN(start + room_length, <=, size);
 
-        for (int32_t block = Blocks - 1; block >= 0; block--)
+        for (size_t block_f = 0; block_f < Blocks; block_f++)
         {
+            size_t block = Blocks - 1 - block_f;
+
             auto values = this->values(block);
 
             CopyBuffer(
@@ -475,7 +477,7 @@ public:
                     size - end
             );
 
-            for (int32_t c = start + size - end; c < size; c++)
+            for (size_t c = start + size - end; c < size; c++)
             {
                 values[c] = 0;
             }
@@ -491,19 +493,15 @@ public:
 
 
     template <typename Iter>
-    VoidResult populate_from_iterator(int32_t start, int32_t length, Iter&& iter) noexcept
+    VoidResult populate_from_iterator(size_t start, size_t length, Iter&& iter)
     {
-        MEMORIA_ASSERT_RTN(start, >=, 0);
         MEMORIA_ASSERT_RTN(start, <=, this->size());
-
-        MEMORIA_ASSERT_RTN(length, >=, 0);
-
         MEMORIA_TRY_VOID(insertSpace(start, length));
 
-        for (int32_t c = 0; c < length; c++)
+        for (size_t c = 0; c < length; c++)
         {
             iter.next();
-            for (int32_t block = 0; block < Blocks; block++)
+            for (size_t block = 0; block < Blocks; block++)
             {
                 this->value(block, c + start) = iter.value(block);
             }
@@ -513,36 +511,36 @@ public:
     }
 
 
-    ReadState positions(int32_t idx) const
+    ReadState positions(size_t idx) const
     {
         ReadState state;
 
         state.local_pos() = idx;
 
-        for (int32_t b = 0; b < Blocks; b++) {
+        for (size_t b = 0; b < Blocks; b++) {
             state.values()[b] = this->values(b);
         }
 
         return state;
     }
 
-    Iterator iterator(int32_t idx) const
+    Iterator iterator(size_t idx) const
     {
         ConstPtrsT ptrs;
 
-        for (int32_t b = 0; b < Blocks; b++) {
+        for (size_t b = 0; b < Blocks; b++) {
             ptrs[b] = this->values(b);
         }
 
         return Iterator(ptrs, idx, this->size());
     }
 
-    BlockIterator iterator(int32_t block, int32_t idx) const
+    BlockIterator iterator(size_t block, size_t idx) const
     {
         return BlockIterator(this->values(block), idx, this->size());
     }
 
-    VoidResult insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t inserted)
+    VoidResult insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t inserted)
     {
 //        const io::IOColumnwiseFixedSizeArraySubstream<Value>& buffer
 //                = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Value>>(substream);
@@ -551,7 +549,7 @@ public:
 //            return VoidResult::FAIL;
 //        }
 
-//        for (int32_t block = 0; block < Blocks; block++)
+//        for (size_t block = 0; block < Blocks; block++)
 //        {
 //            auto buffer_values = buffer.select(block, start);
 //            CopyBuffer(buffer_values, this->values(block) + at, inserted);
@@ -566,7 +564,7 @@ public:
 
 //        io::FixedSizeArrayColumnMetadata<Value> columns[Blocks]{};
 
-//        for (int32_t blk = 0; blk < Blocks; blk++)
+//        for (size_t blk = 0; blk < Blocks; blk++)
 //        {
 //            columns[blk].data_buffer = this->values(blk);
 //            columns[blk].size = this->size();
@@ -577,11 +575,11 @@ public:
     }
 
     template <typename T>
-    VoidResult append(const StaticVector<T, Blocks>& values) noexcept
+    VoidResult append(const StaticVector<T, Blocks>& values)
     {
         auto meta = this->metadata();
 
-        for (int32_t b = 0; b < Blocks; b++)
+        for (size_t b = 0; b < Blocks; b++)
         {
             this->values(b)[meta->size()] = values[b];
         }
@@ -593,13 +591,13 @@ public:
 
 
     template <typename AccessorFn>
-    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements, bool reindex = true) noexcept
+    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements, bool reindex = true)
     {
         MEMORIA_TRY_VOID(this->insertSpace(row_at, size));
 
         for (psize_t c = 0; c < size; c++)
         {
-            for (int32_t block = 0; block < Blocks; block++)
+            for (size_t block = 0; block < Blocks; block++)
             {
                 this->value(block, c + row_at) = elements(block, c);
             }
@@ -616,27 +614,27 @@ public:
     void check() const {
     }
 
-    VoidResult clear() noexcept
+    VoidResult clear()
     {
         MEMORIA_TRY_VOID(init());
 
         if (this->allocatable().has_allocator())
         {
             auto alloc = this->allocatable().allocator();
-            int32_t empty_size = MyType::empty_size();
-            MEMORIA_TRY_VOID(alloc->resizeBlock(this, empty_size));
+            size_t empty_size = MyType::empty_size();
+            MEMORIA_TRY_VOID(alloc->resize_block(this, empty_size));
         }
 
         return VoidResult::of();
     }
 
-    VoidResult clear(int32_t start, int32_t end)
+    VoidResult clear(size_t start, size_t end)
     {
-        for (int32_t block = 0; block < Blocks; block++)
+        for (size_t block = 0; block < Blocks; block++)
         {
             auto values = this->values(block);
 
-            for (int32_t c = start; c < end; c++)
+            for (size_t c = start; c < end; c++)
             {
                 values[c] = 0;
             }
@@ -662,13 +660,13 @@ public:
 
         const IndexValue* index[Blocks];
 
-        for (int32_t b = 0; b < Blocks; b++) {
+        for (size_t b = 0; b < Blocks; b++) {
             index[b] = this->index(b);
         }
 
-        for (int32_t c = 0; c < index_size; c++)
+        for (size_t c = 0; c < index_size; c++)
         {
-            handler->value("INDEX", BlockValueProviderFactory::provider(Blocks, [&](int32_t idx) {
+            handler->value("INDEX", BlockValueProviderFactory::provider(Blocks, [&](size_t idx) {
                 return index[idx][c];
             }));
         }
@@ -681,13 +679,13 @@ public:
 
         const Value* values[Blocks];
 
-        for (int32_t b = 0; b < Blocks; b++) {
+        for (size_t b = 0; b < Blocks; b++) {
             values[b] = this->values(b);
         }
 
-        for (int32_t c = 0; c < meta->size() ; c++)
+        for (size_t c = 0; c < meta->size() ; c++)
         {
-            handler->value("TREE_ITEM", BlockValueProviderFactory::provider(false, Blocks, [&](int32_t idx) {
+            handler->value("TREE_ITEM", BlockValueProviderFactory::provider(false, Blocks, [&](size_t idx) {
                 return values[idx][c];
             }));
         }
@@ -706,11 +704,11 @@ public:
 
         const Metadata* meta = this->metadata();
 
-        FieldFactory<int32_t>::serialize(buf, meta->size());
-        FieldFactory<int32_t>::serialize(buf, meta->max_size());
-        FieldFactory<int32_t>::serialize(buf, meta->index_size());
+        FieldFactory<psize_t>::serialize(buf, meta->size());
+        FieldFactory<psize_t>::serialize(buf, meta->max_size());
+        FieldFactory<psize_t>::serialize(buf, meta->index_size());
 
-        for (int32_t b = 0; b < Blocks; b++)
+        for (size_t b = 0; b < Blocks; b++)
         {
             FieldFactory<IndexValue>::serialize(buf, this->index(b), meta->index_size());
             FieldFactory<Value>::serialize(buf, this->values(b), meta->size());
@@ -725,26 +723,26 @@ public:
 
         Metadata* meta = this->metadata();
 
-        FieldFactory<int32_t>::deserialize(buf, meta->size());
-        FieldFactory<int32_t>::deserialize(buf, meta->max_size());
-        FieldFactory<int32_t>::deserialize(buf, meta->index_size());
+        FieldFactory<psize_t>::deserialize(buf, meta->size());
+        FieldFactory<psize_t>::deserialize(buf, meta->max_size());
+        FieldFactory<psize_t>::deserialize(buf, meta->index_size());
 
-        for (int32_t b = 0; b < Blocks; b++)
+        for (size_t b = 0; b < Blocks; b++)
         {
             FieldFactory<IndexValue>::deserialize(buf, this->index(b), meta->index_size());
             FieldFactory<Value>::deserialize(buf, this->values(b), meta->size());
         }
     }
 
-    Values access(int32_t row_idx) const noexcept {
+    Values access(size_t row_idx) const  {
         Values vv{};
-        for (int32_t c = 0; c < Blocks; c++) {
+        for (size_t c = 0; c < Blocks; c++) {
             vv[c] = this->value(c, row_idx);
         }
         return vv;
     }
 
-    Value sum_for_rank(int32_t start, int32_t end, int32_t symbol, SeqOpType seq_op) const {
+    Value sum_for_rank(size_t start, size_t end, size_t symbol, SeqOpType seq_op) const {
         switch (seq_op) {
             case SeqOpType::EQ : return sum_for_rank_eq(start, end, symbol);
             case SeqOpType::NEQ: return sum_for_rank_neq(start, end, symbol);
@@ -758,14 +756,14 @@ public:
     }
 
     struct SelectResult {
-        int32_t idx;
-        int32_t size;
+        size_t idx;
+        size_t size;
         Value rank;
 
         bool is_end() const {return idx >= size;}
     };
 
-    SelectResult find_for_select_fw(int32_t start, Value rank, int32_t symbol, SeqOpType seq_op) const {
+    SelectResult find_for_select_fw(size_t start, Value rank, size_t symbol, SeqOpType seq_op) const {
         switch (seq_op) {
             case SeqOpType::EQ : return find_for_select_fw_eq(start, rank, symbol);
             case SeqOpType::NEQ: return find_for_select_fw_fn(start, rank, symbol, FindFwNEQFn());
@@ -779,7 +777,7 @@ public:
         }
     }
 
-    SelectResult find_for_select_bw(int32_t start, Value rank, int32_t symbol, SeqOpType seq_op) const {
+    SelectResult find_for_select_bw(size_t start, Value rank, size_t symbol, SeqOpType seq_op) const {
         switch (seq_op) {
             case SeqOpType::EQ : return find_for_select_bw_eq(start, rank, symbol);
             case SeqOpType::NEQ: return find_for_select_bw_fn(start, rank, symbol, FindFwNEQFn());
@@ -793,59 +791,59 @@ public:
         }
     }
 
-    Value sum_for_rank_eq(int32_t start, int32_t end, int32_t symbol) const {
+    Value sum_for_rank_eq(size_t start, size_t end, size_t symbol) const {
         return this->sum(symbol, start, end);
     }
 
-    Value sum_for_rank_neq(int32_t start, int32_t end, int32_t symbol) const
+    Value sum_for_rank_neq(size_t start, size_t end, size_t symbol) const
     {
         Value val{};
 
-        for (int32_t c = 0; c < Blocks; c++) {
+        for (size_t c = 0; c < Blocks; c++) {
             val += symbol != c ? this->sum(symbol, start, end) : 0;
         }
 
         return val;
     }
 
-    Value sum_for_rank_lt(int32_t start, int32_t end, int32_t symbol) const
+    Value sum_for_rank_lt(size_t start, size_t end, size_t symbol) const
     {
         Value val{};
 
-        for (int32_t c = 0; c < symbol; c++) {
+        for (size_t c = 0; c < symbol; c++) {
             val += this->sum(symbol, start, end);
         }
 
         return val;
     }
 
-    Value sum_for_rank_gt(int32_t start, int32_t end, int32_t symbol) const
+    Value sum_for_rank_gt(size_t start, size_t end, size_t symbol) const
     {
         Value val{};
 
-        for (int32_t c = symbol + 1; c < Blocks; c++) {
+        for (size_t c = symbol + 1; c < Blocks; c++) {
             val += this->sum(symbol, start, end);
         }
 
         return val;
     }
 
-    Value sum_for_rank_le(int32_t start, int32_t end, int32_t symbol) const
+    Value sum_for_rank_le(size_t start, size_t end, size_t symbol) const
     {
         Value val{};
 
-        for (int32_t c = 0; c <= symbol; c++) {
+        for (size_t c = 0; c <= symbol; c++) {
             val += this->sum(symbol, start, end);
         }
 
         return val;
     }
 
-    Value sum_for_rank_ge(int32_t start, int32_t end, int32_t symbol) const
+    Value sum_for_rank_ge(size_t start, size_t end, size_t symbol) const
     {
         Value val{};
 
-        for (int32_t c = symbol; c < Blocks; c++) {
+        for (size_t c = symbol; c < Blocks; c++) {
             val += this->sum(symbol, start, end);
         }
 
@@ -853,7 +851,7 @@ public:
     }
 
 
-    SelectResult find_for_select_fw_eq(int32_t start, Value rank, int32_t symbol) const
+    SelectResult find_for_select_fw_eq(size_t start, Value rank, size_t symbol) const
     {
         auto res = this->find_gt_fw(symbol, start, rank);
         return SelectResult{res.idx(), this->size(), res.prefix()};
@@ -861,7 +859,7 @@ public:
 
 
 
-    SelectResult find_for_select_fw_nlt(int32_t start, Value rank, int32_t symbol) const
+    SelectResult find_for_select_fw_nlt(size_t start, Value rank, size_t symbol) const
     {
         auto res_eq = find_for_select_fw_eq(start, rank, symbol);
         if (symbol > 0)
@@ -876,9 +874,9 @@ public:
     }
 
     struct FindFwNEQFn {
-        Value sum(const MyType& tree, int32_t idx, int32_t symbol) const {
+        Value sum(const MyType& tree, size_t idx, size_t symbol) const {
             Value tmp{};
-            for (int32_t c = 0; c < Blocks; c++) {
+            for (size_t c = 0; c < Blocks; c++) {
                 tmp += c != symbol ? tree.value(c, idx) : 0;
             }
             return tmp;
@@ -886,9 +884,9 @@ public:
     };
 
     struct FindFwLTFn {
-        Value sum(const MyType& tree, int32_t idx, int32_t symbol) const {
+        Value sum(const MyType& tree, size_t idx, size_t symbol) const {
             Value tmp{};
-            for (int32_t c = 0; c < symbol; c++) {
+            for (size_t c = 0; c < symbol; c++) {
                 tmp += tree.value(c, idx);
             }
             return tmp;
@@ -896,9 +894,9 @@ public:
     };
 
     struct FindFwLEFn {
-        Value sum(const MyType& tree, int32_t idx, int32_t symbol) const {
+        Value sum(const MyType& tree, size_t idx, size_t symbol) const {
             Value tmp{};
-            for (int32_t c = 0; c <= symbol; c++) {
+            for (size_t c = 0; c <= symbol; c++) {
                 tmp += tree.value(c, idx);
             }
             return tmp;
@@ -906,9 +904,9 @@ public:
     };
 
     struct FindFwGTFn {
-        Value sum(const MyType& tree, int32_t idx, int32_t symbol) const {
+        Value sum(const MyType& tree, size_t idx, size_t symbol) const {
             Value tmp{};
-            for (int32_t c = symbol + 1; c < Blocks; c++) {
+            for (size_t c = symbol + 1; c < Blocks; c++) {
                 tmp += tree.value(c, idx);
             }
             return tmp;
@@ -916,9 +914,9 @@ public:
     };
 
     struct FindFwGEFn {
-        Value sum(const MyType& tree, int32_t idx, int32_t symbol) const {
+        Value sum(const MyType& tree, size_t idx, size_t symbol) const {
             Value tmp{};
-            for (int32_t c = symbol; c < Blocks; c++) {
+            for (size_t c = symbol; c < Blocks; c++) {
                 tmp += tree.value(c, idx);
             }
             return tmp;
@@ -926,12 +924,12 @@ public:
     };
 
     template <typename Fn>
-    SelectResult find_for_select_fw_fn(int32_t start, Value rank, int32_t symbol, Fn&& fn) const
+    SelectResult find_for_select_fw_fn(size_t start, Value rank, size_t symbol, Fn&& fn) const
     {
         Value prefix{};
-        int32_t size = this->size();
+        size_t size = this->size();
 
-        for (int32_t c = start; c < size; c++)
+        for (size_t c = start; c < size; c++)
         {
             Value tmp = fn.sum(*this, c, symbol);
 
@@ -953,12 +951,12 @@ public:
 
 
     template <typename Fn>
-    SelectResult find_for_select_bw_fn(int32_t start, Value rank, int32_t symbol, Fn&& fn) const
+    SelectResult find_for_select_bw_fn(size_t start, Value rank, size_t symbol, Fn&& fn) const
     {
         Value prefix{};
-        int32_t size = this->size();
+        size_t size = this->size();
 
-        for (int32_t c = start; c >= 0; c--)
+        for (size_t c = start; c >= 0; c--)
         {
             Value tmp = fn.sum(*this, c, symbol);
 
@@ -973,7 +971,7 @@ public:
         return SelectResult{size, size, prefix};
     }
 
-    SelectResult find_for_select_bw_eq(int32_t start, Value rank, int32_t symbol) const
+    SelectResult find_for_select_bw_eq(size_t start, Value rank, size_t symbol) const
     {
         auto res = this->find_gt_bw(symbol, start, rank);
         return SelectResult{res.idx(), this->size(), res.prefix()};
@@ -981,7 +979,7 @@ public:
 
 
 
-    SelectResult find_for_select_bw_nlt(int32_t start, Value rank, int32_t symbol) const
+    SelectResult find_for_select_bw_nlt(size_t start, Value rank, size_t symbol) const
     {
         auto res_eq = find_for_select_bw_eq(start, rank, symbol);
         if (symbol > 0)
@@ -1011,8 +1009,8 @@ struct PackedStructTraits<PkdFQTree<Types>>
 
     using AccumType = typename PkdFQTree<Types>::Value;
 
-    static constexpr int32_t Blocks = PkdFQTree<Types>::Blocks;
-    static constexpr int32_t Indexes = PkdFQTree<Types>::Blocks;
+    static constexpr size_t Blocks = PkdFQTree<Types>::Blocks;
+    static constexpr size_t Indexes = PkdFQTree<Types>::Blocks;
 
 };
 

@@ -24,15 +24,15 @@
 
 namespace memoria {
 
-template <int32_t BitsPerSymbol_, int32_t BufSize_ = BitsPerSymbol_ == 8 ? 16 : 1>
+template <size_t BitsPerSymbol_, size_t BufSize_ = BitsPerSymbol_ == 8 ? 16 : 1>
 class SmallSymbolBuffer {
 public:
-    static constexpr int32_t BitsPerSymbol = BitsPerSymbol_;
-    static constexpr int32_t BufSize = BufSize_;
+    static constexpr size_t BitsPerSymbol = BitsPerSymbol_;
+    static constexpr size_t BufSize = BufSize_;
 private:
 
     uint64_t symbols_[BufSize];
-    int32_t size_ = 0;
+    size_t size_ = 0;
 
 
 public:
@@ -44,73 +44,73 @@ public:
         return &symbols_[0];
     }
 
-    int32_t symbol(int32_t n) const
+    size_t symbol(size_t n) const
     {
         MEMORIA_ASSERT(n, <, size_);
         return GetBits(symbols(), n, BitsPerSymbol);
     }
 
-    void set_symbol(int32_t n, int32_t symbol)
+    void set_symbol(size_t n, size_t symbol)
     {
         MEMORIA_ASSERT(n, <, size_);
         SetBits(symbols(), n, symbol, BitsPerSymbol);
     }
 
-    void set_symbols(int32_t n, int32_t symbol, int32_t nsyms)
+    void set_symbols(size_t n, size_t symbol, size_t nsyms)
     {
         MEMORIA_ASSERT(n, <, size_);
-        MEMORIA_ASSERT(nsyms, <=, (int32_t)sizeof(int32_t) * 8 / BitsPerSymbol);
+        MEMORIA_ASSERT(nsyms, <=, (size_t)sizeof(size_t) * 8 / BitsPerSymbol);
 
         return SetBits(symbols(), n, symbol, BitsPerSymbol * nsyms);
     }
 
-    static constexpr int32_t max_size() {
+    static constexpr size_t max_size() {
         return sizeof(uint64_t) * 8 / BitsPerSymbol;
     }
 
-    int32_t capacity() const
+    size_t capacity() const
     {
-        int32_t max_size0 = max_size();
+        size_t max_size0 = max_size();
         return max_size0 - size_;
     }
 
-    void resize(int32_t size)
+    void resize(size_t size)
     {
         MEMORIA_ASSERT(size, <=, max_size());
         this->size_ = size;
     }
 
-    int32_t size() const {
+    size_t size() const {
         return size_;
     }
 
-    void append(int32_t symbol)
+    void append(size_t symbol)
     {
         MEMORIA_ASSERT(size_, <, max_size());
 
-        int32_t pos = size_;
+        size_t pos = size_;
         size_ += 1;
         set_symbol(pos, symbol);
     }
 
     void dump(std::ostream& out = std::cout) const
     {
-        dumpSymbols<int32_t>(out, size_, BitsPerSymbol, [this](int32_t pos) -> int32_t {
+        dumpSymbols<size_t>(out, size_, BitsPerSymbol, [this](size_t pos) -> size_t {
             return this->symbol(pos);
         });
     }
 };
 
 
-template <int32_t BufSize_>
+template <size_t BufSize_>
 class SmallSymbolBuffer<8, BufSize_> {
 public:
-    static constexpr int32_t BitsPerSymbol = 8;
-    static constexpr int32_t BufSize = BufSize_;
+    static constexpr size_t BitsPerSymbol = 8;
+    static constexpr size_t BufSize = BufSize_;
 private:
 
     uint8_t symbols_[BufSize];
-    int32_t size_ = 0;
+    size_t size_ = 0;
 
 public:
     uint8_t* symbols() {
@@ -121,24 +121,24 @@ public:
         return &symbols_[0];
     }
 
-    int32_t symbol(int32_t n) const
+    size_t symbol(size_t n) const
     {
         MEMORIA_ASSERT(n, <, size_);
         return symbols_[n];
     }
 
-    void set_symbol(int32_t n, int32_t symbol)
+    void set_symbol(size_t n, size_t symbol)
     {
         MEMORIA_ASSERT(n, <, size_);
         symbols_[n] = symbol;
     }
 
-    void set_symbols(int32_t n, int32_t symbols, int32_t nsyms)
+    void set_symbols(size_t n, size_t symbols, size_t nsyms)
     {
         MEMORIA_ASSERT(n, <, size_);
-        MEMORIA_ASSERT(nsyms, <, (int32_t)sizeof(int32_t));
+        MEMORIA_ASSERT(nsyms, <, (size_t)sizeof(size_t));
 
-        for (int32_t c = 0; c < nsyms; c++)
+        for (size_t c = 0; c < nsyms; c++)
         {
             symbols_[c + n] = (symbols & 0xFF);
 
@@ -146,38 +146,38 @@ public:
         }
     }
 
-    static constexpr int32_t max_size() {
+    static constexpr size_t max_size() {
         return BufSize;
     }
 
-    int32_t capacity() const
+    size_t capacity() const
     {
-        int32_t max_size0 = max_size();
+        size_t max_size0 = max_size();
         return max_size0 - size_;
     }
 
-    void resize(int32_t size)
+    void resize(size_t size)
     {
         MEMORIA_ASSERT(size, <=, max_size());
         this->size_ = size;
     }
 
-    int32_t size() const {
+    size_t size() const {
         return size_;
     }
 
-    void append(int32_t symbol)
+    void append(size_t symbol)
     {
         MEMORIA_ASSERT(size_, <, max_size());
 
-        int32_t pos = size_;
+        size_t pos = size_;
         size_ += 1;
         set_symbol(pos, symbol);
     }
 
     void dump(std::ostream& out = std::cout) const
     {
-        dumpSymbols<int32_t>(out, size_, 8, [this](int32_t pos) -> int32_t {
+        dumpSymbols<size_t>(out, size_, 8, [this](size_t pos) -> size_t {
             return this->symbol(pos);
         });
     }

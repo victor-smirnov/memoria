@@ -52,10 +52,10 @@ namespace {
     struct SharedPtrAllocator {
       typedef Tp value_type;
 
-      int32_t block_size_;
-      int32_t struct_size_;
+      size_t block_size_;
+      size_t struct_size_;
 
-      SharedPtrAllocator(int32_t block_size, int32_t struct_size):
+      SharedPtrAllocator(size_t block_size, size_t struct_size):
           block_size_(block_size), struct_size_(struct_size)
       {}
 
@@ -105,7 +105,7 @@ std::enable_if_t<
     std::is_base_of<PackedAllocator, T>::value,
     PkdStructSPtr<T>
 >
-MakeSharedPackedStructByBlock(int32_t block_size, Args&&... args)
+MakeSharedPackedStructByBlock(size_t block_size, Args&&... args)
 {
     PkdStructSPtr<T> ptr = std::allocate_shared<T>(SharedPtrAllocator<T>(block_size, sizeof(T)));
 
@@ -122,9 +122,9 @@ std::enable_if_t<
     !std::is_base_of<PackedAllocator, T>::value,
     PkdStructSPtr<T>
 >
-MakeSharedPackedStructByBlock(int32_t block_size, Args&&... args)
+MakeSharedPackedStructByBlock(size_t block_size, Args&&... args)
 {
-    int32_t allocator_block_size = PackedAllocator::block_size(block_size, 1);
+    size_t allocator_block_size = PackedAllocator::block_size(block_size, 1);
 
     PackedAllocator* alloc = allocate_system_zeroed<PackedAllocator>(allocator_block_size).release();
 
@@ -133,7 +133,7 @@ MakeSharedPackedStructByBlock(int32_t block_size, Args&&... args)
         alloc->allocatable().setTopLevelAllocator();
         alloc->init(allocator_block_size, 1).get_or_throw();
 
-        T* ptr = alloc->template allocateSpace<T>(0, block_size);
+        T* ptr = alloc->template allocate_space<T>(0, block_size);
 
         ptr->init(std::forward<Args>(args)...).get_or_throw();
 

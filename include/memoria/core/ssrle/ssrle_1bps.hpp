@@ -80,7 +80,7 @@ struct SSRLERunTraits<1>: SSRLERunCommonTraits<1> {
         size_t rl_size = run_length_bitsize(run.run_length());
         size_t bitlen = HEADER_BITS + run.pattern_length() + rl_size;
 
-        return divUp(bitlen, sizeof(CodeUnitT) * 8);
+        return div_up(bitlen, sizeof(CodeUnitT) * 8);
     }
 
     static size_t popcount(uint64_t arg) noexcept {

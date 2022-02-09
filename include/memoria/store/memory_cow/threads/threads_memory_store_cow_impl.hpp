@@ -109,7 +109,7 @@ private:
     CountDownLatch<int64_t> active_snapshots_;
  
 public:
-    ThreadsMemoryStoreImpl(MaybeError& maybe_error) noexcept:
+    ThreadsMemoryStoreImpl(MaybeError& maybe_error) :
         Base(maybe_error)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
@@ -156,16 +156,16 @@ protected:
 
 public:
     
-    int64_t active_snapshots() noexcept {
+    int64_t active_snapshots()  {
         return active_snapshots_.get();
     }
 
     
-    MutexT& mutex() noexcept{
+    MutexT& mutex() {
     	return mutex_;
     }
 
-    const MutexT& mutex() const noexcept {
+    const MutexT& mutex() const  {
     	return mutex_;
     }
 
@@ -188,7 +188,7 @@ public:
     }
 
 
-    SnapshotID root_shaphot_id() const noexcept
+    SnapshotID root_shaphot_id() const
     {
         LockGuardT lock_guard(mutex_);
         return history_tree_->snapshot_id();
@@ -402,7 +402,7 @@ public:
         }
     }
 
-    U8String snapshot_description(const SnapshotID& snapshot_id) noexcept
+    U8String snapshot_description(const SnapshotID& snapshot_id)
     {
         LockGuardT lock_guard2(mutex_);
 
@@ -744,7 +744,7 @@ protected:
     }
 
     
-    virtual void free_memory(HistoryNode* node) noexcept
+    virtual void free_memory(HistoryNode* node)
     {
         if (node)
         {
@@ -835,7 +835,7 @@ protected:
                 MyType& store,
                 OutputStreamHandler& out,
                 RCBlockSet& stored_blocks
-        ) noexcept:
+        ) :
             store_(store), out_(out), stored_blocks_(stored_blocks)
         {}
 

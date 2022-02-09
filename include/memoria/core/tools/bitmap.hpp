@@ -217,7 +217,7 @@ inline int32_t PopCnt(uint32_t v) noexcept
 }
 
 template <typename T>
-static constexpr T divUp(T value, T divider) noexcept {
+static constexpr T div_up(T value, T divider) noexcept {
     return (value / divider) + (value % divider ? 1 : 0);
 }
 

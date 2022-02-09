@@ -84,7 +84,7 @@ public:
 //    }
 
     template <typename CtrT, typename NodeT>
-    VoidResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+    void treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -98,13 +98,11 @@ public:
             self.processBranchIteratorBranchNodeEntry(node, start, end);
             self.processBranchSizePrefix(node, start, end);
         }
-
-        return VoidResult::of();
     }
 
 
     template <typename CtrT, typename NodeT>
-    VoidResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+    void treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -129,8 +127,6 @@ public:
                 // throw exception ?
             }
         }
-
-        return VoidResult::of();
     }
 
 

@@ -27,7 +27,7 @@
 namespace memoria {
 
 template <
-    int32_t BitsPerSymbol_ = 8,
+    size_t BitsPerSymbol_ = 8,
     typename IndexType = PkdVDTreeT<int64_t, 1<<BitsPerSymbol_, UInt64I64Codec>,
     template <typename> class ReindexFnType = VLEReindex8Fn,
     template <typename> class SelectFnType  = Seq8SelectFn,
@@ -35,7 +35,7 @@ template <
     template <typename> class ToolsFnType   = Seq8ToolsFn
 >
 struct PackedCxMultiSequenceTypes {
-    static const int32_t BitsPerSymbol = BitsPerSymbol_;
+    static const size_t BitsPerSymbol = BitsPerSymbol_;
 
     using Index = IndexType;
 
@@ -61,7 +61,7 @@ class PackedCxMultiSequence: public PackedAllocator {
 
 public:
 
-    typedef PkdFQTreeT<int32_t, 1>                                                  LabelArray;
+    typedef PkdFQTreeT<size_t, 1>                                                  LabelArray;
     typedef typename LabelArray::Values                                         LabelArrayValues;
 
     typedef PkdFSSeqTypes<
@@ -102,49 +102,49 @@ public:
         return Base::template get<Sequence>(SYMBOLS);
     }
 
-    static int32_t empty_size()
+    static size_t empty_size()
     {
-        int32_t labels_block_size   = LabelArray::empty_size();
-        int32_t symbols_block_size  = Sequence::empty_size();
+        size_t labels_block_size   = LabelArray::empty_size();
+        size_t symbols_block_size  = Sequence::empty_size();
 
-        int32_t block_size = Base::block_size(labels_block_size + symbols_block_size, 2);
+        size_t block_size = Base::block_size(labels_block_size + symbols_block_size, 2);
 
         return block_size;
     }
 
     VoidResult init() noexcept
     {
-        int32_t block_size = MyType::empty_size();
+        size_t block_size = MyType::empty_size();
 
         MEMORIA_TRY_VOID(Base::init(block_size, 2));
 
-        MEMORIA_TRY_VOID(Base::template allocateEmpty<LabelArray>(LABELS));
+        MEMORIA_TRY_VOID(Base::template allocate_empty<LabelArray>(LABELS));
 
-        MEMORIA_TRY_VOID(Base::template allocateEmpty<Sequence>(SYMBOLS));
+        MEMORIA_TRY_VOID(Base::template allocate_empty<Sequence>(SYMBOLS));
 
         return VoidResult::of();
     }
 
-    int32_t rank(int32_t subseq_num, int32_t to, int32_t symbol) const
+    size_t rank(size_t subseq_num, size_t to, size_t symbol) const
     {
         const Sequence*     seq     = sequence();
         const LabelArray*   labels  = this->labels();
 
         MEMORIA_ASSERT(to, <=, labels->value(0, subseq_num));
 
-        int32_t seq_pefix   = labels->sum(0, subseq_num);
+        size_t seq_pefix   = labels->sum(0, subseq_num);
 
         return seq->rank(seq_pefix, seq_pefix + to, symbol);
     }
 
-    SelectResult select(int32_t subseq_num, int32_t rank, int32_t symbol) const
+    SelectResult select(size_t subseq_num, size_t rank, size_t symbol) const
     {
         const Sequence*     seq     = sequence();
         const LabelArray*   labels  = this->labels();
 
-        int32_t ctr_seq_size    = labels->value(0, subseq_num);
-        int32_t seq_prefix  = labels->sum(0, subseq_num);
-        int32_t rank_prefix = seq->rank(seq_prefix, symbol);
+        size_t ctr_seq_size    = labels->value(0, subseq_num);
+        size_t seq_prefix  = labels->sum(0, subseq_num);
+        size_t rank_prefix = seq->rank(seq_prefix, symbol);
 
         SelectResult result = seq->selectFw(symbol, rank_prefix + rank);
         if (result.local_pos() - seq_prefix < ctr_seq_size)
@@ -156,7 +156,7 @@ public:
         }
     }
 
-    VoidResult insertSubsequence(int32_t idx) noexcept
+    VoidResult insertSubsequence(size_t idx) noexcept
     {
         MEMORIA_TRY_VOID(labels()->insert(idx, LabelArrayValues()));
         return labels()->reindex();
@@ -167,12 +167,12 @@ public:
         insertSubsequence(labels()->size());
     }
 
-    VoidResult insertSymbol(int32_t subseq_num, int32_t idx, int32_t symbol) noexcept
+    VoidResult insertSymbol(size_t subseq_num, size_t idx, size_t symbol) noexcept
     {
         Sequence* seq       = sequence();
         LabelArray* labels  = this->labels();
 
-        int32_t seq_prefix  = labels->sum(0, subseq_num);
+        size_t seq_prefix  = labels->sum(0, subseq_num);
 
         MEMORIA_ASSERT_RTN(idx, <=, labels->value(0, subseq_num));
 
@@ -186,12 +186,12 @@ public:
         return seq->reindex();
     }
 
-    VoidResult removeSymbol(int32_t subseq_num, int32_t idx) noexcept
+    VoidResult removeSymbol(size_t subseq_num, size_t idx) noexcept
     {
         Sequence* seq       = sequence();
         LabelArray* labels  = this->labels();
 
-        int32_t seq_prefix  = labels->sum(0, subseq_num);
+        size_t seq_prefix  = labels->sum(0, subseq_num);
 
         MEMORIA_ASSERT_RTN(idx, <=, labels->value(0, subseq_num));
 
@@ -204,15 +204,15 @@ public:
         return seq->reindex();
     }
 
-    VoidResult appendSymbol(int32_t subseq_num, int32_t symbol) noexcept
+    VoidResult appendSymbol(size_t subseq_num, size_t symbol) noexcept
     {
         LabelArray* labels  = this->labels();
-        int32_t size        = labels->value(0, subseq_num);
+        size_t size        = labels->value(0, subseq_num);
 
         return insertSymbol(subseq_num, size, symbol);
     }
 
-    VoidResult remove(int32_t subseq_num) noexcept
+    VoidResult remove(size_t subseq_num) noexcept
     {
         LabelArray* labels  = this->labels();
         MEMORIA_ASSERT(labels->value(0, subseq_num), ==, 0);
@@ -220,27 +220,27 @@ public:
         return labels->removeSpace(subseq_num, subseq_num + 1);
     }
 
-    int32_t subseq_size(int32_t seq_num) const
+    size_t subseq_size(size_t seq_num) const
     {
         return labels()->value(0, seq_num);
     }
 
-    int32_t length(int32_t seq_num) const
+    size_t length(size_t seq_num) const
     {
         return subseq_size(seq_num);
     }
 
-    static int32_t block_size(int32_t client_area)
+    static size_t block_size(size_t client_area)
     {
         return Base::block_size(client_area, 2);
     }
 
 
     ConstSymbolAccessor
-    symbol(int32_t seq_num, int32_t idx) const
+    symbol(size_t seq_num, size_t idx) const
     {
-        int32_t seq_prefix  = labels()->sum(0, seq_num);
-        int32_t size        = labels()->value(0, seq_num);
+        size_t seq_prefix  = labels()->sum(0, seq_num);
+        size_t size        = labels()->value(0, seq_num);
 
         MEMORIA_ASSERT(idx, <, size);
 
@@ -248,10 +248,10 @@ public:
     }
 
     SymbolAccessor
-    sumbol(int32_t seq_num, int32_t idx)
+    sumbol(size_t seq_num, size_t idx)
     {
-        int32_t seq_prefix  = labels()->sum(0, seq_num);
-        int32_t size        = labels()->value(seq_num);
+        size_t seq_prefix  = labels()->sum(0, seq_num);
+        size_t size        = labels()->value(seq_num);
 
         MEMORIA_ASSERT(idx, <, size);
 
@@ -279,15 +279,15 @@ public:
 
             auto labels = this->labels();
 
-            int32_t offset = 0;
+            size_t offset = 0;
 
-            for (int32_t c = 0; c <labels->size(); c++)
+            for (size_t c = 0; c <labels->size(); c++)
             {
-                int32_t size = labels->value(0, c);
+                size_t size = labels->value(0, c);
 
                 out << "seq: " << c << " offset: " << offset << " size: " << size << std::endl;
 
-                dumpSymbols<typename Sequence::Value>(out, size, 8, [values, offset](int32_t idx) {
+                dumpSymbols<typename Sequence::Value>(out, size, 8, [values, offset](size_t idx) {
                     return values[idx + offset];
                 });
 

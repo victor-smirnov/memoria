@@ -51,7 +51,7 @@ private:
         RankWalker(int32_t symbol): symbol_(symbol) {}
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             using BranchNodeT = bt::BranchNode<NodeTypes>;
 
@@ -68,7 +68,7 @@ private:
         }
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        VoidResult treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             return VoidResult::of();
         }
@@ -79,7 +79,7 @@ private:
         DataSizesT ranks_;
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             using BranchNodeT = bt::BranchNode<NodeTypes>;
 
@@ -98,7 +98,7 @@ private:
         }
 
         template <typename NodeTypes>
-        VoidResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        VoidResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
         {
             return VoidResult::of();
         }
@@ -106,7 +106,7 @@ private:
 
 public:
 
-    Result<CtrSizeT> iter_rank(int32_t stream) const noexcept
+    Result<CtrSizeT> iter_rank(int32_t stream) const
     {
         using ResultT = Result<CtrSizeT>;
 
@@ -123,7 +123,7 @@ public:
     }
 
 
-    Result<CtrSizeT> iter_ranks() const noexcept
+    Result<CtrSizeT> iter_ranks() const
     {
         using ResultT = Result<CtrSizeT>;
 

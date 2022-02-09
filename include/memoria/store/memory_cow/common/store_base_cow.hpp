@@ -143,13 +143,13 @@ public:
             }
         }
 
-        void ref_root() noexcept {
+        void ref_root()  {
             if (root_id_.isSet()) {
                 ref_root(root_id_);
             }
         }
 
-        void ref_root(BlockID root) noexcept
+        void ref_root(BlockID root)
         {
             BlockType* root_block = detail::IDValueHolderH<BlockID>::template get_block_ptr<BlockType>(root);
             root_block->ref_block();
@@ -173,7 +173,7 @@ public:
         auto& snapshot_mutex() {return mutex_;}
         const auto& snapshot_mutex() const {return mutex_;}
 
-        void remove_child(HistoryNode* child) noexcept
+        void remove_child(HistoryNode* child)
         {
             for (size_t c = 0; c < children_.size(); c++)
             {
@@ -185,39 +185,39 @@ public:
             }
         }
 
-        void remove_from_parent() noexcept {
+        void remove_from_parent()  {
             if (parent_) {
                 parent_->remove_child(this);
             }
         }
 
-        bool is_committed() const noexcept
+        bool is_committed() const
         {
             return status_ == Status::COMMITTED;
         }
 
-        bool is_active() const noexcept
+        bool is_active() const
         {
             return status_ == Status::ACTIVE;
         }
 
-        bool is_dropped() const noexcept
+        bool is_dropped() const
         {
             return status_ == Status::DROPPED;
         }
 
-        Status status() const noexcept {
+        Status status() const  {
             return status_;
         }
 
-        const SnapshotID& snapshot_id() const noexcept {return snapshot_id_;}
+        const SnapshotID& snapshot_id() const  {return snapshot_id_;}
 
 
-        BlockID root_id() const noexcept {
+        BlockID root_id() const  {
             return root_id_;
         }
 
-        void reset_root_id() noexcept {
+        void reset_root_id()  {
             root_id_ = BlockID{};
         }
 
@@ -241,7 +241,7 @@ public:
             return to_remove;
         }
 
-        void assign_root_no_ref(NodeBaseT* new_root) noexcept {
+        void assign_root_no_ref(NodeBaseT* new_root)  {
             root_id_ = new_root->id();
         }
 
@@ -249,55 +249,55 @@ public:
             return ProfileTraits<Profile>::make_random_block_id();
         }
 
-        const auto& parent() const noexcept {return parent_;}
-        auto& parent() noexcept {return parent_;}
+        const auto& parent() const  {return parent_;}
+        auto& parent()  {return parent_;}
 
-        auto& children() noexcept {
+        auto& children()  {
             return children_;
         }
 
-        const auto& children() const noexcept {
+        const auto& children() const  {
             return children_;
         }
 
 
-        void set_status(const Status& status) noexcept {
+        void set_status(const Status& status)  {
         	status_ = status;
         }
 
 
-        void set_metadata(U8StringRef metadata) noexcept {
+        void set_metadata(U8StringRef metadata)  {
         	metadata_ = metadata;
         }
 
-        const auto& metadata() const noexcept {
+        const auto& metadata() const  {
         	HLockGuardT lock(mutex_);
         	return metadata_;
         }
 
-        void commit() noexcept {
+        void commit()  {
             status_ = Status::COMMITTED;
         }
 
-        void mark_to_clear() noexcept {
+        void mark_to_clear()  {
             status_ = Status::DROPPED;
         }
 
-        void lock_data() noexcept {
+        void lock_data()  {
         	status_ = Status::DATA_LOCKED;
         }
 
 
-        auto references() const noexcept
+        auto references() const
         {
         	return references_;
         }
 
-        auto ref() noexcept {
+        auto ref()  {
             return ++references_;
         }
 
-        auto unref() noexcept {
+        auto unref()  {
             return --references_;
         }
     };
@@ -451,23 +451,23 @@ public:
 
     virtual ~MemoryStoreBase() noexcept = default;
 
-    bool is_dump_snapshot_lifecycle() const noexcept {return dump_snapshot_lifecycle_.load();}
-    void set_dump_snapshot_lifecycle(bool do_dump) noexcept {dump_snapshot_lifecycle_.store(do_dump);}
+    bool is_dump_snapshot_lifecycle() const  {return dump_snapshot_lifecycle_.load();}
+    void set_dump_snapshot_lifecycle(bool do_dump)  {dump_snapshot_lifecycle_.store(do_dump);}
 
-    auto get_root_snapshot_uuid() const noexcept {
+    auto get_root_snapshot_uuid() const  {
         return history_tree_->snapshot_id();
     }
 
 
-    PairPtr& pair() noexcept {
+    PairPtr& pair()  {
         return pair_;
     }
 
-    const PairPtr& pair() const noexcept {
+    const PairPtr& pair() const  {
         return pair_;
     }
 
-    void check(const CheckResultConsumerFn&) noexcept {
+    void check(const CheckResultConsumerFn&)  {
         //FIXME: Implementation!
     }
 
@@ -485,7 +485,7 @@ public:
         }
     }
 
-    auto newBlockId() noexcept {
+    auto newBlockId()  {
         return detail::IDValueHolderH<BlockID>::new_id(this);
     }
 
@@ -494,11 +494,11 @@ public:
         using BlockIDValueHolder = detail::IDValueHolderT<BlockID>;
 
     public:
-        IDToMemBlockIDResolver(const BlockMap* block_map) noexcept:
+        IDToMemBlockIDResolver(const BlockMap* block_map) :
             block_map_(block_map)
         {}
 
-        virtual BlockID resolve_id(const BlockID& stored_block_id) const noexcept
+        virtual BlockID resolve_id(const BlockID& stored_block_id) const
         {
             auto ii = block_map_->find(stored_block_id);
             if (ii != block_map_->end())
@@ -1037,7 +1037,7 @@ protected:
 
 
     public:
-        MemToIDBlockIDResolver() noexcept {}
+        MemToIDBlockIDResolver()  {}
 
         virtual BlockID resolve_id(const BlockID& mem_block_id) const
         {
@@ -1204,8 +1204,8 @@ protected:
     }
 
 
-    MyType& self() noexcept {return *static_cast<MyType*>(this);}
-    const MyType& self() const noexcept {return *static_cast<const MyType*>(this);}
+    MyType& self()  {return *static_cast<MyType*>(this);}
+    const MyType& self() const  {return *static_cast<const MyType*>(this);}
 };
 
 }

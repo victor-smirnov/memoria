@@ -113,7 +113,7 @@ private:
     CountDownLatch<int64_t> active_snapshots_;
  
 public:
-    ThreadsMemoryStoreImpl(MaybeError& maybe_error) noexcept:
+    ThreadsMemoryStoreImpl(MaybeError& maybe_error) :
         Base(maybe_error)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
@@ -160,16 +160,16 @@ protected:
 
 public:
     
-    int64_t active_snapshots() noexcept {
+    int64_t active_snapshots()  {
         return active_snapshots_.get();
     }
 
     
-    MutexT& mutex() noexcept{
+    MutexT& mutex() {
     	return mutex_;
     }
 
-    const MutexT& mutex() const noexcept {
+    const MutexT& mutex() const  {
     	return mutex_;
     }
 
@@ -325,7 +325,7 @@ public:
     virtual std::vector<SnapshotID> linear_history(
             const SnapshotID& start_id,
             const SnapshotID& stop_id
-    ) noexcept
+    )
     {
         std::lock(mutex_, store_mutex_);
 
@@ -513,7 +513,7 @@ public:
         return upcast(snp_make_shared_init<SnapshotT>(master_, this->shared_from_this()));
     }
 
-    SnapshotMetadata<ApiProfileT> describe_master() const noexcept
+    SnapshotMetadata<ApiProfileT> describe_master() const
     {
     	std::lock(mutex_, master_->snapshot_mutex());
     	LockGuardT lock_guard2(mutex_, std::adopt_lock);
@@ -780,7 +780,7 @@ protected:
     }
 
     
-    virtual void free_memory(HistoryNode* node) noexcept
+    virtual void free_memory(HistoryNode* node)
     {
         if (node)
         {

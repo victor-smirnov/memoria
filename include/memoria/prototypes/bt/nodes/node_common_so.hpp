@@ -18,6 +18,11 @@
 #include <memoria/core/types.hpp>
 
 #include <memoria/core/packed/tools/packed_stateful_dispatcher.hpp>
+#include <memoria/core/packed/tools/packed_stateful_dispatcher_res.hpp>
+
+#include <memoria/core/packed/tools/packed_dispatcher.hpp>
+#include <memoria/core/packed/tools/packed_dispatcher_res.hpp>
+
 #include <memoria/core/packed/misc/packed_tuple.hpp>
 #include <memoria/core/packed/misc/packed_map.hpp>
 

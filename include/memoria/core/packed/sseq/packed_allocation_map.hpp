@@ -50,8 +50,8 @@ public:
     using GrowableIOSubstream = PackedAllocationMapView<MyType>;
     using IOSubstreamView = PackedAllocationMapView<MyType>;
 
-    static constexpr int32_t ValuesPerBranch        = 512;
-    static constexpr int32_t Indexes                = 9;
+    static constexpr size_t ValuesPerBranch        = 512;
+    static constexpr size_t Indexes                = 9;
 
 
     enum {
@@ -59,36 +59,36 @@ public:
     };
 
     class Metadata {
-        int32_t size_;
-        int32_t capacity_;
+        psize_t size_;
+        psize_t capacity_;
     public:
-        int32_t& size()                 {return size_;}
-        const int32_t& size() const     {return size_;}
+        psize_t& size()                 {return size_;}
+        const psize_t& size() const     {return size_;}
 
-        int32_t& capacity()                 {return capacity_;}
-        const int32_t& capacity() const     {return capacity_;}
+        psize_t& capacity()                 {return capacity_;}
+        const psize_t& capacity() const     {return capacity_;}
     };
 
 
 public:
     using Base::block_size;
     using Base::allocate;
-    using Base::allocateArrayBySize;
+    using Base::allocate_array_by_size;
 
     PkdAllocationMap() noexcept = default;
 
-    int32_t& size() noexcept {return metadata()->size();}
-    const int32_t& size() const noexcept {return metadata()->size();}
+    psize_t& size() noexcept {return metadata()->size();}
+    const psize_t& size() const noexcept {return metadata()->size();}
 
-    int32_t& capacity() noexcept {return metadata()->capacity();}
-    const int32_t& capacity() const noexcept {return metadata()->capacity();}
+    psize_t& capacity() noexcept {return metadata()->capacity();}
+    const psize_t& capacity() const noexcept {return metadata()->capacity();}
 
-    int32_t available_space() const noexcept {
+    size_t available_space() const noexcept {
         auto meta = this->metadata();
         return meta->capacity() - meta->size();
     }
 
-    int32_t size(int32_t level) const noexcept
+    size_t size(size_t level) const noexcept
     {
         return bitmap_level_size(size(), level);
     }
@@ -109,22 +109,22 @@ public:
         return Base::template get<Metadata>(METADATA);
     }
 
-    IndexType* index(int32_t idx_num) noexcept
+    IndexType* index(size_t idx_num) noexcept
     {
         return Base::template get<IndexType>(INDEX + idx_num);
     }
 
-    const IndexType* index(int32_t idx_num) const noexcept
+    const IndexType* index(size_t idx_num) const noexcept
     {
         return Base::template get<IndexType>(INDEX + idx_num);
     }
 
-    BitmapType* symbols(int32_t blk_num) noexcept
+    BitmapType* symbols(size_t blk_num) noexcept
     {
         return Base::template get<BitmapType>(SYMBOLS + blk_num);
     }
 
-    const BitmapType* symbols(int32_t blk_num) const noexcept
+    const BitmapType* symbols(size_t blk_num) const noexcept
     {
         return Base::template get<BitmapType>(SYMBOLS + blk_num);
     }
@@ -139,30 +139,30 @@ public:
 
     // ===================================== Allocation ================================= //
 
-    VoidResult init_default(int32_t provided_block_size) noexcept {
-        int32_t bitmap_size = find_max_bitmap_size(provided_block_size);
+    VoidResult init_default(size_t provided_block_size) noexcept {
+        size_t bitmap_size = find_max_bitmap_size(provided_block_size);
         return init_by_size(bitmap_size);
     }
 
-    VoidResult init_by_size(int32_t bitmap_size) noexcept
+    VoidResult init_by_size(size_t bitmap_size) noexcept
     {
-        int32_t bitmap_blk_size = block_size(bitmap_size);
+        size_t bitmap_blk_size = block_size(bitmap_size);
         MEMORIA_TRY_VOID(Base::init(bitmap_blk_size, 1 + Indexes * 2));
 
         MEMORIA_TRY(meta, allocate<Metadata>(METADATA));
 
-        int32_t single_bitmap_size = bitmap_size;
-        for (int32_t c = 0; c < Indexes; c++, single_bitmap_size /= 2)
+        size_t single_bitmap_size = bitmap_size;
+        for (size_t c = 0; c < Indexes; c++, single_bitmap_size /= 2)
         {
-            int32_t index_size = index_level_size(single_bitmap_size);
-            MEMORIA_TRY_VOID(allocateArrayBySize<IndexType>(INDEX + c, index_size));
+            size_t index_size = index_level_size(single_bitmap_size);
+            MEMORIA_TRY_VOID(allocate_array_by_size<IndexType>(INDEX + c, index_size));
         }
 
         single_bitmap_size = bitmap_size;
-        for (int32_t c = 0; c < Indexes; c++, single_bitmap_size /= 2)
+        for (size_t c = 0; c < Indexes; c++, single_bitmap_size /= 2)
         {
-            int32_t bitmap_uints_size = divUp(single_bitmap_size, static_cast<int32_t>(sizeof(BitmapType) * 8));
-            MEMORIA_TRY_VOID(allocateArrayBySize<BitmapType>(SYMBOLS + c, bitmap_uints_size));
+            size_t bitmap_uints_size = div_up(single_bitmap_size, static_cast<size_t>(sizeof(BitmapType) * 8));
+            MEMORIA_TRY_VOID(allocate_array_by_size<BitmapType>(SYMBOLS + c, bitmap_uints_size));
         }
 
         meta->capacity() = bitmap_size;
@@ -172,46 +172,46 @@ public:
     }
 
 
-    int32_t block_size(const MyType* other) const noexcept
+    size_t block_size(const MyType* other) const noexcept
     {
         return MyType::block_size(capacity() + other->capacity());
     }
 
-    static int32_t block_size(int32_t bitmap_size) noexcept
+    static size_t block_size(size_t bitmap_size) noexcept
     {
-        int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        size_t metadata_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
 
-        int32_t bitmaps_length = 0;
-        int32_t indexes_length = 0;
+        size_t bitmaps_length = 0;
+        size_t indexes_length = 0;
 
-        int32_t single_bitmap_size = bitmap_size;
-        for (int32_t c = 0; c < Indexes; c++, single_bitmap_size /= 2)
+        size_t single_bitmap_size = bitmap_size;
+        for (size_t c = 0; c < Indexes; c++, single_bitmap_size /= 2)
         {
-            int32_t bitmap_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(
-                    divUp(single_bitmap_size, static_cast<int32_t>(sizeof(BitmapType) * 8)) * 8
+            size_t bitmap_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+                    div_up(single_bitmap_size, static_cast<size_t>(sizeof(BitmapType) * 8)) * 8
             );
             bitmaps_length += bitmap_length;
 
-            int32_t index_size   = index_level_size(single_bitmap_size);
-            int32_t index_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexType));
+            size_t index_size   = index_level_size(single_bitmap_size);
+            size_t index_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(index_size * sizeof(IndexType));
             indexes_length += index_length;
         }
 
         return Base::block_size(metadata_length + indexes_length + bitmaps_length, 1 + Indexes * 2);
     }
 
-    static int32_t default_size(int32_t available_space) noexcept
+    static size_t default_size(size_t available_space) noexcept
     {
         return find_block_size(available_space);
     }
 
-    static int32_t find_block_size(int32_t client_area) noexcept
+    static size_t find_block_size(size_t client_area) noexcept
     {
-        int32_t max_blk_size = 0;
+        size_t max_blk_size = 0;
 
-        for (int32_t bitmap_size = 0; bitmap_size < client_area * 8; bitmap_size += ValuesPerBranch)
+        for (size_t bitmap_size = 0; bitmap_size < client_area * 8; bitmap_size += ValuesPerBranch)
         {
-            int32_t blk_size = block_size(bitmap_size);
+            size_t blk_size = block_size(bitmap_size);
             if (blk_size <= client_area) {
                 max_blk_size = blk_size;
             }
@@ -223,14 +223,14 @@ public:
         return max_blk_size;
     }
 
-    static int32_t find_max_bitmap_size(int32_t client_area) noexcept
+    static size_t find_max_bitmap_size(size_t client_area) noexcept
     {
-        int32_t max_blk_size = 0;
-        int32_t last_bitmap_size{};
+        size_t max_blk_size = 0;
+        size_t last_bitmap_size{};
 
-        for (int32_t bitmap_size = 0; bitmap_size < client_area * 8; bitmap_size += ValuesPerBranch)
+        for (size_t bitmap_size = 0; bitmap_size < client_area * 8; bitmap_size += ValuesPerBranch)
         {
-            int32_t blk_size = block_size(bitmap_size);
+            size_t blk_size = block_size(bitmap_size);
             if (blk_size <= client_area) {
                 max_blk_size = blk_size;
                 last_bitmap_size = bitmap_size;
@@ -246,7 +246,7 @@ public:
 
 public:
 
-    VoidResult enlarge(int32_t size) noexcept
+    VoidResult enlarge(size_t size) noexcept
     {
         if (size % ValuesPerBranch)
         {
@@ -257,7 +257,7 @@ public:
 
         auto meta = this->metadata();
 
-        int32_t capacity = meta->capacity();
+        size_t capacity = meta->capacity();
         if (size + meta->size() > capacity) {
             return MEMORIA_MAKE_GENERIC_ERROR(
                 "Requested size {} is too large, maximum is {}", size, capacity - meta->size()
@@ -274,16 +274,16 @@ public:
 
     void check() const
     {
-        for (int32_t ll = 0; ll < Indexes - 1; ll++)
+        for (size_t ll = 0; ll < Indexes - 1; ll++)
         {
-            int32_t ll_size = size(ll);
-            for (int32_t ii = 0; ii < ll_size; ii += 2)
+            size_t ll_size = size(ll);
+            for (size_t ii = 0; ii < ll_size; ii += 2)
             {
-                int32_t b0 = get_bit(ll, ii);
-                int32_t b1 = get_bit(ll, ii + 1);
+                size_t b0 = get_bit(ll, ii);
+                size_t b1 = get_bit(ll, ii + 1);
 
-                int32_t b_up_expect = b0 || b1;
-                int32_t b_up_actual = get_bit(ll + 1, ii / 2);
+                size_t b_up_expect = b0 || b1;
+                size_t b_up_actual = get_bit(ll + 1, ii / 2);
 
                 if (b_up_expect != b_up_actual) {
                     MEMORIA_MAKE_GENERIC_ERROR("Bitmap leyering mismatch: level: {}, idx: {}, bits: {} {} {}", ll, ii, b0, b1, b_up_actual).do_throw();
@@ -291,7 +291,7 @@ public:
             }
         }
 
-        for (int32_t ll = 0; ll < Indexes; ll++)
+        for (size_t ll = 0; ll < Indexes; ll++)
         {
             check_level_index(ll);
         }
@@ -299,22 +299,22 @@ public:
 
     VoidResult reindex(bool recompute_bitmaps = false) noexcept
     {
-        int32_t bitmap_size = this->size();
+        size_t bitmap_size = this->size();
 
-        int32_t local_bitmap_size = bitmap_size;
+        size_t local_bitmap_size = bitmap_size;
 
         if (recompute_bitmaps)
         {
             local_bitmap_size = bitmap_size;
-            for (int32_t c = 0; c < Indexes - 1; c++, local_bitmap_size /= 2)
+            for (size_t c = 0; c < Indexes - 1; c++, local_bitmap_size /= 2)
             {
                 const BitmapType* src_bitmap = this->symbols(c);
                 BitmapType* tgt_bitmap = this->symbols(c + 1);
 
-                int32_t atom_bits_size = sizeof(BitmapType) * 8;
-                int32_t bitmap_atoms_size = local_bitmap_size / atom_bits_size;
+                size_t atom_bits_size = sizeof(BitmapType) * 8;
+                size_t bitmap_atoms_size = local_bitmap_size / atom_bits_size;
 
-                for (int32_t bms = 0; bms < bitmap_atoms_size; bms += 2)
+                for (size_t bms = 0; bms < bitmap_atoms_size; bms += 2)
                 {
                     BitmapType a1 = src_bitmap[bms];
                     BitmapType a2 = src_bitmap[bms + 1];
@@ -324,7 +324,7 @@ public:
             }
         }
 
-        for (int32_t c = 0; c < Indexes; c++) //, local_bitmap_size /= 2
+        for (size_t c = 0; c < Indexes; c++) //, local_bitmap_size /= 2
         {
             MEMORIA_TRY_VOID(reindex_level(c));
         }
@@ -332,19 +332,19 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult reindex_level(int32_t level) noexcept
+    VoidResult reindex_level(size_t level) noexcept
     {
-        int32_t local_bitmap_size = this->size() >> level;
+        size_t local_bitmap_size = this->size() >> level;
 
-        int32_t index_size = index_level_size(local_bitmap_size);
+        size_t index_size = index_level_size(local_bitmap_size);
         if (index_size > 0)
         {
             IndexType* index = this->index(level);
             const BitmapType* bitmap = symbols(level);
 
-            for (int32_t bi = 0, icnt = 0; bi < local_bitmap_size; bi += ValuesPerBranch, icnt++)
+            for (size_t bi = 0, icnt = 0; bi < local_bitmap_size; bi += ValuesPerBranch, icnt++)
             {
-                int32_t limit = (bi + ValuesPerBranch <= local_bitmap_size) ? (bi + ValuesPerBranch) : local_bitmap_size;
+                size_t limit = (bi + ValuesPerBranch <= local_bitmap_size) ? (bi + ValuesPerBranch) : local_bitmap_size;
                 size_t span_size = static_cast<size_t>(limit - bi);
 
                 index[icnt] = static_cast<IndexType>(span_size - PopCount(bitmap, bi, limit));
@@ -354,23 +354,23 @@ public:
         return VoidResult::of();
     }
 
-    void check_level_index(int32_t level) const
+    void check_level_index(size_t level) const
     {
-        int32_t local_bitmap_size = this->size() >> level;
+        size_t local_bitmap_size = this->size() >> level;
 
-        int32_t index_size = index_level_size(local_bitmap_size);
+        size_t index_size = index_level_size(local_bitmap_size);
         if (index_size > 0)
         {
             const IndexType* index = this->index(level);
             const BitmapType* bitmap = symbols(level);
 
-            for (int32_t bi = 0, icnt = 0; bi < local_bitmap_size; bi += ValuesPerBranch, icnt++)
+            for (size_t bi = 0, icnt = 0; bi < local_bitmap_size; bi += ValuesPerBranch, icnt++)
             {
-                int32_t limit = (bi + ValuesPerBranch <= local_bitmap_size) ? (bi + ValuesPerBranch) : local_bitmap_size;
+                size_t limit = (bi + ValuesPerBranch <= local_bitmap_size) ? (bi + ValuesPerBranch) : local_bitmap_size;
                 size_t span_size = static_cast<size_t>(limit - bi);
 
-                int32_t expected = static_cast<IndexType>(span_size - PopCount(bitmap, bi, limit));
-                int32_t actual = index[icnt];
+                size_t expected = static_cast<IndexType>(span_size - PopCount(bitmap, bi, limit));
+                size_t actual = index[icnt];
 
                 if (expected != actual) {
                     MEMORIA_MAKE_GENERIC_ERROR("Invalid bitmap index: level: {}, expected: {}, actual: {}, [{}, {})", level, expected, actual, bi, limit).do_throw();
@@ -379,17 +379,17 @@ public:
         }
     }
 
-    VoidResult set_bits(int32_t level, int32_t idx, int32_t size) noexcept
+    VoidResult set_bits(size_t level, size_t idx, size_t size) noexcept
     {
         MEMORIA_TRY_VOID(set_bits_down(level, idx, size));
 
         size_t start = idx;
         size_t stop  = idx + size;
 
-        for (int32_t ll = level + 1; ll < Indexes; ll++)
+        for (size_t ll = level + 1; ll < Indexes; ll++)
         {
             start = start / 2;
-            stop  = divUp(stop, static_cast<size_t>(2));
+            stop  = div_up(stop, static_cast<size_t>(2));
 
             BitmapType* bitmap = this->symbols(ll);
             FillOne(bitmap, start, stop);
@@ -398,18 +398,18 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult set_bits_down(int32_t level, int32_t idx, int32_t size) noexcept
+    VoidResult set_bits_down(size_t level, size_t idx, size_t size) noexcept
     {
         size_t start = idx;
         size_t stop  = idx + size;
 
-        int32_t local_bitmap_size = this->size() >> level;
+        size_t local_bitmap_size = this->size() >> level;
 
         if (!(idx >= 0 && idx <= local_bitmap_size && (idx + size <= local_bitmap_size))) {
             return MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size);
         }
 
-        for (int32_t ll = level; ll >= 0; ll--)
+        for (size_t ll = level; ll >= 0; ll--)
         {
             BitmapType* bitmap = this->symbols(ll);
             FillOne(bitmap, start, stop);
@@ -421,25 +421,25 @@ public:
         return VoidResult::of();
     }
 
-    int32_t get_bit(int32_t level, int32_t idx) const noexcept
+    size_t get_bit(size_t level, size_t idx) const noexcept
     {
         const BitmapType* bitmap = this->symbols(level);
         return GetBit(bitmap, idx);
     }
 
 
-    VoidResult clear_bits(int32_t level, int32_t idx, int32_t size) noexcept
+    VoidResult clear_bits(size_t level, size_t idx, size_t size) noexcept
     {
         size_t start = idx;
         size_t stop  = idx + size;
 
-        int32_t local_bitmap_size = this->size() >> level;
+        size_t local_bitmap_size = this->size() >> level;
 
         if (!(idx >= 0 && idx <= local_bitmap_size && (idx + size <= local_bitmap_size))) {
             return MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size);
         }
 
-        for (int32_t ll = level; ll >= 0; ll--)
+        for (size_t ll = level; ll >= 0; ll--)
         {
             BitmapType* bitmap = this->symbols(ll);
             FillZero(bitmap, start, stop);
@@ -452,18 +452,18 @@ public:
         return reindex(false);
     }
 
-    VoidResult clear_bits_opt(int32_t level, int32_t idx, int32_t size) noexcept
+    VoidResult clear_bits_opt(size_t level, size_t idx, size_t size) noexcept
     {
         size_t start = idx;
         size_t stop  = idx + size;
 
-        int32_t local_bitmap_size = this->size() >> level;
+        size_t local_bitmap_size = this->size() >> level;
 
         if (!(idx >= 0 && idx <= local_bitmap_size && (idx + size <= local_bitmap_size))) {
             return MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size);
         }
 
-        for (int32_t ll = level; ll >= 0; ll--)
+        for (size_t ll = level; ll >= 0; ll--)
         {
             BitmapType* bitmap = this->symbols(ll);
             FillZero(bitmap, start, stop);
@@ -475,17 +475,17 @@ public:
         return VoidResult::of();
     }
 
-    int32_t sum(int32_t level) const noexcept
+    size_t sum(size_t level) const noexcept
     {
         size_t value = 0;
 
-        int32_t bitmap_size = bitmap_level_size(size(), level);
-        int32_t index_size = this->index_level_size(bitmap_size);
+        size_t bitmap_size = bitmap_level_size(size(), level);
+        size_t index_size = this->index_level_size(bitmap_size);
 
         if (MMA_LIKELY(index_size > 0))
         {
             const IndexType* idxs = this->index(level);
-            for (int32_t c = 0; c < index_size; c++) {
+            for (size_t c = 0; c < index_size; c++) {
                 value += idxs[c];
             }
         }
@@ -494,21 +494,21 @@ public:
             value = bitmap_size - PopCount(bitmap, 0, bitmap_size);
         }
 
-        return static_cast<int32_t>(value);
+        return static_cast<size_t>(value);
     }
 
 
     struct SelectResult {
-        int32_t pos;
-        int32_t bm_size;
+        size_t pos;
+        size_t bm_size;
         int64_t rank;
     };
 
 
-    SelectResult select0(int64_t rank, int32_t level) const noexcept
+    SelectResult select0(int64_t rank, size_t level) const noexcept
     {
-        int32_t bm_size  = bitmap_level_size(size(), level);
-        int32_t idx_size = index_level_size(bm_size);
+        size_t bm_size  = bitmap_level_size(size(), level);
+        size_t idx_size = index_level_size(bm_size);
 
         size_t bm_start = 0;
         int64_t sum{};
@@ -519,7 +519,7 @@ public:
         {
             const IndexType* idxs = this->index(level);
 
-            for (int32_t c = 0; c < idx_size; c++, bm_start += ValuesPerBranch)
+            for (size_t c = 0; c < idx_size; c++, bm_start += ValuesPerBranch)
             {
                 sum += idxs[c];
                 if (sum >= rank) {                    
@@ -536,25 +536,25 @@ public:
         auto result = Select0FW(bitmap, bm_start, bm_size, rank_tmp);
 
         return SelectResult{
-            static_cast<int32_t>(result.local_pos()),
+            static_cast<size_t>(result.local_pos()),
             bm_size,
             static_cast<int64_t>(result.rank()) + sum
         };
     }
 
-    int32_t rank(int32_t pos, int32_t level) const noexcept
+    size_t rank(size_t pos, size_t level) const noexcept
     {
-        int32_t block_start = (pos / ValuesPerBranch) * ValuesPerBranch;
+        size_t block_start = (pos / ValuesPerBranch) * ValuesPerBranch;
 
         const BitmapType* bitmap = symbols(level);
 
         size_t ones     = PopCount(bitmap, block_start, pos);
-        int32_t zeroes  = (pos - block_start) - static_cast<int32_t>(ones);
+        size_t zeroes  = (pos - block_start) - static_cast<size_t>(ones);
 
         if (MMA_LIKELY(block_start > 0))
         {
             const IndexType* idxs = index(level);
-            for (int32_t c  = 0; c < pos / ValuesPerBranch; c++)
+            for (size_t c  = 0; c < pos / ValuesPerBranch; c++)
             {
                 zeroes += idxs[c];
             }
@@ -564,7 +564,7 @@ public:
     }
 
 
-    auto selectFW(int64_t rank, int32_t level) const noexcept
+    auto selectFW(int64_t rank, size_t level) const noexcept
     {
         auto res = select0(rank, level);
         return memoria::SelectResult{
@@ -574,9 +574,9 @@ public:
         };
     }
 
-    memoria::SelectResult selectFW(int32_t start, int64_t rank, int32_t level) const noexcept
+    memoria::SelectResult selectFW(size_t start, int64_t rank, size_t level) const noexcept
     {
-        int32_t startrank_ = this->rank(start, level);
+        size_t startrank_ = this->rank(start, level);
         auto result = selectFW(startrank_ + rank, level);
 
         result.rank() -= startrank_;
@@ -586,50 +586,50 @@ public:
 
 
     class CountResult {
-        int32_t count_;
-        int32_t symbol_;
+        size_t count_;
+        size_t symbol_;
     public:
-        CountResult(int32_t count, int32_t symbol) noexcept:
+        CountResult(size_t count, size_t symbol) noexcept:
             count_(count), symbol_(symbol)
         {}
 
-        int32_t count() const noexcept {return count_;}
-        int32_t symbol() const noexcept {return symbol_;}
+        size_t count() const noexcept {return count_;}
+        size_t symbol() const noexcept {return symbol_;}
     };
 
-    CountResult countFW(int32_t start, int32_t level) const noexcept
+    CountResult countFW(size_t start, size_t level) const noexcept
     {
-        int32_t bm_size     = bitmap_level_size(size(), level);
-        int32_t block_end   = (start / ValuesPerBranch + 1) * ValuesPerBranch;
-        int32_t block_limit = block_end > bm_size ? bm_size : block_end;
+        size_t bm_size     = bitmap_level_size(size(), level);
+        size_t block_end   = (start / ValuesPerBranch + 1) * ValuesPerBranch;
+        size_t block_limit = block_end > bm_size ? bm_size : block_end;
 
         const BitmapType* bitmap = symbols(level);
-        int32_t zeroes = CountTrailingZeroes(bitmap, start, block_limit);
+        size_t zeroes = CountTrailingZeroes(bitmap, start, block_limit);
 
         if (zeroes < block_limit - start) {
             return CountResult{zeroes, level};
         }
         else {
-            int32_t index_size = index_level_size(bm_size);
+            size_t index_size = index_level_size(bm_size);
             const IndexType* idxs = index(level);
 
-            int32_t index_start = start / ValuesPerBranch + 1;
-            int32_t sum{};
+            size_t index_start = start / ValuesPerBranch + 1;
+            size_t sum{};
 
-            for (int32_t ii = index_start; ii < index_size; ii++)
+            for (size_t ii = index_start; ii < index_size; ii++)
             {
-                int32_t index_block_start = ii * ValuesPerBranch;
-                int32_t index_block_end = (ii + 1) * ValuesPerBranch;
-                int32_t index_block_limit = index_block_end > bm_size ? bm_size : index_block_end;
-                int32_t index_block_size  = index_block_limit - index_block_start;
+                size_t index_block_start = ii * ValuesPerBranch;
+                size_t index_block_end = (ii + 1) * ValuesPerBranch;
+                size_t index_block_limit = index_block_end > bm_size ? bm_size : index_block_end;
+                size_t index_block_size  = index_block_limit - index_block_start;
 
-                int32_t cell_value = idxs[ii];
+                size_t cell_value = idxs[ii];
 
                 if (cell_value == index_block_size) {
                     sum += cell_value;
                 }
                 else {
-                    int32_t blk_cnt = CountTrailingZeroes(bitmap, index_block_start, index_block_limit);
+                    size_t blk_cnt = CountTrailingZeroes(bitmap, index_block_start, index_block_limit);
                     sum += blk_cnt;
                     break;
                 }
@@ -639,7 +639,7 @@ public:
         }
     }
 
-    static int32_t initial_size(int32_t available_space) noexcept
+    static size_t initial_size(size_t available_space) noexcept
     {
         return find_block_size(available_space);
     }
@@ -649,15 +649,15 @@ public:
     {
         handler->startGroup("PACKED_ALLOCATION_MAP");
 
-        int32_t bm_size = this->size();
+        size_t bm_size = this->size();
         handler->value("SIZE", &bm_size);
 
         handler->startGroup("BITMAPS", bm_size);
 
-        for (int32_t ll = 0; ll < Indexes; ll++)
+        for (size_t ll = 0; ll < Indexes; ll++)
         {
-            int32_t bm_level_size  = bitmap_level_size(bm_size, ll);
-            int32_t idx_level_size = index_level_size(bm_level_size);
+            size_t bm_level_size  = bitmap_level_size(bm_size, ll);
+            size_t idx_level_size = index_level_size(bm_level_size);
 
             if (idx_level_size > 0)
             {
@@ -679,20 +679,20 @@ public:
 
         const Metadata* meta = this->metadata();
 
-        int32_t bm_size = meta->size();
-        FieldFactory<int32_t>::serialize(buf, bm_size);
+        psize_t bm_size = meta->size();
+        FieldFactory<psize_t>::serialize(buf, bm_size);
 
-        for (int32_t ll = 0; ll < Indexes; ll++)
+        for (size_t ll = 0; ll < Indexes; ll++)
         {
-            int32_t bm_level_size  = bitmap_level_size(bm_size, ll);
-            int32_t idx_level_size = index_level_size(bm_level_size);
+            size_t bm_level_size  = bitmap_level_size(bm_size, ll);
+            size_t idx_level_size = index_level_size(bm_level_size);
 
             if (idx_level_size > 0)
             {
                 FieldFactory<IndexType>::serialize(buf, index(ll), idx_level_size);
             }
 
-            int32_t bm_atoms = divUp(bm_level_size, static_cast<int32_t>(sizeof(BitmapType) * 8));
+            size_t bm_atoms = div_up(bm_level_size, static_cast<size_t>(sizeof(BitmapType) * 8));
             FieldFactory<BitmapType>::serialize(buf, symbols(ll), bm_atoms);
         }
     }
@@ -704,34 +704,34 @@ public:
 
         Metadata* meta = this->metadata();
 
-        FieldFactory<int32_t>::deserialize(buf, meta->size());
-        int32_t bm_size = meta->size();
+        FieldFactory<psize_t>::deserialize(buf, meta->size());
+        size_t bm_size = meta->size();
 
-        for (int32_t ll = 0; ll < Indexes; ll++)
+        for (size_t ll = 0; ll < Indexes; ll++)
         {
-            int32_t bm_level_size  = bitmap_level_size(bm_size, ll);
-            int32_t idx_level_size = index_level_size(bm_level_size);
+            size_t bm_level_size  = bitmap_level_size(bm_size, ll);
+            size_t idx_level_size = index_level_size(bm_level_size);
 
             if (idx_level_size > 0)
             {
                 FieldFactory<IndexType>::deserialize(buf, index(ll), idx_level_size);
             }
 
-            int32_t bm_atoms = divUp(bm_level_size, static_cast<int32_t>(sizeof(BitmapType) * 8));
+            size_t bm_atoms = div_up(bm_level_size, static_cast<size_t>(sizeof(BitmapType) * 8));
             FieldFactory<BitmapType>::deserialize(buf, symbols(ll), bm_atoms);
         }
     }
 
 
-    VoidResult scan_unallocated(int32_t level, const std::function<BoolResult (int32_t, int32_t)>& fn) const noexcept
+    VoidResult scan_unallocated(size_t level, const std::function<BoolResult (size_t, size_t)>& fn) const noexcept
     {
-        int32_t idx = 0;
+        size_t idx = 0;
         while (true)
         {
             memoria::SelectResult sel_res = selectFW(idx, 1, level);
             if (sel_res.is_found())
             {
-                int32_t l_pos = sel_res.local_pos() >> level;
+                size_t l_pos = sel_res.local_pos() >> level;
                 CountResult cnt_res = countFW(l_pos, level);
 
                 MEMORIA_TRY(cont, fn(l_pos, cnt_res.count()));
@@ -756,9 +756,9 @@ public:
     BoolResult populate_allocation_pool(int64_t base, AllocationPool& pool) noexcept
     {
         bool updated = false;
-        for (int32_t level = Indexes - 1; level >= 0; level--)
+        for (size_t level = Indexes - 1; level >= 0; level--)
         {
-            VoidResult res = scan_unallocated(level, [&](int32_t pos, int32_t size) -> BoolResult {
+            VoidResult res = scan_unallocated(level, [&](size_t pos, size_t size) -> BoolResult {
                 if (pool.add(base + (pos << level), size << level, level)) {
                     updated = true;
                     MEMORIA_TRY_VOID(set_bits(level, pos, size));
@@ -784,18 +784,18 @@ public:
     }
 
     template <typename Fn>
-    BoolResult compare_with(const PkdAllocationMap* other, int32_t my_start, int32_t other_start, int32_t size, Fn&& fn) const noexcept
+    BoolResult compare_with(const PkdAllocationMap* other, size_t my_start, size_t other_start, size_t size, Fn&& fn) const noexcept
     {
-        for (int32_t ll = 0; ll < Indexes; ll++)
+        for (size_t ll = 0; ll < Indexes; ll++)
         {
-            int32_t ll_size = size >> ll;
-            int32_t my_ll_start = my_start >> ll;
-            int32_t other_ll_start = other_start >> ll;
+            size_t ll_size = size >> ll;
+            size_t my_ll_start = my_start >> ll;
+            size_t other_ll_start = other_start >> ll;
 
-            for (int32_t ii = 0; ii < ll_size ; ii++)
+            for (size_t ii = 0; ii < ll_size ; ii++)
             {
-                int32_t my_bit = this->get_bit(ll, ii + my_ll_start);
-                int32_t other_bit = other->get_bit(ll, ii + other_ll_start);
+                size_t my_bit = this->get_bit(ll, ii + my_ll_start);
+                size_t other_bit = other->get_bit(ll, ii + other_ll_start);
 
                 if (my_bit != other_bit)
                 {
@@ -812,11 +812,11 @@ public:
 
 private:
 
-    constexpr static int32_t index_level_size(int32_t bitmap_size) noexcept {
-        return bitmap_size > ValuesPerBranch ? divUp(bitmap_size, ValuesPerBranch) : 0;
+    constexpr static size_t index_level_size(size_t bitmap_size) noexcept {
+        return bitmap_size > ValuesPerBranch ? div_up(bitmap_size, ValuesPerBranch) : 0;
     }
 
-    constexpr static int32_t bitmap_level_size(int32_t l0_bitmap_size, int32_t level) noexcept {
+    constexpr static size_t bitmap_level_size(size_t l0_bitmap_size, size_t level) noexcept {
         return l0_bitmap_size >> level;
     }
 
@@ -841,19 +841,19 @@ private:
     }
 
 public:
-    void rebuild_bitmaps(int32_t level_from) noexcept
+    void rebuild_bitmaps(size_t level_from) noexcept
     {
-        int32_t bitmap_size = this->size();
-        int32_t local_bitmap_size = bitmap_level_size(bitmap_size, level_from);
-        for (int32_t c = level_from; c < Indexes - 1; c++, local_bitmap_size /= 2)
+        size_t bitmap_size = this->size();
+        size_t local_bitmap_size = bitmap_level_size(bitmap_size, level_from);
+        for (size_t c = level_from; c < Indexes - 1; c++, local_bitmap_size /= 2)
         {
             const BitmapType* src_bitmap = this->symbols(c);
             BitmapType* tgt_bitmap = this->symbols(c + 1);
 
-            int32_t atom_bits_size = sizeof(BitmapType) * 8;
-            int32_t bitmap_atoms_size = local_bitmap_size / atom_bits_size;
+            size_t atom_bits_size = sizeof(BitmapType) * 8;
+            size_t bitmap_atoms_size = local_bitmap_size / atom_bits_size;
 
-            for (int32_t bms = 0; bms < bitmap_atoms_size; bms += 2)
+            for (size_t bms = 0; bms < bitmap_atoms_size; bms += 2)
             {
                 BitmapType a1 = src_bitmap[bms];
                 BitmapType a2 = src_bitmap[bms + 1];
@@ -878,7 +878,7 @@ struct PackedStructTraits<PkdAllocationMap<Types>> {
 
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::FIXED;
     static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
-    static constexpr int32_t Indexes = PkdAllocationMap<Types>::Indexes;
+    static constexpr size_t Indexes = PkdAllocationMap<Types>::Indexes;
 };
 
 

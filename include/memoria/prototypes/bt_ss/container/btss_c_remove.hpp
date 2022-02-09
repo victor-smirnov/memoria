@@ -60,7 +60,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
         int32_t new_idx;
     };
 
-    RemoveEntryResult ctr_remove_entry(TreePathT& path, int32_t idx) noexcept
+    RemoveEntryResult ctr_remove_entry(TreePathT& path, int32_t idx)
     {
         auto& self = this->self();
 

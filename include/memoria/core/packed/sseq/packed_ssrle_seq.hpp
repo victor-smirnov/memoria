@@ -139,10 +139,10 @@ public:
 
 
     static constexpr size_t number_of_indexes(size_t capacity) {
-        return capacity <= BytesPerBlock ? 0 : divUp(capacity, BytesPerBlock);
+        return capacity <= BytesPerBlock ? 0 : div_up(capacity, BytesPerBlock);
     }
 
-    static constexpr size_t divUp(size_t value, size_t divisor) {
+    static constexpr size_t div_up(size_t value, size_t divisor) {
         return (value / divisor) + ((value % divisor) ? 1 : 0);
     }
 
@@ -237,11 +237,11 @@ public:
         return block_size(this->symbols_block_size() + other->symbols_block_size());
     }
 
-    static size_t block_size(int32_t symbols_block_capacity)
+    static size_t block_size(size_t symbols_block_capacity)
     {
-        size_t metadata_length     = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        size_t metadata_length     = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
 
-        size_t symbols_block_capacity_aligned = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+        size_t symbols_block_capacity_aligned = PackedAllocatable::round_up_bytes_to_alignment_blocks(
                     symbols_block_capacity
         );
 
@@ -279,16 +279,16 @@ public:
         meta->size() = SeqSizeT{};
         meta->code_units() = 0;
 
-        Base::setBlockType(SIZE_INDEX, PackedBlockType::ALLOCATABLE);
-        Base::setBlockType(SUM_INDEX,  PackedBlockType::ALLOCATABLE);
-        Base::setBlockType(SYMBOLS, PackedBlockType::RAW_MEMORY);
+        Base::set_block_type(SIZE_INDEX, PackedBlockType::ALLOCATABLE);
+        Base::set_block_type(SUM_INDEX,  PackedBlockType::ALLOCATABLE);
+        Base::set_block_type(SYMBOLS, PackedBlockType::RAW_MEMORY);
 
         return VoidResult::of();
     }
 
     VoidResult clear()
     {
-        MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, 0));
+        MEMORIA_TRY_VOID(Base::resize_block(SYMBOLS, 0));
 
         MEMORIA_TRY_VOID(removeIndex());
 
@@ -321,7 +321,7 @@ public:
 
     static size_t empty_size()
     {
-        size_t metadata_length     = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        size_t metadata_length     = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
         size_t size_index_length   = 0;
         size_t sum_index_length    = 0;
         size_t symbols_block_capacity = 0;
@@ -349,17 +349,17 @@ public:
     VoidResult createIndex(size_t index_size)
     {
         size_t size_index_block_size = SizeIndex::block_size(index_size);
-        MEMORIA_TRY_VOID(Base::resizeBlock(SIZE_INDEX, size_index_block_size));
+        MEMORIA_TRY_VOID(Base::resize_block(SIZE_INDEX, size_index_block_size));
 
         size_t sum_index_block_size = SumIndex::block_size(index_size);
-        MEMORIA_TRY_VOID(Base::resizeBlock(SUM_INDEX, sum_index_block_size));
+        MEMORIA_TRY_VOID(Base::resize_block(SUM_INDEX, sum_index_block_size));
 
         auto size_index = this->size_index();
-        size_index->allocatable().setAllocatorOffset(this);
+        size_index->allocatable().set_allocator_offset(this);
         MEMORIA_TRY_VOID(size_index->init(index_size));
 
         auto sum_index = this->sum_index();
-        sum_index->allocatable().setAllocatorOffset(this);
+        sum_index->allocatable().set_allocator_offset(this);
         MEMORIA_TRY_VOID(sum_index->init(index_size));
 
         return VoidResult::of();
@@ -397,9 +397,9 @@ public:
         }
     }
 
-    VoidResult ensure_capacity(int32_t capacity)
+    VoidResult ensure_capacity(size_t capacity)
     {
-        int32_t current_capacity = this->symbols_block_capacity();
+        size_t current_capacity = this->symbols_block_capacity();
 
         if (current_capacity < capacity)
         {
@@ -409,17 +409,17 @@ public:
         return VoidResult::of();
     }
 
-    bool has_capacity(int32_t required_capacity) const
+    bool has_capacity(size_t required_capacity) const
     {
-        int32_t current_capacity = this->symbols_block_capacity();
+        size_t current_capacity = this->symbols_block_capacity();
         return current_capacity >= required_capacity;
     }
 
 
-    VoidResult enlargeData(int32_t length)
+    VoidResult enlargeData(size_t length)
     {
-        int32_t new_size = this->element_size(SYMBOLS) + length;
-        MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, new_size));
+        size_t new_size = this->element_size(SYMBOLS) + length;
+        MEMORIA_TRY_VOID(Base::resize_block(SYMBOLS, new_size));
         return VoidResult::of();
     }
 
@@ -472,10 +472,10 @@ private:
         if (code_units > syms_size)
         {
             size_t bs = code_units * sizeof(CodeUnitT);
-            MEMORIA_TRY(can_alocate, try_allocation(SYMBOLS, bs));
+            bool can_alocate = try_allocation(SYMBOLS, bs);
             if (can_alocate)
             {
-                MEMORIA_TRY_VOID(resizeBlock(SYMBOLS, bs));
+                MEMORIA_TRY_VOID(resize_block(SYMBOLS, bs));
             }
             else {
                 size_t new_syms_size = syms_size > 0 ? syms_size : 4;
@@ -560,7 +560,7 @@ public:
 
             size_t new_code_units = RunTraits::compute_size(left, 0);
 
-            MEMORIA_TRY_VOID(resizeBlock(SYMBOLS, new_code_units * sizeof(CodeUnitT)));
+            MEMORIA_TRY_VOID(resize_block(SYMBOLS, new_code_units * sizeof(CodeUnitT)));
 
             Span<CodeUnitT> atoms = symbols();
             RunTraits::write_segments_to(left, atoms, 0);
@@ -624,7 +624,7 @@ public:
             compactify_runs(runs_res);
 
             size_t new_code_units = RunTraits::compute_size(runs_res, 0);
-            MEMORIA_TRY_VOID(resizeBlock(SYMBOLS, new_code_units * sizeof(CodeUnitT)));
+            MEMORIA_TRY_VOID(resize_block(SYMBOLS, new_code_units * sizeof(CodeUnitT)));
 
             Span<CodeUnitT> atoms = symbols();
             RunTraits::write_segments_to(runs_res, atoms, 0);
@@ -647,8 +647,8 @@ public:
 
         size_t new_code_units = RunTraits::compute_size(syms, 0);
 
-        auto new_block_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(new_code_units * sizeof(CodeUnitT));
-        MEMORIA_TRY_VOID(this->resizeBlock(SYMBOLS, new_block_size));
+        auto new_block_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(new_code_units * sizeof(CodeUnitT));
+        MEMORIA_TRY_VOID(this->resize_block(SYMBOLS, new_block_size));
 
         Span<CodeUnitT> atoms = symbols();
         RunTraits::write_segments_to(syms, atoms, 0);
@@ -685,7 +685,7 @@ public:
             std::vector<SymbolsRunT> right_runs = this->iterator(location.unit_idx + adjustment).as_vector();
 
             size_t left_code_units = RunTraits::compute_size(result.left.span(), location.unit_idx);
-            MEMORIA_TRY_VOID(this->resizeBlock(SYMBOLS, left_code_units * sizeof(CodeUnitT)));
+            MEMORIA_TRY_VOID(this->resize_block(SYMBOLS, left_code_units * sizeof(CodeUnitT)));
 
             Span<CodeUnitT> left_syms = symbols();
             RunTraits::write_segments_to(result.left.span(), left_syms, location.unit_idx);
@@ -694,7 +694,7 @@ public:
 
             auto right_block_size = MyType::block_size(right_atoms_size * sizeof(CodeUnitT));
             MEMORIA_TRY_VOID(other->init_bs(right_block_size));
-            MEMORIA_TRY_VOID(other->resizeBlock(SYMBOLS, right_atoms_size * sizeof(CodeUnitT)));
+            MEMORIA_TRY_VOID(other->resize_block(SYMBOLS, right_atoms_size * sizeof(CodeUnitT)));
 
             Span<CodeUnitT> right_syms = other->symbols();
             size_t right_code_units = RunTraits::write_segments_to(result.right.span(), right_runs, right_syms);
@@ -727,7 +727,7 @@ public:
         size_t new_code_units = RunTraits::compute_size(syms, 0);
 
         auto new_block_size = new_code_units * sizeof(CodeUnitT);
-        MEMORIA_TRY_VOID(other->resizeBlock(SYMBOLS, new_block_size));
+        MEMORIA_TRY_VOID(other->resize_block(SYMBOLS, new_block_size));
 
         Span<CodeUnitT> atoms = other->symbols();
         RunTraits::write_segments_to(syms, atoms, 0);
@@ -874,8 +874,8 @@ private:
         FindResult index_fn(const SumIndex* index, SeqSizeT rank, SymbolT symbol) const
         {
             SeqSizeT sum{};
-            int32_t size = index->size();
-            int32_t c;
+            size_t size = index->size();
+            size_t c;
 
             for (c = 0; c < size; c++) {
                 SeqSizeT value = self().sum(index, c, symbol);
@@ -894,9 +894,9 @@ private:
     };
 
     struct SelectFwLtFn: SelectFwFnBase<SelectFwLtFn> {
-        SeqSizeT sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
+        SeqSizeT sum(const SumIndex* index, size_t idx, size_t symbol) const {
             SeqSizeT sum{};
-            for (int32_t c = 0; c < symbol; c++) {
+            for (size_t c = 0; c < symbol; c++) {
                 sum += index->value(c, idx);
             }
             return sum;
@@ -912,9 +912,9 @@ private:
     };
 
     struct SelectFwLeFn: SelectFwFnBase<SelectFwLeFn> {
-        SeqSizeT sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
+        SeqSizeT sum(const SumIndex* index, size_t idx, size_t symbol) const {
             SeqSizeT sum{};
-            for (int32_t c = 0; c <= symbol; c++) {
+            for (size_t c = 0; c <= symbol; c++) {
                 sum += index->value(c, idx);
             }
             return sum;
@@ -930,9 +930,9 @@ private:
     };
 
     struct SelectFwGtFn: SelectFwFnBase<SelectFwGtFn> {
-        SeqSizeT sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
+        SeqSizeT sum(const SumIndex* index, size_t idx, size_t symbol) const {
             SeqSizeT sum{};
-            for (int32_t c = symbol + 1; c < AlphabetSize; c++) {
+            for (size_t c = symbol + 1; c < AlphabetSize; c++) {
                 sum += index->value(c, idx);
             }
             return sum;
@@ -948,9 +948,9 @@ private:
     };
 
     struct SelectFwGeFn: SelectFwFnBase<SelectFwGeFn> {
-        SeqSizeT sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
+        SeqSizeT sum(const SumIndex* index, size_t idx, size_t symbol) const {
             SeqSizeT sum{};
-            for (int32_t c = symbol; c < AlphabetSize; c++) {
+            for (size_t c = symbol; c < AlphabetSize; c++) {
                 sum += index->value(c, idx);
             }
             return sum;
@@ -966,9 +966,9 @@ private:
     };
 
     struct SelectFwNeqFn: SelectFwFnBase<SelectFwNeqFn> {
-        SeqSizeT sum(const SumIndex* index, int32_t idx, int32_t symbol) const {
+        SeqSizeT sum(const SumIndex* index, size_t idx, size_t symbol) const {
             SeqSizeT sum{};
-            for (int32_t c = 0; c < AlphabetSize; c++) {
+            for (size_t c = 0; c < AlphabetSize; c++) {
                 sum += c != symbol ? index->value(c, idx) : SeqSizeT{0};
             }
             return sum;
@@ -1045,7 +1045,7 @@ private:
 
 
     struct RankEqFn {
-        SumValueT sum_fn(const SumIndex* index, int32_t idx, SymbolT symbol) const {
+        SumValueT sum_fn(const SumIndex* index, size_t idx, SymbolT symbol) const {
             return index->sum(symbol, idx);
         }
 
@@ -1065,10 +1065,10 @@ private:
 
 
     struct RankLtFn {
-        SumValueT sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
+        SumValueT sum_fn(const SumIndex* index, size_t idx, size_t symbol) const
         {
             SumValueT sum{};
-            for (int32_t c = 0; c < symbol; c++) {
+            for (size_t c = 0; c < symbol; c++) {
                 sum += index->sum(c, idx);
             }
             return sum;
@@ -1088,10 +1088,10 @@ private:
     };
 
     struct RankLeFn {
-        SumValueT sum_fn(const SumIndex* index, int32_t idx, SymbolT symbol) const
+        SumValueT sum_fn(const SumIndex* index, size_t idx, SymbolT symbol) const
         {
             SumValueT sum{};
-            for (int32_t c = 0; c <= symbol; c++) {
+            for (size_t c = 0; c <= symbol; c++) {
                 sum += index->sum(c, idx);
             }
             return sum;
@@ -1111,10 +1111,10 @@ private:
     };
 
     struct RankGtFn {
-        SumValueT sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
+        SumValueT sum_fn(const SumIndex* index, size_t idx, size_t symbol) const
         {
             SumValueT sum{};
-            for (int32_t c = symbol + 1; c < AlphabetSize; c++) {
+            for (size_t c = symbol + 1; c < AlphabetSize; c++) {
                 sum += index->sum(c, idx);
             }
             return sum;
@@ -1134,10 +1134,10 @@ private:
     };
 
     struct RankGeFn {
-        SumValueT sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
+        SumValueT sum_fn(const SumIndex* index, size_t idx, size_t symbol) const
         {
             SumValueT sum{};
-            for (int32_t c = symbol; c < AlphabetSize; c++) {
+            for (size_t c = symbol; c < AlphabetSize; c++) {
                 sum += index->sum(c, idx);
             }
             return sum;
@@ -1157,10 +1157,10 @@ private:
     };
 
     struct RankNeqFn {
-        SumValueT sum_fn(const SumIndex* index, int32_t idx, int32_t symbol) const
+        SumValueT sum_fn(const SumIndex* index, size_t idx, size_t symbol) const
         {
             SumValueT sum{};
-            for (int32_t c = 0; c < AlphabetSize; c++) {
+            for (size_t c = 0; c < AlphabetSize; c++) {
                 sum += c != symbol ? index->sum(c, idx) : SeqSizeT{0};
             }
             return sum;
@@ -2113,7 +2113,7 @@ struct PackedStructTraits<PkdSSRLESeq<Types>> {
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
-    static constexpr int32_t Indexes = PkdSSRLESeq<Types>::AlphabetSize;
+    static constexpr size_t Indexes = PkdSSRLESeq<Types>::AlphabetSize;
 };
 
 

@@ -95,7 +95,7 @@ public:
             MaybeError& maybe_error,
             SharedPtr<Store> store,
             MDB_env* mdb_env
-    ) noexcept:
+    ):
         store_(store),
         mdb_env_(mdb_env),
         transaction_(), system_db_(), data_db_()
@@ -109,7 +109,7 @@ public:
         return metadata_;
     }
 
-    virtual ObjectPools& object_pools() const noexcept {
+    virtual ObjectPools& object_pools() const {
         return object_pools_;
     }
 
@@ -458,7 +458,7 @@ protected:
         return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfileT>>(std::move(ctr_ref));
     }
 
-    void set_superblock(Superblock* superblock) noexcept {
+    void set_superblock(Superblock* superblock) {
         this->superblock_ = superblock;
     }
 

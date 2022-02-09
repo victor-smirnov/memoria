@@ -31,7 +31,7 @@ class PackedEmptyStruct {
 
 public:
     static const uint32_t VERSION = 1;
-    static constexpr int32_t Indexes = 0;
+    static constexpr size_t Indexes = 0;
     static constexpr PkdSearchType KeySearchType = SearchType_;
 
 
@@ -43,12 +43,12 @@ public:
 
     using AccumValue = Value;
 
-    static constexpr int32_t Blocks = Indexes;
+    static constexpr size_t Blocks = Indexes;
 
     using Values = core::StaticVector<Value, Blocks>;
 
     using IndexValue = Value;
-    using SizesT = core::StaticVector<int32_t, Blocks>;
+    using SizesT = core::StaticVector<size_t, Blocks>;
     using ReadState = SizesT;
 
     using ExtData = DTTTypeDimensionsTuple<DataType>;
@@ -59,54 +59,54 @@ private:
 public:
     PackedEmptyStruct() = default;
 
-    Value access(int32_t column, int32_t row) const noexcept {
+    Value access(size_t column, size_t row) const noexcept {
         return Value{};
     }
 
-    int32_t size() const noexcept {return 0;}
+    size_t size() const noexcept {return 0;}
 
-    int32_t block_size() const noexcept
+    size_t block_size() const noexcept
     {
         return sizeof(MyType);
     }
 
-    int32_t block_size(const MyType* other) const noexcept
+    size_t block_size_for(const MyType* other) const noexcept
     {
         return block_size();
     }
 
-    static constexpr int32_t block_size(int32_t array_size) noexcept
+    static constexpr size_t block_size(size_t array_size) noexcept
     {
         return sizeof(MyType);
     }
 
-    static constexpr int32_t packed_block_size(int32_t array_size) noexcept
+    static constexpr size_t packed_block_size(size_t array_size) noexcept
     {
         return sizeof(MyType);
     }
 
-    static int32_t elements_for(int32_t block_size) noexcept
+    static size_t elements_for(size_t block_size) noexcept
     {
         size_t bsize = block_size;
 
-        return bsize >= sizeof(MyType) ? std::numeric_limits<int32_t>::max() : 0;
+        return bsize >= sizeof(MyType) ? std::numeric_limits<size_t>::max() : 0;
     }
 
 
-    VoidResult init(int32_t block_size) noexcept {return VoidResult::of();}
+    VoidResult init(size_t block_size) noexcept {return VoidResult::of();}
 
     VoidResult init(const SizesT& capacities) noexcept {return VoidResult::of();}
 
-    static constexpr int32_t default_size(int32_t available_space) noexcept
+    static constexpr size_t default_size(size_t available_space) noexcept
     {
         return empty_size();
     }
 
-    VoidResult init_default(int32_t block_size) noexcept {
+    VoidResult init_default(size_t block_size) noexcept {
         return init();
     }
 
-    static constexpr int32_t empty_size() noexcept
+    static constexpr size_t empty_size() noexcept
     {
         return sizeof(MyType);
     }
@@ -121,12 +121,12 @@ public:
     VoidResult reindex() noexcept {return VoidResult::of();}
 
 
-    VoidResult remove(int32_t start, int32_t end) noexcept
+    VoidResult remove(size_t start, size_t end) noexcept
     {
         return VoidResult::of();
     }
 
-    VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept {
+    VoidResult removeSpace(size_t room_start, size_t room_end) noexcept {
         return remove(room_start, room_end);
     }
 
@@ -138,7 +138,7 @@ public:
     }
 
 
-    VoidResult splitTo(MyType* other, int32_t idx) noexcept
+    VoidResult splitTo(MyType* other, size_t idx) noexcept
     {
         return VoidResult::of();
     }
@@ -180,8 +180,8 @@ struct PackedStructTraits<PackedEmptyStruct<T, S>>
 
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::FIXED;
     static constexpr PkdSearchType KeySearchType = S;
-    static constexpr int32_t Blocks = PackedEmptyStruct<T, S>::Blocks;
-    static constexpr int32_t Indexes = PackedEmptyStruct<T, S>::Indexes;
+    static constexpr size_t Blocks = PackedEmptyStruct<T, S>::Blocks;
+    static constexpr size_t Indexes = PackedEmptyStruct<T, S>::Indexes;
 };
 
 }

@@ -103,19 +103,19 @@ public:
         MyType& mgr_;
         const TreeNodePtr& block_;
 
-        Remover(MyType& mgr, const TreeNodePtr& block) noexcept:
+        Remover(MyType& mgr, const TreeNodePtr& block) :
             mgr_(mgr), block_(block)
         {}
 
-        ~Remover() noexcept {
+        ~Remover()  {
             mgr_.remove(block_);
         }
     };
 
 
-    BlockUpdateManager(CtrT& ctr) noexcept: ctr_(ctr) {}
+    BlockUpdateManager(CtrT& ctr) : ctr_(ctr) {}
 
-    ~BlockUpdateManager() noexcept
+    ~BlockUpdateManager()
     {
         for (int32_t c = 0; c < blocks_.getSize(); c++)
         {
@@ -176,7 +176,7 @@ public:
         }
     }
 
-    void checkpoint(const TreeNodePtr& node) noexcept
+    void checkpoint(const TreeNodePtr& node)
     {
         for (int32_t c = 0; c < blocks_.getSize(); c++)
         {
@@ -243,50 +243,50 @@ class BTreeIteratorPrefixCache {
 
 public:
 
-    void reset() noexcept {
+    void reset()  {
         prefix_ = IteratorPrefix();
         leaf_prefix_ = IteratorPrefix();
         size_prefix_ = SizePrefix();
     }
 
-    const SizePrefix& size_prefix() const noexcept
+    const SizePrefix& size_prefix() const
     {
         return size_prefix_;
     }
 
-    SizePrefix& size_prefix() noexcept
+    SizePrefix& size_prefix()
     {
         return size_prefix_;
     }
 
-    const IteratorPrefix& prefixes() const noexcept
+    const IteratorPrefix& prefixes() const
     {
         return prefix_;
     }
 
-    IteratorPrefix& prefixes() noexcept
+    IteratorPrefix& prefixes()
     {
         return prefix_;
     }
 
-    const IteratorPrefix& leaf_prefixes() const noexcept
+    const IteratorPrefix& leaf_prefixes() const
     {
         return leaf_prefix_;
     }
 
-    IteratorPrefix& leaf_prefixes() noexcept
+    IteratorPrefix& leaf_prefixes()
     {
         return leaf_prefix_;
     }
 
-    void initState() noexcept {}
+    void initState()  {}
 
-    bool operator==(const MyType& other) const noexcept
+    bool operator==(const MyType& other) const
     {
         return prefix_ == other.prefix_ && leaf_prefix_ == other.leaf_prefix_ && size_prefix_ == other.size_prefix_;
     }
 
-    bool operator!=(const MyType& other) const noexcept
+    bool operator!=(const MyType& other) const
     {
         return prefix_ != other.prefix_ || leaf_prefix_ != other.leaf_prefix_ || size_prefix_ != other.size_prefix_;
     }
@@ -318,7 +318,7 @@ template <int32_t...> struct Path;
 template <int32_t Head, int32_t... Tail>
 struct Path<Head, Tail...> {
     template <typename T>
-    static auto get(T&& tuple) noexcept
+    static auto get(T&& tuple)
     {
         return std::get<Head>(Path<Tail...>::get(tuple));
     }
@@ -327,7 +327,7 @@ struct Path<Head, Tail...> {
 template <int32_t Head>
 struct Path<Head> {
     template <typename T>
-    static auto get(T&& tuple) noexcept {
+    static auto get(T&& tuple)  {
         return std::get<Head>(tuple);
     }
 };
@@ -337,7 +337,7 @@ struct Path<Head> {
 template<int32_t Idx>
 struct TupleEntryAccessor {
     template <typename Entry>
-    static auto get(Entry&& entry) noexcept {
+    static auto get(Entry&& entry)  {
         return std::get<Idx>(entry);
     }
 };
@@ -356,10 +356,10 @@ template <typename Fn>
 class SubstreamReadLambdaAdapter {
     Fn& fn_;
 public:
-    SubstreamReadLambdaAdapter(Fn& fn) noexcept: fn_(fn) {}
+    SubstreamReadLambdaAdapter(Fn& fn) : fn_(fn) {}
 
     template <int32_t StreamIdx, int32_t SubstreamIdx, typename T>
-    void put(const StreamTag<StreamIdx>&, const StreamTag<SubstreamIdx>&, T&& value) noexcept
+    void put(const StreamTag<StreamIdx>&, const StreamTag<SubstreamIdx>&, T&& value)
     {
         fn_(value);
     }
@@ -369,7 +369,7 @@ template <typename Fn>
 class SubstreamReadLambdaAdapter<Fn&&> {
     Fn&& fn_;
 public:
-    SubstreamReadLambdaAdapter(Fn&& fn) noexcept: fn_(fn) {}
+    SubstreamReadLambdaAdapter(Fn&& fn) : fn_(fn) {}
 
     template <int32_t StreamIdx, int32_t SubstreamIdx, typename T>
     void put(const StreamTag<StreamIdx>&, const StreamTag<SubstreamIdx>&, T&& value)
@@ -382,10 +382,10 @@ template <typename Fn>
 class SubstreamReadLambdaAdapter<const Fn&> {
     const Fn& fn_;
 public:
-    SubstreamReadLambdaAdapter(const Fn& fn) noexcept: fn_(fn) {}
+    SubstreamReadLambdaAdapter(const Fn& fn) : fn_(fn) {}
 
     template <int32_t StreamIdx, int32_t SubstreamIdx, typename T>
-    void put(const StreamTag<StreamIdx>&, const StreamTag<SubstreamIdx>&, T&& value) noexcept
+    void put(const StreamTag<StreamIdx>&, const StreamTag<SubstreamIdx>&, T&& value)
     {
         fn_(value);
     }
@@ -411,9 +411,9 @@ template <int32_t Stream, typename CtrSizeT>
 class EntryFnBase {
     CtrSizeT one_;
 public:
-    EntryFnBase() noexcept: one_(1) {}
+    EntryFnBase() : one_(1) {}
 
-    const auto& get(const StreamTag<Stream>& , const StreamTag<0>&, int32_t block) const noexcept
+    const auto& get(const StreamTag<Stream>& , const StreamTag<0>&, int32_t block) const
     {
         return one_;
     }
@@ -427,9 +427,9 @@ struct SingleValueEntryFn: EntryFnBase<Stream, CtrSizeT> {
 
     const T& value_;
 
-    SingleValueEntryFn(const T& value) noexcept: value_(value) {}
+    SingleValueEntryFn(const T& value) : value_(value) {}
 
-    const auto& get(const StreamTag<Stream>& , const StreamTag<1>&, int32_t block) const noexcept
+    const auto& get(const StreamTag<Stream>& , const StreamTag<1>&, int32_t block) const
     {
         return value_;
     }

@@ -28,7 +28,7 @@ namespace detail {
 
 template <typename StreamIdxList> struct IteratorStreamRangesListWalker;
 
-namespace {
+namespace detail {
 
     template <typename SubstreamIdxList> struct IteratorSubstreamsRangesListWalker;
     template <typename RangesIdxList> struct SubstreamRangesTupleWalker;
@@ -71,7 +71,7 @@ namespace {
 
             IteratorSubstreamsRangesListWalker<IntList<Idx, Tail...>> w;
 
-            node.template processStreamByIdx<Idx>(w, RangesIdxList(), std::get<Idx>(accum), walker, std::forward<Args>(args)...).get_or_throw();
+            node.template processStreamByIdx<Idx>(w, RangesIdxList(), std::get<Idx>(accum), walker, std::forward<Args>(args)...);
 
             IteratorSubstreamsRangesListWalker<IntList<Tail...>>::process(walker, node, accum, std::forward<Args>(args)...);
         }
@@ -121,7 +121,7 @@ struct IteratorStreamRangesListWalker<IntList<StreamIdx, Tail...>> {
 
         using StreamIdxList = list_tree::MakeValueList<int32_t, SubstreamsStartIdx, SubstreamsStartIdx + StreamSize>;
 
-        IteratorSubstreamsRangesListWalker<StreamIdxList>::process(walker, node, accum, std::forward<Args>(args)...);
+        detail::IteratorSubstreamsRangesListWalker<StreamIdxList>::process(walker, node, accum, std::forward<Args>(args)...);
 
         IteratorStreamRangesListWalker<IntList<Tail...>>::process(walker, node, accum, std::forward<Args>(args)...);
     }

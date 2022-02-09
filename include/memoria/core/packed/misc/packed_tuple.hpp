@@ -117,7 +117,7 @@ namespace detail {
 
             psize_t str_data_length = codec.length(sdn_str);
 
-            pkd_tuple.resizeBlock(idx, str_data_length);
+            pkd_tuple.resize_block(idx, str_data_length);
 
             auto* addr = pkd_tuple.template get<typename ValueCodec<U8String>::BufferType>(idx);
             codec.encode(addr, sdn_str, 0);
@@ -194,7 +194,7 @@ public:
     using PackedAllocator::block_size;
     using PackedAllocator::init;
     using PackedAllocator::allocate;
-    using PackedAllocator::allocateArrayBySize;
+    using PackedAllocator::allocate_array_by_size;
 
     PackedTuple() = default;
 
@@ -243,7 +243,7 @@ public:
 
 
     struct GenerateEventsFn {
-        template <int32_t Idx>
+        template <size_t Idx>
         bool process(IBlockDataEventHandler* handler, const MyType& pkd_tuple) noexcept
         {
             using T = std::tuple_element_t<Idx, Tuple>;
@@ -271,7 +271,7 @@ public:
     }
 
     struct SerializeFn {
-        template <int32_t Idx, typename SerializationData>
+        template <size_t Idx, typename SerializationData>
         bool process(SerializationData& buffer, const MyType& pkd_tuple)
         {
             using T = std::tuple_element_t<Idx, Tuple>;
@@ -290,7 +290,7 @@ public:
     }
 
     struct DeserializeFn {
-        template <int32_t Idx, typename DeserializationData>
+        template <size_t Idx, typename DeserializationData>
         bool process(DeserializationData& buffer, MyType& pkd_tuple)
         {
             using T = std::tuple_element_t<Idx, Tuple>;

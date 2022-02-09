@@ -90,7 +90,7 @@ public:
             Span<uint8_t> buffer,
             CDescrPtr& snapshot_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate = nullptr
-    ) noexcept:
+    ):
         Base(store, snapshot_descriptor, refcounter_delegate),
         buffer_(buffer)
     {
@@ -115,7 +115,7 @@ public:
         return sb->sequence_id();
     }
 
-    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
+    virtual SnpSharedPtr<StoreT> self_ptr()  {
         return this->shared_from_this();
     }
 

@@ -40,7 +40,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btss::IteratorMiscName)
 
 
 public:
-    int32_t iovector_pos() const noexcept {
+    int32_t iovector_pos() const  {
         return self().iter_local_pos();
     }
 
@@ -122,19 +122,15 @@ public:
         CtrSizeT prefix_{};
 
         template <typename CtrT, typename NodeT>
-        VoidResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        void treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             auto stream = node.template substream<IntList<0>>();
             prefix_ += stream.sum(0, start, end);
-
-            return VoidResult::of();
         }
 
 
         template <typename CtrT, typename NodeT>
-        VoidResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept {
-            return VoidResult::of();
-        }
+        void treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) {}
     };
 
 
@@ -318,7 +314,7 @@ public:
 
 public:
 
-    int32_t iter_data_stream_s() const noexcept {
+    int32_t iter_data_stream_s() const  {
         return 0;
     }
 

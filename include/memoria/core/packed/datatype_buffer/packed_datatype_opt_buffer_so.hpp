@@ -55,8 +55,8 @@ public:
 
     using PkdStructT = PkdStruct;
 
-    static constexpr psize_t Columns = 1;
-    static constexpr int32_t Indexes = PkdStruct::Array::Indexes;
+    static constexpr size_t Columns = 1;
+    static constexpr size_t Indexes = PkdStruct::Array::Indexes;
 
     PackedDataTypeOptBufferSO() noexcept:
         data_(), array_()
@@ -128,25 +128,25 @@ public:
         }
     }
 
-    psize_t size() const noexcept {
+    size_t size() const noexcept {
         return data_->bitmap()->size();
     }
 
 
     /*********************** API *********************/
 
-    psize_t max_element_idx() const noexcept {
-        psize_t array_idx = array_.size() - 1;
-        psize_t bm_idx = bitmap_idx(array_idx);
+    size_t max_element_idx() const noexcept {
+        size_t array_idx = array_.size() - 1;
+        size_t bm_idx = bitmap_idx(array_idx);
         return bm_idx;
     }
 
-    Optional<ViewType> access(int32_t column, int32_t row) const noexcept
+    Optional<ViewType> access(size_t column, size_t row) const noexcept
     {
         Bitmap* bitmap = data_->bitmap();
         if (bitmap->symbol(row))
         {
-            int32_t array_idx  = this->array_idx(row);
+            size_t array_idx  = this->array_idx(row);
             return array_.access(column, array_idx);
         }
         else {
@@ -154,11 +154,11 @@ public:
         }
     }
 
-    VoidResult splitTo(MyType& other, psize_t idx) noexcept
+    VoidResult splitTo(MyType& other, size_t idx) noexcept
     {
         Bitmap* bitmap = data_->bitmap();
 
-        psize_t array_idx = this->array_idx(bitmap, idx);
+        size_t array_idx = this->array_idx(bitmap, idx);
 
         MEMORIA_TRY_VOID(bitmap->splitTo(other.data_->bitmap(), idx));
 
@@ -182,12 +182,12 @@ public:
         return array_.mergeWith(other.array_);
     }
 
-    VoidResult removeSpace(psize_t start, psize_t end) noexcept
+    VoidResult removeSpace(size_t start, size_t end) noexcept
     {
         Bitmap* bitmap = data_->bitmap();
 
-        int32_t array_start = array_idx(bitmap, start);
-        int32_t array_end = array_idx(bitmap, end);
+        size_t array_start = array_idx(bitmap, start);
+        size_t array_end = array_idx(bitmap, end);
 
         MEMORIA_TRY_VOID(bitmap->remove(start, end));
 
@@ -196,18 +196,18 @@ public:
         return array_.removeSpace(array_start, array_end);
     }
 
-//    Optional<ViewType> get_values(psize_t idx) const {
+//    Optional<ViewType> get_values(size_t idx) const {
 //        return get_values(idx, 0);
 //    }
 
 //    Optional<ViewType>
-//    get_values(psize_t idx, psize_t column) const
+//    get_values(size_t idx, size_t column) const
 //    {
 //        auto bitmap = data_->bitmap();
 
 //        if (bitmap->symbol(idx) == 1)
 //        {
-//            psize_t array_idx = this->array_idx(idx);
+//            size_t array_idx = this->array_idx(idx);
 //            return array_.get_values(array_idx);
 //        }
 
@@ -216,45 +216,45 @@ public:
 
 
     template <typename AccessorFn>
-    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    VoidResult insert_entries(size_t row_at, size_t size, AccessorFn&& elements) noexcept
     {
         MEMORIA_ASSERT_RTN(row_at, <=, this->size());
 
         Bitmap* bitmap = data_->bitmap();
-        MEMORIA_TRY_VOID(bitmap->insert_entries(row_at, size, [&](psize_t pos){
+        MEMORIA_TRY_VOID(bitmap->insert_entries(row_at, size, [&](size_t pos){
             return is_not_empty(elements(0, pos));
         }));
 
         refresh_array();
 
-        psize_t set_elements_num = bitmap->rank(row_at, row_at + size, 1);
-        psize_t array_row_at = array_idx(row_at);
+        size_t set_elements_num = bitmap->rank(row_at, row_at + size, 1);
+        size_t array_row_at = array_idx(row_at);
 
-        return array_.insert_entries(array_row_at, set_elements_num, [&](psize_t col, psize_t arr_idx) noexcept {
-            psize_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
+        return array_.insert_entries(array_row_at, set_elements_num, [&](size_t col, size_t arr_idx) noexcept {
+            size_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
             return elements(col, bm_idx - row_at).get();
         });
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    VoidResult update_entries(size_t row_at, size_t size, AccessorFn&& elements) noexcept
     {
         MEMORIA_TRY_VOID(remove_entries(row_at, size));
         return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
     }
 
-    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
+    VoidResult remove_entries(size_t row_at, size_t size) noexcept
     {
         return removeSpace(row_at, row_at + size);
     }
 
 
 
-    FindResult findGTForward(psize_t column, const ViewType& val) const
+    FindResult findGTForward(size_t column, const ViewType& val) const
     {
         FindResult res = array_.findGTForward(column, val);
 
-        psize_t bmp_idx = this->bitmap_idx(res.local_pos());
+        size_t bmp_idx = this->bitmap_idx(res.local_pos());
 
         res.set_local_pos(bmp_idx);
 
@@ -263,18 +263,18 @@ public:
 
 
 
-    FindResult findGEForward(psize_t column, const ViewType& val) const
+    FindResult findGEForward(size_t column, const ViewType& val) const
     {
         FindResult res = array_.findGEForward(column, val);
 
-        psize_t bmp_idx = this->bitmap_idx(res.local_pos());
+        size_t bmp_idx = this->bitmap_idx(res.local_pos());
 
         res.set_local_pos(bmp_idx);
 
         return res;
     }
 
-    auto findForward(SearchType search_type, psize_t column, const ViewType& val) const
+    auto findForward(SearchType search_type, size_t column, const ViewType& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -285,7 +285,7 @@ public:
         }
     }
 
-    auto findForward(SearchType search_type, psize_t column, const Optional<ViewType>& val) const
+    auto findForward(SearchType search_type, size_t column, const Optional<ViewType>& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -297,14 +297,14 @@ public:
     }
 
     template <typename T>
-    VoidResult setValues(int32_t idx, const core::StaticVector<T, Columns>& values) noexcept
+    VoidResult setValues(size_t idx, const core::StaticVector<T, Columns>& values) noexcept
     {
         if (values[0])
         {
             Bitmap* bitmap = data_->bitmap();
 
             auto array_values  = this->array_values(values);
-            int32_t array_idx  = this->array_idx(idx);
+            size_t array_idx  = this->array_idx(idx);
 
             if (bitmap->symbol(idx))
             {
@@ -326,7 +326,7 @@ public:
         }
         else {
             Bitmap* bitmap = data_->bitmap();
-            int32_t array_idx = this->array_idx(idx);
+            size_t array_idx = this->array_idx(idx);
 
             if (bitmap->symbol(idx))
             {
@@ -349,7 +349,7 @@ public:
     }
 
     template <typename T>
-    VoidResult insert(int32_t idx, const core::StaticVector<T, Columns>& values) noexcept
+    VoidResult insert(size_t idx, const core::StaticVector<T, Columns>& values) noexcept
     {
         Bitmap* bitmap = data_->bitmap();
 
@@ -360,7 +360,7 @@ public:
             refresh_array();
 
             auto array_values  = this->array_values(values);
-            int32_t array_idx  = this->array_idx(bitmap, idx);
+            size_t array_idx  = this->array_idx(bitmap, idx);
 
             return array_.insert(array_idx, array_values);
         }
@@ -403,7 +403,7 @@ private:
     {
         core::StaticVector<ViewType, Columns> tv;
 
-        for (int32_t b = 0;  b < Columns; b++)
+        for (size_t b = 0;  b < Columns; b++)
         {
             tv[b] = values[b].get();
         }
@@ -411,23 +411,23 @@ private:
         return tv;
     }
 
-    psize_t array_idx(psize_t global_idx) const
+    size_t array_idx(size_t global_idx) const
     {
         return array_idx(data_->bitmap(), global_idx);
     }
 
-    psize_t bitmap_idx(psize_t array_idx) const noexcept
+    size_t bitmap_idx(size_t array_idx) const noexcept
     {
         return bitmap_idx(data_->bitmap(), array_idx);
     }
 
-    psize_t array_idx(const Bitmap* bitmap, psize_t global_idx) const
+    size_t array_idx(const Bitmap* bitmap, size_t global_idx) const
     {
-        psize_t rank = bitmap->rank(global_idx, 1);
+        size_t rank = bitmap->rank(global_idx, 1);
         return rank;
     }
 
-    psize_t bitmap_idx(const Bitmap* bitmap, psize_t array_idx) const noexcept
+    size_t bitmap_idx(const Bitmap* bitmap, size_t array_idx) const noexcept
     {
         auto select_res = bitmap->selectFw(1, array_idx + 1);
 

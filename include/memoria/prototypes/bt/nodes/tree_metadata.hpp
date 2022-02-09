@@ -105,11 +105,11 @@ public:
         return sizeof(BalancedTreeMetadata);
     }
 
-    VoidResult init() noexcept {
+    VoidResult init() {
         return VoidResult::of();
     }
 
-    VoidResult pack() noexcept {
+    VoidResult pack() {
         return VoidResult::of();
     }
 };

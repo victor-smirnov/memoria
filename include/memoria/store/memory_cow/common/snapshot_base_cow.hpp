@@ -64,30 +64,30 @@ struct IDValueHolderH<CowBlockID<ValueHolder>> {
     using IDType = CowBlockID<ValueHolder>;
     using IDValueHolder = ValueHolder;
 
-    static IDValueHolder from_id(const IDType& id) noexcept {
+    static IDValueHolder from_id(const IDType& id)  {
         return id.value();
     }
 
-    static IDType to_id(const IDValueHolder& id) noexcept {
+    static IDType to_id(const IDValueHolder& id)  {
         return IDType(id);
     }
 
     template <typename BlockType>
-    static BlockType* get_block_ptr(IDType id) noexcept {
+    static BlockType* get_block_ptr(IDType id)  {
         return value_cast<BlockType*>(id.value());
     }
 
     template <typename BlockType>
-    static IDType to_id(BlockType* ptr) noexcept {
+    static IDType to_id(BlockType* ptr)  {
         return IDType(value_cast<IDValueHolder>(ptr));
     }
 
-    static IDValueHolder to_id_value(IDType id) noexcept {
+    static IDValueHolder to_id_value(IDType id)  {
         return id.value();
     }
 
     template <typename T>
-    static IDValueHolder new_id(T* ptr) noexcept {
+    static IDValueHolder new_id(T* ptr)  {
         return ++ptr->id_counter_;
     }
 };
@@ -97,31 +97,31 @@ struct IDValueHolderH<CowBlockID<UID256>> {
     using IDType = CowBlockID<UID256>;
     using IDValueHolder = uint64_t;
 
-    static IDValueHolder from_id(const IDType& id) noexcept {
+    static IDValueHolder from_id(const IDType& id)  {
         return id.value().counter();
     }
 
-    static IDType to_id(const IDValueHolder& id) noexcept {
+    static IDType to_id(const IDValueHolder& id)  {
         return IDType(UID256::make_type2(UID256{}, id));
     }
 
     template <typename BlockType>
-    static BlockType* get_block_ptr(IDType id) noexcept {
+    static BlockType* get_block_ptr(IDType id)  {
         return value_cast<BlockType*>(id.value().counter());
     }
 
     template <typename BlockType>
-    static IDType to_id(BlockType* ptr) noexcept {
+    static IDType to_id(BlockType* ptr)  {
         return IDType(UID256::make_type2(UID256{}, value_cast<IDValueHolder>(ptr)));
     }
 
 
-    static UID256 to_id_value(IDType id) noexcept {
+    static UID256 to_id_value(IDType id)  {
         return id.value();
     }
 
     template <typename T>
-    static IDType new_id(T* ptr) noexcept {
+    static IDType new_id(T* ptr)  {
         return IDType{UID256::make_random()};
     }
 };
@@ -264,43 +264,43 @@ public:
 
     virtual ~SnapshotBase() noexcept {}
 
-    virtual ObjectPools& object_pools() const noexcept {
+    virtual ObjectPools& object_pools() const  {
         return object_pools_;
     }
 
-    virtual SnpSharedPtr<ProfileStoreType<Profile>> self_ptr() noexcept {
+    virtual SnpSharedPtr<ProfileStoreType<Profile>> self_ptr()  {
         return this->shared_from_this();
     }
 
-    PairPtr& pair() noexcept {
+    PairPtr& pair()  {
         return pair_;
     }
 
-    const PairPtr& pair() const noexcept {
+    const PairPtr& pair() const  {
         return pair_;
     }
 
-    const CtrID& uuid() const noexcept {
+    const CtrID& uuid() const  {
         return history_node_->snapshot_id();
     }
 
-    bool is_active() const noexcept {
+    bool is_active() const  {
         return history_node_->is_active();
     }
 
-    bool is_data_locked() const noexcept {
+    bool is_data_locked() const  {
     	return history_node_->is_data_locked();
     }
 
-    virtual bool isActive() const noexcept {
+    virtual bool isActive() const  {
         return is_active();
     }
 
-    bool is_marked_to_clear() const noexcept {
+    bool is_marked_to_clear() const  {
         return history_node_->is_dropped();
     }
 
-    bool is_committed() const noexcept {
+    bool is_committed() const  {
         return history_node_->is_committed();
     }
 
@@ -760,7 +760,7 @@ public:
 
 
 
-    virtual BlockID newId() noexcept {
+    virtual BlockID newId()  {
         return BlockID{history_tree_raw_->newBlockId()};
     }
 
@@ -1164,7 +1164,7 @@ protected:
 
 
 
-    void do_drop() noexcept
+    void do_drop()
     {
         snapshot_removal_ = true;
 

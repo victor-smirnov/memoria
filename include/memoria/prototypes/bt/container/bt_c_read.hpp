@@ -45,7 +45,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         }
 
         template <typename Node, typename Fn, typename... Args>
-        Int32Result treeNode(const Node& node, Fn&& fn, int32_t from, CtrSizeT to, Args&&... args) noexcept
+        Int32Result treeNode(const Node& node, Fn&& fn, int32_t from, CtrSizeT to, Args&&... args)
         {
             int32_t limit = node.size(0);
 
@@ -67,7 +67,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
 
     template <int32_t StreamIdx, typename Fn>
-    Result<CtrSizeT> ctr_read_entries(Iterator& iter, CtrSizeT length, Fn&& fn) noexcept
+    Result<CtrSizeT> ctr_read_entries(Iterator& iter, CtrSizeT length, Fn&& fn)
     {
         CtrSizeT total = 0;
 
@@ -92,7 +92,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     struct ReadSubstreamFn {
 
         template <int32_t SubstreamIdx, typename StreamObj, typename Fn>
-        auto stream(const StreamObj& obj, int32_t from, int32_t to, Fn&& entry) noexcept
+        auto stream(const StreamObj& obj, int32_t from, int32_t to, Fn&& entry)
         {
             static constexpr int32_t StreamIdx = ListHead<SubstreamPath>::Value;
 
@@ -102,7 +102,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         }
 
         template <typename NodeSO, typename Fn>
-        Int32Result treeNode(const NodeSO& node, int32_t from, CtrSizeT to, Fn&& fn) noexcept
+        Int32Result treeNode(const NodeSO& node, int32_t from, CtrSizeT to, Fn&& fn)
         {
             MEMORIA_TRY(limit, node.size(ListHead<SubstreamPath>::Value));
 
@@ -117,7 +117,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     };
 
     template <typename SubstreamPath, typename Fn>
-    Result<CtrSizeT> ctr_read_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn) noexcept
+    Result<CtrSizeT> ctr_read_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
     {
         CtrSizeT total = 0;
 
@@ -155,7 +155,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         }
 
         template <typename Node, typename Fn>
-        Int32Result treeNode(const Node& node, int32_t from, CtrSizeT to, int32_t block, Fn&& fn) noexcept
+        Int32Result treeNode(const Node& node, int32_t from, CtrSizeT to, int32_t block, Fn&& fn)
         {
             MEMORIA_TRY(limit, node.size(0));
 
@@ -170,7 +170,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     };
 
     template <typename SubstreamPath, typename Fn>
-    Result<CtrSizeT> ctr_read_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn) noexcept
+    Result<CtrSizeT> ctr_read_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
     {
         CtrSizeT total = 0;
 
@@ -206,7 +206,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         }
 
         template <typename Node, typename Fn>
-        Int32Result treeNode(const Node& node, int32_t block, int32_t from, CtrSizeT to, Fn&& fn) noexcept
+        Int32Result treeNode(const Node& node, int32_t block, int32_t from, CtrSizeT to, Fn&& fn)
         {
             MEMORIA_TRY(limit, node->size(0));
 
@@ -221,7 +221,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     };
 
     template <typename SubstreamPath, typename Fn>
-    Result<CtrSizeT> ctr_describe_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn) noexcept
+    Result<CtrSizeT> ctr_describe_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
     {
         CtrSizeT total = 0;
 
@@ -257,7 +257,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         }
 
         template <typename Node, typename Fn>
-        Int32Result treeNode(const Node& node, int32_t from, CtrSizeT to, Fn&& fn) noexcept
+        Int32Result treeNode(const Node& node, int32_t from, CtrSizeT to, Fn&& fn)
         {
             MEMORIA_TRY(limit, node.size(0));
 
@@ -272,7 +272,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     };
 
     template <typename SubstreamPath, typename Fn>
-    Result<CtrSizeT> ctr_read_single_substream2(Iterator& iter, CtrSizeT length, Fn&& fn) noexcept
+    Result<CtrSizeT> ctr_read_single_substream2(Iterator& iter, CtrSizeT length, Fn&& fn)
     {
         CtrSizeT total = 0;
 

@@ -69,12 +69,12 @@ class LMDBStoreWritableSnapshot:
     struct CacheEntryBase: Shared {
         UpdatedEntriesMemberHook upd_hook_;
 
-        CacheEntryBase(const BlockID& id, BlockType* block, int32_t state) noexcept :
+        CacheEntryBase(const BlockID& id, BlockType* block, int32_t state)  :
             Shared(id, block, state),
             upd_hook_()
         {}
 
-        bool is_updated() const noexcept {
+        bool is_updated() const  {
             return upd_hook_.is_linked();
         }
     };
@@ -130,7 +130,7 @@ public:
             Superblock* superblock,
             MDB_dbi system_db,
             MDB_dbi data_db
-    ) noexcept :
+    )  :
         Base(maybe_error, store, mdb_env),
         block_cache_(1024*1024, [this](bool keep_entry, BlockCacheEntry* entry){
             return this->evictionFn(keep_entry, entry);
@@ -151,7 +151,7 @@ public:
         });
     }
 
-    void post_init(MaybeError& maybe_error) noexcept
+    void post_init(MaybeError& maybe_error)
     {
         internal_init_system_ctr<DirectoryCtrType>(
             maybe_error,
@@ -173,7 +173,7 @@ public:
             MDB_dbi system_db,
             MDB_dbi data_db,
             InitLMDBStoreTag
-    ) noexcept:
+    ) :
         Base(maybe_error, store, mdb_env),
         block_cache_(1024*1024, [this](bool keep_entry, BlockCacheEntry* entry){
             return this->evictionFn(keep_entry, entry);
@@ -320,11 +320,11 @@ public:
         }
     }
 
-    virtual bool is_transient() noexcept {
+    virtual bool is_transient()  {
         return true;
     }
 
-    virtual bool is_system_snapshot() noexcept {
+    virtual bool is_system_snapshot()  {
         return false;
     }
 
@@ -332,15 +332,15 @@ public:
         return Base::find(ctr_id);
     }
 
-    virtual bool is_committed() const noexcept {
+    virtual bool is_committed() const  {
         return committed_;
     }
 
-    virtual bool is_active() const noexcept {
+    virtual bool is_active() const  {
         return !committed_;
     }
 
-    virtual bool is_marked_to_clear() const noexcept {
+    virtual bool is_marked_to_clear() const  {
         return false;
     }
 
@@ -478,7 +478,7 @@ protected:
         return Base::snapshot_ref_opening_allowed();
     }
 
-    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
+    virtual SnpSharedPtr<StoreT> self_ptr()  {
         return this->shared_from_this();
     }
 
@@ -489,7 +489,7 @@ private:
             CtrInstanceVar& assign_to,
             const BlockID& root_block_id,
             const CtrID& ctr_id
-    ) noexcept
+    )
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             if (root_block_id.is_set())
@@ -627,16 +627,16 @@ private:
     }
 
 
-    virtual bool isActive() const noexcept {
+    virtual bool isActive() const  {
         return is_active();
     }
 
-    virtual BlockID newId() noexcept {
+    virtual BlockID newId()  {
         BlockID uuid = BlockID::make_type2(BlockID{}, 9, superblock_->new_block_id());
         return uuid;
     }
 
-    virtual void drop() noexcept {
+    virtual void drop()  {
         MEMORIA_MAKE_GENERIC_ERROR("drop() is not supported for LMDBStore").do_throw();
     }
 
@@ -659,7 +659,7 @@ private:
         }
     }
 
-    void forget_entry(BlockCacheEntry* entry) noexcept
+    void forget_entry(BlockCacheEntry* entry)
     {
         ::free(entry->get());
 
@@ -712,7 +712,7 @@ private:
         }
     }
 
-    static constexpr int32_t nearest_log2(int32_t value) noexcept {
+    static constexpr int32_t nearest_log2(int32_t value)  {
         int32_t vv = (1 << (Log2(value)));
         return (vv / 2 == value) ? value : vv;
     }

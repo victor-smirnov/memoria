@@ -229,7 +229,7 @@ private:
         CtrSizeT pos_ = 0;
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             using BranchSizePath = IntList<Stream>;
 
@@ -241,7 +241,7 @@ private:
         }
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        VoidResult treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             return VoidResult::of();
         }

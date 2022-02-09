@@ -69,13 +69,13 @@ public:
         {
             meta->code_units() = symbols_block_size_atoms;
 
-            MEMORIA_TRY_VOID(seq.resizeBlock(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::CodeUnitT)));
+            MEMORIA_TRY_VOID(seq.resize_block(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::CodeUnitT)));
             RunTraits::write_segments_to(syms_span, seq.symbols(), 0);
         }
 
         if (symbols_block_size_atoms > AtomsPerBlock)
         {
-            size_t symbols_blocks = seq.divUp(symbols_block_size_atoms, AtomsPerBlock);
+            size_t symbols_blocks = seq.div_up(symbols_block_size_atoms, AtomsPerBlock);
             MEMORIA_TRY_VOID(seq.createIndex(symbols_blocks));
 
             auto size_index = seq.size_index();

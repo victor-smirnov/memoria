@@ -320,9 +320,8 @@ public:
     const MyType& self() const {return *ptr_cast<const MyType>(this);}
 
     template <typename CtrT, typename NodeT>
-    Result<StreamOpResult> treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
+    StreamOpResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
     {
-        using ResultT = Result<StreamOpResult>;
         auto& self = this->self();
 
         this->direction_ = direction;
@@ -342,27 +341,25 @@ public:
         //FailIf<true, typename BranchNodeSO<CtrT, NodeT>::BranchSubstreamsStructList> ee;
 
 
-        MEMORIA_TRY(result, node.template processStream<BranchPath>(
+        auto result = node.template processStream<BranchPath>(
                 FindBranchFn(self), node.node()->is_root(), index, start
-        ));
+        );
 
         self.postProcessBranchNode(node, direction, start, result);
-
-        return ResultT::of(result);
+        return result;
     }
 
     template <typename CtrT, typename NodeT>
-    Result<StreamOpResult> treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
+    StreamOpResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
     {
-        using ResultT = Result<StreamOpResult>;
         this->direction_ = direction;
 
         auto& self = this->self();
-        MEMORIA_TRY(result, node.template processStream<LeafPath>(FindLeafFn(self), start));
+        auto result = node.template processStream<LeafPath>(FindLeafFn(self), start);
 
         self.postProcessLeafNode(node, direction, start, result);
 
-        return ResultT::of(result);
+        return result;
     }
 
 
@@ -380,7 +377,7 @@ public:
 
         return node.template processStream<BranchPath>(
                     ProcessBranchCmdFn(self), cmd, index, std::forward<Args>(args)...
-        ).get_or_throw();
+        );
     }
 
 
@@ -421,7 +418,7 @@ public:
                 StreamIdx
             >;
 
-            SD(node.state()).dispatchAll(node.allocator(), w, walker, accum, std::forward<Args>(args)...).get_or_throw();
+            SD(node.state()).dispatchAll(node.allocator(), w, walker, accum, std::forward<Args>(args)...);
 
             return true;
         }
@@ -470,13 +467,13 @@ public:
     template <typename Node, typename... Args>
     void processBranchSizePrefix(Node& node, Args&&... args)
     {
-        node.processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...).get_or_throw();
+        node.processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
     template <typename Node, typename... Args>
     void processLeafSizePrefix(Node& node, Args&&... args)
     {
-        node.processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...).get_or_throw();
+        node.processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
     template <int32_t StreamIdx, typename StreamType>

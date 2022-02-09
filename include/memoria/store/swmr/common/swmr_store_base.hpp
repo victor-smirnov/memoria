@@ -41,7 +41,7 @@ struct FileLockHandler {
     virtual ~FileLockHandler() noexcept;
     virtual void unlock() = 0;
 
-    static Result<std::unique_ptr<FileLockHandler>> lock_file(const char* name, bool create) noexcept;
+    static Result<std::unique_ptr<FileLockHandler>> lock_file(const char* name, bool create) ;
 };
 
 }
@@ -122,21 +122,21 @@ protected:
 public:
     using Base::flush;
 
-    SWMRStoreBase() noexcept {
+    SWMRStoreBase()  {
         history_tree_.set_superblock_fn([&](uint64_t file_pos){
             return this->get_superblock(file_pos * BASIC_BLOCK_SIZE);
         });
     }
 
-    auto& allocation_pool() noexcept {
+    auto& allocation_pool()  {
         return allocation_pool_;
     }
 
-    auto& history_tree() noexcept {
+    auto& history_tree()  {
         return history_tree_;
     }
 
-    auto& history_mutex() noexcept {
+    auto& history_mutex()  {
         return history_mutex_;
     }
 
@@ -197,7 +197,7 @@ public:
             RemovingBlockConsumerFn fn, bool force = false) = 0;
 
     virtual SWMRWritableSnapshotPtr do_create_writable_for_init(CDescrPtr snapshot_descr) = 0;
-    virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept = 0;
+    virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr()  = 0;
     virtual void store_superblock(SuperblockT* superblock, uint64_t sb_slot) = 0;
     virtual SharedSBPtr<SuperblockT> get_superblock(uint64_t file_pos) = 0;
     virtual SharedSBPtr<CounterBlockT> get_counter_block(uint64_t file_pos) = 0;
@@ -828,7 +828,7 @@ protected:
         history_tree_.cleanup_eviction_queue();
     }
 
-    static bool is_my_block(const uint8_t* mem_block) noexcept {
+    static bool is_my_block(const uint8_t* mem_block)  {
         const SuperblockT* sb0 = ptr_cast<SuperblockT>(mem_block);
         return sb0->match_magick() && sb0->match_profile_hash();
     }
@@ -1107,7 +1107,7 @@ protected:
         }
     }
 
-    void rebuild_block_counters() noexcept {
+    void rebuild_block_counters()  {
         auto snapshots = this->build_ordered_snapshots_list();
 
         for (auto& snapshot: snapshots) {
@@ -1137,12 +1137,12 @@ protected:
     }
 
 private:
-    CDescrPtr get_branch_head_read_sync(U8StringView name) const noexcept {
+    CDescrPtr get_branch_head_read_sync(U8StringView name) const  {
         LockGuard lock(history_mutex_);
         return history_tree_.get_branch_head(name);
     }
 
-    std::vector<CDescrPtr> get_last_snapshot_for_rollback_sync() const noexcept
+    std::vector<CDescrPtr> get_last_snapshot_for_rollback_sync() const
     {
         LockGuard lock(history_mutex_);
         return history_tree_.get_rollback_span();

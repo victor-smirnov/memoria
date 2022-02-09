@@ -434,7 +434,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    CtrID ctr_get_model_name_fn(const Node& node) const noexcept
+    CtrID ctr_get_model_name_fn(const Node& node) const
     {
         return node.node()->root_metadata().model_name();
     }
@@ -443,7 +443,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    void ctr_set_model_name_fn(const Node& node, const CtrID& name) noexcept
+    void ctr_set_model_name_fn(const Node& node, const CtrID& name)
     {
         node->root_metadata().model_name() = name;
     }
@@ -520,7 +520,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return ctr_get_root_metadata().model_name();
     }
 
-    Metadata ctr_create_new_root_metadata() const noexcept
+    Metadata ctr_create_new_root_metadata() const
     {
         auto& self = this->self();
         Metadata metadata;
@@ -557,7 +557,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    Result<TreeNodePtr> ctr_create_node_fn(int32_t size) const noexcept
+    Result<TreeNodePtr> ctr_create_node_fn(int32_t size) const
     {
         return wrap_throwing([&](){
             auto& self = this->self();
@@ -682,7 +682,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
     template <typename Node>
-    VoidResult ctr_prepare_node(Node&& node) const noexcept
+    VoidResult ctr_prepare_node(Node&& node) const
     {
         return node.prepare();
     }
@@ -774,7 +774,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 private:
-    void init_dispatchers() noexcept
+    void init_dispatchers()
     {
         node_dispatcher_.set_ctr(&self());
         leaf_dispatcher_.set_ctr(&self());

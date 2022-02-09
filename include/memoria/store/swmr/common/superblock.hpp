@@ -89,17 +89,17 @@ private:
     uint8_t metadata_[METADATA_SIZE];
 
 public:
-    SWMRSuperblock() noexcept = default;
+    SWMRSuperblock()  = default;
 
-    BlockID& history_root_id() noexcept   {return history_root_id_;}
-    BlockID& directory_root_id() noexcept {return directory_root_id_;}
-    BlockID& allocator_root_id() noexcept {return allocator_root_id_;}
-    BlockID& blockmap_root_id() noexcept  {return blockmap_root_id_;}
+    BlockID& history_root_id()    {return history_root_id_;}
+    BlockID& directory_root_id()  {return directory_root_id_;}
+    BlockID& allocator_root_id()  {return allocator_root_id_;}
+    BlockID& blockmap_root_id()   {return blockmap_root_id_;}
 
-    const BlockID& history_root_id() const noexcept   {return history_root_id_;}
-    const BlockID& directory_root_id() const noexcept {return directory_root_id_;}
-    const BlockID& allocator_root_id() const noexcept {return allocator_root_id_;}
-    const BlockID& blockmap_root_id() const noexcept {return blockmap_root_id_;}
+    const BlockID& history_root_id() const    {return history_root_id_;}
+    const BlockID& directory_root_id() const  {return directory_root_id_;}
+    const BlockID& allocator_root_id() const  {return allocator_root_id_;}
+    const BlockID& blockmap_root_id() const  {return blockmap_root_id_;}
 
     auto& allocation_pool_data() {
         return allocation_pool_data_;
@@ -109,90 +109,90 @@ public:
         return allocation_pool_data_;
     }
 
-    Span<uint8_t> metadata() noexcept {
+    Span<uint8_t> metadata()  {
         return Span<uint8_t>(metadata_, METADATA_SIZE);
     }
 
-    Span<const uint8_t> metadata() const noexcept {
+    Span<const uint8_t> metadata() const  {
         return Span<const uint8_t>(metadata_, METADATA_SIZE);
     }
 
-    const char* magic_buffer() const noexcept {return magic_buffer_;}
-    char* magic_buffer() noexcept {return magic_buffer_;}
+    const char* magic_buffer() const  {return magic_buffer_;}
+    char* magic_buffer()  {return magic_buffer_;}
 
-    const UUID& magick1() const noexcept {
+    const UUID& magick1() const  {
         return magick1_;
     }
 
-    const UUID& magick2() const noexcept {
+    const UUID& magick2() const  {
         return magick2_;
     }
 
-    uint64_t profile_hash() const noexcept {
+    uint64_t profile_hash() const  {
         return profile_hash_;
     }
 
-    uint64_t version() const noexcept {
+    uint64_t version() const  {
         return version_;
     }
 
-    const SequenceID& sequence_id() const noexcept {return sequence_id_;}
-    SequenceID& sequence_id() noexcept {return sequence_id_;}
+    const SequenceID& sequence_id() const  {return sequence_id_;}
+    SequenceID& sequence_id()  {return sequence_id_;}
 
-    SequenceID consistency_point_sequence_id() const noexcept {
+    SequenceID consistency_point_sequence_id() const  {
         return consistency_point_sequence_id_;
     }
 
-    void inc_consistency_point_sequence_id() noexcept {
+    void inc_consistency_point_sequence_id()  {
         consistency_point_sequence_id_++;
     }
 
-    void mark_for_rollback() noexcept
+    void mark_for_rollback()
     {
         consistency_point_sequence_id_ -= 2;
         snapshot_id_ = SnapshotID{};
     }
 
-    const SnapshotID& snapshot_id() const noexcept {return snapshot_id_;}
-    void set_snapshot_id(const SnapshotID& id) noexcept {snapshot_id_ = id;}
+    const SnapshotID& snapshot_id() const  {return snapshot_id_;}
+    void set_snapshot_id(const SnapshotID& id)  {snapshot_id_ = id;}
 
-    uint64_t file_size() const noexcept {return file_size_;}
-    void set_file_size(uint64_t size) noexcept {file_size_ = size;}
+    uint64_t file_size() const  {return file_size_;}
+    void set_file_size(uint64_t size)  {file_size_ = size;}
 
-    uint64_t superblock_size() const noexcept {return superblock_size_;}
-    void set_superblock_size(uint64_t size) noexcept {superblock_size_ = size;}
+    uint64_t superblock_size() const  {return superblock_size_;}
+    void set_superblock_size(uint64_t size)  {superblock_size_ = size;}
 
-    uint64_t superblock_file_pos() const noexcept {return superblock_file_pos_;}
-    void set_superblock_file_pos(uint64_t pos) noexcept {superblock_file_pos_ = pos;}
+    uint64_t superblock_file_pos() const  {return superblock_file_pos_;}
+    void set_superblock_file_pos(uint64_t pos)  {superblock_file_pos_ = pos;}
 
-    uint64_t global_block_counters_file_pos() const noexcept {return global_block_counters_file_pos_;}
-    void set_global_block_counters_file_pos(uint64_t pos) noexcept {global_block_counters_file_pos_ = pos;}
+    uint64_t global_block_counters_file_pos() const  {return global_block_counters_file_pos_;}
+    void set_global_block_counters_file_pos(uint64_t pos)  {global_block_counters_file_pos_ = pos;}
 
-    uint64_t global_block_counters_size() const noexcept {return global_block_counters_size_;}
-    void set_global_block_counters_size(uint64_t size) noexcept {global_block_counters_size_ = size;}
+    uint64_t global_block_counters_size() const  {return global_block_counters_size_;}
+    void set_global_block_counters_size(uint64_t size)  {global_block_counters_size_ = size;}
 
-    uint64_t global_block_counters_blocks() const noexcept {return global_block_counters_blocks_;}
-    void set_global_block_counters_blocks(uint64_t blocks) noexcept {global_block_counters_blocks_ = blocks;}
+    uint64_t global_block_counters_blocks() const  {return global_block_counters_blocks_;}
+    void set_global_block_counters_blocks(uint64_t blocks)  {global_block_counters_blocks_ = blocks;}
 
 
-    SWMRStoreStatus status() const noexcept {return store_status_;}
+    SWMRStoreStatus status() const  {return store_status_;}
 
-    bool is_clean() const noexcept {return store_status_ == SWMRStoreStatus::CLEAN;}
-    bool is_unclean() const noexcept {return store_status_ == SWMRStoreStatus::UNCLEAN;}
+    bool is_clean() const  {return store_status_ == SWMRStoreStatus::CLEAN;}
+    bool is_unclean() const  {return store_status_ == SWMRStoreStatus::UNCLEAN;}
 
-    void set_clean_status() noexcept {
+    void set_clean_status()  {
         store_status_ = SWMRStoreStatus::CLEAN;
     }
 
-    bool match_magick() const noexcept {
+    bool match_magick() const  {
         return magick1_ == MAGICK1 && magick2_ == MAGICK2;
     }
 
-    bool match_profile_hash() const noexcept {
+    bool match_profile_hash() const  {
         return profile_hash_ == PROFILE_HASH;
     }
 
-    bool match_version() const noexcept {
+    bool match_version() const  {
         return version_ == VERSION;
     }
 
@@ -282,11 +282,11 @@ public:
         init_metadata(meta);
     }
 
-    LDDocumentView cmetadata_doc() const noexcept {
+    LDDocumentView cmetadata_doc() const  {
         return LDDocumentView{metadata()};
     }
 
-    LDDocumentView metadata_doc() noexcept {
+    LDDocumentView metadata_doc()  {
         return LDDocumentView{metadata()};
     }
 
@@ -321,7 +321,7 @@ public:
     }
 
 private:
-    static int32_t allocator_block_size(size_t superblock_size) noexcept
+    static int32_t allocator_block_size(size_t superblock_size)
     {
         int32_t sb_size = sizeof(SWMRSuperblock);
         int32_t alloc_size = sizeof(PackedAllocator);

@@ -46,7 +46,7 @@ protected:
     Position ctr_remove_leaf_content(TreePathT& path, int32_t stream, int32_t start, int32_t end);
 
     MEMORIA_V1_DECLARE_NODE_FN(RemoveNonLeafNodeEntryFn, removeSpaceAcc);
-    VoidResult ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t idx) noexcept;
+    VoidResult ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t idx) ;
 
     struct LeftMergeResult {
         bool merged;
@@ -116,7 +116,7 @@ void M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_t star
 
 
 M_PARAMS
-VoidResult M_TYPE::ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t start) noexcept
+VoidResult M_TYPE::ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t start)
 {
     return wrap_throwing([&]() -> VoidResult {
         auto& self = this->self();

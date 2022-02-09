@@ -38,7 +38,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
     using typename Base::BranchNodeEntry;
     using typename Base::BlockUpdateMgr;
 
-    // TODO: noexcept
     template <int32_t Stream>
     struct InsertStreamEntryFn
     {
@@ -47,7 +46,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
             typename SubstreamType,
             typename Entry
         >
-        VoidResult stream(SubstreamType&& obj, int32_t idx, const Entry& entry) noexcept
+        VoidResult stream(SubstreamType&& obj, int32_t idx, const Entry& entry)
         {
             if (obj)
             {
@@ -62,17 +61,17 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 
 
         template <typename CtrT, typename NTypes, typename... Args>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args) noexcept
+        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
         {
             MEMORIA_TRY_VOID(node.layout(255));
-            return node.template processSubstreams<IntList<Stream>>(*this, idx, std::forward<Args>(args)...);
+            return node.template processSubstreamsVoidRes<IntList<Stream>>(*this, idx, std::forward<Args>(args)...);
         }
     };
 
 
 
     template <int32_t Stream, typename Entry>
-    VoidResult ctr_try_insert_stream_entry_no_mgr(const TreeNodePtr& leaf, int32_t idx, const Entry& entry) noexcept
+    VoidResult ctr_try_insert_stream_entry_no_mgr(const TreeNodePtr& leaf, int32_t idx, const Entry& entry)
     {
         InsertStreamEntryFn<Stream> fn;
         return self().leaf_dispatcher().dispatch(leaf, fn, idx, entry);
@@ -153,16 +152,16 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
             int32_t Idx,
             typename SubstreamType
         >
-        VoidResult stream(SubstreamType&& obj, int32_t idx) noexcept
+        VoidResult stream(SubstreamType&& obj, int32_t idx)
         {
             return obj.remove_entries(idx, 1);
         }
 
         template <typename CtrT, typename NTypes>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx) noexcept
+        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx)
         {
             MEMORIA_TRY_VOID(node.layout(255));
-            return node.template processSubstreams<IntList<Stream>>(*this, idx);
+            return node.template processSubstreamsVoidRes<IntList<Stream>>(*this, idx);
         }
     };
 
@@ -210,7 +209,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
             typename SubstreamType,
             typename Entry
         >
-        VoidResult stream(SubstreamType&& obj, int32_t idx, const Entry& entry) noexcept
+        VoidResult stream(SubstreamType&& obj, int32_t idx, const Entry& entry)
         {
             return obj.update_entries(idx, 1, [&](auto block, auto){
                 return entry.get(bt::StreamTag<StreamIdx>(), bt::StreamTag<Idx>(), block);
@@ -218,9 +217,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
         }
 
         template <typename CtrT, typename NTypes, typename... Args>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args) noexcept
+        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
         {
-            return node.template processSubstreams<
+            return node.template processSubstreamsVoidRes<
                 SubstreamsList
             >(
                     *this,

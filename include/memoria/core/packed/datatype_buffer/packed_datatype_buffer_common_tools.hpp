@@ -243,9 +243,9 @@ struct DTBufferPrintHelper {
     template <typename PkdStructSo, typename Handler>
     static void handle(const PkdStructSo* buffer, Handler* handler) {
         const auto& meta = buffer->data()->metadata();
-        for (int32_t c = 0; c < meta.size(); c++)
+        for (size_t c = 0; c < meta.size(); c++)
         {
-            handler->value("VALUES", BlockValueProviderFactory::provider(Columns, [&](int32_t column) {
+            handler->value("VALUES", BlockValueProviderFactory::provider(Columns, [&](size_t column) {
                 return buffer->access(c);
             }));
         }
@@ -259,16 +259,9 @@ struct DTBufferPrintHelper<UTinyInt, T, 1> {
     static void handle(const PkdStructSo* buffer, Handler* handler) {
         const auto& meta = buffer->data()->metadata();
 
-        handler->as_uint8_array("VALUES", meta.size(), [&](int32_t idx) -> uint8_t {
+        handler->as_uint8_array("VALUES", meta.size(), [&](size_t idx) -> uint8_t {
             return buffer->access(idx);
         });
-
-//        for (int32_t c = 0; c < meta.size(); c++)
-//        {
-//            handler->value("VALUES_X", T::provider(1, [&](int32_t column) {
-//                return buffer->access(c);
-//            }));
-//        }
     }
 };
 

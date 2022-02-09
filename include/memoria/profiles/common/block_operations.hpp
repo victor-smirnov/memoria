@@ -131,7 +131,7 @@ struct IBlockOperationsBase {
     // FIXME: remove this method from here
     virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const = 0;
 
-    virtual uint64_t block_type_hash() const noexcept = 0;
+    virtual uint64_t block_type_hash() const = 0;
 };
 
 template <typename Profile>

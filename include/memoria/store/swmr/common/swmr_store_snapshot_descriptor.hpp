@@ -63,10 +63,10 @@ private:
     };
 
     template <typename TT>
-    friend void intrusive_ptr_add_ref(SnapshotDescriptor<TT>*) noexcept;
+    friend void intrusive_ptr_add_ref(SnapshotDescriptor<TT>*) ;
 
     template <typename TT>
-    friend void intrusive_ptr_release(SnapshotDescriptor<TT>*) noexcept;
+    friend void intrusive_ptr_release(SnapshotDescriptor<TT>*) noexcept ;
 
     template <typename> friend class HistoryTree;
 
@@ -106,7 +106,7 @@ private:
     Status status_{Status::NEW};
 
 private:
-    SnapshotDescriptor(HistoryTreeT* history_tree, U8StringView branch) noexcept:
+    SnapshotDescriptor(HistoryTreeT* history_tree, U8StringView branch) :
         history_tree_(history_tree),
         superblock_ptr_(),
         parent_(),
@@ -118,7 +118,7 @@ private:
             uint64_t superblock_ptr,
             Superblock* superblock,
             U8StringView branch
-    ) noexcept:
+    ) :
         history_tree_(history_tree),
         superblock_ptr_(superblock_ptr),
         parent_(),
@@ -131,64 +131,64 @@ private:
 
 public:
 
-    bool is_new() const noexcept {
+    bool is_new() const  {
         return status_ == Status::NEW;
     }
 
-    bool is_attached() const noexcept {
+    bool is_attached() const  {
         return status_ == Status::ATTACHED;
     }
 
-    void set_attached() noexcept {
+    void set_attached()  {
         status_ = Status::ATTACHED;
     }
 
-    void set_new() noexcept {
+    void set_new()  {
         status_ = Status::NEW;
     }
 
     void enqueue_for_eviction();
 
-    uint64_t allocated_basic_blocks() const noexcept {
+    uint64_t allocated_basic_blocks() const  {
         return allocated_basic_blocks_;
     }
 
-    void set_allocated_basic_blocks_threshold(uint64_t val) noexcept {
+    void set_allocated_basic_blocks_threshold(uint64_t val)  {
         allocated_basic_blocks_threshold_ = val;
     }
 
-    void add_allocated(uint64_t value) noexcept {
+    void add_allocated(uint64_t value)  {
         allocated_basic_blocks_ += value;
     }
 
-    void inc_snapshots() noexcept {
+    void inc_snapshots()  {
         snapshots_since_++;
     }
 
-    void set_snapshots_threshold(uint64_t val) noexcept {
+    void set_snapshots_threshold(uint64_t val)  {
         snapshots_threshold_ = val;
     }
 
-    void set_cp_timeout(int64_t val) noexcept {
+    void set_cp_timeout(int64_t val)  {
         cp_timeout_ = val;
     }
 
-    void set_start_time(int64_t val) noexcept {
+    void set_start_time(int64_t val)  {
         t_start_ = val;
     }
 
-    bool should_make_consistency_point(const SharedPtrT& head) noexcept
+    bool should_make_consistency_point(const SharedPtrT& head)
     {
         return allocated_basic_blocks_ >= head->allocated_basic_blocks_threshold_ ||
                 snapshots_since_ >= head->snapshots_threshold_ ||
                 head->cp_timeout_ >= 0 ? getTimeInMillis() - t_start_ >= head->cp_timeout_ : false;
     }
 
-    const Allocations& postponed_deallocations() const noexcept {
+    const Allocations& postponed_deallocations() const  {
         return postponed_deallocations_;
     }
 
-    Allocations& postponed_deallocations() noexcept {
+    Allocations& postponed_deallocations()  {
         return postponed_deallocations_;
     }
 
@@ -202,25 +202,25 @@ public:
         }
     }
 
-    void clear_postponed_deallocations() noexcept
+    void clear_postponed_deallocations()
     {
         postponed_deallocations_.reset();
         saved_deallocations_size_ = 0;
     }
 
-    void save_deallocations_size() noexcept {
+    void save_deallocations_size()  {
         saved_deallocations_size_ = postponed_deallocations_.size();
     }
 
-    size_t saved_deallocations_size() const noexcept {
+    size_t saved_deallocations_size() const  {
         return saved_deallocations_size_;
     }
 
-    const BlockID& allocation_map_root_id() const noexcept {
+    const BlockID& allocation_map_root_id() const  {
         return allocation_map_root_id_;
     }
 
-    BlockID* allocation_map_root_id_ptr() noexcept {
+    BlockID* allocation_map_root_id_ptr()  {
         return &allocation_map_root_id_;
     }
 
@@ -228,7 +228,7 @@ public:
         allocation_map_root_id_ = id;
     }
 
-    const SnapshotID& allocation_map_snapshot_id() const noexcept {
+    const SnapshotID& allocation_map_snapshot_id() const  {
         return allocation_map_snapshot_id_;
     }
 
@@ -236,7 +236,7 @@ public:
         allocation_map_snapshot_id_ = id;
     }
 
-    void detach_from_tree() noexcept
+    void detach_from_tree()
     {
         if (parent_) {
             parent_->children_.erase(this);
@@ -249,21 +249,21 @@ public:
         children_.clear();
     }
 
-    const U8String& branch() const noexcept {return branch_;}
+    const U8String& branch() const  {return branch_;}
 
-    uint64_t superblock_ptr() const noexcept {
+    uint64_t superblock_ptr() const  {
         return superblock_ptr_;
     }
 
-    SnapshotDescriptor* parent() const noexcept {
+    SnapshotDescriptor* parent() const  {
         return parent_;
     }
 
-    void set_parent(SnapshotDescriptor* parent) noexcept {
+    void set_parent(SnapshotDescriptor* parent)  {
         parent_ = parent;
     }
 
-    void set_superblock(uint64_t ptr, Superblock* superblock) noexcept
+    void set_superblock(uint64_t ptr, Superblock* superblock)
     {
         superblock_ptr_ = ptr;
         sequence_id_ = superblock->sequence_id();
@@ -271,40 +271,40 @@ public:
         snapshot_id_   = superblock->snapshot_id();
     }
 
-    void refresh_descriptor(Superblock* superblock) noexcept
+    void refresh_descriptor(Superblock* superblock)
     {
         sequence_id_ = superblock->sequence_id();
         consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
         snapshot_id_   = superblock->snapshot_id();
     }
 
-    bool is_transient() const noexcept {
+    bool is_transient() const  {
         return transient_;
     }
 
-    void set_transient(bool transient) noexcept {
+    void set_transient(bool transient)  {
         transient_ = transient;
         handle_descriptior_state();
     };
 
-    bool is_system_snapshot() const noexcept {
+    bool is_system_snapshot() const  {
         return system_snapshot_;
     }
 
-    void set_system_snapshot(bool value) noexcept {
+    void set_system_snapshot(bool value)  {
         system_snapshot_ = value;
     };
 
-    const SequenceID& sequence_id() const noexcept {
+    const SequenceID& sequence_id() const  {
         return sequence_id_;
     }
 
-    const SequenceID& consistency_point_sequence_id() const noexcept {
+    const SequenceID& consistency_point_sequence_id() const  {
         return sequence_id_;
     }
 
 
-    void ref() noexcept {
+    void ref()  {
         uses_.fetch_add(1);
     }
 
@@ -312,23 +312,23 @@ public:
         uses_.fetch_sub(1);
     }
 
-    bool is_in_use() noexcept {
+    bool is_in_use()  {
         return uses_.load() > 0;
     }
 
-    const SnapshotID& snapshot_id() const noexcept {
+    const SnapshotID& snapshot_id() const  {
         return snapshot_id_;
     }
 
-    auto& children() noexcept {
+    auto& children()  {
         return children_;
     }
 
-    const auto& children() const noexcept {
+    const auto& children() const  {
         return children_;
     }
 
-    bool is_read_only_openable() const noexcept {
+    bool is_read_only_openable() const  {
         return (!transient_) || references_ > 2;
     }
 
@@ -336,7 +336,7 @@ public:
 
 private:
 
-    void handle_descriptior_state() noexcept
+    void handle_descriptior_state()
     {
         auto val = references_;
 
@@ -366,7 +366,7 @@ template <typename Profile>
 using SnapshotDescriptorsList = boost::intrusive::list<SnapshotDescriptor<Profile>>;
 
 template <typename Profile>
-inline void intrusive_ptr_add_ref(SnapshotDescriptor<Profile>* x) noexcept {
+inline void intrusive_ptr_add_ref(SnapshotDescriptor<Profile>* x) {
     ++x->references_;
 }
 

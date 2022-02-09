@@ -65,7 +65,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
         return node.update();
     }
 
-    bool is_cascade_tree_removal() const noexcept {
+    bool is_cascade_tree_removal() const {
         return false;
     }
 

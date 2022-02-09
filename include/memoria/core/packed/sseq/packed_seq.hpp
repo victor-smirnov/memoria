@@ -84,17 +84,17 @@ struct ValueHelper<EmptyValue> {
 template <
     typename IK = uint32_t,
     typename V  = uint64_t,
-    int32_t Bits_ = 1,
-    int32_t BF = PackedSeqBranchingFactor,
-    int32_t VPB = PackedSeqValuesPerBranch
+    size_t Bits_ = 1,
+    size_t BF = PackedSeqBranchingFactor,
+    size_t VPB = PackedSeqValuesPerBranch
 >
 struct PackedSeqTypes {
     typedef IK              IndexKey;
     typedef V               Value;
 
-    static const int32_t Bits                   = Bits_;
-    static const int32_t BranchingFactor        = BF;
-    static const int32_t ValuesPerBranch        = VPB;
+    static const size_t Bits                   = Bits_;
+    static const size_t BranchingFactor        = BF;
+    static const size_t ValuesPerBranch        = VPB;
 };
 
 template <typename Types>
@@ -110,21 +110,21 @@ public:
     typedef typename Types::Value           Value;
     typedef typename Types::Value           Symbol;
 
-    static const int32_t Bits                   = Types::Bits;
-    static const int32_t Blocks                 = 1<<Bits;
-    static const int32_t Symbols                = Blocks;
-    static const int32_t BranchingFactor        = Types::BranchingFactor;
-    static const int32_t ValuesPerBranch        = Types::ValuesPerBranch;
+    static const size_t Bits                   = Types::Bits;
+    static const size_t Blocks                 = 1<<Bits;
+    static const size_t Symbols                = Blocks;
+    static const size_t BranchingFactor        = Types::BranchingFactor;
+    static const size_t ValuesPerBranch        = Types::ValuesPerBranch;
 
     template <typename T> friend class PackedTree;
 
 private:
 
-    static const int32_t LEVELS_MAX             = 32;
+    static const size_t LEVELS_MAX             = 32;
 
-    int32_t     size_;
-    int32_t     max_size_;
-    int32_t     index_size_;
+    size_t     size_;
+    size_t     max_size_;
+    size_t     index_size_;
     int8_t    memory_block_[];
 
 
@@ -152,10 +152,10 @@ public:
 
         handler->startGroup("INDEXES", index_size_);
 
-        for (int32_t idx = 0; idx < index_size_; idx++)
+        for (size_t idx = 0; idx < index_size_; idx++)
         {
             IndexKey indexes[Blocks];
-            for (int32_t block = 0; block < Blocks; block++)
+            for (size_t block = 0; block < Blocks; block++)
             {
                 indexes[block] = index(block, idx);
             }
@@ -177,9 +177,9 @@ public:
     template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<int32_t>::serialize(buf, size());
-        FieldFactory<int32_t>::serialize(buf, max_size_);
-        FieldFactory<int32_t>::serialize(buf, index_size_);
+        FieldFactory<psize_t>::serialize(buf, size());
+        FieldFactory<psize_t>::serialize(buf, max_size_);
+        FieldFactory<psize_t>::serialize(buf, index_size_);
 
         FieldFactory<IndexKey>::serialize(buf, indexBlock(), Blocks * indexSize());
 
@@ -192,9 +192,9 @@ public:
     template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<int32_t>::deserialize(buf, size());
-        FieldFactory<int32_t>::deserialize(buf, max_size_);
-        FieldFactory<int32_t>::deserialize(buf, index_size_);
+        FieldFactory<psize_t>::deserialize(buf, size());
+        FieldFactory<psize_t>::deserialize(buf, max_size_);
+        FieldFactory<psize_t>::deserialize(buf, index_size_);
 
         FieldFactory<IndexKey>::deserialize(buf, indexBlock(), Blocks * indexSize());
 
@@ -203,7 +203,7 @@ public:
         FieldFactory<Value>::deserialize(buf, values, getUsedValueCells());
     }
 
-    void initByBlock(int32_t block_size)
+    void initByBlock(size_t block_size)
     {
         size_ = 0;
 
@@ -214,14 +214,14 @@ public:
     }
 
 
-    void initSizes(int32_t max)
+    void initSizes(size_t max)
     {
         size_       = 0;
         max_size_   = max;
         index_size_ = getIndexSize(max_size_);
     }
 
-    int32_t getObjectSize() const
+    size_t getObjectSize() const
     {
         return sizeof(MyType) + getBlockSize();
     }
@@ -234,19 +234,19 @@ public:
         return seq.getObjectSize();
     }
 
-    int32_t getObjectDataSize() const
+    size_t getObjectDataSize() const
     {
         return sizeof(size_) + sizeof(max_size_) + sizeof(index_size_) + getBlockSize();
     }
 
-    int32_t getBlockSize() const
+    size_t getBlockSize() const
     {
         return (index_size_ * sizeof(IndexKey)) * Blocks + getValueBlockSize(max_size_);
     }
 
-    static int32_t getValueCellsCount(int32_t values_count)
+    static size_t getValueCellsCount(size_t values_count)
     {
-        int32_t total_bits  = values_count * Bits;
+        size_t total_bits  = values_count * Bits;
         size_t mask     = TypeBitmask<Value>();
         size_t bitsize  = TypeBitsize<Value>();
 
@@ -255,67 +255,67 @@ public:
         return total_bits / bitsize + (suffix > 0);
     }
 
-    static int32_t getValueBlockSize(int32_t values_count)
+    static size_t getValueBlockSize(size_t values_count)
     {
         return getValueCellsCount(values_count) * sizeof(Value);
     }
 
-    int32_t getDataSize() const
+    size_t getDataSize() const
     {
         return (index_size_ * sizeof(IndexKey)) * Blocks + getValueBlockSize(size_);
     }
 
-    int32_t getTotalDataSize() const
+    size_t getTotalDataSize() const
     {
         return (index_size_ * sizeof(IndexKey)) * Blocks + getValueBlockSize(max_size_);
     }
 
-    int32_t getUsedValueCells() const
+    size_t getUsedValueCells() const
     {
         return getValueCellsCount(size_);
     }
 
-    int32_t getTotalValueCells() const
+    size_t getTotalValueCells() const
     {
         return getValueCellsCount(max_size_);
     }
 
-    int32_t getValueCellsCapacity() const
+    size_t getValueCellsCapacity() const
     {
         return getValueCellsCount(max_size_ - size_);
     }
 
-    int32_t& size() {
+    size_t& size() {
         return size_;
     }
 
-    const int32_t& size() const
+    const size_t& size() const
     {
         return size_;
     }
 
-    int32_t capacity() const {
+    size_t capacity() const {
         return max_size_ - size_;
     }
 
-    int32_t indexSize() const
+    size_t indexSize() const
     {
         return index_size_;
     }
 
-    int32_t maxSize() const
+    size_t maxSize() const
     {
         return max_size_;
     }
 
-    static int32_t maxSizeFor(int32_t block_size)
+    static size_t maxSizeFor(size_t block_size)
     {
         return getMaxSize(block_size);
     }
 
-    static int32_t getMemoryBlockSizeFor(int32_t max)
+    static size_t getMemoryBlockSizeFor(size_t max)
     {
-        int32_t indexSize = getIndexSize(max);
+        size_t indexSize = getIndexSize(max);
         return (indexSize * sizeof(IndexKey)) * Blocks + getValueBlockSize(max);
     }
 
@@ -349,26 +349,26 @@ public:
         return ptr_cast<const IndexKey>(memory_block_);
     }
 
-    IndexKey* indexes(int32_t block) {
+    IndexKey* indexes(size_t block) {
         return ptr_cast<IndexKey>(memory_block_ + getIndexKeyBlockOffset(block));
     }
 
-    const IndexKey* indexes(int32_t block) const {
+    const IndexKey* indexes(size_t block) const {
         return ptr_cast<const IndexKey>(memory_block_ + getIndexKeyBlockOffset(block));
     }
 
 
-    int32_t getIndexKeyBlockOffset(int32_t block_num) const
+    size_t getIndexKeyBlockOffset(size_t block_num) const
     {
         return sizeof(IndexKey) * index_size_ * block_num;
     }
 
-    int32_t getValueBlockOffset() const
+    size_t getValueBlockOffset() const
     {
         return getIndexKeyBlockOffset(Blocks);
     }
 
-    IndexKey& indexb(int32_t block_offset, int32_t key_num)
+    IndexKey& indexb(size_t block_offset, size_t key_num)
     {
         MEMORIA_ASSERT(key_num, >=, 0);
         MEMORIA_ASSERT(key_num, <, index_size_);
@@ -376,7 +376,7 @@ public:
         return *ptr_cast<IndexKey>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
     }
 
-    const IndexKey& indexb(int32_t block_offset, int32_t key_num) const
+    const IndexKey& indexb(size_t block_offset, size_t key_num) const
     {
         MEMORIA_ASSERT(key_num, >=, 0);
         MEMORIA_ASSERT(key_num, <, index_size_);
@@ -384,43 +384,43 @@ public:
         return *ptr_cast<const IndexKey>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
     }
 
-    IndexKey& index(int32_t block_num, int32_t key_num)
+    IndexKey& index(size_t block_num, size_t key_num)
     {
         MEMORIA_ASSERT(key_num, >=, 0);
         MEMORIA_ASSERT(key_num, <, index_size_);
 
-        int32_t block_offset = getIndexKeyBlockOffset(block_num);
+        size_t block_offset = getIndexKeyBlockOffset(block_num);
 
         return *ptr_cast<IndexKey>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
     }
 
-    const IndexKey& index(int32_t block_num, int32_t key_num) const
+    const IndexKey& index(size_t block_num, size_t key_num) const
     {
         MEMORIA_ASSERT(key_num, >=, 0);
         MEMORIA_ASSERT(key_num, <, index_size_);
 
-        int32_t block_offset = getIndexKeyBlockOffset(block_num);
+        size_t block_offset = getIndexKeyBlockOffset(block_num);
 
         return *ptr_cast<IndexKey>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
     }
 
-    IndexKey& maxIndex(int32_t block_num)
+    IndexKey& maxIndex(size_t block_num)
     {
         return index(block_num, 0);
     }
 
-    const IndexKey& maxIndex(int32_t block_num) const
+    const IndexKey& maxIndex(size_t block_num) const
     {
         return index(block_num, 0);
     }
 
-    const IndexKey& maxIndexb(int32_t block_offset) const
+    const IndexKey& maxIndexb(size_t block_offset) const
     {
         return indexb(block_offset, 0);
     }
 
 
-    int32_t rank(int32_t from, int32_t to, Value symbol) const
+    size_t rank(size_t from, size_t to, Value symbol) const
     {
         MEMORIA_ASSERT(from, >=, 0);
         MEMORIA_ASSERT(to, >=, from);
@@ -433,7 +433,7 @@ public:
         return walker.sum();
     }
 
-    int32_t rank(int32_t to, Value symbol) const
+    size_t rank(size_t to, Value symbol) const
     {
         MEMORIA_ASSERT(to, <, size());
 
@@ -445,7 +445,7 @@ public:
     }
 
 
-    int32_t rank1(int32_t from, int32_t to, Value symbol) const
+    size_t rank1(size_t from, size_t to, Value symbol) const
     {
         MEMORIA_ASSERT(from, >=, 0);
         MEMORIA_ASSERT(to, >=, from);
@@ -458,7 +458,7 @@ public:
         return walker.sum();
     }
 
-    int32_t rank1(int32_t to, Value symbol) const
+    size_t rank1(size_t to, Value symbol) const
     {
         MEMORIA_ASSERT(to, <=, size());
 
@@ -471,7 +471,7 @@ public:
 
 
 
-    SelectResult selectFW(int32_t from, Value symbol, int32_t rank) const
+    SelectResult selectFW(size_t from, Value symbol, size_t rank) const
     {
         MEMORIA_ASSERT(from, >=, 0);
         MEMORIA_ASSERT(from, <, size());
@@ -489,7 +489,7 @@ public:
         return SelectResult(idx, walker.sum(), walker.is_found());
     }
 
-    SelectResult selectFW(Value symbol, int32_t rank) const
+    SelectResult selectFW(Value symbol, size_t rank) const
     {
         intrnl1::EmptyMainWalker mw;
         bt::EmptyExtenderState state;
@@ -505,7 +505,7 @@ public:
     }
 
 
-    SelectResult selectBW(int32_t from, Value symbol, int32_t rank) const
+    SelectResult selectBW(size_t from, Value symbol, size_t rank) const
     {
         intrnl1::EmptyMainWalker mw;
         bt::EmptyExtenderState state;
@@ -520,7 +520,7 @@ public:
         return SelectResult(idx, walker.sum(), walker.is_found());
     }
 
-    IndexKey countFW(int32_t from, Value symbol) const
+    IndexKey countFW(size_t from, Value symbol) const
     {
         intrnl1::EmptyMainWalker mw;
         bt::EmptyExtenderState state;
@@ -535,7 +535,7 @@ public:
         return walker.sum();
     }
 
-    IndexKey countBW(int32_t from, Value symbol) const
+    IndexKey countBW(size_t from, Value symbol) const
     {
 //      CountBWWalker<MyType, Bits> walker(*this, symbol);
 //
@@ -563,7 +563,7 @@ public:
         out_<<"index_size_ = "<<index_size_<<endl;
 
         Expand(out_, 5);
-        for (int32_t d = 0; d < Blocks; d++)
+        for (size_t d = 0; d < Blocks; d++)
         {
             out_.width(5);
             out_<<d;
@@ -571,11 +571,11 @@ public:
 
         out_<<endl<<endl;
 
-        for (int32_t c = 0; c < index_size_; c++)
+        for (size_t c = 0; c < index_size_; c++)
         {
             out_.width(4);
             out_<<c<<": ";
-            for (int32_t d = 0; d < Blocks; d++)
+            for (size_t d = 0; d < Blocks; d++)
             {
                 out_.width(4);
                 out_<<this->indexb(this->getIndexKeyBlockOffset(d), c)<<" ";
@@ -584,7 +584,7 @@ public:
         }
 
 
-        int32_t columns;
+        size_t columns;
 
         switch (Bits) {
         case 1: columns = 100; break;
@@ -593,9 +593,9 @@ public:
         default: columns = 50;
         }
 
-        int32_t width = Bits <= 4 ? 1 : 3;
+        size_t width = Bits <= 4 ? 1 : 3;
 
-        int32_t c = 0;
+        size_t c = 0;
 
         do
         {
@@ -608,7 +608,7 @@ public:
             }
             out_<<endl;
 
-            int32_t rows = 0;
+            size_t rows = 0;
             for (; c < size() && rows < 10; c += columns, rows++)
             {
                 Expand(out_, 12);
@@ -618,7 +618,7 @@ public:
                 out_.width(6);
                 out_<<c<<": ";
 
-                for (int32_t d = 0; d < columns && c + d < size(); d++)
+                for (size_t d = 0; d < columns && c + d < size(); d++)
                 {
                     out_<<hex;
                     out_.width(width);
@@ -634,11 +634,11 @@ private:
 
     class ValueSetter {
         MyType& me_;
-        int32_t     block_offset_;
-        int32_t     idx_;
+        size_t     block_offset_;
+        size_t     idx_;
 
     public:
-        ValueSetter(MyType& me, int32_t block_offset, int32_t idx):
+        ValueSetter(MyType& me, size_t block_offset, size_t idx):
             me_(me),
             block_offset_(block_offset),
             idx_(idx)
@@ -659,7 +659,7 @@ private:
 
 
 public:
-    ValueSetter value(int32_t value_num)
+    ValueSetter value(size_t value_num)
     {
         MEMORIA_ASSERT(value_num, >=, 0);
         MEMORIA_ASSERT(value_num, <, max_size_);
@@ -667,7 +667,7 @@ public:
         return valueb(getValueBlockOffset(), value_num);
     }
 
-    Value value(int32_t value_num) const
+    Value value(size_t value_num) const
     {
         MEMORIA_ASSERT(value_num, >=, 0);
         MEMORIA_ASSERT(value_num, <, max_size_);
@@ -675,7 +675,7 @@ public:
         return valueb(getValueBlockOffset(), value_num);
     }
 
-    ValueSetter valueb(int32_t block_offset, int32_t value_num)
+    ValueSetter valueb(size_t block_offset, size_t value_num)
     {
         MEMORIA_ASSERT(value_num, >=, 0);
         MEMORIA_ASSERT(value_num, <, max_size_);
@@ -683,7 +683,7 @@ public:
         return ValueSetter(*this, block_offset, value_num);
     }
 
-    Value valueb(int32_t block_offset, int32_t value_num) const
+    Value valueb(size_t block_offset, size_t value_num) const
     {
         MEMORIA_ASSERT(value_num, >=, 0);
         MEMORIA_ASSERT(value_num, <, max_size_);
@@ -691,7 +691,7 @@ public:
         return this->getValueItem(block_offset, value_num);
     }
 
-    Value getValueItem(int32_t block_offset, int32_t item_idx) const
+    Value getValueItem(size_t block_offset, size_t item_idx) const
     {
         if (Bits == 1 || Bits == 2 || Bits == 4)
         {
@@ -710,7 +710,7 @@ public:
         }
     }
 
-    void setValueItem(int32_t block_offset, int32_t item_idx, const Value& v)
+    void setValueItem(size_t block_offset, size_t item_idx, const Value& v)
     {
         if (Bits == 1 || Bits == 2 || Bits == 4)
         {
@@ -729,7 +729,7 @@ public:
         }
     }
 
-    bool testb(int32_t block_offset, int32_t item_idx, Value value) const
+    bool testb(size_t block_offset, size_t item_idx, Value value) const
     {
         if (Bits == 1 || Bits == 2 || Bits == 4)
         {
@@ -741,7 +741,7 @@ public:
         }
     }
 
-    bool test(int32_t item_idx, Value value) const
+    bool test(size_t item_idx, Value value) const
     {
         if (Bits == 1 || Bits == 2 || Bits == 4)
         {
@@ -749,22 +749,22 @@ public:
             return TestBits(buffer, item_idx * Bits, value, Bits);
         }
         else {
-            int32_t block_offset = getValueBlockOffset();
+            size_t block_offset = getValueBlockOffset();
             return valueb(block_offset, item_idx) == value;
         }
     }
 
-    const Value* cellAddr(int32_t idx) const
+    const Value* cellAddr(size_t idx) const
     {
         return ptr_cast<const Value>(valuesBlock() + idx);
     }
 
-    Value* cellAddr(int32_t idx)
+    Value* cellAddr(size_t idx)
     {
         return ptr_cast<Value>(valuesBlock() + idx);
     }
 
-    void copyTo(MyType* other, int32_t copy_from, int32_t count, int32_t copy_to) const
+    void copyTo(MyType* other, size_t copy_from, size_t count, size_t copy_to) const
     {
         MEMORIA_ASSERT(copy_from, >=, 0);
         MEMORIA_ASSERT(copy_from + count, <=, max_size_);
@@ -779,17 +779,17 @@ public:
         MoveBits(src, dst, copy_from * Bits, copy_to * Bits, count * Bits);
     }
 
-    void clearValues(int32_t from, int32_t to)
+    void clearValues(size_t from, size_t to)
     {
-        int32_t block_offset = this->getValueBlockOffset();
+        size_t block_offset = this->getValueBlockOffset();
 
-        for (int32_t idx = from; idx < to; idx++)
+        for (size_t idx = from; idx < to; idx++)
         {
             valueb(block_offset, idx) = 0;
         }
     }
 
-    void clear(int32_t from, int32_t to)
+    void clear(size_t from, size_t to)
     {
         MEMORIA_ASSERT(from, >=, 0);
         MEMORIA_ASSERT(to, <=, max_size_);
@@ -798,9 +798,9 @@ public:
         clearValues(from, to);
     }
 
-    void clearIndex(int32_t block)
+    void clearIndex(size_t block)
     {
-        for (int32_t idx = 0; idx < indexSize(); idx++)
+        for (size_t idx = 0; idx < indexSize(); idx++)
         {
             index(block, idx) = 0;
         }
@@ -808,7 +808,7 @@ public:
 
     void clearIndexes()
     {
-        for (int32_t b = 0; b < Blocks; b++)
+        for (size_t b = 0; b < Blocks; b++)
         {
             clearIndex(b);
         }
@@ -825,7 +825,7 @@ public:
         clearIndexes();
     }
 
-    void enlargeBlock(int32_t block_size)
+    void enlargeBlock(size_t block_size)
     {
         MyType buf;
         buf.initByBlock(block_size);
@@ -839,7 +839,7 @@ public:
         clearUnused();
     }
 
-    void shrinkBlock(int32_t block_size)
+    void shrinkBlock(size_t block_size)
     {
         MyType buf;
         buf.initByBlock(block_size);
@@ -867,7 +867,7 @@ public:
         copyValuesBlock(other, memory_block);
     }
 
-    void insertSpace(int32_t room_start, int32_t room_length)
+    void insertSpace(size_t room_start, size_t room_length)
     {
         MEMORIA_ASSERT(room_start,  >=, 0);
         MEMORIA_ASSERT(room_start,  <, max_size_);
@@ -881,7 +881,7 @@ public:
         size_ += room_length;
     }
 
-    void removeSpace(int32_t room_start, int32_t room_length)
+    void removeSpace(size_t room_start, size_t room_length)
     {
         MEMORIA_ASSERT(room_start,  >=, 0);
         MEMORIA_ASSERT(room_start,  <, size_);
@@ -889,28 +889,28 @@ public:
         MEMORIA_ASSERT(room_length, >=, 0);
         MEMORIA_ASSERT(room_start + room_length, <=, size_);
 
-        int32_t copy_from = room_start + room_length;
+        size_t copy_from = room_start + room_length;
 
         copyTo(this, copy_from, size() - copy_from, room_start);
 
         size_ -= room_length;
     }
 
-    void add(int32_t block_num, int32_t idx, const IndexKey& value)
+    void add(size_t block_num, size_t idx, const IndexKey& value)
     {
-        int32_t index_block_offset  = getIndexKeyBlockOffset(block_num);
+        size_t index_block_offset  = getIndexKeyBlockOffset(block_num);
 
-        int32_t index_level_size    = getIndexCellsNumberFor(max_size_);
-        int32_t index_level_start   = index_size_ - index_level_size;
+        size_t index_level_size    = getIndexCellsNumberFor(max_size_);
+        size_t index_level_start   = index_size_ - index_level_size;
 
-        int32_t level = 0;
+        size_t level = 0;
         while (index_level_start >= 0)
         {
             idx /= BranchingFactor;
 
             indexb(index_block_offset, idx + index_level_start) += value;
 
-            int32_t index_parent_size   = getIndexCellsNumberFor(level, index_level_size);
+            size_t index_parent_size   = getIndexCellsNumberFor(level, index_level_size);
 
             index_level_size        = index_parent_size;
             index_level_start       -= index_parent_size;
@@ -920,7 +920,7 @@ public:
     }
 
 
-    void insert(const Value& val, int32_t at)
+    void insert(const Value& val, size_t at)
     {
         if (at < size_ - 1)
         {
@@ -931,17 +931,17 @@ public:
     }
 
 
-    void updateUp(int32_t block_num, int32_t idx, IndexKey key_value)
+    void updateUp(size_t block_num, size_t idx, IndexKey key_value)
     {
         MEMORIA_ASSERT(idx, >=, 0);
         MEMORIA_ASSERT(idx, <=, size());
 
-        int32_t level_size      = maxSize();
-        int32_t level_start     = indexSize();
+        size_t level_size      = maxSize();
+        size_t level_start     = indexSize();
 
-        int32_t block_offset    = getIndexKeyBlockOffset(block_num);
+        size_t block_offset    = getIndexKeyBlockOffset(block_num);
 
-        int32_t level           = 0;
+        size_t level           = 0;
 
         do {
             level_size      = getIndexCellsNumberFor(level, level_size);
@@ -959,56 +959,56 @@ public:
         while (level_start > 0);
     }
 
-    void reindex(int32_t start, int32_t end)
+    void reindex(size_t start, size_t end)
     {
         MEMORIA_ASSERT(start, >=, 0);
         MEMORIA_ASSERT(end, <=, size());
         MEMORIA_ASSERT(start, <=, end);
 
-        int32_t block_start = getBlockStartV(start);
-        int32_t block_end   = getBlockEndV(end);
+        size_t block_start = getBlockStartV(start);
+        size_t block_end   = getBlockEndV(end);
 
-        int32_t value_block_offset  = getValueBlockOffset();
+        size_t value_block_offset  = getValueBlockOffset();
 
-        int32_t index_level_size    = getIndexCellsNumberFor(0, maxSize());
-        int32_t index_level_start   = indexSize() - index_level_size;
+        size_t index_level_size    = getIndexCellsNumberFor(0, maxSize());
+        size_t index_level_start   = indexSize() - index_level_size;
 
-        int32_t level_max           = size();
+        size_t level_max           = size();
 
         if (Bits < 3)
         {
-            for (int32_t block = 0; block < Blocks; block++)
+            for (size_t block = 0; block < Blocks; block++)
             {
-                int32_t index_block_offset  = getIndexKeyBlockOffset(block);
+                size_t index_block_offset  = getIndexKeyBlockOffset(block);
 
-                for (int32_t c = block_start; c < block_end; c += ValuesPerBranch)
+                for (size_t c = block_start; c < block_end; c += ValuesPerBranch)
                 {
-                    int32_t max      = c + ValuesPerBranch <= level_max ? c + ValuesPerBranch : level_max;
+                    size_t max      = c + ValuesPerBranch <= level_max ? c + ValuesPerBranch : level_max;
 
                     IndexKey sum = popCount(value_block_offset, c, max, block);
 
-                    int32_t idx = c / ValuesPerBranch + index_level_start;
+                    size_t idx = c / ValuesPerBranch + index_level_start;
                     indexb(index_block_offset, idx) = sum;
                 }
             }
         }
         else {
-            for (int32_t c = block_start; c < block_end; c += ValuesPerBranch)
+            for (size_t c = block_start; c < block_end; c += ValuesPerBranch)
             {
-                int32_t max      = c + ValuesPerBranch <= level_max ? c + ValuesPerBranch : level_max;
+                size_t max      = c + ValuesPerBranch <= level_max ? c + ValuesPerBranch : level_max;
 
                 IndexKey sums[Blocks];
-                for (int32_t block = 0; block < Blocks; block++) sums[block] = 0;
+                for (size_t block = 0; block < Blocks; block++) sums[block] = 0;
 
-                for (int32_t d = c; d < max; d++)
+                for (size_t d = c; d < max; d++)
                 {
                     Value symbol = valueb(value_block_offset, d);
                     sums[symbol]++;
                 }
 
-                int32_t idx = c / ValuesPerBranch + index_level_start;
+                size_t idx = c / ValuesPerBranch + index_level_start;
 
-                for (int32_t block = 0; block < Blocks; block++)
+                for (size_t block = 0; block < Blocks; block++)
                 {
                     index(block, idx) = sums[block];
                 }
@@ -1016,19 +1016,19 @@ public:
         }
 
 
-        for (int32_t block = 0; block < Blocks; block ++)
+        for (size_t block = 0; block < Blocks; block ++)
         {
-            int32_t block_start0        = block_start;
-            int32_t block_end0          = block_end;
-            int32_t level_max0          = level_max;
-            int32_t index_level_start0  = index_level_start;
-            int32_t index_level_size0   = index_level_size;
+            size_t block_start0        = block_start;
+            size_t block_end0          = block_end;
+            size_t level_max0          = level_max;
+            size_t index_level_start0  = index_level_start;
+            size_t index_level_size0   = index_level_size;
 
 
-            int32_t level = 0;
-            int32_t index_block_offset = getIndexKeyBlockOffset(block);
+            size_t level = 0;
+            size_t index_block_offset = getIndexKeyBlockOffset(block);
 
-            int32_t divider = ValuesPerBranch;
+            size_t divider = ValuesPerBranch;
 
             while (index_level_start0 > 0)
             {
@@ -1036,21 +1036,21 @@ public:
                 block_start0    = getBlockStart(block_start0 / divider);
                 block_end0      = getBlockEnd(block_end0 / divider);
 
-                int32_t index_parent_size   = getIndexCellsNumberFor(level + 1, index_level_size0);
-                int32_t index_parent_start  = index_level_start0 - index_parent_size;
+                size_t index_parent_size   = getIndexCellsNumberFor(level + 1, index_level_size0);
+                size_t index_parent_start  = index_level_start0 - index_parent_size;
 
-                for (int32_t c = block_start0; c < block_end0; c += BranchingFactor)
+                for (size_t c = block_start0; c < block_end0; c += BranchingFactor)
                 {
                     IndexKey sum = 0;
-                    int32_t max      = (c + BranchingFactor <= level_max0 ? c + BranchingFactor : level_max0)
+                    size_t max      = (c + BranchingFactor <= level_max0 ? c + BranchingFactor : level_max0)
                                     + index_level_start0;
 
-                    for (int32_t d = c + index_level_start0; d < max; d++)
+                    for (size_t d = c + index_level_start0; d < max; d++)
                     {
                         sum += indexb(index_block_offset, d);
                     }
 
-                    int32_t idx = c / BranchingFactor + index_parent_start;
+                    size_t idx = c / BranchingFactor + index_parent_start;
                     indexb(index_block_offset, idx) = sum;
                 }
 
@@ -1071,13 +1071,13 @@ public:
     }
 
 
-    IndexKey popCount(int32_t start, int32_t end, Value symbol) const
+    IndexKey popCount(size_t start, size_t end, Value symbol) const
     {
-        int32_t block_offset = getValueBlockOffset();
+        size_t block_offset = getValueBlockOffset();
         return popCount(block_offset, start, end, symbol);
     }
 
-    IndexKey popCount(int32_t block_offset, int32_t start, int32_t end, Value symbol) const
+    IndexKey popCount(size_t block_offset, size_t start, size_t end, Value symbol) const
     {
         if (Bits == 1)
         {
@@ -1093,7 +1093,7 @@ public:
         else {
             IndexKey total = 0;
 
-            for (int32_t c = start; c < end; c++)
+            for (size_t c = start; c < end; c++)
             {
                 total += testb(block_offset, c, symbol);
             }
@@ -1117,7 +1117,7 @@ private:
 
 public:
     template <typename Functor>
-    void walkRange(int32_t start, int32_t end, Functor& walker) const
+    void walkRange(size_t start, size_t end, Functor& walker) const
     {
         MEMORIA_ASSERT(start, >=, 0);
         MEMORIA_ASSERT(end,   <=,  size());
@@ -1130,14 +1130,14 @@ public:
             walker.walkValues(start, end);
         }
         else {
-            int32_t block_start_end     = getBlockStartEndV(start);
-            int32_t block_end_start     = getBlockStartV(end);
+            size_t block_start_end     = getBlockStartEndV(start);
+            size_t block_end_start     = getBlockStartV(end);
 
             walker.walkValues(start, block_start_end);
 
             if (block_start_end < block_end_start)
             {
-                int32_t level_size = getIndexCellsNumberFor(0, max_size_);
+                size_t level_size = getIndexCellsNumberFor(0, max_size_);
                 walker.prepareIndex();
                 walkIndexRange(
                         start / ValuesPerBranch + 1,
@@ -1154,17 +1154,17 @@ public:
     }
 
     template <typename Walker>
-    void walkRange(int32_t target, Walker& walker) const
+    void walkRange(size_t target, Walker& walker) const
     {
         MEMORIA_ASSERT(target,   <=,  size());
 
         FinishHandler<Walker> finish_handler(walker);
 
-        int32_t levels = 0;
-        int32_t level_sizes[LEVELS_MAX];
+        size_t levels = 0;
+        size_t level_sizes[LEVELS_MAX];
 
-        int32_t level_size = max_size_;
-        int32_t cell_size = 1;
+        size_t level_size = max_size_;
+        size_t cell_size = 1;
 
         do
         {
@@ -1174,16 +1174,16 @@ public:
         while (level_size > 1);
 
         cell_size = ValuesPerBranch;
-        for (int32_t c = 0; c < levels - 2; c++)
+        for (size_t c = 0; c < levels - 2; c++)
         {
             cell_size *= BranchingFactor;
         }
 
-        int32_t base = 1, start = 0, target_idx = target;
+        size_t base = 1, start = 0, target_idx = target;
 
-        for (int32_t level = levels - 2; level >= 0; level--)
+        for (size_t level = levels - 2; level >= 0; level--)
         {
-            int32_t end = target_idx / cell_size;
+            size_t end = target_idx / cell_size;
 
             walker.walkIndex(start + base, end + base);
 
@@ -1197,14 +1197,14 @@ public:
 
 
     template <typename Walker>
-    int32_t findFw(Walker &walker) const
+    size_t findFw(Walker &walker) const
     {
         FinishHandler<Walker> finish_handler(walker);
 
-        int32_t levels = 0;
-        int32_t level_sizes[LEVELS_MAX];
+        size_t levels = 0;
+        size_t level_sizes[LEVELS_MAX];
 
-        int32_t level_size = max_size_;
+        size_t level_size = max_size_;
 
         do
         {
@@ -1213,14 +1213,14 @@ public:
         }
         while (level_size > 1);
 
-        int32_t base = 1, start = 0;
+        size_t base = 1, start = 0;
 
-        for (int32_t level = levels - 2; level >= 0; level--)
+        for (size_t level = levels - 2; level >= 0; level--)
         {
-            int32_t level_size  = level_sizes[level];
-            int32_t end         = (start + BranchingFactor < level_size) ? (start + BranchingFactor) : level_size;
+            size_t level_size  = level_sizes[level];
+            size_t end         = (start + BranchingFactor < level_size) ? (start + BranchingFactor) : level_size;
 
-            int32_t idx = walker.walkIndex(start + base, end + base, 0) - base;
+            size_t idx = walker.walkIndex(start + base, end + base, 0) - base;
             if (idx < end)
             {
                 start = level > 0 ? idx * BranchingFactor : idx * ValuesPerBranch;
@@ -1232,7 +1232,7 @@ public:
             base += level_size;
         }
 
-        int32_t end = (start + ValuesPerBranch) > size_ ? size_ : start + ValuesPerBranch;
+        size_t end = (start + ValuesPerBranch) > size_ ? size_ : start + ValuesPerBranch;
 
         return walker.walkValues(start, end);
     }
@@ -1240,13 +1240,13 @@ public:
 
 
     template <typename Walker>
-    int32_t findFw(int32_t start, Walker& walker) const
+    size_t findFw(size_t start, Walker& walker) const
     {
         MEMORIA_ASSERT(start, <=, size());
 
         FinishHandler<Walker> finish_handler(walker);
 
-        int32_t block_limit     = getBlockStartEndV(start);
+        size_t block_limit     = getBlockStartEndV(start);
 
         if (block_limit >= size())
         {
@@ -1254,7 +1254,7 @@ public:
         }
         else
         {
-            int32_t limit = walker.walkValues(start, block_limit);
+            size_t limit = walker.walkValues(start, block_limit);
             if (limit < block_limit)
             {
                 return limit;
@@ -1262,9 +1262,9 @@ public:
             else {
                 walker.prepareIndex();
 
-                int32_t level_size      = getIndexCellsNumberFor(0, max_size_);
-                int32_t level_limit     = getIndexCellsNumberFor(0, size_);
-                int32_t last_start      = walkIndexFw(
+                size_t level_size      = getIndexCellsNumberFor(0, max_size_);
+                size_t level_limit     = getIndexCellsNumberFor(0, size_);
+                size_t last_start      = walkIndexFw(
                         block_limit/ValuesPerBranch,
                         walker,
                         index_size_ - level_size,
@@ -1276,9 +1276,9 @@ public:
 
                 if (last_start < size())
                 {
-                    int32_t last_start_end  = getBlockStartEndV(last_start);
+                    size_t last_start_end  = getBlockStartEndV(last_start);
 
-                    int32_t last_end = last_start_end <= size()? last_start_end : size();
+                    size_t last_end = last_start_end <= size()? last_start_end : size();
 
                     return walker.walkValues(last_start, last_end);
                 }
@@ -1290,13 +1290,13 @@ public:
     }
 
     template <typename Walker>
-    size_t findBw(int32_t start, Walker& walker) const
+    size_t findBw(size_t start, Walker& walker) const
     {
         MEMORIA_ASSERT(start, >=, 0);
 
         FinishHandler<Walker> finish_handler(walker);
 
-        int32_t block_end   = getBlockStartEndBwV(start);
+        size_t block_end   = getBlockStartEndBwV(start);
 
         if (block_end == 0)
         {
@@ -1304,7 +1304,7 @@ public:
         }
         else
         {
-            int32_t limit = walker.walkValues(start, block_end);
+            size_t limit = walker.walkValues(start, block_end);
             if (walker.is_found())
             {
                 return limit;
@@ -1312,8 +1312,8 @@ public:
             else {
                 walker.prepareIndex();
 
-                int32_t level_size = getIndexCellsNumberFor(0, max_size_);
-                int32_t last_start = walkIndexBw(
+                size_t level_size = getIndexCellsNumberFor(0, max_size_);
+                size_t last_start = walkIndexBw(
                                     block_end/ValuesPerBranch - 1,
                                     walker,
                                     index_size_ - level_size,
@@ -1334,52 +1334,52 @@ public:
     }
 
 protected:
-    static int32_t getBlockStart(int32_t i)
+    static size_t getBlockStart(size_t i)
     {
         return (i / BranchingFactor) * BranchingFactor;
     }
 
-    static int32_t getBlockStartEnd(int32_t i)
+    static size_t getBlockStartEnd(size_t i)
     {
         return (i / BranchingFactor + 1) * BranchingFactor;
     }
 
-    static int32_t getBlockStartV(int32_t i)
+    static size_t getBlockStartV(size_t i)
     {
         return (i / ValuesPerBranch) * ValuesPerBranch;
     }
 
-    static int32_t getBlockStartEndV(int32_t i)
+    static size_t getBlockStartEndV(size_t i)
     {
         return (i / ValuesPerBranch + 1) * ValuesPerBranch;
     }
 
-    static int32_t getBlockStartEndBw(int32_t i)
+    static size_t getBlockStartEndBw(size_t i)
     {
         return (i / BranchingFactor) * BranchingFactor - 1;
     }
 
-    static int32_t getBlockStartEndBwV(int32_t i)
+    static size_t getBlockStartEndBwV(size_t i)
     {
         return (i / ValuesPerBranch) * ValuesPerBranch;
     }
 
-    static int32_t getBlockEnd(int32_t i)
+    static size_t getBlockEnd(size_t i)
     {
         return (i / BranchingFactor + ((i % BranchingFactor) ? 1 : 0)) * BranchingFactor;
     }
 
-    static int32_t getBlockEndV(int32_t i)
+    static size_t getBlockEndV(size_t i)
     {
         return (i / ValuesPerBranch + ((i % ValuesPerBranch) ? 1 : 0)) * ValuesPerBranch;
     }
 
-    static int32_t getIndexCellsNumberFor(int32_t i)
+    static size_t getIndexCellsNumberFor(size_t i)
     {
         return getIndexCellsNumberFor(1, i);
     }
 
-    static int32_t getIndexCellsNumberFor(int32_t level, int32_t i)
+    static size_t getIndexCellsNumberFor(size_t level, size_t i)
     {
         if (level > 0)
         {
@@ -1393,21 +1393,21 @@ protected:
 private:
 
     template <typename Functor>
-    void walkIndexRange(int32_t start, int32_t end, Functor& walker, int32_t level_offet, int32_t level_size, int32_t cell_size) const
+    void walkIndexRange(size_t start, size_t end, Functor& walker, size_t level_offet, size_t level_size, size_t cell_size) const
     {
         if (end - start <= BranchingFactor * 2)
         {
             walker.walkIndex(start + level_offet, end + level_offet);
         }
         else {
-            int32_t block_start_end     = getBlockStartEnd(start);
-            int32_t block_end_start     = getBlockStart(end);
+            size_t block_start_end     = getBlockStartEnd(start);
+            size_t block_end_start     = getBlockStart(end);
 
             walker.walkIndex(start + level_offet, block_start_end + level_offet);
 
             if (block_start_end < block_end_start)
             {
-                int32_t level_size0 = getIndexCellsNumberFor(level_size);
+                size_t level_size0 = getIndexCellsNumberFor(level_size);
                 walkIndexRange(
                         start / BranchingFactor + 1,
                         end / BranchingFactor,
@@ -1423,17 +1423,17 @@ private:
     }
 
     template <typename Walker>
-    int32_t walkIndexFw(
-            int32_t start,
+    size_t walkIndexFw(
+            size_t start,
             Walker& walker,
-            int32_t level_offet,
-            int32_t level_size,
-            int32_t level_limit,
-            int32_t cells_number_on_lower_level,
-            int32_t cell_size
+            size_t level_offet,
+            size_t level_size,
+            size_t level_limit,
+            size_t cells_number_on_lower_level,
+            size_t cell_size
     ) const
     {
-        int32_t block_start_end     = getBlockStartEnd(start);
+        size_t block_start_end     = getBlockStartEnd(start);
 
         if (block_start_end >= level_limit)
         {
@@ -1446,16 +1446,16 @@ private:
         }
         else
         {
-            int32_t limit = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
+            size_t limit = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
             if (limit < block_start_end)
             {
                 return limit * cells_number_on_lower_level;
             }
             else {
-                int32_t level_size0     = getIndexCellsNumberFor(level_size);
-                int32_t level_limit0    = getIndexCellsNumberFor(level_limit);
+                size_t level_size0     = getIndexCellsNumberFor(level_size);
+                size_t level_limit0    = getIndexCellsNumberFor(level_limit);
 
-                int32_t last_start      = walkIndexFw(
+                size_t last_start      = walkIndexFw(
                                         block_start_end / BranchingFactor,
                                         walker,
                                         level_offet - level_size0,
@@ -1465,9 +1465,9 @@ private:
                                         cell_size * BranchingFactor
                                       );
 
-                int32_t last_start_end  = getBlockStartEnd(last_start);
+                size_t last_start_end  = getBlockStartEnd(last_start);
 
-                int32_t last_end = last_start_end <= level_limit ? last_start_end : level_limit;
+                size_t last_end = last_start_end <= level_limit ? last_start_end : level_limit;
 
                 return (walker.walkIndex(
                                     last_start + level_offet,
@@ -1480,16 +1480,16 @@ private:
     }
 
     template <typename Walker>
-    int32_t walkIndexBw(
-            int32_t start,
+    size_t walkIndexBw(
+            size_t start,
             Walker& walker,
-            int32_t level_offet,
-            int32_t level_size,
-            int32_t cells_number_on_lower_level,
-            int32_t cell_size
+            size_t level_offet,
+            size_t level_size,
+            size_t cells_number_on_lower_level,
+            size_t cell_size
     ) const
     {
-        int32_t block_start_end     = getBlockStartEndBw(start);
+        size_t block_start_end     = getBlockStartEndBw(start);
 
         if (block_start_end == -1)
         {
@@ -1502,14 +1502,14 @@ private:
         }
         else
         {
-            int32_t idx = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
+            size_t idx = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
             if (idx > block_start_end)
             {
                 return (idx + 1) * cells_number_on_lower_level;
             }
             else {
-                int32_t level_size0 = getIndexCellsNumberFor(level_size);
-                int32_t last_start  = walkIndexBw(
+                size_t level_size0 = getIndexCellsNumberFor(level_size);
+                size_t last_start  = walkIndexBw(
                                     block_start_end / BranchingFactor,
                                     walker,
                                     level_offet - level_size0,
@@ -1518,7 +1518,7 @@ private:
                                     cell_size * BranchingFactor
                                   ) - 1;
 
-                int32_t last_start_end = getBlockStartEndBw(last_start);
+                size_t last_start_end = getBlockStartEndBw(last_start);
 
                 return (walker.walkIndex(
                                     last_start + level_offet,
@@ -1538,20 +1538,20 @@ private:
         CopyBuffer(valuesBlock(), tgt, getValueCellsCount(size()));
     }
 
-    static int32_t getBlockSize(int32_t item_count)
+    static size_t getBlockSize(size_t item_count)
     {
         return getIndexSize(item_count) * sizeof(IndexKey) * Blocks + getValueBlockSize(item_count);
     }
 
-    static int32_t getIndexSize(int32_t csize)
+    static size_t getIndexSize(size_t csize)
     {
         if (csize == 1)
         {
             return 1;
         }
         else {
-            int32_t sum = 0;
-            for (int32_t nlevels=0; csize > 1; nlevels++)
+            size_t sum = 0;
+            for (size_t nlevels=0; csize > 1; nlevels++)
             {
                 if (nlevels > 0) {
                     csize = ((csize % BranchingFactor) == 0) ? (csize / BranchingFactor) : (csize / BranchingFactor) + 1;
@@ -1565,16 +1565,16 @@ private:
         }
     }
 
-    static int32_t getMaxSize(int32_t block_size)
+    static size_t getMaxSize(size_t block_size)
     {
-        int32_t first       = 1;
-        int32_t last        = block_size * 8 / Bits;
+        size_t first       = 1;
+        size_t last        = block_size * 8 / Bits;
 
         while (first < last - 1)
         {
-            int32_t middle = (first + last) / 2;
+            size_t middle = (first + last) / 2;
 
-            int32_t size = getBlockSize(middle);
+            size_t size = getBlockSize(middle);
             if (size < block_size)
             {
                 first = middle;
@@ -1588,7 +1588,7 @@ private:
             }
         }
 
-        int32_t max_size;
+        size_t max_size;
 
         if (getBlockSize(last) <= block_size)
         {
@@ -1602,8 +1602,8 @@ private:
             max_size = first;
         }
 
-        int32_t cells = getValueCellsCount(max_size);
-        int32_t max = cells * TypeBitsize<Value>() / Bits;
+        size_t cells = getValueCellsCount(max_size);
+        size_t max = cells * TypeBitsize<Value>() / Bits;
 
         if (getIndexSize(max) <= getIndexSize(max_size))
         {

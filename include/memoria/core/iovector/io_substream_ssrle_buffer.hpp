@@ -195,7 +195,7 @@ private:
         SeqT* new_seq = ptr_cast<SeqT>(allocate_system<uint8_t>(bs).release());
         memcpy(new_seq, sequence_, current_bs);
         new_seq->set_block_size(bs);
-        new_seq->resizeBlock(SeqT::SYMBOLS, syms_block_size).get_or_throw();
+        new_seq->resize_block(SeqT::SYMBOLS, syms_block_size).get_or_throw();
 
         free_system(sequence_);
 

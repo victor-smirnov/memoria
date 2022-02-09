@@ -35,14 +35,14 @@ struct PkdDataTypeAccessor<Varchar, PkdVLEArrayTag, ArraySO, SelectorTag> {
     using DataSizeType = typename ArraySO::DataSizeType;
     using DataAtomType = typename ArraySO::DataAtomType;
 
-    static constexpr psize_t Columns = ArraySO::Columns;
+    static constexpr size_t Columns = ArraySO::Columns;
 
 private:
     const DataSizeType* offsets_;
     const DataAtomType* data_;
 
 public:
-    PkdDataTypeAccessor(const ArraySO& array, psize_t column):
+    PkdDataTypeAccessor(const ArraySO& array, size_t column):
         offsets_(array.data()->offsets(column)),
         data_(array.data()->data(column))
     {}
@@ -51,20 +51,20 @@ public:
         return offsets_ == other.offsets_;
     }
 
-    ViewType get(psize_t row) const
+    ViewType get(size_t row) const
     {
-        psize_t length = offsets_[row + 1] - offsets_[row];
+        size_t length = offsets_[row + 1] - offsets_[row];
         const DataAtomType* data = data_ + offsets_[row];
 
         return ViewType(data, length);
     }
 
-    static ViewType get(const ArraySO& array, psize_t column, psize_t row)
+    static ViewType get(const ArraySO& array, size_t column, size_t row)
     {
         const DataSizeType* offsets = array.data()->offsets(column);
         const DataAtomType* data = array.data()->data(column);
 
-        psize_t length = offsets[row + 1] - offsets[row];
+        size_t length = offsets[row + 1] - offsets[row];
 
         return ViewType(data + offsets[row], length);
     }
@@ -77,28 +77,28 @@ public:
         return element.data();
     }
 
-    static VoidResult rowwise_insert(ArraySO& array, psize_t row_at, Span<const Span<const ViewType>> elements) noexcept
+    static VoidResult rowwise_insert(ArraySO& array, size_t row_at, Span<const Span<const ViewType>> elements) noexcept
     {
-        psize_t size = elements.length();
-        return insert(array, row_at, size, [&] (psize_t col, psize_t row) -> const ViewType& {
+        size_t size = elements.length();
+        return insert(array, row_at, size, [&] (size_t col, size_t row) -> const ViewType& {
             return elements[row][col];
         });
     }
 
-    static VoidResult columnwise_insert(ArraySO& array, psize_t row_at, Span<const Span<const ViewType>> elements) noexcept
+    static VoidResult columnwise_insert(ArraySO& array, size_t row_at, Span<const Span<const ViewType>> elements) noexcept
     {
-        psize_t size = elements[0].length();
-        return insert(array, row_at, size, [&] (psize_t col, psize_t row) -> const ViewType& {
+        size_t size = elements[0].length();
+        return insert(array, row_at, size, [&] (size_t col, size_t row) -> const ViewType& {
             return elements[col][row];
         });
     }
 
     template <typename AccessorFn>
-    static VoidResult insert(ArraySO& array, psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    static VoidResult insert(ArraySO& array, size_t row_at, size_t size, AccessorFn&& elements) noexcept
     {
-        psize_t data_lengths[Columns] = {};
+        size_t data_lengths[Columns] = {};
 
-        for (psize_t column = 0; column < Columns; column++)
+        for (size_t column = 0; column < Columns; column++)
         {
             for (size_t row = 0; row < size; row++)
             {
@@ -108,13 +108,13 @@ public:
 
         MEMORIA_TRY_VOID(array.insertSpace(row_at, size, data_lengths));
 
-        for (psize_t column = 0; column < Columns; column++)
+        for (size_t column = 0; column < Columns; column++)
         {
             auto array_offsets = array.data()->offsets(column);
             auto array_data    = array.data()->data(column);
 
             size_t pos = array_offsets[row_at];
-            for (psize_t row = 0; row < size; row++)
+            for (size_t row = 0; row < size; row++)
             {
                 auto element = elements(column, row);
 

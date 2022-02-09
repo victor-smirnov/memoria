@@ -39,7 +39,7 @@ class AllocationPoolData {
     BlkAlloc level0_[LEVEL0_CAPACITY];
     uint32_t level_size_[Levels];
 public:
-    AllocationPoolData() noexcept {
+    AllocationPoolData()  {
         clear();
     }
 
@@ -52,7 +52,7 @@ public:
         }
     }
 
-    void clear() noexcept
+    void clear()
     {
         for (auto& arr: levels_) {
             for (auto& alc: arr) {
@@ -69,7 +69,7 @@ public:
         }
     }
 
-    Span<BlkAlloc> span(size_t level) noexcept {
+    Span<BlkAlloc> span(size_t level)  {
         if (level == 0) {
             return Span<BlkAlloc> {level0_, level_size_[0]};
         }
@@ -78,7 +78,7 @@ public:
         }
     }
 
-    Span<const BlkAlloc> span(size_t level) const noexcept {
+    Span<const BlkAlloc> span(size_t level) const  {
         if (level == 0) {
             return Span<const BlkAlloc> {level0_, level_size_[0]};
         }
@@ -87,7 +87,7 @@ public:
         }
     }
 
-    const BlkAlloc* data(size_t level) const noexcept {
+    const BlkAlloc* data(size_t level) const  {
         if (level == 0) {
             return level0_;
         }
@@ -96,7 +96,7 @@ public:
         }
     }
 
-    BlkAlloc* data(size_t level) noexcept {
+    BlkAlloc* data(size_t level)  {
         if (level == 0) {
             return level0_;
         }
@@ -105,7 +105,7 @@ public:
         }
     }
 
-    size_t capacity(size_t level) const noexcept {
+    size_t capacity(size_t level) const  {
         if (level == 0) {
             return LEVEL0_CAPACITY;
         }
@@ -114,11 +114,11 @@ public:
         }
     }
 
-    size_t size(size_t level) const noexcept {
+    size_t size(size_t level) const  {
         return level_size_[level];
     }
 
-    void fill(size_t level, Span<const AllocMeta> span) noexcept
+    void fill(size_t level, Span<const AllocMeta> span)
     {
         level_size_[level] = span.size();
 
@@ -135,7 +135,7 @@ public:
     }
 
     template <typename II>
-    void fill(size_t level, II iter, II end) noexcept
+    void fill(size_t level, II iter, II end)
     {
         level_size_[level] = 0;
 
@@ -167,11 +167,11 @@ class AllocationPoolData<Profile, 1> {
     uint32_t level_size_[1];
 
 public:
-    AllocationPoolData() noexcept {
+    AllocationPoolData()  {
         clear();
     }
 
-    void clear() noexcept
+    void clear()
     {
         for (auto& alc: level0_) {
             alc = BlkAlloc{};
@@ -182,31 +182,31 @@ public:
         }
     }
 
-    Span<BlkAlloc> span(size_t level) noexcept {
+    Span<BlkAlloc> span(size_t level)  {
         return Span<BlkAlloc> {level0_, level_size_[0]};
     }
 
-    Span<const BlkAlloc> span(size_t level) const noexcept {
+    Span<const BlkAlloc> span(size_t level) const  {
         return Span<BlkAlloc> {level0_, level_size_[0]};
     }
 
-    const BlkAlloc* data(size_t level) const noexcept {
+    const BlkAlloc* data(size_t level) const  {
         return level0_;
     }
 
-    BlkAlloc* data(size_t level) noexcept {
+    BlkAlloc* data(size_t level)  {
         return level0_;
     }
 
-    size_t capacity(size_t level) const noexcept {
+    size_t capacity(size_t level) const  {
         return LEVEL0_CAPACITY;
     }
 
-    size_t size(size_t level) const noexcept {
+    size_t size(size_t level) const  {
         return level_size_[0];
     }
 
-    void fill(size_t level, Span<const AllocMeta> span) noexcept
+    void fill(size_t level, Span<const AllocMeta> span)
     {
         level_size_[0] = span.size();
         for (size_t c = 0; c < span.size(); c++) {
@@ -215,7 +215,7 @@ public:
     }
 
     template <typename II>
-    void fill(size_t level, II iter, II end) noexcept
+    void fill(size_t level, II iter, II end)
     {
         level_size_[0] = 0;
         for (size_t c = 0; iter != end; ++iter, ++c) {
@@ -243,32 +243,32 @@ class AllocationPool {
             clear();
         }
 
-        void clear() noexcept {
+        void clear()  {
             total_ = 0;
             buffer_.clear();
         }
 
-        bool is_empty() const noexcept {
+        bool is_empty() const  {
             return buffer_.size() == 0;
         }
 
-        size_t size() const noexcept {
+        size_t size() const  {
             return buffer_.size();
         }
 
-        size_t capacity() const noexcept {
+        size_t capacity() const  {
             return capacity_;
         }
 
-        int64_t total() const noexcept {
+        int64_t total() const  {
             return total_;
         }
 
-        void add_total(int64_t amt) noexcept {
+        void add_total(int64_t amt)  {
             total_ += amt;
         }
 
-        bool push(const AlcMetadata& meta) noexcept
+        bool push(const AlcMetadata& meta)
         {
             if (size() < capacity())
             {
@@ -281,7 +281,7 @@ class AllocationPool {
             }
         }
 
-        AlcMetadata allocate_one() noexcept
+        AlcMetadata allocate_one()
         {
             AlcMetadata& tail = buffer_.front();
             AlcMetadata meta = tail.take(1);
@@ -292,27 +292,27 @@ class AllocationPool {
             return meta;
         }
 
-        auto begin() noexcept {
+        auto begin()  {
             return buffer_.begin();
         }
 
-        auto end() noexcept {
+        auto end()  {
             return buffer_.end();
         }
 
-        auto begin() const noexcept {
+        auto begin() const  {
             return buffer_.cbegin();
         }
 
-        auto end() const noexcept {
+        auto end() const  {
             return buffer_.cend();
         }
 
-        auto cbegin() const noexcept {
+        auto cbegin() const  {
             return buffer_.cbegin();
         }
 
-        auto cend() const noexcept {
+        auto cend() const  {
             return buffer_.cend();
         }
     };
@@ -323,7 +323,7 @@ class AllocationPool {
     int64_t level0_reserved_{32};
 
 public:
-    AllocationPool() noexcept
+    AllocationPool()
     {
         PoolData sample;
 
@@ -333,19 +333,19 @@ public:
         }
     }
 
-    size_t available_capacity(int32_t level) const noexcept {
+    size_t available_capacity(int32_t level) const  {
         return levels_[level].capacity() - levels_[level].size();
     }
 
-    int64_t level0_total() const noexcept {
+    int64_t level0_total() const  {
         return level0_total_;
     }
 
-    int64_t level0_reserved() const noexcept {
+    int64_t level0_reserved() const  {
         return level0_reserved_;
     }
 
-    void load(const PoolData& data) noexcept
+    void load(const PoolData& data)
     {
         for (int32_t level = 0; level < Levels; level++)
         {
@@ -357,7 +357,7 @@ public:
         }
     }
 
-    void store(PoolData& data) const noexcept
+    void store(PoolData& data) const
     {
         for (size_t level = 0; level < (size_t)Levels; level++)
         {
@@ -365,7 +365,7 @@ public:
         }
     }
 
-    bool add(const AlcMetadata& meta) noexcept
+    bool add(const AlcMetadata& meta)
     {
         if (levels_[meta.level()].push(meta))
         {
@@ -376,12 +376,12 @@ public:
         return false;
     }
 
-    bool add(int64_t position, int64_t size, int32_t level) noexcept
+    bool add(int64_t position, int64_t size, int32_t level)
     {
         return add(AlcMetadata{position, size, level});
     }
 
-    void clear() noexcept {
+    void clear()  {
         for (int32_t ll = 0; ll < Levels; ll++)
         {
             levels_[ll].clear();
@@ -390,7 +390,7 @@ public:
         level0_total_ = 0;
     }
 
-    void reset() noexcept {
+    void reset()  {
         clear();
     }
 
@@ -405,7 +405,7 @@ public:
 
 
 
-    Optional<AlcMetadata> allocate_one(int32_t level) noexcept
+    Optional<AlcMetadata> allocate_one(int32_t level)
     {
         int64_t l0_size = static_cast<int64_t>(1) << level;
         if (level0_total_ - level0_reserved_ >= l0_size ) {
@@ -415,7 +415,7 @@ public:
         return Optional<AlcMetadata>{};
     }
 
-    Optional<AlcMetadata> allocate_reserved(int64_t remainder) noexcept
+    Optional<AlcMetadata> allocate_reserved(int64_t remainder)
     {
         if (level0_total_ > remainder) {
             return do_allocate_one(0);
@@ -424,14 +424,14 @@ public:
         return Optional<AlcMetadata>{};
     }
 
-    bool has_room(int32_t level) const noexcept
+    bool has_room(int32_t level) const
     {
         int64_t ll_capacity = levels_[level].capacity();
         int64_t ll_total = compute_level_total(level);
         return ll_total < ll_capacity;
     }
 
-    void for_each(const std::function<void (const AlcMetadata& meta)>& fn) const noexcept
+    void for_each(const std::function<void (const AlcMetadata& meta)>& fn) const
     {
         for (size_t ll = 0; ll < Levels; ll++) {
             for (const AlcMetadata& meta: levels_[ll]) {
@@ -442,7 +442,7 @@ public:
 
 
 private:
-    int64_t compute_level_total(int32_t level) const noexcept
+    int64_t compute_level_total(int32_t level) const
     {
         int64_t total = 0;
         for (int32_t c = level; c < Levels; c++) {
@@ -452,7 +452,7 @@ private:
         return total;
     }
 
-    Optional<AlcMetadata> do_allocate_one(int32_t level) noexcept
+    Optional<AlcMetadata> do_allocate_one(int32_t level)
     {
         if (MMA_UNLIKELY(levels_[level].is_empty())) {
             borrow_from_above(level);
@@ -468,7 +468,7 @@ private:
         return Optional<AlcMetadata>{};
     }
 
-    void borrow_from_above(int32_t level) noexcept
+    void borrow_from_above(int32_t level)
     {
         if (level < Levels - 1) {
             if (MMA_UNLIKELY(levels_[level + 1].is_empty())) {

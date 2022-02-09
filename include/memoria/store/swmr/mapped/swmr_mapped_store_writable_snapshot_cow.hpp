@@ -86,11 +86,11 @@ class MappedSWMRStoreWritableSnapshot<CowProfileT<ChildProfile>>:
     class CacheEntryBase: public Shared {
         uint64_t file_pos_;
     public:
-        CacheEntryBase(const BlockID& id, BlockType* block, uint64_t file_pos) noexcept :
+        CacheEntryBase(const BlockID& id, BlockType* block, uint64_t file_pos)  :
             Shared(id, block, 0), file_pos_(file_pos)
         {}
 
-        uint64_t file_pos() const noexcept {return file_pos_;}
+        uint64_t file_pos() const  {return file_pos_;}
     };
 
     using SharedBlockCache = SimpleTwoQueueCache<BlockID, CacheEntryBase>;
@@ -126,7 +126,7 @@ public:
             Span<uint8_t> buffer,
             CDescrPtr& snapshot_descriptor,
             RemovingBlocksConsumerFn removing_blocks_consumer_fn = RemovingBlocksConsumerFn{}
-    ) noexcept:
+    ) :
         Base(store, snapshot_descriptor, store.get(), removing_blocks_consumer_fn),
         buffer_(buffer),
         block_cache_(1024*128)
@@ -173,11 +173,11 @@ public:
         return ProfileTraits<Profile>::make_random_block_id();
     }
 
-    virtual SnpSharedPtr<StoreT> my_self_ptr() noexcept override {
+    virtual SnpSharedPtr<StoreT> my_self_ptr()  override {
         return this->shared_from_this();
     }
 
-    virtual uint64_t get_memory_size() noexcept override {
+    virtual uint64_t get_memory_size()  override {
         return buffer_.size();
     }
 

@@ -65,11 +65,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         const ContainerTypeName& type_name,
         BranchNodeExtData& branch_node_ext_data,
         LeafNodeExtData& leaf_node_ext_data
-    ) noexcept {
+    )  {
 
     }
 
-    bool ctr_can_merge_nodes(const TreeNodePtr& tgt, const TreeNodePtr& src) noexcept {
+    bool ctr_can_merge_nodes(const TreeNodePtr& tgt, const TreeNodePtr& src)  {
         return false;
     }
 
@@ -80,7 +80,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     }
 
 
-    virtual ApiIteratorT seek(CtrSizeT position) noexcept {
+    virtual ApiIteratorT seek(CtrSizeT position)  {
         auto iter = self().ctr_seek(position);
         return memoria_static_pointer_cast<AllocationMapIterator<ApiProfileT>>(std::move(iter));
     }
@@ -88,7 +88,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     struct ExpandBitmapFn {
         template <typename T>
-        CtrSizeTResult treeNode(T&& node_so, CtrSizeT size) const noexcept
+        CtrSizeTResult treeNode(T&& node_so, CtrSizeT size) const
         {
             auto sizes_stream  = node_so.template substream_by_idx<0>();
             auto bitmap_stream = node_so.template substream_by_idx<1>();
@@ -210,7 +210,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     struct ScanUnallocatedFn {
         template <typename T>
-        VoidResult treeNode(T&& node_so, ArenaBuffer<ALCMeta>& arena, CtrSizeT offset) const noexcept
+        void treeNode(T&& node_so, ArenaBuffer<ALCMeta>& arena, CtrSizeT offset) const
         {
             auto bitmap_stream_so = node_so.template substream_by_idx<1>();
             const auto bitmaps = bitmap_stream_so.data();
@@ -250,8 +250,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                     }
                 }
             }
-
-            return VoidResult::of();
         }
     };
 
@@ -275,7 +273,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                         ScanUnallocatedFn(),
                         arena,
                         offset
-            ).get_or_throw();
+            );
 
             if (arena.size()) {
                 if (!fn(arena.span())) {
@@ -296,7 +294,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     struct LayoutLeafNodeFn {
         template <typename T>
-        VoidResult treeNode(T&& node_so) const noexcept
+        VoidResult treeNode(T&& node_so) const
         {
             MEMORIA_TRY_VOID(node_so.layout(-1ull));
 
@@ -493,41 +491,37 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     struct UnallocatedFn {
         template <typename CtrT, typename BranchNode>
-        CtrSizeTResult treeNode(const BranchNodeSO<CtrT, BranchNode>& node_so, int32_t level) noexcept
+        CtrSizeT treeNode(const BranchNodeSO<CtrT, BranchNode>& node_so, int32_t level)
         {
             auto ss = node_so.template substream<IntList<0, 1>>();
-            return CtrSizeTResult::of(ss.sum(level));
+            return ss.sum(level);
         }
 
         template <typename CtrT, typename BranchNode>
-        VoidResult treeNode(const BranchNodeSO<CtrT, BranchNode>& node_so, Span<CtrSizeT>& ranks) noexcept
+        void treeNode(const BranchNodeSO<CtrT, BranchNode>& node_so, Span<CtrSizeT>& ranks)
         {
             auto ss = node_so.template substream<IntList<0, 1>>();
 
             for (int32_t ll = 0; ll < LEVELS; ll++) {
                 ranks[ll] = ss.sum(ll);
             }
-
-            return VoidResult::of();
         }
 
         template <typename CtrT, typename BranchNode>
-        CtrSizeTResult treeNode(const LeafNodeSO<CtrT, BranchNode>& node_so, int32_t level) noexcept
+        CtrSizeT treeNode(const LeafNodeSO<CtrT, BranchNode>& node_so, int32_t level)
         {
             auto ss = node_so.template substream<IntList<0, 1>>();
-            return CtrSizeTResult::of(ss.sum(level));
+            return ss.sum(level);
         }
 
         template <typename CtrT, typename BranchNode>
-        VoidResult treeNode(const LeafNodeSO<CtrT, BranchNode>& node_so, Span<CtrSizeT>& ranks) noexcept
+        void treeNode(const LeafNodeSO<CtrT, BranchNode>& node_so, Span<CtrSizeT>& ranks)
         {
             auto ss = node_so.template substream<IntList<0, 1>>();
 
             for (int32_t ll = 0; ll < LEVELS; ll++) {
                 ranks[ll] = ss.sum(ll);
             }
-
-            return VoidResult::of();
         }
     };
 
@@ -535,14 +529,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     {
         auto& self = this->self();
         auto root_node = self.ctr_get_root_node();
-        return self.node_dispatcher().dispatch(root_node, UnallocatedFn(), level).get_or_throw();
+        return self.node_dispatcher().dispatch(root_node, UnallocatedFn(), level);
     }
 
     virtual void unallocated(Span<CtrSizeT> ranks)
     {
         auto& self = this->self();
         auto root_node = self.ctr_get_root_node();
-        return self.node_dispatcher().dispatch(root_node, UnallocatedFn(), ranks).get_or_throw();
+        return self.node_dispatcher().dispatch(root_node, UnallocatedFn(), ranks);
     }
 
     virtual Optional<AllocationMapEntryStatus> get_allocation_status(int32_t level, CtrSizeT position)
@@ -579,7 +573,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     struct PopulateAllocationPoolFn {
 
         template <typename CtrT, typename NodeT>
-        BoolResult treeNode(LeafNodeSO<CtrT, NodeT>& node_so, CtrSizeT base, AllocationPoolT& pool) noexcept
+        BoolResult treeNode(LeafNodeSO<CtrT, NodeT>& node_so, CtrSizeT base, AllocationPoolT& pool)
         {
             auto ss = node_so.template substream<IntList<0, 1>>();
             BoolResult res = ss.populate_allocation_pool(base, pool);

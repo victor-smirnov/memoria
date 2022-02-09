@@ -63,7 +63,7 @@ public:
             int32_t idx,
             const BranchNodeEntry& keys,
             const BlockID& id
-    ) noexcept;
+    );
 
     void ctr_split_path(
             TreePathT& path,
@@ -145,7 +145,7 @@ VoidResult M_TYPE::ctr_insert_to_branch_node(
         int32_t idx,
         const BranchNodeEntry& keys,
         const BlockID& id
-) noexcept
+)
 {
     return wrap_throwing([&]() -> VoidResult {
         auto& self = this->self();

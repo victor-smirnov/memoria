@@ -55,7 +55,7 @@ private:
         SumWalker(int32_t block): block_(block) {}
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             using BranchNodeT = bt::BranchNode<NodeTypes>;
 
@@ -71,7 +71,7 @@ private:
         }
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        VoidResult treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             auto substream = node.template substream<LeafPath>();
             sum_ += substream.sum(block_, end);
@@ -83,7 +83,7 @@ private:
 public:
 
     template <typename SumT, typename LeafPath>
-    Result<SumT> sum_up(int32_t block) const noexcept
+    Result<SumT> sum_up(int32_t block) const
     {
         using ResultT = Result<SumT>;
 

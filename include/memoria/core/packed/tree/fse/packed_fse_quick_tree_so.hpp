@@ -38,92 +38,92 @@ class PackedFSEQuickTreeSO {
 public:
     using PkdStructT = PkdStruct;
 
-    static constexpr int32_t Blocks = PkdStruct::Blocks;
+    static constexpr size_t Blocks = PkdStruct::Blocks;
 
-    PackedFSEQuickTreeSO() noexcept: ext_data_(), data_() {}
-    PackedFSEQuickTreeSO(ExtData* ext_data, PkdStruct* data) noexcept:
+    PackedFSEQuickTreeSO() : ext_data_(), data_() {}
+    PackedFSEQuickTreeSO(ExtData* ext_data, PkdStruct* data) :
         ext_data_(ext_data), data_(data)
     {}
 
-    void setup() noexcept {
+    void setup()  {
         ext_data_ = nullptr;
         data_ = nullptr;
     }
 
-    void setup(ExtData* ext_data, PkdStruct* data) noexcept {
+    void setup(ExtData* ext_data, PkdStruct* data)  {
         ext_data_ = ext_data;
         data_ = data;
     }
 
-    void setup(ExtData* ext_data) noexcept {
+    void setup(ExtData* ext_data)  {
         ext_data_ = ext_data;
     }
 
-    void setup(PkdStruct* data) noexcept {
+    void setup(PkdStruct* data)  {
         data_ = data;
     }
 
 
-    operator bool() const noexcept {
+    operator bool() const  {
         return data_ != nullptr;
     }
 
-    const ExtData* ext_data() const noexcept {return ext_data_;}
-    ExtData* ext_data() noexcept {return ext_data_;}
+    const ExtData* ext_data() const  {return ext_data_;}
+    ExtData* ext_data()  {return ext_data_;}
 
-    const PkdStruct* data() const noexcept {return data_;}
-    PkdStruct* data() noexcept {return data_;}
+    const PkdStruct* data() const  {return data_;}
+    PkdStruct* data()  {return data_;}
 
-    VoidResult splitTo(MyType& other, int32_t idx) noexcept
+    VoidResult splitTo(MyType& other, size_t idx)
     {
         return data_->splitTo(other.data(), idx);
     }
 
-    VoidResult mergeWith(MyType& other) const noexcept {
+    VoidResult mergeWith(MyType& other) const  {
         return data_->mergeWith(other.data());
     }
 
-    VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept {
+    VoidResult removeSpace(size_t room_start, size_t room_end)  {
         return data_->removeSpace(room_start, room_end);
     }
 
 
-    VoidResult reindex() noexcept {
+    VoidResult reindex()  {
         return data_->reindex();
     }
 
 
-    const Value& access(int32_t column, int32_t row) const noexcept {
+    const Value& access(size_t column, size_t row) const  {
         return data_->value(column, row);
     }
 
-    const Values& access(int32_t row) const noexcept {
+    const Values& access(size_t row) const  {
         return data_->get_values(row);
     }
 
     template <typename T>
-    VoidResult setValues(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
+    VoidResult setValues(size_t idx, const core::StaticVector<T, Blocks>& values)  {
         return data_->setValues(idx, values);
     }
 
-    int32_t size() const {
+    size_t size() const {
         return data_->size();
     }
 
-    auto findForward(SearchType search_type, int32_t block, int32_t start, IndexValue val) const {
+    auto findForward(SearchType search_type, size_t block, size_t start, IndexValue val) const {
         return data_->findForward(search_type, block, start, val);
     }
 
-    auto findBackward(SearchType search_type, int32_t block, int32_t start, IndexValue val) const {
+    auto findBackward(SearchType search_type, size_t block, size_t start, IndexValue val) const {
         return data_->findBackward(search_type, block, start, val);
     }
 
-    const Value& value(int32_t block, int32_t idx) const {
+    const Value& value(size_t block, size_t idx) const {
         return data_->value(block, idx);
     }
 
     template <typename T>
-    void _add(int32_t block, int32_t start, int32_t end, T& value) const
+    void _add(size_t block, size_t start, size_t end, T& value) const
     {
         value += data_->sum(block, start, end);
     }
@@ -131,7 +131,7 @@ public:
 
 
     template <typename T>
-    void _sub(int32_t block, int32_t start, int32_t end, T& value) const
+    void _sub(size_t block, size_t start, size_t end, T& value) const
     {
         value -= data_->sum(block, start, end);
     }
@@ -156,39 +156,39 @@ public:
     }
 
     template <typename AccessorFn>
-    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements)
     {
         return data_->insert_entries(row_at, size, std::forward<AccessorFn>(elements));
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements)
     {
         MEMORIA_TRY_VOID(data_->removeSpace(row_at, row_at + size));
         return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
     }
 
     template <typename AccessorFn>
-    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
+    VoidResult remove_entries(psize_t row_at, psize_t size)
     {
         MEMORIA_TRY_VOID(data_->removeSpace(row_at, row_at + size));
         return data_->reindex();
     }
 
-    auto iterator(int32_t idx) const {
+    auto iterator(size_t idx) const {
         return data_->iterator(idx);
     }
 
 
-    auto iterator(int32_t block, int32_t idx) const {
+    auto iterator(size_t block, size_t idx) const {
         return data_->iterator(block, idx);
     }
 
-    auto sum_for_rank(int32_t start, int32_t end, int32_t symbol, SeqOpType seq_op) const {
+    auto sum_for_rank(size_t start, size_t end, size_t symbol, SeqOpType seq_op) const {
         return data_->sum_for_rank(start, end, symbol, seq_op);
     }
 
-    auto find_for_select_fw(int32_t start, Value rank, int32_t symbol, SeqOpType seq_op) const {
+    auto find_for_select_fw(size_t start, Value rank, size_t symbol, SeqOpType seq_op) const {
         return data_->find_for_select_fw(start, rank, symbol, seq_op);
     }
 };

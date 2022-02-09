@@ -50,8 +50,8 @@ public:
 
     static constexpr uint32_t VERSION = 1;
 
-    static constexpr int32_t Blocks = 1;
-    static constexpr int32_t Indexes = Indexed ? 1 : 0;
+    static constexpr size_t Blocks = 1;
+    static constexpr size_t Indexes = Indexed ? 1 : 0;
 
     using Array     = PackedDataTypeBufferT<DataType, Indexed>;
     using Bitmap    = PkdFSSeq<typename PkdFSSeqTF<1>::Type>;
@@ -92,49 +92,49 @@ public:
         return this->template get<Array>(ARRAY);
     }
 
-    static constexpr int32_t default_size(int32_t available_space) noexcept
+    static constexpr size_t default_size(size_t available_space) noexcept
     {
         return empty_size();
     }
 
-    VoidResult init_default(int32_t block_size) noexcept {
+    VoidResult init_default(size_t block_size) noexcept {
         return init();
     }
 
-    static int32_t empty_size() noexcept
+    static size_t empty_size() noexcept
     {
-        int32_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
+        size_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
         return parent_size + Bitmap::empty_size() + Array::empty_size();
     }
 
 
-    static int32_t block_size(int32_t capacity) noexcept
+    static size_t block_size(size_t capacity) noexcept
     {
         return Bitmap::packed_block_size(capacity) + Array::empty_size();
     }
 
-    int32_t block_size(const MyType* other) const noexcept
+    size_t block_size(const MyType* other) const noexcept
     {
         return MyType::block_size(size() + other->size());
     }
 
     VoidResult init() noexcept
     {
-        int32_t capacity = 0;
+        size_t capacity = 0;
         MEMORIA_TRY_VOID(Base::init(block_size(capacity), STRUCTS_NUM__));
 
-        int32_t bitmap_block_size = Bitmap::packed_block_size(capacity);
+        size_t bitmap_block_size = Bitmap::packed_block_size(capacity);
 
-        MEMORIA_TRY(bitmap, allocateSpace<Bitmap>(BITMAP, bitmap_block_size));
+        MEMORIA_TRY(bitmap, allocate_space<Bitmap>(BITMAP, bitmap_block_size));
 
         MEMORIA_TRY_VOID(bitmap->init(bitmap_block_size));
 
-        MEMORIA_TRY(array, allocateSpace<Array>(ARRAY, Array::empty_size()));
+        MEMORIA_TRY(array, allocate_space<Array>(ARRAY, Array::empty_size()));
 
         return array->init();
     }
 
-    int32_t size() const noexcept
+    size_t size() const noexcept
     {
         return bitmap()->size();
     }
@@ -145,17 +145,17 @@ public:
 //    {
 //        const Array* array = this->array();
 
-//        int32_t size = array->size();
+//        size_t size = array->size();
 
 //        if (size > 0)
 //        {
-//            for (int32_t block = 0; block < Blocks; block++)
+//            for (size_t block = 0; block < Blocks; block++)
 //            {
 //                accum[block] = array->value(block, size - 1);
 //            }
 //        }
 //        else {
-//            for (int32_t block = 0; block < Blocks; block++)
+//            for (size_t block = 0; block < Blocks; block++)
 //            {
 //                accum[block] = Value();
 //            }
@@ -164,13 +164,13 @@ public:
 
 
 
-    const Value value(int32_t block, int32_t idx) const
+    const Value value(size_t block, size_t idx) const
     {
         const Bitmap* bitmap = this->bitmap();
 
         if (bitmap->symbol(idx) == 1)
         {
-            int32_t array_idx = this->array_idx(bitmap, idx);
+            size_t array_idx = this->array_idx(bitmap, idx);
             return array()->value(block, array_idx);
         }
         else {
@@ -178,7 +178,7 @@ public:
         }
     }
 
-    Values get_values(int32_t idx) const
+    Values get_values(size_t idx) const
     {
         Values v;
 
@@ -187,7 +187,7 @@ public:
         if (bitmap->symbol(idx) == 1)
         {
             auto array = this->array();
-            int32_t array_idx = this->array_idx(idx);
+            size_t array_idx = this->array_idx(idx);
 
             OptionalAssignmentHelper(v, array->get_values(array_idx));
         }
@@ -197,7 +197,7 @@ public:
 
 
     template <typename T>
-    VoidResult setValues(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
+    VoidResult setValues(size_t idx, const core::StaticVector<T, Blocks>& values) noexcept
     {
         Bitmap* bitmap   = this->bitmap();
         Array* array     = this->array();
@@ -205,7 +205,7 @@ public:
         if (values[0].is_set())
         {
             auto array_values  = this->array_values(values);
-            int32_t array_idx  = this->array_idx(idx);
+            size_t array_idx  = this->array_idx(idx);
 
             if (bitmap->symbol(idx))
             {
@@ -220,7 +220,7 @@ public:
             }
         }
         else {
-            int32_t array_idx = this->array_idx(idx);
+            size_t array_idx = this->array_idx(idx);
 
             if (bitmap->symbol(idx))
             {
@@ -239,7 +239,7 @@ public:
 
 
     template <typename T>
-    auto findGTForward(int32_t block, const T& val) const
+    auto findGTForward(size_t block, const T& val) const
     {
         auto result = array()->find_gt(block, val);
 
@@ -249,7 +249,7 @@ public:
     }
 
     template <typename T>
-    auto findGTForward(int32_t block, const Optional<T>& val) const
+    auto findGTForward(size_t block, const Optional<T>& val) const
     {
         auto result = array()->find_gt(block, val.get());
 
@@ -259,7 +259,7 @@ public:
     }
 
     template <typename T>
-    auto findGEForward(int32_t block, const T& val) const
+    auto findGEForward(size_t block, const T& val) const
     {
         auto result = array()->find_ge(block, val.value());
 
@@ -269,7 +269,7 @@ public:
     }
 
     template <typename T>
-    auto findForward(SearchType search_type, int32_t block, const T& val) const
+    auto findForward(SearchType search_type, size_t block, const T& val) const
     {
         auto result = array()->findForward(search_type, block, val);
 
@@ -279,7 +279,7 @@ public:
     }
 
     template <typename T>
-    auto findForward(SearchType search_type, int32_t block, const Optional<T>& val) const
+    auto findForward(SearchType search_type, size_t block, const Optional<T>& val) const
     {
         auto result = array()->findForward(search_type, block, val.get());
 
@@ -290,7 +290,7 @@ public:
 
 
     template <typename T>
-    auto findBackward(SearchType search_type, int32_t block, const T& val) const
+    auto findBackward(SearchType search_type, size_t block, const T& val) const
     {
         auto result = array()->findBackward(search_type, block, val);
 
@@ -300,7 +300,7 @@ public:
     }
 
     template <typename T>
-    auto findBackward(SearchType search_type, int32_t block, const Optional<T>& val) const
+    auto findBackward(SearchType search_type, size_t block, const Optional<T>& val) const
     {
         auto result = array()->findBackward(search_type, block, val.get());
 
@@ -318,11 +318,11 @@ public:
     }
 
 
-    VoidResult splitTo(MyType* other, int32_t idx) noexcept
+    VoidResult splitTo(MyType* other, size_t idx) noexcept
     {
         Bitmap* bitmap = this->bitmap();
 
-        int32_t array_idx = this->array_idx(bitmap, idx);
+        size_t array_idx = this->array_idx(bitmap, idx);
 
         MEMORIA_TRY_VOID(bitmap->splitTo(other->bitmap(), idx));
 
@@ -337,17 +337,17 @@ public:
         return array()->mergeWith(other->array());
     }
 
-    VoidResult removeSpace(int32_t start, int32_t end) noexcept
+    VoidResult removeSpace(size_t start, size_t end) noexcept
     {
         return remove(start, end);
     }
 
-    VoidResult remove(int32_t start, int32_t end) noexcept
+    VoidResult remove(size_t start, size_t end) noexcept
     {
         Bitmap* bitmap = this->bitmap();
 
-        int32_t array_start = array_idx(bitmap, start);
-        int32_t array_end = array_idx(bitmap, end);
+        size_t array_start = array_idx(bitmap, start);
+        size_t array_end = array_idx(bitmap, end);
 
         MEMORIA_TRY_VOID(bitmap->remove(start, end));
 
@@ -355,7 +355,7 @@ public:
     }
 
     template <typename T>
-    VoidResult insert(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept
+    VoidResult insert(size_t idx, const core::StaticVector<T, Blocks>& values) noexcept
     {
         Bitmap* bitmap  = this->bitmap();
 
@@ -364,7 +364,7 @@ public:
             MEMORIA_TRY_VOID(bitmap->insert(idx, 1));
 
             auto array_values  = this->array_values(values);
-            int32_t array_idx  = this->array_idx(bitmap, idx);
+            size_t array_idx  = this->array_idx(bitmap, idx);
 
             Array* array = this->array();
             return array->insert(array_idx, array_values);
@@ -404,7 +404,7 @@ protected:
     {
         core::StaticVector<ArrayValue, Blocks> tv;
 
-        for (int32_t b = 0;  b < Blocks; b++)
+        for (size_t b = 0;  b < Blocks; b++)
         {
             tv[b] = values[b].get();
         }
@@ -412,24 +412,24 @@ protected:
         return tv;
     }
 
-    int32_t array_idx(int32_t global_idx) const noexcept
+    size_t array_idx(size_t global_idx) const noexcept
     {
         return array_idx(bitmap(), global_idx);
     }
 
-    int32_t array_idx(const Bitmap* bitmap, int32_t global_idx) const noexcept
+    size_t array_idx(const Bitmap* bitmap, size_t global_idx) const noexcept
     {
-        int32_t rank = bitmap->rank(global_idx, 1);
+        size_t rank = bitmap->rank(global_idx, 1);
         return rank;
     }
 
 
-    int32_t global_idx(int32_t array_idx) const noexcept
+    size_t global_idx(size_t array_idx) const noexcept
     {
         return global_idx(bitmap(), array_idx);
     }
 
-    int32_t global_idx(const Bitmap* bitmap, int32_t array_idx) const noexcept
+    size_t global_idx(const Bitmap* bitmap, size_t array_idx) const noexcept
     {
         auto result = bitmap->selectFw(1, array_idx + 1);
         return result.local_pos();
@@ -446,7 +446,7 @@ struct PackedStructTraits<PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<D
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
-    static constexpr int32_t Indexes = Indexed ? 1 : 0;
+    static constexpr size_t Indexes = Indexed ? 1 : 0;
 };
 
 }

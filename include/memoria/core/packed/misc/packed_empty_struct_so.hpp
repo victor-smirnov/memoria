@@ -37,7 +37,7 @@ class PackedEmptyStructSO {
 
 public:
     using PkdStructT = PkdStruct;
-    static constexpr int32_t Blocks = PkdStruct::Blocks;
+    static constexpr size_t Blocks = PkdStruct::Blocks;
 
 
     PackedEmptyStructSO() noexcept: ext_data_(), data_() {}
@@ -77,11 +77,11 @@ public:
         return 0;
     }
 
-    auto access(int32_t column, int32_t row) const noexcept {
+    auto access(size_t column, size_t row) const noexcept {
         return data_->access(column, row);
     }
 
-    VoidResult splitTo(MyType& other, int32_t idx) noexcept
+    VoidResult splitTo(MyType& other, size_t idx) noexcept
     {
         return data_->splitTo(other.data(), idx);
     }
@@ -90,7 +90,7 @@ public:
         return data_->mergeWith(other.data());
     }
 
-    VoidResult removeSpace(int32_t room_start, int32_t room_end) {
+    VoidResult removeSpace(size_t room_start, size_t room_end) {
         return data_->removeSpace(room_start, room_end);
     }
 
@@ -98,12 +98,12 @@ public:
         return data_->reindex();
     }
 
-    Values get_values(int32_t idx) const {
+    Values get_values(size_t idx) const {
         return data_->get_values(idx);
     }
 
     template <typename T>
-    VoidResult setValues(int32_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
+    VoidResult setValues(size_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
         return data_->setValues(idx, values);
     }
 
@@ -113,7 +113,7 @@ public:
 
     void check() const {}
 
-    int32_t size() const {
+    size_t size() const {
         return data_->size();
     }
 

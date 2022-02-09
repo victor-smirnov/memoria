@@ -298,7 +298,7 @@ template <typename StorePtr>
 void check(StorePtr store, const char* message,  const char* source)
 {
     store->check([&](CheckSeverity sv, const LDDocument& doc){
-        MEMORIA_MAKE_GENERIC_ERROR("Container check failuer: {}", doc.to_pretty_string());
+        MEMORIA_MAKE_GENERIC_ERROR("Container check failuer: {}", doc.to_pretty_string()).do_throw();
     });
 }
 

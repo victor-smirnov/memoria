@@ -31,11 +31,11 @@ public:
     virtual void release() noexcept = 0;
     virtual void flush() = 0;
 
-    void ref() noexcept {
+    void ref() {
         references_++;
     }
 
-    void unref() noexcept {
+    void unref() {
         if (--references_ == 0) {
             release();
         }
@@ -46,7 +46,7 @@ class MMapSBPtrPooledSharedImpl: public SBPtrSharedBase {
     boost::object_pool<MMapSBPtrPooledSharedImpl>* pool_;
 
 public:
-    MMapSBPtrPooledSharedImpl(boost::object_pool<MMapSBPtrPooledSharedImpl>* pool) noexcept :
+    MMapSBPtrPooledSharedImpl(boost::object_pool<MMapSBPtrPooledSharedImpl>* pool)  :
         pool_(pool)
     {}
 
@@ -54,7 +54,7 @@ public:
         pool_->destroy(this);
     }
 
-    void flush() noexcept {}
+    void flush()  {}
 };
 
 class MMapSBPtrNewSharedImpl: public SBPtrSharedBase {
@@ -63,7 +63,7 @@ public:
         delete this;
     }
 
-    void flush() noexcept {}
+    void flush()  {}
 };
 
 }
@@ -74,23 +74,23 @@ class SharedSBPtr {
     BlockT* block_ptr_;
     detail::SBPtrSharedBase* shared_;
 public:
-    SharedSBPtr() noexcept:
+    SharedSBPtr() :
         block_ptr_(), shared_()
     {}
 
-    SharedSBPtr(BlockT* ptr, detail::SBPtrSharedBase* shared) noexcept:
+    SharedSBPtr(BlockT* ptr, detail::SBPtrSharedBase* shared) :
         block_ptr_(ptr), shared_(shared)
     {
         shared->ref();
     }
 
-    SharedSBPtr(const SharedSBPtr& other) noexcept:
+    SharedSBPtr(const SharedSBPtr& other) :
         block_ptr_(other.block_ptr_), shared_(other.shared_)
     {
         shared_->ref();
     }
 
-    SharedSBPtr(SharedSBPtr&& other) noexcept:
+    SharedSBPtr(SharedSBPtr&& other) :
         block_ptr_(other.block_ptr_), shared_(other.shared_)
     {
         other.shared_ = nullptr;
@@ -102,7 +102,7 @@ public:
         }
     }
 
-    SharedSBPtr& operator=(const SharedSBPtr& other) noexcept
+    SharedSBPtr& operator=(const SharedSBPtr& other)
     {
         auto old_shared = shared_;
 
@@ -118,7 +118,7 @@ public:
         return *this;
     }
 
-    SharedSBPtr& operator=(SharedSBPtr&& other) noexcept
+    SharedSBPtr& operator=(SharedSBPtr&& other)
     {
         if (&other != this)
         {
@@ -138,15 +138,15 @@ public:
         return *this;
     }
 
-    BlockT* operator->() const noexcept {
+    BlockT* operator->() const  {
         return block_ptr_;
     }
 
-    BlockT* get() const noexcept {
+    BlockT* get() const  {
         return block_ptr_;
     }
 
-    void reset() noexcept {
+    void reset()  {
         if (shared_)
         {
             shared_->unref();
@@ -161,7 +161,7 @@ public:
         shared_->flush();
     }
 
-    operator bool() const noexcept {
+    operator bool() const  {
         return (bool)shared_;
     }
 };

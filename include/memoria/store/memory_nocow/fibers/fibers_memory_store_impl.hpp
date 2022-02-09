@@ -126,7 +126,7 @@ private:
     }
  
 public:
-    FibersMemoryStoreImpl(MaybeError& maybe_error) noexcept:
+    FibersMemoryStoreImpl(MaybeError& maybe_error) :
         Base(maybe_error)
     {
         wrap_construction(maybe_error, [&]{
@@ -165,23 +165,23 @@ public:
         return event_listener_;
     }
     
-    int64_t active_snapshots() noexcept {
+    int64_t active_snapshots()  {
         return active_snapshots_.get();
     }
 
-    void lock() noexcept {
+    void lock()  {
         mutex_.lock();
     }
 
-    void unlock() noexcept {
+    void unlock()  {
         mutex_.unlock();
     }
 
-    bool try_lock() noexcept {
+    bool try_lock()  {
         return mutex_.try_lock();
     }
     
-    int32_t cpu() const noexcept {return cpu_;}
+    int32_t cpu() const  {return cpu_;}
     
     void pack()
     {
@@ -280,7 +280,7 @@ public:
         return std::vector<SnapshotID>(ids.begin(), ids.end());
     }
 
-    std::vector<SnapshotID> heads() noexcept
+    std::vector<SnapshotID> heads()
     {
         // FIXME: rewrite to use Reactor instead of locks
         std::lock_guard<MutexT> lock(mutex_);
@@ -622,7 +622,7 @@ public:
 
             SharedPtr<StoreMemoryStat<ApiProfileT>> alloc_stat = MakeShared<StoreMemoryStat<ApiProfileT>>(0);
 
-            auto history_visitor = [&](HistoryNode* node) noexcept -> VoidResult {
+            auto history_visitor = [&](HistoryNode* node)  -> VoidResult {
                 return wrap_throwing([&] {
                     if (node->is_committed() || node->is_dropped())
                     {

@@ -84,7 +84,7 @@ public:
 
     }
 
-    virtual ~IOVectorBTSSInputProviderBase() noexcept {}
+    virtual ~IOVectorBTSSInputProviderBase()  {}
 
     CtrT& ctr() {return ctr_;}
     const CtrT& ctr() const {return ctr_;}
@@ -162,7 +162,7 @@ public:
                 int32_t at,
                 int32_t start,
                 int32_t size,
-                memoria::io::IOVector& io_vector) noexcept
+                memoria::io::IOVector& io_vector)
         {
             MEMORIA_TRY_VOID(stream.insert_io_substream(
                     at,
@@ -186,16 +186,16 @@ public:
                 int32_t at,
                 int32_t start,
                 int32_t size,
-                memoria::io::IOVector& io_vector) noexcept
+                memoria::io::IOVector& io_vector)
         {
             return stream.insertSpace(at, size);
         }
 
         template <typename LCtrT, typename NodeT, typename... Args>
-        VoidResult treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args) noexcept
+        VoidResult treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args)
         {
             MEMORIA_TRY_VOID(leaf.layout(255));
-            return leaf.processSubstreamGroups(*this, leaf.allocator(), std::forward<Args>(args)...);
+            return leaf.processSubstreamGroupsVoidRes(*this, leaf.allocator(), std::forward<Args>(args)...);
         }
     };
 
@@ -210,7 +210,7 @@ public:
         total_symbols_ += size;
     }
 
-    int32_t buffer_size() const noexcept
+    int32_t buffer_size() const
     {
         return size_ - start_;
     }
@@ -463,7 +463,7 @@ public:
     }
 
 protected:
-    virtual int32_t findCapacity(const TreeNodePtr& leaf, int32_t size) noexcept {
+    virtual int32_t findCapacity(const TreeNodePtr& leaf, int32_t size)  {
         return 0;
     }
 

@@ -40,7 +40,7 @@ public:
             SharedPtr<Store> store,
             CDescrPtr& snapshot_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate
-    ) noexcept :
+    )  :
         Base(store, snapshot_descriptor, refcounter_delegate)
     {}
 
@@ -60,11 +60,11 @@ public:
         return factory->create_instance(this, ctr_id, decl);
     }
 
-    bool is_transient() noexcept {
+    bool is_transient()  {
         return snapshot_descriptor_->is_transient();
     }
 
-    bool is_system_snapshot() noexcept {
+    bool is_system_snapshot()  {
         return snapshot_descriptor_->is_system_snapshot();
     }
 

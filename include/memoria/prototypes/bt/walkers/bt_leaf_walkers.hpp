@@ -180,7 +180,7 @@ public:
             Node::template StreamStartIdx<0>::Value
         > w;
 
-        node.dispatchAll(w, self(), accum, std::forward<Args>(args)...).get_or_throw();
+        node.dispatchAll(w, self(), accum, std::forward<Args>(args)...);
     }
 
     struct BranchSizePrefix
@@ -206,13 +206,13 @@ public:
     template <typename Node, typename... Args>
     void processBranchSizePrefix(Node&& node, Args&&... args)
     {
-        node.processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...).get_or_throw();
+        node.processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
     template <typename Node, typename... Args>
     void processLeafSizePrefix(Node&& node, Args&&... args)
     {
-        node.processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...).get_or_throw();
+        node.processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
     }
 };
 
@@ -244,7 +244,7 @@ public:
 
 
     template <typename CtrT, typename NodeT>
-    Result<StreamOpResult> treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
+    StreamOpResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
     {
         int32_t size = node->size();
 
@@ -258,14 +258,14 @@ public:
     }
 
     template <typename CtrT, typename NodeT>
-    Result<StreamOpResult> treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
+    StreamOpResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
     {
         return StreamOpResult(0, 0, true);
     }
 
 
     template <typename CtrT, typename NodeT>
-    VoidResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+    void treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -281,8 +281,6 @@ public:
         else {
             self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
         }
-
-        return VoidResult::of();
     }
 
 
@@ -331,7 +329,7 @@ public:
 
 
     template <typename CtrT, typename NodeT>
-    Result<StreamOpResult> treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
+    StreamOpResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
     {
         if (start >= 0)
         {
@@ -343,14 +341,14 @@ public:
     }
 
     template <typename CtrT, typename NodeT>
-    Result<StreamOpResult> treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start) noexcept
+    StreamOpResult treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
     {
         return StreamOpResult(0, 0, true);
     }
 
 
     template <typename CtrT, typename NodeT>
-    VoidResult treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+    void treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -365,8 +363,6 @@ public:
             self.processLeafIteratorBranchNodeEntry(node, this->branch_BranchNodeEntry());
             self.processLeafSizePrefix(node);
         }
-
-        return VoidResult::of();
     }
 
 

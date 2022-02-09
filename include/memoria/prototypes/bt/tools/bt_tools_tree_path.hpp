@@ -28,15 +28,15 @@ template <typename NodeT>
 class TreePath {
     std::vector<NodeT> path_;
 public:
-    TreePath() noexcept: path_() {}
+    TreePath() : path_() {}
 
-    TreePath(size_t size) noexcept: path_(size) {}
+    TreePath(size_t size) : path_(size) {}
 
-    TreePath(const TreePath& other) noexcept:
+    TreePath(const TreePath& other) :
         path_(other.path_)
     {}
 
-    TreePath(const TreePath& other, size_t level) noexcept:
+    TreePath(const TreePath& other, size_t level) :
         path_(other.path_.size())
     {
         for (size_t ll = level; ll < path_.size(); ll++) {
@@ -44,41 +44,41 @@ public:
         }
     }
 
-    TreePath(TreePath&& other) noexcept:
+    TreePath(TreePath&& other) :
         path_(std::move(other.path_))
     {}
 
-    TreePath& operator=(const TreePath& other) noexcept {
+    TreePath& operator=(const TreePath& other)  {
         path_ = other.path_;
         return *this;
     }
 
-    TreePath& operator=(TreePath&& other) noexcept {
+    TreePath& operator=(TreePath&& other)  {
         path_ = std::move(other.path_);
         return *this;
     }
 
-    void resize(size_t size) noexcept {
+    void resize(size_t size)  {
         path_.resize(size);
     }
 
-    NodeT& leaf() noexcept {
+    NodeT& leaf()  {
         return path_[0];
     }
 
-    const NodeT& leaf() const noexcept {
+    const NodeT& leaf() const  {
         return path_[0];
     }
 
-    NodeT& root() noexcept {
+    NodeT& root()  {
         return path_[path_.size() - 1];
     }
 
-    const NodeT& root() const noexcept {
+    const NodeT& root() const  {
         return path_[path_.size() - 1];
     }
 
-    NodeT& operator[](size_t idx) noexcept
+    NodeT& operator[](size_t idx)
     {
         if (MMA_UNLIKELY(idx >= path_.size())) {
             terminate("Invalid tree path access");
@@ -87,7 +87,7 @@ public:
         return path_[idx];
     }
 
-    const NodeT& operator[](size_t idx) const noexcept
+    const NodeT& operator[](size_t idx) const
     {
         if (MMA_UNLIKELY(idx >= path_.size())) {
             terminate("Invalid tree path access");
@@ -105,19 +105,19 @@ public:
         }
     }
 
-    size_t size() const noexcept {
+    size_t size() const  {
         return path_.size();
     }
 
-    void add_root(NodeT node) noexcept {
+    void add_root(NodeT node)  {
         path_.push_back(node);
     }
 
-    void remove_root() noexcept {
+    void remove_root()  {
         path_.erase(path_.begin() + size() - 1);
     }
 
-    void clear() noexcept {
+    void clear() {
         path_.clear();
     }
 

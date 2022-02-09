@@ -72,7 +72,7 @@ public:
     const PkdStruct* data() const noexcept {return data_;}
     PkdStruct* data() noexcept {return data_;}
 
-    VoidResult splitTo(MyType& other, int32_t idx) noexcept
+    VoidResult splitTo(MyType& other, size_t idx) noexcept
     {
         return data_->splitTo(other.data(), idx);
     }
@@ -81,7 +81,7 @@ public:
         return data_->mergeWith(other.data());
     }
 
-    VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept {
+    VoidResult removeSpace(size_t room_start, size_t room_end) noexcept {
         return data_->removeSpace(room_start, room_end);
     }
 
@@ -134,7 +134,7 @@ public:
         return data_->check();
     }
 
-    auto sum(int32_t symbol) const noexcept {
+    auto sum(size_t symbol) const noexcept {
         return (uint64_t)data_->rank_eq(symbol);
     }
 
@@ -142,10 +142,10 @@ public:
         return data_->configure_io_substream(substream);
     }
 
-    Int32Result insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size) noexcept
+    SizeTResult insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size) noexcept
     {
         MEMORIA_TRY_VOID(data_->insert_io_substream(at, substream, start, size));
-        return Int32Result::of(at + size);
+        return SizeTResult::of(at + size);
     }
 
     template <typename AccessorFn>
@@ -155,7 +155,7 @@ public:
 
         for (psize_t c = 0; c < size; c++)
         {
-            int32_t symbol = elements(c);
+            size_t symbol = elements(c);
             data_->insert(row_at, symbol, 1);
         }
 

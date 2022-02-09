@@ -52,7 +52,7 @@ template <typename PkdStruct>
 constexpr PackedDataTypeSize PkdStructSizeType = PackedStructTraits<PkdStruct>::DataTypeSize;
 
 template <typename PkdStruct>
-constexpr int32_t PkdStructIndexes = PackedStructTraits<PkdStruct>::Indexes;
+constexpr size_t PkdStructIndexes = PackedStructTraits<PkdStruct>::Indexes;
 
 
 template <typename List> struct PackedListStructSizeType;
@@ -96,9 +96,9 @@ class PackedAllocator;
 
 class PackedAllocatable {
 protected:
-    int32_t allocator_offset_;
+    psize_t allocator_offset_;
 
-    int32_t& allocator_offset() {return allocator_offset_;}
+    psize_t& allocator_offset() {return allocator_offset_;}
 
 public:
 
@@ -108,8 +108,8 @@ public:
     friend class PackedAllocator;
 
 
-    static constexpr uint32_t VERSION                   = 1;
-    static constexpr int32_t AlignmentBlock             = PackedAllocationAlignment;
+    static constexpr uint32_t VERSION                  = 1;
+    static constexpr size_t AlignmentBlock             = PackedAllocationAlignment;
 
 
     using FieldsList = TypeList<
@@ -119,20 +119,20 @@ public:
 
     PackedAllocatable() noexcept = default;
 
-    const int32_t& allocator_offset() const {return allocator_offset_;}
+    const psize_t& allocator_offset() const {return allocator_offset_;}
 
-    void setTopLevelAllocator() noexcept
+    void setTopLevelAllocator()
     {
         allocator_offset() = 0;
     }
 
 
-    bool has_allocator() const noexcept
+    bool has_allocator() const
     {
         return allocator_offset_ > 0;
     }
 
-    void setAllocatorOffset(const void* allocator) noexcept
+    void set_allocator_offset(const void* allocator)
     {
         // TODO: check for UB.
         const char* my_ptr = ptr_cast<const char>(this);
@@ -141,7 +141,7 @@ public:
         allocator_offset() = diff;
     }
 
-    PackedAllocator* allocator() noexcept
+    PackedAllocator* allocator()
     {
         if (allocator_offset() > 0)
         {
@@ -154,7 +154,7 @@ public:
         }
     }
 
-    PackedAllocator* allocator_or_null() noexcept
+    PackedAllocator* allocator_or_null()
     {
         if (allocator_offset() > 0)
         {
@@ -166,7 +166,7 @@ public:
         }
     }
 
-    const PackedAllocator* allocator() const noexcept
+    const PackedAllocator* allocator() const
     {
         if (allocator_offset() > 0)
         {
@@ -179,7 +179,7 @@ public:
         }
     }
 
-    const PackedAllocator* allocator_or_null() const noexcept
+    const PackedAllocator* allocator_or_null() const
     {
         if (allocator_offset() > 0)
         {
@@ -191,106 +191,106 @@ public:
         }
     }
 
-    static constexpr int32_t roundUpBytesToAlignmentBlocks(int32_t value) noexcept
+    static constexpr size_t round_up_bytes_to_alignment_blocks(size_t value)
     {
         return (value / AlignmentBlock + (value % AlignmentBlock ? 1 : 0)) * AlignmentBlock;
     }
 
-    static constexpr int32_t roundDownBytesToAlignmentBlocks(int32_t value) noexcept
+    static constexpr size_t round_down_bytes_to_alignment_blocks(size_t value)
     {
         return (value / AlignmentBlock) * AlignmentBlock;
     }
 
-    static constexpr int32_t roundUpBitsToAlignmentBlocks(int32_t bits) noexcept
+    static constexpr size_t round_up_bits_to_alignment_blocks(size_t bits)
     {
-        return roundUpBytesToAlignmentBlocks(roundUpBitToBytes(bits));
+        return round_up_bytes_to_alignment_blocks(round_up_bits_to_bytes(bits));
     }
 
-    static constexpr int32_t roundDownBitsToAlignmentBlocks(int32_t bits) noexcept
+    static constexpr size_t round_down_bits_to_alignment_blocks(size_t bits)
     {
-        return roundDownBytesToAlignmentBlocks(roundDownBitsToBytes(bits));
+        return round_down_bytes_to_alignment_blocks(round_down_bits_to_bytes(bits));
     }
 
-    static constexpr int32_t roundUpBitToBytes(int32_t bits) noexcept
-    {
-        return bits / 8 + (bits % 8 > 0);
-    }
-
-    static constexpr int32_t roundDownBitsToBytes(int32_t bits) noexcept
+    static constexpr size_t round_up_bits_to_bytes(size_t bits)
     {
         return bits / 8 + (bits % 8 > 0);
     }
 
-    static constexpr int32_t divUp(int32_t value, int32_t divider) noexcept {
-        return ::memoria::divUp(value, divider);
+    static constexpr size_t round_down_bits_to_bytes(size_t bits)
+    {
+        return bits / 8 + (bits % 8 > 0);
+    }
+
+    static constexpr size_t div_up(size_t value, size_t divider)  {
+        return ::memoria::div_up(value, divider);
     }
 
     template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<int32_t>::serialize(buf, allocator_offset_);
+        FieldFactory<psize_t>::serialize(buf, allocator_offset_);
     }
 
     template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<int32_t>::deserialize(buf, allocator_offset_);
+        FieldFactory<psize_t>::deserialize(buf, allocator_offset_);
     }
 };
 
 
 
 struct AllocationBlock {
-    int32_t size_;
-    int32_t offset_;
+    size_t size_;
+    size_t offset_;
     uint8_t* ptr_;
 
-    constexpr AllocationBlock(int32_t size, int32_t offset, uint8_t* ptr) noexcept:
+    constexpr AllocationBlock(size_t size, size_t offset, uint8_t* ptr) :
         size_(size), offset_(offset), ptr_(ptr)
     {}
 
-    constexpr AllocationBlock() noexcept:
+    constexpr AllocationBlock() :
         size_{}, offset_{}, ptr_{nullptr}
     {}
 
-    int32_t size() const noexcept   {return size_;}
-    int32_t offset() const noexcept {return offset_;}
-    uint8_t* ptr() const noexcept   {return ptr_;}
-    bool is_empty() const noexcept  {return size_ == 0;}
+    size_t size() const    {return size_;}
+    size_t offset() const  {return offset_;}
+    uint8_t* ptr() const    {return ptr_;}
+    bool is_empty() const   {return size_ == 0;}
 
     template <typename T>
-    const T* cast() const noexcept {
+    const T* cast() const  {
         return ptr_cast<const T>(ptr_);
     }
 
     template <typename T>
-    T* cast() noexcept {
+    T* cast()  {
         return ptr_cast<T>(ptr_);
     }
 
-    operator bool() const noexcept {
+    operator bool() const  {
         return ptr_ != nullptr;
     }
 };
 
 
 struct AllocationBlockConst {
-    int32_t size_;
-    int32_t offset_;
+    size_t size_;
+    size_t offset_;
     const uint8_t* ptr_;
 
-    constexpr AllocationBlockConst(int32_t size, int32_t offset, const uint8_t* ptr) noexcept:
+    constexpr AllocationBlockConst(size_t size, size_t offset, const uint8_t* ptr) :
         size_(size), offset_(offset), ptr_(ptr)
     {}
 
-    int32_t size() const noexcept   {return size_;}
-    int32_t offset() const noexcept {return offset_;}
-    const uint8_t* ptr() const noexcept {return ptr_;}
+    size_t size() const    {return size_;}
+    size_t offset() const  {return offset_;}
+    const uint8_t* ptr() const  {return ptr_;}
 
-    operator bool() const noexcept {return true;}
+    operator bool() const  {return true;}
 
     template <typename T>
-    const T* cast() const noexcept {
+    const T* cast() const  {
         return ptr_cast<const T>(ptr_);
     }
 };

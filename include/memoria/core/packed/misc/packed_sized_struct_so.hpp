@@ -67,7 +67,7 @@ public:
     const PkdStruct* data() const noexcept {return data_;}
     PkdStruct* data() noexcept {return data_;}
 
-    VoidResult splitTo(MyType& other, int32_t idx) noexcept {
+    VoidResult splitTo(MyType& other, size_t idx) noexcept {
         return data_->splitTo(other.data(), idx);
     }
 
@@ -75,7 +75,7 @@ public:
         return data_->mergeWith(other.data());
     }
 
-    VoidResult removeSpace(int32_t room_start, int32_t room_end) noexcept {
+    VoidResult removeSpace(size_t room_start, size_t room_end) noexcept {
         return data_->removeSpace(room_start, room_end);
     }
 
@@ -83,7 +83,7 @@ public:
         return data_->generateDataEvents(handler);
     }
 
-    int32_t size() const noexcept {
+    size_t size() const noexcept {
         return data_->size();
     }
 
@@ -91,7 +91,7 @@ public:
         return data_->check();
     }
 
-    auto sum(int32_t column) const noexcept {
+    auto sum(size_t column) const noexcept {
         return data_->sum(column);
     }
 
@@ -101,7 +101,7 @@ public:
 
 
 
-    VoidResult insertSpace(int32_t idx, int32_t room_length) noexcept {
+    VoidResult insertSpace(size_t idx, size_t room_length) noexcept {
         return data_->insertSpace(idx, room_length);
     }
 

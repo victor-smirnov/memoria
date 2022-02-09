@@ -146,7 +146,7 @@ struct IStore: IStoreBase<Profile> {
 
     using Shared = typename SharedBlockPtr::Shared;
 
-    virtual SnpSharedPtr<IStore> self_ptr() noexcept = 0;
+    virtual SnpSharedPtr<IStore> self_ptr() = 0;
 
     virtual void updateBlock(Shared* block) = 0;
     virtual void resizeBlock(Shared* block, int32_t new_size) = 0;
@@ -168,7 +168,7 @@ struct ICowStore: IStoreBase<Profile> {
 
     using Shared = typename SharedBlockPtr::Shared;
 
-    virtual SnpSharedPtr<ICowStore> self_ptr() noexcept = 0;
+    virtual SnpSharedPtr<ICowStore> self_ptr() = 0;
 
     virtual void ref_block(const BlockID& block_id) = 0;
     virtual void unref_block(const BlockID& block_id, std::function<void ()> on_zero) = 0;

@@ -54,7 +54,7 @@ private:
     std::unordered_map<U8String, HNode*> branches_;
 
 public:
-    SWMRStoreHistoryViewImpl() noexcept {}
+    SWMRStoreHistoryViewImpl() {}
 
     std::vector<U8String> branch_names() override
     {

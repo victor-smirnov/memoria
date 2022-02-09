@@ -50,7 +50,7 @@ public:
                 const ROAllocatorPtr& store,
                 CtrID ctr_id,
                 BlockID block_id
-        ) noexcept:
+        ):
             store_(store),
             ctr_id_(ctr_id),
             block_id_(block_id)
@@ -62,7 +62,7 @@ public:
             return block->is_leaf();
         }
 
-        virtual AnyID block_id() const noexcept
+        virtual AnyID block_id() const
         {
             return block_id_.as_any_id();
         }

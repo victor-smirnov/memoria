@@ -82,7 +82,7 @@ public:
     const MyType& self() const {return *ptr_cast<const MyType>(this);}
 
     template <typename CtrT, typename BranchNode>
-    Result<StreamOpResult> treeNode(const BranchNodeSO<CtrT, BranchNode>& node, WalkDirection direction, int32_t start) noexcept
+    StreamOpResult treeNode(const BranchNodeSO<CtrT, BranchNode>& node, WalkDirection direction, int32_t start)
     {
         auto& self = this->self();
 

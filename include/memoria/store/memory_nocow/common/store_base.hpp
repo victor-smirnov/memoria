@@ -277,40 +277,40 @@ public:
             }
         }
 
-        bool is_committed() const noexcept
+        bool is_committed() const
         {
             return status_ == Status::COMMITTED;
         }
 
-        bool is_active() const noexcept
+        bool is_active() const
         {
             return status_ == Status::ACTIVE;
         }
 
-        bool is_dropped() const noexcept
+        bool is_dropped() const
         {
             return status_ == Status::DROPPED;
         }
 
-        bool is_data_locked() const noexcept
+        bool is_data_locked() const
         {
         	return status_ == Status::DATA_LOCKED;
         }
 
-        Status status() const noexcept {
+        Status status() const  {
             return status_;
         }
 
-        const SnapshotID& snapshot_id() const noexcept {return snapshot_id_;}
+        const SnapshotID& snapshot_id() const  {return snapshot_id_;}
 
-        const auto& root() const noexcept {
+        const auto& root() const  {
         	return root_;
         }
 
-        auto& root_id() noexcept {return root_id_;}
-        const auto& root_id() const noexcept {return root_id_;}
+        auto& root_id()  {return root_id_;}
+        const auto& root_id() const  {return root_id_;}
 
-        void set_root(NodeBaseT* new_root) noexcept
+        void set_root(NodeBaseT* new_root)
         {
             if (root_) {
                 root_->unref();
@@ -323,63 +323,63 @@ public:
             }
         }
 
-        void assign_root_no_ref(NodeBaseT* new_root) noexcept {
+        void assign_root_no_ref(NodeBaseT* new_root)  {
             root_ = new_root;
         }
 
-        BlockID new_node_id() noexcept {
+        BlockID new_node_id()  {
             return ProfileTraits<Profile>::make_random_block_id();
         }
 
-        const auto& parent() const noexcept {return parent_;}
-        auto& parent() noexcept {return parent_;}
+        const auto& parent() const  {return parent_;}
+        auto& parent()  {return parent_;}
 
-        auto& children() noexcept {
+        auto& children()  {
             return children_;
         }
 
-        const auto& children() const noexcept {
+        const auto& children() const  {
             return children_;
         }
 
 
-        void set_status(const Status& status) noexcept {
+        void set_status(const Status& status)  {
         	status_ = status;
         }
 
 
-        void set_metadata(U8StringRef metadata) noexcept {
+        void set_metadata(U8StringRef metadata)  {
         	metadata_ = metadata;
         }
 
-        const auto& metadata() const noexcept {
+        const auto& metadata() const  {
         	HLockGuardT lock(mutex_);
         	return metadata_;
         }
 
-        void commit() noexcept {
+        void commit()  {
             status_ = Status::COMMITTED;
         }
 
-        void mark_to_clear() noexcept {
+        void mark_to_clear()  {
             status_ = Status::DROPPED;
         }
 
-        void lock_data() noexcept {
+        void lock_data()  {
         	status_ = Status::DATA_LOCKED;
         }
 
 
-        auto references() const noexcept
+        auto references() const
         {
         	return references_;
         }
 
-        auto ref() noexcept {
+        auto ref()  {
             return ++references_;
         }
 
-        auto unref() noexcept {
+        auto unref()  {
             return --references_;
         }
     };
@@ -537,27 +537,27 @@ public:
         
     }
 
-    bool is_dump_snapshot_lifecycle() const noexcept {return dump_snapshot_lifecycle_.load();}
-    void set_dump_snapshot_lifecycle(bool do_dump) noexcept {dump_snapshot_lifecycle_.store(do_dump);}
+    bool is_dump_snapshot_lifecycle() const  {return dump_snapshot_lifecycle_.load();}
+    void set_dump_snapshot_lifecycle(bool do_dump)  {dump_snapshot_lifecycle_.store(do_dump);}
 
-    auto get_root_snapshot_uuid() const noexcept {
+    auto get_root_snapshot_uuid() const  {
         return history_tree_->snapshot_id();
     }
 
 
-    PairPtr& pair() noexcept {
+    PairPtr& pair()  {
         return pair_;
     }
 
-    const PairPtr& pair() const noexcept {
+    const PairPtr& pair() const  {
         return pair_;
     }
 
     // return true in case of errors
-    void check(const CheckResultConsumerFn&) noexcept {
+    void check(const CheckResultConsumerFn&)  {
     }
 
-    static AllocSharedPtr<IMemoryStore<ApiProfileT>> create() noexcept
+    static AllocSharedPtr<IMemoryStore<ApiProfileT>> create()
     {
         MaybeError maybe_error;
         auto store = alloc_make_shared<MyType>(maybe_error);
@@ -570,7 +570,7 @@ public:
         }
     }
 
-    auto newBlockId() noexcept
+    auto newBlockId()
     {
         return ProfileTraits<Profile>::make_random_block_id();
     }
@@ -1452,8 +1452,8 @@ protected:
     }
 
 
-    MyType& self() noexcept {return *static_cast<MyType*>(this);}
-    const MyType& self() const noexcept {return *static_cast<const MyType*>(this);}
+    MyType& self()  {return *static_cast<MyType*>(this);}
+    const MyType& self() const  {return *static_cast<const MyType*>(this);}
 };
 
 }

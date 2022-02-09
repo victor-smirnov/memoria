@@ -32,8 +32,8 @@ class PkdRandomAccessIterator: public boost::iterator_facade<
 > {
     using ViewType = typename AccessorType::ViewType;
 
-    psize_t pos_;
-    psize_t size_;
+    size_t pos_;
+    size_t size_;
     AccessorType accessor_;
 
     using Iterator = PkdRandomAccessIterator;
@@ -41,12 +41,12 @@ class PkdRandomAccessIterator: public boost::iterator_facade<
 public:
     PkdRandomAccessIterator() noexcept: pos_(), size_(), accessor_() {}
 
-    PkdRandomAccessIterator(AccessorType accessor, psize_t pos, psize_t size) noexcept:
+    PkdRandomAccessIterator(AccessorType accessor, size_t pos, size_t size) noexcept:
         pos_(pos), size_(size), accessor_(accessor)
     {}
 
-    psize_t size() const noexcept {return size_;}
-    psize_t pos() const noexcept {return pos_;}
+    size_t size() const noexcept {return size_;}
+    size_t pos() const noexcept {return pos_;}
 
     bool is_end() const noexcept {return pos_ >= size_;}
     operator bool() const noexcept {return !is_end();}

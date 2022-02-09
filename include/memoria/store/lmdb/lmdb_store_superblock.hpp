@@ -38,10 +38,10 @@ private:
     PackedAllocator allocator_;
 
 public:
-    LMDBSuperblock() noexcept {}
+    LMDBSuperblock()  {}
 
-    BlockID& directory_root_id() noexcept {return directory_root_id_;}
-    uint64_t superblock_size() const noexcept {return superblock_size_;}
+    BlockID& directory_root_id()  {return directory_root_id_;}
+    uint64_t superblock_size() const  {return superblock_size_;}
 
     VoidResult init(uint64_t superblock_size)
     {
@@ -54,26 +54,26 @@ public:
         return allocator_.init(allocator_block_size(superblock_size), 1);
     }
 
-    bool is_updated() const noexcept {
+    bool is_updated() const  {
         return updates_ > 0;
     }
 
-    void clear_updates() noexcept {
+    void clear_updates()  {
         updates_ = 0;
     }
 
-    void touch() noexcept {
+    void touch()  {
         ++updates_;
     }
 
-    uint64_t new_block_id() noexcept {
+    uint64_t new_block_id()  {
         ++block_id_counter_;
         ++updates_;
         return block_id_counter_;
     }
 
 private:
-    static int32_t allocator_block_size(size_t superblock_size) noexcept
+    static int32_t allocator_block_size(size_t superblock_size)
     {
         int32_t sb_size = sizeof(LMDBSuperblock);
         int32_t alloc_size = sizeof(PackedAllocator);

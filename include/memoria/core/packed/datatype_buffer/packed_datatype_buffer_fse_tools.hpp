@@ -22,18 +22,18 @@ namespace memoria {
 namespace pdtbuf_ {
 
 
-template <typename T, typename PkdStruct, psize_t Block_>
+template <typename T, typename PkdStruct, size_t Block_>
 class PDTDimension<const T*, PkdStruct, Block_> {
     PkdStruct* pkd_buf_;
 
     using TPtr = const T*;
 
 public:
-    static constexpr psize_t Block = Block_;
-    static constexpr psize_t Width = 1;
+    static constexpr size_t Block = Block_;
+    static constexpr size_t Width = 1;
 
-    static constexpr psize_t DataBlock = Block_;
-    static constexpr psize_t Dimension = Block_ - 1;
+    static constexpr size_t DataBlock = Block_;
+    static constexpr size_t Dimension = Block_ - 1;
 
     constexpr PDTDimension(PkdStruct* pkd_buf):
         pkd_buf_(pkd_buf)
@@ -47,38 +47,38 @@ public:
         return pkd_buf_->template get<const T>(DataBlock);
     }
 
-    static VoidResult allocateEmpty(PkdStruct* alloc) noexcept {
+    static VoidResult allocate_empty(PkdStruct* alloc) noexcept {
         return VoidResult::of();
     }
 
-    static constexpr psize_t empty_size_aligned() {
+    static constexpr size_t empty_size_aligned() {
         return 0;
     }
 
-    static psize_t data_block_size(psize_t capacity)
+    static size_t data_block_size(size_t capacity)
     {
-        psize_t size = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+        size_t size = PackedAllocatable::round_up_bytes_to_alignment_blocks(
             capacity * sizeof(T)
         );
 
         return size;
     }
 
-    void set(TPtr& value, psize_t row) const
+    void set(TPtr& value, size_t row) const
     {
         const T* dd = data();
         value = dd + row;
     }
 
-    void lengths(psize_t& value, psize_t row, psize_t size) const {
+    void lengths(size_t& value, size_t row, size_t size) const {
         value = size;
     }
 
-    psize_t compute_new_size(psize_t extra_size, psize_t extra_data_len)
+    size_t compute_new_size(size_t extra_size, size_t extra_data_len)
     {
         auto meta = pkd_buf_->metadata();
 
-        psize_t data_length_aligned = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+        size_t data_length_aligned = PackedAllocatable::round_up_bytes_to_alignment_blocks(
                     (extra_data_len + meta.size()) * sizeof(T)
         );
 
@@ -86,34 +86,34 @@ public:
     }
 
     template <typename Metadata>
-    psize_t joint_data_length(const Metadata& my_meta, const PkdStruct* other, const Metadata& other_meta) const
+    size_t joint_data_length(const Metadata& my_meta, const PkdStruct* other, const Metadata& other_meta) const
     {
-        psize_t data_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+        size_t data_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(
              (my_meta.size() + other_meta.size()) * sizeof(T)
         );
 
         return data_size;
     }
 
-    VoidResult insert_space(psize_t start, psize_t size, psize_t data_len) noexcept
+    VoidResult insert_space(size_t start, size_t size, size_t data_len) noexcept
     {
         auto& meta = pkd_buf_->metadata();
 
-        psize_t column_data_length = size + meta.size();
+        size_t column_data_length = size + meta.size();
 
-        MEMORIA_TRY_VOID(pkd_buf_->resizeBlock(DataBlock, column_data_length * sizeof(T)));
+        MEMORIA_TRY_VOID(pkd_buf_->resize_block(DataBlock, column_data_length * sizeof(T)));
 
         auto data = this->data();
 
-        psize_t data_start  = start;
-        psize_t data_end    = data_start + size;
+        size_t data_start  = start;
+        size_t data_end    = data_start + size;
 
         MemMoveBuffer(data + data_start, data + data_end, meta.size() - start);
 
         return VoidResult::of();
     }
 
-    VoidResult remove_space(psize_t start, psize_t size) noexcept
+    VoidResult remove_space(size_t start, size_t size) noexcept
     {
         auto& meta = pkd_buf_->metadata();
 
@@ -121,25 +121,25 @@ public:
 
         MemMoveBuffer(data + start + size, data + start, meta.size() - start - size);
 
-        psize_t column_data_length = (meta.size() - size) * sizeof(T);
+        size_t column_data_length = (meta.size() - size) * sizeof(T);
 
-        MEMORIA_TRY_VOID(pkd_buf_->resizeBlock(DataBlock, column_data_length));
+        MEMORIA_TRY_VOID(pkd_buf_->resize_block(DataBlock, column_data_length));
 
         return VoidResult::of();
     }
 
-    VoidResult resize_row(psize_t idx, const T* value) noexcept
+    VoidResult resize_row(size_t idx, const T* value) noexcept
     {
         return VoidResult::of();
     }
 
-    VoidResult replace_row(psize_t idx, const T* value) noexcept
+    VoidResult replace_row(size_t idx, const T* value) noexcept
     {
         *(this->data() + idx) = *value;
         return VoidResult::of();
     }
 
-    void copy_to(PkdStruct* other, psize_t copy_from, psize_t count, psize_t copy_to, psize_t data_length) const
+    void copy_to(PkdStruct* other, size_t copy_from, size_t count, size_t copy_to, size_t data_length) const
     {
         auto other_dim = other->template dimension<Dimension>();
 
@@ -150,27 +150,27 @@ public:
         );
     }
 
-    void copy_from(psize_t idx, const T* data)
+    void copy_from(size_t idx, const T* data)
     {
         *(this->data() + idx) = *data;
     }
 
     template <typename Buffer>
-    void copy_from_databuffer(psize_t idx, psize_t start, psize_t size, psize_t data_length, const Buffer& buffer)
+    void copy_from_databuffer(size_t idx, size_t start, size_t size, size_t data_length, const Buffer& buffer)
     {
         const auto* data_src = buffer.template data<Dimension>(start);
         MemCpyBuffer(data_src, this->data() + idx, size);
     }
 
     template <typename Metadata>
-    psize_t estimate_insert_upsize(const T* data, const Metadata& meta) const
+    size_t estimate_insert_upsize(const T* data, const Metadata& meta) const
     {
-        psize_t column_data_size = meta.size();
-        psize_t view_length = 1;
+        size_t column_data_size = meta.size();
+        size_t view_length = 1;
 
-        psize_t column_data_size_aligned0 = pkd_buf_->element_size(DataBlock);
+        size_t column_data_size_aligned0 = pkd_buf_->element_size(DataBlock);
 
-        psize_t column_data_size_aligned1 = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+        size_t column_data_size_aligned1 = PackedAllocatable::round_up_bytes_to_alignment_blocks(
             (view_length + column_data_size) * sizeof(T)
         );
 
@@ -178,7 +178,7 @@ public:
     }
 
     template <typename Metadata>
-    psize_t estimate_replace_upsize(psize_t idx, const T* span, const Metadata& meta) const
+    size_t estimate_replace_upsize(size_t idx, const T* span, const Metadata& meta) const
     {
         return 0;
     }
@@ -200,7 +200,7 @@ public:
     {
         auto size = meta.size();
         auto data = this->data();
-        for (psize_t c = 0; c < size; c++)
+        for (size_t c = 0; c < size; c++)
         {
             auto new_id = id_resolver->resolve_id(data[c]);
             FieldFactory<T>::serialize(buf, new_id);

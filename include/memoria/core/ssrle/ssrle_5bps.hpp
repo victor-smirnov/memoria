@@ -83,7 +83,7 @@ struct SSRLERunTraits<5>: SSRLERunCommonTraits<5> {
         size_t rl_size = run_length_bitsize(run.run_length());
         size_t bitlen = HEADER_BITS + run.pattern_length() * Bps + rl_size;
 
-        return divUp(bitlen, sizeof(CodeUnitT) * 8);
+        return div_up(bitlen, sizeof(CodeUnitT) * 8);
     }
 };
 

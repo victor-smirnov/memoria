@@ -59,29 +59,29 @@ public:
         BlockID child_id_;
         TreeNodePtr node_;
     public:
-        BranchNodeEntryT(const BranchNodeEntryT& accum, const BlockID& id, TreeNodePtr node) noexcept:
+        BranchNodeEntryT(const BranchNodeEntryT& accum, const BlockID& id, TreeNodePtr node):
             accum_(accum), child_id_(id)
         {}
 
-        BranchNodeEntryT() noexcept: accum_(), child_id_(), node_()
+        BranchNodeEntryT(): accum_(), child_id_(), node_()
         {}
 
-        const BranchNodeEntry& accum() const noexcept {return accum_;}
-        const BlockID& child_id() const noexcept {return child_id_;}
+        const BranchNodeEntry& accum() const {return accum_;}
+        const BlockID& child_id() const {return child_id_;}
 
-        BranchNodeEntry& accum() noexcept {return accum_;}
-        BlockID& child_id() noexcept {return child_id_;}
-        TreeNodePtr& child_node() noexcept {return node_;}
+        BranchNodeEntry& accum() {return accum_;}
+        BlockID& child_id() {return child_id_;}
+        TreeNodePtr& child_node() {return node_;}
     };
 
 
     struct InsertChildrenFn {
         template <typename CtrT, typename NodeT>
-        VoidResult treeNode(BranchNodeSO<CtrT, NodeT>& node, int32_t from, int32_t to, const BranchNodeEntryT* entries) noexcept
+        VoidResult treeNode(BranchNodeSO<CtrT, NodeT>& node, int32_t from, int32_t to, const BranchNodeEntryT* entries)
         {
-            MEMORIA_TRY(old_size, node.size());
+            auto old_size = node.size();
 
-            MEMORIA_TRY_VOID(node.processAll(*this, from, to, entries));
+            MEMORIA_TRY_VOID(node.processAllVoidRes(*this, from, to, entries));
 
             int32_t idx = 0;
             return node.insertValues(old_size, from, to - from, [entries, &idx](){
@@ -90,9 +90,9 @@ public:
         }
 
         template <int32_t ListIdx, typename StreamType>
-        VoidResult stream(StreamType& obj, int32_t from, int32_t to, const BranchNodeEntryT* entries) noexcept
+        VoidResult stream(StreamType& obj, int32_t from, int32_t to, const BranchNodeEntryT* entries)
         {
-            return obj.insert_entries(from, to - from, [entries](int32_t column, int32_t idx) noexcept -> const auto& {
+            return obj.insert_entries(from, to - from, [entries](int32_t column, int32_t idx) -> const auto& {
                 return std::get<ListIdx>(entries[idx].accum())[column];
             });
         }
@@ -192,7 +192,7 @@ public:
             return size_;
         }
 
-        virtual TreeNodePtr get_leaf() noexcept
+        virtual TreeNodePtr get_leaf()
         {
             if (head_.isSet())
             {

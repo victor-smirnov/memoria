@@ -31,7 +31,7 @@ namespace memoria {
 template <typename Allocator_ = PackedAllocator>
 struct PackedWaveletTreeTypes {
     typedef Allocator_                  Allocator;
-    static const int32_t BitsPerLabel       = 8;
+    static const size_t BitsPerLabel       = 8;
 };
 
 template <typename Types>
@@ -45,7 +45,7 @@ class PackedWaveletTree: public PackedAllocator {
     static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
 
     struct CardinalTreeTypes {
-        static const int32_t BitsPerLabel   = Types::BitsPerLabel;
+        static const size_t BitsPerLabel   = Types::BitsPerLabel;
     };
 
     typedef PackedCxMultiSequenceTypes<
@@ -92,21 +92,21 @@ public:
         msequence()->insertSubsequence(0);
     }
 
-    int32_t size() const {
+    size_t size() const {
         return msequence()->subseq_size(0);
     }
 
-    void insert(int32_t idx, uint64_t value)
+    void insert(size_t idx, uint64_t value)
     {
         insert(ctree()->tree()->root(), idx, value, 3);
     }
 
-    void remove(int32_t idx) {
+    void remove(size_t idx) {
         removeValue(idx, ctree()->tree()->root(), 3);
     }
 
 
-    uint64_t value(int32_t idx) const
+    uint64_t value(size_t idx) const
     {
         uint64_t value = 0;
 
@@ -116,40 +116,40 @@ public:
     }
 
 
-    int32_t rank(int32_t idx, uint64_t symbol) const
+    size_t rank(size_t idx, uint64_t symbol) const
     {
         return buildRank(ctree()->tree()->root(), idx, symbol, 3);
     }
 
 
-    int32_t select(int32_t rank, uint64_t symbol) const
+    size_t select(size_t rank, uint64_t symbol) const
     {
         return select(ctree()->tree()->root(), rank, symbol, 3) - 1;
     }
 
 
-    static int32_t empty_size()
+    static size_t empty_size()
     {
-        int32_t ctree_block_size    = CardinalTree::empty_size();
-        int32_t multiseq_block_size = MultiSequence::empty_size();
+        size_t ctree_block_size    = CardinalTree::empty_size();
+        size_t multiseq_block_size = MultiSequence::empty_size();
 
-        int32_t block_size = Base::block_size(ctree_block_size + multiseq_block_size, 2);
+        size_t block_size = Base::block_size(ctree_block_size + multiseq_block_size, 2);
 
         return block_size;
     }
 
     VoidResult init()
     {
-        int32_t block_size = empty_size();
+        size_t block_size = empty_size();
 
         MEMORIA_TRY_VOID(Base::init(block_size, 2));
-        MEMORIA_TRY_VOID(Base::template allocateEmpty<CardinalTree>(CTREE));
-        MEMORIA_TRY_VOID(Base::template allocateEmpty<MultiSequence>(MULTISEQ));
+        MEMORIA_TRY_VOID(Base::template allocate_empty<CardinalTree>(CTREE));
+        MEMORIA_TRY_VOID(Base::template allocate_empty<MultiSequence>(MULTISEQ));
 
         return VoidResult::of();
     }
 
-    static int32_t block_size(int32_t client_area)
+    static size_t block_size(size_t client_area)
     {
         return Base::block_size(client_area, 2);
     }
@@ -165,14 +165,14 @@ public:
 
 private:
 
-    void insert(const PackedLoudsNode& node, int32_t idx, uint64_t value, int32_t level)
+    void insert(const PackedLoudsNode& node, size_t idx, uint64_t value, size_t level)
     {
-        int32_t label = (value >> (level * 8)) & 0xFF;
+        size_t label = (value >> (level * 8)) & 0xFF;
 
-        int32_t seq_num = node.rank1() - 1;
+        size_t seq_num = node.rank1() - 1;
 
         msequence()->insertSymbol(seq_num, idx, label);
-        int32_t rank = msequence()->rank(seq_num, idx + 1, label);
+        size_t rank = msequence()->rank(seq_num, idx + 1, label);
 
         if (level > 0)
         {
@@ -189,12 +189,12 @@ private:
     }
 
 
-    void buildValue(int32_t idx, const PackedLoudsNode& node, uint64_t& value, int32_t level) const
+    void buildValue(size_t idx, const PackedLoudsNode& node, uint64_t& value, size_t level) const
     {
-        int32_t     seq_num = node.rank1() - 1;
+        size_t     seq_num = node.rank1() - 1;
         uint64_t label   = msequence()->symbol(seq_num, idx);
 
-        int32_t     rank    = msequence()->rank(seq_num, idx + 1, label);
+        size_t     rank    = msequence()->rank(seq_num, idx + 1, label);
 
         value |= label << (level * 8);
 
@@ -206,11 +206,11 @@ private:
         }
     }
 
-    void removeValue(int32_t idx, const PackedLoudsNode& node, int32_t level)
+    void removeValue(size_t idx, const PackedLoudsNode& node, size_t level)
     {
-        int32_t     seq_num = node.rank1() - 1;
+        size_t     seq_num = node.rank1() - 1;
         uint64_t label   = msequence()->symbol(seq_num, idx);
-        int32_t     rank    = msequence()->rank(seq_num, idx + 1, label);
+        size_t     rank    = msequence()->rank(seq_num, idx + 1, label);
 
         if (level > 0)
         {
@@ -230,17 +230,17 @@ private:
         }
     }
 
-    int32_t select(const PackedLoudsNode& node, int32_t rank, uint64_t symbol, int32_t level) const
+    size_t select(const PackedLoudsNode& node, size_t rank, uint64_t symbol, size_t level) const
     {
         if (level >= 0)
         {
-            int32_t label = (symbol >> (level * 8)) & 0xFFull;
+            size_t label = (symbol >> (level * 8)) & 0xFFull;
 
             PackedLoudsNode child = ctree()->find_child(node, label);
 
-            int32_t rnk = select(child, rank, symbol, level - 1);
+            size_t rnk = select(child, rank, symbol, level - 1);
 
-            int32_t seq_num = node.rank1() - 1;
+            size_t seq_num = node.rank1() - 1;
             return msequence()->select(seq_num, rnk, label).local_pos() + 1;
         }
         else {
@@ -249,11 +249,11 @@ private:
     }
 
 
-    int32_t buildRank(const PackedLoudsNode& node, int32_t idx, uint64_t symbol, int32_t level) const
+    size_t buildRank(const PackedLoudsNode& node, size_t idx, uint64_t symbol, size_t level) const
     {
-        int32_t seq_num = node.rank1() - 1;
-        int32_t label   = (symbol >> (level * 8)) & 0xFFull;
-        int32_t rank    = msequence()->rank(seq_num, idx + 1, label);
+        size_t seq_num = node.rank1() - 1;
+        size_t label   = (symbol >> (level * 8)) & 0xFFull;
+        size_t rank    = msequence()->rank(seq_num, idx + 1, label);
 
         if (level > 0)
         {

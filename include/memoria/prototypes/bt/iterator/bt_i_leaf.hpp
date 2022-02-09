@@ -42,7 +42,7 @@ public:
 
             walker.prepare(self);
 
-            self.ctr().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0).get_or_throw();
+            self.ctr().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0);
 
             walker.finish(self, 0, WalkCmd::NONE);
 

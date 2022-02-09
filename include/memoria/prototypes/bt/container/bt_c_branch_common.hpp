@@ -38,7 +38,7 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN(GetNonLeafCapacityFn, capacity);
     int32_t ctr_get_branch_node_capacity(const TreeNodeConstPtr& node, uint64_t active_streams) const
     {
-        return self().branch_dispatcher().dispatch(node, GetNonLeafCapacityFn(), active_streams).get_or_throw();
+        return self().branch_dispatcher().dispatch(node, GetNonLeafCapacityFn(), active_streams);
     }
 
 

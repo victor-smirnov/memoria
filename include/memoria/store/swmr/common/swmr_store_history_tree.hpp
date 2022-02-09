@@ -77,14 +77,14 @@ private:
     SuperblockFn superblock_fn_;
 
 public:
-    HistoryTree() noexcept :
+    HistoryTree()  :
         root_(),
         consistency_point1_(),
         consistency_point2_(),
         head_()
     {}
 
-    ~HistoryTree() noexcept
+    ~HistoryTree()
     {
         for (const auto& entry: snapshots_) {
             entry.second->set_new();
@@ -98,24 +98,24 @@ public:
 
 
 
-    bool is_clean() const noexcept {
+    bool is_clean() const  {
         return head_ == consistency_point1_;
     }
 
-    int64_t count_volatile_snapshots() const noexcept {
+    int64_t count_volatile_snapshots() const  {
         // FIXME: implement volatile snapshots counter
         return 0;
     }
 
-    bool can_rollback_last_consistency_point() const noexcept {
+    bool can_rollback_last_consistency_point() const  {
         return head_ == consistency_point1_ && consistency_point2_ != nullptr;
     }
 
-    void set_superblock_fn(SuperblockFn fn) noexcept {
+    void set_superblock_fn(SuperblockFn fn)  {
         superblock_fn_ = fn;
     }
 
-    std::vector<U8String> branch_names() const noexcept
+    std::vector<U8String> branch_names() const
     {
         std::vector<U8String> names;
 
@@ -126,11 +126,11 @@ public:
         return names;
     }
 
-    size_t branches_size() const noexcept {
+    size_t branches_size() const  {
         return branch_heads_.size();
     }
 
-    CDescrPtr get_branch_head(U8StringView name) const noexcept
+    CDescrPtr get_branch_head(U8StringView name) const
     {
         auto ii = branch_heads_.find(name);
         if (ii != branch_heads_.end()) {
@@ -139,27 +139,27 @@ public:
         return CDescrPtr{};
     }
 
-    void remove_branch(U8StringView name) noexcept {
+    void remove_branch(U8StringView name)  {
         branch_heads_.erase(name);
     }
 
-    CDescrPtr head() const noexcept {
+    CDescrPtr head() const  {
         return head_;
     }
 
-    CDescrPtr consistency_point1() const noexcept {
+    CDescrPtr consistency_point1() const  {
         return consistency_point1_;
     }
 
-    CDescrPtr consistency_point2() const noexcept {
+    CDescrPtr consistency_point2() const  {
         return consistency_point2_;
     }
 
-    const SnapshotDescriptorsList<Profile>& eviction_queue() const noexcept {
+    const SnapshotDescriptorsList<Profile>& eviction_queue() const  {
         return eviction_queue_;
     }
 
-    SnapshotDescriptorsList<Profile>& eviction_queue() noexcept {
+    SnapshotDescriptorsList<Profile>& eviction_queue()  {
         return eviction_queue_;
     }
 
@@ -246,7 +246,7 @@ public:
         }
     }
 
-    void cleanup_eviction_queue() noexcept
+    void cleanup_eviction_queue()
     {
         for (SnapshotDescriptorT& descr: eviction_queue_)
         {
@@ -271,14 +271,14 @@ public:
         eviction_queue_.erase_and_dispose(
             eviction_queue_.begin(),
             eviction_queue_.end(),
-            [&](SnapshotDescriptorT* snapshot_descr) noexcept {
+            [&](SnapshotDescriptorT* snapshot_descr)  {
                 snapshot_descr->set_new();
                 snapshots_.erase(snapshot_descr->snapshot_id());
             }
         );
     }
 
-    CDescrPtr get(const SnapshotID& id) noexcept
+    CDescrPtr get(const SnapshotID& id)
     {
         auto ii = snapshots_.find(id);
         if (ii != snapshots_.end()) {
@@ -288,7 +288,7 @@ public:
     }
 
 
-    void attach_snapshot(CDescrPtr descr, bool consistency_point) noexcept
+    void attach_snapshot(CDescrPtr descr, bool consistency_point)
     {
         descr->set_attached();
 
@@ -410,24 +410,24 @@ private:
         bool done_{false};
 
     public:
-        TraverseState(CDescrPtr descr) noexcept :
+        TraverseState(CDescrPtr descr)  :
             descr_(descr),
             ii_(descr->children().begin())
         {}
 
-        bool is_done() const noexcept {
+        bool is_done() const  {
             return done_;
         }
 
-        void done() noexcept {
+        void done()  {
             done_ = true;
         }
 
-        CDescrPtr descr() const noexcept {
+        CDescrPtr descr() const  {
             return descr_;
         }
 
-        CDescrPtr next_child() noexcept {
+        CDescrPtr next_child()  {
             if (ii_ != descr_->children().end()) {
                 CDescrPtr tmp = *ii_;
                 ++ii_;
@@ -482,7 +482,7 @@ public:
     }
 
 private:
-    const U8String& get_branch_name(CDescrPtr descr) noexcept {
+    const U8String& get_branch_name(CDescrPtr descr)  {
         return descr->branch();
     }
 

@@ -34,12 +34,12 @@ class BTPkdStructAdaperBase {
 protected:
     PkdStructSO pkd_struct_;
 public:
-    BTPkdStructAdaperBase(PkdStructSO pkd_struct) noexcept:
+    BTPkdStructAdaperBase(PkdStructSO pkd_struct) :
         pkd_struct_(pkd_struct)
     {}
 
     template <typename T, int32_t Indexes>
-    void assign_to(core::StaticVector<T, Indexes>& tgt, psize_t idx) noexcept
+    void assign_to(core::StaticVector<T, Indexes>& tgt, psize_t idx)
     {
         for (int32_t c = 0; c < Indexes; c++) {
             tgt[c] = pkd_struct_.access(c, idx);
@@ -47,7 +47,7 @@ public:
     }
 
     template <typename T, int32_t Indexes>
-    void assign_to(core::StaticVector<Optional<T>, Indexes>& tgt, psize_t idx) noexcept
+    void assign_to(core::StaticVector<Optional<T>, Indexes>& tgt, psize_t idx)
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -57,12 +57,12 @@ public:
 
 protected:
     template <typename TT>
-    void set_empty(TT& dest) const noexcept {
+    void set_empty(TT& dest) const  {
         dest = TT{};
     }
 
     template <typename TT>
-    void set_empty(Optional<TT>& dest) const noexcept {
+    void set_empty(Optional<TT>& dest) const  {
         dest = Optional<TT>{};
     }
 };
@@ -80,12 +80,12 @@ protected:
     using Base::set_empty;
     using Base::pkd_struct_;
 public:
-    BTPkdStructAdaper(PkdStructSO pkd_struct) noexcept:
+    BTPkdStructAdaper(PkdStructSO pkd_struct) :
         Base(pkd_struct)
     {}
 
     template <typename T>
-    void branch_max_entry(core::StaticVector<T, Indexes>& accum) const noexcept
+    void branch_max_entry(core::StaticVector<T, Indexes>& accum) const
     {
         psize_t size = pkd_struct_.size();
 
@@ -102,7 +102,7 @@ public:
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void leaf_max_entry(BranchNodeEntryItem<T, Size>& accum) const noexcept
+    void leaf_max_entry(BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset + Indexes <= Size, "Invalid balanced tree structure");
         psize_t size = pkd_struct_.size();
@@ -135,12 +135,12 @@ protected:
     using Base::set_empty;
     using Base::pkd_struct_;
 public:
-    BTPkdStructAdaper(PkdStructSO pkd_struct) noexcept:
+    BTPkdStructAdaper(PkdStructSO pkd_struct) :
         Base(pkd_struct)
     {}
 
     template <typename T>
-    void branch_max_entry(core::StaticVector<T, Indexes>& accum) const noexcept
+    void branch_max_entry(core::StaticVector<T, Indexes>& accum) const
     {
         psize_t size = pkd_struct_.size();
 
@@ -156,7 +156,7 @@ public:
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void leaf_max_entry(BranchNodeEntryItem<T, Size>& accum) const noexcept
+    void leaf_max_entry(BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset + Indexes <= Size, "Invalid balanced tree structure");
         psize_t size = pkd_struct_.size();
@@ -176,7 +176,7 @@ public:
 
 
     template <typename T>
-    void branch_sum_entries(int32_t start, int32_t end, core::StaticVector<T, Indexes>& accum) const noexcept
+    void branch_sum_entries(int32_t start, int32_t end, core::StaticVector<T, Indexes>& accum) const
     {
         for (int32_t c = 0; c < Indexes; c++) {
             accum[c] += pkd_struct_.sum(c, start, end);
@@ -184,7 +184,7 @@ public:
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void leaf_sum_entries(int32_t start, int32_t end, BranchNodeEntryItem<T, Size>& accum) const noexcept
+    void leaf_sum_entries(int32_t start, int32_t end, BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset + Indexes <= Size, "Invalid balanced tree structure");
 

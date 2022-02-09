@@ -24,20 +24,21 @@
 #include <memoria/core/types/list/tuple.hpp>
 #include <memoria/core/tools/result.hpp>
 
+#include <memoria/core/packed/tools/packed_dispatcher.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher_detail.hpp>
 
 #include <utility>
 
 namespace memoria {
 
-template <typename Struct, int32_t Index> struct SubstreamDescr;
+template <typename Struct, size_t Index> struct SubstreamDescr;
 
 namespace pd_stateful {
 
-template <typename List, int32_t GroupIdx, int32_t StreamIdx, typename Fn, typename... Args> class MakeRtnTypeList;
-template <typename List, int32_t GroupIdx, int32_t StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnType;
+template <typename List, size_t GroupIdx, size_t StreamIdx, typename Fn, typename... Args> class MakeRtnTypeList;
+template <typename List, size_t GroupIdx, size_t StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnType;
 
-template <int32_t GroupIdx, int32_t StreamIdx, typename Head, int32_t Index, typename Fn, typename... Tail, typename... Args>
+template <size_t GroupIdx, size_t StreamIdx, typename Head, size_t Index, typename Fn, typename... Tail, typename... Args>
 class MakeRtnTypeList<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
@@ -51,7 +52,7 @@ public:
     >;
 };
 
-template <int32_t GroupIdx, int32_t StreamIdx, typename Fn, typename... Args>
+template <size_t GroupIdx, size_t StreamIdx, typename Fn, typename... Args>
 class MakeRtnTypeList<TypeList<>, GroupIdx, StreamIdx, Fn, Args...> {
 public:
     using Type = TypeList<>;
@@ -74,7 +75,7 @@ struct IsVoid<Result<void>> {
 };
 
 
-template <int32_t GroupIdx, int32_t StreamIdx, typename Head, int32_t Index, typename Fn, typename... Tail, typename... Args>
+template <size_t GroupIdx, size_t StreamIdx, typename Head, size_t Index, typename Fn, typename... Tail, typename... Args>
 class ContainsVoidRtnType<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
@@ -86,7 +87,7 @@ public:
                                 ContainsVoidRtnType<TypeList<Tail...>, GroupIdx, StreamIdx + 1, Fn, Args...>::Value;
 };
 
-template <int32_t GroupIdx, int32_t StreamIdx, typename Fn, typename... Args>
+template <size_t GroupIdx, size_t StreamIdx, typename Fn, typename... Args>
 class ContainsVoidRtnType<TypeList<>, GroupIdx, StreamIdx, Fn, Args...> {
 public:
     static const bool Value = false;
@@ -97,10 +98,10 @@ public:
 
 
 
-template <typename List, int32_t GroupIdx, int32_t StreamIdx, typename Fn, typename... Args> class MakeRtnTypeListConst;
-template <typename List, int32_t GroupIdx, int32_t StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnTypeConst;
+template <typename List, size_t GroupIdx, size_t StreamIdx, typename Fn, typename... Args> class MakeRtnTypeListConst;
+template <typename List, size_t GroupIdx, size_t StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnTypeConst;
 
-template <int32_t GroupIdx, int32_t StreamIdx, typename Head, int32_t Index, typename Fn, typename... Tail, typename... Args>
+template <size_t GroupIdx, size_t StreamIdx, typename Head, size_t Index, typename Fn, typename... Tail, typename... Args>
 class MakeRtnTypeListConst<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
@@ -115,7 +116,7 @@ public:
     >;
 };
 
-template <int32_t GroupIdx, int32_t StreamIdx, typename Fn, typename... Args>
+template <size_t GroupIdx, size_t StreamIdx, typename Fn, typename... Args>
 class MakeRtnTypeListConst<TypeList<>, GroupIdx, StreamIdx, Fn, Args...> {
 public:
     using Type = TypeList<>;
@@ -123,7 +124,7 @@ public:
 
 
 
-template <int32_t GroupIdx, int32_t StreamIdx, typename Head, int32_t Index, typename Fn, typename... Tail, typename... Args>
+template <size_t GroupIdx, size_t StreamIdx, typename Head, size_t Index, typename Fn, typename... Tail, typename... Args>
 class ContainsVoidRtnTypeConst<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
@@ -135,7 +136,7 @@ public:
                                 ContainsVoidRtnTypeConst<TypeList<Tail...>, GroupIdx, StreamIdx + 1, Fn, Args...>::Value;
 };
 
-template <int32_t GroupIdx, int32_t StreamIdx, typename Fn, typename... Args>
+template <size_t GroupIdx, size_t StreamIdx, typename Fn, typename... Args>
 class ContainsVoidRtnTypeConst<TypeList<>, GroupIdx, StreamIdx, Fn, Args...> {
 public:
     static const bool Value = false;

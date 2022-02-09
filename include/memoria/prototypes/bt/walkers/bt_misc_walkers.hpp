@@ -56,25 +56,25 @@ class LeveledNodeWalkerBase {
 public:
 
     template <typename NodeTypes, typename... Args>
-    auto treeNode(const bt::LeafNode<NodeTypes>& node, Args&&... args) noexcept
+    auto treeNode(const bt::LeafNode<NodeTypes>& node, Args&&... args)
     {
         return node->template processStream<LeafPath>(LeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
-    auto treeNode(const bt::BranchNode<NodeTypes>& node, Args&&... args) noexcept
+    auto treeNode(const bt::BranchNode<NodeTypes>& node, Args&&... args)
     {
         return node->template processStream<BranchPath>(NonLeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
-    auto treeNode(bt::LeafNode<NodeTypes>& node, Args&&... args) noexcept
+    auto treeNode(bt::LeafNode<NodeTypes>& node, Args&&... args)
     {
         return node->template processStream<LeafPath>(LeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
-    auto treeNode(bt::BranchNode<NodeTypes>& node, Args&&... args) noexcept
+    auto treeNode(bt::BranchNode<NodeTypes>& node, Args&&... args)
     {
         return node->template processStream<BranchPath>(NonLeafStreamFn(self()), args...);
     }
@@ -89,25 +89,25 @@ public:
 template <typename MyType, typename BranchPath, typename LeafPath>
 struct NodeWalkerBase {
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(LeafNodeSO<CtrT, NodeT>& node, Args&&... args) noexcept
+    auto treeNode(LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
         return node.template processStream<LeafPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(BranchNodeSO<CtrT, NodeT>& node, Args&&... args) noexcept
+    auto treeNode(BranchNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
         return node.template processStream<BranchPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(const LeafNodeSO<CtrT, NodeT>& node, Args&&... args) noexcept
+    auto treeNode(const LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
         return node.template processStream<LeafPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(const BranchNodeSO<CtrT, NodeT>& node, Args&&... args) noexcept
+    auto treeNode(const BranchNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
         return node.template processStream<BranchPath>(self(), std::forward<Args>(args)...);
     }
@@ -121,14 +121,14 @@ struct NodeWalkerBase {
 template <int32_t Stream, typename SubstreamsIdxList>
 struct SubstreamsSetNodeFn {
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(LeafNodeSO<CtrT, NodeT>& node, Args&&... args) noexcept
+    auto treeNode(LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
         return node.template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::forward<Args>(args)...);
     }
 
 
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(const LeafNodeSO<CtrT, NodeT>& node, Args&&... args) noexcept
+    auto treeNode(const LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
         return node.template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::forward<Args>(args)...);
     }
@@ -138,14 +138,14 @@ struct SubstreamsSetNodeFn {
 template <int32_t Stream>
 struct StreamNodeFn {
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(LeafNodeSO<CtrT, NodeT>& node, Args&&... args) noexcept
+    auto treeNode(LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
         return node.template processStream<IntList<Stream>>(std::forward<Args>(args)...);
     }
 
 
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(const LeafNodeSO<CtrT, NodeT>& node, Args&&... args) noexcept
+    auto treeNode(const LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
         return node.template processStream<IntList<Stream>>(std::forward<Args>(args)...);
     }

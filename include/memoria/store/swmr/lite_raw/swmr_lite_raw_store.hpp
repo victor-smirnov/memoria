@@ -81,7 +81,7 @@ public:
     using Base::init_store;
     using Base::do_open_store;
 
-    SWMRLiteRawStore(Span<uint8_t> buffer) noexcept {
+    SWMRLiteRawStore(Span<uint8_t> buffer)  {
         buffer_ = buffer;
     }
 
@@ -102,7 +102,7 @@ public:
         }
     }
 
-    static void init_profile_metadata() noexcept {
+    static void init_profile_metadata()  {
         MappedSWMRStoreWritableSnapshot<Profile>::init_profile_metadata();
     }
 
@@ -196,11 +196,11 @@ public:
     virtual void check_if_open() override {
     }
 
-    virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr() noexcept override {
+    virtual SharedPtr<SWMRStoreBase<Profile>> self_ptr()  override {
         return this->shared_from_this();
     }
 
-    static bool is_my_block(Span<uint8_t> block) noexcept {
+    static bool is_my_block(Span<uint8_t> block)  {
         if (block.size() > BASIC_BLOCK_SIZE * 2) {
             return Base::is_my_block(block.data());
         }

@@ -97,7 +97,7 @@ public:
 
     using Base::allocator;
 
-    LeafNode() noexcept = default;
+    LeafNode()  = default;
 
     struct SerializeFn {
         template <typename Tree, typename SerializationData>
@@ -142,20 +142,17 @@ public:
     void cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const
     {
         Base::template cow_serialize<RootMetadataList>(buf, id_resolver);
-
-        return Dispatcher::dispatchNotEmpty(allocator(), CowSerializeFn(), &buf, id_resolver).get_or_throw();
+        return Dispatcher::dispatchNotEmpty(allocator(), CowSerializeFn(), &buf, id_resolver);
     }
 
 
     struct MemCowResolveIDSFn {
         template <typename Tree, typename IDResolver>
-        VoidResult stream(const Tree* tree, const IDResolver*) noexcept
-        {
-            return VoidResult::of();
-        }
+        void stream(const Tree* tree, const IDResolver*)
+        {}
 
         template <typename IDResolver, bool Indexed, typename IDValueHolder>
-        VoidResult stream(
+        void stream(
                 PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
                             CowBlockID<IDValueHolder>,
@@ -163,49 +160,45 @@ public:
                         >
                 >* pkd_buffer,
                 const IDResolver* id_resolver
-        ) noexcept
+        )
         {
-            return wrap_throwing([&] () -> VoidResult {
-                using DataType = CowBlockID<IDValueHolder>;
+            using DataType = CowBlockID<IDValueHolder>;
 
-                using Buffer = PackedDataTypeBuffer<
-                    PackedDataTypeBufferTypes<
-                        DataType,
-                        Indexed
-                    >
-                >;
+            using Buffer = PackedDataTypeBuffer<
+                PackedDataTypeBufferTypes<
+                    DataType,
+                    Indexed
+                >
+            >;
 
-                using ExtData = typename DataTypeTraits<DataType>::TypeDimensionsTuple;
+            using ExtData = typename DataTypeTraits<DataType>::TypeDimensionsTuple;
 
-                using BufferSO = PackedDataTypeBufferSO<
+            using BufferSO = PackedDataTypeBufferSO<
                 ExtData,
                 Buffer
-                >;
+            >;
 
-                ExtData ext_data{};
-                BufferSO buffer_so(&ext_data, pkd_buffer);
+            ExtData ext_data{};
+            BufferSO buffer_so(&ext_data, pkd_buffer);
 
-                psize_t size = buffer_so.size();
+            psize_t size = buffer_so.size();
 
-                for (psize_t c = 0; c < size; c++)
-                {
-                    auto memref_id = id_resolver->resolve_id(buffer_so.access(0, c));
+            for (psize_t c = 0; c < size; c++)
+            {
+                auto memref_id = id_resolver->resolve_id(buffer_so.access(0, c));
 
-                    MEMORIA_TRY_VOID(buffer_so.update_entries(c, 1, [&](auto col, auto row) noexcept {
-                        return memref_id;
-                    }));
-                }
-
-                return VoidResult::of();
-            });
+                buffer_so.update_entries(c, 1, [&](auto col, auto row)  {
+                    return memref_id;
+                }).get_or_throw();
+            }
         }
     };
 
 
     template <typename IDResolver>
-    VoidResult cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    void cow_resolve_ids(const IDResolver* id_resolver)
     {
-        MEMORIA_TRY_VOID(Base::cow_resolve_ids(id_resolver));
+        Base::cow_resolve_ids(id_resolver);
         return Dispatcher::dispatchNotEmpty(allocator(), MemCowResolveIDSFn(), id_resolver);
     }
 
@@ -223,7 +216,7 @@ public:
     void deserialize(DeserializationData& buf)
     {
         Base::template deserialize<RootMetadataList>(buf);
-        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf).get_or_throw();
+        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
 
         ProfileSpecificBlockTools<typename Types::Profile>::after_deserialization(this);
     }

@@ -68,12 +68,12 @@ private:
     IteratorCache       cache_;
 
 public:
-    BTIteratorBase() noexcept:
+    BTIteratorBase():
         Base(), idx_(0), stream_(0)
     {
     }
 
-    BTIteratorBase(ThisType&& other) noexcept:
+    BTIteratorBase(ThisType&& other):
         Base(std::move(other)),
         path_(std::move(other.path_)),
         idx_(other.idx_),
@@ -83,7 +83,7 @@ public:
         cache_.init(&self());
     }
 
-    BTIteratorBase(const ThisType& other) noexcept:
+    BTIteratorBase(const ThisType& other):
         Base(other),
         path_(other.path_),
         idx_(other.idx_),
@@ -93,7 +93,7 @@ public:
     }
 
 
-    void assign(ThisType&& other) noexcept
+    void assign(ThisType&& other)
     {
         path_       = std::move(other.path_);
         idx_        = other.idx_;
@@ -105,7 +105,7 @@ public:
         Base::assign(std::move(other));
     }
 
-    void assign(const ThisType& other) noexcept
+    void assign(const ThisType& other)
     {
         path_       = other.path_;
         idx_        = other.idx_;
@@ -118,46 +118,46 @@ public:
         Base::assign(other);
     }
 
-    TreePathT& path() noexcept {
+    TreePathT& path() {
         return path_;
     }
 
-    const TreePathT& path() const noexcept {
+    const TreePathT& path() const {
         return path_;
     }
 
-    auto iter_clone() const noexcept
+    auto iter_clone() const
     {
         return self().ctr().clone_iterator(self());
     }
 
-    bool iter_equals(const ThisType& other) const noexcept
+    bool iter_equals(const ThisType& other) const
     {
         return iter_leaf().node() == other.iter_leaf().node() && idx_ == other.idx_ && Base::iter_equals(other);
     }
 
-    bool iter_not_equals(const ThisType& other) const noexcept
+    bool iter_not_equals(const ThisType& other) const
     {
         return iter_leaf().node() != other.iter_leaf().node() || idx_ != other.idx_ || Base::iter_not_equals(other);
     }
 
 
-    int32_t& iter_stream() noexcept {
+    int32_t& iter_stream() {
         return stream_;
     }
 
 
-    int32_t iter_stream() const noexcept{
+    int32_t iter_stream() const {
         return stream_;
     }
 
 
-    int32_t &iter_local_pos() noexcept
+    int32_t &iter_local_pos()
     {
         return idx_;
     }
 
-    int32_t iter_local_pos() const noexcept
+    int32_t iter_local_pos() const
     {
         return idx_;
     }
@@ -168,32 +168,32 @@ public:
         MyType& iter_;
 
     public:
-        NodeAccessor(TreePathT& path, MyType& iter) noexcept:
+        NodeAccessor(TreePathT& path, MyType& iter) :
             path_(path), iter_(iter)
         {}
 
-        operator TreeNodeConstPtr&() noexcept {return path_.leaf();}
-        operator const TreeNodeConstPtr&() const noexcept {return path_.leaf();}
+        operator TreeNodeConstPtr&()  {return path_.leaf();}
+        operator const TreeNodeConstPtr&() const  {return path_.leaf();}
 
-        void assign(const TreeNodeConstPtr& node) noexcept
+        void assign(const TreeNodeConstPtr& node)
         {
             path_.leaf() = node;
             iter_.refresh_iovector_view();
         }
 
-        TreeNodeConstPtr& node() noexcept {
+        TreeNodeConstPtr& node()  {
             return path_.leaf();
         }
 
-        TreeNodePtr as_mutable() const noexcept {
+        TreeNodePtr as_mutable() const  {
             return path_.leaf().as_mutable();
         }
 
-        const TreeNodeConstPtr& node() const noexcept {
+        const TreeNodeConstPtr& node() const  {
             return path_.leaf();
         }
 
-        auto operator->() noexcept {
+        auto operator->()  {
             return path_.leaf().operator->();
         }
     };
@@ -202,58 +202,58 @@ public:
     class ConstNodeAccessor {
         const TreePathT& path_;
     public:
-        ConstNodeAccessor(const TreePathT& path) noexcept:
+        ConstNodeAccessor(const TreePathT& path) :
             path_(path)
         {}
 
-        operator const TreeNodeConstPtr&() const noexcept {return path_.leaf();}
+        operator const TreeNodeConstPtr&() const  {return path_.leaf();}
 
-        const auto operator->() const noexcept {
+        const auto operator->() const  {
             return path_.leaf().operator->();
         }
 
-        const TreeNodeConstPtr& node() const noexcept {
+        const TreeNodeConstPtr& node() const  {
             return path_.leaf();
         }
 
-        TreeNodePtr as_mutable() const noexcept {
+        TreeNodePtr as_mutable() const  {
             return path_.leaf().as_mutable();
         }
     };
 
-    NodeAccessor iter_leaf() noexcept
+    NodeAccessor iter_leaf()
     {
         return NodeAccessor(path_, self());
     }
 
-    ConstNodeAccessor iter_leaf() const noexcept
+    ConstNodeAccessor iter_leaf() const
     {
         return ConstNodeAccessor(path_);
     }
 
 
-    const io::IOVector& iovector_view() const noexcept {
+    const io::IOVector& iovector_view() const  {
         return iovector_view_;
     }
 
     // TODO: error handling
     MEMORIA_V1_DECLARE_NODE_FN(RefreshIOVectorViewFn, configure_iovector_view);
-    void refresh_iovector_view() noexcept
+    void refresh_iovector_view()
     {
-        self().ctr().leaf_dispatcher().dispatch(path_.leaf(), RefreshIOVectorViewFn(), *&iovector_view_).get_or_throw();
+        self().ctr().leaf_dispatcher().dispatch(path_.leaf(), RefreshIOVectorViewFn(), *&iovector_view_);
     }
 
 
-    IteratorCache& iter_cache() noexcept {
+    IteratorCache& iter_cache()  {
         return cache_;
     }
 
-    const IteratorCache& iter_cache() const noexcept {
+    const IteratorCache& iter_cache() const  {
         return cache_;
     }
 
 
-    bool iter_is_begin() const noexcept
+    bool iter_is_begin() const
     {
         return iter_local_pos() < 0 || iter_is_empty();
     }

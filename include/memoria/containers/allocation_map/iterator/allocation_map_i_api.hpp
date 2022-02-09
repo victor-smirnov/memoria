@@ -221,19 +221,16 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
         CtrSizeT prefix_{};
 
         template <typename CtrT, typename NodeT>
-        VoidResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept
+        void treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             auto stream = node.template substream<IntList<0>>();
             prefix_ += stream.sum(0, start, end);
-
-            return VoidResult::of();
         }
 
 
         template <typename CtrT, typename NodeT>
-        VoidResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) noexcept {
+        void treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end) {
             prefix_ += end - start;
-            return VoidResult::of();
         }
     };
 
@@ -251,28 +248,28 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
 
     struct GetBitsFn {
         template <typename T>
-        Int32Result treeNode(T&& node_so, int32_t level, int32_t pos) const noexcept
+        size_t treeNode(T&& node_so, int32_t level, int32_t pos) const noexcept
         {
             auto bitmap = node_so.template substream_by_idx<1>();
-            int32_t bm_size = bitmap.data()->size(level);
+            size_t bm_size = bitmap.data()->size(level);
             (void)bm_size;
-            MEMORIA_ASSERT_RTN(pos, <, bm_size);
-            MEMORIA_ASSERT_RTN(pos, >=, 0);
+            MEMORIA_ASSERT(pos, <, bm_size);
+            MEMORIA_ASSERT(pos, >=, 0);
 
-            return Int32Result::of(bitmap.data()->get_bit(level, pos));
+            return bitmap.data()->get_bit(level, pos);
         }
     };
 
     int32_t iter_get_bit(int32_t level, int32_t pos) const
     {
         auto& self = this->self();
-        return self.ctr().leaf_dispatcher().dispatch(self.leaf(), GetBitsFn(), level, pos).get_or_throw();
+        return self.ctr().leaf_dispatcher().dispatch(self.leaf(), GetBitsFn(), level, pos);
     }
 
     int32_t iter_get_bit(int32_t level) const
     {
         auto& self = this->self();
-        return self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), GetBitsFn(), level, self.iter_local_pos() >> level).get_or_throw();
+        return self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), GetBitsFn(), level, self.iter_local_pos() >> level);
     }
 
     virtual int32_t leaf_size() const {

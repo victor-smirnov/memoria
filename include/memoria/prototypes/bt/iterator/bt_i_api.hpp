@@ -51,7 +51,7 @@ public:
 
 
     auto iter_leaf_sizes() const {
-        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizesFn()).get_or_throw();
+        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizesFn());
     }
 
     void iter_refresh()
@@ -92,12 +92,12 @@ public:
 
     int32_t iter_leaf_size0(int32_t stream) const
     {
-        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizeFn(), stream).get_or_throw();
+        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizeFn(), stream);
     }
 
     int32_t iter_leaf_size() const
     {
-        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizeFn(), self().iter_stream()).get_or_throw();
+        return self().ctr().leaf_dispatcher().dispatch(self().iter_leaf(), SizeFn(), self().iter_stream());
     }
 
 
@@ -161,24 +161,24 @@ public:
     template <typename Walker>
     void iter_walk_up_for_refresh(const TreePathT& path, size_t level, int32_t idx, Walker&& walker) const
     {
-        self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx).get_or_throw();
+        self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx);
 
         for (size_t ll = level + 1; ll < path.size(); ll++)
         {
             auto child_idx = self().ctr().ctr_get_child_idx(path[ll], path[ll - 1]->id());
-            self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx).get_or_throw();
+            self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx);
         }
     }
 
     template <typename Walker>
     void iter_walk_up_for_refresh(TreePathT& path, size_t level, int32_t idx, Walker&& walker)
     {
-        self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx).get_or_throw();
+        self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx);
 
         for (size_t ll = level + 1; ll < path.size(); ll++)
         {
             auto child_idx = self().ctr().ctr_get_child_idx(path[ll], path[ll - 1]->id());
-            self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx).get_or_throw();
+            self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx);
         }
     }
 
@@ -197,13 +197,13 @@ public:
     }
 
     template <int StreamIdx>
-    void iter_refresh_stream_leaf_prefixes() noexcept
+    void iter_refresh_stream_leaf_prefixes()
     {
         auto& self  = this->self();
         auto idx    = self.iter_local_pos();
 
         bt::FindForwardWalker<bt::WalkerTypes<Types, IntList<StreamIdx>>> walker(0, 0);
-        self.ctr().leaf_dispatcher().dispatch(self.iter_leaf(), walker, WalkCmd::LAST_LEAF, 0, idx).get_or_throw();
+        self.ctr().leaf_dispatcher().dispatch(self.iter_leaf(), walker, WalkCmd::LAST_LEAF, 0, idx);
     }
 
 
@@ -222,7 +222,7 @@ public:
     };
 
 
-    void iter_refresh_leaf_prefixes() noexcept
+    void iter_refresh_leaf_prefixes()
     {
         auto& self  = this->self();
         ForEach<1, Streams>::process(RefreshLeafPrefixesFn(), self);

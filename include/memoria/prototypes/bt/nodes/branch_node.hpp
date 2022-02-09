@@ -109,76 +109,76 @@ public:
 
     using MyType = TreeNodeBase<Metadata, Header>;
 
-    TreeNodeBase() noexcept = default;
+    TreeNodeBase()  = default;
 
-    Header& header() noexcept {return header_;}
-    const Header& header() const noexcept {return header_;}
+    Header& header()  {return header_;}
+    const Header& header() const  {return header_;}
 
-    Header* as_header() noexcept {return &header_;}
-    const Header* as_header() const noexcept {return &header_;}
+    Header* as_header()  {return &header_;}
+    const Header* as_header() const  {return &header_;}
 
-    BlockID& id() noexcept {return header_.id();}
-    const BlockID& id() const noexcept {return header_.id();}
+    BlockID& id()  {return header_.id();}
+    const BlockID& id() const  {return header_.id();}
 
-    BlockGUID& uuid() noexcept {return header_.uuid();}
-    const BlockGUID& uuid() const noexcept {return header_.uuid();}
+    BlockGUID& uuid()  {return header_.uuid();}
+    const BlockGUID& uuid() const  {return header_.uuid();}
 
 
-    uint64_t ctr_type_hash() const noexcept {
+    uint64_t ctr_type_hash() const  {
         return header_.ctr_type_hash();
     }
 
-    uint64_t block_type_hash() const noexcept {
+    uint64_t block_type_hash() const  {
         return header_.block_type_hash();
     }
 
-    int32_t used_memory_block_size() const noexcept {
+    int32_t used_memory_block_size() const  {
         return header_.memory_block_size() - allocator()->free_space();
     }
 
-    inline bool is_root() const noexcept {
+    inline bool is_root() const  {
         return root_;
     }
 
-    void set_root(bool root) noexcept {
+    void set_root(bool root)  {
         root_ = root;
     }
 
-    inline bool is_leaf() const noexcept {
+    inline bool is_leaf() const  {
         return leaf_;
     }
 
-    void set_leaf(bool leaf) noexcept {
+    void set_leaf(bool leaf)  {
         leaf_ = leaf;
     }
 
-    const int32_t& level() const noexcept
+    const int32_t& level() const
     {
         return level_;
     }
 
-    int32_t& level() noexcept
+    int32_t& level()
     {
         return level_;
     }
 
-    const BlockID& next_leaf_id() const noexcept {
+    const BlockID& next_leaf_id() const  {
         return next_leaf_id_;
     }
 
-    BlockID& next_leaf_id() noexcept {
+    BlockID& next_leaf_id()  {
         return next_leaf_id_;
     }
 
-    PackedAllocator* allocator() noexcept {
+    PackedAllocator* allocator()  {
         return &allocator_;
     }
 
-    const PackedAllocator* allocator() const noexcept {
+    const PackedAllocator* allocator() const  {
         return &allocator_;
     }
 
-    psize_t root_metadata_size() const noexcept
+    psize_t root_metadata_size() const
     {
         const PackedAllocator* alloc = allocator();
 
@@ -191,22 +191,22 @@ public:
         return size;
     }
 
-    bool has_root_metadata() const noexcept
+    bool has_root_metadata() const
     {
         return root_metadata_size() > 0;
     }
 
-    const Metadata& root_metadata() const noexcept
+    const Metadata& root_metadata() const
     {
         return *allocator()->template get<Metadata>(METADATA);
     }
 
-    Metadata& root_metadata() noexcept
+    Metadata& root_metadata()
     {
         return *allocator()->template get<Metadata>(METADATA);
     }
 
-    VoidResult setMetadata(const Metadata& meta) noexcept
+    VoidResult setMetadata(const Metadata& meta)
     {
         if (!has_root_metadata())
         {
@@ -218,7 +218,7 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult clear_metadata() noexcept
+    VoidResult clear_metadata()
     {
         for (int32_t c = 0; c < StreamsStart; c++)
         {
@@ -228,7 +228,7 @@ public:
         return VoidResult::of();
     }
 
-    bool can_convert_to_root(psize_t metadata_size) const noexcept
+    bool can_convert_to_root(psize_t metadata_size) const
     {
         if (!has_root_metadata())
         {
@@ -239,11 +239,11 @@ public:
         }
     }
 
-    VoidResult copy_metadata_from(const TreeNodeBase* other) noexcept
+    VoidResult copy_metadata_from(const TreeNodeBase* other)
     {
         for (int32_t c = 0; c < StreamsStart; c++)
         {
-            MEMORIA_TRY_VOID(allocator_.importBlock(c, other->allocator(), c));
+            MEMORIA_TRY_VOID(allocator_.import_block(c, other->allocator(), c));
         }
 
         return VoidResult::of();
@@ -251,7 +251,7 @@ public:
 
 
 
-    BoolResult shouldBeMergedWithSiblings() const noexcept
+    BoolResult shouldBeMergedWithSiblings() const
     {
         int32_t client_area = allocator_.client_area();
         int32_t used        = allocator_.allocated();
@@ -261,7 +261,7 @@ public:
 
 public:
 
-    VoidResult initAllocator(int32_t entries) noexcept
+    VoidResult initAllocator(int32_t entries)
     {
         int32_t block_size = this->header().memory_block_size();
         MEMORIA_ASSERT_RTN(block_size, >, static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size());
@@ -270,7 +270,7 @@ public:
         return allocator_.init(block_size - static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size(), entries);
     }
 
-    VoidResult resizeBlock(int32_t new_size) noexcept
+    VoidResult resizeBlock(int32_t new_size)
     {
         int32_t space_delta = new_size - header_.memory_block_size();
         int32_t free_space  = allocator_.free_space();
@@ -286,7 +286,7 @@ public:
         }
 
         header_.memory_block_size() = new_size;
-        return allocator_.resizeBlock(new_size - sizeof(MyType) + PackedAllocator::my_size());
+        return allocator_.resize_block(new_size - sizeof(MyType) + PackedAllocator::my_size());
     }
 
 public:
@@ -335,7 +335,7 @@ public:
     template <typename List>
     struct SerializeFn {
         template <int32_t Idx, typename SerializationData>
-        static bool process(SerializationData& buf, const PackedAllocator* allocator) noexcept
+        static bool process(SerializationData& buf, const PackedAllocator* allocator)
         {
             using T = Select<Idx, List>;
             if (!allocator->is_empty(Idx))
@@ -383,7 +383,7 @@ public:
     }
 
     template <typename IDResolver>
-    VoidResult cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    void cow_resolve_ids(const IDResolver* id_resolver)
     {
         return header_.cow_resolve_ids(id_resolver);
     }
@@ -391,7 +391,7 @@ public:
     template <typename List>
     struct DeserializeFn {
         template <int32_t Idx, typename DeserializationData>
-        static bool process(DeserializationData& buf, PackedAllocator* allocator) noexcept
+        static bool process(DeserializationData& buf, PackedAllocator* allocator)
         {
             using T = Select<Idx, List>;
             if (!allocator->is_empty(Idx))
@@ -426,12 +426,12 @@ public:
     template <typename List>
     struct InitMetadataFn {
         template <int32_t Idx>
-        static BoolResult process(PackedAllocator* allocator) noexcept
+        static BoolResult process(PackedAllocator* allocator)
         {
             using T = Select<Idx, List>;
             if (allocator->is_empty(Idx))
             {
-                MEMORIA_TRY_VOID(allocator->allocateEmpty<T>(Idx));
+                MEMORIA_TRY_VOID(allocator->allocate_empty<T>(Idx));
             }
 
             return BoolResult::of(true);
@@ -439,7 +439,7 @@ public:
     };
 
     template <typename MetadataTypesList>
-    VoidResult init_root_metadata() noexcept
+    VoidResult init_root_metadata()
     {
         static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
 
@@ -447,7 +447,7 @@ public:
     }
 
 
-    int32_t compute_metadata_size() const noexcept
+    int32_t compute_metadata_size() const
     {
         int32_t mem_size = 0;
 
@@ -458,14 +458,14 @@ public:
         return mem_size;
     }
 
-    int32_t compute_parent_size() const noexcept
+    int32_t compute_parent_size() const
     {
         int32_t client_area = allocator_.client_area();
         int32_t metadata_segments_size = compute_metadata_size();
         return client_area - metadata_segments_size;
     }
 
-    int32_t compute_streams_available_space() const noexcept
+    int32_t compute_streams_available_space() const
     {
         int32_t occupied = compute_parent_size();
         return occupied;
@@ -544,20 +544,20 @@ public:
 
     static constexpr int32_t ValuesBlockIdx     = SubstreamsEnd;
 
-    constexpr BranchNode() noexcept = default;
+    constexpr BranchNode()  = default;
 
 private:
     struct InitFn {
         uint64_t active_streams_;
 
-        InitFn(uint64_t active_streams) noexcept: active_streams_(active_streams) {}
+        InitFn(uint64_t active_streams) : active_streams_(active_streams) {}
 
-        Int32Result block_size(int32_t items_number) const noexcept
+        int32_t block_size(int32_t items_number) const
         {
             return MyType::block_size(items_number, active_streams_);
         }
 
-        int32_t max_elements(int32_t block_size) const noexcept
+        int32_t max_elements(int32_t block_size) const
         {
             return block_size;
         }
@@ -632,41 +632,41 @@ private:
     };
 
 public:
-    static Int32Result block_size(int32_t tree_size, uint64_t active_streams = -1) noexcept
+    static int32_t block_size(int32_t tree_size, uint64_t active_streams = -1)
     {
         TreeSizeFn fn;
 
-        MEMORIA_TRY_VOID(processSubstreamGroupsStatic(fn, tree_size, active_streams));
+        processSubstreamGroupsStatic(fn, tree_size, active_streams);
 
         int32_t tree_block_size     = fn.size_;
-        int32_t array_block_size    = PackedAllocatable::roundUpBytesToAlignmentBlocks(tree_size * sizeof(Value));
+        int32_t array_block_size    = PackedAllocatable::round_up_bytes_to_alignment_blocks(tree_size * sizeof(Value));
         int32_t client_area         = tree_block_size + array_block_size;
 
-        return Int32Result::of(PackedAllocator::block_size(client_area, Streams + 1));
+        return PackedAllocator::block_size(client_area, Streams + 1);
     }
 
 
-    static Int32Result block_size(const Position& sizes, int32_t values_size) noexcept
+    static int32_t block_size(const Position& sizes, int32_t values_size)
     {
         TreeSize2Fn fn;
 
-        MEMORIA_TRY_VOID(processSubstreamGroupsStatic(fn, &sizes));
+        processSubstreamGroupsStatic(fn, &sizes);
 
         int32_t tree_block_size     = fn.size_;
-        int32_t array_block_size    = PackedAllocatable::roundUpBytesToAlignmentBlocks(values_size * sizeof(Value));
+        int32_t array_block_size    = PackedAllocatable::round_up_bytes_to_alignment_blocks(values_size * sizeof(Value));
         int32_t client_area         = tree_block_size + array_block_size;
 
-        return Int32Result::of(PackedAllocator::block_size(client_area, Streams + 1));
+        return PackedAllocator::block_size(client_area, Streams + 1);
     }
 
 public:
-    static Int32Result max_tree_size1(int32_t block_size, uint64_t active_streams = -1) noexcept
+    static int32_t max_tree_size1(int32_t block_size, uint64_t active_streams = -1)
     {
         return FindTotalElementsNumber2(block_size, InitFn(active_streams));
     }
 
 public:
-    VoidResult prepare() noexcept
+    VoidResult prepare()
     {
         return Base::initAllocator(SubstreamsStart + Substreams + 1);
     }
@@ -699,7 +699,7 @@ private:
         template <int32_t AllocatorIdx, int32_t Idx>
         void stream(Value*, int32_t tree_size, PackedAllocator* allocator)
         {
-            allocator->template allocateArrayBySize<Value>(AllocatorIdx, tree_size);
+            allocator->template allocate_array_by_size<Value>(AllocatorIdx, tree_size);
         }
     };
 
@@ -724,12 +724,12 @@ public:
         }
     };
 
-    Int32Result size() const noexcept
+    int32_t size() const
     {
         SizeFn fn;
         //FIXME: use correct procedure to get number of children
-        MEMORIA_TRY_VOID(Dispatcher::dispatch(0, allocator(), fn));
-        return Int32Result::of(fn.size_);
+        Dispatcher::dispatch(0, allocator(), fn);
+        return fn.size_;
     }
 
 
@@ -746,9 +746,9 @@ public:
     {
         Base::template serialize<RootMetadataList>(buf);
 
-        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf).get_or_throw();
+        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
 
-        auto size = this->size().get_or_throw();
+        auto size = this->size();
 
         FieldFactory<Value>::serialize(buf, values(), size);
     }
@@ -759,9 +759,9 @@ public:
     {
         Base::template cow_serialize<RootMetadataList>(buf, id_resolver);
 
-        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf).get_or_throw();
+        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
 
-        auto size = this->size().get_or_throw();
+        auto size = this->size();
 
         const Value* child_ids = values();
 
@@ -773,23 +773,19 @@ public:
     }
 
     template <typename IDResolver>
-    VoidResult cow_resolve_ids(const IDResolver* id_resolver) noexcept
+    void cow_resolve_ids(const IDResolver* id_resolver)
     {
-        return wrap_throwing([&]() -> VoidResult {
-            MEMORIA_TRY_VOID(Base::cow_resolve_ids(id_resolver));
+        Base::cow_resolve_ids(id_resolver);
 
-            MEMORIA_TRY(size, this->size());
+        auto size = this->size();
 
-            Value* child_ids = values();
+        Value* child_ids = values();
 
-            for (int32_t c = 0; c < size; c++)
-            {
-                auto memref_id = id_resolver->resolve_id(child_ids[c]);
-                child_ids[c] = memref_id;
-            }
-
-            return VoidResult::of();
-        });
+        for (int32_t c = 0; c < size; c++)
+        {
+            auto memref_id = id_resolver->resolve_id(child_ids[c]);
+            child_ids[c] = memref_id;
+        }
     }
 
     struct DeserializeFn {
@@ -805,9 +801,9 @@ public:
     {
         Base::template deserialize<RootMetadataList>(buf);
 
-        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf).get_or_throw();
+        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
 
-        auto size = this->size().get_or_throw();
+        auto size = this->size();
 
         FieldFactory<Value>::deserialize(buf, values(), size);
 
@@ -846,10 +842,8 @@ namespace detail_ {
         }
 
         template <typename BTNode, typename IDResolver>
-        static VoidResult resolve_ids(BTNode* node, const IDResolver*)
-        {
-            return VoidResult::of();
-        }
+        static void resolve_ids(BTNode* node, const IDResolver*)
+        {}
     };
 
     template <>
@@ -862,7 +856,7 @@ namespace detail_ {
         }
 
         template <typename BTNode, typename IDResolver>
-        static VoidResult resolve_ids(BTNode* node, const IDResolver* id_resolver)
+        static void resolve_ids(BTNode* node, const IDResolver* id_resolver)
         {
             return node->cow_resolve_ids(id_resolver);
         }
@@ -878,7 +872,7 @@ namespace detail_ {
         }
 
         template <typename BTNode, typename IDResolver>
-        static VoidResult resolve_ids(BTNode* node, const IDResolver* id_resolver)
+        static void resolve_ids(BTNode* node, const IDResolver* id_resolver)
         {
             return node->cow_resolve_ids(id_resolver);
         }
@@ -928,7 +922,7 @@ public:
         using typename IBlockOperations<Profile>::BlockType;
         using typename IBlockOperations<Profile>::IDValueResolver;
 
-        virtual ~BlockOperations() noexcept {}
+        virtual ~BlockOperations()  {}
 
         virtual int32_t serialize(const BlockType* block, void* buf, const IDValueResolver* resolver) const
         {
@@ -957,7 +951,7 @@ public:
         virtual void cow_resolve_ids(BlockType* block, const IDValueResolver* id_resolver) const
         {
             MyType* node = ptr_cast<MyType>(block);
-            detail_::BTNodeNodeMethodsSelector<Profile>::resolve_ids(node, id_resolver).get_or_throw();
+            detail_::BTNodeNodeMethodsSelector<Profile>::resolve_ids(node, id_resolver);
         }
 
 
@@ -967,12 +961,12 @@ public:
             tgt->resizeBlock(new_size).get_or_throw();
         }
 
-        virtual uint64_t block_type_hash() const noexcept {
+        virtual uint64_t block_type_hash() const {
             return MyType::BLOCK_HASH;
         }
     };
 
-    static BlockOperationsPtr<Profile> block_operations() noexcept {
+    static BlockOperationsPtr<Profile> block_operations()  {
         return std::make_shared<BlockOperations>();
     }
 };

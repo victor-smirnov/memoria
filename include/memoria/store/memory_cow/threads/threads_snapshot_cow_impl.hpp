@@ -202,7 +202,7 @@ public:
         }
     }
 
-    U8String snapshot_metadata() const noexcept
+    U8String snapshot_metadata() const
     {
     	LockGuardT lock_guard(history_node_->snapshot_mutex());
         return history_node_->metadata();

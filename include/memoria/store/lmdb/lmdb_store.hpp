@@ -322,7 +322,7 @@ public:
         return false;
     }
 
-    static bool is_my_block(const uint8_t* mem_block) noexcept {
+    static bool is_my_block(const uint8_t* mem_block) {
         uint32_t mdb_magick = 0xBEEFC0DE;
         const uint32_t* meta = ptr_cast<uint32_t>(mem_block + 16);
         return *meta == mdb_magick;

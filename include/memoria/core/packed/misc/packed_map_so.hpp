@@ -135,7 +135,7 @@ public:
 
     Optional<ValueView> find(const KeyView& key) const
     {
-        int32_t size = data_->size();
+        size_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
         if (MMA_LIKELY(result.local_pos() < size))
         {
@@ -151,7 +151,7 @@ public:
 
     VoidResult set(const KeyView& key, const ValueView value) noexcept
     {
-        int32_t size = data_->size();
+        size_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
         if (MMA_LIKELY(result.local_pos() < size))
         {
@@ -187,7 +187,7 @@ public:
 
     VoidResult remove(const KeyView& key) noexcept
     {
-        int32_t size = data_->size();
+        size_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
         if (MMA_LIKELY(result.local_pos() < size))
         {
@@ -206,11 +206,11 @@ public:
         return VoidResult::of();
     }
 
-    psize_t estimate_required_upsize(const KeyView& key, const ValueView& value) const
+    size_t estimate_required_upsize(const KeyView& key, const ValueView& value) const
     {
-        psize_t upsize{};
+        size_t upsize{};
 
-        int32_t size = data_->size();
+        size_t size = data_->size();
 
         auto result = keys_.findGEForward(0, key);
         if (MMA_LIKELY(result.local_pos() < size))
@@ -234,9 +234,9 @@ public:
         return upsize;
     }
 
-    psize_t estimate_required_upsize(const std::vector<std::pair<KeyView, ValueView>>& entries) const
+    size_t estimate_required_upsize(const std::vector<std::pair<KeyView, ValueView>>& entries) const
     {
-        psize_t upsize{};
+        size_t upsize{};
 
         for (const auto& entry: entries) {
             upsize += estimate_required_upsize(std::get<0>(entry), std::get<1>(entry));

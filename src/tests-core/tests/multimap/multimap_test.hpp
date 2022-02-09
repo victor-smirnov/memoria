@@ -79,7 +79,6 @@ public:
         MMA_CLASS_TEST(suite, testRemove);
     }
 
-
     std::vector<Entry> build_entries(size_t entries, size_t mean_value_size)
     {
         std::vector<Entry> data;

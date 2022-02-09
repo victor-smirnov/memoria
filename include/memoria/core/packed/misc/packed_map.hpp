@@ -75,9 +75,9 @@ public:
 
 
 
-    static int32_t empty_size()
+    static size_t empty_size()
     {
-        int32_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
+        size_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
         return parent_size + KeysPkdStruct::empty_size() + ValuesPkdStruct::empty_size();
     }
 
@@ -87,13 +87,13 @@ public:
     {
         MEMORIA_TRY_VOID(Base::init(empty_size(), STRUCTS_NUM__));
 
-        MEMORIA_TRY_VOID(allocateEmpty<KeysPkdStruct>(KEYS));
-        MEMORIA_TRY_VOID(allocateEmpty<ValuesPkdStruct>(VALUES));
+        MEMORIA_TRY_VOID(allocate_empty<KeysPkdStruct>(KEYS));
+        MEMORIA_TRY_VOID(allocate_empty<ValuesPkdStruct>(VALUES));
 
         return VoidResult::of();
     }
 
-    int32_t size() const
+    size_t size() const
     {
         return keys()->size();
     }

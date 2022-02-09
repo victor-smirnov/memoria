@@ -151,7 +151,7 @@ public:
             SharedPtr<Store> store,
             CDescrPtr& snapshot_descriptor,
             ReferenceCounterDelegate<Profile>* refcounter_delegate
-    ) noexcept:
+    ) :
         store_(store),
         snapshot_descriptor_(snapshot_descriptor),
         refcounter_delegate_(refcounter_delegate)
@@ -161,7 +161,7 @@ public:
         }
     }
 
-    static void init_profile_metadata() noexcept {
+    static void init_profile_metadata()  {
         DirectoryCtr::template init_profile_metadata<Profile>();
         AllocationMapCtr::template init_profile_metadata<Profile>();
     }
@@ -209,7 +209,7 @@ public:
         return const_cast<SWMRStoreSnapshotBase*>(this)->get_superblock(snapshot_descriptor_->superblock_ptr());
     }
 
-    SequenceID sequence_id() noexcept {
+    SequenceID sequence_id()  {
         return get_superblock()->sequence_id();
     }
 
@@ -218,7 +218,7 @@ public:
         return allocation_map_ctr_->size();
     }
 
-    virtual ObjectPools& object_pools() const noexcept {
+    virtual ObjectPools& object_pools() const  {
         return object_pools_;
     }
 
@@ -315,7 +315,7 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("newId() is not implemented for ReadOnly snapshots").do_throw();
     }
 
-    virtual SnapshotID snaphsot_Id() const noexcept {
+    virtual SnapshotID snaphsot_Id() const  {
         return get_superblock()->snapshot_id();
     }
 
@@ -328,7 +328,7 @@ public:
         free_system(ptr);
     }
 
-    virtual bool isActive() const noexcept {
+    virtual bool isActive() const  {
         return false;
     }
 
@@ -572,19 +572,19 @@ public:
 
     //=================================== R/O Commit Stuff ===========================
 
-    virtual SnapshotID snapshot_id() noexcept {
+    virtual SnapshotID snapshot_id()  {
         return get_superblock()->snapshot_id();
     }
 
-    virtual bool is_committed() const noexcept {
+    virtual bool is_committed() const  {
         return true;
     }
 
-    virtual bool is_active() const noexcept {
+    virtual bool is_active() const  {
         return false;
     }
 
-    virtual bool is_marked_to_clear() const noexcept {
+    virtual bool is_marked_to_clear() const  {
         return false;
     }
 
@@ -854,7 +854,7 @@ public:
         return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfileT>>(std::move(ctr_ref));
     }
 
-    void set_superblock(Superblock* superblock) noexcept {
+    void set_superblock(Superblock* superblock)  {
         this->superblock_ = superblock;
     }
 
@@ -920,7 +920,7 @@ public:
         return Optional<int64_t>{};
     }
 
-    virtual void describe_to_cout() noexcept {
+    virtual void describe_to_cout()  {
         if (allocation_map_ctr_) {
             auto ii = allocation_map_ctr_->iterator();
             return ii->dump();
@@ -947,11 +947,11 @@ public:
         while (has_next);
     }
 
-    int32_t allocation_level(size_t size) const noexcept {
+    int32_t allocation_level(size_t size) const  {
         return CustomLog2(size / BASIC_BLOCK_SIZE);
     }
 
-    static constexpr int32_t CustomLog2(int32_t value) noexcept {
+    static constexpr int32_t CustomLog2(int32_t value)  {
         return 31 - CtLZ((uint32_t)value);
     }
 

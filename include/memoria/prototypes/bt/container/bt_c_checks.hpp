@@ -104,7 +104,7 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN(CheckContentFn, check);
     void ctr_check_content(const TreeNodeConstPtr& node, const CheckResultConsumerFn& fn) const
     {
-        self().node_dispatcher().dispatch(node, CheckContentFn(), fn).get_or_throw();
+        self().node_dispatcher().dispatch(node, CheckContentFn(), fn);
     }
 
 private:
@@ -118,12 +118,12 @@ private:
 
 
     template <typename Node1, typename Node2>
-    VoidResult ctr_check_typed_node_content(
+    void ctr_check_typed_node_content(
             Node1&& node,
             Node2&& parent,
             int32_t parent_idx,
             const CheckResultConsumerFn& fn
-    ) const noexcept;
+    ) const;
 
     MEMORIA_V1_CONST_FN_WRAPPER(CheckTypedNodeContentFn, ctr_check_typed_node_content);
 
@@ -181,7 +181,7 @@ void M_TYPE::ctr_check_tree_structure(
 
     if (!node->is_root())
     {
-        self.tree_dispatcher().dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx, fn).get_or_throw();
+        self.tree_dispatcher().dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx, fn);
 
         if (!node->is_leaf())
         {
@@ -227,35 +227,32 @@ void M_TYPE::ctr_check_tree_structure(
 
 M_PARAMS
 template <typename Node1, typename Node2>
-VoidResult M_TYPE::ctr_check_typed_node_content(
+void M_TYPE::ctr_check_typed_node_content(
         Node1&& parent,
         Node2&& node,
         int32_t parent_idx,
         const CheckResultConsumerFn& fn
-) const noexcept
+) const
 {
     BranchNodeEntry sums;
-    MEMORIA_TRY_VOID(node.max(sums));
+    node.max(sums);
 
-    MEMORIA_TRY(keys, parent.keysAt(parent_idx));
+    auto keys = parent.keysAt(parent_idx);
     if (sums != keys)
     {
-        return wrap_throwing([&]{
-            fn(
-                CheckSeverity::ERROR,
-                make_string_document(
+
+        fn(CheckSeverity::ERROR,
+                    make_string_document(
                         "Invalid parent-child nodes chain :: {} {} for node.id={} parent.id={}, parent_idx={}",
                         (SBuf() << sums).str(),
                         (SBuf() << keys).str(),
                         node.node()->id(),
                         parent.node()->id(),
                         parent_idx
-                )
-            );
-        });
-    }
+                    )
+         );
 
-    return VoidResult::of();
+    }
 }
 
 #undef M_TYPE

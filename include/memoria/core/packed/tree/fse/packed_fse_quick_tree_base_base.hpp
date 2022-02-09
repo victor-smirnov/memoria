@@ -29,7 +29,7 @@
 
 namespace memoria {
 
-template <typename IndexValueT, int32_t kBranchingFactor, int32_t kValuesPerBranch, int32_t SegmentsPerBlock, typename MetadataT>
+template <typename IndexValueT, size_t kBranchingFactor, size_t kValuesPerBranch, size_t SegmentsPerBlock, typename MetadataT>
 class PkdFQTreeBaseBase: public PackedAllocator {
 
     using Base = PackedAllocator;
@@ -42,25 +42,25 @@ public:
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
 
-    static const int32_t BranchingFactor        = kBranchingFactor;
-    static const int32_t ValuesPerBranch        = kValuesPerBranch;
+    static const size_t BranchingFactor        = kBranchingFactor;
+    static const size_t ValuesPerBranch        = kValuesPerBranch;
 
     static const bool FixedSizeElement      = true;
 
-    static constexpr int32_t ValuesPerBranchMask    = ValuesPerBranch - 1;
-    static constexpr int32_t BranchingFactorMask    = BranchingFactor - 1;
+    static constexpr size_t ValuesPerBranchMask    = ValuesPerBranch - 1;
+    static constexpr size_t BranchingFactorMask    = BranchingFactor - 1;
 
-    static constexpr int32_t ValuesPerBranchLog2    = Log2(ValuesPerBranch) - 1;
-    static constexpr int32_t BranchingFactorLog2    = Log2(BranchingFactor) - 1;
+    static constexpr size_t ValuesPerBranchLog2    = Log2(ValuesPerBranch) - 1;
+    static constexpr size_t BranchingFactorLog2    = Log2(BranchingFactor) - 1;
 
-    static constexpr int32_t METADATA = 0;
+    static constexpr size_t METADATA = 0;
 
 
     struct TreeLayout {
-        int32_t level_starts[8];
-        int32_t level_sizes[8];
-        int32_t levels_max = 0;
-        int32_t index_size = 0;
+        size_t level_starts[8];
+        size_t level_sizes[8];
+        size_t levels_max = 0;
+        size_t index_size = 0;
     };
 
     template <typename IndexT>
@@ -76,15 +76,15 @@ public:
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
                 ConstValue<uint32_t, VERSION>,
-                ConstValue<int32_t, kBranchingFactor>,
-                ConstValue<int32_t, kValuesPerBranch>,
+                ConstValue<size_t, kBranchingFactor>,
+                ConstValue<size_t, kValuesPerBranch>,
                 decltype(Metadata::size_),
                 decltype(Metadata::index_size_),
                 IndexValue
     >;
 
 
-    static int32_t index_size(int32_t capacity)
+    static size_t index_size(size_t capacity)
     {
         TreeLayout layout;
         compute_tree_layout(capacity, layout);
@@ -99,30 +99,30 @@ public:
     }
 
 
-    template <typename IndexT, int32_t IndexNum>
-    IndexT* index(int32_t block) {
+    template <typename IndexT, size_t IndexNum>
+    IndexT* index(size_t block) {
         return this->template get<IndexT>(block * SegmentsPerBlock + 1 + IndexNum);
     }
 
-    template <typename IndexT, int32_t IndexNum>
-    const IndexT* index(int32_t block) const {
+    template <typename IndexT, size_t IndexNum>
+    const IndexT* index(size_t block) const {
         return this->template get<IndexT>(block * SegmentsPerBlock + 1 + IndexNum);
     }
 
 
-    const int32_t& size() const {
+    const psize_t& size() const {
         return metadata()->size();
     }
 
-    int32_t& size() {
+    psize_t& size() {
         return metadata()->size();
     }
 
-    int32_t index_size() const {
+    size_t index_size() const {
         return metadata()->index_size();
     }
 
-    int32_t max_size() const {
+    size_t max_size() const {
         return metadata()->max_size();
     }
 
@@ -130,26 +130,26 @@ public:
 
 protected:
 
-    static constexpr int32_t divUpV(int32_t value) {
+    static constexpr size_t div_upV(size_t value) {
         return (value >> ValuesPerBranchLog2) + ((value & ValuesPerBranchMask) ? 1 : 0);
     }
 
-    static constexpr int32_t divUpI(int32_t value) {
+    static constexpr size_t div_upI(size_t value) {
         return (value >> BranchingFactorLog2) + ((value & BranchingFactorMask) ? 1 : 0);
     }
 
-    template <int32_t Divisor>
-    static constexpr int32_t divUp(int32_t value, int32_t divisor) {
+    template <size_t Divisor>
+    static constexpr size_t div_up(size_t value, size_t divisor) {
         return (value / Divisor) + ((value % Divisor) ? 1 : 0);
     }
 
 
-    int32_t compute_tree_layout(const Metadata* meta, TreeLayout& layout) const {
+    size_t compute_tree_layout(const Metadata* meta, TreeLayout& layout) const {
         return compute_tree_layout(meta->max_size(), layout);
     }
 
 
-    static int32_t compute_tree_layout(int32_t size, TreeLayout& layout)
+    static size_t compute_tree_layout(size_t size, TreeLayout& layout)
     {
         if (size <= ValuesPerBranch)
         {
@@ -159,12 +159,12 @@ protected:
             return 0;
         }
         else {
-            int32_t level = 0;
+            size_t level = 0;
 
-            layout.level_sizes[level] = divUpV(size);
+            layout.level_sizes[level] = div_upV(size);
             level++;
 
-            while((layout.level_sizes[level] = divUpI(layout.level_sizes[level - 1])) > 1)
+            while((layout.level_sizes[level] = div_upI(layout.level_sizes[level - 1])) > 1)
             {
                 level++;
             }
@@ -178,7 +178,7 @@ protected:
                 layout.level_sizes[level - c - 1] = tmp;
             }
 
-            int32_t level_start = 0;
+            size_t level_start = 0;
 
             for (int c = 0; c < level; c++)
             {
@@ -194,8 +194,8 @@ protected:
     }
 
 
-    template <typename IndexT, int32_t IndexNum>
-    auto sum_index(IndexedTreeLayout<IndexT>& layout, int32_t block, int32_t start, int32_t end) const
+    template <typename IndexT, size_t IndexNum>
+    auto sum_index(IndexedTreeLayout<IndexT>& layout, size_t block, size_t start, size_t end) const
     {
         layout.indexes = this->template index<IndexT, IndexNum>(block);
 
@@ -208,22 +208,22 @@ protected:
 
 
     template <typename IndexT>
-    void sum_index(const IndexedTreeLayout<IndexT>& layout, IndexT& sum, int32_t start, int32_t end, int32_t level) const
+    void sum_index(const IndexedTreeLayout<IndexT>& layout, IndexT& sum, size_t start, size_t end, size_t level) const
     {
-        int32_t level_start = layout.level_starts[level];
+        size_t level_start = layout.level_starts[level];
 
-        int32_t branch_end = (start | BranchingFactorMask) + 1;
-        int32_t branch_start = end & ~BranchingFactorMask;
+        size_t branch_end = (start | BranchingFactorMask) + 1;
+        size_t branch_start = end & ~BranchingFactorMask;
 
         if (end <= branch_end || branch_start == branch_end)
         {
-            for (int32_t c = start + level_start; c < end + level_start; c++)
+            for (size_t c = start + level_start; c < end + level_start; c++)
             {
                 sum += layout.indexes[c];
             }
         }
         else {
-            for (int32_t c = start + level_start; c < branch_end + level_start; c++)
+            for (size_t c = start + level_start; c < branch_end + level_start; c++)
             {
                 sum += layout.indexes[c];
             }
@@ -236,7 +236,7 @@ protected:
                     level - 1
             );
 
-            for (int32_t c = branch_start + level_start; c < end + level_start; c++)
+            for (size_t c = branch_start + level_start; c < end + level_start; c++)
             {
                 sum += layout.indexes[c];
             }
@@ -245,14 +245,14 @@ protected:
 
 
     template <typename IndexT, typename Walker>
-    int32_t walk_index_fw(const IndexedTreeLayout<IndexT>& data, int32_t start, int32_t level, Walker&& walker) const
+    size_t walk_index_fw(const IndexedTreeLayout<IndexT>& data, size_t start, size_t level, Walker&& walker) const
     {
-        int32_t level_start = data.level_starts[level];
-        int32_t level_size = data.level_sizes[level];
+        size_t level_start = data.level_starts[level];
+        size_t level_size = data.level_sizes[level];
 
-        int32_t branch_end = (start | BranchingFactorMask) + 1;
+        size_t branch_end = (start | BranchingFactorMask) + 1;
 
-        int32_t branch_limit;
+        size_t branch_limit;
 
         if (branch_end > level_size) {
             branch_limit = level_size;
@@ -261,7 +261,7 @@ protected:
             branch_limit = branch_end;
         }
 
-        for (int32_t c = level_start + start; c < branch_limit + level_start; c++)
+        for (size_t c = level_start + start; c < branch_limit + level_start; c++)
         {
             if (walker.compare(data.indexes[c]))
             {
@@ -299,20 +299,20 @@ protected:
 
 
     template <typename IndexT, typename Walker>
-    int32_t walk_index_bw(const IndexedTreeLayout<IndexT>& data, int32_t start, int32_t level, Walker&& walker) const
+    size_t walk_index_bw(const IndexedTreeLayout<IndexT>& data, size_t start, size_t level, Walker&& walker) const
     {
-        int32_t level_start = data.level_starts[level];
-        int32_t level_size  = data.level_sizes[level];
+        size_t level_start = data.level_starts[level];
+        size_t level_size  = data.level_sizes[level];
 
         if (start >= 0)
         {
-            int32_t branch_end = (start & ~BranchingFactorMask) - 1;
+            size_t branch_end = (start & ~BranchingFactorMask) - 1;
 
             if (start >= level_size) {
                 start = level_size - 1;
             }
 
-            for (int32_t c = level_start + start; c > branch_end + level_start; c--)
+            for (size_t c = level_start + start; c > branch_end + level_start; c--)
             {
                 if (walker.compare(data.indexes[c]))
                 {
@@ -355,13 +355,13 @@ protected:
 
 
     template <typename IndexT, typename Walker>
-    int32_t find_index(const IndexedTreeLayout<IndexT>& data, Walker&& walker) const
+    size_t find_index(const IndexedTreeLayout<IndexT>& data, Walker&& walker) const
     {
-        int32_t branch_start = 0;
+        size_t branch_start = 0;
 
-        for (int32_t level = 1; level <= data.levels_max; level++)
+        for (size_t level = 1; level <= data.levels_max; level++)
         {
-            int32_t level_start = data.level_starts[level];
+            size_t level_start = data.level_starts[level];
 
             for (int c = level_start + branch_start; c < level_start + data.level_sizes[level]; c++)
             {

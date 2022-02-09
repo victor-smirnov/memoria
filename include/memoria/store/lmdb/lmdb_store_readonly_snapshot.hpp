@@ -78,7 +78,7 @@ public:
             MDB_env* mdb_env,
             MDB_dbi system_db,
             MDB_dbi data_db
-    ) noexcept:
+    ):
         Base(maybe_error, store, mdb_env),
         block_shared_cache_(16*1024)
     {
@@ -105,7 +105,7 @@ public:
     }
 
 
-    VoidResult post_init() noexcept
+    VoidResult post_init()
     {
         auto root_block_id = superblock_->directory_root_id();
         if (root_block_id.is_set())
@@ -154,7 +154,7 @@ protected:
         return mma_mdb_txn_id(transaction_);
     }
 
-    virtual SnpSharedPtr<StoreT> self_ptr() noexcept {
+    virtual SnpSharedPtr<StoreT> self_ptr() {
         return this->shared_from_this();
     }
 
@@ -223,7 +223,7 @@ protected:
         MEMORIA_MAKE_GENERIC_ERROR("newId() is not implemented for ReadOnly snapshots").do_throw();
     }
 
-    virtual bool isActive() const noexcept {
+    virtual bool isActive() const {
         return false;
     }
 
@@ -231,15 +231,15 @@ protected:
         MEMORIA_MAKE_GENERIC_ERROR("flush_open_containers() is not implemented for ReadOnly commits").do_throw();
     }
 
-    virtual bool is_committed() const noexcept {
+    virtual bool is_committed() const {
         return true;
     }
 
-    virtual bool is_active() const noexcept {
+    virtual bool is_active() const {
         return false;
     }
 
-    virtual bool is_marked_to_clear() const noexcept {
+    virtual bool is_marked_to_clear() const  {
         return false;
     }
 
@@ -248,11 +248,11 @@ protected:
     }
 
 
-    bool is_transient() noexcept {
+    bool is_transient()  {
         return true;
     }
 
-    bool is_system_snapshot() noexcept {
+    bool is_system_snapshot()  {
         return false;
     }
 };

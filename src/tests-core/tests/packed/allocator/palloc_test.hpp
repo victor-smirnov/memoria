@@ -40,33 +40,33 @@ class PackedAllocatorTest: public TestState {
 
     class SimpleStruct {
         PackedAllocatable header_;
-        int32_t size_;
+        size_t size_;
         uint8_t data_;
         uint8_t content_[];
     public:
         SimpleStruct() {}
 
-        static int32_t block_size(int32_t size) {
+        static size_t block_size(size_t size) {
             return sizeof(SimpleStruct) + size;
         }
 
-        int32_t block_size() const
+        size_t block_size() const
         {
             const Allocator* alloc = header_.allocator();
             assert_equals(true, alloc != nullptr);
 
-            return alloc->element_size(this).get_or_throw();
+            return alloc->element_size_by_ptr(this);
         }
 
-        int32_t object_size() const {
+        size_t object_size() const {
             return sizeof(MyType) + size_;
         }
 
-        int32_t size() const {
+        size_t size() const {
             return size_;
         }
 
-        VoidResult init(int32_t block_size) noexcept
+        VoidResult init(size_t block_size) noexcept
         {
             size_ = block_size - sizeof(SimpleStruct);
             return VoidResult::of();
@@ -76,7 +76,7 @@ class PackedAllocatorTest: public TestState {
         {
             data_ = data;
 
-            for (int32_t c = 0; c < size_; c++)
+            for (size_t c = 0; c < size_; c++)
             {
                 content_[c] = data_;
             }
@@ -84,7 +84,7 @@ class PackedAllocatorTest: public TestState {
 
         void check() const
         {
-            for (int32_t c = 0; c < size_; c++)
+            for (size_t c = 0; c < size_; c++)
             {
                 assert_equals(content_[c], data_, "idx = {}", c);
             }
@@ -93,28 +93,28 @@ class PackedAllocatorTest: public TestState {
         void dump(std::ostream& out) const
         {
             out << "size_ = " << size_ << std::endl;
-            out << "data_ = " << std::hex << (int32_t)data_ << std::dec << std::endl;
+            out << "data_ = " << std::hex << (size_t)data_ << std::dec << std::endl;
             out << "Data:" << std::endl;
 
-            dumpArray<uint8_t>(out, size_, [this](int32_t idx) {
+            dumpArray<uint8_t>(out, size_, [this](size_t idx) {
                 return this->content_[idx];
             });
         }
 
-        void enlarge(int32_t delta)
+        void enlarge(size_t delta)
         {
             Allocator* alloc = header_.allocator();
-            int32_t block_size   = alloc->element_size(this).get_or_throw();
-            int32_t new_size     = alloc->resizeBlock(this, block_size + delta).get_or_throw();
+            size_t block_size   = alloc->element_size_by_ptr(this);
+            size_t new_size     = alloc->resize_block(this, block_size + delta).get_or_throw();
             init(new_size).get_or_throw();
             fill(data_);
         }
 
-        void shrink(int32_t delta)
+        void shrink(size_t delta)
         {
             Allocator* alloc = header_.allocator();
-            int32_t block_size   = alloc->element_size(this).get_or_throw();
-            int32_t new_size     = alloc->resizeBlock(this, block_size - delta).get_or_throw();
+            size_t block_size   = alloc->element_size_by_ptr(this);
+            size_t new_size     = alloc->resize_block(this, block_size - delta).get_or_throw();
 
             init(new_size).get_or_throw();
             fill(data_);
@@ -125,11 +125,11 @@ class PackedAllocatorTest: public TestState {
     public:
         ComplexStruct() {}
 
-        static int32_t block_size(int32_t client_area) {
+        static size_t block_size(size_t client_area) {
             return PackedAllocator::block_size(client_area, 3);
         }
 
-        VoidResult init(int32_t block_size) noexcept
+        VoidResult init(size_t block_size) noexcept
         {
             return PackedAllocator::init(block_size, 3);
         }
@@ -142,9 +142,9 @@ public:
         MMA_CLASS_TESTS(suite, testCreate, testEnlarge);
     }
 
-    AllocatorPtr createAllocator(int32_t client_area_size, int32_t elements)
+    AllocatorPtr createAllocator(size_t client_area_size, size_t elements)
     {
-        int32_t block_size = Allocator::block_size(client_area_size, elements);
+        size_t block_size = Allocator::block_size(client_area_size, elements);
 
         Allocator* alloc = allocate_system_zeroed<Allocator>(block_size).release();
 
@@ -163,14 +163,14 @@ public:
         return AllocatorPtr(alloc, free_system);
     }
 
-    AllocatorPtr createSampleAllocator(int32_t client_area_size, int32_t elements)
+    AllocatorPtr createSampleAllocator(size_t client_area_size, size_t elements)
     {
         AllocatorPtr alloc_ptr  = createAllocator(client_area_size, elements);
         Allocator*   alloc      = alloc_ptr.get();
 
-        for (int32_t c = 0; c < 2; c++)
+        for (size_t c = 0; c < 2; c++)
         {
-            int32_t size = SimpleStruct::block_size(111 + c*10);
+            size_t size = SimpleStruct::block_size(111 + c*10);
 
             SimpleStruct* obj = alloc->allocate<SimpleStruct>(c, size).get_or_throw();
             assert_ge(alloc->element_size(c), size);
@@ -186,7 +186,7 @@ public:
 
         cx_struct->init(512).get_or_throw();
 
-        for (int32_t c = 0; c < cx_struct->elements(); c++)
+        for (size_t c = 0; c < cx_struct->elements(); c++)
         {
             SimpleStruct* sl_struct = cx_struct->allocate<SimpleStruct>(c, 100).get_or_throw();
 
@@ -198,7 +198,7 @@ public:
 
     void checkStructure(const Allocator* alloc)
     {
-        for (int32_t c = 0; c < alloc->elements() - 1; c++)
+        for (size_t c = 0; c < alloc->elements() - 1; c++)
         {
             const SimpleStruct* sl_struct = alloc->get<SimpleStruct>(c);
             sl_struct->check();
@@ -206,7 +206,7 @@ public:
 
         const ComplexStruct* cx_struct = alloc->get<ComplexStruct>(alloc->elements() - 1);
 
-        for (int32_t c = 0; c < cx_struct->elements(); c++)
+        for (size_t c = 0; c < cx_struct->elements(); c++)
         {
             const SimpleStruct* sl_struct = cx_struct->get<SimpleStruct>(c);
             sl_struct->check();
@@ -217,7 +217,7 @@ public:
     {
         alloc->dump();
 
-        for (int32_t c = 0; c < alloc->elements() - 1; c++)
+        for (size_t c = 0; c < alloc->elements() - 1; c++)
         {
             const SimpleStruct* sl_struct = alloc->get<SimpleStruct>(c);
             sl_struct->dump(std::cout);
@@ -227,7 +227,7 @@ public:
 
         cx_struct->dump();
 
-        for (int32_t c = 0; c < cx_struct->elements(); c++)
+        for (size_t c = 0; c < cx_struct->elements(); c++)
         {
             const SimpleStruct* sl_struct = cx_struct->get<SimpleStruct>(c);
             sl_struct->dump(std::cout);
@@ -253,8 +253,8 @@ public:
 
         SimpleStruct* sl_struct = alloc->get<SimpleStruct>(0);
 
-        int32_t size0   = alloc->element_size(0);
-        int32_t offset2 = alloc->element_offset(2);
+        size_t size0   = alloc->element_size(0);
+        size_t offset2 = alloc->element_offset(2);
 
         sl_struct->enlarge(100);
 
@@ -264,7 +264,7 @@ public:
 
         sl_struct->shrink(100);
 
-        int32_t size0_delta = alloc->element_size(0) - size0;
+        size_t size0_delta = alloc->element_size(0) - size0;
 
         assert_equals(alloc->element_offset(2) - size0_delta, offset2);
 
@@ -277,7 +277,7 @@ public:
         });
 
         assert_fails([sl_struct](){
-            return sl_struct->enlarge(-300);
+            return sl_struct->shrink(300);
         });
     }
 };

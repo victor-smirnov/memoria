@@ -48,20 +48,20 @@ protected:
 public:
     using Base::do_open_store;
 
-    MappedSWMRStoreBase() noexcept : Base() {}
+    MappedSWMRStoreBase()  : Base() {}
 
     virtual void store_superblock(SuperblockT* superblock, uint64_t sb_slot) override {
         std::memcpy(buffer_.data() + sb_slot * BASIC_BLOCK_SIZE, superblock, BASIC_BLOCK_SIZE);
     }
 
-    SharedSBPtr<SuperblockT> get_superblock(uint64_t file_pos) noexcept override
+    SharedSBPtr<SuperblockT> get_superblock(uint64_t file_pos) override
     {
         SuperblockT* sb = ptr_cast<SuperblockT>(buffer_.data() + file_pos);
         auto shared = new detail::MMapSBPtrNewSharedImpl();
         return SharedSBPtr<SuperblockT>{sb, shared};
     }
 
-    SharedSBPtr<CounterBlockT> get_counter_block(uint64_t file_pos) noexcept override {
+    SharedSBPtr<CounterBlockT> get_counter_block(uint64_t file_pos) override {
         CounterBlockT* sb = ptr_cast<CounterBlockT>(buffer_.data() + file_pos);
         auto shared = new detail::MMapSBPtrNewSharedImpl();
         return SharedSBPtr<CounterBlockT>{sb, shared};

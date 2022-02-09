@@ -37,8 +37,8 @@
 namespace memoria {
 
 template <
-    int32_t BitsPerSymbol_,
-    int32_t VPB,
+    size_t BitsPerSymbol_,
+    size_t VPB,
 
     typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
@@ -48,9 +48,9 @@ template <
 >
 struct PkdFSSeqTypes {
 
-    static const int32_t Blocks                 = 1 << BitsPerSymbol_;
-    static const int32_t ValuesPerBranch        = VPB;
-    static const int32_t BitsPerSymbol          = BitsPerSymbol_;
+    static const size_t Blocks                 = 1 << BitsPerSymbol_;
+    static const size_t ValuesPerBranch        = VPB;
+    static const size_t BitsPerSymbol          = BitsPerSymbol_;
 
     using Index     = IndexType;
 
@@ -81,14 +81,14 @@ public:
 
     typedef PackedAllocator                                                     Allocator;
 
-    typedef int32_t                                                                 IndexValue;
+    typedef size_t                                                                 IndexValue;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
 
-    static constexpr int32_t ValuesPerBranch        = Types::ValuesPerBranch;
-    static constexpr int32_t Indexes                = Types::Blocks;
-    static constexpr int32_t BitsPerSymbol          = Types::BitsPerSymbol;
-    static constexpr int32_t AlphabetSize           = 1 << BitsPerSymbol;
+    static constexpr size_t ValuesPerBranch        = Types::ValuesPerBranch;
+    static constexpr size_t Indexes                = Types::Blocks;
+    static constexpr size_t BitsPerSymbol          = Types::BitsPerSymbol;
+    static constexpr size_t AlphabetSize           = 1 << BitsPerSymbol;
 
     static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
 
@@ -104,7 +104,7 @@ public:
 
     typedef typename Types::Index                                               Index;
 
-    static const int32_t IndexSizeThreshold                                     = 0;
+    static const size_t IndexSizeThreshold                                     = 0;
     static const PackedDataTypeSize SizeType = PkdStructSizeType<Index>;
 
     typedef core::StaticVector<int64_t, Indexes>                                Values;
@@ -112,30 +112,30 @@ public:
     typedef typename Types::template ToolsFn<MyType>                            Tools;
 
     class Metadata {
-        int32_t size_;
+        psize_t size_;
     public:
-        int32_t& size()                 {return size_;}
-        const int32_t& size() const     {return size_;}
+        psize_t& size()                 {return size_;}
+        const psize_t& size() const     {return size_;}
     };
 
-    using SizesT = core::StaticVector<int32_t, 1>;
+    using SizesT = core::StaticVector<size_t, 1>;
 
 public:
     PkdFSSeq() = default;
 
-    int32_t& size() {return metadata()->size();}
-    const int32_t& size() const {return metadata()->size();}
+    psize_t& size() {return metadata()->size();}
+    const psize_t& size() const {return metadata()->size();}
 
-    int32_t max_size() const
+    size_t max_size() const
     {
-        int32_t values_length = Base::element_size(SYMBOLS);
+        size_t values_length = Base::element_size(SYMBOLS);
 
-        int32_t symbols = values_length * 8 / BitsPerSymbol;
+        size_t symbols = values_length * 8 / BitsPerSymbol;
 
         return symbols;
     }
 
-    int32_t capacity() const
+    size_t capacity() const
     {
         return max_size() - size();
     }
@@ -178,9 +178,9 @@ public:
 
     class SymbolAccessor {
         MyType& seq_;
-        int32_t idx_;
+        size_t idx_;
     public:
-        SymbolAccessor(MyType& seq, int32_t idx): seq_(seq), idx_(idx) {}
+        SymbolAccessor(MyType& seq, size_t idx): seq_(seq), idx_(idx) {}
 
         Value operator=(Value val)
         {
@@ -197,21 +197,21 @@ public:
         }
     };
 
-    SymbolAccessor symbol(int32_t idx)
+    SymbolAccessor symbol(size_t idx)
     {
         return SymbolAccessor(*this, idx);
     }
 
-    int32_t value(int32_t symbol, int32_t idx) const {
+    size_t value(size_t symbol, size_t idx) const {
         return this->symbol(idx) == symbol;
     }
 
 
     class ConstSymbolAccessor {
         const MyType& seq_;
-        int32_t idx_;
+        size_t idx_;
     public:
-        ConstSymbolAccessor(const MyType& seq, int32_t idx): seq_(seq), idx_(idx) {}
+        ConstSymbolAccessor(const MyType& seq, size_t idx): seq_(seq), idx_(idx) {}
 
         operator Value() const {
             return seq_.get(idx_);
@@ -222,7 +222,7 @@ public:
         }
     };
 
-    ConstSymbolAccessor symbol(int32_t idx) const
+    ConstSymbolAccessor symbol(size_t idx) const
     {
         return ConstSymbolAccessor(*this, idx);
     }
@@ -237,78 +237,78 @@ public:
         return init_bs(empty_size());
     }
 
-    VoidResult init(int32_t block_size)
+    VoidResult init(size_t block_size)
     {
         MEMORIA_ASSERT_RTN(block_size, >=, empty_size());
 
         return init_bs(empty_size());
     }
 
-    VoidResult init_bs(int32_t block_size)
+    VoidResult init_bs(size_t block_size)
     {
         MEMORIA_TRY_VOID(Base::init(block_size, 3));
 
         MEMORIA_TRY(meta, Base::template allocate<Metadata>(METADATA));
         meta->size() = 0;
 
-        Base::setBlockType(INDEX,   PackedBlockType::ALLOCATABLE);
-        Base::setBlockType(SYMBOLS, PackedBlockType::RAW_MEMORY);
+        Base::set_block_type(INDEX,   PackedBlockType::ALLOCATABLE);
+        Base::set_block_type(SYMBOLS, PackedBlockType::RAW_MEMORY);
 
         // other sections are empty at this moment
         return VoidResult::of();
     }
 
-    int32_t block_size() const {
+    size_t block_size() const {
         return Base::block_size();
     }
 
-    int32_t block_size(const MyType* other) const
+    size_t block_size(const MyType* other) const
     {
         return packed_block_size(size() + other->size());
     }
 
-    static int32_t packed_block_size(int32_t size)
+    static size_t packed_block_size(size_t size)
     {
         return estimate_block_size(size, 1, 1);
     }
 
 private:
     struct ElementsForFn {
-        int32_t block_size(int32_t items_number) const {
+        size_t block_size(size_t items_number) const {
             return MyType::estimate_block_size(items_number);
         }
 
-        int32_t max_elements(int32_t block_size)
+        size_t max_elements(size_t block_size)
         {
             return block_size * 8;
         }
     };
 
 public:
-    static int32_t elements_for(int32_t block_size)
+    static size_t elements_for(size_t block_size)
     {
         return FindTotalElementsNumber2(block_size, ElementsForFn());
     }
 
 
-    static int32_t empty_size()
+    static size_t empty_size()
     {
-        int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
-        int32_t index_length    = 0;
-        int32_t values_length   = 0;
-        int32_t block_size      = Base::block_size(metadata_length + index_length + values_length, 3);
+        size_t metadata_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
+        size_t index_length    = 0;
+        size_t values_length   = 0;
+        size_t block_size      = Base::block_size(metadata_length + index_length + values_length, 3);
         return block_size;
     }
 
-    static int32_t estimate_block_size(int32_t size, int32_t density_hi = 1, int32_t density_lo = 1)
+    static size_t estimate_block_size(size_t size, size_t density_hi = 1, size_t density_lo = 1)
     {
-        int32_t symbols_block_size  = PackedAllocatable::roundUpBitsToAlignmentBlocks(size * BitsPerSymbol);
-        int32_t index_size          = PackedAllocatable::divUp(size , ValuesPerBranch);
-        int32_t index_block_size    = Index::estimate_block_size(index_size, density_hi, density_lo);
-        int32_t metadata_block_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        size_t symbols_block_size  = PackedAllocatable::round_up_bits_to_alignment_blocks(size * BitsPerSymbol);
+        size_t index_size          = PackedAllocatable::div_up(size , ValuesPerBranch);
+        size_t index_block_size    = Index::estimate_block_size(index_size, density_hi, density_lo);
+        size_t metadata_block_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
 
-        int32_t client_area         = metadata_block_size + index_block_size + symbols_block_size;
-        int32_t block_size          = Base::block_size(client_area, 3);
+        size_t client_area         = metadata_block_size + index_block_size + symbols_block_size;
+        size_t block_size          = Base::block_size(client_area, 3);
 
         return block_size;
     }
@@ -322,11 +322,11 @@ public:
     template <typename IndexSizeT>
     VoidResult createIndex(IndexSizeT&& index_size)
     {
-        int32_t index_block_size = Index::block_size(index_size);
-        MEMORIA_TRY_VOID(Base::resizeBlock(INDEX, index_block_size));
+        size_t index_block_size = Index::block_size(index_size);
+        MEMORIA_TRY_VOID(Base::resize_block(INDEX, index_block_size));
 
         Index* index = this->index();
-        index->allocatable().setAllocatorOffset(this);
+        index->allocatable().set_allocator_offset(this);
 
         MEMORIA_TRY_VOID(index->init(index_size));
         return VoidResult::of();
@@ -334,8 +334,8 @@ public:
 
 
 
-    std::pair<int32_t, int32_t> density() const {
-        return std::pair<int32_t, int32_t>(1,1);
+    std::pair<size_t, size_t> density() const {
+        return std::pair<size_t, size_t>(1,1);
     }
 
 
@@ -358,7 +358,7 @@ public:
         }
     }
 
-    void set(int32_t idx, int32_t symbol)
+    void set(size_t idx, size_t symbol)
     {
         MEMORIA_ASSERT(idx , <, size());
 
@@ -367,7 +367,7 @@ public:
 
     VoidResult clear()
     {
-        MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, 0));
+        MEMORIA_TRY_VOID(Base::resize_block(SYMBOLS, 0));
 
         MEMORIA_TRY_VOID(removeIndex());
 
@@ -378,15 +378,15 @@ public:
 
 
 
-    VoidResult enlargeData(int32_t length)
+    VoidResult enlargeData(size_t length)
     {
-        int32_t capacity = this->capacity();
+        size_t capacity = this->capacity();
 
         if (length >= capacity)
         {
-            int32_t new_size        = size() + length;
-            int32_t new_block_size  = PackedAllocatable::roundUpBitToBytes(new_size * BitsPerSymbol);
-            MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, new_block_size));
+            size_t new_size        = size() + length;
+            size_t new_block_size  = PackedAllocatable::round_up_bits_to_bytes(new_size * BitsPerSymbol);
+            MEMORIA_TRY_VOID(Base::resize_block(SYMBOLS, new_block_size));
         }
 
         return VoidResult::of();
@@ -422,13 +422,13 @@ public:
 
 
 protected:
-    VoidResult insertDataRoom(int32_t pos, int32_t length)
+    VoidResult insertDataRoom(size_t pos, size_t length)
     {
         MEMORIA_TRY_VOID(enlargeData(length));
 
         auto symbols = this->symbols();
 
-        int32_t rest = size() - pos;
+        size_t rest = size() - pos;
 
         tools().move(symbols, pos, (pos + length), rest);
 
@@ -437,14 +437,14 @@ protected:
         return VoidResult::of();
     }
 
-    VoidResult shrinkData(int32_t length)
+    VoidResult shrinkData(size_t length)
     {
-        int32_t new_size = size() - length;
+        size_t new_size = size() - length;
 
         if (new_size >= 0)
         {
-            int32_t new_block_size = PackedAllocatable::roundUpBitToBytes(new_size * BitsPerSymbol);
-            MEMORIA_TRY_VOID(Base::resizeBlock(SYMBOLS, new_block_size));
+            size_t new_block_size = PackedAllocatable::round_up_bits_to_bytes(new_size * BitsPerSymbol);
+            MEMORIA_TRY_VOID(Base::resize_block(SYMBOLS, new_block_size));
         }
 
         return VoidResult::of();
@@ -452,7 +452,7 @@ protected:
 
 public:
 
-    VoidResult insert(int32_t pos, int32_t symbol)
+    VoidResult insert(size_t pos, size_t symbol)
     {
         MEMORIA_TRY_VOID(insertDataRoom(pos, 1));
 
@@ -463,9 +463,9 @@ public:
         return reindex();
     }
 
-    VoidResult remove(int32_t start, int32_t end)
+    VoidResult remove(size_t start, size_t end)
     {
-        int32_t& size = this->size();
+        psize_t& size = this->size();
 
         MEMORIA_ASSERT_RTN(start, >=, 0);
         MEMORIA_ASSERT_RTN(end, >=, 0);
@@ -475,7 +475,7 @@ public:
 
         auto symbols = this->symbols();
 
-        int32_t rest = size - end;
+        size_t rest = size - end;
 
         tools().move(symbols, end, start, rest);
 
@@ -486,12 +486,12 @@ public:
         return reindex();
     }
 
-    VoidResult removeSpace(int32_t start, int32_t end) {
+    VoidResult removeSpace(size_t start, size_t end) {
         return remove(start, end);
     }
 
 
-    VoidResult removeSymbol(int32_t idx) {
+    VoidResult removeSymbol(size_t idx) {
         return remove(idx, idx + 1);
     }
 
@@ -499,12 +499,12 @@ public:
 
 
 
-    void fill(int32_t start, int32_t end, std::function<Value ()> fn)
+    void fill(size_t start, size_t end, std::function<Value ()> fn)
     {
         auto symbols = this->symbols();
         auto tools = this->tools();
 
-        for (int32_t c = start; c < end; c++)
+        for (size_t c = start; c < end; c++)
         {
             Value val = fn();
             tools.set(symbols, c, val);
@@ -512,7 +512,7 @@ public:
     }
 
 
-    VoidResult insert(int32_t start, int32_t length, std::function<Value ()> fn)
+    VoidResult insert(size_t start, size_t length, std::function<Value ()> fn)
     {
         MEMORIA_ASSERT_RTN(start, >=, 0);
         MEMORIA_ASSERT_RTN(start, <=, size());
@@ -528,9 +528,9 @@ public:
 
 
     template <typename Adaptor>
-    VoidResult fill_with_buf(int32_t start, int32_t length, Adaptor&& adaptor)
+    VoidResult fill_with_buf(size_t start, size_t length, Adaptor&& adaptor)
     {
-        int32_t size = this->size();
+        size_t size = this->size();
 
         MEMORIA_ASSERT_RTN(start, >=, 0);
         MEMORIA_ASSERT_RTN(start, <=, size);
@@ -540,7 +540,7 @@ public:
 
         auto symbols = this->symbols();
 
-        int32_t total = 0;
+        size_t total = 0;
 
         while (total < length)
         {
@@ -555,7 +555,7 @@ public:
     }
 
 
-    VoidResult update(int32_t start, int32_t end, std::function<Value ()> fn)
+    VoidResult update(size_t start, size_t end, std::function<Value ()> fn)
     {
         MEMORIA_ASSERT_RTN(start, >=, 0);
         MEMORIA_ASSERT_RTN(start, <=, end);
@@ -568,7 +568,7 @@ public:
 
     using ReadState = SizesT;
 
-    void read(int32_t start, int32_t end, std::function<void (Value)> fn) const
+    void read(size_t start, size_t end, std::function<void (Value)> fn) const
     {
         MEMORIA_ASSERT(start, >=, 0);
         MEMORIA_ASSERT(start, <=, end);
@@ -577,7 +577,7 @@ public:
         auto symbols    = this->symbols();
         auto tools      = this->tools();
 
-        for (int32_t c = start; c < end; c++)
+        for (size_t c = start; c < end; c++)
         {
             fn(tools.get(symbols, c));
         }
@@ -585,10 +585,10 @@ public:
 
 
 
-    VoidResult splitTo(MyType* other, int32_t idx)
+    VoidResult splitTo(MyType* other, size_t idx)
     {
-        int32_t to_move     = this->size() - idx;
-        int32_t other_size  = other->size();
+        size_t to_move     = this->size() - idx;
+        size_t other_size  = other->size();
 
         MEMORIA_TRY_VOID(other->enlargeData(to_move));
 
@@ -605,8 +605,8 @@ public:
 
     VoidResult mergeWith(MyType* other) const
     {
-        int32_t my_size     = this->size();
-        int32_t other_size  = other->size();
+        size_t my_size     = this->size();
+        size_t other_size  = other->size();
 
         MEMORIA_TRY_VOID(other->enlargeData(my_size));
 
@@ -620,7 +620,7 @@ public:
 
     // ========================================= Query ================================= //
 
-    int32_t get(int32_t idx) const
+    size_t get(size_t idx) const
     {
         if (idx >= size()) {
             int a = 0; a++;
@@ -631,13 +631,13 @@ public:
     }
 
 
-    bool test(int32_t idx, Value symbol) const
+    bool test(size_t idx, Value symbol) const
     {
         MEMORIA_ASSERT(idx , <, size());
         return tools().test(symbols(), idx, symbol);
     }
 
-    int32_t rank(int32_t symbol) const
+    size_t rank(size_t symbol) const
     {
         if (has_index())
         {
@@ -649,15 +649,15 @@ public:
         }
     }
 
-    int32_t rank(int32_t start, int32_t end, int32_t symbol) const
+    size_t rank(size_t start, size_t end, size_t symbol) const
     {
-        int32_t rank_start  = rank(start, symbol);
-        int32_t rank_end    = rank(end, symbol);
+        size_t rank_start  = rank(start, symbol);
+        size_t rank_end    = rank(end, symbol);
 
         return rank_end - rank_start;
     }
 
-    int32_t rank(int32_t end, int32_t symbol) const
+    size_t rank(size_t end, size_t symbol) const
     {
         MEMORIA_ASSERT(end, <=, size());
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
@@ -668,14 +668,14 @@ public:
         {
             const Index* index = this->index();
 
-            int32_t values_block    = (end / ValuesPerBranch);
-            int32_t start           = values_block * ValuesPerBranch;
+            size_t values_block    = (end / ValuesPerBranch);
+            size_t start           = values_block * ValuesPerBranch;
 
-            int32_t sum = index->sum(symbol, values_block);
+            size_t sum = index->sum(symbol, values_block);
 
             typename Types::template RankFn<MyType> fn(*this);
 
-            int32_t block_sum = fn(start, end, symbol);
+            size_t block_sum = fn(start, end, symbol);
 
             return sum + block_sum;
         }
@@ -687,9 +687,9 @@ public:
     }
 
 
-    SelectResult selectFw(int32_t start, int32_t symbol, int64_t rank) const
+    SelectResult selectFw(size_t start, size_t symbol, int64_t rank) const
     {
-        int32_t startrank_ = this->rank(start, symbol);
+        size_t startrank_ = this->rank(start, symbol);
         auto result = selectFw(symbol, startrank_ + rank);
 
         result.rank() -= startrank_;
@@ -697,7 +697,7 @@ public:
         return result;
     }
 
-    SelectResult selectFw(int32_t symbol, int64_t rank) const
+    SelectResult selectFw(size_t symbol, int64_t rank) const
     {
         MEMORIA_ASSERT(rank, >=, 0);
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
@@ -706,19 +706,19 @@ public:
         {
             const Index* index = this->index();
 
-            int32_t index_size = index->size();
+            size_t index_size = index->size();
 
             auto result = index->findGEForward(symbol, rank);
 
             if (result.local_pos() < index_size)
             {
-                int32_t start = result.local_pos() * ValuesPerBranch;
+                size_t start = result.local_pos() * ValuesPerBranch;
 
                 typename Types::template SelectFn<MyType> fn(*this);
 
-                int32_t localrank_ = rank - result.prefix();
+                size_t localrank_ = rank - result.prefix();
 
-                int32_t size = this->size();
+                size_t size = this->size();
 
                 return fn(start, size, symbol, localrank_);
             }
@@ -732,9 +732,9 @@ public:
         }
     }
 
-    SelectResult selectBw(int32_t start, int32_t symbol, int64_t rank) const
+    SelectResult selectBw(size_t start, size_t symbol, int64_t rank) const
     {
-        int32_t localrank_ = this->rank(start, symbol);
+        size_t localrank_ = this->rank(start, symbol);
 
         if (localrank_ >= rank)
         {
@@ -745,7 +745,7 @@ public:
         }
     }
 
-    SelectResult selectBw(int32_t symbol, int64_t rank) const
+    SelectResult selectBw(size_t symbol, int64_t rank) const
     {
         return selectBw(size(), symbol, rank);
     }
@@ -757,7 +757,7 @@ public:
 
         handler->value("SIZE",          &size());
 
-        int32_t max_size = this->max_size();
+        size_t max_size = this->max_size();
         handler->value("MAX_SIZE",      &max_size);
 
         if (has_index())
@@ -781,7 +781,7 @@ public:
 
         const Metadata* meta = this->metadata();
 
-        FieldFactory<int32_t>::serialize(buf, meta->size());
+        FieldFactory<psize_t>::serialize(buf, meta->size());
 
         if (has_index()) {
             index()->serialize(buf);
@@ -797,7 +797,7 @@ public:
 
         Metadata* meta = this->metadata();
 
-        FieldFactory<int32_t>::deserialize(buf, meta->size());
+        FieldFactory<psize_t>::deserialize(buf, meta->size());
 
         if (has_index()) {
             index()->deserialize(buf);
@@ -813,24 +813,24 @@ public:
 
 
 private:
-    int32_t symbol_buffer_size() const
+    size_t symbol_buffer_size() const
     {
-        int32_t bit_size    = this->element_size(SYMBOLS) * 8;
-        int32_t byte_size   = PackedAllocatable::roundUpBitsToAlignmentBlocks(bit_size);
+        size_t bit_size    = this->element_size(SYMBOLS) * 8;
+        size_t byte_size   = PackedAllocatable::round_up_bits_to_alignment_blocks(bit_size);
 
         return byte_size / sizeof(Value);
     }
 };
 
 
-template <int32_t BitsPerSymbol>
+template <size_t BitsPerSymbol>
 struct PkdFSSeqTF: HasType<
     IfThenElse<
                 BitsPerSymbol == 1,
                 PkdFSSeqTypes<
                     1,
                     1024,
-                    PkdFQTreeT<int32_t, 2>,
+                    PkdFQTreeT<size_t, 2>,
                     BitmapReindexFn,
                     BitmapSelectFn,
                     BitmapRankFn,
@@ -840,7 +840,7 @@ struct PkdFSSeqTF: HasType<
                     PkdFSSeqTypes<
                         BitsPerSymbol,
                         1024,
-                        PkdFQTreeT<int32_t, 1 << BitsPerSymbol>,
+                        PkdFQTreeT<size_t, 1 << BitsPerSymbol>,
                         ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
