@@ -115,6 +115,9 @@ public:
     bool is_default() const {return default_;}
 };
 
+enum class DTOrdering {
+    SUM, MAX, UNORDERED
+};
 
 template <typename DataType, typename Buffer> class SparseObjectBuilder;
 

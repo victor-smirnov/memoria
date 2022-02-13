@@ -30,14 +30,14 @@ namespace memoria {
 template <typename Types>
 class PackedDataTypeBuffer;
 
-template <typename DataType, bool Indexed>
+template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering>
 struct PackedDataTypeBufferTypes {};
 
-template <typename DataType, bool Indexed>
-using PackedDataTypeBufferT = PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, Indexed>>;
+template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering>
+using PackedDataTypeBufferT = PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, Indexed, Columns, Ordering>>;
 
-template <typename DataType_, bool Indexed_>
-class PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType_, Indexed_>>:
+template <typename DataType_, bool Indexed_, size_t Columns_, DTOrdering Ordering_>
+class PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType_, Indexed_, Columns_, Ordering_>>:
     public PackedAllocator
 {
     using Base = PackedAllocator;
@@ -48,17 +48,33 @@ public:
     static constexpr uint32_t VERSION   = 1;
     static constexpr size_t Dimensions  = ListSize<DataDimenstionsList>;
     static constexpr bool Indexed       = Indexed_;
-    static constexpr size_t Indexes     = Indexed ? 1 : 0;
+    static constexpr size_t Columns     = Columns_;
+    static constexpr size_t Indexes     = Indexed ? Columns : 0;
+    static constexpr DTOrdering Ordering = Ordering_;
+
+    static constexpr bool HasIndex =
+            Ordering == DTOrdering::SUM && DataTypeTraits<DataType>::isArithmetic;
 
 
     using MyType    = PackedDataTypeBuffer;
     using ViewType  = DTTViewType<DataType>;
     using Allocator = PackedAllocator;
 
+    using IndexType = MyType;
+
+    enum {METADATA = 0, INDEX, LAST_HEADER_BLOCK_};
+
+    static constexpr size_t DimensionsBlocksTotal = pdtbuf_::DimensionsListWidthBuilder<
+            DataDimenstionsList,
+            PackedDataTypeBuffer
+    >::Value;
+
     using DataDimensionsStructs = typename pdtbuf_::DimensionsListBuilder<
         DataDimenstionsList,
         PackedDataTypeBuffer,
-        1
+
+        DimensionsBlocksTotal,
+        LAST_HEADER_BLOCK_
     >::Type;
 
     template <size_t Idx>
@@ -68,15 +84,13 @@ public:
     using SparseObject  = PackedDataTypeBufferSO<ExtData, MyType>;
 
     using GrowableIOSubstream = DataTypeBuffer<DataType>;
-    using IOSubstreamView     = pdtbuf_::PackedDataTypeBufferIO<DataType, SparseObject>;
-
-    enum {METADATA = 0};
+    using IOSubstreamView     = pdtbuf_::PackedDataTypeNDBufferIO<DataType, SparseObject>;
 
     using Base::get;
 
     class Metadata {
         psize_t size_;
-        psize_t data_size_[Dimensions];
+        psize_t data_size_[Dimensions * Columns];
     public:
         psize_t& size() {return size_;}
         const psize_t& size() const {return size_;}
@@ -86,8 +100,8 @@ public:
 
         const psize_t* data_size() const {return data_size_;}
 
-        psize_t& data_size(psize_t idx) {return data_size_[idx];}
-        const psize_t& data_size(psize_t idx) const {return data_size_[idx];}
+        psize_t& data_size(size_t column, size_t idx) {return data_size_[column * Columns + idx];}
+        const psize_t& data_size(size_t column, size_t idx) const {return data_size_[column * Columns + idx];}
     };
 
 public:
@@ -97,6 +111,8 @@ public:
     using PackedAllocator::allocate;
     using PackedAllocator::allocate_empty;
     using PackedAllocator::allocate_array_by_size;
+    using PackedAllocator::is_empty;
+    using PackedAllocator::free;
 
     PackedDataTypeBuffer() = default;
 
@@ -110,16 +126,13 @@ public:
         return ForEach<0, Dimensions>::process_res_fn(fn);
     }
 
-    static constexpr size_t default_size(size_t available_space)
-    {
+    static constexpr size_t default_size(size_t available_space) {
         return empty_size();
     }
 
     VoidResult init_default(size_t block_size)  {
         return init();
     }
-
-
 
     static size_t empty_size()
     {
@@ -129,7 +142,7 @@ public:
             dimensions_size += Dimension<idx>::empty_size_aligned();
         });
 
-        return base_size(dimensions_size);
+        return base_size(dimensions_size * Columns);
     }
 
     static size_t base_size(size_t dimensions_size)
@@ -137,7 +150,7 @@ public:
         size_t metadata_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
 
         return PackedAllocator::block_size(
-            metadata_length + dimensions_size, Dimensions + 1
+            metadata_length + dimensions_size, DimensionsBlocksTotal * Columns + LAST_HEADER_BLOCK_
         );
     }
 
@@ -149,24 +162,35 @@ public:
             aligned_data_size += Dimension<idx>::data_block_size(capacity);
         });
 
-        return base_size(aligned_data_size);
+        return base_size(aligned_data_size * Columns);
+    }
+
+    VoidResult init_bs(size_t) {
+        return init();
     }
 
     VoidResult init()
     {
-        MEMORIA_TRY_VOID(init(empty_size(), Dimensions + 1));
+        MEMORIA_TRY_VOID(init(empty_size(), DimensionsBlocksTotal * Columns + LAST_HEADER_BLOCK_));
 
         MEMORIA_TRY(meta, allocate<Metadata>(METADATA));
         meta->size() = 0;
 
-        return for_each_dimension_res([&](auto idx)  -> VoidResult {
-            using DimensionStruct = Dimension<idx>;
+        for (size_t column = 0; column < Columns; column++)
+        {
+            VoidResult res = for_each_dimension_res([&](auto idx)  -> VoidResult {
+                using DimensionStruct = Dimension<idx>;
 
-            MEMORIA_TRY_VOID(DimensionStruct::allocate_empty(this));
+                MEMORIA_TRY_VOID(DimensionStruct::allocate_empty(this, column));
 
-            DimensionStruct::init_metadata(*meta);
-            return VoidResult::of();
-        });
+                DimensionStruct::init_metadata(*meta, column);
+                return VoidResult::of();
+            });
+
+            MEMORIA_RETURN_IF_ERROR(res);
+        }
+
+        return VoidResult::of();
     }
 
 
@@ -178,13 +202,13 @@ public:
         size_t values_length{};
 
         for_each_dimension([&values_length, my_meta, other, other_meta, this](auto dim_idx){
-            values_length += this->dimension<dim_idx>().joint_data_length(my_meta, other, other_meta);
+            values_length += this->dimension<dim_idx>(0).joint_data_length(my_meta, other, other_meta);
         });
 
         return base_size(values_length);
     }
 
-    Metadata& metadata()  {
+    Metadata& metadata() {
         return *get<Metadata>(METADATA);
     }
 
@@ -192,17 +216,43 @@ public:
         return *get<Metadata>(METADATA);
     }
 
-    template <size_t Idx>
-    Dimension<Idx> dimension()  {
-        return Dimension<Idx>(this);
+    IndexType* index() {
+        return get<IndexType>(INDEX);
+    }
+
+    const IndexType* index() const {
+        return get<IndexType>(INDEX);
+    }
+
+    bool has_index() const {
+        return !is_empty(INDEX);
+    }
+
+    VoidResult create_index()
+    {
+        if (has_index()) {
+            MEMORIA_TRY_VOID(remove_index());
+        }
+
+        MEMORIA_TRY_VOID(allocate_empty<IndexType>(INDEX));
+        return VoidResult::of();
+    }
+
+    VoidResult remove_index() {
+        return free(INDEX);
     }
 
     template <size_t Idx>
-    const Dimension<Idx> dimension() const  {
-        return Dimension<Idx>(const_cast<PackedDataTypeBuffer*>(this));
+    Dimension<Idx> dimension(size_t column)  {
+        return Dimension<Idx>(this, column);
     }
 
-    psize_t& size()  {
+    template <size_t Idx>
+    const Dimension<Idx> dimension(size_t columns) const  {
+        return Dimension<Idx>(const_cast<PackedDataTypeBuffer*>(this), columns);
+    }
+
+    psize_t& size() {
         return metadata().size();
     }
 
@@ -219,11 +269,13 @@ public:
         auto& meta = this->metadata();
 
         FieldFactory<psize_t>::serialize(buf, meta.size());
-        FieldFactory<psize_t>::serialize(buf, meta.data_size(), Dimensions);
+        FieldFactory<psize_t>::serialize(buf, meta.data_size(), Dimensions * Columns);
 
-        return for_each_dimension([&, this](auto idx){
-            return this->dimension<idx>().serialize(meta, buf);
-        });
+        for (size_t column = 0; column < Columns; column++) {
+            return for_each_dimension([&, this](auto idx){
+                return this->dimension<idx>(column).serialize(meta, buf);
+            });
+        }
     }
 
 
@@ -237,9 +289,11 @@ public:
         FieldFactory<psize_t>::serialize(buf, meta.size());
         FieldFactory<psize_t>::serialize(buf, meta.data_size(), Dimensions);
 
-        return for_each_dimension([&, this](auto idx){
-            return this->dimension<idx>().cow_serialize(meta, buf, resolver);
-        });
+        for (size_t column = 0; column < Columns; column++) {
+            return for_each_dimension([&, this](auto idx){
+                return this->dimension<idx>(column).cow_serialize(meta, buf, resolver);
+            });
+        }
     }
 
     template <typename DeserializationData>
@@ -252,14 +306,16 @@ public:
         FieldFactory<psize_t>::deserialize(buf, meta.size());
         FieldFactory<psize_t>::deserialize(buf, meta.data_size(), Dimensions);
 
-        return for_each_dimension([&, this](auto idx){
-            return this->dimension<idx>().deserialize(meta, buf);
-        });
+        for (size_t column = 0; column < Columns; column++) {
+            return for_each_dimension([&, this](auto idx){
+                return this->dimension<idx>(column).deserialize(meta, buf);
+            });
+        }
     }
 };
 
-template <typename DataType, bool Indexed>
-struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, Indexed>>> {
+template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering>
+struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, Indexed, Columns, Ordering>>> {
     using SearchKeyDataType = DataType;
 
     using AccumType = DTTViewType<SearchKeyDataType>;
@@ -270,8 +326,8 @@ struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataTyp
     >::DataTypeSize;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
-    static constexpr size_t Blocks = 1;
-    static constexpr size_t Indexes = Indexed ? 1 : 0;
+    static constexpr size_t Blocks = Columns;
+    static constexpr size_t Indexes = Indexed ? Blocks : 0;
 };
 
 

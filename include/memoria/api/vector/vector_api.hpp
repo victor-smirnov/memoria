@@ -59,7 +59,7 @@ struct VectorIterator: BTSSIterator<Profile> {
     virtual CtrSharedPtr<ICtrApi<Vector<DataType>, Profile>> vector() = 0;
 };
 
-template <typename DataType, typename Profile, bool FixedSizeElement = DTTIs1DFixedSize<DataType>>
+template <typename DataType, typename Profile, bool FixedSizeElement = DTTIsNDFixedSize<DataType>>
 struct VectorApiBase;
 
 template <typename DataType, typename Profile>

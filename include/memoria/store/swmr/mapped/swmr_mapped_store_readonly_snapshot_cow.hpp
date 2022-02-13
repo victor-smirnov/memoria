@@ -199,11 +199,11 @@ public:
         if (existing_entry)
         {
             BlockCacheEntry* shared = existing_entry.get();
-            return AllocationMetadataT{
+            return AllocationMetadataT(
                 static_cast<int64_t>(shared->file_pos()),
                 1,
                 static_cast<int32_t>(allocation_level(shared->ptr()->memory_block_size()))
-            };
+            );
         }
         else {
             uint64_t at;
@@ -226,7 +226,7 @@ public:
                 }
             }
 
-            return AllocationMetadataT{static_cast<int64_t>(at), 1, static_cast<int32_t>(level)};
+            return AllocationMetadataT(static_cast<int64_t>(at), 1, static_cast<int32_t>(level));
         }
     }
 

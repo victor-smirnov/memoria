@@ -606,17 +606,20 @@ public:
             MEMORIA_TRY(block_size_tmp, alloc->resize_block(this, new_size));
             block_size_ = block_size_tmp;
         }
-        else if (new_size <= block_size_)
+        else if (new_size > block_size_)
         {
-            if (new_size >= allocated() + my_size() + layout_size_ + bitmap_size_)
-            {
-                block_size_ = new_size;
-            }
-            else {
-                return MEMORIA_MAKE_PACKED_OOM_ERROR();
-            }
-        }
-        else {
+//            size_t allocated = this->allocated();
+//            size_t my_size = this->my_size();
+
+//            if (new_size >= allocated + my_size + layout_size_ + bitmap_size_)
+//            {
+//                //block_size_ = new_size;
+//            }
+//            else {
+//                return MEMORIA_MAKE_PACKED_OOM_ERROR();
+//            }
+//        }
+//        else {
             return MEMORIA_MAKE_PACKED_OOM_ERROR();
         }
 

@@ -196,7 +196,7 @@ public:
 
         SplitStatus status = iter.split();
 
-        fn.status_ = OpStatus::OK;
+        fn.status_ = VoidResult::of(); // OpStatus::OK
 
         self().leaf_dispatcher().dispatch(
                     iter.iter_leaf().as_mutable(),

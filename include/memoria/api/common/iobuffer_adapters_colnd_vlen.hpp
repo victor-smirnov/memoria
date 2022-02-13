@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,20 +30,12 @@
 namespace memoria {
 
 template <typename DataType, template <typename CxxType> class ValueCodec>
-struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCodec>, false>
+struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>, false>
 {
     using ViewType = typename DataTypeTraits<DataType>::ViewType;
     using AtomType  = typename DataTypeTraits<DataType>::AtomType;
 
-    using SubstreamT = io::IO1DArraySubstreamView<DataType>;
-
-
-    SubstreamT* substream_{};
-    int32_t column_;
-
-    IOSubstreamAdapter(int32_t column):
-        column_(column)
-    {}
+    using SubstreamT = io::IONDArraySubstreamView<DataType>;
 
     static void read_to(
             const io::IOSubstream& substream,
@@ -54,7 +46,7 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
     )
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        subs.read_to(start, size, buffer);
+        subs.read_to(column, start, size, buffer);
     }
 
 
@@ -67,7 +59,7 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
     )
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        subs.read_to(start, size, buffer);
+        subs.read_to(column, start, size, buffer);
     }
 
     static void read_to(
@@ -79,24 +71,14 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
     )
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        subs.read_to(start, size, buffer);
+        subs.read_to(column, start, size, buffer);
     }
 
     template <typename ItemView>
     static void read_one(const io::IOSubstream& substream, int32_t column, int32_t idx, ItemView& item)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-
-        item = subs.get(idx);
-    }
-
-    void reset(io::IOSubstream& substream) {
-        this->substream_ = &io::substream_cast<SubstreamT>(substream);
-    }
-
-
-    size_t size() const {
-        return substream_->size();
+        item = subs.get(column, idx);
     }
 };
 

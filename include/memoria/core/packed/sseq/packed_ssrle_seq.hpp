@@ -1,5 +1,5 @@
 
-// Copyright 2021 Victor Smirnov
+// Copyright 2021-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -122,11 +122,17 @@ public:
         SeqSizeT size_;
         uint64_t code_units_;
     public:
-        SeqSizeT& size()                 {return size_;}
-        const SeqSizeT& size() const     {return size_;}
+        const SeqSizeT& size() const        {return size_;}
+        void set_size(const SeqSizeT& val)  {size_ = val;}
 
-        uint64_t& code_units()                 {return code_units_;}
-        const uint64_t& code_units() const     {return code_units_;}
+        void add_size(const SeqSizeT& val) {size_ += val;}
+        void sub_size(const SeqSizeT& val) {size_ -= val;}
+
+        const uint64_t& code_units() const  {return code_units_;}
+        void set_code_units(uint64_t val)   {code_units_ = val;}
+
+        SeqSizeT& size_mut()        {return size_;}
+        uint64_t& code_units_mut()  {return code_units_;}
     };
 
     struct Tools {};
@@ -149,7 +155,7 @@ public:
 public:
     PkdSSRLESeq() = default;
 
-    SeqSizeT size() const noexcept {return metadata()->size();}
+    const SeqSizeT& size() const noexcept {return metadata()->size();}
     uint64_t code_units() noexcept {return metadata()->code_units();}
 
     // FIXME: Make setters private/protected
@@ -276,8 +282,8 @@ public:
 
         MEMORIA_TRY(meta, Base::template allocate<Metadata>(METADATA));
 
-        meta->size() = SeqSizeT{};
-        meta->code_units() = 0;
+        meta->set_size(SeqSizeT{});
+        meta->set_code_units(0);
 
         Base::set_block_type(SIZE_INDEX, PackedBlockType::ALLOCATABLE);
         Base::set_block_type(SUM_INDEX,  PackedBlockType::ALLOCATABLE);
@@ -294,8 +300,8 @@ public:
 
         auto meta = this->metadata();
 
-        meta->size()        = SeqSizeT{};
-        meta->code_units()   = 0;
+        meta->set_size(SeqSizeT{});
+        meta->set_code_units(0);
 
         return VoidResult::of();
     }
@@ -303,8 +309,8 @@ public:
     void reset() {
         auto meta = this->metadata();
 
-        meta->size()        = SeqSizeT{};
-        meta->code_units()   = 0;
+        meta->set_size(SeqSizeT{});
+        meta->set_code_units(0);
     }
 
 
@@ -490,9 +496,9 @@ private:
         Span<CodeUnitT> syms = symbols();
         RunTraits::write_segments_to(runs, syms, start);
 
-        meta->code_units() = code_units;
-        meta->size() -= run_len0;
-        meta->size() += count_symbols(runs);
+        meta->set_code_units(code_units);
+        meta->sub_size(run_len0);
+        meta->add_size(count_symbols(runs));
 
         MEMORIA_TRY_VOID(reindex());
         return SizeTResult::of(size_t{});
@@ -566,8 +572,8 @@ public:
             RunTraits::write_segments_to(left, atoms, 0);
 
             Metadata* meta = metadata();
-            meta->code_units() = new_code_units;
-            meta->size() += count_symbols(runs);
+            meta->set_code_units(new_code_units);
+            meta->add_size(count_symbols(runs));
 
             MEMORIA_TRY_VOID(do_reindex(to_span(left)));
 
@@ -629,8 +635,8 @@ public:
             Span<CodeUnitT> atoms = symbols();
             RunTraits::write_segments_to(runs_res, atoms, 0);
 
-            meta->code_units() = new_code_units;
-            meta->size() -= end - start;
+            meta->set_code_units(new_code_units);
+            meta->sub_size(end - start);
 
             return do_reindex(to_span(runs_res));
         }
@@ -699,11 +705,11 @@ public:
             Span<CodeUnitT> right_syms = other->symbols();
             size_t right_code_units = RunTraits::write_segments_to(result.right.span(), right_runs, right_syms);
 
-            other_meta->size() = meta->size() - idx;
-            other_meta->code_units() = right_code_units;
+            other_meta->set_size(meta->size() - idx);
+            other_meta->set_code_units(right_code_units);
 
-            meta->size() = idx;
-            meta->code_units() = left_code_units;
+            meta->set_size(idx);
+            meta->set_code_units(left_code_units);
 
             MEMORIA_TRY_VOID(other->reindex());
 
@@ -732,8 +738,8 @@ public:
         Span<CodeUnitT> atoms = other->symbols();
         RunTraits::write_segments_to(syms, atoms, 0);
 
-        other_meta->size() += meta->size();
-        other_meta->code_units() = new_code_units;
+        other_meta->add_size(meta->size());
+        other_meta->set_code_units(new_code_units);
 
         return other->do_reindex(to_span(syms));
     }
@@ -1951,8 +1957,8 @@ public:
 
         Metadata* meta = this->metadata();
 
-        FieldFactory<SeqSizeT>::deserialize(buf, meta->size());
-        FieldFactory<uint64_t>::deserialize(buf, meta->code_units());
+        FieldFactory<SeqSizeT>::deserialize(buf, meta->size_mut());
+        FieldFactory<uint64_t>::deserialize(buf, meta->code_units_mut());
 
         if (has_index()) {
             size_index()->deserialize(buf);

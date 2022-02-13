@@ -24,7 +24,6 @@
 
 namespace memoria {
 
-
 template <typename T> struct PrimitiveDataTypeName;
 
 #define MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(TypeName, TypeStr)  \
@@ -130,14 +129,14 @@ using DTTParameters = typename dtt_::DTTParametersH<T>::Type;
 
 namespace dtt_ {
     template <typename TypedimensionsList, typename DataDimenstionsList>
-    struct DTTIs1DFixedSize: HasValue<bool, false> {};
+    struct DTTIsNDFixedSize: HasValue<bool, false> {};
 
     template <typename T>
-    struct DTTIs1DFixedSize<std::tuple<>, std::tuple<const T*>>: HasValue<bool, true> {};
+    struct DTTIsNDFixedSize<std::tuple<>, std::tuple<const T*>>: HasValue<bool, true> {};
 }
 
 template <typename DataType>
-constexpr bool DTTIs1DFixedSize = dtt_::DTTIs1DFixedSize<
+constexpr bool DTTIsNDFixedSize = dtt_::DTTIsNDFixedSize<
     DTTTypeDimensionsTuple<DataType>,
     DTTDataDimensionsTuple<DataType>
 >::Value;
@@ -146,6 +145,7 @@ constexpr bool DTTIs1DFixedSize = dtt_::DTTIs1DFixedSize<
 template <typename T> struct DataTypeTraitsBase {
     static constexpr bool isDataType = true;
     static constexpr bool isSdnDeserializable = false;
+    static constexpr bool isArithmetic = false;
 
     using DatumSelector         = EmptyType;
     using DatumStorageSelector  = EmptyType;
@@ -180,6 +180,10 @@ struct MinimalDataTypeTraits: DataTypeTraitsBase<DataType>
     }
 };
 
+template <typename T, typename DataType>
+struct ArithmeticMinimalDataTypeTraits: MinimalDataTypeTraits<T, DataType> {
+    static constexpr bool isArithmetic = true;
+};
 
 
 template <typename T, typename DataType, typename LDST = T>
@@ -236,6 +240,12 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
         PrimitiveDataTypeName<DataType>::create_signature(buf, DataType());
     }
 };
+
+template <typename T, typename DataType, typename LDST = T>
+struct ArithmeticFixedSizeDataTypeTraits: FixedSizeDataTypeTraits<T, DataType, LDST> {
+    static constexpr bool isArithmetic = true;
+};
+
 
 
 template <typename T, typename DataType>
@@ -294,36 +304,36 @@ public:
 
 
 template <>
-struct DataTypeTraits<TinyInt>: FixedSizeDataTypeTraits<int8_t, TinyInt> {};
+struct DataTypeTraits<TinyInt>: ArithmeticFixedSizeDataTypeTraits<int8_t, TinyInt> {};
 
 template <>
-struct DataTypeTraits<UTinyInt>: FixedSizeDataTypeTraits<uint8_t, UTinyInt> {};
-
-
-template <>
-struct DataTypeTraits<SmallInt>: FixedSizeDataTypeTraits<int16_t, SmallInt> {};
-
-template <>
-struct DataTypeTraits<USmallInt>: FixedSizeDataTypeTraits<uint16_t, USmallInt> {};
+struct DataTypeTraits<UTinyInt>: ArithmeticFixedSizeDataTypeTraits<uint8_t, UTinyInt> {};
 
 
 template <>
-struct DataTypeTraits<Integer>: FixedSizeDataTypeTraits<int32_t, Integer> {};
+struct DataTypeTraits<SmallInt>: ArithmeticFixedSizeDataTypeTraits<int16_t, SmallInt> {};
 
 template <>
-struct DataTypeTraits<UInteger>: FixedSizeDataTypeTraits<uint32_t, UInteger> {};
+struct DataTypeTraits<USmallInt>: ArithmeticFixedSizeDataTypeTraits<uint16_t, USmallInt> {};
+
 
 template <>
-struct DataTypeTraits<BigInt>: FixedSizeDataTypeTraits<int64_t, BigInt> {};
+struct DataTypeTraits<Integer>: ArithmeticFixedSizeDataTypeTraits<int32_t, Integer> {};
 
 template <>
-struct DataTypeTraits<UBigInt>: FixedSizeDataTypeTraits<uint64_t, UBigInt> {};
+struct DataTypeTraits<UInteger>: ArithmeticFixedSizeDataTypeTraits<uint32_t, UInteger> {};
 
 template <>
-struct DataTypeTraits<Real>: FixedSizeDataTypeTraits<float, Real> {};
+struct DataTypeTraits<BigInt>: ArithmeticFixedSizeDataTypeTraits<int64_t, BigInt> {};
 
 template <>
-struct DataTypeTraits<Double>: FixedSizeDataTypeTraits<double, Double> {};
+struct DataTypeTraits<UBigInt>: ArithmeticFixedSizeDataTypeTraits<uint64_t, UBigInt> {};
+
+template <>
+struct DataTypeTraits<Real>: ArithmeticFixedSizeDataTypeTraits<float, Real> {};
+
+template <>
+struct DataTypeTraits<Double>: ArithmeticFixedSizeDataTypeTraits<double, Double> {};
 
 template <>
 struct DataTypeTraits<Timestamp>: NonSdnFixedSizeDataTypeTraits<int64_t, Timestamp> {};
@@ -345,35 +355,35 @@ struct DataTypeTraits<Boolean>: FixedSizeDataTypeTraits<bool, Boolean, uint8_t> 
 
 
 template <>
-struct DataTypeTraits<int32_t>: MinimalDataTypeTraits<int32_t, Integer> {};
+struct DataTypeTraits<int32_t>: ArithmeticMinimalDataTypeTraits<int32_t, Integer> {};
 
 template <>
-struct DataTypeTraits<int64_t>: MinimalDataTypeTraits<int64_t, int64_t> {};
+struct DataTypeTraits<int64_t>: ArithmeticMinimalDataTypeTraits<int64_t, int64_t> {};
 
 template <>
-struct DataTypeTraits<uint64_t>: MinimalDataTypeTraits<uint64_t, uint64_t> {};
+struct DataTypeTraits<uint64_t>: ArithmeticMinimalDataTypeTraits<uint64_t, uint64_t> {};
 
 
 #ifdef MMA_HAS_INT128
 template <>
-struct DataTypeTraits<UInt128T>: MinimalDataTypeTraits<UInt128T, UInt128T> {};
+struct DataTypeTraits<UInt128T>: ArithmeticMinimalDataTypeTraits<UInt128T, UInt128T> {};
 
 template <>
-struct DataTypeTraits<Int128T>: MinimalDataTypeTraits<Int128T, Int128T> {};
+struct DataTypeTraits<Int128T>: ArithmeticMinimalDataTypeTraits<Int128T, Int128T> {};
 #endif
 
 
 template <>
-struct DataTypeTraits<UAcc64T>: MinimalDataTypeTraits<UAcc64T, UAcc64T> {};
+struct DataTypeTraits<UAcc64T>: ArithmeticMinimalDataTypeTraits<UAcc64T, UAcc64T> {};
 
 template <>
-struct DataTypeTraits<UAcc128T>: MinimalDataTypeTraits<UAcc128T, UAcc128T> {};
+struct DataTypeTraits<UAcc128T>: ArithmeticMinimalDataTypeTraits<UAcc128T, UAcc128T> {};
 
 template <>
-struct DataTypeTraits<UAcc192T>: MinimalDataTypeTraits<UAcc192T, UAcc192T> {};
+struct DataTypeTraits<UAcc192T>: ArithmeticMinimalDataTypeTraits<UAcc192T, UAcc192T> {};
 
 template <>
-struct DataTypeTraits<UAcc256T>: MinimalDataTypeTraits<UAcc256T, UAcc256T> {};
+struct DataTypeTraits<UAcc256T>: ArithmeticMinimalDataTypeTraits<UAcc256T, UAcc256T> {};
 
 template <>
 struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
@@ -381,6 +391,7 @@ struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
     using Parameters = TL<>;
 
     static constexpr bool HasTypeConstructors = true;
+    static constexpr bool Arithmetic = true;
 
     static void create_signature(SBuf& buf, const Decimal& obj)
     {
@@ -408,6 +419,7 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
 
     static constexpr bool isDataType          = true;
     static constexpr bool HasTypeConstructors = true;
+    static constexpr bool Arithmetic = true;
 
     static void create_signature(SBuf& buf, const Decimal& obj)
     {

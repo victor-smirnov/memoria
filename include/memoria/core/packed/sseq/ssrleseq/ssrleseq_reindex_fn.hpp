@@ -67,7 +67,7 @@ public:
 
         if (meta->code_units() != symbols_block_size_atoms)
         {
-            meta->code_units() = symbols_block_size_atoms;
+            meta->set_code_units(symbols_block_size_atoms);
 
             MEMORIA_TRY_VOID(seq.resize_block(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::CodeUnitT)));
             RunTraits::write_segments_to(syms_span, seq.symbols(), 0);

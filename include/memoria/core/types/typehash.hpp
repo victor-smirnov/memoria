@@ -81,63 +81,14 @@ struct TypeHash<T[Size]> {
 };
 
 
-
-
-
-template <typename Key, typename Value>
-struct TypeHash<CowMap<Key, Value>>: UInt64Value<
-    HashHelper<1104, TypeHashV<Key>, TypeHashV<Value>>
-> {};
-
-
-
-template <typename T, Granularity gr>
-struct TypeHash<VLen<gr, T>>: UInt64Value<
-    HashHelper<1113, TypeHashV<T>, static_cast<uint64_t>(gr)>
-> {};
-
-
 template <> struct TypeHash<Root>: UInt64Value<1400> {};
 
 template <int32_t BitsPerSymbol, bool Dense>
 struct TypeHash<Sequence<BitsPerSymbol, Dense>>: UInt64Value<HashHelper<1500, BitsPerSymbol, Dense>> {};
 
-template <typename T, Indexed sr>
-struct TypeHash<FLabel<T, sr> >: UInt64Value<HashHelper<1610, (uint64_t)sr>> {};
-
-template <int32_t BitsPerSymbol>
-struct TypeHash<FBLabel<BitsPerSymbol>>: UInt64Value<HashHelper<1620, BitsPerSymbol>> {};
-
-template <typename T, Indexed sr, Granularity gr>
-struct TypeHash<VLabel<T, gr, sr> >: UInt64Value<HashHelper<1630, (uint64_t)sr, (uint64_t)gr>> {};
-
-
-template <typename... LabelDescriptors>
-struct TypeHash<LabeledTree<LabelDescriptors...>> {
-private:
-    using ValueList = typename TypeToValueList<TypeList<LabelDescriptors...>>::Type;
-    using TaggedValueList = MergeValueLists<UInt64Value<1600>, ValueList>;
-
-public:
-    static const uint64_t Value = md5::Md5Sum<TaggedValueList>::Type::Value64;
-};
-
-
-template <typename... LabelDescriptors>
-struct TypeHash<LabeledTree<TypeList<LabelDescriptors...>>>: TypeHash<LabeledTree<LabelDescriptors...>> {};
-
 
 template <typename CtrName>
 struct TypeHash<CtrWrapper<CtrName>>: UInt32Value<HashHelper<1700, TypeHashV<CtrName>>> {};
-
-template <>
-struct TypeHash<WT>: UInt64Value<1800> {};
-
-template <>
-struct TypeHash<VTree>: UInt64Value<1900> {};
-
-
-
 
 
 template <typename... List>

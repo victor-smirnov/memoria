@@ -305,11 +305,11 @@ public:
 
             removing_blocks_consumer_fn_(
                 BlockID{BlockIDValueHolder{}},
-                AllocationMetadataT{
+                AllocationMetadataT(
                     static_cast<int64_t>(sb->superblock_file_pos()/ BASIC_BLOCK_SIZE),
                     1,
                     CustomLog2(sb->superblock_size() / BASIC_BLOCK_SIZE)
-                }
+                )
             );
 
             counters_ptr_ = &counters_;
@@ -449,7 +449,7 @@ public:
 
         int64_t avaialble = buffer_size / BASIC_BLOCK_SIZE;
 
-        allocation_pool_->add(AllocationMetadataT{0, avaialble, ALLOCATION_MAP_LEVELS - 1});
+        allocation_pool_->add(AllocationMetadataT(0, avaialble, ALLOCATION_MAP_LEVELS - 1));
 
         awaiting_init_allocations_.append_value(allocation_pool_->allocate_one(0).get());
         awaiting_init_allocations_.append_value(allocation_pool_->allocate_one(0).get());

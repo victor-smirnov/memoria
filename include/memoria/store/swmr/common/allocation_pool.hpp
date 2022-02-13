@@ -378,10 +378,10 @@ public:
 
     bool add(int64_t position, int64_t size, int32_t level)
     {
-        return add(AlcMetadata{position, size, level});
+        return add(AlcMetadata(position, size, level));
     }
 
-    void clear()  {
+    void clear() {
         for (int32_t ll = 0; ll < Levels; ll++)
         {
             levels_[ll].clear();

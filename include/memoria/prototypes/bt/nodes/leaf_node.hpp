@@ -127,7 +127,9 @@ public:
                 const PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
                             CowBlockID<ValueHolder>,
-                            Indexed
+                            Indexed,
+                            1,
+                            DTOrdering::UNORDERED
                         >
                 >* pkd_buffer,
                 SerializationData* buf,
@@ -156,7 +158,9 @@ public:
                 PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
                             CowBlockID<IDValueHolder>,
-                            Indexed
+                            Indexed,
+                            1,
+                            DTOrdering::UNORDERED
                         >
                 >* pkd_buffer,
                 const IDResolver* id_resolver
@@ -167,7 +171,9 @@ public:
             using Buffer = PackedDataTypeBuffer<
                 PackedDataTypeBufferTypes<
                     DataType,
-                    Indexed
+                    Indexed,
+                    1,
+                    DTOrdering::UNORDERED
                 >
             >;
 

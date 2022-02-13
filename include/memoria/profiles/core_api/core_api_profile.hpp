@@ -31,7 +31,7 @@ template <typename TT>
 struct ApiProfileTraits<CoreApiProfileT<TT>> {
     using SnapshotID    = UID256;
     using CtrID         = UID256;
-    using CtrSizeT      = int64_t;
+    using CtrSizeT      = uint64_t;
     using ApiProfileT   = CoreApiProfileT<TT>;
 
     static CtrID make_random_ctr_id() {

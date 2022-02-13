@@ -69,7 +69,7 @@ public:
 
 private:
 
-    static constexpr bool DirectValues = DTTIs1DFixedSize<typename Types::Value>;
+    static constexpr bool DirectValues = DTTIsNDFixedSize<typename Types::Value>;
 
     using IOVSchema = Linearize<typename Types::IOVSchema>;
 

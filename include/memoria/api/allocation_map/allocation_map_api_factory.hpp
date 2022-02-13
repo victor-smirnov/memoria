@@ -32,7 +32,7 @@ struct ICtrApiTypes<AllocationMap, Profile> {
 
     using IOVSchema = TL<
 //        TL<
-//            ICtrApiSubstream<EmptyType, io::ColumnWise1D>
+//            ICtrApiSubstream<EmptyType, io::ColumnWise>
 //        >
     >;
 };

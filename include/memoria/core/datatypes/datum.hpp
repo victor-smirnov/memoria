@@ -372,6 +372,11 @@ public:
         return value_;
     }
 
+    ViewType& view() noexcept
+    {
+        return value_;
+    }
+
     const ViewType& guarded_view() const noexcept
     {
         return value_;

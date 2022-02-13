@@ -27,7 +27,6 @@ namespace memoria {
 namespace io {
 
 struct ColumnWise {};
-struct ColumnWise1D {};
 struct RowWise {};
 
 template <typename Value, bool IsColumnWise, bool IsFixedSize>

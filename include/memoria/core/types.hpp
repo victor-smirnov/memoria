@@ -38,71 +38,13 @@ static constexpr int DEFAULT_BLOCK_SIZE                 = 8192;
 static constexpr int PackedTreeBranchingFactor          = 32;
 static constexpr int PackedSeqBranchingFactor           = 32;
 static constexpr int PackedSeqValuesPerBranch           = 1024;
-static constexpr int PackedTreeExintVPB                 = 256;
-static constexpr int PackedTreeEliasVPB                 = 1024;
 static constexpr int PackedAllocationAlignment          = 8;
-
-static constexpr size_t MaxRLERunLength                 = 0x7FFFFFF;
 
 using psize_t = uint32_t;
 
-static constexpr psize_t PkdSizeMax  = std::numeric_limits<psize_t>::max();
-static constexpr psize_t PkdSizeSup  = std::numeric_limits<psize_t>::max() - 1;
-static constexpr psize_t PkdSizeInf  = std::numeric_limits<psize_t>::min();
-static constexpr psize_t PkdNotFound = PkdSizeMax;
-
-
+using size_t  = ::size_t;
 
 enum class PackedDataTypeSize {FIXED, VARIABLE};
-
-namespace internal {
-    template <int size> struct PlatformLongHelper;
-
-    template <>
-    struct PlatformLongHelper<4> {
-        typedef int32_t             LongType;
-        typedef uint32_t            ULongType;
-        typedef int32_t             SizeTType;
-    };
-
-    template <>
-    struct PlatformLongHelper<8> {
-        typedef int64_t          LongType;
-        typedef uint64_t         ULongType;
-        typedef int64_t          SizeTType;
-    };
-}
-
-enum class CtrBlockType {ROOT, LEAF, INTERNAL, ROOT_LEAF};
-
-inline bool is_root(CtrBlockType type) {
-    return type == CtrBlockType::ROOT || type == CtrBlockType::ROOT_LEAF;
-}
-
-inline bool is_leaf(CtrBlockType type) {
-    return type == CtrBlockType::LEAF || type == CtrBlockType::ROOT_LEAF;
-}
-
-inline bool is_branch(CtrBlockType type) {
-    return type == CtrBlockType::ROOT || type == CtrBlockType::INTERNAL;
-}
-
-
-
-enum {
-    CTR_NONE   = 0,
-    CTR_CREATE = 1,
-    CTR_FIND   = 1 << 1
-};
-
-/**
- * Please note that Long/ULong types are not intended to be used for data block properties.
- * Use types with known size instead.
- */
-
-typedef internal::PlatformLongHelper<sizeof(void*)>::LongType                   LongType;
-typedef internal::PlatformLongHelper<sizeof(void*)>::ULongType                  ULongType;
-typedef internal::PlatformLongHelper<sizeof(void*)>::SizeTType                  SizeT;
 
 // Require Gcc or Clang for now.
 #ifdef MMA_HAS_INT128
@@ -172,21 +114,16 @@ template <typename> struct TypeHash;
 
 struct BT {};
 
-
-
 struct Composite    {};
 struct Root         {};
 
 template <typename CtrName>
 class CtrWrapper    {};
 
-template <typename Key, typename Value>
-struct CowMap       {};
-
 template <typename Key, typename Value, PackedDataTypeSize SizeType>
 struct Table        {};
 
-template <int32_t BitsPerSymbol, bool Dense = true>
+template <size_t BitsPerSymbol, bool Dense = true>
 struct Sequence {};
 
 template <bool Dense = true>
@@ -197,35 +134,8 @@ class CoreApiProfileT {};
 
 using CoreApiProfile = CoreApiProfileT<>;
 
-enum class Granularity  {Bit, Byte};
-enum class Indexed      {No, Yes};
 
-template <
-    typename LblType,
-    Indexed indexed         = Indexed::No
->
-struct FLabel       {};
-
-template <
-    int32_t BitsPerSymbol
->
-struct FBLabel      {};
-
-template <
-    typename LblType,
-    Granularity granularity = Granularity::Bit,
-    Indexed indexed         = Indexed::No
->
-struct VLabel       {};
-
-template <typename... LabelDescriptors>
-struct LabeledTree  {};
-
-struct WT           {};
-struct VTree        {};
-
-template <Granularity granularity, typename T = int64_t>
-struct VLen {};
+struct WT {};
 
 
 // Database-specific containers
@@ -235,31 +145,19 @@ struct ObjectStore      {};
 struct RowStore         {};
 struct ScopedDictionary {};
 
-
-struct UBytes;
-
 // Placeholder type to be used in place of Block IDs
 struct IDType {};
 /*
  * End of container type names and profiles
  */
 
-/*
- * Prototype names
- */
 
-class Tree {};
 
-/*
- * End of prototype names
- */
 
 struct NullType {};
-
 struct EmptyType {};
 
-struct EmptyType1 {};
-struct EmptyType2 {};
+
 
 struct IncompleteType;
 struct TypeIsNotDefined {};
@@ -268,17 +166,6 @@ template <typename Name>
 struct TypeNotFound;
 struct TypeIsNotDefined;
 
-template <typename FirstType, typename SecondType>
-struct Pair {
-    typedef FirstType   First;
-    typedef SecondType  Second;
-};
-
-
-template <typename T>
-struct TypeDef {
-    typedef T Type;
-};
 
 
 struct IterEndMark {};
@@ -303,15 +190,7 @@ enum class WalkCmd {
 };
 
 
-enum class UpdateType {
-    SET, ADD
-};
-
 enum class SearchType {LT, LE, GT, GE};
-enum class IteratorMode {FORWARD, BACKWARD};
-enum class MergeType {NONE, LEFT, RIGHT};
-enum class MergePossibility {YES, NO, MAYBE};
-
 enum class LeafDataLengthType {FIXED, VARIABLE};
 
 template <typename T>
@@ -319,11 +198,8 @@ struct TypeP {
     using Type = T;
 };
 
-class NoParamCtr {};
-
-
 class VLSelector {};
-class FLSelector {};
+
 
 enum class SplitStatus {NONE, LEFT, RIGHT, UNKNOWN};
 
@@ -347,8 +223,7 @@ extern int64_t DebugCounter1;
 extern int64_t DebugCounter2;
 extern int64_t DebugCounter3;
 
-template <typename T>
-using IL = std::initializer_list<T>;
+
 
 namespace detail {
     template <typename List>  struct AsTupleH;
@@ -373,12 +248,8 @@ struct HasValue {
     static constexpr T Value = V_;
 };
 
-template <typename T>
-struct StdMetaFn {
-    using type = T;
-};
 
-namespace tt_ {
+namespace detail {
     template <typename T, bool Flag, typename... AdditionalTypes>
     struct FailIfT {
         static_assert(!Flag, "Template failed");
@@ -387,40 +258,10 @@ namespace tt_ {
 }
 
 template <bool Flag, typename T, typename... AdditionalTypes>
-using FailIf = typename tt_::FailIfT<T, Flag, AdditionalTypes...>::Type;
+using FailIf = typename detail::FailIfT<T, Flag, AdditionalTypes...>::Type;
 
-template <bool Flag, int32_t V, typename... AdditionalTypes>
-constexpr int32_t FailIfV = tt_::FailIfT<IntValue<V>, Flag, AdditionalTypes...>::Type::Value;
-
-template <typename T, typename T1 = int32_t, T1 V = T1{}>
-struct FakeValue: HasValue<T1, V> {};
-
-
-
-template <typename T1, typename T2>
-constexpr bool compare_gt(T1&& first, T2&& second) {
-    return first > second;
-}
-
-template <typename T1, typename T2>
-constexpr bool compare_eq(T1&& first, T2&& second) {
-    return first == second;
-}
-
-template <typename T1, typename T2>
-constexpr bool compare_lt(T1&& first, T2&& second) {
-    return first < second;
-}
-
-template <typename T1, typename T2>
-constexpr bool compare_ge(T1&& first, T2&& second) {
-    return first >= second;
-}
-
-template <typename T1, typename T2>
-constexpr bool compare_le(T1&& first, T2&& second) {
-    return first <= second;
-}
+template <bool Flag, size_t V, typename... AdditionalTypes>
+constexpr size_t FailIfV = detail::FailIfT<IntValue<V>, Flag, AdditionalTypes...>::Type::Value;
 
 
 template <typename T> class ValueCodec;
@@ -438,24 +279,10 @@ public:
     size_t length() const {return length_;}
 };
 
-template <typename T>
-class ValuePtrT2 {
-    const T* addr_;
-    size_t offset_;
-    size_t length_;
-public:
-    ValuePtrT2(): addr_(), offset_(0), length_() {}
-    ValuePtrT2(const T* addr, size_t offset, size_t length): addr_(addr), offset_(offset), length_(length) {}
-
-    const T* addr() const {return addr_;}
-    size_t length() const {return length_;}
-    size_t offset() const {return offset_;}
-};
-
 
 template <typename T> struct DataTypeTraits;
 
-namespace types_ {
+namespace detail {
     template <typename T> struct Void {
         using Type = void;
     };
@@ -470,7 +297,7 @@ namespace types_ {
 }
 
 template <typename T>
-struct IsComplete : types_::IsCompleteHelper<T>::Type {};
+struct IsComplete : detail::IsCompleteHelper<T>::Type {};
 
 
 template <typename T>
@@ -484,29 +311,9 @@ struct IsExternalizable: HasValue<bool, HasValueCodec<T>::Value || HasFieldFacto
 
 
 struct Referenceable {
-    virtual ~Referenceable() {}
+    virtual ~Referenceable() noexcept = default;
 };
 
-struct ReferenceableNoExcept {
-    virtual ~ReferenceableNoExcept() noexcept {}
-};
-
-
-enum class ByteOrder {
-    BIG, LITTLE
-};
-
-enum class MemoryAccess {
-    MMA_ALIGNED, MMA_UNALIGNED
-};
-
-
-template <typename T> struct TypeTag {};
-
-
-enum class MMA_NODISCARD OpStatus: int32_t {
-    OK = 0, FAIL = 1
-};
 
 template <typename T>
 constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_trivially_copyable<T>::value;

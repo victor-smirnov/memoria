@@ -34,7 +34,7 @@ namespace detail {
     template <
         typename DataType,
         typename ViewType = DTTViewType<DataType>,
-        bool IsFixedSize = DTTIs1DFixedSize<DataType>
+        bool IsFixedSize = DTTIsNDFixedSize<DataType>
     >
     class MMapSubstreamAdapter;
 
@@ -75,7 +75,7 @@ namespace detail {
     template <
         typename DataType,
         typename ViewType = DTTViewType<DataType>,
-        bool IsFixedSize = DTTIs1DFixedSize<DataType>
+        bool IsFixedSize = DTTIsNDFixedSize<DataType>
     >
     class MMapValueGroupsAdapter;
 
@@ -84,6 +84,7 @@ namespace detail {
     class MMapValueGroupsAdapter<DataType, ViewType, true> {
 
         ArenaBuffer<Span<const ViewType>> array_;
+        size_t column_{};
 
     public:
         auto& array() {return array_;}
@@ -96,10 +97,10 @@ namespace detail {
         template <typename SubstreamAdapter, typename Parser>
         auto populate(const io::IOSubstream& substream, const Parser& parser, int32_t values_offset, size_t start, size_t end)
         {
-            const io::IO1DArraySubstreamView<DataType>& subs =
-                    io::substream_cast<io::IO1DArraySubstreamView<DataType>>(substream);
+            const io::IONDArraySubstreamView<DataType>& subs =
+                    io::substream_cast<io::IONDArraySubstreamView<DataType>>(substream);
 
-            auto span = subs.span(values_offset, subs.size() - values_offset);
+            auto span = subs.span(column_, values_offset, subs.size() - values_offset);
 
             const ViewType* values = span.data();
 
@@ -264,7 +265,7 @@ namespace detail {
     template <
         typename DataType,
         typename AtomType,
-        bool IsFixedSize = DTTIs1DFixedSize<DataType>
+        bool IsFixedSize = DTTIsNDFixedSize<DataType>
     >
     class MMapValuesBufferAdapter;
 

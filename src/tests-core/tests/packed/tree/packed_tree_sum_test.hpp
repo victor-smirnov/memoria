@@ -27,14 +27,14 @@ class PackedTreeSumTest: public PackedTreeTestBase <PackedTreeT> {
     using MyType = PackedTreeSumTest<PackedTreeT>;
     using Base   = PackedTreeTestBase <PackedTreeT>;
 
-    typedef typename Base::Tree                                                 Tree;
-    typedef typename Base::Values                                               Values;
-    typedef typename Tree::IndexValue                                           IndexValue;
+    using typename Base::Values;
+    using typename Base::Value;
 
     using typename Base::TreePtr;
-
+    using typename Base::TreeSO;
 public:
 
+    using Base::get_so;
     using Base::iterations_;
     using Base::size_;
     using Base::out;
@@ -53,13 +53,12 @@ public:
 
 
 
-    IndexValue sum(const TreePtr& tree, size_t block, size_t start, size_t end)
+    Value sum(const TreeSO& tree, size_t block, size_t start, size_t end)
     {
-        IndexValue sum = 0;
+        Value sum{};
 
-        for (size_t c = start; c < end; c++)
-        {
-            sum += tree->value(block, c);
+        for (size_t c = start; c < end; c++){
+            sum += tree.access(block, c);
         }
 
         return sum;
@@ -77,20 +76,21 @@ public:
     {
         out() << tree_size << std::endl;
 
-        auto tree = Base::createEmptyTree();
+        auto tree_ss = Base::createEmptyTree();
+        auto tree = get_so(tree_ss);
 
         auto values = Base::fillRandom(tree, tree_size);
 
-        size_t size = tree->size();
+        size_t size = tree.size();
 
         for (size_t c = 0; c < iterations_; c++)
         {
             size_t end     = this->getRandom(size / 2) + size / 2;
             size_t start   = this->getRandom(size / 2);
 
-            size_t block   = this->getRandom(Tree::Blocks);
+            size_t block   = this->getRandom(TreeSO::Columns);
 
-            auto sum1 = tree->sum(block, start, end);
+            auto sum1 = tree.sum(block, start, end);
             auto sum2 = Base::sum(values, block, start, end);
             auto sum3 = this->sum(tree, block, start, end);
 

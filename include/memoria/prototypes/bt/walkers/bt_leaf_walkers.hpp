@@ -36,9 +36,11 @@ protected:
     typedef typename Types::LeafRangeList                                       LeafRangeList;
     typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
 
+    using CtrSizeT = typename Types::CtrSizeT;
+
     static const int32_t Streams                                                = Types::Streams;
 
-    StaticVector<int64_t, Streams> branch_size_prefix_;
+    StaticVector<CtrSizeT, Streams> branch_size_prefix_;
 
     IteratorBranchNodeEntry branch_prefix_;
     IteratorBranchNodeEntry leaf_prefix_;
@@ -152,11 +154,11 @@ public:
         return leaf_prefix_;
     }
 
-    const StaticVector<int64_t, Streams>& branch_size_prefix() const {
+    const StaticVector<CtrSizeT, Streams>& branch_size_prefix() const {
         return branch_size_prefix_;
     }
 
-    StaticVector<int64_t, Streams>& branch_size_prefix() {
+    StaticVector<CtrSizeT, Streams>& branch_size_prefix() {
         return branch_size_prefix_;
     }
 

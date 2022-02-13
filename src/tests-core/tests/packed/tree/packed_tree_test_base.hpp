@@ -23,7 +23,8 @@
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
-#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+//#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
 
 #include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
@@ -34,6 +35,7 @@
 namespace memoria {
 namespace tests {
 
+template <typename T> struct TypeTag {};
 
 template <typename R, typename T>
 R from_number(TypeTag<R> tag, T value);
@@ -65,16 +67,20 @@ protected:
     static constexpr size_t MEMBUF_SIZE = 1024*1024*8;
 
     using Tree      = PackedTreeT;
+    using TreeSO    = typename PackedTreeT::SparseObject;
+
     using TreePtr   = PkdStructSPtr<Tree>;
 
-    typedef typename Tree::Value                                                Value;
-    typedef typename Tree::IndexValue                                           IndexValue;
-    typedef typename Tree::DataValues                                           Values;
+    typedef typename Tree::ViewType                                             Value;
+    typedef typename Tree::ViewType                                             IndexValue;
+    typedef typename TreeSO::Values                                             Values;
 
-    static constexpr size_t Blocks = Tree::Blocks;
+    static constexpr size_t Blocks = Tree::Columns;
 
     int64_t size_{4096};
     size_t iterations_ {10};
+
+    std::tuple<> ext_data_{};
 
 public:
 
@@ -94,6 +100,10 @@ public:
         }
 
         return sum;
+    }
+
+    TreeSO get_so(TreePtr ptr) {
+        return TreeSO(&ext_data_, ptr.get());
     }
 
 
@@ -117,7 +127,7 @@ public:
         }
     }
 
-    std::vector<Values> fillRandom(TreePtr& tree, size_t size, size_t max_value = 300, size_t min = 1)
+    std::vector<Values> fillRandom(TreeSO& tree, size_t size, size_t max_value = 300, size_t min = 1)
     {
         std::vector<Values> vals(size);
         for (auto& v: vals)
@@ -127,63 +137,29 @@ public:
             }
         }
 
-        tree->insert_entries(0, size, [&](size_t block, size_t idx) noexcept {
+        tree.insert_from_fn(0, size, [&](size_t block, size_t idx) noexcept {
             return vals[idx][block];
         }).get_or_throw();
 
         truncate(vals, size);
 
-        assert_equals(size, tree->size());
+        assert_equals(size, tree.size());
 
         for (size_t b = 0; b < Blocks; b++)
         {
-            size_t idx = 0;
-            tree->read(b, 0, tree->size(), make_fn_with_next([&](size_t block, auto v){
-                assert_equals(v, vals[idx][block]);
-            }, [&]{idx++;}));
+            for (size_t idx = 0; idx < tree.size(); idx++) {
+                auto view = tree.access(b, idx);
+                assert_equals(view, vals[idx][b]);
+            }
         }
 
         return vals;
     }
 
-    std::vector<Values> fillSolid(TreePtr& tree, const Values& values)
+
+    void fillVector(TreeSO& tree, const std::vector<Values>& vals)
     {
-        std::vector<Values> vals;
-
-        size_t size = tree->insert(0, [&](Values& v) -> bool {
-            v = values;
-            vals.push_back(values);
-
-            return true;
-        });
-
-        truncate(vals, size);
-
-        return vals;
-    }
-
-    std::vector<Values> fillSolid(Tree* tree, size_t value)
-    {
-        std::vector<Values> vals;
-
-        size_t size = tree->insert(0, [&](Values& v) -> bool {
-            for (size_t b = 0; b < Blocks; b++) {
-                v[b] = value;
-            }
-
-            vals.push_back(v);
-
-            return true;
-        });
-
-        truncate(vals, size);
-
-        return vals;
-    }
-
-    void fillVector(TreePtr& tree, const std::vector<Values>& vals)
-    {
-        tree->insert_entries(0, vals.size(), [&](size_t block, size_t idx) noexcept {
+        tree.insert_from_fn(0, vals.size(), [&](size_t block, size_t idx) noexcept {
             return vals[idx][block];
         }).get_or_throw();
     }
@@ -214,55 +190,54 @@ public:
         return vals;
     }
 
-    void assertEqual(const TreePtr& tree, const std::vector<Values>& vals)
+    void assertEqual(const TreeSO& tree, const std::vector<Values>& vals)
     {
-        assert_equals(tree->size(), (size_t)vals.size());
+        assert_equals((size_t)vals.size(), tree.size());
 
-        for (size_t c = 0; c < tree->size(); c++)
+        for (size_t c = 0; c < tree.size(); c++)
         {
             Values v;
             for (size_t b = 0; b < Blocks; b++)
             {
-                v[b] = tree->value(b, c);
+                v[b] = tree.access(b, c);
             }
 
             assert_equals(vals[c], v, "Index: {}", c);
         }
     }
 
-    void assertEqual(const TreePtr& tree1, const TreePtr& tree2)
+    void assertEqual(const TreeSO& tree1, const TreeSO& tree2)
     {
-        AssertEQ(MA_SRC, tree1->size(), tree2->size());
+        AssertEQ(MA_SRC, tree1.size(), tree2.size());
 
-        for (size_t c = 0; c < tree1->size(); c++)
+        for (size_t c = 0; c < tree1.size(); c++)
         {
             Values v1, v2;
             for (size_t b = 0; b < Blocks; b++)
             {
-                v1[b] = tree1->value(b, c);
-                v2[b] = tree2->value(b, c);
+                v1[b] = tree1.value(b, c);
+                v2[b] = tree2.value(b, c);
             }
 
             assert_equals(v1, v2, "Index: {}", c);
         }
     }
 
-    void assertIndexCorrect(const char* src, const TreePtr& tree)
+    void assertIndexCorrect(const char* src, const TreeSO& tree)
     {
         try {
-            tree->check();
+            tree.check();
         }
         catch (Exception& e)
         {
             out() << "Tree structure check failed" << std::endl;
-            //tree->dump(out());
             throw e;
         }
     }
 
-    void assertEmpty(const TreePtr& tree)
+    void assertEmpty(const TreeSO& tree)
     {
-        assert_equals(0, tree->size());
+        assert_equals(0, tree.size());
     }
 
     template <typename T>

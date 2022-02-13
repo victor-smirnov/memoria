@@ -39,7 +39,7 @@ class SparseObjectAdapterDescriptor {};
 template <
         typename DataType,
         typename SelectorTag = SparseObjectAdapterDescriptor<
-            DTTIs1DFixedSize<DataType>,
+            DTTIsNDFixedSize<DataType>,
             typename DataTypeTraits<DataType>::TypeDimensionsList,
             typename DataTypeTraits<DataType>::DataDimensionsList
         >

@@ -152,35 +152,6 @@ bool isEmpty(StdStringRef str, size_t start, size_t end, StdStringRef sep)
     }
 }
 
-LongType strToL(U8StringRef value) {
-    if (!isEmpty(value))
-    {
-        auto trimmed = trimString(value);
-        const char* ptr = trimmed.data();
-        char* end_ptr;
-
-        errno = 0;
-        LongType v = strtol(ptr, &end_ptr, 0);
-
-        if (errno == 0)
-        {
-            if (*end_ptr == '\0')
-            {
-                return v;
-            }
-            else {
-                MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid integer value: {}", value));
-            }
-        }
-        else {
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid integer value: {}", value));
-        }
-    }
-    else {
-        MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid integer value: {}", value));
-    }
-}
-
 U8String ReplaceFirst(U8StringRef str, U8StringRef txt) {
     return str;
 }

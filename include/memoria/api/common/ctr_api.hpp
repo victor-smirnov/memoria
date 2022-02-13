@@ -55,7 +55,7 @@ struct ICtrApiSubstream
 
 template <
         typename T,
-        bool FixedSize = DTTIs1DFixedSize<typename T::DataType>
+        bool FixedSize = DTTIsNDFixedSize<typename T::DataType>
 >
 struct IOSubstreamAdapter;
 

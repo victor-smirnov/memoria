@@ -62,10 +62,7 @@ public:
         if (!self.iter_is_end())
         {
             auto k = self.iter_raw_key();
-
-            //MEMORIA_V1_ASSERT_TRUE((k - StaticVector<int64_t, 1>(delta))[0] >= 0);
-
-            return self.ctr().template ctr_update_entry<IntList<0, 1>>(self, std::make_tuple(k - StaticVector<int64_t, 1>(delta)));
+            return self.ctr().template ctr_update_entry<IntList<0, 1>>(self, std::make_tuple(k - StaticVector<CtrSizeT, 1>(delta)));
         }
     }
 

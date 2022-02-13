@@ -72,6 +72,31 @@ struct IO1DArraySubstreamView: IOSubstream {
     }
 };
 
+
+template <typename DataType>
+struct IONDArraySubstreamView: IOSubstream {
+
+    using ViewType = DTTViewType<DataType>;
+
+    virtual void reset() {}
+    virtual void reindex() {}
+
+    virtual size_t size() const = 0;
+    virtual size_t columns() const = 0;
+
+    virtual void read_to(size_t column, size_t row, size_t size, ArenaBuffer<ViewType>& buffer) const = 0;
+    virtual void read_to(size_t column, size_t row, size_t size, DataTypeBuffer<DataType>& buffer) const = 0;
+    virtual void read_to(size_t column, size_t row, size_t size, Span<ViewType> buffer) const = 0;
+
+    virtual Span<const ViewType> span(size_t column, size_t row, size_t size) const = 0;
+
+    virtual ViewType get(size_t column, size_t row) const = 0;
+
+    virtual const std::type_info& substream_type() const {
+        return typeid(IONDArraySubstreamView<DataType>);
+    }
+};
+
 template <typename T>
 T& substream_cast(IOSubstream& ss)
 {

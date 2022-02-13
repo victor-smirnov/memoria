@@ -37,8 +37,8 @@ public:
 
     static constexpr uint32_t VERSION = 1;
 
-    using KeysPkdStruct = PackedDataTypeBufferT<KeyDataType, true>;
-    using ValuesPkdStruct = PackedDataTypeBufferT<ValueDataType, false>;
+    using KeysPkdStruct = PackedDataTypeBufferT<KeyDataType, true, 1, DTOrdering::MAX>;
+    using ValuesPkdStruct = PackedDataTypeBufferT<ValueDataType, false, 1, DTOrdering::UNORDERED>;
 
     using KeyView   = DTTViewType<KeyDataType>;
     using ValueView = DTTViewType<ValueDataType>;

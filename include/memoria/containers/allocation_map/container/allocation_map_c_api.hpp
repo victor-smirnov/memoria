@@ -233,7 +233,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                         if (upper_size_is_occupied && !bitmaps->get_bit(lvl, c))
                         {
                             if (!meta.size_at_level()) {
-                                meta = ALCMeta{(c << lvl) + offset, 1 << lvl, lvl};
+                                meta = ALCMeta((c << lvl) + offset, 1 << lvl, lvl);
                             }
                             else {
                                 meta.enlarge1(1);

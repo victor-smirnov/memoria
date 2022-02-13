@@ -1013,7 +1013,7 @@ public:
     void add_superblock(LiteAllocationMap<ApiProfileT>& allocations)
     {
         uint64_t sb_ptr = snapshot_descriptor_->superblock_ptr() / BASIC_BLOCK_SIZE;
-        allocations.append(AllocationMetadataT{(CtrSizeT)sb_ptr, 1, SUPERBLOCK_ALLOCATION_LEVEL});
+        allocations.append(AllocationMetadataT((CtrSizeT)sb_ptr, 1, SUPERBLOCK_ALLOCATION_LEVEL));
     }
 
     void add_system_blocks(LiteAllocationMap<ApiProfileT>& allocations)

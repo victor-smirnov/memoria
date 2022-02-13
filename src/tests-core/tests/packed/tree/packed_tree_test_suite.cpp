@@ -32,13 +32,17 @@ namespace tests {
 
 namespace {
 
-using Suite1 = PackedTreeMiscTest<PkdFQTreeT<int64_t, 4>>;
+//template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering>
+
+using Tree4C = PackedDataTypeBufferT<BigInt, true, 4, DTOrdering::SUM>;
+
+using Suite1 = PackedTreeMiscTest<Tree4C>;
 MMA_CLASS_SUITE(Suite1, "Tree.Misc.4.FSQ");
 
-using Suite2 = PackedTreeFindTest<PkdFQTreeT<int64_t, 4>>;
+using Suite2 = PackedTreeFindTest<Tree4C>;
 MMA_CLASS_SUITE(Suite2, "Tree.Find.4.FSQ");
 
-using Suite3 = PackedTreeSumTest<PkdFQTreeT<int64_t, 4>>;
+using Suite3 = PackedTreeSumTest<Tree4C>;
 MMA_CLASS_SUITE(Suite3, "Tree.Sum.4.FSQ");
 
 

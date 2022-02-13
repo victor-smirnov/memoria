@@ -34,15 +34,15 @@ namespace memoria {
 template <typename Types>
 class PackedDataTypeOptBuffer;
 
-template <typename DataType, bool Indexed>
+template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering>
 struct PackedDataTypeOptBufferTypes {};
 
-template <typename DataType, bool Indexed>
-using PackedDataTypeOptBufferT = PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<DataType, Indexed>>;
+template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering>
+using PackedDataTypeOptBufferT = PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<DataType, Indexed, Columns, Ordering>>;
 
 
-template <typename DataType, bool Indexed>
-class PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<DataType, Indexed>>: public PackedAllocator {
+template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering>
+class PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<DataType, Indexed, Columns, Ordering>>: public PackedAllocator {
     using Base = PackedAllocator;
 public:
 
@@ -50,10 +50,10 @@ public:
 
     static constexpr uint32_t VERSION = 1;
 
-    static constexpr size_t Blocks = 1;
-    static constexpr size_t Indexes = Indexed ? 1 : 0;
+    static constexpr size_t Blocks = Columns;
+    static constexpr size_t Indexes = Indexed ? Columns : 0;
 
-    using Array     = PackedDataTypeBufferT<DataType, Indexed>;
+    using Array     = PackedDataTypeBufferT<DataType, Indexed, Columns, Ordering>;
     using Bitmap    = PkdFSSeq<typename PkdFSSeqTF<1>::Type>;
 
     using FieldsList = MergeLists<
@@ -76,49 +76,49 @@ public:
 
     using Base::block_size;
 
-    Bitmap* bitmap() noexcept {
+    Bitmap* bitmap() {
         return this->template get<Bitmap>(BITMAP);
     }
 
-    const Bitmap* bitmap() const noexcept {
+    const Bitmap* bitmap() const  {
         return this->template get<Bitmap>(BITMAP);
     }
 
-    Array* array() noexcept {
+    Array* array() {
         return this->template get<Array>(ARRAY);
     }
 
-    const Array* array() const noexcept {
+    const Array* array() const  {
         return this->template get<Array>(ARRAY);
     }
 
-    static constexpr size_t default_size(size_t available_space) noexcept
+    static constexpr size_t default_size(size_t available_space)
     {
         return empty_size();
     }
 
-    VoidResult init_default(size_t block_size) noexcept {
+    VoidResult init_default(size_t block_size)  {
         return init();
     }
 
-    static size_t empty_size() noexcept
+    static size_t empty_size()
     {
         size_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
         return parent_size + Bitmap::empty_size() + Array::empty_size();
     }
 
 
-    static size_t block_size(size_t capacity) noexcept
+    static size_t block_size(size_t capacity)
     {
         return Bitmap::packed_block_size(capacity) + Array::empty_size();
     }
 
-    size_t block_size(const MyType* other) const noexcept
+    size_t block_size(const MyType* other) const
     {
         return MyType::block_size(size() + other->size());
     }
 
-    VoidResult init() noexcept
+    VoidResult init()
     {
         size_t capacity = 0;
         MEMORIA_TRY_VOID(Base::init(block_size(capacity), STRUCTS_NUM__));
@@ -134,34 +134,10 @@ public:
         return array->init();
     }
 
-    size_t size() const noexcept
+    size_t size() const
     {
         return bitmap()->size();
     }
-
-
-//    template <typename T>
-//    void max(core::StaticVector<T, Blocks>& accum) const
-//    {
-//        const Array* array = this->array();
-
-//        size_t size = array->size();
-
-//        if (size > 0)
-//        {
-//            for (size_t block = 0; block < Blocks; block++)
-//            {
-//                accum[block] = array->value(block, size - 1);
-//            }
-//        }
-//        else {
-//            for (size_t block = 0; block < Blocks; block++)
-//            {
-//                accum[block] = Value();
-//            }
-//        }
-//    }
-
 
 
     const Value value(size_t block, size_t idx) const
@@ -197,7 +173,7 @@ public:
 
 
     template <typename T>
-    VoidResult setValues(size_t idx, const core::StaticVector<T, Blocks>& values) noexcept
+    VoidResult setValues(size_t idx, const core::StaticVector<T, Columns>& values)
     {
         Bitmap* bitmap   = this->bitmap();
         Array* array     = this->array();
@@ -311,14 +287,14 @@ public:
 
 
 
-    VoidResult reindex() noexcept
+    VoidResult reindex()
     {
         MEMORIA_TRY_VOID(bitmap()->reindex());
         return array()->reindex();
     }
 
 
-    VoidResult splitTo(MyType* other, size_t idx) noexcept
+    VoidResult splitTo(MyType* other, size_t idx)
     {
         Bitmap* bitmap = this->bitmap();
 
@@ -331,18 +307,18 @@ public:
         return reindex();
     }
 
-    VoidResult mergeWith(MyType* other) const noexcept
+    VoidResult mergeWith(MyType* other) const
     {
         MEMORIA_TRY_VOID(bitmap()->mergeWith(other->bitmap()));
         return array()->mergeWith(other->array());
     }
 
-    VoidResult removeSpace(size_t start, size_t end) noexcept
+    VoidResult removeSpace(size_t start, size_t end)
     {
         return remove(start, end);
     }
 
-    VoidResult remove(size_t start, size_t end) noexcept
+    VoidResult remove(size_t start, size_t end)
     {
         Bitmap* bitmap = this->bitmap();
 
@@ -355,7 +331,7 @@ public:
     }
 
     template <typename T>
-    VoidResult insert(size_t idx, const core::StaticVector<T, Blocks>& values) noexcept
+    VoidResult insert(size_t idx, const core::StaticVector<T, Blocks>& values)
     {
         Bitmap* bitmap  = this->bitmap();
 
@@ -400,7 +376,7 @@ public:
 protected:
 
     template <typename T>
-    core::StaticVector<ArrayValue, Blocks> array_values(const core::StaticVector<Optional<T>, Blocks>& values) noexcept
+    core::StaticVector<ArrayValue, Blocks> array_values(const core::StaticVector<Optional<T>, Blocks>& values)
     {
         core::StaticVector<ArrayValue, Blocks> tv;
 
@@ -412,32 +388,32 @@ protected:
         return tv;
     }
 
-    size_t array_idx(size_t global_idx) const noexcept
+    size_t array_idx(size_t global_idx) const
     {
         return array_idx(bitmap(), global_idx);
     }
 
-    size_t array_idx(const Bitmap* bitmap, size_t global_idx) const noexcept
+    size_t array_idx(const Bitmap* bitmap, size_t global_idx) const
     {
         size_t rank = bitmap->rank(global_idx, 1);
         return rank;
     }
 
 
-    size_t global_idx(size_t array_idx) const noexcept
+    size_t global_idx(size_t array_idx) const
     {
         return global_idx(bitmap(), array_idx);
     }
 
-    size_t global_idx(const Bitmap* bitmap, size_t array_idx) const noexcept
+    size_t global_idx(const Bitmap* bitmap, size_t array_idx) const
     {
         auto result = bitmap->selectFw(1, array_idx + 1);
         return result.local_pos();
     }
 };
 
-template <typename DataType, bool Indexed>
-struct PackedStructTraits<PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<DataType, Indexed>>> {
+template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering>
+struct PackedStructTraits<PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<DataType, Indexed, Columns, Ordering>>> {
     using SearchKeyDataType = DataType;
 
     using AccumType = DTTViewType<SearchKeyDataType>;
@@ -446,7 +422,7 @@ struct PackedStructTraits<PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<D
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
-    static constexpr size_t Indexes = Indexed ? 1 : 0;
+    static constexpr size_t Indexes = Indexed ? Columns : 0;
 };
 
 }

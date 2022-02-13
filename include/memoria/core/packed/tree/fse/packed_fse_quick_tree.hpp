@@ -210,9 +210,9 @@ public:
         MEMORIA_TRY_VOID(Base::init(empty_size(), Blocks * SegmentsPerBlock + 1));
 
         MEMORIA_TRY(meta, this->template allocate<Metadata>(METADATA));
-        meta->size()        = 0;
-        meta->max_size()    = capacity;
-        meta->index_size()  = MyType::index_size(capacity);
+        meta->set_size(0);
+        meta->set_max_size(capacity);
+        meta->set_index_size(MyType::index_size(capacity));
 
         for (size_t block = 0; block < Blocks; block++)
         {
@@ -235,9 +235,9 @@ public:
 
         MEMORIA_TRY(meta, this->template allocate<Metadata>(METADATA));
 
-        meta->size()        = 0;
-        meta->max_size()    = capacity;
-        meta->index_size()  = MyType::index_size(capacity);
+        meta->set_size(0);
+        meta->set_max_size(capacity);
+        meta->set_index_size(MyType::index_size(capacity));
 
         for (size_t block = 0; block < Blocks; block++)
         {
@@ -349,6 +349,7 @@ public:
     // ========================================= Insert/Remove/Resize ============================================== //
 
 
+    // FIXME! use absolute size value, instead of relative one
     VoidResult resize(Metadata* meta, size_t size)
     {
         size_t new_data_size  = meta->max_size() + size;
@@ -360,8 +361,8 @@ public:
             MEMORIA_TRY_VOID(Base::resize_block(SegmentsPerBlock * block + 2, new_data_size * sizeof(Value)));
         }
 
-        meta->max_size()    += size;
-        meta->index_size()  = new_index_size;
+        meta->set_max_size(meta->max_size() + size);
+        meta->set_index_size(new_index_size);
 
         return VoidResult::of();
     }
@@ -392,7 +393,7 @@ public:
             }
         }
 
-        meta->size() += room_length;
+        meta->add_size(room_length);
 
         return VoidResult::of();
     }
@@ -483,7 +484,7 @@ public:
             }
         }
 
-        meta->size() -= room_length;
+        meta->sub_size(room_length);
 
         MEMORIA_TRY_VOID(resize(meta, -room_length));
 
@@ -584,7 +585,7 @@ public:
             this->values(b)[meta->size()] = values[b];
         }
 
-        meta->size()++;
+        meta->add_size(1);
 
         return VoidResult::of();
     }
@@ -650,9 +651,9 @@ public:
 
         auto meta = this->metadata();
 
-        handler->value("SIZE",          &meta->size());
-        handler->value("MAX_SIZE",      &meta->max_size());
-        handler->value("INDEX_SIZE",    &meta->index_size());
+        handler->value("SIZE",          &meta->size_imm());
+        handler->value("MAX_SIZE",      &meta->max_size_imm());
+        handler->value("INDEX_SIZE",    &meta->index_size_imm());
 
         handler->startGroup("INDEXES", meta->index_size());
 
@@ -704,14 +705,14 @@ public:
 
         const Metadata* meta = this->metadata();
 
-        FieldFactory<psize_t>::serialize(buf, meta->size());
-        FieldFactory<psize_t>::serialize(buf, meta->max_size());
-        FieldFactory<psize_t>::serialize(buf, meta->index_size());
+        FieldFactory<psize_t>::serialize(buf, meta->size_imm());
+        FieldFactory<psize_t>::serialize(buf, meta->max_size_imm());
+        FieldFactory<psize_t>::serialize(buf, meta->index_size_imm());
 
         for (size_t b = 0; b < Blocks; b++)
         {
-            FieldFactory<IndexValue>::serialize(buf, this->index(b), meta->index_size());
-            FieldFactory<Value>::serialize(buf, this->values(b), meta->size());
+            FieldFactory<IndexValue>::serialize(buf, this->index(b), meta->index_size_imm());
+            FieldFactory<Value>::serialize(buf, this->values(b), meta->size_imm());
         }
     }
 
@@ -723,14 +724,14 @@ public:
 
         Metadata* meta = this->metadata();
 
-        FieldFactory<psize_t>::deserialize(buf, meta->size());
-        FieldFactory<psize_t>::deserialize(buf, meta->max_size());
-        FieldFactory<psize_t>::deserialize(buf, meta->index_size());
+        FieldFactory<psize_t>::deserialize(buf, meta->size_mut());
+        FieldFactory<psize_t>::deserialize(buf, meta->max_size_mut());
+        FieldFactory<psize_t>::deserialize(buf, meta->index_size_mut());
 
         for (size_t b = 0; b < Blocks; b++)
         {
-            FieldFactory<IndexValue>::deserialize(buf, this->index(b), meta->index_size());
-            FieldFactory<Value>::deserialize(buf, this->values(b), meta->size());
+            FieldFactory<IndexValue>::deserialize(buf, this->index(b), meta->index_size_mut());
+            FieldFactory<Value>::deserialize(buf, this->values(b), meta->size_mut());
         }
     }
 

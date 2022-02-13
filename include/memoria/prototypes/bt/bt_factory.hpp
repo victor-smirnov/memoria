@@ -89,7 +89,7 @@ struct BTTypes {
 
     using Profile  = Profile_;
 
-    using CtrSizeT = int64_t;
+    using CtrSizeT = ProfileCtrSizeT<Profile>;
 
     using ContainerPartsList = TypeList<
             bt::ToolsName,
@@ -240,14 +240,14 @@ public:
     using StreamDescriptors         = typename ContainerTypes::StreamDescriptors;
     static const int32_t Streams    = ListSize<StreamDescriptors>;
 
-    using Position_         = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
+    using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
+
+    using Position_         = core::StaticVector<CtrSizeT, Streams>;
     using BlockType         = ProfileBlockType<Profile>;
 
     using TreeNodeBase         = bt::TreeNodeBase<typename ContainerTypes::Metadata, BlockType>;
     using TreeNodePtrT         = typename ProfileTraits<Profile>::template SharedBlockPtrTF<TreeNodeBase>;
     using TreeNodeConstPtrT    = typename ProfileTraits<Profile>::template SharedBlockPtrTF<const TreeNodeBase>;
-
-    using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
 
     using BranchStreamsStructList   = typename bt::PackedBranchStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
 

@@ -232,8 +232,9 @@ public:
 template <typename Iterator, typename Container>
 class BTreeIteratorPrefixCache {
 
+    using CtrSizeT = typename Container::Types::CtrSizeT;
     using IteratorPrefix = typename Container::Types::IteratorBranchNodeEntry;
-    using SizePrefix = core::StaticVector<int64_t, Container::Types::Streams>;
+    using SizePrefix = core::StaticVector<CtrSizeT, Container::Types::Streams>;
 
     using MyType = BTreeIteratorPrefixCache<Iterator, Container>;
 
@@ -515,7 +516,7 @@ struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>
 
     static_assert(Indexes <= 1, "");
 
-    using Type = PackedDataTypeBufferT<KeyType, Indexes == 1>;
+    using Type = PackedDataTypeBufferT<KeyType, Indexes == 1, 1, DTOrdering::MAX>;
 
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };

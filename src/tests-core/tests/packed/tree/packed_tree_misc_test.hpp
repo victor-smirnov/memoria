@@ -42,6 +42,7 @@ public:
     using Base::assertEqual;
     using Base::getRandom;
     using Base::createRandomValuesVector;
+    using Base::get_so;
     using Base::assertEmpty;
     using Base::out;
     using Base::iterations_;
@@ -69,7 +70,8 @@ public:
     {
         out() << size << std::endl;
 
-        auto tree = createEmptyTree();
+        auto tree_ss = createEmptyTree();
+        auto tree = get_so(tree_ss);
 
         std::vector<Values> v = createRandomValuesVector(size);
 
@@ -80,10 +82,8 @@ public:
         assertEqual(tree, v);
     }
 
-    void testFillTree()
-    {
-        for (int c = 1; c < 128; c*=2)
-        {
+    void testFillTree() {
+        for (int c = 1; c < 128; c*=2) {
             testFillTree(c * 1024);
         }
     }
@@ -92,7 +92,8 @@ public:
     {
         Base::out() << tree_size << std::endl;
 
-        auto tree = Base::createEmptyTree();
+        auto tree_ss = Base::createEmptyTree();
+        auto tree = get_so(tree_ss);
 
         std::vector<Values> v = Base::fillRandom(tree, tree_size);
 
@@ -157,8 +158,11 @@ public:
     {
         Base::out() << size << std::endl;
 
-        auto tree1 = createEmptyTree();
-        auto tree2 = createEmptyTree();
+        auto tree1_ss = createEmptyTree();
+        auto tree1 = get_so(tree1_ss);
+
+        auto tree2_ss = createEmptyTree();
+        auto tree2 = get_so(tree2_ss);
 
         auto tree_values1 = Base::createRandomValuesVector(size);
 
@@ -166,7 +170,7 @@ public:
 
         size_t idx = this->getRandom(size);
 
-        tree1->splitTo(tree2.get(), idx).get_or_throw();
+        tree1.splitTo(tree2, idx).get_or_throw();
 
         std::vector<Values> tree_values2(tree_values1.begin() + idx, tree_values1.end());
 
@@ -188,8 +192,11 @@ public:
     {
         Base::out() << size << std::endl;
 
-        auto tree1 = createEmptyTree();
-        auto tree2 = createEmptyTree();
+        auto tree1_ss = createEmptyTree();
+        auto tree1 = get_so(tree1_ss);
+
+        auto tree2_ss = createEmptyTree();
+        auto tree2 = get_so(tree2_ss);
 
         auto tree_values1 = createRandomValuesVector(size);
         auto tree_values2 = createRandomValuesVector(size < 100 ? size : 100);
@@ -199,7 +206,7 @@ public:
 
         size_t idx = getRandom(size);
 
-        tree1->splitTo(tree2.get(), idx).get_or_throw();
+        tree1.splitTo(tree2, idx).get_or_throw();
 
         tree_values2.insert(tree_values2.begin(), tree_values1.begin() + idx, tree_values1.end());
 
@@ -216,7 +223,9 @@ public:
         {
             out() << size << std::endl;
 
-            auto tree = Base::createEmptyTree();
+            auto tree_ss = Base::createEmptyTree();
+            auto tree = get_so(tree_ss);
+
             auto tree_values = createRandomValuesVector(size, 300);
 
             fillVector(tree, tree_values);
@@ -225,19 +234,19 @@ public:
 
             for (size_t c = 0; c < this->iterations_; c++)
             {
-                size_t start   = getRandom(tree->size());
-                size_t end     = start + getRandom(tree->size() - start);
+                size_t start   = getRandom(tree.size());
+                size_t end     = start + getRandom(tree.size() - start);
 
-                size_t block_size = tree->block_size();
+                size_t block_size = tree.data()->block_size();
 
-                tree->remove(start, end).get_or_throw();
+                tree.remove(start, end).get_or_throw();
 
                 tree_values.erase(tree_values.begin() + start, tree_values.begin() + end);
 
                 assertIndexCorrect(MA_SRC, tree);
                 assertEqual(tree, tree_values);
 
-                auto new_block_size = tree->block_size();
+                auto new_block_size = tree.data()->block_size();
 
                 assert_le(new_block_size, block_size);
             }
@@ -250,13 +259,15 @@ public:
         {
             out() << size << std::endl;
 
-            auto tree = createEmptyTree();
+            auto tree_ss = createEmptyTree();
+            auto tree = get_so(tree_ss);
+
             auto tree_values = createRandomValuesVector(size);
             fillVector(tree, tree_values);
 
             assertEqual(tree, tree_values);
 
-            tree->remove(0, tree->size()).get_or_throw();
+            tree.remove(0, tree.size()).get_or_throw();
 
             assertEmpty(tree);
         }
@@ -276,9 +287,11 @@ public:
     {
         Base::out() << size << std::endl;
 
-        auto tree1 = Base::createEmptyTree();
+        auto tree1_ss = Base::createEmptyTree();
+        auto tree1 = get_so(tree1_ss);
 
-        auto tree2 = Base::createEmptyTree();
+        auto tree2_ss = Base::createEmptyTree();
+        auto tree2 = get_so(tree2_ss);
 
         auto tree_values1 = Base::createRandomValuesVector(size);
         auto tree_values2 = Base::createRandomValuesVector(size);
@@ -286,7 +299,7 @@ public:
         Base::fillVector(tree1, tree_values1);
         Base::fillVector(tree2, tree_values2);
 
-        tree1->mergeWith(tree2.get()).get_or_throw();
+        tree1.mergeWith(tree2).get_or_throw();
 
         tree_values2.insert(tree_values2.end(), tree_values1.begin(), tree_values1.end());
 
@@ -308,16 +321,18 @@ public:
     {
         out() << size << std::endl;
 
-        auto tree = createEmptyTree();
-        auto block_size = tree->block_size();
+        auto tree_ss = createEmptyTree();
+        auto tree = get_so(tree_ss);
+
+        auto block_size = tree.data()->block_size();
 
         auto tree_values = createRandomValuesVector(size);
         fillVector(tree, tree_values);
 
         assertEqual(tree, tree_values);
 
-        tree->clear().get_or_throw();
-        tree->set_block_size(block_size);
+        tree.clear().get_or_throw();
+        tree.data()->set_block_size(block_size);
 
         assertEmpty(tree);
 
@@ -325,7 +340,7 @@ public:
 
         assertEqual(tree, tree_values);
 
-        tree->clear().get_or_throw();
+        tree.clear().get_or_throw();
         assertEmpty(tree);
     }
 

@@ -58,43 +58,43 @@ public:
     static constexpr size_t Columns = 1;
     static constexpr size_t Indexes = PkdStruct::Array::Indexes;
 
-    PackedDataTypeOptBufferSO() noexcept:
+    PackedDataTypeOptBufferSO() :
         data_(), array_()
     {}
 
-    PackedDataTypeOptBufferSO(ExtData* ext_data, PkdStruct* data) noexcept:
+    PackedDataTypeOptBufferSO(ExtData* ext_data, PkdStruct* data) :
         data_(data), array_(ext_data, data->array())
     {}
 
-    void setup() noexcept {
+    void setup() {
         array_.setup();
         data_ = nullptr;
     }
 
-    void setup(ExtData* ext_data, PkdStruct* data) noexcept
+    void setup(ExtData* ext_data, PkdStruct* data)
     {
         array_.setup(ext_data, data->array());
         data_ = data;
     }
 
-    void setup(ExtData* ext_data) noexcept {
+    void setup(ExtData* ext_data)  {
         array_.setup(ext_data);
     }
 
-    void setup(PkdStruct* data) noexcept {
+    void setup(PkdStruct* data)  {
         array_.setup(data->array());
         data_ = data;
     }
 
-    operator bool() const noexcept {
+    operator bool() const  {
         return data_ != nullptr;
     }
 
-    const ExtData* ext_data() const noexcept {return array_.ext_data();}
-    ExtData* ext_data() noexcept {return array_.ext_data();}
+    const ExtData* ext_data() const  {return array_.ext_data();}
+    ExtData* ext_data()  {return array_.ext_data();}
 
-    const PkdStruct* data() const noexcept {return data_;}
-    PkdStruct* data() noexcept {return data_;}
+    const PkdStruct* data() const  {return data_;}
+    PkdStruct* data()  {return data_;}
 
 
 
@@ -128,20 +128,20 @@ public:
         }
     }
 
-    size_t size() const noexcept {
+    size_t size() const  {
         return data_->bitmap()->size();
     }
 
 
     /*********************** API *********************/
 
-    size_t max_element_idx() const noexcept {
+    size_t max_element_idx() const  {
         size_t array_idx = array_.size() - 1;
         size_t bm_idx = bitmap_idx(array_idx);
         return bm_idx;
     }
 
-    Optional<ViewType> access(size_t column, size_t row) const noexcept
+    Optional<ViewType> access(size_t column, size_t row) const
     {
         Bitmap* bitmap = data_->bitmap();
         if (bitmap->symbol(row))
@@ -154,7 +154,7 @@ public:
         }
     }
 
-    VoidResult splitTo(MyType& other, size_t idx) noexcept
+    VoidResult splitTo(MyType& other, size_t idx)
     {
         Bitmap* bitmap = data_->bitmap();
 
@@ -173,7 +173,7 @@ public:
         return reindex();
     }
 
-    VoidResult mergeWith(MyType& other) const noexcept
+    VoidResult mergeWith(MyType& other) const
     {
         MEMORIA_TRY_VOID(data_->bitmap()->mergeWith(other.data_->bitmap()));
 
@@ -182,7 +182,7 @@ public:
         return array_.mergeWith(other.array_);
     }
 
-    VoidResult removeSpace(size_t start, size_t end) noexcept
+    VoidResult removeSpace(size_t start, size_t end)
     {
         Bitmap* bitmap = data_->bitmap();
 
@@ -216,7 +216,7 @@ public:
 
 
     template <typename AccessorFn>
-    VoidResult insert_entries(size_t row_at, size_t size, AccessorFn&& elements) noexcept
+    VoidResult insert_entries(size_t row_at, size_t size, AccessorFn&& elements)
     {
         MEMORIA_ASSERT_RTN(row_at, <=, this->size());
 
@@ -230,20 +230,20 @@ public:
         size_t set_elements_num = bitmap->rank(row_at, row_at + size, 1);
         size_t array_row_at = array_idx(row_at);
 
-        return array_.insert_entries(array_row_at, set_elements_num, [&](size_t col, size_t arr_idx) noexcept {
+        return array_.insert_entries(array_row_at, set_elements_num, [&](size_t col, size_t arr_idx)  {
             size_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
             return elements(col, bm_idx - row_at).get();
         });
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(size_t row_at, size_t size, AccessorFn&& elements) noexcept
+    VoidResult update_entries(size_t row_at, size_t size, AccessorFn&& elements)
     {
         MEMORIA_TRY_VOID(remove_entries(row_at, size));
         return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
     }
 
-    VoidResult remove_entries(size_t row_at, size_t size) noexcept
+    VoidResult remove_entries(size_t row_at, size_t size)
     {
         return removeSpace(row_at, row_at + size);
     }
@@ -297,7 +297,7 @@ public:
     }
 
     template <typename T>
-    VoidResult setValues(size_t idx, const core::StaticVector<T, Columns>& values) noexcept
+    VoidResult setValues(size_t idx, const core::StaticVector<T, Columns>& values)
     {
         if (values[0])
         {
@@ -349,7 +349,7 @@ public:
     }
 
     template <typename T>
-    VoidResult insert(size_t idx, const core::StaticVector<T, Columns>& values) noexcept
+    VoidResult insert(size_t idx, const core::StaticVector<T, Columns>& values)
     {
         Bitmap* bitmap = data_->bitmap();
 
@@ -372,7 +372,7 @@ public:
         }
     }
 
-    VoidResult reindex() noexcept
+    VoidResult reindex()
     {
         MEMORIA_TRY_VOID(data_->bitmap()->reindex());
 
@@ -384,17 +384,17 @@ public:
 private:
 
     template <typename T>
-    bool is_not_empty(const T& value) const noexcept {
+    bool is_not_empty(const T& value) const  {
         return true;
     }
 
     template <typename T>
-    bool is_not_empty(const Optional<T>& value) const noexcept {
+    bool is_not_empty(const Optional<T>& value) const  {
         return (bool)value;
     }
 
 
-    void refresh_array() noexcept {
+    void refresh_array() {
         array_.setup(data_->array());
     }
 
@@ -416,7 +416,7 @@ private:
         return array_idx(data_->bitmap(), global_idx);
     }
 
-    size_t bitmap_idx(size_t array_idx) const noexcept
+    size_t bitmap_idx(size_t array_idx) const
     {
         return bitmap_idx(data_->bitmap(), array_idx);
     }
@@ -427,7 +427,7 @@ private:
         return rank;
     }
 
-    size_t bitmap_idx(const Bitmap* bitmap, size_t array_idx) const noexcept
+    size_t bitmap_idx(const Bitmap* bitmap, size_t array_idx) const
     {
         auto select_res = bitmap->selectFw(1, array_idx + 1);
 

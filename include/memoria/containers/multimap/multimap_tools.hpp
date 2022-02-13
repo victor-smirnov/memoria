@@ -34,9 +34,9 @@ using bt::IdxSearchType;
 using bt::StreamTag;
 
 template <typename DataType>
-struct MMapKeyStructTF: HasType<PackedDataTypeBufferT<DataType, true>> {};
+struct MMapKeyStructTF: HasType<PackedDataTypeBufferT<DataType, true, 1, DTOrdering::MAX>> {};
 
-template <typename KeyType, bool Selector = DTTIs1DFixedSize<KeyType>> struct MMapSumKeyStructTF;
+template <typename KeyType, bool Selector = DTTIsNDFixedSize<KeyType>> struct MMapSumKeyStructTF;
 
 template <typename T> struct MMapBranchStructTF;
 
@@ -45,7 +45,7 @@ template <typename KeyType>
 struct MMapSumKeyStructTF<KeyType, true>: HasType<PkdFQTreeT<KeyType>> {};
 
 template <typename DataType>
-struct MMapValueStructTF: HasType<PackedDataTypeBufferT<DataType, false>> {};
+struct MMapValueStructTF: HasType<PackedDataTypeBufferT<DataType, false, 1, DTOrdering::UNORDERED>> {};
 
 
 template <typename KeyType>
@@ -77,9 +77,9 @@ struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
 template <typename KeyType, int32_t Indexes>
 struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
-    using Type = PackedDataTypeOptBufferT<KeyType, Indexes == 1>;
+    using Type = PackedDataTypeOptBufferT<KeyType, Indexes == 1, 1, DTOrdering::MAX>;
 //    bt::PkdStructSelector<
-//            DTTIs1DFixedSize<KeyType>,
+//            DTTIsNDFixedSize<KeyType>,
 //            PackedFixedElementOptArray,
 //            PackedVLenElementOptArray,
 

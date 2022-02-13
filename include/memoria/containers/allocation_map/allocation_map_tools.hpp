@@ -51,7 +51,7 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
     using Type = PkdFQTreeT<KeyType, Indexes>;
 
 //    using Type = IfThenElse <
-//            DTTIs1DFixedSize<KeyType>,
+//            DTTIsNDFixedSize<KeyType>,
 //            PkdFQTreeT<KeyType, Indexes>,
 //            PkdVQTreeT<KeyType, Indexes>
 //    >;

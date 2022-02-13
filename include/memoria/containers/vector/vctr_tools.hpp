@@ -28,7 +28,7 @@ namespace memoria {
 namespace mvector {
 
 template <typename DataType>
-struct VectorValueStructTF: HasType<PackedDataTypeBufferT<DataType, false>> {};
+struct VectorValueStructTF: HasType<PackedDataTypeBufferT<DataType, false, 1, DTOrdering::UNORDERED>> {};
 
 
 }}

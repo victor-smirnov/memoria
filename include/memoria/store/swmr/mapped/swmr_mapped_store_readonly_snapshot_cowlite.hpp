@@ -136,7 +136,7 @@ public:
         int32_t level = block_id.value().metadata();
         int64_t id_value = static_cast<int64_t>(block_id.value().value());
 
-        return AllocationMetadataT{id_value, 1, level};
+        return AllocationMetadataT(id_value, 1, level);
     }
 
 
@@ -153,7 +153,7 @@ public:
     }
 
     virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) {
-        return AllocationMetadataT{(int64_t)block_id.value().value(), 1, (int32_t)block_id.value().metadata()};
+        return AllocationMetadataT((int64_t)block_id.value().value(), 1, (int32_t)block_id.value().metadata());
     }
 
     void check_storage_specific(

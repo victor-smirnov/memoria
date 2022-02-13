@@ -377,15 +377,17 @@ public:
                     PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
                             CowBlockID<ValueHolder>,
-                            Indexed
+                            Indexed,
+                            1,
+                            DTOrdering::UNORDERED
                         >
                     >
                 >& buffer,
                 CtrT& ctr
                 ) const
         {            
-            auto ii = buffer.begin();
-            auto end = buffer.end();
+            auto ii = buffer.begin(0);
+            auto end = buffer.end(0);
 
             for (; ii != end; ii++)
             {
@@ -423,15 +425,17 @@ public:
                     PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
                             CowBlockID<ValueHolder>,
-                            Indexed
+                            Indexed,
+                            1,
+                            DTOrdering::UNORDERED
                         >
                     >
                 >& buffer,
                 Store& store
-                ) const
+        ) const
         {
-            auto ii = buffer.begin();
-            auto end = buffer.end();
+            auto ii = buffer.begin(0);
+            auto end = buffer.end(0);
 
             for (; ii != end; ii++)
             {
@@ -465,15 +469,17 @@ public:
                     PackedDataTypeBuffer<
                         PackedDataTypeBufferTypes<
                             CowBlockID<ValueHolder>,
-                            Indexed
+                            Indexed,
+                            1,
+                            DTOrdering::UNORDERED
                         >
                     >
                 >& buffer,
                 const BlockProcessorFn& fn
         ) const
         {
-            auto ii = buffer.begin();
-            auto end = buffer.end();
+            auto ii = buffer.begin(0);
+            auto end = buffer.end(0);
 
             for (; ii != end; ii++)
             {

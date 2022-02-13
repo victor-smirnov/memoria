@@ -15,39 +15,41 @@
 
 
 #pragma once
-
+#include <memoria/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/core/packed/datatype_buffer/packed_datatype_buffer_common_tools.hpp>
 
 namespace memoria {
 namespace pdtbuf_ {
 
 
-template <typename T, typename PkdStruct, size_t Block_>
-class PDTDimension<const T*, PkdStruct, Block_> {
+template <typename T, typename PkdStruct, size_t Dimension, size_t DataBlock, size_t Blocks, size_t DimensionsStart>
+class PDTDimension<const T*, PkdStruct, Dimension, DataBlock, Blocks, DimensionsStart> {
     PkdStruct* pkd_buf_;
+    size_t column_;
 
     using TPtr = const T*;
 
 public:
-    static constexpr size_t Block = Block_;
-    static constexpr size_t Width = 1;
+    static constexpr size_t Width   = 1;
 
-    static constexpr size_t DataBlock = Block_;
-    static constexpr size_t Dimension = Block_ - 1;
-
-    constexpr PDTDimension(PkdStruct* pkd_buf):
-        pkd_buf_(pkd_buf)
+    constexpr PDTDimension(PkdStruct* pkd_buf, size_t column):
+        pkd_buf_(pkd_buf),
+        column_(column)
     {}
 
+    constexpr size_t data_block_num() const noexcept {
+        return DimensionsStart + Blocks * column_ + DataBlock;
+    }
+
     T* data() {
-        return pkd_buf_->template get<T>(DataBlock);
+        return pkd_buf_->template get<T>(data_block_num());
     }
 
     const T* data() const {
-        return pkd_buf_->template get<const T>(DataBlock);
+        return pkd_buf_->template get<const T>(data_block_num());
     }
 
-    static VoidResult allocate_empty(PkdStruct* alloc) noexcept {
+    static VoidResult allocate_empty(PkdStruct* alloc, size_t column)  {
         return VoidResult::of();
     }
 
@@ -95,13 +97,13 @@ public:
         return data_size;
     }
 
-    VoidResult insert_space(size_t start, size_t size, size_t data_len) noexcept
+    VoidResult insert_space(size_t start, size_t size, size_t data_len)
     {
         auto& meta = pkd_buf_->metadata();
 
         size_t column_data_length = size + meta.size();
 
-        MEMORIA_TRY_VOID(pkd_buf_->resize_block(DataBlock, column_data_length * sizeof(T)));
+        MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length * sizeof(T)));
 
         auto data = this->data();
 
@@ -113,7 +115,7 @@ public:
         return VoidResult::of();
     }
 
-    VoidResult remove_space(size_t start, size_t size) noexcept
+    VoidResult remove_space(size_t start, size_t size)
     {
         auto& meta = pkd_buf_->metadata();
 
@@ -123,17 +125,17 @@ public:
 
         size_t column_data_length = (meta.size() - size) * sizeof(T);
 
-        MEMORIA_TRY_VOID(pkd_buf_->resize_block(DataBlock, column_data_length));
+        MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length));
 
         return VoidResult::of();
     }
 
-    VoidResult resize_row(size_t idx, const T* value) noexcept
+    VoidResult resize_row(size_t idx, const T* value)
     {
         return VoidResult::of();
     }
 
-    VoidResult replace_row(size_t idx, const T* value) noexcept
+    VoidResult replace_row(size_t idx, const T* value)
     {
         *(this->data() + idx) = *value;
         return VoidResult::of();
@@ -141,7 +143,7 @@ public:
 
     void copy_to(PkdStruct* other, size_t copy_from, size_t count, size_t copy_to, size_t data_length) const
     {
-        auto other_dim = other->template dimension<Dimension>();
+        auto other_dim = other->template dimension<Dimension>(column_);
 
         MemCpyBuffer(
             this->data() + copy_from,
@@ -155,6 +157,7 @@ public:
         *(this->data() + idx) = *data;
     }
 
+    // FIXME: adapt to multicolumn!
     template <typename Buffer>
     void copy_from_databuffer(size_t idx, size_t start, size_t size, size_t data_length, const Buffer& buffer)
     {
@@ -168,7 +171,7 @@ public:
         size_t column_data_size = meta.size();
         size_t view_length = 1;
 
-        size_t column_data_size_aligned0 = pkd_buf_->element_size(DataBlock);
+        size_t column_data_size_aligned0 = pkd_buf_->element_size(data_block_num());
 
         size_t column_data_size_aligned1 = PackedAllocatable::round_up_bytes_to_alignment_blocks(
             (view_length + column_data_size) * sizeof(T)
@@ -185,8 +188,8 @@ public:
 
 
     template <typename Metadata>
-    static void init_metadata(Metadata& metadata) {
-        metadata.data_size(Dimension) = 0;
+    static void init_metadata(Metadata& metadata, size_t column) {
+        metadata.data_size(column, Dimension) = 0;
     }
 
     template <typename SerializationData, typename Metadata>

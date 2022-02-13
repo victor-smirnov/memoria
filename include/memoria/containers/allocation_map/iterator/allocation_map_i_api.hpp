@@ -67,7 +67,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
 
             MEMORIA_TRY_VOID(bitmap.data()->reindex());
 
-            return ResultT::of(limit - start);
+            return ResultT::of(CtrSizeT(limit - start));
         }
     };
 

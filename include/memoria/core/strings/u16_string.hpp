@@ -532,31 +532,6 @@ public:
     }
 };
 
-inline bool compare_gt(const U16String& first, const U16String& second) {
-    return first.compare(second) > 0;
-}
-
-
-inline bool compare_eq(const U16String& first, const U16String& second) {
-    return first.compare(second) == 0;
-}
-
-
-inline bool compare_lt(const U16String& first, const U16String& second) {
-    return first.compare(second) > 0;
-}
-
-
-inline bool compare_ge(const U16String& first, const U16String& second) {
-    return first.compare(second) >= 0;
-}
-
-
-inline bool compare_le(const U16String& first, const U16String& second) {
-    return first.compare(second) <= 0;
-}
-
-
 
 class ICodeUnit16Provider {
 public:

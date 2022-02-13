@@ -33,18 +33,29 @@ class PkdFQTreeMetadata {
 public:
     PkdFQTreeMetadata() = default;
 
-    psize_t& size() {return size_;}
-    const psize_t& size() const {return size_;}
+    size_t size() const {return size_;}
+    void set_size(size_t val) {size_ = val;}
 
-    psize_t& index_size() {return index_size_;}
-    const psize_t& index_size() const {return index_size_;}
+    void add_size(size_t val) {size_ += val;}
+    void sub_size(size_t val) {size_ -= val;}
 
-    psize_t& max_size() {return max_size_;}
-    const psize_t& max_size() const {return max_size_;}
+    size_t index_size() const {return index_size_;}
+    void set_index_size(size_t val) {index_size_ = val;}
 
-    psize_t capacity() const {
+    size_t max_size() const {return max_size_;}
+    void set_max_size(size_t val) {max_size_ = val;}
+
+    size_t capacity() const {
         return max_size_ - size_;
     }
+
+    psize_t& size_mut() {return size_;}
+    psize_t& max_size_mut() {return max_size_;}
+    psize_t& index_size_mut() {return index_size_;}
+
+    const psize_t& size_imm() const {return size_;}
+    const psize_t& max_size_imm() const {return max_size_;}
+    const psize_t& index_size_imm() const {return index_size_;}
 
     template <typename, size_t, size_t, size_t, typename> friend class PkdFQTreeBaseBase;
     template <typename, typename, size_t, size_t> friend class PkdFQTreeBase;
@@ -117,7 +128,7 @@ public:
 
         MEMORIA_TRY(meta, this->template allocate<Metadata>(METADATA));
 
-        size_t max_size        = 0;
+        size_t max_size = 0;
 
         meta->size()        = 0;
         meta->max_size()    = max_size;
@@ -605,7 +616,7 @@ public:
         TreeLayout layout;
         size_t levels = this->compute_tree_layout(meta, layout);
 
-        meta->index_size() = layout.index_size;
+        meta->set_index_size(layout.index_size);
 
         for (size_t block = 0; block < blocks; block++)
         {
@@ -616,13 +627,10 @@ public:
         }
     }
 
-    const psize_t& size() const {
+    size_t size() const {
         return metadata()->size();
     }
 
-    psize_t& size() {
-        return metadata()->size();
-    }
 
     size_t index_size() const {
         return metadata()->index_size();

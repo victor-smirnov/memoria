@@ -29,7 +29,7 @@ using bt::IdxSearchType;
 using bt::StreamTag;
 
 template <typename DataType>
-struct SetKeyStructTF: HasType<PackedDataTypeBufferT<DataType, true>> {};
+struct SetKeyStructTF: HasType<PackedDataTypeBufferT<DataType, true, 1, DTOrdering::MAX>> {};
 
 
 template <typename T> struct SetBranchStructTF;
@@ -70,7 +70,7 @@ struct SetBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     static_assert(Indexes <= 1, "");
 
-    using Type = PackedDataTypeBufferT<KeyType, Indexes == 1>;
+    using Type = PackedDataTypeBufferT<KeyType, Indexes == 1, 1, DTOrdering::MAX>;
 
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };

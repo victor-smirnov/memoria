@@ -39,42 +39,42 @@ class PkdRandomAccessIterator: public boost::iterator_facade<
     using Iterator = PkdRandomAccessIterator;
 
 public:
-    PkdRandomAccessIterator() noexcept: pos_(), size_(), accessor_() {}
+    PkdRandomAccessIterator() : pos_(), size_(), accessor_() {}
 
-    PkdRandomAccessIterator(AccessorType accessor, size_t pos, size_t size) noexcept:
+    PkdRandomAccessIterator(AccessorType accessor, size_t pos, size_t size) :
         pos_(pos), size_(size), accessor_(accessor)
     {}
 
-    size_t size() const noexcept {return size_;}
-    size_t pos() const noexcept {return pos_;}
+    size_t size() const  {return size_;}
+    size_t pos() const  {return pos_;}
 
-    bool is_end() const noexcept {return pos_ >= size_;}
-    operator bool() const noexcept {return !is_end();}
+    bool is_end() const  {return pos_ >= size_;}
+    operator bool() const  {return !is_end();}
 
 private:
     friend class boost::iterator_core_access;
 
-    ViewType dereference() const noexcept {
+    ViewType dereference() const  {
         return accessor_.get(pos_);
     }
 
-    bool equal(const PkdRandomAccessIterator& other) const noexcept {
+    bool equal(const PkdRandomAccessIterator& other) const  {
         return accessor_ == other.accessor_ && pos_ == other.pos_;
     }
 
-    void increment() noexcept {
+    void increment() {
         pos_ += 1;
     }
 
-    void decrement() noexcept {
+    void decrement() {
         pos_ -= 1;
     }
 
-    void advance(int64_t n) noexcept {
+    void advance(int64_t n)  {
         pos_ += n;
     }
 
-    ptrdiff_t distance_to(const PkdRandomAccessIterator& other) const noexcept
+    ptrdiff_t distance_to(const PkdRandomAccessIterator& other) const
     {
         ptrdiff_t res = static_cast<ptrdiff_t>(other.pos_) - static_cast<ptrdiff_t>(pos_);
         return res;

@@ -29,7 +29,7 @@ namespace memoria {
 
 namespace detail {
 
-template <typename DataType, bool FixedSizeKey = DTTIs1DFixedSize<DataType>>
+template <typename DataType, bool FixedSizeKey = DTTIsNDFixedSize<DataType>>
 struct SetKeys;
 
 template <typename DataType>
