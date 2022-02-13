@@ -62,7 +62,6 @@ auto Suite27 = register_class_suite<PackedSSRLESearchableSequenceRankTest<256>>(
 auto Suite28 = register_class_suite<PackedSSRLESearchableSequenceSelectTest<256>>("SSRleSeq.Select.256");
 auto Suite29 = register_class_suite<PackedSSRLESearchableSequenceCountTest<256>>("SSRleSeq.Count.256");
 
-
 }
 
 }}

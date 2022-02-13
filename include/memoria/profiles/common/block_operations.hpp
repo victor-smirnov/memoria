@@ -802,6 +802,12 @@ void DumpStruct(const Struct* s, std::ostream& out = std::cout)
     s->generateDataEvents(&dumper);
 }
 
+template <typename StructSO>
+void DumpStruct(const StructSO& s, std::ostream& out = std::cout)
+{
+    TextBlockDumper dumper(out);
+    s.generateDataEvents(&dumper);
+}
 
 
 }

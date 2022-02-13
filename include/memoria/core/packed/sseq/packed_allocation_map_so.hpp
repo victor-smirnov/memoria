@@ -125,6 +125,10 @@ public:
         return data_->selectFW(start, rank, level);
     }
 
+    auto select_fw_out(size_t start, int64_t rank, size_t level, SeqOpType) const noexcept {
+        return data_->selectFW(start, rank, level);
+    }
+
     void generateDataEvents(IBlockDataEventHandler* handler) const {
         return data_->generateDataEvents(handler);
     }

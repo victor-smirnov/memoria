@@ -46,9 +46,13 @@ protected:
     static constexpr size_t AlphabetSize = AlphabetSize_;
 
     using Seq    = PkdSSRLESeqT<AlphabetSize, 256, Use64BitSize>;
+    using SeqSO  = typename Seq::SparseObject;
+
     using SeqPtr = PkdStructSPtr<Seq>;
 
     size_t size_{32768};
+
+    mutable std::tuple<> extra_data_;
 
     using SymbolsRunT   = SSRLERun<Bps>;
     using RunTraits     = SSRLERunTraits<Bps>;
@@ -60,6 +64,10 @@ protected:
 public:
 
     MMA_STATE_FILEDS(size_);
+
+    SeqSO get_so(SeqPtr ptr) const {
+        return SeqSO(&extra_data_, ptr.get());
+    }
 
     template <typename T1, typename T2>
     void push_back(std::vector<T1>& vv, Span<T2> span) const {
@@ -88,7 +96,6 @@ public:
         for (size_t c = 0; c < size; c++)
         {
             size_t pattern_length = getRandom1(RunTraits::max_pattern_length());
-            //uint64_t pattern = getBIRandom();
             size_t max_run_len = RunTraits::max_run_length(pattern_length);
 
             if (max_run_len > 10000) {
@@ -114,8 +121,9 @@ public:
         size_t num_atoms = RunTraits::compute_size(span);
 
         SeqPtr ptr = make_empty_sequence(num_atoms * sizeof(CodeUnitT) * capacity_multiplier);
+        SeqSO seq = get_so(ptr);
 
-        ptr->append(span).get_or_throw();
+        seq.append(span).get_or_throw();
 
         return ptr;
     }

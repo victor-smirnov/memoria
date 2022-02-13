@@ -34,7 +34,8 @@ class PackedSSRLESearchableSequenceMiscTest: public PackedSSRLESequenceTestBase<
     using typename Base::SymbolsRunT;
     using typename Base::RunTraits;
 
-    using typename Base::Seq;    
+    using typename Base::Seq;
+    using typename Base::SeqSO;
     using typename Base::SeqPtr;
 
     using typename Base::BlockSize;
@@ -52,6 +53,7 @@ class PackedSSRLESearchableSequenceMiscTest: public PackedSSRLESequenceTestBase<
     using Base::make_sequence;
     using Base::assert_spans_equal;
     using Base::count;
+    using Base::get_so;
 
 
     using Base::build_size_index;
@@ -103,7 +105,7 @@ public:
 
     template <typename T>
     void doQueries(
-            SeqPtr seq,
+            SeqSO seq,
             const std::vector<SymbolsRunT>& syms,
             std::vector<T> size_index,
             size_t queries
@@ -120,7 +122,7 @@ public:
             uint64_t pos = poss[c];
 
             SymbolT sym1 = get_symbol(size_index, syms, pos);
-            SymbolT sym2 = seq->access(pos);
+            SymbolT sym2 = seq.access(pos);
 
             try {
                 assert_equals(sym1, sym2);
@@ -139,7 +141,8 @@ public:
             std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
             std::vector<BlockSize> size_index = build_size_index(syms1);
 
-            SeqPtr seq = make_sequence(syms1);
+            SeqPtr seq_ss = make_sequence(syms1);
+            SeqSO seq = get_so(seq_ss);
 
             size_t queries = data_size / 2;
             doQueries(seq, syms1, size_index, queries);
@@ -157,12 +160,14 @@ public:
             std::vector<SymbolsRunT> syms1 = make_random_sequence(data_size);
             SeqSizeT size = count(syms1);
 
-            SeqPtr seq = make_sequence(syms1);
-            seq->check();
+            SeqPtr seq_ss = make_sequence(syms1);
+            SeqSO seq = get_so(seq_ss);
 
-            assert_equals(size, seq->size());
+            seq.check();
 
-            std::vector<SymbolsRunT> syms2 = seq->iterator().as_vector();
+            assert_equals(size, SeqSizeT{seq.size()});
+
+            std::vector<SymbolsRunT> syms2 = seq.iterator().as_vector();
             assert_spans_equal(syms1, syms2);
         }
     }
@@ -192,26 +197,31 @@ public:
 
             SplitBufResult res = split_buffer(syms1, split_at);
 
-            SeqPtr seq1 = make_sequence(syms1);
-            seq1->check();
+            SeqPtr seq1_ss = make_sequence(syms1);
+            SeqSO seq1 = get_so(seq1_ss);
 
-            assert_equals(size, seq1->size());
+            seq1.check();
 
-            SeqPtr seq2 = make_sequence(syms1);
-            seq2->clear().get_or_throw();
-            assert_equals(SeqSizeT{0}, seq2->size());
-            assert_equals(0, seq2->code_units());
+            assert_equals(size, SeqSizeT{seq1.size()});
 
-            seq1->splitTo(seq2.get(), split_at).get_or_throw();
+            SeqPtr seq2_ss = make_sequence(syms1);
+            SeqSO seq2 = get_so(seq2_ss);
 
-            std::vector<SymbolsRunT> vec1 = seq1->iterator().as_vector();
+
+            seq2.clear().get_or_throw();
+            assert_equals(SeqSizeT{0}, SeqSizeT{seq2.size()});
+            assert_equals(0, seq2.data()->code_units());
+
+            seq1.splitTo(seq2, split_at).get_or_throw();
+
+            std::vector<SymbolsRunT> vec1 = seq1.iterator().as_vector();
             assert_equals(split_at, count(vec1));
             assert_spans_equal(res.left, vec1);
 
-            assert_equals(split_at, seq1->size());
-            assert_equals(size - split_at, seq2->size());
+            assert_equals(split_at, seq1.size());
+            assert_equals(size - split_at, seq2.size());
 
-            std::vector<SymbolsRunT> vec2 = seq2->iterator().as_vector();
+            std::vector<SymbolsRunT> vec2 = seq2.iterator().as_vector();
             assert_equals(size - split_at, count(vec2));
 
             assert_spans_equal(res.right, vec2);
@@ -237,15 +247,21 @@ public:
 
             SeqSizeT size3 = count(syms3);
 
-            SeqPtr seq1 = make_sequence(syms1);
-            seq1->check();
-            SeqPtr seq2 = make_sequence(syms2, 3);
-            seq2->check();
+            SeqPtr seq1_ss = make_sequence(syms1);
+            SeqSO seq1 = get_so(seq1_ss);
 
-            seq1->mergeWith(seq2.get()).get_or_throw();
-            assert_equals(size3, seq2->size());
+            seq1.check();
 
-            std::vector<SymbolsRunT> vec3 = seq2->iterator().as_vector();
+
+            SeqPtr seq2_ss = make_sequence(syms2, 3);
+            SeqSO seq2 = get_so(seq2_ss);
+
+            seq2.check();
+
+            seq1.mergeWith(seq2).get_or_throw();
+            assert_equals(size3, seq2.size());
+
+            std::vector<SymbolsRunT> vec3 = seq2.iterator().as_vector();
             assert_equals(size3, count(vec3));
 
             assert_spans_equal(syms3, vec3);
@@ -267,7 +283,8 @@ public:
             SeqSizeT size = count(syms);
 
             size_t times = 16;
-            SeqPtr seq = make_sequence(syms, times);
+            SeqPtr seq_ss = make_sequence(syms, times);
+            SeqSO seq = get_so(seq_ss);
 
             for (size_t cc = 0; cc < times; cc++)
             {
@@ -276,10 +293,10 @@ public:
 
                 syms = insert_to_buffer(syms, src, pos);
 
-                seq->insert(pos, src).get_or_throw();
-                seq->check();
+                seq.insert(pos, src).get_or_throw();
+                seq.check();
 
-                std::vector<SymbolsRunT> vv = seq->iterator().as_vector();
+                std::vector<SymbolsRunT> vv = seq.iterator().as_vector();
 
                 assert_spans_equal(syms, vv);
 
@@ -298,7 +315,8 @@ public:
 
             std::vector<SymbolsRunT> syms = make_random_sequence(data_size);
 
-            SeqPtr seq = make_sequence(syms, 2);
+            SeqPtr seq_ss = make_sequence(syms, 2);
+            SeqSO seq = get_so(seq_ss);
 
             for (size_t cc = 0; cc < 8; cc++)
             {
@@ -310,10 +328,10 @@ public:
 
                 syms = remove_from_buffer(syms, start, end);
 
-                seq->removeSpace(start, end).get_or_throw();
-                seq->check();
+                seq.removeSpace(start, end).get_or_throw();
+                seq.check();
 
-                std::vector<SymbolsRunT> vv = seq->iterator().as_vector();
+                std::vector<SymbolsRunT> vv = seq.iterator().as_vector();
 
                 assert_spans_equal(syms, vv);
 

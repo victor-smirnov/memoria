@@ -35,6 +35,7 @@ class PackedSSRLESearchableSequenceCountTest: public PackedSSRLESequenceTestBase
     using typename Base::RunTraits;
 
     using typename Base::Seq;    
+    using typename Base::SeqSO;
     using typename Base::SeqPtr;
 
     using typename Base::BlockSize;
@@ -58,6 +59,7 @@ class PackedSSRLESearchableSequenceCountTest: public PackedSSRLESequenceTestBase
     using Base::get_ranks;
     using Base::count_fw;
     using Base::count_bw;
+    using Base::get_so;
 
     using Base::push_back;
     using Base::split_runs;
@@ -83,7 +85,8 @@ public:
             std::vector<BlockRank> rank_index = build_rank_index(syms1);
             uint64_t size = count(syms1);
 
-            SeqPtr seq = make_sequence(syms1);
+            SeqPtr seq_ss = make_sequence(syms1);
+            SeqSO seq = get_so(seq_ss);
 
             size_t queries = data_size / 2;
 
@@ -102,7 +105,7 @@ public:
                 size_t sym = get_symbol(size_index, syms1, pos);
 
                 uint64_t pos1 = count_fw(rank_index, syms1, pos, sym);
-                uint64_t pos2 = seq->count_fw(pos, sym);
+                uint64_t pos2 = seq.count_fw(pos, sym);
 
                 try {
                     assert_equals(pos1, pos2);
@@ -129,7 +132,8 @@ public:
             std::vector<BlockRank> rank_index = build_rank_index(syms1);
             uint64_t size = count(syms1);
 
-            SeqPtr seq = make_sequence(syms1);
+            SeqPtr seq_ss = make_sequence(syms1);
+            SeqSO seq = get_so(seq_ss);
 
             size_t queries = data_size / 2;
 
@@ -148,7 +152,7 @@ public:
                 size_t sym = get_symbol(size_index, syms1, pos);
 
                 uint64_t pos1 = count_bw(rank_index, syms1, pos, sym);
-                uint64_t pos2 = seq->count_bw(pos, sym);
+                uint64_t pos2 = seq.count_bw(pos, sym);
 
                 try {
                     assert_equals(pos1, pos2);

@@ -38,9 +38,13 @@ class IOSSRLEBufferView final: public IOSSRLEBuffer<AlphabetSize> {
     using typename Base::RunT;
     using typename Base::CodeUnitT;
 
-    using SeqT = PkdSSRLESeqT<AlphabetSize, 256, true>;
+    using SeqT  = PkdSSRLESeqT<AlphabetSize, 256, true>;
+    using SeqSO = typename SeqT::SparseObject;
 
     const SeqT* sequence_;
+
+    std::tuple<> ext_data_;
+    SeqSO sequence_so_;
 
 public:
     IOSSRLEBufferView(): sequence_(){}
@@ -63,11 +67,11 @@ public:
     }
 
     virtual SymbolT symbol(SeqSizeT idx) const {
-        return sequence_->access(idx);
+        return sequence_so_.access(idx);
     }
 
     virtual SeqSizeT size() const {
-        return sequence_->size();
+        return sequence_so_.size();
     }
 
 
@@ -77,19 +81,19 @@ public:
             vv = SeqSizeT{};
         }
 
-        sequence_->ranks(idx, values);
+        sequence_so_.ranks(idx, values);
     }
 
     virtual SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx) const {
-        return sequence_->populate_buffer(buffer, idx);
+        return sequence_so_.populate_buffer(buffer, idx);
     }
 
     virtual SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT size) const {
-        return sequence_->populate_buffer(buffer, idx, size);
+        return sequence_so_.populate_buffer(buffer, idx, size);
     }
 
     virtual SeqSizeT populate_buffer_while_ge(SymbolsBuffer& buffer, SeqSizeT idx, SymbolT symbol) const {
-        return sequence_->populate_buffer_while_ge(buffer, idx, symbol);
+        return sequence_so_.populate_buffer_while_ge(buffer, idx, symbol);
     }
 
     virtual void append(Span<const RunT> runs) {
@@ -105,7 +109,7 @@ public:
     }
 
     std::vector<RunT> symbol_runs(SeqSizeT start = SeqSizeT{}, SeqSizeT size = SeqSizeT::max()) const {
-        return sequence_->symbol_runs(start, size);
+        return sequence_so_.symbol_runs(start, size);
     }
 
     virtual void reindex() {
@@ -117,7 +121,7 @@ public:
     }
 
     virtual void dump(std::ostream& out) const {
-        DumpStruct(sequence_, out);
+        DumpStruct(sequence_so_, out);
     }
 
     const std::type_info& sequence_type() const {
@@ -126,6 +130,7 @@ public:
 
     void configure(const void* ptr) {
         sequence_ = ptr_cast<const SeqT>(ptr);
+        sequence_so_ = SeqSO{&ext_data_, const_cast<SeqT*>(sequence_)};
     }
 
     virtual U8String describe() const {

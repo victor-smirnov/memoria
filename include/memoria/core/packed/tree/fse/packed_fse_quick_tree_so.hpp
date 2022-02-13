@@ -28,14 +28,15 @@ class PackedFSEQuickTreeSO {
     ExtData* ext_data_;
     PkdStruct* data_;
 
-    using Values = typename PkdStruct::Values;
-    using Value = typename PkdStruct::Value;
-    using IndexValue = typename PkdStruct::IndexValue;
 
     using MyType = PackedFSEQuickTreeSO;
 
 
 public:
+    using Values = typename PkdStruct::Values;
+    using Value = typename PkdStruct::Value;
+    using IndexValue = typename PkdStruct::IndexValue;
+
     using PkdStructT = PkdStruct;
 
     static constexpr size_t Blocks = PkdStruct::Blocks;
@@ -97,8 +98,8 @@ public:
         return data_->value(column, row);
     }
 
-    const Values& access(size_t row) const  {
-        return data_->get_values(row);
+    Values access(size_t row) const  {
+        return data_->access(row);
     }
 
     template <typename T>
@@ -112,6 +113,38 @@ public:
 
     auto findForward(SearchType search_type, size_t block, size_t start, IndexValue val) const {
         return data_->findForward(search_type, block, start, val);
+    }
+
+    auto findGTForward(size_t block, size_t start, IndexValue val) const {
+        return data_->findGTForward(block, start, val);
+    }
+
+    auto find_gt(size_t block, IndexValue val) const {
+        return data_->find_ge(block, val);
+    }
+
+    auto find_gt(size_t block, size_t start, IndexValue val) const {
+        return data_->find_ge(block, start, val);
+    }
+
+    auto findGTForward(size_t block, IndexValue val) const {
+        return data_->findGTForward(block, val);
+    }
+
+    auto findGEForward(size_t block, size_t start, IndexValue val) const {
+        return data_->findGEForward(block, start, val);
+    }
+
+    auto findGEForward(size_t block, IndexValue val) const {
+        return data_->findGEForward(block, val);
+    }
+
+    auto find_ge(size_t block, IndexValue val) const {
+        return data_->find_ge(block, val);
+    }
+
+    auto find_ge(size_t block, size_t start, IndexValue val) const {
+        return data_->find_ge(block, start, val);
     }
 
     auto findBackward(SearchType search_type, size_t block, size_t start, IndexValue val) const {
@@ -191,6 +224,13 @@ public:
     auto find_for_select_fw(size_t start, Value rank, size_t symbol, SeqOpType seq_op) const {
         return data_->find_for_select_fw(start, rank, symbol, seq_op);
     }
+
+    template <typename T>
+    VoidResult append(const core::StaticVector<T, Blocks>& values)
+    {
+        return data_->append(values);
+    }
+
 };
 
 

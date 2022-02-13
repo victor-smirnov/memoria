@@ -43,8 +43,12 @@ class IOSSRLEBufferImpl: public IOSSRLEBuffer<AlphabetSize> {
     static constexpr size_t Bps = BitsPerSymbolConstexpr(AlphabetSize);
 
     using SeqT = PkdSSRLESeqT<AlphabetSize, 256, true>;
+    using SeqSO = typename SeqT::SparseObject;
 
+    std::tuple<> ext_data_;
     SeqT* sequence_;
+    SeqSO sequence_so_;
+
 
 public:
     IOSSRLEBufferImpl()
@@ -53,6 +57,8 @@ public:
         sequence_ = ptr_cast<SeqT>(allocate_system<uint8_t>(size).release());
         sequence_->allocatable().setTopLevelAllocator();
         (void)sequence_->init();
+
+        sequence_so_ = SeqSO{&ext_data_, sequence_};
     }
 
     IOSSRLEBufferImpl(IOSSRLEBufferImpl&&) = delete;
@@ -76,11 +82,11 @@ public:
     }
 
     virtual SymbolT symbol(SeqSizeT idx) const {
-        return sequence_->access(idx);
+        return sequence_so_.access(idx);
     }
 
     virtual SeqSizeT size() const {
-        return sequence_->size();
+        return sequence_so_.size();
     }
 
 
@@ -89,28 +95,28 @@ public:
         for (SeqSizeT& vv: values) {
             vv = SeqSizeT{};
         }
-        sequence_->ranks(idx, values);
+        sequence_so_.ranks(idx, values);
     }
 
     virtual SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx) const {
-        return sequence_->populate_buffer(buffer, idx);
+        return sequence_so_.populate_buffer(buffer, idx);
     }
     virtual SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT size) const {
-        return sequence_->populate_buffer(buffer, idx, size);
+        return sequence_so_.populate_buffer(buffer, idx, size);
     }
 
     virtual SeqSizeT populate_buffer_while_ge(SymbolsBuffer& buffer, SeqSizeT idx, SymbolT symbol) const {
-        return sequence_->populate_buffer_while_ge(buffer, idx, symbol);
+        return sequence_so_.populate_buffer_while_ge(buffer, idx, symbol);
     }
 
     virtual void check()
     {
-        sequence_->check();
+        sequence_so_.check();
     }
 
     virtual void reindex()
     {
-        while (is_packed_error(sequence_->reindex())) {
+        while (is_packed_error(sequence_so_.reindex())) {
             enlarge();
         }
     }
@@ -121,7 +127,7 @@ public:
 
     virtual void dump(std::ostream& out) const
     {
-        DumpStruct(sequence_, out);
+        DumpStruct(sequence_so_, out);
     }
 
     virtual const std::type_info& sequence_type() const {
@@ -130,7 +136,7 @@ public:
 
     void append(Span<const RunT> runs) {
         while (true) {
-            size_t required = sequence_->append(runs).get_or_throw();
+            size_t required = sequence_so_.append(runs).get_or_throw();
             if (required > 0) {
                 enlarge(required);
             }
@@ -151,7 +157,7 @@ public:
     }
 
     std::vector<RunT> symbol_runs(SeqSizeT start, SeqSizeT size) const {
-        return sequence_->symbol_runs(start, size);
+        return sequence_so_.symbol_runs(start, size);
     }
 
 
@@ -186,6 +192,7 @@ private:
         free_system(sequence_);
 
         sequence_ = new_seq;
+        sequence_so_ = SeqSO{&ext_data_, sequence_};
     }
 
     void enlarge(size_t syms_block_size)
@@ -200,6 +207,7 @@ private:
         free_system(sequence_);
 
         sequence_ = new_seq;
+        sequence_so_ = SeqSO{&ext_data_, sequence_};
     }
 
 

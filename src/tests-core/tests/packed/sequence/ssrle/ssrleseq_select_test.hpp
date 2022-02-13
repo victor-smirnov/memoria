@@ -35,6 +35,7 @@ class PackedSSRLESearchableSequenceSelectTest: public PackedSSRLESequenceTestBas
     using typename Base::RunTraits;
 
     using typename Base::Seq;    
+    using typename Base::SeqSO;
     using typename Base::SeqPtr;
 
     using typename Base::BlockSize;
@@ -51,6 +52,7 @@ class PackedSSRLESearchableSequenceSelectTest: public PackedSSRLESequenceTestBas
     using Base::make_sequence;
     using Base::assert_spans_equal;
     using Base::count;
+    using Base::get_so;
 
 
     using Base::build_size_index;
@@ -95,8 +97,8 @@ public:
             return test->select_fw_eq(index, runs, rank, symbol);
         }
 
-        auto seq_select_fw(SeqPtr seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq->select_fw_eq(rank, symbol);
+        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
+            return seq.select_fw_eq(rank, symbol);
         }
     };
 
@@ -113,8 +115,8 @@ public:
             return test->select_fw_neq(index, runs, rank, symbol);
         }
 
-        auto seq_select_fw(SeqPtr seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq->select_fw_neq(rank, symbol);
+        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
+            return seq.select_fw_neq(rank, symbol);
         }
     };
 
@@ -132,8 +134,8 @@ public:
             return test->select_fw_lt(index, runs, rank, symbol);
         }
 
-        auto seq_select_fw(SeqPtr seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq->select_fw_lt(rank, symbol);
+        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
+            return seq.select_fw_lt(rank, symbol);
         }
     };
 
@@ -150,8 +152,8 @@ public:
             return test->select_fw_le(index, runs, rank, symbol);
         }
 
-        auto seq_select_fw(SeqPtr seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq->select_fw_le(rank, symbol);
+        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
+            return seq.select_fw_le(rank, symbol);
         }
     };
 
@@ -169,8 +171,8 @@ public:
             return test->select_fw_gt(index, runs, rank, symbol);
         }
 
-        auto seq_select_fw(SeqPtr seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq->select_fw_gt(rank, symbol);
+        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
+            return seq.select_fw_gt(rank, symbol);
         }
     };
 
@@ -187,8 +189,8 @@ public:
             return test->select_fw_ge(index, runs, rank, symbol);
         }
 
-        auto seq_select_fw(SeqPtr seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq->select_fw_ge(rank, symbol);
+        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
+            return seq.select_fw_ge(rank, symbol);
         }
     };
 
@@ -207,7 +209,8 @@ public:
             size_t sym = fn.get_sym();
             uint64_t rank0_max = fn.get_rank_fn(this, rank_index, syms1, size, sym);
 
-            SeqPtr seq = make_sequence(syms1);
+            SeqPtr seq_ss = make_sequence(syms1);
+            SeqSO seq = get_so(seq_ss);
 
             size_t queries = data_size / 2;
             std::vector<size_t> ranks;

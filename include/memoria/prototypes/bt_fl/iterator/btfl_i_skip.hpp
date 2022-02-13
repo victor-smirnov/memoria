@@ -202,9 +202,9 @@ public:
             auto idx = self.iter_local_pos();
 
             if (idx < s.size())
-        	{
+            {
                 return s.get_symbol(idx);
-        	}
+            }
         }
 
         return -1;
@@ -296,7 +296,7 @@ public:
 
             if (s) {
                 //auto result = s->selectFW(stream, data_idx);
-                auto result = s.select_fw(data_idx, stream, SeqOpType::EQ);
+                auto result = s.select_fw_out(data_idx, stream, SeqOpType::EQ);
 
                 self.iter_stream() = StructureStreamIdx;
 
@@ -345,7 +345,7 @@ public:
 
         auto s = self.leaf_structure();
         if (s) {
-            return s.rank(structure_idx, stream, SeqOpType::EQ);
+            return (uint64_t)s.rank(structure_idx, stream, SeqOpType::EQ);
         }
         else {
         	return 0;
@@ -419,7 +419,7 @@ public:
 
         if (s)
         {
-            return self.leaf_structure().select_fw(position, stream, SeqOpType::EQ).local_pos();
+            return self.leaf_structure().select_fw_out(position, stream, SeqOpType::EQ).local_pos();
         }
         else {
         	return 0;

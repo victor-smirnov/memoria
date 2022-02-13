@@ -116,7 +116,7 @@ public:
     template <int32_t StreamIdx, typename Seq>
     SelectResult select(const Seq& seq, int32_t start, int32_t symbol, CtrSizeT rank)
     {
-        return seq.select_fw(start, rank, symbol, op_type_);
+        return seq.select_fw_out(start, rank, symbol, op_type_);
     }
 };
 
@@ -214,7 +214,7 @@ public:
     template <int32_t StreamIdx, typename Seq>
     SelectResult select(const Seq& seq, int32_t start, int32_t symbol, CtrSizeT rank)
     {
-        return seq.select_bw(start, rank, symbol, op_type_);
+        return seq.select_bw_out(start, rank, symbol, op_type_);
     }
 };
 

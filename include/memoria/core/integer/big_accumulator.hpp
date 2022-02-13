@@ -217,6 +217,22 @@ struct UnsignedAccumulator {
         return false;
     }
 
+    MMA_NODISCARD bool operator==(const ValueT& val) const
+    {
+        if (value_[0] != val) {
+            return false;
+        }
+
+        for (size_t c = 1; c < Size; c++) {
+            if (value_[c]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
     MMA_NODISCARD bool operator==(const UnsignedAccumulator& other) const
     {
         for (size_t c = 0; c < Size; c++) {

@@ -31,8 +31,8 @@ namespace ssrleseq {
 
 template <typename Seq>
 class ReindexFn {
-    using SizeIndex     = typename Seq::SizeIndex;
-    using SumIndex      = typename Seq::SumIndex;
+    using SizeIndexSO   = typename Seq::SizeIndexSO;
+    using SumIndexSO    = typename Seq::SumIndexSO;
     using SymbolsRunT   = typename Seq::SymbolsRunT;
     using RunTraits     = typename Seq::RunTraits;
     using SeqSizeT      = typename Seq::SeqSizeT;
@@ -40,7 +40,6 @@ class ReindexFn {
     using SymbolT       = typename Seq::SymbolT;
 
     static const SymbolT AlphabetSize   = Seq::AlphabetSize;
-    static const size_t  BytesPerBlock  = Seq::BytesPerBlock;
     static const size_t  AtomsPerBlock  = Seq::AtomsPerBlock;
 
 public:
@@ -63,26 +62,26 @@ public:
             syms_span = to_const_span(syms);
         }
 
-        auto meta = seq.metadata();
+        auto meta = seq.data()->metadata();
 
         if (meta->code_units() != symbols_block_size_atoms)
         {
             meta->set_code_units(symbols_block_size_atoms);
 
-            MEMORIA_TRY_VOID(seq.resize_block(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::CodeUnitT)));
-            RunTraits::write_segments_to(syms_span, seq.symbols(), 0);
+            MEMORIA_TRY_VOID(seq.data()->resize_block(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::CodeUnitT)));
+            RunTraits::write_segments_to(syms_span, seq.data()->symbols(), 0);
         }
 
         if (symbols_block_size_atoms > AtomsPerBlock)
         {
-            size_t symbols_blocks = seq.div_up(symbols_block_size_atoms, AtomsPerBlock);
-            MEMORIA_TRY_VOID(seq.createIndex(symbols_blocks));
+            size_t symbols_blocks = seq.data()->div_up(symbols_block_size_atoms, AtomsPerBlock);
+            MEMORIA_TRY_VOID(seq.data()->createIndex(symbols_blocks));
 
             auto size_index = seq.size_index();
             auto sum_index  = seq.sum_index();
 
             SeqSizeT symbols_total_{};
-            typename Seq::SumIndex::Values sums(SeqSizeT{});
+            typename SumIndexSO::Values sums(SeqSizeT{});
 
             size_t next_block_start_idx = AtomsPerBlock;
 
@@ -91,15 +90,15 @@ public:
 
             auto push_indexes = [&]() -> VoidResult {
                 cnt++;
-                MEMORIA_TRY_VOID(sum_index->append(sums));
+                MEMORIA_TRY_VOID(sum_index.append(sums));
 
-                typename Seq::SizeIndex::Values sizes(symbols_total_);
+                typename SizeIndexSO::Values sizes(symbols_total_);
                 symbols_total_ = SeqSizeT{};
-                sums = typename Seq::SumIndex::Values(SeqSizeT{});
+                sums = typename SumIndexSO::Values(SeqSizeT{});
                 next_block_start_idx += AtomsPerBlock;
                 block_cnt = 0;
 
-                return size_index->append(sizes);
+                return size_index.append(sizes);
             };
 
             std::vector<SymbolsRunT> vv = seq.iterator().as_vector();
@@ -140,11 +139,11 @@ public:
                 MEMORIA_TRY_VOID(push_indexes());
             }
 
-            MEMORIA_TRY_VOID(size_index->reindex());
-            return sum_index->reindex();
+            MEMORIA_TRY_VOID(size_index.reindex());
+            return sum_index.reindex();
         }
         else {
-            return seq.removeIndex();
+            return seq.data()->removeIndex();
         }
 
         return VoidResult::of();
@@ -159,37 +158,37 @@ public:
         if (symbols_block_size > AtomsPerBlock)
         {
             auto size_index = seq.size_index();
-            size_index->check();
+            size_index.check();
 
             auto sum_index  = seq.sum_index();
-            sum_index->check();
+            sum_index.check();
 
             SeqSizeT symbols_total_{};
-            typename Seq::SumIndex::Values sums(SeqSizeT{});
+            typename SumIndexSO::Values sums(SeqSizeT{});
 
             size_t next_block_start_idx = AtomsPerBlock;
 
             size_t blk_idx{};
             size_t block_cnt{};
             auto check_indexes = [&]() {
-                if (sum_index->access(blk_idx) != sums) {
+                if (sum_index.access(blk_idx) != sums) {
                     MEMORIA_MAKE_GENERIC_ERROR("SSRLESeq SumIndex check error: blk:{}, idx:{}, sum:{}",
                                                       blk_idx,
-                                                      sum_index->access(blk_idx),
+                                                      sum_index.access(blk_idx),
                                                       sums).do_throw();
                 }
 
-                typename Seq::SizeIndex::Values sizes(symbols_total_);
+                typename SizeIndexSO::Values sizes(symbols_total_);
 
-                if (size_index->access(blk_idx) != sizes) {
+                if (size_index.access(blk_idx) != sizes) {
                     MEMORIA_MAKE_GENERIC_ERROR("SSRLESeq SizeIndex check error: blk:{}, idx:{}, sum:{}",
                                                       blk_idx,
-                                                      size_index->access(blk_idx),
+                                                      size_index.access(blk_idx),
                                                       sizes).do_throw();
                 }
 
                 symbols_total_ = SeqSizeT{};
-                sums = typename Seq::SumIndex::Values(SeqSizeT{});
+                sums = typename SumIndexSO::Values(SeqSizeT{});
                 next_block_start_idx += AtomsPerBlock;
                 blk_idx++;
                 block_cnt = 0;

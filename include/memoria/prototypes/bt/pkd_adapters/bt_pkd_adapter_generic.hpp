@@ -142,9 +142,9 @@ public:
     template <typename T>
     void branch_max_entry(core::StaticVector<T, Indexes>& accum) const
     {
-        psize_t size = pkd_struct_.size();
+        auto size = pkd_struct_.size();
 
-        if (size > 0)
+        if (size)
         {
             for (int32_t c = 0; c < Indexes; c++) {
                 accum[c] = pkd_struct_.sum(c);
@@ -159,9 +159,9 @@ public:
     void leaf_max_entry(BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset + Indexes <= Size, "Invalid balanced tree structure");
-        psize_t size = pkd_struct_.size();
+        auto size = pkd_struct_.size();
 
-        if (size > 0)
+        if (size)
         {
             for (int32_t c = 0; c < Indexes; c++) {
                 accum[c + Offset] = pkd_struct_.sum(c);
