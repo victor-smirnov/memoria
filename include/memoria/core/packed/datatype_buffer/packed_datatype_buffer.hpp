@@ -90,18 +90,44 @@ public:
 
     class Metadata {
         psize_t size_;
-        psize_t data_size_[Dimensions * Columns];
+        psize_t flags_;
+
+        //psize_t data_size_[Columns * Dimensions];
     public:
-        psize_t& size() {return size_;}
-        const psize_t& size() const {return size_;}
 
-        psize_t* data_size() {return data_size_;}
-        psize_t offsets_size() const {return size_ + 1;}
+        size_t size() const {return size_;}
+        void set_size(size_t size) {size_ = size;}
+        size_t offsets_size() const {return size_ + 1;}
 
-        const psize_t* data_size() const {return data_size_;}
+        psize_t flags() const {return flags_;}
+        void set_flags(psize_t flags) {flags_ = flags;}
 
-        psize_t& data_size(size_t column, size_t idx) {return data_size_[column * Columns + idx];}
-        const psize_t& data_size(size_t column, size_t idx) const {return data_size_[column * Columns + idx];}
+        const psize_t& size0() const {return size_;}
+        psize_t& size0() {return size_;}
+
+        const psize_t& flags0() const {return flags_;}
+        psize_t& flags0() {return flags_;}
+
+        void add_size(size_t val) {
+            size_ += val;
+        }
+
+        void sub_size(size_t val) {
+            size_ -= val;
+        }
+
+        //psize_t* data_size() {return data_size_;}
+
+
+        //const psize_t* data_size() const {return data_size_;}
+
+        //psize_t& data_size(size_t column, size_t dimension) {
+        //    return data_size_[column * Dimensions + dimension];
+//        }
+
+//        const psize_t& data_size(size_t column, size_t dimension) const {
+//            return data_size_[column * Dimensions + dimension];
+//        }
     };
 
 public:
@@ -154,6 +180,17 @@ public:
         );
     }
 
+    size_t base_size_with_index(size_t dimensions_size)
+    {
+        size_t metadata_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
+
+        size_t index_size = element_size(INDEX);
+
+        return PackedAllocator::block_size(
+            metadata_length + dimensions_size + index_size, DimensionsBlocksTotal * Columns + LAST_HEADER_BLOCK_
+        );
+    }
+
     static size_t packed_block_size(size_t capacity)
     {
         size_t aligned_data_size{};
@@ -172,9 +209,7 @@ public:
     VoidResult init()
     {
         MEMORIA_TRY_VOID(init(empty_size(), DimensionsBlocksTotal * Columns + LAST_HEADER_BLOCK_));
-
         MEMORIA_TRY(meta, allocate<Metadata>(METADATA));
-        meta->size() = 0;
 
         for (size_t column = 0; column < Columns; column++)
         {
@@ -193,7 +228,6 @@ public:
         return VoidResult::of();
     }
 
-
     size_t block_size_for(const PackedDataTypeBuffer* other) const
     {
         auto& my_meta = metadata();
@@ -201,9 +235,11 @@ public:
 
         size_t values_length{};
 
-        for_each_dimension([&values_length, my_meta, other, other_meta, this](auto dim_idx){
-            values_length += this->dimension<dim_idx>(0).joint_data_length(my_meta, other, other_meta);
-        });
+        for (size_t column = 0; column < Columns; column++) {
+            for_each_dimension([&values_length, my_meta, other, other_meta, column, this](auto dim_idx){
+                values_length += this->dimension<dim_idx>(column).joint_data_length(my_meta, other, other_meta);
+            });
+        }
 
         return base_size(values_length);
     }
@@ -234,7 +270,7 @@ public:
             MEMORIA_TRY_VOID(remove_index());
         }
 
-        MEMORIA_TRY_VOID(allocate_empty<IndexType>(INDEX));
+        MEMORIA_TRY_VOID(allocate_empty<IndexType>(INDEX, true));
         return VoidResult::of();
     }
 
@@ -252,14 +288,9 @@ public:
         return Dimension<Idx>(const_cast<PackedDataTypeBuffer*>(this), columns);
     }
 
-    psize_t& size() {
+    size_t size() const {
         return metadata().size();
     }
-
-    const psize_t& size() const {
-        return metadata().size();
-    }
-
 
     template <typename SerializationData>
     void serialize(SerializationData& buf) const
@@ -268,8 +299,8 @@ public:
 
         auto& meta = this->metadata();
 
-        FieldFactory<psize_t>::serialize(buf, meta.size());
-        FieldFactory<psize_t>::serialize(buf, meta.data_size(), Dimensions * Columns);
+        FieldFactory<psize_t>::serialize(buf, meta.size0());
+        FieldFactory<psize_t>::serialize(buf, meta.flags0());
 
         for (size_t column = 0; column < Columns; column++) {
             return for_each_dimension([&, this](auto idx){
@@ -286,8 +317,8 @@ public:
 
         auto& meta = this->metadata();
 
-        FieldFactory<psize_t>::serialize(buf, meta.size());
-        FieldFactory<psize_t>::serialize(buf, meta.data_size(), Dimensions);
+        FieldFactory<psize_t>::serialize(buf, meta.size0());
+        FieldFactory<psize_t>::serialize(buf, meta.flags0());
 
         for (size_t column = 0; column < Columns; column++) {
             return for_each_dimension([&, this](auto idx){
@@ -303,8 +334,8 @@ public:
 
         auto& meta = this->metadata();
 
-        FieldFactory<psize_t>::deserialize(buf, meta.size());
-        FieldFactory<psize_t>::deserialize(buf, meta.data_size(), Dimensions);
+        FieldFactory<psize_t>::deserialize(buf, meta.size0());
+        FieldFactory<psize_t>::deserialize(buf, meta.flags0());
 
         for (size_t column = 0; column < Columns; column++) {
             return for_each_dimension([&, this](auto idx){
@@ -321,9 +352,11 @@ struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataTyp
     using AccumType = DTTViewType<SearchKeyDataType>;
     using SearchKeyType = DTTViewType<SearchKeyDataType>;
 
-    static constexpr PackedDataTypeSize DataTypeSize = pdtbuf_::BufferSizeTypeSelector<
-        typename DataTypeTraits<DataType>::DataDimensionsList
-    >::DataTypeSize;
+//    static constexpr PackedDataTypeSize DataTypeSize = pdtbuf_::BufferSizeTypeSelector<
+//        typename DataTypeTraits<DataType>::DataDimensionsList
+//    >::DataTypeSize;
+
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
     static constexpr size_t Blocks = Columns;

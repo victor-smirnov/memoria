@@ -36,16 +36,17 @@ class PDTDimension<Span<const T>, PkdStruct, Dimension, Block, Blocks, Dimension
 
     using DataSizeType = psize_t;
 
-    static constexpr size_t DataBlock       = Block;
+    static constexpr size_t DataBlock       = Block + 0;
     static constexpr size_t OffsetsBlock    = Block + 1;
 
 public:
-    static constexpr size_t Width   = 2;
+    static constexpr size_t Width = 2;
 
     PDTDimension(PkdStruct* pkd_buf, size_t column):
         pkd_buf_(pkd_buf),
         column_(column)
     {}
+
 
     constexpr size_t data_block_num() const noexcept {
         return DimensionsStart + Blocks * column_ + DataBlock;
@@ -54,6 +55,8 @@ public:
     constexpr size_t offsets_block_num() const noexcept {
         return DimensionsStart + Blocks * column_ + OffsetsBlock;
     }
+
+
 
     T* data() {
         return pkd_buf_->template get<T>(data_block_num());
@@ -73,10 +76,7 @@ public:
 
     static VoidResult allocate_empty(PkdStruct* alloc, size_t column)
     {
-        MEMORIA_TRY(offsets, alloc->template allocate_array_by_size<DataSizeType>(DimensionsStart + Blocks * column + OffsetsBlock, 1));
-
-        offsets[0] = 0;
-
+        MEMORIA_TRY_VOID(alloc->template allocate_array_by_size<DataSizeType>(DimensionsStart + Blocks * column + OffsetsBlock, 1));
         return VoidResult::of();
     }
 
@@ -86,18 +86,25 @@ public:
 
     template <typename Metadata>
     static void init_metadata(Metadata& metadata, size_t column) {
-        metadata.data_size(column, Dimension) = 0;
     }
 
     static constexpr size_t empty_size_aligned() {
-        return PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(size_t));
+        return PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(psize_t));
+    }
+
+    template <typename Metadata>
+    size_t data_size(const Metadata& meta) const {
+        return offsets()[meta.size()];
     }
 
     template <typename Metadata>
     size_t joint_data_length(const Metadata& my_meta, const PkdStruct* other, const Metadata& other_meta) const
     {
+        size_t my_data_size = data_size(my_meta);
+        size_t other_data_size = other->template dimension<Dimension>(column_).data_size(other_meta);
+
         size_t data_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(
-             (my_meta.data_size(column_, Dimension) + other_meta.data_size(column_, Dimension)) * sizeof(T)
+             (my_data_size + other_data_size) * sizeof(T)
         );
 
         size_t offsets_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(
@@ -138,12 +145,14 @@ public:
     {
         auto meta = pkd_buf_->metadata();
 
+        size_t data_size = this->data_size();
+
         size_t offsets_length_aligned = PackedAllocatable::round_up_bytes_to_alignment_blocks(
                     (meta.offsets_size() + extra_size) * sizeof(DataSizeType)
         );
 
         size_t data_length_aligned = PackedAllocatable::round_up_bytes_to_alignment_blocks(
-                    (extra_data_len + meta.data_size(column_, Dimension)) * sizeof(T)
+                    (extra_data_len + data_size) * sizeof(T)
         );
 
         return data_length_aligned + offsets_length_aligned;
@@ -159,13 +168,12 @@ public:
 
         MEMORIA_TRY_VOID(pkd_buf_->resize_block(offsets_block_num(), offsets_length));
 
-        size_t column_data_length = extra_data_length + meta.data_size(column_, Dimension);
+        size_t data_size = this->data_size(meta);
+        size_t column_data_length = extra_data_length + data_size;
 
         MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length * sizeof(T)));
 
         size_t offsets_size = meta.offsets_size();
-
-
         auto offsets = this->offsets();
         auto data = this->data();
 
@@ -173,11 +181,11 @@ public:
         size_t data_end    = data_start + extra_data_length;
 
         MemMoveBuffer(offsets + start, offsets + (start + extra_size), offsets_size - start);
-        MemMoveBuffer(data + data_start, data + data_end, meta.data_size(column_, Dimension) - data_start);
+        MemMoveBuffer(data + data_start, data + data_end, data_size - data_start);
 
         shift_offsets_right(start + extra_size, offsets_size + extra_size, extra_data_length);
 
-        meta.data_size(column_, Dimension) += extra_data_length;
+//        meta.data_size(column_, Dimension) += extra_data_length;
 
         return VoidResult::of();
     }
@@ -189,6 +197,7 @@ public:
         size_t room_start = start;
         size_t room_end = start + size;
 
+        size_t data_size = this->data_size(meta);
         size_t offsets_size = meta.offsets_size();
 
         auto offsets = this->offsets();
@@ -201,16 +210,15 @@ public:
         shift_offsets_left(room_end, offsets_size, data_length);
 
         MemMoveBuffer(offsets + room_end, offsets + room_start, offsets_size - room_end);
-        MemMoveBuffer(data + data_end, data + data_start, meta.data_size(column_, Dimension) - data_end);
+        MemMoveBuffer(data + data_end, data + data_start, data_size - data_end);
 
-        meta.data_size(column_, Dimension) -= data_length;
-
+        //meta.data_size(column_, Dimension) -= data_length;
+        data_size -= data_length;
 
         size_t new_offsets_length = (meta.offsets_size() - size) * sizeof(DataSizeType);
 
         MEMORIA_TRY_VOID(pkd_buf_->resize_block(offsets_block_num(), new_offsets_length));
-
-        size_t column_data_length = meta.data_size(column_, Dimension) * sizeof(T);
+        size_t column_data_length = data_size * sizeof(T);
 
         MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length));
 
@@ -228,7 +236,8 @@ public:
         {
             size_t size_delta = new_value_size - current_value_size;
 
-            size_t column_data_length = size_delta + meta.data_size(column_, Dimension);
+            size_t data_size = this->data_size(meta);
+            size_t column_data_length = size_delta + data_size;
 
             MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length));
 
@@ -238,12 +247,13 @@ public:
             size_t data_start  = offsets[idx + 1];
             size_t data_end    = data_start + size_delta;
 
-            MemMoveBuffer(data + data_start, data + data_end, meta.data_size(column_, Dimension) - data_start);
+
+            MemMoveBuffer(data + data_start, data + data_end, data_size - data_start);
 
             size_t offsets_size = meta.offsets_size();
             shift_offsets_right(idx + 1, offsets_size, size_delta);
 
-            meta.data_size(column_, Dimension) += size_delta;
+            //meta.data_size(column_, Dimension) += size_delta;
         }
         else if (current_value_size > new_value_size)
         {
@@ -255,16 +265,17 @@ public:
             size_t data_start  = offsets[idx + 1];
             size_t data_end    = data_start - size_delta;
 
-            MemMoveBuffer(data + data_start, data + data_end, meta.data_size(column_, Dimension) - data_start);
+            size_t data_size = this->data_size(meta);
+            MemMoveBuffer(data + data_start, data + data_end, data_size - data_start);
 
             size_t offsets_size = meta.offsets_size();
             shift_offsets_left(idx + 1, offsets_size, size_delta);
 
-            size_t column_data_length = meta.data_size(column_, Dimension) - size_delta;
+            size_t column_data_length = data_size - size_delta;
 
             MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length));
 
-            meta.data_size(column_, Dimension) -= size_delta;
+            //meta.data_size(column_, Dimension) -= size_delta;
         }
 
         return VoidResult::of();
@@ -337,7 +348,7 @@ public:
     template <typename Metadata>
     size_t estimate_insert_upsize(const Span<const T>& span, const Metadata& meta) const
     {
-        size_t column_data_size = meta.data_size(column_, Dimension);
+        size_t column_data_size = this->data_size(meta);
         size_t view_length = span.length();
 
         size_t offsets_size = meta.offsets_size();
@@ -367,7 +378,7 @@ public:
 
         if (existing_value_length < new_value_length)
         {
-            size_t column_data_size = meta.data_size(column_, Dimension);
+            size_t column_data_size = this->data_size(meta);
             size_t column_data_size_aligned0 = pkd_buf_->element_size(offsets_block_num());
 
             size_t size_delta = new_value_length - existing_value_length;
@@ -386,14 +397,14 @@ public:
     void serialize(const Metadata& meta, SerializationData& buf) const
     {
         FieldFactory<DataSizeType>::serialize(buf, offsets(), meta.offsets_size());
-        FieldFactory<T>::serialize(buf, data(), meta.data_size(column_, Dimension));
+        FieldFactory<T>::serialize(buf, data(), this->data_size(meta));
     }
 
     template <typename DeserializationData, typename Metadata>
     void deserialize(const Metadata& meta, DeserializationData& buf)
     {
         FieldFactory<DataSizeType>::deserialize(buf, offsets(), meta.offsets_size());
-        FieldFactory<T>::deserialize(buf, data(), meta.data_size(column_, Dimension));
+        FieldFactory<T>::deserialize(buf, data(), this->data_size(meta));
     }
 
 

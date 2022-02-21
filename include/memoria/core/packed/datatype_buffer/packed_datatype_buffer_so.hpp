@@ -29,7 +29,7 @@
 
 #include <memoria/core/packed/datatype_buffer/packed_array_iterator.hpp>
 
-#include <memoria/core/datatypes/buffer/buffer_generic.hpp>
+#include <memoria/core/datatypes/buffer/buffer.hpp>
 #include <memoria/core/datatypes/datum.hpp>
 
 #include <memoria/core/iovector/io_substream_base.hpp>
@@ -71,6 +71,8 @@ namespace detail {
 
             ViewType prefix() {return ViewType{};}
             size_t local_pos() const {return idx_;}
+            size_t idx() const {return idx_;}
+
 
             void set_local_pos(size_t pos)  {
                 idx_ = pos;
@@ -124,6 +126,7 @@ namespace detail {
             }
 
             size_t local_pos() const {return idx_;}
+            size_t idx() const {return idx_;}
 
             void set_local_pos(size_t pos) {
                 idx_ = pos;
@@ -267,7 +270,7 @@ public:
         handler->startStruct();
         handler->startGroup("DATA_TYPE_BUFFER");
 
-        handler->value("SIZE", &meta.size());
+        handler->value("SIZE", &meta.size0());
 
         handler->startGroup("DATA", meta.size());
 
@@ -305,10 +308,21 @@ public:
         return DataTypeTraits<DataType>::make_view(*ext_data_, data);
     }
 
-    ViewType access(size_t row) const
+    ViewType value(size_t column, size_t row) const {
+        return access(column, row);
+    }
+
+    core::StaticVector<ViewType, Columns> access(size_t row) const
     {
-        DataDimensionsTuple data = access_data(0, row);
-        return DataTypeTraits<DataType>::make_view(*ext_data_, data);
+        core::StaticVector<ViewType, Columns> vv;
+
+        for (size_t c = 0; c < Columns; c++)
+        {
+            DataDimensionsTuple data = access_data(c, row);
+            vv[c] = DataTypeTraits<DataType>::make_view(*ext_data_, data);
+        }
+
+        return vv;
     }
 
     DataDimensionsTuple access_data(size_t column, size_t row) const
@@ -343,7 +357,7 @@ public:
             copyTo(other, column, idx, split_size, 0, data_lengths);
         }
 
-        other.data()->metadata().size() += split_size;
+        other.data()->metadata().add_size(split_size);
 
         MEMORIA_TRY_VOID(removeSpace(idx, meta.size()));
 
@@ -364,7 +378,7 @@ public:
             copyTo(other, column, 0, my_size, other_size, data_lengths);
         }
 
-        other.data()->metadata().size() += my_size;
+        other.data()->metadata().add_size(my_size);
 
         return VoidResult::of();
     }
@@ -392,7 +406,7 @@ public:
             }));
         }
 
-        meta.size() -= room_length;
+        meta.sub_size(room_length);
 
         return VoidResult::of();
     }
@@ -416,7 +430,7 @@ public:
     }
 
     ViewType get_values(size_t idx, size_t column) const  {
-        return access(idx);
+        return access(column, idx);
     }
 
 
@@ -431,6 +445,14 @@ public:
     VoidResult insert(size_t pos, const core::StaticVector<T, Columns>& values)
     {
         return insert_from_fn(pos, 1, [&](size_t column, size_t row){
+            return values[column];
+        });
+    }
+
+    template <typename T>
+    VoidResult append(const core::StaticVector<T, Columns>& values)
+    {
+        return insert_from_fn(size(), 1, [&](size_t column, size_t row){
             return values[column];
         });
     }
@@ -457,13 +479,13 @@ public:
 
         MEMORIA_TRY_VOID(insertSpace(0, at, size, lengths));
 
-        data_->metadata().size() += size;
-
         for_each_dimension([&](auto dim_idx) {
             data_->template dimension<dim_idx>(0).copy_from_databuffer(
                     at, start, size, lengths[dim_idx], buffer
             );
         });
+
+        data_->metadata().add_size(size);
 
         return Int32Result::of(static_cast<int32_t>(at + size));
     }
@@ -478,12 +500,22 @@ public:
         return detail::PkdDTBufOrderingDispatcher<MyType>::find_fw_gt(*this, column, val);
     }
 
+    FindResult find_gt(size_t column, const ViewType& val) const
+    {
+        return detail::PkdDTBufOrderingDispatcher<MyType>::find_fw_gt(*this, column, val);
+    }
+
     FindResult findGTForward(size_t column, size_t start, const ViewType& val) const
     {
         return find_gt_fw_sum(column, start, val);
     }
 
     FindResult findGEForward(size_t column, const ViewType& val) const
+    {
+        return detail::PkdDTBufOrderingDispatcher<MyType>::find_fw_ge(*this, column, val);
+    }
+
+    FindResult find_ge(size_t column, const ViewType& val) const
     {
         return detail::PkdDTBufOrderingDispatcher<MyType>::find_fw_ge(*this, column, val);
     }
@@ -554,7 +586,7 @@ public:
     }
 
     ViewType sum(size_t column) const {
-        return sum(size());
+        return sum(column, size());
     }
 
 
@@ -663,7 +695,7 @@ public:
             }
         }
 
-        data_->metadata().size() += size;
+        data_->metadata().add_size(size);
 
         return VoidResult::of();
     }
@@ -716,7 +748,7 @@ public:
             }
         }
 
-        data_->metadata().size() += size;
+        data_->metadata().add_size(size);
 
         return VoidResult::of();
     }
@@ -1238,6 +1270,10 @@ private:
             auto index = this->index();
             index.check();
 
+            if (index.size() == 0) {
+                return;
+            }
+
             size_t index_span   = this->index_span();
             size_t size         = this->size();
             size_t spans        = div_up(size, index_span);
@@ -1245,14 +1281,14 @@ private:
             for (size_t c = 0; c < Columns; c++)
             {
                 size_t base{};
-                for (size_t span = 0; span < spans; span++)
+                for (size_t span = 0; span < spans; span++, base += index_span)
                 {
                     size_t limit = (base + index_span) <= size ? base + index_span : size;
 
                     Datum<DataType> sum{};
-                    for (size_t idx = base; idx < limit; idx++, base += index_span)
+                    for (size_t idx = base; idx < limit; idx++)
                     {
-                        ViewType ee = access(c, idx - 1);
+                        ViewType ee = access(c, idx);
                         sum = sum.view() + ee;
                     }
 
@@ -1286,18 +1322,20 @@ private:
             for (size_t c = 0; c < Columns; c++)
             {
                 size_t base{};
-                for (size_t span = 0; span < spans; span++)
+                for (size_t span = 0; span < spans; span++, base += index_span)
                 {
                     size_t limit = (base + index_span) <= size ? base + index_span : size;
 
                     Datum<DataType> sum{};
-                    for (size_t idx = base; idx < limit; idx++, base += index_span)
+                    for (size_t idx = base; idx < limit; idx++)
                     {
-                        ViewType ee = access(c, idx - 1);
-                        sum = sum.view() + ee;
+                        ViewType ee = access(c, idx);
+                        //println("Access: {} {} {}", c, idx, ee);
+
+                        sum = sum.view() + ee;                        
                     }
 
-                    columns[c].append_value(sum.view());
+                    columns[c].append(sum.view());
                 }
             }
 
@@ -1305,7 +1343,8 @@ private:
             MyType index = this->index();
 
             auto res = index.insert_from_fn(0, spans, [&](size_t column, size_t row){
-               return columns[column][row];
+                //println("Reindex Buf: {} {} {}", column, row, columns[column][row]);
+                return columns[column][row];
             });
 
             MEMORIA_RETURN_IF_ERROR(res);
@@ -1336,7 +1375,6 @@ private:
         });
     }
 
-
     VoidResult insertSpace(size_t column, size_t idx, size_t room_length, const DataLengths& data_lengths)
     {
         auto& meta = data_->metadata();
@@ -1345,15 +1383,18 @@ private:
 
         MEMORIA_ASSERT_RTN(idx, <=, size);
 
-        size_t extra_data{};
 
-        for_each_dimension([&](auto dim_idx) {
-            extra_data += data_->template dimension<dim_idx>(column).compute_new_size(
-                    room_length, data_lengths[dim_idx]
-            );
-        });
 
-        MEMORIA_TRY_VOID(data_->resize(PkdStruct::base_size(extra_data)));
+//        size_t extra_data{};
+
+//        for_each_dimension([&](auto dim_idx) {
+//            extra_data += data_->template dimension<dim_idx>(column).compute_new_size(
+//                    room_length, data_lengths[dim_idx]
+//            );
+//        });
+
+//        size_t new_size = data_->base_size_with_index(extra_data);
+//        MEMORIA_TRY_VOID(data_->resize(new_size));
 
         MEMORIA_TRY_VOID(for_each_dimension_res([&](auto dim_idx) {
             return data_->template dimension<dim_idx>(column).insert_space(

@@ -190,11 +190,15 @@ public:
 
     void check() const
     {
-        if (data_->has_index())
-        {
+        if (data_->has_size_index()) {
             size_index().check();
-            sum_index().check();
+        }
 
+        if (data_->has_sum_index()) {
+            sum_index().check();
+        }
+
+        if (data_->has_size_index() || data_->has_sum_index()) {
             ssrleseq::ReindexFn<MyType> reindex_fn;
             return reindex_fn.check(*this);
         }
@@ -741,13 +745,14 @@ public:
         handler->value("SIZE", &meta->size());
         handler->value("CODE_UNITS", &meta->code_units());
 
-        if (data_->has_index())
-        {
-            handler->startGroup("INDEXES");
+        handler->startGroup("INDEXES");
+        if (data_->has_size_index()) {
             size_index().generateDataEvents(handler);
-            sum_index().generateDataEvents(handler);
-            handler->endGroup();
         }
+        if (data_->has_sum_index()) {
+            sum_index().generateDataEvents(handler);
+        }
+        handler->endGroup();
 
         handler->startGroup("SYMBOL RUNS", size());
 
@@ -943,9 +948,6 @@ public:
             RunTraits::write_segments_to(result.left.span(), left_syms, location.unit_idx);
 
             size_t right_atoms_size = RunTraits::compute_size(result.right.span(), right_runs);
-
-            auto right_block_size = PkdStruct::block_size(right_atoms_size * sizeof(CodeUnitT));
-            MEMORIA_TRY_VOID(other.data_->init_bs(right_block_size));
             MEMORIA_TRY_VOID(other.data_->resize_block(PkdStruct::SYMBOLS, right_atoms_size * sizeof(CodeUnitT)));
 
             Span<CodeUnitT> right_syms = other.data_->symbols();
@@ -1340,7 +1342,7 @@ private:
     }
 
 
-    using FindResult = typename SumIndexT::WalkerBase;
+    using FindResult = typename SumIndexSO::FindResult;
 
     struct SelectFwEqFn {
         FindResult index_fn(const SumIndexSO& index, SeqSizeT rank, SymbolT symbol) const {
@@ -1558,6 +1560,7 @@ private:
         meta->add_size(count_symbols(runs));
 
         MEMORIA_TRY_VOID(reindex());
+
         return SizeTResult::of(size_t{});
     }
 
@@ -1657,11 +1660,20 @@ private:
         size_t unit_pos;
         SeqSizeT sum;
 
-        if (data_->has_index()) {
+        if (data_->has_size_index()) {
             SizeIndexSO index = size_index();
             auto res = index.find_gt(0, pos);
-            unit_pos = res.local_pos() * AtomsPerBlock;
-            sum = res.prefix();
+
+            if (res.local_pos() < index.size())
+            {
+                unit_pos = res.local_pos() * AtomsPerBlock;
+                sum = res.prefix();
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR(
+                    "SSRLESequence index: position {} is out of index rage: {}", pos, index.sum(0)
+                ).do_throw();
+            }
         }
         else {
             unit_pos = 0;
@@ -1671,7 +1683,7 @@ private:
         auto ii = iterator(unit_pos);
 
         SymbolsRunT tgt;
-        ii.do_while([&](const SymbolsRunT& run){
+        ii.do_while([&](const SymbolsRunT& run) {
             SeqSizeT size = run.full_run_length();
             if (pos < sum + size) {
                 tgt = run;
@@ -1778,7 +1790,7 @@ private:
     {
         if (symbol_pos < meta->size())
         {
-            if (!data_->has_index())
+            if (!data_->has_size_index())
             {
                 return locate_run(meta, 0, symbol_pos, 0);
             }

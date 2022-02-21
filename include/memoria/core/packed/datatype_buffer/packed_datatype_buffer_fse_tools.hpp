@@ -30,7 +30,7 @@ class PDTDimension<const T*, PkdStruct, Dimension, DataBlock, Blocks, Dimensions
     using TPtr = const T*;
 
 public:
-    static constexpr size_t Width   = 1;
+    static constexpr size_t Width = 1;
 
     constexpr PDTDimension(PkdStruct* pkd_buf, size_t column):
         pkd_buf_(pkd_buf),
@@ -189,7 +189,7 @@ public:
 
     template <typename Metadata>
     static void init_metadata(Metadata& metadata, size_t column) {
-        metadata.data_size(column, Dimension) = 0;
+
     }
 
     template <typename SerializationData, typename Metadata>

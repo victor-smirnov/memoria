@@ -366,7 +366,7 @@ public:
     }
 
     template <typename T>
-    Result<T*> allocate_empty(size_t idx)
+    Result<T*> allocate_empty(size_t idx, bool do_init = true)
     {
         using ResultT = Result<T*>;
 
@@ -379,7 +379,9 @@ public:
 
         T* object = block.cast<T>();
 
-        MEMORIA_TRY_VOID(object->init());
+        if (do_init) {
+            MEMORIA_TRY_VOID(object->init());
+        }
 
         return ResultT::of(object);
     }
@@ -522,10 +524,13 @@ public:
     VoidResult free(size_t idx)
     {
         size_t size = element_size(idx);
-        move_elements_down(idx + 1, size);
+        if (size > 0)
+        {
+            move_elements_down(idx + 1, size);
 
-        if (allocatable_.allocator_offset() > 0) {
-            MEMORIA_TRY_VOID(pack());
+            if (allocatable_.allocator_offset() > 0) {
+                MEMORIA_TRY_VOID(pack());
+            }
         }
 
         return VoidResult::of();
@@ -722,6 +727,16 @@ public:
 
     constexpr static size_t my_size()  {
         return sizeof(MyType);
+    }
+
+
+    void print_layout() const
+    {
+        println("Packed allocator layout: {} {} {}", layout_size_/4, bitmap_size_, block_size_);
+        for (size_t c = 0; c < layout_size_/4; c++) {
+            AllocationBlockConst block = describe(c);
+            println("\tblock: {} :: {} :: {}", c, block.offset(), block.size());
+        }
     }
 
 private:

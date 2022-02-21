@@ -469,7 +469,7 @@ struct DTBufferPrintHelper<UTinyInt, T, 1> {
         const auto& meta = buffer->data()->metadata();
 
         handler->as_uint8_array("VALUES", meta.size(), [&](size_t idx) -> uint8_t {
-            return buffer->access(idx);
+            return buffer->access(0, idx);
         });
     }
 };

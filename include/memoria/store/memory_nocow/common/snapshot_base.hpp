@@ -844,7 +844,7 @@ public:
         return allocate_system<uint8_t>(size).release();
     }
 
-    virtual void freeMemory(void* ptr)  {
+    virtual void freeMemory(void* ptr) noexcept {
         free_system(ptr);
     }
 
@@ -1410,7 +1410,7 @@ protected:
     }
 
     void start_no_reentry(const CtrID& ctr_id) {}
-    void finish_no_reentry(const CtrID& ctr_id)  {}
+    void finish_no_reentry(const CtrID& ctr_id) noexcept {}
 };
 
 }}}

@@ -152,7 +152,7 @@ struct IStore: IStoreBase<Profile> {
     virtual void resizeBlock(Shared* block, int32_t new_size) = 0;
     virtual void releaseBlock(Shared* block) noexcept = 0;
 
-    virtual ObjectPools& object_pools() const noexcept = 0;
+    virtual ObjectPools& object_pools() const = 0;
 };
 
 

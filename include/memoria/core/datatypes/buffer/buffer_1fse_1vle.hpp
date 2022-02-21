@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <memoria/core/iovector/io_substream_base.hpp>
 #include <memoria/core/datatypes/buffer/buffer_common.hpp>
 
 namespace memoria {

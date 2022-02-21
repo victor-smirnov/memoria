@@ -119,11 +119,11 @@ public:
     using SumValueT  = SeqSizeT;
     using SizeValueT = SeqSizeT;
 
-    using SumIndex  = PkdFQTreeT<SumValueT, AlphabetSize>;
-    using SizeIndex = PkdFQTreeT<SizeValueT, 1>;
+//    using SumIndex  = PkdFQTreeT<SumValueT, AlphabetSize>;
+//    using SizeIndex = PkdFQTreeT<SizeValueT, 1>;
 
-//    using SumIndex    = PackedDataTypeBufferT<SumValueT, true, AlphabetSize, DTOrdering::SUM>;
-//    using SizeIndex   = PackedDataTypeBufferT<SizeValueT, true, 1, DTOrdering::SUM>;
+    using SumIndex    = PackedDataTypeBufferT<SumValueT, true, AlphabetSize, DTOrdering::SUM>;
+    using SizeIndex   = PackedDataTypeBufferT<SizeValueT, true, 1, DTOrdering::SUM>;
 
     using SumIndexSO  = typename SumIndex::SparseObject;
     using SizeIndexSO = typename SizeIndex::SparseObject;
@@ -180,12 +180,20 @@ public:
         return Base::template get<Metadata>(METADATA);
     }
 
+    bool has_sum_index() const noexcept {
+        return element_size(SUM_INDEX) > 0;
+    }
+
     SumIndex* sum_index() noexcept {
         return Base::template get<SumIndex>(SUM_INDEX);
     }
 
     const SumIndex* sum_index() const noexcept {
         return Base::template get<SumIndex>(SUM_INDEX);
+    }
+
+    bool has_size_index() const noexcept {
+        return element_size(SIZE_INDEX) > 0;
     }
 
     SizeIndex* size_index() noexcept {
@@ -217,7 +225,7 @@ public:
     }
 
     bool has_index() const noexcept {
-        return Base::element_size(SIZE_INDEX) > 0;
+        return has_size_index() && has_sum_index();
     }
 
     Tools tools() const noexcept {
@@ -261,15 +269,15 @@ public:
                     symbols_block_capacity
         );
 
-        size_t index_size          = number_of_indexes(symbols_block_capacity_aligned);
+        //size_t index_size          = number_of_indexes(symbols_block_capacity_aligned);
 
-        size_t size_index_length   = index_size > 0 ? SizeIndex::block_size(index_size) : 0;
-        size_t sum_index_length    = index_size > 0 ? SumIndex::block_size(index_size) : 0;
+        //size_t size_index_length   = index_size > 0 ? SizeIndex::block_size(index_size) : 0;
+        //size_t sum_index_length    = index_size > 0 ? SumIndex::block_size(index_size) : 0;
 
         size_t block_size          = Base::block_size(
                     metadata_length
-                    + size_index_length
-                    + sum_index_length
+                    //+ size_index_length
+                    //+ sum_index_length
                     + symbols_block_capacity_aligned,
                     TOTAL_SEGMENTS_);
 
@@ -362,22 +370,10 @@ public:
     }
 
 
-    VoidResult createIndex(size_t index_size)
+    VoidResult createIndex()
     {
-        size_t size_index_block_size = SizeIndex::block_size(index_size);
-        MEMORIA_TRY_VOID(Base::resize_block(SIZE_INDEX, size_index_block_size));
-
-        size_t sum_index_block_size = SumIndex::block_size(index_size);
-        MEMORIA_TRY_VOID(Base::resize_block(SUM_INDEX, sum_index_block_size));
-
-        auto size_index = this->size_index();
-        size_index->allocatable().set_allocator_offset(this);
-        MEMORIA_TRY_VOID(size_index->init(index_size));
-
-        auto sum_index = this->sum_index();
-        sum_index->allocatable().set_allocator_offset(this);
-        MEMORIA_TRY_VOID(sum_index->init(index_size));
-
+        MEMORIA_TRY_VOID(allocate_empty<SizeIndex>(SIZE_INDEX));
+        MEMORIA_TRY_VOID(allocate_empty<SumIndex>(SUM_INDEX));
         return VoidResult::of();
     }
 
@@ -445,8 +441,11 @@ public:
         FieldFactory<SeqSizeT>::serialize(buf, meta->size());
         FieldFactory<uint64_t>::serialize(buf, meta->code_units());
 
-        if (has_index()){
+        if (has_size_index()){
             size_index()->serialize(buf);
+        }
+
+        if (has_sum_index()){
             sum_index()->serialize(buf);
         }
 
@@ -464,8 +463,11 @@ public:
         FieldFactory<SeqSizeT>::deserialize(buf, meta->size_mut());
         FieldFactory<uint64_t>::deserialize(buf, meta->code_units_mut());
 
-        if (has_index()) {
+        if (has_size_index()) {
             size_index()->deserialize(buf);
+        }
+
+        if (has_sum_index()) {
             sum_index()->deserialize(buf);
         }
 

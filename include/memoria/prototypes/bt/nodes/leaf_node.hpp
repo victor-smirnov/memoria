@@ -112,7 +112,7 @@ public:
     {
         Base::template serialize<RootMetadataList>(buf);
 
-        return Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf).get_or_throw();
+        return Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
     }
 
     struct CowSerializeFn {

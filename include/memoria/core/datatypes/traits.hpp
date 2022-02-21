@@ -355,35 +355,35 @@ struct DataTypeTraits<Boolean>: FixedSizeDataTypeTraits<bool, Boolean, uint8_t> 
 
 
 template <>
-struct DataTypeTraits<int32_t>: ArithmeticMinimalDataTypeTraits<int32_t, Integer> {};
+struct DataTypeTraits<int32_t>: ArithmeticFixedSizeDataTypeTraits<int32_t, Integer> {};
 
 template <>
-struct DataTypeTraits<int64_t>: ArithmeticMinimalDataTypeTraits<int64_t, int64_t> {};
+struct DataTypeTraits<int64_t>: ArithmeticFixedSizeDataTypeTraits<int64_t, int64_t> {};
 
 template <>
-struct DataTypeTraits<uint64_t>: ArithmeticMinimalDataTypeTraits<uint64_t, uint64_t> {};
+struct DataTypeTraits<uint64_t>: ArithmeticFixedSizeDataTypeTraits<uint64_t, uint64_t> {};
 
 
 #ifdef MMA_HAS_INT128
 template <>
-struct DataTypeTraits<UInt128T>: ArithmeticMinimalDataTypeTraits<UInt128T, UInt128T> {};
+struct DataTypeTraits<UInt128T>: ArithmeticFixedSizeDataTypeTraits<UInt128T, UInt128T> {};
 
 template <>
-struct DataTypeTraits<Int128T>: ArithmeticMinimalDataTypeTraits<Int128T, Int128T> {};
+struct DataTypeTraits<Int128T>: ArithmeticFixedSizeDataTypeTraits<Int128T, Int128T> {};
 #endif
 
 
 template <>
-struct DataTypeTraits<UAcc64T>: ArithmeticMinimalDataTypeTraits<UAcc64T, UAcc64T> {};
+struct DataTypeTraits<UAcc64T>: ArithmeticFixedSizeDataTypeTraits<UAcc64T, UAcc64T> {};
 
 template <>
-struct DataTypeTraits<UAcc128T>: ArithmeticMinimalDataTypeTraits<UAcc128T, UAcc128T> {};
+struct DataTypeTraits<UAcc128T>: ArithmeticFixedSizeDataTypeTraits<UAcc128T, UAcc128T> {};
 
 template <>
-struct DataTypeTraits<UAcc192T>: ArithmeticMinimalDataTypeTraits<UAcc192T, UAcc192T> {};
+struct DataTypeTraits<UAcc192T>: ArithmeticFixedSizeDataTypeTraits<UAcc192T, UAcc192T> {};
 
 template <>
-struct DataTypeTraits<UAcc256T>: ArithmeticMinimalDataTypeTraits<UAcc256T, UAcc256T> {};
+struct DataTypeTraits<UAcc256T>: ArithmeticFixedSizeDataTypeTraits<UAcc256T, UAcc256T> {};
 
 template <>
 struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>

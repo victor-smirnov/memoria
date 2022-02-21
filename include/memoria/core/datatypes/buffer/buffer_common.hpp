@@ -25,8 +25,6 @@
 
 #include <memoria/core/tools/vle_arena_buffer.hpp>
 
-#include <memoria/core/iovector/io_substream_base.hpp>
-
 #include <boost/any.hpp>
 
 #include <type_traits>

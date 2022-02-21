@@ -118,12 +118,15 @@ public:
 
     SeqPtr make_sequence(Span<const SymbolsRunT> span, size_t capacity_multiplier = 1) const
     {
-        size_t num_atoms = RunTraits::compute_size(span);
+        size_t num_atoms = 128*1024*1024; //RunTraits::compute_size(span);
 
-        SeqPtr ptr = make_empty_sequence(num_atoms * sizeof(CodeUnitT) * capacity_multiplier);
+        //SeqPtr ptr = make_empty_sequence(num_atoms * sizeof(CodeUnitT) * capacity_multiplier);
+        SeqPtr ptr = make_empty_sequence(num_atoms);
         SeqSO seq = get_so(ptr);
 
         seq.append(span).get_or_throw();
+
+        seq.check();
 
         return ptr;
     }
