@@ -125,6 +125,7 @@ public:
         SeqSO seq = get_so(ptr);
 
         seq.append(span).get_or_throw();
+        seq.reindex().get_or_throw();
 
         seq.check();
 

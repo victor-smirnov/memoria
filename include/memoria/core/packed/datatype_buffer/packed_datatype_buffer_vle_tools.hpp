@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -185,8 +185,6 @@ public:
 
         shift_offsets_right(start + extra_size, offsets_size + extra_size, extra_data_length);
 
-//        meta.data_size(column_, Dimension) += extra_data_length;
-
         return VoidResult::of();
     }
 
@@ -212,7 +210,6 @@ public:
         MemMoveBuffer(offsets + room_end, offsets + room_start, offsets_size - room_end);
         MemMoveBuffer(data + data_end, data + data_start, data_size - data_end);
 
-        //meta.data_size(column_, Dimension) -= data_length;
         data_size -= data_length;
 
         size_t new_offsets_length = (meta.offsets_size() - size) * sizeof(DataSizeType);
@@ -252,8 +249,6 @@ public:
 
             size_t offsets_size = meta.offsets_size();
             shift_offsets_right(idx + 1, offsets_size, size_delta);
-
-            //meta.data_size(column_, Dimension) += size_delta;
         }
         else if (current_value_size > new_value_size)
         {
@@ -274,8 +269,6 @@ public:
             size_t column_data_length = data_size - size_delta;
 
             MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length));
-
-            //meta.data_size(column_, Dimension) -= size_delta;
         }
 
         return VoidResult::of();

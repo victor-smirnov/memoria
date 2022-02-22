@@ -99,9 +99,22 @@ public:
     }
 
     size_t free_space() const  {
-        size_t client_area = this->client_area();
-        size_t allocated = this->allocated();
+        size_t client_area  = this->client_area();
+        size_t allocated    = this->allocated();
         return client_area - allocated;
+    }
+
+    size_t total_free_space() const
+    {
+        size_t space {};
+        if (allocatable_.allocator_offset()) {
+            const Allocator* alloc = allocatable_.allocator();
+            space = alloc->total_free_space();
+        }
+
+        space += free_space();
+
+        return space;
     }
 
     size_t elements() const  {
@@ -205,7 +218,7 @@ public:
             size_t free_space = this->free_space();
             if (delta > free_space)
             {
-                MEMORIA_TRY_VOID(enlarge(delta));
+                MEMORIA_TRY_VOID(enlarge(delta - free_space));
             }
 
             move_elements_up(idx + 1, delta);
@@ -215,7 +228,7 @@ public:
             size_t delta = size - allocation_size;
             move_elements_down(idx + 1, delta);
 
-            if (allocatable_.allocator_offset() > 0)
+            if (allocatable_.allocator_offset())
             {
                 MEMORIA_TRY_VOID(pack());
             }
@@ -240,7 +253,7 @@ public:
                 {
                     Allocator* alloc = allocatable_.allocator();
                     size_t my_idx = find_element(this);
-                    return alloc->try_allocation(my_idx, delta);
+                    return alloc->try_allocation(my_idx, delta - free_space);
                 }
                 else {
                     return false;
@@ -469,15 +482,9 @@ public:
         using ResultT = Result<AllocationBlock>;
         size_t allocation_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(size);
 
-        int free_space_v = free_space();
-        if (allocation_size > free_space_v)
-        {
-            MEMORIA_TRY_VOID(enlarge(allocation_size - free_space_v));
-        }
-
-        move_elements_up(idx + 1, allocation_size);
-
         set_block_type(idx, type);
+
+        MEMORIA_TRY_VOID(resize_block(idx, allocation_size));
 
         size_t offset = element_offset(idx);
 

@@ -51,6 +51,7 @@ public:
     static constexpr size_t Columns     = Columns_;
     static constexpr size_t Indexes     = Indexed ? Columns : 0;
     static constexpr DTOrdering Ordering = Ordering_;
+    static constexpr size_t IndexSpan   = 32;
 
     static constexpr bool HasIndex =
             Ordering == DTOrdering::SUM && DataTypeTraits<DataType>::isArithmetic;
@@ -72,7 +73,6 @@ public:
     using DataDimensionsStructs = typename pdtbuf_::DimensionsListBuilder<
         DataDimenstionsList,
         PackedDataTypeBuffer,
-
         DimensionsBlocksTotal,
         LAST_HEADER_BLOCK_
     >::Type;
@@ -91,8 +91,6 @@ public:
     class Metadata {
         psize_t size_;
         psize_t flags_;
-
-        //psize_t data_size_[Columns * Dimensions];
     public:
 
         size_t size() const {return size_;}
@@ -115,19 +113,6 @@ public:
         void sub_size(size_t val) {
             size_ -= val;
         }
-
-        //psize_t* data_size() {return data_size_;}
-
-
-        //const psize_t* data_size() const {return data_size_;}
-
-        //psize_t& data_size(size_t column, size_t dimension) {
-        //    return data_size_[column * Dimensions + dimension];
-//        }
-
-//        const psize_t& data_size(size_t column, size_t dimension) const {
-//            return data_size_[column * Dimensions + dimension];
-//        }
     };
 
 public:
@@ -193,13 +178,18 @@ public:
 
     static size_t packed_block_size(size_t capacity)
     {
-        size_t aligned_data_size{};
+        size_t index_size{};
+        if (capacity > IndexSpan) {
+            size_t index_capacity = div_up(capacity, IndexSpan);
+            index_size = packed_block_size(index_capacity);
+        }
 
+        size_t aligned_data_size{};
         for_each_dimension([&](auto idx){
             aligned_data_size += Dimension<idx>::data_block_size(capacity);
         });
 
-        return base_size(aligned_data_size * Columns);
+        return base_size(aligned_data_size * Columns + index_size);
     }
 
     VoidResult init_bs(size_t) {
@@ -352,11 +342,11 @@ struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataTyp
     using AccumType = DTTViewType<SearchKeyDataType>;
     using SearchKeyType = DTTViewType<SearchKeyDataType>;
 
-//    static constexpr PackedDataTypeSize DataTypeSize = pdtbuf_::BufferSizeTypeSelector<
-//        typename DataTypeTraits<DataType>::DataDimensionsList
-//    >::DataTypeSize;
+    static constexpr PackedDataTypeSize DataTypeSize = pdtbuf_::BufferSizeTypeSelector<
+        typename DataTypeTraits<DataType>::DataDimensionsList
+    >::DataTypeSize;
 
-    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
+//    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
     static constexpr size_t Blocks = Columns;

@@ -1559,8 +1559,6 @@ private:
         meta->sub_size(run_len0);
         meta->add_size(count_symbols(runs));
 
-        MEMORIA_TRY_VOID(reindex());
-
         return SizeTResult::of(size_t{});
     }
 

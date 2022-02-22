@@ -241,7 +241,7 @@ public:
     PkdStruct* data()  {return data_;}
 
     constexpr static size_t index_span() {
-        return 256/8;
+        return PkdStruct::IndexSpan;
     }
 
     MyType index() const {

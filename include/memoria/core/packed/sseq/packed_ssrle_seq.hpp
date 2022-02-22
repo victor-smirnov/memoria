@@ -119,9 +119,6 @@ public:
     using SumValueT  = SeqSizeT;
     using SizeValueT = SeqSizeT;
 
-//    using SumIndex  = PkdFQTreeT<SumValueT, AlphabetSize>;
-//    using SizeIndex = PkdFQTreeT<SizeValueT, 1>;
-
     using SumIndex    = PackedDataTypeBufferT<SumValueT, true, AlphabetSize, DTOrdering::SUM>;
     using SizeIndex   = PackedDataTypeBufferT<SizeValueT, true, 1, DTOrdering::SUM>;
 
@@ -131,6 +128,7 @@ public:
     class Metadata {
         SeqSizeT size_;
         uint64_t code_units_;
+        psize_t flags_;
     public:
         const SeqSizeT& size() const        {return size_;}
         void set_size(const SeqSizeT& val)  {size_ = val;}
@@ -141,8 +139,14 @@ public:
         const uint64_t& code_units() const  {return code_units_;}
         void set_code_units(uint64_t val)   {code_units_ = val;}
 
+        psize_t flags() const {return flags_;}
+        void set_flags(psize_t flags) {flags_ = flags;}
+
         SeqSizeT& size_mut()        {return size_;}
         uint64_t& code_units_mut()  {return code_units_;}
+
+        const psize_t& flags_imm() const  {return flags_;}
+        psize_t& flags_mut()        {return flags_;}
     };
 
     struct Tools {};
@@ -263,21 +267,26 @@ public:
 
     static size_t block_size(size_t symbols_block_capacity)
     {
-        size_t metadata_length     = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
+        size_t metadata_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
 
         size_t symbols_block_capacity_aligned = PackedAllocatable::round_up_bytes_to_alignment_blocks(
                     symbols_block_capacity
         );
 
-        //size_t index_size          = number_of_indexes(symbols_block_capacity_aligned);
+        size_t index_size = number_of_indexes(symbols_block_capacity_aligned);
 
-        //size_t size_index_length   = index_size > 0 ? SizeIndex::block_size(index_size) : 0;
-        //size_t sum_index_length    = index_size > 0 ? SumIndex::block_size(index_size) : 0;
+        size_t size_index_length{};
+        size_t sum_index_length{};
+
+        if (index_size > 0) {
+            size_index_length   = SizeIndex::packed_block_size(index_size);
+            sum_index_length    = SumIndex::packed_block_size(index_size);
+        }
 
         size_t block_size          = Base::block_size(
                     metadata_length
-                    //+ size_index_length
-                    //+ sum_index_length
+                    + size_index_length
+                    + sum_index_length
                     + symbols_block_capacity_aligned,
                     TOTAL_SEGMENTS_);
 
@@ -370,13 +379,11 @@ public:
     }
 
 
-    VoidResult createIndex()
-    {
+    VoidResult createIndex(size_t capacity) {
         MEMORIA_TRY_VOID(allocate_empty<SizeIndex>(SIZE_INDEX));
         MEMORIA_TRY_VOID(allocate_empty<SumIndex>(SUM_INDEX));
         return VoidResult::of();
     }
-
 
     // ========================================= Update ================================= //
 
@@ -388,8 +395,7 @@ public:
     {
         size_t current_capacity = this->symbols_block_capacity();
 
-        if (current_capacity < capacity)
-        {
+        if (current_capacity < capacity) {
             return enlargeData(capacity - current_capacity);
         }
 
@@ -411,21 +417,6 @@ public:
     }
 
 
-private:
-
-
-
-
-
-public:
-
-
-
-
-
-private:
-
-
 public:
 
 
@@ -440,6 +431,7 @@ public:
 
         FieldFactory<SeqSizeT>::serialize(buf, meta->size());
         FieldFactory<uint64_t>::serialize(buf, meta->code_units());
+        FieldFactory<psize_t>::serialize(buf, meta->flags_imm());
 
         if (has_size_index()){
             size_index()->serialize(buf);
@@ -462,6 +454,7 @@ public:
 
         FieldFactory<SeqSizeT>::deserialize(buf, meta->size_mut());
         FieldFactory<uint64_t>::deserialize(buf, meta->code_units_mut());
+        FieldFactory<psize_t>::deserialize(buf, meta->flags_mut());
 
         if (has_size_index()) {
             size_index()->deserialize(buf);

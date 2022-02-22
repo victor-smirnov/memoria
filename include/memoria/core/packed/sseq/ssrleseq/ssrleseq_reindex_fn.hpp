@@ -79,8 +79,6 @@ public:
 
         if (symbols_block_size_atoms > AtomsPerBlock)
         {
-            //size_t symbols_blocks = seq.data()->div_up(symbols_block_size_atoms, AtomsPerBlock);
-
             std::vector<DataTypeBuffer<SumDataType>> sums_bufs(AlphabetSize);
             DataTypeBuffer<SizeDataType> sizes_buf;
 
@@ -143,7 +141,7 @@ public:
                 push_indexes();
             }
 
-            MEMORIA_TRY_VOID(seq.data()->createIndex());
+            MEMORIA_TRY_VOID(seq.data()->createIndex(sizes_buf.size()));
 
             auto r1 = seq.size_index().insert_from_fn(0, sizes_buf.size(), [&](size_t, size_t row){
                 return sizes_buf[row];
@@ -155,11 +153,7 @@ public:
                 return sums_bufs[column][row];
             });
             MEMORIA_RETURN_IF_ERROR(r0);
-
-
             return seq.sum_index().reindex();
-
-            //return VoidResult::of();
         }
         else {
             return seq.data()->removeIndex();
