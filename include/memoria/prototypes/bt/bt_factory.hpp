@@ -22,8 +22,6 @@
 
 #include <memoria/core/packed/packed.hpp>
 
-#include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
-
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
 #include <memoria/prototypes/bt/bt_names.hpp>

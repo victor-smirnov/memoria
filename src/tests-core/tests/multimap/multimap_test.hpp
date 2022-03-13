@@ -251,10 +251,6 @@ public:
             bool inserted = ctr->upsert(key, values);
             assert_equals(false, inserted, "Upsert");
 
-            if (DebugCounter) {
-                ctr->iterator()->dumpPath();
-            }
-
             bool contains = ctr->contains(key);
             assert_equals(true, contains, "Contains");
 

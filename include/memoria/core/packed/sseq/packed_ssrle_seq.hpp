@@ -29,7 +29,6 @@
 #include <memoria/core/packed/sseq/packed_ssrle_seq_so.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
-#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
 
 #include <memoria/core/integer/accumulator_common.hpp>

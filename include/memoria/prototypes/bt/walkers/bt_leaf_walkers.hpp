@@ -31,7 +31,7 @@ template <
 class LeafWalkerBase {
 protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
-    typedef typename Types::IteratorBranchNodeEntry                                 IteratorBranchNodeEntry;
+    typedef typename Types::IteratorBranchNodeEntry                             IteratorBranchNodeEntry;
     typedef typename Types::LeafStreamsStructList                               LeafStructList;
     typedef typename Types::LeafRangeList                                       LeafRangeList;
     typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
@@ -40,7 +40,7 @@ protected:
 
     static const int32_t Streams                                                = Types::Streams;
 
-    StaticVector<CtrSizeT, Streams> branch_size_prefix_;
+    core::StaticVector<CtrSizeT, Streams> branch_size_prefix_;
 
     IteratorBranchNodeEntry branch_prefix_;
     IteratorBranchNodeEntry leaf_prefix_;
@@ -154,11 +154,11 @@ public:
         return leaf_prefix_;
     }
 
-    const StaticVector<CtrSizeT, Streams>& branch_size_prefix() const {
+    const core::StaticVector<CtrSizeT, Streams>& branch_size_prefix() const {
         return branch_size_prefix_;
     }
 
-    StaticVector<CtrSizeT, Streams>& branch_size_prefix() {
+    core::StaticVector<CtrSizeT, Streams>& branch_size_prefix() {
         return branch_size_prefix_;
     }
 
