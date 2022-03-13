@@ -112,21 +112,16 @@ public:
         if (start < size)
         {
             MEMORIA_ASSERT(tree.size(), ==, sizes_substream.size());
-
-            auto tree_iter  = tree.iterator(index, start);
-            auto sizes_iter = sizes_substream.iterator(0, start);
-
             for (int32_t c = start; c < size; c++)
             {
-                sizes_iter.next();
-                tree_iter.next();
+                auto v1 = tree.access(index, c);
+                auto v2 = sizes_substream.access(0, c);
 
-                if (tree_iter.value() != sizes_iter.value())
-                {
+                if (v1 != v2){
                     return StreamOpResult(c, start, false, false);
                 }
                 else {
-                    sum_ += sizes_iter.value();
+                    sum_ += v2;
                 }
             }
 

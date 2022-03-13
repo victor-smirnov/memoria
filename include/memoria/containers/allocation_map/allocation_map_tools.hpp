@@ -48,14 +48,7 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
     //FIXME: Extend KeyType to contain enough space to represent practically large sums
     //Should be done systematically on the level of BT
 
-    using Type = PkdFQTreeT<KeyType, Indexes>;
-
-//    using Type = IfThenElse <
-//            DTTIsNDFixedSize<KeyType>,
-//            PkdFQTreeT<KeyType, Indexes>,
-//            PkdVQTreeT<KeyType, Indexes>
-//    >;
-
+    using Type = PackedDataTypeBufferT<KeyType, true, Indexes, DTOrdering::SUM>;
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
 

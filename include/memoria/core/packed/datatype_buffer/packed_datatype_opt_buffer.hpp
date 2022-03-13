@@ -20,7 +20,7 @@
 #include <memoria/core/tools/accessors.hpp>
 
 
-#include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/sseq/packed_ssrle_seq.hpp>
 
 #include <memoria/core/packed/datatype_buffer/packed_datatype_opt_buffer_so.hpp>
 #include <memoria/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
@@ -54,7 +54,7 @@ public:
     static constexpr size_t Indexes = Indexed ? Columns : 0;
 
     using Array     = PackedDataTypeBufferT<DataType, Indexed, Columns, Ordering>;
-    using Bitmap    = PkdFSSeq<typename PkdFSSeqTF<1>::Type>;
+    using Bitmap    = PkdSSRLESeqT<2, 256, true> ;//  PkdFSSeq<typename PkdFSSeqTF<1>::Type>;
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
@@ -110,7 +110,7 @@ public:
 
     static size_t block_size(size_t capacity)
     {
-        return Bitmap::packed_block_size(capacity) + Array::empty_size();
+        return Bitmap::block_size(capacity) + Array::empty_size();
     }
 
     size_t block_size(const MyType* other) const
@@ -123,7 +123,7 @@ public:
         size_t capacity = 0;
         MEMORIA_TRY_VOID(Base::init(block_size(capacity), STRUCTS_NUM__));
 
-        size_t bitmap_block_size = Bitmap::packed_block_size(capacity);
+        size_t bitmap_block_size = Bitmap::block_size(capacity);
 
         MEMORIA_TRY(bitmap, allocate_space<Bitmap>(BITMAP, bitmap_block_size));
 
@@ -140,215 +140,6 @@ public:
     }
 
 
-    const Value value(size_t block, size_t idx) const
-    {
-        const Bitmap* bitmap = this->bitmap();
-
-        if (bitmap->symbol(idx) == 1)
-        {
-            size_t array_idx = this->array_idx(bitmap, idx);
-            return array()->value(block, array_idx);
-        }
-        else {
-            return Value();
-        }
-    }
-
-    Values get_values(size_t idx) const
-    {
-        Values v;
-
-        auto bitmap = this->bitmap();
-
-        if (bitmap->symbol(idx) == 1)
-        {
-            auto array = this->array();
-            size_t array_idx = this->array_idx(idx);
-
-            OptionalAssignmentHelper(v, array->get_values(array_idx));
-        }
-
-        return v;
-    }
-
-
-    template <typename T>
-    VoidResult setValues(size_t idx, const core::StaticVector<T, Columns>& values)
-    {
-        Bitmap* bitmap   = this->bitmap();
-        Array* array     = this->array();
-
-        if (values[0].is_set())
-        {
-            auto array_values  = this->array_values(values);
-            size_t array_idx  = this->array_idx(idx);
-
-            if (bitmap->symbol(idx))
-            {
-                MEMORIA_TRY_VOID(array->setValues(array_idx, array_values));
-            }
-            else {
-                MEMORIA_TRY_VOID(array->insert(array_idx, array_values));
-
-                bitmap->symbol(idx) = 1;
-
-                MEMORIA_TRY_VOID(bitmap->reindex());
-            }
-        }
-        else {
-            size_t array_idx = this->array_idx(idx);
-
-            if (bitmap->symbol(idx))
-            {
-                MEMORIA_TRY_VOID(array->remove(array_idx, array_idx + 1));
-
-                bitmap->symbol(idx) = 0;
-                MEMORIA_TRY_VOID(bitmap->reindex());
-            }
-            else {
-                // Do nothing
-            }
-        }
-
-        return VoidResult::of();
-    }
-
-
-    template <typename T>
-    auto findGTForward(size_t block, const T& val) const
-    {
-        auto result = array()->find_gt(block, val);
-
-        result.set_idx(global_idx(result.local_pos()));
-
-        return result;
-    }
-
-    template <typename T>
-    auto findGTForward(size_t block, const Optional<T>& val) const
-    {
-        auto result = array()->find_gt(block, val.get());
-
-        result.set_idx(global_idx(result.local_pos()));
-
-        return result;
-    }
-
-    template <typename T>
-    auto findGEForward(size_t block, const T& val) const
-    {
-        auto result = array()->find_ge(block, val.value());
-
-        result.set_idx(global_idx(result.local_pos()));
-
-        return result;
-    }
-
-    template <typename T>
-    auto findForward(SearchType search_type, size_t block, const T& val) const
-    {
-        auto result = array()->findForward(search_type, block, val);
-
-        result.set_idx(global_idx(result.local_pos()));
-
-        return result;
-    }
-
-    template <typename T>
-    auto findForward(SearchType search_type, size_t block, const Optional<T>& val) const
-    {
-        auto result = array()->findForward(search_type, block, val.get());
-
-        result.set_idx(global_idx(result.local_pos()));
-
-        return result;
-    }
-
-
-    template <typename T>
-    auto findBackward(SearchType search_type, size_t block, const T& val) const
-    {
-        auto result = array()->findBackward(search_type, block, val);
-
-        result.set_idx(global_idx(result.local_pos()));
-
-        return result;
-    }
-
-    template <typename T>
-    auto findBackward(SearchType search_type, size_t block, const Optional<T>& val) const
-    {
-        auto result = array()->findBackward(search_type, block, val.get());
-
-        result.set_idx(global_idx(result.local_pos()));
-
-        return result;
-    }
-
-
-
-    VoidResult reindex()
-    {
-        MEMORIA_TRY_VOID(bitmap()->reindex());
-        return array()->reindex();
-    }
-
-
-    VoidResult splitTo(MyType* other, size_t idx)
-    {
-        Bitmap* bitmap = this->bitmap();
-
-        size_t array_idx = this->array_idx(bitmap, idx);
-
-        MEMORIA_TRY_VOID(bitmap->splitTo(other->bitmap(), idx));
-
-        MEMORIA_TRY_VOID(array()->splitTo(other->array(), array_idx));
-
-        return reindex();
-    }
-
-    VoidResult mergeWith(MyType* other) const
-    {
-        MEMORIA_TRY_VOID(bitmap()->mergeWith(other->bitmap()));
-        return array()->mergeWith(other->array());
-    }
-
-    VoidResult removeSpace(size_t start, size_t end)
-    {
-        return remove(start, end);
-    }
-
-    VoidResult remove(size_t start, size_t end)
-    {
-        Bitmap* bitmap = this->bitmap();
-
-        size_t array_start = array_idx(bitmap, start);
-        size_t array_end = array_idx(bitmap, end);
-
-        MEMORIA_TRY_VOID(bitmap->remove(start, end));
-
-        return array()->remove(array_start, array_end);
-    }
-
-    template <typename T>
-    VoidResult insert(size_t idx, const core::StaticVector<T, Blocks>& values)
-    {
-        Bitmap* bitmap  = this->bitmap();
-
-        if (values[0].is_set())
-        {
-            MEMORIA_TRY_VOID(bitmap->insert(idx, 1));
-
-            auto array_values  = this->array_values(values);
-            size_t array_idx  = this->array_idx(bitmap, idx);
-
-            Array* array = this->array();
-            return array->insert(array_idx, array_values);
-        }
-        else {
-            return bitmap->insert(idx, 0);
-        }
-    }
 
 
 
@@ -375,41 +166,7 @@ public:
 
 protected:
 
-    template <typename T>
-    core::StaticVector<ArrayValue, Blocks> array_values(const core::StaticVector<Optional<T>, Blocks>& values)
-    {
-        core::StaticVector<ArrayValue, Blocks> tv;
 
-        for (size_t b = 0;  b < Blocks; b++)
-        {
-            tv[b] = values[b].get();
-        }
-
-        return tv;
-    }
-
-    size_t array_idx(size_t global_idx) const
-    {
-        return array_idx(bitmap(), global_idx);
-    }
-
-    size_t array_idx(const Bitmap* bitmap, size_t global_idx) const
-    {
-        size_t rank = bitmap->rank(global_idx, 1);
-        return rank;
-    }
-
-
-    size_t global_idx(size_t array_idx) const
-    {
-        return global_idx(bitmap(), array_idx);
-    }
-
-    size_t global_idx(const Bitmap* bitmap, size_t array_idx) const
-    {
-        auto result = bitmap->selectFw(1, array_idx + 1);
-        return result.local_pos();
-    }
 };
 
 template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering>

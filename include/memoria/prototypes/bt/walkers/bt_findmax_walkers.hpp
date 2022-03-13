@@ -140,8 +140,14 @@ public:
         {
             MEMORIA_ASSERT(start, ==, 0);
 
-            auto result = tree.findForward(Base::search_type_, index, Base::target_);
-            return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
+            if (Base::search_type_ == SearchType::GE) {
+                auto result = tree.findGEForward(index, Base::target_);
+                return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
+            }
+            else {
+                auto result = tree.findGTForward(index, Base::target_);
+                return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
+            }
         }
         else {
             return StreamOpResult(size, start, true, true);

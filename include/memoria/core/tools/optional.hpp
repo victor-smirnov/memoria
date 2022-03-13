@@ -24,6 +24,8 @@
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
 
+#include <fmt/format.h>
+
 namespace memoria {
 
 template <typename T>
@@ -35,5 +37,25 @@ struct HasFieldFactory<Optional<T>> : HasFieldFactory<T> {};
 
 template <typename T>
 struct HasValueCodec<Optional<T>> : HasValueCodec<T> {};
+
+}
+
+namespace fmt {
+
+template <typename T>
+struct formatter<memoria::Optional<T>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::Optional<T>& d, FormatContext& ctx) {
+        if (d.is_initialized()) {
+            return formatter<T>().format(d.get(), ctx);
+        }
+        else {
+            return format_to(ctx.out(), "{}", "[EmptyOptional]");
+        }
+    }
+};
+
 
 }

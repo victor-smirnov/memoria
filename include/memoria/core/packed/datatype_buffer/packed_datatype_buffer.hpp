@@ -292,6 +292,10 @@ public:
         FieldFactory<psize_t>::serialize(buf, meta.size0());
         FieldFactory<psize_t>::serialize(buf, meta.flags0());
 
+        if (has_index()) {
+            index()->serialize(buf);
+        }
+
         for (size_t column = 0; column < Columns; column++) {
             return for_each_dimension([&, this](auto idx){
                 return this->dimension<idx>(column).serialize(meta, buf);
@@ -310,6 +314,10 @@ public:
         FieldFactory<psize_t>::serialize(buf, meta.size0());
         FieldFactory<psize_t>::serialize(buf, meta.flags0());
 
+        if (has_index()) {
+            index()->cow_serialize(buf, resolver);
+        }
+
         for (size_t column = 0; column < Columns; column++) {
             return for_each_dimension([&, this](auto idx){
                 return this->dimension<idx>(column).cow_serialize(meta, buf, resolver);
@@ -326,6 +334,10 @@ public:
 
         FieldFactory<psize_t>::deserialize(buf, meta.size0());
         FieldFactory<psize_t>::deserialize(buf, meta.flags0());
+
+        if (has_index()) {
+            index()->deserialize(buf);
+        }
 
         for (size_t column = 0; column < Columns; column++) {
             return for_each_dimension([&, this](auto idx){
@@ -346,9 +358,8 @@ struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataTyp
         typename DataTypeTraits<DataType>::DataDimensionsList
     >::DataTypeSize;
 
-//    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
+    static constexpr PkdSearchType KeySearchType = Ordering == DTOrdering::SUM ? PkdSearchType::SUM : PkdSearchType::MAX;
 
-    static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
     static constexpr size_t Blocks = Columns;
     static constexpr size_t Indexes = Indexed ? Blocks : 0;
 };

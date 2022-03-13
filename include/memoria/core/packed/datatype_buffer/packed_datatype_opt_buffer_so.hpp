@@ -37,21 +37,28 @@ template <typename ExtData, typename PkdStruct>
 class PackedDataTypeOptBufferSO {
 
     PkdStruct* data_;
+    ExtData* ext_data_;
 
-    using ArraySO = typename PkdStruct::Array::SparseObject;
+    using BitmapExtData = std::tuple<>;
 
-    ArraySO array_;
+    BitmapExtData bitmap_ext_data_;
 
     using MyType = PackedDataTypeOptBufferSO;
 
 public:
 
     using Array         = typename PkdStruct::Array;
+    using ArraySO       = typename Array::SparseObject;
+
     using Bitmap        = typename PkdStruct::Bitmap;
+    using BitmapSO      = typename Bitmap::SparseObject;
 
     using ViewType      = typename Array::ViewType;
     using DataType      = typename Array::DataType;
     using FindResult    = typename ArraySO::FindResult;
+    using Value         = typename PkdStruct::Value;
+    using Values        = typename PkdStruct::Values;
+
 
     using PkdStructT = PkdStruct;
 
@@ -59,30 +66,29 @@ public:
     static constexpr size_t Indexes = PkdStruct::Array::Indexes;
 
     PackedDataTypeOptBufferSO() :
-        data_(), array_()
+        data_(), ext_data_()
     {}
 
     PackedDataTypeOptBufferSO(ExtData* ext_data, PkdStruct* data) :
-        data_(data), array_(ext_data, data->array())
+        data_(data), ext_data_(ext_data)
     {}
 
     void setup() {
-        array_.setup();
         data_ = nullptr;
+        ext_data_ = nullptr;
     }
 
     void setup(ExtData* ext_data, PkdStruct* data)
     {
-        array_.setup(ext_data, data->array());
+        ext_data_ = ext_data;
         data_ = data;
     }
 
     void setup(ExtData* ext_data)  {
-        array_.setup(ext_data);
+        ext_data_ = ext_data;
     }
 
     void setup(PkdStruct* data)  {
-        array_.setup(data->array());
         data_ = data;
     }
 
@@ -90,12 +96,27 @@ public:
         return data_ != nullptr;
     }
 
-    const ExtData* ext_data() const  {return array_.ext_data();}
-    ExtData* ext_data()  {return array_.ext_data();}
+    const ExtData* ext_data() const  {return ext_data_;}
+    ExtData* ext_data()  {return ext_data_;}
 
     const PkdStruct* data() const  {return data_;}
     PkdStruct* data()  {return data_;}
 
+    ArraySO array() const {
+        return ArraySO(const_cast<ExtData*>(ext_data_), const_cast<Array*>(data_->array()));
+    }
+
+    ArraySO array() {
+        return ArraySO(ext_data_, data_->array());
+    }
+
+    BitmapSO bitmap() const {
+        return BitmapSO(const_cast<BitmapExtData*>(&bitmap_ext_data_), const_cast<Bitmap*>(data_->bitmap()));
+    }
+
+    BitmapSO bitmap() {
+        return BitmapSO(&bitmap_ext_data_, data_->bitmap());
+    }
 
 
     void generateDataEvents(IBlockDataEventHandler* handler) const
@@ -103,8 +124,8 @@ public:
         handler->startStruct();
         handler->startGroup("DATA_TYPE_OPT_BUFFER");
 
-        data_->bitmap()->generateDataEvents(handler);
-        array_.generateDataEvents(handler);
+        bitmap().generateDataEvents(handler);
+        array().generateDataEvents(handler);
 
         handler->endGroup();
         handler->endStruct();
@@ -112,11 +133,11 @@ public:
 
     void check() const
     {
-        data_->bitmap()->check();
-        array_.check();
+        bitmap().check();
+        array().check();
 
-        auto rnk1 = data_->bitmap()->rank(1);
-        auto array_size = array_.size();
+        auto rnk1 = bitmap().rank_eq(1);
+        auto array_size = array().size();
 
         if (rnk1 != array_size)
         {
@@ -129,25 +150,57 @@ public:
     }
 
     size_t size() const  {
-        return data_->bitmap()->size();
+        return bitmap().size();
     }
 
 
     /*********************** API *********************/
 
     size_t max_element_idx() const  {
-        size_t array_idx = array_.size() - 1;
+        size_t array_idx = array().size() - 1;
         size_t bm_idx = bitmap_idx(array_idx);
         return bm_idx;
     }
 
+    const Value value(size_t block, size_t idx) const
+    {
+        BitmapSO bitmap = this->bitmap();
+
+        if (bitmap.access(idx) == 1)
+        {
+            size_t array_idx = this->array_idx(bitmap, idx);
+            return array()->value(block, array_idx);
+        }
+        else {
+            return Value();
+        }
+    }
+
+    Values get_values(size_t idx) const
+    {
+        Values v;
+
+        auto bitmap = this->bitmap();
+
+        if (bitmap.access(idx) == 1)
+        {
+            auto array = this->array();
+            size_t array_idx = this->array_idx(idx);
+
+            OptionalAssignmentHelper(v, array.get_values(array_idx));
+        }
+
+        return v;
+    }
+
+
     Optional<ViewType> access(size_t column, size_t row) const
     {
-        Bitmap* bitmap = data_->bitmap();
-        if (bitmap->symbol(row))
+        BitmapSO bitmap = this->bitmap();
+        if (bitmap.access(row))
         {
             size_t array_idx  = this->array_idx(row);
-            return array_.access(column, array_idx);
+            return array().access(column, array_idx);
         }
         else {
             return Optional<ViewType>{};
@@ -156,63 +209,39 @@ public:
 
     VoidResult splitTo(MyType& other, size_t idx)
     {
-        Bitmap* bitmap = data_->bitmap();
+        BitmapSO bitmap = this->bitmap();
 
         size_t array_idx = this->array_idx(bitmap, idx);
 
-        MEMORIA_TRY_VOID(bitmap->splitTo(other.data_->bitmap(), idx));
+        BitmapSO other_bitmap = other.bitmap();
+        MEMORIA_TRY_VOID(bitmap.splitTo(other_bitmap, idx));
 
-        refresh_array();
-        other.refresh_array();
-
-        MEMORIA_TRY_VOID(array_.splitTo(other.array_, array_idx));
-
-        refresh_array();
-        other.refresh_array();
+        ArraySO other_array = other.array();
+        MEMORIA_TRY_VOID(array().splitTo(other_array, array_idx));
 
         return reindex();
     }
 
     VoidResult mergeWith(MyType& other) const
     {
-        MEMORIA_TRY_VOID(data_->bitmap()->mergeWith(other.data_->bitmap()));
+        BitmapSO other_bitmap = other.bitmap();
+        MEMORIA_TRY_VOID(bitmap().mergeWith(other_bitmap));
 
-        other.refresh_array();
-
-        return array_.mergeWith(other.array_);
+        ArraySO other_array = other.array();
+        return array().mergeWith(other_array);
     }
 
     VoidResult removeSpace(size_t start, size_t end)
     {
-        Bitmap* bitmap = data_->bitmap();
+        BitmapSO bitmap = this->bitmap();
 
         size_t array_start = array_idx(bitmap, start);
         size_t array_end = array_idx(bitmap, end);
 
-        MEMORIA_TRY_VOID(bitmap->remove(start, end));
+        MEMORIA_TRY_VOID(bitmap.remove(start, end));
 
-        refresh_array();
-
-        return array_.removeSpace(array_start, array_end);
+        return array().removeSpace(array_start, array_end);
     }
-
-//    Optional<ViewType> get_values(size_t idx) const {
-//        return get_values(idx, 0);
-//    }
-
-//    Optional<ViewType>
-//    get_values(size_t idx, size_t column) const
-//    {
-//        auto bitmap = data_->bitmap();
-
-//        if (bitmap->symbol(idx) == 1)
-//        {
-//            size_t array_idx = this->array_idx(idx);
-//            return array_.get_values(array_idx);
-//        }
-
-//        return Optional<ViewType>{};
-//    }
 
 
     template <typename AccessorFn>
@@ -220,20 +249,21 @@ public:
     {
         MEMORIA_ASSERT_RTN(row_at, <=, this->size());
 
-        Bitmap* bitmap = data_->bitmap();
-        MEMORIA_TRY_VOID(bitmap->insert_entries(row_at, size, [&](size_t pos){
+        BitmapSO bitmap = this->bitmap();
+        MEMORIA_TRY_VOID(bitmap.insert_entries(row_at, size, [&](size_t pos){
             return is_not_empty(elements(0, pos));
         }));
 
-        refresh_array();
-
-        size_t set_elements_num = bitmap->rank(row_at, row_at + size, 1);
+        size_t set_elements_num = bitmap.rank_eq(row_at, row_at + size, 1);
         size_t array_row_at = array_idx(row_at);
 
-        return array_.insert_entries(array_row_at, set_elements_num, [&](size_t col, size_t arr_idx)  {
+        auto res1 = array().insert_entries(array_row_at, set_elements_num, [&](size_t col, size_t arr_idx)  {
             size_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
             return elements(col, bm_idx - row_at).get();
         });
+        MEMORIA_RETURN_IF_ERROR(res1);
+
+        return VoidResult::of();
     }
 
     template <typename AccessorFn>
@@ -252,7 +282,7 @@ public:
 
     FindResult findGTForward(size_t column, const ViewType& val) const
     {
-        FindResult res = array_.findGTForward(column, val);
+        FindResult res = array().findGTForward(column, val);
 
         size_t bmp_idx = this->bitmap_idx(res.local_pos());
 
@@ -265,7 +295,7 @@ public:
 
     FindResult findGEForward(size_t column, const ViewType& val) const
     {
-        FindResult res = array_.findGEForward(column, val);
+        FindResult res = array().findGEForward(column, val);
 
         size_t bmp_idx = this->bitmap_idx(res.local_pos());
 
@@ -274,111 +304,72 @@ public:
         return res;
     }
 
-    auto findForward(SearchType search_type, size_t column, const ViewType& val) const
-    {
-        if (search_type == SearchType::GT)
-        {
-            return findGTForward(column, val);
-        }
-        else {
-            return findGEForward(column, val);
-        }
-    }
-
-    auto findForward(SearchType search_type, size_t column, const Optional<ViewType>& val) const
-    {
-        if (search_type == SearchType::GT)
-        {
-            return findGTForward(column, val.get());
-        }
-        else {
-            return findGEForward(column, val.get());
-        }
-    }
 
     template <typename T>
     VoidResult setValues(size_t idx, const core::StaticVector<T, Columns>& values)
     {
         if (values[0])
         {
-            Bitmap* bitmap = data_->bitmap();
+            BitmapSO bitmap = this->bitmap();
 
             auto array_values  = this->array_values(values);
             size_t array_idx  = this->array_idx(idx);
 
-            if (bitmap->symbol(idx))
+            if (bitmap.access(idx))
             {
-                MEMORIA_TRY_VOID(array_.setValues(array_idx, array_values));
-
-                refresh_array();
+                MEMORIA_TRY_VOID(array().setValues(array_idx, array_values));
             }
             else {
+                MEMORIA_TRY_VOID(array().insert(array_idx, array_values));
+
                 bitmap = data_->bitmap();
+                bitmap.set_symbol(idx, 1);
 
-                MEMORIA_TRY_VOID(array_.insert(array_idx, array_values));
-
-                refresh_array();
-
-                bitmap->symbol(idx) = 1;
-
-                MEMORIA_TRY_VOID(bitmap->reindex());
+                MEMORIA_TRY_VOID(bitmap.reindex());
             }
         }
         else {
-            Bitmap* bitmap = data_->bitmap();
+            BitmapSO bitmap = this->bitmap();
             size_t array_idx = this->array_idx(idx);
 
-            if (bitmap->symbol(idx))
+            if (bitmap.access(idx))
             {
-                MEMORIA_TRY_VOID(array_.removeSpace(array_idx, array_idx + 1));
-
-                refresh_array();
+                MEMORIA_TRY_VOID(array().removeSpace(array_idx, array_idx + 1));
                 bitmap = data_->bitmap();
 
-                bitmap->symbol(idx) = 0;
-                MEMORIA_TRY_VOID(bitmap->reindex());
+                bitmap->set_symbol(idx, 0);
+                MEMORIA_TRY_VOID(bitmap.reindex());
             }
             else {
                 // Do nothing
             }
         }
-
-        refresh_array();
-
         return VoidResult::of();
     }
 
     template <typename T>
     VoidResult insert(size_t idx, const core::StaticVector<T, Columns>& values)
     {
-        Bitmap* bitmap = data_->bitmap();
+        BitmapSO bitmap = this->bitmap();
 
         if (values[0])
         {
-            MEMORIA_TRY_VOID(bitmap->insert(idx, 1));
-
-            refresh_array();
+            MEMORIA_TRY_VOID(bitmap.insert(idx, 1));
 
             auto array_values  = this->array_values(values);
             size_t array_idx  = this->array_idx(bitmap, idx);
 
-            return array_.insert(array_idx, array_values);
+            return array().insert(array_idx, array_values);
         }
         else {
-            auto status = bitmap->insert(idx, 0);
-            MEMORIA_RETURN_IF_ERROR(status);
-            refresh_array();
-            return VoidResult::of();
+            return bitmap.insert(idx, 0);
         }
     }
 
     VoidResult reindex()
     {
-        MEMORIA_TRY_VOID(data_->bitmap()->reindex());
-
-        refresh_array();
-
-        return array_.reindex();
+        MEMORIA_TRY_VOID(bitmap().reindex());
+        return array().reindex();
     }
 
 private:
@@ -391,11 +382,6 @@ private:
     template <typename T>
     bool is_not_empty(const Optional<T>& value) const  {
         return (bool)value;
-    }
-
-
-    void refresh_array() {
-        array_.setup(data_->array());
     }
 
     template <typename T>
@@ -413,30 +399,24 @@ private:
 
     size_t array_idx(size_t global_idx) const
     {
-        return array_idx(data_->bitmap(), global_idx);
+        return array_idx(bitmap(), global_idx);
     }
 
     size_t bitmap_idx(size_t array_idx) const
     {
-        return bitmap_idx(data_->bitmap(), array_idx);
+        return bitmap_idx(bitmap(), array_idx);
     }
 
-    size_t array_idx(const Bitmap* bitmap, size_t global_idx) const
+    size_t array_idx(const BitmapSO& bitmap, size_t global_idx) const
     {
-        size_t rank = bitmap->rank(global_idx, 1);
+        size_t rank = bitmap.rank_eq(global_idx, 1);
         return rank;
     }
 
-    size_t bitmap_idx(const Bitmap* bitmap, size_t array_idx) const
+    size_t bitmap_idx(const BitmapSO& bitmap, size_t array_idx) const
     {
-        auto select_res = bitmap->selectFw(1, array_idx + 1);
-
-        if (select_res.is_found()) {
-            return select_res.local_pos();
-        }
-        else {
-            return bitmap->size();
-        }
+        auto select_res = bitmap.select_fw_eq(array_idx, 1);
+        return select_res.idx;
     }
 };
 

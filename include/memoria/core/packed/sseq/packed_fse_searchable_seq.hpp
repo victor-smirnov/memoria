@@ -836,7 +836,6 @@ struct PkdFSSeqTF: HasType<
                     BitmapRankFn,
                     BitmapToolsFn
                 >,
-
                     PkdFSSeqTypes<
                         BitsPerSymbol,
                         1024,

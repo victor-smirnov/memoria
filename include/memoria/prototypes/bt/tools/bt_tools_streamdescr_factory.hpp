@@ -38,6 +38,8 @@
 #include <memoria/core/tools/elias_codec.hpp>
 #include <memoria/core/tools/exint_codec.hpp>
 
+#include <memoria/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
+
 #include <iostream>
 #include <tuple>
 #include <utility>
@@ -60,7 +62,7 @@ template <typename T> struct FSEBranchStructTF;
 
 template <typename KeyType, int32_t Indexes>
 struct FSEBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
-    using Type = PkdFQTreeT<KeyType, Indexes>;
+    using Type = PackedDataTypeBufferT<KeyType, true, Indexes, DTOrdering::SUM>;
 };
 
 template <typename KeyType>

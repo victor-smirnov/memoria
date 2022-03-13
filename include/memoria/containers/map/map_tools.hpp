@@ -17,12 +17,10 @@
 #pragma once
 
 #include <memoria/core/container/container.hpp>
-
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
-
 #include <memoria/core/packed/packed.hpp>
-
 #include <memoria/core/packed/datatypes/varchar.hpp>
+#include <memoria/core/tools/static_array.hpp>
 
 namespace memoria {
 namespace map {
@@ -60,14 +58,7 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
     //FIXME: Extend KeyType to contain enough space to represent practically large sums
     //Should be done systematically on the level of BT
 
-    using Type = PkdFQTreeT<KeyType, Indexes>;
-
-//    using Type = IfThenElse <
-//            DTTIsNDFixedSize<KeyType>,
-//            PkdFQTreeT<KeyType, Indexes>,
-//            PkdVQTreeT<KeyType, Indexes>
-//    >;
-
+    using Type = PackedDataTypeBufferT<KeyType, true, Indexes, DTOrdering::SUM>;
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
 
@@ -128,7 +119,7 @@ struct MapValueHelper {
 };
 
 template <typename T>
-struct MapValueHelper<StaticVector<T, 1>> {
+struct MapValueHelper<core::StaticVector<T, 1>> {
     template <typename TT>
     static T convert(TT&& value) {
         return value[0];

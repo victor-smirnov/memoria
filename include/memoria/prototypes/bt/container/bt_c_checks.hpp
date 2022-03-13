@@ -238,20 +238,17 @@ void M_TYPE::ctr_check_typed_node_content(
     node.max(sums);
 
     auto keys = parent.keysAt(parent_idx);
-    if (sums != keys)
-    {
-
+    if (sums != keys) {
         fn(CheckSeverity::ERROR,
                     make_string_document(
-                        "Invalid parent-child nodes chain :: {} {} for node.id={} parent.id={}, parent_idx={}",
+                        "Invalid child->parent nodes chain :: {} {} for node.id={} parent.id={}, parent_idx={}",
                         (SBuf() << sums).str(),
                         (SBuf() << keys).str(),
                         node.node()->id(),
                         parent.node()->id(),
                         parent_idx
                     )
-         );
-
+        );
     }
 }
 

@@ -223,29 +223,28 @@ public:
 //    }
 
     template <typename AccessorFn>
-    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements)
+    VoidResult insert_entries(SeqSizeT row_at, psize_t size, AccessorFn&& elements)
     {
-        MEMORIA_TRY_VOID(data_->insertSpace(row_at, size));
-
         for (psize_t c = 0; c < size; c++)
         {
-            size_t symbol = elements(c);
-            data_->insert(row_at, symbol, 1);
+            SymbolT symbol = elements(c);
+            SymbolsRunT run(1, symbol, 1);
+            MEMORIA_TRY_VOID(insert(row_at, unit_span_of(&run)));
         }
 
         return VoidResult::of();
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements)
+    VoidResult update_entries(SeqSizeT row_at, SeqSizeT size, AccessorFn&& elements)
     {
-        MEMORIA_TRY_VOID(data_->removeSpace(row_at, row_at + size));
+        MEMORIA_TRY_VOID(removeSpace(row_at, row_at + size));
         return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
     }
 
-    VoidResult remove_entries(psize_t row_at, psize_t size)
+    VoidResult remove_entries(SeqSizeT row_at, SeqSizeT size)
     {
-        return data_->removeSpace(row_at, row_at + size);
+        return removeSpace(row_at, row_at + size);
     }
 
 

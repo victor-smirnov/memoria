@@ -379,13 +379,15 @@ public:
 
         if (start >= 0)
         {
-            auto k          = Base::target_ - Base::sum_;
+            auto k = Base::target_ - Base::sum_;
 
-            auto result     = tree.findBackward(Base::search_type_, index, start, k);
-            Base::sum_      += result.prefix();
+            auto result = Base::search_type_ == SearchType::GT ?
+                    tree.findGTBackward(index, start, k):
+                    tree.findGEBackward(index, start, k);
+
+            Base::sum_ += result.prefix();
 
             int32_t idx = result.local_pos();
-
             return StreamOpResult(idx, start, idx > start);
         }
         else {
@@ -483,14 +485,13 @@ public:
     void branch_size_prefix(StreamType&& obj, int32_t start, int32_t end)
     {
         int32_t s = start > (obj.size() - 1) ? obj.size() - 1 : start;
-
-        obj._sub(0, end + 1, s + 1, Base::branch_size_prefix()[StreamIdx]);
+        Base::branch_size_prefix()[StreamIdx] -= obj.sum(0, end + 1, s + 1);
     }
 
     template <int32_t StreamIdx, typename StreamType>
     void branch_size_prefix(StreamType&& obj, int32_t start, int32_t end, FixTargetTag)
     {
-        obj._add(0, end + 1, end + 2, Base::branch_size_prefix()[StreamIdx]);
+        Base::branch_size_prefix()[StreamIdx] += obj.sum(0, end + 1, end + 2);
     }
 
 

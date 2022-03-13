@@ -24,8 +24,6 @@
 namespace memoria {
 namespace bt {
 
-
-
 template <typename PkdStructSO, PkdSearchType SearchType = PkdKeySearchType<typename PkdStructSO::PkdStructT>>
 class BTPkdStructAdaper {};
 
@@ -39,7 +37,7 @@ public:
     {}
 
     template <typename T, int32_t Indexes>
-    void assign_to(core::StaticVector<T, Indexes>& tgt, psize_t idx)
+    void assign_to(core::StaticVector<T, Indexes>& tgt, size_t idx)
     {
         for (int32_t c = 0; c < Indexes; c++) {
             tgt[c] = pkd_struct_.access(c, idx);
@@ -47,7 +45,7 @@ public:
     }
 
     template <typename T, int32_t Indexes>
-    void assign_to(core::StaticVector<Optional<T>, Indexes>& tgt, psize_t idx)
+    void assign_to(core::StaticVector<Optional<T>, Indexes>& tgt, size_t idx)
     {
         for (int32_t c = 0; c < Indexes; c++)
         {

@@ -270,6 +270,12 @@ public:
         handler->startStruct();
         handler->startGroup("DATA_TYPE_BUFFER");
 
+        if (data_->has_index()) {
+            handler->startGroup("INDEX");
+            index().generateDataEvents(handler);
+            handler->endGroup();
+        }
+
         handler->value("SIZE", &meta.size0());
 
         handler->startGroup("DATA", meta.size());
@@ -387,7 +393,7 @@ public:
         return removeSpace(room_start, room_end);
     }
 
-    VoidResult removeSpace(size_t room_start, size_t room_end)
+    VoidResult removeSpace(size_t room_start, size_t room_end, bool do_reindex = true)
     {
         auto& meta = data_->metadata();
         size_t size = meta.size();
@@ -407,6 +413,10 @@ public:
         }
 
         meta.sub_size(room_length);
+
+        if (do_reindex) {
+            MEMORIA_TRY_VOID(reindex());
+        }
 
         return VoidResult::of();
     }
@@ -437,7 +447,7 @@ public:
     template <typename T>
     VoidResult setValues(size_t pos, const core::StaticVector<T, Columns>& values)
     {
-        MEMORIA_TRY_VOID(removeSpace(pos, pos + 1));
+        MEMORIA_TRY_VOID(removeSpace(pos, pos + 1, false));
         return insert(pos, values);
     }
 
@@ -486,6 +496,8 @@ public:
         });
 
         data_->metadata().add_size(size);
+
+        MEMORIA_TRY_VOID(reindex());
 
         return Int32Result::of(static_cast<int32_t>(at + size));
     }
@@ -651,6 +663,8 @@ public:
 
         MEMORIA_RETURN_IF_ERROR(res);
 
+        MEMORIA_TRY_VOID(reindex());
+
         return VoidResult::of();
     }
 
@@ -684,7 +698,7 @@ public:
 
             for (size_t row = 0; row < size; row++)
             {
-                auto elem = elements(0, row);
+                auto elem = elements(column, row);
                 auto data = DataTypeTraits<DataType>::describe_data(&elem);
 
                 for_each_dimension([&](auto dim_idx){
@@ -697,6 +711,8 @@ public:
 
         data_->metadata().add_size(size);
 
+        MEMORIA_TRY_VOID(reindex());
+
         return VoidResult::of();
     }
 
@@ -705,12 +721,13 @@ public:
     {
         MEMORIA_ASSERT_RTN(row_at, <=, this->size());
 
-        MEMORIA_TRY_VOID(removeSpace(row_at, row_at + size));
-        return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
+        MEMORIA_TRY_VOID(removeSpace(row_at, row_at + size, false));
+        MEMORIA_TRY_VOID(insert_entries(row_at, size, std::forward<AccessorFn>(elements)));
+
+        return VoidResult::of();
     }
 
-    VoidResult remove_entries(size_t row_at, size_t size)
-    {
+    VoidResult remove_entries(size_t row_at, size_t size) {
         return removeSpace(row_at, row_at + size);
     }
 
@@ -749,6 +766,8 @@ public:
         }
 
         data_->metadata().add_size(size);
+
+        MEMORIA_TRY_VOID(reindex());
 
         return VoidResult::of();
     }
@@ -1295,7 +1314,7 @@ private:
                     ViewType iv = index.access(c, span);
 
                     if (iv != sum.view()) {
-                        return MEMORIA_MAKE_GENERIC_ERROR(
+                        MEMORIA_MAKE_GENERIC_ERROR(
                                     "Buffer's content mismatch with the index, column {}, idc_c {}: '{}' != '{}' ",
                                     c,
                                     span,
@@ -1330,9 +1349,7 @@ private:
                     for (size_t idx = base; idx < limit; idx++)
                     {
                         ViewType ee = access(c, idx);
-                        //println("Access: {} {} {}", c, idx, ee);
-
-                        sum = sum.view() + ee;                        
+                        sum = sum.view() + ee;
                     }
 
                     columns[c].append(sum.view());
@@ -1343,7 +1360,6 @@ private:
             MyType index = this->index();
 
             auto res = index.insert_from_fn(0, spans, [&](size_t column, size_t row){
-                //println("Reindex Buf: {} {} {}", column, row, columns[column][row]);
                 return columns[column][row];
             });
 

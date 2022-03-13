@@ -560,7 +560,6 @@ public:
         MEMORIA_TRY_VOID(DispatcherWithResult(state()).dispatchNotEmpty(allocator(), remove_fn, room_start, room_end));
 
         Value* values = node_->values();
-
         CopyBuffer(values + room_end, values + room_start, old_size - room_end);
 
         MEMORIA_TRY_VOID(reindex());
@@ -568,7 +567,7 @@ public:
 
         int32_t requested_block_size = (old_size - (room_end - room_start)) * sizeof(Value);
 
-        MEMORIA_TRY_VOID(allocator()->resize_block(values, requested_block_size));
+        MEMORIA_TRY_VOID(allocator()->resize_block(ValuesBlockIdx, requested_block_size));
 
         return VoidResult::of();
     }

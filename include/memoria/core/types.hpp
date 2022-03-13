@@ -190,7 +190,7 @@ enum class WalkCmd {
 };
 
 
-enum class SearchType {LT, LE, GT, GE};
+enum class SearchType {GT, GE};
 enum class LeafDataLengthType {FIXED, VARIABLE};
 
 template <typename T>

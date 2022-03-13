@@ -423,3 +423,18 @@ protected:
 std::ostream& operator<<(std::ostream& out, const LDDocumentView& doc);
 
 }
+
+namespace fmt {
+
+template <>
+struct formatter<memoria::LDDocumentView> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::LDDocumentView& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "{}", d.to_pretty_string());
+    }
+};
+
+
+}

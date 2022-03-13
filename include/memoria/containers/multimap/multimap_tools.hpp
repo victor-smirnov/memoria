@@ -42,7 +42,9 @@ template <typename T> struct MMapBranchStructTF;
 
 
 template <typename KeyType>
-struct MMapSumKeyStructTF<KeyType, true>: HasType<PkdFQTreeT<KeyType>> {};
+struct MMapSumKeyStructTF<KeyType, true>: HasType<
+        PackedDataTypeBufferT<KeyType, true, 1, DTOrdering::SUM>
+> {};
 
 template <typename DataType>
 struct MMapValueStructTF: HasType<PackedDataTypeBufferT<DataType, false, 1, DTOrdering::UNORDERED>> {};
@@ -69,7 +71,7 @@ struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
 
     //FIXME: Extend KeyType to contain enough space to represent practically large sums
     //Should be done systematically on the level of BT
-    using Type = PkdFQTreeT<KeyType, Indexes>;
+    using Type = PackedDataTypeBufferT<KeyType, true, Indexes, DTOrdering::SUM>;
 
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
@@ -78,15 +80,6 @@ template <typename KeyType, int32_t Indexes>
 struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     using Type = PackedDataTypeOptBufferT<KeyType, Indexes == 1, 1, DTOrdering::MAX>;
-//    bt::PkdStructSelector<
-//            DTTIsNDFixedSize<KeyType>,
-//            PackedFixedElementOptArray,
-//            PackedVLenElementOptArray,
-
-//            PackedFixedElementOptArrayTypes<KeyType, Indexes, Indexes>,
-//            PackedVLenElementArrayTypes<KeyType, Indexes, Indexes>
-//    >;
-
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
 
