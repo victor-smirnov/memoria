@@ -83,14 +83,12 @@ public:
 
 
 
-    VoidResult init() noexcept
+    void init() noexcept
     {
-        MEMORIA_TRY_VOID(Base::init(empty_size(), STRUCTS_NUM__));
+        Base::init(empty_size(), STRUCTS_NUM__);
 
-        MEMORIA_TRY_VOID(allocate_empty<KeysPkdStruct>(KEYS));
-        MEMORIA_TRY_VOID(allocate_empty<ValuesPkdStruct>(VALUES));
-
-        return VoidResult::of();
+        allocate_empty<KeysPkdStruct>(KEYS);
+        allocate_empty<ValuesPkdStruct>(VALUES);
     }
 
     size_t size() const

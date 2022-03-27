@@ -124,8 +124,8 @@ public:
         SeqPtr ptr = make_empty_sequence(num_atoms);
         SeqSO seq = get_so(ptr);
 
-        seq.append(span).get_or_throw();
-        seq.reindex().get_or_throw();
+        seq.append(span);
+        seq.reindex();
 
         seq.check();
 
@@ -254,7 +254,7 @@ public:
     void assertIndexCorrect(const char* src, const T& seq)
     {
         try {
-            seq->check().get_or_throw();
+            seq->check();
         }
         catch (Exception& e) {
             out()<<"Sequence structure check failed"<<std::endl;

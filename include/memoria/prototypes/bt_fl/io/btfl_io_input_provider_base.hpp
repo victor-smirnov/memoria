@@ -39,65 +39,138 @@ namespace detail {
 
     enum class StreamSelectorType {DATA, STRUCTURE};
 
-    template <StreamSelectorType TT, int32_t DataStreams> struct StreamSelector;
+    template <StreamSelectorType TT, int32_t DataStreams> struct PrepareStreamSelector;
+    template <StreamSelectorType TT, int32_t DataStreams> struct CommitStreamSelector;
 
     template <int32_t DataStreams>
-    struct StreamSelector<StreamSelectorType::DATA, DataStreams>
+    struct CommitStreamSelector<StreamSelectorType::DATA, DataStreams>
     {
-        template <int32_t StreamIdx, typename StreamObj, typename Position>
-        static VoidResult io_stream(
+        template <
+                int32_t StreamIdx,
+                typename StreamObj, typename Position, typename UpdateStatus
+        >
+        static void io_stream(
                 StreamObj&& stream,
-                PackedAllocator* alloc,
+                PackedAllocator* alloc,                
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
                 const memoria::io::IOVector& io_vector,
-                int32_t& current_substream
+                int32_t& current_substream,
+                UpdateStatus& update_status
         )
         {
             static_assert(StreamIdx < DataStreams, "");
 
-            MEMORIA_TRY_VOID(stream.insert_io_substream(
+            stream.commit_insert_io_substream(
                     at[StreamIdx],
                     io_vector.substream(current_substream),
                     starts[StreamIdx],
-                    sizes[StreamIdx]
-            ));
+                    sizes[StreamIdx],
+                    update_status
+            );
 
             current_substream++;
-
-            return VoidResult::of();
         }
     };
 
     template <int32_t DataStreams>
-    struct StreamSelector<StreamSelectorType::STRUCTURE, DataStreams>
+    struct PrepareStreamSelector<StreamSelectorType::DATA, DataStreams>
     {
-        template <int32_t StreamIdx, typename StreamObj, typename Position>
-        static VoidResult io_stream(
+        template <
+                int32_t StreamIdx,
+                typename StreamObj, typename Position, typename UpdateStatus
+        >
+        static PkdUpdateStatus io_stream(
                 StreamObj&& stream,
                 PackedAllocator* alloc,
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
                 const memoria::io::IOVector& io_vector,
-                int32_t& current_substream
+                int32_t& current_substream,
+                UpdateStatus& update_status
         )
         {
-            static_assert(StreamIdx == DataStreams, "");
-            MEMORIA_TRY_VOID(stream.insert_io_substream(
-                    at[StreamIdx],
-                    io_vector.symbol_sequence(),
-                    starts[StreamIdx],
-                    sizes[StreamIdx]
-            ));
+            static_assert(StreamIdx < DataStreams, "");
+
+            PkdUpdateStatus status = stream.prepare_insert_io_substream(
+                            at[StreamIdx],
+                            io_vector.substream(current_substream),
+                            starts[StreamIdx],
+                            sizes[StreamIdx],
+                            update_status
+            );
 
             current_substream++;
-
-            return VoidResult::of();
+            return status;
         }
     };
 
+    template <int32_t DataStreams>
+    struct CommitStreamSelector<StreamSelectorType::STRUCTURE, DataStreams>
+    {
+        template <
+                int32_t StreamIdx,
+                typename StreamObj, typename Position, typename UpdateStatus
+        >
+        static void io_stream(
+                StreamObj&& stream,
+                PackedAllocator* alloc,
+                const Position& at,
+                const Position& starts,
+                const Position& sizes,
+                const memoria::io::IOVector& io_vector,
+                int32_t& current_substream,
+                UpdateStatus& update_status
+        )
+        {
+            static_assert(StreamIdx == DataStreams, "");
+            stream.commit_insert_io_substream(
+                    at[StreamIdx],
+                    io_vector.symbol_sequence(),
+                    starts[StreamIdx],
+                    sizes[StreamIdx],
+                    update_status
+            );
+
+            current_substream++;
+        }
+    };
+
+    template <int32_t DataStreams>
+    struct PrepareStreamSelector<StreamSelectorType::STRUCTURE, DataStreams>
+    {
+        template <
+                int32_t StreamIdx,
+                typename StreamObj, typename Position, typename UpdateStatus
+        >
+        static PkdUpdateStatus io_stream(
+                StreamObj&& stream,
+                PackedAllocator* alloc,
+                const Position& at,
+                const Position& starts,
+                const Position& sizes,
+                const memoria::io::IOVector& io_vector,
+                int32_t& current_substream,
+                UpdateStatus& update_status
+        )
+        {
+            static_assert(StreamIdx == DataStreams, "");
+
+            PkdUpdateStatus status = stream.prepare_insert_io_substream(
+                        at[StreamIdx],
+                        io_vector.symbol_sequence(),
+                        starts[StreamIdx],
+                        sizes[StreamIdx],
+                        update_status
+            );
+
+            current_substream++;
+
+            return status;
+        }
+    };
 }
 
 
@@ -383,10 +456,6 @@ public:
         DataPositions data_start = to_data_positions(start);
         DataPositions pos        = data_start;
 
-        BlockUpdateMgr mgr(ctr());
-
-        mgr.add(leaf);
-
         while(true)
         {
             auto has_data = this->hasData();
@@ -397,7 +466,7 @@ public:
 
             auto buffer_sizes = this->buffer_size();
 
-            auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);
+            auto inserted = insertBuffer(leaf, pos, buffer_sizes);
 
             if (inserted.sum() > 0)
             {
@@ -417,9 +486,9 @@ public:
     }
 
 
-    virtual DataPositions insertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, DataPositions at, const DataPositions& size)
+    virtual DataPositions insertBuffer(const TreeNodePtr& leaf, DataPositions at, const DataPositions& size)
     {
-        auto status0 = tryInsertBuffer(mgr, leaf, at, size);
+        auto status0 = tryInsertBuffer(leaf, at, size);
         if (status0)
         {
             start_ += size;
@@ -444,7 +513,7 @@ public:
 
                     auto sizes = rank(try_block_size);
 
-                    auto status2 = tryInsertBuffer(mgr, leaf, at, sizes);
+                    auto status2 = tryInsertBuffer(leaf, at, sizes);
                     if (status2)
                     {
                         imin = mid + 1;
@@ -463,7 +532,7 @@ public:
                 else {
                     auto sizes = rank(1);
 
-                    auto status1 = tryInsertBuffer(mgr, leaf, at, sizes);
+                    auto status1 = tryInsertBuffer(leaf, at, sizes);
                     if (status1)
                     {
                         start += 1;
@@ -483,61 +552,140 @@ public:
 
 protected:
 
-    struct InsertBuffersFn
+    struct PrepareInsertBuffersFn
     {
         enum class StreamType {DATA, STRUCTURE};
 
         template <StreamType T> struct Tag {};
 
         int32_t current_substream_{};
+        PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
 
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj>
-        VoidResult stream(
+        template <
+                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
+                typename StreamObj, typename UpdateState
+        >
+        void stream(
                 StreamObj&& stream,
                 PackedAllocator* alloc,
+                IntList<StreamsStartIdx>,
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                const memoria::io::IOVector& io_vector)
+                const memoria::io::IOVector& io_vector,
+                UpdateState& update_state
+        )
         {
-            return detail::StreamSelector<
+            if (isSuccess(status)) {
+                status = detail::PrepareStreamSelector<
                     StreamIdx < DataStreams ? detail::StreamSelectorType::DATA : detail::StreamSelectorType::STRUCTURE,
                     DataStreams
-            >::template io_stream<StreamIdx>(
-                    stream,
+                >::template io_stream<StreamIdx>(
+                    std::forward<StreamObj>(stream),
                     alloc,
                     at,
                     starts,
                     sizes,
                     io_vector,
-                    current_substream_
+                    current_substream_,
+                    std::get<AllocatorIdx - StreamsStartIdx>(update_state)
+                );
+            }
+        }
+
+
+        template <
+                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
+                typename ExtData, typename PakdStruct
+        >
+        void stream(
+                PackedSizedStructSO<ExtData, PakdStruct>& stream,
+                PackedAllocator* alloc,
+                IntList<StreamsStartIdx>,
+                const Position& at,
+                const Position& starts,
+                const Position& sizes,
+                memoria::io::IOVector& io_vector)
+        {
+            static_assert(StreamIdx < Streams, "");            
+            // Always succsseds
+        }
+
+        template <typename LCtrT, typename NodeT, typename... Args>
+        void treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args)
+        {
+            constexpr int32_t StreamsStartIdx = NodeT::StreamsStart;
+            return leaf.processSubstreamGroups(*this, leaf.allocator(), IntList<StreamsStartIdx>{}, std::forward<Args>(args)...);
+        }
+    };
+
+
+    struct CommitInsertBuffersFn
+    {
+        enum class StreamType {DATA, STRUCTURE};
+
+        template <StreamType T> struct Tag {};
+        int32_t current_substream_{};
+
+        template <
+                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
+                typename StreamObj, typename UpdateState
+        >
+        void stream(
+                StreamObj&& stream,
+                PackedAllocator* alloc,
+                IntList<StreamsStartIdx>,
+                const Position& at,
+                const Position& starts,
+                const Position& sizes,
+                const memoria::io::IOVector& io_vector,
+                UpdateState& update_state
+        )
+        {
+            detail::CommitStreamSelector<
+                    StreamIdx < DataStreams ? detail::StreamSelectorType::DATA : detail::StreamSelectorType::STRUCTURE,
+                    DataStreams
+            >::template io_stream<StreamIdx>(
+                    std::forward<StreamObj>(stream),
+                    alloc,
+                    at,
+                    starts,
+                    sizes,
+                    io_vector,
+                    current_substream_,
+                    std::get<AllocatorIdx - StreamsStartIdx>(update_state)
             );
         }
 
+
         template <
-                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx,
+                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
                 typename ExtData, typename PakdStruct
         >
-        VoidResult stream(
+        void stream(
                 PackedSizedStructSO<ExtData, PakdStruct>& stream,
                 PackedAllocator* alloc,
+                IntList<StreamsStartIdx>,
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
                 memoria::io::IOVector& io_vector)
         {
             static_assert(StreamIdx < Streams, "");
-            return stream.insertSpace(at[StreamIdx], sizes[StreamIdx]);
+            return stream.insert_space(at[StreamIdx], sizes[StreamIdx]);
         }
 
         template <typename LCtrT, typename NodeT, typename... Args>
-        VoidResult treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args)
+        void treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args)
         {
-            MEMORIA_TRY_VOID(leaf.layout(255));
-            return leaf.processSubstreamGroupsVoidRes(*this, leaf.allocator(), std::forward<Args>(args)...);
+            constexpr int32_t StreamsStartIdx = NodeT::StreamsStart;
+            return leaf.processSubstreamGroups(*this, leaf.allocator(), IntList<StreamsStartIdx>{}, std::forward<Args>(args)...);
         }
     };
+
+
+
 
     Position to_position(const DataPositions& data_pos)
     {
@@ -554,29 +702,41 @@ protected:
     }
 
 
-    bool tryInsertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, const DataPositions& at, const DataPositions& size)
+    bool tryInsertBuffer(const TreeNodePtr& leaf, const DataPositions& at, const DataPositions& size)
     {
-        InsertBuffersFn insert_fn;
+        PrepareInsertBuffersFn insert_fn1;
 
-        VoidResult status = ctr().leaf_dispatcher().dispatch(
+        auto update_state = ctr().template make_leaf_update_state<IntList<>>();
+
+        ctr().leaf_dispatcher().dispatch(
                     leaf,
-                    insert_fn,
+                    insert_fn1,
                     to_position(at),
                     to_position(start_),
                     to_position(size),
-                    *io_vector_
+                    *io_vector_,
+                    update_state
         );
 
-        if (status.is_error()) {
-            if (status.is_packed_error())
-            {
-                mgr.restoreNodeState();
-                return false;
-            }
+        if (isSuccess(insert_fn1.status))
+        {
+            CommitInsertBuffersFn insert_fn2;
+
+            ctr().leaf_dispatcher().dispatch(
+                        leaf,
+                        insert_fn2,
+                        to_position(at),
+                        to_position(start_),
+                        to_position(size),
+                        *io_vector_,
+                        update_state
+            );
+
+            return true;
         }
 
-        mgr.checkpoint(leaf);
-        return true;
+        return false;
+
     }
 
     static float getFreeSpacePart(const TreeNodePtr& node)

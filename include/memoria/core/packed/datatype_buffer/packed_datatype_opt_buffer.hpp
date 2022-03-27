@@ -97,7 +97,7 @@ public:
         return empty_size();
     }
 
-    VoidResult init_default(size_t block_size)  {
+    void init_default(size_t block_size)  {
         return init();
     }
 
@@ -118,18 +118,18 @@ public:
         return MyType::block_size(size() + other->size());
     }
 
-    VoidResult init()
+    void init()
     {
         size_t capacity = 0;
-        MEMORIA_TRY_VOID(Base::init(block_size(capacity), STRUCTS_NUM__));
+        Base::init(block_size(capacity), STRUCTS_NUM__);
 
         size_t bitmap_block_size = Bitmap::block_size(capacity);
 
-        MEMORIA_TRY(bitmap, allocate_space<Bitmap>(BITMAP, bitmap_block_size));
+        auto bitmap = allocate_space<Bitmap>(BITMAP, bitmap_block_size);
 
-        MEMORIA_TRY_VOID(bitmap->init(bitmap_block_size));
+        bitmap->init(bitmap_block_size);
 
-        MEMORIA_TRY(array, allocate_space<Array>(ARRAY, Array::empty_size()));
+        auto array = allocate_space<Array>(ARRAY, Array::empty_size());
 
         return array->init();
     }

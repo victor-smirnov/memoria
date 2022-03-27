@@ -56,8 +56,8 @@ public:
 
 
 public:
-    MEMORIA_V1_DECLARE_NODE_FN(InsertFn, insert);
-    VoidResult ctr_insert_to_branch_node(
+    MEMORIA_V1_DECLARE_NODE_FN(InsertFn, commit_insert);
+    void ctr_insert_to_branch_node(
             TreePathT& path,
             size_t level,
             int32_t idx,
@@ -93,7 +93,7 @@ public:
             const SplitFn& split_fn
     );
 
-    MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
+    MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn,  commit_update);
     bool ctr_update_branch_node(
             const TreeNodePtr& node,
             int32_t idx,
@@ -117,14 +117,15 @@ public:
 
 
 
-    MEMORIA_V1_DECLARE_NODE2_FN(CanMergeFn, canBeMergedWith);
+    MEMORIA_V1_DECLARE_NODE2_FN(CanMergeFn, prepare_merge_with);
     bool ctr_can_merge_nodes(const TreeNodeConstPtr& tgt, const TreeNodeConstPtr& src)
     {
-        return self().node_dispatcher().dispatch(src, tgt, CanMergeFn()).get_or_throw();
+        auto update_state = self().make_branch_update_state();
+        return true;//isSuccess(self().node_dispatcher().dispatch(src, tgt, CanMergeFn(), update_state));
     }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
+    MEMORIA_V1_DECLARE_NODE_FN(MergeNodesFn, commit_merge_with);
     void ctr_do_merge_branch_nodes(TreePathT& tgt_path, const TreePathT& src_path, size_t level);
     bool ctr_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level, bool only_if_same_parent = false);
 
@@ -139,7 +140,7 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-VoidResult M_TYPE::ctr_insert_to_branch_node(
+void M_TYPE::ctr_insert_to_branch_node(
         TreePathT& path,
         size_t level,
         int32_t idx,
@@ -147,29 +148,25 @@ VoidResult M_TYPE::ctr_insert_to_branch_node(
         const BlockID& id
 )
 {
-    return wrap_throwing([&]() -> VoidResult {
-        auto& self = this->self();
+    auto& self = this->self();
 
-        self.ctr_cow_clone_path(path, level);
+    self.ctr_cow_clone_path(path, level);
 
-        TreeNodeConstPtr node = path[level];
-        self.ctr_update_block_guard(node);
+    TreeNodeConstPtr node = path[level];
+    self.ctr_update_block_guard(node);
 
-        VoidResult res = self.branch_dispatcher().dispatch(node.as_mutable(), InsertFn(), idx, keys, id);
-        MEMORIA_RETURN_IF_ERROR(res);
+    auto update_state = self.make_branch_update_state();
+    self.branch_dispatcher().dispatch(node.as_mutable(), InsertFn(), idx, keys, id, update_state);
 
-        if (!node->is_root())
-        {
-            auto parent = self.ctr_get_node_parent_for_update(path, level);
+    if (!node->is_root())
+    {
+        auto parent = self.ctr_get_node_parent_for_update(path, level);
 
-            auto max = self.ctr_get_node_max_keys(node);
-            auto parent_idx = self.ctr_get_child_idx(parent.as_immutable(), node->id());
+        auto max = self.ctr_get_node_max_keys(node);
+        auto parent_idx = self.ctr_get_child_idx(parent.as_immutable(), node->id());
 
-            self.ctr_update_branch_nodes(path, level + 1, parent_idx, max);
-        }
-
-        return VoidResult::of();
-    });
+        self.ctr_update_branch_nodes(path, level + 1, parent_idx, max);
+    }
 }
 
 M_PARAMS
@@ -203,7 +200,7 @@ void M_TYPE::ctr_split_node_raw(
 
     if (capacity > 0)
     {
-        self.ctr_insert_to_branch_node(path, level + 1, parent_idx + 1, right_max, right_node->id()).get_or_throw();
+        self.ctr_insert_to_branch_node(path, level + 1, parent_idx + 1, right_max, right_node->id());
     }
     else {
         auto parent_size = self.ctr_get_node_size(path[level + 1], 0);
@@ -235,8 +232,7 @@ void M_TYPE::ctr_split_node_raw(
                     parent_idx + 1,
                     right_max,
                     right_node->id()
-        ).get_or_throw();
-
+        );
     }
 
     path[level] = right_node.as_immutable();
@@ -287,7 +283,8 @@ bool M_TYPE::ctr_update_branch_node(const TreeNodePtr& node, int32_t idx, const 
 {
     self().ctr_update_block_guard(node);
 
-    self().branch_dispatcher().dispatch(node, UpdateNodeFn(), idx, keys).get_or_throw();
+    auto update_state = self().make_branch_update_state();
+    self().branch_dispatcher().dispatch(node, UpdateNodeFn(), idx, keys, update_state);
 
     return true;
 }
@@ -298,7 +295,8 @@ bool M_TYPE::ctr_update_branch_node(const TreeNodeConstPtr& node, int32_t idx, c
 {
     self().ctr_update_block_guard(node);
 
-    self().branch_dispatcher().dispatch(node.as_mutable(), UpdateNodeFn(), idx, keys).get_or_throw();
+    auto update_state = self().make_branch_update_state();
+    self().branch_dispatcher().dispatch(node.as_mutable(), UpdateNodeFn(), idx, keys, update_state);
 
     return true;
 }
@@ -392,7 +390,8 @@ void M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, const TreePathT& src
 
     self.ctr_update_block_guard(tgt);
 
-    self.branch_dispatcher().dispatch_1st_const(src, tgt.as_mutable(), MergeNodesFn()).get_or_throw();
+    auto update_state = self.make_branch_update_state();
+    self.branch_dispatcher().dispatch_1st_const(src, tgt.as_mutable(), MergeNodesFn(), update_state);
 
     auto parent_idx = self.ctr_get_parent_idx(src_path, level);
 

@@ -19,7 +19,7 @@
 #include <memoria/core/container/macros.hpp>
 #include <memoria/prototypes/bt/bt_names.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
-
+#include <memoria/core/packed/tools/packed_allocator_types.hpp>
 
 #include <functional>
 
@@ -39,13 +39,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
     using typename Base::BranchNodeEntry;
 
 protected:
-    MEMORIA_V1_DECLARE_NODE_FN(RemoveSpaceFn, removeSpace);
+    MEMORIA_V1_DECLARE_NODE_FN(RemoveSpaceFn, commit_remove);
+    MEMORIA_V1_DECLARE_NODE_FN(PrepareRemoveFn, prepare_remove);
 
     void ctr_remove_node_content(TreePathT& path, size_t level, int32_t start, int32_t end);
     Position ctr_remove_leaf_content(TreePathT& path, const Position& start, const Position& end);
     Position ctr_remove_leaf_content(TreePathT& path, int32_t stream, int32_t start, int32_t end);
 
-    MEMORIA_V1_DECLARE_NODE_FN(RemoveNonLeafNodeEntryFn, removeSpaceAcc);
+    MEMORIA_V1_DECLARE_NODE_FN(RemoveNonLeafNodeEntryFn, remove_entries);
     VoidResult ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t idx) ;
 
     struct LeftMergeResult {
@@ -109,8 +110,11 @@ void M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_t star
         return self.ctr_unref_block(id);
     });
 
+    auto update_state = self.make_branch_update_state();
 
-    self.branch_dispatcher().dispatch(path[level].as_mutable(), RemoveSpaceFn(), start, end).get_or_throw();
+    self.branch_dispatcher().dispatch(path[level], PrepareRemoveFn(), start, end, update_state);
+
+    self.branch_dispatcher().dispatch(path[level].as_mutable(), RemoveSpaceFn(), start, end, update_state);
     self.ctr_update_path(path, level);
 }
 
@@ -124,15 +128,16 @@ VoidResult M_TYPE::ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level,
         self.ctr_cow_clone_path(path, level);
 
         TreeNodeConstPtr node = path[level];
-
         self.ctr_update_block_guard(node);
 
-        VoidResult res = self.branch_dispatcher().dispatch(node.as_mutable(), RemoveNonLeafNodeEntryFn(), start, start + 1);
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        self.ctr_update_path(path, level);
-
-        return VoidResult::of();
+        PkdUpdateStatus status = self.branch_dispatcher().dispatch(node.as_mutable(), RemoveNonLeafNodeEntryFn(), start, start + 1);
+        if (isSuccess(status)) {
+            self.ctr_update_path(path, level);
+            return VoidResult::of();
+        }
+        else {
+            return MEMORIA_MAKE_PACKED_OOM_ERROR();
+        }
     });
 }
 
@@ -146,7 +151,8 @@ typename M_TYPE::Position M_TYPE::ctr_remove_leaf_content(TreePathT& path, const
     TreeNodeConstPtr node = path.leaf();
     self.ctr_update_block_guard(node);
 
-    self.leaf_dispatcher().dispatch(node.as_mutable(), RemoveSpaceFn(), start, end).get_or_throw();
+    auto update_state = self.template make_leaf_update_state<IntList<>>();
+    self.leaf_dispatcher().dispatch(node.as_mutable(), RemoveSpaceFn(), start, end, update_state);
     self.ctr_update_path(path, 0);
 
     return end - start;

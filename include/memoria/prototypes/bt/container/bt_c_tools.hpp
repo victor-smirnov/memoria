@@ -298,14 +298,14 @@ public:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
-    void ctr_layout_branch_node(const TreeNodePtr& node, uint64_t active_streams) const
+    void ctr_layout_branch_node(const TreeNodePtr& node) const
     {
-        return self().branch_dispatcher().dispatch(node, LayoutNodeFn(), active_streams).get_or_throw();
+        return self().branch_dispatcher().dispatch(node, LayoutNodeFn());
     }
 
-    void ctr_layout_leaf_node(const TreeNodePtr& node, const Position& sizes) const
+    void ctr_layout_leaf_node(const TreeNodePtr& node) const
     {
-        return self().leaf_dispatcher().dispatch(node, LayoutNodeFn(), sizes).get_or_throw();
+        return self().leaf_dispatcher().dispatch(node, LayoutNodeFn());
     }
 
 

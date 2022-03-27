@@ -18,6 +18,8 @@
 
 #include <memoria/core/types.hpp>
 
+#include <memoria/core/packed/tools/packed_allocator_types.hpp>
+
 #include <memoria/profiles/common/block_operations.hpp>
 
 #include <memoria/core/tools/static_array.hpp>
@@ -39,6 +41,7 @@ public:
     using PkdStructT = PkdStruct;
     static constexpr size_t Blocks = PkdStruct::Blocks;
 
+    using UpdateState = PkdStructNoOpUpdate<MyType>;
 
     PackedEmptyStructSO() noexcept: ext_data_(), data_() {}
     PackedEmptyStructSO(ExtData* ext_data, PkdStruct* data) noexcept:
@@ -81,20 +84,28 @@ public:
         return data_->access(column, row);
     }
 
-    VoidResult splitTo(MyType& other, size_t idx) noexcept
+    void split_to(MyType& other, size_t idx) noexcept
     {
-        return data_->splitTo(other.data(), idx);
+        return data_->split_to(other.data(), idx);
     }
 
-    VoidResult mergeWith(MyType& other) const noexcept {
-        return data_->mergeWith(other.data());
+    PkdUpdateStatus prepare_merge_with(const MyType&, UpdateState&) const {
+        return PkdUpdateStatus::SUCCESS;
     }
 
-    VoidResult removeSpace(size_t room_start, size_t room_end) {
-        return data_->removeSpace(room_start, room_end);
+    void commit_merge_with(MyType& other, UpdateState&) const noexcept {
+        return data_->commit_merge_with(other.data());
     }
 
-    VoidResult reindex() noexcept {
+    PkdUpdateStatus prepare_remove(size_t, size_t, UpdateState&) const {
+        return PkdUpdateStatus::SUCCESS;
+    }
+
+    void commit_remove(size_t room_start, size_t room_end, UpdateState&) {
+        return data_->remove(room_start, room_end);
+    }
+
+    void reindex() noexcept {
         return data_->reindex();
     }
 
@@ -103,7 +114,7 @@ public:
     }
 
     template <typename T>
-    VoidResult setValues(size_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
+    void setValues(size_t idx, const core::StaticVector<T, Blocks>& values) noexcept {
         return data_->setValues(idx, values);
     }
 
@@ -123,21 +134,24 @@ public:
     }
 
     template <typename AccessorFn>
-    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
-    {
-        return VoidResult::of();
+    PkdUpdateStatus prepare_insert(psize_t row_at, psize_t size, UpdateState&, AccessorFn&&) const {
+        return PkdUpdateStatus::SUCCESS;
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
-    {
-        return VoidResult::of();
+    void commit_insert(psize_t row_at, psize_t size, UpdateState&, AccessorFn&& elements) noexcept
+    {}
+
+    template <typename AccessorFn>
+    PkdUpdateStatus prepare_update(psize_t row_at, psize_t size, UpdateState&, AccessorFn&&) const {
+        return PkdUpdateStatus::SUCCESS;
     }
 
-    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
-    {
-        return VoidResult::of();
-    }
+    template <typename AccessorFn>
+    void commit_update(psize_t row_at, psize_t size, UpdateState&, AccessorFn&& elements) noexcept
+    {}
+
+    MMA_MAKE_UPDATE_STATE_METHOD
 };
 
 

@@ -93,16 +93,16 @@ public:
     }
 
 
-    VoidResult init(size_t block_size) noexcept {return VoidResult::of();}
+    void init(size_t block_size) noexcept {}
 
-    VoidResult init(const SizesT& capacities) noexcept {return VoidResult::of();}
+    void init(const SizesT& capacities) noexcept {}
 
     static constexpr size_t default_size(size_t available_space) noexcept
     {
         return empty_size();
     }
 
-    VoidResult init_default(size_t block_size) noexcept {
+    void init_default(size_t block_size) noexcept {
         return init();
     }
 
@@ -112,41 +112,25 @@ public:
     }
 
 
-    VoidResult init() noexcept
-    {
-        return VoidResult::of();
-    }
+    void init() noexcept
+    {}
 
 
-    VoidResult reindex() noexcept {return VoidResult::of();}
+    void reindex() noexcept {}
 
 
-    VoidResult remove(size_t start, size_t end) noexcept
-    {
-        return VoidResult::of();
-    }
+    void remove(size_t start, size_t end) noexcept
+    {}
 
-    VoidResult removeSpace(size_t room_start, size_t room_end) noexcept {
-        return remove(room_start, room_end);
-    }
+    void reset() noexcept
+    {}
 
 
+    void split_to(MyType* other, size_t idx) noexcept
+    {}
 
-    VoidResult reset() noexcept
-    {
-        return VoidResult::of();
-    }
-
-
-    VoidResult splitTo(MyType* other, size_t idx) noexcept
-    {
-        return VoidResult::of();
-    }
-
-    VoidResult mergeWith(MyType* other) const noexcept
-    {
-        return VoidResult::of();
-    }
+    void commit_merge_with(MyType* other) const noexcept
+    {}
 
 
     void generateDataEvents(IBlockDataEventHandler* handler) const

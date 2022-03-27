@@ -107,7 +107,7 @@ MEMORIA_V1_CONTAINER_PART_END
  * \return number of removed entries
  *
  * \see removeAllPages, removeBlocksFromStart, removeBlocksAtEnd, removeBlocks
- * \see mergeWithRightSibling, addTotalKeyCount
+ * \see commit_merge_withRightSibling, addTotalKeyCount
  */
 
 M_PARAMS

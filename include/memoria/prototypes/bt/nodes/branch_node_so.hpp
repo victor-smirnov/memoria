@@ -151,9 +151,19 @@ public:
     >;
 
 
+    template <typename PkdStruct>
+    using PkdStructToUpdateStateMap = HasType<typename PkdStruct::Type::SparseObject::UpdateState>;
+
+    using UpdateState = AsTuple<
+        MergeLists<
+            typename Dispatcher::template ForAllStructs<PkdStructToUpdateStateMap>,
+            PackedAllocatorUpdateState
+        >
+    >;
+
+
     template <typename LeafPath>
-    static const int32_t translateLeafIndexToBranchIndex(int32_t leaf_index)
-    {
+    static const int32_t translateLeafIndexToBranchIndex(int32_t leaf_index) {
         return bt::LeafToBranchIndexTranslator<LeafSubstreamsStructList, LeafPath, 0>::translate(leaf_index);
     }
 
@@ -202,7 +212,7 @@ public:
         return ctr_->branch_node_ext_data();
     }
 
-    VoidResult prepare()
+    void prepare()
     {
         return node_->prepare();
     }
@@ -232,17 +242,15 @@ public:
 
 
     template <typename OtherNode>
-    VoidResult copy_node_data_to(OtherNode&& other) const
+    void copy_node_data_to(OtherNode&& other) const
     {
         PackedAllocator* other_alloc = other.allocator();
         const PackedAllocator* my_alloc = this->allocator();
 
         for (int32_t c = 0; c <= ValuesBlockIdx; c++)
         {
-            MEMORIA_TRY_VOID(other_alloc->import_block(c, my_alloc, c));
+            other_alloc->import_block(c, my_alloc, c);
         }
-
-        return VoidResult::of();
     }
 
     template <typename V>
@@ -270,28 +278,20 @@ public:
 
     struct LayoutFn {
         template <int32_t AllocatorIdx, int32_t Idx, typename StreamType>
-        VoidResult stream(StreamType&, PackedAllocator* allocator, uint64_t active_streams)
+        void stream(StreamType&, PackedAllocator* allocator)
         {
-            if (active_streams & (1 << Idx))
-            {
-                if (allocator->is_empty(AllocatorIdx))
-                {
-                    MEMORIA_TRY_VOID(
-                        allocator->template allocate_empty<
-                            typename StreamType::PkdStructT
-                        >(AllocatorIdx)
-                    );
-                }
+            if (allocator->is_empty(AllocatorIdx)) {
+                allocator->template allocate_empty<
+                    typename StreamType::PkdStructT
+                >(AllocatorIdx);
             }
-
-            return VoidResult::of();
         }
     };
 
 
-    VoidResult layout(uint64_t active_streams)
+    void layout()
     {
-        return DispatcherWithResult::dispatchAllStatic(LayoutFn(), allocator(), active_streams);
+        return Dispatcher::dispatchAllStatic(LayoutFn(), allocator());
     }
 
     struct MaxFn {
@@ -308,17 +308,6 @@ public:
         Dispatcher(state()).dispatchNotEmpty(allocator(), MaxFn(), entry);
     }
 
-    template <typename BranchNodeEntry>
-    VoidResult updateUp(int32_t idx, const BranchNodeEntry& keys)  {
-        return node_->updateUp(idx, keys);
-    }
-
-
-    template <typename BranchNodeEntry, typename Value>
-    VoidResult insert(int32_t idx, const BranchNodeEntry& keys, const Value& value)
-    {
-        return node_->insert(idx, keys, value);
-    }
 
     Value& value(int32_t idx)
     {
@@ -444,51 +433,83 @@ public:
     }
 
 
+    struct PrepareInsertFn {
+        PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
-
-
-    struct InsertFn {
         template <int32_t Idx, typename StreamType>
-        VoidResult stream(StreamType&& obj, int32_t idx, const BranchNodeEntry& keys)
+        void stream(StreamType&& obj, int32_t idx, const BranchNodeEntry& keys, UpdateState& update_state)
         {
-            return obj.insert_entries(idx, 1, [&](size_t column, size_t)  {
+            if (isSuccess(status)) {
+                status = obj.prepare_insert(idx, 1, std::get<Idx>(update_state), [&](size_t column, size_t)  {
+                    return std::get<Idx>(keys)[column];
+                });
+            }
+        }
+    };
+
+    struct CommitInsertFn {
+        template <int32_t Idx, typename StreamType>
+        void stream(StreamType&& obj, int32_t idx, const BranchNodeEntry& keys, UpdateState& update_state)
+        {
+            return obj.commit_insert(idx, 1, std::get<Idx>(update_state), [&](size_t column, size_t) {
                 return std::get<Idx>(keys)[column];
             });
         }
     };
 
-    VoidResult insert(int32_t idx, const BranchNodeEntry& keys, const Value& value)
+
+    void commit_insert(int32_t idx, const BranchNodeEntry& keys, const Value& value, UpdateState& update_state)
     {
         auto size = this->size();
 
-        MEMORIA_ASSERT_RTN(idx, >=, 0);
-        MEMORIA_ASSERT_RTN(idx, <=, size);
-
-        InsertFn insert_fn;
-        MEMORIA_TRY_VOID(DispatcherWithResult(state()).dispatchNotEmpty(allocator(), insert_fn, idx, keys));
+        CommitInsertFn commit_insert_fn;
+        Dispatcher(state()).dispatchNotEmpty(allocator(), commit_insert_fn, idx, keys, update_state);
 
         int32_t requested_block_size = (size + 1) * sizeof(Value);
 
-        MEMORIA_TRY_VOID(allocator()->resize_block(ValuesBlockIdx, requested_block_size));
+        allocator()->resize_block(ValuesBlockIdx, requested_block_size);
 
         Value* values = node_->values();
 
         CopyBuffer(values + idx, values + idx + 1, size - idx);
 
         values[idx] = value;
-
-        return VoidResult::of();
     }
 
 
-    VoidResult insertValuesSpace(int32_t old_size, int32_t room_start, int32_t room_length)
+    PkdUpdateStatus insert(int32_t idx, const BranchNodeEntry& keys, const Value& value)
     {
-        MEMORIA_ASSERT_RTN(room_start, >=, 0);
-        MEMORIA_ASSERT_RTN(room_start, <=, old_size);
+        auto size = this->size();
+
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, <=, size);
+
+        UpdateState update_state = make_update_state();
+
+        PrepareInsertFn prepare_insert_fn;
+        Dispatcher(state()).dispatchNotEmpty(allocator(), prepare_insert_fn, idx, keys, update_state);
+
+        if (isSuccess(prepare_insert_fn.status))
+        {
+            // FIXME!
+            // calculate child_id size here!
+            commit_insert(idx, keys, value, update_state);
+            return PkdUpdateStatus::SUCCESS;
+        }
+        else {
+            return PkdUpdateStatus::FAILURE;
+        }
+    }
+
+
+    void insertValuesSpace(int32_t old_size, int32_t room_start, int32_t room_length)
+    {
+        MEMORIA_ASSERT(room_start, >=, 0);
+        MEMORIA_ASSERT(room_start, <=, old_size);
 
         int32_t requested_block_size = (old_size + room_length) * sizeof(Value);
 
-        MEMORIA_TRY_VOID(allocator()->resize_block(ValuesBlockIdx, requested_block_size));
+        allocator()->resize_block(ValuesBlockIdx, requested_block_size);
 
         Value* values = node_->values();
 
@@ -498,13 +519,11 @@ public:
         {
             values[c] = Value();
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult insertValues(int32_t old_size, int32_t idx, int32_t length, std::function<Value()> provider)
+    void insertValues(int32_t old_size, int32_t idx, int32_t length, std::function<Value()> provider)
     {
-        MEMORIA_TRY_VOID(insertValuesSpace(old_size, idx, length));
+        insertValuesSpace(old_size, idx, length);
 
         Value* values = node_->values();
 
@@ -512,174 +531,236 @@ public:
         {
             values[c] = provider();
         }
-
-        return VoidResult::of();
     }
 
 
+    struct PrepareRemoveFn {
+        PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
-
-    struct RemoveSpaceFn {
-        template <typename Tree>
-        VoidResult stream(Tree&& tree, int32_t room_start, int32_t room_end)
+        template <int32_t Idx, typename Tree>
+        void stream(Tree&& tree, size_t room_start, size_t room_end, UpdateState& update_state)
         {
-            return tree.removeSpace(room_start, room_end);
+            if (status == PkdUpdateStatus::SUCCESS) {
+                status = tree.prepare_remove(room_start, room_end, std::get<Idx>(update_state));
+            }
         }
     };
 
-    VoidResult removeSpace(const Position& from_pos, const Position& end_pos)
+
+    PkdUpdateStatus prepare_remove(size_t room_start, size_t room_end, UpdateState& update_state) const
     {
-        return this->removeSpace(from_pos.get(), end_pos.get());
+        PrepareRemoveFn remove_fn;
+        Dispatcher(state()).dispatchNotEmpty(allocator(), remove_fn, room_start, room_end, update_state);
+        return remove_fn.status;
     }
 
-    VoidResult removeSpaceAcc(int32_t room_start, int32_t room_end)
+
+    struct CommitRemoveSpaceFn {
+        template <int32_t Idx, typename Tree>
+        void stream(Tree&& tree, size_t room_start, size_t room_end, UpdateState& update_state)
+        {
+            return tree.commit_remove(room_start, room_end, std::get<Idx>(update_state));
+        }
+    };
+
+//    void commit_remove(const Position& from_pos, const Position& end_pos, UpdateState& update_state)
+//    {
+//        return this->commit_remove(from_pos.get(), end_pos.get(), update_state);
+//    }
+
+//    void commit_remove_acc(int32_t room_start, int32_t room_end, UpdateState& update_state)
+//    {
+//        return commit_remove(room_start, room_end, update_state);
+//    }
+
+
+    void commit_remove(size_t start, size_t end, UpdateState& update_state)
     {
-        return removeSpace(room_start, room_end);
+        auto old_size = this->size();
+
+        CommitRemoveSpaceFn remove_fn;
+        Dispatcher(state()).dispatchNotEmpty(allocator(), remove_fn, start, end, update_state);
+
+        Value* values = node_->values();
+        CopyBuffer(values + end, values + start, old_size - end);
+
+        // FIXME: We don't need reindexing here!
+        reindex();
+        MEMORIA_ASSERT(old_size, >=, end - start);
+
+        size_t requested_block_size = (old_size - (end - start)) * sizeof(Value);
+        allocator()->resize_block(ValuesBlockIdx, requested_block_size);
     }
+
+//    void commit_remove(int32_t stream, int32_t room_start, int32_t room_end, UpdateState& update_state) {
+//        return commit_remove(room_start, room_end, update_state);
+//    }
+
+    PkdUpdateStatus remove_entries(size_t start, size_t end)
+    {
+        UpdateState update_state = make_update_state();
+        PkdUpdateStatus status = prepare_remove(start, end, update_state);
+        if (isSuccess(status)) {
+            commit_remove(start, end, update_state);
+            return PkdUpdateStatus::SUCCESS;
+        }
+        else {
+            return PkdUpdateStatus::FAILURE;
+        }
+    }
+
 
     struct ReindexFn {
         template <typename Tree>
-        VoidResult stream(Tree& tree)
+        void stream(Tree& tree)
         {
             return tree.reindex();
         }
     };
 
     // Not used by BTree directly
-    VoidResult reindex()
+    void reindex()
     {
         ReindexFn fn;
-        return DispatcherWithResult(state()).dispatchNotEmpty(allocator(), fn);
-    }
-
-    VoidResult removeSpace(int32_t room_start, int32_t room_end)
-    {
-        auto old_size = this->size();
-
-        RemoveSpaceFn remove_fn;
-        MEMORIA_TRY_VOID(DispatcherWithResult(state()).dispatchNotEmpty(allocator(), remove_fn, room_start, room_end));
-
-        Value* values = node_->values();
-        CopyBuffer(values + room_end, values + room_start, old_size - room_end);
-
-        MEMORIA_TRY_VOID(reindex());
-        MEMORIA_ASSERT(old_size, >=, room_end - room_start);
-
-        int32_t requested_block_size = (old_size - (room_end - room_start)) * sizeof(Value);
-
-        MEMORIA_TRY_VOID(allocator()->resize_block(ValuesBlockIdx, requested_block_size));
-
-        return VoidResult::of();
-    }
-
-    VoidResult removeSpace(int32_t stream, int32_t room_start, int32_t room_end)
-    {
-        return removeSpace(room_start, room_end);
+        return Dispatcher(state()).dispatchNotEmpty(allocator(), fn);
     }
 
 
 
-    BoolResult shouldBeMergedWithSiblings() const  {
+    bool shouldBeMergedWithSiblings() const  {
         return node_->shouldBeMergedWithSiblings();
     }
 
-    struct CanMergeWithFn {
-        int32_t mem_used_ = 0;
+//    struct CanMergeWithFn {
+//        int32_t mem_used_ = 0;
 
+//        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
+//        void stream(Tree&& tree, OtherNodeT&& other)
+//        {
+//            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
+//            if (tree)
+//            {
+//                if (other.allocator()->is_empty(AllocatorIdx))
+//                {
+//                    mem_used_ += tree.data()->block_size();
+//                }
+//                else {
+//                    const PkdTree* other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
+//                    mem_used_ += tree.data()->block_size_for(other_tree);
+//                }
+//            }
+//            else {
+//                if (!other.allocator()->is_empty(AllocatorIdx))
+//                {
+//                    int32_t element_size = other.allocator()->element_size(AllocatorIdx);
+//                    mem_used_ += element_size;
+//                }
+//            }
+//        }
+//    };
+
+//    template <typename OtherNodeT>
+//    BoolResult canBeMergedWith(OtherNodeT&& other) const
+//    {
+//        CanMergeWithFn fn;
+//        MEMORIA_TRY_VOID(DispatcherWithResult(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other)));
+
+//        int32_t client_area = other.allocator()->client_area();
+
+//        int32_t my_data_size    = allocator()->element_size(ValuesBlockIdx);
+//        int32_t other_data_size = other.allocator()->element_size(ValuesBlockIdx);
+
+//        fn.mem_used_ += my_data_size;
+//        fn.mem_used_ += other_data_size;
+
+//        // FIXME +10 is an extra safety gap
+//        return BoolResult::of(client_area >= fn.mem_used_); //+ 10
+//    }
+
+    struct CommitMergeWithFn {
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        void stream(Tree&& tree, OtherNodeT&& other)
-        {
-            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
-            if (tree)
-            {
-                if (other.allocator()->is_empty(AllocatorIdx))
-                {
-                    mem_used_ += tree.data()->block_size();
-                }
-                else {
-                    const PkdTree* other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
-                    mem_used_ += tree.data()->block_size_for(other_tree);
-                }
-            }
-            else {
-                if (!other.allocator()->is_empty(AllocatorIdx))
-                {
-                    int32_t element_size = other.allocator()->element_size(AllocatorIdx);
-                    mem_used_ += element_size;
-                }
-            }
-        }
-    };
-
-    template <typename OtherNodeT>
-    BoolResult canBeMergedWith(OtherNodeT&& other) const
-    {
-        CanMergeWithFn fn;
-        MEMORIA_TRY_VOID(DispatcherWithResult(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other)));
-
-        int32_t client_area = other.allocator()->client_area();
-
-        int32_t my_data_size    = allocator()->element_size(ValuesBlockIdx);
-        int32_t other_data_size = other.allocator()->element_size(ValuesBlockIdx);
-
-        fn.mem_used_ += my_data_size;
-        fn.mem_used_ += other_data_size;
-
-        // FIXME +10 is an extra safety gap
-        return BoolResult::of(client_area >= fn.mem_used_); //+ 10
-    }
-
-    struct MergeWithFn {
-        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        VoidResult stream(const Tree& tree, OtherNodeT&& other)
+        void stream(const Tree& tree, OtherNodeT&& other, UpdateState& update_state)
         {
             int32_t size = tree.size();
 
             if (size > 0)
             {
                 Dispatcher other_disp = other.dispatcher();
-
-                if (other.allocator()->is_empty(AllocatorIdx))
-                {
-                    MEMORIA_TRY_VOID(other_disp.template allocate_empty<Idx>(other.allocator()));
-                }
-
                 Tree other_tree = other_disp.template get<Idx>(other.allocator());
-
-                return tree.mergeWith(other_tree);
+                return tree.commit_merge_with(other_tree, std::get<Idx>(update_state));
             }
-
-            return VoidResult::of();
         }
     };
 
     template <typename OtherNodeT>
-    VoidResult mergeWith(OtherNodeT&& other) const
+    void commit_merge_with(OtherNodeT&& other, UpdateState& update_state) const
     {
         auto other_size = other.size();
         auto my_size = size();
 
-        MergeWithFn fn;
-        MEMORIA_TRY_VOID(DispatcherWithResult(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other)));
+        CommitMergeWithFn fn;
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), update_state);
 
         int32_t other_values_block_size          = other.allocator()->element_size(ValuesBlockIdx);
         int32_t required_other_values_block_size = (my_size + other_size) * sizeof(Value);
 
         if (required_other_values_block_size >= other_values_block_size)
         {
-            MEMORIA_TRY_VOID(other.allocator()->resize_block(other.node()->values(), required_other_values_block_size));
+            other.allocator()->resize_block(other.node()->values(), required_other_values_block_size);
         }
 
         CopyBuffer(node_->values(), other.node()->values() + other_size, my_size);
-
-        return VoidResult::of();
     }
 
+    struct PrepareMergeWithFn {
+        PkdUpdateStatus status_{PkdUpdateStatus::SUCCESS};
 
+        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT, typename UpdateState>
+        void stream(const Tree& tree, OtherNodeT&& other, UpdateState& update_state)
+        {
+            if (status_ == PkdUpdateStatus::SUCCESS)
+            {
+                size_t size = tree.size();
+                if (size) {
+                    Dispatcher other_disp = other.dispatcher();
+
+                    Tree other_tree = other_disp.template get<Idx>(other.allocator());
+                    status_ = tree.prepare_merge_with(other_tree, std::get<Idx>(update_state));
+                }
+            }
+        }
+    };
+
+    template <typename OtherNodeT, typename UpdateState>
+    PkdUpdateStatus prepare_merge_with(OtherNodeT&& other, UpdateState& update_state) const {
+        PrepareMergeWithFn fn;
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), update_state);
+        if (fn.status_ == PkdUpdateStatus::SUCCESS)
+        {
+            // check children pointers block capacity here
+            return PkdUpdateStatus::SUCCESS;
+        }
+        else {
+            return PkdUpdateStatus::FAILURE;
+        }
+    }
+
+    template <typename OtherNodeT>
+    PkdUpdateStatus merge_with(OtherNodeT&& other) const
+    {
+        auto update_state = make_update_state();
+        if (isSuccess(prepare_merge_with(std::forward<OtherNodeT>(other), update_state))) {
+            commit_merge_with(std::forward<OtherNodeT>(other), update_state);
+            return PkdUpdateStatus::SUCCESS;
+        }
+        else {
+            return PkdUpdateStatus::FAILURE;
+        }
+    }
 
     struct SplitToFn {
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        VoidResult stream(Tree& tree, OtherNodeT&& other, int32_t idx)
+        void stream(Tree& tree, OtherNodeT&& other, int32_t idx)
         {
             int32_t size = tree.size();
             if (size > 0)
@@ -689,20 +770,17 @@ public:
                 Tree other_tree = other_disp.template get<Idx>(other.allocator());
                 if (!other_tree.data())
                 {
-                    MEMORIA_TRY(other_tree_tmp, other_disp.template allocate_empty<Idx>(other.allocator()));
-                    other_tree = std::move(other_tree_tmp);
+                    other_tree = other_disp.template allocate_empty<Idx>(other.allocator()).get_or_throw();
                 }
 
-                return tree.splitTo(other_tree, idx);
+                return tree.split_to(other_tree, idx);
             }
-
-            return VoidResult::of();
         }
     };
 
 
     template <typename OtherNodeT>
-    VoidResult splitTo(OtherNodeT&& other, int32_t split_idx)
+    void split_to(OtherNodeT&& other, int32_t split_idx)
     {
         auto size = this->size();
         int32_t remainder = size - split_idx;
@@ -710,15 +788,13 @@ public:
         MEMORIA_ASSERT(split_idx, <=, size);
 
         SplitToFn fn;
-        MEMORIA_TRY_VOID(DispatcherWithResult(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), split_idx));
-        MEMORIA_TRY_VOID(other.allocator()->template allocate_array_by_size<Value>(ValuesBlockIdx, remainder));
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), split_idx);
+        other.allocator()->template allocate_array_by_size<Value>(ValuesBlockIdx, remainder);
 
         Value* other_values = other.node()->values();
         Value* my_values    = node_->values();
 
         CopyBuffer(my_values + split_idx, other_values, remainder);
-
-        return VoidResult::of();
     }
 
 
@@ -820,23 +896,51 @@ public:
     }
 
 
-    struct UpdateUpFn {
-        template <int32_t Idx, typename StreamType>
-        VoidResult stream(StreamType&& tree, int32_t idx, const BranchNodeEntry& accum)
+    struct CommitUpdateFn {
+        template <int32_t Idx, typename StreamType, typename UpdateState>
+        void stream(StreamType&& tree, int32_t idx, const BranchNodeEntry& accum, UpdateState& update_state)
         {
-            return tree.update_entries(idx, 1, [&](psize_t col, psize_t)  {
+            return tree.commit_update(idx, 1, std::get<Idx>(update_state), [&](psize_t col, psize_t)  {
                 return std::get<Idx>(accum)[col];
             });
         }
     };
 
+    struct PrepareUpdateFn {
+        PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
-    VoidResult updateUp(int32_t idx, const BranchNodeEntry& keys)
-    {
-        UpdateUpFn fn;
-        return DispatcherWithResult(state()).dispatchNotEmpty(allocator(), fn, idx, keys);
+        template <int32_t Idx, typename StreamType, typename UpdateState>
+        void stream(StreamType&& tree, int32_t idx, const BranchNodeEntry& accum, UpdateState& update_state)
+        {
+            if (isSuccess(status)) {
+                status = tree.prepare_update(idx, 1, std::get<Idx>(update_state), [&](psize_t col, psize_t)  {
+                    return std::get<Idx>(accum)[col];
+                });
+            }
+        }
+    };
+
+
+    void commit_update(int32_t idx, const BranchNodeEntry& keys, UpdateState& update_state) {
+        CommitUpdateFn fn2;
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn2, idx, keys, update_state);
     }
 
+    PkdUpdateStatus update(int32_t idx, const BranchNodeEntry& keys)
+    {
+        UpdateState update_state = make_update_state();
+
+        PrepareUpdateFn fn1;
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn1, idx, keys, update_state);
+
+        if (isSuccess(fn1.status)) {
+            commit_update(idx, keys, update_state);
+            return PkdUpdateStatus::SUCCESS;
+        }
+        else {
+            return PkdUpdateStatus::FAILURE;
+        }
+    }
 
 
     bool checkCapacities(const Position& sizes) const
@@ -863,15 +967,14 @@ public:
 
         handler->startGroup("TREE_VALUES", size);
 
-        for (int32_t idx = 0; idx < size; idx++)
-        {
+        for (int32_t idx = 0; idx < size; idx++) {
             ValueHelper<Value>::setup(handler, "CHILD_ID", value(idx));
         }
 
         handler->endGroup();
     }
 
-    VoidResult init_root_metadata()  {
+    void init_root_metadata()  {
         return node_->template init_root_metadata<RootMetadataList>();
     }
 
@@ -1104,6 +1207,13 @@ public:
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
         );
+    }
+
+
+    static UpdateState make_update_state() {
+        UpdateState state;
+        bt::UpdateStateInitializer<UpdateState>::process(state);
+        return state;
     }
 };
 

@@ -116,9 +116,14 @@ public:
 
     virtual void reindex()
     {
-        while (is_packed_error(sequence_so_.reindex())) {
-            enlarge();
-        }
+        do {
+            try {
+                return sequence_so_.reindex();
+            }
+            catch (const PackedOOMError&) {
+                enlarge();
+            }
+        } while (true);
     }
 
     virtual void reset() {
@@ -136,7 +141,7 @@ public:
 
     void append(Span<const RunT> runs) {
         while (true) {
-            size_t required = sequence_so_.append(runs).get_or_throw();
+            size_t required = sequence_so_.append(runs);
             if (required > 0) {
                 enlarge(required);
             }
@@ -202,7 +207,7 @@ private:
         SeqT* new_seq = ptr_cast<SeqT>(allocate_system<uint8_t>(bs).release());
         memcpy(new_seq, sequence_, current_bs);
         new_seq->set_block_size(bs);
-        new_seq->resize_block(SeqT::SYMBOLS, syms_block_size).get_or_throw();
+        new_seq->resize_block(SeqT::SYMBOLS, syms_block_size);
 
         free_system(sequence_);
 

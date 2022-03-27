@@ -136,7 +136,7 @@ public:
             Values value = Base::createRandom();
             size_t idx = getRandom(tree->size());
 
-            tree->addValues(idx, value).get_or_throw();
+            tree->addValues(idx, value);
             Base::assertIndexCorrect(MA_SRC, tree);
 
             addValues(tree_values, idx, value);
@@ -170,7 +170,7 @@ public:
 
         size_t idx = this->getRandom(size);
 
-        tree1.splitTo(tree2, idx).get_or_throw();
+        tree1.split_to(tree2, idx);
 
         std::vector<Values> tree_values2(tree_values1.begin() + idx, tree_values1.end());
 
@@ -206,7 +206,7 @@ public:
 
         size_t idx = getRandom(size);
 
-        tree1.splitTo(tree2, idx).get_or_throw();
+        tree1.split_to(tree2, idx);
 
         tree_values2.insert(tree_values2.begin(), tree_values1.begin() + idx, tree_values1.end());
 
@@ -239,7 +239,8 @@ public:
 
                 size_t block_size = tree.data()->block_size();
 
-                tree.remove(start, end).get_or_throw();
+                auto state = tree.make_update_state();
+                tree.commit_remove(start, end, state.first);
 
                 tree_values.erase(tree_values.begin() + start, tree_values.begin() + end);
 
@@ -267,7 +268,8 @@ public:
 
             assertEqual(tree, tree_values);
 
-            tree.remove(0, tree.size()).get_or_throw();
+            auto state = tree.make_update_state();
+            tree.commit_remove(0, tree.size(), state.first);
 
             assertEmpty(tree);
         }
@@ -299,7 +301,8 @@ public:
         Base::fillVector(tree1, tree_values1);
         Base::fillVector(tree2, tree_values2);
 
-        tree1.mergeWith(tree2).get_or_throw();
+        auto state = tree1.make_update_state();
+        tree1.commit_merge_with(tree2, state.first);
 
         tree_values2.insert(tree_values2.end(), tree_values1.begin(), tree_values1.end());
 
@@ -331,7 +334,7 @@ public:
 
         assertEqual(tree, tree_values);
 
-        tree.clear().get_or_throw();
+        tree.clear();
         tree.data()->set_block_size(block_size);
 
         assertEmpty(tree);
@@ -340,7 +343,7 @@ public:
 
         assertEqual(tree, tree_values);
 
-        tree.clear().get_or_throw();
+        tree.clear();
         assertEmpty(tree);
     }
 

@@ -20,6 +20,8 @@
 #include <memoria/profiles/common/block_operations.hpp>
 #include <memoria/core/iovector/io_substream_base.hpp>
 
+#include <memoria/core/packed/tools/packed_allocator_types.hpp>
+
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 
 namespace memoria {
@@ -35,6 +37,8 @@ public:
     using PkdStructT = PkdStruct;
     static constexpr size_t LEVELS = PkdStruct::Indexes;
     static constexpr size_t Indexes = PkdStruct::Indexes;
+
+    using UpdateState = PkdStructUpdate<MyType>;
 
     PackedAllocationMapSO() noexcept: ext_data_(), data_() {}
     PackedAllocationMapSO(ExtData* ext_data, PkdStruct* data) noexcept:
@@ -70,18 +74,18 @@ public:
     const PkdStruct* data() const noexcept {return data_;}
     PkdStruct* data() noexcept {return data_;}
 
-    VoidResult set_bits(size_t level, size_t idx, size_t size) noexcept
+    void set_bits(size_t level, size_t idx, size_t size) noexcept
     {
         return data_->set_bits(level, idx, size);
     }
 
-    VoidResult clear_bits(size_t level, size_t idx, size_t size) noexcept
+    void clear_bits(size_t level, size_t idx, size_t size) noexcept
     {
         return data_->clear_bits(level, idx, size);
     }
 
 
-    VoidResult clear_bits_opt(size_t level, size_t idx, size_t size) noexcept
+    void clear_bits_opt(size_t level, size_t idx, size_t size) noexcept
     {
         return data_->clear_bits_opt(level, idx, size);
     }
@@ -90,21 +94,25 @@ public:
         data_->rebuild_bitmaps(level);
     }
 
-    VoidResult reindex(bool recompute_bitmaps) noexcept {
+    void reindex(bool recompute_bitmaps) noexcept {
         return data_->reindex(recompute_bitmaps);
     }
 
-    VoidResult splitTo(MyType& other, size_t idx) noexcept
+    void split_to(MyType& other, size_t idx) noexcept
     {
-        return MEMORIA_MAKE_GENERIC_ERROR("Splitting PackedAllocationMap is not supported");
+        MEMORIA_MAKE_GENERIC_ERROR("Splitting PackedAllocationMap is not supported").do_throw();
     }
 
-    VoidResult mergeWith(MyType& other) const noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("Merging PackedAllocationMap is not supported");
+    void commit_merge_with(MyType& other, UpdateState&) const noexcept {
+        MEMORIA_MAKE_GENERIC_ERROR("Merging PackedAllocationMap is not supported").do_throw();
     }
 
-    VoidResult removeSpace(size_t room_start, size_t room_end) noexcept {
-        return MEMORIA_MAKE_GENERIC_ERROR("Removing space from PackedAllocationMap is not supported");
+    PkdUpdateStatus prepare_remove(size_t start, size_t end, UpdateState& update_state) const {
+        return PkdUpdateStatus::SUCCESS;
+    }
+
+    void commit_remove(size_t start, size_t end, UpdateState& ) noexcept {
+        MEMORIA_MAKE_GENERIC_ERROR("Removing space from PackedAllocationMap is not supported").do_throw();
     }
 
     size_t size() const noexcept {
@@ -166,18 +174,18 @@ public:
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
+    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements, UpdateState&) noexcept
     {
-//        MEMORIA_TRY_VOID(data_->removeSpace(row_at, row_at + size));
+//        MEMORIA_TRY_VOID(data_->remove(row_at, row_at + size));
 //        return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
 
         return VoidResult::of();
     }
 
-    template <typename AccessorFn>
+
     VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
     {
-        //return data_->removeSpace(row_at, row_at + size);
+        //return data_->remove(row_at, row_at + size);
         return VoidResult::of();
     }
 
@@ -187,6 +195,8 @@ public:
     {
         return data_->populate_allocation_pool(base, pool);
     }
+
+    MMA_MAKE_UPDATE_STATE_METHOD
 };
 
 

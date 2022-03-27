@@ -50,32 +50,30 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
 
     struct SetClearBitsFn {
         template <typename T>
-        Result<CtrSizeT> treeNode(T&& node_so, int32_t start, int32_t level, CtrSizeT size, bool set_bits) const noexcept
+        CtrSizeT treeNode(T&& node_so, size_t start, size_t level, CtrSizeT size, bool set_bits) const noexcept
         {
-            using ResultT = Result<CtrSizeT>;
             auto bitmap = node_so.template substream_by_idx<1>();
-            int32_t bm_size = bitmap.data()->size(level);
-
-            int32_t limit = (start + size) < bm_size ? (start + size) : bm_size;
+            size_t bm_size = bitmap.data()->size(level);
+            size_t limit = (start + size) < bm_size ? (start + size) : bm_size;
 
             if (set_bits) {
-                MEMORIA_TRY_VOID(bitmap.data()->set_bits(level, start, limit - start));
+                bitmap.data()->set_bits(level, start, limit - start);
             }
             else {
-                MEMORIA_TRY_VOID(bitmap.data()->clear_bits(level, start, limit - start));
+                bitmap.data()->clear_bits(level, start, limit - start);
             }
 
-            MEMORIA_TRY_VOID(bitmap.data()->reindex());
+            bitmap.data()->reindex();
 
-            return ResultT::of(CtrSizeT(limit - start));
+            return CtrSizeT(limit - start);
         }
     };
 
-    CtrSizeT iter_setup_bits(int32_t level, CtrSizeT size, bool set_bits)
+    CtrSizeT iter_setup_bits(size_t level, CtrSizeT size, bool set_bits)
     {
         auto& self = this->self();
 
-        int32_t local_pos = self.iter_local_pos() >> level;
+        size_t local_pos = self.iter_local_pos() >> level;
 
         CtrSizeT accum{};
 
@@ -84,7 +82,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
             self.ctr().ctr_cow_clone_path(self.path(), 0);
 
             CtrSizeT remainder = size - accum;
-            auto processed = self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), SetClearBitsFn(), local_pos, level, remainder, set_bits).get_or_throw();
+            auto processed = self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), SetClearBitsFn(), local_pos, level, remainder, set_bits);
 
             accum += processed;
 
@@ -117,15 +115,12 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
 
     struct TouchBitsFn {
         template <typename T>
-        Result<CtrSizeT> treeNode(T&& node_so, int32_t start, int32_t level, CtrSizeT size) const noexcept
+        CtrSizeT treeNode(T&& node_so, int32_t start, int32_t level, CtrSizeT size) const noexcept
         {
-            using ResultT = Result<CtrSizeT>;
             auto bitmap = node_so.template substream_by_idx<1>();
-            int32_t bm_size = bitmap.data()->size(level);
-
-            int32_t limit = (start + size) < bm_size ? (start + size) : bm_size;
-
-            return ResultT::of(limit - start);
+            size_t bm_size = bitmap.data()->size(level);
+            size_t limit = (start + size) < bm_size ? (start + size) : bm_size;
+            return limit - start;
         }
     };
 
@@ -134,7 +129,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
     {
         auto& self = this->self();
 
-        int32_t local_pos = self.iter_local_pos() >> level;
+        size_t local_pos = self.iter_local_pos() >> level;
 
         CtrSizeT accum{};
         CtrSizeT remainder = size;
@@ -142,7 +137,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
         {
             self.ctr().ctr_cow_clone_path(self.path(), 0);
 
-            auto processed = self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), TouchBitsFn(), local_pos, level, remainder).get_or_throw();
+            auto processed = self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), TouchBitsFn(), local_pos, level, remainder);
 
             accum += processed;
 
@@ -178,14 +173,14 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
 
     struct PopulateLeafFn {
         template <typename T>
-        VoidResult treeNode(T&& node_so, Span<const AllocationMetadataT> leaf_allocations, bool set_bits, CtrSizeT base) const noexcept
+        void treeNode(T&& node_so, Span<const AllocationMetadataT> leaf_allocations, bool set_bits, CtrSizeT base) const noexcept
         {
             auto bitmap = node_so.template substream_by_idx<1>();
 
             if (set_bits) {
                 for (auto alc: leaf_allocations) {
                     int32_t pos = (alc.position() - base) >> alc.level();
-                    MEMORIA_TRY_VOID(bitmap.set_bits(alc.level(), pos, alc.size_at_level()));
+                    bitmap.set_bits(alc.level(), pos, alc.size_at_level());
                 }
             }
             else {
@@ -194,7 +189,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
 
                 for (auto alc: leaf_allocations) {
                     int32_t pos = (alc.position() - base) >> alc.level();
-                    MEMORIA_TRY_VOID(bitmap.clear_bits_opt(alc.level(), pos, alc.size_at_level()));
+                    bitmap.clear_bits_opt(alc.level(), pos, alc.size_at_level());
                     levels[alc.level()] = true;
                 }
 
@@ -212,7 +207,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(alcmap::ItrApiName)
     void iter_populate_leaf(Span<const AllocationMetadataT> leaf_allocations, bool set_bits, CtrSizeT leaf_base)
     {
         auto& self = the_self();
-        self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), PopulateLeafFn(), leaf_allocations, set_bits, leaf_base).get_or_throw();
+        self.ctr().leaf_dispatcher().dispatch(self.path().leaf(), PopulateLeafFn(), leaf_allocations, set_bits, leaf_base);
         self.ctr().ctr_update_path(self.path(), 0);
     }
 

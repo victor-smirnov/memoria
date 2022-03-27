@@ -145,7 +145,7 @@ public:
         this->block_size_ = block_size;
     }
 
-    VoidResult init(size_t block_size, size_t blocks)
+    void init(size_t block_size, size_t blocks)
     {
         block_size_ = PackedAllocatable::round_down_bytes_to_alignment_blocks(block_size);
 
@@ -159,8 +159,6 @@ public:
 
         Bitmap* bitmap = this->bitmap();
         memset(bitmap, 0, bitmap_size_);
-
-        return VoidResult::of();
     }
 
     static constexpr size_t empty_size(size_t blocks)
@@ -197,15 +195,15 @@ public:
         return diff;
     }
 
-    SizeTResult resize_block(const void* element, size_t new_size)
+    size_t resize_block(const void* element, size_t new_size)
     {
         size_t idx = find_element(element);
         return resize_block(idx, new_size);
     }
 
-    SizeTResult resize_block(size_t idx, size_t new_size)
+    size_t resize_block(size_t idx, size_t new_size)
     {
-        MEMORIA_ASSERT_RTN(new_size, <=, std::numeric_limits<psize_t>::max());
+        MEMORIA_ASSERT(new_size, <=, std::numeric_limits<psize_t>::max());
 
         size_t allocation_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(new_size);
 
@@ -218,7 +216,7 @@ public:
             size_t free_space = this->free_space();
             if (delta > free_space)
             {
-                MEMORIA_TRY_VOID(enlarge(delta - free_space));
+                enlarge(delta - free_space);
             }
 
             move_elements_up(idx + 1, delta);
@@ -230,11 +228,11 @@ public:
 
             if (allocatable_.allocator_offset())
             {
-                MEMORIA_TRY_VOID(pack());
+                pack();
             }
         }
 
-        return SizeTResult::of(allocation_size);
+        return allocation_size;
     }
 
     bool try_allocation(size_t idx, size_t new_size)
@@ -350,141 +348,129 @@ public:
     }
 
     template <typename T>
-    Result<T*> allocate(size_t idx, size_t block_size)
+    T* allocate(size_t idx, size_t block_size)
     {
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
         static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
 
-        using ResultT = Result<T*>;
-
-        MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
+        auto block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
         T* object = block.cast<T>();
 
-        MEMORIA_TRY_VOID(object->init(block.size()));
+        object->init(block.size());
 
-        return ResultT::of(object);
+        return object;
     }
 
     template <typename T>
-    Result<T*> allocate_space(size_t idx, size_t block_size)
+    T* allocate_space(size_t idx, size_t block_size)
     {
-        using ResultT = Result<T*>;
         static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
-        MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
+        auto block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
-        return ResultT::of(block.cast<T>());
+        return block.cast<T>();
     }
 
     template <typename T>
-    Result<T*> allocate_empty(size_t idx, bool do_init = true)
+    T* allocate_empty(size_t idx, bool do_init = true)
     {
-        using ResultT = Result<T*>;
-
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
         static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
 
         size_t block_size = T::empty_size();
 
-        MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
+        auto block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
         T* object = block.cast<T>();
 
         if (do_init) {
-            MEMORIA_TRY_VOID(object->init());
+            object->init();
         }
 
-        return ResultT::of(object);
+        return object;
     }
 
 
     template <typename T>
-    Result<T*> allocate_default(size_t idx)
+    T* allocate_default(size_t idx)
     {
-        using ResultT = Result<T*>;
-
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
         static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
 
         size_t available_client_area = this->free_space();
         size_t block_size = T::default_size(available_client_area);
 
-        MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
+        auto block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
         T* object = block.cast<T>();
 
-        MEMORIA_TRY_VOID(object->init_default(block_size));
+        object->init_default(block_size);
 
-        return ResultT::of(object);
+        return object;
     }
 
 
 
-    Result<PackedAllocator*> allocate_allocator(size_t idx, size_t streams)
+    PackedAllocator* allocate_allocator(size_t idx, size_t streams)
     {
-        using ResultT = Result<PackedAllocator*>;
         size_t block_size = PackedAllocator::empty_size(streams);
 
-        MEMORIA_TRY(block, allocate(idx, block_size, PackedBlockType::ALLOCATABLE));
+        auto block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
         PackedAllocator* object = block.cast<PackedAllocator>();
 
-        MEMORIA_TRY_VOID(object->init(block_size, streams));
+        object->init(block_size, streams);
 
-        return ResultT::of(object);
+        return object;
     }
 
 
     template <typename T>
-    Result<T*> allocate(size_t idx)
+    T* allocate(size_t idx)
     {
-        using ResultT = Result<T*>;
         static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
 
-        MEMORIA_TRY(block, allocate(idx, sizeof(T), PackedBlockType::RAW_MEMORY));
-        return ResultT::of(block.cast<T>());
+        auto block = allocate(idx, sizeof(T), PackedBlockType::RAW_MEMORY);
+        return block.cast<T>();
     }
 
     template <typename T>
-    Result<T*> allocate_array_by_length(size_t idx, size_t length)
+    T* allocate_array_by_length(size_t idx, size_t length)
     {
-        using ResultT = Result<T*>;
         static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
 
-        MEMORIA_TRY(block, allocate(idx, length, PackedBlockType::RAW_MEMORY));
-        return ResultT::of(block.cast<T>());
+        auto block = allocate(idx, length, PackedBlockType::RAW_MEMORY);
+        return block.cast<T>();
     }
 
     template <typename T>
-    Result<T*> allocate_array_by_size(size_t idx, size_t size)
+    T* allocate_array_by_size(size_t idx, size_t size)
     {
-        using ResultT = Result<T*>;
         static_assert(IsPackedAlignedV<T>, "Invalid type alignment for packed allocator (8 bytes at most)");
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
 
-        MEMORIA_TRY(block, allocate(idx, sizeof(T) * size, PackedBlockType::RAW_MEMORY));
-        return ResultT::of(block.cast<T>());
+        auto block = allocate(idx, sizeof(T) * size, PackedBlockType::RAW_MEMORY);
+        return block.cast<T>();
     }
 
 
-    Result<AllocationBlock> allocate(size_t idx, size_t size, PackedBlockType type)
+    AllocationBlock allocate(size_t idx, size_t size, PackedBlockType type)
     {
-        using ResultT = Result<AllocationBlock>;
         size_t allocation_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(size);
 
         set_block_type(idx, type);
 
-        MEMORIA_TRY_VOID(resize_block(idx, allocation_size));
+        resize_block(idx, allocation_size);
 
         size_t offset = element_offset(idx);
 
@@ -498,17 +484,17 @@ public:
 
         auto offs = base() + offset;
 
-        MEMORIA_V1_ASSERT_ALIGN_RTN(offs, 8);
+        MEMORIA_V1_ASSERT_ALIGN(offs, 8);
 
-        return ResultT::of(allocation_size, offset, base() + offset);
+        return AllocationBlock(allocation_size, offset, base() + offset);
     }
 
-    VoidResult import_block(size_t idx, const PackedAllocator* src, size_t src_idx)
+    void import_block(size_t idx, const PackedAllocator* src, size_t src_idx)
     {
         auto src_block  = src->describe(src_idx);
         auto type       = src->block_type(src_idx);
 
-        MEMORIA_TRY_VOID(resize_block(idx, src_block.size()));
+        resize_block(idx, src_block.size());
 
         set_block_type(idx, type);
 
@@ -524,11 +510,9 @@ public:
             PackedAllocatable* element = ptr_cast<PackedAllocatable>(tgt_block.ptr());
             element->set_allocator_offset(this);
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult free(size_t idx)
+    void free(size_t idx)
     {
         size_t size = element_size(idx);
         if (size > 0)
@@ -536,11 +520,9 @@ public:
             move_elements_down(idx + 1, size);
 
             if (allocatable_.allocator_offset() > 0) {
-                MEMORIA_TRY_VOID(pack());
+                pack();
             }
         }
-
-        return VoidResult::of();
     }
 
     void clear(size_t idx)
@@ -594,28 +576,27 @@ public:
     }
 
 
-    SizeTResult enlarge(size_t delta)
+    size_t enlarge(size_t delta)
     {
         return resize(PackedAllocatable::round_up_bytes_to_alignment_blocks(block_size_ + delta));
     }
 
-    SizeTResult shrink(size_t delta)
+    size_t shrink(size_t delta)
     {
         return resize(PackedAllocatable::round_up_bytes_to_alignment_blocks(block_size_ - delta));
     }
 
-    VoidResult resize_block(size_t new_size)
+    void resize_block(size_t new_size)
     {
         block_size_ = new_size;
-        return VoidResult::of();
     }
 
-    SizeTResult resize(size_t new_size)
+    size_t resize(size_t new_size)
     {
         if (allocatable_.allocator_offset() > 0)
         {
             Allocator* alloc = allocatable_.allocator();
-            MEMORIA_TRY(block_size_tmp, alloc->resize_block(this, new_size));
+            auto block_size_tmp = alloc->resize_block(this, new_size);
             block_size_ = block_size_tmp;
         }
         else if (new_size > block_size_)
@@ -632,7 +613,7 @@ public:
 //            }
 //        }
 //        else {
-            return MEMORIA_MAKE_PACKED_OOM_ERROR();
+            MEMORIA_MAKE_PACKED_OOM_ERROR().do_throw();
         }
 
         return block_size_;
@@ -643,7 +624,7 @@ public:
         block_size_ += PackedAllocatable::round_down_bytes_to_alignment_blocks(amount);
     }
 
-    SizeTResult pack()
+    size_t pack()
     {
         size_t free_space = this->free_space();
         return resize(block_size_ - free_space);
@@ -826,13 +807,13 @@ const T* get(const PackedAllocator& alloc, size_t idx)  {
 
 
 template <typename T>
-Result<T*> allocate(PackedAllocator* alloc, size_t idx)  {
+T* allocate(PackedAllocator* alloc, size_t idx)  {
     return alloc->template allocate<T>(idx);
 }
 
 
 template <typename T>
-Result<T*> allocate(PackedAllocator& alloc, size_t idx)  {
+T* allocate(PackedAllocator& alloc, size_t idx)  {
     return alloc.template allocate<T>(idx);
 }
 

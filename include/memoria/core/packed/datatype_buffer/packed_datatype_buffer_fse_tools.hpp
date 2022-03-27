@@ -49,9 +49,7 @@ public:
         return pkd_buf_->template get<const T>(data_block_num());
     }
 
-    static VoidResult allocate_empty(PkdStruct* alloc, size_t column)  {
-        return VoidResult::of();
-    }
+    static void allocate_empty(PkdStruct* alloc, size_t column)  {}
 
     static constexpr size_t empty_size_aligned() {
         return 0;
@@ -97,13 +95,13 @@ public:
         return data_size;
     }
 
-    VoidResult insert_space(size_t start, size_t size, size_t data_len)
+    void insert_space(size_t start, size_t size, size_t data_len)
     {
         auto& meta = pkd_buf_->metadata();
 
         size_t column_data_length = size + meta.size();
 
-        MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length * sizeof(T)));
+        pkd_buf_->resize_block(data_block_num(), column_data_length * sizeof(T));
 
         auto data = this->data();
 
@@ -111,11 +109,9 @@ public:
         size_t data_end    = data_start + size;
 
         MemMoveBuffer(data + data_start, data + data_end, meta.size() - start);
-
-        return VoidResult::of();
     }
 
-    VoidResult remove_space(size_t start, size_t size)
+    void remove_space(size_t start, size_t size)
     {
         auto& meta = pkd_buf_->metadata();
 
@@ -125,20 +121,16 @@ public:
 
         size_t column_data_length = (meta.size() - size) * sizeof(T);
 
-        MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length));
-
-        return VoidResult::of();
+        pkd_buf_->resize_block(data_block_num(), column_data_length);
     }
 
-    VoidResult resize_row(size_t idx, const T* value)
+    void resize_row(size_t idx, const T* value)
     {
-        return VoidResult::of();
     }
 
-    VoidResult replace_row(size_t idx, const T* value)
+    void replace_row(size_t idx, const T* value)
     {
         *(this->data() + idx) = *value;
-        return VoidResult::of();
     }
 
     void copy_to(PkdStruct* other, size_t copy_from, size_t count, size_t copy_to, size_t data_length) const

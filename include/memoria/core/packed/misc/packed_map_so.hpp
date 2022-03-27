@@ -30,6 +30,8 @@
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/tools/result.hpp>
 
+#include <memoria/core/packed/tools/packed_allocator_types.hpp>
+
 #include <algorithm>
 
 namespace memoria {
@@ -46,6 +48,8 @@ public:
 
     using KeyView   = typename PkdStruct::KeyView;
     using ValueView = typename PkdStruct::ValueView;
+
+    using UpdateState = PkdStructUpdate<PackedMapSO>;
 
 private:
     KeysExtData keys_ext_data_;
@@ -149,7 +153,7 @@ public:
         return Optional<ValueView>();
     }
 
-    VoidResult set(const KeyView& key, const ValueView value) noexcept
+    void set(const KeyView& key, const ValueView value) noexcept
     {
         size_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
@@ -159,33 +163,31 @@ public:
 
             if (MMA_UNLIKELY(key0 == key))
             {
-                MEMORIA_TRY_VOID(values_.replace(0, result.local_pos(), value));
+                values_.replace(0, result.local_pos(), value);
             }
             else {
-                MEMORIA_TRY_VOID(keys_.insert(result.local_pos(), key));
+                keys_.insert(result.local_pos(), key);
 
                 refresh_so();
 
-                MEMORIA_TRY_VOID(values_.insert(result.local_pos(), value));
+                values_.insert(result.local_pos(), value);
 
                 refresh_so();
             }
         }
         else {
             psize_t idx = size;
-            MEMORIA_TRY_VOID(keys_.insert(idx, key));
+            keys_.insert(idx, key);
 
             refresh_so();
 
-            MEMORIA_TRY_VOID(values_.insert(idx, value));
+            values_.insert(idx, value);
 
             refresh_so();
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult remove(const KeyView& key) noexcept
+    void remove(const KeyView& key) noexcept
     {
         size_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
@@ -195,15 +197,13 @@ public:
 
             if (MMA_UNLIKELY(key0 == key))
             {
-                MEMORIA_TRY_VOID(keys_.remove(result.local_pos()));
+                keys_.remove(result.local_pos());
                 refresh_so();
 
-                MEMORIA_TRY_VOID(values_.remove(result.local_pos()));
+                values_.remove(result.local_pos());
                 refresh_so();
             }
         }
-
-        return VoidResult::of();
     }
 
     size_t estimate_required_upsize(const KeyView& key, const ValueView& value) const
@@ -245,17 +245,15 @@ public:
         return upsize;
     }
 
-    VoidResult set_all(const std::vector<std::pair<KeyView, ValueView>>& entries) noexcept
+    void set_all(const std::vector<std::pair<KeyView, ValueView>>& entries) noexcept
     {
         for (const auto& entry: entries)
         {
             const KeyView& key     = std::get<0>(entry);
             const ValueView& value = std::get<1>(entry);
 
-            MEMORIA_TRY_VOID(set(key, value));
+            set(key, value);
         }
-
-        return VoidResult::of();
     }
 
     void for_each(std::function<void (KeyView, ValueView)> fn) const
@@ -274,7 +272,7 @@ public:
         }
     }
 
-    VoidResult for_each_noexcept(std::function<VoidResult (KeyView, ValueView)> fn) const noexcept
+    void for_each_noexcept(std::function<void (KeyView, ValueView)> fn) const noexcept
     {
         auto keys_ii  = keys_.begin(0);
         auto keys_end = keys_.end(0);
@@ -284,14 +282,14 @@ public:
 
         while (keys_ii != keys_end && values_ii != values_end)
         {
-            MEMORIA_TRY_VOID(fn(*keys_ii, *values_ii));
+            fn(*keys_ii, *values_ii);
 
             ++keys_ii;
             ++values_ii;
         }
-
-        return VoidResult::of();
     }
+
+    MMA_MAKE_UPDATE_STATE_METHOD
 
 private:
     void refresh_so() noexcept {

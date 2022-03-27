@@ -110,7 +110,7 @@ MakeSharedPackedStructByBlock(size_t block_size, Args&&... args)
     PkdStructSPtr<T> ptr = std::allocate_shared<T>(SharedPtrAllocator<T>(block_size, sizeof(T)));
 
     ptr->allocatable().setTopLevelAllocator();
-    ptr->init_bs(block_size, std::forward<Args>(args)...).get_or_throw();
+    ptr->init_bs(block_size, std::forward<Args>(args)...);
     ptr->set_block_size(block_size);
 
     return ptr;
@@ -131,11 +131,11 @@ MakeSharedPackedStructByBlock(size_t block_size, Args&&... args)
     if (alloc)
     {
         alloc->allocatable().setTopLevelAllocator();
-        alloc->init(allocator_block_size, 1).get_or_throw();
+        alloc->init(allocator_block_size, 1);
 
         T* ptr = alloc->template allocate_space<T>(0, block_size);
 
-        ptr->init(std::forward<Args>(args)...).get_or_throw();
+        ptr->init(std::forward<Args>(args)...);
 
         return PkdStructSPtr<T>(ptr, free_packed_allocatable);
     }

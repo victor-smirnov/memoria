@@ -235,10 +235,9 @@ public:
         return PackedAllocator::block_size(0, TupleSize);
     }
 
-    VoidResult init() noexcept
+    void init() noexcept
     {
-        MEMORIA_TRY_VOID(init(empty_size(), TupleSize));
-        return VoidResult::of();
+        init(empty_size(), TupleSize);
     }
 
 

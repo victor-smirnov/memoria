@@ -105,13 +105,10 @@ public:
         return sizeof(BalancedTreeMetadata);
     }
 
-    VoidResult init() {
-        return VoidResult::of();
+    void init() {
     }
 
-    VoidResult pack() {
-        return VoidResult::of();
-    }
+    //void pack() {}
 };
 
 template <typename Profile>

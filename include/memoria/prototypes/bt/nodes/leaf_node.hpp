@@ -193,9 +193,10 @@ public:
             {
                 auto memref_id = id_resolver->resolve_id(buffer_so.access(0, c));
 
-                buffer_so.update_entries(c, 1, [&](auto col, auto row)  {
+                auto state = buffer_so.make_update_state();
+                buffer_so.commit_update(c, 1, state.first, [&](auto col, auto row)  {
                     return memref_id;
-                }).get_or_throw();
+                });
             }
         }
     };

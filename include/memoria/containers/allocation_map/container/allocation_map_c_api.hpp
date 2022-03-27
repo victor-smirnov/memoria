@@ -88,7 +88,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     struct ExpandBitmapFn {
         template <typename T>
-        CtrSizeTResult treeNode(T&& node_so, CtrSizeT size) const
+        CtrSizeT treeNode(T&& node_so, CtrSizeT size) const
         {
             auto sizes_stream  = node_so.template substream_by_idx<0>();
             auto bitmap_stream = node_so.template substream_by_idx<1>();
@@ -104,17 +104,17 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 inserted = size;
             }
 
-            MEMORIA_TRY_VOID(bitmap_stream.data()->enlarge(static_cast<int32_t>(inserted)));
+            bitmap_stream.data()->enlarge(static_cast<int32_t>(inserted));
 
             sizes_stream.data()->size() = bitmap_stream.data()->size();
 
-            return CtrSizeTResult::of(inserted);
+            return inserted;
         }
     };
 
     CtrSizeT ctr_enlarge_leaf(const TreeNodePtr& node, CtrSizeT l0_size, bool update_path = true)
     {
-        return self().leaf_dispatcher().dispatch(node, ExpandBitmapFn(), l0_size).get_or_throw();
+        return self().leaf_dispatcher().dispatch(node, ExpandBitmapFn(), l0_size);
     }
 
     virtual CtrSizeT expand(CtrSizeT l0_size)
@@ -294,23 +294,21 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     struct LayoutLeafNodeFn {
         template <typename T>
-        VoidResult treeNode(T&& node_so) const
+        void treeNode(T&& node_so) const
         {
-            MEMORIA_TRY_VOID(node_so.layout(-1ull));
+            node_so.layout();
 
             auto sizes_stream  = node_so.template substream_by_idx<0>();
             auto bitmap_stream = node_so.template substream_by_idx<1>();
 
             sizes_stream.data()->size() = bitmap_stream.data()->size();
-
-            return VoidResult::of();
         }
     };
 
 
-    void ctr_layout_leaf_node(TreeNodePtr& node, const Position& sizes) const
+    void ctr_layout_leaf_node(TreeNodePtr& node) const
     {
-        return self().leaf_dispatcher().dispatch(node, LayoutLeafNodeFn()).get_or_throw();
+        return self().leaf_dispatcher().dispatch(node, LayoutLeafNodeFn());
     }
 
 
@@ -346,7 +344,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 parent_idx = branch_size;
             }
 
-            self.ctr_insert_to_branch_node(path, 1, parent_idx, leaf_max, new_leaf->id()).get_or_throw();
+            self.ctr_insert_to_branch_node(path, 1, parent_idx, leaf_max, new_leaf->id());
 
             path[0] = new_leaf.as_immutable();
             self.ctr_ref_block(new_leaf->id());
@@ -718,25 +716,23 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             int32_t my_limit = my_bitmap->size();
             int32_t other_limit = other_bitmap->size();
 
-            auto fn = [&](int32_t my_idx, int32_t other_idx, int32_t level, int32_t my_value, int32_t other_value) {
-                return wrap_throwing([&]() -> bool {
-                    mismatches++;
+            auto fn = [&](int32_t my_idx, int32_t other_idx, int32_t level, int32_t my_value, int32_t other_value) {                
+                mismatches++;
 
-                    helper.set_my_idx(my_idx);
-                    helper.set_other_idx(other_idx);
-                    helper.set_level(level);
+                helper.set_my_idx(my_idx);
+                helper.set_other_idx(other_idx);
+                helper.set_level(level);
 
-                    helper.set_my_bit(my_value);
-                    helper.set_other_bit(other_value);
+                helper.set_my_bit(my_value);
+                helper.set_other_bit(other_value);
 
-                    return consumer(helper);
-                });
+                return consumer(helper);
             };
 
             if (my_limit - my_pos <= other_limit - other_pos)
             {
                 int32_t size = my_limit - my_pos;
-                bool do_continue = my_bitmap->compare_with(other_bitmap, my_pos, other_pos, size, fn).get_or_throw();
+                bool do_continue = my_bitmap->compare_with(other_bitmap, my_pos, other_pos, size, fn);
 
                 if (!do_continue) {
                     break;
@@ -752,7 +748,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             }
             else {
                 int32_t size = other_limit - other_pos;
-                bool do_continue = my_bitmap->compare_with(other_bitmap, my_pos, other_pos, size, fn).get_or_throw();
+                bool do_continue = my_bitmap->compare_with(other_bitmap, my_pos, other_pos, size, fn);
 
                 if (!do_continue) {
                     break;

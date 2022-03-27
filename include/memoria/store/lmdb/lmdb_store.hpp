@@ -128,7 +128,7 @@ public:
             }
 
             superblock_ = ptr_cast<Superblock>(::malloc(BASIC_BLOCK_SIZE));
-            MEMORIA_TRY_VOID(superblock_->init(BASIC_BLOCK_SIZE));
+            superblock_->init(BASIC_BLOCK_SIZE);
 
             if (const int rc = mma_mdb_txn_commit(transaction)) {
                 mma_mdb_dbi_close(mdb_env_, system_db_);

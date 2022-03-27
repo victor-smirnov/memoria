@@ -208,11 +208,11 @@ public:
             SeqSO seq2 = get_so(seq2_ss);
 
 
-            seq2.clear().get_or_throw();
+            seq2.clear();
             assert_equals(SeqSizeT{0}, SeqSizeT{seq2.size()});
             assert_equals(0, seq2.data()->code_units());
 
-            seq1.splitTo(seq2, split_at).get_or_throw();
+            seq1.split_to(seq2, split_at);
 
             std::vector<SymbolsRunT> vec1 = seq1.iterator().as_vector();
             assert_equals(split_at, count(vec1));
@@ -258,7 +258,8 @@ public:
 
             seq2.check();
 
-            seq1.mergeWith(seq2).get_or_throw();
+            auto state = seq1.make_update_state();
+            seq1.commit_merge_with(seq2, state.first);
             assert_equals(size3, seq2.size());
 
             std::vector<SymbolsRunT> vec3 = seq2.iterator().as_vector();
@@ -293,7 +294,7 @@ public:
 
                 syms = insert_to_buffer(syms, src, pos);
 
-                seq.insert(pos, src).get_or_throw();
+                seq.insert(pos, src);
                 seq.check();
 
                 std::vector<SymbolsRunT> vv = seq.iterator().as_vector();
@@ -328,7 +329,8 @@ public:
 
                 syms = remove_from_buffer(syms, start, end);
 
-                seq.removeSpace(start, end).get_or_throw();
+                auto state = seq.make_update_state();
+                seq.commit_remove(start, end, state.first);
                 seq.check();
 
                 std::vector<SymbolsRunT> vv = seq.iterator().as_vector();

@@ -145,72 +145,142 @@ public:
         }
     }
 
-    virtual int32_t findCapacity(const TreeNodePtr& leaf, int32_t size) = 0;
+    virtual size_t findCapacity(const TreeNodePtr& leaf, size_t size) = 0;
 
-    struct InsertBufferFn
+    struct PrepareInsertBufferFn
     {
         enum class StreamType {DATA, STRUCTURE};
 
         template <StreamType T> struct Tag {};
 
-        int32_t current_substream_{};
-
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj>
-        VoidResult stream(
-                StreamObj&& stream,
-                PackedAllocator* alloc,
-                int32_t at,
-                int32_t start,
-                int32_t size,
-                memoria::io::IOVector& io_vector)
-        {
-            MEMORIA_TRY_VOID(stream.insert_io_substream(
-                    at,
-                    io_vector.substream(current_substream_),
-                    start,
-                    size
-            ));
-
-            current_substream_++;
-
-            return VoidResult::of();
-        }
+        size_t current_substream{};
+        PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
         template <
-                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx,
-                typename ExtData, typename PkdStruct
+                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
+                typename StreamObj, typename UpdateState
         >
-        VoidResult stream(
+        void stream(
+                StreamObj&& stream,
+                PackedAllocator* alloc,
+                IntList<StreamsStartIdx>,
+                size_t at,
+                size_t start,
+                size_t size,
+                memoria::io::IOVector& io_vector,
+                UpdateState& update_state
+        ){
+            if (isSuccess(status))
+            {
+                status = stream.prepare_insert_io_substream(
+                            at,
+                            io_vector.substream(current_substream),
+                            start,
+                            size,
+                            std::get<AllocatorIdx - StreamsStartIdx>(update_state)
+                );
+                current_substream++;
+            }
+        }
+
+
+        template <
+                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
+                typename ExtData, typename PkdStruct, typename UpdateState
+        >
+        void stream(
                 PackedSizedStructSO<ExtData, PkdStruct>& stream,
                 PackedAllocator* alloc,
-                int32_t at,
-                int32_t start,
-                int32_t size,
-                memoria::io::IOVector& io_vector)
-        {
-            return stream.insertSpace(at, size);
+                IntList<StreamsStartIdx>,
+                size_t at,
+                size_t start,
+                size_t size,
+                memoria::io::IOVector& io_vector,
+                UpdateState& update_state
+        ){
+            // Do nothing here
         }
 
         template <typename LCtrT, typename NodeT, typename... Args>
-        VoidResult treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args)
-        {
-            MEMORIA_TRY_VOID(leaf.layout(255));
-            return leaf.processSubstreamGroupsVoidRes(*this, leaf.allocator(), std::forward<Args>(args)...);
+        void treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args) {
+            constexpr int32_t StreamsStartIdx = NodeT::StreamsStart;
+            return leaf.processSubstreamGroups(*this, leaf.allocator(), IntList<StreamsStartIdx>{}, std::forward<Args>(args)...);
         }
     };
 
 
-    virtual void insertBuffer(const TreeNodePtr& leaf, int32_t at, int32_t size)
+
+    struct CommitInsertBufferFn
     {
-        InsertBufferFn fn;
-        ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, *io_vector_).get_or_throw();
+        enum class StreamType {DATA, STRUCTURE};
+
+        template <StreamType T> struct Tag {};
+
+        size_t current_substream{};
+
+        template <
+                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
+                typename StreamObj, typename UpdateState
+        >
+        void stream(
+                StreamObj&& stream,
+                PackedAllocator* alloc,
+                IntList<StreamsStartIdx>,
+                size_t at,
+                size_t start,
+                size_t size,
+                memoria::io::IOVector& io_vector,
+                UpdateState& update_state
+        ){
+            stream.commit_insert_io_substream(
+                            at,
+                            io_vector.substream(current_substream),
+                            start,
+                            size,
+                            std::get<AllocatorIdx - StreamsStartIdx>(update_state)
+            );
+            current_substream++;
+        }
+
+
+        template <
+                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
+                typename ExtData, typename PkdStruct, typename UpdateState
+        >
+        void stream(
+                PackedSizedStructSO<ExtData, PkdStruct>& stream,
+                PackedAllocator*,
+                IntList<StreamsStartIdx>,
+                size_t at,
+                size_t,
+                size_t size,
+                memoria::io::IOVector&,
+                UpdateState&
+        ){
+            stream.insert_space(at, size);
+        }
+
+        template <typename LCtrT, typename NodeT, typename... Args>
+        void treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args) {
+            constexpr int32_t StreamsStartIdx = NodeT::StreamsStart;
+            return leaf.processSubstreamGroups(*this, leaf.allocator(), IntList<StreamsStartIdx>{}, std::forward<Args>(args)...);
+        }
+    };
+
+
+    virtual size_t insertBuffer(const TreeNodePtr& leaf, size_t at, size_t size)
+    {
+        auto update_state = ctr().template make_leaf_update_state<IntList<>>();
+
+        CommitInsertBufferFn fn;
+        ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, *io_vector_, update_state);
 
         start_ += size;
-
         total_symbols_ += size;
+        return size;
     }
 
-    int32_t buffer_size() const
+    uint64_t buffer_size() const
     {
         return size_ - start_;
     }
@@ -260,7 +330,7 @@ public:
 
             if (MMA_UNLIKELY(start_pos_ > 0))
             {
-                int32_t ctr_seq_size = seq.size();
+                size_t ctr_seq_size = seq.size();
                 if (start_pos_ < ctr_seq_size)
                 {
                     seq.rank_to(start_pos_, unit_span_of(&start_));
@@ -317,7 +387,7 @@ public:
     ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
     {}
 
-    virtual int32_t findCapacity(const TreeNodePtr& leaf, int32_t size)
+    virtual size_t findCapacity(const TreeNodePtr& leaf, size_t size)
     {
         auto capacity = this->ctr_.ctr_get_leaf_node_capacity(leaf.as_immutable());
 
@@ -330,6 +400,7 @@ public:
         }
     }
 };
+
 
 
 
@@ -350,8 +421,6 @@ public:
 
 public:
 
-
-
     IOVectorBTSSInputProvider(
             CtrT& ctr,
             memoria::io::IOVectorProducer* producer,
@@ -364,11 +433,7 @@ public:
 
     virtual Position fill(const TreeNodePtr& leaf, const Position& from)
     {
-        int32_t pos = from[0];
-
-        BlockUpdateMgr mgr(this->ctr());
-
-        mgr.add(leaf);
+        size_t pos = from[0];
 
         while(true)
         {
@@ -380,7 +445,7 @@ public:
 
             auto buffer_sizes = this->buffer_size();
 
-            auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);
+            auto inserted = insertBuffer(leaf, pos, buffer_sizes);
             if (inserted > 0)
             {
                 pos += inserted;
@@ -398,19 +463,18 @@ public:
         return Position{pos};
     }
 
-    virtual int32_t insertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size)
+    virtual size_t insertBuffer(const TreeNodePtr& leaf, size_t at, size_t size)
     {
-        auto inserted = this->insertBuffer_(mgr, leaf, at, size);
+        auto inserted = this->insertBuffer_(leaf, at, size);
 
         this->total_symbols_ += inserted;
 
         return inserted;
     }
 
-    int32_t insertBuffer_(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size)
+    size_t insertBuffer_(const TreeNodePtr& leaf, size_t at, size_t size)
     {
-        auto ins_result = tryInsertBuffer(mgr, leaf, at, size);
-
+        auto ins_result = tryInsertBuffer(leaf, at, size);
         if (ins_result)
         {
             this->start_ += size;
@@ -421,7 +485,7 @@ public:
             decltype(imax) imin  = 0;
             decltype(imax) start = 0;
 
-            int32_t accepts = 0;
+            size_t accepts = 0;
 
             while (imax > imin && (getFreeSpacePart(leaf) > 0.05))
             {
@@ -429,9 +493,9 @@ public:
                 {
                     auto mid = imin + ((imax - imin) / 2);
 
-                    int32_t try_block_size = mid - start;
+                    size_t try_block_size = mid - start;
 
-                    auto ins_result2 = tryInsertBuffer(mgr, leaf, at, try_block_size);
+                    auto ins_result2 = tryInsertBuffer(leaf, at, try_block_size);
                     if (ins_result2)
                     {
                         imin = mid + 1;
@@ -447,7 +511,7 @@ public:
                     }
                 }
                 else {
-                    auto ins_result3 = tryInsertBuffer(mgr, leaf, at, 1);
+                    auto ins_result3 = tryInsertBuffer(leaf, at, 1);
                     if (ins_result3)
                     {
                         start += 1;
@@ -463,30 +527,25 @@ public:
     }
 
 protected:
-    virtual int32_t findCapacity(const TreeNodePtr& leaf, int32_t size)  {
+    virtual size_t findCapacity(const TreeNodePtr& leaf, size_t size)  {
         return 0;
     }
 
 
-    bool tryInsertBuffer(BlockUpdateMgr& mgr, const TreeNodePtr& leaf, int32_t at, int32_t size)
+    bool tryInsertBuffer(const TreeNodePtr& leaf, size_t at, size_t size)
     {
-        typename Base::InsertBufferFn fn;
+        auto update_state = ctr().template make_leaf_update_state<IntList<>>();
 
-        VoidResult status = ctr().leaf_dispatcher().dispatch(leaf, fn, at, this->start_, size, *io_vector_);
+        typename Base::PrepareInsertBufferFn fn1;
 
-        if (status.is_error())
-        {
-            if (status.is_packed_error())
-            {
-                mgr.restoreNodeState();
-                return false;
-            }
-            else {
-                status.get_or_throw();
-            }
+        ctr().leaf_dispatcher().dispatch(leaf, fn1, at, this->start_, size, *io_vector_, update_state);
+
+        if (isSuccess(fn1.status)) {
+            typename Base::CommitInsertBufferFn fn2;
+            ctr().leaf_dispatcher().dispatch(leaf, fn2, at, this->start_, size, *io_vector_, update_state);
+            return true;
         }
 
-        mgr.checkpoint(leaf);
         return true;
     }
 

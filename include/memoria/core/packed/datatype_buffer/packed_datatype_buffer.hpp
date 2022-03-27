@@ -141,7 +141,7 @@ public:
         return empty_size();
     }
 
-    VoidResult init_default(size_t block_size)  {
+    void init_default(size_t block_size)  {
         return init();
     }
 
@@ -192,30 +192,23 @@ public:
         return base_size(aligned_data_size * Columns + index_size);
     }
 
-    VoidResult init_bs(size_t) {
+    void init_bs(size_t) {
         return init();
     }
 
-    VoidResult init()
+    void init()
     {
-        MEMORIA_TRY_VOID(init(empty_size(), DimensionsBlocksTotal * Columns + LAST_HEADER_BLOCK_));
-        MEMORIA_TRY(meta, allocate<Metadata>(METADATA));
+        init(empty_size(), DimensionsBlocksTotal * Columns + LAST_HEADER_BLOCK_);
+        auto meta = allocate<Metadata>(METADATA);
 
         for (size_t column = 0; column < Columns; column++)
         {
-            VoidResult res = for_each_dimension_res([&](auto idx)  -> VoidResult {
+            for_each_dimension([&](auto idx) {
                 using DimensionStruct = Dimension<idx>;
-
-                MEMORIA_TRY_VOID(DimensionStruct::allocate_empty(this, column));
-
+                DimensionStruct::allocate_empty(this, column);
                 DimensionStruct::init_metadata(*meta, column);
-                return VoidResult::of();
             });
-
-            MEMORIA_RETURN_IF_ERROR(res);
         }
-
-        return VoidResult::of();
     }
 
     size_t block_size_for(const PackedDataTypeBuffer* other) const
@@ -254,17 +247,16 @@ public:
         return !is_empty(INDEX);
     }
 
-    VoidResult create_index()
+    void create_index()
     {
         if (has_index()) {
-            MEMORIA_TRY_VOID(remove_index());
+            remove_index();
         }
 
-        MEMORIA_TRY_VOID(allocate_empty<IndexType>(INDEX, true));
-        return VoidResult::of();
+        allocate_empty<IndexType>(INDEX, true);
     }
 
-    VoidResult remove_index() {
+    void remove_index() {
         return free(INDEX);
     }
 
@@ -358,6 +350,7 @@ struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataTyp
         typename DataTypeTraits<DataType>::DataDimensionsList
     >::DataTypeSize;
 
+//    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
     static constexpr PkdSearchType KeySearchType = Ordering == DTOrdering::SUM ? PkdSearchType::SUM : PkdSearchType::MAX;
 
     static constexpr size_t Blocks = Columns;

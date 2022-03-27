@@ -292,21 +292,21 @@ public:
         return block_size;
     }
 
-    VoidResult init(size_t block_size)
+    void init(size_t block_size)
     {
-        MEMORIA_ASSERT_RTN(block_size, >=, empty_size());
+        MEMORIA_ASSERT(block_size, >=, empty_size());
         return init();
     }
 
-    VoidResult init() {
+    void init() {
         return init_bs(empty_size());
     }
 
-    VoidResult init_bs(size_t block_size)
+    void init_bs(size_t block_size)
     {
-        MEMORIA_TRY_VOID(Base::init(block_size, TOTAL_SEGMENTS_));
+        Base::init(block_size, TOTAL_SEGMENTS_);
 
-        MEMORIA_TRY(meta, Base::template allocate<Metadata>(METADATA));
+        auto meta = Base::template allocate<Metadata>(METADATA);
 
         meta->set_size(SeqSizeT{});
         meta->set_code_units(0);
@@ -314,22 +314,18 @@ public:
         Base::set_block_type(SIZE_INDEX, PackedBlockType::ALLOCATABLE);
         Base::set_block_type(SUM_INDEX,  PackedBlockType::ALLOCATABLE);
         Base::set_block_type(SYMBOLS, PackedBlockType::RAW_MEMORY);
-
-        return VoidResult::of();
     }
 
-    VoidResult clear()
+    void clear()
     {
-        MEMORIA_TRY_VOID(Base::resize_block(SYMBOLS, 0));
+        Base::resize_block(SYMBOLS, 0);
 
-        MEMORIA_TRY_VOID(removeIndex());
+        removeIndex();
 
         auto meta = this->metadata();
 
         meta->set_size(SeqSizeT{});
         meta->set_code_units(0);
-
-        return VoidResult::of();
     }
 
     void reset() {
@@ -346,7 +342,7 @@ public:
         return empty_size();
     }
 
-    VoidResult init_default(size_t block_size) {
+    void init_default(size_t block_size) {
         return init();
     }
 
@@ -369,19 +365,16 @@ public:
     }
 
 
-    VoidResult removeIndex()
+    void removeIndex()
     {
-        MEMORIA_TRY_VOID(Base::free(SIZE_INDEX));
-        MEMORIA_TRY_VOID(Base::free(SUM_INDEX));
-
-        return VoidResult::of();
+        Base::free(SIZE_INDEX);
+        Base::free(SUM_INDEX);
     }
 
 
-    VoidResult createIndex(size_t capacity) {
-        MEMORIA_TRY_VOID(allocate_empty<SizeIndex>(SIZE_INDEX));
-        MEMORIA_TRY_VOID(allocate_empty<SumIndex>(SUM_INDEX));
-        return VoidResult::of();
+    void createIndex(size_t capacity) {
+        allocate_empty<SizeIndex>(SIZE_INDEX);
+        allocate_empty<SumIndex>(SUM_INDEX);
     }
 
     // ========================================= Update ================================= //
@@ -390,15 +383,13 @@ private:
 
 public:
 
-    VoidResult ensure_capacity(size_t capacity)
+    void ensure_capacity(size_t capacity)
     {
         size_t current_capacity = this->symbols_block_capacity();
 
         if (current_capacity < capacity) {
             return enlargeData(capacity - current_capacity);
         }
-
-        return VoidResult::of();
     }
 
     bool has_capacity(size_t required_capacity) const
@@ -408,11 +399,10 @@ public:
     }
 
 
-    VoidResult enlargeData(size_t length)
+    void enlargeData(size_t length)
     {
         size_t new_size = this->element_size(SYMBOLS) + length;
-        MEMORIA_TRY_VOID(Base::resize_block(SYMBOLS, new_size));
-        return VoidResult::of();
+        Base::resize_block(SYMBOLS, new_size);
     }
 
 

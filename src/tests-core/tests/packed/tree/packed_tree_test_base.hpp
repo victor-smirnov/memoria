@@ -139,7 +139,7 @@ public:
 
         tree.insert_from_fn(0, size, [&](size_t block, size_t idx) noexcept {
             return vals[idx][block];
-        }).get_or_throw();
+        });
 
         truncate(vals, size);
 
@@ -161,7 +161,7 @@ public:
     {
         tree.insert_from_fn(0, vals.size(), [&](size_t block, size_t idx) noexcept {
             return vals[idx][block];
-        }).get_or_throw();
+        });
     }
 
     Values createRandom(size_t max = 100)

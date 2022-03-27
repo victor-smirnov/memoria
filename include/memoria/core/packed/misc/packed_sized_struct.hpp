@@ -108,16 +108,14 @@ public:
     }
 
 
-    VoidResult init(size_t block_size) noexcept
+    void init(size_t block_size) noexcept
     {
         size_ = 0;
-        return VoidResult::of();
     }
 
-    VoidResult init(const SizesT& capacities) noexcept
+    void init(const SizesT& capacities) noexcept
     {
         size_ = 0;
-        return VoidResult::of();
     }
 
     static constexpr size_t empty_size() noexcept
@@ -130,15 +128,13 @@ public:
         return empty_size();
     }
 
-    VoidResult init_default(size_t block_size) noexcept {
+    void init_default(size_t block_size) noexcept {
         return init();
     }
 
-    VoidResult init() noexcept
+    void init() noexcept
     {
         size_ = 0;
-
-        return VoidResult::of();
     }
 
 
@@ -147,70 +143,51 @@ public:
         return size_;
     }
 
-
-    VoidResult copyTo(MyType* other) const noexcept
-    {
-        other->size_ = this->size_;
-        return VoidResult::of();
-    }
-
-
-    VoidResult reindex() noexcept {return VoidResult::of();}
+    void reindex() noexcept {}
 
     void check() const
     {
         MEMORIA_ASSERT(size_, >=, 0);
     }
 
-    VoidResult remove(size_t start, size_t end) noexcept
+    void remove(size_t start, size_t end) noexcept
     {
-        MEMORIA_V1_ASSERT_TRUE_RTN(start >= 0);
-        MEMORIA_V1_ASSERT_TRUE_RTN(end >= 0);
-
         size_t room_length = end - start;
         size_ -= room_length;
-
-        return VoidResult::of();
     }
 
-    VoidResult removeSpace(size_t room_start, size_t room_end) noexcept {
-        return remove(room_start, room_end);
-    }
 
-    VoidResult insertSpace(size_t idx, size_t room_length) noexcept
+    void insert_space(size_t idx, size_t room_length) noexcept
     {
-        MEMORIA_ASSERT_RTN(idx, <=, this->size());
-        MEMORIA_ASSERT_RTN(idx, >=, 0);
-        MEMORIA_ASSERT_RTN(room_length, >=, 0);
+        MEMORIA_ASSERT(idx, <=, this->size());
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(room_length, >=, 0);
 
         size_ += room_length;
-
-        return VoidResult::of();
     }
 
-    VoidResult reset() noexcept
+    void reset() noexcept
     {
         size_ = 0;
-        return VoidResult::of();
     }
 
 
-    VoidResult splitTo(MyType* other, size_t idx) noexcept
+    void split_to(MyType* other, size_t idx) noexcept
     {
-        MEMORIA_ASSERT_RTN(other->size(), ==, 0);
+        MEMORIA_ASSERT(other->size(), ==, 0);
 
         size_t split_size = this->size() - idx;
-        MEMORIA_TRY_VOID(other->insertSpace(0, split_size));
+        other->insert_space(0, split_size);
 
-        return removeSpace(idx, this->size());
+        remove(idx, this->size());
     }
 
-    VoidResult mergeWith(MyType* other) const noexcept
+    void commit_merge_with(MyType* other) const noexcept
     {
         size_t my_size     = this->size();
         size_t other_size  = other->size();
 
-        return other->insertSpace(other_size, my_size);
+        return other->insert_space(other_size, my_size);
     }
 
 

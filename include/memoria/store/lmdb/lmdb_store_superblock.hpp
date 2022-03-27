@@ -43,7 +43,7 @@ public:
     BlockID& directory_root_id()  {return directory_root_id_;}
     uint64_t superblock_size() const  {return superblock_size_;}
 
-    VoidResult init(uint64_t superblock_size)
+    void init(uint64_t superblock_size)
     {
         directory_root_id_ = BlockID{};
         superblock_size_ = superblock_size;

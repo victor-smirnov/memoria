@@ -249,10 +249,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         if (has_data)
         {
             self.ctr_update_block_guard(leaf);
-            self.ctr_layout_leaf_node(leaf.as_mutable(), Position(0));
 
             auto end = provider.fill(leaf.as_mutable(), pos);
-
             return end;
         }
 

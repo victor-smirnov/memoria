@@ -296,4 +296,88 @@ struct AllocationBlockConst {
 };
 
 
+
+class PackedAllocatorUpdateState {
+    size_t allocated_;
+
+    friend class PackedAllocator;
+
+public:
+    PackedAllocatorUpdateState(): allocated_() {}
+
+    size_t allocated() const {return allocated_;}
+    void inc_allocated(size_t amount) {
+        allocated_ += amount;
+    }
+};
+
+
+template <typename PkdStructSO>
+class PkdStructUpdateBase {
+    PackedAllocatorUpdateState* update_state_;
+public:
+    virtual ~PkdStructUpdateBase() noexcept = default;
+
+    virtual void apply(PkdStructSO&) = 0;
+
+    PackedAllocatorUpdateState* update_state() {return update_state_;}
+    const PackedAllocatorUpdateState* update_state() const {return update_state_;}
+
+    void set_update_state(PackedAllocatorUpdateState* state) {update_state_ = state;}
+};
+
+template <typename PkdStructSO>
+class PkdStructUpdate: public PkdStructUpdateBase<PkdStructSO> {
+public:
+    using UpdateT = PkdStructUpdateBase<PkdStructSO>;
+private:
+    template <typename T>
+    friend T* make_new(PkdStructUpdate<PkdStructSO>&);
+
+    std::vector<std::unique_ptr<UpdateT>> updates_;
+public:
+    PkdStructUpdate() {}
+
+    void apply(PkdStructSO& so) {
+        for (auto& update: updates_) {
+            update->apply(so);
+        }
+    }
+};
+
+template <typename PkdStructSO>
+struct PkdStructNoOpUpdate: PkdStructUpdateBase<PkdStructSO> {
+    void apply(PkdStructSO&) {}
+};
+
+
+
+template <typename T, typename PkdStructSO>
+T* make_new(PkdStructUpdate<PkdStructSO>& upd)
+{
+    upd.updates_.push_back(std::make_unique<T>());
+    return upd.updates_[upd.updates_.size() - 1];
+}
+
+#define MMA_MAKE_UPDATE_STATE_METHOD \
+    std::pair<UpdateState, PackedAllocatorUpdateState> make_update_state() {\
+        std::pair<UpdateState, PackedAllocatorUpdateState> state;           \
+        state.first.set_update_state(&state.second);                        \
+        return state;                                                       \
+    }                                                                       \
+    UpdateState make_update_state(PackedAllocatorUpdateState* pa_state) {   \
+        UpdateState state;                                                  \
+        state.set_update_state(pa_state);                                   \
+        return state;                                                       \
+    }
+
+
+enum class PkdUpdateStatus: bool {
+    FAILURE, SUCCESS
+};
+
+static inline bool isSuccess(PkdUpdateStatus status) {
+    return status == PkdUpdateStatus::SUCCESS;
+}
+
 }

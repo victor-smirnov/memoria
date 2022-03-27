@@ -279,7 +279,16 @@ public:
     template <typename LeafPath>
     static constexpr int32_t SubstreamIdxByLeafPath = list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>;
 
+    template <typename PkdStruct>
+    using PkdStructToUpdateStateMap = HasType<typename PkdStruct::Type::SparseObject::UpdateState>;
 
+    template <typename LeafPath = IntList<>>
+    using UpdateState = AsTuple<
+        MergeLists<
+            typename SubstreamsDispatcher<LeafPath>::template ForAllStructs<PkdStructToUpdateStateMap>,
+            PackedAllocatorUpdateState
+        >
+    >;
 
     static constexpr int32_t Streams            = ListSize<LeafSubstreamsStructList>;
 
@@ -350,17 +359,15 @@ public:
     }
 
     template <typename OtherNode>
-    VoidResult copy_node_data_to(OtherNode&& other) const
+    void copy_node_data_to(OtherNode&& other) const
     {
         PackedAllocator* other_alloc = other.allocator();
         const PackedAllocator* my_alloc = this->allocator();
 
         for (int32_t c = 0; c < SubstreamsEnd; c++)
         {
-            MEMORIA_TRY_VOID(other_alloc->import_block(c, my_alloc, c));
+            other_alloc->import_block(c, my_alloc, c);
         }
-
-        return VoidResult::of();
     }
 
 
@@ -494,57 +501,31 @@ public:
     }
 
 
-    VoidResult prepare()
+    void prepare()
     {
         return node_->initAllocator(SubstreamsStart + Substreams); // FIXME +1?
     }
 
-
-    VoidResult layout(const Position& sizes)
-    {
-        return layout(-1ull);
-    }
-
-
     struct LayoutFn
     {
         template <int32_t AllocatorIdx, int32_t Idx, typename Stream>
-        VoidResult stream(Stream&, PackedAllocator* alloc, uint64_t streams)
-        {
-            if (streams & (1<<Idx))
+        void stream(Stream&, PackedAllocator* alloc)
+        {            
+            if (alloc->is_empty(AllocatorIdx))
             {
-                if (alloc->is_empty(AllocatorIdx))
-                {
-                    MEMORIA_TRY_VOID(
-                        alloc->template allocate_default<
-                                typename Stream::PkdStructT
-                        >(AllocatorIdx)
-                    );
-                }
+                alloc->template allocate_default<
+                    typename Stream::PkdStructT
+                >(AllocatorIdx);
             }
-
-            return VoidResult::of();
         }
     };
 
 
-    VoidResult layout(uint64_t streams)
+    void layout()
     {
-        return DispatcherWithResult::dispatchAllStatic(LayoutFn(), this->allocator(), streams);
+        return Dispatcher::dispatchAllStatic(LayoutFn(), this->allocator());
     }
 
-
-    uint64_t active_streams() const
-    {
-        uint64_t streams = 0;
-        for (int32_t c = 0; c < Streams; c++)
-        {
-            uint64_t bit = !allocator()->is_empty(c);
-            streams += (bit << c);
-        }
-
-        return streams;
-    }
 
     struct CheckFn {
         template <typename Tree>
@@ -759,32 +740,109 @@ public:
         return processAllSubstreamsAcc(BranchNodeEntriesSumHandler(), sums, start, end);
     }
 
-    struct RemoveSpaceFn {
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        VoidResult stream(Tree&& tree, const Position& room_start, const Position& room_end)
+    struct PrepareRemoveSpaceFn {
+        PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
+
+        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename UpdateState>
+        void stream(Tree&& tree, const Position& start, const Position& end, UpdateState& update_state)
         {
-            return tree.removeSpace(room_start[StreamIdx], room_end[StreamIdx]);
+            if (isSuccess(status)) {
+                status = tree.prepare_remove(
+                        start[StreamIdx],
+                        end[StreamIdx],
+                        std::get<AllocatorIdx - NodeType_::StreamsStart>(update_state)
+                );
+            }
         }
 
-        template <typename Tree>
-        VoidResult stream(Tree&& tree, int32_t room_start, int32_t room_end)
+
+        template <int32_t ListIdx, typename Tree, typename UpdateState>
+        void stream(Tree&& tree, size_t start, size_t end, UpdateState& update_state)
         {
-            return tree.removeSpace(room_start, room_end);
+            if (isSuccess(status)) {
+                status = tree.prepare_remove(
+                        start,
+                        end,
+                        std::get<ListIdx>(update_state)
+                );
+            }
         }
     };
 
-    VoidResult removeSpace(int32_t stream, int32_t room_start, int32_t room_end)
+
+    PkdUpdateStatus prepare_remove(const Position& start, const Position& end, UpdateState<IntList<>>& update_state)
     {
-        RemoveSpaceFn fn;
-        return DispatcherWithResult(state()).dispatch(stream, allocator(), fn, room_start, room_end);
+        PrepareRemoveSpaceFn fn;
+        processSubstreamGroups(fn, start, end, update_state);
+        return fn.status;
     }
 
-    VoidResult removeSpace(const Position& room_start, const Position& room_end)
+    template <int32_t Stream>
+    PkdUpdateStatus prepare_remove(IntList<Stream> tag, size_t start, size_t end, UpdateState<IntList<Stream>>& update_state) const
     {
-        RemoveSpaceFn fn;
-        return processSubstreamGroupsVoidRes(fn, room_start, room_end);
+        PrepareRemoveSpaceFn fn;
+        processSubstreams<IntList<Stream>>(fn, start, end, update_state);
+        return fn.status;
     }
 
+
+    struct CommitRemoveSpaceFn {
+        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename UpdateState>
+        void stream(Tree&& tree, const Position& start, const Position& end, UpdateState& update_state)
+        {
+            return tree.commit_remove(
+                        start[StreamIdx],
+                        end[StreamIdx],
+                        std::get<AllocatorIdx - NodeType_::StreamsStart>(update_state)
+            );
+        }
+
+        template <int32_t ListIdx, typename Tree, typename UpdateState>
+        void stream(Tree&& tree, size_t start, size_t end, UpdateState& update_state)
+        {
+            return tree.commit_remove(
+                        start,
+                        end,
+                        std::get<ListIdx>(update_state)
+            );
+        }
+    };
+
+    void commit_remove(const Position& start, const Position& end, UpdateState<IntList<>>& update_state)
+    {
+        CommitRemoveSpaceFn fn;
+        return processSubstreamGroups(fn, start, end, update_state);
+    }
+
+    template <int32_t Stream>
+    void commit_remove(IntList<Stream>, size_t start, size_t end, UpdateState<IntList<Stream>>& update_state)
+    {
+        CommitRemoveSpaceFn fn;
+        return processSubstreams<IntList<Stream>>(fn, start, end, update_state);
+    }
+
+    PkdUpdateStatus remove(const Position& start, const Position& end)
+    {
+        auto update_state = make_update_state<IntList<>>();
+        if (isSuccess(prepare_remove(start, end, update_state))) {
+            commit_remove(start, end, update_state);
+            return PkdUpdateStatus::SUCCESS;
+        }
+
+        return PkdUpdateStatus::FAILURE;
+    }
+
+    template <int32_t Stream>
+    PkdUpdateStatus remove(IntList<Stream> tag, size_t start, size_t end)
+    {
+        auto update_state = make_update_state<IntList<Stream>>();
+        if (isSuccess(prepare_remove(tag, start, end, update_state))) {
+            commit_remove(tag, start, end, update_state);
+            return PkdUpdateStatus::SUCCESS;
+        }
+
+        return PkdUpdateStatus::FAILURE;
+    }
 
 
     const PackedAllocator* allocator() const {
@@ -816,36 +874,68 @@ public:
         return processStream<Path>(LeafSumsFn(), std::forward<Args>(args)...);
     }
 
-    struct MergeWithFn {
+    struct CommitMergeWithFn {
 
-        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        VoidResult stream(const Tree& tree, OtherNodeT&& other)
+        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT, typename UpdateState>
+        void stream(const Tree& tree, OtherNodeT&& other, UpdateState& update_state)
         {
-            int32_t size = tree.size();
-
-            if (size > 0)
+            size_t size = tree.size();
+            if (size)
             {
                 Dispatcher other_disp = other.dispatcher();
-
-                if (other.allocator()->is_empty(AllocatorIdx))
-                {
-                    MEMORIA_TRY_VOID(other_disp.template allocate_empty<Idx>(other.allocator()));
-                }
-
                 Tree other_tree = other_disp.template get<Idx>(other.allocator());
-                return tree.mergeWith(other_tree);
+                return tree.commit_merge_with(other_tree, std::get<Idx>(update_state));
             }
-
-            return VoidResult::of();
         }
     };
 
-    template <typename OtherNodeT>
-    VoidResult mergeWith(OtherNodeT&& other) const
+    template <typename OtherNodeT, typename UpdateState>
+    void commit_merge_with(OtherNodeT&& other, UpdateState& update_state) const
     {
-        MergeWithFn fn;
-        return DispatcherWithResult(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other));
+        CommitMergeWithFn fn;
+        return Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), update_state);
     }
+
+    template <typename OtherNodeT>
+    PkdUpdateStatus merge_with(OtherNodeT&& other) const
+    {
+        auto update_state = make_update_state<IntList<>>();
+        if (isSuccess(prepare_merge_with(std::forward<OtherNodeT>(other), update_state)))
+        {
+            commit_merge_with(std::forward<OtherNodeT>(other), update_state);\
+            return PkdUpdateStatus::SUCCESS;
+        }
+        else {
+            return PkdUpdateStatus::FAILURE;
+        }
+    }
+
+    struct PrepareMergeWithFn {
+        PkdUpdateStatus status_{PkdUpdateStatus::SUCCESS};
+
+        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT, typename UpdateState>
+        void stream(const Tree& tree, OtherNodeT&& other, UpdateState& update_state)
+        {
+            if (status_ == PkdUpdateStatus::SUCCESS)
+            {
+                size_t size = tree.size();
+                if (size) {
+                    Dispatcher other_disp = other.dispatcher();
+
+                    Tree other_tree = other_disp.template get<Idx>(other.allocator());
+                    status_ = tree.prepare_merge_with(other_tree, std::get<Idx>(update_state));
+                }
+            }
+        }
+    };
+
+    template <typename OtherNodeT, typename UpdateState>
+    PkdUpdateStatus prepare_merge_with(OtherNodeT&& other, UpdateState& update_state) const {
+        PrepareMergeWithFn fn;
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), update_state);
+        return fn.status_;
+    }
+
 
 
     struct CanMergeWithFn {
@@ -894,40 +984,40 @@ public:
     }
 
 
-    struct CopyToFn {
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(
-                Tree&& tree,
-                MyType& other,
-                const Position& copy_from,
-                const Position& count,
-                const Position& copy_to
-        )
-        {
-            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
-            tree->copyTo(
-                    other.allocator()->template get<PkdTree>(AllocatorIdx),
-                    copy_from[StreamIdx],
-                    count[StreamIdx],
-                    copy_to[StreamIdx]
-            );
-        }
-    };
+//    struct CopyToFn {
+//        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
+//        void stream(
+//                Tree&& tree,
+//                MyType& other,
+//                const Position& copy_from,
+//                const Position& count,
+//                const Position& copy_to
+//        )
+//        {
+//            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
+//            tree->copyTo(
+//                    other.allocator()->template get<PkdTree>(AllocatorIdx),
+//                    copy_from[StreamIdx],
+//                    count[StreamIdx],
+//                    copy_to[StreamIdx]
+//            );
+//        }
+//    };
 
 
-    template <typename OtherNodeT>
-    void copyTo(OtherNodeT&& other, const Position& copy_from, const Position& count, const Position& copy_to) const
-    {
-        MEMORIA_V1_ASSERT_TRUE((copy_from + count).lteAll(sizes()));
-        MEMORIA_V1_ASSERT_TRUE((copy_to + count).lteAll(other->max_sizes()));
+//    template <typename OtherNodeT>
+//    void copyTo(OtherNodeT&& other, const Position& copy_from, const Position& count, const Position& copy_to) const
+//    {
+//        MEMORIA_V1_ASSERT_TRUE((copy_from + count).lteAll(sizes()));
+//        MEMORIA_V1_ASSERT_TRUE((copy_to + count).lteAll(other->max_sizes()));
 
-        processSubstreamGroupsVoidRes(CopyToFn(), std::forward<OtherNodeT>(other), copy_from, count, copy_to);
-    }
+//        processSubstreamGroupsVoidRes(CopyToFn(), std::forward<OtherNodeT>(other), copy_from, count, copy_to);
+//    }
 
     struct SplitToFn {
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        VoidResult stream(Tree& tree, OtherNodeT&& other, const Position& indexes)
+        void stream(Tree& tree, OtherNodeT&& other, const Position& indexes)
         {
             if (tree)
             {
@@ -948,23 +1038,19 @@ public:
                     other_tree = other_disp.template get<ListIdx>(other.allocator());
                 }
                 else {
-                    MEMORIA_TRY(other_tree_tmp, other_disp.template allocate_empty<ListIdx>(other.allocator()));
-                    other_tree = std::move(other_tree_tmp);
+                    other_tree = other_disp.template allocate_empty<ListIdx>(other.allocator()).get_or_throw();
                 }
 
-                return tree.splitTo(other_tree, idx);
+                return tree.split_to(other_tree, idx);
             }
-
-            return VoidResult::of();
         }
     };
 
 
     template <typename OtherNodeT>
-    VoidResult splitTo(OtherNodeT&& other, const Position& from)
+    void split_to(OtherNodeT&& other, const Position& from)
     {
-        SplitToFn split_fn;
-        return processSubstreamGroupsVoidRes(split_fn, std::forward<OtherNodeT>(other), from);
+        return processSubstreamGroups(SplitToFn(), std::forward<OtherNodeT>(other), from);
     }
 
 
@@ -998,7 +1084,7 @@ public:
         Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
     }
 
-    VoidResult init_root_metadata() {
+    void init_root_metadata() {
         return node_->template init_root_metadata<RootMetadataList>();
     }
 
@@ -1452,6 +1538,13 @@ public:
                 std::forward<Accum>(accum),
                 std::forward<Args>(args)...
         );
+    }
+
+    template <typename LeafPath>
+    static UpdateState<LeafPath> make_update_state() {
+        UpdateState<LeafPath> state;
+        bt::UpdateStateInitializer<UpdateState<LeafPath>>::process(state);
+        return state;
     }
 };
 

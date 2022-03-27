@@ -74,10 +74,9 @@ public:
         return pkd_buf_->template get<DataSizeType>(offsets_block_num());
     }
 
-    static VoidResult allocate_empty(PkdStruct* alloc, size_t column)
+    static void allocate_empty(PkdStruct* alloc, size_t column)
     {
-        MEMORIA_TRY_VOID(alloc->template allocate_array_by_size<DataSizeType>(DimensionsStart + Blocks * column + OffsetsBlock, 1));
-        return VoidResult::of();
+        alloc->template allocate_array_by_size<DataSizeType>(DimensionsStart + Blocks * column + OffsetsBlock, 1);
     }
 
     static size_t data_block_size(size_t capacity) {
@@ -158,7 +157,7 @@ public:
         return data_length_aligned + offsets_length_aligned;
     }
 
-    VoidResult insert_space(size_t start, size_t extra_size, size_t extra_data_length)
+    void insert_space(size_t start, size_t extra_size, size_t extra_data_length)
     {
         auto& meta = pkd_buf_->metadata();
 
@@ -166,12 +165,12 @@ public:
 
         size_t offsets_length = (meta.offsets_size() + extra_size) * sizeof(DataSizeType);
 
-        MEMORIA_TRY_VOID(pkd_buf_->resize_block(offsets_block_num(), offsets_length));
+        pkd_buf_->resize_block(offsets_block_num(), offsets_length);
 
         size_t data_size = this->data_size(meta);
         size_t column_data_length = extra_data_length + data_size;
 
-        MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length * sizeof(T)));
+        pkd_buf_->resize_block(data_block_num(), column_data_length * sizeof(T));
 
         size_t offsets_size = meta.offsets_size();
         auto offsets = this->offsets();
@@ -184,11 +183,9 @@ public:
         MemMoveBuffer(data + data_start, data + data_end, data_size - data_start);
 
         shift_offsets_right(start + extra_size, offsets_size + extra_size, extra_data_length);
-
-        return VoidResult::of();
     }
 
-    VoidResult remove_space(size_t start, size_t size)
+    void remove_space(size_t start, size_t size)
     {
         auto& meta = pkd_buf_->metadata();
 
@@ -214,15 +211,13 @@ public:
 
         size_t new_offsets_length = (meta.offsets_size() - size) * sizeof(DataSizeType);
 
-        MEMORIA_TRY_VOID(pkd_buf_->resize_block(offsets_block_num(), new_offsets_length));
+        pkd_buf_->resize_block(offsets_block_num(), new_offsets_length);
         size_t column_data_length = data_size * sizeof(T);
 
-        MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length));
-
-        return VoidResult::of();
+        pkd_buf_->resize_block(data_block_num(), column_data_length);
     }
 
-    VoidResult resize_row(size_t idx, const Span<const T>& value)
+    void resize_row(size_t idx, const Span<const T>& value)
     {
         auto& meta = pkd_buf_->metadata();
 
@@ -236,7 +231,7 @@ public:
             size_t data_size = this->data_size(meta);
             size_t column_data_length = size_delta + data_size;
 
-            MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length));
+            pkd_buf_->resize_block(data_block_num(), column_data_length);
 
             auto offsets = this->offsets();
             auto data    = this->data();
@@ -268,19 +263,16 @@ public:
 
             size_t column_data_length = data_size - size_delta;
 
-            MEMORIA_TRY_VOID(pkd_buf_->resize_block(data_block_num(), column_data_length));
+            pkd_buf_->resize_block(data_block_num(), column_data_length);
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult replace_row(size_t idx, const Span<const T>& value)
+    void replace_row(size_t idx, const Span<const T>& value)
     {
         auto* data = this->data();
         size_t offset = this->offsets()[idx];
 
         MemCpyBuffer(value.data(), data + offset, value.length());
-        return VoidResult::of();
     }
 
     void copy_to(PkdStruct* other, size_t copy_from, size_t count, size_t copy_to, size_t data_length) const

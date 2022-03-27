@@ -91,19 +91,9 @@ public:
 
                 auto sums = self.ctr_get_node_max_keys(child.as_immutable());
 
-                VoidResult ins_res = self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildFn(), idx + c, sums, child->id());
+                PkdUpdateStatus ins_res = self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildFn(), idx + c, sums, child->id());
 
-                if(ins_res.is_error())
-                {
-                    if (ins_res.is_packed_error())
-                    {
-                        insertion_status = false;
-                        break;
-                    }
-                    else {
-                        MEMORIA_PROPAGATE_ERROR(ins_res).do_throw();
-                    }
-                }
+                insertion_status = isSuccess(ins_res);
 
                 //MEMORIA_TRY_VOID(self.ctr_ref_block(child->id()));
 
@@ -151,10 +141,7 @@ public:
             if (level >= 1)
             {
                 auto node = self.ctr_create_node(level, false, false);
-
                 self.ctr_ref_block(node->id());
-
-                self.ctr_layout_branch_node(node, 0xFF);
 
                 size_t height = level + 1;
                 TreePathT path = TreePathT::build(node.as_immutable(), height);
@@ -176,13 +163,9 @@ public:
     }
 
 
-
-
-
     class ListLeafProvider: public ILeafProvider {
         TreeNodePtr   head_;
         CtrSizeT    size_ = 0;
-
         MyType&     ctr_;
 
     public:

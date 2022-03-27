@@ -206,26 +206,22 @@ public:
         return *allocator()->template get<Metadata>(METADATA);
     }
 
-    VoidResult setMetadata(const Metadata& meta)
+    void setMetadata(const Metadata& meta)
     {
         if (!has_root_metadata())
         {
-            MEMORIA_TRY_VOID(allocator_.template allocate<Metadata>(METADATA));
+            allocator_.template allocate<Metadata>(METADATA);
         }
 
         root_metadata() = meta;
-
-        return VoidResult::of();
     }
 
-    VoidResult clear_metadata()
+    void clear_metadata()
     {
         for (int32_t c = 0; c < StreamsStart; c++)
         {
-            MEMORIA_TRY_VOID(allocator_.free(c));
+            allocator_.free(c);
         }
-
-        return VoidResult::of();
     }
 
     bool can_convert_to_root(psize_t metadata_size) const
@@ -239,50 +235,48 @@ public:
         }
     }
 
-    VoidResult copy_metadata_from(const TreeNodeBase* other)
+    void copy_metadata_from(const TreeNodeBase* other)
     {
         for (int32_t c = 0; c < StreamsStart; c++)
         {
-            MEMORIA_TRY_VOID(allocator_.import_block(c, other->allocator(), c));
+            allocator_.import_block(c, other->allocator(), c);
         }
-
-        return VoidResult::of();
     }
 
 
 
-    BoolResult shouldBeMergedWithSiblings() const
+    bool shouldBeMergedWithSiblings() const
     {
         int32_t client_area = allocator_.client_area();
         int32_t used        = allocator_.allocated();
 
-        return BoolResult::of(used < (client_area / 2));
+        return used < (client_area / 2);
     }
 
 public:
 
-    VoidResult initAllocator(int32_t entries)
+    void initAllocator(int32_t entries)
     {
         int32_t block_size = this->header().memory_block_size();
-        MEMORIA_ASSERT_RTN(block_size, >, static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size());
+        MEMORIA_ASSERT(block_size, >, static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size());
 
         allocator_.allocatable().setTopLevelAllocator();
         return allocator_.init(block_size - static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size(), entries);
     }
 
-    VoidResult resizeBlock(int32_t new_size)
+    void resizeBlock(int32_t new_size)
     {
         int32_t space_delta = new_size - header_.memory_block_size();
         int32_t free_space  = allocator_.free_space();
 
         if (space_delta < 0 && free_space < -space_delta)
         {
-            return MEMORIA_MAKE_GENERIC_ERROR(
+            MEMORIA_MAKE_GENERIC_ERROR(
                 "Resizing block {} has insufficient space for downsizing: available {}, requied {}",
                 uuid(),
                 free_space,
                 -space_delta
-            );
+            ).do_throw();
         }
 
         header_.memory_block_size() = new_size;
@@ -426,24 +420,23 @@ public:
     template <typename List>
     struct InitMetadataFn {
         template <int32_t Idx>
-        static BoolResult process(PackedAllocator* allocator)
+        static bool process(PackedAllocator* allocator)
         {
             using T = Select<Idx, List>;
             if (allocator->is_empty(Idx))
             {
-                MEMORIA_TRY_VOID(allocator->allocate_empty<T>(Idx));
+                allocator->allocate_empty<T>(Idx);
             }
 
-            return BoolResult::of(true);
+            return true;
         }
     };
 
     template <typename MetadataTypesList>
-    VoidResult init_root_metadata()
+    void init_root_metadata()
     {
         static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
-
-        return ForEach<0, StreamsStart>::process_res(InitMetadataFn<MetadataTypesList>(), allocator());
+        return ForEach<0, StreamsStart>::process(InitMetadataFn<MetadataTypesList>(), allocator());
     }
 
 
@@ -666,7 +659,7 @@ public:
     }
 
 public:
-    VoidResult prepare()
+    void prepare()
     {
         return Base::initAllocator(SubstreamsStart + Substreams + 1);
     }
@@ -958,7 +951,7 @@ public:
         virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const
         {
             MyType* tgt = ptr_cast<MyType>(buffer);
-            tgt->resizeBlock(new_size).get_or_throw();
+            tgt->resizeBlock(new_size);
         }
 
         virtual uint64_t block_type_hash() const {

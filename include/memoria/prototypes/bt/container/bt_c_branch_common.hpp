@@ -42,7 +42,7 @@ public:
     }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN(SplitNodeFn, splitTo);
+    MEMORIA_V1_DECLARE_NODE_FN(SplitNodeFn, split_to);
     void ctr_split_branch_node(const TreeNodePtr& src, const TreeNodePtr& tgt, int32_t split_at);
 
 MEMORIA_V1_CONTAINER_PART_END
@@ -55,7 +55,7 @@ M_PARAMS
 void M_TYPE::ctr_split_branch_node(const TreeNodePtr& src, const TreeNodePtr& tgt, int32_t split_at)
 {
     auto& self = this->self();
-    return self.branch_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at).get_or_throw();
+    return self.branch_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
 }
 
 
@@ -70,8 +70,6 @@ void M_TYPE::ctr_create_new_root_block(TreePathT& path)
 
     auto new_root = self.ctr_create_node(root->level() + 1, true, false, root->header().memory_block_size());
 
-    auto root_active_streams = self.ctr_get_active_streams(root);
-    self.ctr_layout_branch_node(new_root, root_active_streams);
     self.ctr_copy_root_metadata(root, new_root);
     self.ctr_root_to_node(root.as_mutable());
 
@@ -79,7 +77,7 @@ void M_TYPE::ctr_create_new_root_block(TreePathT& path)
 
     path.add_root(new_root.as_immutable());
 
-    self.ctr_insert_to_branch_node(path, new_root->level(), 0, max, root->id()).get_or_throw();
+    self.ctr_insert_to_branch_node(path, new_root->level(), 0, max, root->id());
 
     self.ctr_ref_block(root->id());
 

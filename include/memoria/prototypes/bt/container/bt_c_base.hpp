@@ -91,6 +91,11 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using CtrPropertiesMap          = PackedMap<Varchar, Varchar>;
     using CtrReferencesMap          = PackedMap<Varchar, ProfileCtrID<typename Types::Profile>>;
 
+    using BranchUpdateState = typename BranchNodeSO::UpdateState;
+
+    template <typename LeafPath>
+    using LeafUpdateState = typename LeafNodeSO::template UpdateState<LeafPath>;
+
     using Base::CONTAINER_HASH;
 
     static const int32_t Streams = Types::Streams;
@@ -136,7 +141,14 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return tree_dispatcher_;
     }
 
+    BranchUpdateState make_branch_update_state() const {
+        return BranchNodeSO::make_update_state();
+    }
 
+    template <typename LeafPath>
+    LeafUpdateState<LeafPath> make_leaf_update_state() const {
+        return LeafNodeSO::template make_update_state<LeafPath>();
+    }
 
     LeafNodeExtData& leaf_node_ext_data() const noexcept {return leaf_node_ext_data_;}
     BranchNodeExtData& branch_node_ext_data() const noexcept {return branch_node_ext_data_;}
@@ -226,7 +238,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             map_so.setup(get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX));
         }
 
-        map_so.set(key, value).get_or_throw();
+        map_so.set(key, value);
     }
 
     virtual size_t ctr_properties() const
@@ -250,7 +262,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         PackedMapSO<CtrPropertiesMap> map_so(map);
 
         self.ctr_cow_clone_path(path, 0);
-        map_so.remove(key).get_or_throw();
+        map_so.remove(key);
 
         self.ctr_downsize_node(path, 0);
     }
@@ -292,7 +304,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             map_so.setup(get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX));
         }
 
-        return map_so.set_all(entries_view).get_or_throw();
+        return map_so.set_all(entries_view);
     }
 
 
@@ -327,7 +339,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             map_so.setup(get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX));
         }
 
-        map_so.set(key, value).get_or_throw();
+        map_so.set(key, value);
     }
 
     virtual void remove_ctr_reference(U8StringView key)
@@ -341,7 +353,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         PackedMapSO<CtrReferencesMap> map_so(map);
 
         self.ctr_cow_clone_path(path, 0);
-        map_so.remove(key).get_or_throw();
+        map_so.remove(key);
 
         self.ctr_downsize_node(path, 0);
     }
@@ -393,7 +405,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             map_so.setup(get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX));
         }
 
-        map_so.set_all(entries_view).get_or_throw();
+        map_so.set_all(entries_view);
     }
 
 
@@ -406,7 +418,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         self().ctr_update_block_guard(node);
         node->set_root(false);
-        node->clear_metadata().get_or_throw();
+        node->clear_metadata();
     }
 
     void ctr_node_to_root(const TreeNodePtr& node)
@@ -423,19 +435,17 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     void ctr_copy_root_metadata(const TreeNodeConstPtr& src, const TreeNodePtr& tgt)
     {
         self().ctr_update_block_guard(tgt);
-        return tgt->copy_metadata_from(src.block()).get_or_throw();
+        return tgt->copy_metadata_from(src.block());
     }
 
-    bool ctr_can_convert_to_root(const TreeNodeConstPtr& node, psize_t metadata_size) const
-    {
+    bool ctr_can_convert_to_root(const TreeNodeConstPtr& node, psize_t metadata_size) const {
         return node->can_convert_to_root(metadata_size);
     }
 
 
 
     template <typename Node>
-    CtrID ctr_get_model_name_fn(const Node& node) const
-    {
+    CtrID ctr_get_model_name_fn(const Node& node) const {
         return node.node()->root_metadata().model_name();
     }
 
@@ -599,10 +609,10 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         ctr_prepare_node(node);
 
         if (leaf) {
-            self.ctr_layout_leaf_node(node, Position());
+            self.ctr_layout_leaf_node(node);
         }
         else {
-            self.ctr_layout_branch_node(node, -1ull);
+            self.ctr_layout_branch_node(node);
         }
 
         return node;
@@ -639,10 +649,10 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         if (self.root().is_set())
         {
             auto root_block = self.ctr_get_block(self.root());
-            node->copy_metadata_from(root_block.block()).get_or_throw();
+            node->copy_metadata_from(root_block.block());
         }
         else {
-            self.node_dispatcher().dispatch(node, InitRootMetadataFn()).get_or_throw();
+            self.node_dispatcher().dispatch(node, InitRootMetadataFn());
 
             Metadata& meta = *get<Metadata>(node->allocator(), METADATA_IDX);
             meta = self.ctr_create_new_root_metadata();
@@ -661,10 +671,10 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         }
 
         if (leaf) {
-            self.ctr_layout_leaf_node(node, Position());
+            self.ctr_layout_leaf_node(node);
         }
         else {
-            self.ctr_layout_branch_node(node, -1ull);
+            self.ctr_layout_branch_node(node);
         }
 
         return node;
@@ -682,7 +692,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
     template <typename Node>
-    VoidResult ctr_prepare_node(Node&& node) const
+    void ctr_prepare_node(Node&& node) const
     {
         return node.prepare();
     }
@@ -691,7 +701,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void ctr_prepare_node(TreeNodePtr& node) const
     {
-        return self().node_dispatcher().dispatch(node, PrepareNodeFn(self())).get_or_throw();
+        return self().node_dispatcher().dispatch(node, PrepareNodeFn(self()));
     }
 
 

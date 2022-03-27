@@ -45,25 +45,20 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
         template <
             int32_t Idx,
             typename SubstreamType,
-            typename Entry
+            typename Entry,
+            typename UpdateState
         >
-        VoidResult stream(SubstreamType&& obj, int32_t idx, const Entry& entry)
+        void stream(SubstreamType&& obj, int32_t idx, const Entry& entry, UpdateState& update_state)
         {
-            if (obj) {
-                return obj.insert_entries(idx, 1, [&](int32_t block, int32_t row) -> const auto& {
+            return obj.commit_insert(idx, 1, std::get<Idx>(update_state), [&](int32_t block, int32_t row) -> const auto& {
                     return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
-                });
-            }
-            else {
-                return make_generic_error("Substream {} is empty", Idx);
-            }
+            });
         }
 
         template <typename CtrT, typename NTypes, typename... Args>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
         {
-            MEMORIA_TRY_VOID(node.layout(255));
-            return node.template processSubstreamsVoidRes<IntList<Stream>>(*this, idx, std::forward<Args>(args)...);
+            return node.template processSubstreams<IntList<Stream>>(*this, idx, std::forward<Args>(args)...);
         }
     };
 
@@ -79,7 +74,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
         if (capacity)
         {
             self.ctr_update_block_guard(iter.iter_leaf());
-            self.leaf_dispatcher().dispatch(iter.iter_leaf().as_mutable(), InsertStreamEntryFn<Stream>(), idx, entry).get_or_throw();
+            auto update_state = self.template make_leaf_update_state<IntList<Stream>>();
+            self.leaf_dispatcher().dispatch(iter.iter_leaf().as_mutable(), InsertStreamEntryFn<Stream>(), idx, entry, update_state);
             return true;
         }
         else {
@@ -97,20 +93,18 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
     template <int32_t Stream>
     struct RemoveFromLeafFn
     {
-        template <typename CtrT, typename NTypes>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx)
-        {
-            MEMORIA_TRY_VOID(node.layout(255));
-            return node.template processSubstreamsVoidRes<IntList<Stream>>(*this, idx);
+        template <typename CtrT, typename NTypes, typename UpdateState>
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, UpdateState& update_state) {
+            return node.template processSubstreams<IntList<Stream>>(*this, idx, update_state);
         }
 
         template <
             int32_t Idx,
-            typename SubstreamType
+            typename SubstreamType,
+            typename UpdateState
         >
-        VoidResult stream(SubstreamType&& obj, int32_t idx)
-        {
-            return obj.remove_entries(idx, 1);
+        void stream(SubstreamType&& obj, int32_t idx, UpdateState& update_state) {
+            return obj.commit_remove(idx, 1, std::get<Idx>(update_state));
         }
     };
 
@@ -119,7 +113,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
     {
         self().ctr_update_block_guard(path.leaf());
 
-        self().leaf_dispatcher().dispatch(path.leaf().as_mutable(), RemoveFromLeafFn<Stream>(), idx).get_or_throw();
+        auto update_state = self().template make_leaf_update_state<IntList<Stream>>();
+        self().leaf_dispatcher().dispatch(path.leaf().as_mutable(), RemoveFromLeafFn<Stream>(), idx, update_state);
 
         return true;
     }
@@ -138,20 +133,21 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
             int32_t AllocatorIdx,
             int32_t Idx,
             typename SubstreamType,
-            typename Entry
+            typename Entry,
+            typename UpdateState
         >
-        VoidResult stream(SubstreamType&& obj, int32_t idx, const Entry& entry)
-        {
-            return obj.update_entries(idx, 1, [&](int32_t block, int32_t row) {
+        void stream(SubstreamType&& obj, int32_t idx, const Entry& entry, UpdateState& update_state)
+        {            
+            return obj.commit_update(idx, 1, std::get<Idx>(update_state), [&](int32_t block, int32_t row) {
                 return entry.get(bt::StreamTag<StreamIdx>(), bt::StreamTag<Idx>(), block);
             });
         }
 
 
         template <typename CtrT, typename NTypes, typename... Args>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
         {
-            return node.template processSubstreamsVoidRes<
+            return node.template processSubstreams<
                 SubstreamsList
             >(
                     *this,
@@ -171,12 +167,15 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
 
         self.ctr_update_block_guard(iter.iter_leaf());
 
+        auto update_state = self.template make_leaf_update_state<SubstreamsList>();
+
         self.leaf_dispatcher().dispatch(
                 iter.iter_leaf().as_mutable(),
                 UpdateStreamEntryFn<SubstreamsList>(),
                 idx,
-                entry
-        ).get_or_throw();
+                entry,
+                update_state
+        );
 
         return true;
     }
@@ -194,7 +193,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
     }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
+    MEMORIA_V1_DECLARE_NODE_FN(MergeNodesFn, commit_merge_with);
     void ctr_do_merge_leaf_nodes(TreePathT& tgt, TreePathT& src);
 
     bool ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, bool only_if_same_parent = false);
@@ -222,7 +221,8 @@ void M_TYPE::ctr_do_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path)
 
     self.ctr_update_block_guard(tgt);
 
-    self.leaf_dispatcher().dispatch_1st_const(src, tgt.as_mutable(), MergeNodesFn()).get_or_throw();
+    auto update_state = self.template make_leaf_update_state<IntList<>>();
+    self.leaf_dispatcher().dispatch_1st_const(src, tgt.as_mutable(), MergeNodesFn(), update_state);
 
     auto parent_idx = self.ctr_get_parent_idx(src_path, 0);
 

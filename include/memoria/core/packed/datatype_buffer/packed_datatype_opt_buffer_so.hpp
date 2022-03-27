@@ -59,6 +59,7 @@ public:
     using Value         = typename PkdStruct::Value;
     using Values        = typename PkdStruct::Values;
 
+    using UpdateState = PkdStructUpdate<MyType>;
 
     using PkdStructT = PkdStruct;
 
@@ -207,78 +208,94 @@ public:
         }
     }
 
-    VoidResult splitTo(MyType& other, size_t idx)
+    void split_to(MyType& other, size_t idx)
     {
         BitmapSO bitmap = this->bitmap();
 
         size_t array_idx = this->array_idx(bitmap, idx);
 
         BitmapSO other_bitmap = other.bitmap();
-        MEMORIA_TRY_VOID(bitmap.splitTo(other_bitmap, idx));
+        bitmap.split_to(other_bitmap, idx);
 
         ArraySO other_array = other.array();
-        MEMORIA_TRY_VOID(array().splitTo(other_array, array_idx));
+        array().split_to(other_array, array_idx);
 
         return reindex();
     }
 
-    VoidResult mergeWith(MyType& other) const
-    {
-        BitmapSO other_bitmap = other.bitmap();
-        MEMORIA_TRY_VOID(bitmap().mergeWith(other_bitmap));
-
-        ArraySO other_array = other.array();
-        return array().mergeWith(other_array);
+    PkdUpdateStatus prepare_merge_with(const MyType& other, UpdateState& update_state) const {
+        return PkdUpdateStatus::SUCCESS;
     }
 
-    VoidResult removeSpace(size_t start, size_t end)
+    void commit_merge_with(MyType& other, UpdateState& update_state) const
+    {
+        BitmapSO other_bitmap = other.bitmap();
+
+        auto state1 = other_bitmap.make_update_state(update_state.update_state());
+        bitmap().commit_merge_with(other_bitmap, state1);
+
+        ArraySO other_array = other.array();
+        auto state2 = other_array.make_update_state(update_state.update_state());
+        return array().commit_merge_with(other_array, state2);
+    }
+
+    PkdUpdateStatus prepare_remove(size_t start, size_t end, UpdateState& update_state) const {
+        return PkdUpdateStatus::SUCCESS;
+    }
+
+    void commit_remove(size_t start, size_t end, UpdateState& update_state)
     {
         BitmapSO bitmap = this->bitmap();
 
         size_t array_start = array_idx(bitmap, start);
         size_t array_end = array_idx(bitmap, end);
 
-        MEMORIA_TRY_VOID(bitmap.remove(start, end));
+        auto state1 = bitmap.make_update_state(update_state.update_state());
+        bitmap.commit_remove(start, end, state1);
 
-        return array().removeSpace(array_start, array_end);
+        auto state2 = array().make_update_state(update_state.update_state());
+        return array().commit_remove(array_start, array_end, state2);
+    }
+
+    template <typename AccessorFn>
+    PkdUpdateStatus prepare_insert(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements) {
+        return PkdUpdateStatus::SUCCESS;
     }
 
 
     template <typename AccessorFn>
-    VoidResult insert_entries(size_t row_at, size_t size, AccessorFn&& elements)
+    void commit_insert(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements)
     {
-        MEMORIA_ASSERT_RTN(row_at, <=, this->size());
+        MEMORIA_ASSERT(row_at, <=, this->size());
 
         BitmapSO bitmap = this->bitmap();
-        MEMORIA_TRY_VOID(bitmap.insert_entries(row_at, size, [&](size_t pos){
+
+        auto state1 = bitmap.make_update_state(update_state.update_state());
+        bitmap.commit_insert(row_at, size, state1, [&](size_t pos){
             return is_not_empty(elements(0, pos));
-        }));
+        });
 
         size_t set_elements_num = bitmap.rank_eq(row_at, row_at + size, 1);
         size_t array_row_at = array_idx(row_at);
 
-        auto res1 = array().insert_entries(array_row_at, set_elements_num, [&](size_t col, size_t arr_idx)  {
+        auto state2 = array().make_update_state(update_state.update_state());
+        array().commit_insert(array_row_at, set_elements_num, state2, [&](size_t col, size_t arr_idx)  {
             size_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
             return elements(col, bm_idx - row_at).get();
         });
-        MEMORIA_RETURN_IF_ERROR(res1);
-
-        return VoidResult::of();
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(size_t row_at, size_t size, AccessorFn&& elements)
-    {
-        MEMORIA_TRY_VOID(remove_entries(row_at, size));
-        return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
+    PkdUpdateStatus prepare_update(psize_t row_at, psize_t size, UpdateState&, AccessorFn&&) const {
+        return PkdUpdateStatus::SUCCESS;
     }
 
-    VoidResult remove_entries(size_t row_at, size_t size)
+    template <typename AccessorFn>
+    void commit_update(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements)
     {
-        return removeSpace(row_at, row_at + size);
+        commit_remove(row_at, size, update_state);
+        return commit_insert(row_at, size, update_state, std::forward<AccessorFn>(elements));
     }
-
-
 
     FindResult findGTForward(size_t column, const ViewType& val) const
     {
@@ -306,7 +323,7 @@ public:
 
 
     template <typename T>
-    VoidResult setValues(size_t idx, const core::StaticVector<T, Columns>& values)
+    void setValues(size_t idx, const core::StaticVector<T, Columns>& values)
     {
         if (values[0])
         {
@@ -317,15 +334,15 @@ public:
 
             if (bitmap.access(idx))
             {
-                MEMORIA_TRY_VOID(array().setValues(array_idx, array_values));
+                array().setValues(array_idx, array_values);
             }
             else {
-                MEMORIA_TRY_VOID(array().insert(array_idx, array_values));
+                array().insert(array_idx, array_values);
 
                 bitmap = data_->bitmap();
                 bitmap.set_symbol(idx, 1);
 
-                MEMORIA_TRY_VOID(bitmap.reindex());
+                bitmap.reindex();
             }
         }
         else {
@@ -334,27 +351,26 @@ public:
 
             if (bitmap.access(idx))
             {
-                MEMORIA_TRY_VOID(array().removeSpace(array_idx, array_idx + 1));
+                array().remove(array_idx, array_idx + 1);
                 bitmap = data_->bitmap();
 
                 bitmap->set_symbol(idx, 0);
-                MEMORIA_TRY_VOID(bitmap.reindex());
+                bitmap.reindex();
             }
             else {
                 // Do nothing
             }
         }
-        return VoidResult::of();
     }
 
     template <typename T>
-    VoidResult insert(size_t idx, const core::StaticVector<T, Columns>& values)
+    void insert(size_t idx, const core::StaticVector<T, Columns>& values)
     {
         BitmapSO bitmap = this->bitmap();
 
         if (values[0])
         {
-            MEMORIA_TRY_VOID(bitmap.insert(idx, 1));
+            bitmap.insert(idx, 1);
 
             auto array_values  = this->array_values(values);
             size_t array_idx  = this->array_idx(bitmap, idx);
@@ -366,11 +382,13 @@ public:
         }
     }
 
-    VoidResult reindex()
+    void reindex()
     {
-        MEMORIA_TRY_VOID(bitmap().reindex());
+        bitmap().reindex();
         return array().reindex();
     }
+
+    MMA_MAKE_UPDATE_STATE_METHOD
 
 private:
 

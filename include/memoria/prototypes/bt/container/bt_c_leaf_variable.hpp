@@ -38,28 +38,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
     using typename Base::BranchNodeEntry;
     using typename Base::BlockUpdateMgr;
 
-    template <int32_t Stream>
-    struct InsertStreamEntryFn
-    {
-        template <
-            int32_t Idx,
-            typename SubstreamType,
-            typename Entry
-        >
-        VoidResult stream(SubstreamType&& obj, int32_t idx, const Entry& entry)
-        {
-            if (obj)
-            {
-                return obj.insert_entries(idx, 1, [&](psize_t block, psize_t row) -> const auto& {
-                    return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
-                });
-            }
-            else {
-                return make_generic_error("Substream {} is empty", Idx);
-            }
-        }
 
-
+    template <int32_t Stream, typename Base>
+    struct InsertStreamEntryFn: Base {
         template <typename CtrT, typename NTypes, typename... Args>
         VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
         {
@@ -68,13 +49,69 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
         }
     };
 
+    template <int32_t Stream>
+    struct PrepareInsertFn {
+        PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
+
+        template <
+            int32_t Idx,
+            typename SubstreamType,
+            typename Entry,
+            typename UpdateState
+        >
+        void stream(SubstreamType&& obj, int32_t idx, const Entry& entry, UpdateState& update_state) {
+            if (isSuccess(status)) {
+                status = obj.prepare_insert(idx, 1, std::get<Idx>(update_state), [&](psize_t block, psize_t row) -> const auto& {
+                    return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
+                });
+            }
+        }
+
+        template <typename CtrT, typename NTypes, typename... Args>
+        void treeNode(const LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args) {
+            return node.template processSubstreams<IntList<Stream>>(*this, idx, std::forward<Args>(args)...);
+        }
+    };
+
+
+    template <int32_t Stream>
+    struct CommitInsertFn {
+        template <
+            int32_t Idx,
+            typename SubstreamType,
+            typename Entry,
+            typename UpdateState
+        >
+        void stream(SubstreamType&& obj, int32_t idx, const Entry& entry, UpdateState& update_state)
+        {
+            return obj.commit_insert(idx, 1, std::get<Idx>(update_state), [&](psize_t block, psize_t row) -> const auto& {
+                return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
+            });
+        }
+
+        template <typename CtrT, typename NTypes, typename... Args>
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args) {
+            return node.template processSubstreams<IntList<Stream>>(*this, idx, std::forward<Args>(args)...);
+        }
+    };
+
 
 
     template <int32_t Stream, typename Entry>
-    VoidResult ctr_try_insert_stream_entry_no_mgr(const TreeNodePtr& leaf, int32_t idx, const Entry& entry)
+    bool ctr_try_insert_stream_entry_no_mgr(const TreeNodePtr& leaf, int32_t idx, const Entry& entry)
     {
-        InsertStreamEntryFn<Stream> fn;
-        return self().leaf_dispatcher().dispatch(leaf, fn, idx, entry);
+        auto update_state = self().template make_leaf_update_state<IntList<Stream>>();
+
+        PrepareInsertFn<Stream> fn1;
+        self().leaf_dispatcher().dispatch(leaf, fn1, idx, entry, update_state);
+        if (isSuccess(fn1.status)) {
+            CommitInsertFn<Stream> fn2;
+            self().leaf_dispatcher().dispatch(leaf, fn2, idx, entry, update_state);
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
 
@@ -88,26 +125,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
         auto& self = this->self();
 
         self.ctr_cow_clone_path(iter.path(), 0);
-
-        BlockUpdateMgr mgr(self);
-
         self.ctr_update_block_guard(iter.iter_leaf());
 
-        mgr.add(iter.iter_leaf().as_mutable());
-
-        auto status = self.template ctr_try_insert_stream_entry_no_mgr<Stream>(iter.iter_leaf().as_mutable(), idx, entry);
-        if (status.is_error()) {
-            if (status.is_packed_error())
-            {
-                mgr.rollback();
-                return false;
-            }
-            else {
-                MEMORIA_PROPAGATE_ERROR(status).do_throw();
-            }
-        }
-
-        return true;
+        return self.template ctr_try_insert_stream_entry_no_mgr<Stream>(iter.iter_leaf().as_mutable(), idx, entry);
     }
 
     bool ctr_with_block_manager(
@@ -142,56 +162,24 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
     }
 
 
-
-
-
-    template <int32_t Stream>
-    struct RemoveFromLeafFn
-    {
-        template <
-            int32_t Idx,
-            typename SubstreamType
-        >
-        VoidResult stream(SubstreamType&& obj, int32_t idx)
-        {
-            return obj.remove_entries(idx, 1);
-        }
-
-        template <typename CtrT, typename NTypes>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx)
-        {
-            MEMORIA_TRY_VOID(node.layout(255));
-            return node.template processSubstreamsVoidRes<IntList<Stream>>(*this, idx);
-        }
-    };
-
-
+    MEMORIA_V1_DECLARE_NODE_FN(TryRemoveFn, remove);
     template <int32_t Stream>
     bool ctr_try_remove_stream_entry(TreePathT& path, int32_t idx)
     {
         auto& self = this->self();
 
         self.ctr_cow_clone_path(path, 0);
-
-        BlockUpdateMgr mgr(self);
-
         self.ctr_update_block_guard(path.leaf());
-        mgr.add(path.leaf().as_mutable());
 
-        RemoveFromLeafFn<Stream> fn;
-        VoidResult status = self.leaf_dispatcher().dispatch(path.leaf().as_mutable(), fn, idx);
+        TryRemoveFn fn;
+        PkdUpdateStatus status = self.leaf_dispatcher().dispatch(
+                path.leaf().as_mutable(),
+                fn,
+                IntList<Stream>{},
+                idx, idx + 1
+        );
 
-        if (status.is_ok()) {
-            return true;
-        }
-        else if (status.is_packed_error()) {
-            mgr.rollback();
-            return false;
-        }
-        else {
-            status.get_or_throw();
-            return false;
-        }
+        return isSuccess(status);
     }
 
 
@@ -200,26 +188,62 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
     //=========================================================================================
 
     template <typename SubstreamsList>
-    struct UpdateStreamEntryBufferFn
+    struct CommitUpdateStreamFn
     {
         template <
             int32_t StreamIdx,
             int32_t AllocatorIdx,
             int32_t Idx,
             typename SubstreamType,
-            typename Entry
+            typename Entry,
+            typename UpdateState
         >
-        VoidResult stream(SubstreamType&& obj, int32_t idx, const Entry& entry)
+        void stream(SubstreamType&& obj, int32_t idx, const Entry& entry, UpdateState& update_state)
         {
-            return obj.update_entries(idx, 1, [&](auto block, auto){
+            return obj.commit_update(idx, 1, std::get<Idx>(update_state), [&](auto block, auto){
                 return entry.get(bt::StreamTag<StreamIdx>(), bt::StreamTag<Idx>(), block);
             });
         }
 
         template <typename CtrT, typename NTypes, typename... Args>
-        VoidResult treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
         {
-            return node.template processSubstreamsVoidRes<
+            return node.template processSubstreams<
+                SubstreamsList
+            >(
+                    *this,
+                    idx,
+                    std::forward<Args>(args)...
+            );
+        }
+    };
+
+    template <typename SubstreamsList>
+    struct PrepareUpdateStreamFn
+    {
+        PkdUpdateStatus status {PkdUpdateStatus::SUCCESS};
+
+        template <
+            int32_t StreamIdx,
+            int32_t AllocatorIdx,
+            int32_t Idx,
+            typename SubstreamType,
+            typename Entry,
+            typename UpdateState
+        >
+        void stream(SubstreamType&& obj, int32_t idx, const Entry& entry, UpdateState& update_state)
+        {
+            if (isSuccess(status)) {
+                status = obj.prepare_update(idx, 1, std::get<Idx>(update_state), [&](auto block, auto){
+                    return entry.get(bt::StreamTag<StreamIdx>(), bt::StreamTag<Idx>(), block);
+                });
+            }
+        }
+
+        template <typename CtrT, typename NTypes, typename... Args>
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
+        {
+            return node.template processSubstreams<
                 SubstreamsList
             >(
                     *this,
@@ -236,44 +260,35 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
         auto& self = this->self();
 
         self.ctr_cow_clone_path(iter.path(), 0);
-
-        BlockUpdateMgr mgr(self);
-
         self.ctr_update_block_guard(iter.iter_leaf().as_mutable());
-        mgr.add(iter.iter_leaf().as_mutable());
 
+        auto update_state = self.template make_leaf_update_state<SubstreamsList>();
+        PrepareUpdateStreamFn<SubstreamsList> fn1;
 
-        UpdateStreamEntryBufferFn<SubstreamsList> fn;
-        VoidResult status = self.leaf_dispatcher().dispatch(
+        self.leaf_dispatcher().dispatch(
                     iter.iter_leaf().as_mutable(),
-                    fn,
+                    fn1,
                     idx,
-                    entry
+                    entry,
+                    update_state
         );
 
-        if (status.is_ok()) {
+        if (isSuccess(fn1.status)) {
+            CommitUpdateStreamFn<SubstreamsList> fn2;
+            self.leaf_dispatcher().dispatch(
+                        iter.iter_leaf().as_mutable(),
+                        fn2,
+                        idx,
+                        entry,
+                        update_state
+            );
+
             return true;
         }
-        else if (status.memoria_error()->error_category() == ErrorCategory::PACKED)
-        {
-            mgr.rollback();
-            return false;
-        }
-        else {
-            status.get_or_throw();
-            return false;
-        }
+        return false;
     }
 
-    template <typename Fn, typename... Args>
-    bool update(Iterator& iter, Fn&& fn, Args&&... args)
-    {
-        auto& self = this->self();
-        return self.ctr_update_atomic(iter, std::forward<Fn>(fn), VLSelector(), std::forward<Fn>(args)...);
-    }
-
-
-    MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
+    MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, merge_with);
     bool ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path);
 
     bool ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, bool only_if_same_parent = false);
@@ -299,46 +314,32 @@ bool M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path)
 
     self.ctr_cow_clone_path(tgt_path, 0);
 
-    BlockUpdateMgr mgr(self);
 
     TreeNodeConstPtr tgt = tgt_path.leaf();
     TreeNodeConstPtr src = src_path.leaf();
 
     self.ctr_update_block_guard(tgt);
 
-    // FIXME: Need to leave src node untouched on merge.
-    mgr.add(tgt.as_mutable());
+    PkdUpdateStatus res = self.leaf_dispatcher().dispatch_1st_const(src, tgt.as_mutable(), TryMergeNodesFn());
 
-    //MEMORIA_TRY(tgt_sizes, self.ctr_get_node_sizes(tgt));
+    if (isSuccess(res)) {
 
+        self.ctr_remove_non_leaf_node_entry(tgt_path, 1, parent_idx).get_or_throw();
 
+        self.ctr_update_path(tgt_path, 0);
 
-    VoidResult res = self.leaf_dispatcher().dispatch_1st_const(src, tgt.as_mutable(), TryMergeNodesFn());
+        self.ctr_cow_ref_children_after_merge(src.as_mutable());
 
-    if (res.is_error())
-    {
-        if (res.is_packed_error())
-        {
-            mgr.rollback();
-            return false;
-        }
-        else {
-            MEMORIA_PROPAGATE_ERROR(res).do_throw();
-        }
+        self.ctr_unref_block(src->id());
+
+        self.ctr_check_path(tgt_path, 0);
+
+        return true;
+    }
+    else {
+        return false;
     }
 
-
-    self.ctr_remove_non_leaf_node_entry(tgt_path, 1, parent_idx).get_or_throw();
-
-    self.ctr_update_path(tgt_path, 0);
-
-    self.ctr_cow_ref_children_after_merge(src.as_mutable());
-
-    self.ctr_unref_block(src->id());
-
-    self.ctr_check_path(tgt_path, 0);
-
-    return true;
 }
 
 

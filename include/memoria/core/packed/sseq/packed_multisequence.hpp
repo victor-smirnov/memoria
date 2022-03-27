@@ -112,17 +112,15 @@ public:
         return block_size;
     }
 
-    VoidResult init() noexcept
+    void init() noexcept
     {
         size_t block_size = MyType::empty_size();
 
-        MEMORIA_TRY_VOID(Base::init(block_size, 2));
+        Base::init(block_size, 2);
 
-        MEMORIA_TRY_VOID(Base::template allocate_empty<LabelArray>(LABELS));
+        Base::template allocate_empty<LabelArray>(LABELS);
 
-        MEMORIA_TRY_VOID(Base::template allocate_empty<Sequence>(SYMBOLS));
-
-        return VoidResult::of();
+        Base::template allocate_empty<Sequence>(SYMBOLS);
     }
 
     size_t rank(size_t subseq_num, size_t to, size_t symbol) const
@@ -217,7 +215,7 @@ public:
         LabelArray* labels  = this->labels();
         MEMORIA_ASSERT(labels->value(0, subseq_num), ==, 0);
 
-        return labels->removeSpace(subseq_num, subseq_num + 1);
+        return labels->remove(subseq_num, subseq_num + 1);
     }
 
     size_t subseq_size(size_t seq_num) const

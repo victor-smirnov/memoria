@@ -54,7 +54,7 @@ public:
 
 public:
     MEMORIA_V1_DECLARE_NODE_FN(InsertFn, insert);
-    VoidResult ctr_insert_to_branch_node(
+    PkdUpdateStatus ctr_insert_to_branch_node(
             TreePathT& path,
             size_t level,
             int32_t idx,
@@ -90,14 +90,14 @@ public:
             const SplitFn& split_fn
     );
 
-    MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
+    MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, update);
 
     bool ctr_update_branch_node(const TreeNodePtr& node, int32_t idx, const BranchNodeEntry& entry);
     bool ctr_update_branch_node(const TreeNodeConstPtr& node, int32_t idx, const BranchNodeEntry& entry);
 
     bool ctr_update_branch_nodes(TreePathT& path, size_t level, int32_t& idx, const BranchNodeEntry& entry);
 
-    MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
+    MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, merge_with);
     bool ctr_try_merge_branch_nodes(TreePathT& tgt_path, const TreePathT& src_path, size_t level);
     bool ctr_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level, bool only_if_same_parent = false);
 
@@ -108,7 +108,7 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-VoidResult M_TYPE::ctr_insert_to_branch_node(
+PkdUpdateStatus M_TYPE::ctr_insert_to_branch_node(
         TreePathT& path,
         size_t level,
         int32_t idx,
@@ -116,7 +116,7 @@ VoidResult M_TYPE::ctr_insert_to_branch_node(
         const BlockID& id
 )
 {
-    return wrap_throwing([&]() -> VoidResult {
+
         auto& self = this->self();
 
         self.ctr_cow_clone_path(path, level);
@@ -124,18 +124,15 @@ VoidResult M_TYPE::ctr_insert_to_branch_node(
         self.ctr_update_block_guard(path[level]);
         TreeNodeConstPtr node = path[level];
 
-        VoidResult res = self.branch_dispatcher().dispatch(node.as_mutable(), InsertFn(), idx, sums, id);
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        //self.ctr_check_content(node, NullCheckResultConsumer());
-
-        if (!node->is_root())
-        {
-            self.ctr_update_path(path, level);
+        PkdUpdateStatus status = self.branch_dispatcher().dispatch(node.as_mutable(), InsertFn(), idx, sums, id);
+        if (isSuccess(status)) {
+            if (!node->is_root())
+            {
+                self.ctr_update_path(path, level);
+            }
         }
 
-        return VoidResult::of();
-    });
+        return status;
 }
 
 
@@ -168,64 +165,43 @@ void M_TYPE::ctr_split_node_raw(
 
     auto new_parent_idx = self.ctr_get_child_idx(path[level + 1], path[level]->id());
 
-    BlockUpdateMgr mgr(self);
-    mgr.add(path[level + 1].as_mutable());
+    PkdUpdateStatus insertion_status = self.ctr_insert_to_branch_node(path, level + 1, new_parent_idx + 1, right_max, right_node->id());
 
-    VoidResult insertion_status = self.ctr_insert_to_branch_node(path, level + 1, new_parent_idx + 1, right_max, right_node->id());
-
-    if (insertion_status.is_error())
+    if (!isSuccess(insertion_status))
     {
-        if(insertion_status.is_packed_error())
+        auto parent_size = self.ctr_get_node_size(path[level + 1], 0);
+        int32_t parent_split_idx = parent_size / 2;
+
+        ctr_split_path_raw(path, level + 1, parent_split_idx);
+
+        if (new_parent_idx < parent_split_idx)
         {
-            mgr.rollback();
+            TreePathT left_path(path, level + 1);
+            self.ctr_expect_prev_node(left_path, level + 1);
 
-            auto parent_size = self.ctr_get_node_size(path[level + 1], 0);
-            int32_t parent_split_idx = parent_size / 2;
-
-            ctr_split_path_raw(path, level + 1, parent_split_idx);
-
-            if (new_parent_idx < parent_split_idx)
-            {
-                TreePathT left_path(path, level + 1);
-                self.ctr_expect_prev_node(left_path, level + 1);
-
-
-                self.ctr_assign_path_nodes(
-                                left_path,
-                                path,
-                                level + 1
-                );
-            }
-            else {
-                new_parent_idx -= parent_split_idx;
-            }
-
-            mgr.add(path[level + 1].as_mutable());
-
-            VoidResult right_path_insertion_status =
-                        self.ctr_insert_to_branch_node(
-                            path,
-                            level + 1,
-                            new_parent_idx + 1,
-                            right_max,
-                            right_node->id()
+            self.ctr_assign_path_nodes(
+                        left_path,
+                        path,
+                        level + 1
                         );
-
-
-            if (right_path_insertion_status.is_error())
-            {
-                if(right_path_insertion_status.is_packed_error())
-                {
-                    mgr.rollback();
-                    MEMORIA_MAKE_GENERIC_ERROR("Can't insert node into the right path").do_throw();
-                }
-                else {
-                    MEMORIA_PROPAGATE_ERROR(right_path_insertion_status).do_throw();
-                }
-            }
         }
         else {
-            MEMORIA_PROPAGATE_ERROR(insertion_status).do_throw();
+            new_parent_idx -= parent_split_idx;
+        }
+
+        PkdUpdateStatus right_path_insertion_status =
+                self.ctr_insert_to_branch_node(
+                    path,
+                    level + 1,
+                    new_parent_idx + 1,
+                    right_max,
+                    right_node->id()
+                    );
+
+
+        if (!isSuccess(right_path_insertion_status))
+        {
+            MEMORIA_MAKE_GENERIC_ERROR("Can't insert node into the right path").do_throw();
         }
     }
 
@@ -277,15 +253,11 @@ bool M_TYPE::ctr_update_branch_node(const TreeNodePtr& node, int32_t idx, const 
 {
     auto& self = this->self();
 
-    BlockUpdateMgr mgr(self);
-    mgr.add(node);
-
     VoidResult res = self.branch_dispatcher().dispatch(node, UpdateNodeFn(), idx, entry);
 
     if (res.is_error()) {
         if (res.is_packed_error())
         {
-            mgr.rollback();
             return false;
         }
         else {
@@ -303,25 +275,8 @@ bool M_TYPE::ctr_update_branch_node(const TreeNodeConstPtr& node, int32_t idx, c
     auto& self = this->self();
 
     // FIXME Must update node here!!!
-
-    BlockUpdateMgr mgr(self);
-    mgr.add(node.as_mutable());
-
-    VoidResult res = self.branch_dispatcher().dispatch(node.as_mutable(), UpdateNodeFn(), idx, entry);
-
-    if (res.is_error()) {
-        if (res.is_packed_error())
-        {
-            mgr.rollback();
-            return false;
-        }
-        else {
-            self.ctr_dump_node(node);
-            MEMORIA_PROPAGATE_ERROR(res).do_throw();
-        }
-    }
-
-    return true;
+    PkdUpdateStatus status = self.branch_dispatcher().dispatch(node.as_mutable(), UpdateNodeFn(), idx, entry);
+    return isSuccess(status);
 }
 
 
@@ -421,23 +376,13 @@ bool M_TYPE::ctr_try_merge_branch_nodes(TreePathT& tgt_path, const TreePathT& sr
     TreeNodeConstPtr src = src_path[level];
     TreeNodeConstPtr tgt = tgt_path[level];
 
-    BlockUpdateMgr mgr(self);
-
     self.ctr_update_block_guard(tgt);
 
-    mgr.add(tgt.as_mutable());
 
 
     auto res = self.branch_dispatcher().dispatch_1st_const(src, tgt.as_mutable(), TryMergeNodesFn());
-    if (res.is_error()) {
-        if (res.is_packed_error())
-        {
-            mgr.rollback();
-            return false;
-        }
-        else {
-            MEMORIA_PROPAGATE_ERROR(res).do_throw();
-        }
+    if (!isSuccess(res)) {
+        return false;
     }
 
     // FIXME: in case of 'packed error' (that shouldn't happen),
@@ -447,7 +392,6 @@ bool M_TYPE::ctr_try_merge_branch_nodes(TreePathT& tgt_path, const TreePathT& sr
     if (status.is_error()) {
         if (status.is_packed_error())
         {
-            mgr.rollback();
             return false;
         }
         else {

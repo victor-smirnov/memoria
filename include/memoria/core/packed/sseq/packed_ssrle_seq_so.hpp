@@ -58,10 +58,14 @@ public:
     using Metadata      = typename PkdStruct::Metadata;
     using Iterator      = typename PkdStruct::Iterator;
 
+    using UpdateState = PkdStructUpdate<MyType>;
+
     static constexpr SymbolT AlphabetSize       = PkdStruct::AlphabetSize;
     static constexpr size_t  AtomsPerBlock      = PkdStruct::AtomsPerBlock;
     static constexpr size_t  SegmentSizeInAtoms = PkdStruct::SegmentSizeInAtoms;
     static constexpr size_t  SYMBOLS            = PkdStruct::SYMBOLS;
+
+
 
     using PkdStructT = PkdStruct;
 
@@ -144,7 +148,7 @@ public:
         return ii.get().symbol(offset);
     }
 
-    VoidResult clear() {
+    void clear() {
         return data_->clear();
     }
 
@@ -155,13 +159,6 @@ public:
     auto iterator(size_t unit_pos) const {
         return data_->iterator(unit_pos);
     }
-
-
-
-    SymbolT get_symbol(SeqSizeT idx) const {
-        return access(idx);
-    }
-
 
     auto select_fw_out(size_t rank, size_t symbol, SeqOpType op_type) const
     {
@@ -204,7 +201,7 @@ public:
         }
     }
 
-    VoidResult reindex(bool compactify = true) {
+    void reindex(bool compactify = true) {
         return do_reindex(Optional<Span<SymbolsRunT>>{}, compactify);
     }
 
@@ -223,30 +220,22 @@ public:
 //    }
 
     template <typename AccessorFn>
-    VoidResult insert_entries(SeqSizeT row_at, psize_t size, AccessorFn&& elements)
+    void commit_insert(SeqSizeT row_at, psize_t size, UpdateState& update_state, AccessorFn&& elements)
     {
         for (psize_t c = 0; c < size; c++)
         {
             SymbolT symbol = elements(c);
             SymbolsRunT run(1, symbol, 1);
-            MEMORIA_TRY_VOID(insert(row_at, unit_span_of(&run)));
+            insert(row_at, unit_span_of(&run));
         }
-
-        return VoidResult::of();
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(SeqSizeT row_at, SeqSizeT size, AccessorFn&& elements)
+    void commit_update(SeqSizeT row_at, SeqSizeT size, UpdateState& update_state, AccessorFn&& elements)
     {
-        MEMORIA_TRY_VOID(removeSpace(row_at, row_at + size));
-        return insert_entries(row_at, size, std::forward<AccessorFn>(elements));
+        remove(row_at, row_at + size, update_state);
+        return commit_insert(row_at, size, update_state, std::forward<AccessorFn>(elements));
     }
-
-    VoidResult remove_entries(SeqSizeT row_at, SeqSizeT size)
-    {
-        return removeSpace(row_at, row_at + size);
-    }
-
 
     SeqSizeT rank(SeqSizeT pos, SymbolT symbol, SeqOpType op_type) const {
         switch (op_type) {
@@ -769,12 +758,10 @@ public:
     }
 
 
-    Result<size_t> append(Span<const SymbolsRunT> runs)
+    size_t append(Span<const SymbolsRunT> runs)
     {
-        using ResultT = Result<size_t>;
-
         if (runs.size() == 0) {
-            return ResultT::of(size_t{});
+            return size_t{};
         }
 
         auto* meta = data_->metadata();
@@ -798,7 +785,7 @@ public:
     }
 
 
-    VoidResult insert(SeqSizeT idx, Span<const SymbolsRunT> runs)
+    void insert(SeqSizeT idx, Span<const SymbolsRunT> runs)
     {
         std::vector<SymbolsRunT> left;
         std::vector<SymbolsRunT> right;
@@ -816,7 +803,7 @@ public:
 
             size_t new_code_units = RunTraits::compute_size(left, 0);
 
-            MEMORIA_TRY_VOID(data_->resize_block(PkdStruct::SYMBOLS, new_code_units * sizeof(CodeUnitT)));
+            data_->resize_block(PkdStruct::SYMBOLS, new_code_units * sizeof(CodeUnitT));
 
             Span<CodeUnitT> atoms = data_->symbols();
             RunTraits::write_segments_to(left, atoms, 0);
@@ -825,27 +812,26 @@ public:
             meta->set_code_units(new_code_units);
             meta->add_size(count_symbols(runs));
 
-            MEMORIA_TRY_VOID(do_reindex(to_span(left)));
-
-            return VoidResult::of();
+            do_reindex(to_span(left));
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Range check in SSRLE sequence insert: idx={}, size={}", idx, size);
+            MEMORIA_MAKE_GENERIC_ERROR("Range check in SSRLE sequence insert: idx={}, size={}", idx, size).do_throw();
         }
     }
 
-    VoidResult removeSpace(SeqSizeT start, SeqSizeT end) {
-        return remove(start, end);
+    PkdUpdateStatus prepare_remove(size_t room_start, size_t room_end, UpdateState& update_state) const {
+        return PkdUpdateStatus::SUCCESS;
     }
 
-    VoidResult remove(SeqSizeT start, SeqSizeT end, bool compactify = false)
+
+    void commit_remove(SeqSizeT start, SeqSizeT end, UpdateState& update_state, bool compactify = false)
     {
         if (end > start)
         {
             auto meta = data_->metadata();
 
-            MEMORIA_ASSERT_RTN(start, <=, end);
-            MEMORIA_ASSERT_RTN(end, <=, meta->size());
+            MEMORIA_ASSERT(start, <=, end);
+            MEMORIA_ASSERT(end, <=, meta->size());
 
             std::vector<SymbolsRunT> runs = iterator().as_vector();
 
@@ -880,7 +866,7 @@ public:
             compactify_runs(runs_res);
 
             size_t new_code_units = RunTraits::compute_size(runs_res, 0);
-            MEMORIA_TRY_VOID(data_->resize_block(PkdStruct::SYMBOLS, new_code_units * sizeof(CodeUnitT)));
+            data_->resize_block(PkdStruct::SYMBOLS, new_code_units * sizeof(CodeUnitT));
 
             Span<CodeUnitT> atoms = data_->symbols();
             RunTraits::write_segments_to(runs_res, atoms, 0);
@@ -890,12 +876,9 @@ public:
 
             return do_reindex(to_span(runs_res));
         }
-        else {
-            return VoidResult::of();
-        }
     }
 
-    VoidResult compactify()
+    void compactify()
     {
         std::vector<SymbolsRunT> syms = this->iterator().as_vector();
 
@@ -904,7 +887,7 @@ public:
         size_t new_code_units = RunTraits::compute_size(syms, 0);
 
         auto new_block_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(new_code_units * sizeof(CodeUnitT));
-        MEMORIA_TRY_VOID(data_->resize_block(PkdStruct::SYMBOLS, new_block_size));
+        data_->resize_block(PkdStruct::SYMBOLS, new_block_size);
 
         Span<CodeUnitT> atoms = data_->symbols();
         RunTraits::write_segments_to(syms, atoms, 0);
@@ -917,15 +900,14 @@ public:
         RunTraits::compactify_runs(runs);
     }
 
-    void compactify_runs(std::vector<SymbolsRunT>& runs) const
-    {
+    void compactify_runs(std::vector<SymbolsRunT>& runs) const {
         RunTraits::compactify_runs(runs);
     }
 
 
 
     // ========================================= Node ================================== //
-    VoidResult splitTo(MyType& other, SeqSizeT idx)
+    void split_to(MyType& other, SeqSizeT idx)
     {
         Metadata* meta = data_->metadata();
 
@@ -941,13 +923,13 @@ public:
             std::vector<SymbolsRunT> right_runs = this->iterator(location.unit_idx + adjustment).as_vector();
 
             size_t left_code_units = RunTraits::compute_size(result.left.span(), location.unit_idx);
-            MEMORIA_TRY_VOID(data_->resize_block(PkdStruct::SYMBOLS, left_code_units * sizeof(CodeUnitT)));
+            data_->resize_block(PkdStruct::SYMBOLS, left_code_units * sizeof(CodeUnitT));
 
             Span<CodeUnitT> left_syms = data_->symbols();
             RunTraits::write_segments_to(result.left.span(), left_syms, location.unit_idx);
 
             size_t right_atoms_size = RunTraits::compute_size(result.right.span(), right_runs);
-            MEMORIA_TRY_VOID(other.data_->resize_block(PkdStruct::SYMBOLS, right_atoms_size * sizeof(CodeUnitT)));
+            other.data_->resize_block(PkdStruct::SYMBOLS, right_atoms_size * sizeof(CodeUnitT));
 
             Span<CodeUnitT> right_syms = other.data_->symbols();
             size_t right_code_units = RunTraits::write_segments_to(result.right.span(), right_runs, right_syms);
@@ -958,16 +940,20 @@ public:
             meta->set_size(idx);
             meta->set_code_units(left_code_units);
 
-            MEMORIA_TRY_VOID(other.reindex());
+            other.reindex();
 
             return reindex();
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Split index is out of range: {} :: {}", idx, meta->size());
+            MEMORIA_MAKE_GENERIC_ERROR("Split index is out of range: {} :: {}", idx, meta->size()).do_throw();
         }
     }
 
-    VoidResult mergeWith(MyType& other) const
+    PkdUpdateStatus prepare_merge_with(const MyType& other, UpdateState& update_state) const {
+        return PkdUpdateStatus::SUCCESS;
+    }
+
+    void commit_merge_with(MyType& other, UpdateState&) const
     {
         auto meta       = data_->metadata();
         auto other_meta = other.data_->metadata();
@@ -980,7 +966,7 @@ public:
         size_t new_code_units = RunTraits::compute_size(syms, 0);
 
         auto new_block_size = new_code_units * sizeof(CodeUnitT);
-        MEMORIA_TRY_VOID(other.data_->resize_block(PkdStruct::SYMBOLS, new_block_size));
+        other.data_->resize_block(PkdStruct::SYMBOLS, new_block_size);
 
         Span<CodeUnitT> atoms = other.data_->symbols();
         RunTraits::write_segments_to(syms, atoms, 0);
@@ -992,15 +978,19 @@ public:
     }
 
 
-    SizeTResult insert_io_substream(SeqSizeT at, const io::IOSubstream& substream, SeqSizeT start, SeqSizeT size)
+    PkdUpdateStatus prepare_insert_io_substream(size_t at, const io::IOSubstream& substream, SeqSizeT start, SeqSizeT size, UpdateState&) {
+        return PkdUpdateStatus::SUCCESS;
+    }
+
+    size_t commit_insert_io_substream(SeqSizeT at, const io::IOSubstream& substream, SeqSizeT start, SeqSizeT size, UpdateState&)
     {
         using BufferT = io::IOSSRLEBuffer<AlphabetSize>;
         const BufferT& buffer = io::substream_cast<BufferT>(substream);
 
         std::vector<SymbolsRunT> syms = buffer.symbol_runs(start, size);
-        MEMORIA_TRY_VOID(this->insert(at, syms));
+        this->insert(at, syms);
 
-        return SizeTResult::of(at + size);
+        return at + size;
     }
 
     SeqSizeT populate_buffer(io::SymbolsBuffer& buffer, SeqSizeT idx) const
@@ -1143,7 +1133,7 @@ public:
         return runs;
     }
 
-
+    MMA_MAKE_UPDATE_STATE_METHOD
 
 private:
 
@@ -1529,7 +1519,7 @@ private:
         }
     }
 
-    SizeTResult do_append(typename PkdStruct::Metadata* meta, size_t start, SeqSizeT run_len0, Span<const SymbolsRunT> runs)
+    size_t do_append(typename PkdStruct::Metadata* meta, size_t start, SeqSizeT run_len0, Span<const SymbolsRunT> runs)
     {
         size_t code_units = RunTraits::compute_size(runs, start);
         size_t syms_size = data_->element_size(PkdStruct::SYMBOLS) / sizeof (CodeUnitT);
@@ -1539,7 +1529,7 @@ private:
             bool can_alocate = data_->try_allocation(PkdStruct::SYMBOLS, bs);
             if (can_alocate)
             {
-                MEMORIA_TRY_VOID(data_->resize_block(PkdStruct::SYMBOLS, bs));
+                data_->resize_block(PkdStruct::SYMBOLS, bs);
             }
             else {
                 size_t new_syms_size = syms_size > 0 ? syms_size : 4;
@@ -1547,7 +1537,7 @@ private:
                     new_syms_size *= 2;
                 }
 
-                return SizeTResult::of(new_syms_size * sizeof(CodeUnitT));
+                return new_syms_size * sizeof(CodeUnitT);
             }
         }
 
@@ -1558,7 +1548,7 @@ private:
         meta->sub_size(run_len0);
         meta->add_size(count_symbols(runs));
 
-        return SizeTResult::of(size_t{});
+        return size_t{};
     }
 
     SeqSizeT count_symbols(Span<const SymbolsRunT> runs)
@@ -1613,7 +1603,7 @@ private:
 
 
     MMA_PKD_OOM_SAFE
-    VoidResult do_reindex(
+    void do_reindex(
             Optional<Span<SymbolsRunT>> data,
             bool compactify = false
     )

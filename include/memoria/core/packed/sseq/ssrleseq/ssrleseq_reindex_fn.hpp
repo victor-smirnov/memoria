@@ -48,7 +48,7 @@ class ReindexFn {
     static const size_t  AtomsPerBlock  = Seq::AtomsPerBlock;
 
 public:
-    VoidResult reindex(Seq& seq, Optional<Span<SymbolsRunT>> runs, bool compactify) noexcept
+    void reindex(Seq& seq, Optional<Span<SymbolsRunT>> runs, bool compactify) noexcept
     {
         Span<const SymbolsRunT> syms_span;
         std::vector<SymbolsRunT> syms;
@@ -73,7 +73,7 @@ public:
         {
             meta->set_code_units(symbols_block_size_atoms);
 
-            MEMORIA_TRY_VOID(seq.data()->resize_block(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::CodeUnitT)));
+            seq.data()->resize_block(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::CodeUnitT));
             RunTraits::write_segments_to(syms_span, seq.data()->symbols(), 0);
         }
 
@@ -141,25 +141,22 @@ public:
                 push_indexes();
             }
 
-            MEMORIA_TRY_VOID(seq.data()->createIndex(sizes_buf.size()));
+            seq.data()->createIndex(sizes_buf.size());
 
-            auto r1 = seq.size_index().insert_from_fn(0, sizes_buf.size(), [&](size_t, size_t row){
+            seq.size_index().insert_from_fn(0, sizes_buf.size(), [&](size_t, size_t row){
                 return sizes_buf[row];
             });
-            MEMORIA_RETURN_IF_ERROR(r1);
-            MEMORIA_TRY_VOID(seq.size_index().reindex());
 
-            auto r0 = seq.sum_index().insert_from_fn(0, sizes_buf.size(), [&](size_t column, size_t row){
+            seq.size_index().reindex();
+
+            seq.sum_index().insert_from_fn(0, sizes_buf.size(), [&](size_t column, size_t row){
                 return sums_bufs[column][row];
             });
-            MEMORIA_RETURN_IF_ERROR(r0);
             return seq.sum_index().reindex();
         }
         else {
             return seq.data()->removeIndex();
         }
-
-        return VoidResult::of();
     }
 
     void check(const Seq& seq)

@@ -53,10 +53,10 @@ public:
         self.ctr_check_path(path);
     }
 
-    MEMORIA_V1_DECLARE_NODE_FN(SplitNodeFn, splitTo);
+    MEMORIA_V1_DECLARE_NODE_FN(SplitNodeFn, split_to);
     void ctr_split_leaf_node(const TreeNodePtr& src, const TreeNodePtr& tgt, const Position& split_at)
     {
-        return self().leaf_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at).get_or_throw();
+        return self().leaf_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
     }
 
 public:
@@ -170,46 +170,7 @@ public:
         }
     }
 
-    template <typename Fn, typename... Args>
-    SplitStatus ctr_update_atomic(Iterator& iter, Fn&& fn, Args&&... args)
-    {
-        auto& self = this->self();
 
-        BlockUpdateMgr mgr(self);
-
-        self.ctr_update_block_guard(iter.iter_leaf().as_mutable());
-
-        mgr.add(iter.iter_leaf().as_mutable());
-
-
-        self().leaf_dispatcher().dispatch(
-            iter.iter_leaf().as_mutable(),
-            fn,
-            std::forward<Args>(args)...
-        );
-
-        if (isOk(fn.status_)) {
-            return SplitStatus::NONE;
-        }
-
-        mgr.rollback();
-
-        SplitStatus status = iter.split();
-
-        fn.status_ = VoidResult::of(); // OpStatus::OK
-
-        self().leaf_dispatcher().dispatch(
-                    iter.iter_leaf().as_mutable(),
-                    fn,
-                    std::forward<Args>(args)...
-        );
-
-        if (isFail(fn.status_)) {
-            MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException").do_throw();
-        }
-
-        return status;
-    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

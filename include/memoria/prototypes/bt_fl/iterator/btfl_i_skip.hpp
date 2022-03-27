@@ -184,9 +184,9 @@ public:
             auto idx = self.iter_local_pos();
 
             if (idx < s.size())
-        	{
-                return s.get_symbol(idx);
-        	}
+            {
+                return s.access(idx);
+            }
         }
 
         return -1;//throw Exception(MA_SRC, "End Of Data Structure");
@@ -203,7 +203,7 @@ public:
 
             if (idx < s.size())
             {
-                return s.get_symbol(idx);
+                return s.access(idx);
             }
         }
 

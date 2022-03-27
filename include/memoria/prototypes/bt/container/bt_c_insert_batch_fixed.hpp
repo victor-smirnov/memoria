@@ -76,12 +76,12 @@ public:
 
 
     struct InsertChildrenFn {
-        template <typename CtrT, typename NodeT>
-        VoidResult treeNode(BranchNodeSO<CtrT, NodeT>& node, int32_t from, int32_t to, const BranchNodeEntryT* entries)
+        template <typename CtrT, typename NodeT, typename UpdateState>
+        void treeNode(BranchNodeSO<CtrT, NodeT>& node, int32_t from, int32_t to, const BranchNodeEntryT* entries, UpdateState& update_state)
         {
             auto old_size = node.size();
 
-            MEMORIA_TRY_VOID(node.processAllVoidRes(*this, from, to, entries));
+            node.processAll(*this, from, to, entries, update_state);
 
             int32_t idx = 0;
             return node.insertValues(old_size, from, to - from, [entries, &idx](){
@@ -89,10 +89,10 @@ public:
             });
         }
 
-        template <int32_t ListIdx, typename StreamType>
-        VoidResult stream(StreamType& obj, int32_t from, int32_t to, const BranchNodeEntryT* entries)
+        template <int32_t ListIdx, typename StreamType, typename UpdateState>
+        void stream(StreamType& obj, int32_t from, int32_t to, const BranchNodeEntryT* entries, UpdateState& update_state)
         {
-            return obj.insert_entries(from, to - from, [entries](int32_t column, int32_t idx) -> const auto& {
+            return obj.commit_insert(from, to - from, std::get<ListIdx>(update_state), [entries](int32_t column, int32_t idx) -> const auto& {
                 return std::get<ListIdx>(entries[idx].accum())[column];
             });
         }
@@ -125,7 +125,8 @@ public:
                 subtrees[i].child_node()    = child;
             }
 
-            self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildrenFn(), idx + c, idx + c + i, subtrees).get_or_throw();
+            auto update_state = self.make_branch_update_state();
+            self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildrenFn(), idx + c, idx + c + i, subtrees, update_state);
 
             max = idx + c + i;
 
@@ -134,8 +135,7 @@ public:
             }
         }
 
-        if (update_hierarchy)
-        {
+        if (update_hierarchy){
             self.ctr_update_path(path, level);
         }
 
@@ -154,7 +154,7 @@ public:
                 auto node = self.ctr_create_node(level, false, false);
                 self.ctr_ref_block(node->id());
 
-                self.ctr_layout_branch_node(node, 0xFF);
+                self.ctr_layout_branch_node(node);
 
                 TreePathT path;
                 path.add_root(node.as_immutable());

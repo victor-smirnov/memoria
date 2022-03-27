@@ -164,7 +164,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
         auto new_node = self.ctr_create_node(level, root, leaf, new_size);
 
-        self.leaf_dispatcher().dispatch_1st_const(path[level], new_node, CopyDataToFn()).get_or_throw();
+        self.leaf_dispatcher().dispatch_1st_const(path[level], new_node, CopyDataToFn());
 
         if (MMA_UNLIKELY(root))
         {

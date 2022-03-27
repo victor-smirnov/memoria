@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,8 +48,7 @@ namespace detail {
     template <typename BufferSO>
     struct PkdDTBufOrderingDispatcher<BufferSO, DTOrdering::UNORDERED> {
         static void check(const BufferSO& buffer) {}
-        static VoidResult reindex(BufferSO& buffer) {
-            return VoidResult::of();
+        static void reindex(BufferSO& buffer) {
         }
 
         struct FindResult {};
@@ -84,9 +83,7 @@ namespace detail {
             buffer.check_max();
         }
 
-        static VoidResult reindex(BufferSO& buffer) {
-            return VoidResult::of();
-        }
+        static void reindex(BufferSO& buffer) {}
 
         static auto find_fw_gt(const BufferSO& buffer, size_t column, const ViewType& val) {
             return buffer.find_gt_fw_max(column, val);
@@ -139,7 +136,7 @@ namespace detail {
             buffer.check_sum();
         }
 
-        static VoidResult reindex(BufferSO& buffer) {
+        static auto reindex(BufferSO& buffer) {
             return buffer.reindex_sum();
         }
 
@@ -155,6 +152,127 @@ namespace detail {
             return buffer.sum_sum(column, row);
         }
     };
+
+
+    template <typename Struct, PackedDataTypeSize DatasizeType, DTOrdering Ordering>
+    struct PkdDTBufDataSizeTypeDispatcher;
+
+    template <typename StructSO>
+    struct PkdDTBufDataSizeTypeDispatcherBase {
+        using UpdateState = typename StructSO::UpdateState;
+
+        template <typename Fn>
+        static PkdUpdateStatus prepare_update(const StructSO&, size_t, size_t, UpdateState&, Fn&&) {
+            return PkdUpdateStatus::SUCCESS;
+        }
+
+        static PkdUpdateStatus prepare_remove(const StructSO&, size_t, size_t, UpdateState&) {
+            return PkdUpdateStatus::SUCCESS;
+        }
+
+        static auto commit_remove(StructSO& so, size_t start, size_t end, UpdateState&) {
+            return so.do_commit_remove(start, end);
+        }
+    };
+
+    template <typename StructSO, DTOrdering Ordering>
+    struct PkdDTBufDataSizeTypeDispatcher<StructSO, PackedDataTypeSize::FIXED, Ordering>: PkdDTBufDataSizeTypeDispatcherBase<StructSO> {
+        using UpdateState = typename StructSO::UpdateState;
+
+        template <typename Fn>
+        static auto commit_update(StructSO& so, size_t start, size_t size, UpdateState&, Fn&& fn) {
+            return so.do_commit_update_fxd_max(start, size, std::forward<Fn>(fn));
+        }
+
+        template <typename Fn>
+        static PkdUpdateStatus prepare_insert(const StructSO& so, size_t start, size_t size, UpdateState& update_state, Fn&& fn) {
+            return so.do_prepare_insert_fxd_max(start, size, update_state, std::forward<Fn>(fn));
+        }
+
+        template <typename Fn>
+        static auto commit_insert(StructSO& so, size_t start, size_t size, UpdateState& update_state, Fn&& fn) {
+            return so.do_commit_update_fxd_max(start, size, update_state, std::forward<Fn>(fn));
+        }
+
+        static PkdUpdateStatus prepare_merge_with(const StructSO& so, const StructSO& other, UpdateState& update_state) {
+            return so.do_prepare_merge_with_fxd(other, update_state);
+        }
+    };
+
+
+    template <typename StructSO>
+    struct PkdDTBufDataSizeTypeDispatcher<StructSO, PackedDataTypeSize::FIXED, DTOrdering::SUM>: PkdDTBufDataSizeTypeDispatcherBase<StructSO> {
+        using UpdateState = typename StructSO::UpdateState;
+
+        template <typename Fn>
+        static auto commit_update(StructSO& so, size_t start, size_t size, UpdateState&, Fn&& fn) {
+            return so.do_commit_update_fxd_sum(start, size, std::forward<Fn>(fn));
+        }
+
+        template <typename Fn>
+        static PkdUpdateStatus prepare_insert(const StructSO& so, size_t start, size_t size, UpdateState& update_state, Fn&& fn) {
+            return so.do_prepare_insert_fxd_sum(start, size, update_state, std::forward<Fn>(fn));
+        }
+
+        template <typename Fn>
+        static auto commit_insert(StructSO& so, size_t start, size_t size, UpdateState& update_state, Fn&& fn) {
+            return so.do_commit_insert_fxd_sum(start, size, update_state, std::forward<Fn>(fn));
+        }
+
+        static PkdUpdateStatus prepare_merge_with(const StructSO& so, const StructSO& other, UpdateState& update_state) {
+            return so.do_prepare_merge_with_fxd(other, update_state);
+        }
+    };
+
+
+
+    template <typename StructSO, DTOrdering Ordering>
+    struct PkdDTBufDataSizeTypeDispatcher<StructSO, PackedDataTypeSize::VARIABLE, Ordering>: PkdDTBufDataSizeTypeDispatcherBase<StructSO> {
+        using UpdateState = typename StructSO::UpdateState;
+
+        template <typename Fn>
+        static auto commit_update(StructSO& so, size_t start, size_t size, UpdateState& update_state, Fn&& fn) {
+            return so.do_commit_update_var_max(start, size, update_state, std::forward<Fn>(fn));
+        }
+
+        template <typename Fn>
+        static PkdUpdateStatus prepare_insert(const StructSO& so, size_t start, size_t size, UpdateState& update_state, Fn&& fn) {
+            return so.do_prepare_insert_var_max(start, size, update_state, std::forward<Fn>(fn));
+        }
+
+        template <typename Fn>
+        static auto commit_insert(StructSO& so, size_t start, size_t size, UpdateState& update_state, Fn&& fn) {
+            return so.do_commit_insert_var_max(start, size, update_state, std::forward<Fn>(fn));
+        }
+
+        static PkdUpdateStatus prepare_merge_with(const StructSO& so, const StructSO& other, UpdateState& update_state) {
+            return so.do_prepare_merge_with_var(other, update_state);
+        }
+    };
+
+    template <typename StructSO>
+    struct PkdDTBufDataSizeTypeDispatcher<StructSO, PackedDataTypeSize::VARIABLE, DTOrdering::SUM>: PkdDTBufDataSizeTypeDispatcherBase<StructSO> {
+        using UpdateState = typename StructSO::UpdateState;
+
+        template <typename Fn>
+        static auto commit_update(StructSO& so, size_t start, size_t size, UpdateState& update_state, Fn&& fn) {
+            return so.do_commit_update_var_sum(start, size, update_state, std::forward<Fn>(fn));
+        }
+
+        template <typename Fn>
+        static PkdUpdateStatus prepare_insert(const StructSO& so, size_t start, size_t size, UpdateState& update_state, Fn&& fn) {
+            return so.do_prepare_insert_var_sum(start, size, update_state, std::forward<Fn>(fn));
+        }
+
+        template <typename Fn>
+        static auto commit_insert(StructSO& so, size_t start, size_t size, UpdateState& update_state, Fn&& fn) {
+            return so.do_commit_insert_var_sum(start, size, update_state, std::forward<Fn>(fn));
+        }
+
+        static PkdUpdateStatus prepare_merge_with(const StructSO& so, const StructSO& other, UpdateState& update_state) {
+            return so.do_prepare_merge_with_var(other, update_state);
+        }
+    };
 }
 
 template <typename ExtData, typename PkdStruct>
@@ -166,6 +284,12 @@ class PackedDataTypeBufferSO {
 
     template <typename, DTOrdering>
     friend struct detail::PkdDTBufOrderingDispatcher;
+
+    template <typename, PackedDataTypeSize, DTOrdering>
+    friend struct detail::PkdDTBufDataSizeTypeDispatcher;
+
+    template <typename>
+    friend struct detail::PkdDTBufDataSizeTypeDispatcherBase;
 
 public:    
     static constexpr size_t Dimensions = PkdStruct::Dimensions;
@@ -189,6 +313,13 @@ public:
     using Values = core::StaticVector<ViewType, Columns>;
 
     using FindResult = typename detail::PkdDTBufOrderingDispatcher<MyType>::FindResult;
+
+    using UpdateState = PkdStructUpdate<MyType>;
+
+    static constexpr PackedDataTypeSize DataTypeSize = pdtbuf_::BufferSizeTypeSelector<
+        typename DataTypeTraits<DataType>::DataDimensionsList
+    >::DataTypeSize;
+
 
     PackedDataTypeBufferSO() : ext_data_(), data_() {}
     PackedDataTypeBufferSO(ExtData* ext_data, PkdStruct* data) :
@@ -240,6 +371,9 @@ public:
     const PkdStruct* data() const  {return data_;}
     PkdStruct* data()  {return data_;}
 
+
+
+
     constexpr static size_t index_span() {
         return PkdStruct::IndexSpan;
     }
@@ -248,8 +382,12 @@ public:
         return MyType(ext_data_, data_->index());
     }
 
-    VoidResult reindex() {
+    void reindex() {
         return detail::PkdDTBufOrderingDispatcher<MyType>::reindex(*this);
+    }
+
+    bool check_capacity(size_t size) const {
+        return true;
     }
 
     DataLengths data_lengts(size_t column, size_t row, size_t size) const
@@ -346,11 +484,9 @@ public:
 
 
     /*********************** API *********************/
-    VoidResult splitTo(MyType& other, size_t idx)
+    void split_to(MyType& other, size_t idx)
     {
         auto& meta = data_->metadata();
-
-        //MEMORIA_ASSERT_RTN(other.size(), ==, 0);
 
         size_t split_size = meta.size() - idx;
 
@@ -358,19 +494,32 @@ public:
 
             DataLengths data_lengths = this->data_lengts(column, idx, split_size);
 
-            MEMORIA_TRY_VOID(other.insertSpace(column, 0, split_size, data_lengths));
+            other.insertSpace(column, 0, split_size, data_lengths);
 
             copyTo(other, column, idx, split_size, 0, data_lengths);
         }
 
         other.data()->metadata().add_size(split_size);
 
-        MEMORIA_TRY_VOID(removeSpace(idx, meta.size()));
-
-        return VoidResult::of();
+        UpdateState ss;
+        commit_remove(idx, meta.size(), ss);
     }
 
-    VoidResult mergeWith(MyType& other) const
+    PkdUpdateStatus prepare_merge_with(const MyType& other, UpdateState& update_state) const {
+        return detail::PkdDTBufDataSizeTypeDispatcher<MyType, DataTypeSize, Ordering>::prepare_merge_with(*this, other, update_state);
+    }
+
+
+    PkdUpdateStatus do_prepare_merge_with_fxd(const MyType& other, UpdateState& update_state) const {
+        return PkdUpdateStatus::SUCCESS;
+    }
+
+    PkdUpdateStatus do_prepare_merge_with_var(const MyType& other, UpdateState& update_state) const {
+        return PkdUpdateStatus::SUCCESS;
+    }
+
+
+    void commit_merge_with(MyType& other, UpdateState& update_state) const
     {
         size_t my_size     = this->size();
         size_t other_size  = other.size();
@@ -378,61 +527,54 @@ public:
         for (size_t column = 0; column < Columns; column++)
         {
             DataLengths data_lengths = this->data_lengts(column, 0, my_size);
-
-            MEMORIA_TRY_VOID(other.insertSpace(column, other_size, my_size, data_lengths));
-
+            other.insertSpace(column, other_size, my_size, data_lengths);
             copyTo(other, column, 0, my_size, other_size, data_lengths);
         }
 
         other.data()->metadata().add_size(my_size);
-
-        return VoidResult::of();
     }
 
-    VoidResult remove(size_t room_start, size_t room_end) {
-        return removeSpace(room_start, room_end);
+
+    PkdUpdateStatus prepare_remove(size_t room_start, size_t room_end, UpdateState& update_state) const {
+        return PkdUpdateStatus::SUCCESS;
     }
 
-    VoidResult removeSpace(size_t room_start, size_t room_end, bool do_reindex = true)
+    void commit_remove(size_t room_start, size_t room_end, UpdateState& update_state, bool do_reindex = true)
     {
         auto& meta = data_->metadata();
         size_t size = meta.size();
         size_t room_length = room_end - room_start;
 
-        MEMORIA_ASSERT_RTN(room_start, <=, size);
-        MEMORIA_ASSERT_RTN(room_end, <=, size);
-        MEMORIA_ASSERT_RTN(room_start, <=, room_end);
+        MEMORIA_ASSERT(room_start, <=, size);
+        MEMORIA_ASSERT(room_end, <=, size);
+        MEMORIA_ASSERT(room_start, <=, room_end);
 
         for (size_t column = 0; column < Columns; column++)
         {
-            MEMORIA_TRY_VOID(for_each_dimension_res([&](auto dim_idx) {
+            for_each_dimension([&](auto dim_idx) {
                 return data_->template dimension<dim_idx>(column).remove_space(
                     room_start, room_length
                 );
-            }));
+            });
         }
 
         meta.sub_size(room_length);
 
         if (do_reindex) {
-            MEMORIA_TRY_VOID(reindex());
+            reindex();
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult clear()
+    void clear()
     {
-        MEMORIA_TRY_VOID(data_->init());
+        data_->init();
 
         if (data_->allocatable().has_allocator())
         {
             auto alloc = data_->allocatable().allocator();
             size_t empty_size = PkdStruct::empty_size();
-            MEMORIA_TRY_VOID(alloc->resize_block(this, empty_size));
+            alloc->resize_block(this, empty_size);
         }
-
-        return VoidResult::of();
     }
 
     ViewType get_values(size_t idx) const  {
@@ -445,14 +587,16 @@ public:
 
 
     template <typename T>
-    VoidResult setValues(size_t pos, const core::StaticVector<T, Columns>& values)
+    void setValues(size_t pos, const core::StaticVector<T, Columns>& values)
     {
-        MEMORIA_TRY_VOID(removeSpace(pos, pos + 1, false));
+        UpdateState ss;
+
+        commit_remove(pos, pos + 1, ss, false);
         return insert(pos, values);
     }
 
     template <typename T>
-    VoidResult insert(size_t pos, const core::StaticVector<T, Columns>& values)
+    void insert(size_t pos, const core::StaticVector<T, Columns>& values)
     {
         return insert_from_fn(pos, 1, [&](size_t column, size_t row){
             return values[column];
@@ -460,7 +604,7 @@ public:
     }
 
     template <typename T>
-    VoidResult append(const core::StaticVector<T, Columns>& values)
+    void append(const core::StaticVector<T, Columns>& values)
     {
         return insert_from_fn(size(), 1, [&](size_t column, size_t row){
             return values[column];
@@ -476,9 +620,13 @@ public:
     }
 
 
+    PkdUpdateStatus prepare_insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size, UpdateState&) {
+        return PkdUpdateStatus::SUCCESS;
+    }
+
 
     // FIXME: Adapt to multicolumn!
-    Int32Result insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size)
+    size_t commit_insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size, UpdateState&)
     {
         static_assert(Columns == 1, "");
 
@@ -487,7 +635,7 @@ public:
 
         DataLengths lengths = to_data_lengths(buffer.data_lengths(start, size));
 
-        MEMORIA_TRY_VOID(insertSpace(0, at, size, lengths));
+        insertSpace(0, at, size, lengths);
 
         for_each_dimension([&](auto dim_idx) {
             data_->template dimension<dim_idx>(0).copy_from_databuffer(
@@ -497,9 +645,9 @@ public:
 
         data_->metadata().add_size(size);
 
-        MEMORIA_TRY_VOID(reindex());
+        reindex();
 
-        return Int32Result::of(static_cast<int32_t>(at + size));
+        return static_cast<size_t>(at + size);
     }
 
 
@@ -647,38 +795,37 @@ public:
         return total_size;
     }
 
-    VoidResult replace(size_t column, size_t idx, const ViewType& view)
+    void replace(size_t column, size_t idx, const ViewType& view)
     {
         DataDimensionsTuple data = DataTypeTraits<DataType>::describe_data(&view);
 
-        MEMORIA_TRY_VOID(resize(idx, data));
+        resize(idx, data);
 
-
-
-        VoidResult res = for_each_dimension_res([&](auto dim_idx) {
+        for_each_dimension([&](auto dim_idx) {
             return data_->template dimension<dim_idx>(0).replace_row(
                 idx, std::get<dim_idx>(data)
             );
         });
 
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        MEMORIA_TRY_VOID(reindex());
-
-        return VoidResult::of();
+        reindex();
     }
 
-    VoidResult insert(int32_t idx, int32_t size, std::function<Values (size_t)> provider)
+    template <typename AccessorFn>
+    PkdUpdateStatus prepare_insert(psize_t row_at, psize_t size, UpdateState&, AccessorFn&&) const {
+        return PkdUpdateStatus::SUCCESS;
+    }
+
+    void commit_insert(int32_t idx, int32_t size, UpdateState& update_state, std::function<Values (size_t)> provider)
     {
         return insert_from_fn(idx, size, [&](size_t column, size_t row){
             return provider(row)[column];
-        });
+        }).get_or_throw();
     }
 
     template <typename AccessorFn>
-    VoidResult insert_entries(size_t row_at, size_t size, AccessorFn&& elements)
+    void commit_insert(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements)
     {
-        MEMORIA_ASSERT_RTN(row_at, <=, this->size());
+        MEMORIA_ASSERT(row_at, <=, this->size());
 
         for (size_t column = 0; column < Columns; column++)
         {
@@ -694,7 +841,7 @@ public:
                 });
             }
 
-            MEMORIA_TRY_VOID(insertSpace(column, row_at, size, data_lengths));
+            insertSpace(column, row_at, size, data_lengths);
 
             for (size_t row = 0; row < size; row++)
             {
@@ -710,31 +857,27 @@ public:
         }
 
         data_->metadata().add_size(size);
+        reindex();
+    }
 
-        MEMORIA_TRY_VOID(reindex());
 
-        return VoidResult::of();
+    template <typename AccessorFn>
+    PkdUpdateStatus prepare_update(psize_t row_at, psize_t size, UpdateState&, AccessorFn&&) const {
+        return PkdUpdateStatus::SUCCESS;
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(size_t row_at, size_t size, AccessorFn&& elements)
+    void commit_update(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements)
     {
-        MEMORIA_ASSERT_RTN(row_at, <=, this->size());
+        MEMORIA_ASSERT(row_at, <=, this->size());
 
-        MEMORIA_TRY_VOID(removeSpace(row_at, row_at + size, false));
-        MEMORIA_TRY_VOID(insert_entries(row_at, size, std::forward<AccessorFn>(elements)));
-
-        return VoidResult::of();
+        commit_remove(row_at, row_at + size, update_state, false);
+        commit_insert(row_at, size, update_state, std::forward<AccessorFn>(elements));
     }
-
-    VoidResult remove_entries(size_t row_at, size_t size) {
-        return removeSpace(row_at, row_at + size);
-    }
-
 
 
     template <typename AccessorFn>
-    VoidResult insert_from_fn(size_t row_at, size_t size, AccessorFn&& elements)
+    void insert_from_fn(size_t row_at, size_t size, AccessorFn&& elements)
     {
         for (size_t column = 0; column < Columns; column++)
         {
@@ -750,7 +893,7 @@ public:
                 });
             }
 
-            MEMORIA_TRY_VOID(insertSpace(column, row_at, size, data_lengths));
+            insertSpace(column, row_at, size, data_lengths);
 
             for (size_t row = 0; row < size; row++)
             {
@@ -766,15 +909,12 @@ public:
         }
 
         data_->metadata().add_size(size);
-
-        MEMORIA_TRY_VOID(reindex());
-
-        return VoidResult::of();
+        reindex();
     }
 
 
 
-    VoidResult insert(size_t idx, const ViewType& view)
+    void insert(size_t idx, const ViewType& view)
     {
         static_assert(Columns == 1, "");
 
@@ -784,9 +924,10 @@ public:
         return insert(idx, vv);
     }
 
-    VoidResult remove(size_t idx)
+    void remove(size_t idx)
     {
-        return removeSpace(idx, idx + 1);
+        UpdateState ss;
+        return commit_remove(idx, idx + 1, ss);
     }
 
 
@@ -1044,6 +1185,7 @@ public:
         return res_eq;
     }
 
+    MMA_MAKE_UPDATE_STATE_METHOD
 
 private:
 
@@ -1327,7 +1469,7 @@ private:
         }
     }
 
-    VoidResult reindex_sum()
+    void reindex_sum()
     {
         size_t size = this->size();
         size_t index_span = this->index_span();
@@ -1356,20 +1498,16 @@ private:
                 }
             }
 
-            MEMORIA_TRY_VOID(data_->create_index());
+            data_->create_index();
             MyType index = this->index();
 
-            auto res = index.insert_from_fn(0, spans, [&](size_t column, size_t row){
+            index.insert_from_fn(0, spans, [&](size_t column, size_t row){
                 return columns[column][row];
             });
-
-            MEMORIA_RETURN_IF_ERROR(res);
         }
         else {
-            MEMORIA_TRY_VOID(data_->remove_index());
+            data_->remove_index();
         }
-
-        return VoidResult::of();
     }
 
     template <typename T>
@@ -1391,13 +1529,13 @@ private:
         });
     }
 
-    VoidResult insertSpace(size_t column, size_t idx, size_t room_length, const DataLengths& data_lengths)
+    void insertSpace(size_t column, size_t idx, size_t room_length, const DataLengths& data_lengths)
     {
         auto& meta = data_->metadata();
 
         size_t size = meta.size();
 
-        MEMORIA_ASSERT_RTN(idx, <=, size);
+        MEMORIA_ASSERT(idx, <=, size);
 
 
 
@@ -1412,25 +1550,23 @@ private:
 //        size_t new_size = data_->base_size_with_index(extra_data);
 //        MEMORIA_TRY_VOID(data_->resize(new_size));
 
-        MEMORIA_TRY_VOID(for_each_dimension_res([&](auto dim_idx) {
+        for_each_dimension([&](auto dim_idx) {
             return data_->template dimension<dim_idx>(column).insert_space(
                 idx, room_length, data_lengths[dim_idx]
             );
-        }));
-
-        return VoidResult::of();
+        });
     }
 
 
-    VoidResult resize(size_t idx, const DataDimensionsTuple& new_value_sizes)
+    void resize(size_t idx, const DataDimensionsTuple& new_value_sizes)
     {
         auto& meta = data_->metadata();
 
         size_t size = meta.size();
 
-        MEMORIA_ASSERT_RTN(idx, <=, size);
+        MEMORIA_ASSERT(idx, <=, size);
 
-        return for_each_dimension_res([&](auto dim_idx) {
+        return for_each_dimension([&](auto dim_idx) {
             return data_->template dimension<dim_idx>(0).resize_row(
                     idx, std::get<dim_idx>(new_value_sizes)
             );
@@ -1459,8 +1595,6 @@ private:
         return ForEach<0, Dimensions>::process_res_fn(fn);
     }
 };
-
-
 
 
 }

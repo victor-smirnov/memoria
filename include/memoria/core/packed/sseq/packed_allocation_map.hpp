@@ -139,30 +139,30 @@ public:
 
     // ===================================== Allocation ================================= //
 
-    VoidResult init_default(size_t provided_block_size) noexcept {
+    void init_default(size_t provided_block_size) noexcept {
         size_t bitmap_size = find_max_bitmap_size(provided_block_size);
         return init_by_size(bitmap_size);
     }
 
-    VoidResult init_by_size(size_t bitmap_size) noexcept
+    void init_by_size(size_t bitmap_size) noexcept
     {
         size_t bitmap_blk_size = block_size(bitmap_size);
-        MEMORIA_TRY_VOID(Base::init(bitmap_blk_size, 1 + Indexes * 2));
+        Base::init(bitmap_blk_size, 1 + Indexes * 2);
 
-        MEMORIA_TRY(meta, allocate<Metadata>(METADATA));
+        auto meta = allocate<Metadata>(METADATA);
 
         size_t single_bitmap_size = bitmap_size;
         for (size_t c = 0; c < Indexes; c++, single_bitmap_size /= 2)
         {
             size_t index_size = index_level_size(single_bitmap_size);
-            MEMORIA_TRY_VOID(allocate_array_by_size<IndexType>(INDEX + c, index_size));
+            allocate_array_by_size<IndexType>(INDEX + c, index_size);
         }
 
         single_bitmap_size = bitmap_size;
         for (size_t c = 0; c < Indexes; c++, single_bitmap_size /= 2)
         {
             size_t bitmap_uints_size = div_up(single_bitmap_size, static_cast<size_t>(sizeof(BitmapType) * 8));
-            MEMORIA_TRY_VOID(allocate_array_by_size<BitmapType>(SYMBOLS + c, bitmap_uints_size));
+            allocate_array_by_size<BitmapType>(SYMBOLS + c, bitmap_uints_size);
         }
 
         meta->capacity() = bitmap_size;
@@ -246,22 +246,22 @@ public:
 
 public:
 
-    VoidResult enlarge(size_t size) noexcept
+    void enlarge(size_t size) noexcept
     {
         if (size % ValuesPerBranch)
         {
-            return MEMORIA_MAKE_GENERIC_ERROR(
+            MEMORIA_MAKE_GENERIC_ERROR(
                 "Size argument {} must me multiple of {}", size, ValuesPerBranch
-            );
+            ).do_throw();
         }
 
         auto meta = this->metadata();
 
         size_t capacity = meta->capacity();
         if (size + meta->size() > capacity) {
-            return MEMORIA_MAKE_GENERIC_ERROR(
+            MEMORIA_MAKE_GENERIC_ERROR(
                 "Requested size {} is too large, maximum is {}", size, capacity - meta->size()
-            );
+            ).do_throw();
         }
 
         BitmapType* bitmap = this->symbols(0);
@@ -297,7 +297,7 @@ public:
         }
     }
 
-    VoidResult reindex(bool recompute_bitmaps = false) noexcept
+    void reindex(bool recompute_bitmaps = false) noexcept
     {
         size_t bitmap_size = this->size();
 
@@ -326,13 +326,11 @@ public:
 
         for (size_t c = 0; c < Indexes; c++) //, local_bitmap_size /= 2
         {
-            MEMORIA_TRY_VOID(reindex_level(c));
+            reindex_level(c);
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult reindex_level(size_t level) noexcept
+    void reindex_level(size_t level) noexcept
     {
         size_t local_bitmap_size = this->size() >> level;
 
@@ -350,8 +348,6 @@ public:
                 index[icnt] = static_cast<IndexType>(span_size - PopCount(bitmap, bi, limit));
             }
         }
-
-        return VoidResult::of();
     }
 
     void check_level_index(size_t level) const
@@ -379,9 +375,9 @@ public:
         }
     }
 
-    VoidResult set_bits(size_t level, size_t idx, size_t size) noexcept
+    void set_bits(size_t level, size_t idx, size_t size) noexcept
     {
-        MEMORIA_TRY_VOID(set_bits_down(level, idx, size));
+        set_bits_down(level, idx, size);
 
         size_t start = idx;
         size_t stop  = idx + size;
@@ -394,11 +390,9 @@ public:
             BitmapType* bitmap = this->symbols(ll);
             FillOne(bitmap, start, stop);
         }
-
-        return VoidResult::of();
     }
 
-    VoidResult set_bits_down(size_t level, size_t idx, size_t size) noexcept
+    void set_bits_down(size_t level, size_t idx, size_t size) noexcept
     {
         size_t start = idx;
         size_t stop  = idx + size;
@@ -406,7 +400,7 @@ public:
         size_t local_bitmap_size = this->size() >> level;
 
         if (!(idx >= 0 && idx <= local_bitmap_size && (idx + size <= local_bitmap_size))) {
-            return MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size);
+            MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size).do_throw();
         }
 
         for (size_t ll = level; ll >= 0; ll--)
@@ -417,8 +411,6 @@ public:
             start *= 2;
             stop  *= 2;
         }
-
-        return VoidResult::of();
     }
 
     size_t get_bit(size_t level, size_t idx) const noexcept
@@ -428,7 +420,7 @@ public:
     }
 
 
-    VoidResult clear_bits(size_t level, size_t idx, size_t size) noexcept
+    void clear_bits(size_t level, size_t idx, size_t size) noexcept
     {
         size_t start = idx;
         size_t stop  = idx + size;
@@ -436,7 +428,7 @@ public:
         size_t local_bitmap_size = this->size() >> level;
 
         if (!(idx >= 0 && idx <= local_bitmap_size && (idx + size <= local_bitmap_size))) {
-            return MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size);
+            MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size).do_throw();
         }
 
         for (size_t ll = level; ll >= 0; ll--)
@@ -452,7 +444,7 @@ public:
         return reindex(false);
     }
 
-    VoidResult clear_bits_opt(size_t level, size_t idx, size_t size) noexcept
+    void clear_bits_opt(size_t level, size_t idx, size_t size) noexcept
     {
         size_t start = idx;
         size_t stop  = idx + size;
@@ -460,7 +452,7 @@ public:
         size_t local_bitmap_size = this->size() >> level;
 
         if (!(idx >= 0 && idx <= local_bitmap_size && (idx + size <= local_bitmap_size))) {
-            return MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size);
+            MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size).do_throw();
         }
 
         for (size_t ll = level; ll >= 0; ll--)
@@ -471,8 +463,6 @@ public:
             start *= 2;
             stop  *= 2;
         }
-
-        return VoidResult::of();
     }
 
     size_t sum(size_t level) const noexcept
@@ -723,7 +713,7 @@ public:
     }
 
 
-    VoidResult scan_unallocated(size_t level, const std::function<BoolResult (size_t, size_t)>& fn) const noexcept
+    void scan_unallocated(size_t level, const std::function<bool (size_t, size_t)>& fn) const noexcept
     {
         size_t idx = 0;
         while (true)
@@ -734,7 +724,7 @@ public:
                 size_t l_pos = sel_res.local_pos() >> level;
                 CountResult cnt_res = countFW(l_pos, level);
 
-                MEMORIA_TRY(cont, fn(l_pos, cnt_res.count()));
+                auto cont = fn(l_pos, cnt_res.count());
 
                 if (cont) {
                     idx += cnt_res.count();
@@ -747,44 +737,41 @@ public:
                 break;
             }
         }
-
-        return VoidResult::of();
     }
 
 
     template <typename AllocationPool>
-    BoolResult populate_allocation_pool(int64_t base, AllocationPool& pool) noexcept
+    bool populate_allocation_pool(int64_t base, AllocationPool& pool) noexcept
     {
         bool updated = false;
         for (size_t level = Indexes - 1; level >= 0; level--)
         {
-            VoidResult res = scan_unallocated(level, [&](size_t pos, size_t size) -> BoolResult {
+            scan_unallocated(level, [&](size_t pos, size_t size) {
                 if (pool.add(base + (pos << level), size << level, level)) {
                     updated = true;
-                    MEMORIA_TRY_VOID(set_bits(level, pos, size));
-                    return BoolResult::of(true);
+                    set_bits(level, pos, size);
+                    return true;
                 }
                 else {
-                    return BoolResult::of(false);
+                    return false;
                 }
             });
-            MEMORIA_RETURN_IF_ERROR(res);
 
-            MEMORIA_TRY_VOID(reindex_level(level));
+            reindex_level(level);
             if (level > 0) {
-                MEMORIA_TRY_VOID(reindex_level(level - 1));
+                reindex_level(level - 1);
             }
         }
 
         if (updated) {
-            MEMORIA_TRY_VOID(reindex(false));
+            reindex(false);
         }
 
-        return BoolResult::of(updated);
+        return updated;
     }
 
     template <typename Fn>
-    BoolResult compare_with(const PkdAllocationMap* other, size_t my_start, size_t other_start, size_t size, Fn&& fn) const noexcept
+    bool compare_with(const PkdAllocationMap* other, size_t my_start, size_t other_start, size_t size, Fn&& fn) const noexcept
     {
         for (size_t ll = 0; ll < Indexes; ll++)
         {
@@ -799,15 +786,15 @@ public:
 
                 if (my_bit != other_bit)
                 {
-                    MEMORIA_TRY(do_continue, fn(ii + my_ll_start, ii + other_ll_start, ll, my_bit, other_bit));
+                    auto do_continue = fn(ii + my_ll_start, ii + other_ll_start, ll, my_bit, other_bit);
                     if (!do_continue) {
-                        return BoolResult::of(false);
+                        return false;
                     }
                 }
             }
         }
 
-        return BoolResult::of(true);
+        return true;
     }
 
 private:

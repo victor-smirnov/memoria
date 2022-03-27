@@ -138,7 +138,7 @@ public:
         StreamType* head;
         if (alloc->is_empty(AllocatorIdx))
         {
-            MEMORIA_TRY(head_res, alloc->template allocate_default<StreamType>(AllocatorIdx));
+            auto head_res = alloc->template allocate_default<StreamType>(AllocatorIdx);
             head = head_res;
         }
         else {

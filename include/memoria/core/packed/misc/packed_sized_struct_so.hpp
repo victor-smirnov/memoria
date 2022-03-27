@@ -22,6 +22,8 @@
 #include <memoria/core/iovector/io_substream_base.hpp>
 #include <memoria/core/tools/result.hpp>
 
+#include <memoria/core/packed/tools/packed_allocator_types.hpp>
+
 namespace memoria {
 
 template <typename ExtData, typename PkdStruct>
@@ -33,6 +35,8 @@ class PackedSizedStructSO {
 
 public:
     using PkdStructT = PkdStruct;
+
+    using UpdateState = PkdStructNoOpUpdate<PackedSizedStructSO>;
 
     PackedSizedStructSO() noexcept: ext_data_(), data_() {}
     PackedSizedStructSO(ExtData* ext_data, PkdStruct* data) noexcept:
@@ -67,16 +71,24 @@ public:
     const PkdStruct* data() const noexcept {return data_;}
     PkdStruct* data() noexcept {return data_;}
 
-    VoidResult splitTo(MyType& other, size_t idx) noexcept {
-        return data_->splitTo(other.data(), idx);
+    void split_to(MyType& other, size_t idx) noexcept {
+        return data_->split_to(other.data(), idx);
     }
 
-    VoidResult mergeWith(MyType& other) const noexcept {
-        return data_->mergeWith(other.data());
+    PkdUpdateStatus prepare_merge_with(const MyType& other, UpdateState& update_state) const {
+        return PkdUpdateStatus::SUCCESS;
     }
 
-    VoidResult removeSpace(size_t room_start, size_t room_end) noexcept {
-        return data_->removeSpace(room_start, room_end);
+    void commit_merge_with(MyType& other, UpdateState&) const noexcept {
+        return data_->commit_merge_with(other.data());
+    }
+
+    PkdUpdateStatus prepare_remove(size_t room_start, size_t room_end, UpdateState& update_state) const {
+        return PkdUpdateStatus::SUCCESS;
+    }
+
+    void commit_remove(size_t room_start, size_t room_end, UpdateState&) noexcept {
+        return data_->remove(room_start, room_end);
     }
 
     void generateDataEvents(IBlockDataEventHandler* handler) const {
@@ -100,31 +112,46 @@ public:
     }
 
 
-
-    VoidResult insertSpace(size_t idx, size_t room_length) noexcept {
-        return data_->insertSpace(idx, room_length);
+    PkdUpdateStatus prepare_insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size, UpdateState&) {
+        return PkdUpdateStatus::SUCCESS;
     }
 
+
+    // FIXME: Adapt to multicolumn!
+    size_t commit_insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size, UpdateState&)
+    {
+        insert_space(0, size);
+        return size;
+    }
+
+
+    void insert_space(size_t idx, size_t room_length) noexcept {
+        return data_->insert_space(idx, room_length);
+    }
 
     template <typename AccessorFn>
-    VoidResult insert_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
-    {
-        MEMORIA_ASSERT_RTN(row_at, <=, this->size());
-        return data_->insertSpace(row_at, size);
+    PkdUpdateStatus prepare_insert(psize_t row_at, psize_t size, UpdateState&, AccessorFn&&) const {
+        return PkdUpdateStatus::SUCCESS;
     }
 
     template <typename AccessorFn>
-    VoidResult update_entries(psize_t row_at, psize_t size, AccessorFn&& elements) noexcept
-    {
-        MEMORIA_ASSERT_RTN(row_at, <=, this->size());
-        return VoidResult::of();
+    void commit_insert(psize_t row_at, psize_t size, UpdateState&, AccessorFn&& elements) noexcept {
+        MEMORIA_ASSERT(row_at, <=, this->size());
+        return data_->insert_space(row_at, size);
     }
 
-    VoidResult remove_entries(psize_t row_at, psize_t size) noexcept
-    {
-        return removeSpace(row_at, row_at + size);
+    template <typename AccessorFn>
+    PkdUpdateStatus prepare_update(psize_t row_at, psize_t size, UpdateState&, AccessorFn&&) const {
+        return PkdUpdateStatus::SUCCESS;
     }
 
+    template <typename AccessorFn>
+    void commit_update(psize_t row_at, psize_t size, UpdateState&, AccessorFn&& elements) noexcept
+    {
+        MEMORIA_ASSERT(row_at, <=, this->size());
+    }
+
+    MMA_MAKE_UPDATE_STATE_METHOD
 };
 
 
