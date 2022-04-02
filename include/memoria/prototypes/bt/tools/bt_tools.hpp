@@ -539,5 +539,9 @@ struct UpdateStateInitializer<StateTuple, Max, Max> {
     static void process(StateTuple&) {}
 };
 
+template <typename... Args>
+PackedAllocatorUpdateState& get_allocator_update_state(std::tuple<Args...>& state) {
+    return std::get<sizeof...(Args) - 1>(state);
+}
 
 }}

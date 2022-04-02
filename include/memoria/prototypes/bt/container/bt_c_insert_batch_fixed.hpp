@@ -75,7 +75,7 @@ public:
     };
 
 
-    struct InsertChildrenFn {
+    struct CommitInsertChildrenFn {
         template <typename CtrT, typename NodeT, typename UpdateState>
         void treeNode(BranchNodeSO<CtrT, NodeT>& node, int32_t from, int32_t to, const BranchNodeEntryT* entries, UpdateState& update_state)
         {
@@ -84,7 +84,8 @@ public:
             node.processAll(*this, from, to, entries, update_state);
 
             int32_t idx = 0;
-            return node.insertValues(old_size, from, to - from, [entries, &idx](){
+            PackedAllocatorUpdateState& state = bt::get_allocator_update_state(update_state);
+            return node.commit_insert_values(old_size, from, to - from, state, [entries, &idx](){
                 return entries[idx++].child_id();
             });
         }
@@ -104,7 +105,7 @@ public:
 
         TreeNodeConstPtr node = path[level];
 
-        auto capacity = self.ctr_get_branch_node_capacity(node, -1ull);
+        auto capacity = self.ctr_get_branch_node_capacity(node);
         CtrSizeT provider_size0  = provider.size();
         const int32_t batch_size = 32;
 
@@ -125,8 +126,8 @@ public:
                 subtrees[i].child_node()    = child;
             }
 
-            auto update_state = self.make_branch_update_state();
-            self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildrenFn(), idx + c, idx + c + i, subtrees, update_state);
+            auto update_state = self.ctr_make_branch_update_state();
+            self.branch_dispatcher().dispatch(node.as_mutable(), CommitInsertChildrenFn(), idx + c, idx + c + i, subtrees, update_state);
 
             max = idx + c + i;
 

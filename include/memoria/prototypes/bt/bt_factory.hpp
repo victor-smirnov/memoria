@@ -72,7 +72,7 @@
 #include <memoria/prototypes/bt/container/bt_c_insert_batch_fixed.hpp>
 #include <memoria/prototypes/bt/container/bt_c_insert_batch_variable.hpp>
 #include <memoria/prototypes/bt/container/bt_c_remove_batch.hpp>
-#include <memoria/prototypes/bt/container/bt_c_remove_tools.hpp>
+#include <memoria/prototypes/bt/container/bt_c_node_common.hpp>
 
 #include <memoria/profiles/common/common.hpp>
 
@@ -97,7 +97,7 @@ struct BTTypes {
             bt::InsertBatchCommonName,
             bt::LeafCommonName,
             bt::InsertName,
-            bt::RemoveToolsName,
+            bt::NodeCommonName,
             bt::RemoveBatchName,
             bt::FindName,
             bt::ReadName,

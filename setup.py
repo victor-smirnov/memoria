@@ -51,6 +51,8 @@ class CMakeBuild(build_ext):
             "-DBUILD_SWMR_STORE_MAPPED=ON",
             "-DBUILD_CLASSIC_MEMORIA_LIB=ON",
             "-DBUILD_PYTHON_BINDINGS=ON",
+            "-DCMAKE_C_COMPILER=clang",
+            "-DCMAKE_CXX_COMPILER=clang++"
         ]
 
         vcpkg_toolchain = os.environ.get("VCPKG_TOOLCHAIN")

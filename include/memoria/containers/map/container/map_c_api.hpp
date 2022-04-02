@@ -40,7 +40,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
-    using typename Base::BlockUpdateMgr;
     using typename Base::Profile;
     using typename Base::ApiProfileT;
 

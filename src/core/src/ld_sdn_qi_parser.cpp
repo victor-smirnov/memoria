@@ -42,7 +42,6 @@
 #include <boost/spirit/include/qi_action.hpp>
 
 #include <boost/variant/recursive_variant.hpp>
-#include <boost/foreach.hpp>
 
 #include <boost/optional/optional_io.hpp>
 

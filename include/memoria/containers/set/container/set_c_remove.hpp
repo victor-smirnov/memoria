@@ -27,24 +27,6 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(set::CtrRemoveName)
 
-public:
-    using Types = typename Base::Types;
-
-protected:
-    using typename Base::TreeNodePtr;
-
-    typedef typename Types::Key                                                 Key;
-    using KeyView   = typename DataTypeTraits<Key>::ViewType;
-
-    using Profile   = typename Types::Profile;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-
-    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
-    
-public:    
-
-
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(set::CtrRemoveName)

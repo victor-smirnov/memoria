@@ -33,16 +33,6 @@ public:
 protected:
     using typename Base::TreeNodePtr;
 
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
-
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    static const int32_t Streams                                                = Types::Streams;
-
-    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
-
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(map::CtrInsertName)

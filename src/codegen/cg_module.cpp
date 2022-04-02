@@ -30,6 +30,7 @@
 #include <clang/Frontend/FrontendActions.h>
 
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/ADT/SmallString.h>
 
 #include <fstream>
 #include <unordered_map>
@@ -99,7 +100,12 @@ public:
         {
             const auto& list = RD->getTemplateArgs();
             int64_t idx = list.get(0).getAsIntegral().getExtValue();
-            U8String val = list.get(1).getAsIntegral().toString(10);
+
+            SmallString<16> str;
+
+            list.get(1).getAsIntegral().toString(str, 10);
+
+            U8String val = str.str().str();
             results.push_back(std::make_pair(idx, val));
         }
         else if (RD->getNameAsString() == "CGTypeInf")

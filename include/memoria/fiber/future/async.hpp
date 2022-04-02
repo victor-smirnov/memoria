@@ -23,16 +23,16 @@ namespace fibers {
 
 template< typename Fn, typename ... Args >
 future<
-    typename std::result_of<
+    typename std::invoke_result<
         typename std::enable_if<
             ! detail::is_launch_policy< typename std::decay< Fn >::type >::value,
             typename std::decay< Fn >::type
-        >::type( typename std::decay< Args >::type ... )
+        >::type, typename std::decay< Args >::type ...
     >::type
 >
 async( Fn && fn, Args ... args) {
-    typedef typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+    typedef typename std::invoke_result<
+        typename std::decay< Fn >::type, typename std::decay< Args >::type ...
     >::type     result_type;
 
     packaged_task< result_type( typename std::decay< Args >::type ... ) > pt{
@@ -44,16 +44,16 @@ async( Fn && fn, Args ... args) {
 
 template< typename Policy, typename Fn, typename ... Args >
 future<
-    typename std::result_of<
+    typename std::invoke_result<
         typename std::enable_if<
             detail::is_launch_policy< Policy >::value,
             typename std::decay< Fn >::type
-        >::type( typename std::decay< Args >::type ...)
+        >::type, typename std::decay< Args >::type ...
     >::type
 >
 async( Policy policy, Fn && fn, Args ... args) {
-    typedef typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+    typedef typename std::invoke_result<
+        typename std::decay< Fn >::type, typename std::decay< Args >::type ...
     >::type     result_type;
 
     packaged_task< result_type( typename std::decay< Args >::type ... ) > pt{
@@ -65,16 +65,16 @@ async( Policy policy, Fn && fn, Args ... args) {
 
 template< typename Policy, typename StackAllocator, typename Fn, typename ... Args >
 future<
-    typename std::result_of<
+    typename std::invoke_result<
         typename std::enable_if<
             detail::is_launch_policy< Policy >::value,
             typename std::decay< Fn >::type
-        >::type( typename std::decay< Args >::type ... )
+        >::type, typename std::decay< Args >::type ...
     >::type
 >
 async( Policy policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args ... args) {
-    typedef typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+    typedef typename std::invoke_result<
+        typename std::decay< Fn >::type, typename std::decay< Args >::type ...
     >::type     result_type;
 
     packaged_task< result_type( typename std::decay< Args >::type ... ) > pt{
@@ -87,16 +87,16 @@ async( Policy policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Arg
 
 template< typename Policy, typename StackAllocator, typename Allocator, typename Fn, typename ... Args >
 future<
-    typename std::result_of<
+    typename std::invoke_result<
         typename std::enable_if<
             detail::is_launch_policy< Policy >::value,
             typename std::decay< Fn >::type
-        >::type( typename std::decay< Args >::type ... )
+        >::type, typename std::decay< Args >::type ...
     >::type
 >
 async( Policy policy, std::allocator_arg_t, StackAllocator salloc, Allocator alloc, Fn && fn, Args ... args) {
-    typedef typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+    typedef typename std::invoke_result<
+        typename std::decay< Fn >::type, typename std::decay< Args >::type ...
     >::type     result_type;
 
     packaged_task< result_type( typename std::decay< Args >::type ... ) > pt{

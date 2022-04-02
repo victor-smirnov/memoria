@@ -65,7 +65,9 @@ public:
                     }
 
                     APSInt ii = val->getInt();
-                    id_ = ii.toString(10);
+                    SmallString<16> str;
+                    ii.toString(str, 10);
+                    id_ = str.str().str();
                 }
             }
         }
@@ -114,7 +116,7 @@ public:
         {
             std::string ss;
             llvm::raw_string_ostream os(ss);
-            args.get(0).print(clang::PrintingPolicy{clang::LangOptions{}}, os);
+            args.get(0).print(clang::PrintingPolicy{clang::LangOptions{}}, os, true);
             return U8String{ss};
         }
         else {

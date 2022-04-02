@@ -119,7 +119,7 @@ public:
         typedef Vector2CtrTypes<Types>                                          CtrTypes;
         typedef Vector2IterTypes<Types>                                         IterTypes;
 
-        typedef bt::BlockUpdateManager<CtrTypes>                                 BlockUpdateMgr;
+        using BlockUpdateMgr = bt::BlockUpdateManager<CtrTypes>;
     };
 
 

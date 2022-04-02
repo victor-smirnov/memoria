@@ -34,7 +34,6 @@ protected:
     using typename Base::TreeNodePtr;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
-    using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
 
     using Value = typename Types::Value;

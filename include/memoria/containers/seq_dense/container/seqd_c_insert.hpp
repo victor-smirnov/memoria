@@ -33,18 +33,15 @@ public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Base::ID                                                   ID;
 
-    typedef typename Types::TreeNodePtr                                           TreeNodePtr;
+
+    typedef typename Types::TreeNodePtr                                         TreeNodePtr;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
-
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
-
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
 //    struct InsertIntoLeafFn {

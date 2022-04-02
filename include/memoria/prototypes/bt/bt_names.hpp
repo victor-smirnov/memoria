@@ -59,6 +59,8 @@ class LeafCommonName        {};
 class LeafFixedName         {};
 class LeafVariableName      {};
 
+class NodeCommonName        {};
+
 class ApiName               {};
 class ChecksName            {};
 class WalkName              {};

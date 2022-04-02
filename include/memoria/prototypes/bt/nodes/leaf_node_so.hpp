@@ -298,6 +298,8 @@ public:
     static constexpr int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
     static constexpr int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
 
+    static const PackedDataTypeSize SizeType = PackedListStructSizeType<Linearize<LeafSubstreamsStructList>>::Value;
+
     using IOVectorT     = typename bt::detail::IOVectorsTF<Streams, LeafSubstreamsStructList>::IOVectorT;
     using IOVectorViewT = typename bt::detail::IOVectorViewTF<Streams, LeafSubstreamsStructList>::IOVectorT;
 
@@ -746,7 +748,7 @@ public:
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename UpdateState>
         void stream(Tree&& tree, const Position& start, const Position& end, UpdateState& update_state)
         {
-            if (isSuccess(status)) {
+            if (is_success(status)) {
                 status = tree.prepare_remove(
                         start[StreamIdx],
                         end[StreamIdx],
@@ -759,7 +761,7 @@ public:
         template <int32_t ListIdx, typename Tree, typename UpdateState>
         void stream(Tree&& tree, size_t start, size_t end, UpdateState& update_state)
         {
-            if (isSuccess(status)) {
+            if (is_success(status)) {
                 status = tree.prepare_remove(
                         start,
                         end,
@@ -772,9 +774,14 @@ public:
 
     PkdUpdateStatus prepare_remove(const Position& start, const Position& end, UpdateState<IntList<>>& update_state)
     {
-        PrepareRemoveSpaceFn fn;
-        processSubstreamGroups(fn, start, end, update_state);
-        return fn.status;
+        if (SizeType == PackedDataTypeSize::VARIABLE) {
+            PrepareRemoveSpaceFn fn;
+            processSubstreamGroups(fn, start, end, update_state);
+            return fn.status;
+        }
+        else {
+            return PkdUpdateStatus::SUCCESS;
+        }
     }
 
     template <int32_t Stream>
@@ -824,7 +831,7 @@ public:
     PkdUpdateStatus remove(const Position& start, const Position& end)
     {
         auto update_state = make_update_state<IntList<>>();
-        if (isSuccess(prepare_remove(start, end, update_state))) {
+        if (is_success(prepare_remove(start, end, update_state))) {
             commit_remove(start, end, update_state);
             return PkdUpdateStatus::SUCCESS;
         }
@@ -832,11 +839,12 @@ public:
         return PkdUpdateStatus::FAILURE;
     }
 
+
     template <int32_t Stream>
     PkdUpdateStatus remove(IntList<Stream> tag, size_t start, size_t end)
     {
         auto update_state = make_update_state<IntList<Stream>>();
-        if (isSuccess(prepare_remove(tag, start, end, update_state))) {
+        if (is_success(prepare_remove(tag, start, end, update_state))) {
             commit_remove(tag, start, end, update_state);
             return PkdUpdateStatus::SUCCESS;
         }
@@ -900,7 +908,7 @@ public:
     PkdUpdateStatus merge_with(OtherNodeT&& other) const
     {
         auto update_state = make_update_state<IntList<>>();
-        if (isSuccess(prepare_merge_with(std::forward<OtherNodeT>(other), update_state)))
+        if (is_success(prepare_merge_with(std::forward<OtherNodeT>(other), update_state)))
         {
             commit_merge_with(std::forward<OtherNodeT>(other), update_state);\
             return PkdUpdateStatus::SUCCESS;

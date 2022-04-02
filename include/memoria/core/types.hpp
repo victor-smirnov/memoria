@@ -201,7 +201,7 @@ struct TypeP {
 class VLSelector {};
 
 
-enum class SplitStatus {NONE, LEFT, RIGHT, UNKNOWN};
+enum class SplitStatus {NONE, LEFT, RIGHT};
 
 class SplitResult {
     SplitStatus type_;

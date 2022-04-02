@@ -68,8 +68,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
 
         RemoveEntryResult result{false, idx};
 
-        auto removed = self.template ctr_try_remove_stream_entry<0>(path, idx);
-        if (!removed)
+        PkdUpdateStatus status = self.template ctr_try_remove_stream_entry<0>(path, idx);
+        if (!is_success(status))
         {
             auto split_result = self.split_leaf_in_a_half(path, idx);
 
@@ -81,7 +81,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
 
             auto removed_try2 = self.template ctr_try_remove_stream_entry<0>(path, idx);
 
-            if (!removed_try2)
+            if (!is_success(removed_try2))
             {
                 MEMORIA_MAKE_GENERIC_ERROR("BTSS error: second entry removal attempt failed").do_throw();
             }

@@ -129,7 +129,7 @@ public:
 template <typename Reactor, typename Fn, typename RtnFn, typename... Args>
 auto make_thread_pool_lambda_message(int cpu, Reactor* reactor, FiberContext* context, Fn&& fn, RtnFn&& rtn_fn, Args&&... args)
 {
-    using RtnType = std::result_of_t<std::decay_t< Fn >( std::decay_t< Args > ... )>;
+    using RtnType = std::invoke_result_t<std::decay_t< Fn >, std::decay_t< Args > ...>;
     
     using MsgType = ThreadPoolMessage<RtnFn, Reactor, RtnType, Fn, Args...>;
     

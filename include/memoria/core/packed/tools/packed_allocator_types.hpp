@@ -372,12 +372,25 @@ T* make_new(PkdStructUpdate<PkdStructSO>& upd)
     }
 
 
-enum class PkdUpdateStatus: bool {
+enum class MMA_NODISCARD PkdUpdateStatus: bool {
     FAILURE, SUCCESS
 };
 
-static inline bool isSuccess(PkdUpdateStatus status) {
+static inline bool is_success(PkdUpdateStatus status) {
     return status == PkdUpdateStatus::SUCCESS;
 }
+
+static inline void assert_success(PkdUpdateStatus status) {
+    if (!is_success(status)) {
+        MEMORIA_MAKE_GENERIC_ERROR("Packed update failed for the operation").do_throw();
+    }
+}
+
+static inline void assert_success(bool status) {
+    if (!status) {
+        MEMORIA_MAKE_GENERIC_ERROR("Packed update failed for the operation").do_throw();
+    }
+}
+
 
 }

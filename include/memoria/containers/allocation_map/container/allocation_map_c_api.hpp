@@ -329,7 +329,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
             auto leaf_max = self.ctr_get_node_max_keys(new_leaf.as_immutable());
 
-            auto branch_capacity = self.ctr_get_branch_node_capacity(path[1], -1ull);
+            auto branch_capacity = self.ctr_get_branch_node_capacity(path[1]);
 
             int32_t parent_idx;
             auto branch_size = self.ctr_get_branch_node_size(path[1]);
@@ -344,7 +344,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 parent_idx = branch_size;
             }
 
-            self.ctr_insert_to_branch_node(path, 1, parent_idx, leaf_max, new_leaf->id());
+            assert_success(self.ctr_insert_to_branch_node(path, 1, parent_idx, leaf_max, new_leaf->id()));
 
             path[0] = new_leaf.as_immutable();
             self.ctr_ref_block(new_leaf->id());

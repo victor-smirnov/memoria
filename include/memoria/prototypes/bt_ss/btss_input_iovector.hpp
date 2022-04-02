@@ -170,7 +170,7 @@ public:
                 memoria::io::IOVector& io_vector,
                 UpdateState& update_state
         ){
-            if (isSuccess(status))
+            if (is_success(status))
             {
                 status = stream.prepare_insert_io_substream(
                             at,
@@ -270,7 +270,7 @@ public:
 
     virtual size_t insertBuffer(const TreeNodePtr& leaf, size_t at, size_t size)
     {
-        auto update_state = ctr().template make_leaf_update_state<IntList<>>();
+        auto update_state = ctr().template ctr_make_leaf_update_state<IntList<>>();
 
         CommitInsertBufferFn fn;
         ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, *io_vector_, update_state);
@@ -414,8 +414,6 @@ public:
 
     using Position  = typename Base::Position;
 
-    using BlockUpdateMgr     = typename CtrT::Types::BlockUpdateMgr;
-
     using Base::io_vector_;
     using Base::ctr;
 
@@ -534,13 +532,13 @@ protected:
 
     bool tryInsertBuffer(const TreeNodePtr& leaf, size_t at, size_t size)
     {
-        auto update_state = ctr().template make_leaf_update_state<IntList<>>();
+        auto update_state = ctr().template ctr_make_leaf_update_state<IntList<>>();
 
         typename Base::PrepareInsertBufferFn fn1;
 
         ctr().leaf_dispatcher().dispatch(leaf, fn1, at, this->start_, size, *io_vector_, update_state);
 
-        if (isSuccess(fn1.status)) {
+        if (is_success(fn1.status)) {
             typename Base::CommitInsertBufferFn fn2;
             ctr().leaf_dispatcher().dispatch(leaf, fn2, at, this->start_, size, *io_vector_, update_state);
             return true;

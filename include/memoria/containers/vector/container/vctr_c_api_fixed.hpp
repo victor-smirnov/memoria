@@ -35,7 +35,6 @@ public:
     using typename Base::TreeNodePtr;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
-    using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
     using typename Base::IteratorPtr;
     using typename Base::Profile;

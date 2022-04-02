@@ -217,12 +217,12 @@ void M_TYPE::ctr_remove_branch_nodes_from_start(TreePathT& stop_path, size_t lev
 {
     auto& self = this->self();
 
-    self.ctr_remove_node_content(stop_path, level, 0, stop_idx);
+    self.ctr_remove_branch_content(stop_path, level, 0, stop_idx);
 
     while (!stop_path[level]->is_root())
     {
         auto parent_idx = self.ctr_get_parent_idx(stop_path, level);
-        self.ctr_remove_node_content(stop_path, level + 1, 0, parent_idx);
+        self.ctr_remove_branch_content(stop_path, level + 1, 0, parent_idx);
 
         level++;
     }
@@ -234,7 +234,8 @@ void M_TYPE::ctr_remove_nodes_from_start(TreePathT& stop_path, const Position& s
 {
     auto& self = this->self();
 
-    self.ctr_remove_leaf_content(stop_path, Position(0), stop_idx);
+    // FIXME: Must split the node here if remove fails
+    assert_success(self.ctr_remove_leaf_content(stop_path, Position(0), stop_idx));
 
     if (!stop_path.leaf()->is_root())
     {
@@ -256,14 +257,14 @@ void M_TYPE::ctr_remove_branch_nodes_at_end(
     auto& self = this->self();
 
     auto node_size = self.ctr_get_node_size(start_path[level], 0);
-    self.ctr_remove_node_content(start_path, level, start_idx, node_size);
+    self.ctr_remove_branch_content(start_path, level, start_idx, node_size);
 
     while (!start_path[level]->is_root())
     {
         auto parent_idx = self.ctr_get_parent_idx(start_path, level);
 
         auto node_size2 = self.ctr_get_node_size(start_path[level + 1], 0);
-        self.ctr_remove_node_content(start_path, level + 1, parent_idx + 1, node_size2);
+        self.ctr_remove_branch_content(start_path, level + 1, parent_idx + 1, node_size2);
 
         level++;
     }
@@ -279,7 +280,9 @@ void M_TYPE::ctr_remove_nodes_at_end(
     auto& self = this->self();
 
     auto node_sizes = self.ctr_get_node_sizes(start_path.leaf());
-    self.ctr_remove_leaf_content(start_path, start_idx, node_sizes);
+
+    // FIXME: Must split the node here if remove fails
+    assert_success(self.ctr_remove_leaf_content(start_path, start_idx, node_sizes));
 
     if (start_path.size() > 1)
     {
@@ -309,7 +312,8 @@ void M_TYPE::ctr_remove_nodes(
         // The root node of removed subtree
         if ((stop_idx - start_idx).gtAny(0))
         {
-            self.ctr_remove_leaf_content(start_path, start_idx, stop_idx);
+            // FIXME: Must split the node here if remove fails
+            assert_success(self.ctr_remove_leaf_content(start_path, start_idx, stop_idx));
 
             stop_idx = start_idx;
             return self.ctr_remove_redundant_root(start_path, 0);
@@ -327,12 +331,15 @@ void M_TYPE::ctr_remove_nodes(
         ctr_remove_branch_nodes(start_path, start_parent_idx + 1, stop_path, stop_parent_idx, 1);
 
         auto start_end = self.ctr_get_node_sizes(start_path.leaf());
-        self.ctr_remove_leaf_content(start_path, start_idx, start_end);
+
+        // FIXME: Must split the node here if remove fails
+        assert_success(self.ctr_remove_leaf_content(start_path, start_idx, start_end));
 
         stop_path = start_path;
         self.ctr_expect_next_node(stop_path, 0);
 
-        self.ctr_remove_leaf_content(stop_path, Position(0), stop_idx);
+        // FIXME: Must split the node here if remove fails
+        assert_success(self.ctr_remove_leaf_content(stop_path, Position(0), stop_idx));
 
         start_path = stop_path;
         self.ctr_expect_prev_node(start_path, 0);
@@ -372,7 +379,7 @@ void M_TYPE::ctr_remove_branch_nodes(
         if (stop_idx - start_idx > 0)
         {
             //remove some space within the node
-            self.ctr_remove_node_content(start_path, level, start_idx, stop_idx);
+            self.ctr_remove_branch_content(start_path, level, start_idx, stop_idx);
             self.ctr_remove_redundant_root(start_path, level);
 
             self.ctr_assign_path_nodes(start_path, stop_path, level);
@@ -391,11 +398,11 @@ void M_TYPE::ctr_remove_branch_nodes(
 
         auto start_end = self.ctr_get_node_size(start_path[level], 0);
 
-        self.ctr_remove_node_content(start_path, level, start_idx, start_end);
+        self.ctr_remove_branch_content(start_path, level, start_idx, start_end);
         self.ctr_assign_path_nodes(start_path, stop_path, level);
         self.ctr_expect_next_node(stop_path, level);
 
-        self.ctr_remove_node_content(stop_path, level, 0, stop_idx);
+        self.ctr_remove_branch_content(stop_path, level, 0, stop_idx);
         self.ctr_assign_path_nodes(stop_path, start_path, level);
         self.ctr_expect_prev_node(start_path, level);
 

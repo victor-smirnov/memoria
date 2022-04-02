@@ -43,7 +43,7 @@ public:
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 

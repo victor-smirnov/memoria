@@ -13,7 +13,7 @@ if (BUILD_CODEGENERATOR_EXPLICITLY)
     target_include_directories(MemoriaCodeGen PRIVATE include)
     target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
-    target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options pybind11::embed pybind11::module)
+    target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options pybind11::embed pybind11::module util)
     target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling)
 else()
 
@@ -67,7 +67,7 @@ find_package(pybind11 CONFIG REQUIRED)
 find_package(Boost 1.75.0 COMPONENTS context program_options serialization unit_test_framework REQUIRED)
 
 find_package(absl CONFIG REQUIRED)
-link_libraries(absl::base absl::strings absl::hash absl::meta absl::time)
+link_libraries(absl::base absl::strings absl::hash absl::meta absl::time util)
 
 find_package(fmt CONFIG REQUIRED)
 link_libraries(fmt::fmt fmt::fmt-header-only)

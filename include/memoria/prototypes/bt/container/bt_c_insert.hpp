@@ -63,39 +63,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
         return split_status;
     }
 
-
-
-
-    template <int32_t Stream>
-    SplitStatus ctr_insert_stream_entry0(Iterator& iter, int32_t structure_idx, int32_t stream_idx, std::function<VoidResult (int, int)> insert_fn)
-    {
-        auto& self = this->self();
-
-        auto result0 = self.ctr_with_block_manager(iter.iter_leaf(), structure_idx, stream_idx, insert_fn);
-
-        SplitStatus split_status;
-
-        if (!result0)
-        {
-            auto split_result = iter.split(Stream, stream_idx);
-            split_status = split_result.type();
-
-            auto result1 = self.ctr_with_block_manager(iter.iter_leaf(), iter.iter_local_pos(), split_result.stream_idx(), insert_fn);
-            if (!result1)
-            {
-                MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed").do_throw();
-            }
-        }
-        else {
-            split_status = SplitStatus::NONE;
-        }
-
-        self.ctr_update_path(iter.iter_leaf());
-
-        return split_status;
-    }
-
-
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::InsertName)

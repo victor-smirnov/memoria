@@ -152,7 +152,7 @@ public:
 template <typename Fn, typename... Args>
 auto make_lambda_message(int cpu, Fn&& fn, Args&&... args) 
 {
-    using RtnType = std::result_of_t<std::decay_t< Fn >( std::decay_t< Args > ... )>;
+    using RtnType = std::invoke_result_t<std::decay_t< Fn >, std::decay_t< Args > ...>;
     
     using MsgType = LambdaMessage<RtnType, Fn, Args...>;
     
@@ -163,7 +163,7 @@ auto make_lambda_message(int cpu, Fn&& fn, Args&&... args)
 template <typename Fn, typename... Args>
 auto make_one_way_lambda_message(int cpu, Fn&& fn, Args&&... args) 
 {
-    using RtnType = std::result_of_t<std::decay_t< Fn >( std::decay_t< Args > ... )>;
+    using RtnType = std::invoke_result_t<std::decay_t< Fn >, std::decay_t< Args > ...>;
     
     using MsgType = OneWayLambdaMessage<RtnType, Fn, Args...>;
     

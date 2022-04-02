@@ -30,7 +30,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchVariableName)
     using typename Base::TreeNodePtr;
     using typename Base::TreeNodeConstPtr;
     using typename Base::BlockID;
-    using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
     using typename Base::TreePathT;
     using typename Base::Checkpoint;
@@ -73,11 +72,7 @@ public:
         {
             auto checkpoint = provider.checkpoint();
 
-            BlockUpdateMgr mgr(self);
-            mgr.add(node.as_mutable());
-
             int32_t c;
-
             bool insertion_status{true};
 
             for (c = 0; c < batch_size && provider.size() > 0; c++)
@@ -92,10 +87,7 @@ public:
                 auto sums = self.ctr_get_node_max_keys(child.as_immutable());
 
                 PkdUpdateStatus ins_res = self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildFn(), idx + c, sums, child->id());
-
-                insertion_status = isSuccess(ins_res);
-
-                //MEMORIA_TRY_VOID(self.ctr_ref_block(child->id()));
+                insertion_status = is_success(ins_res);
 
                 last_child = child;
             }
@@ -111,7 +103,6 @@ public:
                 }
 
                 provider.rollback(checkpoint);
-                mgr.rollback();
                 batch_size /= 2;
             }
             else {

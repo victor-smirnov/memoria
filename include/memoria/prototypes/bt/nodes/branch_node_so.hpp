@@ -123,6 +123,8 @@ public:
 
     static const int32_t ValuesBlockIdx     = SubstreamsEnd;
 
+    static const PackedDataTypeSize SizeType = PackedListStructSizeType<Linearize<BranchSubstreamsStructList>>::Value;
+
 
     template <typename LeafPath>
     using BuildBranchPath = typename list_tree::BuildTreePath<
@@ -354,17 +356,10 @@ public:
     }
 
 
-
-    uint64_t active_streams() const  {
-        return node_->active_streams();
-    }
-
-
-
-    int32_t capacity(uint64_t active_streams) const
+    int32_t capacity() const
     {
         int32_t free_space  = node_->compute_streams_available_space();
-        auto max_size = node_->max_tree_size1(free_space, active_streams);
+        auto max_size = node_->max_tree_size1(free_space, -1ull);
 
         auto size = this->size();
         int32_t cap = max_size - size;
@@ -372,11 +367,6 @@ public:
         return cap >= 0 ? cap : 0;
     }
 
-    int32_t capacity() const
-    {
-        auto active = active_streams();
-        return capacity(active);
-    }
 
     struct SizeFn {
         int32_t size_ = 0;
@@ -439,7 +429,7 @@ public:
         template <int32_t Idx, typename StreamType>
         void stream(StreamType&& obj, int32_t idx, const BranchNodeEntry& keys, UpdateState& update_state)
         {
-            if (isSuccess(status)) {
+            if (is_success(status)) {
                 status = obj.prepare_insert(idx, 1, std::get<Idx>(update_state), [&](size_t column, size_t)  {
                     return std::get<Idx>(keys)[column];
                 });
@@ -489,7 +479,7 @@ public:
         PrepareInsertFn prepare_insert_fn;
         Dispatcher(state()).dispatchNotEmpty(allocator(), prepare_insert_fn, idx, keys, update_state);
 
-        if (isSuccess(prepare_insert_fn.status))
+        if (is_success(prepare_insert_fn.status))
         {
             // FIXME!
             // calculate child_id size here!
@@ -521,7 +511,8 @@ public:
         }
     }
 
-    void insertValues(int32_t old_size, int32_t idx, int32_t length, std::function<Value()> provider)
+
+    void commit_insert_values(int32_t old_size, int32_t idx, int32_t length, PackedAllocatorUpdateState&, std::function<Value()> provider)
     {
         insertValuesSpace(old_size, idx, length);
 
@@ -534,7 +525,7 @@ public:
     }
 
 
-    struct PrepareRemoveFn {
+    struct PrepareRemoveSpaceFn {
         PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
         template <int32_t Idx, typename Tree>
@@ -549,9 +540,14 @@ public:
 
     PkdUpdateStatus prepare_remove(size_t room_start, size_t room_end, UpdateState& update_state) const
     {
-        PrepareRemoveFn remove_fn;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), remove_fn, room_start, room_end, update_state);
-        return remove_fn.status;
+        if (SizeType == PackedDataTypeSize::VARIABLE) {
+            PrepareRemoveSpaceFn remove_fn;
+            Dispatcher(state()).dispatchNotEmpty(allocator(), remove_fn, room_start, room_end, update_state);
+            return remove_fn.status;
+        }
+        else {
+            return PkdUpdateStatus::SUCCESS;
+        }
     }
 
 
@@ -562,16 +558,6 @@ public:
             return tree.commit_remove(room_start, room_end, std::get<Idx>(update_state));
         }
     };
-
-//    void commit_remove(const Position& from_pos, const Position& end_pos, UpdateState& update_state)
-//    {
-//        return this->commit_remove(from_pos.get(), end_pos.get(), update_state);
-//    }
-
-//    void commit_remove_acc(int32_t room_start, int32_t room_end, UpdateState& update_state)
-//    {
-//        return commit_remove(room_start, room_end, update_state);
-//    }
 
 
     void commit_remove(size_t start, size_t end, UpdateState& update_state)
@@ -592,21 +578,24 @@ public:
         allocator()->resize_block(ValuesBlockIdx, requested_block_size);
     }
 
-//    void commit_remove(int32_t stream, int32_t room_start, int32_t room_end, UpdateState& update_state) {
-//        return commit_remove(room_start, room_end, update_state);
-//    }
 
-    PkdUpdateStatus remove_entries(size_t start, size_t end)
+
+    PkdUpdateStatus try_remove_entries(size_t start, size_t end)
     {
         UpdateState update_state = make_update_state();
         PkdUpdateStatus status = prepare_remove(start, end, update_state);
-        if (isSuccess(status)) {
+        if (is_success(status)) {
             commit_remove(start, end, update_state);
             return PkdUpdateStatus::SUCCESS;
         }
         else {
             return PkdUpdateStatus::FAILURE;
         }
+    }
+
+    void remove_entries(size_t start, size_t end) {
+        UpdateState update_state = make_update_state();
+        (void)commit_remove(start, end, update_state);
     }
 
 
@@ -749,7 +738,7 @@ public:
     PkdUpdateStatus merge_with(OtherNodeT&& other) const
     {
         auto update_state = make_update_state();
-        if (isSuccess(prepare_merge_with(std::forward<OtherNodeT>(other), update_state))) {
+        if (is_success(prepare_merge_with(std::forward<OtherNodeT>(other), update_state))) {
             commit_merge_with(std::forward<OtherNodeT>(other), update_state);
             return PkdUpdateStatus::SUCCESS;
         }
@@ -912,7 +901,7 @@ public:
         template <int32_t Idx, typename StreamType, typename UpdateState>
         void stream(StreamType&& tree, int32_t idx, const BranchNodeEntry& accum, UpdateState& update_state)
         {
-            if (isSuccess(status)) {
+            if (is_success(status)) {
                 status = tree.prepare_update(idx, 1, std::get<Idx>(update_state), [&](psize_t col, psize_t)  {
                     return std::get<Idx>(accum)[col];
                 });
@@ -931,9 +920,11 @@ public:
         UpdateState update_state = make_update_state();
 
         PrepareUpdateFn fn1;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), fn1, idx, keys, update_state);
+        if (SizeType == PackedDataTypeSize::VARIABLE) {
+            Dispatcher(state()).dispatchNotEmpty(allocator(), fn1, idx, keys, update_state);
+        }
 
-        if (isSuccess(fn1.status)) {
+        if (is_success(fn1.status)) {
             commit_update(idx, keys, update_state);
             return PkdUpdateStatus::SUCCESS;
         }

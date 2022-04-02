@@ -141,12 +141,12 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return tree_dispatcher_;
     }
 
-    BranchUpdateState make_branch_update_state() const {
+    BranchUpdateState ctr_make_branch_update_state() const {
         return BranchNodeSO::make_update_state();
     }
 
     template <typename LeafPath>
-    LeafUpdateState<LeafPath> make_leaf_update_state() const {
+    LeafUpdateState<LeafPath> ctr_make_leaf_update_state() const {
         return LeafNodeSO::template make_update_state<LeafPath>();
     }
 

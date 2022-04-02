@@ -29,11 +29,9 @@ namespace reactor {
 
 template <typename RtnType, typename Fn, typename... Args>
 class AppLambdaMessage: public LambdaMessage<RtnType, Fn, Args...> {
-    
     using Base = LambdaMessage<RtnType, Fn, Args...>;
     
-public:
-    
+public:    
     template <typename... CtrArgs>
     AppLambdaMessage(int cpu, Fn&& fn, CtrArgs&&... args): 
         Base(cpu, true, std::forward<Fn>(fn), std::forward<CtrArgs>(args)...)
@@ -48,7 +46,7 @@ public:
 template <typename Fn, typename... Args>
 auto make_special_one_way_lambda_message(int cpu, Fn&& fn, Args&&... args) 
 {
-    using RtnType = std::result_of_t<std::decay_t< Fn >( std::decay_t< Args > ... )>;
+    using RtnType = std::invoke_result_t<std::decay_t< Fn >, std::decay_t< Args > ...>;
     
     using MsgType = AppLambdaMessage<RtnType, Fn, Args...>;
     

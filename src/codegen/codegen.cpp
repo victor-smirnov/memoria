@@ -28,6 +28,20 @@
 #include <fstream>
 #include <filesystem>
 
+#include <pty.h>
+
+
+extern "C" {
+
+       int openpty(int *amaster, int *aslave, char *name,
+                     const struct termios *termp,
+                     const struct winsize *winp) {return 0;}
+       pid_t forkpty(int *amaster, char *name,
+                     const struct termios *termp,
+                     const struct winsize *winp) {return pid_t{};}
+}
+
+
 using namespace memoria;
 using namespace memoria::codegen;
 

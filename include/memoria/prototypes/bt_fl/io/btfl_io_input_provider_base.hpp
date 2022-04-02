@@ -402,8 +402,6 @@ public:
     using CtrSizeT  = typename CtrT::Types::CtrSizeT;
     using Iterator  = typename CtrT::Iterator;
 
-    using BlockUpdateMgr = typename CtrT::Types::BlockUpdateMgr;
-
     using typename Base::DataPositions;
     using typename Base::Position;
 
@@ -577,7 +575,7 @@ protected:
                 UpdateState& update_state
         )
         {
-            if (isSuccess(status)) {
+            if (is_success(status)) {
                 status = detail::PrepareStreamSelector<
                     StreamIdx < DataStreams ? detail::StreamSelectorType::DATA : detail::StreamSelectorType::STRUCTURE,
                     DataStreams
@@ -706,7 +704,7 @@ protected:
     {
         PrepareInsertBuffersFn insert_fn1;
 
-        auto update_state = ctr().template make_leaf_update_state<IntList<>>();
+        auto update_state = ctr().template ctr_make_leaf_update_state<IntList<>>();
 
         ctr().leaf_dispatcher().dispatch(
                     leaf,
@@ -718,7 +716,7 @@ protected:
                     update_state
         );
 
-        if (isSuccess(insert_fn1.status))
+        if (is_success(insert_fn1.status))
         {
             CommitInsertBuffersFn insert_fn2;
 

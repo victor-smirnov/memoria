@@ -1,5 +1,5 @@
 
-// Copyright 2020 Victor Smirnov
+// Copyright 2020-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -792,8 +792,8 @@ std::ostream& operator<<(std::ostream& out, const Result<T*>& res) noexcept
 
 template <typename Fn>
 std::enable_if_t<
-    !detail::IsVoidResultH<std::result_of_t<Fn()>>::Value,
-    typename detail::ResultOfFn<std::result_of_t<Fn()>>::Type
+    !detail::IsVoidResultH<std::invoke_result_t<Fn>>::Value,
+    typename detail::ResultOfFn<std::invoke_result_t<Fn>>::Type
 >
 wrap_throwing(Fn&& fn) noexcept
 {
@@ -808,12 +808,12 @@ wrap_throwing(Fn&& fn) noexcept
 
 template <typename Fn>
 std::enable_if_t<
-    detail::IsVoidResultH<std::result_of_t<Fn()>>::Value,
-    typename detail::ResultOfFn<std::result_of_t<Fn()>>::Type
+    detail::IsVoidResultH<std::invoke_result_t<Fn>>::Value,
+    typename detail::ResultOfFn<std::invoke_result_t<Fn>>::Type
 >
 wrap_throwing(Fn&& fn) noexcept
 {
-    using RtnT = typename detail::ResultOfFn<std::result_of_t<Fn()>>::Type::ValueType;
+    using RtnT = typename detail::ResultOfFn<std::invoke_result_t<Fn>>::Type::ValueType;
     try {
         fn();
         return Result<RtnT>::of();
@@ -826,7 +826,7 @@ wrap_throwing(Fn&& fn) noexcept
 
 template <typename Fn>
 std::enable_if_t<
-    detail::IsVoidResultH<std::result_of_t<Fn()>>::Value,
+    detail::IsVoidResultH<std::invoke_result_t<Fn>>::Value,
     void
 >
 wrap_construction(MaybeError& maybe_error, Fn&& fn) {
@@ -843,7 +843,7 @@ wrap_construction(MaybeError& maybe_error, Fn&& fn) {
 
 template <typename Fn>
 std::enable_if_t<
-    !detail::IsVoidResultH<std::result_of_t<Fn()>>::Value,
+    !detail::IsVoidResultH<std::invoke_result_t<Fn>>::Value,
     void
 >
 wrap_construction(MaybeError& maybe_error, Fn&& fn) {
