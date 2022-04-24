@@ -62,7 +62,10 @@ public:
             //self.path() = ii->path();
             //self.iter_leaf().assign(ii->iter_leaf());
 
-            self.iter_refresh();
+
+            // FIXME: Iterators are in a wrong state if redundant
+            // root has been removed during deletion.
+            //self.iter_refresh();
         }
 
         return sizes;
@@ -87,8 +90,9 @@ public:
             self.ctr().ctr_remove_entries(self.path(), start, ii->path(), end, sizes, true);
 
             self.iter_local_pos() = end[StructureStreamIdx];
-            //self.path() = ii->path();
-            //self.iter_leaf().assign(ii->iter_leaf());
+
+            self.path() = ii->path();
+            self.iter_leaf().assign(ii->iter_leaf());
 
             self.iter_refresh();
         }
@@ -110,6 +114,8 @@ public:
             self.ctr().ctr_remove_entries(self.path(), start, to.path(), end, true);
 
             self.iter_local_pos() = end[StructureStreamIdx];
+
+            self.path() = to.path();
             self.iter_leaf().assign(to.iter_leaf());
 
             self.iter_refresh();

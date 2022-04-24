@@ -100,7 +100,7 @@ void M_TYPE::ctr_update_branch_node(const TreeNodeConstPtr& node, int32_t idx, c
 {
     self().ctr_update_block_guard(node);
 
-    auto update_state = self().ctr_make_branch_update_state();
+    auto update_state = self().ctr_make_branch_update_state(node);
     self().branch_dispatcher().dispatch(node.as_mutable(), UpdateNodeFn(), idx, keys, update_state);
 }
 

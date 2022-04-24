@@ -81,30 +81,9 @@ public:
         return sizeof(MyType);
     }
 
-    size_t block_size_for(const MyType* other) const noexcept
-    {
-        return block_size(size_ + other->size_);
-    }
-
-    static constexpr size_t block_size(size_t array_size) noexcept
+    static constexpr size_t compute_block_size(size_t array_size) noexcept
     {
         return sizeof(MyType);
-    }
-
-    static constexpr size_t block_size(SizesT array_size) noexcept
-    {
-        return sizeof(MyType);
-    }
-
-    static constexpr size_t packed_block_size(size_t array_size) noexcept
-    {
-        return sizeof(MyType);
-    }
-
-    static size_t elements_for(size_t block_size) noexcept
-    {
-        size_t bsize = block_size;
-        return bsize >= sizeof(MyType) ? std::numeric_limits<size_t>::max() : 0;
     }
 
 

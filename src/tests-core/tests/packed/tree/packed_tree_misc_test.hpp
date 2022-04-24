@@ -51,9 +51,8 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA_CLASS_TESTS(suite, testInsertVector, testFillTree, testAddValue, testMerge);
+        MMA_CLASS_TESTS(suite, testInsertVector, testFillTree, testMerge);
         MMA_CLASS_TESTS(suite, testSplitToEmpty, testSplitToPreFilled, testRemoveMulti, testRemoveAll);
-        MMA_CLASS_TESTS(suite, testClear);
     }
 
 
@@ -119,31 +118,6 @@ public:
     }
 
 
-    void testAddValue(size_t size)
-    {
-        // addValues() is currently not implemented
-        // Uncomment the following code once it is.
-
-        /*Base::out() << size << std::endl;
-
-        auto tree = createEmptyTree();
-        auto tree_values = createRandomValuesVector(size);
-
-        fillVector(tree, tree_values);
-
-        for (size_t c = 0; c < iterations_; c++)
-        {
-            Values value = Base::createRandom();
-            size_t idx = getRandom(tree->size());
-
-            tree->addValues(idx, value);
-            Base::assertIndexCorrect(MA_SRC, tree);
-
-            addValues(tree_values, idx, value);
-
-            Base::assertEqual(tree, tree_values);
-        }*/
-    }
 
 
     void testSplitToEmpty()
@@ -240,6 +214,7 @@ public:
                 size_t block_size = tree.data()->block_size();
 
                 auto state = tree.make_update_state();
+                assert_success(tree.prepare_remove(start, end, state.first));
                 tree.commit_remove(start, end, state.first);
 
                 tree_values.erase(tree_values.begin() + start, tree_values.begin() + end);
@@ -269,6 +244,7 @@ public:
             assertEqual(tree, tree_values);
 
             auto state = tree.make_update_state();
+            assert_success(tree.prepare_remove(0, tree.size(), state.first));
             tree.commit_remove(0, tree.size(), state.first);
 
             assertEmpty(tree);
@@ -302,51 +278,13 @@ public:
         Base::fillVector(tree2, tree_values2);
 
         auto state = tree1.make_update_state();
+        is_success(tree1.prepare_merge_with(tree2, state.first));
         tree1.commit_merge_with(tree2, state.first);
 
         tree_values2.insert(tree_values2.end(), tree_values1.begin(), tree_values1.end());
 
         assertEqual(tree2, tree_values2);
     }
-
-
-    void testClear()
-    {
-        testClear(0);
-
-        for (int c = 1; c <= this->size_; c*=2)
-        {
-            testClear(c);
-        }
-    }
-
-    void testClear(size_t size)
-    {
-        out() << size << std::endl;
-
-        auto tree_ss = createEmptyTree();
-        auto tree = get_so(tree_ss);
-
-        auto block_size = tree.data()->block_size();
-
-        auto tree_values = createRandomValuesVector(size);
-        fillVector(tree, tree_values);
-
-        assertEqual(tree, tree_values);
-
-        tree.clear();
-        tree.data()->set_block_size(block_size);
-
-        assertEmpty(tree);
-
-        fillVector(tree, tree_values);
-
-        assertEqual(tree, tree_values);
-
-        tree.clear();
-        assertEmpty(tree);
-    }
-
 };
 
 

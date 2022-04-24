@@ -108,22 +108,22 @@ public:
     }
 
 
-    static size_t block_size(size_t capacity)
+    static size_t compute_block_size(size_t capacity)
     {
-        return Bitmap::block_size(capacity) + Array::empty_size();
+        return Bitmap::compute_block_size(capacity) + Array::empty_size();
     }
 
-    size_t block_size(const MyType* other) const
+    size_t compute_block_size(const MyType* other) const
     {
-        return MyType::block_size(size() + other->size());
+        return MyType::compute_block_size(size() + other->size());
     }
 
     void init()
     {
         size_t capacity = 0;
-        Base::init(block_size(capacity), STRUCTS_NUM__);
+        Base::init(compute_block_size(capacity), STRUCTS_NUM__);
 
-        size_t bitmap_block_size = Bitmap::block_size(capacity);
+        size_t bitmap_block_size = Bitmap::compute_block_size(capacity);
 
         auto bitmap = allocate_space<Bitmap>(BITMAP, bitmap_block_size);
 

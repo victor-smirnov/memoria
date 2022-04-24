@@ -39,6 +39,8 @@ class PDTDimension<Span<const T>, PkdStruct, Dimension, Block, Blocks, Dimension
     static constexpr size_t DataBlock       = Block + 0;
     static constexpr size_t OffsetsBlock    = Block + 1;
 
+    using MyType = PDTDimension;
+
 public:
     static constexpr size_t Width = 2;
 
@@ -88,7 +90,7 @@ public:
     }
 
     static constexpr size_t empty_size_aligned() {
-        return PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(psize_t));
+        return PackedAllocatable::round_up_bytes(sizeof(psize_t));
     }
 
     template <typename Metadata>
@@ -102,11 +104,11 @@ public:
         size_t my_data_size = data_size(my_meta);
         size_t other_data_size = other->template dimension<Dimension>(column_).data_size(other_meta);
 
-        size_t data_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        size_t data_size = PackedAllocatable::round_up_bytes(
              (my_data_size + other_data_size) * sizeof(T)
         );
 
-        size_t offsets_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        size_t offsets_size = PackedAllocatable::round_up_bytes(
              (my_meta.offsets_size() + other_meta.offsets_size() - 1) * sizeof (DataSizeType)
         );
 
@@ -146,11 +148,11 @@ public:
 
         size_t data_size = this->data_size();
 
-        size_t offsets_length_aligned = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        size_t offsets_length_aligned = PackedAllocatable::round_up_bytes(
                     (meta.offsets_size() + extra_size) * sizeof(DataSizeType)
         );
 
-        size_t data_length_aligned = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        size_t data_length_aligned = PackedAllocatable::round_up_bytes(
                     (extra_data_len + data_size) * sizeof(T)
         );
 
@@ -267,6 +269,45 @@ public:
         }
     }
 
+
+    void resize_block(size_t idx, size_t size, size_t new_len)
+    {
+        auto& meta = pkd_buf_->metadata();
+
+        size_t buf_size = meta.size();
+        DataSizeType* offsets = this->offsets();
+        T* data    = this->data();
+
+        size_t offset2 = offsets[idx + size];
+        size_t offset1 = offsets[idx];
+
+        size_t current_len = offset2 - offset1;
+
+        size_t data_len = data_size(meta);
+        size_t new_data_len = data_len - current_len + new_len;
+
+        if (current_len < new_len)
+        {
+            pkd_buf_->resize_block(offsets_block_num(), new_data_len);
+            CopyBuffer(data + offset2, data + new_len, data_len);
+
+            size_t delta = new_len - current_len;
+            for (size_t r = idx + size; r <= buf_size; r++) {
+                offsets[r] += delta;
+            }
+        }
+        else if (current_len > new_len)
+        {
+            CopyBuffer(data + offset2, data + new_len, data_len);
+            pkd_buf_->resize_block(offsets_block_num(), new_data_len);
+
+            size_t delta = current_len - new_len;
+            for (size_t r = idx + size; r <= buf_size; r++) {
+                offsets[r] -= delta;
+            }
+        }
+    }
+
     void replace_row(size_t idx, const Span<const T>& value)
     {
         auto* data = this->data();
@@ -340,13 +381,13 @@ public:
 
         size_t offsets_block_size_aligned0 = pkd_buf_->element_size(offsets_block_num());
 
-        size_t offsets_block_size_aligned1 = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        size_t offsets_block_size_aligned1 = PackedAllocatable::round_up_bytes(
             (offsets_size + 1) * sizeof(DataSizeType)
         );
 
         size_t column_data_size_aligned0 = pkd_buf_->element_size(data_block_num());
 
-        size_t column_data_size_aligned1 = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        size_t column_data_size_aligned1 = PackedAllocatable::round_up_bytes(
             (view_length + column_data_size) * sizeof(T)
         );
 
@@ -368,7 +409,7 @@ public:
 
             size_t size_delta = new_value_length - existing_value_length;
 
-            size_t column_data_size_aligned1 = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+            size_t column_data_size_aligned1 = PackedAllocatable::round_up_bytes(
                         size_delta + column_data_size
             );
 
@@ -392,6 +433,88 @@ public:
         FieldFactory<T>::deserialize(buf, data(), this->data_size(meta));
     }
 
+
+    template <typename Metadata>
+    size_t compute_dimension_size_for_merge(const PDTDimension& other, const Metadata& meta, const Metadata& other_meta) const
+    {
+        size_t my_size = meta.size();
+        size_t other_size = other_meta.size();
+
+        size_t offsets_size = PackedAllocatable::round_up_bytes(
+            (my_size + other_size + 1) * sizeof (DataSizeType)
+        );
+
+        size_t my_data_size = data_size(meta);
+        size_t other_data_size = other.data_size(other_meta);
+
+        size_t data_size = PackedAllocatable::round_up_bytes(
+            (my_data_size + other_data_size) * sizeof (T)
+        );
+
+        return offsets_size + data_size;
+    }
+
+    template <typename Metadata>
+    size_t compute_dimension_size_for_insert(size_t size, size_t data_len, const Metadata& meta) const
+    {
+        size_t my_size = meta.size();
+
+        size_t offsets_size = PackedAllocatable::round_up_bytes(
+            (my_size + size + 1) * sizeof (DataSizeType)
+        );
+
+        size_t my_data_size = data_size(meta);
+
+        size_t data_size = PackedAllocatable::round_up_bytes(
+            (my_data_size + data_len) * sizeof (T)
+        );
+
+        return offsets_size + data_size;
+    }
+
+    template <typename Metadata>
+    size_t compute_dimension_size_for_update(size_t idx, size_t size, size_t data_len, const Metadata& meta) const
+    {
+        size_t my_size = meta.size();
+
+        size_t offsets_size = PackedAllocatable::round_up_bytes(
+            (my_size + 1) * sizeof (DataSizeType)
+        );
+
+        size_t my_data_size = data_size(meta);
+
+        const DataSizeType* offsets = this->offsets();
+
+        size_t existing_data_len = offsets[idx + size] - offsets[idx];
+
+        size_t data_size = PackedAllocatable::round_up_bytes(
+            (my_data_size + data_len - existing_data_len) * sizeof (T)
+        );
+
+        return offsets_size + data_size;
+    }
+
+    template <typename Metadata>
+    size_t compute_dimension_size_for_remove(size_t start, size_t end, const Metadata& meta) const
+    {
+        size_t my_size = meta.size();
+
+        size_t offsets_size = PackedAllocatable::round_up_bytes(
+            (my_size + 1) * sizeof (DataSizeType)
+        );
+
+        size_t my_data_size = data_size(meta);
+
+        const DataSizeType* offsets = this->offsets();
+
+        size_t existing_data_len = offsets[end] - offsets[start];
+
+        size_t data_size = PackedAllocatable::round_up_bytes(
+            (my_data_size + existing_data_len) * sizeof (T)
+        );
+
+        return offsets_size + data_size;
+    }
 
 private:
     void shift_offsets_right(size_t start, size_t end, size_t shift_length) {

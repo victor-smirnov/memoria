@@ -604,7 +604,7 @@ private:
         {
             if (active_streams & (1ull << StreamIndex))
             {
-                size_ += Node::packed_block_size(tree_size);
+                size_ += Node::compute_block_size(tree_size);
             }
         }
     };
@@ -632,7 +632,7 @@ public:
         processSubstreamGroupsStatic(fn, tree_size, active_streams);
 
         int32_t tree_block_size     = fn.size_;
-        int32_t array_block_size    = PackedAllocatable::round_up_bytes_to_alignment_blocks(tree_size * sizeof(Value));
+        int32_t array_block_size    = PackedAllocatable::round_up_bytes(tree_size * sizeof(Value));
         int32_t client_area         = tree_block_size + array_block_size;
 
         return PackedAllocator::block_size(client_area, Streams + 1);
@@ -646,7 +646,7 @@ public:
         processSubstreamGroupsStatic(fn, &sizes);
 
         int32_t tree_block_size     = fn.size_;
-        int32_t array_block_size    = PackedAllocatable::round_up_bytes_to_alignment_blocks(values_size * sizeof(Value));
+        int32_t array_block_size    = PackedAllocatable::round_up_bytes(values_size * sizeof(Value));
         int32_t client_area         = tree_block_size + array_block_size;
 
         return PackedAllocator::block_size(client_area, Streams + 1);

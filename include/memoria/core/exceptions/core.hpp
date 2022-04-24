@@ -38,7 +38,10 @@ using DetailInfo  = boost::error_info<struct TagDetailInfo, U8String>;
 using DetailCInfo = boost::error_info<struct TagDetailCInfo, const char*>;
 using DetailSInfo = boost::error_info<struct TagDetailCInfo, std::string>;
 
-struct Exception: virtual MemoriaThrowable {};
+struct Exception: virtual MemoriaThrowable {
+
+    Exception(){}
+};
 struct CtrTypeException: virtual Exception {};
 struct NoCtrException: virtual Exception {};
 struct CtrAlreadyExistsException: virtual Exception {};

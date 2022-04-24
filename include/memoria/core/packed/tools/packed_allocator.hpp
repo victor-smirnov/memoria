@@ -147,7 +147,7 @@ public:
 
     void init(size_t block_size, size_t blocks)
     {
-        block_size_ = PackedAllocatable::round_down_bytes_to_alignment_blocks(block_size);
+        block_size_ = PackedAllocatable::round_down_bytes(block_size);
 
         size_t layout_blocks = blocks + (blocks % 2 ? 1 : 2);
 
@@ -155,7 +155,7 @@ public:
 
         memset(buffer_, 0, layout_size_);
 
-        bitmap_size_ = PackedAllocatable::round_up_bits_to_alignment_blocks(layout_blocks);
+        bitmap_size_ = PackedAllocatable::round_up_bits(layout_blocks);
 
         Bitmap* bitmap = this->bitmap();
         memset(bitmap, 0, bitmap_size_);
@@ -168,20 +168,20 @@ public:
 
     static constexpr size_t block_size(size_t client_area, size_t blocks)
     {
-        return PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        return PackedAllocatable::round_up_bytes(
                 my_size() +
                 (blocks + (blocks % 2 ? 1 : 2)) * sizeof(psize_t) +
-                PackedAllocatable::round_up_bits_to_alignment_blocks(blocks) +
-                PackedAllocatable::round_up_bytes_to_alignment_blocks(client_area)
+                PackedAllocatable::round_up_bits(blocks) +
+                PackedAllocatable::round_up_bytes(client_area)
         );
     }
 
     static constexpr size_t client_area(size_t block_size, size_t blocks)
     {
-        return PackedAllocatable::round_down_bytes_to_alignment_blocks(
+        return PackedAllocatable::round_down_bytes(
                 block_size -
                 (my_size() + (blocks + (blocks % 2 ? 1 : 2)) * sizeof(psize_t)
-                 + PackedAllocatable::round_up_bits_to_alignment_blocks(blocks))
+                 + PackedAllocatable::round_up_bits(blocks))
         );
     }
 
@@ -205,10 +205,8 @@ public:
     {
         MEMORIA_ASSERT(new_size, <=, std::numeric_limits<psize_t>::max());
 
-        size_t allocation_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(new_size);
-
+        size_t allocation_size = PackedAllocatable::round_up_bytes(new_size);
         size_t size  = element_size(idx);
-
         if (allocation_size > size)
         {
             size_t delta = allocation_size - size;
@@ -237,7 +235,7 @@ public:
 
     bool try_allocation(size_t idx, size_t new_size)
     {
-        size_t allocation_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(new_size);
+        size_t allocation_size = PackedAllocatable::round_up_bytes(new_size);
 
         size_t size  = element_size(idx);
         size_t delta = allocation_size - size;
@@ -260,6 +258,28 @@ public:
         }
 
         return true;
+    }
+
+    const Allocator* get_top_level() const
+    {
+        const Allocator* top_level_alloc = this;
+        while (top_level_alloc->allocatable_.allocator_offset() > 0)
+        {
+            top_level_alloc = allocatable_.allocator();
+        }
+
+        return top_level_alloc;
+    }
+
+    Allocator* get_top_level()
+    {
+        Allocator* top_level_alloc = this;
+        while (top_level_alloc->allocatable_.allocator_offset() > 0)
+        {
+            top_level_alloc = allocatable_.allocator();
+        }
+
+        return top_level_alloc;
     }
 
 
@@ -466,7 +486,7 @@ public:
 
     AllocationBlock allocate(size_t idx, size_t size, PackedBlockType type)
     {
-        size_t allocation_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(size);
+        size_t allocation_size = PackedAllocatable::round_up_bytes(size);
 
         set_block_type(idx, type);
 
@@ -578,12 +598,12 @@ public:
 
     size_t enlarge(size_t delta)
     {
-        return resize(PackedAllocatable::round_up_bytes_to_alignment_blocks(block_size_ + delta));
+        return resize(PackedAllocatable::round_up_bytes(block_size_ + delta));
     }
 
     size_t shrink(size_t delta)
     {
-        return resize(PackedAllocatable::round_up_bytes_to_alignment_blocks(block_size_ - delta));
+        return resize(PackedAllocatable::round_up_bytes(block_size_ - delta));
     }
 
     void resize_block(size_t new_size)
@@ -601,18 +621,7 @@ public:
         }
         else if (new_size > block_size_)
         {
-//            size_t allocated = this->allocated();
-//            size_t my_size = this->my_size();
-
-//            if (new_size >= allocated + my_size + layout_size_ + bitmap_size_)
-//            {
-//                //block_size_ = new_size;
-//            }
-//            else {
-//                return MEMORIA_MAKE_PACKED_OOM_ERROR();
-//            }
-//        }
-//        else {
+            std::cout << "OOM Error: " << new_size << " :: " << block_size_ << std::endl;
             MEMORIA_MAKE_PACKED_OOM_ERROR().do_throw();
         }
 
@@ -621,7 +630,7 @@ public:
 
     void forceResize(size_t amount)
     {
-        block_size_ += PackedAllocatable::round_down_bytes_to_alignment_blocks(amount);
+        block_size_ += PackedAllocatable::round_down_bytes(amount);
     }
 
     size_t pack()
@@ -725,6 +734,13 @@ public:
             AllocationBlockConst block = describe(c);
             println("\tblock: {} :: {} :: {}", c, block.offset(), block.size());
         }
+    }
+
+
+    PackedAllocatorUpdateState make_allocator_update_state()
+    {
+        const Allocator* alloc = get_top_level();
+        return PackedAllocatorUpdateState(alloc->free_space());
     }
 
 private:

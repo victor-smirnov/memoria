@@ -234,11 +234,21 @@ public:
     }
 
     IOSubstream& substream(size_t num) {
-        return *substreams_[num];
+        if (num < substreams_.size()) {
+            return *substreams_[num];
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("IOVector substreams range check: {}, size = {}", num, substreams_.size()).do_throw();
+        }
     }
 
     const IOSubstream& substream(size_t num) const {
-        return *substreams_[num];
+        if (num < substreams_.size()) {
+            return *substreams_[num];
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("IOVector substreams range check: {}, size = {}", num, substreams_.size()).do_throw();
+        }
     }
 
     int32_t streams() const {

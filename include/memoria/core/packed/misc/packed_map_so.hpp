@@ -40,16 +40,34 @@ template <typename PkdStruct>
 class PackedMapSO {
 
 public:
+    using MyType = PackedMapSO;
+
     using KeysSO   = typename PkdStruct::KeysPkdStruct::SparseObject;
     using ValuesSO = typename PkdStruct::ValuesPkdStruct::SparseObject;
 
     using KeysExtData   = typename PkdStruct::KeysPkdStruct::ExtData;
     using ValuesExtData = typename PkdStruct::ValuesPkdStruct::ExtData;
 
-    using KeyView   = typename PkdStruct::KeyView;
-    using ValueView = typename PkdStruct::ValueView;
+    using KeyView     = typename PkdStruct::KeyView;
+    using ValueView   = typename PkdStruct::ValueView;
 
-    using UpdateState = PkdStructUpdate<PackedMapSO>;
+    using KeysUS  = typename KeysSO::UpdateState;
+    using ValuesUS = typename ValuesSO::UpdateState;
+
+    class UpdateState: public PkdStructUpdateBase<MyType> {
+        KeysUS keys_update_state_;
+        ValuesUS values_update_state_;
+    public:
+        UpdateState() {}
+
+        KeysUS& keys_update_state()   {return keys_update_state_; }
+        ValuesUS& values_update_state() {return values_update_state_;}
+
+        void configure() {
+            keys_update_state_.set_allocator_state(this->allocator_state());
+            values_update_state_.set_allocator_state(this->allocator_state());
+        }
+    };
 
 private:
     KeysExtData keys_ext_data_;
@@ -59,8 +77,6 @@ private:
 
     KeysSO keys_;
     ValuesSO values_;
-
-    using MyType = PackedMapSO;
 
 public:
 
@@ -133,7 +149,7 @@ public:
         }
     }
 
-    psize_t size() const {
+    size_t size() const {
         return data_->size();
     }
 
@@ -153,35 +169,99 @@ public:
         return Optional<ValueView>();
     }
 
-    void set(const KeyView& key, const ValueView value) noexcept
+
+    PkdUpdateStatus prepare_set(const KeyView& key, const ValueView value, UpdateState& update_state) const
     {
+        update_state.configure();
+
         size_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
         if (MMA_LIKELY(result.local_pos() < size))
         {
             KeyView key0 = keys_.access(0, result.local_pos());
 
-            if (MMA_UNLIKELY(key0 == key))
-            {
-                values_.replace(0, result.local_pos(), value);
+            if (MMA_UNLIKELY(key0 == key)) {
+                return values_.prepare_update(result.local_pos(), 1, update_state.values_update_state(), [&](auto, auto){
+                    return value;
+                });
             }
             else {
-                keys_.insert(result.local_pos(), key);
+                auto key_ss = keys_.prepare_insert(result.local_pos(), 1, update_state.keys_update_state(), [&](auto, auto){
+                    return key;
+                });
+
+                if (!is_success(key_ss)) {
+                    return PkdUpdateStatus::FAILURE;
+                }
+
+                auto values_ss = values_.prepare_insert(result.local_pos(), 1, update_state.values_update_state(), [&](auto, auto){
+                    return value;
+                });
+
+                return values_ss;
+            }
+        }
+        else {
+            size_t idx = size;
+
+            auto key_ss = keys_.prepare_insert(idx, 1, update_state.keys_update_state(), [&](auto, auto){
+                return key;
+            });
+
+            if (!is_success(key_ss)) {
+                return PkdUpdateStatus::FAILURE;
+            }
+
+            auto values_ss = values_.prepare_insert(idx, 1, update_state.values_update_state(), [&](auto, auto){
+                return value;
+            });
+
+            return values_ss;
+        }
+    }
+
+    void commit_set(const KeyView& key, const ValueView value, UpdateState& update_state)
+    {
+        update_state.configure();
+
+        size_t size = data_->size();
+        auto result = keys_.findGEForward(0, key);
+        if (MMA_LIKELY(result.local_pos() < size))
+        {
+            KeyView key0 = keys_.access(0, result.local_pos());
+
+            if (MMA_UNLIKELY(key0 == key)) {
+                values_.commit_update(result.local_pos(), 1, update_state.values_update_state(), [&](auto, auto){
+                    return value;
+                });
 
                 refresh_so();
+            }
+            else {
+                keys_.commit_insert(result.local_pos(), 1, update_state.keys_update_state(), [&](auto, auto){
+                    return key;
+                });
+                refresh_so();
 
-                values_.insert(result.local_pos(), value);
+
+                values_.commit_insert(result.local_pos(), 1, update_state.values_update_state(), [&](auto, auto){
+                    return value;
+                });
 
                 refresh_so();
             }
         }
         else {
-            psize_t idx = size;
-            keys_.insert(idx, key);
+            size_t idx = size;
 
+            keys_.commit_insert(idx, 1, update_state.keys_update_state(), [&](auto, auto){
+                return key;
+            });
             refresh_so();
 
-            values_.insert(idx, value);
+            values_.commit_insert(idx, 1, update_state.values_update_state(), [&](auto, auto){
+                return value;
+            });
 
             refresh_so();
         }
@@ -206,55 +286,7 @@ public:
         }
     }
 
-    size_t estimate_required_upsize(const KeyView& key, const ValueView& value) const
-    {
-        size_t upsize{};
 
-        size_t size = data_->size();
-
-        auto result = keys_.findGEForward(0, key);
-        if (MMA_LIKELY(result.local_pos() < size))
-        {
-            KeyView key0 = keys_.access(0, result.local_pos());
-
-            if (MMA_LIKELY(key0 != key))
-            {
-                upsize += keys_.estimate_insert_upsize(key);
-                upsize += values_.estimate_insert_upsize(value);
-            }
-            else {
-                upsize += values_.estimate_replace_upsize(result.local_pos(), value);
-            }
-        }
-        else {
-            upsize += keys_.estimate_insert_upsize(key);
-            upsize += values_.estimate_insert_upsize(value);
-        }
-
-        return upsize;
-    }
-
-    size_t estimate_required_upsize(const std::vector<std::pair<KeyView, ValueView>>& entries) const
-    {
-        size_t upsize{};
-
-        for (const auto& entry: entries) {
-            upsize += estimate_required_upsize(std::get<0>(entry), std::get<1>(entry));
-        }
-
-        return upsize;
-    }
-
-    void set_all(const std::vector<std::pair<KeyView, ValueView>>& entries) noexcept
-    {
-        for (const auto& entry: entries)
-        {
-            const KeyView& key     = std::get<0>(entry);
-            const ValueView& value = std::get<1>(entry);
-
-            set(key, value);
-        }
-    }
 
     void for_each(std::function<void (KeyView, ValueView)> fn) const
     {

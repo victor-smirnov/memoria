@@ -297,6 +297,7 @@ public:
             println("R={}", c);
             CxxKeyType key = data_unsorted[c].key;
 
+            DebugCounter = c;
             bool removed = ctr->remove(key);
             assert_equals(true, removed, "Remove");
             assert_equals(max_ctr_size - c - 1, ctr->size(), "Size");

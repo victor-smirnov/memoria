@@ -57,7 +57,7 @@ public:
 
     static size_t data_block_size(size_t capacity)
     {
-        size_t size = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        size_t size = PackedAllocatable::round_up_bytes(
             capacity * sizeof(T)
         );
 
@@ -78,7 +78,7 @@ public:
     {
         auto meta = pkd_buf_->metadata();
 
-        size_t data_length_aligned = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        size_t data_length_aligned = PackedAllocatable::round_up_bytes(
                     (extra_data_len + meta.size()) * sizeof(T)
         );
 
@@ -88,7 +88,7 @@ public:
     template <typename Metadata>
     size_t joint_data_length(const Metadata& my_meta, const PkdStruct* other, const Metadata& other_meta) const
     {
-        size_t data_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        size_t data_size = PackedAllocatable::round_up_bytes(
              (my_meta.size() + other_meta.size()) * sizeof(T)
         );
 
@@ -128,6 +128,9 @@ public:
     {
     }
 
+    void resize_block(size_t idx, size_t size, size_t new_len) {
+    }
+
     void replace_row(size_t idx, const T* value)
     {
         *(this->data() + idx) = *value;
@@ -165,7 +168,7 @@ public:
 
         size_t column_data_size_aligned0 = pkd_buf_->element_size(data_block_num());
 
-        size_t column_data_size_aligned1 = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        size_t column_data_size_aligned1 = PackedAllocatable::round_up_bytes(
             (view_length + column_data_size) * sizeof(T)
         );
 
@@ -206,6 +209,55 @@ public:
     void deserialize(Metadata& meta, DeserializationData& buf)
     {
         FieldFactory<T>::deserialize(buf, data(), meta.size());
+    }
+
+
+    template <typename Metadata>
+    size_t compute_dimension_size_for_merge(const PDTDimension& other, const Metadata& meta, const Metadata& other_meta) const
+    {
+        size_t my_size = meta.size();
+        size_t other_size = other_meta.size();
+        size_t data_size = PackedAllocatable::round_up_bytes(
+            (my_size + other_size) * sizeof (T)
+        );
+
+        return data_size;
+    }
+
+    template <typename Metadata>
+    size_t compute_dimension_size_for_insert(size_t size, size_t data_len, const Metadata& meta) const
+    {
+        size_t my_size = meta.size();
+
+        size_t data_size = PackedAllocatable::round_up_bytes(
+            (my_size + data_len) * sizeof (T)
+        );
+
+        return data_size;
+    }
+
+    template <typename Metadata>
+    size_t compute_dimension_size_for_update(size_t idx, size_t size, size_t data_len, const Metadata& meta) const
+    {
+        size_t my_size = meta.size();
+
+        size_t data_size = PackedAllocatable::round_up_bytes(
+            (my_size) * sizeof (T)
+        );
+
+        return data_size;
+    }
+
+    template <typename Metadata>
+    size_t compute_dimension_size_for_remove(size_t start, size_t end, const Metadata& meta) const
+    {
+        size_t my_size = meta.size();
+
+        size_t data_size = PackedAllocatable::round_up_bytes(
+            (my_size - (end - start)) * sizeof (T)
+        );
+
+        return data_size;
     }
 };
 

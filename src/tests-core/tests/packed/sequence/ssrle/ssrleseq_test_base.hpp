@@ -48,11 +48,9 @@ protected:
     using Seq    = PkdSSRLESeqT<AlphabetSize, 256, Use64BitSize>;
     using SeqSO  = typename Seq::SparseObject;
 
-    using SeqPtr = PkdStructSPtr<Seq>;
+    using SeqPtr = std::shared_ptr<PkdStructHolder<Seq>>;
 
     size_t size_{32768};
-
-    mutable std::tuple<> extra_data_;
 
     using SymbolsRunT   = SSRLERun<Bps>;
     using RunTraits     = SSRLERunTraits<Bps>;
@@ -66,7 +64,7 @@ public:
     MMA_STATE_FILEDS(size_);
 
     SeqSO get_so(SeqPtr ptr) const {
-        return SeqSO(&extra_data_, ptr.get());
+        return ptr->get_so();
     }
 
     template <typename T1, typename T2>
@@ -85,8 +83,8 @@ public:
 
     SeqPtr make_empty_sequence(size_t syms_block_size = 1024*1024) const
     {
-        size_t block_size = Seq::block_size(syms_block_size);
-        return MakeSharedPackedStructByBlock<Seq>(block_size);
+        size_t block_size = Seq::compute_block_size(syms_block_size);
+        return PkdStructHolder<Seq>::make_empty(block_size);
     }
 
     std::vector<SymbolsRunT> make_random_sequence(size_t size) const
@@ -120,18 +118,17 @@ public:
     {
         size_t num_atoms = 128*1024*1024; //RunTraits::compute_size(span);
 
-        //SeqPtr ptr = make_empty_sequence(num_atoms * sizeof(CodeUnitT) * capacity_multiplier);
         SeqPtr ptr = make_empty_sequence(num_atoms);
         SeqSO seq = get_so(ptr);
 
-        seq.append(span);
-        seq.reindex();
+        auto update_state = seq.make_update_state();
+        assert_success(seq.prepare_insert(0, update_state.first, span));
+        seq.commit_insert(0, update_state.first, span);
 
         seq.check();
 
         return ptr;
     }
-
 
     class SymIterator {
         Span<const SymbolsRunT> runs_;

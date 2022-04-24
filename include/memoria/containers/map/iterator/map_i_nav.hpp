@@ -131,7 +131,7 @@ public:
 
     auto iter_raw_key(int32_t index) const
     {
-        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), index));
+        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), index, self().iter_local_pos()));
     }
 
     auto value() const

@@ -259,6 +259,7 @@ public:
             seq2.check();
 
             auto state = seq1.make_update_state();
+            assert_success(seq1.prepare_merge_with(seq2, state.first));
             seq1.commit_merge_with(seq2, state.first);
             assert_equals(size3, seq2.size());
 
@@ -294,7 +295,9 @@ public:
 
                 syms = insert_to_buffer(syms, src, pos);
 
-                seq.insert(pos, src);
+                auto update_state = seq.make_update_state();
+                assert_success(seq.prepare_insert(pos, update_state.first, src));
+                seq.commit_insert(pos, update_state.first, src);
                 seq.check();
 
                 std::vector<SymbolsRunT> vv = seq.iterator().as_vector();
@@ -330,6 +333,7 @@ public:
                 syms = remove_from_buffer(syms, start, end);
 
                 auto state = seq.make_update_state();
+                assert_success(seq.prepare_remove(start, end, state.first));
                 seq.commit_remove(start, end, state.first);
                 seq.check();
 

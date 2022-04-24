@@ -179,7 +179,7 @@ public:
 
     static size_t block_size(size_t bitmap_size) noexcept
     {
-        size_t metadata_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
+        size_t metadata_length = PackedAllocatable::round_up_bytes(sizeof(Metadata));
 
         size_t bitmaps_length = 0;
         size_t indexes_length = 0;
@@ -187,13 +187,13 @@ public:
         size_t single_bitmap_size = bitmap_size;
         for (size_t c = 0; c < Indexes; c++, single_bitmap_size /= 2)
         {
-            size_t bitmap_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+            size_t bitmap_length = PackedAllocatable::round_up_bytes(
                     div_up(single_bitmap_size, static_cast<size_t>(sizeof(BitmapType) * 8)) * 8
             );
             bitmaps_length += bitmap_length;
 
             size_t index_size   = index_level_size(single_bitmap_size);
-            size_t index_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(index_size * sizeof(IndexType));
+            size_t index_length = PackedAllocatable::round_up_bytes(index_size * sizeof(IndexType));
             indexes_length += index_length;
         }
 

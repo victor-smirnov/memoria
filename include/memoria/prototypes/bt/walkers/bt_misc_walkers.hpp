@@ -157,7 +157,7 @@ struct GetLeafValuesFn {
     template <typename StreamType, typename... Args>
     auto stream(const StreamType& obj, Args&&... args)
     {
-        return obj.get_values(std::forward<Args>(args)...);
+        return obj.access(std::forward<Args>(args)...);
     }
 };
 

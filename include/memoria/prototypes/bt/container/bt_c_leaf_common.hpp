@@ -215,7 +215,7 @@ public:
     template <int32_t Stream, typename Entry>
     bool ctr_try_insert_stream_entry_no_mgr(const TreeNodePtr& leaf, int32_t idx, const Entry& entry)
     {
-        auto update_state = self().template ctr_make_leaf_update_state<IntList<Stream>>();
+        auto update_state = self().template ctr_make_leaf_update_state<IntList<Stream>>(leaf.as_immutable());
 
         PrepareInsertFn<Stream> fn1;
         self().leaf_dispatcher().dispatch(leaf, fn1, idx, entry, update_state);
@@ -343,7 +343,7 @@ public:
         self.ctr_cow_clone_path(iter.path(), 0);
         self.ctr_update_block_guard(iter.iter_leaf().as_mutable());
 
-        auto update_state = self.template ctr_make_leaf_update_state<SubstreamsList>();
+        auto update_state = self.template ctr_make_leaf_update_state<SubstreamsList>(iter.iter_leaf());
         PrepareUpdateStreamFn<SubstreamsList> fn1;
 
         if (Types::LeafDataLength == LeafDataLengthType::VARIABLE)

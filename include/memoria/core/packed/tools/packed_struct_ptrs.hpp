@@ -144,6 +144,61 @@ MakeSharedPackedStructByBlock(size_t block_size, Args&&... args)
     }
 }
 
+template <typename PkdStruct>
+class PkdStructHolder {
 
+protected:
+    PkdStructUPtr<PackedAllocator> allocator_;
+    size_t block_size_;
+
+    static constexpr size_t STRUCT_IDX = 0;
+    using PkdSO   = typename PkdStruct::SparseObject;
+    using ExtData = typename PkdStruct::ExtData;
+
+    ExtData ext_data_;
+
+
+public:
+    PkdStructHolder(size_t block_size):
+        block_size_(block_size), ext_data_()
+    {
+        size_t allocator_block_size = PackedAllocator::block_size(block_size, 1);
+        PackedAllocator* alloc = allocate_system_zeroed<PackedAllocator>(allocator_block_size).release();
+        if (alloc) {
+            allocator_ = PkdStructUPtr<PackedAllocator>(alloc, memoria::free_system);
+
+            alloc->init(allocator_block_size, 1);
+            alloc->allocate_empty<PkdStruct>(STRUCT_IDX);
+        }
+        else {
+            MEMORIA_MAKE_PACKED_OOM_ERROR().do_throw();
+        }
+    }
+
+    virtual ~PkdStructHolder() noexcept = default;
+
+    size_t memory_block_size() const {return block_size_;}
+    size_t allocated_block_size() const {return allocator_->block_size();}
+
+
+    PkdSO get_so() {
+        return PkdSO(&ext_data_, get_ptr());
+    }
+
+    const PkdSO get_so() const {
+        return PkdSO(const_cast<ExtData*>(&ext_data_), const_cast<PkdStruct*>(get_ptr()));
+    }
+
+    static std::shared_ptr<PkdStructHolder> make_empty(size_t mem_block_size) {
+        return std::make_shared<PkdStructHolder>(mem_block_size);
+    }
+
+    static std::unique_ptr<PkdStructHolder> make_empty_unique(size_t mem_block_size) {
+        return std::make_unique<PkdStructHolder>(mem_block_size);
+    }
+
+    PkdStruct* get_ptr() {return allocator_->template get<PkdStruct>(STRUCT_IDX);}
+    const PkdStruct* get_ptr() const {return allocator_->template get<PkdStruct>(STRUCT_IDX);}
+};
 
 }

@@ -691,7 +691,7 @@ public:
         void stream(Tree&& tree, int32_t size, int32_t& mem_size)
         {
             using PkdTree = typename std::decay_t<Tree>::PkdStructT;
-            mem_size += PkdTree::packed_block_size(size);
+            mem_size += PkdTree::compute_block_size(size);
         }
     };
 
@@ -907,7 +907,7 @@ public:
     template <typename OtherNodeT>
     PkdUpdateStatus merge_with(OtherNodeT&& other) const
     {
-        auto update_state = make_update_state<IntList<>>();
+        auto update_state = other.template make_update_state<IntList<>>();
         if (is_success(prepare_merge_with(std::forward<OtherNodeT>(other), update_state)))
         {
             commit_merge_with(std::forward<OtherNodeT>(other), update_state);\
@@ -1549,8 +1549,11 @@ public:
     }
 
     template <typename LeafPath>
-    static UpdateState<LeafPath> make_update_state() {
+    UpdateState<LeafPath> make_update_state()
+    {
         UpdateState<LeafPath> state;
+        bt::get_allocator_update_state(state) = allocator()->make_allocator_update_state();
+
         bt::UpdateStateInitializer<UpdateState<LeafPath>>::process(state);
         return state;
     }

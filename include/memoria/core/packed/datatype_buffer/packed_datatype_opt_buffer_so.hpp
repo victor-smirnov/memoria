@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/core/packed/tools/packed_tools.hpp>
 
-
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/static_array.hpp>
@@ -44,7 +43,6 @@ class PackedDataTypeOptBufferSO {
     BitmapExtData bitmap_ext_data_;
 
     using MyType = PackedDataTypeOptBufferSO;
-
 public:
 
     using Array         = typename PkdStruct::Array;
@@ -52,6 +50,7 @@ public:
 
     using Bitmap        = typename PkdStruct::Bitmap;
     using BitmapSO      = typename Bitmap::SparseObject;
+    using SymbolsRunT   = typename BitmapSO::SymbolsRunT;
 
     using ViewType      = typename Array::ViewType;
     using DataType      = typename Array::DataType;
@@ -59,7 +58,23 @@ public:
     using Value         = typename PkdStruct::Value;
     using Values        = typename PkdStruct::Values;
 
-    using UpdateState = PkdStructUpdate<MyType>;
+    using ArrayUS  = typename ArraySO::UpdateState;
+    using BitmapUS = typename BitmapSO::UpdateState;
+
+    class UpdateState: public PkdStructUpdateBase<MyType> {
+        ArrayUS array_update_state_;
+        BitmapUS bitmap_update_state_;
+    public:
+        UpdateState() {}
+
+        ArrayUS& array_update_state()   {return array_update_state_; }
+        BitmapUS& bitmap_update_state() {return bitmap_update_state_;}
+
+        void configure() {
+            array_update_state_.set_allocator_state(this->allocator_state());
+            bitmap_update_state_.set_allocator_state(this->allocator_state());
+        }
+    };
 
     using PkdStructT = PkdStruct;
 
@@ -142,6 +157,8 @@ public:
 
         if (rnk1 != array_size)
         {
+            DumpStruct(*this);
+
             MEMORIA_MAKE_GENERIC_ERROR(
                 "PackedDataTypeOptBufferSO: Bitmap.rank(1) != array.size(): {} {}",
                 rnk1,
@@ -157,7 +174,8 @@ public:
 
     /*********************** API *********************/
 
-    size_t max_element_idx() const  {
+    size_t max_element_idx() const
+    {
         size_t array_idx = array().size() - 1;
         size_t bm_idx = bitmap_idx(array_idx);
         return bm_idx;
@@ -223,43 +241,92 @@ public:
         return reindex();
     }
 
-    PkdUpdateStatus prepare_merge_with(const MyType& other, UpdateState& update_state) const {
-        return PkdUpdateStatus::SUCCESS;
+    PkdUpdateStatus prepare_merge_with(const MyType& other, UpdateState& update_state) const
+    {
+        update_state.configure();
+
+        if (
+            is_success(array().prepare_merge_with(other.array(), update_state.array_update_state())) &&
+            is_success(bitmap().prepare_merge_with(other.bitmap(), update_state.bitmap_update_state()))
+        ) {
+            return PkdUpdateStatus::SUCCESS;
+        }
+        else {
+            return PkdUpdateStatus::FAILURE;
+        }
     }
 
     void commit_merge_with(MyType& other, UpdateState& update_state) const
     {
-        BitmapSO other_bitmap = other.bitmap();
+        update_state.configure();
 
-        auto state1 = other_bitmap.make_update_state(update_state.update_state());
-        bitmap().commit_merge_with(other_bitmap, state1);
+        BitmapSO other_bitmap = other.bitmap();
+        bitmap().commit_merge_with(other_bitmap, update_state.bitmap_update_state());
 
         ArraySO other_array = other.array();
-        auto state2 = other_array.make_update_state(update_state.update_state());
-        return array().commit_merge_with(other_array, state2);
+        return array().commit_merge_with(other_array, update_state.array_update_state());
     }
 
-    PkdUpdateStatus prepare_remove(size_t start, size_t end, UpdateState& update_state) const {
-        return PkdUpdateStatus::SUCCESS;
+    PkdUpdateStatus prepare_remove(size_t start, size_t end, UpdateState& update_state) const
+    {
+        update_state.configure();
+
+        BitmapSO bitmap = this->bitmap();
+        ArraySO array = this->array();
+
+        size_t array_start = array_idx(bitmap, start);
+        size_t array_end = array_idx(bitmap, end);
+
+        if (is_success(array.prepare_remove(array_start, array_end, update_state.array_update_state()))) {
+            return bitmap.prepare_remove(start, end, update_state.bitmap_update_state());
+        }
+
+        return PkdUpdateStatus::FAILURE;
     }
 
     void commit_remove(size_t start, size_t end, UpdateState& update_state)
     {
+        update_state.configure();
+
         BitmapSO bitmap = this->bitmap();
 
         size_t array_start = array_idx(bitmap, start);
         size_t array_end = array_idx(bitmap, end);
 
-        auto state1 = bitmap.make_update_state(update_state.update_state());
-        bitmap.commit_remove(start, end, state1);
-
-        auto state2 = array().make_update_state(update_state.update_state());
-        return array().commit_remove(array_start, array_end, state2);
+        array().commit_remove(array_start, array_end, update_state.array_update_state());
+        this->bitmap().commit_remove(start, end, update_state.bitmap_update_state());
     }
 
     template <typename AccessorFn>
-    PkdUpdateStatus prepare_insert(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements) {
-        return PkdUpdateStatus::SUCCESS;
+    PkdUpdateStatus prepare_insert(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements)
+    {
+        update_state.configure();
+        MEMORIA_ASSERT(row_at, <=, this->size());
+
+        std::vector<SymbolsRunT> syms;
+        size_t set_elements_num{};
+        for (size_t i = 0; i < size; i++) {
+            SymbolsRunT sym = is_not_empty(elements(0, i));
+            set_elements_num += sym.symbol(0);
+            syms.push_back(sym);
+        }
+
+        BitmapSO bitmap = this->bitmap();
+        PkdUpdateStatus bm_status = bitmap.prepare_insert(row_at, update_state.bitmap_update_state(), to_const_span(syms));
+        if (!is_success(bm_status)) {
+            return PkdUpdateStatus::FAILURE;
+        }
+
+        //size_t set_elements_num = bitmap.rank_eq(row_at, row_at + size, 1);
+        //size_t array_row_at = array_idx(row_at);
+
+        size_t array_row_at = 0;
+        PkdUpdateStatus arr_status = array().prepare_insert(array_row_at, set_elements_num, update_state.array_update_state(), [&](size_t col, size_t arr_idx)  {
+            size_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
+            return elements(col, bm_idx - row_at).get();
+        });
+
+        return arr_status;
     }
 
 
@@ -268,33 +335,80 @@ public:
     {
         MEMORIA_ASSERT(row_at, <=, this->size());
 
+        std::vector<SymbolsRunT> syms;
         BitmapSO bitmap = this->bitmap();
-
-        auto state1 = bitmap.make_update_state(update_state.update_state());
-        bitmap.commit_insert(row_at, size, state1, [&](size_t pos){
-            return is_not_empty(elements(0, pos));
-        });
+        bitmap.commit_insert(row_at, update_state.bitmap_update_state(), to_const_span(syms));
 
         size_t set_elements_num = bitmap.rank_eq(row_at, row_at + size, 1);
         size_t array_row_at = array_idx(row_at);
 
-        auto state2 = array().make_update_state(update_state.update_state());
-        array().commit_insert(array_row_at, set_elements_num, state2, [&](size_t col, size_t arr_idx)  {
+        array().commit_insert(array_row_at, set_elements_num, update_state.array_update_state(), [&](size_t col, size_t arr_idx)  {
             size_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
             return elements(col, bm_idx - row_at).get();
         });
     }
 
     template <typename AccessorFn>
-    PkdUpdateStatus prepare_update(psize_t row_at, psize_t size, UpdateState&, AccessorFn&&) const {
-        return PkdUpdateStatus::SUCCESS;
+    PkdUpdateStatus prepare_update(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements) const
+    {
+        BitmapSO bitmap = this->bitmap();
+        ArraySO  array  = this->array();
+
+        update_state.configure();
+        MEMORIA_ASSERT(row_at + size, <=, this->size());
+
+        std::vector<SymbolsRunT> syms;
+        std::vector<size_t> non_empty_pos;
+        size_t non_empty{};
+        for (size_t i = 0; i < size; i++)
+        {
+            SymbolsRunT run = is_not_empty(elements(0, i));
+            syms.push_back(run);
+            if (MMA_LIKELY(run.symbol(0))) {
+                non_empty ++;
+                non_empty_pos.push_back(i);
+            }
+        }
+
+        PkdUpdateStatus bm_status = bitmap.prepare_update(row_at, update_state.bitmap_update_state(), to_const_span(syms));
+        if (!is_success(bm_status)) {
+            return PkdUpdateStatus::FAILURE;
+        }
+
+        size_t set_elements_num = bitmap.rank_eq(row_at, row_at + size, 1);
+        size_t array_row_at = array_idx(row_at);
+
+        PkdUpdateStatus arr_status_rem = array.prepare_remove(array_row_at, array_row_at + set_elements_num, update_state.array_update_state());
+        if (is_success(arr_status_rem)){
+            return array.prepare_insert(array_row_at, non_empty, update_state.array_update_state(), [&](size_t col, size_t arr_idx) {
+                return elements(col, non_empty_pos[arr_idx]).get();
+            });
+        }
+
+        return PkdUpdateStatus::FAILURE;
     }
 
     template <typename AccessorFn>
     void commit_update(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements)
     {
-        commit_remove(row_at, size, update_state);
-        return commit_insert(row_at, size, update_state, std::forward<AccessorFn>(elements));
+        MEMORIA_ASSERT(row_at + size, <=, this->size());
+
+        BitmapSO bitmap = this->bitmap();
+
+        size_t set_elements_num_old = bitmap.rank_eq(row_at, row_at + size, 1);
+        size_t array_row_at = array_idx(row_at);
+
+        std::vector<SymbolsRunT> syms; // This array is actually unused here
+        bitmap.commit_update(row_at, update_state.bitmap_update_state(), to_const_span(syms));
+
+        size_t set_elements_num_new = bitmap.rank_eq(row_at, row_at + size, 1);
+
+        array().commit_remove(array_row_at, array_row_at + set_elements_num_old, update_state.array_update_state());
+
+        array().commit_insert(array_row_at, set_elements_num_new, update_state.array_update_state(), [&](size_t col, size_t arr_idx)  {
+            size_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
+            return elements(col, bm_idx - row_at).get();
+        });
     }
 
     FindResult findGTForward(size_t column, const ViewType& val) const
@@ -393,13 +507,14 @@ public:
 private:
 
     template <typename T>
-    bool is_not_empty(const T& value) const  {
-        return true;
+    SymbolsRunT is_not_empty(const T& value) const  {
+        return SymbolsRunT{1, 1, 1};
     }
 
     template <typename T>
-    bool is_not_empty(const Optional<T>& value) const  {
-        return (bool)value;
+    SymbolsRunT is_not_empty(const Optional<T>& value) const  {
+        bool exists = (bool)value;
+        return SymbolsRunT{1, exists, 1};
     }
 
     template <typename T>

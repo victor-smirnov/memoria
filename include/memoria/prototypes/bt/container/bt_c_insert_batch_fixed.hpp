@@ -126,7 +126,7 @@ public:
                 subtrees[i].child_node()    = child;
             }
 
-            auto update_state = self.ctr_make_branch_update_state();
+            auto update_state = self.ctr_make_branch_update_state(node);
             self.branch_dispatcher().dispatch(node.as_mutable(), CommitInsertChildrenFn(), idx + c, idx + c + i, subtrees, update_state);
 
             max = idx + c + i;

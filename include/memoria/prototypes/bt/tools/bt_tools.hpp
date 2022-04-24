@@ -525,7 +525,7 @@ struct CtrDirectoryHelper<Map<KeyType, CowBlockID<ValueHolder>>>: HasValue<bool,
 template <typename StateTuple, size_t Idx = 0, size_t Max = std::tuple_size_v<StateTuple> - 1>
 struct UpdateStateInitializer {
     static void process(StateTuple& tuple) {
-        std::get<Idx>(tuple).set_update_state(
+        std::get<Idx>(tuple).set_allocator_state(
             &std::get<Max>(tuple)
         );
 

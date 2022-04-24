@@ -260,15 +260,15 @@ public:
 
     using PackedAllocator::block_size;
 
-    size_t block_size(const MyType* other) const {
-        return block_size(this->symbols_block_size() + other->symbols_block_size());
+    size_t compute_block_size(const MyType* other) const {
+        return compute_block_size(this->symbols_block_size() + other->symbols_block_size());
     }
 
-    static size_t block_size(size_t symbols_block_capacity)
+    static size_t compute_block_size(size_t symbols_block_capacity)
     {
-        size_t metadata_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
+        size_t metadata_length = PackedAllocatable::round_up_bytes(sizeof(Metadata));
 
-        size_t symbols_block_capacity_aligned = PackedAllocatable::round_up_bytes_to_alignment_blocks(
+        size_t symbols_block_capacity_aligned = PackedAllocatable::round_up_bytes(
                     symbols_block_capacity
         );
 
@@ -278,11 +278,11 @@ public:
         size_t sum_index_length{};
 
         if (index_size > 0) {
-            size_index_length   = SizeIndex::packed_block_size(index_size);
-            sum_index_length    = SumIndex::packed_block_size(index_size);
+            size_index_length   = SizeIndex::compute_block_size(index_size);
+            sum_index_length    = SumIndex::compute_block_size(index_size);
         }
 
-        size_t block_size          = Base::block_size(
+        size_t block_size       = Base::block_size(
                     metadata_length
                     + size_index_length
                     + sum_index_length
@@ -349,7 +349,7 @@ public:
 
     static size_t empty_size()
     {
-        size_t metadata_length     = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
+        size_t metadata_length     = PackedAllocatable::round_up_bytes(sizeof(Metadata));
         size_t size_index_length   = 0;
         size_t sum_index_length    = 0;
         size_t symbols_block_capacity = 0;

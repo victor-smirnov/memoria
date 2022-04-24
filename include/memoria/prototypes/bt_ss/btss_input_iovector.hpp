@@ -270,7 +270,7 @@ public:
 
     virtual size_t insertBuffer(const TreeNodePtr& leaf, size_t at, size_t size)
     {
-        auto update_state = ctr().template ctr_make_leaf_update_state<IntList<>>();
+        auto update_state = ctr().template ctr_make_leaf_update_state<IntList<>>(leaf.as_immutable());
 
         CommitInsertBufferFn fn;
         ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, *io_vector_, update_state);
@@ -532,10 +532,9 @@ protected:
 
     bool tryInsertBuffer(const TreeNodePtr& leaf, size_t at, size_t size)
     {
-        auto update_state = ctr().template ctr_make_leaf_update_state<IntList<>>();
+        auto update_state = ctr().template ctr_make_leaf_update_state<IntList<>>(leaf.as_immutable());
 
         typename Base::PrepareInsertBufferFn fn1;
-
         ctr().leaf_dispatcher().dispatch(leaf, fn1, at, this->start_, size, *io_vector_, update_state);
 
         if (is_success(fn1.status)) {

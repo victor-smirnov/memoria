@@ -25,10 +25,7 @@ namespace memoria {
 namespace btfl {
 
 
-template <int32_t DataStreams> struct StructureStreamTF: HasType<PkdSSRLESeqT<DataStreams>> {};
-
-
-
+template <int32_t DataStreams> struct StructureStreamTF: HasType<PkdSSRLESeqT<DataStreams, 256, true>> {};
 
 
 template <typename Iterator, typename Container>

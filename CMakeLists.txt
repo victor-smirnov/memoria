@@ -118,6 +118,7 @@ if (BUILD_POSIX)
     endif()
 
     #add_definitions(-stdlib=libc++)
+    add_definitions(-stdlib=libstdc++)
 
     add_definitions(-march=native -Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
     add_definitions(-Wno-old-style-cast)

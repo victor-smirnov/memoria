@@ -84,10 +84,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         {
             if (level >= 1)
             {
+                // FIXME: Must check this subroutine for basic exception safety
+                // in case of CoW store.
+
                 auto node = self.ctr_create_node1(level, false, false);
                 self.ctr_ref_block(node->id());
-
-                self.layoutNonLeafNode(node, 0xFF);
 
                 self.ctr_insert_subtree(node, 0, provider, [this, level, &provider]() {
                     auto& self = this->self();
@@ -97,7 +98,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
                 return node;
             }
             else {
-                return provider.get_leaf();
+                TreeNodePtr leaf = provider.get_leaf();
+                //self.ctr_ref_block(leaf->id());
+                return leaf;
             }
         }
     }
@@ -108,12 +111,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
     class ListLeafProvider: public ILeafProvider {
         TreeNodePtr   head_;
-        CtrSizeT    size_ = 0;
-
-        MyType&     ctr_;
+        CtrSizeT size_ = 0;
+        MyType& ctr_;
 
     public:
-        ListLeafProvider(MyType& ctr, TreeNodePtr head, CtrSizeT size): head_(head),  size_(size), ctr_(ctr) {}
+        ListLeafProvider(MyType& ctr, TreeNodePtr head, CtrSizeT size):
+            head_(head), size_(size), ctr_(ctr)
+        {}
 
         virtual CtrSizeT size() const
         {
@@ -200,18 +204,47 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
     class LeafList {
-        CtrSizeT size_;
+        CtrSizeT size_{};
         TreeNodePtr head_;
         TreeNodePtr tail_;
+
+        MyType& ctr_;
+
     public:
-        LeafList(CtrSizeT size, TreeNodePtr head, TreeNodePtr tail): size_(size), head_(head), tail_(tail) {}
+        LeafList(MyType& ctr): ctr_(ctr) {}
+        virtual ~LeafList() {
+            do_finish();
+        }
 
         CtrSizeT size() const {return size_;}
+        void set_size(CtrSizeT& size) {size_ = size;}
+
         const TreeNodePtr& head() const {return head_;}
         const TreeNodePtr& tail() const {return tail_;}
 
         TreeNodePtr& head() {return head_;}
         TreeNodePtr& tail() {return tail_;}
+
+        virtual void do_finish()
+        {
+            TreeNodePtr node = head_;
+            DebugCounter = 1;
+            while (node)
+            {
+                auto next_id = node->next_leaf_id();
+                ctr_.ctr_unref_block(node->id());
+
+                if (next_id.is_set()) {
+                    node = ctr_.store().getBlock(next_id);
+                }
+                else {
+                    node = TreeNodePtr();
+                }
+            }
+            DebugCounter = 0;
+
+            head_ = TreeNodePtr();
+        }
     };
 
 
@@ -299,13 +332,15 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
     template <typename Provider>
-    LeafList ctr_create_leaf_data_list(Provider& provider)
+    std::shared_ptr<LeafList> ctr_create_leaf_data_list(Provider& provider)
     {
         auto& self = this->self();
 
-        CtrSizeT    total = 0;
-        TreeNodePtr   head;
-        TreeNodePtr   current;
+        auto leaf_list = std::make_shared<LeafList>(self);
+
+        CtrSizeT total = 0;
+        TreeNodePtr& head = leaf_list->head();
+        TreeNodePtr current;
 
         auto meta = self.ctr_get_root_metadata();
         int32_t block_size = meta.memory_block_size();
@@ -319,11 +354,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             }
 
             auto node = self.ctr_create_node(0, false, true, block_size);
-
             self.ctr_ref_block(node->id());
 
-            if (head.isSet())
-            {
+            if (head.isSet()){
                 current->next_leaf_id() = node->id();
             }
             else {
@@ -337,7 +370,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             total++;
         }
 
-        return LeafList(total, head, current);
+        leaf_list->set_size(total);
+        leaf_list->tail() = current;
+
+        return leaf_list;
     }
 
 
@@ -350,10 +386,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
         auto leaf_list = self.ctr_create_leaf_data_list(provider);
 
-        if (leaf_list.size() > 0)
+        if (leaf_list->size())
         {
-            ListLeafProvider list_provider(self, leaf_list.head(), leaf_list.size());
-            BatchInsertionState insertion_state(leaf_list.size());
+            ListLeafProvider list_provider(self, leaf_list->head(), leaf_list->size());
+            BatchInsertionState insertion_state(leaf_list->size());
 
             if (path.leaf()->is_root())
             {
@@ -365,7 +401,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
             while (insertion_state.has_more())
             {
-
                 auto insertion_idx = self.ctr_insert_subtree_one_pass(
                                 path,
                                 1,

@@ -40,8 +40,9 @@ template <typename DataType_, bool Indexed_, size_t Columns_, DTOrdering Orderin
 class PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType_, Indexed_, Columns_, Ordering_>>:
     public PackedAllocator
 {
-    using Base = PackedAllocator;
+    using Base = PackedAllocator;    
 public:
+
     using DataType = DataType_;
     using DataDimenstionsList = typename DataTypeTraits<DataType>::DataDimensionsList;
 
@@ -158,7 +159,7 @@ public:
 
     static size_t base_size(size_t dimensions_size)
     {
-        size_t metadata_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
+        size_t metadata_length = PackedAllocatable::round_up_bytes(sizeof(Metadata));
 
         return PackedAllocator::block_size(
             metadata_length + dimensions_size, DimensionsBlocksTotal * Columns + LAST_HEADER_BLOCK_
@@ -167,7 +168,7 @@ public:
 
     size_t base_size_with_index(size_t dimensions_size)
     {
-        size_t metadata_length = PackedAllocatable::round_up_bytes_to_alignment_blocks(sizeof(Metadata));
+        size_t metadata_length = PackedAllocatable::round_up_bytes(sizeof(Metadata));
 
         size_t index_size = element_size(INDEX);
 
@@ -176,12 +177,12 @@ public:
         );
     }
 
-    static size_t packed_block_size(size_t capacity)
+    static size_t compute_block_size(size_t capacity)
     {
         size_t index_size{};
-        if (capacity > IndexSpan) {
+        if (capacity > IndexSpan && Ordering == DTOrdering::SUM){
             size_t index_capacity = div_up(capacity, IndexSpan);
-            index_size = packed_block_size(index_capacity);
+            index_size = compute_block_size(index_capacity);
         }
 
         size_t aligned_data_size{};

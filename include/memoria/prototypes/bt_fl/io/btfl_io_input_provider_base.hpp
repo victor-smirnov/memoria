@@ -595,7 +595,7 @@ protected:
 
         template <
                 int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
-                typename ExtData, typename PakdStruct
+                typename ExtData, typename PakdStruct, typename UpdateState
         >
         void stream(
                 PackedSizedStructSO<ExtData, PakdStruct>& stream,
@@ -604,7 +604,8 @@ protected:
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                memoria::io::IOVector& io_vector)
+                memoria::io::IOVector& io_vector,
+                UpdateState& update_state)
         {
             static_assert(StreamIdx < Streams, "");            
             // Always succsseds
@@ -659,7 +660,7 @@ protected:
 
         template <
                 int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
-                typename ExtData, typename PakdStruct
+                typename ExtData, typename PakdStruct, typename UpdateState
         >
         void stream(
                 PackedSizedStructSO<ExtData, PakdStruct>& stream,
@@ -668,7 +669,8 @@ protected:
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                memoria::io::IOVector& io_vector)
+                memoria::io::IOVector& io_vector,
+                UpdateState& update_state)
         {
             static_assert(StreamIdx < Streams, "");
             return stream.insert_space(at[StreamIdx], sizes[StreamIdx]);
@@ -704,8 +706,7 @@ protected:
     {
         PrepareInsertBuffersFn insert_fn1;
 
-        auto update_state = ctr().template ctr_make_leaf_update_state<IntList<>>();
-
+        auto update_state = ctr().template ctr_make_leaf_update_state<IntList<>>(leaf.as_immutable());
         ctr().leaf_dispatcher().dispatch(
                     leaf,
                     insert_fn1,
@@ -729,12 +730,10 @@ protected:
                         *io_vector_,
                         update_state
             );
-
             return true;
         }
 
         return false;
-
     }
 
     static float getFreeSpacePart(const TreeNodePtr& node)
@@ -745,8 +744,7 @@ protected:
         return free_space / client_area;
     }
 
-    static bool hasFreeSpace(const TreeNodePtr& node)
-    {
+    static bool hasFreeSpace(const TreeNodePtr& node) {
         return getFreeSpacePart(node) > FREE_SPACE_THRESHOLD;
     }
 };

@@ -42,7 +42,8 @@ if (BUILD_POSIX)
     add_definitions(-Wno-class-memaccess)
     add_definitions(-Werror=return-type)
 
-    add_definitions(-pthread)
+    #add_definitions(-pthread -nostdinc++ -isystem/home/victor/jenny-r15-rel/include/c++/v1  )
+    add_definitions(-pthread -stdlib=libstdc++)
 
     add_global_libs(dl pthread)
 else()
@@ -89,7 +90,9 @@ target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
 target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options )
 target_link_libraries(MemoriaCodeGen PRIVATE pybind11::embed pybind11::module)
-target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling)
+target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling c++)
+
+target_link_options(MemoriaCodeGen PRIVATE -stdlib=libstdc++)
 
 endif()
 

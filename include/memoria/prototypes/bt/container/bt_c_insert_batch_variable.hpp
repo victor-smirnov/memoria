@@ -34,6 +34,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchVariableName)
     using typename Base::TreePathT;
     using typename Base::Checkpoint;
     using typename Base::ILeafProvider;
+    using typename Base::BranchNodeEntry;
 
 public:
     class InsertBatchResult {
@@ -62,51 +63,36 @@ public:
 
         TreeNodeConstPtr node = path[level];
 
-        int32_t batch_size = 32;
-
         CtrSizeT provider_size0 = provider.size();
-
         TreeNodePtr last_child{};
 
-        while(batch_size > 0 && provider.size() > 0)
+        int32_t c = 0;
+        while(provider.size() > 0)
         {
             auto checkpoint = provider.checkpoint();
 
-            int32_t c;
-            bool insertion_status{true};
+            auto child = child_fn();
+            if (!child.isSet()) {
+                MEMORIA_MAKE_GENERIC_ERROR("Subtree is null").do_throw();
+            }
 
-            for (c = 0; c < batch_size && provider.size() > 0; c++)
-            {
-                auto child = child_fn();
+            if (child->is_leaf()) {
+                self.ctr_ref_block(child->id());
+            }
 
-                if (!child.isSet())
-                {
-                    MEMORIA_MAKE_GENERIC_ERROR("Subtree is null").do_throw();
-                }
-
-                auto sums = self.ctr_get_node_max_keys(child.as_immutable());
-
-                PkdUpdateStatus ins_res = self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildFn(), idx + c, sums, child->id());
-                insertion_status = is_success(ins_res);
-
+            auto sums = self.ctr_get_node_max_keys(child.as_immutable());
+            PkdUpdateStatus ins_res = self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildFn(), idx + c, sums, child->id());
+            if (is_success(ins_res)) {
+                c += 1;
                 last_child = child;
             }
-
-            if (!insertion_status)
-            {
-                if (node->level() > 1)
-                {
-                    self.ctr_for_all_ids(node, idx, c, [&](const BlockID& id)
-                    {
-                        return self.ctr_remove_branch_nodes(id);
-                    });
-                }
-
-                provider.rollback(checkpoint);
-                batch_size /= 2;
-            }
             else {
+                provider.rollback(checkpoint);
+                if (!child->is_leaf()) {
+                    self.ctr_remove_branch_nodes(child->id());
+                }
                 idx += c;
+                break;
             }
         }
 
@@ -114,8 +100,7 @@ public:
             self.complete_tree_path(path, last_child.as_immutable());
         }
 
-        if (update_hierarchy)
-        {
+        if (update_hierarchy) {
             self.ctr_update_path(path, level);
         }
 

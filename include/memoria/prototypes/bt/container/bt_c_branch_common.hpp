@@ -90,7 +90,7 @@ public:
             const SplitFn& split_fn
     );
 
-    MEMORIA_V1_DECLARE_NODE_FN(RemoveSpaceFn, commit_remove);
+    MEMORIA_V1_DECLARE_NODE_FN(RemoveSpaceFn, try_remove_entries);
     void ctr_remove_branch_content(TreePathT& path, size_t level, int32_t start, int32_t end);
 
 MEMORIA_V1_CONTAINER_PART_END
@@ -362,8 +362,8 @@ void M_TYPE::ctr_remove_branch_content(TreePathT& path, size_t level, int32_t st
         return self.ctr_unref_block(id);
     });
 
-    auto update_state = self.ctr_make_branch_update_state();
-    self.branch_dispatcher().dispatch(path[level].as_mutable(), RemoveSpaceFn(), start, end, update_state);
+    PkdUpdateStatus status = self.branch_dispatcher().dispatch(path[level].as_mutable(), RemoveSpaceFn(), start, end);
+    assert_success(status);
     self.ctr_update_path(path, level);
 }
 

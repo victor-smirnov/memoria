@@ -220,22 +220,22 @@ public:
 //    }
 
     template <typename AccessorFn>
-    void commit_insert(SeqSizeT row_at, psize_t size, UpdateState& update_state, AccessorFn&& elements)
+    void commit_insert(SeqSizeT row_at, size_t size, UpdateState& update_state, AccessorFn&& elements)
     {
-        for (psize_t c = 0; c < size; c++)
-        {
-            SymbolT symbol = elements(c);
-            SymbolsRunT run(1, symbol, 1);
-            insert(row_at, unit_span_of(&run));
-        }
+//        for (psize_t c = 0; c < size; c++)
+//        {
+//            SymbolT symbol = elements(c);
+//            SymbolsRunT run(1, symbol, 1);
+//            insert(row_at, unit_span_of(&run));
+//        }
     }
 
-    template <typename AccessorFn>
-    void commit_update(SeqSizeT row_at, SeqSizeT size, UpdateState& update_state, AccessorFn&& elements)
-    {
-        remove(row_at, row_at + size, update_state);
-        return commit_insert(row_at, size, update_state, std::forward<AccessorFn>(elements));
-    }
+//    template <typename AccessorFn>
+//    void commit_update(SeqSizeT row_at, SeqSizeT size, UpdateState& update_state, AccessorFn&& elements)
+//    {
+//        remove(row_at, row_at + size, update_state);
+//        return commit_insert(row_at, size, update_state, std::forward<AccessorFn>(elements));
+//    }
 
     SeqSizeT rank(SeqSizeT pos, SymbolT symbol, SeqOpType op_type) const {
         switch (op_type) {
@@ -758,34 +758,14 @@ public:
     }
 
 
-    size_t append(Span<const SymbolsRunT> runs)
-    {
-        if (runs.size() == 0) {
-            return size_t{};
-        }
 
-        auto* meta = data_->metadata();
-        if (meta->size())
-        {
-            Location loc = locate_last_run(meta);
-            SeqSizeT len = loc.run.full_run_length();
+    struct InsertStepUS: PkdStructUpdateStepBase<MyType> {
+        std::vector<SymbolsRunT> runs;
+        size_t new_code_units;
+        SeqSizeT size;
+    };
 
-            if (runs.size() == 1)
-            {
-                auto res = RunTraits::insert(loc.run, runs[0], len);
-                return do_append(meta, loc.unit_idx, len, res.span());
-            }
-            else {
-                return do_append(meta, meta->code_units(), 0, runs);
-            }
-        }
-        else {
-            return do_append(meta, 0, 0, runs);
-        }
-    }
-
-
-    void insert(SeqSizeT idx, Span<const SymbolsRunT> runs)
+    PkdUpdateStatus prepare_insert(SeqSizeT idx, UpdateState& update_state, Span<const SymbolsRunT> runs)
     {
         std::vector<SymbolsRunT> left;
         std::vector<SymbolsRunT> right;
@@ -801,80 +781,141 @@ public:
 
             compactify_runs(left);
 
-            size_t new_code_units = RunTraits::compute_size(left, 0);
+            InsertStepUS* step = update_state.template make_new<InsertStepUS>();
 
-            data_->resize_block(PkdStruct::SYMBOLS, new_code_units * sizeof(CodeUnitT));
+            step->runs = std::move(left);
+            step->new_code_units = RunTraits::compute_size(step->runs, 0);
+            step->size = count_symbols(runs);
 
-            Span<CodeUnitT> atoms = data_->symbols();
-            RunTraits::write_segments_to(left, atoms, 0);
+            size_t required_block_size = PkdStruct::compute_block_size(step->new_code_units * sizeof(CodeUnitT));
+            size_t existing_block_size = data_->block_size();
 
-            Metadata* meta = data_->metadata();
-            meta->set_code_units(new_code_units);
-            meta->add_size(count_symbols(runs));
-
-            do_reindex(to_span(left));
+            return update_state.allocator_state()->inc_allocated(existing_block_size, required_block_size);
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Range check in SSRLE sequence insert: idx={}, size={}", idx, size).do_throw();
         }
     }
 
-    PkdUpdateStatus prepare_remove(size_t room_start, size_t room_end, UpdateState& update_state) const {
+    size_t get_code_units_num(const UpdateState& update_state) const {
+        const InsertStepUS* step = update_state.template step<InsertStepUS>();
+        return step->new_code_units;
+    }
+
+
+    void commit_insert(SeqSizeT idx, UpdateState& update_state, Span<const SymbolsRunT> runs)
+    {
+        InsertStepUS* step = update_state.template step<InsertStepUS>();
+
+        data_->resize_block(PkdStruct::SYMBOLS, step->new_code_units * sizeof(CodeUnitT));
+
+        Span<CodeUnitT> atoms = data_->symbols();
+        RunTraits::write_segments_to(step->runs, atoms, 0);
+
+        Metadata* meta = data_->metadata();
+        meta->set_code_units(step->new_code_units);
+        meta->add_size(step->size);
+
+        do_reindex(to_span(step->runs));
+    }
+
+
+    PkdUpdateStatus prepare_update(SeqSizeT idx, UpdateState& update_state, Span<const SymbolsRunT> runs)
+    {
+        std::vector<SymbolsRunT> left;
+        std::vector<SymbolsRunT> right;
+
+        SeqSizeT size = this->size();
+
+        if (idx <= size)
+        {
+            SeqSizeT run_size = count_symbols(runs);
+
+            auto syms = iterator().as_vector();
+            remove_block(left, right, syms, idx, idx + run_size);
+
+            append_all(left, runs);
+            append_all(left, to_const_span(right));
+
+            compactify_runs(left);
+
+            InsertStepUS* step = update_state.template make_new<InsertStepUS>();
+
+            step->runs = std::move(left);
+            step->new_code_units = RunTraits::compute_size(step->runs, 0);
+
+            size_t required_block_size = PkdStruct::compute_block_size(step->new_code_units * sizeof(CodeUnitT));
+            size_t existing_block_size = data_->block_size();
+
+            return update_state.allocator_state()->inc_allocated(existing_block_size, required_block_size);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Range check in SSRLE sequence update: idx={}, size={}", idx, size).do_throw();
+        }
+    }
+
+
+    void commit_update(SeqSizeT idx, UpdateState& update_state, Span<const SymbolsRunT> runs) {
+        commit_insert(idx, update_state, runs);
+    }
+
+
+
+
+    struct RemoveStepUS: PkdStructUpdateStepBase<MyType> {
+        std::vector<SymbolsRunT> runs;
+        size_t new_code_units;
+        SeqSizeT size;
+    };
+
+
+
+    PkdUpdateStatus prepare_remove(SeqSizeT start, SeqSizeT end, UpdateState& update_state) const
+    {
+        auto meta = data_->metadata();
+
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, meta->size());
+
+        if (end > start)
+        {
+            std::vector<SymbolsRunT> runs = iterator().as_vector();
+
+            RemoveStepUS* step = update_state.template make_new<RemoveStepUS>();
+            remove_block(step->runs, to_const_span(runs), start, end);
+
+            compactify_runs(step->runs);
+
+            step->new_code_units = RunTraits::compute_size(step->runs, 0);
+
+            size_t required_block_size = PkdStruct::compute_block_size(step->new_code_units * sizeof(CodeUnitT));
+            size_t existing_block_size = data_->block_size();
+
+            step->size = end - start;
+
+            return update_state.allocator_state()->inc_allocated(existing_block_size, required_block_size);
+        }
+
         return PkdUpdateStatus::SUCCESS;
     }
 
 
     void commit_remove(SeqSizeT start, SeqSizeT end, UpdateState& update_state, bool compactify = false)
     {
-        if (end > start)
+        auto meta = data_->metadata();
+        RemoveStepUS* step = update_state.template step<RemoveStepUS>();
+
+        if (step)
         {
-            auto meta = data_->metadata();
-
-            MEMORIA_ASSERT(start, <=, end);
-            MEMORIA_ASSERT(end, <=, meta->size());
-
-            std::vector<SymbolsRunT> runs = iterator().as_vector();
-
-            std::vector<SymbolsRunT> runs_res;
-
-            if (end < meta->size()) {
-                if (start > SeqSizeT{0}) {
-                    std::vector<SymbolsRunT> right1;
-                    split_buffer(runs, runs_res, right1, start);
-
-                    std::vector<SymbolsRunT> left2;
-                    std::vector<SymbolsRunT> right2;
-                    split_buffer(right1, left2, right2, end - start);
-
-                    append_all(runs_res, to_const_span(right2));
-                }
-                else {
-                    std::vector<SymbolsRunT> left;
-                    split_buffer(runs, left, runs_res, end);
-                }
-            }
-            else {
-                if (start > SeqSizeT{0}) {
-                    std::vector<SymbolsRunT> right;
-                    split_buffer(runs, runs_res, right, start);
-                }
-                else {
-                    return clear();
-                }
-            }
-
-            compactify_runs(runs_res);
-
-            size_t new_code_units = RunTraits::compute_size(runs_res, 0);
-            data_->resize_block(PkdStruct::SYMBOLS, new_code_units * sizeof(CodeUnitT));
+            data_->resize_block(PkdStruct::SYMBOLS, step->new_code_units * sizeof(CodeUnitT));
 
             Span<CodeUnitT> atoms = data_->symbols();
-            RunTraits::write_segments_to(runs_res, atoms, 0);
+            RunTraits::write_segments_to(step->runs, atoms, 0);
 
-            meta->set_code_units(new_code_units);
-            meta->sub_size(end - start);
+            meta->set_code_units(step->new_code_units);
+            meta->sub_size(step->size);
 
-            return do_reindex(to_span(runs_res));
+            return do_reindex(to_span(step->runs));
         }
     }
 
@@ -886,7 +927,7 @@ public:
 
         size_t new_code_units = RunTraits::compute_size(syms, 0);
 
-        auto new_block_size = PackedAllocatable::round_up_bytes_to_alignment_blocks(new_code_units * sizeof(CodeUnitT));
+        auto new_block_size = PackedAllocatable::round_up_bytes(new_code_units * sizeof(CodeUnitT));
         data_->resize_block(PkdStruct::SYMBOLS, new_block_size);
 
         Span<CodeUnitT> atoms = data_->symbols();
@@ -949,46 +990,72 @@ public:
         }
     }
 
-    PkdUpdateStatus prepare_merge_with(const MyType& other, UpdateState& update_state) const {
-        return PkdUpdateStatus::SUCCESS;
+    struct MergeWithUS: PkdStructUpdateStepBase<MyType> {
+        std::vector<SymbolsRunT> syms;
+        size_t new_code_units;
+
+        void apply(MyType& me) {}
+    };
+
+
+    PkdUpdateStatus prepare_merge_with(const MyType& other, UpdateState& update_state) const
+    {
+        MergeWithUS* step = update_state.template make_new<MergeWithUS>();
+
+        step->syms = other.iterator().as_vector();
+        iterator().read_to(step->syms);
+        compactify_runs(step->syms);
+
+        step->new_code_units = RunTraits::compute_size(step->syms, 0);
+
+        size_t required_block_size = PkdStruct::compute_block_size(step->new_code_units * sizeof(CodeUnitT));
+        size_t existing_block_size = other.data()->block_size();
+
+        return update_state.allocator_state()->inc_allocated(existing_block_size, required_block_size);
     }
 
-    void commit_merge_with(MyType& other, UpdateState&) const
+    void commit_merge_with(MyType& other, UpdateState& update_state) const
     {
         auto meta       = data_->metadata();
         auto other_meta = other.data_->metadata();
 
-        std::vector<SymbolsRunT> syms = other.iterator().as_vector();
-        iterator().read_to(syms);
+        MergeWithUS* step = update_state.template step<MergeWithUS>();
 
-        compactify_runs(syms);
-
-        size_t new_code_units = RunTraits::compute_size(syms, 0);
-
-        auto new_block_size = new_code_units * sizeof(CodeUnitT);
+        auto new_block_size = step->new_code_units * sizeof(CodeUnitT);
         other.data_->resize_block(PkdStruct::SYMBOLS, new_block_size);
 
         Span<CodeUnitT> atoms = other.data_->symbols();
-        RunTraits::write_segments_to(syms, atoms, 0);
+        RunTraits::write_segments_to(step->syms, atoms, 0);
 
         other_meta->add_size(meta->size());
-        other_meta->set_code_units(new_code_units);
+        other_meta->set_code_units(step->new_code_units);
 
-        return other.do_reindex(to_span(syms));
+        return other.do_reindex(to_span(step->syms));
     }
 
 
-    PkdUpdateStatus prepare_insert_io_substream(size_t at, const io::IOSubstream& substream, SeqSizeT start, SeqSizeT size, UpdateState&) {
-        return PkdUpdateStatus::SUCCESS;
-    }
 
-    size_t commit_insert_io_substream(SeqSizeT at, const io::IOSubstream& substream, SeqSizeT start, SeqSizeT size, UpdateState&)
+
+    PkdUpdateStatus prepare_insert_io_substream(
+            SeqSizeT at,
+            const io::IOSubstream& substream,
+            SeqSizeT start,
+            SeqSizeT size,
+            UpdateState& update_state
+    )
     {
         using BufferT = io::IOSSRLEBuffer<AlphabetSize>;
         const BufferT& buffer = io::substream_cast<BufferT>(substream);
 
         std::vector<SymbolsRunT> syms = buffer.symbol_runs(start, size);
-        this->insert(at, syms);
+        return prepare_insert(at, update_state, syms);
+    }
+
+
+    size_t commit_insert_io_substream(SeqSizeT at, const io::IOSubstream& substream, SeqSizeT start, SeqSizeT size, UpdateState& update_state)
+    {
+        Span<const SymbolsRunT> syms;
+        commit_insert(at, update_state, syms);
 
         return at + size;
     }
@@ -1283,7 +1350,13 @@ private:
         const auto* meta = data_->metadata();
         SeqSizeT size = meta->size();
 
-        MEMORIA_V1_ASSERT_TRUE(pos <= size && symbol < AlphabetSize);
+        if (pos > size) {
+            int a = 0;
+            a++;
+        }
+
+        MEMORIA_ASSERT(pos, <=, size);
+        MEMORIA_ASSERT(symbol, <, AlphabetSize);
 
         size_t unit_pos;
         SeqSizeT size_sum;
@@ -1519,37 +1592,6 @@ private:
         }
     }
 
-    size_t do_append(typename PkdStruct::Metadata* meta, size_t start, SeqSizeT run_len0, Span<const SymbolsRunT> runs)
-    {
-        size_t code_units = RunTraits::compute_size(runs, start);
-        size_t syms_size = data_->element_size(PkdStruct::SYMBOLS) / sizeof (CodeUnitT);
-        if (code_units > syms_size)
-        {
-            size_t bs = code_units * sizeof(CodeUnitT);
-            bool can_alocate = data_->try_allocation(PkdStruct::SYMBOLS, bs);
-            if (can_alocate)
-            {
-                data_->resize_block(PkdStruct::SYMBOLS, bs);
-            }
-            else {
-                size_t new_syms_size = syms_size > 0 ? syms_size : 4;
-                while (new_syms_size < code_units) {
-                    new_syms_size *= 2;
-                }
-
-                return new_syms_size * sizeof(CodeUnitT);
-            }
-        }
-
-        Span<CodeUnitT> syms = data_->symbols();
-        RunTraits::write_segments_to(runs, syms, start);
-
-        meta->set_code_units(code_units);
-        meta->sub_size(run_len0);
-        meta->add_size(count_symbols(runs));
-
-        return size_t{};
-    }
 
     SeqSizeT count_symbols(Span<const SymbolsRunT> runs)
     {
@@ -1572,11 +1614,11 @@ private:
             SeqSizeT pos) const
     {
         std::vector<SymbolsRunT> runs = iterator().as_vector();
-        return split_buffer(runs, left, right, pos);
+        return split_buffer(to_span(runs), left, right, pos);
     }
 
     void split_buffer(
-            const std::vector<SymbolsRunT>& runs,
+            Span<const SymbolsRunT> runs,
             std::vector<SymbolsRunT>& left,
             std::vector<SymbolsRunT>& right,
             SeqSizeT pos) const
@@ -1587,17 +1629,19 @@ private:
         {
             auto s_res = runs[res.run_idx].split(res.local_offset);
 
-            append_all(left, to_const_span(runs, 0, res.run_idx));
+            append_all(left, runs.subspan(0, res.run_idx));
             append_all(left, s_res.left.span());
 
             append_all(right, s_res.right.span());
 
             if (res.run_idx + 1 < runs.size()) {
-                append_all(right, to_span(runs).subspan(res.run_idx + 1));
+                append_all(right, runs.subspan(res.run_idx + 1));
             }
         }
         else {
-            left = std::move(runs);
+            for (size_t c = 0; c < runs.size(); c++) {
+                left.push_back(runs[c]);
+            }
         }
     }
 
@@ -1642,7 +1686,11 @@ private:
         const Metadata* meta = data_->metadata();
         SeqSizeT size = meta->size();
 
-        MEMORIA_V1_ASSERT_TRUE(pos < size);
+        if (pos >= size) {
+            DumpStruct(*this);
+        }
+
+        MEMORIA_ASSERT(pos, <, size);
 
         size_t unit_pos;
         SeqSizeT sum;
@@ -1855,6 +1903,42 @@ private:
         }
     }
 
+
+    void remove_block(std::vector<SymbolsRunT>& dst_left, std::vector<SymbolsRunT>& dst_right, Span<const SymbolsRunT> runs, SeqSizeT start, SeqSizeT end) const
+    {
+        auto meta = data_->metadata();
+
+        if (end < meta->size()) {
+            if (start > SeqSizeT{0}) {
+                std::vector<SymbolsRunT> right1;
+                split_buffer(runs, dst_left, right1, start);
+
+                std::vector<SymbolsRunT> left2;
+
+                split_buffer(right1, left2, dst_right, end - start);
+            }
+            else {
+                std::vector<SymbolsRunT> left;
+                split_buffer(runs, left, dst_left, end);
+            }
+        }
+        else {
+            if (start > SeqSizeT{0}) {
+                std::vector<SymbolsRunT> right;
+                split_buffer(runs, dst_left, right, start);
+            }
+        }
+    }
+
+    void remove_block(std::vector<SymbolsRunT>& dst, Span<const SymbolsRunT> runs, SeqSizeT start, SeqSizeT end) const
+    {
+        std::vector<SymbolsRunT> right;
+        remove_block(dst, right, runs, start, end);
+
+        if (right.size()) {
+            append_all(dst, to_span(right));
+        }
+    }
 
 };
 

@@ -141,13 +141,27 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return tree_dispatcher_;
     }
 
-    BranchUpdateState ctr_make_branch_update_state() const {
-        return BranchNodeSO::make_update_state();
+    struct MakeBranchUpdateStateFn {
+        BranchUpdateState treeNode(BranchNodeSO so) {
+            return so.make_update_state();
+        }
+    };
+
+    BranchUpdateState ctr_make_branch_update_state(const TreeNodeConstPtr& node) const {
+        return branch_dispatcher().dispatch(node, MakeBranchUpdateStateFn());
     }
 
     template <typename LeafPath>
-    LeafUpdateState<LeafPath> ctr_make_leaf_update_state() const {
-        return LeafNodeSO::template make_update_state<LeafPath>();
+    struct MakeLeafUpdateStateFn {
+        LeafUpdateState<LeafPath> treeNode(LeafNodeSO so) {
+            return so.template make_update_state<LeafPath>();
+        }
+    };
+
+
+    template <typename LeafPath>
+    LeafUpdateState<LeafPath> ctr_make_leaf_update_state(const TreeNodeConstPtr& node) const {
+        return leaf_dispatcher().dispatch(node, MakeLeafUpdateStateFn<LeafPath>());
     }
 
     LeafNodeExtData& leaf_node_ext_data() const noexcept {return leaf_node_ext_data_;}
@@ -175,6 +189,14 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             self().ctr_cow_clone_path(path, level);
             return self().ctr_resize_block(path, level, memory_block_size);
         }
+    }
+
+    void ctr_upsize_node_2x(TreePathT& path, size_t level)
+    {
+        size_t memory_block_size = path[level]->header().memory_block_size();
+
+        self().ctr_cow_clone_path(path, level);
+        return self().ctr_resize_block(path, level, memory_block_size * 2);
     }
 
     void ctr_downsize_node(TreePathT& path, size_t level)
@@ -231,14 +253,20 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         self.ctr_cow_clone_path(path, 0);
 
-        psize_t upsize = map_so.estimate_required_upsize(key, value);
-        if (upsize > map->compute_free_space_up())
+        while (true)
         {
-            self.ctr_upsize_node(path, 0, upsize);
-            map_so.setup(get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX));
+            auto us = map_so.make_update_state();
+            PkdUpdateStatus status = map_so.prepare_set(key, value, us.first);
+            if (is_success(status))
+            {
+                map_so.commit_set(key, value, us.first);
+                break;
+            }
+            else {
+                self.ctr_upsize_node_2x(path, 0);
+                map_so.setup(get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX));
+            }
         }
-
-        map_so.set(key, value);
     }
 
     virtual size_t ctr_properties() const
@@ -281,30 +309,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     virtual void set_ctr_properties(const std::vector<std::pair<U8String, U8String>>& entries)
     {
-        auto& self = this->self();
-        auto root = self.ctr_get_root_node();
-        TreePathT path = TreePathT::build(root, 1);
-
-        CtrPropertiesMap* map = get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX);
-
-        PackedMapSO<CtrPropertiesMap> map_so(map);
-
-        std::vector<std::pair<U8StringView, U8StringView>> entries_view;
-
-        for (auto& entry: entries) {
-            entries_view.emplace_back(entry.first, entry.second);
+        for (const auto& entry: entries) {
+            set_ctr_property(entry.first, entry.second);
         }
-
-        self.ctr_cow_clone_path(path, 0);
-
-        psize_t upsize = map_so.estimate_required_upsize(entries_view);
-        if (upsize > map->compute_free_space_up())
-        {
-            self.ctr_upsize_node(path, 0, upsize);
-            map_so.setup(get<CtrPropertiesMap>(path.root().as_mutable()->allocator(), CTR_PROPERTIES_IDX));
-        }
-
-        return map_so.set_all(entries_view);
     }
 
 
@@ -332,14 +339,20 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         self.ctr_cow_clone_path(path, 0);
 
-        psize_t upsize = map_so.estimate_required_upsize(key, value);
-        if (upsize > map->compute_free_space_up())
+        while (true)
         {
-            self.ctr_upsize_node(path, 0, upsize);
-            map_so.setup(get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX));
+            auto us = map_so.make_update_state();
+            PkdUpdateStatus status = map_so.prepare_set(key, value, us.first);
+            if (is_success(status))
+            {
+                map_so.commit_set(key, value, us.first);
+                break;
+            }
+            else {
+                self.ctr_upsize_node_2x(path, 0);
+                map_so.setup(get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX));
+            }
         }
-
-        map_so.set(key, value);
     }
 
     virtual void remove_ctr_reference(U8StringView key)
@@ -382,30 +395,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     virtual void set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries)
     {
-        auto& self = this->self();
-        auto root = self.ctr_get_root_node();
-        TreePathT path = TreePathT::build(root, 1);
-
-        CtrReferencesMap* map = get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX);
-
-        PackedMapSO<CtrReferencesMap> map_so(map);
-
-        std::vector<std::pair<U8StringView, CtrID>> entries_view;
-
-        for (auto& entry: entries) {
-            entries_view.emplace_back(entry.first, entry.second);
+        for (const auto& entry: entries) {
+            set_ctr_reference(entry.first, entry.second);
         }
-
-        self.ctr_cow_clone_path(path, 0);
-
-        psize_t upsize = map_so.estimate_required_upsize(entries_view);
-        if (upsize > map->compute_free_space_up())
-        {
-            self.ctr_upsize_node(path, 0, upsize);
-            map_so.setup(get<CtrReferencesMap>(path.root().as_mutable()->allocator(), CTR_REFERENCES_IDX));
-        }
-
-        map_so.set_all(entries_view);
     }
 
 

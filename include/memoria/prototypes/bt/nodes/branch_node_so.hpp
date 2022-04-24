@@ -18,6 +18,7 @@
 #include <memoria/prototypes/bt/nodes/node_common_so.hpp>
 #include <memoria/prototypes/bt/pkd_adapters/bt_pkd_adapter_generic.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools.hpp>
 
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher_res.hpp>
@@ -481,14 +482,14 @@ public:
 
         if (is_success(prepare_insert_fn.status))
         {
-            // FIXME!
-            // calculate child_id size here!
-            commit_insert(idx, keys, value, update_state);
-            return PkdUpdateStatus::SUCCESS;
+            PackedAllocatorUpdateState& state = bt::get_allocator_update_state(update_state);
+            if (is_success(state.inc_allocated(0, sizeof(Value)))) {
+                commit_insert(idx, keys, value, update_state);
+                return PkdUpdateStatus::SUCCESS;
+            }
         }
-        else {
-            return PkdUpdateStatus::FAILURE;
-        }
+
+        return PkdUpdateStatus::FAILURE;
     }
 
 
@@ -553,9 +554,9 @@ public:
 
     struct CommitRemoveSpaceFn {
         template <int32_t Idx, typename Tree>
-        void stream(Tree&& tree, size_t room_start, size_t room_end, UpdateState& update_state)
+        void stream(Tree&& tree, size_t start, size_t end, UpdateState& update_state)
         {
-            return tree.commit_remove(room_start, room_end, std::get<Idx>(update_state));
+            return tree.commit_remove(start, end, std::get<Idx>(update_state));
         }
     };
 
@@ -620,52 +621,6 @@ public:
         return node_->shouldBeMergedWithSiblings();
     }
 
-//    struct CanMergeWithFn {
-//        int32_t mem_used_ = 0;
-
-//        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-//        void stream(Tree&& tree, OtherNodeT&& other)
-//        {
-//            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
-//            if (tree)
-//            {
-//                if (other.allocator()->is_empty(AllocatorIdx))
-//                {
-//                    mem_used_ += tree.data()->block_size();
-//                }
-//                else {
-//                    const PkdTree* other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
-//                    mem_used_ += tree.data()->block_size_for(other_tree);
-//                }
-//            }
-//            else {
-//                if (!other.allocator()->is_empty(AllocatorIdx))
-//                {
-//                    int32_t element_size = other.allocator()->element_size(AllocatorIdx);
-//                    mem_used_ += element_size;
-//                }
-//            }
-//        }
-//    };
-
-//    template <typename OtherNodeT>
-//    BoolResult canBeMergedWith(OtherNodeT&& other) const
-//    {
-//        CanMergeWithFn fn;
-//        MEMORIA_TRY_VOID(DispatcherWithResult(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other)));
-
-//        int32_t client_area = other.allocator()->client_area();
-
-//        int32_t my_data_size    = allocator()->element_size(ValuesBlockIdx);
-//        int32_t other_data_size = other.allocator()->element_size(ValuesBlockIdx);
-
-//        fn.mem_used_ += my_data_size;
-//        fn.mem_used_ += other_data_size;
-
-//        // FIXME +10 is an extra safety gap
-//        return BoolResult::of(client_area >= fn.mem_used_); //+ 10
-//    }
-
     struct CommitMergeWithFn {
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
         void stream(const Tree& tree, OtherNodeT&& other, UpdateState& update_state)
@@ -724,20 +679,23 @@ public:
     PkdUpdateStatus prepare_merge_with(OtherNodeT&& other, UpdateState& update_state) const {
         PrepareMergeWithFn fn;
         Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), update_state);
-        if (fn.status_ == PkdUpdateStatus::SUCCESS)
+        if (is_success(fn.status_))
         {
-            // check children pointers block capacity here
-            return PkdUpdateStatus::SUCCESS;
+            PackedAllocatorUpdateState& state = bt::get_allocator_update_state(update_state);
+
+            size_t block_size = allocator()->element_size(ValuesBlockIdx);
+            size_t new_size = (this->size() + other.size()) * sizeof(Value);
+
+            return state.inc_allocated(block_size, new_size);
         }
-        else {
-            return PkdUpdateStatus::FAILURE;
-        }
+
+        return PkdUpdateStatus::FAILURE;
     }
 
     template <typename OtherNodeT>
     PkdUpdateStatus merge_with(OtherNodeT&& other) const
     {
-        auto update_state = make_update_state();
+        auto update_state = other.make_update_state();
         if (is_success(prepare_merge_with(std::forward<OtherNodeT>(other), update_state))) {
             commit_merge_with(std::forward<OtherNodeT>(other), update_state);
             return PkdUpdateStatus::SUCCESS;
@@ -1201,8 +1159,10 @@ public:
     }
 
 
-    static UpdateState make_update_state() {
+    UpdateState make_update_state() {
         UpdateState state;
+        bt::get_allocator_update_state(state) = allocator()->make_allocator_update_state();
+
         bt::UpdateStateInitializer<UpdateState>::process(state);
         return state;
     }

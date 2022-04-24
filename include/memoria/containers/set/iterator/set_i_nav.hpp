@@ -98,7 +98,7 @@ public:
 
     auto key() const noexcept -> Datum<Key>
     {
-        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), 0));
+        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), 0, self().iter_local_pos()));
     }
 
     bool is_found(const KeyView& k) const noexcept

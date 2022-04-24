@@ -21,9 +21,7 @@
 
 #include <memoria/core/integer/integer.hpp>
 
-#include <memoria/core/packed/tools/packed_allocator.hpp>
 
-//#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
 
 #include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
@@ -41,8 +39,7 @@ template <typename R, typename T>
 R from_number(TypeTag<R> tag, T value);
 
 template <typename T>
-UUID from_number(TypeTag<UUID>, T value)
-{
+UUID from_number(TypeTag<UUID>, T value) {
     return UUID(value, value);
 }
 
@@ -54,8 +51,7 @@ UnsignedAccumulator<BitLength> from_number(TypeTag<UnsignedAccumulator<BitLength
 
 
 template <typename R, typename T>
-R from_number(TypeTag<R>, T value)
-{
+R from_number(TypeTag<R>, T value) {
     return value;
 }
 
@@ -69,7 +65,7 @@ protected:
     using Tree      = PackedTreeT;
     using TreeSO    = typename PackedTreeT::SparseObject;
 
-    using TreePtr   = PkdStructSPtr<Tree>;
+    using TreePtr   = std::shared_ptr<PkdStructHolder<PackedTreeT>>;
 
     typedef typename Tree::ViewType                                             Value;
     typedef typename Tree::ViewType                                             IndexValue;
@@ -79,8 +75,6 @@ protected:
 
     int64_t size_{4096};
     size_t iterations_ {10};
-
-    std::tuple<> ext_data_{};
 
 public:
 
@@ -103,20 +97,16 @@ public:
     }
 
     TreeSO get_so(TreePtr ptr) {
-        return TreeSO(&ext_data_, ptr.get());
+        return ptr->get_so();
     }
 
 
     TreePtr createEmptyTree(size_t block_size = MEMBUF_SIZE)
     {
-        return MakeSharedPackedStructByBlock<Tree>(block_size);
+        return PkdStructHolder<PackedTreeT>::make_empty(block_size);
     }
 
-    TreePtr createTree(size_t tree_capacity, size_t free_space = 0)
-    {
-        size_t tree_block_size = Tree::block_size(tree_capacity);
-        return MakeSharedPackedStructByBlock<Tree>(tree_block_size + free_space);
-    }
+
 
     void truncate(std::vector<Values>& v, size_t size) {
         size_t delta = v.size() - size;

@@ -191,24 +191,24 @@ public:
         }
     }
 
-    static constexpr size_t round_up_bytes_to_alignment_blocks(size_t value)
+    static constexpr size_t round_up_bytes(size_t value)
     {
         return (value / AlignmentBlock + (value % AlignmentBlock ? 1 : 0)) * AlignmentBlock;
     }
 
-    static constexpr size_t round_down_bytes_to_alignment_blocks(size_t value)
+    static constexpr size_t round_down_bytes(size_t value)
     {
         return (value / AlignmentBlock) * AlignmentBlock;
     }
 
-    static constexpr size_t round_up_bits_to_alignment_blocks(size_t bits)
+    static constexpr size_t round_up_bits(size_t bits)
     {
-        return round_up_bytes_to_alignment_blocks(round_up_bits_to_bytes(bits));
+        return round_up_bytes(round_up_bits_to_bytes(bits));
     }
 
-    static constexpr size_t round_down_bits_to_alignment_blocks(size_t bits)
+    static constexpr size_t round_down_bits(size_t bits)
     {
-        return round_down_bytes_to_alignment_blocks(round_down_bits_to_bytes(bits));
+        return round_down_bytes(round_down_bits_to_bytes(bits));
     }
 
     static constexpr size_t round_up_bits_to_bytes(size_t bits)
@@ -296,85 +296,144 @@ struct AllocationBlockConst {
 };
 
 
+enum class MMA_NODISCARD PkdUpdateStatus: bool {
+    FAILURE, SUCCESS
+};
 
 class PackedAllocatorUpdateState {
-    size_t allocated_;
+    int64_t allocated_;
+    int64_t available_;
 
     friend class PackedAllocator;
 
 public:
-    PackedAllocatorUpdateState(): allocated_() {}
+    PackedAllocatorUpdateState(int64_t available = 0):
+        allocated_(), available_(available)
+    {}
 
-    size_t allocated() const {return allocated_;}
-    void inc_allocated(size_t amount) {
-        allocated_ += amount;
+    int64_t allocated() const {return allocated_;}
+    int64_t available() const {return available_;}
+
+    bool is_space_available() const {
+        return allocated_ <= available_;
+    }
+
+    PkdUpdateStatus inc_allocated(int64_t existing_size, int64_t new_size) {
+        allocated_ += new_size - existing_size;
+        return is_space_available() ? PkdUpdateStatus::SUCCESS : PkdUpdateStatus::FAILURE;
     }
 };
 
 
 template <typename PkdStructSO>
 class PkdStructUpdateBase {
-    PackedAllocatorUpdateState* update_state_;
+    PackedAllocatorUpdateState* allocator_state_;
 public:
     virtual ~PkdStructUpdateBase() noexcept = default;
 
-    virtual void apply(PkdStructSO&) = 0;
+    virtual void apply(PkdStructSO&) {};
 
-    PackedAllocatorUpdateState* update_state() {return update_state_;}
-    const PackedAllocatorUpdateState* update_state() const {return update_state_;}
+    PackedAllocatorUpdateState* allocator_state() {return allocator_state_;}
+    const PackedAllocatorUpdateState* allocator_state() const {return allocator_state_;}
 
-    void set_update_state(PackedAllocatorUpdateState* state) {update_state_ = state;}
+    void set_allocator_state(PackedAllocatorUpdateState* state) {allocator_state_ = state;}
 };
+
+
+template <typename PkdStructSO>
+struct PkdStructUpdateStepBase {
+
+public:
+    virtual ~PkdStructUpdateStepBase() noexcept = default;
+    virtual void apply(PkdStructSO&) {};
+};
+
+
+
+
+template <typename PkdStructSO>
+class PkdStructMultistepUpdate: public PkdStructUpdateBase<PkdStructSO> {
+public:
+    using UpdateT = PkdStructUpdateStepBase<PkdStructSO>;
+private:
+
+    std::vector<std::unique_ptr<UpdateT>> steps_;
+public:
+    PkdStructMultistepUpdate() {}
+
+    void apply(PkdStructSO& so) {
+        for (auto& update: steps_) {
+            update->apply(so);
+        }
+    }
+
+    template <typename T>
+    T* make_new() {
+        steps_.push_back(std::make_unique<T>());
+        return static_cast<T*>(steps_[steps_.size() - 1].get());
+    }
+};
+
 
 template <typename PkdStructSO>
 class PkdStructUpdate: public PkdStructUpdateBase<PkdStructSO> {
 public:
-    using UpdateT = PkdStructUpdateBase<PkdStructSO>;
+    using UpdateT = PkdStructUpdateStepBase<PkdStructSO>;
 private:
     template <typename T>
     friend T* make_new(PkdStructUpdate<PkdStructSO>&);
 
-    std::vector<std::unique_ptr<UpdateT>> updates_;
+    std::unique_ptr<UpdateT> step_;
 public:
     PkdStructUpdate() {}
 
-    void apply(PkdStructSO& so) {
-        for (auto& update: updates_) {
-            update->apply(so);
-        }
+    operator bool() const {
+        return step_;
+    }
+
+    template <typename T>
+    T* step() {
+        return static_cast<T*>(step_.get());
+    }
+
+    template <typename T>
+    const T* step() const {
+        return static_cast<const T*>(step_.get());
+    }
+
+    template <typename T>
+    T* make_new() {
+        step_ = std::make_unique<T>();
+        return step<T>();
     }
 };
 
 template <typename PkdStructSO>
-struct PkdStructNoOpUpdate: PkdStructUpdateBase<PkdStructSO> {
-    void apply(PkdStructSO&) {}
+struct PkdStructEmptyUpdate: PkdStructUpdateBase<PkdStructSO>  {
 };
 
 
+template <typename PkdStructSO>
+struct PkdStructNoOpUpdate {
+    void set_allocator_state(PackedAllocatorUpdateState*) {}
+};
 
-template <typename T, typename PkdStructSO>
-T* make_new(PkdStructUpdate<PkdStructSO>& upd)
-{
-    upd.updates_.push_back(std::make_unique<T>());
-    return upd.updates_[upd.updates_.size() - 1];
-}
 
 #define MMA_MAKE_UPDATE_STATE_METHOD \
     std::pair<UpdateState, PackedAllocatorUpdateState> make_update_state() {\
         std::pair<UpdateState, PackedAllocatorUpdateState> state;           \
-        state.first.set_update_state(&state.second);                        \
+        state.second = this->data()->make_allocator_update_state();         \
+        state.first.set_allocator_state(&state.second);                     \
         return state;                                                       \
     }                                                                       \
     UpdateState make_update_state(PackedAllocatorUpdateState* pa_state) {   \
         UpdateState state;                                                  \
-        state.set_update_state(pa_state);                                   \
+        state.set_allocator_state(pa_state);                                \
         return state;                                                       \
     }
 
 
-enum class MMA_NODISCARD PkdUpdateStatus: bool {
-    FAILURE, SUCCESS
-};
+
 
 static inline bool is_success(PkdUpdateStatus status) {
     return status == PkdUpdateStatus::SUCCESS;
