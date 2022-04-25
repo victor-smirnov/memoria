@@ -228,7 +228,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         virtual void do_finish()
         {
             TreeNodePtr node = head_;
-            DebugCounter = 1;
             while (node)
             {
                 auto next_id = node->next_leaf_id();
@@ -241,15 +240,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
                     node = TreeNodePtr();
                 }
             }
-            DebugCounter = 0;
 
             head_ = TreeNodePtr();
         }
     };
-
-
-
-
 
 
     template <typename Provider>

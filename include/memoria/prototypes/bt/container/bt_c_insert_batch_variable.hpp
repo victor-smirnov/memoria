@@ -76,15 +76,15 @@ public:
                 MEMORIA_MAKE_GENERIC_ERROR("Subtree is null").do_throw();
             }
 
-            if (child->is_leaf()) {
-                self.ctr_ref_block(child->id());
-            }
-
             auto sums = self.ctr_get_node_max_keys(child.as_immutable());
             PkdUpdateStatus ins_res = self.branch_dispatcher().dispatch(node.as_mutable(), InsertChildFn(), idx + c, sums, child->id());
             if (is_success(ins_res)) {
                 c += 1;
                 last_child = child;
+
+                if (child->is_leaf()) {
+                    self.ctr_ref_block(child->id());
+                }
             }
             else {
                 provider.rollback(checkpoint);

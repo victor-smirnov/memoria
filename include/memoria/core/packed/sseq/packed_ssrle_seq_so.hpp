@@ -985,7 +985,7 @@ public:
 
             return reindex();
         }
-        else {
+        else if (idx > meta->size()) {
             MEMORIA_MAKE_GENERIC_ERROR("Split index is out of range: {} :: {}", idx, meta->size()).do_throw();
         }
     }
@@ -1686,10 +1686,6 @@ private:
         const Metadata* meta = data_->metadata();
         SeqSizeT size = meta->size();
 
-        if (pos >= size) {
-            DumpStruct(*this);
-        }
-
         MEMORIA_ASSERT(pos, <, size);
 
         size_t unit_pos;
@@ -1914,12 +1910,11 @@ private:
                 split_buffer(runs, dst_left, right1, start);
 
                 std::vector<SymbolsRunT> left2;
-
                 split_buffer(right1, left2, dst_right, end - start);
             }
             else {
                 std::vector<SymbolsRunT> left;
-                split_buffer(runs, left, dst_left, end);
+                split_buffer(runs, left, dst_right, end);
             }
         }
         else {

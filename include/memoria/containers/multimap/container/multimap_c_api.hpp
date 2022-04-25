@@ -253,12 +253,10 @@ public:
         {
             ii.get()->remove(1);
             ii->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-
             return true;
         }
 
         ii.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-
         return false;
     }
 

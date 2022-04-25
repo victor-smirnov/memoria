@@ -510,19 +510,18 @@ public:
 
         size_t split_size = meta.size() - idx;
 
-        for (size_t column = 0; column < Columns; column++) {
-
+        for (size_t column = 0; column < Columns; column++)
+        {
             DataLengths data_lengths = this->data_lengts(column, idx, split_size);
-
             other.insertSpace(column, 0, split_size, data_lengths);
-
             copyTo(other, column, idx, split_size, 0, data_lengths);
         }
 
         other.data()->metadata().add_size(split_size);
+        other.reindex();
 
         UpdateState ss;
-        commit_remove(idx, meta.size(), ss);
+        commit_remove(idx, meta.size(), ss, true);
     }
 
     PkdUpdateStatus prepare_merge_with(const MyType& other, UpdateState& update_state) const {
@@ -576,6 +575,7 @@ public:
         }
 
         other.data()->metadata().add_size(my_size);
+        other.reindex();
     }
 
 
@@ -610,7 +610,7 @@ public:
         return update_state.allocator_state()->inc_allocated(existing_block_size, required_block_size);
     }
 
-    void commit_remove(size_t room_start, size_t room_end, UpdateState& update_state, bool do_reindex = true)
+    void commit_remove(size_t room_start, size_t room_end, UpdateState&, bool do_reindex = true)
     {
         auto& meta = data_->metadata();
         size_t size = meta.size();
@@ -1605,6 +1605,8 @@ private:
                     ViewType iv = index.access(c, span);
 
                     if (iv != sum.view()) {
+                        DumpStruct(*this);
+
                         MEMORIA_MAKE_GENERIC_ERROR(
                                     "Buffer's content mismatch with the index, column {}, idc_c {}: '{}' != '{}' ",
                                     c,

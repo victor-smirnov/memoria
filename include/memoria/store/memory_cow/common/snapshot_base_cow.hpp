@@ -33,6 +33,7 @@
 #include <memoria/containers/map/map_factory.hpp>
 #include <memoria/core/tools/pair.hpp>
 #include <memoria/core/tools/type_name.hpp>
+#include <memoria/core/tools/random.hpp>
 
 #include <memoria/core/datatypes/type_registry.hpp>
 
@@ -716,8 +717,7 @@ public:
     {
         check_updates_allowed();
 
-        if (initial_size == -1)
-        {
+        if (initial_size == -1) {
             initial_size = DEFAULT_BLOCK_SIZE;
         }
 

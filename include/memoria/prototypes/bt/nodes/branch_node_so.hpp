@@ -683,7 +683,7 @@ public:
         {
             PackedAllocatorUpdateState& state = bt::get_allocator_update_state(update_state);
 
-            size_t block_size = allocator()->element_size(ValuesBlockIdx);
+            size_t block_size = other.allocator()->element_size(ValuesBlockIdx);
             size_t new_size = (this->size() + other.size()) * sizeof(Value);
 
             return state.inc_allocated(block_size, new_size);

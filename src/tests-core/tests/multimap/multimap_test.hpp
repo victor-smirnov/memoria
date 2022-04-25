@@ -277,7 +277,7 @@ public:
         auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{});
         //ctr->set_new_block_size(2048);
 
-        size_t max_ctr_size = 1024;//entries;
+        size_t max_ctr_size = entries;
 
         std::vector<Entry> data = build_entries(max_ctr_size, mean_entry_size);
         auto data_unsorted = data;
@@ -294,15 +294,17 @@ public:
 
         for (size_t c = 0; c < max_ctr_size; c++)
         {
-            println("R={}", c);
+            if (c % 1000 == 0) {
+                println("R={}", c);
+            }
+
             CxxKeyType key = data_unsorted[c].key;
 
-            DebugCounter = c;
             bool removed = ctr->remove(key);
             assert_equals(true, removed, "Remove");
             assert_equals(max_ctr_size - c - 1, ctr->size(), "Size");
 
-            //if (c % 1000 == 0)
+            if (c % 1000 == 0)
             {
                 this->check("Store structure checking", MMA_SRC);
             }

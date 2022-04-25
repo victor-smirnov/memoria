@@ -157,8 +157,6 @@ public:
 
         if (rnk1 != array_size)
         {
-            DumpStruct(*this);
-
             MEMORIA_MAKE_GENERIC_ERROR(
                 "PackedDataTypeOptBufferSO: Bitmap.rank(1) != array.size(): {} {}",
                 rnk1,
@@ -402,7 +400,6 @@ public:
         bitmap.commit_update(row_at, update_state.bitmap_update_state(), to_const_span(syms));
 
         size_t set_elements_num_new = bitmap.rank_eq(row_at, row_at + size, 1);
-
         array().commit_remove(array_row_at, array_row_at + set_elements_num_old, update_state.array_update_state());
 
         array().commit_insert(array_row_at, set_elements_num_new, update_state.array_update_state(), [&](size_t col, size_t arr_idx)  {
