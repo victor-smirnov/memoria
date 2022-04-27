@@ -451,6 +451,7 @@ public:
     }
 
     void check() const {
+        data_->check_blocks();
         return detail::PkdDTBufOrderingDispatcher<MyType>::check(*this);
     }
 
@@ -835,7 +836,6 @@ public:
     PkdUpdateStatus prepare_insert(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements) const
     {
         MEMORIA_ASSERT(row_at, <=, this->size());
-
         size_t data_size{};
 
         for (size_t column = 0; column < Columns; column++)
@@ -877,7 +877,6 @@ public:
     void commit_insert(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements)
     {
         MEMORIA_ASSERT(row_at, <=, this->size());
-
         for (size_t column = 0; column < Columns; column++)
         {
             DataLengths data_lengths{};
@@ -1605,8 +1604,6 @@ private:
                     ViewType iv = index.access(c, span);
 
                     if (iv != sum.view()) {
-                        DumpStruct(*this);
-
                         MEMORIA_MAKE_GENERIC_ERROR(
                                     "Buffer's content mismatch with the index, column {}, idc_c {}: '{}' != '{}' ",
                                     c,

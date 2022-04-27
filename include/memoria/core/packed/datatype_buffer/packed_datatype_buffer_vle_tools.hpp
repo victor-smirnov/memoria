@@ -163,8 +163,6 @@ public:
     {
         auto& meta = pkd_buf_->metadata();
 
-        using DataSizeType = size_t;
-
         size_t offsets_length = (meta.offsets_size() + extra_size) * sizeof(DataSizeType);
 
         pkd_buf_->resize_block(offsets_block_num(), offsets_length);
@@ -444,7 +442,7 @@ public:
             (my_size + other_size + 1) * sizeof (DataSizeType)
         );
 
-        size_t my_data_size = data_size(meta);
+        size_t my_data_size = this->data_size(meta);
         size_t other_data_size = other.data_size(other_meta);
 
         size_t data_size = PackedAllocatable::round_up_bytes(
@@ -463,7 +461,7 @@ public:
             (my_size + size + 1) * sizeof (DataSizeType)
         );
 
-        size_t my_data_size = data_size(meta);
+        size_t my_data_size = this->data_size(meta);
 
         size_t data_size = PackedAllocatable::round_up_bytes(
             (my_data_size + data_len) * sizeof (T)
@@ -481,7 +479,7 @@ public:
             (my_size + 1) * sizeof (DataSizeType)
         );
 
-        size_t my_data_size = data_size(meta);
+        size_t my_data_size = this->data_size(meta);
 
         const DataSizeType* offsets = this->offsets();
 
@@ -503,7 +501,7 @@ public:
             (my_size + 1) * sizeof (DataSizeType)
         );
 
-        size_t my_data_size = data_size(meta);
+        size_t my_data_size = this->data_size(meta);
 
         const DataSizeType* offsets = this->offsets();
 

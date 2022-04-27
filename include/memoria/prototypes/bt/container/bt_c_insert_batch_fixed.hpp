@@ -245,11 +245,6 @@ public:
         update_hierarchy);
     }
 
-
-
-
-
-
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::InsertBatchFixedName)

@@ -260,6 +260,14 @@ public:
         return true;
     }
 
+    const Allocator* parent() const {
+        return allocatable_.allocator_or_null();
+    }
+
+    Allocator* parent() {
+        return allocatable_.allocator_or_null();
+    }
+
     const Allocator* get_top_level() const
     {
         const Allocator* top_level_alloc = this;
@@ -295,6 +303,8 @@ public:
     {
         return *(ptr_cast<const psize_t>(buffer_) + idx);
     }
+
+
 
     //TODO: rename to segment_size ?
     MMA_NODISCARD size_t element_size(size_t idx) const
@@ -628,11 +638,6 @@ public:
         return block_size_;
     }
 
-    void forceResize(size_t amount)
-    {
-        block_size_ += PackedAllocatable::round_down_bytes(amount);
-    }
-
     size_t pack()
     {
         size_t free_space = this->free_space();
@@ -743,6 +748,37 @@ public:
         return PackedAllocatorUpdateState(alloc->free_space());
     }
 
+    void check_blocks() const
+    {
+        size_t total = allocated();
+        if (total > block_size_) {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "Total allocated data for PackedAllocator exceeds its block_size: {} {}",
+                        total,
+                        block_size_
+            ).do_throw();
+        }
+
+        const PackedAllocator* parent = this->parent();
+        if (parent) {
+            size_t my_size = parent->element_size_by_ptr(this);
+            if (my_size < block_size_) {
+                MEMORIA_MAKE_GENERIC_ERROR(
+                            "PackedAllocator's block_size_ > its parent's allocator element size: {} {}",
+                            block_size_,
+                            my_size
+                ).do_throw();
+            }
+        }
+    }
+
+    void for_each_block(std::function<void (size_t, AllocationBlockConst)> fn) const {
+        size_t size = elements();
+        for (size_t s = 0; s < size; s++) {
+            fn(s, describe(s));
+        }
+    }
+
 private:
     psize_t& set_element_offset(size_t idx)
     {
@@ -752,34 +788,34 @@ private:
 
     void move_elements_up(size_t idx, size_t delta)
     {
-        psize_t layout_size = layout_size_/4;
-        psize_t layout_end = layout_size - 2;
+        size_t layout_size = layout_size_/4;
+        size_t layout_end  = layout_size - 2;
 
-        psize_t size = layout_end + 1 - idx;
+        size_t size = layout_end + 1 - idx;
 
-        for (psize_t jj = 0; jj < size; jj++)
+        for (size_t jj = 0; jj < size; jj++)
         {
-            psize_t ii = layout_end - jj;
+            size_t ii = layout_end - jj;
 
             AllocationBlock block = describe(ii);
             move_element_data(ii, block, delta, true);
         }
 
-        for (psize_t ii = idx; ii < layout_size ; ii++) {
+        for (size_t ii = idx; ii < layout_size ; ii++) {
             set_element_offset(ii) += delta;
         }
     }
 
     void move_elements_down(size_t idx, size_t delta)
     {
-        psize_t layout_size = layout_size_/4;
+        size_t layout_size = layout_size_/4;
 
-        for (psize_t e_idx = idx; e_idx < layout_size - 1; e_idx++) {
+        for (size_t e_idx = idx; e_idx < layout_size - 1; e_idx++) {
             AllocationBlock block = describe(e_idx);
             move_element_data(e_idx, block, delta, false);
         }
 
-        for (psize_t e_idx = idx; e_idx < layout_size; e_idx++) {
+        for (size_t e_idx = idx; e_idx < layout_size; e_idx++) {
             set_element_offset(e_idx) -= delta;
         }
     }
