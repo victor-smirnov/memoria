@@ -253,12 +253,12 @@ public:
             seq1.check();
 
 
-            SeqPtr seq2_ss = make_sequence(syms2, 3);
+            SeqPtr seq2_ss = make_sequence(syms2, 10);
             SeqSO seq2 = get_so(seq2_ss);
 
             seq2.check();
 
-            auto state = seq1.make_update_state();
+            auto state = seq2.make_update_state();
             assert_success(seq1.prepare_merge_with(seq2, state.first));
             seq1.commit_merge_with(seq2, state.first);
             assert_equals(size3, seq2.size());

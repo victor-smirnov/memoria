@@ -905,8 +905,11 @@ void Worker::run()
         U8String code = get_value(msg.value(), "code").as_varchar().view();
 
         if (code == "RUN_TASK")
-        {
+        {            
             U8String test_path = get_value(msg.value(), "test_path").as_varchar().view();
+
+            println("++++++++++ New message from server: {}", test_path);
+
             TestStatus status = run_single_test(test_path);
 
             write_message(output, format_u8(

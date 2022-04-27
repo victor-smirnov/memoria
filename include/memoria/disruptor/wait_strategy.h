@@ -37,6 +37,7 @@
 #include <condition_variable>
 #include <vector>
 #include <functional>
+#include <iostream>
 
 #include "sequence.h"
 

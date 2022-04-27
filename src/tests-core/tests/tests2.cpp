@@ -111,7 +111,7 @@ int main(int argc, char** argv, char** envp)
             return 0;
         }
         else {
-            size_t workers = std::thread::hardware_concurrency() / 2;
+            size_t workers = std::thread::hardware_concurrency();
 
             if (workers == 0) {
                 workers = 1;

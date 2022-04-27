@@ -83,7 +83,7 @@ public:
 
     SeqPtr make_empty_sequence(size_t syms_block_size = 1024*1024) const
     {
-        size_t block_size = Seq::compute_block_size(syms_block_size);
+        size_t block_size = Seq::compute_block_size(syms_block_size * 2);
         return PkdStructHolder<Seq>::make_empty(block_size);
     }
 
@@ -116,9 +116,9 @@ public:
 
     SeqPtr make_sequence(Span<const SymbolsRunT> span, size_t capacity_multiplier = 1) const
     {
-        size_t num_atoms = 128*1024*1024; //RunTraits::compute_size(span);
+        size_t num_atoms = RunTraits::compute_size(span);
 
-        SeqPtr ptr = make_empty_sequence(num_atoms);
+        SeqPtr ptr = make_empty_sequence(num_atoms * capacity_multiplier);
         SeqSO seq = get_so(ptr);
 
         auto update_state = seq.make_update_state();
