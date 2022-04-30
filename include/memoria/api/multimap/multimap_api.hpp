@@ -59,7 +59,7 @@ public:
     using Producer      = MultimapProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
-    using IteratorAPIPtr = CtrSharedPtr<MultimapIterator<Key_, Value_, Profile>>;
+    using IteratorAPIPtr = IterSharedPtr<MultimapIterator<Key_, Value_, Profile>>;
 
 public:
 

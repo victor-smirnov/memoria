@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 
 
 #pragma once
+
+#include <memoria/prototypes/bt/iterator/bt_bis_base.hpp>
 
 #include <memoria/prototypes/bt/iterator/bt_i_api.hpp>
 #include <memoria/prototypes/bt/iterator/bt_i_base.hpp>
@@ -32,44 +34,28 @@ template <typename Types> class Iter;
 template <typename Name, typename Base, typename Types> class IterPart;
 
 
-
 template<
         typename Types1
 >
 class Iter<BTIterTypes<Types1>>: public IterStart<BTIterTypes<Types1>>
 {
-    typedef Iter<BTIterTypes<Types1>>                                            MyType;
-    typedef IterStart<BTIterTypes<Types1>>                                       Base;
-    typedef Ctr<typename Types1::CtrTypes>                                       ContainerType;
-
-    typedef typename ContainerType::Types::TreeNodePtr                             TreeNodePtr;
-
-    using CtrPtr = CtrSharedPtr<ContainerType>;
+    using MyType        = Iter<BTIterTypes<Types1>>;
+    using Base          = IterStart<BTIterTypes<Types1>>;
+    using ContainerType = Ctr<typename Types1::CtrTypes>;
+    using TreeNodePtr   = typename ContainerType::Types::TreeNodePtr;
+    using CtrPtr        = CtrSharedPtr<ContainerType>;
 
 public:
 
-    typedef ContainerType                                                       Container;
+    using Container = ContainerType;
     
     Iter(): Base() {}
 
-    Iter(CtrPtr ptr): Base(std::move(ptr))
-    {
+    Iter(CtrPtr ptr): Base(std::move(ptr)) {
         Base::iter_local_pos() = 0;
     }
     
     Iter(const MyType& other): Base(other) {}
-
-
-
-    MyType& operator=(MyType&& other)
-    {
-        if (this != &other)
-        {
-            Base::assign(std::move(other));
-        }
-
-        return *this;
-    }
 
     MyType& operator=(const MyType& other)
     {
@@ -80,69 +66,35 @@ public:
 
         return *this;
     }
+};
 
-    bool operator==(const MyType& other) const
-    {
-        return iter_equals(other);
-    }
 
-    bool iter_equals(const MyType& other) const
-    {
-        if (other.type() == Base::NORMAL)
-        {
-            return Base::iter_equals(other);
-        }
-        else if (other.type() == Base::END)
-        {
-            return Base::iter_is_end();
-        }
-        else if (other.type() == Base::START)
-        {
-            return Base::iter_is_begin();
-        }
-        else
-        {
-            return Base::iter_is_empty();
-        }
-    }
 
-    bool operator!=(const MyType& other) const
-    {
-        return iter_not_equals(other);
-    }
+template<
+        typename Types1
+>
+class Iter<BTBlockIterStateTypes<Types1>>: public IterStart<BTBlockIterStateTypes<Types1>>
+{
+    using MyType        = Iter<BTBlockIterStateTypes<Types1>>;
+    using Base          = IterStart<BTBlockIterStateTypes<Types1>>;
+    using ContainerType = Ctr<typename Types1::CtrTypes>;
+    using TreeNodePtr   = typename ContainerType::Types::TreeNodePtr;
+    using CtrPtr        = CtrSharedPtr<ContainerType>;
 
-    bool iter_not_equals(const MyType& other) const
-    {
-        if (other.type() == Base::NORMAL)
-        {
-            return Base::iter_not_equals(other);
-        }
-        else if (other.type() == Base::END)
-        {
-            return Base::iter_is_not_end();
-        }
-        else if (other.type() == Base::START)
-        {
-            return !Base::iter_is_begin();
-        }
-        else
-        {
-            return !Base::iter_is_empty();
-        }
+public:
+
+    using Container = ContainerType;
+
+    Iter(): Base() {}
+
+
+
+    void iter_initialize(const CtrPtr& ctr_holder) {
+        Base::iter_initialize(ctr_holder);
     }
 };
 
-template <typename Types>
-bool operator==(const Iter<BTIterTypes<Types> >& iter, const IterEndMark& mark)
-{
-    return iter.iter_is_end();
-}
 
-template <typename Types>
-bool operator!=(const Iter<BTIterTypes<Types> >& iter, const IterEndMark& mark)
-{
-    return iter.iter_is_not_end();
-}
 
 
 }

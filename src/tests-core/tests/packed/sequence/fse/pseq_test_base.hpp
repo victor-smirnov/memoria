@@ -95,10 +95,10 @@ public:
 
         for (auto& s: symbols) s = value;
 
-        seq->clear().get_or_throw();
+        seq->clear();
         seq->insert(0, size, [&](){
             return value;
-        }).get_or_throw();
+        });
 
         assertEqual(seq, symbols);
         assertIndexCorrect(MA_SRC, seq);
@@ -108,7 +108,7 @@ public:
 
     std::vector<size_t> populateRandom(SeqPtr& seq, size_t size)
     {
-        seq->clear().get_or_throw();
+        seq->clear();
         return fillRandom(seq, size);
     }
 
@@ -120,7 +120,7 @@ public:
             size_t sym = getRandom(Blocks);
             symbols.push_back(sym);
             return sym;
-        }).get_or_throw();
+        });
 
         seq->check();
 

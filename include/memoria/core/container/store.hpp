@@ -93,7 +93,7 @@ struct IStoreBase: IStoreApiBase<ApiProfile<Profile>> {
 
     virtual U8String ctr_type_name(const CtrID& ctr_id) = 0;
 
-
+    virtual ObjectPools& object_pools() const = 0;
 
 
 
@@ -151,8 +151,6 @@ struct IStore: IStoreBase<Profile> {
     virtual void updateBlock(Shared* block) = 0;
     virtual void resizeBlock(Shared* block, int32_t new_size) = 0;
     virtual void releaseBlock(Shared* block) noexcept = 0;
-
-    virtual ObjectPools& object_pools() const = 0;
 };
 
 

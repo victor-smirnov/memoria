@@ -75,9 +75,10 @@ public:
 
     }
 
-    CtrSharedPtr<SetIterator<Key, ApiProfileT>> find(KeyView key) const
+    IterSharedPtr<SetIterator<Key, ApiProfileT>> find(KeyView key) const
     {
-        return memoria_static_pointer_cast<SetIterator<Key, ApiProfileT>>(self().ctr_set_find(key));
+        //return memoria_static_pointer_cast<SetIterator<Key, ApiProfileT>>(self().ctr_set_find(key));
+      return self().ctr_set_find(key);
     }
 
 //    bool contains_element(KeyView key) {
@@ -94,10 +95,10 @@ public:
 
 
 
-    CtrSharedPtr<SetIterator<Key, ApiProfileT>> iterator() const
+    IterSharedPtr<SetIterator<Key, ApiProfileT>> iterator() const
     {
         auto iter = self().ctr_begin();
-        return memoria_static_pointer_cast<SetIterator<Key, ApiProfileT>>(std::move(iter));
+        return iter;//memoria_static_pointer_cast<SetIterator<Key, ApiProfileT>>(std::move(iter));
     }
 
     void append(io::IOVectorProducer& producer)

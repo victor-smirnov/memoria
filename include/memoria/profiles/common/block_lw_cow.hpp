@@ -105,9 +105,7 @@ public:
         return ptr_;
     }
 
-    VoidResult update() const noexcept {
-        return VoidResult::of();
-    }
+    void update() const noexcept {}
 
     BlockType* operator->() noexcept {
         return ptr_;

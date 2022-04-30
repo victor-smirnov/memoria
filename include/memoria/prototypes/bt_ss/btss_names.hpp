@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <memoria/prototypes/bt/bt_names.hpp>
+
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/tools/static_array.hpp>
 
@@ -65,19 +67,5 @@ class IteratorLeafName      {};
 class IteratorMiscName      {};
 
 }
-
-template <typename Types>
-struct SSCtrTypesT: BTCtrTypesT<Types> {};
-
-template <typename Types>
-struct SSIterTypesT: BTIterTypesT<Types> {};
-
-
-template <typename Types>
-using BTSSCtrTypes = BTCtrTypesT<SSCtrTypesT<Types>>;
-
-template <typename Types>
-using BTSSIterTypes = BTIterTypesT<SSIterTypesT<Types>>;
-
 
 }

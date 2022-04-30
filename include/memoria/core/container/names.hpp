@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,28 +13,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/core/types.hpp>
 
 #pragma once
 
 namespace memoria {
 
-template <typename Types> struct CtrTypesT: Types {
-
+template <typename Types>
+struct CtrTypesT: Types {
     typedef Types                       Base;
     typedef typename Types::CtrList     List;
 
     template <typename Types_>
     using BaseFactory = typename Types::template CtrBaseFactory<Types_>;
-
 };
 
-template <typename Types> struct IterTypesT: Types {
-
+template <typename Types>
+struct IterTypesT: Types {
     typedef Types                       Base;
     typedef typename Types::IterList    List;
 
     template <typename Types_>
     using BaseFactory = typename Types::template IterBaseFactory<Types_>;
+};
+
+template <typename Types>
+struct BlockIterStateTypesT: Types {
+    using Base = Types;
+    using List = typename Types::BlockIterStateList;
+    using IteratorInterface = EmptyType;
+
+    template <typename Types_>
+    using BaseFactory = typename Types::template BlockIterStateBaseFactory<Types_>;
 };
 
 }

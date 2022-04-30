@@ -78,10 +78,10 @@ private:
 
     detail::SetKeys<typename Types::Key> entries_;
 
-    CtrSharedPtr<BTSSIterator<Profile>> btss_iterator_;
+    IterSharedPtr<BTSSIterator<Profile>> btss_iterator_;
 
 public:
-    SetScanner(CtrSharedPtr<BTSSIterator<Profile>> iterator):
+    SetScanner(IterSharedPtr<BTSSIterator<Profile>> iterator):
         btss_iterator_(iterator)
     {
         populate();

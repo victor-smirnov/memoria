@@ -128,7 +128,7 @@ public:
 
     template <size_t SubstreamIdx>
     auto allocate_empty(PackedAllocator* alloc) ->
-        Result<typename StreamTypeT<SubstreamIdx>::Type::SparseObject>
+        typename StreamTypeT<SubstreamIdx>::Type::SparseObject
     {
         using StreamDescrT  = StreamTypeT<SubstreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
@@ -142,12 +142,12 @@ public:
             head = head_res;
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Substream {} is not empty", SubstreamIdx);
+            MEMORIA_MAKE_GENERIC_ERROR("Substream {} is not empty", SubstreamIdx).do_throw();
         }
 
         using SubstreamSO = typename StreamType::SparseObject;
 
-        return Result<SubstreamSO>::of(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head);
+        return SubstreamSO(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head);
     }
 
     template <size_t SubstreamIdx>

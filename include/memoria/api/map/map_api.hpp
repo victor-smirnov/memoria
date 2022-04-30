@@ -68,7 +68,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     virtual void assign_key(KeyView key, ValueView value) = 0;
     virtual void remove_key(KeyView key) = 0;
 
-    virtual CtrSharedPtr<MapIterator<Key, Value, Profile>> find(KeyView key) const = 0;
+    virtual IterSharedPtr<MapIterator<Key, Value, Profile>> find(KeyView key) const = 0;
 
     void append(ProducerFn producer_fn) {
         Producer producer(producer_fn);
@@ -91,7 +91,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
 
     virtual void insert(KeyView before, io::IOVectorProducer& producer) = 0;
 
-    virtual CtrSharedPtr<MapIterator<Key, Value, Profile>> iterator() const = 0;
+    virtual IterSharedPtr<MapIterator<Key, Value, Profile>> iterator() const = 0;
 
     MapScanner<ApiTypes, Profile> scanner() const {
         return MapScanner<ApiTypes, Profile>(iterator());

@@ -84,7 +84,7 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
     using Producer      = VectorProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
-    using IteratorT     = CtrSharedPtr<VectorIterator<DataType, Profile>>;
+    using IteratorT     = IterSharedPtr<VectorIterator<DataType, Profile>>;
     using BufferT       = DataTypeBuffer<DataType>;
     using DataTypeT     = DataType;
 

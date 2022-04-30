@@ -84,18 +84,4 @@ class IteratorReadName      {};
 
 }
 
-template <typename Types>
-struct FLCtrTypesT: BTCtrTypesT<Types>         {};
-
-template <typename Types>
-struct FLIterTypesT: BTIterTypesT<Types>   {};
-
-
-template <typename Types>
-using BTFLCtrTypes = BTCtrTypesT<FLCtrTypesT<Types>>;
-
-template <typename Types>
-using BTFLIterTypes = BTIterTypesT<FLIterTypesT<Types>>;
-
-
 }

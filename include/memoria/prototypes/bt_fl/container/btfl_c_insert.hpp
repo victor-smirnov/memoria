@@ -48,7 +48,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
     {
         auto& self = this->self();
 
-        auto iov_res = LeafNode::template NodeSparseObject<MyType, LeafNode>::create_iovector().get_or_throw();
+        auto iov_res = LeafNode::template NodeSparseObject<MyType, LeafNode>::create_iovector();
 
         auto id = iter.iter_leaf()->id();
 

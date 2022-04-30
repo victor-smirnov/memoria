@@ -48,7 +48,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NodeCommonName)
     MEMORIA_V1_DECLARE_NODE_FN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings);
     bool ctr_should_merge_node(const TreeNodeConstPtr& node) const
     {
-        return self().node_dispatcher().dispatch(node, ShouldBeMergedNodeFn()).get_or_throw();
+       return self().node_dispatcher().dispatch(node, ShouldBeMergedNodeFn());
     }
 
     ////  ------------------------ CONTAINER PART PRIVATE API ------------------------

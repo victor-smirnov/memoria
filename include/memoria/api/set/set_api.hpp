@@ -67,7 +67,7 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
 
     virtual ApiProfileCtrSizeT<Profile> size() const = 0;
 
-    virtual CtrSharedPtr<SetIterator<Key, Profile>> find(KeyView key) const = 0;
+    virtual IterSharedPtr<SetIterator<Key, Profile>> find(KeyView key) const = 0;
 
     virtual bool contains(KeyView key)  = 0;
     virtual bool remove(KeyView key)    = 0;
@@ -96,7 +96,7 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
 
     virtual void insert(KeyView before, io::IOVectorProducer& producer) = 0;
 
-    virtual CtrSharedPtr<SetIterator<Key, Profile>> iterator() const = 0;
+    virtual IterSharedPtr<SetIterator<Key, Profile>> iterator() const = 0;
 
     template <typename Fn>
     SetScanner<ApiTypes, Profile> scanner(Fn&& iterator_producer) const {

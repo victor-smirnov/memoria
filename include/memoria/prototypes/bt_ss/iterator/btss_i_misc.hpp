@@ -141,8 +141,6 @@ public:
 
         PosWalker walker{};
         self.iter_walk_up_for_refresh(self.path(), 0, self.iter_local_pos(), walker);
-
-        //return ResultT::of(self.iter_local_pos() + self.iter_cache().size_prefix()[0]);
         return self.iter_local_pos() + walker.prefix_;
     }
 

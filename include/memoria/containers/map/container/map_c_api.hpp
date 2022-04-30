@@ -77,16 +77,18 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
         self().remove(key);
     }
 
-    CtrSharedPtr<MapIterator<Key,Value, ApiProfileT>> iterator() const
+    IterSharedPtr<MapIterator<Key,Value, ApiProfileT>> iterator() const
     {
         auto iter = self().ctr_begin();
-        return memoria_static_pointer_cast<MapIterator<Key,Value, ApiProfileT>>(std::move(iter));
+        //return memoria_static_pointer_cast<MapIterator<Key,Value, ApiProfileT>>(std::move(iter));
+        return iter;
     }
 
-    virtual CtrSharedPtr<MapIterator<Key, Value, ApiProfileT>> find(KeyView key) const
+    virtual IterSharedPtr<MapIterator<Key, Value, ApiProfileT>> find(KeyView key) const
     {
         auto iter = self().ctr_map_find(key);
-        return memoria_static_pointer_cast<MapIterator<Key, Value, ApiProfileT>>(std::move(iter));
+        //return memoria_static_pointer_cast<MapIterator<Key, Value, ApiProfileT>>(std::move(iter));
+        return iter;
     }
 
     void append(io::IOVectorProducer& producer)

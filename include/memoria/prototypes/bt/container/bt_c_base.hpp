@@ -464,7 +464,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         auto root = self.ctr_get_block(root_id);
 
-        return self.node_dispatcher().dispatch(root.get(), GetModelNameFn(self)).get_or_throw();
+        return self.node_dispatcher().dispatch(root.get(), GetModelNameFn(self));
     }
 
 
@@ -559,21 +559,16 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    Result<TreeNodePtr> ctr_create_node_fn(int32_t size) const
+    TreeNodePtr ctr_create_node_fn(int32_t size) const
     {
-        return wrap_throwing([&](){
-            auto& self = this->self();
-
-            auto node = static_cast_block<TreeNodePtr>(self.store().createBlock(size, self.name()));
-
-            node->header().block_type_hash() = Node::NodeType::hash();
-
-            return node;
-        });
+        auto& self = this->self();
+        auto node = static_cast_block<TreeNodePtr>(self.store().createBlock(size, self.name()));
+        node->header().block_type_hash() = Node::NodeType::hash();
+        return node;
     }
 
 
-    MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, ctr_create_node_fn, Result<TreeNodePtr>);
+    MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, ctr_create_node_fn, TreeNodePtr);
     TreeNodePtr createNonRootNode(int16_t level, bool leaf, int32_t size = -1) const
     {
         auto& self = this->self();
@@ -589,7 +584,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             leaf,
             CreateNodeFn(self),
             size
-        ).get_or_throw();
+        );
 
         node->header().ctr_type_hash() = self.hash();
         
@@ -627,7 +622,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         auto node = self.node_dispatcher().dispatch2(
             leaf,
             CreateNodeFn(self), size
-        ).get_or_throw();
+        );
 
         node->header().ctr_type_hash() = self.hash();
         
@@ -733,6 +728,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         init_dispatchers();
 
         auto& self = this->self();
+
+        self.make_block_iterator_state();
 
         if (node->ctr_type_hash() == CONTAINER_HASH)
         {

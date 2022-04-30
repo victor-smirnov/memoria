@@ -52,7 +52,7 @@ struct MMapValueStructTF: HasType<PackedDataTypeBufferT<DataType, false, 1, DTOr
 
 template <typename KeyType>
 struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
-    using Type = FailIf<false, PackedEmptyStruct<KeyType, PkdSearchType::MAX>>;
+    using Type = PackedEmptyStruct<KeyType, PkdSearchType::MAX>;
 };
 
 

@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include <memoria/core/memory/ptr_cast.hpp>
 
 #include <boost/pool/object_pool.hpp>
+#include <boost/smart_ptr/local_shared_ptr.hpp>
 
 #include <iostream>
 #include <type_traits>
@@ -35,192 +36,580 @@
 
 
 
-/**
- * Note. This simple list-based Object Pool is intended to be used inside iterators, because
- * its entries hold only classic pointer to ObjectPool structure. So users must guarantee that
- * all pool's entries are destroyed before pool is destroyed.
- *
- * This is true for containers/iterators. ObjectPool is intended to be used by iterators to reuse
- * heavy objects like Input/Output adapters. ObjectPool should be owned by container object, then a pool
- * will be deleted only after all iterators are already deleted.
- */
-
-
 namespace memoria {
+namespace pool {
 
 struct PoolBase {
     virtual ~PoolBase() noexcept = default;
 };
 
 
-template <typename ObjectType>
-class PoolUniquePtr: public PoolBase, public std::unique_ptr<ObjectType, std::function<void (void*)>> {
-    using Base = std::unique_ptr<ObjectType, std::function<void (void*)>>;
+template <typename> class SharedPtr;
+template <typename> class UniquePtr;
+
+template <typename> class enable_shared_from_this;
+
+
+
+
+
+
+namespace detail {
+
+class ObjectPoolRefHolder {
+    int64_t references_{1};
+
+
+    template <typename> friend class memoria::pool::SharedPtr;
+    template <typename> friend class memoria::pool::UniquePtr;
+
 public:
-    PoolUniquePtr(ObjectType* tt, std::function<void (void*)> dtr):
-        Base(tt, std::move(dtr))
+    ObjectPoolRefHolder() {}
+
+    virtual ~ObjectPoolRefHolder() noexcept = default;
+
+protected:
+    virtual void release() noexcept = 0;
+
+    void ref() noexcept {
+        references_++;
+    }
+
+    void unref() noexcept {
+        if (MMA_UNLIKELY(--references_ == 0)) {
+            release();
+        }
+    }
+
+public:
+    int64_t refs() const {
+        return references_;
+    }
+};
+
+template <typename T>
+SharedPtr<T> make_shared_ptr_from(T*, ObjectPoolRefHolder*);
+
+template <typename T>
+UniquePtr<T> make_unique_ptr_from(T*, ObjectPoolRefHolder*);
+
+}
+
+
+
+
+
+template <typename T>
+class UniquePtr {
+    using RefHolder = detail::ObjectPoolRefHolder;
+
+    T* ptr_;
+    RefHolder* ref_holder_;
+
+    template <typename> friend class SharedPtr;
+    template <typename> friend class UniquePtr;
+
+
+
+    friend UniquePtr<T> detail::make_unique_ptr_from(T*, RefHolder*);
+
+    UniquePtr(T* ptr, RefHolder* holder) noexcept :
+        ptr_(ptr), ref_holder_(holder)
     {}
 
-    PoolUniquePtr(const PoolUniquePtr&) = delete;
-    PoolUniquePtr() = default;
-    PoolUniquePtr(PoolUniquePtr&& other): Base(std::move(other)) {}
+public:
+    using element_type = T;
 
-    PoolUniquePtr& operator=(const PoolUniquePtr&) = delete;
-    PoolUniquePtr& operator=(PoolUniquePtr&& other)
+    UniquePtr() noexcept : ptr_(), ref_holder_() {}
+
+    template<typename U>
+    UniquePtr(UniquePtr<U>&& other) noexcept:
+        ptr_(other.ptr_), ref_holder_(other.ref_holder_)
     {
-        Base::operator=(std::move(other));
+        other.ref_holder_ = nullptr;
+    }
+
+
+    UniquePtr(const UniquePtr&) = delete;
+
+    ~UniquePtr() noexcept {
+        if (ref_holder_) {
+            ref_holder_->unref();
+        }
+    }
+
+    UniquePtr& operator=(const UniquePtr&) = delete;
+    UniquePtr& operator=(UniquePtr&& other) noexcept
+    {
+        if (&other != this) {
+            if (ref_holder_) {
+                ref_holder_->unref();
+            }
+
+            ptr_ = other.ptr_;
+            ref_holder_ = other.ref_holder_;
+            other.ref_holder_ = nullptr;
+        }
+
         return *this;
     }
 
-    bool operator==(const PoolUniquePtr& other) const
-    {
-        return Base::operator==(other);
+    bool operator==(const UniquePtr& other) const noexcept {
+        return ref_holder_ == other.ref_holder_;
+    }
+
+    bool operator==(const SharedPtr<T>& other) const noexcept;
+
+    void reset() noexcept {
+        if (ref_holder_) {
+            ref_holder_->unref();
+            ref_holder_ = nullptr;
+        }
+    }
+
+    friend void swap(UniquePtr& lhs, UniquePtr& rhs) {
+        std::swap(lhs.ptr_, rhs.ptr_);
+        std::swap(lhs.ref_holder_, rhs.ref_holder_);
+    }
+
+    T* operator->() {return ptr_;}
+    T* operator->() const {return ptr_;}
+
+    T& operator*() {return *ptr_;}
+    T& operator*() const {return *ptr_;}
+
+    T* get() {return ptr_;}
+    T* get() const {return ptr_;}
+
+    template<typename U>
+    UniquePtr<U> static_cast_to() && {
+        UniquePtr<U> pp(static_cast<U*>(ptr_), ref_holder_);
+        ref_holder_ = nullptr;
+        return pp;
+    }
+
+    template<typename U>
+    UniquePtr<U> dynamic_cast_to() && {
+        UniquePtr<U> pp(static_cast<U*>(ptr_), ref_holder_);
+        ref_holder_ = nullptr;
+        return pp;
+    }
+
+    template<typename U>
+    UniquePtr<U> const_cast_to() && {
+        UniquePtr<U> pp(const_cast<U*>(ptr_), ref_holder_);
+        ref_holder_ = nullptr;
+        return pp;
     }
 };
 
 
-template <typename T> struct SharedObjectPoolBase;
+
+
+
+
+template <typename T>
+class SharedPtr {
+    using RefHolder = detail::ObjectPoolRefHolder;
+
+    T* ptr_;
+    RefHolder* ref_holder_;
+
+    SharedPtr(T* ptr, RefHolder* holder) noexcept :
+        ptr_(ptr), ref_holder_(holder)
+    {
+        //ref_holder_->ref();
+    }
+
+    template <typename> friend class UniquePtr;
+    template <typename> friend class SharedPtr;
+    template <typename> class enable_shared_from_this;
+
+    friend SharedPtr<T> detail::make_shared_ptr_from(T*, RefHolder*);
+
+public:
+    using element_type = T;
+
+    SharedPtr() noexcept : ptr_(), ref_holder_() {}
+
+    template<typename U>
+    SharedPtr(const SharedPtr<U>& other) noexcept:
+        ptr_(other.ptr_),
+        ref_holder_(other.ref_holder_)
+    {
+        if (MMA_LIKELY((bool)ref_holder_)) {
+            ref_holder_->ref();
+        }
+    }
+
+
+    SharedPtr(const SharedPtr& other) noexcept:
+        ptr_(other.ptr_),
+        ref_holder_(other.ref_holder_)
+    {
+        if (MMA_LIKELY((bool)ref_holder_)) {
+            ref_holder_->ref();
+        }
+    }
+
+
+    SharedPtr(SharedPtr&& other) noexcept:
+        ptr_(other.ptr_), ref_holder_(other.ref_holder_)
+    {
+        other.ref_holder_ = nullptr;
+    }
+
+    template<typename U>
+    SharedPtr(SharedPtr<U>&& other) noexcept:
+        ptr_(other.ptr_), ref_holder_(other.ref_holder_)
+    {
+        other.ref_holder_ = nullptr;
+    }
+
+    template<typename U>
+    SharedPtr(UniquePtr<U>&& other) noexcept:
+        ptr_(other.ptr_), ref_holder_(other.ref_holder_)
+    {
+        other.ref_holder_ = nullptr;
+    }
+
+    ~SharedPtr() noexcept {
+        if (ref_holder_) {
+            ref_holder_->unref();
+        }
+    }
+
+    SharedPtr& operator=(const SharedPtr& other) noexcept {
+        if (MMA_LIKELY(&other != this))
+        {
+            if (ref_holder_) {
+                ref_holder_->unref();
+            }
+
+            ptr_ = other.ptr_;
+            ref_holder_ = other.ref_holder_;
+            ref_holder_->ref();
+        }
+
+        return *this;
+    }
+
+    SharedPtr& operator=(SharedPtr&& other) noexcept {
+        if (MMA_LIKELY(&other != this))
+        {
+            if (MMA_UNLIKELY(ref_holder_ != nullptr)) {
+                ref_holder_->release();
+            }
+
+            ptr_ = other.ptr_;
+            ref_holder_ = other.ref_holder_;
+            other.ref_holder_ = nullptr;
+        }
+
+        return *this;
+    }
+
+    SharedPtr& operator=(UniquePtr<T>&& other) noexcept {
+        if (MMA_UNLIKELY(ref_holder_ != nullptr)) {
+            ref_holder_->unref();
+        }
+
+        ptr_ = other.ptr_;
+        ref_holder_ = other.ref_holder_;
+        other.ref_holder_ = nullptr;
+
+        return *this;
+    }
+
+
+    bool operator==(const UniquePtr<T>& other) const noexcept {
+        return ref_holder_ == other.ref_holder_;
+    }
+
+    bool operator==(const SharedPtr<T>& other) const noexcept {
+        return ref_holder_ == other.ref_holder_;
+    }
+
+    void reset() noexcept {
+        if (ref_holder_) {
+            ref_holder_->unref();
+            ref_holder_ = nullptr;
+        }
+    }
+
+    friend void swap(SharedPtr& lhs, SharedPtr& rhs) {
+        std::swap(lhs.ptr_, rhs.ptr_);
+        std::swap(lhs.ref_holder_, rhs.ref_holder_);
+    }
+
+    T* operator->() {return ptr_;}
+    T* operator->() const {return ptr_;}
+
+    T& operator*() {return *ptr_;}
+    T& operator*() const {return *ptr_;}
+
+    T* get() {return ptr_;}
+    T* get() const {return ptr_;}
+
+    operator bool() const {
+        return ref_holder_ != nullptr;
+    }
+
+    template<typename U>
+    SharedPtr<U> static_cast_to() && {
+        SharedPtr<U> pp (static_cast<U*>(ptr_), ref_holder_);
+        ref_holder_ = nullptr;
+        return pp;
+    }
+
+    template<typename U>
+    SharedPtr<U> dynamic_cast_to() && {
+        SharedPtr<U> pp(dynamic_cast<U*>(ptr_), ref_holder_);
+        ref_holder_ = nullptr;
+        return pp;
+    }
+
+    template<typename U>
+    SharedPtr<U> const_cast_to() && {
+        SharedPtr<U> pp(const_cast<U*>(ptr_), ref_holder_);
+        ref_holder_ = nullptr;
+        return pp;
+    }
+};
+
+template <typename T>
+bool UniquePtr<T>::operator==(const SharedPtr<T>& other) const noexcept {
+    return ref_holder_ == other.ref_holder_;
+}
+
+template <typename T> class enable_shared_from_this;
+
 
 namespace detail {
 
 template <typename T>
-class ObjectPoolShared {
-    int counter_;
-public:
-    SharedObjectPoolBase<T>* pool;
-    T object;
+SharedPtr<T> make_shared_ptr_from(T* obj, ObjectPoolRefHolder* holder) {
+    return SharedPtr<T>(obj, holder);
+}
 
-    template <typename... Args>
-    ObjectPoolShared(SharedObjectPoolBase<T>* pool, Args&&... args):
-        counter_(1),
-        pool(pool),
-        object(std::forward<Args>(args)...)
-    {}
+template <typename T>
+UniquePtr<T> make_unique_ptr_from(T* obj, ObjectPoolRefHolder* holder) {
+    return UniquePtr<T>(obj, holder);
+}
 
-    void ref() noexcept {
-        counter_++;
+
+
+template <typename T, bool HasBase = std::is_base_of_v<enable_shared_from_this<T>, T>>
+struct SharedFromThisHelper;
+
+}
+
+
+template <typename T>
+class enable_shared_from_this {
+    using RefHolder = detail::ObjectPoolRefHolder;
+    T* ptr_;
+    RefHolder* holder_{};
+
+    void init(T* ptr, RefHolder* holder) {
+        ptr_ = ptr;
+        holder_ = holder;
     }
 
-    bool unref() noexcept {
-        return --counter_ == 0;
+    template <typename>
+    friend class SimpleObjectPool;
+
+    template <typename>
+    friend class HeavyObjectPool;
+
+    template <typename, bool> friend struct detail::SharedFromThisHelper;
+
+public:
+    enable_shared_from_this() {}
+
+    SharedPtr<T> shared_from_this() {
+        return detail::make_shared_ptr_from(ptr_, holder_);
+    }
+};
+
+
+namespace detail {
+
+template <typename T>
+struct SharedFromThisHelper<T, true> {
+    static void initialize(T* obj, ObjectPoolRefHolder* holder) {
+        static_cast<enable_shared_from_this<T>*>(obj)->init(obj, holder);
+    }
+};
+
+template <typename T>
+struct SharedFromThisHelper<T, false> {
+    static void initialize(T*, ObjectPoolRefHolder*) {
+    }
+};
+
+
+// SFINAE test
+template <typename T>
+class HasObjectResetMethod
+{
+    typedef char one;
+    struct two { char x[2]; };
+
+    template <typename C> static one test( decltype(&C::reset_state) ) ;
+    template <typename C> static two test(...);
+
+public:
+    static constexpr bool Value = sizeof(test<T>(0)) == sizeof(char);
+};
+
+
+template <typename T, bool HasResetMethod = HasObjectResetMethod<T>::Value>
+struct HeavyObjectResetHelper {
+    static void process(T*) {}
+};
+
+template <typename T>
+struct HeavyObjectResetHelper<T, true> {
+    static void process(T* obj) {
+        obj->reset_state();
     }
 };
 
 }
 
 
-template <typename T> class PoolSharedPtr;
+template <typename T, typename U>
+SharedPtr<T> memoria_static_pointer_cast(SharedPtr<U> ptr) {
+    return std::move(ptr).template static_cast_to<T>();
+}
 
+template <typename T, typename U>
+UniquePtr<T> memoria_static_pointer_cast(UniquePtr<U>&& ptr) {
+    return std::move(ptr).template static_cast_to<T>();
+}
+
+template <typename T, typename U>
+SharedPtr<T> memoria_dynamic_pointer_cast(SharedPtr<U> ptr) {
+    return std::move(ptr).template dynamic_cast_to<T>();
+}
+
+template <typename T, typename U>
+UniquePtr<T> memoria_dynamic_pointer_cast(UniquePtr<U>&& ptr) {
+    return std::move(ptr).template dynamic_cast_to<T>();
+}
+
+template <typename T, typename U>
+SharedPtr<T> memoria_const_pointer_cast(SharedPtr<U> ptr) {
+    return std::move(ptr).template const_cast_to<T>();
+}
+
+template <typename T, typename U>
+UniquePtr<T> memoria_const_pointer_cast(UniquePtr<U>&& ptr) {
+    return std::move(ptr).template const_cast_to<T>();
+}
 
 template <typename T>
-struct SharedObjectPoolBase: PoolBase {
-
-    template <typename> friend class PoolSharedPtr;
-
-protected:
-    virtual void release(detail::ObjectPoolShared<T>* shared) noexcept = 0;
-};
-
-
-template <typename T>
-class PoolSharedPtr {
-    T* ptr_;
-    detail::ObjectPoolShared<T>* shared_;
+class SimpleObjectPool: public PoolBase, public boost::enable_shared_from_this<SimpleObjectPool<T>> {
 public:
-    PoolSharedPtr() noexcept :
-        ptr_(), shared_()
-    {}
 
-    PoolSharedPtr(detail::ObjectPoolShared<T>* shared) noexcept :
-        ptr_(&shared->object), shared_(shared)
-    {}
+    class RefHolder: public detail::ObjectPoolRefHolder {
+        T object_;
+        boost::local_shared_ptr<SimpleObjectPool> pool_;
 
-    PoolSharedPtr(PoolSharedPtr&& other) noexcept :
-        ptr_(other.ptr_),
-        shared_(other.shared_)
+        template <typename> friend class SharedPtr;
+        template <typename> friend class UniquePtr;
+        template <typename> friend class SimpleObjectPool;
+
+    public:
+        template <typename... Args>
+        RefHolder(boost::local_shared_ptr<SimpleObjectPool> pool, Args&&... args):
+            object_(std::forward<Args>(args)...),
+            pool_(std::move(pool))
+        {}
+
+        virtual ~RefHolder() noexcept  = default;
+
+        T* ptr() noexcept {
+            return &object_;
+        }
+
+    protected:
+        virtual void release() noexcept {
+            pool_->release(this);
+        }
+    };
+
+private:
+
+    boost::object_pool<RefHolder> alloc_;
+
+    friend class RefHolder;
+    template <typename> friend class SharedPtr;
+    template <typename> friend class UniquePtr;
+public:
+
+    ~SimpleObjectPool() noexcept {
+
+    }
+
+    template <typename... Args>
+    SharedPtr<T> allocate_shared(Args&&... args) {
+        auto ptr = alloc_.construct(this->shared_from_this(), std::forward<Args>(args)...);
+
+        detail::SharedFromThisHelper<T>::initialize(ptr->ptr(), ptr);
+
+        return detail::make_shared_ptr_from(ptr->ptr(), ptr);
+    }
+
+    template <typename... Args>
+    UniquePtr<T> allocate_unique(Args&&... args)
     {
-        other.shared_ = nullptr;
-    }
-
-    PoolSharedPtr(const PoolSharedPtr& other) noexcept :
-        ptr_(other.ptr_),
-        shared_(other.shared_) {
-        if (other.shared_) {
-            other.shared_->ref();
-        }
-    }
-
-    ~PoolSharedPtr() noexcept {
-        release();
-    }
-
-    T* operator->() const noexcept {
-        return ptr_;
-    }
-
-    T* get() const noexcept {
-        return ptr_;
-    }
-
-    void reset() noexcept {
-        release();
-    }
-
-    bool operator==(const PoolSharedPtr& other) const noexcept {
-        return shared_ == other.shared_;
-    }
-
-    PoolSharedPtr& operator=(const PoolSharedPtr& other) noexcept {
-        if (&other != this) {
-            release();
-
-            ptr_ = other.ptr_;
-            shared_ = other.shared_;
-
-            if (shared_) shared_->ref();
-        }
-        return *this;
-    }
-
-    PoolSharedPtr& operator=(PoolSharedPtr&& other) noexcept {
-        if (&other != this) {
-            release();
-
-            ptr_ = other.ptr_;
-            shared_ = other.shared_;
-
-            other.shared_ = nullptr;
-        }
-        return *this;
+        static_assert (
+            !std::is_base_of_v<enable_shared_from_this<T>, T>,
+            "Can't create instance of a unique object deriving from pool::enable_shared_from_this<>"
+        );
+        auto ptr = alloc_.construct(this->shared_from_this(), std::forward<Args>(args)...);
+        return detail::make_unique_ptr_from(ptr->ptr(), ptr);
     }
 
 private:
-    void release() noexcept {
-        if (shared_) {
-            if (shared_->unref()) {
-                shared_->pool->release(shared_);
-            }
+    void release(RefHolder* holder) noexcept {
+        if (holder == (void*)0x626000000100) {
+            int a = 0; a++;
         }
+
+        alloc_.destroy(holder);
     }
 };
 
 
 
-template <typename ObjectType>
-class HeavyObjectPool: public PoolBase {
+template <typename T>
+class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<HeavyObjectPool<T>> {
 
-    using MyType = HeavyObjectPool;
-
-    using UniquePtr = PoolUniquePtr<ObjectType>;
-    using SharedPtr = std::shared_ptr<ObjectType>;
-
-    struct Descriptor {
-        ObjectType object_;
-
+    class Descriptor: public detail::ObjectPoolRefHolder {
+        T object_;
         Descriptor* next_;
+        boost::local_shared_ptr<HeavyObjectPool> pool_;
 
-        template <typename... Args>
-        Descriptor(Args&&... args): object_(std::forward<Args>(args)...), next_() {}
+        template <typename>
+        friend class HeavyObjectPool;
+
+    public:
+
+        Descriptor(boost::local_shared_ptr<HeavyObjectPool> pool, T&& value):
+            object_(std::move(value)),
+            next_(), pool_(std::move(pool))
+        {}
+
+        virtual void release() noexcept {
+            pool_->release(this);
+        }
+
+        T* ptr() noexcept {
+            return &object_;
+        }
     };
 
     Descriptor* head_;
@@ -239,9 +628,46 @@ public:
         }
     }
 
-    template <typename... Args>
-    auto get_unique(Args&&... args)
+
+    UniquePtr<T> get_unique_instance(std::function<T ()> factory = []() {
+        return T();
+    })
     {
+        static_assert (
+            !std::is_base_of_v<enable_shared_from_this<T>, T>,
+            "Can't create instance of a unique object deriving from pool::enable_shared_from_this<>"
+        );
+
+        Descriptor* descr = get_or_create(factory);
+
+        return detail::make_unique_ptr_from(descr->ptr(), descr);
+    }
+
+
+    SharedPtr<T> get_shared_instance(std::function<T ()> factory = []() {
+        return T();
+    })
+    {
+        Descriptor* descr = get_or_create(factory);
+
+        detail::SharedFromThisHelper<T>::initialize(descr->ptr(), descr);
+
+        return detail::make_unique_ptr_from(descr->ptr(), descr);
+    }
+
+
+
+private:
+    void release(Descriptor* entry) noexcept
+    {
+        detail::HeavyObjectResetHelper<T>::process(entry->ptr());
+        entry->next_ = head_;
+        head_ = entry;
+    }
+
+    Descriptor* get_or_create(std::function<T ()> factory)
+    {
+
         Descriptor* descr;
 
         if (head_)
@@ -251,133 +677,107 @@ public:
             descr->next_ = nullptr;
         }
         else {
-            descr = new Descriptor(std::forward<Args>(args)...);
+            descr = new Descriptor(this->shared_from_this(), factory());
         }
 
-        return UniquePtr(ptr_cast<ObjectType>(&descr->object_), [&, this](void* object_ptr) {
-            Descriptor* descr = ptr_cast<Descriptor>(object_ptr);
-            this->release(descr);
-        });
-    }
-
-    template <typename... Args>
-    auto get_shared(Args&&... args)
-    {
-        return SharedPtr(get_unique(std::forward<Args>(args)...));
-    }
-
-
-private:
-
-    void release(Descriptor* entry)
-    {
-        entry->object_.clear();
-
-        entry->next_ = head_;
-        head_ = entry;
+        return descr;
     }
 };
 
-
-
-
-template <typename T>
-class SharedObjectPool: public SharedObjectPoolBase<T> {
-    boost::object_pool<detail::ObjectPoolShared<T>> alloc_;
-public:
-
-    template <typename... Args>
-    PoolSharedPtr<T> allocate(Args&&... args) noexcept {
-        return alloc_.construct(this, std::forward<Args>(args)...);
-    }
-
-protected:
-    virtual void release(detail::ObjectPoolShared<T>* shared) noexcept {
-        alloc_.destroy(shared);
-    }
-};
-
-template <typename T>
-class UniqueObjectPool: public PoolBase {
-    boost::object_pool<T> alloc_;
-public:
-
-    template <typename... Args>
-    PoolUniquePtr<T> allocate(Args&&... args) noexcept {
-        auto ptr = alloc_.malloc();
-        return PoolUniquePtr<T> {
-            new (ptr) detail::ObjectPoolShared<T>(this, std::forward<Args>(args)...),
-            &UniqueObjectPool::release
-        };
-    }
-
-protected:
-    void release(void* shared) noexcept {
-        alloc_.destroy(shared);
-        alloc_.free(shared);
-    }
-};
-
+}
 
 template <typename T>
 struct PoolT {};
 
 class ObjectPools {
-    using PoolMap = std::unordered_map<std::type_index, PoolBase*>;
+    using PoolMap = std::unordered_map<std::type_index, boost::local_shared_ptr<pool::PoolBase>>;
     PoolMap pools_;
 public:
     ObjectPools() noexcept {}
-
-    ~ObjectPools() noexcept
-    {
-        for (auto e: pools_)
-        {
-            delete e.second;
-        }
-    }
+    ~ObjectPools() noexcept {}
 
     template <typename PoolType>
     PoolType& get_instance(const PoolT<PoolType>&) noexcept
     {
         auto i = pools_.find(typeid(PoolType));
-        if (i != pools_.end())
-        {
-            return *ptr_cast<PoolType>(i->second);
+        if (i != pools_.end()) {
+            return *ptr_cast<PoolType>(i->second.get());
         }
         else {
-            PoolType* pool = new PoolType();
-            pools_[typeid(PoolType)] = pool;
-            return *ptr_cast<PoolType>(pool);
+            auto ptr = boost::make_shared<PoolType>();
+            pools_[typeid(PoolType)] = ptr;
+            return *ptr;
         }
     }
 };
 
+
 ObjectPools& thread_local_pools();
 
 template <typename T, typename... Args>
-PoolSharedPtr<T> pool_allocate_shared(ObjectPools& pools, Args&&... args) {
-    using PoolType = SharedObjectPool<T>;
+pool::SharedPtr<T> allocate_shared(ObjectPools& pools, Args&&... args) {
+    using PoolType = pool::SimpleObjectPool<T>;
     auto& pool = pools.get_instance(PoolT<PoolType>{});
-    return pool.allocate(std::forward<Args>(args)...);
+    return pool.allocate_shared(std::forward<Args>(args)...);
 }
 
 template <typename T, typename... Args>
-PoolUniquePtr<T> pool_allocate_unique(ObjectPools& pools, Args&&... args) {
-    using PoolType = UniqueObjectPool<T>;
+pool::UniquePtr<T> allocate_unique(ObjectPools& pools, Args&&... args) {
+    using PoolType = pool::SimpleObjectPool<T>;
     auto& pool = pools.get_instance(PoolT<PoolType>{});
-    return pool.allocate(std::forward<Args>(args)...);
+    return pool.allocate_unique(std::forward<Args>(args)...);
 }
+
+
+template <typename T>
+pool::UniquePtr<T> get_reusable_unique_instance(ObjectPools& pools, std::function<T ()> factory = []{return T();}) {
+    using PoolType = pool::HeavyObjectPool<T>;
+    auto& pool = pools.get_instance(PoolT<PoolType>{});
+    return pool.get_unique_instance(factory);
+}
+
+
+template <typename T>
+pool::SharedPtr<T> get_reusable_shared_instance(ObjectPools& pools, std::function<T ()> factory = []{return T();}) {
+    using PoolType = pool::HeavyObjectPool<T>;
+    auto& pool = pools.get_instance(PoolT<PoolType>{});
+    return pool.get_shared_instance(factory);
+}
+
+
+
 
 
 template <typename T, typename... Args>
-PoolSharedPtr<T> TL_pool_allocate_shared(Args&&... args) {
-    return pool_allocate_shared<T>(thread_local_pools(), std::forward<Args>(args)...);
+pool::SharedPtr<T> TL_allocate_shared(Args&&... args) {
+    return allocate_shared(
+        thread_local_pools(),
+        std::forward<Args>(args)...
+    );
 }
 
 template <typename T, typename... Args>
-PoolUniquePtr<T> TL_pool_allocate_unique(Args&&... args) {
-    return pool_allocate_unique<T>(thread_local_pools(), std::forward<Args>(args)...);
+pool::UniquePtr<T> TL_allocate_unique(Args&&... args) {
+    return allocate_unique(
+        thread_local_pools(),
+        std::forward<Args>(args)...
+    );
 }
 
+template <typename T>
+pool::UniquePtr<T> TL_get_reusable_unique_instance(std::function<T ()> factory = []{return T();}) {
+    return get_reusable_unique_instance(
+        thread_local_pools(),
+        factory
+    );
+}
+
+template <typename T>
+pool::SharedPtr<T> TL_get_reusable_shared_instance(std::function<T ()> factory = []{return T();}) {
+    return get_reusable_shared_instance(
+        thread_local_pools(),
+        factory
+    );
+}
 
 }

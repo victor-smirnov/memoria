@@ -159,7 +159,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(IsEmptyFn, ctr_is_empty, bool);
     bool ctr_is_empty(const TreeNodePtr& node) {
-        return self().node_dispatcher().dispatch(node, IsEmptyFn()).get_or_throw();
+        return self().node_dispatcher().dispatch(node, IsEmptyFn());
     }
 
 

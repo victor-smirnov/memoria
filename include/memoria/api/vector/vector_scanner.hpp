@@ -77,10 +77,10 @@ private:
 
     detail::VectorValues<ValueView, DirectValues> entries_;
 
-    CtrSharedPtr<BTSSIterator<Profile>> btss_iterator_;
+    IterSharedPtr<BTSSIterator<Profile>> btss_iterator_;
 
 public:
-    VectorScanner(CtrSharedPtr<BTSSIterator<Profile>> iterator):
+    VectorScanner(IterSharedPtr<BTSSIterator<Profile>> iterator):
         btss_iterator_(iterator)
     {
         populate();

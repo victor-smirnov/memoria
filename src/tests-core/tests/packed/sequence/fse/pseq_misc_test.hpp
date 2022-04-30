@@ -125,7 +125,7 @@ public:
                 size_t idx     = getRandom(seq->size());
                 size_t symbol  = getRandom(Blocks);
 
-                seq->insert(idx, symbol).get_or_throw();
+                seq->insert(idx, symbol);
 
                 symbols.insert(symbols.begin() + idx, symbol);
 
@@ -185,7 +185,7 @@ public:
 
                 size_t block_size = seq->block_size();
 
-                seq->remove(start, end).get_or_throw();
+                seq->remove(start, end);
 
                 symbols.erase(symbols.begin() + start, symbols.begin() + end);
 
@@ -208,7 +208,7 @@ public:
             auto symbols = this->fillRandom(seq, size);
             assertEqual(seq, symbols);
 
-            seq->remove(0, seq->size()).get_or_throw();
+            seq->remove(0, seq->size());
 
             assertEmpty(seq);
         }
@@ -229,7 +229,7 @@ public:
             assert_gt(seq->size(), 0);
             assert_gt(seq->block_size(), Seq::empty_size());
 
-            seq->clear().get_or_throw();
+            seq->clear();
 
             assertEmpty(seq);
         }

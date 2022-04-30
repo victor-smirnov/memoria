@@ -330,16 +330,7 @@ public:
 
         using NodeSO = BranchNodeSO<CtrT, NodeT>;
 
-//        using BSSL = typename NodeSO::BranchSubstreamsStructList;
-
         using BranchPath = typename NodeSO::template BuildBranchPath<LeafPath>;
-
-//        const int32_t L = FailIfV<
-//                std::is_same<BranchPath, IntList<0, 1>>::value,
-//                list_tree::LeafCount<BSSL, BranchPath>,
-//                BranchPath, BSSL>;
-        //FailIf<true, typename BranchNodeSO<CtrT, NodeT>::BranchSubstreamsStructList> ee;
-
 
         auto result = node.template processStream<BranchPath>(
                 FindBranchFn(self), node.node()->is_root(), index, start
@@ -396,7 +387,7 @@ public:
         Node::template StreamDispatcher<
             ListHead<LeafPath>::Value
         >
-        ::dispatchAll(node.allocator(), w, self(), accum, std::forward<Args>(args)...).get_or_throw();
+        ::dispatchAll(node.allocator(), w, self(), accum, std::forward<Args>(args)...);
     }
 
 

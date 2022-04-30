@@ -77,7 +77,7 @@ public:
         return element.data();
     }
 
-    static VoidResult rowwise_insert(ArraySO& array, size_t row_at, Span<const Span<const ViewType>> elements) noexcept
+    static void rowwise_insert(ArraySO& array, size_t row_at, Span<const Span<const ViewType>> elements) noexcept
     {
         size_t size = elements.length();
         return insert(array, row_at, size, [&] (size_t col, size_t row) -> const ViewType& {
@@ -85,7 +85,7 @@ public:
         });
     }
 
-    static VoidResult columnwise_insert(ArraySO& array, size_t row_at, Span<const Span<const ViewType>> elements) noexcept
+    static void columnwise_insert(ArraySO& array, size_t row_at, Span<const Span<const ViewType>> elements) noexcept
     {
         size_t size = elements[0].length();
         return insert(array, row_at, size, [&] (size_t col, size_t row) -> const ViewType& {
@@ -94,7 +94,7 @@ public:
     }
 
     template <typename AccessorFn>
-    static VoidResult insert(ArraySO& array, size_t row_at, size_t size, AccessorFn&& elements) noexcept
+    static void insert(ArraySO& array, size_t row_at, size_t size, AccessorFn&& elements) noexcept
     {
         size_t data_lengths[Columns] = {};
 
@@ -106,7 +106,7 @@ public:
             }
         }
 
-        MEMORIA_TRY_VOID(array.insertSpace(row_at, size, data_lengths));
+        array.insertSpace(row_at, size, data_lengths);
 
         for (size_t column = 0; column < Columns; column++)
         {
@@ -125,8 +125,6 @@ public:
                 pos += data.size();
             }
         }
-
-        return VoidResult::of();
     }
 };
 

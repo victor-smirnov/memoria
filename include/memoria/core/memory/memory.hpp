@@ -18,10 +18,18 @@
 #include <memoria/core/memory/smart_ptrs.hpp>
 
 #include <memoria/core/tools/result.hpp>
+#include <memoria/core/tools/object_pool.hpp>
 
 #include <memory>
 
 namespace memoria {
+
+template <typename T>
+using IterSharedPtr = pool::SharedPtr<T>;
+
+template <typename T>
+using IterSharedFromThis = pool::enable_shared_from_this<T>;
+
 
 template <typename T>
 using CtrSharedPtr = LocalSharedPtr<T>;

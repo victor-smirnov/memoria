@@ -39,6 +39,8 @@ protected:
     using typename Base::CtrSizesT;
 
     static const int32_t DataStreams            = Types::DataStreams;
+
+    // FIXME: some strange compiler behavior
     static const int32_t StructureStreamIdx     = Types::StructureStreamIdx;
 
 public:

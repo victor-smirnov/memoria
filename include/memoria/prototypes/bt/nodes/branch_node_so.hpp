@@ -717,7 +717,7 @@ public:
                 Tree other_tree = other_disp.template get<Idx>(other.allocator());
                 if (!other_tree.data())
                 {
-                    other_tree = other_disp.template allocate_empty<Idx>(other.allocator()).get_or_throw();
+                    other_tree = other_disp.template allocate_empty<Idx>(other.allocator());
                 }
 
                 return tree.split_to(other_tree, idx);

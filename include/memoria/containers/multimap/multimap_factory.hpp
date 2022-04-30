@@ -126,25 +126,6 @@ struct BTTypes<Profile, Multimap<Key_, Value_>>: public MultimapBTTypesBase<Prof
 
 template <typename Profile, typename Key, typename Value, typename T>
 class CtrTF<Profile, Multimap<Key, Value>, T>: public CtrTF<Profile, BTFreeLayout, T> {
-    using Base1 = CtrTF<Profile, BTFreeLayout, T>;
-public:
-
-    struct Types: Base1::Types
-    {
-		using BaseTypes = typename Base1::Types;
-
-        using CtrTypes          = MultimapCtrTypes<Types>;
-        using IterTypes         = MultimapIterTypes<Types>;
-
-        using BlockUpdateMgr    = bt::BlockUpdateManager<CtrTypes>;
-
-        using LeafStreamsStructList = typename BaseTypes::LeafStreamsStructList;
-
-        using IteratorBranchNodeEntry = typename BaseTypes::IteratorBranchNodeEntry;
-    };
-
-    using CtrTypes  = typename Types::CtrTypes;
-    using Type      = Ctr<CtrTypes>;
 };
 
 }

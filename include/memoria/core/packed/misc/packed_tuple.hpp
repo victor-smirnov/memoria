@@ -198,9 +198,7 @@ public:
 
     PackedTuple() = default;
 
-    VoidResult pack() noexcept {
-        return VoidResult::of();
-    }
+    void pack() noexcept {}
 
     struct SetValueFn {
         template <psize_t Idx>

@@ -55,7 +55,7 @@ private:
         SumWalker(int32_t block): block_(block) {}
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
+        void treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             using BranchNodeT = bt::BranchNode<NodeTypes>;
 
@@ -66,16 +66,13 @@ private:
             auto substream = node.template substream<BranchPath>();
 
             sum_ += substream.sum(branch_block, end);
-
-            return VoidResult::of();
         }
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
+        void treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             auto substream = node.template substream<LeafPath>();
             sum_ += substream.sum(block_, end);
-            return VoidResult::of();
         }
     };
 
@@ -83,10 +80,8 @@ private:
 public:
 
     template <typename SumT, typename LeafPath>
-    Result<SumT> sum_up(int32_t block) const
+    SumT sum_up(int32_t block) const
     {
-        using ResultT = Result<SumT>;
-
         auto& self = this->self();
         SumWalker<SumT, LeafPath> fn(block);
 
@@ -96,12 +91,10 @@ public:
 
         auto stream_idx = self.data_stream_idx(stream, structure_idx);
 
-        MEMORIA_TRY_VOID(self.ctr().ctr_walk_tree_up(self.iter_leaf(), stream_idx, fn));
+        self.ctr().ctr_walk_tree_up(self.iter_leaf(), stream_idx, fn);
 
-        return ResultT::of(fn.sum_);
+        return fn.sum_;
     }
-
-
 
 MEMORIA_V1_ITERATOR_PART_END
 

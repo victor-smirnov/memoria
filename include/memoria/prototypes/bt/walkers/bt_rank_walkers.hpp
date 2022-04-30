@@ -121,13 +121,13 @@ public:
         using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
         const int32_t index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
 
-        rank_ += node.template processStream<BranchPath>(BranchFn(), index, start, result.local_pos(), seq_op()).get_or_throw();
+        rank_ += node.template processStream<BranchPath>(BranchFn(), index, start, result.local_pos(), seq_op());
     }
 
     template <typename Node, typename Result>
     void postProcessLeafNode(Node& node, WalkDirection direction, int32_t start, Result&& result)
     {
-        auto val = node.template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.local_pos(), seq_op()).get_or_throw();
+        auto val = node.template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.local_pos(), seq_op());
         rank_ += val;
     }
 };
@@ -228,13 +228,13 @@ public:
         using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
         const int32_t index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
 
-        rank_ += node.template processStream<BranchPath>(BranchFn(), index, start, result.local_pos(), seq_op()).get_or_throw();
+        rank_ += node.template processStream<BranchPath>(BranchFn(), index, start, result.local_pos(), seq_op());
     }
 
     template <typename Node, typename Result>
     void postProcessLeafNode(const Node& node, WalkDirection direction, int32_t start, Result&& result)
     {
-        rank_ += node.template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.local_pos(), seq_op()).get_or_throw();
+        rank_ += node.template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.local_pos(), seq_op());
     }
 
 
@@ -250,7 +250,7 @@ public:
             using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
             const int32_t index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
 
-            rank_ -= node.template processStream<BranchPath>(BranchFn(), index, end + 1, end + 2, seq_op()).get_or_throw();
+            rank_ -= node.template processStream<BranchPath>(BranchFn(), index, end + 1, end + 2, seq_op());
         }
     }
 

@@ -56,7 +56,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     using Base::LEVELS;
 
     using ALCMeta           = AllocationMetadata<ApiProfileT>;
-    using ApiIteratorT      = CtrSharedPtr<AllocationMapIterator<ApiProfileT>>;
+    using ApiIteratorT      = IterSharedPtr<AllocationMapIterator<ApiProfileT>>;
     using CtrSizeTResult    = Result<CtrSizeT>;
     using AllocationPoolT   = AllocationPool<ApiProfileT, LEVELS>;
 
@@ -76,13 +76,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     ApiIteratorT iterator()
     {
         auto iter = self().ctr_begin();
-        return memoria_static_pointer_cast<AllocationMapIterator<ApiProfileT>>(std::move(iter));
+        return iter;//memoria_static_pointer_cast<AllocationMapIterator<ApiProfileT>>(std::move(iter));
     }
 
 
     virtual ApiIteratorT seek(CtrSizeT position)  {
         auto iter = self().ctr_seek(position);
-        return memoria_static_pointer_cast<AllocationMapIterator<ApiProfileT>>(std::move(iter));
+        return iter;//memoria_static_pointer_cast<AllocationMapIterator<ApiProfileT>>(std::move(iter));
     }
 
 
@@ -620,7 +620,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
 
     class CompareHelper: public AllocationMapCompareHelper<ApiProfileT> {
-        using MapIteratorPtr = CtrSharedPtr<AllocationMapIterator<ApiProfileT>>;
+        using MapIteratorPtr = IterSharedPtr<AllocationMapIterator<ApiProfileT>>;
 
         MapIteratorPtr my_ii_;
         MapIteratorPtr other_ii_;

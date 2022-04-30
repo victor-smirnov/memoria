@@ -42,19 +42,4 @@ class ItrMrkValueName {};
 
 }
 
-template <typename Types>
-struct MultimapCtrTypesT: CtrTypesT<Types> {};
-
-template <typename Types>
-struct MultimapIterTypesT: IterTypesT<Types> {};
-
-
-
-template <typename Types>
-using MultimapCtrTypes  = BTCtrTypes<MultimapCtrTypesT<Types>>;
-
-template <typename Types>
-using MultimapIterTypes = BTIterTypes<MultimapIterTypesT<Types>>;
-
-
 }

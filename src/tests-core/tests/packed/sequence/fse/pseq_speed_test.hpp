@@ -111,8 +111,8 @@ public:
 
             size_t symbol = getRandom(Symbols);
 
-            seq->remove(idx2, idx2 + 1).get_or_throw();
-            seq->insert(idx1, symbol).get_or_throw();
+            seq->remove(idx2, idx2 + 1);
+            seq->insert(idx1, symbol);
         }
 
         int64_t t2 = getTimeInMillis();

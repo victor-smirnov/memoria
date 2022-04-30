@@ -67,10 +67,8 @@ struct PythonAPIBinder<CtrReferenceable<Profile>> {
 
         //for_each_ctr_reference
         ctr_referenceable.def("for_each_ctr_reference", [](CtrReferenceableType& ctr, std::function<void (U8StringView, const CtrID&)> consumer){
-            return ctr.for_each_ctr_reference([&](U8StringView name, const CtrID& ctr_id) -> VoidResult {
-                return wrap_throwing([&](){
-                   consumer(name, ctr_id);
-                });
+            return ctr.for_each_ctr_reference([&](U8StringView name, const CtrID& ctr_id) {
+                consumer(name, ctr_id);
             });
         });
         ctr_referenceable.def("set_ctr_references", &CtrReferenceableType::set_ctr_references);

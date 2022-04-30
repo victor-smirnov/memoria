@@ -131,10 +131,11 @@ public:
         return sizes[0];
     }
 
-    CtrSharedPtr<VectorIterator<ValueDataType, ApiProfileT>> seek(CtrSizeT pos) const
+    IterSharedPtr<VectorIterator<ValueDataType, ApiProfileT>> seek(CtrSizeT pos) const
     {
         typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
-        return memoria_static_pointer_cast<VectorIterator<ValueDataType, ApiProfileT>>(self().ctr_find(walker));
+        //return memoria_static_pointer_cast<VectorIterator<ValueDataType, ApiProfileT>>(self().ctr_find(walker));
+      return self().ctr_find(walker);
     }
 
 

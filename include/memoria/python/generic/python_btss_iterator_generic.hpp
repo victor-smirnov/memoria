@@ -32,11 +32,9 @@ struct PythonAPIBinder<BTSSIterator<Profile>> {
                 .def("next_leaf", &Type::next_leaf)
                 .def("next_entry", &Type::next_entry)
                 .def("describe", [](Type& ii) noexcept {
-                    return wrap_throwing([&]() -> Result<std::string>{
-                        std::stringstream ss;
-                        ii.dump(ss);
-                        return Result<std::string>(ss.str());
-                    });
+                    std::stringstream ss;
+                    ii.dump(ss);
+                    return ss.str();
                 });
     }
 };

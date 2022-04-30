@@ -229,22 +229,18 @@ private:
         CtrSizeT pos_ = 0;
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
+        void treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             using BranchSizePath = IntList<Stream>;
 
             auto sizes_substream = node.template substream<BranchSizePath>();
 
             pos_ += sizes_substream.sum(0, end);
-
-            return VoidResult::of();
         }
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
-        {
-            return VoidResult::of();
-        }
+        void treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
+        {}
     };
 
 public:

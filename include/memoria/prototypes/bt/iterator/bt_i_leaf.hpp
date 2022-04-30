@@ -70,8 +70,7 @@ public:
             walker.prepare(self);
 
             // FIXME need to refresh iterator's iovector view
-            self().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0).get_or_throw();
-
+            self().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0);
             walker.finish(self, 0, WalkCmd::NONE);
 
             return true;

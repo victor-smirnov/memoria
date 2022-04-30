@@ -43,19 +43,4 @@ class ItrMrkValueName {};
 
 }
 
-template <typename Types>
-struct MapCtrTypesT: CtrTypesT<Types> {};
-
-template <typename Types>
-struct MapIterTypesT: IterTypesT<Types> {};
-
-
-
-template <typename Types>
-using MapCtrTypes  = BTCtrTypes<MapCtrTypesT<Types>>;
-
-template <typename Types>
-using MapIterTypes = BTIterTypes<MapIterTypesT<Types>>;
-
-
 }

@@ -95,7 +95,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
     {
         auto& self = this->self();
 
-        auto iov = LeafNode::template SparseObject<MyType>::create_iovector().get_or_throw();
+        auto iov = LeafNode::template SparseObject<MyType>::create_iovector();
         auto id = iter.iter_leaf()->id();
 
         btss::io::IOVectorBTSSInputProvider<MyType> streaming(self, &producer, iov.get(), start, length);

@@ -60,7 +60,7 @@ protected:
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, ApiProfileT>;
 
     using IteratorAPI = MultimapIterator<Key, Value, ApiProfileT>;
-    using IteratorAPIPtr = CtrSharedPtr<IteratorAPI>;
+    using IteratorAPIPtr = IterSharedPtr<IteratorAPI>;
 
     using typename Base::BranchNodeExtData;
     using typename Base::LeafNodeExtData;
@@ -170,7 +170,6 @@ public:
         ii->iter_to_structure_stream();
 
         auto ptr = ctr_make_shared<multimap::KeysIteratorImpl<CtrApiTypes, ApiProfileT, IteratorPtr>>(ii);
-
         return memoria_static_pointer_cast<IKeysScanner<CtrApiTypes, ApiProfileT>>(ptr);
     }
 

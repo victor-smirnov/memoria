@@ -29,7 +29,8 @@ namespace memoria {
 
 MEMORIA_V1_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
 public:
-    using Types     = typename Base::Container::Types;
+    using Container = typename Base::Container;
+    using Types     = typename Container::Types;
     using TreeNodePtr = typename Types::TreeNodePtr;
     using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
     using Position  = typename Types::Position;
@@ -70,18 +71,7 @@ private:
 public:
     BTIteratorBase():
         Base(), idx_(0), stream_(0)
-    {
-    }
-
-    BTIteratorBase(ThisType&& other):
-        Base(std::move(other)),
-        path_(std::move(other.path_)),
-        idx_(other.idx_),
-        stream_(other.stream_),
-        cache_(std::move(other.cache_))
-    {
-        cache_.init(&self());
-    }
+    {}
 
     BTIteratorBase(const ThisType& other):
         Base(other),
@@ -89,20 +79,13 @@ public:
         idx_(other.idx_),
         stream_(other.stream_),
         cache_(other.cache_)
+    {}
+
+    void iter_initialize(const CtrSharedPtr<Container>& ctr_holder, int32_t idx, int32_t stream)
     {
-    }
-
-
-    void assign(ThisType&& other)
-    {
-        path_       = std::move(other.path_);
-        idx_        = other.idx_;
-        stream_     = other.stream_;
-        cache_      = std::move(other.cache_);
-
-        refresh_iovector_view();
-
-        Base::assign(std::move(other));
+        Base::iter_initialize(ctr_holder);
+        idx_ = idx;
+        stream_ = stream;
     }
 
     void assign(const ThisType& other)
@@ -110,7 +93,6 @@ public:
         path_       = other.path_;
         idx_        = other.idx_;
         stream_     = other.stream_;
-
         cache_      = other.cache_;
 
         refresh_iovector_view();
@@ -131,17 +113,6 @@ public:
         return self().ctr().clone_iterator(self());
     }
 
-    bool iter_equals(const ThisType& other) const
-    {
-        return iter_leaf().node() == other.iter_leaf().node() && idx_ == other.idx_ && Base::iter_equals(other);
-    }
-
-    bool iter_not_equals(const ThisType& other) const
-    {
-        return iter_leaf().node() != other.iter_leaf().node() || idx_ != other.idx_ || Base::iter_not_equals(other);
-    }
-
-
     int32_t& iter_stream() {
         return stream_;
     }
@@ -152,13 +123,11 @@ public:
     }
 
 
-    int32_t &iter_local_pos()
-    {
+    int32_t &iter_local_pos() {
         return idx_;
     }
 
-    int32_t iter_local_pos() const
-    {
+    int32_t iter_local_pos() const {
         return idx_;
     }
 
@@ -221,13 +190,11 @@ public:
         }
     };
 
-    NodeAccessor iter_leaf()
-    {
+    NodeAccessor iter_leaf() {
         return NodeAccessor(path_, self());
     }
 
-    ConstNodeAccessor iter_leaf() const
-    {
+    ConstNodeAccessor iter_leaf() const {
         return ConstNodeAccessor(path_);
     }
 
@@ -236,15 +203,14 @@ public:
         return iovector_view_;
     }
 
-    // TODO: error handling
+
     MEMORIA_V1_DECLARE_NODE_FN(RefreshIOVectorViewFn, configure_iovector_view);
-    void refresh_iovector_view()
-    {
+    void refresh_iovector_view() {
         self().ctr().leaf_dispatcher().dispatch(path_.leaf(), RefreshIOVectorViewFn(), *&iovector_view_);
     }
 
 
-    IteratorCache& iter_cache()  {
+    IteratorCache& iter_cache() {
         return cache_;
     }
 
@@ -253,37 +219,30 @@ public:
     }
 
 
-    bool iter_is_begin() const
-    {
+    bool iter_is_begin() const {
         return iter_local_pos() < 0 || iter_is_empty();
     }
 
-    bool iter_is_end() const
-    {
+    bool iter_is_end() const {
         auto& self = this->self();
-
         return iter_leaf().node().isSet() ? iter_local_pos() >= self.iter_leaf_size() : true;
     }
 
-    bool is_end() const
-    {
+    bool is_end() const {
         return self().iter_is_end();
     }
 
-    bool iter_is_end(int32_t idx) const
-    {
+    bool iter_is_end(int32_t idx) const {
         auto& self = this->self();
         return iter_leaf().node().isSet() ? idx >= self.iter_leaf_size() : true;
     }
 
-    bool iter_is_content() const
-    {
+    bool iter_is_content() const {
         auto& self = this->self();
         return !(self.iter_is_begin() || self.iter_is_end());
     }
 
-    bool iter_is_content(int32_t idx) const
-    {
+    bool iter_is_content(int32_t idx) const {
         auto& self = this->self();
 
         bool is_set = self.iter_leaf().node().isSet();
@@ -293,35 +252,29 @@ public:
         return is_set && idx >= 0 && idx < iter_leaf_size;
     }
 
-    bool iter_is_not_end() const
-    {
+    bool iter_is_not_end() const {
         return !iter_is_end();
     }
 
-    bool iter_is_empty() const
-    {
+    bool iter_is_empty() const {
         auto& self = this->self();
         return (iter_leaf().node().isEmpty()) || (self.iter_leaf_size() == 0);
     }
 
-    bool iter_is_not_empty() const
-    {
+    bool iter_is_not_empty() const {
         return !iter_is_empty();
     }
 
-    int64_t keyNum() const
-    {
+    int64_t keyNum() const {
         return cache_.key_num();
     }
 
-    int64_t& keyNum()
-    {
+    int64_t& keyNum() {
         return cache_.key_num();
     }
 
 
-    bool has_same_leaf(const Iterator& other) const
-    {
+    bool has_same_leaf(const Iterator& other) const {
         return self().iter_leaf()->id() == other.iter_leaf()->id();
     }
 
@@ -338,8 +291,7 @@ public:
         return self.iter_dump_blocks(out);
     }
 
-    U8String iter_get_dump_header() const
-    {
+    U8String iter_get_dump_header() const {
         return self().ctr().type_name_str() + " Iterator State";
     }
 

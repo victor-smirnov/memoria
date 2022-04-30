@@ -342,13 +342,12 @@ public:
     }
 
 
-    static Result<std::unique_ptr<io::IOVector>> create_iovector()
-    {
-        using ResultT = Result<std::unique_ptr<io::IOVector>>;
-        return ResultT::of(std::make_unique<IOVectorT>());
+    static std::unique_ptr<io::IOVector> create_iovector()
+    {        
+        return std::make_unique<IOVectorT>();
     }
 
-    Result<std::unique_ptr<io::IOVector>> create_iovector_view() const
+    std::unique_ptr<io::IOVector> create_iovector_view() const
     {
         auto iov = std::make_unique<IOVectorViewT>();
         configure_iovector_view(*iov.get());
@@ -976,17 +975,17 @@ public:
     };
 
     template <typename OtherNodeT>
-    BoolResult canBeMergedWith(OtherNodeT&& other) const
+    bool canBeMergedWith(OtherNodeT&& other) const
     {
         CanMergeWithFn fn;
         MEMORIA_TRY_VOID(DispatcherWithResult(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other)));
 
         int32_t client_area = other.allocator()->client_area();
 
-        return BoolResult::of(client_area >= fn.mem_used_);
+        return client_area >= fn.mem_used_;
     }
 
-    BoolResult shouldBeMergedWithSiblings() const
+    bool shouldBeMergedWithSiblings() const
     {
         return node_->shouldBeMergedWithSiblings();
     }
@@ -1046,7 +1045,7 @@ public:
                     other_tree = other_disp.template get<ListIdx>(other.allocator());
                 }
                 else {
-                    other_tree = other_disp.template allocate_empty<ListIdx>(other.allocator()).get_or_throw();
+                    other_tree = other_disp.template allocate_empty<ListIdx>(other.allocator());
                 }
 
                 return tree.split_to(other_tree, idx);

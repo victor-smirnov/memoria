@@ -219,7 +219,7 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
 
     using ApiTypes  = ICtrApiTypes<AllocationMap, Profile>;
 
-    using IteratorPtr = CtrSharedPtr<AllocationMapIterator<Profile>>;
+    using IteratorPtr = IterSharedPtr<AllocationMapIterator<Profile>>;
 
     using ALCMeta = AllocationMetadata<Profile>;
 

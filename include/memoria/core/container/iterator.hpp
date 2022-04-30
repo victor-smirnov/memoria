@@ -46,7 +46,6 @@ class IterHelper: public IterPart<
 
 public:
     IterHelper(): BaseType() {}
-    IterHelper(ThisType&& other): BaseType(std::move(other)) {}
     IterHelper(const ThisType& other): BaseType(other) {}
 };
 
@@ -62,7 +61,6 @@ class IterHelper<-1, Types1>: public Types1::template BaseFactory<Types1> {
 
 public:
     IterHelper(): BaseType() {}
-    IterHelper(ThisType&& other): BaseType(std::move(other)) {}
     IterHelper(const ThisType& other): BaseType(other) {}
 };
 
@@ -88,7 +86,6 @@ public:
         this->ctr_holder_ = std::move(ptr);
     }
 
-    IterStart(ThisType&& other): Base(std::move(other)), ctr_ptr_(std::move(other.ctr_ptr_)), model_(other.model_) {}
     IterStart(const ThisType& other): Base(other), ctr_ptr_(other.ctr_ptr_), model_(other.model_) {}
 
     virtual ~IterStart() {}
@@ -117,17 +114,14 @@ public:
 template <
     typename TypesType
 >
-class IteratorBase: public TypesType::IteratorInterface, public CtrSharedFromThis<Iter<TypesType>> {
-    typedef IteratorBase<TypesType>                                                 ThisType;
+class IteratorBase: public TypesType::IteratorInterface, public IterSharedFromThis<Iter<TypesType>> {
+    using ThisType = IteratorBase<TypesType>;
 
 public:
 
-    typedef Ctr<typename TypesType::CtrTypes>                                       Container;
-    typedef typename Container::ROAllocator                                         ROAllocator;
-
-    typedef Iter<TypesType>                                                         MyType;
-
-    enum {NORMAL = 0, END = 1, START = 2, EMPTY = 3};
+    using Container     = Ctr<typename TypesType::CtrTypes>;
+    using ROAllocator   = typename Container::ROAllocator;
+    using MyType        = Iter<TypesType>;
 
 protected:
 
@@ -135,73 +129,38 @@ protected:
 
 private:
 
-    int32_t type_;
-
     PairPtr pair_;
 
 public:
-    IteratorBase():
-        type_(NORMAL)
-    {}
-
-    IteratorBase(ThisType&& other):
-        ctr_holder_(std::move(other.ctr_holder_)),
-        type_(other.type_)
+    IteratorBase()
     {}
 
     IteratorBase(const ThisType& other):
-        ctr_holder_(other.ctr_holder_),
-        type_(other.type_)
-    {}
+        ctr_holder_(other.ctr_holder_)
+    {
 
+    }
+
+    void reset_state() noexcept {        
+        ctr_holder_.reset();
+        pair_.reset();
+    }
 
     PairPtr& pair() {return pair_;}
     const PairPtr& pair() const {return pair_;}
 
-
-    const int32_t& type() const {
-        return type_;
-    }
-
-    int32_t& type() {
-        return type_;
-    }
-
-    bool iter_equals(const ThisType& other) const
-    {
-        return true;
-    }
-
-    bool iter_not_equals(const ThisType& other) const
-    {
-        return false;
-    }
-
-    void assign(const ThisType& other)
-    {
+    void assign(const ThisType& other) {
         ctr_holder_ = other.ctr_holder_;
-        type_   = other.type_;
-    }
-
-    void assign(ThisType&& other)
-    {
-        ctr_holder_ = std::move(other.ctr_holder_);
-        type_   = other.type_;
-    }
-
-    MyType* me() {
-        return static_cast<MyType*>(this);
-    }
-
-    const MyType* me() const {
-        return static_cast<const MyType*>(this);
     }
 
 
-    const char* typeName() const {
-        return me()->model().typeName();
+    void iter_initialize(const CtrSharedPtr<Container>& ctr_holder) {
+      ctr_holder_ = ctr_holder;
     }
 };
+
+
+
 
 
 }

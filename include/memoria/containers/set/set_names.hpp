@@ -43,19 +43,4 @@ class ItrMrkValueName {};
 
 }
 
-template <typename Types>
-struct SetCtrTypesT: CtrTypesT<Types> {};
-
-template <typename Types>
-struct SetIterTypesT: IterTypesT<Types> {};
-
-
-
-template <typename Types>
-using SetCtrTypes  = BTCtrTypes<SetCtrTypesT<Types>>;
-
-template <typename Types>
-using SetIterTypes = BTIterTypes<SetIterTypesT<Types>>;
-
-
 }

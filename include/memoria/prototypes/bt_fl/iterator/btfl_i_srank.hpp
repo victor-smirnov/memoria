@@ -51,7 +51,7 @@ private:
         RankWalker(int32_t symbol): symbol_(symbol) {}
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
+        void treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             using BranchNodeT = bt::BranchNode<NodeTypes>;
 
@@ -63,15 +63,11 @@ private:
             auto sizes_substream = node.template substream<BranchPath>();
 
             rank_ += sizes_substream.sum(symbol_ + symbols_base, end);
-
-            return VoidResult::of();
         }
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
-        {
-            return VoidResult::of();
-        }
+        void treeNode(const LeafNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
+        {}
     };
 
 
@@ -79,7 +75,7 @@ private:
         DataSizesT ranks_;
 
         template <typename CtrT, typename NodeTypes>
-        VoidResult treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
+        void treeNode(const BranchNodeSO<CtrT, NodeTypes>& node, WalkCmd cmd, int32_t start, int32_t end)
         {
             using BranchNodeT = bt::BranchNode<NodeTypes>;
 
@@ -93,46 +89,38 @@ private:
             for (int32_t s = 0; s < DataStreams; s++) {
                 ranks_[s] += sizes_substream.sum(s + symbols_base, end);
             }
-
-            return VoidResult::of();
         }
 
         template <typename NodeTypes>
-        VoidResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
-        {
-            return VoidResult::of();
-        }
+        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+        {}
     };
 
 public:
 
-    Result<CtrSizeT> iter_rank(int32_t stream) const
+    CtrSizeT iter_rank(int32_t stream) const
     {
-        using ResultT = Result<CtrSizeT>;
-
         auto& self = this->self();
     	RankWalker fn(stream);
 
     	auto idx = self.iter_local_pos();
 
-        MEMORIA_TRY_VOID(self.ctr().ctr_walk_tree_up(self.iter_leaf(), idx, fn));
+        self.ctr().ctr_walk_tree_up(self.iter_leaf(), idx, fn);
 
     	auto leaf_rank = self.leaf_structure()->rank(idx, stream);
 
-        return ResultT::of(fn.rank_ + leaf_rank);
+        return fn.rank_ + leaf_rank;
     }
 
 
-    Result<CtrSizeT> iter_ranks() const
+    CtrSizeT iter_ranks() const
     {
-        using ResultT = Result<CtrSizeT>;
-
     	auto& self = this->self();
     	RankWalker fn;
 
     	auto idx = self.iter_local_pos();
 
-        MEMORIA_TRY_VOID(self.ctr().ctr_walk_tree_up(self.iter_leaf(), idx, fn));
+        self.ctr().ctr_walk_tree_up(self.iter_leaf(), idx, fn);
 
     	auto leaf_structure = self.leaf_structure();
 
@@ -142,7 +130,7 @@ public:
     		leaf_ranks[s] = leaf_structure->rank(idx, s);
     	}
 
-        return ResultT::of(fn.ranks_ + leaf_ranks);
+        return fn.ranks_ + leaf_ranks;
     }
 
 MEMORIA_V1_ITERATOR_PART_END

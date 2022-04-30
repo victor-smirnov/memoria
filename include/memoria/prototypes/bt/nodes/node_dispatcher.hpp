@@ -396,7 +396,7 @@ public:
             return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type");
+            MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch btree node type").do_throw();
         }
     }
 

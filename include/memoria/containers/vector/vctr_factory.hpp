@@ -110,22 +110,6 @@ struct BTTypes<Profile, Vector<Value_> >: public VectorBTTypesBase<Profile, Valu
 
 template <typename Profile, typename Value, typename T>
 class CtrTF<Profile, Vector<Value>, T>: public CtrTF<Profile, BTSingleStream, T> {
-
-    using Base = CtrTF<Profile, BTSingleStream, T>;
-public:
-
-    struct Types: Base::Types
-    {
-        typedef Vector2CtrTypes<Types>                                          CtrTypes;
-        typedef Vector2IterTypes<Types>                                         IterTypes;
-
-        using BlockUpdateMgr = bt::BlockUpdateManager<CtrTypes>;
-    };
-
-
-    typedef typename Types::CtrTypes                                            CtrTypes;
-    typedef Ctr<CtrTypes>                                                       Type;
-
 };
 
 }

@@ -128,10 +128,10 @@ private:
 
     detail::MapKeysValues<typename Types::Key, typename Types::Value> entries_;
 
-    CtrSharedPtr<BTSSIterator<Profile>> btss_iterator_;
+    IterSharedPtr<BTSSIterator<Profile>> btss_iterator_;
 
 public:
-    MapScanner(CtrSharedPtr<BTSSIterator<Profile>> iterator):
+    MapScanner(IterSharedPtr<BTSSIterator<Profile>> iterator):
         btss_iterator_(iterator)
     {
         populate();

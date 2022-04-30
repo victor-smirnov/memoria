@@ -305,69 +305,7 @@ void check(StorePtr store, const char* message,  const char* source)
 template <typename Ctr>
 void checkCtr(Ctr& ctr, const char* message,  const char* source)
 {
-
-
 }
-
-
-
-template <typename Types, typename T>
-bool CompareBuffer(Iter<Vector2IterTypes<Types>>& iter, const std::vector<T>& data, int32_t& c)
-{
-    auto tmp = iter;
-
-    std::vector<T> buf = iter.subVector(data.size());
-
-    iter.skip(data.size());
-
-    for (c = 0; c < (int32_t)data.size(); c++)
-    {
-        if (buf[c] != data[c])
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-
-template <typename BAIterator, typename MemBuffer>
-void checkBufferWritten(BAIterator& iter, const MemBuffer& data, const char* err_msg, const char* source)
-{
-    int32_t pos = 0;
-    if (!CompareBuffer(iter, data, pos))
-    {
-        MMA_THROW(TestException()) << WhatInfo(format_u8("{}: pos={}", err_msg, pos));
-    }
-}
-
-
-
-template <typename Types, typename MemBuffer>
-bool CompareBuffer(Iter<Types>& iter, const MemBuffer& data, int32_t& c)
-{
-    typedef Iter<Types> Iterator;
-
-    c = 0;
-    for (size_t i = 0; i != data.size(); i++, iter.next(), c++)
-    {
-        for (int32_t d = 0; d < Iterator::Indexes; d++)
-        {
-            auto value = iter.getRawKey(d);
-
-            if (value != data[c].keys[d])
-            {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-
-
 
 template <typename T, typename A>
 int32_t getUniqueRandom(const std::vector<T, A> &vec)

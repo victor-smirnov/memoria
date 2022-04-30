@@ -33,19 +33,4 @@ class CtrFindName {};
 class ItrApiName {};
 }
 
-template <typename Types>
-struct Vector2CtrTypesT: CtrTypesT<Types> {};
-
-template <typename Types>
-struct Vector2IterTypesT: IterTypesT<Types> {};
-
-
-
-template <typename Types>
-using Vector2CtrTypes  = BTCtrTypesT<Vector2CtrTypesT<Types>>;
-
-template <typename Types>
-using Vector2IterTypes = BTIterTypesT<Vector2IterTypesT<Types>>;
-
-
 }

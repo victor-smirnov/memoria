@@ -404,7 +404,10 @@ struct IteratorExtensionsTF {
     using Type = TL<>;
 };
 
-
+template <typename Profile, typename CtrName>
+struct BlockIteratorStateExtensionsTF {
+    using Type = TL<>;
+};
 
 
 

@@ -497,16 +497,6 @@ public:
         }
     }
 
-//    VoidResult resize(int32_t new_size) noexcept
-//    {
-//        if (shared_ != nullptr)
-//        {
-//            return shared_->store()->resizeBlock(shared_, new_size);
-//        }
-
-//        return VoidResult::of();
-//    }
-
     void clear() noexcept {
         *this = nullptr;
     }

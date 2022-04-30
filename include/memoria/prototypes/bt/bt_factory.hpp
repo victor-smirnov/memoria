@@ -137,7 +137,10 @@ struct BTTypes {
             bt::IteratorLeafName
     >;
 
+    using BlockIteratorStatePartsList = TypeList<>;
+
     using IteratorInterface = EmptyType;
+    using BlockIteratorStateInterface = EmptyType;
 
     using Allocator = ProfileStoreType<Profile_>;
     using ID        = ProfileBlockID<Profile_>;
@@ -164,6 +167,9 @@ struct BTTypes {
 
     template <typename Types_>
     using IterBaseFactory = BTIteratorBase<Types_>;
+
+    template <typename Types_>
+    using BlockIterStateBaseFactory = BTBlockIteratorStateBase<Types_>;
 
     template <typename Iterator, typename Container>
     using IteratorCacheFactory = bt::BTreeIteratorPrefixCache<Iterator, Container>;
@@ -322,6 +328,7 @@ public:
 
     using CtrExtensionsList  = typename bt::ContainerExtensionsTF<Profile, ContainerTypeName_>::Type;
     using IterExtensionsList = typename bt::IteratorExtensionsTF<Profile, ContainerTypeName_>::Type;
+    using BlockIterStateExtensionsList = typename bt::IteratorExtensionsTF<Profile, ContainerTypeName_>::Type;
 
     using CtrList = MergeLists<
             typename ContainerTypes::ContainerPartsList,
@@ -329,7 +336,7 @@ public:
     >;
 
     using IterList = MergeLists<IterExtensionsList, typename ContainerTypes::IteratorPartsList>;
-
+    using BlockIterStateList = MergeLists<BlockIterStateExtensionsList, typename ContainerTypes::BlockIteratorStatePartsList>;
 
 public:
     struct Types: ContainerTypes
@@ -345,11 +352,13 @@ public:
 
         using CtrList  = typename MyType::CtrList;
         using IterList = typename MyType::IterList;
+        using BlockIterStateList = typename MyType::BlockIterStateList;
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
         using CtrTypes  = BTCtrTypes<Types>;
         using IterTypes = BTIterTypes<Types>;
+        using BlockIterStateTypes = BTBlockIterStateTypes<Types>;
 
         static constexpr int32_t Streams = MyType::Streams;
 

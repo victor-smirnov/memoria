@@ -85,20 +85,6 @@ struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
 
 template <typename Profile, typename T>
 class CtrTF<Profile, BTSingleStream, T>: public CtrTF<Profile, BT, T> {
-
-    using Base = CtrTF<Profile, BT, T>;
-public:
-
-    struct Types: Base::Types
-    {
-        using CtrTypes          = BTSSCtrTypes<Types>;
-        using IterTypes         = BTSSIterTypes<Types>;
-
-        using BlockUpdateMgr     = bt::BlockUpdateManager<CtrTypes>;
-    };
-
-    using CtrTypes  = typename Types::CtrTypes;
-    using Type      = Ctr<CtrTypes>;
 };
 
 

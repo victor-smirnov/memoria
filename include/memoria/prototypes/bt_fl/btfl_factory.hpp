@@ -134,13 +134,14 @@ public:
     {
 		using BaseTypes = typename Base1::Types;
 
-        using CtrTypes          = BTFLCtrTypes<Types>;
-        using IterTypes         = BTFLIterTypes<Types>;
+        using CtrTypes              = BTCtrTypes<Types>;
+        using IterTypes             = BTIterTypes<Types>;
+        using BlockIterStateTypes   = BTBlockIterStateTypes<Types>;
 
         using BlockUpdateMgr     = bt::BlockUpdateManager<CtrTypes>;
 
-        static const int32_t DataStreams            = BaseTypes::Streams - 1;
-        static const int32_t StructureStreamIdx     = DataStreams;
+        static constexpr int32_t DataStreams            = BaseTypes::Streams - 1;
+        static constexpr int32_t StructureStreamIdx     = DataStreams;
 
         using DataSizesT = core::StaticVector<typename BaseTypes::CtrSizeT, DataStreams>;
     };

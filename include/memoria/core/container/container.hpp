@@ -93,7 +93,10 @@ public:
 
     using Iterator          = Iter<typename Types::IterTypes>;
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
-    using IteratorPtr       = CtrSharedPtr<SharedIterator>;
+    using IteratorPtr       = IterSharedPtr<SharedIterator>;
+
+    using BlockIteratorState    = Iter<typename Types::BlockIterStateTypes>;
+    using BlockIteratorStatePtr = IterSharedPtr<BlockIteratorState>;
 
     using ROAllocatorPtr    = SnpSharedPtr<ROAllocator>;
 
@@ -506,23 +509,63 @@ protected:
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) const {
-        return ctr_make_shared<SharedIterator>(this->shared_from_this(), std::forward<Args>(args)...);
+        return allocate_shared<SharedIterator>(
+            self().store().object_pools(),
+            this->shared_from_this(),
+            std::forward<Args>(args)...
+        );
     }
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) {
-        return ctr_make_shared<SharedIterator>(this->shared_from_this(), std::forward<Args>(args)...);
+        return allocate_shared<SharedIterator>(
+            self().store().object_pools(),
+            this->shared_from_this(),
+            std::forward<Args>(args)...
+        );
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) const {
-        return ctr_make_shared<SharedIterator>(std::forward<Args>(args)...);
+        return allocate_shared<SharedIterator>(
+            self().store().object_pools(),
+            std::forward<Args>(args)...
+        );
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) {
-        return ctr_make_shared<SharedIterator>(std::forward<Args>(args)...);
+        return allocate_shared<SharedIterator>(
+            self().store().object_pools(),
+            std::forward<Args>(args)...
+        );
     }
+
+
+
+
+    BlockIteratorStatePtr make_block_iterator_state() {
+        auto state = get_reusable_shared_instance<BlockIteratorState>(
+            self().store().object_pools()
+        );
+
+        state->iter_initialize(this->shared_from_this());
+
+        return state;
+    }
+
+
+
+    IteratorPtr clone_block_iterator_state(const BlockIteratorState& src) {
+        auto state = get_reusable_shared_instance<BlockIteratorState>(
+            self().store().object_pools()
+        );
+
+        state->assign(src);
+
+        return state;
+    }
+
 
 private:
     MyType& self() noexcept

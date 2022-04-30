@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         }
 
         template <typename Node, typename Fn, typename... Args>
-        Int32Result treeNode(const Node& node, Fn&& fn, int32_t from, CtrSizeT to, Args&&... args)
+        int32_t treeNode(const Node& node, Fn&& fn, int32_t from, CtrSizeT to, Args&&... args)
         {
             int32_t limit = node.size(0);
 
@@ -55,19 +55,18 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
             for (int32_t c = from; c < limit; c++)
             {
-                MEMORIA_TRY_VOID(node->template processSubstreams<IntList<StreamIdx>>(*this, fn, c, std::forward<Args>(args)...));
-
+                node->template processSubstreams<IntList<StreamIdx>>(*this, fn, c, std::forward<Args>(args)...);
                 fn.next();
             }
 
-            return Int32Result::of(limit - from);
+            return limit - from;
         }
     };
 
 
 
     template <int32_t StreamIdx, typename Fn>
-    Result<CtrSizeT> ctr_read_entries(Iterator& iter, CtrSizeT length, Fn&& fn)
+    CtrSizeT ctr_read_entries(Iterator& iter, CtrSizeT length, Fn&& fn)
     {
         CtrSizeT total = 0;
 
@@ -102,7 +101,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         }
 
         template <typename NodeSO, typename Fn>
-        Int32Result treeNode(const NodeSO& node, int32_t from, CtrSizeT to, Fn&& fn)
+        int32_t treeNode(const NodeSO& node, int32_t from, CtrSizeT to, Fn&& fn)
         {
             MEMORIA_TRY(limit, node.size(ListHead<SubstreamPath>::Value));
 
@@ -110,14 +109,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
                 limit = to;
             }
 
-            MEMORIA_TRY_VOID(node.template processStream<SubstreamPath>(*this, from, limit, std::forward<Fn>(fn)));
-
-            return Int32Result::of(limit - from);
+            node.template processStream<SubstreamPath>(*this, from, limit, std::forward<Fn>(fn));
+            return limit - from;
         }
     };
 
     template <typename SubstreamPath, typename Fn>
-    Result<CtrSizeT> ctr_read_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
+    CtrSizeT ctr_read_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
     {
         CtrSizeT total = 0;
 
@@ -125,7 +123,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.iter_local_pos();
 
-            MEMORIA_TRY(processed, self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSubstreamFn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn)));
+            auto processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSubstreamFn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
                 total += iter.iter_skip_fw(processed);
@@ -155,22 +153,21 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         }
 
         template <typename Node, typename Fn>
-        Int32Result treeNode(const Node& node, int32_t from, CtrSizeT to, int32_t block, Fn&& fn)
+        int32_t treeNode(const Node& node, int32_t from, CtrSizeT to, int32_t block, Fn&& fn)
         {
-            MEMORIA_TRY(limit, node.size(0));
+            auto limit = node.size(0);
 
             if (to < limit) {
                 limit = to;
             }
 
-            MEMORIA_TRY_VOID(node.template processStream<SubstreamPath>(*this, from, limit, block, std::forward<Fn>(fn)));
-
-            return Int32Result::of(limit - from);
+            node.template processStream<SubstreamPath>(*this, from, limit, block, std::forward<Fn>(fn));
+            return limit - from;
         }
     };
 
     template <typename SubstreamPath, typename Fn>
-    Result<CtrSizeT> ctr_read_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
+    CtrSizeT ctr_read_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
     {
         CtrSizeT total = 0;
 
@@ -178,7 +175,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.iter_local_pos();
 
-            MEMORIA_TRY(processed, self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn)));
+            auto processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
                 total += iter.iter_skip_fw(processed);
@@ -206,22 +203,22 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         }
 
         template <typename Node, typename Fn>
-        Int32Result treeNode(const Node& node, int32_t block, int32_t from, CtrSizeT to, Fn&& fn)
+        int32_t treeNode(const Node& node, int32_t block, int32_t from, CtrSizeT to, Fn&& fn)
         {
-            MEMORIA_TRY(limit, node->size(0));
+            auto limit = node->size(0);
 
             if (to < limit) {
                 limit = to;
             }
 
-            MEMORIA_TRY_VOID(node.template processStream<SubstreamPath>(*this, block, from, limit, std::forward<Fn>(fn)));
+            node.template processStream<SubstreamPath>(*this, block, from, limit, std::forward<Fn>(fn));
 
-            return Int32Result::of(limit - from);
+            return limit - from;
         }
     };
 
     template <typename SubstreamPath, typename Fn>
-    Result<CtrSizeT> ctr_describe_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
+    CtrSizeT ctr_describe_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
     {
         CtrSizeT total = 0;
 
@@ -229,7 +226,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.iter_local_pos();
 
-            MEMORIA_TRY(processed, self().leaf_dispatcher().dispatch(iter.iter_leaf(), DescribeSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn)));
+            auto processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), DescribeSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
                 total += iter.iter_skip_fw(processed);
@@ -257,22 +254,21 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         }
 
         template <typename Node, typename Fn>
-        Int32Result treeNode(const Node& node, int32_t from, CtrSizeT to, Fn&& fn)
+        int32_t treeNode(const Node& node, int32_t from, CtrSizeT to, Fn&& fn)
         {
-            MEMORIA_TRY(limit, node.size(0));
+            auto limit = node.size(0);
 
             if (to < limit) {
                 limit = to;
             }
 
-            MEMORIA_TRY_VOID(node.template processStream<SubstreamPath>(*this, from, limit, std::forward<Fn>(fn)));
-
-            return Int32Result::of(limit - from);
+            node.template processStream<SubstreamPath>(*this, from, limit, std::forward<Fn>(fn));
+            return limit - from;
         }
     };
 
     template <typename SubstreamPath, typename Fn>
-    Result<CtrSizeT> ctr_read_single_substream2(Iterator& iter, CtrSizeT length, Fn&& fn)
+    CtrSizeT ctr_read_single_substream2(Iterator& iter, CtrSizeT length, Fn&& fn)
     {
         CtrSizeT total = 0;
 
@@ -280,7 +276,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.iter_local_pos();
 
-            MEMORIA_TRY(processed, self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSingleSubstream2Fn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn)));
+            auto processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSingleSubstream2Fn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
                 total += iter.iter_skip_fw(processed);
@@ -292,7 +288,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
         return total;
     }
-
 
 MEMORIA_V1_CONTAINER_PART_END
 
