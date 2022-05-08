@@ -72,6 +72,7 @@ struct ForEachIdx {
 
 template <int32_t Idx, int32_t Size>
 struct ForEach {
+
     template <typename Fn, typename... Args>
     static void process(Fn&& fn, Args&&... args){
         if (fn.template process<Idx>(std::forward<Args>(args)...)){
@@ -123,6 +124,37 @@ struct ForEach<Idx, Idx> {
     template <typename... Args>
     static VoidResult process_res_fn(Args&&... args) noexcept {
         return VoidResult::of();
+    }
+};
+
+
+
+template <int32_t Idx, int32_t Size>
+struct ForOneOf {
+    template <typename Fn, typename... Args>
+    static auto process(int32_t stream, Fn&& fn, Args&&... args){
+        if (Idx == stream)
+        {
+            return fn.template process<Idx>(std::forward<Args>(args)...);
+        }
+        else {
+            return ForEach<Idx + 1, Size>::process(std::forward<Fn>(fn), std::forward<Args>(args)...);
+        }
+    }
+};
+
+
+template <int32_t Idx>
+struct ForOneOf<Idx, Idx> {
+    template <typename Fn, typename... Args>
+    static auto process(int32_t stream, Fn&& fn, Args&&... args){
+        if (Idx == stream)
+        {
+            return fn.template process<Idx>(std::forward<Args>(args)...);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("").do_throw();
+        }
     }
 };
 

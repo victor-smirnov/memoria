@@ -48,9 +48,13 @@ class StreamOpResult {
     bool empty_;
 
 public:
-    StreamOpResult(): idx_(), start_(), out_of_range_(), empty_(true) {}
+    StreamOpResult():
+        idx_(), start_(), out_of_range_(), empty_(true)
+    {}
 
-    StreamOpResult(int32_t idx, int32_t start, bool out_of_range, bool empty = false): idx_(idx), start_(start), out_of_range_(out_of_range), empty_(empty) {}
+    StreamOpResult(int32_t idx, int32_t start, bool out_of_range, bool empty = false):
+        idx_(idx), start_(start), out_of_range_(out_of_range), empty_(empty)
+    {}
 
     int32_t local_pos() const {
         return idx_;
@@ -68,6 +72,10 @@ public:
         return empty_;
     }
 };
+
+
+
+
 
 
 

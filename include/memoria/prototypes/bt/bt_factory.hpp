@@ -380,7 +380,16 @@ public:
 
         template <typename LeafPath>
         using TargetType = AccumType<
-                bt::BrachStructAccessorTool<
+                bt::BranchStructAccessorTool<
+                    LeafStreamsStructList,
+                    BranchStreamsStructList,
+                    LeafPath
+                >
+        >;
+
+        template <typename LeafPath>
+        static constexpr DTOrdering KeyOrderingType = KeyOrdering<
+                bt::BranchStructAccessorTool<
                     LeafStreamsStructList,
                     BranchStreamsStructList,
                     LeafPath

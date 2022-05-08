@@ -344,6 +344,10 @@ enum class SeqOpType: size_t {
     EQ, NEQ, LT, LE, GT, GE, EQ_NLT
 };
 
+// This helper class is usable when we need to provide a type
+// to a template method, and don't want to pepend keyword
+// 'template' at the call site.
+template <typename T> struct TypeTag{};
 
 }
 

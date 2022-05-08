@@ -1159,6 +1159,36 @@ public:
     }
 
 
+    template <typename Fn, typename... Args>
+    auto processStreamStart(size_t stream, Fn&& fn, Args&&... args)
+    {
+        using Subset = bt::StreamsStartSubset<BranchSubstreamsStructList>;
+        using SD = typename Dispatcher::template SubsetDispatcher<Subset>;
+        return SD(state()).dispatch(
+                stream,
+                allocator(),
+                std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+
+
+    template <typename Fn, typename... Args>
+    auto processStreamStart(size_t stream, Fn&& fn, Args&&... args) const
+    {
+        using Subset = bt::StreamsStartSubset<BranchSubstreamsStructList>;
+
+        using SD = typename Dispatcher::template SubsetDispatcher<Subset>;
+
+        return SD(state()).dispatch(
+                stream,
+                allocator(),
+                std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+
+
     UpdateState make_update_state() {
         UpdateState state;
         bt::get_allocator_update_state(state) = allocator()->make_allocator_update_state();

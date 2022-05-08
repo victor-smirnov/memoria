@@ -182,6 +182,10 @@ public:
 
 protected:
 
+    mutable boost::object_pool<Shared> shared_pool_;
+    mutable ObjectPools object_pools_;
+
+
     HistoryNode*            history_node_;
     PersistentAllocatorPtr  history_tree_;
     PersistentAllocator*    history_tree_raw_ = nullptr;
@@ -204,8 +208,6 @@ protected:
 
     bool snapshot_removal_{false};
 
-    mutable ObjectPools object_pools_;
-    mutable boost::object_pool<Shared> shared_pool_;
 
 
 public:

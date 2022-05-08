@@ -55,12 +55,10 @@ public:
             if (start + offset < size)
             {
                 sum += offset;
-
                 return StreamOpResult(start + offset, start, false);
             }
             else {
                 sum += (size - start);
-
                 return StreamOpResult(size, start, true);
             }
         }
@@ -128,12 +126,10 @@ public:
                 if (start - offset >= 0)
                 {
                     sum += offset;
-
                     return StreamOpResult(start - offset, start, false);
                 }
                 else {
                     sum += start;
-
                     return StreamOpResult(-1, start, true);
                 }
             }

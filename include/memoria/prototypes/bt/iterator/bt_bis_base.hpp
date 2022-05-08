@@ -50,12 +50,13 @@ public:
 private:
 
     TreePathT           path_;
-    IOVectorViewT       iovector_view_;
+    //IOVectorViewT       iovector_view_;
 
 public:
     BTBlockIteratorStateBase():
         Base()
     {}
+
 
     BTBlockIteratorStateBase(const ThisType& other):
         Base(other),
@@ -67,11 +68,16 @@ public:
         Base::iter_initialize(ctr_holder);
     }
 
+    void reset_state() {
+        path_.reset_state();
+        Base::reset_state();
+    }
+
     void assign(const ThisType& other)
     {
         path_ = other.path_;
 
-        refresh_iovector_view();
+        //refresh_iovector_view();
 
         Base::assign(other);
     }
@@ -84,20 +90,22 @@ public:
         return path_;
     }
 
-    auto iter_state_clone() const
-    {
-        return self().ctr().clone_block_iterator_state(self());
-    }
-
-    const io::IOVector& iovector_view() const  {
-        return iovector_view_;
-    }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN(RefreshIOVectorViewFn, configure_iovector_view);
-    void refresh_iovector_view() {
-        self().ctr().leaf_dispatcher().dispatch(path_.leaf(), RefreshIOVectorViewFn(), *&iovector_view_);
-    }
+//    auto iter_state_clone() const
+//    {
+//        return self().ctr().clone_block_iterator_state(self());
+//    }
+
+//    const io::IOVector& iovector_view() const  {
+//        return iovector_view_;
+//    }
+
+
+//    MEMORIA_V1_DECLARE_NODE_FN(RefreshIOVectorViewFn, configure_iovector_view);
+//    void refresh_iovector_view() {
+//        self().ctr().leaf_dispatcher().dispatch(path_.leaf(), RefreshIOVectorViewFn(), *&iovector_view_);
+//    }
 
 
     void dump(std::ostream& out = std::cout, const char* header = nullptr) const
@@ -120,7 +128,6 @@ public:
         self.ctr().ctr_dump_path(self.path(), 0, out);
         out << "======================================================================" << std::endl;
     }
-
 
 
     void iter_dump_header(std::ostream& out = std::cout) const

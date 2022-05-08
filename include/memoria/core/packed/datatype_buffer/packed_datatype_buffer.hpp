@@ -340,8 +340,8 @@ public:
     }
 };
 
-template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering>
-struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, Indexed, Columns, Ordering>>> {
+template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering_>
+struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, Indexed, Columns, Ordering_>>> {
     using SearchKeyDataType = DataType;
 
     using AccumType = DTTViewType<SearchKeyDataType>;
@@ -350,6 +350,8 @@ struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataTyp
     static constexpr PackedDataTypeSize DataTypeSize = pdtbuf_::BufferSizeTypeSelector<
         typename DataTypeTraits<DataType>::DataDimensionsList
     >::DataTypeSize;
+
+    static constexpr DTOrdering Ordering = Ordering_;
 
 //    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
     static constexpr PkdSearchType KeySearchType = Ordering == DTOrdering::SUM ? PkdSearchType::SUM : PkdSearchType::MAX;

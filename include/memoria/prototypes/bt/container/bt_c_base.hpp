@@ -25,6 +25,8 @@
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_tree_path.hpp>
 
+#include <memoria/prototypes/bt/shuttles/bt_shuttle_base.hpp>
+
 #include <memoria/core/types/mp11.hpp>
 #include <memoria/core/types/list/tuple.hpp>
 
@@ -95,6 +97,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     template <typename LeafPath>
     using LeafUpdateState = typename LeafNodeSO::template UpdateState<LeafPath>;
+
+    struct ShuttleTypes: Types {
+        using BranchNodeSOType  = BranchNodeSO;
+        using LeafNodeSOType    = LeafNodeSO;
+        using CtrType           = MyType;
+        using IteratorState     = typename Base::BlockIteratorState;
+    };
 
     using Base::CONTAINER_HASH;
 
@@ -726,10 +735,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     CtrID do_init_ctr(const SharedBlockConstPtr& node)
     {
         init_dispatchers();
-
         auto& self = this->self();
-
-        self.make_block_iterator_state();
 
         if (node->ctr_type_hash() == CONTAINER_HASH)
         {

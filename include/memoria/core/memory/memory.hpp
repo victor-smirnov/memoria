@@ -30,6 +30,14 @@ using IterSharedPtr = pool::SharedPtr<T>;
 template <typename T>
 using IterSharedFromThis = pool::enable_shared_from_this<T>;
 
+template <typename T>
+using PoolSharedPtr = pool::SharedPtr<T>;
+
+template <typename T>
+using PoolUniquePtr = pool::UniquePtr<T>;
+
+template <typename T>
+using PoolSharedFromThis = pool::enable_shared_from_this<T>;
 
 template <typename T>
 using CtrSharedPtr = LocalSharedPtr<T>;

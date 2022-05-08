@@ -23,6 +23,8 @@
 #include <memoria/containers/set/set_names.hpp>
 #include <memoria/containers/set/set_tools.hpp>
 
+#include <memoria/containers/collection/collection_c_api.hpp>
+
 #include <memoria/prototypes/bt_ss/btss_factory.hpp>
 
 #include <memoria/core/packed/packed.hpp>
@@ -62,6 +64,7 @@ struct SetBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
+                collection::CtrApiName,
                 set::CtrApiName,
                 set::CtrInsertName,
                 set::CtrRemoveName

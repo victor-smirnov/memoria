@@ -135,6 +135,10 @@ namespace detail {
             void set_local_pos(size_t pos) {
                 idx_ = pos;
             }
+
+            void set_prefix(const ViewType& val) {
+                prefix_ = val;
+            }
         };
 
 
@@ -467,6 +471,22 @@ public:
         return size() - 1;
     }
 
+    // Only for FixedSize buffers
+    Span<ViewType> span(size_t column)
+    {
+        auto dim = data_->template dimension<0>(column);
+        ViewType* data = dim.data();
+        return Span<ViewType>(data, size());
+    }
+
+    // Only for FixedSize buffers
+    Span<const ViewType> span(size_t column) const
+    {
+        auto dim = data_->template dimension<0>(column);
+        const ViewType* data = dim.data();
+        return Span<const ViewType>(data, size());
+    }
+
     ViewType access(size_t column, size_t row) const
     {
         DataDimensionsTuple data = access_data(column, row);
@@ -730,7 +750,7 @@ public:
         return detail::PkdDTBufOrderingDispatcher<MyType>::find_fw_gt(*this, column, val);
     }
 
-    FindResult find_gt(size_t column, const ViewType& val) const
+    FindResult find_fw_gt(size_t column, const ViewType& val) const
     {
         return detail::PkdDTBufOrderingDispatcher<MyType>::find_fw_gt(*this, column, val);
     }
@@ -745,7 +765,7 @@ public:
         return detail::PkdDTBufOrderingDispatcher<MyType>::find_fw_ge(*this, column, val);
     }
 
-    FindResult find_ge(size_t column, const ViewType& val) const
+    FindResult find_fw_ge(size_t column, const ViewType& val) const
     {
         return detail::PkdDTBufOrderingDispatcher<MyType>::find_fw_ge(*this, column, val);
     }
@@ -1384,10 +1404,16 @@ private:
         if (val <= total.view())
         {
             Datum<DataType> tgt = total.view() - val;
-            return find_gt_fw_sum(column, tgt.view());
+            FindResult res = find_gt_fw_sum(column, tgt.view());
+
+            Datum<DataType> prefix = sum_sum(column, res.local_pos() + 1);
+
+            res.set_prefix(total.view() - prefix.view());
+
+            return res;
         }
         else {
-            return FindResult(size(), total.view());
+            return FindResult(start + 1, total.view());
         }
     }
 

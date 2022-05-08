@@ -66,6 +66,7 @@ public:
 
 template <typename Types1>
 class IterStart: public IterHelper<ListSize<typename Types1::List> - 1, Types1> {
+protected:
 
     using MyType    = Iter<Types1>;
     using ThisType  = IterStart<Types1>;
@@ -87,8 +88,6 @@ public:
     }
 
     IterStart(const ThisType& other): Base(other), ctr_ptr_(other.ctr_ptr_), model_(other.model_) {}
-
-    virtual ~IterStart() {}
 
     ContainerType& model() {
         return *model_;
@@ -135,13 +134,15 @@ public:
     IteratorBase()
     {}
 
+    virtual ~IteratorBase() = default;
+
     IteratorBase(const ThisType& other):
         ctr_holder_(other.ctr_holder_)
     {
 
     }
 
-    void reset_state() noexcept {        
+    void reset_state() noexcept {
         ctr_holder_.reset();
         pair_.reset();
     }
@@ -155,7 +156,7 @@ public:
 
 
     void iter_initialize(const CtrSharedPtr<Container>& ctr_holder) {
-      ctr_holder_ = ctr_holder;
+        ctr_holder_ = ctr_holder;
     }
 };
 

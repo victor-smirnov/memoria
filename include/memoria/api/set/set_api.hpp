@@ -17,6 +17,8 @@
 
 #include <memoria/api/common/ctr_api_btss.hpp>
 
+#include <memoria/api/collection/collection_api.hpp>
+
 #include <memoria/api/set/set_api_factory.hpp>
 #include <memoria/api/set/set_scanner.hpp>
 #include <memoria/api/set/set_producer.hpp>
@@ -39,7 +41,7 @@ struct SetIterator: BTSSIterator<Profile> {
 };
     
 template <typename Key, typename Profile> 
-struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
+struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
 
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ApiTypes  = ICtrApiTypes<Set<Key>, Profile>;

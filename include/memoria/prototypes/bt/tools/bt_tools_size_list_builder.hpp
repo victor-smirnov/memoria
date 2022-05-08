@@ -555,7 +555,7 @@ template <
     typename BranchStructList,
     typename LeafPath
 >
-using BrachStructAccessorTool = Select<
+using BranchStructAccessorTool = Select<
         list_tree::LeafCountInf<LeafStructList, LeafPath, 2> -
         FindLocalLeafOffsetV<
                 FlattenLeafTree<LeafStructList>,

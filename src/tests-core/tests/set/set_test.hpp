@@ -99,10 +99,62 @@ public:
     MMA_STATE_FILEDS(size)
 
     static void init_suite(TestSuite& suite) {
-        MMA_CLASS_TEST(suite, testAll);
+        MMA_CLASS_TEST(suite, testOne);
     }
 
+    void testOne() {
+        auto snp = branch();
 
+        CtrID ctr_id = CtrID::make_random();
+        auto ctr = create<Set<DataType>>(snp, Set<DataType>{}, ctr_id);
+        //ctr->set_new_block_size(1024);
+
+        std::set<CxxValueType> entries_set;
+        std::vector<CxxValueType> entries_list;
+
+        int64_t t0 = getTimeInMillis();
+        for (int c = 0; c < 100000; c++)
+        {
+            if (c % 100000 == 0)
+            {
+                out() << "C=" << c << std::endl;
+                this->check("Store structure checking", MMA_SRC);
+            }
+
+            auto key = internal_set::ValueTools<CxxValueType>::generate_random();
+
+            entries_set.insert(key);
+            entries_list.push_back(key);
+
+            ctr->insert(key);
+        }
+        int64_t t1 = getTimeInMillis();
+        out() << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
+
+//        auto iter = ctr->seek_entry(0);
+
+//        int c = 0;
+//        while (!is_after_end(iter))
+//        {
+//            println("Offset: {}", iter->chunk_offset());
+
+//            for (auto kk: iter->chunk()) {
+//                println("Key: {} :: {}", kk, c);
+//                c++;
+//            }
+//            iter = iter->next_chunk();
+//        }
+
+
+        int c = 0;
+        for (auto iter = ctr->seek_entry(ctr->size() - 1); !is_before_start(iter); iter = iter->prev(100)) {
+            println("Key: {} :: {}", iter->value(), iter->entry_offset());
+            c++;
+        }
+
+
+        commit();
+    }
 
 
     void testAll()
@@ -184,6 +236,7 @@ public:
 
             assert_equals(ctr_size, ctr->size());
         }
+
         int64_t t5 = getTimeInMillis();
         println("Removed entries in {} ms", t5 - t4);
 

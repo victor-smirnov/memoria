@@ -388,7 +388,7 @@ public:
 
         if (data_->has_index()) {
             SizeIndexSO index = size_index();
-            auto res = index.find_gt(0, pos);
+            auto res = index.find_fw_gt(0, pos);
             atom_pos = res.local_pos() * AtomsPerBlock;
             size_sum = res.prefix();
 
@@ -1367,7 +1367,7 @@ private:
 
             if (pos < size)
             {
-                auto res = index.find_gt(0, pos);
+                auto res = index.find_fw_gt(0, pos);
                 unit_pos = res.local_pos() * AtomsPerBlock;
                 size_sum = res.prefix();
 
@@ -1408,7 +1408,7 @@ private:
 
     struct SelectFwEqFn {
         FindResult index_fn(const SumIndexSO& index, SeqSizeT rank, SymbolT symbol) const {
-            return index.find_ge(symbol, rank);
+            return index.find_fw_ge(symbol, rank);
         }
 
         SeqSizeT full_rank_fn(const SymbolsRunT& run, SymbolT symbol) const {
@@ -1693,7 +1693,7 @@ private:
 
         if (data_->has_size_index()) {
             SizeIndexSO index = size_index();
-            auto res = index.find_gt(0, pos);
+            auto res = index.find_fw_gt(0, pos);
 
             if (res.local_pos() < index.size())
             {
@@ -1827,7 +1827,7 @@ private:
             }
             else
             {
-                auto find_result = size_index().find_gt(0, symbol_pos);
+                auto find_result = size_index().find_fw_gt(0, symbol_pos);
 
                 uint64_t local_pos  = symbol_pos - find_result.prefix();
                 size_t block_offset = find_result.local_pos() * AtomsPerBlock;

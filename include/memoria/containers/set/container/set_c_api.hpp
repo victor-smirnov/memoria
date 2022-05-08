@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <memoria/prototypes/bt/shuttles/bt_shuttle_base.hpp>
+
 
 #include <memoria/containers/set/set_names.hpp>
 #include <memoria/containers/set/set_tools.hpp>
@@ -40,11 +42,17 @@ public:
     using Types = typename Base::Types;
     using typename Base::IteratorPtr;
 
-protected:
+
+
+
+    using typename Base::TreeNodeConstPtr;
     using typename Base::TreeNodePtr;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
-
+    using typename Base::ShuttleTypes;
+    using typename Base::TreePathT;
+    using typename Base::NodeChain;
+protected:
 
     using Key = typename Types::Key;
 
@@ -58,6 +66,9 @@ protected:
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
 public:
+
+    using CollectionEntryT = CollectionEntry<Key, ApiProfile<Profile>>;
+    using EntrySharedPtr = IterSharedPtr<CollectionEntryT>;
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
@@ -78,20 +89,8 @@ public:
     IterSharedPtr<SetIterator<Key, ApiProfileT>> find(KeyView key) const
     {
         //return memoria_static_pointer_cast<SetIterator<Key, ApiProfileT>>(self().ctr_set_find(key));
-      return self().ctr_set_find(key);
+        return self().ctr_set_find(key);
     }
-
-//    bool contains_element(KeyView key) {
-//        return false;
-//    }
-
-//    bool insert_element(KeyView key) {
-//        return false;
-//    }
-
-//    bool remove_element(KeyView key) {
-//        return self().remove(key);
-//    }
 
 
 
@@ -254,7 +253,6 @@ public:
         auto ii = self.ctr_seek(at);
         ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
     }
-
 
 
 MEMORIA_V1_CONTAINER_PART_END

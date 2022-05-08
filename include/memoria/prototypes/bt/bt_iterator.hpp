@@ -87,9 +87,15 @@ public:
 
     Iter(): Base() {}
 
-
+    void reset_state() {
+        Base::reset_state();
+        Base::ctr_ptr_.reset();
+    }
 
     void iter_initialize(const CtrPtr& ctr_holder) {
+        Base::ctr_ptr_ = ctr_holder;
+        Base::model_ = ctr_holder.get();
+
         Base::iter_initialize(ctr_holder);
     }
 };

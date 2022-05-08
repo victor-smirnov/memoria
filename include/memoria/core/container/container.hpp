@@ -544,28 +544,21 @@ protected:
 
 
 
-    BlockIteratorStatePtr make_block_iterator_state() {
-        auto state = get_reusable_shared_instance<BlockIteratorState>(
+    template <typename IteratorStateT>
+    IterSharedPtr<IteratorStateT> make_block_iterator_state(TypeTag<IteratorStateT> = TypeTag<BlockIteratorState>{}) const {
+        static_assert(
+            std::is_base_of_v<BlockIteratorState, IteratorStateT>,
+            "State iterators must derive from container's BlockIteratorState"
+        );
+
+        auto state = get_reusable_shared_instance<IteratorStateT>(
             self().store().object_pools()
         );
 
-        state->iter_initialize(this->shared_from_this());
+        state->iter_initialize(const_cast<ThisType*>(this)->shared_from_this());
 
         return state;
     }
-
-
-
-    IteratorPtr clone_block_iterator_state(const BlockIteratorState& src) {
-        auto state = get_reusable_shared_instance<BlockIteratorState>(
-            self().store().object_pools()
-        );
-
-        state->assign(src);
-
-        return state;
-    }
-
 
 private:
     MyType& self() noexcept

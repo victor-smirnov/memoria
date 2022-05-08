@@ -1523,6 +1523,34 @@ public:
 
 
     template <typename Fn, typename... Args>
+    auto processStreamStart(size_t stream, Fn&& fn, Args&&... args)
+    {
+        using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
+        return typename Dispatcher::template SubsetDispatcher<Subset>(state()).template dispatch(
+                stream,
+                allocator(),
+                std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+
+
+    template <typename Fn, typename... Args>
+    auto processStreamStart(size_t stream, Fn&& fn, Args&&... args) const
+    {
+        using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
+        return typename Dispatcher::template SubsetDispatcher<Subset>(state()).template dispatch(
+                stream,
+                allocator(),
+                std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+
+
+
+
+    template <typename Fn, typename... Args>
     static auto processStreamsStartStatic(Fn&& fn, Args&&... args)
     {
         using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;

@@ -41,6 +41,7 @@ namespace pool {
 
 struct PoolBase {
     virtual ~PoolBase() noexcept = default;
+    virtual U8String pool_type() = 0;
 };
 
 
@@ -84,6 +85,10 @@ protected:
 public:
     int64_t refs() const {
         return references_;
+    }
+
+    void init_ref() noexcept {
+        references_ = 1;
     }
 };
 
@@ -217,9 +222,7 @@ class SharedPtr {
 
     SharedPtr(T* ptr, RefHolder* holder) noexcept :
         ptr_(ptr), ref_holder_(holder)
-    {
-        //ref_holder_->ref();
-    }
+    {}
 
     template <typename> friend class UniquePtr;
     template <typename> friend class SharedPtr;
@@ -513,6 +516,10 @@ template <typename T>
 class SimpleObjectPool: public PoolBase, public boost::enable_shared_from_this<SimpleObjectPool<T>> {
 public:
 
+    virtual U8String pool_type() {
+        return TypeNameFactory<SimpleObjectPool>::name();
+    }
+
     class RefHolder: public detail::ObjectPoolRefHolder {
         T object_;
         boost::local_shared_ptr<SimpleObjectPool> pool_;
@@ -548,10 +555,6 @@ private:
     template <typename> friend class SharedPtr;
     template <typename> friend class UniquePtr;
 public:
-
-    ~SimpleObjectPool() noexcept {
-
-    }
 
     template <typename... Args>
     SharedPtr<T> allocate_shared(Args&&... args) {
@@ -597,7 +600,6 @@ class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<He
         friend class HeavyObjectPool;
 
     public:
-
         Descriptor(boost::local_shared_ptr<HeavyObjectPool> pool, T&& value):
             object_(std::move(value)),
             next_(), pool_(std::move(pool))
@@ -605,6 +607,7 @@ class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<He
 
         virtual void release() noexcept {
             pool_->release(this);
+            pool_.reset();
         }
 
         T* ptr() noexcept {
@@ -615,6 +618,12 @@ class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<He
     Descriptor* head_;
 
 public:
+
+    virtual U8String pool_type() {
+        return TypeNameFactory<HeavyObjectPool>::name();
+    }
+
+
     HeavyObjectPool(): head_() {}
 
     virtual ~HeavyObjectPool() noexcept
@@ -667,7 +676,6 @@ private:
 
     Descriptor* get_or_create(std::function<T ()> factory)
     {
-
         Descriptor* descr;
 
         if (head_)
@@ -675,6 +683,8 @@ private:
             descr        = head_;
             head_        = descr->next_;
             descr->next_ = nullptr;
+            descr->pool_ = this->shared_from_this();
+            descr->init_ref();
         }
         else {
             descr = new Descriptor(this->shared_from_this(), factory());

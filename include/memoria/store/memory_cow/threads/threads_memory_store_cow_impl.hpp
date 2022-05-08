@@ -122,7 +122,15 @@ public:
     
     virtual ~ThreadsMemoryStoreImpl() noexcept
     {
-        free_memory(history_tree_);
+        try {
+            free_memory(history_tree_);
+        }
+        catch (const std::exception& ex) {
+            println("Can't free memory: {}", ex.what());
+        }
+        catch (...) {
+            println("Cant free memory");
+        }
     }
 
 

@@ -37,6 +37,9 @@ using AccumType = typename PackedStructTraits<PkdStruct>::AccumType;
 enum class PkdSearchType {SUM, MAX};
 
 template <typename PkdStruct>
+constexpr DTOrdering KeyOrdering = PackedStructTraits<PkdStruct>::Ordering;
+
+template <typename PkdStruct>
 constexpr PkdSearchType PkdKeySearchType = PackedStructTraits<PkdStruct>::KeySearchType;
 
 template <typename PkdStruct>
