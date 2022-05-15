@@ -34,6 +34,7 @@ public:
 
     using TreeNodePtr       = typename Types::TreeNodePtr;
     using TreeNodeConstPtr  = typename Types::TreeNodeConstPtr;
+    using Position          = typename Types::Position;
 
     using NodeChain = typename Base::Container::NodeChain;
 
@@ -144,6 +145,8 @@ public:
         auto& self = this->self();
         return self.ctr().ctr_dump_node(path_.leaf(), out);
     }
+
+    virtual void reconfigure(const Position& pos) = 0;
 
 MEMORIA_BT_ITERATOR_BASE_CLASS_END
 

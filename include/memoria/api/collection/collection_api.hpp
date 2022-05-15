@@ -57,7 +57,7 @@ struct CollectionEntry {
 
     virtual IterSharedPtr<CollectionEntry> read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
 
-    virtual void dump(std::ostream& out = std::cout) = 0;
+    virtual void dump(std::ostream& out = std::cout) const = 0;
 };
 
 
@@ -103,6 +103,17 @@ struct ICtrApi<Collection<Key>, Profile>: public CtrReferenceable<Profile> {
 
     virtual EntrySharedPtr seek_entry(CtrSizeT num) const = 0;
     virtual CtrSizeT size() const = 0;
+
+//    virtual CtrSizeT contains_entry(KeyView key) const = 0;
+
+//    virtual EntrySharedPtr find_first(KeyView key) const = 0;
+//    virtual EntrySharedPtr remove_entry(EntrySharedPtr&& entry) = 0;
+
+//    virtual EntrySharedPtr remove_entries(EntrySharedPtr&& from, EntrySharedPtr&& to) = 0;
+
+//    virtual EntrySharedPtr remove_entries_from(CtrSizeT from) = 0;
+//    virtual EntrySharedPtr remove_entries(CtrSizeT from, CtrSizeT to) = 0;
+//    virtual EntrySharedPtr remove_entries_up_to(CtrSizeT idx) = 0;
 
     MMA_DECLARE_ICTRAPI();
 };

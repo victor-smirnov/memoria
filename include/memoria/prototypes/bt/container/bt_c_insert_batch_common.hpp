@@ -20,6 +20,8 @@
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/prototypes/bt/tools/bt_tools_iovector.hpp>
+
 #include <vector>
 #include <algorithm>
 
@@ -288,8 +290,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
 
-    template <typename Provider>
-    void ctr_insert_provided_data(TreePathT& path, Position& pos, Provider& provider)
+    //template <typename Provider>
+    void ctr_insert_provided_data(TreePathT& path, Position& pos, bt::IOVectorInputProviderBase<MyType>& provider)
     {
         auto& self = this->self();
         auto last_pos = self.ctr_insert_data_into_leaf(path, pos, provider);
@@ -306,8 +308,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
                 auto last_leaf_pos = self.ctr_insert_data_into_leaf(path, last_pos, provider);
                 auto has_data2 = provider.hasData();
 
-                if (has_data2)
-                {
+                if (has_data2) {
                     return ctr_insert_data_rest(path, pos, provider);
                 }
                 else {
@@ -358,7 +359,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             }
 
             self.ctr_insert_data_into_leaf(node.as_immutable(), Position(), provider);
-            provider.iter_next_leaf(node);
 
             current = node;
             total++;

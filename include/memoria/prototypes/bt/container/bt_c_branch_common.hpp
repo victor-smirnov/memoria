@@ -270,7 +270,6 @@ void M_TYPE::ctr_split_node_raw(
     auto new_parent_idx = self.ctr_get_child_idx(path[level + 1], path[level]->id());
 
     PkdUpdateStatus insertion_status = self.ctr_insert_to_branch_node(path, level + 1, new_parent_idx + 1, right_max, right_node->id());
-
     if (!is_success(insertion_status))
     {
         auto parent_size = self.ctr_get_node_size(path[level + 1], 0);
@@ -322,6 +321,8 @@ void M_TYPE::ctr_split_path(
         int32_t split_at
 )
 {
+    // it is assumed that level > 0
+
     auto& self = this->self();
 
     return ctr_split_node(

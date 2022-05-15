@@ -47,22 +47,20 @@ struct PoolBase {
 
 template <typename> class SharedPtr;
 template <typename> class UniquePtr;
+template <typename> class WeakPtr;
 
 template <typename> class enable_shared_from_this;
-
-
-
-
 
 
 namespace detail {
 
 class ObjectPoolRefHolder {
-    int64_t references_{1};
-
+    long use_count_{1};
+    long weak_count_{1};
 
     template <typename> friend class memoria::pool::SharedPtr;
     template <typename> friend class memoria::pool::UniquePtr;
+    template <typename> friend class memoria::pool::WeakPtr;
 
 public:
     ObjectPoolRefHolder() {}
@@ -70,25 +68,48 @@ public:
     virtual ~ObjectPoolRefHolder() noexcept = default;
 
 protected:
-    virtual void release() noexcept = 0;
+    virtual void dispose() noexcept = 0;
+    virtual void destroy() noexcept = 0;
 
-    void ref() noexcept {
-        references_++;
+    void ref_copy() noexcept {
+        use_count_++;
+    }
+
+    bool ref_lock() noexcept {
+        if (use_count_ == 0) return false;
+        use_count_++;
+        return true;
+    }
+
+    void ref_weak() noexcept {
+        weak_count_++;
     }
 
     void unref() noexcept {
-        if (MMA_UNLIKELY(--references_ == 0)) {
-            release();
+        if (MMA_UNLIKELY(--use_count_ == 0)) {
+            destroy();
+            unref_weak();
+        }
+    }
+
+    void unref_weak() noexcept {
+        if (MMA_UNLIKELY(--weak_count_ == 0)) {
+            dispose();
         }
     }
 
 public:
-    int64_t refs() const {
-        return references_;
+    long refs() const {
+        return use_count_;
+    }
+
+    long weak_refs() const {
+        return weak_count_;
     }
 
     void init_ref() noexcept {
-        references_ = 1;
+        use_count_ = 1;
+        weak_count_ = 1;
     }
 };
 
@@ -113,8 +134,6 @@ class UniquePtr {
 
     template <typename> friend class SharedPtr;
     template <typename> friend class UniquePtr;
-
-
 
     friend UniquePtr<T> detail::make_unique_ptr_from(T*, RefHolder*);
 
@@ -210,9 +229,6 @@ public:
 
 
 
-
-
-
 template <typename T>
 class SharedPtr {
     using RefHolder = detail::ObjectPoolRefHolder;
@@ -226,6 +242,7 @@ class SharedPtr {
 
     template <typename> friend class UniquePtr;
     template <typename> friend class SharedPtr;
+    template <typename> friend class WeakPtr;
     template <typename> class enable_shared_from_this;
 
     friend SharedPtr<T> detail::make_shared_ptr_from(T*, RefHolder*);
@@ -241,7 +258,7 @@ public:
         ref_holder_(other.ref_holder_)
     {
         if (MMA_LIKELY((bool)ref_holder_)) {
-            ref_holder_->ref();
+            ref_holder_->ref_copy();
         }
     }
 
@@ -251,7 +268,7 @@ public:
         ref_holder_(other.ref_holder_)
     {
         if (MMA_LIKELY((bool)ref_holder_)) {
-            ref_holder_->ref();
+            ref_holder_->ref_copy();
         }
     }
 
@@ -291,7 +308,7 @@ public:
 
             ptr_ = other.ptr_;
             ref_holder_ = other.ref_holder_;
-            ref_holder_->ref();
+            ref_holder_->ref_copy();
         }
 
         return *this;
@@ -301,7 +318,7 @@ public:
         if (MMA_LIKELY(&other != this))
         {
             if (MMA_UNLIKELY(ref_holder_ != nullptr)) {
-                ref_holder_->release();
+                ref_holder_->unref();
             }
 
             ptr_ = other.ptr_;
@@ -325,13 +342,13 @@ public:
     }
 
 
-    bool operator==(const UniquePtr<T>& other) const noexcept {
+    template <typename U>
+    bool operator==(const SharedPtr<U>& other) const noexcept {
         return ref_holder_ == other.ref_holder_;
     }
 
-    bool operator==(const SharedPtr<T>& other) const noexcept {
-        return ref_holder_ == other.ref_holder_;
-    }
+    template <typename U>
+    bool operator==(const WeakPtr<U>& other) const noexcept;
 
     void reset() noexcept {
         if (ref_holder_) {
@@ -343,6 +360,15 @@ public:
     friend void swap(SharedPtr& lhs, SharedPtr& rhs) {
         std::swap(lhs.ptr_, rhs.ptr_);
         std::swap(lhs.ref_holder_, rhs.ref_holder_);
+    }
+
+    auto use_count() const {
+        if (ref_holder_) {
+            return ref_holder_->refs();
+        }
+        else {
+            return 0;
+        }
     }
 
     T* operator->() {return ptr_;}
@@ -380,8 +406,156 @@ public:
     }
 };
 
+
 template <typename T>
-bool UniquePtr<T>::operator==(const SharedPtr<T>& other) const noexcept {
+class WeakPtr {
+    using RefHolder = detail::ObjectPoolRefHolder;
+
+    T* ptr_;
+    RefHolder* ref_holder_;
+
+public:
+    WeakPtr(): ptr_(), ref_holder_() {}
+
+
+    template<typename U>
+    WeakPtr(const SharedPtr<U>& other) noexcept:
+        ptr_(other.ptr_),
+        ref_holder_(other.ref_holder_)
+    {
+        if (MMA_LIKELY((bool)ref_holder_)) {
+            ref_holder_->ref_weak();
+        }
+    }
+
+
+    WeakPtr(const WeakPtr& other) noexcept:
+        ptr_(other.ptr_),
+        ref_holder_(other.ref_holder_)
+    {
+        if (MMA_LIKELY((bool)ref_holder_)) {
+            ref_holder_->ref_weak();
+        }
+    }
+
+
+    WeakPtr(WeakPtr&& other) noexcept:
+        ptr_(other.ptr_), ref_holder_(other.ref_holder_)
+    {
+        other.ref_holder_ = nullptr;
+    }
+
+    template<typename U>
+    WeakPtr(WeakPtr<U>&& other) noexcept:
+        ptr_(other.ptr_), ref_holder_(other.ref_holder_)
+    {
+        other.ref_holder_ = nullptr;
+    }
+
+
+    ~WeakPtr() noexcept {
+        if (ref_holder_) {
+            ref_holder_->unref_weak();
+        }
+    }
+
+
+    WeakPtr& operator=(const SharedPtr<T>& other) noexcept {
+        if (MMA_LIKELY(&other != this))
+        {
+            if (ref_holder_) {
+                ref_holder_->unref_weak();
+            }
+
+            ptr_ = other.ptr_;
+            ref_holder_ = other.ref_holder_;
+            ref_holder_->ref_weak();
+        }
+
+        return *this;
+    }
+
+    WeakPtr& operator=(const WeakPtr& other) noexcept {
+        if (MMA_LIKELY(&other != this))
+        {
+            if (ref_holder_) {
+                ref_holder_->unref_weak();
+            }
+
+            ptr_ = other.ptr_;
+            ref_holder_ = other.ref_holder_;
+            ref_holder_->ref_weak();
+        }
+
+        return *this;
+    }
+
+
+    WeakPtr& operator=(WeakPtr&& other) noexcept {
+        if (MMA_LIKELY(&other != this))
+        {
+            if (MMA_UNLIKELY(ref_holder_ != nullptr)) {
+                ref_holder_->unref_weak();
+            }
+
+            ptr_ = other.ptr_;
+            ref_holder_ = other.ref_holder_;
+            other.ref_holder_ = nullptr;
+        }
+
+        return *this;
+    }
+
+
+    bool operator==(const SharedPtr<T>& other) const noexcept {
+        return ref_holder_ == other.ref_holder_;
+    }
+
+    bool operator==(const WeakPtr<T>& other) const noexcept {
+        return ref_holder_ == other.ref_holder_;
+    }
+
+    void reset() noexcept {
+        if (ref_holder_) {
+            ref_holder_->unref_weak();
+            ref_holder_ = nullptr;
+        }
+    }
+
+    friend void swap(WeakPtr& lhs, WeakPtr& rhs) {
+        std::swap(lhs.ptr_, rhs.ptr_);
+        std::swap(lhs.ref_holder_, rhs.ref_holder_);
+    }
+
+
+    operator bool() const {
+        return ref_holder_ != nullptr;
+    }
+
+    auto use_count() const {
+        if (ref_holder_) {
+            return ref_holder_->weak_refs();
+        }
+        else {
+            return 0;
+        }
+    }
+
+    SharedPtr<T> lock()
+    {
+        if (ref_holder_ && ref_holder_->ref_lock()) {
+            return SharedPtr<T>(ptr_, ref_holder_);
+        }
+        else {
+            return SharedPtr<T>();
+        }
+    }
+};
+
+
+template <typename T>
+template <typename U>
+bool SharedPtr<T>::operator==(const WeakPtr<U>& other) const noexcept {
     return ref_holder_ == other.ref_holder_;
 }
 
@@ -521,7 +695,7 @@ public:
     }
 
     class RefHolder: public detail::ObjectPoolRefHolder {
-        T object_;
+        alignas (T) std::byte object_storage_[sizeof(T)];
         boost::local_shared_ptr<SimpleObjectPool> pool_;
 
         template <typename> friend class SharedPtr;
@@ -531,19 +705,24 @@ public:
     public:
         template <typename... Args>
         RefHolder(boost::local_shared_ptr<SimpleObjectPool> pool, Args&&... args):
-            object_(std::forward<Args>(args)...),
             pool_(std::move(pool))
-        {}
+        {
+            new (object_storage_) T(std::forward<Args>(args)...);
+        }
+
+        T* ptr() noexcept {
+            return std::launder(reinterpret_cast<T*>(object_storage_));
+        }
 
         virtual ~RefHolder() noexcept  = default;
 
-        T* ptr() noexcept {
-            return &object_;
+    protected:
+        virtual void dispose() noexcept {
+            pool_->release(this);
         }
 
-    protected:
-        virtual void release() noexcept {
-            pool_->release(this);
+        virtual void destroy() noexcept {
+            ptr()->~T();
         }
     };
 
@@ -578,10 +757,6 @@ public:
 
 private:
     void release(RefHolder* holder) noexcept {
-        if (holder == (void*)0x626000000100) {
-            int a = 0; a++;
-        }
-
         alloc_.destroy(holder);
     }
 };
@@ -592,7 +767,7 @@ template <typename T>
 class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<HeavyObjectPool<T>> {
 
     class Descriptor: public detail::ObjectPoolRefHolder {
-        T object_;
+        alignas (T) std::byte object_storage_[sizeof(T)];
         Descriptor* next_;
         boost::local_shared_ptr<HeavyObjectPool> pool_;
 
@@ -601,17 +776,23 @@ class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<He
 
     public:
         Descriptor(boost::local_shared_ptr<HeavyObjectPool> pool, T&& value):
-            object_(std::move(value)),
             next_(), pool_(std::move(pool))
-        {}
+        {
+            new (object_storage_) T(std::move(value));
+        }
 
-        virtual void release() noexcept {
+        T* ptr() noexcept {
+            return std::launder(reinterpret_cast<T*>(object_storage_));
+        }
+
+    protected:
+        virtual void dispose() noexcept {
             pool_->release(this);
             pool_.reset();
         }
 
-        T* ptr() noexcept {
-            return &object_;
+        virtual void destroy() noexcept {
+            ptr()->~T();
         }
     };
 

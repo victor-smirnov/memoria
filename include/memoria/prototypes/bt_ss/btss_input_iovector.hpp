@@ -28,6 +28,7 @@
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_tree_path.hpp>
 
+#include <memoria/prototypes/bt/tools/bt_tools_iovector.hpp>
 
 namespace memoria {
 namespace btss {
@@ -38,8 +39,8 @@ using bt::StreamTag;
 
 
 template <typename CtrT>
-class IOVectorBTSSInputProviderBase {
-
+class IOVectorBTSSInputProviderBase: public bt::IOVectorInputProviderBase<CtrT> {
+    using Base = bt::IOVectorInputProviderBase<CtrT>;
 public:
     using MyType = IOVectorBTSSInputProviderBase<CtrT>;
     using TreeNodePtr = typename CtrT::Types::TreeNodePtr;
@@ -91,9 +92,6 @@ public:
 
     CtrSizeT totals() const {
         return total_symbols_;
-    }
-
-    void iter_next_leaf(const TreeNodePtr& leaf) {
     }
 
     virtual bool hasData()

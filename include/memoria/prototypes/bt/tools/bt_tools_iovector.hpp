@@ -180,4 +180,19 @@ public:
 
 
 
-}}}
+}
+
+
+template <typename CtrT>
+struct IOVectorInputProviderBase {
+
+    using TreeNodePtr = typename CtrT::Types::TreeNodePtr;
+    using Position    = typename CtrT::Types::Position;
+
+    virtual bool hasData() = 0;
+    virtual Position fill(const TreeNodePtr& leaf, const Position& from) = 0;
+};
+
+
+
+}}

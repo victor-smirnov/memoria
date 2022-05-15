@@ -29,6 +29,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
     using typename Base::TreeNodePtr;
     using typename Base::Iterator;
+    using typename Base::BlockIteratorState;
+    using typename Base::BlockIteratorStatePtr;
+    using typename Base::CtrSizeT;
 
     template <int32_t Stream, typename Entry>
     SplitStatus ctr_insert_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Entry& entry)
@@ -49,6 +52,43 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
             split_status = split_result.type();
 
             auto status1 = self.template ctr_try_insert_stream_entry<Stream>(iter, split_result.stream_idx(), entry);
+            if (!status1)
+            {
+                MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed").do_throw();
+            }
+        }
+        else {
+            split_status = SplitStatus::NONE;
+        }
+
+        self.ctr_update_path(iter.path(), 0);
+
+        return split_status;
+    }
+
+
+    template <int32_t Stream, typename Entry>
+    BlockIteratorStatePtr ctr_insert_stream_entry(
+            BlockIteratorStatePtr&& iter,
+            size_t stream,
+            const CtrSizeT& idx,
+            const Entry& entry
+    )
+    {
+        auto& self = the_self();
+        auto& path = iter.path();
+
+        auto status0 = self.template ctr_try_insert_stream_entry<Stream>(path, idx, entry);
+
+        SplitStatus split_status;
+
+        if (!status0)
+        {
+            auto split_result = self.ctr_split_leaf(stream, idx);
+
+            split_status = split_result.type();
+
+            auto status1 = self.template ctr_try_insert_stream_entry<Stream>(path, split_result.stream_idx(), entry);
             if (!status1)
             {
                 MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed").do_throw();

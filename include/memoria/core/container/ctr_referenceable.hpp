@@ -89,7 +89,7 @@ struct CtrReferenceableBase {
     
     virtual const CtrID& name() const noexcept = 0;
 
-    virtual std::shared_ptr<io::IOVector> create_iovector() = 0;
+    virtual IterSharedPtr<io::IOVector> create_iovector() = 0;
 
     virtual void drop()    = 0;
     virtual void cleanup() = 0;

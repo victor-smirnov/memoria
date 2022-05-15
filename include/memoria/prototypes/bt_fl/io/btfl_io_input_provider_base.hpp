@@ -177,7 +177,7 @@ namespace detail {
 
 
 template <typename CtrT>
-class AbstractCtrInputProviderBase {
+class AbstractCtrInputProviderBase: public bt::IOVectorInputProviderBase<CtrT> {
 
 protected:
     static const int32_t Streams                = CtrT::Types::Streams;
@@ -188,7 +188,7 @@ protected:
 public:
     using MyType = AbstractCtrInputProviderBase<CtrT>;
 
-    using TreeNodePtr             = typename CtrT::Types::TreeNodePtr;
+    using TreeNodePtr           = typename CtrT::Types::TreeNodePtr;
     using CtrSizeT              = typename CtrT::Types::CtrSizeT;
     using Position              = typename CtrT::Types::Position;
     using DataPositions         = core::StaticVector<uint64_t, DataStreams>;
@@ -268,9 +268,6 @@ public:
     }
 
     virtual Position fill(const TreeNodePtr& leaf, const Position& start) = 0;
-
-    void iter_next_leaf(const TreeNodePtr& leaf) {
-    }
 
     DataPositions buffer_size() const
     {

@@ -36,7 +36,20 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafCommonName)
     using typename Base::TreePathT;
     using typename Base::CtrSizeT;
 
+    using typename Base::BlockIteratorStatePtr;
+
 public:
+    BlockIteratorStatePtr ctr_split_leaf(BlockIteratorStatePtr&& iter, const Position& split_at)
+    {
+        auto& self = this->self();
+
+        self.ctr_split_leaf(iter->path(), split_at);
+        iter->iter_reset_to(split_at);
+
+        return std::move(iter);
+    }
+
+
     void ctr_split_leaf(
             TreePathT& path,
             const Position& split_at
@@ -47,8 +60,6 @@ public:
         self.ctr_split_node(path, 0, [&self, &split_at](const TreeNodePtr& left, const TreeNodePtr& right) {
             return self.ctr_split_leaf_node(left, right, split_at);
         });
-
-        self.ctr_check_path(path);
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(SplitNodeFn, split_to);
@@ -135,11 +146,10 @@ public:
 
 
 
-    std::shared_ptr<io::IOVector> create_iovector()
+    IterSharedPtr<io::IOVector> create_iovector()
     {
-        return std::static_pointer_cast<io::IOVector>(
-            std::make_shared<typename Types::LeafNode::template SparseObject<MyType>::IOVectorT>()
-        );
+        using IOVectorT = typename Types::LeafNode::template SparseObject<MyType>::IOVectorT;
+        return allocate_shared<IOVectorT>(self().store().object_pools());
     }
 
 
@@ -246,11 +256,27 @@ public:
     }
 
 
+    template <size_t Stream, typename Entry>
+    bool ctr_try_insert_stream_entry(
+            TreePathT& path,
+            CtrSizeT idx,
+            const Entry& entry
+    )
+    {
+        auto& self = this->self();
+
+        self.ctr_cow_clone_path(path, 0);
+        self.ctr_update_block_guard(path.leaf());
+
+        return self.template ctr_try_insert_stream_entry_no_mgr<Stream>(path.leaf().as_mutable(), idx, entry);
+    }
+
+
 
 
     MEMORIA_V1_DECLARE_NODE_FN(TryRemoveFn, remove);
-    template <int32_t Stream>
-    PkdUpdateStatus ctr_try_remove_stream_entry(TreePathT& path, int32_t idx)
+    template <size_t Stream>
+    PkdUpdateStatus ctr_try_remove_stream_entry(TreePathT& path, CtrSizeT idx)
     {
         auto& self = this->self();
 

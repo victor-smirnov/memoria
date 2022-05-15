@@ -95,6 +95,7 @@ protected:
     using EntryT = CollectionEntry<Key, ApiProfile<Profile>>;
     using EntryIterSharedPtr = IterSharedPtr<EntryT>;
     using ShuttleTypes = typename Types::ShuttleTypes;
+    using Position = typename Types::Position;
 
     static constexpr size_t Stream = 0;
     static constexpr size_t Column = 0;
@@ -108,8 +109,6 @@ protected:
     mutable detail::SpanHolder<Key> span_holder_;
 
     KeyView view_;
-
-
 
 public:
 
@@ -206,7 +205,7 @@ public:
         }
     }
 
-    virtual void dump(std::ostream& out)
+    virtual void dump(std::ostream& out) const
     {
         println(out, "Position: {}, size: {}, before_start: {}, id::{}", position_, size_, before_start_, Base::path().leaf()->id());
     }
@@ -217,6 +216,10 @@ public:
 
     void on_prev_leaf() {
         set_position(0, keys_struct().size());
+    }
+
+    virtual void reconfigure(const Position& pos) {
+
     }
 
 protected:
