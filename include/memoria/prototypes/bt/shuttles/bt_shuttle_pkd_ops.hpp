@@ -116,42 +116,4 @@ public:
     }
 };
 
-
-
-
-//template <typename KeyType, typename AccumType = KeyType>
-//class PkdSelectFwFn {
-//    SearchType search_type_;
-//public:
-//    PkdSelectFwFn(SearchType search_type):
-//        search_type_(search_type)
-//    {}
-
-
-//    template <int32_t StreamIdx, typename Tree>
-//    StreamOpResult stream(const Tree& tree, size_t column, size_t start)
-//    {
-//        auto size = tree.size();
-
-//        if (start < size)
-//        {
-//            KeyType k = target_ - sum_;
-
-//            auto result = tree.findForward(search_type_, column, start, k);
-
-//            sum_ += result.prefix();
-
-//            return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
-//        }
-//        else {
-//            return StreamOpResult(size, start, true, true);
-//        }
-//    }
-//};
-
-
-
-
-
-
 }

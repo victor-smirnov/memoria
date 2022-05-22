@@ -32,7 +32,51 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
     using typename Base::Iterator;
     using typename Base::Position;
     using typename Base::TreePathT;
+    using typename Base::CtrSizeT;
 
+    using typename Base::BlockIteratorStatePtr;
+    using typename Base::BlockIteratorState;
+
+
+    void ctr_remove(CtrSizeT from, CtrSizeT to)
+    {
+        auto& self = this->self();
+
+        auto ii_from = self.ctr_seek_entry(from);
+        auto ii_to = self.ctr_seek_entry(to);
+
+        Position p_from = Position::create(0, ii_from->iter_leaf_position());
+        Position p_to   = Position::create(0, ii_to->iter_leaf_position());
+
+        self.ctr_remove_entries(
+            ii_from->path(), p_from,
+            ii_to->path(), p_to
+        );
+    }
+
+    void ctr_remove_from(CtrSizeT from)
+    {
+        auto& self = this->self();
+
+        auto ii_from = self.ctr_seek_entry(from);
+        Position p_from = Position::create(0, ii_from->iter_leaf_position());
+
+        self.ctr_remove_nodes_at_end(
+            ii_from->path(), p_from
+        );
+    }
+
+    void ctr_remove_up_to(CtrSizeT pos)
+    {
+        auto& self = this->self();
+
+        auto ii_to = self.ctr_seek_entry(pos);
+        Position p_to = Position::create(0, ii_to->iter_leaf_position());
+
+        self.ctr_remove_nodes_from_start(
+            ii_to->path(), p_to
+        );
+    }
 
 
 
@@ -54,13 +98,33 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
         }
     }
 
+    BlockIteratorStatePtr ctr_remove_entry2(BlockIteratorStatePtr&& iter)
+    {
+        auto& self = this->self();
+
+        auto idx = iter->iter_leaf_position();
+        auto remove_entry_result = self.ctr_remove_entry(iter->path(), idx);
+
+        CtrSizeT leaf_size = self.ctr_leaf_sizes(iter->path().leaf())[0];
+        iter->set_position(remove_entry_result.new_idx, leaf_size);
+
+        if (remove_entry_result.new_idx == leaf_size) {
+            auto next_chunk = iter->next_chunk();
+            if (next_chunk) {
+                iter = memoria_static_pointer_cast<BlockIteratorState>(next_chunk);
+            }
+        }
+
+        return std::move(iter);
+    }
+
 
     struct RemoveEntryResult {
         bool leaf_changed;
-        int32_t new_idx;
+        CtrSizeT new_idx;
     };
 
-    RemoveEntryResult ctr_remove_entry(TreePathT& path, int32_t idx)
+    RemoveEntryResult ctr_remove_entry(TreePathT& path, CtrSizeT idx)
     {
         auto& self = this->self();
 
@@ -73,7 +137,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
         {
             auto split_result = self.split_leaf_in_a_half(path, idx);
 
-            if (split_result.type() == SplitStatus::RIGHT)
+            if (split_result.type() == bt::SplitStatus::RIGHT)
             {
                 result.leaf_changed = true;
                 result.new_idx = idx = split_result.stream_idx();
@@ -88,7 +152,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
         }
 
         self.ctr_update_path(path, 0);
-        self.ctr_check_path(path, 0);
 
         TreePathT next_path = path;
         auto has_next = self.ctr_get_next_node(next_path, 0);

@@ -23,292 +23,216 @@
 namespace memoria::bt {
 
 
-class PkdFindSumFwFn {
-    SearchType search_type_;
 
-public:
-    PkdFindSumFwFn(SearchType search_type):
-        search_type_(search_type)
-    {}
+template <
+        typename Types,
+        typename LeafPath,
+        typename StateT
+>
+class SelectForwardShuttle;
 
-
-    template <int32_t StreamIdx, typename Tree, typename KeyType, typename AccumType>
-    StreamOpResult stream(const Tree& tree, size_t column, size_t start, const KeyType& key, AccumType& sum)
-    {
-        auto size = tree.size();
-
-        if (start < size)
-        {
-            KeyType k = key - sum;
-
-            auto result = tree.findForward(search_type_, column, start, k);
-
-            sum += result.prefix();
-
-            return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
-        }
-        else {
-            return StreamOpResult(size, start, true, true);
-        }
-    }
-};
-
-
-class PkdFindMaxFwFn {
-    SearchType search_type_;
-public:
-    PkdFindMaxFwFn(SearchType search_type):
-        search_type_(search_type)
-    {}
-
-    template <int32_t StreamIdx, typename Tree, typename KeyType>
-    StreamOpResult stream(const Tree& tree, size_t column, size_t start, const KeyType& key)
-    {
-        auto size = tree.size();
-
-        if (start < size)
-        {
-            auto result = tree.findForward(search_type_, column, start, key);
-            return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
-        }
-        else {
-            return StreamOpResult(size, start, true, true);
-        }
-    }
-};
+template <
+        typename Types,
+        typename LeafPath,
+        typename StateT
+>
+class SelectBackwardShuttle;
 
 
 
-
-template <typename KeyType, typename AccumType = KeyType>
-class PkdSelectFwFn {
-    SearchType search_type_;
-public:
-    PkdSelectFwFn(SearchType search_type):
-        search_type_(search_type)
-    {}
-
-
-    template <int32_t StreamIdx, typename Tree>
-    StreamOpResult stream(const Tree& tree, size_t column, size_t start)
-    {
-        auto size = tree.size();
-
-        if (start < size)
-        {
-            KeyType k = target_ - sum_;
-
-            auto result = tree.findForward(search_type_, column, start, k);
-
-            sum_ += result.prefix();
-
-            return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
-        }
-        else {
-            return StreamOpResult(size, start, true, true);
-        }
-    }
-};
-
-
-
-
-
-template <typename Types>
-class SkipForwardShuttle: public ForwardShuttleBase<Types> {
+template <typename Types, typename LeafPath>
+class SelectForwardShuttleBase: public ForwardShuttleBase<Types> {
     using Base = ForwardShuttleBase<Types>;
 
 protected:
     using typename Base::BranchNodeTypeSO;
     using typename Base::LeafNodeTypeSO;
-
-    static constexpr int32_t Streams = Types::Streams;
+    using typename Base::IteratorState;
 
     using CtrSizeT = typename Types::CtrSizeT;
 
-    using Base::ctr_;
     using Base::is_descending;
 
-    size_t stream_;
-    CtrSizeT target_;
+    CtrSizeT rank_;
     CtrSizeT sum_{};
 
+    size_t symbol_;
+    SeqOpType op_type_;
+
+    CtrSizeT leaf_start_{};
+    CtrSizeT last_leaf_pos_{};
+    CtrSizeT last_leaf_size_{};
+
 public:
-    SkipForwardShuttle(size_t stream, CtrSizeT target):
-        stream_(stream), target_(target)
+    SelectForwardShuttleBase(CtrSizeT rank, size_t symbol, SeqOpType op_type):
+        rank_(rank), symbol_(symbol), op_type_(op_type)
     {}
 
-
-    virtual StreamOpResult treeNode(const BranchNodeTypeSO& node, size_t start)
+    virtual ShuttleOpResult treeNode(const BranchNodeTypeSO& node, size_t start)
     {
-        return node.processStreamStart(
-            stream_,
-            PkdFindSumFwFn<CtrSizeT>(target_, sum_, SearchType::GT),
-            start
-        );
+        using BranchStream = typename BranchNodeTypeSO::template BuildBranchPath<LeafPath>;
+        size_t symbol = BranchNodeTypeSO::template translateLeafIndexToBranchIndex<LeafPath>(symbol_);
+
+        auto tree = node.template substream<BranchStream>();
+        auto size = tree.size();
+
+        if (start < size)
+        {
+            auto rank = rank_ - sum_;
+
+            auto result = tree.find_for_select_fw(start, rank, symbol, op_type_);
+
+            Base::sum_ += result.rank;
+
+            return ShuttleOpResult::non_empty(result.idx, result.idx < size);
+        }
+        else {
+            return ShuttleOpResult::empty();
+        }
     }
 
-    virtual void treeNode(const BranchNodeTypeSO& node, WalkCmd cmd, size_t start, size_t end) {}
+    virtual void treeNode(const BranchNodeTypeSO& node, WalkCmd cmd, size_t start, size_t end)
+    {
+        using BranchStream = typename BranchNodeTypeSO::template BuildBranchPath<LeafPath>;
 
-    virtual StreamOpResult treeNode(const LeafNodeTypeSO& node, size_t start) {
-        return node.processStreamStart(
-                    stream_,
-                    PkdFindSumFwFn<CtrSizeT>(target_, sum_, SearchType::GT),
-                    start
-        );
+        if (cmd == WalkCmd::FIX_TARGET) {
+            size_t column = BranchNodeTypeSO::template translateLeafIndexToBranchIndex<LeafPath>(symbol_);
+
+            auto tree = node.template substream<BranchStream>();
+            sum_ -= tree.access(column, end);
+        }
     }
 
-    virtual void treeNode(const LeafNodeTypeSO& node, WalkCmd cmd, size_t start, size_t end) {}
+
+    virtual ShuttleOpResult treeNode(const LeafNodeTypeSO& node)
+    {
+        auto seq = node.template substream<LeafPath>();
+        auto size = seq.size();
+
+        if (leaf_start_ < size)
+        {
+            auto rank = rank_ - sum_;
+            auto result = seq.select_fw(leaf_start_, rank, symbol_, op_type_);
+
+            if (result.idx < size)
+            {
+                sum_ = rank_;
+                last_leaf_pos_ = result.idx;
+                last_leaf_size_ = seq.size();
+
+                leaf_start_ = CtrSizeT{};
+
+                return ShuttleOpResult::found_leaf();
+            }
+            else {
+                last_leaf_size_ = last_leaf_pos_ = seq.size();
+                sum_ += result.rank;
+
+                leaf_start_ = CtrSizeT{};
+                return ShuttleOpResult::not_found();
+            }
+        }
+        else {
+            return ShuttleOpResult::empty();
+        }
+    }
 };
 
 
-template <typename Types>
-class FindForwardShuttleBase: public ForwardShuttleBase<Types> {
-    using Base = ForwardShuttleBase<Types>;
-protected:
-    using typename Base::BranchNodeTypeSO;
-    using typename Base::LeafNodeTypeSO;
-public:
 
-    virtual void treeNode(const LeafNodeTypeSO& node, WalkCmd cmd, size_t start, size_t end) {}
-    virtual void treeNode(const BranchNodeTypeSO& node, WalkCmd cmd, size_t start, size_t end) {}
 
-};
 
 
 
 template <typename Types, typename LeafPath>
-class FindForwardShuttle: public FindForwardShuttleBase<Types> {
-    using Base = FindForwardShuttleBase<Types>;
+class SelectBackwardShuttleBase: public BackwardShuttleBase<Types> {
+    using Base = BackwardShuttleBase<Types>;
 
 protected:
     using typename Base::BranchNodeTypeSO;
     using typename Base::LeafNodeTypeSO;
-
-    static constexpr int32_t Streams = Types::Streams;
-
-    using KeyType = typename Types::template TargetType<LeafPath>;
+    using typename Base::IteratorState;
 
     using CtrSizeT = typename Types::CtrSizeT;
 
-    using Base::ctr_;
     using Base::is_descending;
 
-    KeyType target_;
-    size_t column_;
-    SearchType search_type_;
+    CtrSizeT rank_;
+    size_t symbol_;
+    SeqOpType op_type_;
 
-    KeyType sum_{};
+    CtrSizeT sum_{};
+
+    bool before_start_{};
+    CtrSizeT leaf_start_{};
+    CtrSizeT last_leaf_pos_{};
+    CtrSizeT last_leaf_size_{};
 
 public:
-    FindForwardShuttle(CtrSizeT target, size_t column, SearchType search_type):
-        target_(target), column_(column), search_type_(search_type)
+    SelectBackwardShuttleBase(CtrSizeT rank, size_t symbol, SeqOpType op_type):
+        rank_(rank), symbol_(symbol), op_type_(op_type)
     {}
 
-    virtual StreamOpResult treeNode(const BranchNodeTypeSO& node, size_t start)
+    virtual ShuttleOpResult treeNode(const BranchNodeTypeSO& node, size_t start)
+    {
+        using BranchStream = typename BranchNodeTypeSO::template BuildBranchPath<LeafPath>;
+        size_t symbol = BranchNodeTypeSO::template translateLeafIndexToBranchIndex<LeafPath>(symbol_);
+
+        auto tree = node.template substream<BranchStream>();
+        auto size = tree.size();
+
+        if (start == std::numeric_limits<size_t>::max()) {
+            return ShuttleOpResult::empty();
+        }
+        else {
+            if (start >= size) {
+                start = size - 1;
+            }
+
+            auto rank = rank_ - sum_;
+
+            auto result     = tree.find_for_select_bw(start, rank, symbol, op_type_);
+            sum_ += result.prefix();
+
+            return ShuttleOpResult::non_empty(result.idx, !result.is_end());
+        }
+
+    }
+
+    virtual void treeNode(const BranchNodeTypeSO& node, WalkCmd cmd, size_t start, size_t end)
     {
         using BranchPath = typename BranchNodeTypeSO::template BuildBranchPath<LeafPath>;
-        return node.template processStream<BranchPath>(
-            PkdFindSumFwFn<CtrSizeT>(target_, sum_, search_type_),
-            column_,
-            start
-        );
+
+        if (cmd == WalkCmd::FIX_TARGET) {
+            size_t column = BranchNodeTypeSO::template translateLeafIndexToBranchIndex<LeafPath>(symbol_);
+
+            auto tree = node.template substream<BranchPath>();
+            sum_ -= tree.access(column, end);
+        }
     }
 
-    virtual StreamOpResult treeNode(const LeafNodeTypeSO& node, size_t start) {
-        return node.template processStream<LeafPath>(
-            PkdFindSumFwFn<CtrSizeT>(target_, sum_, search_type_),
-            column_,
-            start
-        );
-    }
-};
-
-
-template <typename Types, typename LeafPath>
-class FindMaxForwardShuttle: public FindForwardShuttleBase<Types> {
-    using Base = FindForwardShuttleBase<Types>;
-
-protected:
-    using typename Base::BranchNodeTypeSO;
-    using typename Base::LeafNodeTypeSO;
-
-    static constexpr int32_t Streams = Types::Streams;
-
-    using KeyType = typename Types::template TargetType<LeafPath>;
-
-    using CtrSizeT = typename Types::CtrSizeT;
-
-    using Base::ctr_;
-    using Base::is_descending;
-
-    KeyType target_;
-    size_t column_;
-    SearchType search_type_;
-
-public:
-    FindMaxForwardShuttle(CtrSizeT target, size_t column, SearchType search_type):
-        target_(target), column_(column), search_type_(search_type)
-    {}
-
-    virtual StreamOpResult treeNode(const BranchNodeTypeSO& node, size_t start)
+    virtual ShuttleOpResult treeNode(const LeafNodeTypeSO& node)
     {
-        using BranchPath = typename BranchNodeTypeSO::template BuildBranchPath<LeafPath>;
-        return node.template processStream<BranchPath>(
-            PkdFindMaxFwFn<CtrSizeT>(target_, search_type_),
-            column_,
-            start
-        );
-    }
+        auto seq = node.template substream<LeafPath>();
 
-    virtual StreamOpResult treeNode(const LeafNodeTypeSO& node, size_t start) {
-        return node.template processStream<LeafPath>(
-            PkdFindMaxFwFn<CtrSizeT>(target_, search_type_),
-            column_,
-            start
-        );
-    }
-};
+        last_leaf_size_ = seq.size();
+        before_start_ = false;
 
+        auto rank = rank_ - sum_;
 
+        if (is_descending()) {
+            leaf_start_ = seq.size() - 1;
+        }
 
-template <typename Types, typename LeafPath>
-class SelectForwardShuttle: public FindForwardShuttle<Types, LeafPath> {
-    using Base = FindForwardShuttleBase<Types>;
+        auto result = seq.select_bw(leaf_start_, rank, symbol_, op_type_);
 
-protected:
-    using typename Base::BranchNodeTypeSO;
-    using typename Base::LeafNodeTypeSO;
-
-
-
-    static constexpr int32_t Streams = Types::Streams;
-
-    using KeyType = typename Types::template TargetType<LeafPath>;
-
-    using CtrSizeT = typename Types::CtrSizeT;
-
-    using Base::ctr_;
-    using Base::is_descending;
-
-    KeyType target_;
-    size_t column_;
-    SearchType search_type_;
-
-    KeyType sum_{};
-
-public:
-    SelectForwardShuttle(CtrSizeT target, size_t column, SearchType search_type):
-        target_(target), column_(column), search_type_(search_type)
-    {}
-
-    virtual StreamOpResult treeNode(const LeafNodeTypeSO& node, size_t start) {
-        return node.template processStream<LeafPath>(
-            PkdSelectFwFn<CtrSizeT>(target_, sum_, column_),
-            start
-        );
+        sum_ += result.rank;
+        return ShuttleOpResult::non_empty(result.idx, result.idx <= leaf_start_);
     }
 };
+
+
+
 
 
 

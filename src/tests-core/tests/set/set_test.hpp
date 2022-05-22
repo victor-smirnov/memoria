@@ -24,6 +24,7 @@
 #include <memoria/core/tools/random.hpp>
 
 #include <vector>
+#include <functional>
 
 namespace memoria {
 namespace tests {
@@ -99,7 +100,7 @@ public:
     MMA_STATE_FILEDS(size)
 
     static void init_suite(TestSuite& suite) {
-        MMA_CLASS_TEST(suite, testOne);
+        MMA_CLASS_TESTS(suite, testOne, testAll);
     }
 
     void testOne() {
@@ -126,8 +127,9 @@ public:
             entries_set.insert(key);
             entries_list.push_back(key);
 
-            ctr->insert(key);
+            ctr->upsert(key);
         }
+
         int64_t t1 = getTimeInMillis();
         out() << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
 
@@ -148,7 +150,7 @@ public:
 
         int c = 0;
         for (auto iter = ctr->seek_entry(ctr->size() - 1); !is_before_start(iter); iter = iter->prev(100)) {
-            println("Key: {} :: {}", iter->value(), iter->entry_offset());
+            println("Key: {} :: {}", iter->current_key(), iter->entry_offset());
             c++;
         }
 
@@ -182,7 +184,7 @@ public:
             entries_set.insert(key);
             entries_list.push_back(key);
 
-            ctr->insert(key);
+            ctr->upsert(key);
         }
         int64_t t1 = getTimeInMillis();
         out() << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
@@ -200,12 +202,12 @@ public:
         int64_t t3 = getTimeInMillis();
         out() << "Queried entries in " << (t3 - t2) << " ms" << std::endl;
 
-        auto scc = ctr->scanner();
+        auto scc = ctr->first_entry();
         auto en_ii = entries_set.begin();
 
-        while (!scc.is_end())
+        while (!is_after_end(scc))
         {
-            for (auto key: scc.keys())
+            for (auto key: scc->keys())
             {
                 auto en_key = *en_ii;
 
@@ -215,7 +217,7 @@ public:
                 en_ii++;
             }
 
-            scc.next_leaf();
+            scc = scc->next_chunk();
         }
 
 
@@ -245,8 +247,6 @@ public:
 
         commit();
     }
-
-
 };
 
 

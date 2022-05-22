@@ -40,6 +40,27 @@
 namespace memoria {
 namespace bt {
 
+
+enum class SplitStatus {NONE, LEFT, RIGHT};
+
+template <typename CtrSizeT>
+class SplitResult {
+    SplitStatus type_;
+    CtrSizeT stream_idx_;
+public:
+    SplitResult(SplitStatus type, CtrSizeT stream_idx):
+        type_(type), stream_idx_(stream_idx)
+    {}
+
+    SplitResult(SplitStatus type): type_(type), stream_idx_() {}
+
+    SplitStatus type() const {return type_;}
+    CtrSizeT stream_idx() const {return stream_idx_;}
+};
+
+
+
+
 template <int32_t StreamIdx> struct StreamTag {};
 
 template <int32_t Streams, int32_t Idx = 0>

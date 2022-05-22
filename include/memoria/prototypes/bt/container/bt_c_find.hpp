@@ -38,6 +38,7 @@ public:
     using typename Base::CtrSizeT;
     using typename Base::TreePathT;
     using typename Base::BlockIteratorStatePtr;
+    using typename Base::ShuttleTypes;
 
     using LeafStreamsStructList = typename Types::LeafStreamsStructList;
 
@@ -59,6 +60,13 @@ public:
     template <typename StateTypeT, typename ShuttleT, typename... Args>
     IterSharedPtr<StateTypeT> ctr_descend(TypeTag<StateTypeT> state_tag, TypeTag<ShuttleT>, Args&&... args) const {
         ShuttleT shuttle(std::forward<Args>(args)...);
+        return ctr_descend(state_tag, shuttle);
+    }
+
+
+    template <typename StateTypeT, template <typename> class ShuttleT, typename... Args>
+    IterSharedPtr<StateTypeT> ctr_descend(TypeTag<StateTypeT> state_tag, bt::ShuttleTag<ShuttleT>, Args&&... args) const {
+        ShuttleT<ShuttleTypes> shuttle(std::forward<Args>(args)...);
         return ctr_descend(state_tag, shuttle);
     }
 
@@ -120,6 +128,15 @@ private:
     template <typename StateTypeT, typename ShuttleTypesT>
     IterSharedPtr<StateTypeT> ctr_descend(
             TypeTag<StateTypeT> state_tag,
+            bt::ForwardShuttleBase<ShuttleTypesT>& shuttle
+    ) const {
+        IterSharedPtr<StateTypeT> state = self().make_block_iterator_state(state_tag);
+        return memoria_static_pointer_cast<StateTypeT>(ctr_descend(std::move(state), shuttle));
+    }
+
+    template <typename ShuttleTypesT>
+    BlockIteratorStatePtr ctr_descend(
+            BlockIteratorStatePtr&& iter,
             bt::ForwardShuttleBase<ShuttleTypesT>& shuttle
     ) const;
 
@@ -823,17 +840,15 @@ typename M_TYPE::IteratorPtr M_TYPE::ctr_find(Walker&& walker) const
 
 
 M_PARAMS
-template <typename StateTypeT, typename ShuttleTypesT>
-IterSharedPtr<StateTypeT> M_TYPE::ctr_descend(
-        TypeTag<StateTypeT> state_tag,
+template <typename ShuttleTypesT>
+typename M_TYPE::BlockIteratorStatePtr M_TYPE::ctr_descend(
+        BlockIteratorStatePtr&& state,
         bt::ForwardShuttleBase<ShuttleTypesT>& shuttle
 ) const
 {
     auto& self = the_self();
 
     shuttle.set_descending(true);
-
-    IterSharedPtr<StateTypeT> state = self.make_block_iterator_state(state_tag);
 
     auto node = self.ctr_get_root_node();
 

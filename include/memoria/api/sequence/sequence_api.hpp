@@ -15,49 +15,58 @@
 
 #pragma once
 
-
-
 #include <memoria/api/common/ctr_api_btss.hpp>
-#include <memoria/core/types.hpp>
-
-#include <memory>
-#include <vector>
+#include <memoria/core/ssrle/ssrle.hpp>
 
 namespace memoria {
     
-template <int32_t BitsPerSymbol, bool Dense, typename Profile>
-class CtrApi<Sequence<BitsPerSymbol, Dense>, Profile>: public CtrApiBTSSBase<Sequence<BitsPerSymbol, Dense>, Profile>  {
-    using Base = CtrApiBTSSBase<Sequence<BitsPerSymbol, Dense>, Profile>;
-public:
 
-    using typename Base::CtrID;
-    using typename Base::StoreT;
-    using typename Base::CtrT;
-    using typename Base::CtrPtr;
+template <size_t Bps, typename Profile>
+struct SequenceChunk {
 
-    using typename Base::Iterator;
-    
-    MMA_DECLARE_CTRAPI_BASIC_METHODS()
+    using CtrSizeT = ApiProfileCtrSizeT<Profile>;
+    using ChunkPtr = IterSharedPtr<SequenceChunk>;
+    using RunT = SSRLERun<Bps>;
+    using SymbolT = typename RunT::SymbolT;
+
+    virtual ~SequenceChunk() noexcept = default;
+
+    virtual CtrSizeT entry_offset() const = 0;
+    virtual CtrSizeT collection_size() const = 0;
+    virtual CtrSizeT chunk_offset() const = 0;
+
+    virtual size_t chunk_size() const = 0;
+    virtual size_t entry_offset_in_chunk() const = 0;
+
+    virtual const Span<RunT>& runs() const = 0;
+    virtual const SymbolT current_symbol() const = 0;
+
+    virtual bool is_before_start() const = 0;
+    virtual bool is_after_end() const = 0;
+
+    virtual ChunkPtr next(CtrSizeT num = 1) const = 0;
+    virtual ChunkPtr next_chunk() const = 0;
+
+    virtual ChunkPtr prev(CtrSizeT num = 1) const = 0;
+    virtual ChunkPtr prev_chunk() const = 0;
+
+    virtual void dump(std::ostream& out = std::cout) const = 0;
 };
 
 
-template <int32_t BitsPerSymbol, bool Dense, typename Profile>
-class IterApi<Sequence<BitsPerSymbol, Dense>, Profile>: public IterApiBTSSBase<Sequence<BitsPerSymbol, Dense>, Profile> {
-    
-    using Base = IterApiBTSSBase<Sequence<BitsPerSymbol, Dense>, Profile>;
-    
-    using typename Base::IterT;
-    using typename Base::IterPtr;
-    
+
+template <size_t BitsPerSymbol, typename Profile>
+class ICtrApi<Sequence<BitsPerSymbol>, Profile>: public CtrReferenceable<Profile>  {
+    using Base = CtrReferenceable<Profile>;
 public:
-    
-    using DataValue = int;
-    
-    using Base::read;
-    using Base::insert;
-    
-    MMA_DECLARE_ITERAPI_BASIC_METHODS()
-    
+
+
+
+
+    MMA_DECLARE_ICTRAPI();
 };
+
+
+
     
 }

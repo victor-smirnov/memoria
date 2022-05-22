@@ -47,7 +47,7 @@ option(USE_TSAN "Compile with Thread Sanitizer ON" OFF)
 option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 
 option(BUILD_CLASSIC_MEMORIA_LIB "Build core library without Reactor support, using threads for concurrency" ON)
-option(BUILD_REACTOR_MEMORIA_LIB "Build core library WITH Reactor support, using fibers for concurrency" OFF)
+option(BUILD_REACTOR_MEMORIA_LIB "Build core library WITH Reactor support, using fibers for concurrency" ON)
 option(BUILD_PYTHON_BINDINGS     "Build Python bindings for certain Memoria libraries." OFF)
 
 option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)

@@ -26,15 +26,15 @@
 namespace memoria {
 
 template <typename Key, typename Profile>
-struct CollectionEntry {
+struct CollectionChunk {
 
     using KeyView = DTTViewType<Key>;
     using CtrSizeT = ApiProfileCtrSizeT<Profile>;
+    using ChunkPtr = IterSharedPtr<CollectionChunk>;
 
-    virtual ~CollectionEntry() noexcept = default;
+    virtual ~CollectionChunk() noexcept = default;
 
-    virtual const KeyView& value() const = 0;
-    virtual Datum<Key> read_value() const = 0;
+    virtual const KeyView& current_key() const = 0;
 
     virtual CtrSizeT entry_offset() const = 0;
     virtual CtrSizeT collection_size() const = 0;
@@ -44,30 +44,55 @@ struct CollectionEntry {
     virtual size_t chunk_size() const = 0;
     virtual size_t entry_offset_in_chunk() const = 0;
 
-    virtual const Span<const KeyView>& chunk() const = 0;
+    virtual const Span<const KeyView>& keys() const = 0;
 
     virtual bool is_before_start() const = 0;
     virtual bool is_after_end() const = 0;
 
-    virtual IterSharedPtr<CollectionEntry> next(CtrSizeT num = 1) const = 0;
-    virtual IterSharedPtr<CollectionEntry> next_chunk() const = 0;
+    virtual ChunkPtr next(CtrSizeT num = 1) const = 0;
+    virtual ChunkPtr next_chunk() const = 0;
 
-    virtual IterSharedPtr<CollectionEntry> prev(CtrSizeT num = 1) const = 0;
-    virtual IterSharedPtr<CollectionEntry> prev_chunk() const = 0;
+    virtual ChunkPtr prev(CtrSizeT num = 1) const = 0;
+    virtual ChunkPtr prev_chunk() const = 0;
 
-    virtual IterSharedPtr<CollectionEntry> read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
+    virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
 
     virtual void dump(std::ostream& out = std::cout) const = 0;
+
+    virtual bool is_found(const KeyView& key) const = 0;
+
+    template <typename Fn>
+    void for_each_remaining(Fn&& fn)
+    {
+        auto span = keys();
+
+        for (size_t c = entry_offset_in_chunk(); c < chunk_size(); c++) {
+            fn(span[c]);
+        }
+
+        if (!is_after_end()) {
+            ChunkPtr next;
+            do {
+                next = next_chunk();
+
+                auto span = next->keys();
+                for (size_t c = next->entry_offset_in_chunk(); c < next->chunk_size(); c++) {
+                    fn(span[c]);
+                }
+            }
+            while (is_after_end(next));
+        }
+    }
 };
 
 
 template <typename Key, typename Profile>
-bool is_after_end(const IterSharedPtr<CollectionEntry<Key, Profile>>& ptr) {
+bool is_after_end(const IterSharedPtr<CollectionChunk<Key, Profile>>& ptr) {
     return !ptr || ptr->is_after_end();
 }
 
 template <typename Key, typename Profile>
-bool is_before_start(const IterSharedPtr<CollectionEntry<Key, Profile>>& ptr) {
+bool is_before_start(const IterSharedPtr<CollectionChunk<Key, Profile>>& ptr) {
     return !ptr || ptr->is_before_start();
 }
 
@@ -81,17 +106,17 @@ struct ICtrApi<Collection<Key>, Profile>: public CtrReferenceable<Profile> {
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ApiTypes  = ICtrApiTypes<Collection<Key>, Profile>;
 
-    using EntrySharedPtr = IterSharedPtr<CollectionEntry<Key, Profile>>;
+    using ChunkSharedPtr = IterSharedPtr<CollectionChunk<Key, Profile>>;
 
     using BufferT       = DataTypeBuffer<Key>;
     using DataTypeT     = Key;
     using CtrSizeT      = ApiProfileCtrSizeT<Profile>;
 
-    virtual EntrySharedPtr first_entry() const {
+    virtual ChunkSharedPtr first_entry() const {
         return seek_entry(0);
     }
 
-    virtual EntrySharedPtr last_entry() const {
+    virtual ChunkSharedPtr last_entry() const {
         CtrSizeT size = this->size();
         if (size) {
             return seek_entry(size - 1);
@@ -101,19 +126,8 @@ struct ICtrApi<Collection<Key>, Profile>: public CtrReferenceable<Profile> {
         }
     }
 
-    virtual EntrySharedPtr seek_entry(CtrSizeT num) const = 0;
+    virtual ChunkSharedPtr seek_entry(CtrSizeT num) const = 0;
     virtual CtrSizeT size() const = 0;
-
-//    virtual CtrSizeT contains_entry(KeyView key) const = 0;
-
-//    virtual EntrySharedPtr find_first(KeyView key) const = 0;
-//    virtual EntrySharedPtr remove_entry(EntrySharedPtr&& entry) = 0;
-
-//    virtual EntrySharedPtr remove_entries(EntrySharedPtr&& from, EntrySharedPtr&& to) = 0;
-
-//    virtual EntrySharedPtr remove_entries_from(CtrSizeT from) = 0;
-//    virtual EntrySharedPtr remove_entries(CtrSizeT from, CtrSizeT to) = 0;
-//    virtual EntrySharedPtr remove_entries_up_to(CtrSizeT idx) = 0;
 
     MMA_DECLARE_ICTRAPI();
 };

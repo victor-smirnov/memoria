@@ -38,6 +38,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btss::IteratorMiscName)
     using typename Base::Container;
     using typename Base::Position;
 
+    using SplitResultT = bt::SplitResult<CtrSizeT>;
+
 
 public:
     int32_t iovector_pos() const  {
@@ -316,7 +318,7 @@ public:
         return 0;
     }
 
-    SplitResult iter_split_leaf(int32_t stream, int32_t target_idx)
+    SplitResultT iter_split_leaf(int32_t stream, CtrSizeT target_idx)
     {
         auto& self = this->self();
 
@@ -337,10 +339,10 @@ public:
 
         if (target_idx > split_idx)
         {
-            return SplitResult{SplitStatus::RIGHT, target_idx - split_idx};
+            return SplitResultT{bt::SplitStatus::RIGHT, target_idx - split_idx};
         }
         else {
-            return SplitResult{SplitStatus::LEFT, target_idx};
+            return SplitResultT{bt::SplitStatus::LEFT, target_idx};
         }
     }
 

@@ -44,6 +44,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
     using typename Base::CtrSizeT;
     using typename Base::LeafNode;
 
+    using SplitResultT = bt::SplitResult<CtrSizeT>;
+
     CtrSharedPtr<BTSSIterator<Profile>> raw_iterator() {
         return self().ctr_begin();
     }
@@ -152,22 +154,22 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
     }
 
 
-    SplitResult split_leaf_in_a_half(TreePathT& path, int32_t target_idx)
+    SplitResultT split_leaf_in_a_half(TreePathT& path, CtrSizeT target_idx)
     {
         auto& self = this->self();
 
         auto leaf_sizes = self.ctr_get_leaf_sizes(path.leaf());
-        int32_t split_idx = leaf_sizes[0] / 2;
+        CtrSizeT split_idx = div_2(leaf_sizes[0]);
 
         self.ctr_split_leaf(path, Position::create(0, split_idx));
 
         if (target_idx > split_idx)
         {
             self.ctr_expect_next_node(path, 0);
-            return SplitResult(SplitStatus::RIGHT, target_idx - split_idx);
+            return SplitResultT(bt::SplitStatus::RIGHT, target_idx - split_idx);
         }
         else {
-            return SplitResult(SplitStatus::LEFT, target_idx);
+            return SplitResultT(bt::SplitStatus::LEFT, target_idx);
         }
     }
 

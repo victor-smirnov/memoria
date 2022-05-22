@@ -39,16 +39,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafCommonName)
     using typename Base::BlockIteratorStatePtr;
 
 public:
-    BlockIteratorStatePtr ctr_split_leaf(BlockIteratorStatePtr&& iter, const Position& split_at)
-    {
-        auto& self = this->self();
-
-        self.ctr_split_leaf(iter->path(), split_at);
-        iter->iter_reset_to(split_at);
-
-        return std::move(iter);
-    }
-
 
     void ctr_split_leaf(
             TreePathT& path,

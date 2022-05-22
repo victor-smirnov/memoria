@@ -25,9 +25,11 @@
 #include <memoria/prototypes/bt_ss/container/btss_c_leaf_variable.hpp>
 #include <memoria/prototypes/bt_ss/container/btss_c_find.hpp>
 #include <memoria/prototypes/bt_ss/container/btss_c_remove.hpp>
+#include <memoria/prototypes/bt_ss/container/btss_c_insert.hpp>
 
 
 #include <memoria/prototypes/bt_ss/iterator/btss_i_misc.hpp>
+#include <memoria/prototypes/bt_ss/iterator/btss_i_basic.hpp>
 
 #include <memoria/prototypes/bt_ss/btss_input_iovector.hpp>
 
@@ -50,6 +52,7 @@ struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
+                btss::InsertName,
                 btss::LeafCommonName,
                 btss::FindName,
                 btss::RemoveName
@@ -70,6 +73,13 @@ struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
                 typename Base::IteratorPartsList,
                 btss::IteratorMiscName
     >;
+
+
+    using BlockIteratorStatePartsList = MergeLists<
+        typename Base::BlockIteratorStatePartsList,
+        btss::IteratorBasicName
+    >;
+
 
 
 

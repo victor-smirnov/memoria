@@ -19,6 +19,8 @@
 #include <memoria/core/types.hpp>
 #include <memoria/core/types/algo/for_each.hpp>
 
+#include <memoria/prototypes/bt/tools/bt_tools.hpp>
+
 #include <memoria/prototypes/bt_fl/btfl_names.hpp>
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
@@ -40,6 +42,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorInsertName)
     static const int32_t DataStreams        = Container::Types::DataStreams;
     static const int32_t StructureStreamIdx = Container::Types::StructureStreamIdx;
 
+    using SplitResultT = bt::SplitResult<CtrSizeT>;
 
     auto insert_iovector(io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
@@ -104,7 +107,7 @@ public:
 
 
 
-    SplitResult split(int32_t stream, int32_t target_stream_idx)
+    SplitResultT split(int32_t stream, int32_t target_stream_idx)
     {
         auto& self  = this->self();
         auto leaf   = self.iter_leaf();
@@ -133,10 +136,10 @@ public:
 
                 self.iter_refresh();
                 
-                return SplitResult(SplitStatus::RIGHT, target_stream_idx - half_ranks[stream]);
+                return SplitResultT(bt::SplitStatus::RIGHT, target_stream_idx - half_ranks[stream]);
             }
             else {
-                return SplitResult(SplitStatus::LEFT, target_stream_idx);
+                return SplitResultT(bt::SplitStatus::LEFT, target_stream_idx);
             }
         }
         else {
@@ -149,7 +152,7 @@ public:
 
             self.iter_refresh_iov();
             
-            return SplitResult(SplitStatus::LEFT, iter_leaf_sizes[stream]);
+            return SplitResultT(bt::SplitStatus::LEFT, iter_leaf_sizes[stream]);
         }
     }
 

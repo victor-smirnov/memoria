@@ -43,6 +43,11 @@ using UAcc128T = UnsignedAccumulator<128>;
 using UAcc192T = UnsignedAccumulator<192>;
 using UAcc256T = UnsignedAccumulator<256>;
 
+template <size_t Bits>
+UnsignedAccumulator<Bits> div_2(const UnsignedAccumulator<Bits>& value) {
+    return value >> 1;
+}
+
 
 namespace detail {
 

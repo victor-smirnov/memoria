@@ -54,6 +54,10 @@ template <typename> class enable_shared_from_this;
 
 namespace detail {
 
+template <typename T, bool HasBase = std::is_base_of_v<enable_shared_from_this<T>, T>>
+struct SharedFromThisHelper;
+
+
 class ObjectPoolRefHolder {
     long use_count_{1};
     long weak_count_{1};
@@ -61,6 +65,9 @@ class ObjectPoolRefHolder {
     template <typename> friend class memoria::pool::SharedPtr;
     template <typename> friend class memoria::pool::UniquePtr;
     template <typename> friend class memoria::pool::WeakPtr;
+
+    template <typename, bool>
+    friend struct SharedFromThisHelper;
 
 public:
     ObjectPoolRefHolder() {}
@@ -414,6 +421,13 @@ class WeakPtr {
     T* ptr_;
     RefHolder* ref_holder_;
 
+    template <typename, bool>
+    friend struct detail::SharedFromThisHelper;
+
+    WeakPtr(T* ptr, RefHolder* ref_holder):
+        ptr_(ptr), ref_holder_(ref_holder)
+    {}
+
 public:
     WeakPtr(): ptr_(), ref_holder_() {}
 
@@ -576,8 +590,7 @@ UniquePtr<T> make_unique_ptr_from(T* obj, ObjectPoolRefHolder* holder) {
 
 
 
-template <typename T, bool HasBase = std::is_base_of_v<enable_shared_from_this<T>, T>>
-struct SharedFromThisHelper;
+
 
 }
 
@@ -585,12 +598,11 @@ struct SharedFromThisHelper;
 template <typename T>
 class enable_shared_from_this {
     using RefHolder = detail::ObjectPoolRefHolder;
-    T* ptr_;
-    RefHolder* holder_{};
 
-    void init(T* ptr, RefHolder* holder) {
-        ptr_ = ptr;
-        holder_ = holder;
+    WeakPtr<T> ptr_;
+
+    void init(WeakPtr<T>&& ptr) {
+        ptr_ = std::move(ptr);
     }
 
     template <typename>
@@ -605,7 +617,7 @@ public:
     enable_shared_from_this() {}
 
     SharedPtr<T> shared_from_this() {
-        return detail::make_shared_ptr_from(ptr_, holder_);
+        return ptr_.lock();
     }
 };
 
@@ -615,7 +627,8 @@ namespace detail {
 template <typename T>
 struct SharedFromThisHelper<T, true> {
     static void initialize(T* obj, ObjectPoolRefHolder* holder) {
-        static_cast<enable_shared_from_this<T>*>(obj)->init(obj, holder);
+        holder->ref_weak();
+        static_cast<enable_shared_from_this<T>*>(obj)->init(WeakPtr<T>(obj, holder));
     }
 };
 
@@ -767,7 +780,7 @@ template <typename T>
 class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<HeavyObjectPool<T>> {
 
     class Descriptor: public detail::ObjectPoolRefHolder {
-        alignas (T) std::byte object_storage_[sizeof(T)];
+        T object_;
         Descriptor* next_;
         boost::local_shared_ptr<HeavyObjectPool> pool_;
 
@@ -776,13 +789,13 @@ class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<He
 
     public:
         Descriptor(boost::local_shared_ptr<HeavyObjectPool> pool, T&& value):
+            object_(std::move(value)),
             next_(), pool_(std::move(pool))
-        {
-            new (object_storage_) T(std::move(value));
+        {            
         }
 
         T* ptr() noexcept {
-            return std::launder(reinterpret_cast<T*>(object_storage_));
+            return &object_;
         }
 
     protected:
@@ -792,7 +805,7 @@ class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<He
         }
 
         virtual void destroy() noexcept {
-            ptr()->~T();
+            detail::HeavyObjectResetHelper<T>::process(this->ptr());
         }
     };
 
@@ -849,8 +862,7 @@ public:
 
 private:
     void release(Descriptor* entry) noexcept
-    {
-        detail::HeavyObjectResetHelper<T>::process(entry->ptr());
+    {        
         entry->next_ = head_;
         head_ = entry;
     }

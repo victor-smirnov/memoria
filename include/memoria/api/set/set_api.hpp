@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2017-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 #include <memoria/api/collection/collection_api.hpp>
 
 #include <memoria/api/set/set_api_factory.hpp>
-#include <memoria/api/set/set_scanner.hpp>
 #include <memoria/api/set/set_producer.hpp>
 
 #include <memoria/core/datatypes/buffer/buffer.hpp>
@@ -29,17 +28,6 @@
 
 namespace memoria {
 
-template <typename Key, typename Profile>
-struct SetIterator: BTSSIterator<Profile> {
-
-    virtual ~SetIterator() noexcept = default;
-
-    virtual Datum<Key> key() const = 0;
-    virtual bool is_end() const = 0;
-    virtual bool next() = 0;
-
-};
-    
 template <typename Key, typename Profile> 
 struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
 
@@ -49,76 +37,66 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
     using Producer      = SetProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
-    using IteratorT     = CtrSharedPtr<SetIterator<Key, Profile>>;
     using BufferT       = DataTypeBuffer<Key>;
     using DataTypeT     = Key;
     using CtrSizeT      = ApiProfileCtrSizeT<Profile>;
 
+    using ChunkIteratorPtr = IterSharedPtr<CollectionChunk<Key, Profile>>;
+
 
     virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const = 0;
-    virtual void insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) = 0;
+    virtual ChunkIteratorPtr insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) = 0;
 
-    virtual void insert(CtrSizeT at, const BufferT& buffer) {
+    virtual ChunkIteratorPtr insert(CtrSizeT at, const BufferT& buffer) {
         return insert(at, buffer, 0, buffer.size());
     }
 
-    virtual CtrSizeT remove(CtrSizeT from, CtrSizeT to) = 0;
-    virtual CtrSizeT remove_from(CtrSizeT from) = 0;
-    virtual CtrSizeT remove_up_to(CtrSizeT pos) = 0;
-
+    virtual void remove(CtrSizeT from, CtrSizeT to) = 0;
+    virtual void remove_from(CtrSizeT from) = 0;
+    virtual void remove_up_to(CtrSizeT pos) = 0;
 
     virtual ApiProfileCtrSizeT<Profile> size() const = 0;
 
-    virtual IterSharedPtr<SetIterator<Key, Profile>> find(KeyView key) const = 0;
+    virtual ChunkIteratorPtr find(KeyView key) const = 0;
 
     virtual bool contains(KeyView key)  = 0;
     virtual bool remove(KeyView key)    = 0;
-    virtual bool insert(KeyView key)    = 0;
+    virtual bool upsert(KeyView key)    = 0;
 
 
-    void append(ProducerFn producer_fn)  {
+    ChunkIteratorPtr append(ProducerFn producer_fn)  {
         Producer producer(producer_fn);
         return append(producer);
     }
 
-    virtual void append(io::IOVectorProducer& producer) = 0;
+    virtual ChunkIteratorPtr append(io::IOVectorProducer& producer) = 0;
 
-    void prepend(ProducerFn producer_fn) {
+    ChunkIteratorPtr prepend(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return prepend(producer);
     }
 
-    virtual void prepend(io::IOVectorProducer& producer) = 0;
+    virtual ChunkIteratorPtr prepend(io::IOVectorProducer& producer) = 0;
 
 
-    void insert(KeyView before, ProducerFn producer_fn) {
+    ChunkIteratorPtr insert(KeyView before, ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return insert(before, producer);
     }
 
-    virtual void insert(KeyView before, io::IOVectorProducer& producer) = 0;
-
-    virtual IterSharedPtr<SetIterator<Key, Profile>> iterator() const = 0;
-
-    template <typename Fn>
-    SetScanner<ApiTypes, Profile> scanner(Fn&& iterator_producer) const {
-        return SetScanner<ApiTypes, Profile>(iterator_producer(this));
-    }
-
-    SetScanner<ApiTypes, Profile> scanner() const {
-        return SetScanner<ApiTypes, Profile>(iterator());
-    }
+    virtual ChunkIteratorPtr insert(KeyView before, io::IOVectorProducer& producer) = 0;
 
     template <typename Fn>
     void for_each(Fn&& fn)
     {
-        auto ss = scanner();
-        while (!ss.is_end()) {
-            for (auto key_view: ss.keys()) {
+        auto ss = this->first_entry();
+        while (!is_after_end(ss))
+        {
+            for (auto key_view: ss->keys()) {
                 fn(key_view);
             }
 
-            ss.next_leaf();
+            ss = ss->next_chunk();
         }
     }
 

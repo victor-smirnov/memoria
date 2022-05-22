@@ -22,8 +22,7 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <memoria/prototypes/bt/shuttles/bt_find_shuttle.hpp>
-#include <memoria/prototypes/bt/shuttles/bt_skip_shuttle.hpp>
+#include <memoria/containers/collection/collection_shuttles.hpp>
 
 #include <vector>
 
@@ -59,7 +58,7 @@ protected:
     using BufferT   = DataTypeBuffer<Key>;
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
-    struct CollectionEntryTypes: Types {
+    struct CollectionChunkTypes: Types {
         using CollectionKeyType = Key;
         using ShuttleTypes = typename Base::ShuttleTypes;
     };
@@ -67,10 +66,10 @@ protected:
 
 public:
 
-    using CollectionEntryT = CollectionEntry<Key, ApiProfile<Profile>>;
-    using EntrySharedPtr = IterSharedPtr<CollectionEntryT>;
+    using CollectionChunkT = CollectionChunk<Key, ApiProfile<Profile>>;
+    using ChunkSharedPtr = IterSharedPtr<CollectionChunkT>;
 
-    using CollectionEntryImplT = CollectionEntryImpl<CollectionEntryTypes>;
+    using CollectionChunkImplT = CollectionChunkImpl<CollectionChunkTypes>;
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
@@ -80,12 +79,18 @@ public:
     using typename Base::LeafNodeExtData;
     using typename Base::ContainerTypeName;
 
-    virtual EntrySharedPtr seek_entry(CtrSizeT num) const
+    virtual ChunkSharedPtr seek_entry(CtrSizeT num) const
+    {
+        auto& self = this->self();
+        return self.ctr_seek_entry(num);
+    }
+
+    IterSharedPtr<CollectionChunkImplT> ctr_seek_entry(CtrSizeT num) const
     {
         auto& self = this->self();
         return self.ctr_descend(
-                    TypeTag<CollectionEntryImplT>{},
-                    TypeTag<bt::SkipForwardShuttle<ShuttleTypes, 0, CollectionEntryImplT>>{},
+                    TypeTag<CollectionChunkImplT>{},
+                    TypeTag<bt::SkipForwardShuttle<ShuttleTypes, 0, CollectionChunkImplT>>{},
                     num
         );
     }

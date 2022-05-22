@@ -21,6 +21,12 @@
 
 namespace memoria::bt {
 
+template <typename Types, size_t Stream, typename StateTypes>
+class SkipForwardShuttle;
+
+template <typename Types, size_t Stream, typename StateTypes>
+class SkipBackwardShuttle;
+
 template <typename Types, size_t Stream>
 class SkipForwardShuttleBase: public ForwardShuttleBase<Types> {
     using Base = ForwardShuttleBase<Types>;
@@ -99,50 +105,11 @@ public:
             return ShuttleOpResult::not_found();
         }
     }
-
-
 };
 
-template <typename Types, size_t Stream, typename StateT>
-class SkipForwardShuttle: public SkipForwardShuttleBase<Types, Stream> {
-    using Base = SkipForwardShuttleBase<Types, Stream>;
-protected:
-
-    using typename Base::CtrSizeT;
-    using typename Base::IteratorState;
-    using typename Base::LeafPath;
-    using typename Base::LeafNodeTypeSO;
-
-    using Base::leaf_start_;
-    using Base::last_leaf_pos_;
-    using Base::last_leaf_size_;
-public:
-    SkipForwardShuttle(CtrSizeT target): Base(target) {}
-
-    virtual void start(const IteratorState& state)
-    {
-        const StateT& iter_state = *static_cast<const StateT*>(&state);        
-        leaf_start_ = iter_state.entry_offset_in_chunk();
-    }
 
 
-    virtual void finish(IteratorState& state)
-    {
-        StateT& iter_state = *static_cast<StateT*>(&state);
-        iter_state.set_position(last_leaf_pos_, last_leaf_size_);
-    }
 
-    virtual ShuttleEligibility treeNode(const LeafNodeTypeSO& node, const IteratorState& state) const
-    {
-        const StateT& iter_state = *static_cast<const StateT*>(&state);
-        auto tree = node.template substream<LeafPath>();
-
-        auto pos = iter_state.entry_offset_in_chunk();
-        auto size = tree.size();
-
-        return pos < size ? ShuttleEligibility::YES : ShuttleEligibility::NO;
-    }
-};
 
 
 
@@ -249,45 +216,7 @@ public:
 };
 
 
-template <typename Types, size_t Stream, typename StateT>
-class SkipBackwardShuttle: public SkipBackwardShuttleBase<Types, Stream> {
-    using Base = SkipBackwardShuttleBase<Types, Stream>;
-protected:
 
-    using typename Base::CtrSizeT;
-    using typename Base::IteratorState;
-    using typename Base::LeafPath;
-    using typename Base::LeafNodeTypeSO;
-
-    using Base::leaf_start_;
-    using Base::last_leaf_pos_;
-    using Base::last_leaf_size_;
-    using Base::before_start_;
-public:
-    SkipBackwardShuttle(CtrSizeT target): Base(target) {}
-
-    virtual void start(const IteratorState& state)
-    {
-        const StateT& iter_state = *static_cast<const StateT*>(&state);
-        leaf_start_ = iter_state.entry_offset_in_chunk();
-        before_start_ = iter_state.is_before_start();
-    }
-
-
-    virtual void finish(IteratorState& state)
-    {
-        StateT& iter_state = *static_cast<StateT*>(&state);
-        iter_state.set_position(last_leaf_pos_, last_leaf_size_, before_start_);
-    }
-
-    virtual ShuttleEligibility treeNode(const LeafNodeTypeSO& node, const IteratorState& state) const
-    {
-        const StateT& iter_state = *static_cast<const StateT*>(&state);
-
-        auto before_start = iter_state.is_before_start();
-        return !before_start ? ShuttleEligibility::YES : ShuttleEligibility::NO;
-    }
-};
 
 
 template <typename Types, size_t Stream>

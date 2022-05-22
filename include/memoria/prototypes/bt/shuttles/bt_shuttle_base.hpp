@@ -22,6 +22,10 @@
 
 namespace memoria::bt {
 
+template <template <typename> class ShuttleT>
+struct ShuttleTag {};
+
+
 class ShuttleOpResult {
 
     // Position is only valid for branch nodes,
@@ -68,7 +72,7 @@ public:
     }
 
     static ShuttleOpResult non_empty(size_t position, bool found) {
-        return ShuttleOpResult(position, found, true);
+        return ShuttleOpResult(position, found, false);
     }
 };
 

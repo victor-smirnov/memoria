@@ -60,7 +60,7 @@ struct SetBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
     using Key = Key_;
 
-    using IteratorInterface = SetIterator<Key_, ApiProfile<Profile>>;
+    using IteratorInterface = EmptyType;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,

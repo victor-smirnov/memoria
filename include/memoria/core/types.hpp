@@ -123,11 +123,9 @@ class CtrWrapper    {};
 template <typename Key, typename Value, PackedDataTypeSize SizeType>
 struct Table        {};
 
-template <size_t BitsPerSymbol, bool Dense = true>
+template <size_t BitsPerSymbol>
 struct Sequence {};
 
-template <bool Dense = true>
-using BitVector = Sequence<1, Dense>;
 
 template <typename ChildType = void>
 class CoreApiProfileT {};
@@ -200,22 +198,6 @@ struct TypeP {
 
 class VLSelector {};
 
-
-enum class SplitStatus {NONE, LEFT, RIGHT};
-
-class SplitResult {
-    SplitStatus type_;
-    int32_t stream_idx_;
-public:
-    SplitResult(SplitStatus type, int32_t stream_idx):
-        type_(type), stream_idx_(stream_idx)
-    {}
-
-    SplitResult(SplitStatus type): type_(type), stream_idx_() {}
-
-    SplitStatus type() const {return type_;}
-    int32_t stream_idx() const {return stream_idx_;}
-};
 
 
 extern int64_t DebugCounter;
@@ -348,6 +330,12 @@ enum class SeqOpType: size_t {
 // to a template method, and don't want to pepend keyword
 // 'template' at the call site.
 template <typename T> struct TypeTag{};
+
+
+template <typename T>
+T div_2(T value) {
+    return value / 2;
+}
 
 }
 

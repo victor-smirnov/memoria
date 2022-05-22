@@ -26,8 +26,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveBatchName)
     using typename Base::TreeNodePtr;
     using typename Base::Position;
     using typename Base::TreePathT;
-
-
+    using typename Base::CtrSizeT;
 
 
     void ctr_remove_entries(
@@ -37,10 +36,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveBatchName)
             Position&  to_idx,
             bool merge = true
     );
-
-
-
-
 
     void ctr_remove_nodes_from_start(
             TreePathT& stop,

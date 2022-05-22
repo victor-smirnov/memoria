@@ -37,6 +37,11 @@
 #include <memoria/prototypes/bt/walkers/bt_rank_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_count_walkers.hpp>
 
+#include <memoria/prototypes/bt/shuttles/bt_find_shuttle.hpp>
+#include <memoria/prototypes/bt/shuttles/bt_skip_shuttle.hpp>
+#include <memoria/prototypes/bt/shuttles/bt_select_shuttle.hpp>
+#include <memoria/prototypes/bt/shuttles/bt_rank_shuttle.hpp>
+
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/prototypes/bt/nodes/leaf_node.hpp>
 #include <memoria/prototypes/bt/nodes/node_dispatcher.hpp>

@@ -30,7 +30,7 @@ struct PythonAPIBinder<ICtrApi<Set<Key>, Profile>> {
     using CtrType               = ICtrApi<Set<Key>, Profile>;
     using CtrReferencableType   = CtrReferenceable<Profile>;
     using BTSSIterType          = BTSSIterator<Profile>;
-    using IterType              = SetIterator<Key, Profile>;
+
     using KeyView               = DTTViewType<Key>;
     using CtrSizeT              = typename CtrType::CtrSizeT;
     using Buffer                = DataTypeBuffer<Key>;
@@ -42,11 +42,11 @@ struct PythonAPIBinder<ICtrApi<Set<Key>, Profile>> {
     static void make_bindings(pybind11::module_& m) {
         namespace py = pybind11;
 
-        py::class_<IterType, BTSSIterType, CtrSharedPtr<IterType>>(m, get_datatype_script_name<Key>("SetIterator").c_str())
-                .def("is_end", &IterType::is_end)
-                .def("next", &IterType::next)
-                .def("key", &IterType::key)
-                ;
+//        py::class_<IterType, BTSSIterType, CtrSharedPtr<IterType>>(m, get_datatype_script_name<Key>("SetIterator").c_str())
+//                .def("is_end", &IterType::is_end)
+//                .def("next", &IterType::next)
+//                .def("key", &IterType::key)
+//                ;
 
         py::class_<CtrType, CtrReferencableType, CtrSharedPtr<CtrType>> set_cls(m, get_datatype_script_name<Key>("Set").c_str());
                 set_cls.def("find", &CtrType::find);

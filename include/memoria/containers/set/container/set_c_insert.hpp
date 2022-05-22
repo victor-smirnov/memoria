@@ -22,6 +22,8 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/containers/collection/collection_shuttles.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -47,13 +49,8 @@ protected:
 
     using CtrSizeT = typename Types::CtrSizeT;
 
+
 public:
-
-
-    IteratorPtr ctr_set_find(const KeyView& k) const
-    {
-        return self().template ctr_find_max_ge<IntList<0, 1>>(0, k);
-    }
 
 
 

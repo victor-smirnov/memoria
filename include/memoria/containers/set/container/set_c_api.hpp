@@ -27,8 +27,9 @@
 
 
 #include <memoria/api/set/set_producer.hpp>
-#include <memoria/api/set/set_scanner.hpp>
 #include <memoria/api/set/set_api.hpp>
+
+#include <memoria/containers/collection/collection_entry_impl.hpp>
 
 #include <vector>
 
@@ -40,10 +41,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(set::CtrApiName)
 
 public:
     using Types = typename Base::Types;
-    using typename Base::IteratorPtr;
-
-
-
 
     using typename Base::TreeNodeConstPtr;
     using typename Base::TreeNodePtr;
@@ -52,6 +49,8 @@ public:
     using typename Base::ShuttleTypes;
     using typename Base::TreePathT;
     using typename Base::NodeChain;
+
+
 protected:
 
     using Key = typename Types::Key;
@@ -65,10 +64,27 @@ protected:
     using BufferT   = DataTypeBuffer<Key>;
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
+
+
+
 public:
 
-    using CollectionEntryT = CollectionEntry<Key, ApiProfile<Profile>>;
-    using EntrySharedPtr = IterSharedPtr<CollectionEntryT>;
+    using CollectionChunkT = CollectionChunk<Key, ApiProfile<Profile>>;
+    using ChunkSharedPtr = IterSharedPtr<CollectionChunkT>;
+
+    struct CollectionChunkTypes: Types {
+        using CollectionKeyType = Key;
+        using ShuttleTypes = typename Base::ShuttleTypes;
+    };
+
+
+    using CollectionChunkImplT = CollectionChunkImpl<CollectionChunkTypes>;
+
+    using EntriesPath = IntList<0, 1>;
+
+    template <typename ShuttleTypes>
+    using FindShuttle = bt::FindForwardShuttle<ShuttleTypes, EntriesPath, CollectionChunkImplT>;
+
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
@@ -86,37 +102,42 @@ public:
 
     }
 
-    IterSharedPtr<SetIterator<Key, ApiProfileT>> find(KeyView key) const
+    IterSharedPtr<CollectionChunkImplT> ctr_set_find(const KeyView& k) const
     {
-        //return memoria_static_pointer_cast<SetIterator<Key, ApiProfileT>>(self().ctr_set_find(key));
+        return self().ctr_descend(
+            TypeTag<CollectionChunkImplT>{},
+            bt::ShuttleTag<FindShuttle>{},
+            k, 0, SearchType::GE
+        );
+    }
+
+
+    ChunkSharedPtr find(KeyView key) const
+    {
         return self().ctr_set_find(key);
     }
 
 
 
-    IterSharedPtr<SetIterator<Key, ApiProfileT>> iterator() const
-    {
-        auto iter = self().ctr_begin();
-        return iter;//memoria_static_pointer_cast<SetIterator<Key, ApiProfileT>>(std::move(iter));
-    }
-
-    void append(io::IOVectorProducer& producer)
+    ChunkSharedPtr append(io::IOVectorProducer& producer)
     {
         auto& self = this->self();
 
-        auto iter = self.ctr_end();
-        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        auto iter = self.ctr_seek_entry(self.size());
+
+        auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        return memoria_static_pointer_cast<CollectionChunkImplT>(jj);
     }
 
-    virtual void prepend(io::IOVectorProducer& producer)
+    ChunkSharedPtr prepend(io::IOVectorProducer& producer)
     {
         auto& self = this->self();
-
-        auto iter = self.ctr_begin();
-        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        auto iter = self.ctr_seek_entry(0);
+        auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        return memoria_static_pointer_cast<CollectionChunkImplT>(jj);
     }
 
-    virtual void insert(KeyView before, io::IOVectorProducer& producer)
+    ChunkSharedPtr insert(KeyView before, io::IOVectorProducer& producer)
     {
         auto& self = this->self();
 
@@ -127,23 +148,27 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("Requested key is found. Can't insert enties this way.").do_throw();
         }
         else {
-            iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+            auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+            return memoria_static_pointer_cast<CollectionChunkImplT>(jj);
         }
     }
 
     /**
      * Returns true if set is already containing the element
      */
-    bool insert(KeyView k)
+    bool upsert(KeyView k)
     {
-        IteratorPtr iter = self().ctr_set_find(k);
+        auto iter = self().ctr_set_find(k);
 
-        if (iter->is_found(k))
-        {
+        if (iter->is_found(k)) {
             return true;
         }
         else {
-            iter.get()->insert(k);
+            self().ctr_insert_entry(
+                std::move(iter),
+                set::KeyEntry<KeyView, CtrSizeT>(k)
+            );
+
             return false;
         }
     }
@@ -153,11 +178,14 @@ public:
      */
     bool remove(KeyView key)
     {
-        auto iter = self().ctr_set_find(key);
+        auto& self = this->self();
+        auto iter = self.ctr_set_find(key);
 
-        if ((!iter->iter_is_end()) && iter->key() == key)
+        if (iter->is_found(key))
         {
-            iter->remove(false);
+            auto idx = iter->iter_leaf_position();
+            self.ctr_remove_entry(iter->path(), idx);
+
             return true;
         }
 
@@ -173,64 +201,52 @@ public:
         return iter->is_found(k);
     }
 
-    CtrSizeT remove(CtrSizeT from, CtrSizeT to)
+    void remove(CtrSizeT from, CtrSizeT to)
     {
-        auto& self = this->self();
-
-        auto ii_from = self.ctr_seek(from);
-
-        return ii_from->remove_from(to - from);
+        self().ctr_remove(from, to);
     }
 
-    CtrSizeT remove_from(CtrSizeT from)
-    {
-        auto size = self().size();
-        return remove(from, size);
+    void remove_from(CtrSizeT from) {
+        self().ctr_remove_from(from);
     }
 
-    CtrSizeT remove_up_to(CtrSizeT pos)
-    {
-        auto& self = this->self();
-
-        auto ii_from = self.ctr_begin();
-
-        return ii_from->remove_from(pos);
+    void remove_up_to(CtrSizeT pos) {
+        self().ctr_remove_up_to(pos);
     }
 
     virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const
     {
         auto& self = this->self();
 
-        auto ii = self.ctr_seek(start);
+        auto ii = self.seek_entry(start);
 
         CtrSizeT cnt{};
-        SetScanner<CtrApiTypes, ApiProfileT> scanner(ii);
 
         size_t local_cnt;
-        while (cnt < length && !scanner.is_end())
+        while (cnt < length && !is_after_end(ii))
         {
             local_cnt = 0;
             CtrSizeT remainder   = length - cnt;
-            CtrSizeT values_size = static_cast<CtrSizeT>(scanner.keys().size());
+            CtrSizeT values_size = static_cast<CtrSizeT>(ii->keys().size());
 
             if (values_size <= remainder)
             {
-                buffer.append(scanner.keys());
+                buffer.append(ii->keys());
                 cnt += values_size;
             }
             else {
-                buffer.append(scanner.keys().first(remainder));
+                buffer.append(ii->keys().first(remainder));
                 cnt += remainder;
             }
 
             if (cnt < length)
             {
-                scanner.next_leaf();
+                ii = ii->next_chunk();
             }
         }
     }
 
-    virtual void insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size)
+    ChunkSharedPtr insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size)
     {
         auto& self = this->self();
 
@@ -250,8 +266,9 @@ public:
             return limit != batch_size;
         });
 
-        auto ii = self.ctr_seek(at);
-        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
+        auto ii = self.ctr_seek_entry(at);
+        auto jj = self.ctr_insert_iovector2(std::move(ii), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        return memoria_static_pointer_cast<CollectionChunkImplT>(jj);
     }
 
 

@@ -17,6 +17,7 @@
 
 #include <memoria/api/common/ctr_api_btss.hpp>
 #include <memoria/api/common/iobuffer_adatpters.hpp>
+#include <memoria/api/collection/collection_api.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/datatypes/encoding_traits.hpp>
@@ -35,6 +36,28 @@
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 
 namespace memoria {
+
+template <typename Key, typename Value, typename Profile>
+struct MapChunk: CollectionChunk<Key, Profile> {
+    using ValueView = DTTViewType<Value>;
+
+    virtual const ValueView& current_value() const = 0;
+    virtual const Span<const ValueView>& values() const = 0;
+
+};
+
+
+template <typename Key, typename Value, typename Profile>
+bool is_after_end(const IterSharedPtr<MapChunk<Key, Value, Profile>>& ptr) {
+    return !ptr || ptr->is_after_end();
+}
+
+template <typename Key, typename Value, typename Profile>
+bool is_before_start(const IterSharedPtr<MapChunk<Key, Value, Profile>>& ptr) {
+    return !ptr || ptr->is_before_start();
+}
+
+
 
 template <typename Key, typename Value, typename Profile>
 struct MapIterator: BTSSIterator<Profile> {

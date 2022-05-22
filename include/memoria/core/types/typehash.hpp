@@ -83,8 +83,8 @@ struct TypeHash<T[Size]> {
 
 template <> struct TypeHash<Root>: UInt64Value<1400> {};
 
-template <int32_t BitsPerSymbol, bool Dense>
-struct TypeHash<Sequence<BitsPerSymbol, Dense>>: UInt64Value<HashHelper<1500, BitsPerSymbol, Dense>> {};
+template <int32_t BitsPerSymbol>
+struct TypeHash<Sequence<BitsPerSymbol>>: UInt64Value<HashHelper<1500, BitsPerSymbol>> {};
 
 
 template <typename CtrName>
