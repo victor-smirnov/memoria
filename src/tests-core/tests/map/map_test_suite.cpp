@@ -14,16 +14,15 @@
 // limitations under the License.
 
 
-#include "map_create_test.hpp"
-#include "map_remove_test.hpp"
+#include "map_test.hpp"
 
 namespace memoria {
 namespace tests {
 
 namespace {
 
-auto Suite1 = register_class_suite<MapRemoveTest<Map<UUID, int64_t>>>("MapM.Remove");
-auto Suite2 = register_class_suite<MapCreateTest<Map<UUID, int64_t>>>("MapM.Create");
+auto Suite1 = register_class_suite<MapTest<UUID, UUID, UUID, UUID>>("Map.UUID");
+auto Suite2 = register_class_suite<MapTest<Varchar, Varchar, U8String, U8String>>("Map.Varchar");
 
 }
 

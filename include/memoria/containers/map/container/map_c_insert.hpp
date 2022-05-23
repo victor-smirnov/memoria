@@ -44,11 +44,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrInsertName)
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
 
-//    using CtrSizeT = typename Types::CtrSizeT;
-
-//    CtrSizeT size() const {
-//      return self().sizes()[0];
-//    }
 
     template <typename T>
     IteratorPtr find(T&& k) const
@@ -71,21 +66,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrInsertName)
 
         return iter;
     }
-
-//    template <typename T>
-//    bool remove(T&& k)
-//    {
-//        auto iter = self().ctr_map_find(k);
-
-//        if (iter->key() == k)
-//        {
-//            iter->remove();
-//            return true;
-//        }
-//        else {
-//            return false;
-//        }
-//    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

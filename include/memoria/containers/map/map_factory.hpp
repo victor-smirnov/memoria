@@ -24,7 +24,7 @@
 #include <memoria/containers/map/iterator/mapm_i_nav.hpp>
 #include <memoria/containers/map/map_names.hpp>
 #include <memoria/containers/map/map_tools.hpp>
-#include <memoria/containers/map/map_api_impl.hpp>
+
 
 #include <memoria/prototypes/bt_ss/btss_factory.hpp>
 

@@ -20,7 +20,7 @@
 
 #include <memoria/containers/map/map_names.hpp>
 #include <memoria/containers/map/map_tools.hpp>
-#include <memoria/containers/map/map_api_impl.hpp>
+#include <memoria/containers/map/map_chunk_impl.hpp>
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
@@ -42,6 +42,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
     using typename Base::BranchNodeEntry;
     using typename Base::Profile;
     using typename Base::ApiProfileT;
+    using typename Base::CtrSizeT;
+    using typename Base::ShuttleTypes;
 
     using Key   = typename Types::Key;
     using Value = typename Types::Value;
@@ -49,9 +51,26 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ValueView = typename DataTypeTraits<Value>::ViewType;
 
+    using MapChunkT = MapChunk<Key, Value, ApiProfile<Profile>>;
+    using ChunkSharedPtr = IterSharedPtr<MapChunkT>;
+
+    struct MapChunkTypes: Types {
+      using KeyType = Key;
+      using ValueType = Value;
+      using ShuttleTypes = typename Base::ShuttleTypes;
+    };
+
+    using ChunkImplT = MapChunkImpl<MapChunkTypes>;
+
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
+
+    using KeysPath = IntList<0, 1>;
+    using ValuesPath = IntList<0, 2>;
+
+    template <typename ShuttleTypes>
+    using FindShuttle = bt::FindForwardShuttle<ShuttleTypes, KeysPath, ChunkImplT>;
 
     using typename Base::BranchNodeExtData;
     using typename Base::LeafNodeExtData;
@@ -65,49 +84,93 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
     }
 
-
-
-    void assign_key(KeyView key, ValueView value)
-    {
-        self().assign(key, value);
-    }
-
-    void remove_key(KeyView key)
-    {
-        self().remove(key);
-    }
-
-    IterSharedPtr<MapIterator<Key,Value, ApiProfileT>> iterator() const
-    {
-        auto iter = self().ctr_begin();
-        //return memoria_static_pointer_cast<MapIterator<Key,Value, ApiProfileT>>(std::move(iter));
-        return iter;
-    }
-
-    virtual IterSharedPtr<MapIterator<Key, Value, ApiProfileT>> find(KeyView key) const
-    {
-        auto iter = self().ctr_map_find(key);
-        //return memoria_static_pointer_cast<MapIterator<Key, Value, ApiProfileT>>(std::move(iter));
-        return iter;
-    }
-
-    void append(io::IOVectorProducer& producer)
+    virtual ChunkSharedPtr seek_entry(CtrSizeT num) const
     {
         auto& self = this->self();
-        auto iter = self.ctr_end();
-
-        iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        return self.ctr_seek_entry(num);
     }
 
-    virtual void prepend(io::IOVectorProducer& producer)
+    IterSharedPtr<ChunkImplT> ctr_seek_entry(CtrSizeT num) const
+    {
+        auto& self = this->self();
+        return self.ctr_descend(
+                    TypeTag<ChunkImplT>{},
+                    TypeTag<bt::SkipForwardShuttle<ShuttleTypes, 0, ChunkImplT>>{},
+                    num
+        );
+    }
+
+    IterSharedPtr<ChunkImplT> ctr_map_find(const KeyView& k) const
+    {
+        return self().ctr_descend(
+            TypeTag<ChunkImplT>{},
+            bt::ShuttleTag<FindShuttle>{},
+            k, 0, SearchType::GE
+        );
+    }
+
+
+    virtual IterSharedPtr<MapChunk<Key, Value, ApiProfileT>> find(KeyView key) const
+    {
+        return self().ctr_map_find(key);
+    }
+
+
+
+    bool upsert_key(KeyView key, ValueView value)
+    {
+      auto& self = this->self();
+      auto iter = self.ctr_map_find(key);
+
+      if (iter->is_found(key))
+      {
+        //iter->assign(value);
+        self.ctr_update_map_entry(std::move(iter), value);
+        return true;
+      }
+      else {
+        //iter->insert(key, value);
+        self.ctr_insert_map_entry(std::move(iter), key, value);
+        return false;
+      }
+    }
+
+
+
+    bool remove_key(KeyView key)
+    {
+      auto& self = this->self();
+      auto iter = self.ctr_map_find(key);
+
+      if (iter->is_found(key))
+      {
+        self.ctr_remove_map_entry(std::move(iter));
+        return true;
+      }
+
+      return false;
+    }
+
+
+    ChunkSharedPtr append(io::IOVectorProducer& producer)
     {
         auto& self = this->self();
 
-        auto iter = self.ctr_begin();
-        iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        auto iter = self.ctr_seek_entry(self.size());
+
+        auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        return memoria_static_pointer_cast<ChunkImplT>(jj);
     }
 
-    virtual void insert(KeyView before, io::IOVectorProducer& producer)
+    ChunkSharedPtr prepend(io::IOVectorProducer& producer)
+    {
+        auto& self = this->self();
+        auto iter = self.ctr_seek_entry(0);
+        auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        return memoria_static_pointer_cast<ChunkImplT>(jj);
+    }
+
+    ChunkSharedPtr insert(KeyView before, io::IOVectorProducer& producer)
     {
         auto& self = this->self();
 
@@ -118,9 +181,15 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
             MEMORIA_MAKE_GENERIC_ERROR("Requested key is found. Can't insert enties this way.").do_throw();
         }
         else {
-            iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+            auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+            return memoria_static_pointer_cast<ChunkImplT>(jj);
         }
     }
+
+
+
+
+
 
     Optional<Datum<Value>> remove_and_return(KeyView key)
     {
@@ -130,9 +199,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
         if (iter->is_found(key))
         {
-            auto val = iter->value();
-            iter->remove();
-            return std::move(val);
+            auto val = iter->current_value();
+            self.ctr_remove_map_entry(std::move(iter));
+            return Datum<Value>(val);
         }
         else {
             return Optional<Datum<Value>>{};
@@ -141,20 +210,22 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
     Optional<Datum<Value>> replace_and_return(KeyView key, ValueView value)
     {
-        auto& self = this->self();
+      auto& self = this->self();
 
-        auto iter = self.ctr_map_find(key);
+      auto iter = self.ctr_map_find(key);
 
-        if (iter->is_found(key))
-        {
-            auto prev = iter->value();
-            iter->assign(value);
-            return std::move(prev);
-        }
-        else {
-            iter->insert(key, value);
-            return Optional<Datum<Value>>{};
-        }
+      if (iter->is_found(key))
+      {
+        auto prev = iter->current_value();
+        //iter->assign(value);
+        self.ctr_update_map_entry(std::move(iter), value);
+        return Datum<Value>(prev);
+      }
+      else {
+        //iter->insert(key, value);
+        self.ctr_insert_map_entry(std::move(iter), key, value);
+        return Optional<Datum<Value>>{};
+      }
     }
 
 
@@ -163,27 +234,64 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
             std::function<Optional<Datum<Value>> (Optional<Datum<Value>>)> value_fn
     )
     {
-        using OptionalValue = Optional<Datum<Value>>;
-        auto& self = this->self();
+      using OptionalValue = Optional<Datum<Value>>;
+      auto& self = this->self();
 
-        auto iter = self.ctr_map_find(key);
-        if (iter->is_found(key))
-        {
-            auto new_value = value_fn(iter->value());
-            if (new_value) {
-                iter->assign(new_value.get());
-            }
-            else {
-                iter->remove();
-            }
+      auto iter = self.ctr_map_find(key);
+      if (iter->is_found(key))
+      {
+        auto new_value = value_fn(Datum<Value>(iter->current_value()));
+        if (new_value) {
+          //iter->assign(new_value.get());
+          self.ctr_update_map_entry(std::move(iter), new_value.get());
         }
         else {
-            auto value = value_fn(OptionalValue{});
-            if (value) {
-                iter->insert(key, value.get());
-            }
+          self.ctr_remove_map_entry(std::move(iter));
         }
+      }
+      else {
+        auto value = value_fn(OptionalValue{});
+        if (value) {
+          //iter->insert(key, value.get());
+          self.ctr_insert_map_entry(std::move(iter), key, value.get());
+        }
+      }
     }
+
+    void remove(CtrSizeT from, CtrSizeT to)
+    {
+        self().ctr_remove(from, to);
+    }
+
+    void remove_from(CtrSizeT from) {
+        self().ctr_remove_from(from);
+    }
+
+    void remove_up_to(CtrSizeT pos) {
+        self().ctr_remove_up_to(pos);
+    }
+
+    template <typename IterT>
+    void ctr_remove_map_entry(IterT&& iter)
+    {
+      auto idx = iter->iter_leaf_position();
+      self().ctr_remove_entry(iter->path(), idx);
+    }
+
+    template <typename IterT>
+    void ctr_insert_map_entry(IterT&& iter, KeyView key, ValueView value) {
+      self().ctr_insert_entry(
+          std::move(iter),
+          map::KeyValueEntry<KeyView, ValueView, CtrSizeT>(key, value)
+      );
+    }
+
+    template <typename IterT>
+    void ctr_update_map_entry(IterT&& iter, ValueView value)
+    {
+      self().template ctr_update_entry2<ValuesPath>(std::move(iter), map::ValueBuffer<ValueView>(value));
+    }
+
 
 MEMORIA_V1_CONTAINER_PART_END
 

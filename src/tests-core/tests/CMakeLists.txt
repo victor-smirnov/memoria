@@ -27,6 +27,7 @@ endif()
 if(BUILD_TESTS_CONTAINERS AND BUILD_COW_PROFILE)
 #set (SRCS ${SRCS} prototype/btss/btss_test_suite.cpp)
 set (SRCS ${SRCS} set/set_test_suite.cpp)
+set (SRCS ${SRCS} map/map_test_suite.cpp)
 set (SRCS ${SRCS} multimap/multimap_test_suite.cpp)
 endif()
 

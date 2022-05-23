@@ -743,7 +743,7 @@ public:
                 meta.set_parent_snapshot_id(parent_snapshot_id_);
             }
 
-            history_ctr_->assign_key(sb->snapshot_id(), meta);
+            history_ctr_->upsert_key(sb->snapshot_id(), meta);
 
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
             store_->for_all_evicting_snapshots([&](SnapshotDescriptorT* snapshot_descriptor){

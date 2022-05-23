@@ -81,7 +81,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
 
         if (!status0)
         {
-            CtrSizeT split_pos = self.ctr_leaf_sizes(path.leaf())[0] / 2;
+            CtrSizeT split_pos = div_2(self.ctr_leaf_sizes(path.leaf())[0]);
             self.ctr_split_leaf(path, Position::create(0, split_pos));
 
             if (split_pos <= idx) {
@@ -103,6 +103,47 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
 
         return std::move(iter);
     }
+
+
+    template <typename SubstreamPath, typename Entry>
+    BlockIteratorStatePtr ctr_update_entry2(
+        BlockIteratorStatePtr&& iter,
+        const Entry& entry
+    )
+    {
+        auto& self = the_self();
+        auto& path = iter->path();
+
+        CtrSizeT idx = iter->iter_leaf_position();
+        auto status0 = self.template ctr_try_update_stream_entry<SubstreamPath>(path, idx, entry);
+
+        if (!status0)
+        {
+            CtrSizeT split_pos = div_2(self.ctr_leaf_sizes(path.leaf())[0]);
+            self.ctr_split_leaf(path, Position::create(0, split_pos));
+
+            if (split_pos <= idx) {
+                assert_success(self.ctr_get_next_node(path, 0));
+                idx -= split_pos;
+            }
+
+            iter->iter_set_leaf_position(split_pos);
+
+            auto status1 = self.template ctr_try_update_stream_entry<SubstreamPath>(path, idx, entry);
+            if (!status1){
+                MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed").do_throw();
+            }
+        }
+
+        iter->iter_reset_caches();
+
+        self.ctr_update_path(path, 0);
+
+        return std::move(iter);
+    }
+
+
+
 
 
 

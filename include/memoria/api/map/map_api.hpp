@@ -38,12 +38,70 @@
 namespace memoria {
 
 template <typename Key, typename Value, typename Profile>
-struct MapChunk: CollectionChunk<Key, Profile> {
-    using ValueView = DTTViewType<Value>;
+struct MapChunk {
 
+    virtual ~MapChunk() noexcept = default;
+
+    using ChunkPtr  = IterSharedPtr<MapChunk>;
+    using KeyView   = DTTViewType<Key>;
+    using ValueView = DTTViewType<Value>;
+    using CtrSizeT  = ApiProfileCtrSizeT<Profile>;
+
+    virtual const KeyView& current_key() const = 0;
     virtual const ValueView& current_value() const = 0;
+
+    virtual CtrSizeT entry_offset() const = 0;
+    virtual CtrSizeT collection_size() const = 0;
+
+    virtual CtrSizeT chunk_offset() const = 0;
+
+    virtual size_t chunk_size() const = 0;
+    virtual size_t entry_offset_in_chunk() const = 0;
+
+    virtual const Span<const KeyView>& keys() const = 0;
     virtual const Span<const ValueView>& values() const = 0;
 
+    virtual bool is_before_start() const = 0;
+    virtual bool is_after_end() const = 0;
+
+    virtual ChunkPtr next(CtrSizeT num = 1) const = 0;
+    virtual ChunkPtr next_chunk() const = 0;
+
+    virtual ChunkPtr prev(CtrSizeT num = 1) const = 0;
+    virtual ChunkPtr prev_chunk() const = 0;
+
+    virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
+
+    virtual void dump(std::ostream& out = std::cout) const = 0;
+
+    virtual bool is_found(const KeyView& key) const = 0;
+
+
+    template <typename Fn>
+    void for_each_remaining(Fn&& fn)
+    {
+        auto keys_span   = this->keys();
+        auto values_span = values();
+
+        for (size_t c = this->entry_offset_in_chunk(); c < this->chunk_size(); c++) {
+            fn(keys_span[c], values_span[c]);
+        }
+
+        if (!this->is_after_end()) {
+            ChunkPtr next;
+            do {
+                next = this->next_chunk();
+
+                auto keys_span = next->keys();
+                auto values_span = next->values();
+
+                for (size_t c = next->entry_offset_in_chunk(); c < next->chunk_size(); c++) {
+                    fn(keys_span[c], values_span[c]);
+                }
+            }
+            while (is_after_end(next));
+        }
+    }
 };
 
 
@@ -87,44 +145,57 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     using Producer      = MapProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
+    using CtrSizeT = ApiProfileCtrSizeT<Profile>;
+
+    using ChunkIteratorPtr = IterSharedPtr<MapChunk<Key, Value, Profile>>;
+
+    virtual void remove(CtrSizeT from, CtrSizeT to) = 0;
+    virtual void remove_from(CtrSizeT from) = 0;
+    virtual void remove_up_to(CtrSizeT pos) = 0;
+
     virtual ApiProfileCtrSizeT<Profile> size() const = 0;
-    virtual void assign_key(KeyView key, ValueView value) = 0;
-    virtual void remove_key(KeyView key) = 0;
+    virtual bool upsert_key(KeyView key, ValueView value) = 0;
+    virtual bool remove_key(KeyView key) = 0;
 
-    virtual IterSharedPtr<MapIterator<Key, Value, Profile>> find(KeyView key) const = 0;
+    virtual ChunkIteratorPtr find(KeyView key) const = 0;
 
-    void append(ProducerFn producer_fn) {
+    virtual ChunkIteratorPtr append(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return append(producer);
     }
 
-    virtual void append(io::IOVectorProducer& producer) = 0;
+    virtual ChunkIteratorPtr append(io::IOVectorProducer& producer) = 0;
 
-    void prepend(ProducerFn producer_fn) {
+    virtual ChunkIteratorPtr prepend(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return prepend(producer);
     }
 
-    virtual void prepend(io::IOVectorProducer& producer) = 0;
+    virtual ChunkIteratorPtr prepend(io::IOVectorProducer& producer) = 0;
 
-    void insert(KeyView before, ProducerFn producer_fn) {
+    virtual ChunkIteratorPtr insert(KeyView before, ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return insert(before, producer);
     }
 
-    virtual void insert(KeyView before, io::IOVectorProducer& producer) = 0;
+    virtual ChunkIteratorPtr insert(KeyView before, io::IOVectorProducer& producer) = 0;
 
-    virtual IterSharedPtr<MapIterator<Key, Value, Profile>> iterator() const = 0;
-
-    MapScanner<ApiTypes, Profile> scanner() const {
-        return MapScanner<ApiTypes, Profile>(iterator());
+    virtual ChunkIteratorPtr first_entry() const {
+        return seek_entry(0);
     }
 
-    template <typename Fn>
-    MapScanner<ApiTypes, Profile> scanner(Fn&& iterator_producer) const {
-        return MapScanner<ApiTypes, Profile>(iterator_producer(this));
-    }
+    virtual ChunkIteratorPtr seek_entry(CtrSizeT num) const = 0;
 
+    virtual ChunkIteratorPtr last_enry() const
+    {
+        CtrSizeT size = this->size();
+        if (size) {
+            return seek_entry(size - 1);
+        }
+        else {
+            return seek_entry(0);
+        }
+    }
 
     virtual Optional<Datum<Value>> remove_and_return(KeyView key) = 0;
     virtual Optional<Datum<Value>> replace_and_return(KeyView key, ValueView value) = 0;
@@ -133,6 +204,41 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
             KeyView key,
             std::function<Optional<Datum<Value>> (Optional<Datum<Value>>)> value_fn
     ) = 0;
+
+    template <typename Fn>
+    void for_each(Fn&& fn)
+    {
+        auto ss = this->first_entry();
+        while (!is_after_end(ss))
+        {
+            auto key_ii_b = ss->keys().begin();
+            auto key_ii_e = ss->keys().end();
+
+            auto value_ii_b = ss->values().begin();
+            auto value_ii_e = ss->values().end();
+
+            while (key_ii_b != key_ii_e && value_ii_b != value_ii_e)
+            {
+                fn(*key_ii_b, *value_ii_b);
+
+                ++key_ii_b;
+                ++value_ii_b;
+            }
+
+            ss = ss->next_chunk();
+        }
+    }
+
+    template <typename Fn>
+    void for_each_chunk(Fn&& fn)
+    {
+        auto ss = this->first_entry();
+        while (!is_after_end(ss))
+        {
+            fn(ss->keys(), ss->values());
+            ss = ss->next_chunk();
+        }
+    }
 
     MMA_DECLARE_ICTRAPI();
 };

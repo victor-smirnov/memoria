@@ -461,7 +461,7 @@ public:
 
             if (root_id.is_set())
             {
-                root_map_->assign(name, root_id);
+                root_map_->upsert_key(name, root_id);
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->snaphsot_Id()).do_throw();
@@ -487,7 +487,7 @@ public:
             auto root_id = txn->getRootID(name);
             if (root_id.is_set())
             {
-                root_map_->assign(name, root_id);
+                root_map_->upsert_key(name, root_id);
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->snaphsot_Id()).do_throw();
@@ -518,7 +518,7 @@ public:
             auto root_id1 = txn->getRootID(name);
 
             if (root_id1.is_set()) {
-                root_map_->assign(name, root_id1);
+                root_map_->upsert_key(name, root_id1);
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->snaphsot_Id()).do_throw();
@@ -558,7 +558,7 @@ public:
             auto root_id1 = txn->getRootID(name);
             if (root_id1.is_set())
             {
-                root_map_->assign(name, root_id1);
+                root_map_->upsert_key(name, root_id1);
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn_id).do_throw();
@@ -787,7 +787,7 @@ public:
 
             if (iter->is_found(name))
             {
-                return iter->value().view();
+                return iter->current_value();
             }            
         }
         else {

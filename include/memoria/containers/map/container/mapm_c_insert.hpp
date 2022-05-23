@@ -52,40 +52,7 @@ protected:
 
 public:
 
-    IteratorPtr ctr_map_find(const KeyView& k) const
-    {
-        return self().template ctr_find_max_ge<IntList<0, 1>>(0, k);
-    }
 
-
-    bool remove(const KeyView& k)
-    {
-        auto iter = self().ctr_map_find(k);
-
-        if (iter->is_found(k))
-        {
-            iter->remove();
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    IteratorPtr assign(const KeyView& key, const ValueView& value)
-    {
-        auto iter = self().ctr_map_find(key);
-
-        if (iter->is_found(key))
-        {
-            iter->assign(value);
-        }
-        else {
-            iter->insert(key, value);
-        }
-
-        return iter;
-    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

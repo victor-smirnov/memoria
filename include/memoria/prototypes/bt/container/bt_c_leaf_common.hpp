@@ -352,20 +352,60 @@ public:
 
 
     template <typename SubstreamsList, typename Entry>
-    bool ctr_try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
+    bool ctr_try_update_stream_entry(Iterator& iter, size_t idx, const Entry& entry)
+    {
+        return ctr_try_update_stream_entry<SubstreamsList>(iter.path(), CtrSizeT{idx}, entry);
+
+//        auto& self = this->self();
+
+//        self.ctr_cow_clone_path(iter.path(), 0);
+//        self.ctr_update_block_guard(iter.iter_leaf().as_mutable());
+
+//        auto update_state = self.template ctr_make_leaf_update_state<SubstreamsList>(iter.iter_leaf());
+//        PrepareUpdateStreamFn<SubstreamsList> fn1;
+
+//        if (Types::LeafDataLength == LeafDataLengthType::VARIABLE)
+//        {
+//            self.leaf_dispatcher().dispatch(
+//                        iter.iter_leaf().as_mutable(),
+//                        fn1,
+//                        idx,
+//                        entry,
+//                        update_state
+//            );
+//        }
+
+//        if (is_success(fn1.status)) {
+//            CommitUpdateStreamFn<SubstreamsList> fn2;
+//            self.leaf_dispatcher().dispatch(
+//                        iter.iter_leaf().as_mutable(),
+//                        fn2,
+//                        idx,
+//                        entry,
+//                        update_state
+//            );
+
+//            return true;
+//        }
+//        return false;
+    }
+
+
+    template <typename SubstreamsList, typename Entry>
+    bool ctr_try_update_stream_entry(TreePathT& path, CtrSizeT idx, const Entry& entry)
     {
         auto& self = this->self();
 
-        self.ctr_cow_clone_path(iter.path(), 0);
-        self.ctr_update_block_guard(iter.iter_leaf().as_mutable());
+        self.ctr_cow_clone_path(path, 0);
+        self.ctr_update_block_guard(path.leaf().as_mutable());
 
-        auto update_state = self.template ctr_make_leaf_update_state<SubstreamsList>(iter.iter_leaf());
+        auto update_state = self.template ctr_make_leaf_update_state<SubstreamsList>(path.leaf());
         PrepareUpdateStreamFn<SubstreamsList> fn1;
 
         if (Types::LeafDataLength == LeafDataLengthType::VARIABLE)
         {
             self.leaf_dispatcher().dispatch(
-                        iter.iter_leaf().as_mutable(),
+                        path.leaf().as_mutable(),
                         fn1,
                         idx,
                         entry,
@@ -376,7 +416,7 @@ public:
         if (is_success(fn1.status)) {
             CommitUpdateStreamFn<SubstreamsList> fn2;
             self.leaf_dispatcher().dispatch(
-                        iter.iter_leaf().as_mutable(),
+                        path.leaf().as_mutable(),
                         fn2,
                         idx,
                         entry,
@@ -387,6 +427,7 @@ public:
         }
         return false;
     }
+
 
 
     MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, merge_with);

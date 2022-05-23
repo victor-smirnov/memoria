@@ -208,7 +208,7 @@ public:
             else {
                 auto ii = blockmap_ctr_->find(block_id.value());
                 if (ii->is_found(block_id.value())) {
-                    at = ii->value().view().value();
+                    at = ii->current_value();
                 }
                 else {
                     MEMORIA_MAKE_GENERIC_ERROR("Can't find block ID {} in the BlockMap", block_id).do_throw();
@@ -252,8 +252,8 @@ public:
                 auto ii = blockmap_ctr_->find(block_id.value());
                 if (ii->is_found(block_id.value()))
                 {
-                    at = ii->value().view().value();
-                    level = ii->value().view().metadata();
+                    at = ii->current_value().value();
+                    level = ii->current_value().metadata();
                 }
                 else {
                     MEMORIA_MAKE_GENERIC_ERROR("Can't find block ID {} in the BlockMap", block_id).do_throw();
@@ -276,7 +276,7 @@ public:
 
         if (!for_idmap) {
             id = newId();
-            blockmap_ctr_->assign_key(id.value(), UID64{at, static_cast<uint64_t>(allocation_level(size))});
+            blockmap_ctr_->upsert_key(id.value(), UID64{at, static_cast<uint64_t>(allocation_level(size))});
         }
         else {
             id = BlockID{UID256::make_type3(UID256{}, static_cast<uint64_t>(allocation_level(size)), at)};
@@ -308,7 +308,7 @@ public:
 
         if (!for_idmap) {
             id = newId();
-            blockmap_ctr_->assign_key(id.value(), UID64{at, static_cast<uint64_t>(allocation_level(block_size))});
+            blockmap_ctr_->upsert_key(id.value(), UID64{at, static_cast<uint64_t>(allocation_level(block_size))});
         }
         else {
             id = BlockID{UID256::make_type3(UID256{}, static_cast<uint64_t>(allocation_level(block_size)), at)};

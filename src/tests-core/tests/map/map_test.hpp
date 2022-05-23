@@ -20,7 +20,7 @@
 
 #include <memoria/tests/assertions.hpp>
 
-#include <memoria/api/set/set_api.hpp>
+#include <memoria/api/map/map_api.hpp>
 #include <memoria/core/tools/random.hpp>
 
 #include <vector>
@@ -29,7 +29,7 @@
 namespace memoria {
 namespace tests {
 
-namespace internal_set {
+namespace internal_map {
 
 template <typename CxxValueType> struct ValueTools;
 
@@ -62,16 +62,17 @@ struct ValueTools<U8String> {
 
 
 template <
-    typename DataType,
+    typename KeyDataType,
+    typename ValueDataType,
+    typename CxxKeyType,
     typename CxxValueType,
     typename ProfileT = CoreApiProfile,
     typename StoreT   = IMemoryStorePtr<ProfileT>
 >
-class SetTest: public BTTestBase<Set<DataType>, ProfileT, StoreT>
+class MapTest: public BTTestBase<Map<KeyDataType, ValueDataType>, ProfileT, StoreT>
 {
-    using MyType = SetTest;
-
-    using Base   = BTTestBase<Set<DataType>, ProfileT, StoreT>;
+    using MyType = MapTest;
+    using Base   = BTTestBase<Map<KeyDataType, ValueDataType>, ProfileT, StoreT>;
 
     using typename Base::CtrApi;
 
@@ -79,7 +80,7 @@ class SetTest: public BTTestBase<Set<DataType>, ProfileT, StoreT>
     using typename Base::StorePtr;
     using typename Base::CtrID;
 
-    using CxxElementViewType  = DTTViewType<DataType>;
+    using CxxElementViewType  = DTTViewType<KeyDataType>;
 
     int64_t size = 1024 * 1024 / 4;
 
@@ -93,54 +94,14 @@ class SetTest: public BTTestBase<Set<DataType>, ProfileT, StoreT>
     using Base::getRandom;
 
 public:
-    SetTest()
+    MapTest()
     {
     }
 
     MMA_STATE_FILEDS(size)
 
     static void init_suite(TestSuite& suite) {
-        MMA_CLASS_TESTS(suite, testOne, testAll);
-    }
-
-    void testOne() {
-        auto snp = branch();
-
-        CtrID ctr_id = CtrID::make_random();
-        auto ctr = create<Set<DataType>>(snp, Set<DataType>{}, ctr_id);
-        //ctr->set_new_block_size(1024);
-
-        std::set<CxxValueType> entries_set;
-        std::vector<CxxValueType> entries_list;
-
-        int64_t t0 = getTimeInMillis();
-        for (int c = 0; c < 100000; c++)
-        {
-            if (c % 100000 == 0)
-            {
-                out() << "C=" << c << std::endl;
-                this->check("Store structure checking", MMA_SRC);
-            }
-
-            auto key = internal_set::ValueTools<CxxValueType>::generate_random();
-
-            entries_set.insert(key);
-            entries_list.push_back(key);
-
-            ctr->upsert(key);
-        }
-
-        int64_t t1 = getTimeInMillis();
-        out() << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
-
-        int c = 0;
-        for (auto iter = ctr->seek_entry(ctr->size() - 1); !is_before_start(iter); iter = iter->prev(100)) {
-            println("Key: {} :: {}", iter->current_key(), iter->entry_offset());
-            c++;
-        }
-
-
-        commit();
+        MMA_CLASS_TESTS(suite, testAll);
     }
 
 
@@ -149,11 +110,12 @@ public:
         auto snp = branch();
 
         CtrID ctr_id = CtrID::make_random();
-        auto ctr = create<Set<DataType>>(snp, Set<DataType>{}, ctr_id);
-        ctr->set_new_block_size(1024);
+        auto ctr = create<Map<KeyDataType, ValueDataType>>(snp, Map<KeyDataType, ValueDataType>{}, ctr_id);
 
-        std::set<CxxValueType> entries_set;
-        std::vector<CxxValueType> entries_list;
+        using EntryT = std::pair<CxxKeyType, CxxValueType>;
+
+        std::map<CxxKeyType, CxxValueType> entries_set;
+        std::vector<EntryT> entries_list;
 
         int64_t t0 = getTimeInMillis();
         for (int c = 0; c < size; c++)
@@ -164,12 +126,13 @@ public:
                 this->check("Store structure checking", MMA_SRC);
             }
 
-            auto key = internal_set::ValueTools<CxxValueType>::generate_random();
+            auto key = internal_map::ValueTools<CxxKeyType>::generate_random();
+            auto value = internal_map::ValueTools<CxxValueType>::generate_random();
 
-            entries_set.insert(key);
-            entries_list.push_back(key);
+            entries_set[key] = value;
+            entries_list.push_back(EntryT{key, value});
 
-            ctr->upsert(key);
+            ctr->upsert_key(key, value);
         }
         int64_t t1 = getTimeInMillis();
         out() << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
@@ -179,9 +142,10 @@ public:
         this->check("Store structure checking", MMA_SRC);
 
         int64_t t2 = getTimeInMillis();
-        for (auto key: entries_list)
+        for (auto entry: entries_list)
         {
-            bool kk = ctr->contains(key);
+            auto ii = ctr->find(entry.first);
+            bool kk = ii->is_found(entry.first);
             assert_equals(true, kk);
         }
         int64_t t3 = getTimeInMillis();
@@ -190,33 +154,28 @@ public:
         auto scc = ctr->first_entry();
         auto en_ii = entries_set.begin();
 
-        while (!is_after_end(scc))
-        {
-            for (auto key: scc->keys())
-            {
-                auto en_key = *en_ii;
+        ctr->for_each([&](auto key, auto value){
+            bool equals1 = internal_map::ValueTools<CxxKeyType>::equals(key, en_ii->first);
+            assert_equals(true, equals1);
 
-                bool equals = internal_set::ValueTools<CxxValueType>::equals(key, en_key);
-                assert_equals(true, equals);
+            bool equals2 = internal_map::ValueTools<CxxValueType>::equals(value, en_ii->second);
+            assert_equals(true, equals2);
 
-                en_ii++;
-            }
-
-            scc = scc->next_chunk();
-        }
+            ++en_ii;
+        });
 
 
         int64_t t4 = getTimeInMillis();
         size_t cnt = 0;
         auto ctr_size = ctr->size();
-        for (auto& key: entries_list)
+        for (const auto& entry: entries_list)
         {
             if (cnt % 100000 == 0) {
                 out() << "K=" << cnt << std::endl;
                 this->check("Store structure checking", MMA_SRC);
             }
 
-            ctr->remove(key);
+            ctr->remove_key(entry.first);
 
             cnt++;
             ctr_size--;
