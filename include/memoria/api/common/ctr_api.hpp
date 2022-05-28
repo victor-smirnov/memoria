@@ -31,6 +31,8 @@
 
 #include <memoria/core/linked/document/linked_document.hpp>
 
+#include <memoria/core/tools/object_pool.hpp>
+
 namespace memoria {
 
 
@@ -100,5 +102,41 @@ template <typename T, typename ProfileT>
 void InitCtrMetadata() {
     ICtrApi<T, ApiProfile<ProfileT>>::template init_profile_metadata<ProfileT>();
 }
+
+
+
+template <typename MyType, typename Profile>
+struct ChunkIteratorBase {
+    virtual ~ChunkIteratorBase() = default;
+
+
+    using CtrSizeT = ApiProfileCtrSizeT<Profile>;
+    using ChunkPtr = IterSharedPtr<MyType>;
+
+    virtual CtrSizeT entry_offset() const = 0;
+    virtual CtrSizeT collection_size() const = 0;
+
+    virtual CtrSizeT chunk_offset() const = 0;
+
+    virtual size_t chunk_size() const = 0;
+    virtual size_t entry_offset_in_chunk() const = 0;
+
+    virtual bool is_before_start() const = 0;
+    virtual bool is_after_end() const = 0;
+
+    virtual ChunkPtr next(CtrSizeT num = 1) const = 0;
+    virtual ChunkPtr next_chunk() const = 0;
+
+    virtual ChunkPtr prev(CtrSizeT num = 1) const = 0;
+    virtual ChunkPtr prev_chunk() const = 0;
+
+    virtual void dump(std::ostream& out = std::cout) const = 0;
+};
+
+template <typename ChunkIterT>
+bool is_valid_chunk(const IterSharedPtr<ChunkIterT>& ptr) {
+    return ptr && !(ptr->is_after_end() || ptr->is_before_start());
+}
+
 
 }

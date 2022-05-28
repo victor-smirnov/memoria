@@ -74,7 +74,7 @@ public:
             meta->set_code_units(symbols_block_size_atoms);
 
             seq.data()->resize_block(Seq::SYMBOLS, symbols_block_size_atoms * sizeof(typename Seq::CodeUnitT));
-            RunTraits::write_segments_to(syms_span, seq.data()->symbols(), 0);
+            RunTraits::write_segments_to(syms_span, seq.data()->symbols_block(), 0);
         }
 
         if (symbols_block_size_atoms > AtomsPerBlock)
@@ -209,7 +209,6 @@ public:
                 auto run = ii.get();
                 if (run)
                 {
-                    println("ZZ: {}", run);
                     symbols_total_ += run.full_run_length();
 
                     for (size_t s = 0; s < run.pattern_length(); s++)

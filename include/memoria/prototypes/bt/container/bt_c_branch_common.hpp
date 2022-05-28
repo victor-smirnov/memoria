@@ -108,7 +108,6 @@ PkdUpdateStatus M_TYPE::ctr_insert_to_branch_node(
         const BlockID& id
 )
 {
-
         auto& self = this->self();
 
         self.ctr_cow_clone_path(path, level);
@@ -299,7 +298,7 @@ void M_TYPE::ctr_split_node_raw(
                     new_parent_idx + 1,
                     right_max,
                     right_node->id()
-                    );
+                );
 
 
         if (!is_success(right_path_insertion_status))

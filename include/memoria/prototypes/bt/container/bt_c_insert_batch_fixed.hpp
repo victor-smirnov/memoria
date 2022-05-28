@@ -169,7 +169,11 @@ public:
                 return node;
             }
             else {
-                return provider.get_leaf();
+                auto leaf = provider.get_leaf();
+
+                self.ctr_ref_block(leaf->id());
+
+                return leaf;
             }
         }
         else {

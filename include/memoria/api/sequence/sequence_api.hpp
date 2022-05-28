@@ -18,50 +18,133 @@
 #include <memoria/api/common/ctr_api_btss.hpp>
 #include <memoria/core/ssrle/ssrle.hpp>
 
+#include <memoria/api/sequence/sequence_api_factory.hpp>
+#include <memoria/api/sequence/sequence_producer.hpp>
+
+#include <memoria/core/tools/bitmap.hpp>
+
 namespace memoria {
     
 
-template <size_t Bps, typename Profile>
-struct SequenceChunk {
+template <size_t AlphabetSize, typename Profile>
+struct SequenceChunk: ChunkIteratorBase<SequenceChunk<AlphabetSize, Profile>, Profile> {
 
-    using CtrSizeT = ApiProfileCtrSizeT<Profile>;
-    using ChunkPtr = IterSharedPtr<SequenceChunk>;
-    using RunT = SSRLERun<Bps>;
+    using Base = ChunkIteratorBase<SequenceChunk<AlphabetSize, Profile>, Profile>;
+
+    using typename Base::CtrSizeT;
+    using typename Base::ChunkPtr;
+
+    static constexpr size_t BitsPerSymbol = BitsPerSymbolConstexpr(AlphabetSize);
+
+    using RunT = SSRLERun<BitsPerSymbol>;
     using SymbolT = typename RunT::SymbolT;
 
-    virtual ~SequenceChunk() noexcept = default;
+    virtual const Span<const RunT>& runs() const = 0;
+    virtual SymbolT current_symbol() const = 0;
 
-    virtual CtrSizeT entry_offset() const = 0;
-    virtual CtrSizeT collection_size() const = 0;
-    virtual CtrSizeT chunk_offset() const = 0;
+    virtual CtrSizeT rank(SymbolT symbol, SeqOpType seq_op) const = 0;
 
-    virtual size_t chunk_size() const = 0;
-    virtual size_t entry_offset_in_chunk() const = 0;
+    virtual ChunkPtr select_fw(SymbolT symbol, CtrSizeT rank, SeqOpType seq_op) const = 0;
+    virtual ChunkPtr select_bw(SymbolT symbol, CtrSizeT rank, SeqOpType seq_op) const = 0;
 
-    virtual const Span<RunT>& runs() const = 0;
-    virtual const SymbolT current_symbol() const = 0;
-
-    virtual bool is_before_start() const = 0;
-    virtual bool is_after_end() const = 0;
-
-    virtual ChunkPtr next(CtrSizeT num = 1) const = 0;
-    virtual ChunkPtr next_chunk() const = 0;
-
-    virtual ChunkPtr prev(CtrSizeT num = 1) const = 0;
-    virtual ChunkPtr prev_chunk() const = 0;
-
-    virtual void dump(std::ostream& out = std::cout) const = 0;
+    virtual CtrSizeT read_to(CtrSizeT len, std::vector<RunT>& sink) const = 0;
 };
 
 
 
-template <size_t BitsPerSymbol, typename Profile>
-class ICtrApi<Sequence<BitsPerSymbol>, Profile>: public CtrReferenceable<Profile>  {
+template <size_t AlphabetSize, typename Profile>
+struct ICtrApi<Sequence<AlphabetSize>, Profile>: public CtrReferenceable<Profile>  {
     using Base = CtrReferenceable<Profile>;
-public:
 
+    static constexpr size_t BitsPerSymbol = BitsPerSymbolConstexpr(AlphabetSize);
 
+    using RunT = SSRLERun<BitsPerSymbol>;
+    using SymbolT = typename RunT::SymbolT;
+    using CtrSizeT = ApiProfileCtrSizeT<Profile>;
+    using ChunkPtr = IterSharedPtr<SequenceChunk<AlphabetSize, Profile>>;
 
+    using ProducerT = SequenceProducer<AlphabetSize>;
+    using ProducerFn = typename ProducerT::ProducerFn;
+    using SequenceSubstream = typename ProducerT::SequenceSubstream;
+
+    virtual ChunkPtr first_entry() const {
+        return seek_entry(CtrSizeT{});
+    }
+
+    virtual ChunkPtr seek_entry(CtrSizeT pos) const = 0;
+    virtual CtrSizeT size() const = 0;
+
+    virtual ChunkPtr last_entry() const
+    {
+        CtrSizeT size = this->size();
+        if (size) {
+            return seek_entry(size - 1);
+        }
+        else {
+            return seek_entry(0);
+        }
+    }
+
+    virtual ChunkPtr select(SymbolT symbol, CtrSizeT rank, SeqOpType seq_op) const = 0;
+    virtual CtrSizeT rank(CtrSizeT pos, SymbolT symbol, SeqOpType seq_op) const = 0;
+
+    virtual ChunkPtr insert(CtrSizeT at, Span<const RunT> runs) {
+        size_t runs_per_block = 1024;
+        size_t start {};
+
+        return insert(at, [&](auto& ss, auto) {
+            size_t remainder = runs.size() - start;
+            size_t limit = remainder > runs_per_block ? runs_per_block : remainder;
+
+            if (limit) {
+                ss.append(runs.subspan(start, limit));
+            }
+
+            start += limit;
+
+            return remainder <= runs_per_block;
+        });
+    }
+
+    virtual ChunkPtr insert(CtrSizeT at, ProducerFn producer_fn)
+    {
+        ProducerT producer(producer_fn);
+        return insert(at, producer);
+    }
+
+    virtual ChunkPtr append(ProducerFn producer_fn)
+    {
+        ProducerT producer(producer_fn);
+        return append(producer);
+    }
+
+    virtual ChunkPtr prepend(ProducerFn producer_fn)
+    {
+        ProducerT producer(producer_fn);
+        return prepend(producer);
+    }
+
+    virtual ChunkPtr insert(CtrSizeT at, io::IOVectorProducer& producer) = 0;
+    virtual ChunkPtr append(io::IOVectorProducer& producer) = 0;
+    virtual ChunkPtr prepend(io::IOVectorProducer& producer) = 0;
+
+    virtual void remove(CtrSizeT from, CtrSizeT to) = 0;
+    virtual void remove_from(CtrSizeT from) = 0;
+    virtual void remove_up_to(CtrSizeT to) = 0;
+
+    virtual std::vector<RunT> read(CtrSizeT start, CtrSizeT len) const
+    {
+        std::vector<RunT> runs;
+        seek_entry(start)->read_to(len, runs);
+        return runs;
+    }
+
+    virtual std::vector<RunT> read(CtrSizeT start) const
+    {
+        std::vector<RunT> runs;
+        seek_entry(start)->read_to(size() - start, runs);
+        return runs;
+    }
 
     MMA_DECLARE_ICTRAPI();
 };

@@ -169,7 +169,7 @@ public:
     PkdSSRLESeq() = default;
 
     const SeqSizeT& size() const noexcept {return metadata()->size();}
-    uint64_t code_units() noexcept {return metadata()->code_units();}
+    uint64_t code_units() const noexcept {return metadata()->code_units();}
 
     // FIXME: Make setters private/protected
 
@@ -207,12 +207,12 @@ public:
         return Base::template get<SizeIndex>(SIZE_INDEX);
     }
 
-    Span<CodeUnitT> symbols() noexcept {
+    Span<CodeUnitT> symbols_block() noexcept {
         return span<CodeUnitT>(this, SYMBOLS);
     }
 
     Span<const CodeUnitT> symbols() const noexcept {
-        return span<CodeUnitT>(this, SYMBOLS);
+        return span<CodeUnitT>(this, SYMBOLS).subspan(0, code_units());
     }
 
     size_t symbols_block_capacity() const noexcept {
@@ -236,7 +236,7 @@ public:
     }
 
     Iterator iterator() const noexcept {
-        return Iterator(span<CodeUnitT>(this, SYMBOLS));
+        return Iterator(span<CodeUnitT>(this, SYMBOLS).subspan(0, code_units()));
     }
 
     static Iterator iterator_from(Span<const CodeUnitT> units) {
@@ -244,12 +244,12 @@ public:
     }
 
     Iterator iterator(size_t atom_idx) const noexcept {
-        auto syms = span<CodeUnitT>(this, SYMBOLS);
+        auto syms = span<CodeUnitT>(this, SYMBOLS).subspan(0, code_units());
         return Iterator(syms, atom_idx);
     }
 
     Iterator block_iterator(size_t block_num) const noexcept {
-        auto syms = span<CodeUnitT>(this, SYMBOLS);
+        auto syms = span<CodeUnitT>(this, SYMBOLS).subspan(0, code_units());
         return Iterator(syms, block_num * AtomsPerBlock);
     }
 
@@ -430,7 +430,8 @@ public:
             sum_index()->serialize(buf);
         }
 
-        FieldFactory<CodeUnitT>::serialize(buf, symbols().data(), meta->code_units());
+        auto code_units = this->symbols();
+        FieldFactory<CodeUnitT>::serialize(buf, code_units.data(), code_units.size());
     }
 
 
@@ -453,7 +454,7 @@ public:
             sum_index()->deserialize(buf);
         }
 
-        FieldFactory<CodeUnitT>::deserialize(buf, symbols().data(), meta->code_units());
+        FieldFactory<CodeUnitT>::deserialize(buf, symbols_block().data(), meta->code_units());
     }
 
     void configure_io_substream(io::IOSubstream& substream) const

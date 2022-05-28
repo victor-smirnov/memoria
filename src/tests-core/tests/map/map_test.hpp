@@ -47,6 +47,17 @@ struct ValueTools<UUID> {
 };
 
 template <>
+struct ValueTools<UID256> {
+    static UID256 generate_random() noexcept {
+        return UID256::make_random();
+    }
+
+    static bool equals(const UID256& one, const UID256& two) noexcept {
+        return one == two;
+    }
+};
+
+template <>
 struct ValueTools<U8String> {
     static U8String generate_random() noexcept {
         return create_random_string(16);

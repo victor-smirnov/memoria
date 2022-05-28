@@ -61,8 +61,6 @@ struct MapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
     using Key = Key_;
     using Value = Value_;
 
-    using IteratorInterface = MapIterator<Key_, Value_, ApiProfile<Profile>>;
-
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 map::CtrInsertMaxName,

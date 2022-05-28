@@ -1,5 +1,5 @@
 
-// Copyright 2013 Victor Smirnov
+// Copyright 2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,117 +16,217 @@
 
 #pragma once
 
-#include "sequence_test_base.hpp"
+#include <memoria/core/tools/time.hpp>
 
-#include <vector>
+#include <memory>
+
+#include "sequence_test_base.hpp"
 
 namespace memoria {
 namespace tests {
 
-template <int32_t BitsPerSymbol, bool Dense = true>
-class SequenceRankTest: public SequenceTestBase<BitsPerSymbol, Dense> {
+template <size_t AlphabetSize, bool Use64BitSize = false>
+class SequenceRankTest: public SequenceTestBase<AlphabetSize, Use64BitSize> {
 
-    using MyType = SequenceRankTest<BitsPerSymbol, Dense>;
-    using Base   = SequenceTestBase<BitsPerSymbol, Dense>;
+    using MyType = SequenceRankTest<AlphabetSize, Use64BitSize>;
+    using Base = SequenceTestBase<AlphabetSize, Use64BitSize>;
 
+    using typename Base::SymbolsRunT;
+    using typename Base::RunTraits;
 
-    using typename Base::Iterator;
-    using typename Base::Ctr;
-    using typename Base::CtrName;
+    using typename Base::Seq;
+    using typename Base::SeqSO;
+    using typename Base::SeqPtr;
 
+    using typename Base::BlockSize;
+    using typename Base::BlockRank;
+    using typename Base::LocateResult;
+    using typename Base::SeqSizeT;
+    using typename Base::RunSizeT;
+    using typename Base::SymbolT;
 
-    int32_t iterations_ = 100000;
-
-    using Base::commit;
-    using Base::drop;
-    using Base::branch;
-    using Base::allocator;
-    using Base::snapshot;
-    using Base::check;
-    using Base::out;
-    using Base::fillRandomSeq;
-    using Base::size_;
-    using Base::rank;
-    using Base::storeAllocator;
-    using Base::isReplayMode;
-    using Base::getResourcePath;
-    using Base::ctr_name_;
     using Base::getRandom;
+    using Base::getRandom1;
+    using Base::make_empty_sequence;
+    using Base::make_random_sequence;
+    using Base::make_sequence;
+    using Base::assert_spans_equal;
+    using Base::count;
+    using Base::get_so;
 
 
+    using Base::build_size_index;
+    using Base::get_symbol;
+
+    using Base::build_rank_index;
+    using Base::get_rank_eq;
+    using Base::get_ranks;
+
+    using Base::push_back;
+    using Base::split_runs;
+    using Base::out;
+    using Base::size_;
+    using Base::branch;
+    using Base::create_sequence_ctr;
 
 public:
-    SequenceRankTest()
-    {
-        Base::size_ = 300000;
+    SequenceRankTest(){}
+
+    static void init_suite(TestSuite& suite) {
+        MMA_CLASS_TESTS(suite, testRankEq, testRankNeq, testRankGt, testRankGe, testRankLt, testRankLe);
     }
 
-    MMA_STATE_FILEDS(iterations_)
-
-    static void init_suite(TestSuite& suite)
-    {
-        MMA_CLASS_TESTS(suite, testIterRank, testCtrRank);
-    }
-
-    void testCtrRank()
-    {
-        auto snp = branch();
-
-        auto ctr = create<CtrName>(snp);
-
-        auto seq = fillRandomSeq(*ctr.get(), size_);
-
-        check(MA_SRC);
-
-        for (int32_t c = 0; c < iterations_; c++)
-        {
-            out() << c << std::endl;
-
-            int32_t pos     = getRandom(size_);
-            int32_t symbol  = getRandom(Base::Symbols);
-
-            int64_t rank1 = ctr->rank(pos, symbol);
-            int64_t rank2 = seq->rank(pos, symbol);
-
-            assert_equals(rank1, rank2);
+    struct RankEq {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
         }
 
-        commit();
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
+            return test->get_rank_eq(index, runs, idx, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::EQ;}
+    };
+
+    struct RankLt {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
+        }
+
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
+            return test->get_rank_lt(index, runs, idx, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::LT;}
+    };
+
+    struct RankLe {
+        size_t get_sym() const {
+            return AlphabetSize / 2 - 1;
+        }
+
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
+            return test->get_rank_le(index, runs, idx, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::LE;}
+    };
+
+    struct RankGt {
+        size_t get_sym() const {
+            return AlphabetSize / 2 - 1;
+        }
+
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
+            return test->get_rank_gt(index, runs, idx, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::GT;}
+    };
+
+    struct RankGe {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
+        }
+
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
+            return test->get_rank_ge(index, runs, idx, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::GE;}
+    };
+
+    struct RankNeq {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
+        }
+
+        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
+            return test->get_rank_neq(index, runs, idx, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::NEQ;}
+    };
+
+    template <typename Fn>
+    void testRankFn(Fn&& fn)
+    {
+        for (size_t data_size = 2; data_size <= 1024*1024; data_size *= 2)
+        {
+            println("DataSize: {}", data_size);
+            auto snp = branch();
+
+            std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
+            std::vector<BlockRank> rank_index = build_rank_index(syms1);
+            SeqSizeT size = count(syms1);
+
+            auto ctr = create_sequence_ctr(to_const_span(syms1));
+
+            size_t queries = data_size / 2;
+
+            std::vector<size_t> poss;
+
+            for (size_t c = 0; c < queries; c++) {
+                poss.push_back(getBIRandomG(static_cast<size_t>(size)));
+            }
+
+            int64_t t0 = getTimeInMillis();
+
+            SymbolT sym = fn.get_sym();
+
+            for (size_t c = 0; c < queries; c++)
+            {
+                uint64_t pos = poss[c];
+
+                SeqSizeT rank1 = fn.get_rank(this, rank_index, syms1, pos, sym);
+                SeqSizeT rank2 = ctr->rank(pos, sym, fn.op_type());
+
+                try {
+                    assert_equals(rank1, rank2);
+                }
+                catch (...) {
+                    throw;
+                }
+            }
+
+            int64_t t1 = getTimeInMillis();
+
+            println(out(), "Query time: {}", FormatTime(t1 - t0));
+        }
     }
 
 
-    void testIterRank()
+
+    void testRankEq()
     {
-        auto snp = branch();
+        testRankFn(RankEq());
+    }
 
-        auto ctr = create<CtrName>(snp);
+    void testRankNeq()
+    {
+        testRankFn(RankNeq());
+    }
 
-        auto seq = fillRandomSeq(*ctr.get(), size_);
+    void testRankGt()
+    {
+        testRankFn(RankGt());
+    }
 
-        for (int32_t c = 0; c < iterations_; c++)
-        {
-            out() << c << std::endl;
+    void testRankGe()
+    {
+        testRankFn(RankGe());
+    }
 
-            int32_t pos1    = getRandom(size_);
-            int32_t pos2    = pos1 + getRandom(size_ - pos1);
-            int32_t symbol  = getRandom(Base::Symbols);
+    void testRankLt()
+    {
+        testRankFn(RankLt());
+    }
 
-            auto iter   = ctr->seek(pos1);
-
-            int64_t rank1 = iter->rankFw(pos2 - pos1, symbol);
-            int64_t rank2 = seq->rank(pos1, pos2, symbol);
-
-            assert_equals(rank1, rank2);
-            assert_equals(iter->pos(), pos2);
-
-            int64_t rank3 = iter->rank(pos1 - pos2, symbol);
-
-            assert_equals(iter->pos(), pos1);
-            assert_equals(rank1, rank3);
-        }
-
-        commit();
+    void testRankLe()
+    {
+        testRankFn(RankLe());
     }
 };
+
 
 }}

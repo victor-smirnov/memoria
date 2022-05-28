@@ -164,7 +164,7 @@ namespace detail {
         }
 
         static size_t compute_index_block_size(size_t elements) {
-            return BufferSO::PkdStructT::compute_block_size(elements);
+            return BufferSO::PkdStructT::compute_index_block_size(elements);
         }
     };
 
@@ -1160,7 +1160,7 @@ public:
         Value val{};
 
         for (size_t c = 0; c < Columns; c++) {
-            val += symbol != c ? this->sum(symbol, start, end) : 0;
+            val += symbol != c ? this->sum(c, start, end) : 0;
         }
 
         return val;
@@ -1171,7 +1171,7 @@ public:
         Value val{};
 
         for (size_t c = 0; c < symbol; c++) {
-            val += this->sum(symbol, start, end);
+            val += this->sum(c, start, end);
         }
 
         return val;
@@ -1182,7 +1182,7 @@ public:
         Value val{};
 
         for (size_t c = symbol + 1; c < Columns; c++) {
-            val += this->sum(symbol, start, end);
+            val += this->sum(c, start, end);
         }
 
         return val;
@@ -1193,7 +1193,7 @@ public:
         Value val{};
 
         for (size_t c = 0; c <= symbol; c++) {
-            val += this->sum(symbol, start, end);
+            val += this->sum(c, start, end);
         }
 
         return val;
@@ -1204,7 +1204,7 @@ public:
         Value val{};
 
         for (size_t c = symbol; c < Columns; c++) {
-            val += this->sum(symbol, start, end);
+            val += this->sum(c, start, end);
         }
 
         return val;

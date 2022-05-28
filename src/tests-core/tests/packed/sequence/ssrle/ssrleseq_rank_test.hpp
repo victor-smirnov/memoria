@@ -75,6 +75,10 @@ public:
     }
 
     struct RankEq {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
+        }
+
         uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_eq(index, runs, idx, symbol);
         }
@@ -85,6 +89,10 @@ public:
     };
 
     struct RankLt {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
+        }
+
         uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_lt(index, runs, idx, symbol);
         }
@@ -95,6 +103,10 @@ public:
     };
 
     struct RankLe {
+        size_t get_sym() const {
+            return AlphabetSize / 2 - 1;
+        }
+
         uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_le(index, runs, idx, symbol);
         }
@@ -105,6 +117,10 @@ public:
     };
 
     struct RankGt {
+        size_t get_sym() const {
+            return AlphabetSize / 2 - 1;
+        }
+
         uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_gt(index, runs, idx, symbol);
         }
@@ -115,6 +131,10 @@ public:
     };
 
     struct RankGe {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
+        }
+
         uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_ge(index, runs, idx, symbol);
         }
@@ -125,6 +145,10 @@ public:
     };
 
     struct RankNeq {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
+        }
+
         uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
             return test->get_rank_neq(index, runs, idx, symbol);
         }
@@ -157,12 +181,14 @@ public:
 
             int64_t t0 = getTimeInMillis();
 
+            SymbolT sym = fn.get_sym();
+
             for (size_t c = 0; c < queries; c++)
             {
                 uint64_t pos = poss[c];
 
-                SeqSizeT rank1 = fn.get_rank(this, rank_index, syms1, pos, 0);
-                SeqSizeT rank2 = fn.rank(seq, pos, 0);
+                SeqSizeT rank1 = fn.get_rank(this, rank_index, syms1, pos, sym);
+                SeqSizeT rank2 = fn.rank(seq, pos, sym);
 
                 try {
                     assert_equals(rank1, rank2);

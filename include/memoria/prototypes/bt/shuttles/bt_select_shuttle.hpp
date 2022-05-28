@@ -82,7 +82,7 @@ public:
 
             auto result = tree.find_for_select_fw(start, rank, symbol, op_type_);
 
-            Base::sum_ += result.rank;
+            sum_ += result.rank;
 
             return ShuttleOpResult::non_empty(result.idx, result.idx < size);
         }
@@ -192,7 +192,7 @@ public:
             auto rank = rank_ - sum_;
 
             auto result     = tree.find_for_select_bw(start, rank, symbol, op_type_);
-            sum_ += result.prefix();
+            sum_ += result.rank;
 
             return ShuttleOpResult::non_empty(result.idx, !result.is_end());
         }

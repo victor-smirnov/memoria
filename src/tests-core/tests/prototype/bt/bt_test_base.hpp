@@ -106,6 +106,9 @@ public:
     auto& branch()
     {
         if (snapshot_) {
+            if (snapshot_->is_active()) {
+                snapshot_->commit();
+            }
             snapshot_ = snapshot_->branch();
         }
         else {

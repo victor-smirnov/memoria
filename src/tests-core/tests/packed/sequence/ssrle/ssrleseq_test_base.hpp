@@ -30,42 +30,29 @@
 namespace memoria {
 namespace tests {
 
-template <
-    size_t AlphabetSize_,
-    bool Use64BitSize = false
->
-class PackedSSRLESequenceTestBase: public TestState {
 
-    using Base = TestState;
-    using MyType = PackedSSRLESequenceTestBase<AlphabetSize_, Use64BitSize>;
+template <size_t AlphabetSize_, bool Use64BitSize>
+class SymbolsRunTools {
 
-protected:
+    TestState* test_base_;
+
+public:
 
     static constexpr size_t SIZE_INDEX_BLOCK = 128;
     static constexpr size_t Bps = BitsPerSymbolConstexpr(AlphabetSize_);
     static constexpr size_t AlphabetSize = AlphabetSize_;
 
-    using Seq    = PkdSSRLESeqT<AlphabetSize, 256, Use64BitSize>;
-    using SeqSO  = typename Seq::SparseObject;
-
-    using SeqPtr = std::shared_ptr<PkdStructHolder<Seq>>;
-
-    size_t size_{32768};
+    using PackedSeq     = PkdSSRLESeqT<AlphabetSize_, 256, Use64BitSize>;
 
     using SymbolsRunT   = SSRLERun<Bps>;
     using RunTraits     = SSRLERunTraits<Bps>;
     using CodeUnitT     = typename RunTraits::CodeUnitT;
-    using SeqSizeT      = typename Seq::SeqSizeT;
-    using RunSizeT      = typename Seq::RunSizeT;
-    using SymbolT       = typename Seq::SymbolT;
+    using SymbolT       = typename SymbolsRunT::SymbolT;
+    using RunSizeT      = typename SymbolsRunT::RunSizeT;
+    using SeqSizeT      = typename PackedSeq::SeqSizeT;
 
-public:
 
-    MMA_STATE_FILEDS(size_);
-
-    SeqSO get_so(SeqPtr ptr) const {
-        return ptr->get_so();
-    }
+    SymbolsRunTools(TestState* test_base): test_base_(test_base) {}
 
     template <typename T1, typename T2>
     void push_back(std::vector<T1>& vv, Span<T2> span) const {
@@ -81,53 +68,31 @@ public:
         }
     }
 
-    SeqPtr make_empty_sequence(size_t syms_block_size = 1024*1024) const
-    {
-        size_t block_size = Seq::compute_block_size(syms_block_size * 2);
-        return PkdStructHolder<Seq>::make_empty(block_size);
-    }
-
     std::vector<SymbolsRunT> make_random_sequence(size_t size) const
     {
         std::vector<SymbolsRunT> symbols;
 
         for (size_t c = 0; c < size; c++)
         {
-            size_t pattern_length = getRandom1(RunTraits::max_pattern_length());
+            size_t pattern_length = test_base_->getRandom1(RunTraits::max_pattern_length());
             size_t max_run_len = RunTraits::max_run_length(pattern_length);
 
             if (max_run_len > 10000) {
                 max_run_len = 10000;
             }
 
-            size_t run_len = max_run_len > 1 ? getRandom1(max_run_len + 1) : 1;
+            size_t run_len = max_run_len > 1 ? test_base_->getRandom1(max_run_len + 1) : 1;
 
             SymbolsRunT run(pattern_length, 0, run_len);
 
             for (size_t s = 0; s < run.pattern_length(); s++) {
-                run.set_pattern_symbol(s, getRandom(AlphabetSize));
+                run.set_pattern_symbol(s, test_base_->getRandom(AlphabetSize));
             }
 
             symbols.push_back(run);
         }
 
         return symbols;
-    }
-
-    SeqPtr make_sequence(Span<const SymbolsRunT> span, size_t capacity_multiplier = 1) const
-    {
-        size_t num_atoms = RunTraits::compute_size(span);
-
-        SeqPtr ptr = make_empty_sequence(num_atoms * capacity_multiplier);
-        SeqSO seq = get_so(ptr);
-
-        auto update_state = seq.make_update_state();
-        assert_success(seq.prepare_insert(0, update_state.first, span));
-        seq.commit_insert(0, update_state.first, span);
-
-        seq.check();
-
-        return ptr;
     }
 
     class SymIterator {
@@ -139,6 +104,8 @@ public:
         SymIterator(Span<const SymbolsRunT> runs, size_t run_idx = 0):
             runs_(runs), run_idx_(run_idx)
         {}
+
+        size_t run_idx() const {return run_idx_;}
 
         bool is_eos() const {
             return run_idx_ >= runs_.size();
@@ -226,12 +193,14 @@ public:
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR(
-                            "SSRLE Run sequence mismatch at offset {}, expected: {}::{}, actual: {}::{}",
+                            "SSRLE Run sequence mismatch at offset {}, expected: {}::{} at {}, actual: {}::{} at {}",
                             offset,
                             ei.run(),
                             ei.pattern_idx(),
+                            ei.run_idx(),
                             ai.run(),
-                            ai.pattern_idx()
+                            ai.pattern_idx(),
+                            ai.run_idx()
                 ).do_throw();
             }
         }
@@ -247,27 +216,6 @@ public:
     }
 
 
-    template <typename T>
-    void assertIndexCorrect(const char* src, const T& seq)
-    {
-        try {
-            seq->check();
-        }
-        catch (Exception& e) {
-            out()<<"Sequence structure check failed"<<std::endl;
-            seq->dump(out());
-            throw e;
-        }
-    }
-
-    template <typename T>
-    void assertEmpty(const T& seq)
-    {
-        assert_equals(0, seq->size());
-        assert_equals(false, seq->has_index());
-    }
-
-
     std::vector<SymbolsRunT> split_runs(Span<const SymbolsRunT> runs)
     {
         std::vector<SymbolsRunT> res;
@@ -275,9 +223,9 @@ public:
         size_t idx{};
         for (SymbolsRunT run: runs)
         {
-            if (this->getRandom(2))
+            if (test_base_->getRandom(2))
             {
-                size_t pos = getRandom1(run.full_run_length());
+                size_t pos = test_base_->getRandom1(run.full_run_length());
                 auto split_res = run.split(pos);
                 push_back(res, split_res.left.span());
                 push_back(res, split_res.right.span());
@@ -514,6 +462,9 @@ public:
         for (size_t c = 0; c < AlphabetSize; c++) {
             symbols[c] += index[i].rank[c];
         }
+
+//        size_t i = 0;
+//        SeqSizeT offset{};
 
         for (size_t c = i * SIZE_INDEX_BLOCK; c < runs.size(); c++)
         {
@@ -843,6 +794,99 @@ public:
         append_all(res1.left, to_const_span(res2.right));
 
         return res1.left;
+    }
+
+
+};
+
+
+template <
+    size_t AlphabetSize_,
+    bool Use64BitSize
+>
+class PackedSSRLESequenceTestBase: public TestState, public SymbolsRunTools<AlphabetSize_, Use64BitSize> {
+
+    using Base = TestState;
+    using ToolsBase = SymbolsRunTools<AlphabetSize_, Use64BitSize>;
+
+    using MyType = PackedSSRLESequenceTestBase<AlphabetSize_, Use64BitSize>;
+
+protected:
+
+    static constexpr size_t SIZE_INDEX_BLOCK = 128;
+    static constexpr size_t Bps = BitsPerSymbolConstexpr(AlphabetSize_);
+    static constexpr size_t AlphabetSize = AlphabetSize_;
+
+    using Seq    = PkdSSRLESeqT<AlphabetSize, 256, Use64BitSize>;
+    using SeqSO  = typename Seq::SparseObject;
+
+    using SeqPtr = std::shared_ptr<PkdStructHolder<Seq>>;
+
+    size_t size_{32768};
+
+    using SymbolsRunT   = SSRLERun<Bps>;
+    using RunTraits     = SSRLERunTraits<Bps>;
+    using CodeUnitT     = typename RunTraits::CodeUnitT;
+    using SeqSizeT      = typename Seq::SeqSizeT;
+    using RunSizeT      = typename Seq::RunSizeT;
+    using SymbolT       = typename Seq::SymbolT;
+
+public:
+
+    MMA_STATE_FILEDS(size_);
+
+    using ToolsBase::push_back;
+
+    PackedSSRLESequenceTestBase(): ToolsBase(this) {}
+
+    SeqSO get_so(SeqPtr ptr) const {
+        return ptr->get_so();
+    }
+
+
+
+    SeqPtr make_empty_sequence(size_t syms_block_size = 1024*1024) const
+    {
+        size_t block_size = Seq::compute_block_size(syms_block_size * 2);
+        return PkdStructHolder<Seq>::make_empty(block_size);
+    }
+
+
+
+    SeqPtr make_sequence(Span<const SymbolsRunT> span, size_t capacity_multiplier = 1) const
+    {
+        size_t num_atoms = RunTraits::compute_size(span);
+
+        SeqPtr ptr = make_empty_sequence(num_atoms * capacity_multiplier);
+        SeqSO seq = get_so(ptr);
+
+        auto update_state = seq.make_update_state();
+        assert_success(seq.prepare_insert(0, update_state.first, span));
+        seq.commit_insert(0, update_state.first, span);
+
+        seq.check();
+
+        return ptr;
+    }
+
+    template <typename T>
+    void assertIndexCorrect(const char* src, const T& seq)
+    {
+        try {
+            seq->check();
+        }
+        catch (Exception& e) {
+            out()<<"Sequence structure check failed"<<std::endl;
+            seq->dump(out());
+            throw e;
+        }
+    }
+
+    template <typename T>
+    void assertEmpty(const T& seq)
+    {
+        assert_equals(0, seq->size());
+        assert_equals(false, seq->has_index());
     }
 };
 

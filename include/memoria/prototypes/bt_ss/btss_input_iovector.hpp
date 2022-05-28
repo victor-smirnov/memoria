@@ -51,9 +51,9 @@ public:
     using NodePair  = std::pair<TreeNodePtr, TreeNodePtr>;
 
 protected:
-    uint64_t start_ = 0;
-    uint64_t size_ = 0;
-    bool finished_ = false;
+    uint64_t start_{};
+    uint64_t size_{};
+    bool finished_{};
 
     CtrT& ctr_;
 
@@ -62,10 +62,10 @@ protected:
     memoria::io::IOVectorProducer* producer_{};
     memoria::io::IOVector* io_vector_{};
 
-    CtrSizeT start_pos_;
-    CtrSizeT length_;
+    CtrSizeT start_pos_{};
+    CtrSizeT length_{};
 
-    bool reset_iovector_;
+    bool reset_iovector_{};
 
 public:
 
@@ -541,7 +541,7 @@ protected:
             return true;
         }
 
-        return true;
+        return false;
     }
 
     float getFreeSpacePart(const TreeNodePtr& node)

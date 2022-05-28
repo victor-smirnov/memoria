@@ -143,20 +143,25 @@ public:
                     runs.push_back(sub_pattern(run, rr_start_local_pos, size));
                 }
                 else {
-                    runs.push_back(sub_pattern(run, rr_start_local_pos, run.pattern_length() - rr_start_local_pos));
+                    if (rr_start_local_pos) {
+                        runs.push_back(sub_pattern(run, rr_start_local_pos, run.pattern_length() - rr_start_local_pos));
+                        rr_start++;
+                    }
 
                     RunSizeT rr_end = (start + size) / run.pattern_length();
                     RunSizeT rr_end_base = rr_end * run.pattern_length();
                     RunSizeT rr_end_local_pos = (start + size) - rr_end_base;
 
-                    if (rr_end > rr_start + 1)
+                    if (rr_end > rr_start)
                     {
                         RunT m_run = run;
                         m_run.run_length_ = rr_end - rr_start;
                         runs.push_back(m_run);
                     }
 
-                    runs.push_back(sub_pattern(run, rr_end_local_pos, run.pattern_length() - rr_end_local_pos));
+                    if (rr_end_local_pos) {
+                        runs.push_back(sub_pattern(run, 0, rr_end_local_pos));
+                    }
                 }
             }
         }
@@ -1065,9 +1070,11 @@ class SSRLERun {
 
     using Traits = SSRLERunTraits<Bps>;
 
+public:
     using RunDataT = typename Traits::RunDataT;
     using RunSizeT = typename Traits::RunSizeT;
     using SymbolT = typename Traits::SymbolT;
+private:
 
     RunDataT pattern_;
     RunDataT pattern_length_;
@@ -1326,6 +1333,18 @@ public:
     }
 };
 
+
+template <size_t BPS>
+typename SSRLERun<BPS>::RunSizeT count_symbols_in(Span<const SSRLERun<BPS>> runs)
+{
+    using RunSizeT = typename SSRLERun<BPS>::RunSizeT;
+    RunSizeT size{};
+    for (const auto& run: runs) {
+        size += run.full_run_length();
+    }
+    return size;
+
+}
 
 }
 

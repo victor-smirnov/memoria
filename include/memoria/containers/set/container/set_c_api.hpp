@@ -223,7 +223,7 @@ public:
         CtrSizeT cnt{};
 
         size_t local_cnt;
-        while (cnt < length && !is_after_end(ii))
+        while (cnt < length && is_valid_chunk(ii))
         {
             local_cnt = 0;
             CtrSizeT remainder   = length - cnt;

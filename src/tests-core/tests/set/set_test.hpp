@@ -134,7 +134,7 @@ public:
         out() << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
 
         int c = 0;
-        for (auto iter = ctr->seek_entry(ctr->size() - 1); !is_before_start(iter); iter = iter->prev(100)) {
+        for (auto iter = ctr->seek_entry(ctr->size() - 1); is_valid_chunk(iter); iter = iter->prev(100)) {
             println("Key: {} :: {}", iter->current_key(), iter->entry_offset());
             c++;
         }
@@ -190,7 +190,7 @@ public:
         auto scc = ctr->first_entry();
         auto en_ii = entries_set.begin();
 
-        while (!is_after_end(scc))
+        while (is_valid_chunk(scc))
         {
             for (auto key: scc->keys())
             {

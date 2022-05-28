@@ -364,7 +364,7 @@ public:
     {
         auto block = this->getBlock(root_block_id);
 
-        if (block.as_mutable()->unref_block())
+        if (block->unref_block())
         {
             auto ctr_hash = block->ctr_type_hash();
 
@@ -692,13 +692,13 @@ public:
     virtual void ref_block(const BlockID& block_id)
     {
         auto block = getBlock(block_id);
-        block.as_mutable()->ref_block(1);
+        block->ref_block(1);
     }
 
     virtual void unref_block(const BlockID& block_id, std::function<void ()> on_zero)
     {
         auto block = getBlock(block_id);
-        if (block.as_mutable()->unref_block()) {
+        if (block->unref_block()) {
             return on_zero();
         }
     }
@@ -708,7 +708,6 @@ public:
     virtual void removeBlock(const BlockID& id)
     {
         check_updates_allowed();
-
         BlockType* block = detail::IDValueHolderH<BlockID>::template get_block_ptr<BlockType>(id);
         freeMemory(block);
     }
@@ -785,8 +784,7 @@ public:
         {
             auto iter = root_map_->ctr_map_find(name);
 
-            if (iter->is_found(name))
-            {
+            if (iter->is_found(name)) {
                 return iter->current_value();
             }            
         }

@@ -22,6 +22,7 @@
 #include <memoria/api/set/set_api.hpp>
 #include <memoria/api/vector/vector_api.hpp>
 #include <memoria/api/multimap/multimap_api.hpp>
+#include <memoria/api/sequence/sequence_api.hpp>
 
 #include <memoria/core/tools/assert.hpp>
 
@@ -122,6 +123,23 @@ struct [[clang::annotate(R"(
 )")]]
 TypeFactory<AllocationMap> {
     static constexpr uint64_t ID = 9503245888843438934ull;
+};
+
+
+template <size_t AlphabetSize>
+struct [[clang::annotate(R"(
+    @CtrTF = {
+        "name": "sequence_tf",
+        "type": "BTSS",
+        "includes": [
+            "memoria/containers/sequence/sequence_factory.hpp",
+            "memoria/containers/sequence/sequence_api_impl.hpp"
+        ],
+        "generator": "codegen.ctr_typefactory.CtrTypeFactory"
+    }
+)")]]
+TypeFactory<Sequence<AlphabetSize>> {
+    static constexpr uint64_t ID = 2492200169829348817ull;
 };
 
 }

@@ -31,4 +31,5 @@
 #include <memoria/core/packed/misc/packed_tuple.hpp>
 
 #include <memoria/core/packed/sseq/packed_allocation_map.hpp>
+#include <memoria/core/packed/sseq/packed_ssrle_seq.hpp>
 

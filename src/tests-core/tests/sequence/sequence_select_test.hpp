@@ -1,5 +1,5 @@
 
-// Copyright 2013 Victor Smirnov
+// Copyright 2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,184 +16,242 @@
 
 #pragma once
 
-#include "sequence_test_base.hpp"
+#include <memoria/core/tools/time.hpp>
 
-#include <vector>
+#include <memory>
+
+#include "sequence_test_base.hpp"
 
 namespace memoria {
 namespace tests {
 
-template <int32_t BitsPerSymbol, bool Dense = true>
-class SequenceSelectTest: public SequenceTestBase<BitsPerSymbol, Dense> {
+template <size_t AlphabetSize, bool Use64BitSize = true>
+class SequenceSelectTest: public SequenceTestBase<AlphabetSize, Use64BitSize> {
 
-    using MyType = SequenceSelectTest<BitsPerSymbol, Dense>;
-    using Base   = SequenceTestBase<BitsPerSymbol, Dense>;
+    using MyType = SequenceSelectTest<AlphabetSize, Use64BitSize>;
+    using Base   = SequenceTestBase<AlphabetSize, Use64BitSize>;
 
-    using typename Base::Iterator;
-    using typename Base::Ctr;
-    using typename Base::CtrName;
+    using typename Base::SymbolsRunT;
+    using typename Base::RunTraits;
 
+    using typename Base::Seq;    
+    using typename Base::SeqSO;
+    using typename Base::SeqPtr;
 
-    static const int32_t Symbols  = Base::Symbols;
+    using typename Base::BlockSize;
+    using typename Base::BlockRank;
+    using typename Base::LocateResult;
 
-    using Base::commit;
-    using Base::drop;
-    using Base::branch;
-    using Base::allocator;
-    using Base::snapshot;
-    using Base::check;
-    using Base::out;
-    using Base::fillRandomSeq;
-    using Base::size_;
-    using Base::storeAllocator;
-    using Base::isReplayMode;
-    using Base::getResourcePath;
-    using Base::ctr_name_;
+    using typename Base::SymbolT;
+    using typename Base::SeqSizeT;
+
     using Base::getRandom;
+    using Base::getRandom1;
+    using Base::make_empty_sequence;
+    using Base::make_random_sequence;
+    using Base::make_sequence;
+    using Base::assert_spans_equal;
+    using Base::count;
+    using Base::get_so;
 
-    int32_t iterations_ = 100000;
+
+    using Base::build_size_index;
+    using Base::get_symbol;
+
+    using Base::build_rank_index;
+    using Base::get_rank_eq;
+    using Base::get_ranks;
+
+    using Base::push_back;
+    using Base::split_runs;
+    using Base::out;
+    using Base::size_;
+    using Base::branch;
+    using Base::create_sequence_ctr;
+
 
 public:
-    SequenceSelectTest()
-    {
-        Base::size_ = 30000;
+
+    SequenceSelectTest(){}
+
+    static void init_suite(TestSuite& suite) {
+        MMA_CLASS_TESTS(
+                    suite,
+                    testSelectFwEq,
+                    testSelectFwNeq,
+                    testSelectFwGt,
+                    testSelectFwGe,
+                    testSelectFwLt,
+                    testSelectFwLe
+        );
     }
 
-    MMA_STATE_FILEDS(iterations_)
-
-    static void init_suite(TestSuite& suite)
-    {
-        MMA_CLASS_TESTS(suite, testCtrSelect, testIterSelectFw, testIterSelectBw);
-    }
-
-
-    void testCtrSelect()
-    {
-        auto snp = branch();
-
-        auto ctr = create<CtrName>(snp);
-
-        auto seq = fillRandomSeq(*ctr.get(), size_);
-
-        check(MA_SRC);
-
-        auto ranks = seq->ranks();
-
-        for (int32_t c = 0; c < iterations_; c++)
-        {
-            out() << c << std::endl;
-
-            int32_t symbol  = getRandom(Base::Symbols);
-            int32_t rank    = getRandom(ranks[symbol]);
-
-            if (rank == 0) rank = 1; //  rank of 0 is not defined for select()
-
-            auto iter1 = ctr->select(symbol, rank);
-            auto iter2 = seq->selectFw(symbol, rank);
-
-            assert_equals(false, iter1->isEof());
-            assert_equals(true,  iter2.is_found());
-
-            assert_equals(iter1->pos(), iter2.idx());
+    struct SelectFwEq {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
         }
 
-        commit();
-    }
+        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->get_rank_eq(index, runs, rank, symbol);
+        }
+
+        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->select_fw_eq(index, runs, rank, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::EQ;}
+    };
+
+    struct SelectFwNeq {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
+        }
+
+        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->get_rank_neq(index, runs, rank, symbol);
+        }
+
+        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->select_fw_neq(index, runs, rank, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::NEQ;}
+    };
+
+    struct SelectFwLt {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
+        }
+
+        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->get_rank_lt(index, runs, rank, symbol);
+        }
 
 
-    void testIterSelectFw()
+        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->select_fw_lt(index, runs, rank, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::LT;}
+    };
+
+    struct SelectFwLe {
+        size_t get_sym() const {
+            return AlphabetSize / 2 - 1;
+        }
+
+        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->get_rank_le(index, runs, rank, symbol);
+        }
+
+        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->select_fw_le(index, runs, rank, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::LE;}
+    };
+
+
+    struct SelectFwGt {
+        size_t get_sym() const {
+            return AlphabetSize / 2 - 1;
+        }
+
+        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->get_rank_gt(index, runs, rank, symbol);
+        }
+
+        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->select_fw_gt(index, runs, rank, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::GT;}
+    };
+
+    struct SelectFwGe {
+        size_t get_sym() const {
+            return AlphabetSize / 2;
+        }
+
+        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->get_rank_ge(index, runs, rank, symbol);
+        }
+
+        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
+            return test->select_fw_ge(index, runs, rank, symbol);
+        }
+
+        SeqOpType op_type() {return SeqOpType::GE;}
+    };
+
+
+
+    template <typename Fn>
+    void testSelectFwFn(Fn&& fn)
     {
-        auto snp = branch();
-
-        auto ctr = create<CtrName>(snp);
-
-        auto seq = fillRandomSeq(*ctr.get(), size_);
-
-        check(MA_SRC);
-
-        for (int32_t c = 0; c < iterations_; c++)
+        for (size_t data_size = 2; data_size <= 1024 * 1024; data_size *= 2)
         {
-            out() << c << std::endl;
+            println("DataSize: {}", data_size);
 
-            int32_t pos     = getRandom(size_);
-            int32_t symbol  = getRandom(Base::Symbols);
+            auto snp = branch();
 
-            int32_t maxrank_ = seq->rank(pos, size_, symbol);
+            std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
+            std::vector<BlockRank> rank_index = build_rank_index(syms1);
+            uint64_t size = count(syms1);
 
-            if (maxrank_ > 0)
-            {
-                int32_t rank    = getRandom(maxrank_);
+            size_t sym = fn.get_sym();
+            uint64_t rank0_max = fn.get_rank_fn(this, rank_index, syms1, size, sym);
 
-                if (rank == 0) rank = 1;
+            auto ctr = create_sequence_ctr(syms1);
 
-                auto iter = ctr->seek(pos);
+            size_t queries = data_size / 2;
+            std::vector<size_t> ranks;
+            for (size_t c = 0; c < queries; c++) {
+                ranks.push_back(getBIRandomG(rank0_max));
+            }
 
-                auto pos0 = iter->pos();
+            for (size_t c = 0; c < queries; c++) {
+                SeqSizeT rank = ranks[c];
 
-                AssertEQ(MA_SRC, pos0, pos);
+                SeqSizeT pos1 = fn.test_select_fw(this, rank_index, syms1, rank, sym).global_pos();
+                SeqSizeT pos2 = ctr->select(sym, rank, fn.op_type())->entry_offset();
 
-                int64_t pos_delta1 = iter->selectFw(rank, symbol);
-
-                auto tgt_pos2 = seq->selectFw(pos, symbol, rank);
-
-                AssertEQ(MA_SRC, iter->pos(), tgt_pos2.idx());
-
-                if (tgt_pos2.is_found()) {
-                    AssertEQ(MA_SRC, pos_delta1, rank);
+                try {
+                    assert_equals(pos1, pos2);
                 }
-                else {
-                    AssertEQ(MA_SRC, pos_delta1, tgt_pos2.rank());
+                catch (...) {
+                    throw;
                 }
             }
-        }
 
-        commit();
+            snp->commit();
+        }
     }
 
-    void testIterSelectBw()
-    {
-        auto snp = branch();
-
-        auto ctr = create<CtrName>(snp);
-
-        auto seq = fillRandomSeq(*ctr.get(), size_);
-
-        check(MA_SRC);
-
-        for (int32_t c = 0; c < iterations_; c++)
-        {
-            out()<<c<<std::endl;
-
-            int32_t pos     = getRandom(size_);
-            int32_t symbol  = getRandom(Base::Symbols);
-
-            int32_t maxrank_ = seq->rank(0, pos, symbol);
-
-            if (maxrank_ > 0)
-            {
-                int32_t rank    = getRandom(maxrank_);
-
-                if (rank == 0) rank = 1;
-
-                auto iter   = ctr->seek(pos);
-
-                auto tgt_pos    = seq->selectBw(pos, symbol, rank);
-                auto pos_delta1 = iter->selectBw(rank, symbol);
-
-                AssertEQ(MA_SRC, iter->pos(), tgt_pos.idx());
-
-                if (tgt_pos.is_found())
-                {
-                    AssertEQ(MA_SRC, pos_delta1, rank);
-                }
-                else {
-                    AssertEQ(MA_SRC, pos_delta1, tgt_pos.rank());
-                }
-            }
-        }
-
+    void testSelectFwEq() {
+        testSelectFwFn(SelectFwEq());
     }
 
+    void testSelectFwNeq() {
+        testSelectFwFn(SelectFwNeq());
+    }
+
+    void testSelectFwGt() {
+        testSelectFwFn(SelectFwGt());
+    }
+
+    void testSelectFwGe() {
+        testSelectFwFn(SelectFwGe());
+    }
+
+    void testSelectFwLt() {
+        testSelectFwFn(SelectFwLt());
+    }
+
+    void testSelectFwLe() {
+        testSelectFwFn(SelectFwLe());
+    }
 };
+
 
 }}

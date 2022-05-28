@@ -55,7 +55,7 @@ private:
 
     uint64_t    next_block_pos_;
     uint64_t    target_block_pos_;
-    std::atomic<int64_t> references_;
+    mutable std::atomic<int64_t> references_;
 
     IdValueHolder id_value_;
     PageIdType  id_;
@@ -174,11 +174,11 @@ public:
         references_.store(value);
     }
 
-    void ref_block(int64_t amount = 1) noexcept {
+    void ref_block(int64_t amount = 1) const noexcept {
         references_.fetch_add(amount, std::memory_order_relaxed);
     }
 
-    bool unref_block() noexcept
+    bool unref_block() const noexcept
     {
         auto refs = references_.fetch_sub(1, std::memory_order_acq_rel);
         if (refs < 1) {

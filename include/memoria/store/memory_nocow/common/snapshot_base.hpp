@@ -856,7 +856,7 @@ public:
 
             if (iter->is_found(name))
             {
-                return iter->value();
+                return iter->current_value();
             }
             else {
                 return BlockID{};
@@ -873,7 +873,7 @@ public:
         {
             if (!name.is_null())
             {
-                root_map_->remove(name);
+                root_map_->remove_key(name);
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Allocator directory removal attempted").do_throw();

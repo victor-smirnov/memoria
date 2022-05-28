@@ -125,7 +125,7 @@ public:
 
             if (iter->is_found(ctr_id))
             {
-                return iter->value().view();
+                return iter->current_value();
             }
         }
 
@@ -272,21 +272,31 @@ public:
 
     virtual void check(const CheckResultConsumerFn& consumer)
     {
-        auto iter = directory_ctr_->iterator();
+      directory_ctr_->for_each([&](auto ctr_name, auto block_id){
+        auto block = getBlock(block_id);
 
-        while(!iter->is_end())
-        {
-            auto ctr_name = iter->key();
+        auto ctr_intf = ProfileMetadata<Profile>::local()
+                ->get_container_operations(block->ctr_type_hash());
 
-            auto block = getBlock(iter->value());
+        ctr_intf->check(ctr_name, this->self_ptr(), consumer);
+      });
 
-            auto ctr_intf = ProfileMetadata<Profile>::local()
-                    ->get_container_operations(block->ctr_type_hash());
 
-            ctr_intf->check(ctr_name, this->self_ptr(), consumer);
+//      auto iter = directory_ctr_->iterator();
 
-            iter->next();
-        }
+//        while(!iter->is_end())
+//        {
+//            auto ctr_name = iter->key();
+
+//            auto block = getBlock(iter->value());
+
+//            auto ctr_intf = ProfileMetadata<Profile>::local()
+//                    ->get_container_operations(block->ctr_type_hash());
+
+//            ctr_intf->check(ctr_name, this->self_ptr(), consumer);
+
+//            iter->next();
+//        }
     }
 
     void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer) {}
@@ -315,22 +325,32 @@ public:
             );
         }
 
-        auto iter = directory_ctr_->iterator();
-        while (!iter->is_end())
-        {
-            auto ctr_name   = iter->key();
-            auto root_id    = iter->value();
+        directory_ctr_->for_each([&](auto ctr_name, auto root_id){
+          auto block = getBlock(root_id);
 
-            auto block = getBlock(root_id);
+          auto ctr_hash   = block->ctr_type_hash();
+          auto ctr_intf   = ProfileMetadata<Profile>::local()
+                  ->get_container_operations(ctr_hash);
 
-            auto ctr_hash   = block->ctr_type_hash();
-            auto ctr_intf   = ProfileMetadata<Profile>::local()
-                    ->get_container_operations(ctr_hash);
+          ctr_intf->walk(ctr_name, this->self_ptr(), walker);
+        });
 
-            ctr_intf->walk(ctr_name, this->self_ptr(), walker);
+//        auto iter = directory_ctr_->iterator();
+//        while (!iter->is_end())
+//        {
+//            auto ctr_name   = iter->key();
+//            auto root_id    = iter->value();
 
-            iter->next();
-        }
+//            auto block = getBlock(root_id);
+
+//            auto ctr_hash   = block->ctr_type_hash();
+//            auto ctr_intf   = ProfileMetadata<Profile>::local()
+//                    ->get_container_operations(ctr_hash);
+
+//            ctr_intf->walk(ctr_name, this->self_ptr(), walker);
+
+//            iter->next();
+//        }
 
         walker->endSnapshot();
     }
@@ -382,13 +402,17 @@ public:
     {
         std::vector<CtrID> names;
 
-        auto ii = directory_ctr_->iterator();
+        directory_ctr_->for_each([&](auto ctr_name, auto block_id){
+          names.push_back(ctr_name);
+        });
 
-        while (!ii->is_end())
-        {
-            names.push_back(ii->key());
-            ii->next();
-        }
+//        auto ii = directory_ctr_->iterator();
+
+//        while (!ii->is_end())
+//        {
+//            names.push_back(ii->key());
+//            ii->next();
+//        }
 
         return std::move(names);
     }

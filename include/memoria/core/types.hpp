@@ -123,10 +123,6 @@ class CtrWrapper    {};
 template <typename Key, typename Value, PackedDataTypeSize SizeType>
 struct Table        {};
 
-template <size_t BitsPerSymbol>
-struct Sequence {};
-
-
 template <typename ChildType = void>
 class CoreApiProfileT {};
 

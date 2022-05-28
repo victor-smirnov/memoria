@@ -48,6 +48,9 @@ void dump_exception(std::ostream& out, std::exception_ptr& ex)
     catch (MemoriaThrowable& th) {
         th.dump(out);
     }
+    catch (MemoriaError& th) {
+        th.describe(out);
+    }
     catch (std::exception& th) {
         out << "STD Exception: " << th.what() << std::endl;
     }

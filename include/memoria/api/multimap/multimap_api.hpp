@@ -36,6 +36,60 @@
 namespace memoria {
 
 template <typename Key, typename Value, typename Profile>
+struct MultimapValuesChunk;
+
+template <typename Key, typename Value, typename Profile>
+struct MultimapKeysChunk: ChunkIteratorBase<MultimapKeysChunk<Key, Value, Profile>, Profile> {
+
+    using Base = ChunkIteratorBase<MultimapKeysChunk<Key, Value, Profile>, Profile>;
+
+    using typename Base::CtrSizeT;
+    using typename Base::ChunkPtr;
+
+    using KeyView = DTTViewType<Key>;
+    using ValuesChunkPtr = IterSharedPtr<MultimapValuesChunk<Key, Value, Profile>>;
+
+    virtual const KeyView& current_key() const = 0;
+    virtual const Span<const KeyView>& keys() const = 0;
+
+    virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
+
+    virtual bool is_found(const KeyView& key) const = 0;
+
+
+    virtual ValuesChunkPtr values_chunk() const = 0;
+    virtual ValuesChunkPtr values_chunk(size_t idx) const = 0;
+};
+
+
+template <typename Key, typename Value, typename Profile>
+struct MultimapValuesChunk: ChunkIteratorBase<MultimapValuesChunk<Key, Value, Profile>, Profile> {
+
+    using Base = ChunkIteratorBase<MultimapValuesChunk<Key, Value, Profile>, Profile>;
+
+    using typename Base::CtrSizeT;
+    using typename Base::ChunkPtr;
+
+    using ValueView = DTTViewType<Value>;
+    using KeysChunkPtr = IterSharedPtr<MultimapKeysChunk<Key, Value, Profile>>;
+
+    virtual ~MultimapValuesChunk() noexcept = default;
+
+    virtual const ValueView& current_value() const = 0;
+
+    virtual const Span<const ValueView>& values() const = 0;
+
+
+    virtual ChunkPtr read_to(DataTypeBuffer<Value>& buffer, CtrSizeT num) const = 0;
+
+    virtual bool is_found(const ValueView& key) const = 0;
+
+    virtual KeysChunkPtr my_key() const = 0;
+};
+
+
+
+template <typename Key, typename Value, typename Profile>
 struct MultimapIterator: BTFLIterator<Profile> {
     virtual Datum<Key> key() const = 0;
     virtual Datum<Value> value() const = 0;

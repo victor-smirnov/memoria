@@ -25,4 +25,46 @@ namespace memoria::bt {
 
 
 
+template <typename Types, typename LeafPath>
+class RankShuttle: public UptreeShuttle<Types> {
+    using Base = UptreeShuttle<Types>;
+protected:
+    using typename Base::BranchNodeTypeSO;
+    using typename Base::LeafNodeTypeSO;
+    using CtrSizeT = typename Types::CtrSizeT;
+
+    CtrSizeT leaf_end_;
+    size_t symbol_;
+    SeqOpType op_type_;
+    CtrSizeT rank_{};
+
+public:
+    RankShuttle(CtrSizeT leaf_end, size_t symbol, SeqOpType op_type):
+        leaf_end_(leaf_end),
+        symbol_(symbol),
+        op_type_(op_type)
+    {}
+
+
+    virtual void treeNode(const BranchNodeTypeSO& node, size_t end)
+    {
+        using BranchPath = typename BranchNodeTypeSO::template BuildBranchPath<LeafPath>;
+        size_t symbol = BranchNodeTypeSO::template translateLeafIndexToBranchIndex<LeafPath>(symbol_);
+
+        auto ss = node.template substream<BranchPath>();
+        rank_ += ss.sum_for_rank(0, end, symbol, op_type_);
+    }
+
+    virtual void treeNode(const LeafNodeTypeSO& node)
+    {
+        auto ss = node.template substream<LeafPath>();
+        rank_ += ss.rank(leaf_end_, symbol_, op_type_);
+    }
+
+    const CtrSizeT& rank(){return rank_;}
+};
+
+
+
+
 }

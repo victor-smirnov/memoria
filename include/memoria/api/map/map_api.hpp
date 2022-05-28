@@ -27,7 +27,6 @@
 
 #include <memoria/core/iovector/io_vector.hpp>
 
-#include <memoria/api/map/map_scanner.hpp>
 #include <memoria/api/map/map_producer.hpp>
 #include <memoria/api/map/map_api_factory.hpp>
 
@@ -38,41 +37,24 @@
 namespace memoria {
 
 template <typename Key, typename Value, typename Profile>
-struct MapChunk {
+struct MapChunk: ChunkIteratorBase<MapChunk<Key, Value, Profile>, Profile> {
+    using Base = ChunkIteratorBase<MapChunk<Key, Value, Profile>, Profile>;
 
-    virtual ~MapChunk() noexcept = default;
+    using typename Base::ChunkPtr;
+    using typename Base::CtrSizeT;
 
-    using ChunkPtr  = IterSharedPtr<MapChunk>;
     using KeyView   = DTTViewType<Key>;
     using ValueView = DTTViewType<Value>;
-    using CtrSizeT  = ApiProfileCtrSizeT<Profile>;
 
     virtual const KeyView& current_key() const = 0;
     virtual const ValueView& current_value() const = 0;
 
-    virtual CtrSizeT entry_offset() const = 0;
-    virtual CtrSizeT collection_size() const = 0;
-
-    virtual CtrSizeT chunk_offset() const = 0;
-
-    virtual size_t chunk_size() const = 0;
-    virtual size_t entry_offset_in_chunk() const = 0;
-
     virtual const Span<const KeyView>& keys() const = 0;
     virtual const Span<const ValueView>& values() const = 0;
 
-    virtual bool is_before_start() const = 0;
-    virtual bool is_after_end() const = 0;
 
-    virtual ChunkPtr next(CtrSizeT num = 1) const = 0;
-    virtual ChunkPtr next_chunk() const = 0;
-
-    virtual ChunkPtr prev(CtrSizeT num = 1) const = 0;
-    virtual ChunkPtr prev_chunk() const = 0;
 
     virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
-
-    virtual void dump(std::ostream& out = std::cout) const = 0;
 
     virtual bool is_found(const KeyView& key) const = 0;
 
@@ -99,39 +81,10 @@ struct MapChunk {
                     fn(keys_span[c], values_span[c]);
                 }
             }
-            while (is_after_end(next));
+            while (!this->is_after_end(next));
         }
     }
 };
-
-
-template <typename Key, typename Value, typename Profile>
-bool is_after_end(const IterSharedPtr<MapChunk<Key, Value, Profile>>& ptr) {
-    return !ptr || ptr->is_after_end();
-}
-
-template <typename Key, typename Value, typename Profile>
-bool is_before_start(const IterSharedPtr<MapChunk<Key, Value, Profile>>& ptr) {
-    return !ptr || ptr->is_before_start();
-}
-
-
-
-template <typename Key, typename Value, typename Profile>
-struct MapIterator: BTSSIterator<Profile> {
-
-    using KeyView   = typename DataTypeTraits<Key>::ViewType;
-
-    virtual Datum<Key> key() const = 0;
-    virtual Datum<Value> value() const = 0;
-
-    virtual bool is_end() const = 0;
-    virtual bool next() = 0;
-
-    virtual bool is_found(const KeyView& key) const = 0;
-};
-
-
 
 
 template <typename Key, typename Value, typename Profile>
@@ -209,7 +162,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     void for_each(Fn&& fn)
     {
         auto ss = this->first_entry();
-        while (!is_after_end(ss))
+        while (!is_valid_chunk(ss))
         {
             auto key_ii_b = ss->keys().begin();
             auto key_ii_e = ss->keys().end();
@@ -233,7 +186,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     void for_each_chunk(Fn&& fn)
     {
         auto ss = this->first_entry();
-        while (!is_after_end(ss))
+        while (is_valid_chunk(ss))
         {
             fn(ss->keys(), ss->values());
             ss = ss->next_chunk();

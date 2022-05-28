@@ -177,6 +177,16 @@ public:
         );
     }
 
+    static size_t compute_index_block_size(size_t capacity)
+    {
+        if (Ordering == DTOrdering::SUM) {
+            return compute_block_size(div_up(capacity, IndexSpan));
+        }
+        else {
+            return 0;
+        }
+    }
+
     static size_t compute_block_size(size_t capacity)
     {
         size_t index_size{};

@@ -122,7 +122,8 @@ public:
 
     virtual void reindex()
     {
-        if (runs_buf_.size())
+        size_t buf_size = runs_buf_.size();
+        if (buf_size)
         {
             auto update_state = sequence_so_.make_update_state();
             auto size = sequence_so_.size();

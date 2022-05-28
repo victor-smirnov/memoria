@@ -13,17 +13,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#pragma once
 
 
-#include <memoria/containers/seq_dense/seqd_impl.hpp>
-#include <memoria/allocators/inmem/common/container_collection_cfg.hpp>
+
+#include <memoria/api/sequence/sequence_api.hpp>
+#include <memoria/core/container/ctr_impl_btss.hpp>
+
+#include <memory>
 
 namespace memoria {
 
-using Profile = DefaultProfile<>;
-using Ctr1Name = Sequence<1>;
-
-MMA_INSTANTIATE_CTR_BTSS(Ctr1Name, Profile)
-    
+template <size_t AlphabetSize, typename Profile>
+template <typename ImplProfile>
+void ICtrApi<Sequence<AlphabetSize>, Profile>::init_profile_metadata()
+{
+    SharedCtr<
+        Sequence<AlphabetSize>,
+        ProfileStoreType<ImplProfile>,
+        ImplProfile
+    >::init_profile_metadata();
 }
 
+}

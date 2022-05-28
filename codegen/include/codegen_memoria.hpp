@@ -300,4 +300,17 @@ class [[clang::annotate(R"(
     }
 )")]] TypeInstance<Map<UID256, SnapshotMetadataDT<DataTypeFromProfile<ApiProfile<CowProfile>>>>> {};
 
+
+template<>
+class [[clang::annotate(R"(
+    @TypeInstance = {
+        "config": "$/groups/stores/containers",
+        "profiles": ["CowProfile", "CowLiteProfile"],
+        "includes": [
+            "memoria/api/sequence/sequence_api.hpp"
+        ]
+    }
+)")]] TypeInstance<Sequence<2>> {};
+
+
 }

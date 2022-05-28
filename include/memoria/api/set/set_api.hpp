@@ -90,7 +90,7 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
     void for_each(Fn&& fn)
     {
         auto ss = this->first_entry();
-        while (!is_after_end(ss))
+        while (is_valid_chunk(ss))
         {
             for (auto key_view: ss->keys()) {
                 fn(key_view);

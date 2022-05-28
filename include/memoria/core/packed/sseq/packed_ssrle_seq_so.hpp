@@ -213,29 +213,7 @@ public:
         return data_->configure_io_substream(substream);
     }
 
-//    SizeTResult insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size)
-//    {
-//        MEMORIA_TRY_VOID(data_->insert_io_substream(at, substream, start, size));
-//        return SizeTResult::of(at + size);
-//    }
 
-    template <typename AccessorFn>
-    void commit_insert(SeqSizeT row_at, size_t size, UpdateState& update_state, AccessorFn&& elements)
-    {
-//        for (psize_t c = 0; c < size; c++)
-//        {
-//            SymbolT symbol = elements(c);
-//            SymbolsRunT run(1, symbol, 1);
-//            insert(row_at, unit_span_of(&run));
-//        }
-    }
-
-//    template <typename AccessorFn>
-//    void commit_update(SeqSizeT row_at, SeqSizeT size, UpdateState& update_state, AccessorFn&& elements)
-//    {
-//        remove(row_at, row_at + size, update_state);
-//        return commit_insert(row_at, size, update_state, std::forward<AccessorFn>(elements));
-//    }
 
     SeqSizeT rank(SeqSizeT pos, SymbolT symbol, SeqOpType op_type) const {
         switch (op_type) {
@@ -809,7 +787,7 @@ public:
 
         data_->resize_block(PkdStruct::SYMBOLS, step->new_code_units * sizeof(CodeUnitT));
 
-        Span<CodeUnitT> atoms = data_->symbols();
+        Span<CodeUnitT> atoms = data_->symbols_block();
         RunTraits::write_segments_to(step->runs, atoms, 0);
 
         Metadata* meta = data_->metadata();
@@ -909,7 +887,7 @@ public:
         {
             data_->resize_block(PkdStruct::SYMBOLS, step->new_code_units * sizeof(CodeUnitT));
 
-            Span<CodeUnitT> atoms = data_->symbols();
+            Span<CodeUnitT> atoms = data_->symbols_block();
             RunTraits::write_segments_to(step->runs, atoms, 0);
 
             meta->set_code_units(step->new_code_units);
@@ -966,13 +944,13 @@ public:
             size_t left_code_units = RunTraits::compute_size(result.left.span(), location.unit_idx);
             data_->resize_block(PkdStruct::SYMBOLS, left_code_units * sizeof(CodeUnitT));
 
-            Span<CodeUnitT> left_syms = data_->symbols();
+            Span<CodeUnitT> left_syms = data_->symbols_block();
             RunTraits::write_segments_to(result.left.span(), left_syms, location.unit_idx);
 
             size_t right_atoms_size = RunTraits::compute_size(result.right.span(), right_runs);
             other.data_->resize_block(PkdStruct::SYMBOLS, right_atoms_size * sizeof(CodeUnitT));
 
-            Span<CodeUnitT> right_syms = other.data_->symbols();
+            Span<CodeUnitT> right_syms = other.data_->symbols_block();
             size_t right_code_units = RunTraits::write_segments_to(result.right.span(), right_runs, right_syms);
 
             other_meta->set_size(meta->size() - idx);
@@ -1024,7 +1002,7 @@ public:
         auto new_block_size = step->new_code_units * sizeof(CodeUnitT);
         other.data_->resize_block(PkdStruct::SYMBOLS, new_block_size);
 
-        Span<CodeUnitT> atoms = other.data_->symbols();
+        Span<CodeUnitT> atoms = other.data_->symbols_block();
         RunTraits::write_segments_to(step->syms, atoms, 0);
 
         other_meta->add_size(meta->size());
@@ -1349,11 +1327,6 @@ private:
 
         const auto* meta = data_->metadata();
         SeqSizeT size = meta->size();
-
-        if (pos > size) {
-            int a = 0;
-            a++;
-        }
 
         MEMORIA_ASSERT(pos, <=, size);
         MEMORIA_ASSERT(symbol, <, AlphabetSize);

@@ -1,5 +1,5 @@
 
-// Copyright 2012 Victor Smirnov
+// Copyright 2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,16 +14,12 @@
 // limitations under the License.
 
 
-#include "map_test.hpp"
+#pragma once
 
-namespace memoria {
-namespace tests {
+#include <memoria/prototypes/bt/bt_names.hpp>
 
-namespace {
+namespace memoria::sequence {
 
-auto Suite1 = register_class_suite<MapTest<UID256, UID256, UID256, UID256>>("Map.UID256");
-auto Suite2 = register_class_suite<MapTest<Varchar, Varchar, U8String, U8String>>("Map.Varchar");
+class CtrApiName {};
 
 }
-
-}}

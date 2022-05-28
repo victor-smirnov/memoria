@@ -124,14 +124,16 @@ public:
         return idx_ - idx0;
     }
 
-    auto for_each(std::function<VoidResult (const RunT& run)> fn)
+    size_t read_to(ArenaBuffer<RunT>& sink) noexcept
     {
+        size_t idx0 = idx_;
+
         while (!is_eos())
         {
             RunT run = this->get();
 
             if (run) {
-                MEMORIA_TRY_VOID(fn(run));
+                sink.append_value(run);
                 next();
             }
             else if (run.is_padding()) {
@@ -142,8 +144,9 @@ public:
             }
         }
 
-        return VoidResult::of();
+        return idx_ - idx0;
     }
+
 
     auto for_each(std::function<void (const RunT& run)> fn)
     {

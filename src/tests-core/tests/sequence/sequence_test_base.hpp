@@ -1,5 +1,5 @@
 
-// Copyright 2013 Victor Smirnov
+// Copyright 2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,145 +16,137 @@
 
 #pragma once
 
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/containers/seq_dense/seqd_factory.hpp>
-
-#include <memoria/core/packed/wrappers/symbol_sequence.hpp>
+#include <memoria/core/packed/sseq/packed_ssrle_seq.hpp>
 #include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
-#include <memoria/core/tools/isymbols.hpp>
 
-#include "../prototype/btss/btss_test_base.hpp"
+#include <memoria/reactor/reactor.hpp>
 
-#include <vector>
+#include <memoria/api/sequence/sequence_api.hpp>
+
+#include "../prototype/bt/bt_test_base.hpp"
+#include "../packed/sequence/ssrle/ssrleseq_test_base.hpp"
+
+#include <memory>
+#include <array>
 
 namespace memoria {
 namespace tests {
 
-template <int32_t BitsPerSymbol, bool Dense = true>
-class SequenceTestBase: public BTTestBase<Sequence<BitsPerSymbol, Dense>, InMemAllocator<>, NoCowProfile> {
 
-    using MyType = SequenceTestBase<BitsPerSymbol, Dense>;
+template <
+    size_t AlphabetSize_,
+    bool Use64BitSize,
+    typename ProfileT = CoreApiProfile,
+    typename StoreT   = IMemoryStorePtr<ProfileT>
+>
+class SequenceTestBase:
+        public BTTestBase<Sequence<AlphabetSize_>, ProfileT, StoreT>,
+        public SymbolsRunTools<AlphabetSize_, Use64BitSize>
+{
+    using Base = BTTestBase<Sequence<AlphabetSize_>, ProfileT, StoreT>;
+    using ToolsBase = SymbolsRunTools<AlphabetSize_, Use64BitSize>;
 
-    using Base   = BTTestBase<Sequence<BitsPerSymbol, Dense>, InMemAllocator<>, NoCowProfile>;
+    using MyType = PackedSSRLESequenceTestBase<AlphabetSize_, Use64BitSize>;
 
 protected:
-    using CtrName = Sequence<BitsPerSymbol, Dense>;
 
-    typedef typename DCtrTF<Sequence<BitsPerSymbol, Dense> >::Type              Ctr;
-    typedef typename Ctr::Iterator                                              Iterator;
-    typedef typename Ctr::BranchNodeEntry                                       BranchNodeEntry;
-    typedef typename Ctr::ID                                                    ID;
+    static constexpr size_t SIZE_INDEX_BLOCK = 128;
+    static constexpr size_t Bps = BitsPerSymbolConstexpr(AlphabetSize_);
+    static constexpr size_t AlphabetSize = AlphabetSize_;
 
-    typedef PackedFSESequence<BitsPerSymbol>                                    PackedSeq;
+    using Seq    = PkdSSRLESeqT<AlphabetSize, 256, Use64BitSize>;
+    using SeqSO  = typename Seq::SparseObject;
 
-    typedef SymbolsBuffer<BitsPerSymbol>                                        MemBuffer;
+    using SeqPtr = std::shared_ptr<PkdStructHolder<Seq>>;
+
+    using CtrSizeT = ApiProfileCtrID<ProfileT>;
+
+    size_t size_{32768};
+
+    using SymbolsRunT   = SSRLERun<Bps>;
+    using RunTraits     = SSRLERunTraits<Bps>;
+    using CodeUnitT     = typename RunTraits::CodeUnitT;
+    using SeqSizeT      = typename Seq::SeqSizeT;
+    using RunSizeT      = typename Seq::RunSizeT;
+    using SymbolT       = typename Seq::SymbolT;
 
 
-    using PSeqTypes  = typename PkdFSSeqTF<BitsPerSymbol>::Type;
-    using PackedSeq1 = PkdFSSeq<PSeqTypes>;
-    using PackedSeq1Ptr = PkdStructSPtr<PackedSeq1>;
-
-
-    using Seq = PkdFSSeq<PSeqTypes>;
-
-    static const int32_t Symbols                                                    = 1<<BitsPerSymbol;
-
-    using Base::commit;
-    using Base::drop;
-    using Base::branch;
-    using Base::allocator;
-    using Base::snapshot;
-    using Base::check;
-    using Base::out;
-    using Base::size_;
-    using Base::storeAllocator;
-    using Base::isReplayMode;
-    using Base::getResourcePath;
-    using Base::getRandom;
-    using Base::getBIRandom;
-
-    UUID ctr_name_;
+    using Base::snapshot_;
 
 public:
-    SequenceTestBase()
-    {
-        Ctr::initMetadata();
+    using typename Base::CtrID;
 
-        size_ = 10000000;
 
-        MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
+    MMA_STATE_FILEDS(size_);
+
+    using ToolsBase::push_back;
+    using Base::out;
+
+    SequenceTestBase(): ToolsBase(this) {}
+
+    SeqSO get_so(SeqPtr ptr) const {
+        return ptr->get_so();
     }
 
-    PackedSeq1Ptr createEmptyPackedSeq(int32_t size)
+
+
+    SeqPtr make_empty_sequence(size_t syms_block_size = 1024*1024) const
     {
-        int32_t block_size;
-
-        if (BitsPerSymbol == 1) {
-            block_size = PackedSeq1::estimate_block_size(size, 1, 1);
-        }
-        else if (BitsPerSymbol == 4) {
-            block_size = PackedSeq1::estimate_block_size(size, 1, 1);
-        }
-        else {
-            block_size = PackedSeq1::estimate_block_size(size, 3, 2);
-        }
-
-        return MakeSharedPackedStructByBlock<PackedSeq1>(block_size);
+        size_t block_size = Seq::compute_block_size(syms_block_size * 2);
+        return PkdStructHolder<Seq>::make_empty(block_size);
     }
 
-    PackedSeq1Ptr fillRandomSeq(Ctr& ctr, int32_t size)
+
+
+    SeqPtr make_sequence(Span<const SymbolsRunT> span, size_t capacity_multiplier = 1) const
     {
-        PackedSeq1Ptr seq = createEmptyPackedSeq(size);
+        size_t num_atoms = RunTraits::compute_size(span);
 
-        using SymbolsBuffer = SmallSymbolBuffer<BitsPerSymbol>;
+        SeqPtr ptr = make_empty_sequence(num_atoms * capacity_multiplier);
+        SeqSO seq = get_so(ptr);
 
-        int64_t t0 = getTimeInMillis();
+        auto update_state = seq.make_update_state();
+        assert_success(seq.prepare_insert(0, update_state.first, span));
+        seq.commit_insert(0, update_state.first, span);
 
-        seq->fill_with_buf(0, size, [this](int32_t len) {
+        seq.check();
 
-            SymbolsBuffer buf;
-            int32_t limit = len > buf.capacity() ? buf.capacity() : len;
-
-            buf.resize(limit);
-
-            auto symbols = buf.symbols();
-
-            for (int32_t c = 0; c < SymbolsBuffer::BufSize; c++)
-            {
-                symbols[c] = getBIRandom();
-            }
-
-            return buf;
-        });
-
-        int64_t t1 = getTimeInMillis();
-
-        auto iter = ctr.begin();
-
-        using Provider = seq_dense::SymbolSequenceInputProvider<Ctr>;
-        Provider provider(ctr, seq->symbols(), 0, size);
-
-        iter->bulk_insert(provider);
-
-        int64_t t2 = getTimeInMillis();
-
-        this->out() << "Sequence creation time: " << FormatTime(t1 - t0) << " " << FormatTime(t2 - t1) << std::endl;
-
-        check(MA_SRC);
-
-        return seq;
+        return ptr;
     }
 
-    auto rank(const PackedSeq1* seq, int32_t start, int32_t end, int32_t symbol)
+    template <typename T>
+    void assertIndexCorrect(const char* src, const T& seq)
     {
-        int64_t rank = 0;
+        try {
+            seq->check();
+        }
+        catch (Exception& e) {
+            out()<<"Sequence structure check failed"<<std::endl;
+            seq->dump(out());
+            throw e;
+        }
+    }
 
-        for (int32_t c = start; c < end; c++)
-        {
-            rank += seq->symbol(c) == symbol;
+    template <typename T>
+    void assertEmpty(const T& seq)
+    {
+        assert_equals(0, seq->size());
+        assert_equals(false, seq->has_index());
+    }
+
+    auto create_sequence_ctr(Span<const SymbolsRunT> runs, size_t times = 1)
+    {
+        CtrID ctr_id = CtrID::make_random();
+        auto ctr = create<Sequence<AlphabetSize>>(snapshot_, Sequence<AlphabetSize>{}, ctr_id);
+
+        for (size_t s = 0; s < times; s++) {
+            ctr->insert(0, runs);
         }
 
-        return rank;
+        return ctr;
     }
 };
 

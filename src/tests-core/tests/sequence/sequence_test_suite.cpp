@@ -1,5 +1,5 @@
 
-// Copyright 2013 Victor Smirnov
+// Copyright 2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,29 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "sequence_rank_test.hpp"
-#include "sequence_select_test.hpp"
 
-#include <vector>
+#include "sequence_select_test.hpp"
+#include "sequence_misc_test.hpp"
+#include "sequence_rank_test.hpp"
 
 namespace memoria {
 namespace tests {
 
-//class SequenceTestSuite: public TestSuite {
+namespace {
 
-//public:
+auto Suite1 = register_class_suite<SequenceMiscTest<2, true>>("Sequence.Misc.2");
+auto Suite2 = register_class_suite<SequenceRankTest<2, true>>("Sequence.Rank.2");
+auto Suite3 = register_class_suite<SequenceSelectTest<2, true>>("Sequence.Select.2");
 
-//    SequenceTestSuite(): TestSuite("SequenceSuite")
-//    {
-//        registerTask(new SequenceRankTest<1>("1.Rank"));
-//        registerTask(new SequenceRankTest<4>("4.Rank"));
-//        registerTask(new SequenceRankTest<8>("8.Rank"));
 
-//        registerTask(new SequenceSelectTest<1>("1.Select"));
-//        registerTask(new SequenceSelectTest<4>("4.Select"));
-//        registerTask(new SequenceSelectTest<8>("8.Select"));
-//    }
-
-//};
+}
 
 }}
