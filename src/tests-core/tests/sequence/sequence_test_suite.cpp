@@ -27,6 +27,9 @@ auto Suite1 = register_class_suite<SequenceMiscTest<2, true>>("Sequence.Misc.2")
 auto Suite2 = register_class_suite<SequenceRankTest<2, true>>("Sequence.Rank.2");
 auto Suite3 = register_class_suite<SequenceSelectTest<2, true>>("Sequence.Select.2");
 
+auto Suite4 = register_class_suite<SequenceMiscTest<4, true>>("Sequence.Misc.4");
+auto Suite5 = register_class_suite<SequenceRankTest<4, true>>("Sequence.Rank.4");
+auto Suite6 = register_class_suite<SequenceSelectTest<4, true>>("Sequence.Select.4");
 
 }
 

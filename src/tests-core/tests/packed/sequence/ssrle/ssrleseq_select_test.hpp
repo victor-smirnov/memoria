@@ -59,8 +59,9 @@ class PackedSSRLESearchableSequenceSelectTest: public PackedSSRLESequenceTestBas
     using Base::get_symbol;
 
     using Base::build_rank_index;
-    using Base::get_rank_eq;
+    using Base::get_rank;
     using Base::get_ranks;
+    using Base::select;
 
     using Base::push_back;
     using Base::split_runs;
@@ -75,129 +76,68 @@ public:
     static void init_suite(TestSuite& suite) {
         MMA_CLASS_TESTS(
                     suite,
-                    testSelectFwEq,
-                    testSelectFwNeq,
-                    testSelectFwGt,
-                    testSelectFwGe,
-                    testSelectFwLt,
-                    testSelectFwLe
+                    testSelectEq,
+                    testSelectNeq,
+                    testSelectGt,
+                    testSelectGe,
+                    testSelectLt,
+                    testSelectLe
         );
     }
 
-    struct SelectFwEq {
+    struct SelectEq {
         size_t get_sym() const {
             return AlphabetSize / 2;
         }
 
-        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->get_rank_eq(index, runs, rank, symbol);
-        }
-
-        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->select_fw_eq(index, runs, rank, symbol);
-        }
-
-        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq.select_fw_eq(rank, symbol);
-        }
+        SeqOpType op_type() const {return SeqOpType::EQ;}
     };
 
-    struct SelectFwNeq {
+    struct SelectNeq {
         size_t get_sym() const {
             return AlphabetSize / 2;
         }
 
-        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->get_rank_neq(index, runs, rank, symbol);
-        }
-
-        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->select_fw_neq(index, runs, rank, symbol);
-        }
-
-        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq.select_fw_neq(rank, symbol);
-        }
+        SeqOpType op_type() const {return SeqOpType::NEQ;}
     };
 
-    struct SelectFwLt {
+    struct SelectLt {
         size_t get_sym() const {
             return AlphabetSize / 2;
         }
 
-        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->get_rank_lt(index, runs, rank, symbol);
-        }
-
-
-        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->select_fw_lt(index, runs, rank, symbol);
-        }
-
-        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq.select_fw_lt(rank, symbol);
-        }
+        SeqOpType op_type() const {return SeqOpType::LT;}
     };
 
-    struct SelectFwLe {
+    struct SelectLe {
         size_t get_sym() const {
             return AlphabetSize / 2 - 1;
         }
 
-        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->get_rank_le(index, runs, rank, symbol);
-        }
-
-        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->select_fw_le(index, runs, rank, symbol);
-        }
-
-        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq.select_fw_le(rank, symbol);
-        }
+        SeqOpType op_type() const {return SeqOpType::LE;}
     };
 
 
-    struct SelectFwGt {
+    struct SelectGt {
         size_t get_sym() const {
             return AlphabetSize / 2 - 1;
         }
 
-        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->get_rank_gt(index, runs, rank, symbol);
-        }
-
-        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->select_fw_gt(index, runs, rank, symbol);
-        }
-
-        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq.select_fw_gt(rank, symbol);
-        }
+        SeqOpType op_type() const {return SeqOpType::GT;}
     };
 
-    struct SelectFwGe {
+    struct SelectGe {
         size_t get_sym() const {
             return AlphabetSize / 2;
         }
 
-        uint64_t get_rank_fn(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->get_rank_ge(index, runs, rank, symbol);
-        }
-
-        LocateResult test_select_fw(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol) const {
-            return test->select_fw_ge(index, runs, rank, symbol);
-        }
-
-        auto seq_select_fw(SeqSO seq, SeqSizeT rank, SymbolT symbol) const {
-            return seq.select_fw_ge(rank, symbol);
-        }
+        SeqOpType op_type() const {return SeqOpType::GE;}
     };
 
 
 
     template <typename Fn>
-    void testSelectFwFn(Fn&& fn)
+    void testSelectFn(Fn&& fn)
     {
         for (size_t data_size = 2; data_size <= 32768; data_size *= 2)
         {
@@ -207,7 +147,7 @@ public:
             uint64_t size = count(syms1);
 
             size_t sym = fn.get_sym();
-            uint64_t rank0_max = fn.get_rank_fn(this, rank_index, syms1, size, sym);
+            uint64_t rank0_max = get_rank(rank_index, syms1, size, sym, fn.op_type());
 
             SeqPtr seq_ss = make_sequence(syms1);
             SeqSO seq = get_so(seq_ss);
@@ -221,8 +161,8 @@ public:
             for (size_t c = 0; c < queries; c++) {
                 SeqSizeT rank = ranks[c];
 
-                SeqSizeT pos1 = fn.test_select_fw(this, rank_index, syms1, rank, sym).global_pos();
-                SeqSizeT pos2 = fn.seq_select_fw(seq, rank, sym).idx;
+                SeqSizeT pos1 = select(rank_index, syms1, rank, sym, fn.op_type()).global_pos();
+                SeqSizeT pos2 = seq.select_fw(rank, sym, fn.op_type()).idx;
 
                 try {
                     assert_equals(pos1, pos2);
@@ -234,28 +174,28 @@ public:
         }
     }
 
-    void testSelectFwEq() {
-        testSelectFwFn(SelectFwEq());
+    void testSelectEq() {
+        testSelectFn(SelectEq());
     }
 
-    void testSelectFwNeq() {
-        testSelectFwFn(SelectFwNeq());
+    void testSelectNeq() {
+        testSelectFn(SelectNeq());
     }
 
-    void testSelectFwGt() {
-        testSelectFwFn(SelectFwGt());
+    void testSelectGt() {
+        testSelectFn(SelectGt());
     }
 
-    void testSelectFwGe() {
-        testSelectFwFn(SelectFwGe());
+    void testSelectGe() {
+        testSelectFn(SelectGe());
     }
 
-    void testSelectFwLt() {
-        testSelectFwFn(SelectFwLt());
+    void testSelectLt() {
+        testSelectFn(SelectLt());
     }
 
-    void testSelectFwLe() {
-        testSelectFwFn(SelectFwLe());
+    void testSelectLe() {
+        testSelectFn(SelectLe());
     }
 };
 

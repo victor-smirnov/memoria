@@ -357,6 +357,18 @@ public:
         return blocks;
     }
 
+    uint64_t get_rank(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol, SeqOpType op_type) const {
+        switch (op_type) {
+        case SeqOpType::EQ : return get_rank_eq(index, runs, idx, symbol);
+        case SeqOpType::NEQ: return get_rank_neq(index, runs, idx, symbol);
+        case SeqOpType::LT : return get_rank_lt(index, runs, idx, symbol);
+        case SeqOpType::LE : return get_rank_le(index, runs, idx, symbol);
+        case SeqOpType::GT : return get_rank_gt(index, runs, idx, symbol);
+        case SeqOpType::GE : return get_rank_ge(index, runs, idx, symbol);
+        default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", static_cast<uint32_t>(op_type)).do_throw();
+        }
+    }
+
     uint64_t get_rank_eq(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const
     {
         size_t i = locate_block(index, runs, idx);
@@ -462,9 +474,6 @@ public:
         for (size_t c = 0; c < AlphabetSize; c++) {
             symbols[c] += index[i].rank[c];
         }
-
-//        size_t i = 0;
-//        SeqSizeT offset{};
 
         for (size_t c = i * SIZE_INDEX_BLOCK; c < runs.size(); c++)
         {
@@ -690,6 +699,19 @@ public:
             SymbolT symbol
     ) const {
         return select_fw_fn(index, runs, rank, symbol, SelectFwGeFn());
+    }
+
+
+    LocateResult select(Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT rank, SymbolT symbol, SeqOpType op_type) const {
+        switch (op_type) {
+        case SeqOpType::EQ : return select_fw_eq(index, runs, rank, symbol);
+        case SeqOpType::NEQ: return select_fw_neq(index, runs, rank, symbol);
+        case SeqOpType::LT : return select_fw_lt(index, runs, rank, symbol);
+        case SeqOpType::LE : return select_fw_le(index, runs, rank, symbol);
+        case SeqOpType::GT : return select_fw_gt(index, runs, rank, symbol);
+        case SeqOpType::GE : return select_fw_ge(index, runs, rank, symbol);
+        default: MEMORIA_MAKE_GENERIC_ERROR("Unsupported SeqOpType: {}", static_cast<uint32_t>(op_type)).do_throw();
+        }
     }
 
     template <typename T>

@@ -312,5 +312,16 @@ class [[clang::annotate(R"(
     }
 )")]] TypeInstance<Sequence<2>> {};
 
+template<>
+class [[clang::annotate(R"(
+    @TypeInstance = {
+        "config": "$/groups/stores/containers",
+        "profiles": ["CowProfile", "CowLiteProfile"],
+        "includes": [
+            "memoria/api/sequence/sequence_api.hpp"
+        ]
+    }
+)")]] TypeInstance<Sequence<4>> {};
+
 
 }

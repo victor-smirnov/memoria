@@ -191,7 +191,7 @@ public:
 
             auto rank = rank_ - sum_;
 
-            auto result     = tree.find_for_select_bw(start, rank, symbol, op_type_);
+            auto result = tree.find_for_select_bw(start, rank, symbol, op_type_);
             sum_ += result.rank;
 
             return ShuttleOpResult::non_empty(result.idx, !result.is_end());
@@ -226,8 +226,19 @@ public:
 
         auto result = seq.select_bw(leaf_start_, rank, symbol_, op_type_);
 
-        sum_ += result.rank;
-        return ShuttleOpResult::non_empty(result.idx, result.idx <= leaf_start_);
+        if (result.idx <= leaf_start_)
+        {
+            last_leaf_pos_ = result.idx;
+            sum_ = rank_;
+            before_start_ = false;
+            return ShuttleOpResult::non_empty(result.idx, true);
+        }
+        else {
+            sum_ += result.rank;
+            last_leaf_pos_ = 0;
+            before_start_ = true;
+            return ShuttleOpResult::non_empty(result.idx, false);
+        }
     }
 };
 

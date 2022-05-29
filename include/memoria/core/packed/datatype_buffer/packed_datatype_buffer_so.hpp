@@ -129,6 +129,11 @@ namespace detail {
                 return *this;
             }
 
+            const FindResult& add_prefix(const ViewType& view) {
+                prefix_ += view;
+                return *this;
+            }
+
             size_t local_pos() const {return idx_;}
             size_t idx() const {return idx_;}
 
@@ -1385,7 +1390,13 @@ private:
         if (val < total.view())
         {
             Datum<DataType> tgt = total.view() - val;
-            return find_ge_fw_sum(column, tgt.view());
+            FindResult res =  find_ge_fw_sum(column, tgt.view());
+
+            Datum<DataType> prefix = sum_sum(column, res.local_pos() + 1);
+
+            res.set_prefix(total.view() - prefix.view());
+
+            return res;
         }
         else {
             return FindResult(start + 1, total.view());

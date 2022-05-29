@@ -88,6 +88,11 @@ struct ICtrApi<Sequence<AlphabetSize>, Profile>: public CtrReferenceable<Profile
     virtual ChunkPtr select(SymbolT symbol, CtrSizeT rank, SeqOpType seq_op) const = 0;
     virtual CtrSizeT rank(CtrSizeT pos, SymbolT symbol, SeqOpType seq_op) const = 0;
 
+    virtual CtrSizeT rank(CtrSizeT start, CtrSizeT end, SymbolT symbol, SeqOpType seq_op) const {
+        return rank(end, symbol, seq_op) - rank(start, symbol, seq_op);
+    }
+
+
     virtual ChunkPtr insert(CtrSizeT at, Span<const RunT> runs) {
         size_t runs_per_block = 1024;
         size_t start {};

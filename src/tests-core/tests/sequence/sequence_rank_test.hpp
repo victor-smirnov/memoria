@@ -59,7 +59,7 @@ class SequenceRankTest: public SequenceTestBase<AlphabetSize, Use64BitSize> {
     using Base::get_symbol;
 
     using Base::build_rank_index;
-    using Base::get_rank_eq;
+    using Base::get_rank;
     using Base::get_ranks;
 
     using Base::push_back;
@@ -81,20 +81,12 @@ public:
             return AlphabetSize / 2;
         }
 
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
-            return test->get_rank_eq(index, runs, idx, symbol);
-        }
-
         SeqOpType op_type() {return SeqOpType::EQ;}
     };
 
     struct RankLt {
         size_t get_sym() const {
             return AlphabetSize / 2;
-        }
-
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
-            return test->get_rank_lt(index, runs, idx, symbol);
         }
 
         SeqOpType op_type() {return SeqOpType::LT;}
@@ -105,20 +97,12 @@ public:
             return AlphabetSize / 2 - 1;
         }
 
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
-            return test->get_rank_le(index, runs, idx, symbol);
-        }
-
         SeqOpType op_type() {return SeqOpType::LE;}
     };
 
     struct RankGt {
         size_t get_sym() const {
             return AlphabetSize / 2 - 1;
-        }
-
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
-            return test->get_rank_gt(index, runs, idx, symbol);
         }
 
         SeqOpType op_type() {return SeqOpType::GT;}
@@ -129,20 +113,12 @@ public:
             return AlphabetSize / 2;
         }
 
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
-            return test->get_rank_ge(index, runs, idx, symbol);
-        }
-
         SeqOpType op_type() {return SeqOpType::GE;}
     };
 
     struct RankNeq {
         size_t get_sym() const {
             return AlphabetSize / 2;
-        }
-
-        uint64_t get_rank(const MyType* test, Span<const BlockRank> index, Span<const SymbolsRunT> runs, SeqSizeT idx, SymbolT symbol) const {
-            return test->get_rank_neq(index, runs, idx, symbol);
         }
 
         SeqOpType op_type() {return SeqOpType::NEQ;}
@@ -178,7 +154,7 @@ public:
             {
                 uint64_t pos = poss[c];
 
-                SeqSizeT rank1 = fn.get_rank(this, rank_index, syms1, pos, sym);
+                SeqSizeT rank1 = get_rank(rank_index, syms1, pos, sym, fn.op_type());
                 SeqSizeT rank2 = ctr->rank(pos, sym, fn.op_type());
 
                 try {
