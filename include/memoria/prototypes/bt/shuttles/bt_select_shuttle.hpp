@@ -22,8 +22,6 @@
 
 namespace memoria::bt {
 
-
-
 template <
         typename Types,
         typename LeafPath,
@@ -79,9 +77,7 @@ public:
         if (start < size)
         {
             auto rank = rank_ - sum_;
-
             auto result = tree.find_for_select_fw(start, rank, symbol, op_type_);
-
             sum_ += result.rank;
 
             return ShuttleOpResult::non_empty(result.idx, result.idx < size);
@@ -99,7 +95,8 @@ public:
             size_t column = BranchNodeTypeSO::template translateLeafIndexToBranchIndex<LeafPath>(symbol_);
 
             auto tree = node.template substream<BranchStream>();
-            sum_ -= tree.access(column, end);
+            auto value = tree.sum_for_rank(end, end + 1, column, op_type_);
+            sum_ -= value;
         }
     }
 
@@ -190,11 +187,10 @@ public:
             }
 
             auto rank = rank_ - sum_;
-
             auto result = tree.find_for_select_bw(start, rank, symbol, op_type_);
             sum_ += result.rank;
 
-            return ShuttleOpResult::non_empty(result.idx, !result.is_end());
+            return ShuttleOpResult::non_empty(result.idx, result.idx <= start);
         }
 
     }
@@ -207,7 +203,8 @@ public:
             size_t column = BranchNodeTypeSO::template translateLeafIndexToBranchIndex<LeafPath>(symbol_);
 
             auto tree = node.template substream<BranchPath>();
-            sum_ -= tree.access(column, end);
+            auto value = tree.sum_for_rank(end, end + 1, column, op_type_);//  .access(column, end);
+            sum_ -= value;
         }
     }
 

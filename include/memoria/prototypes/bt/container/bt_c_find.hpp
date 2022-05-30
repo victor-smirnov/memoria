@@ -1127,7 +1127,7 @@ typename M_TYPE::RideResult M_TYPE::ctr_ride_bw(
             }
             else if (!result.is_empty())
             {
-                self.branch_dispatcher().dispatch(node_chain.node, params.shuttle, WalkCmd::FIX_TARGET, node_chain.start, result.position());
+                self.branch_dispatcher().dispatch(node_chain.node, params.shuttle, WalkCmd::FIX_TARGET, node_chain.start, 0);
                 node_chain.end = 0;
 
                 auto child = self.ctr_get_node_child(node_chain.node, 0);
@@ -1173,7 +1173,7 @@ typename M_TYPE::RideResult M_TYPE::ctr_ride_bw(
     else
     {
         // Descending...
-        self.branch_dispatcher().dispatch(node_chain.node, params.shuttle, WalkCmd::FIX_TARGET, node_chain.start, result.position());
+        self.branch_dispatcher().dispatch(node_chain.node, params.shuttle, WalkCmd::FIX_TARGET, node_chain.start, 0);
         node_chain.end = 0;
 
         auto child = self.ctr_get_node_child(node_chain.node, 0);

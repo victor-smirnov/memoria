@@ -62,7 +62,7 @@ protected:
 
     using SeqPtr = std::shared_ptr<PkdStructHolder<Seq>>;
 
-    using CtrSizeT = ApiProfileCtrID<ProfileT>;
+    using CtrSizeT = ApiProfileCtrSizeT<ProfileT>;
 
     size_t size_{32768};
 
@@ -145,6 +145,8 @@ public:
         for (size_t s = 0; s < times; s++) {
             ctr->insert(0, runs);
         }
+
+        this->check("Store structure checking", MMA_SRC);
 
         return ctr;
     }

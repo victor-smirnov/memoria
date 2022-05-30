@@ -1320,12 +1320,12 @@ public:
         Value prefix{};
         size_t size = this->size();
 
-        for (size_t c = start; c >= 0; c--)
+        for (size_t c = start + 1; c > 0; c--)
         {
-            Value tmp = fn.sum(*this, c, symbol);
+            Value tmp = fn.sum(*this, c - 1, symbol);
 
             if (rank < prefix + tmp) {
-                return SelectResult{c, size, prefix};
+                return SelectResult{c - 1, size, prefix};
             }
             else {
                 prefix += tmp;

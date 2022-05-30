@@ -44,9 +44,9 @@ class SequenceSelectTest: public SequenceTestBase<AlphabetSize, Use64BitSize> {
 
     using typename Base::SymbolT;
     using typename Base::SeqSizeT;
+    using typename Base::CtrSizeT;
 
-    using Base::getRandom;
-    using Base::getRandom1;
+    using Base::getBIRandom;
     using Base::make_empty_sequence;
     using Base::make_random_sequence;
     using Base::make_sequence;
@@ -166,7 +166,7 @@ public:
             size_t queries = data_size / 2;
             std::vector<size_t> ranks;
             for (size_t c = 0; c < queries; c++) {
-                ranks.push_back(getBIRandomG(rank0_max));
+                ranks.push_back(getBIRandom(rank0_max));
             }
 
             for (size_t c = 0; c < queries; c++) {
@@ -250,8 +250,7 @@ public:
 
             auto snp = branch();
 
-            std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);
-            std::vector<BlockRank> rank_index = build_rank_index(syms1);
+            std::vector<SymbolsRunT> syms1    = make_random_sequence(data_size);            
             uint64_t size = count(syms1);
 
             auto ctr = create_sequence_ctr(syms1);
@@ -259,12 +258,24 @@ public:
             size_t queries = data_size / 2;
             size_t sym = fn.get_sym();
 
-            SeqSizeT ONE{1};
+            CtrSizeT full_rank = ctr->rank(ctr->size(), sym, fn.op_type());
+            auto ii0 = ctr->select(sym, full_rank, fn.op_type());
 
+            assert_equals(true, ii0->is_after_end());
+            assert_equals(false, ii0->is_before_start());
+
+            auto ii1 = ctr->seek_entry(ctr->size() - 1);
+            assert_equals(true, is_valid_chunk(ii1));
+
+            auto ii2 = ii1->select_bw(sym, full_rank, fn.op_type());
+            assert_equals(true, ii2->is_before_start());
+            assert_equals(false, ii2->is_after_end());
+
+            SeqSizeT ONE{1};
             for (size_t c = 0; c < queries; c++)
             {
-                SeqSizeT x0 = getRandom(div_2(size));
-                SeqSizeT x1 = x0 + getRandom(size - x0);
+                SeqSizeT x0 = getBIRandom(div_2(size));
+                SeqSizeT x1 = x0 + getBIRandom(size - x0);
 
                 SeqSizeT rank = ctr->rank(x0, x1, sym, fn.op_type());
 

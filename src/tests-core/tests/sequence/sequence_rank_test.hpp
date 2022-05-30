@@ -45,8 +45,8 @@ class SequenceRankTest: public SequenceTestBase<AlphabetSize, Use64BitSize> {
     using typename Base::RunSizeT;
     using typename Base::SymbolT;
 
-    using Base::getRandom;
-    using Base::getRandom1;
+    using Base::getBIRandom;
+
     using Base::make_empty_sequence;
     using Base::make_random_sequence;
     using Base::make_sequence;
@@ -143,7 +143,7 @@ public:
             std::vector<size_t> poss;
 
             for (size_t c = 0; c < queries; c++) {
-                poss.push_back(getBIRandomG(static_cast<size_t>(size)));
+                poss.push_back(getBIRandom(static_cast<size_t>(size)));
             }
 
             int64_t t0 = getTimeInMillis();
