@@ -114,8 +114,6 @@ struct ChunkIteratorBase {
     using ChunkPtr = IterSharedPtr<MyType>;
 
     virtual CtrSizeT entry_offset() const = 0;
-    virtual CtrSizeT collection_size() const = 0;
-
     virtual CtrSizeT chunk_offset() const = 0;
 
     virtual size_t chunk_size() const = 0;

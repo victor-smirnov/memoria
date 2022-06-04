@@ -139,30 +139,46 @@ public:
     template <typename CtrApiT>
     void check_container(CtrApiT ctr, const std::vector<Entry>& data)
     {
-        out() << "Checking contianer.... ";
+        out() << "Checking contianer.... " << std::endl;
 
         this->check("Store structure checking", MMA_SRC);
 
         assert_equals(data.size(), ctr->size());
 
-        auto scanner = ctr->entries_scanner();
+        auto ii = ctr->seek_key(0);
+        size_t cntk{};
+        while (is_valid_chunk(ii)) {
+            assert_equals(data[cntk].key, ii->current_key());
 
-        size_t cnt{};
-        scanner->for_each([&](auto key, auto values){
-            assert_equals(data[cnt].key, key);
-            assert_equals(data[cnt].values.size(), values.size());
+            auto vv = ii->values_chunk();
+            assert_equals(data[cntk].values.size(), vv->size());
 
-            size_t vcnt{};
-            for (auto& value: values) {
-                assert_equals(data[cnt].values[vcnt], value);
-                vcnt++;
+            size_t ss = 0;
+            while (is_valid_chunk(vv)) {
+                size_t len = vv->values().size();
+                auto data_span = to_const_span(data[cntk].values).subspan(ss, len);
+
+                try {
+                    assert_equals(data_span, vv->values());
+                }
+                catch (...) {
+                    throw;
+                }
+
+                ss += len;
+                vv = vv->next(len);
             }
 
-            cnt++;
-        });
+            assert_equals(data[cntk].values.size(), ss);
+
+            ii = ii->next(1);
+            cntk++;
+        }
 
         out() << "Done." << std::endl;
     }
+
+
 
     void sort(std::vector<Entry>& data)
     {

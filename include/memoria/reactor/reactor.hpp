@@ -77,8 +77,8 @@ class Reactor: public std::enable_shared_from_this<Reactor> {
     fibers::protected_stack_pool fiber_stack_pool_{4};
     //fibers::protected_fixedsize_stack fiber_stack_pool_{};
     
-    int32_t io_poll_cnt_{};
-    int32_t yield_cnt_{};
+    uint64_t io_poll_cnt_{};
+    uint64_t yield_cnt_{};
 
     ConsoleOutputStream stdout_{1};
     ConsoleOutputStream stderr_{2};

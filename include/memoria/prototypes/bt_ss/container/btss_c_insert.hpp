@@ -60,7 +60,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
         blk_iter->path() = iter->path();
 
         CtrSizeT size = self.ctr_leaf_sizes(iter->path().leaf())[0];
-        blk_iter->set_position(iter->iter_local_pos(), size, false);
+        blk_iter->finish_ride(iter->iter_local_pos(), size, false);
 
         return blk_iter;
     }

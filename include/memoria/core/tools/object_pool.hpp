@@ -78,6 +78,7 @@ protected:
     virtual void dispose() noexcept = 0;
     virtual void destroy() noexcept = 0;
 
+public:
     void ref_copy() noexcept {
         use_count_++;
     }
@@ -362,6 +363,14 @@ public:
             ref_holder_->unref();
             ref_holder_ = nullptr;
         }
+    }
+
+    RefHolder* release_holder()
+    {
+        RefHolder* tmp = ref_holder_;
+        ref_holder_ = nullptr;
+        ptr_ = nullptr;
+        return tmp;
     }
 
     friend void swap(SharedPtr& lhs, SharedPtr& rhs) {

@@ -21,6 +21,8 @@
 #include <memoria/tests/tests.hpp>
 
 #include <memoria/core/tools/result.hpp>
+#include <memoria/core/tools/span.hpp>
+
 
 
 namespace memoria {
@@ -30,6 +32,19 @@ template <typename T1, typename T2>
 void assert_equals(T1&& expected, T2&& actual) {
     if (!(expected == actual)) {
         MMA_THROW(TestExecutionException()) << format_ex("Expected {}, actual {}", expected, actual);
+    }
+}
+
+template <typename T1, typename T2>
+void assert_equals(Span<T1> expected, Span<T2> actual) {
+    if (expected.size() != actual.size()) {
+        MMA_THROW(TestExecutionException()) << format_ex("Expected.size {}, actual.size {}", expected.size(), actual.size());
+    }
+
+    for (size_t c = 0; c < expected.size(); c++) {
+        if (!(expected[c] == actual[c])) {
+            MMA_THROW(TestExecutionException()) << format_ex("Expected {}, actual {} at {}", expected[c], actual[c], c);
+        }
     }
 }
 

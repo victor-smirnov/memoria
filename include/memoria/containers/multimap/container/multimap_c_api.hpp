@@ -1,5 +1,5 @@
 
-// Copyright 2015 Victor Smirnov
+// Copyright 2015-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,6 +31,9 @@
 
 #include <memoria/api/multimap/multimap_api.hpp>
 
+#include <memoria/containers/multimap/multimap_keys_chunk_impl.hpp>
+#include <memoria/containers/multimap/multimap_values_chunk_impl.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -50,6 +53,7 @@ protected:
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
     using typename Base::ApiProfileT;
+    using typename Base::ShuttleTypes;
 
     using Key   = typename Types::Key;
     using Value = typename Types::Value;
@@ -66,7 +70,24 @@ protected:
     using typename Base::LeafNodeExtData;
     using typename Base::ContainerTypeName;
 
+    using KeysChunkT = MultimapKeysChunk<Key, Value, ApiProfileT>;
+    using KeysChunkPtrT = IterSharedPtr<KeysChunkT>;
 
+    struct MultimapChunkTypes: Types {
+      using KeyType = Key;
+      using ValueType = Value;
+      using ShuttleTypes = typename Base::ShuttleTypes;
+      using TreePathT    = typename Base::TreePathT;
+    };
+
+
+    using KeysChunkImplT = MultimapKeysChunkImpl<MultimapChunkTypes>;
+    using KeysChunkImplPtrT = IterSharedPtr<KeysChunkImplT>;
+
+    using KeysPath = IntList<0, 1>;
+
+    template <typename ShuttleTypes>
+    using FindShuttle = bt::FindForwardShuttle<ShuttleTypes, KeysPath, KeysChunkImplT>;
 
 public:
     void configure_types(
@@ -76,6 +97,39 @@ public:
     ) {
 
     }
+
+
+    IterSharedPtr<KeysChunkImplT> ctr_map_find(const KeyView& k) const
+    {
+        return self().ctr_descend(
+            TypeTag<KeysChunkImplT>{},
+            bt::ShuttleTag<FindShuttle>{},
+            k, 0, SearchType::GE
+        );
+    }
+
+    IterSharedPtr<KeysChunkImplT> ctr_seek_key(CtrSizeT num) const
+    {
+        auto& self = this->self();
+        return self.ctr_descend(
+                    TypeTag<KeysChunkImplT>{},
+                    TypeTag<bt::SkipForwardShuttle<ShuttleTypes, 0, KeysChunkImplT>>{},
+                    num
+        );
+    }
+
+
+    KeysChunkPtrT find_key(KeyView key) const {
+        return ctr_map_find(key);
+    }
+
+    KeysChunkPtrT seek_key(CtrSizeT pos) const {
+        return ctr_seek_key(pos);
+    }
+
+
+
+    /* Old stuff below...  */
 
     IteratorPtr begin() const{
         return self().template ctr_seek_stream<0>(0);
@@ -96,102 +150,7 @@ public:
         return ii;
     }
 
-    IteratorPtr ctr_seek(CtrSizeT idx) const
-    {
-        auto& self = this->self();
-        auto ii = self.template ctr_seek_stream<0>(idx);
 
-        ii->iter_stream() = 0;
-
-        ii->iter_to_structure_stream();
-
-        return ii;
-    }
-
-    IteratorAPIPtr seek(CtrSizeT idx) const
-    {
-        auto& self = this->self();
-        auto ii = self.template ctr_seek_stream<0>(idx);
-
-        ii->iter_stream() = 0;
-
-        ii->iter_to_structure_stream();
-
-        return memoria_static_pointer_cast<MultimapIterator<Key, Value, ApiProfileT>>(std::move(ii));
-    }
-
-    template <typename ScannerApi, typename ScannerImpl>
-    CtrSharedPtr<ScannerApi> as_scanner(IteratorAPIPtr iterator) const
-    {
-        if (MMA_UNLIKELY(!iterator)) {
-            return CtrSharedPtr<ScannerApi>{};
-        }
-        else if (iterator->cxx_type() == typeid(typename Base::Iterator))
-        {
-            auto iter = memoria_static_pointer_cast<SharedIterator>(iterator);
-            return ctr_make_shared<ScannerImpl>(iter);
-        }
-        else {
-            MMA_THROW(RuntimeException()) << WhatCInfo("Invalid iterator type");
-        }
-    }
-
-
-    virtual CtrSharedPtr<IEntriesScanner<CtrApiTypes, ApiProfileT>> entries_scanner(IteratorAPIPtr iterator) const
-    {
-        return as_scanner<
-                IEntriesScanner<CtrApiTypes, ApiProfileT>,
-                multimap::EntriesIteratorImpl<CtrApiTypes, ApiProfileT, IteratorPtr>
-        >(iterator);
-    }
-
-    virtual CtrSharedPtr<IValuesScanner<CtrApiTypes, ApiProfileT>> values_scanner(IteratorAPIPtr iterator) const
-    {
-        if (MMA_UNLIKELY(!iterator)) {
-            return CtrSharedPtr<IValuesScanner<CtrApiTypes, ApiProfileT>>{};
-        }
-        else if (iterator->cxx_type() == typeid(typename Base::Iterator))
-        {
-            auto iter = memoria_static_pointer_cast<SharedIterator>(iterator);
-            return ctr_make_shared<multimap::ValuesIteratorImpl<CtrApiTypes, ApiProfileT, IteratorPtr>>(iter);
-        }
-        else {
-            MMA_THROW(RuntimeException()) << WhatCInfo("Invalid iterator type");
-        }
-    }
-
-    CtrSharedPtr<IKeysScanner<CtrApiTypes, ApiProfileT>> keys() const
-    {
-        auto& self = this->self();
-        auto ii = self.template ctr_seek_stream<0>(0);
-
-        ii->iter_stream() = 0;
-
-        ii->iter_to_structure_stream();
-
-        auto ptr = ctr_make_shared<multimap::KeysIteratorImpl<CtrApiTypes, ApiProfileT, IteratorPtr>>(ii);
-        return memoria_static_pointer_cast<IKeysScanner<CtrApiTypes, ApiProfileT>>(ptr);
-    }
-
-    IteratorAPIPtr find(KeyView key) const
-    {
-        auto& self = this->self();
-        auto ii = self.ctr_multimap_find(key);
-
-        if (ii->is_found(key))
-        {
-            ii->to_values();
-
-            return memoria_static_pointer_cast<MultimapIterator<Key, Value, ApiProfileT>>(std::move(ii));
-        }
-        else {
-            return IteratorAPIPtr{};
-        }
-    }
-
-    virtual IteratorAPIPtr iterator() const {
-        return memoria_static_pointer_cast<IteratorAPI>(self().begin());
-    }
 
     CtrSizeT size() const
     {
@@ -204,25 +163,12 @@ public:
         return self().template ctr_find_max_ge<IntList<0, 1>>(0, key);
     }
 
-    IteratorPtr find_or_create(KeyView key)
-    {
-        auto& self = this->self();
-
-        auto iter = self.ctr_multimap_find(key);
-
-        if (!iter->is_found(key))
-        {
-            iter->insert_key(key);
-        }
-
-        return iter;
-    }
-
 
     void append_entries(io::IOVectorProducer& producer)
     {
-        auto ii = self().end();
-        ii->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        auto& self = this->self();
+        auto ii = self.ctr_seek_key(self.size());
+        self.ctr_insert_iovector(std::move(ii), producer, 0, std::numeric_limits<int64_t>::max());
     }
 
 
@@ -231,8 +177,9 @@ public:
 
     void prepend_entries(io::IOVectorProducer& producer)
     {
-        auto ii = self().begin();
-        ii->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        auto& self = this->self();
+        auto ii = self.ctr_seek_key(CtrSizeT{});
+        self.ctr_insert_iovector(std::move(ii), producer, 0, std::numeric_limits<int64_t>::max());
     }
 
 
@@ -240,22 +187,26 @@ public:
 
     void insert_entries(KeyView before, io::IOVectorProducer& producer)
     {
-        auto ii = self().ctr_multimap_find(before);
-        ii.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        auto& self = this->self();
+        auto ii = self.ctr_map_find(before);
+        self.ctr_insert_iovector(std::move(ii), producer, 0, std::numeric_limits<int64_t>::max());
     }
 
     bool upsert(KeyView key, io::IOVectorProducer& producer)
     {
-        auto ii = self().ctr_multimap_find(key);
+        auto& self = this->self();
+        auto ii = self.ctr_map_find(key);
 
         if (ii->is_found(key))
         {
-            ii.get()->remove(1);
-            ii->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+            auto jj = ii->iter_next(1);
+            auto kk = self.ctr_remove_range(std::move(ii), std::move(jj));
+
+            self.ctr_insert_iovector(std::move(kk), producer, 0, std::numeric_limits<int64_t>::max());
             return true;
         }
 
-        ii.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        self.ctr_insert_iovector(std::move(ii), producer, 0, std::numeric_limits<int64_t>::max());
         return false;
     }
 
@@ -264,16 +215,18 @@ public:
 
     bool contains(const KeyView& key) const
     {
-        auto iter = self().ctr_multimap_find(key);
+        auto iter = self().ctr_map_find(key);
         return iter->is_found(key);
     }
 
     bool remove(const KeyView& key)
     {
-        auto ii = self().ctr_multimap_find(key);
+        auto& self = this->self();
+        auto ii = self.ctr_map_find(key);
         if (ii->is_found(key))
         {
-            ii->remove(1);
+            auto jj = ii->iter_next(1);
+            self.ctr_remove_range(std::move(ii), std::move(jj));
             return true;
         }
 
@@ -283,27 +236,34 @@ public:
 
     bool remove_all(const KeyView& from, const KeyView& to)
     {
-        auto ii = self().ctr_multimap_find(from);
-        auto jj = self().ctr_multimap_find(to);
+        auto& self = this->self();
+        auto ii = self.ctr_map_find(from);
+        auto jj = self.ctr_map_find(to);
 
-        return ii->iter_remove_all(*jj);
+        self.ctr_remove_range(std::move(ii), std::move(jj));
+
+        return true;
     }
 
     bool remove_from(const KeyView& from)
     {
-        auto ii = self().ctr_multimap_find(from);
-        auto jj = self().end();
+        auto& self = this->self();
+        auto ii = self.ctr_map_find(from);
+        auto jj = self.ctr_seek_key(self.size());
 
-        return ii->iter_remove_all(*jj);
+        self.ctr_remove_range(std::move(ii), std::move(jj));
+        return true;
     }
 
 
     bool remove_before(const KeyView& to)
     {
-        auto ii = self().begin();
-        auto jj = self().ctr_multimap_find(to);
+        auto& self = this->self();
+        auto ii = self.ctr_seek_key(0);
+        auto jj = self.ctr_map_find(to);
 
-        return ii->iter_remove_all(*jj);
+        self.ctr_remove_range(std::move(ii), std::move(jj));
+        return true;
     }
 
 

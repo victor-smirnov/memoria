@@ -169,12 +169,14 @@ protected:
 
 };
 
-template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering>
-struct PackedStructTraits<PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<DataType, Indexed, Columns, Ordering>>> {
+template <typename DataType, bool Indexed, size_t Columns, DTOrdering Ordering_>
+struct PackedStructTraits<PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<DataType, Indexed, Columns, Ordering_>>> {
     using SearchKeyDataType = DataType;
 
     using AccumType = DTTViewType<SearchKeyDataType>;
     using SearchKeyType = Optional<DTTViewType<SearchKeyDataType>>;
+
+    static constexpr DTOrdering Ordering = Ordering_;
 
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 

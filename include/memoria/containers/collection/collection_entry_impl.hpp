@@ -50,6 +50,21 @@ struct SpanHolder {
         set_up = true;
     }
 
+
+    template <typename PkdStruct>
+    void populate(const PkdStruct& ss, size_t column, size_t start, size_t size)
+    {
+        auto ee = ss.end(column);
+
+        for (auto ii = ss.begin(column); ii != ee; ii++) {
+            arena.append_value(*ii);
+        }
+
+        span = arena.span().subspan(start, size);
+
+        set_up = true;
+    }
+
     void reset_state() {
         set_up = false;
         span = Span<ViewType>{};
@@ -70,6 +85,13 @@ struct SpanHolder<KeyDT, true> {
     void populate(const PkdStruct& ss, size_t column)
     {
         span = ss.span(column);
+        set_up = true;
+    }
+
+    template <typename PkdStruct>
+    void populate(const PkdStruct& ss, size_t column, size_t start, size_t size)
+    {
+        span = ss.span(column).subspan(start, size);
         set_up = true;
     }
 
@@ -200,7 +222,7 @@ public:
         span_holder_.reset_state();
     }
 
-    void set_position(size_t pos, size_t size, bool before_start = false)
+    void finish_ride(size_t pos, size_t size, bool before_start)
     {
         leaf_position_ = pos;
         size_ = size;
@@ -216,12 +238,20 @@ public:
         println(out, "Position: {}, size: {}, before_start: {}, id::{}", leaf_position_, size_, before_start_, Base::path().leaf()->id());
     }
 
-    void on_next_leaf() {
-        set_position(0, keys_struct().size());
+    EmptyType prepare_next_leaf() const {
+        return EmptyType {};
     }
 
-    void on_prev_leaf() {
-        set_position(0, keys_struct().size());
+    EmptyType prepare_prev_leaf() const {
+        return EmptyType {};
+    }
+
+    void on_next_leaf(EmptyType) {
+        finish_ride(0, keys_struct().size(), false);
+    }
+
+    void on_prev_leaf(EmptyType) {
+        finish_ride(0, keys_struct().size(), false);
     }
 
     virtual void iter_reset_caches()

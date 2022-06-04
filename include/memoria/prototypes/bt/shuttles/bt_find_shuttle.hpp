@@ -28,6 +28,7 @@ template <
         typename Types,
         typename LeafPath,
         typename StateT,
+        typename SelectorTag = EmptyType,
         DTOrdering SearchType = Types::template KeyOrderingType<LeafPath>
 >
 class FindForwardShuttle;
@@ -36,6 +37,7 @@ template <
         typename Types,
         typename LeafPath,
         typename StateT,
+        typename SelectorTag = EmptyType,
         DTOrdering SearchType = Types::template KeyOrderingType<LeafPath>
 >
 class FindBackwardShuttle;
@@ -292,6 +294,152 @@ public:
 };
 
 
+
+
+
+
+template <typename Types, typename LeafPath, typename StateT, typename SelectorTag>
+class FindForwardShuttle<
+        Types,
+        LeafPath,
+        StateT,
+        SelectorTag,
+        DTOrdering::SUM
+>: public FindSumForwardShuttleBase<Types, LeafPath> {
+    using Base = FindSumForwardShuttleBase<Types, LeafPath>;
+
+protected:
+    using typename Base::BranchNodeTypeSO;
+    using typename Base::LeafNodeTypeSO;
+    using typename Base::IteratorState;
+    using typename Base::KeyType;
+
+    using Base::leaf_start_;
+    using Base::last_leaf_pos_;
+    using Base::last_leaf_size_;
+
+public:
+    FindForwardShuttle(KeyType target, size_t column, SearchType search_type):
+        Base(target, column, search_type)
+    {}
+
+
+    virtual void start(const IteratorState& state)
+    {
+        const StateT& iter_state = *static_cast<const StateT*>(&state);
+        leaf_start_ = iter_state.entry_offset_in_chunk();
+    }
+
+
+    virtual void finish(IteratorState& state)
+    {
+        StateT& iter_state = *static_cast<StateT*>(&state);
+        iter_state.finish_ride(last_leaf_pos_, last_leaf_size_);
+    }
+
+    virtual ShuttleEligibility treeNode(const LeafNodeTypeSO& node, const IteratorState& state) const
+    {
+        const StateT& iter_state = *static_cast<const StateT*>(&state);
+        auto tree = node.template substream<LeafPath>();
+
+        auto pos = iter_state.entry_offset_in_chunk();
+        auto size = tree.size();
+
+        return pos < size ? ShuttleEligibility::YES : ShuttleEligibility::NO;
+    }
+
+};
+
+
+template <typename Types, typename LeafPath, typename StateT, typename SelectorTag>
+class FindForwardShuttle<
+        Types,
+        LeafPath,
+        StateT,
+        SelectorTag,
+        DTOrdering::MAX
+>: public FindMaxForwardShuttleBase<Types, LeafPath> {
+    using Base = FindMaxForwardShuttleBase<Types, LeafPath>;
+
+protected:
+    using typename Base::BranchNodeTypeSO;
+    using typename Base::LeafNodeTypeSO;
+    using typename Base::IteratorState;
+
+    using KeyType = typename Types::template TargetType<LeafPath>;
+
+    using Base::last_leaf_pos_;
+    using Base::last_leaf_size_;
+
+public:
+    FindForwardShuttle(KeyType target, size_t column, SearchType search_type):
+        Base(target, column, search_type)
+    {}
+
+
+    virtual void start(const IteratorState& state)
+    {}
+
+
+    virtual void finish(IteratorState& state)
+    {
+        StateT& iter_state = *static_cast<StateT*>(&state);
+        iter_state.finish_ride(last_leaf_pos_, last_leaf_size_, false);
+    }
+};
+
+
+
+template <typename Types, typename LeafPath, typename StateT, typename SelectorTag>
+class FindBackwardShuttle<
+        Types,
+        LeafPath,
+        StateT,
+        SelectorTag,
+        DTOrdering::SUM
+>: public FindSumBackwardShuttleBase<Types, LeafPath> {
+    using Base = FindSumBackwardShuttleBase<Types, LeafPath>;
+
+protected:
+    using typename Base::BranchNodeTypeSO;
+    using typename Base::LeafNodeTypeSO;
+    using typename Base::IteratorState;
+    using typename Base::KeyType;
+
+    using Base::leaf_start_;
+    using Base::before_start_;
+    using Base::last_leaf_pos_;
+    using Base::last_leaf_size_;
+
+public:
+    FindBackwardShuttle(KeyType target, size_t column, SearchType search_type):
+        Base(target, column, search_type)
+    {}
+
+
+    virtual void start(const IteratorState& state)
+    {
+        const StateT& iter_state = *static_cast<const StateT*>(&state);
+        leaf_start_ = iter_state.entry_offset_in_chunk();
+        before_start_ = iter_state.is_before_start();
+    }
+
+
+    virtual void finish(IteratorState& state)
+    {
+        StateT& iter_state = *static_cast<StateT*>(&state);
+        iter_state.finish_ride(last_leaf_pos_, last_leaf_size_, before_start_);
+    }
+
+
+    virtual ShuttleEligibility treeNode(const LeafNodeTypeSO& node, const IteratorState& state) const
+    {
+        const StateT& iter_state = *static_cast<const StateT*>(&state);
+
+        auto before_start = iter_state.is_before_start();
+        return !before_start ? ShuttleEligibility::YES : ShuttleEligibility::NO;
+    }
+};
 
 
 

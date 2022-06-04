@@ -32,11 +32,24 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::LeafCommonName)
 
     using typename Base::TreeNodeConstPtr;
     using typename Base::Position;
+    using typename Base::BlockIteratorStatePtr;
 
     bool ctr_is_at_the_end(const TreeNodeConstPtr& leaf, const Position& pos) const
     {
         auto sizes = self().ctr_get_node_sizes(leaf);
         return pos.sum() >= sizes.sum();
+    }
+
+    BlockIteratorStatePtr ctr_remove_range(BlockIteratorStatePtr&& from, BlockIteratorStatePtr&& to)
+    {
+        auto& self = this->self();
+        auto start = from->iter_leafrank();
+        auto end   = to->iter_leafrank();
+
+        self.ctr_remove_entries(from->path(), start, to->path(), end, true);
+        to->iter_finish_update(end);
+
+        return std::move(to);
     }
 
 MEMORIA_V1_CONTAINER_PART_END

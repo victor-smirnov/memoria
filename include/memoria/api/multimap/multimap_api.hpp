@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2017-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,10 +52,9 @@ struct MultimapKeysChunk: ChunkIteratorBase<MultimapKeysChunk<Key, Value, Profil
     virtual const KeyView& current_key() const = 0;
     virtual const Span<const KeyView>& keys() const = 0;
 
-    virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
+    //virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
 
     virtual bool is_found(const KeyView& key) const = 0;
-
 
     virtual ValuesChunkPtr values_chunk() const = 0;
     virtual ValuesChunkPtr values_chunk(size_t idx) const = 0;
@@ -79,12 +78,13 @@ struct MultimapValuesChunk: ChunkIteratorBase<MultimapValuesChunk<Key, Value, Pr
 
     virtual const Span<const ValueView>& values() const = 0;
 
-
-    virtual ChunkPtr read_to(DataTypeBuffer<Value>& buffer, CtrSizeT num) const = 0;
+    //virtual ChunkPtr read_to(DataTypeBuffer<Value>& buffer, CtrSizeT num) const = 0;
 
     virtual bool is_found(const ValueView& key) const = 0;
 
     virtual KeysChunkPtr my_key() const = 0;
+
+    virtual CtrSizeT size() const = 0;
 };
 
 
@@ -115,6 +115,9 @@ public:
 
     using IteratorAPIPtr = IterSharedPtr<MultimapIterator<Key_, Value_, Profile>>;
 
+    using KeysChunkT = MultimapKeysChunk<Key, Value, Profile>;
+    using KeysChunkPtrT = IterSharedPtr<KeysChunkT>;
+
 public:
 
     
@@ -122,29 +125,18 @@ public:
     using CtrSizeT  = ApiProfileCtrSizeT<Profile>;
     using CtrSizesT = ApiProfileCtrSizesT<Profile, DataStreams + 1>;
     
+
+    virtual KeysChunkPtrT find_key(KeyView key) const = 0;
+    virtual KeysChunkPtrT seek_key(CtrSizeT pos) const = 0;
+
     virtual bool contains(const KeyView& key) const = 0;
     virtual bool remove(const KeyView& key) = 0;
 
     virtual bool remove_all(const KeyView& from, const KeyView& to) = 0; //[from, to)
     virtual bool remove_from(const KeyView& from) = 0; //[from, end)
-    virtual bool remove_before(const KeyView& to) = 0; //[begin, to)
+    virtual bool remove_before(const KeyView& up_to) = 0; //[begin, up_to)
 
     virtual CtrSizeT size() const = 0;
-
-    virtual CtrSharedPtr<IEntriesScanner<ApiTypes, Profile>> entries_scanner(IteratorAPIPtr iterator) const = 0;
-    virtual CtrSharedPtr<IValuesScanner<ApiTypes, Profile>>  values_scanner(IteratorAPIPtr iterator) const = 0;
-
-    virtual CtrSharedPtr<IEntriesScanner<ApiTypes, Profile>> entries_scanner() const
-    {
-        auto iter = this->iterator();
-        return entries_scanner(iter);
-    }
-
-    virtual IteratorAPIPtr seek(CtrSizeT pos) const = 0;
-    virtual IteratorAPIPtr find(KeyView key) const = 0;
-    virtual IteratorAPIPtr iterator() const = 0;
-
-    virtual CtrSharedPtr<IKeysScanner<ApiTypes, Profile>> keys() const = 0;
 
     bool upsert(KeyView key, ProducerFn producer_fn) {
         Producer producer(producer_fn);

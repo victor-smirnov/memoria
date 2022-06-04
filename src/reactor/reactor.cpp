@@ -101,7 +101,7 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
         }
     };
 
-    int io_poll_batch = 32;
+    uint64_t io_poll_batch = 32;
 
     while(running_ || fibers::context::contexts() > fibers::DEFAULT_CONTEXTS) 
     {
@@ -111,15 +111,15 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
 
             bool use_long_timeout{};
 
-            if (this->idle_ticks() >= io_poll_batch)
-            {
-                auto duration = this->idle_duration();
+//            if (this->idle_ticks() >= io_poll_batch)
+//            {
+//                auto duration = this->idle_duration();
 
-                if (duration > 10)
-                {
-                    use_long_timeout = true;
-                }
-            }
+//                if (duration > 10)
+//                {
+//                    use_long_timeout = true;
+//                }
+//            }
 
             io_poller_.poll(use_long_timeout ? iopoll_timeout : 0);
             

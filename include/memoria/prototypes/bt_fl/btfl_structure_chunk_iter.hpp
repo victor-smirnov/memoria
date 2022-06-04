@@ -15,54 +15,89 @@
 
 #pragma once
 
-#include <memoria/api/sequence/sequence_api.hpp>
-#include <memoria/containers/sequence/sequence_shuttles.hpp>
+#include <memoria/api/collection/collection_api.hpp>
+#include <memoria/containers/collection/collection_shuttles.hpp>
+
+
+#include <memoria/prototypes/bt/shuttles/bt_skip_shuttle.hpp>
+#include <memoria/prototypes/bt/shuttles/bt_rank_shuttle.hpp>
+#include <memoria/prototypes/bt/shuttles/bt_select_shuttle.hpp>
+#include <memoria/prototypes/bt_fl/shuttles/btfl_structure_shuttles.hpp>
 
 #include <memoria/core/tools/arena_buffer.hpp>
 
 namespace memoria {
 
 
+
+
 template<typename Types>
-class SequenceChunkImpl:
-        public Iter<typename Types::BlockIterStateTypes>,
-        public SequenceChunk<Types::AlphabetSize, ApiProfile<typename Types::Profile>>
+class BTFLStructureChunkImpl:
+        public Iter<typename Types::BlockIterStateTypes>
 {
     using Base = Iter<typename Types::BlockIterStateTypes>;
-    using MyType = SequenceChunkImpl;
 
 protected:
     using Profile = typename Types::Profile;
     using CtrSizeT = typename Types::CtrSizeT;
-
-    static constexpr size_t AlphabetSize = Types::AlphabetSize;
-    static constexpr size_t BitsPerSymbol = BitsPerSymbolConstexpr(AlphabetSize);
-
-    using ChunkT = SequenceChunk<AlphabetSize, ApiProfile<Profile>>;
-    using ChunkPtr = IterSharedPtr<ChunkT>;
-
     using ShuttleTypes = typename Types::ShuttleTypes;
     using Position = typename Types::Position;
+    using TreePathT = typename Types::TreePathT;
 
-    using RunT = SSRLERun<BitsPerSymbol>;
-    using SymbolT = typename RunT::SymbolT;
-
-    static constexpr size_t Stream = 0;
+    static constexpr size_t Stream = Types::StructureStreamIdx;
     static constexpr size_t Column = 0;
-
     using LeafPath = IntList<Stream, 1>;
 
-    using Base::leaf_position_;
 
-    CtrSizeT size_;
-    bool before_start_ {};
+    static constexpr size_t AlphabetSize  = Stream;
+    static constexpr size_t BitsPerSymbol = BitsPerSymbolConstexpr(AlphabetSize);
+
+    using ChunkT    = BTFLStructureChunkImpl;
+    using ChunkPtr  = IterSharedPtr<ChunkT>;
+
+    using RunT      = SSRLERun<BitsPerSymbol>;
+    using SymbolT   = typename RunT::SymbolT;
+
+    CtrSizeT size_{};
+    bool before_start_{};
+
+    using Base::leaf_position_;
 
     mutable ArenaBuffer<RunT> runs_{};
     mutable Span<const RunT> span_{};
 
 public:
 
-    virtual const Span<const RunT>& runs() const
+    BTFLStructureChunkImpl() {}
+
+    void configure(const TreePathT& path, size_t stream, CtrSizeT stream_position)
+    {
+        Base::set_path(path);
+        auto ss = seq_struct();
+        size_ = ss.size();
+
+        auto res = ss.select_fw_eq(stream_position, stream);
+        if (res.idx < size_) {
+            leaf_position_ = res.idx;
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "Requested stream {} entry is not found in the BTFL structure sequence for position {}",
+                        stream, stream_position
+            ).do_throw();
+        }
+    }
+
+    void configure(const TreePathT& path, CtrSizeT ss_position)
+    {
+        Base::set_path(path);
+        auto ss = seq_struct();
+        size_ = ss.size();
+
+        leaf_position_ = ss_position;
+    }
+
+    const Span<const RunT>& runs() const
     {
         if (MMA_UNLIKELY(!runs_.size())) {
             seq_struct().iterator().read_to(runs_);
@@ -72,7 +107,7 @@ public:
         return span_;
     }
 
-    virtual SymbolT current_symbol() const {
+    SymbolT current_symbol() const {
         if (!before_start_ && leaf_position_ < size_) {
             return seq_struct().access(leaf_position_);
         }
@@ -84,73 +119,69 @@ public:
         }
     }
 
-    virtual CtrSizeT rank(SymbolT symbol, SeqOpType seq_op) const
+    CtrSizeT rank(SymbolT symbol, SeqOpType seq_op) const
     {
         bt::RankShuttle<ShuttleTypes, LeafPath> shuttle(leaf_position_, symbol, seq_op);
         Base::ctr().ctr_ride_uptree(Base::path(), shuttle);
         return shuttle.rank();
     }
 
-    virtual ChunkPtr select_fw(SymbolT symbol, CtrSizeT rank, SeqOpType seq_op) const
+    ChunkPtr select_fw(SymbolT symbol, CtrSizeT rank, SeqOpType seq_op) const
     {
-        using ShuttleT = bt::SelectForwardShuttle<ShuttleTypes, LeafPath, SequenceChunkImpl>;
+        using ShuttleT = bt::SelectForwardShuttle<ShuttleTypes, LeafPath, ChunkT>;
         return Base::ctr().ctr_ride_fw(this, TypeTag<ShuttleT>{}, rank, symbol, seq_op);
     }
 
-    virtual ChunkPtr select_bw(SymbolT symbol, CtrSizeT rank, SeqOpType seq_op) const {
-        using ShuttleT = bt::SelectBackwardShuttle<ShuttleTypes, LeafPath, SequenceChunkImpl>;
+    ChunkPtr select_bw(SymbolT symbol, CtrSizeT rank, SeqOpType seq_op) const {
+        using ShuttleT = bt::SelectBackwardShuttle<ShuttleTypes, LeafPath, ChunkT>;
         return Base::ctr().ctr_ride_bw(this, TypeTag<ShuttleT>{}, rank, symbol, seq_op);
     }
 
-    virtual CtrSizeT entry_offset() const {
+    CtrSizeT entry_offset() const {
         return chunk_offset() + entry_offset_in_chunk();
     }
 
-    virtual CtrSizeT collection_size() const {
-        return Base::ctr().size();
-    }
-
-    virtual CtrSizeT chunk_offset() const
+    CtrSizeT chunk_offset() const
     {
         bt::GlobalLeafPrefixShuttle<ShuttleTypes, Stream> shuttle;
         Base::ctr().ctr_ride_uptree(Base::path(), shuttle);
         return shuttle.prefix();
     }
 
-    virtual size_t chunk_size() const {
+    CtrSizeT chunk_size() const {
         return size_;
     }
 
-    virtual size_t entry_offset_in_chunk() const {
+    CtrSizeT entry_offset_in_chunk() const {
         return leaf_position_;
     }
 
 
-    virtual bool is_before_start() const {
+    bool is_before_start() const {
         return before_start_;
     }
 
-    virtual bool is_after_end() const {
+    bool is_after_end() const {
         return leaf_position_ >= size_;
     }
 
-    virtual ChunkPtr next(CtrSizeT num = 1) const
+    ChunkPtr next(CtrSizeT num = 1) const
     {
-        using ShuttleT = bt::SkipForwardShuttle<ShuttleTypes, Stream, SequenceChunkImpl>;
+        using ShuttleT = bt::SkipForwardShuttle<ShuttleTypes, Stream, ChunkT>;
         return Base::ctr().ctr_ride_fw(this, TypeTag<ShuttleT>{}, num);
     }
 
-    virtual ChunkPtr next_chunk() const {
+    ChunkPtr next_chunk() const {
         return Base::ctr().ctr_next_leaf(this);
     }
 
-    virtual ChunkPtr prev(CtrSizeT num = 1) const
+    ChunkPtr prev(CtrSizeT num = 1) const
     {
-        using ShuttleT = bt::SkipBackwardShuttle<ShuttleTypes, Stream, SequenceChunkImpl>;
+        using ShuttleT = bt::SkipBackwardShuttle<ShuttleTypes, Stream, ChunkT>;
         return Base::ctr().ctr_ride_bw(this, TypeTag<ShuttleT>{}, num);
     }
 
-    virtual ChunkPtr prev_chunk() const {
+    ChunkPtr prev_chunk() const {
         return Base::ctr().ctr_prev_leaf(this);
     }
 
@@ -168,11 +199,13 @@ public:
         before_start_ = before_start;
     }
 
-    virtual void dump(std::ostream& out) const
+
+    void dump(std::ostream& out) const
     {
         println(out, "Position: {}, size: {}, before_start: {}, id::{}", leaf_position_, size_, before_start_, Base::path().leaf()->id());
         Base::ctr().ctr_dump_node(Base::path().leaf());
     }
+
 
     EmptyType prepare_next_leaf() const {
         return EmptyType {};
@@ -190,27 +223,27 @@ public:
         finish_ride(0, seq_struct().size(), false);
     }
 
-    virtual void iter_reset_caches()
+    void iter_reset_caches()
     {
         span_ = Span<const RunT>{};
         runs_.clear();
     }
 
-    virtual CtrSizeT read_to(CtrSizeT len, std::vector<RunT>& sink) const
+    CtrSizeT read_to(CtrSizeT len, std::vector<RunT>& sink) const
     {
         CtrSizeT total{};
         read_to_(len, sink, total);
 
         if (len)
         {
-            auto chunk = memoria_static_pointer_cast<MyType>(next_chunk());
+            auto chunk = memoria_static_pointer_cast<ChunkT>(next_chunk());
 
             while (is_valid_chunk(chunk))
             {
                 chunk->read_to_(len, sink, total);
 
                 if (len) {
-                    chunk = memoria_static_pointer_cast<MyType>(chunk->next_chunk());
+                    chunk = memoria_static_pointer_cast<ChunkT>(chunk->next_chunk());
                 }
                 else {
                     break;
@@ -245,6 +278,14 @@ protected:
 
     const auto seq_struct() const {
         return Base::ctr().leaf_dispatcher().dispatch(Base::path().leaf(), GetStructFn{});
+    }
+
+    virtual Position iter_leafrank() const {
+        MEMORIA_MAKE_GENERIC_ERROR("Not implemented").do_throw();
+    }
+
+    void iter_finish_update(const Position& pos) {
+        MEMORIA_MAKE_GENERIC_ERROR("Not implemented").do_throw();
     }
 };
 

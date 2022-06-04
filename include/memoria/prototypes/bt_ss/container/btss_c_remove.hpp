@@ -106,7 +106,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
         auto remove_entry_result = self.ctr_remove_entry(iter->path(), idx);
 
         CtrSizeT leaf_size = self.ctr_leaf_sizes(iter->path().leaf())[0];
-        iter->set_position(remove_entry_result.new_idx, leaf_size);
+        iter->finish_ride(remove_entry_result.new_idx, leaf_size);
 
         if (remove_entry_result.new_idx == leaf_size) {
             auto next_chunk = iter->next_chunk();

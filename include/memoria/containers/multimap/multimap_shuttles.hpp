@@ -20,11 +20,7 @@
 #include <memoria/prototypes/bt/shuttles/bt_skip_shuttle.hpp>
 #include <memoria/prototypes/bt/shuttles/bt_select_shuttle.hpp>
 
-namespace memoria {
-
-template<typename Types> class MapChunkImpl;
-
-namespace bt {
+namespace memoria::bt {
 
 
-}}
+}

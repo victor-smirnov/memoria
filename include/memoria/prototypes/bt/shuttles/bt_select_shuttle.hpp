@@ -25,14 +25,16 @@ namespace memoria::bt {
 template <
         typename Types,
         typename LeafPath,
-        typename StateT
+        typename StateT,
+        typename SelectorTag = EmptyType
 >
 class SelectForwardShuttle;
 
 template <
         typename Types,
         typename LeafPath,
-        typename StateT
+        typename StateT,
+        typename SelectorTag = EmptyType
 >
 class SelectBackwardShuttle;
 
@@ -238,6 +240,104 @@ public:
         }
     }
 };
+
+
+
+
+template <typename Types, typename LeafPath, typename StateT, typename SelectorTag>
+class SelectForwardShuttle: public SelectForwardShuttleBase<Types, LeafPath> {
+    using Base = SelectForwardShuttleBase<Types, LeafPath>;
+
+protected:
+    using typename Base::BranchNodeTypeSO;
+    using typename Base::LeafNodeTypeSO;
+    using typename Base::IteratorState;
+    using typename Base::CtrSizeT;
+
+    using Base::leaf_start_;
+    using Base::last_leaf_pos_;
+    using Base::last_leaf_size_;
+
+public:
+    SelectForwardShuttle(CtrSizeT rank, size_t symbol, SeqOpType op_type):
+        Base(rank, symbol, op_type)
+    {}
+
+
+    virtual void start(const IteratorState& state)
+    {
+        const StateT& iter_state = *static_cast<const StateT*>(&state);
+        leaf_start_ = iter_state.entry_offset_in_chunk();
+    }
+
+
+    virtual void finish(IteratorState& state)
+    {
+        StateT& iter_state = *static_cast<StateT*>(&state);
+        iter_state.finish_ride(last_leaf_pos_, last_leaf_size_, false);
+    }
+
+    virtual ShuttleEligibility treeNode(const LeafNodeTypeSO& node, const IteratorState& state) const
+    {
+        const StateT& iter_state = *static_cast<const StateT*>(&state);
+        auto tree = node.template substream<LeafPath>();
+
+        auto pos = iter_state.entry_offset_in_chunk();
+        auto size = tree.size();
+
+        return pos < size ? ShuttleEligibility::YES : ShuttleEligibility::NO;
+    }
+};
+
+
+
+
+template <typename Types, typename LeafPath, typename StateT, typename SelectorTag>
+class SelectBackwardShuttle: public SelectBackwardShuttleBase<Types, LeafPath> {
+    using Base   = SelectBackwardShuttleBase<Types, LeafPath>;
+
+protected:
+    using typename Base::BranchNodeTypeSO;
+    using typename Base::LeafNodeTypeSO;
+    using typename Base::IteratorState;
+    using typename Base::CtrSizeT;
+
+    using Base::leaf_start_;
+    using Base::before_start_;
+    using Base::last_leaf_pos_;
+    using Base::last_leaf_size_;
+
+public:
+    SelectBackwardShuttle(CtrSizeT rank, size_t symbol, SeqOpType op_type):
+        Base(rank, symbol, op_type)
+    {}
+
+
+    virtual void start(const IteratorState& state)
+    {
+        const StateT& iter_state = *static_cast<const StateT*>(&state);
+        leaf_start_ = iter_state.entry_offset_in_chunk();
+        before_start_ = iter_state.is_before_start();
+    }
+
+
+    virtual void finish(IteratorState& state)
+    {
+        StateT& iter_state = *static_cast<StateT*>(&state);
+        iter_state.finish_ride(last_leaf_pos_, last_leaf_size_, before_start_);
+    }
+
+
+    virtual ShuttleEligibility treeNode(const LeafNodeTypeSO& node, const IteratorState& state) const
+    {
+        const StateT& iter_state = *static_cast<const StateT*>(&state);
+
+        auto before_start = iter_state.is_before_start();
+        return !before_start ? ShuttleEligibility::YES : ShuttleEligibility::NO;
+    }
+};
+
+
 
 
 

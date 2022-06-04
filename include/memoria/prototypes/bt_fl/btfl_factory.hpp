@@ -43,6 +43,7 @@
 #include <memoria/prototypes/bt_fl/iterator/btfl_i_remove.hpp>
 #include <memoria/prototypes/bt_fl/iterator/btfl_i_insert.hpp>
 #include <memoria/prototypes/bt_fl/iterator/btfl_i_read.hpp>
+#include <memoria/prototypes/bt_fl/iterator/btfl_i_basic.hpp>
 
 #include <memoria/prototypes/bt_fl/tools/btfl_tools_streamdescr.hpp>
 
@@ -52,6 +53,8 @@
 #include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
 
 #include <memoria/prototypes/bt_fl/io/btfl_io_input_provider_base.hpp>
+
+#include <memoria/prototypes/bt_fl/btfl_structure_chunk_iter.hpp>
 
 #include <tuple>
 
@@ -108,6 +111,12 @@ struct BTTypes<Profile, BTFreeLayout>: public BTTypes<Profile, BT> {
                 btfl::IteratorRemoveName,
                 btfl::IteratorInsertName,
                 btfl::IteratorReadName
+    >;
+
+
+    using BlockIteratorStatePartsList = MergeLists<
+        typename Base::BlockIteratorStatePartsList,
+        btfl::IteratorBasicName
     >;
 
     template <typename Iterator, typename Container>

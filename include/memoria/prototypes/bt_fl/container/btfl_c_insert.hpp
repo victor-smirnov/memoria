@@ -34,36 +34,36 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
 
     using typename Base::LeafNode;
     using typename Base::Iterator;
+    using typename Base::BlockIteratorState;
+    using typename Base::BlockIteratorStatePtr;
 
     using Base::Streams;
 
 
-
-#ifdef MMA_USE_IOBUFFER
-    template <typename IOBuffer>
-    using CtrInputProviderPool = HeavyObjectPool<btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer>>;
-#endif
-
-    void ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
+    BlockIteratorStatePtr ctr_insert_iovector(BlockIteratorStatePtr&& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
         auto& self = this->self();
 
         auto iov_res = LeafNode::template NodeSparseObject<MyType, LeafNode>::create_iovector();
 
-        auto id = iter.iter_leaf()->id();
+//        auto id = iter.iter_leaf()->id();
 
         btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov_res.get(), start, length);
 
-        auto pos = iter.iter_leafrank(iter.iter_local_pos());
+        auto pos = iter->iter_leafrank();
 
-        self.ctr_insert_provided_data(iter.path(), pos, streaming);
+        self.ctr_insert_provided_data(iter->path(), pos, streaming);
 
-        iter.iter_local_pos() = pos.sum();
-        iter.refresh_iovector_view();
+        iter->iter_finish_update(pos);
 
-        if (iter.iter_leaf()->id() != id) {
-            iter.iter_refresh();
-        }
+//        iter.iter_local_pos() = pos.sum();
+//        iter.refresh_iovector_view();
+
+//        if (iter.iter_leaf()->id() != id) {
+//            iter.iter_refresh();
+//        }
+
+        return std::move(iter);
     }
 
     struct BTFLIOVectorProducer: io::IOVectorProducer {
@@ -73,7 +73,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
         }
     };
 
-    void ctr_insert_iovector(Iterator& iter, io::IOVector& iovector, int64_t start, int64_t length)
+    BlockIteratorStatePtr ctr_insert_iovector(BlockIteratorStatePtr&& iter, io::IOVector& iovector, int64_t start, int64_t length)
     {
         auto& self = this->self();
 
@@ -84,16 +84,20 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
 
         btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &producer, &iovector, start, length);
 
-        auto pos = iter.iter_leafrank(iter.iter_local_pos());
+        auto pos = iter->iter_leafrank();
 
-        self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
+        self.ctr_insert_provided_data(iter->path(), pos, streaming);
 
-        iter.iter_local_pos()  = pos.sum();
-        iter.refresh_iovector_view();
+        iter->iter_finish_update(pos);
 
-        if (iter.iter_leaf()->id() != id) {
-            iter.iter_refresh();
-        }
+//        iter.iter_local_pos()  = pos.sum();
+//        iter.refresh_iovector_view();
+
+//        if (iter.iter_leaf()->id() != id) {
+//            iter.iter_refresh();
+//        }
+
+        return std::move(iter);
     }
 
 MEMORIA_V1_CONTAINER_PART_END

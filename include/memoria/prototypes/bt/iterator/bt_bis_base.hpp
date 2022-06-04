@@ -66,6 +66,10 @@ public:
         path_(other.path_)
     {}
 
+    void prepare_ride(const ThisType& other) {
+        path_ = other.path_;
+    }
+
     template <typename T>
     void iter_initialize(T ctr_holder) {
         Base::iter_initialize(ctr_holder);
@@ -89,10 +93,15 @@ public:
         return path_;
     }
 
+
+
     const TreePathT& path() const {
         return path_;
     }
 
+    void set_path(const TreePathT& path) {
+        path_ = path;
+    }
 
 
 //    auto iter_state_clone() const

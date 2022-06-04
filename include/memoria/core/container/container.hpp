@@ -542,7 +542,7 @@ protected:
     }
 
 
-
+public:
 
     template <typename IteratorStateT>
     IterSharedPtr<IteratorStateT> make_block_iterator_state(TypeTag<IteratorStateT> = TypeTag<BlockIteratorState>{}) const {

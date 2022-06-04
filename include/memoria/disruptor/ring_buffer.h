@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #include <array>
 #include "utils.h"
 

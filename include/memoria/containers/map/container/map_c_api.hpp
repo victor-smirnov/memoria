@@ -124,12 +124,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
       if (iter->is_found(key))
       {
-        //iter->assign(value);
         self.ctr_update_map_entry(std::move(iter), value);
         return true;
       }
       else {
-        //iter->insert(key, value);
         self.ctr_insert_map_entry(std::move(iter), key, value);
         return false;
       }

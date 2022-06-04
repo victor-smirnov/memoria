@@ -93,6 +93,7 @@ protected:
 
     bool descending_{};
     bool simple_ride_{true};
+    uint64_t branch_nodes_{};
 
 public:
     virtual ~ForwardShuttleBase() noexcept = default;
@@ -100,6 +101,7 @@ public:
     bool is_descending() const {return descending_;}
     void set_descending(bool value) {descending_ = value;}
     bool is_simple_ride() const {return simple_ride_;}
+    void inc_branch_node() {branch_nodes_++;}
 
 
 
@@ -135,6 +137,7 @@ protected:
 
     bool descending_{};
     bool simple_ride_{true};
+    uint64_t branch_nodes_{};
 
 public:
     virtual ~BackwardShuttleBase() noexcept = default;
@@ -142,6 +145,7 @@ public:
     bool is_descending() const {return descending_;}
     void set_descending(bool value) {descending_ = value;}
     bool is_simple_ride() const {return simple_ride_;}
+    void inc_branch_node() {branch_nodes_++;}
 
     void init_search() {
     }

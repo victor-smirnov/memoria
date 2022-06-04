@@ -18,7 +18,7 @@ include_directories(../tools/include)
 if (BUILD_REACTOR_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX)
-        set(MEMORIA_SANDBOX)
+        set(MEMORIA_SANDBOX send_msg_bench)
     endif()
 
     FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
@@ -36,7 +36,7 @@ endif()
 if (BUILD_CLASSIC_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX_CLASSIC)
-        set(MEMORIA_SANDBOX_CLASSIC srle1)
+        set(MEMORIA_SANDBOX_CLASSIC srle1 send_msg_bench_raw)
 
         if (NO_COW_PROFILE)
             set(MEMORIA_SANDBOX_CLASSIC ${MEMORIA_SANDBOX_CLASSIC})

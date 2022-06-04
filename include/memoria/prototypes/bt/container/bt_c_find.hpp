@@ -76,10 +76,10 @@ public:
         auto& self = this->self();
 
         IterSharedPtr<StateTypeT> state = self.make_block_iterator_state(TypeTag<StateTypeT>{});
-        state->path() = current->path();
-
+        state->prepare_ride(*current);
+        auto tmp = current->prepare_next_leaf();
         if (self.ctr_get_next_node(state->path(), 0)) {
-            state->on_next_leaf();
+            state->on_next_leaf(tmp);
             return std::move(state);
         }
         else {
@@ -93,10 +93,11 @@ public:
         auto& self = this->self();
 
         IterSharedPtr<StateTypeT> state = self.make_block_iterator_state(TypeTag<StateTypeT>{});
-        state->path() = current->path();
+        state->prepare_ride(*current);
+        auto tmp = current->prepare_prev_leaf();
 
         if (self.ctr_get_prev_node(state->path(), 0)) {
-            state->on_prev_leaf();
+            state->on_prev_leaf(tmp);
             return std::move(state);
         }
         else {
@@ -198,13 +199,6 @@ public:
             ctr_(ctr),
             node(node_), start(start_), end(0), ref(ref_)
         {}
-
-//        void swapRanges()
-//        {
-//            auto tmp = start;
-//            end = start;
-//            start = tmp;
-//        }
 
         template <typename Walker>
         WalkCmd processChain(Walker&& walker, int32_t leaf_cnt = 0)
@@ -389,7 +383,7 @@ public:
         if (eligible == bt::ShuttleEligibility::YES)
         {
             IterSharedPtr<IterState> next = self.make_block_iterator_state(TypeTag<IterState>{});
-            next->path() = current->path();
+            next->prepare_ride(*current);
 
             ForwardRideParameters<typename ShuttleType::Types> params{
                 current->path(),
@@ -427,7 +421,7 @@ public:
         if (eligible == bt::ShuttleEligibility::YES)
         {
             IterSharedPtr<IterState> next = self.make_block_iterator_state(TypeTag<IterState>{});
-            next->path() = current->path();
+            next->prepare_ride(*current);
 
             BackwardRideParameters<typename ShuttleType::Types> params{
                 current->path(),

@@ -419,6 +419,10 @@ public:
         return res;
     }
 
+    FindResult find_fw_gt(size_t column, const ViewType& val) const {
+        return findGTForward(column, val);
+    }
+
 
 
     FindResult findGEForward(size_t column, const ViewType& val) const
@@ -430,6 +434,10 @@ public:
         res.set_local_pos(bmp_idx);
 
         return res;
+    }
+
+    FindResult find_fw_ge(size_t column, const ViewType& val) const {
+        return findGEForward(column, val);
     }
 
 

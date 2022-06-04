@@ -122,12 +122,12 @@ void IOPoller::poll(int timeout)
         
         if (epoll_result >= 0)
         {
-            for (int c = 0; c < epoll_result; c++) 
-            {    
-                if (eevents[c].data.ptr == &event_fd_) 
+            for (int c = 0; c < epoll_result; c++)
+            {
+                if (eevents[c].data.ptr == &event_fd_)
                 {
                     if (read_eventfd()) {
-                        poll_file_events(buffer_capacity, epoll_result - 1); // FIXME take timerfd into account too!!! 
+                        poll_file_events(buffer_capacity, epoll_result - 1); // FIXME take timerfd into account too!!!
                     }
                 }
                 else if (eevents[c].data.ptr)
@@ -151,10 +151,10 @@ void IOPoller::poll_file_events(int buffer_capacity, int other_events)
 
     int max_events = std::min(buffer_capacity - other_events, (int)BATCH_SIZE);
     
-    timespec timeout{0, 0}; 
+    timespec timeout{0, 0};
     int e_num = io_getevents(aio_context_, 1, max_events, events, &timeout);
     
-    if (e_num >= 0) 
+    if (e_num >= 0)
     {
         for (int c = 0; c < e_num; c++)
         {

@@ -30,6 +30,9 @@
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/datatypes/varchars/varchar_dt.hpp>
 
+#include <memoria/containers/multimap/multimap_keys_chunk_impl.hpp>
+#include <memoria/containers/multimap/multimap_values_chunk_impl.hpp>
+
 #include <tuple>
 
 namespace memoria {
