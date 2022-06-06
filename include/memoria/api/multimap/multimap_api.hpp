@@ -17,7 +17,6 @@
 
 #include <memoria/api/common/ctr_api_btfl.hpp>
 
-#include <memoria/api/multimap/multimap_output.hpp>
 #include <memoria/api/multimap/multimap_input.hpp>
 #include <memoria/api/multimap/multimap_producer.hpp>
 

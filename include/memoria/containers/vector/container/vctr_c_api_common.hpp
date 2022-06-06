@@ -24,7 +24,6 @@
 
 
 #include <memoria/api/vector/vector_producer.hpp>
-#include <memoria/api/vector/vector_scanner.hpp>
 #include <memoria/api/vector/vector_api.hpp>
 
 
@@ -70,33 +69,33 @@ public:
     {
         auto& self = this->self();
 
-        auto ii = self.ctr_seek(start);
+//        auto ii = self.ctr_seek(start);
 
-        CtrSizeT cnt{};
-        VectorScanner<CtrApiTypes, ApiProfileT> scanner(ii);
+//        CtrSizeT cnt{};
+//        VectorScanner<CtrApiTypes, ApiProfileT> scanner(ii);
 
-        size_t local_cnt;
-        while (cnt < length && !scanner.is_end())
-        {
-            local_cnt = 0;
-            CtrSizeT remainder   = length - cnt;
-            CtrSizeT values_size = static_cast<CtrSizeT>(scanner.values().size());
+//        size_t local_cnt;
+//        while (cnt < length && !scanner.is_end())
+//        {
+//            local_cnt = 0;
+//            CtrSizeT remainder   = length - cnt;
+//            CtrSizeT values_size = static_cast<CtrSizeT>(scanner.values().size());
 
-            if (values_size <= remainder)
-            {
-                buffer.append(scanner.values());
-                cnt += values_size;
-            }
-            else {
-                buffer.append(scanner.values().first(remainder));
-                cnt += remainder;
-            }
+//            if (values_size <= remainder)
+//            {
+//                buffer.append(scanner.values());
+//                cnt += values_size;
+//            }
+//            else {
+//                buffer.append(scanner.values().first(remainder));
+//                cnt += remainder;
+//            }
 
-            if (cnt < length)
-            {
-                scanner.next_leaf();
-            }
-        }
+//            if (cnt < length)
+//            {
+//                scanner.next_leaf();
+//            }
+//        }
     }
 
     virtual void insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size)

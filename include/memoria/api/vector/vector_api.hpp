@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2017-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 
 #include <memoria/api/common/ctr_api_btss.hpp>
 
-#include <memoria/api/vector/vector_input.hpp>
-
 #include <memoria/core/tools/span.hpp>
 
 #include <memoria/core/types/typehash.hpp>
@@ -26,7 +24,6 @@
 
 #include <memoria/api/vector/vector_api_factory.hpp>
 #include <memoria/api/vector/vector_producer.hpp>
-#include <memoria/api/vector/vector_scanner.hpp>
 
 #include <memory>
 #include <vector>
@@ -106,11 +103,6 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
     virtual void prepend(io::IOVectorProducer& producer) = 0;
     virtual void append(io::IOVectorProducer& producer) = 0;
     virtual void insert(CtrSizeT at, io::IOVectorProducer& producer) = 0;
-
-    template <typename Fn>
-    VectorScanner<ApiTypes, Profile> as_scanner(Fn&& fn) const {
-        return VectorScanner<ApiTypes, Profile>(fn(this));
-    }
 
     void append(ProducerFn producer_fn) {
         Producer producer(producer_fn);

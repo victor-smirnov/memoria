@@ -22,8 +22,6 @@
 #include <memoria/containers/multimap/iterator/multimap_i_misc.hpp>
 
 #include <memoria/containers/multimap/multimap_tools.hpp>
-#include <memoria/containers/multimap/multimap_output_entries.hpp>
-#include <memoria/containers/multimap/multimap_output_values.hpp>
 
 #include <memoria/api/multimap/multimap_api.hpp>
 

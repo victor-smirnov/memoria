@@ -28,9 +28,6 @@
 
 #include <memoria/core/tools/object_pool.hpp>
 
-#include <memoria/containers/multimap/multimap_output_entries.hpp>
-#include <memoria/containers/multimap/multimap_output_values.hpp>
-
 #include <memoria/core/datatypes/traits.hpp>
 
 #include <iostream>
