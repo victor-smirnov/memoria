@@ -43,7 +43,8 @@ public:
 
     auto ctr_seek(CtrSizeT position) const
     {
-        return self().template ctr_seek_stream<0>(position);
+        ///return self().template ctr_seek_stream<0>(position);
+
     }
 
     auto ctr_begin() const  {

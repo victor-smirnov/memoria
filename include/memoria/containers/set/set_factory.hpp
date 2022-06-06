@@ -19,7 +19,6 @@
 #include <memoria/containers/set/container/set_c_api.hpp>
 #include <memoria/containers/set/container/set_c_insert.hpp>
 #include <memoria/containers/set/container/set_c_remove.hpp>
-#include <memoria/containers/set/iterator/set_i_nav.hpp>
 #include <memoria/containers/set/set_names.hpp>
 #include <memoria/containers/set/set_tools.hpp>
 
@@ -60,20 +59,12 @@ struct SetBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
     using Key = Key_;
 
-    using IteratorInterface = EmptyType;
-
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 collection::CtrApiName,
                 set::CtrApiName,
                 set::CtrInsertName,
                 set::CtrRemoveName
-    >;
-
-
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                set::ItrNavName
     >;
 };
 

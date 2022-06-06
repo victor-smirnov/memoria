@@ -28,7 +28,7 @@
 #include <memoria/prototypes/bt_ss/container/btss_c_insert.hpp>
 
 
-#include <memoria/prototypes/bt_ss/iterator/btss_i_misc.hpp>
+//#include <memoria/prototypes/bt_ss/iterator/btss_i_misc.hpp>
 #include <memoria/prototypes/bt_ss/iterator/btss_i_basic.hpp>
 
 #include <memoria/prototypes/bt_ss/btss_input_iovector.hpp>
@@ -69,10 +69,10 @@ struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
                 btss::LeafVariableName
     >;
 
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                btss::IteratorMiscName
-    >;
+//    using IteratorPartsList = MergeLists<
+//                typename Base::IteratorPartsList,
+//                btss::IteratorMiscName
+//    >;
 
 
     using BlockIteratorStatePartsList = MergeLists<

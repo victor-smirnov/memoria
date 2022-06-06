@@ -213,6 +213,32 @@ public:
     }
 
 
+
+    struct GetBitsFn {
+        template <typename T>
+        size_t treeNode(T&& node_so, int32_t level, int32_t pos) const noexcept
+        {
+            auto bitmap = node_so.template substream_by_idx<1>();
+            size_t bm_size = bitmap.data()->size(level);
+            (void)bm_size;
+            MEMORIA_ASSERT(pos, <, bm_size);
+            MEMORIA_ASSERT(pos, >=, 0);
+
+            return bitmap.data()->get_bit(level, pos);
+        }
+    };
+
+    size_t iter_get_bit(int32_t level, int32_t pos) const
+    {
+        return Base::ctr().leaf_dispatcher().dispatch(Base::path().leaf(), GetBitsFn(), level, pos);
+    }
+
+    size_t iter_get_bit(int32_t level) const
+    {
+        return Base::ctr().leaf_dispatcher().dispatch(Base::path().leaf(), GetBitsFn(), level, leaf_position_ >> level);
+    }
+
+
     struct PopulateLeafFn {
         template <typename T>
         void treeNode(T&& node_so, Span<const AllocationMetadataT> leaf_allocations, bool set_bits, CtrSizeT base) const noexcept

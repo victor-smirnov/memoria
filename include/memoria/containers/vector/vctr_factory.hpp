@@ -31,8 +31,6 @@
 #include <memoria/containers/vector/container/vctr_c_api_vlen.hpp>
 #include <memoria/containers/vector/container/vctr_c_find.hpp>
 
-#include <memoria/containers/vector/iterator/vctr_i_api.hpp>
-
 #include <memoria/containers/vector/vctr_names.hpp>
 
 #include <memoria/core/packed/packed.hpp>
@@ -48,9 +46,6 @@ template <typename Profile, typename DataType>
 struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
 
     using Base = BTTypes<Profile, BTSingleStream>;
-
-    using IteratorInterface = VectorIterator<DataType, ApiProfile<Profile>>;
-
 
     using Value = DataType;
     using ValueDataType = DataType;
@@ -77,11 +72,6 @@ struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
             mvector::CtrRemoveName,
             mvector::CtrFindName,
             mvector::CtrApiCommonName
-    >;
-
-    using IteratorPartsList = MergeLists<
-            typename Base::IteratorPartsList,
-            mvector::ItrApiName
     >;
 };
 

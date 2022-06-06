@@ -30,32 +30,6 @@
 
 namespace memoria {
 
-template <typename DataType, typename Profile>
-struct VectorIterator: BTSSIterator<Profile> {
-
-    using ViewType  = DTTViewType<DataType>;
-    using CtrSizeT  = ApiProfileCtrSizeT<Profile>;
-    using BufferT   = DataTypeBuffer<DataType>;
-
-    virtual Datum<DataType> value() const = 0;
-    virtual void set(ViewType view) = 0;
-    virtual bool next() = 0;
-
-    virtual CtrSizeT remove_from(CtrSizeT size) = 0;
-
-    virtual CtrSharedPtr<BufferT> read_buffer(CtrSizeT size) = 0;
-    virtual void insert_buffer(const BufferT& buffer, size_t start, size_t size) = 0;
-    virtual void insert_buffer(const BufferT& buffer) {
-        return insert_buffer(buffer, 0, buffer.size());
-    }
-
-    virtual CtrSizeT pos() const = 0;
-
-    virtual CtrSizeT skip(CtrSizeT delta) = 0;
-
-    virtual CtrSharedPtr<ICtrApi<Vector<DataType>, Profile>> vector() = 0;
-};
-
 template <typename DataType, typename Profile, bool FixedSizeElement = DTTIsNDFixedSize<DataType>>
 struct VectorApiBase;
 
@@ -81,7 +55,6 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
     using Producer      = VectorProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
-    using IteratorT     = IterSharedPtr<VectorIterator<DataType, Profile>>;
     using BufferT       = DataTypeBuffer<DataType>;
     using DataTypeT     = DataType;
 
@@ -98,7 +71,7 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
 
     virtual CtrSizeT size() const = 0;
 
-    virtual IteratorT seek(CtrSizeT pos) const = 0;
+    //virtual IteratorT seek(CtrSizeT pos) const = 0;
 
     virtual void prepend(io::IOVectorProducer& producer) = 0;
     virtual void append(io::IOVectorProducer& producer) = 0;

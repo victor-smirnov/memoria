@@ -200,17 +200,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         ArenaBuffer<ALCMeta>& buffer
     )
     {
-        if (DebugCounter3) {
-            int a = 0;
-            a++;
-        }
-
         auto& self = this->self();
         auto ii = self.ctr_alcmap_select0(level, 0);
 
-        if (DebugCounter3) {
-            ii->dump(std::cout);
-        }
 
         CtrSizeT sum{};
         while (is_valid_chunk(ii))
@@ -304,7 +296,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         auto& self = this->self();
 
         int32_t level = 0;
-        //auto iter = self.template ctr_select<IntList<0, 1>>(level, 0, SeqOpType::EQ);
         auto iter = self.ctr_alcmap_select0(level, 0);
 
         ArenaBuffer<ALCMeta> arena;
@@ -429,8 +420,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         size_t start = 0;
 
         if (allocations.size() > 0)
-        {            
-            //IteratorPtr ii = self.ctr_seek(allocations[start].position());
+        {
             auto ii = self.ctr_alcmap_seek(allocations[start].position());
 
             ArenaBuffer<ALCMeta> buf;
@@ -531,8 +521,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     virtual CtrSizeT mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size)
     {
         auto& self = this->self();
-        auto ii = self.ctr_seek(pos);
-        return ii->iter_setup_bits(level, size, false);
+        auto ii = self.ctr_alcmap_seek(pos);
+        return self.ctr_setup_bits(std::move(ii), level, size, false);
     }
 
 
@@ -591,9 +581,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     {
         auto& self = this->self();
 
-        auto ii = self.ctr_seek(position);
+        auto ii = self.ctr_alcmap_seek(position);
 
-        if (!ii->is_end())
+        if (is_valid_chunk(ii))
         {
             auto bit_status = ii->iter_get_bit(level);
             AllocationMapEntryStatus status = static_cast<AllocationMapEntryStatus>(bit_status);
@@ -633,21 +623,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     bool populate_allocation_pool(AllocationPoolT& pool, int32_t level)
     {
         auto& self = this->self();
-        //auto ii = self.template ctr_select<IntList<0, 1>>(level, 0, SeqOpType::EQ);
-
         auto ii = self.ctr_alcmap_select0(level, 0);
-
-        if (DebugCounter3) {
-            ii->dump(std::cout);
-        }
 
         uint64_t cnt = 0;
         while (is_valid_chunk(ii))
         {
             CtrSizeT base = ii->level0_pos() - ii->iter_leaf_position();
             self.ctr_cow_clone_path(ii->path(), 0);
-
-            //self.ctr_dump_path(ii->path(), 0);
 
             bool updated = self.leaf_dispatcher().dispatch(
                         ii->path().leaf().as_mutable(),
@@ -660,8 +642,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
             {
                 cnt++;
                 self.ctr_update_path(ii->path(), 0);
-
-                //self.ctr_dump_path(ii->path(), 0);
 
                 if (pool.has_room(level))
                 {
@@ -933,8 +913,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
             if (accum < size)
             {
-                auto has_next = self.next_leaf();
-                if (!has_next) {
+                iter = iter->next_chunk();
+                if (!is_valid_chunk(iter)) {
                     break;
                 }
 

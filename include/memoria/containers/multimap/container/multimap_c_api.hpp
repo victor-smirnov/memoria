@@ -60,9 +60,6 @@ protected:
 
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, ApiProfileT>;
 
-    using IteratorAPI = MultimapIterator<Key, Value, ApiProfileT>;
-    using IteratorAPIPtr = IterSharedPtr<IteratorAPI>;
-
     using typename Base::BranchNodeExtData;
     using typename Base::LeafNodeExtData;
     using typename Base::ContainerTypeName;
@@ -128,24 +125,6 @@ public:
 
     /* Old stuff below...  */
 
-    IteratorPtr begin() const{
-        return self().template ctr_seek_stream<0>(0);
-    }
-
-    IteratorPtr end() const
-    {
-        auto& self = this->self();
-
-        auto res = self.sizes();
-
-        auto ii = self.template ctr_seek_stream<1>(res[1]);
-
-        ii->iter_stream() = 1;
-
-        ii->iter_to_structure_stream();
-
-        return ii;
-    }
 
 
 
@@ -155,10 +134,6 @@ public:
         return res[0];
     }
 
-    IteratorPtr ctr_multimap_find(KeyView key) const
-    {
-        return self().template ctr_find_max_ge<IntList<0, 1>>(0, key);
-    }
 
 
     void append_entries(io::IOVectorProducer& producer)

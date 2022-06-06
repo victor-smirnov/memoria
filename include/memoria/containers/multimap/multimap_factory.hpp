@@ -19,7 +19,6 @@
 #include <memoria/prototypes/bt_fl/btfl_factory.hpp>
 #include <memoria/containers/multimap/multimap_names.hpp>
 #include <memoria/containers/multimap/container/multimap_c_api.hpp>
-#include <memoria/containers/multimap/iterator/multimap_i_misc.hpp>
 
 #include <memoria/containers/multimap/multimap_tools.hpp>
 
@@ -44,21 +43,14 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
 
     using Base = BTTypes<Profile, BTFreeLayout>;
 
-
     using Key   = Key_;
     using Value = Value_;
-
-    using IteratorInterface = MultimapIterator<Key_, Value_, ApiProfile<Profile>>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 multimap::CtrApiName
     >;
 
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                multimap::ItrMiscName
-    >;
 };
 
 

@@ -20,7 +20,6 @@
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 
 #include <memoria/containers/allocation_map/container/allocation_map_c_api.hpp>
-#include <memoria/containers/allocation_map/iterator/allocation_map_i_api.hpp>
 #include <memoria/containers/allocation_map/allocation_map_names.hpp>
 #include <memoria/containers/allocation_map/allocation_map_tools.hpp>
 #include <memoria/containers/allocation_map/allocation_map_api_impl.hpp>
@@ -44,12 +43,6 @@ struct AllocationMapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 alcmap::CtrApiName
-    >;
-
-
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                alcmap::ItrApiName
     >;
 };
 

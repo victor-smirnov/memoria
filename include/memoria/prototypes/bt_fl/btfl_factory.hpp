@@ -34,15 +34,16 @@
 #include <memoria/prototypes/bt_fl/container/btfl_c_ranks.hpp>
 #include <memoria/prototypes/bt_fl/container/btfl_c_checks.hpp>
 
-#include <memoria/prototypes/bt_fl/iterator/btfl_i_misc.hpp>
-#include <memoria/prototypes/bt_fl/iterator/btfl_i_srank.hpp>
-#include <memoria/prototypes/bt_fl/iterator/btfl_i_sums.hpp>
-#include <memoria/prototypes/bt_fl/iterator/btfl_i_find.hpp>
-#include <memoria/prototypes/bt_fl/iterator/btfl_i_skip.hpp>
-#include <memoria/prototypes/bt_fl/iterator/btfl_i_update.hpp>
-#include <memoria/prototypes/bt_fl/iterator/btfl_i_remove.hpp>
-#include <memoria/prototypes/bt_fl/iterator/btfl_i_insert.hpp>
-#include <memoria/prototypes/bt_fl/iterator/btfl_i_read.hpp>
+//#include <memoria/prototypes/bt_fl/iterator/btfl_i_misc.hpp>
+//#include <memoria/prototypes/bt_fl/iterator/btfl_i_srank.hpp>
+//#include <memoria/prototypes/bt_fl/iterator/btfl_i_sums.hpp>
+//#include <memoria/prototypes/bt_fl/iterator/btfl_i_find.hpp>
+//#include <memoria/prototypes/bt_fl/iterator/btfl_i_skip.hpp>
+//#include <memoria/prototypes/bt_fl/iterator/btfl_i_update.hpp>
+//#include <memoria/prototypes/bt_fl/iterator/btfl_i_remove.hpp>
+//#include <memoria/prototypes/bt_fl/iterator/btfl_i_insert.hpp>
+//#include <memoria/prototypes/bt_fl/iterator/btfl_i_read.hpp>
+
 #include <memoria/prototypes/bt_fl/iterator/btfl_i_basic.hpp>
 
 #include <memoria/prototypes/bt_fl/tools/btfl_tools_streamdescr.hpp>
@@ -100,18 +101,18 @@ struct BTTypes<Profile, BTFreeLayout>: public BTTypes<Profile, BT> {
     >;
 
 
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                btfl::IteratorMiscName,
-                btfl::IteratorStreamRankName,
-                btfl::IteratorStreamSumsName,
-                btfl::IteratorFindName,
-                btfl::IteratorSkipName,
-                btfl::IteratorUpdateName,
-                btfl::IteratorRemoveName,
-                btfl::IteratorInsertName,
-                btfl::IteratorReadName
-    >;
+//    using IteratorPartsList = MergeLists<
+//                typename Base::IteratorPartsList,
+//                btfl::IteratorMiscName,
+//                btfl::IteratorStreamRankName,
+//                btfl::IteratorStreamSumsName,
+//                btfl::IteratorFindName,
+//                btfl::IteratorSkipName,
+//                btfl::IteratorUpdateName,
+//                btfl::IteratorRemoveName,
+//                btfl::IteratorInsertName,
+//                btfl::IteratorReadName
+//    >;
 
 
     using BlockIteratorStatePartsList = MergeLists<

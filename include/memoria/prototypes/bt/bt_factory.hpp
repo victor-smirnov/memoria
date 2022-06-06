@@ -1,5 +1,5 @@
 
-// Copyright 2011-2021 Victor Smirnov
+// Copyright 2011-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -132,15 +132,7 @@ struct BTTypes {
     
     using CommonContainerPartsList = TypeList<>;
 
-
-    using IteratorPartsList = TypeList<
-            bt::IteratorAPIName,
-            bt::IteratorFindName,
-            bt::IteratorSelectName,
-            bt::IteratorRankName,
-            bt::IteratorSkipName,
-            bt::IteratorLeafName
-    >;
+    using IteratorPartsList = TypeList<>;
 
     using BlockIteratorStatePartsList = TypeList<>;
 

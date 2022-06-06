@@ -88,13 +88,6 @@ struct MultimapValuesChunk: ChunkIteratorBase<MultimapValuesChunk<Key, Value, Pr
 
 
 
-template <typename Key, typename Value, typename Profile>
-struct MultimapIterator: BTFLIterator<Profile> {
-    virtual Datum<Key> key() const = 0;
-    virtual Datum<Value> value() const = 0;
-    virtual bool is_end() const = 0;
-    virtual bool next() = 0;
-};
 
 
 template <typename Key_, typename Value_, typename Profile>
@@ -111,8 +104,6 @@ public:
 
     using Producer      = MultimapProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
-
-    using IteratorAPIPtr = IterSharedPtr<MultimapIterator<Key_, Value_, Profile>>;
 
     using KeysChunkT = MultimapKeysChunk<Key, Value, Profile>;
     using KeysChunkPtrT = IterSharedPtr<KeysChunkT>;

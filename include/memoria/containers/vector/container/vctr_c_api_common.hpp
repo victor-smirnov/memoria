@@ -67,7 +67,7 @@ public:
 
     virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const
     {
-        auto& self = this->self();
+//        auto& self = this->self();
 
 //        auto ii = self.ctr_seek(start);
 
@@ -100,26 +100,26 @@ public:
 
     virtual void insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size)
     {
-        auto& self = this->self();
+//        auto& self = this->self();
 
-        if (start + size > buffer.size())
-        {
-            MEMORIA_MAKE_GENERIC_ERROR("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size()).do_throw();
-        }
+//        if (start + size > buffer.size())
+//        {
+//            MEMORIA_MAKE_GENERIC_ERROR("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size()).do_throw();
+//        }
 
-        VectorProducer<CtrApiTypes> producer([&](auto& values, auto appended_size){
-            size_t batch_size = 8192;
-            size_t limit = (appended_size + batch_size <= size) ? batch_size : size - appended_size;
+//        VectorProducer<CtrApiTypes> producer([&](auto& values, auto appended_size){
+//            size_t batch_size = 8192;
+//            size_t limit = (appended_size + batch_size <= size) ? batch_size : size - appended_size;
 
-            for (size_t c = 0; c < limit; c++) {
-                values.append(buffer[start + appended_size + c]);
-            }
+//            for (size_t c = 0; c < limit; c++) {
+//                values.append(buffer[start + appended_size + c]);
+//            }
 
-            return limit != batch_size;
-        });
+//            return limit != batch_size;
+//        });
 
-        auto ii = self.ctr_seek(at);
-        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
+//        auto ii = self.ctr_seek(at);
+//        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
     }
 
 
@@ -130,65 +130,74 @@ public:
         return sizes[0];
     }
 
-    IterSharedPtr<VectorIterator<ValueDataType, ApiProfileT>> seek(CtrSizeT pos) const
-    {
-        typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
-        //return memoria_static_pointer_cast<VectorIterator<ValueDataType, ApiProfileT>>(self().ctr_find(walker));
-      return self().ctr_find(walker);
-    }
+//    IterSharedPtr<VectorIterator<ValueDataType, ApiProfileT>> seek(CtrSizeT pos) const
+//    {
+//        typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
+//        //return memoria_static_pointer_cast<VectorIterator<ValueDataType, ApiProfileT>>(self().ctr_find(walker));
+//      return self().ctr_find(walker);
+//    }
 
 
     Datum<Value> get(CtrSizeT pos) const
     {
-        auto ii = self().seek(pos);
-        return ii->value();
+//        auto ii = self().seek(pos);
+//        return ii->value();
+
+      MEMORIA_MAKE_GENERIC_ERROR("Operation is not implemented").do_throw();
     }
 
     void set(CtrSizeT pos, ViewType view)
     {
-        auto ii = self().seek(pos);
-        return ii->set(view);
+//        auto ii = self().seek(pos);
+//        return ii->set(view);
     }
 
     void prepend(io::IOVectorProducer& producer)
     {
-        auto ii = self().ctr_begin();
-        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
+//        auto ii = self().ctr_begin();
+//        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
+
     }
 
     void append(io::IOVectorProducer& producer)
     {
-        auto ii = self().ctr_end();
-        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
+//        auto ii = self().ctr_end();
+//        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
+
     }
 
     void insert(CtrSizeT at, io::IOVectorProducer& producer)
     {
-        auto ii = self().ctr_seek(at);
-        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
+//        auto ii = self().ctr_seek(at);
+//        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
+
     }
 
     CtrSizeT remove(CtrSizeT from, CtrSizeT to)
     {
-        auto& self = this->self();
+//        auto& self = this->self();
 
-        auto ii_from = self.ctr_seek(from);
+//        auto ii_from = self.ctr_seek(from);
 
-        return ii_from->remove_from(to - from);
+//        return ii_from->remove_from(to - from);
+      return CtrSizeT{};
     }
 
     CtrSizeT remove_from(CtrSizeT from)
     {
-        auto ctr_size = size();
-        return remove(from, ctr_size);
+//        auto ctr_size = size();
+//        return remove(from, ctr_size);
+      return CtrSizeT{};
     }
 
     CtrSizeT remove_up_to(CtrSizeT pos)
     {
-        auto& self = this->self();
+//        auto& self = this->self();
 
-        auto ii_from = self.ctr_begin();
-        return ii_from->remove_from(pos);
+//        auto ii_from = self.ctr_begin();
+//        return ii_from->remove_from(pos);
+
+      return CtrSizeT{};
     }
 
 

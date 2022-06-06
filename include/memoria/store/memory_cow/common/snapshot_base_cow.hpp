@@ -311,13 +311,17 @@ public:
     {
         std::vector<CtrID> names;
 
-        auto ii = root_map_->ctr_begin();
+        root_map_->for_each([&](auto ctr_name, auto root_id){
+          names.push_back(ctr_name);
+        });
 
-        while (!ii->iter_is_end())
-        {
-            names.push_back(ii->key());
-            ii->next();
-        }
+//        auto ii = root_map_->ctr_begin();
+
+//        while (!ii->iter_is_end())
+//        {
+//            names.push_back(ii->key());
+//            ii->next();
+//        }
 
         return std::move(names);
     }
@@ -326,15 +330,22 @@ public:
     {
         std::vector<U8String> names;
 
-        auto ii = root_map_->ctr_begin();
-        while (!ii->iter_is_end())
-        {
-            std::stringstream ss;
-            ss << ii->key().view();
+//        auto ii = root_map_->ctr_begin();
+//        while (!ii->iter_is_end())
+//        {
+//            std::stringstream ss;
+//            ss << ii->key().view();
 
-            names.push_back(U8String(ss.str()));
-            ii->next();
-        }
+//            names.push_back(U8String(ss.str()));
+//            ii->next();
+//        }
+
+        root_map_->for_each([&](auto ctr_name, auto root_id){
+          std::stringstream ss;
+          ss << ctr_name;
+
+          names.push_back(U8String(ss.str()));
+        });
 
         return std::move(names);
     }
@@ -628,7 +639,7 @@ public:
 
     virtual void registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance)
     {
-        auto ii = instance_map_.find(ctr_id);
+      auto ii = instance_map_.find(ctr_id);
     	if (ii == instance_map_.end())
     	{
             instance_map_.insert({ctr_id, instance});
@@ -662,7 +673,7 @@ public:
     {
     	for (const auto& pair: instance_map_)
     	{
-            std::cout << pair.first << " -- " << pair.second->describe_type() << std::endl;
+        std::cout << pair.first << " -- " << pair.second->describe_type() << std::endl;
     	}
     }
 
@@ -676,17 +687,12 @@ public:
 
     void dump_dictionary_blocks()
     {
-        auto ii = root_map_->ctr_begin();
-        if (!ii->iter_is_end())
-        {
-            do {
-                ii->dump();
-
-                auto has_next = ii->iter_next_leaf();
-                if (!has_next) break;
-            }
-            while (true);
-        }
+      auto ii = root_map_->first_entry();
+      while (is_valid_chunk(ii))
+      {
+        ii->dump();
+        ii = ii->next_chunk();
+      }
     }
 
     virtual void ref_block(const BlockID& block_id)
@@ -863,21 +869,31 @@ public:
 
     virtual void check(const CheckResultConsumerFn& consumer)
     {
-        auto iter = root_map_->ctr_begin();
+      root_map_->for_each([&](auto ctr_name, auto root_id){
+        auto block = this->getBlock(root_id);
 
-        while(!iter->is_end())
-        {
-            auto ctr_name = iter->key();
+        auto ctr_intf = ProfileMetadata<Profile>::local()
+                ->get_container_operations(block->ctr_type_hash());
 
-            auto block = this->getBlock(iter->value());
+        ctr_intf->check(ctr_name, this->shared_from_this(), consumer);
+      });
 
-            auto ctr_intf = ProfileMetadata<Profile>::local()
-                    ->get_container_operations(block->ctr_type_hash());
 
-            ctr_intf->check(ctr_name, this->shared_from_this(), consumer);
+//        auto iter = root_map_->ctr_begin();
 
-            iter->next();
-        }
+//        while(!iter->is_end())
+//        {
+//            auto ctr_name = iter->key();
+
+//            auto block = this->getBlock(iter->value());
+
+//            auto ctr_intf = ProfileMetadata<Profile>::local()
+//                    ->get_container_operations(block->ctr_type_hash());
+
+//            ctr_intf->check(ctr_name, this->shared_from_this(), consumer);
+
+//            iter->next();
+//        }
     }
 
     void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer) {}
@@ -901,22 +917,32 @@ public:
             walker->beginSnapshot(fmt::format("Snapshot-{}", history_node_->snapshot_id()).data());
         }
 
-        auto iter = root_map_->ctr_begin();
-        while (!iter->iter_is_end())
-        {
-            auto ctr_name   = iter->key();
-            auto root_id    = iter->value();
+        root_map_->for_each([&](auto ctr_name, auto root_id){
+          auto block = this->getBlock(root_id);
 
-            auto block = this->getBlock(root_id);
+          auto ctr_hash   = block->ctr_type_hash();
+          auto ctr_intf   = ProfileMetadata<Profile>::local()
+                  ->get_container_operations(ctr_hash);
 
-            auto ctr_hash   = block->ctr_type_hash();
-            auto ctr_intf   = ProfileMetadata<Profile>::local()
-                    ->get_container_operations(ctr_hash);
+          ctr_intf->walk(ctr_name, this->shared_from_this(), walker);
+        });
 
-            ctr_intf->walk(ctr_name, this->shared_from_this(), walker);
+//        auto iter = root_map_->ctr_begin();
+//        while (!iter->iter_is_end())
+//        {
+//            auto ctr_name   = iter->key();
+//            auto root_id    = iter->value();
 
-            iter->next();
-        }
+//            auto block = this->getBlock(root_id);
+
+//            auto ctr_hash   = block->ctr_type_hash();
+//            auto ctr_intf   = ProfileMetadata<Profile>::local()
+//                    ->get_container_operations(ctr_hash);
+
+//            ctr_intf->walk(ctr_name, this->shared_from_this(), walker);
+
+//            iter->next();
+//        }
 
         walker->endSnapshot();
     }

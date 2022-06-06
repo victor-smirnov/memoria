@@ -20,8 +20,6 @@
 #include <memoria/containers/map/container/mapm_c_insert.hpp>
 #include <memoria/containers/map/container/map_c_remove.hpp>
 #include <memoria/containers/map/container/map_c_api.hpp>
-#include <memoria/containers/map/iterator/map_i_nav.hpp>
-#include <memoria/containers/map/iterator/mapm_i_nav.hpp>
 #include <memoria/containers/map/map_names.hpp>
 #include <memoria/containers/map/map_tools.hpp>
 
@@ -30,9 +28,7 @@
 
 #include <memoria/core/packed/packed.hpp>
 
-#ifdef HAVE_BOOST
-#include <memoria/core/bignum/bigint.hpp>
-#endif
+
 
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/strings/string_codec.hpp>
@@ -66,12 +62,6 @@ struct MapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
                 map::CtrInsertMaxName,
                 map::CtrRemoveName,
                 map::CtrApiName
-    >;
-
-
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                map::ItrNavMaxName
     >;
 };
 
