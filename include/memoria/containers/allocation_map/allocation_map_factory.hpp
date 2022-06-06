@@ -24,6 +24,8 @@
 #include <memoria/containers/allocation_map/allocation_map_names.hpp>
 #include <memoria/containers/allocation_map/allocation_map_tools.hpp>
 #include <memoria/containers/allocation_map/allocation_map_api_impl.hpp>
+#include <memoria/containers/allocation_map/allocation_map_chunk_impl.hpp>
+
 
 #include <memoria/core/packed/packed.hpp>
 
@@ -38,8 +40,6 @@ template <
 struct AllocationMapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
     using Base = BTTypes<Profile, BTSingleStream>;
-
-    using IteratorInterface = AllocationMapIterator<ApiProfile<Profile>>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,

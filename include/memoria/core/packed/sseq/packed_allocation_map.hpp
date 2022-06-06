@@ -403,9 +403,9 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size).do_throw();
         }
 
-        for (size_t ll = level; ll >= 0; ll--)
+        for (size_t ll = level + 1; ll > 0; ll--)
         {
-            BitmapType* bitmap = this->symbols(ll);
+            BitmapType* bitmap = this->symbols(ll - 1);
             FillOne(bitmap, start, stop);
 
             start *= 2;
@@ -431,9 +431,9 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size).do_throw();
         }
 
-        for (size_t ll = level; ll >= 0; ll--)
+        for (size_t ll = level + 1; ll > 0; ll--)
         {
-            BitmapType* bitmap = this->symbols(ll);
+            BitmapType* bitmap = this->symbols(ll - 1);
             FillZero(bitmap, start, stop);
 
             start *= 2;
@@ -455,9 +455,9 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("PackedAllocationMap range ckeck error: level: {}, idx: {}, size: {}, limit: {}", level, idx, size, local_bitmap_size).do_throw();
         }
 
-        for (size_t ll = level; ll >= 0; ll--)
+        for (size_t ll = level + 1; ll > 0; ll--)
         {
-            BitmapType* bitmap = this->symbols(ll);
+            BitmapType* bitmap = this->symbols(ll - 1);
             FillZero(bitmap, start, stop);
 
             start *= 2;
@@ -528,7 +528,7 @@ public:
         return SelectResult{
             static_cast<size_t>(result.local_pos()),
             bm_size,
-            static_cast<int64_t>(result.rank()) + sum
+            static_cast<int64_t>(result.rank) + sum
         };
     }
 
@@ -569,7 +569,7 @@ public:
         size_t startrank_ = this->rank(start, level);
         auto result = selectFW(startrank_ + rank, level);
 
-        result.rank() -= startrank_;
+        result.rank -= startrank_;
 
         return result;
     }
@@ -744,8 +744,10 @@ public:
     bool populate_allocation_pool(int64_t base, AllocationPool& pool) noexcept
     {
         bool updated = false;
-        for (size_t level = Indexes - 1; level >= 0; level--)
+        for (size_t ll = Indexes; ll > 0; ll--)
         {
+            size_t level = ll - 1;
+
             scan_unallocated(level, [&](size_t pos, size_t size) {
                 if (pool.add(base + (pos << level), size << level, level)) {
                     updated = true;

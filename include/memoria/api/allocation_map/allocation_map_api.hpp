@@ -1,5 +1,5 @@
 
-// Copyright 2019-2021 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@
 
 #include <memoria/core/iovector/io_vector.hpp>
 
-#include <memoria/api/allocation_map/allocation_map_scanner.hpp>
-#include <memoria/api/allocation_map/allocation_map_producer.hpp>
+#include <memoria/api/collection/collection_api.hpp>
 #include <memoria/api/allocation_map/allocation_map_api_factory.hpp>
 
 #include <memoria/core/strings/string_codec.hpp>
@@ -46,20 +45,20 @@ template <typename Types>
 class PkdAllocationMap;
 
 template <typename Profile>
-struct AllocationMapIterator: BTSSIterator<Profile> {
+struct AllocationMapChunk: ChunkIteratorBase<AllocationMapChunk<Profile>, Profile> {
+
     using CtrSizeT = ApiProfileCtrSizeT<Profile>;
 
-    virtual ~AllocationMapIterator() noexcept = default;
-
-    virtual bool is_end() const = 0;
-    virtual bool next() = 0;
-
-    virtual CtrSizeT count_fw() = 0;
+    virtual std::tuple<CtrSizeT, IterSharedPtr<AllocationMapChunk>> count_fw() const = 0;
     virtual CtrSizeT level0_pos() const = 0;
 
-    virtual int32_t leaf_size() const = 0;
+    virtual CtrSizeT leaf_size() const = 0;
     virtual const PkdAllocationMap<PkdAllocationMapTypes>* bitmap() const = 0;
+
+    virtual AnyID leaf_id() const = 0;
 };
+
+
 
 template <typename Profile>
 class BasicBlockAllocation {
@@ -219,7 +218,8 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
 
     using ApiTypes  = ICtrApiTypes<AllocationMap, Profile>;
 
-    using IteratorPtr = IterSharedPtr<AllocationMapIterator<Profile>>;
+    using ChunkT = AllocationMapChunk<Profile>;
+    using ChunkPtr = IterSharedPtr<ChunkT>;
 
     using ALCMeta = AllocationMetadata<Profile>;
 
@@ -228,8 +228,11 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
 
     virtual CtrSizeT size() const = 0;
 
-    virtual IteratorPtr seek(CtrSizeT position) = 0;
-    virtual IteratorPtr iterator() = 0;
+    virtual ChunkPtr seek(CtrSizeT position) const = 0;
+    virtual ChunkPtr iterator() const {
+        return seek(0);
+    }
+
 
     virtual CtrSizeT expand(CtrSizeT blocks) = 0;
     virtual void shrink(CtrSizeT size) = 0;
@@ -237,7 +240,7 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
     virtual Optional<AllocationMapEntryStatus> get_allocation_status(int32_t level, CtrSizeT position) = 0;
     virtual bool check_allocated(const ALCMeta& meta) = 0;
 
-    virtual CtrSizeT rank(CtrSizeT pos) = 0;
+    virtual CtrSizeT rank(size_t level, CtrSizeT pos) const = 0;
 
     virtual CtrSizeT find_unallocated(
             int32_t level,

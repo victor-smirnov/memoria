@@ -35,6 +35,9 @@ if(BUILD_TESTS_DATATYPES)
     set (SRCS ${SRCS} integer/integer_test_suite.cpp)
 endif()
 
+if(BUILD_TESTS_STORES)
+    set (SRCS ${SRCS} store/swmr_store_test_suite.cpp)
+endif()
 
 
 add_executable(tests2 tests2.cpp ${SRCS})

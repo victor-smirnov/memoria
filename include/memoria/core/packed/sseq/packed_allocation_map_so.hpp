@@ -85,8 +85,7 @@ public:
     }
 
 
-    void clear_bits_opt(size_t level, size_t idx, size_t size) noexcept
-    {
+    void clear_bits_opt(size_t level, size_t idx, size_t size) noexcept {
         return data_->clear_bits_opt(level, idx, size);
     }
 
@@ -130,11 +129,16 @@ public:
     }
 
     auto select_fw(size_t start, int64_t rank, size_t level, SeqOpType) const noexcept {
-        return data_->selectFW(start, rank, level);
+        return data_->selectFW(start, rank + 1, level);
     }
 
     auto select_fw_out(size_t start, int64_t rank, size_t level, SeqOpType) const noexcept {
-        return data_->selectFW(start, rank, level);
+        return data_->selectFW(start, rank + 1, level);
+    }
+
+    size_t rank(size_t pos, size_t level) const noexcept
+    {
+        return data_->rank(pos, level);
     }
 
     void generateDataEvents(IBlockDataEventHandler* handler) const {

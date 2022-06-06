@@ -228,9 +228,6 @@ public:
         return CtrID::make_random();
     }
 
-
-
-
     virtual bool is_store_closed(StoreT store) {
         return false;
     }

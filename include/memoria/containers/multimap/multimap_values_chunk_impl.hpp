@@ -175,13 +175,6 @@ public:
             delta = run_size_ - run_offset_;
         }
 
-        DebugCounter = delta == 161;
-
-        if (DebugCounter) {
-            int a = 0;
-            a++;
-        }
-
         using ShuttleT = bt::SkipForwardShuttle<ShuttleTypes, Stream, ChunkImplT>;
         auto next_ptr = Base::ctr().ctr_ride_fw(this, TypeTag<ShuttleT>{}, delta);
 

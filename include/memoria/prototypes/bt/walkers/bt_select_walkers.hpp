@@ -84,7 +84,7 @@ public:
         else {
             int32_t size = seq.size();
 
-            sum  += result.rank();
+            sum  += result.rank;
             return StreamOpResult(size, start, true);
         }
     }
@@ -183,7 +183,7 @@ public:
             return StreamOpResult(result.local_pos(), start, false);
         }
         else {
-            sum += result.rank();
+            sum += result.rank;
             return StreamOpResult(-1, start, true);
         }
     }

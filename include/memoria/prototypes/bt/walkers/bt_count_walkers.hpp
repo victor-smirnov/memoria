@@ -117,7 +117,7 @@ public:
                 auto v1 = tree.access(index, c);
                 auto v2 = sizes_substream.access(0, c);
 
-                if (v1 != v2){
+                if (v1 != v2) {
                     return StreamOpResult(c, start, false, false);
                 }
                 else {

@@ -946,7 +946,6 @@ public:
     PkdUpdateStatus do_prepare_update_var_max(size_t row_at, size_t size, UpdateState& update_state, AccessorFn&& elements) const
     {
         MEMORIA_ASSERT(row_at + size, <=, this->size());
-
         size_t data_size{};
 
         for (size_t column = 0; column < Columns; column++)

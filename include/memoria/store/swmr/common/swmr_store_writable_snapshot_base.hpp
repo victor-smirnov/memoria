@@ -576,7 +576,24 @@ public:
         FlagScope scope(populating_allocation_pool_);
 
 
+
         if (!allocation_map_ctr_->populate_allocation_pool(*allocation_pool_, level)) {
+
+            auto ii = allocation_map_ctr_->iterator();
+            ii->dump();
+            ii = ii->next_chunk();
+            ii->dump();
+
+            DebugCounter3 = 1;
+            allocation_map_ctr_->populate_allocation_pool(*allocation_pool_, level);
+
+
+
+//            while (is_valid_chunk(ii)) {
+//                ii->dump();
+//                ii = ii->next_chunk();
+//            }
+
             MEMORIA_MAKE_GENERIC_ERROR(
                         "No enough free space among {}K blocks. Requested = {} blocks.",
                         (BASIC_BLOCK_SIZE / 1024) << level,

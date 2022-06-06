@@ -284,22 +284,29 @@ public:
         size_t data_len = data_size(meta);
         size_t new_data_len = data_len - current_len + new_len;
 
+        size_t copy_len = data_len - offset2;
+
         if (current_len < new_len)
         {
-            pkd_buf_->resize_block(offsets_block_num(), new_data_len);
-            CopyBuffer(data + offset2, data + new_len, data_len);
+            pkd_buf_->resize_block(data_block_num(), new_data_len);
+            offsets = this->offsets();
+            data    = this->data();
 
             size_t delta = new_len - current_len;
+            CopyBuffer(data + offset2, data + offset2 + delta, copy_len);
+
             for (size_t r = idx + size; r <= buf_size; r++) {
                 offsets[r] += delta;
             }
         }
         else if (current_len > new_len)
         {
-            CopyBuffer(data + offset2, data + new_len, data_len);
-            pkd_buf_->resize_block(offsets_block_num(), new_data_len);
-
             size_t delta = current_len - new_len;
+
+            CopyBuffer(data + offset2, data + offset2 - delta, copy_len);
+            pkd_buf_->resize_block(data_block_num(), new_data_len);
+            offsets = this->offsets();
+
             for (size_t r = idx + size; r <= buf_size; r++) {
                 offsets[r] -= delta;
             }
@@ -310,7 +317,6 @@ public:
     {
         auto* data = this->data();
         size_t offset = this->offsets()[idx];
-
         MemCpyBuffer(value.data(), data + offset, value.length());
     }
 

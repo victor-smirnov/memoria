@@ -108,6 +108,7 @@ bool M_TYPE::ctr_update_branch_nodes(TreePathT& path, size_t level, int32_t& idx
     self.ctr_update_block_guard(path[level]);
 
     auto status1 = self.ctr_update_branch_node(path[level], idx, entry);
+
     if (!is_success(status1))
     {
         auto size = self.ctr_get_node_size(path[level], 0);

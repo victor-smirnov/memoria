@@ -162,7 +162,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     void for_each(Fn&& fn)
     {
         auto ss = this->first_entry();
-        while (!is_valid_chunk(ss))
+        while (is_valid_chunk(ss))
         {
             auto key_ii_b = ss->keys().begin();
             auto key_ii_e = ss->keys().end();

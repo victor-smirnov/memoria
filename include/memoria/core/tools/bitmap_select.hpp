@@ -204,24 +204,24 @@ constexpr bool SelectBW(T arg, size_t& total, size_t count, size_t start, size_t
 
 }
 
-class SelectResult {
-    size_t  idx_;
-    size_t  rank_;
-    bool    found_;
+struct SelectResult {
+    size_t  idx;
+    size_t  rank;
+    bool    found;
 public:
     constexpr SelectResult(size_t idx, size_t rank, bool found) noexcept:
-        idx_(idx), rank_(rank), found_(found)
+        idx(idx), rank(rank), found(found)
     {}
 
-    size_t local_pos() const noexcept {return idx_;}
-    size_t rank() const noexcept {return rank_;}
+    size_t local_pos() const noexcept {return idx;}
+    //size_t rank() const noexcept {return rank_;}
 
-    size_t& rank() noexcept {return rank_;}
+    //size_t& rank() noexcept {return rank_;}
 
-    bool is_found() const noexcept {return found_;}
+    bool is_found() const noexcept {return found;}
 
     void set_local_pos(size_t local_pos) noexcept {
-        idx_ = local_pos;
+        idx = local_pos;
     }
 };
 

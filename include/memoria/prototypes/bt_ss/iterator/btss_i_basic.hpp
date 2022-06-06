@@ -38,6 +38,8 @@ protected:
   using typename Base::Container;
   using typename Base::Position;
 
+public:
+    //FIXME: make protected again after AllocationMap refactoring
   CtrSizeT leaf_position_;
 
 public:

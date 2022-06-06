@@ -364,14 +364,19 @@ public:
     };
 
 
-
-
     template <typename IterState, typename ShuttleType, typename... Args>
     IterSharedPtr<IterState> ctr_ride_fw(const IterState* current, TypeTag<ShuttleType>, Args&&... args) const
     {
+        ShuttleType shuttle(std::forward<Args>(args)...);
+        return ctr_ride_fw(current, shuttle);
+    }
+
+
+    template <typename IterState, typename ShuttleType>
+    IterSharedPtr<IterState> ctr_ride_fw(const IterState* current, ShuttleType& shuttle) const
+    {
         auto& self = this->self();
 
-        ShuttleType shuttle(std::forward<Args>(args)...);
         shuttle.start(*current);
 
         bt::ShuttleEligibility eligible = self.leaf_dispatcher().dispatch(
@@ -403,13 +408,19 @@ public:
     }
 
 
-
     template <typename IterState, typename ShuttleType, typename... Args>
     IterSharedPtr<IterState> ctr_ride_bw(const IterState* current, TypeTag<ShuttleType>, Args&&... args) const
     {
+        ShuttleType shuttle(std::forward<Args>(args)...);
+        return ctr_ride_bw(current, shuttle);
+    }
+
+
+    template <typename IterState, typename ShuttleType>
+    IterSharedPtr<IterState> ctr_ride_bw(const IterState* current, ShuttleType& shuttle) const
+    {
         auto& self = this->self();
 
-        ShuttleType shuttle(std::forward<Args>(args)...);
         shuttle.start(*current);
 
         bt::ShuttleEligibility eligible = self.leaf_dispatcher().dispatch(

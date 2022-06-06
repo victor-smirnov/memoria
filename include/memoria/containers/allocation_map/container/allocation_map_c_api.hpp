@@ -21,6 +21,11 @@
 #include <memoria/containers/allocation_map/allocation_map_names.hpp>
 #include <memoria/containers/allocation_map/allocation_map_tools.hpp>
 #include <memoria/containers/allocation_map/allocation_map_api_impl.hpp>
+
+
+#include <memoria/containers/allocation_map/allocation_map_chunk_impl.hpp>
+
+
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 
 #include <memoria/prototypes/bt/nodes/branch_node_so.hpp>
@@ -52,13 +57,25 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     using typename Base::Position;
     using typename Base::IteratorPtr;
     using typename Base::OnLeafListener;
+    using typename Base::ShuttleTypes;
 
     using Base::LEVELS;
 
     using ALCMeta           = AllocationMetadata<ApiProfileT>;
-    using ApiIteratorT      = IterSharedPtr<AllocationMapIterator<ApiProfileT>>;
     using CtrSizeTResult    = Result<CtrSizeT>;
     using AllocationPoolT   = AllocationPool<ApiProfileT, LEVELS>;
+
+    using ChunkT = AllocationMapChunk<ApiProfile<Profile>>;
+    using ChunkPtr = IterSharedPtr<ChunkT>;
+    using LeafPath = IntList<0, 1>;
+
+    struct AlcMapChunkTypes: TypesType {
+        using ShuttleTypes = typename Base::ShuttleTypes;
+    };
+
+    using ChunkImplT = AllocationMapChunkImpl<AlcMapChunkTypes>;
+    using ChunkImplPtr = IterSharedPtr<ChunkImplT>;
+
 
 
     void configure_types(
@@ -69,20 +86,38 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     }
 
+    ChunkImplPtr ctr_alcmap_seek(CtrSizeT pos) const
+    {
+        auto& self = this->self();
+        return self.ctr_descend(
+            TypeTag<ChunkImplT>{},
+            TypeTag<bt::SkipForwardShuttle<ShuttleTypes, 0, ChunkImplT>>{},
+            pos
+        );
+    }
+
+    ChunkPtr seek(CtrSizeT pos) const {
+        return ctr_alcmap_seek(pos);
+    }
+
+    ChunkImplPtr ctr_alcmap_select0(size_t level, CtrSizeT rank) const
+    {
+        auto& self = this->self();
+        return self.ctr_descend(
+            TypeTag<ChunkImplT>{},
+            TypeTag<bt::SelectForwardShuttle<ShuttleTypes, LeafPath, ChunkImplT>>{},
+            level, rank, SeqOpType::EQ
+        );
+    }
+
+    ChunkImplPtr ctr_alcmap_seek_end() const
+    {
+        auto& self = this->self();
+        return self.ctr_alcmap_seek(self.size());
+    }
+
     bool ctr_can_merge_nodes(const TreeNodePtr& tgt, const TreeNodePtr& src)  {
         return false;
-    }
-
-    ApiIteratorT iterator()
-    {
-        auto iter = self().ctr_begin();
-        return iter;//memoria_static_pointer_cast<AllocationMapIterator<ApiProfileT>>(std::move(iter));
-    }
-
-
-    virtual ApiIteratorT seek(CtrSizeT position)  {
-        auto iter = self().ctr_seek(position);
-        return iter;//memoria_static_pointer_cast<AllocationMapIterator<ApiProfileT>>(std::move(iter));
     }
 
 
@@ -124,7 +159,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
         if (MMA_LIKELY(l0_size > 0))
         {
-            auto ii = self.ctr_end();
+            auto ii = self.ctr_alcmap_seek_end();
 
             TreePathT& path = ii->path();
 
@@ -150,12 +185,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     virtual void shrink(CtrSizeT up_to) {
         auto& self = this->self();
 
-        auto ii_start = self.ctr_seek(up_to);
+        auto ii_start = self.ctr_alcmap_seek(up_to);
         return self.ctr_trim_tree(ii_start->path());
     }
 
-    virtual CtrSizeT rank(CtrSizeT pos) {
-        return CtrSizeT{};
+    virtual CtrSizeT rank(size_t level, CtrSizeT pos) const
+    {
+        return self().ctr_alcmap_seek(pos)->rank(level);
     }
 
     virtual CtrSizeT find_unallocated(
@@ -164,22 +200,31 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         ArenaBuffer<ALCMeta>& buffer
     )
     {
+        if (DebugCounter3) {
+            int a = 0;
+            a++;
+        }
+
         auto& self = this->self();
-        auto ii = self.template ctr_select<IntList<0, 1>>(level, 0, SeqOpType::EQ);
+        auto ii = self.ctr_alcmap_select0(level, 0);
+
+        if (DebugCounter3) {
+            ii->dump(std::cout);
+        }
 
         CtrSizeT sum{};
-        while (!ii->is_end())
+        while (is_valid_chunk(ii))
         {
-            auto level0_pos = ii.get()->level0_pos();
-            auto available = ii.get()->count_fw();
+            auto level0_pos = ii->level0_pos();
+            CtrSizeT available;
+            std::tie(available, ii) = ii->iter_count_fw();
 
-            auto len = available / (1 << level);            
-
+            auto len = available / (1 << level);
 
             if (sum + len < required)
             {
                 buffer.append_value(AllocationMetadata<ApiProfileT>{level0_pos, len, level});
-                ii.get()->template iter_select_fw<IntList<0, 1>>(level, 0, SeqOpType::EQ);
+                ii = ii->iter_select_fw(level, 0);
                 sum += len;
             }
             else {
@@ -259,11 +304,12 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         auto& self = this->self();
 
         int32_t level = 0;
-        auto iter = self.template ctr_select<IntList<0, 1>>(level, 0, SeqOpType::EQ);
+        //auto iter = self.template ctr_select<IntList<0, 1>>(level, 0, SeqOpType::EQ);
+        auto iter = self.ctr_alcmap_select0(level, 0);
 
         ArenaBuffer<ALCMeta> arena;
 
-        while (!iter->is_end())
+        while (is_valid_chunk(iter))
         {
             CtrSizeT offset = iter->level0_pos();
 
@@ -281,8 +327,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 }
             }
 
-            if (iter->next_leaf()) {
-                iter->template iter_select_fw<IntList<0, 1>>(level, 0, SeqOpType::EQ);
+
+            iter = iter->iter_next_chunk();
+
+            if (is_valid_chunk(iter)) {
+                iter = iter->iter_select_fw(level, 0);
             }
             else {
                 break;
@@ -371,7 +420,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     void for_allocations(
             Span<ALCMeta> allocations,
-            const std::function<void (IteratorPtr, Span<const ALCMeta>, CtrSizeT)>& leaf_updater
+            const std::function<void (ChunkImplPtr, Span<const ALCMeta>, CtrSizeT)>& leaf_updater
     )
     {
         auto& self = the_self();
@@ -381,16 +430,17 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
         if (allocations.size() > 0)
         {            
-            IteratorPtr ii = self.ctr_seek(allocations[start].position());
+            //IteratorPtr ii = self.ctr_seek(allocations[start].position());
+            auto ii = self.ctr_alcmap_seek(allocations[start].position());
 
             ArenaBuffer<ALCMeta> buf;
 
-            while (!ii->is_end())
+            while (is_valid_chunk(ii))
             {                
-                int32_t local_pos = ii->iter_local_pos();
+                CtrSizeT local_pos = ii->iter_leaf_position();
                 CtrSizeT leaf_base = ii->level0_pos() - local_pos;
 
-                int32_t leaf_size = ii->iter_leaf_size();
+                CtrSizeT leaf_size = ii->chunk_size();
                 CtrSizeT leaf_limit = leaf_base + leaf_size;
 
                 size_t end;
@@ -418,7 +468,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 if (end < allocations.size())
                 {
                     CtrSizeT skip_size = allocations[end].position() - allocations[start].position();
-                    ii->skip(skip_size);
+                    ii = ii->iter_next(skip_size);
                     start = end;
                     buf.clear();
                 }
@@ -441,7 +491,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
         if (allocations.size() > 0)
         {
-            for_allocations(allocations, [&](IteratorPtr ii, Span<const ALCMeta> leaf_alc, CtrSizeT leaf_base){
+            for_allocations(allocations, [&](ChunkImplPtr ii, Span<const ALCMeta> leaf_alc, CtrSizeT leaf_base){
                 self.store().with_no_reentry(self.name(), [&](){
                     ii->iter_clone_path();
                     ii->iter_populate_leaf(leaf_alc, set_bits, leaf_base);
@@ -458,7 +508,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     virtual void touch_bits(Span<ALCMeta> allocations, const OnLeafListener& on_leaf)
     {
         auto& self = the_self();
-        for_allocations(allocations, [&](IteratorPtr ii, Span<const ALCMeta>, CtrSizeT){
+        for_allocations(allocations, [&](ChunkImplPtr ii, Span<const ALCMeta>, CtrSizeT){
             self.store().with_no_reentry(self.name(), [&](){
                 ii->iter_clone_path();
             });
@@ -474,8 +524,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     virtual CtrSizeT mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size)
     {
         auto& self = this->self();
-        auto ii = self.ctr_seek(pos);
-        return ii->iter_setup_bits(level, size, true);
+        auto ii = self.ctr_alcmap_seek(pos);
+        return self.ctr_setup_bits(std::move(ii), level, size, true);
     }
 
     virtual CtrSizeT mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size)
@@ -583,13 +633,21 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     bool populate_allocation_pool(AllocationPoolT& pool, int32_t level)
     {
         auto& self = this->self();
-        auto ii = self.template ctr_select<IntList<0, 1>>(level, 0, SeqOpType::EQ);
+        //auto ii = self.template ctr_select<IntList<0, 1>>(level, 0, SeqOpType::EQ);
+
+        auto ii = self.ctr_alcmap_select0(level, 0);
+
+        if (DebugCounter3) {
+            ii->dump(std::cout);
+        }
 
         uint64_t cnt = 0;
-        while (!ii->is_end())
+        while (is_valid_chunk(ii))
         {
-            CtrSizeT base = ii->level0_pos() - ii->iter_local_pos();
+            CtrSizeT base = ii->level0_pos() - ii->iter_leaf_position();
             self.ctr_cow_clone_path(ii->path(), 0);
+
+            //self.ctr_dump_path(ii->path(), 0);
 
             bool updated = self.leaf_dispatcher().dispatch(
                         ii->path().leaf().as_mutable(),
@@ -603,8 +661,17 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
                 cnt++;
                 self.ctr_update_path(ii->path(), 0);
 
-                if (pool.has_room(level) && ii->next_leaf()) {
-                    ii->template iter_select_fw<IntList<0, 1>>(level, 0, SeqOpType::EQ);
+                //self.ctr_dump_path(ii->path(), 0);
+
+                if (pool.has_room(level))
+                {
+                    ii = ii->iter_next_chunk();
+                    if (is_valid_chunk(ii)) {
+                        ii = ii->iter_select_fw(level, 0);
+                    }
+                    else {
+                        break;
+                    }
                 }
                 else {
                     break;
@@ -620,10 +687,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
 
     class CompareHelper: public AllocationMapCompareHelper<ApiProfileT> {
-        using MapIteratorPtr = IterSharedPtr<AllocationMapIterator<ApiProfileT>>;
-
-        MapIteratorPtr my_ii_;
-        MapIteratorPtr other_ii_;
+        ChunkPtr my_ii_;
+        ChunkPtr other_ii_;
 
         int32_t my_idx_{};
         int32_t other_idx_{};
@@ -637,8 +702,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
     public:
         CompareHelper(
-                MapIteratorPtr my_ii,
-                MapIteratorPtr other_ii
+                ChunkPtr my_ii,
+                ChunkPtr other_ii
         ): my_ii_(my_ii), other_ii_(other_ii)
         {}
 
@@ -698,8 +763,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         CtrSharedPtr<ICtrApi<AllocationMap, ApiProfileT>> other,
         const std::function<bool (AllocationMapCompareHelper<ApiProfileT>&)>& consumer
     ) {
-        auto my_ii = self().iterator();
-        auto other_ii = other->iterator();
+        auto my_ii = self().seek(0);
+        auto other_ii = other->seek(0);
 
         CompareHelper helper(my_ii, other_ii);
 
@@ -708,7 +773,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
         int32_t my_pos = 0;
         int32_t other_pos = 0;
 
-        while (!my_ii->is_end())
+        while (is_valid_chunk(my_ii))
         {
             auto my_bitmap = my_ii->bitmap();
             auto other_bitmap = other_ii->bitmap();
@@ -740,9 +805,12 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
                 other_pos += size;
 
-                if (!my_ii->next_leaf()) {
+                my_ii = my_ii->next_chunk();
+
+                if (!is_valid_chunk(my_ii)) {
                     break;
                 }
+
                 my_pos = 0;
                 helper.add_to_my_base(my_limit);
             }
@@ -756,7 +824,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
                 my_pos += size;
 
-                if (!other_ii->next_leaf()) {
+                other_ii = other_ii->next_chunk();
+
+                if (!is_valid_chunk(other_ii)) {
                     break;
                 }
 
@@ -767,6 +837,122 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
         return mismatches;
     }
+
+
+    struct SetClearBitsFn {
+        template <typename T>
+        CtrSizeT treeNode(T&& node_so, size_t start, size_t level, CtrSizeT size, bool set_bits) const noexcept
+        {
+            auto bitmap = node_so.template substream_by_idx<1>();
+            size_t bm_size = bitmap.data()->size(level);
+            size_t limit = (start + size) < bm_size ? (start + size) : bm_size;
+
+            if (set_bits) {
+                bitmap.data()->set_bits(level, start, limit - start);
+            }
+            else {
+                bitmap.data()->clear_bits(level, start, limit - start);
+            }
+
+            bitmap.data()->reindex();
+
+            return CtrSizeT(limit - start);
+        }
+    };
+
+    CtrSizeT ctr_setup_bits(ChunkImplPtr&& iter, size_t level, CtrSizeT size, bool set_bits)
+    {
+        auto& self = this->self();
+
+        size_t local_pos = iter->iter_leaf_position() >> level;
+
+        CtrSizeT accum{};
+
+        while (accum < size)
+        {
+            self.ctr_cow_clone_path(iter->path(), 0);
+
+            CtrSizeT remainder = size - accum;
+            auto processed = self.leaf_dispatcher().dispatch(iter->path().leaf(), SetClearBitsFn(), local_pos, level, remainder, set_bits);
+
+            accum += processed;
+
+            self.ctr_update_path(iter->path(), 0);
+
+            if (accum < size)
+            {
+                iter = iter->iter_next_chunk();
+                if (!is_valid_chunk(iter)) {
+                    break;
+                }
+
+                iter->leaf_position_ = local_pos = 0;
+            }
+            else {
+                iter->leaf_position_ += processed << level;
+            }
+        }
+
+        auto leaf_size = iter->chunk_size();
+
+        if (leaf_size == iter->iter_leaf_position()) {
+            iter = iter->iter_next_chunk();
+        }
+
+        return accum;
+    }
+
+
+    struct TouchBitsFn {
+        template <typename T>
+        CtrSizeT treeNode(T&& node_so, int32_t start, int32_t level, CtrSizeT size) const noexcept
+        {
+            auto bitmap = node_so.template substream_by_idx<1>();
+            size_t bm_size = bitmap.data()->size(level);
+            size_t limit = (start + size) < bm_size ? (start + size) : bm_size;
+            return limit - start;
+        }
+    };
+
+
+    CtrSizeT ctr_touch_bits(ChunkImplPtr&& iter, size_t level, CtrSizeT size)
+    {
+        auto& self = this->self();
+
+        size_t local_pos = iter->iter_leaf_position() >> level;
+
+        CtrSizeT accum{};
+        CtrSizeT remainder = size;
+        while (accum < size)
+        {
+            self.ctr_cow_clone_path(iter->path(), 0);
+
+            auto processed = self.leaf_dispatcher().dispatch(this->path().leaf(), TouchBitsFn(), local_pos, level, remainder);
+
+            accum += processed;
+
+            if (accum < size)
+            {
+                auto has_next = self.next_leaf();
+                if (!has_next) {
+                    break;
+                }
+
+                iter->leaf_position_ = local_pos = 0;
+            }
+            else {
+                iter->leaf_position_ += processed << level;
+            }
+        }
+
+        auto leaf_size = iter->chunk_size();
+        if (leaf_size == iter->iter_leaf_position()) {
+            iter = iter->iter_next_leaf();
+        }
+
+        return accum;
+    }
+
 
 
 MEMORIA_V1_CONTAINER_PART_END
