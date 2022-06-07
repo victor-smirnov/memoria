@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
-#include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
 
 #include <memoria/prototypes/bt_ss/btss_names.hpp>
@@ -35,7 +34,6 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
 
-    using typename Base::Iterator;
     using typename Base::TreeNodeConstPtr;
     using typename Base::Position;
     using typename Base::Profile;
@@ -43,28 +41,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
 
     using typename Base::CtrSizeT;
     using typename Base::LeafNode;
-    using typename Base::IteratorPtr;
 
     using typename Base::BlockIteratorState;
     using typename Base::BlockIteratorStatePtr;
 
     static constexpr size_t Stream = 0;
-
-    template <typename BlkIteratorT>
-    IterSharedPtr<BlkIteratorT> ctr_make_blk_iterator_from(TypeTag<BlkIteratorT> tag, IteratorPtr iter) const
-    {
-        auto& self = this->self();
-
-        IterSharedPtr<BlkIteratorT> blk_iter = self.make_block_iterator_state(tag);
-
-        blk_iter->path() = iter->path();
-
-        CtrSizeT size = self.ctr_leaf_sizes(iter->path().leaf())[0];
-        blk_iter->finish_ride(iter->iter_local_pos(), size, false);
-
-        return blk_iter;
-    }
-
 
     template <typename Entry>
     BlockIteratorStatePtr ctr_insert_entry(

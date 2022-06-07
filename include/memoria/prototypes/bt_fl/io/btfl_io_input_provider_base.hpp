@@ -195,7 +195,6 @@ public:
     using CtrDataPositionsT     = core::StaticVector<int64_t, DataStreams>;
 
 
-    using Iterator = typename CtrT::Iterator;
     using NodePair = std::pair<TreeNodePtr, TreeNodePtr>;
 
 protected:
@@ -397,7 +396,6 @@ public:
 
     using TreeNodePtr = typename CtrT::Types::TreeNodePtr;
     using CtrSizeT  = typename CtrT::Types::CtrSizeT;
-    using Iterator  = typename CtrT::Iterator;
 
     using typename Base::DataPositions;
     using typename Base::Position;

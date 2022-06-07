@@ -29,7 +29,6 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::FindName)
 public:
 
-    using typename Base::IteratorPtr;
     using typename Base::CtrSizeT;
 
     using Base::Streams;
@@ -41,28 +40,7 @@ public:
         return sizes[0];
     }
 
-    auto ctr_seek(CtrSizeT position) const
-    {
-        ///return self().template ctr_seek_stream<0>(position);
 
-    }
-
-    auto ctr_begin() const  {
-        return self().ctr_seek(0);
-    }
-
-    IteratorPtr ctr_end() const
-    {
-        auto size = self().size();
-
-        if (size > 0)
-        {
-            return self().ctr_seek(size);
-        }
-        else {
-            return self().ctr_seek(0);
-        }
-    }
 MEMORIA_V1_CONTAINER_PART_END
 
 

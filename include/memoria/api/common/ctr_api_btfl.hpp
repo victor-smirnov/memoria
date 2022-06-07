@@ -24,32 +24,10 @@
 
 #include <memoria/core/iovector/io_vector.hpp>
 
-
 #include "ctr_api.hpp"
-
-#ifdef max
-#undef max
-#endif
-
-#ifdef min
-#undef min
-#endif
 
 
 namespace memoria {
-
-template <typename Profile>
-struct BTFLIterator {
-    virtual ~BTFLIterator() noexcept {}
-
-    virtual const std::type_info& cxx_type() const = 0;
-
-    virtual const io::IOVector& iovector_view() const = 0;
-    virtual int32_t iovector_pos() const  = 0;
-
-    virtual void dump(std::ostream& out = std::cout, const char* header = nullptr) const = 0;
-    virtual void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const = 0;
-};
 
 
 }

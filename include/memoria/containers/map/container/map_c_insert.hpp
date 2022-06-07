@@ -32,8 +32,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrInsertName)
     using Types = typename Base::Types;
 
     using typename Base::TreeNodePtr;
-    using typename Base::IteratorPtr;
-
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
 
@@ -43,29 +41,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrInsertName)
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
-
-
-    template <typename T>
-    IteratorPtr find(T&& k) const
-    {
-        return self().template ctr_find_ge<IntList<0, 0, 1>>(0, k);
-    }
-
-    template <typename K, typename V>
-    IteratorPtr assign(K&& key, V&& value)
-    {
-        auto iter = self().ctr_map_find(key);
-
-        if (iter->is_found(key))
-        {
-            iter->assign(value);
-        }
-        else {
-            iter->iter_insert_entry(key, value);
-        }
-
-        return iter;
-    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

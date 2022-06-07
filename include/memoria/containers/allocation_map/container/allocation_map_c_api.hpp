@@ -55,7 +55,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
     using typename Base::TreeNodePtr;
     using typename Base::TreePathT;
     using typename Base::Position;
-    using typename Base::IteratorPtr;
     using typename Base::OnLeafListener;
     using typename Base::ShuttleTypes;
 
@@ -358,8 +357,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrApiName)
 
         if (MMA_LIKELY(size > 0))
         {
-            if (path.size() == 1)
-            {
+            if (path.size() == 1) {
                 self.ctr_create_new_root_block(path);
             }
 

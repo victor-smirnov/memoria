@@ -26,16 +26,6 @@
 
 #include <memoria/prototypes/bt/bt_names.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
-#include <memoria/prototypes/bt/bt_walkers.hpp>
-
-#include <memoria/prototypes/bt/walkers/bt_skip_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_findmax_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_select_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_leaf_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_rank_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_count_walkers.hpp>
 
 #include <memoria/prototypes/bt/shuttles/bt_find_shuttle.hpp>
 #include <memoria/prototypes/bt/shuttles/bt_skip_shuttle.hpp>
@@ -131,12 +121,8 @@ struct BTTypes {
     >;
     
     using CommonContainerPartsList = TypeList<>;
-
-    using IteratorPartsList = TypeList<>;
-
     using BlockIteratorStatePartsList = TypeList<>;
 
-    using IteratorInterface = EmptyType;
     using BlockIteratorStateInterface = EmptyType;
 
     using Allocator = ProfileStoreType<Profile_>;
@@ -167,59 +153,6 @@ struct BTTypes {
 
     template <typename Types_>
     using BlockIterStateBaseFactory = BTBlockIteratorStateBase<Types_>;
-
-    template <typename Iterator, typename Container>
-    using IteratorCacheFactory = bt::BTreeIteratorPrefixCache<Iterator, Container>;
-
-
-    template <typename Types, typename LeafPath>
-    using FindGTForwardWalker          = bt::FindGTForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using FindMaxGTWalker              = bt::FindMaxGTWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-
-    template <typename Types, typename LeafPath>
-    using FindGTBackwardWalker         = bt::FindGTBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using FindGEForwardWalker          = bt::FindGEForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using FindMaxGEWalker              = bt::FindMaxGEWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using FindGEBackwardWalker         = bt::FindGEBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SkipForwardWalker     = bt::SkipForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SkipBackwardWalker    = bt::SkipBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SelectForwardWalker   = bt::SelectForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SelectBackwardWalker  = bt::SelectBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using RankForwardWalker   = bt::RankForwardWalker<bt::RankWalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using RankBackwardWalker  = bt::RankBackwardWalker<bt::RankWalkerTypes<Types, LeafPath>>;
-
-    template <typename Types>
-    using NextLeafWalker      = bt::ForwardLeafWalker<Types>;
-
-    template <typename Types>
-    using PrevLeafWalker      = bt::BackwardLeafWalker<Types>;
-
-    template <typename Types, typename LeafPath>
-    using NextLeafMutistreamWalker  = bt::SkipForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using PrevLeafMutistreamWalker  = bt::SkipBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 };
 
 
@@ -324,7 +257,6 @@ public:
     >;
 
     using CtrExtensionsList  = typename bt::ContainerExtensionsTF<Profile, ContainerTypeName_>::Type;
-    using IterExtensionsList = typename bt::IteratorExtensionsTF<Profile, ContainerTypeName_>::Type;
     using BlockIterStateExtensionsList = typename bt::IteratorExtensionsTF<Profile, ContainerTypeName_>::Type;
 
     using CtrList = MergeLists<
@@ -332,7 +264,6 @@ public:
             MergeLists<CtrExtensionsList, CtrListLeaf, CtrListBranch, typename ContainerTypes::CommonContainerPartsList>
     >;
 
-    using IterList = MergeLists<IterExtensionsList, typename ContainerTypes::IteratorPartsList>;
     using BlockIterStateList = MergeLists<BlockIterStateExtensionsList, typename ContainerTypes::BlockIteratorStatePartsList>;
 
 public:
@@ -348,13 +279,11 @@ public:
         using TreeNodeConstPtr = TreeNodeConstPtrT;
 
         using CtrList  = typename MyType::CtrList;
-        using IterList = typename MyType::IterList;
         using BlockIterStateList = typename MyType::BlockIterStateList;
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
         using CtrTypes  = BTCtrTypes<Types>;
-        using IterTypes = BTIterTypes<Types>;
         using BlockIterStateTypes = BTBlockIterStateTypes<Types>;
 
         static constexpr int32_t Streams = MyType::Streams;

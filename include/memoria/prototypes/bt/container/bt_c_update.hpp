@@ -28,33 +28,6 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
 
     using typename Base::TreeNodePtr;
-    using typename Base::Iterator;
-
-    template <typename SubstreamsList, typename Buffer>
-    void ctr_update_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Buffer& entry)
-    {
-        auto& self = this->self();
-
-        self.ctr_cow_clone_path(iter.path(), 0);
-
-        auto update_status0 = self.template ctr_try_update_stream_entry<SubstreamsList>(iter, idx, entry);
-        if (!update_status0)
-        {
-            auto split_r = iter.iter_split_leaf(stream, idx);
-            idx = split_r.stream_idx();
-
-            auto update_status1 = self.template ctr_try_update_stream_entry<SubstreamsList>(iter, idx, entry);
-
-            if (!update_status1)
-            {
-                MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed").do_throw();
-            }
-        }
-
-        self.ctr_update_path(iter.path(), 0);
-    }
-
-
 
 MEMORIA_V1_CONTAINER_PART_END
 

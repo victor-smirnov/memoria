@@ -18,7 +18,6 @@
 
 #include <memoria/prototypes/bt_ss/btss_factory.hpp>
 
-#include <memoria/containers/vector/vctr_walkers.hpp>
 #include <memoria/containers/vector/vctr_tools.hpp>
 #include <memoria/containers/vector/vctr_names.hpp>
 #include <memoria/containers/vector/vector_api_impl.hpp>
@@ -27,8 +26,6 @@
 #include <memoria/containers/vector/container/vctr_c_insert.hpp>
 #include <memoria/containers/vector/container/vctr_c_remove.hpp>
 #include <memoria/containers/vector/container/vctr_c_api_common.hpp>
-#include <memoria/containers/vector/container/vctr_c_api_fixed.hpp>
-#include <memoria/containers/vector/container/vctr_c_api_vlen.hpp>
 #include <memoria/containers/vector/container/vctr_c_find.hpp>
 
 #include <memoria/containers/vector/vctr_names.hpp>
@@ -53,15 +50,6 @@ struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
 
     using Entry = DataType;
 
-    using FixedLeafContainerPartsList = MergeLists<
-            typename Base::FixedLeafContainerPartsList,
-            mvector::CtrApiFixedName
-    >;
-
-    using VariableLeafContainerPartsList = MergeLists<
-            typename Base::VariableLeafContainerPartsList,
-            mvector::CtrApiVLenName
-    >;
 
 
     using CommonContainerPartsList = MergeLists<

@@ -38,9 +38,6 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(multimap::CtrApiName)
 public:
     using Types = typename Base::Types;
-    using typename Base::IteratorPtr;
-
-    using SharedIterator = typename IteratorPtr::element_type;
 
 protected:
     using typename Base::Profile;
@@ -125,9 +122,6 @@ public:
 
     /* Old stuff below...  */
 
-
-
-
     CtrSizeT size() const
     {
         auto res = self().sizes();
@@ -142,10 +136,6 @@ public:
         auto ii = self.ctr_seek_key(self.size());
         self.ctr_insert_iovector(std::move(ii), producer, 0, std::numeric_limits<int64_t>::max());
     }
-
-
-
-
 
     void prepend_entries(io::IOVectorProducer& producer)
     {

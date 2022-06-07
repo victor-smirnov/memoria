@@ -39,7 +39,6 @@ public:
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
     using typename Base::CtrSizeT;
-    using typename Base::IteratorPtr;
     using typename Base::Profile;
     using typename Base::ApiProfileT;
 

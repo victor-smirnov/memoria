@@ -18,9 +18,9 @@
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
-#include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
 #include <memoria/core/container/macros.hpp>
 #include <memoria/core/iovector/io_vector.hpp>
+#include <memoria/prototypes/bt/nodes/leaf_node_so.hpp>
 
 #include <vector>
 
@@ -31,7 +31,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafCommonName)
     using typename Base::Types;
     using typename Base::TreeNodePtr;
     using typename Base::TreeNodeConstPtr;
-    using typename Base::Iterator;
     using typename Base::Position;
     using typename Base::TreePathT;
     using typename Base::CtrSizeT;
@@ -59,49 +58,8 @@ public:
     }
 
 public:
-//    template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
-//    auto ctr_apply_substreams_fn(TreeNodePtr& leaf, Fn&& fn, Args&&... args)
-//    {
-//        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
-//    }
-
-    template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
-    auto ctr_apply_substreams_fn(const TreeNodePtr& leaf, Fn&& fn, Args&&... args) const
-    {
-        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
-    }
-
-    template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
-    auto ctr_apply_substreams_fn(const TreeNodeConstPtr& leaf, Fn&& fn, Args&&... args) const
-    {
-        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
-    }
-
-    template <int32_t Stream, typename Fn, typename... Args>
-    auto ctr_apply_stream_fn(const TreeNodePtr& leaf, Fn&& fn, Args&&... args) const
-    {
-        return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
-    }
-
-    template <int32_t Stream, typename Fn, typename... Args>
-    auto ctr_apply_stream_fn(const TreeNodeConstPtr& leaf, Fn&& fn, Args&&... args) const
-    {
-        return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
-    }
-
-    template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
-    auto ctr_read_substreams(const TreeNodeConstPtr& leaf, Args&&... args) const
-    {
-         return self().template ctr_apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
-    }
 
 
-
-    template <int32_t Stream, typename... Args>
-    auto ctr_read_stream(const TreeNodeConstPtr& leaf, Args&&... args) const
-    {
-         return self().template ctr_apply_stream_fn<Stream>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
-    }
 
 
     struct SumFn {
@@ -118,21 +76,6 @@ public:
         }
     };
 
-
-
-    struct FindFn {
-        template <typename Stream, typename... Args>
-        auto stream(const Stream& s, Args&&... args)
-        {
-            return s->findForward(std::forward<Args>(args)...).local_pos();
-        }
-    };
-
-    template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
-    auto ctr_find_forward(const TreeNodeConstPtr& leaf, Args&&... args) const
-    {
-        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
-    }
 
 
 
@@ -229,21 +172,6 @@ public:
         }
     }
 
-
-    template <int32_t Stream, typename Entry>
-    bool ctr_try_insert_stream_entry(
-            Iterator& iter,
-            int32_t idx,
-            const Entry& entry
-    )
-    {
-        auto& self = this->self();
-
-        self.ctr_cow_clone_path(iter.path(), 0);
-        self.ctr_update_block_guard(iter.iter_leaf());
-
-        return self.template ctr_try_insert_stream_entry_no_mgr<Stream>(iter.iter_leaf().as_mutable(), idx, entry);
-    }
 
 
     template <size_t Stream, typename Entry>
@@ -349,47 +277,6 @@ public:
             );
         }
     };
-
-
-    template <typename SubstreamsList, typename Entry>
-    bool ctr_try_update_stream_entry(Iterator& iter, size_t idx, const Entry& entry)
-    {
-        return ctr_try_update_stream_entry<SubstreamsList>(iter.path(), CtrSizeT{idx}, entry);
-
-//        auto& self = this->self();
-
-//        self.ctr_cow_clone_path(iter.path(), 0);
-//        self.ctr_update_block_guard(iter.iter_leaf().as_mutable());
-
-//        auto update_state = self.template ctr_make_leaf_update_state<SubstreamsList>(iter.iter_leaf());
-//        PrepareUpdateStreamFn<SubstreamsList> fn1;
-
-//        if (Types::LeafDataLength == LeafDataLengthType::VARIABLE)
-//        {
-//            self.leaf_dispatcher().dispatch(
-//                        iter.iter_leaf().as_mutable(),
-//                        fn1,
-//                        idx,
-//                        entry,
-//                        update_state
-//            );
-//        }
-
-//        if (is_success(fn1.status)) {
-//            CommitUpdateStreamFn<SubstreamsList> fn2;
-//            self.leaf_dispatcher().dispatch(
-//                        iter.iter_leaf().as_mutable(),
-//                        fn2,
-//                        idx,
-//                        entry,
-//                        update_state
-//            );
-
-//            return true;
-//        }
-//        return false;
-    }
-
 
     template <typename SubstreamsList, typename Entry>
     bool ctr_try_update_stream_entry(TreePathT& path, CtrSizeT idx, const Entry& entry)

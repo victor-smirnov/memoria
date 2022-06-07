@@ -29,7 +29,6 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
 
     using typename Base::TreeNodePtr;
-    using typename Base::Iterator;
     using typename Base::Position;
     using typename Base::TreePathT;
     using typename Base::CtrSizeT;
@@ -79,24 +78,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::RemoveName)
     }
 
 
-
-    void ctr_remove_entry(Iterator& iter, bool update_iterator = true)
-    {
-        auto& self = this->self();
-
-        int32_t idx = iter.iter_local_pos();
-        auto remove_entry_result = self.ctr_remove_entry(iter.path(), idx);
-
-        if (update_iterator)
-        {
-            iter.refresh_iovector_view();
-            if (MMA_UNLIKELY(remove_entry_result.leaf_changed))
-            {
-                iter.iter_local_pos() = remove_entry_result.new_idx;
-                iter.iter_refresh();
-            }
-        }
-    }
 
     BlockIteratorStatePtr ctr_remove_entry2(BlockIteratorStatePtr&& iter)
     {

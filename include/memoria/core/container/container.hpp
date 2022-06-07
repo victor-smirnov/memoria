@@ -91,10 +91,6 @@ public:
     using SharedBlockPtr        = typename ROAllocator::SharedBlockPtr;
     using SharedBlockConstPtr   = typename ROAllocator::SharedBlockConstPtr;
 
-    using Iterator          = Iter<typename Types::IterTypes>;
-    using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
-    using IteratorPtr       = IterSharedPtr<SharedIterator>;
-
     using BlockIteratorState    = Iter<typename Types::BlockIterStateTypes>;
     using BlockIteratorStatePtr = IterSharedPtr<BlockIteratorState>;
 
@@ -507,39 +503,6 @@ public:
 
 protected:
 
-    template <typename... Args>
-    IteratorPtr make_iterator(Args&&... args) const {
-        return allocate_shared<SharedIterator>(
-            self().store().object_pools(),
-            this->shared_from_this(),
-            std::forward<Args>(args)...
-        );
-    }
-
-    template <typename... Args>
-    IteratorPtr make_iterator(Args&&... args) {
-        return allocate_shared<SharedIterator>(
-            self().store().object_pools(),
-            this->shared_from_this(),
-            std::forward<Args>(args)...
-        );
-    }
-
-    template <typename... Args>
-    IteratorPtr clone_iterator(Args&&... args) const {
-        return allocate_shared<SharedIterator>(
-            self().store().object_pools(),
-            std::forward<Args>(args)...
-        );
-    }
-
-    template <typename... Args>
-    IteratorPtr clone_iterator(Args&&... args) {
-        return allocate_shared<SharedIterator>(
-            self().store().object_pools(),
-            std::forward<Args>(args)...
-        );
-    }
 
 
 public:

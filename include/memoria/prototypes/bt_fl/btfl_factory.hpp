@@ -34,24 +34,9 @@
 #include <memoria/prototypes/bt_fl/container/btfl_c_ranks.hpp>
 #include <memoria/prototypes/bt_fl/container/btfl_c_checks.hpp>
 
-//#include <memoria/prototypes/bt_fl/iterator/btfl_i_misc.hpp>
-//#include <memoria/prototypes/bt_fl/iterator/btfl_i_srank.hpp>
-//#include <memoria/prototypes/bt_fl/iterator/btfl_i_sums.hpp>
-//#include <memoria/prototypes/bt_fl/iterator/btfl_i_find.hpp>
-//#include <memoria/prototypes/bt_fl/iterator/btfl_i_skip.hpp>
-//#include <memoria/prototypes/bt_fl/iterator/btfl_i_update.hpp>
-//#include <memoria/prototypes/bt_fl/iterator/btfl_i_remove.hpp>
-//#include <memoria/prototypes/bt_fl/iterator/btfl_i_insert.hpp>
-//#include <memoria/prototypes/bt_fl/iterator/btfl_i_read.hpp>
-
 #include <memoria/prototypes/bt_fl/iterator/btfl_i_basic.hpp>
 
 #include <memoria/prototypes/bt_fl/tools/btfl_tools_streamdescr.hpp>
-
-#include <memoria/prototypes/bt/walkers/bt_count_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_select_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_rank_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
 
 #include <memoria/prototypes/bt_fl/io/btfl_io_input_provider_base.hpp>
 
@@ -100,34 +85,10 @@ struct BTTypes<Profile, BTFreeLayout>: public BTTypes<Profile, BT> {
                     btfl::LeafVariableName
     >;
 
-
-//    using IteratorPartsList = MergeLists<
-//                typename Base::IteratorPartsList,
-//                btfl::IteratorMiscName,
-//                btfl::IteratorStreamRankName,
-//                btfl::IteratorStreamSumsName,
-//                btfl::IteratorFindName,
-//                btfl::IteratorSkipName,
-//                btfl::IteratorUpdateName,
-//                btfl::IteratorRemoveName,
-//                btfl::IteratorInsertName,
-//                btfl::IteratorReadName
-//    >;
-
-
     using BlockIteratorStatePartsList = MergeLists<
         typename Base::BlockIteratorStatePartsList,
         btfl::IteratorBasicName
     >;
-
-    template <typename Iterator, typename Container>
-    using IteratorCacheFactory = btfl::BTFLIteratorPrefixCache<Iterator, Container>;
-
-    template <typename Types, typename LeafPath>
-    using CountForwardWalker   = bt::CountForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using CountBackwardWalker  = bt::CountBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 };
 
 

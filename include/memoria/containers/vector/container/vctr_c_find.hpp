@@ -28,7 +28,6 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(mvector::CtrFindName)
 public:
     using Types = typename Base::Types;
-    using typename Base::IteratorPtr;
 
 protected:
     using typename Base::TreeNodePtr;
@@ -38,36 +37,7 @@ protected:
 
     using Value = typename Types::Value;
 
-
 public:
-    auto RBegin()
-    {
-        auto& self  = this->self();
-        auto size   = self.size();
-
-        if (size > 0)
-        {
-            return self.seek(size - 1);
-        }
-        else {
-            return self.seek(size);
-        }
-    }
-
-    auto REnd()
-    {
-        auto& self  = this->self();
-        auto size   = self.size();
-
-        auto iter   = self.Begin();
-
-        if (size > 0)
-        {
-            iter->prev();
-        }
-
-        return iter;
-    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

@@ -1,5 +1,5 @@
 
-// Copyright 2020 Victor Smirnov
+// Copyright 2020-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ public:
     static constexpr size_t ValuesPerBranch        = 512;
     static constexpr size_t Indexes                = 9;
 
-
     enum {
         METADATA = 0, INDEX = 1, SYMBOLS = INDEX + Indexes
     };
@@ -77,35 +76,31 @@ public:
 
     PkdAllocationMap() noexcept = default;
 
-    psize_t& size() noexcept {return metadata()->size();}
-    const psize_t& size() const noexcept {return metadata()->size();}
+    size_t size() const noexcept {return metadata()->size();}
+    size_t set_size(size_t size) noexcept {
+        metadata()->size() = size;
+    }
 
-    psize_t& capacity() noexcept {return metadata()->capacity();}
-    const psize_t& capacity() const noexcept {return metadata()->capacity();}
+    size_t capacity() const noexcept {
+        return metadata()->capacity();
+    }
 
     size_t available_space() const noexcept {
         auto meta = this->metadata();
         return meta->capacity() - meta->size();
     }
 
-    size_t size(size_t level) const noexcept
-    {
+    size_t size(size_t level) const noexcept {
         return bitmap_level_size(size(), level);
-    }
-
-    static int do_nothing() {
-        return 0;
     }
 
     // ====================================== Accessors ================================= //
 
-    Metadata* metadata() noexcept
-    {
+    Metadata* metadata() noexcept {
         return Base::template get<Metadata>(METADATA);
     }
 
-    const Metadata* metadata() const noexcept
-    {
+    const Metadata* metadata() const noexcept {
         return Base::template get<Metadata>(METADATA);
     }
 
@@ -489,21 +484,25 @@ public:
 
 
     struct SelectResult {
-        size_t pos;
-        size_t bm_size;
-        int64_t rank;
+        size_t idx;
+        size_t size;
+        size_t rank;
+
+        bool is_found() const {return idx < size;}
     };
 
 
-    SelectResult select0(int64_t rank, size_t level) const noexcept
+    SelectResult select_fw(size_t rank_base0, size_t level) const noexcept
     {
+        auto rank = rank_base0 + 1;
+
         size_t bm_size  = bitmap_level_size(size(), level);
         size_t idx_size = index_level_size(bm_size);
 
         size_t bm_start = 0;
-        int64_t sum{};
+        size_t sum{};
 
-        int64_t rank_tmp = rank;
+        size_t rank_tmp = rank;
 
         if (idx_size > 0)
         {
@@ -526,9 +525,9 @@ public:
         auto result = Select0FW(bitmap, bm_start, bm_size, rank_tmp);
 
         return SelectResult{
-            static_cast<size_t>(result.local_pos()),
+            static_cast<size_t>(result.idx) << level,
             bm_size,
-            static_cast<int64_t>(result.rank) + sum
+            static_cast<size_t>(result.rank) + sum
         };
     }
 
@@ -554,21 +553,11 @@ public:
     }
 
 
-    auto selectFW(int64_t rank, size_t level) const noexcept
-    {
-        auto res = select0(rank, level);
-        return memoria::SelectResult{
-            static_cast<size_t>(res.pos) << level,
-            static_cast<size_t>(res.rank),
-            res.pos < res.bm_size
-        };
-    }
-
-    memoria::SelectResult selectFW(size_t start, int64_t rank, size_t level) const noexcept
+    SelectResult select_fw(size_t start, size_t rank, size_t level) const noexcept
     {
         size_t startrank_ = this->rank(start, level);
-        auto result = selectFW(startrank_ + rank, level);
 
+        auto result = select_fw(startrank_ + rank, level);
         result.rank -= startrank_;
 
         return result;
@@ -587,7 +576,7 @@ public:
         size_t symbol() const noexcept {return symbol_;}
     };
 
-    CountResult countFW(size_t start, size_t level) const noexcept
+    CountResult count_fw(size_t start, size_t level) const noexcept
     {
         size_t bm_size     = bitmap_level_size(size(), level);
         size_t block_end   = (start / ValuesPerBranch + 1) * ValuesPerBranch;
@@ -718,11 +707,11 @@ public:
         size_t idx = 0;
         while (true)
         {
-            memoria::SelectResult sel_res = selectFW(idx, 1, level);
+            SelectResult sel_res = select_fw(idx, 0, level);
             if (sel_res.is_found())
             {
-                size_t l_pos = sel_res.local_pos() >> level;
-                CountResult cnt_res = countFW(l_pos, level);
+                size_t l_pos = sel_res.idx >> level;
+                CountResult cnt_res = count_fw(l_pos, level);
 
                 auto cont = fn(l_pos, cnt_res.count());
 
@@ -741,7 +730,7 @@ public:
 
 
     template <typename AllocationPool>
-    bool populate_allocation_pool(int64_t base, AllocationPool& pool) noexcept
+    bool populate_allocation_pool(size_t base, AllocationPool& pool) noexcept
     {
         bool updated = false;
         for (size_t ll = Indexes; ll > 0; ll--)

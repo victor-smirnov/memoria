@@ -1,5 +1,5 @@
 
-// Copyright 2015 Victor Smirnov
+// Copyright 2015-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ using FlattenIndexRangeTree = Linearize<IndexRangeTree, 3>;
 
 template <int32_t Head>
 struct IndexesH<IntList<Head>>:
-    TypeP<TypeList<SumRange<Head>>>
+    HasType<TypeList<SumRange<Head>>>
 {};
 
 
@@ -147,7 +147,7 @@ namespace detail {
 
 
     template <typename T, int32_t Max>
-    struct AccumBuilderH<T, TypeList<>, Max>: TypeP<TypeList<EmptyVector<T>>>
+    struct AccumBuilderH<T, TypeList<>, Max>: HasType<TypeList<EmptyVector<T>>>
     {};
 
 

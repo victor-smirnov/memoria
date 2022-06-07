@@ -81,12 +81,6 @@ struct TypeHash<T[Size]> {
 };
 
 
-template <> struct TypeHash<Root>: UInt64Value<1400> {};
-
-template <typename CtrName>
-struct TypeHash<CtrWrapper<CtrName>>: UInt32Value<HashHelper<1700, TypeHashV<CtrName>>> {};
-
-
 template <typename... List>
 struct TypeHash<TypeList<List...>> {
 private:
@@ -106,18 +100,6 @@ public:
 
     static const uint64_t Value = md5::Md5Sum<TaggedValueList>::Result::Value64;
 };
-
-template <typename Key, typename Value>
-struct TypeHash<Table<Key, Value, PackedDataTypeSize::FIXED>>: UInt64Value <
-    HashHelper<3098, TypeHashV<Key>, TypeHashV<Value>>
-> {};
-
-template <typename Key, typename Value>
-struct TypeHash<Table<Key, Value, PackedDataTypeSize::VARIABLE>>: UInt64Value <
-    HashHelper<3099, TypeHashV<Key>, TypeHashV<Value>>
-> {};
-
-
 
 
 }

@@ -32,21 +32,5 @@
 
 namespace memoria {
 
-template <typename Profile>
-struct BTSSIterator {
-    virtual ~BTSSIterator() noexcept = default;
-
-    virtual const io::IOVector& iovector_view() const = 0;
-    virtual int32_t iovector_pos() const    = 0;
-
-    virtual bool is_end() const             = 0;
-    virtual bool next_leaf()                = 0;
-    virtual bool next_entry()               = 0;
-
-    virtual void dump(std::ostream& out = std::cout, const char* header = nullptr) const = 0;
-    virtual void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const = 0;
-
-    virtual AnyID leaf_id() const = 0;
-};
 
 }

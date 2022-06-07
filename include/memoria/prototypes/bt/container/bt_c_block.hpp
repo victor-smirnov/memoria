@@ -31,8 +31,6 @@ public:
 
     using typename Base::TreeNodePtr;
     using typename Base::TreeNodeConstPtr;
-    using typename Base::Iterator;
-    using typename Base::IteratorPtr;
     using typename Base::Position;
     using typename Base::CtrSizeT;
     using typename Base::TreePathT;

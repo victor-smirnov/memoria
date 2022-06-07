@@ -19,7 +19,6 @@
 #include <memoria/prototypes/bt/iterator/bt_bis_base.hpp>
 #include <memoria/prototypes/bt/iterator/bt_i_base.hpp>
 
-
 #include <memoria/prototypes/bt/bt_names.hpp>
 
 namespace memoria {

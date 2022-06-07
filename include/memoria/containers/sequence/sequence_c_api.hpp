@@ -42,8 +42,6 @@ public:
     using typename Base::BranchNodeEntry;
     using typename Base::ShuttleTypes;
     using typename Base::TreePathT;
-    using typename Base::NodeChain;
-
 
 
 protected:

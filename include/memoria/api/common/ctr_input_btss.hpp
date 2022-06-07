@@ -25,39 +25,5 @@
 
 namespace memoria {
 
-template <typename V> struct IsVLen: HasValue<bool, false> {};   
-
-template <typename V, Granularity G> 
-struct IsVLen<VLen<G, V>>: HasValue<bool, true> {};
-
-
-
-template <typename SizeT>
-class EndIteratorFn {
-    SizeT size_;
-public:
-    EndIteratorFn(SizeT size): size_(size) {}
-    
-    SizeT size() const {return size_;}
-};
-
-
-template <typename Fn>
-class IteratorFn {
-    Fn& fn_;
-    int64_t cnt_{};
-public:
-    IteratorFn(Fn& fn): fn_(fn) {}
-    
-    auto operator*() const {
-        return fn_();
-    }
-    
-    void operator++(int) {cnt_++;}
-    
-    bool operator!=(const EndIteratorFn<int64_t>& end) {
-        return cnt_ < end.size();
-    }
-};
 
 }

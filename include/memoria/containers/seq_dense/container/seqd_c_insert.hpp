@@ -44,55 +44,7 @@ public:
     typedef typename Types::Position                                            Position;
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-//    struct InsertIntoLeafFn {
-//
-//        template <int32_t Idx, typename SeqTypes>
-//        void stream(PkdFSSeq<SeqTypes>* seq, int32_t idx, int32_t symbol, BranchNodeEntry* delta)
-//        {
-//            MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
-//
-//            typedef PkdFSSeq<SeqTypes>                  Seq;
-//            typedef typename Seq::Value                 Symbol;
-//
-//            seq->insert(idx, 1, [=]() -> Symbol {
-//                return symbol;
-//            });
-//
-//            std::get<Idx>(*delta)[0]++;
-//            std::get<Idx>(*delta)[symbol + 1]++;
-//        }
-//
-//
-//        template <typename NTypes>
-//        void treeNode(LeafNode<NTypes>* node, int32_t stream, int32_t idx, int32_t symbol, BranchNodeEntry* delta)
-//        {
-//            node->layout(1);
-//            node->process(stream, *this, idx, symbol, delta);
-//        }
-//    };
-//
-//
-//
-//    bool insertIntoLeaf(TreeNodePtr& leaf, int32_t idx, int32_t symbol, BranchNodeEntry& indexes)
-//    {
-//        auto& self = this->self();
-//
-//        BlockUpdateMgr mgr(self);
-//
-//        mgr.add(leaf);
-//
-//        try {
-//            self().leaf_dispatcher().dispatch(leaf, InsertIntoLeafFn(), 0, idx, symbol, &indexes);
-//            return true;
-//        }
-//        catch (PackedOOMException& e)
-//        {
-//            Clear(indexes);
-//            mgr.rollback();
-//            return false;
-//        }
-//    }
-//
+
 
     void insert_symbol(CtrSizeT idx, int32_t symbol)
     {
@@ -101,41 +53,7 @@ public:
 
         iter->insert_symbol(symbol);
     }
-//
-//    void insert(Iterator& iter, int32_t symbol)
-//    {
-//        auto& self  = this->self();
-//        auto& leaf  = iter.iter_leaf();
-//        int32_t& idx    = iter.iter_local_pos();
-//
-//        self.ctr_update_block_guard(leaf);
-//
-//        BranchNodeEntry sums;
-//
-//        if (self.insertIntoLeaf(leaf, idx, symbol, sums))
-//        {
-//            self.update_parent(leaf, sums);
-//        }
-//        else
-//        {
-//            int32_t size        = iter.iter_leaf_size(0);
-//            int32_t split_idx   = size/2;
-//
-//            auto right = self.ctr_split_leaf(leaf, Position::create(0, split_idx));
-//
-//            if (idx > split_idx)
-//            {
-//                leaf = right;
-//                idx -= split_idx;
-//            }
-//
-//            bool result = self.insertIntoLeaf(leaf, idx, symbol, sums);
-//            MEMORIA_V1_ASSERT_TRUE(result);
-//            self.update_parent(leaf, sums);
-//        }
-//
-//        iter++;
-//    }
+
 
 MEMORIA_V1_CONTAINER_PART_END
 

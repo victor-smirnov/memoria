@@ -20,6 +20,8 @@
 #include <memoria/prototypes/bt/shuttles/bt_shuttle_pkd_ops.hpp>
 
 #include <memoria/core/types/algo.hpp>
+#include <memoria/core/datatypes/core.hpp>
+
 
 namespace memoria::bt {
 

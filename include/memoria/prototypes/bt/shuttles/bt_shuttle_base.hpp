@@ -15,8 +15,7 @@
 
 
 #pragma once
-
-#include <memoria/prototypes/bt/walkers/bt_walker_base.hpp>
+#include <memoria/core/types.hpp>
 #include <boost/variant2.hpp>
 
 

@@ -76,6 +76,10 @@ public:
         auto tree = node.template substream<BranchStream>();
         auto size = tree.size();
 
+        if (DebugCounter) {
+            DumpStruct(tree);
+        }
+
         if (start < size)
         {
             auto rank = rank_ - sum_;
@@ -107,6 +111,10 @@ public:
     {
         auto seq = node.template substream<LeafPath>();
         auto size = seq.size();
+
+        if (DebugCounter) {
+            DumpStruct(seq);
+        }
 
         if (leaf_start_ < size)
         {

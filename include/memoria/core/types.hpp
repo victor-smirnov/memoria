@@ -35,15 +35,9 @@
 namespace memoria {
 
 static constexpr int DEFAULT_BLOCK_SIZE                 = 8192;
-static constexpr int PackedTreeBranchingFactor          = 32;
-static constexpr int PackedSeqBranchingFactor           = 32;
-static constexpr int PackedSeqValuesPerBranch           = 1024;
 static constexpr int PackedAllocationAlignment          = 8;
 
 using psize_t = uint32_t;
-
-using size_t  = ::size_t;
-
 enum class PackedDataTypeSize {FIXED, VARIABLE};
 
 // Require Gcc or Clang for now.
@@ -115,29 +109,13 @@ template <typename> struct TypeHash;
 struct BT {};
 
 struct Composite    {};
-struct Root         {};
-
-template <typename CtrName>
-class CtrWrapper    {};
-
-template <typename Key, typename Value, PackedDataTypeSize SizeType>
-struct Table        {};
 
 template <typename ChildType = void>
 class CoreApiProfileT {};
 
 using CoreApiProfile = CoreApiProfileT<>;
 
-
 struct WT {};
-
-
-// Database-specific containers
-struct BlobStore        {};
-struct InvertedIndex    {};
-struct ObjectStore      {};
-struct RowStore         {};
-struct ScopedDictionary {};
 
 // Placeholder type to be used in place of Block IDs
 struct IDType {};
@@ -151,8 +129,6 @@ struct IDType {};
 struct NullType {};
 struct EmptyType {};
 
-
-
 struct IncompleteType;
 struct TypeIsNotDefined {};
 
@@ -160,13 +136,9 @@ template <typename Name>
 struct TypeNotFound;
 struct TypeIsNotDefined;
 
-
-
-struct IterEndMark {};
-
 struct SerializationData {
     char* buf;
-    int32_t total;
+    size_t total;
 
     SerializationData(): buf(nullptr), total(0) {}
 };
@@ -187,21 +159,10 @@ enum class WalkCmd {
 enum class SearchType {GT, GE};
 enum class LeafDataLengthType {FIXED, VARIABLE};
 
-template <typename T>
-struct TypeP {
-    using Type = T;
-};
-
-class VLSelector {};
-
-
-
 extern int64_t DebugCounter;
 extern int64_t DebugCounter1;
 extern int64_t DebugCounter2;
 extern int64_t DebugCounter3;
-
-
 
 namespace detail {
     template <typename List>  struct AsTupleH;
@@ -319,7 +280,18 @@ struct BlockIDValueHolder {
 };
 
 enum class SeqOpType: size_t {
-    EQ, NEQ, LT, LE, GT, GE, EQ_NLT
+    EQ, NEQ, LT, LE, GT, GE,
+
+    // This is special sequence search mode suitable for "hierarchically-structured"
+    // BTFL cotainers. In this mode we are looking for n-th symbol s, but stop if
+    // we found any symbol with smaller cardinality ('not less then'). It's particularly
+    // suitable for "remove" operations on BTFL continers. For example, if we have a 3-later
+    // BTFL container, like, a wide column table, and want to remove a set of columns
+    // in a specific row, 'NLT' means that search operations will have a hard stop
+    // at the end of the current row (the next row will start from a symbol with
+    // lesser numeric value). This functionality can be also implemented with a
+    // combination of EQ and LT searches.
+    EQ_NLT
 };
 
 // This helper class is usable when we need to provide a type

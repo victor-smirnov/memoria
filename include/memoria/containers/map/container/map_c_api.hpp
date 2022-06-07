@@ -36,8 +36,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
     using Types = typename Base::Types;
 
     using typename Base::TreeNodePtr;
-    using typename Base::IteratorPtr;
-
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
     using typename Base::Profile;
@@ -215,12 +213,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
       if (iter->is_found(key))
       {
         auto prev = iter->current_value();
-        //iter->assign(value);
         self.ctr_update_map_entry(std::move(iter), value);
         return Datum<Value>(prev);
       }
       else {
-        //iter->insert(key, value);
         self.ctr_insert_map_entry(std::move(iter), key, value);
         return Optional<Datum<Value>>{};
       }
@@ -240,7 +236,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
       {
         auto new_value = value_fn(Datum<Value>(iter->current_value()));
         if (new_value) {
-          //iter->assign(new_value.get());
           self.ctr_update_map_entry(std::move(iter), new_value.get());
         }
         else {
@@ -250,7 +245,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
       else {
         auto value = value_fn(OptionalValue{});
         if (value) {
-          //iter->insert(key, value.get());
           self.ctr_insert_map_entry(std::move(iter), key, value.get());
         }
       }

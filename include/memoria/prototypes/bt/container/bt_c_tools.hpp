@@ -36,7 +36,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsName)
     using typename Base::BlockID;
     using typename Base::TreeNodePtr;
     using typename Base::TreeNodeConstPtr;
-    using typename Base::Iterator;
     using typename Base::Position;
     using typename Base::TreePathT;
     using typename Base::CtrSizeT;

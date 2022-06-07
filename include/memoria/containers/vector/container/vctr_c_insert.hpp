@@ -30,7 +30,6 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(mvector::CtrInsertName)
 public:
     using Types = typename Base::Types;
-    using typename Base::Iterator;
 
 protected:
 

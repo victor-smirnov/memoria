@@ -37,12 +37,8 @@ public:
     using Position          = typename Types::Position;
     using CtrSizeT          = typename Types::CtrSizeT;
 
-    using NodeChain = typename Base::Container::NodeChain;
-
     using BlockIteratorState    = typename Base::Container::BlockIteratorState;
     using BlockIteratorStatePtr = typename Base::Container::BlockIteratorStatePtr;
-
-
 
     using CtrT = Ctr<Types>;
 
@@ -53,7 +49,6 @@ public:
 private:
 
     TreePathT           path_;
-    //IOVectorViewT       iovector_view_;
 
 public:
     BTBlockIteratorStateBase():
@@ -83,9 +78,6 @@ public:
     void assign(const ThisType& other)
     {
         path_ = other.path_;
-
-        //refresh_iovector_view();
-
         Base::assign(other);
     }
 
@@ -102,22 +94,6 @@ public:
     void set_path(const TreePathT& path) {
         path_ = path;
     }
-
-
-//    auto iter_state_clone() const
-//    {
-//        return self().ctr().clone_block_iterator_state(self());
-//    }
-
-//    const io::IOVector& iovector_view() const  {
-//        return iovector_view_;
-//    }
-
-
-//    MEMORIA_V1_DECLARE_NODE_FN(RefreshIOVectorViewFn, configure_iovector_view);
-//    void refresh_iovector_view() {
-//        self().ctr().leaf_dispatcher().dispatch(path_.leaf(), RefreshIOVectorViewFn(), *&iovector_view_);
-//    }
 
 
     void dump(std::ostream& out = std::cout, const char* header = nullptr) const

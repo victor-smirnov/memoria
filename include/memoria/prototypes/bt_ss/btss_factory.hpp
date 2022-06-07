@@ -48,8 +48,6 @@ struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
 
     using Base = BTTypes<Profile, BT>;
 
-    using IteratorInterface = BTSSIterator<ApiProfile<Profile>>;
-
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 btss::InsertName,
@@ -69,25 +67,11 @@ struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
                 btss::LeafVariableName
     >;
 
-//    using IteratorPartsList = MergeLists<
-//                typename Base::IteratorPartsList,
-//                btss::IteratorMiscName
-//    >;
-
 
     using BlockIteratorStatePartsList = MergeLists<
         typename Base::BlockIteratorStatePartsList,
         btss::IteratorBasicName
     >;
-
-
-
-
-    template <typename Types, typename LeafPath>
-    using CountForwardWalker   = bt::CountForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using CountBackwardWalker  = bt::CountBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 };
 
 

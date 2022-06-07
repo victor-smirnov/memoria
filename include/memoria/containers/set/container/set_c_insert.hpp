@@ -32,7 +32,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(set::CtrInsertName)
 
 public:
     using Types = typename Base::Types;
-    using typename Base::IteratorPtr;
 
 protected:
     using typename Base::TreeNodePtr;

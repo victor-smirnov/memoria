@@ -34,7 +34,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(collection::CtrApiName)
 
 public:
     using Types = typename Base::Types;
-    using typename Base::IteratorPtr;
 
     using typename Base::TreeNodeConstPtr;
     using typename Base::TreeNodePtr;
@@ -42,9 +41,6 @@ public:
     using typename Base::BranchNodeEntry;
     using typename Base::ShuttleTypes;
     using typename Base::TreePathT;
-    using typename Base::NodeChain;
-
-
 
 protected:
     using Key = typename Types::Key;

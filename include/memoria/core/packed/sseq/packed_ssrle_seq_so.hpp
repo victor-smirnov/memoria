@@ -160,29 +160,29 @@ public:
         return data_->iterator(unit_pos);
     }
 
-    auto select_fw_out(size_t rank, size_t symbol, SeqOpType op_type) const
-    {
-        auto res = select_fw(rank, symbol, op_type);
-        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
-    }
+//    auto select_fw_out(size_t rank, size_t symbol, SeqOpType op_type) const
+//    {
+//        auto res = select_fw(rank, symbol, op_type);
+//        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
+//    }
 
 
-    auto select_fw_out(uint64_t start, uint64_t rank, size_t symbol, SeqOpType op_type) const {
-        auto res = select_fw(start, rank, symbol, op_type);
-        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
-    }
+//    auto select_fw_out(uint64_t start, uint64_t rank, size_t symbol, SeqOpType op_type) const {
+//        auto res = select_fw(start, rank, symbol, op_type);
+//        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
+//    }
 
-    auto select_bw_out(size_t rank, size_t symbol, SeqOpType op_type) const
-    {
-        auto res = select_bw(rank, symbol, op_type);
-        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
-    }
+//    auto select_bw_out(size_t rank, size_t symbol, SeqOpType op_type) const
+//    {
+//        auto res = select_bw(rank, symbol, op_type);
+//        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
+//    }
 
 
-    auto select_bw_out(uint64_t start, uint64_t rank, size_t symbol, SeqOpType op_type) const {
-        auto res = select_bw(start, rank, symbol, op_type);
-        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx <= start };
-    }
+//    auto select_bw_out(uint64_t start, uint64_t rank, size_t symbol, SeqOpType op_type) const {
+//        auto res = select_bw(start, rank, symbol, op_type);
+//        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx <= start };
+//    }
 
 
     void check() const

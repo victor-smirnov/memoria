@@ -115,7 +115,7 @@ public:
 
         if (leaf_start_ < size)
         {
-            auto result = seq.countFW(leaf_start_, symbol_);
+            auto result = seq.count_fw(leaf_start_, symbol_);
 
             if (leaf_start_ + result.count() < size)
             {

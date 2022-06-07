@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
-#include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
 
 #include <memoria/prototypes/bt_ss/btss_names.hpp>
@@ -35,7 +34,6 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
 
-    using typename Base::Iterator;
     using typename Base::TreeNodeConstPtr;
     using typename Base::Position;
     using typename Base::Profile;
@@ -46,29 +44,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
 
     using SplitResultT = bt::SplitResult<CtrSizeT>;
 
-    CtrSharedPtr<BTSSIterator<Profile>> raw_iterator() {
-        return self().ctr_begin();
-    }
 
     void dump_leafs(CtrSizeT leafs)
     {
-//        auto ii = self().ctr_begin();
 
-//        CtrSizeT lim = leafs >= 0? leafs : std::numeric_limits<CtrSizeT>::max();
-
-//        for (CtrSizeT cc = 0; cc < lim && !ii->is_end(); cc++) {
-//        ii->dump();
-//            if (!ii->iter_next_leaf()) {
-//                break;
-//            }
-//        }
     }
 
-    template <typename SubstreamsIdxList, typename... Args>
-    auto iter_read_leaf_entry(const TreeNodeConstPtr& leaf, Args&&... args) const
-    {
-         return self().template ctr_apply_substreams_fn<0, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
-    }
+
 
 
     bool ctr_is_at_the_end(const TreeNodeConstPtr& leaf, const Position& pos)
@@ -77,81 +59,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
         return pos[0] >= size;
     }
 
-    template <typename EntryBuffer>
-    void iter_insert_entry(Iterator& iter, const EntryBuffer& entry)
-    {
-        self().template ctr_insert_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
-    }
 
-
-
-
-    template <typename SubstreamsList, typename EntryBuffer>
-    void ctr_update_entry(Iterator& iter, const EntryBuffer& entry)
-    {
-        return self().template ctr_update_stream_entry<SubstreamsList>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
-    }
-
-
-    CtrSizeT ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& producer, CtrSizeT start, CtrSizeT length)
-    {
-        auto& self = this->self();
-
-        auto iov = LeafNode::template SparseObject<MyType>::create_iovector();
-        auto id = iter.iter_leaf()->id();
-
-        btss::io::IOVectorBTSSInputProvider<MyType> streaming(self, &producer, iov.get(), start, length);
-
-        auto pos = Position(iter.iter_local_pos());
-
-        self.ctr_insert_provided_data(iter.path(), pos, streaming);
-
-        iter.iter_local_pos() = pos.sum();
-
-        iter.refresh_iovector_view();
-
-        if (iter.iter_leaf()->id() != id)
-        {
-            iter.iter_refresh();
-        }
-
-        return streaming.totals();
-    }
-
-    struct BTSSIOVectorProducer: io::IOVectorProducer {
-        virtual bool populate(io::IOVector& io_vector)
-        {
-            return true; // provided io_vector has been already populated
-        }
-    };
-
-
-    CtrSizeT ctr_insert_iovector(Iterator& iter, io::IOVector& io_vector, CtrSizeT start, CtrSizeT length)
-    {
-        auto& self = this->self();
-
-        //std::unique_ptr<io::IOVector> iov = LeafNode::create_iovector();
-
-        auto id = iter.iter_leaf()->id();
-
-        BTSSIOVectorProducer producer{};
-
-        btss::io::IOVectorBTSSInputProvider<MyType> streaming(self, &producer, &io_vector, start, length, false);
-
-        auto pos = Position(iter.iter_local_pos());
-
-        auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
-
-        iter.iter_local_pos() = result.position().sum();
-        iter.iter_leaf().assign(result.iter_leaf());
-
-        if (iter.iter_leaf()->id() != id)
-        {
-            iter.iter_refresh();
-        }
-
-        return streaming.totals();
-    }
 
 
     SplitResultT split_leaf_in_a_half(TreePathT& path, CtrSizeT target_idx)

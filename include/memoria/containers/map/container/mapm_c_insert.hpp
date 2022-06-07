@@ -30,7 +30,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrInsertMaxName)
 
 public:
     using Types = typename Base::Types;
-    using typename Base::IteratorPtr;
 
 protected:
     using typename Base::TreeNodePtr;
