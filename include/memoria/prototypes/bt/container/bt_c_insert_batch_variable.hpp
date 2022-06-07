@@ -38,13 +38,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchVariableName)
 
 public:
     class InsertBatchResult {
-        int32_t idx_;
+        size_t idx_;
         CtrSizeT subtree_size_;
     public:
-        InsertBatchResult(int32_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
+        InsertBatchResult(size_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
 
-        int32_t local_pos() const {return idx_;}
-        int32_t idx() const {return idx_;}
+        size_t local_pos() const {return idx_;}
+        size_t idx() const {return idx_;}
 
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
@@ -53,7 +53,7 @@ public:
     InsertBatchResult ctr_insert_subtree(
             TreePathT& path,
             size_t level,
-            int32_t idx,
+            size_t idx,
             ILeafProvider& provider,
             std::function<TreeNodePtr ()> child_fn,
             bool update_hierarchy
@@ -66,7 +66,7 @@ public:
         CtrSizeT provider_size0 = provider.size();
         TreeNodePtr last_child{};
 
-        int32_t c = 0;
+        size_t c = 0;
         while(provider.size() > 0)
         {
             auto checkpoint = provider.checkpoint();
@@ -108,7 +108,7 @@ public:
     }
 
 
-    TreeNodePtr ctr_build_subtree(ILeafProvider& provider, int32_t level)
+    TreeNodePtr ctr_build_subtree(ILeafProvider& provider, size_t level)
     {
         auto& self = this->self();
 
@@ -186,7 +186,7 @@ public:
     InsertBatchResult ctr_insert_batch_to_node(
             TreePathT& path,
             size_t level,
-            int32_t idx,
+            size_t idx,
             ILeafProvider& provider,
             bool update_hierarchy = true
     )

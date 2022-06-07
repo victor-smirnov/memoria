@@ -52,13 +52,13 @@ public:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(TryRemoveNonLeafNodeEntryFn, try_remove_entries);
-    void ctr_remove_branch_node_entry(TreePathT& path, size_t level, int32_t idx) ;
+    void ctr_remove_branch_node_entry(TreePathT& path, size_t level, size_t idx) ;
 
     MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, update);
 
-    PkdUpdateStatus ctr_update_branch_node(const TreeNodeConstPtr& node, int32_t idx, const BranchNodeEntry& entry);
+    PkdUpdateStatus ctr_update_branch_node(const TreeNodeConstPtr& node, size_t idx, const BranchNodeEntry& entry);
 
-    bool ctr_update_branch_nodes(TreePathT& path, size_t level, int32_t& idx, const BranchNodeEntry& entry);
+    bool ctr_update_branch_nodes(TreePathT& path, size_t level, size_t& idx, const BranchNodeEntry& entry);
 
 
 MEMORIA_V1_CONTAINER_PART_END
@@ -70,7 +70,7 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-void M_TYPE::ctr_remove_branch_node_entry(TreePathT& path, size_t level, int32_t start)
+void M_TYPE::ctr_remove_branch_node_entry(TreePathT& path, size_t level, size_t start)
 {
     auto& self = this->self();
 
@@ -87,7 +87,7 @@ void M_TYPE::ctr_remove_branch_node_entry(TreePathT& path, size_t level, int32_t
 
 
 M_PARAMS
-PkdUpdateStatus M_TYPE::ctr_update_branch_node(const TreeNodeConstPtr& node, int32_t idx, const BranchNodeEntry& entry)
+PkdUpdateStatus M_TYPE::ctr_update_branch_node(const TreeNodeConstPtr& node, size_t idx, const BranchNodeEntry& entry)
 {
     auto& self = this->self();
 
@@ -98,7 +98,7 @@ PkdUpdateStatus M_TYPE::ctr_update_branch_node(const TreeNodeConstPtr& node, int
 
 
 M_PARAMS
-bool M_TYPE::ctr_update_branch_nodes(TreePathT& path, size_t level, int32_t& idx, const BranchNodeEntry& entry)
+bool M_TYPE::ctr_update_branch_nodes(TreePathT& path, size_t level, size_t& idx, const BranchNodeEntry& entry)
 {
     auto& self = this->self();
 
@@ -112,7 +112,7 @@ bool M_TYPE::ctr_update_branch_nodes(TreePathT& path, size_t level, int32_t& idx
     if (!is_success(status1))
     {
         auto size = self.ctr_get_node_size(path[level], 0);
-        int32_t split_idx = size / 2;
+        size_t split_idx = size / 2;
 
         self.ctr_split_path_raw(path, level, split_idx);
 

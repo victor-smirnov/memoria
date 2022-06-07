@@ -95,10 +95,10 @@ public:
         return self().branch_dispatcher().dispatch(node, FindChildIdx(), child_id);
     }
 
-    int32_t ctr_get_child_idx(const TreeNodeConstPtr& node, const BlockID& child_id) const
+    size_t ctr_get_child_idx(const TreeNodeConstPtr& node, const BlockID& child_id) const
     {
         auto idx = ctr_find_child_idx(node, child_id);
-        if (MMA_LIKELY(idx >= 0)) {
+        if (MMA_LIKELY(idx < std::numeric_limits<size_t>::max())) {
             return idx;
         }
         else {
@@ -106,9 +106,10 @@ public:
         }
     }
 
-    int32_t ctr_get_parent_idx(const TreePathT& path, size_t level) const
+    size_t ctr_get_parent_idx(const TreePathT& path, size_t level) const
     {
         if (MMA_UNLIKELY(level + 1 >= path.size())) {
+            // FIXME: What should we return here?
             return 0; // -1?
         }
 
@@ -158,7 +159,7 @@ public:
         return ss.str();
     }
 
-    void ctr_dump_path(TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const
+    void ctr_dump_path(TreePathT& path, size_t level, std::ostream& out = std::cout) const
     {
         auto& self = this->self();
 
@@ -182,7 +183,7 @@ protected:
 
 
     template <typename Node>
-    TreeNodeConstPtr ctr_get_child_fn(Node&& node, int32_t idx) const
+    TreeNodeConstPtr ctr_get_child_fn(Node&& node, size_t idx) const
     {
         auto& self = this->self();
         return self.ctr_get_block(node.value(idx));
@@ -197,7 +198,7 @@ protected:
     }
 
     MEMORIA_V1_CONST_FN_WRAPPER(GetChildFn, ctr_get_child_fn);
-    TreeNodeConstPtr ctr_get_node_child(const TreeNodeConstPtr& node, int32_t idx) const
+    TreeNodeConstPtr ctr_get_node_child(const TreeNodeConstPtr& node, size_t idx) const
     {
         auto result = self().branch_dispatcher().dispatch(node, GetChildFn(self()), idx);
 
@@ -227,7 +228,7 @@ protected:
 
 
     MEMORIA_V1_CONST_FN_WRAPPER(GetChildForUpdateFn, getChildForUpdateFn);
-    TreeNodePtr ctr_get_child_for_update(const TreeNodeConstPtr& node, int32_t idx) const
+    TreeNodePtr ctr_get_child_for_update(const TreeNodeConstPtr& node, size_t idx) const
     {
         auto result = self().branch_dispatcher().dispatch(node, GetChildForUpdateFn(self()), idx);
 
@@ -249,7 +250,7 @@ protected:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(SumsFn, sums);
-    void ctr_sums(const TreeNodeConstPtr& node, int32_t start, int32_t end, BranchNodeEntry& sums) const
+    void ctr_sums(const TreeNodeConstPtr& node, size_t start, size_t end, BranchNodeEntry& sums) const
     {
         return self().branch_dispatcher().dispatch(node, SumsFn(), start, end, sums);
     }
@@ -289,7 +290,7 @@ protected:
 
 public:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, BlockID);
-    BlockID ctr_get_child_id(const TreeNodeConstPtr& node, int32_t idx) const
+    BlockID ctr_get_child_id(const TreeNodeConstPtr& node, size_t idx) const
     {
         return self().branch_dispatcher().dispatch(node, GetINodeDataFn(), idx);
     }
@@ -324,13 +325,13 @@ protected:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
-    void ctr_for_all_ids(const TreeNodeConstPtr& node, int32_t start, int32_t end, std::function<void (const BlockID&)> fn) const
+    void ctr_for_all_ids(const TreeNodeConstPtr& node, size_t start, size_t end, std::function<void (const BlockID&)> fn) const
     {
         return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), start, end, fn);
     }
 
     // TODO: errors handling
-    void ctr_for_all_ids(const TreeNodeConstPtr& node, int32_t start, std::function<void (const BlockID&)> fn) const
+    void ctr_for_all_ids(const TreeNodeConstPtr& node, size_t start, std::function<void (const BlockID&)> fn) const
     {
         return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), start, fn);
     }
@@ -352,7 +353,7 @@ protected:
         }
     };
 
-    BlockID ctr_set_child_id(const TreeNodePtr& node, int32_t child_idx, const BlockID& child_id)
+    BlockID ctr_set_child_id(const TreeNodePtr& node, size_t child_idx, const BlockID& child_id)
     {
         self().ctr_update_block_guard(node);
         return self().branch_dispatcher().dispatch(node, SetChildIDFn(), child_idx, child_id);
@@ -385,14 +386,14 @@ protected:
         }
     };
 
-    int32_t ctr_get_node_children_count(const TreeNodeConstPtr& node) const
+    size_t ctr_get_node_children_count(const TreeNodeConstPtr& node) const
     {
         return self().branch_dispatcher().dispatch(node, GetBranchNodeChildernCount());
     }
 
 
 
-    int32_t ctr_get_branch_node_size(const TreeNodeConstPtr& node) const
+    size_t ctr_get_branch_node_size(const TreeNodeConstPtr& node) const
     {
         return self().branch_dispatcher().dispatch(node, GetSizeFn());
     }
@@ -400,7 +401,7 @@ protected:
 public:
 
     template <int32_t StreamIdx>
-    int32_t ctr_get_leaf_stream_size(const TreeNodeConstPtr& node) const
+    size_t ctr_get_leaf_stream_size(const TreeNodeConstPtr& node) const
     {
         return self().leaf_dispatcher().dispatch(node, GetLeafNodeStreamSize<StreamIdx>());
     }

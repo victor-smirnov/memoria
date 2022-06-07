@@ -44,13 +44,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchFixedName)
 
 public:
     class InsertBatchResult {
-        int32_t idx_;
+        size_t idx_;
         CtrSizeT subtree_size_;
     public:
-        InsertBatchResult(int32_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
+        InsertBatchResult(size_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
 
-        int32_t local_pos() const {return idx_;}
-        int32_t idx() const {return idx_;}
+        size_t local_pos() const {return idx_;}
+        size_t idx() const {return idx_;}
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
@@ -77,13 +77,13 @@ public:
 
     struct CommitInsertChildrenFn {
         template <typename CtrT, typename NodeT, typename UpdateState>
-        void treeNode(BranchNodeSO<CtrT, NodeT>& node, int32_t from, int32_t to, const BranchNodeEntryT* entries, UpdateState& update_state)
+        void treeNode(BranchNodeSO<CtrT, NodeT>& node, size_t from, size_t to, const BranchNodeEntryT* entries, UpdateState& update_state)
         {
             auto old_size = node.size();
 
             node.processAll(*this, from, to, entries, update_state);
 
-            int32_t idx = 0;
+            size_t idx = 0;
             PackedAllocatorUpdateState& state = bt::get_allocator_update_state(update_state);
             return node.commit_insert_values(old_size, from, to - from, state, [entries, &idx](){
                 return entries[idx++].child_id();
@@ -91,15 +91,15 @@ public:
         }
 
         template <int32_t ListIdx, typename StreamType, typename UpdateState>
-        void stream(StreamType& obj, int32_t from, int32_t to, const BranchNodeEntryT* entries, UpdateState& update_state)
+        void stream(StreamType& obj, size_t from, size_t to, const BranchNodeEntryT* entries, UpdateState& update_state)
         {
-            return obj.commit_insert(from, to - from, std::get<ListIdx>(update_state), [entries](int32_t column, int32_t idx) -> const auto& {
+            return obj.commit_insert(from, to - from, std::get<ListIdx>(update_state), [entries](size_t column, size_t idx) -> const auto& {
                 return std::get<ListIdx>(entries[idx].accum())[column];
             });
         }
     };
 
-    InsertBatchResult ctr_insert_subtree(TreePathT& path, size_t level, int32_t idx, ILeafProvider& provider, std::function<TreeNodePtr ()> child_fn, bool update_hierarchy)
+    InsertBatchResult ctr_insert_subtree(TreePathT& path, size_t level, size_t idx, ILeafProvider& provider, std::function<TreeNodePtr ()> child_fn, bool update_hierarchy)
     {
         auto& self = this->self();
 
@@ -107,15 +107,15 @@ public:
 
         auto capacity = self.ctr_get_branch_node_capacity(node);
         CtrSizeT provider_size0  = provider.size();
-        const int32_t batch_size = 32;
+        const size_t batch_size = 32;
 
-        int32_t max = idx;
+        size_t max = idx;
 
-        for (int32_t c = 0; c < capacity; c+= batch_size)
+        for (size_t c = 0; c < capacity; c+= batch_size)
         {
             BranchNodeEntryT subtrees[batch_size];
 
-            int32_t i, batch_max = (c + batch_size) < capacity ? batch_size : (capacity - c);
+            size_t i, batch_max = (c + batch_size) < capacity ? batch_size : (capacity - c);
             for (i = 0; i < batch_max && provider.size() > 0; i++)
             {
                 auto child = child_fn();
@@ -236,7 +236,7 @@ public:
     InsertBatchResult ctr_insert_batch_to_node(
             TreePathT& path,
             size_t level,
-            int32_t idx,
+            size_t idx,
             ILeafProvider& provider,
             bool update_hierarchy = true
     )

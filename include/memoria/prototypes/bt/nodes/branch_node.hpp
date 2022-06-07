@@ -440,9 +440,9 @@ public:
     }
 
 
-    int32_t compute_metadata_size() const
+    size_t compute_metadata_size() const
     {
-        int32_t mem_size = 0;
+        size_t mem_size = 0;
 
         for (int32_t c = 0; c < StreamsStart; c++) {
             mem_size += allocator_.element_size(c);
@@ -451,16 +451,16 @@ public:
         return mem_size;
     }
 
-    int32_t compute_parent_size() const
+    size_t compute_parent_size() const
     {
-        int32_t client_area = allocator_.client_area();
-        int32_t metadata_segments_size = compute_metadata_size();
+        size_t client_area = allocator_.client_area();
+        size_t metadata_segments_size = compute_metadata_size();
         return client_area - metadata_segments_size;
     }
 
-    int32_t compute_streams_available_space() const
+    size_t compute_streams_available_space() const
     {
-        int32_t occupied = compute_parent_size();
+        size_t occupied = compute_parent_size();
         return occupied;
     }
 };

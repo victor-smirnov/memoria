@@ -40,14 +40,14 @@ public:
     void ctr_create_new_root_block(TreePathT& path);
 
     MEMORIA_V1_DECLARE_NODE_FN(GetNonLeafCapacityFn, capacity);
-    int32_t ctr_get_branch_node_capacity(const TreeNodeConstPtr& node) const
+    size_t ctr_get_branch_node_capacity(const TreeNodeConstPtr& node) const
     {
         return self().branch_dispatcher().dispatch(node, GetNonLeafCapacityFn());
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN(SplitNodeFn, split_to);
-    void ctr_split_branch_node(const TreeNodePtr& src, const TreeNodePtr& tgt, int32_t split_at);
+    void ctr_split_branch_node(const TreeNodePtr& src, const TreeNodePtr& tgt, size_t split_at);
 
     MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, merge_with);
     bool ctr_try_merge_branch_nodes(TreePathT& tgt_path, const TreePathT& src_path, size_t level);
@@ -57,7 +57,7 @@ public:
     PkdUpdateStatus ctr_insert_to_branch_node(
             TreePathT& path,
             size_t level,
-            int32_t idx,
+            size_t idx,
             const BranchNodeEntry& keys,
             const BlockID& id
     );
@@ -65,13 +65,13 @@ public:
     void ctr_split_path(
             TreePathT& path,
             size_t level,
-            int32_t split_at
+            size_t split_at
     );
 
     void ctr_split_path_raw(
             TreePathT& path,
             size_t level,
-            int32_t split_at
+            size_t split_at
     );
 
     void ctr_split_node(
@@ -91,7 +91,7 @@ public:
     );
 
     MEMORIA_V1_DECLARE_NODE_FN(RemoveSpaceFn, try_remove_entries);
-    void ctr_remove_branch_content(TreePathT& path, size_t level, int32_t start, int32_t end);
+    void ctr_remove_branch_content(TreePathT& path, size_t level, size_t start, size_t end);
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -103,7 +103,7 @@ M_PARAMS
 PkdUpdateStatus M_TYPE::ctr_insert_to_branch_node(
         TreePathT& path,
         size_t level,
-        int32_t idx,
+        size_t idx,
         const BranchNodeEntry& sums,
         const BlockID& id
 )
@@ -128,7 +128,7 @@ PkdUpdateStatus M_TYPE::ctr_insert_to_branch_node(
 
 
 M_PARAMS
-void M_TYPE::ctr_split_branch_node(const TreeNodePtr& src, const TreeNodePtr& tgt, int32_t split_at)
+void M_TYPE::ctr_split_branch_node(const TreeNodePtr& src, const TreeNodePtr& tgt, size_t split_at)
 {
     auto& self = this->self();
     return self.branch_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
@@ -272,7 +272,7 @@ void M_TYPE::ctr_split_node_raw(
     if (!is_success(insertion_status))
     {
         auto parent_size = self.ctr_get_node_size(path[level + 1], 0);
-        int32_t parent_split_idx = parent_size / 2;
+        size_t parent_split_idx = parent_size / 2;
 
         ctr_split_path_raw(path, level + 1, parent_split_idx);
 
@@ -317,7 +317,7 @@ M_PARAMS
 void M_TYPE::ctr_split_path(
         TreePathT& path,
         size_t level,
-        int32_t split_at
+        size_t split_at
 )
 {
     // it is assumed that level > 0
@@ -337,7 +337,7 @@ M_PARAMS
 void M_TYPE::ctr_split_path_raw(
         TreePathT& path,
         size_t level,
-        int32_t split_at
+        size_t split_at
 )
 {
     auto& self = this->self();
@@ -351,7 +351,7 @@ void M_TYPE::ctr_split_path_raw(
 }
 
 M_PARAMS
-void M_TYPE::ctr_remove_branch_content(TreePathT& path, size_t level, int32_t start, int32_t end)
+void M_TYPE::ctr_remove_branch_content(TreePathT& path, size_t level, size_t start, size_t end)
 {
     auto& self = this->self();
 

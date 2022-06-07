@@ -56,25 +56,25 @@ public:
 public:
 
     MEMORIA_V1_DECLARE_NODE_FN(RemoveNonLeafNodeEntryFn, remove_entries);
-    void ctr_remove_branch_node_entry(TreePathT& path, size_t level, int32_t idx) ;
+    void ctr_remove_branch_node_entry(TreePathT& path, size_t level, size_t idx) ;
 
     MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn,  commit_update);
     void ctr_update_branch_node(
             const TreeNodePtr& node,
-            int32_t idx,
+            size_t idx,
             const BranchNodeEntry& entry
     );
 
     void ctr_update_branch_node(
             const TreeNodeConstPtr& node,
-            int32_t idx,
+            size_t idx,
             const BranchNodeEntry& entry
     );
 
     void ctr_update_branch_nodes(
             TreePathT& path,
             size_t level,
-            int32_t& idx,
+            size_t& idx,
             const BranchNodeEntry& entry
     );
 
@@ -86,7 +86,7 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-void M_TYPE::ctr_update_branch_node(const TreeNodePtr& node, int32_t idx, const BranchNodeEntry& keys)
+void M_TYPE::ctr_update_branch_node(const TreeNodePtr& node, size_t idx, const BranchNodeEntry& keys)
 {
     self().ctr_update_block_guard(node);
 
@@ -96,7 +96,7 @@ void M_TYPE::ctr_update_branch_node(const TreeNodePtr& node, int32_t idx, const 
 
 
 M_PARAMS
-void M_TYPE::ctr_update_branch_node(const TreeNodeConstPtr& node, int32_t idx, const BranchNodeEntry& keys)
+void M_TYPE::ctr_update_branch_node(const TreeNodeConstPtr& node, size_t idx, const BranchNodeEntry& keys)
 {
     self().ctr_update_block_guard(node);
 
@@ -111,7 +111,7 @@ M_PARAMS
 void M_TYPE::ctr_update_branch_nodes(
         TreePathT& path,
         size_t level,
-        int32_t& idx,
+        size_t& idx,
         const BranchNodeEntry& entry
 )
 {
@@ -150,7 +150,7 @@ void M_TYPE::ctr_update_path(TreePathT& path, size_t level, const BranchNodeEntr
 
 
 M_PARAMS
-void M_TYPE::ctr_remove_branch_node_entry(TreePathT& path, size_t level, int32_t start)
+void M_TYPE::ctr_remove_branch_node_entry(TreePathT& path, size_t level, size_t start)
 {
     auto& self = this->self();
 

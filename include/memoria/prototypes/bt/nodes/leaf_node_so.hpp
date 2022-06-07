@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -627,11 +627,11 @@ public:
             fillment[c] += sizes[c];
         }
 
-        int32_t mem_size = 0;
+        size_t mem_size = 0;
 
         this->processSubstreamGroups(CheckCapacitiesFn(), fillment, &mem_size);
 
-        int32_t client_area = node_->compute_streams_available_space();
+        size_t client_area = node_->compute_streams_available_space();
 
         return client_area >= mem_size;
     }
@@ -647,11 +647,11 @@ public:
             fillment[c] += sizes[c];
         }
 
-        int32_t mem_size = 0;
+        size_t mem_size = 0;
 
         processSubstreamGroups(CheckCapacitiesFn(), entropy, fillment, &mem_size);
 
-        int32_t client_area = node_->compute_streams_available_space();
+        size_t client_area = node_->compute_streams_available_space();
         return client_area >= mem_size;
     }
 
@@ -670,15 +670,15 @@ public:
         return pos;
     }
 
-    int32_t single_stream_capacity(int32_t max_hops) const
+    size_t single_stream_capacity(size_t max_hops) const
     {
         auto sizes = this->sizes();
-        int32_t min = sizes[0];
-        int32_t max = node_->header().memory_block_size() * 8;
+        size_t min = sizes[0];
+        size_t max = node_->header().memory_block_size() * 8;
 
-        int32_t client_area = node_->compute_streams_available_space();
+        size_t client_area = node_->compute_streams_available_space();
 
-        auto total = FindTotalElementsNumber(min, max, client_area, max_hops, [&](int32_t stream_size){
+        auto total = FindTotalElementsNumber(min, max, client_area, max_hops, [&](size_t stream_size){
             return stream_block_size(stream_size);
         });
 
@@ -687,7 +687,7 @@ public:
 
     struct SingleStreamCapacityFn {
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(Tree&& tree, int32_t size, int32_t& mem_size)
+        void stream(Tree&& tree, size_t size, size_t& mem_size)
         {
             using PkdTree = typename std::decay_t<Tree>::PkdStructT;
             mem_size += PkdTree::compute_block_size(size);
@@ -695,9 +695,9 @@ public:
     };
 
 
-    int32_t stream_block_size(int32_t size) const
+    size_t stream_block_size(size_t size) const
     {
-        int32_t mem_size = 0;
+        size_t mem_size = 0;
         StreamDispatcher<0>::dispatchAllStatic(SingleStreamCapacityFn(), size, mem_size);
         return mem_size;
     }
@@ -862,13 +862,13 @@ public:
 
     struct LeafSumsFn {
         template <typename StreamType>
-        auto stream(const StreamType& obj, int32_t start, int32_t end)
+        auto stream(const StreamType& obj, size_t start, size_t end)
         {
             return obj ? obj.sum(start, end) : decltype(obj.sum(start, end))();
         }
 
         template <typename StreamType>
-        auto stream(const StreamType& obj, int32_t block, int32_t start, int32_t end)
+        auto stream(const StreamType& obj, size_t block, size_t start, size_t end)
         {
             return obj ? obj.sum(block, start, end) : 0;
         }
@@ -967,7 +967,7 @@ public:
             else {
                 if (!other.allocator()->is_empty(AllocatorIdx))
                 {
-                    int32_t element_size = other.allocator()->element_size(AllocatorIdx);
+                    size_t element_size = other.allocator()->element_size(AllocatorIdx);
                     mem_used_ += element_size;
                 }
             }
@@ -980,7 +980,7 @@ public:
         CanMergeWithFn fn;
         MEMORIA_TRY_VOID(DispatcherWithResult(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other)));
 
-        int32_t client_area = other.allocator()->client_area();
+        size_t client_area = other.allocator()->client_area();
 
         return client_area >= fn.mem_used_;
     }
@@ -991,36 +991,6 @@ public:
     }
 
 
-//    struct CopyToFn {
-//        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-//        void stream(
-//                Tree&& tree,
-//                MyType& other,
-//                const Position& copy_from,
-//                const Position& count,
-//                const Position& copy_to
-//        )
-//        {
-//            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
-//            tree->copyTo(
-//                    other.allocator()->template get<PkdTree>(AllocatorIdx),
-//                    copy_from[StreamIdx],
-//                    count[StreamIdx],
-//                    copy_to[StreamIdx]
-//            );
-//        }
-//    };
-
-
-//    template <typename OtherNodeT>
-//    void copyTo(OtherNodeT&& other, const Position& copy_from, const Position& count, const Position& copy_to) const
-//    {
-//        MEMORIA_V1_ASSERT_TRUE((copy_from + count).lteAll(sizes()));
-//        MEMORIA_V1_ASSERT_TRUE((copy_to + count).lteAll(other->max_sizes()));
-
-//        processSubstreamGroupsVoidRes(CopyToFn(), std::forward<OtherNodeT>(other), copy_from, count, copy_to);
-//    }
-
     struct SplitToFn {
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
@@ -1028,8 +998,8 @@ public:
         {
             if (tree)
             {
-                int32_t idx   = indexes[StreamIdx];
-                int32_t size  = tree.size();
+                size_t idx   = indexes[StreamIdx];
+                size_t size  = tree.size();
 
                 MEMORIA_ASSERT(idx, >=, 0);
                 MEMORIA_ASSERT(idx, <=, size);

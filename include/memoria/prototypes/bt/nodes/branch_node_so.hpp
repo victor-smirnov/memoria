@@ -166,7 +166,7 @@ public:
 
 
     template <typename LeafPath>
-    static const int32_t translateLeafIndexToBranchIndex(int32_t leaf_index) {
+    static const size_t translateLeafIndexToBranchIndex(size_t leaf_index) {
         return bt::LeafToBranchIndexTranslator<LeafSubstreamsStructList, LeafPath, 0>::translate(leaf_index);
     }
 
@@ -221,13 +221,13 @@ public:
     }
 
     template <typename V>
-    std::vector<V> values_as_vector(int32_t start, int32_t end) const
+    std::vector<V> values_as_vector(size_t start, size_t end) const
     {
         std::vector<V> vals;
 
         const auto* vv = node_->values();
 
-        for (int32_t c = start; c < end; c++)
+        for (size_t c = start; c < end; c++)
         {
             vals.emplace_back(vv[c]);
         }
@@ -257,17 +257,17 @@ public:
     }
 
     template <typename V>
-    void forAllValues(int32_t start, int32_t end, const std::function<void (const V&)>& fn) const
+    void forAllValues(size_t start, size_t end, const std::function<void (const V&)>& fn) const
     {
         const Value* v = node_->values();
-        for (int32_t c = start; c < end; c++)
+        for (size_t c = start; c < end; c++)
         {
             fn(v[c]);
         }
     }
 
     template <typename V>
-    void forAllValues(int32_t start, const std::function<void (const V&)>& fn) const
+    void forAllValues(size_t start, const std::function<void (const V&)>& fn) const
     {
         auto end = size();
         return forAllValues(start, end, fn);
@@ -312,7 +312,7 @@ public:
     }
 
 
-    Value& value(int32_t idx)
+    Value& value(size_t idx)
     {
         //MEMORIA_ASSERT(idx, >=, 0);
         //MEMORIA_ASSERT(idx, <, size());
@@ -320,7 +320,7 @@ public:
         return *(node_->values() + idx);
     }
 
-    const Value& value(int32_t idx) const
+    const Value& value(size_t idx) const
     {
         //MEMORIA_ASSERT(idx, >=, 0);
         //MEMORIA_ASSERT(idx, <, size());
@@ -341,10 +341,10 @@ public:
     {
         Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn());
 
-        std::unordered_map<Value, int32_t> map;
+        std::unordered_map<Value, size_t> map;
 
         auto node_size = size();
-        for (int32_t c = 0; c < node_size; c++) {
+        for (size_t c = 0; c < node_size; c++) {
             Value vv = value(c);
             auto ii = map.find(vv);
             if (ii == map.end()) {
@@ -357,20 +357,18 @@ public:
     }
 
 
-    int32_t capacity() const
+    size_t capacity() const
     {
-        int32_t free_space  = node_->compute_streams_available_space();
+        size_t free_space  = node_->compute_streams_available_space();
         auto max_size = node_->max_tree_size1(free_space, -1ull);
 
         auto size = this->size();
-        int32_t cap = max_size - size;
-
-        return cap >= 0 ? cap : 0;
+        return max_size >= size ? max_size - size : 0;
     }
 
 
     struct SizeFn {
-        int32_t size_ = 0;
+        size_t size_ = 0;
 
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree>
         void stream(Tree&& tree)
@@ -379,14 +377,14 @@ public:
         }
     };
 
-    int32_t size() const
+    size_t size() const
     {
         SizeFn fn;
         Dispatcher(state()).dispatch(0, allocator(), fn);
         return fn.size_;
     }
 
-    int32_t size(int32_t stream) const
+    size_t size(size_t stream) const
     {
         SizeFn fn;
         Dispatcher(state()).dispatch(stream, allocator(), fn);
@@ -428,7 +426,7 @@ public:
         PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
         template <int32_t Idx, typename StreamType>
-        void stream(StreamType&& obj, int32_t idx, const BranchNodeEntry& keys, UpdateState& update_state)
+        void stream(StreamType&& obj, size_t idx, const BranchNodeEntry& keys, UpdateState& update_state)
         {
             if (is_success(status)) {
                 status = obj.prepare_insert(idx, 1, std::get<Idx>(update_state), [&](size_t column, size_t)  {
@@ -440,7 +438,7 @@ public:
 
     struct CommitInsertFn {
         template <int32_t Idx, typename StreamType>
-        void stream(StreamType&& obj, int32_t idx, const BranchNodeEntry& keys, UpdateState& update_state)
+        void stream(StreamType&& obj, size_t idx, const BranchNodeEntry& keys, UpdateState& update_state)
         {
             return obj.commit_insert(idx, 1, std::get<Idx>(update_state), [&](size_t column, size_t) {
                 return std::get<Idx>(keys)[column];
@@ -449,14 +447,14 @@ public:
     };
 
 
-    void commit_insert(int32_t idx, const BranchNodeEntry& keys, const Value& value, UpdateState& update_state)
+    void commit_insert(size_t idx, const BranchNodeEntry& keys, const Value& value, UpdateState& update_state)
     {
         auto size = this->size();
 
         CommitInsertFn commit_insert_fn;
         Dispatcher(state()).dispatchNotEmpty(allocator(), commit_insert_fn, idx, keys, update_state);
 
-        int32_t requested_block_size = (size + 1) * sizeof(Value);
+        size_t requested_block_size = (size + 1) * sizeof(Value);
 
         allocator()->resize_block(ValuesBlockIdx, requested_block_size);
 
@@ -468,7 +466,7 @@ public:
     }
 
 
-    PkdUpdateStatus insert(int32_t idx, const BranchNodeEntry& keys, const Value& value)
+    PkdUpdateStatus insert(size_t idx, const BranchNodeEntry& keys, const Value& value)
     {
         auto size = this->size();
 
@@ -493,12 +491,12 @@ public:
     }
 
 
-    void insertValuesSpace(int32_t old_size, int32_t room_start, int32_t room_length)
+    void insertValuesSpace(size_t old_size, size_t room_start, size_t room_length)
     {
         MEMORIA_ASSERT(room_start, >=, 0);
         MEMORIA_ASSERT(room_start, <=, old_size);
 
-        int32_t requested_block_size = (old_size + room_length) * sizeof(Value);
+        size_t requested_block_size = (old_size + room_length) * sizeof(Value);
 
         allocator()->resize_block(ValuesBlockIdx, requested_block_size);
 
@@ -506,21 +504,20 @@ public:
 
         CopyBuffer(values + room_start, values + room_start + room_length, old_size - room_start);
 
-        for (int32_t c = room_start; c < room_start + room_length; c++)
+        for (size_t c = room_start; c < room_start + room_length; c++)
         {
             values[c] = Value();
         }
     }
 
 
-    void commit_insert_values(int32_t old_size, int32_t idx, int32_t length, PackedAllocatorUpdateState&, std::function<Value()> provider)
+    void commit_insert_values(size_t old_size, size_t idx, size_t length, PackedAllocatorUpdateState&, std::function<Value()> provider)
     {
         insertValuesSpace(old_size, idx, length);
 
         Value* values = node_->values();
 
-        for (int32_t c = idx; c < idx + length; c++)
-        {
+        for (size_t c = idx; c < idx + length; c++) {
             values[c] = provider();
         }
     }
@@ -571,10 +568,7 @@ public:
         Value* values = node_->values();
         CopyBuffer(values + end, values + start, old_size - end);
 
-        // FIXME: We don't need reindexing here!
-        reindex();
         MEMORIA_ASSERT(old_size, >=, end - start);
-
         size_t requested_block_size = (old_size - (end - start)) * sizeof(Value);
         allocator()->resize_block(ValuesBlockIdx, requested_block_size);
     }
@@ -599,24 +593,6 @@ public:
         (void)commit_remove(start, end, update_state);
     }
 
-
-    struct ReindexFn {
-        template <typename Tree>
-        void stream(Tree& tree)
-        {
-            return tree.reindex();
-        }
-    };
-
-    // Not used by BTree directly
-    void reindex()
-    {
-        ReindexFn fn;
-        return Dispatcher(state()).dispatchNotEmpty(allocator(), fn);
-    }
-
-
-
     bool shouldBeMergedWithSiblings() const  {
         return node_->shouldBeMergedWithSiblings();
     }
@@ -625,7 +601,7 @@ public:
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
         void stream(const Tree& tree, OtherNodeT&& other, UpdateState& update_state)
         {
-            int32_t size = tree.size();
+            size_t size = tree.size();
 
             if (size > 0)
             {
@@ -645,8 +621,8 @@ public:
         CommitMergeWithFn fn;
         Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), update_state);
 
-        int32_t other_values_block_size          = other.allocator()->element_size(ValuesBlockIdx);
-        int32_t required_other_values_block_size = (my_size + other_size) * sizeof(Value);
+        size_t other_values_block_size          = other.allocator()->element_size(ValuesBlockIdx);
+        size_t required_other_values_block_size = (my_size + other_size) * sizeof(Value);
 
         if (required_other_values_block_size >= other_values_block_size)
         {
@@ -707,9 +683,9 @@ public:
 
     struct SplitToFn {
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        void stream(Tree& tree, OtherNodeT&& other, int32_t idx)
+        void stream(Tree& tree, OtherNodeT&& other, size_t idx)
         {
-            int32_t size = tree.size();
+            size_t size = tree.size();
             if (size > 0)
             {
                 Dispatcher other_disp = other.dispatcher();
@@ -727,10 +703,10 @@ public:
 
 
     template <typename OtherNodeT>
-    void split_to(OtherNodeT&& other, int32_t split_idx)
+    void split_to(OtherNodeT&& other, size_t split_idx)
     {
         auto size = this->size();
-        int32_t remainder = size - split_idx;
+        size_t remainder = size - split_idx;
 
         MEMORIA_ASSERT(split_idx, <=, size);
 
@@ -748,14 +724,14 @@ public:
 
     struct KeysAtFn {
         template <int32_t Idx, typename Tree>
-        void stream(const Tree& tree, int32_t idx, BranchNodeEntry* acc)
+        void stream(const Tree& tree, size_t idx, BranchNodeEntry* acc)
         {
             bt::BTPkdStructAdaper<Tree> adapter(tree);
             adapter.assign_to(std::get<Idx>(*acc), idx);
         }
     };
 
-    BranchNodeEntry keysAt(int32_t idx) const
+    BranchNodeEntry keysAt(size_t idx) const
     {
         BranchNodeEntry acc;
         Dispatcher(state()).dispatchNotEmpty(allocator(), KeysAtFn(), idx, &acc);
@@ -765,7 +741,7 @@ public:
 
     struct SumsFn {
         template <int32_t Idx, typename StreamType>
-        void stream(const StreamType& obj, int32_t start, int32_t end, BranchNodeEntry& accum)
+        void stream(const StreamType& obj, size_t start, size_t end, BranchNodeEntry& accum)
         {
             obj.sums(start, end, std::get<Idx>(accum));
         }
@@ -783,19 +759,19 @@ public:
         }
 
         template <typename StreamType>
-        void stream(const StreamType& obj, int32_t block, int32_t start, int32_t end, int64_t& accum)
+        void stream(const StreamType& obj, size_t block, size_t start, size_t end, int64_t& accum)
         {
             accum += obj.sum(block, start, end);
         }
 
         template <typename StreamType>
-        void stream(const StreamType& obj, int32_t block, int64_t& accum)
+        void stream(const StreamType& obj, size_t block, int64_t& accum)
         {
             accum += obj.sum(block);
         }
     };
 
-    void sums(int32_t start, int32_t end, BranchNodeEntry& sums) const
+    void sums(size_t start, size_t end, BranchNodeEntry& sums) const
     {
         Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
     }
@@ -817,35 +793,35 @@ public:
         return sums;
     }
 
-    void sum(int32_t stream, int32_t block_num, int32_t start, int32_t end, int64_t& accum) const
+    void sum(size_t stream, size_t block_num, size_t start, size_t end, int64_t& accum) const
     {
         Dispatcher(state()).dispatch(stream, allocator(), SumsFn(), block_num, start, end, accum);
     }
 
-    void sum(int32_t stream, int32_t block_num, int64_t& accum) const
+    void sum(size_t stream, size_t block_num, int64_t& accum) const
     {
         Dispatcher(state()).dispatch(stream, allocator(), SumsFn(), block_num, accum);
     }
 
 
     template <typename SubstreamPath>
-    void sum_substream(int32_t block_num, int32_t start, int32_t end, int64_t& accum) const
+    void sum_substream(size_t block_num, size_t start, size_t end, int64_t& accum) const
     {
         processStream<SubstreamPath>(SumsFn(), block_num, start, end, accum);
     }
 
     template <typename LeafSubstreamPath>
-    void sum_substream_for_leaf_path(int32_t leaf_block_num, int32_t start, int32_t end, int64_t& accum) const
+    void sum_substream_for_leaf_path(size_t leaf_block_num, size_t start, size_t end, int64_t& accum) const
     {
         using BranchPath = BuildBranchPath<LeafSubstreamPath>;
-        const int32_t index = MyType::translateLeafIndexToBranchIndex<LeafSubstreamPath>(leaf_block_num);
+        const size_t index = MyType::translateLeafIndexToBranchIndex<LeafSubstreamPath>(leaf_block_num);
         return processStream<BranchPath>(SumsFn(), index, start, end, accum);
     }
 
 
     struct CommitUpdateFn {
         template <int32_t Idx, typename StreamType, typename UpdateState>
-        void stream(StreamType&& tree, int32_t idx, const BranchNodeEntry& accum, UpdateState& update_state)
+        void stream(StreamType&& tree, size_t idx, const BranchNodeEntry& accum, UpdateState& update_state)
         {
             return tree.commit_update(idx, 1, std::get<Idx>(update_state), [&](psize_t col, psize_t)  {
                 return std::get<Idx>(accum)[col];
@@ -857,7 +833,7 @@ public:
         PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
         template <int32_t Idx, typename StreamType, typename UpdateState>
-        void stream(StreamType&& tree, int32_t idx, const BranchNodeEntry& accum, UpdateState& update_state)
+        void stream(StreamType&& tree, size_t idx, const BranchNodeEntry& accum, UpdateState& update_state)
         {
             if (is_success(status)) {
                 status = tree.prepare_update(idx, 1, std::get<Idx>(update_state), [&](psize_t col, psize_t)  {
@@ -868,12 +844,12 @@ public:
     };
 
 
-    void commit_update(int32_t idx, const BranchNodeEntry& keys, UpdateState& update_state) {
+    void commit_update(size_t idx, const BranchNodeEntry& keys, UpdateState& update_state) {
         CommitUpdateFn fn2;
         Dispatcher(state()).dispatchNotEmpty(allocator(), fn2, idx, keys, update_state);
     }
 
-    PkdUpdateStatus update(int32_t idx, const BranchNodeEntry& keys)
+    PkdUpdateStatus update(size_t idx, const BranchNodeEntry& keys)
     {
         UpdateState update_state = make_update_state();
 
@@ -916,7 +892,7 @@ public:
 
         handler->startGroup("TREE_VALUES", size);
 
-        for (int32_t idx = 0; idx < size; idx++) {
+        for (size_t idx = 0; idx < size; idx++) {
             ValueHelper<Value>::setup(handler, "CHILD_ID", value(idx));
         }
 
@@ -927,14 +903,14 @@ public:
         return node_->template init_root_metadata<RootMetadataList>();
     }
 
-    int32_t find_child_idx(const Value& child_id) const
+    size_t find_child_idx(const Value& child_id) const
     {
-        int32_t idx = -1;
+        size_t idx = std::numeric_limits<size_t>::max();
 
         const Value* values = node_->values();
         auto size = node_->size();
 
-        for (int32_t c = 0; c < size; c++) {
+        for (size_t c = 0; c < size; c++) {
             if (child_id == values[c]) {
                 return c;
             }

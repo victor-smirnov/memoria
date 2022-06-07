@@ -33,7 +33,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsPLName)
     using typename Base::TreeNodeConstPtr;
     using typename Base::TreePathT;
 
-    void ctr_dump_path(const TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const
+    void ctr_dump_path(const TreePathT& path, size_t level, std::ostream& out = std::cout) const
     {
         auto& self = this->self();
 

@@ -110,8 +110,8 @@ public:
 private:
     void ctr_check_tree_structure(
             const TreeNodeConstPtr& parent,
-            int32_t parent_idx,
-            int32_t level,
+            size_t parent_idx,
+            size_t level,
             const TreeNodeConstPtr& node,
             const CheckResultConsumerFn& fn
     ) const ;
@@ -121,7 +121,7 @@ private:
     void ctr_check_typed_node_content(
             Node1&& node,
             Node2&& parent,
-            int32_t parent_idx,
+            size_t parent_idx,
             const CheckResultConsumerFn& fn
     ) const;
 
@@ -159,8 +159,8 @@ void M_TYPE::ctr_check_tree(const CheckResultConsumerFn& fn) const
 M_PARAMS
 void M_TYPE::ctr_check_tree_structure(
         const TreeNodeConstPtr& parent,
-        int32_t parent_idx,
-        int32_t level,
+        size_t parent_idx,
+        size_t level,
         const TreeNodeConstPtr& node,
         const CheckResultConsumerFn& fn
 ) const
@@ -197,7 +197,7 @@ void M_TYPE::ctr_check_tree_structure(
     {
         auto children = self.ctr_get_node_size(node, 0);
 
-        for (int32_t c = 0; c < children; c++)
+        for (size_t c = 0; c < children; c++)
         {
             auto child_id = self.ctr_get_child_id(node, c);
             auto child = self.ctr_get_node_child(node, c);
@@ -230,7 +230,7 @@ template <typename Node1, typename Node2>
 void M_TYPE::ctr_check_typed_node_content(
         Node1&& parent,
         Node2&& node,
-        int32_t parent_idx,
+        size_t parent_idx,
         const CheckResultConsumerFn& fn
 ) const
 {

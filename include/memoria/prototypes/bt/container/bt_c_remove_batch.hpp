@@ -45,7 +45,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveBatchName)
     void ctr_remove_branch_nodes_from_start(
             TreePathT& stop_path,
             size_t level,
-            int32_t stop_idx
+            size_t stop_idx
     );
 
 
@@ -57,7 +57,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveBatchName)
     void ctr_remove_branch_nodes_at_end(
             TreePathT& start_path,
             size_t level,
-            int32_t start_idx
+            size_t start_idx
     );
 
     void ctr_remove_nodes(
@@ -75,9 +75,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveBatchName)
 
     void ctr_remove_branch_nodes(
             TreePathT& start_path,
-            int32_t start_idx,
+            size_t start_idx,
             TreePathT& stop_path,
-            int32_t stop_idx,
+            size_t stop_idx,
             size_t level
     );
 
@@ -208,7 +208,7 @@ void M_TYPE::ctr_remove_entries(
 
 
 M_PARAMS
-void M_TYPE::ctr_remove_branch_nodes_from_start(TreePathT& stop_path, size_t level, int32_t stop_idx)
+void M_TYPE::ctr_remove_branch_nodes_from_start(TreePathT& stop_path, size_t level, size_t stop_idx)
 {
     auto& self = this->self();
 
@@ -246,7 +246,7 @@ M_PARAMS
 void M_TYPE::ctr_remove_branch_nodes_at_end(
         TreePathT& start_path,
         size_t level,
-        int32_t start_idx
+        size_t start_idx
 )
 {
     auto& self = this->self();
@@ -359,9 +359,9 @@ void M_TYPE::ctr_remove_nodes(
 M_PARAMS
 void M_TYPE::ctr_remove_branch_nodes(
             TreePathT& start_path,
-            int32_t start_idx,
+            size_t start_idx,
             TreePathT& stop_path,
-            int32_t stop_idx,
+            size_t stop_idx,
             size_t level
 )
 {

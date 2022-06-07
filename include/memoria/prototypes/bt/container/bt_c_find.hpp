@@ -101,11 +101,11 @@ public:
 
 
     template <typename ShuttleTypes>
-    void ctr_ride_uptree(const TreePathT& path, bt::UptreeShuttle<ShuttleTypes>& shuttle, int32_t level = 0) const
+    void ctr_ride_uptree(const TreePathT& path, bt::UptreeShuttle<ShuttleTypes>& shuttle, size_t level = 0) const
     {
         auto& self = this->self();
 
-        for (int32_t ll = level; ll < path.size(); ll++)
+        for (size_t ll = level; ll < path.size(); ll++)
         {
             if (ll)
             {
@@ -322,7 +322,7 @@ private:
     RideResult ctr_ride_bw(
             RideNodeChain node_chain,
             BackwardRideParameters<ShuttleTypesT>& params,
-            int32_t level = 0
+            size_t level = 0
     ) const;
 
 
@@ -331,7 +331,7 @@ public:
 
 
     template <typename Walker>
-    void ctr_walk_tree_up(TreeNodeConstPtr node, int32_t idx, Walker&& walker) const
+    void ctr_walk_tree_up(TreeNodeConstPtr node, size_t idx, Walker&& walker) const
     {
         if (node->is_leaf())
         {
@@ -352,11 +352,11 @@ public:
 
 protected:
 
-    void ctr_check_path_td(const TreePathT& path, int32_t up_to) const
+    void ctr_check_path_td(const TreePathT& path, size_t up_to) const
     {
-        for (int32_t c = path.size() - 1; c >= up_to; c--) {
-            if (!path[c]) {
-                MEMORIA_MAKE_GENERIC_ERROR("Null path element at {}", c).do_throw();
+        for (size_t c = path.size(); c > up_to; c--) {
+            if (!path[c - 1]) {
+                MEMORIA_MAKE_GENERIC_ERROR("Null path element at {}", c - 1).do_throw();
             }
         }
     }
@@ -391,7 +391,7 @@ typename M_TYPE::BlockIteratorStatePtr M_TYPE::ctr_descend(
 
     path.resize(node->level() + 1);
 
-    int32_t level = node->level();
+    size_t level = node->level();
 
     if (node.isSet())
     {
@@ -580,7 +580,7 @@ template <typename ShuttleTypesT>
 typename M_TYPE::RideResult M_TYPE::ctr_ride_bw(
         RideNodeChain node_chain,
         BackwardRideParameters<ShuttleTypesT>& params,
-        int32_t level
+        size_t level
 ) const
 {
     auto& self = this->self();

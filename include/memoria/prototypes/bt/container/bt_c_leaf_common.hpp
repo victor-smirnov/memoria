@@ -64,13 +64,13 @@ public:
 
     struct SumFn {
         template <typename Stream>
-        auto stream(const Stream& s, int32_t block, int32_t from, int32_t to)
+        auto stream(const Stream& s, size_t block, size_t from, size_t to)
         {
             return s->sum(block, from, to);
         }
 
         template <typename Stream>
-        auto stream(const Stream& s, int32_t from, int32_t to)
+        auto stream(const Stream& s, size_t from, size_t to)
         {
             return s->sums(from, to);
         }
@@ -117,7 +117,7 @@ public:
             typename Entry,
             typename UpdateState
         >
-        void stream(SubstreamType&& obj, int32_t idx, const Entry& entry, UpdateState& update_state) {
+        void stream(SubstreamType&& obj, size_t idx, const Entry& entry, UpdateState& update_state) {
             if (is_success(status)) {
                 status = obj.prepare_insert(idx, 1, std::get<Idx>(update_state), [&](psize_t block, psize_t row) -> const auto& {
                     return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
@@ -126,7 +126,7 @@ public:
         }
 
         template <typename CtrT, typename NTypes, typename... Args>
-        void treeNode(const LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args) {
+        void treeNode(const LeafNodeSO<CtrT, NTypes>& node, size_t idx, Args&&... args) {
             return node.template processSubstreams<IntList<Stream>>(*this, idx, std::forward<Args>(args)...);
         }
     };
@@ -135,12 +135,12 @@ public:
     template <int32_t Stream>
     struct CommitInsertFn {
         template <
-            int32_t Idx,
+            size_t Idx,
             typename SubstreamType,
             typename Entry,
             typename UpdateState
         >
-        void stream(SubstreamType&& obj, int32_t idx, const Entry& entry, UpdateState& update_state)
+        void stream(SubstreamType&& obj, size_t idx, const Entry& entry, UpdateState& update_state)
         {
             return obj.commit_insert(idx, 1, std::get<Idx>(update_state), [&](psize_t block, psize_t row) -> const auto& {
                 return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
@@ -148,7 +148,7 @@ public:
         }
 
         template <typename CtrT, typename NTypes, typename... Args>
-        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args) {
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, size_t idx, Args&&... args) {
             return node.template processSubstreams<IntList<Stream>>(*this, idx, std::forward<Args>(args)...);
         }
     };
@@ -156,7 +156,7 @@ public:
 
 
     template <int32_t Stream, typename Entry>
-    bool ctr_try_insert_stream_entry_no_mgr(const TreeNodePtr& leaf, int32_t idx, const Entry& entry)
+    bool ctr_try_insert_stream_entry_no_mgr(const TreeNodePtr& leaf, size_t idx, const Entry& entry)
     {
         auto update_state = self().template ctr_make_leaf_update_state<IntList<Stream>>(leaf.as_immutable());
 
@@ -223,7 +223,7 @@ public:
             typename Entry,
             typename UpdateState
         >
-        void stream(SubstreamType&& obj, int32_t idx, const Entry& entry, UpdateState& update_state)
+        void stream(SubstreamType&& obj, size_t idx, const Entry& entry, UpdateState& update_state)
         {
             return obj.commit_update(idx, 1, std::get<Idx>(update_state), [&](auto block, auto){
                 return entry.get(bt::StreamTag<StreamIdx>(), bt::StreamTag<Idx>(), block);
@@ -231,7 +231,7 @@ public:
         }
 
         template <typename CtrT, typename NTypes, typename... Args>
-        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, size_t idx, Args&&... args)
         {
             return node.template processSubstreams<
                 SubstreamsList
@@ -256,7 +256,7 @@ public:
             typename Entry,
             typename UpdateState
         >
-        void stream(SubstreamType&& obj, int32_t idx, const Entry& entry, UpdateState& update_state)
+        void stream(SubstreamType&& obj, size_t idx, const Entry& entry, UpdateState& update_state)
         {
             if (is_success(status)) {
                 status = obj.prepare_update(idx, 1, std::get<Idx>(update_state), [&](auto block, auto){
@@ -266,7 +266,7 @@ public:
         }
 
         template <typename CtrT, typename NTypes, typename... Args>
-        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, Args&&... args)
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, size_t idx, Args&&... args)
         {
             return node.template processSubstreams<
                 SubstreamsList

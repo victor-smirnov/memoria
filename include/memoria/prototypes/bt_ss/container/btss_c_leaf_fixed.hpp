@@ -33,7 +33,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafFixedName)
 
 
     MEMORIA_V1_DECLARE_NODE_FN(GetStreamCapacityFn, single_stream_capacity);
-    int32_t ctr_get_leaf_node_capacity(const TreeNodeConstPtr& node, int max_hops = 100) const
+    size_t ctr_get_leaf_node_capacity(const TreeNodeConstPtr& node, int max_hops = 100) const
     {
         return self().leaf_dispatcher().dispatch(node, GetStreamCapacityFn(), max_hops);
     }

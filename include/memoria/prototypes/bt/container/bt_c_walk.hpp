@@ -134,7 +134,7 @@ private:
 
         if (!node->is_leaf())
         {
-            self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&](const BlockID& id, int32_t idx)
+            self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&](const BlockID& id, size_t idx)
             {
                 auto child = self.ctr_get_block(id);
                 TreeNodePtr new_child = self.ctr_clone_tree(child, new_node->id());

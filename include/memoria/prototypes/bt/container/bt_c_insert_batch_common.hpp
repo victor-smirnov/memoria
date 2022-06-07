@@ -39,12 +39,12 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
     class Checkpoint {
         TreeNodePtr head_;
-        int32_t size_;
+        size_t size_;
     public:
-        Checkpoint(TreeNodePtr head, int32_t size): head_(head), size_(size) {}
+        Checkpoint(TreeNodePtr head, size_t size): head_(head), size_(size) {}
 
         TreeNodePtr head() const {return head_;}
-        int32_t size() const {return size_;}
+        size_t size() const {return size_;}
     };
 
 
@@ -59,13 +59,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     };
 
     class InsertBatchResult {
-        int32_t idx_;
+        size_t idx_;
         CtrSizeT subtree_size_;
     public:
-        InsertBatchResult(int32_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
+        InsertBatchResult(size_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
 
-        int32_t local_pos() const {return idx_;}
-        int32_t idx() const {return idx_;}
+        size_t local_pos() const {return idx_;}
+        size_t idx() const {return idx_;}
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
@@ -78,7 +78,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
 
-    TreeNodePtr ctr_build_subtree(ILeafProvider& provider, int32_t level)
+    TreeNodePtr ctr_build_subtree(ILeafProvider& provider, size_t level)
     {
         auto& self = this->self();
 
@@ -196,10 +196,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
 
-    int32_t ctr_insert_subtree_one_pass(
+    size_t ctr_insert_subtree_one_pass(
             TreePathT& path,
             size_t level,
-            int32_t idx,
+            size_t idx,
             ILeafProvider& leaf_provider,
             BatchInsertionState& state
     );
@@ -338,7 +338,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         TreeNodePtr current;
 
         auto meta = self.ctr_get_root_metadata();
-        int32_t block_size = meta.memory_block_size();
+        size_t block_size = meta.memory_block_size();
 
         while (true)
         {
@@ -391,7 +391,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             }
 
             auto parent_idx = self.ctr_get_parent_idx(path, 0);
-            int32_t last_insertion_idx{};
+            size_t last_insertion_idx{};
 
             while (insertion_state.has_more())
             {
@@ -439,10 +439,10 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-int32_t M_TYPE::ctr_insert_subtree_one_pass(
+size_t M_TYPE::ctr_insert_subtree_one_pass(
         TreePathT& path,
         size_t level,
-        int32_t idx,
+        size_t idx,
         ILeafProvider& leaf_provider,
         BatchInsertionState& state
 )
@@ -507,7 +507,7 @@ int32_t M_TYPE::ctr_insert_subtree_one_pass(
             }
         }
         else {
-            int32_t last_idx = insertion_result.idx();
+            size_t last_idx = insertion_result.idx();
             auto node_size = self.ctr_get_branch_node_size(path[level]);
 
             if (last_idx < node_size)
