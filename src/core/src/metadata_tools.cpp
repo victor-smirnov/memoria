@@ -32,9 +32,9 @@
 namespace memoria {
 
 
-void Expand(std::ostream& os, int32_t level)
+void Expand(std::ostream& os, size_t level)
 {
-    for (int32_t c = 0; c < level; c++) {
+    for (size_t c = 0; c < level; c++) {
         os<<" ";
     }
 }
@@ -44,7 +44,7 @@ size_t max_width(const BlockDataValueProvider& provider)
 {
     size_t max = 0;
 
-    for (int32_t c = 0; c < provider.size(); c++)
+    for (size_t c = 0; c < provider.size(); c++)
     {
         auto str = provider.value(c);
 
@@ -62,14 +62,11 @@ size_t max_width(const BlockDataValueProvider& provider)
 
 void dumpPageDataValueProviderAsArray(std::ostream& out, const BlockDataValueProvider& provider)
 {
-//  std::ios  state(nullptr);
-//  state.copyfmt(out);
-
     auto width = max_width(provider) + 1;
 
     if (width < 3) width = 3;
 
-    int32_t columns;
+    size_t columns;
 
     if (width <= 3) {
         columns = 16;
@@ -83,7 +80,7 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const BlockDataValuePro
 
     out << std::endl;
     Expand(out, 28);
-    for (int c = 0; c < columns; c++)
+    for (size_t c = 0; c < columns; c++)
     {
         out.width(width);
         out << c;
@@ -91,7 +88,7 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const BlockDataValuePro
 
     out << std::dec << std::endl;
 
-    for (int32_t c = 0; c < provider.size(); c+= columns)
+    for (size_t c = 0; c < provider.size(); c+= columns)
     {
         Expand(out, 12);
         out << " ";
@@ -100,7 +97,7 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const BlockDataValuePro
         out.width(6);
         out << c << ": ";
 
-        int32_t d;
+        size_t d;
         for (d = 0; d < columns && c + d < provider.size(); d++)
         {
             std::stringstream ss;
@@ -113,8 +110,6 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const BlockDataValuePro
 
         out << std::dec << std::endl;
     }
-
-//    out.copyfmt(state);
 }
 
 

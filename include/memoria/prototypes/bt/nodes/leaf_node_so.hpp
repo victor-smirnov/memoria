@@ -39,11 +39,11 @@ namespace memoria {
 
 namespace detail {
 
-template <int32_t Streams>
+template <size_t Streams>
 class ConfigureIOVectorViewFn {
 
-    int32_t stream_idx_{};
-    int32_t data_substreams_;
+    size_t stream_idx_{};
+    size_t data_substreams_;
     io::IOVector& io_vector_;
 public:
     ConfigureIOVectorViewFn(io::IOVector& io_vector):
@@ -74,7 +74,7 @@ public:
 template <>
 class ConfigureIOVectorViewFn<1> {
 
-    int32_t stream_idx_{};
+    size_t stream_idx_{};
     io::IOVector& io_vector_;
 public:
     ConfigureIOVectorViewFn(io::IOVector& io_vector):
@@ -156,10 +156,10 @@ public:
         NodeType_::StreamsStart
     >;
 
-    template <int32_t StartIdx, int32_t EndIdx>
+    template <size_t StartIdx, size_t EndIdx>
     using SubrangeDispatcher = typename Dispatcher::template SubrangeDispatcher<StartIdx, EndIdx>;
 
-    template <int32_t StartIdx, int32_t EndIdx>
+    template <size_t StartIdx, size_t EndIdx>
     using SubrangeDispatcherWithResult = typename DispatcherWithResult::template SubrangeDispatcher<StartIdx, EndIdx>;
 
     template <typename SubstreamsPath>
@@ -174,25 +174,25 @@ public:
             list_tree::LeafCountSup<LeafSubstreamsStructList, SubstreamsPath>
     >;
 
-    template <int32_t StreamIdx>
+    template <size_t StreamIdx>
     using StreamDispatcher = SubstreamsDispatcher<IntList<StreamIdx>>;
 
-    template <int32_t StreamIdx>
+    template <size_t StreamIdx>
     using StreamDispatcherWithResult = SubstreamsDispatcherWithResult<IntList<StreamIdx>>;
 
-    template <int32_t StreamIdx>
+    template <size_t StreamIdx>
     using StreamStartIdx = IntValue<
             list_tree::LeafCountInf<LeafSubstreamsStructList, IntList<StreamIdx>>
     >;
 
-    template <int32_t StreamIdx>
+    template <size_t StreamIdx>
     using StreamSize = IntValue<
             list_tree::LeafCountSup<LeafSubstreamsStructList, IntList<StreamIdx>> -
             list_tree::LeafCountInf<LeafSubstreamsStructList, IntList<StreamIdx>>
     >;
 
 
-    template <int32_t Stream, typename SubstreamIdxList>
+    template <size_t Stream, typename SubstreamIdxList>
     using SubstreamsByIdxDispatcher = typename Dispatcher::template SubsetDispatcher<
             list_tree::AddToValueList<
                 list_tree::LeafCount<LeafSubstreamsStructList, IntList<Stream>>,
@@ -201,7 +201,7 @@ public:
             Stream
     >;
 
-    template <int32_t Stream, typename SubstreamIdxList>
+    template <size_t Stream, typename SubstreamIdxList>
     using SubstreamsByIdxDispatcherWithResult = typename DispatcherWithResult::template SubsetDispatcher<
             list_tree::AddToValueList<
                 list_tree::LeafCount<LeafSubstreamsStructList, IntList<Stream>>,
@@ -212,58 +212,58 @@ public:
 
 
 
-    template <int32_t Stream>
+    template <size_t Stream>
     using BTTLStreamDataDispatcher = SubrangeDispatcher<
             StreamStartIdx<Stream>::Value,
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1
     >;
 
-    template <int32_t Stream>
+    template <size_t Stream>
     using BTTLStreamDataDispatcherWithResult = SubrangeDispatcherWithResult<
             StreamStartIdx<Stream>::Value,
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1
     >;
 
 
-    template <int32_t Stream>
+    template <size_t Stream>
     using BTTLLastStreamDataDispatcher = SubrangeDispatcher<
             StreamStartIdx<Stream>::Value,
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
     >;
 
-    template <int32_t Stream>
+    template <size_t Stream>
     using BTTLLastStreamDataDispatcherWithResult = SubrangeDispatcherWithResult<
             StreamStartIdx<Stream>::Value,
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
     >;
 
 
-    template <int32_t Stream>
+    template <size_t Stream>
     using BTTLStreamSizesDispatcher = SubrangeDispatcher<
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1,
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
     >;
 
 
-    template <int32_t Stream>
+    template <size_t Stream>
     using BTTLStreamSizesDispatcherWithResult = SubrangeDispatcherWithResult<
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1,
             StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
     >;
 
 
-    template <int32_t SubstreamIdx>
+    template <size_t SubstreamIdx>
     using LeafPathT = typename list_tree::BuildTreePath<LeafSubstreamsStructList, SubstreamIdx>::Type;
 
-    template <int32_t SubstreamIdx>
+    template <size_t SubstreamIdx>
     using BranchPathT = typename list_tree::BuildTreePath<BranchSubstreamsStructList, SubstreamIdx>::Type;
 
 
 
-    template <int32_t Stream, typename SubstreamIdxList, template <typename> class MapFn>
+    template <size_t Stream, typename SubstreamIdxList, template <typename> class MapFn>
     using MapSubstreamsStructs  = typename SubstreamsByIdxDispatcher<Stream, SubstreamIdxList>::template ForAllStructs<MapFn>;
 
-    template <int32_t Stream, template <typename> class MapFn>
+    template <size_t Stream, template <typename> class MapFn>
     using MapStreamStructs      = typename StreamDispatcher<Stream>::template ForAllStructs<MapFn>;
 
 
@@ -277,7 +277,7 @@ public:
     using SubstreamByLeafPath = PackedStruct<LeafPath>;
 
     template <typename LeafPath>
-    static constexpr int32_t SubstreamIdxByLeafPath = list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>;
+    static constexpr size_t SubstreamIdxByLeafPath = list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>;
 
     template <typename PkdStruct>
     using PkdStructToUpdateStateMap = HasType<typename PkdStruct::Type::SparseObject::UpdateState>;
@@ -290,13 +290,13 @@ public:
         >
     >;
 
-    static constexpr int32_t Streams            = ListSize<LeafSubstreamsStructList>;
+    static constexpr size_t Streams            = ListSize<LeafSubstreamsStructList>;
 
-    static constexpr int32_t Substreams         = Dispatcher::Size;
-    static constexpr int32_t DataStreams        = Streams == 1 ? Streams : Streams - 1;
+    static constexpr size_t Substreams         = Dispatcher::Size;
+    static constexpr size_t DataStreams        = Streams == 1 ? Streams : Streams - 1;
 
-    static constexpr int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
-    static constexpr int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
+    static constexpr size_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
+    static constexpr size_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
 
     static const PackedDataTypeSize SizeType = PackedListStructSizeType<Linearize<LeafSubstreamsStructList>>::Value;
 
@@ -337,7 +337,7 @@ public:
     template <typename LeafPath, typename ExtData>
     void set_ext_data(ExtData&& data) const
     {
-        constexpr int32_t substream_idx = SubstreamIdxByLeafPath<LeafPath>;
+        constexpr size_t substream_idx = SubstreamIdxByLeafPath<LeafPath>;
         std::get<substream_idx>(ctr_->leaf_node_ext_data()) = std::forward<ExtData>(data);
     }
 
@@ -365,7 +365,7 @@ public:
         PackedAllocator* other_alloc = other.allocator();
         const PackedAllocator* my_alloc = this->allocator();
 
-        for (int32_t c = 0; c < SubstreamsEnd; c++)
+        for (size_t c = 0; c < SubstreamsEnd; c++)
         {
             other_alloc->import_block(c, my_alloc, c);
         }
@@ -509,7 +509,7 @@ public:
 
     struct LayoutFn
     {
-        template <int32_t AllocatorIdx, int32_t Idx, typename Stream>
+        template <size_t AllocatorIdx, size_t Idx, typename Stream>
         void stream(Stream&, PackedAllocator* alloc)
         {            
             if (alloc->is_empty(AllocatorIdx))
@@ -542,42 +542,42 @@ public:
     }
 
     struct Size2Fn {
-        template <int32_t StreamIdx, typename T>
-        int32_t process(const T* node)
+        template <size_t StreamIdx, typename T>
+        size_t process(const T* node)
         {
             return node->template streamSize<StreamIdx>();
         }
     };
 
 
-    int32_t size(int32_t stream) const
+    size_t size(size_t stream) const
     {
         return bt::ForEachStream<Streams - 1>::process(stream, Size2Fn(), this);
     }
 
     struct SizeFn {
         template <typename Tree>
-        int32_t stream(Tree&& tree)
+        size_t stream(Tree&& tree)
         {
             return tree ? tree.size() : 0;
         }
     };
 
-    template <int32_t StreamIdx>
-    int32_t streamSize() const
+    template <size_t StreamIdx>
+    size_t streamSize() const
     {
         return this->processStream<IntList<StreamIdx>>(SizeFn());
     }
 
 
     struct MemUsedFn {
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(Tree&& tree, const Position& sizes, int32_t* mem_used, int32_t except)
+        template <size_t StreamIdx, size_t AllocatorIdx, size_t Idx, typename Tree>
+        void stream(Tree&& tree, const Position& sizes, size_t* mem_used, size_t except)
         {
             using PkdTree = typename std::decay_t<Tree>::PkdStructT;
             if (StreamIdx != except)
             {
-                int32_t size = sizes[StreamIdx];
+                size_t size = sizes[StreamIdx];
 
                 if (tree || size > 0)
                 {
@@ -591,11 +591,11 @@ public:
 
     struct CheckCapacitiesFn {
 
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(Tree&& tree, const Position& sizes, int32_t* mem_size)
+        template <size_t StreamIdx, size_t AllocatorIdx, size_t Idx, typename Tree>
+        void stream(Tree&& tree, const Position& sizes, size_t* mem_size)
         {
             using PkdTree = typename std::decay_t<Tree>::PkdStructT;
-            int32_t size = sizes[StreamIdx];
+            size_t size = sizes[StreamIdx];
 
             if (tree || size > 0)
             {
@@ -604,11 +604,11 @@ public:
         }
 
 
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename Entropy>
-        void stream(Tree&& tree, const Entropy& entropy, const Position& sizes, int32_t* mem_size)
+        template <size_t StreamIdx, size_t AllocatorIdx, size_t Idx, typename Tree, typename Entropy>
+        void stream(Tree&& tree, const Entropy& entropy, const Position& sizes, size_t* mem_size)
         {
             using PkdTree = typename std::decay_t<Tree>::PkdStructT;
-            int32_t size = sizes[StreamIdx];
+            size_t size = sizes[StreamIdx];
 
             if (tree || size > 0)
             {
@@ -622,7 +622,7 @@ public:
     {
         auto fillment = this->sizes();
 
-        for (int32_t c = 0; c < Streams; c++)
+        for (size_t c = 0; c < Streams; c++)
         {
             fillment[c] += sizes[c];
         }
@@ -642,7 +642,7 @@ public:
     {
         auto fillment = this->sizes();
 
-        for (int32_t c = 0; c < Streams; c++)
+        for (size_t c = 0; c < Streams; c++)
         {
             fillment[c] += sizes[c];
         }
@@ -656,7 +656,7 @@ public:
     }
 
     struct SizesFn {
-        template <int32_t StreamIdx, typename Tree>
+        template <size_t StreamIdx, typename Tree>
         void stream(Tree&& tree, Position& pos)
         {
             pos[StreamIdx] = tree ? tree.size() : 0;
@@ -686,7 +686,7 @@ public:
     }
 
     struct SingleStreamCapacityFn {
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
+        template <size_t StreamIdx, size_t AllocatorIdx, size_t Idx, typename Tree>
         void stream(Tree&& tree, size_t size, size_t& mem_size)
         {
             using PkdTree = typename std::decay_t<Tree>::PkdStructT;
@@ -706,7 +706,7 @@ public:
 
     struct BranchNodeEntriesSumHandler
     {
-        template <int32_t Offset, bool StreamStart, int32_t ListIdx, typename StreamType, typename TupleItem>
+        template <size_t Offset, bool StreamStart, size_t ListIdx, typename StreamType, typename TupleItem>
         void stream(StreamType&& obj, TupleItem& accum, const Position& start, const Position& end)
         {
             if (obj)
@@ -719,7 +719,7 @@ public:
 
     struct BranchNodeEntryMaxHandler
     {
-        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamType, typename TupleItem>
+        template <size_t Offset, bool StreamStart, size_t Idx, typename StreamType, typename TupleItem>
         void stream(const StreamType& obj, TupleItem& accum)
         {
             if (obj)
@@ -744,7 +744,7 @@ public:
     struct PrepareRemoveSpaceFn {
         PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename UpdateState>
+        template <size_t StreamIdx, size_t AllocatorIdx, size_t Idx, typename Tree, typename UpdateState>
         void stream(Tree&& tree, const Position& start, const Position& end, UpdateState& update_state)
         {
             if (is_success(status)) {
@@ -757,7 +757,7 @@ public:
         }
 
 
-        template <int32_t ListIdx, typename Tree, typename UpdateState>
+        template <size_t ListIdx, typename Tree, typename UpdateState>
         void stream(Tree&& tree, size_t start, size_t end, UpdateState& update_state)
         {
             if (is_success(status)) {
@@ -783,8 +783,8 @@ public:
         }
     }
 
-    template <int32_t Stream>
-    PkdUpdateStatus prepare_remove(IntList<Stream> tag, size_t start, size_t end, UpdateState<IntList<Stream>>& update_state) const
+    template <size_t Stream>
+    PkdUpdateStatus prepare_remove(SizeTList<Stream> tag, size_t start, size_t end, UpdateState<IntList<Stream>>& update_state) const
     {
         PrepareRemoveSpaceFn fn;
         processSubstreams<IntList<Stream>>(fn, start, end, update_state);
@@ -793,7 +793,7 @@ public:
 
 
     struct CommitRemoveSpaceFn {
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename UpdateState>
+        template <size_t StreamIdx, size_t AllocatorIdx, size_t Idx, typename Tree, typename UpdateState>
         void stream(Tree&& tree, const Position& start, const Position& end, UpdateState& update_state)
         {
             return tree.commit_remove(
@@ -803,7 +803,7 @@ public:
             );
         }
 
-        template <int32_t ListIdx, typename Tree, typename UpdateState>
+        template <size_t ListIdx, typename Tree, typename UpdateState>
         void stream(Tree&& tree, size_t start, size_t end, UpdateState& update_state)
         {
             return tree.commit_remove(
@@ -820,8 +820,8 @@ public:
         return processSubstreamGroups(fn, start, end, update_state);
     }
 
-    template <int32_t Stream>
-    void commit_remove(IntList<Stream>, size_t start, size_t end, UpdateState<IntList<Stream>>& update_state)
+    template <size_t Stream>
+    void commit_remove(SizeTList<Stream>, size_t start, size_t end, UpdateState<IntList<Stream>>& update_state)
     {
         CommitRemoveSpaceFn fn;
         return processSubstreams<IntList<Stream>>(fn, start, end, update_state);
@@ -839,8 +839,8 @@ public:
     }
 
 
-    template <int32_t Stream>
-    PkdUpdateStatus remove(IntList<Stream> tag, size_t start, size_t end)
+    template <size_t Stream>
+    PkdUpdateStatus remove(SizeTList<Stream> tag, size_t start, size_t end)
     {
         auto update_state = make_update_state<IntList<Stream>>();
         if (is_success(prepare_remove(tag, start, end, update_state))) {
@@ -883,7 +883,7 @@ public:
 
     struct CommitMergeWithFn {
 
-        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT, typename UpdateState>
+        template <size_t AllocatorIdx, size_t Idx, typename Tree, typename OtherNodeT, typename UpdateState>
         void stream(const Tree& tree, OtherNodeT&& other, UpdateState& update_state)
         {
             size_t size = tree.size();
@@ -920,7 +920,7 @@ public:
     struct PrepareMergeWithFn {
         PkdUpdateStatus status_{PkdUpdateStatus::SUCCESS};
 
-        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT, typename UpdateState>
+        template <size_t AllocatorIdx, size_t Idx, typename Tree, typename OtherNodeT, typename UpdateState>
         void stream(const Tree& tree, OtherNodeT&& other, UpdateState& update_state)
         {
             if (status_ == PkdUpdateStatus::SUCCESS)
@@ -946,9 +946,9 @@ public:
 
 
     struct CanMergeWithFn {
-        int32_t mem_used_ = 0;
+        size_t mem_used_ = 0;
 
-        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
+        template <size_t AllocatorIdx, size_t Idx, typename Tree, typename OtherNodeT>
         void stream(Tree& tree, OtherNodeT&& other)
         {
             using PkdTree = typename Tree::PkdStructT;
@@ -993,7 +993,7 @@ public:
 
     struct SplitToFn {
 
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
+        template <size_t StreamIdx, size_t AllocatorIdx, size_t Idx, typename Tree, typename OtherNodeT>
         void stream(Tree& tree, OtherNodeT&& other, const Position& indexes)
         {
             if (tree)
@@ -1008,7 +1008,7 @@ public:
 
                 Tree other_tree;
 
-                constexpr int32_t ListIdx = AllocatorIdx - NodeType_::StreamsStart;
+                constexpr size_t ListIdx = AllocatorIdx - NodeType_::StreamsStart;
 
                 if (!other.allocator()->is_empty(AllocatorIdx))
                 {
@@ -1032,7 +1032,7 @@ public:
 
 
     struct SizeSumsFn {
-        template <int32_t ListIdx, typename Tree>
+        template <size_t ListIdx, typename Tree>
         void stream(Tree&& tree, Position& sizes)
         {
             sizes[ListIdx] = tree ? tree.size() : 0;
@@ -1048,7 +1048,7 @@ public:
 
 
     struct GenerateDataEventsFn {
-        template <int32_t Idx, typename Tree>
+        template <size_t Idx, typename Tree>
         void stream(Tree&& tree, IBlockDataEventHandler* handler)
         {
             return tree.generateDataEvents(handler);
@@ -1107,7 +1107,7 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    auto process(int32_t stream, Fn&& fn, Args&&... args) const
+    auto process(size_t stream, Fn&& fn, Args&&... args) const
     {
         return Dispatcher(state()).dispatch(
                 stream,
@@ -1118,7 +1118,7 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    auto process(int32_t stream, Fn&& fn, Args&&... args)
+    auto process(size_t stream, Fn&& fn, Args&&... args)
     {
         return Dispatcher(state())
                 .dispatch(stream, allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -1176,8 +1176,8 @@ public:
     struct ProcessSubstreamsAccFnAdaptor
     {
         template <
-            int32_t BranchNodeEntryIdx,
-            int32_t ListIdx,
+            size_t BranchNodeEntryIdx,
+            size_t ListIdx,
             typename StreamType,
             typename Accum,
             typename Fn,
@@ -1185,10 +1185,10 @@ public:
         >
         auto stream(StreamType&& obj, Fn&& fn, Accum&& accum, Args&&... args)
         {
-            constexpr int32_t LeafIdx = BranchNodeEntryIdx - SubstreamsStart;
+            constexpr size_t LeafIdx = BranchNodeEntryIdx - SubstreamsStart;
 
-            constexpr int32_t BranchStructIdx   = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::BranchStructIdx;
-            constexpr int32_t LeafOffset        = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::LeafOffset;
+            constexpr size_t BranchStructIdx   = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::BranchStructIdx;
+            constexpr size_t LeafOffset        = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::LeafOffset;
             constexpr bool IsStreamStart        = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::IsStreamStart;
 
             return fn.template stream<LeafOffset, IsStreamStart, ListIdx>(
@@ -1202,7 +1202,7 @@ public:
 
 
     template <
-        int32_t Stream,
+        size_t Stream,
         typename Fn,
         typename... Args
     >
@@ -1218,7 +1218,7 @@ public:
     }
 
     template <
-        int32_t Stream,
+        size_t Stream,
         typename Fn,
         typename... Args
     >
@@ -1241,7 +1241,7 @@ public:
     >
     auto processStreamAccP(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const
     {
-        const int32_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
+        const size_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
         return SubrangeDispatcher<SubstreamIdx, SubstreamIdx + 1>(state()).dispatchAll(
                 allocator(),
                 ProcessSubstreamsAccFnAdaptor(),
@@ -1259,7 +1259,7 @@ public:
     >
     auto processStreamAccP(Fn&& fn, BranchNodeEntry& accum, Args&&... args)
     {
-        const int32_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
+        const size_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
         return SubrangeDispatcher<SubstreamIdx, SubstreamIdx + 1>(state()).dispatchAll(
                 allocator(),
                 ProcessSubstreamsAccFnAdaptor(),
@@ -1271,7 +1271,7 @@ public:
 
 
     template <
-        int32_t Stream,
+        size_t Stream,
         typename SubstreamsIdxList,
         typename Fn,
         typename... Args
@@ -1289,7 +1289,7 @@ public:
 
 
     template <
-        int32_t Stream,
+        size_t Stream,
         typename SubstreamsIdxList,
         typename Fn,
         typename... Args
@@ -1340,7 +1340,7 @@ public:
 
 
     template <
-        int32_t Stream,
+        size_t Stream,
         typename SubstreamsIdxList,
         typename Fn,
         typename... Args
@@ -1355,7 +1355,7 @@ public:
     }
 
     template <
-        int32_t Stream,
+        size_t Stream,
         typename SubstreamsIdxList,
         typename Fn,
         typename... Args
@@ -1374,24 +1374,24 @@ public:
     template <typename SubstreamPath>
     auto substream()
     {
-        const int32_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
+        const size_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
         return Dispatcher(state()).template get<SubstreamIdx>(allocator());
     }
 
     template <typename SubstreamPath>
     auto substream() const
     {
-        const int32_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
+        const size_t SubstreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
         return Dispatcher(state()).template get<SubstreamIdx>(allocator());
     }
 
-    template <int32_t SubstreamIdx>
+    template <size_t SubstreamIdx>
     auto substream_by_idx()
     {
         return Dispatcher(state()).template get<SubstreamIdx>(allocator());
     }
 
-    template <int32_t SubstreamIdx>
+    template <size_t SubstreamIdx>
     auto substream_by_idx() const
     {
         return Dispatcher(state()).template get<SubstreamIdx>(allocator());
@@ -1404,14 +1404,14 @@ public:
     template <typename SubstreamPath, typename Fn, typename... Args>
     auto processStream(Fn&& fn, Args&&... args) const
     {
-        const int32_t StreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
+        const size_t StreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
         return Dispatcher(state()).template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
     auto processStream(Fn&& fn, Args&&... args)
     {
-        const int32_t StreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
+        const size_t StreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
         return Dispatcher(state()).template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 

@@ -85,7 +85,7 @@ public:
             MAX_METADATA_NUM
     };
 
-    static const int32_t StreamsStart = MAX_METADATA_NUM;
+    static const size_t StreamsStart = MAX_METADATA_NUM;
 
 private:
     Header header_;
@@ -184,7 +184,7 @@ public:
 
         psize_t size{};
 
-        for (int32_t c = 0; c < StreamsStart; c++) {
+        for (size_t c = 0; c < StreamsStart; c++) {
             size += alloc->element_size(c);
         }
 
@@ -218,7 +218,7 @@ public:
 
     void clear_metadata()
     {
-        for (int32_t c = 0; c < StreamsStart; c++)
+        for (size_t c = 0; c < StreamsStart; c++)
         {
             allocator_.free(c);
         }
@@ -228,7 +228,7 @@ public:
     {
         if (!has_root_metadata())
         {
-            return allocator_.free_space() >= (int32_t)metadata_size;
+            return allocator_.free_space() >= (size_t)metadata_size;
         }
         else {
             return true;
@@ -237,7 +237,7 @@ public:
 
     void copy_metadata_from(const TreeNodeBase* other)
     {
-        for (int32_t c = 0; c < StreamsStart; c++)
+        for (size_t c = 0; c < StreamsStart; c++)
         {
             allocator_.import_block(c, other->allocator(), c);
         }
@@ -247,17 +247,17 @@ public:
 
     bool shouldBeMergedWithSiblings() const
     {
-        int32_t client_area = allocator_.client_area();
-        int32_t used        = allocator_.allocated();
+        size_t client_area = allocator_.client_area();
+        size_t used        = allocator_.allocated();
 
         return used < (client_area / 2);
     }
 
 public:
 
-    void initAllocator(int32_t entries)
+    void initAllocator(size_t entries)
     {
-        int32_t block_size = this->header().memory_block_size();
+        size_t block_size = this->header().memory_block_size();
         MEMORIA_ASSERT(block_size, >, static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size());
 
         allocator_.allocatable().setTopLevelAllocator();
@@ -287,7 +287,7 @@ public:
 
     template <typename List>
     struct GenerateDataEventsFn {
-        template <int32_t Idx>
+        template <size_t Idx>
         static bool process(IBlockDataEventHandler* handler, const PackedAllocator* allocator)
         {
             using T = Select<Idx, List>;
@@ -328,7 +328,7 @@ public:
 
     template <typename List>
     struct SerializeFn {
-        template <int32_t Idx, typename SerializationData>
+        template <size_t Idx, typename SerializationData>
         static bool process(SerializationData& buf, const PackedAllocator* allocator)
         {
             using T = Select<Idx, List>;
@@ -384,7 +384,7 @@ public:
 
     template <typename List>
     struct DeserializeFn {
-        template <int32_t Idx, typename DeserializationData>
+        template <size_t Idx, typename DeserializationData>
         static bool process(DeserializationData& buf, PackedAllocator* allocator)
         {
             using T = Select<Idx, List>;
@@ -419,7 +419,7 @@ public:
 
     template <typename List>
     struct InitMetadataFn {
-        template <int32_t Idx>
+        template <size_t Idx>
         static bool process(PackedAllocator* allocator)
         {
             using T = Select<Idx, List>;
@@ -444,7 +444,7 @@ public:
     {
         size_t mem_size = 0;
 
-        for (int32_t c = 0; c < StreamsStart; c++) {
+        for (size_t c = 0; c < StreamsStart; c++) {
             mem_size += allocator_.element_size(c);
         }
 
@@ -528,14 +528,14 @@ public:
         CtrReferencesMap
     >;
 
-    static constexpr int32_t Streams            = ListSize<BranchSubstreamsStructList>;
+    static constexpr size_t Streams            = ListSize<BranchSubstreamsStructList>;
 
-    static constexpr int32_t Substreams         = Dispatcher::Size;
+    static constexpr size_t Substreams         = Dispatcher::Size;
 
-    static constexpr int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
-    static constexpr int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
+    static constexpr size_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
+    static constexpr size_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
 
-    static constexpr int32_t ValuesBlockIdx     = SubstreamsEnd;
+    static constexpr size_t ValuesBlockIdx     = SubstreamsEnd;
 
     constexpr BranchNode()  = default;
 
@@ -545,12 +545,12 @@ private:
 
         InitFn(uint64_t active_streams) : active_streams_(active_streams) {}
 
-        int32_t block_size(int32_t items_number) const
+        size_t block_size(size_t items_number) const
         {
             return MyType::block_size(items_number, active_streams_);
         }
 
-        int32_t max_elements(int32_t block_size) const
+        size_t max_elements(size_t block_size) const
         {
             return block_size;
         }
@@ -567,7 +567,7 @@ public:
         return Base::allocator();
     }
 
-    bool is_stream_empty(int32_t idx) const
+    bool is_stream_empty(size_t idx) const
     {
         return allocator()->is_empty(idx + SubstreamsStart);
     }
@@ -585,7 +585,7 @@ public:
 
     bool is_empty() const
     {
-        for (int32_t c = SubstreamsStart; c < SubstreamsEnd; c++) // StreamsEnd+1 because of values block?
+        for (size_t c = SubstreamsStart; c < SubstreamsEnd; c++) // StreamsEnd+1 because of values block?
         {
             if (!allocator()->is_empty(c)) {
                 return false;
@@ -597,10 +597,10 @@ public:
 
 private:
     struct TreeSizeFn {
-        int32_t size_ = 0;
+        size_t size_ = 0;
 
-        template <int32_t StreamIndex, int32_t AllocatorIdx, int32_t Idx, typename Node>
-        void stream(Node*, int32_t tree_size, uint64_t active_streams)
+        template <size_t StreamIndex, size_t AllocatorIdx, size_t Idx, typename Node>
+        void stream(Node*, size_t tree_size, uint64_t active_streams)
         {
             if (active_streams & (1ull << StreamIndex))
             {
@@ -611,12 +611,12 @@ private:
 
 
     struct TreeSize2Fn {
-        int32_t size_ = 0;
+        size_t size_ = 0;
 
-        template <int32_t StreamIndex, int32_t AllocatorIdx, int32_t Idx, typename Node>
+        template <size_t StreamIndex, size_t AllocatorIdx, size_t Idx, typename Node>
         void stream(Node*, const Position* sizes)
         {
-            int32_t size = sizes->value(StreamIndex);
+            size_t size = sizes->value(StreamIndex);
             if (size > 0)
             {
                 size_ += Node::packed_block_size(size);
@@ -625,35 +625,35 @@ private:
     };
 
 public:
-    static int32_t block_size(int32_t tree_size, uint64_t active_streams = -1)
+    static size_t block_size(size_t tree_size, uint64_t active_streams = -1)
     {
         TreeSizeFn fn;
 
         processSubstreamGroupsStatic(fn, tree_size, active_streams);
 
-        int32_t tree_block_size     = fn.size_;
-        int32_t array_block_size    = PackedAllocatable::round_up_bytes(tree_size * sizeof(Value));
-        int32_t client_area         = tree_block_size + array_block_size;
+        size_t tree_block_size     = fn.size_;
+        size_t array_block_size    = PackedAllocatable::round_up_bytes(tree_size * sizeof(Value));
+        size_t client_area         = tree_block_size + array_block_size;
 
         return PackedAllocator::block_size(client_area, Streams + 1);
     }
 
 
-    static int32_t block_size(const Position& sizes, int32_t values_size)
+    static size_t block_size(const Position& sizes, size_t values_size)
     {
         TreeSize2Fn fn;
 
         processSubstreamGroupsStatic(fn, &sizes);
 
-        int32_t tree_block_size     = fn.size_;
-        int32_t array_block_size    = PackedAllocatable::round_up_bytes(values_size * sizeof(Value));
-        int32_t client_area         = tree_block_size + array_block_size;
+        size_t tree_block_size     = fn.size_;
+        size_t array_block_size    = PackedAllocatable::round_up_bytes(values_size * sizeof(Value));
+        size_t client_area         = tree_block_size + array_block_size;
 
         return PackedAllocator::block_size(client_area, Streams + 1);
     }
 
 public:
-    static int32_t max_tree_size1(int32_t block_size, uint64_t active_streams = -1)
+    static size_t max_tree_size1(size_t block_size, uint64_t active_streams = -1)
     {
         return FindTotalElementsNumber2(block_size, InitFn(active_streams));
     }
@@ -667,7 +667,7 @@ public:
     uint64_t active_streams() const
     {
         uint64_t streams = 0;
-        for (int32_t c = 0; c < Streams; c++)
+        for (size_t c = 0; c < Streams; c++)
         {
             uint64_t bit = !allocator()->is_empty(c + SubstreamsStart);
             streams += (bit << c);
@@ -679,18 +679,18 @@ public:
 private:
 
     struct InitStructFn {
-        template <int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(Tree*, int32_t tree_size, PackedAllocator* allocator, uint64_t active_streams)
+        template <size_t AllocatorIdx, size_t Idx, typename Tree>
+        void stream(Tree*, size_t tree_size, PackedAllocator* allocator, uint64_t active_streams)
         {
             if (active_streams && (1 << Idx))
             {
-                int32_t tree_block_size = Tree::block_size(tree_size);
+                size_t tree_block_size = Tree::block_size(tree_size);
                 allocator->template allocate<Tree>(AllocatorIdx, tree_block_size);
             }
         }
 
-        template <int32_t AllocatorIdx, int32_t Idx>
-        void stream(Value*, int32_t tree_size, PackedAllocator* allocator)
+        template <size_t AllocatorIdx, size_t Idx>
+        void stream(Value*, size_t tree_size, PackedAllocator* allocator)
         {
             allocator->template allocate_array_by_size<Value>(AllocatorIdx, tree_size);
         }
@@ -698,9 +698,9 @@ private:
 
 public:
 
-    static int32_t client_area(int32_t block_size)
+    static size_t client_area(size_t block_size)
     {
-        int32_t allocator_block_size = block_size - sizeof(MyType) + PackedAllocator::my_size();
+        size_t allocator_block_size = block_size - sizeof(MyType) + PackedAllocator::my_size();
         return PackedAllocator::client_area(allocator_block_size, Streams);
     }
 
@@ -708,7 +708,7 @@ public:
 
 
     struct SizeFn {
-        int32_t size_ = 0;
+        size_t size_ = 0;
 
         template <typename Tree>
         void stream(const Tree* tree)
@@ -717,7 +717,7 @@ public:
         }
     };
 
-    int32_t size() const
+    size_t size() const
     {
         SizeFn fn;
         //FIXME: use correct procedure to get number of children
@@ -758,7 +758,7 @@ public:
 
         const Value* child_ids = values();
 
-        for (int32_t c = 0; c < size; c++)
+        for (size_t c = 0; c < size; c++)
         {
             auto actual_id = id_resolver->resolve_id(child_ids[c]);
             FieldFactory<Value>::serialize(buf, actual_id);
@@ -774,7 +774,7 @@ public:
 
         Value* child_ids = values();
 
-        for (int32_t c = 0; c < size; c++)
+        for (size_t c = 0; c < size; c++)
         {
             auto memref_id = id_resolver->resolve_id(child_ids[c]);
             child_ids[c] = memref_id;
@@ -917,7 +917,7 @@ public:
 
         virtual ~BlockOperations()  {}
 
-        virtual int32_t serialize(const BlockType* block, void* buf, const IDValueResolver* resolver) const
+        virtual size_t serialize(const BlockType* block, void* buf, const IDValueResolver* resolver) const
         {
             const MyType* node = ptr_cast<const MyType>(block);
 
@@ -931,7 +931,7 @@ public:
             return data.total;
         }
 
-        virtual void deserialize(const void* buf, int32_t buf_size, BlockType* block) const
+        virtual void deserialize(const void* buf, size_t buf_size, BlockType* block) const
         {
             MyType* node = ptr_cast<MyType>(block);
 
@@ -948,7 +948,7 @@ public:
         }
 
 
-        virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const
+        virtual void resize(const BlockType* block, void* buffer, size_t new_size) const
         {
             MyType* tgt = ptr_cast<MyType>(buffer);
             tgt->resizeBlock(new_size);

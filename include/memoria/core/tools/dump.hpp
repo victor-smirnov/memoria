@@ -1,5 +1,5 @@
 
-// Copyright 2013 Victor Smirnov
+// Copyright 2013-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
 
 namespace memoria {
 
-void Expand(std::ostream& os, int32_t level);
+void Expand(std::ostream& os, size_t level);
 
 namespace detail {
 
@@ -63,7 +63,7 @@ namespace detail {
     struct OutputHelepr<int8_t> {
         static std::ostream& out(std::ostream& o, const int8_t& value)
         {
-            o << (int32_t)(uint8_t)value;
+            o << (size_t)(uint8_t)value;
             return o;
         }
     };
@@ -72,17 +72,17 @@ namespace detail {
     struct OutputHelepr<uint8_t> {
         static std::ostream& out(std::ostream& o, const uint8_t& value)
         {
-            o << (int32_t)value;
+            o << (size_t)value;
             return o;
         }
     };
 
     template <typename V>
-    size_t max_width(int32_t count, bool hex, std::function<V(int32_t)> fn)
+    size_t max_width(size_t count, bool hex, std::function<V(size_t)> fn)
     {
         size_t max = 0;
 
-        for (int32_t c = 0; c < count; c++)
+        for (size_t c = 0; c < count; c++)
         {
             V v = fn(c);
 
@@ -124,7 +124,7 @@ namespace detail {
 }
 
 template <typename V>
-void dumpArray(std::ostream& out, int32_t count, std::function<V (int32_t)> fn)
+void dumpArray(std::ostream& out, size_t count, std::function<V (size_t)> fn)
 {
     bool is_char = std::is_same<V, uint8_t>::value || std::is_same<V, int8_t>::value || std::is_same<V, char>::value;
 
@@ -132,7 +132,7 @@ void dumpArray(std::ostream& out, int32_t count, std::function<V (int32_t)> fn)
 
     if (width < 2) width = 2;
 
-    int32_t columns;
+    size_t columns;
 
     switch (sizeof(V))
     {
@@ -163,7 +163,7 @@ void dumpArray(std::ostream& out, int32_t count, std::function<V (int32_t)> fn)
 
     out << std::dec << std::endl;
 
-    for (int32_t c = 0; c < count; c+= columns)
+    for (size_t c = 0; c < count; c+= columns)
     {
         Expand(out, 12);
         out << " ";
@@ -172,7 +172,7 @@ void dumpArray(std::ostream& out, int32_t count, std::function<V (int32_t)> fn)
         out.width(6);
         out << c << ": ";
 
-        int32_t d;
+        size_t d;
         for (d = 0; d < columns && c + d < count; d++)
         {
             std::stringstream ss;
@@ -198,7 +198,7 @@ void dumpArray(std::ostream& out, int32_t count, std::function<V (int32_t)> fn)
             out.width(16);
             out << "";
 
-            for (int32_t d = 0; d < columns && c + d < count; d++)
+            for (size_t d = 0; d < columns && c + d < count; d++)
             {
                 out.width(1);
 
@@ -217,14 +217,14 @@ void dumpArray(std::ostream& out, int32_t count, std::function<V (int32_t)> fn)
 template <typename V>
 void dumpVector(std::ostream& out, const std::vector<V>& data)
 {
-    dumpArray<V>(out, data.size(), [&](int32_t idx) {return data[idx];});
+    dumpArray<V>(out, data.size(), [&](size_t idx) {return data[idx];});
 }
 
 
 template <typename V>
-void dumpSymbols(std::ostream& out_, int32_t size_, int32_t bits_per_symbol, std::function<V(int32_t)> fn)
+void dumpSymbols(std::ostream& out_, size_t size_, size_t bits_per_symbol, std::function<V(size_t)> fn)
 {
-    int32_t columns;
+    size_t columns;
 
     switch (bits_per_symbol)
     {
@@ -234,9 +234,9 @@ void dumpSymbols(std::ostream& out_, int32_t size_, int32_t bits_per_symbol, std
     default: columns = 50;
     }
 
-    int32_t width = bits_per_symbol <= 4 ? 1 : 3;
+    size_t width = bits_per_symbol <= 4 ? 1 : 3;
 
-    int32_t c = 0;
+    size_t c = 0;
 
     do
     {
@@ -249,7 +249,7 @@ void dumpSymbols(std::ostream& out_, int32_t size_, int32_t bits_per_symbol, std
         }
         out_ << std::endl;
 
-        int32_t rows = 0;
+        size_t rows = 0;
         for (; c < size_ && rows < 10; c += columns, rows++)
         {
             Expand(out_, 12);
@@ -259,7 +259,7 @@ void dumpSymbols(std::ostream& out_, int32_t size_, int32_t bits_per_symbol, std
             out_.width(6);
             out_ << c << ": ";
 
-            for (int32_t d = 0; d < columns && c + d < size_; d++)
+            for (size_t d = 0; d < columns && c + d < size_; d++)
             {
                 out_ << std::hex;
                 out_.width(width);
@@ -274,9 +274,9 @@ void dumpSymbols(std::ostream& out_, int32_t size_, int32_t bits_per_symbol, std
 
 
 template <typename T>
-void dumpSymbols(std::ostream& out_, T* symbols, int32_t size_, int32_t bits_per_symbol)
+void dumpSymbols(std::ostream& out_, T* symbols, size_t size_, size_t bits_per_symbol)
 {
-    int32_t columns;
+    size_t columns;
 
     switch (bits_per_symbol)
     {
@@ -286,9 +286,9 @@ void dumpSymbols(std::ostream& out_, T* symbols, int32_t size_, int32_t bits_per
         default: columns = 50;
     }
 
-    int32_t width = bits_per_symbol <= 4 ? 1 : 3;
+    size_t width = bits_per_symbol <= 4 ? 1 : 3;
 
-    int32_t c = 0;
+    size_t c = 0;
 
     do
     {
@@ -301,7 +301,7 @@ void dumpSymbols(std::ostream& out_, T* symbols, int32_t size_, int32_t bits_per
         }
         out_ << std::endl;
 
-        int32_t rows = 0;
+        size_t rows = 0;
         for (; c < size_ && rows < 10; c += columns, rows++)
         {
             Expand(out_, 12);
@@ -311,18 +311,18 @@ void dumpSymbols(std::ostream& out_, T* symbols, int32_t size_, int32_t bits_per
             out_.width(6);
             out_<<c<<": ";
 
-            for (int32_t d = 0; d < columns && c + d < size_; d++)
+            for (size_t d = 0; d < columns && c + d < size_; d++)
             {
                 out_ << std::hex;
                 out_.width(width);
 
-                int32_t idx = (c + d) * bits_per_symbol;
+                size_t idx = (c + d) * bits_per_symbol;
 
                 if (sizeof(T) > 1) {
                     out_ << GetBits(symbols, idx, bits_per_symbol);
                 }
                 else {
-                    out_ << (int32_t)GetBits(symbols, idx, bits_per_symbol);
+                    out_ << (size_t)GetBits(symbols, idx, bits_per_symbol);
                 }
             }
 

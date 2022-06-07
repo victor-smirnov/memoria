@@ -84,7 +84,7 @@ public:
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(GetSizeFn, size);
-    auto ctr_get_node_size(const TreeNodeConstPtr& node, int32_t stream) const
+    auto ctr_get_node_size(const TreeNodeConstPtr& node, size_t stream) const
     {
         return self().node_dispatcher().dispatch(node, GetSizeFn(), stream);
     }
@@ -369,7 +369,7 @@ protected:
         }
     };
 
-    template <int32_t Stream>
+    template <size_t Stream>
     struct GetLeafNodeStreamSize {
         template <typename CtrT, typename T, typename... Args>
         auto treeNode(const LeafNodeSO<CtrT, T>& node, Args&&... args) const
@@ -400,7 +400,7 @@ protected:
 
 public:
 
-    template <int32_t StreamIdx>
+    template <size_t StreamIdx>
     size_t ctr_get_leaf_stream_size(const TreeNodeConstPtr& node) const
     {
         return self().leaf_dispatcher().dispatch(node, GetLeafNodeStreamSize<StreamIdx>());

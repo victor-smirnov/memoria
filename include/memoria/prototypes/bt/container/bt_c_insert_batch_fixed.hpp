@@ -90,7 +90,7 @@ public:
             });
         }
 
-        template <int32_t ListIdx, typename StreamType, typename UpdateState>
+        template <size_t ListIdx, typename StreamType, typename UpdateState>
         void stream(StreamType& obj, size_t from, size_t to, const BranchNodeEntryT* entries, UpdateState& update_state)
         {
             return obj.commit_insert(from, to - from, std::get<ListIdx>(update_state), [entries](size_t column, size_t idx) -> const auto& {

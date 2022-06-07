@@ -93,6 +93,9 @@ struct ValueList {
 template <int32_t... Values>
 using IntList = ValueList<int32_t, Values...>;
 
+template <size_t... Values>
+using SizeTList = ValueList<size_t, Values...>;
+
 template <uint32_t... Values>
 using UInt32List = ValueList<uint32_t, Values...>;
 
@@ -304,6 +307,8 @@ template <typename T>
 T div_2(T value) {
     return value / 2;
 }
+
+constexpr size_t SizeTMax = std::numeric_limits<size_t>::max();
 
 }
 

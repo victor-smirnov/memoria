@@ -107,12 +107,12 @@ public:
     }
 
 
-    template <int32_t Stream>
+    template <size_t Stream>
     struct PrepareInsertFn {
         PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
         template <
-            int32_t Idx,
+            size_t Idx,
             typename SubstreamType,
             typename Entry,
             typename UpdateState
@@ -132,7 +132,7 @@ public:
     };
 
 
-    template <int32_t Stream>
+    template <size_t Stream>
     struct CommitInsertFn {
         template <
             size_t Idx,
@@ -155,7 +155,7 @@ public:
 
 
 
-    template <int32_t Stream, typename Entry>
+    template <size_t Stream, typename Entry>
     bool ctr_try_insert_stream_entry_no_mgr(const TreeNodePtr& leaf, size_t idx, const Entry& entry)
     {
         auto update_state = self().template ctr_make_leaf_update_state<IntList<Stream>>(leaf.as_immutable());
@@ -205,7 +205,7 @@ public:
         return self.leaf_dispatcher().dispatch(
                 path.leaf().as_mutable(),
                 fn,
-                IntList<Stream>{},
+                SizeTList<Stream>{},
                 idx, idx + 1
         );
     }
@@ -216,9 +216,9 @@ public:
     struct CommitUpdateStreamFn
     {
         template <
-            int32_t StreamIdx,
-            int32_t AllocatorIdx,
-            int32_t Idx,
+            size_t StreamIdx,
+            size_t AllocatorIdx,
+            size_t Idx,
             typename SubstreamType,
             typename Entry,
             typename UpdateState
@@ -249,9 +249,9 @@ public:
         PkdUpdateStatus status {PkdUpdateStatus::SUCCESS};
 
         template <
-            int32_t StreamIdx,
-            int32_t AllocatorIdx,
-            int32_t Idx,
+            size_t StreamIdx,
+            size_t AllocatorIdx,
+            size_t Idx,
             typename SubstreamType,
             typename Entry,
             typename UpdateState
