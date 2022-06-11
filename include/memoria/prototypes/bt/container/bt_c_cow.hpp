@@ -298,11 +298,7 @@ public:
 
             self.set_root(BlockID{});
 
-            if (this->do_unregister_)
-            {
-                this->do_unregister_on_dtr_ = false;
-                return self.store().unregisterCtr(self.name(), this);
-            }
+            self.store().on_ctr_drop(self.name());
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Snapshot must be in active state to drop containers").do_throw();

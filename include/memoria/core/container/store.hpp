@@ -77,9 +77,9 @@ struct IStoreBase: IStoreApiBase<ApiProfile<Profile>> {
 
     virtual bool isActive() const = 0;
 
-    virtual void registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) = 0;
-    virtual void unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance) = 0;
     virtual void flush_open_containers() = 0;
+
+    virtual void on_ctr_drop(const CtrID& ctr_id) = 0;
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id) = 0;
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> from_root_id(const BlockID& root_block_id) = 0;

@@ -21,21 +21,21 @@ namespace memoria {
 
 template <typename Types>
 struct CtrTypesT: Types {
-    typedef Types                       Base;
-    typedef typename Types::CtrList     List;
+    using List = typename Types::CtrList;
 
     template <typename Types_>
     using BaseFactory = typename Types::template CtrBaseFactory<Types_>;
 };
 
+
 template <typename Types>
-struct IterTypesT: Types {
-    typedef Types                       Base;
-    typedef typename Types::IterList    List;
+struct RWCtrTypesT: Types {
+    using List = typename Types::RWCtrList;
 
     template <typename Types_>
-    using BaseFactory = typename Types::template IterBaseFactory<Types_>;
+    using BaseFactory = typename Types::template RWCtrBaseFactory<Types_>;
 };
+
 
 template <typename Types>
 struct BlockIterStateTypesT: Types {

@@ -157,7 +157,7 @@ public:
             auto ctr_ref = this->template internal_find_by_root_typed<BlockMapCtrType>(blockmap_root_id);
 
             blockmap_ctr_ = ctr_ref;
-            blockmap_ctr_->internal_reset_allocator_holder();
+            blockmap_ctr_->internal_detouch_from_store();
         }
     }
 

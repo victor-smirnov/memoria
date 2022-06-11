@@ -34,7 +34,7 @@ public:
 #define MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBaseClassName)                     \
     MEMORIA_V1_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)                 \
                                                                                         \
-    BTreeCtrBaseClassName(MaybeError& maybe_error): Base(maybe_error) { \
+    BTreeCtrBaseClassName(): Base() { \
         static_assert(std::is_base_of_v<BTreeCtrBaseClassName, Ctr<TypesType>>, ""); \
     }
 

@@ -421,9 +421,10 @@ struct ContainerExtensionsTF {
 };
 
 template <typename Profile, typename CtrName>
-struct IteratorExtensionsTF {
+struct RWContainerExtensionsTF {
     using Type = TL<>;
 };
+
 
 template <typename Profile, typename CtrName>
 struct BlockIteratorStateExtensionsTF {

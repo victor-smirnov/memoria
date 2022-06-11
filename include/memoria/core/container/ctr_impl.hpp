@@ -33,37 +33,26 @@ public:
     SharedCtr(SharedCtr&&) = delete;
 
     SharedCtr(
-            MaybeError& maybe_error,
-            const CtrSharedPtr<ROAllocator>& allocator,
+            const SnpSharedPtr<ROAllocator>& allocator,
             const ProfileCtrID<Profile>& name,
             CtrName type_decl
     ):
-        Base(maybe_error, allocator, name, type_decl)
+        Base(allocator, name, type_decl)
     {}
 
-    SharedCtr(
-            MaybeError& maybe_error,
-            ROAllocator* allocator,
-            const ProfileCtrID<Profile>& name,
-            CtrName type_decl
-    ):
-        Base(maybe_error, allocator, name, type_decl)
-    {}
 
     SharedCtr(
-            MaybeError& maybe_error,
-            const CtrSharedPtr<ROAllocator>& allocator,
+            const SnpSharedPtr<ROAllocator>& allocator,
             const ProfileSharedBlockConstPtr<Profile>& root_block
     ):
-        Base(maybe_error, allocator, root_block)
+        Base(allocator, root_block)
     {}
 
     SharedCtr(
-            MaybeError& maybe_error,
             ROAllocator* allocator,
             const ProfileSharedBlockConstPtr<Profile>& root_block
     ):
-        Base(maybe_error, allocator, root_block)
+        Base(allocator, root_block)
     {}
 };
 

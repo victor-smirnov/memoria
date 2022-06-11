@@ -48,7 +48,7 @@ public:
 
 private:
 
-    TreePathT           path_;
+    TreePathT path_;
 
 public:
     BTBlockIteratorStateBase():
@@ -65,10 +65,6 @@ public:
         path_ = other.path_;
     }
 
-    template <typename T>
-    void iter_initialize(T ctr_holder) {
-        Base::iter_initialize(ctr_holder);
-    }
 
     void reset_state() {
         path_.reset_state();
@@ -84,8 +80,6 @@ public:
     TreePathT& path() {
         return path_;
     }
-
-
 
     const TreePathT& path() const {
         return path_;

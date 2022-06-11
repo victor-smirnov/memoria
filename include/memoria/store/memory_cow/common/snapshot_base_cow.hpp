@@ -41,6 +41,8 @@
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
+#include <memoria/core/container/ctr_instance_pool.hpp>
+
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
@@ -161,9 +163,7 @@ protected:
     using SnapshotApiPtr         = SnpSharedPtr<IMemorySnapshot<ApiProfileT>>;
     using AllocatorPtr           = AllocSharedPtr<Base>;
 
-    using Status            = typename HistoryNode::Status;
-
-    using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<ApiProfileT>*>;
+    using Status = typename HistoryNode::Status;
 
     using typename IMemorySnapshot<ApiProfile<Profile>>::ROStoreSnapshotPtr;
 
@@ -190,8 +190,6 @@ protected:
     PersistentAllocatorPtr  history_tree_;
     PersistentAllocator*    history_tree_raw_ = nullptr;
 
-    CtrInstanceMap instance_map_;
-
     template <typename>
     friend class ThreadsMemoryStoreImpl;
     
@@ -202,13 +200,13 @@ protected:
     template <typename, typename>
     friend class MemoryStoreBase;
     
+    std::shared_ptr<CtrInstancePool<Profile>> instance_pool_;
+
     PairPtr pair_;
     
     CtrSharedPtr<RootMapType> root_map_;
 
     bool snapshot_removal_{false};
-
-
 
 public:
 
@@ -217,6 +215,8 @@ public:
         history_tree_(history_tree),
         history_tree_raw_(history_tree.get())
     {
+        instance_pool_ = std::make_shared<CtrInstancePool<ProfileT>>();
+
         history_node_->ref();
 
         if (history_node->is_active())
@@ -229,6 +229,8 @@ public:
         history_node_(history_node),
         history_tree_raw_(history_tree)
     {
+        instance_pool_ = std::make_shared<CtrInstancePool<ProfileT>>();
+
         history_node_->ref();
 
         if (history_node->is_active())
@@ -236,6 +238,7 @@ public:
             history_tree_raw_->ref_active();
         }
     }
+
     
     void post_init()
     {
@@ -243,21 +246,16 @@ public:
 
         BlockID root_id = history_node_->root_id();
 
-        MaybeError maybe_error;
         if (root_id.isSet())
         {
             auto root_block = findBlock(root_id);
-            root_map_ = ctr_make_shared<RootMapType>(maybe_error, ptr, root_block);
+            root_map_ = allocate_shared<RootMapType>(object_pools_, ptr, root_block);
         }
         else {
-            root_map_ = ctr_make_shared<RootMapType>(maybe_error, ptr, CtrID{}, Map<CtrID, BlockID>());
+            root_map_ = allocate_shared<RootMapType>(object_pools_, ptr, CtrID{}, Map<CtrID, BlockID>());
         }
 
-        root_map_->reset_allocator_holder();
-
-        if (maybe_error) {
-            std::move(maybe_error.get()).do_throw();
-        }
+        root_map_->internal_detouch_from_store();
     }
     
     static void init_profile_metadata() {
@@ -266,6 +264,64 @@ public:
 
 
     virtual ~SnapshotBase() noexcept {}
+
+
+    CtrSharedPtr<CtrReferenceable<ApiProfileT>> create_ctr_instance(
+        const LDTypeDeclarationView& decl, const CtrID& ctr_id
+    )
+    {
+        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
+
+        if (!instance_pool_->contains(ctr_id))
+        {
+            auto instance = factory->create_ctr_instance(
+                this->shared_from_this(),
+                ctr_id,
+                decl
+            );
+
+            return instance_pool_->put_new_instance(ctr_id, std::move(instance));
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Container instance {} is already registered", ctr_id).do_throw();
+        }
+    }
+
+    CtrSharedPtr<CtrReferenceable<ApiProfileT>> find_ctr_instance(
+        const CtrID& ctr_id,
+        SharedBlockConstPtr root
+    )
+    {
+        auto ptr = instance_pool_->get(ctr_id, this->self_ptr());
+        if (ptr) {
+            auto ctr_hash = root->ctr_type_hash();
+            auto instance_hash = ptr->type_hash();
+
+            if (instance_hash == ctr_hash) {
+                return ptr;
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR(
+                            "Exisitng ctr instance type hash mismatch: expected {}, actual {}",
+                            ctr_hash,
+                            instance_hash
+                            ).do_throw();
+            }
+        }
+        else {
+            auto ctr_hash = root->ctr_type_hash();
+            auto ctr_intf = ProfileMetadata<Profile>::local()
+                    ->get_container_operations(ctr_hash);
+
+            auto instance = ctr_intf->create_ctr_instance(this->self_ptr(), root);
+
+            return instance_pool_->put_new_instance(ctr_id, std::move(instance));
+        }
+    }
+
+    void on_ctr_drop(const CtrID& ctr_id) {
+        instance_pool_->remove(ctr_id);
+    }
 
     virtual ObjectPools& object_pools() const  {
         return object_pools_;
@@ -315,30 +371,12 @@ public:
           names.push_back(ctr_name);
         });
 
-//        auto ii = root_map_->ctr_begin();
-
-//        while (!ii->iter_is_end())
-//        {
-//            names.push_back(ii->key());
-//            ii->next();
-//        }
-
         return std::move(names);
     }
 
     std::vector<U8String> container_names_str() const
     {
         std::vector<U8String> names;
-
-//        auto ii = root_map_->ctr_begin();
-//        while (!ii->iter_is_end())
-//        {
-//            std::stringstream ss;
-//            ss << ii->key().view();
-
-//            names.push_back(U8String(ss.str()));
-//            ii->next();
-//        }
 
         root_map_->for_each([&](auto ctr_name, auto root_id){
           std::stringstream ss;
@@ -351,19 +389,13 @@ public:
     }
 
 
-    bool drop_ctr(const CtrID& name)
+    bool drop_ctr(const CtrID& ctr_id)
     {
         check_updates_allowed();
 
-        auto root_id = getRootID(name);
-
-        if (root_id.is_set())
-        {
-            auto block = this->getBlock(root_id);
-
-            auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(block->ctr_type_hash());
-
-            ctr_intf->drop(name, this->shared_from_this());
+        auto ctr = find(ctr_id);
+        if (ctr) {
+            ctr->drop();
             return true;
         }
         else {
@@ -634,26 +666,6 @@ public:
         }
     }
 
-
-
-
-    virtual void registerCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>* instance)
-    {
-      auto ii = instance_map_.find(ctr_id);
-    	if (ii == instance_map_.end())
-    	{
-            instance_map_.insert({ctr_id, instance});
-    	}
-    	else {
-            MEMORIA_MAKE_GENERIC_ERROR("Container with name {} has been already registered", ctr_id).do_throw();
-    	}
-    }
-
-    virtual void unregisterCtr(const CtrID& ctr_id, CtrReferenceable<ApiProfileT>*)
-    {
-        instance_map_.erase(ctr_id);
-    }
-
     virtual void traverse_ctr(
             const BlockID& root_block,
             BTreeTraverseNodeHandler<Profile>& node_handler
@@ -666,23 +678,21 @@ public:
 
 public:
     bool has_open_containers() {
-        return instance_map_.size() > 1;
+        return instance_pool_->count_open();
     }
 
     void dump_open_containers()
     {
-    	for (const auto& pair: instance_map_)
-    	{
-        std::cout << pair.first << " -- " << pair.second->describe_type() << std::endl;
-    	}
+        instance_pool_->for_each_open_ctr(this->self_ptr(), [](auto ctr_id, auto ii){
+            println("{} -- {}", ctr_id, ii->describe_type());
+        });
     }
 
     void flush_open_containers()
     {
-        for (const auto& pair: instance_map_)
-        {
-            pair.second->flush();
-        }
+        instance_pool_->for_each_open_ctr(this->self_ptr(), [](auto ctr_id, auto ii){
+            ii->flush();
+        });
     }
 
     void dump_dictionary_blocks()
@@ -877,23 +887,6 @@ public:
 
         ctr_intf->check(ctr_name, this->shared_from_this(), consumer);
       });
-
-
-//        auto iter = root_map_->ctr_begin();
-
-//        while(!iter->is_end())
-//        {
-//            auto ctr_name = iter->key();
-
-//            auto block = this->getBlock(iter->value());
-
-//            auto ctr_intf = ProfileMetadata<Profile>::local()
-//                    ->get_container_operations(block->ctr_type_hash());
-
-//            ctr_intf->check(ctr_name, this->shared_from_this(), consumer);
-
-//            iter->next();
-//        }
     }
 
     void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer) {}
@@ -927,23 +920,6 @@ public:
           ctr_intf->walk(ctr_name, this->shared_from_this(), walker);
         });
 
-//        auto iter = root_map_->ctr_begin();
-//        while (!iter->iter_is_end())
-//        {
-//            auto ctr_name   = iter->key();
-//            auto root_id    = iter->value();
-
-//            auto block = this->getBlock(root_id);
-
-//            auto ctr_hash   = block->ctr_type_hash();
-//            auto ctr_intf   = ProfileMetadata<Profile>::local()
-//                    ->get_container_operations(ctr_hash);
-
-//            ctr_intf->walk(ctr_name, this->shared_from_this(), walker);
-
-//            iter->next();
-//        }
-
         walker->endSnapshot();
     }
 
@@ -956,26 +932,15 @@ public:
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
     {
         checkIfConainersCreationAllowed();
-        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(
-                    this->shared_from_this(),
-                    ctr_id,
-                    decl
-        );
+
+        return this->create_ctr_instance(decl, ctr_id);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
     {
         checkIfConainersCreationAllowed();
-        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
-
-        auto ctr_name = this->createCtrName();
-
-        return factory->create_instance(
-                    this->shared_from_this(),
-                    ctr_name,
-                    decl
-        );
+        auto ctr_id = this->createCtrName();
+        return this->create_ctr_instance(decl, ctr_id);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> find(const CtrID& ctr_id)
@@ -986,30 +951,7 @@ public:
         if (root_id.is_set())
         {
             auto block = this->getBlock(root_id);
-
-            auto ctr_intf = ProfileMetadata<Profile>::local()
-                    ->get_container_operations(block->ctr_type_hash());
-
-            auto ii = instance_map_.find(ctr_id);
-            if (ii != instance_map_.end())
-            {
-                auto ctr_hash = block->ctr_type_hash();
-                auto instance_hash = ii->second->type_hash();
-
-                if (instance_hash == ctr_hash) {
-                    return ii->second->shared_self();
-                }
-                else {
-                    MEMORIA_MAKE_GENERIC_ERROR(
-                                "Exisitng ctr instance type hash mismatch: expected {}, actual {}",
-                                ctr_hash,
-                                instance_hash
-                    ).do_throw();
-                }
-            }
-            else {
-                return ctr_intf->new_ctr_instance(block, this->shared_from_this());
-            }
+            return find_ctr_instance(ctr_id, block);
         }
         else {
             return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};
@@ -1049,26 +991,7 @@ public:
 
             CtrID ctr_id = ctr_intf->get_ctr_id(block);
 
-            auto ii = instance_map_.find(ctr_id);
-            if (ii != instance_map_.end())
-            {
-                auto ctr_hash = block->ctr_type_hash();
-                auto instance_hash = ii->second->type_hash();
-
-                if (instance_hash == ctr_hash) {
-                    return ii->second->shared_self();
-                }
-                else {
-                    MEMORIA_MAKE_GENERIC_ERROR(
-                                "Exisitng ctr instance type hash mismatch: expected {}, actual {}",
-                                ctr_hash,
-                                instance_hash
-                    ).do_throw();
-                }
-            }
-            else {
-                return ctr_intf->new_ctr_instance(block, this->shared_from_this());
-            }
+            return find_ctr_instance(ctr_id, block);
         }
         else {
             return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};

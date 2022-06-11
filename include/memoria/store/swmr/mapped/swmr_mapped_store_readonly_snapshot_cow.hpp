@@ -131,7 +131,7 @@ public:
             auto ctr_ref = this->template internal_find_by_root_typed<BlockMapCtrType>(blockmap_root_id);
 
             blockmap_ctr_ = ctr_ref;
-            blockmap_ctr_->internal_reset_allocator_holder();
+            blockmap_ctr_->internal_detouch_from_store();
         }
 
         auto directory_root_id = sb->directory_root_id();
@@ -140,7 +140,7 @@ public:
             auto ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(directory_root_id);
 
             directory_ctr_ = ctr_ref;
-            directory_ctr_->internal_reset_allocator_holder();
+            directory_ctr_->internal_detouch_from_store();
         }
     }
 

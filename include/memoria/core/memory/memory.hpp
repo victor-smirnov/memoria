@@ -40,10 +40,10 @@ template <typename T>
 using PoolSharedFromThis = pool::enable_shared_from_this<T>;
 
 template <typename T>
-using CtrSharedPtr = LocalSharedPtr<T>;
+using CtrSharedPtr = pool::SharedPtr<T>;
 
 template <typename T>
-using CtrSharedFromThis = EnableSharedFromThis<T>;
+using CtrSharedFromThis = PoolSharedFromThis<T>;
 
 template <typename T, typename... Args>
 auto ctr_make_shared(Args&&... args) {

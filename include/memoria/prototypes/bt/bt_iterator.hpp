@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/prototypes/bt/iterator/bt_bis_base.hpp>
-#include <memoria/prototypes/bt/iterator/bt_i_base.hpp>
 
 #include <memoria/prototypes/bt/bt_names.hpp>
 
@@ -30,47 +29,11 @@ template <typename Name, typename Base, typename Types> class IterPart;
 template<
         typename Types1
 >
-class Iter<BTIterTypes<Types1>>: public IterStart<BTIterTypes<Types1>>
-{
-    using MyType        = Iter<BTIterTypes<Types1>>;
-    using Base          = IterStart<BTIterTypes<Types1>>;
-    using ContainerType = Ctr<typename Types1::CtrTypes>;
-    using TreeNodePtr   = typename ContainerType::Types::TreeNodePtr;
-    using CtrPtr        = CtrSharedPtr<ContainerType>;
-
-public:
-
-    using Container = ContainerType;
-    
-    Iter(): Base() {}
-
-    Iter(CtrPtr ptr): Base(std::move(ptr)) {
-        Base::iter_local_pos() = 0;
-    }
-    
-    Iter(const MyType& other): Base(other) {}
-
-    MyType& operator=(const MyType& other)
-    {
-        if (this != &other)
-        {
-            Base::assign(other);
-        }
-
-        return *this;
-    }
-};
-
-
-
-template<
-        typename Types1
->
 class Iter<BTBlockIterStateTypes<Types1>>: public IterStart<BTBlockIterStateTypes<Types1>>
 {
     using MyType        = Iter<BTBlockIterStateTypes<Types1>>;
     using Base          = IterStart<BTBlockIterStateTypes<Types1>>;
-    using ContainerType = Ctr<typename Types1::CtrTypes>;
+    using ContainerType = CtrStart<typename Types1::CtrTypes>;
     using TreeNodePtr   = typename ContainerType::Types::TreeNodePtr;
     using CtrPtr        = CtrSharedPtr<ContainerType>;
 
@@ -92,8 +55,5 @@ public:
         Base::iter_initialize(ctr_holder);
     }
 };
-
-
-
 
 }

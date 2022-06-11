@@ -106,7 +106,6 @@ public:
 		using BaseTypes = typename Base1::Types;
 
         using CtrTypes              = BTCtrTypes<Types>;
-        using IterTypes             = BTIterTypes<Types>;
         using BlockIterStateTypes   = BTBlockIterStateTypes<Types>;
 
         using BlockUpdateMgr     = bt::BlockUpdateManager<CtrTypes>;

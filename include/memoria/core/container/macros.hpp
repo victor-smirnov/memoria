@@ -33,8 +33,8 @@ public:
 #define MEMORIA_V1_CONTAINER_PART_BEGIN(PartName)                               \
     MEMORIA_V1_CONTAINER_PART_NO_CTR_BEGIN(PartName)                            \
 public:                                                                         \
-    CtrPart(MaybeError& maybe_error) noexcept:                                  \
-        Base(maybe_error)                                                       \
+    CtrPart():                                                                  \
+        Base()                                                                  \
     {}                                                                          \
                                                                                 \
     virtual ~CtrPart() noexcept {}                                              \

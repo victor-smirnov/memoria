@@ -27,6 +27,8 @@
 #include <boost/pool/object_pool.hpp>
 #include <boost/smart_ptr/local_shared_ptr.hpp>
 
+#include <memoria/core/tools/result.hpp>
+
 #include <iostream>
 #include <type_traits>
 #include <cstddef>
@@ -54,9 +56,11 @@ template <typename> class enable_shared_from_this;
 
 namespace detail {
 
-template <typename T, bool HasBase = std::is_base_of_v<enable_shared_from_this<T>, T>>
-struct SharedFromThisHelper;
+template <typename T>
+class HasSharedFromThisMethod;
 
+template <typename T, bool HasBase = HasSharedFromThisMethod<T>::Value>
+struct SharedFromThisHelper;
 
 class ObjectPoolRefHolder {
     long use_count_{1};
@@ -75,7 +79,10 @@ public:
     virtual ~ObjectPoolRefHolder() noexcept = default;
 
 protected:
+    // Release the holder
     virtual void dispose() noexcept = 0;
+
+    // Run the object's destructor
     virtual void destroy() noexcept = 0;
 
 public:
@@ -316,7 +323,10 @@ public:
 
             ptr_ = other.ptr_;
             ref_holder_ = other.ref_holder_;
-            ref_holder_->ref_copy();
+
+            if (ref_holder_){
+                ref_holder_->ref_copy();
+            }
         }
 
         return *this;
@@ -432,6 +442,8 @@ class WeakPtr {
 
     template <typename, bool>
     friend struct detail::SharedFromThisHelper;
+
+    template <typename> friend class WeakPtr;
 
     WeakPtr(T* ptr, RefHolder* ref_holder):
         ptr_(ptr), ref_holder_(ref_holder)
@@ -608,10 +620,13 @@ template <typename T>
 class enable_shared_from_this {
     using RefHolder = detail::ObjectPoolRefHolder;
 
-    WeakPtr<T> ptr_;
+    mutable T* ptr_{};
+    mutable RefHolder* holder_{};
 
-    void init(WeakPtr<T>&& ptr) {
-        ptr_ = std::move(ptr);
+    template <typename U>
+    void init_shared_from_this(U* ptr, RefHolder* holder) noexcept {
+        ptr_ = ptr;
+        holder_ = holder;
     }
 
     template <typename>
@@ -622,11 +637,18 @@ class enable_shared_from_this {
 
     template <typename, bool> friend struct detail::SharedFromThisHelper;
 
-public:
+protected:
     enable_shared_from_this() {}
 
-    SharedPtr<T> shared_from_this() {
-        return ptr_.lock();
+public:
+    SharedPtr<T> shared_from_this() const {
+        if (holder_) {
+            holder_->ref_lock();
+            return detail::make_shared_ptr_from(ptr_, holder_);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("enable_shared_from_this is not initialized").do_throw();
+        }
     }
 };
 
@@ -635,15 +657,14 @@ namespace detail {
 
 template <typename T>
 struct SharedFromThisHelper<T, true> {
-    static void initialize(T* obj, ObjectPoolRefHolder* holder) {
-        holder->ref_weak();
-        static_cast<enable_shared_from_this<T>*>(obj)->init(WeakPtr<T>(obj, holder));
+    static void initialize(T* obj, ObjectPoolRefHolder* holder) noexcept {
+        obj->init_shared_from_this(obj, holder);
     }
 };
 
 template <typename T>
 struct SharedFromThisHelper<T, false> {
-    static void initialize(T*, ObjectPoolRefHolder*) {
+    static void initialize(T*, ObjectPoolRefHolder*) noexcept {
     }
 };
 
@@ -661,6 +682,21 @@ class HasObjectResetMethod
 public:
     static constexpr bool Value = sizeof(test<T>(0)) == sizeof(char);
 };
+
+
+template <typename T>
+class HasSharedFromThisMethod
+{
+    typedef char one;
+    struct two { char x[2]; };
+
+    template <typename C> static one test( decltype(&C::shared_from_this) ) ;
+    template <typename C> static two test(...);
+
+public:
+    static constexpr bool Value = sizeof(test<T>(0)) == sizeof(char);
+};
+
 
 
 template <typename T, bool HasResetMethod = HasObjectResetMethod<T>::Value>
@@ -758,8 +794,9 @@ private:
 public:
 
     template <typename... Args>
-    SharedPtr<T> allocate_shared(Args&&... args) {
-        auto ptr = alloc_.construct(this->shared_from_this(), std::forward<Args>(args)...);
+    SharedPtr<T> allocate_shared(Args&&... args)
+    {
+        auto ptr = new (alloc_.malloc()) RefHolder(this->shared_from_this(), std::forward<Args>(args)...);
 
         detail::SharedFromThisHelper<T>::initialize(ptr->ptr(), ptr);
 
@@ -773,7 +810,7 @@ public:
             !std::is_base_of_v<enable_shared_from_this<T>, T>,
             "Can't create instance of a unique object deriving from pool::enable_shared_from_this<>"
         );
-        auto ptr = alloc_.construct(this->shared_from_this(), std::forward<Args>(args)...);
+        auto ptr = new (alloc_.malloc()) RefHolder(this->shared_from_this(), std::forward<Args>(args)...);
         return detail::make_unique_ptr_from(ptr->ptr(), ptr);
     }
 
@@ -962,7 +999,7 @@ pool::SharedPtr<T> get_reusable_shared_instance(ObjectPools& pools, std::functio
 
 template <typename T, typename... Args>
 pool::SharedPtr<T> TL_allocate_shared(Args&&... args) {
-    return allocate_shared(
+    return allocate_shared<T>(
         thread_local_pools(),
         std::forward<Args>(args)...
     );
@@ -970,7 +1007,7 @@ pool::SharedPtr<T> TL_allocate_shared(Args&&... args) {
 
 template <typename T, typename... Args>
 pool::UniquePtr<T> TL_allocate_unique(Args&&... args) {
-    return allocate_unique(
+    return allocate_unique<T>(
         thread_local_pools(),
         std::forward<Args>(args)...
     );

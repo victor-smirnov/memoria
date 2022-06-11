@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <memoria/core/tools/platform.hpp>
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/tools/checks.hpp>
+#include <memoria/core/tools/object_pool.hpp>
 #include <memoria/core/memory/memory.hpp>
 #include <memoria/core/container/ctr_referenceable.hpp>
 
@@ -34,6 +35,7 @@
 #include <memoria/core/datatypes/type_signature.hpp>
 
 #include <memoria/core/linked/document/linked_document.hpp>
+
 
 #include <stack>
 #include <sstream>
@@ -179,6 +181,7 @@ struct ContainerOperationsBase {
 
     using SharedBlockConstPtr = ProfileSharedBlockConstPtr<Profile>;
     using CtrReferenceableT   = CtrSharedPtr<CtrReferenceable<ApiProfileT>>;
+    using CtrReferenceableUPtr = std::unique_ptr<CtrReferenceable<ApiProfileT>>;
 
     virtual U8String data_type_decl_signature() const = 0;
 
@@ -218,14 +221,13 @@ struct ContainerOperationsBase {
     
     virtual CtrReferenceableT new_ctr_instance(
         const SharedBlockConstPtr& root_block,
-        ROAllocatorBasePtr allocator
+        ROAllocator* allocator
     ) const  = 0;
 
-    virtual CtrReferenceableT new_ctr_instance(
-        const SharedBlockConstPtr& root_block,
-        ROAllocator* allocator
+    virtual CtrReferenceableUPtr create_ctr_instance(
+            const ROAllocatorBasePtr& allocator,
+            SharedBlockConstPtr root
     ) const = 0;
-
 
     virtual CtrID clone_ctr(
         const CtrID& name,
@@ -271,10 +273,13 @@ struct CtrInstanceFactory {
     using CtrID         = ProfileCtrID<Profile>;
     using ROAllocator   = ProfileStoreType<Profile>;
     using ROAllocatorPtr  = SnpSharedPtr<ROAllocator>;
+    using SharedBlockConstPtr = ProfileSharedBlockConstPtr<Profile>;
 
     using ApiProfileT = ApiProfile<Profile>;
 
     using CtrReferenceableT = CtrSharedPtr<CtrReferenceable<ApiProfileT>>;
+    using CtrReferenceablePtr = std::unique_ptr<CtrReferenceable<ApiProfileT>>;
+
 
     virtual CtrReferenceableT create_instance(
             const ROAllocatorPtr& allocator,
@@ -283,8 +288,8 @@ struct CtrInstanceFactory {
     ) const = 0;
 
 
-    virtual CtrReferenceableT create_instance(
-            ROAllocator* allocator,
+    virtual CtrReferenceablePtr create_ctr_instance(
+            const ROAllocatorPtr& allocator,
             const CtrID& ctr_id,
             const LDTypeDeclarationView& type_decl
     ) const = 0;

@@ -503,7 +503,7 @@ private:
                 assign_to = ctr_ref;
             }
 
-            assign_to->internal_reset_allocator_holder();
+            assign_to->internal_detouch_from_store();
 
             return VoidResult::of();
         });
@@ -722,7 +722,7 @@ private:
             SharedBlockConstPtr block
     )
     {
-        return ctr_intf->new_ctr_instance(block, self_ptr());
+        return ctr_intf->new_ctr_instance(block, this);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
@@ -730,7 +730,7 @@ private:
     )
     {
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(this, ctr_id, decl);
+        return factory->create_instance(this->self_ptr(), ctr_id, decl);
     }
 
     virtual void import_new_ctr_from(ROStoreSnapshotPtr txn, const CtrID& name) {}

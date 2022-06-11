@@ -116,7 +116,7 @@ public:
 
             if (!directory_ctr_ref.is_error()) {
                 directory_ctr_ = directory_ctr_ref.get();
-                directory_ctr_->internal_reset_allocator_holder();
+                directory_ctr_->internal_detouch_from_store();
             }
             else {
                 mma_mdb_txn_abort(transaction_);
@@ -146,7 +146,7 @@ public:
     )
     {
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(this, ctr_id, decl);
+        return factory->create_instance(this->self_ptr(), ctr_id, decl);
     }
 
 protected:

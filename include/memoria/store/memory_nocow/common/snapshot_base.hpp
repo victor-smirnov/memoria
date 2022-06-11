@@ -180,21 +180,16 @@ public:
 
         BlockID root_id = history_node_->root_id();
 
-        MaybeError maybe_error;
         if (root_id.isSet())
         {
             auto root_block = findBlock(root_id);
-            root_map_ = ctr_make_shared<RootMapType>(maybe_error, ptr, root_block);
+            root_map_ = ctr_make_shared<RootMapType>(ptr, root_block);
         }
         else {
-            root_map_ = ctr_make_shared<RootMapType>(maybe_error, ptr, CtrID{}, Map<CtrID, BlockID>());
+            root_map_ = ctr_make_shared<RootMapType>(ptr, CtrID{}, Map<CtrID, BlockID>());
         }
 
         root_map_->reset_allocator_holder();
-
-        if (maybe_error) {
-            std::move(maybe_error.get()).do_throw();
-        }
     }
     
     static void init_profile_metadata() {

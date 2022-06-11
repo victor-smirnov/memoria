@@ -102,25 +102,37 @@ struct BTTypes {
             IfThenElse<ProfileTraits<Profile>::IsCoW, bt::CoWOpsName, bt::NoCoWOpsName>
     >;
 
+    using RWContainerPartsList = TypeList<>;
+
     using FixedBranchContainerPartsList = TypeList<
             bt::BranchFixedName,
             bt::InsertBatchFixedName
     >;
 
+    using RWFixedBranchContainerPartsList = TypeList<>;
+
     using VariableBranchContainerPartsList = TypeList<
             bt::BranchVariableName,
             bt::InsertBatchVariableName
     >;
+    using RWVariableBranchContainerPartsList = TypeList<>;
+
 
     using FixedLeafContainerPartsList = TypeList<
             bt::LeafFixedName
     >;
 
+    using RWFixedLeafContainerPartsList = TypeList<>;
+
     using VariableLeafContainerPartsList = TypeList<
             bt::LeafVariableName
     >;
+
+    using RWVariableLeafContainerPartsList = TypeList<>;
     
     using CommonContainerPartsList = TypeList<>;
+    using RWCommonContainerPartsList = TypeList<>;
+
     using BlockIteratorStatePartsList = TypeList<>;
 
     using BlockIteratorStateInterface = EmptyType;
@@ -149,7 +161,7 @@ struct BTTypes {
     using CtrBaseFactory = bt::BTreeCtrBase<Types_>;
 
     template <typename Types_>
-    using IterBaseFactory = BTIteratorBase<Types_>;
+    using RWCtrBaseFactory = bt::BTreeCtrBase<Types_>;
 
     template <typename Types_>
     using BlockIterStateBaseFactory = BTBlockIteratorStateBase<Types_>;
@@ -172,7 +184,7 @@ public:
     using BlockID        = ProfileBlockID<Profile>;
 
     using StreamDescriptors         = typename ContainerTypes::StreamDescriptors;
-    static const int32_t Streams    = ListSize<StreamDescriptors>;
+    static const size_t Streams     = ListSize<StreamDescriptors>;
 
     using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
 
@@ -250,18 +262,37 @@ public:
                         typename ContainerTypes::VariableBranchContainerPartsList
     >;
 
+    using RWCtrListBranch = IfThenElse<
+                        BranchSizeType == PackedDataTypeSize::FIXED,
+                        typename ContainerTypes::RWFixedBranchContainerPartsList,
+                        typename ContainerTypes::RWVariableBranchContainerPartsList
+    >;
+
     using CtrListLeaf = IfThenElse<
                         LeafSizeType == PackedDataTypeSize::FIXED,
                         typename ContainerTypes::FixedLeafContainerPartsList,
                         typename ContainerTypes::VariableLeafContainerPartsList
     >;
 
-    using CtrExtensionsList  = typename bt::ContainerExtensionsTF<Profile, ContainerTypeName_>::Type;
-    using BlockIterStateExtensionsList = typename bt::IteratorExtensionsTF<Profile, ContainerTypeName_>::Type;
+    using RWCtrListLeaf = IfThenElse<
+                        LeafSizeType == PackedDataTypeSize::FIXED,
+                        typename ContainerTypes::RWFixedLeafContainerPartsList,
+                        typename ContainerTypes::RWVariableLeafContainerPartsList
+    >;
+
+    using CtrExtensionsList = typename bt::ContainerExtensionsTF<Profile, ContainerTypeName_>::Type;
+    using RWCtrExtensionsList = typename bt::RWContainerExtensionsTF<Profile, ContainerTypeName_>::Type;
+
+    using BlockIterStateExtensionsList = typename bt::BlockIteratorStateExtensionsTF<Profile, ContainerTypeName_>::Type;
 
     using CtrList = MergeLists<
             typename ContainerTypes::ContainerPartsList,
             MergeLists<CtrExtensionsList, CtrListLeaf, CtrListBranch, typename ContainerTypes::CommonContainerPartsList>
+    >;
+
+    using RWCtrList = MergeLists<
+            typename ContainerTypes::RWContainerPartsList,
+            MergeLists<RWCtrExtensionsList, RWCtrListLeaf, RWCtrListBranch, typename ContainerTypes::RWCommonContainerPartsList>
     >;
 
     using BlockIterStateList = MergeLists<BlockIterStateExtensionsList, typename ContainerTypes::BlockIteratorStatePartsList>;
@@ -279,14 +310,17 @@ public:
         using TreeNodeConstPtr = TreeNodeConstPtrT;
 
         using CtrList  = typename MyType::CtrList;
+        using RWCtrList  = typename MyType::RWCtrList;
         using BlockIterStateList = typename MyType::BlockIterStateList;
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
-        using CtrTypes  = BTCtrTypes<Types>;
+        using CtrTypes  = CtrTypesT<Types>;
+        using RWCtrTypes  = RWCtrTypesT<Types>;
+
         using BlockIterStateTypes = BTBlockIterStateTypes<Types>;
 
-        static constexpr int32_t Streams = MyType::Streams;
+        static constexpr size_t Streams = MyType::Streams;
 
         using BranchNodeEntry = BranchNodeEntry_;
 

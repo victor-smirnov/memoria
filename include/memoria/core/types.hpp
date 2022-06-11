@@ -268,14 +268,11 @@ constexpr bool IsPackedAlignedV = alignof (T) <= 8;
 
 
 template <typename Profile>
-struct IStoreApiBase {
-    virtual ~IStoreApiBase() noexcept = default;
+struct IStoreApiBase: Referenceable {
+
 };
 
-template <typename Profile>
-struct RWStoreApiBase {
-    virtual ~RWStoreApiBase() noexcept = default;
-};
+
 
 template <typename IDType>
 struct BlockIDValueHolder {

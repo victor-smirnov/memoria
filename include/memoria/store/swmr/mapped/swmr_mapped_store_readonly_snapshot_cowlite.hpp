@@ -105,7 +105,7 @@ public:
             auto directory_ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(root_block_id);
 
             directory_ctr_ = directory_ctr_ref;
-            directory_ctr_->internal_reset_allocator_holder();
+            directory_ctr_->internal_detouch_from_store();
         }
     }
 

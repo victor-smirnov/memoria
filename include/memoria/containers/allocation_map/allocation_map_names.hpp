@@ -37,8 +37,4 @@ struct AlcMapIterTypesT: IterTypesT<Types> {};
 template <typename Types>
 using AlcMapCtrTypes  = BTCtrTypes<AlcMapCtrTypesT<Types>>;
 
-template <typename Types>
-using AlcMapIterTypes = BTIterTypes<AlcMapIterTypesT<Types>>;
-
-
 }

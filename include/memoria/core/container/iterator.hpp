@@ -28,6 +28,7 @@
 namespace memoria {
 
 template <typename Types> class Ctr;
+template <typename Types> class CtrStart;
 template <typename Types> class Iter;
 template <typename Name, typename Base, typename Types> class IterPart;
 
@@ -71,7 +72,7 @@ protected:
     using MyType    = Iter<Types1>;
     using ThisType  = IterStart<Types1>;
     using Base      = IterHelper<ListSize<typename Types1::List> - 1, Types1>;
-    using ContainerType = Ctr<typename Types1::CtrTypes>;
+    using ContainerType = CtrStart<typename Types1::CtrTypes>;
 
     using CtrPtr    = CtrSharedPtr<ContainerType>;
 
@@ -118,7 +119,7 @@ class IteratorBase: public TypesType::IteratorInterface, public IterSharedFromTh
 
 public:
 
-    using Container     = Ctr<typename TypesType::CtrTypes>;
+    using Container     = CtrStart<typename TypesType::CtrTypes>;
     using ROAllocator   = typename Container::ROAllocator;
     using MyType        = Iter<TypesType>;
 

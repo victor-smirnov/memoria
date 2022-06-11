@@ -129,12 +129,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
 
             self.set_root(BlockID{});
 
+            self.store().on_ctr_drop(self.name());
 
-            if (this->do_unregister_)
-            {
-                this->do_unregister_on_dtr_ = false;
-                return self.store().unregisterCtr(self.name(), this);
-            }
+//            if (this->do_unregister_)
+//            {
+//                this->do_unregister_on_dtr_ = false;
+//                return self.store().unregisterCtr(self.name(), this);
+//            }
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Snapshot must be in active state to drop containers").do_throw();

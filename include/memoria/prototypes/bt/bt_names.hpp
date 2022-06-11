@@ -91,19 +91,12 @@ class IteratorLeafName      {};
 template <typename Types>
 struct BTCtrTypesT: CtrTypesT<Types>     {};
 
-template <typename Types>
-struct BTIterTypesT: IterTypesT<Types>   {};
 
 template <typename Types>
 struct BTBlockIterStateTypesT: BlockIterStateTypesT<Types>   {};
 
-
-
 template <typename Types>
 using BTCtrTypes = BTCtrTypesT<Types>;
-
-template <typename Types>
-using BTIterTypes = BTIterTypesT<Types>;
 
 template <typename Types>
 using BTBlockIterStateTypes = BTBlockIterStateTypesT<Types>;

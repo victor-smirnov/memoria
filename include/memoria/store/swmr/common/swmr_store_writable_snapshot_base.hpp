@@ -84,7 +84,7 @@ protected:
     using Base::createCtrName;
     using Base::getRootID;
     using Base::getBlock;
-    using Base::instance_map_;
+    using Base::instance_pool;
 
     using Base::store_;
     using Base::snapshot_descriptor_;
@@ -200,7 +200,6 @@ public:
         state_ = removing_blocks_consumer_fn_ ? State::COMMITTED : State::ACTIVE;
         allocation_pool_ = &store_->allocation_pool();
     }
-
 
     virtual SnpSharedPtr<StoreT> my_self_ptr()  = 0;
     virtual SnpSharedPtr<StoreT> self_ptr()  {
@@ -337,7 +336,7 @@ public:
             auto ctr_ref = this->template internal_find_by_root_typed<DirectoryCtrType>(directory_root_id);
 
             directory_ctr_ = ctr_ref;
-            directory_ctr_->internal_reset_allocator_holder();
+            directory_ctr_->internal_detouch_from_store();
         }
 
         auto allocator_root_id = sb->allocator_root_id();
@@ -346,7 +345,7 @@ public:
             auto ctr_ref = this->template internal_find_by_root_typed<AllocationMapCtrType>(allocator_root_id);
 
             allocation_map_ctr_ = ctr_ref;
-            allocation_map_ctr_->internal_reset_allocator_holder();
+            allocation_map_ctr_->internal_detouch_from_store();
         }
 
         auto history_root_id = sb->history_root_id();
@@ -355,7 +354,7 @@ public:
             auto ctr_ref = this->template internal_find_by_root_typed<HistoryCtrType>(history_root_id);
 
             history_ctr_ = ctr_ref;
-            history_ctr_->internal_reset_allocator_holder();
+            history_ctr_->internal_detouch_from_store();
         }
     }
 
@@ -851,24 +850,18 @@ public:
     }
 
     virtual void flush_open_containers() {
-        for (const auto& pair: instance_map_) {
-            pair.second->flush();
-        }
+        this->instance_pool().for_each_open_ctr(this->self_ptr(), [](auto ctr_id, auto ctr){
+            ctr->flush();
+        });
     }
 
-    virtual bool drop_ctr(const CtrID& name)
+    virtual bool drop_ctr(const CtrID& ctr_id)
     {
         check_updates_allowed();
 
-        auto root_id = getRootID(name);
-
-        if (root_id.is_set())
-        {
-            auto block = getBlock(root_id);
-
-            auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(block->ctr_type_hash());
-
-            ctr_intf->drop(name, self_ptr());
+        auto ctr = this->find(ctr_id);
+        if (ctr) {
+            ctr->drop();
             return true;
         }
         else {
@@ -1074,7 +1067,7 @@ public:
                 assign_to = ctr_ref;
             }
 
-            assign_to->internal_reset_allocator_holder();
+            assign_to->internal_detouch_from_store();
 
             return VoidResult::of();
         });
@@ -1270,7 +1263,7 @@ public:
             SharedBlockConstPtr block
     )
     {
-        return ctr_intf->new_ctr_instance(block, self_ptr());
+        return ctr_intf->new_ctr_instance(block, this);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
@@ -1278,7 +1271,7 @@ public:
     )
     {
         auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(this, ctr_id, decl);
+        return factory->create_instance(this->self_ptr(), ctr_id, decl);
     }
 
     void import_new_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)

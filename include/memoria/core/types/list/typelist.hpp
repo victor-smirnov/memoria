@@ -33,14 +33,14 @@ namespace detail {
     };
 
     template <typename ... List>
-    struct ListSizeH<TypeList<List...>>: HasValue<int32_t, sizeof...(List)> {};
+    struct ListSizeH<TypeList<List...>>: HasValue<size_t, sizeof...(List)> {};
 
     template <typename T, T ... List>
-    struct ListSizeH<ValueList<T, List...>>: HasValue<int32_t, sizeof...(List)> {};
+    struct ListSizeH<ValueList<T, List...>>: HasValue<size_t, sizeof...(List)> {};
 }
 
 template <typename List>
-constexpr int32_t ListSize = memoria::detail::ListSizeH<List>::Value;
+constexpr size_t ListSize = memoria::detail::ListSizeH<List>::Value;
 
 template <typename ... List> struct ListHead;
 
@@ -72,14 +72,14 @@ template <typename T>
 struct TypePrinter {
     static std::ostream& print(std::ostream& out)
     {
-        out<<TypeNameFactory<T>::name();
+        out << TypeNameFactory<T>::name();
         return out;
     }
 
     static std::ostream& println(std::ostream& out)
     {
         print(out);
-        out<<std::endl;
+        out << std::endl;
         return out;
     }
 };
