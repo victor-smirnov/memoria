@@ -197,13 +197,11 @@ public:
         return self().store().setRoot(self().master_name(), root);
     }
 
-    void set_root_id(const BlockID &root) noexcept
-    {
+    void set_root_id(const BlockID &root) noexcept {
         root_ = root;
     }
 
-    const BlockID &root() const noexcept
-    {
+    const BlockID &root() const noexcept {
         return root_;
     }
 
@@ -219,8 +217,6 @@ public:
                 std::move(ctr_factory)
             );
 
-            //println("Registering Container hash {} for {}", CONTAINER_HASH, TypeNameFactory<ContainerTypeName>::name());
-
             ProfileMetadataStore<ProfileT>::global().add_container_operations(
                 static_cast<uint64_t>(CONTAINER_HASH),
                 std::move(ctr_ops)
@@ -231,8 +227,6 @@ public:
 
             for (auto& ptr: list)
             {
-                //println("Registeing block hash {} for ctr {}", ptr->block_type_hash(), CONTAINER_HASH);
-
                 ProfileMetadataStore<ProfileT>::global().add_block_operations(
                         static_cast<uint64_t>(CONTAINER_HASH),
                         std::move(ptr)
@@ -258,7 +252,11 @@ public:
         >;
 
         template <typename CtrName>
-        using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
+        using RWCtrT = RWSharedCtr<
+            CtrName,
+            ROAllocator,
+            ProfileT
+        >;
 
         using CtrReferenceablePtrT = CtrSharedPtr<CtrReferenceable<ApiProfile<ProfileT>>>;
         using CtrReferenceableUPtrT = std::unique_ptr<CtrReferenceable<ApiProfile<ProfileT>>>;
@@ -266,15 +264,21 @@ public:
         virtual CtrReferenceableUPtrT create_ctr_instance(
                 const ROAllocatorPtr& allocator,
                 const CtrID& ctr_id,
-                const LDTypeDeclarationView& type_decl
+                const LDTypeDeclarationView& type_decl,
+                bool writable
         ) const {
             boost::any obj = DataTypeRegistry::local().create_object(type_decl);
 
-            auto instance = std::make_unique<CtrT<ContainerTypeName>>(
-                allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
-            );
-
-            return std::move(instance);
+            if (writable) {
+                return std::make_unique<RWCtrT<ContainerTypeName>>(
+                    allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
+                );
+            }
+            else {
+                return std::make_unique<CtrT<ContainerTypeName>>(
+                    allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
+                );
+            }
         }
     };
 
@@ -282,6 +286,9 @@ public:
 
         using CIBase = ContainerOperations<ProfileT>;    
         using typename CIBase::BlockCallbackFn;
+
+        using CtrT   = SharedCtr<ContainerTypeName, ROAllocator, ProfileT>;
+        using RWCtrT = RWSharedCtr<ContainerTypeName, ROAllocator, ProfileT>;
 
         using CtrReferenceablePtrT  = CtrSharedPtr<CtrReferenceable<ApiProfile<ProfileT>>>;
         using CtrReferenceableUPtrT = std::unique_ptr<CtrReferenceable<ApiProfile<ProfileT>>>;
@@ -323,13 +330,6 @@ public:
         {
             return with_ctr(ctr_id, allocator, [&](MyType& ctr) {
                 return ctr.ctr_walk_tree(walker);
-            });
-        }
-
-        virtual void drop(const CtrID& ctr_id, ROAllocatorPtr allocator) const
-        {
-            return with_ctr(ctr_id, allocator, [&](MyType& ctr){
-                return ctr.drop();
             });
         }
 
@@ -387,29 +387,38 @@ public:
         
         virtual CtrReferenceablePtrT create_ctr_instance(
             const SharedBlockConstPtr& root_block,
-            ROAllocator* allocator
+            ROAllocator* allocator,
+            bool writable
         ) const
         {
-            auto instance = allocate_shared<
-                    SharedCtr<ContainerTypeName, ROAllocator, ProfileT>
-            > (
-                    allocator->object_pools(),
-                    allocator,                        
-                    root_block
-            );
-
-            return std::move(instance);
+            if (writable) {
+                return allocate_shared<RWCtrT> (
+                            allocator->object_pools(),
+                            allocator,
+                            root_block
+                );
+            }
+            else {
+                return allocate_shared<CtrT> (
+                            allocator->object_pools(),
+                            allocator,
+                            root_block
+                );
+            }
         }
 
         virtual CtrReferenceableUPtrT create_ctr_instance(
                 const ROAllocatorPtr& allocator,
-                SharedBlockConstPtr root
+                SharedBlockConstPtr root,
+                bool writable
         ) const {
-            auto instance = std::make_unique<SharedCtr<ContainerTypeName, ROAllocator, ProfileT>>(
-                allocator, root
-            );
 
-            return std::move(instance);
+            if (writable) {
+                return std::make_unique<RWCtrT>(allocator, root);
+            }
+            else {
+                return std::make_unique<CtrT>(allocator, root);
+            }
         }
 
         virtual CtrID clone_ctr(
@@ -513,6 +522,12 @@ private:
 };
 
 
+template <typename TypesType>
+class RWCtrBase: public CtrStart<typename TypesType::ROTypes> {
+public:
+    using MyType  = CtrStart<TypesType>;
+    using ROTypes = typename TypesType::ROTypes;
+};
 
 
 template <int Idx, typename Types>
@@ -641,8 +656,7 @@ public:
 
     Ctr(const MyType& other) = delete;
     Ctr(MyType&& other) = delete;
-
-    virtual ~Ctr() noexcept {}
 };
+
 
 }

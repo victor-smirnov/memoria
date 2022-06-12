@@ -21,25 +21,8 @@
 namespace memoria {
 namespace set {
 
-class CtrApiName        {};
-class CtrCApiName       {};
-class CtrInsertName     {};
-class CtrInsertMaxName  {};
-class CtrCInsertName    {};
-class CtrCNavName       {};
-class CtrRemoveName     {};
-class CtrCRemoveName    {};
-
-
-class ItrApiName {};
-class ItrCApiName {};
-class ItrNavName {};
-class ItrNavMaxName {};
-class ItrCNavName {};
-
-class ItrValueName {};
-class ItrCValueName {};
-class ItrMrkValueName {};
+class CtrRApiName       {};
+class CtrWApiName       {};
 
 }
 

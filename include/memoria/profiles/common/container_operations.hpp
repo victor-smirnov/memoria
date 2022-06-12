@@ -207,26 +207,24 @@ struct ContainerOperationsBase {
 
     virtual U8String ctr_type_name() const = 0;
 
-    virtual void drop(
-            const CtrID& name,
-            ROAllocatorBasePtr allocator
-    ) const = 0;
-
-
     virtual void for_each_ctr_node(
         const CtrID& name,
         ROAllocatorBasePtr allocator,
         BlockCallbackFn consumer
     ) const = 0;
     
+
     virtual CtrReferenceableT create_ctr_instance(
         const SharedBlockConstPtr& root_block,
-        ROAllocator* allocator
+        ROAllocator* allocator,
+        bool writable
     ) const  = 0;
+
 
     virtual CtrReferenceableUPtr create_ctr_instance(
             const ROAllocatorBasePtr& allocator,
-            SharedBlockConstPtr root
+            SharedBlockConstPtr root,
+            bool writable
     ) const = 0;
 
     virtual CtrID clone_ctr(
@@ -283,7 +281,8 @@ struct CtrInstanceFactory {
     virtual CtrReferenceablePtr create_ctr_instance(
             const ROAllocatorPtr& allocator,
             const CtrID& ctr_id,
-            const LDTypeDeclarationView& type_decl
+            const LDTypeDeclarationView& type_decl,
+            bool writable
     ) const = 0;
 };
 

@@ -45,23 +45,39 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
 
 
     virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const = 0;
-    virtual ChunkIteratorPtr insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) = 0;
+    virtual ChunkIteratorPtr insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) {
+        MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();
+    }
 
     virtual ChunkIteratorPtr insert(CtrSizeT at, const BufferT& buffer) {
         return insert(at, buffer, 0, buffer.size());
     }
 
-    virtual void remove(CtrSizeT from, CtrSizeT to) = 0;
-    virtual void remove_from(CtrSizeT from) = 0;
-    virtual void remove_up_to(CtrSizeT pos) = 0;
+    virtual void remove(CtrSizeT from, CtrSizeT to) {
+        MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();
+    }
+
+    virtual void remove_from(CtrSizeT from) {
+        MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();
+    }
+
+    virtual void remove_up_to(CtrSizeT pos) {
+        MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();
+    }
 
     virtual ApiProfileCtrSizeT<Profile> size() const = 0;
 
     virtual ChunkIteratorPtr find(KeyView key) const = 0;
 
     virtual bool contains(KeyView key)  = 0;
-    virtual bool remove(KeyView key)    = 0;
-    virtual bool upsert(KeyView key)    = 0;
+
+    virtual bool remove(KeyView key) {
+        MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();
+    }
+
+    virtual bool upsert(KeyView key) {
+        MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();
+    }
 
 
     ChunkIteratorPtr append(ProducerFn producer_fn)  {
@@ -69,14 +85,18 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
         return append(producer);
     }
 
-    virtual ChunkIteratorPtr append(io::IOVectorProducer& producer) = 0;
+    virtual ChunkIteratorPtr append(io::IOVectorProducer& producer) {
+        MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();
+    }
 
     ChunkIteratorPtr prepend(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return prepend(producer);
     }
 
-    virtual ChunkIteratorPtr prepend(io::IOVectorProducer& producer) = 0;
+    virtual ChunkIteratorPtr prepend(io::IOVectorProducer& producer) {
+        MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();
+    }
 
 
     ChunkIteratorPtr insert(KeyView before, ProducerFn producer_fn) {
@@ -84,7 +104,9 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
         return insert(before, producer);
     }
 
-    virtual ChunkIteratorPtr insert(KeyView before, io::IOVectorProducer& producer) = 0;
+    virtual ChunkIteratorPtr insert(KeyView before, io::IOVectorProducer& producer) {
+        MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();
+    }
 
     template <typename Fn>
     void for_each(Fn&& fn)

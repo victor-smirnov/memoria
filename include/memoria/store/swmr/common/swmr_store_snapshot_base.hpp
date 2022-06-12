@@ -140,9 +140,9 @@ protected:
 
     ReferenceCounterDelegate<Profile>* refcounter_delegate_;
 
-
-
     LDDocumentView metadata_;
+
+    bool writable_{false};
 
 public:
     using Base::getBlock;
@@ -186,7 +186,8 @@ public:
             auto instance = factory->create_ctr_instance(
                 this->self_ptr(),
                 ctr_id,
-                decl
+                decl,
+                writable_
             );
 
             return instance_pool.put_new_instance(ctr_id, std::move(instance));
@@ -224,7 +225,7 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            auto instance = ctr_intf->create_ctr_instance(this->self_ptr(), root);
+            auto instance = ctr_intf->create_ctr_instance(this->self_ptr(), root, writable_);
 
             return instance_pool.put_new_instance(ctr_id, std::move(instance));
         }

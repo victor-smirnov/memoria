@@ -36,9 +36,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
     using typename Base::CtrSizeT;
     using typename Base::BranchNodeEntry;
 
-
-
-
 MEMORIA_V1_CONTAINER_PART_END
 
 

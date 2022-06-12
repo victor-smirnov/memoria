@@ -48,7 +48,7 @@ public:
             ContainerOperationsPtr<Profile> ctr_intf,
             SharedBlockConstPtr block
     ) {
-        return ctr_intf->create_ctr_instance(block, this);
+        return ctr_intf->create_ctr_instance(block, this, false);
     }
 
 

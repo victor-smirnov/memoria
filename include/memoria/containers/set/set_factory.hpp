@@ -16,9 +16,8 @@
 
 #pragma once
 
-#include <memoria/containers/set/container/set_c_api.hpp>
-#include <memoria/containers/set/container/set_c_insert.hpp>
-#include <memoria/containers/set/container/set_c_remove.hpp>
+#include <memoria/containers/set/container/set_cr_api.hpp>
+#include <memoria/containers/set/container/set_cw_api.hpp>
 #include <memoria/containers/set/set_names.hpp>
 #include <memoria/containers/set/set_tools.hpp>
 
@@ -28,9 +27,7 @@
 
 #include <memoria/core/packed/packed.hpp>
 
-#ifdef HAVE_BOOST
-#include <memoria/core/bignum/bigint.hpp>
-#endif
+
 
 
 #include <memoria/core/strings/string.hpp>
@@ -42,9 +39,6 @@
 #include <memoria/api/set/set_api.hpp>
 
 #include <tuple>
-
-#include "container/set_c_insert.hpp"
-#include "container/set_c_remove.hpp"
 
 namespace memoria {
 
@@ -62,9 +56,12 @@ struct SetBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 collection::CtrApiName,
-                set::CtrApiName,
-                set::CtrInsertName,
-                set::CtrRemoveName
+                set::CtrRApiName
+    >;
+
+    using RWCommonContainerPartsList = MergeLists<
+                typename Base::RWCommonContainerPartsList,
+                set::CtrWApiName
     >;
 };
 

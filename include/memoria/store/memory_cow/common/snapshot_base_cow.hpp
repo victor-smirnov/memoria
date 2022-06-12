@@ -277,7 +277,8 @@ public:
             auto instance = factory->create_ctr_instance(
                 this->shared_from_this(),
                 ctr_id,
-                decl
+                decl,
+                is_active()
             );
 
             return instance_pool_->put_new_instance(ctr_id, std::move(instance));
@@ -313,7 +314,7 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            auto instance = ctr_intf->create_ctr_instance(this->self_ptr(), root);
+            auto instance = ctr_intf->create_ctr_instance(this->self_ptr(), root, is_active());
 
             return instance_pool_->put_new_instance(ctr_id, std::move(instance));
         }
@@ -414,7 +415,7 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            auto ctr = ctr_intf->create_ctr_instance(block, this);
+            auto ctr = ctr_intf->create_ctr_instance(block, this, is_active());
 
             ctr->internal_unref_cascade(AnyID::wrap(root_block_id));
         }

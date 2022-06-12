@@ -105,7 +105,11 @@ public:
     {
 		using BaseTypes = typename Base1::Types;
 
-        using CtrTypes              = BTCtrTypes<Types>;
+        using CtrTypes              = CtrTypesT<Types>;
+        using RWCtrTypes            = RWCtrTypesT<Types>;
+
+
+
         using BlockIterStateTypes   = BTBlockIterStateTypes<Types>;
 
         using BlockUpdateMgr     = bt::BlockUpdateManager<CtrTypes>;
@@ -117,7 +121,11 @@ public:
     };
 
     using CtrTypes  = typename Types::CtrTypes;
+    using RWCtrTypes  = typename Types::RWCtrTypes;
+
+
     using Type      = Ctr<CtrTypes>;
+    using RWType    = Ctr<RWCtrTypes>;
 };
 
 

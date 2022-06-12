@@ -95,14 +95,15 @@ struct BTTypes {
             bt::NodeCommonName,
             bt::RemoveBatchName,
             bt::FindName,
-            bt::ReadName,
             bt::UpdateName,
             bt::WalkName,
             bt::BlockName,
             IfThenElse<ProfileTraits<Profile>::IsCoW, bt::CoWOpsName, bt::NoCoWOpsName>
     >;
 
-    using RWContainerPartsList = TypeList<>;
+    using RWContainerPartsList = TypeList<
+        bt::ReadName
+    >;
 
     using FixedBranchContainerPartsList = TypeList<
             bt::BranchFixedName,
@@ -161,7 +162,7 @@ struct BTTypes {
     using CtrBaseFactory = bt::BTreeCtrBase<Types_>;
 
     template <typename Types_>
-    using RWCtrBaseFactory = bt::BTreeCtrBase<Types_>;
+    using RWCtrBaseFactory = RWCtrBase<Types_>;
 
     template <typename Types_>
     using BlockIterStateBaseFactory = BTBlockIteratorStateBase<Types_>;
@@ -383,7 +384,10 @@ public:
     };
 
     using CtrTypes = typename Types::CtrTypes;
+    using RWCtrTypes = typename Types::RWCtrTypes;
+
     using Type     = Ctr<CtrTypes>;
+    using RWType   = Ctr<RWCtrTypes>;
 };
 
 

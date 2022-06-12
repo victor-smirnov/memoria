@@ -57,6 +57,41 @@ public:
 };
 
 
+
+template <typename CtrName, typename ROAllocator, typename Profile>
+class RWSharedCtr: public CtrTF<Profile, CtrName, CtrName>::RWType {
+    using Base = typename CtrTF<Profile, CtrName, CtrName>::RWType;
+public:
+    RWSharedCtr(const RWSharedCtr&) = delete;
+    RWSharedCtr(RWSharedCtr&&) = delete;
+
+    RWSharedCtr(
+            const SnpSharedPtr<ROAllocator>& allocator,
+            const ProfileCtrID<Profile>& name,
+            CtrName type_decl
+    ):
+        Base(allocator, name, type_decl)
+    {}
+
+
+    RWSharedCtr(
+            const SnpSharedPtr<ROAllocator>& allocator,
+            const ProfileSharedBlockConstPtr<Profile>& root_block
+    ):
+        Base(allocator, root_block)
+    {}
+
+    RWSharedCtr(
+            ROAllocator* allocator,
+            const ProfileSharedBlockConstPtr<Profile>& root_block
+    ):
+        Base(allocator, root_block)
+    {}
+};
+
+
+
+
 template <typename CtrName, typename Profile>
 class SharedIter: public Iter<typename CtrTF<Profile, CtrName, CtrName>::Types::IterTypes> {
     

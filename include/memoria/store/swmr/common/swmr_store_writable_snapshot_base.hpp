@@ -199,6 +199,7 @@ public:
     {
         state_ = removing_blocks_consumer_fn_ ? State::COMMITTED : State::ACTIVE;
         allocation_pool_ = &store_->allocation_pool();
+        this->writable_ = true;
     }
 
     virtual SnpSharedPtr<StoreT> my_self_ptr()  = 0;
@@ -1112,7 +1113,7 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            auto ctr = ctr_intf->create_ctr_instance(block, this);
+            auto ctr = ctr_intf->create_ctr_instance(block, this, this->writable_);
 
             AnyID holder = AnyID::wrap(root_block_id);
             ctr->internal_unref_cascade(holder);
@@ -1257,7 +1258,7 @@ public:
             SharedBlockConstPtr block
     )
     {
-        return ctr_intf->create_ctr_instance(block, this);
+        return ctr_intf->create_ctr_instance(block, this, this->writable_);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(

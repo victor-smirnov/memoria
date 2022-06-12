@@ -367,7 +367,6 @@ public:
         else {
             self.leaf_dispatcher().dispatch(block, RefLeafChildren(), self);
         }
-
     }
 
 MEMORIA_V1_CONTAINER_PART_END

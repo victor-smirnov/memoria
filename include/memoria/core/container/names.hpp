@@ -34,6 +34,8 @@ struct RWCtrTypesT: Types {
 
     template <typename Types_>
     using BaseFactory = typename Types::template RWCtrBaseFactory<Types_>;
+
+    using ROTypes = CtrTypesT<Types>;
 };
 
 
