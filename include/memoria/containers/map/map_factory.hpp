@@ -16,10 +16,8 @@
 
 #pragma once
 
-#include <memoria/containers/map/container/map_c_insert.hpp>
-#include <memoria/containers/map/container/mapm_c_insert.hpp>
-#include <memoria/containers/map/container/map_c_remove.hpp>
-#include <memoria/containers/map/container/map_c_api.hpp>
+#include <memoria/containers/map/container/map_cr_api.hpp>
+#include <memoria/containers/map/container/map_cw_api.hpp>
 #include <memoria/containers/map/map_names.hpp>
 #include <memoria/containers/map/map_tools.hpp>
 
@@ -59,9 +57,12 @@ struct MapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                map::CtrInsertMaxName,
-                map::CtrRemoveName,
-                map::CtrApiName
+                map::CtrRApiName
+    >;
+
+    using RWCommonContainerPartsList = MergeLists<
+                typename Base::RWCommonContainerPartsList,
+                map::CtrWApiName
     >;
 };
 

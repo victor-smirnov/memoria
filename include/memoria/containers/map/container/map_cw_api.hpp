@@ -31,7 +31,7 @@
 
 namespace memoria {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
 
     using Types = typename Base::Types;
 
@@ -52,11 +52,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
     using MapChunkT = MapChunk<Key, Value, ApiProfile<Profile>>;
     using ChunkSharedPtr = IterSharedPtr<MapChunkT>;
 
-    struct MapChunkTypes: Types {
-      using KeyType = Key;
-      using ValueType = Value;
-      using ShuttleTypes = typename Base::ShuttleTypes;
-    };
+    using typename Base:: MapChunkTypes;
 
     using ChunkImplT = MapChunkImpl<MapChunkTypes>;
 
@@ -64,54 +60,43 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
 
-    using KeysPath = IntList<0, 1>;
-    using ValuesPath = IntList<0, 2>;
+    using typename Base::KeysPath;
+    using typename Base::ValuesPath;
 
     template <typename ShuttleTypes>
     using FindShuttle = bt::FindForwardShuttle<ShuttleTypes, KeysPath, ChunkImplT>;
 
-    using typename Base::BranchNodeExtData;
-    using typename Base::LeafNodeExtData;
-    using typename Base::ContainerTypeName;
 
-    void configure_types(
-        const ContainerTypeName& type_name,
-        BranchNodeExtData& branch_node_ext_data,
-        LeafNodeExtData& leaf_node_ext_data
-    ) {
+//    virtual ChunkSharedPtr seek_entry(CtrSizeT num) const
+//    {
+//        auto& self = this->self();
+//        return self.ctr_seek_entry(num);
+//    }
 
-    }
+//    IterSharedPtr<ChunkImplT> ctr_seek_entry(CtrSizeT num) const
+//    {
+//        auto& self = this->self();
+//        return self.ctr_descend(
+//                    TypeTag<ChunkImplT>{},
+//                    TypeTag<bt::SkipForwardShuttle<ShuttleTypes, 0, ChunkImplT>>{},
+//                    num
+//        );
+//    }
 
-    virtual ChunkSharedPtr seek_entry(CtrSizeT num) const
-    {
-        auto& self = this->self();
-        return self.ctr_seek_entry(num);
-    }
-
-    IterSharedPtr<ChunkImplT> ctr_seek_entry(CtrSizeT num) const
-    {
-        auto& self = this->self();
-        return self.ctr_descend(
-                    TypeTag<ChunkImplT>{},
-                    TypeTag<bt::SkipForwardShuttle<ShuttleTypes, 0, ChunkImplT>>{},
-                    num
-        );
-    }
-
-    IterSharedPtr<ChunkImplT> ctr_map_find(const KeyView& k) const
-    {
-        return self().ctr_descend(
-            TypeTag<ChunkImplT>{},
-            bt::ShuttleTag<FindShuttle>{},
-            k, 0, SearchType::GE
-        );
-    }
+//    IterSharedPtr<ChunkImplT> ctr_map_find(const KeyView& k) const
+//    {
+//        return self().ctr_descend(
+//            TypeTag<ChunkImplT>{},
+//            bt::ShuttleTag<FindShuttle>{},
+//            k, 0, SearchType::GE
+//        );
+//    }
 
 
-    virtual IterSharedPtr<MapChunk<Key, Value, ApiProfileT>> find(KeyView key) const
-    {
-        return self().ctr_map_find(key);
-    }
+//    virtual IterSharedPtr<MapChunk<Key, Value, ApiProfileT>> find(KeyView key) const
+//    {
+//        return self().ctr_map_find(key);
+//    }
 
 
 
@@ -287,7 +272,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(map::CtrApiName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(map::CtrWApiName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 #undef M_PARAMS

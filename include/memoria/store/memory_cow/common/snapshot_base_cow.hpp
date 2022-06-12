@@ -171,14 +171,20 @@ public:
 
     template <typename CtrName>
     using CtrT = SharedCtr<CtrName, ProfileStoreType<Profile>, Profile>;
+    template <typename CtrName>
+    using RWCtrT = RWSharedCtr<CtrName, ProfileStoreType<Profile>, Profile>;
 
     template <typename CtrName>
-    using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
+    using CommonCtrT = typename CtrT<CtrName>::CommonCtr;
+
+
+    template <typename CtrName>
+    using CtrPtr = CtrSharedPtr<CommonCtrT<CtrName>>;
 
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
 
-    using RootMapType = CtrT<Map<CtrID, BlockID>>;
+    using RootMapType   = Map<CtrID, BlockID>;
 
 protected:
 
@@ -204,7 +210,7 @@ protected:
 
     PairPtr pair_;
     
-    CtrSharedPtr<RootMapType> root_map_;
+    CtrPtr<RootMapType> root_map_;
 
     bool snapshot_removal_{false};
 
@@ -249,17 +255,22 @@ public:
         if (root_id.isSet())
         {
             auto root_block = findBlock(root_id);
-            root_map_ = allocate_shared<RootMapType>(object_pools_, ptr, root_block);
+            if (is_active()) {
+                root_map_ = allocate_shared<RWCtrT<RootMapType>>(object_pools_, ptr, root_block);
+            }
+            else {
+                root_map_ = allocate_shared<CtrT<RootMapType>>(object_pools_, ptr, root_block);
+            }
         }
         else {
-            root_map_ = allocate_shared<RootMapType>(object_pools_, ptr, CtrID{}, Map<CtrID, BlockID>());
+            root_map_ = allocate_shared<RWCtrT<RootMapType>>(object_pools_, ptr, CtrID{}, RootMapType());
         }
 
         root_map_->internal_detouch_from_store();
     }
     
     static void init_profile_metadata() {
-        RootMapType::init_profile_metadata();
+        CtrT<RootMapType>::init_profile_metadata();
     }
 
 

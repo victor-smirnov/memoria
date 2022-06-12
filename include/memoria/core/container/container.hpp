@@ -588,6 +588,8 @@ template <typename Types>
 class Ctr: public CtrStart<Types> {
     using Base = CtrStart<Types>;
 public:
+    using CommonCtr = Base;
+
     using MyType = Ctr<Types>;
     using ProfileT = typename Types::Profile;
 

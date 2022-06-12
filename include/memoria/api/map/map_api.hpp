@@ -102,13 +102,14 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
 
     using ChunkIteratorPtr = IterSharedPtr<MapChunk<Key, Value, Profile>>;
 
-    virtual void remove(CtrSizeT from, CtrSizeT to) = 0;
-    virtual void remove_from(CtrSizeT from) = 0;
-    virtual void remove_up_to(CtrSizeT pos) = 0;
+    virtual void remove(CtrSizeT from, CtrSizeT to) MEMORIA_READ_ONLY_API
+
+    virtual void remove_from(CtrSizeT from) MEMORIA_READ_ONLY_API
+    virtual void remove_up_to(CtrSizeT pos) MEMORIA_READ_ONLY_API
 
     virtual ApiProfileCtrSizeT<Profile> size() const = 0;
-    virtual bool upsert_key(KeyView key, ValueView value) = 0;
-    virtual bool remove_key(KeyView key) = 0;
+    virtual bool upsert_key(KeyView key, ValueView value) MEMORIA_READ_ONLY_API
+    virtual bool remove_key(KeyView key) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr find(KeyView key) const = 0;
 
@@ -117,21 +118,21 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         return append(producer);
     }
 
-    virtual ChunkIteratorPtr append(io::IOVectorProducer& producer) = 0;
+    virtual ChunkIteratorPtr append(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr prepend(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return prepend(producer);
     }
 
-    virtual ChunkIteratorPtr prepend(io::IOVectorProducer& producer) = 0;
+    virtual ChunkIteratorPtr prepend(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr insert(KeyView before, ProducerFn producer_fn) {
         Producer producer(producer_fn);
         return insert(before, producer);
     }
 
-    virtual ChunkIteratorPtr insert(KeyView before, io::IOVectorProducer& producer) = 0;
+    virtual ChunkIteratorPtr insert(KeyView before, io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr first_entry() const {
         return seek_entry(0);
@@ -150,13 +151,13 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         }
     }
 
-    virtual Optional<Datum<Value>> remove_and_return(KeyView key) = 0;
-    virtual Optional<Datum<Value>> replace_and_return(KeyView key, ValueView value) = 0;
+    virtual Optional<Datum<Value>> remove_and_return(KeyView key) MEMORIA_READ_ONLY_API
+    virtual Optional<Datum<Value>> replace_and_return(KeyView key, ValueView value) MEMORIA_READ_ONLY_API
 
     virtual void with_value(
             KeyView key,
             std::function<Optional<Datum<Value>> (Optional<Datum<Value>>)> value_fn
-    ) = 0;
+    ) MEMORIA_READ_ONLY_API
 
     template <typename Fn>
     void for_each(Fn&& fn)

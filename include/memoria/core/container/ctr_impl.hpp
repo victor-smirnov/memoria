@@ -29,6 +29,7 @@ template <typename CtrName, typename ROAllocator, typename Profile>
 class SharedCtr: public CtrTF<Profile, CtrName, CtrName>::Type {
     using Base = typename CtrTF<Profile, CtrName, CtrName>::Type;
 public:
+
     SharedCtr(const SharedCtr&) = delete;
     SharedCtr(SharedCtr&&) = delete;
 
