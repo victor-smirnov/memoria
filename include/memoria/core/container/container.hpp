@@ -263,22 +263,6 @@ public:
         using CtrReferenceablePtrT = CtrSharedPtr<CtrReferenceable<ApiProfile<ProfileT>>>;
         using CtrReferenceableUPtrT = std::unique_ptr<CtrReferenceable<ApiProfile<ProfileT>>>;
 
-        virtual CtrReferenceablePtrT create_instance(
-                const ROAllocatorPtr& allocator,
-                const CtrID& ctr_id,
-                const LDTypeDeclarationView& type_decl
-        ) const
-        {
-            boost::any obj = DataTypeRegistry::local().create_object(type_decl);
-
-            auto instance = TL_allocate_shared<CtrT<ContainerTypeName>>(
-                allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
-            );
-
-            return std::move(instance);
-        }
-
-
         virtual CtrReferenceableUPtrT create_ctr_instance(
                 const ROAllocatorPtr& allocator,
                 const CtrID& ctr_id,
@@ -401,7 +385,7 @@ public:
             return MyType::ctr_get_model_name(root_block);
         }
         
-        virtual CtrReferenceablePtrT new_ctr_instance(
+        virtual CtrReferenceablePtrT create_ctr_instance(
             const SharedBlockConstPtr& root_block,
             ROAllocator* allocator
         ) const

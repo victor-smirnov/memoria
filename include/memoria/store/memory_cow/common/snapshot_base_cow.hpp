@@ -414,7 +414,7 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            auto ctr = ctr_intf->new_ctr_instance(block, this);
+            auto ctr = ctr_intf->create_ctr_instance(block, this);
 
             ctr->internal_unref_cascade(AnyID::wrap(root_block_id));
         }

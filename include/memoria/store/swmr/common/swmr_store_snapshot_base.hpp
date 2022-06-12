@@ -184,14 +184,12 @@ public:
         if (!instance_pool.contains(ctr_id))
         {
             auto instance = factory->create_ctr_instance(
-                this->shared_from_this(),
+                this->self_ptr(),
                 ctr_id,
                 decl
             );
 
-            return instance_pool.put_new_instance(ctr_id, std::move(instance), [&](auto new_instance, auto holder){
-                factory->finish_instance_initialization(new_instance, holder);
-            });
+            return instance_pool.put_new_instance(ctr_id, std::move(instance));
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Container instance {} is already registered", ctr_id).do_throw();
@@ -899,6 +897,7 @@ public:
     CtrSharedPtr<ICtrApi<CtrName, ApiProfileT>> internal_find_by_root_typed(const BlockID& root_block_id)
     {
         auto ref = from_root_id(root_block_id);
+        ref->internal_detouch_from_store();
         return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfileT>>(std::move(ref));
     }
 

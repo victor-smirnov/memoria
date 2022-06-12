@@ -832,17 +832,14 @@ public:
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
     {
         checkIfConainersCreationAllowed();
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(self_ptr(), ctr_id, decl);
+        return this->create_ctr_instance(decl, ctr_id);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
     {
         checkIfConainersCreationAllowed();
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-
-        auto ctr_name = createCtrName();
-        return factory->create_instance(self_ptr(), ctr_name, decl);
+        auto ctr_id = createCtrName();
+        return this->create_ctr_instance(decl, ctr_id);
     }
 
     static constexpr uint64_t block_size_at(int32_t level)  {
@@ -1066,9 +1063,6 @@ public:
                 auto ctr_ref = this->template internal_create_by_name_typed<CtrName>(ctr_id);
                 assign_to = ctr_ref;
             }
-
-            assign_to->internal_detouch_from_store();
-
             return VoidResult::of();
         });
     }
@@ -1118,7 +1112,7 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            auto ctr = ctr_intf->new_ctr_instance(block, this);
+            auto ctr = ctr_intf->create_ctr_instance(block, this);
 
             AnyID holder = AnyID::wrap(root_block_id);
             ctr->internal_unref_cascade(holder);
@@ -1263,15 +1257,16 @@ public:
             SharedBlockConstPtr block
     )
     {
-        return ctr_intf->new_ctr_instance(block, this);
+        return ctr_intf->create_ctr_instance(block, this);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
             const LDTypeDeclarationView& decl, const CtrID& ctr_id
     )
     {
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(this->self_ptr(), ctr_id, decl);
+        auto ptr = this->create_ctr_instance(decl, ctr_id);
+        ptr->internal_detouch_from_store();
+        return ptr;
     }
 
     void import_new_ctr_from(ROStoreSnapshotPtr ptr, const CtrID& name)

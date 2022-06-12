@@ -48,7 +48,7 @@ public:
             ContainerOperationsPtr<Profile> ctr_intf,
             SharedBlockConstPtr block
     ) {
-        return ctr_intf->new_ctr_instance(block, this);
+        return ctr_intf->create_ctr_instance(block, this);
     }
 
 
@@ -56,8 +56,7 @@ public:
             const LDTypeDeclarationView& decl, const CtrID& ctr_id
     )
     {
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(this->self_ptr(), ctr_id, decl);
+        return this->create_ctr_instance(decl, ctr_id);
     }
 
     bool is_transient()  {

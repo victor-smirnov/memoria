@@ -219,7 +219,7 @@ struct ContainerOperationsBase {
         BlockCallbackFn consumer
     ) const = 0;
     
-    virtual CtrReferenceableT new_ctr_instance(
+    virtual CtrReferenceableT create_ctr_instance(
         const SharedBlockConstPtr& root_block,
         ROAllocator* allocator
     ) const  = 0;
@@ -279,14 +279,6 @@ struct CtrInstanceFactory {
 
     using CtrReferenceableT = CtrSharedPtr<CtrReferenceable<ApiProfileT>>;
     using CtrReferenceablePtr = std::unique_ptr<CtrReferenceable<ApiProfileT>>;
-
-
-    virtual CtrReferenceableT create_instance(
-            const ROAllocatorPtr& allocator,
-            const CtrID& ctr_id,
-            const LDTypeDeclarationView& type_decl
-    ) const = 0;
-
 
     virtual CtrReferenceablePtr create_ctr_instance(
             const ROAllocatorPtr& allocator,
