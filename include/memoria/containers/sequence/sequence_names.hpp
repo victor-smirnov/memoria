@@ -20,6 +20,7 @@
 
 namespace memoria::sequence {
 
-class CtrApiName {};
+class CtrRApiName {};
+class CtrWApiName {};
 
 }

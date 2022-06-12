@@ -18,7 +18,8 @@
 
 #include <memoria/prototypes/bt_fl/btfl_factory.hpp>
 #include <memoria/containers/multimap/multimap_names.hpp>
-#include <memoria/containers/multimap/container/multimap_c_api.hpp>
+#include <memoria/containers/multimap/container/multimap_cr_api.hpp>
+#include <memoria/containers/multimap/container/multimap_cw_api.hpp>
 
 #include <memoria/containers/multimap/multimap_tools.hpp>
 
@@ -48,7 +49,12 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                multimap::CtrApiName
+                multimap::CtrRApiName
+    >;
+
+    using RWCommonContainerPartsList = MergeLists<
+                typename Base::RWCommonContainerPartsList,
+                multimap::CtrWApiName
     >;
 
 };

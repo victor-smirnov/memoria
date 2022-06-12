@@ -129,13 +129,13 @@ struct ICtrApi<Sequence<AlphabetSize>, Profile>: public CtrReferenceable<Profile
         return prepend(producer);
     }
 
-    virtual ChunkPtr insert(CtrSizeT at, io::IOVectorProducer& producer) = 0;
-    virtual ChunkPtr append(io::IOVectorProducer& producer) = 0;
-    virtual ChunkPtr prepend(io::IOVectorProducer& producer) = 0;
+    virtual ChunkPtr insert(CtrSizeT at, io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
+    virtual ChunkPtr append(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
+    virtual ChunkPtr prepend(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
 
-    virtual void remove(CtrSizeT from, CtrSizeT to) = 0;
-    virtual void remove_from(CtrSizeT from) = 0;
-    virtual void remove_up_to(CtrSizeT to) = 0;
+    virtual void remove(CtrSizeT from, CtrSizeT to) MEMORIA_READ_ONLY_API
+    virtual void remove_from(CtrSizeT from) MEMORIA_READ_ONLY_API
+    virtual void remove_up_to(CtrSizeT to) MEMORIA_READ_ONLY_API
 
     virtual std::vector<RunT> read(CtrSizeT start, CtrSizeT len) const
     {

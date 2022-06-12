@@ -21,24 +21,8 @@
 namespace memoria {
 namespace multimap {
 
-class CtrApiName        {};
-class CtrCApiName       {};
-class CtrInsertName     {};
-class CtrCInsertName    {};
-class CtrCNavName       {};
-class CtrRemoveName     {};
-class CtrCRemoveName    {};
-
-
-class ItrApiName {};
-class ItrCApiName {};
-class ItrNavName {};
-class ItrCNavName {};
-class ItrMiscName {};
-
-class ItrValueName {};
-class ItrCValueName {};
-class ItrMrkValueName {};
+class CtrRApiName        {};
+class CtrWApiName        {};
 
 }
 

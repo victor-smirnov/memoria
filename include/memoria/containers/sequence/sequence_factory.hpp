@@ -16,7 +16,9 @@
 
 #pragma once
 
-#include <memoria/containers/sequence/sequence_c_api.hpp>
+#include <memoria/containers/sequence/sequence_cr_api.hpp>
+#include <memoria/containers/sequence/sequence_cw_api.hpp>
+
 #include <memoria/containers/sequence/sequence_chunk_impl.hpp>
 
 #include <memoria/prototypes/bt_ss/btss_factory.hpp>
@@ -49,7 +51,12 @@ struct SequenceBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                sequence::CtrApiName
+                sequence::CtrRApiName
+    >;
+
+    using RWCommonContainerPartsList = MergeLists<
+                typename Base::RWCommonContainerPartsList,
+                sequence::CtrWApiName
     >;
 };
 

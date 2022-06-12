@@ -35,7 +35,7 @@
 
 namespace memoria {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(multimap::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(multimap::CtrWApiName)
 public:
     using Types = typename Base::Types;
 
@@ -57,76 +57,23 @@ protected:
 
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, ApiProfileT>;
 
-    using typename Base::BranchNodeExtData;
-    using typename Base::LeafNodeExtData;
-    using typename Base::ContainerTypeName;
+    using typename Base::KeysChunkT;
+    using typename Base::KeysChunkPtrT;
 
-    using KeysChunkT = MultimapKeysChunk<Key, Value, ApiProfileT>;
-    using KeysChunkPtrT = IterSharedPtr<KeysChunkT>;
-
-    struct MultimapChunkTypes: Types {
-      using KeyType = Key;
-      using ValueType = Value;
-      using ShuttleTypes = typename Base::ShuttleTypes;
-      using TreePathT    = typename Base::TreePathT;
-    };
+    using typename Base::MultimapChunkTypes;
 
 
-    using KeysChunkImplT = MultimapKeysChunkImpl<MultimapChunkTypes>;
-    using KeysChunkImplPtrT = IterSharedPtr<KeysChunkImplT>;
+    using typename Base::KeysChunkImplT;
+    using typename Base::KeysChunkImplPtrT;
 
-    using KeysPath = IntList<0, 1>;
+    using typename Base::KeysPath;
 
     template <typename ShuttleTypes>
     using FindShuttle = bt::FindForwardShuttle<ShuttleTypes, KeysPath, KeysChunkImplT>;
 
 public:
-    void configure_types(
-        const ContainerTypeName& type_name,
-        BranchNodeExtData& branch_node_ext_data,
-        LeafNodeExtData& leaf_node_ext_data
-    ) {
-
-    }
 
 
-    IterSharedPtr<KeysChunkImplT> ctr_map_find(const KeyView& k) const
-    {
-        return self().ctr_descend(
-            TypeTag<KeysChunkImplT>{},
-            bt::ShuttleTag<FindShuttle>{},
-            k, 0, SearchType::GE
-        );
-    }
-
-    IterSharedPtr<KeysChunkImplT> ctr_seek_key(CtrSizeT num) const
-    {
-        auto& self = this->self();
-        return self.ctr_descend(
-                    TypeTag<KeysChunkImplT>{},
-                    TypeTag<bt::SkipForwardShuttle<ShuttleTypes, 0, KeysChunkImplT>>{},
-                    num
-        );
-    }
-
-
-    KeysChunkPtrT find_key(KeyView key) const {
-        return ctr_map_find(key);
-    }
-
-    KeysChunkPtrT seek_key(CtrSizeT pos) const {
-        return ctr_seek_key(pos);
-    }
-
-
-
-    /* Old stuff below...  */
-
-    CtrSizeT size() const
-    {
-        auto res = self().sizes();
-        return res[0];
-    }
 
 
 
@@ -175,11 +122,6 @@ public:
 
 
 
-    bool contains(const KeyView& key) const
-    {
-        auto iter = self().ctr_map_find(key);
-        return iter->is_found(key);
-    }
 
     bool remove(const KeyView& key)
     {
@@ -233,7 +175,7 @@ protected:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(multimap::CtrApiName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(multimap::CtrWApiName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

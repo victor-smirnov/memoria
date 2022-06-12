@@ -28,7 +28,7 @@
 
 namespace memoria {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(sequence::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(sequence::CtrWApiName)
 
     using typename Base::ApiProfileT;
 
@@ -52,20 +52,17 @@ protected:
     using Profile   = typename Types::Profile;
 
 
-    using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
+    //using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
-    struct CollectionChunkTypes: Types {
-        using ShuttleTypes = typename Base::ShuttleTypes;
-    };
-
+    using typename Base::CollectionChunkTypes;
 
 public:
 
-    using ChunkT = SequenceChunk<AlphabetSize, ApiProfile<Profile>>;
-    using ChunkPtr = IterSharedPtr<ChunkT>;
+    using typename Base::ChunkT;
+    using typename Base::ChunkPtr;
 
-    using SequenceChunkImplT = SequenceChunkImpl<CollectionChunkTypes>;
-    using ChunkImplPtr = IterSharedPtr<SequenceChunkImplT>;
+    using typename Base::SequenceChunkImplT;
+    using typename Base::ChunkImplPtr;
 
 
     template <typename LeafPath>
@@ -74,56 +71,7 @@ public:
     using RunT = SSRLERun<BitsPerSymbol>;
     using SymbolT = typename RunT::SymbolT;
 
-    static constexpr size_t Stream = 0;
-
-    using SeqPath = IntList<Stream, 1>;
-
-    using typename Base::BranchNodeExtData;
-    using typename Base::LeafNodeExtData;
-    using typename Base::ContainerTypeName;
-
-    void configure_types(
-        const ContainerTypeName& type_name,
-        BranchNodeExtData& branch_node_ext_data,
-        LeafNodeExtData& leaf_node_ext_data
-    ) {
-
-    }
-
-
-    ChunkPtr seek_entry(CtrSizeT num) const
-    {
-        auto& self = this->self();
-        return self.ctr_seek_entry(num);
-    }
-
-    ChunkImplPtr ctr_seek_entry(CtrSizeT num) const
-    {
-        auto& self = this->self();
-        return self.ctr_descend(
-                    TypeTag<SequenceChunkImplT>{},
-                    TypeTag<bt::SkipForwardShuttle<ShuttleTypes, Stream, SequenceChunkImplT>>{},
-                    num
-        );
-    }
-
-
-    ChunkPtr select(SymbolT symbol, CtrSizeT rank, SeqOpType seq_op) const {
-        auto& self = this->self();
-        return self.ctr_descend(
-                    TypeTag<SequenceChunkImplT>{},
-                    TypeTag<bt::SelectForwardShuttle<ShuttleTypes, SeqPath, SequenceChunkImplT>>{},
-                    rank, symbol, seq_op
-        );
-    }
-
-    CtrSizeT rank(CtrSizeT pos, SymbolT symbol, SeqOpType seq_op) const
-    {
-        auto& self = this->self();
-        ChunkImplPtr chunk = self.ctr_seek_entry(pos);
-        return chunk->rank(symbol, seq_op);
-    }
-
+    using typename Base::SeqPath;
 
     ChunkPtr append(io::IOVectorProducer& producer)
     {
@@ -171,7 +119,7 @@ public:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(set::CtrApiName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(set::CtrWApiName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 #undef M_PARAMS

@@ -120,11 +120,11 @@ public:
     virtual KeysChunkPtrT seek_key(CtrSizeT pos) const = 0;
 
     virtual bool contains(const KeyView& key) const = 0;
-    virtual bool remove(const KeyView& key) = 0;
+    virtual bool remove(const KeyView& key) MEMORIA_READ_ONLY_API
 
-    virtual bool remove_all(const KeyView& from, const KeyView& to) = 0; //[from, to)
-    virtual bool remove_from(const KeyView& from) = 0; //[from, end)
-    virtual bool remove_before(const KeyView& up_to) = 0; //[begin, up_to)
+    virtual bool remove_all(const KeyView& from, const KeyView& to) MEMORIA_READ_ONLY_API //[from, to)
+    virtual bool remove_from(const KeyView& from) MEMORIA_READ_ONLY_API //[from, end)
+    virtual bool remove_before(const KeyView& up_to) MEMORIA_READ_ONLY_API //[begin, up_to)
 
     virtual CtrSizeT size() const = 0;
 
@@ -150,7 +150,7 @@ public:
     }
 
     // returns true if the entry was updated, and false if new entry was inserted
-    virtual bool upsert(KeyView key, io::IOVectorProducer& producer) = 0;
+    virtual bool upsert(KeyView key, io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
 
     void append_entries(ProducerFn producer_fn) {
         Producer producer(producer_fn);
@@ -170,7 +170,7 @@ public:
         });
     }
 
-    virtual void append_entries(io::IOVectorProducer& producer) = 0;
+    virtual void append_entries(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
 
 
     void prepend_entries(ProducerFn producer_fn) {
@@ -192,7 +192,7 @@ public:
     }
 
 
-    virtual void prepend_entries(io::IOVectorProducer& producer) = 0;
+    virtual void prepend_entries(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
 
 
     void insert_entries(KeyView before, ProducerFn producer_fn) {
@@ -213,7 +213,7 @@ public:
         });
     }
 
-    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer) = 0;
+    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
 
     MMA_DECLARE_ICTRAPI();
 };
