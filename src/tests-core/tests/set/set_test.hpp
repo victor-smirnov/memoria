@@ -81,7 +81,7 @@ class SetTest: public BTTestBase<Set<DataType>, ProfileT, StoreT>
 
     using CxxElementViewType  = DTTViewType<DataType>;
 
-    int64_t size = 1024 * 1024 / 4/ 4;
+    int64_t size = 1024 * 1024;
 
     using Base::store;
     using Base::snapshot;

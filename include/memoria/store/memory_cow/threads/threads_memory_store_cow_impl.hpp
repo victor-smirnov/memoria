@@ -113,7 +113,7 @@ public:
         Base(maybe_error)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this);
+            auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this, false);
             snapshot->commit(ConsistencyPoint::AUTO);
             return VoidResult::of();
         });
@@ -127,9 +127,11 @@ public:
         }
         catch (const std::exception& ex) {
             println("Can't free memory: {}", ex.what());
+            std::terminate();
         }
         catch (...) {
-            println("Cant free memory");
+            println("Can't free memory");
+            std::terminate();
         }
     }
 
@@ -710,7 +712,7 @@ protected:
     {
         if (node->is_committed())
         {
-            auto txn = snp_make_shared_init<SnapshotT>(node, this);
+            auto txn = snp_make_shared_init<SnapshotT>(node, this, false);
             fn(node, txn.get());
         }
 
@@ -736,7 +738,7 @@ protected:
 
         if (node->is_committed())
         {
-            auto txn = snp_make_shared_init<SnapshotT>(node, this);
+            auto txn = snp_make_shared_init<SnapshotT>(node, this, false);
             txn->walkContainers(walker, get_labels_for(node));
         }
 
@@ -763,7 +765,7 @@ protected:
 
             if (node->root_id().isSet())
             {
-                auto txn = snp_make_shared_init<SnapshotT>(node, this);
+                auto txn = snp_make_shared_init<SnapshotT>(node, this, true);
                 txn->do_drop();
             }
 
@@ -876,7 +878,7 @@ protected:
             RCBlockSet& stored_blocks
     )
     {
-        auto txn = snp_make_shared_init<SnapshotT>(const_cast<HistoryNode*>(history_node), this);
+        auto txn = snp_make_shared_init<SnapshotT>(const_cast<HistoryNode*>(history_node), this, false);
         BTreeNodeSerializationHandler handler(*this, out, stored_blocks);
         return txn->traverse_ctr(history_node->root_id(), handler);
     }

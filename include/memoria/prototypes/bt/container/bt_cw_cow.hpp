@@ -28,7 +28,7 @@
 
 namespace memoria {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsWName)
 
     using typename Base::ApiProfileT;
 
@@ -76,52 +76,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
 
         self.ctr_check_path(path, level);
     }
-
-
-
-
-    MEMORIA_V1_DECLARE_NODE_FN(UnrefLeafChildren, cow_unref_children);
-    void ctr_unref_block(const BlockID& block_id)
-    {
-        auto& self = this->self();
-
-        auto this_ptr = memoria_static_pointer_cast<MyType>(this->shared_from_this());
-        return self.store().unref_block(block_id, [&]() {
-            auto block = this_ptr->ctr_get_block(block_id);
-
-            if (!block->is_leaf())
-            {
-                this_ptr->ctr_for_all_ids(block, [&](const BlockID& child_id) {
-                    return this_ptr->ctr_unref_block(child_id);
-                });
-            }
-            else {
-                this_ptr->leaf_dispatcher().dispatch(block, UnrefLeafChildren(), this_ptr->store());
-            }
-
-            return this_ptr->store().removeBlock(block->id());
-        });
-    }
-
-
-    void ctr_unref_block_cascade(const BlockID& block_id)
-    {
-        auto& self = this->self();
-
-        auto block = self.ctr_get_block(block_id);
-        if (!block->is_leaf())
-        {
-            self.ctr_for_all_ids(block, [&](const BlockID& block_id) {
-                return self.ctr_unref_block(block_id);
-            });
-        }
-        else {
-            self.leaf_dispatcher().dispatch(block, UnrefLeafChildren(), self.store());
-        }
-
-        return self.store().removeBlock(block->id());
-    }
-
 
     void ctr_ref_block(const BlockID& block_id)
     {
@@ -280,11 +234,6 @@ public:
         }
     }
 
-    virtual void internal_unref_cascade(const AnyID& root_block_id_api)
-    {
-        BlockID root_block_id = cast_to<BlockID>(root_block_id_api);
-        return self().ctr_unref_block_cascade(root_block_id);
-    }
 
     void drop()
     {
@@ -371,7 +320,7 @@ public:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::CoWOpsName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::CoWOpsWName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

@@ -36,7 +36,8 @@ class FindName              {};
 class IOReadName            {};
 class ReadName              {};
 class UpdateName            {};
-class CoWOpsName            {};
+class CoWOpsRName           {};
+class CoWOpsWName           {};
 class NoCoWOpsName          {};
 
 

@@ -87,13 +87,23 @@ public:
     using Base::uuid;
     
     
-    ThreadsSnapshot(MaybeError& maybe_error, HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
-        Base(maybe_error, history_node, history_tree)
+    ThreadsSnapshot(
+            MaybeError& maybe_error,
+            HistoryNode* history_node,
+            const PersistentAllocatorPtr& history_tree,
+            bool remove_cascade = false
+    ):
+        Base(maybe_error, history_node, history_tree, remove_cascade)
     {
     }
 
-    ThreadsSnapshot(MaybeError& maybe_error, HistoryNode* history_node, PersistentAllocator* history_tree):
-        Base(maybe_error, history_node, history_tree)
+    ThreadsSnapshot(
+            MaybeError& maybe_error,
+            HistoryNode* history_node,
+            PersistentAllocator* history_tree,
+            bool remove_cascade
+    ):
+        Base(maybe_error, history_node, history_tree, remove_cascade)
     {
     }
  

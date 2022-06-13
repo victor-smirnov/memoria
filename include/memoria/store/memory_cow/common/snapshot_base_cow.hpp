@@ -175,8 +175,7 @@ public:
     using RWCtrT = RWSharedCtr<CtrName, ProfileStoreType<Profile>, Profile>;
 
     template <typename CtrName>
-    using CommonCtrT = typename CtrT<CtrName>::CommonCtr;
-
+    using CommonCtrT = ICtrApi<CtrName, ApiProfileT>;
 
     template <typename CtrName>
     using CtrPtr = CtrSharedPtr<CommonCtrT<CtrName>>;
@@ -213,13 +212,20 @@ protected:
     CtrPtr<RootMapType> root_map_;
 
     bool snapshot_removal_{false};
+    bool remove_cascade_{false};
 
 public:
 
-    SnapshotBase(MaybeError& maybe_error, HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
+    SnapshotBase(
+            MaybeError& maybe_error,
+            HistoryNode* history_node,
+            const PersistentAllocatorPtr& history_tree,
+            bool remove_cascade
+    ):
         history_node_(history_node),
         history_tree_(history_tree),
-        history_tree_raw_(history_tree.get())
+        history_tree_raw_(history_tree.get()),
+        remove_cascade_(remove_cascade)
     {
         instance_pool_ = std::make_shared<CtrInstancePool<ProfileT>>();
 
@@ -231,9 +237,15 @@ public:
         }
     }
 
-    SnapshotBase(MaybeError& maybe_error, HistoryNode* history_node, PersistentAllocator* history_tree):
+    SnapshotBase(
+            MaybeError& maybe_error,
+            HistoryNode* history_node,
+            PersistentAllocator* history_tree,
+            bool remove_cascade
+    ):
         history_node_(history_node),
-        history_tree_raw_(history_tree)
+        history_tree_raw_(history_tree),
+        remove_cascade_(remove_cascade)
     {
         instance_pool_ = std::make_shared<CtrInstancePool<ProfileT>>();
 
@@ -255,15 +267,23 @@ public:
         if (root_id.isSet())
         {
             auto root_block = findBlock(root_id);
-            if (is_active()) {
-                root_map_ = allocate_shared<RWCtrT<RootMapType>>(object_pools_, ptr, root_block);
+            //if (is_active())
+            {
+                auto ctr_ref = find_ctr_instance(CtrID{}, root_block);
+                root_map_ = memoria_static_pointer_cast<CommonCtrT<RootMapType>>(ctr_ref);
+                        //allocate_shared<RWCtrT<RootMapType>>(object_pools_, ptr, root_block);
             }
-            else {
-                root_map_ = allocate_shared<CtrT<RootMapType>>(object_pools_, ptr, root_block);
-            }
+//            else {
+//                root_map_ = allocate_shared<CtrT<RootMapType>>(object_pools_, ptr, root_block);
+//            }
         }
         else {
-            root_map_ = allocate_shared<RWCtrT<RootMapType>>(object_pools_, ptr, CtrID{}, RootMapType());
+            U8String signature = make_datatype_signature(RootMapType{}).name();
+            LDDocument doc = TypeSignature::parse(signature.to_std_string());
+            LDTypeDeclarationView decl = doc.value().as_type_decl();
+            auto ctr_ref = create_ctr_instance(decl, CtrID{});
+
+            root_map_ = memoria_static_pointer_cast<CommonCtrT<RootMapType>>(ctr_ref);
         }
 
         root_map_->internal_detouch_from_store();
@@ -273,9 +293,7 @@ public:
         CtrT<RootMapType>::init_profile_metadata();
     }
 
-
     virtual ~SnapshotBase() noexcept {}
-
 
     CtrSharedPtr<CtrReferenceable<ApiProfileT>> create_ctr_instance(
         const LDTypeDeclarationView& decl, const CtrID& ctr_id
@@ -325,7 +343,7 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            auto instance = ctr_intf->create_ctr_instance(this->self_ptr(), root, is_active());
+            auto instance = ctr_intf->create_ctr_instance(this->self_ptr(), root, is_active() || remove_cascade_);
 
             return instance_pool_->put_new_instance(ctr_id, std::move(instance));
         }
@@ -810,7 +828,7 @@ public:
     {
         if (!name.is_null())
         {
-            auto iter = root_map_->ctr_map_find(name);
+            auto iter = root_map_->find(name);
 
             if (iter->is_found(name)) {
                 return iter->current_value();
@@ -875,7 +893,7 @@ public:
 
         if (!name.is_null())
         {
-            auto iter = root_map_->ctr_map_find(name);
+            auto iter = root_map_->find(name);
             return iter->is_found(name);
         }
         else {
@@ -883,8 +901,7 @@ public:
         }
     }
 
-    virtual CtrID createCtrName()
-    {
+    virtual CtrID createCtrName() {
         return ProfileTraits<Profile>::make_random_ctr_id();
     }
 
@@ -902,11 +919,6 @@ public:
     }
 
     void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer) {}
-
-    U8String get_branch_suffix() const
-    {
-        return "";
-    }
 
     virtual void walk_containers(ContainerWalker<ProfileT>* walker, const char* allocator_descr = nullptr) {
         return walkContainers(walker, allocator_descr);
@@ -944,7 +956,6 @@ public:
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
     {
         checkIfConainersCreationAllowed();
-
         return this->create_ctr_instance(decl, ctr_id);
     }
 

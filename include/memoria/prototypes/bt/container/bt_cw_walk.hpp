@@ -38,8 +38,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkWName)
 
     CtrID ctr_clone(const CtrID& new_name) const
     {
-        if (new_name.is_null())
-        {
+        if (new_name.is_null()) {
             new_name = IDTools<CtrID>::make_random();
         }
 

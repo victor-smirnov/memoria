@@ -928,11 +928,6 @@ public:
 
     void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer) {}
 
-    U8String get_branch_suffix() const
-    {
-        return "";
-    }
-
     virtual void walk_containers(ContainerWalker<ProfileT>* walker, const char* allocator_descr = nullptr) {
         return walkContainers(walker, allocator_descr);
     }
