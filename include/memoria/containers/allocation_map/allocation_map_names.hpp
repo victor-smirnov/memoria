@@ -21,20 +21,9 @@
 namespace memoria {
 namespace alcmap {
 
-class CtrApiName {};
-class ItrApiName {};
+class CtrRApiName {};
+class CtrWApiName {};
 
 }
-
-template <typename Types>
-struct AlcMapCtrTypesT: CtrTypesT<Types> {};
-
-template <typename Types>
-struct AlcMapIterTypesT: IterTypesT<Types> {};
-
-
-
-template <typename Types>
-using AlcMapCtrTypes  = BTCtrTypes<AlcMapCtrTypesT<Types>>;
 
 }

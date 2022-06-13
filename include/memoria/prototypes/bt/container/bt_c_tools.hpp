@@ -43,6 +43,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsName)
 
 
 public:
+    virtual void ctr_update_path(TreePathT& path, size_t level) MEMORIA_READ_ONLY_API
+    virtual void ctr_cow_clone_path(TreePathT& path, size_t level) MEMORIA_READ_ONLY_API
+
     TreeNodeConstPtr ctr_get_block(const BlockID& block_id) const
     {
         auto& self = this->self();
@@ -340,25 +343,6 @@ protected:
     {
         return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), fn);
     }
-
-
-    struct SetChildIDFn {
-        template <typename CtrT, typename T>
-        BlockID treeNode(BranchNodeSO<CtrT, T>& node, int child_idx, const BlockID& child_id) const
-        {
-            auto old_value = node.value(child_idx);
-            node.value(child_idx) = child_id;
-
-            return old_value;
-        }
-    };
-
-    BlockID ctr_set_child_id(const TreeNodePtr& node, size_t child_idx, const BlockID& child_id)
-    {
-        self().ctr_update_block_guard(node);
-        return self().branch_dispatcher().dispatch(node, SetChildIDFn(), child_idx, child_id);
-    }
-
 
 
     struct GetBranchNodeChildernCount {

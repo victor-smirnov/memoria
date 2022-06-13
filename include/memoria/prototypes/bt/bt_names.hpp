@@ -55,7 +55,8 @@ class BranchCommonName      {};
 class BranchFixedName       {};
 class BranchVariableName    {};
 
-class LeafCommonName        {};
+class LeafRCommonName       {};
+class LeafWCommonName       {};
 class LeafFixedName         {};
 class LeafVariableName      {};
 
@@ -63,8 +64,11 @@ class NodeCommonName        {};
 
 class ApiName               {};
 class ChecksName            {};
-class WalkName              {};
+class WalkRName             {};
+class WalkWName             {};
 class BlockName             {};
+
+class BaseWName             {};
 
 
 
@@ -75,16 +79,7 @@ class BTreeIteratorBaseFactoryName  {};
 template <typename ContainerType, typename ContainerTypeName>
 class BTreeIteratorFactoryName      {};
 
-class IteratorToolsName     {};
-class IteratorAPIName       {};
-class IteratorMultiskipName {};
-class IteratorContainerAPIName  {};
-class IteratorFindName      {};
-class IteratorSelectName    {};
-class IteratorCountName     {};
-class IteratorRankName      {};
-class IteratorSkipName      {};
-class IteratorLeafName      {};
+
 
 }
 

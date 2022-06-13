@@ -38,7 +38,8 @@
 #include <memoria/prototypes/bt/nodes/tree_metadata.hpp>
 #include <memoria/prototypes/bt/nodes/node_list_builder.hpp>
 
-#include <memoria/prototypes/bt/container/bt_c_base.hpp>
+#include <memoria/prototypes/bt/container/bt_cr_base.hpp>
+#include <memoria/prototypes/bt/container/bt_cw_base.hpp>
 #include <memoria/prototypes/bt/container/bt_c_tools.hpp>
 #include <memoria/prototypes/bt/container/bt_c_tools_pl.hpp>
 #include <memoria/prototypes/bt/container/bt_c_checks.hpp>
@@ -48,11 +49,13 @@
 #include <memoria/prototypes/bt/container/bt_c_branch_common.hpp>
 #include <memoria/prototypes/bt/container/bt_c_branch_variable.hpp>
 #include <memoria/prototypes/bt/container/bt_c_branch_fixed.hpp>
-#include <memoria/prototypes/bt/container/bt_c_leaf_common.hpp>
+#include <memoria/prototypes/bt/container/bt_cr_leaf_common.hpp>
+#include <memoria/prototypes/bt/container/bt_cw_leaf_common.hpp>
 #include <memoria/prototypes/bt/container/bt_c_leaf_variable.hpp>
 #include <memoria/prototypes/bt/container/bt_c_leaf_fixed.hpp>
 #include <memoria/prototypes/bt/container/bt_c_find.hpp>
-#include <memoria/prototypes/bt/container/bt_c_walk.hpp>
+#include <memoria/prototypes/bt/container/bt_cr_walk.hpp>
+#include <memoria/prototypes/bt/container/bt_cw_walk.hpp>
 #include <memoria/prototypes/bt/container/bt_c_block.hpp>
 #include <memoria/prototypes/bt/container/bt_c_cow.hpp>
 #include <memoria/prototypes/bt/container/bt_c_no_cow.hpp>
@@ -88,35 +91,39 @@ struct BTTypes {
             bt::ToolsName,
 			bt::ToolsPLName,
             bt::ChecksName,
-            bt::BranchCommonName,
-            bt::InsertBatchCommonName,
-            bt::LeafCommonName,
-            bt::InsertName,
-            bt::NodeCommonName,
-            bt::RemoveBatchName,
+
             bt::FindName,
-            bt::UpdateName,
-            bt::WalkName,
-            bt::BlockName,
-            IfThenElse<ProfileTraits<Profile>::IsCoW, bt::CoWOpsName, bt::NoCoWOpsName>
+            bt::LeafRCommonName,
+            bt::WalkRName,
+            bt::BlockName
     >;
 
     using RWContainerPartsList = TypeList<
-        bt::ReadName
+        bt::BaseWName,
+        bt::InsertBatchCommonName,
+        bt::RemoveBatchName,
+        bt::UpdateName,
+        bt::BranchCommonName,
+        bt::LeafWCommonName,
+        bt::InsertName,
+        bt::WalkWName,
+        bt::NodeCommonName,
+        IfThenElse<ProfileTraits<Profile>::IsCoW, bt::CoWOpsName, bt::NoCoWOpsName>
     >;
 
-    using FixedBranchContainerPartsList = TypeList<
-            bt::BranchFixedName,
-            bt::InsertBatchFixedName
+    using FixedBranchContainerPartsList = TypeList<>;
+
+    using RWFixedBranchContainerPartsList = TypeList<
+        bt::InsertBatchFixedName,
+        bt::BranchFixedName
     >;
 
-    using RWFixedBranchContainerPartsList = TypeList<>;
+    using VariableBranchContainerPartsList = TypeList<>;
 
-    using VariableBranchContainerPartsList = TypeList<
-            bt::BranchVariableName,
-            bt::InsertBatchVariableName
+    using RWVariableBranchContainerPartsList = TypeList<
+        bt::InsertBatchVariableName,
+        bt::BranchVariableName
     >;
-    using RWVariableBranchContainerPartsList = TypeList<>;
 
 
     using FixedLeafContainerPartsList = TypeList<

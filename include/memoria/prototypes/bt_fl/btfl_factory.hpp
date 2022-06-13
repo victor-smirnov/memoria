@@ -26,12 +26,6 @@
 #include <memoria/prototypes/bt_fl/container/btfl_c_misc.hpp>
 #include <memoria/prototypes/bt_fl/container/btfl_c_insert.hpp>
 #include <memoria/prototypes/bt_fl/container/btfl_c_leaf_common.hpp>
-#include <memoria/prototypes/bt_fl/container/btfl_c_leaf_fixed.hpp>
-#include <memoria/prototypes/bt_fl/container/btfl_c_leaf_variable.hpp>
-#include <memoria/prototypes/bt_fl/container/btfl_c_branch_common.hpp>
-#include <memoria/prototypes/bt_fl/container/btfl_c_branch_fixed.hpp>
-#include <memoria/prototypes/bt_fl/container/btfl_c_branch_variable.hpp>
-#include <memoria/prototypes/bt_fl/container/btfl_c_ranks.hpp>
 #include <memoria/prototypes/bt_fl/container/btfl_c_checks.hpp>
 
 #include <memoria/prototypes/bt_fl/iterator/btfl_i_basic.hpp>
@@ -58,32 +52,15 @@ struct BTTypes<Profile, BTFreeLayout>: public BTTypes<Profile, BT> {
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 btfl::MiscName,
-                btfl::InsertName,
-                btfl::BranchCommonName,
-                btfl::LeafCommonName,
-                btfl::RanksName,
                 btfl::ChecksName
     >;
 
-    using FixedBranchContainerPartsList = MergeLists<
-                typename Base::FixedBranchContainerPartsList,
-                btfl::BranchFixedName
+    using RWCommonContainerPartsList = MergeLists<
+                typename Base::RWCommonContainerPartsList,
+                btfl::InsertName,
+                btfl::LeafCommonName
     >;
 
-    using VariableBranchContainerPartsList = MergeLists<
-                typename Base::VariableBranchContainerPartsList,
-                btfl::BranchVariableName
-    >;
-
-    using FixedLeafContainerPartsList = MergeLists<
-                    typename Base::FixedLeafContainerPartsList,
-                    btfl::LeafFixedName
-    >;
-
-    using VariableLeafContainerPartsList = MergeLists<
-                    typename Base::VariableLeafContainerPartsList,
-                    btfl::LeafVariableName
-    >;
 
     using BlockIteratorStatePartsList = MergeLists<
         typename Base::BlockIteratorStatePartsList,

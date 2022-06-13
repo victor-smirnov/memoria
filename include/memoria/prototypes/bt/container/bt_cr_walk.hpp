@@ -26,7 +26,7 @@
 
 namespace memoria {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkRName)
 
     using typename Base::Types;
     using typename Base::TreeNodePtr;
@@ -36,7 +36,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
     using typename Base::BlockID;
 
 
-    void ctr_walk_tree(ContainerWalker<Profile>* walker)
+    void ctr_walk_tree(ContainerWalker<Profile>* walker) const
     {
         auto& self = this->self();
 
@@ -54,7 +54,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
     }
 
     // FIXME: error handling
-    void ctr_begin_node(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker)
+    void ctr_begin_node(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker) const
     {
         if (node->is_root())
         {
@@ -76,7 +76,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
     }
 
     // TODO: error handling
-    void ctr_end_node(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker)
+    void ctr_end_node(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker) const
     {
         if (node->is_root())
         {
@@ -91,61 +91,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::WalkName)
         }
     }
 
-    CtrID ctr_clone(const CtrID& new_name) const
-    {
-        if (new_name.is_null())
-        {
-            new_name = IDTools<CtrID>::make_random();
-        }
-
-        auto& self = this->self();
-
-        auto root_id = self.store().getRootID(new_name);
-        if (root_id.is_null())
-        {
-            TreeNodeConstPtr root = self.ctr_get_root_node();
-
-            TreeNodePtr new_root = self.ctr_clone_tree(root, root->parent_id());
-
-            auto new_meta = self.ctr_get_ctr_root_metadata(new_root.as_immutable());
-
-            new_meta.model_name() = new_name;
-
-            self.ctr_set_ctr_root_metadata(new_root, new_meta);
-
-            self.store().setRoot(new_name, new_root->id());
-
-            return new_name;
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("Requested container name of {} is already in use.", new_name).do_throw();
-        }
-    }
 
 
 private:
 
-    TreeNodePtr ctr_clone_tree(const TreeNodeConstPtr& node, const BlockID& parent_id) const
-    {
-        auto& self = this->self();
-
-        TreeNodePtr new_node = self.store().cloneBlock(node.shared());
-        new_node->parent_id() = parent_id;
-
-        if (!node->is_leaf())
-        {
-            self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&](const BlockID& id, size_t idx)
-            {
-                auto child = self.ctr_get_block(id);
-                TreeNodePtr new_child = self.ctr_clone_tree(child, new_node->id());
-                self.ctr_set_child_id(new_node, idx, new_child->id());
-            });
-        }
-
-        return new_node;
-    }
-
-    void ctr_traverse_tree(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker)
+    void ctr_traverse_tree(const TreeNodeConstPtr& node, ContainerWalker<Profile>* walker) const
     {
         auto& self = this->self();
 
@@ -167,7 +117,7 @@ private:
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::WalkName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::WalkRName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 #undef M_TYPE

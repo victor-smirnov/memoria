@@ -31,6 +31,8 @@
 #include <string>
 #include <functional>
 
+#define MEMORIA_READ_ONLY_API { MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw(); }
+
 namespace memoria {
 
 
@@ -69,31 +71,31 @@ struct CtrReferenceableBase {
 
     virtual const std::type_info& api_type_info() const noexcept    = 0;
 
-    virtual void set_new_block_size(int32_t block_size)             = 0;
+    virtual void set_new_block_size(int32_t block_size) MEMORIA_READ_ONLY_API
     virtual int32_t get_new_block_size() const                      = 0;
 
     virtual Optional<U8String> get_ctr_property(U8StringView key) const = 0;
-    virtual void set_ctr_property(U8StringView key, U8StringView value) = 0;
-    virtual void remove_ctr_property(U8StringView key) = 0;
+    virtual void set_ctr_property(U8StringView key, U8StringView value) MEMORIA_READ_ONLY_API
+    virtual void remove_ctr_property(U8StringView key) MEMORIA_READ_ONLY_API
 
     virtual size_t ctr_properties() const = 0;
     virtual void for_each_ctr_property(std::function<void (U8StringView, U8StringView)> consumer) const = 0;
-    virtual void set_ctr_properties(const std::vector<std::pair<U8String, U8String>>& entries) = 0;
+    virtual void set_ctr_properties(const std::vector<std::pair<U8String, U8String>>& entries) MEMORIA_READ_ONLY_API
 
     virtual Optional<CtrID> get_ctr_reference(U8StringView key) const = 0;
-    virtual void set_ctr_reference(U8StringView key, const CtrID& value) = 0;
-    virtual void remove_ctr_reference(U8StringView key) = 0;
+    virtual void set_ctr_reference(U8StringView key, const CtrID& value) MEMORIA_READ_ONLY_API
+    virtual void remove_ctr_reference(U8StringView key) MEMORIA_READ_ONLY_API
     virtual size_t ctr_references() const = 0;
     virtual void for_each_ctr_reference(std::function<void (U8StringView, const CtrID&)> consumer) const = 0;
-    virtual void set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries) = 0;
+    virtual void set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries) MEMORIA_READ_ONLY_API
     
     virtual const CtrID& name() const noexcept = 0;
 
     virtual IterSharedPtr<io::IOVector> create_iovector() = 0;
 
-    virtual void drop()    = 0;
-    virtual void cleanup() = 0;
-    virtual void flush()   = 0;
+    virtual void drop()    MEMORIA_READ_ONLY_API
+    virtual void cleanup() MEMORIA_READ_ONLY_API
+    virtual void flush()   MEMORIA_READ_ONLY_API
 
     virtual void check(const CheckResultConsumerFn& fn) = 0;
 
@@ -102,7 +104,7 @@ struct CtrReferenceableBase {
     virtual void dump_leafs(ApiProfileCtrSizeT<Profile> leafs = -1) = 0;
 
     // Don't use in an application code
-    virtual void internal_unref_cascade(const AnyID& block_id) = 0;
+    virtual void internal_unref_cascade(const AnyID& block_id) MEMORIA_READ_ONLY_API
     virtual void internal_detouch_from_store() noexcept = 0;
     virtual void internal_attach_to_store(SnpSharedPtr<IStoreApiBase<Profile>>) noexcept = 0;
     virtual void internal_configure_shared_from_this(pool::detail::ObjectPoolRefHolder*) noexcept = 0;

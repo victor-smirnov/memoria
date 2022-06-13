@@ -38,6 +38,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
 
     using Base::Streams;
 
+    using typename Base::MyROType;
+
 
     BlockIteratorStatePtr ctr_insert_iovector(BlockIteratorStatePtr&& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
     {

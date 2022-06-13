@@ -19,7 +19,8 @@
 #include <memoria/prototypes/bt_ss/btss_factory.hpp>
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 
-#include <memoria/containers/allocation_map/container/allocation_map_c_api.hpp>
+#include <memoria/containers/allocation_map/container/allocation_map_cr_api.hpp>
+#include <memoria/containers/allocation_map/container/allocation_map_cw_api.hpp>
 #include <memoria/containers/allocation_map/allocation_map_names.hpp>
 #include <memoria/containers/allocation_map/allocation_map_tools.hpp>
 #include <memoria/containers/allocation_map/allocation_map_api_impl.hpp>
@@ -42,7 +43,12 @@ struct AllocationMapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                alcmap::CtrApiName
+                alcmap::CtrRApiName
+    >;
+
+    using RWCommonContainerPartsList = MergeLists<
+                typename Base::RWCommonContainerPartsList,
+                alcmap::CtrWApiName
     >;
 };
 

@@ -36,14 +36,6 @@ class InsertToolsName       {};
 class StreamRankName        {};
 class StreamSumsName        {};
 
-//class BranchCommonName      {};
-//class LeafCommonName        {};
-//class BranchFixedName       {};
-//class LeafFixedName         {};
-//class BranchVariableName    {};
-//class LeafVariableName      {};
-
-
 class RemoveName            {};
 class RemoveToolsName       {};
 class RemoveBatchName       {};
@@ -65,22 +57,7 @@ class RanksName             {};
 
 
 
-class IteratorToolsName     {};
-class IteratorAPIName       {};
-class IteratorMultiskipName {};
-class IteratorContainerAPIName  {};
-class IteratorFindName      {};
-class IteratorSelectName    {};
-class IteratorRankName      {};
-class IteratorSkipName      {};
-class IteratorLeafName      {};
-class IteratorMiscName      {};
-class IteratorStreamRankName {};
-class IteratorStreamSumsName {};
-class IteratorUpdateName    {};
-class IteratorRemoveName    {};
-class IteratorInsertName    {};
-class IteratorReadName      {};
+
 class IteratorBasicName     {};
 
 }

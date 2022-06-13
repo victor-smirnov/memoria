@@ -275,9 +275,10 @@ public:
                 );
             }
             else {
-                return std::make_unique<CtrT<ContainerTypeName>>(
-                    allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
-                );
+//                return std::make_unique<CtrT<ContainerTypeName>>(
+//                    allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
+//                );
+                MEMORIA_MAKE_GENERIC_ERROR("Can't create containers in read-only snapshots").do_throw();
             }
         }
     };
@@ -524,8 +525,10 @@ private:
 
 template <typename TypesType>
 class RWCtrBase: public CtrStart<typename TypesType::ROTypes> {
+    using Base = CtrStart<typename TypesType::ROTypes>;
 public:
     using MyType  = CtrStart<TypesType>;
+    using MyROType  = Base;
     using ROTypes = typename TypesType::ROTypes;
 };
 
@@ -617,7 +620,7 @@ public:
         Base()
     {
         Base::store_holder_ = allocator;
-        Base::allocator_ = allocator.get();
+        Base::allocator_    = allocator.get();
 
         Base::name_ = ctr_id;
 

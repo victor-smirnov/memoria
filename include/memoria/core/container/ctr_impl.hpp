@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2017-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,15 +32,6 @@ public:
 
     SharedCtr(const SharedCtr&) = delete;
     SharedCtr(SharedCtr&&) = delete;
-
-    SharedCtr(
-            const SnpSharedPtr<ROAllocator>& allocator,
-            const ProfileCtrID<Profile>& name,
-            CtrName type_decl
-    ):
-        Base(allocator, name, type_decl)
-    {}
-
 
     SharedCtr(
             const SnpSharedPtr<ROAllocator>& allocator,

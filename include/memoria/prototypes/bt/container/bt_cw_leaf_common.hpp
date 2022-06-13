@@ -26,7 +26,7 @@
 
 namespace memoria {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafCommonName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafWCommonName)
 
     using typename Base::Types;
     using typename Base::TreeNodePtr;
@@ -62,28 +62,28 @@ public:
 
 
 
-    struct SumFn {
-        template <typename Stream>
-        auto stream(const Stream& s, size_t block, size_t from, size_t to)
-        {
-            return s->sum(block, from, to);
-        }
+//    struct SumFn {
+//        template <typename Stream>
+//        auto stream(const Stream& s, size_t block, size_t from, size_t to)
+//        {
+//            return s->sum(block, from, to);
+//        }
 
-        template <typename Stream>
-        auto stream(const Stream& s, size_t from, size_t to)
-        {
-            return s->sums(from, to);
-        }
-    };
-
-
+//        template <typename Stream>
+//        auto stream(const Stream& s, size_t from, size_t to)
+//        {
+//            return s->sums(from, to);
+//        }
+//    };
 
 
-    IterSharedPtr<io::IOVector> create_iovector()
-    {
-        using IOVectorT = typename Types::LeafNode::template SparseObject<MyType>::IOVectorT;
-        return allocate_shared<IOVectorT>(self().store().object_pools());
-    }
+
+
+//    IterSharedPtr<io::IOVector> create_iovector()
+//    {
+//        using IOVectorT = typename Types::LeafNode::template SparseObject<MyType>::IOVectorT;
+//        return allocate_shared<IOVectorT>(self().store().object_pools());
+//    }
 
 
     // ============================================ Insert Data ======================================== //
@@ -330,7 +330,7 @@ public:
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::LeafCommonName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::LeafWCommonName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

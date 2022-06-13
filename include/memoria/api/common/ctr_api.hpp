@@ -137,6 +137,5 @@ bool is_valid_chunk(const IterSharedPtr<ChunkIterT>& ptr) {
     return ptr && !(ptr->is_after_end() || ptr->is_before_start());
 }
 
-#define MEMORIA_READ_ONLY_API {MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();}
 
 }

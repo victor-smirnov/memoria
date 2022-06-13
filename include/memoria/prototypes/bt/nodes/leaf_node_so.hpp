@@ -373,12 +373,12 @@ public:
 
 
     struct CoWRefChildrenFn {
-        template <typename Tree>
-        void stream(Tree&&, CtrT&) const
+        template <typename Tree, typename WCtrT>
+        void stream(Tree&&, WCtrT&) const
         {
         }
 
-        template <typename ExtData, bool Indexed, typename ValueHolder>
+        template <typename ExtData, bool Indexed, typename ValueHolder, typename WCtrT>
         void stream(
                 PackedDataTypeBufferSO<
                     ExtData,
@@ -391,9 +391,8 @@ public:
                         >
                     >
                 >& buffer,
-                CtrT& ctr
-                ) const
-        {            
+                WCtrT& ctr
+        ) const {
             auto ii = buffer.begin(0);
             auto end = buffer.end(0);
 
@@ -404,7 +403,8 @@ public:
         }
     };
 
-    void cow_ref_children(CtrT& ctr)  {
+    template <typename WCtrT>
+    void cow_ref_children(WCtrT& ctr)  {
         return processAll(CoWRefChildrenFn(), ctr);
     }
 

@@ -85,7 +85,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsName)
     {
         auto& self = this->self();
 
-        auto this_ptr = this->shared_from_this();        
+        auto this_ptr = memoria_static_pointer_cast<MyType>(this->shared_from_this());
         return self.store().unref_block(block_id, [&]() {
             auto block = this_ptr->ctr_get_block(block_id);
 

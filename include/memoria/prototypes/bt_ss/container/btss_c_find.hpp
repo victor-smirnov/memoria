@@ -29,7 +29,10 @@ namespace memoria {
 MEMORIA_V1_CONTAINER_PART_BEGIN(btss::FindName)
 public:
 
+    using typename Base::Profile;
     using typename Base::CtrSizeT;
+
+
 
     using Base::Streams;
 
@@ -39,6 +42,8 @@ public:
         auto sizes = self().sizes();
         return sizes[0];
     }
+
+    void dump_leafs(CtrSizeT leafs) {}
 
 
 MEMORIA_V1_CONTAINER_PART_END

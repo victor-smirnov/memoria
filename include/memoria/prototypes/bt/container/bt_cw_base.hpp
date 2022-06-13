@@ -34,17 +34,18 @@
 #include <memoria/core/packed/misc/packed_map.hpp>
 #include <memoria/core/packed/misc/packed_map_so.hpp>
 
+#include <memoria/prototypes/bt/bt_names.hpp>
+
 #include <iostream>
 #include <type_traits>
 
 namespace memoria {
-namespace bt {
 
-MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
-    using Types = typename Base::Types;
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::BaseWName)
 
-    using ROAllocator = typename Base::ROAllocator;
+    using typename Base::Types;
+    using typename Base::ROAllocator;
 
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
@@ -52,102 +53,64 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using typename Base::CtrID;
     using typename Base::ContainerTypeName;
 
+    using typename Base::Profile;
+    using typename Base::ApiProfileT;
+    using typename Base::SnapshotID;
 
-    using Profile  = typename Types::Profile;
-    using ApiProfileT = ApiProfile<Profile>;
-    using SnapshotID = ProfileSnapshotID<Profile>;
+
+    using typename Base::BranchNodeEntry;
+
+    using typename Base::TreeNodePtr;
+    using typename Base::TreeNodeConstPtr;
+
+    using typename Base::TreePathT;
+
+    using typename Base::Position;
+    using typename Base::CtrSizeT;
+    using typename Base::CtrSizesT;
+
+    using typename Base::NodeDispatcher;
+    using typename Base::LeafDispatcher;
+    using typename Base::BranchDispatcher;
+    using typename Base::DefaultDispatcher;
+    using typename Base::TreeDispatcher;
+
+    using typename Base::Metadata;
 
 
-    using BranchNodeEntry = typename Types::BranchNodeEntry;
+    using typename Base::LeafNode;
+    using typename Base::BranchNode;
 
-    using TreeNodePtr = typename Types::TreeNodePtr;
-    using TreeNodeConstPtr = typename Types::TreeNodeConstPtr;
+    using typename Base::LeafNodeSO;
+    using typename Base::BranchNodeSO;
 
-    using TreePathT = TreePath<TreeNodeConstPtr>;
+    using typename Base::LeafNodeExtData;
+    using typename Base::BranchNodeExtData;
 
-    using Position  = typename Types::Position;
-    using CtrSizeT  = typename Types::CtrSizeT;
-    using CtrSizesT = typename Types::CtrSizesT;
+    using typename Base::LeafNodeExtDataPkdTuple;
+    using typename Base::BranchNodeExtDataPkdTuple;
+    using typename Base::CtrPropertiesMap;
+    using typename Base::CtrReferencesMap;
 
-    using NodeDispatcher    = typename Types::Blocks::template NodeDispatcher<MyType>;
-    using LeafDispatcher    = typename Types::Blocks::template LeafDispatcher<MyType>;
-    using BranchDispatcher  = typename Types::Blocks::template BranchDispatcher<MyType>;
-    using DefaultDispatcher = typename Types::Blocks::template DefaultDispatcher<MyType>;
-    using TreeDispatcher    = typename Types::Blocks::template TreeDispatcher<MyType>;
-
-    using Metadata = typename Types::Metadata;
-
-    using BlockUpdateMgr = typename Types::BlockUpdateMgr;
-
-    using LeafNode      = typename Types::LeafNode;
-    using BranchNode    = typename Types::BranchNode;
-
-    using LeafNodeSO    = typename LeafNode::template SparseObject<MyType>;
-    using BranchNodeSO  = typename BranchNode::template SparseObject<MyType>;
-
-    using LeafNodeExtData   = MakeTuple<typename LeafNodeSO::LeafSubstreamExtensionsList>;
-    using BranchNodeExtData = MakeTuple<typename BranchNodeSO::BranchSubstreamExtensionsList>;
-
-    using LeafNodeExtDataPkdTuple   = PackedTuple<LeafNodeExtData>;
-    using BranchNodeExtDataPkdTuple = PackedTuple<BranchNodeExtData>;
-    using CtrPropertiesMap          = PackedMap<Varchar, Varchar>;
-    using CtrReferencesMap          = PackedMap<Varchar, ProfileCtrID<typename Types::Profile>>;
-
-    using BranchUpdateState = typename BranchNodeSO::UpdateState;
+    using typename Base::BranchUpdateState;
 
     template <typename LeafPath>
     using LeafUpdateState = typename LeafNodeSO::template UpdateState<LeafPath>;
 
-    struct ShuttleTypes: Types {
-        using BranchNodeSOType  = BranchNodeSO;
-        using LeafNodeSOType    = LeafNodeSO;
-        using CtrType           = MyType;
-        using IteratorState     = typename Base::BlockIteratorState;
-    };
+    using typename Base::ShuttleTypes;
 
     using Base::CONTAINER_HASH;
 
-    static const int32_t Streams = Types::Streams;
+    using Base::Streams;
 
-    static const int32_t METADATA_IDX        = 0;
-    static const int32_t BRANCH_EXT_DATA_IDX = 1;
-    static const int32_t LEAF_EXT_DATA_IDX   = 2;
-    static const int32_t CTR_PROPERTIES_IDX  = 3;
-    static const int32_t CTR_REFERENCES_IDX  = 4;
-
-    mutable LeafNodeExtData leaf_node_ext_data_;
-    mutable BranchNodeExtData branch_node_ext_data_;
-
-    NodeDispatcher node_dispatcher_;
-    LeafDispatcher leaf_dispatcher_;
-    BranchDispatcher branch_dispatcher_;
-    DefaultDispatcher default_dispatcher_;
-    TreeDispatcher tree_dispatcher_;
-
-    ObjectPools& pools() const noexcept {return self().allocator().object_pools();}
+    using Base::METADATA_IDX;
+    using Base::BRANCH_EXT_DATA_IDX;
+    using Base::LEAF_EXT_DATA_IDX;
+    using Base::CTR_PROPERTIES_IDX;
+    using Base::CTR_REFERENCES_IDX;
 
     TreeNodePtr createRootLeaf() const {
         return self().ctr_create_root_node(0, true, -1);
-    }
-
-    const NodeDispatcher& node_dispatcher() const noexcept {
-        return node_dispatcher_;
-    }
-
-    const LeafDispatcher& leaf_dispatcher() const noexcept {
-        return leaf_dispatcher_;
-    }
-
-    const BranchDispatcher& branch_dispatcher() const noexcept {
-        return branch_dispatcher_;
-    }
-
-    const DefaultDispatcher& default_dispatcher() const noexcept {
-        return default_dispatcher_;
-    }
-
-    const TreeDispatcher& tree_dispatcher() const noexcept {
-        return tree_dispatcher_;
     }
 
     struct MakeBranchUpdateStateFn {
@@ -157,7 +120,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     };
 
     BranchUpdateState ctr_make_branch_update_state(const TreeNodeConstPtr& node) const {
-        return branch_dispatcher().dispatch(node, MakeBranchUpdateStateFn());
+        return self().branch_dispatcher().dispatch(node, MakeBranchUpdateStateFn());
     }
 
     template <typename LeafPath>
@@ -170,11 +133,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     template <typename LeafPath>
     LeafUpdateState<LeafPath> ctr_make_leaf_update_state(const TreeNodeConstPtr& node) const {
-        return leaf_dispatcher().dispatch(node, MakeLeafUpdateStateFn<LeafPath>());
+        return self().leaf_dispatcher().dispatch(node, MakeLeafUpdateStateFn<LeafPath>());
     }
-
-    LeafNodeExtData& leaf_node_ext_data() const noexcept {return leaf_node_ext_data_;}
-    BranchNodeExtData& branch_node_ext_data() const noexcept {return branch_node_ext_data_;}
 
     void ctr_upsize_node(TreePathT& path, size_t level, size_t upsize)
     {
@@ -229,24 +189,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         }
     }
 
-    virtual Optional<U8String> get_ctr_property(U8StringView key) const
-    {
-        auto& self     = this->self();
-        auto root = self.ctr_get_root_node();
-
-        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
-
-        PackedMapSO<CtrPropertiesMap> map_so(const_cast<CtrPropertiesMap*>(map));
-
-        auto res = map_so.find(key);
-
-        if (res) {
-            return Optional<U8String>(res.get());
-        }
-        else {
-            return Optional<U8String>{};
-        }
-    }
 
     virtual void set_ctr_property(U8StringView key, U8StringView value)
     {
@@ -278,16 +220,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         }
     }
 
-    virtual size_t ctr_properties() const
-    {
-        auto& self = this->self();
-        auto root = self.ctr_get_root_node();
-
-        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
-
-        return map->size();
-    }
-
     virtual void remove_ctr_property(U8StringView key)
     {
         auto& self = this->self();
@@ -304,36 +236,12 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         self.ctr_downsize_node(path, 0);
     }
 
-    virtual void for_each_ctr_property(std::function<void (U8StringView, U8StringView)> consumer) const
-    {
-        auto& self = this->self();
-        auto root = self.ctr_get_root_node();
-
-        const CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
-
-        PackedMapSO<CtrPropertiesMap> map_so(map);
-
-        map_so.for_each(consumer);
-    }
 
     virtual void set_ctr_properties(const std::vector<std::pair<U8String, U8String>>& entries)
     {
         for (const auto& entry: entries) {
             set_ctr_property(entry.first, entry.second);
         }
-    }
-
-
-    virtual Optional<CtrID> get_ctr_reference(U8StringView key) const
-    {
-        auto& self = this->self();
-        auto root = self.ctr_get_root_node();
-
-        const CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
-
-        PackedMapSO<CtrReferencesMap> map_so(map);
-
-        return map_so.find(key);
     }
 
     virtual void set_ctr_reference(U8StringView key, const CtrID& value)
@@ -380,27 +288,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         self.ctr_downsize_node(path, 0);
     }
 
-    virtual size_t ctr_references() const
-    {
-        auto& self = this->self();
-        auto root = self.ctr_get_root_node();
 
-        const CtrReferencesMap* map = get<const CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
-
-        return map->size();
-    }
-
-    virtual void for_each_ctr_reference(std::function<void (U8StringView, const CtrID&)> consumer) const
-    {
-        auto& self = this->self();
-        auto root = self.ctr_get_root_node();
-
-        const CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
-
-        PackedMapSO<CtrReferencesMap> map_so(map);
-
-        map_so.for_each(consumer);
-    }
 
     virtual void set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries)
     {
@@ -444,15 +332,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-
-    template <typename Node>
-    CtrID ctr_get_model_name_fn(const Node& node) const {
-        return node.node()->root_metadata().model_name();
-    }
-
-    MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetModelNameFn, ctr_get_model_name_fn, CtrID);
-
-
     template <typename Node>
     void ctr_set_model_name_fn(const Node& node, const CtrID& name)
     {
@@ -461,36 +340,20 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     MEMORIA_V1_CONST_FN_WRAPPER(SetModelNameFn, ctr_set_model_name_fn);
 
+//    static CtrID ctr_get_model_name(const TreeNodeConstPtr& root)
+//    {
+//        return ctr_get_root_metadata(root).model_name();
+//    }
 
+//    static const Metadata& ctr_get_root_metadata(const TreeNodeConstPtr& node)
+//    {
+//        return node->root_metadata();
+//    }
 
-    /**
-     * \brief Get model name from the root node
-     * \param root_id must be a root node ID
-     */
-    CtrID ctr_get_model_name(const BlockID& root_id) const
-    {
-        auto& self = this->self();
-
-        auto root = self.ctr_get_block(root_id);
-
-        return self.node_dispatcher().dispatch(root.get(), GetModelNameFn(self));
-    }
-
-
-    static CtrID ctr_get_model_name(const TreeNodeConstPtr& root)
-    {
-        return ctr_get_root_metadata(root).model_name();
-    }
-
-    static const Metadata& ctr_get_root_metadata(const TreeNodeConstPtr& node)
-    {
-        return node->root_metadata();
-    }
-
-    static Metadata ctr_get_ctr_root_metadata(const TreeNodeConstPtr& node)
-    {
-        return node->root_metadata();
-    }
+//    static Metadata ctr_get_ctr_root_metadata(const TreeNodeConstPtr& node)
+//    {
+//        return node->root_metadata();
+//    }
 
 
     void ctr_set_ctr_root_metadata(const TreeNodePtr& node, const Metadata& metadata) const
@@ -501,14 +364,14 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->setMetadata(metadata);
     }
 
-    Metadata ctr_get_root_metadata() const
-    {
-        auto& self          = this->self();
-        const auto& root_id = self.root();
+//    Metadata ctr_get_root_metadata() const
+//    {
+//        auto& self          = this->self();
+//        const auto& root_id = self.root();
 
-        auto root = self.ctr_get_block(root_id);
-        return root->root_metadata();
-    }
+//        auto root = self.ctr_get_block(root_id);
+//        return root->root_metadata();
+//    }
 
     void ctr_copy_all_root_metadata_from_to(const TreeNodePtr& from, TreeNodePtr& to) const
     {
@@ -526,10 +389,10 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return ctr_set_ctr_root_metadata(node, metadata);
     }
 
-    CtrID ctr_get_container_name() const
-    {
-        return ctr_get_root_metadata().model_name();
-    }
+//    CtrID ctr_get_container_name() const
+//    {
+//        return ctr_get_root_metadata().model_name();
+//    }
 
     Metadata ctr_create_new_root_metadata() const
     {
@@ -544,13 +407,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return metadata;
     }
 
-    int32_t get_new_block_size() const
-    {
-        auto& self = this->self();
-        auto root_block = self.ctr_get_root_node();
-        const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
-        return meta->memory_block_size();
-    }
+//    int32_t get_new_block_size() const
+//    {
+//        auto& self = this->self();
+//        auto root_block = self.ctr_get_root_node();
+//        const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
+//        return meta->memory_block_size();
+//    }
 
     void set_new_block_size(int32_t block_size)
     {
@@ -657,13 +520,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                         node->allocator(), BRANCH_EXT_DATA_IDX
             );
 
-            branch_tuple->set_value(branch_node_ext_data_);
+            branch_tuple->set_value(self.branch_node_ext_data());
 
             LeafNodeExtDataPkdTuple* leaf_tuple = get<LeafNodeExtDataPkdTuple>(
                         node->allocator(), LEAF_EXT_DATA_IDX
             );
 
-            leaf_tuple->set_value(leaf_node_ext_data_);
+            leaf_tuple->set_value(self.leaf_node_ext_data());
         }
 
         if (leaf) {
@@ -706,18 +569,18 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
 
-    static CtrBlockDescription<ApiProfileT> describe_block(const BlockID& node_id, ROAllocator* alloc)
-    {
-        auto tmp = alloc->getBlock(node_id);
-        TreeNodeConstPtr node = tmp;
+//    static CtrBlockDescription<ApiProfileT> describe_block(const BlockID& node_id, ROAllocator* alloc)
+//    {
+//        auto tmp = alloc->getBlock(node_id);
+//        TreeNodeConstPtr node = tmp;
 
-        int32_t size = node->header().memory_block_size();
-        bool leaf = node->is_leaf();
-        bool root = node->is_root();
+//        int32_t size = node->header().memory_block_size();
+//        bool leaf = node->is_leaf();
+//        bool root = node->is_root();
 
-        uint64_t offset{};
-        return CtrBlockDescription<ApiProfileT>(size, CtrID{}, root, leaf, offset);
-    }
+//        uint64_t offset{};
+//        return CtrBlockDescription<ApiProfileT>(size, CtrID{}, root, leaf, offset);
+//    }
 
 //    void configure_types(
 //            const ContainerTypeName& type_name,
@@ -732,37 +595,37 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
  protected:
 
-    CtrID do_init_ctr(const SharedBlockConstPtr& node)
-    {
-        init_dispatchers();
-        auto& self = this->self();
+//    CtrID do_init_ctr(const SharedBlockConstPtr& node)
+//    {
+//        init_dispatchers();
+//        auto& self = this->self();
 
-        if (node->ctr_type_hash() == CONTAINER_HASH)
-        {
-            TreeNodeConstPtr root_node = node;
+//        if (node->ctr_type_hash() == CONTAINER_HASH)
+//        {
+//            TreeNodeConstPtr root_node = node;
 
-            self.set_root_id(root_node->id());
+//            self.set_root_id(root_node->id());
 
-            const auto* branch_tuple = get<BranchNodeExtDataPkdTuple>(root_node->allocator(), BRANCH_EXT_DATA_IDX);
-            const auto* leaf_tuple   = get<LeafNodeExtDataPkdTuple>(root_node->allocator(), LEAF_EXT_DATA_IDX);
-            const auto* meta         = get<Metadata>(root_node->allocator(), METADATA_IDX);
+//            const auto* branch_tuple = get<BranchNodeExtDataPkdTuple>(root_node->allocator(), BRANCH_EXT_DATA_IDX);
+//            const auto* leaf_tuple   = get<LeafNodeExtDataPkdTuple>(root_node->allocator(), LEAF_EXT_DATA_IDX);
+//            const auto* meta         = get<Metadata>(root_node->allocator(), METADATA_IDX);
 
-            branch_tuple->get_value(this->branch_node_ext_data_);
-            leaf_tuple->get_value(this->leaf_node_ext_data_);
+//            branch_tuple->get_value(this->branch_node_ext_data_);
+//            leaf_tuple->get_value(this->leaf_node_ext_data_);
 
-            // TODO: Is CtrID correct here?
-            return meta->model_name();
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("Invalid container type: {}", node->ctr_type_hash()).do_throw();
-        }
-    }
+//            // TODO: Is CtrID correct here?
+//            return meta->model_name();
+//        }
+//        else {
+//            MEMORIA_MAKE_GENERIC_ERROR("Invalid container type: {}", node->ctr_type_hash()).do_throw();
+//        }
+//    }
 
     void do_create_ctr(const CtrID& ctr_id, const ContainerTypeName& ctr_type_name)
     {
-        init_dispatchers();
-
         auto& self = this->self();
+
+        self.init_dispatchers();
 
         auto has_root = self.store().hasRoot(ctr_id);
 
@@ -771,7 +634,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists", ctr_id).do_throw();
         }
 
-        self.configure_types(ctr_type_name, branch_node_ext_data_, leaf_node_ext_data_);
+        self.configure_types(ctr_type_name, self.branch_node_ext_data(), self.leaf_node_ext_data());
 
         auto node = self.createRootLeaf();
 
@@ -779,16 +642,16 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 private:
-    void init_dispatchers()
-    {
-        node_dispatcher_.set_ctr(&self());
-        leaf_dispatcher_.set_ctr(&self());
-        branch_dispatcher_.set_ctr(&self());
-        default_dispatcher_.set_ctr(&self());
-        tree_dispatcher_.set_ctr(&self());
-    }
+//    void init_dispatchers()
+//    {
+//        node_dispatcher_.set_ctr(&self());
+//        leaf_dispatcher_.set_ctr(&self());
+//        branch_dispatcher_.set_ctr(&self());
+//        default_dispatcher_.set_ctr(&self());
+//        tree_dispatcher_.set_ctr(&self());
+//    }
 
-MEMORIA_V1_BT_MODEL_BASE_CLASS_END
+MEMORIA_V1_CONTAINER_PART_END
 
 
-}}
+}

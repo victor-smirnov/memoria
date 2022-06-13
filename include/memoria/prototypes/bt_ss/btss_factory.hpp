@@ -50,9 +50,13 @@ struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
+                btss::FindName
+    >;
+
+    using RWCommonContainerPartsList = MergeLists<
+                typename Base::RWCommonContainerPartsList,
                 btss::InsertName,
                 btss::LeafCommonName,
-                btss::FindName,
                 btss::RemoveName
     >;
 

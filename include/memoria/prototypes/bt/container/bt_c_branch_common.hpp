@@ -21,6 +21,9 @@
 #include <memoria/core/container/macros.hpp>
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 
+
+#include <memoria/prototypes/bt/nodes/branch_node.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -33,9 +36,28 @@ public:
     using typename Base::BranchNodeEntry;
     using typename Base::BlockID;
 
+
 public:
 
     using SplitFn = std::function<void (const TreeNodePtr&, const TreeNodePtr&)>;
+
+
+    struct SetChildIDFn {
+        template <typename CtrT, typename T>
+        BlockID treeNode(BranchNodeSO<CtrT, T>& node, size_t child_idx, const BlockID& child_id) const
+        {
+            auto old_value = node.value(child_idx);
+            node.value(child_idx) = child_id;
+
+            return old_value;
+        }
+    };
+
+    BlockID ctr_set_child_id(const TreeNodePtr& node, size_t child_idx, const BlockID& child_id)
+    {
+        self().ctr_update_block_guard(node);
+        return self().branch_dispatcher().dispatch(node, SetChildIDFn(), child_idx, child_id);
+    }
 
     void ctr_create_new_root_block(TreePathT& path);
 

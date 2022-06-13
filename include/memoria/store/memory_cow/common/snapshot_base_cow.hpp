@@ -154,7 +154,7 @@ public:
 
 protected:
 
-	using HistoryNode		= typename PersistentAllocator::HistoryNode;
+    using HistoryNode = typename PersistentAllocator::HistoryNode;
     
 
 
@@ -184,7 +184,7 @@ public:
     using typename Base::SharedBlockPtr;
     using typename Base::SharedBlockConstPtr;
 
-    using RootMapType   = Map<CtrID, BlockID>;
+    using RootMapType = Map<CtrID, BlockID>;
 
 protected:
 

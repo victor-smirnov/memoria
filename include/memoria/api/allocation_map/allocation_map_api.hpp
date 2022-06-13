@@ -234,11 +234,11 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
     }
 
 
-    virtual CtrSizeT expand(CtrSizeT blocks) = 0;
-    virtual void shrink(CtrSizeT size) = 0;
+    virtual CtrSizeT expand(CtrSizeT blocks) MEMORIA_READ_ONLY_API
+    virtual void shrink(CtrSizeT size) MEMORIA_READ_ONLY_API
 
-    virtual Optional<AllocationMapEntryStatus> get_allocation_status(int32_t level, CtrSizeT position) = 0;
-    virtual bool check_allocated(const ALCMeta& meta) = 0;
+    virtual Optional<AllocationMapEntryStatus> get_allocation_status(int32_t level, CtrSizeT position) const = 0;
+    virtual bool check_allocated(const ALCMeta& meta) const = 0;
 
     virtual CtrSizeT rank(size_t level, CtrSizeT pos) const = 0;
 
@@ -252,36 +252,36 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
             int32_t level,
             CtrSizeT required,
             ArenaBuffer<ALCMeta>& buffer
-    ) = 0;
+    ) MEMORIA_READ_ONLY_API
 
     using OnLeafListener = std::function<void()>;
 
-    virtual void scan(const std::function<bool (Span<ALCMeta>)>& fn) = 0;
+    virtual void scan(const std::function<bool (Span<ALCMeta>)>& fn) const = 0;
 
     virtual void setup_bits(
             Span<ALCMeta> allocations,
             bool set_bits,
             const OnLeafListener& lestener = []{}
-    ) = 0;
+    ) MEMORIA_READ_ONLY_API
 
     virtual void touch_bits(
             Span<ALCMeta> allocations,
             const OnLeafListener& lestener = []{}
-    ) = 0;
+    ) MEMORIA_READ_ONLY_API
 
-    virtual CtrSizeT mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size) = 0;
-    virtual CtrSizeT mark_allocated(const ALCMeta& allocation) = 0;
-    virtual CtrSizeT mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size) = 0;
+    virtual CtrSizeT mark_allocated(CtrSizeT pos, int32_t level, CtrSizeT size) MEMORIA_READ_ONLY_API
+    virtual CtrSizeT mark_allocated(const ALCMeta& allocation) MEMORIA_READ_ONLY_API
+    virtual CtrSizeT mark_unallocated(CtrSizeT pos, int32_t level, CtrSizeT size) MEMORIA_READ_ONLY_API
 
-    virtual CtrSizeT unallocated_at(int32_t level) = 0;
-    virtual void unallocated(Span<CtrSizeT> ranks) = 0;
+    virtual CtrSizeT unallocated_at(int32_t level) const = 0;
+    virtual void unallocated(Span<CtrSizeT> ranks) const = 0;
 
-    virtual bool populate_allocation_pool(AllocationPool<Profile, LEVELS>&pool, int32_t level) = 0;
+    virtual bool populate_allocation_pool(AllocationPool<Profile, LEVELS>&pool, int32_t level) MEMORIA_READ_ONLY_API
 
     virtual CtrSizeT compare_with(
             CtrSharedPtr<ICtrApi> other,
             const std::function<bool (AllocationMapCompareHelper<Profile>&)>& consumer
-    ) = 0;
+    ) const = 0;
 
     MMA_DECLARE_ICTRAPI();
 };
