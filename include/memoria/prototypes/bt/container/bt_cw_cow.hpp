@@ -157,62 +157,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsWName)
         return self().store().is_cascade_tree_removal();
     }
 
-    void traverse_ctr(
-            void* node_handler_ptr
-    ) const
-    {
-        auto& self = this->self();
-
-        BTreeTraverseNodeHandler<Profile>* node_handler = ptr_cast<BTreeTraverseNodeHandler<Profile>>(node_handler_ptr);
-
-        auto root = self.ctr_get_root_node();
-        return ctr_do_cow_traverse_tree(*node_handler, root);
-    }
-
-private:
-
-    void ctr_do_cow_traverse_tree(BTreeTraverseNodeHandler<Profile>& node_handler, const TreeNodeConstPtr& node) const
-    {
-        auto& self = this->self();
-
-        constexpr bool is_ctr_directory = bt::CtrDirectoryHelper<ContainerTypeName>::Value;
-
-        if (node->is_leaf())
-        {
-            if (!is_ctr_directory) {
-                return node_handler.process_leaf_node(&node.block()->header());
-            }
-            else {
-                node_handler.process_directory_leaf_node(&node.block()->header());
-                return self.ctr_for_all_leaf_ctr_refs(node, [&](const BlockID& id)
-                {
-                    auto proceed_with = node_handler.proceed_with(id);
-                    if (proceed_with){
-                        return self.store().traverse_ctr(id, node_handler);
-                    }
-                });
-            }
-        }
-        else {
-            node_handler.process_branch_node(&node.block()->header());
-            return self.ctr_for_all_ids(node, [&](const BlockID& id)
-            {
-                auto proceed_with = node_handler.proceed_with(id);
-                if (proceed_with)
-                {
-                    auto child = self.ctr_get_block(id);
-                    return self.ctr_do_cow_traverse_tree(node_handler, child);
-                }
-            });
-        }
-    }
-
-
-    MEMORIA_V1_DECLARE_NODE_FN(ForAllCtrRooIDsFn, for_all_ctr_root_ids);
-    void ctr_for_all_leaf_ctr_refs(const TreeNodeConstPtr& node, const std::function<void (const BlockID&)>& fn) const
-    {
-        return self().leaf_dispatcher().dispatch(node, ForAllCtrRooIDsFn(), fn);
-    }
 
 public:
     void ctr_remove_all_nodes(TreePathT& start_path, TreePathT& stop_path)

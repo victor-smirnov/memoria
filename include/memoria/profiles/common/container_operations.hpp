@@ -174,7 +174,7 @@ struct ContainerOperationsBase {
     virtual ~ContainerOperationsBase() noexcept = default;
 
     // uuid, id, block data
-    using BlockCallbackFn = std::function<void (const BlockGUID&, const BlockID&, const BlockType*)>;
+    using BlockCallbackFn = std::function<void (const BlockID&, const BlockID&, const BlockType*)>;
     using ROAllocator = ProfileStoreType<Profile>;
     using ROAllocatorBasePtr = SnpSharedPtr<ROAllocator>;
 

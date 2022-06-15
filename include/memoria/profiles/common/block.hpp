@@ -37,9 +37,7 @@ struct ProfileSpecificBlockTools;
 
 
 template <
-        typename PageIdType,
-        typename PageGuidType,
-        typename IdValueHolder,
+        typename BlockIdT,
         typename SnapshotID
 >
 class AbstractPage {
@@ -57,17 +55,14 @@ private:
     uint64_t    target_block_pos_;
     mutable std::atomic<int64_t> references_;
 
-    IdValueHolder id_value_;
-    PageIdType  id_;
-    PageGuidType uuid_;
+    BlockIdT uid_;
+    BlockIdT id_;
     SnapshotID snapshot_id_;
 
 public:
     using FieldsList = TypeList<
                 ConstValue<uint32_t, VERSION>,
-                decltype(id_value_),
-                decltype(id_),
-                decltype(uuid_),
+                decltype(uid_),
                 decltype(snapshot_id_),
                 decltype(ctr_type_hash_),
                 decltype(block_type_hash_),
@@ -77,43 +72,30 @@ public:
                 int64_t //references
     >;
 
-    using BlockID   = PageIdType;
-    using BlockGUID = PageGuidType;
+    using BlockID = BlockIdT;
 
     AbstractPage() noexcept= default;
 
-    AbstractPage(const PageIdType &id, const PageGuidType &guid) noexcept:
-        id_(id),
-        uuid_(guid) {}
-
-    AbstractPage(const PageIdType &id, const PageGuidType &guid, const IdValueHolder& ivh) noexcept:
-        id_value_(ivh),
-        id_(id),
-        uuid_(guid)
+    AbstractPage(const BlockID &uid) noexcept:
+        uid_(uid), id_(uid)
     {}
 
-    const IdValueHolder &id_value() const noexcept {
-        return id_value_;
+
+
+    const BlockID& uid() const noexcept {
+        return uid_;
     }
 
-    IdValueHolder &id_value() noexcept {
-        return id_value_;
+    BlockID& uid() noexcept {
+        return uid_;
     }
 
-    const PageIdType &id() const noexcept {
+    const BlockID &id() const noexcept {
         return id_;
     }
 
-    PageIdType &id() noexcept {
+    BlockID &id() noexcept {
         return id_;
-    }
-
-    const PageGuidType &uuid() const noexcept {
-        return uuid_;
-    }
-
-    PageGuidType &uuid() noexcept {
-        return uuid_;
     }
 
     const SnapshotID &snapshot_id() const noexcept {
@@ -182,15 +164,15 @@ public:
     {
         auto refs = references_.fetch_sub(1, std::memory_order_acq_rel);
         if (refs < 1) {
-             terminate(format_u8("Internal error. Negative refcount detected for block {}", id_value_).data());
+             terminate(format_u8("Internal error. Negative refcount detected for block {}", id_).data());
         }
         return refs == 1;
     }
 
     void generateDataEvents(IBlockDataEventHandler* handler) const
     {
-        handler->value("GID",               &uuid_);
         handler->value("ID",                &id_);
+        handler->value("UID",               &uid_);
         handler->value("SNAPSHOT_ID",       &snapshot_id_);
         handler->value("CTR_HASH",          &ctr_type_hash_);
         handler->value("PAGE_TYPE_HASH",    &block_type_hash_);
@@ -214,8 +196,7 @@ public:
         FieldFactory<uint64_t>::serialize(buf, next_block_pos());
         FieldFactory<uint64_t>::serialize(buf, target_block_pos());
 
-        FieldFactory<PageIdType>::serialize(buf, id());
-        FieldFactory<PageGuidType>::serialize(buf, uuid());
+        FieldFactory<BlockID>::serialize(buf, uid());
         FieldFactory<SnapshotID>::serialize(buf, snapshot_id());
 
         int64_t refs = references();
@@ -232,10 +213,7 @@ public:
         FieldFactory<uint64_t>::serialize(buf, next_block_pos());
         FieldFactory<uint64_t>::serialize(buf, target_block_pos());
 
-        BlockID actual_id(id_value_);
-
-        FieldFactory<PageIdType>::serialize(buf, actual_id);
-        FieldFactory<PageGuidType>::serialize(buf, uuid());
+        FieldFactory<BlockID>::serialize(buf, uid());
         FieldFactory<SnapshotID>::serialize(buf, snapshot_id());
 
         int64_t refs = references();
@@ -244,10 +222,7 @@ public:
 
     template <typename IDResolver>
     void cow_resolve_ids(const IDResolver* id_resolver)
-    {
-        auto memref_id = id_resolver->resolve_id(id_);
-        id_ = memref_id;
-    }
+    {}
 
     template <template <typename T> class FieldFactory, typename DeserializationData>
     void deserialize(DeserializationData& buf)
@@ -259,9 +234,8 @@ public:
         FieldFactory<uint64_t>::deserialize(buf, next_block_pos());
         FieldFactory<uint64_t>::deserialize(buf, target_block_pos());
 
-        FieldFactory<PageIdType>::deserialize(buf,   id());
-        FieldFactory<PageGuidType>::deserialize(buf, uuid());
-        FieldFactory<SnapshotID>::deserialize(buf,   snapshot_id());
+        FieldFactory<BlockID>::deserialize(buf,    uid());
+        FieldFactory<SnapshotID>::deserialize(buf, snapshot_id());
 
         int64_t refs;
         FieldFactory<int64_t>::deserialize(buf, refs);

@@ -68,7 +68,7 @@ public:
     using Header = Header_;
 
     using BlockID = typename Header::BlockID;
-    using BlockGUID = typename Header::BlockGUID;
+    using BlockGUID = typename Header::BlockID;
 
 
     static_assert(IsPackedStructV<Metadata>, "TreeNodeBase: Metadata must satisfy IsPackedStructV<>");
@@ -120,8 +120,8 @@ public:
     BlockID& id()  {return header_.id();}
     const BlockID& id() const  {return header_.id();}
 
-    BlockGUID& uuid()  {return header_.uuid();}
-    const BlockGUID& uuid() const  {return header_.uuid();}
+    BlockGUID& uid()  {return header_.uid();}
+    const BlockGUID& uid() const  {return header_.uid();}
 
 
     uint64_t ctr_type_hash() const  {
@@ -273,7 +273,7 @@ public:
         {
             MEMORIA_MAKE_GENERIC_ERROR(
                 "Resizing block {} has insufficient space for downsizing: available {}, requied {}",
-                uuid(),
+                uid(),
                 free_space,
                 -space_delta
             ).do_throw();

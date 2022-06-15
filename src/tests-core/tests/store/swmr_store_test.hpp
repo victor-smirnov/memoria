@@ -36,16 +36,18 @@ class SWMRStoreTest: public TestState
     using Base::out;
     using Base::getRandom;
 
+    size_t size_{100000};
+
 public:
     SWMRStoreTest()
     {
     }
 
     static void init_suite(TestSuite& suite) {
-        MMA_CLASS_TESTS(suite, testLite);
+        MMA_CLASS_TESTS(suite, testSWMRLite, testMemCoW);
     }
 
-    void testLite()
+    void testSWMRLite()
     {
         auto wd = Base::working_directory_;
         wd.append("file.mma2");
@@ -57,13 +59,35 @@ public:
         using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile>>;
         StoreTestBench<StorePtrT> bench(store);
 
-        bench.set_entries(1000000);
-        bench.set_check_epocs(false);
+        bench.set_entries(size_);
+        bench.set_check_epocs(true);
         bench.set_consistency_point(ConsistencyPoint::AUTO);
 
         bench.run_insertions();
         bench.run_queries();
     }
+
+
+    void testMemCoW()
+    {
+        auto wd = Base::working_directory_;
+        wd.append("file.mma2");
+
+        U8String file = wd.std_string();
+
+        auto store = std::make_shared<MemoryStoreOperation>(file);
+
+        using StorePtrT = AllocSharedPtr<IMemoryStore<CoreApiProfile>>;
+        StoreTestBench<StorePtrT> bench(store);
+
+        bench.set_entries(size_);
+        bench.set_check_epocs(true);
+        bench.set_consistency_point(ConsistencyPoint::AUTO);
+
+        bench.run_insertions();
+        bench.run_queries();
+    }
+
 
 
 };

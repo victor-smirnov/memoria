@@ -95,8 +95,6 @@ struct IStoreBase: IStoreApiBase<ApiProfile<Profile>> {
 
     virtual ObjectPools& object_pools() const = 0;
 
-
-
     virtual void start_no_reentry(const CtrID& ctr_id) = 0;
     virtual void finish_no_reentry(const CtrID& ctr_id) noexcept = 0;
 

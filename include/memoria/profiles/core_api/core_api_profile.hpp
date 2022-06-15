@@ -49,9 +49,7 @@ struct CtrReferenceable<CoreApiProfileT<TT>>: CtrReferenceableBase<CoreApiProfil
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfile>> shared_self() noexcept = 0;
 
-    virtual void traverse_ctr(void* node_handler) const {
-        MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();
-    }
+    virtual void traverse_ctr(void* node_handler) const = 0;
 };
 
 }

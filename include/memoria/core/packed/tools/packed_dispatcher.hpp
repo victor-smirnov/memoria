@@ -221,7 +221,7 @@ public:
         if (!alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
-            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
+            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
 
         return NextDispatcher::dispatchNotEmpty(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -234,7 +234,7 @@ public:
         if (!alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);    
-            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
+            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
 
         return NextDispatcher::dispatchNotEmpty(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -260,7 +260,7 @@ public:
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
-            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
+            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
 
         return NextDispatcher::dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -759,7 +759,6 @@ public:
         if (!alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
-
             return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
     }
@@ -771,7 +770,6 @@ public:
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
-
             return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
     }

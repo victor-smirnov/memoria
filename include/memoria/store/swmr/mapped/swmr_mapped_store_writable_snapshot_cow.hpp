@@ -282,7 +282,7 @@ public:
             id = BlockID{UID256::make_type3(UID256{}, static_cast<uint64_t>(allocation_level(size)), at)};
         }
 
-        BlockType* block = new (block_addr) BlockType(id, id.value(), id.value());
+        BlockType* block = new (block_addr) BlockType(id);
 
         block->memory_block_size() = size;
         block->snapshot_id() = snapshot_id();
@@ -315,9 +315,7 @@ public:
         }
 
         BlockType* new_block = ptr_cast<BlockType>(block_addr);
-        new_block->id()   = id;
-        new_block->uuid() = id.value();
-        new_block->id_value() = id.value();
+        new_block->id() = id;
         new_block->snapshot_id() = snapshot_id();
 
         new_block->set_references(0);

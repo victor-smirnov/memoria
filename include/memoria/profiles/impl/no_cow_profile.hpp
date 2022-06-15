@@ -39,10 +39,10 @@ struct ProfileTraits<NoCowProfile>: ApiProfileTraits<CoreApiProfile> {
     using typename Base::SnapshotID;
 
     using BlockGUID = UID256;
-    using BlockID = UID256;
+    using BlockID = BlockGUID;
     using Profile = NoCowProfile;
 
-    using Block = AbstractPage <BlockGUID, BlockID, EmptyType, SnapshotID>;
+    using Block = AbstractPage <BlockID, SnapshotID>;
     using BlockType = Block;
 
     using StoreType = IStore<Profile>;

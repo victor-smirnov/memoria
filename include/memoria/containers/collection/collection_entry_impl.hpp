@@ -236,6 +236,7 @@ public:
     virtual void dump(std::ostream& out) const
     {
         println(out, "Position: {}, size: {}, before_start: {}, id::{}", leaf_position_, size_, before_start_, Base::path().leaf()->id());
+        Base::ctr().ctr_dump_node(Base::path().leaf());
     }
 
     EmptyType prepare_next_leaf() const {

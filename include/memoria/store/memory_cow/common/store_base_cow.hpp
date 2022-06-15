@@ -79,6 +79,7 @@ public:
 
     using SnapshotID        = ProfileSnapshotID<Profile>;
     using BlockID           = ProfileBlockID<Profile>;
+    using BlockGUID         = ProfileBlockGUID<Profile>;
     using CtrID             = ProfileCtrID<Profile>;
 
 
@@ -933,12 +934,13 @@ protected:
                 ->get_block_operations(ctr_hash, block_hash)
                 ->deserialize(block_data.get(), block_data_size, block);
 
-        if (map.find(block->id()) == map.end())
-        {
-            map[block->id()] = block;
+        block->id() = detail::IDValueHolderH<BlockID>::to_id(block);
+
+        if (map.find(block->uid()) == map.end()) {
+            map[block->uid()] = block;
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Block {} was already registered", block->uuid()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Block {} was already registered", block->uid()).do_throw();
         }
     }
 
@@ -1042,7 +1044,7 @@ protected:
         virtual BlockID resolve_id(const BlockID& mem_block_id) const
         {
             BlockType* block = value_cast<BlockType*>(detail::IDValueHolderH<BlockID>::from_id(mem_block_id));
-            return BlockID{block->id_value()};
+            return BlockID{block->uid()};
         }
     };
 

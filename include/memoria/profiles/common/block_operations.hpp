@@ -115,6 +115,7 @@ struct IBlockOperationsBase {
 
     using BlockType = ProfileBlockType<Profile>;
     using BlockID   = ProfileBlockID<Profile>;
+    using BlockGUID   = ProfileBlockGUID<Profile>;
 
     struct IDValueResolver {
         virtual BlockID resolve_id(const BlockID& stored_block_id) const = 0;

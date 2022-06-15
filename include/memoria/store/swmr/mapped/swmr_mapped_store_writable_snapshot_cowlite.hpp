@@ -158,7 +158,7 @@ public:
 
         std::memset(block_addr, 0, size);
 
-        BlockType* block = new (block_addr) BlockType(id, bid, bid);
+        BlockType* block = new (block_addr) BlockType(id);
 
         block->memory_block_size() = size;
         block->snapshot_id() = snapshot_id();
@@ -182,9 +182,7 @@ public:
         UID64 bid{at, level};
         auto id = BlockID{bid};
         BlockType* new_block = ptr_cast<BlockType>(block_addr);
-        new_block->id()   = id;
-        new_block->uuid() = bid;
-        new_block->id_value() = bid;
+        new_block->id() = id;
         new_block->snapshot_id() = snapshot_id();
 
         new_block->set_references(0);

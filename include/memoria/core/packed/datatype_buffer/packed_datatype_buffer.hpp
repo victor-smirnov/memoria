@@ -291,7 +291,6 @@ public:
         Base::serialize(buf);
 
         auto& meta = this->metadata();
-
         FieldFactory<psize_t>::serialize(buf, meta.size0());
         FieldFactory<psize_t>::serialize(buf, meta.flags0());
 
@@ -313,7 +312,6 @@ public:
         Base::serialize(buf);
 
         auto& meta = this->metadata();
-
         FieldFactory<psize_t>::serialize(buf, meta.size0());
         FieldFactory<psize_t>::serialize(buf, meta.flags0());
 
@@ -334,7 +332,6 @@ public:
         Base::deserialize(buf);
 
         auto& meta = this->metadata();
-
         FieldFactory<psize_t>::deserialize(buf, meta.size0());
         FieldFactory<psize_t>::deserialize(buf, meta.flags0());
 

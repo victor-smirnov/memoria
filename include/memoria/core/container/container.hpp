@@ -353,7 +353,7 @@ public:
 
 
             virtual void ctr_begin_node(int32_t idx, const BlockType* block) {
-                consumer_(block->uuid(), block->id(), block);
+                consumer_(block->uid(), block->id(), block);
             }
 
             virtual void rootLeaf(int32_t idx, const BlockType* block) {

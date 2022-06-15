@@ -85,10 +85,6 @@ struct IDValueHolderH<CowBlockID<ValueHolder>> {
         return IDType(value_cast<IDValueHolder>(ptr));
     }
 
-    static IDValueHolder to_id_value(IDType id)  {
-        return id.value();
-    }
-
     template <typename T>
     static IDValueHolder new_id(T* ptr)  {
         return ++ptr->id_counter_;
@@ -105,7 +101,7 @@ struct IDValueHolderH<CowBlockID<UID256>> {
     }
 
     static IDType to_id(const IDValueHolder& id)  {
-        return IDType(UID256::make_type2(UID256{}, id));
+        return IDType(UID256::make_type2(UID256{}, 0, id));
     }
 
     template <typename BlockType>
@@ -115,12 +111,7 @@ struct IDValueHolderH<CowBlockID<UID256>> {
 
     template <typename BlockType>
     static IDType to_id(BlockType* ptr)  {
-        return IDType(UID256::make_type2(UID256{}, value_cast<IDValueHolder>(ptr)));
-    }
-
-
-    static UID256 to_id_value(IDType id)  {
-        return id.value();
+        return IDType(UID256::make_type2(UID256{}, 0, value_cast<IDValueHolder>(ptr)));
     }
 
     template <typename T>
@@ -584,7 +575,7 @@ public:
 
     	if (root_id.is_null())
     	{
-            txn->for_each_ctr_node(name, [&](const BlockGUID&, const BlockID&, const void* block_data){
+            txn->for_each_ctr_node(name, [&](const BlockID&, const BlockID&, const void* block_data){
                 return clone_foreign_block(ptr_cast<const BlockType>(block_data));
             });
 
@@ -618,9 +609,9 @@ public:
 
         if (!root_id.is_null())
     	{
-            txn->for_each_ctr_node(name, [&, this](const BlockGUID& uuid, const BlockID& id, const void* block_data) {
+            txn->for_each_ctr_node(name, [&, this](const BlockID& uid, const BlockID& id, const void* block_data) {
                 auto block = this->getBlock(id);
-                if (block && block->uuid() == uuid)
+                if (block && block->uid() == uid)
                 {
                     return;
                 }
@@ -773,7 +764,7 @@ public:
         void* buf = allocate_system<uint8_t>(static_cast<size_t>(initial_size)).release();
         memset(buf, 0, static_cast<size_t>(initial_size));
 
-        BlockType* p = new (buf) BlockType(id, id.value(), id.value());
+        BlockType* p = new (buf) BlockType(id);
         p->id() = detail::IDValueHolderH<BlockID>::to_id(p);
         p->snapshot_id() = uuid();
 
@@ -795,7 +786,7 @@ public:
 
         auto new_block = this->clone_block(block.block());
 
-        new_block->id_value() = detail::IDValueHolderH<BlockID>::to_id_value(new_id);
+        new_block->uid() = new_id;
         new_block->id() = detail::IDValueHolderH<BlockID>::to_id(new_block);
 
         Shared* shared = shared_pool_.construct(new_id, new_block, 0);
@@ -1079,7 +1070,8 @@ protected:
         BlockType* new_block = ptr_cast<BlockType>(buffer);
 
         auto new_block_id = newId();
-        new_block->uuid() = new_block_id.value();
+        new_block->uid() = new_block_id;
+        new_block->id() = detail::IDValueHolderH<BlockID>::to_id(new_block);
         new_block->snapshot_id() = uuid();
         new_block->set_references(0);
 

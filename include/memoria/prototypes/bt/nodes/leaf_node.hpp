@@ -188,7 +188,6 @@ public:
             BufferSO buffer_so(&ext_data, pkd_buffer);
 
             psize_t size = buffer_so.size();
-
             for (psize_t c = 0; c < size; c++)
             {
                 auto memref_id = id_resolver->resolve_id(buffer_so.access(0, c));

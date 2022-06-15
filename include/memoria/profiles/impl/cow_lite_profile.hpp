@@ -48,10 +48,10 @@ struct ProfileTraits<CowLiteProfile>: ApiProfileTraits<CoreApiProfile> {
     using typename Base::SnapshotID;
 
     using BlockGUID     = UID64;
-    using BlockID       = CowBlockID<UID64>;
+    using BlockID       = CowBlockID<BlockGUID>;
     using Profile       = CowLiteProfile;
 
-    using Block = AbstractPage<BlockID, BlockGUID, UID64, SnapshotID>;
+    using Block = AbstractPage<BlockID, SnapshotID>;
     using BlockType = Block;
 
     using StoreType = ICowStore<Profile>;

@@ -24,6 +24,7 @@
 #include <memoria/core/tools/ticker.hpp>
 
 #include <memoria/api/store/swmr_store_api.hpp>
+#include <memoria/api/store/memory_store_api.hpp>
 
 namespace memoria {
 
@@ -45,6 +46,7 @@ struct StoreOperations {
 
     virtual void close_store(StoreT store) = 0;
     virtual bool is_store_closed(StoreT store) = 0;
+    virtual void commit(WritableSnapshotPtr snp, ConsistencyPoint cp) = 0;
 
     virtual void flush(StoreT store) = 0;
 
@@ -74,6 +76,8 @@ class StoreTestBench {
     bool check_epocs_{true};
     bool check_store_{true};
     bool read_back_{true};
+
+    std::vector<U8String> data_;
 
 public:
     StoreTestBench(OpsTPtr store_ops): store_ops_(store_ops)
@@ -123,7 +127,7 @@ public:
         {
             auto snp = store_ops_->begin_writable(store);
             auto ctr = create(snp, CtrType(), ctr_id_);
-            snp->commit(consistency_point_);
+            store_ops_->commit(snp, consistency_point_);
 
             if (check_epocs_) {
                 store->check(callback);
@@ -149,10 +153,12 @@ public:
                         MEMORIA_MAKE_GENERIC_ERROR("Can't find key {} in the container", str).do_throw();
                     }
 
+                    data_.push_back(str);
+
                     ticker.tick();
                 }
 
-                snp->commit(consistency_point_);
+                store_ops_->commit(snp, consistency_point_);
                 epoc_commits++;
 
                 if (ticker.is_threshold())
@@ -177,6 +183,8 @@ public:
         }
 
         store_ops_->close_store(store);
+
+        std::sort(data_.begin(), data_.end());
     }
 
     virtual void run_queries()
@@ -186,10 +194,15 @@ public:
         auto ctr = find<CtrType>(snp, ctr_id_);
 
         int64_t t_start = getTimeInMillis();
-
         CtrSizeT cnt{};
+        auto ii = data_.begin();
         ctr->for_each([&](auto key){
-            cnt++;
+            if (ii != data_.end()) {
+                if (U8String(key) == *ii) {
+                    ++cnt;
+                }
+                ++ii;
+            }
         });
 
         if (cnt != ctr->size()) {
@@ -234,6 +247,10 @@ public:
 
     virtual void flush(StoreT store) {
         store->flush();
+    }
+
+    virtual void commit(WritableSnapshotPtr snp, ConsistencyPoint cp) {
+        snp->commit();
     }
 
     virtual WritableSnapshotPtr begin_writable(StoreT store) {
@@ -335,6 +352,63 @@ public:
 
     virtual void close_store(StoreT store) {
         //store->close();
+    }
+};
+
+class MemoryStoreOperation: public StoreOperations<AllocSharedPtr<IMemoryStore<CoreApiProfile>>> {
+protected:
+    using Base = StoreOperations<AllocSharedPtr<IMemoryStore<CoreApiProfile>>>;
+    using StoreT = AllocSharedPtr<IMemoryStore<CoreApiProfile>>;
+    using typename Base::ProfileT;
+    using typename Base::CtrID;
+
+    CtrID ctr_id_;
+    U8String file_name_;
+
+public:
+    MemoryStoreOperation(U8String file_name):
+        file_name_(file_name)
+    {
+        ctr_id_ = CtrID::make_random();
+    }
+
+
+    virtual CtrID ctr_id() {
+        return ctr_id_;
+    }
+
+    virtual StoreT open_store() {
+        return load_memory_store(file_name_);
+    }
+
+    virtual StoreT create_store() {
+        return create_memory_store();
+    }
+
+    virtual void close_store(StoreT store) {
+        store->store(file_name_);
+    }
+
+    virtual bool is_store_closed(StoreT store) {
+        return true;
+    }
+
+    virtual void flush(StoreT store) {
+        store->store(file_name_);
+    }
+
+    virtual void commit(WritableSnapshotPtr snp, ConsistencyPoint cp) {
+        snp->commit(cp);
+        snp->set_as_master();
+    }
+
+    virtual WritableSnapshotPtr begin_writable(StoreT store) {
+        auto snp = store->master()->branch();
+        return snp;
+    }
+
+    virtual ReadOnlySnapshotPtr open_read_only(StoreT store) {
+        return store->master();
     }
 };
 

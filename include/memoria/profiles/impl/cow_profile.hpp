@@ -51,7 +51,7 @@ struct ProfileTraits<CowProfile>: ApiProfileTraits<CoreApiProfile> {
     using BlockID       = CowBlockID<BlockGUID>;
     using Profile       = CowProfile;
 
-    using Block = AbstractPage<BlockID, BlockGUID, BlockGUID, SnapshotID>;
+    using Block = AbstractPage<BlockID, SnapshotID>;
     using BlockType = Block;
 
     using StoreType = ICowStore<Profile>;

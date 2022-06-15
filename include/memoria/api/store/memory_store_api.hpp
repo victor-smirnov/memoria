@@ -44,6 +44,9 @@ class IMemoryStore {
 public:
     using StorePtr      = AllocSharedPtr<IMemoryStore>;
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot<Profile>>;
+    using ReadOnlySnapshotPtr = SnapshotPtr;
+    using WritableSnapshotPtr = SnapshotPtr;
+    using ProfileT = Profile;
 
     template <typename CtrName>
     using CtrApiType = ICtrApi<CtrName, Profile>;

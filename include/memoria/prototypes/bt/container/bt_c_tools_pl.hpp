@@ -127,8 +127,7 @@ bool M_TYPE::ctr_get_next_node(TreePathT& path, size_t level) const
 
         auto size = self.ctr_get_node_size(parent, 0);
 
-        auto parent_idx = self.ctr_get_child_idx(parent, node->id());
-
+        size_t parent_idx = self.ctr_get_child_idx(parent, node->id());
         if (parent_idx < size - 1)
         {
             auto child = self.ctr_get_node_child(parent, parent_idx + 1);

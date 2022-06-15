@@ -49,7 +49,7 @@ struct ValueTools<UUID> {
 template <>
 struct ValueTools<U8String> {
     static U8String generate_random() noexcept {
-        return create_random_string(16);
+        return create_random_string(16 + getRandomG(8));
     }
 
     template <typename One, typename Two>
