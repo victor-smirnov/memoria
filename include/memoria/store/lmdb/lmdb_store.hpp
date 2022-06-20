@@ -222,7 +222,7 @@ public:
     }
 
     virtual ~LMDBStore() noexcept {
-        mma_mdb_env_close(mdb_env_);
+        //mma_mdb_env_close(mdb_env_);
         ::free(superblock_);
     }
 

@@ -38,7 +38,8 @@ class ReadName              {};
 class UpdateName            {};
 class CoWOpsRName           {};
 class CoWOpsWName           {};
-class NoCoWOpsName          {};
+class NoCoWOpsRName         {};
+class NoCoWOpsWName         {};
 
 
 class InsertName            {};

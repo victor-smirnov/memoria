@@ -101,7 +101,6 @@ class LMDBStoreWritableSnapshot:
     using Base::superblock_;
     using Base::getRootID;
     using Base::getBlock;
-    using Base::instance_map_;
     using Base::mdb_env_;
     using Base::transaction_;
     using Base::system_db_;
@@ -190,19 +189,6 @@ public:
 
             return VoidResult::of();
         });
-
-        if (!maybe_error) {
-            internal_init_system_ctr<DirectoryCtrType>(
-                maybe_error,
-                directory_ctr_,
-                superblock_->directory_root_id(),
-                DirectoryCtrID
-            );
-
-            if (maybe_error) {
-                mma_mdb_txn_abort(transaction_);
-            }
-        }
     }
 
     virtual ~LMDBStoreWritableSnapshot() noexcept {
@@ -229,17 +215,14 @@ public:
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
     {
         checkIfConainersCreationAllowed();
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(self_ptr(), ctr_id, decl);
+        return this->create_ctr_instance(decl, ctr_id);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
     {
         checkIfConainersCreationAllowed();
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-
-        auto ctr_name = createCtrName();
-        return factory->create_instance(self_ptr(), ctr_name, decl);
+        auto ctr_id = createCtrName();
+        return this->create_ctr_instance(decl, ctr_id);
     }
 
     virtual void commit(ConsistencyPoint) {
@@ -265,25 +248,17 @@ public:
     }
 
     virtual void flush_open_containers() {
-        for (const auto& pair: instance_map_)
-        {
-            pair.second->flush();
-        }
+        this->instance_pool().for_each_open_ctr(this->self_ptr(), [](auto ctr_id, auto ctr){
+            ctr->flush();
+        });
     }
 
-    virtual bool drop_ctr(const CtrID& name)
+    virtual bool drop_ctr(const CtrID& ctr_id)
     {
         check_updates_allowed();
-
-        auto root_id = getRootID(name);
-
-        if (root_id.is_set())
-        {
-            auto block = getBlock(root_id);
-
-            auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(block->ctr_type_hash());
-
-            ctr_intf->drop(name, self_ptr());
+        auto ctr = this->find(ctr_id);
+        if (ctr) {
+            ctr->drop();
             return true;
         }
         else {
@@ -429,7 +404,7 @@ public:
         std::memset(block_addr, 0, initial_size);
 
         auto id = newId();
-        BlockType* block = new (block_addr) BlockType(id, id);
+        BlockType* block = new (block_addr) BlockType(id);
 
         block->memory_block_size() = initial_size;
 
@@ -454,7 +429,7 @@ public:
         auto id = newId();
         BlockType* new_block = ptr_cast<BlockType>(block_addr);
         new_block->id()   = id;
-        new_block->uuid() = id;
+        new_block->uid()  = id;
 
         new_block->set_references(0);
 
@@ -717,20 +692,13 @@ private:
         return (vv / 2 == value) ? value : vv;
     }
 
-    CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
-            ContainerOperationsPtr<Profile> ctr_intf,
-            SharedBlockConstPtr block
-    )
-    {
-        return ctr_intf->new_ctr_instance(block, this);
-    }
-
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
             const LDTypeDeclarationView& decl, const CtrID& ctr_id
     )
     {
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(this->self_ptr(), ctr_id, decl);
+      auto ptr = this->create_ctr_instance(decl, ctr_id);
+      ptr->internal_detouch_from_store();
+      return ptr;
     }
 
     virtual void import_new_ctr_from(ROStoreSnapshotPtr txn, const CtrID& name) {}

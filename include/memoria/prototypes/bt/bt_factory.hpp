@@ -59,7 +59,8 @@
 #include <memoria/prototypes/bt/container/bt_c_block.hpp>
 #include <memoria/prototypes/bt/container/bt_cr_cow.hpp>
 #include <memoria/prototypes/bt/container/bt_cw_cow.hpp>
-#include <memoria/prototypes/bt/container/bt_c_no_cow.hpp>
+#include <memoria/prototypes/bt/container/bt_cr_no_cow.hpp>
+#include <memoria/prototypes/bt/container/bt_cw_no_cow.hpp>
 
 #include <memoria/prototypes/bt/bt_names.hpp>
 
@@ -97,7 +98,7 @@ struct BTTypes {
             bt::LeafRCommonName,
             bt::WalkRName,
             bt::BlockName,
-            IfThenElse<ProfileTraits<Profile>::IsCoW, bt::CoWOpsRName, bt::NoCoWOpsName>
+            IfThenElse<ProfileTraits<Profile>::IsCoW, bt::CoWOpsRName, bt::NoCoWOpsRName>
     >;
 
     using RWContainerPartsList = TypeList<
@@ -110,7 +111,7 @@ struct BTTypes {
         bt::InsertName,
         bt::WalkWName,
         bt::NodeCommonName,
-        IfThenElse<ProfileTraits<Profile>::IsCoW, bt::CoWOpsWName, bt::NoCoWOpsName>
+        IfThenElse<ProfileTraits<Profile>::IsCoW, bt::CoWOpsWName, bt::NoCoWOpsWName>
     >;
 
     using FixedBranchContainerPartsList = TypeList<>;

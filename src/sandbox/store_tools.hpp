@@ -329,35 +329,36 @@ public:
 };
 
 
-//class LMDBStoreOperation: public AbstractSWMRStoreOperation<ILMDBStore<CoreApiProfile>> {
-//protected:
-//    using Base = AbstractSWMRStoreOperation<ILMDBStore<CoreApiProfile>>;
-//    using typename Base::StoreT;
+class LMDBStoreOperation: public AbstractSWMRStoreOperation<ILMDBStore<CoreApiProfile>> {
+protected:
+    using Base = AbstractSWMRStoreOperation<ILMDBStore<CoreApiProfile>>;
+    using typename Base::StoreT;
 
 
-//public:
-//    LMDBStoreOperation(U8String file_name, uint64_t store_size):
-//        Base(file_name, store_size)
-//    {}
+public:
+    LMDBStoreOperation(U8String file_name, uint64_t store_size):
+        Base(file_name, store_size)
+    {}
 
 
-//    virtual StoreT open_store() {
-//        return open_lmdb_store(file_name_);
-//    }
+    virtual StoreT open_store() {
+        return open_lmdb_store(file_name_);
+    }
 
-//    virtual StoreT create_store()
-//    {
-//        if (remove_existing_) {
-//            filesystem::remove(file_name_.data());
-//        }
+    virtual StoreT create_store()
+    {
+        if (remove_existing_) {
+            filesystem::remove(file_name_.data());
+        }
 
-//        return create_lmdb_store(file_name_, store_size_);
-//    }
+        return create_lmdb_store(file_name_, store_size_);
+    }
 
-//    virtual void close_store(StoreT store) {
-//        //store->close();
-//    }
-//};
+    virtual void close_store(StoreT store) {
+        // not supported
+        //store->close();
+    }
+};
 
 
 class MemoryStoreOperation: public StoreOperations<AllocSharedPtr<IMemoryStore<CoreApiProfile>>> {

@@ -133,20 +133,13 @@ public:
         }
     }
 
-    CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
-            ContainerOperationsPtr<Profile> ctr_intf,
-            SharedBlockConstPtr block
-    )
-    {
-        return ctr_intf->new_ctr_instance(block, this->self_ptr());
-    }
-
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
             const LDTypeDeclarationView& decl, const CtrID& ctr_id
     )
     {
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
-        return factory->create_instance(this->self_ptr(), ctr_id, decl);
+        auto ptr = this->create_ctr_instance(decl, ctr_id);
+        ptr->internal_detouch_from_store();
+        return ptr;
     }
 
 protected:

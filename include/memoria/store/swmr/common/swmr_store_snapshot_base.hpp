@@ -249,10 +249,6 @@ public:
     }
 
     virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) = 0;
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
-            ContainerOperationsPtr<Profile> ctr_intf,
-            SharedBlockConstPtr block
-    ) = 0;
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
             const LDTypeDeclarationView& decl, const CtrID& ctr_id
@@ -430,32 +426,7 @@ public:
         if (root_id.is_set())
         {
             auto block = this->getBlock(root_id);
-
             return this->find_ctr_instance(ctr_id, block);
-
-//            auto ctr_intf = ProfileMetadata<Profile>::local()
-//                    ->get_container_operations(block->ctr_type_hash());
-
-//            auto ii = instance_map_.find(ctr_id);
-//            if (ii != instance_map_.end())
-//            {
-//                auto ctr_hash = block->ctr_type_hash();
-//                auto instance_hash = ii->second->type_hash();
-
-//                if (instance_hash == ctr_hash) {
-//                    return ii->second->shared_self();
-//                }
-//                else {
-//                    MEMORIA_MAKE_GENERIC_ERROR(
-//                                "Exisitng ctr instance type hash mismatch: expected {}, actual {}",
-//                                ctr_hash,
-//                                instance_hash
-//                    ).do_throw();
-//                }
-//            }
-//            else {
-//                return new_ctr_instance(ctr_intf, block);
-//            }
         }
 
         return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};
@@ -473,29 +444,7 @@ public:
                     ->get_container_operations(block->ctr_type_hash());
 
             CtrID ctr_id = ctr_intf->get_ctr_id(block);
-
             return this->find_ctr_instance(ctr_id, block);
-
-//            auto ii = instance_map_.find(ctr_id);
-//            if (ii != instance_map_.end())
-//            {
-//                auto ctr_hash = block->ctr_type_hash();
-//                auto instance_hash = ii->second->type_hash();
-
-//                if (instance_hash == ctr_hash) {
-//                    return ii->second->shared_self();
-//                }
-//                else {
-//                    MEMORIA_MAKE_GENERIC_ERROR(
-//                                "Exisitng ctr instance type hash mismatch: expected {}, actual {}",
-//                                ctr_hash,
-//                                instance_hash
-//                    ).do_throw();
-//                }
-//            }
-//            else {
-//                return new_ctr_instance(ctr_intf, block);
-//            }
         }
 
         return CtrSharedPtr<CtrReferenceable<ApiProfileT>>{};
@@ -636,10 +585,6 @@ public:
         instance_pool().for_each_open_ctr(this->self_ptr(), [](auto ctr_id, auto ctr){
             println("{} -- {}", ctr_id, ctr->describe_type());
         });
-//        for (const auto& pair: instance_map_)
-//        {
-//            std::cout << pair.first << " -- " << pair.second->describe_type() << std::endl;
-//        }
     }
 
     virtual bool has_open_containers() {
@@ -653,15 +598,6 @@ public:
         directory_ctr_->for_each([&](auto ctr_name, auto block_id){
           names.push_back(ctr_name);
         });
-
-//        auto ii = directory_ctr_->iterator();
-
-//        while (!ii->is_end())
-//        {
-//            names.push_back(ii->key());
-//            ii->next();
-//        }
-
         return std::move(names);
     }
 
@@ -780,18 +716,6 @@ public:
               traverse_ctr_cow_tree(root_id, callback);
           }
         });
-
-
-//        auto iter = directory_ctr_->iterator();
-//        while (!iter->is_end())
-//        {
-//            auto root_id = iter->value();
-
-//            if (counters.add_root(root_id)){
-//                traverse_ctr_cow_tree(root_id, callback);
-//            }
-//            iter->next();
-//        }
     }
 
     bool contains_or_add(VisitedBlocks& vb, const BlockID& id)
@@ -820,14 +744,6 @@ public:
             directory_ctr_->for_each([&](auto ctr_name, auto root_id){
               traverse_ctr_cow_tree(root_id, vb, visitor, GraphVisitor::CtrType::DATA);
             });
-
-//            auto iter = directory_ctr_->iterator();
-//            while (!iter->is_end())
-//            {
-//                auto root_id = iter->value();
-//                traverse_ctr_cow_tree(root_id, vb, visitor, GraphVisitor::CtrType::DATA);
-//                iter->next();
-//            }
         }
     }
 
@@ -923,23 +839,6 @@ public:
     void for_each_history_entry(const std::function<void (const SnapshotID&, const SWMRSnapshotMetadata<ApiProfileT>&)>& fn)
     {
         init_history_ctr();
-//        auto scanner = history_ctr_->scanner();
-
-//        bool has_next;
-//        do {
-//            for (size_t c = 0; c < scanner.keys().size(); c++) {
-//                const auto& meta = scanner.values()[c];
-//                fn(
-//                    scanner.keys()[c],
-//                    meta
-//                );
-//            }
-
-//            auto has_next_res = scanner.next_leaf();
-//            has_next = has_next_res;
-//        }
-//        while (has_next);
-
         history_ctr_->for_each([&](auto snp_id, auto snp_metadata){
           fn(snp_id, snp_metadata);
         });
@@ -1036,16 +935,6 @@ public:
     void for_each_history_entry_batch(const std::function<void (Span<const SnapshotID>, Span<const SnapshotMetadataT>)>& fn)
     {
         init_history_ctr();
-
-//        auto ss = history_ctr_->scanner();
-
-//        bool has_next;
-//        do {
-//            fn(ss.keys(), ss.values());
-//            has_next = ss.next_leaf();
-//        }
-//        while (has_next);
-
         history_ctr_->for_each_chunk([&](auto snp_id_span, auto snp_metadata_span){
           fn(snp_id_span, snp_metadata_span);
         });

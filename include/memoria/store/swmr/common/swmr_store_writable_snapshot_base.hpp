@@ -203,7 +203,7 @@ public:
     }
 
     virtual SnpSharedPtr<StoreT> my_self_ptr()  = 0;
-    virtual SnpSharedPtr<StoreT> self_ptr()  {
+    virtual SnpSharedPtr<StoreT> self_ptr() {
         return my_self_ptr();
     }
 
@@ -1249,16 +1249,6 @@ public:
         block->snapshot_id() = snapshot_id();
 
         return shared;
-    }
-
-
-
-    CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
-            ContainerOperationsPtr<Profile> ctr_intf,
-            SharedBlockConstPtr block
-    )
-    {
-        return ctr_intf->create_ctr_instance(block, this, this->writable_);
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(

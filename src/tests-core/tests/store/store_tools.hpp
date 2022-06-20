@@ -351,6 +351,7 @@ public:
     }
 
     virtual void close_store(StoreT store) {
+        // not supported
         //store->close();
     }
 };

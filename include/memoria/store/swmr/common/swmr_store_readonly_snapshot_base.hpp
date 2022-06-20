@@ -44,13 +44,6 @@ public:
         Base(store, snapshot_descriptor, refcounter_delegate)
     {}
 
-    CtrSharedPtr<CtrReferenceable<ApiProfileT>> new_ctr_instance(
-            ContainerOperationsPtr<Profile> ctr_intf,
-            SharedBlockConstPtr block
-    ) {
-        return ctr_intf->create_ctr_instance(block, this, false);
-    }
-
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
             const LDTypeDeclarationView& decl, const CtrID& ctr_id

@@ -44,7 +44,7 @@ public:
     }
 
     static void init_suite(TestSuite& suite) {
-        MMA_CLASS_TESTS(suite, testSWMRLite, testMemCoW);
+        MMA_CLASS_TESTS(suite, testSWMRLite, testSWMRFull, testLMDB, testMemCoW);
     }
 
     void testSWMRLite()
@@ -67,6 +67,45 @@ public:
         bench.run_queries();
     }
 
+    void testSWMRFull()
+    {
+        auto wd = Base::working_directory_;
+        wd.append("file.mma2");
+
+        U8String file = wd.std_string();
+
+        auto store = std::make_shared<SWMRStoreOperation>(file, 1024);
+
+        using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile>>;
+        StoreTestBench<StorePtrT> bench(store);
+
+        bench.set_entries(size_);
+        bench.set_check_epocs(true);
+        bench.set_consistency_point(ConsistencyPoint::AUTO);
+
+        bench.run_insertions();
+        bench.run_queries();
+    }
+
+    void testLMDB()
+    {
+        auto wd = Base::working_directory_;
+        wd.append("file.mma2");
+
+        U8String file = wd.std_string();
+
+        auto store = std::make_shared<LMDBStoreOperation>(file, 1024);
+
+        using StorePtrT = AllocSharedPtr<ILMDBStore<CoreApiProfile>>;
+        StoreTestBench<StorePtrT> bench(store);
+
+        bench.set_entries(size_);
+        bench.set_check_epocs(true);
+        bench.set_consistency_point(ConsistencyPoint::AUTO);
+
+        bench.run_insertions();
+        bench.run_queries();
+    }
 
     void testMemCoW()
     {

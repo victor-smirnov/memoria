@@ -348,10 +348,6 @@ endif()
 
 SET(MEMORIA_APPS)
 
-if(BUILD_MSVC)
-#    SET(MEMORIA_APPS ${MEMORIA_APPS} named_pipes)
-endif()
-
 if (BUILD_PYTHON_BINDINGS)
     add_subdirectory(python)
 endif()

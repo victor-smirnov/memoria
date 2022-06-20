@@ -28,7 +28,7 @@
 
 namespace memoria {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsWName)
 
     using typename Base::TreeNodePtr;
     using typename Base::TreeNodeConstPtr;
@@ -130,12 +130,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
             self.set_root(BlockID{});
 
             self.store().on_ctr_drop(self.name());
-
-//            if (this->do_unregister_)
-//            {
-//                this->do_unregister_on_dtr_ = false;
-//                return self.store().unregisterCtr(self.name(), this);
-//            }
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Snapshot must be in active state to drop containers").do_throw();
@@ -150,10 +144,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
         TreeNodePtr new_root = self.ctr_create_node(0, true, true, metadata.memory_block_size());
 
         // FIXME: This method must preserve root metadata and
-        // deligate metadata cleanup to actual containers.
+        // delegate metadata cleanup to actual containers.
 
         // FIXME: in case of container refcounting this trick
-        // can drop counter entirely.
+        // can drop container entirely.
         self.drop();
         return self.set_root(new_root->id());
     }
@@ -206,7 +200,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsName)
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::NoCoWOpsName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::NoCoWOpsWName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
