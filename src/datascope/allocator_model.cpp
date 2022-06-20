@@ -194,17 +194,6 @@ void AllocatorModel::open_allocator(const QString& file, const QModelIndex& afte
 #endif
 
 #ifdef MEMORIA_NO_COW_PROFILE
-//        if (is_memory_store_noncow(fname))
-//        {
-//            auto alloc = load_memory_store_noncow(fname);
-
-//            beginInsertRows(root_idx, row_pos, row_pos);
-//            root_item_->add_inmem_store(alloc, file);
-//            endInsertRows();
-
-//            known = true;
-//        }
-
         if (is_lmdb_store(fname))
         {
             auto alloc = open_lmdb_store(fname);

@@ -13,8 +13,6 @@
 # limitations under the License.
 
 if (NO_COW_PROFILE)
-    #add_subdirectory(memory_nocow_fibers)
-    #add_subdirectory(memory_nocow_threads)
     add_subdirectory(lmdb)
 endif()
 

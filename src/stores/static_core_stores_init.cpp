@@ -32,7 +32,6 @@ void InitMemoriaStoresExplicit()
 #endif
 
 #ifdef MEMORIA_NO_COW_PROFILE
-    //InitNoCowInMemStore();
     InitLMDBStore();
 #endif
 }

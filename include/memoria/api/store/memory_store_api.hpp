@@ -239,11 +239,5 @@ SharedPtr<IMemoryStore<CoreApiProfile>> load_memory_store_cowlite(U8String path)
 SharedPtr<IMemoryStore<CoreApiProfile>> load_memory_store_cowlite(InputStreamHandler* input_stream);
 bool is_memory_store_cowlite(U8String path);
 
-
-SharedPtr<IMemoryStore<CoreApiProfile>> create_memory_store_noncow();
-SharedPtr<IMemoryStore<CoreApiProfile>> load_memory_store_noncow(U8String path);
-SharedPtr<IMemoryStore<CoreApiProfile>> load_memory_store_noncow(InputStreamHandler* input_stream);
-bool is_memory_store_noncow(U8String path);
-
 }
 
