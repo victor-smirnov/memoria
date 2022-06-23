@@ -307,7 +307,5 @@ T div_2(T value) {
 
 constexpr size_t SizeTMax = std::numeric_limits<size_t>::max();
 
-void throw_exception(const char * msg = nullptr, const char* src = MA_SRC);
-
 }
 

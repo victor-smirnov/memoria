@@ -186,7 +186,7 @@ public:
 
             BlockType* block = ptr_cast<BlockType>(buffer_.data() + at * BASIC_BLOCK_SIZE);
             BlockCacheEntry* shared = cache_entry_pool_.construct(block_id, block, at);
-            shared->set_allocator(this);
+            shared->set_store(this);
 
             block_cache_.insert(shared);
 

@@ -883,6 +883,20 @@ do {                                         \
 
 #define MEMORIA_PROPAGATE_ERROR(res0) std::move(res0).transfer_error()
 
+
+// For debugging purposes
+static inline void do_throw_exception(const char* msg, const char* src) {
+    if (msg) {
+        MEMORIA_MAKE_GENERIC_ERROR("Exception ({}) at {}", msg, src).do_throw();
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Exception at {}", src).do_throw();
+    }
+}
+
+#define throw_exception0() do_throw_exception(nullptr, MA_SRC);
+#define throw_exception1(msg) do_throw_exception(msg,  MA_SRC);
+
 }
 
 namespace fmt {

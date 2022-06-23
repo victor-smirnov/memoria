@@ -126,8 +126,8 @@ public:
             auto vv = block_id.value().value() * BASIC_BLOCK_SIZE;
 
             BlockType* block = ptr_cast<BlockType>(buffer_.data() + vv );
-            Shared* shared = shared_pool_.construct(block_id, block, 0);
-            shared->set_allocator(this);
+            Shared* shared = shared_pool_.construct(block_id, block);
+            shared->set_store(this);
             shared->set_mutable(block->snapshot_id() == snapshot_id());
 
             return {block_id.value().value() * BASIC_BLOCK_SIZE, SharedBlockConstPtr{shared}};
@@ -163,8 +163,8 @@ public:
         block->memory_block_size() = size;
         block->snapshot_id() = snapshot_id();
 
-        Shared* shared = shared_pool_.construct(id, block, 0);
-        shared->set_allocator(this);
+        Shared* shared = shared_pool_.construct(id, block);
+        shared->set_store(this);
         shared->set_mutable(true);
 
         return shared;
@@ -187,8 +187,8 @@ public:
 
         new_block->set_references(0);
 
-        Shared* shared = shared_pool_.construct(id, new_block, 0);
-        shared->set_allocator(this);
+        Shared* shared = shared_pool_.construct(id, new_block);
+        shared->set_store(this);
         shared->set_mutable(true);
 
         return shared;

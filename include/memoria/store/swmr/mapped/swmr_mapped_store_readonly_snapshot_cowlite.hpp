@@ -124,9 +124,9 @@ public:
     {
         BlockType* block = ptr_cast<BlockType>(buffer_.data() + block_id.value().value() * BASIC_BLOCK_SIZE);
 
-        Shared* shared = shared_pool_.construct(block_id, block, 0);
+        Shared* shared = shared_pool_.construct(block_id, block);
 
-        shared->set_allocator(this);
+        shared->set_store(this);
 
         return {block_id.value().value(), SharedBlockConstPtr{shared}};
     }

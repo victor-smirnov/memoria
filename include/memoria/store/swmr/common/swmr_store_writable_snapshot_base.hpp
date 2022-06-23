@@ -1081,6 +1081,24 @@ public:
         }
     }
 
+    virtual void unref_block(const BlockID& block_id) {
+        return unref_block(block_id, [&](){
+            auto block = this->getBlock(block_id);
+
+            auto ctr_hash   = block->ctr_type_hash();
+            auto block_hash = block->block_type_hash();
+
+            auto blk_intf = ProfileMetadata<Profile>::local()
+                    ->get_block_operations(ctr_hash, block_hash);
+
+            blk_intf->for_each_child(block.block(), [&](const BlockID& child_id){
+                unref_block(child_id);
+            });
+
+            removeBlock(block_id);
+        });
+    }
+
     virtual void unref_block(const BlockID& block_id, BlockCleanupHandler on_zero)
     {
         auto refs = refcounter_delegate_->count_refs(block_id);
@@ -1105,19 +1123,7 @@ public:
 
     virtual void unref_ctr_root(const BlockID& root_block_id)
     {
-        return unref_block(root_block_id, [=]() {
-            auto block = this->getBlock(root_block_id);
-
-            auto ctr_hash = block->ctr_type_hash();
-
-            auto ctr_intf = ProfileMetadata<Profile>::local()
-                    ->get_container_operations(ctr_hash);
-
-            auto ctr = ctr_intf->create_ctr_instance(block, this, this->writable_);
-
-            AnyID holder = AnyID::wrap(root_block_id);
-            ctr->internal_unref_cascade(holder);
-        });
+        return unref_block(root_block_id);
     }
 
 

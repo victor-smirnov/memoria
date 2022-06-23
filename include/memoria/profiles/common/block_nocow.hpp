@@ -83,7 +83,7 @@ public:
     }
 
     NoCowSharedBlockPtr& as_mutable() & noexcept {
-        if (!shared_ || shared_->updated()) {
+        if (!shared_ || shared_->is_mutable()) {
             return *this;
         }
         else {
@@ -92,7 +92,7 @@ public:
     }
 
     NoCowSharedBlockPtr as_mutable() const & noexcept {
-        if (!shared_ || shared_->updated()) {
+        if (!shared_ || shared_->is_mutable()) {
             return NoCowSharedBlockPtr<MutableBlockType, StoreT, Shared>{shared_};
         }
         else {
@@ -101,7 +101,7 @@ public:
     }
 
     NoCowSharedBlockPtr as_mutable() && noexcept {
-        if (!shared_ || shared_->updated()) {
+        if (!shared_ || shared_->is_mutable()) {
             Shared* tmp = shared_;
             shared_ = nullptr;
             return NoCowSharedBlockPtr<MutableBlockType, StoreT, Shared>{tmp, NoRef{}};
@@ -340,8 +340,7 @@ public:
         guard.shared_ = nullptr;
     }
 
-    ~NoCowSharedBlockPtr() noexcept
-    {
+    ~NoCowSharedBlockPtr() noexcept {
         unref();
     }
 
@@ -361,7 +360,7 @@ public:
     }
 
     NoCowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() & noexcept {
-        if (!shared_ || shared_->updated()) {
+        if (!shared_ || shared_->is_mutable()) {
             return NoCowSharedBlockPtr<MutableBlockType, StoreT, Shared>{shared_};
         }
         else {
@@ -370,7 +369,7 @@ public:
     }
 
     NoCowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() const& noexcept {        
-        if (!shared_ || shared_->updated()) {
+        if (!shared_ || shared_->is_mutable()) {
             return NoCowSharedBlockPtr<MutableBlockType, StoreT, Shared>{shared_};
         }
         else {
@@ -379,7 +378,7 @@ public:
     }
 
     NoCowSharedBlockPtr<MutableBlockType, StoreT, Shared> as_mutable() && noexcept {
-        if (!shared_ || shared_->updated())
+        if (!shared_ || shared_->is_mutable())
         {
             Shared* tmp = shared_;
             shared_ = nullptr;
@@ -478,8 +477,7 @@ public:
     }
 
 
-    void set_block(PageT* block) noexcept
-    {
+    void set_block(PageT* block) noexcept {
         shared_->set_block(block);
     }
 
@@ -487,25 +485,20 @@ public:
         return *shared_;
     }
 
-    bool is_updated() const noexcept
-    {
+    bool is_updated() const noexcept {
         return shared_->updated();
     }
 
 
 
-    void update() const
-    {
-        if (shared_)
-        {
+    void update() const {
+        if (shared_) {
             shared_->store()->updateBlock(shared_);
         }
     }
 
-    void resize(int32_t new_size)
-    {
-        if (shared_ != nullptr)
-        {
+    void resize(int32_t new_size) {
+        if (shared_ != nullptr) {
             return shared_->store()->resizeBlock(shared_, new_size);
         }
     }
@@ -523,18 +516,15 @@ public:
 private:
     void ref() noexcept
     {
-        if (shared_ != nullptr)
-        {
+        if (shared_ != nullptr) {
             shared_->ref();
         }
     }
 
     void unref() noexcept
     {
-        if (shared_)
-        {
-            if (shared_->unref())
-            {
+        if (shared_) {
+            if (shared_->unref()) {
                 shared_->store()->releaseBlock(shared_);
             }
         }

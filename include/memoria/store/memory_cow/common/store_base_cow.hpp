@@ -925,19 +925,20 @@ protected:
         uint64_t block_hash;
         in >> block_hash;
 
-        auto block_data = allocate_system<int8_t>(block_data_size);
-        BlockType* block = allocate_system<BlockType>(block_size).release();
+        auto block_data = allocate_system<uint8_t>(block_data_size);
+        auto block = allocate_block_of_size<BlockType>(block_size);
 
         in.read(block_data.get(), 0, block_data_size);
 
         ProfileMetadata<Profile>::local()
                 ->get_block_operations(ctr_hash, block_hash)
-                ->deserialize(block_data.get(), block_data_size, block);
+                ->deserialize(block_data.get(), block_data_size, block.get());
 
-        block->id() = detail::IDValueHolderH<BlockID>::to_id(block);
+        block->id() = detail::IDValueHolderH<BlockID>::to_id(block.get());
 
         if (map.find(block->uid()) == map.end()) {
-            map[block->uid()] = block;
+            map[block->uid()] = block.get();
+            block.release();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Block {} was already registered", block->uid()).do_throw();

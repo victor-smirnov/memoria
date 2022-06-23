@@ -781,6 +781,18 @@ public:
         }
     }
 
+    template <typename Fn>
+    void for_each_child_node(Fn&& fn) const
+    {
+        auto size = this->size();
+
+        const Value* child_ids = values();
+
+        for (size_t c = 0; c < size; c++) {
+            fn(child_ids[c]);
+        }
+    }
+
     struct DeserializeFn {
         template <typename StreamObj, typename DeserializationData>
         void stream(StreamObj* obj, DeserializationData* buf)
@@ -914,6 +926,7 @@ public:
     {
         using typename IBlockOperations<Profile>::BlockType;
         using typename IBlockOperations<Profile>::IDValueResolver;
+        using typename IBlockOperations<Profile>::BlockID;
 
         virtual ~BlockOperations()  {}
 
@@ -924,10 +937,7 @@ public:
             SerializationData data;
             data.buf = ptr_cast<char>(buf);
 
-
             detail_::BTNodeNodeMethodsSelector<Profile>::serialize(node, data, resolver);
-
-
             return data.total;
         }
 
@@ -956,6 +966,14 @@ public:
 
         virtual uint64_t block_type_hash() const {
             return MyType::BLOCK_HASH;
+        }
+
+        virtual void for_each_child(
+                const BlockType* block,
+                std::function<void (const BlockID&)> callback
+        ) const {
+            MyType* node = ptr_cast<MyType>(block);
+            node->for_each_child_node(callback);
         }
     };
 

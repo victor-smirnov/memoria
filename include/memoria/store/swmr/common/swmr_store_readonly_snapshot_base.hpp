@@ -46,9 +46,9 @@ public:
 
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
-            const LDTypeDeclarationView& decl, const CtrID& ctr_id
-    )
-    {
+            const LDTypeDeclarationView& decl,
+            const CtrID& ctr_id
+    ){
         return this->create_ctr_instance(decl, ctr_id);
     }
 

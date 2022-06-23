@@ -275,9 +275,6 @@ public:
                 );
             }
             else {
-//                return std::make_unique<CtrT<ContainerTypeName>>(
-//                    allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
-//                );
                 MEMORIA_MAKE_GENERIC_ERROR("Can't create containers in read-only snapshots").do_throw();
             }
         }

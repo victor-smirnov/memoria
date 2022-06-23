@@ -445,9 +445,8 @@ public:
             auto ii = buffer.begin(0);
             auto end = buffer.end(0);
 
-            for (; ii != end; ii++)
-            {
-                store.unref_ctr_root(*ii);
+            for (; ii != end; ii++) {
+                store.unref_block(*ii);
             }
         }
     };

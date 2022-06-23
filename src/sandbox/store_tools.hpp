@@ -408,9 +408,15 @@ public:
         store->store(file_name_);
     }
 
-    virtual void commit(WritableSnapshotPtr snp, ConsistencyPoint cp) {
+    virtual void commit(WritableSnapshotPtr snp, ConsistencyPoint cp)
+    {
         snp->commit(cp);
         snp->set_as_master();
+
+        auto parent = snp->parent();
+        if (parent->has_parent()) {
+            parent->drop();
+        }
     }
 
     virtual WritableSnapshotPtr begin_writable(StoreT store) {

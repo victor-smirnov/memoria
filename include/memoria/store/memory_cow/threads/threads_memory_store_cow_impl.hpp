@@ -849,17 +849,7 @@ protected:
             store_(store), out_(out), stored_blocks_(stored_blocks)
         {}
 
-        virtual void process_branch_node(const BlockType* block) {
-            stored_blocks_.insert(block);
-            return store_.write_ctr_block(out_, block);
-        }
-
-        virtual void process_leaf_node(const BlockType* block) {
-            stored_blocks_.insert(block);
-            return store_.write_ctr_block(out_, block);
-        }
-
-        virtual void process_directory_leaf_node(const BlockType* block) {
+        virtual void process_node(const BlockType* block) {
             stored_blocks_.insert(block);
             return store_.write_ctr_block(out_, block);
         }

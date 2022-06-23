@@ -148,6 +148,11 @@ public:
     }
 
 
+
+
+
+
+
     struct MemCowResolveIDSFn {
         template <typename Tree, typename IDResolver>
         void stream(const Tree* tree, const IDResolver*)
@@ -187,8 +192,8 @@ public:
             ExtData ext_data{};
             BufferSO buffer_so(&ext_data, pkd_buffer);
 
-            psize_t size = buffer_so.size();
-            for (psize_t c = 0; c < size; c++)
+            size_t size = buffer_so.size();
+            for (size_t c = 0; c < size; c++)
             {
                 auto memref_id = id_resolver->resolve_id(buffer_so.access(0, c));
 
@@ -208,6 +213,58 @@ public:
         return Dispatcher::dispatchNotEmpty(allocator(), MemCowResolveIDSFn(), id_resolver);
     }
 
+
+    struct CowForEachChildFn {
+        template <typename Tree, typename CallbackFn>
+        void stream(const Tree*, CallbackFn&&){}
+
+        template <typename IDValueHolder, bool Indexed, typename CallbackFn>
+        void stream(
+                const PackedDataTypeBuffer<
+                        PackedDataTypeBufferTypes<
+                            CowBlockID<IDValueHolder>,
+                            Indexed,
+                            1,
+                            DTOrdering::UNORDERED
+                        >
+                >* pkd_buffer,
+                CallbackFn&& callback
+        )
+        {
+            using DataType = CowBlockID<IDValueHolder>;
+
+            using Buffer = PackedDataTypeBuffer<
+                PackedDataTypeBufferTypes<
+                    DataType,
+                    Indexed,
+                    1,
+                    DTOrdering::UNORDERED
+                >
+            >;
+
+            using ExtData = typename DataTypeTraits<DataType>::TypeDimensionsTuple;
+
+            using BufferSO = PackedDataTypeBufferSO<
+                ExtData,
+                Buffer
+            >;
+
+            ExtData ext_data{};
+            BufferSO buffer_so(&ext_data, const_cast<Buffer*>(pkd_buffer));
+
+            size_t size = buffer_so.size();
+            for (size_t c = 0; c < size; c++) {
+                callback(buffer_so.access(0, c));
+            }
+        }
+    };
+
+
+
+    template <typename Fn>
+    void for_each_child_node(Fn&& fn) const {
+        return Dispatcher::dispatchNotEmpty(allocator(), CowForEachChildFn(), std::forward<Fn>(fn));
+    }
 
 
     struct DeserializeFn {

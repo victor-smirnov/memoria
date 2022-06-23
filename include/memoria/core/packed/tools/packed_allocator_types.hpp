@@ -101,7 +101,7 @@ class PackedAllocatable {
 protected:
     psize_t allocator_offset_;
 
-    psize_t& allocator_offset() {return allocator_offset_;}
+    psize_t& allocator_offset() noexcept {return allocator_offset_;}
 
 public:
 
@@ -114,7 +114,6 @@ public:
     static constexpr uint32_t VERSION                  = 1;
     static constexpr size_t AlignmentBlock             = PackedAllocationAlignment;
 
-
     using FieldsList = TypeList<
             ConstValue<uint32_t, VERSION>,
             decltype(allocator_offset_)
@@ -122,9 +121,9 @@ public:
 
     PackedAllocatable() noexcept = default;
 
-    const psize_t& allocator_offset() const {return allocator_offset_;}
+    const psize_t& allocator_offset() const noexcept {return allocator_offset_;}
 
-    void setTopLevelAllocator()
+    void setTopLevelAllocator() noexcept
     {
         allocator_offset() = 0;
     }
@@ -135,7 +134,7 @@ public:
         return allocator_offset_ > 0;
     }
 
-    void set_allocator_offset(const void* allocator)
+    void set_allocator_offset(const void* allocator) noexcept
     {
         // TODO: check for UB.
         const char* my_ptr = ptr_cast<const char>(this);
@@ -144,7 +143,7 @@ public:
         allocator_offset() = diff;
     }
 
-    PackedAllocator* allocator()
+    PackedAllocator* allocator() noexcept
     {
         if (allocator_offset() > 0)
         {
@@ -157,7 +156,7 @@ public:
         }
     }
 
-    PackedAllocator* allocator_or_null()
+    PackedAllocator* allocator_or_null() noexcept
     {
         if (allocator_offset() > 0)
         {
@@ -169,7 +168,7 @@ public:
         }
     }
 
-    const PackedAllocator* allocator() const
+    const PackedAllocator* allocator() const noexcept
     {
         if (allocator_offset() > 0)
         {
@@ -182,7 +181,7 @@ public:
         }
     }
 
-    const PackedAllocator* allocator_or_null() const
+    const PackedAllocator* allocator_or_null() const noexcept
     {
         if (allocator_offset() > 0)
         {
@@ -194,37 +193,37 @@ public:
         }
     }
 
-    static constexpr size_t round_up_bytes(size_t value)
+    static constexpr size_t round_up_bytes(size_t value) noexcept
     {
         return (value / AlignmentBlock + (value % AlignmentBlock ? 1 : 0)) * AlignmentBlock;
     }
 
-    static constexpr size_t round_down_bytes(size_t value)
+    static constexpr size_t round_down_bytes(size_t value) noexcept
     {
         return (value / AlignmentBlock) * AlignmentBlock;
     }
 
-    static constexpr size_t round_up_bits(size_t bits)
+    static constexpr size_t round_up_bits(size_t bits) noexcept
     {
         return round_up_bytes(round_up_bits_to_bytes(bits));
     }
 
-    static constexpr size_t round_down_bits(size_t bits)
+    static constexpr size_t round_down_bits(size_t bits) noexcept
     {
         return round_down_bytes(round_down_bits_to_bytes(bits));
     }
 
-    static constexpr size_t round_up_bits_to_bytes(size_t bits)
+    static constexpr size_t round_up_bits_to_bytes(size_t bits) noexcept
     {
         return bits / 8 + (bits % 8 > 0);
     }
 
-    static constexpr size_t round_down_bits_to_bytes(size_t bits)
+    static constexpr size_t round_down_bits_to_bytes(size_t bits) noexcept
     {
         return bits / 8 + (bits % 8 > 0);
     }
 
-    static constexpr size_t div_up(size_t value, size_t divider)  {
+    static constexpr size_t div_up(size_t value, size_t divider) noexcept {
         return ::memoria::div_up(value, divider);
     }
 

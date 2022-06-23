@@ -37,11 +37,26 @@ using UniquePtr = std::unique_ptr<T, void (*)(void*)>;
 template <typename T>
 UniquePtr<T> allocate_system(size_t size)
 {
-    void* ptr = ::malloc(size * detail::AllocationSizeH<T>::Value);
+    size_t alc_size = size * detail::AllocationSizeH<T>::Value;
+    void* ptr = ::malloc(alc_size);
 
     T* tptr = ptr_cast<T>(ptr);
 
     return UniquePtr<T>(tptr, ::free);
+}
+
+template <typename T>
+UniquePtr<T> allocate_block_of_size(size_t size)
+{
+    void* ptr = ::malloc(size);
+    T* tptr = ptr_cast<T>(ptr);
+
+    return UniquePtr<T>(tptr, ::free);
+}
+
+template <typename T>
+UniquePtr<T> uptr_from_raw(T* ptr) {
+    return UniquePtr<T>{ptr, ::free};
 }
 
 template <typename T>

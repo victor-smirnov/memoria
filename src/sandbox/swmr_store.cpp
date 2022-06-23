@@ -27,18 +27,17 @@
 
 using namespace memoria;
 
-using StorePtrT = AllocSharedPtr<ILMDBStore<CoreApiProfile>>;
+//using StorePtrT = AllocSharedPtr<ILMDBStore<CoreApiProfile>>;
 //using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile>>;
-//using StorePtrT = AllocSharedPtr<IMemoryStore<CoreApiProfile>>;
+using StorePtrT = AllocSharedPtr<IMemoryStore<CoreApiProfile>>;
 
 int main(void) {
     try {
         U8String file = "file.mma2";
 
-        auto store = std::make_shared<LMDBStoreOperation>(file, 1024);
-
-        //auto store = std::make_shared<LiteSWMRStoreOperation>(file, 1024);
-        //auto store = std::make_shared<MemoryStoreOperation>(file);
+//        auto store = std::make_shared<LMDBStoreOperation>(file, 1024);
+//        auto store = std::make_shared<LiteSWMRStoreOperation>(file, 1024);
+        auto store = std::make_shared<MemoryStoreOperation>(file);
 
         StoreTestBench<StorePtrT> bench(store);
 

@@ -254,11 +254,7 @@ struct BTreeTraverseNodeHandler {
     using BlockType = ProfileBlockType<Profile>;
     using BlockID   = ProfileBlockID<Profile>;
 
-
-    virtual void process_branch_node(const BlockType* block) = 0;
-    virtual void process_leaf_node(const BlockType* block) = 0;
-    virtual void process_directory_leaf_node(const BlockType* block) = 0;
-
+    virtual void process_node(const BlockType* block) = 0;
     virtual bool proceed_with(const BlockID& block_id) const = 0;
 };
 

@@ -29,6 +29,7 @@
 #include <memoria/core/strings/strings.hpp>
 #include <memoria/core/strings/format.hpp>
 #include <memoria/core/bytes/bytes.hpp>
+#include <memoria/core/memory/memory.hpp>
 
 #include <memoria/profiles/common/common.hpp>
 
@@ -115,7 +116,6 @@ struct IBlockOperationsBase {
 
     using BlockType = ProfileBlockType<Profile>;
     using BlockID   = ProfileBlockID<Profile>;
-    using BlockGUID   = ProfileBlockGUID<Profile>;
 
     struct IDValueResolver {
         virtual BlockID resolve_id(const BlockID& stored_block_id) const = 0;
@@ -129,10 +129,14 @@ struct IBlockOperationsBase {
 
     virtual void deserialize(const void* buf, size_t buf_size, BlockType* block) const = 0;
 
-    // FIXME: remove this method from here
     virtual void resize(const BlockType* block, void* buffer, size_t new_size) const = 0;
 
     virtual uint64_t block_type_hash() const = 0;
+
+    virtual void for_each_child(
+            const BlockType* block,
+            std::function<void (const BlockID&)> callback
+    ) const = 0;
 };
 
 template <typename Profile>

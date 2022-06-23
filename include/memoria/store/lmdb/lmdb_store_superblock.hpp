@@ -43,7 +43,7 @@ public:
     BlockID& directory_root_id()  {return directory_root_id_;}
     uint64_t superblock_size() const  {return superblock_size_;}
 
-    void init(uint64_t superblock_size)
+    void init(uint64_t superblock_size) noexcept
     {
         directory_root_id_ = BlockID{};
         superblock_size_ = superblock_size;
@@ -54,15 +54,15 @@ public:
         return allocator_.init(allocator_block_size(superblock_size), 1);
     }
 
-    bool is_updated() const  {
+    bool is_updated() const noexcept {
         return updates_ > 0;
     }
 
-    void clear_updates()  {
+    void clear_updates() noexcept {
         updates_ = 0;
     }
 
-    void touch()  {
+    void touch() noexcept {
         ++updates_;
     }
 
@@ -73,7 +73,7 @@ public:
     }
 
 private:
-    static int32_t allocator_block_size(size_t superblock_size)
+    static int32_t allocator_block_size(size_t superblock_size) noexcept
     {
         int32_t sb_size = sizeof(LMDBSuperblock);
         int32_t alloc_size = sizeof(PackedAllocator);

@@ -20,15 +20,6 @@ namespace memoria {
 
 namespace detail {
 
-void throw_exception(const char * msg, const char* src) {
-    if (msg) {
-        MEMORIA_MAKE_GENERIC_ERROR("Exception ({}) at {}", msg, src).do_throw();
-    }
-    else {
-        MEMORIA_MAKE_GENERIC_ERROR("Exception at {}", src).do_throw();
-    }
-}
-
 void ResultErrors::do_throw() {
     switch(error.index())
     {

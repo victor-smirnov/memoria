@@ -602,7 +602,7 @@ public:
     }
 
     virtual void drop() {
-        MEMORIA_MAKE_GENERIC_ERROR("drop() has to be implemented!!").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("drop() is not supported for SWMRStore snapshots").do_throw();
     }
 
 
@@ -638,35 +638,37 @@ public:
         }
     }
 
-    virtual void unref_block(const BlockID& block_id, std::function<void ()> on_zero)
+    virtual void unref_block(const BlockID& block_id)
     {
-        if (refcounter_delegate_)
-        {
-            return refcounter_delegate_->unref_block(block_id, on_zero);
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("unref_block() is not implemented for ReadOnly commits").do_throw();
-        }
+        MEMORIA_MAKE_GENERIC_ERROR("unref_block() is not implemented for ReadOnly commits").do_throw();
     }
 
     virtual void unref_ctr_root(const BlockID& root_block_id)
     {
-//        if (refcounter_delegate_)
-//        {
-//            return refcounter_delegate_->unref_ctr_root(root_block_id);
-//        }
-//        else {
-//            MEMORIA_MAKE_GENERIC_ERROR("unref_ctr_root() is not implemented for ReadOnly commits").do_throw();
-//        }
+        MEMORIA_MAKE_GENERIC_ERROR("unref_ctr_root() is not implemented for ReadOnly commits").do_throw();
     }
 
     virtual void traverse_ctr(
-            const BlockID& root_block,
+            const BlockID& block_id,
             BTreeTraverseNodeHandler<Profile>& node_handler
     )
     {
-        auto instance = from_root_id(root_block);
-        return instance->traverse_ctr(&node_handler);
+        if (!block_id.is_null())
+        {
+            if (node_handler.proceed_with(block_id))
+            {
+                auto block = getBlock(block_id);
+
+                node_handler.process_node(block.block());
+
+                auto blk_intf = ProfileMetadata<Profile>::local()
+                        ->get_block_operations(block->ctr_type_hash(), block->block_type_hash());
+
+                blk_intf->for_each_child(block.block(), [&](const BlockID& child_id){
+                    this->traverse_ctr(child_id, node_handler);
+                });
+            }
+        }
     }
 
     virtual void check_updates_allowed() {

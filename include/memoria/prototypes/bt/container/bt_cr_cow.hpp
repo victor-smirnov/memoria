@@ -41,112 +41,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsRName)
     using typename Base::BlockType;
     using typename Base::ContainerTypeName;
 
-    MEMORIA_V1_DECLARE_NODE_FN(UnrefLeafChildren, cow_unref_children);
-
     void ctr_unref_block(const BlockID& block_id)
     {
         auto& self = this->self();
-
-        auto this_ptr = memoria_static_pointer_cast<MyType>(this->shared_from_this());
-        return self.store().unref_block(block_id, [&]() {
-            auto block = this_ptr->ctr_get_block(block_id);
-
-            if (!block->is_leaf())
-            {
-                this_ptr->ctr_for_all_ids(block, [&](const BlockID& child_id) {
-                    return this_ptr->ctr_unref_block(child_id);
-                });
-            }
-            else {
-                this_ptr->leaf_dispatcher().dispatch(block, UnrefLeafChildren(), this_ptr->store());
-            }
-
-            return this_ptr->store().removeBlock(block->id());
-        });
+        self.store().unref_block(block_id);
     }
-
-    void ctr_unref_block_cascade(const BlockID& block_id)
-    {
-        auto& self = this->self();
-
-        auto block = self.ctr_get_block(block_id);
-        if (!block->is_leaf())
-        {
-            self.ctr_for_all_ids(block, [&](const BlockID& block_id) {
-                return self.ctr_unref_block(block_id);
-            });
-        }
-        else {
-            self.leaf_dispatcher().dispatch(block, UnrefLeafChildren(), self.store());
-        }
-
-        return self.store().removeBlock(block->id());
-    }
-
-    virtual void internal_unref_cascade(const AnyID& root_block_id_api)
-    {
-        BlockID root_block_id = cast_to<BlockID>(root_block_id_api);
-        return self().ctr_unref_block_cascade(root_block_id);
-    }
-
-
-    void traverse_ctr(
-            void* node_handler_ptr
-    ) const
-    {
-        auto& self = this->self();
-
-        BTreeTraverseNodeHandler<Profile>* node_handler = ptr_cast<BTreeTraverseNodeHandler<Profile>>(node_handler_ptr);
-
-        auto root = self.ctr_get_root_node();
-        return ctr_do_cow_traverse_tree(*node_handler, root);
-    }
-
-private:
-
-    void ctr_do_cow_traverse_tree(BTreeTraverseNodeHandler<Profile>& node_handler, const TreeNodeConstPtr& node) const
-    {
-        auto& self = this->self();
-
-        constexpr bool is_ctr_directory = bt::CtrDirectoryHelper<ContainerTypeName>::Value;
-
-        if (node->is_leaf())
-        {
-            if (!is_ctr_directory) {
-                return node_handler.process_leaf_node(&node.block()->header());
-            }
-            else {
-                node_handler.process_directory_leaf_node(&node.block()->header());
-                return self.ctr_for_all_leaf_ctr_refs(node, [&](const BlockID& id)
-                {
-                    auto proceed_with = node_handler.proceed_with(id);
-                    if (proceed_with){
-                        return self.store().traverse_ctr(id, node_handler);
-                    }
-                });
-            }
-        }
-        else {
-            node_handler.process_branch_node(&node.block()->header());
-            return self.ctr_for_all_ids(node, [&](const BlockID& id)
-            {
-                auto proceed_with = node_handler.proceed_with(id);
-                if (proceed_with)
-                {
-                    auto child = self.ctr_get_block(id);
-                    return self.ctr_do_cow_traverse_tree(node_handler, child);
-                }
-            });
-        }
-    }
-
-
-    MEMORIA_V1_DECLARE_NODE_FN(ForAllCtrRooIDsFn, for_all_ctr_root_ids);
-    void ctr_for_all_leaf_ctr_refs(const TreeNodeConstPtr& node, const std::function<void (const BlockID&)>& fn) const
-    {
-        return self().leaf_dispatcher().dispatch(node, ForAllCtrRooIDsFn(), fn);
-    }
-
 
 MEMORIA_V1_CONTAINER_PART_END
 

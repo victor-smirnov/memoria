@@ -70,7 +70,7 @@ protected:
     using DirectoryCtrType  = Map<CtrID, BlockID>;
     using DirectoryCtr      = ICtrApi<DirectoryCtrType, ApiProfileT>;
 
-    static constexpr int32_t BASIC_BLOCK_SIZE = Store::BASIC_BLOCK_SIZE;
+    static constexpr size_t BASIC_BLOCK_SIZE = Store::BASIC_BLOCK_SIZE;
 
     SharedPtr<Store> store_;
     Superblock* superblock_;
@@ -82,7 +82,7 @@ protected:
 
 
     MDB_env* mdb_env_;
-    MDB_txn* transaction_;
+    MDB_txn* transaction_{};
     MDB_dbi system_db_;
     MDB_dbi data_db_;
 
@@ -410,8 +410,8 @@ public:
             BTreeTraverseNodeHandler<Profile>& node_handler
     )
     {
-        auto instance = from_root_id(root_block);
-        return instance->traverse_ctr(&node_handler);
+//        auto instance = from_root_id(root_block);
+//        return instance->traverse_ctr(&node_handler);
     }
 
     virtual void check_updates_allowed() {

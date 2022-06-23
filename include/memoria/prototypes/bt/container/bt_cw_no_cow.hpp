@@ -109,11 +109,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsWName)
         return self.store().removeBlock(node->id());
     }
 
-    virtual void internal_unref_cascade(const AnyID& root) {
-        MEMORIA_MAKE_GENERIC_ERROR("unref_cascade(BlockID) should not be called fo this profile").do_throw();
-    }
-
-
     void drop()
     {
         auto& self = this->self();
@@ -194,9 +189,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsWName)
     {
     }
 
-    virtual void traverse_ctr(void* node_handler) const {
-        make_generic_error("Method is not implemented for this profile").do_throw();
-    }
+//    virtual void traverse_ctr(void* node_handler) const {
+//        make_generic_error("Method is not implemented for this profile").do_throw();
+//    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

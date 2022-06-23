@@ -56,9 +56,7 @@ class LMDBStoreWritableSnapshot:
 
     using typename Base::DirectoryCtrType;
 
-    enum {ENTRY_STATE_ACTIVE, ENTRY_STATE_DELETED};
-
-    static constexpr int32_t LMDB_HEADER_SIZE = 64;
+    static constexpr size_t LMDB_HEADER_SIZE = 64;
 
     using UpdatedEntriesMemberHook = boost::intrusive::list_member_hook<
         boost::intrusive::link_mode<
@@ -68,14 +66,23 @@ class LMDBStoreWritableSnapshot:
 
     struct CacheEntryBase: Shared {
         UpdatedEntriesMemberHook upd_hook_;
+        bool deleted_{false};
 
-        CacheEntryBase(const BlockID& id, BlockType* block, int32_t state)  :
-            Shared(id, block, state),
+        CacheEntryBase(const BlockID& id, BlockType* block)  :
+            Shared(id, block),
             upd_hook_()
         {}
 
         bool is_updated() const  {
             return upd_hook_.is_linked();
+        }
+
+        void set_deleted() {
+          deleted_ = true;
+        }
+
+        bool is_deleted() const {
+          return deleted_;
         }
     };
 
@@ -92,8 +99,8 @@ class LMDBStoreWritableSnapshot:
     >;
 
 
-    static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
-    static constexpr int32_t SUPERBLOCK_SIZE             = BASIC_BLOCK_SIZE;
+    static constexpr size_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
+    static constexpr size_t SUPERBLOCK_SIZE             = BASIC_BLOCK_SIZE;
 
     using Base::directory_ctr_;
 
@@ -384,7 +391,7 @@ public:
                 forget_entry(entry);
             }
             else {
-                entry->state() = ENTRY_STATE_DELETED;
+                entry->set_deleted();
             }
         }
     }
@@ -399,20 +406,23 @@ public:
 
         initial_size = nearest_log2(initial_size) - LMDB_HEADER_SIZE;
 
-        uint8_t* block_addr = ptr_cast<uint8_t>(::malloc(initial_size));
+        auto block_addr = allocate_system<uint8_t>(initial_size);
 
-        std::memset(block_addr, 0, initial_size);
+        std::memset(block_addr.get(), 0, initial_size);
 
         auto id = newId();
-        BlockType* block = new (block_addr) BlockType(id);
+        BlockType* block = new (block_addr.get()) BlockType(id);
 
         block->memory_block_size() = initial_size;
 
-        BlockCacheEntry* entry = block_cache_entry_pool_.construct(id, block, ENTRY_STATE_ACTIVE);
-        entry->set_allocator(this);
+        BlockCacheEntry* entry = block_cache_entry_pool_.construct(id, block);
+        entry->set_store(this);
+        entry->set_mutable(true);
 
         block_cache_.insert(entry);
         updated_entries_.push_back(*entry);
+
+        block_addr.release();
 
         return entry;
     }
@@ -420,24 +430,27 @@ public:
     virtual SharedBlockPtr cloneBlock(const SharedBlockConstPtr& block, const CtrID&)
     {
         check_updates_allowed();
-        int32_t block_size = block->memory_block_size();
+        size_t block_size = block->memory_block_size();
 
-        uint8_t* block_addr = ptr_cast<uint8_t>(::malloc(block_size));
+        auto block_addr = allocate_system<uint8_t>(block_size);
 
-        std::memcpy(block_addr, block.block(), block_size);
+        std::memcpy(block_addr.get(), block.block(), block_size);
 
         auto id = newId();
-        BlockType* new_block = ptr_cast<BlockType>(block_addr);
+        BlockType* new_block = ptr_cast<BlockType>(block_addr.get());
         new_block->id()   = id;
         new_block->uid()  = id;
 
         new_block->set_references(0);
 
-        BlockCacheEntry* entry = block_cache_entry_pool_.construct(id, new_block, ENTRY_STATE_ACTIVE);
-        entry->set_allocator(this);
+        BlockCacheEntry* entry = block_cache_entry_pool_.construct(id, new_block);
+        entry->set_store(this);
+        entry->set_mutable(true);
 
         block_cache_.insert(entry);
         updated_entries_.push_back(*entry);
+
+        block_addr.release();
 
         return SharedBlockPtr{entry};
     }
@@ -544,7 +557,7 @@ private:
     {
         BlockCacheEntry* entry = ptr_cast<BlockCacheEntry>(block);
 
-        if (entry->state() == ENTRY_STATE_ACTIVE) {
+        if (!entry->is_deleted()) {
             return block_cache_.attach(entry);
         }
         else {
@@ -575,6 +588,7 @@ private:
                     BlockType* block_data = ptr_cast<BlockType>(::malloc(block_ptr.mv_size));
                     std::memcpy(block_data, block_ptr.mv_data, block_ptr.mv_size);
                     entry->set_block(block_data);
+                    entry->set_mutable(true);
                     return SharedBlockConstPtr(entry);
                 }
                 else {
@@ -588,8 +602,9 @@ private:
                 BlockType* block = ptr_cast<BlockType>(::malloc(block_ptr.mv_size));
                 std::memcpy(block, block_ptr.mv_data, block_ptr.mv_size);
 
-                BlockCacheEntry* entry = block_cache_entry_pool_.construct(id, block, ENTRY_STATE_ACTIVE);
-                entry->set_allocator(this);
+                BlockCacheEntry* entry = block_cache_entry_pool_.construct(id, block);
+                entry->set_store(this);
+                entry->set_mutable(true);
 
                 block_cache_.insert(entry);
 
@@ -687,8 +702,8 @@ private:
         }
     }
 
-    static constexpr int32_t nearest_log2(int32_t value)  {
-        int32_t vv = (1 << (Log2(value)));
+    static constexpr size_t nearest_log2(size_t value)  {
+        size_t vv = (1 << (Log2(value)));
         return (vv / 2 == value) ? value : vv;
     }
 

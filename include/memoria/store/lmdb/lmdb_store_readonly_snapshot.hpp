@@ -181,8 +181,8 @@ protected:
             if (block_ptr.mv_data) {
                 BlockType* block = ptr_cast<BlockType>(block_ptr.mv_data);
 
-                BlockCacheEntry* entry = block_shared_cache_pool_.construct(id, block, 0);
-                entry->set_allocator(this);
+                BlockCacheEntry* entry = block_shared_cache_pool_.construct(id, block);
+                entry->set_store(this);
 
                 block_shared_cache_.insert(entry);
 

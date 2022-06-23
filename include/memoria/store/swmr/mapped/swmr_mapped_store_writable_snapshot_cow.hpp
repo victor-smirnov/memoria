@@ -217,7 +217,7 @@ public:
 
             BlockType* block = ptr_cast<BlockType>(buffer_.data() + at * BASIC_BLOCK_SIZE);
             BlockCacheEntry* shared = cache_entry_pool_.construct(block_id, block, at);
-            shared->set_allocator(this);
+            shared->set_store(this);
 
             shared->set_mutable(block->snapshot_id() == snapshot_id());
 
@@ -288,7 +288,7 @@ public:
         block->snapshot_id() = snapshot_id();
 
         BlockCacheEntry* shared = cache_entry_pool_.construct(id, block, at);
-        shared->set_allocator(this);
+        shared->set_store(this);
         shared->set_mutable(true);
 
         block_cache_.insert(shared);
@@ -321,7 +321,7 @@ public:
         new_block->set_references(0);
 
         BlockCacheEntry* shared = cache_entry_pool_.construct(id, new_block, at);
-        shared->set_allocator(this);
+        shared->set_store(this);
         shared->set_mutable(true);
 
         block_cache_.insert(shared);
@@ -351,9 +351,8 @@ public:
     void check_storage_specific(
             SharedBlockConstPtr block,
             const CheckResultConsumerFn& consumer
-            ) override {
-
-    }
+    ) override
+    {}
 };
 
 }

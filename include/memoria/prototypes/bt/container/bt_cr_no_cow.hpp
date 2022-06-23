@@ -30,14 +30,6 @@ namespace memoria {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsRName)
 
-    virtual void internal_unref_cascade(const AnyID& root) {
-        MEMORIA_MAKE_GENERIC_ERROR("unref_cascade(BlockID) should not be called fo this profile").do_throw();
-    }
-
-
-    virtual void traverse_ctr(void* node_handler) const {
-        make_generic_error("Method is not implemented for this profile").do_throw();
-    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

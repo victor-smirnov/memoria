@@ -1,5 +1,5 @@
 
-// Copyright 2011-2021 Victor Smirnov
+// Copyright 2011-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -55,6 +55,8 @@ private:
     uint64_t    target_block_pos_;
     mutable std::atomic<int64_t> references_;
 
+    static_assert(std::is_trivially_copyable_v<decltype(references_)>, "");
+
     BlockIdT uid_;
     BlockIdT id_;
     SnapshotID snapshot_id_;
@@ -62,14 +64,15 @@ private:
 public:
     using FieldsList = TypeList<
                 ConstValue<uint32_t, VERSION>,
-                decltype(uid_),
-                decltype(snapshot_id_),
                 decltype(ctr_type_hash_),
                 decltype(block_type_hash_),
                 decltype(memory_block_size_),
                 decltype(next_block_pos_),
                 decltype(target_block_pos_),
-                int64_t //references
+                int64_t, //references
+                decltype(uid_),
+                decltype(id_),
+                decltype(snapshot_id_)
     >;
 
     using BlockID = BlockIdT;
@@ -249,39 +252,40 @@ public:
 
 template <typename StoreT, typename PageT, typename BlockID, typename Base = EmptyType>
 class PageShared: public Base {
+protected:
+    BlockID id_;
+    PageT*  block_;
+    int64_t references_;
 
-    BlockID     id_;
-    PageT*      block_;
-    int32_t     references_;
-    int32_t     state_;
-
-    StoreT* allocator_;
+    StoreT* store_;
 
     bool mutable_{false};
+    bool orphan_{false};
 public:
-    enum {UNDEFINED, READ, UPDATE, _DELETE};
-
     using BlockType = PageT;
 
     PageShared() noexcept {}
 
-    PageShared(const BlockID& id, PageT* block, int32_t state, StoreT* allocator) noexcept:
+    PageShared(const BlockID& id, PageT* block, StoreT* store) noexcept:
         id_(id),
         block_(block),
         references_(0),
-        state_(state),
-        allocator_(allocator)
+        store_(store)
     {}
 
-    PageShared(const BlockID& id, PageT* block, int32_t state) noexcept:
+    PageShared(const BlockID& id, PageT* block) noexcept:
         id_(id),
         block_(block),
         references_(0),
-        state_(state),
-        allocator_(nullptr)
+        store_(nullptr)
     {}
 
     virtual ~PageShared() noexcept = default;
+
+    bool is_orphan() const noexcept {return orphan_;}
+    void set_orphan(bool value) noexcept {
+        orphan_ = value;
+    }
 
     bool is_mutable() const noexcept {return mutable_;}
     void set_mutable(bool value) noexcept {
@@ -294,14 +298,14 @@ public:
         }
     }
 
-    template <typename Page>
-    const Page* block() const noexcept {
-        return ptr_cast<const Page>(block_);
+    template <typename BlockT1>
+    const BlockT1* block() const noexcept {
+        return ptr_cast<const BlockT1>(block_);
     }
 
-    template <typename Page>
-    Page* block() noexcept {
-        return ptr_cast<Page>(block_);
+    template <typename BlockT1>
+    BlockT1* block() noexcept {
+        return ptr_cast<BlockT1>(block_);
     }
 
     PageT* ptr() const noexcept {
@@ -316,34 +320,18 @@ public:
         return block_;
     }
 
-    template <typename Page>
-    operator Page* () noexcept {
-        return block<Page>();
+    template <typename BlockT1>
+    operator BlockT1* () noexcept {
+        return block<BlockT1>();
     }
 
-    template <typename Page>
-    operator const Page* () noexcept {
-        return block<Page>();
+    template <typename BlockT1>
+    operator const BlockT1* () noexcept {
+        return block<BlockT1>();
     }
 
-    int32_t references() const noexcept {
+    int64_t references() const noexcept {
         return references_;
-    }
-
-    int32_t& references() noexcept {
-        return references_;
-    }
-
-    int32_t state() const noexcept {
-        return state_;
-    }
-
-    int32_t& state() noexcept {
-        return state_;
-    }
-
-    BlockID& id() noexcept {
-        return id_;
     }
 
     const BlockID& id() const noexcept {
@@ -351,50 +339,24 @@ public:
     }
 
     template <typename Page>
-    void set_block(Page* block)
-    {
+    void set_block(Page* block) {
         this->block_ = static_cast<PageT*>(block);
-    }
-
-    void resetPage() noexcept {
-        this->block_ = nullptr;
     }
 
     void ref() noexcept {
         references_++;
     }
 
-    bool unref() noexcept
-    {
+    bool unref() noexcept {
         return --references_ == 0;
     }
 
-    bool deleted() const noexcept
-    {
-        return state_ == _DELETE;
-    }
-
-    bool updated() const noexcept
-    {
-        return state_ != READ;
-    }
-
     StoreT* store() noexcept {
-        return allocator_;
+        return store_;
     }
 
-    void set_allocator(StoreT* allocator) noexcept
-    {
-        allocator_ = allocator;
-    }
-
-    void init() noexcept
-    {
-        id_         = BlockID{};
-        references_ = 0;
-        state_      = READ;
-        block_      = nullptr;
-        allocator_  = nullptr;
+    void set_store(StoreT* store) noexcept {
+        store_ = store;
     }
 };
 

@@ -72,17 +72,17 @@ public:
 
     PackedAllocator() noexcept = default;
 
-    PackedAllocatable& allocatable() {return allocatable_;}
-    const PackedAllocatable& allocatable() const {return allocatable_;}
+    PackedAllocatable& allocatable() noexcept {return allocatable_;}
+    const PackedAllocatable& allocatable() const noexcept {return allocatable_;}
 
 
-    bool is_allocatable(size_t idx) const
+    bool is_allocatable(size_t idx) const noexcept
     {
         const Bitmap* bmp = bitmap();
         return GetBit(bmp, idx);
     }
 
-    Bitmap* bitmap()  {
+    Bitmap* bitmap() noexcept {
         return ptr_cast<Bitmap>(buffer_ + layout_size_);
     }
 
@@ -90,21 +90,21 @@ public:
         return ptr_cast<const Bitmap>(buffer_ + layout_size_);
     }
 
-    size_t allocated() const  {
+    size_t allocated() const noexcept {
         return element_offset(elements());
     }
 
-    size_t client_area() const  {
+    size_t client_area() const noexcept {
         return block_size_ - my_size() - layout_size_ - bitmap_size_;
     }
 
-    size_t free_space() const  {
+    size_t free_space() const noexcept {
         size_t client_area  = this->client_area();
         size_t allocated    = this->allocated();
         return client_area - allocated;
     }
 
-    size_t total_free_space() const
+    size_t total_free_space() const noexcept
     {
         size_t space {};
         if (allocatable_.allocator_offset()) {
@@ -117,35 +117,35 @@ public:
         return space;
     }
 
-    size_t elements() const  {
+    size_t elements() const noexcept {
         return layout_size_/4 - 1;
     }
 
-    uint8_t* base()  {
+    uint8_t* base() noexcept {
         return buffer_ + layout_size_ + bitmap_size_;
     }
 
-    const uint8_t* base() const  {
+    const uint8_t* base() const noexcept {
         return buffer_ + layout_size_ + bitmap_size_;
     }
 
-    size_t layout_size() const  {
+    size_t layout_size() const noexcept {
         return layout_size_;
     }
 
-    size_t bitmap_size() const  {
+    size_t bitmap_size() const noexcept {
         return bitmap_size_;
     }
 
-    size_t block_size() const  {
+    size_t block_size() const noexcept {
         return block_size_;
     }
 
-    void set_block_size(size_t block_size)  {
+    void set_block_size(size_t block_size) noexcept {
         this->block_size_ = block_size;
     }
 
-    void init(size_t block_size, size_t blocks)
+    void init(size_t block_size, size_t blocks) noexcept
     {
         block_size_ = PackedAllocatable::round_down_bytes(block_size);
 
@@ -161,12 +161,12 @@ public:
         memset(bitmap, 0, bitmap_size_);
     }
 
-    static constexpr size_t empty_size(size_t blocks)
+    static constexpr size_t empty_size(size_t blocks) noexcept
     {
         return block_size(0, blocks);
     }
 
-    static constexpr size_t block_size(size_t client_area, size_t blocks)
+    static constexpr size_t block_size(size_t client_area, size_t blocks) noexcept
     {
         return PackedAllocatable::round_up_bytes(
                 my_size() +
@@ -176,7 +176,7 @@ public:
         );
     }
 
-    static constexpr size_t client_area(size_t block_size, size_t blocks)
+    static constexpr size_t client_area(size_t block_size, size_t blocks) noexcept
     {
         return PackedAllocatable::round_down_bytes(
                 block_size -
@@ -185,7 +185,7 @@ public:
         );
     }
 
-    size_t compute_element_offset(const void* element) const
+    size_t compute_element_offset(const void* element) const noexcept
     {
         const uint8_t* base_ptr = base();
         const uint8_t* elt_ptr = ptr_cast<const uint8_t>(element);

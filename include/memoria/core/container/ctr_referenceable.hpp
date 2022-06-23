@@ -104,7 +104,6 @@ struct CtrReferenceableBase {
     virtual void dump_leafs(ApiProfileCtrSizeT<Profile> leafs = -1) = 0;
 
     // Don't use in an application code
-    virtual void internal_unref_cascade(const AnyID& block_id) = 0;
     virtual void internal_detouch_from_store() noexcept = 0;
     virtual void internal_attach_to_store(SnpSharedPtr<IStoreApiBase<Profile>>) noexcept = 0;
     virtual void internal_configure_shared_from_this(pool::detail::ObjectPoolRefHolder*) noexcept = 0;

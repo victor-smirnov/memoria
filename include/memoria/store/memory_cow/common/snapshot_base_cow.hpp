@@ -258,15 +258,9 @@ public:
         if (root_id.isSet())
         {
             auto root_block = findBlock(root_id);
-            //if (is_active())
-            {
-                auto ctr_ref = find_ctr_instance(CtrID{}, root_block);
-                root_map_ = memoria_static_pointer_cast<CommonCtrT<RootMapType>>(ctr_ref);
-                        //allocate_shared<RWCtrT<RootMapType>>(object_pools_, ptr, root_block);
-            }
-//            else {
-//                root_map_ = allocate_shared<CtrT<RootMapType>>(object_pools_, ptr, root_block);
-//            }
+
+            auto ctr_ref = find_ctr_instance(CtrID{}, root_block);
+            root_map_ = memoria_static_pointer_cast<CommonCtrT<RootMapType>>(ctr_ref);
         }
         else {
             U8String signature = make_datatype_signature(RootMapType{}).name();
@@ -421,23 +415,6 @@ public:
         }
         else {
             return false;
-        }
-    }
-
-    virtual void unref_ctr_root(const BlockID& root_block_id)
-    {
-        auto block = this->getBlock(root_block_id);
-
-        if (block->unref_block())
-        {
-            auto ctr_hash = block->ctr_type_hash();
-
-            auto ctr_intf = ProfileMetadata<Profile>::local()
-                    ->get_container_operations(ctr_hash);
-
-            auto ctr = ctr_intf->create_ctr_instance(block, this, is_active());
-
-            ctr->internal_unref_cascade(AnyID::wrap(root_block_id));
         }
     }
 
@@ -659,9 +636,10 @@ public:
     {
         BlockType* block = value_cast<BlockType*>(detail::IDValueHolderH<BlockID>::from_id(id));
         if (block) {
-            Shared* shared = shared_pool_.construct(id, block, 0);
-            shared->set_allocator(this);
+            Shared* shared = shared_pool_.construct(id, block);
+            shared->set_store(this);
             shared->set_mutable(block->snapshot_id() == uuid());
+            block->ref_block();
             return SharedBlockConstPtr{shared};
         }
         else {
@@ -688,12 +666,26 @@ public:
     }
 
     virtual void traverse_ctr(
-            const BlockID& root_block,
+            const BlockID& block_id,
             BTreeTraverseNodeHandler<Profile>& node_handler
     )
     {
-        auto instance = from_root_id(root_block);
-        return instance->traverse_ctr(&node_handler);
+        if (!block_id.is_null())
+        {
+            if (node_handler.proceed_with(block_id))
+            {
+                const BlockType* blk = value_cast<const BlockType*>(detail::IDValueHolderH<BlockID>::from_id(block_id));
+
+                node_handler.process_node(blk);
+
+                auto blk_intf = ProfileMetadata<Profile>::local()
+                        ->get_block_operations(blk->ctr_type_hash(), blk->block_type_hash());
+
+                blk_intf->for_each_child(blk, [&](const BlockID& child_id){
+                    this->traverse_ctr(child_id, node_handler);
+                });
+            }
+        }
     }
 
 
@@ -732,23 +724,11 @@ public:
         block->ref_block(1);
     }
 
-    virtual void unref_block(const BlockID& block_id, std::function<void ()> on_zero)
-    {
-        auto block = getBlock(block_id);
-        if (block->unref_block()) {
-            return on_zero();
-        }
+
+    virtual void unref_block(const BlockID& block_id) {
+      auto block = getBlock(block_id);
+      block->unref_block();
     }
-
-
-
-    virtual void removeBlock(const BlockID& id)
-    {
-        check_updates_allowed();
-        BlockType* block = detail::IDValueHolderH<BlockID>::template get_block_ptr<BlockType>(id);
-        freeMemory(block);
-    }
-
 
 
     virtual SharedBlockPtr createBlock(int32_t initial_size, const CtrID&)
@@ -761,18 +741,22 @@ public:
 
         auto id = newId();
 
-        void* buf = allocate_system<uint8_t>(static_cast<size_t>(initial_size)).release();
-        memset(buf, 0, static_cast<size_t>(initial_size));
+        auto buf = allocate_system<uint8_t>(initial_size);
+        memset(buf.get(), 0, initial_size);
 
-        BlockType* p = new (buf) BlockType(id);
+        BlockType* p = new (buf.get()) BlockType(id);
         p->id() = detail::IDValueHolderH<BlockID>::to_id(p);
         p->snapshot_id() = uuid();
 
         p->memory_block_size() = initial_size;
+        p->ref_block();
 
-        Shared* shared = shared_pool_.construct(id, p, 0);
-        shared->set_allocator(this);
+        Shared* shared = shared_pool_.construct(p->id(), p);
+        shared->set_store(this);
         shared->set_mutable(true);
+        shared->set_orphan(true);
+
+        buf.release();
 
         return SharedBlockPtr{shared};
     }
@@ -782,16 +766,14 @@ public:
     {
         check_updates_allowed();
 
-        auto new_id = newId();
-
         auto new_block = this->clone_block(block.block());
 
-        new_block->uid() = new_id;
-        new_block->id() = detail::IDValueHolderH<BlockID>::to_id(new_block);
-
-        Shared* shared = shared_pool_.construct(new_id, new_block, 0);
-        shared->set_allocator(this);
+        Shared* shared = shared_pool_.construct(new_block->id(), new_block.get());
+        shared->set_store(this);
         shared->set_mutable(true);
+        shared->set_orphan(true);
+
+        new_block.release();
 
         return SharedBlockPtr{shared};
     }
@@ -839,9 +821,8 @@ public:
             if (!name.is_null())
             {
                 auto prev_id = root_map_->remove_and_return(name);
-                if (prev_id)
-                {
-                    unref_ctr_root(prev_id.get());
+                if (prev_id) {
+                    unref_block(prev_id.get());
                 }
             }
             else {
@@ -858,19 +839,14 @@ public:
 
                 if (prev_id)
                 {
-                    unref_ctr_root(prev_id.get());
+                    unref_block(prev_id.get());
                 }
             }
             else {
                 auto root_id_to_remove = history_node_->update_directory_root(root);
                 if (root_id_to_remove.isSet())
                 {
-                    auto instance = from_root_id(root_id_to_remove);
-
-                    // TODO: Do we need to unref the block here first?
-                    return instance->internal_unref_cascade(
-                        AnyID::wrap(root_id_to_remove)
-                    );
+                    unref_block(root_id_to_remove);
                 }
             }
         }
@@ -1062,39 +1038,34 @@ protected:
     }
 
 
-    BlockType* clone_block(const BlockType* block)
+    UniquePtr<BlockType> clone_block(const BlockType* block)
     {
-        char* buffer = (char*) this->malloc(block->memory_block_size());
+        auto new_block = allocate_block_of_size<BlockType>(block->memory_block_size());
 
-        CopyByteBuffer(block, buffer, block->memory_block_size());
-        BlockType* new_block = ptr_cast<BlockType>(buffer);
+        CopyByteBuffer(block, new_block.get(), block->memory_block_size());
 
         auto new_block_id = newId();
         new_block->uid() = new_block_id;
-        new_block->id() = detail::IDValueHolderH<BlockID>::to_id(new_block);
+        new_block->id() = detail::IDValueHolderH<BlockID>::to_id(new_block.get());
         new_block->snapshot_id() = uuid();
-        new_block->set_references(0);
+        new_block->set_references(1);
 
         return new_block;
     }
 
 
 
-    void* malloc(size_t size)
-    {
+    void* malloc(size_t size) {
         return allocate_system<uint8_t>(size).release();
     }
 
 
 
-    void checkIfConainersOpeneingAllowed()
-    {
-    }
+    void checkIfConainersOpeneingAllowed(){}
 
     void checkIfConainersCreationAllowed()
     {
-    	if (!is_active())
-    	{
+        if (!is_active()) {
             MEMORIA_MAKE_GENERIC_ERROR("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status()).do_throw();
     	}
     }
@@ -1105,8 +1076,7 @@ protected:
     	if (history_node_->is_dropped())
     	{
             // Double checking. This shouldn't happen
-            if (!history_node_->root_id().isSet())
-            {
+            if (!history_node_->root_id().isSet()) {
                 MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been cleared", uuid()).do_throw();
             }
     	}
@@ -1136,19 +1106,27 @@ protected:
             std::cout << "MEMORIA: DROP snapshot's DATA: " << history_node_->snapshot_id() << std::endl;
         }
 
-        BlockType* root_blk = detail::IDValueHolderH<BlockID>::template get_block_ptr<BlockType>(history_node_->root_id());
-        if (root_blk->unref_block())
-        {
-            root_map_->internal_unref_cascade(
-                AnyID::wrap(root_blk->id())
-            );
-        }
-
+        unref_block(history_node_->root_id());
         history_node_->reset_root_id();
     }
 
-    virtual void releaseBlock(Shared* block) noexcept {
-        shared_pool_.destroy(block);
+    virtual void releaseBlock(Shared* block) noexcept
+    {
+      if (block->get()->unref_block())
+      {
+        auto blk = block->get();
+
+        auto blk_intf = ProfileMetadata<Profile>::local()
+                ->get_block_operations(blk->ctr_type_hash(), blk->block_type_hash());
+
+        blk_intf->for_each_child(blk, [&](const BlockID& child_id){
+          this->unref_block(child_id);
+        });
+
+        ::free(blk);
+      }
+
+      shared_pool_.destroy(block);
     }
 
     virtual void updateBlock(Shared* block) {
