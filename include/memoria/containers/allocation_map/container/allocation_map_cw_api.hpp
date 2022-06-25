@@ -343,7 +343,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrWApiName)
             assert_success(self.ctr_insert_to_branch_node(path, 1, parent_idx, leaf_max, new_leaf->id()));
 
             path[0] = new_leaf.as_immutable();
-            self.ctr_ref_block(new_leaf->id());
+            self.ctr_ref_block(new_leaf);
             return leaf_inserted;
         }
         else {

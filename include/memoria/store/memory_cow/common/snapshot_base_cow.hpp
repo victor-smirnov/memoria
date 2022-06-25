@@ -1,5 +1,5 @@
 
-// Copyright 2016-2021 Victor Smirnov
+// Copyright 2016-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -749,7 +749,7 @@ public:
         p->snapshot_id() = uuid();
 
         p->memory_block_size() = initial_size;
-        p->ref_block();
+        p->set_references(1);
 
         Shared* shared = shared_pool_.construct(p->id(), p);
         shared->set_store(this);

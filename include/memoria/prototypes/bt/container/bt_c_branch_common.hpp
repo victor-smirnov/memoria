@@ -177,7 +177,7 @@ void M_TYPE::ctr_create_new_root_block(TreePathT& path)
 
     assert_success(self.ctr_insert_to_branch_node(path, new_root->level(), 0, max, root->id()));
 
-    self.ctr_ref_block(root->id());
+    self.ctr_ref_block(root);
 
     return self.set_root(new_root->id());
 }
@@ -330,7 +330,7 @@ void M_TYPE::ctr_split_node_raw(
     }
 
     path[level] = right_node.as_immutable();
-    self.ctr_ref_block(right_node->id());
+    self.ctr_ref_block(right_node);
 
     self.ctr_check_path(path, level);
 }

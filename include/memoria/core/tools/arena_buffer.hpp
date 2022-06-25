@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,6 +42,161 @@ enum class ArenaBufferCmd: int32_t {
 using ArenaBufferMemoryMgr = std::function<uint8_t* (int32_t, ArenaBufferCmd, size_t, uint8_t*)>;
 
 
+namespace detail {
+
+template <typename T, bool TrivialDtr = std::is_trivially_destructible_v<T>> struct ABDtrHelper;
+template <typename T, bool TrivialCtr = std::is_trivially_constructible_v<T>> struct ABCtrHelper;
+template <typename T, bool TrivialCpy = std::is_trivially_copyable_v<T>> struct ABCpyHelper;
+
+template <typename T>
+struct ABDtrHelper<T, true> {
+    static void run_destructors(T* data, size_t from, size_t size) noexcept {}
+};
+
+template <typename T>
+struct ABDtrHelper<T, false> {
+    static void run_destructors(T* data, size_t from, size_t size) noexcept
+    {
+        for (size_t c = from; c < from + size; c++) {
+            data[c]->~T();
+        }
+    }
+};
+
+
+template <typename T>
+struct ABCtrHelper<T, true> {
+    static void run_constructors(T* data, size_t from, size_t size) noexcept {
+        std::memset(data + from * sizeof(T), 0, size * sizeof(T));
+    }
+};
+
+
+
+template <typename T, bool NothrowCtr = std::is_nothrow_constructible_v<T>> struct ABNoThCtrHelper;
+
+template <typename T>
+struct ABNoThCtrHelper<T, false> {
+    static void run_constructors(T* data, size_t from, size_t size)
+    {
+        size_t c = from;
+        try {
+            for (size_t c = from; c < from + size; c++) {
+                data[c]->T();
+            }
+        }
+        catch (...) {
+            ABDtrHelper<T>::run_destructors(data, from, c);
+            throw;
+        }
+    }
+};
+
+template <typename T>
+struct ABNoThCtrHelper<T, true> {
+    static void run_constructors(T* data, size_t from, size_t size)
+    {
+        for (size_t c = from; c < from + size; c++) {
+            data[c]->T();
+        }
+    }
+};
+
+
+
+template <typename T>
+struct ABCtrHelper<T, false>: ABNoThCtrHelper<T> {};
+
+template <typename T>
+struct ABCpyHelper<T, true> {
+    static void copy(const T* src, T* dst, size_t from, size_t to, size_t size) noexcept {
+        CopyBuffer(src + from, dst + to, size);
+    }
+
+    static void move(T* src, T* dst, size_t from, size_t to, size_t size) noexcept {
+        CopyBuffer(src + from, dst + to, size);
+    }
+
+    static void copy_uninit(const T* src, T* dst, size_t from, size_t to, size_t size) noexcept {
+        CopyBuffer(src + from, dst + to, size);
+    }
+
+    static void move_uninit(T* src, T* dst, size_t from, size_t to, size_t size) noexcept {
+        CopyBuffer(src + from, dst + to, size);
+    }
+
+    static void insert(T* buf, size_t at, size_t size, size_t buf_size) noexcept
+    {
+        using DtrHelper = ABDtrHelper<T>;
+        MemCpyBuffer(buf + at, buf + at + size, buf_size - size);
+        DtrHelper::run_destructors(buf, at, size);
+    }
+
+    static void remove(T* buf, size_t at, size_t size, size_t buf_size) noexcept
+    {
+        using DtrHelper = ABDtrHelper<T>;
+        MemCpyBuffer(buf + at + size, buf + size, buf_size - (at + size));
+        DtrHelper::run_destructors(buf, buf_size - size, size);
+    }
+};
+
+template <typename T>
+struct ABCpyHelper<T, false> {
+    static void copy(const T* src, T* dst, size_t from, size_t to, size_t size) noexcept {
+        for (size_t c = 0; c < size; c++) {
+            dst[c + to] = src[c + from];
+        }
+    }
+
+    static void move(T* src, T* dst, size_t from, size_t to, size_t size) noexcept {
+        for (size_t c = 0; c < size; c++) {
+            dst[c + to] = std::move(src[c + from]);
+        }
+    }
+
+    static void copy_uninit(const T* src, T* dst, size_t from, size_t to, size_t size) noexcept {
+        for (size_t c = 0; c < size; c++) {
+            new (dst + c + to) T{src[c + from]};
+        }
+    }
+
+    static void move_uninit(T* src, T* dst, size_t from, size_t to, size_t size) noexcept {
+        for (size_t c = 0; c < size; c++) {
+            new (dst + c + to) T{std::move(src[c + from])};
+        }
+    }
+
+    static void insert(T* buf, size_t at, size_t size, size_t buf_size) noexcept
+    {
+        using CtrHelper = ABCtrHelper<T>;
+
+        CtrHelper::run_constructors(buf, buf_size, size);
+
+        for (size_t c = 1; c <= size; c++)
+        {
+            size_t dst = buf_size + size - c;
+            size_t src = buf_size - c;
+            std::swap(buf[dst], buf[src]);
+        }
+    }
+
+    static void remove(T* buf, size_t at, size_t size, size_t buf_size) noexcept
+    {
+        using DtrHelper = ABDtrHelper<T>;
+
+        for (size_t c = 0; c < size; c++)
+        {
+            size_t dst = at + c;
+            size_t src = at + size + c;
+            std::swap(buf[dst], buf[src]);
+        }
+
+        DtrHelper::run_destructors(buf, buf_size - size, size);
+    }
+};
+
+
+}
 
 template <typename TT, typename SizeT>
 class ArenaBuffer {
@@ -49,7 +204,12 @@ class ArenaBuffer {
 protected:
     using MyType = ArenaBuffer;
     using ValueT = TT;
-    static_assert(std::is_trivially_copyable<ValueT>::value, "ArenaBufferBase currently supports only trivially copyable types");
+
+    using DtrHelper = detail::ABDtrHelper<TT>;
+    using CtrHelper = detail::ABCtrHelper<TT>;
+    using CpyHelper = detail::ABCpyHelper<TT>;
+
+    static_assert(std::is_nothrow_destructible<ValueT>::value, "ArenaBuffer currently supports only types with nothrowing destructor");
 
     using InvalidationListener = LifetimeInvalidationListener;
 
@@ -137,7 +297,7 @@ public:
         if (other.buffer_)
         {
             buffer_ = allocate_buffer(size_);
-            MemCpyBuffer(other.buffer_, buffer_, size_);
+            CpyHelper::copy_uninit(other.buffer_, buffer_, 0, 0, size_);
         }
         else {
             buffer_ = nullptr;
@@ -178,7 +338,7 @@ public:
         return buffer_ == other.buffer_;
     }
 
-    ArenaBuffer& operator=(const ArenaBuffer&& other) noexcept
+    ArenaBuffer& operator=(const ArenaBuffer& other) noexcept
     {
         if (&other != this)
         {
@@ -192,7 +352,7 @@ public:
 
             buffer_ = allocate_buffer(size_);
 
-            MemCpyBuffer(other.buffer_, buffer_, size_);
+            CpyHelper::copy_uninit(other.buffer_, buffer_, 0, 0, size_);
         }
 
         return *this;
@@ -302,7 +462,7 @@ public:
     bool append_value(const ValueT& value) noexcept
     {
         bool resized = ensure(1);
-        *(buffer_ + size_) = value;
+        new (buffer_ + size_) ValueT{value};
         size_++;
         return resized;
     }
@@ -310,7 +470,8 @@ public:
     bool append_values(const ValueT* values, SizeT size) noexcept
     {
         bool resized = ensure(size);
-        MemMoveBuffer(values, buffer_ + size_, size);
+        CpyHelper::copy_uninit(values, buffer_, 0, size_, size);
+
         size_ += size;
         return resized;
     }
@@ -319,7 +480,8 @@ public:
     {
         SizeT size = values.size();
         bool resized = ensure(size);
-        MemMoveBuffer(values.data(), buffer_ + size_, size);
+        CpyHelper::copy_uninit(values.data(), buffer_, 0, size_, size);
+
         size_ += size;
         return resized;
     }
@@ -348,9 +510,8 @@ public:
 
         ValueT* new_ptr = allocate_buffer(next_capaicty);
 
-        if (size_ > 0)
-        {
-            MemCpyBuffer(buffer_, new_ptr, size_);
+        if (size_ > 0) {
+            CpyHelper::move_uninit(buffer_, new_ptr, 0, 0, size_);
         }
 
         invalidate_guard();
@@ -371,8 +532,10 @@ public:
         return *(buffer_ + idx);
     }
 
-    void clear() noexcept {
+    void clear() noexcept
+    {
         invalidate_guard();
+        DtrHelper::run_destructors(buffer_, 0, size_);
         size_ = 0;
     }
 
@@ -388,24 +551,27 @@ public:
         size_ = 0;
         capacity_ = capacity;
 
-        buffer_ = capacity_ > 0 ? allocate_buffer(capacity_) : 0;
+        buffer_ = capacity_ > 0 ? allocate_buffer(capacity_) : nullptr;
     }
 
     void remove(size_t from, size_t to) noexcept
     {
-        //std::cout << "ArenaBuffer: invalid range: " << from << " :: " << to << " :: " << size_ << std::endl;
+        invalidate_guard();
 
-        //if (to > from)
-        {
-            invalidate_guard();
+        CpyHelper::remove(buffer_, from, to - from, size_);
+        size_ -= to - from;
+    }
 
-            if (to < from || from > size_ || to > size_) {
-                std::cout << "ArenaBuffer: invalid range: " << from << " :: " << to << " :: " << size_ << std::endl;
-            }
+    void insert(size_t at, size_t size)
+    {
+        invalidate_guard();
 
-            MemMoveBuffer(buffer_ + to, buffer_ + from, size_ - to);
-            size_ -= to - from;
-        }
+        ensure(size);
+
+        CpyHelper::insert(buffer_, at, size, size_);
+        CtrHelper::run_constructors(buffer_, at, size);
+
+        size_ += size;
     }
 
     GuardedView<ValueT> get_guarded(size_t idx) noexcept {
@@ -430,7 +596,8 @@ public:
         return LifetimeGuard(guard_);
     }
 
-    void invalidate_guard() const noexcept {
+    void invalidate_guard() const noexcept
+    {
         if (guard_) {
             guard_->invalidate();
             guard_ = nullptr;
@@ -484,14 +651,15 @@ public:
         return append_value(tt);
     }
 
-    void add_size(SizeT size) noexcept {
+    void add_size(SizeT size) noexcept
+    {
+        CtrHelper::run_constructors(buffer_, size_, size);
         size_ += size;
     }
 
     void sort() noexcept
     {
-        if (buffer_)
-        {
+        if (buffer_) {
             invalidate_guard();
             std::sort(buffer_, buffer_ + size());
         }
@@ -513,6 +681,8 @@ private:
 
     void free_buffer(ValueT* existing) noexcept
     {
+        DtrHelper::run_destructors(existing, 0, size_);
+
         if (MMA_LIKELY(!memory_mgr_))
         {
             free_system(existing);

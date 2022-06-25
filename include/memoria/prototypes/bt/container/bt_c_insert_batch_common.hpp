@@ -349,7 +349,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             }
 
             auto node = self.ctr_create_node(0, false, true, block_size);
-            self.ctr_ref_block(node->id());
+            self.ctr_ref_block(node);
 
             if (head.isSet()){
                 current->next_leaf_id() = node->id();

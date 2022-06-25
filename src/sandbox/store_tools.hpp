@@ -387,7 +387,6 @@ public:
 
     virtual StoreT open_store() {
         return load_memory_store(file_name_);
-        //return store_;
     }
 
     virtual StoreT create_store() {
@@ -396,7 +395,6 @@ public:
 
     virtual void close_store(StoreT store) {
         store->store(file_name_);
-
         store_ = store;
     }
 

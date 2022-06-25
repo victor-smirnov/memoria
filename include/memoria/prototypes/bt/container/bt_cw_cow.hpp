@@ -60,7 +60,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsWName)
 
             if (level + 1 < path_size)
             {
-                self.ctr_ref_block(new_node->id());
+                self.ctr_ref_block(new_node);
 
                 auto parent_idx = self.ctr_get_parent_idx(path, level);
                 auto old_child_id = self.ctr_set_child_id(path[level + 1].as_mutable(), parent_idx, new_node->id());
@@ -77,11 +77,21 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsWName)
         self.ctr_check_path(path, level);
     }
 
-    void ctr_ref_block(const BlockID& block_id)
+    void ctr_ref_block(TreeNodeConstPtr block)
     {
         auto& self = this->self();
-        return self.store().ref_block(block_id);
+        block.clear_orphan();
+        return self.store().ref_block(block->id());
     }
+
+    void ctr_ref_block(TreeNodePtr block)
+    {
+        auto& self = this->self();
+        block.clear_orphan();
+        return self.store().ref_block(block->id());
+    }
+
+
 
     MEMORIA_V1_DECLARE_NODE_FN(RefLeafChildren, cow_ref_children);
     TreeNodePtr ctr_clone_block(const TreeNodeConstPtr& src)
@@ -94,7 +104,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsWName)
         if (!new_block->is_leaf())
         {
             self.ctr_for_all_ids(new_block.as_immutable(), [&](const BlockID& block_id) {
-                return self.ctr_ref_block(block_id);
+                return self.store().ref_block(block_id);
             });
         }
         else {
@@ -127,7 +137,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsWName)
         else {
             auto parent_idx = self.ctr_get_parent_idx(path, level);
             auto old_child = self.ctr_set_child_id(path[level + 1].as_mutable(), parent_idx, new_node->id());
-            self.ctr_ref_block(new_node->id());
+            self.ctr_ref_block(new_node);
             self.ctr_unref_block(old_child);
         }
 
@@ -254,7 +264,7 @@ public:
         if (!block->is_leaf())
         {
             self.ctr_for_all_ids(block.as_immutable(), [&](const BlockID& child_id) {
-                return self.ctr_ref_block(child_id);
+                return self.store().ref_block(child_id);
             });
         }
         else {

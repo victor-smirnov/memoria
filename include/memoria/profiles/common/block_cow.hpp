@@ -119,7 +119,9 @@ public:
         return CowSharedBlockPtr<const MutableBlockType, StoreT, Shared>{ptr_, shared_};
     }
 
-
+    void clear_orphan() const noexcept {
+        shared_->set_orphan(false);
+    }
 
     const CowSharedBlockPtr& operator=(const CowSharedBlockPtr& guard) noexcept
     {
@@ -381,6 +383,10 @@ public:
         ptr_ = nullptr;
         tmp->assert_mutable();
         return CowSharedBlockPtr<MutableBlockType, StoreT, Shared>{ptr_, tmp};
+    }
+
+    void clear_orphan() const noexcept {
+        shared_->set_orphan(false);
     }
 
     const CowSharedBlockPtr& operator=(const CowSharedBlockPtr& guard) noexcept

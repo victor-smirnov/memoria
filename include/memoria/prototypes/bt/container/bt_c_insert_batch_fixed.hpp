@@ -153,7 +153,7 @@ public:
             if (level >= 1)
             {
                 auto node = self.ctr_create_node(level, false, false);
-                self.ctr_ref_block(node->id());
+                self.ctr_ref_block(node);
 
                 self.ctr_layout_branch_node(node);
 
@@ -171,7 +171,7 @@ public:
             else {
                 auto leaf = provider.get_leaf();
 
-                self.ctr_ref_block(leaf->id());
+                self.ctr_ref_block(leaf);
 
                 return leaf;
             }

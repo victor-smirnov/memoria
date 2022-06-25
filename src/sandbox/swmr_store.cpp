@@ -1,5 +1,5 @@
 
-// Copyright 2021 Victor Smirnov
+// Copyright 2021-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ int main(void) {
         bench.set_consistency_point(ConsistencyPoint::YES);
 
         bench.run_insertions();
-        bench.run_queries();
+        //bench.run_queries();
     }
     catch (const MemoriaError& ee) {
         ee.describe(std::cout);

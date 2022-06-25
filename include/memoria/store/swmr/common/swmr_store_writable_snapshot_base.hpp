@@ -576,7 +576,6 @@ public:
         FlagScope scope(populating_allocation_pool_);
         if (!allocation_map_ctr_->populate_allocation_pool(*allocation_pool_, level))
         {
-            DebugCounter = 1;
             allocation_map_ctr_->populate_allocation_pool(*allocation_pool_, level);
 
             MEMORIA_MAKE_GENERIC_ERROR(

@@ -40,7 +40,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::NoCoWOpsWName)
     void ctr_cow_clone_path(TreePathT& path, size_t level) const {
     }
 
-    void ctr_ref_block(const BlockID& block_id) {
+    void ctr_ref_block(const TreeNodeConstPtr& block_id) {
+    }
+
+    void ctr_ref_block(const TreeNodePtr& block_id) {
     }
 
 

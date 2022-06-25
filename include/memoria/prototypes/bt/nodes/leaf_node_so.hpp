@@ -398,7 +398,7 @@ public:
 
             for (; ii != end; ii++)
             {
-                ctr.ctr_ref_block(*ii);
+                ctr.store().ref_block(*ii);
             }
         }
     };

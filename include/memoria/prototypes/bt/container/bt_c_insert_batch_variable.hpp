@@ -83,7 +83,7 @@ public:
                 last_child = child;
 
                 if (child->is_leaf()) {
-                    self.ctr_ref_block(child->id());
+                    self.ctr_ref_block(child);
                 }
             }
             else {
@@ -117,7 +117,7 @@ public:
             if (level >= 1)
             {
                 auto node = self.ctr_create_node(level, false, false);
-                self.ctr_ref_block(node->id());
+                self.ctr_ref_block(node);
 
                 size_t height = level + 1;
                 TreePathT path = TreePathT::build(node.as_immutable(), height);
