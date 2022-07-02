@@ -23,8 +23,8 @@
 namespace memoria {
 
 template <typename Streams>
-class FLCtrBatchInput: public CtrBatchInputBase<MergeLists<Streams, TL<TL<io::IOSSRLEBufferImpl<ListSize<Streams>>>>>> {
-    using Base = CtrBatchInputBase<MergeLists<Streams, TL<TL<io::IOSSRLEBufferImpl<ListSize<Streams>>>>>>;
+class FLCtrBatchInput: public CtrBatchInputBase<MergeLists<Streams, TL<TL<IOSSRLEBufferImpl<ListSize<Streams>>>>>> {
+    using Base = CtrBatchInputBase<MergeLists<Streams, TL<TL<IOSSRLEBufferImpl<ListSize<Streams>>>>>>;
     static constexpr size_t Symbols = ListSize<Streams>;
 
 public:

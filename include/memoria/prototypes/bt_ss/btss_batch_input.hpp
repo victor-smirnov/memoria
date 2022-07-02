@@ -30,7 +30,6 @@
 
 namespace memoria {
 namespace btss {
-namespace io {
 
 using bt::LeafNode;
 using bt::StreamTag;
@@ -500,4 +499,4 @@ protected:
 };
 
 
-}}}
+}}

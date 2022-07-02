@@ -49,7 +49,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
 
         auto buf = allocate_shared<CtrInputBuffer>(self.store().object_pools());
 
-        btfl::io::CtrBatchInputProvider<MyType> streaming(self, provider, *buf.get());
+        btfl::CtrBatchInputProvider<MyType> streaming(self, provider, *buf.get());
 
         auto pos = iter->iter_leafrank();
 
@@ -69,7 +69,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
             return true;
         };
 
-        btfl::io::CtrBatchInputProvider<MyType> streaming(self, &producer, &input_buffer);
+        btfl::CtrBatchInputProvider<MyType> streaming(self, &producer, &input_buffer);
 
         auto pos = iter->iter_leafrank();
 

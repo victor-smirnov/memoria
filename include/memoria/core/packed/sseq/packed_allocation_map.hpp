@@ -19,7 +19,6 @@
 #include <memoria/core/datatypes/datatypes.hpp>
 
 #include <memoria/core/packed/sseq/packed_allocation_map_so.hpp>
-#include <memoria/core/packed/sseq/packed_allocation_map_view.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/tools/bitmap.hpp>

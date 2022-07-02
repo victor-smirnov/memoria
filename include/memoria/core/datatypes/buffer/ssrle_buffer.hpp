@@ -25,7 +25,6 @@
 #include <functional>
 
 namespace memoria {
-namespace io {
 
 template <typename TT>
 class IOBufferBase {
@@ -718,4 +717,4 @@ private:
 };
 
 
-}}
+}

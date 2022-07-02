@@ -138,7 +138,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
 
         auto buf = allocate_shared<CtrInputBuffer>(self.store().object_pools());
 
-        btss::io::BTSSCtrBatchInputProvider<MyType> streaming(self, producer, *buf.get());
+        btss::BTSSCtrBatchInputProvider<MyType> streaming(self, producer, *buf.get());
 
         auto pos = Position::create(0, iter->iter_leaf_position());
 
@@ -158,7 +158,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
             return true;
         };
 
-        btss::io::BTSSCtrBatchInputProvider<MyType> streaming(self, producer, input_buffer, start, length, false);
+        btss::BTSSCtrBatchInputProvider<MyType> streaming(self, producer, input_buffer, start, length, false);
 
         auto pos = Position::create(0, iter->iter_leaf_position());
 

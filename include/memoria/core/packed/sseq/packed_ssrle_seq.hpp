@@ -40,13 +40,7 @@
 
 namespace memoria {
 
-namespace io {
-
 template <size_t AlphabetSize> class IOSSRLEBufferImpl;
-template <size_t AlphabetSize> class IOSSRLEBufferView;
-
-}
-
 
 template <
     size_t AlphabetSize_,
@@ -149,12 +143,8 @@ public:
 
     struct Tools {};
 
-    using GrowableIOSubstream = io::IOSSRLEBufferImpl<AlphabetSize>;
-    using IOSubstreamView     = io::IOSSRLEBufferView<AlphabetSize>;
-
     using ExtData = std::tuple<>;
     using SparseObject = PackedSSRLESeqSO<ExtData, MyType>;
-
 
     static constexpr size_t number_of_indexes(size_t capacity) {
         return capacity <= BytesPerBlock ? 0 : div_up(capacity, BytesPerBlock);
