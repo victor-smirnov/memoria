@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,11 +17,8 @@
 
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/types/typehash.hpp>
-
 #include <memoria/api/common/ctr_api_btss.hpp>
-
-#include <memoria/core/datatypes/io_vector_traits.hpp>
-
+#include <memoria/api/common/ctr_input_btss.hpp>
 
 namespace memoria {
 
@@ -40,18 +37,40 @@ public:
     const Value value() const {return value_;}
 };
 
-template <typename Key_, typename Value_, typename Profile>
-struct ICtrApiTypes<Map<Key_, Value_>, Profile> {
+template <typename Key, typename Value>
+class MapInputBuffer: public CtrBatchInputBase<TL<TL<
+        DataTypeBuffer<Key>,
+        DataTypeBuffer<Value>
+>>>{
+    using Base = CtrBatchInputBase<TL<TL<
+        DataTypeBuffer<Key>,
+        DataTypeBuffer<Value>
+    >>>;
+public:
+    MapInputBuffer(): Base() {}
 
-    using Key = Key_;
-    using Value = Value_;
+    DataTypeBuffer<Key>& keys() {
+        return Base::template get<0, 1>();
+    }
 
-    using IOVSchema = TL<
-        TL<
-            ICtrApiSubstream<Key, io::ColumnWise>,
-            ICtrApiSubstream<Value, io::ColumnWise>
-        >
-    >;
+    const DataTypeBuffer<Key>& keys() const {
+        return Base::template get<0, 1>();
+    }
+
+    DataTypeBuffer<Value>& values() {
+        return Base::template get<0, 2>();
+    }
+
+    const DataTypeBuffer<Value>& values() const {
+        return Base::template get<0, 2>();
+    }
+};
+
+
+
+template <typename Key, typename Value, typename Profile>
+struct ICtrApiTypes<Map<Key, Value>, Profile> {
+    using CtrInputBuffer = MapInputBuffer<Key, Value>;
 };
 
 

@@ -21,8 +21,6 @@
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_tree_path.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
-
 #include <iostream>
 
 namespace memoria {
@@ -41,8 +39,6 @@ public:
     using BlockIteratorStatePtr = typename Base::Container::BlockIteratorStatePtr;
 
     using CtrT = Ctr<Types>;
-
-    using IOVectorViewT = typename Types::LeafNode::template SparseObject<CtrT>::IOVectorViewT;
 
     using TreePathT = TreePath<TreeNodeConstPtr>;
 

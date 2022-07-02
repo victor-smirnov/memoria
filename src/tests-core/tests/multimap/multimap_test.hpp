@@ -104,10 +104,11 @@ public:
     template <typename CtrApiT>
     void populate_container(CtrApiT ctr, const std::vector<Entry>& data)
     {
-        int64_t t0 = getTimeInMillis();
-        ctr->append_entries([&](auto& seq, auto& keys, auto& values, auto& sizes) {
+        uint64_t entries{};
 
-            size_t batch_start = sizes.entries_;
+        int64_t t0 = getTimeInMillis();
+        ctr->append_entries([&](auto& buff) {
+            size_t batch_start = entries;
 
             size_t batch_size = 8192;
             size_t limit = (batch_start + batch_size <= data.size()) ?
@@ -115,19 +116,19 @@ public:
 
             for (size_t c = 0; c < limit; c++)
             {
-                seq.append_run(0, 1);
-                keys.append(data[batch_start + c].key);
+                buff.symbols().append_run(0, 1);
+                buff.keys().append(data[batch_start + c].key);
 
                 auto& entry_data = data[batch_start + c].values;
 
                 if (entry_data.size() > 0)
                 {
-                    seq.append_run(1, entry_data.size());
-                    values.append(entry_data);
+                    buff.symbols().append_run(1, entry_data.size());
+                    buff.values().append(entry_data);
                 }
             }
 
-            sizes.entries_ += limit;
+            entries += limit;
 
             return batch_start + limit >= data.size();
         });

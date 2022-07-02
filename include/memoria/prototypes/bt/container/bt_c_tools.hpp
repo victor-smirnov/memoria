@@ -24,8 +24,6 @@
 
 #include <memoria/prototypes/bt/bt_macros.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
-
 #include <iostream>
 
 namespace memoria {
@@ -393,38 +391,6 @@ public:
     Position ctr_get_leaf_stream_sizes(const TreeNodeConstPtr& node) const
     {
         return self().leaf_dispatcher().dispatch(node, GetLeafNodeStreamSizes());
-    }
-
-
-    struct CreateIOVectorViewFn
-    {
-        template <typename T, typename... Args>
-        std::unique_ptr<io::IOVector> treeNode(T&& node) const
-        {
-            return node->create_iovector_view();
-        }
-    };
-
-    // TODO: error handling
-    std::unique_ptr<io::IOVector> create_iovector_view(TreeNodePtr& node)
-    {
-        return self().leaf_dispatcher().dispatch(node, CreateIOVectorViewFn());
-    }
-
-
-    struct ConfigureIOVectorViewFn
-    {
-        template <typename T, typename... Args>
-        void treeNode(T&& node, io::IOVector& io_vector) const
-        {
-            return node->configure_iovector_view(io_vector);
-        }
-    };
-
-    // TODO: error handling
-    void configure_iovector_view(TreeNodePtr& node, io::IOVector& io_vector)
-    {
-        return self().leaf_dispatcher().dispatch(node, ConfigureIOVectorViewFn(), io_vector);
     }
 
 protected:

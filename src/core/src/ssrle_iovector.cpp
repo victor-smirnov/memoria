@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/core/iovector/io_substream_ssrle_buffer.hpp>
+#include <memoria/core/datatypes/buffer/ssrle_buffer.hpp>
 
 namespace memoria {
 namespace io {

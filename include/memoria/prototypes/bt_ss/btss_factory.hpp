@@ -31,7 +31,7 @@
 //#include <memoria/prototypes/bt_ss/iterator/btss_i_misc.hpp>
 #include <memoria/prototypes/bt_ss/iterator/btss_i_basic.hpp>
 
-#include <memoria/prototypes/bt_ss/btss_input_iovector.hpp>
+#include <memoria/prototypes/bt_ss/btss_batch_input.hpp>
 
 #include <memoria/api/common/ctr_api_btss.hpp>
 

@@ -16,10 +16,10 @@
 #pragma once
 
 #include <memoria/core/datatypes/traits.hpp>
-#include <memoria/core/datatypes/io_vector_traits.hpp>
 #include <memoria/core/types/typehash.hpp>
 
 #include <memoria/api/common/ctr_api_btfl.hpp>
+#include <memoria/api/common/ctr_input_btfl.hpp>
 
 namespace memoria {
 
@@ -39,20 +39,39 @@ public:
 };
 
 
-template <typename Key_, typename Value_, typename Profile>
-struct ICtrApiTypes<Multimap<Key_, Value_>, Profile> {
+template <typename Key, typename Value>
+class MultimapInputBuffer: public FLCtrBatchInput<TL<
+        TL<DataTypeBuffer<Key>>,
+        TL<DataTypeBuffer<Value>>
+>>{
+    using Base = FLCtrBatchInput<TL<
+        TL<DataTypeBuffer<Key>>,
+        TL<DataTypeBuffer<Value>>
+    >>;
+public:
+    MultimapInputBuffer(): Base() {}
 
-    using Key = Key_;
-    using Value = Value_;
+    DataTypeBuffer<Key>& keys() {
+        return Base::template get<0, 1>();
+    }
 
-    using IOVSchema = TL<
-        TL<
-            ICtrApiSubstream<Key, io::ColumnWise>
-        >,
-        TL<
-            ICtrApiSubstream<Value, io::ColumnWise>
-        >
-    >;
+    const DataTypeBuffer<Key>& keys() const {
+        return Base::template get<0, 1>();
+    }
+
+    DataTypeBuffer<Value>& values() {
+        return Base::template get<1, 1>();
+    }
+
+    const DataTypeBuffer<Value>& values() const {
+        return Base::template get<1, 1>();
+    }
+};
+
+
+template <typename Key, typename Value, typename Profile>
+struct ICtrApiTypes<Multimap<Key, Value>, Profile> {
+    using CtrInputBuffer = MultimapInputBuffer<Key, Value>;
 };
 
 template <typename Key, typename Value>

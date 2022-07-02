@@ -19,7 +19,6 @@
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
-#include <memoria/core/iovector/io_vector.hpp>
 #include <memoria/prototypes/bt/nodes/leaf_node_so.hpp>
 
 #include <vector>
@@ -41,30 +40,20 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafRCommonName)
 public:
 
 
+//    struct SumFn {
+//        template <typename Stream>
+//        auto stream(const Stream& s, size_t block, size_t from, size_t to)
+//        {
+//            return s->sum(block, from, to);
+//        }
 
+//        template <typename Stream>
+//        auto stream(const Stream& s, size_t from, size_t to)
+//        {
+//            return s->sums(from, to);
+//        }
+//    };
 
-    struct SumFn {
-        template <typename Stream>
-        auto stream(const Stream& s, size_t block, size_t from, size_t to)
-        {
-            return s->sum(block, from, to);
-        }
-
-        template <typename Stream>
-        auto stream(const Stream& s, size_t from, size_t to)
-        {
-            return s->sums(from, to);
-        }
-    };
-
-
-
-
-    IterSharedPtr<io::IOVector> create_iovector()
-    {
-        using IOVectorT = typename Types::LeafNode::template SparseObject<MyType>::IOVectorT;
-        return allocate_shared<IOVectorT>(self().store().object_pools());
-    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

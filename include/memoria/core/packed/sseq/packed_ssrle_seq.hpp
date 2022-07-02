@@ -25,7 +25,6 @@
 
 #include <memoria/profiles/common/block_operations.hpp>
 
-#include <memoria/core/iovector/io_substream_ssrle.hpp>
 #include <memoria/core/packed/sseq/packed_ssrle_seq_so.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
@@ -455,12 +454,6 @@ public:
         }
 
         FieldFactory<CodeUnitT>::deserialize(buf, symbols_block().data(), meta->code_units());
-    }
-
-    void configure_io_substream(io::IOSubstream& substream) const
-    {
-        auto& seq = io::substream_cast<IOSubstreamView>(substream);
-        seq.configure(this);
     }
 };
 

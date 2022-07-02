@@ -20,8 +20,6 @@
 #include <memoria/api/collection/collection_api.hpp>
 
 #include <memoria/api/set/set_api_factory.hpp>
-#include <memoria/api/set/set_producer.hpp>
-
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 
 #include <memory>
@@ -30,16 +28,14 @@ namespace memoria {
 
 template <typename Key, typename Profile> 
 struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
-
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ApiTypes  = ICtrApiTypes<Set<Key>, Profile>;
-
-    using Producer      = SetProducer<ApiTypes>;
-    using ProducerFn    = typename Producer::ProducerFn;
 
     using BufferT       = DataTypeBuffer<Key>;
     using DataTypeT     = Key;
     using CtrSizeT      = ApiProfileCtrSizeT<Profile>;
+
+    using CtrInputBuffer = typename ApiTypes::CtrInputBuffer;
 
     using ChunkIteratorPtr = IterSharedPtr<CollectionChunk<Key, Profile>>;
 
@@ -68,28 +64,11 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
 
     virtual bool upsert(KeyView key) MEMORIA_READ_ONLY_API
 
+    virtual ChunkIteratorPtr append(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
-    ChunkIteratorPtr append(ProducerFn producer_fn)  {
-        Producer producer(producer_fn);
-        return append(producer);
-    }
+    virtual ChunkIteratorPtr prepend(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
-    virtual ChunkIteratorPtr append(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
-
-    ChunkIteratorPtr prepend(ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return prepend(producer);
-    }
-
-    virtual ChunkIteratorPtr prepend(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
-
-
-    ChunkIteratorPtr insert(KeyView before, ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return insert(before, producer);
-    }
-
-    virtual ChunkIteratorPtr insert(KeyView before, io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
+    virtual ChunkIteratorPtr insert(KeyView before, CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
     template <typename Fn>
     void for_each(Fn&& fn)

@@ -1,5 +1,5 @@
 
-// Copyright 2016 Victor Smirnov
+// Copyright 2016-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,8 +25,6 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-
-#include <memoria/api/set/set_producer.hpp>
 #include <memoria/api/set/set_api.hpp>
 
 #include <memoria/containers/collection/collection_entry_impl.hpp>
@@ -63,7 +61,7 @@ protected:
     using BufferT   = DataTypeBuffer<Key>;
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
-
+    using CtrInputBuffer = typename Types::CtrInputBuffer;
 
 public:
 
@@ -72,16 +70,7 @@ public:
 
 
     using typename Base::CollectionChunkTypes;
-//    struct CollectionChunkTypes: Types {
-//        using CollectionKeyType = Key;
-//        using ShuttleTypes = typename Base::ShuttleTypes;
-//    };
-
-
-    //using CollectionChunkImplT = CollectionChunkImpl<CollectionChunkTypes>;
     using typename Base::CollectionChunkImplT;
-
-    //using EntriesPath = IntList<0, 1>;
 
     using typename Base::EntriesPath;
 
@@ -97,61 +86,35 @@ public:
     using typename Base::LeafNodeExtData;
     using typename Base::ContainerTypeName;
 
-//    void configure_types(
-//        const ContainerTypeName& type_name,
-//        BranchNodeExtData& branch_node_ext_data,
-//        LeafNodeExtData& leaf_node_ext_data
-//    ) {
-
-//    }
-
-//    IterSharedPtr<CollectionChunkImplT> ctr_set_find(const KeyView& k) const
-//    {
-//        return self().ctr_descend(
-//            TypeTag<CollectionChunkImplT>{},
-//            bt::ShuttleTag<FindShuttle>{},
-//            k, 0, SearchType::GE
-//        );
-//    }
-
-
-//    ChunkSharedPtr find(KeyView key) const
-//    {
-//        return self().ctr_set_find(key);
-//    }
-
-
-
-    ChunkSharedPtr append(io::IOVectorProducer& producer)
+    ChunkSharedPtr append(CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
 
         auto iter = self.ctr_seek_entry(self.size());
 
-        auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        auto jj = self.ctr_insert_batch(std::move(iter), producer);
         return memoria_static_pointer_cast<CollectionChunkImplT>(jj);
     }
 
-    ChunkSharedPtr prepend(io::IOVectorProducer& producer)
+    ChunkSharedPtr prepend(CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
         auto iter = self.ctr_seek_entry(0);
-        auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        auto jj = self.ctr_insert_batch(std::move(iter), producer);
         return memoria_static_pointer_cast<CollectionChunkImplT>(jj);
     }
 
-    ChunkSharedPtr insert(KeyView before, io::IOVectorProducer& producer)
+    ChunkSharedPtr insert(KeyView before, CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
 
         auto iter = self.ctr_set_find(before);
 
-        if (iter->is_found(before))
-        {
+        if (iter->is_found(before)) {
             MEMORIA_MAKE_GENERIC_ERROR("Requested key is found. Can't insert enties this way.").do_throw();
         }
         else {
-            auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+            auto jj = self.ctr_insert_batch(std::move(iter), producer);
             return memoria_static_pointer_cast<CollectionChunkImplT>(jj);
         }
     }
@@ -195,14 +158,6 @@ public:
         return false;
     }
 
-    /**
-     * Returns true if the set contains the element
-     */
-//    bool contains(KeyView k)
-//    {
-//        auto iter = self().ctr_set_find(k);
-//        return iter->is_found(k);
-//    }
 
     void remove(CtrSizeT from, CtrSizeT to)
     {
@@ -257,7 +212,9 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size()).do_throw();
         }
 
-        SetProducer<CtrApiTypes> producer([&](auto& values, auto appended_size){
+        CtrSizeT appended_size{};
+
+        auto producer = [&](auto& values){
             size_t batch_size = 8192;
             size_t limit = (appended_size + batch_size <= size) ? batch_size : size - appended_size;
 
@@ -266,13 +223,12 @@ public:
             }
 
             return limit != batch_size;
-        });
+        };
 
         auto ii = self.ctr_seek_entry(at);
-        auto jj = self.ctr_insert_iovector2(std::move(ii), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        auto jj = self.ctr_insert_batch(std::move(ii), producer);
         return memoria_static_pointer_cast<CollectionChunkImplT>(jj);
     }
-
 
 MEMORIA_V1_CONTAINER_PART_END
 

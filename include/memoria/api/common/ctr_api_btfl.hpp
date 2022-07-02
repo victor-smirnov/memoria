@@ -22,8 +22,6 @@
 
 #include <memoria/core/container/store.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
-
 #include "ctr_api.hpp"
 
 

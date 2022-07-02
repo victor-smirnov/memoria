@@ -146,46 +146,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrWApiName)
         return self.ctr_trim_tree(ii_start->path());
     }
 
-//    virtual CtrSizeT rank(size_t level, CtrSizeT pos) const
-//    {
-//        return self().ctr_alcmap_seek(pos)->rank(level);
-//    }
-
-//    virtual CtrSizeT find_unallocated(
-//        int32_t level,
-//        CtrSizeT required,
-//        ArenaBuffer<ALCMeta>& buffer
-//    )
-//    {
-//        auto& self = this->self();
-//        auto ii = self.ctr_alcmap_select0(level, 0);
-
-
-//        CtrSizeT sum{};
-//        while (is_valid_chunk(ii))
-//        {
-//            auto level0_pos = ii->level0_pos();
-//            CtrSizeT available;
-//            std::tie(available, ii) = ii->iter_count_fw();
-
-//            auto len = available / (1 << level);
-
-//            if (sum + len < required)
-//            {
-//                buffer.append_value(AllocationMetadata<ApiProfileT>{level0_pos, len, level});
-//                ii = ii->iter_select_fw(level, 0);
-//                sum += len;
-//            }
-//            else {
-//                auto remainder = required - sum;
-//                buffer.append_value(AllocationMetadata<ApiProfileT>{level0_pos, remainder, level});
-//                sum += remainder;
-//                break;
-//            }
-//        }
-
-//        return sum;
-//    }
 
     virtual CtrSizeT allocate(
             int32_t level,
@@ -202,91 +162,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrWApiName)
         return total;
     }
 
-//    struct ScanUnallocatedFn {
-//        template <typename T>
-//        void treeNode(T&& node_so, ArenaBuffer<ALCMeta>& arena, CtrSizeT offset) const
-//        {
-//            auto bitmap_stream_so = node_so.template substream_by_idx<1>();
-//            const auto bitmaps = bitmap_stream_so.data();
-
-//            for (int32_t lvl = LEVELS - 1; lvl >= 0; lvl--)
-//            {
-//                ALCMeta meta;
-//                int32_t size = bitmaps->size(lvl);
-//                int32_t rank = bitmaps->sum(lvl);
-
-//                if (rank > 0) {
-//                    // There are unallocated blocks, scan the bitmap for them.
-//                    for (int32_t c = 0; c < size; c++)
-//                    {
-//                        bool upper_size_is_occupied = true;
-//                        if (lvl < LEVELS - 1) {
-//                            upper_size_is_occupied = bitmaps->get_bit(lvl + 1, c / 2);
-//                        }
-
-//                        if (upper_size_is_occupied && !bitmaps->get_bit(lvl, c))
-//                        {
-//                            if (!meta.size_at_level()) {
-//                                meta = ALCMeta((c << lvl) + offset, 1 << lvl, lvl);
-//                            }
-//                            else {
-//                                meta.enlarge1(1);
-//                            }
-//                        }
-//                        else if (meta.size_at_level()) {
-//                            arena.append_value(meta);
-//                            meta = ALCMeta{0, 0, 0};
-//                        }
-//                    }
-
-//                    if (meta.size_at_level()) {
-//                        arena.append_value(meta);
-//                    }
-//                }
-//            }
-//        }
-//    };
-
-
-//    virtual void scan(const std::function<bool (Span<ALCMeta>)>& fn)
-//    {
-//        auto& self = this->self();
-
-//        int32_t level = 0;
-//        auto iter = self.ctr_alcmap_select0(level, 0);
-
-//        ArenaBuffer<ALCMeta> arena;
-
-//        while (is_valid_chunk(iter))
-//        {
-//            CtrSizeT offset = iter->level0_pos();
-
-//            arena.clear();
-//            self.leaf_dispatcher().dispatch(
-//                        iter->path().leaf(),
-//                        ScanUnallocatedFn(),
-//                        arena,
-//                        offset
-//            );
-
-//            if (arena.size()) {
-//                if (!fn(arena.span())) {
-//                    return;
-//                }
-//            }
-
-
-//            iter = iter->iter_next_chunk();
-
-//            if (is_valid_chunk(iter)) {
-//                iter = iter->iter_select_fw(level, 0);
-//            }
-//            else {
-//                break;
-//            }
-//        }
-
-//    }
 
 
     struct LayoutLeafNodeFn {

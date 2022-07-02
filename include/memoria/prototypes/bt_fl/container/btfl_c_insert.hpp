@@ -20,10 +20,10 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
-
 #include <memoria/prototypes/bt_fl/btfl_tools.hpp>
-#include <memoria/prototypes/bt_fl/io/btfl_io_input_provider_base.hpp>
+#include <memoria/prototypes/bt_fl/btfl_batch_input_provider.hpp>
+
+#include <memoria/core/tools/object_pool.hpp>
 
 #include <vector>
 
@@ -40,14 +40,16 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
 
     using typename Base::MyROType;
 
+    using CtrInputBuffer = typename TypesType::CtrInputBuffer;
 
-    BlockIteratorStatePtr ctr_insert_iovector(BlockIteratorStatePtr&& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
+
+    BlockIteratorStatePtr ctr_insert_batch(BlockIteratorStatePtr&& iter, CtrBatchInputFn<CtrInputBuffer> provider)
     {
         auto& self = this->self();
 
-        auto iov_res = LeafNode::template NodeSparseObject<MyType, LeafNode>::create_iovector();
+        auto buf = allocate_shared<CtrInputBuffer>(self.store().object_pools());
 
-        btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov_res.get(), start, length);
+        btfl::io::CtrBatchInputProvider<MyType> streaming(self, provider, *buf.get());
 
         auto pos = iter->iter_leafrank();
 
@@ -58,20 +60,16 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
         return std::move(iter);
     }
 
-    struct BTFLIOVectorProducer: io::IOVectorProducer {
-        virtual bool populate(io::IOVector&)
-        {
-            return true; // provided io_vector has been already populated
-        }
-    };
 
-    BlockIteratorStatePtr ctr_insert_iovector(BlockIteratorStatePtr&& iter, io::IOVector& iovector, int64_t start, int64_t length)
+    BlockIteratorStatePtr ctr_insert_batch(BlockIteratorStatePtr&& iter, CtrInputBuffer& input_buffer)
     {
         auto& self = this->self();
 
-        BTFLIOVectorProducer producer{};
+        auto producer = [](CtrInputBuffer&){
+            return true;
+        };
 
-        btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &producer, &iovector, start, length);
+        btfl::io::CtrBatchInputProvider<MyType> streaming(self, &producer, &input_buffer);
 
         auto pos = iter->iter_leafrank();
 

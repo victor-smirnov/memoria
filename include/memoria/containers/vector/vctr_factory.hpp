@@ -39,18 +39,45 @@
 
 namespace memoria {
 
-template <typename Profile, typename DataType>
-struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
+//template <typename Profile, typename DataType>
+//struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
+
+//    using Base = BTTypes<Profile, BTSingleStream>;
+
+//    using Value = DataType;
+//    using ValueDataType = DataType;
+//    using ValueView = typename DataTypeTraits<DataType>::ViewType;
+
+//    using Entry = DataType;
+
+
+
+//    using CommonContainerPartsList = MergeLists<
+//            typename Base::CommonContainerPartsList,
+
+//            mvector::CtrToolsName,
+//            mvector::CtrInsertName,
+//            mvector::CtrRemoveName,
+//            mvector::CtrFindName,
+//            mvector::CtrApiCommonName
+//    >;
+//};
+
+
+
+
+
+template <typename Profile, typename Value_>
+struct BTTypes<Profile, Vector<Value_> >:
+        public BTTypes<Profile, BTSingleStream>,
+        ICtrApiTypes<Vector<Value_>, Profile>
+{
 
     using Base = BTTypes<Profile, BTSingleStream>;
 
-    using Value = DataType;
-    using ValueDataType = DataType;
-    using ValueView = typename DataTypeTraits<DataType>::ViewType;
-
-    using Entry = DataType;
-
-
+    using Value = Value_;
+    using ValueDataType = Value;
+    using ValueView = typename DataTypeTraits<Value>::ViewType;
 
     using CommonContainerPartsList = MergeLists<
             typename Base::CommonContainerPartsList,
@@ -61,16 +88,9 @@ struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
             mvector::CtrFindName,
             mvector::CtrApiCommonName
     >;
-};
 
 
 
-
-
-template <typename Profile, typename Value_>
-struct BTTypes<Profile, Vector<Value_> >: public VectorBTTypesBase<Profile, Value_> {
-
-    using Value = Value_;
 
     using LeafValueStruct = typename mvector::VectorValueStructTF<Value_>::Type;
 

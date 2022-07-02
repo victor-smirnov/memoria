@@ -16,20 +16,16 @@
 #pragma once
 
 #include <memoria/api/common/ctr_api_btss.hpp>
-#include <memoria/api/common/iobuffer_adatpters.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
-#include <memoria/core/datatypes/encoding_traits.hpp>
-#include <memoria/core/datatypes/io_vector_traits.hpp>
+//#include <memoria/core/datatypes/encoding_traits.hpp>
+//#include <memoria/core/datatypes/io_vector_traits.hpp>
 
 #include <memoria/core/types/typehash.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
 
 #include <memoria/api/collection/collection_api.hpp>
 #include <memoria/api/allocation_map/allocation_map_api_factory.hpp>
-
-#include <memoria/core/strings/string_codec.hpp>
 
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 #include <memoria/core/tools/span.hpp>

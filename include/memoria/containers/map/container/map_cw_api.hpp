@@ -1,5 +1,5 @@
 
-// Copyright 2014 Victor Smirnov
+// Copyright 2014-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -67,37 +67,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
     using FindShuttle = bt::FindForwardShuttle<ShuttleTypes, KeysPath, ChunkImplT>;
 
 
-//    virtual ChunkSharedPtr seek_entry(CtrSizeT num) const
-//    {
-//        auto& self = this->self();
-//        return self.ctr_seek_entry(num);
-//    }
-
-//    IterSharedPtr<ChunkImplT> ctr_seek_entry(CtrSizeT num) const
-//    {
-//        auto& self = this->self();
-//        return self.ctr_descend(
-//                    TypeTag<ChunkImplT>{},
-//                    TypeTag<bt::SkipForwardShuttle<ShuttleTypes, 0, ChunkImplT>>{},
-//                    num
-//        );
-//    }
-
-//    IterSharedPtr<ChunkImplT> ctr_map_find(const KeyView& k) const
-//    {
-//        return self().ctr_descend(
-//            TypeTag<ChunkImplT>{},
-//            bt::ShuttleTag<FindShuttle>{},
-//            k, 0, SearchType::GE
-//        );
-//    }
-
-
-//    virtual IterSharedPtr<MapChunk<Key, Value, ApiProfileT>> find(KeyView key) const
-//    {
-//        return self().ctr_map_find(key);
-//    }
-
+    using CtrInputBuffer = typename Types::CtrInputBuffer;
 
 
     bool upsert_key(KeyView key, ValueView value)
@@ -133,25 +103,25 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
     }
 
 
-    ChunkSharedPtr append(io::IOVectorProducer& producer)
+    ChunkSharedPtr append(CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
 
         auto iter = self.ctr_seek_entry(self.size());
 
-        auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        auto jj = self.ctr_insert_batch(std::move(iter), producer);
         return memoria_static_pointer_cast<ChunkImplT>(jj);
     }
 
-    ChunkSharedPtr prepend(io::IOVectorProducer& producer)
+    ChunkSharedPtr prepend(CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
         auto iter = self.ctr_seek_entry(0);
-        auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        auto jj = self.ctr_insert_batch(std::move(iter), producer);
         return memoria_static_pointer_cast<ChunkImplT>(jj);
     }
 
-    ChunkSharedPtr insert(KeyView before, io::IOVectorProducer& producer)
+    ChunkSharedPtr insert(KeyView before, CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
 
@@ -162,7 +132,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
             MEMORIA_MAKE_GENERIC_ERROR("Requested key is found. Can't insert enties this way.").do_throw();
         }
         else {
-            auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+            auto jj = self.ctr_insert_batch(std::move(iter), producer);
             return memoria_static_pointer_cast<ChunkImplT>(jj);
         }
     }

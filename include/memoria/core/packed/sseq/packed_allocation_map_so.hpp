@@ -18,10 +18,7 @@
 
 #include <memoria/core/types.hpp>
 #include <memoria/profiles/common/block_operations.hpp>
-#include <memoria/core/iovector/io_substream_base.hpp>
-
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
-
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 
 namespace memoria {
@@ -127,10 +124,6 @@ public:
 
     auto sum(size_t level) const noexcept {
         return data_->sum(level);
-    }
-
-    void configure_io_substream(io::IOSubstream& substream) const {
-        MEMORIA_MAKE_GENERIC_ERROR("Method is not supported").do_throw();
     }
 
     template <typename AllocationPool>

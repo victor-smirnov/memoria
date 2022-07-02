@@ -25,8 +25,6 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-
-#include <memoria/api/set/set_producer.hpp>
 #include <memoria/api/set/set_api.hpp>
 
 #include <memoria/containers/collection/collection_entry_impl.hpp>

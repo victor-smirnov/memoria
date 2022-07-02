@@ -25,8 +25,6 @@
 
 #include <memoria/prototypes/bt_fl/btfl_tools.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
-
 #include <memoria/core/tools/assert.hpp>
 
 #include <memory>
@@ -46,8 +44,9 @@ namespace detail {
     struct CommitStreamSelector<StreamSelectorType::DATA, DataStreams>
     {
         template <
-                int32_t StreamIdx,
-                typename StreamObj, typename Position, typename UpdateStatus
+                size_t StreamIdx,
+                size_t SubstreamIdx,
+                typename StreamObj, typename Position, typename UpdateStatus, typename CtrInputBuffer
         >
         static void io_stream(
                 StreamObj&& stream,
@@ -55,8 +54,7 @@ namespace detail {
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                const memoria::io::IOVector& io_vector,
-                int32_t& current_substream,
+                const CtrInputBuffer& input_buffer,
                 UpdateStatus& update_status
         )
         {
@@ -64,13 +62,11 @@ namespace detail {
 
             stream.commit_insert_io_substream(
                     at[StreamIdx],
-                    io_vector.substream(current_substream),
+                    get_ctr_batch_input_substream<StreamIdx, SubstreamIdx>(input_buffer),
                     starts[StreamIdx],
                     sizes[StreamIdx],
                     update_status
             );
-
-            current_substream++;
         }
     };
 
@@ -78,8 +74,9 @@ namespace detail {
     struct PrepareStreamSelector<StreamSelectorType::DATA, DataStreams>
     {
         template <
-                int32_t StreamIdx,
-                typename StreamObj, typename Position, typename UpdateStatus
+                size_t StreamIdx,
+                size_t SubstreamIdx,
+                typename StreamObj, typename Position, typename UpdateStatus, typename CtrInputBuffer
         >
         static PkdUpdateStatus io_stream(
                 StreamObj&& stream,
@@ -87,8 +84,7 @@ namespace detail {
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                const memoria::io::IOVector& io_vector,
-                int32_t& current_substream,
+                const CtrInputBuffer& input_buffer,
                 UpdateStatus& update_status
         )
         {
@@ -96,13 +92,11 @@ namespace detail {
 
             PkdUpdateStatus status = stream.prepare_insert_io_substream(
                             at[StreamIdx],
-                            io_vector.substream(current_substream),
+                            get_ctr_batch_input_substream<StreamIdx, SubstreamIdx>(input_buffer),
                             starts[StreamIdx],
                             sizes[StreamIdx],
                             update_status
             );
-
-            current_substream++;
             return status;
         }
     };
@@ -111,8 +105,9 @@ namespace detail {
     struct CommitStreamSelector<StreamSelectorType::STRUCTURE, DataStreams>
     {
         template <
-                int32_t StreamIdx,
-                typename StreamObj, typename Position, typename UpdateStatus
+                size_t StreamIdx,
+                size_t SubstreamIdx,
+                typename StreamObj, typename Position, typename UpdateStatus, typename CtrInputBuffer
         >
         static void io_stream(
                 StreamObj&& stream,
@@ -120,21 +115,18 @@ namespace detail {
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                const memoria::io::IOVector& io_vector,
-                int32_t& current_substream,
+                const CtrInputBuffer& input_buffer,
                 UpdateStatus& update_status
         )
         {
             static_assert(StreamIdx == DataStreams, "");
             stream.commit_insert_io_substream(
                     at[StreamIdx],
-                    io_vector.symbol_sequence(),
+                    input_buffer.symbols(),
                     starts[StreamIdx],
                     sizes[StreamIdx],
                     update_status
             );
-
-            current_substream++;
         }
     };
 
@@ -142,8 +134,9 @@ namespace detail {
     struct PrepareStreamSelector<StreamSelectorType::STRUCTURE, DataStreams>
     {
         template <
-                int32_t StreamIdx,
-                typename StreamObj, typename Position, typename UpdateStatus
+                size_t StreamIdx,
+                size_t SubstreamIdx,
+                typename StreamObj, typename Position, typename UpdateStatus, typename CtrInputBuffer
         >
         static PkdUpdateStatus io_stream(
                 StreamObj&& stream,
@@ -151,8 +144,7 @@ namespace detail {
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                const memoria::io::IOVector& io_vector,
-                int32_t& current_substream,
+                const CtrInputBuffer& input_buffer,
                 UpdateStatus& update_status
         )
         {
@@ -160,14 +152,11 @@ namespace detail {
 
             PkdUpdateStatus status = stream.prepare_insert_io_substream(
                         at[StreamIdx],
-                        io_vector.symbol_sequence(),
+                        input_buffer.symbols(),
                         starts[StreamIdx],
                         sizes[StreamIdx],
                         update_status
             );
-
-            current_substream++;
-
             return status;
         }
     };
@@ -177,7 +166,7 @@ namespace detail {
 
 
 template <typename CtrT>
-class AbstractCtrInputProviderBase: public bt::IOVectorInputProviderBase<CtrT> {
+class AbstractCtrBatchInputProviderBase: public bt::CtrBatchInputProviderBase<CtrT> {
 
 protected:
     static const int32_t Streams                = CtrT::Types::Streams;
@@ -186,13 +175,15 @@ protected:
 
 
 public:
-    using MyType = AbstractCtrInputProviderBase<CtrT>;
+    using MyType = AbstractCtrBatchInputProviderBase<CtrT>;
 
     using TreeNodePtr           = typename CtrT::Types::TreeNodePtr;
     using CtrSizeT              = typename CtrT::Types::CtrSizeT;
     using Position              = typename CtrT::Types::Position;
     using DataPositions         = core::StaticVector<uint64_t, DataStreams>;
     using CtrDataPositionsT     = core::StaticVector<int64_t, DataStreams>;
+
+    using CtrInputBuffer        = typename CtrT::Types::CtrInputBuffer;
 
 
     using NodePair = std::pair<TreeNodePtr, TreeNodePtr>;
@@ -215,23 +206,17 @@ protected:
 
     CtrDataPositionsT totals_{};
 
-    memoria::io::IOVectorProducer* producer_{};
-    memoria::io::IOVector* io_vector_{};
-
-    CtrSizeT start_pos_;
-    CtrSizeT length_;
+    CtrBatchInputFn<CtrInputBuffer> producer_{};
+    CtrInputBuffer& input_buffer_;
 
 public:
 
-    AbstractCtrInputProviderBase(
+    AbstractCtrBatchInputProviderBase(
             CtrT& ctr,
-            memoria::io::IOVectorProducer* producer,
-            memoria::io::IOVector* io_vector,
-            CtrSizeT start_pos,
-            CtrSizeT length
+            CtrBatchInputFn<CtrInputBuffer> producer,
+            CtrInputBuffer& input_buffer
     ):
-        ctr_(ctr), producer_(producer), io_vector_(io_vector),
-        start_pos_(start_pos), length_(length)
+        ctr_(ctr), producer_(producer), input_buffer_(input_buffer)
     {}
 
 
@@ -268,8 +253,7 @@ public:
 
     virtual Position fill(const TreeNodePtr& leaf, const Position& start) = 0;
 
-    DataPositions buffer_size() const
-    {
+    DataPositions buffer_size() const {
         return size_ - start_;
     }
 
@@ -280,7 +264,7 @@ public:
 
         int32_t start_pos = start_.sum();
 
-        io_vector_->symbol_sequence().rank_to(start_pos + idx, rnk.span());
+        input_buffer_.symbols().rank_to(start_pos + idx, rnk.span());
 
         return rnk - start_;
     }
@@ -314,40 +298,17 @@ public:
 
     void do_populate_iobuffer()
     {
-        const auto& seq = io_vector_->symbol_sequence();
+        const auto& seq = input_buffer_.symbols();
 
-        do
-        {
-            start_.clear();
-            size_.clear();
+        start_.clear();
+        size_.clear();
 
-            io_vector_->clear();
-            finished_ = producer_->populate(*io_vector_);
-            io_vector_->reindex();
+        input_buffer_.clear();
+        finished_ = producer_(input_buffer_);
 
-            seq.rank_to(io_vector_->symbol_sequence().size(), size_.span());
+        reindex_ctr_batch_input(input_buffer_);
 
-            if (MMA_UNLIKELY(start_pos_ > 0))
-            {
-                int32_t ctr_seq_size = seq.size();
-                if (start_pos_ < ctr_seq_size)
-                {
-                    seq.rank_to(start_pos_, start_.span());
-                    start_pos_ -= start_.sum();
-                }
-                else {
-                    start_pos_ -= ctr_seq_size;
-                }
-            }
-        }
-        while (start_pos_ > 0);
-
-        CtrSizeT remainder = length_ - total_symbols_;
-        if (MMA_UNLIKELY(length_ < std::numeric_limits<CtrSizeT>::max() && (size_ - start_).sum() > remainder))
-        {
-            seq.rank_to(start_.sum() + remainder, size_.span());
-            finished_ = true;
-        }
+        seq.rank_to(input_buffer_.symbols().size(), size_.span());
     }
 
     DataPositions to_data_positions(const Position& pos)
@@ -377,7 +338,7 @@ template <
     int32_t Streams = CtrT::Types::Streams,
     LeafDataLengthType LeafDataLength = CtrT::Types::LeafDataLength
 >
-class IOVectorCtrInputProvider;
+class CtrBatchInputProvider;
 
 
 
@@ -385,23 +346,25 @@ template <
     typename CtrT,
     int32_t Streams
 >
-class IOVectorCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: public AbstractCtrInputProviderBase<CtrT> {
+class CtrBatchInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: public AbstractCtrBatchInputProviderBase<CtrT> {
 
-    using Base = AbstractCtrInputProviderBase<CtrT>;
+    using Base = AbstractCtrBatchInputProviderBase<CtrT>;
 
     static constexpr float FREE_SPACE_THRESHOLD = 0.1;
 
 public:
-    using MyType = IOVectorCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>;
+    using MyType = CtrBatchInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>;
 
     using TreeNodePtr = typename CtrT::Types::TreeNodePtr;
     using CtrSizeT  = typename CtrT::Types::CtrSizeT;
 
     using typename Base::DataPositions;
     using typename Base::Position;
+    using typename Base::CtrInputBuffer;
 
     using Base::StructureStreamIdx;
     using Base::DataStreams;
+
 
 protected:
     using Base::rank;
@@ -412,18 +375,16 @@ protected:
     using Base::total_symbols_;
     using Base::to_data_positions;
 
-    using Base::io_vector_;
+    using Base::input_buffer_;
 
 public:
 
-    IOVectorCtrInputProvider(
+    CtrBatchInputProvider(
             CtrT& ctr,
-            memoria::io::IOVectorProducer* producer,
-            memoria::io::IOVector* io_vector,
-            CtrSizeT start_pos,
-            CtrSizeT length
+            CtrBatchInputFn<CtrInputBuffer> producer,
+            CtrInputBuffer& input_buffer
     ):
-        Base(ctr, producer, io_vector, start_pos, length)
+        Base(ctr, producer, input_buffer)
     {}
 
     CtrT& ctr() {
@@ -551,22 +512,20 @@ protected:
 
         template <StreamType T> struct Tag {};
 
-        int32_t current_substream_{};
         PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
-
         template <
-                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
+                size_t StreamIdx, size_t AllocatorIdx, size_t Idx, size_t StreamsStartIdx,
                 typename StreamObj, typename UpdateState
         >
         void stream(
                 StreamObj&& stream,
                 PackedAllocator* alloc,
-                IntList<StreamsStartIdx>,
+                SizeTList<StreamsStartIdx>,
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                const memoria::io::IOVector& io_vector,
+                const CtrInputBuffer& input_buffer,
                 UpdateState& update_state
         )
         {
@@ -574,14 +533,13 @@ protected:
                 status = detail::PrepareStreamSelector<
                     StreamIdx < DataStreams ? detail::StreamSelectorType::DATA : detail::StreamSelectorType::STRUCTURE,
                     DataStreams
-                >::template io_stream<StreamIdx>(
+                >::template io_stream<StreamIdx, Idx>(
                     std::forward<StreamObj>(stream),
                     alloc,
                     at,
                     starts,
                     sizes,
-                    io_vector,
-                    current_substream_,
+                    input_buffer,
                     std::get<AllocatorIdx - StreamsStartIdx>(update_state)
                 );
             }
@@ -589,17 +547,17 @@ protected:
 
 
         template <
-                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
+                size_t StreamIdx, size_t AllocatorIdx, size_t Idx, size_t StreamsStartIdx,
                 typename ExtData, typename PakdStruct, typename UpdateState
         >
         void stream(
                 PackedSizedStructSO<ExtData, PakdStruct>& stream,
                 PackedAllocator* alloc,
-                IntList<StreamsStartIdx>,
+                SizeTList<StreamsStartIdx>,
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                memoria::io::IOVector& io_vector,
+                const CtrInputBuffer& input_buffer,
                 UpdateState& update_state)
         {
             static_assert(StreamIdx < Streams, "");            
@@ -609,8 +567,13 @@ protected:
         template <typename LCtrT, typename NodeT, typename... Args>
         void treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args)
         {
-            constexpr int32_t StreamsStartIdx = NodeT::StreamsStart;
-            return leaf.processSubstreamGroups(*this, leaf.allocator(), IntList<StreamsStartIdx>{}, std::forward<Args>(args)...);
+            constexpr size_t StreamsStartIdx = NodeT::StreamsStart;
+            return leaf.processSubstreamGroups(
+                        *this,
+                        leaf.allocator(),
+                        SizeTList<StreamsStartIdx>{},
+                        std::forward<Args>(args)...
+            );
         }
     };
 
@@ -620,51 +583,49 @@ protected:
         enum class StreamType {DATA, STRUCTURE};
 
         template <StreamType T> struct Tag {};
-        int32_t current_substream_{};
 
         template <
-                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
+                size_t StreamIdx, size_t AllocatorIdx, size_t Idx, size_t StreamsStartIdx,
                 typename StreamObj, typename UpdateState
         >
         void stream(
                 StreamObj&& stream,
                 PackedAllocator* alloc,
-                IntList<StreamsStartIdx>,
+                SizeTList<StreamsStartIdx>,
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                const memoria::io::IOVector& io_vector,
+                const CtrInputBuffer& input_buffer,
                 UpdateState& update_state
         )
         {
             detail::CommitStreamSelector<
                     StreamIdx < DataStreams ? detail::StreamSelectorType::DATA : detail::StreamSelectorType::STRUCTURE,
                     DataStreams
-            >::template io_stream<StreamIdx>(
+            >::template io_stream<StreamIdx, Idx>(
                     std::forward<StreamObj>(stream),
                     alloc,
                     at,
                     starts,
                     sizes,
-                    io_vector,
-                    current_substream_,
+                    input_buffer,
                     std::get<AllocatorIdx - StreamsStartIdx>(update_state)
             );
         }
 
 
         template <
-                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
+                size_t StreamIdx, size_t AllocatorIdx, size_t Idx, size_t StreamsStartIdx,
                 typename ExtData, typename PakdStruct, typename UpdateState
         >
         void stream(
                 PackedSizedStructSO<ExtData, PakdStruct>& stream,
                 PackedAllocator* alloc,
-                IntList<StreamsStartIdx>,
+                SizeTList<StreamsStartIdx>,
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                memoria::io::IOVector& io_vector,
+                const CtrInputBuffer& input_buffer,
                 UpdateState& update_state)
         {
             static_assert(StreamIdx < Streams, "");
@@ -674,8 +635,13 @@ protected:
         template <typename LCtrT, typename NodeT, typename... Args>
         void treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args)
         {
-            constexpr int32_t StreamsStartIdx = NodeT::StreamsStart;
-            return leaf.processSubstreamGroups(*this, leaf.allocator(), IntList<StreamsStartIdx>{}, std::forward<Args>(args)...);
+            constexpr size_t StreamsStartIdx = NodeT::StreamsStart;
+            return leaf.processSubstreamGroups(
+                  *this,
+                  leaf.allocator(),
+                  SizeTList<StreamsStartIdx>{},
+                  std::forward<Args>(args)...
+            );
         }
     };
 
@@ -708,7 +674,7 @@ protected:
                     to_position(at),
                     to_position(start_),
                     to_position(size),
-                    *io_vector_,
+                    input_buffer_,
                     update_state
         );
 
@@ -722,7 +688,7 @@ protected:
                         to_position(at),
                         to_position(start_),
                         to_position(size),
-                        *io_vector_,
+                        input_buffer_,
                         update_state
             );
             return true;

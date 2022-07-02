@@ -23,7 +23,6 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <memoria/api/multimap/multimap_input.hpp>
 #include <memoria/core/tools/static_array.hpp>
 
 #include <memoria/api/multimap/multimap_api.hpp>
@@ -71,37 +70,39 @@ protected:
     template <typename ShuttleTypes>
     using FindShuttle = bt::FindForwardShuttle<ShuttleTypes, KeysPath, KeysChunkImplT>;
 
+    using CtrInputBuffer = typename Types::CtrInputBuffer;
+
 public:
 
 
 
 
 
-    void append_entries(io::IOVectorProducer& producer)
+    void append_entries(CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
         auto ii = self.ctr_seek_key(self.size());
-        self.ctr_insert_iovector(std::move(ii), producer, 0, std::numeric_limits<int64_t>::max());
+        self.ctr_insert_batch(std::move(ii), producer);
     }
 
-    void prepend_entries(io::IOVectorProducer& producer)
+    void prepend_entries(CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
         auto ii = self.ctr_seek_key(CtrSizeT{});
-        self.ctr_insert_iovector(std::move(ii), producer, 0, std::numeric_limits<int64_t>::max());
+        self.ctr_insert_batch(std::move(ii), producer);
     }
 
 
 
 
-    void insert_entries(KeyView before, io::IOVectorProducer& producer)
+    void insert_entries(KeyView before, CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
         auto ii = self.ctr_map_find(before);
-        self.ctr_insert_iovector(std::move(ii), producer, 0, std::numeric_limits<int64_t>::max());
+        self.ctr_insert_batch(std::move(ii), producer);
     }
 
-    bool upsert(KeyView key, io::IOVectorProducer& producer)
+    bool upsert(KeyView key, CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
         auto ii = self.ctr_map_find(key);
@@ -111,11 +112,11 @@ public:
             auto jj = ii->iter_next(1);
             auto kk = self.ctr_remove_range(std::move(ii), std::move(jj));
 
-            self.ctr_insert_iovector(std::move(kk), producer, 0, std::numeric_limits<int64_t>::max());
+            self.ctr_insert_batch(std::move(kk), producer);
             return true;
         }
 
-        self.ctr_insert_iovector(std::move(ii), producer, 0, std::numeric_limits<int64_t>::max());
+        self.ctr_insert_batch(std::move(ii), producer);
         return false;
     }
 

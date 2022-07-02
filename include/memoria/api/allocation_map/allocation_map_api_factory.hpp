@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 #include <memoria/api/common/ctr_api_btss.hpp>
 
-#include <memoria/core/datatypes/io_vector_traits.hpp>
+#include <memoria/api/common/ctr_input_btss.hpp>
 
 namespace memoria {
 
@@ -28,13 +28,7 @@ class AllocationMap {};
 
 template <typename Profile>
 struct ICtrApiTypes<AllocationMap, Profile> {
-
-
-    using IOVSchema = TL<
-//        TL<
-//            ICtrApiSubstream<EmptyType, io::ColumnWise>
-//        >
-    >;
+    using CtrInputBuffer = detail::BIStreamSize<size_t>;
 };
 
 

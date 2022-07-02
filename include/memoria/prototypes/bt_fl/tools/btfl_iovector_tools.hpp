@@ -15,18 +15,3 @@
 
 #pragma once
 
-#include <memoria/core/iovector/io_symbol_sequence.hpp>
-#include <memoria/core/iovector/io_substream.hpp>
-#include <memoria/core/tools/static_array.hpp>
-
-#include <memoria/core/types/list/map.hpp>
-
-#include <vector>
-#include <tuple>
-
-namespace memoria {
-namespace btfl {
-namespace io {
-
-
-}}}

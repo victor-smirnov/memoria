@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memoria/api/common/ctr_api_btss.hpp>
+#include <memoria/api/common/ctr_input_btss.hpp>
 
 #include <memoria/core/tools/span.hpp>
 
@@ -23,7 +24,6 @@
 #include <memoria/core/datatypes/traits.hpp>
 
 #include <memoria/api/vector/vector_api_factory.hpp>
-#include <memoria/api/vector/vector_producer.hpp>
 
 #include <memory>
 #include <vector>
@@ -52,11 +52,10 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
 
     using CtrSizeT  = ApiProfileCtrSizeT<Profile>;
 
-    using Producer      = VectorProducer<ApiTypes>;
-    using ProducerFn    = typename Producer::ProducerFn;
-
     using BufferT       = DataTypeBuffer<DataType>;
     using DataTypeT     = DataType;
+
+    using CtrInputBuffer = typename ApiTypes::CtrInputBuffer;
 
     virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const = 0;
     virtual void insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) = 0;
@@ -73,30 +72,16 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
 
     //virtual IteratorT seek(CtrSizeT pos) const = 0;
 
-    virtual void prepend(io::IOVectorProducer& producer) = 0;
-    virtual void append(io::IOVectorProducer& producer) = 0;
-    virtual void insert(CtrSizeT at, io::IOVectorProducer& producer) = 0;
+    virtual void prepend(CtrBatchInputFn<CtrInputBuffer> producer) = 0;
+    virtual void append(CtrBatchInputFn<CtrInputBuffer> producer) = 0;
+    virtual void insert(CtrSizeT at, CtrBatchInputFn<CtrInputBuffer> producer) = 0;
 
-    void append(ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return append(producer);
-    }
-
-    void prepend(ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return prepend(producer);
-    }
-
-    void insert(CtrSizeT at, ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return insert(at, producer);
-    }
 
     void insert(CtrSizeT at, Span<const ViewType> span)
     {
-        return insert(at, [&](auto& values, size_t){
+        return insert(at, [&](auto& values){
             values.append(span);
-            return false;
+            return true;
         });
     }
 

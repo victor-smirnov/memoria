@@ -34,11 +34,53 @@
 
 namespace memoria {
 
+//template <
+//    typename Profile
+//>
+//struct AllocationMapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
+
+//    using Base = BTTypes<Profile, BTSingleStream>;
+
+//    using CommonContainerPartsList = MergeLists<
+//                typename Base::CommonContainerPartsList,
+//                alcmap::CtrRApiName
+//    >;
+
+//    using RWCommonContainerPartsList = MergeLists<
+//                typename Base::RWCommonContainerPartsList,
+//                alcmap::CtrWApiName
+//    >;
+//};
+
+
+
+//template <
+//    typename Profile,
+//    int32_t Special = 0
+//>
+//struct AllocationMapBTTypesBase: public AllocationMapBTTypesBaseBase<Profile> {
+
+//    using LeafStruct = PkdAllocationMap<PkdAllocationMapTypes>;
+
+//    using StreamDescriptors = TL<
+//            bt::StreamTF<
+//                TL<
+//                    TL<StreamSize>,
+//                    TL<LeafStruct>
+//                >,
+//                alcmap::MapBranchStructTF
+//            >
+//    >;
+//};
+
+
 template <
     typename Profile
 >
-struct AllocationMapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
-
+struct BTTypes<Profile, AllocationMap>:
+        public BTTypes<Profile, BTSingleStream>,
+        public ICtrApiTypes<AllocationMap, Profile>
+{
     using Base = BTTypes<Profile, BTSingleStream>;
 
     using CommonContainerPartsList = MergeLists<
@@ -50,15 +92,6 @@ struct AllocationMapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
                 typename Base::RWCommonContainerPartsList,
                 alcmap::CtrWApiName
     >;
-};
-
-
-
-template <
-    typename Profile,
-    int32_t Special = 0
->
-struct AllocationMapBTTypesBase: public AllocationMapBTTypesBaseBase<Profile> {
 
     using LeafStruct = PkdAllocationMap<PkdAllocationMapTypes>;
 
@@ -72,12 +105,6 @@ struct AllocationMapBTTypesBase: public AllocationMapBTTypesBaseBase<Profile> {
             >
     >;
 };
-
-
-template <
-    typename Profile
->
-struct BTTypes<Profile, AllocationMap>: public AllocationMapBTTypesBase<Profile>{};
 
 
 template <typename Profile, typename T>

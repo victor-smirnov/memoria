@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2017-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 #include "multimap_factory.hpp"
 
 #include <memoria/api/multimap/multimap_api.hpp>
-#include <memoria/api/multimap/multimap_input.hpp>
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/ctr_impl_btfl.hpp>
 

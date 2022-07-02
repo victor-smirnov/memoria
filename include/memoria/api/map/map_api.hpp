@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2017-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,23 +16,15 @@
 #pragma once
 
 #include <memoria/api/common/ctr_api_btss.hpp>
-#include <memoria/api/common/iobuffer_adatpters.hpp>
 #include <memoria/api/collection/collection_api.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
-#include <memoria/core/datatypes/encoding_traits.hpp>
-#include <memoria/core/datatypes/io_vector_traits.hpp>
-
 #include <memoria/core/types/typehash.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
-
-#include <memoria/api/map/map_producer.hpp>
 #include <memoria/api/map/map_api_factory.hpp>
-
-#include <memoria/core/strings/string_codec.hpp>
-
 #include <memoria/core/datatypes/buffer/buffer.hpp>
+
+
 
 namespace memoria {
 
@@ -95,12 +87,11 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
 
     using ApiTypes  = ICtrApiTypes<Map<Key, Value>, Profile>;
 
-    using Producer      = MapProducer<ApiTypes>;
-    using ProducerFn    = typename Producer::ProducerFn;
-
     using CtrSizeT = ApiProfileCtrSizeT<Profile>;
 
     using ChunkIteratorPtr = IterSharedPtr<MapChunk<Key, Value, Profile>>;
+
+    using CtrInputBuffer = typename ApiTypes::CtrInputBuffer;
 
     virtual void remove(CtrSizeT from, CtrSizeT to) MEMORIA_READ_ONLY_API
 
@@ -112,27 +103,12 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     virtual bool remove_key(KeyView key) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr find(KeyView key) const = 0;
+    virtual ChunkIteratorPtr append(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
-    virtual ChunkIteratorPtr append(ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return append(producer);
-    }
+    virtual ChunkIteratorPtr prepend(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
-    virtual ChunkIteratorPtr append(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
 
-    virtual ChunkIteratorPtr prepend(ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return prepend(producer);
-    }
-
-    virtual ChunkIteratorPtr prepend(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
-
-    virtual ChunkIteratorPtr insert(KeyView before, ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return insert(before, producer);
-    }
-
-    virtual ChunkIteratorPtr insert(KeyView before, io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
+    virtual ChunkIteratorPtr insert(KeyView before, CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr first_entry() const {
         return seek_entry(0);

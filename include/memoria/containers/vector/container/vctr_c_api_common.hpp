@@ -22,8 +22,6 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-
-#include <memoria/api/vector/vector_producer.hpp>
 #include <memoria/api/vector/vector_api.hpp>
 
 
@@ -50,6 +48,8 @@ protected:
 
     using BufferT = DataTypeBuffer<ValueDataType>;
 
+    using CtrInputBuffer = typename Types::CtrInputBuffer;
+
 public:
 
     using typename Base::BranchNodeExtData;
@@ -66,59 +66,12 @@ public:
 
     virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const
     {
-//        auto& self = this->self();
 
-//        auto ii = self.ctr_seek(start);
-
-//        CtrSizeT cnt{};
-//        VectorScanner<CtrApiTypes, ApiProfileT> scanner(ii);
-
-//        size_t local_cnt;
-//        while (cnt < length && !scanner.is_end())
-//        {
-//            local_cnt = 0;
-//            CtrSizeT remainder   = length - cnt;
-//            CtrSizeT values_size = static_cast<CtrSizeT>(scanner.values().size());
-
-//            if (values_size <= remainder)
-//            {
-//                buffer.append(scanner.values());
-//                cnt += values_size;
-//            }
-//            else {
-//                buffer.append(scanner.values().first(remainder));
-//                cnt += remainder;
-//            }
-
-//            if (cnt < length)
-//            {
-//                scanner.next_leaf();
-//            }
-//        }
     }
 
     virtual void insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size)
     {
-//        auto& self = this->self();
 
-//        if (start + size > buffer.size())
-//        {
-//            MEMORIA_MAKE_GENERIC_ERROR("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size()).do_throw();
-//        }
-
-//        VectorProducer<CtrApiTypes> producer([&](auto& values, auto appended_size){
-//            size_t batch_size = 8192;
-//            size_t limit = (appended_size + batch_size <= size) ? batch_size : size - appended_size;
-
-//            for (size_t c = 0; c < limit; c++) {
-//                values.append(buffer[start + appended_size + c]);
-//            }
-
-//            return limit != batch_size;
-//        });
-
-//        auto ii = self.ctr_seek(at);
-//        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
     }
 
 
@@ -151,24 +104,18 @@ public:
 //        return ii->set(view);
     }
 
-    void prepend(io::IOVectorProducer& producer)
+    void prepend(CtrBatchInputFn<CtrInputBuffer> producer)
     {
-//        auto ii = self().ctr_begin();
-//        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
 
     }
 
-    void append(io::IOVectorProducer& producer)
+    void append(CtrBatchInputFn<CtrInputBuffer> producer)
     {
-//        auto ii = self().ctr_end();
-//        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
 
     }
 
-    void insert(CtrSizeT at, io::IOVectorProducer& producer)
+    void insert(CtrSizeT at, CtrBatchInputFn<CtrInputBuffer> producer)
     {
-//        auto ii = self().ctr_seek(at);
-//        ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
 
     }
 

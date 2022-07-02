@@ -47,9 +47,6 @@ public:
     using BitmapType = uint64_t;
     using IndexType  = uint16_t;
 
-    using GrowableIOSubstream = PackedAllocationMapView<MyType>;
-    using IOSubstreamView = PackedAllocationMapView<MyType>;
-
     static constexpr size_t ValuesPerBranch        = 512;
     static constexpr size_t Indexes                = 9;
 

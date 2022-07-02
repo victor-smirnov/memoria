@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,11 +20,9 @@
 #include <memoria/core/datatypes/varbinaries.hpp>
 #include <memoria/core/datatypes/varchars/varchars.hpp>
 #include <memoria/core/datatypes/varchars/varchar_builder.hpp>
-#include <memoria/core/datatypes/encoding_traits.hpp>
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/datatypes/type_registry.hpp>
 #include <memoria/core/datatypes/type_signature.hpp>
-#include <memoria/core/datatypes/io_vector_traits.hpp>
 #include <memoria/core/linked/document/ld_datatype.hpp>
 
 

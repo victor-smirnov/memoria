@@ -20,8 +20,6 @@
 #include <memoria/core/tools/accessors.hpp>
 #include <memoria/core/tools/assert.hpp>
 
-#include <memoria/core/iovector/io_substream_base.hpp>
-
 #include <memoria/core/packed/misc/packed_sized_struct_so.hpp>
 
 #include <limits>

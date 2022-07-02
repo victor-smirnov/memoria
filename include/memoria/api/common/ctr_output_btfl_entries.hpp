@@ -24,6 +24,8 @@
 
 namespace memoria {
 
+/*
+
 template <typename IOBuffer>
 struct IBTFLPopulateWalker: Referenceable {
     virtual int32_t populate(IOBuffer* buffer) = 0;
@@ -216,6 +218,6 @@ public:
 
 
 
-
+*/
 
 }

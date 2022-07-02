@@ -20,8 +20,6 @@
 #include <memoria/core/types/mp11.hpp>
 #include <memoria/core/types/algo.hpp>
 
-#include <memoria/core/iovector/io_substream_base.hpp>
-
 namespace memoria {
 
 template <typename DataTypeT, typename... TypeParts, typename... DataParts >
@@ -32,8 +30,7 @@ class DataTypeBuffer<
             TL<TypeParts...>,
             TL<DataParts...>
         >
->: public io::IOSubstream
-{
+> {
     using TypeDimensionsTuple = AsTuple<TL<TypeParts...>>;
     using DataDimensionsTuple = typename DataTypeTraits<DataTypeT>::DataDimensionsTuple;
 
@@ -84,7 +81,7 @@ public:
         install_invalidation_listener();
     }
 
-    ~DataTypeBuffer() noexcept {
+    virtual ~DataTypeBuffer() noexcept {
         invalidate_guard();
     }
 

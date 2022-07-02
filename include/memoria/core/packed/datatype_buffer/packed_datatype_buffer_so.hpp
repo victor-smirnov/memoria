@@ -32,7 +32,6 @@
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 #include <memoria/core/datatypes/datum.hpp>
 
-#include <memoria/core/iovector/io_substream_base.hpp>
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 
@@ -683,22 +682,13 @@ public:
     }
 
 
-    void configure_io_substream(io::IOSubstream& substream) const
-    {
-        auto& view = io::substream_cast<typename PkdStruct::IOSubstreamView>(substream);
-        view.configure(*this);
-    }
-
-
-    PkdUpdateStatus prepare_insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size, UpdateState& update_state)
+    template <typename IOSubstream>
+    PkdUpdateStatus prepare_insert_io_substream(size_t at, const IOSubstream& buffer, size_t start, size_t size, UpdateState& update_state)
     {
         static_assert(Columns == 1, "");
         MEMORIA_ASSERT(at, <=, this->size());
 
         size_t data_size{};
-
-        using IOBuffer = typename PkdStruct::GrowableIOSubstream;
-        const IOBuffer& buffer = io::substream_cast<IOBuffer>(substream);
 
         for (size_t column = 0; column < 1; column++)
         {
@@ -720,13 +710,11 @@ public:
 
 
     // FIXME: Adapt to multicolumn!
-    size_t commit_insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size, UpdateState&)
+    template <typename IOSubstream>
+    size_t commit_insert_io_substream(size_t at, const IOSubstream& buffer, size_t start, size_t size, UpdateState&)
     {
         static_assert(Columns == 1, "");
         MEMORIA_ASSERT(at, <=, this->size());
-
-        using IOBuffer = typename PkdStruct::GrowableIOSubstream;
-        const IOBuffer& buffer = io::substream_cast<IOBuffer>(substream);
 
         DataLengths lengths = to_data_lengths(buffer.data_lengths(start, size));
 

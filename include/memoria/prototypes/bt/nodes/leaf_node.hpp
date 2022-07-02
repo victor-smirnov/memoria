@@ -30,7 +30,7 @@
 
 #include <memoria/prototypes/bt/tools/bt_tools_size_list_builder.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
-#include <memoria/prototypes/bt/tools/bt_tools_iovector.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_batch_input.hpp>
 
 #include <memoria/prototypes/bt/nodes/leaf_node_so.hpp>
 

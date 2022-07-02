@@ -20,13 +20,13 @@
 #include <memoria/prototypes/bt/bt_macros.hpp>
 
 #include <memoria/prototypes/bt_ss/btss_names.hpp>
-#include <memoria/prototypes/bt_ss/btss_input_iovector.hpp>
-
+#include <memoria/prototypes/bt_ss/btss_batch_input.hpp>
 
 #include <memoria/core/container/macros.hpp>
-#include <memoria/core/iovector/io_vector.hpp>
 #include <memoria/api/common/ctr_api_btss.hpp>
 
+
+#include <memoria/core/tools/object_pool.hpp>
 
 #include <vector>
 
@@ -44,6 +44,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
 
     using typename Base::BlockIteratorState;
     using typename Base::BlockIteratorStatePtr;
+
+    using CtrInputBuffer = typename TypesType::CtrInputBuffer;
 
     static constexpr size_t Stream = 0;
 
@@ -128,13 +130,15 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
 
 
 
-    BlockIteratorStatePtr ctr_insert_iovector2(BlockIteratorStatePtr&& iter, io::IOVectorProducer& producer, CtrSizeT start, CtrSizeT length)
+    BlockIteratorStatePtr ctr_insert_batch(
+            BlockIteratorStatePtr&& iter,
+            CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
 
-        auto iov = LeafNode::template SparseObject<MyType>::create_iovector();
+        auto buf = allocate_shared<CtrInputBuffer>(self.store().object_pools());
 
-        btss::io::IOVectorBTSSInputProvider<MyType> streaming(self, &producer, iov.get(), start, length);
+        btss::io::BTSSCtrBatchInputProvider<MyType> streaming(self, producer, *buf.get());
 
         auto pos = Position::create(0, iter->iter_leaf_position());
 
@@ -146,21 +150,15 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
         return std::move(iter);
     }
 
-    struct BTSSIOVectorProducer: io::IOVectorProducer {
-        virtual bool populate(io::IOVector& io_vector)
-        {
-            return true; // provided io_vector has been already populated
-        }
-    };
-
-
-    BlockIteratorStatePtr ctr_insert_iovector2(BlockIteratorStatePtr&& iter, io::IOVector& io_vector, CtrSizeT start, CtrSizeT length)
+    BlockIteratorStatePtr ctr_insert_batch(BlockIteratorStatePtr&& iter, CtrInputBuffer& input_buffer, CtrSizeT start, CtrSizeT length)
     {
         auto& self = this->self();
 
-        BTSSIOVectorProducer producer{};
+        auto producer = [](CtrInputBuffer&){
+            return true;
+        };
 
-        btss::io::IOVectorBTSSInputProvider<MyType> streaming(self, &producer, &io_vector, start, length, false);
+        btss::io::BTSSCtrBatchInputProvider<MyType> streaming(self, producer, input_buffer, start, length, false);
 
         auto pos = Position::create(0, iter->iter_leaf_position());
 

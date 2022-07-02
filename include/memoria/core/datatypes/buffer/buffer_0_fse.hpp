@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/core/iovector/io_substream_base.hpp>
+
 #include <memoria/core/datatypes/buffer/buffer_common.hpp>
 
 
@@ -29,8 +29,7 @@ class DataTypeBuffer<
             TL<>,
             TL<const ValueType*>
         >
->: public io::IOSubstream
-{
+> {
     using TypeDimensionsTuple = std::tuple<>;
     using DataDimensionsTuple = AsTuple<TL<const ValueType*>>;
     using Builder = FixedSizeSparseObjectBuilder<DataTypeT, DataTypeBuffer>;
@@ -44,6 +43,8 @@ public:
 
     DataTypeBuffer(DataType data_type = DataType()): builder_(this) {}
     DataTypeBuffer(const TypeDimensionsTuple& type_data): builder_(this) {}
+
+    virtual ~DataTypeBuffer() noexcept = default;
 
     virtual void reindex() {}
 

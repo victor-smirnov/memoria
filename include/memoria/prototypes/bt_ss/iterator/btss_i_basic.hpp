@@ -20,9 +20,7 @@
 #include <memoria/core/types.hpp>
 #include <memoria/prototypes/bt_ss/btss_names.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
-
-#include <memoria/prototypes/bt_ss/btss_input_iovector.hpp>
+#include <memoria/prototypes/bt_ss/btss_batch_input.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 

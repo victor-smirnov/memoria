@@ -23,7 +23,6 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <memoria/api/multimap/multimap_input.hpp>
 #include <memoria/core/tools/static_array.hpp>
 
 #include <memoria/api/multimap/multimap_api.hpp>

@@ -20,8 +20,6 @@
 
 #include <memoria/api/common/ctr_api_btss.hpp>
 
-#include <memoria/core/datatypes/io_vector_traits.hpp>
-
 namespace memoria {
 
 template <typename Key>
@@ -36,17 +34,8 @@ public:
     const Key& key() const {return key_;}
 };
 
-template <typename Key_, typename Profile>
-struct ICtrApiTypes<Collection<Key_>, Profile> {
-
-    using Key = Key_;
-
-    using IOVSchema = TL<
-        TL<
-            ICtrApiSubstream<Key, io::ColumnWise>
-        >
-    >;
-};
+template <typename Key, typename Profile>
+struct ICtrApiTypes<Collection<Key>, Profile> {};
 
 
 template <typename Key>

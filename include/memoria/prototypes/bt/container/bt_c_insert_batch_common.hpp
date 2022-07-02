@@ -20,7 +20,7 @@
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <memoria/prototypes/bt/tools/bt_tools_iovector.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_batch_input.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -291,7 +291,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
     //template <typename Provider>
-    void ctr_insert_provided_data(TreePathT& path, Position& pos, bt::IOVectorInputProviderBase<MyType>& provider)
+    void ctr_insert_provided_data(TreePathT& path, Position& pos, bt::CtrBatchInputProviderBase<MyType>& provider)
     {
         auto& self = this->self();
         auto last_pos = self.ctr_insert_data_into_leaf(path, pos, provider);

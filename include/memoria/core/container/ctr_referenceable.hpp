@@ -21,7 +21,6 @@
 #include <memoria/core/memory/memory.hpp>
 #include <memoria/core/strings/string.hpp>
 #include <memoria/profiles/common/common.hpp>
-#include <memoria/core/iovector/io_vector.hpp>
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/tools/any_id.hpp>
@@ -90,8 +89,6 @@ struct CtrReferenceableBase {
     virtual void set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries) MEMORIA_READ_ONLY_API
     
     virtual const CtrID& name() const noexcept = 0;
-
-    virtual IterSharedPtr<io::IOVector> create_iovector() = 0;
 
     virtual void drop()    MEMORIA_READ_ONLY_API
     virtual void cleanup() MEMORIA_READ_ONLY_API

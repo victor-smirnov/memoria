@@ -20,11 +20,10 @@
 #include <memoria/prototypes/bt/bt_macros.hpp>
 
 #include <memoria/prototypes/bt_ss/btss_names.hpp>
-#include <memoria/prototypes/bt_ss/btss_input_iovector.hpp>
+#include <memoria/prototypes/bt_ss/btss_batch_input.hpp>
 
 
 #include <memoria/core/container/macros.hpp>
-#include <memoria/core/iovector/io_vector.hpp>
 #include <memoria/api/common/ctr_api_btss.hpp>
 
 

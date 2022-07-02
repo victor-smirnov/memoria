@@ -84,9 +84,6 @@ public:
     using ExtData       = DTTTypeDimensionsTuple<DataType>;
     using SparseObject  = PackedDataTypeBufferSO<ExtData, MyType>;
 
-    using GrowableIOSubstream = DataTypeBuffer<DataType>;
-    using IOSubstreamView     = pdtbuf_::PackedDataTypeNDBufferIO<DataType, SparseObject>;
-
     using Base::get;
 
     class Metadata {

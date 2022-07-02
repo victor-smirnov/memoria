@@ -33,17 +33,16 @@
 
 #include <memoria/api/sequence/sequence_api.hpp>
 
-
-
 namespace memoria {
-
 
 template <
     typename Profile,
     size_t AlphabetSize_
 >
-struct SequenceBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
-
+struct BTTypes<Profile, Sequence<AlphabetSize_>>:
+        public BTTypes<Profile, BTSingleStream>,
+        public ICtrApiTypes<Sequence<AlphabetSize_>, Profile>
+{
     using Base = BTTypes<Profile, BTSingleStream>;
 
     static constexpr size_t AlphabetSize = AlphabetSize_;
@@ -58,16 +57,6 @@ struct SequenceBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
                 typename Base::RWCommonContainerPartsList,
                 sequence::CtrWApiName
     >;
-};
-
-
-
-template <
-    typename Profile,
-    size_t AlphabetSize
-
->
-struct SequenceBTTypesBase: public SequenceBTTypesBaseBase<Profile, AlphabetSize> {
 
     using LeafKeyStruct = PkdSSRLESeqT<AlphabetSize, 256, true>;
 
@@ -81,16 +70,6 @@ struct SequenceBTTypesBase: public SequenceBTTypesBaseBase<Profile, AlphabetSize
             >
     >;
 };
-
-
-
-
-
-template <
-    typename Profile,
-    size_t AlphabetSize
->
-struct BTTypes<Profile, Sequence<AlphabetSize>>: public SequenceBTTypesBase<Profile, AlphabetSize>{};
 
 
 template <typename Profile, size_t AlphabetSize, typename T>

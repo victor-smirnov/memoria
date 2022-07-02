@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 #pragma once
 
 #include <memoria/core/datatypes/traits.hpp>
+#include <memoria/core/datatypes/buffer/buffer.hpp>
+
 #include <memoria/core/types/typehash.hpp>
-
 #include <memoria/api/common/ctr_api_btss.hpp>
-
-#include <memoria/core/datatypes/io_vector_traits.hpp>
+#include <memoria/api/common/ctr_input_btss.hpp>
 
 namespace memoria {
 
@@ -36,16 +36,9 @@ public:
     const Key& key() const {return key_;}
 };
 
-template <typename Key_, typename Profile>
-struct ICtrApiTypes<Set<Key_>, Profile> {
-
-    using Key = Key_;
-
-    using IOVSchema = TL<
-        TL<
-            ICtrApiSubstream<Key, io::ColumnWise>
-        >
-    >;
+template <typename Key, typename Profile>
+struct ICtrApiTypes<Set<Key>, Profile> {
+    using CtrInputBuffer = DataTypeBuffer<Key>;
 };
 
 

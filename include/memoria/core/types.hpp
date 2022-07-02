@@ -168,12 +168,15 @@ extern int64_t DebugCounter2;
 extern int64_t DebugCounter3;
 
 namespace detail {
-    template <typename List>  struct AsTupleH;
+template <typename T>  struct AsTupleH {
+    using Type = T;
+};
 
-    template <typename... Types>
-    struct AsTupleH<TL<Types...>> {
-        using Type = std::tuple<Types...>;
-    };
+template <typename... TypeT>
+struct AsTupleH<TL<TypeT...>> {
+    using Type = std::tuple<typename AsTupleH<TypeT>::Type ...>;
+};
+
 }
 
 template <typename List>

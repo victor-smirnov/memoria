@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include <memoria/core/iovector/io_substream_base.hpp>
 #include <memoria/core/datatypes/buffer/buffer_common.hpp>
 
 namespace memoria {
@@ -53,6 +52,8 @@ public:
     DataTypeBuffer(DataType data_type = DataType()):
         builder_(this)
     {}
+
+    virtual ~DataTypeBuffer() noexcept = default;
 
     Builder& builder() {
         return builder_;

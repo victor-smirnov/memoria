@@ -56,6 +56,8 @@ protected:
 
     using typename Base::CollectionChunkTypes;
 
+    using CtrInputBuffer = typename Types::CtrInputBuffer;
+
 public:
 
     using typename Base::ChunkT;
@@ -73,31 +75,31 @@ public:
 
     using typename Base::SeqPath;
 
-    ChunkPtr append(io::IOVectorProducer& producer)
+    ChunkPtr append(CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
 
         auto iter = self.ctr_seek_entry(self.size());
 
-        auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        auto jj = self.ctr_insert_batch(std::move(iter), producer);
         return memoria_static_pointer_cast<SequenceChunkImplT>(jj);
     }
 
-    ChunkPtr prepend(io::IOVectorProducer& producer)
+    ChunkPtr prepend(CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
         auto iter = self.ctr_seek_entry(0);
-        auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        auto jj = self.ctr_insert_batch(std::move(iter), producer);
         return memoria_static_pointer_cast<SequenceChunkImplT>(jj);
     }
 
-    ChunkPtr insert(CtrSizeT at, io::IOVectorProducer& producer)
+    ChunkPtr insert(CtrSizeT at, CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
 
         auto iter = self.ctr_seek_entry(at);
 
-        auto jj = self.ctr_insert_iovector2(std::move(iter), producer, 0, std::numeric_limits<CtrSizeT>::max());
+        auto jj = self.ctr_insert_batch(std::move(iter), producer);
         return memoria_static_pointer_cast<SequenceChunkImplT>(jj);
     }
 

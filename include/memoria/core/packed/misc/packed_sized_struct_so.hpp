@@ -19,7 +19,6 @@
 #include <memoria/core/types.hpp>
 
 #include <memoria/profiles/common/block_operations.hpp>
-#include <memoria/core/iovector/io_substream_base.hpp>
 #include <memoria/core/tools/result.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
@@ -107,18 +106,15 @@ public:
         return data_->sum(column);
     }
 
-    void configure_io_substream(io::IOSubstream& substream) const {
-        return data_->configure_io_substream(substream);
-    }
-
-
-    PkdUpdateStatus prepare_insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size, UpdateState&) {
+    template <typename IOSubstream>
+    PkdUpdateStatus prepare_insert_io_substream(size_t at, const IOSubstream& substream, size_t start, size_t size, UpdateState&) {
         return PkdUpdateStatus::SUCCESS;
     }
 
 
     // FIXME: Adapt to multicolumn!
-    size_t commit_insert_io_substream(size_t at, const io::IOSubstream& substream, size_t start, size_t size, UpdateState&)
+    template <typename IOSubstream>
+    size_t commit_insert_io_substream(size_t at, const IOSubstream& substream, size_t start, size_t size, UpdateState&)
     {
         insert_space(0, size);
         return size;

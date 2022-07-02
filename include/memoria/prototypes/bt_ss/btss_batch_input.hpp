@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,15 +20,13 @@
 
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
-
 #include <memoria/core/packed/misc/packed_sized_struct.hpp>
 
 #include <memoria/prototypes/bt/nodes/leaf_node.hpp>
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_tree_path.hpp>
 
-#include <memoria/prototypes/bt/tools/bt_tools_iovector.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_batch_input.hpp>
 
 namespace memoria {
 namespace btss {
@@ -39,16 +37,17 @@ using bt::StreamTag;
 
 
 template <typename CtrT>
-class IOVectorBTSSInputProviderBase: public bt::IOVectorInputProviderBase<CtrT> {
-    using Base = bt::IOVectorInputProviderBase<CtrT>;
+class BTSSCtrBatchInputProviderBase: public bt::CtrBatchInputProviderBase<CtrT> {
+    using Base = bt::CtrBatchInputProviderBase<CtrT>;
 public:
-    using MyType = IOVectorBTSSInputProviderBase<CtrT>;
+    using MyType = BTSSCtrBatchInputProviderBase<CtrT>;
     using TreeNodePtr = typename CtrT::Types::TreeNodePtr;
     using TreePathT = TreePath<TreeNodePtr>;
     using CtrSizeT  = typename CtrT::Types::CtrSizeT;
 
     using Position  = typename CtrT::Types::Position;
     using NodePair  = std::pair<TreeNodePtr, TreeNodePtr>;
+    using CtrInputBuffer = typename CtrT::Types::CtrInputBuffer;
 
 protected:
     uint64_t start_{};
@@ -59,33 +58,19 @@ protected:
 
     CtrSizeT total_symbols_{};
 
-    memoria::io::IOVectorProducer* producer_{};
-    memoria::io::IOVector* io_vector_{};
-
-    CtrSizeT start_pos_{};
-    CtrSizeT length_{};
-
-    bool reset_iovector_{};
+    CtrBatchInputFn<CtrInputBuffer> producer_{};
+    CtrInputBuffer& input_buffer_{};
 
 public:
 
-    IOVectorBTSSInputProviderBase(
+    BTSSCtrBatchInputProviderBase(
             CtrT& ctr,
-            memoria::io::IOVectorProducer* producer,
-            memoria::io::IOVector* io_vector,
-            CtrSizeT start_pos,
-            CtrSizeT length,
-            bool reset_iovector
+            CtrBatchInputFn<CtrInputBuffer> producer,
+            CtrInputBuffer& input_buffer
     ):
         ctr_(ctr),
-        producer_(producer), io_vector_(io_vector),
-        start_pos_(start_pos), length_(length),
-        reset_iovector_(reset_iovector)
-    {
-
-    }
-
-    virtual ~IOVectorBTSSInputProviderBase()  {}
+        producer_(producer), input_buffer_(input_buffer)
+    {}
 
     CtrT& ctr() {return ctr_;}
     const CtrT& ctr() const {return ctr_;}
@@ -150,8 +135,6 @@ public:
         enum class StreamType {DATA, STRUCTURE};
 
         template <StreamType T> struct Tag {};
-
-        size_t current_substream{};
         PkdUpdateStatus status{PkdUpdateStatus::SUCCESS};
 
         template <
@@ -165,19 +148,18 @@ public:
                 size_t at,
                 size_t start,
                 size_t size,
-                memoria::io::IOVector& io_vector,
+                const CtrInputBuffer& input_buffer,
                 UpdateState& update_state
         ){
             if (is_success(status))
             {
                 status = stream.prepare_insert_io_substream(
                             at,
-                            io_vector.substream(current_substream),
+                            get_ctr_batch_input_substream<StreamIdx, Idx>(input_buffer),
                             start,
                             size,
                             std::get<AllocatorIdx - StreamsStartIdx>(update_state)
                 );
-                current_substream++;
             }
         }
 
@@ -193,7 +175,7 @@ public:
                 size_t at,
                 size_t start,
                 size_t size,
-                memoria::io::IOVector& io_vector,
+                const CtrInputBuffer& input_buffer,
                 UpdateState& update_state
         ){
             // Do nothing here
@@ -214,8 +196,6 @@ public:
 
         template <StreamType T> struct Tag {};
 
-        size_t current_substream{};
-
         template <
                 int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, int32_t StreamsStartIdx,
                 typename StreamObj, typename UpdateState
@@ -227,17 +207,16 @@ public:
                 size_t at,
                 size_t start,
                 size_t size,
-                memoria::io::IOVector& io_vector,
+                const CtrInputBuffer& input_buffer,
                 UpdateState& update_state
         ){
             stream.commit_insert_io_substream(
                             at,
-                            io_vector.substream(current_substream),
+                            get_ctr_batch_input_substream<StreamIdx, Idx>(input_buffer),
                             start,
                             size,
                             std::get<AllocatorIdx - StreamsStartIdx>(update_state)
             );
-            current_substream++;
         }
 
 
@@ -252,7 +231,7 @@ public:
                 size_t at,
                 size_t,
                 size_t size,
-                memoria::io::IOVector&,
+                const CtrInputBuffer&,
                 UpdateState&
         ){
             stream.insert_space(at, size);
@@ -271,7 +250,7 @@ public:
         auto update_state = ctr().template ctr_make_leaf_update_state<IntList<>>(leaf.as_immutable());
 
         CommitInsertBufferFn fn;
-        ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, *io_vector_, update_state);
+        ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, input_buffer_, update_state);
 
         start_ += size;
         total_symbols_ += size;
@@ -306,47 +285,16 @@ public:
     }
 
     void do_populate_iobuffer()
-    {
-        auto& seq = io_vector_->symbol_sequence();
+    {        
+        start_ = 0;
+        size_ = 0;
 
-        do
-        {
-            start_ = 0;
-            size_ = 0;
+        clear_ctr_batch_input(input_buffer_);
 
-            if (MMA_LIKELY(reset_iovector_)) {
-                io_vector_->clear();
-            }
+        finished_ = producer_(input_buffer_);
+        reindex_ctr_batch_input(input_buffer_);
 
-            finished_ = producer_->populate(*io_vector_);
-
-            if (MMA_LIKELY(reset_iovector_)) {
-                io_vector_->reindex();
-            }
-
-            seq.rank_to(io_vector_->symbol_sequence().size(), unit_span_of(&size_));
-
-            if (MMA_UNLIKELY(start_pos_ > 0))
-            {
-                size_t ctr_seq_size = seq.size();
-                if (start_pos_ < ctr_seq_size)
-                {
-                    seq.rank_to(start_pos_, unit_span_of(&start_));
-                    start_pos_ -= start_;
-                }
-                else {
-                    start_pos_ -= ctr_seq_size;
-                }
-            }
-        }
-        while (start_pos_ > 0);
-
-        CtrSizeT remainder = length_ - total_symbols_;
-        if (MMA_UNLIKELY(length_ < std::numeric_limits<CtrSizeT>::max() && (size_ - start_) > remainder))
-        {
-            seq.rank_to(start_ + remainder, unit_span_of(&size_));
-            finished_ = true;
-        }    
+        size_ = ctr_batch_input_size_btss(input_buffer_);
     }
 };
 
@@ -358,14 +306,14 @@ template <
     typename CtrT,
     LeafDataLengthType LeafDataLength = CtrT::Types::LeafDataLength
 >
-class IOVectorBTSSInputProvider;
+class BTSSCtrBatchInputProvider;
 
 
 
 
 template <typename CtrT>
-class IOVectorBTSSInputProvider<CtrT, LeafDataLengthType::FIXED>: public IOVectorBTSSInputProviderBase<CtrT> {
-    using Base = IOVectorBTSSInputProviderBase<CtrT>;
+class BTSSCtrBatchInputProvider<CtrT, LeafDataLengthType::FIXED>: public BTSSCtrBatchInputProviderBase<CtrT> {
+    using Base = BTSSCtrBatchInputProviderBase<CtrT>;
 
 public:
     using TreeNodePtr = typename CtrT::Types::TreeNodePtr;
@@ -373,16 +321,15 @@ public:
 
     using Position  = typename Base::Position;
 
+    using typename Base::CtrInputBuffer;
+
 public:
 
-    IOVectorBTSSInputProvider(
+    BTSSCtrBatchInputProvider(
             CtrT& ctr,
-            memoria::io::IOVectorProducer* producer,
-            memoria::io::IOVector* io_vector,
-            CtrSizeT start_pos,
-            CtrSizeT length,
-            bool reset_iovector = true
-    ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
+            CtrBatchInputFn<CtrInputBuffer> producer,
+            CtrInputBuffer& input_buffer
+    ): Base(ctr, producer, input_buffer)
     {}
 
     virtual size_t findCapacity(const TreeNodePtr& leaf, size_t size)
@@ -403,8 +350,8 @@ public:
 
 
 template <typename CtrT>
-class IOVectorBTSSInputProvider<CtrT, LeafDataLengthType::VARIABLE>: public IOVectorBTSSInputProviderBase<CtrT> {
-    using Base = IOVectorBTSSInputProviderBase<CtrT>;
+class BTSSCtrBatchInputProvider<CtrT, LeafDataLengthType::VARIABLE>: public BTSSCtrBatchInputProviderBase<CtrT> {
+    using Base = BTSSCtrBatchInputProviderBase<CtrT>;
 
 public:
     using TreeNodePtr = typename CtrT::Types::TreeNodePtr;
@@ -412,19 +359,18 @@ public:
 
     using Position  = typename Base::Position;
 
-    using Base::io_vector_;
+    using typename Base::CtrInputBuffer;
+
+    using Base::input_buffer_;
     using Base::ctr;
 
 public:
 
-    IOVectorBTSSInputProvider(
+    BTSSCtrBatchInputProvider(
             CtrT& ctr,
-            memoria::io::IOVectorProducer* producer,
-            memoria::io::IOVector* io_vector,
-            CtrSizeT start_pos,
-            CtrSizeT length,
-            bool reset_iovector = true
-    ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
+            CtrBatchInputFn<CtrInputBuffer> producer,
+            CtrInputBuffer& input_buffer
+    ): Base(ctr, producer, input_buffer)
     {}
 
     virtual Position fill(const TreeNodePtr& leaf, const Position& from)
@@ -533,11 +479,11 @@ protected:
         auto update_state = ctr().template ctr_make_leaf_update_state<IntList<>>(leaf.as_immutable());
 
         typename Base::PrepareInsertBufferFn fn1;
-        ctr().leaf_dispatcher().dispatch(leaf, fn1, at, this->start_, size, *io_vector_, update_state);
+        ctr().leaf_dispatcher().dispatch(leaf, fn1, at, this->start_, size, input_buffer_, update_state);
 
         if (is_success(fn1.status)) {
             typename Base::CommitInsertBufferFn fn2;
-            ctr().leaf_dispatcher().dispatch(leaf, fn2, at, this->start_, size, *io_vector_, update_state);
+            ctr().leaf_dispatcher().dispatch(leaf, fn2, at, this->start_, size, input_buffer_, update_state);
             return true;
         }
 

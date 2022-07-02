@@ -18,28 +18,26 @@
 
 #include <memoria/core/types.hpp>
 #include <memoria/profiles/common/block_operations.hpp>
-#include <memoria/core/iovector/io_substream_base.hpp>
-
 
 namespace memoria {
 
-template <typename PkdAlcMap>
-class PackedAllocationMapView: public io::IOSubstream {
+//template <typename PkdAlcMap>
+//class PackedAllocationMapView: public io::IOSubstream {
 
 
-    virtual void reset() {}
+//    virtual void reset() {}
 
 
-    virtual void reindex() {}
+//    virtual void reindex() {}
 
-    virtual U8String describe() const {
-        return "";
-    }
+//    virtual U8String describe() const {
+//        return "";
+//    }
 
-    virtual const std::type_info& substream_type() const {
-        return typeid(IOSubstream);
-    }
+//    virtual const std::type_info& substream_type() const {
+//        return typeid(IOSubstream);
+//    }
 
-};
+//};
 
 }

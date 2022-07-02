@@ -1,5 +1,5 @@
 
-// Copyright 2014 Victor Smirnov
+// Copyright 2014-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,7 +47,9 @@ template <
     typename Profile,
     typename Key_
 >
-struct SetBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
+struct BTTypes<Profile, Set<Key_>>:
+        public BTTypes<Profile, BTSingleStream>,
+        public ICtrApiTypes<Set<Key_>, Profile> {
 
     using Base = BTTypes<Profile, BTSingleStream>;
 
@@ -63,16 +65,6 @@ struct SetBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
                 typename Base::RWCommonContainerPartsList,
                 set::CtrWApiName
     >;
-};
-
-
-
-template <
-    typename Profile,
-    typename Key_,
-    int32_t Special = 0
->
-struct SetBTTypesBase: public SetBTTypesBaseBase<Profile, Key_> {
 
     using LeafKeyStruct = typename set::SetKeyStructTF<Key_>::Type;
 
@@ -85,17 +77,8 @@ struct SetBTTypesBase: public SetBTTypesBaseBase<Profile, Key_> {
                 bt::DefaultBranchStructTF
             >
     >;
+
 };
-
-
-
-
-
-template <
-    typename Profile,
-    typename Key_
->
-struct BTTypes<Profile, Set<Key_>>: public SetBTTypesBase<Profile, Key_>{};
 
 
 template <typename Profile, typename Key, typename T>

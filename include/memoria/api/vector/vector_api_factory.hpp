@@ -20,8 +20,6 @@
 
 #include <memoria/api/common/ctr_api_btss.hpp>
 
-#include <memoria/core/datatypes/io_vector_traits.hpp>
-
 namespace memoria {
 
 template <typename T>
@@ -38,16 +36,9 @@ public:
     const T& element() const {return element_;}
 };
 
-template <typename Value_, typename Profile>
-struct ICtrApiTypes<Vector<Value_>, Profile> {
-
-    using Value = Value_;
-
-    using IOVSchema = TL<
-        TL<
-            ICtrApiSubstream<Value, io::ColumnWise>
-        >
-    >;
+template <typename Value, typename Profile>
+struct ICtrApiTypes<Vector<Value>, Profile> {
+    using CtrInputBuffer = DataTypeBuffer<Value>;
 };
 
 

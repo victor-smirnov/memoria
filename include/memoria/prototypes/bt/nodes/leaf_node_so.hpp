@@ -17,8 +17,8 @@
 
 #include <memoria/prototypes/bt/nodes/node_common_so.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
-#include <memoria/prototypes/bt/tools/bt_tools_iovector.hpp>
+
+#include <memoria/prototypes/bt/tools/bt_tools_batch_input.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
 
 #include <memoria/prototypes/bt/pkd_adapters/bt_pkd_adapter_generic.hpp>
@@ -35,68 +35,6 @@
 
 
 namespace memoria {
-
-
-namespace detail {
-
-template <size_t Streams>
-class ConfigureIOVectorViewFn {
-
-    size_t stream_idx_{};
-    size_t data_substreams_;
-    io::IOVector& io_vector_;
-public:
-    ConfigureIOVectorViewFn(io::IOVector& io_vector):
-        data_substreams_(io_vector.substreams()),
-        io_vector_(io_vector)
-    {}
-
-    template <typename Stream>
-    void stream(const Stream& stream)
-    {
-        if (stream_idx_ < data_substreams_)
-        {
-            stream.configure_io_substream(io_vector_.substream(stream_idx_));
-            stream_idx_++;
-        }
-        else
-        {
-            stream.configure_io_substream(io_vector_.symbol_sequence());
-        }
-    }
-
-    template <typename ExtData, typename PkdStruct>
-    void stream(const PackedSizedStructSO<ExtData, PkdStruct>& stream)
-    {}
-};
-
-
-template <>
-class ConfigureIOVectorViewFn<1> {
-
-    size_t stream_idx_{};
-    io::IOVector& io_vector_;
-public:
-    ConfigureIOVectorViewFn(io::IOVector& io_vector):
-        io_vector_(io_vector)
-    {}
-
-    template <typename Stream>
-    void stream(const Stream& stream)
-    {
-        stream.configure_io_substream(io_vector_.substream(stream_idx_));
-        stream_idx_++;
-    }
-
-    template <typename ExtData, typename PkdStruct>
-    void stream(const PackedSizedStructSO<ExtData, PkdStruct>& stream)
-    {
-        io_vector_.symbol_sequence().configure(reinterpret_cast<void*>(stream.size()));
-    }
-};
-
-
-}
 
 
 template <typename CtrT, typename NodeType_>
@@ -300,11 +238,6 @@ public:
 
     static const PackedDataTypeSize SizeType = PackedListStructSizeType<Linearize<LeafSubstreamsStructList>>::Value;
 
-    using IOVectorT     = typename bt::detail::IOVectorsTF<Streams, LeafSubstreamsStructList>::IOVectorT;
-    using IOVectorViewT = typename bt::detail::IOVectorViewTF<Streams, LeafSubstreamsStructList>::IOVectorT;
-
-
-
     LeafNodeSO() : Base() {}
     LeafNodeSO(CtrT* ctr) : Base(ctr, nullptr) {}
     LeafNodeSO(CtrT* ctr, NodeType_* node) :
@@ -341,23 +274,6 @@ public:
         std::get<substream_idx>(ctr_->leaf_node_ext_data()) = std::forward<ExtData>(data);
     }
 
-
-    static std::unique_ptr<io::IOVector> create_iovector()
-    {        
-        return std::make_unique<IOVectorT>();
-    }
-
-    std::unique_ptr<io::IOVector> create_iovector_view() const
-    {
-        auto iov = std::make_unique<IOVectorViewT>();
-        configure_iovector_view(*iov.get());
-        return std::move(iov);
-    }
-
-    void configure_iovector_view(io::IOVector& io_vector) const
-    {
-        return Dispatcher(state()).dispatchAll(allocator(), detail::ConfigureIOVectorViewFn<Streams>(io_vector));
-    }
 
     template <typename OtherNode>
     void copy_node_data_to(OtherNode&& other) const

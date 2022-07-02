@@ -16,17 +16,7 @@
 #pragma once
 
 #include <memoria/api/common/ctr_api_btfl.hpp>
-
-#include <memoria/api/multimap/multimap_input.hpp>
-#include <memoria/api/multimap/multimap_producer.hpp>
-
-#include <memoria/core/iovector/io_vector.hpp>
-
 #include <memoria/core/tools/span.hpp>
-
-#include <memoria/core/datatypes/traits.hpp>
-#include <memoria/core/types/typehash.hpp>
-
 #include <memoria/api/multimap/multimap_api_factory.hpp>
 
 #include <memory>
@@ -96,17 +86,15 @@ public:
     using Key = Key_;
     using Value = Value_;
 
-
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ValueView = typename DataTypeTraits<Value>::ViewType;
 
     using ApiTypes  = ICtrApiTypes<Multimap<Key, Value>, Profile>;
 
-    using Producer      = MultimapProducer<ApiTypes>;
-    using ProducerFn    = typename Producer::ProducerFn;
-
     using KeysChunkT = MultimapKeysChunk<Key, Value, Profile>;
     using KeysChunkPtrT = IterSharedPtr<KeysChunkT>;
+
+    using CtrInputBuffer = typename ApiTypes::CtrInputBuffer;
 
 public:
 
@@ -128,21 +116,15 @@ public:
 
     virtual CtrSizeT size() const = 0;
 
-    bool upsert(KeyView key, ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return upsert(key, producer);
-    }
-
-
     bool upsert(KeyView key, Span<const ValueView> data)
     {
-        return upsert(key, [&](auto& seq, auto& keys, auto& values, auto& sizes) {
-            seq.append_run(0, 1);
-            keys.append(key);
+        return upsert(key, [&](CtrInputBuffer& buff) {
+            buff.symbols().append_run(0, 1);
+            buff.keys().append(key);
 
             if (data.size() > 0) {
-                seq.append_run(1, data.size());
-                values.append(data);
+                buff.symbols().append_run(1, data.size());
+                buff.values().append(data);
             }
 
             return true;
@@ -150,70 +132,53 @@ public:
     }
 
     // returns true if the entry was updated, and false if new entry was inserted
-    virtual bool upsert(KeyView key, io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
-
-    void append_entries(ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return append_entries(producer);
-    }
+    virtual bool upsert(KeyView key, CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
     void append_entry(KeyView key, Span<const ValueView> data)
     {
-        return append_entries([&](auto& seq, auto& keys, auto& values, auto& sizes){
-            seq.append_run(0, 1);
-            keys.append(key);
+        return append_entries([&](auto& buff){
+            buff.symbols().append_run(0, 1);
+            buff.keys().append(key);
 
-            seq.append_run(1, data.size());
-            values.append(data);
+            buff.symbols().append_run(1, data.size());
+            buff.values().append(data);
 
             return true;
         });
     }
 
-    virtual void append_entries(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
-
-
-    void prepend_entries(ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return prepend_entries(producer);
-    }
+    virtual void append_entries(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
     void prepend_entry(KeyView key, Span<const ValueView> data)
     {
-        return prepend_entries([&](auto& seq, auto& keys, auto& values, auto& sizes){
-            seq.append_run(0, 1);
-            keys.append(key);
+        return prepend_entries([&](auto& buff){
+            buff.symbols().append_run(0, 1);
+            buff.keys().append(key);
 
-            seq.append_run(1, data.size());
-            values.append(data);
+            buff.symbols().append_run(1, data.size());
+            buff.values().append(data);
 
             return true;
         });
     }
 
 
-    virtual void prepend_entries(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
-
-
-    void insert_entries(KeyView before, ProducerFn producer_fn) {
-        Producer producer(producer_fn);
-        return insert_entries(before, producer);
-    }
+    virtual void prepend_entries(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
     void insert_entry(KeyView before, KeyView key, Span<const ValueView> data)
     {
-        return insert_entries(before, [&](auto& seq, auto& keys, auto& values, auto& sizes){
-            seq.append_run(0, 1);
-            keys.append(key);
+        return insert_entries(before, [&](auto& buff){
+            buff.symbols().append_run(0, 1);
+            buff.keys().append(key);
 
-            seq.append_run(1, data.size());
-            values.append(data);
+            buff.symbols().append_run(1, data.size());
+            buff.values().append(data);
 
             return true;
         });
     }
 
-    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
+    virtual void insert_entries(KeyView before, CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
     MMA_DECLARE_ICTRAPI();
 };

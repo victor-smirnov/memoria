@@ -19,7 +19,6 @@
 #include <memoria/core/ssrle/ssrle.hpp>
 
 #include <memoria/api/sequence/sequence_api_factory.hpp>
-#include <memoria/api/sequence/sequence_producer.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
 
@@ -55,6 +54,7 @@ struct SequenceChunk: ChunkIteratorBase<SequenceChunk<AlphabetSize, Profile>, Pr
 template <size_t AlphabetSize, typename Profile>
 struct ICtrApi<Sequence<AlphabetSize>, Profile>: public CtrReferenceable<Profile>  {
     using Base = CtrReferenceable<Profile>;
+    using ApiTypes  = ICtrApiTypes<Sequence<AlphabetSize>, Profile>;
 
     static constexpr size_t BitsPerSymbol = BitsPerSymbolConstexpr(AlphabetSize);
 
@@ -63,9 +63,7 @@ struct ICtrApi<Sequence<AlphabetSize>, Profile>: public CtrReferenceable<Profile
     using CtrSizeT = ApiProfileCtrSizeT<Profile>;
     using ChunkPtr = IterSharedPtr<SequenceChunk<AlphabetSize, Profile>>;
 
-    using ProducerT = SequenceProducer<AlphabetSize>;
-    using ProducerFn = typename ProducerT::ProducerFn;
-    using SequenceSubstream = typename ProducerT::SequenceSubstream;
+    using CtrInputBuffer = typename ApiTypes::CtrInputBuffer;
 
     virtual ChunkPtr first_entry() const {
         return seek_entry(CtrSizeT{});
@@ -97,7 +95,7 @@ struct ICtrApi<Sequence<AlphabetSize>, Profile>: public CtrReferenceable<Profile
         size_t runs_per_block = 1024;
         size_t start {};
 
-        return insert(at, [&](auto& ss, auto) {
+        return insert(at, [&](auto& ss) {
             size_t remainder = runs.size() - start;
             size_t limit = remainder > runs_per_block ? runs_per_block : remainder;
 
@@ -111,27 +109,10 @@ struct ICtrApi<Sequence<AlphabetSize>, Profile>: public CtrReferenceable<Profile
         });
     }
 
-    virtual ChunkPtr insert(CtrSizeT at, ProducerFn producer_fn)
-    {
-        ProducerT producer(producer_fn);
-        return insert(at, producer);
-    }
 
-    virtual ChunkPtr append(ProducerFn producer_fn)
-    {
-        ProducerT producer(producer_fn);
-        return append(producer);
-    }
-
-    virtual ChunkPtr prepend(ProducerFn producer_fn)
-    {
-        ProducerT producer(producer_fn);
-        return prepend(producer);
-    }
-
-    virtual ChunkPtr insert(CtrSizeT at, io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
-    virtual ChunkPtr append(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
-    virtual ChunkPtr prepend(io::IOVectorProducer& producer) MEMORIA_READ_ONLY_API
+    virtual ChunkPtr insert(CtrSizeT at, CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
+    virtual ChunkPtr append(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
+    virtual ChunkPtr prepend(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
     virtual void remove(CtrSizeT from, CtrSizeT to) MEMORIA_READ_ONLY_API
     virtual void remove_from(CtrSizeT from) MEMORIA_READ_ONLY_API

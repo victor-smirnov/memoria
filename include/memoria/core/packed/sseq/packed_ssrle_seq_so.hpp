@@ -1,5 +1,5 @@
 
-// Copyright 2021 Victor Smirnov
+// Copyright 2021-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,12 +18,8 @@
 
 #include <memoria/core/types.hpp>
 
-#include <memoria/core/iovector/io_substream_ssrle.hpp>
 #include <memoria/core/packed/sseq/ssrleseq/ssrleseq_reindex_fn.hpp>
-
 #include <memoria/profiles/common/block_operations.hpp>
-#include <memoria/core/iovector/io_substream_base.hpp>
-
 #include <memoria/core/tools/bitmap_select.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
@@ -160,30 +156,6 @@ public:
         return data_->iterator(unit_pos);
     }
 
-//    auto select_fw_out(size_t rank, size_t symbol, SeqOpType op_type) const
-//    {
-//        auto res = select_fw(rank, symbol, op_type);
-//        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
-//    }
-
-
-//    auto select_fw_out(uint64_t start, uint64_t rank, size_t symbol, SeqOpType op_type) const {
-//        auto res = select_fw(start, rank, symbol, op_type);
-//        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
-//    }
-
-//    auto select_bw_out(size_t rank, size_t symbol, SeqOpType op_type) const
-//    {
-//        auto res = select_bw(rank, symbol, op_type);
-//        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx < data_->size()};
-//    }
-
-
-//    auto select_bw_out(uint64_t start, uint64_t rank, size_t symbol, SeqOpType op_type) const {
-//        auto res = select_bw(start, rank, symbol, op_type);
-//        return memoria::SelectResult{(size_t)res.idx, (size_t)res.rank, res.idx <= start };
-//    }
-
 
     void check() const
     {
@@ -208,11 +180,6 @@ public:
     auto sum(size_t symbol) const  {
         return (uint64_t)rank_eq(symbol);
     }
-
-    void configure_io_substream(io::IOSubstream& substream) const {
-        return data_->configure_io_substream(substream);
-    }
-
 
 
     SeqSizeT rank(SeqSizeT pos, SymbolT symbol, SeqOpType op_type) const {
@@ -1014,23 +981,22 @@ public:
 
 
 
+    template <typename IOSubstream>
     PkdUpdateStatus prepare_insert_io_substream(
             SeqSizeT at,
-            const io::IOSubstream& substream,
+            const IOSubstream& buffer,
             SeqSizeT start,
             SeqSizeT size,
             UpdateState& update_state
     )
     {
-        using BufferT = io::IOSSRLEBuffer<AlphabetSize>;
-        const BufferT& buffer = io::substream_cast<BufferT>(substream);
-
         std::vector<SymbolsRunT> syms = buffer.symbol_runs(start, size);
         return prepare_insert(at, update_state, syms);
     }
 
 
-    size_t commit_insert_io_substream(SeqSizeT at, const io::IOSubstream& substream, SeqSizeT start, SeqSizeT size, UpdateState& update_state)
+    template <typename IOSubstream>
+    size_t commit_insert_io_substream(SeqSizeT at, const IOSubstream& buffer, SeqSizeT start, SeqSizeT size, UpdateState& update_state)
     {
         Span<const SymbolsRunT> syms;
         commit_insert(at, update_state, syms);
@@ -1038,7 +1004,8 @@ public:
         return at + size;
     }
 
-    SeqSizeT populate_buffer(io::SymbolsBuffer& buffer, SeqSizeT idx) const
+    template <typename SymbolsBuffer>
+    SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx) const
     {
         SeqSizeT size = this->size();
         if (size)
@@ -1065,7 +1032,8 @@ public:
         return idx;
     }
 
-    SeqSizeT populate_buffer(io::SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT size) const
+    template <typename SymbolsBuffer>
+    SeqSizeT populate_buffer(SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT size) const
     {
         SeqSizeT seq_size = this->size();
         if (seq_size)
@@ -1106,7 +1074,8 @@ public:
         return idx;
     }
 
-    SeqSizeT populate_buffer_while_ge(io::SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT symbol) const
+    template <typename SymbolsBuffer>
+    SeqSizeT populate_buffer_while_ge(SymbolsBuffer& buffer, SeqSizeT idx, SeqSizeT symbol) const
     {
         SeqSizeT size = this->size();
         if (size)
@@ -1709,7 +1678,8 @@ private:
     }
 
 
-    RunSizeT append_run(io::SymbolsBuffer& buffer, const SymbolsRunT& run) const
+    template <typename SymbolsBuffer>
+    RunSizeT append_run(SymbolsBuffer& buffer, const SymbolsRunT& run) const
     {
         if (run.pattern_length() == 1) {
             buffer.append_run(run.symbol(0), run.run_length());
@@ -1725,7 +1695,8 @@ private:
         }
     }
 
-    void append_run(io::SymbolsBuffer& buffer, const SymbolsRunT& run, RunSizeT start, RunSizeT size) const
+    template <typename SymbolsBuffer>
+    void append_run(SymbolsBuffer& buffer, const SymbolsRunT& run, RunSizeT start, RunSizeT size) const
     {
         if (run.pattern_length() == 1)
         {
@@ -1739,8 +1710,9 @@ private:
         }
     }
 
+    template <typename SymbolsBuffer>
     RunSizeT append_run_ge(
-            io::SymbolsBuffer& buffer,
+            SymbolsBuffer& buffer,
             const SymbolsRunT& run,
             RunSizeT start,
             SymbolT symbol,

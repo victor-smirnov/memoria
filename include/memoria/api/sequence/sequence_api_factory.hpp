@@ -20,7 +20,8 @@
 
 #include <memoria/api/common/ctr_api_btss.hpp>
 
-#include <memoria/core/datatypes/io_vector_traits.hpp>
+#include <memoria/api/common/ctr_input_btss.hpp>
+#include <memoria/core/datatypes/buffer/ssrle_buffer.hpp>
 
 namespace memoria {
 
@@ -29,6 +30,10 @@ struct Sequence {
     static constexpr size_t AlphabetSize = AlphabetSize_;
 };
 
+template <size_t AlphabetSize, typename Profile>
+struct ICtrApiTypes<Sequence<AlphabetSize>, Profile> {
+    using CtrInputBuffer = io::IOSSRLEBufferImpl<AlphabetSize>;
+};
 
 template <size_t AlphabetSize>
 struct TypeHash<Sequence<AlphabetSize>>: UInt64Value<HashHelper<3948258819287234, AlphabetSize>> {};

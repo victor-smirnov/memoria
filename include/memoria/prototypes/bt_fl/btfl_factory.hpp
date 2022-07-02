@@ -32,7 +32,7 @@
 
 #include <memoria/prototypes/bt_fl/tools/btfl_tools_streamdescr.hpp>
 
-#include <memoria/prototypes/bt_fl/io/btfl_io_input_provider_base.hpp>
+#include <memoria/prototypes/bt_fl/btfl_batch_input_provider.hpp>
 
 #include <memoria/prototypes/bt_fl/btfl_structure_chunk_iter.hpp>
 

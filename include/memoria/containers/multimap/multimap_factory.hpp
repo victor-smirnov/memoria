@@ -35,12 +35,93 @@
 
 namespace memoria {
 
+//template <
+//    typename Profile,
+//    typename Key_,
+//    typename Value_
+//>
+//struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
+
+//    using Base = BTTypes<Profile, BTFreeLayout>;
+
+//    using Key   = Key_;
+//    using Value = Value_;
+
+//    using CommonContainerPartsList = MergeLists<
+//                typename Base::CommonContainerPartsList,
+//                multimap::CtrRApiName
+//    >;
+
+//    using RWCommonContainerPartsList = MergeLists<
+//                typename Base::RWCommonContainerPartsList,
+//                multimap::CtrWApiName
+//    >;
+
+//};
+
+
+
+//template <
+//    typename Profile,
+//    typename Key_,
+//    typename Value_
+//>
+//struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key_, Value_> {
+
+//    using Base = MultimapBTTypesBaseBase<Profile, Key_, Value_>;
+
+//    using CtrSizeT = typename Base::CtrSizeT;
+
+//    using FirstStreamTF = bt::StreamTF<
+//        TL<
+//            TL<StreamSize>,
+//            TL<typename multimap::MMapKeyStructTF<Key_>::Type>
+//        >,
+//        multimap::MMapBranchStructTF
+//    >;
+
+//    using DataStreamTF = bt::StreamTF<
+//        TL<
+//            TL<StreamSize>,
+//            TL<typename multimap::MMapValueStructTF<Value_>::Type>
+//        >,
+//        multimap::MMapBranchStructTF
+//    >;
+
+//    using StructureStreamTF = bt::StreamTF<
+//        TL<
+//            TL<StreamSize>,
+//            TL<typename btfl::StructureStreamTF<2>::Type>
+//        >,
+//        multimap::MMapBranchStructTF
+//    >;
+
+
+//    using StreamDescriptors = TL<
+//        FirstStreamTF,
+//        DataStreamTF,
+//        StructureStreamTF
+//    >;
+
+
+//    static constexpr int32_t DataStreams = 2;
+//};
+
+
+
+
+
+
+
 template <
     typename Profile,
     typename Key_,
     typename Value_
 >
-struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
+struct BTTypes<Profile, Multimap<Key_, Value_>>:
+        public BTTypes<Profile, BTFreeLayout>,
+        public ICtrApiTypes<Multimap<Key_, Value_>, Profile>
+{
 
     using Base = BTTypes<Profile, BTFreeLayout>;
 
@@ -56,19 +137,6 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
                 typename Base::RWCommonContainerPartsList,
                 multimap::CtrWApiName
     >;
-
-};
-
-
-
-template <
-    typename Profile,
-    typename Key_,
-    typename Value_
->
-struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key_, Value_> {
-
-    using Base = MultimapBTTypesBaseBase<Profile, Key_, Value_>;
 
     using CtrSizeT = typename Base::CtrSizeT;
 
@@ -105,21 +173,6 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key_, Value_
 
 
     static constexpr int32_t DataStreams = 2;
-};
-
-
-
-
-
-
-
-template <
-    typename Profile,
-    typename Key_,
-    typename Value_
->
-struct BTTypes<Profile, Multimap<Key_, Value_>>: public MultimapBTTypesBase<Profile, Key_, Value_>
-{
 };
 
 

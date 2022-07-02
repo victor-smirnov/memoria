@@ -42,14 +42,15 @@
 
 namespace memoria {
 
-
 template <
     typename Profile,
     typename Key_,
     typename Value_
 >
-struct MapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
-
+struct BTTypes<Profile, Map<Key_, Value_>>:
+        public BTTypes<Profile, BTSingleStream>,
+        public ICtrApiTypes<Map<Key_, Value_>, Profile>
+{
     using Base = BTTypes<Profile, BTSingleStream>;
 
     using Key = Key_;
@@ -64,17 +65,6 @@ struct MapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
                 typename Base::RWCommonContainerPartsList,
                 map::CtrWApiName
     >;
-};
-
-
-
-template <
-    typename Profile,
-    typename Key_,
-    typename Value_,
-    int32_t Special = 0
->
-struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key_, Value_> {
 
     using LeafKeyStruct = typename map::MapKeyStructTF<Key_>::Type;
 
@@ -90,15 +80,8 @@ struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key_, Value_> {
                 map::MapBranchStructTF
             >
     >;
+
 };
-
-
-template <
-    typename Profile,
-    typename Key_,
-    typename Value_
->
-struct BTTypes<Profile, Map<Key_, Value_>>: public MapBTTypesBase<Profile, Key_, Value_>{};
 
 
 template <typename Profile, typename Key, typename Value, typename T>

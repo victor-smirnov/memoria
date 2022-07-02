@@ -26,7 +26,6 @@
 
 #include <memoria/profiles/common/common.hpp>
 
-#include <memoria/core/iovector/io_vector.hpp>
 #include <memoria/core/datatypes/datatypes.hpp>
 
 #include <memoria/core/linked/document/linked_document.hpp>
@@ -40,27 +39,8 @@ namespace memoria {
 template <typename CtrName, typename Profile>
 struct ICtrApi;
 
-
 template <typename CtrName, typename Profile>
 struct ICtrApiTypes;
-
-
-template <typename DataType_, typename IOSustreamTag_, template <typename DataType> class EncodingTF_ = ValueCodec>
-struct ICtrApiSubstream
-{
-    using DataType      = DataType_;
-    using IOSustreamTag = IOSustreamTag_;
-
-    template <typename DataType0>
-    using EncodingTF = EncodingTF_<DataType0>;
-};
-
-template <
-        typename T,
-        bool FixedSize = DTTIsNDFixedSize<typename T::DataType>
->
-struct IOSubstreamAdapter;
-
 
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 template <typename CtrName, typename Allocator, typename Profile> class RWSharedCtr;

@@ -58,19 +58,19 @@ struct ForEachItem<Config, TypeList<Head, Tail...>, Handler, Accumulator> {
 };
 
 
-template <int32_t Idx>
+template <size_t Idx>
 struct ForEachIdx {
-    constexpr int32_t value() {
+    constexpr size_t value() {
         return Idx;
     }
 
-    constexpr operator int32_t() const {
+    constexpr operator size_t() const {
         return Idx;
     }
 };
 
 
-template <int32_t Idx, int32_t Size>
+template <size_t Idx, size_t Size>
 struct ForEach {
 
     template <typename Fn, typename... Args>
@@ -108,7 +108,7 @@ struct ForEach {
 };
 
 
-template <int32_t Idx>
+template <size_t Idx>
 struct ForEach<Idx, Idx> {
     template <typename... Args>
     static void process(Args&&... args){}
