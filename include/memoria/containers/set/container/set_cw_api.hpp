@@ -159,50 +159,9 @@ public:
     }
 
 
-    void remove(CtrSizeT from, CtrSizeT to)
-    {
-        self().ctr_remove(from, to);
-    }
 
-    void remove_from(CtrSizeT from) {
-        self().ctr_remove_from(from);
-    }
 
-    void remove_up_to(CtrSizeT pos) {
-        self().ctr_remove_up_to(pos);
-    }
 
-//    virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const
-//    {
-//        auto& self = this->self();
-
-//        auto ii = self.seek_entry(start);
-
-//        CtrSizeT cnt{};
-
-//        size_t local_cnt;
-//        while (cnt < length && is_valid_chunk(ii))
-//        {
-//            local_cnt = 0;
-//            CtrSizeT remainder   = length - cnt;
-//            CtrSizeT values_size = static_cast<CtrSizeT>(ii->keys().size());
-
-//            if (values_size <= remainder)
-//            {
-//                buffer.append(ii->keys());
-//                cnt += values_size;
-//            }
-//            else {
-//                buffer.append(ii->keys().first(remainder));
-//                cnt += remainder;
-//            }
-
-//            if (cnt < length)
-//            {
-//                ii = ii->next_chunk();
-//            }
-//        }
-//    }
 
     ChunkSharedPtr insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size)
     {

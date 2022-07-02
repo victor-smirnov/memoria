@@ -41,18 +41,9 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
 
 
     virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const = 0;
-    virtual ChunkIteratorPtr insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) {
-        MEMORIA_MAKE_GENERIC_ERROR("Read-only container").do_throw();
-    }
+    virtual ChunkIteratorPtr insert(CtrSizeT at, const BufferT& buffer) MEMORIA_READ_ONLY_API
 
-    virtual ChunkIteratorPtr insert(CtrSizeT at, const BufferT& buffer) {
-        return insert(at, buffer, 0, buffer.size());
-    }
 
-    virtual void remove(CtrSizeT from, CtrSizeT to) MEMORIA_READ_ONLY_API
-    virtual void remove_from(CtrSizeT from) MEMORIA_READ_ONLY_API
-
-    virtual void remove_up_to(CtrSizeT pos) MEMORIA_READ_ONLY_API
 
     virtual ApiProfileCtrSizeT<Profile> size() const = 0;
 

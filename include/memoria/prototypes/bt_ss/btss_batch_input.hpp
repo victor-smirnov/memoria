@@ -59,16 +59,19 @@ protected:
 
     CtrBatchInputFn<CtrInputBuffer> producer_{};
     CtrInputBuffer& input_buffer_{};
+    bool reset_buffer_;
 
 public:
 
     BTSSCtrBatchInputProviderBase(
             CtrT& ctr,
             CtrBatchInputFn<CtrInputBuffer> producer,
-            CtrInputBuffer& input_buffer
+            CtrInputBuffer& input_buffer,
+            bool reset_buffer
     ):
         ctr_(ctr),
-        producer_(producer), input_buffer_(input_buffer)
+        producer_(producer), input_buffer_(input_buffer),
+        reset_buffer_(reset_buffer)
     {}
 
     CtrT& ctr() {return ctr_;}
@@ -288,7 +291,9 @@ public:
         start_ = 0;
         size_ = 0;
 
-        clear_ctr_batch_input(input_buffer_);
+        if (reset_buffer_) {
+            clear_ctr_batch_input(input_buffer_);
+        }
 
         finished_ = producer_(input_buffer_);
         reindex_ctr_batch_input(input_buffer_);
@@ -327,8 +332,9 @@ public:
     BTSSCtrBatchInputProvider(
             CtrT& ctr,
             CtrBatchInputFn<CtrInputBuffer> producer,
-            CtrInputBuffer& input_buffer
-    ): Base(ctr, producer, input_buffer)
+            CtrInputBuffer& input_buffer,
+            bool reset_buffer = true
+    ): Base(ctr, producer, input_buffer, reset_buffer)
     {}
 
     virtual size_t findCapacity(const TreeNodePtr& leaf, size_t size)
@@ -368,8 +374,8 @@ public:
     BTSSCtrBatchInputProvider(
             CtrT& ctr,
             CtrBatchInputFn<CtrInputBuffer> producer,
-            CtrInputBuffer& input_buffer
-    ): Base(ctr, producer, input_buffer)
+            CtrInputBuffer& input_buffer, bool reset_buffer = true
+    ): Base(ctr, producer, input_buffer, reset_buffer)
     {}
 
     virtual Position fill(const TreeNodePtr& leaf, const Position& from)

@@ -1,5 +1,5 @@
 
-// Copyright 2013 Victor Smirnov
+// Copyright 2013-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,10 @@
 
 #pragma once
 
+#include <memoria/api/collection/collection_api.hpp>
+
+#include <memoria/containers/collection/collection_entry_impl.hpp>
+#include <memoria/containers/collection/collection_shuttles.hpp>
 
 #include <memoria/containers/vector/vctr_names.hpp>
 
@@ -27,7 +31,7 @@
 
 namespace memoria {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(mvector::CtrApiCommonName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(mvector::CtrApiRName)
 
 public:
     using Types = typename Base::Types;
@@ -50,6 +54,26 @@ protected:
 
     using CtrInputBuffer = typename Types::CtrInputBuffer;
 
+    using CollectionChunkT = CollectionChunk<Value, ApiProfile<Profile>>;
+    using ChunkSharedPtr = IterSharedPtr<CollectionChunkT>;
+
+    struct CollectionChunkTypes: Types {
+        using CollectionKeyType = Value;
+        using ShuttleTypes = typename Base::ShuttleTypes;
+    };
+
+
+    using CollectionChunkImplT = CollectionChunkImpl<CollectionChunkTypes>;
+
+    using EntriesPath = IntList<0, 1>;
+
+    template <typename ShuttleTypes>
+    using FindShuttle = bt::FindForwardShuttle<ShuttleTypes, EntriesPath, CollectionChunkImplT>;
+
+
+    template <typename LeafPath>
+    using TargetType = typename Types::template TargetType<LeafPath>;
+
 public:
 
     using typename Base::BranchNodeExtData;
@@ -64,17 +88,11 @@ public:
 
     }
 
+
     virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const
     {
 
     }
-
-    virtual void insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size)
-    {
-
-    }
-
-
 
     ProfileCtrSizeT<Profile> size() const
     {
@@ -82,70 +100,13 @@ public:
         return sizes[0];
     }
 
-//    IterSharedPtr<VectorIterator<ValueDataType, ApiProfileT>> seek(CtrSizeT pos) const
-//    {
-//        typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
-//        //return memoria_static_pointer_cast<VectorIterator<ValueDataType, ApiProfileT>>(self().ctr_find(walker));
-//      return self().ctr_find(walker);
-//    }
-
 
     Datum<Value> get(CtrSizeT pos) const
     {
-//        auto ii = self().seek(pos);
-//        return ii->value();
-
-      MEMORIA_MAKE_GENERIC_ERROR("Operation is not implemented").do_throw();
+        auto& self = this->self();
+        auto iter = self.ctr_seek_entry(pos);
+        return Datum<Value>{iter->current_key()};
     }
-
-    void set(CtrSizeT pos, ViewType view)
-    {
-//        auto ii = self().seek(pos);
-//        return ii->set(view);
-    }
-
-    void prepend(CtrBatchInputFn<CtrInputBuffer> producer)
-    {
-
-    }
-
-    void append(CtrBatchInputFn<CtrInputBuffer> producer)
-    {
-
-    }
-
-    void insert(CtrSizeT at, CtrBatchInputFn<CtrInputBuffer> producer)
-    {
-
-    }
-
-    CtrSizeT remove(CtrSizeT from, CtrSizeT to)
-    {
-//        auto& self = this->self();
-
-//        auto ii_from = self.ctr_seek(from);
-
-//        return ii_from->remove_from(to - from);
-      return CtrSizeT{};
-    }
-
-    CtrSizeT remove_from(CtrSizeT from)
-    {
-//        auto ctr_size = size();
-//        return remove(from, ctr_size);
-      return CtrSizeT{};
-    }
-
-    CtrSizeT remove_up_to(CtrSizeT pos)
-    {
-//        auto& self = this->self();
-
-//        auto ii_from = self.ctr_begin();
-//        return ii_from->remove_from(pos);
-
-      return CtrSizeT{};
-    }
-
 
 MEMORIA_V1_CONTAINER_PART_END
 

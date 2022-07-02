@@ -28,7 +28,7 @@
 
 namespace memoria {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(collection::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(collection::CtrApiWName)
 
     using typename Base::ApiProfileT;
 
@@ -54,46 +54,37 @@ protected:
     using BufferT   = DataTypeBuffer<Key>;
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
-    struct CollectionChunkTypes: Types {
-        using CollectionKeyType = Key;
-        using ShuttleTypes = typename Base::ShuttleTypes;
-    };
+    using typename Base::CollectionChunkTypes;
 
 
 public:
 
-    using CollectionChunkT = CollectionChunk<Key, ApiProfile<Profile>>;
-    using ChunkSharedPtr = IterSharedPtr<CollectionChunkT>;
+    using typename Base::CollectionChunkT;
+    using typename Base::ChunkSharedPtr;
 
-    using CollectionChunkImplT = CollectionChunkImpl<CollectionChunkTypes>;
+    using typename Base::CollectionChunkImplT;
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
 
 
-    using typename Base::BranchNodeExtData;
-    using typename Base::LeafNodeExtData;
-    using typename Base::ContainerTypeName;
-
-    virtual ChunkSharedPtr seek_entry(CtrSizeT num) const
+    void remove(CtrSizeT from, CtrSizeT to)
     {
-        auto& self = this->self();
-        return self.ctr_seek_entry(num);
+        self().ctr_remove(from, to);
     }
 
-    IterSharedPtr<CollectionChunkImplT> ctr_seek_entry(CtrSizeT num) const
-    {
-        auto& self = this->self();
-        return self.ctr_descend(
-                    TypeTag<CollectionChunkImplT>{},
-                    TypeTag<bt::SkipForwardShuttle<ShuttleTypes, 0, CollectionChunkImplT>>{},
-                    num
-        );
+    void remove_from(CtrSizeT from) {
+        self().ctr_remove_from(from);
     }
+
+    void remove_up_to(CtrSizeT pos) {
+        self().ctr_remove_up_to(pos);
+    }
+
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(set::CtrApiName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(set::CtrApiWName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 #undef M_PARAMS

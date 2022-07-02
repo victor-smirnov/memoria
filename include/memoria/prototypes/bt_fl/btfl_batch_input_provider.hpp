@@ -207,15 +207,18 @@ protected:
 
     CtrBatchInputFn<CtrInputBuffer> producer_{};
     CtrInputBuffer& input_buffer_;
+    bool reset_buffer_;
 
 public:
 
     AbstractCtrBatchInputProviderBase(
             CtrT& ctr,
             CtrBatchInputFn<CtrInputBuffer> producer,
-            CtrInputBuffer& input_buffer
+            CtrInputBuffer& input_buffer,
+            bool reset_buffer
     ):
-        ctr_(ctr), producer_(producer), input_buffer_(input_buffer)
+        ctr_(ctr), producer_(producer), input_buffer_(input_buffer),
+        reset_buffer_(reset_buffer)
     {}
 
 
@@ -302,7 +305,10 @@ public:
         start_.clear();
         size_.clear();
 
-        input_buffer_.clear();
+        if (reset_buffer_) {
+            input_buffer_.clear();
+        }
+
         finished_ = producer_(input_buffer_);
 
         reindex_ctr_batch_input(input_buffer_);
@@ -381,9 +387,10 @@ public:
     CtrBatchInputProvider(
             CtrT& ctr,
             CtrBatchInputFn<CtrInputBuffer> producer,
-            CtrInputBuffer& input_buffer
+            CtrInputBuffer& input_buffer,
+            bool reset_buffer = true
     ):
-        Base(ctr, producer, input_buffer)
+        Base(ctr, producer, input_buffer, reset_buffer)
     {}
 
     CtrT& ctr() {

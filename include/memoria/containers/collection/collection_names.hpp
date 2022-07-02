@@ -21,6 +21,7 @@
 namespace memoria {
 namespace collection {
 
-class CtrApiName {};
+class CtrApiRName {};
+class CtrApiWName {};
 
 }}

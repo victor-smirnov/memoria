@@ -21,16 +21,12 @@
 namespace memoria {
 namespace mvector {
 
-class CtrApiCommonName  {};
-class CtrApiFixedName   {};
-class CtrApiVLenName    {};
-class CtrInsertName {};
-class CtrToolsName  {};
-class CtrRemoveName {};
-class CtrChecksName {};
-class CtrFindName {};
+class CtrApiRName  {};
+class CtrApiWName  {};
+
 
 class ItrApiName {};
+
 }
 
 }

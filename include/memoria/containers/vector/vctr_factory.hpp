@@ -1,5 +1,5 @@
 
-// Copyright 2013 Victor Smirnov
+// Copyright 2013-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,11 +22,12 @@
 #include <memoria/containers/vector/vctr_names.hpp>
 #include <memoria/containers/vector/vector_api_impl.hpp>
 
-#include <memoria/containers/vector/container/vctr_c_tools.hpp>
-#include <memoria/containers/vector/container/vctr_c_insert.hpp>
-#include <memoria/containers/vector/container/vctr_c_remove.hpp>
-#include <memoria/containers/vector/container/vctr_c_api_common.hpp>
-#include <memoria/containers/vector/container/vctr_c_find.hpp>
+#include <memoria/containers/vector/container/vctr_cr_api.hpp>
+#include <memoria/containers/vector/container/vctr_cw_api.hpp>
+
+#include <memoria/containers/collection/collection_cr_api.hpp>
+#include <memoria/containers/collection/collection_cw_api.hpp>
+
 
 #include <memoria/containers/vector/vctr_names.hpp>
 
@@ -39,34 +40,6 @@
 
 namespace memoria {
 
-//template <typename Profile, typename DataType>
-//struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
-
-//    using Base = BTTypes<Profile, BTSingleStream>;
-
-//    using Value = DataType;
-//    using ValueDataType = DataType;
-//    using ValueView = typename DataTypeTraits<DataType>::ViewType;
-
-//    using Entry = DataType;
-
-
-
-//    using CommonContainerPartsList = MergeLists<
-//            typename Base::CommonContainerPartsList,
-
-//            mvector::CtrToolsName,
-//            mvector::CtrInsertName,
-//            mvector::CtrRemoveName,
-//            mvector::CtrFindName,
-//            mvector::CtrApiCommonName
-//    >;
-//};
-
-
-
-
-
 template <typename Profile, typename Value_>
 struct BTTypes<Profile, Vector<Value_> >:
         public BTTypes<Profile, BTSingleStream>,
@@ -76,20 +49,23 @@ struct BTTypes<Profile, Vector<Value_> >:
     using Base = BTTypes<Profile, BTSingleStream>;
 
     using Value = Value_;
+    using Key   = Value_;
+
+
     using ValueDataType = Value;
     using ValueView = typename DataTypeTraits<Value>::ViewType;
 
     using CommonContainerPartsList = MergeLists<
             typename Base::CommonContainerPartsList,
-
-            mvector::CtrToolsName,
-            mvector::CtrInsertName,
-            mvector::CtrRemoveName,
-            mvector::CtrFindName,
-            mvector::CtrApiCommonName
+            collection::CtrApiRName,
+            mvector::CtrApiRName
     >;
 
-
+    using RWCommonContainerPartsList = MergeLists<
+            typename Base::RWCommonContainerPartsList,
+            collection::CtrApiWName,
+            mvector::CtrApiWName
+    >;
 
 
     using LeafValueStruct = typename mvector::VectorValueStructTF<Value_>::Type;

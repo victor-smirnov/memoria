@@ -23,28 +23,17 @@
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/datatypes/traits.hpp>
 
+#include <memoria/api/collection/collection_api.hpp>
+
 #include <memoria/api/vector/vector_api_factory.hpp>
 
 #include <memory>
 #include <vector>
 
 namespace memoria {
-
-template <typename DataType, typename Profile, bool FixedSizeElement = DTTIsNDFixedSize<DataType>>
-struct VectorApiBase;
-
-template <typename DataType, typename Profile>
-struct VectorApiBase<DataType, Profile, true>: public CtrReferenceable<Profile> {
-
-};
-
-template <typename DataType, typename Profile>
-struct VectorApiBase<DataType, Profile, false>: public CtrReferenceable<Profile> {
-
-};
     
 template <typename DataType, typename Profile>
-struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profile> {
+struct ICtrApi<Vector<DataType>, Profile>: public ICtrApi<Collection<DataType>, Profile> {
 
     using ApiTypes  = ICtrApiTypes<Vector<DataType>, Profile>;
 
@@ -52,32 +41,22 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
 
     using CtrSizeT  = ApiProfileCtrSizeT<Profile>;
 
-    using BufferT       = DataTypeBuffer<DataType>;
     using DataTypeT     = DataType;
 
     using CtrInputBuffer = typename ApiTypes::CtrInputBuffer;
+    using ChunkIteratorPtr = IterSharedPtr<CollectionChunk<DataType, Profile>>;
 
-    virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const = 0;
-    virtual void insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) = 0;
-
-    virtual void insert(CtrSizeT at, const BufferT& buffer) {
-        return insert(at, buffer, 0, buffer.size());
-    }
-
+    virtual void read_to(CtrInputBuffer& buffer, CtrSizeT start, CtrSizeT length) const = 0;
+    virtual ChunkIteratorPtr insert(CtrSizeT at, CtrInputBuffer& buffer) MEMORIA_READ_ONLY_API
 
     virtual Datum<DataType> get(CtrSizeT pos) const = 0;
-    virtual void set(CtrSizeT pos, ViewType view) = 0;
+    virtual void set(CtrSizeT pos, ViewType view) MEMORIA_READ_ONLY_API
 
-    virtual CtrSizeT size() const = 0;
+    virtual ChunkIteratorPtr prepend(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
+    virtual ChunkIteratorPtr append(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
+    virtual ChunkIteratorPtr insert(CtrSizeT at, CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
-    //virtual IteratorT seek(CtrSizeT pos) const = 0;
-
-    virtual void prepend(CtrBatchInputFn<CtrInputBuffer> producer) = 0;
-    virtual void append(CtrBatchInputFn<CtrInputBuffer> producer) = 0;
-    virtual void insert(CtrSizeT at, CtrBatchInputFn<CtrInputBuffer> producer) = 0;
-
-
-    void insert(CtrSizeT at, Span<const ViewType> span)
+    ChunkIteratorPtr insert(CtrSizeT at, Span<const ViewType> span)
     {
         return insert(at, [&](auto& values){
             values.append(span);
@@ -85,9 +64,9 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
         });
     }
 
-    virtual CtrSizeT remove(CtrSizeT from, CtrSizeT to) = 0;
-    virtual CtrSizeT remove_from(CtrSizeT from) = 0;
-    virtual CtrSizeT remove_up_to(CtrSizeT pos) = 0;
+//    virtual CtrSizeT remove(CtrSizeT from, CtrSizeT to) MEMORIA_READ_ONLY_API
+//    virtual CtrSizeT remove_from(CtrSizeT from) MEMORIA_READ_ONLY_API
+//    virtual CtrSizeT remove_up_to(CtrSizeT pos) MEMORIA_READ_ONLY_API
 
     MMA_DECLARE_ICTRAPI();
 };

@@ -21,7 +21,8 @@
 #include <memoria/containers/set/set_names.hpp>
 #include <memoria/containers/set/set_tools.hpp>
 
-#include <memoria/containers/collection/collection_c_api.hpp>
+#include <memoria/containers/collection/collection_cr_api.hpp>
+#include <memoria/containers/collection/collection_cw_api.hpp>
 
 #include <memoria/prototypes/bt_ss/btss_factory.hpp>
 
@@ -57,12 +58,13 @@ struct BTTypes<Profile, Set<Key_>>:
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                collection::CtrApiName,
+                collection::CtrApiRName,
                 set::CtrRApiName
     >;
 
     using RWCommonContainerPartsList = MergeLists<
                 typename Base::RWCommonContainerPartsList,
+                collection::CtrApiWName,
                 set::CtrWApiName
     >;
 

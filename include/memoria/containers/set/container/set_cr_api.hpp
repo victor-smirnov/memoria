@@ -58,10 +58,10 @@ protected:
 
     using Profile   = typename Types::Profile;
 
-    using BufferT   = DataTypeBuffer<Key>;
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
 public:
+    using CtrInputBuffer = typename Types::CtrInputBuffer;
 
     using CollectionChunkT = CollectionChunk<Key, ApiProfile<Profile>>;
     using ChunkSharedPtr = IterSharedPtr<CollectionChunkT>;
@@ -123,7 +123,7 @@ public:
     }
 
 
-    virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const
+    virtual void read_to(CtrInputBuffer& buffer, CtrSizeT start, CtrSizeT length) const
     {
         auto& self = this->self();
 

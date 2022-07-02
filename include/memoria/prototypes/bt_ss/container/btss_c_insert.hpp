@@ -150,7 +150,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
         return std::move(iter);
     }
 
-    BlockIteratorStatePtr ctr_insert_batch(BlockIteratorStatePtr&& iter, CtrInputBuffer& input_buffer, CtrSizeT start, CtrSizeT length)
+    BlockIteratorStatePtr ctr_insert_batch(BlockIteratorStatePtr&& iter, CtrInputBuffer& input_buffer)
     {
         auto& self = this->self();
 
@@ -158,11 +158,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
             return true;
         };
 
-        btss::BTSSCtrBatchInputProvider<MyType> streaming(self, producer, input_buffer, start, length, false);
+        btss::BTSSCtrBatchInputProvider<MyType> streaming(self, producer, input_buffer, false);
 
         auto pos = Position::create(0, iter->iter_leaf_position());
 
-        auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
+        self.ctr_insert_provided_data(iter->path(), pos, streaming);
 
         iter->iter_set_leaf_position(pos[0]);
         iter->iter_reset_caches();

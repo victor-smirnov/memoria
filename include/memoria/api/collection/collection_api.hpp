@@ -101,6 +101,10 @@ struct ICtrApi<Collection<Key>, Profile>: public CtrReferenceable<Profile> {
     virtual ChunkSharedPtr seek_entry(CtrSizeT num) const = 0;
     virtual CtrSizeT size() const = 0;
 
+    virtual void remove(CtrSizeT from, CtrSizeT to) MEMORIA_READ_ONLY_API
+    virtual void remove_from(CtrSizeT from) MEMORIA_READ_ONLY_API
+    virtual void remove_up_to(CtrSizeT pos) MEMORIA_READ_ONLY_API
+
     MMA_DECLARE_ICTRAPI();
 };
 
