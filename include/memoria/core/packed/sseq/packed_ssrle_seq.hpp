@@ -40,7 +40,7 @@
 
 namespace memoria {
 
-template <size_t AlphabetSize> class IOSSRLEBufferImpl;
+template <size_t AlphabetSize> class IOSSRLEBuffer;
 
 template <
     size_t AlphabetSize_,

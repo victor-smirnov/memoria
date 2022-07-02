@@ -32,7 +32,7 @@ struct Sequence {
 
 template <size_t AlphabetSize, typename Profile>
 struct ICtrApiTypes<Sequence<AlphabetSize>, Profile> {
-    using CtrInputBuffer = IOSSRLEBufferImpl<AlphabetSize>;
+    using CtrInputBuffer = IOSSRLEBuffer<AlphabetSize>;
 };
 
 template <size_t AlphabetSize>

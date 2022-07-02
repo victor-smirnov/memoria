@@ -31,7 +31,7 @@ decltype(auto) get_ctr_batch_input_substream(const DataTypeBuffer<DT>& input) {
 }
 
 template <size_t StreamIdx, size_t SubstreamIdx, size_t AlphabetSize>
-decltype(auto) get_ctr_batch_input_substream(const IOSSRLEBufferImpl<AlphabetSize>& input) {
+decltype(auto) get_ctr_batch_input_substream(const IOSSRLEBuffer<AlphabetSize>& input) {
     return input;
 }
 
@@ -41,7 +41,7 @@ void clear_ctr_batch_input(DataTypeBuffer<DT>& input) {
 }
 
 template <size_t AlphabetSize>
-void clear_ctr_batch_input(IOSSRLEBufferImpl<AlphabetSize>& input) {
+void clear_ctr_batch_input(IOSSRLEBuffer<AlphabetSize>& input) {
     input.clear();
 }
 
@@ -52,7 +52,7 @@ void reindex_ctr_batch_input(DataTypeBuffer<DT>& input) {
 }
 
 template <size_t AlphabetSize>
-void reindex_ctr_batch_input(IOSSRLEBufferImpl<AlphabetSize>& input) {
+void reindex_ctr_batch_input(IOSSRLEBuffer<AlphabetSize>& input) {
     input.reindex();
 }
 
@@ -64,7 +64,7 @@ auto ctr_batch_input_size_btss(const CtrBatchInputBase<Streams>& input) {
 }
 
 template <size_t AlphabetSize>
-auto ctr_batch_input_size_btss(const IOSSRLEBufferImpl<AlphabetSize>& input) {
+auto ctr_batch_input_size_btss(const IOSSRLEBuffer<AlphabetSize>& input) {
     return input.size();
 }
 
