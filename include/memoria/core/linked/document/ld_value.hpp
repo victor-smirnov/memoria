@@ -19,6 +19,7 @@
 #include <memoria/core/linked/document/ld_string.hpp>
 
 namespace memoria {
+namespace ld {
 
 
 class LDDValueView {
@@ -213,4 +214,4 @@ std::vector<U8String> parse_path_expression(U8StringView path);
 bool find_value(LDDValueView& view, U8StringView path_str);
 LDDValueView get_value(LDDValueView src, U8StringView path);
 
-}
+}}

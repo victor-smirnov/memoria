@@ -24,12 +24,12 @@ namespace memoria {
 namespace tests {
 
 auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "Document", [](auto& state){
-    LDDocument doc;
+    ld::LDDocument doc;
 
     doc.set_double(12345.67);
     assert_equals(true, doc.value().is_double());
     assert_equals(12345.67, doc.value().as_double());
-    assert_throws<LDDInvalidCastException>([&](){
+    assert_throws<ld::LDDInvalidCastException>([&](){
         doc.value().as_bigint();
     });
 
@@ -38,7 +38,7 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocument
     assert_equals(true, doc.value().is_varchar());
     assert_equals("Hello world", doc.value().as_varchar().view());
 
-    assert_throws<LDDInvalidCastException>([&](){
+    assert_throws<ld::LDDInvalidCastException>([&](){
         doc.value().as_double();
     });
 
@@ -46,7 +46,7 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocument
     assert_equals(true, doc.value().is_bigint());
     assert_equals(123, doc.value().as_bigint());
 
-    assert_throws<LDDInvalidCastException>([&](){
+    assert_throws<ld::LDDInvalidCastException>([&](){
         doc.value().as_double();
     });
 
@@ -54,7 +54,7 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocument
     assert_equals(true, doc.value().is_boolean());
     assert_equals(1, doc.value().as_boolean());
 
-    assert_throws<LDDInvalidCastException>([&](){
+    assert_throws<ld::LDDInvalidCastException>([&](){
         doc.value().as_double();
     });
 
@@ -65,37 +65,37 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocument
     doc.set_sdn("{}");
     assert_equals(true, doc.value().is_map());
     assert_equals(0, doc.value().as_map().size());
-    assert_throws<LDDInvalidCastException>([&](){
+    assert_throws<ld::LDDInvalidCastException>([&](){
         doc.value().as_double();
     });
 
     doc.set_sdn("[]");
     assert_equals(true, doc.value().is_array());
     assert_equals(0, doc.value().as_array().size());
-    assert_throws<LDDInvalidCastException>([&](){
+    assert_throws<ld::LDDInvalidCastException>([&](){
         doc.value().as_double();
     });
 
     doc.set_sdn("Decimal(1,2)");
     assert_equals(true, doc.value().is_type_decl());
-    assert_throws<LDDInvalidCastException>([&](){
+    assert_throws<ld::LDDInvalidCastException>([&](){
         doc.value().as_double();
     });
 
     doc.set_null();
     assert_equals(true, doc.value().is_null());
-    assert_throws<LDDInvalidCastException>([&](){
+    assert_throws<ld::LDDInvalidCastException>([&](){
         doc.value().as_double();
     });
 
     doc.set_sdn("'123456.789'@CoolDecimalType(1,2)");
     assert_equals(true, doc.value().is_typed_value());
-    assert_throws<LDDInvalidCastException>([&](){
+    assert_throws<ld::LDDInvalidCastException>([&](){
         doc.value().as_double();
     });
 
 
-    LDDocumentView immutable_doc_view = doc.as_immutable_view();
+    ld::LDDocumentView immutable_doc_view = doc.as_immutable_view();
 
     assert_throws<RuntimeException>([&](){
         immutable_doc_view.make_mutable();
@@ -106,7 +106,7 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocument
     });
 
 
-    LDDocumentView doc_view = doc;
+    ld::LDDocumentView doc_view = doc;
 
     assert_no_throws<RuntimeException>([&](){
         doc_view.make_mutable();
@@ -114,7 +114,7 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocument
 
     assert_equals(true, doc_view.value().is_typed_value());
 
-    LDDocument doc2;
+    ld::LDDocument doc2;
     doc2.set_varchar("Hello World");
 
     doc.set_document(doc2);
@@ -122,12 +122,12 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocument
     assert_equals("Hello World", doc.value().as_varchar().view());
 
 
-    LDTypeDeclarationView type = doc.create_named_type("Type1", "CoolType2");
+    ld::LDTypeDeclarationView type = doc.create_named_type("Type1", "CoolType2");
 
     assert_equals("CoolType2", type.name());
     doc.set_sdn("'12345'@#Type1");
     assert_equals(true, doc.value().is_typed_value());
-    LDDTypedValueView tval = doc.value().as_typed_value();
+    ld::LDDTypedValueView tval = doc.value().as_typed_value();
     assert_equals(type, tval.type());
 
 

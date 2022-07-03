@@ -1,5 +1,5 @@
 
-// Copyright 2021 Victor Smirnov
+// Copyright 2021-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -327,8 +327,8 @@ public:
 
             auto superblock = superblock_fn_(meta.superblock_file_pos());
 
-            LDDocumentView doc = superblock->metadata_doc();
-            LDDMapView map = doc.value().as_map();
+            ld::LDDocumentView doc = superblock->metadata_doc();
+            ld::LDDMapView map = doc.value().as_map();
 
             U8String branch_name;
             auto bname_opt = map.get("branch_name");

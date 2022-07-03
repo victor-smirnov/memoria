@@ -88,7 +88,7 @@ protected:
 
     bool mutable_{false};
 
-    LDDocumentView metadata_;
+    ld::LDDocumentView metadata_;
 
     template <typename> friend class SWMRMappedStoreHistoryView;
 
@@ -115,7 +115,7 @@ public:
 
 
     CtrSharedPtr<CtrReferenceable<ApiProfileT>> create_ctr_instance(
-        const LDTypeDeclarationView& decl, const CtrID& ctr_id
+        const ld::LDTypeDeclarationView& decl, const CtrID& ctr_id
     )
     {
         auto& instance_pool = this->instance_pool();
@@ -177,7 +177,7 @@ public:
     }
 
 
-    LDDocumentView metadata() {
+    ld::LDDocumentView metadata() {
         return metadata_;
     }
 
@@ -256,7 +256,7 @@ public:
 
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
-            const LDTypeDeclarationView& decl, const CtrID& ctr_id
+            const ld::LDTypeDeclarationView& decl, const CtrID& ctr_id
     ) = 0;
 
 
@@ -418,7 +418,7 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("updated are not allowed for ReadOnly commits").do_throw();
     }
 
-    virtual void check(std::function<VoidResult(LDDocument&)> callback) {
+    virtual void check(std::function<VoidResult(ld::LDDocument&)> callback) {
     }
 
 protected:
@@ -439,8 +439,8 @@ protected:
     {
         U8String signature = make_datatype_signature(CtrName{}).name();
 
-        LDDocument doc = TypeSignature::parse(signature.to_std_string());
-        LDTypeDeclarationView decl = doc.value().as_type_decl();
+        ld::LDDocument doc = ld::TypeSignature::parse(signature.to_std_string());
+        ld::LDTypeDeclarationView decl = doc.value().as_type_decl();
 
         auto ctr_ref = internal_create_by_name(decl, ctr_id);
 

@@ -24,6 +24,7 @@
 
 
 namespace memoria {
+namespace ld {
 
 std::ostream& LDDValueView::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
@@ -178,4 +179,4 @@ LDDValueView get_value(LDDValueView src, U8StringView path) {
     }
 }
 
-}
+}}

@@ -52,6 +52,7 @@
 #include <vector>
 
 namespace memoria {
+namespace ld {
 
 namespace qi = boost::spirit::qi;
 namespace enc = qi::standard;
@@ -834,4 +835,4 @@ bool LDDocumentView::is_identifier(CharIterator start, CharIterator end)
     return parse_identifier(start, end);
 }
 
-}
+}}

@@ -35,6 +35,9 @@
 #include <unordered_map>
 
 namespace memoria {
+namespace ld {
+
+
 
 struct ArenaException: virtual RuntimeException {};
 struct UnmodifiableArenaException: virtual ArenaException {};
@@ -515,4 +518,4 @@ MMA_NODISCARD inline size_t LinkedArenaView<HeaderT, PtrHolderT>::allocate_space
 }
 
 
-}
+}}

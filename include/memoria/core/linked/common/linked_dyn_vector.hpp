@@ -28,6 +28,7 @@
 #include <cstddef>
 
 namespace memoria {
+namespace ld {
 
 template <typename T, typename Arena>
 class LinkedDynVector {
@@ -343,4 +344,4 @@ private:
     }
 };
 
-}
+}}

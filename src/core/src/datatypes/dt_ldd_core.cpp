@@ -29,32 +29,32 @@
 namespace memoria {
 
 template <>
-struct DataTypeOperationsImpl<LDArray>: SimpleDataTypeOperationsImpl<LDArray> {
+struct DataTypeOperationsImpl<ld::LDArray>: SimpleDataTypeOperationsImpl<ld::LDArray> {
 
     virtual void dump(
-            const LDDocumentView* doc,
-            LDPtrHolder ptr,
+            const ld::LDDocumentView* doc,
+            ld::LDPtrHolder ptr,
             std::ostream& out,
-            LDDumpFormatState& state,
-            LDDumpState& dump_state
+            ld::LDDumpFormatState& state,
+            ld::LDDumpState& dump_state
     ){
-        LDDArrayView array(doc, ptr);
+        ld::LDDArrayView array(doc, ptr);
         array.dump(out, state, dump_state);
     }
 
-    virtual LDPtrHolder deep_copy_to(
-            const LDDocumentView* src,
-            LDPtrHolder ptr,
-            LDDocumentView* tgt,
-            ld_::LDArenaAddressMapping& mapping
+    virtual ld::LDPtrHolder deep_copy_to(
+            const ld::LDDocumentView* src,
+            ld::LDPtrHolder ptr,
+            ld::LDDocumentView* tgt,
+            ld::ld_::LDArenaAddressMapping& mapping
     ) {
-        LDDArrayView array(src, ptr);
+        ld::LDDArrayView array(src, ptr);
         return array.deep_copy_to(tgt, mapping);
     }
 
-    virtual LDDValueView construct_from(
-            LDDocumentView* doc,
-            const LDDValueView& value
+    virtual ld::LDDValueView construct_from(
+            ld::LDDocumentView* doc,
+            const ld::LDDValueView& value
     ) {
         if (value.is_array()) {
             return value;
@@ -67,32 +67,32 @@ struct DataTypeOperationsImpl<LDArray>: SimpleDataTypeOperationsImpl<LDArray> {
 
 
 template <>
-struct DataTypeOperationsImpl<LDMap>: SimpleDataTypeOperationsImpl<LDMap> {
+struct DataTypeOperationsImpl<ld::LDMap>: SimpleDataTypeOperationsImpl<ld::LDMap> {
 
     virtual void dump(
-            const LDDocumentView* doc,
-            LDPtrHolder ptr,
+            const ld::LDDocumentView* doc,
+            ld::LDPtrHolder ptr,
             std::ostream& out,
-            LDDumpFormatState& state,
-            LDDumpState& dump_state
+            ld::LDDumpFormatState& state,
+            ld::LDDumpState& dump_state
     ){
-        LDDMapView map(doc, ptr);
+        ld::LDDMapView map(doc, ptr);
         map.dump(out, state, dump_state);
     }
 
-    virtual LDPtrHolder deep_copy_to(
-            const LDDocumentView* src,
-            LDPtrHolder ptr,
-            LDDocumentView* tgt,
-            ld_::LDArenaAddressMapping& mapping
+    virtual ld::LDPtrHolder deep_copy_to(
+            const ld::LDDocumentView* src,
+            ld::LDPtrHolder ptr,
+            ld::LDDocumentView* tgt,
+            ld::ld_::LDArenaAddressMapping& mapping
     ) {
-        LDDMapView map(src, ptr);
+        ld::LDDMapView map(src, ptr);
         return map.deep_copy_to(tgt, mapping);
     }
 
-    virtual LDDValueView construct_from(
-            LDDocumentView* doc,
-            const LDDValueView& value
+    virtual ld::LDDValueView construct_from(
+            ld::LDDocumentView* doc,
+            const ld::LDDValueView& value
     ) {
         if (value.is_map()) {
             return value;
@@ -104,32 +104,32 @@ struct DataTypeOperationsImpl<LDMap>: SimpleDataTypeOperationsImpl<LDMap> {
 };
 
 template <>
-struct DataTypeOperationsImpl<LDTypeDeclaration>: SimpleDataTypeOperationsImpl<LDTypeDeclaration> {
+struct DataTypeOperationsImpl<ld::LDTypeDeclaration>: SimpleDataTypeOperationsImpl<ld::LDTypeDeclaration> {
 
     virtual void dump(
-            const LDDocumentView* doc,
-            LDPtrHolder ptr,
+            const ld::LDDocumentView* doc,
+            ld::LDPtrHolder ptr,
             std::ostream& out,
-            LDDumpFormatState& state,
-            LDDumpState& dump_state
+            ld::LDDumpFormatState& state,
+            ld::LDDumpState& dump_state
     ){
-        LDTypeDeclarationView td(doc, ptr);
+        ld::LDTypeDeclarationView td(doc, ptr);
         td.dump(out, state, dump_state);
     }
 
-    virtual LDPtrHolder deep_copy_to(
-            const LDDocumentView* src,
-            LDPtrHolder ptr,
-            LDDocumentView* tgt,
-            ld_::LDArenaAddressMapping& mapping
+    virtual ld::LDPtrHolder deep_copy_to(
+            const ld::LDDocumentView* src,
+            ld::LDPtrHolder ptr,
+            ld::LDDocumentView* tgt,
+            ld::ld_::LDArenaAddressMapping& mapping
     ) {
-        LDTypeDeclarationView td(src, ptr);
+        ld::LDTypeDeclarationView td(src, ptr);
         return td.deep_copy_to(tgt, mapping);
     }
 
-    virtual LDDValueView construct_from(
-            LDDocumentView* doc,
-            const LDDValueView& value
+    virtual ld::LDDValueView construct_from(
+            ld::LDDocumentView* doc,
+            const ld::LDDValueView& value
     ) {
         if (value.is_type_decl()) {
             return value;
@@ -141,32 +141,32 @@ struct DataTypeOperationsImpl<LDTypeDeclaration>: SimpleDataTypeOperationsImpl<L
 };
 
 template <>
-struct DataTypeOperationsImpl<LDTypedValue>: SimpleDataTypeOperationsImpl<LDTypedValue> {
+struct DataTypeOperationsImpl<ld::LDTypedValue>: SimpleDataTypeOperationsImpl<ld::LDTypedValue> {
 
     virtual void dump(
-            const LDDocumentView* doc,
-            LDPtrHolder ptr,
+            const ld::LDDocumentView* doc,
+            ld::LDPtrHolder ptr,
             std::ostream& out,
-            LDDumpFormatState& state,
-            LDDumpState& dump_state
+            ld::LDDumpFormatState& state,
+            ld::LDDumpState& dump_state
     ){
-        LDDTypedValueView tv(doc, ptr);
+        ld::LDDTypedValueView tv(doc, ptr);
         tv.dump(out, state, dump_state);
     }
 
-    virtual LDPtrHolder deep_copy_to(
-            const LDDocumentView* src,
-            LDPtrHolder ptr,
-            LDDocumentView* tgt,
-            ld_::LDArenaAddressMapping& mapping
+    virtual ld::LDPtrHolder deep_copy_to(
+            const ld::LDDocumentView* src,
+            ld::LDPtrHolder ptr,
+            ld::LDDocumentView* tgt,
+            ld::ld_::LDArenaAddressMapping& mapping
     ) {
-        LDDTypedValueView tv(src, ptr);
+        ld::LDDTypedValueView tv(src, ptr);
         return tv.deep_copy_to(tgt, mapping);
     }
 
-    virtual LDDValueView construct_from(
-            LDDocumentView* doc,
-            const LDDValueView& value
+    virtual ld::LDDValueView construct_from(
+            ld::LDDocumentView* doc,
+            const ld::LDDValueView& value
     ) {
         if (value.is_typed_value()) {
             return value;
@@ -182,29 +182,29 @@ template <>
 struct DataTypeOperationsImpl<Varchar>: SimpleDataTypeOperationsImpl<Varchar> {
 
     virtual void dump(
-            const LDDocumentView* doc,
-            LDPtrHolder ptr,
+            const ld::LDDocumentView* doc,
+            ld::LDPtrHolder ptr,
             std::ostream& out,
-            LDDumpFormatState& state,
-            LDDumpState& dump_state
+            ld::LDDumpFormatState& state,
+            ld::LDDumpState& dump_state
     ){
-        LDStringView str(doc, ptr);
+        ld::LDStringView str(doc, ptr);
         str.dump(out, state, dump_state);
     }
 
-    virtual LDPtrHolder deep_copy_to(
-            const LDDocumentView* src,
-            LDPtrHolder ptr,
-            LDDocumentView* tgt,
-            ld_::LDArenaAddressMapping& mapping
+    virtual ld::LDPtrHolder deep_copy_to(
+            const ld::LDDocumentView* src,
+            ld::LDPtrHolder ptr,
+            ld::LDDocumentView* tgt,
+            ld::ld_::LDArenaAddressMapping& mapping
     ) {
-        LDStringView str(src, ptr);
+        ld::LDStringView str(src, ptr);
         return str.deep_copy_to(tgt, mapping);
     }
 
-    virtual LDDValueView construct_from(
-            LDDocumentView* doc,
-            const LDDValueView& value
+    virtual ld::LDDValueView construct_from(
+            ld::LDDocumentView* doc,
+            const ld::LDDValueView& value
     ) {
         if (value.is_varchar()) {
             return value;
@@ -220,41 +220,41 @@ template <>
 struct DataTypeOperationsImpl<Boolean>: SimpleDataTypeOperationsImpl<Boolean> {
 
     virtual void dump(
-            const LDDocumentView* doc,
-            LDPtrHolder ptr,
+            const ld::LDDocumentView* doc,
+            ld::LDPtrHolder ptr,
             std::ostream& out,
-            LDDumpFormatState& state,
-            LDDumpState& dump_state
+            ld::LDDumpFormatState& state,
+            ld::LDDumpState& dump_state
     ){
         using StorageType = DTTLDStorageType<Boolean>;
         StorageType val = *(doc->arena_.template get<StorageType>(ptr));
         out << (val ? "true" : "false");
     }
 
-    virtual LDPtrHolder deep_copy_to(
-            const LDDocumentView* src,
-            LDPtrHolder ptr,
-            LDDocumentView* tgt,
-            ld_::LDArenaAddressMapping& mapping
+    virtual ld::LDPtrHolder deep_copy_to(
+            const ld::LDDocumentView* src,
+            ld::LDPtrHolder ptr,
+            ld::LDDocumentView* tgt,
+            ld::ld_::LDArenaAddressMapping& mapping
     ) {
         using StorageType = DTTLDStorageType<Boolean>;
         StorageType val = *(src->arena_.template get<StorageType>(ptr));
         return tgt->template new_value<Boolean>(val);
     }
 
-    virtual LDDValueView construct_from(
-            LDDocumentView* doc,
-            const LDDValueView& value
+    virtual ld::LDDValueView construct_from(
+            ld::LDDocumentView* doc,
+            const ld::LDDValueView& value
     ) {
         if (value.is_varchar())
         {
             U8StringView view = value.as_varchar().view();
 
             if ("true" == view) {
-                return LDDValueView{doc, doc->new_value<Boolean>(true), ld_tag_value<Boolean>()};
+                return ld::LDDValueView{doc, doc->new_value<Boolean>(true), ld::ld_tag_value<Boolean>()};
             }
             else if ("false" == view) {
-                return LDDValueView{doc, doc->new_value<Boolean>(false), ld_tag_value<Boolean>()};
+                return ld::LDDValueView{doc, doc->new_value<Boolean>(false), ld::ld_tag_value<Boolean>()};
             }
             else {
                 MMA_THROW(RuntimeException()) << format_ex("Unsupported boolean string value: {}", view);
@@ -269,10 +269,10 @@ struct DataTypeOperationsImpl<Boolean>: SimpleDataTypeOperationsImpl<Boolean> {
 
 void InitCoreLDDatatypes()
 {
-    register_notctr_operations<LDTypedValue>();
-    register_notctr_operations<LDArray>();
-    register_notctr_operations<LDMap>();
-    register_notctr_operations<LDTypeDeclaration>();
+    register_notctr_operations<ld::LDTypedValue>();
+    register_notctr_operations<ld::LDArray>();
+    register_notctr_operations<ld::LDMap>();
+    register_notctr_operations<ld::LDTypeDeclaration>();
     register_notctr_operations<Varchar>();
     register_notctr_operations<Boolean>();
 }

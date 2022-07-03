@@ -58,7 +58,7 @@ struct NumberCvt;
 
 template <typename T>
 struct NumberCvt<T, false> {
-    static T convert(const LDDValueView& value) {
+    static T convert(const ld::LDDValueView& value) {
         if (value.is_varchar())
         {
             const auto* cstr = make_cstring(value.as_varchar().view());
@@ -92,7 +92,7 @@ struct NumberCvt<T, false> {
 
 template <typename T>
 struct NumberCvt<T, true> {
-    static T convert(const LDDValueView& value) {
+    static T convert(const ld::LDDValueView& value) {
         if (value.is_varchar())
         {
             U8StringView view = value.as_varchar().view();
@@ -121,7 +121,7 @@ struct NumberCvt<T, true> {
 
 template <>
 struct NumberCvt<float, false> {
-    static float convert(const LDDValueView& value) {
+    static float convert(const ld::LDDValueView& value) {
         if (value.is_varchar())
         {
             const auto* cstr = make_cstring(value.as_varchar().view());
@@ -144,7 +144,7 @@ struct NumberCvt<float, false> {
 
 template <>
 struct NumberCvt<double, false> {
-    static double convert(const LDDValueView& value) {
+    static double convert(const ld::LDDValueView& value) {
         if (value.is_varchar())
         {
             const auto* cstr = make_cstring(value.as_varchar().view());
@@ -169,7 +169,7 @@ struct NumberCvt<double, false> {
 template <typename T>
 struct NumericDataTypeOperationsImpl: DataTypeOperations {
 
-    virtual LDDValueTag type_hash() {
+    virtual ld::LDDValueTag type_hash() {
         return TypeHash<T>::Value & 0xFFFFFFFFFFFF;
     }
 
@@ -179,20 +179,20 @@ struct NumericDataTypeOperationsImpl: DataTypeOperations {
         return buf.str();
     }
 
-    virtual boost::any create_cxx_instance(const LDTypeDeclarationView& typedecl) {
+    virtual boost::any create_cxx_instance(const ld::LDTypeDeclarationView& typedecl) {
         return boost::any(T{});
     }
 
-    virtual AnyDatum from_ld_document(const LDDValueView& value) {
+    virtual AnyDatum from_ld_document(const ld::LDDValueView& value) {
         MMA_THROW(UnsupportedOperationException());
     }
 
     virtual void dump(
-            const LDDocumentView* doc,
-            LDPtrHolder ptr,
+            const ld::LDDocumentView* doc,
+            ld::LDPtrHolder ptr,
             std::ostream& out,
-            LDDumpFormatState& state,
-            LDDumpState& dump_state
+            ld::LDDumpFormatState& state,
+            ld::LDDumpState& dump_state
     ){
         std::ios_base::fmtflags f(out.flags());
 
@@ -205,26 +205,26 @@ struct NumericDataTypeOperationsImpl: DataTypeOperations {
         out.flags(f);
     }
 
-    virtual LDPtrHolder deep_copy_to(
-            const LDDocumentView* src,
-            LDPtrHolder ptr,
-            LDDocumentView* tgt,
-            ld_::LDArenaAddressMapping& mapping
+    virtual ld::LDPtrHolder deep_copy_to(
+            const ld::LDDocumentView* src,
+            ld::LDPtrHolder ptr,
+            ld::LDDocumentView* tgt,
+            ld::ld_::LDArenaAddressMapping& mapping
     ) {
         DTTLDStorageType<T> val = *(src->arena_.template get<DTTLDStorageType<T>>(ptr));
-        LDPtrHolder new_ptr = tgt->template new_value<T>(val);
+        ld::LDPtrHolder new_ptr = tgt->template new_value<T>(val);
         return new_ptr;
     }
 
-    virtual LDDValueView construct_from(
-            LDDocumentView* doc,
-            const LDDValueView& value
+    virtual ld::LDDValueView construct_from(
+            ld::LDDocumentView* doc,
+            const ld::LDDValueView& value
     ) {
         using NumberT = DTTLDStorageType<T>;
 
         NumberT val = NumberCvt<NumberT>::convert(value);
-        LDPtrHolder new_ptr = doc->template new_value<T>(val);
-        return LDDValueView(doc, new_ptr, ld_tag_value<T>());
+        ld::LDPtrHolder new_ptr = doc->template new_value<T>(val);
+        return ld::LDDValueView(doc, new_ptr, ld::ld_tag_value<T>());
     }
 };
 
@@ -232,11 +232,11 @@ template <>
 struct DataTypeOperationsImpl<UTinyInt>: NumericDataTypeOperationsImpl<UTinyInt> {
 
     virtual void dump(
-            const LDDocumentView* doc,
-            LDPtrHolder ptr,
+            const ld::LDDocumentView* doc,
+            ld::LDPtrHolder ptr,
             std::ostream& out,
-            LDDumpFormatState& state,
-            LDDumpState& dump_state
+            ld::LDDumpFormatState& state,
+            ld::LDDumpState& dump_state
     ){
         std::ios_base::fmtflags f(out.flags());
         out << std::dec;
@@ -252,11 +252,11 @@ template <>
 struct DataTypeOperationsImpl<TinyInt>: NumericDataTypeOperationsImpl<TinyInt> {
 
     virtual void dump(
-            const LDDocumentView* doc,
-            LDPtrHolder ptr,
+            const ld::LDDocumentView* doc,
+            ld::LDPtrHolder ptr,
             std::ostream& out,
-            LDDumpFormatState& state,
-            LDDumpState& dump_state
+            ld::LDDumpFormatState& state,
+            ld::LDDumpState& dump_state
     ){
         std::ios_base::fmtflags f(out.flags());
         out << std::dec;
@@ -271,11 +271,11 @@ template <>
 struct DataTypeOperationsImpl<BigInt>: NumericDataTypeOperationsImpl<BigInt> {
 
     virtual void dump(
-            const LDDocumentView* doc,
-            LDPtrHolder ptr,
+            const ld::LDDocumentView* doc,
+            ld::LDPtrHolder ptr,
             std::ostream& out,
-            LDDumpFormatState& state,
-            LDDumpState& dump_state
+            ld::LDDumpFormatState& state,
+            ld::LDDumpState& dump_state
     ){
         std::ios_base::fmtflags f(out.flags());
         out << std::dec;
@@ -290,11 +290,11 @@ template <>
 struct DataTypeOperationsImpl<Double>: NumericDataTypeOperationsImpl<Double> {
 
     virtual void dump(
-            const LDDocumentView* doc,
-            LDPtrHolder ptr,
+            const ld::LDDocumentView* doc,
+            ld::LDPtrHolder ptr,
             std::ostream& out,
-            LDDumpFormatState& state,
-            LDDumpState& dump_state
+            ld::LDDumpFormatState& state,
+            ld::LDDumpState& dump_state
     ){
         std::ios_base::fmtflags f(out.flags());
         out << std::dec;

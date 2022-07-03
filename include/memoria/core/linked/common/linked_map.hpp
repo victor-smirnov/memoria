@@ -27,6 +27,7 @@
 #include <cstddef>
 
 namespace memoria {
+namespace ld {
 
 template <
     typename Key,
@@ -531,4 +532,4 @@ private:
     }
 };
 
-}
+}}

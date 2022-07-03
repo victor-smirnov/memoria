@@ -264,7 +264,7 @@ public:
         virtual CtrReferenceableUPtrT create_ctr_instance(
                 const ROAllocatorPtr& allocator,
                 const CtrID& ctr_id,
-                const LDTypeDeclarationView& type_decl,
+                const ld::LDTypeDeclarationView& type_decl,
                 bool writable
         ) const {
             boost::any obj = DataTypeRegistry::local().create_object(type_decl);

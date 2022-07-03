@@ -45,6 +45,8 @@ extern "C" {
 using namespace memoria;
 using namespace memoria::codegen;
 
+using namespace memoria::ld;
+
 namespace po = boost::program_options;
 namespace py = pybind11;
 

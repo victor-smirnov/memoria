@@ -27,6 +27,7 @@
 #include <functional>
 
 namespace memoria {
+namespace ld {
 
 struct SDNParseException: RuntimeException {};
 
@@ -60,7 +61,7 @@ namespace ldd_ {
 }
 
 class LDDocumentView {
-
+public:
     using AtomType      = typename ld_::LDArenaView::AtomType;
 protected:
     using ValueMap      = ld_::ValueMap;
@@ -69,7 +70,7 @@ protected:
     using TypeDeclsMap  = ld_::TypeDeclsMap;
     using DocumentState = ld_::DocumentState;
     using DocumentPtr   = ld_::LDPtr<DocumentState>;
-
+public:
     ld_::LDArenaView arena_;
 protected:
     friend class LDDocumentBuilder;
@@ -311,7 +312,7 @@ protected:
     {
         ld_::ldd_set_tag(&arena_, ptr, tag);
     }
-
+public:
     template <typename T, typename... Args>
     LDPtrHolder new_value(Args&&... args)
     {
@@ -422,16 +423,16 @@ protected:
 
 std::ostream& operator<<(std::ostream& out, const LDDocumentView& doc);
 
-}
+}}
 
 namespace fmt {
 
 template <>
-struct formatter<memoria::LDDocumentView> {
+struct formatter<memoria::ld::LDDocumentView> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::LDDocumentView& d, FormatContext& ctx) {
+    auto format(const memoria::ld::LDDocumentView& d, FormatContext& ctx) {
         return format_to(ctx.out(), "{}", d.to_pretty_string());
     }
 };

@@ -18,7 +18,7 @@
 #include <memoria/core/linked/document/ld_document.hpp>
 
 namespace memoria {
-
+namespace ld {
 
 class LDIdentifierView {
     const LDDocumentView* doc_;
@@ -45,4 +45,4 @@ static inline std::ostream& operator<<(std::ostream& out, const LDIdentifierView
 }
 
 
-}
+}}

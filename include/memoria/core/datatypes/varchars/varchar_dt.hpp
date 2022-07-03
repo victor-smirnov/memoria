@@ -30,10 +30,12 @@ namespace memoria {
 class VarcharStorage;
 using VarcharView = U8StringView;
 
-class LDStringView;
+namespace ld {
 
+class LDStringView;
 template <typename CharT> class LinkedString;
 
+}
 
 template <>
 struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
@@ -43,8 +45,8 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
     using AtomType      = std::remove_const_t<typename VarcharView::value_type>;
 
 
-    using LDStorageType = LinkedString<typename U8StringView::value_type>;
-    using LDViewType    = LDStringView;
+    using LDStorageType = ld::LinkedString<typename U8StringView::value_type>;
+    using LDViewType    = ld::LDStringView;
 
 
     using DatumStorage  = VarcharStorage;

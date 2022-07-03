@@ -26,6 +26,8 @@
 namespace memoria {
 namespace codegen {
 
+using namespace memoria::ld;
+
 U8String describe_decl(const clang::Decl* decl) {
     std::string ss;
     llvm::raw_string_ostream os(ss);

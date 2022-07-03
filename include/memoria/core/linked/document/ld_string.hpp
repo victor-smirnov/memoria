@@ -20,6 +20,7 @@
 #include <fmt/format.h>
 
 namespace memoria {
+namespace ld {
 
 class LDStringView {
     const LDDocumentView* doc_;
@@ -68,17 +69,17 @@ public:
 
 std::ostream& operator<<(std::ostream& out, const LDStringView& value);
 
-}
+}}
 
 
 namespace fmt {
 
 template <>
-struct formatter<memoria::LDStringView> {
+struct formatter<memoria::ld::LDStringView> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::LDStringView& d, FormatContext& ctx) {
+    auto format(const memoria::ld::LDStringView& d, FormatContext& ctx) {
         return format_to(ctx.out(), "{}", d.view().to_string());
     }
 };

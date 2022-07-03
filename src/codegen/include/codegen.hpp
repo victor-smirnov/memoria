@@ -57,7 +57,7 @@ struct CodegenEntity {
 
     virtual std::vector<U8String> includes() const = 0;
 
-    virtual void dry_run(LDDMapView consumer) = 0;
+    virtual void dry_run(ld::LDDMapView consumer) = 0;
 
     virtual void generate_artifacts() = 0;
     virtual void configure() = 0;
@@ -72,8 +72,8 @@ struct Project {
     virtual void parse_configuration() = 0;
 
     virtual ShPtr<CodeModule> config_unit() const noexcept = 0;
-    virtual LDDocumentView config() const noexcept = 0;
-    virtual LDDMapView config_map() const = 0;
+    virtual ld::LDDocumentView config() const noexcept = 0;
+    virtual ld::LDDMapView config_map() const = 0;
     virtual U8String project_output_folder() const = 0;
     virtual U8String components_output_folder() const = 0;
     virtual U8String config_string(const U8String& sdn_path) const = 0;
@@ -84,7 +84,7 @@ struct Project {
 
     virtual std::vector<U8String> profiles() const = 0;
 
-    virtual LDDocument dry_run() = 0;
+    virtual ld::LDDocument dry_run() = 0;
 
     virtual void generate_artifacts() = 0;
 
@@ -104,7 +104,7 @@ struct TypeInstance: CodegenEntity {
 
     virtual const clang::ClassTemplateSpecializationDecl* ctr_descr() const = 0;
     virtual clang::QualType type() const = 0;
-    virtual LDDocumentView config() const = 0;
+    virtual ld::LDDocumentView config() const = 0;
     virtual U8String name() const = 0;
     virtual U8String target_folder() const = 0;
     virtual U8String target_file(const U8String& profile) const = 0;
@@ -130,7 +130,7 @@ struct TypeFactory: CodegenEntity {
     virtual U8String name() const = 0;
 
     virtual U8String factory_id() const = 0;
-    virtual LDDocumentView config() const = 0;
+    virtual ld::LDDocumentView config() const = 0;
     virtual U8String type_pattern() const = 0;
 
     virtual void precompile_headers() = 0;
@@ -156,7 +156,7 @@ struct FileGenerator: CodegenEntity {
     virtual U8String target_file() const = 0;
     virtual U8String target_folder() const = 0;
 
-    static ShPtr<FileGenerator> create(ShPtr<Project> project, const U8String& sdn_path, LDDocument&& config);
+    static ShPtr<FileGenerator> create(ShPtr<Project> project, const U8String& sdn_path, ld::LDDocument&& config);
 };
 
 void create_codegen_python_bindings();
@@ -171,7 +171,7 @@ U8String get_profile_id(U8String profile_name);
 U8String get_same_level_path(U8String path, U8String step);
 U8String join_sdn_path(Span<const U8String> path);
 
-void for_each_value(LDDValueView elem, const std::function<bool (const std::vector<U8String>&, LDDValueView)>& consumer);
+void for_each_value(ld::LDDValueView elem, const std::function<bool (const std::vector<U8String>&, ld::LDDValueView)>& consumer);
 
 template <typename T>
 T&& get_or_fail(Optional<T>&& opt, U8StringView msg)
@@ -184,7 +184,7 @@ T&& get_or_fail(Optional<T>&& opt, U8StringView msg)
     }
 }
 
-LDDArrayView get_or_add_array(LDDMapView map, const U8String& name);
+ld::LDDArrayView get_or_add_array(ld::LDDMapView map, const U8String& name);
 
 struct ResourceNameConsumer {
     virtual ~ResourceNameConsumer() noexcept = default;
@@ -194,11 +194,11 @@ struct ResourceNameConsumer {
 };
 
 class DefaultResourceNameConsumerImpl: public ResourceNameConsumer {
-    LDDArrayView sources_;
-    LDDArrayView byproducts_;
+    ld::LDDArrayView sources_;
+    ld::LDDArrayView byproducts_;
 
 public:
-    DefaultResourceNameConsumerImpl(LDDArrayView sources, LDDArrayView byproducts):
+    DefaultResourceNameConsumerImpl(ld::LDDArrayView sources, ld::LDDArrayView byproducts):
         sources_(sources), byproducts_(byproducts)
     {}
 
@@ -211,6 +211,6 @@ public:
     }
 };
 
-std::string build_output_list(const LDDocumentView& doc);
+std::string build_output_list(const ld::LDDocumentView& doc);
 
 }}

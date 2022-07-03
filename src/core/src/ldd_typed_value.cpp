@@ -16,6 +16,7 @@
 #include <memoria/core/linked/document/linked_document.hpp>
 
 namespace memoria {
+namespace ld {
 
 std::ostream& LDDTypedValueView::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
@@ -133,4 +134,4 @@ ld_::LDPtr<LDDTypedValueView::State> LDDTypedValueView::deep_copy_to(LDDocumentV
 }
 
 
-}
+}}

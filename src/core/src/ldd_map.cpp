@@ -22,6 +22,7 @@
 #include <memoria/core/linked/document/linked_document.hpp>
 
 namespace memoria {
+namespace ld {
 
 void LDDMapView::do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState& dump_state) const
 {
@@ -69,4 +70,4 @@ ld_::LDPtr<LDDMapView::ValueMap::State> LDDMapView::deep_copy_to(LDDocumentView*
     return map_.deep_copy_to(&tgt->arena_, helper);
 }
 
-}
+}}

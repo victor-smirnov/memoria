@@ -36,7 +36,7 @@ struct ISWMRStoreSnapshotBase: virtual IROStoreSnapshotCtrOps<Profile> {
     virtual bool is_transient() = 0;
     virtual bool is_system_snapshot() = 0;
 
-    virtual LDDocumentView metadata() = 0;
+    virtual ld::LDDocumentView metadata() = 0;
 };
 
 template <typename Profile>

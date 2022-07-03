@@ -31,6 +31,8 @@ namespace codegen {
 using namespace clang;
 using namespace llvm;
 
+using namespace memoria::ld;
+
 namespace py = pybind11;
 
 class TypeFactoryImpl: public TypeFactory, public std::enable_shared_from_this<TypeFactoryImpl> {

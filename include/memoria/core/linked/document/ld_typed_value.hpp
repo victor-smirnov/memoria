@@ -20,6 +20,7 @@
 #include <memoria/core/linked/document/ld_type_decl.hpp>
 
 namespace memoria {
+namespace ld {
 
 class LDDTypedValueView {
     using State = ld_::TypedValueState;
@@ -86,11 +87,13 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDTypedValueVie
     return out;
 }
 
+}
+
 template <>
-struct DataTypeTraits<LDTypedValue> {
+struct DataTypeTraits<ld::LDTypedValue> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
-    using LDViewType = LDDTypedValueView;
+    using LDViewType = ld::LDDTypedValueView;
 
     static void create_signature(SBuf& buf) {
         buf << "LDTypedValue";

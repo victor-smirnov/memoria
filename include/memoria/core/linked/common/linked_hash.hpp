@@ -25,6 +25,7 @@
 #include <memoria/core/memory/ptr_cast.hpp>
 
 namespace memoria {
+namespace ld {
 
 class Variant1 {};
 class Variant1a {};
@@ -178,4 +179,4 @@ void append(FNVHasher<Size, Variant>& hasher, boost::basic_string_view<T> view)
     }
 }
 
-}
+}}
