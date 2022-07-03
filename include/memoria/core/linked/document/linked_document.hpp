@@ -30,7 +30,6 @@
 #include <boost/variant.hpp>
 
 namespace memoria {
-namespace ld {
 
 inline LDDArrayView LDDValueView::as_array() const {
     ld_::ldd_assert_tag<LDArray>(type_tag_);
@@ -171,4 +170,4 @@ inline LDArenaAddressMapping::LDArenaAddressMapping(const LDDocumentView& src, c
 }
 
 
-}}
+}

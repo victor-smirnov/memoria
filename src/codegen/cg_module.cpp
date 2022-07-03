@@ -43,8 +43,6 @@ namespace codegen {
 using namespace clang;
 using namespace llvm;
 
-using namespace memoria::ld;
-
 namespace {
 std::vector<std::string> parser_options;
 //std::unordered_set<std::string> enabled_profiles;

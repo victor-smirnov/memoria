@@ -22,7 +22,6 @@
 #include <memoria/core/datatypes/core.hpp>
 
 namespace memoria {
-namespace ld {
 
 class LDDMapView {
 public:
@@ -239,6 +238,16 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDMapView& valu
     return out;
 }
 
+template <>
+struct DataTypeTraits<LDMap> {
+    static constexpr bool isDataType = true;
+    using LDStorageType = NullType;
+    using LDViewType = LDDMapView;
+
+    static void create_signature(SBuf& buf) {
+        buf << "LDMap";
+    }
+};
 
 template <typename Selector>
 struct LDStorageAllocator<LDMap, Selector> {
@@ -248,19 +257,5 @@ struct LDStorageAllocator<LDMap, Selector> {
         return LDDMapView::ValueMap::create_ptr(arena, ld_tag_size<LDMap>());
     }
 };
-
-}
-
-template <>
-struct DataTypeTraits<ld::LDMap> {
-    static constexpr bool isDataType = true;
-    using LDStorageType = NullType;
-    using LDViewType = ld::LDDMapView;
-
-    static void create_signature(SBuf& buf) {
-        buf << "LDMap";
-    }
-};
-
 
 }

@@ -19,7 +19,6 @@
 #include <memoria/core/linked/document/ld_value.hpp>
 
 namespace memoria {
-namespace ld {
 
 class LDDArrayView {
 public:
@@ -245,6 +244,17 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDArrayView& ar
 }
 
 
+template <>
+struct DataTypeTraits<LDArray> {
+    static constexpr bool isDataType = true;
+    using LDStorageType = NullType;
+    using LDViewType = LDDArrayView;
+
+    static void create_signature(SBuf& buf) {
+        buf << "LDDArrayView";
+    }
+};
+
 
 template <typename Selector>
 struct LDStorageAllocator<LDArray, Selector> {
@@ -261,20 +271,5 @@ struct LDStorageAllocator<LDArray, Selector> {
         return LDDArrayView::Array::create_tagged_ptr(ld_tag_size<LDArray>(), arena, capacity);
     }
 };
-
-}
-
-
-template <>
-struct DataTypeTraits<ld::LDArray> {
-    static constexpr bool isDataType = true;
-    using LDStorageType = NullType;
-    using LDViewType = ld::LDDArrayView;
-
-    static void create_signature(SBuf& buf) {
-        buf << "LDDArrayView";
-    }
-};
-
 
 }

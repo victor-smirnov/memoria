@@ -24,14 +24,14 @@ enum class CheckSeverity {
     ERROR
 };
 
-using CheckResultConsumerFn = std::function<void (CheckSeverity, const ld::LDDocument&)>;
+using CheckResultConsumerFn = std::function<void (CheckSeverity, const LDDocument&)>;
 
 struct NullCheckResultConsumer {
-    void operator()(CheckSeverity, const ld::LDDocument&) {}
+    void operator()(CheckSeverity, const LDDocument&) {}
 };
 
 struct ThrowingCheckResultConsumer {
-    void operator()(CheckSeverity svr, const ld::LDDocument& doc) {
+    void operator()(CheckSeverity svr, const LDDocument& doc) {
         if (svr == CheckSeverity::ERROR) {
             MEMORIA_MAKE_GENERIC_ERROR("{}", doc.to_pretty_string()).do_throw();
         }
@@ -39,9 +39,9 @@ struct ThrowingCheckResultConsumer {
 };
 
 template <typename... Args>
-ld::LDDocument make_string_document(const char* fmt, Args&&... args)
+LDDocument make_string_document(const char* fmt, Args&&... args)
 {
-    ld::LDDocument doc;
+    LDDocument doc;
     doc.set_varchar(format_u8(fmt, std::forward<Args>(args)...));
     return doc;
 }

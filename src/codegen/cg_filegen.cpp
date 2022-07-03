@@ -31,7 +31,6 @@ namespace memoria::codegen {
 
 using namespace clang;
 using namespace llvm;
-using namespace memoria::ld;
 
 namespace py = pybind11;
 

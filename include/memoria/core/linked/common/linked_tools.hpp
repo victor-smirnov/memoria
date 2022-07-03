@@ -21,7 +21,6 @@
 #include <memoria/core/linked/common/linked_hash.hpp>
 
 namespace memoria {
-namespace ld {
 
 template <typename T, typename Arena>
 class MappedHashFn;
@@ -158,4 +157,4 @@ namespace linked_ {
     };
 }
 
-}}
+}

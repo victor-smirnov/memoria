@@ -526,7 +526,7 @@ U8StringView trim_string(U8StringView str);
 
 
 template <size_t Size, typename Variant>
-void append(ld::FNVHasher<Size, Variant>& hasher, const U8String& str)
+void append(FNVHasher<Size, Variant>& hasher, const U8String& str)
 {
     append(hasher, str.view());
 }

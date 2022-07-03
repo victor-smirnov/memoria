@@ -34,9 +34,9 @@ namespace memoria {
 
 AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
 {
-    ld::LDDocument sdn_doc = ld::LDDocument::parse(sdn_string);
+    LDDocument sdn_doc = LDDocument::parse(sdn_string);
 
-    ld::LDDValueView value = sdn_doc.value();
+    LDDValueView value = sdn_doc.value();
 
     if (value.is_null()) {
         return AnyDatum();
@@ -59,7 +59,7 @@ AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
         }
         else if (value.is_typed_value())
         {
-            ld::LDDTypedValueView tv = value.as_typed_value();
+            LDDTypedValueView tv = value.as_typed_value();
             typedecl = tv.type().to_standard_string();
         }
         else {

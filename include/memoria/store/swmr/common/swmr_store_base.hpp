@@ -113,7 +113,7 @@ protected:
     uint64_t cp_snapshots_threshold_{10000};
     uint64_t cp_timeout_{1000}; // 1 secons
 
-    ld::LDDocument store_params_;
+    LDDocument store_params_;
 
     bool active_writer_{false};
 
@@ -763,7 +763,7 @@ protected:
 
         if (counters.size() != block_counters_.size())
         {
-            ld::LDDocument doc;
+            LDDocument doc;
             doc.set_varchar(fmt::format(
                         "Check failure: mismatched number of counters. Expected: {}, actual: {}",
                         block_counters_.size(),
@@ -777,7 +777,7 @@ protected:
 
             if (res) {
                 if (res.get() != counter) {
-                    ld::LDDocument doc;
+                    LDDocument doc;
                     doc.set_varchar(fmt::format(
                                 "Counter values mismatch for the block ID {}. Expected: {}, actual: {}",
                                 block_id,
@@ -788,7 +788,7 @@ protected:
                 }
             }
             else {
-                ld::LDDocument doc;
+                LDDocument doc;
                 doc.set_varchar(fmt::format(
                             "Actual counter for the block ID {} is not found in the store's block_counters structure.",
                             block_id
@@ -1028,7 +1028,7 @@ protected:
                         ""
             );
 
-            store_params_ = ld::LDDocument{sb0->cmetadata_doc()};
+            store_params_ = LDDocument{sb0->cmetadata_doc()};
 
             if (sb1->snapshot_id().is_set())
             {
@@ -1046,7 +1046,7 @@ protected:
                         ""
             );
 
-            store_params_ = ld::LDDocument{sb1->cmetadata_doc()};
+            store_params_ = LDDocument{sb1->cmetadata_doc()};
 
             if (sb0->snapshot_id().is_set())
             {

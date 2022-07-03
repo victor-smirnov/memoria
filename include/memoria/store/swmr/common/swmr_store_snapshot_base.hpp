@@ -140,7 +140,7 @@ protected:
 
     ReferenceCounterDelegate<Profile>* refcounter_delegate_;
 
-    ld::LDDocumentView metadata_;
+    LDDocumentView metadata_;
 
     bool writable_{false};
 
@@ -174,7 +174,7 @@ public:
 
 
     CtrSharedPtr<CtrReferenceable<ApiProfileT>> create_ctr_instance(
-        const ld::LDTypeDeclarationView& decl, const CtrID& ctr_id
+        const LDTypeDeclarationView& decl, const CtrID& ctr_id
     )
     {
         auto& instance_pool = this->instance_pool();
@@ -235,7 +235,7 @@ public:
         instance_pool_->remove(ctr_id);
     }
 
-    virtual ld::LDDocumentView metadata() {
+    virtual LDDocumentView metadata() {
         return metadata_;
     }
 
@@ -251,7 +251,7 @@ public:
     virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) = 0;
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
-            const ld::LDTypeDeclarationView& decl, const CtrID& ctr_id
+            const LDTypeDeclarationView& decl, const CtrID& ctr_id
     ) = 0;
 
     virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) = 0;
@@ -826,8 +826,8 @@ public:
     {
         U8String signature = make_datatype_signature(CtrName{}).name();
 
-        ld::LDDocument doc = ld::TypeSignature::parse(signature.to_std_string());
-        ld::LDTypeDeclarationView decl = doc.value().as_type_decl();
+        LDDocument doc = TypeSignature::parse(signature.to_std_string());
+        LDTypeDeclarationView decl = doc.value().as_type_decl();
 
         auto ctr_ref = internal_create_by_name(decl, ctr_id);
 

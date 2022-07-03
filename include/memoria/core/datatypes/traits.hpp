@@ -461,19 +461,19 @@ struct DataTypeTraits<CoreApiProfileDT>: DataTypeTraitsBase<CoreApiProfileDT>
 
 
 template<typename T>
-ld::TypeSignature make_datatype_signature(T obj)
+TypeSignature make_datatype_signature(T obj)
 {
     SBuf buf;
     DataTypeTraits<T>::create_signature(buf, obj);
-    return ld::TypeSignature(buf.str());
+    return TypeSignature(buf.str());
 }
 
 template<typename T>
-ld::TypeSignature make_datatype_signature()
+TypeSignature make_datatype_signature()
 {
     SBuf buf;
     DataTypeTraits<T>::create_signature(buf);
-    return ld::TypeSignature(buf.str());
+    return TypeSignature(buf.str());
 }
 
 template<typename T>

@@ -20,7 +20,6 @@
 #include <memoria/core/linked/document/linked_document.hpp>
 
 namespace memoria {
-namespace ld {
 
 LDDMapView LDDArrayView::add_map()
 {
@@ -73,4 +72,4 @@ ld_::LDPtr<LDDArrayView::Array::State> LDDArrayView::deep_copy_to(LDDocumentView
     return array_.deep_copy_to(tgt->arena_.make_mutable(), helper);
 }
 
-}}
+}

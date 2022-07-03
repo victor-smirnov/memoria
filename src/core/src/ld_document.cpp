@@ -27,7 +27,6 @@
 #include <memoria/core/datatypes/type_registry.hpp>
 
 namespace memoria {
-namespace ld {
 
 LDDumpState::LDDumpState(const LDDocumentView& doc)
 {
@@ -584,26 +583,6 @@ std::ostream& operator<<(std::ostream& out, const LDDocumentView& doc)
 
 
 
-
-
-
-TypeSignature::TypeSignature(U8StringView name) {
-    name_ = LDDocument::parse_type_decl(name).value().to_standard_string();
-}
-
-LDDocument TypeSignature::parse() const {
-    return LDDocument::parse_type_decl(name_);
-}
-
-LDDocument TypeSignature::parse(U8StringView str) {
-    return LDDocument::parse_type_decl(str);
-}
-
-
-}
-
-
-
 void LDDocumentStorage::destroy() noexcept
 {
     this->~LDDocumentStorage();
@@ -614,7 +593,7 @@ LDDocumentStorage* LDDocumentStorage::create(ViewType view)
 {
     size_t storage_class_size = sizeof(LDDocumentStorage) | 0x7; // + up to 7 bytes of alignment
 
-    auto descr = DataTypeTraits<ld::LinkedData>::describe_data(view);
+    auto descr = DataTypeTraits<LinkedData>::describe_data(view);
     auto& span = std::get<0>(descr);
 
     uint8_t* ptr = allocate_system<uint8_t>(storage_class_size + span.size()).release();
@@ -636,9 +615,22 @@ U8String LDDocumentStorage::to_sdn_string() const
 }
 
 template <>
-Datum<ld::LinkedData, EmptyType> Datum<ld::LinkedData, EmptyType>::from_sdn(const ld::LDDocument& value)
+Datum<LinkedData, EmptyType> Datum<LinkedData, EmptyType>::from_sdn(const LDDocument& value)
 {
-    return Datum<ld::LinkedData, EmptyType>(value);
+    return Datum<LinkedData, EmptyType>(value);
+}
+
+
+TypeSignature::TypeSignature(U8StringView name) {
+    name_ = LDDocument::parse_type_decl(name).value().to_standard_string();
+}
+
+LDDocument TypeSignature::parse() const {
+    return LDDocument::parse_type_decl(name_);
+}
+
+LDDocument TypeSignature::parse(U8StringView str) {
+    return LDDocument::parse_type_decl(str);
 }
 
 

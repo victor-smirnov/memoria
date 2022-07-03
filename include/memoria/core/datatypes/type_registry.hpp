@@ -43,28 +43,28 @@ struct DataTypeOperations {
     virtual ~DataTypeOperations() noexcept {}
 
     virtual U8String full_type_name() = 0;
-    virtual boost::any create_cxx_instance(const ld::LDTypeDeclarationView& typedecl) = 0;
-    virtual AnyDatum from_ld_document(const ld::LDDValueView& value) = 0;
-    virtual ld::LDDValueTag type_hash() = 0;
+    virtual boost::any create_cxx_instance(const LDTypeDeclarationView& typedecl) = 0;
+    virtual AnyDatum from_ld_document(const LDDValueView& value) = 0;
+    virtual LDDValueTag type_hash() = 0;
 
     virtual void dump(
-            const ld::LDDocumentView* doc,
-            ld::LDPtrHolder ptr,
+            const LDDocumentView* doc,
+            LDPtrHolder ptr,
             std::ostream& out,
-            ld::LDDumpFormatState& state,
-            ld::LDDumpState& dump_state
+            LDDumpFormatState& state,
+            LDDumpState& dump_state
     ) = 0;
 
-    virtual ld::LDPtrHolder deep_copy_to(
-            const ld::LDDocumentView* src,
-            ld::LDPtrHolder ptr,
-            ld::LDDocumentView* tgt,
-            ld::ld_::LDArenaAddressMapping& mapping
+    virtual LDPtrHolder deep_copy_to(
+            const LDDocumentView* src,
+            LDPtrHolder ptr,
+            LDDocumentView* tgt,
+            ld_::LDArenaAddressMapping& mapping
     ) = 0;
 
-    virtual ld::LDDValueView construct_from(
-            ld::LDDocumentView* doc,
-            const ld::LDDValueView& value
+    virtual LDDValueView construct_from(
+            LDDocumentView* doc,
+            const LDDValueView& value
     ) = 0;
 };
 
@@ -82,7 +82,7 @@ namespace detail {
     struct SDNSerializerFactory {
         static SerializerFn get_deserializer()
         {
-            return [](const Registry& registry, const ld::LDDocument& decl)
+            return [](const Registry& registry, const LDDocument& decl)
             {
                 return Datum<T>::from_sdn(decl);
             };
@@ -103,8 +103,8 @@ namespace detail {
 
 
 class DataTypeRegistry {
-    using CreatorFn   = std::function<boost::any (const DataTypeRegistry&, const ld::LDTypeDeclarationView&)>;
-    using SdnParserFn = std::function<AnyDatum (const DataTypeRegistry&, const ld::LDDocument&)>;
+    using CreatorFn   = std::function<boost::any (const DataTypeRegistry&, const LDTypeDeclarationView&)>;
+    using SdnParserFn = std::function<AnyDatum (const DataTypeRegistry&, const LDDocument&)>;
 
     std::unordered_map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
     std::unordered_map<U8String, std::shared_ptr<DataTypeOperations>> operations_;
@@ -122,7 +122,7 @@ public:
 
     DataTypeRegistry();
 
-    boost::any create_object(const ld::LDTypeDeclarationView& decl) const
+    boost::any create_object(const LDTypeDeclarationView& decl) const
     {
         U8String typedecl = decl.to_cxx_typedecl();
         auto ii = operations_.find(typedecl);
@@ -151,8 +151,8 @@ private:
     template <typename T>
     void register_operations(std::shared_ptr<DataTypeOperations> ops)
     {
-        ld::TypeSignature ts = make_datatype_signature<T>();
-        ld::LDDocument doc = ts.parse();
+        TypeSignature ts = make_datatype_signature<T>();
+        LDDocument doc = ts.parse();
         operations_[doc.value().as_type_decl().to_cxx_typedecl()] = ops;
 
         uint64_t code = TypeHash<T>::Value & 0xFFFFFFFFFFFFFF;
@@ -195,8 +195,8 @@ public:
     {
         LockT lock(mutex_);
 
-        ld::TypeSignature ts = make_datatype_signature<T>();
-        ld::LDDocument doc = ts.parse();
+        TypeSignature ts = make_datatype_signature<T>();
+        LDDocument doc = ts.parse();
         creators_[doc.value().as_type_decl().to_cxx_typedecl()] = std::make_tuple(creator, parser);
     }
 
@@ -205,8 +205,8 @@ public:
     {
         LockT lock(mutex_);
 
-        ld::TypeSignature ts = make_datatype_signature<T>();
-        ld::LDDocument doc = ts.parse();
+        TypeSignature ts = make_datatype_signature<T>();
+        LDDocument doc = ts.parse();
         operations_[doc.value().as_type_decl().to_cxx_typedecl()] = ops;
 
         uint64_t code = TypeHash<T>::Value & 0xFFFFFFFFFFFFFF;
@@ -232,9 +232,9 @@ public:
     {
         LockT lock(mutex_);
 
-        ld::TypeSignature ts = make_datatype_signature<T>();
+        TypeSignature ts = make_datatype_signature<T>();
 
-        ld::LDDocument doc = ts.parse();
+        LDDocument doc = ts.parse();
         U8String decl = doc.value().as_type_decl().to_cxx_typedecl();
 
         auto ii = creators_.find(decl);
@@ -248,7 +248,7 @@ public:
     template <typename T, typename... ArgTypesLists>
     void register_creator_fn()
     {
-        auto creator_fn = [](const DataTypeRegistry& registry, const ld::LDTypeDeclarationView& decl)
+        auto creator_fn = [](const DataTypeRegistry& registry, const LDTypeDeclarationView& decl)
         {
             constexpr size_t declared_params_size = ListSize<DTTParameters<T>>;
 
@@ -333,7 +333,7 @@ namespace detail {
 
     template <typename CxxType>
     struct CtrArgsConverter {
-        static bool is_convertible(const ld::LDDValueView& value) {
+        static bool is_convertible(const LDDValueView& value) {
             return false;
         }
     };
@@ -341,110 +341,110 @@ namespace detail {
 
     template <>
     struct CtrArgsConverter<bool> {
-        static bool is_convertible(const ld::LDDValueView& value) {
+        static bool is_convertible(const LDDValueView& value) {
             return value.is_boolean();
         }
 
-        static bool convert(const ld::LDDValueView& value) {
+        static bool convert(const LDDValueView& value) {
             return value.as_boolean();
         }
     };
 
     template <>
     struct CtrArgsConverter<int64_t> {
-        static bool is_convertible(const ld::LDDValueView& value) {
+        static bool is_convertible(const LDDValueView& value) {
             return value.is_bigint();
         }
 
-        static int64_t convert(const ld::LDDValueView& value) {
+        static int64_t convert(const LDDValueView& value) {
             return value.as_bigint();
         }
     };
 
     template <>
     struct CtrArgsConverter<double> {
-        static bool is_convertible(const ld::LDDValueView& value) {
+        static bool is_convertible(const LDDValueView& value) {
             return value.is_double();
         }
 
-        static double convert(const ld::LDDValueView& value) {
+        static double convert(const LDDValueView& value) {
             return value.as_double();
         }
     };
 
     template <>
     struct CtrArgsConverter<U8String> {
-        static bool is_convertible(const ld::LDDValueView& value) {
+        static bool is_convertible(const LDDValueView& value) {
             return value.is_varchar();
         }
 
-        static U8String convert(const ld::LDDValueView& value) {
+        static U8String convert(const LDDValueView& value) {
             return value.as_varchar().view();
         }
     };
 
     template <>
     struct CtrArgsConverter<U8StringView> {
-        static bool is_convertible(const ld::LDDValueView& value) {
+        static bool is_convertible(const LDDValueView& value) {
             return value.is_varchar();
         }
 
-        static U8StringView convert(const ld::LDDValueView& value) {
+        static U8StringView convert(const LDDValueView& value) {
             return value.as_varchar().view();
         }
     };
 
     template <>
-    struct CtrArgsConverter<ld::LDDValueView> {
-        static bool is_convertible(const ld::LDDValueView& value) {
+    struct CtrArgsConverter<LDDValueView> {
+        static bool is_convertible(const LDDValueView& value) {
             return true;
         }
 
-        static ld::LDDValueView convert(const ld::LDDValueView& value) {
+        static LDDValueView convert(const LDDValueView& value) {
             return value;
         }
     };
 
     template <>
-    struct CtrArgsConverter<ld::LDDArrayView> {
-        static bool is_convertible(const ld::LDDValueView& value) {
+    struct CtrArgsConverter<LDDArrayView> {
+        static bool is_convertible(const LDDValueView& value) {
             return value.is_array();
         }
 
-        static ld::LDDArrayView convert(const ld::LDDValueView& value) {
+        static LDDArrayView convert(const LDDValueView& value) {
             return value.as_array();
         }
     };
 
     template <>
-    struct CtrArgsConverter<ld::LDDMapView> {
-        static bool is_convertible(const ld::LDDValueView& value) {
+    struct CtrArgsConverter<LDDMapView> {
+        static bool is_convertible(const LDDValueView& value) {
             return value.is_map();
         }
 
-        static ld::LDDMapView convert(const ld::LDDValueView& value) {
+        static LDDMapView convert(const LDDValueView& value) {
             return value.as_map();
         }
     };
 
     template <>
-    struct CtrArgsConverter<ld::LDTypeDeclarationView> {
-        static bool is_convertible(const ld::LDDValueView& value) {
+    struct CtrArgsConverter<LDTypeDeclarationView> {
+        static bool is_convertible(const LDDValueView& value) {
             return value.is_type_decl();
         }
 
-        static ld::LDTypeDeclarationView convert(const ld::LDDValueView& value) {
+        static LDTypeDeclarationView convert(const LDDValueView& value) {
             return value.as_type_decl();
         }
     };
 
     template <>
-    struct CtrArgsConverter<ld::LDDTypedValueView> {
-        static bool is_convertible(const ld::LDDValueView& value) {
+    struct CtrArgsConverter<LDDTypedValueView> {
+        static bool is_convertible(const LDDValueView& value) {
             return value.is_typed_value();
         }
 
-        static ld::LDDTypedValueView convert(const ld::LDDValueView& value) {
+        static LDDTypedValueView convert(const LDDValueView& value) {
             return value.as_typed_value();
         }
     };
@@ -455,7 +455,7 @@ namespace detail {
     template <size_t Idx, typename ArgType, typename... Types>
     struct DataTypeCtrArgsCheckerProc<Idx, TL<ArgType, Types...>> {
 
-        static bool check(const ld::LDTypeDeclarationView& typedecl)
+        static bool check(const LDTypeDeclarationView& typedecl)
         {
             if (Idx < typedecl.constructor_args())
             {
@@ -471,7 +471,7 @@ namespace detail {
 
     template <size_t Idx>
     struct DataTypeCtrArgsCheckerProc<Idx, TL<>> {
-        static bool check(const ld::LDTypeDeclarationView& typedecl) {
+        static bool check(const LDTypeDeclarationView& typedecl) {
             return Idx == typedecl.constructor_args();
         }
     };
@@ -481,11 +481,11 @@ namespace detail {
     template <size_t Idx, size_t Max>
     struct FillDTTypesList {
         template <typename Tuple>
-        static void process(const DataTypeRegistry& registry, const ld::LDTypeDeclarationView& typedecl, Tuple& tpl)
+        static void process(const DataTypeRegistry& registry, const LDTypeDeclarationView& typedecl, Tuple& tpl)
         {
             using ParamType = std::tuple_element_t<Idx, Tuple>;
 
-            ld::LDTypeDeclarationView param_decl = typedecl.get_type_declration(Idx);
+            LDTypeDeclarationView param_decl = typedecl.get_type_declration(Idx);
 
             std::get<Idx>(tpl) = boost::any_cast<std::decay_t<ParamType>>(registry.create_object(param_decl));
 
@@ -496,18 +496,18 @@ namespace detail {
     template <size_t Max>
     struct FillDTTypesList<Max, Max> {
         template <typename Tuple>
-        static void process(const DataTypeRegistry& registry, const ld::LDTypeDeclarationView& typedecl, Tuple& tpl){}
+        static void process(const DataTypeRegistry& registry, const LDTypeDeclarationView& typedecl, Tuple& tpl){}
     };
 
 
     template <size_t Idx, size_t Max>
     struct FillDTCtrArgsList {
         template <typename Tuple>
-        static void process(const ld::LDTypeDeclarationView& typedecl, Tuple& tpl)
+        static void process(const LDTypeDeclarationView& typedecl, Tuple& tpl)
         {
             using ArgType = std::tuple_element_t<Idx, Tuple>;
 
-            ld::LDDValueView arg = typedecl.get_constructor_arg(Idx);
+            LDDValueView arg = typedecl.get_constructor_arg(Idx);
 
             std::get<Idx>(tpl) = CtrArgsConverter<std::decay_t<ArgType>>::convert(arg);
 
@@ -518,13 +518,13 @@ namespace detail {
     template <size_t Max>
     struct FillDTCtrArgsList<Max, Max> {
         template <typename Tuple>
-        static void process(const ld::LDTypeDeclarationView& typedecl, Tuple& tpl){}
+        static void process(const LDTypeDeclarationView& typedecl, Tuple& tpl){}
     };
 
 
 
     template<typename Types>
-    bool try_to_convert_args(const ld::LDTypeDeclarationView& typedecl)
+    bool try_to_convert_args(const LDTypeDeclarationView& typedecl)
     {
         constexpr int32_t list_size = ListSize<Types>;
 
@@ -545,7 +545,7 @@ namespace detail {
     template <typename T, typename... ParamsList, typename... ArgsList, typename... ArgsLists>
     struct DataTypeCreator<T, TL<ParamsList...>, TL<ArgsList...>, ArgsLists...>
     {
-        static T create(const DataTypeRegistry& registry, const ld::LDTypeDeclarationView& typedecl)
+        static T create(const DataTypeRegistry& registry, const LDTypeDeclarationView& typedecl)
         {
             if (detail::try_to_convert_args<TL<ArgsList...>>(typedecl))
             {
@@ -572,7 +572,7 @@ namespace detail {
     template <typename T, typename ParamsList>
     struct DataTypeCreator<T, ParamsList>
     {
-        static T create(const DataTypeRegistry& registry, const ld::LDTypeDeclarationView& typedecl)
+        static T create(const DataTypeRegistry& registry, const LDTypeDeclarationView& typedecl)
         {
             MMA_THROW(RuntimeException())
                     << format_ex(

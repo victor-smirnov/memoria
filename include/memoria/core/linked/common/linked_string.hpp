@@ -29,7 +29,6 @@
 #include <boost/utility/string_view.hpp>
 
 namespace memoria {
-namespace ld {
 
 template <typename CharT> class LinkedString;
 using U8LinkedString = LinkedString<typename U8StringView::value_type>;
@@ -177,4 +176,4 @@ public:
     }
 };
 
-}}
+}

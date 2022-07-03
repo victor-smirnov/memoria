@@ -25,7 +25,6 @@
 #include <memoria/core/strings/format.hpp>
 
 namespace memoria {
-namespace ld {
 
 class LDTypeDeclarationView {
     using TypeDeclState = ld_::TypeDeclState;
@@ -353,14 +352,11 @@ static inline std::ostream& operator<<(std::ostream& out, const LDTypeDeclaratio
     return out;
 }
 
-
-}
-
 template <>
-struct DataTypeTraits<ld::LDTypeDeclaration> {
+struct DataTypeTraits<LDTypeDeclaration> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
-    using LDViewType = ld::LDTypeDeclarationView;
+    using LDViewType = LDTypeDeclarationView;
 
     static void create_signature(SBuf& buf) {
         buf << "LDTypeDeclaration";
@@ -373,11 +369,11 @@ struct DataTypeTraits<ld::LDTypeDeclaration> {
 namespace fmt {
 
 template <>
-struct formatter<memoria::ld::LDTypeDeclarationView> {
+struct formatter<memoria::LDTypeDeclarationView> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::ld::LDTypeDeclarationView& d, FormatContext& ctx) {
+    auto format(const memoria::LDTypeDeclarationView& d, FormatContext& ctx) {
         return format_to(ctx.out(), "{}", d.to_standard_string());
     }
 };

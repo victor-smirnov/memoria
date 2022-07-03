@@ -25,11 +25,11 @@ namespace memoria {
 class LDDocumentStorage;
 
 template <>
-struct DataTypeTraits<ld::LinkedData>: DataTypeTraitsBase<ld::LinkedData>
+struct DataTypeTraits<LinkedData>: DataTypeTraitsBase<LinkedData>
 {
-    using ViewType      = ld::LDDocumentView;
-    using ConstViewType = ld::LDDocumentView;
-    using AtomType      = std::remove_const_t<typename ld::LDDocumentView::AtomType>;
+    using ViewType      = LDDocumentView;
+    using ConstViewType = LDDocumentView;
+    using AtomType      = std::remove_const_t<typename LDDocumentView::AtomType>;
 
     using DatumStorage  = LDDocumentStorage;
 
@@ -38,7 +38,7 @@ struct DataTypeTraits<ld::LinkedData>: DataTypeTraitsBase<ld::LinkedData>
 
     static constexpr bool isSdnDeserializable = true;
 
-    static void create_signature(SBuf& buf, const ld::LinkedData& obj)
+    static void create_signature(SBuf& buf, const LinkedData& obj)
     {
         buf << "LinkedData";
     }
@@ -72,7 +72,7 @@ struct DataTypeTraits<ld::LinkedData>: DataTypeTraitsBase<ld::LinkedData>
         return std::make_tuple();
     }
 
-    static TypeDimensionsTuple describe_type(const ld::LinkedData& data_type) {
+    static TypeDimensionsTuple describe_type(const LinkedData& data_type) {
         return TypeDimensionsTuple{};
     }
 
@@ -91,14 +91,14 @@ struct DataTypeTraits<ld::LinkedData>: DataTypeTraitsBase<ld::LinkedData>
 
 
 template <typename Buffer>
-class SparseObjectBuilder<ld::LinkedData, Buffer> {
+class SparseObjectBuilder<LinkedData, Buffer> {
     Buffer* buffer_;
 
 
-    using AtomType = DTTAtomType<ld::LinkedData>;
-    using ViewType = DTTViewType<ld::LinkedData>;
+    using AtomType = DTTAtomType<LinkedData>;
+    using ViewType = DTTViewType<LinkedData>;
 
-    ld::LDDocument doc_;
+    LDDocument doc_;
 
 public:
     SparseObjectBuilder(Buffer* buffer):
@@ -108,11 +108,11 @@ public:
     SparseObjectBuilder(SparseObjectBuilder&&) = delete;
     SparseObjectBuilder(const SparseObjectBuilder&) = delete;
 
-    ld::LDDocumentView view() {
+    LDDocumentView view() {
         return doc_;
     }
 
-    ld::LDDocument& doc() {
+    LDDocument& doc() {
         return doc_;
     }
 
@@ -124,10 +124,10 @@ public:
     }
 };
 
-class LDDocumentStorage: public DatumStorageBase<ld::LinkedData, typename DataTypeTraits<ld::LinkedData>::DatumStorageSelector> {
-    using SelectorTag = typename DataTypeTraits<ld::LinkedData>::DatumStorageSelector;
+class LDDocumentStorage: public DatumStorageBase<LinkedData, typename DataTypeTraits<LinkedData>::DatumStorageSelector> {
+    using SelectorTag = typename DataTypeTraits<LinkedData>::DatumStorageSelector;
 
-    using Base = DatumStorageBase<ld::LinkedData, SelectorTag>;
+    using Base = DatumStorageBase<LinkedData, SelectorTag>;
     using typename Base::ViewType;
 public:
     LDDocumentStorage(ViewType view) noexcept: Base(view) {}

@@ -32,7 +32,6 @@
 #include <unordered_map>
 
 namespace memoria {
-namespace ld {
 
 class LDDocument;
 
@@ -57,4 +56,4 @@ public:
     static LDDocument parse(U8StringView str);
 };
 
-}}
+}

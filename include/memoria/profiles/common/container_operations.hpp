@@ -277,7 +277,7 @@ struct CtrInstanceFactory {
     virtual CtrReferenceablePtr create_ctr_instance(
             const ROAllocatorPtr& allocator,
             const CtrID& ctr_id,
-            const ld::LDTypeDeclarationView& type_decl,
+            const LDTypeDeclarationView& type_decl,
             bool writable
     ) const = 0;
 };

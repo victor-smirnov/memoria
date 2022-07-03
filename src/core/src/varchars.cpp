@@ -51,9 +51,9 @@ U8String VarcharStorage::to_sdn_string() const
 
 
 template <>
-Datum<Varchar> Datum<Varchar>::from_sdn(const ld::LDDocument& sdn_doc)
+Datum<Varchar> Datum<Varchar>::from_sdn(const LDDocument& sdn_doc)
 {
-    ld::LDDValueView value = sdn_doc.value();
+    LDDValueView value = sdn_doc.value();
     if (value.is_varchar()) {
         return Datum<Varchar>(value.as_varchar().view());
     }

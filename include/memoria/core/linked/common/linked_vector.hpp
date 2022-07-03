@@ -26,7 +26,6 @@
 #include <cstddef>
 
 namespace memoria {
-namespace ld {
 
 template <typename T>
 class LinkedVector {
@@ -198,4 +197,4 @@ private:
     }
 };
 
-}}
+}

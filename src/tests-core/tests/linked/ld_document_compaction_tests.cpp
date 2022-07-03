@@ -22,9 +22,9 @@ namespace tests {
 
 
 auto ld_document_compaction_test = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "DocumentCompaction", [](auto& state){
-    ld::LDDocument doc;
+    LDDocument doc;
 
-    ld::LDDMapView map = doc.set_map();
+    LDDMapView map = doc.set_map();
 
     size_t size = 100000;
 
@@ -36,7 +36,7 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<LDTestState>>("
 
     assert_equals(size, map.size());
 
-    ld::LDDocument doc2 = doc.compactify();
+    LDDocument doc2 = doc.compactify();
     map = doc2.value().as_map();
 
     assert_equals(size, map.size());

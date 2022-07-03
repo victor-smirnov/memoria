@@ -77,18 +77,18 @@ public:
     using CtrID = ApiProfileCtrID<Profile>;
     using CtrReferenceableT = CtrSharedPtr<CtrReferenceable<Profile>>;
 
-    virtual CtrReferenceableT create(const ld::LDTypeDeclarationView& decl, const CtrID& ctr_id) = 0;
-    virtual CtrReferenceableT create(const ld::LDTypeDeclarationView& decl) = 0;
+    virtual CtrReferenceableT create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) = 0;
+    virtual CtrReferenceableT create(const LDTypeDeclarationView& decl) = 0;
 
     virtual CtrReferenceableT create(U8StringView type_def, const CtrID& ctr_id) {
-        ld::LDDocument doc = ld::TypeSignature::parse(type_def);
-        ld::LDTypeDeclarationView decl = doc.value().as_type_decl();
+        LDDocument doc = TypeSignature::parse(type_def);
+        LDTypeDeclarationView decl = doc.value().as_type_decl();
         return this->create(decl, ctr_id);
     }
 
     virtual CtrReferenceableT create(U8StringView type_def) {
-        ld::LDDocument doc = ld::TypeSignature::parse(type_def);
-        ld::LDTypeDeclarationView decl = doc.value().as_type_decl();
+        LDDocument doc = TypeSignature::parse(type_def);
+        LDTypeDeclarationView decl = doc.value().as_type_decl();
         return this->create(decl);
     }
 
@@ -117,8 +117,8 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 )
 {
     U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
-    ld::LDDocument doc = ld::TypeSignature::parse(signature.to_std_string());
-    ld::LDTypeDeclarationView decl = doc.value().as_type_decl();
+    LDDocument doc = TypeSignature::parse(signature.to_std_string());
+    LDTypeDeclarationView decl = doc.value().as_type_decl();
 
     auto ctr_ref = alloc->create(decl, ctr_id);
     return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref));
@@ -133,8 +133,8 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 )
 {
     U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
-    ld::LDDocument doc = ld::TypeSignature::parse(signature.to_std_string());
-    ld::LDTypeDeclarationView decl = doc.value().as_type_decl();
+    LDDocument doc = TypeSignature::parse(signature.to_std_string());
+    LDTypeDeclarationView decl = doc.value().as_type_decl();
     auto ctr_ref = alloc->create(decl);
     return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref));
 }

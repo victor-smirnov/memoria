@@ -117,7 +117,7 @@ public:
     {
         StoreT store = store_ops_->create_store();
 
-        CheckResultConsumerFn callback = [](CheckSeverity svr, const ld::LDDocument& doc){
+        CheckResultConsumerFn callback = [](CheckSeverity svr, const LDDocument& doc){
             std::cout << doc.to_string() << std::endl;
             if (svr == CheckSeverity::ERROR) {
                 MEMORIA_MAKE_GENERIC_ERROR("Container check error").do_throw();

@@ -638,7 +638,7 @@ void write_message(BinaryOutputStream output, const U8StringView& msg)
     output.flush();
 }
 
-ld::LDDocument read_message(BinaryInputStream input)
+LDDocument read_message(BinaryInputStream input)
 {
     uint64_t size{0};
     if (input.read(ptr_cast<uint8_t>(&size), sizeof(size)) < sizeof(size))
@@ -651,7 +651,7 @@ ld::LDDocument read_message(BinaryInputStream input)
         MEMORIA_MAKE_GENERIC_ERROR("Connection has been closed").do_throw();
     }
 
-    return ld::LDDocument::parse(str);
+    return LDDocument::parse(str);
 }
 
 
@@ -695,7 +695,7 @@ void MultiProcessRunner::handle_connections()
 
                 while (tests.size() || heads_.count(worker_num) > 0)
                 {
-                    ld::LDDocument msg = read_message(input);
+                    LDDocument msg = read_message(input);
                     U8String code = get_value(msg.value(), "code").as_varchar().view();
 
                     if (code == "GREETING")
@@ -904,7 +904,7 @@ void Worker::run()
     {
         write_message(output, "{'code': 'GET_TASK'}");
 
-        ld::LDDocument msg = read_message(input);
+        LDDocument msg = read_message(input);
         U8String code = get_value(msg.value(), "code").as_varchar().view();
 
         if (code == "RUN_TASK")

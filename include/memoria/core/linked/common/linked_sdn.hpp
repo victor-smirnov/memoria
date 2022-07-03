@@ -20,7 +20,6 @@
 #include <memoria/core/strings/u8_string.hpp>
 
 namespace memoria {
-namespace ld {
 
 class SDNEntryView;
 class SDNArrayView;
@@ -46,4 +45,4 @@ public:
     T get_as(size_t idx) const;
 };
 
-}}
+}

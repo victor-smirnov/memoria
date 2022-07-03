@@ -42,8 +42,6 @@ PYBIND11_EMBEDDED_MODULE(codegen, cg_module) {
 namespace memoria {
 namespace codegen {
 
-using namespace memoria::ld;
-
 void create_codegen_python_bindings() {}
 
 void create_codegen_module(py::module mm)

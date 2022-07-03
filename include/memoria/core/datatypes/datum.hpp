@@ -291,10 +291,10 @@ public:
     }
 
     static Datum<DataType, Selector> from_sdn_string(U8StringView sdn_string) {
-        return from_sdn(ld::LDDocument::parse(sdn_string));
+        return from_sdn(LDDocument::parse(sdn_string));
     }
 
-    static Datum<DataType, Selector> from_sdn(const ld::LDDocument& value);
+    static Datum<DataType, Selector> from_sdn(const LDDocument& value);
 
 
     operator bool() const {
@@ -387,12 +387,12 @@ public:
     }
 
     static Datum<DataType, FixedSizeDataTypeTag> from_sdn_string(U8StringView sdn_string) {
-        return from_sdn(ld::LDDocument::parse(sdn_string));
+        return from_sdn(LDDocument::parse(sdn_string));
     }
 
-    static Datum<DataType> from_sdn(const ld::LDDocument& doc)
+    static Datum<DataType> from_sdn(const LDDocument& doc)
     {
-        ld::LDDValueView value = doc.value();
+        LDDValueView value = doc.value();
 
         if (value.is_double()) {
             return datum_from_sdn_value(static_cast<DataType*>(nullptr), (double)value.as_double());

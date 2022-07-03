@@ -40,8 +40,6 @@
 namespace memoria {
 namespace codegen {
 
-using namespace memoria::ld;
-
 using namespace clang;
 using namespace llvm;
 

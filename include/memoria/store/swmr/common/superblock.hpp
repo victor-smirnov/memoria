@@ -197,7 +197,7 @@ public:
     }
 
 
-    void init_metadata(ld::LDDocumentView doc)
+    void init_metadata(LDDocumentView doc)
     {
         auto span = doc.span();
 
@@ -216,7 +216,7 @@ public:
             size_t superblock_size,
             SequenceID sequence_id,
             SequenceID cp_sequence_id,
-            ld::LDDocumentView meta
+            LDDocumentView meta
     )
     {
         magick1_ = MAGICK1;
@@ -251,7 +251,7 @@ public:
         init_metadata(meta);
     }
 
-    void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, const SnapshotID& commit_id, ld::LDDocumentView meta)
+    void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, const SnapshotID& commit_id, LDDocumentView meta)
     {
         magick1_ = other.magick1_;
         magick2_ = other.magick2_;
@@ -282,15 +282,15 @@ public:
         init_metadata(meta);
     }
 
-    ld::LDDocumentView cmetadata_doc() const  {
-        return ld::LDDocumentView{metadata()};
+    LDDocumentView cmetadata_doc() const  {
+        return LDDocumentView{metadata()};
     }
 
-    ld::LDDocumentView metadata_doc()  {
-        return ld::LDDocumentView{metadata()};
+    LDDocumentView metadata_doc()  {
+        return LDDocumentView{metadata()};
     }
 
-    void set_metadata_doc(ld::LDDocumentView view) {
+    void set_metadata_doc(LDDocumentView view) {
         init_metadata(view);
     }
 

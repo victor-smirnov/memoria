@@ -41,7 +41,6 @@
 #include <iostream>
 
 namespace memoria {
-namespace ld {
 
 using LDDValueTag = uint64_t;
 struct LDDInvalidCastException: RuntimeException {};
@@ -118,7 +117,14 @@ struct LDTypeDeclaration {};
 
 using LDString = Varchar;
 
+template <> struct TypeHash<LinkedData>:        UInt64Value<40> {};
+template <> struct TypeHash<LDArray>:           UInt64Value<41> {};
+template <> struct TypeHash<LDMap>:             UInt64Value<42> {};
+template <> struct TypeHash<LDTypedValue>:      UInt64Value<43> {};
+template <> struct TypeHash<LDTypeDeclaration>: UInt64Value<44> {};
 
+template <>
+struct TypeHash<LDDocument>: UInt64Value<3457983275945243> {};
 
 namespace ld_ {
 
@@ -562,16 +568,5 @@ struct MakeLDView<T, LDFxSizeValueViewSelector> {
         return vv;
     }
 };
-
-}
-
-template <> struct TypeHash<ld::LinkedData>:        UInt64Value<40> {};
-template <> struct TypeHash<ld::LDArray>:           UInt64Value<41> {};
-template <> struct TypeHash<ld::LDMap>:             UInt64Value<42> {};
-template <> struct TypeHash<ld::LDTypedValue>:      UInt64Value<43> {};
-template <> struct TypeHash<ld::LDTypeDeclaration>: UInt64Value<44> {};
-
-template <>
-struct TypeHash<ld::LDDocument>: UInt64Value<3457983275945243> {};
 
 }

@@ -158,7 +158,7 @@ protected:
     CDescrPtr head_snapshot_descriptor_{};
     CDescrPtr consistency_point_snapshot_descriptor_{};
 
-    ld::LDDocument metadata_doc_;
+    LDDocument metadata_doc_;
 
     enum class State {
         ACTIVE, PREPARED, COMMITTED, ROLLED_BACK
@@ -601,8 +601,8 @@ public:
 
         uint64_t pos = (allocation.position() << SUPERBLOCK_ALLOCATION_LEVEL) * BASIC_BLOCK_SIZE;
 
-        ld::LDDocument meta;
-        ld::LDDMapView map = meta.set_map();
+        LDDocument meta;
+        LDDMapView map = meta.set_map();
         map.set_varchar("branch_name", snapshot_descriptor_->branch());
 
         auto superblock = new_superblock(pos);
@@ -829,13 +829,13 @@ public:
         return Base::snapshot_id();
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const ld::LDTypeDeclarationView& decl, const CtrID& ctr_id)
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
     {
         checkIfConainersCreationAllowed();
         return this->create_ctr_instance(decl, ctr_id);
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const ld::LDTypeDeclarationView& decl)
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
     {
         checkIfConainersCreationAllowed();
         auto ctr_id = createCtrName();
@@ -1257,7 +1257,7 @@ public:
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
-            const ld::LDTypeDeclarationView& decl, const CtrID& ctr_id
+            const LDTypeDeclarationView& decl, const CtrID& ctr_id
     )
     {
         auto ptr = this->create_ctr_instance(decl, ctr_id);
