@@ -178,9 +178,15 @@ public:
         }
     }
 
-    virtual void dump(std::ostream& out) const
+    virtual void dump(ChunkDumpMode mode, std::ostream& out) const
     {
         println(out, "Position: {}, size: {}, before_start: {}, id::{}", leaf_position_, size_, before_start_, Base::path().leaf()->id());
+        if (mode == ChunkDumpMode::LEAF) {
+            Base::ctr().ctr_dump_node(Base::path().leaf());
+        }
+        else if (mode == ChunkDumpMode::PATH) {
+            Base::ctr().ctr_dump_path(Base::path(), 0);
+        }
     }
 
 

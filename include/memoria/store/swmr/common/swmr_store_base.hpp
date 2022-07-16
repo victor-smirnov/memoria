@@ -927,7 +927,8 @@ protected:
             auto blk = get_counter_block(counters_block_pos);
             blk->init(counter_block_size);
 
-            while (blk->available() && cntr_ii != block_counters_.end()) {
+            while (blk->available() && cntr_ii != block_counters_.end())
+            {
                 blk->add_counter(CounterStorageT{
                     cntr_ii->first,
                     cntr_ii->second.value
@@ -951,29 +952,29 @@ protected:
 
     virtual void prepare_to_close()
     {
-        if (!this->active_writer_) {
-
-        flush(FlushType::DEFAULT);
-
-        CDescrPtr head_ptr = history_tree_.consistency_point1();
-        if (head_ptr && !read_only_)
+        if (!this->active_writer_)
         {
-            auto sb_slot = head_ptr->consistency_point_sequence_id() % 2;
-            SharedSBPtr<SuperblockT> sb0 = get_superblock(sb_slot * BASIC_BLOCK_SIZE);
-            sb0->set_metadata_doc(store_params_);
+            flush(FlushType::DEFAULT);
 
-            store_counters(sb0.get());
+            CDescrPtr head_ptr = history_tree_.consistency_point1();
+            if (head_ptr && !read_only_)
+            {
+                auto sb_slot = head_ptr->consistency_point_sequence_id() % 2;
+                SharedSBPtr<SuperblockT> sb0 = get_superblock(sb_slot * BASIC_BLOCK_SIZE);
+                sb0->set_metadata_doc(store_params_);
 
-            flush_data();
+                store_counters(sb0.get());
 
-            sb0->set_clean_status();
-            sb0->build_superblock_description();
-            store_superblock(sb0.get(), sb_slot);
+                flush_data();
 
-            flush_header();
+                sb0->set_clean_status();
+                sb0->build_superblock_description();
+                store_superblock(sb0.get(), sb_slot);
 
-            block_counters_.clear();
-        }
+                flush_header();
+
+                block_counters_.clear();
+            }
         }
     }
 
@@ -1019,9 +1020,12 @@ protected:
 
         CDescrPtr consistency_point1_ptr;
         CDescrPtr consistency_point2_ptr;
+        SharedSBPtr<SuperblockT> main_sb;
 
         if (sb0->consistency_point_sequence_id() > sb1->consistency_point_sequence_id())
         {
+            main_sb = sb0;
+
             consistency_point1_ptr = history_tree_.new_snapshot_descriptor(
                         sb0->superblock_file_pos(),
                         get_superblock(sb0->superblock_file_pos()).get(),
@@ -1040,6 +1044,8 @@ protected:
             }
         }
         else {
+            main_sb = sb1;
+
             consistency_point1_ptr = history_tree_.new_snapshot_descriptor(
                         sb1->superblock_file_pos(),
                         get_superblock(sb1->superblock_file_pos()).get(),
@@ -1076,8 +1082,12 @@ protected:
 
         if (!read_only_)
         {
-            if (cp1_sb->is_clean()) {
-                read_block_counters();
+            allocation_pool_.load(
+                cp1_sb->allocation_pool_data()
+            );
+
+            if (main_sb->is_clean()) {
+                read_block_counters(main_sb);
             }
             else {
                 rebuild_block_counters();
@@ -1086,11 +1096,8 @@ protected:
     }
 
 
-    void read_block_counters()
+    void read_block_counters(SharedSBPtr<SuperblockT> head_sb)
     {
-        CDescrPtr head_ptr = history_tree_.consistency_point1();
-        auto head_sb = get_superblock(head_ptr->superblock_ptr());
-
         auto ctr_file_pos = head_sb->global_block_counters_file_pos();
         auto size = head_sb->global_block_counters_size();
 

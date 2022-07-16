@@ -28,7 +28,7 @@ class AllocationPoolData {
     static_assert (Levels > 1, "");
 
     static constexpr uint32_t LEVEL_CAPACITY = 4;
-    static constexpr uint32_t LEVEL0_CAPACITY = 32;
+    static constexpr uint32_t LEVEL0_CAPACITY = 64;
 
     using BlkAlloc  = BasicBlockAllocation<Profile>;
     using AllocMeta = AllocationMetadata<Profile>;
@@ -158,7 +158,7 @@ public:
 
 template <typename Profile>
 class AllocationPoolData<Profile, 1> {
-    static constexpr uint32_t LEVEL0_CAPACITY = 32;
+    static constexpr uint32_t LEVEL0_CAPACITY = 64;
 
     using BlkAlloc  = BasicBlockAllocation<Profile>;
     using AllocMeta = AllocationMetadata<Profile>;
@@ -352,7 +352,10 @@ public:
             levels_[level].init(data.capacity(level));
             auto span = data.span(level);
             for (const auto& alc: span) {
-                levels_[level].push(AlcMetadata{alc, level});
+                auto meta = AlcMetadata{alc, level};
+                if (!add(meta)) {
+                    println("Internal error. Can't load allocation pool metadata from the superblock.");
+                }
             }
         }
     }

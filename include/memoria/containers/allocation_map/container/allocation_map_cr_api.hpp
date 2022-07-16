@@ -481,6 +481,16 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrRApiName)
         return mismatches;
     }
 
+    void dump(ChunkDumpMode mode = ChunkDumpMode::LEAF, std::ostream& out = std::cout) const {
+        auto& self = this->self();
+
+        auto ii = self.iterator();
+        while (is_valid_chunk(ii)) {
+            ii->dump(mode, out);
+            ii = ii->next_chunk();
+        }
+    }
+
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(alcmap::CtrRApiName)

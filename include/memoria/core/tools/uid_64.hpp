@@ -62,6 +62,10 @@ public:
         set_metadata(metadata);
     }
 
+    constexpr AtomT atom(size_t) const noexcept {
+        return atom_;
+    }
+
     constexpr AtomT atom() const noexcept {
         return atom_;
     }

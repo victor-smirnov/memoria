@@ -225,25 +225,55 @@ public:
 
     void prepare_eviction(const EvictionFn& eviction_fn)
     {
+        std::vector<SnapshotDescriptorT*> reparenting_set;
+
         for (SnapshotDescriptorT& descr: eviction_queue_)
         {
-            if (descr.parent())
-            {
-                SnapshotDescriptorT* parent = descr.parent();
-                SnapshotID parent_id = parent->snapshot_id();
+            eviction_fn(UpdateOp{false, descr.snapshot_id()});
 
-                for (auto chl: descr.children()) {
-                    eviction_fn(UpdateOp{true, chl->snapshot_id(), parent_id});
+            for (auto& chl: descr.children()) {
+                if (!chl->is_linked()) {
+                    reparenting_set.push_back(chl.get());
                 }
+            }
+        }
+
+        for (SnapshotDescriptorT* descr: reparenting_set)
+        {
+            auto parent = descr->parent();
+            while (parent && parent->is_linked()) {
+                parent = parent->parent();
+            }
+
+            if (parent) {
+                eviction_fn(UpdateOp{true, descr->snapshot_id(), parent->snapshot_id()});
             }
             else {
-                for (auto chl: descr.children()) {
-                    eviction_fn(UpdateOp{true, chl->snapshot_id(), SnapshotID{}});
-                }
+                eviction_fn(UpdateOp{true, descr->snapshot_id(), SnapshotID{}});
             }
-
-            eviction_fn(UpdateOp{false, descr.snapshot_id()});
         }
+
+
+
+//        for (SnapshotDescriptorT& descr: eviction_queue_)
+//        {
+//            if (descr.parent())
+//            {
+//                SnapshotDescriptorT* parent = descr.parent();
+//                SnapshotID parent_id = parent->snapshot_id();
+
+//                for (auto chl: descr.children()) {
+//                    eviction_fn(UpdateOp{true, chl->snapshot_id(), parent_id});
+//                }
+//            }
+//            else {
+//                for (auto chl: descr.children()) {
+//                    eviction_fn(UpdateOp{true, chl->snapshot_id(), SnapshotID{}});
+//                }
+//            }
+
+//            eviction_fn(UpdateOp{false, descr.snapshot_id()});
+//        }
     }
 
     void cleanup_eviction_queue()
@@ -492,13 +522,16 @@ private:
         traverse_tree_preorder([&](CDescrPtr descr){
             ++counter;
 
+//            println("Loading snapshot: {}", descr->snapshot_id());
+
             if (descr->children().empty()) {
                 branch_heads_[get_branch_name(descr)] = descr;
             }
-            else if (descr == consistency_point2_ || descr == consistency_point1_) {
+            else if (descr == consistency_point2_ || descr == consistency_point1_ || !descr->parent()) {
                 // do nothing
             }
             else if (descr->is_transient()) {
+//                println("*** Parse Tree: enqueue for eviction: {}", descr->snapshot_id());
                 eviction_queue_.push_back(*descr.get());
             }
         });
@@ -510,7 +543,9 @@ private:
 };
 
 template <typename Profile>
-inline void SnapshotDescriptor<Profile>::enqueue_for_eviction() {
+inline void SnapshotDescriptor<Profile>::enqueue_for_eviction()
+{
+    //println("*Enqueue snapshot for eviction: {}", snapshot_id());
     history_tree_->eviction_queue().push_back(*this);
 }
 

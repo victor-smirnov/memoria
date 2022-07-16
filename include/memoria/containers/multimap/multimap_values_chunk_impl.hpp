@@ -252,30 +252,18 @@ public:
     }
 
 
-    virtual void dump(std::ostream& out) const
+    virtual void dump(ChunkDumpMode mode, std::ostream& out) const
     {
         println(out, "Position: {}, size: {}, before_start: {}, id::{}", leaf_position_, size_, before_start_, Base::path().leaf()->id());
+        if (mode == ChunkDumpMode::LEAF) {
+            Base::ctr().ctr_dump_node(Base::path().leaf());
+        }
+        else if (mode == ChunkDumpMode::PATH) {
+            Base::ctr().ctr_dump_path(Base::path(), 0);
+        }
     }
 
-//    CtrSizeT prepare_next_leaf() const {
-//        return leaf_run_start_ + leaf_run_size_ - leaf_position_;
-//    }
 
-//    CtrSizeT prepare_prev_leaf() const {
-//        return leaf_position_ - leaf_run_start_;
-//    }
-
-//    void on_next_leaf(const CtrSizeT& delta)
-//    {
-//        leaf_run_start_ = 0;
-//        run_offset_ += delta;
-
-//        finish_ride(0, values_struct().size(), false);
-//    }
-
-//    void on_prev_leaf(const CtrSizeT& delta) {
-//        finish_ride(0, values_struct().size(), false);
-//    }
 
     virtual void iter_reset_caches()
     {

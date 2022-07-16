@@ -27,6 +27,8 @@
 #include <memoria/core/linked/document/linked_document.hpp>
 
 #include <memoria/core/tools/optional.hpp>
+#include <memoria/core/flat_map/flat_hash_map.hpp>
+
 
 #include <boost/any.hpp>
 #include <memoria/context/detail/apply.hpp>
@@ -106,9 +108,9 @@ class DataTypeRegistry {
     using CreatorFn   = std::function<boost::any (const DataTypeRegistry&, const LDTypeDeclarationView&)>;
     using SdnParserFn = std::function<AnyDatum (const DataTypeRegistry&, const LDDocument&)>;
 
-    std::unordered_map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
-    std::unordered_map<U8String, std::shared_ptr<DataTypeOperations>> operations_;
-    std::unordered_map<uint64_t, std::shared_ptr<DataTypeOperations>> operations_by_code_;
+    ska::flat_hash_map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
+    ska::flat_hash_map<U8String, std::shared_ptr<DataTypeOperations>> operations_;
+    ska::flat_hash_map<uint64_t, std::shared_ptr<DataTypeOperations>> operations_by_code_;
 
 public:
     friend class DataTypeRegistryStore;
@@ -176,9 +178,9 @@ class DataTypeRegistryStore {
     using CreatorFn   = typename DataTypeRegistry::CreatorFn;
     using SdnParserFn = typename DataTypeRegistry::SdnParserFn;
 
-    std::unordered_map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
-    std::unordered_map<U8String, std::shared_ptr<DataTypeOperations>> operations_;
-    std::unordered_map<uint64_t, std::shared_ptr<DataTypeOperations>> operations_by_code_;
+    ska::flat_hash_map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
+    ska::flat_hash_map<U8String, std::shared_ptr<DataTypeOperations>> operations_;
+    ska::flat_hash_map<uint64_t, std::shared_ptr<DataTypeOperations>> operations_by_code_;
 
     mutable std::recursive_mutex mutex_;
 

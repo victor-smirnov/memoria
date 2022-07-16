@@ -1,5 +1,5 @@
 
-// Copyright 2020-2021 Victor Smirnov
+// Copyright 2020-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@
 #include <memoria/store/swmr/common/swmr_store_snapshot_base.hpp>
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 #include <memoria/store/swmr/common/swmr_store_counters.hpp>
+
+#include <memoria/core/flat_map/flat_hash_map.hpp>
+
+
 namespace memoria {
 
 template <typename Profile> class SWMRStoreBase;
@@ -169,18 +173,18 @@ protected:
     bool do_consistency_point_{false};
 
 
-    using CountersT = std::unordered_map<BlockID, RWCounter>;
+    using CountersT = ska::flat_hash_map<BlockID, RWCounter>;
 
     CountersT counters_;
     CountersT* counters_ptr_ {&counters_};
 
-    std::unordered_set<U8String> removing_branches_;
-    std::unordered_set<SnapshotID> removing_snapshots_;
+    ska::flat_hash_set<U8String> removing_branches_;
+    ska::flat_hash_set<SnapshotID> removing_snapshots_;
 
     // It's used to accomodate branch removal to keep the number of
     // times the branch node is traversed. If all children are
     // removed, we can proceed proceed removing node's ancestors.
-    std::unordered_map<SnapshotID, RWCounter> branch_removal_counters_;
+    ska::flat_hash_map<SnapshotID, RWCounter> branch_removal_counters_;
 
 public:
     using Base::check;
@@ -265,7 +269,20 @@ public:
             }
             else {
                 // FIXME: More clever logic is needed here
-                for (size_t cc = 0; cc < 10; cc++) {
+                // Current pool population algirithm is not optimal.
+                // In case when some blocks the the current level
+                // are reserved (like 32 blocks for the level 0),
+                // and we are populating the pool,
+                // populate_allocation_pool() may return with only
+                // reserved blocks are populated-in, so subsequent
+                // allocate_one() will return empty elment.
+
+                // It's safe to call populate_allocation_pool(lvl)
+                // mutiple times in a ro, so it will be filling
+                // the pool each time. But, ideally, this logic should be
+                // in the populate_allocation_pool(lvl);
+
+                for (size_t cc = 0; cc < 256; cc++) {
                     populate_allocation_pool(level);
                     auto alc1 = allocation_pool_->allocate_one(level);
                     if (alc1) {
@@ -273,6 +290,8 @@ public:
                     }
                 }
 
+                // This situation sould be extremly unlikely. But it doesn't mean
+                // the we have no space in the data file.
                 MEMORIA_MAKE_GENERIC_ERROR("FIXME: Tried multiple times to allocate from the pool and failed.").do_throw();
             }
         }
@@ -394,8 +413,6 @@ public:
         auto sb = std::get<1>(superblock);
 
         snapshot_descriptor_->set_superblock(sb_pos, sb.get());
-
-        //println("SeqNum: {} {}", sb->snapshot_id(), sb->sequence_id());
 
         do_ref_system_containers();
 
@@ -574,10 +591,9 @@ public:
         }
 
         FlagScope scope(populating_allocation_pool_);
+
         if (!allocation_map_ctr_->populate_allocation_pool(*allocation_pool_, level))
         {
-            allocation_map_ctr_->populate_allocation_pool(*allocation_pool_, level);
-
             MEMORIA_MAKE_GENERIC_ERROR(
                         "No enough free space among {}K blocks. Requested = {} blocks.",
                         (BASIC_BLOCK_SIZE / 1024) << level,
@@ -751,7 +767,6 @@ public:
                 auto snp = store_->do_open_writable(snapshot_descriptor, [&](const BlockID& id, const AllocationMetadataT& meta){
                     evicting_blocks.append_value(meta);
                 }, true);
-
                 snp->remove_all_blocks(&counters_);
             });
 
@@ -762,9 +777,9 @@ public:
 
             // Note: All deallocation before this line MUST do 'touch bits' to
             // build corresponding CoW-tree, but not marking blocks
-            // ass avalable. Otherwise they can be reused immediately.
+            // as available. Otherwise they can be reused immediately.
             // That will make 'fast' rolling back the last snapshot or
-            // conistency point impossible. (Regular snapshot reloval
+            // conistency point impossible. (Regular snapshot removal
             // will still be possible though).
 
             // TODO: Collect all allocated but unused blocks here
@@ -1086,6 +1101,7 @@ public:
 
             auto ctr_hash   = block->ctr_type_hash();
             auto block_hash = block->block_type_hash();
+
 
             auto blk_intf = ProfileMetadata<Profile>::local()
                     ->get_block_operations(ctr_hash, block_hash);

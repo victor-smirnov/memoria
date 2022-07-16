@@ -24,6 +24,8 @@
 #include <memoria/profiles/common/block_operations.hpp>
 #include <memoria/profiles/common/container_operations.hpp>
 
+#include <memoria/core/flat_map/flat_hash_map.hpp>
+
 #include <memory>
 #include <tuple>
 #include <mutex>
@@ -53,9 +55,9 @@ class ProfileMetadataStore {
         }
     };
 
-    using BlockMetadataMap      = std::unordered_map<Key, BlockOperationsPtr<Profile>, hash>;
-    using ContainerMetadataMap  = std::unordered_map<uint64_t, ContainerOperationsPtr<Profile>>;
-    using ContainerFactoryMap   = std::unordered_map<U8String, ContainerInstanceFactoryPtr<Profile>>;
+    using BlockMetadataMap      = ska::flat_hash_map<Key, BlockOperationsPtr<Profile>, hash>;
+    using ContainerMetadataMap  = ska::flat_hash_map<uint64_t, ContainerOperationsPtr<Profile>>;
+    using ContainerFactoryMap   = ska::flat_hash_map<U8String, ContainerInstanceFactoryPtr<Profile>>;
 
 
     BlockMetadataMap block_map_;

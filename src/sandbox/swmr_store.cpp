@@ -28,25 +28,36 @@
 using namespace memoria;
 
 //using StorePtrT = AllocSharedPtr<ILMDBStore<CoreApiProfile>>;
-//using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile>>;
-using StorePtrT = AllocSharedPtr<IMemoryStore<CoreApiProfile>>;
+using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile>>;
+//using StorePtrT = AllocSharedPtr<IMemoryStore<CoreApiProfile>>;
 
 int main(void) {
+
+
+    Seed(123456);
+    SeedBI(123456);
+
     try {
         U8String file = "file.mma2";
 
-//        auto store = std::make_shared<LMDBStoreOperation>(file, 1024);
-//        auto store = std::make_shared<LiteSWMRStoreOperation>(file, 1024);
-        auto store = std::make_shared<MemoryStoreOperation>(file);
+//        auto store = std::make_shared<LMDBStoreOperation>(file, 10240);
+        auto store = std::make_shared<LiteSWMRStoreOperation>(file, 1024);
+//        auto store = std::make_shared<MemoryStoreOperation>(file);
+
+
+        store->set_remove_existing_file(false);
 
         StoreTestBench<StorePtrT> bench(store);
 
+
         bench.set_entries(10000);
-        bench.set_check_epocs(false);
-        bench.set_consistency_point(ConsistencyPoint::YES);
+        bench.set_batch_size(100);
+        bench.set_check_epocs(true);
+        bench.set_consistency_point(ConsistencyPoint::AUTO);
 
         bench.run_insertions();
-        //bench.run_queries();
+
+        bench.run_queries();
     }
     catch (const MemoriaError& ee) {
         ee.describe(std::cout);

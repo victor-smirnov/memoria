@@ -116,6 +116,7 @@ public:
         if (leaf_start_ < size)
         {
             auto result = seq.count_fw(leaf_start_, symbol_);
+            sum_ += result.count();
 
             if (leaf_start_ + result.count() < size)
             {
@@ -128,7 +129,6 @@ public:
             }
             else {
                 last_leaf_size_ = last_leaf_pos_ = seq.size();
-                sum_ += result.count();
 
                 leaf_start_ = CtrSizeT{};
                 return ShuttleOpResult::not_found();

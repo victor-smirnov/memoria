@@ -522,7 +522,7 @@ public:
 
         return SelectResult{
             static_cast<size_t>(result.idx) << level,
-            bm_size,
+            bm_size << level,
             static_cast<size_t>(result.rank) + sum
         };
     }

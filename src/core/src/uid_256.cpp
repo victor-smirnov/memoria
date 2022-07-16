@@ -371,4 +371,18 @@ std::istream& operator>>(std::istream& in, UID256& uuid)
     return in;
 }
 
+namespace {
+
+UID256 debug_uid_0{};
+
+}
+
+UID256& get_debug_uid256_0() {
+    return debug_uid_0;
+}
+
+void set_debug_uid256_0(const UID256& val) {
+    debug_uid_0 = val;
+}
+
 }

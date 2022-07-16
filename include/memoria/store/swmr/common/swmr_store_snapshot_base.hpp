@@ -675,50 +675,43 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("updated are not allowed for ReadOnly commits").do_throw();
     }
 
+    class RebuildRefcountersHandler: public BTreeTraverseNodeHandler<Profile> {
+        using Base = BTreeTraverseNodeHandler<Profile>;
+        using typename Base::BlockType;
+        //using BlockID   = ProfileBlockID<Profile>;
+
+        SWMRBlockCounters<Profile>& counters_;
+    public:
+        RebuildRefcountersHandler(SWMRBlockCounters<Profile>& counters):
+            counters_(counters)
+        {}
+
+        virtual void process_node(const BlockType* block) {}
+
+        virtual bool proceed_with(const BlockID& block_id) const {
+            return counters_.inc(block_id);
+        }
+    };
 
 
     virtual void build_block_refcounters(SWMRBlockCounters<Profile>& counters)
     {
-        auto counters_fn = [&](const BlockID& block_id, const BlockID& parent_id) {
-            return counters.inc(block_id);
-        };
-
-        traverse_cow_containers(counters, counters_fn);
+        RebuildRefcountersHandler handler(counters);
 
         auto sb = get_superblock();
 
-        traverse_ctr_cow_tree(
-            sb->history_root_id(),
-            counters_fn
-        );
+        traverse_ctr(sb->directory_root_id(), handler);
 
-        traverse_ctr_cow_tree(
-            sb->allocator_root_id(),
-            counters_fn
-        );
+        traverse_ctr(sb->history_root_id(), handler);
+        traverse_ctr(sb->allocator_root_id(), handler);
 
         if (get_superblock()->blockmap_root_id().is_set()) {
-            traverse_ctr_cow_tree(
-                sb->blockmap_root_id(),
-                counters_fn
-            );
+            traverse_ctr(sb->blockmap_root_id(), handler);
         }
     }
 
 
 
-
-    virtual void traverse_cow_containers(SWMRBlockCounters<Profile>& counters, const BlockCounterCallbackFn& callback)
-    {
-        auto directory_root_id = get_superblock()->directory_root_id();
-        traverse_ctr_cow_tree(directory_root_id, callback);
-
-        directory_ctr_->for_each([&](auto ctr_name, auto root_id){
-          if (counters.add_root(root_id)){
-              traverse_ctr_cow_tree(root_id, callback);
-          }
-        });
-    }
 
     bool contains_or_add(VisitedBlocks& vb, const BlockID& id)
     {
@@ -744,18 +737,11 @@ public:
             traverse_ctr_cow_tree(sb->directory_root_id(), vb, visitor, GraphVisitor::CtrType::DIRECTORY);
 
             directory_ctr_->for_each([&](auto ctr_name, auto root_id){
-              traverse_ctr_cow_tree(root_id, vb, visitor, GraphVisitor::CtrType::DATA);
+                traverse_ctr_cow_tree(root_id, vb, visitor, GraphVisitor::CtrType::DATA);
             });
         }
     }
 
-
-    void traverse_ctr_cow_tree(const BlockID& root_block_id, const BlockCounterCallbackFn& callback)
-    {
-        auto ref = from_root_id(root_block_id);
-        auto root_block = ref->root_block();
-        return traverse_block_tree(root_block, BlockID{}, callback);
-    }
 
     void traverse_ctr_cow_tree(const BlockID& root_block_id, VisitedBlocks& vb, GraphVisitor& visitor, typename GraphVisitor::CtrType ctr_type)
     {
@@ -770,24 +756,6 @@ public:
             traverse_block_tree(root_block, vb, visitor);
 
             visitor.end_ctr();
-        }
-    }
-
-
-    void traverse_block_tree(
-            CtrBlockPtr<ApiProfileT> block,
-            const BlockID& parent_id,
-            const BlockCounterCallbackFn& callback)
-    {
-        BlockID block_id = cast_to<BlockID>(block->block_id());
-
-        auto traverse = callback(block_id, parent_id);
-        if (traverse)
-        {
-            auto children = block->children();
-            for (size_t c = 0; c < children.size(); c++) {
-                traverse_block_tree(children[c], block_id, callback);
-            }
         }
     }
 

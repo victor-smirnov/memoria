@@ -52,6 +52,8 @@ struct StoreOperations {
 
     virtual WritableSnapshotPtr begin_writable(StoreT store) = 0;
     virtual ReadOnlySnapshotPtr open_read_only(StoreT store) = 0;
+
+    virtual void set_remove_existing_file(bool do_it) = 0;
 };
 
 
@@ -68,12 +70,12 @@ class StoreTestBench {
 
     CtrID ctr_id_;
 
-    CtrSizeT entries_{100000};
+    CtrSizeT entries_{10000000};
     CtrSizeT batch_size_{1000};
     CtrSizeT timing_epocs_{10};
 
     ConsistencyPoint consistency_point_{ConsistencyPoint::AUTO};
-    bool check_epocs_{true};
+    bool check_epocs_{false};
     bool check_store_{true};
     bool read_back_{true};
 
@@ -124,7 +126,14 @@ public:
             }
         };
 
+        //for (size_t c = 0; c < 10; c++) {
+
+        if (check_epocs_) {
+            store->check(callback);
+        }
+
         {
+            ctr_id_ = store_ops_->ctr_id();
             auto snp = store_ops_->begin_writable(store);
             auto ctr = create(snp, CtrType(), ctr_id_);
 
@@ -161,12 +170,14 @@ public:
                     ticker.tick();
                 }
 
+                //snp->set_transient(false);
                 store_ops_->commit(snp, consistency_point_);
                 epoc_commits++;
 
                 if (ticker.is_threshold())
                 {
                     println("Processed {} entries of {}, {} commits in {} ms", entry, entries_, epoc_commits, ticker.duration());
+
                     epoc_commits = 0;
                     ticker.next();
 
@@ -185,6 +196,8 @@ public:
             store->check(callback);
         }
 
+        //}
+
         store_ops_->close_store(store);
 
         std::sort(data_.begin(), data_.end());
@@ -193,6 +206,7 @@ public:
     virtual void run_queries()
     {
         StoreT store = store_ops_->open_store();
+
         auto snp = store_ops_->open_read_only(store);
         auto ctr = find<CtrType>(snp, ctr_id_);
 
@@ -234,12 +248,16 @@ protected:
     U8String file_name_;
 
     uint64_t store_size_{1024};
-    bool remove_existing_{true};
+    bool remove_existing_{false};
 
 public:
     AbstractSWMRStoreOperation(U8String file_name, uint64_t store_size):
         file_name_(file_name), store_size_(store_size)
     {}
+
+    virtual void set_remove_existing_file(bool do_it) {
+        remove_existing_ = do_it;
+    }
 
     virtual CtrID ctr_id() {
         return CtrID::make_random();
@@ -278,7 +296,6 @@ public:
         Base(file_name, store_size)
     {}
 
-
     virtual StoreT open_store() {
         return open_lite_swmr_store(file_name_);
     }
@@ -289,7 +306,12 @@ public:
             filesystem::remove(file_name_.data());
         }
 
-        return create_lite_swmr_store(file_name_, store_size_);
+        if (!filesystem::exists(file_name_.data())) {
+            return create_lite_swmr_store(file_name_, store_size_);
+        }
+        else {
+            return open_lite_swmr_store(file_name_);
+        }
     }
 
     virtual void close_store(StoreT store) {

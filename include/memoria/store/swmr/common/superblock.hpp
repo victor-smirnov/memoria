@@ -1,5 +1,5 @@
 
-// Copyright 2020-2021 Victor Smirnov
+// Copyright 2020-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public:
 
     using AllocationMetadataT = AllocationMetadata<ApiProfile<Profile>>;
 
-    static constexpr size_t METADATA_SIZE = 2048;
+    static constexpr size_t METADATA_SIZE = 1536;
     static constexpr int32_t ALLOCATION_MAP_LEVELS = ICtrApi<AllocationMap, ApiProfile<Profile>>::LEVELS;
 
 private:
@@ -297,8 +297,9 @@ public:
     void build_superblock_description()
     {
         return set_description(
-            "MEMORIA SWMR MAPPED STORE. VERSION:{}; SnapshotID:{}, SequenceID:{}, SuperblockFilePos:{}, FileSize:{}, Status:{}, Counters:{}, CounterAt:{}, Profile:{}",
-            version_, snapshot_id_, sequence_id_, superblock_file_pos_,
+            "MEMORIA SWMR MAPPED STORE. VERSION:{}; SnapshotID:{}, SeqID:{}, CPSeqID:{}, SBFilePos:{}, FileSize:{}, Status:{}, Counters:{}, CounterAt:{}, Profile:{}",
+            version_, snapshot_id_, sequence_id_,
+            consistency_point_sequence_id_, superblock_file_pos_,
             file_size_, (is_clean() ? "CLEAN" : "UNCLEAN"), global_block_counters_size_,
                     global_block_counters_file_pos_,
                     TypeNameFactory<Profile>::name()

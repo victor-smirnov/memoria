@@ -23,8 +23,15 @@
 #include <iostream>
 #include <sys/time.h>
 
+#include <chrono>
 
 namespace memoria {
+
+
+uint64_t nano_time() {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+    std::chrono::system_clock::now().time_since_epoch()).count();
+}
 
 int64_t getTimeInMillis()
 {

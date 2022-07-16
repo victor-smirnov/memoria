@@ -15,3 +15,5 @@ pyproject.toml, setup.cfg and setup.py files are distributed according to the LI
 LMDB database is under The OpenLDAP Public License. See LICENCE.lmdb for details.
 
 Check file headers to get the exact conditions those sources may be used under.
+
+Flat_hash_map/flat_hash_set is under Copyright Malte Skarupke 2017, see LICENCE_1_0.txt

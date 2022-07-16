@@ -73,7 +73,7 @@ public:
 
             if (!block->is_leaf())
             {
-                with_ctr([&](auto& ctr)  {
+                with_ctr([&](auto& ctr) {
                     return ctr.ctr_for_all_ids(block, [&](const BlockID& child_id) {
 
                         children.emplace_back(

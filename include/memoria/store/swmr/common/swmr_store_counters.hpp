@@ -24,6 +24,8 @@
 #include <absl/container/btree_map.h>
 #include <absl/container/btree_set.h>
 
+#include <memoria/core/flat_map/flat_hash_map.hpp>
+
 namespace memoria {
 
 template <typename Profile>
@@ -46,8 +48,8 @@ struct SWMRBlockCounters {
 
     struct Counter {
         int64_t value;
-        void inc()  {
-            ++value;
+        auto inc()  {
+            return ++value;
         }
 
         bool dec()  {
@@ -56,8 +58,13 @@ struct SWMRBlockCounters {
     };
 
 private:
-    absl::btree_set<BlockID> ctr_roots_;
-    absl::btree_map<BlockID, Counter> map_;
+//    absl::btree_set<BlockID> ctr_roots_;
+//    absl::btree_map<BlockID, Counter> map_;
+//    ska::flat_hash_set<BlockID> ctr_roots_;
+    ska::flat_hash_map<BlockID, Counter> map_;
+
+//    std::unordered_set<BlockID> ctr_roots_;
+//    std::unordered_map<BlockID, Counter> map_;
 
 public:
     SWMRBlockCounters() {}
@@ -73,12 +80,15 @@ public:
             if (ii != map_.end()) {
                 ii->second.value += value;
 
+                //println("ApplyCtrBlock: {}::{}::{}", block_id, value, ii->second.value);
+
                 if (ii->second.value == 0)
                 {                                        
                     map_.erase(ii);
                 }
             }
-            else if (value > 0) {                
+            else if (value > 0) {
+                //println("ApplyNewCtrBlock: {}::{}", block_id, value);
                 map_[block_id] = Counter{value};
             }
             else {
@@ -103,17 +113,24 @@ public:
         return map_.size();
     }
 
-    bool add_root(const BlockID& block_id)
-    {
-        auto ii = ctr_roots_.find(block_id);
-        if (ii != ctr_roots_.end()) {
-            return false;
-        }
-        else {
-            ctr_roots_.insert(block_id);
-            return true;
-        }
-    }
+//    bool has_root(const BlockID& block_id) const {
+//        auto ii = ctr_roots_.find(block_id);
+//        return ii != ctr_roots_.end();
+//    }
+
+//    bool add_root(const BlockID& block_id)
+//    {
+//        println("Adding ctrRoot: {}", block_id);
+
+//        auto ii = ctr_roots_.find(block_id);
+//        if (ii != ctr_roots_.end()) {
+//            return false;
+//        }
+//        else {
+//            ctr_roots_.insert(block_id);
+//            return true;
+//        }
+//    }
 
     void set(const BlockID& block_id, int64_t counter)  {
         map_[block_id] = Counter{counter};
@@ -125,11 +142,16 @@ public:
     {
         auto ii = map_.find(block_id);
         if (ii != map_.end()) {
-            ii->second.inc();
+            auto vv = ii->second.inc();
+
+            //println("IncCtr: {}::{}", block_id, vv);
+
             return false;
         }
         else {
             map_.insert(std::make_pair(block_id, Counter{1}));
+            //println("IncCtr: {}::{}", block_id, 1);
+
             return true;
         }
     }
@@ -140,8 +162,13 @@ public:
         if (ii != map_.end()) {
             bool res = ii->second.dec();
             if (res) {
+                //println("DecCtr: {}::{}", block_id, 0);
                 map_.erase(ii);
             }
+            else {
+                //println("DecCtr: {}::{}", block_id, ii->second.value);
+            }
+
             return res;
         }
         else {
@@ -170,7 +197,7 @@ public:
         {
             auto val = other.get(entry.first);
             if (!val) {
-                println("Counter for block {} is missing in the second map", entry.first);
+                println("Counter for block {} is missing in the computed map", entry.first);
             }
             else if (val.get() != entry.second.value) {
                 println("Counter value mismatch for block {}. Expected {}, actual {}", entry.first, entry.second.value, val.get());
@@ -181,7 +208,7 @@ public:
         {
             auto val = get(entry.first);
             if (!val) {
-                println("Counter for block {} is missing in the first map", entry.first);
+                println("Counter for block {} is missing in the loaded map", entry.first);
             }
             else if (val.get() != entry.second.value) {
                 println("Counter value mismatch for block {}. Expected {}, actual {}", entry.first, val.get(), entry.second.value);

@@ -23,6 +23,7 @@
 
 namespace memoria {
 
+uint64_t nano_time();
 
 int64_t  getTimeInMillis();
 U8String FormatTime(int64_t millis);

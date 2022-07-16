@@ -1,5 +1,5 @@
 
-// Copyright 2021 Victor Smirnov
+// Copyright 2021-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -448,6 +448,9 @@ static inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const Co
     return out;
 }
 
+
+UID256& get_debug_uid256_0();
+void set_debug_uid256_0(const UID256& val);
 
 }
 

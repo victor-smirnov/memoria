@@ -84,7 +84,9 @@ void InitCtrMetadata() {
     ICtrApi<T, ApiProfile<ProfileT>>::template init_profile_metadata<ProfileT>();
 }
 
-
+enum class ChunkDumpMode {
+    HEADER, LEAF, PATH
+};
 
 template <typename MyType, typename Profile>
 struct ChunkIteratorBase {
@@ -109,7 +111,7 @@ struct ChunkIteratorBase {
     virtual ChunkPtr prev(CtrSizeT num = 1) const = 0;
     virtual ChunkPtr prev_chunk() const = 0;
 
-    virtual void dump(std::ostream& out = std::cout) const = 0;
+    virtual void dump(ChunkDumpMode mode = ChunkDumpMode::HEADER, std::ostream& out = std::cout) const = 0;
 };
 
 template <typename ChunkIterT>

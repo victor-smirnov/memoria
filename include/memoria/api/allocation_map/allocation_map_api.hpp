@@ -18,9 +18,6 @@
 #include <memoria/api/common/ctr_api_btss.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
-//#include <memoria/core/datatypes/encoding_traits.hpp>
-//#include <memoria/core/datatypes/io_vector_traits.hpp>
-
 #include <memoria/core/types/typehash.hpp>
 
 
@@ -50,6 +47,8 @@ struct AllocationMapChunk: ChunkIteratorBase<AllocationMapChunk<Profile>, Profil
 
     virtual CtrSizeT leaf_size() const = 0;
     virtual const PkdAllocationMap<PkdAllocationMapTypes>* bitmap() const = 0;
+
+    virtual size_t current_bit(size_t level) const = 0;
 
     virtual AnyID leaf_id() const = 0;
 };
@@ -278,6 +277,8 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
             CtrSharedPtr<ICtrApi> other,
             const std::function<bool (AllocationMapCompareHelper<Profile>&)>& consumer
     ) const = 0;
+
+    virtual void dump(ChunkDumpMode mode = ChunkDumpMode::LEAF, std::ostream& out = std::cout) const = 0;
 
     MMA_DECLARE_ICTRAPI();
 };
