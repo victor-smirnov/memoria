@@ -48,8 +48,8 @@ struct SWMRBlockCounters {
 
     struct Counter {
         int64_t value;
-        auto inc()  {
-            return ++value;
+        void inc()  {
+            ++value;
         }
 
         bool dec()  {
@@ -58,12 +58,10 @@ struct SWMRBlockCounters {
     };
 
 private:
-//    absl::btree_set<BlockID> ctr_roots_;
 //    absl::btree_map<BlockID, Counter> map_;
 //    ska::flat_hash_set<BlockID> ctr_roots_;
     ska::flat_hash_map<BlockID, Counter> map_;
 
-//    std::unordered_set<BlockID> ctr_roots_;
 //    std::unordered_map<BlockID, Counter> map_;
 
 public:
@@ -79,16 +77,12 @@ public:
             auto ii = map_.find(block_id);
             if (ii != map_.end()) {
                 ii->second.value += value;
-
-                //println("ApplyCtrBlock: {}::{}::{}", block_id, value, ii->second.value);
-
                 if (ii->second.value == 0)
                 {                                        
                     map_.erase(ii);
                 }
             }
             else if (value > 0) {
-                //println("ApplyNewCtrBlock: {}::{}", block_id, value);
                 map_[block_id] = Counter{value};
             }
             else {
@@ -113,25 +107,6 @@ public:
         return map_.size();
     }
 
-//    bool has_root(const BlockID& block_id) const {
-//        auto ii = ctr_roots_.find(block_id);
-//        return ii != ctr_roots_.end();
-//    }
-
-//    bool add_root(const BlockID& block_id)
-//    {
-//        println("Adding ctrRoot: {}", block_id);
-
-//        auto ii = ctr_roots_.find(block_id);
-//        if (ii != ctr_roots_.end()) {
-//            return false;
-//        }
-//        else {
-//            ctr_roots_.insert(block_id);
-//            return true;
-//        }
-//    }
-
     void set(const BlockID& block_id, int64_t counter)  {
         map_[block_id] = Counter{counter};
     }
@@ -142,16 +117,11 @@ public:
     {
         auto ii = map_.find(block_id);
         if (ii != map_.end()) {
-            auto vv = ii->second.inc();
-
-            //println("IncCtr: {}::{}", block_id, vv);
-
+            ii->second.inc();
             return false;
         }
         else {
             map_.insert(std::make_pair(block_id, Counter{1}));
-            //println("IncCtr: {}::{}", block_id, 1);
-
             return true;
         }
     }
@@ -162,13 +132,8 @@ public:
         if (ii != map_.end()) {
             bool res = ii->second.dec();
             if (res) {
-                //println("DecCtr: {}::{}", block_id, 0);
                 map_.erase(ii);
             }
-            else {
-                //println("DecCtr: {}::{}", block_id, ii->second.value);
-            }
-
             return res;
         }
         else {

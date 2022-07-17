@@ -126,7 +126,7 @@ struct IBasicSWMRStore {
 
 
 enum class FlushType {
-    DEFAULT, FULL
+    DEFAULT, FULL = DEFAULT
 };
 
 template <typename Profile>

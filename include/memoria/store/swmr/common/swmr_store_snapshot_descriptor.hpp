@@ -268,14 +268,14 @@ public:
         superblock_ptr_ = ptr;
         sequence_id_ = superblock->sequence_id();
         consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
-        snapshot_id_   = superblock->snapshot_id();
+        snapshot_id_ = superblock->snapshot_id();
     }
 
     void refresh_descriptor(Superblock* superblock)
     {
         sequence_id_ = superblock->sequence_id();
         consistency_point_sequence_id_ = superblock->consistency_point_sequence_id();
-        snapshot_id_   = superblock->snapshot_id();
+        snapshot_id_ = superblock->snapshot_id();
     }
 
     bool is_transient() const  {
@@ -300,7 +300,7 @@ public:
     }
 
     const SequenceID& consistency_point_sequence_id() const  {
-        return sequence_id_;
+        return consistency_point_sequence_id_;
     }
 
 

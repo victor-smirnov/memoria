@@ -50,10 +50,10 @@ int main(void) {
         StoreTestBench<StorePtrT> bench(store);
 
 
-        bench.set_entries(10000);
-        bench.set_batch_size(100);
-        bench.set_check_epocs(true);
-        bench.set_consistency_point(ConsistencyPoint::AUTO);
+        bench.set_entries(1000000);
+        bench.set_batch_size(1000);
+        //bench.set_check_epocs(true);
+        bench.set_consistency_point(ConsistencyPoint::NO);
 
         bench.run_insertions();
 

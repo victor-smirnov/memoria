@@ -111,7 +111,7 @@ protected:
 
     uint64_t cp_allocation_threshold_{100 * 1024 * 1024 / 4096};
     uint64_t cp_snapshots_threshold_{10000};
-    uint64_t cp_timeout_{1000}; // 1 secons
+    uint64_t cp_timeout_{1000}; // 1 second
 
     LDDocument store_params_;
 
@@ -580,6 +580,7 @@ public:
         if (do_consistency_point)
         {
             sb->inc_consistency_point_sequence_id();
+            snapshot_descriptor->refresh_descriptor(sb.get());
 
             if (cp == ConsistencyPoint::FULL) {
                 store_counters(sb.get());
@@ -954,6 +955,9 @@ protected:
     {
         if (!this->active_writer_)
         {
+            // Creating a system snapshot in a case,
+            // if last commit didn't create a consistency
+            // point.
             flush(FlushType::DEFAULT);
 
             CDescrPtr head_ptr = history_tree_.consistency_point1();
@@ -961,17 +965,20 @@ protected:
             {
                 auto sb_slot = head_ptr->consistency_point_sequence_id() % 2;
                 SharedSBPtr<SuperblockT> sb0 = get_superblock(sb_slot * BASIC_BLOCK_SIZE);
-                sb0->set_metadata_doc(store_params_);
+                if (!sb0->is_clean())
+                {
+                    sb0->set_metadata_doc(store_params_);
 
-                store_counters(sb0.get());
+                    store_counters(sb0.get());
 
-                flush_data();
+                    flush_data();
 
-                sb0->set_clean_status();
-                sb0->build_superblock_description();
-                store_superblock(sb0.get(), sb_slot);
+                    sb0->set_clean_status();
+                    sb0->build_superblock_description();
+                    store_superblock(sb0.get(), sb_slot);
 
-                flush_header();
+                    flush_header();
+                }
 
                 block_counters_.clear();
             }
@@ -1114,7 +1121,8 @@ protected:
         }
     }
 
-    void rebuild_block_counters()  {
+    void rebuild_block_counters()
+    {
         auto snapshots = this->build_ordered_snapshots_list();
 
         for (auto& snapshot: snapshots) {

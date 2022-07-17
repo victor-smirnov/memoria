@@ -268,7 +268,7 @@ public:
     }
 
     virtual void commit(WritableSnapshotPtr snp, ConsistencyPoint cp) {
-        snp->commit();
+        snp->commit(cp);
     }
 
     virtual void flush(StoreT store) {
