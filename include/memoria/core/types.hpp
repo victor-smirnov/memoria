@@ -26,6 +26,7 @@
 #include <cassert>
 #include <cstdint>
 #include <exception>
+#include <stdint.h>
 
 #include <unicode/utypes.h>
 

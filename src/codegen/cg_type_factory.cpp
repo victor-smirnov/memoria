@@ -116,7 +116,7 @@ public:
         {
             std::string ss;
             llvm::raw_string_ostream os(ss);
-            args.get(0).print(clang::PrintingPolicy{clang::LangOptions{}}, os, true);
+            args.get(0).print(clang::PrintingPolicy{clang::LangOptions{}}, os);
             return U8String{ss};
         }
         else {

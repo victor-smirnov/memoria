@@ -196,17 +196,23 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
 {
     auto ctr_ref = alloc->find(ctr_id);
 
-    U8String signature = make_datatype_signature<CtrName>().name();
+    if (ctr_ref)
+    {
+        U8String signature = make_datatype_signature<CtrName>().name();
 
-    if (ctr_ref->describe_datatype() == signature) {
-        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref));
+        if (ctr_ref->describe_datatype() == signature) {
+            return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref));
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "Container type mismatch. Expected: {}, actual: {}",
+                        signature,
+                        ctr_ref->describe_datatype()
+                        ).do_throw();
+        }
     }
     else {
-        MEMORIA_MAKE_GENERIC_ERROR(
-                    "Container type mismatch. Expected: {}, actual: {}",
-                    signature,
-                    ctr_ref->describe_datatype()
-        ).do_throw();
+        return CtrSharedPtr<ICtrApi<CtrName, Profile>>{};
     }
 }
 

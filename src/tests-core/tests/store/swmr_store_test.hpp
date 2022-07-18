@@ -36,7 +36,7 @@ class SWMRStoreTest: public TestState
     using Base::out;
     using Base::getRandom;
 
-    size_t size_{100000};
+    size_t size_{1000000};
 
 public:
     SWMRStoreTest()
@@ -54,14 +54,18 @@ public:
 
         U8String file = wd.std_string();
 
-        auto store = std::make_shared<LiteSWMRStoreOperation>(file, 1024);
+        auto store = std::make_shared<LiteSWMRStoreOperation>(file, 1024*4);
+
+        store->remove_if_exists();
 
         using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile>>;
         StoreTestBench<StorePtrT> bench(store);
 
+
         bench.set_entries(size_);
         bench.set_check_epocs(true);
         bench.set_consistency_point(ConsistencyPoint::AUTO);
+        bench.set_reset_store_on_epoc(true);
 
         bench.run_insertions();
         bench.run_queries();
@@ -74,7 +78,7 @@ public:
 
         U8String file = wd.std_string();
 
-        auto store = std::make_shared<SWMRStoreOperation>(file, 1024);
+        auto store = std::make_shared<SWMRStoreOperation>(file, 1024*4);
 
         using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile>>;
         StoreTestBench<StorePtrT> bench(store);
@@ -94,7 +98,8 @@ public:
 
         U8String file = wd.std_string();
 
-        auto store = std::make_shared<LMDBStoreOperation>(file, 1024);
+        auto store = std::make_shared<LMDBStoreOperation>(file, 1024*4);
+        store->remove_if_exists();
 
         using StorePtrT = AllocSharedPtr<ILMDBStore<CoreApiProfile>>;
         StoreTestBench<StorePtrT> bench(store);
@@ -102,6 +107,7 @@ public:
         bench.set_entries(size_);
         bench.set_check_epocs(true);
         bench.set_consistency_point(ConsistencyPoint::AUTO);
+        bench.set_reset_store_on_epoc(false);
 
         bench.run_insertions();
         bench.run_queries();
@@ -115,13 +121,15 @@ public:
         U8String file = wd.std_string();
 
         auto store = std::make_shared<MemoryStoreOperation>(file);
+        store->remove_if_exists();
 
         using StorePtrT = AllocSharedPtr<IMemoryStore<CoreApiProfile>>;
         StoreTestBench<StorePtrT> bench(store);
 
         bench.set_entries(size_);
-        bench.set_check_epocs(true);
+        bench.set_check_epocs(false);
         bench.set_consistency_point(ConsistencyPoint::AUTO);
+        bench.set_reset_store_on_epoc(false);
 
         bench.run_insertions();
         bench.run_queries();

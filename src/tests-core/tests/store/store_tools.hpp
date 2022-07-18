@@ -76,6 +76,7 @@ class StoreTestBench {
     bool check_epocs_{true};
     bool check_store_{true};
     bool read_back_{true};
+    bool reset_store_on_epoc_{true};
 
     std::vector<U8String> data_;
 
@@ -83,6 +84,10 @@ public:
     StoreTestBench(OpsTPtr store_ops): store_ops_(store_ops)
     {
         ctr_id_ = store_ops_->ctr_id();
+    }
+
+    void set_reset_store_on_epoc(bool v) {
+        reset_store_on_epoc_ = v;
     }
 
     void set_entries(CtrSizeT v) {
@@ -170,11 +175,14 @@ public:
                     if (check_epocs_) {
                         store->check(callback);
                     }
+
+                    if (reset_store_on_epoc_) {
+                        store_ops_->close_store(store);
+                        store = store_ops_->create_store();
+                    }
                 }
             }
         }
-
-        store_ops_->flush(store);
 
         println("Total insertion time: {}", FormatTime(getTimeInMillis() - ticker.start_time()));
 
@@ -230,12 +238,15 @@ protected:
     U8String file_name_;
 
     uint64_t store_size_{1024};
-    bool remove_existing_{true};
 
 public:
     AbstractSWMRStoreOperation(U8String file_name, uint64_t store_size):
         file_name_(file_name), store_size_(store_size)
     {}
+
+    void remove_if_exists() {
+        filesystem::remove(file_name_.data());
+    }
 
     virtual CtrID ctr_id() {
         return CtrID::make_random();
@@ -250,7 +261,7 @@ public:
     }
 
     virtual void commit(WritableSnapshotPtr snp, ConsistencyPoint cp) {
-        snp->commit();
+        snp->commit(cp);
     }
 
     virtual WritableSnapshotPtr begin_writable(StoreT store) {
@@ -281,8 +292,8 @@ public:
 
     virtual StoreT create_store()
     {
-        if (remove_existing_) {
-            filesystem::remove(file_name_.data());
+        if (filesystem::exists(file_name_.data())) {
+            return open_store();
         }
 
         return create_lite_swmr_store(file_name_, store_size_);
@@ -312,8 +323,8 @@ public:
 
     virtual StoreT create_store()
     {
-        if (remove_existing_) {
-            filesystem::remove(file_name_.data());
+        if (filesystem::exists(file_name_.data())) {
+            return open_store();
         }
 
         return create_swmr_store(file_name_, store_size_);
@@ -343,8 +354,8 @@ public:
 
     virtual StoreT create_store()
     {
-        if (remove_existing_) {
-            filesystem::remove(file_name_.data());
+        if (filesystem::exists(file_name_.data())) {
+            return open_store();
         }
 
         return create_lmdb_store(file_name_, store_size_);
@@ -373,6 +384,10 @@ public:
         ctr_id_ = CtrID::make_random();
     }
 
+    void remove_if_exists() {
+        filesystem::remove(file_name_.data());
+    }
+
 
     virtual CtrID ctr_id() {
         return ctr_id_;
@@ -383,6 +398,11 @@ public:
     }
 
     virtual StoreT create_store() {
+
+        if (filesystem::exists(file_name_.data())) {
+            return open_store();
+        }
+
         return create_memory_store();
     }
 
@@ -398,9 +418,17 @@ public:
         store->store(file_name_);
     }
 
-    virtual void commit(WritableSnapshotPtr snp, ConsistencyPoint cp) {
+    virtual void commit(WritableSnapshotPtr snp, ConsistencyPoint cp)
+    {
         snp->commit(cp);
         snp->set_as_master();
+
+        if (snp->has_parent()) {
+            auto pp = snp->parent();
+            if (pp->has_parent()) {
+                pp->drop();
+            }
+        }
     }
 
     virtual WritableSnapshotPtr begin_writable(StoreT store) {

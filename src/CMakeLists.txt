@@ -61,7 +61,8 @@ include_directories(containers/generated)
 
 find_package(Clang CONFIG REQUIRED)
 
-SET (MMA_CLANG_INCLUDES_DIR ${Boost_INCLUDE_DIRS})
+
+SET (MMA_CLANG_INCLUDES_DIR ${CLANG_INCLUDE_DIRS} )
 
 if (BUILD_EXTRA_CONTAINERS)
     set(BUILD_EXTRA_CONTAINERS_OPT "MEMORIA_BUILD_EXTRA_CONTAINERS")
@@ -87,7 +88,6 @@ else()
     set (BUILD_NO_COW_PROFILE_OPT "--disable")
 endif()
 
-
 execute_process(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMAND
@@ -97,7 +97,6 @@ execute_process(
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${Boost_INCLUDE_DIRS}
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
-        -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/13.0.0/include
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
         ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
@@ -108,7 +107,7 @@ execute_process(
         --components-output-base ${CMAKE_BINARY_DIR}
 
     OUTPUT_VARIABLE GENERATED_SOURCES
-    #COMMAND_ERROR_IS_FATAL ANY
+    COMMAND_ERROR_IS_FATAL ANY
 )
 
 message ("========================  GENERATED SOURCES OUTPUT: |${GENERATED_SOURCES}|============================")
@@ -210,7 +209,6 @@ add_custom_command(
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${Boost_INCLUDE_DIRS}
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
-        -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/13.0.0/include
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
         ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
