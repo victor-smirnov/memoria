@@ -638,7 +638,7 @@ void write_message(BinaryOutputStream output, const U8StringView& msg)
     output.flush();
 }
 
-LDDocument read_message(BinaryInputStream input)
+PoolSharedPtr<LDDocument> read_message(BinaryInputStream input)
 {
     uint64_t size{0};
     if (input.read(ptr_cast<uint8_t>(&size), sizeof(size)) < sizeof(size))
@@ -695,12 +695,12 @@ void MultiProcessRunner::handle_connections()
 
                 while (tests.size() || heads_.count(worker_num) > 0)
                 {
-                    LDDocument msg = read_message(input);
-                    U8String code = get_value(msg.value(), "code").as_varchar().view();
+                    auto msg = read_message(input);
+                    U8String code = get_value(msg->value(), "code")->as_varchar()->view();
 
                     if (code == "GREETING")
                     {
-                        worker_num = get_value(msg.value(), "worker_id").as_bigint();
+                        worker_num = get_value(msg->value(), "worker_id")->as_bigint();
                         worker_process = worker_processes_.at(worker_num);
                     }
                     else if (code == "GET_TASK")
@@ -723,8 +723,8 @@ void MultiProcessRunner::handle_connections()
                     {
                         processed++;
 
-                        U8String test_path = get_value(msg.value(), "test_path").as_varchar().view();
-                        int32_t status = get_value(msg.value(), "status").as_bigint();
+                        U8String test_path = get_value(msg->value(), "test_path")->as_varchar()->view();
+                        int32_t status = *get_value(msg->value(), "status")->as_bigint();
 
                         heads_.erase(worker_num);
 
@@ -904,12 +904,12 @@ void Worker::run()
     {
         write_message(output, "{'code': 'GET_TASK'}");
 
-        LDDocument msg = read_message(input);
-        U8String code = get_value(msg.value(), "code").as_varchar().view();
+        auto msg = read_message(input);
+        U8String code = get_value(msg->value(), "code")->as_varchar()->view();
 
         if (code == "RUN_TASK")
         {            
-            U8String test_path = get_value(msg.value(), "test_path").as_varchar().view();
+            U8String test_path = get_value(msg->value(), "test_path")->as_varchar()->view();
 
             println("++++++++++ New message from server: {}", test_path);
 

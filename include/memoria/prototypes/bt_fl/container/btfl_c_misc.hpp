@@ -22,7 +22,7 @@
 
 #include <memoria/prototypes/bt_fl/btfl_names.hpp>
 
-#include <memoria/core/tools/object_pool.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 
 #include <vector>
 

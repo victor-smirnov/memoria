@@ -33,5 +33,5 @@ using namespace memoria;
 
 int main(int, char**)
 {
-    DataTypeBuffer<uint64_t> buf;
+
 }

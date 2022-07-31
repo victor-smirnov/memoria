@@ -248,7 +248,7 @@ struct DataTypeOperationsImpl<Boolean>: SimpleDataTypeOperationsImpl<Boolean> {
     ) {
         if (value.is_varchar())
         {
-            U8StringView view = value.as_varchar().view();
+            U8StringView view = value.as_varchar()->view();
 
             if ("true" == view) {
                 return LDDValueView{doc, doc->new_value<Boolean>(true), ld_tag_value<Boolean>()};

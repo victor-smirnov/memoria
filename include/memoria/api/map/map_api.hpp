@@ -24,8 +24,6 @@
 #include <memoria/api/map/map_api_factory.hpp>
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 
-
-
 namespace memoria {
 
 template <typename Key, typename Value, typename Profile>
@@ -38,18 +36,15 @@ struct MapChunk: ChunkIteratorBase<MapChunk<Key, Value, Profile>, Profile> {
     using KeyView   = DTTViewType<Key>;
     using ValueView = DTTViewType<Value>;
 
-    virtual const KeyView& current_key() const = 0;
-    virtual const ValueView& current_value() const = 0;
+    virtual DTTConstPtr<Key> current_key() const = 0;
+    virtual DTTConstPtr<Value> current_value() const = 0;
 
-    virtual const Span<const KeyView>& keys() const = 0;
-    virtual const Span<const ValueView>& values() const = 0;
-
-
+    virtual DTTConstSpan<Key> keys() const = 0;
+    virtual DTTConstSpan<Value> values() const = 0;
 
     virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
 
     virtual bool is_found(const KeyView& key) const = 0;
-
 
     template <typename Fn>
     void for_each_remaining(Fn&& fn)
@@ -141,18 +136,12 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         auto ss = this->first_entry();
         while (is_valid_chunk(ss))
         {
-            auto key_ii_b = ss->keys().begin();
-            auto key_ii_e = ss->keys().end();
+            auto keys = ss->keys();
+            auto values = ss->values();
 
-            auto value_ii_b = ss->values().begin();
-            auto value_ii_e = ss->values().end();
-
-            while (key_ii_b != key_ii_e && value_ii_b != value_ii_e)
+            for (size_t c = 0; c < keys.size(); c++)
             {
-                fn(*key_ii_b, *value_ii_b);
-
-                ++key_ii_b;
-                ++value_ii_b;
+                fn(*keys[c], *values[c]);
             }
 
             ss = ss->next_chunk();
@@ -165,7 +154,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         auto ss = this->first_entry();
         while (is_valid_chunk(ss))
         {
-            fn(ss->keys(), ss->values());
+            fn(ss->keys().raw_span(), ss->values().raw_span());
             ss = ss->next_chunk();
         }
     }

@@ -627,6 +627,8 @@ class enable_shared_from_this {
     void init_shared_from_this(U* ptr, RefHolder* holder) noexcept {
         ptr_ = ptr;
         holder_ = holder;
+
+        configure_refholder(holder_);
     }
 
     template <typename>
@@ -640,6 +642,8 @@ class enable_shared_from_this {
 protected:
     enable_shared_from_this() {}
 
+    virtual void configure_refholder(RefHolder*) {}
+
 public:
     SharedPtr<T> shared_from_this() const {
         if (holder_) {
@@ -649,6 +653,11 @@ public:
         else {
             MEMORIA_MAKE_GENERIC_ERROR("enable_shared_from_this is not initialized").do_throw();
         }
+    }
+
+protected:
+    RefHolder* get_refholder() const {
+        return holder_;
     }
 };
 
@@ -834,11 +843,10 @@ class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<He
         friend class HeavyObjectPool;
 
     public:
-        Descriptor(boost::local_shared_ptr<HeavyObjectPool> pool, T&& value):
-            object_(std::move(value)),
+        Descriptor(boost::local_shared_ptr<HeavyObjectPool> pool):
+            object_(),
             next_(), pool_(std::move(pool))
-        {            
-        }
+        {}
 
         T* ptr() noexcept {
             return &object_;
@@ -878,26 +886,22 @@ public:
     }
 
 
-    UniquePtr<T> get_unique_instance(std::function<T ()> factory = []() {
-        return T();
-    })
+    UniquePtr<T> get_unique_instance()
     {
         static_assert (
             !std::is_base_of_v<enable_shared_from_this<T>, T>,
             "Can't create instance of a unique object deriving from pool::enable_shared_from_this<>"
         );
 
-        Descriptor* descr = get_or_create(factory);
+        Descriptor* descr = get_or_create();
 
         return detail::make_unique_ptr_from(descr->ptr(), descr);
     }
 
 
-    SharedPtr<T> get_shared_instance(std::function<T ()> factory = []() {
-        return T();
-    })
+    SharedPtr<T> get_shared_instance()
     {
-        Descriptor* descr = get_or_create(factory);
+        Descriptor* descr = get_or_create();
 
         detail::SharedFromThisHelper<T>::initialize(descr->ptr(), descr);
 
@@ -913,7 +917,7 @@ private:
         head_ = entry;
     }
 
-    Descriptor* get_or_create(std::function<T ()> factory)
+    Descriptor* get_or_create()
     {
         Descriptor* descr;
 
@@ -926,7 +930,7 @@ private:
             descr->init_ref();
         }
         else {
-            descr = new Descriptor(this->shared_from_this(), factory());
+            descr = new Descriptor(this->shared_from_this());
         }
 
         return descr;
@@ -979,18 +983,18 @@ pool::UniquePtr<T> allocate_unique(ObjectPools& pools, Args&&... args) {
 
 
 template <typename T>
-pool::UniquePtr<T> get_reusable_unique_instance(ObjectPools& pools, std::function<T ()> factory = []{return T();}) {
+pool::UniquePtr<T> get_reusable_unique_instance(ObjectPools& pools) {
     using PoolType = pool::HeavyObjectPool<T>;
     auto& pool = pools.get_instance(PoolT<PoolType>{});
-    return pool.get_unique_instance(factory);
+    return pool.get_unique_instance();
 }
 
 
 template <typename T>
-pool::SharedPtr<T> get_reusable_shared_instance(ObjectPools& pools, std::function<T ()> factory = []{return T();}) {
+pool::SharedPtr<T> get_reusable_shared_instance(ObjectPools& pools) {
     using PoolType = pool::HeavyObjectPool<T>;
     auto& pool = pools.get_instance(PoolT<PoolType>{});
-    return pool.get_shared_instance(factory);
+    return pool.get_shared_instance();
 }
 
 
@@ -1014,18 +1018,16 @@ pool::UniquePtr<T> TL_allocate_unique(Args&&... args) {
 }
 
 template <typename T>
-pool::UniquePtr<T> TL_get_reusable_unique_instance(std::function<T ()> factory = []{return T();}) {
-    return get_reusable_unique_instance(
-        thread_local_pools(),
-        factory
+pool::UniquePtr<T> TL_get_reusable_unique_instance() {
+    return get_reusable_unique_instance<T>(
+        thread_local_pools()
     );
 }
 
 template <typename T>
-pool::SharedPtr<T> TL_get_reusable_shared_instance(std::function<T ()> factory = []{return T();}) {
-    return get_reusable_shared_instance(
-        thread_local_pools(),
-        factory
+pool::SharedPtr<T> TL_get_reusable_shared_instance() {
+    return get_reusable_shared_instance<T>(
+        thread_local_pools()
     );
 }
 

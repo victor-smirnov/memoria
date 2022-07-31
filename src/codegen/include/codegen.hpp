@@ -18,6 +18,7 @@
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/tools/optional.hpp>
+#include <memoria/core/memory/memory.hpp>
 
 #include <code_module.hpp>
 
@@ -72,8 +73,8 @@ struct Project {
     virtual void parse_configuration() = 0;
 
     virtual ShPtr<CodeModule> config_unit() const noexcept = 0;
-    virtual LDDocumentView config() const noexcept = 0;
-    virtual LDDMapView config_map() const = 0;
+    virtual DTSharedPtr<LDDocumentView> config() const noexcept = 0;
+    virtual DTSharedPtr<LDDMapView> config_map() const = 0;
     virtual U8String project_output_folder() const = 0;
     virtual U8String components_output_folder() const = 0;
     virtual U8String config_string(const U8String& sdn_path) const = 0;
@@ -84,7 +85,7 @@ struct Project {
 
     virtual std::vector<U8String> profiles() const = 0;
 
-    virtual LDDocument dry_run() = 0;
+    virtual PoolSharedPtr<LDDocument> dry_run() = 0;
 
     virtual void generate_artifacts() = 0;
 
@@ -104,7 +105,7 @@ struct TypeInstance: CodegenEntity {
 
     virtual const clang::ClassTemplateSpecializationDecl* ctr_descr() const = 0;
     virtual clang::QualType type() const = 0;
-    virtual LDDocumentView config() const = 0;
+    virtual DTSharedPtr<LDDocumentView> config() const = 0;
     virtual U8String name() const = 0;
     virtual U8String target_folder() const = 0;
     virtual U8String target_file(const U8String& profile) const = 0;
@@ -130,7 +131,7 @@ struct TypeFactory: CodegenEntity {
     virtual U8String name() const = 0;
 
     virtual U8String factory_id() const = 0;
-    virtual LDDocumentView config() const = 0;
+    virtual DTSharedPtr<LDDocumentView> config() const = 0;
     virtual U8String type_pattern() const = 0;
 
     virtual void precompile_headers() = 0;
@@ -156,7 +157,7 @@ struct FileGenerator: CodegenEntity {
     virtual U8String target_file() const = 0;
     virtual U8String target_folder() const = 0;
 
-    static ShPtr<FileGenerator> create(ShPtr<Project> project, const U8String& sdn_path, LDDocument&& config);
+    static ShPtr<FileGenerator> create(ShPtr<Project> project, const U8String& sdn_path, PoolSharedPtr<LDDocument>&& config);
 };
 
 void create_codegen_python_bindings();
@@ -184,7 +185,18 @@ T&& get_or_fail(Optional<T>&& opt, U8StringView msg)
     }
 }
 
-LDDArrayView get_or_add_array(LDDMapView map, const U8String& name);
+template <typename T>
+T&& get_or_fail(DTSharedPtr<T>&& opt, U8StringView msg)
+{
+    if (opt) {
+        return std::move(*opt);
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("{}", msg).do_throw();
+    }
+}
+
+DTSharedPtr<LDDArrayView> get_or_add_array(LDDMapView map, const U8String& name);
 
 struct ResourceNameConsumer {
     virtual ~ResourceNameConsumer() noexcept = default;

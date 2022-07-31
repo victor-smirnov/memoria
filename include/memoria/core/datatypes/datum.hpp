@@ -392,13 +392,13 @@ public:
 
     static Datum<DataType> from_sdn(const LDDocument& doc)
     {
-        LDDValueView value = doc.value();
+        auto value = doc.value();
 
-        if (value.is_double()) {
-            return datum_from_sdn_value(static_cast<DataType*>(nullptr), (double)value.as_double());
+        if (value->is_double()) {
+            return datum_from_sdn_value(static_cast<DataType*>(nullptr), (double)value->as_double());
         }
-        else if (value.is_bigint()) {
-            return datum_from_sdn_value(static_cast<DataType*>(nullptr), (int64_t)value.as_bigint());
+        else if (value->is_bigint()) {
+            return datum_from_sdn_value(static_cast<DataType*>(nullptr), (int64_t)value->as_bigint());
         }
 //        else if (value.is_boolean()) {
 //            return datum_from_sdn_value(static_cast<DataType*>(nullptr), value.as_boolean());
@@ -407,7 +407,7 @@ public:
         MMA_THROW(RuntimeException())
                 << format_ex(
                        "Unsupported SDN value type for fixed size datum convertion: {}",
-                       value.to_standard_string()
+                       value->to_standard_string()
                    );
     }
 

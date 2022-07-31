@@ -67,8 +67,9 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
         auto ss = this->first_entry();
         while (is_valid_chunk(ss))
         {
-            for (auto key_view: ss->keys()) {
-                fn(key_view);
+            auto keys = ss->keys();
+            for (size_t c = 0; c < keys.size(); c++) {
+                fn(*keys[c]);
             }
 
             ss = ss->next_chunk();

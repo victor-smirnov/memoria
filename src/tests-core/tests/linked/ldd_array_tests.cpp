@@ -22,129 +22,129 @@ namespace tests {
 
 
 auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "ArrayAddRemove", [](auto& state){
-    LDDocument doc;
+    auto doc = LDDocument::make_new();
 
-    LDDArrayView array = doc.set_array();
-    assert_equals(true, doc.value().as_array() == array);
-    assert_equals(0, array.size());
+    auto array = doc->set_array();
+    assert_equals(true, doc->value()->as_array() == array);
+    assert_equals(0, array->size());
 
     size_t size = 10000;
 
     std::vector<int64_t> values;
     for (size_t c = 0; c < size; c++)
     {
-        array.add_bigint(12345 + c);
+        array->add_bigint(12345 + c);
         values.push_back(12345 + c);
         if (c % 100 == 0) {
-            assert_arrays_equal(values, array);
+            assert_arrays_equal(values, *array);
         }
     }
 
-    assert_arrays_equal(values, array);
+    assert_arrays_equal(values, *array);
 
     assert_throws<BoundsException>([&](){
-        array.get(size);
+        array->get(size);
     });
 
     for (size_t c = 0; c < size; c++) {
-        array.remove(0);
+        array->remove(0);
         values.erase(values.begin(), values.begin() + 1);
 
         if (c % 100 == 0) {
-            assert_arrays_equal(values, array);
+            assert_arrays_equal(values, *array);
         }
     }
 
-    assert_equals(0, array.size());
+    assert_equals(0, array->size());
 });
 
 
 auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "ArraySet", [](auto& state){
-    LDDocument doc;
+    auto doc = LDDocument::make_new();
 
-    LDDArrayView array = doc.set_array();
-    assert_equals(true, doc.value().as_array() == array);
-    assert_equals(0, array.size());
+    auto array = doc->set_array();
+    assert_equals(true, doc->value()->as_array() == array);
+    assert_equals(0, array->size());
 
-    array.add_varchar("Hello World");
-    assert_equals(true, array.get(0).is_varchar());
-    assert_equals("Hello World", array.get(0).as_varchar().view());
+    array->add_varchar("Hello World");
+    assert_equals(true, array->get(0)->is_varchar());
+    assert_equals("Hello World", array->get(0)->as_varchar()->view());
 
-    array.add_double(123456);
-    assert_equals(true, array.get(1).is_double());
-    assert_equals(123456, array.get(1).as_double());
+    array->add_double(123456);
+    assert_equals(true, array->get(1)->is_double());
+    assert_equals(123456, *array->get(1)->as_double());
 
-    array.add_boolean(true);
-    assert_equals(true, array.get(2).is_boolean());
-    assert_equals(true, array.get(2).as_boolean());
+    array->add_boolean(true);
+    assert_equals(true, array->get(2)->is_boolean());
+    assert_equals(true, *array->get(2)->as_boolean());
 
-    LDDMapView map = array.add_map();
-    assert_equals(true, array.get(3).is_map());
-    assert_equals(true, array.get(3).as_map() == map);
+    auto map = array->add_map();
+    assert_equals(true, array->get(3)->is_map());
+    assert_equals(true, array->get(3)->as_map() == map);
 
-    LDDArrayView arr = array.add_array();
-    assert_equals(true, array.get(4).is_array());
-    assert_equals(true, array.get(4).as_array() == arr);
+    auto arr = array->add_array();
+    assert_equals(true, array->get(4)->is_array());
+    assert_equals(true, array->get(4)->as_array() == arr);
 
-    LDDValueView sdn1 = array.add_sdn("'123456'@CoolType");
-    assert_equals(true, array.get(5).is_typed_value());
-    assert_equals(true, array.get(5) == sdn1);
+    auto sdn1 = array->add_sdn("'123456'@CoolType");
+    assert_equals(true, array->get(5)->is_typed_value());
+    assert_equals(true, array->get(5) == sdn1);
 
-    LDDValueView sdn2 = array.add_sdn("CoolType");
-    assert_equals(true, array.get(6).is_type_decl());
-    assert_equals(true, array.get(6) == sdn2);
+    auto sdn2 = array->add_sdn("CoolType");
+    assert_equals(true, array->get(6)->is_type_decl());
+    assert_equals(true, array->get(6) == sdn2);
 
-    LDDValueView doc2 = array.add_document("{}");
-    assert_equals(true, array.get(7).is_map());
-    assert_equals(true, array.get(7) == doc2);
+    auto doc2 = array->add_document("{}");
+    assert_equals(true, array->get(7)->is_map());
+    assert_equals(true, array->get(7) == doc2);
 
-    array.add_null();
-    assert_equals(true, array.get(8).is_null());
+    array->add_null();
+    assert_equals(true, array->get(8)->is_null());
 
 
-    array.set_double(0, 555);
-    assert_equals(true, array.get(0).is_double());
-    assert_equals(555, array.get(0).as_double());
+    array->set_double(0, 555);
+    assert_equals(true, array->get(0)->is_double());
+    assert_equals(555, *array->get(0)->as_double());
 
     assert_throws<BoundsException>([&](){
-        array.set_double(10, 555);
+        array->set_double(10, 555);
     });
 
-    array.set_bigint(1, 555);
-    assert_equals(true, array.get(1).is_bigint());
-    assert_equals(555, array.get(1).as_bigint());
+    array->set_bigint(1, 555);
+    assert_equals(true, array->get(1)->is_bigint());
+    assert_equals(555, *array->get(1)->as_bigint());
 
     assert_throws<BoundsException>([&](){
-        array.set_bigint(10, 555);
+        array->set_bigint(10, 555);
     });
 
-    array.set_boolean(2, false);
-    assert_equals(true, array.get(2).is_boolean());
-    assert_equals(false, array.get(2).as_boolean());
+    array->set_boolean(2, false);
+    assert_equals(true, array->get(2)->is_boolean());
+    assert_equals(false, *array->get(2)->as_boolean());
 
     assert_throws<BoundsException>([&](){
-        array.set_boolean(10, false);
+        array->set_boolean(10, false);
     });
 
-    array.set_varchar(3, "Cool String");
-    assert_equals(true, array.get(3).is_varchar());
-    assert_equals("Cool String", array.get(3).as_varchar().view());
+    array->set_varchar(3, "Cool String");
+    assert_equals(true, array->get(3)->is_varchar());
+    assert_equals("Cool String", array->get(3)->as_varchar()->view());
 
     assert_throws<BoundsException>([&](){
-        array.set_varchar(10, "S0");
+        array->set_varchar(10, "S0");
     });
 
 
-    array.set_sdn(4, "{}");
-    assert_equals(true, array.get(4).is_map());
+    array->set_sdn(4, "{}");
+    assert_equals(true, array->get(4)->is_map());
     assert_throws<BoundsException>([&](){
-        array.set_sdn(10, "S0");
+        array->set_sdn(10, "S0");
     });
 
-    array.set_document(5, "[]");
-    assert_equals(true, array.get(5).is_array());
+    array->set_document(5, "[]");
+    assert_equals(true, array->get(5)->is_array());
     assert_throws<BoundsException>([&](){
-        array.set_document(10, "S0");
+        array->set_document(10, "S0");
     });
 
 });

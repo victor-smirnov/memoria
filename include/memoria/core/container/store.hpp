@@ -27,7 +27,7 @@
 #include <memoria/profiles/common/container_operations.hpp>
 
 #include <memoria/core/tools/result.hpp>
-#include <memoria/core/tools/object_pool.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 #include <memoria/core/tools/checks.hpp>
 
 #ifndef MMA_NO_REACTOR

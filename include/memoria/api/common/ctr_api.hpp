@@ -30,7 +30,7 @@
 
 #include <memoria/core/linked/document/linked_document.hpp>
 
-#include <memoria/core/tools/object_pool.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 
 namespace memoria {
 

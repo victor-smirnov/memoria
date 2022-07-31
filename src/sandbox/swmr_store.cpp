@@ -31,8 +31,8 @@ using namespace memoria;
 using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile>>;
 //using StorePtrT = AllocSharedPtr<IMemoryStore<CoreApiProfile>>;
 
-int main(void) {
 
+int main(void) {
 
     Seed(123456);
     SeedBI(123456);
@@ -45,14 +45,14 @@ int main(void) {
 //        auto store = std::make_shared<MemoryStoreOperation>(file);
 
 
-        store->set_remove_existing_file(false);
+        store->set_remove_existing_file(true);
 
         StoreTestBench<StorePtrT> bench(store);
 
 
-        bench.set_entries(1000000);
+        bench.set_entries(100000);
         bench.set_batch_size(1000);
-        //bench.set_check_epocs(true);
+        bench.set_check_epocs(true);
         bench.set_consistency_point(ConsistencyPoint::NO);
 
         bench.run_insertions();

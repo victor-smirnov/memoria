@@ -31,21 +31,21 @@
 
 namespace memoria {
 
-inline LDDArrayView LDDValueView::as_array() const {
+inline DTSharedPtr<LDDArrayView> LDDValueView::as_array() const {
     ld_::ldd_assert_tag<LDArray>(type_tag_);
-    return LDDArrayView(doc_, value_ptr_);
+    return DTSharedPtr<LDDArrayView>(LDDArrayView(doc_, value_ptr_), doc_->owner_);
 }
 
 
-inline LDDMapView LDDValueView::as_map() const {
+inline DTSharedPtr<LDDMapView> LDDValueView::as_map() const {
     ld_::ldd_assert_tag<LDMap>(type_tag_);
-    return LDDMapView(doc_, value_ptr_);
+    return DTSharedPtr<LDDMapView>(LDDMapView(doc_, value_ptr_), doc_->owner_);
 }
 
-inline LDDValueView LDDArrayView::get(size_t idx) const
+inline DTSharedPtr<LDDValueView> LDDArrayView::get(size_t idx) const
 {
     ld_::LDDPtrHolder ptr = array_.access_checked(idx);
-    return LDDValueView{doc_, ptr};
+    return DTSharedPtr<LDDValueView>(LDDValueView{doc_, ptr}, doc_->owner_);
 }
 
 inline void LDDArrayView::for_each(std::function<void(LDDValueView)> fn) const
@@ -73,21 +73,29 @@ inline bool LDDArrayView::is_simple_layout() const noexcept
 
 
 
-inline LDTypeDeclarationView LDDValueView::as_type_decl() const {
+inline DTSharedPtr<LDTypeDeclarationView> LDDValueView::as_type_decl() const {
     ld_::ldd_assert_tag<LDTypeDeclaration>(type_tag_);
-    return LDTypeDeclarationView(doc_, value_ptr_);
+    return DTSharedPtr<LDTypeDeclarationView>(
+        LDTypeDeclarationView(doc_, value_ptr_),
+        doc_->owner_
+    );
 }
 
-inline LDDTypedValueView LDDValueView::as_typed_value() const {
+inline DTSharedPtr<LDDTypedValueView> LDDValueView::as_typed_value() const {
     ld_::ldd_assert_tag<LDTypedValue>(type_tag_);
-    return LDDTypedValueView(doc_, value_ptr_);
+    return DTSharedPtr<LDDTypedValueView>(
+        LDDTypedValueView(doc_, value_ptr_), doc_->owner_
+    );
 }
 
 
 
 
-inline LDDValueView LDDocumentView::value() const noexcept {
-    return LDDValueView{const_cast<LDDocumentView*>(this), state()->value};
+inline DTSharedPtr<LDDValueView> LDDocumentView::value() const noexcept {
+    return DTSharedPtr<LDDValueView>(
+          LDDValueView{const_cast<LDDocumentView*>(this), state()->value},
+          owner_
+    );
 }
 
 

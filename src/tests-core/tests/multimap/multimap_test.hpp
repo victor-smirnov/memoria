@@ -160,7 +160,7 @@ public:
                 auto data_span = to_const_span(data[cntk].values).subspan(ss, len);
 
                 try {
-                    assert_equals(data_span, vv->values());
+                    assert_equals(data_span, vv->values().raw_span());
                 }
                 catch (...) {
                     throw;

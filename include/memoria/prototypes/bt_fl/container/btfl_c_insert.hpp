@@ -23,7 +23,7 @@
 #include <memoria/prototypes/bt_fl/btfl_tools.hpp>
 #include <memoria/prototypes/bt_fl/btfl_batch_input_provider.hpp>
 
-#include <memoria/core/tools/object_pool.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 
 #include <vector>
 

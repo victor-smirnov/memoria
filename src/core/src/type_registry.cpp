@@ -34,33 +34,33 @@ namespace memoria {
 
 AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
 {
-    LDDocument sdn_doc = LDDocument::parse(sdn_string);
+    auto sdn_doc = LDDocument::parse(sdn_string);
 
-    LDDValueView value = sdn_doc.value();
+    auto value = sdn_doc->value();
 
-    if (value.is_null()) {
+    if (value->is_null()) {
         return AnyDatum();
     }
     else
     {
         U8String typedecl;
-        if (value.is_varchar())
+        if (value->is_varchar())
         {
             typedecl = make_datatype_signature_string<Varchar>();
         }
-        else if (value.is_bigint()) {
+        else if (value->is_bigint()) {
             typedecl = make_datatype_signature_string<BigInt>();
         }
-        else if (value.is_double()) {
+        else if (value->is_double()) {
             typedecl = make_datatype_signature_string<Double>();
         }
-        else if (value.is_boolean()) {
+        else if (value->is_boolean()) {
             typedecl = make_datatype_signature_string<Boolean>();
         }
-        else if (value.is_typed_value())
+        else if (value->is_typed_value())
         {
-            LDDTypedValueView tv = value.as_typed_value();
-            typedecl = tv.type().to_standard_string();
+            auto tv = value->as_typed_value();
+            typedecl = tv->type()->to_standard_string();
         }
         else {
             MMA_THROW(RuntimeException())
@@ -74,7 +74,7 @@ AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
             auto& fn = std::get<1>(ii->second);
 
             if (fn) {
-                return fn(*this, sdn_doc);
+                return fn(*this, *sdn_doc);
             }
             else {
                 MMA_THROW(RuntimeException()) << format_ex("Value deserializer for {} is not registered", typedecl);

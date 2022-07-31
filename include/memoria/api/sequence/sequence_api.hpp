@@ -38,6 +38,7 @@ struct SequenceChunk: ChunkIteratorBase<SequenceChunk<AlphabetSize, Profile>, Pr
     using RunT = SSRLERun<BitsPerSymbol>;
     using SymbolT = typename RunT::SymbolT;
 
+    // FIXME: User owning span here
     virtual const Span<const RunT>& runs() const = 0;
     virtual SymbolT current_symbol() const = 0;
 

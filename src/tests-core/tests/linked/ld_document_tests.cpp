@@ -24,114 +24,114 @@ namespace memoria {
 namespace tests {
 
 auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "Document", [](auto& state){
-    LDDocument doc;
+    auto doc = LDDocument::make_new();
 
-    doc.set_double(12345.67);
-    assert_equals(true, doc.value().is_double());
-    assert_equals(12345.67, doc.value().as_double());
+    doc->set_double(12345.67);
+    assert_equals(true, doc->value()->is_double());
+    assert_equals(12345.67, *doc->value()->as_double());
     assert_throws<LDDInvalidCastException>([&](){
-        doc.value().as_bigint();
+        doc->value()->as_bigint();
     });
 
 
-    doc.set_varchar("Hello world");
-    assert_equals(true, doc.value().is_varchar());
-    assert_equals("Hello world", doc.value().as_varchar().view());
+    doc->set_varchar("Hello world");
+    assert_equals(true, doc->value()->is_varchar());
+    assert_equals("Hello world", doc->value()->as_varchar()->view());
 
     assert_throws<LDDInvalidCastException>([&](){
-        doc.value().as_double();
+        doc->value()->as_double();
     });
 
-    doc.set_bigint(123);
-    assert_equals(true, doc.value().is_bigint());
-    assert_equals(123, doc.value().as_bigint());
+    doc->set_bigint(123);
+    assert_equals(true, doc->value()->is_bigint());
+    assert_equals(123, *doc->value()->as_bigint());
 
     assert_throws<LDDInvalidCastException>([&](){
-        doc.value().as_double();
+        doc->value()->as_double();
     });
 
-    doc.set_boolean(1);
-    assert_equals(true, doc.value().is_boolean());
-    assert_equals(1, doc.value().as_boolean());
+    doc->set_boolean(1);
+    assert_equals(true, doc->value()->is_boolean());
+    assert_equals(1, *doc->value()->as_boolean());
 
     assert_throws<LDDInvalidCastException>([&](){
-        doc.value().as_double();
+        doc->value()->as_double();
     });
 
-    doc.set_sdn("12345");
-    assert_equals(true, doc.value().is_bigint());
-    assert_equals(12345, doc.value().as_bigint());
+    doc->set_sdn("12345");
+    assert_equals(true, doc->value()->is_bigint());
+    assert_equals(12345, *doc->value()->as_bigint());
 
-    doc.set_sdn("{}");
-    assert_equals(true, doc.value().is_map());
-    assert_equals(0, doc.value().as_map().size());
+    doc->set_sdn("{}");
+    assert_equals(true, doc->value()->is_map());
+    assert_equals(0, doc->value()->as_map()->size());
     assert_throws<LDDInvalidCastException>([&](){
-        doc.value().as_double();
+        doc->value()->as_double();
     });
 
-    doc.set_sdn("[]");
-    assert_equals(true, doc.value().is_array());
-    assert_equals(0, doc.value().as_array().size());
+    doc->set_sdn("[]");
+    assert_equals(true, doc->value()->is_array());
+    assert_equals(0, doc->value()->as_array()->size());
     assert_throws<LDDInvalidCastException>([&](){
-        doc.value().as_double();
+        doc->value()->as_double();
     });
 
-    doc.set_sdn("Decimal(1,2)");
-    assert_equals(true, doc.value().is_type_decl());
+    doc->set_sdn("Decimal(1,2)");
+    assert_equals(true, doc->value()->is_type_decl());
     assert_throws<LDDInvalidCastException>([&](){
-        doc.value().as_double();
+        doc->value()->as_double();
     });
 
-    doc.set_null();
-    assert_equals(true, doc.value().is_null());
+    doc->set_null();
+    assert_equals(true, doc->value()->is_null());
     assert_throws<LDDInvalidCastException>([&](){
-        doc.value().as_double();
+        doc->value()->as_double();
     });
 
-    doc.set_sdn("'123456.789'@CoolDecimalType(1,2)");
-    assert_equals(true, doc.value().is_typed_value());
+    doc->set_sdn("'123456.789'@CoolDecimalType(1,2)");
+    assert_equals(true, doc->value()->is_typed_value());
     assert_throws<LDDInvalidCastException>([&](){
-        doc.value().as_double();
+        doc->value()->as_double();
     });
 
 
-    LDDocumentView immutable_doc_view = doc.as_immutable_view();
+    auto immutable_doc_view = doc->as_immutable_view();
 
     assert_throws<RuntimeException>([&](){
-        immutable_doc_view.make_mutable();
+        immutable_doc_view->make_mutable();
     });
 
     assert_throws<RuntimeException>([&](){
-        immutable_doc_view.set_null();
+        immutable_doc_view->set_null();
     });
 
 
-    LDDocumentView doc_view = doc;
+    auto doc_view = doc->view();
 
     assert_no_throws<RuntimeException>([&](){
-        doc_view.make_mutable();
+        doc_view->make_mutable();
     });
 
-    assert_equals(true, doc_view.value().is_typed_value());
+    assert_equals(true, doc_view->value()->is_typed_value());
 
-    LDDocument doc2;
-    doc2.set_varchar("Hello World");
+    auto doc2 = LDDocument::make_new();
+    doc2->set_varchar("Hello World");
 
-    doc.set_document(doc2);
-    assert_equals(true, doc.value().is_varchar());
-    assert_equals("Hello World", doc.value().as_varchar().view());
+    doc->set_document(*doc2);
+    assert_equals(true, doc->value()->is_varchar());
+    assert_equals("Hello World", doc->value()->as_varchar()->view());
 
 
-    LDTypeDeclarationView type = doc.create_named_type("Type1", "CoolType2");
+    LDTypeDeclarationView type = doc->create_named_type("Type1", "CoolType2");
 
     assert_equals("CoolType2", type.name());
-    doc.set_sdn("'12345'@#Type1");
-    assert_equals(true, doc.value().is_typed_value());
-    LDDTypedValueView tval = doc.value().as_typed_value();
-    assert_equals(type, tval.type());
+    doc->set_sdn("'12345'@#Type1");
+    assert_equals(true, doc->value()->is_typed_value());
+    auto tval = doc->value()->as_typed_value();
+    assert_equals(type, *tval->type());
 
 
-    auto types = doc.named_types();
+    auto types = doc->named_types();
     assert_equals(1, types.size());
 });
 

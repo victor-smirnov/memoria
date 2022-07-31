@@ -148,8 +148,8 @@ int main(int argc, char** argv)
             if (map.count("reuse-config") && list_exists)
             {
                 std::string text = load_text_file(file_name);
-                LDDocument doc = LDDocument::parse(text);
-                std::cout << build_output_list(doc);
+                auto doc = LDDocument::parse(text);
+                std::cout << build_output_list(*doc);
             }
             else {
                 add_parser_clang_option("-Wno-everything");
@@ -174,10 +174,10 @@ int main(int argc, char** argv)
                     }
                 }
 
-                LDDocument doc = project->dry_run();
-                write_text_file(file_name, doc.to_pretty_string());
+                auto doc = project->dry_run();
+                write_text_file(file_name, doc->to_pretty_string());
 
-                std::cout << build_output_list(doc);
+                std::cout << build_output_list(*doc);
             }
         }
         else if (map.count("reuse-config") && list_exists) {
@@ -206,8 +206,8 @@ int main(int argc, char** argv)
             }
 
             println("Generating reusable configuration");
-            LDDocument doc = project->dry_run();
-            write_text_file(file_name, doc.to_pretty_string());
+            auto doc = project->dry_run();
+            write_text_file(file_name, doc->to_pretty_string());
 
             println("Generating artifacts");
             project->generate_artifacts();

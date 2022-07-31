@@ -22,33 +22,33 @@ namespace tests {
 
 
 auto ld_document_compaction_test = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "DocumentCompaction", [](auto& state){
-    LDDocument doc;
+    auto doc = LDDocument::make_new();
 
-    LDDMapView map = doc.set_map();
+    auto map = doc->set_map();
 
     size_t size = 100000;
 
     for (size_t c = 0; c < size; c++)
     {
         U8String key = "Entry" + std::to_string(c);
-        map.set_varchar(key, std::to_string(c));
+        map->set_varchar(key, std::to_string(c));
     }
 
-    assert_equals(size, map.size());
+    assert_equals(size, map->size());
 
-    LDDocument doc2 = doc.compactify();
-    map = doc2.value().as_map();
+    auto doc2 = doc->compactify();
+    map = doc2->value()->as_map();
 
-    assert_equals(size, map.size());
+    assert_equals(size, map->size());
 
     for (size_t c = 0; c < size; c++)
     {
         U8String key = "Entry" + std::to_string(c);
-        auto vv = map.get(key);
+        auto vv = map->get(key);
         assert_equals(true, (bool)vv);
 
         U8String value = std::to_string(c);
-        assert_equals(value, vv.get().as_varchar().view());
+        assert_equals(value, vv->as_varchar()->view());
     }
 
 });

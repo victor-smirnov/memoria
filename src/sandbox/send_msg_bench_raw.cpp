@@ -6,7 +6,7 @@
 //#include <rigtorp/MPMCQueue.h>
 
 #include <boost/pool/object_pool.hpp>
-#include <memoria/core/tools/object_pool.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 #include <boost/smart_ptr.hpp>
 
 #include <thread>

@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/core/tools/object_pool.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/core/container/ctr_referenceable.hpp>
 

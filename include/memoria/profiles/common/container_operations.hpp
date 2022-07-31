@@ -23,7 +23,7 @@
 #include <memoria/core/tools/platform.hpp>
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/tools/checks.hpp>
-#include <memoria/core/tools/object_pool.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 #include <memoria/core/memory/memory.hpp>
 #include <memoria/core/container/ctr_referenceable.hpp>
 

@@ -53,24 +53,24 @@ U8String VarcharStorage::to_sdn_string() const
 template <>
 Datum<Varchar> Datum<Varchar>::from_sdn(const LDDocument& sdn_doc)
 {
-    LDDValueView value = sdn_doc.value();
-    if (value.is_varchar()) {
-        return Datum<Varchar>(value.as_varchar().view());
+    auto value = sdn_doc.value();
+    if (value->is_varchar()) {
+        return Datum<Varchar>(value->as_varchar()->view());
     }
-    else if (value.is_double()) {
-        return Datum<Varchar>(std::to_string(value.as_double()));
+    else if (value->is_double()) {
+        return Datum<Varchar>(std::to_string(value->as_double()));
     }
-    else if (value.is_bigint()) {
-        return Datum<Varchar>(std::to_string(value.as_bigint()));
+    else if (value->is_bigint()) {
+        return Datum<Varchar>(std::to_string(value->as_bigint()));
     }
 
-    else if (value.is_boolean()) {
-        return Datum<Varchar>(value.as_boolean() ? "true" : "false");
+    else if (value->is_boolean()) {
+        return Datum<Varchar>(value->as_boolean() ? "true" : "false");
     }
 
     MMA_THROW(RuntimeException())
                 << format_ex(
-                       "Unsupported data type requested: {}", value.to_standard_string()
+                       "Unsupported data type requested: {}", value->to_standard_string()
                        );
 
 }

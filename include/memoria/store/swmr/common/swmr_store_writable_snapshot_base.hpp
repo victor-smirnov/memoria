@@ -617,16 +617,16 @@ public:
 
         uint64_t pos = (allocation.position() << SUPERBLOCK_ALLOCATION_LEVEL) * BASIC_BLOCK_SIZE;
 
-        LDDocument meta;
-        LDDMapView map = meta.set_map();
-        map.set_varchar("branch_name", snapshot_descriptor_->branch());
+        auto meta = LDDocument::make_new();
+        auto map = meta->set_map();
+        map->set_varchar("branch_name", snapshot_descriptor_->branch());
 
         auto superblock = new_superblock(pos);
         if (parent_sb) {
-            superblock->init_from(*parent_sb, pos, snapshot_id, meta);
+            superblock->init_from(*parent_sb, pos, snapshot_id, *meta);
         }
         else {
-            superblock->init(pos, file_size, snapshot_id, SUPERBLOCK_SIZE, 1, 1, meta);
+            superblock->init(pos, file_size, snapshot_id, SUPERBLOCK_SIZE, 1, 1, *meta);
         }
         superblock->build_superblock_description();
 

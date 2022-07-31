@@ -46,19 +46,19 @@ bool LDDValueView::is_simple_layout() const noexcept
     }
 
     if (is_map()) {
-        return as_map().is_simple_layout();
+        return as_map()->is_simple_layout();
     }
 
     if (is_array()) {
-        return as_array().is_simple_layout();
+        return as_array()->is_simple_layout();
     }
 
     if (is_type_decl()) {
-        return as_type_decl().is_simple_layout();
+        return as_type_decl()->is_simple_layout();
     }
 
     if (is_typed_value()) {
-        return as_typed_value().is_simple_layout();
+        return as_typed_value()->is_simple_layout();
     }
 
     return false;
@@ -92,22 +92,22 @@ std::ostream& operator<<(std::ostream& out, const LDStringView& value) {
 }
 
 
-LDDocument LDDValueView::clone(bool compactify) const
+PoolSharedPtr<LDDocument> LDDValueView::clone(bool compactify) const
 {
-    LDDocument tgt;
+    PoolSharedPtr<LDDocument> tgt = LDDocument::make_new();
     ld_::LDArenaAddressMapping mapping(*doc_);
 
-    LDDValueView tgt_value(&tgt, deep_copy_to(&tgt, mapping));
-    tgt.set_doc_value(tgt_value);
+    LDDValueView tgt_value(tgt.get(), deep_copy_to(tgt.get(), mapping));
+    tgt->set_doc_value(tgt_value);
 
     if (compactify) {
-        tgt.compactify();
+        return tgt->compactify();
     }
 
     return tgt;
 }
 
-LDDocument LDStringView::clone(bool compactify) const {
+PoolSharedPtr<LDDocument> LDStringView::clone(bool compactify) const {
     LDDValueView vv = *this;
     return vv.clone(compactify);
 }
@@ -140,8 +140,8 @@ bool find_value(LDDValueView& res, U8StringView path_str)
         {
             if (step == "$") {
                 if (res.is_typed_value()) {
-                    auto res2 = res.as_typed_value().constructor();
-                    res = std::move(res2);
+                    auto res2 = res.as_typed_value()->constructor();
+                    res = std::move(*res2);
                 }
                 else {
                     MEMORIA_MAKE_GENERIC_ERROR("Value has invalid type for step {} in path expression '{}'", c, step).do_throw();
@@ -149,12 +149,12 @@ bool find_value(LDDValueView& res, U8StringView path_str)
             }
             else if (res.is_map())
             {
-                auto res2 = res.as_map().get(step);
+                auto res2 = res.as_map()->get(step);
                 if (!res2) {
                     return false;
                 }
                 else {
-                    res = std::move(res2.get());
+                    res = std::move(*res2);
                 }
             }
             else {
@@ -169,8 +169,8 @@ bool find_value(LDDValueView& res, U8StringView path_str)
     return true;
 }
 
-LDDValueView get_value(LDDValueView src, U8StringView path) {
-    if (find_value(src, path)) {
+DTSharedPtr<LDDValueView> get_value(DTSharedPtr<LDDValueView> src, U8StringView path) {
+    if (find_value(*src, path)) {
         return src;
     }
     else {

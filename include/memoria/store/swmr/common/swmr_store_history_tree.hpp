@@ -357,13 +357,13 @@ public:
 
             auto superblock = superblock_fn_(meta.superblock_file_pos());
 
-            LDDocumentView doc = superblock->metadata_doc();
-            LDDMapView map = doc.value().as_map();
+            auto doc = superblock->metadata_doc();
+            auto map = doc->value()->as_map();
 
             U8String branch_name;
-            auto bname_opt = map.get("branch_name");
+            auto bname_opt = map->get("branch_name");
             if (bname_opt) {
-                branch_name = bname_opt.get().as_varchar().view();
+                branch_name = bname_opt->as_varchar()->view();
             }
             else {
                 branch_name = "";

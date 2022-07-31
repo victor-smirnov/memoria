@@ -36,14 +36,20 @@ public:
         doc_(doc), state_(state)
     {}
 
-    LDTypeDeclarationView type() const
+    DTSharedPtr<LDTypeDeclarationView> type() const
     {
-        return LDTypeDeclarationView{doc_, state()->type_decl};
+        return DTSharedPtr<LDTypeDeclarationView>(
+            LDTypeDeclarationView{doc_, state()->type_decl},
+            doc_->owner_
+        );
     }
 
-    LDDValueView constructor() const
+    DTSharedPtr<LDDValueView> constructor() const
     {
-        return LDTypeDeclarationView{doc_, state()->value_ptr};
+        return DTSharedPtr<LDDValueView>(
+            LDTypeDeclarationView{doc_, state()->value_ptr},
+            doc_->owner_
+        );
     }
 
     operator LDDValueView() const {
@@ -69,7 +75,7 @@ public:
 
     bool is_simple_layout() const noexcept
     {
-        return type().is_simple_layout() && constructor().is_simple_layout();
+        return type()->is_simple_layout() && constructor()->is_simple_layout();
     }
 
     ld_::LDPtr<State> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
@@ -91,6 +97,12 @@ struct DataTypeTraits<LDTypedValue> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
     using LDViewType = LDDTypedValueView;
+
+    using SharedPtrT = DTSharedPtr<LDViewType>;
+    using ConstSharedPtrT = DTConstSharedPtr<LDViewType>;
+
+    using SpanT = DTViewSpan<LDViewType, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<LDViewType, ConstSharedPtrT>;
 
     static void create_signature(SBuf& buf) {
         buf << "LDTypedValue";

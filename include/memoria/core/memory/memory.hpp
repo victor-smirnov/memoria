@@ -18,7 +18,7 @@
 #include <memoria/core/memory/smart_ptrs.hpp>
 
 #include <memoria/core/tools/result.hpp>
-#include <memoria/core/tools/object_pool.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 
 #include <memory>
 

@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@
 #include <memoria/core/types/typehash.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
+
+#include <memoria/core/datatypes/datatype_ptrs.hpp>
 
 #include <iostream>
 #include <functional>
@@ -71,7 +73,8 @@ protected:
     using DocumentPtr   = ld_::LDPtr<DocumentState>;
 
     ld_::LDArenaView arena_;
-protected:
+    DTViewHolder* owner_{};
+
     friend class LDDocumentBuilder;
     friend class LDDMapView;
     friend class LDDArrayView;
@@ -101,12 +104,21 @@ protected:
     template <typename>
     friend struct DataTypeTraits;
 
+    template <typename> friend class OwningViewCfg;
+
+protected:
+    void configure_resource_owner(DTViewHolder* owner) {
+        owner_ = owner;
+    }
+
 public:
     LDDocumentView(): arena_() {}
     LDDocumentView(ld_::LDArenaView arena) noexcept: arena_(arena) {}
     LDDocumentView(Span<const AtomType> span) noexcept:
         arena_(span)
     {}
+
+    virtual ~LDDocumentView() noexcept = default;
 
     Span<const AtomType> span() const noexcept {
         return arena_.span();
@@ -122,7 +134,7 @@ public:
     LDDocumentView& operator=(const LDDocumentView&) noexcept = default;
     LDDocumentView& operator=(LDDocumentView&&) noexcept = default;
 
-    LDDocumentView as_immutable_view() const noexcept
+    DTSharedPtr<LDDocumentView> as_immutable_view() const noexcept
     {
         LDDocumentView view = *this;
         view.arena_.clear_arena_ptr();
@@ -132,16 +144,16 @@ public:
             terminate(format_u8("Invalid LDDocumentview!").data());
         }
 
-        return view;
+        return DTSharedPtr<LDDocumentView>(view, owner_);
     }
 
-    LDDocument clone();
+    PoolSharedPtr<LDDocument> clone();
 
     bool equals(const LDDocumentView* other) const noexcept {
         return arena_.data() == other->arena_.data();
     }
 
-    LDDValueView value() const noexcept;
+    DTSharedPtr<LDDValueView> value() const noexcept;
 
     void set_varchar(U8StringView string);
     void set_bigint(int64_t value);
@@ -151,21 +163,24 @@ public:
 
     void set_document(const LDDocumentView& other);
 
-    LDDMapView set_map();
-    LDDArrayView set_array();
+    DTSharedPtr<LDDMapView> set_map();
+    DTSharedPtr<LDDArrayView> set_array();
 
     template <typename T, typename... Args>
-    DTTLDViewType<T> set_value(Args&&... args)
+    DTSharedPtr<DTTLDViewType<T>> set_value(Args&&... args)
     {
         auto value_ptr = LDStorageAllocator<T>::allocate_and_construct(arena_.make_mutable(), std::forward<Args>(args)...);
         set_tag(value_ptr.get(), ld_tag_value<T>());
         state_mutable()->value = value_ptr;
 
         using LDViewType = DTTLDViewType<T>;
-        return LDViewType{this, value_ptr, ld_tag_value<T>()};
+        return DTSharedPtr<DTTLDViewType<T>>(
+                LDViewType{this, value_ptr, ld_tag_value<T>()},
+                owner_
+        );
     }
 
-    LDDValueView set_sdn(U8StringView sdn);
+    DTSharedPtr<LDDValueView> set_sdn(U8StringView sdn);
 
     LDDocumentView* make_mutable() const
     {
@@ -329,10 +344,11 @@ protected:
 };
 
 
-class LDDocument: public LDDocumentView {
+class LDDocument: public LDDocumentView, public pool::enable_shared_from_this<LDDocument> {
     ld_::LDArena ld_arena_;
 
     using LDDocumentView::arena_;
+    DTViewHolder view_holder_;
 
     friend class LDDArrayView;
     friend class LDDMapView;
@@ -340,6 +356,11 @@ class LDDocument: public LDDocumentView {
     friend class LDDTypedValueView;
 
     static constexpr size_t INITIAL_ARENA_SIZE = sizeof(LDDocumentHeader) + sizeof(DocumentState) + 16;
+
+    virtual void configure_refholder(pool::detail::ObjectPoolRefHolder* owner) {
+        view_holder_.set_owner(owner);
+        this->owner_ = &view_holder_;
+    }
 
 public:
     LDDocument():
@@ -368,44 +389,47 @@ public:
     LDDocument& operator=(const LDDocument&) = delete;
     LDDocument& operator=(LDDocument&&);
 
-    LDDocument compactify() const ;
+    DTSharedPtr<LDDocumentView> view();
+
+    PoolSharedPtr<LDDocument> compactify() const ;
 
     void clear();
     void reset();
 
-    static LDDocument parse(U8StringView view) {
+    static PoolSharedPtr<LDDocument> make_new() {
+        return TL_allocate_shared<LDDocument>();
+    }
+
+    static PoolSharedPtr<LDDocument> parse(U8StringView view) {
         return parse(view.begin(), view.end());
     }
 
-    static LDDocument parse(
+    static PoolSharedPtr<LDDocument> parse(
             CharIterator start,
             CharIterator end,
             const SDNParserConfiguration& cfg = SDNParserConfiguration{}
     );
 
-    static LDDocument parse_type_decl(
+    static PoolSharedPtr<LDDocument> parse_type_decl(
             U8StringView view,
             const SDNParserConfiguration& cfg = SDNParserConfiguration{}
     ) {
         return parse_type_decl(view.begin(), view.end());
     }
 
-    static LDDocument parse_type_decl(
+    static PoolSharedPtr<LDDocument> parse_type_decl(
             CharIterator start,
             CharIterator end,
             const SDNParserConfiguration& cfg = SDNParserConfiguration{}
     );
 
-
-
-
-    static LDDocument parse_type_decl_qi(
+    static PoolSharedPtr<LDDocument> parse_type_decl_qi(
             CharIterator start,
             CharIterator end,
             const SDNParserConfiguration& cfg = SDNParserConfiguration{}
     );
 
-    static LDDocument parse_type_decl_qi(
+    static PoolSharedPtr<LDDocument> parse_type_decl_qi(
             U8StringView view,
             const SDNParserConfiguration& cfg = SDNParserConfiguration{}
     ) {

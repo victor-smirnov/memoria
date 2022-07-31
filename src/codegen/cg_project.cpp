@@ -18,6 +18,7 @@
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/regexp/icu_regexp.hpp>
+#include <memoria/core/memory/memory.hpp>
 
 #include <codegen.hpp>
 #include <codegen_ast_tools.hpp>
@@ -77,7 +78,7 @@ class ProjectImpl: public Project, public std::enable_shared_from_this<ProjectIm
     std::vector<ShPtr<TypeFactory>> type_factories_;
     std::unordered_map<U8String, ShPtr<FileGenerator>> file_generators_;
 
-    LDDocument config_;
+    PoolSharedPtr<LDDocument> config_;
 
     friend class ConfigVisitor;
 
@@ -98,7 +99,7 @@ public:
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return get_value(config_.value(), sdn_path).as_varchar().view();
+        return get_value(config_->value(), sdn_path)->as_varchar()->view();
     }
 
     void parse_configuration() override
@@ -126,19 +127,19 @@ public:
         ConfigVisitor visitor(*this);
         visitor.TraverseAST(config_unit_->ast_unit().getASTContext());
 
-        auto profiles = config_map().get("profiles");
+        auto profiles = config_map()->get("profiles");
         if (profiles)
         {
-            auto map = profiles.get().as_map();
-            map.for_each([&](auto profile_name, auto value){
+            auto map = profiles->as_map();
+            map->for_each([&](auto profile_name, auto value){
                 profiles_.insert(profile_name);
 
                 if (value.is_map()) {
-                    LDDMapView map = value.as_map();
-                    auto enabled = map.get("enabled");
-                    if (enabled.is_initialized() && enabled.get().is_boolean())
+                    auto map = value.as_map();
+                    auto enabled = map->get("enabled");
+                    if (enabled && enabled->is_boolean())
                     {
-                        if (enabled.get().as_boolean())
+                        if (enabled->as_boolean())
                         {
                             enabled_profiles_.insert(profile_name);
                         }
@@ -156,14 +157,14 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("No profiles are defined for this configuration").do_throw();
         }
 
-        for_each_value(config_.value(), [&](const std::vector<U8String>& path, LDDValueView value) -> bool {
+        for_each_value(*config_->value(), [&](const std::vector<U8String>& path, LDDValueView value) -> bool {
             if (value.is_typed_value())
             {
-                LDDTypedValueView tvv = value.as_typed_value();
-                if (tvv.type().name() == "FileGenerator")
+                auto tvv = value.as_typed_value();
+                if (tvv->type()->name() == "FileGenerator")
                 {
                     U8String full_path = join_sdn_path(path);
-                    LDDocument cfg = value.clone();
+                    auto cfg = value.clone();
 
                     file_generators_[full_path] = FileGenerator::create(self(), full_path, std::move(cfg));
                     return false;
@@ -217,37 +218,37 @@ public:
 
 
 
-    LDDocument dry_run()  override
+    PoolSharedPtr<LDDocument> dry_run()  override
     {
-        LDDocument doc;
-        LDDMapView map = doc.set_map();
+        PoolSharedPtr<LDDocument> doc = LDDocument::make_new();
+        auto map = doc->set_map();
 
-        LDDArrayView profiles = get_or_add_array(map, "active_profiles");
+        auto profiles = get_or_add_array(*map, "active_profiles");
 
         for (const auto& profile: enabled_profiles_) {
-            profiles.add_varchar(profile);
+            profiles->add_varchar(profile);
         }
 
-        LDDArrayView byproducts = get_or_add_array(map, "byproducts");
+        auto byproducts = get_or_add_array(*map, "byproducts");
 
         U8String file_path = project_output_folder_ + "/" + codegen_config_file_name_;
 
-        byproducts.add_varchar(file_path);
-        byproducts.add_varchar(file_path + ".pch");
+        byproducts->add_varchar(file_path);
+        byproducts->add_varchar(file_path + ".pch");
 
         for (auto& tf: type_factories_)
         {
-            tf->dry_run(map);
+            tf->dry_run(*map);
         }
 
         for (auto& ti: type_instances_)
         {
-            ti->dry_run(map);
+            ti->dry_run(*map);
         }
 
         for (auto& tg: file_generators_)
         {
-            tg.second->dry_run(map);
+            tg.second->dry_run(*map);
         }
 
         return std::move(doc);
@@ -302,12 +303,12 @@ public:
         return config_unit_;
     }
 
-    LDDocumentView config() const noexcept override {
-        return config_.as_immutable_view();
+    DTSharedPtr<LDDocumentView> config() const noexcept override {
+        return config_->as_immutable_view();
     }
 
-    LDDMapView config_map() const override {
-        return config_.value().as_typed_value().constructor().as_map();
+    DTSharedPtr<LDDMapView> config_map() const override {
+        return config_->value()->as_typed_value()->constructor()->as_map();
     }
 
     std::vector<U8String> profiles() const override
@@ -335,12 +336,12 @@ public:
     std::vector<U8String> profile_includes(const U8String& profile) const override
     {
         U8String path = U8String("$/profiles/") + profile + "/includes";
-        LDDArrayView ii = get_value(config_.value(), path).as_array();
+        auto ii = get_value(config_->value(), path)->as_array();
 
         std::vector<U8String> incs;
 
-        ii.for_each([&](auto value){
-            incs.push_back(value.as_varchar().view());
+        ii->for_each([&](auto value){
+            incs.push_back(value.as_varchar()->view());
         });
 
         return incs;
@@ -473,13 +474,13 @@ void for_each_value(std::vector<U8String>& path, LDDValueView elem, const std::f
     {
         if (elem.is_typed_value()) {
             path.push_back("$");
-            LDDValueView next = elem.as_typed_value().constructor();
-            for_each_value(path, next, consumer);
+            auto next = elem.as_typed_value()->constructor();
+            for_each_value(path, *next, consumer);
             path.pop_back();
         }
         else if (elem.is_map()) {
-            LDDMapView map = elem.as_map();
-            map.for_each([&](auto key, auto value) {
+            auto map = elem.as_map();
+            map->for_each([&](auto key, auto value) {
                 path.push_back(key);
                 for_each_value(path, value, consumer);
                 path.pop_back();
@@ -495,12 +496,12 @@ void for_each_value(LDDValueView elem, const std::function<bool(const std::vecto
 }
 
 
-LDDArrayView get_or_add_array(LDDMapView map, const U8String& name)
+DTSharedPtr<LDDArrayView> get_or_add_array(LDDMapView map, const U8String& name)
 {
     auto res = map.get(name);
 
-    if (res.is_initialized()) {
-        return res.get().as_array();
+    if (res) {
+        return res->as_array();
     }
 
     return map.set_array(name);
@@ -512,16 +513,16 @@ std::string build_output_list(const LDDocumentView& doc)
     std::stringstream ss;
     std::vector<U8String> files;
 
-    if (doc.value().is_map())
+    if (doc.value()->is_map())
     {
-        LDDMapView mm = doc.value().as_map();
-        auto byproducts = mm.get("byproducts");
-        if (byproducts.is_initialized()) {
-            if (byproducts.get().is_array())
+        auto mm = doc.value()->as_map();
+        auto byproducts = mm->get("byproducts");
+        if (byproducts) {
+            if (byproducts->is_array())
             {
-                LDDArrayView arr = byproducts.get().as_array();
-                for (size_t c = 0; c < arr.size(); c++) {
-                    files.push_back(U8String("BYPRODUCT:") + arr.get(c).as_varchar().view());
+                auto arr = byproducts->as_array();
+                for (size_t c = 0; c < arr->size(); c++) {
+                    files.push_back(U8String("BYPRODUCT:") + arr->get(c)->as_varchar()->view());
                 }
             }
             else {
@@ -529,13 +530,13 @@ std::string build_output_list(const LDDocumentView& doc)
             }
         }
 
-        auto sources = mm.get("sources");
-        if (sources.is_initialized()) {
-            if (sources.get().is_array())
+        auto sources = mm->get("sources");
+        if (sources) {
+            if (sources->is_array())
             {
-                LDDArrayView arr = sources.get().as_array();
-                for (size_t c = 0; c < arr.size(); c++) {
-                    files.push_back(U8String("SOURCE:") + arr.get(c).as_varchar().view());
+                auto arr = sources->as_array();
+                for (size_t c = 0; c < arr->size(); c++) {
+                    files.push_back(U8String("SOURCE:") + arr->get(c)->as_varchar()->view());
                 }
             }
             else {
@@ -543,13 +544,13 @@ std::string build_output_list(const LDDocumentView& doc)
             }
         }
 
-        auto profiles = mm.get("active_profiles");
-        if (profiles.is_initialized()) {
-            if (profiles.get().is_array())
+        auto profiles = mm->get("active_profiles");
+        if (profiles) {
+            if (profiles->is_array())
             {
-                LDDArrayView arr = profiles.get().as_array();
-                for (size_t c = 0; c < arr.size(); c++) {
-                    files.push_back(U8String("PROFILE:") + arr.get(c).as_varchar().view());
+                auto arr = profiles->as_array();
+                for (size_t c = 0; c < arr->size(); c++) {
+                    files.push_back(U8String("PROFILE:") + arr->get(c)->as_varchar()->view());
                 }
             }
             else {

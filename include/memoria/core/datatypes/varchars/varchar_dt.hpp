@@ -46,8 +46,14 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
     using LDStorageType = LinkedString<typename U8StringView::value_type>;
     using LDViewType    = LDStringView;
 
-
     using DatumStorage  = VarcharStorage;
+
+    using SharedPtrT = DTSharedPtr<ViewType>;
+    using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
+
+    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
+
 
     static constexpr bool isDataType          = true;
     static constexpr bool HasTypeConstructors = false;

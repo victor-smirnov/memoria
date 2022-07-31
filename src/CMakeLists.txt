@@ -62,7 +62,9 @@ include_directories(containers/generated)
 find_package(Clang CONFIG REQUIRED)
 
 
-SET (MMA_CLANG_INCLUDES_DIR ${CLANG_INCLUDE_DIRS} )
+SET (MMA_CLANG_INCLUDES_DIR ${CLANG_INCLUDE_DIRS})
+
+message("################################### ${CLANG_INCLUDE_DIRS} ####################")
 
 if (BUILD_EXTRA_CONTAINERS)
     set(BUILD_EXTRA_CONTAINERS_OPT "MEMORIA_BUILD_EXTRA_CONTAINERS")
@@ -97,6 +99,7 @@ execute_process(
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${Boost_INCLUDE_DIRS}
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
+        -I /home/victor/cxx/vcpkg-upstream/packages/llvm_x64-linux/debug/tools/llvm/lib/clang/13.0.0/include
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
         ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
@@ -197,6 +200,8 @@ endif()
 
 message ("Reusing codegen config is ${REUSE_GENERATED_SOURCES}")
 
+add_compile_options()
+
 add_custom_command(
     IMPLICIT_DEPENDS C++ ../codegen/include/codegen_memoria.hpp
     OUTPUT ${GENERATED_MAIN_SOURCES} ${GENERATED_STORE_SOURCES}
@@ -209,6 +214,7 @@ add_custom_command(
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${Boost_INCLUDE_DIRS}
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
+        -I /home/victor/cxx/vcpkg-upstream/packages/llvm_x64-linux/debug/tools/llvm/lib/clang/13.0.0/include
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
         ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile

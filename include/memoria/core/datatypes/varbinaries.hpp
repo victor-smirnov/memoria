@@ -35,6 +35,12 @@ struct DataTypeTraits<Varbinary>: DataTypeTraitsBase<Varbinary>
     static constexpr bool isDataType          = true;
     static constexpr bool HasTypeConstructors = false;
 
+    using SharedPtrT = DTSharedPtr<ViewType>;
+    using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
+
+    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
+
     static void create_signature(SBuf& buf, const Varchar& obj)
     {
         buf << "Varbinary";

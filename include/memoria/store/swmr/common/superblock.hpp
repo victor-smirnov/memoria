@@ -282,12 +282,12 @@ public:
         init_metadata(meta);
     }
 
-    LDDocumentView cmetadata_doc() const  {
-        return LDDocumentView{metadata()};
+    PoolSharedPtr<LDDocument> cmetadata_doc() const  {
+        return LDDocumentView{metadata()}.clone();
     }
 
-    LDDocumentView metadata_doc()  {
-        return LDDocumentView{metadata()};
+    PoolSharedPtr<LDDocument> metadata_doc()  {
+        return LDDocumentView{metadata()}.clone();
     }
 
     void set_metadata_doc(LDDocumentView view) {

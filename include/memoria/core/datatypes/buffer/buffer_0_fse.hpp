@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 
 
 #include <memoria/core/datatypes/buffer/buffer_common.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 
+#include <memoria/core/datatypes/datatype_ptrs.hpp>
 
 namespace memoria {
 
@@ -29,7 +31,16 @@ class DataTypeBuffer<
             TL<>,
             TL<const ValueType*>
         >
-> {
+>: public pool::enable_shared_from_this<
+    DataTypeBuffer<
+        DataTypeT,
+        SparseObjectAdapterDescriptor<
+            true,
+            TL<>,
+            TL<const ValueType*>
+        >
+    >
+>{
     using TypeDimensionsTuple = std::tuple<>;
     using DataDimensionsTuple = AsTuple<TL<const ValueType*>>;
     using Builder = FixedSizeSparseObjectBuilder<DataTypeT, DataTypeBuffer>;
@@ -37,6 +48,13 @@ class DataTypeBuffer<
     ArenaBuffer<ValueType> arena_;
 
     Builder builder_;
+
+    mutable DTViewHolder view_holder_;
+
+protected:
+    virtual void configure_refholder(pool::detail::ObjectPoolRefHolder* owner) {
+        view_holder_.set_owner(owner);
+    }
 
 public:
     using DataType = DataTypeT;
@@ -67,6 +85,10 @@ public:
         arena_.reset();
     }
 
+    void reset_state() {
+        clear();
+    }
+
     size_t size() const {
         return arena_.size();
     }
@@ -83,8 +105,33 @@ public:
         return arena_.append_values(value);
     }
 
+    bool append(DTTConstSpan<DataType> span)
+    {
+        bool resized = false;
+        for (size_t c = 0; c < span.size(); c++) {
+            resized = append(*span[c]) || resized;
+        }
+        return resized;
+    }
+
     const ValueType& operator[](size_t idx) const {
         return arena_[idx];
+    }
+
+
+    DTTConstSpan<DataType> dt_span() const
+    {
+        return DTTConstSpan<DataType>(arena_.span(), &view_holder_);
+    }
+
+    DTTConstSpan<DataType> dt_span(size_t from) const
+    {
+        return DTTConstSpan<DataType>(arena_.span(from), &view_holder_);
+    }
+
+    DTTConstSpan<DataType> dt_span(size_t from, size_t length) const
+    {
+        return DTTConstSpan<DataType>(arena_.span(from, length), &view_holder_);
     }
 
     Span<const ValueType> span() const {

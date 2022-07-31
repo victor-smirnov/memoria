@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/integer/accumulator_common.hpp>
 
+#include <memoria/core/memory/object_pool.hpp>
 
 namespace memoria {
 
@@ -77,9 +78,32 @@ using DTTTypeDimensionsTuple = typename DataTypeTraits<T>::TypeDimensionsTuple;
 template <typename T>
 using DTTDataDimensionsTuple = typename DataTypeTraits<T>::DataDimensionsTuple;
 
-
 template <typename T>
 using DTTLDStorageType = typename DataTypeTraits<T>::LDStorageType;
+
+
+template <typename T>
+using DTTPtr = typename DataTypeTraits<T>::SharedPtrT;
+
+template <typename T>
+using DTTConstPtr = typename DataTypeTraits<T>::ConstSharedPtrT;
+
+template <typename T>
+using DTTSpan = typename DataTypeTraits<T>::SpanT;
+
+template <typename T>
+using DTTConstSpan = typename DataTypeTraits<T>::ConstSpanT;
+
+
+
+
+template <typename ViewT> class DTSharedPtr;
+template <typename ViewT> class DTConstSharedPtr;
+
+template <typename ViewT> class DTFxdValueWrapper;
+
+template <typename ViewT, typename PtrT> class DTViewSpan;
+template <typename ViewT, typename PtrT> class DTConstViewSpan;
 
 
 template <typename T>
@@ -159,7 +183,7 @@ struct FixedSizeDataTypeTag {};
 template <typename T, typename DataType>
 struct MinimalDataTypeTraits: DataTypeTraitsBase<DataType>
 {
-    using ViewType      = T;
+    using ViewType = T;
 
     static constexpr bool HasTypeConstructors = false;
 
@@ -170,6 +194,12 @@ struct MinimalDataTypeTraits: DataTypeTraitsBase<DataType>
 
     using DataDimensionsList  = TL<const T*>;
     using DataDimensionsTuple = AsTuple<DataDimensionsList>;
+
+    using SharedPtrT = DTSharedPtr<ViewType>;
+    using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
+
+    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
 
     static void create_signature(SBuf& buf, DataType obj) {
         PrimitiveDataTypeName<DataType>::create_signature(buf, obj);
@@ -208,6 +238,12 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
     using DatumSelector = FixedSizeDataTypeTag;
 
     using MakeLDViewSelector = LDFxSizeValueViewSelector;
+
+    using SharedPtrT = DTFxdValueWrapper<ViewType>;
+    using ConstSharedPtrT = DTFxdValueWrapper<ViewType>;
+
+    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
 
     static TypeDimensionsTuple describe_type(const DataType& data_type) {
         return TypeDimensionsTuple{};
@@ -393,6 +429,15 @@ struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
     static constexpr bool HasTypeConstructors = true;
     static constexpr bool Arithmetic = true;
 
+
+    using ViewType = EmptyType; // Probably, hasn't been defined yet
+
+    using SharedPtrT = DTSharedPtr<ViewType>;
+    using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
+
+    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
+
     static void create_signature(SBuf& buf, const Decimal& obj)
     {
         buf << "Decimal";
@@ -421,6 +466,16 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
     static constexpr bool HasTypeConstructors = true;
     static constexpr bool Arithmetic = true;
 
+
+    using ViewType = EmptyType; // Probably, hasn't been defined yet
+
+    using SharedPtrT = DTSharedPtr<ViewType>;
+    using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
+
+
+    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
+
     static void create_signature(SBuf& buf, const Decimal& obj)
     {
         buf << "BigDecimal";
@@ -434,8 +489,7 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
         }
     }
 
-    static void create_signature(SBuf& buf)
-    {
+    static void create_signature(SBuf& buf) {
         buf << "BigDecimal";
     }
 };
@@ -448,6 +502,14 @@ struct DataTypeTraits<CoreApiProfileDT>: DataTypeTraitsBase<CoreApiProfileDT>
     using Parameters = TL<>;
 
     static constexpr bool HasTypeConstructors = false;
+
+    using ViewType = CoreApiProfile; // Probably, hasn't been defined yet
+
+    using SharedPtrT = DTSharedPtr<ViewType>;
+    using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
+
+    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
 
     static void create_signature(SBuf& buf, const CoreApiProfileDT& obj) {
         create_signature(buf);

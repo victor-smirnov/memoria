@@ -1,5 +1,5 @@
 
-// Copyright 2021 Victor Smirnov
+// Copyright 2021-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/tools/result.hpp>
+#include <memoria/core/memory/memory.hpp>
 
 #include <codegen.hpp>
 #include <codegen_ast_tools.hpp>
@@ -53,8 +54,8 @@ class TypeInstanceImpl: public TypeInstance, public std::enable_shared_from_this
 
     const clang::ClassTemplateSpecializationDecl* ctr_descr_;
 
-    LDDocument config_;
-    LDDocument project_config_;
+    PoolSharedPtr<LDDocument> config_;
+    PoolSharedPtr<LDDocument> project_config_;
 
     ShPtr<PreCompiledHeader> precompiled_header_;
     std::vector<U8String> includes_;
@@ -72,11 +73,12 @@ public:
     TypeInstanceImpl(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr) noexcept:
         project_ptr_(project), project_(project.get()), ctr_descr_(descr)
     {
-
+      config_ = LDDocument::make_new();
+      project_config_ = LDDocument::make_new();
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return get_value(config_.value(), sdn_path).as_varchar().view();
+        return get_value(config_->value(), sdn_path)->as_varchar()->view();
     }
 
     ShPtr<FileGenerator> initializer() override
@@ -107,8 +109,8 @@ public:
         }
     }
 
-    LDDocumentView config() const override {
-        return config_;
+    DTSharedPtr<LDDocumentView> config() const override {
+        return config_->view();
     }
 
     ShPtr<Project> project() const noexcept override {
@@ -229,7 +231,7 @@ public:
         auto sources = get_or_add_array(map, "sources");
         auto byproducts = get_or_add_array(map, "byproducts");
 
-        DefaultResourceNameConsumerImpl consumer(sources, byproducts);
+        DefaultResourceNameConsumerImpl consumer(*sources, *byproducts);
 
         U8String file_path = target_folder_ + "/" + name_ + ".hpp";
 
@@ -273,8 +275,8 @@ public:
         return shared_from_this();
     }
 
-    LDDMapView ld_config() const {
-        return config_.value().as_typed_value().constructor().as_map();
+    DTSharedPtr<LDDMapView> ld_config() const {
+        return config_->value()->as_typed_value()->constructor()->as_map();
     }
 
     U8String name() const override {
@@ -287,21 +289,21 @@ public:
         if (anns.size()) {
             config_ = LDDocument::parse(anns[anns.size() - 1]);
 
-            auto name = ld_config().get("name");
+            auto name = ld_config()->get("name");
             if (name) {
-                name_ = name.get().as_varchar().view();
+                name_ = name->as_varchar()->view();
             }
             else {
                 U8String type_name = type_().getAsString();
                 name_ = get_profile_id(type_name);
             }
 
-            auto includes = ld_config().get("includes");
+            auto includes = ld_config()->get("includes");
             if (includes) {
-                LDDArrayView arr = includes.get().as_array();
-                for (size_t c = 0; c < arr.size(); c++)
+                auto arr = includes->as_array();
+                for (size_t c = 0; c < arr->size(); c++)
                 {
-                    U8String file_name = arr.get(c).as_varchar().view();
+                    U8String file_name = arr->get(c)->as_varchar()->view();
                     includes_.push_back(file_name);
                 }
             }
@@ -313,17 +315,17 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("Configuration must be specified for TypeInstance {}", type_().getAsString()).do_throw();
         }
 
-        auto cfg = config_.value();
-        if (find_value(cfg, "$/config")) {
-            config_sdn_path_ = cfg.as_varchar().view();
+        auto cfg = config_->value();
+        if (find_value(*cfg, "$/config")) {
+            config_sdn_path_ = cfg->as_varchar()->view();
         }
         else {
             config_sdn_path_ = "$/groups/default/containers";
         }
 
-        LDDValueView vv = project_->config().value();
-        if (find_value(vv, config_sdn_path_)) {
-            project_config_ = vv.clone();
+        auto vv = project_->config()->value();
+        if (find_value(*vv, config_sdn_path_)) {
+            project_config_ = vv->clone();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR(
@@ -333,19 +335,20 @@ public:
             ).do_throw();
         }
 
-        target_folder_ = project_->components_output_folder() + "/" + get_value(project_config_.value(), "$/path").as_varchar().view();
+        target_folder_ = project_->components_output_folder() + "/" + get_value(project_config_->value(), "$/path")
+            ->as_varchar()->view();
 
         std::error_code ec;
         if ((!std::filesystem::create_directories(target_folder_.to_std_string(), ec)) && ec) {
             MEMORIA_MAKE_GENERIC_ERROR("Can't create directory '{}': {}", target_folder_, ec.message()).do_throw();
         }
 
-        auto pp = config_.value();
-        if (find_value(pp, "$/profiles"))
+        auto pp = config_->value();
+        if (find_value(*pp, "$/profiles"))
         {
-            if (pp.is_varchar())
+            if (pp->is_varchar())
             {
-                U8String val = pp.as_varchar().view();
+                U8String val = pp->as_varchar()->view();
                 if (val == "ALL") {
                     profiles_ = project_->profiles();
                 }
@@ -353,12 +356,12 @@ public:
                     MEMORIA_MAKE_GENERIC_ERROR("Invalid profile attribute '{}' value for TypeInstance for {}", type().getAsString()).do_throw();
                 }
             }
-            else if (pp.is_array())
+            else if (pp->is_array())
             {
-                auto arr = pp.as_array();
+                auto arr = pp->as_array();
                 profiles_ = std::vector<U8String>();
-                for (size_t c = 0; c < arr.size(); c++) {
-                    profiles_.get().push_back(arr.get(c).as_varchar().view());
+                for (size_t c = 0; c < arr->size(); c++) {
+                    profiles_.get().push_back(arr->get(c)->as_varchar()->view());
                 }
             }
             else {

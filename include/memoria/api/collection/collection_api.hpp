@@ -36,8 +36,8 @@ struct CollectionChunk: ChunkIteratorBase<CollectionChunk<Key, Profile>, Profile
 
     using KeyView = DTTViewType<Key>;
 
-    virtual const KeyView& current_key() const = 0;
-    virtual const Span<const KeyView>& keys() const = 0;
+    virtual DTTConstPtr<Key> current_key() const = 0;
+    virtual DTTConstSpan<Key> keys() const = 0;
 
 
     virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;

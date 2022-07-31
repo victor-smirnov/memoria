@@ -1,4 +1,4 @@
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@
 #include <memoria/core/tools/bitmap.hpp>
 
 #include <memoria/core/datatypes/type_registry.hpp>
+
+#include <memoria/core/memory/memory.hpp>
 
 namespace memoria {
 
@@ -196,22 +198,22 @@ void LDDocumentView::set_null()
     state_mutable()->value = 0;
 }
 
-LDDMapView LDDocumentView::set_map()
+DTSharedPtr<LDDMapView> LDDocumentView::set_map()
 {
     return set_value<LDMap>();
 }
 
 
-LDDArrayView LDDocumentView::set_array()
+DTSharedPtr<LDDArrayView> LDDocumentView::set_array()
 {
     return set_value<LDArray>();
 }
 
-LDDValueView LDDocumentView::set_sdn(U8StringView sdn)
+DTSharedPtr<LDDValueView> LDDocumentView::set_sdn(U8StringView sdn)
 {
     LDDValueView value = parse_raw_value(sdn.begin(), sdn.end());
     state_mutable()->value = value.value_ptr_;
-    return value;
+    return DTSharedPtr<LDDValueView>(value, owner_);
 }
 
 void LDDocumentView::set_document(const LDDocumentView& source)
@@ -221,7 +223,7 @@ void LDDocumentView::set_document(const LDDocumentView& source)
     LDDocumentView* dst_doc = this->make_mutable();
 
     ld_::LDArenaAddressMapping mapping(source, *dst_doc);
-    ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
+    ld_::LDDPtrHolder ptr = source.value()->deep_copy_to(dst_doc, mapping);
 
     set_doc_value(LDDValueView{this, ptr});
 }
@@ -357,7 +359,7 @@ std::ostream& LDDocumentView::dump(std::ostream& out, LDDumpFormatState& state, 
         do_dump_dictionary(out, state, dump_state);
     }
 
-    value().dump(out, state, dump_state);
+    value()->dump(out, state, dump_state);
     return out;
 }
 
@@ -514,9 +516,13 @@ LDDocument::LDDocument(Span<const uint8_t> data):
     ld_arena_(data, &arena_)
 {}
 
-LDDocument LDDocument::compactify() const
+DTSharedPtr<LDDocumentView> LDDocument::view() {
+    return DTSharedPtr<LDDocumentView>(*this, &view_holder_);
+}
+
+PoolSharedPtr<LDDocument> LDDocument::compactify() const
 {
-    LDDocument tgt;
+    PoolSharedPtr<LDDocument> tgt = TL_allocate_shared<LDDocument>();
 
     const DocumentState* my_state = this->state();
 
@@ -528,24 +534,24 @@ LDDocument LDDocument::compactify() const
 
         ld_::DeepCopyHelper<StringsDeepCopyHelperBase> helper(address_mapping);
 
-        auto strings_state = strings.deep_copy_to(tgt.ld_arena_.view(), helper);
-        tgt.state_mutable()->strings = strings_state;
+        auto strings_state = strings.deep_copy_to(tgt->ld_arena_.view(), helper);
+        tgt->state_mutable()->strings = strings_state;
     }
 
     if (my_state->type_directory)
     {
         TypeDeclsMap type_decls = TypeDeclsMap::get(&arena_, my_state->type_directory);
 
-        ld_::DeepCopyHelper<TypeDeclsDeepCopyHelperBase> helper(address_mapping, this, &tgt);
+        ld_::DeepCopyHelper<TypeDeclsDeepCopyHelperBase> helper(address_mapping, this, tgt.get());
 
-        auto type_decls_state = type_decls.deep_copy_to(tgt.ld_arena_.view(), helper);
-        tgt.state_mutable()->type_directory = type_decls_state;
+        auto type_decls_state = type_decls.deep_copy_to(tgt->ld_arena_.view(), helper);
+        tgt->state_mutable()->type_directory = type_decls_state;
     }
 
     if (my_state->value) {
         LDDValueView value(this, my_state->value);
-        LDDValueView new_value(&tgt, value.deep_copy_to(&tgt, address_mapping));
-        tgt.set_doc_value(new_value);
+        LDDValueView new_value(tgt.get(), value.deep_copy_to(tgt.get(), address_mapping));
+        tgt->set_doc_value(new_value);
     };
 
     return tgt;
@@ -572,6 +578,9 @@ void LDDocument::reset() {
     allocate_state();
 }
 
+PoolSharedPtr<LDDocument> LDDocumentView::clone() {
+    return TL_allocate_shared<LDDocument>(*this);
+}
 
 
 std::ostream& operator<<(std::ostream& out, const LDDocumentView& doc)
@@ -622,14 +631,14 @@ Datum<LinkedData, EmptyType> Datum<LinkedData, EmptyType>::from_sdn(const LDDocu
 
 
 TypeSignature::TypeSignature(U8StringView name) {
-    name_ = LDDocument::parse_type_decl(name).value().to_standard_string();
+    name_ = LDDocument::parse_type_decl(name)->value()->to_standard_string();
 }
 
-LDDocument TypeSignature::parse() const {
+PoolSharedPtr<LDDocument> TypeSignature::parse() const {
     return LDDocument::parse_type_decl(name_);
 }
 
-LDDocument TypeSignature::parse(U8StringView str) {
+PoolSharedPtr<LDDocument> TypeSignature::parse(U8StringView str) {
     return LDDocument::parse_type_decl(str);
 }
 

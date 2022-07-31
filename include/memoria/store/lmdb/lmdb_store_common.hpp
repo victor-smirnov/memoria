@@ -197,7 +197,7 @@ public:
 
             if (iter->is_found(ctr_id))
             {
-                return iter->current_value();
+                return *iter->current_value();
             }
         }
 
@@ -439,10 +439,10 @@ protected:
     {
         U8String signature = make_datatype_signature(CtrName{}).name();
 
-        LDDocument doc = TypeSignature::parse(signature.to_std_string());
-        LDTypeDeclarationView decl = doc.value().as_type_decl();
+        auto doc = TypeSignature::parse(signature.to_std_string());
+        auto decl = doc->value()->as_type_decl();
 
-        auto ctr_ref = internal_create_by_name(decl, ctr_id);
+        auto ctr_ref = internal_create_by_name(*decl, ctr_id);
 
         return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfileT>>(std::move(ctr_ref));
     }

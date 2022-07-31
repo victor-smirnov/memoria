@@ -105,7 +105,7 @@ public:
     {
         auto& self = this->self();
         auto iter = self.ctr_seek_entry(pos);
-        return Datum<Value>{iter->current_key()};
+        return Datum<Value>{*iter->current_key()};
     }
 
 MEMORIA_V1_CONTAINER_PART_END

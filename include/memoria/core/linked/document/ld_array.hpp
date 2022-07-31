@@ -54,16 +54,19 @@ public:
         return doc_->equals(other.doc_) && array_.ptr() == other.array_.ptr();
     }
 
-    LDDValueView get(size_t idx) const;
+    DTSharedPtr<LDDValueView> get(size_t idx) const;
 
 
     template <typename T, typename... Args>
-    LDDValueView set_value(size_t idx, Args&&... args)
+    DTSharedPtr<LDDValueView> set_value(size_t idx, Args&&... args)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
         auto vv = mutable_doc->template new_value<T>(std::forward<Args>(args)...);
         array_.access_checked(idx) = vv;
-        return LDDValueView {doc_, vv, ld_tag_value<T>()};
+        return DTSharedPtr<LDDValueView>(
+            LDDValueView {doc_, vv, ld_tag_value<T>()},
+            doc_->owner_
+        );
     }
 
     void set_varchar(size_t idx, DTTViewType<Varchar> value)
@@ -86,12 +89,12 @@ public:
         set_value<Boolean>(idx, value);
     }
 
-    LDDMapView set_map(size_t idx);
+    DTSharedPtr<LDDMapView> set_map(size_t idx);
 
 
-    LDDArrayView set_array(size_t idx)
+    DTSharedPtr<LDDArrayView> set_array(size_t idx)
     {
-        return set_value<LDArray>(idx).as_array();
+        return set_value<LDArray>(idx)->as_array();
     }
 
     void set_null(size_t idx, bool value)
@@ -99,21 +102,24 @@ public:
         array_.access_checked(idx) = 0;
     }
 
-    LDDValueView set_sdn(size_t idx, U8StringView sdn)
+    DTSharedPtr<LDDValueView> set_sdn(size_t idx, U8StringView sdn)
     {
         LDDValueView value = doc_->make_mutable()->parse_raw_value(sdn.begin(), sdn.end());
         array_.access_checked(idx) = value.value_ptr_;
-        return value;
+        return DTSharedPtr<LDDValueView>(value, doc_->owner_);
     }
 
 
     template <typename T, typename... Args>
-    LDDValueView add_value(Args&&... args)
+    DTSharedPtr<LDDValueView> add_value(Args&&... args)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
         auto vv = mutable_doc->template new_value<T>(std::forward<Args>(args)...);
         array_.push_back(vv);
-        return LDDValueView{doc_, vv, ld_tag_value<T>()};
+        return DTSharedPtr<LDDValueView>(
+            LDDValueView{doc_, vv, ld_tag_value<T>()},
+            doc_->owner_
+        );
     }
 
     void add_varchar(DTTViewType<Varchar> value)
@@ -141,45 +147,51 @@ public:
         array_.push_back(0);
     }
 
-    LDDValueView add_document(const LDDocument& source)
+    DTSharedPtr<LDDValueView> add_document(const LDDocument& source)
     {
         ld_::assert_different_docs(doc_, &source);
 
         LDDocumentView* dst_doc = doc_->make_mutable();
 
         ld_::LDArenaAddressMapping mapping(source, *dst_doc);
-        ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
+        ld_::LDDPtrHolder ptr = source.value()->deep_copy_to(dst_doc, mapping);
 
         array_.push_back(ptr);
 
-        return LDDValueView{doc_, ptr};
+        return DTSharedPtr<LDDValueView>(
+            LDDValueView{doc_, ptr},
+            doc_->owner_
+        );
     }
 
-    LDDValueView set_document(size_t idx, const LDDocument& source)
+    DTSharedPtr<LDDValueView> set_document(size_t idx, const LDDocument& source)
     {
         ld_::assert_different_docs(doc_, &source);
 
         LDDocumentView* dst_doc = doc_->make_mutable();
 
         ld_::LDArenaAddressMapping mapping(source, *dst_doc);
-        ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
+        ld_::LDDPtrHolder ptr = source.value()->deep_copy_to(dst_doc, mapping);
         array_.access_checked(idx) = ptr;
 
-        return LDDValueView{doc_, ptr};
+        return DTSharedPtr<LDDValueView>(
+            LDDValueView{doc_, ptr},
+            doc_->owner_
+        );
     }
 
-    LDDMapView add_map();
+    DTSharedPtr<LDDMapView> add_map();
 
-    LDDArrayView add_array()
+    DTSharedPtr<LDDArrayView> add_array()
     {
-        return add_value<LDArray>().as_array();
+        return add_value<LDArray>()->as_array();
     }
 
-    LDDValueView add_sdn(U8StringView sdn)
+    DTSharedPtr<LDDValueView> add_sdn(U8StringView sdn)
     {
         LDDValueView value = doc_->make_mutable()->parse_raw_value(sdn.begin(), sdn.end());
         array_.push_back(value.value_ptr_);
-        return value;
+        return DTSharedPtr<LDDValueView>(value, doc_->owner_);
     }
 
     void remove(size_t idx) {
@@ -226,7 +238,7 @@ public:
 
     ld_::LDPtr<Array::State> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
-    LDDocument clone(bool compactify = true) const {
+    PoolSharedPtr<LDDocument> clone(bool compactify = true) const {
         LDDValueView vv = *this;
         return vv.clone(compactify);
     }
@@ -249,6 +261,12 @@ struct DataTypeTraits<LDArray> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
     using LDViewType = LDDArrayView;
+
+    using SharedPtrT = DTSharedPtr<LDViewType>;
+    using ConstSharedPtrT = DTConstSharedPtr<LDViewType>;
+
+    using SpanT = DTViewSpan<LDViewType, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<LDViewType, ConstSharedPtrT>;
 
     static void create_signature(SBuf& buf) {
         buf << "LDDArrayView";

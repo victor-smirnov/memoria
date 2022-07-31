@@ -20,6 +20,9 @@
 #include <memoria/core/types/mp11.hpp>
 #include <memoria/core/types/algo.hpp>
 
+#include <memoria/core/memory/object_pool.hpp>
+#include <memoria/core/datatypes/datatype_ptrs.hpp>
+
 namespace memoria {
 
 template <typename DataTypeT, typename... TypeParts, typename... DataParts >
@@ -30,7 +33,16 @@ class DataTypeBuffer<
             TL<TypeParts...>,
             TL<DataParts...>
         >
-> {
+>: public pool::enable_shared_from_this<
+    DataTypeBuffer<
+        DataTypeT,
+        SparseObjectAdapterDescriptor<
+            false,
+            TL<TypeParts...>,
+            TL<DataParts...>
+        >
+    >
+>{
     using TypeDimensionsTuple = AsTuple<TL<TypeParts...>>;
     using DataDimensionsTuple = typename DataTypeTraits<DataTypeT>::DataDimensionsTuple;
 
@@ -59,6 +71,13 @@ class DataTypeBuffer<
     mutable detail::LifetimeGuardShared* lg_shared_{};
 
     using SOAdapter = DataTypeTraits<DataTypeT>;
+
+    mutable DTViewHolder view_holder_;
+
+protected:
+    virtual void configure_refholder(pool::detail::ObjectPoolRefHolder* owner) {
+        view_holder_.set_owner(owner);
+    }
 
 public:
     template <typename, typename>
@@ -142,6 +161,10 @@ public:
         });
     }
 
+    void reset_state() {
+        clear();
+    }
+
     size_t size() const {
         return views_.size();
     }
@@ -168,6 +191,17 @@ public:
         return resized;
     }
 
+    bool append(DTTConstSpan<DataType> span)
+    {
+        check_builder_is_empty();
+
+        bool resized = false;
+        for (size_t c = 0; c < span.size(); c++) {
+            resized = emplace_back_nockeck(*span[c]) || resized;
+        }
+        return resized;
+    }
+
     template <typename ValueType>
     bool append(const std::vector<ValueType>& data)
     {
@@ -183,6 +217,22 @@ public:
     const ViewType& operator[](size_t idx) const {
         return views_[idx];
     }
+
+    DTTConstSpan<DataType> dt_span() const
+    {
+        return DTTConstSpan<DataType>(views_.span(), &view_holder_);
+    }
+
+    DTTConstSpan<DataType> dt_span(size_t from) const
+    {
+        return DTTConstSpan<DataType>(views_.span(from), &view_holder_);
+    }
+
+    DTTConstSpan<DataType> dt_span(size_t from, size_t length) const
+    {
+        return DTTConstSpan<DataType>(views_.span(from, length), &view_holder_);
+    }
+
 
     Span<const ViewType> span() const {
         return views_.span();

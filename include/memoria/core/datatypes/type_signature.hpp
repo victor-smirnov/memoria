@@ -29,6 +29,8 @@
 #include <boost/optional.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 
+#include <memoria/core/memory/memory.hpp>
+
 #include <unordered_map>
 
 namespace memoria {
@@ -52,8 +54,8 @@ public:
         return name_ == other.name_;
     }
 
-    LDDocument parse() const;
-    static LDDocument parse(U8StringView str);
+    PoolSharedPtr<LDDocument> parse() const;
+    static PoolSharedPtr<LDDocument> parse(U8StringView str);
 };
 
 }

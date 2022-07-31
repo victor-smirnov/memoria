@@ -777,26 +777,26 @@ void assert_parse_ok(bool res, const char* msg, II start0, II start, II end)
 
 
 
-LDDocument LDDocument::parse(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
+PoolSharedPtr<LDDocument> LDDocument::parse(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
 {
-    LDDocument doc;
+    PoolSharedPtr<LDDocument> doc = TL_allocate_shared<LDDocument>();
 
     auto tmp = start;
 
-    bool result = parse_sdn2(start, end, doc);
+    bool result = parse_sdn2(start, end, *doc);
 
     assert_parse_ok(result, "Can't parse type document", tmp, start, end);
 
     return doc;
 }
 
-LDDocument LDDocument::parse_type_decl(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
+PoolSharedPtr<LDDocument> LDDocument::parse_type_decl(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
 {
-    LDDocument doc;
+    PoolSharedPtr<LDDocument> doc = TL_allocate_shared<LDDocument>();
 
     auto tmp = start;
 
-    bool result = parse_sdn_type_decl(start, end, doc);
+    bool result = parse_sdn_type_decl(start, end, *doc);
 
     assert_parse_ok(result, "Can't parse type declaration", tmp, start, end);
 

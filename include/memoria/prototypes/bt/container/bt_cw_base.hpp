@@ -21,7 +21,7 @@
 #include <memoria/core/types/algo.hpp>
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/macros.hpp>
-#include <memoria/core/tools/object_pool.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_tree_path.hpp>
 

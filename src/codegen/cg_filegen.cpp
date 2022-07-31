@@ -41,7 +41,7 @@ class FileGeneratorImpl: public FileGenerator, public std::enable_shared_from_th
     Project* project_;
 
     U8String sdn_path_;
-    LDDocument config_;
+    PoolSharedPtr<LDDocument> config_;
 
     std::unordered_map<U8String, std::vector<U8String>> snippets_;
 
@@ -53,7 +53,7 @@ class FileGeneratorImpl: public FileGenerator, public std::enable_shared_from_th
     U8String handler_;
 
 public:
-    FileGeneratorImpl(ShPtr<Project> project, U8String sdn_path, LDDocument&& config):
+    FileGeneratorImpl(ShPtr<Project> project, U8String sdn_path, PoolSharedPtr<LDDocument>&& config):
         project_ptr_(project), project_(project.get()), sdn_path_(sdn_path), config_(std::move(config))
     {
 
@@ -72,7 +72,7 @@ public:
     }
 
     U8String describe() const override {
-        return format_u8("FileGenerator for: {}", config_.to_pretty_string());
+        return format_u8("FileGenerator for: {}", config_->to_pretty_string());
     }
 
     void add_snippet(const U8String& collection, const U8String& text, bool distinct) override
@@ -109,7 +109,7 @@ public:
         auto sources = get_or_add_array(map, "sources");
 
         U8String file_path = target_file_;
-        sources.add_varchar(file_path);
+        sources->add_varchar(file_path);
     }
 
     virtual std::vector<U8String> includes() const override {
@@ -118,19 +118,19 @@ public:
 
     virtual void configure() override
     {
-        auto ii = ld_config().get("includes");
+        auto ii = ld_config()->get("includes");
         if (ii) {
-            LDDArrayView arr = ii.get().as_array();
-            for (size_t c = 0; c < arr.size(); c++)
+            auto arr = ii->as_array();
+            for (size_t c = 0; c < arr->size(); c++)
             {
-                includes_.push_back(arr.get(c).as_varchar().view());
+                includes_.push_back(arr->get(c)->as_varchar()->view());
             }
         }
 
         U8String path = get_or_fail(
-                    ld_config().get("filename"),
+                    ld_config()->get("filename"),
                     "filename property is not specified for file generator"
-        ).as_varchar().view();
+        ).as_varchar()->view();
         target_file_ = project_->components_output_folder() + "/" + path;
 
         std::filesystem::path pp0(target_file_.to_std_string());
@@ -143,13 +143,13 @@ public:
         }
 
         handler_ = get_or_fail(
-                    ld_config().get("handler"),
+                    ld_config()->get("handler"),
                     "handler property is not specified for file generator"
-        ).as_varchar().view();
+        ).as_varchar()->view();
     }
 
-    LDDMapView ld_config() const {
-        return config_.value().as_typed_value().constructor().as_map();
+    DTSharedPtr<LDDMapView> ld_config() const {
+        return config_->value()->as_typed_value()->constructor()->as_map();
     }
 
     std::vector<U8String> snippets(const U8String& collection) const override
@@ -164,7 +164,7 @@ public:
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return get_value(config_.value(), sdn_path).as_varchar().view();
+        return get_value(config_->value(), sdn_path)->as_varchar()->view();
     }
 
     ShPtr<FileGenerator> self() {
@@ -172,7 +172,7 @@ public:
     }
 };
 
-ShPtr<FileGenerator> FileGenerator::create(ShPtr<Project> project, const U8String& sdn_path, LDDocument&& config) {
+ShPtr<FileGenerator> FileGenerator::create(ShPtr<Project> project, const U8String& sdn_path, PoolSharedPtr<LDDocument>&& config) {
     return std::make_shared<FileGeneratorImpl>(project, sdn_path, std::move(config));
 }
 

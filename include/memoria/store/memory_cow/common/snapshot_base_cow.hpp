@@ -264,9 +264,9 @@ public:
         }
         else {
             U8String signature = make_datatype_signature(RootMapType{}).name();
-            LDDocument doc = TypeSignature::parse(signature.to_std_string());
-            LDTypeDeclarationView decl = doc.value().as_type_decl();
-            auto ctr_ref = create_ctr_instance(decl, CtrID{});
+            auto doc = TypeSignature::parse(signature.to_std_string());
+            auto decl = doc->value()->as_type_decl();
+            auto ctr_ref = create_ctr_instance(*decl, CtrID{});
 
             root_map_ = memoria_static_pointer_cast<CommonCtrT<RootMapType>>(ctr_ref);
         }
@@ -804,7 +804,7 @@ public:
             auto iter = root_map_->find(name);
 
             if (iter->is_found(name)) {
-                return iter->current_value();
+                return *iter->current_value();
             }            
         }
         else {

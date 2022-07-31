@@ -33,6 +33,12 @@ struct DataTypeTraits<LinkedData>: DataTypeTraitsBase<LinkedData>
 
     using DatumStorage  = LDDocumentStorage;
 
+    using SharedPtrT = DTSharedPtr<ViewType>;
+    using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
+
+    using SpanT      = DTViewSpan<LDDocumentView, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<LDDocumentView, ConstSharedPtrT>;
+
     static constexpr bool isDataType          = true;
     static constexpr bool HasTypeConstructors = false;
 
@@ -98,29 +104,31 @@ class SparseObjectBuilder<LinkedData, Buffer> {
     using AtomType = DTTAtomType<LinkedData>;
     using ViewType = DTTViewType<LinkedData>;
 
-    LDDocument doc_;
+    PoolSharedPtr<LDDocument> doc_;
 
 public:
     SparseObjectBuilder(Buffer* buffer):
         buffer_(buffer)
-    {}
+    {
+      doc_ = LDDocument::make_new();
+    }
 
     SparseObjectBuilder(SparseObjectBuilder&&) = delete;
     SparseObjectBuilder(const SparseObjectBuilder&) = delete;
 
     LDDocumentView view() {
-        return doc_;
+        return *doc_;
     }
 
     LDDocument& doc() {
-        return doc_;
+        return *doc_;
     }
 
     void build()
     {
-        doc_ = doc_.compactify();
-        buffer_->append(doc_);
-        doc_.clear();
+        doc_ = doc_->compactify();
+        buffer_->append(*doc_);
+        doc_->clear();
     }
 };
 

@@ -48,7 +48,7 @@
 #include <memoria/api/common/ctr_api.hpp>
 #include <memoria/core/tools/result.hpp>
 
-#include <memoria/core/tools/object_pool.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 
 #include <string>
 #include <memory>

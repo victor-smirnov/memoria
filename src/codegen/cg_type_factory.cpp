@@ -17,12 +17,12 @@
 
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/tools/result.hpp>
+#include <memoria/core/memory/memory.hpp>
 
 #include <codegen.hpp>
 #include <codegen_ast_tools.hpp>
 
 #include <llvm/Support/raw_ostream.h>
-
 #include <vector>
 
 namespace memoria {
@@ -40,7 +40,7 @@ class TypeFactoryImpl: public TypeFactory, public std::enable_shared_from_this<T
 
     U8String id_;
     U8String name_;
-    LDDocument config_;
+    PoolSharedPtr<LDDocument> config_;
 
     ShPtr<PreCompiledHeader> precompiled_header_;
     std::vector<U8String> includes_;
@@ -75,7 +75,7 @@ public:
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return get_value(config_.value(), sdn_path).as_varchar().view();
+        return get_value(config_->value(), sdn_path)->as_varchar()->view();
     }
 
     U8String name() const override {
@@ -116,7 +116,7 @@ public:
         {
             std::string ss;
             llvm::raw_string_ostream os(ss);
-            args.get(0).print(clang::PrintingPolicy{clang::LangOptions{}}, os);
+            args.get(0).print(clang::PrintingPolicy{clang::LangOptions{}}, os, true);
             return U8String{ss};
         }
         else {
@@ -124,8 +124,8 @@ public:
         }
     }
 
-    LDDocumentView config() const override {
-        return config_;
+    DTSharedPtr<LDDocumentView> config() const override {
+        return config_->view();
     }
 
     ShPtr<Project> project() const noexcept override {
@@ -146,9 +146,9 @@ public:
 
     U8String generator() const override
     {
-        auto gen = ld_config().get("generator");
+        auto gen = ld_config()->get("generator");
         if (gen) {
-            return gen.get().as_varchar().view();
+            return gen->as_varchar()->view();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} has no generator attribute defined. Skipping: ", type_pattern()).do_throw();
@@ -156,19 +156,19 @@ public:
     }
 
     virtual U8String type() const override {
-        return get_value(config_.value(), "$/type").as_varchar().view();
+        return get_value(config_->value(), "$/type")->as_varchar()->view();
     }
 
     ShPtr<TypeFactory> self() {
         return shared_from_this();
     }
 
-    LDDMapView ld_config() {
-        return config_.value().as_typed_value().constructor().as_map();
+    DTSharedPtr<LDDMapView> ld_config() {
+        return config_->value()->as_typed_value()->constructor()->as_map();
     }
 
-    LDDMapView ld_config() const {
-        return config_.value().as_typed_value().constructor().as_map();
+    DTSharedPtr<LDDMapView> ld_config() const {
+        return config_->value()->as_typed_value()->constructor()->as_map();
     }
 
     void generate_artifacts() override {}
@@ -178,7 +178,7 @@ public:
         auto sources = get_or_add_array(map, "sources");
         auto byproducts = get_or_add_array(map, "byproducts");
 
-        DefaultResourceNameConsumerImpl consumer(sources, byproducts);
+        DefaultResourceNameConsumerImpl consumer(*sources, *byproducts);
 
         U8String file_path = project()->project_output_folder() + "/" + name_ + ".hpp";
 
@@ -190,13 +190,13 @@ public:
 
     void configure() override
     {
-        auto includes = ld_config().get("includes");
+        auto includes = ld_config()->get("includes");
         if (includes)
         {
-            LDDArrayView arr = includes.get().as_array();
-            for (size_t c = 0; c < arr.size(); c++)
+            auto arr = includes->as_array();
+            for (size_t c = 0; c < arr->size(); c++)
             {
-                U8String file_name = arr.get(c).as_varchar().view();
+                U8String file_name = arr->get(c)->as_varchar()->view();
                 includes_.push_back(file_name);
             }
         }
@@ -204,10 +204,10 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} must define 'includes' config attribute", type_pattern()).do_throw();
         }
 
-        auto name = ld_config().get("name");
+        auto name = ld_config()->get("name");
         if (name)
         {
-            name_ = name.get().as_varchar().view();
+            name_ = name->as_varchar()->view();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} must define 'name' config attribute", type_pattern()).do_throw();

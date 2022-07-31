@@ -42,8 +42,8 @@ void LDTypeDeclarationView::do_dump(std::ostream& out, LDDumpFormatState& state,
 
             state.make_indent(out);
 
-            LDTypeDeclarationView td = get_type_declration(c);
-            td.dump(out, state, dump_state);
+            auto td = get_type_declration(c);
+            td->dump(out, state, dump_state);
         }
         state.pop();
 
@@ -72,8 +72,8 @@ void LDTypeDeclarationView::do_dump(std::ostream& out, LDDumpFormatState& state,
             state.make_indent(out);
 
 
-            LDDValueView value = get_constructor_arg(c);
-            value.dump(out, state, dump_state);
+            auto value = get_constructor_arg(c);
+            value->dump(out, state, dump_state);
         }
         state.pop();
 
@@ -106,8 +106,8 @@ void LDTypeDeclarationView::do_dump_cxx_type_decl(std::ostream& out, LDDumpForma
 
             state.make_indent(out);
 
-            LDTypeDeclarationView td = get_type_declration(c);
-            td.do_dump_cxx_type_decl(out, state, dump_state);
+            auto td = get_type_declration(c);
+            td->do_dump_cxx_type_decl(out, state, dump_state);
         }
         state.pop();
 

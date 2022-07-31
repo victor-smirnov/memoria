@@ -1,4 +1,4 @@
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@
 
 namespace memoria {
 
-LDDMapView LDDArrayView::add_map()
+DTSharedPtr<LDDMapView> LDDArrayView::add_map()
 {
-    return add_value<LDMap>().as_map();
+    return add_value<LDMap>()->as_map();
 }
 
 
@@ -60,9 +60,9 @@ void LDDArrayView::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpSt
 }
 
 
-LDDMapView LDDArrayView::set_map(size_t idx)
+DTSharedPtr<LDDMapView> LDDArrayView::set_map(size_t idx)
 {
-    return set_value<LDMap>(idx).as_map();
+    return set_value<LDMap>(idx)->as_map();
 }
 
 

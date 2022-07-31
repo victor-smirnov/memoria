@@ -24,6 +24,8 @@
 
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 
+#include <memoria/core/memory/memory.hpp>
+
 #include "ssrleseq_tools.hpp"
 
 #include <vector>
@@ -79,8 +81,16 @@ public:
 
         if (symbols_block_size_atoms > AtomsPerBlock)
         {
-            std::vector<DataTypeBuffer<SumDataType>> sums_bufs(AlphabetSize);
-            DataTypeBuffer<SizeDataType> sizes_buf;
+            std::vector<
+                    IterSharedPtr<DataTypeBuffer<SumDataType>>
+            > sums_bufs(AlphabetSize);
+
+            for (size_t c = 0; c < AlphabetSize; c++) {
+                sums_bufs[c] = TL_get_reusable_shared_instance<DataTypeBuffer<SizeDataType>>();
+            }
+
+
+            IterSharedPtr<DataTypeBuffer<SizeDataType>> sizes_buf = TL_get_reusable_shared_instance<DataTypeBuffer<SizeDataType>>();
 
             SeqSizeT symbols_total_{};
             typename SumIndexSO::Values sums(SeqSizeT{});
@@ -93,9 +103,9 @@ public:
             auto push_indexes = [&]() {
                 cnt++;
                 for (size_t c = 0; c < AlphabetSize; c++) {
-                    sums_bufs[c].append(sums[c]);
+                    sums_bufs[c]->append(sums[c]);
                 }
-                sizes_buf.append(symbols_total_);
+                sizes_buf->append(symbols_total_);
 
 
                 symbols_total_ = SeqSizeT{};
@@ -141,16 +151,16 @@ public:
                 push_indexes();
             }
 
-            seq.data()->createIndex(sizes_buf.size());
+            seq.data()->createIndex(sizes_buf->size());
 
-            seq.size_index().insert_from_fn(0, sizes_buf.size(), [&](size_t, size_t row){
-                return sizes_buf[row];
+            seq.size_index().insert_from_fn(0, sizes_buf->size(), [&](size_t, size_t row){
+                return sizes_buf->operator[](row);
             });
 
             seq.size_index().reindex();
 
-            seq.sum_index().insert_from_fn(0, sizes_buf.size(), [&](size_t column, size_t row){
-                return sums_bufs[column][row];
+            seq.sum_index().insert_from_fn(0, sizes_buf->size(), [&](size_t column, size_t row){
+                return sums_bufs[column]->operator[](row);
             });
             return seq.sum_index().reindex();
         }

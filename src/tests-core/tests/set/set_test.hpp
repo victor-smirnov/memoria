@@ -191,11 +191,13 @@ public:
 
         while (is_valid_chunk(scc))
         {
-            for (auto key: scc->keys())
+            auto keys = scc->keys();
+
+            for (size_t c = 0; c < keys.size(); c++)
             {
                 auto en_key = *en_ii;
 
-                bool equals = internal_set::ValueTools<CxxValueType>::equals(key, en_key);
+                bool equals = internal_set::ValueTools<CxxValueType>::equals(*keys[c], en_key);
                 assert_equals(true, equals);
 
                 en_ii++;

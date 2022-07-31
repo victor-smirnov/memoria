@@ -152,7 +152,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
         {
             auto val = iter->current_value();
             self.ctr_remove_map_entry(std::move(iter));
-            return Datum<Value>(val);
+            return Datum<Value>(*val);
         }
         else {
             return Optional<Datum<Value>>{};
@@ -169,7 +169,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
       {
         auto prev = iter->current_value();
         self.ctr_update_map_entry(std::move(iter), value);
-        return Datum<Value>(prev);
+        return Datum<Value>(*prev);
       }
       else {
         self.ctr_insert_map_entry(std::move(iter), key, value);
@@ -189,7 +189,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
       auto iter = self.ctr_map_find(key);
       if (iter->is_found(key))
       {
-        auto new_value = value_fn(Datum<Value>(iter->current_value()));
+        auto new_value = value_fn(Datum<Value>(*iter->current_value()));
         if (new_value) {
           self.ctr_update_map_entry(std::move(iter), new_value.get());
         }

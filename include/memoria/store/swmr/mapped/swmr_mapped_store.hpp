@@ -134,7 +134,7 @@ public:
     }
 
     ~MappedSWMRStore() noexcept {
-        close();
+       close();
     }
 
     virtual void do_flush() override

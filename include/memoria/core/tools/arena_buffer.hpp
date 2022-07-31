@@ -58,7 +58,7 @@ struct ABDtrHelper<T, false> {
     static void run_destructors(T* data, size_t from, size_t size) noexcept
     {
         for (size_t c = from; c < from + size; c++) {
-            data[c]->~T();
+            data[c].~T();
         }
     }
 };

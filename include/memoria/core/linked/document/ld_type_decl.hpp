@@ -83,7 +83,7 @@ public:
         if (MMA_LIKELY(constructor_args() == 0))
         {
             for (size_t c = 0; c < params(); c++) {
-                if (!get_type_declration(c).is_stateless()) {
+                if (!get_type_declration(c)->is_stateless()) {
                     return false;
                 }
             }
@@ -94,7 +94,7 @@ public:
         return false;
     }
 
-    LDTypeDeclarationView get_type_declration(size_t idx) const
+    DTSharedPtr<LDTypeDeclarationView> get_type_declration(size_t idx) const
     {
         const TypeDeclState* state = this->state();
         if (state->type_params)
@@ -103,18 +103,21 @@ public:
 
             if (idx < params_array->size())
             {
-                return LDTypeDeclarationView(doc_, params_array->access(idx));
+                return DTSharedPtr<LDTypeDeclarationView>(
+                    LDTypeDeclarationView(doc_, params_array->access(idx)),
+                    doc_->owner_
+                );
             }
         }
 
         MMA_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
     }
 
-    LDTypeDeclarationView add_type_declaration(U8StringView name)
+    DTSharedPtr<LDTypeDeclarationView> add_type_declaration(U8StringView name)
     {
-        LDTypeDeclarationView decl = doc_->make_mutable()->new_type_declaration(name);
+        auto decl = doc_->make_mutable()->new_type_declaration(name);
         ensure_params_capacity(1)->push_back(decl.state_);
-        return decl;
+        return DTSharedPtr<LDTypeDeclarationView>(decl, doc_->owner_);
     }
 
 
@@ -150,7 +153,7 @@ public:
         return 0;
     }
 
-    LDDValueView get_constructor_arg(size_t idx) const
+    DTSharedPtr<LDDValueView> get_constructor_arg(size_t idx) const
     {
         const TypeDeclState* state = this->state();
         if (state->ctr_args)
@@ -159,18 +162,21 @@ public:
 
             if (idx < ctr_args->size())
             {
-                return LDDValueView{doc_, ctr_args->access(idx)};
+                return DTSharedPtr<LDDValueView>(
+                    LDDValueView{doc_, ctr_args->access(idx)},
+                    doc_->owner_
+                );
             }
         }
 
         MMA_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
     }
 
-    LDStringView add_string_constructor_arg(U8StringView value)
+    DTSharedPtr<LDStringView> add_string_constructor_arg(U8StringView value)
     {
         LDStringView str = doc_->make_mutable()->new_varchar(value);
         ensure_args_capacity(1)->push_back(str.string_.get());
-        return str;
+        return DTSharedPtr<LDStringView>(str, doc_->owner_);
     }
 
     void add_double_constructor_arg(double value)
@@ -185,18 +191,18 @@ public:
         ensure_args_capacity(1)->push_back(val.value_ptr_);
     }
 
-    LDDArrayView add_array_constructor_arg()
+    DTSharedPtr<LDDArrayView> add_array_constructor_arg()
     {
         LDDArrayView array = doc_->make_mutable()->new_array();
         ensure_args_capacity(1)->push_back(array.array_.ptr());
-        return array;
+        return DTSharedPtr<LDDArrayView>(array, doc_->owner_);
     }
 
-    LDDMapView add_map_constructor_arg()
+    DTSharedPtr<LDDMapView> add_map_constructor_arg()
     {
         LDDMapView map = doc_->make_mutable()->new_map();
         ensure_args_capacity(1)->push_back(map.map_.ptr());
-        return map;
+        return DTSharedPtr<LDDMapView>(map, doc_->owner_);
     }
 
     void remove_constructor_arg(size_t idx)
@@ -282,12 +288,12 @@ public:
         bool simple = true;
 
         for (size_t c = 0; c < params; c++) {
-            simple = simple && get_type_declration(c).is_simple_layout();
+            simple = simple && get_type_declration(c)->is_simple_layout();
         }
 
         if (simple) {
             for (size_t c = 0; c < args; c++) {
-                simple = simple && get_constructor_arg(c).is_simple_layout();
+                simple = simple && get_constructor_arg(c)->is_simple_layout();
             }
         }
 
@@ -296,7 +302,7 @@ public:
 
     ld_::LDPtr<TypeDeclState> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
-    LDDocument clone(bool compactify = true) const {
+    PoolSharedPtr<LDDocument> clone(bool compactify = true) const {
         LDDValueView vv = *this;
         return vv.clone(compactify);
     }
@@ -357,6 +363,12 @@ struct DataTypeTraits<LDTypeDeclaration> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
     using LDViewType = LDTypeDeclarationView;
+
+    using SharedPtrT = DTSharedPtr<LDViewType>;
+    using ConstSharedPtrT = DTConstSharedPtr<LDViewType>;
+
+    using SpanT = DTViewSpan<LDViewType, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<LDViewType, ConstSharedPtrT>;
 
     static void create_signature(SBuf& buf) {
         buf << "LDTypeDeclaration";

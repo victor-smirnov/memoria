@@ -19,28 +19,28 @@ namespace memoria {
 
 std::ostream& LDDTypedValueView::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
-    LDDValueView ctr = constructor();
-    LDTypeDeclarationView type = this->type();
+    auto ctr = constructor();
+    auto type = this->type();
 
-    auto ref = dump_state.resolve_type_id(type.state_.get());
+    auto ref = dump_state.resolve_type_id(type->state_.get());
 
-    if (MMA_LIKELY(!ctr.is_varchar()))
+    if (MMA_LIKELY(!ctr->is_varchar()))
     {
         out << '@';
         if (!ref) {
-            type.dump(out, state, dump_state);
+            type->dump(out, state, dump_state);
         }
         else {
             out << ref.get();
         }
         out << " = ";
-        ctr.dump(out, state, dump_state);
+        ctr->dump(out, state, dump_state);
     }
     else {
-        ctr.dump(out, state, dump_state);
+        ctr->dump(out, state, dump_state);
         out << '@';
         if (!ref) {
-            type.dump(out, state, dump_state);
+            type->dump(out, state, dump_state);
         }
         else {
             out << '#' << ref.get();

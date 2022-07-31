@@ -46,7 +46,7 @@ public:
 
     operator LDDValueView() const noexcept;
 
-    LDDocument clone(bool compactify = true) const;
+    PoolSharedPtr<LDDocument> clone(bool compactify = true) const;
 
     ld_::LDPtr<U8LinkedString> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 

@@ -35,6 +35,8 @@
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 
+#include <memoria/core/memory/memory.hpp>
+
 #include <algorithm>
 
 namespace memoria {
@@ -1650,10 +1652,14 @@ private:
         {
             size_t spans = div_up(size, index_span);
 
-            std::vector<DataTypeBuffer<DataType>> columns(Columns);
+            std::vector<
+                    IterSharedPtr<DataTypeBuffer<DataType>>
+            > columns(Columns);
 
             for (size_t c = 0; c < Columns; c++)
             {
+                columns[c] = TL_get_reusable_shared_instance<DataTypeBuffer<DataType>>();
+
                 size_t base{};
                 for (size_t span = 0; span < spans; span++, base += index_span)
                 {
@@ -1666,7 +1672,7 @@ private:
                         sum = sum.view() + ee;
                     }
 
-                    columns[c].append(sum.view());
+                    columns[c]->append(sum.view());
                 }
             }
 
@@ -1674,7 +1680,7 @@ private:
             MyType index = this->index();
 
             index.insert_from_fn(0, spans, [&](size_t column, size_t row){
-                return columns[column][row];
+                return columns[column]->operator[](row);
             });
         }
         else {

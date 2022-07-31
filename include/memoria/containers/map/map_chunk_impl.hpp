@@ -71,20 +71,27 @@ protected:
     KeyView key_view_;
     ValueView value_view_;
 
+    mutable DTViewHolder view_holder_;
+
+protected:
+    virtual void configure_refholder(pool::detail::ObjectPoolRefHolder* owner) {
+        view_holder_.set_owner(owner);
+    }
+
 public:
 
-    virtual const KeyView& current_key() const {
+    virtual DTTConstPtr<Key> current_key() const {
         if (leaf_position_ < size_ && !before_start_) {
-            return key_view_;
+            return DTTConstPtr<Key>(key_view_, &view_holder_);
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("EOF/BOF Exception: {} {}", size_, before_start_).do_throw();
         }
     }
 
-    virtual const ValueView& current_value() const {
+    virtual DTTConstPtr<Value> current_value() const {
         if (leaf_position_ < size_ && !before_start_) {
-            return value_view_;
+            return DTTConstPtr<Value>(value_view_, &view_holder_);
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("EOF/BOF Exception: {} {}", size_, before_start_).do_throw();
@@ -116,20 +123,20 @@ public:
         return leaf_position_;
     }
 
-    virtual const Span<const KeyView>& keys() const {
+    virtual DTTConstSpan<Key> keys() const {
         if (!keys_holder_.set_up) {
-            keys_holder_.populate(keys_struct(), Column);
+            keys_holder_.populate(keys_struct(), Column, &view_holder_);
         }
 
-        return keys_holder_.span;
+        return DTTConstSpan<Key>(keys_holder_.span, &view_holder_);
     }
 
-    virtual const Span<const ValueView>& values() const {
+    virtual DTTConstSpan<Value> values() const {
         if (!values_holder_.set_up) {
-            values_holder_.populate(values_struct(), Column);
+            values_holder_.populate(values_struct(), Column, &view_holder_);
         }
 
-        return values_holder_.span;
+        return DTTConstSpan<Value>(values_holder_.span, &view_holder_);
     }
 
     virtual bool is_before_start() const {
@@ -179,7 +186,10 @@ public:
 
         if (leaf_position_ < size_ && !before_start_) {
             key_view_ = keys_struct().access(0, leaf_position_);
+            OwningViewSpanHelper<DTTViewType<Key>>::configure_resource_owner(key_view_, &view_holder_);
+
             value_view_ = values_struct().access(0, leaf_position_);
+            OwningViewSpanHelper<DTTViewType<Value>>::configure_resource_owner(value_view_, &view_holder_);
         }
     }
 
@@ -215,7 +225,10 @@ public:
     {
         if (leaf_position_ < size_ && !before_start_) {
             key_view_ = keys_struct().access(0, leaf_position_);
+            OwningViewSpanHelper<DTTViewType<Key>>::configure_resource_owner(key_view_, &view_holder_);
+
             value_view_ = values_struct().access(0, leaf_position_);
+            OwningViewSpanHelper<DTTViewType<Value>>::configure_resource_owner(value_view_, &view_holder_);
         }
         else {
             key_view_ = KeyView{};

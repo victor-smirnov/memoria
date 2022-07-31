@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,25 +48,28 @@ public:
     {}
 
     operator LDDValueView() const {
-        return as_value();
+        return *as_value();
     }
 
     bool operator==(const LDDMapView& other) const noexcept {
         return doc_->equals(other.doc_) && map_.ptr() == other.map_.ptr();
     }
 
-    LDDValueView as_value() const {
-        return LDDValueView{doc_, map_.ptr()};
+    DTSharedPtr<LDDValueView> as_value() const {
+        return DTSharedPtr<LDDValueView>(
+            LDDValueView{doc_, map_.ptr()},
+            doc_->owner_
+        );
     }
 
-    Optional<LDDValueView> get(U8StringView name) const
+    DTSharedPtr<LDDValueView> get(U8StringView name) const
     {
         Optional<ld_::LDGenericPtr<ld_::GenericValue>> ptr = map_.get(name);
         if (ptr) {
-            return LDDValueView(doc_, ptr.get());
+            return DTSharedPtr<LDDValueView>(LDDValueView(doc_, ptr.get()), doc_->owner_);
         }
         else {
-            return Optional<LDDValueView>{};
+            return DTSharedPtr<LDDValueView>{};
         }
     }
 
@@ -94,7 +97,7 @@ public:
 
 
     template <typename T, typename... Args>
-    LDDValueView set_value(U8StringView name, Args&&... args)
+    DTSharedPtr<LDDValueView> set_value(U8StringView name, Args&&... args)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
@@ -103,21 +106,24 @@ public:
 
         map_.put(name_str.string_, vv);
 
-        return LDDValueView{doc_, vv, ld_tag_value<T>()};
+        return DTSharedPtr<LDDValueView>(
+            LDDValueView{doc_, vv, ld_tag_value<T>()},
+            doc_->owner_
+        );
     }
 
 
-    LDDMapView set_map(U8StringView name)
+    DTSharedPtr<LDDMapView> set_map(U8StringView name)
     {
-        return set_value<LDMap>(name).as_map();
+        return set_value<LDMap>(name)->as_map();
     }
 
-    LDDArrayView set_array(U8StringView name)
+    DTSharedPtr<LDDArrayView> set_array(U8StringView name)
     {
-        return set_value<LDArray>(name).as_array();
+        return set_value<LDArray>(name)->as_array();
     }
 
-    LDDValueView set_sdn(U8StringView name, U8StringView sdn)
+    DTSharedPtr<LDDValueView> set_sdn(U8StringView name, U8StringView sdn)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
@@ -126,24 +132,24 @@ public:
 
         map_.put(name_str.string_, value.value_ptr_);
 
-        return value;
+        return DTSharedPtr<LDDValueView>(value, doc_->owner_);
     }
 
-    LDDValueView set_document(U8StringView name, const LDDocument& source)
+    DTSharedPtr<LDDValueView> set_document(U8StringView name, const LDDocument& source)
     {
         LDDocumentView* dst_doc = doc_->make_mutable();
 
         auto name_str = dst_doc->new_varchar(name).ptr();
 
         ld_::LDArenaAddressMapping mapping(source, *dst_doc);
-        ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
+        ld_::LDDPtrHolder ptr = source.value()->deep_copy_to(dst_doc, mapping);
 
         map_.put(name_str, ptr);
 
-        return LDDValueView{doc_, ptr};
+        return DTSharedPtr<LDDValueView>(LDDValueView{doc_, ptr}, doc_->owner_);
     }
 
-    LDDValueView set_null(U8StringView name)
+    DTSharedPtr<LDDValueView> set_null(U8StringView name)
     {
         LDDocumentView* dst_doc = doc_->make_mutable();
 
@@ -151,7 +157,7 @@ public:
 
         map_.put(name_str, 0);
 
-        return LDDValueView{doc_, 0};
+        return DTSharedPtr<LDDValueView>(LDDValueView{doc_, 0}, doc_->owner_);
     }
 
     void remove(U8StringView name)
@@ -217,7 +223,7 @@ public:
 
     ld_::LDPtr<ValueMap::State> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
-    LDDocument clone(bool compactify = true) const {
+    PoolSharedPtr<LDDocument> clone(bool compactify = true) const {
         LDDValueView vv = *this;
         return vv.clone(compactify);
     }
@@ -243,6 +249,12 @@ struct DataTypeTraits<LDMap> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
     using LDViewType = LDDMapView;
+
+    using SharedPtrT = DTSharedPtr<LDViewType>;
+    using ConstSharedPtrT = DTConstSharedPtr<LDViewType>;
+
+    using SpanT = DTViewSpan<LDViewType, SharedPtrT>;
+    using ConstSpanT = DTConstViewSpan<LDViewType, ConstSharedPtrT>;
 
     static void create_signature(SBuf& buf) {
         buf << "LDMap";

@@ -154,8 +154,8 @@ private:
     void register_operations(std::shared_ptr<DataTypeOperations> ops)
     {
         TypeSignature ts = make_datatype_signature<T>();
-        LDDocument doc = ts.parse();
-        operations_[doc.value().as_type_decl().to_cxx_typedecl()] = ops;
+        auto doc = ts.parse();
+        operations_[doc->value()->as_type_decl()->to_cxx_typedecl()] = ops;
 
         uint64_t code = TypeHash<T>::Value & 0xFFFFFFFFFFFFFF;
         operations_by_code_[code] = ops;
@@ -198,8 +198,8 @@ public:
         LockT lock(mutex_);
 
         TypeSignature ts = make_datatype_signature<T>();
-        LDDocument doc = ts.parse();
-        creators_[doc.value().as_type_decl().to_cxx_typedecl()] = std::make_tuple(creator, parser);
+        auto doc = ts.parse();
+        creators_[doc->value()->as_type_decl()->to_cxx_typedecl()] = std::make_tuple(creator, parser);
     }
 
     template <typename T>
@@ -208,8 +208,8 @@ public:
         LockT lock(mutex_);
 
         TypeSignature ts = make_datatype_signature<T>();
-        LDDocument doc = ts.parse();
-        operations_[doc.value().as_type_decl().to_cxx_typedecl()] = ops;
+        auto doc = ts.parse();
+        operations_[doc->value()->as_type_decl()->to_cxx_typedecl()] = ops;
 
         uint64_t code = TypeHash<T>::Value & 0xFFFFFFFFFFFFFF;
         operations_by_code_[code] = ops;
@@ -236,8 +236,8 @@ public:
 
         TypeSignature ts = make_datatype_signature<T>();
 
-        LDDocument doc = ts.parse();
-        U8String decl = doc.value().as_type_decl().to_cxx_typedecl();
+        auto doc = ts.parse();
+        U8String decl = doc->value()->as_type_decl()->to_cxx_typedecl();
 
         auto ii = creators_.find(decl);
 
@@ -381,7 +381,7 @@ namespace detail {
         }
 
         static U8String convert(const LDDValueView& value) {
-            return value.as_varchar().view();
+            return value.as_varchar()->view();
         }
     };
 
@@ -392,7 +392,7 @@ namespace detail {
         }
 
         static U8StringView convert(const LDDValueView& value) {
-            return value.as_varchar().view();
+            return value.as_varchar()->view();
         }
     };
 
@@ -414,7 +414,7 @@ namespace detail {
         }
 
         static LDDArrayView convert(const LDDValueView& value) {
-            return value.as_array();
+            return *value.as_array();
         }
     };
 
@@ -425,7 +425,7 @@ namespace detail {
         }
 
         static LDDMapView convert(const LDDValueView& value) {
-            return value.as_map();
+            return *value.as_map();
         }
     };
 
@@ -436,7 +436,7 @@ namespace detail {
         }
 
         static LDTypeDeclarationView convert(const LDDValueView& value) {
-            return value.as_type_decl();
+            return *value.as_type_decl();
         }
     };
 
@@ -447,7 +447,7 @@ namespace detail {
         }
 
         static LDDTypedValueView convert(const LDDValueView& value) {
-            return value.as_typed_value();
+            return *value.as_typed_value();
         }
     };
 
@@ -487,9 +487,9 @@ namespace detail {
         {
             using ParamType = std::tuple_element_t<Idx, Tuple>;
 
-            LDTypeDeclarationView param_decl = typedecl.get_type_declration(Idx);
+            auto param_decl = typedecl.get_type_declration(Idx);
 
-            std::get<Idx>(tpl) = boost::any_cast<std::decay_t<ParamType>>(registry.create_object(param_decl));
+            std::get<Idx>(tpl) = boost::any_cast<std::decay_t<ParamType>>(registry.create_object(*param_decl));
 
             FillDTTypesList<Idx + 1, Max>::process(registry, typedecl, tpl);
         }
@@ -509,9 +509,9 @@ namespace detail {
         {
             using ArgType = std::tuple_element_t<Idx, Tuple>;
 
-            LDDValueView arg = typedecl.get_constructor_arg(Idx);
+            auto arg = typedecl.get_constructor_arg(Idx);
 
-            std::get<Idx>(tpl) = CtrArgsConverter<std::decay_t<ArgType>>::convert(arg);
+            std::get<Idx>(tpl) = CtrArgsConverter<std::decay_t<ArgType>>::convert(*arg);
 
             FillDTCtrArgsList<Idx + 1, Max>::process(typedecl, tpl);
         }

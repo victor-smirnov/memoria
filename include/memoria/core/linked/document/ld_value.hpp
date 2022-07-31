@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -60,55 +60,74 @@ public:
         return doc_->equals(other.doc_) && value_ptr_ == other.value_ptr_;
     }
 
-    void dbg() const;
 
-
-    LDDMapView as_map() const;
-    LDDArrayView as_array() const;
-    LDTypeDeclarationView as_type_decl() const;
-    LDDTypedValueView as_typed_value() const;
+    DTSharedPtr<LDDMapView> as_map() const;
+    DTSharedPtr<LDDArrayView> as_array() const;
+    DTSharedPtr<LDTypeDeclarationView> as_type_decl() const;
+    DTSharedPtr<LDDTypedValueView> as_typed_value() const;
 
     template <typename T>
-    DTTLDViewType<T> cast_as() const
+    DTSharedPtr<DTTLDViewType<T>> cast_as() const
     {
         ld_::ldd_assert_tag<T>(type_tag_);
-        return MakeLDView<T>::process(doc_, value_ptr_, type_tag_);
+        return DTSharedPtr<DTTLDViewType<T>>(
+                MakeLDView<T>::process(doc_, value_ptr_, type_tag_),
+                doc_->owner_
+        );
     }
 
     template <typename T>
-    DTTLDViewType<T> unchecked_cast_as() const
+    DTSharedPtr<DTTLDViewType<T>> unchecked_cast_as() const
     {
-        return MakeLDView<T>::process(doc_, value_ptr_, type_tag_);
+        return DTSharedPtr<DTTLDViewType<T>>(
+                MakeLDView<T>::process(doc_, value_ptr_, type_tag_),
+                doc_->owner_
+        );
     }
 
-    LDStringView as_varchar() const
+    DTSharedPtr<LDStringView> as_varchar() const
     {
         ld_::ldd_assert_tag<Varchar>(type_tag_);
-        return LDStringView(doc_, value_ptr_);
+        return DTSharedPtr<LDStringView>(
+                LDStringView(doc_, value_ptr_),
+                doc_->owner_
+        );
     }
 
-    DTTViewType<BigInt> as_bigint() const
+    DTSharedPtr<DTTViewType<BigInt>> as_bigint() const
     {
         ld_::ldd_assert_tag<BigInt>(type_tag_);
-        return *ld_::LDPtr<DTTLDStorageType<BigInt>>(value_ptr_).get(&doc_->arena_);
+        return DTSharedPtr<DTTViewType<BigInt>>(
+            *ld_::LDPtr<DTTLDStorageType<BigInt>>(value_ptr_).get(&doc_->arena_),
+            doc_->owner_
+        );
     }
 
-    DTTViewType<Double> as_double() const
+    DTSharedPtr<DTTViewType<Double>> as_double() const
     {
-        ld_::ldd_assert_tag<Double>(type_tag_);
-        return *ld_::LDPtr<DTTLDStorageType<Double>>(value_ptr_).get(&doc_->arena_);
+        ld_::ldd_assert_tag<Double>(type_tag_);        
+        return DTSharedPtr<DTTViewType<Double>>(
+                *ld_::LDPtr<DTTLDStorageType<Double>>(value_ptr_).get(&doc_->arena_),
+                doc_->owner_
+        );
     }
 
-    DTTViewType<Real> as_real() const
+    DTSharedPtr<DTTViewType<Real>> as_real() const
     {
         ld_::ldd_assert_tag<Real>(type_tag_);
-        return *ld_::LDPtr<DTTLDStorageType<Real>>(value_ptr_).get(&doc_->arena_);
+        return DTSharedPtr<DTTViewType<Real>>(
+                *ld_::LDPtr<DTTLDStorageType<Real>>(value_ptr_).get(&doc_->arena_),
+                doc_->owner_
+        );
     }
 
-    DTTViewType<Boolean> as_boolean() const
+    DTSharedPtr<DTTViewType<Boolean>> as_boolean() const
     {
         ld_::ldd_assert_tag<Boolean>(type_tag_);
-        return *ld_::LDPtr<DTTLDStorageType<Boolean>>(value_ptr_).get(&doc_->arena_);
+        return DTSharedPtr<DTTViewType<Boolean>>(
+                *ld_::LDPtr<DTTLDStorageType<Boolean>>(value_ptr_).get(&doc_->arena_),
+                doc_->owner_
+        );
     }
 
     bool is_null() const noexcept {
@@ -183,7 +202,7 @@ public:
 
     ld_::LDDPtrHolder deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
-    LDDocument clone(bool compactify = true) const;
+    PoolSharedPtr<LDDocument> clone(bool compactify = true) const;
 
 private:
     LDDValueTag get_tag(ld_::LDDPtrHolder ptr) const noexcept
@@ -199,18 +218,18 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDValueView& va
 }
 
 template <typename T>
-DTTLDViewType<T> cast_as(const LDDValueView& view) {
+DTSharedPtr<DTTLDViewType<T>> cast_as(const LDDValueView& view) {
     return view.template cast_as<T>();
 }
 
 template <typename T>
-DTTLDViewType<T> unchecked_cast_as(const LDDValueView& view) {
+DTSharedPtr<DTTLDViewType<T>> unchecked_cast_as(const LDDValueView& view) {
     return view.template unchecked_cast_as<T>();
 }
 
 std::vector<U8String> parse_path_expression(U8StringView path);
 
 bool find_value(LDDValueView& view, U8StringView path_str);
-LDDValueView get_value(LDDValueView src, U8StringView path);
+DTSharedPtr<LDDValueView> get_value(DTSharedPtr<LDDValueView> src, U8StringView path);
 
 }
