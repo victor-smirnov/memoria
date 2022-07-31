@@ -1,4 +1,19 @@
 
+# Copyright 2021-2022 Victor Smirnov
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 add_definitions("-Wno-ambiguous-reversed-operator")
 
 if (BUILD_CODEGENERATOR_EXPLICITLY)
@@ -42,7 +57,6 @@ if (BUILD_POSIX)
     add_definitions(-Wno-class-memaccess)
     add_definitions(-Werror=return-type)
 
-    #add_definitions(-pthread -nostdinc++ -isystem/home/victor/jenny-r15-rel/include/c++/v1  )
     add_definitions(-pthread -stdlib=libstdc++)
 
     add_global_libs(dl pthread)
@@ -76,11 +90,6 @@ link_libraries(fmt::fmt fmt::fmt-header-only)
 find_package(Clang CONFIG REQUIRED)
 
 STRING( REPLACE "^^" ";" MEMORIA_CORE_SRCS "${MEMORIA_CORE_SRCS_STR}" )
-
-
-message("@@@@@@################################### ${CLANG_INCLUDE_DIRS} ####################")
-
-message("${MEMORIA_CORE_SRCS}")
 
 file(GLOB CTRGEN_SRCS *.cpp)
 add_executable(MemoriaCodeGen ${CTRGEN_SRCS} ${MEMORIA_CORE_SRCS})

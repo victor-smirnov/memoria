@@ -1,5 +1,5 @@
 
-# Copyright 2016-2021 Victor Smirnov
+# Copyright 2016-2022 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 
 include_directories(../include)
 include_directories(core/include)
@@ -64,8 +65,6 @@ find_package(Clang CONFIG REQUIRED)
 
 SET (MMA_CLANG_INCLUDES_DIR ${CLANG_INCLUDE_DIRS})
 
-message("################################### ${CLANG_INCLUDE_DIRS} ####################")
-
 if (BUILD_EXTRA_CONTAINERS)
     set(BUILD_EXTRA_CONTAINERS_OPT "MEMORIA_BUILD_EXTRA_CONTAINERS")
 else()
@@ -99,7 +98,7 @@ execute_process(
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${Boost_INCLUDE_DIRS}
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
-        -I /home/victor/cxx/vcpkg-upstream/packages/llvm_x64-linux/debug/tools/llvm/lib/clang/13.0.0/include
+        -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/13.0.0/include
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
         ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
@@ -214,7 +213,7 @@ add_custom_command(
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${Boost_INCLUDE_DIRS}
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
-        -I /home/victor/cxx/vcpkg-upstream/packages/llvm_x64-linux/debug/tools/llvm/lib/clang/13.0.0/include
+        -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/13.0.0/include
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
         ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
