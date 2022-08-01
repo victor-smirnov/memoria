@@ -204,9 +204,9 @@ link_libraries(Boost::program_options Boost::serialization)
 include_directories(${ICU_INCLUDE_DIRS})
 link_directories(${ICU_LIBRARY_DIRS})
 
-if (BUILD_PYTHON_BINDINGS)
-    find_package(pybind11 CONFIG REQUIRED)
-endif()
+#if (BUILD_PYTHON_BINDINGS)
+#    find_package(pybind11 CONFIG REQUIRED)
+#endif()
 
 
 find_package(absl CONFIG REQUIRED)

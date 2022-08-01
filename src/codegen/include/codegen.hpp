@@ -73,8 +73,8 @@ struct Project {
     virtual void parse_configuration() = 0;
 
     virtual ShPtr<CodeModule> config_unit() const noexcept = 0;
-    virtual DTSharedPtr<LDDocumentView> config() const noexcept = 0;
-    virtual DTSharedPtr<LDDMapView> config_map() const = 0;
+    virtual ViewPtr<LDDocumentView> config() const noexcept = 0;
+    virtual ViewPtr<LDDMapView> config_map() const = 0;
     virtual U8String project_output_folder() const = 0;
     virtual U8String components_output_folder() const = 0;
     virtual U8String config_string(const U8String& sdn_path) const = 0;
@@ -105,7 +105,7 @@ struct TypeInstance: CodegenEntity {
 
     virtual const clang::ClassTemplateSpecializationDecl* ctr_descr() const = 0;
     virtual clang::QualType type() const = 0;
-    virtual DTSharedPtr<LDDocumentView> config() const = 0;
+    virtual ViewPtr<LDDocumentView> config() const = 0;
     virtual U8String name() const = 0;
     virtual U8String target_folder() const = 0;
     virtual U8String target_file(const U8String& profile) const = 0;
@@ -131,7 +131,7 @@ struct TypeFactory: CodegenEntity {
     virtual U8String name() const = 0;
 
     virtual U8String factory_id() const = 0;
-    virtual DTSharedPtr<LDDocumentView> config() const = 0;
+    virtual ViewPtr<LDDocumentView> config() const = 0;
     virtual U8String type_pattern() const = 0;
 
     virtual void precompile_headers() = 0;
@@ -186,7 +186,7 @@ T&& get_or_fail(Optional<T>&& opt, U8StringView msg)
 }
 
 template <typename T>
-T&& get_or_fail(DTSharedPtr<T>&& opt, U8StringView msg)
+T&& get_or_fail(ViewPtr<T>&& opt, U8StringView msg)
 {
     if (opt.is_not_empty()) {
         return std::move(*opt);
@@ -196,7 +196,7 @@ T&& get_or_fail(DTSharedPtr<T>&& opt, U8StringView msg)
     }
 }
 
-DTSharedPtr<LDDArrayView> get_or_add_array(LDDMapView map, const U8String& name);
+ViewPtr<LDDArrayView> get_or_add_array(LDDMapView map, const U8String& name);
 
 struct ResourceNameConsumer {
     virtual ~ResourceNameConsumer() noexcept = default;

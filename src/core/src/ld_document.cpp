@@ -198,22 +198,22 @@ void LDDocumentView::set_null()
     state_mutable()->value = 0;
 }
 
-DTSharedPtr<LDDMapView> LDDocumentView::set_map()
+ViewPtr<LDDMapView> LDDocumentView::set_map()
 {
     return set_value<LDMap>();
 }
 
 
-DTSharedPtr<LDDArrayView> LDDocumentView::set_array()
+ViewPtr<LDDArrayView> LDDocumentView::set_array()
 {
     return set_value<LDArray>();
 }
 
-DTSharedPtr<LDDValueView> LDDocumentView::set_sdn(U8StringView sdn)
+ViewPtr<LDDValueView> LDDocumentView::set_sdn(U8StringView sdn)
 {
     LDDValueView value = parse_raw_value(sdn.begin(), sdn.end());
     state_mutable()->value = value.value_ptr_;
-    return DTSharedPtr<LDDValueView>(value, owner_);
+    return ViewPtr<LDDValueView>(value, owner_);
 }
 
 void LDDocumentView::set_document(const LDDocumentView& source)
@@ -288,9 +288,9 @@ void LDDocumentView::for_each_named_type(std::function<void (U8StringView name, 
     }
 }
 
-std::vector<std::pair<DTSharedPtr<U8StringView>, DTSharedPtr<LDTypeDeclarationView>>> LDDocumentView::named_types() const
+std::vector<std::pair<ViewPtr<U8StringView>, ViewPtr<LDTypeDeclarationView>>> LDDocumentView::named_types() const
 {
-    std::vector<std::pair<DTSharedPtr<U8StringView>, DTSharedPtr<LDTypeDeclarationView>>> types;
+    std::vector<std::pair<ViewPtr<U8StringView>, ViewPtr<LDTypeDeclarationView>>> types;
     for_each_named_type([&](auto name, auto tdecl){
         types.push_back(std::make_pair(wrap(name), wrap(tdecl)));
     });
@@ -311,7 +311,7 @@ void LDDocumentView::set_named_type_declaration(U8StringView name, LDTypeDeclara
 }
 
 
-DTSharedPtr<LDTypeDeclarationView> LDDocumentView::get_named_type_declaration(U8StringView name) const
+ViewPtr<LDTypeDeclarationView> LDDocumentView::get_named_type_declaration(U8StringView name) const
 {
     auto* state = this->state();
     if (state->type_directory)
@@ -325,10 +325,10 @@ DTSharedPtr<LDTypeDeclarationView> LDDocumentView::get_named_type_declaration(U8
         }
     }
 
-    return DTSharedPtr<LDTypeDeclarationView>{};
+    return ViewPtr<LDTypeDeclarationView>{};
 }
 
-DTSharedPtr<LDTypeDeclarationView> LDDocumentView::create_named_type(U8StringView name, U8StringView type_decl)
+ViewPtr<LDTypeDeclarationView> LDDocumentView::create_named_type(U8StringView name, U8StringView type_decl)
 {
     assert_identifier(name);
 
@@ -516,8 +516,8 @@ LDDocument::LDDocument(Span<const uint8_t> data):
     ld_arena_(data, &arena_)
 {}
 
-DTSharedPtr<LDDocumentView> LDDocument::view() {
-    return DTSharedPtr<LDDocumentView>(*this, &view_holder_);
+ViewPtr<LDDocumentView> LDDocument::view() {
+    return ViewPtr<LDDocumentView>(*this, &view_holder_);
 }
 
 PoolSharedPtr<LDDocument> LDDocument::compactify() const

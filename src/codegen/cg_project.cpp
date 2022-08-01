@@ -303,11 +303,11 @@ public:
         return config_unit_;
     }
 
-    DTSharedPtr<LDDocumentView> config() const noexcept override {
+    ViewPtr<LDDocumentView> config() const noexcept override {
         return config_->as_immutable_view();
     }
 
-    DTSharedPtr<LDDMapView> config_map() const override {
+    ViewPtr<LDDMapView> config_map() const override {
         return config_->value()->as_typed_value()->constructor()->as_map();
     }
 
@@ -496,7 +496,7 @@ void for_each_value(LDDValueView elem, const std::function<bool(const std::vecto
 }
 
 
-DTSharedPtr<LDDArrayView> get_or_add_array(LDDMapView map, const U8String& name)
+ViewPtr<LDDArrayView> get_or_add_array(LDDMapView map, const U8String& name)
 {
     auto res = map.get(name);
 

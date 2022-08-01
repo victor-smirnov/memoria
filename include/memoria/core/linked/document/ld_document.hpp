@@ -121,8 +121,8 @@ public:
     virtual ~LDDocumentView() noexcept = default;
 
     template <typename View>
-    DTSharedPtr<View> wrap(const View& view) const {
-        return DTSharedPtr<View>(view, owner_);
+    ViewPtr<View> wrap(const View& view) const {
+        return ViewPtr<View>(view, owner_);
     }
 
     Span<const AtomType> span() const noexcept {
@@ -139,7 +139,7 @@ public:
     LDDocumentView& operator=(const LDDocumentView&) noexcept = default;
     LDDocumentView& operator=(LDDocumentView&&) noexcept = default;
 
-    DTSharedPtr<LDDocumentView> as_immutable_view() const noexcept
+    ViewPtr<LDDocumentView> as_immutable_view() const noexcept
     {
         LDDocumentView view = *this;
         view.arena_.clear_arena_ptr();
@@ -149,7 +149,7 @@ public:
             terminate(format_u8("Invalid LDDocumentview!").data());
         }
 
-        return DTSharedPtr<LDDocumentView>(view, owner_);
+        return ViewPtr<LDDocumentView>(view, owner_);
     }
 
     PoolSharedPtr<LDDocument> clone();
@@ -158,7 +158,7 @@ public:
         return arena_.data() == other->arena_.data();
     }
 
-    DTSharedPtr<LDDValueView> value() const noexcept;
+    ViewPtr<LDDValueView> value() const noexcept;
 
     void set_varchar(U8StringView string);
     void set_bigint(int64_t value);
@@ -168,24 +168,24 @@ public:
 
     void set_document(const LDDocumentView& other);
 
-    DTSharedPtr<LDDMapView> set_map();
-    DTSharedPtr<LDDArrayView> set_array();
+    ViewPtr<LDDMapView> set_map();
+    ViewPtr<LDDArrayView> set_array();
 
     template <typename T, typename... Args>
-    DTSharedPtr<DTTLDViewType<T>> set_value(Args&&... args)
+    ViewPtr<DTTLDViewType<T>> set_value(Args&&... args)
     {
         auto value_ptr = LDStorageAllocator<T>::allocate_and_construct(arena_.make_mutable(), std::forward<Args>(args)...);
         set_tag(value_ptr.get(), ld_tag_value<T>());
         state_mutable()->value = value_ptr;
 
         using LDViewType = DTTLDViewType<T>;
-        return DTSharedPtr<DTTLDViewType<T>>(
+        return ViewPtr<DTTLDViewType<T>>(
                 LDViewType{this, value_ptr, ld_tag_value<T>()},
                 owner_
         );
     }
 
-    DTSharedPtr<LDDValueView> set_sdn(U8StringView sdn);
+    ViewPtr<LDDValueView> set_sdn(U8StringView sdn);
 
     // FIXME: should be private?
     LDDocumentView* make_mutable() const
@@ -231,15 +231,15 @@ public:
         return ss.str();
     }
 
-    DTSharedPtr<LDTypeDeclarationView> create_named_type(U8StringView name, U8StringView type_decl);
+    ViewPtr<LDTypeDeclarationView> create_named_type(U8StringView name, U8StringView type_decl);
 
-    DTSharedPtr<LDTypeDeclarationView> get_named_type_declaration(U8StringView name) const;
+    ViewPtr<LDTypeDeclarationView> get_named_type_declaration(U8StringView name) const;
 
     void remove_named_type_declaration(U8StringView name);
 
     void for_each_named_type(std::function<void (U8StringView name, LDTypeDeclarationView)> fn) const;
 
-    std::vector<std::pair<DTSharedPtr<U8StringView>, DTSharedPtr<LDTypeDeclarationView>>> named_types() const;
+    std::vector<std::pair<ViewPtr<U8StringView>, ViewPtr<LDTypeDeclarationView>>> named_types() const;
 
     static bool is_identifier(U8StringView string) {
         return is_identifier(string.begin(), string.end());
@@ -395,7 +395,7 @@ public:
     LDDocument& operator=(const LDDocument&) = delete;
     LDDocument& operator=(LDDocument&&);
 
-    DTSharedPtr<LDDocumentView> view();
+    ViewPtr<LDDocumentView> view();
 
     PoolSharedPtr<LDDocument> compactify() const ;
 

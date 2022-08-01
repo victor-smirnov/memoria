@@ -428,7 +428,7 @@ public:
 
 
 template <typename ViewT>
-class DTSharedPtr {
+class ViewPtr {
     using RefHolder = DTViewHolder;
 
     ViewT view_;
@@ -437,9 +437,9 @@ class DTSharedPtr {
 public:
     using element_type = ViewT;
 
-    DTSharedPtr() noexcept : view_(), ref_holder_() {}
+    ViewPtr() noexcept : view_(), ref_holder_() {}
 
-    DTSharedPtr(ViewT view, RefHolder* holder) noexcept :
+    ViewPtr(ViewT view, RefHolder* holder) noexcept :
         view_(view), ref_holder_(holder)
     {
         if (holder) {
@@ -448,7 +448,7 @@ public:
     }
 
     template<typename U>
-    DTSharedPtr(const DTSharedPtr<U>& other) noexcept:
+    ViewPtr(const ViewPtr<U>& other) noexcept:
         view_(other.view_),
         ref_holder_(other.ref_holder_)
     {
@@ -458,7 +458,7 @@ public:
     }
 
 
-    DTSharedPtr(const DTSharedPtr& other) noexcept:
+    ViewPtr(const ViewPtr& other) noexcept:
         view_(other.view_),
         ref_holder_(other.ref_holder_)
     {
@@ -468,26 +468,26 @@ public:
     }
 
 
-    DTSharedPtr(DTSharedPtr&& other) noexcept:
+    ViewPtr(ViewPtr&& other) noexcept:
         view_(other.view_), ref_holder_(other.ref_holder_)
     {
         other.ref_holder_ = nullptr;
     }
 
     template<typename U>
-    DTSharedPtr(DTSharedPtr<U>&& other) noexcept:
+    ViewPtr(ViewPtr<U>&& other) noexcept:
         view_(other.view_), ref_holder_(other.ref_holder_)
     {
         other.ref_holder_ = nullptr;
     }
 
-    ~DTSharedPtr() noexcept {
+    ~ViewPtr() noexcept {
         if (ref_holder_) {
             ref_holder_->unref();
         }
     }
 
-    DTSharedPtr& operator=(const DTSharedPtr& other) noexcept {
+    ViewPtr& operator=(const ViewPtr& other) noexcept {
         if (MMA_LIKELY(&other != this))
         {
             if (ref_holder_) {
@@ -505,7 +505,7 @@ public:
         return *this;
     }
 
-    DTSharedPtr& operator=(DTSharedPtr&& other) noexcept {
+    ViewPtr& operator=(ViewPtr&& other) noexcept {
         if (MMA_LIKELY(&other != this))
         {
             if (MMA_UNLIKELY(ref_holder_ != nullptr)) {
@@ -535,7 +535,7 @@ public:
         return tmp;
     }
 
-    friend void swap(DTSharedPtr& lhs, DTSharedPtr& rhs) {
+    friend void swap(ViewPtr& lhs, ViewPtr& rhs) {
         std::swap(lhs.view_, rhs.view_);
         std::swap(lhs.ref_holder_, rhs.ref_holder_);
     }
@@ -604,7 +604,7 @@ public:
     }
 
     template<typename U>
-    DTConstSharedPtr(const DTSharedPtr<U>& other) noexcept:
+    DTConstSharedPtr(const ViewPtr<U>& other) noexcept:
         view_(other.view_),
         ref_holder_(other.ref_holder_)
     {
@@ -623,7 +623,7 @@ public:
         }
     }
 
-    DTConstSharedPtr(const DTSharedPtr<ViewT>& other) noexcept:
+    DTConstSharedPtr(const ViewPtr<ViewT>& other) noexcept:
         view_(other.view_),
         ref_holder_(other.ref_holder_)
     {
@@ -640,7 +640,7 @@ public:
     }
 
 
-    DTConstSharedPtr(DTSharedPtr<ViewT>&& other) noexcept:
+    DTConstSharedPtr(ViewPtr<ViewT>&& other) noexcept:
         view_(other.view_), ref_holder_(other.ref_holder_)
     {
         other.ref_holder_ = nullptr;
@@ -654,7 +654,7 @@ public:
     }
 
     template<typename U>
-    DTConstSharedPtr(DTSharedPtr<U>&& other) noexcept:
+    DTConstSharedPtr(ViewPtr<U>&& other) noexcept:
         view_(other.view_), ref_holder_(other.ref_holder_)
     {
         other.ref_holder_ = nullptr;

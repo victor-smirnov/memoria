@@ -17,7 +17,7 @@
 add_definitions("-Wno-ambiguous-reversed-operator")
 
 if (BUILD_CODEGENERATOR_EXPLICITLY)
-    find_package(Clang 13.0.0 CONFIG REQUIRED)
+    find_package(Clang CONFIG REQUIRED)
     find_package(pybind11 CONFIG REQUIRED)
 
     file(GLOB CTRGEN_SRCS *.cpp)

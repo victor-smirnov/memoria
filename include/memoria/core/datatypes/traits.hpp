@@ -97,7 +97,7 @@ using DTTConstSpan = typename DataTypeTraits<T>::ConstSpanT;
 
 
 
-template <typename ViewT> class DTSharedPtr;
+template <typename ViewT> class ViewPtr;
 template <typename ViewT> class DTConstSharedPtr;
 
 template <typename ViewT> class DTFxdValueWrapper;
@@ -195,7 +195,7 @@ struct MinimalDataTypeTraits: DataTypeTraitsBase<DataType>
     using DataDimensionsList  = TL<const T*>;
     using DataDimensionsTuple = AsTuple<DataDimensionsList>;
 
-    using SharedPtrT = DTSharedPtr<ViewType>;
+    using SharedPtrT = ViewPtr<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
     using SpanT = DTViewSpan<ViewType, SharedPtrT>;
@@ -432,7 +432,7 @@ struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
 
     using ViewType = EmptyType; // Probably, hasn't been defined yet
 
-    using SharedPtrT = DTSharedPtr<ViewType>;
+    using SharedPtrT = ViewPtr<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
     using SpanT = DTViewSpan<ViewType, SharedPtrT>;
@@ -469,7 +469,7 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
 
     using ViewType = EmptyType; // Probably, hasn't been defined yet
 
-    using SharedPtrT = DTSharedPtr<ViewType>;
+    using SharedPtrT = ViewPtr<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
 
@@ -505,7 +505,7 @@ struct DataTypeTraits<CoreApiProfileDT>: DataTypeTraitsBase<CoreApiProfileDT>
 
     using ViewType = CoreApiProfile; // Probably, hasn't been defined yet
 
-    using SharedPtrT = DTSharedPtr<ViewType>;
+    using SharedPtrT = ViewPtr<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
     using SpanT = DTViewSpan<ViewType, SharedPtrT>;

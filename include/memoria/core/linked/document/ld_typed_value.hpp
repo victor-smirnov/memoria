@@ -36,17 +36,17 @@ public:
         doc_(doc), state_(state)
     {}
 
-    DTSharedPtr<LDTypeDeclarationView> type() const
+    ViewPtr<LDTypeDeclarationView> type() const
     {
-        return DTSharedPtr<LDTypeDeclarationView>(
+        return ViewPtr<LDTypeDeclarationView>(
             LDTypeDeclarationView{doc_, state()->type_decl},
             doc_->owner_
         );
     }
 
-    DTSharedPtr<LDDValueView> constructor() const
+    ViewPtr<LDDValueView> constructor() const
     {
-        return DTSharedPtr<LDDValueView>(
+        return ViewPtr<LDDValueView>(
             LDTypeDeclarationView{doc_, state()->value_ptr},
             doc_->owner_
         );
@@ -98,7 +98,7 @@ struct DataTypeTraits<LDTypedValue> {
     using LDStorageType = NullType;
     using LDViewType = LDDTypedValueView;
 
-    using SharedPtrT = DTSharedPtr<LDViewType>;
+    using SharedPtrT = ViewPtr<LDViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<LDViewType>;
 
     using SpanT = DTViewSpan<LDViewType, SharedPtrT>;

@@ -35,7 +35,7 @@ struct DataTypeTraits<Varbinary>: DataTypeTraitsBase<Varbinary>
     static constexpr bool isDataType          = true;
     static constexpr bool HasTypeConstructors = false;
 
-    using SharedPtrT = DTSharedPtr<ViewType>;
+    using SharedPtrT = ViewPtr<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
     using SpanT = DTViewSpan<ViewType, SharedPtrT>;

@@ -40,7 +40,7 @@ public:
         return string_.get();
     }
 
-    DTSharedPtr<U8StringView> view() const noexcept {
+    ViewPtr<U8StringView> view() const noexcept {
         return doc_->wrap(string_.get(&doc_->arena_)->view());
     }
 

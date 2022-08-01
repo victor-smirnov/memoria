@@ -21,7 +21,7 @@
 
 namespace memoria {
 
-DTSharedPtr<LDDMapView> LDDArrayView::add_map()
+ViewPtr<LDDMapView> LDDArrayView::add_map()
 {
     return add_value<LDMap>()->as_map();
 }
@@ -60,7 +60,7 @@ void LDDArrayView::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpSt
 }
 
 
-DTSharedPtr<LDDMapView> LDDArrayView::set_map(size_t idx)
+ViewPtr<LDDMapView> LDDArrayView::set_map(size_t idx)
 {
     return set_value<LDMap>(idx)->as_map();
 }

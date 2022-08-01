@@ -124,7 +124,7 @@ public:
         }
     }
 
-    DTSharedPtr<LDDocumentView> config() const override {
+    ViewPtr<LDDocumentView> config() const override {
         return config_->view();
     }
 
@@ -163,11 +163,11 @@ public:
         return shared_from_this();
     }
 
-    DTSharedPtr<LDDMapView> ld_config() {
+    ViewPtr<LDDMapView> ld_config() {
         return config_->value()->as_typed_value()->constructor()->as_map();
     }
 
-    DTSharedPtr<LDDMapView> ld_config() const {
+    ViewPtr<LDDMapView> ld_config() const {
         return config_->value()->as_typed_value()->constructor()->as_map();
     }
 

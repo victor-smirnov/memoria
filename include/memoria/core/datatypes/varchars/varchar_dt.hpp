@@ -48,7 +48,7 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
 
     using DatumStorage  = VarcharStorage;
 
-    using SharedPtrT = DTSharedPtr<ViewType>;
+    using SharedPtrT = ViewPtr<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
     using SpanT = DTViewSpan<ViewType, SharedPtrT>;

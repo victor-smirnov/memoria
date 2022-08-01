@@ -49,8 +49,8 @@ public:
     {}
 
     template <typename View>
-    DTSharedPtr<View> wrap(const View& view) const {
-        return DTSharedPtr<View>(view, doc_->owner_);
+    ViewPtr<View> wrap(const View& view) const {
+        return ViewPtr<View>(view, doc_->owner_);
     }
 
     const LDDocumentView* doc() const noexcept {
@@ -66,70 +66,70 @@ public:
     }
 
 
-    DTSharedPtr<LDDMapView> as_map() const;
-    DTSharedPtr<LDDArrayView> as_array() const;
-    DTSharedPtr<LDTypeDeclarationView> as_type_decl() const;
-    DTSharedPtr<LDDTypedValueView> as_typed_value() const;
+    ViewPtr<LDDMapView> as_map() const;
+    ViewPtr<LDDArrayView> as_array() const;
+    ViewPtr<LDTypeDeclarationView> as_type_decl() const;
+    ViewPtr<LDDTypedValueView> as_typed_value() const;
 
     template <typename T>
-    DTSharedPtr<DTTLDViewType<T>> cast_as() const
+    ViewPtr<DTTLDViewType<T>> cast_as() const
     {
         ld_::ldd_assert_tag<T>(type_tag_);
-        return DTSharedPtr<DTTLDViewType<T>>(
+        return ViewPtr<DTTLDViewType<T>>(
                 MakeLDView<T>::process(doc_, value_ptr_, type_tag_),
                 doc_->owner_
         );
     }
 
     template <typename T>
-    DTSharedPtr<DTTLDViewType<T>> unchecked_cast_as() const
+    ViewPtr<DTTLDViewType<T>> unchecked_cast_as() const
     {
-        return DTSharedPtr<DTTLDViewType<T>>(
+        return ViewPtr<DTTLDViewType<T>>(
                 MakeLDView<T>::process(doc_, value_ptr_, type_tag_),
                 doc_->owner_
         );
     }
 
-    DTSharedPtr<LDStringView> as_varchar() const
+    ViewPtr<LDStringView> as_varchar() const
     {
         ld_::ldd_assert_tag<Varchar>(type_tag_);
-        return DTSharedPtr<LDStringView>(
+        return ViewPtr<LDStringView>(
                 LDStringView(doc_, value_ptr_),
                 doc_->owner_
         );
     }
 
-    DTSharedPtr<DTTViewType<BigInt>> as_bigint() const
+    ViewPtr<DTTViewType<BigInt>> as_bigint() const
     {
         ld_::ldd_assert_tag<BigInt>(type_tag_);
-        return DTSharedPtr<DTTViewType<BigInt>>(
+        return ViewPtr<DTTViewType<BigInt>>(
             *ld_::LDPtr<DTTLDStorageType<BigInt>>(value_ptr_).get(&doc_->arena_),
             doc_->owner_
         );
     }
 
-    DTSharedPtr<DTTViewType<Double>> as_double() const
+    ViewPtr<DTTViewType<Double>> as_double() const
     {
         ld_::ldd_assert_tag<Double>(type_tag_);        
-        return DTSharedPtr<DTTViewType<Double>>(
+        return ViewPtr<DTTViewType<Double>>(
                 *ld_::LDPtr<DTTLDStorageType<Double>>(value_ptr_).get(&doc_->arena_),
                 doc_->owner_
         );
     }
 
-    DTSharedPtr<DTTViewType<Real>> as_real() const
+    ViewPtr<DTTViewType<Real>> as_real() const
     {
         ld_::ldd_assert_tag<Real>(type_tag_);
-        return DTSharedPtr<DTTViewType<Real>>(
+        return ViewPtr<DTTViewType<Real>>(
                 *ld_::LDPtr<DTTLDStorageType<Real>>(value_ptr_).get(&doc_->arena_),
                 doc_->owner_
         );
     }
 
-    DTSharedPtr<DTTViewType<Boolean>> as_boolean() const
+    ViewPtr<DTTViewType<Boolean>> as_boolean() const
     {
         ld_::ldd_assert_tag<Boolean>(type_tag_);
-        return DTSharedPtr<DTTViewType<Boolean>>(
+        return ViewPtr<DTTViewType<Boolean>>(
                 *ld_::LDPtr<DTTLDStorageType<Boolean>>(value_ptr_).get(&doc_->arena_),
                 doc_->owner_
         );
@@ -223,18 +223,18 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDValueView& va
 }
 
 template <typename T>
-DTSharedPtr<DTTLDViewType<T>> cast_as(const LDDValueView& view) {
+ViewPtr<DTTLDViewType<T>> cast_as(const LDDValueView& view) {
     return view.template cast_as<T>();
 }
 
 template <typename T>
-DTSharedPtr<DTTLDViewType<T>> unchecked_cast_as(const LDDValueView& view) {
+ViewPtr<DTTLDViewType<T>> unchecked_cast_as(const LDDValueView& view) {
     return view.template unchecked_cast_as<T>();
 }
 
 std::vector<U8String> parse_path_expression(U8StringView path);
 
 bool find_value(LDDValueView& view, U8StringView path_str);
-DTSharedPtr<LDDValueView> get_value(DTSharedPtr<LDDValueView> src, U8StringView path);
+ViewPtr<LDDValueView> get_value(ViewPtr<LDDValueView> src, U8StringView path);
 
 }

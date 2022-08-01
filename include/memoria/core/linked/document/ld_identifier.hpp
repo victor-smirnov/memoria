@@ -34,7 +34,7 @@ public:
         doc_(doc), string_(string)
     {}
 
-    DTSharedPtr<U8StringView> view() const {
+    ViewPtr<U8StringView> view() const {
         return doc_->wrap(string_.get(&doc_->arena_)->view());
     }
 };
