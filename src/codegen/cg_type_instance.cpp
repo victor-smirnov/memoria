@@ -78,7 +78,7 @@ public:
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return get_value(config_->value(), sdn_path)->as_varchar()->view();
+        return *get_value(config_->value(), sdn_path)->as_varchar()->view();
     }
 
     ShPtr<FileGenerator> initializer() override
@@ -290,8 +290,8 @@ public:
             config_ = LDDocument::parse(anns[anns.size() - 1]);
 
             auto name = ld_config()->get("name");
-            if (name) {
-                name_ = name->as_varchar()->view();
+            if (name.is_not_empty()) {
+                name_ = *name->as_varchar()->view();
             }
             else {
                 U8String type_name = type_().getAsString();
@@ -299,11 +299,11 @@ public:
             }
 
             auto includes = ld_config()->get("includes");
-            if (includes) {
+            if (includes.is_not_empty()) {
                 auto arr = includes->as_array();
                 for (size_t c = 0; c < arr->size(); c++)
                 {
-                    U8String file_name = arr->get(c)->as_varchar()->view();
+                    U8String file_name = *arr->get(c)->as_varchar()->view();
                     includes_.push_back(file_name);
                 }
             }
@@ -317,7 +317,7 @@ public:
 
         auto cfg = config_->value();
         if (find_value(*cfg, "$/config")) {
-            config_sdn_path_ = cfg->as_varchar()->view();
+            config_sdn_path_ = *cfg->as_varchar()->view();
         }
         else {
             config_sdn_path_ = "$/groups/default/containers";
@@ -335,7 +335,7 @@ public:
             ).do_throw();
         }
 
-        target_folder_ = project_->components_output_folder() + "/" + get_value(project_config_->value(), "$/path")
+        target_folder_ = project_->components_output_folder() + "/" + *get_value(project_config_->value(), "$/path")
             ->as_varchar()->view();
 
         std::error_code ec;
@@ -348,7 +348,7 @@ public:
         {
             if (pp->is_varchar())
             {
-                U8String val = pp->as_varchar()->view();
+                U8String val = *pp->as_varchar()->view();
                 if (val == "ALL") {
                     profiles_ = project_->profiles();
                 }
@@ -361,7 +361,7 @@ public:
                 auto arr = pp->as_array();
                 profiles_ = std::vector<U8String>();
                 for (size_t c = 0; c < arr->size(); c++) {
-                    profiles_.get().push_back(arr->get(c)->as_varchar()->view());
+                    profiles_.get().push_back(*arr->get(c)->as_varchar()->view());
                 }
             }
             else {

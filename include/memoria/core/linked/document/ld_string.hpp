@@ -40,8 +40,8 @@ public:
         return string_.get();
     }
 
-    U8StringView view() const noexcept {
-        return string_.get(&doc_->arena_)->view();
+    DTSharedPtr<U8StringView> view() const noexcept {
+        return doc_->wrap(string_.get(&doc_->arena_)->view());
     }
 
     operator LDDValueView() const noexcept;
@@ -79,7 +79,7 @@ struct formatter<memoria::LDStringView> {
 
     template <typename FormatContext>
     auto format(const memoria::LDStringView& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", d.view().to_string());
+        return format_to(ctx.out(), "{}", d.view()->to_string());
     }
 };
 

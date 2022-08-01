@@ -248,16 +248,16 @@ struct DataTypeOperationsImpl<Boolean>: SimpleDataTypeOperationsImpl<Boolean> {
     ) {
         if (value.is_varchar())
         {
-            U8StringView view = value.as_varchar()->view();
+            auto view = value.as_varchar()->view();
 
-            if ("true" == view) {
+            if ("true" == *view) {
                 return LDDValueView{doc, doc->new_value<Boolean>(true), ld_tag_value<Boolean>()};
             }
-            else if ("false" == view) {
+            else if ("false" == *view) {
                 return LDDValueView{doc, doc->new_value<Boolean>(false), ld_tag_value<Boolean>()};
             }
             else {
-                MMA_THROW(RuntimeException()) << format_ex("Unsupported boolean string value: {}", view);
+                MMA_THROW(RuntimeException()) << format_ex("Unsupported boolean string value: {}", *view);
             }
         }
         else {

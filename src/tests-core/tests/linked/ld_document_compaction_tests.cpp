@@ -45,10 +45,10 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<LDTestState>>("
     {
         U8String key = "Entry" + std::to_string(c);
         auto vv = map->get(key);
-        assert_equals(true, (bool)vv);
+        assert_equals(true, vv.is_not_empty());
 
         U8String value = std::to_string(c);
-        assert_equals(value, vv->as_varchar()->view());
+        assert_equals(value, *vv->as_varchar()->view());
     }
 
 });

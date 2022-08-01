@@ -119,15 +119,15 @@ public:
     virtual void configure() override
     {
         auto ii = ld_config()->get("includes");
-        if (ii) {
+        if (ii.is_not_empty()) {
             auto arr = ii->as_array();
             for (size_t c = 0; c < arr->size(); c++)
             {
-                includes_.push_back(arr->get(c)->as_varchar()->view());
+                includes_.push_back(*arr->get(c)->as_varchar()->view());
             }
         }
 
-        U8String path = get_or_fail(
+        U8String path = *get_or_fail(
                     ld_config()->get("filename"),
                     "filename property is not specified for file generator"
         ).as_varchar()->view();
@@ -142,7 +142,7 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("Can't create folder '{}'", target_folder_).do_throw();
         }
 
-        handler_ = get_or_fail(
+        handler_ = *get_or_fail(
                     ld_config()->get("handler"),
                     "handler property is not specified for file generator"
         ).as_varchar()->view();
@@ -164,7 +164,7 @@ public:
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return get_value(config_->value(), sdn_path)->as_varchar()->view();
+        return *get_value(config_->value(), sdn_path)->as_varchar()->view();
     }
 
     ShPtr<FileGenerator> self() {

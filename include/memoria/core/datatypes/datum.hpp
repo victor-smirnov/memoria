@@ -395,10 +395,10 @@ public:
         auto value = doc.value();
 
         if (value->is_double()) {
-            return datum_from_sdn_value(static_cast<DataType*>(nullptr), (double)value->as_double());
+            return datum_from_sdn_value(static_cast<DataType*>(nullptr), (double)*value->as_double());
         }
         else if (value->is_bigint()) {
-            return datum_from_sdn_value(static_cast<DataType*>(nullptr), (int64_t)value->as_bigint());
+            return datum_from_sdn_value(static_cast<DataType*>(nullptr), (int64_t)*value->as_bigint());
         }
 //        else if (value.is_boolean()) {
 //            return datum_from_sdn_value(static_cast<DataType*>(nullptr), value.as_boolean());

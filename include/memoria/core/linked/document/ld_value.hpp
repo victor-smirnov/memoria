@@ -48,6 +48,11 @@ public:
         type_tag_(tag)
     {}
 
+    template <typename View>
+    DTSharedPtr<View> wrap(const View& view) const {
+        return DTSharedPtr<View>(view, doc_->owner_);
+    }
+
     const LDDocumentView* doc() const noexcept {
         return doc_;
     }

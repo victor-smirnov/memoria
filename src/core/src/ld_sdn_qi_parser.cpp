@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -143,8 +143,8 @@ public:
 
     LDDValueView new_typed_value(LDIdentifierView id, LDDValueView constructor)
     {
-        auto type_decl = doc_.get_named_type_declaration(id.view()).get();
-        return doc_.new_typed_value(type_decl, constructor);
+        auto type_decl = doc_.get_named_type_declaration(*id.view());
+        return doc_.new_typed_value(*type_decl, constructor);
     }
 
     void add_type_directory_entry(LDIdentifierView id, LDTypeDeclarationView type_decl)
@@ -684,8 +684,6 @@ bool parse_sdn_type_decl(Iterator& first, Iterator& last, LDDocument& doc)
     LDDocumentBuilderCleanup cleanup;
 
     LDTypeDeclarationView type_decl{};
-
-
     bool r = qi::phrase_parse(first, last, grammar, enc::space, type_decl);
 
     builder.set_doc_value(type_decl);

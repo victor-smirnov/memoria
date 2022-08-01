@@ -52,6 +52,11 @@ public:
         doc_(doc), state_(state)
     {}
 
+    template <typename View>
+    DTSharedPtr<View> wrap(View view) const {
+        return DTSharedPtr<View>(view, doc_->owner_);
+    }
+
     bool operator==(const LDTypeDeclarationView& other) const noexcept {
         return doc_->equals(other.doc_) && state_.get() == other.state_.get();
     }
@@ -60,8 +65,8 @@ public:
         return LDDValueView{doc_, state_.get()};
     }
 
-    U8StringView name() const {
-        return state()->name.get(&doc_->arena_)->view();
+    DTSharedPtr<U8StringView> name() const {
+        return doc_->wrap(state()->name.get(&doc_->arena_)->view());
     }
 
     size_t params() const
@@ -103,9 +108,8 @@ public:
 
             if (idx < params_array->size())
             {
-                return DTSharedPtr<LDTypeDeclarationView>(
-                    LDTypeDeclarationView(doc_, params_array->access(idx)),
-                    doc_->owner_
+                return wrap(
+                    LDTypeDeclarationView(doc_, params_array->access(idx))
                 );
             }
         }
@@ -117,7 +121,7 @@ public:
     {
         auto decl = doc_->make_mutable()->new_type_declaration(name);
         ensure_params_capacity(1)->push_back(decl.state_);
-        return DTSharedPtr<LDTypeDeclarationView>(decl, doc_->owner_);
+        return wrap(decl);
     }
 
 
@@ -162,10 +166,7 @@ public:
 
             if (idx < ctr_args->size())
             {
-                return DTSharedPtr<LDDValueView>(
-                    LDDValueView{doc_, ctr_args->access(idx)},
-                    doc_->owner_
-                );
+                return wrap(LDDValueView{doc_, ctr_args->access(idx)});
             }
         }
 

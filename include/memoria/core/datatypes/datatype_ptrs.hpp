@@ -558,9 +558,17 @@ public:
     ViewT* get() {return &view_;}
     const ViewT* get() const {return &view_;}
 
-    operator bool() const {
+    bool is_empty() const {
+        return ref_holder_ == nullptr;
+    }
+
+    bool is_not_empty() const {
         return ref_holder_ != nullptr;
     }
+
+//    operator bool() const {
+//        return ref_holder_ != nullptr;
+//    }
 };
 
 
@@ -726,9 +734,17 @@ public:
 
     const ViewT* get() const {return &view_;}
 
-    operator bool() const {
+    bool is_empty() const {
+        return ref_holder_ == nullptr;
+    }
+
+    bool is_not_empty() const {
         return ref_holder_ != nullptr;
     }
+
+//    operator bool() const {
+//        return ref_holder_ != nullptr;
+//    }
 };
 
 

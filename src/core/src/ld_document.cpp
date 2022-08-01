@@ -288,11 +288,11 @@ void LDDocumentView::for_each_named_type(std::function<void (U8StringView name, 
     }
 }
 
-std::vector<std::pair<U8StringView, LDTypeDeclarationView>> LDDocumentView::named_types() const
+std::vector<std::pair<DTSharedPtr<U8StringView>, DTSharedPtr<LDTypeDeclarationView>>> LDDocumentView::named_types() const
 {
-    std::vector<std::pair<U8StringView, LDTypeDeclarationView>> types;
+    std::vector<std::pair<DTSharedPtr<U8StringView>, DTSharedPtr<LDTypeDeclarationView>>> types;
     for_each_named_type([&](auto name, auto tdecl){
-        types.push_back(std::make_pair(name, tdecl));
+        types.push_back(std::make_pair(wrap(name), wrap(tdecl)));
     });
     return types;
 }
@@ -311,7 +311,7 @@ void LDDocumentView::set_named_type_declaration(U8StringView name, LDTypeDeclara
 }
 
 
-Optional<LDTypeDeclarationView> LDDocumentView::get_named_type_declaration(U8StringView name) const
+DTSharedPtr<LDTypeDeclarationView> LDDocumentView::get_named_type_declaration(U8StringView name) const
 {
     auto* state = this->state();
     if (state->type_directory)
@@ -321,14 +321,14 @@ Optional<LDTypeDeclarationView> LDDocumentView::get_named_type_declaration(U8Str
         auto value = map.get(name);
 
         if (value) {
-            return LDTypeDeclarationView{const_cast<LDDocumentView*>(this), value.get()};
+            return wrap(LDTypeDeclarationView{const_cast<LDDocumentView*>(this), value.get()});
         }
     }
 
-    return Optional<LDTypeDeclarationView>{};
+    return DTSharedPtr<LDTypeDeclarationView>{};
 }
 
-LDTypeDeclarationView LDDocumentView::create_named_type(U8StringView name, U8StringView type_decl)
+DTSharedPtr<LDTypeDeclarationView> LDDocumentView::create_named_type(U8StringView name, U8StringView type_decl)
 {
     assert_identifier(name);
 
@@ -336,7 +336,7 @@ LDTypeDeclarationView LDDocumentView::create_named_type(U8StringView name, U8Str
     auto str_ptr = this->new_varchar(name).ptr();
     LDTypeDeclarationView td = parse_raw_type_decl(type_decl.begin(), type_decl.end());
     map.put(str_ptr, td.state_);
-    return td;
+    return wrap(td);
 }
 
 

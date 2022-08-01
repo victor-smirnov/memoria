@@ -114,8 +114,8 @@ PoolSharedPtr<LDDocument> LDStringView::clone(bool compactify) const {
 
 std::ostream& LDStringView::dump(std::ostream& out, LDDumpFormatState&, LDDumpState&) const
 {
-    U8StringView str = view();
-    U8StringView str_escaped = SDNStringEscaper::current().escape_quotes(str);
+    auto str = view();
+    U8StringView str_escaped = SDNStringEscaper::current().escape_quotes(*str);
 
     out << "'" << str_escaped << "'";
 
@@ -150,7 +150,7 @@ bool find_value(LDDValueView& res, U8StringView path_str)
             else if (res.is_map())
             {
                 auto res2 = res.as_map()->get(step);
-                if (!res2) {
+                if (res2.is_empty()) {
                     return false;
                 }
                 else {

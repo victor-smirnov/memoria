@@ -188,7 +188,7 @@ T&& get_or_fail(Optional<T>&& opt, U8StringView msg)
 template <typename T>
 T&& get_or_fail(DTSharedPtr<T>&& opt, U8StringView msg)
 {
-    if (opt) {
+    if (opt.is_not_empty()) {
         return std::move(*opt);
     }
     else {

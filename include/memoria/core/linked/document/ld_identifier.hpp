@@ -34,13 +34,13 @@ public:
         doc_(doc), string_(string)
     {}
 
-    U8StringView view() const {
-        return string_.get(&doc_->arena_)->view();
+    DTSharedPtr<U8StringView> view() const {
+        return doc_->wrap(string_.get(&doc_->arena_)->view());
     }
 };
 
 static inline std::ostream& operator<<(std::ostream& out, const LDIdentifierView& value) {
-    out << value.view();
+    out << *value.view();
     return out;
 }
 

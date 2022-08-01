@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -55,17 +55,17 @@ Datum<Varchar> Datum<Varchar>::from_sdn(const LDDocument& sdn_doc)
 {
     auto value = sdn_doc.value();
     if (value->is_varchar()) {
-        return Datum<Varchar>(value->as_varchar()->view());
+        return Datum<Varchar>(*value->as_varchar()->view());
     }
     else if (value->is_double()) {
-        return Datum<Varchar>(std::to_string(value->as_double()));
+        return Datum<Varchar>(std::to_string(*value->as_double()));
     }
     else if (value->is_bigint()) {
-        return Datum<Varchar>(std::to_string(value->as_bigint()));
+        return Datum<Varchar>(std::to_string(*value->as_bigint()));
     }
 
     else if (value->is_boolean()) {
-        return Datum<Varchar>(value->as_boolean() ? "true" : "false");
+        return Datum<Varchar>(*value->as_boolean() ? "true" : "false");
     }
 
     MMA_THROW(RuntimeException())

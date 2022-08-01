@@ -362,8 +362,8 @@ public:
 
             U8String branch_name;
             auto bname_opt = map->get("branch_name");
-            if (bname_opt) {
-                branch_name = bname_opt->as_varchar()->view();
+            if (bname_opt.is_not_empty()) {
+                branch_name = *bname_opt->as_varchar()->view();
             }
             else {
                 branch_name = "";

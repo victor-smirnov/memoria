@@ -489,15 +489,6 @@ public:
     static SDNStringEscaper& current();
 };
 
-
-
-
-//template <typename T>
-//constexpr const T* make_null_v() {
-//    return nullptr;
-//}
-
-
 namespace dtt_ {
 
     template <typename T, typename = void>

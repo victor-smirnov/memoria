@@ -25,7 +25,7 @@ auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>("L
     auto doc = LDDocument::make_new();
 
     auto array = doc->set_array();
-    assert_equals(true, doc->value()->as_array() == array);
+    assert_equals(true, *doc->value()->as_array() == *array);
     assert_equals(0, array->size());
 
     size_t size = 10000;
@@ -63,12 +63,12 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>("LDDocume
     auto doc = LDDocument::make_new();
 
     auto array = doc->set_array();
-    assert_equals(true, doc->value()->as_array() == array);
+    assert_equals(true, *doc->value()->as_array() == *array);
     assert_equals(0, array->size());
 
     array->add_varchar("Hello World");
     assert_equals(true, array->get(0)->is_varchar());
-    assert_equals("Hello World", array->get(0)->as_varchar()->view());
+    assert_equals("Hello World", *array->get(0)->as_varchar()->view());
 
     array->add_double(123456);
     assert_equals(true, array->get(1)->is_double());
@@ -80,23 +80,23 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>("LDDocume
 
     auto map = array->add_map();
     assert_equals(true, array->get(3)->is_map());
-    assert_equals(true, array->get(3)->as_map() == map);
+    assert_equals(true, *array->get(3)->as_map() == *map);
 
     auto arr = array->add_array();
     assert_equals(true, array->get(4)->is_array());
-    assert_equals(true, array->get(4)->as_array() == arr);
+    assert_equals(true, *array->get(4)->as_array() == *arr);
 
     auto sdn1 = array->add_sdn("'123456'@CoolType");
     assert_equals(true, array->get(5)->is_typed_value());
-    assert_equals(true, array->get(5) == sdn1);
+    assert_equals(true, *array->get(5) == *sdn1);
 
     auto sdn2 = array->add_sdn("CoolType");
     assert_equals(true, array->get(6)->is_type_decl());
-    assert_equals(true, array->get(6) == sdn2);
+    assert_equals(true, *array->get(6) == *sdn2);
 
     auto doc2 = array->add_document("{}");
     assert_equals(true, array->get(7)->is_map());
-    assert_equals(true, array->get(7) == doc2);
+    assert_equals(true, *array->get(7) == *doc2);
 
     array->add_null();
     assert_equals(true, array->get(8)->is_null());
@@ -128,7 +128,7 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>("LDDocume
 
     array->set_varchar(3, "Cool String");
     assert_equals(true, array->get(3)->is_varchar());
-    assert_equals("Cool String", array->get(3)->as_varchar()->view());
+    assert_equals("Cool String", *array->get(3)->as_varchar()->view());
 
     assert_throws<BoundsException>([&](){
         array->set_varchar(10, "S0");

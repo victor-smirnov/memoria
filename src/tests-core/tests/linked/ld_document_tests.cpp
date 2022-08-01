@@ -36,7 +36,7 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocument
 
     doc->set_varchar("Hello world");
     assert_equals(true, doc->value()->is_varchar());
-    assert_equals("Hello world", doc->value()->as_varchar()->view());
+    assert_equals("Hello world", *doc->value()->as_varchar()->view());
 
     assert_throws<LDDInvalidCastException>([&](){
         doc->value()->as_double();
@@ -119,16 +119,16 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocument
 
     doc->set_document(*doc2);
     assert_equals(true, doc->value()->is_varchar());
-    assert_equals("Hello World", doc->value()->as_varchar()->view());
+    assert_equals("Hello World", *doc->value()->as_varchar()->view());
 
 
-    LDTypeDeclarationView type = doc->create_named_type("Type1", "CoolType2");
+    auto type = doc->create_named_type("Type1", "CoolType2");
 
-    assert_equals("CoolType2", type.name());
+    assert_equals("CoolType2", *type->name());
     doc->set_sdn("'12345'@#Type1");
     assert_equals(true, doc->value()->is_typed_value());
     auto tval = doc->value()->as_typed_value();
-    assert_equals(type, *tval->type());
+    assert_equals(*type, *tval->type());
 
 
     auto types = doc->named_types();

@@ -348,7 +348,7 @@ namespace detail {
         }
 
         static bool convert(const LDDValueView& value) {
-            return value.as_boolean();
+            return *value.as_boolean();
         }
     };
 
@@ -359,7 +359,7 @@ namespace detail {
         }
 
         static int64_t convert(const LDDValueView& value) {
-            return value.as_bigint();
+            return *value.as_bigint();
         }
     };
 
@@ -370,7 +370,7 @@ namespace detail {
         }
 
         static double convert(const LDDValueView& value) {
-            return value.as_double();
+            return *value.as_double();
         }
     };
 
@@ -381,7 +381,7 @@ namespace detail {
         }
 
         static U8String convert(const LDDValueView& value) {
-            return value.as_varchar()->view();
+            return *value.as_varchar()->view();
         }
     };
 
@@ -392,7 +392,7 @@ namespace detail {
         }
 
         static U8StringView convert(const LDDValueView& value) {
-            return value.as_varchar()->view();
+            return *value.as_varchar()->view();
         }
     };
 

@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public:
     {
         LDDValueView value = doc_->make_mutable()->parse_raw_value(sdn.begin(), sdn.end());
         array_.access_checked(idx) = value.value_ptr_;
-        return DTSharedPtr<LDDValueView>(value, doc_->owner_);
+        return doc_->wrap(value);
     }
 
 
@@ -116,9 +116,8 @@ public:
         LDDocumentView* mutable_doc = doc_->make_mutable();
         auto vv = mutable_doc->template new_value<T>(std::forward<Args>(args)...);
         array_.push_back(vv);
-        return DTSharedPtr<LDDValueView>(
-            LDDValueView{doc_, vv, ld_tag_value<T>()},
-            doc_->owner_
+        return doc_->wrap(
+            LDDValueView{doc_, vv, ld_tag_value<T>()}
         );
     }
 

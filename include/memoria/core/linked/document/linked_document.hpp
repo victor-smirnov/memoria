@@ -33,19 +33,19 @@ namespace memoria {
 
 inline DTSharedPtr<LDDArrayView> LDDValueView::as_array() const {
     ld_::ldd_assert_tag<LDArray>(type_tag_);
-    return DTSharedPtr<LDDArrayView>(LDDArrayView(doc_, value_ptr_), doc_->owner_);
+    return doc_->wrap(LDDArrayView(doc_, value_ptr_));
 }
 
 
 inline DTSharedPtr<LDDMapView> LDDValueView::as_map() const {
     ld_::ldd_assert_tag<LDMap>(type_tag_);
-    return DTSharedPtr<LDDMapView>(LDDMapView(doc_, value_ptr_), doc_->owner_);
+    return doc_->wrap(LDDMapView(doc_, value_ptr_));
 }
 
 inline DTSharedPtr<LDDValueView> LDDArrayView::get(size_t idx) const
 {
     ld_::LDDPtrHolder ptr = array_.access_checked(idx);
-    return DTSharedPtr<LDDValueView>(LDDValueView{doc_, ptr}, doc_->owner_);
+    return doc_->wrap(LDDValueView{doc_, ptr});
 }
 
 inline void LDDArrayView::for_each(std::function<void(LDDValueView)> fn) const
@@ -75,16 +75,15 @@ inline bool LDDArrayView::is_simple_layout() const noexcept
 
 inline DTSharedPtr<LDTypeDeclarationView> LDDValueView::as_type_decl() const {
     ld_::ldd_assert_tag<LDTypeDeclaration>(type_tag_);
-    return DTSharedPtr<LDTypeDeclarationView>(
-        LDTypeDeclarationView(doc_, value_ptr_),
-        doc_->owner_
+    return doc_->wrap(
+        LDTypeDeclarationView(doc_, value_ptr_)
     );
 }
 
 inline DTSharedPtr<LDDTypedValueView> LDDValueView::as_typed_value() const {
     ld_::ldd_assert_tag<LDTypedValue>(type_tag_);
-    return DTSharedPtr<LDDTypedValueView>(
-        LDDTypedValueView(doc_, value_ptr_), doc_->owner_
+    return doc_->wrap(
+        LDDTypedValueView(doc_, value_ptr_)
     );
 }
 
@@ -92,9 +91,8 @@ inline DTSharedPtr<LDDTypedValueView> LDDValueView::as_typed_value() const {
 
 
 inline DTSharedPtr<LDDValueView> LDDocumentView::value() const noexcept {
-    return DTSharedPtr<LDDValueView>(
-          LDDValueView{const_cast<LDDocumentView*>(this), state()->value},
-          owner_
+    return wrap(
+          LDDValueView{const_cast<LDDocumentView*>(this), state()->value}
     );
 }
 

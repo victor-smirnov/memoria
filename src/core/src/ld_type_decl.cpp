@@ -22,7 +22,7 @@ namespace memoria {
 
 void LDTypeDeclarationView::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
-    out << name();
+    out << *name();
 
     size_t params = this->params();
     if (params > 0)
@@ -86,7 +86,7 @@ void LDTypeDeclarationView::do_dump(std::ostream& out, LDDumpFormatState& state,
 
 void LDTypeDeclarationView::do_dump_cxx_type_decl(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
-    out << name();
+    out << *name();
 
     size_t params = this->params();
     if (params > 0)
@@ -200,7 +200,7 @@ ld_::LDPtr<LDTypeDeclarationView::TypeDeclState> LDTypeDeclarationView::deep_cop
 
     LDIdentifierView src_name(doc_, src_state->name);
 
-    ld_::LDPtr<U8LinkedString> tgt_name = tgt->new_varchar(src_name.view()).ptr();
+    ld_::LDPtr<U8LinkedString> tgt_name = tgt->new_varchar(*src_name.view()).ptr();
 
     ld_::LDArenaView* tgt_arena_view = &tgt->arena_;
 

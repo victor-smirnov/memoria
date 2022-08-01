@@ -73,7 +73,7 @@ protected:
     using DocumentPtr   = ld_::LDPtr<DocumentState>;
 
     ld_::LDArenaView arena_;
-    DTViewHolder* owner_{};
+    mutable DTViewHolder* owner_{};
 
     friend class LDDocumentBuilder;
     friend class LDDMapView;
@@ -119,6 +119,11 @@ public:
     {}
 
     virtual ~LDDocumentView() noexcept = default;
+
+    template <typename View>
+    DTSharedPtr<View> wrap(const View& view) const {
+        return DTSharedPtr<View>(view, owner_);
+    }
 
     Span<const AtomType> span() const noexcept {
         return arena_.span();
@@ -182,6 +187,7 @@ public:
 
     DTSharedPtr<LDDValueView> set_sdn(U8StringView sdn);
 
+    // FIXME: should be private?
     LDDocumentView* make_mutable() const
     {
         if (arena_.is_mutable()) {
@@ -225,15 +231,15 @@ public:
         return ss.str();
     }
 
-    LDTypeDeclarationView create_named_type(U8StringView name, U8StringView type_decl);
+    DTSharedPtr<LDTypeDeclarationView> create_named_type(U8StringView name, U8StringView type_decl);
 
-    Optional<LDTypeDeclarationView> get_named_type_declaration(U8StringView name) const;
+    DTSharedPtr<LDTypeDeclarationView> get_named_type_declaration(U8StringView name) const;
 
     void remove_named_type_declaration(U8StringView name);
 
     void for_each_named_type(std::function<void (U8StringView name, LDTypeDeclarationView)> fn) const;
 
-    std::vector<std::pair<U8StringView, LDTypeDeclarationView>> named_types() const;
+    std::vector<std::pair<DTSharedPtr<U8StringView>, DTSharedPtr<LDTypeDeclarationView>>> named_types() const;
 
     static bool is_identifier(U8StringView string) {
         return is_identifier(string.begin(), string.end());

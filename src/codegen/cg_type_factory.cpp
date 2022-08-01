@@ -75,7 +75,7 @@ public:
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return get_value(config_->value(), sdn_path)->as_varchar()->view();
+        return *get_value(config_->value(), sdn_path)->as_varchar()->view();
     }
 
     U8String name() const override {
@@ -147,8 +147,8 @@ public:
     U8String generator() const override
     {
         auto gen = ld_config()->get("generator");
-        if (gen) {
-            return gen->as_varchar()->view();
+        if (gen.is_not_empty()) {
+            return *gen->as_varchar()->view();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} has no generator attribute defined. Skipping: ", type_pattern()).do_throw();
@@ -156,7 +156,7 @@ public:
     }
 
     virtual U8String type() const override {
-        return get_value(config_->value(), "$/type")->as_varchar()->view();
+        return *get_value(config_->value(), "$/type")->as_varchar()->view();
     }
 
     ShPtr<TypeFactory> self() {
@@ -191,12 +191,12 @@ public:
     void configure() override
     {
         auto includes = ld_config()->get("includes");
-        if (includes)
+        if (includes.is_not_empty())
         {
             auto arr = includes->as_array();
             for (size_t c = 0; c < arr->size(); c++)
             {
-                U8String file_name = arr->get(c)->as_varchar()->view();
+                U8String file_name = *arr->get(c)->as_varchar()->view();
                 includes_.push_back(file_name);
             }
         }
@@ -205,9 +205,9 @@ public:
         }
 
         auto name = ld_config()->get("name");
-        if (name)
+        if (name.is_not_empty())
         {
-            name_ = name->as_varchar()->view();
+            name_ = *name->as_varchar()->view();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} must define 'name' config attribute", type_pattern()).do_throw();

@@ -61,7 +61,7 @@ struct NumberCvt<T, false> {
     static T convert(const LDDValueView& value) {
         if (value.is_varchar())
         {
-            const auto* cstr = make_cstring(value.as_varchar()->view());
+            const auto* cstr = make_cstring(*value.as_varchar()->view());
 
             int64_t value = std::strtoll(cstr, nullptr, 0);
             if (errno)
@@ -95,14 +95,14 @@ struct NumberCvt<T, true> {
     static T convert(const LDDValueView& value) {
         if (value.is_varchar())
         {
-            U8StringView view = value.as_varchar()->view();
-            const auto* cstr = make_cstring(view);
+            auto view = value.as_varchar()->view();
+            const auto* cstr = make_cstring(*view);
 
             uint64_t value = std::strtoull(cstr, nullptr, 0);
             if (errno)
             {
                 MMA_THROW(RuntimeException())
-                        << format_ex("Error converting string {} to number: {}", view, std::strerror(errno));
+                        << format_ex("Error converting string {} to number: {}", *view, std::strerror(errno));
             }
 
             if (value > (uint64_t)std::numeric_limits<T>::max()) {
@@ -124,7 +124,7 @@ struct NumberCvt<float, false> {
     static float convert(const LDDValueView& value) {
         if (value.is_varchar())
         {
-            const auto* cstr = make_cstring(value.as_varchar()->view());
+            const auto* cstr = make_cstring(*value.as_varchar()->view());
 
             float value = std::strtof(cstr, nullptr);
             if (errno)
@@ -147,7 +147,7 @@ struct NumberCvt<double, false> {
     static double convert(const LDDValueView& value) {
         if (value.is_varchar())
         {
-            const auto* cstr = make_cstring(value.as_varchar()->view());
+            const auto* cstr = make_cstring(*value.as_varchar()->view());
 
             double value = std::strtod(cstr, nullptr);
             if (errno)

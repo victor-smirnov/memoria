@@ -99,7 +99,7 @@ public:
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return get_value(config_->value(), sdn_path)->as_varchar()->view();
+        return *get_value(config_->value(), sdn_path)->as_varchar()->view();
     }
 
     void parse_configuration() override
@@ -128,7 +128,7 @@ public:
         visitor.TraverseAST(config_unit_->ast_unit().getASTContext());
 
         auto profiles = config_map()->get("profiles");
-        if (profiles)
+        if (profiles.is_not_empty())
         {
             auto map = profiles->as_map();
             map->for_each([&](auto profile_name, auto value){
@@ -137,9 +137,9 @@ public:
                 if (value.is_map()) {
                     auto map = value.as_map();
                     auto enabled = map->get("enabled");
-                    if (enabled && enabled->is_boolean())
+                    if (enabled.is_not_empty() && enabled->is_boolean())
                     {
-                        if (enabled->as_boolean())
+                        if (*enabled->as_boolean())
                         {
                             enabled_profiles_.insert(profile_name);
                         }
@@ -161,7 +161,7 @@ public:
             if (value.is_typed_value())
             {
                 auto tvv = value.as_typed_value();
-                if (tvv->type()->name() == "FileGenerator")
+                if (*tvv->type()->name() == "FileGenerator")
                 {
                     U8String full_path = join_sdn_path(path);
                     auto cfg = value.clone();
@@ -341,7 +341,7 @@ public:
         std::vector<U8String> incs;
 
         ii->for_each([&](auto value){
-            incs.push_back(value.as_varchar()->view());
+            incs.push_back(*value.as_varchar()->view());
         });
 
         return incs;
@@ -500,7 +500,7 @@ DTSharedPtr<LDDArrayView> get_or_add_array(LDDMapView map, const U8String& name)
 {
     auto res = map.get(name);
 
-    if (res) {
+    if (res.is_not_empty()) {
         return res->as_array();
     }
 
@@ -517,12 +517,12 @@ std::string build_output_list(const LDDocumentView& doc)
     {
         auto mm = doc.value()->as_map();
         auto byproducts = mm->get("byproducts");
-        if (byproducts) {
+        if (byproducts.is_not_empty()) {
             if (byproducts->is_array())
             {
                 auto arr = byproducts->as_array();
                 for (size_t c = 0; c < arr->size(); c++) {
-                    files.push_back(U8String("BYPRODUCT:") + arr->get(c)->as_varchar()->view());
+                    files.push_back(U8String("BYPRODUCT:") + *arr->get(c)->as_varchar()->view());
                 }
             }
             else {
@@ -531,12 +531,12 @@ std::string build_output_list(const LDDocumentView& doc)
         }
 
         auto sources = mm->get("sources");
-        if (sources) {
+        if (sources.is_not_empty()) {
             if (sources->is_array())
             {
                 auto arr = sources->as_array();
                 for (size_t c = 0; c < arr->size(); c++) {
-                    files.push_back(U8String("SOURCE:") + arr->get(c)->as_varchar()->view());
+                    files.push_back(U8String("SOURCE:") + *arr->get(c)->as_varchar()->view());
                 }
             }
             else {
@@ -545,12 +545,12 @@ std::string build_output_list(const LDDocumentView& doc)
         }
 
         auto profiles = mm->get("active_profiles");
-        if (profiles) {
+        if (profiles.is_not_empty()) {
             if (profiles->is_array())
             {
                 auto arr = profiles->as_array();
                 for (size_t c = 0; c < arr->size(); c++) {
-                    files.push_back(U8String("PROFILE:") + arr->get(c)->as_varchar()->view());
+                    files.push_back(U8String("PROFILE:") + *arr->get(c)->as_varchar()->view());
                 }
             }
             else {
