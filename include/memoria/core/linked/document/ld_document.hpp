@@ -449,6 +449,25 @@ protected:
 };
 
 
+class LDDocumentSpan: public LDDocumentView, public pool::enable_shared_from_this<LDDocumentSpan> {
+    using AtomType = typename ld_::LDArenaView::AtomType;
+
+    DTViewHolder view_holder_;
+
+    virtual void configure_refholder(pool::detail::ObjectPoolRefHolder* owner) {
+        view_holder_.set_owner(owner);
+        this->owner_ = &view_holder_;
+    }
+
+public:
+    LDDocumentSpan(Span<const AtomType> span): LDDocumentView(span) {}
+
+
+    static PoolSharedPtr<LDDocumentSpan> make_new(Span<const AtomType> span) {
+        return TL_allocate_shared<LDDocumentSpan>(span);
+    }
+};
+
 
 std::ostream& operator<<(std::ostream& out, const LDDocumentView& doc);
 

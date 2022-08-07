@@ -1042,7 +1042,7 @@ protected:
                         ""
             );
 
-            store_params_ = sb0->cmetadata_doc();
+            store_params_ = sb0->cmetadata_doc()->clone();
 
             if (sb1->snapshot_id().is_set())
             {
@@ -1062,7 +1062,7 @@ protected:
                         ""
             );
 
-            store_params_ = sb1->cmetadata_doc();
+            store_params_ = sb1->cmetadata_doc()->clone();
 
             if (sb0->snapshot_id().is_set())
             {

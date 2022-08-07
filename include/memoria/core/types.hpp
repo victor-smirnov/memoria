@@ -194,6 +194,8 @@ struct HasValue {
     static constexpr T Value = V_;
 };
 
+template <uint64_t V>
+using HasU64Value = HasValue<uint64_t, V>;
 
 namespace detail {
     template <typename T, bool Flag, typename... AdditionalTypes>

@@ -35,7 +35,7 @@ template <typename TT, typename SizeT = size_t>
 class ArenaBuffer;
 
 enum class ArenaBufferCmd: int32_t {
-    ALLOCATE, FREE
+    ALLOCATE, FREE, CONFIGURE
 };
 
 // memaddr(buffer_id, command, size, existing_memaddr)
@@ -265,14 +265,20 @@ public:
         capacity_(capacity),
         size_(0),
         memory_mgr_(std::move(memory_mgr))
-    {}
+    {
+        if (memory_mgr_) {
+            memory_mgr_(buffer_id_, ArenaBufferCmd::CONFIGURE, sizeof(ValueT) * capacity_, provided_buffer);
+        }
+    }
 
     ArenaBuffer(ArenaBufferMemoryMgr memory_mgr) noexcept:
         buffer_(nullptr),
         capacity_(0),
         size_(0),
         memory_mgr_(std::move(memory_mgr))
-    {}
+    {
+        memory_mgr_(buffer_id_, ArenaBufferCmd::CONFIGURE, 0, nullptr);
+    }
 
     ArenaBuffer(const ArenaBuffer& other):
         capacity_(other.capacity_),
@@ -522,6 +528,10 @@ public:
 
         buffer_ = new_ptr;
         capacity_ = next_capaicty;
+
+        if (memory_mgr_) {
+            memory_mgr_(buffer_id_, ArenaBufferCmd::CONFIGURE, capacity_ * sizeof(ValueT), ptr_cast<uint8_t>(buffer_));
+        }
     }
 
     ValueT& access(SizeT idx) noexcept {
@@ -671,10 +681,14 @@ private:
     {
         if (MMA_LIKELY(!memory_mgr_))
         {
-            return allocate_system<ValueT>(size).release();
+            ValueT* buf = allocate_system<ValueT>(size).release();
+
+            return buf;
         }
         else {
-            return ptr_cast<ValueT>(memory_mgr_(buffer_id_, ArenaBufferCmd::ALLOCATE, size * sizeof(ValueT), nullptr));
+            uint8_t* buf = memory_mgr_(buffer_id_, ArenaBufferCmd::ALLOCATE, size * sizeof(ValueT), nullptr);
+            memory_mgr_(buffer_id_, ArenaBufferCmd::CONFIGURE, size * sizeof(ValueT), buf);
+            return ptr_cast<ValueT>(buf);
         }
     }
 

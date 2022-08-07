@@ -311,7 +311,6 @@ namespace ld_ {
             mapping_(mapping)
         {}
 
-
         template <
                 template <typename, typename, typename> class PtrT,
                 typename ElementT,

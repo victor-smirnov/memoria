@@ -13,25 +13,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#include <memoria/core/ssrle/ssrle.hpp>
-#include <memoria/core/strings/format.hpp>
-
-#include <memoria/core/datatypes/buffer/buffer.hpp>
-#include <memoria/core/datatypes/traits.hpp>
-
-#include <memoria/memoria.hpp>
-
-
-#include <bitset>
-#include <iostream>
-
-namespace memoria {
-}
-
-using namespace memoria;
-
-int main(int, char**)
-{
-
-}
+#pragma once

@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2019-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -146,7 +146,6 @@ namespace mapped_ {
 
     template <typename T>
     struct ObjectCreator<T, false> {
-
         template <typename Arena, typename... CtrArgs>
         static auto allocate_and_construct(size_t tag_size, Arena* arena, CtrArgs&&... args)
         {
@@ -489,9 +488,12 @@ private:
         return [&, this](int32_t buffer_id, ArenaBufferCmd cmd, size_t size, uint8_t* mem) -> uint8_t* {
             if (ArenaBufferCmd::ALLOCATE == cmd)
             {
-                uint8_t* addr = allocate_system<uint8_t>(size).release();
-                this->arena_view_->data_ = addr;
-                return addr;
+                return allocate_system<uint8_t>(size).release();
+            }
+            else if (ArenaBufferCmd::CONFIGURE == cmd)
+            {
+                this->arena_view_->data_ = mem;
+                this->arena_view_->size_ = size;
             }
             else if (ArenaBufferCmd::FREE == cmd) {
                 free_system(mem);
