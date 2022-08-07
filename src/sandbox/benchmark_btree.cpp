@@ -23,7 +23,7 @@ int main(void)
 {
     size_t max_memblock_size = 1024 * 1024 * 1024; // 1GB
 
-    for (size_t memblock_size = 1024*1024*1024; memblock_size <= max_memblock_size; memblock_size *= 2)
+    for (size_t memblock_size = 1024; memblock_size <= max_memblock_size; memblock_size *= 2)
     {
         size_t tree_size = memblock_size / 9.29; // empirically obtained
 
