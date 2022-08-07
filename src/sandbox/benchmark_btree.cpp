@@ -23,7 +23,7 @@ int main(void)
 {
     size_t max_memblock_size = 1024 * 1024 * 1024; // 1GB
 
-    for (size_t memblock_size = 1024; memblock_size <= max_memblock_size; memblock_size *= 2)
+    for (size_t memblock_size = 1024*1024*1024; memblock_size <= max_memblock_size; memblock_size *= 2)
     {
         size_t tree_size = memblock_size / 9.29; // empirically obtained
 
@@ -34,7 +34,6 @@ int main(void)
         for (size_t c = 1; c < tree_size; c++) {
             set.insert(c);
         }
-
 
         size_t query_size = 1024 * 1024;
         std::vector<size_t> indices(query_size);

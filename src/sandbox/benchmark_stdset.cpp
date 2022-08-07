@@ -24,7 +24,7 @@ int main(void) {
 
     for (size_t memblock_size = 1024; memblock_size <= max_memblock_size; memblock_size *= 2)
     {
-        size_t tree_size = memblock_size / 9.29; // empirically obtained
+        size_t tree_size = memblock_size / 48; // empirically obtained
 
         RngUInt64 rng;
 
