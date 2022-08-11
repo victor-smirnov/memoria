@@ -21,11 +21,11 @@
 
 int main(void)
 {
-    size_t max_memblock_size = 1024 * 1024 * 1024; // 1GB
+    size_t max_memblock_size = 1024 * 1024 * 128; // 1GB
 
-    for (size_t memblock_size = 1024; memblock_size <= max_memblock_size; memblock_size *= 2)
+    for (size_t memblock_size = 1; memblock_size <= max_memblock_size; memblock_size *= 2)
     {
-        size_t tree_size = memblock_size / 9.29; // empirically obtained
+        size_t tree_size = memblock_size ; // empirically obtained
 
         RngUInt64 rng;
 
@@ -51,6 +51,6 @@ int main(void)
 
         auto t1 = get_time_in_millis();
 
-        std::cout << memblock_size/1024 << " " << (query_size * 1000 / (t1 - t0)) << std::endl;
+        std::cout << memblock_size << " " << (query_size * 1000 / (t1 - t0)) << std::endl;
     }
 }

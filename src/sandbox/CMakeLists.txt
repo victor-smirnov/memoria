@@ -1,5 +1,5 @@
 
-# Copyright 2016 Victor Smirnov
+# Copyright 2016-2022 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+find_package(inja CONFIG REQUIRED)
+
 
 include_directories(../tools/include)
 
@@ -27,7 +30,7 @@ if (BUILD_REACTOR_MEMORIA_LIB)
         set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
         target_link_libraries(${MEMORIA_TARGET} MemoriaCtrsReactor MemoriaStoresReactor MemoriaCoreReactor MemoriaInitReactor ${MEMORIA_LIBS})
 
-        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS})
+        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS} pantor::inja)
     ENDFOREACH(MEMORIA_TARGET)
 
 endif()
@@ -36,7 +39,7 @@ endif()
 if (BUILD_CLASSIC_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX_CLASSIC)
-        set(MEMORIA_SANDBOX_CLASSIC send_msg_bench_raw swmr_store pseudo_latency benchmark_btree benchmark_stdset)
+        set(MEMORIA_SANDBOX_CLASSIC send_msg_bench_raw swmr_store pseudo_latency benchmark_btree benchmark_stdset ld_doc)
 
         if (NO_COW_PROFILE)
             set(MEMORIA_SANDBOX_CLASSIC ${MEMORIA_SANDBOX_CLASSIC})
@@ -50,7 +53,7 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
         target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit ${MEMORIA_LIBS})
         #target_link_libraries(${MEMORIA_TARGET} MemoriaCore ${MEMORIA_LIBS})
 
-        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS})
+        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS} pantor::inja)
     ENDFOREACH(MEMORIA_TARGET )
 
 endif()

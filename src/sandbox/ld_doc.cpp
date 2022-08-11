@@ -23,10 +23,21 @@
 #include <memoria/core/datatypes/arena/vector.hpp>
 #include <memoria/core/datatypes/arena/traits.hpp>
 
+#include <inja/inja.hpp>
+
 using namespace memoria;
 
 int main(int, char**)
 {
+    nlohmann::json data;
+    data["name"] = "world";
+
+    std::cout << data << std::endl;
+
+    inja::render_to(std::cout, "Hello {{ name }}!", data);
+
+    std::cout << std::endl;
+
     arena::ArenaSegmentImpl arena(1024);
     size_t ptr0 = arena.allocate_space(8, 1, 0);
     println("ptr0: {}", ptr0);

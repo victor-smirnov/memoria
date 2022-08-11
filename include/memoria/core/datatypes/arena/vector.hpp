@@ -28,7 +28,8 @@ namespace arena {
 template <typename T>
 class Vector {
     uint64_t size_;
-    SegmentPtr<Array<T>> data_;
+    uint64_t capacity_;
+    SegmentPtr<T> data_;
 public:
     Vector() noexcept :
         size_()
@@ -36,12 +37,12 @@ public:
 
     uint64_t size() const {return size_;}
 
-    uint64_t capacity(const MemorySegment* sgm) const {
-        return data_.read(sgm)->size();
+    uint64_t capacity() const {
+        return capacity_;
     }
 
     bool has_extra_space(const MemorySegment* sgm) const {
-        return capacity(sgm) > size_;
+        return capacity() > size_;
     }
 
     const T& get(const MemorySegment* sgm, size_t idx) const {
@@ -54,18 +55,18 @@ public:
 
     void push_back(ArenaSegment* sgm, const T& value)
     {
-        size_t cc = capacity(sgm);
+        size_t cc = capacity();
         if (size_ >= cc) {
             enlarge(sgm, cc + 1);
         }
 
-        *data_.write(sgm)->span()[size_] = value;
+        *data_.write(sgm, size_) = value;
         size_++;
     }
 
     void push_back(ArenaSegment* sgm, Span<const T> span)
     {
-        size_t cc = capacity(sgm);
+        size_t cc = capacity();
         if (size_ + span.size() > cc) {
             enlarge(sgm, span.size() + size_ - cc);
         }
