@@ -22,6 +22,7 @@
 
 #include <memoria/memoria.hpp>
 
+#include <inja/inja.hpp>
 
 #include <bitset>
 #include <iostream>
@@ -33,5 +34,14 @@ using namespace memoria;
 
 int main(int, char**)
 {
+    nlohmann::json data;
 
+    std::vector<U8String> strs;
+
+    strs.push_back("AAAA");
+    strs.push_back("BBBB");
+
+    data["list"] = strs;
+
+    std::cout << data << std::endl;
 }

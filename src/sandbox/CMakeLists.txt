@@ -13,7 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+find_package(inja CONFIG REQUIRED)
+
 include_directories(../tools/include)
+
+
 
 if (BUILD_REACTOR_MEMORIA_LIB)
 
@@ -49,6 +53,8 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
         set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
         target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit ${MEMORIA_LIBS})
         #target_link_libraries(${MEMORIA_TARGET} MemoriaCore ${MEMORIA_LIBS})
+
+        target_link_libraries(${MEMORIA_TARGET}  pantor::inja)
 
         target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS})
     ENDFOREACH(MEMORIA_TARGET )
