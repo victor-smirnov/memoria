@@ -61,11 +61,11 @@ public:
     {
 		Acc256T acc0{};
         BmpInt256T int0{};
-        assert_equals(int0, acc0);
+        assert_equals(int0, acc0.to_bmp());
 
         Acc256T acc1{1};
         BmpInt256T int1{1};
-        assert_equals(int1, acc1);
+        assert_equals(int1, acc1.to_bmp());
 
         std::string num_s = "1234567890123456789012345678901234567890";
         std::stringstream s1;
