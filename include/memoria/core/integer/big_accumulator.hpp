@@ -1,5 +1,5 @@
 
-// Copyright 2018 Victor Smirnov
+// Copyright 2018-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ namespace detail {
     };
 
 
-    template <unsigned BitLength>
+    template <size_t BitLength>
     using UAccBmpInt = bmp::number<
         bmp::cpp_int_backend<BitLength, BitLength, bmp::unsigned_magnitude, bmp::unchecked, void>
     >;
@@ -113,13 +113,12 @@ struct UnsignedAccumulator {
         return res;
     }
 
-    template <unsigned BmpBitLength>
+    template <size_t BmpBitLength>
     constexpr UnsignedAccumulator(
             const detail::UAccBmpInt<BmpBitLength>& bmp_value
     ): value_{}
     {
         static_assert(BitLength >= BmpBitLength, "");
-
         detail::UAccCvtHelper<ValueT, detail::UAccBmpInt<BmpBitLength>>::to_acc(*this, bmp_value);
     }
 
@@ -244,7 +243,7 @@ struct UnsignedAccumulator {
         return true;
     }
 
-    template <unsigned BmpBitLength>
+    template <size_t BmpBitLength>
     MMA_NODISCARD bool operator==(const detail::UAccBmpInt<BmpBitLength>& other) const
     {
         UnsignedAccumulator tmp{other};
@@ -267,7 +266,7 @@ struct UnsignedAccumulator {
         return *this;
     }
 
-    template <unsigned BmpBitLength>
+    template <size_t BmpBitLength>
     UnsignedAccumulator& operator+=(const detail::UAccBmpInt<BmpBitLength>& other)
     {
         UnsignedAccumulator tmp{other};
@@ -290,7 +289,7 @@ struct UnsignedAccumulator {
         return *this;
     }
 
-    template <unsigned BmpBitLength>
+    template <size_t BmpBitLength>
     UnsignedAccumulator& operator-=(const detail::UAccBmpInt<BmpBitLength>& other)
     {
         UnsignedAccumulator tmp{other};
@@ -369,7 +368,7 @@ struct UnsignedAccumulator {
         return *this;
     }
 
-    template <unsigned BmpBitLength>
+    template <size_t BmpBitLength>
     UnsignedAccumulator operator=(const detail::UAccBmpInt<BmpBitLength>& other)
     {
         static_assert(BmpBitLength <= BitLength, "");
@@ -378,7 +377,7 @@ struct UnsignedAccumulator {
         return *this;
     }
 
-    template <unsigned BmpBitLength>
+    template <size_t BmpBitLength>
     operator detail::UAccBmpInt<BmpBitLength>() const
     {
         detail::UAccBmpInt<BmpBitLength> bmp_value;
@@ -437,8 +436,8 @@ struct UnsignedAccumulator {
 private:
     template <typename T, typename IntT, size_t N> friend struct detail::UAccCvtHelper;
 
-    template <unsigned BmpBitLength>
-    constexpr void from_same_limb_cppint(const detail::UAccBmpInt<BmpBitLength>& bmp_value)
+    template <typename BmpInt>
+    constexpr void from_same_limb_cppint(const BmpInt& bmp_value)
     {
         auto size = bmp_value.backend().size();
         const auto* limbs = bmp_value.backend().limbs();
@@ -450,8 +449,8 @@ private:
     }
 
 
-    template <unsigned BmpBitLength>
-    constexpr void to_same_limb_cppint(detail::UAccBmpInt<BmpBitLength>& bmp_value) const
+    template <typename BmpInt>
+    constexpr void to_same_limb_cppint(BmpInt& bmp_value) const
     {
         bmp_value.backend().resize(Size, Size);
         auto size = bmp_value.backend().size();
@@ -466,8 +465,8 @@ private:
     }
 
 
-    template <unsigned BmpBitLength>
-    constexpr void to_smaller_limb_cppint(detail::UAccBmpInt<BmpBitLength>& bmp_value) const
+    template <typename BmpInt>
+    constexpr void to_smaller_limb_cppint(BmpInt& bmp_value) const
     {
         bmp_value.backend().resize(Size * 2, Size * 2);
 
@@ -489,10 +488,10 @@ private:
     }
 
 
-    template <unsigned BmpBitLength>
-    constexpr void to_larger_limb_cppint(detail::UAccBmpInt<BmpBitLength>& bmp_value) const
+    template <typename BmpInt>
+    constexpr void to_larger_limb_cppint(BmpInt& bmp_value) const
     {
-        using LimbT = detail::LimbType<detail::UAccBmpInt<BmpBitLength>>;
+        using LimbT = detail::LimbType<BmpInt>;
 
         bmp_value.backend().resize(Size / 2 , Size / 2);
         auto* limbs = bmp_value.backend().limbs();
@@ -514,8 +513,8 @@ private:
 
 
 
-    template <unsigned BmpBitLength>
-    constexpr void from_smaller_limb_cppint(const detail::UAccBmpInt<BmpBitLength>& bmp_value)
+    template <typename BmpInt>
+    constexpr void from_smaller_limb_cppint(const BmpInt& bmp_value)
     {
         unsigned size = bmp_value.backend().size();
         const auto* limbs = bmp_value.backend().limbs();
@@ -543,13 +542,13 @@ private:
     }
 
 
-    template <unsigned BmpBitLength>
-    constexpr void from_larger_limb_cppint(const detail::UAccBmpInt<BmpBitLength>& bmp_value)
+    template <typename BmpInt>
+    constexpr void from_larger_limb_cppint(const BmpInt& bmp_value)
     {
         unsigned size = bmp_value.backend().size();
         const auto* limbs = bmp_value.backend().limbs();
 
-        using LimbT = detail::LimbType<detail::UAccBmpInt<BmpBitLength>>;
+        using LimbT = detail::LimbType<BmpInt>;
         for (size_t c = 0; c < Size; c += 2)
         {
             LimbT vv = limbs[c / 2];
