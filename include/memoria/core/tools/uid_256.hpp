@@ -67,7 +67,7 @@ public:
         atoms_{a0, static_cast<AtomT>(vals)...}
     {}
 
-    UID256(Span<const AtomT> span) noexcept :
+    constexpr UID256(Span<const AtomT> span) noexcept :
         atoms_{0,}
     {
         for (size_t c = 0; c < std::min(NUM_ATOMS, span.size()); c++) {
@@ -75,31 +75,31 @@ public:
         }
     }
 
-    AtomT top_atom() const noexcept {
+    constexpr AtomT top_atom() const noexcept {
         return atoms_[NUM_ATOMS - 1];
     }
 
-    Type type() const noexcept {
+    constexpr Type type() const noexcept {
         return static_cast<Type>(top_atom() >> (ATOM_BITSIZE - TYPE_BITSIZE));
     }
 
-    AtomT atom(size_t c) const noexcept {
+    constexpr AtomT atom(size_t c) const noexcept {
         return atoms_[c];
     }
 
-    Span<AtomT> atoms() noexcept {
+    constexpr Span<AtomT> atoms() noexcept {
         return Span<AtomT>(atoms_, NUM_ATOMS);
     }
 
-    Span<const AtomT> atoms() const noexcept {
+    constexpr Span<const AtomT> atoms() const noexcept {
         return Span<const AtomT>(atoms_, NUM_ATOMS);
     }
 
-    AtomT counter() const noexcept {
+    constexpr AtomT counter() const noexcept {
         return atoms_[0];
     }
 
-    AtomT metadata() const noexcept
+    constexpr AtomT metadata() const noexcept
     {
         Type tt = type();
         if (tt == Type::TYPE2) {
@@ -111,19 +111,19 @@ public:
         return 0;
     }
 
-    bool is_type0() const noexcept {
+    constexpr bool is_type0() const noexcept {
         return type() == Type::TYPE0;
     }
 
-    bool is_type1() const noexcept {
+    constexpr bool is_type1() const noexcept {
         return type() == Type::TYPE1;
     }
 
-    bool is_type2() const noexcept {
+    constexpr bool is_type2() const noexcept {
         return type() == Type::TYPE2;
     }
 
-    bool is_type3() const noexcept {
+    constexpr bool is_type3() const noexcept {
         return type() == Type::TYPE3;
     }
 
@@ -289,11 +289,11 @@ public:
         return to_u8().to_std_string();
     }
 
-    void set_atom(size_t idx, AtomT atom) noexcept {
+    constexpr void set_atom(size_t idx, AtomT atom) noexcept {
         atoms_[idx] = atom;
     }
 
-    void set_type(Type type) noexcept
+    constexpr void set_type(Type type) noexcept
     {
         AtomT mask = 1;
         mask <<= TYPE_BITSIZE;
@@ -304,7 +304,7 @@ public:
         atoms_[NUM_ATOMS - 1] |= (static_cast<AtomT>(type) << (ATOM_BITSIZE - TYPE_BITSIZE));
     }
 
-    void set_metadata2(AtomT meta) noexcept
+    constexpr void set_metadata2(AtomT meta) noexcept
     {
         AtomT mask = 0xFF;
 
@@ -312,7 +312,7 @@ public:
         atoms_[1] |= meta & mask;
     }
 
-    void set_metadata3(AtomT meta) noexcept
+    constexpr void set_metadata3(AtomT meta) noexcept
     {
         AtomT mask = 0xFFFF;
 
@@ -322,7 +322,7 @@ public:
 
     void set_payload_4bit(size_t idx, AtomT code)
     {
-        size_t start;
+        size_t start{};
         size_t limit = ATOM_BITSIZE * NUM_ATOMS - TYPE_BITSIZE;
 
         Type tt = type();
@@ -351,7 +351,7 @@ public:
 
     AtomT get_payload_4bit(size_t idx) const
     {
-        size_t start;
+        size_t start{};
         size_t limit = ATOM_BITSIZE * NUM_ATOMS - TYPE_BITSIZE;
 
         Type tt = type();
@@ -378,7 +378,7 @@ public:
         }
     }
 
-    size_t payload_length() const noexcept
+    constexpr size_t payload_length() const noexcept
     {
         Type tt = type();
         size_t limit = ATOM_BITSIZE * NUM_ATOMS - TYPE_BITSIZE;

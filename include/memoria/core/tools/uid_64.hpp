@@ -153,12 +153,12 @@ public:
         return to_u8().to_std_string();
     }
 
-    void set_atom(AtomT atom) noexcept {
+    constexpr void set_atom(AtomT atom) noexcept {
         atom_ = atom;
     }
 
 
-    void set_metadata(AtomT meta) noexcept
+    constexpr void set_metadata(AtomT meta) noexcept
     {
         AtomT mask = 1;
         mask <<= METADATA_BITSIZE;
@@ -169,13 +169,13 @@ public:
     }
 
 
-    void set_value(AtomT value) noexcept {
+    constexpr void set_value(AtomT value) noexcept {
         atom_ |= value << METADATA_BITSIZE;
     }
 
     AnyID as_any_id() const;
 
-    static AtomT wrap(AtomT value, AtomT metadata) noexcept
+    constexpr static AtomT wrap(AtomT value, AtomT metadata) noexcept
     {
         AtomT mask = 1;
         mask <<= METADATA_BITSIZE;
