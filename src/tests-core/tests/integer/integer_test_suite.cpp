@@ -108,29 +108,29 @@ public:
     void check_numbers(Acc256T acc, BmpInt256T bmp_int)
     {
         assert_equals(acc.to_bmp(), bmp_int);
-        assert_equals(acc, Acc256T{bmp_int});
+        assert_equals(acc, Acc256T::from_bmp(bmp_int));
 
         acc += 1;
 
-        assert_equals(acc, Acc256T{bmp_int + 1});
-        assert_equals(true, acc > Acc256T{bmp_int});
-        assert_equals(true, acc >= Acc256T{bmp_int});
-        assert_equals(false, acc < Acc256T{bmp_int});
-        assert_equals(false, acc <= Acc256T{bmp_int});
+        assert_equals(acc, Acc256T::from_bmp(bmp_int + 1));
+        assert_equals(true, acc > Acc256T::from_bmp(bmp_int));
+        assert_equals(true, acc >= Acc256T::from_bmp(bmp_int));
+        assert_equals(false, acc < Acc256T::from_bmp(bmp_int));
+        assert_equals(false, acc <= Acc256T::from_bmp(bmp_int));
 
 
         acc -= 2;
 
-        assert_equals(acc, Acc256T{bmp_int - 1});
-        assert_equals(false, acc > Acc256T{bmp_int});
-        assert_equals(false, acc >= Acc256T{bmp_int});
-        assert_equals(true, acc < Acc256T{bmp_int});
-        assert_equals(true, acc <= Acc256T{bmp_int});
+        assert_equals(acc, Acc256T::from_bmp(bmp_int - 1));
+        assert_equals(false, acc > Acc256T::from_bmp(bmp_int));
+        assert_equals(false, acc >= Acc256T::from_bmp(bmp_int));
+        assert_equals(true, acc < Acc256T::from_bmp(bmp_int));
+        assert_equals(true, acc <= Acc256T::from_bmp(bmp_int));
 
         acc += 1;
 
         auto acc2 = acc + acc;
-        assert_equals(Acc256T{bmp_int + bmp_int}, acc2);
+        assert_equals(Acc256T::from_bmp(bmp_int + bmp_int), acc2);
 
         assert_equals(Acc256T{0}, acc - acc);
 
@@ -142,7 +142,7 @@ public:
             acc0 += acc;
             bmp_acc0 += bmp_int;
 
-            assert_equals(Acc256T{bmp_acc0}, acc0);
+            assert_equals(Acc256T::from_bmp(bmp_acc0), acc0);
         }
 
         for (size_t c = 0; c < 100; c++)
@@ -150,7 +150,7 @@ public:
             acc0 -= acc;
             bmp_acc0 -= bmp_int;
 
-            assert_equals(Acc256T{bmp_acc0}, acc0);
+            assert_equals(Acc256T::from_bmp(bmp_acc0), acc0);
         }
 
         Acc256T acc1{acc};
@@ -161,7 +161,7 @@ public:
             acc1 -= acc;
             bmp_acc1 -= bmp_int;
 
-            assert_equals(Acc256T{bmp_acc1}, acc1);
+            assert_equals(Acc256T::from_bmp(bmp_acc1), acc1);
         }
     }
 };

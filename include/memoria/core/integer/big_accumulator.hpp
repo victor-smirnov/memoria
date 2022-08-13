@@ -113,13 +113,21 @@ struct UnsignedAccumulator {
         return res;
     }
 
-    template <unsigned BmpBitLength>
+private:
+    struct BmpTag {};
+    template <typename BmpInt>
     constexpr UnsignedAccumulator(
-            const detail::UAccBmpInt<BmpBitLength>& bmp_value
+            const BmpInt& bmp_value, BmpTag
     ): value_{}
     {
-        static_assert(BitLength >= BmpBitLength, "");
-        detail::UAccCvtHelper<ValueT, detail::UAccBmpInt<BmpBitLength>>::to_acc(*this, bmp_value);
+        //static_assert(BitLength >= BmpBitLength, "");
+        detail::UAccCvtHelper<ValueT, BmpInt>::to_acc(*this, bmp_value);
+    }
+public:
+
+    template <typename BmpInt>
+    static UnsignedAccumulator from_bmp(const BmpInt& bmp_value) {
+        return UnsignedAccumulator(bmp_value, BmpTag{});
     }
 
     constexpr UnsignedAccumulator(ValueT v): value_{} {
@@ -134,7 +142,7 @@ struct UnsignedAccumulator {
     }
 
     UnsignedAccumulator(const std::string& digits):
-        UnsignedAccumulator(detail::UAccBmpInt<(unsigned)BitLength>(digits))
+        UnsignedAccumulator(detail::UAccBmpInt<(unsigned)BitLength>(digits), BmpTag{})
     {}
 
     template <size_t OtherBitLength>
