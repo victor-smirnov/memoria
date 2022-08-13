@@ -587,7 +587,7 @@ template <size_t BitLength>
 std::istream& operator>>(std::istream& in, UnsignedAccumulator<BitLength>& other) {
     detail::UAccBmpInt<(unsigned)BitLength> bmp_int;
     in >> bmp_int;
-    other = bmp_int;
+    other = UnsignedAccumulator<BitLength>::from_bmp(bmp_int);
     return in;
 }
 
