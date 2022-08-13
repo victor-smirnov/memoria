@@ -21,6 +21,8 @@
 
 #include <codegen.hpp>
 #include <codegen_ast_tools.hpp>
+#include <generators.hpp>
+
 
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/RecursiveASTVisitor.h>
@@ -32,10 +34,6 @@
 
 #include <llvm/Support/raw_ostream.h>
 
-#include <pybind11/stl.h>
-#include <pybind11/functional.h>
-#include <pybind11/pybind11.h>
-
 #include <vector>
 #include <filesystem>
 
@@ -45,334 +43,344 @@ namespace codegen {
 using namespace clang;
 using namespace llvm;
 
-namespace py = pybind11;
-
 class TypeInstanceImpl: public TypeInstance, public std::enable_shared_from_this<TypeInstanceImpl> {
-    WeakPtr<Project> project_ptr_;
-    Project* project_;
-    ShPtr<TypeFactory> type_factory_;
+  WeakPtr<Project> project_ptr_;
+  Project* project_;
+  ShPtr<TypeFactory> type_factory_;
 
-    const clang::ClassTemplateSpecializationDecl* ctr_descr_;
+  const clang::ClassTemplateSpecializationDecl* ctr_descr_;
 
-    PoolSharedPtr<LDDocument> config_;
-    PoolSharedPtr<LDDocument> project_config_;
+  PoolSharedPtr<LDDocument> config_;
+  PoolSharedPtr<LDDocument> project_config_;
 
-    ShPtr<PreCompiledHeader> precompiled_header_;
-    std::vector<U8String> includes_;
+  ShPtr<PreCompiledHeader> precompiled_header_;
+  std::vector<U8String> includes_;
 
-    U8String name_;
+  U8String name_;
 
-    U8String target_folder_;
-    U8String target_file_;
+  U8String target_folder_;
+  U8String target_file_;
 
-    Optional<std::vector<U8String>> profiles_;
+  Optional<std::vector<U8String>> profiles_;
 
-    U8String config_sdn_path_;
+  U8String config_sdn_path_;
 
 public:
-    TypeInstanceImpl(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr) noexcept:
-        project_ptr_(project), project_(project.get()), ctr_descr_(descr)
+  TypeInstanceImpl(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr) noexcept:
+    project_ptr_(project), project_(project.get()), ctr_descr_(descr)
+  {
+    config_ = LDDocument::make_new();
+    project_config_ = LDDocument::make_new();
+  }
+
+  U8String config_string(const U8String& sdn_path) const override {
+    return *get_value(config_->value(), sdn_path)->as_varchar()->view();
+  }
+
+  ShPtr<FileGenerator> initializer() override
+  {
+    U8String sdn_path = config_sdn_path_ + "/init";
+    return project_->generator(sdn_path);
+  }
+
+  std::vector<U8String> includes() const override {
+    return includes_;
+  }
+
+  U8String config_sdn_path() const override {
+    return config_sdn_path_;
+  }
+
+  U8String target_folder() const override {
+    return target_folder_;
+  }
+
+  U8String target_file(const U8String& profile) const override
+  {
+    if (profile != "") {
+      return target_folder_ + "/" + name_ + "_" + get_profile_id(profile) + "_.cpp";
+    }
+    else {
+      return target_folder_ + "/" + name_ + ".cpp";
+    }
+  }
+
+  ViewPtr<LDDocumentView> config() const override {
+    return config_->view();
+  }
+
+  ShPtr<Project> project() const noexcept override {
+    return project_ptr_.lock();
+  }
+
+  const clang::ClassTemplateSpecializationDecl* ctr_descr() const override {
+    return ctr_descr_;
+  }
+
+  U8String describe() const override {
+    return describe_decl(ctr_descr_);
+  }
+
+  clang::QualType type() const override {
+    return type_();
+  }
+
+  clang::QualType type_() const {
+    return ctr_descr_->getTemplateArgs()[0].getAsType();
+  }
+
+  ShPtr<TypeFactory> type_factory() const override {
+    return type_factory_;
+  }
+
+  void set_type_factory(ShPtr<TypeFactory> tf) override {
+    type_factory_ = tf;
+  }
+
+  std::vector<U8String> full_includes() const override
+  {
+    std::vector<U8String> list;
+
+    if (type_factory_)
     {
-      config_ = LDDocument::make_new();
-      project_config_ = LDDocument::make_new();
+      auto ii = type_factory_->includes();
+      list.insert(list.end(), ii.begin(), ii.end());
     }
 
-    U8String config_string(const U8String& sdn_path) const override {
-        return *get_value(config_->value(), sdn_path)->as_varchar()->view();
-    }
+    list.insert(list.end(), includes_.begin(), includes_.end());
 
-    ShPtr<FileGenerator> initializer() override
+    return list;
+  }
+
+  U8String generate_include_header() const
+  {
+    U8String code;
+    for (const auto& include: includes_)
     {
-        U8String sdn_path = config_sdn_path_ + "/init";
-        return project_->generator(sdn_path);
+      code += format_u8("#include <{}>\n", include);
     }
 
-    std::vector<U8String> includes() const override {
-        return includes_;
-    }
+    return code;
+  }
 
-    U8String config_sdn_path() const override {
-        return config_sdn_path_;
-    }
 
-    U8String target_folder() const override {
-        return target_folder_;
-    }
-
-    U8String target_file(const U8String& profile) const override
+  void precompile_headers() override
+  {
+    if (type_factory_)
     {
-        if (profile != "") {
-            return target_folder_ + "/" + name_ + "_" + get_profile_id(profile) + "_.cpp";
-        }
-        else {
-            return target_folder_ + "/" + name_ + ".cpp";
-        }
-    }
+      U8String code = generate_include_header();
 
-    ViewPtr<LDDocumentView> config() const override {
-        return config_->view();
-    }
+      U8String header_name = name_ + ".hpp";
+      write_text_file_if_different(target_folder_ + "/" + header_name, code);
 
-    ShPtr<Project> project() const noexcept override {
-        return project_ptr_.lock();
-    }
-
-    const clang::ClassTemplateSpecializationDecl* ctr_descr() const override {
-        return ctr_descr_;
-    }
-
-    U8String describe() const override {
-        return describe_decl(ctr_descr_);
-    }
-
-    clang::QualType type() const override {
-        return type_();
-    }
-
-    clang::QualType type_() const {
-        return ctr_descr_->getTemplateArgs()[0].getAsType();
-    }
-
-    ShPtr<TypeFactory> type_factory() const override {
-        return type_factory_;
-    }
-
-    void set_type_factory(ShPtr<TypeFactory> tf) override {
-        type_factory_ = tf;
-    }
-
-    std::vector<U8String> full_includes() const override
-    {
-        std::vector<U8String> list;
-
-        if (type_factory_)
-        {
-            auto ii = type_factory_->includes();
-            list.insert(list.end(), ii.begin(), ii.end());
-        }
-
-        list.insert(list.end(), includes_.begin(), includes_.end());
-
-        return list;
-    }
-
-    U8String generate_include_header() const
-    {
-        U8String code;
-        for (const auto& include: includes_)
-        {
-            code += format_u8("#include <{}>\n", include);
-        }
-
-        return code;
-    }
-
-
-    void precompile_headers() override
-    {
-        if (type_factory_)
-        {
-            U8String code = generate_include_header();
-
-            U8String header_name = name_ + ".hpp";
-            write_text_file_if_different(target_folder_ + "/" + header_name, code);
-
-            precompiled_header_ = PreCompiledHeader::create(
-                        type_factory_->precompiled_header(),
-                        target_folder_,
-                        header_name
+      precompiled_header_ = PreCompiledHeader::create(
+            type_factory_->precompiled_header(),
+            target_folder_,
+            header_name
             );
-        }
     }
+  }
 
-    void generate_artifacts() override
+  void generate_artifacts() override
+  {
+    if (type_factory_)
     {
-        if (type_factory_)
+      U8String generator_class_name = type_factory()->generator();
+      if (profiles_)
+      {
+        auto gen_ii = create_type_factory_generator_instance(
+              generator_class_name,
+              self(),
+              type_factory_,
+              Optional<U8String>{}
+              );
+
+        gen_ii->generate_init();
+
+        for (const U8String& profile: profiles_.get())
         {
-            U8String generator_class_name = type_factory()->generator();
-            auto path = split_path(generator_class_name);
+          if (project_->is_profile_enabled(profile))
+          {
+            auto gen = create_type_factory_generator_instance(
+                  generator_class_name,
+                  self(),
+                  type_factory_,
+                  profile
+                  );
 
-            py::object cg = py::module_::import(path.first.data());
-            py::object tf = cg.attr(path.second.data());
-
-            if (profiles_)
-            {
-                py::object tf_ii = tf(self(), type_factory_, nullptr);
-                py::object ii_init = tf_ii.attr("generate_init");
-                if (!ii_init.is_none()) {
-                    ii_init();
-                }
-
-                for (const U8String& profile: profiles_.get())
-                {
-                    if (project_->is_profile_enabled(profile))
-                    {
-                        py::object tf_i = tf(self(), type_factory_, py::str(profile.data()));
-                        py::object hw = tf_i.attr("generate_files");
-
-                        hw();
-                    }
-                }
-            }
-            else {
-                py::object tf_i = tf(self(), type_factory_);
-                py::object hw = tf_i.attr("generate_files");
-
-                hw();
-            }
+            gen->generate_files();
+          }
         }
-        else {
-            println("TypeInstance for {} has no associated TypeFactory. Skipping.", type().getAsString());
-        }
+      }
+      else {
+        auto gen = create_type_factory_generator_instance(
+              generator_class_name,
+              self(),
+              type_factory_,
+              Optional<U8String>{}
+              );
+
+        gen->generate_files();
+      }
     }
+    else {
+      println("TypeInstance for {} has no associated TypeFactory. Skipping.", type().getAsString());
+    }
+  }
 
-    void dry_run(LDDMapView map) override
+  void dry_run(LDDMapView map) override
+  {
+    auto sources = get_or_add_array(map, "sources");
+    auto byproducts = get_or_add_array(map, "byproducts");
+
+    DefaultResourceNameConsumerImpl consumer(*sources, *byproducts);
+
+    U8String file_path = target_folder_ + "/" + name_ + ".hpp";
+
+    consumer.add_byproduct_file(file_path);
+    consumer.add_byproduct_file(file_path + ".pch");
+
+    U8String generator_class_name = type_factory()->generator();
+
+    auto fn1 = [&](U8StringView str){
+      consumer.add_source_file(U8String(str));
+    };
+
+    if (profiles_)
     {
-        auto sources = get_or_add_array(map, "sources");
-        auto byproducts = get_or_add_array(map, "byproducts");
-
-        DefaultResourceNameConsumerImpl consumer(*sources, *byproducts);
-
-        U8String file_path = target_folder_ + "/" + name_ + ".hpp";
-
-        consumer.add_byproduct_file(file_path);
-        consumer.add_byproduct_file(file_path + ".pch");
-
-        U8String generator_class_name = type_factory()->generator();
-        auto path = split_path(generator_class_name);
-
-        py::object cg = py::module_::import(path.first.data());
-        py::object tf = cg.attr(path.second.data());
-
-        std::function<void(std::string)> fn = [&](std::string str){
-            consumer.add_source_file(str);
-        };
-
-        if (profiles_)
+      for (const U8String& profile: profiles_.get())
+      {
+        if (project_->is_profile_enabled(profile))
         {
-            for (const U8String& profile: profiles_.get())
-            {
-                if (project_->is_profile_enabled(profile))
-                {
-                    py::object tf_i = tf(self(), type_factory_, py::str(profile.to_std_string()));
-                    py::object hw = tf_i.attr("dry_run");
-                    hw(fn);
-                }
-            }
+          auto gen = create_type_factory_generator_instance(
+                generator_class_name,
+                self(),
+                type_factory_,
+                profile
+                );
+
+          gen->dry_run(fn1);
         }
-        else {
-            py::object tf_i = tf(self(), type_factory_, nullptr);
-            py::object hw = tf_i.attr("dry_run");
-            hw(fn);
+      }
+    }
+    else {
+      auto gen = create_type_factory_generator_instance(
+            generator_class_name,
+            self(),
+            type_factory_,
+            Optional<U8String>{}
+            );
+
+      gen->dry_run(fn1);
+    }
+  }
+
+  Optional<std::vector<U8String>> profiles() const override {
+    return profiles_;
+  }
+
+  ShPtr<TypeInstance> self() {
+    return shared_from_this();
+  }
+
+  ViewPtr<LDDMapView> ld_config() const {
+    return config_->value()->as_typed_value()->constructor()->as_map();
+  }
+
+  U8String name() const override {
+    return name_;
+  }
+
+  void configure() override
+  {
+    auto anns = get_annotations(ctr_descr_);
+    if (anns.size()) {
+      config_ = LDDocument::parse(anns[anns.size() - 1]);
+
+      auto name = ld_config()->get("name");
+      if (name.is_not_empty()) {
+        name_ = *name->as_varchar()->view();
+      }
+      else {
+        U8String type_name = type_().getAsString();
+        name_ = get_profile_id(type_name);
+      }
+
+      auto includes = ld_config()->get("includes");
+      if (includes.is_not_empty()) {
+        auto arr = includes->as_array();
+        for (size_t c = 0; c < arr->size(); c++)
+        {
+          U8String file_name = *arr->get(c)->as_varchar()->view();
+          includes_.push_back(file_name);
         }
+      }
+      else {
+        MEMORIA_MAKE_GENERIC_ERROR("Configuration attribute 'includes' must be specified for TypeInstance {}", type_().getAsString()).do_throw();
+      }
+    }
+    else {
+      MEMORIA_MAKE_GENERIC_ERROR("Configuration must be specified for TypeInstance {}", type_().getAsString()).do_throw();
     }
 
-    Optional<std::vector<U8String>> profiles() const override {
-        return profiles_;
+    auto cfg = config_->value();
+    if (find_value(*cfg, "$/config")) {
+      config_sdn_path_ = *cfg->as_varchar()->view();
+    }
+    else {
+      config_sdn_path_ = "$/groups/default/containers";
     }
 
-    ShPtr<TypeInstance> self() {
-        return shared_from_this();
+    auto vv = project_->config()->value();
+    if (find_value(*vv, config_sdn_path_)) {
+      project_config_ = vv->clone();
     }
-
-    ViewPtr<LDDMapView> ld_config() const {
-        return config_->value()->as_typed_value()->constructor()->as_map();
-    }
-
-    U8String name() const override {
-        return name_;
-    }
-
-    void configure() override
-    {
-        auto anns = get_annotations(ctr_descr_);
-        if (anns.size()) {
-            config_ = LDDocument::parse(anns[anns.size() - 1]);
-
-            auto name = ld_config()->get("name");
-            if (name.is_not_empty()) {
-                name_ = *name->as_varchar()->view();
-            }
-            else {
-                U8String type_name = type_().getAsString();
-                name_ = get_profile_id(type_name);
-            }
-
-            auto includes = ld_config()->get("includes");
-            if (includes.is_not_empty()) {
-                auto arr = includes->as_array();
-                for (size_t c = 0; c < arr->size(); c++)
-                {
-                    U8String file_name = *arr->get(c)->as_varchar()->view();
-                    includes_.push_back(file_name);
-                }
-            }
-            else {
-                MEMORIA_MAKE_GENERIC_ERROR("Configuration attribute 'includes' must be specified for TypeInstance {}", type_().getAsString()).do_throw();
-            }
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("Configuration must be specified for TypeInstance {}", type_().getAsString()).do_throw();
-        }
-
-        auto cfg = config_->value();
-        if (find_value(*cfg, "$/config")) {
-            config_sdn_path_ = *cfg->as_varchar()->view();
-        }
-        else {
-            config_sdn_path_ = "$/groups/default/containers";
-        }
-
-        auto vv = project_->config()->value();
-        if (find_value(*vv, config_sdn_path_)) {
-            project_config_ = vv->clone();
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR(
-                "CodeGen Project configuration '{}' must be specified for TypeInstance {}",
-                config_sdn_path_,
-                type_().getAsString()
+    else {
+      MEMORIA_MAKE_GENERIC_ERROR(
+            "CodeGen Project configuration '{}' must be specified for TypeInstance {}",
+            config_sdn_path_,
+            type_().getAsString()
             ).do_throw();
-        }
-
-        target_folder_ = project_->components_output_folder() + "/" + *get_value(project_config_->value(), "$/path")
-            ->as_varchar()->view();
-
-        std::error_code ec;
-        if ((!std::filesystem::create_directories(target_folder_.to_std_string(), ec)) && ec) {
-            MEMORIA_MAKE_GENERIC_ERROR("Can't create directory '{}': {}", target_folder_, ec.message()).do_throw();
-        }
-
-        auto pp = config_->value();
-        if (find_value(*pp, "$/profiles"))
-        {
-            if (pp->is_varchar())
-            {
-                U8String val = *pp->as_varchar()->view();
-                if (val == "ALL") {
-                    profiles_ = project_->profiles();
-                }
-                else {
-                    MEMORIA_MAKE_GENERIC_ERROR("Invalid profile attribute '{}' value for TypeInstance for {}", type().getAsString()).do_throw();
-                }
-            }
-            else if (pp->is_array())
-            {
-                auto arr = pp->as_array();
-                profiles_ = std::vector<U8String>();
-                for (size_t c = 0; c < arr->size(); c++) {
-                    profiles_.get().push_back(*arr->get(c)->as_varchar()->view());
-                }
-            }
-            else {
-                MEMORIA_MAKE_GENERIC_ERROR("Invalid profile attribute '{}' value for TypeInstance for {}", type().getAsString()).do_throw();
-            }
-        }
     }
+
+    target_folder_ = project_->components_output_folder() + "/" + *get_value(project_config_->value(), "$/path")
+        ->as_varchar()->view();
+
+    std::error_code ec;
+    if ((!std::filesystem::create_directories(target_folder_.to_std_string(), ec)) && ec) {
+      MEMORIA_MAKE_GENERIC_ERROR("Can't create directory '{}': {}", target_folder_, ec.message()).do_throw();
+    }
+
+    auto pp = config_->value();
+    if (find_value(*pp, "$/profiles"))
+    {
+      if (pp->is_varchar())
+      {
+        U8String val = *pp->as_varchar()->view();
+        if (val == "ALL") {
+          profiles_ = project_->profiles();
+        }
+        else {
+          MEMORIA_MAKE_GENERIC_ERROR("Invalid profile attribute '{}' value for TypeInstance for {}", type().getAsString()).do_throw();
+        }
+      }
+      else if (pp->is_array())
+      {
+        auto arr = pp->as_array();
+        profiles_ = std::vector<U8String>();
+        for (size_t c = 0; c < arr->size(); c++) {
+          profiles_.get().push_back(*arr->get(c)->as_varchar()->view());
+        }
+      }
+      else {
+        MEMORIA_MAKE_GENERIC_ERROR("Invalid profile attribute '{}' value for TypeInstance for {}", type().getAsString()).do_throw();
+      }
+    }
+  }
 };
 
 ShPtr<TypeInstance> TypeInstance::create(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr) {
-    return std::make_shared<TypeInstanceImpl>(project, descr);
+  return std::make_shared<TypeInstanceImpl>(project, descr);
 }
 
 }}

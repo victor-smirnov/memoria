@@ -1,5 +1,5 @@
 
-// Copyright 2021 Victor Smirnov
+// Copyright 2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,20 +15,28 @@
 
 #pragma once
 
-#include <memoria/python/generic/python_profile_generic.hpp>
+#include <generators.hpp>
+#include <code_module.hpp>
 
-namespace memoria {
+#include <vector>
 
-template <typename T>
-struct PythonAPIBinder<CoreApiProfileT<T>> {
-    using Profile = CoreApiProfileT<T>;
+namespace memoria::codegen {
 
-    static void make_bindings(pybind11::module_& m) {
-        namespace py = pybind11;
+void register_inja_generator_factories();
 
-        PythonAPIBinder<GenericProfileBindings<Profile>>::make_bindings(m);
-    }
-};
+ShPtr<FileGeneratorInstance> create_inja_ctr_init_file_generator_instance(
+    ShPtr<FileGenerator> gen
+);
 
+
+ShPtr<FileGeneratorInstance> create_inja_datatype_file_generator_instance(
+    ShPtr<FileGenerator> gen
+);
+
+ShPtr<TypeFactoryGeneratorInstance> create_inja_type_factory_generator_instance(
+    ShPtr<TypeInstance> ins,
+    ShPtr<TypeFactory> tf,
+    Optional<U8String> profile
+);
 
 }

@@ -73,7 +73,7 @@ public:
     PkdAllocationMap() noexcept = default;
 
     size_t size() const noexcept {return metadata()->size();}
-    size_t set_size(size_t size) noexcept {
+    void set_size(size_t size) noexcept {
         metadata()->size() = size;
     }
 

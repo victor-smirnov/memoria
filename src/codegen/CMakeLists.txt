@@ -18,7 +18,7 @@ add_definitions("-Wno-ambiguous-reversed-operator")
 
 if (BUILD_CODEGENERATOR_EXPLICITLY)
     find_package(Clang CONFIG REQUIRED)
-    find_package(pybind11 CONFIG REQUIRED)
+    find_package(inja CONFIG REQUIRED)
 
     file(GLOB CTRGEN_SRCS *.cpp)
     add_executable(MemoriaCodeGen ${CTRGEN_SRCS} ${GLOBAL_CORE_SRCS})
@@ -28,8 +28,9 @@ if (BUILD_CODEGENERATOR_EXPLICITLY)
     target_include_directories(MemoriaCodeGen PRIVATE include)
     target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
-    target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options pybind11::embed pybind11::module util)
+    target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options util)
     target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling)
+    target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja)
 else()
 
 project(MemoriaCodeGen)
@@ -45,7 +46,7 @@ include_directories(../core/include)
 add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
 add_definitions(-DMMA_ICU_CXX_NS=icu)
 
-if (BUILD_POSIX)
+#if (BUILD_POSIX)
     add_definitions(-fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0)
     add_definitions(-Wno-comment -Wno-unknown-warning-option -Wunused-variable)
     add_definitions(-Wno-unused-function -Wno-unused-but-set-variable)
@@ -57,12 +58,12 @@ if (BUILD_POSIX)
     add_definitions(-Wno-class-memaccess)
     add_definitions(-Werror=return-type)
 
-    add_definitions(-pthread -stdlib=libstdc++)
+    add_definitions(-pthread)
 
     add_global_libs(dl pthread)
-else()
+#else()
 
-endif()
+#endif()
 
 if (MSVC)
     set (Boost_USE_STATIC_RUNTIME    ON)
@@ -76,9 +77,6 @@ else()
     link_libraries(ICU::i18n ICU::uc ICU::data)
 endif()
 
-
-find_package(pybind11 CONFIG REQUIRED)
-
 find_package(Boost 1.75.0 COMPONENTS context program_options serialization unit_test_framework REQUIRED)
 
 find_package(absl CONFIG REQUIRED)
@@ -87,6 +85,7 @@ link_libraries(absl::base absl::strings absl::hash absl::meta absl::time util)
 find_package(fmt CONFIG REQUIRED)
 link_libraries(fmt::fmt fmt::fmt-header-only)
 
+find_package(inja CONFIG REQUIRED)
 find_package(Clang CONFIG REQUIRED)
 
 STRING( REPLACE "^^" ";" MEMORIA_CORE_SRCS "${MEMORIA_CORE_SRCS_STR}" )
@@ -99,10 +98,8 @@ target_include_directories(MemoriaCodeGen PRIVATE include)
 target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
 target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options )
-target_link_libraries(MemoriaCodeGen PRIVATE pybind11::embed pybind11::module)
 target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling c++)
-
-target_link_options(MemoriaCodeGen PRIVATE -stdlib=libstdc++)
+target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja)
 
 endif()
 

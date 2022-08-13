@@ -31,8 +31,6 @@ namespace codegen {
 using namespace clang;
 using namespace llvm;
 
-namespace py = pybind11;
-
 class TypeFactoryImpl: public TypeFactory, public std::enable_shared_from_this<TypeFactoryImpl> {
     WeakPtr<Project> project_ptr_;
     Project* project_;

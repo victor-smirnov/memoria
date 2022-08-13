@@ -150,8 +150,9 @@ class UniquePtr {
     template <typename> friend class SharedPtr;
     template <typename> friend class UniquePtr;
 
-    friend UniquePtr<T> detail::make_unique_ptr_from(T*, RefHolder*);
+    //friend UniquePtr<T> detail::make_unique_ptr_from(T*, RefHolder*);
 
+public:
     UniquePtr(T* ptr, RefHolder* holder) noexcept :
         ptr_(ptr), ref_holder_(holder)
     {}
@@ -251,16 +252,19 @@ class SharedPtr {
     T* ptr_;
     RefHolder* ref_holder_;
 
+    // Public for now to make GCC happy
+public:
     SharedPtr(T* ptr, RefHolder* holder) noexcept :
         ptr_(ptr), ref_holder_(holder)
     {}
+private:
 
     template <typename> friend class UniquePtr;
     template <typename> friend class SharedPtr;
     template <typename> friend class WeakPtr;
     template <typename> class enable_shared_from_this;
 
-    friend SharedPtr<T> detail::make_shared_ptr_from(T*, RefHolder*);
+    //friend SharedPtr<T> detail::make_shared_ptr_from(T*, RefHolder*);
 
 public:
     using element_type = T;
