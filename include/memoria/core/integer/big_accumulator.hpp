@@ -1,5 +1,5 @@
 
-// Copyright 2018 Victor Smirnov
+// Copyright 2018-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -113,14 +113,21 @@ struct UnsignedAccumulator {
         return res;
     }
 
-    template <unsigned BmpBitLength>
+private:
+    struct BmpTag {};
+    template <typename BmpInt>
     constexpr UnsignedAccumulator(
-            const detail::UAccBmpInt<BmpBitLength>& bmp_value
+            const BmpInt& bmp_value, BmpTag
     ): value_{}
     {
-        static_assert(BitLength >= BmpBitLength, "");
+        //static_assert(BitLength >= BmpBitLength, "");
+        detail::UAccCvtHelper<ValueT, BmpInt>::to_acc(*this, bmp_value);
+    }
+public:
 
-        detail::UAccCvtHelper<ValueT, detail::UAccBmpInt<BmpBitLength>>::to_acc(*this, bmp_value);
+    template <typename BmpInt>
+    static UnsignedAccumulator from_bmp(const BmpInt& bmp_value) {
+        return UnsignedAccumulator(bmp_value, BmpTag{});
     }
 
     constexpr UnsignedAccumulator(ValueT v): value_{} {
@@ -135,7 +142,7 @@ struct UnsignedAccumulator {
     }
 
     UnsignedAccumulator(const std::string& digits):
-        UnsignedAccumulator(detail::UAccBmpInt<BitLength>(digits))
+        UnsignedAccumulator(detail::UAccBmpInt<(unsigned)BitLength>(digits), BmpTag{})
     {}
 
     template <size_t OtherBitLength>
@@ -388,10 +395,10 @@ struct UnsignedAccumulator {
     }
 
 
-    detail::UAccBmpInt<BitLength> to_bmp() const
+    detail::UAccBmpInt<(unsigned)BitLength> to_bmp() const
     {
-        detail::UAccBmpInt<BitLength> bmp_value;
-        detail::UAccCvtHelper<ValueT, detail::UAccBmpInt<BitLength>>::to_bmp_int(*this, bmp_value);
+        detail::UAccBmpInt<(unsigned)BitLength> bmp_value;
+        detail::UAccCvtHelper<ValueT, detail::UAccBmpInt<(unsigned)BitLength>>::to_bmp_int(*this, bmp_value);
         return bmp_value;
     }
 
@@ -437,8 +444,8 @@ struct UnsignedAccumulator {
 private:
     template <typename T, typename IntT, size_t N> friend struct detail::UAccCvtHelper;
 
-    template <unsigned BmpBitLength>
-    constexpr void from_same_limb_cppint(const detail::UAccBmpInt<BmpBitLength>& bmp_value)
+    template <typename BmpInt>
+    constexpr void from_same_limb_cppint(const BmpInt& bmp_value)
     {
         auto size = bmp_value.backend().size();
         const auto* limbs = bmp_value.backend().limbs();
@@ -450,8 +457,8 @@ private:
     }
 
 
-    template <unsigned BmpBitLength>
-    constexpr void to_same_limb_cppint(detail::UAccBmpInt<BmpBitLength>& bmp_value) const
+    template <typename BmpInt>
+    constexpr void to_same_limb_cppint(BmpInt& bmp_value) const
     {
         bmp_value.backend().resize(Size, Size);
         auto size = bmp_value.backend().size();
@@ -466,8 +473,8 @@ private:
     }
 
 
-    template <unsigned BmpBitLength>
-    constexpr void to_smaller_limb_cppint(detail::UAccBmpInt<BmpBitLength>& bmp_value) const
+    template <typename BmpInt>
+    constexpr void to_smaller_limb_cppint(BmpInt& bmp_value) const
     {
         bmp_value.backend().resize(Size * 2, Size * 2);
 
@@ -489,10 +496,10 @@ private:
     }
 
 
-    template <unsigned BmpBitLength>
-    constexpr void to_larger_limb_cppint(detail::UAccBmpInt<BmpBitLength>& bmp_value) const
+    template <typename BmpInt>
+    constexpr void to_larger_limb_cppint(BmpInt& bmp_value) const
     {
-        using LimbT = detail::LimbType<detail::UAccBmpInt<BmpBitLength>>;
+        using LimbT = detail::LimbType<BmpInt>;
 
         bmp_value.backend().resize(Size / 2 , Size / 2);
         auto* limbs = bmp_value.backend().limbs();
@@ -514,8 +521,8 @@ private:
 
 
 
-    template <unsigned BmpBitLength>
-    constexpr void from_smaller_limb_cppint(const detail::UAccBmpInt<BmpBitLength>& bmp_value)
+    template <typename BmpInt>
+    constexpr void from_smaller_limb_cppint(const BmpInt& bmp_value)
     {
         unsigned size = bmp_value.backend().size();
         const auto* limbs = bmp_value.backend().limbs();
@@ -543,13 +550,13 @@ private:
     }
 
 
-    template <unsigned BmpBitLength>
-    constexpr void from_larger_limb_cppint(const detail::UAccBmpInt<BmpBitLength>& bmp_value)
+    template <typename BmpInt>
+    constexpr void from_larger_limb_cppint(const BmpInt& bmp_value)
     {
         unsigned size = bmp_value.backend().size();
         const auto* limbs = bmp_value.backend().limbs();
 
-        using LimbT = detail::LimbType<detail::UAccBmpInt<BmpBitLength>>;
+        using LimbT = detail::LimbType<BmpInt>;
         for (size_t c = 0; c < Size; c += 2)
         {
             LimbT vv = limbs[c / 2];
@@ -578,9 +585,9 @@ std::ostream& operator<<(std::ostream& out, const UnsignedAccumulator<BitLength>
 
 template <size_t BitLength>
 std::istream& operator>>(std::istream& in, UnsignedAccumulator<BitLength>& other) {
-    detail::UAccBmpInt<BitLength> bmp_int;
+    detail::UAccBmpInt<(unsigned)BitLength> bmp_int;
     in >> bmp_int;
-    other = bmp_int;
+    other = UnsignedAccumulator<BitLength>::from_bmp(bmp_int);
     return in;
 }
 
@@ -609,7 +616,7 @@ struct formatter<memoria::UnsignedAccumulator<64>> {
     }
 };
 
-template <size_t BitLength>
+template <unsigned BitLength>
 struct formatter<memoria::detail::UAccBmpInt<BitLength>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 

@@ -48,7 +48,6 @@ option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 
 option(BUILD_CLASSIC_MEMORIA_LIB "Build core library without Reactor support, using threads for concurrency" ON)
 option(BUILD_REACTOR_MEMORIA_LIB "Build core library WITH Reactor support, using fibers for concurrency" ON)
-option(BUILD_PYTHON_BINDINGS     "Build Python bindings for certain Memoria libraries." OFF)
 
 option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
 option(BUILD_STATIC     "Build statically linked binaries" OFF)
@@ -62,9 +61,9 @@ option(BUILD_REUSE_CODEGEN_CONFIG  "Reuse previously generated codegen configura
 
 option(BUILD_COW_PROFILE        "Build CowProfile" ON)
 option(BUILD_COW_LITE_PROFILE   "Build CowLiteProfile" ON)
-option(BUILD_NO_COW_PROFILE     "Build NoCowProfile" OFF)
+option(BUILD_NO_COW_PROFILE     "Build NoCowProfile" ON)
 
-option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" OFF)
+option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" ON)
 option(BUILD_TESTS_PACKED       "Build Packed Structires tests" ON)
 option(BUILD_TESTS_CONTAINERS   "Build Containers tests" ON)
 option(BUILD_TESTS_REACTOR      "Build Reactor tests" ON)
@@ -119,7 +118,7 @@ if (BUILD_POSIX)
     endif()
 
     #add_definitions(-stdlib=libc++)
-    add_definitions(-stdlib=libstdc++)
+    #add_definitions(-stdlib=libstdc++)
 
     add_definitions(-march=native -Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
     add_definitions(-Wno-old-style-cast)
@@ -203,11 +202,6 @@ link_libraries(Boost::program_options Boost::serialization)
 
 include_directories(${ICU_INCLUDE_DIRS})
 link_directories(${ICU_LIBRARY_DIRS})
-
-#if (BUILD_PYTHON_BINDINGS)
-#    find_package(pybind11 CONFIG REQUIRED)
-#endif()
-
 
 find_package(absl CONFIG REQUIRED)
 link_libraries(absl::base absl::strings absl::hash absl::meta absl::time)

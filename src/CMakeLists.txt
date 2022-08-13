@@ -351,10 +351,6 @@ endif()
 
 SET(MEMORIA_APPS)
 
-if (BUILD_PYTHON_BINDINGS)
-    add_subdirectory(python)
-endif()
-
 if (BUILD_REACTOR_MEMORIA_LIB)
     FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
         add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)

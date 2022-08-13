@@ -44,8 +44,6 @@ namespace codegen {
 using namespace clang;
 using namespace llvm;
 
-namespace py = pybind11;
-
 class ProjectImpl;
 
 class ConfigVisitor: public RecursiveASTVisitor<ConfigVisitor> {

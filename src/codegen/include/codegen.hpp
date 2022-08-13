@@ -1,5 +1,5 @@
 
-// Copyright 2021 Victor Smirnov
+// Copyright 2021-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@
 #include <code_module.hpp>
 
 #include <memoria/core/linked/document/linked_document.hpp>
-
-#include <pybind11/embed.h>
 
 #include <boost/variant2/variant.hpp>
 
@@ -159,11 +157,6 @@ struct FileGenerator: CodegenEntity {
 
     static ShPtr<FileGenerator> create(ShPtr<Project> project, const U8String& sdn_path, PoolSharedPtr<LDDocument>&& config);
 };
-
-void create_codegen_python_bindings();
-
-void create_codegen_module(pybind11::module mm);
-void create_ast_module(pybind11::module mm);
 
 std::pair<U8String, U8String> split_path(U8String class_path);
 
