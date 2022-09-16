@@ -17,7 +17,7 @@
 
 #include <memoria/core/linked/common/linked_hash.hpp>
 
-#include <memoria/core/datatypes/arena/arena.hpp>
+#include <memoria/core/hermes/arena.hpp>
 
 namespace memoria {
 namespace arena {

@@ -16,7 +16,7 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/datatypes/arena/arena.hpp>
+#include <memoria/core/hermes/arena.hpp>
 
 
 namespace memoria {

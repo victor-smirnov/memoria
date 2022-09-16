@@ -22,10 +22,10 @@
 #include <memoria/core/linked/common/linked_tools.hpp>
 #include <memoria/core/tools/optional.hpp>
 
-#include <memoria/core/datatypes/arena/arena.hpp>
-#include <memoria/core/datatypes/arena/array.hpp>
+#include <memoria/core/hermes/arena.hpp>
+#include <memoria/core/hermes/array.hpp>
 
-#include <memoria/core/datatypes/arena/hash_fn.hpp>
+#include <memoria/core/hermes/hash_fn.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
 

@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memoria/core/datatypes/arena/arena.hpp>
-#include <memoria/core/datatypes/arena/array.hpp>
+#include <memoria/core/hermes/arena.hpp>
+#include <memoria/core/hermes/array.hpp>
 
 #include <memoria/core/tools/span.hpp>
 
