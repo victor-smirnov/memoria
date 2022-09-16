@@ -28,48 +28,53 @@ class BigDecimal;
 class DateTime;
 class Timestamp;
 
-template <typename> class Vector;
-template <typename> class Set;
 template <typename, typename> class Map;
+template <typename> class Vector;
 
 template <typename T>
 struct ArenaTypeTag;
 
-template<>
-struct ArenaTypeTag<int8_t>: HasU64Value<1> {};
+template <uint64_t TagValue>
+using SimpleObjectTypeTag = HasU64Value<TagValue * 2>;
 
 template<>
-struct ArenaTypeTag<uint8_t>: HasU64Value<2> {};
+struct ArenaTypeTag<int8_t>: SimpleObjectTypeTag<1> {};
 
 template<>
-struct ArenaTypeTag<int16_t>: HasU64Value<3> {};
+struct ArenaTypeTag<uint8_t>: SimpleObjectTypeTag<2> {};
 
 template<>
-struct ArenaTypeTag<uint16_t>: HasU64Value<4> {};
+struct ArenaTypeTag<int16_t>: SimpleObjectTypeTag<3> {};
 
 template<>
-struct ArenaTypeTag<int32_t>: HasU64Value<5> {};
+struct ArenaTypeTag<uint16_t>: SimpleObjectTypeTag<4> {};
 
 template<>
-struct ArenaTypeTag<uint32_t>: HasU64Value<6> {};
+struct ArenaTypeTag<int32_t>: SimpleObjectTypeTag<5> {};
 
 template<>
-struct ArenaTypeTag<int64_t>: HasU64Value<7> {};
+struct ArenaTypeTag<uint32_t>: SimpleObjectTypeTag<6> {};
 
 template<>
-struct ArenaTypeTag<uint64_t>: HasU64Value<8> {};
+struct ArenaTypeTag<int64_t>: SimpleObjectTypeTag<7> {};
 
 template<>
-struct ArenaTypeTag<float>: HasU64Value<9> {};
+struct ArenaTypeTag<uint64_t>: SimpleObjectTypeTag<8> {};
 
 template<>
-struct ArenaTypeTag<double>: HasU64Value<10> {};
+struct ArenaTypeTag<float>: SimpleObjectTypeTag<9> {};
 
 template<>
-struct ArenaTypeTag<SegmentOffset>: HasU64Value<11> {};
+struct ArenaTypeTag<double>: SimpleObjectTypeTag<10> {};
 
 template<>
-struct ArenaTypeTag<Vector<int>>: HasU64Value<12> {};
+struct ArenaTypeTag<SegmentOffset>: SimpleObjectTypeTag<11> {};
+
+template<typename T>
+struct ArenaTypeTag<Vector<T>>: HasU64Value< 0x1ull + (ArenaTypeTag<T>::Value << 8)> {};
+
+template<typename K, typename V>
+struct ArenaTypeTag<Map<K, V>>: HasU64Value< 0x3ull + (ArenaTypeTag<K>::Value << 8) + (ArenaTypeTag<V>::Value << 16)> {};
 
 
 class ArenaOffsetMapping;

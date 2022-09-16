@@ -21,41 +21,71 @@
 
 #include <memoria/core/datatypes/arena/arena.hpp>
 #include <memoria/core/datatypes/arena/vector.hpp>
+#include <memoria/core/datatypes/arena/map.hpp>
 #include <memoria/core/datatypes/arena/traits.hpp>
 
-#include <inja/inja.hpp>
+#include <unordered_map>
 
 using namespace memoria;
+using namespace memoria::arena;
+
+using MapT = Map<uint32_t, uint64_t>;
+using StdMap = std::unordered_map<uint32_t, uint64_t>;
+
+void check_maps(const MemorySegment* sgm, const StdMap& std_map, const MapT* map)
+{
+    if (map->size() != std_map.size()) {
+        println("Size mismatch: {} {}", std_map.size(), map->size());
+    }
+    else {
+        size_t cnt{};
+        map->for_each(sgm, [&](auto k, auto v){
+            auto ii = std_map.find(k);
+            if (ii == std_map.end()) {
+                println("Key is not found: {}", k);
+            }
+            else if (ii->second != v) {
+                println("K/V mismatch: {} {} {}", k, v, ii->second);
+            }
+
+            cnt++;
+        });
+
+        if (cnt != map->size()) {
+            println("Map cnt size mismatch: cnt:{} size:{}", cnt, map->size());
+        }
+    }
+}
 
 int main(int, char**)
 {
-    nlohmann::json data;
-    data["name"] = "world";
+    ArenaSegmentImpl arena(128);
 
-    std::cout << data << std::endl;
+    auto map_ptr = arena.template allocate<MapT>();
 
-    inja::render_to(std::cout, "Hello {{ name }}!", data);
+    MapT* map = map_ptr.write(&arena);
 
-    std::cout << std::endl;
+    StdMap std_map;
 
-    arena::ArenaSegmentImpl arena(1024);
-    size_t ptr0 = arena.allocate_space(8, 1, 0);
-    println("ptr0: {}", ptr0);
-
-    using Vc = arena::Vector<int>;
-
-    arena::SegmentPtr<Vc> vv = allocate<Vc>(&arena);
-    println("{}", vv.offset());
-
-    Vc* vc = vv.write(&arena);
-
-    vc->push_back(&arena, 10);
-
-    println("size: {}, tag: {}", vc->size(), arena.read_type_tag(vv.offset()));
-
-    for (auto ii: vc->span(&arena)) {
-        println("ii: {}", ii);
+    for (size_t c = 0; c < 2000; c++) {
+        println("insert: {}", c);
+        map = map->put(&arena, c, c);
+        std_map[c] = c;
+        check_maps(&arena, std_map, map);
     }
 
-    arena::ArenaTypeMeta* mm;
+    map->dump_state(&arena);
+
+    size_t cnt{};
+    while (std_map.size() && cnt < 2000)
+    {
+        auto key = std_map.begin()->first;
+        println("Erasing: {} :: {}", key, cnt);
+        map = map->remove(&arena, key);
+        std_map.erase(key);
+        check_maps(&arena, std_map, map);
+        cnt++;
+    }
+
+    map->dump_state(&arena);
 }

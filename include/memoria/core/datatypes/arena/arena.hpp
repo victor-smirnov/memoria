@@ -43,6 +43,46 @@ constexpr size_t type_tag_size(TypeTag tag) {
 }
 
 
+namespace detail_ {
+    template <typename, typename = VoidT<>>
+    struct HasObjectSizeHelper: std::false_type {};
+
+    template <typename T>
+    struct HasObjectSizeHelper<T, VoidT<decltype(T::UseObjectSize)>>: std::true_type {};
+}
+
+
+template <typename T>
+constexpr bool HasObjectSize = detail_::HasObjectSizeHelper<T>::type::value;
+
+template <typename T, bool HasObjectSize = HasObjectSize<T>>
+struct ObjectSpaceAllocator;
+
+template <typename T>
+struct ObjectSpaceAllocator<T, false> {
+    template <typename Arena, typename... CtrArgs>
+    static auto allocate_space(size_t tag_size, Arena* arena, CtrArgs&&... args)
+    {
+        size_t size = sizeof(T);
+        auto addr = arena->template allocate_space<T>(size, tag_size);
+        //arena->construct(addr, std::forward<CtrArgs>(args)...);
+        return addr;
+    }
+};
+
+template <typename T>
+struct ObjectSpaceAllocator<T, true> {
+    template <typename Arena, typename... CtrArgs>
+    static auto allocate_space(size_t tag_size, Arena* arena, CtrArgs&&... args)
+    {
+        size_t size = T::object_size(std::forward<CtrArgs>(args)...);
+        auto addr = arena->template allocate_space<T>(size, tag_size);
+        //arena->construct(addr, std::forward<CtrArgs>(args)...);
+        return addr;
+    }
+};
+
+
 class MemorySegment {
 protected:
     const uint8_t* buffer_;
@@ -89,14 +129,50 @@ class ArenaSegment: public MemorySegment {
 protected:
     uint8_t* buffer_mut_;
     size_t capacity_;
+    size_t enlarges_;
 public:
     ArenaSegment(uint8_t* buffer, size_t size, size_t capacity, DTViewHolder* view_holder) noexcept :
         MemorySegment(buffer, size, view_holder),
         buffer_mut_(buffer),
-        capacity_(capacity)
+        capacity_(capacity),
+        enlarges_()
     {}
 
     virtual ~ArenaSegment() noexcept = default;
+
+    class State {
+        ArenaSegment* arena_;
+        size_t enlarges_;
+    public:
+        State(ArenaSegment* arena) noexcept :
+            arena_(arena), enlarges_(arena_->enlarges())
+        {}
+
+        State(): arena_(), enlarges_() {}
+
+        template <typename Fn>
+        void on_enlarge(Fn&& fn) {
+            if (MMA_UNLIKELY(arena_ && arena_->enlarges() > enlarges_)) {
+                fn();
+            }
+        }
+
+        operator bool() const {
+            return arena_ && arena_->enlarges() > enlarges_;
+        }
+    };
+
+    State state() noexcept {
+        return State(this);
+    }
+
+    MMA_NODISCARD size_t enlarges() const noexcept {
+        return enlarges_;
+    }
+
+    MMA_NODISCARD bool is_enlarged(size_t prev_enlarges) const noexcept {
+        return enlarges_ > prev_enlarges;
+    }
 
     MMA_NODISCARD uint8_t* buffer_mut() noexcept {return buffer_mut_;}
     MMA_NODISCARD const uint8_t* buffer_mut() const noexcept {return buffer_mut_;}
@@ -110,6 +186,9 @@ public:
 
     template <typename T, typename... Args>
     MMA_NODISCARD SegmentPtr<T> allocate(Args&&... args);
+
+    template <typename T, typename... Args>
+    MMA_NODISCARD SegmentPtr<T> allocate_untagged(Args&&... args);
 
     template <typename T, typename... Args>
     void construct(const SegmentPtr<T>& ptr, Args&&... args);
@@ -145,6 +224,7 @@ public:
 
     size_t offset() const noexcept {return offset_;}
     bool is_null() const {return offset_ == 0;}
+    bool is_not_null() const {return offset_ != 0;}
 };
 
 template <typename T>
@@ -159,16 +239,26 @@ public:
         return ss;
     }
 
+    static SegmentPtr<T> from(const MemorySegment* sgm, const T* ptr)
+    {
+        const uint8_t* addr = reinterpret_cast<const uint8_t*>(ptr);
+        return SegmentPtr<T>::from(addr - sgm->buffer());
+    }
+
+    void reset() noexcept {
+        offset_ = 0;
+    }
+
     MMA_NODISCARD const T* read(const MemorySegment* sgm) const
     {
-        if (!offset_ && offset_ < sgm->size()) {
+        if (offset_ && offset_ < sgm->size()) {
             return ptr_cast<const T>(sgm->buffer() + offset_);
         }
         else if (!offset_) {
             MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr is null").do_throw();
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr get out of range: {} {}", offset_, sgm->size()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr read_idx get out of range: {} {}", offset_, sgm->size()).do_throw();
         }
     }
 
@@ -176,14 +266,14 @@ public:
     MMA_NODISCARD const T* read(const MemorySegment* sgm, size_t idx) const
     {
         size_t idx8 = idx * sizeof (T);
-        if (!offset_ && offset_ + idx8 < sgm->size()) {
+        if (offset_ && offset_ + idx8 < sgm->size()) {
             return ptr_cast<const T>(sgm->buffer() + offset_ + idx8);
         }
         else if (!offset_) {
             MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr is null").do_throw();
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr get out of range: {} {}", offset_, sgm->size()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr read_idx get out of range: {} {}", offset_ + idx8 , sgm->size()).do_throw();
         }
     }
 
@@ -196,7 +286,7 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr is null").do_throw();
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr get out of range: {} {}", offset_, sgm->size()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr write get out of range: {} {}", offset_, sgm->size()).do_throw();
         }
     }
 
@@ -210,7 +300,7 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr is null").do_throw();
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr get out of range: {} {}", offset_, sgm->size()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("SegmentPtr write_idx get out of range: {} {}", offset_ + idx8, sgm->size()).do_throw();
         }
     }
 
@@ -246,16 +336,30 @@ MMA_NODISCARD inline SegmentPtr<T> ArenaSegment::allocate_space(size_t size, siz
 template <typename T, typename... Args>
 inline SegmentPtr<T> ArenaSegment::allocate(Args&&... args)
 {
-    return mapped_::ObjectCreator<T>::allocate_and_construct(
+    constexpr TypeTag tag = ArenaTypeTag<T>::Value;
+    constexpr size_t tag_size = type_tag_size(tag);
+    auto ptr = ObjectSpaceAllocator<T>::allocate_space(
+        tag_size, this, std::forward<Args>(args)...
+    );
+
+    write_type_tag(ptr.offset(), tag);
+    this->construct(ptr, std::forward<Args>(args)...);
+    return ptr;
+}
+
+template <typename T, typename... Args>
+MMA_NODISCARD SegmentPtr<T> ArenaSegment::allocate_untagged(Args&&... args) {
+    auto ptr = ObjectSpaceAllocator<T>::allocate_space(
         0, this, std::forward<Args>(args)...
     );
+    this->construct(ptr, std::forward<Args>(args)...);
+    return ptr;
 }
 
 template <typename T, typename... Args>
 inline void ArenaSegment::construct(const SegmentPtr<T>& ptr, Args&&... args)
 {
     (void)new (buffer_mut_ + ptr.offset()) T(std::forward<Args>(args)...);
-    write_type_tag(ptr.offset(), ArenaTypeTag<T>::Value);
 }
 
 class ArenaSegmentImpl: public ArenaSegment {
@@ -311,6 +415,8 @@ public:
 
         size_ += (size + upsize);
 
+        //println("allocate_space: {}::{} -- {}::{}::{}", size_, capacity_, addr, size, addr + size);
+
         return addr;
     }
 
@@ -330,6 +436,7 @@ protected:
         uint8_t* tmp = buffer_mut_;
         buffer_ = buffer_mut_ = new_buffer.release();
         capacity_ = new_target;
+        enlarges_++;
 
         if (tmp) {
             free_system(tmp);
