@@ -72,10 +72,10 @@ class DataTypeBuffer<
 
     using SOAdapter = DataTypeTraits<DataTypeT>;
 
-    mutable DTViewHolder view_holder_;
+    mutable ViewPtrHolder view_holder_;
 
 protected:
-    virtual void configure_refholder(pool::detail::ObjectPoolRefHolder* owner) {
+    virtual void configure_refholder(SharedPtrHolder* owner) {
         view_holder_.set_owner(owner);
     }
 

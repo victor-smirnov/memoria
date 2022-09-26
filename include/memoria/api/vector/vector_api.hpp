@@ -20,7 +20,7 @@
 
 #include <memoria/core/tools/span.hpp>
 
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 #include <memoria/core/datatypes/traits.hpp>
 
 #include <memoria/api/collection/collection_api.hpp>

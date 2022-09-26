@@ -15,51 +15,137 @@
 
 #pragma once
 
-#include <memoria/core/types.hpp>
-#include <memoria/core/tools/span.hpp>
-#include <memoria/core/memory/ptr_cast.hpp>
+#include <memoria/core/arena/vector.hpp>
+#include <memoria/core/arena/relative_ptr.hpp>
 
-#include <memoria/core/tools/result.hpp>
+#include <memoria/core/hermes/value.hpp>
+#include <memoria/core/hermes/traits.hpp>
+#include <memoria/core/hermes/common.hpp>
+
 
 namespace memoria {
-namespace arena {
+namespace hermes {
 
-// Note, must be sure that Array size is at least 1
+template <typename V>
+class Array;
 
-template <typename T>
-class Array {
-protected:
-    uint64_t size_;
-    T array_[1];
+template <>
+class Array<Value>: public HoldingView {
 public:
-    Array() {}
-
-    Array(size_t size) noexcept:
-        size_(size)
+    using ArenaArray = arena::Vector<arena::RelativePtr<void>>;
+protected:
+    ArenaArray* array_;
+    HermesDocView* doc_;
+public:
+    Array() noexcept:
+        array_(), doc_()
     {}
 
-    Span<T> span_mut() {
-        return Span<T>(data_mut(), size_);
+    Array(void* array, HermesDocView* doc, ViewPtrHolder* ref_holder) noexcept:
+        HoldingView(ref_holder),
+        array_(reinterpret_cast<ArenaArray*>(array)), doc_(doc)
+    {}
+
+    uint64_t size() const {
+        return array_->size();
     }
 
-    Span<const T> span() const {
-        return Span<T>(data(), size_);
-    }
+    ViewPtr<Value> get(uint64_t idx)
+    {
+        assert_not_null();
 
-    T* data_mut() {
-        return ptr_cast<T*>(array_);
-    }
-
-    const T* data() const {
-        return ptr_cast<const T*>(array_);
-    }
-
-    static size_t object_size(size_t size) {
-        if (size == 0) {
-            MEMORIA_MAKE_GENERIC_ERROR("arena::Array size must be >= 1").do_throw();
+        if (idx < array_->size())
+        {
+            return ViewPtr<Value>(Value(array_->get(idx).get(), doc_, ptr_holder_));
         }
-        return size * sizeof(T) + sizeof(Array) - sizeof(T);
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Value>: {} {}", idx, array_->size()).do_throw();
+        }
+    }
+
+    ViewPtr<Datatype<Varchar>, true> append_varchar(U8StringView view);
+
+    void stringify(std::ostream& out,
+                   DumpFormatState& state,
+                   DumpState& dump_state)
+    {
+        assert_not_null();
+
+        if (state.indent_size() == 0 || !is_simple_layout()) {
+            do_stringify(out, state, dump_state);
+        }
+        else {
+            DumpFormatState simple_state = state.simple();
+            do_stringify(out, simple_state, dump_state);
+        }
+    }
+
+    bool is_simple_layout()
+    {
+        assert_not_null();
+
+        if (size() > 3) {
+            return false;
+        }
+
+        bool simple = true;
+
+        for_each([&](auto vv){
+            simple = simple && vv->is_simple_layout();
+        });
+
+        return simple;
+    }
+
+    void for_each(std::function<void(ViewPtr<Value>)> fn) {
+        assert_not_null();
+
+        for (auto& vv: array_->span()) {
+            fn(ViewPtr<Value>(Value(vv.get(), doc_, ptr_holder_)));
+        }
+    }
+
+private:
+    void assert_not_null() const {
+        if (MMA_UNLIKELY(array_ == nullptr)) {
+            MEMORIA_MAKE_GENERIC_ERROR("Array<Value> is null");
+        }
+    }
+
+    void assert_mutable();
+
+    void do_stringify(std::ostream& out, DumpFormatState& state, DumpState& dump_state)
+    {
+        if (size() > 0)
+        {
+            out << "[" << state.nl_start();
+
+            bool first = true;
+
+            state.push();
+            for_each([&](auto vv){
+                if (MMA_LIKELY(!first)) {
+                    out << "," << state.nl_middle();
+                }
+                else {
+                    first = false;
+                }
+
+                state.make_indent(out);
+                vv->stringify(out, state, dump_state);
+            });
+            state.pop();
+
+            out << state.nl_end();
+
+            state.make_indent(out);
+            out << "]";
+        }
+        else {
+            out << "[]";
+        }
     }
 };
+
 
 }}

@@ -19,7 +19,7 @@
 
 #include <memoria/core/types.hpp>
 #include <memoria/core/tools/bitmap.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
@@ -28,6 +28,8 @@
 #include <boost/smart_ptr/local_shared_ptr.hpp>
 
 #include <memoria/core/tools/result.hpp>
+
+#include <memoria/core/memory/shared_ptr.hpp>
 
 #include <iostream>
 #include <type_traits>
@@ -62,77 +64,13 @@ class HasSharedFromThisMethod;
 template <typename T, bool HasBase = HasSharedFromThisMethod<T>::Value>
 struct SharedFromThisHelper;
 
-class ObjectPoolRefHolder {
-    long use_count_{1};
-    long weak_count_{1};
 
-    template <typename> friend class memoria::pool::SharedPtr;
-    template <typename> friend class memoria::pool::UniquePtr;
-    template <typename> friend class memoria::pool::WeakPtr;
-
-    template <typename, bool>
-    friend struct SharedFromThisHelper;
-
-public:
-    ObjectPoolRefHolder() {}
-
-    virtual ~ObjectPoolRefHolder() noexcept = default;
-
-protected:
-    // Release the holder
-    virtual void dispose() noexcept = 0;
-
-    // Run the object's destructor
-    virtual void destroy() noexcept = 0;
-
-public:
-    void ref_copy() noexcept {
-        use_count_++;
-    }
-
-    bool ref_lock() noexcept {
-        if (use_count_ == 0) return false;
-        use_count_++;
-        return true;
-    }
-
-    void ref_weak() noexcept {
-        weak_count_++;
-    }
-
-    void unref() noexcept {
-        if (MMA_UNLIKELY(--use_count_ == 0)) {
-            destroy();
-            unref_weak();
-        }
-    }
-
-    void unref_weak() noexcept {
-        if (MMA_UNLIKELY(--weak_count_ == 0)) {
-            dispose();
-        }
-    }
-
-public:
-    long refs() const {
-        return use_count_;
-    }
-
-    long weak_refs() const {
-        return weak_count_;
-    }
-
-    void init_ref() noexcept {
-        use_count_ = 1;
-        weak_count_ = 1;
-    }
-};
 
 template <typename T>
-SharedPtr<T> make_shared_ptr_from(T*, ObjectPoolRefHolder*);
+SharedPtr<T> make_shared_ptr_from(T*, SharedPtrHolder*);
 
 template <typename T>
-UniquePtr<T> make_unique_ptr_from(T*, ObjectPoolRefHolder*);
+UniquePtr<T> make_unique_ptr_from(T*, SharedPtrHolder*);
 
 }
 
@@ -142,7 +80,7 @@ UniquePtr<T> make_unique_ptr_from(T*, ObjectPoolRefHolder*);
 
 template <typename T>
 class UniquePtr {
-    using RefHolder = detail::ObjectPoolRefHolder;
+    using RefHolder = SharedPtrHolder;
 
     T* ptr_;
     RefHolder* ref_holder_;
@@ -247,7 +185,7 @@ public:
 
 template <typename T>
 class SharedPtr {
-    using RefHolder = detail::ObjectPoolRefHolder;
+    using RefHolder = SharedPtrHolder;
 
     T* ptr_;
     RefHolder* ref_holder_;
@@ -439,7 +377,7 @@ public:
 
 template <typename T>
 class WeakPtr {
-    using RefHolder = detail::ObjectPoolRefHolder;
+    using RefHolder = SharedPtrHolder;
 
     T* ptr_;
     RefHolder* ref_holder_;
@@ -604,12 +542,12 @@ template <typename T> class enable_shared_from_this;
 namespace detail {
 
 template <typename T>
-SharedPtr<T> make_shared_ptr_from(T* obj, ObjectPoolRefHolder* holder) {
+SharedPtr<T> make_shared_ptr_from(T* obj, SharedPtrHolder* holder) {
     return SharedPtr<T>(obj, holder);
 }
 
 template <typename T>
-UniquePtr<T> make_unique_ptr_from(T* obj, ObjectPoolRefHolder* holder) {
+UniquePtr<T> make_unique_ptr_from(T* obj, SharedPtrHolder* holder) {
     return UniquePtr<T>(obj, holder);
 }
 
@@ -622,7 +560,7 @@ UniquePtr<T> make_unique_ptr_from(T* obj, ObjectPoolRefHolder* holder) {
 
 template <typename T>
 class enable_shared_from_this {
-    using RefHolder = detail::ObjectPoolRefHolder;
+    using RefHolder = SharedPtrHolder;
 
     mutable T* ptr_{};
     mutable RefHolder* holder_{};
@@ -670,14 +608,14 @@ namespace detail {
 
 template <typename T>
 struct SharedFromThisHelper<T, true> {
-    static void initialize(T* obj, ObjectPoolRefHolder* holder) noexcept {
+    static void initialize(T* obj, SharedPtrHolder* holder) noexcept {
         obj->init_shared_from_this(obj, holder);
     }
 };
 
 template <typename T>
 struct SharedFromThisHelper<T, false> {
-    static void initialize(T*, ObjectPoolRefHolder*) noexcept {
+    static void initialize(T*, SharedPtrHolder*) noexcept {
     }
 };
 
@@ -765,7 +703,7 @@ public:
         return TypeNameFactory<SimpleObjectPool>::name();
     }
 
-    class RefHolder: public detail::ObjectPoolRefHolder {
+    class RefHolder: public SharedPtrHolder {
         alignas (T) std::byte object_storage_[sizeof(T)];
         boost::local_shared_ptr<SimpleObjectPool> pool_;
 
@@ -838,7 +776,7 @@ private:
 template <typename T>
 class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<HeavyObjectPool<T>> {
 
-    class Descriptor: public detail::ObjectPoolRefHolder {
+    class Descriptor: public SharedPtrHolder {
         T object_;
         Descriptor* next_;
         boost::local_shared_ptr<HeavyObjectPool> pool_;
@@ -958,7 +896,7 @@ public:
     {
         auto i = pools_.find(typeid(PoolType));
         if (i != pools_.end()) {
-            return *ptr_cast<PoolType>(i->second.get());
+            return *reinterpret_cast<PoolType*>((i->second.get()));
         }
         else {
             auto ptr = boost::make_shared<PoolType>();

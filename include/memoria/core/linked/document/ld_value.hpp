@@ -66,10 +66,10 @@ public:
     }
 
 
-    ViewPtr<LDDMapView> as_map() const;
-    ViewPtr<LDDArrayView> as_array() const;
-    ViewPtr<LDTypeDeclarationView> as_type_decl() const;
-    ViewPtr<LDDTypedValueView> as_typed_value() const;
+    ViewPtr<LDDMapView, false> as_map() const;
+    ViewPtr<LDDArrayView, false> as_array() const;
+    ViewPtr<LDTypeDeclarationView, false> as_type_decl() const;
+    ViewPtr<LDDTypedValueView, false> as_typed_value() const;
 
     template <typename T>
     ViewPtr<DTTLDViewType<T>> cast_as() const

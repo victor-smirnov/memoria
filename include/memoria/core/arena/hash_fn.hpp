@@ -17,7 +17,8 @@
 
 #include <memoria/core/linked/common/linked_hash.hpp>
 
-#include <memoria/core/hermes/arena.hpp>
+#include <memoria/core/arena/arena.hpp>
+#include <memoria/core/arena/relative_ptr.hpp>
 
 namespace memoria {
 namespace arena {
@@ -30,13 +31,12 @@ class DefaultHashFn;
 template <>                                 \
 class DefaultHashFn<Type> {                 \
 public:                                     \
-    uint64_t operator()(const MemorySegment* sgm, const Type& value) {\
+    uint64_t operator()(const Type& value) {\
         FNVHasher<8> hasher;                \
         append(hasher, value);              \
         return hasher.hash();               \
     }                                       \
 }
-
 
 MMA_ARENA_DEFAULT_HASH_FN(uint8_t);
 MMA_ARENA_DEFAULT_HASH_FN(int8_t);
@@ -60,36 +60,60 @@ MMA_ARENA_DEFAULT_HASH_FN(double);
 
 
 template <typename Type>
-class DefaultHashFn<SegmentPtr<Type>> {
+class DefaultHashFn<RelativePtr<Type>> {
 public:
-    uint64_t operator()(const MemorySegment* sgm, const SegmentPtr<Type>& ptr)
+    uint64_t operator()(const RelativePtr<Type>& ptr)
     {
         FNVHasher<8> hasher;
-        const Type* tt = ptr.read(sgm);
-        tt->hash_to(sgm, hasher);
+        ptr->hash_to(hasher);
+        return hasher.hash();
+    }
+};
+
+template <typename Type>
+class DefaultHashFn<Type*> {
+public:
+    uint64_t operator()(const Type* ptr)
+    {
+        FNVHasher<8> hasher;
+        ptr->hash_to(hasher);
+        return hasher.hash();
+    }
+};
+
+template <>
+class DefaultHashFn<U8StringView> {
+public:
+    uint64_t operator()(const U8StringView& str)
+    {
+        FNVHasher<8> hasher;
+        for (auto ch: str) {
+            hasher.append(ch);
+        }
         return hasher.hash();
     }
 };
 
 
-
 template <typename Type>
 class DefaultEqualToFn {
+public:
     template <typename Key>
-    bool operator()(const MemorySegment*, const Key& key, const Type& stored) {
+    bool operator()(const Key& key, const Type& stored) {
         return key == stored;
     }
 };
 
 
+
 template <typename Type>
-class DefaultEqualToFn<SegmentPtr<Type>> {
+class DefaultEqualToFn<RelativePtr<Type>> {
+public:
     template <typename Key>
-    bool operator()(const MemorySegment* sgm, const Key& key, const Type& stored) {
-        return key.equals_to(sgm, stored);
+    bool operator()(const Key& key, const RelativePtr<Type>& stored) {
+        return stored->equals_to(key);
     }
 };
-
 
 
 #define MMA_ARENA_DEFAULT_EQUAL_TO_FN(Type) \
@@ -97,7 +121,7 @@ template <>                                 \
 class DefaultEqualToFn<Type> {              \
 public:                                     \
     template <typename Key>                 \
-    bool operator()(const MemorySegment*, const Key& key, const Type& stored) {\
+    bool operator()(const Key& key, const Type& stored) {\
         return key == stored;               \
     }                                       \
 }
@@ -121,7 +145,5 @@ MMA_ARENA_DEFAULT_EQUAL_TO_FN(char32_t);
 
 MMA_ARENA_DEFAULT_EQUAL_TO_FN(float);
 MMA_ARENA_DEFAULT_EQUAL_TO_FN(double);
-
-
 
 }}

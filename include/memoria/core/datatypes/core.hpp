@@ -18,7 +18,7 @@
 #include <memoria/core/types.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/strings/format.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 
 #include <boost/any.hpp>
 
@@ -183,7 +183,7 @@ template <>
 struct TypeHash<Decimal>: UInt64Value<39> {};
 
 template <>
-struct TypeHash<CoreApiProfileDT>: UInt64Value<75796829474235345ull> {};
+struct TypeHash<CoreApiProfileDT>: UInt64Value<ToSmallHash(75796829474235345ull)> {};
 
 
 }

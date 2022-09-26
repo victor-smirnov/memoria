@@ -26,7 +26,7 @@
 
 #include <memoria/core/exceptions/exceptions.hpp>
 
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 
 #include <memoria/core/memory/ptr_cast.hpp>
 

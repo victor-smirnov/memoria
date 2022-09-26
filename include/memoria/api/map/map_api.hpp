@@ -19,7 +19,7 @@
 #include <memoria/api/collection/collection_api.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 
 #include <memoria/api/map/map_api_factory.hpp>
 #include <memoria/core/datatypes/buffer/buffer.hpp>

@@ -17,7 +17,7 @@
 
 #include <memoria/core/memory/malloc.hpp>
 #include <memoria/core/tools/bitmap.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 
 #include <memory>
 #include <algorithm>

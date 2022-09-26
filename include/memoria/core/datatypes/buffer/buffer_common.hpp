@@ -18,7 +18,7 @@
 #include <memoria/core/types.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/strings/format.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/tools/arena_buffer.hpp>

@@ -25,6 +25,8 @@ void InitMemoriaCoreExplicit() {
     InitCoreLDDatatypes();
     InitCoreDatatypes();
     InitSimpleNumericDatatypes();
+
+    InitTypeReflections();
 }
 
 }

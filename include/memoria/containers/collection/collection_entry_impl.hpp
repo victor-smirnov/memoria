@@ -37,7 +37,7 @@ struct SpanHolder {
     bool set_up{};
 
     template <typename PkdStruct>
-    void populate(const PkdStruct& ss, size_t column, DTViewHolder* owner)
+    void populate(const PkdStruct& ss, size_t column, ViewPtrHolder* owner)
     {
         auto ee = ss.end(column);
 
@@ -53,7 +53,7 @@ struct SpanHolder {
 
 
     template <typename PkdStruct>
-    void populate(const PkdStruct& ss, size_t column, size_t start, size_t size, DTViewHolder* owner)
+    void populate(const PkdStruct& ss, size_t column, size_t start, size_t size, ViewPtrHolder* owner)
     {
         auto ee = ss.end(column);
 
@@ -84,7 +84,7 @@ struct SpanHolder<KeyDT, true> {
     bool set_up{};
 
     template <typename PkdStruct>
-    void populate(const PkdStruct& ss, size_t column, DTViewHolder* owner)
+    void populate(const PkdStruct& ss, size_t column, ViewPtrHolder* owner)
     {
         span = ss.span(column);
         OwningViewSpanHelper<ViewType>::configure_resource_owner(span, owner);
@@ -92,7 +92,7 @@ struct SpanHolder<KeyDT, true> {
     }
 
     template <typename PkdStruct>
-    void populate(const PkdStruct& ss, size_t column, size_t start, size_t size, DTViewHolder* owner)
+    void populate(const PkdStruct& ss, size_t column, size_t start, size_t size, ViewPtrHolder* owner)
     {
         span = ss.span(column).subspan(start, size);
         OwningViewSpanHelper<ViewType>::configure_resource_owner(span, owner);
@@ -144,10 +144,10 @@ protected:
 
     KeyView view_;
 
-    mutable DTViewHolder view_holder_;
+    mutable ViewPtrHolder view_holder_;
 
 protected:
-    virtual void configure_refholder(pool::detail::ObjectPoolRefHolder* owner) {
+    virtual void configure_refholder(SharedPtrHolder* owner) {
         view_holder_.set_owner(owner);
     }
 

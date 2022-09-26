@@ -15,46 +15,13 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/memory/object_pool.hpp>
+#include <memoria/core/memory/shared_ptr.hpp>
 #include <memoria/core/tools/span.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
 
 namespace memoria {
 
-class DTViewHolder {
-    using HolderT = pool::detail::ObjectPoolRefHolder;
-    HolderT* owner_;
-    int64_t references_{};
-public:
-    DTViewHolder():
-        owner_(), references_()
-    {}
-
-    void set_owner(HolderT* owner) {
-        owner_ = owner;
-    }
-
-    void ref_copy() {
-        if (MMA_UNLIKELY((bool)(references_++ == 0))) {
-            owner_->ref_copy();
-        }
-    }
-
-    void unref() {
-        if (MMA_UNLIKELY((bool)(--references_ == 0))) {
-            owner_->unref();
-        }
-    }
-
-    int64_t refs() const {
-        return references_;
-    }
-
-    bool is_in_use() const {
-        return references_ != 0;
-    }
-};
 
 
 // SFINAE test
@@ -70,7 +37,7 @@ class OwningViewCfg
 public:
     static constexpr bool Value = sizeof(test<T>(0)) == sizeof(char);
 
-    static void configure_resource_owner(T& view, DTViewHolder* owner)
+    static void configure_resource_owner(T& view, ViewPtrHolder* owner)
     {
         view.configure_resource_owner(owner);
     }
@@ -81,12 +48,12 @@ struct OwningViewSpanHelper;
 
 template <typename T>
 struct OwningViewSpanHelper<T, true> {
-    static void configure_resource_owner(T& view, DTViewHolder* owner)
+    static void configure_resource_owner(T& view, ViewPtrHolder* owner)
     {
         OwningViewCfg<T>::configure_resource_owner(view, owner);
     }
 
-    static void configure_resource_owner(Span<T> span, DTViewHolder* owner)
+    static void configure_resource_owner(Span<T> span, ViewPtrHolder* owner)
     {
         for (auto& view: span) {
             configure_resource_owner(view, owner);
@@ -96,16 +63,16 @@ struct OwningViewSpanHelper<T, true> {
 
 template <typename T>
 struct OwningViewSpanHelper<T, false> {
-    static void configure_resource_owner(T& view, DTViewHolder* owner) {}
-    static void configure_resource_owner(Span<T> span, DTViewHolder* owner) {}
-    static void configure_resource_owner(Span<const T> span, DTViewHolder* owner) {}
+    static void configure_resource_owner(T& view, ViewPtrHolder* owner) {}
+    static void configure_resource_owner(Span<T> span, ViewPtrHolder* owner) {}
+    static void configure_resource_owner(Span<const T> span, ViewPtrHolder* owner) {}
 };
 
 
 
 template <typename ViewT, typename PtrT>
 class DTViewSpan {
-    using HolderT = DTViewHolder;
+    using HolderT = ViewPtrHolder;
 
     HolderT* owner_;
     ViewT* views_;
@@ -239,7 +206,7 @@ public:
 
 template <typename ViewT, typename PtrT>
 class DTConstViewSpan {
-    using HolderT = DTViewHolder;
+    using HolderT = ViewPtrHolder;
 
     HolderT* owner_;
     const ViewT* views_;
@@ -427,155 +394,14 @@ public:
 
 
 
-template <typename ViewT>
-class ViewPtr {
-    using RefHolder = DTViewHolder;
-
-    ViewT view_;
-    RefHolder* ref_holder_;
-
-public:
-    using element_type = ViewT;
-
-    ViewPtr() noexcept : view_(), ref_holder_() {}
-
-    ViewPtr(ViewT view, RefHolder* holder) noexcept :
-        view_(view), ref_holder_(holder)
-    {
-        if (holder) {
-            holder->ref_copy();
-        }
-    }
-
-    template<typename U>
-    ViewPtr(const ViewPtr<U>& other) noexcept:
-        view_(other.view_),
-        ref_holder_(other.ref_holder_)
-    {
-        if (MMA_LIKELY((bool)ref_holder_)) {
-            ref_holder_->ref_copy();
-        }
-    }
 
 
-    ViewPtr(const ViewPtr& other) noexcept:
-        view_(other.view_),
-        ref_holder_(other.ref_holder_)
-    {
-        if (MMA_LIKELY((bool)ref_holder_)) {
-            ref_holder_->ref_copy();
-        }
-    }
-
-
-    ViewPtr(ViewPtr&& other) noexcept:
-        view_(other.view_), ref_holder_(other.ref_holder_)
-    {
-        other.ref_holder_ = nullptr;
-    }
-
-    template<typename U>
-    ViewPtr(ViewPtr<U>&& other) noexcept:
-        view_(other.view_), ref_holder_(other.ref_holder_)
-    {
-        other.ref_holder_ = nullptr;
-    }
-
-    ~ViewPtr() noexcept {
-        if (ref_holder_) {
-            ref_holder_->unref();
-        }
-    }
-
-    ViewPtr& operator=(const ViewPtr& other) noexcept {
-        if (MMA_LIKELY(&other != this))
-        {
-            if (ref_holder_) {
-                ref_holder_->unref();
-            }
-
-            view_ = other.view_;
-            ref_holder_ = other.ref_holder_;
-
-            if (ref_holder_){
-                ref_holder_->ref_copy();
-            }
-        }
-
-        return *this;
-    }
-
-    ViewPtr& operator=(ViewPtr&& other) noexcept {
-        if (MMA_LIKELY(&other != this))
-        {
-            if (MMA_UNLIKELY(ref_holder_ != nullptr)) {
-                ref_holder_->unref();
-            }
-
-            view_ = other.view_;
-            ref_holder_ = other.ref_holder_;
-            other.ref_holder_ = nullptr;
-        }
-
-        return *this;
-    }
-
-    void reset() noexcept {
-        if (ref_holder_) {
-            ref_holder_->unref();
-            ref_holder_ = nullptr;
-        }
-    }
-
-    RefHolder* release_holder()
-    {
-        RefHolder* tmp = ref_holder_;
-        ref_holder_ = nullptr;
-        view_ = ViewT{};
-        return tmp;
-    }
-
-    friend void swap(ViewPtr& lhs, ViewPtr& rhs) {
-        std::swap(lhs.view_, rhs.view_);
-        std::swap(lhs.ref_holder_, rhs.ref_holder_);
-    }
-
-    auto use_count() const {
-        if (ref_holder_) {
-            return ref_holder_->refs();
-        }
-        else {
-            return 0;
-        }
-    }
-
-    ViewT* operator->() {return &view_;}
-    const ViewT* operator->() const {return &view_;}
-
-    ViewT& operator*() {return view_;}
-    const ViewT& operator*() const {return view_;}
-
-    ViewT* get() {return &view_;}
-    const ViewT* get() const {return &view_;}
-
-    bool is_empty() const {
-        return ref_holder_ == nullptr;
-    }
-
-    bool is_not_empty() const {
-        return ref_holder_ != nullptr;
-    }
-
-//    operator bool() const {
-//        return ref_holder_ != nullptr;
-//    }
-};
 
 
 
 template <typename ViewT>
 class DTConstSharedPtr {
-    using RefHolder = DTViewHolder;
+    using RefHolder = ViewPtrHolder;
 
     ViewT view_;
     RefHolder* ref_holder_;
@@ -752,7 +578,7 @@ public:
 
 template <typename ViewT>
 class DTFxdValueWrapper {
-    using RefHolder = DTViewHolder;
+    using RefHolder = ViewPtrHolder;
 
     ViewT view_;
 

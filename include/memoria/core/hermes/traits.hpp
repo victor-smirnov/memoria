@@ -15,76 +15,37 @@
 
 #pragma once
 
-#include <memoria/core/types.hpp>
-#include <memoria/core/hermes/arena.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 
+#include <memoria/core/datatypes/traits.hpp>
 
 namespace memoria {
-namespace arena {
+namespace hermes {
+class HermesDoc;
+class HermesDocView;
 
-class String;
-class BigInteger;
-class BigDecimal;
-class DateTime;
-class Timestamp;
+template <typename>
+class Array;
 
-template <typename, typename> class Map;
-template <typename> class Vector;
+template <typename Key, typename Value>
+class Map;
 
-template <typename T>
-struct ArenaTypeTag;
+class Value;
 
-template <uint64_t TagValue>
-using SimpleObjectTypeTag = HasU64Value<TagValue * 2>;
+template <typename>
+class Datatype;
 
-template<>
-struct ArenaTypeTag<int8_t>: SimpleObjectTypeTag<1> {};
+}
 
-template<>
-struct ArenaTypeTag<uint8_t>: SimpleObjectTypeTag<2> {};
+struct Varchar;
 
-template<>
-struct ArenaTypeTag<int16_t>: SimpleObjectTypeTag<3> {};
+template <typename DT>
+struct TypeHash<hermes::Datatype<DT>>: HasU64Value<TypeHashV<DT>> {};
 
-template<>
-struct ArenaTypeTag<uint16_t>: SimpleObjectTypeTag<4> {};
+template <>
+struct TypeHash<hermes::Array<hermes::Value>>: HasU64Value<100> {};
 
-template<>
-struct ArenaTypeTag<int32_t>: SimpleObjectTypeTag<5> {};
+template <>
+struct TypeHash<hermes::Map<Varchar, hermes::Value>>: HasU64Value<101> {};
 
-template<>
-struct ArenaTypeTag<uint32_t>: SimpleObjectTypeTag<6> {};
-
-template<>
-struct ArenaTypeTag<int64_t>: SimpleObjectTypeTag<7> {};
-
-template<>
-struct ArenaTypeTag<uint64_t>: SimpleObjectTypeTag<8> {};
-
-template<>
-struct ArenaTypeTag<float>: SimpleObjectTypeTag<9> {};
-
-template<>
-struct ArenaTypeTag<double>: SimpleObjectTypeTag<10> {};
-
-template<>
-struct ArenaTypeTag<SegmentOffset>: SimpleObjectTypeTag<11> {};
-
-template<typename T>
-struct ArenaTypeTag<Vector<T>>: HasU64Value< 0x1ull + (ArenaTypeTag<T>::Value << 8)> {};
-
-template<typename K, typename V>
-struct ArenaTypeTag<Map<K, V>>: HasU64Value< 0x3ull + (ArenaTypeTag<K>::Value << 8) + (ArenaTypeTag<V>::Value << 16)> {};
-
-
-class ArenaOffsetMapping;
-
-struct ArenaTypeMeta {
-    virtual ~ArenaTypeMeta() noexcept = default;
-    virtual SegmentOffset deep_copy_to(const MemorySegment& src_buf, const SegmentOffset& ptr, ArenaSegment& dst_buf) const = 0;
-};
-
-ArenaTypeMeta& get_arena_type_metadata(arena::TypeTag tag);
-bool has_arena_type_metadata(arena::TypeTag tag);
-
-}}
+}

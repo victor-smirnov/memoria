@@ -22,7 +22,7 @@
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/buffer.hpp>
 #include <memoria/core/tools/reflection.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/tools/id.hpp>
 #include <memoria/core/tools/uuid.hpp>

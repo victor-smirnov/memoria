@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memoria/core/hermes/arena.hpp>
-#include <memoria/core/hermes/array.hpp>
+#include <memoria/core/arena/arena.hpp>
+#include <memoria/core/arena/relative_ptr.hpp>
 
 #include <memoria/core/tools/span.hpp>
 
@@ -25,14 +25,32 @@
 namespace memoria {
 namespace arena {
 
+namespace detail {
+
+template <typename T>
+struct CopyHelper {
+    static void copy(T& dst, T& src) {
+        dst = src;
+    }
+};
+
+template <typename T>
+struct CopyHelper<RelativePtr<T>> {
+    static void copy(RelativePtr<T>& dst, const RelativePtr<T>& src) {
+        dst = src.get();
+    }
+};
+
+}
+
 template <typename T>
 class Vector {
     uint64_t size_;
     uint64_t capacity_;
-    SegmentPtr<T> data_;
+    RelativePtr<T> data_;
 public:
     Vector() noexcept :
-        size_()
+        size_(), capacity_()
     {}
 
     uint64_t size() const {return size_;}
@@ -41,76 +59,77 @@ public:
         return capacity_;
     }
 
-    bool has_extra_space(const MemorySegment* sgm) const {
+    bool has_extra_space() const {
         return capacity() > size_;
     }
 
-    const T& get(const MemorySegment* sgm, size_t idx) const {
-        return *data_.read(sgm)->span()[idx];
+    const T& get(size_t idx) const {
+        return data_.get()[idx];
     }
 
-    void set(ArenaSegment* sgm, size_t idx, const T& value) {
-        *data_.write(sgm)->span_mut()[idx] = value;
+    T& get(size_t idx) {
+        return data_.get()[idx];
     }
 
-    void push_back(ArenaSegment* sgm, const T& value)
+    void set(size_t idx, const T& value)
+    {
+        detail::CopyHelper<T>::copy(data_.get()[idx], value);
+    }
+
+    void push_back(ArenaAllocator& arena, const T& value)
     {
         size_t cc = capacity();
         if (size_ >= cc) {
-            enlarge(sgm, cc + 1);
+            enlarge(arena, cc + 1);
         }
 
-        *data_.write(sgm, size_) = value;
+        set(size_, value);
         size_++;
     }
 
-    void push_back(ArenaSegment* sgm, Span<const T> span)
+    void push_back(ArenaAllocator& arena, Span<const T> span)
     {
         size_t cc = capacity();
         if (size_ + span.size() > cc) {
-            enlarge(sgm, span.size() + size_ - cc);
+            enlarge(arena, span.size() + size_ - cc);
         }
 
-        T* ptr = data_.write(sgm, size_);
+        T* data = data_.get();
 
         for (size_t c = 0; c < span.size(); c++) {
-            ptr[c] = span[c];
+            data[c] = span[c];
         }
 
         size_ += span.size();
     }
 
-    Span<const T> span(const MemorySegment* sgm) const {
-        return Span<const T>(data_.read(sgm), size_);
+    Span<const T> span() const {
+        return Span<const T>(data_.get(), size_);
     }
 
-    Span<T> span(ArenaSegment* sgm) const {
-        return Span<T>(data_.write(sgm), size_);
+    Span<T> span() {
+        return Span<T>(data_.get(), size_);
     }
 
 protected:
-    void enlarge(ArenaSegment* sgm, size_t target_size)
+    void enlarge(ArenaAllocator& arena, size_t target_size)
     {
         size_t cc = capacity_ > 0 ? capacity_ : 2;
         while (cc < target_size) {
             cc *= 2;
         }
 
-        auto new_data = SegmentPtr<T>::from(sgm->allocate_space(cc * sizeof(T), alignof(T), 0));
+        auto new_data = arena.template allocate_untagged_array<T>(cc);
 
-        const T* ptr = data_.read(sgm);
-        T* new_ptr = new_data.write(sgm);
+        T* data = data_.get();
 
         for (size_t c = 0; c < size_; c++) {
-            new_ptr[c] = ptr[c];
+            detail::CopyHelper<T>::copy(new_data[c], data[c]);
         }
 
         data_ = new_data;
         capacity_ = cc;
     }
 };
-
-
-
 
 }}

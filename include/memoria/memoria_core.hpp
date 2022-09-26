@@ -29,4 +29,6 @@ void InitMemoriaCoreExplicit();
 
 void InitProfileMetadata();
 
+void InitTypeReflections();
+
 }

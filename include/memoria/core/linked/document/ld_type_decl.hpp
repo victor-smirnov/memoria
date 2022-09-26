@@ -99,7 +99,7 @@ public:
         return false;
     }
 
-    ViewPtr<LDTypeDeclarationView> get_type_declration(size_t idx) const
+    ViewPtr<LDTypeDeclarationView, false> get_type_declration(size_t idx) const
     {
         const TypeDeclState* state = this->state();
         if (state->type_params)
@@ -117,7 +117,7 @@ public:
         MMA_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
     }
 
-    ViewPtr<LDTypeDeclarationView> add_type_declaration(U8StringView name)
+    ViewPtr<LDTypeDeclarationView, false> add_type_declaration(U8StringView name)
     {
         auto decl = doc_->make_mutable()->new_type_declaration(name);
         ensure_params_capacity(1)->push_back(decl.state_);

@@ -24,6 +24,8 @@
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
+#include <memoria/core/tools/result.hpp>
+
 #include <type_traits>
 #include <functional>
 #include <algorithm>
@@ -530,7 +532,8 @@ public:
         capacity_ = next_capaicty;
 
         if (memory_mgr_) {
-            memory_mgr_(buffer_id_, ArenaBufferCmd::CONFIGURE, capacity_ * sizeof(ValueT), ptr_cast<uint8_t>(buffer_));
+          // FIXME ptr_cast for polymorphic types!
+          memory_mgr_(buffer_id_, ArenaBufferCmd::CONFIGURE, capacity_ * sizeof(ValueT), ptr_cast<uint8_t>(buffer_));
         }
     }
 
@@ -702,6 +705,7 @@ private:
             free_system(existing);
         }
         else {
+            // FIXME ptr_cast for polymorphic types!
             memory_mgr_(buffer_id_, ArenaBufferCmd::FREE, capacity_ * sizeof(ValueT), ptr_cast<uint8_t>(existing));
         }
     }

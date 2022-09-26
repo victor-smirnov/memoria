@@ -20,7 +20,7 @@
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/arena_buffer.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 #include <memoria/core/strings/format.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 

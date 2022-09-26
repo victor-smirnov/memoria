@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,10 @@ namespace memoria {
 
 static constexpr uint8_t SHORT_TYPEHASH_LENGTH_BASE = 250;
 
+inline constexpr uint64_t ToSmallHash(uint64_t code) {
+    return code & 0xFFFFFFFFFFFFFFull;
+}
+
 struct TypeHashes {
     enum {SCALAR = 1, ARRAY, CONST_VALUE};
 };
@@ -48,7 +52,7 @@ template <> struct TypeHash<void>:      UInt64Value<11> {};
 
 // Core datatypes: 20 - 39
 // LinkedData: 40 - 44
-// Reserved for Linked Data : 250 - 255
+// Reserved for Linked Data : 249 - 255
 
 template <
     template <typename> class Profile,
@@ -57,7 +61,7 @@ template <
 struct TypeHash<Profile<T>> {
     // FIXME need template assigning unique code to the each profile level
     using VList = UInt64List<100, TypeHash<T>::Value>;
-    static constexpr uint64_t Value = md5::Md5Sum<VList>::Type::Value64;
+    static constexpr uint64_t Value = ToSmallHash(md5::Md5Sum<VList>::Type::Value64);
 };
 
 
@@ -65,7 +69,7 @@ struct TypeHash<Profile<T>> {
 
 
 template <uint64_t Base, uint64_t ... Values>
-static constexpr uint64_t HashHelper = md5::Md5Sum<UInt64List<Base, Values...>>::Type::Value64;
+static constexpr uint64_t HashHelper = ToSmallHash(md5::Md5Sum<UInt64List<Base, Values...>>::Type::Value64);
 
 
 template <typename T, T V>
@@ -88,7 +92,7 @@ private:
     using TaggedValueList = MergeValueLists<UInt64Value<2000>, ValueList>;
 public:
 
-    static const uint64_t Value = md5::Md5Sum<TaggedValueList>::Result::Value64;
+    static const uint64_t Value = ToSmallHash(md5::Md5Sum<TaggedValueList>::Result::Value64);
 };
 
 template <typename... List>
@@ -98,7 +102,7 @@ private:
     using TaggedValueList = MergeValueLists<UInt64Value<2001>, ValueList>;
 public:
 
-    static const uint64_t Value = md5::Md5Sum<TaggedValueList>::Result::Value64;
+    static const uint64_t Value = ToSmallHash(md5::Md5Sum<TaggedValueList>::Result::Value64);
 };
 
 

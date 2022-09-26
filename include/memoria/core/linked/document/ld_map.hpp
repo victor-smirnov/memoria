@@ -113,12 +113,12 @@ public:
     }
 
 
-    ViewPtr<LDDMapView> set_map(U8StringView name)
+    ViewPtr<LDDMapView, false> set_map(U8StringView name)
     {
         return set_value<LDMap>(name)->as_map();
     }
 
-    ViewPtr<LDDArrayView> set_array(U8StringView name)
+    ViewPtr<LDDArrayView, false> set_array(U8StringView name)
     {
         return set_value<LDArray>(name)->as_array();
     }

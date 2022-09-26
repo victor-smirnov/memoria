@@ -18,7 +18,7 @@
 #include <memoria/api/common/ctr_api_btss.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 
 
 #include <memoria/api/collection/collection_api.hpp>

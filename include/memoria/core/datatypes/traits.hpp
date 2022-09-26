@@ -21,7 +21,7 @@
 #include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/integer/accumulator_common.hpp>
 
-#include <memoria/core/memory/object_pool.hpp>
+#include <memoria/core/memory/shared_ptr.hpp>
 
 namespace memoria {
 
@@ -31,7 +31,7 @@ template <typename T> struct PrimitiveDataTypeName;
 template <>                                             \
 struct PrimitiveDataTypeName<TypeName> {                \
     static void create_signature(SBuf& buf, TypeName) { \
-        buf << MMA_TOSTRING(TypeStr);                  \
+        buf << MMA_TOSTRING(TypeStr);                   \
     }                                                   \
 }
 
@@ -95,9 +95,13 @@ template <typename T>
 using DTTConstSpan = typename DataTypeTraits<T>::ConstSpanT;
 
 
+namespace arena {
 
+template <typename DT>
+class ArenaDataTypeContainer;
 
-template <typename ViewT> class ViewPtr;
+}
+
 template <typename ViewT> class DTConstSharedPtr;
 
 template <typename ViewT> class DTFxdValueWrapper;

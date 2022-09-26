@@ -60,13 +60,11 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
 
     static constexpr bool isSdnDeserializable = true;
 
-    static void create_signature(SBuf& buf, const Varchar& obj)
-    {
+    static void create_signature(SBuf& buf, const Varchar& obj) {
         buf << "Varchar";
     }
 
-    static void create_signature(SBuf& buf)
-    {
+    static void create_signature(SBuf& buf) {
         buf << "Varchar";
     }
 

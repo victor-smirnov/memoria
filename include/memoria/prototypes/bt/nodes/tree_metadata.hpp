@@ -18,7 +18,7 @@
 
 #include <memoria/prototypes/bt/bt_names.hpp>
 #include <memoria/core/tools/reflection.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/profiles/common/common.hpp>
 

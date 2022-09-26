@@ -19,7 +19,7 @@
 #include <memoria/profiles/common/common.hpp>
 #include <memoria/core/tools/optional.hpp>
 
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 #include <memoria/core/tools/reflection.hpp>
 
 #include <memoria/core/datatypes/core.hpp>

@@ -89,10 +89,10 @@ public:
         set_value<Boolean>(idx, value);
     }
 
-    ViewPtr<LDDMapView> set_map(size_t idx);
+    ViewPtr<LDDMapView, false> set_map(size_t idx);
 
 
-    ViewPtr<LDDArrayView> set_array(size_t idx)
+    ViewPtr<LDDArrayView, false> set_array(size_t idx)
     {
         return set_value<LDArray>(idx)->as_array();
     }
@@ -179,9 +179,9 @@ public:
         );
     }
 
-    ViewPtr<LDDMapView> add_map();
+    ViewPtr<LDDMapView, false> add_map();
 
-    ViewPtr<LDDArrayView> add_array()
+    ViewPtr<LDDArrayView, false> add_array()
     {
         return add_value<LDArray>()->as_array();
     }

@@ -33,6 +33,10 @@ TypeTo* ptr_cast(TypeFrom* ptr) noexcept
 
     static_assert(std::is_pointer<TypeFrom*>::value, "");
     static_assert(std::is_pointer<TypeTo*>::value, "");
+
+    // FIXME: We need to restrict memory laundering for polymorphic types
+    //static_assert(!std::is_polymorphic<TypeTo>::value, "");
+    //static_assert(!std::is_polymorphic<TypeFrom>::value, "");
     
     TypeTo* result;
     

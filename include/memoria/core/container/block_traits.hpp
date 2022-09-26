@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/profiles/common/block.hpp>
 

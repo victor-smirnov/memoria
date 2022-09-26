@@ -171,7 +171,7 @@ public:
             return iter_ == end_;
         }
         else {
-            const MyType* iother = ptr_cast<const MyType>(other);
+            const MyType* iother = dynamic_cast<const MyType*>(other);
             return iter_ == iother->iter_;
         }
     }

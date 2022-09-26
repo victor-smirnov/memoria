@@ -502,7 +502,7 @@ public:
     }
 
     virtual void internal_configure_shared_from_this(
-            pool::detail::ObjectPoolRefHolder* holder) noexcept
+            SharedPtrHolder* holder) noexcept
     {
         pool::detail::SharedFromThisHelper<MyType>::initialize(&self(), holder);
     }

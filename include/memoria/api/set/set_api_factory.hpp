@@ -18,7 +18,7 @@
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 #include <memoria/api/common/ctr_api_btss.hpp>
 #include <memoria/api/common/ctr_input_btss.hpp>
 

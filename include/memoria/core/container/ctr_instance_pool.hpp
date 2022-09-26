@@ -32,7 +32,7 @@ class CtrInstancePool: public std::enable_shared_from_this<CtrInstancePool<Profi
 
     using PoolPtr = std::shared_ptr<CtrInstancePool>;
 
-    class CtrRefHolder: public pool::detail::ObjectPoolRefHolder {
+    class CtrRefHolder: public SharedPtrHolder {
         CtrID ctr_id_;
         std::unique_ptr<CtrT> instance_;
         PoolPtr pool_;

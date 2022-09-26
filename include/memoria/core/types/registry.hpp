@@ -14,3 +14,24 @@
 // limitations under the License.
 
 #pragma once
+
+#include <memoria/core/types.hpp>
+
+#include <memoria/core/tools/uid_256.hpp>
+
+namespace memoria {
+
+//class ArenaOffsetMapping;
+
+using TypeID = UID256;
+using ShortTypeID = uint64_t;
+
+struct TypeMetadata {
+    virtual ~TypeMetadata() noexcept = default;
+    //virtual SegmentOffset deep_copy_to(const MemorySegment& src_buf, const SegmentOffset& ptr, ArenaSegment& dst_buf) const = 0;
+};
+
+
+
+
+}

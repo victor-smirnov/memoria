@@ -22,7 +22,7 @@
 #include <memoria/core/tools/assert.hpp>
 #include <memoria/core/types/fn_traits.hpp>
 #include <memoria/core/types/list/misc.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 #include <memoria/core/types.hpp>
 
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>

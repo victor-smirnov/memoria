@@ -19,7 +19,7 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 
 #include <memoria/core/tools/span.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
 
@@ -73,7 +73,7 @@ protected:
     using DocumentPtr   = ld_::LDPtr<DocumentState>;
 
     ld_::LDArenaView arena_;
-    mutable DTViewHolder* owner_{};
+    mutable ViewPtrHolder* owner_{};
 
     friend class LDDocumentBuilder;
     friend class LDDMapView;
@@ -107,7 +107,7 @@ protected:
     template <typename> friend class OwningViewCfg;
 
 protected:
-    void configure_resource_owner(DTViewHolder* owner) {
+    void configure_resource_owner(ViewPtrHolder* owner) {
         owner_ = owner;
     }
 
@@ -139,7 +139,7 @@ public:
     LDDocumentView& operator=(const LDDocumentView&) noexcept = default;
     LDDocumentView& operator=(LDDocumentView&&) noexcept = default;
 
-    ViewPtr<LDDocumentView> as_immutable_view() const noexcept
+    ViewPtr<LDDocumentView, false> as_immutable_view() const noexcept
     {
         LDDocumentView view = *this;
         view.arena_.clear_arena_ptr();
@@ -158,7 +158,7 @@ public:
         return arena_.data() == other->arena_.data();
     }
 
-    ViewPtr<LDDValueView> value() const noexcept;
+    ViewPtr<LDDValueView, false> value() const noexcept;
 
     void set_varchar(U8StringView string);
     void set_bigint(int64_t value);
@@ -168,8 +168,8 @@ public:
 
     void set_document(const LDDocumentView& other);
 
-    ViewPtr<LDDMapView> set_map();
-    ViewPtr<LDDArrayView> set_array();
+    ViewPtr<LDDMapView, false> set_map();
+    ViewPtr<LDDArrayView, false> set_array();
 
     template <typename T, typename... Args>
     ViewPtr<DTTLDViewType<T>> set_value(Args&&... args)
@@ -185,7 +185,7 @@ public:
         );
     }
 
-    ViewPtr<LDDValueView> set_sdn(U8StringView sdn);
+    ViewPtr<LDDValueView, false> set_sdn(U8StringView sdn);
 
     // FIXME: should be private?
     LDDocumentView* make_mutable() const
@@ -231,15 +231,15 @@ public:
         return ss.str();
     }
 
-    ViewPtr<LDTypeDeclarationView> create_named_type(U8StringView name, U8StringView type_decl);
+    ViewPtr<LDTypeDeclarationView, false> create_named_type(U8StringView name, U8StringView type_decl);
 
-    ViewPtr<LDTypeDeclarationView> get_named_type_declaration(U8StringView name) const;
+    ViewPtr<LDTypeDeclarationView, false> get_named_type_declaration(U8StringView name) const;
 
     void remove_named_type_declaration(U8StringView name);
 
     void for_each_named_type(std::function<void (U8StringView name, LDTypeDeclarationView)> fn) const;
 
-    std::vector<std::pair<ViewPtr<U8StringView>, ViewPtr<LDTypeDeclarationView>>> named_types() const;
+    std::vector<std::pair<ViewPtr<U8StringView>, ViewPtr<LDTypeDeclarationView, false>>> named_types() const;
 
     static bool is_identifier(U8StringView string) {
         return is_identifier(string.begin(), string.end());
@@ -354,7 +354,7 @@ class LDDocument: public LDDocumentView, public pool::enable_shared_from_this<LD
     ld_::LDArena ld_arena_;
 
     using LDDocumentView::arena_;
-    DTViewHolder view_holder_;
+    ViewPtrHolder view_holder_;
 
     friend class LDDArrayView;
     friend class LDDMapView;
@@ -363,7 +363,7 @@ class LDDocument: public LDDocumentView, public pool::enable_shared_from_this<LD
 
     static constexpr size_t INITIAL_ARENA_SIZE = sizeof(LDDocumentHeader) + sizeof(DocumentState) + 16;
 
-    virtual void configure_refholder(pool::detail::ObjectPoolRefHolder* owner) {
+    virtual void configure_refholder(SharedPtrHolder* owner) {
         view_holder_.set_owner(owner);
         this->owner_ = &view_holder_;
     }
@@ -452,9 +452,9 @@ protected:
 class LDDocumentSpan: public LDDocumentView, public pool::enable_shared_from_this<LDDocumentSpan> {
     using AtomType = typename ld_::LDArenaView::AtomType;
 
-    DTViewHolder view_holder_;
+    ViewPtrHolder view_holder_;
 
-    virtual void configure_refholder(pool::detail::ObjectPoolRefHolder* owner) {
+    virtual void configure_refholder(SharedPtrHolder* owner) {
         view_holder_.set_owner(owner);
         this->owner_ = &view_holder_;
     }

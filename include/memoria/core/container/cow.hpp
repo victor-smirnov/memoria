@@ -20,7 +20,7 @@
 #include <memoria/core/strings/u8_string.hpp>
 #include <memoria/core/strings/format.hpp>
 #include <memoria/core/tools/any_id.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/reflection/typehash.hpp>
 #include <memoria/core/datatypes/traits.hpp>
 
 namespace memoria {
