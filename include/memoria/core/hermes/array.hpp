@@ -63,7 +63,18 @@ public:
         }
     }
 
-    ViewPtr<Datatype<Varchar>, true> append_varchar(U8StringView view);
+    template <typename DT>
+    ViewPtr<Datatype<DT>, true> append(DTTViewType<DT> view);
+
+    ViewPtr<Map<Varchar, Value>, true> append_generic_map();
+    ViewPtr<Array<Value>, true> append_generic_array();
+
+    template <typename DT>
+    ViewPtr<Datatype<DT>, true> set(uint64_t idx, DTTViewType<DT> view);
+    void set_null(uint64_t idx);
+
+    ViewPtr<Map<Varchar, Value>, true> set_generic_map(uint64_t idx);
+    ViewPtr<Array<Value>, true> set_generic_array(uint64_t idx);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state,

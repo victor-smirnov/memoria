@@ -19,16 +19,20 @@
 #include <memoria/core/hermes/reflection.hpp>
 
 #include <memoria/core/datatypes/reflection.hpp>
+#include <memoria/core/datatypes/core.hpp>
 
 
 namespace memoria {
 
 using namespace hermes;
 
-void InitTypeReflections() {
+void InitTypeReflections()
+{
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Array<Value>>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Map<Varchar, Value>>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype<Varchar>>>());
+    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype<BigInt>>>());
+    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype<Double>>>());
 }
 
 }

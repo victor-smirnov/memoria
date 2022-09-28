@@ -141,8 +141,8 @@ class Map {
 
             for (uint32_t c = idx + 1; c < size; c++)
             {
-                keys[c - 1] = keys[c];
-                values[c - 1] = values[c];
+                detail::CopyHelper<KeyHolder>::copy(keys[c - 1], keys[c]);
+                detail::CopyHelper<ValueHolder>::copy(values[c - 1], values[c]);
             }
 
             size -= 1;
@@ -298,14 +298,15 @@ public:
         }
     }
 
-    void remove(ArenaAllocator& arena, const Key& key)
+    template <typename KeyArg>
+    void remove(ArenaAllocator& arena, const KeyArg& key)
     {
         if (MMA_LIKELY(size_))
         {
             size_t buckets_capacity = 1ull << buckets_capacity_;
             if (size_ > buckets_capacity || buckets_capacity == 2)
             {
-                Hash hh;
+                Hash<KeyArg> hh;
                 uint64_t bucket_idx = to_bucket(hh(key));
 
                 if (!is_bucket_null(bucket_idx))

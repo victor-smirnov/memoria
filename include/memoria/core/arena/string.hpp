@@ -31,8 +31,8 @@
 namespace memoria {
 namespace arena {
 
-template <>
-class ArenaDataTypeContainer<Varchar> {
+template <typename Selector>
+class ArenaDataTypeContainer<Varchar, Selector> {
     using ViewT = DTTViewType<Varchar>;
 
     uint8_t array[1];

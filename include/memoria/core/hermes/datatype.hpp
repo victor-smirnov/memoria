@@ -78,7 +78,7 @@ template <typename DT>
 struct ValueCastHelper {
     static ViewPtr<Datatype<DT>> cast_to(void* addr, HermesDocView* doc, ViewPtrHolder* ref_holder) noexcept {
         return ViewPtr<Datatype<DT>>(Datatype<DT>(
-            reinterpret_cast<arena::ArenaDataTypeContainer<DT>*>(addr),
+            addr,
             doc,
             ref_holder
         ));
@@ -87,4 +87,77 @@ struct ValueCastHelper {
 
 }
 
-}}
+}
+
+namespace arena {
+
+namespace detail {
+
+template <typename DT>
+struct DTFNVFixedSizeHasherHelper;
+
+template <>
+struct DTFNVFixedSizeHasherHelper<BigInt> {
+    static void hash_to(FNVHasher<8>& hasher, int64_t value) {
+        for (size_t c = 0; c < 8; c++) {
+            hasher.append((uint8_t)(value >> (c * 8)));
+        }
+    }
+};
+
+
+template <>
+struct DTFNVFixedSizeHasherHelper<Double> {
+    static void hash_to(FNVHasher<8>& hasher, double value) {
+        uint64_t u64val = value_cast<uint64_t>(value);
+        for (size_t c = 0; c < 8; c++) {
+            hasher.append((uint8_t)(u64val >> (c * 8)));
+        }
+    }
+};
+
+
+}
+
+
+
+template <typename DT>
+class ArenaDataTypeContainer<DT, FixedSizeDataTypeTag> {
+    using ViewT = DTTViewType<DT>;
+
+    ViewT value_;
+public:
+    ArenaDataTypeContainer(ViewT view):
+        value_(view)
+    {}
+
+    const ViewT& view() const noexcept {
+        return value_;
+    }
+
+    bool equals_to(const ViewT& view) const noexcept {
+        return view() == view;
+    }
+
+    bool equals_to(const ArenaDataTypeContainer* other) const noexcept {
+        return view() == other->view();
+    }
+
+    void hash_to(FNVHasher<8>& hasher) const noexcept {
+        for (auto ch: view()) {
+            hasher.append(ch);
+        }
+    }
+
+    void stringify(std::ostream& out,
+                   hermes::DumpFormatState& state,
+                   hermes::DumpState& dump_state)
+    {
+        out << value_;
+    }
+};
+
+
+}
+
+}

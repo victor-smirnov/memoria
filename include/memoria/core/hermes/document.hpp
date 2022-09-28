@@ -151,6 +151,19 @@ public:
         return ViewPtr<DTCtr>{DTCtr(arena_str, this, ptr_holder_)};
     }
 
+    template <typename DT>
+    ViewPtr<Datatype<DT>> set_datatype(DTTViewType<DT> str)
+    {
+        using DTCtr = Datatype<DT>;
+        auto arena_str = arena_.allocate_tagged_object<typename DTCtr::ArenaDTContainer>(
+                    TypeHashV<DTCtr>,
+                    str
+        );
+        header_->value = arena_str;
+
+        return ViewPtr<DTCtr>{DTCtr(arena_str, this, ptr_holder_)};
+    }
+
 
     ViewPtr<Array<Value>> set_generic_array()
     {

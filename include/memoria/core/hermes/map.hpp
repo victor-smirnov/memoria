@@ -62,7 +62,13 @@ public:
         return ViewPtr<Value>();
     }
 
-    ViewPtr<Datatype<Varchar>> put_varchar(U8StringView key, U8StringView value);
+
+    template <typename DT>
+    ViewPtr<Datatype<DT>> put(U8StringView key, DTTViewType<DT> value);
+
+
+    ViewPtr<Map<Varchar, Value>, true> put_generic_map(U8StringView key);
+    ViewPtr<Array<Value>, true> put_generic_array(U8StringView key);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state,
@@ -80,6 +86,7 @@ public:
 
     void for_each(std::function<void(U8StringView, ViewPtr<Value>)> fn) const
     {
+        assert_not_null();
         map_->for_each([&](const auto& key, const auto& value){
             U8StringView kk = key->view();
             fn(kk, ViewPtr<Value>{Value(value.get(), doc_, ptr_holder_)});
@@ -101,7 +108,7 @@ public:
         return simple;
     }
 
-
+    void remove(U8StringView key);
 
 private:
     void do_stringify(std::ostream& out, DumpFormatState state, DumpState& dump_state) {

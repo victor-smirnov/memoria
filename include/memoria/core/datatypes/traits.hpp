@@ -95,12 +95,6 @@ template <typename T>
 using DTTConstSpan = typename DataTypeTraits<T>::ConstSpanT;
 
 
-namespace arena {
-
-template <typename DT>
-class ArenaDataTypeContainer;
-
-}
 
 template <typename ViewT> class DTConstSharedPtr;
 
@@ -524,6 +518,14 @@ struct DataTypeTraits<CoreApiProfileDT>: DataTypeTraitsBase<CoreApiProfileDT>
     }
 };
 
+
+
+namespace arena {
+
+template <typename DT, typename SelectorTag = typename DataTypeTraits<DT>::DatumSelector>
+class ArenaDataTypeContainer;
+
+}
 
 
 template<typename T>
