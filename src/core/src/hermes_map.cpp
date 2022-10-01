@@ -13,32 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/core/hermes/map_ext.hpp>
 
-#include <memoria/core/linked/document/linked_document.hpp>
-#include <memoria/core/strings/format.hpp>
-
-#include <memoria/core/tools/span.hpp>
-
-#include <memoria/core/tools/random.hpp>
-
-#include <memoria/core/hermes/hermes.hpp>
-#include <memoria/memoria.hpp>
-
-#include <unordered_map>
-
-using namespace memoria;
-using namespace memoria;
-using namespace memoria::hermes;
+namespace memoria {
+namespace hermes {
 
 
 
-int main(int, char**)
-{
-    InitTypeReflections();
 
-    auto doc = HermesDoc::parse(R"(
-        @abcd<K,L,M>(1,2,3, aaa) = {'aaaa': [1,2,3]}
-    )");
-
-    println("{}", doc->to_string());
-}
+}}

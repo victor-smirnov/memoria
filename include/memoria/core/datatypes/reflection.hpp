@@ -22,11 +22,11 @@
 namespace memoria {
 
 namespace hermes {
-template <typename> class Datatype;
+template <typename> class DataObject;
 }
 
 template <typename T>
-class HermesDatatypeReflectionImpl: public TypehashTypeReflectionImplBase<T> {
+class HermesTypedValueReflectionImpl: public TypehashTypeReflectionImplBase<T> {
 public:
     virtual void hermes_stringify_value(
             void* ptr,
@@ -37,7 +37,7 @@ public:
             hermes::DumpFormatState& state,
             hermes::DumpState& dump_state
     ) {
-        hermes::Datatype<T> dtt(ptr, doc, ref_holder);
+        hermes::DataObject<T> dtt(ptr, doc, ref_holder);
         dtt.stringify(out, state, dump_state);
     }
 
@@ -46,14 +46,14 @@ public:
             hermes::HermesDocView* doc,
             ViewPtrHolder* ref_holder
     ) {
-        hermes::Datatype<T> dtt(ptr, doc, ref_holder);
+        hermes::DataObject<T> dtt(ptr, doc, ref_holder);
         return dtt.is_simple_layout();
     }
 };
 
 
 template <typename T>
-class DatatypeReflectionImpl: public TypehashTypeReflectionImplBase<T> {
+class DataTypeReflectionImpl: public TypehashTypeReflectionImplBase<T> {
 
     virtual void hermes_stringify_value(
             void* ptr,

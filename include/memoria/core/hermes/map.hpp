@@ -22,6 +22,7 @@
 #include <memoria/core/hermes/traits.hpp>
 #include <memoria/core/hermes/datatype.hpp>
 #include <memoria/core/hermes/common.hpp>
+#include <memoria/core/hermes/data_object.hpp>
 
 namespace memoria {
 namespace hermes {
@@ -29,12 +30,25 @@ namespace hermes {
 template <>
 class Map<Varchar, Value>: public HoldingView {
 public:
-    using KeyT = Datatype<Varchar>::ArenaDTContainer;
+    using KeyT = DataObject<Varchar>::ArenaDTContainer;
 
     using ArenaMap = arena::Map<KeyT*, void*>;
 protected:
     ArenaMap* map_;
     HermesDocView* doc_;
+
+    friend class HermesDoc;
+    friend class HermesDocView;
+    friend class Value;
+
+    template <typename, typename>
+    friend class Map;
+
+    template <typename>
+    friend class Array;
+
+    friend class DocumentBuilder;
+
 public:
     Map() noexcept : map_(), doc_() {}
 
@@ -43,32 +57,35 @@ public:
         map_(reinterpret_cast<ArenaMap*>(map)), doc_(doc)
     {}
 
+    ValuePtr as_value() {
+        return ValuePtr(Value(map_, doc_, ptr_holder_));
+    }
+
     uint64_t size() const {
         assert_not_null();
         return map_->size();
     }
 
-    ViewPtr<Value> get(U8StringView key) const
+    ValuePtr get(U8StringView key) const
     {
         assert_not_null();
         auto res = map_->get(key);
 
         if (res) {
-            return ViewPtr<Value>(Value(
+            return ValuePtr(Value(
                 res->get(), doc_, ptr_holder_
             ));
         }
 
-        return ViewPtr<Value>();
+        return ValuePtr();
     }
 
 
     template <typename DT>
-    ViewPtr<Datatype<DT>> put(U8StringView key, DTTViewType<DT> value);
+    DataObjectPtr<DT> put_tv(U8StringView key, DTTViewType<DT> value);
 
-
-    ViewPtr<Map<Varchar, Value>, true> put_generic_map(U8StringView key);
-    ViewPtr<Array<Value>, true> put_generic_array(U8StringView key);
+    GenericMapPtr put_generic_map(U8StringView key);
+    GenericArrayPtr put_generic_array(U8StringView key);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state,
@@ -110,44 +127,10 @@ public:
 
     void remove(U8StringView key);
 
+protected:
+    void put(StringValuePtr name, ValuePtr value);
 private:
-    void do_stringify(std::ostream& out, DumpFormatState state, DumpState& dump_state) {
-        if (size() > 0)
-        {
-            out << "{" << state.nl_start();
-
-            bool first = true;
-
-            state.push();
-            for_each([&](auto kk, auto vv){
-                if (MMA_LIKELY(!first)) {
-                    out << "," << state.nl_middle();
-                }
-                else {
-                    first = false;
-                }
-
-                state.make_indent(out);
-
-                U8StringView kk_escaped = StringEscaper::current().escape_quotes(kk);
-
-                out << "'" << kk_escaped << "': ";
-
-                StringEscaper::current().reset();
-
-                vv->stringify(out, state, dump_state);
-            });
-            state.pop();
-
-            out << state.nl_end();
-
-            state.make_indent(out);
-            out << "}";
-        }
-        else {
-            out << "{}";
-        }
-    }
+    void do_stringify(std::ostream& out, DumpFormatState state, DumpState& dump_state);
 
 
     void assert_not_null() const
@@ -159,5 +142,7 @@ private:
 
     void assert_mutable();
 };
+
+
 
 }}

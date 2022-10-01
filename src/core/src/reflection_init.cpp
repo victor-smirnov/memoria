@@ -30,9 +30,15 @@ void InitTypeReflections()
 {
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Array<Value>>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Map<Varchar, Value>>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype<Varchar>>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype<BigInt>>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype<Double>>>());
+    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype>>());
+    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<TypedValue>>());
+
+    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<Varchar>>>());
+    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<BigInt>>>());
+    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<UBigInt>>>());
+    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<Boolean>>>());
+    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<Double>>>());
+
 }
 
 }

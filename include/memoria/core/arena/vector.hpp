@@ -111,7 +111,7 @@ public:
         return Span<T>(data_.get(), size_);
     }
 
-protected:
+
     void enlarge(ArenaAllocator& arena, size_t target_size)
     {
         size_t cc = capacity_ > 0 ? capacity_ : 2;
@@ -131,5 +131,7 @@ protected:
         capacity_ = cc;
     }
 };
+
+using GenericVector = Vector<RelativePtr<void>>;
 
 }}

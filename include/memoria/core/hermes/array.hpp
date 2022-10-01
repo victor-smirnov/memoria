@@ -36,6 +36,19 @@ public:
 protected:
     ArenaArray* array_;
     HermesDocView* doc_;
+
+    friend class HermesDoc;
+    friend class HermesDocView;
+    friend class Value;
+
+    template <typename, typename>
+    friend class Map;
+
+    template <typename>
+    friend class Array;
+
+    friend class Datatype;
+
 public:
     Array() noexcept:
         array_(), doc_()
@@ -45,6 +58,10 @@ public:
         HoldingView(ref_holder),
         array_(reinterpret_cast<ArenaArray*>(array)), doc_(doc)
     {}
+
+    ValuePtr as_value() {
+        return ValuePtr(Value(array_, doc_, ptr_holder_));
+    }
 
     uint64_t size() const {
         return array_->size();
@@ -64,17 +81,20 @@ public:
     }
 
     template <typename DT>
-    ViewPtr<Datatype<DT>, true> append(DTTViewType<DT> view);
+    DataObjectPtr<DT> append(DTTViewType<DT> view);
 
-    ViewPtr<Map<Varchar, Value>, true> append_generic_map();
-    ViewPtr<Array<Value>, true> append_generic_array();
+    GenericMapPtr append_generic_map();
+    GenericArrayPtr append_generic_array();
+
+    DatatypePtr append_datatype(U8StringView name);
+    DatatypePtr append_datatype(StringValuePtr name);
 
     template <typename DT>
-    ViewPtr<Datatype<DT>, true> set(uint64_t idx, DTTViewType<DT> view);
+    DataObjectPtr<DT> set(uint64_t idx, DTTViewType<DT> view);
     void set_null(uint64_t idx);
 
-    ViewPtr<Map<Varchar, Value>, true> set_generic_map(uint64_t idx);
-    ViewPtr<Array<Value>, true> set_generic_array(uint64_t idx);
+    GenericMapPtr set_generic_map(uint64_t idx);
+    GenericArrayPtr set_generic_array(uint64_t idx);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state,
@@ -116,6 +136,16 @@ public:
         }
     }
 
+    bool is_null() const {
+        return array_ == nullptr;
+    }
+
+    bool is_not_null() const {
+        return array_ != nullptr;
+    }
+
+protected:
+    void append(ValuePtr value);
 private:
     void assert_not_null() const {
         if (MMA_UNLIKELY(array_ == nullptr)) {
@@ -157,6 +187,7 @@ private:
         }
     }
 };
+
 
 
 }}

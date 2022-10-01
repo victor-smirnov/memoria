@@ -17,6 +17,8 @@
 
 #include <memoria/core/memory/shared_ptr.hpp>
 #include <memoria/core/arena/string.hpp>
+#include <memoria/core/arena/vector.hpp>
+#include <memoria/core/arena/relative_ptr.hpp>
 
 #include <memoria/core/hermes/value.hpp>
 #include <memoria/core/hermes/common.hpp>
@@ -28,56 +30,161 @@ namespace hermes {
 class HermesDocView;
 class HermesDoc;
 
-template <typename DT>
-class Datatype: public HoldingView {
-public:
-    using ArenaDTContainer = arena::ArenaDataTypeContainer<DT>;
+namespace detail {
 
+class DatatypeData {
+    arena::RelativePtr<arena::ArenaString> name_;
+    arena::RelativePtr<arena::GenericVector> parameters_;
+    arena::RelativePtr<arena::GenericVector> constructor_;
+public:
+    DatatypeData(arena::ArenaString* name):
+        name_(name)
+    {}
+
+    arena::ArenaString* name() const {
+        return name_.get();
+    }
+
+    arena::GenericVector* parameters() const {
+        return parameters_.get();
+    }
+
+    void set_parameters(arena::GenericVector* params) {
+        parameters_ = params;
+    }
+
+    arena::GenericVector* constructor() const {
+        return constructor_.get();
+    }
+
+    void set_constructor(arena::GenericVector* args) {
+        constructor_ = args;
+    }
+
+    bool has_constructor() const {
+        return constructor_.is_not_null();
+    }
+
+    bool is_parametric() const {
+        return parameters_.is_not_null();
+    }
+};
+
+}
+
+
+class Datatype: public HoldingView {
     friend class HermesDoc;
     friend class HermesDocView;
+    friend class Value;
+    friend class DocumentBuilder;
+
+    template <typename, typename>
+    friend class Map;
+
+    template <typename>
+    friend class Array;
 
 protected:
-    ArenaDTContainer* dt_ctr_;
+    detail::DatatypeData* datatype_;
+    HermesDocView* doc_;
 public:
     Datatype() {}
 
-    Datatype(void* dt_ctr, HermesDocView*, ViewPtrHolder* ptr_holder) noexcept :
-        HoldingView(ptr_holder), dt_ctr_(reinterpret_cast<ArenaDTContainer*>(dt_ctr))
+    Datatype(void* dt, HermesDocView* doc, ViewPtrHolder* ptr_holder) noexcept :
+        HoldingView(ptr_holder), datatype_(reinterpret_cast<detail::DatatypeData*>(dt)),
+        doc_(doc)
     {}
 
-    DTTViewType<DT> view() const
-    {
-        assert_not_null();
-        return dt_ctr_->view();
+    ValuePtr as_value() const {
+        return ValuePtr(Value(datatype_, doc_, ptr_holder_));
     }
 
     void stringify(std::ostream& out,
                    DumpFormatState& state,
-                   DumpState& dump_state)
+                   DumpState& dump_state);
+
+    void stringify_cxx(std::ostream& out,
+                   DumpFormatState& state,
+                   DumpState& dump_state);
+
+    bool is_simple_layout();
+
+    StringValuePtr type_name();
+    GenericArrayPtr set_constructor();
+    GenericArrayPtr constructor();
+
+    GenericArrayPtr type_parameters();
+    DatatypePtr append_type_parameter(U8StringView name);
+    DatatypePtr append_type_parameter(StringValuePtr name);
+
+    void clear_parameters()
     {
-        dt_ctr_->stringify(out, state, dump_state);
+        assert_not_null();
+        assert_mutable();
+
+        datatype_->set_parameters(nullptr);
     }
 
-    bool is_simple_layout() {
-        return true;
+    void clear_constructor()
+    {
+        assert_not_null();
+        assert_mutable();
+
+        datatype_->set_constructor(nullptr);
     }
+
+    template <typename DT>
+    DataObjectPtr<DT> append_integral_parameter(DTTViewType<DT> view);
+
+    bool has_constructor() const {
+        assert_not_null();
+        return datatype_->has_constructor();
+    }
+
+    bool is_parametric() const {
+        assert_not_null();
+        return datatype_->is_parametric();
+    }
+
+    void remove_constructor()
+    {
+        assert_not_null();
+        assert_mutable();
+
+        datatype_->set_constructor(nullptr);
+    }
+
+    void remove_parameters()
+    {
+        assert_not_null();
+        assert_mutable();
+
+        datatype_->set_parameters(nullptr);
+    }
+
+protected:
+
+    void append_type_parameter(ValuePtr value);
+    void append_constructor_argument(ValuePtr value);
 
 private:
-
     void assert_not_null() const
     {
-        if (MMA_UNLIKELY(dt_ctr_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("Datatype<Varchar> is null");
+        if (MMA_UNLIKELY(datatype_ == nullptr)) {
+            MEMORIA_MAKE_GENERIC_ERROR("Datatype is null");
         }
     }
+
+    void assert_mutable();
 };
 
 namespace detail {
 
-template <typename DT>
-struct ValueCastHelper {
-    static ViewPtr<Datatype<DT>> cast_to(void* addr, HermesDocView* doc, ViewPtrHolder* ref_holder) noexcept {
-        return ViewPtr<Datatype<DT>>(Datatype<DT>(
+template <>
+struct ValueCastHelper<Datatype> {
+    static DatatypePtr cast_to(void* addr, HermesDocView* doc, ViewPtrHolder* ref_holder) noexcept {
+        return DatatypePtr(Datatype(
             addr,
             doc,
             ref_holder
@@ -87,77 +194,5 @@ struct ValueCastHelper {
 
 }
 
-}
 
-namespace arena {
-
-namespace detail {
-
-template <typename DT>
-struct DTFNVFixedSizeHasherHelper;
-
-template <>
-struct DTFNVFixedSizeHasherHelper<BigInt> {
-    static void hash_to(FNVHasher<8>& hasher, int64_t value) {
-        for (size_t c = 0; c < 8; c++) {
-            hasher.append((uint8_t)(value >> (c * 8)));
-        }
-    }
-};
-
-
-template <>
-struct DTFNVFixedSizeHasherHelper<Double> {
-    static void hash_to(FNVHasher<8>& hasher, double value) {
-        uint64_t u64val = value_cast<uint64_t>(value);
-        for (size_t c = 0; c < 8; c++) {
-            hasher.append((uint8_t)(u64val >> (c * 8)));
-        }
-    }
-};
-
-
-}
-
-
-
-template <typename DT>
-class ArenaDataTypeContainer<DT, FixedSizeDataTypeTag> {
-    using ViewT = DTTViewType<DT>;
-
-    ViewT value_;
-public:
-    ArenaDataTypeContainer(ViewT view):
-        value_(view)
-    {}
-
-    const ViewT& view() const noexcept {
-        return value_;
-    }
-
-    bool equals_to(const ViewT& view) const noexcept {
-        return view() == view;
-    }
-
-    bool equals_to(const ArenaDataTypeContainer* other) const noexcept {
-        return view() == other->view();
-    }
-
-    void hash_to(FNVHasher<8>& hasher) const noexcept {
-        for (auto ch: view()) {
-            hasher.append(ch);
-        }
-    }
-
-    void stringify(std::ostream& out,
-                   hermes::DumpFormatState& state,
-                   hermes::DumpState& dump_state)
-    {
-        out << value_;
-    }
-};
-
-
-}
-
-}
+}}

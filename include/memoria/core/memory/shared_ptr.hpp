@@ -313,6 +313,9 @@ class ViewPtr<ViewT, true> {
 
     ViewT view_;
 
+    template <typename, bool>
+    friend class ViewPtr;
+
 public:
     using element_type = ViewT;
 

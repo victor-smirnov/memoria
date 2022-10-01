@@ -96,4 +96,6 @@ private:
 
 };
 
+using ArenaString = ArenaDataTypeContainer<Varchar, EmptyType>;
+
 }}

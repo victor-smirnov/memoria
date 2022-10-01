@@ -39,6 +39,15 @@ class Value: public HoldingView {
 protected:
     HermesDocView* doc_;
     void* addr_;
+
+    friend class HermesDocView;
+
+    template<typename, typename>
+    friend class Map;
+
+    template<typename>
+    friend class Array;
+
 public:
     Value() noexcept:
         doc_(), addr_()
@@ -50,6 +59,11 @@ public:
     {}
 
     virtual ~Value() noexcept = default;
+
+
+    ValuePtr as_value() {
+        return ValuePtr(*this);
+    }
 
     bool is_null() const noexcept {
         return !addr_;
@@ -163,6 +177,9 @@ private:
         }
     }
 };
+
+
+using ValuePtr = ViewPtr<Value>;
 
 }
 

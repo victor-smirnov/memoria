@@ -16,11 +16,15 @@
 #pragma once
 
 #include <memoria/core/reflection/typehash.hpp>
-
 #include <memoria/core/datatypes/traits.hpp>
 
 namespace memoria {
+
+struct Varchar;
+
 namespace hermes {
+class DocumentBuilder;
+
 class HermesDoc;
 class HermesDocView;
 
@@ -32,20 +36,52 @@ class Map;
 
 class Value;
 
+
 template <typename>
+class DataObject;
+
+using StringValue    = DataObject<Varchar>;
+using StringValuePtr = ViewPtr<StringValue, true>;
+
 class Datatype;
+using DatatypePtr   = ViewPtr<Datatype, true>;
+
+
+using GenericMap    = Map<Varchar, Value>;
+using GenericMapPtr = ViewPtr<GenericMap, true>;
+
+using GenericArray    = Array<Value>;
+using GenericArrayPtr = ViewPtr<GenericArray, true>;
+
+using ValuePtr = ViewPtr<Value, true>;
+
+template <typename DT>
+using DataObjectPtr = ViewPtr<DataObject<DT>, true>;
+
+class TypedValue;
+using TypedValuePtr = ViewPtr<TypedValue, true>;
+
+
+
+namespace detail {
+template <typename> struct ValueCastHelper;
+}
 
 }
 
-struct Varchar;
-
 template <typename DT>
-struct TypeHash<hermes::Datatype<DT>>: HasU64Value<TypeHashV<DT>> {};
+struct TypeHash<hermes::DataObject<DT>>: HasU64Value<TypeHashV<DT>> {};
 
 template <>
 struct TypeHash<hermes::Array<hermes::Value>>: HasU64Value<100> {};
 
 template <>
 struct TypeHash<hermes::Map<Varchar, hermes::Value>>: HasU64Value<101> {};
+
+template <>
+struct TypeHash<hermes::Datatype>: HasU64Value<102> {};
+
+template <>
+struct TypeHash<hermes::TypedValue>: HasU64Value<103> {};
 
 }

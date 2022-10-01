@@ -62,7 +62,7 @@ void register_type_reflection(std::unique_ptr<TypeReflection> type_reflection)
 {
     uint64_t short_type_hash = type_reflection->shot_type_hash();
 
-    println("Register reflection {} for type {}", short_type_hash, type_reflection->str());
+    //println("Register reflection {} for type {}", short_type_hash, type_reflection->str());
 
     auto ii = short_code_map().find(short_type_hash);
     if (ii == short_code_map().end()) {

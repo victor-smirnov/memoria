@@ -28,6 +28,8 @@
 #include <memoria/core/hermes/datatype.hpp>
 #include <memoria/core/hermes/array.hpp>
 #include <memoria/core/hermes/map.hpp>
+#include <memoria/core/hermes/data_object.hpp>
+#include <memoria/core/hermes/typed_value.hpp>
 
 #include <memoria/core/hermes/traits.hpp>
 
@@ -35,6 +37,12 @@ namespace memoria {
 namespace hermes {
 
 class HermesDoc;
+class DocumentBuilder;
+
+class ParserConfiguration {
+public:
+    ParserConfiguration() {}
+};
 
 class HermesDocView: public HoldingView {
 
@@ -48,7 +56,20 @@ protected:
 
     arena::ArenaAllocator* arena_;
     DocumentHeader* header_;
+
+    friend class DocumentBuilder;
+
+    template <typename, typename>
+    friend class Map;
+
+    template <typename>
+    friend class Array;
+
+    friend class Datatype;
+
 public:
+    using CharIterator = typename U8StringView::const_iterator;
+
     HermesDocView(): arena_(), header_() {}
 
 
@@ -112,6 +133,84 @@ public:
         value()->stringify(out, state, dump_state);
     }
 
+    static bool is_identifier(CharIterator start, CharIterator end);
+
+//    LDTypeDeclarationView parse_raw_type_decl(
+//            CharIterator start,
+//            CharIterator end,
+//            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
+//    );
+
+
+    template <typename DT>
+    DataObjectPtr<DT> set_tv(DTTViewType<DT> view)
+    {
+        assert_not_null();
+        assert_mutable();
+
+        auto ptr = this->new_tv<DT>(view);
+
+        header_->value = ptr->addr_;
+
+        return ptr;
+    }
+
+
+    GenericArrayPtr set_generic_array()
+    {
+        assert_not_null();
+        assert_mutable();
+
+        auto ptr = this->new_array();
+
+        header_->value = ptr->array_;
+
+        return ptr;
+    }
+
+    GenericMapPtr set_generic_map()
+    {
+        assert_not_null();
+        assert_mutable();
+
+        auto ptr = this->new_map();
+
+        header_->value = ptr->map_;
+
+        return ptr;
+    }
+
+    template <typename DT>
+
+    DataObjectPtr<DT> new_tv(DTTViewType<DT> view);
+    DatatypePtr new_datatype(U8StringView name);
+    DatatypePtr new_datatype(StringValuePtr name);
+
+protected:
+    ValuePtr parse_raw_value(
+            CharIterator start,
+            CharIterator end,
+            const ParserConfiguration& cfg = ParserConfiguration{}
+    );
+
+    GenericMapPtr new_map();
+    GenericArrayPtr new_array();
+    GenericArrayPtr new_array(Span<ValuePtr> span);
+
+    TypedValuePtr new_typed_value(DatatypePtr datatype, ValuePtr constructor);
+
+    void set_value(ValuePtr value);
+
+private:
+
+    void assert_not_null() const
+    {
+        if (MMA_UNLIKELY(header_ == nullptr)) {
+            MEMORIA_MAKE_GENERIC_ERROR("HermesDocView is null");
+        }
+    }
+
+    void assert_mutable();
 };
 
 inline ViewPtr<HermesDocView, true> HermesDocView::self_ptr() {
@@ -122,6 +221,8 @@ class HermesDoc final: public HermesDocView, public pool::enable_shared_from_thi
     arena::ArenaAllocator arena_;
 
     ViewPtrHolder view_ptr_holder_;
+
+    friend class DocumentBuilder;
 public:
 
     HermesDoc() {
@@ -139,41 +240,8 @@ public:
     }
 
 
-    ViewPtr<Datatype<Varchar>> set_varchar(U8StringView str)
-    {
-        using DTCtr = Datatype<Varchar>;
-        auto arena_str = arena_.allocate_tagged_object<typename DTCtr::ArenaDTContainer>(
-                    TypeHashV<DTCtr>,
-                    str
-        );
-        header_->value = arena_str;
-
-        return ViewPtr<DTCtr>{DTCtr(arena_str, this, ptr_holder_)};
-    }
-
-    template <typename DT>
-    ViewPtr<Datatype<DT>> set_datatype(DTTViewType<DT> str)
-    {
-        using DTCtr = Datatype<DT>;
-        auto arena_str = arena_.allocate_tagged_object<typename DTCtr::ArenaDTContainer>(
-                    TypeHashV<DTCtr>,
-                    str
-        );
-        header_->value = arena_str;
-
-        return ViewPtr<DTCtr>{DTCtr(arena_str, this, ptr_holder_)};
-    }
 
 
-    ViewPtr<Array<Value>> set_generic_array()
-    {
-        using Arr = Array<Value>;
-
-        auto arena_array = arena_.allocate_tagged_object<typename Arr::ArenaArray>(TypeHashV<Arr>);
-        header_->value = arena_array;
-
-        return ViewPtr<Arr>{Arr(arena_array, this, ptr_holder_)};
-    }
 
     ViewPtr<Map<Varchar, Value>> set_generic_map()
     {
@@ -188,6 +256,23 @@ public:
 
     static pool::SharedPtr<HermesDoc> make_pooled(ObjectPools& pool = thread_local_pools());
     static pool::SharedPtr<HermesDoc> make_new(size_t initial_capacity = 4096);
+
+    static PoolSharedPtr<HermesDoc> parse(U8StringView view) {
+        return parse(view.begin(), view.end());
+    }
+
+    static PoolSharedPtr<HermesDoc> parse(
+            CharIterator start,
+            CharIterator end,
+            const ParserConfiguration& cfg = ParserConfiguration{}
+    );
+
+    static PoolSharedPtr<HermesDoc> parse_datatype(
+            CharIterator start,
+            CharIterator end,
+            const ParserConfiguration& cfg = ParserConfiguration{}
+    );
+
 
 protected:
 
