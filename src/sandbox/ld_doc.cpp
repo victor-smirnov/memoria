@@ -37,8 +37,25 @@ int main(int, char**)
     InitTypeReflections();
 
     auto doc = HermesDoc::parse(R"(
-        @abcd<K,L,M>(1,2,3, aaa) = {'aaaa': [1,2,3]}
+        {some_key: 1234}
     )");
 
     println("{}", doc->to_string());
+
+//    auto doc = HermesDoc::parse(R"(
+//        @abcd<K,L,M>(1,2,3, aaa) = {abcd: "Cool world"}
+//    )");
+
+//    println("{}", doc->to_string());
+
+//    auto doc2 = HermesDoc::parse_datatype(R"(
+//        abcd<K,L,M>(1,2,3, aaa)
+//    )");
+
+//    println("{}", doc2->to_string());
+
+
+//    auto doc3 = LDDocument::parse(R"(some_id)");
+
+//    println("{}", doc3->to_string());
 }

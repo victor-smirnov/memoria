@@ -100,6 +100,57 @@ public:
         return ValuePtr(Value(datatype_, doc_, ptr_holder_));
     }
 
+    U8String to_string()
+    {
+        DumpFormatState fmt = DumpFormatState().simple();
+        std::stringstream ss;
+        stringify(ss, fmt);
+        return ss.str();
+    }
+
+    U8String to_cxx_string()
+    {
+        DumpFormatState fmt = DumpFormatState().simple();
+        std::stringstream ss;
+        stringify_cxx(ss, fmt);
+        return ss.str();
+    }
+
+    U8String to_pretty_string()
+    {
+        DumpFormatState fmt = DumpFormatState();
+        std::stringstream ss;
+        stringify(ss, fmt);
+        return ss.str();
+    }
+
+    void stringify(std::ostream& out)
+    {
+        DumpFormatState state;
+        DumpState dump_state(*doc_);
+        stringify(out, state, dump_state);
+    }
+
+    void stringify_cxx(std::ostream& out)
+    {
+        DumpFormatState state;
+        DumpState dump_state(*doc_);
+        stringify_cxx(out, state, dump_state);
+    }
+
+    void stringify(std::ostream& out, DumpFormatState& format)
+    {
+        DumpState dump_state(*doc_);
+        stringify(out, format, dump_state);
+    }
+
+    void stringify_cxx(std::ostream& out, DumpFormatState& format)
+    {
+        DumpState dump_state(*doc_);
+        stringify_cxx(out, format, dump_state);
+    }
+
+
     void stringify(std::ostream& out,
                    DumpFormatState& state,
                    DumpState& dump_state);
@@ -178,6 +229,8 @@ private:
 
     void assert_mutable();
 };
+
+std::ostream& operator<<(std::ostream& out, DatatypePtr ptr);
 
 namespace detail {
 

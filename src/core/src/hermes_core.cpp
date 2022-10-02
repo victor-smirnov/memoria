@@ -15,6 +15,7 @@
 
 
 #include <memoria/core/hermes/document.hpp>
+#include <memoria/core/hermes/value.hpp>
 
 namespace memoria::hermes {
 
@@ -30,6 +31,16 @@ pool::SharedPtr<HermesDoc> HermesDoc::make_new(size_t initial_capacity) {
 StringEscaper& StringEscaper::current() {
     static thread_local StringEscaper escaper;
     return escaper;
+}
+
+std::ostream& operator<<(std::ostream& out, ValuePtr ptr) {
+    out << ptr->to_string();
+    return out;
+}
+
+std::ostream& operator<<(std::ostream& out, DatatypePtr ptr) {
+    out << ptr->to_string();
+    return out;
 }
 
 }

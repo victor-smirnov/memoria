@@ -133,13 +133,18 @@ public:
         value()->stringify(out, state, dump_state);
     }
 
-    static bool is_identifier(CharIterator start, CharIterator end);
+    static bool is_identifier(U8StringView string) {
+        return is_identifier(string.begin(), string.end());
+    }
 
-//    LDTypeDeclarationView parse_raw_type_decl(
-//            CharIterator start,
-//            CharIterator end,
-//            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
-//    );
+    static bool is_identifier(CharIterator start, CharIterator end);
+    static void assert_identifier(U8StringView name);
+
+    DatatypePtr parse_raw_datatype (
+            CharIterator start,
+            CharIterator end,
+            const ParserConfiguration& cfg = ParserConfiguration{}
+    );
 
 
     template <typename DT>
@@ -239,10 +244,6 @@ public:
         ptr_holder_ = &view_ptr_holder_;
     }
 
-
-
-
-
     ViewPtr<Map<Varchar, Value>> set_generic_map()
     {
         using MapT = Map<Varchar, Value>;
@@ -261,6 +262,10 @@ public:
         return parse(view.begin(), view.end());
     }
 
+    static PoolSharedPtr<HermesDoc> parse_datatype(U8StringView view) {
+        return parse_datatype(view.begin(), view.end());
+    }
+
     static PoolSharedPtr<HermesDoc> parse(
             CharIterator start,
             CharIterator end,
@@ -272,7 +277,6 @@ public:
             CharIterator end,
             const ParserConfiguration& cfg = ParserConfiguration{}
     );
-
 
 protected:
 

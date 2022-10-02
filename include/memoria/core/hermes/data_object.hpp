@@ -127,6 +127,13 @@ private:
     }
 };
 
+
+template <typename DT>
+std::ostream& operator<<(std::ostream& out, DataObjectPtr<DT> ptr) {
+    out << ptr->to_string();
+    return out;
+}
+
 namespace detail {
 
 template <typename DT>
@@ -210,6 +217,5 @@ public:
         out << value_;
     }
 };
-
 
 }}

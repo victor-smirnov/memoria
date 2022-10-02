@@ -181,6 +181,9 @@ private:
 
 using ValuePtr = ViewPtr<Value>;
 
+
+std::ostream& operator<<(std::ostream& out, ValuePtr ptr);
+
 }
 
 template <typename T>

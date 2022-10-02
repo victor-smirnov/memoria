@@ -469,7 +469,7 @@ public:
 template <typename Iterator>
 struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<HermesDoc>(), qi::space_type>
 {
-    HermesDocParser() : HermesDocParser::base_type(sdn_document)
+    HermesDocParser() : HermesDocParser::base_type(hermes_document)
     {
         using qi::long_;
         using qi::lit;
@@ -518,38 +518,38 @@ struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<HermesDoc>(), qi:
         quoted_string    = lexeme['\'' >> *(char_ - '\'' - "\\\'" | '\\' >> char_('\'')) >> '\'']
                            | lexeme['"' >> *(char_ - '"' - "\\\"" | '\\' >> char_('"')) >> '"'];
 
-        sdn_string       = qi::eps[clear_string_buffer] >> quoted_string [finish_string];
+        hermes_string       = qi::eps[clear_string_buffer] >> quoted_string [finish_string];
 
         identifier       = (lexeme[(enc::alpha | char_('_')) >> *(enc::alnum | char_('_'))]
                             - "null" - "true" - "false");
 
-        sdn_identifier   = qi::eps[clear_string_buffer] >> identifier [finish_identifier];
+        hermes_identifier   = qi::eps[clear_string_buffer] >> identifier [finish_identifier];
 
 
-        type_declaration = sdn_identifier
+        type_declaration = hermes_identifier
                             >> -('<' >> -(type_declaration % ',') >> '>')
-                            >> -('(' >> -(sdn_value % ',') >> ')');
+                            >> -('(' >> -(hermes_value % ',') >> ')');
 
-        type_reference   = '#' >> sdn_identifier;
+        type_reference   = '#' >> hermes_identifier;
 
         type_decl_or_reference = type_declaration | type_reference;
 
-        typed_value      = '@' >> type_decl_or_reference >> "=" >> sdn_value;
+        typed_value      = '@' >> type_decl_or_reference >> "=" >> hermes_value;
 
-        sdn_string_or_typed_value = sdn_string >> -('@' >> type_decl_or_reference);
+        hermes_string_or_typed_value = hermes_string >> -('@' >> type_decl_or_reference);
 
 
         null_value   = lexeme[lit("null")][dummy];
 
-        array        = '[' >> (sdn_value % ',') >> ']' |
+        array        = '[' >> (hermes_value % ',') >> ']' |
                                             lit('[') >> ']';
 
-        map_entry    = (sdn_string  >> ':' >> sdn_value);
+        map_entry    = ((hermes_string | hermes_identifier) >> ':' >> hermes_value);
 
         map          = '{' >> (map_entry % ',') >> '}' |
                                             lit('{') >> '}';
 
-        type_directory_entry = sdn_identifier >> ':' >> type_declaration;
+        type_directory_entry = hermes_identifier >> ':' >> type_declaration;
 
         type_directory = "#{" >> (type_directory_entry % ',') >> '}' | lit("#{") >> "}";
 
@@ -557,8 +557,8 @@ struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<HermesDoc>(), qi:
         bool_value_false     = lit("false") [set_bool_false];
         bool_value           = bool_value_true | bool_value_false;
 
-        sdn_value    = (
-                        sdn_string_or_typed_value |
+        hermes_value    = (
+                        hermes_string_or_typed_value |
                                         strict_double |
                                         qi::long_long |
                                         map |
@@ -569,21 +569,21 @@ struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<HermesDoc>(), qi:
                                         bool_value
                                       )[finish_value];
 
-        sdn_document = (-type_directory >> sdn_value) [set_doc_value];
+        hermes_document = (-type_directory >> hermes_value) [set_doc_value];
 
         standalone_type_decl = type_declaration;
-        standalone_sdn_value = sdn_value;
+        standalone_hermes_value = hermes_value;
 
 
-        BOOST_SPIRIT_DEBUG_NODE(sdn_document);
+        BOOST_SPIRIT_DEBUG_NODE(hermes_document);
         BOOST_SPIRIT_DEBUG_NODE(type_declaration);
     }
 
     qi::real_parser<double, qi::strict_real_policies<double>> strict_double;
 
-    qi::rule<Iterator, pool::SharedPtr<HermesDoc>(), qi::space_type> sdn_document;
-    qi::rule<Iterator, ValuePtr(), qi::space_type> sdn_value;
-    qi::rule<Iterator, ValuePtr(), qi::space_type> standalone_sdn_value;
+    qi::rule<Iterator, pool::SharedPtr<HermesDoc>(), qi::space_type> hermes_document;
+    qi::rule<Iterator, ValuePtr(), qi::space_type> hermes_value;
+    qi::rule<Iterator, ValuePtr(), qi::space_type> standalone_hermes_value;
 
     qi::rule<Iterator, ArrayValue(), qi::space_type> array;
     qi::rule<Iterator, MapValue(), qi::space_type> map;
@@ -593,12 +593,12 @@ struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<HermesDoc>(), qi:
     qi::rule<Iterator, NullValue(), qi::space_type> null_value;
 
     qi::rule<Iterator, ParsedStringValue(), qi::space_type> quoted_string;
-    qi::rule<Iterator, StringValuePtr(), qi::space_type> sdn_string;
+    qi::rule<Iterator, StringValuePtr(), qi::space_type> hermes_string;
 
-    qi::rule<Iterator, StringOrTypedValue(), qi::space_type> sdn_string_or_typed_value;
+    qi::rule<Iterator, StringOrTypedValue(), qi::space_type> hermes_string_or_typed_value;
 
     qi::rule<Iterator, ParsedStringValue(), qi::space_type> identifier;
-    qi::rule<Iterator, ParsedStringValue(), qi::space_type> sdn_identifier;
+    qi::rule<Iterator, ParsedStringValue(), qi::space_type> hermes_identifier;
 
     qi::rule<Iterator, TypeDeclarationValue(), qi::space_type> type_declaration;
     qi::rule<Iterator, DatatypePtr(), qi::space_type> standalone_type_decl;
@@ -622,9 +622,9 @@ struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<HermesDoc>(), qi:
 template <typename Iterator>
 struct TypeDeclarationParser : qi::grammar<Iterator, DatatypePtr(), qi::space_type>
 {
-    HermesDocParser<Iterator> sdn_parser;
+    HermesDocParser<Iterator> hermes_parser;
 
-    TypeDeclarationParser() : TypeDeclarationParser::base_type(sdn_parser.standalone_type_decl)
+    TypeDeclarationParser() : TypeDeclarationParser::base_type(hermes_parser.standalone_type_decl)
     {}
 };
 
@@ -634,14 +634,14 @@ struct RawHermesDocValueParser : qi::grammar<Iterator, ValuePtr(), qi::space_typ
 {
     HermesDocParser<Iterator> hermes_doc_parser;
 
-    RawHermesDocValueParser() : RawHermesDocValueParser::base_type(hermes_doc_parser.standalone_sdn_value)
+    RawHermesDocValueParser() : RawHermesDocValueParser::base_type(hermes_doc_parser.standalone_hermes_value)
     {}
 };
 
 template <typename Iterator>
 struct HermesDocIdentifierParser : qi::grammar<Iterator, EmptyCharCollection(), qi::space_type>
 {
-    HermesDocParser<Iterator> sdn_parser;
+    HermesDocParser<Iterator> hermes_parser;
 
     qi::rule<Iterator, EmptyCharCollection(), qi::space_type> raw_identifier;
 
@@ -685,7 +685,7 @@ bool parse_sdn2(Iterator& first, Iterator& last, HermesDoc& doc)
 
 
 template <typename Iterator>
-bool parse_sdn_type_decl(Iterator& first, Iterator& last, HermesDoc& doc)
+bool parse_datatype_decl(Iterator& first, Iterator& last, HermesDoc& doc)
 {
     static thread_local TypeDeclarationParser<Iterator> const grammar;
 
@@ -706,7 +706,7 @@ bool parse_sdn_type_decl(Iterator& first, Iterator& last, HermesDoc& doc)
 
 
 template <typename Iterator>
-bool parse_raw_sdn_type_decl(Iterator& first, Iterator& last, HermesDocView& doc, LDTypeDeclarationView& type_decl)
+bool parse_raw_datatype_decl(Iterator& first, Iterator& last, HermesDocView& doc, DatatypePtr& datatype)
 {
     static thread_local TypeDeclarationParser<Iterator> const grammar;
 
@@ -714,7 +714,7 @@ bool parse_raw_sdn_type_decl(Iterator& first, Iterator& last, HermesDocView& doc
     DocumentBuilder::current(&builder);
     DocumentBuilderCleanup cleanup;
 
-    bool r = qi::phrase_parse(first, last, grammar, enc::space, type_decl);
+    bool r = qi::phrase_parse(first, last, grammar, enc::space, datatype);
 
     if (first != last)
         return false;
@@ -777,7 +777,7 @@ void assert_parse_ok(bool res, const char* msg, II start0, II start, II end)
             buf << "...";
         }
 
-        MMA_THROW(SDNParseException()) << format_ex("{} at {}: {}", msg, pos, buf.str());
+        MEMORIA_MAKE_GENERIC_ERROR("{} at {}: {}", msg, pos, buf.str());
     }
 }
 
@@ -804,25 +804,25 @@ PoolSharedPtr<HermesDoc> HermesDoc::parse_datatype(CharIterator start, CharItera
 
     auto tmp = start;
 
-    bool result = parse_sdn_type_decl(start, end, *doc);
+    bool result = parse_datatype_decl(start, end, *doc);
 
     assert_parse_ok(result, "Can't parse datatype declaration", tmp, start, end);
 
     return doc;
 }
 
-//LDTypeDeclarationView HermesDocView::parse_raw_type_decl(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
-//{
-//    LDTypeDeclarationView type_decl{};
+DatatypePtr HermesDocView::parse_raw_datatype(CharIterator start, CharIterator end, const ParserConfiguration& cfg)
+{
+    DatatypePtr datatype{};
 
-//    auto tmp = start;
+    auto tmp = start;
 
-//    bool result = parse_raw_sdn_type_decl(start, end, *this, type_decl);
+    bool result = parse_raw_datatype_decl(start, end, *this, datatype);
 
-//    assert_parse_ok(result, "Can't parse type declaration", tmp, start, end);
+    assert_parse_ok(result, "Can't parse type declaration", tmp, start, end);
 
-//    return type_decl;
-//}
+    return datatype;
+}
 
 ValuePtr HermesDocView::parse_raw_value(CharIterator start, CharIterator end, const ParserConfiguration& cfg)
 {
@@ -842,6 +842,12 @@ bool HermesDocView::is_identifier(CharIterator start, CharIterator end)
     return parse_identifier(start, end);
 }
 
+void HermesDocView::assert_identifier(U8StringView name)
+{
+    if (!is_identifier(name)) {
+        MEMORIA_MAKE_GENERIC_ERROR("Supplied value '{}' is not a valid Hermes identifier", name);
+    }
+}
 
-/**/
+
 }}
