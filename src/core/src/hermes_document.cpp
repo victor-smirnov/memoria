@@ -18,6 +18,8 @@
 namespace memoria {
 namespace hermes {
 
+
+
 GenericMapPtr HermesDocView::new_map()
 {
     using CtrT = Map<Varchar, Value>;
@@ -66,7 +68,7 @@ void HermesDocView::set_value(ValuePtr value) {
 
 DatatypePtr HermesDocView::new_datatype(U8StringView name)
 {
-    auto str = new_tv<Varchar>(name);
+    auto str = new_dataobject<Varchar>(name);
     auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
         TypeHashV<Datatype>, str->dt_ctr_
     );

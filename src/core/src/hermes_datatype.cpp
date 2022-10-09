@@ -107,6 +107,34 @@ void Datatype::stringify(std::ostream& out,
             state.make_indent(out);
             out << ")";
         }
+
+        for (uint64_t c = 0; c < datatype_->extras().pointers_size(); c++)
+        {
+            PtrQualifier qual = datatype_->extras().pointer(c);
+
+            if (qual.is_const()) {
+                out <<" const";
+            }
+
+            if (qual.is_volatile()) {
+                out <<" volatile";
+            }
+
+            out << "*";
+        }
+
+        if (datatype_->extras().is_const()) {
+            out <<" const";
+        }
+
+        if (datatype_->extras().is_volatile()) {
+            out <<" volatile";
+        }
+
+        for (uint64_t c = 0; c < datatype_->extras().refs_size(); c++)
+        {
+            out << "&";
+        }
     }
     else {
         out << "null";
@@ -120,6 +148,10 @@ void Datatype::stringify_cxx(std::ostream& out,
 {
     if (datatype_)
     {
+//        if (datatype_->extras().is_const()) {
+//            out << "const ";
+//        }
+
         out << type_name()->view();
 
         auto params = type_parameters();
@@ -180,7 +212,6 @@ DatatypePtr Datatype::append_type_parameter(U8StringView name)
     assert_mutable();
 
     GenericArrayPtr params = type_parameters();
-
     if (MMA_UNLIKELY(params->is_null())) {
         params = doc_->new_array();
         datatype_->set_parameters(params->array_);
@@ -195,7 +226,6 @@ DatatypePtr Datatype::append_type_parameter(StringValuePtr name)
     assert_mutable();
 
     GenericArrayPtr params = type_parameters();
-
     if (MMA_UNLIKELY(params->is_null())) {
         params = doc_->new_array();
         datatype_->set_parameters(params->array_);
@@ -210,7 +240,6 @@ void Datatype::append_type_parameter(ValuePtr value)
     assert_mutable();
 
     GenericArrayPtr params = type_parameters();
-
     if (MMA_UNLIKELY(params->is_null())) {
         params = doc_->new_array();
         datatype_->set_parameters(params->array_);

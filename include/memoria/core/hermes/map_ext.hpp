@@ -29,13 +29,13 @@ inline void Map<Varchar, Value>::assert_mutable()
 }
 
 template <typename DT>
-inline DataObjectPtr<DT> Map<Varchar, Value>::put_tv(U8StringView key, DTTViewType<DT> value)
+inline DataObjectPtr<DT> Map<Varchar, Value>::put_dataobject(U8StringView key, DTTViewType<DT> value)
 {
     assert_not_null();
     assert_mutable();
 
-    auto key_ptr = doc_->new_tv<Varchar>(key);
-    auto value_ptr = doc_->new_tv<DT>(value);
+    auto key_ptr = doc_->new_dataobject<Varchar>(key);
+    auto value_ptr = doc_->new_dataobject<DT>(value);
 
     auto arena = doc_->arena();    
     map_->put(*arena, key_ptr->dt_ctr_, value_ptr->dt_ctr_);
@@ -49,7 +49,7 @@ inline GenericMapPtr Map<Varchar, Value>::put_generic_map(U8StringView key)
     assert_not_null();
     assert_mutable();
 
-    auto key_ptr = doc_->new_tv<Varchar>(key);
+    auto key_ptr = doc_->new_dataobject<Varchar>(key);
     auto value_ptr = doc_->new_map();
 
     auto arena = doc_->arena();
@@ -63,7 +63,7 @@ inline GenericArrayPtr Map<Varchar, Value>::put_generic_array(U8StringView key)
     assert_not_null();
     assert_mutable();
 
-    auto key_ptr = doc_->new_tv<Varchar>(key);
+    auto key_ptr = doc_->new_dataobject<Varchar>(key);
     auto value_ptr = doc_->new_array();
 
     auto arena = doc_->arena();
@@ -126,6 +126,19 @@ inline void Map<Varchar, Value>::put(StringValuePtr name, ValuePtr value) {
 
     auto arena = doc_->arena();
     map_->put(*arena, name->dt_ctr_, value->addr_);
+}
+
+inline ValuePtr Map<Varchar, Value>::put_hermes(U8StringView key, U8StringView str) {
+  assert_not_null();
+  assert_mutable();
+
+  auto key_ptr = doc_->new_dataobject<Varchar>(key);
+  auto value_ptr = doc_->parse_raw_value(str.begin(), str.end());
+
+  auto arena = doc_->arena();
+  map_->put(*arena, key_ptr->dt_ctr_, value_ptr->addr_);
+
+  return value_ptr;
 }
 
 }}

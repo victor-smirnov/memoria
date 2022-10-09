@@ -17,6 +17,7 @@
 
 #include <memoria/core/memory/shared_ptr.hpp>
 #include <memoria/core/arena/string.hpp>
+#include <memoria/core/arena/hash_fn.hpp>
 
 #include <memoria/core/hermes/value.hpp>
 #include <memoria/core/hermes/common.hpp>
@@ -48,7 +49,7 @@ protected:
     HermesDocView* doc_;
 public:
     DataObject() noexcept:
-        dt_ctr_()
+        dt_ctr_(), doc_()
     {}
 
     DataObject(void* dt_ctr, HermesDocView* doc, ViewPtrHolder* ptr_holder) noexcept :
@@ -56,6 +57,12 @@ public:
         dt_ctr_(reinterpret_cast<ArenaDTContainer*>(dt_ctr)),
         doc_(doc)
     {}
+
+    uint64_t hash_code() const {
+        assert_not_null();
+        arena::DefaultHashFn<ArenaDTContainer> hash;
+        return hash(dt_ctr_);
+    }
 
     bool is_null() const noexcept {
         return dt_ctr_ == nullptr;
@@ -215,6 +222,10 @@ public:
                    hermes::DumpState& dump_state)
     {
         out << value_;
+
+        if (std::is_same_v<DT, UBigInt>) {
+            out << "ull";
+        }
     }
 };
 

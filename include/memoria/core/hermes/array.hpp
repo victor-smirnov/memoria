@@ -89,6 +89,10 @@ public:
     DatatypePtr append_datatype(U8StringView name);
     DatatypePtr append_datatype(StringValuePtr name);
 
+    ValuePtr append_hermes(U8StringView str);
+    ValuePtr set_hermes(uint64_t idx, U8StringView str);
+
+
     template <typename DT>
     DataObjectPtr<DT> set(uint64_t idx, DTTViewType<DT> view);
     void set_null(uint64_t idx);
@@ -188,6 +192,23 @@ private:
     }
 };
 
+
+namespace detail {
+
+
+
+template <>
+struct ValueCastHelper<GenericArray> {
+    static GenericArrayPtr cast_to(void* addr, HermesDocView* doc, ViewPtrHolder* ref_holder) noexcept {
+        return GenericArrayPtr(GenericArray(
+            addr,
+            doc,
+            ref_holder
+        ));
+    }
+};
+
+}
 
 
 }}

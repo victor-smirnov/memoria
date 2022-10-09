@@ -32,7 +32,7 @@ inline void HermesDocView::assert_mutable()
 }
 
 template <typename DT>
-DataObjectPtr<DT> HermesDocView::new_tv(DTTViewType<DT> view)
+DataObjectPtr<DT> HermesDocView::new_dataobject(DTTViewType<DT> view)
 {
     using DTCtr = DataObject<DT>;
 

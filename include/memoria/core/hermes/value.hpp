@@ -53,8 +53,9 @@ public:
         doc_(), addr_()
     {}
 
-    Value(void* addr, HermesDocView* doc_, ViewPtrHolder* ref_holder) noexcept :
+    Value(void* addr, HermesDocView* doc, ViewPtrHolder* ref_holder) noexcept :
         HoldingView(ref_holder),
+        doc_(doc),
         addr_(addr)
     {}
 
@@ -114,7 +115,7 @@ public:
     {
         if (!is_null()) {
             auto value_tag = arena::read_type_tag(addr_);
-            get_type_reflection(value_tag).hermes_is_simple_layout(
+            return get_type_reflection(value_tag).hermes_is_simple_layout(
                 addr_, doc_, ptr_holder_
             );
         }

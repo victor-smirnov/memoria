@@ -84,7 +84,7 @@ public:
 template <>
 class DefaultHashFn<U8StringView> {
 public:
-    uint64_t operator()(const U8StringView& str)
+    uint64_t operator()(const U8StringView& str) const
     {
         FNVHasher<8> hasher;
         for (auto ch: str) {

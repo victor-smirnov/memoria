@@ -37,7 +37,7 @@ DataObjectPtr<DT> Array<Value>::append(DTTViewType<DT> view)
     assert_not_null();
     assert_mutable();
 
-    auto ptr = doc_->new_tv<DT>(view);
+    auto ptr = doc_->new_dataobject<DT>(view);
 
     array_->push_back(*doc_->arena(), ptr->dt_ctr_);
 
@@ -95,7 +95,7 @@ DataObjectPtr<DT> Array<Value>::set(uint64_t idx, DTTViewType<DT> view)
 
     if (MMA_LIKELY(idx < array_->size()))
     {
-        auto ptr = doc_->new_tv<DT>(view);
+        auto ptr = doc_->new_dataobject<DT>(view);
         array_->set(idx, ptr->dt_ctr_);
         return ptr;
     }
@@ -145,6 +145,32 @@ inline void Array<Value>::append(ValuePtr value)
     assert_mutable();
 
     array_->push_back(*doc_->arena(), value->addr_);
+}
+
+inline ValuePtr Array<Value>::append_hermes(U8StringView str) {
+  assert_not_null();
+  assert_mutable();
+
+  ValuePtr vv = doc_->parse_raw_value(str.begin(), str.end());
+
+  array_->push_back(*doc_->arena(), vv->addr_);
+
+  return vv;
+}
+
+inline ValuePtr Array<Value>::set_hermes(uint64_t idx, U8StringView str) {
+  assert_not_null();
+  assert_mutable();
+
+  if (MMA_LIKELY(idx < array_->size()))
+  {
+      ValuePtr vv = doc_->parse_raw_value(str.begin(), str.end());
+      array_->set(idx, vv->addr_);
+      return vv;
+  }
+  else {
+      MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Value>::set_hermes(): {}::{}", idx, array_->size()).do_throw();
+  }
 }
 
 }}

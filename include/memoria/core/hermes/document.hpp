@@ -50,8 +50,6 @@ protected:
 
     struct DocumentHeader {
         arena::RelativePtr<void> value;
-        arena::RelativePtr<void> types;
-        arena::RelativePtr<void> strings;
     };
 
     arena::ArenaAllocator* arena_;
@@ -125,11 +123,6 @@ public:
     }
 
     void stringify(std::ostream& out, DumpFormatState& state, DumpState& dump_state) {
-
-//        if (has_type_dictionary()) {
-//            do_dump_dictionary(out, state, dump_state);
-//        }
-
         value()->stringify(out, state, dump_state);
     }
 
@@ -148,12 +141,12 @@ public:
 
 
     template <typename DT>
-    DataObjectPtr<DT> set_tv(DTTViewType<DT> view)
+    DataObjectPtr<DT> set_dataobject(DTTViewType<DT> view)
     {
         assert_not_null();
         assert_mutable();
 
-        auto ptr = this->new_tv<DT>(view);
+        auto ptr = this->new_dataobject<DT>(view);
 
         header_->value = ptr->addr_;
 
@@ -185,9 +178,21 @@ public:
         return ptr;
     }
 
+    ValuePtr set_hermes(U8StringView str)
+    {
+        assert_not_null();
+        assert_mutable();
+
+        ValuePtr vv = parse_raw_value(str.begin(), str.end());
+
+        header_->value = vv->addr_;
+
+        return vv;
+    }
+
     template <typename DT>
 
-    DataObjectPtr<DT> new_tv(DTTViewType<DT> view);
+    DataObjectPtr<DT> new_dataobject(DTTViewType<DT> view);
     DatatypePtr new_datatype(U8StringView name);
     DatatypePtr new_datatype(StringValuePtr name);
 
@@ -278,12 +283,14 @@ public:
             const ParserConfiguration& cfg = ParserConfiguration{}
     );
 
-protected:
+    static void init_hermes_doc_parser();
 
+protected:
 
     void configure_refholder(SharedPtrHolder* ref_holder) {
         view_ptr_holder_.set_owner(ref_holder);
     }
 };
+
 
 }}

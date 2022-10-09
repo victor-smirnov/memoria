@@ -19,6 +19,8 @@
 #include <memoria/core/arena/string.hpp>
 #include <memoria/core/arena/vector.hpp>
 #include <memoria/core/arena/relative_ptr.hpp>
+#include <memoria/core/arena/hash_fn.hpp>
+
 
 #include <memoria/core/hermes/value.hpp>
 #include <memoria/core/hermes/common.hpp>
@@ -30,16 +32,169 @@ namespace hermes {
 class HermesDocView;
 class HermesDoc;
 
+
+
+class PtrQualifier {
+    uint8_t value_;
+public:
+    PtrQualifier(): value_() {}
+    PtrQualifier(uint8_t is_const, uint8_t is_volatile) {
+        value_ = is_const | (is_volatile << 1);
+    }
+
+    PtrQualifier(uint64_t val):
+        value_(val)
+    {}
+
+    bool is_const() const {
+        return value_ & 0x1;
+    }
+
+    bool is_volatile() const {
+        return value_ & 0x2;
+    }
+
+    uint64_t value() const {
+        return value_;
+    }
+};
+
 namespace detail {
+
+class TypeExtras {
+    static constexpr uint64_t F_CONST           = 0x1;
+    static constexpr uint64_t F_VOLATILE        = 0x2;
+    static constexpr uint64_t F_RESERVED        = 0x3;  // Extra bit for future use
+    static constexpr uint64_t F_REFS_SIZE_START = 0x3;
+    static constexpr uint64_t F_REFS_SIZE_MASK  = 0x18; // 0, 1, 2
+
+    static constexpr uint64_t F_PTRS_SIZE_MASK  = 0x3E0;
+
+    static constexpr uint64_t MAX_POINTERS      = 27;
+    static constexpr uint64_t F_PTRS_SIZE_START = 5;
+
+    static constexpr uint64_t F_PTRS_START      = 10;
+    static constexpr uint64_t F_PTR_SIZE        = 2;
+    static constexpr uint64_t F_PTR_MASK        = 0x3;
+
+    uint64_t data_;
+public:
+    TypeExtras(): data_() {}
+
+    bool is_const() const {
+        return data_ & F_CONST;
+    }
+
+    void set_const() {
+        data_ |= F_CONST;
+    }
+
+    void set_non_const() {
+        data_ &= ~F_CONST;
+    }
+
+    bool is_volatile() const {
+        return data_ & F_VOLATILE;
+    }
+
+    void set_volatile() {
+        data_ |= F_VOLATILE;
+    }
+
+    void set_non_volatile() {
+        data_ &= ~F_VOLATILE;
+    }
+
+    uint64_t refs_size() const {
+        return (data_ & F_REFS_SIZE_MASK) >> F_REFS_SIZE_START;
+    }
+
+
+    uint64_t pointers_size() const {
+        return (data_ & F_PTRS_SIZE_MASK) >> F_PTRS_SIZE_START;
+    }
+
+    void set_pointers_size(uint64_t val)
+    {
+        if (MMA_LIKELY(val < MAX_POINTERS))
+        {
+            data_ &= ~F_PTRS_SIZE_MASK;
+            data_ |= (val << F_PTRS_SIZE_START);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Maximal muber of ptr specifiers is {}: {}", MAX_POINTERS, val).do_throw();
+        }
+    }
+
+    void set_refs_size(uint64_t val)
+    {
+        if (MMA_LIKELY(val < 3))
+        {
+            data_ &= ~F_REFS_SIZE_MASK;
+            data_ |= (val << F_REFS_SIZE_START);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Maximal muber of reference specifiers is {}: {}", 3, val).do_throw();
+        }
+    }
+
+    void add_pointer(PtrQualifier tq)
+    {
+        uint64_t size = pointers_size();
+        if (size < MAX_POINTERS - 1) {
+            set_pointers_size(size + 1);
+            set_pointer(size, tq);
+        }
+    }
+
+    void remove_pointer()
+    {
+        uint64_t size = pointers_size();
+        if (size) {
+            set_pointers_size(size - 1);
+            set_pointer(size, PtrQualifier());
+        }
+    }
+
+    PtrQualifier pointer(uint64_t idx) const
+    {
+        if (MMA_LIKELY(idx < MAX_POINTERS))
+        {
+            return (data_ >> (F_PTRS_START + idx * F_PTR_SIZE)) & F_PTR_MASK;
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Pointer index is out of range: {}", idx).do_throw();
+        }
+    }
+
+private:
+
+    void set_pointer(uint64_t idx, PtrQualifier value)
+    {
+        if (MMA_LIKELY(idx < MAX_POINTERS))
+        {
+            uint64_t bit_offs = (F_PTRS_START + idx * F_PTR_SIZE);
+            data_ &= ~(F_PTR_MASK << bit_offs);
+            data_ |= (value.value() << bit_offs);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Qualifier index is out of range: {}", idx).do_throw();
+        }
+    }
+};
 
 class DatatypeData {
     arena::RelativePtr<arena::ArenaString> name_;
     arena::RelativePtr<arena::GenericVector> parameters_;
     arena::RelativePtr<arena::GenericVector> constructor_;
+    TypeExtras extras_;
 public:
     DatatypeData(arena::ArenaString* name):
         name_(name)
     {}
+
+    TypeExtras& extras() {return extras_;}
+    const TypeExtras& extras() const {return extras_;}
 
     arena::ArenaString* name() const {
         return name_.get();
@@ -68,6 +223,8 @@ public:
     bool is_parametric() const {
         return parameters_.is_not_null();
     }
+
+
 };
 
 }
@@ -89,7 +246,9 @@ protected:
     detail::DatatypeData* datatype_;
     HermesDocView* doc_;
 public:
-    Datatype() {}
+    Datatype():
+        datatype_(), doc_()
+    {}
 
     Datatype(void* dt, HermesDocView* doc, ViewPtrHolder* ptr_holder) noexcept :
         HoldingView(ptr_holder), datatype_(reinterpret_cast<detail::DatatypeData*>(dt)),
@@ -212,6 +371,73 @@ public:
         assert_mutable();
 
         datatype_->set_parameters(nullptr);
+    }
+
+    bool is_const() const {
+        assert_not_null();
+        return datatype_->extras().is_const();
+    }
+
+    void set_const(bool v)
+    {
+        assert_not_null();
+        assert_mutable();
+
+        if (v)
+            datatype_->extras().set_const();
+        else
+            datatype_->extras().set_non_const();
+    }
+
+    bool is_volatile() const {
+        assert_not_null();
+        return datatype_->extras().is_volatile();
+    }
+
+    void set_volatile(bool v)
+    {
+        assert_not_null();
+        assert_mutable();
+
+        if (v)
+            datatype_->extras().set_volatile();
+        else
+            datatype_->extras().set_non_volatile();
+    }
+
+
+
+    uint64_t ptr_specs() const
+    {
+        assert_not_null();
+        return datatype_->extras().pointers_size();
+    }
+
+    void add_ptr_spec(PtrQualifier qual)
+    {
+        assert_not_null();
+        assert_mutable();
+
+        datatype_->extras().add_pointer(qual);
+    }
+
+    PtrQualifier ptr_spec(uint64_t idx) const
+    {
+        assert_not_null();
+        return datatype_->extras().pointer(idx);
+    }
+
+    uint64_t refs_size() const
+    {
+        assert_not_null();
+        return datatype_->extras().refs_size();
+    }
+
+    void set_refs(uint64_t size) {
+        assert_not_null();
+        assert_mutable();
+
+        datatype_->extras().set_refs_size(size);
     }
 
 protected:

@@ -28,6 +28,8 @@ using namespace hermes;
 
 void InitTypeReflections()
 {
+    HermesDoc::init_hermes_doc_parser();
+
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Array<Value>>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Map<Varchar, Value>>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype>>());

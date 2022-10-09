@@ -82,10 +82,12 @@ public:
 
 
     template <typename DT>
-    DataObjectPtr<DT> put_tv(U8StringView key, DTTViewType<DT> value);
+    DataObjectPtr<DT> put_dataobject(U8StringView key, DTTViewType<DT> value);
 
     GenericMapPtr put_generic_map(U8StringView key);
     GenericArrayPtr put_generic_array(U8StringView key);
+
+    ValuePtr put_hermes(U8StringView key, U8StringView str);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state,
