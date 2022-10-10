@@ -15,6 +15,8 @@
 
 //#define BOOST_SPIRIT_QI_DEBUG
 
+//#define BOOST_SPIRIT_UNICODE
+
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif

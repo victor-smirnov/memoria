@@ -1,0 +1,57 @@
+/****************************************************************************
+**
+** Author: Róbert Márki <gsmiko@gmail.com>
+** Copyright (c) 2016 Róbert Márki
+**
+** This file is part of the jmespath.cpp project which is distributed under
+** the MIT License (MIT).
+**
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to
+** deal in the Software without restriction, including without limitation the
+** rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+** sell copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be included in
+** all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+** FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+** DEALINGS IN THE SOFTWARE.
+**
+****************************************************************************/
+#ifndef ALLNODES_H
+#define ALLNODES_H
+#include "abstractnode.h"
+#include "expressionnode.h"
+#include "identifiernode.h"
+#include "rawstringnode.h"
+#include "literalnode.h"
+#include "subexpressionnode.h"
+#include "indexexpressionnode.h"
+#include "arrayitemnode.h"
+#include "variantnode.h"
+#include "binaryexpressionnode.h"
+#include "flattenoperatornode.h"
+#include "bracketspecifiernode.h"
+#include "sliceexpressionnode.h"
+#include "listwildcardnode.h"
+#include "hashwildcardnode.h"
+#include "multiselectlistnode.h"
+#include "multiselecthashnode.h"
+#include "notexpressionnode.h"
+#include "comparatorexpressionnode.h"
+#include "orexpressionnode.h"
+#include "andexpressionnode.h"
+#include "parenexpressionnode.h"
+#include "pipeexpressionnode.h"
+#include "currentnode.h"
+#include "filterexpressionnode.h"
+#include "functionexpressionnode.h"
+#include "expressionargumentnode.h"
+#endif // ALLNODES_H

@@ -82,6 +82,8 @@ public:
         return is_a(TypeTag<Map<Varchar, Value>>{});
     }
 
+    GenericArrayPtr as_generic_array();
+
     template <typename T>
     bool is_a(TypeTag<T>) const noexcept
     {

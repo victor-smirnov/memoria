@@ -16,7 +16,12 @@
 file(GLOB SRCS1 src/*.cpp)
 file(GLOB SRCS2 src/datatypes/*.cpp)
 
-set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES ${SRCS1} ${SRCS2})
-set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_REACTOR ${SRCS1} ${SRCS2})
+
+file(GLOB SRCS3 src/hermes/path/ast/*.cpp src/hermes/path/*.cpp src/hermes/*.cpp)
+file(GLOB SRCS4 src/hermes/path/interpreter/*.cpp)
+file(GLOB SRCS5 src/hermes/path/parser/*.cpp)
+
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES ${SRCS1} ${SRCS2} ${SRCS3} ${SRCS4} ${SRCS5})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_REACTOR ${SRCS1} ${SRCS2} ${SRCS3} ${SRCS4} ${SRCS5})
 
 add_subdirectory(platforms)

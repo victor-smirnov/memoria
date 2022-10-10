@@ -64,7 +64,13 @@ public:
     }
 
     uint64_t size() const {
+        assert_not_null();
         return array_->size();
+    }
+
+    bool is_empty() const {
+        assert_not_null();
+        return array_->size() == 0;
     }
 
     ViewPtr<Value> get(uint64_t idx)

@@ -45,5 +45,10 @@ DataObjectPtr<DT> HermesDocView::new_dataobject(DTTViewType<DT> view)
 }
 
 
+inline GenericArrayPtr Value::as_generic_array() {
+    assert_not_null();
+    return GenericArrayPtr(GenericArray(addr_, doc_, ptr_holder_));
+}
+
 
 }}
