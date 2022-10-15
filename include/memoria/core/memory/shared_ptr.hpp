@@ -174,7 +174,7 @@ template <typename ViewT>
 class ViewPtr<ViewT, false> {
     using RefHolder = ViewPtrHolder;
 
-    ViewT view_;
+    mutable ViewT view_;
     RefHolder* ref_holder_;
 
 public:
@@ -293,10 +293,10 @@ public:
     }
 
     ViewT* operator->() {return &view_;}
-    const ViewT* operator->() const {return &view_;}
+    ViewT* operator->() const {return &view_;}
 
     ViewT& operator*() {return view_;}
-    const ViewT& operator*() const {return view_;}
+    ViewT& operator*() const {return view_;}
 
     ViewT* get() {return &view_;}
     const ViewT* get() const {return &view_;}
@@ -315,7 +315,7 @@ template <typename ViewT>
 class ViewPtr<ViewT, true> {
     using RefHolder = ViewPtrHolder;
 
-    ViewT view_;
+    mutable ViewT view_;
 
     template <typename, bool>
     friend class ViewPtr;
@@ -445,10 +445,10 @@ public:
     }
 
     ViewT* operator->() {return &view_;}
-    const ViewT* operator->() const {return &view_;}
+    ViewT* operator->() const {return &view_;}
 
     ViewT& operator*() {return view_;}
-    const ViewT& operator*() const {return view_;}
+    ViewT& operator*() const {return view_;}
 
     ViewT* get() {return &view_;}
     const ViewT* get() const {return &view_;}
@@ -462,5 +462,14 @@ public:
     }
 };
 
+template <typename View>
+bool operator<(const ViewPtr<View>& v0, const ViewPtr<View>& v1) {
+    return v0 < v1;
+}
+
+template <typename View>
+bool operator>(const ViewPtr<View>& v0, const ViewPtr<View>& v1) {
+    return v0 > v1;
+}
 
 }

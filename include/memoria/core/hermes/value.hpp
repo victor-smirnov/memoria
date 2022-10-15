@@ -86,6 +86,10 @@ public:
         return is_a(TypeTag<Map<Varchar, Value>>{});
     }
 
+    bool is_real() const noexcept {
+        return is_a(TypeTag<Real>{});
+    }
+
     bool is_double() const noexcept {
         return is_a(TypeTag<Double>{});
     }
@@ -106,12 +110,32 @@ public:
         return is_a(TypeTag<Datatype>{});
     }
 
+    bool is_number() const noexcept {
+        return is_a(TypeTag<BigInt>{}) || is_a(TypeTag<Double>{});
+    }
+
+    bool value_eq(const ValuePtr& vv) const
+    {
+        if (!is_null()) {
+            // FIXME: Implementation!
+            return false;
+        }
+        return vv->is_null();
+    }
+
     GenericArrayPtr as_generic_array() const;
     GenericMapPtr as_generic_map() const;
     DataObjectPtr<Varchar> as_varchar() const;
     DataObjectPtr<Double> as_double() const;
     DataObjectPtr<BigInt> as_bigint() const;
     DataObjectPtr<Boolean> as_boolean() const;
+    DataObjectPtr<Real> as_real() const;
+
+    U8String type_str() const;
+
+    bool operator<(const ValuePtr& other) const {
+        return false;
+    }
 
     template <typename DT>
     DTTViewType<DT> as_data_object() const {

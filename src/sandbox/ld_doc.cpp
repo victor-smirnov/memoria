@@ -22,6 +22,8 @@
 #include <memoria/core/tools/random.hpp>
 
 #include <memoria/core/hermes/hermes.hpp>
+#include <memoria/core/hermes/path/jmespath.h>
+
 #include <memoria/memoria.hpp>
 
 #include <unordered_map>
@@ -39,12 +41,28 @@ int main(int, char**)
 {
     InitTypeReflections();
     auto doc = HermesDocView::parse(R"(
-        #{CoolT: AType}
-        [1,2,3,4,5, "ABCDEF", CoolType<11, NonParametric>('a', 'b', 'c'), @#CoolT = {field: 1234.5678, f2: [{}, {}, 'aaa']}]
+        {
+            key1: {
+                key2: [1, 2, 3, 4, 10.123]
+            }
+        }
     )");
 
     println("{}", doc->to_string());
 
-    auto dd2 = doc->compactify(true);
-    println("{}", dd2->to_string());
+    jmespath::Expression exp("sum(key1.key2)");
+    auto result = jmespath::search(exp, doc->value());
+
+    println("{}", result->to_pretty_string());
+
+    auto doc1 = HermesDocView::parse("{key1: 'value1', key2: 123456}");
+    auto map = doc1->value()->as_generic_map();
+
+    map->for_each([](auto k, auto v){
+        println("{} :: {}", k, v->to_string());
+    });
+
+    for (auto item: *map.get()) {
+        println("{} :: {}", item.first()->view(), item.second()->to_string());
+    }
 }

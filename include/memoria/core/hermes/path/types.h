@@ -58,6 +58,10 @@ using UnicodeString     = std::basic_string<UnicodeChar>;
  */
 using UnicodeIteratorAdaptor
     = boost::u8_to_u32_iterator<String::const_iterator>;
+
+using U8UnicodeIteratorAdaptor
+    = boost::u8_to_u32_iterator<U8StringView::const_iterator>;
+
 /**
  * @brief UTF-8 string iterator adaptor
  */
@@ -66,7 +70,8 @@ using StringIteratorAdaptor
 /**
  * @brief JSON data type
  */
-using Json      = nlohmann::json;
+using Json1      = nlohmann::json;
+using Json = hermes::ValuePtr;
 
 /**
  * @brief Signed integer type that can hold all values in the range of
@@ -79,6 +84,13 @@ using Index = boost::multiprecision::number<
         boost::multiprecision::signed_magnitude,
         boost::multiprecision::checked,
         void> >;
+
+
+namespace interpreter {
+class Interpreter;
+}
+
+
 } // namespace jmespath
 }
 #endif // TYPES_H

@@ -124,8 +124,23 @@ inline void Map<Varchar, Value>::put(StringValuePtr name, ValuePtr value) {
     assert_not_null();
     assert_mutable();
 
-    auto arena = doc_->arena();
-    map_->put(*arena, name->dt_ctr_, value->addr_);
+    if (!value->is_null()) {
+        auto arena = doc_->arena();
+        map_->put(*arena, name->dt_ctr_, value->addr_);
+    }
+}
+
+inline void Map<Varchar, Value>::put(U8StringView name, ValuePtr value) {
+    assert_not_null();
+    assert_mutable();
+
+    auto vv = doc_->do_import_value(value);
+    if (!vv->is_null())
+    {
+        auto arena = doc_->arena();
+        auto key = doc_->new_dataobject<Varchar>(name);
+        map_->put(*arena, key->dt_ctr_, vv->addr_);
+    }
 }
 
 inline ValuePtr Map<Varchar, Value>::put_hermes(U8StringView key, U8StringView str) {

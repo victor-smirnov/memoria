@@ -107,7 +107,7 @@ public:
     std::enable_if_t<std::is_same<std::decay_t<JsonT>, Json>::value, void>
     setContext(JsonT&& value)
     {
-        m_context = assignContextValue(std::forward<JsonT>(value));
+        m_context = std::forward<JsonT>(value);
     }
     /**
      * @brief Returns the current evaluation context.
@@ -252,7 +252,9 @@ private:
      * @return Returns false if @a json is a false like value (false, 0, empty
      * list, empty object, empty string, null), otherwise returns true.
      */
-    bool toBoolean(const Json& json) const;
+    hermes::DataObjectPtr<Boolean> toBoolean(const Json& json) const;
+
+    bool toSimpleBoolean(const Json& json) const;
     /**
      * @brief Evaluates the projection of the given @a expression with the
      * evaluation @a context.

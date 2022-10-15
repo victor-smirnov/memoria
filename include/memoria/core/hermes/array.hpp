@@ -22,12 +22,27 @@
 #include <memoria/core/hermes/traits.hpp>
 #include <memoria/core/hermes/common.hpp>
 
-
 namespace memoria {
 namespace hermes {
 
 template <typename V>
 class Array;
+
+
+template <typename ArrayT, typename ValueT>
+struct ArrayAccessor {
+    using ViewType = ValueT;
+
+    mutable ArrayT array;
+
+    ValueT get(uint64_t idx) const {
+        return array->get(idx);
+    }
+
+    bool operator==(const ArrayAccessor& other) const {
+        return array->equals(other.array);
+    }
+};
 
 template <>
 class Array<Value>: public HoldingView {
@@ -49,7 +64,14 @@ protected:
 
     friend class Datatype;
 
+    friend class memoria::jmespath::interpreter::Interpreter;
+
+    using Accessor = ArrayAccessor<GenericArrayPtr, ValuePtr>;
 public:
+    using iterator = RandomAccessIterator<Accessor>;
+    using const_iterator = iterator;
+
+
     Array() noexcept:
         array_(), doc_()
     {}
@@ -58,6 +80,30 @@ public:
         HoldingView(ref_holder),
         array_(reinterpret_cast<ArenaArray*>(array)), doc_(doc)
     {}
+
+    iterator begin() {
+        assert_not_null();
+        return iterator(Accessor{self()}, 0, array_->size());
+    }
+
+    iterator end() {
+        assert_not_null();
+        return iterator(Accessor{self()}, array_->size(), array_->size());
+    }
+
+    iterator cbegin() const {
+        assert_not_null();
+        return const_iterator(Accessor{self()}, array_->size(), array_->size());
+    }
+
+    iterator cend() const {
+        assert_not_null();
+        return const_iterator(Accessor{self()}, array_->size(), array_->size());
+    }
+
+    GenericArrayPtr self() const {
+        return GenericArrayPtr(GenericArray(array_, doc_, ptr_holder_));
+    }
 
     PoolSharedPtr<HermesDocView> document() const {
         assert_not_null();
@@ -71,6 +117,11 @@ public:
     uint64_t size() const {
         assert_not_null();
         return array_->size();
+    }
+
+
+    bool empty() const {
+        return size() == 0;
     }
 
     bool is_empty() const {
@@ -103,7 +154,7 @@ public:
     GenericArrayPtr append_generic_array();
 
     DatatypePtr append_datatype(U8StringView name);
-    DatatypePtr append_datatype(StringValuePtr name);
+    DatatypePtr append_datatype(const StringValuePtr& name);
 
     ValuePtr append_hermes(U8StringView str);
     ValuePtr set_hermes(uint64_t idx, U8StringView str);
@@ -149,7 +200,7 @@ public:
         return simple;
     }
 
-    void for_each(std::function<void(ViewPtr<Value>)> fn) const {
+    void for_each(std::function<void(const ViewPtr<Value>&)> fn) const {
         assert_not_null();
 
         for (auto& vv: array_->span()) {
@@ -177,13 +228,15 @@ public:
         return array_ == vv.array_;
     }
 
-    bool equals(GenericArrayPtr vv) const noexcept {
+    bool equals(const GenericArrayPtr& vv) const noexcept {
         return array_ == vv->array_;
     }
 
 
 protected:
-    void append(ValuePtr value);
+    void append(const ValuePtr& value);
+    void set_value(uint64_t idx, const ValuePtr& value);
+
 private:
     void assert_not_null() const {
         if (MMA_UNLIKELY(array_ == nullptr)) {

@@ -27,6 +27,34 @@
 namespace memoria {
 namespace hermes {
 
+template <typename EntryT, typename MapT, typename Iterator>
+class MapIteratorAccessor {
+    ViewPtr<MapT> map_;
+    Iterator iterator_;
+    HermesDocView* doc_;
+    ViewPtrHolder* ptr_holder_;
+
+public:
+    using ViewType = EntryT;
+
+    MapIteratorAccessor(const ViewPtr<MapT>& map, Iterator iterator, HermesDocView* doc, ViewPtrHolder* ptr_holder):
+        map_(map), iterator_(iterator), doc_(doc), ptr_holder_(ptr_holder)
+    {}
+
+    EntryT current() const {
+        return EntryT(&iterator_, doc_, ptr_holder_);
+    }
+
+    bool operator==(const MapIteratorAccessor&other) const noexcept {
+        return iterator_ == other.iterator_;
+    }
+
+    void next() {
+        iterator_.next();
+    }
+};
+
+
 template <>
 class Map<Varchar, Value>: public HoldingView {
 public:
@@ -47,6 +75,38 @@ protected:
     friend class Array;
 
     friend class DocumentBuilder;
+    friend class memoria::jmespath::interpreter::Interpreter;
+    using MapIterator = typename ArenaMap::Iterator;
+
+
+    class EntryT {
+        const MapIterator* iter_;
+        mutable HermesDocView* doc_;
+        mutable ViewPtrHolder* ptr_holder_;
+
+    public:
+        EntryT(const MapIterator* iter, HermesDocView* doc, ViewPtrHolder* ptr_holder):
+            iter_(iter), doc_(doc), ptr_holder_(ptr_holder)
+        {}
+
+        StringValuePtr first() const {
+            return StringValuePtr(StringValue(iter_->key().get(), doc_, ptr_holder_));
+        }
+
+        ValuePtr second() const
+        {
+            if (iter_->value().is_not_null()) {
+                auto ptr = iter_->value().get();
+                return ValuePtr(Value(ptr, doc_, ptr_holder_));
+            }
+            else {
+                return ValuePtr(Value(nullptr, doc_, ptr_holder_));
+            }
+        }
+    };
+
+    using Accessor = MapIteratorAccessor<EntryT, Map, MapIterator>;
+    using Iterator = ForwardIterator<Accessor>;
 
 public:
     Map() noexcept : map_(), doc_() {}
@@ -55,6 +115,26 @@ public:
         HoldingView(ptr_holder),
         map_(reinterpret_cast<ArenaMap*>(map)), doc_(doc)
     {}
+
+    ViewPtr<Map, true> self() const {
+        return ViewPtr<Map, true>(Map(map_, doc_, ptr_holder_));
+    }
+
+    Iterator begin() const {
+        return Iterator(Accessor(self(), map_->begin(), doc_, ptr_holder_));
+    }
+
+    Iterator end() const {
+        return Iterator(Accessor(self(), map_->end(), doc_, ptr_holder_));
+    }
+
+    Iterator cbegin() const {
+        return Iterator(Accessor(self(), map_->begin(), doc_, ptr_holder_));
+    }
+
+    Iterator cend() const {
+        return Iterator(Accessor(self(), map_->end(), doc_, ptr_holder_));
+    }
 
     PoolSharedPtr<HermesDocView> document() const {
         assert_not_null();
@@ -68,6 +148,10 @@ public:
     uint64_t size() const {
         assert_not_null();
         return map_->size();
+    }
+
+    bool empty() const {
+        return size() == 0;
     }
 
     ValuePtr get(U8StringView key) const
@@ -148,6 +232,7 @@ public:
 
 protected:
     void put(StringValuePtr name, ValuePtr value);
+    void put(U8StringView name, ValuePtr value);
 private:
     void do_stringify(std::ostream& out, DumpFormatState state, DumpState& dump_state) const;
 

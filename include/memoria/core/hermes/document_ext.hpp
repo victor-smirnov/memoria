@@ -44,6 +44,12 @@ DataObjectPtr<DT> HermesDocView::new_dataobject(DTTViewType<DT> view)
     return DataObjectPtr<DT>(DTCtr(arena_dtc, this, ptr_holder_));
 }
 
+template <typename DT>
+DataObjectPtr<DT> HermesDocView::wrap_dataobject(DTTViewType<DT> view) {
+    auto doc = make_pooled();
+    return doc->set_dataobject<DT>(view);
+}
+
 
 inline GenericArrayPtr Value::as_generic_array() const {
     return cast_to<GenericArray>();
@@ -70,5 +76,14 @@ inline DataObjectPtr<Boolean> Value::as_boolean() const {
     return cast_to<Boolean>();
 }
 
+inline DataObjectPtr<Real> Value::as_real() const {
+    return cast_to<Real>();
+}
+
+inline U8String Value::type_str() const {
+    assert_not_null();
+    auto tag = arena::read_type_tag(addr_);
+    return get_type_reflection(tag).str();
+}
 
 }}

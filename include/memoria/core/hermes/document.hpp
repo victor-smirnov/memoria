@@ -246,6 +246,10 @@ public:
 
     pool::SharedPtr<HermesDocView> clone(bool as_mutable = false) const;
 
+    bool operator==(const HermesDocView& other) const noexcept {
+        MEMORIA_MAKE_GENERIC_ERROR("Equals is not implemented for HermesDoc").do_throw();
+    }
+
 
     static pool::SharedPtr<HermesDocView> make_pooled(ObjectPools& pool = thread_local_pools());
     static pool::SharedPtr<HermesDocView> make_new(size_t initial_capacity = 4096);
@@ -272,9 +276,8 @@ public:
 
     static void init_hermes_doc_parser();
 
-    bool operator==(const HermesDocView& other) const noexcept {
-        MEMORIA_MAKE_GENERIC_ERROR("Equals is not implemented for HermesDoc").do_throw();
-    }
+    template <typename DT>
+    static DataObjectPtr<DT> wrap_dataobject(DTTViewType<DT> view);
 
 protected:
     ValuePtr parse_raw_value(

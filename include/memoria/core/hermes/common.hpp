@@ -141,4 +141,101 @@ public:
     static StringEscaper& current();
 };
 
+
+
+template <typename AccessorType>
+class RandomAccessIterator: public boost::iterator_facade<
+        RandomAccessIterator<AccessorType>,
+        const typename AccessorType::ViewType,
+        std::random_access_iterator_tag,
+        const typename AccessorType::ViewType
+> {
+    using ViewType = typename AccessorType::ViewType;
+
+    size_t pos_;
+    size_t size_;
+    AccessorType accessor_;
+
+    using Iterator = RandomAccessIterator;
+
+public:
+    RandomAccessIterator() : pos_(), size_(), accessor_() {}
+
+    RandomAccessIterator(AccessorType accessor, size_t pos, size_t size) :
+        pos_(pos), size_(size), accessor_(accessor)
+    {}
+
+    size_t size() const noexcept {return size_;}
+    size_t pos() const noexcept {return pos_;}
+
+    bool is_end() const noexcept {return pos_ >= size_;}
+    operator bool() const noexcept {return !is_end();}
+
+private:
+    friend class boost::iterator_core_access;
+
+    ViewType dereference() const  {
+        return accessor_.get(pos_);
+    }
+
+    bool equal(const RandomAccessIterator& other) const  {
+        return accessor_ == other.accessor_ && pos_ == other.pos_;
+    }
+
+    void increment() {
+        pos_ += 1;
+    }
+
+    void decrement() {
+        pos_ -= 1;
+    }
+
+    void advance(int64_t n)  {
+        pos_ += n;
+    }
+
+    ptrdiff_t distance_to(const RandomAccessIterator& other) const
+    {
+        ptrdiff_t res = static_cast<ptrdiff_t>(other.pos_) - static_cast<ptrdiff_t>(pos_);
+        return res;
+    }
+};
+
+
+template <typename AccessorType>
+class ForwardIterator: public boost::iterator_facade<
+        ForwardIterator<AccessorType>,
+        const typename AccessorType::ViewType,
+        std::forward_iterator_tag,
+        const typename AccessorType::ViewType
+> {
+    using ViewType = typename AccessorType::ViewType;
+
+    AccessorType accessor_;
+
+    using Iterator = ForwardIterator;
+
+public:
+    ForwardIterator() : accessor_() {}
+
+    ForwardIterator(AccessorType accessor) : accessor_(accessor)
+    {}
+
+private:
+    friend class boost::iterator_core_access;
+
+    ViewType dereference() const  {
+        return accessor_.current();
+    }
+
+    bool equal(const ForwardIterator& other) const  {
+        return accessor_ == other.accessor_;
+    }
+
+    void increment() {
+        accessor_.next();
+    }
+};
+
+
 }}

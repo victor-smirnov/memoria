@@ -198,6 +198,14 @@ public:
             bucket_size_(bucket_size)
         {}
 
+        bool operator==(const Iterator& other) const {
+            return map_ == other.map_ && bucket_idx_ == other.bucket_idx_ && entry_idx_ == other.entry_idx_;
+        }
+
+        bool operator!=(const Iterator& other) const {
+            return map_ != other.map_ || bucket_idx_ != other.bucket_idx_ || entry_idx_ != other.entry_idx_;
+        }
+
         bool next() noexcept
         {
             size_t capacity = 1ull << map_->buckets_capacity_;
@@ -242,13 +250,14 @@ public:
         return size_;
     }
 
-    Optional<Iterator> iterator() const noexcept
+
+    Iterator begin() const noexcept
     {
+        size_t capacity = 1ull << buckets_capacity_;
+
         if (size_)
         {
             size_t bucket_idx {};
-            size_t capacity = 1ull << buckets_capacity_;
-
             while (bucket_idx < capacity)
             {
                 if (!this->is_bucket_null(bucket_idx))
@@ -263,7 +272,14 @@ public:
             }
         }
 
-        return Optional<Iterator>{};
+        return Iterator(this, capacity, nullptr, 0, 0);
+    }
+
+    Iterator end() const noexcept {
+        size_t capacity = 1ull << buckets_capacity_;
+        return Iterator(
+            this, capacity, nullptr, 0, 0
+        );
     }
 
     template <typename KeyArg>
@@ -353,12 +369,12 @@ public:
     template <typename Fn>
     void for_each(Fn&& fn) const
     {
-        Optional<Iterator> ii = this->iterator();
-        if (ii.is_initialized()) {
-            do {
-                fn(ii.get().key(), ii.get().value());
-            }
-            while (ii.get().next());
+        Iterator ii = begin();
+        Iterator end = this->end();
+
+        while (ii != end) {
+            fn(ii.key(), ii.value());
+            ii.next();
         }
     }
     

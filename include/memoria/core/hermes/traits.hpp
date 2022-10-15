@@ -22,6 +22,12 @@ namespace memoria {
 
 struct Varchar;
 
+namespace jmespath {
+namespace interpreter {
+class Interpreter;
+}
+}
+
 namespace hermes {
 class DocumentBuilder;
 

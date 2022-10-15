@@ -77,7 +77,7 @@ inline DatatypePtr Array<Value>::append_datatype(U8StringView name) {
     return ptr;
 }
 
-inline DatatypePtr Array<Value>::append_datatype(StringValuePtr name) {
+inline DatatypePtr Array<Value>::append_datatype(const StringValuePtr& name) {
     assert_not_null();
     assert_mutable();
 
@@ -103,6 +103,8 @@ DataObjectPtr<DT> Array<Value>::set(uint64_t idx, DTTViewType<DT> view)
         MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Value>::set(): {}::{}", idx, array_->size()).do_throw();
     }
 }
+
+
 
 
 
@@ -139,12 +141,37 @@ inline GenericArrayPtr Array<Value>::set_generic_array(uint64_t idx)
 }
 
 
-inline void Array<Value>::append(ValuePtr value)
+inline void Array<Value>::append(const ValuePtr& value)
 {
     assert_not_null();
     assert_mutable();
 
-    array_->push_back(*doc_->arena(), value->addr_);
+    auto vv = doc_->do_import_value(value);
+
+    if (MMA_LIKELY(!vv->is_null()))
+    {
+        array_->push_back(*doc_->arena(), vv->addr_);
+    }
+    else {
+        array_->push_back(*doc_->arena(), nullptr);
+    }
+}
+
+
+inline void Array<Value>::set_value(uint64_t idx, const ValuePtr& value)
+{
+    assert_not_null();
+    assert_mutable();
+
+    auto vv = doc_->do_import_value(value);
+
+    if (MMA_LIKELY(!vv->is_null()))
+    {
+        array_->set(idx, vv->addr_);
+    }
+    else {
+        array_->set(idx, nullptr);
+    }
 }
 
 inline ValuePtr Array<Value>::append_hermes(U8StringView str) {

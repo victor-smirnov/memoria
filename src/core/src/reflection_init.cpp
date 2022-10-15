@@ -40,6 +40,7 @@ void InitTypeReflections()
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<UBigInt>>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<Boolean>>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<Double>>>());
+    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<Real>>>());
 
 }
 
