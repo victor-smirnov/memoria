@@ -25,8 +25,8 @@ namespace hermes {
 
 inline void Array<Value>::assert_mutable()
 {
-    if (MMA_UNLIKELY(doc_->is_mutable())) {
-        MEMORIA_MAKE_GENERIC_ERROR("Array<Value> is immutable");
+    if (MMA_UNLIKELY(!doc_->is_mutable())) {
+        MEMORIA_MAKE_GENERIC_ERROR("Array<Value> is immutable").do_throw();
     }
 }
 
@@ -171,6 +171,28 @@ inline ValuePtr Array<Value>::set_hermes(uint64_t idx, U8StringView str) {
   else {
       MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Value>::set_hermes(): {}::{}", idx, array_->size()).do_throw();
   }
+}
+
+
+inline void Array<Value>::remove(uint64_t idx)
+{
+    assert_not_null();
+    assert_mutable();
+
+    if (idx < array_->size()) {
+        array_->remove(*doc_->arena_, idx);
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Value>::remove(): {}::{}", idx, array_->size()).do_throw();
+    }
+}
+
+inline ValuePtr Array<Value>::append_null() {
+    assert_not_null();
+    assert_mutable();
+
+    array_->push_back(*doc_->arena(), nullptr);
+    return ValuePtr{};
 }
 
 }}

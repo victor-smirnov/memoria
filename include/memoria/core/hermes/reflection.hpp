@@ -43,6 +43,17 @@ public:
     ) {
         return T(ptr, doc, ref_holder).is_simple_layout();
     }
+
+    virtual void* deep_copy_to(
+            arena::ArenaAllocator& arena,
+            void* ptr,
+            void* owner_view,
+            ViewPtrHolder* ref_holder,
+            DeepCopyDeduplicator& dedup)
+    {
+        HermesDocView* doc = reinterpret_cast<HermesDocView*>(owner_view);
+        return T(ptr, doc, ref_holder).deep_copy_to(arena, dedup);
+    }
 };
 
 }}

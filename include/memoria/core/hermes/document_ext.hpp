@@ -26,8 +26,8 @@ namespace hermes {
 
 inline void HermesDocView::assert_mutable()
 {
-    if (MMA_UNLIKELY(this->is_mutable())) {
-        MEMORIA_MAKE_GENERIC_ERROR("Map<String, Value> is immutable");
+    if (MMA_UNLIKELY(!this->is_mutable())) {
+        MEMORIA_MAKE_GENERIC_ERROR("Map<String, Value> is immutable").do_throw();
     }
 }
 
@@ -45,9 +45,29 @@ DataObjectPtr<DT> HermesDocView::new_dataobject(DTTViewType<DT> view)
 }
 
 
-inline GenericArrayPtr Value::as_generic_array() {
-    assert_not_null();
-    return GenericArrayPtr(GenericArray(addr_, doc_, ptr_holder_));
+inline GenericArrayPtr Value::as_generic_array() const {
+    return cast_to<GenericArray>();
+}
+
+
+inline GenericMapPtr Value::as_generic_map() const {
+    return cast_to<GenericMap>();
+}
+
+inline DataObjectPtr<Varchar> Value::as_varchar() const {
+    return cast_to<Varchar>();
+}
+
+inline DataObjectPtr<Double> Value::as_double() const {
+    return cast_to<Double>();
+}
+
+inline DataObjectPtr<BigInt> Value::as_bigint() const {
+    return cast_to<BigInt>();
+}
+
+inline DataObjectPtr<Boolean> Value::as_boolean() const {
+    return cast_to<Boolean>();
 }
 
 

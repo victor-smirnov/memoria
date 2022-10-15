@@ -101,7 +101,7 @@ public:
 
 class ViewPtrHolder {
     using HolderT = SharedPtrHolder;
-    HolderT* owner_;
+    mutable HolderT* owner_;
     int64_t references_{};
 public:
     ViewPtrHolder():
@@ -110,6 +110,10 @@ public:
 
     void set_owner(HolderT* owner) {
         owner_ = owner;
+    }
+
+    HolderT* owner() const {
+        return owner_;
     }
 
     void ref_copy() {
@@ -137,7 +141,7 @@ template <typename, bool> class ViewPtr;
 
 class HoldingView {
 protected:
-    ViewPtrHolder* ptr_holder_;
+    mutable ViewPtrHolder* ptr_holder_;
 
     template <typename, bool>
     friend class ViewPtr;

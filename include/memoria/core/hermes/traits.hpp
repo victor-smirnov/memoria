@@ -25,7 +25,6 @@ struct Varchar;
 namespace hermes {
 class DocumentBuilder;
 
-class HermesDoc;
 class HermesDocView;
 
 template <typename>
@@ -72,6 +71,7 @@ template <typename> struct ValueCastHelper;
 template <typename DT>
 struct TypeHash<hermes::DataObject<DT>>: HasU64Value<TypeHashV<DT>> {};
 
+
 template <>
 struct TypeHash<hermes::Array<hermes::Value>>: HasU64Value<100> {};
 
@@ -83,5 +83,7 @@ struct TypeHash<hermes::Datatype>: HasU64Value<102> {};
 
 template <>
 struct TypeHash<hermes::TypedValue>: HasU64Value<103> {};
+
+
 
 }

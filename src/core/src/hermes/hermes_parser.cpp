@@ -646,7 +646,7 @@ template <typename Iterator>
 using SkipperT = qi::rule<Iterator>;
 
 template <typename Iterator>
-struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<HermesDoc>(), SkipperT<Iterator>>
+struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<HermesDocView>(), SkipperT<Iterator>>
 {
     using Skipper = SkipperT<Iterator>;
 
@@ -812,7 +812,7 @@ struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<HermesDoc>(), Ski
             return DocumentBuilder::current()->check_typeref(typeref->view());
         };
 
-        type_decl_or_reference = type_declaration | (type_reference[_val = _1, _pass = boost::phoenix::bind(check_typeref,_1)]);
+        type_decl_or_reference =  type_declaration[_val = _1] | (type_reference[_val = _1, _pass = boost::phoenix::bind(check_typeref,_1)]);
 
         typed_value      = '@' > type_decl_or_reference > "=" > hermes_value;
 
@@ -912,7 +912,7 @@ struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<HermesDoc>(), Ski
     qi::rule<Iterator, Integer<int64_t, BigInt>(), Skipper>  int64_parser;
     qi::rule<Iterator, ValuePtr, Skipper>  integer_value;
 
-    qi::rule<Iterator, pool::SharedPtr<HermesDoc>(), Skipper> hermes_document;
+    qi::rule<Iterator, pool::SharedPtr<HermesDocView>(), Skipper> hermes_document;
     qi::rule<Iterator, ValuePtr(), Skipper>             hermes_value;
     qi::rule<Iterator, ValuePtr(), Skipper>             standalone_hermes_value;
 
@@ -1104,7 +1104,7 @@ struct DocumentBuilderCleanup {
 }
 
 template <typename Iterator>
-void parse_hermes_document(Iterator& first, Iterator& last, HermesDoc& doc)
+void parse_hermes_document(Iterator& first, Iterator& last, HermesDocView& doc)
 {
     DocumentBuilder builder(doc);
     DocumentBuilder::current(&builder);
@@ -1130,7 +1130,7 @@ void parse_hermes_document(Iterator& first, Iterator& last, HermesDoc& doc)
 
 
 template <typename Iterator>
-void parse_datatype_decl(Iterator& first, Iterator& last, HermesDoc& doc)
+void parse_datatype_decl(Iterator& first, Iterator& last, HermesDocView& doc)
 {
     DocumentBuilder builder(doc);
     DocumentBuilder::current(&builder);
@@ -1224,16 +1224,16 @@ bool parse_identifier(Iterator& first, Iterator& last)
     return r;
 }
 
-PoolSharedPtr<HermesDoc> HermesDoc::parse(CharIterator start, CharIterator end, const ParserConfiguration&)
+PoolSharedPtr<HermesDocView> HermesDocView::parse(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
-    PoolSharedPtr<HermesDoc> doc = TL_allocate_shared<HermesDoc>();
+    PoolSharedPtr<HermesDocImpl> doc = TL_allocate_shared<HermesDocImpl>();
     parse_hermes_document(start, end, *doc);
     return doc;
 }
 
-PoolSharedPtr<HermesDoc> HermesDoc::parse_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
+PoolSharedPtr<HermesDocView> HermesDocView::parse_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
-    PoolSharedPtr<HermesDoc> doc = TL_allocate_shared<HermesDoc>();
+    PoolSharedPtr<HermesDocImpl> doc = TL_allocate_shared<HermesDocImpl>();
     parse_datatype_decl(start, end, *doc);
     return doc;
 }
@@ -1264,7 +1264,7 @@ void HermesDocView::assert_identifier(U8StringView name)
     }
 }
 
-void HermesDoc::init_hermes_doc_parser() {
+void HermesDocView::init_hermes_doc_parser() {
     // Init Resolver
     ErrorMessageResolver::instance();
 }

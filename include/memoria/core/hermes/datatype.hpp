@@ -30,9 +30,6 @@ namespace memoria {
 namespace hermes {
 
 class HermesDocView;
-class HermesDoc;
-
-
 
 class PtrQualifier {
     uint8_t value_;
@@ -224,14 +221,56 @@ public:
         return parameters_.is_not_null();
     }
 
+    DatatypeData* deep_copy_to(
+            arena::ArenaAllocator& dst,
+            arena::ObjectTag tag,
+            void* owner_view,
+            ViewPtrHolder* ptr_holder,
+            DeepCopyDeduplicator& dedup) const
+    {
+        DatatypeData* existing = dedup.resolve(dst, this);
+        if (MMA_LIKELY((bool)existing)) {
+            return existing;
+        }
+        else {
+            arena::ArenaString * name_ptr =
+                get_type_reflection(TypeHashV<Varchar>).deep_copy(dst, name_.get(), owner_view, ptr_holder, dedup);
 
+            auto dtd = dst.get_resolver_for(dst.template allocate_tagged_object<DatatypeData>(
+                tag, name_ptr
+            ));
+
+            dedup.map(dst, this, dtd.get(dst));
+
+            if (parameters_.is_not_null())
+            {
+                auto par_tag = arena::read_type_tag(parameters_.get());
+                arena::GenericVector* ptr = get_type_reflection(par_tag).deep_copy(dst, parameters_.get(), owner_view, ptr_holder, dedup);
+                dtd.get(dst)->parameters_ = ptr;
+            }
+            else {
+                dtd.get(dst)->parameters_ = nullptr;
+            }
+
+            if (constructor_.is_not_null())
+            {
+                auto ctr_tag = arena::read_type_tag(constructor_.get());
+                arena::GenericVector* ptr = get_type_reflection(ctr_tag).deep_copy(dst, constructor_.get(), owner_view, ptr_holder, dedup);
+                dtd.get(dst)->constructor_ = ptr;
+            }
+            else {
+                dtd.get(dst)->constructor_ = nullptr;
+            }
+
+            return dtd.get(dst);
+        }
+    }
 };
 
 }
 
 
 class Datatype: public HoldingView {
-    friend class HermesDoc;
     friend class HermesDocView;
     friend class Value;
     friend class DocumentBuilder;
@@ -243,8 +282,8 @@ class Datatype: public HoldingView {
     friend class Array;
 
 protected:
-    detail::DatatypeData* datatype_;
-    HermesDocView* doc_;
+    mutable detail::DatatypeData* datatype_;
+    mutable HermesDocView* doc_;
 public:
     Datatype():
         datatype_(), doc_()
@@ -255,11 +294,16 @@ public:
         doc_(doc)
     {}
 
+    PoolSharedPtr<HermesDocView> document() const {
+        assert_not_null();
+        return PoolSharedPtr<HermesDocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+    }
+
     ValuePtr as_value() const {
         return ValuePtr(Value(datatype_, doc_, ptr_holder_));
     }
 
-    U8String to_string()
+    U8String to_string() const
     {
         DumpFormatState fmt = DumpFormatState().simple();
         std::stringstream ss;
@@ -267,7 +311,7 @@ public:
         return ss.str();
     }
 
-    U8String to_cxx_string()
+    U8String to_cxx_string() const
     {
         DumpFormatState fmt = DumpFormatState().simple();
         std::stringstream ss;
@@ -275,7 +319,7 @@ public:
         return ss.str();
     }
 
-    U8String to_pretty_string()
+    U8String to_pretty_string() const
     {
         DumpFormatState fmt = DumpFormatState();
         std::stringstream ss;
@@ -283,27 +327,27 @@ public:
         return ss.str();
     }
 
-    void stringify(std::ostream& out)
+    void stringify(std::ostream& out) const
     {
         DumpFormatState state;
         DumpState dump_state(*doc_);
         stringify(out, state, dump_state);
     }
 
-    void stringify_cxx(std::ostream& out)
+    void stringify_cxx(std::ostream& out) const
     {
         DumpFormatState state;
         DumpState dump_state(*doc_);
         stringify_cxx(out, state, dump_state);
     }
 
-    void stringify(std::ostream& out, DumpFormatState& format)
+    void stringify(std::ostream& out, DumpFormatState& format) const
     {
         DumpState dump_state(*doc_);
         stringify(out, format, dump_state);
     }
 
-    void stringify_cxx(std::ostream& out, DumpFormatState& format)
+    void stringify_cxx(std::ostream& out, DumpFormatState& format) const
     {
         DumpState dump_state(*doc_);
         stringify_cxx(out, format, dump_state);
@@ -312,19 +356,19 @@ public:
 
     void stringify(std::ostream& out,
                    DumpFormatState& state,
-                   DumpState& dump_state);
+                   DumpState& dump_state) const;
 
     void stringify_cxx(std::ostream& out,
-                   DumpFormatState& state,
-                   DumpState& dump_state);
+                       DumpFormatState& state,
+                       DumpState& dump_state) const;
 
-    bool is_simple_layout();
+    bool is_simple_layout() const;
 
-    StringValuePtr type_name();
+    StringValuePtr type_name() const;
     GenericArrayPtr set_constructor();
-    GenericArrayPtr constructor();
+    GenericArrayPtr constructor() const;
 
-    GenericArrayPtr type_parameters();
+    GenericArrayPtr type_parameters() const;
     DatatypePtr append_type_parameter(U8StringView name);
     DatatypePtr append_type_parameter(StringValuePtr name);
 
@@ -440,6 +484,11 @@ public:
         datatype_->extras().set_refs_size(size);
     }
 
+    void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
+        assert_not_null();
+        return datatype_->deep_copy_to(arena, TypeHashV<Datatype>, doc_, ptr_holder_, dedup);
+    }
+
 protected:
 
     void append_type_parameter(ValuePtr value);
@@ -449,7 +498,7 @@ private:
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(datatype_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("Datatype is null");
+            MEMORIA_MAKE_GENERIC_ERROR("Datatype is null").do_throw();
         }
     }
 
@@ -464,10 +513,10 @@ template <>
 struct ValueCastHelper<Datatype> {
     static DatatypePtr cast_to(void* addr, HermesDocView* doc, ViewPtrHolder* ref_holder) noexcept {
         return DatatypePtr(Datatype(
-            addr,
-            doc,
-            ref_holder
-        ));
+                               addr,
+                               doc,
+                               ref_holder
+                               ));
     }
 };
 

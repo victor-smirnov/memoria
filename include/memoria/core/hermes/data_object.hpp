@@ -21,20 +21,20 @@
 
 #include <memoria/core/hermes/value.hpp>
 #include <memoria/core/hermes/common.hpp>
+#include <memoria/core/hermes/traits.hpp>
 
 
 namespace memoria {
 namespace hermes {
 
 class HermesDocView;
-class HermesDoc;
+class HermesDocImpl;
 
 template <typename DT>
 class DataObject: public HoldingView {
 public:
     using ArenaDTContainer = arena::ArenaDataTypeContainer<DT>;
 
-    friend class HermesDoc;
     friend class HermesDocView;
     friend class Value;
 
@@ -45,8 +45,8 @@ public:
     friend class Array;
 
 protected:
-    ArenaDTContainer* dt_ctr_;
-    HermesDocView* doc_;
+    mutable ArenaDTContainer* dt_ctr_;
+    mutable HermesDocView* doc_;
 public:
     DataObject() noexcept:
         dt_ctr_(), doc_()
@@ -57,6 +57,11 @@ public:
         dt_ctr_(reinterpret_cast<ArenaDTContainer*>(dt_ctr)),
         doc_(doc)
     {}
+
+    PoolSharedPtr<HermesDocView> document() const {
+        assert_not_null();
+        return PoolSharedPtr<HermesDocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+    }
 
     uint64_t hash_code() const {
         assert_not_null();
@@ -72,7 +77,7 @@ public:
         return dt_ctr_ != nullptr;
     }
 
-    ValuePtr as_value() {
+    ValuePtr as_value() const {
         return ValuePtr(Value(dt_ctr_, doc_, ptr_holder_));
     }
 
@@ -82,7 +87,7 @@ public:
         return dt_ctr_->view();
     }
 
-    U8String to_string()
+    U8String to_string() const
     {
         DumpFormatState fmt = DumpFormatState().simple();
         std::stringstream ss;
@@ -90,7 +95,7 @@ public:
         return ss.str();
     }
 
-    U8String to_pretty_string()
+    U8String to_pretty_string() const
     {
         DumpFormatState fmt = DumpFormatState();
         std::stringstream ss;
@@ -98,14 +103,14 @@ public:
         return ss.str();
     }
 
-    void stringify(std::ostream& out)
+    void stringify(std::ostream& out) const
     {
         DumpFormatState state;
         DumpState dump_state(*doc_);
         stringify(out, state, dump_state);
     }
 
-    void stringify(std::ostream& out, DumpFormatState& format)
+    void stringify(std::ostream& out, DumpFormatState& format) const
     {
         DumpState dump_state(*doc_);
         stringify(out, format, dump_state);
@@ -115,13 +120,18 @@ public:
 
     void stringify(std::ostream& out,
                    DumpFormatState& state,
-                   DumpState& dump_state)
+                   DumpState& dump_state) const
     {
         dt_ctr_->stringify(out, state, dump_state);
     }
 
-    bool is_simple_layout() {
+    bool is_simple_layout() const {
         return true;
+    }
+
+    void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
+        assert_not_null();
+        return dt_ctr_->deep_copy_to(arena, TypeHashV<DataObject>, doc_, ptr_holder_, dedup);
     }
 
 private:
@@ -129,7 +139,7 @@ private:
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(dt_ctr_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("Datatype<Varchar> is null");
+            MEMORIA_MAKE_GENERIC_ERROR("Datatype<Varchar> is null").do_throw();
         }
     }
 };
@@ -225,6 +235,24 @@ public:
 
         if (std::is_same_v<DT, UBigInt>) {
             out << "ull";
+        }
+    }
+
+    ArenaDataTypeContainer* deep_copy_to(
+            ArenaAllocator& dst,
+            ObjectTag tag,
+            hermes::HermesDocView*,
+            ViewPtrHolder*,
+            DeepCopyDeduplicator& dedup) const
+    {
+        ArenaDataTypeContainer* str = dedup.resolve(dst, this);
+        if (MMA_LIKELY((bool)str)) {
+            return str;
+        }
+        else {
+            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, view());
+            dedup.map(dst, this, new_str);
+            return new_str;
         }
     }
 };

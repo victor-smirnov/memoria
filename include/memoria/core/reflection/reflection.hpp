@@ -20,6 +20,10 @@
 #include <memoria/core/hermes/common.hpp>
 #include <memoria/core/memory/shared_ptr.hpp>
 
+#include <memoria/core/arena/arena.hpp>
+
+#include <memoria/core/flat_map/flat_hash_map.hpp>
+
 #include <typeinfo>
 
 namespace memoria {
@@ -32,6 +36,9 @@ namespace hermes {
 class HermesDocView;
 }
 
+
+class DeepCopyDeduplicator;
+
 class TypeReflection {
 public:
     virtual ~TypeReflection() noexcept = default;
@@ -42,8 +49,6 @@ public:
     // Not all types may have short type hash
     // TypeHash<T>
     virtual uint64_t shot_type_hash() const noexcept = 0;
-
-
 
     virtual void hermes_stringify_value(
             void* ptr,
@@ -61,6 +66,26 @@ public:
             ViewPtrHolder* ref_holder
     ) = 0;
 
+    template <typename T>
+    T* deep_copy(arena::ArenaAllocator& arena,
+                 T* src,
+                 void* view_owner,
+                 ViewPtrHolder* ptr_holder,
+                 DeepCopyDeduplicator& dedup) {
+        return reinterpret_cast<T*>(
+            deep_copy_to(arena, src, view_owner, ptr_holder, dedup)
+        );
+    }
+
+    virtual void* deep_copy_to(
+            arena::ArenaAllocator&,
+            void*,
+            void*,
+            ViewPtrHolder*,
+            DeepCopyDeduplicator&
+    ) {
+        MEMORIA_MAKE_GENERIC_ERROR("Deep copy is not implemented for class {}", str()).do_throw();
+    }
 };
 
 
@@ -105,5 +130,75 @@ TypeReflection& get_type_reflection(uint64_t short_type_hash);
 bool has_type_reflection(uint64_t short_type_hash);
 
 void register_type_reflection(std::unique_ptr<TypeReflection> type_reflection);
+
+class DeepCopyDeduplicator {
+    ska::flat_hash_map<const void*, arena::AddrResolver<void>> addr_map_;
+public:
+
+    template <typename T>
+    T* resolve(arena::ArenaAllocator& arena, const T* src) noexcept
+    {
+        auto ii = addr_map_.find(src);
+        if (ii != addr_map_.end()) {
+            return reinterpret_cast<T*>(ii->second.get(arena));
+        }
+        return nullptr;
+    }
+
+    template <typename T>
+    void map(arena::ArenaAllocator& arena, const T* src, T* dst) {
+        addr_map_[src] = arena.get_resolver_for(static_cast<void*>(dst));
+    }
+};
+
+namespace arena {
+    template <typename T>
+    class RelativePtr;
+}
+
+namespace detail {
+
+template <typename T>
+struct DeepCopyHelper {
+    static void deep_copy_to(
+            arena::ArenaAllocator& arena,
+            arena::AddrResolver<T>& dst,
+            const T* src, size_t size,
+            void* owner_view,
+            ViewPtrHolder* ref_holder,
+            DeepCopyDeduplicator& dedup
+    ) {
+        std::memcpy(dst.get(arena), src, size * sizeof(T));
+    }
+};
+
+template <typename T>
+struct DeepCopyHelper<arena::RelativePtr<T>> {
+    static void deep_copy_to(
+            arena::ArenaAllocator& arena,
+            arena::AddrResolver<arena::RelativePtr<T>>& dst,
+            const arena::RelativePtr<T>* src, size_t size,
+            void* owner_view,
+            ViewPtrHolder* ref_holder,
+            DeepCopyDeduplicator& dedup
+    )
+    {
+        for (size_t c = 0; c < size; c++)
+        {
+            if (src[c].is_not_null())
+            {
+                auto tag = arena::read_type_tag(src[c].get());
+                T* ptr = ptr_cast<T>(get_type_reflection(tag).deep_copy_to(arena, src[c].get(), owner_view, ref_holder, dedup));
+                dst.get(arena)[c] = ptr;
+            }
+            else {
+                dst.get(arena)[c] = nullptr;
+            }
+        }
+    }
+};
+
+}
+
 
 }

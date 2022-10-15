@@ -23,8 +23,8 @@ namespace hermes {
 
 inline void Map<Varchar, Value>::assert_mutable()
 {
-    if (MMA_UNLIKELY(doc_->is_mutable())) {
-        MEMORIA_MAKE_GENERIC_ERROR("Map<String, Value> is immutable");
+    if (MMA_UNLIKELY(!doc_->is_mutable())) {
+        MEMORIA_MAKE_GENERIC_ERROR("Map<String, Value> is immutable").do_throw();
     }
 }
 
@@ -81,7 +81,7 @@ inline void Map<Varchar, Value>::remove(U8StringView key)
     map_->remove(*(doc_->arena()), key);
 }
 
-inline void Map<Varchar, Value>::do_stringify(std::ostream& out, DumpFormatState state, DumpState& dump_state)
+inline void Map<Varchar, Value>::do_stringify(std::ostream& out, DumpFormatState state, DumpState& dump_state) const
 {
     if (size() > 0)
     {

@@ -68,7 +68,6 @@ using StringIteratorAdaptor
  */
 using Json      = nlohmann::json;
 
-//using Json      = memoria::hermes::ValuePtr;
 /**
  * @brief Signed integer type that can hold all values in the range of
  * numeric_limits<size_t>::max() * -1 ... numeric_limits<size_t>::max()

@@ -21,7 +21,7 @@ namespace hermes {
 
 void TypedValue::stringify(std::ostream& out,
                DumpFormatState& state,
-               DumpState& dump_state)
+               DumpState& dump_state) const
 {
 
     auto ctr = constructor();

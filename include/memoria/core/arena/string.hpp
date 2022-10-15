@@ -20,11 +20,15 @@
 #include <memoria/core/tools/u64i_56_vlen.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 
-#include <memoria/core/reflection/typehash.hpp>
+#include <memoria/core/arena/arena.hpp>
+#include <memoria/core/reflection/reflection.hpp>
 
 #include <memoria/core/linked/common/linked_hash.hpp>
 
 #include <memoria/core/hermes/common.hpp>
+#include <memoria/core/hermes/traits.hpp>
+
+
 
 #include <new>
 
@@ -83,6 +87,25 @@ public:
         U8StringView kk_escaped = hermes::StringEscaper::current().escape_quotes(view());
         out << "'" << kk_escaped << "'";
         hermes::StringEscaper::current().reset();
+    }
+
+    ArenaDataTypeContainer* deep_copy_to(
+            ArenaAllocator& dst,
+            ObjectTag tag,
+            hermes::HermesDocView*,
+            ViewPtrHolder*,
+            DeepCopyDeduplicator& dedup
+    ) const
+    {
+        ArenaDataTypeContainer* str = dedup.resolve(dst, this);
+        if (MMA_LIKELY((bool)str)) {
+            return str;
+        }
+        else {
+            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, view());
+            dedup.map(dst, this, new_str);
+            return new_str;
+        }
     }
 
 private:

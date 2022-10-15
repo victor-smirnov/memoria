@@ -33,11 +33,20 @@
 
 #include <memoria/core/hermes/traits.hpp>
 
+#include <memoria/core/flat_map/flat_hash_map.hpp>
+
 #include <new>
 #include <memory>
 #include <vector>
+#include <variant>
 
 namespace memoria {
+
+namespace hermes {
+class HermesDocView;
+}
+
+
 namespace arena {
 
 using ObjectTag = uint64_t;
@@ -121,8 +130,31 @@ struct ObjectSpaceAllocator<T, true> {
     }
 };
 
+enum class AllocationType {
+    GROWABLE_SINGLE_CHUNK, MULTI_CHUNK
+};
+
+class ArenaAllocator;
+
+template <typename T>
+class AddrResolver {
+    std::variant<T*, ptrdiff_t> storage_;
+public:
+    AddrResolver(): storage_() {}
+
+    AddrResolver(T* addr) noexcept :
+        storage_(addr)
+    {}
+
+    AddrResolver(ptrdiff_t offset) noexcept :
+        storage_(offset)
+    {}
+
+    T* get(ArenaAllocator& arena) const noexcept;
+};
 
 class ArenaAllocator {
+protected:
     using MemPtr = UniquePtr<uint8_t>;
 
     struct ChunkSize {
@@ -139,15 +171,75 @@ class ArenaAllocator {
         {}
     };
 
+    AllocationType allocation_type_;
     size_t chunk_size_;
     std::vector<Chunk> chunks_;
 
+    template <typename>
+    friend class AddrResolver;
+
 public:
+
+    ArenaAllocator(AllocationType alc_type, size_t chunk_size, void* data, size_t data_size) noexcept :
+        allocation_type_(alc_type),
+        chunk_size_(chunk_size)
+    {
+        add_chunk(data_size);
+        Chunk& head = this->head();
+        memcpy(head.memory.get(), data, data_size);
+    }
+
+
     ArenaAllocator(size_t chunk_size = 4096) noexcept :
+        allocation_type_(AllocationType::MULTI_CHUNK),
         chunk_size_(chunk_size)
     {}
 
+    ArenaAllocator(AllocationType alc_type, size_t chunk_size = 4096) noexcept :
+        allocation_type_(alc_type),
+        chunk_size_(chunk_size)
+    {}
+
+    ArenaAllocator(AllocationType alc_type, size_t chunk_size, const void* data, size_t segment_size):
+        allocation_type_(alc_type),
+        chunk_size_(chunk_size)
+    {
+        add_chunk(segment_size);
+        head().size = segment_size;
+        std::memcpy(head().memory.get(), data, segment_size);
+    }
+
     ArenaAllocator(const ArenaAllocator&) = delete;
+
+
+
+    bool is_chunked() const {
+        return allocation_type_ == AllocationType::MULTI_CHUNK;
+    }
+
+    size_t chunk_size() const {
+        return chunk_size_;
+    }
+
+    size_t chunks() const {
+        return chunks_.size();
+    }
+
+    template <typename T>
+    AddrResolver<T> get_resolver_for(T* addr)
+    {
+        if (allocation_type_ == AllocationType::MULTI_CHUNK) {
+            return AddrResolver<T>(addr);
+        }
+        else {
+            ptrdiff_t offset = reinterpret_cast<const uint8_t*>(addr) - head().memory.get();
+            return AddrResolver<T>(offset);
+        }
+    }
+
+    void switch_to_chunked_mode() {
+        allocation_type_ = AllocationType::MULTI_CHUNK;
+    }
 
     MMA_NODISCARD uint8_t* allocate_space(size_t size, size_t alignment, size_t tag_size)
     {
@@ -169,8 +261,14 @@ public:
             head().size += (size + upsize);
             return head().memory.get() + addr;
         }
-        else {
+        else if (allocation_type_ == AllocationType::MULTI_CHUNK) {
             return insert_into_new_chunk(size, alignment, tag_size);
+        }
+        else {
+            enlarge_chunk(upsize + size);
+
+            head().size += (size + upsize);
+            return head().memory.get() + addr;
         }
     }
 
@@ -243,7 +341,19 @@ public:
         }
     }
 
+
+
+    Chunk& head() {
+        return chunks_[chunks_.size() - 1];
+    }
+
 private:
+
+    void add_chunk(size_t size) {
+        chunks_.emplace_back(
+            allocate_system_zeroed<uint8_t>(size), size
+        );
+    }
 
     uint8_t* insert_into_new_chunk(size_t size, size_t alignment, size_t tag_size)
     {
@@ -265,14 +375,28 @@ private:
         return head().memory.get() + addr;
     }
 
-    Chunk& head() {
-        return chunks_[chunks_.size() - 1];
-    }
 
-    void add_chunk(size_t size) {
-        chunks_.emplace_back(
-            allocate_system_zeroed<uint8_t>(size), size
-        );
+
+
+
+    void enlarge_chunk(size_t requested)
+    {
+        auto& chunk = head();
+        size_t next_capaicty = chunk.capacity * 2;
+
+        while (chunk.capacity + requested > next_capaicty)
+        {
+            next_capaicty *= 2;
+        }
+
+        auto new_ptr = allocate_system_zeroed<uint8_t>(next_capaicty);
+
+        if (chunk.size > 0) {
+            MemCpyBuffer(chunk.memory.get(), new_ptr.get(), chunk.size);
+        }
+
+        chunk.memory = std::move(new_ptr);
+        chunk.capacity = next_capaicty;
     }
 
     static constexpr size_t align_up(size_t value, size_t alignment) noexcept
@@ -287,5 +411,16 @@ private:
         return value;
     }
 };
+
+template <typename T>
+inline T* AddrResolver<T>::get(ArenaAllocator& arena) const noexcept {
+    if (storage_.index() == 0) {
+        return std::get<0>(storage_);
+    }
+    else {
+        ptrdiff_t offset = std::get<1>(storage_);
+        return ptr_cast<T>(arena.head().memory.get() + offset);
+    }
+}
 
 }}

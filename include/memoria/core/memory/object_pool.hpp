@@ -181,7 +181,7 @@ public:
     }
 };
 
-
+struct DoRef{};
 
 template <typename T>
 class SharedPtr {
@@ -195,6 +195,13 @@ public:
     SharedPtr(T* ptr, RefHolder* holder) noexcept :
         ptr_(ptr), ref_holder_(holder)
     {}
+
+    SharedPtr(T* ptr, RefHolder* holder, DoRef) noexcept :
+        ptr_(ptr), ref_holder_(holder)
+    {
+        holder->ref_copy();
+    }
+
 private:
 
     template <typename> friend class UniquePtr;

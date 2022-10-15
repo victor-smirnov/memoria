@@ -19,12 +19,12 @@
 
 namespace memoria::hermes {
 
-pool::SharedPtr<HermesDoc> HermesDoc::make_pooled(ObjectPools& pool) {
-    return get_reusable_shared_instance<HermesDoc>(pool);
+pool::SharedPtr<HermesDocView> HermesDocView::make_pooled(ObjectPools& pool) {
+    return get_reusable_shared_instance<HermesDocImpl>(pool);
 }
 
-pool::SharedPtr<HermesDoc> HermesDoc::make_new(size_t initial_capacity) {
-    return TL_allocate_shared<HermesDoc>(initial_capacity);
+pool::SharedPtr<HermesDocView> HermesDocView::make_new(size_t initial_capacity) {
+    return TL_allocate_shared<HermesDocImpl>(initial_capacity);
 }
 
 

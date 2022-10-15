@@ -34,10 +34,10 @@ class Array<Value>: public HoldingView {
 public:
     using ArenaArray = arena::Vector<arena::RelativePtr<void>>;
 protected:
-    ArenaArray* array_;
-    HermesDocView* doc_;
+    mutable ArenaArray* array_;
+    mutable HermesDocView* doc_;
 
-    friend class HermesDoc;
+    friend class HermesDocImpl;
     friend class HermesDocView;
     friend class Value;
 
@@ -59,7 +59,12 @@ public:
         array_(reinterpret_cast<ArenaArray*>(array)), doc_(doc)
     {}
 
-    ValuePtr as_value() {
+    PoolSharedPtr<HermesDocView> document() const {
+        assert_not_null();
+        return PoolSharedPtr<HermesDocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+    }
+
+    ValuePtr as_value() const {
         return ValuePtr(Value(array_, doc_, ptr_holder_));
     }
 
@@ -73,13 +78,18 @@ public:
         return array_->size() == 0;
     }
 
-    ViewPtr<Value> get(uint64_t idx)
+    ValuePtr get(uint64_t idx) const
     {
         assert_not_null();
 
         if (idx < array_->size())
         {
-            return ViewPtr<Value>(Value(array_->get(idx).get(), doc_, ptr_holder_));
+            if (MMA_LIKELY(array_->get(idx).is_not_null())) {
+                return ValuePtr(Value(array_->get(idx).get(), doc_, ptr_holder_));
+            }
+            else {
+                return ValuePtr{};
+            }
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Value>: {} {}", idx, array_->size()).do_throw();
@@ -98,6 +108,7 @@ public:
     ValuePtr append_hermes(U8StringView str);
     ValuePtr set_hermes(uint64_t idx, U8StringView str);
 
+    ValuePtr append_null();
 
     template <typename DT>
     DataObjectPtr<DT> set(uint64_t idx, DTTViewType<DT> view);
@@ -108,7 +119,7 @@ public:
 
     void stringify(std::ostream& out,
                    DumpFormatState& state,
-                   DumpState& dump_state)
+                   DumpState& dump_state) const
     {
         assert_not_null();
 
@@ -121,7 +132,7 @@ public:
         }
     }
 
-    bool is_simple_layout()
+    bool is_simple_layout() const
     {
         assert_not_null();
 
@@ -138,7 +149,7 @@ public:
         return simple;
     }
 
-    void for_each(std::function<void(ViewPtr<Value>)> fn) {
+    void for_each(std::function<void(ViewPtr<Value>)> fn) const {
         assert_not_null();
 
         for (auto& vv: array_->span()) {
@@ -154,18 +165,35 @@ public:
         return array_ != nullptr;
     }
 
+    void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
+        assert_not_null();
+        return array_->deep_copy_to(arena, TypeHashV<Array>, doc_, ptr_holder_, dedup);
+    }
+
+    void remove(uint64_t idx);
+
+
+    bool equals(const Array& vv) const noexcept {
+        return array_ == vv.array_;
+    }
+
+    bool equals(GenericArrayPtr vv) const noexcept {
+        return array_ == vv->array_;
+    }
+
+
 protected:
     void append(ValuePtr value);
 private:
     void assert_not_null() const {
         if (MMA_UNLIKELY(array_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("Array<Value> is null");
+            MEMORIA_MAKE_GENERIC_ERROR("Array<Value> is null").do_throw();
         }
     }
 
     void assert_mutable();
 
-    void do_stringify(std::ostream& out, DumpFormatState& state, DumpState& dump_state)
+    void do_stringify(std::ostream& out, DumpFormatState& state, DumpState& dump_state) const
     {
         if (size() > 0)
         {
@@ -200,8 +228,6 @@ private:
 
 
 namespace detail {
-
-
 
 template <>
 struct ValueCastHelper<GenericArray> {

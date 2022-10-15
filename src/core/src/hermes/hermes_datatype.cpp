@@ -18,7 +18,7 @@
 namespace memoria {
 namespace hermes {
 
-GenericArrayPtr Datatype::constructor()
+GenericArrayPtr Datatype::constructor() const
 {
     assert_not_null();
     if (datatype_->has_constructor()) {
@@ -30,7 +30,7 @@ GenericArrayPtr Datatype::constructor()
 }
 
 
-GenericArrayPtr Datatype::type_parameters()
+GenericArrayPtr Datatype::type_parameters() const
 {
     assert_not_null();
     if (datatype_->is_parametric()) {
@@ -44,7 +44,7 @@ GenericArrayPtr Datatype::type_parameters()
 
 void Datatype::stringify(std::ostream& out,
                DumpFormatState& state,
-               DumpState& dump_state)
+               DumpState& dump_state) const
 {
     if (datatype_)
     {
@@ -144,14 +144,10 @@ void Datatype::stringify(std::ostream& out,
 
 void Datatype::stringify_cxx(std::ostream& out,
                DumpFormatState& state,
-               DumpState& dump_state)
+               DumpState& dump_state) const
 {
     if (datatype_)
     {
-//        if (datatype_->extras().is_const()) {
-//            out << "const ";
-//        }
-
         out << type_name()->view();
 
         auto params = type_parameters();
@@ -190,7 +186,7 @@ void Datatype::stringify_cxx(std::ostream& out,
     }
 }
 
-bool Datatype::is_simple_layout() {
+bool Datatype::is_simple_layout() const {
     assert_not_null();
 
     bool sl = true;

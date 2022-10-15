@@ -34,10 +34,9 @@ public:
 
     using ArenaMap = arena::Map<KeyT*, void*>;
 protected:
-    ArenaMap* map_;
-    HermesDocView* doc_;
+    mutable ArenaMap* map_;
+    mutable HermesDocView* doc_;
 
-    friend class HermesDoc;
     friend class HermesDocView;
     friend class Value;
 
@@ -57,7 +56,12 @@ public:
         map_(reinterpret_cast<ArenaMap*>(map)), doc_(doc)
     {}
 
-    ValuePtr as_value() {
+    PoolSharedPtr<HermesDocView> document() const {
+        assert_not_null();
+        return PoolSharedPtr<HermesDocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+    }
+
+    ValuePtr as_value() const {
         return ValuePtr(Value(map_, doc_, ptr_holder_));
     }
 
@@ -91,7 +95,7 @@ public:
 
     void stringify(std::ostream& out,
                    DumpFormatState& state,
-                   DumpState& dump_state)
+                   DumpState& dump_state) const
     {
         if (state.indent_size() == 0 || !is_simple_layout()) {
             do_stringify(out, state, dump_state);
@@ -112,7 +116,7 @@ public:
         });
     }
 
-    bool is_simple_layout() noexcept
+    bool is_simple_layout() const noexcept
     {
         if (size() > 2) {
             return false;
@@ -129,22 +133,49 @@ public:
 
     void remove(U8StringView key);
 
+    void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
+        assert_not_null();
+        return map_->deep_copy_to(arena, TypeHashV<Map>, doc_, ptr_holder_, dedup);
+    }
+
+    bool equals(const Map& map) const noexcept {
+        return map_ == map.map_;
+    }
+
+    bool equals(GenericMapPtr map) const noexcept {
+        return map_ == map->map_;
+    }
+
 protected:
     void put(StringValuePtr name, ValuePtr value);
 private:
-    void do_stringify(std::ostream& out, DumpFormatState state, DumpState& dump_state);
+    void do_stringify(std::ostream& out, DumpFormatState state, DumpState& dump_state) const;
 
 
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(map_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("Map<Varchar, Value> is null");
+            MEMORIA_MAKE_GENERIC_ERROR("Map<Varchar, Value> is null").do_throw();
         }
     }
 
     void assert_mutable();
 };
 
+namespace detail {
+
+template <>
+struct ValueCastHelper<GenericMap> {
+    static GenericMapPtr cast_to(void* addr, HermesDocView* doc, ViewPtrHolder* ref_holder) noexcept {
+        return GenericMapPtr(GenericMap(
+            addr,
+            doc,
+            ref_holder
+        ));
+    }
+};
+
+}
 
 
 }}

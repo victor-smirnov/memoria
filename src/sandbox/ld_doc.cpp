@@ -38,46 +38,13 @@ class TTT {};
 int main(int, char**)
 {
     InitTypeReflections();
-    auto doc = HermesDoc::parse(R"(
-        [0b10011101ull]
+    auto doc = HermesDocView::parse(R"(
+        #{CoolT: AType}
+        [1,2,3,4,5, "ABCDEF", CoolType<11, NonParametric>('a', 'b', 'c'), @#CoolT = {field: 1234.5678, f2: [{}, {}, 'aaa']}]
     )");
-
-    ValuePtr dvv = doc->value();
-
-    GenericArrayPtr vv = dvv->template cast_to<GenericArray>();
-
-    vv->append_hermes("{field1: CollType<ABC>('A', 1, 2, 3)}");
-
 
     println("{}", doc->to_string());
 
-    println("{}", TypeNameFactory<Boo<unsigned short int>>::name());
-    println("{}", TypeNameFactory<Boo<TTT>>::name());
-    println("{}", std::is_same_v<int const volatile*, const volatile int*>);
-
-
-/*
-
-        #{ref0001: int}
-        [[
-            unsigned long int, unsigned long, unsigned long long,
-            unsigned int, unsigned short, unsigned char, unsigned,
-            unsigned short int,
-            '--------------',
-            long double,
-            double, float, bool,
-            '--------------',
-            signed, signed int, signed long,
-            signed long long,
-            signed long int,
-            signed short,
-            '--------------',
-            int, short, short int, char, long, long long, long int**&
-        ],
-        boo<T&, int, 1, 2, true, false> const volatile* volatile&&,
-        'привет мир'
-        ]
-
-
-*/
+    auto dd2 = doc->compactify(true);
+    println("{}", dd2->to_string());
 }

@@ -20,6 +20,8 @@
 
 #include <memoria/reactor/reactor.hpp>
 
+#include <memoria/core/hermes/hermes.hpp>
+
 #include <unordered_map>
 #include <vector>
 
@@ -27,7 +29,7 @@ namespace memoria {
 namespace tests {
 
 
-struct LDTestState: TestState {};
+struct HermesTestState: TestState {};
 
 template <typename T>
 void assert_arrays_equal(const std::vector<T>& expected, const LDDArrayView& actual)
@@ -38,6 +40,15 @@ void assert_arrays_equal(const std::vector<T>& expected, const LDDArrayView& act
     }
 }
 
+
+template <typename T>
+void assert_arrays_equal(const std::vector<T>& expected, hermes::GenericArrayPtr actual)
+{
+    assert_equals(expected.size(), actual->size());
+    for (size_t c = 0; c < expected.size(); c++) {
+        assert_equals(expected[c], actual->get(c)->cast_to(TypeTag<BigInt>{})->view());
+    }
+}
 
 
 
@@ -55,6 +66,23 @@ void assert_arrays_equal(const std::unordered_map<K, V>& expected, const LDDMapV
         auto ii = expected.find(key);
         assert_equals(true, ii != expected.end());
         assert_equals(ii->second, *value.as_bigint());
+    });
+}
+
+template <typename K, typename V>
+void assert_arrays_equal(const std::unordered_map<K, V>& expected, hermes::GenericMapPtr actual)
+{
+    assert_equals(expected.size(), actual->size());
+    for (auto ii: expected)
+    {
+        auto vv = actual->get(ii.first);
+        assert_equals(ii.second, vv->as_bigint()->view());
+    }
+
+    actual->for_each([&](auto key, auto value){
+        auto ii = expected.find(key);
+        assert_equals(true, ii != expected.end());
+        assert_equals(ii->second, value->cast_to(TypeTag<BigInt>{})->view());
     });
 }
 

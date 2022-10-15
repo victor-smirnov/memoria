@@ -37,8 +37,8 @@ struct ValueCastHelper;
 
 class Value: public HoldingView {
 protected:
-    HermesDocView* doc_;
-    void* addr_;
+    mutable HermesDocView* doc_;
+    mutable void* addr_;
 
     friend class HermesDocView;
 
@@ -61,8 +61,12 @@ public:
 
     virtual ~Value() noexcept = default;
 
+    PoolSharedPtr<HermesDocView> document() const {
+        assert_not_null();
+        return PoolSharedPtr<HermesDocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+    }
 
-    ValuePtr as_value() {
+    ValuePtr as_value() const {
         return ValuePtr(*this);
     }
 
@@ -82,24 +86,58 @@ public:
         return is_a(TypeTag<Map<Varchar, Value>>{});
     }
 
-    GenericArrayPtr as_generic_array();
+    bool is_double() const noexcept {
+        return is_a(TypeTag<Double>{});
+    }
+
+    bool is_bigint() const noexcept {
+        return is_a(TypeTag<BigInt>{});
+    }
+
+    bool is_boolean() const noexcept {
+        return is_a(TypeTag<Boolean>{});
+    }
+
+    bool is_typed_value() const noexcept {
+        return is_a(TypeTag<TypedValue>{});
+    }
+
+    bool is_datatype() const noexcept {
+        return is_a(TypeTag<Datatype>{});
+    }
+
+    GenericArrayPtr as_generic_array() const;
+    GenericMapPtr as_generic_map() const;
+    DataObjectPtr<Varchar> as_varchar() const;
+    DataObjectPtr<Double> as_double() const;
+    DataObjectPtr<BigInt> as_bigint() const;
+    DataObjectPtr<Boolean> as_boolean() const;
+
+    template <typename DT>
+    DTTViewType<DT> as_data_object() const {
+        return cast_to<DT>()->view();
+    }
 
     template <typename T>
     bool is_a(TypeTag<T>) const noexcept
     {
-        assert_not_null();
-        auto tag = TypeHashV<T>;
-        auto value_tag = arena::read_type_tag(addr_);
-        return tag == value_tag;
+        if (MMA_LIKELY((bool)addr_)) {
+            auto tag = TypeHashV<T>;
+            auto value_tag = arena::read_type_tag(addr_);
+            return tag == value_tag;
+        }
+        else {
+            return false;
+        }
     }
 
     template <typename T>
-    auto cast_to() {
+    auto cast_to() const {
         return cast_to(TypeTag<T>{});
     }
 
     template <typename T>
-    auto cast_to(TypeTag<T>)
+    auto cast_to(TypeTag<T>) const
     {
         assert_not_null();
         auto tag = TypeHashV<T>;
@@ -125,7 +163,7 @@ public:
         return true;
     }
 
-    U8String to_string()
+    U8String to_string() const
     {
         DumpFormatState fmt = DumpFormatState().simple();
         std::stringstream ss;
@@ -133,7 +171,7 @@ public:
         return ss.str();
     }
 
-    U8String to_pretty_string()
+    U8String to_pretty_string() const
     {
         DumpFormatState fmt = DumpFormatState();
         std::stringstream ss;
@@ -141,14 +179,14 @@ public:
         return ss.str();
     }
 
-    void stringify(std::ostream& out)
+    void stringify(std::ostream& out) const
     {
         DumpFormatState state;
         DumpState dump_state(*doc_);
         stringify(out, state, dump_state);
     }
 
-    void stringify(std::ostream& out, DumpFormatState& format)
+    void stringify(std::ostream& out, DumpFormatState& format) const
     {
         DumpState dump_state(*doc_);
         stringify(out, format, dump_state);
@@ -158,7 +196,7 @@ public:
 
     void stringify(std::ostream& out,
                    DumpFormatState& state,
-                   DumpState& dump_state)
+                   DumpState& dump_state) const
     {
         if (is_null()) {
             out << "null";
@@ -172,11 +210,21 @@ public:
         }
     }
 
+    PoolSharedPtr<HermesDocView> clone() const;
+
+    bool equals(const ValuePtr& ptr) const {
+        return addr_ == ptr->addr_;
+    }
+
+    bool equals(const Value& vv) const {
+        return addr_ == vv.addr_;
+    }
+
 private:
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(addr_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("Value is null");
+            MEMORIA_MAKE_GENERIC_ERROR("Value is null").do_throw();
         }
     }
 };
@@ -190,7 +238,7 @@ std::ostream& operator<<(std::ostream& out, ValuePtr ptr);
 }
 
 template <typename T>
-auto cast_to(ViewPtr<hermes::Value> val) {
+auto cast_to(const hermes::ValuePtr& val) {
     return val->cast_to(TypeTag<T>{});
 }
 

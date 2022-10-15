@@ -156,7 +156,7 @@ void assert_throws(Fn&& fn, Args&&... args) {
         return;
     }
     catch (...) {
-
+        MMA_THROW(TestExecutionException()) << format_ex("Unexpected exception has been thrown");
     }
 
     MMA_THROW(TestExecutionException()) << format_ex("Expected exception {} hasn't been thrown", TypeNameFactory<ExT>::name());

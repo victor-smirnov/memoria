@@ -28,14 +28,14 @@ namespace hermes {
 
 inline void Datatype::assert_mutable()
 {
-    if (MMA_UNLIKELY(doc_->is_mutable())) {
-        MEMORIA_MAKE_GENERIC_ERROR("Datatype is immutable");
+    if (MMA_UNLIKELY(!doc_->is_mutable())) {
+        MEMORIA_MAKE_GENERIC_ERROR("Datatype is immutable").do_throw();
     }
 }
 
 
 
-inline StringValuePtr Datatype::type_name() {
+inline StringValuePtr Datatype::type_name() const {
     assert_not_null();
     return StringValuePtr(StringValue(datatype_->name(), doc_, ptr_holder_));
 }

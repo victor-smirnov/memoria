@@ -27,11 +27,14 @@
 #include <memoria/core/arena/hash_fn.hpp>
 #include <memoria/core/arena/vector.hpp>
 
+#include <memoria/core/hermes/traits.hpp>
+
 #include <memoria/core/tools/bitmap.hpp>
 
 #include <memoria/core/tools/optional.hpp>
 
 #include <memoria/core/reflection/typehash.hpp>
+#include <memoria/core/reflection/reflection.hpp>
 
 #include <memoria/core/types/algo/select.hpp>
 
@@ -88,8 +91,13 @@ class Map {
         uint32_t capacity;
 
         Bucket(size_t capacity) noexcept:
+            size(0),
             capacity(capacity)
         {}
+
+        size_t size_of() const noexcept {
+            return object_size(capacity);
+        }
 
         KeyHolder* keys() noexcept {
             return ptr_cast<KeyHolder>(reinterpret_cast<uint8_t*>(this) + HEADER_SIZE);
@@ -591,6 +599,58 @@ public:
         }
 
         println("}}({})", non_null > 0 ? (double)height / non_null : 0);
+    }
+
+
+    Map* deep_copy_to(
+            ArenaAllocator& dst,
+            arena::ObjectTag tag,
+            void* owner_view,
+            ViewPtrHolder* ptr_holder,
+            DeepCopyDeduplicator& dedup) const
+    {
+        Map* existing = dedup.resolve(dst, this);
+        if (MMA_LIKELY((bool)existing)) {
+            return existing;
+        }
+        else {
+            auto map = dst.get_resolver_for(dst.template allocate_tagged_object<Map>(tag));
+            dedup.map(dst, this, map.get(dst));
+
+            map.get(dst)->size_ = size_;
+            map.get(dst)->buckets_capacity_ = buckets_capacity_;
+
+            if (buckets_.is_not_null())
+            {
+                auto buckets = dst.get_resolver_for(dst.template allocate_untagged_array<BucketRelPtr>(
+                                                        1ull << buckets_capacity_));
+
+                map.get(dst)->buckets_ = buckets.get(dst);
+                const BucketRelPtr* src_buckets = buckets_.get();
+
+                for (size_t c = 0; c < 1ull << buckets_capacity_; c++)
+                {
+                    if (src_buckets[c].is_not_null())
+                    {
+                        const Bucket* src_bucket = src_buckets[c].get();
+                        auto dst_bucket = dst.get_resolver_for(
+                            dst.allocate_object_untagged<Bucket>(src_bucket->capacity)
+                        );
+
+                        dst_bucket.get(dst)->size = src_bucket->size;
+                        buckets.get(dst)[c] = dst_bucket.get(dst);
+
+                        auto keys   = dst.get_resolver_for(dst_bucket.get(dst)->keys());
+                        auto values = dst.get_resolver_for(dst_bucket.get(dst)->values());
+
+                        memoria::detail::DeepCopyHelper<KeyHolder>::deep_copy_to(dst, keys, src_bucket->keys(), src_bucket->size, owner_view, ptr_holder, dedup);
+                        memoria::detail::DeepCopyHelper<ValueHolder>::deep_copy_to(dst, values, src_bucket->values(), src_bucket->size, owner_view, ptr_holder, dedup);
+                    }                    
+                }
+            }
+
+            return map.get(dst);
+        }
     }
 };
 
