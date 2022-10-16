@@ -374,6 +374,9 @@ public:
 
         header_ = ptr_cast<DocumentHeader>(arena_.head().memory.get());
     }
+
+    void object_pool_init_state();
+    void reset_state() noexcept;
 protected:
 
     void configure_refholder(SharedPtrHolder* ref_holder) {

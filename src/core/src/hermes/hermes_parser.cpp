@@ -1226,14 +1226,14 @@ bool parse_identifier(Iterator& first, Iterator& last)
 
 PoolSharedPtr<HermesDocView> HermesDocView::parse(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
-    PoolSharedPtr<HermesDocImpl> doc = TL_allocate_shared<HermesDocImpl>();
+    PoolSharedPtr<HermesDocImpl> doc = TL_get_reusable_shared_instance<HermesDocImpl>();
     parse_hermes_document(start, end, *doc);
     return doc;
 }
 
 PoolSharedPtr<HermesDocView> HermesDocView::parse_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
-    PoolSharedPtr<HermesDocImpl> doc = TL_allocate_shared<HermesDocImpl>();
+    PoolSharedPtr<HermesDocImpl> doc = TL_get_reusable_shared_instance<HermesDocImpl>();
     parse_datatype_decl(start, end, *doc);
     return doc;
 }

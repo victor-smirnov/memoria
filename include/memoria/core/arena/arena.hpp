@@ -343,8 +343,32 @@ public:
 
 
 
-    Chunk& head() {
+    Chunk& head() noexcept {
         return chunks_[chunks_.size() - 1];
+    }
+
+    void object_pool_init_state() {}
+
+    // Will be invoked from destructors, so it's noexcept
+    void reset_state() noexcept
+    {
+        allocation_type_ = AllocationType::MULTI_CHUNK;
+        if (chunks_.size())
+        {
+            if (chunks_[0].capacity <= chunk_size_)
+            {
+                // FIXME: may reallocate and throw!
+                // Use ArenaBuffer instead of vector here
+                chunks_.erase(chunks_.begin() + 1, chunks_.end());
+                auto& head = this->head();
+
+                std::memset(head.memory.get(), 0, head.size);
+                head.size = 0;
+            }
+            else {
+                chunks_.clear();
+            }
+        }
     }
 
 private:

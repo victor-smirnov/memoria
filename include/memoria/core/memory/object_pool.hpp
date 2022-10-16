@@ -629,17 +629,24 @@ struct SharedFromThisHelper<T, false> {
 
 // SFINAE test
 template <typename T>
-class HasObjectResetMethod
+class ObjectPoolLicycleMethods
 {
     typedef char one;
     struct two { char x[2]; };
 
-    template <typename C> static one test( decltype(&C::reset_state) ) ;
-    template <typename C> static two test(...);
+    template <typename C> static one test1( decltype(&C::reset_state) ) ;
+    template <typename C> static two test1(...);
+
+    template <typename C> static one test2( decltype(&C::object_pool_init_state) ) ;
+    template <typename C> static two test2(...);
+
 
 public:
-    static constexpr bool Value = sizeof(test<T>(0)) == sizeof(char);
+    static constexpr bool HasReset = sizeof(test1<T>(0)) == sizeof(char);
+    static constexpr bool HasInit  = sizeof(test2<T>(0)) == sizeof(char);
 };
+
+
 
 
 template <typename T>
@@ -656,18 +663,30 @@ public:
 };
 
 
-
-template <typename T, bool HasResetMethod = HasObjectResetMethod<T>::Value>
+template <typename T, bool HasResetMethod = ObjectPoolLicycleMethods<T>::HasReset>
 struct HeavyObjectResetHelper {
-    static void process(T*) {}
+    static void process(T*) noexcept {}
 };
 
 template <typename T>
 struct HeavyObjectResetHelper<T, true> {
-    static void process(T* obj) {
+    static void process(T* obj) noexcept {
         obj->reset_state();
     }
 };
+
+template <typename T, bool HasResetMethod = ObjectPoolLicycleMethods<T>::HasInit>
+struct HeavyObjectInitHelper {
+    static void process(T*) {}
+};
+
+template <typename T>
+struct HeavyObjectInitHelper<T, true> {
+    static void process(T* obj) {
+        obj->object_pool_init_state();
+    }
+};
+
 
 }
 
@@ -844,7 +863,10 @@ public:
 
         Descriptor* descr = get_or_create();
 
-        return detail::make_unique_ptr_from(descr->ptr(), descr);
+        auto ptr = detail::make_unique_ptr_from(descr->ptr(), descr);
+        detail::HeavyObjectInitHelper<T>::process(descr->ptr());
+
+        return ptr;
     }
 
 
@@ -854,7 +876,10 @@ public:
 
         detail::SharedFromThisHelper<T>::initialize(descr->ptr(), descr);
 
-        return detail::make_unique_ptr_from(descr->ptr(), descr);
+        auto ptr = detail::make_unique_ptr_from(descr->ptr(), descr);
+        detail::HeavyObjectInitHelper<T>::process(descr->ptr());
+
+        return ptr;
     }
 
 

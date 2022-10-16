@@ -19,6 +19,18 @@
 
 namespace memoria::hermes {
 
+void HermesDocImpl::object_pool_init_state() {
+    if (!header_) {
+        arena_.object_pool_init_state();
+        header_ = arena_.allocate_object_untagged<DocumentHeader>();
+    }
+}
+
+void HermesDocImpl::reset_state() noexcept {
+    arena_.reset_state();
+    header_ = nullptr;
+}
+
 pool::SharedPtr<HermesDocView> HermesDocView::make_pooled(ObjectPools& pool) {
     return get_reusable_shared_instance<HermesDocImpl>(pool);
 }
