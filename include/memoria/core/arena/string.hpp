@@ -92,7 +92,7 @@ public:
     ArenaDataTypeContainer* deep_copy_to(
             ArenaAllocator& dst,
             ObjectTag tag,
-            hermes::HermesDocView*,
+            hermes::DocView*,
             ViewPtrHolder*,
             DeepCopyDeduplicator& dedup
     ) const

@@ -30,7 +30,7 @@ class HermesTypedValueReflectionImpl: public TypehashTypeReflectionImplBase<T> {
 public:
     virtual void hermes_stringify_value(
             void* ptr,
-            hermes::HermesDocView* doc,
+            hermes::DocView* doc,
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,
@@ -43,7 +43,7 @@ public:
 
     virtual bool hermes_is_simple_layout(
             void* ptr,
-            hermes::HermesDocView* doc,
+            hermes::DocView* doc,
             ViewPtrHolder* ref_holder
     ) {
         hermes::DataObject<T> dtt(ptr, doc, ref_holder);
@@ -57,7 +57,7 @@ class DataTypeReflectionImpl: public TypehashTypeReflectionImplBase<T> {
 
     virtual void hermes_stringify_value(
             void* ptr,
-            hermes::HermesDocView* doc,
+            hermes::DocView* doc,
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,

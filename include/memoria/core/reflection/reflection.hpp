@@ -33,7 +33,7 @@ UID256 compute_full_type_hash(U8StringView type_decl);
 UID256 compute_full_type_hash_normalized(U8StringView type_decl);
 
 namespace hermes {
-class HermesDocView;
+class DocView;
 }
 
 
@@ -52,7 +52,7 @@ public:
 
     virtual void hermes_stringify_value(
             void* ptr,
-            hermes::HermesDocView* doc,
+            hermes::DocView* doc,
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,
@@ -62,7 +62,7 @@ public:
 
     virtual bool hermes_is_simple_layout(
             void* ptr,
-            hermes::HermesDocView* doc,
+            hermes::DocView* doc,
             ViewPtrHolder* ref_holder
     ) = 0;
 
@@ -104,7 +104,7 @@ public:
 
     virtual bool hermes_is_simple_layout(
             void* ptr,
-            hermes::HermesDocView* doc,
+            hermes::DocView* doc,
             ViewPtrHolder* ref_holder
     ) {
         MEMORIA_MAKE_GENERIC_ERROR("hermes_is_simple_layout() is not implemented for type {}", str()).do_throw();

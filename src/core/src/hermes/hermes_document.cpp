@@ -18,17 +18,17 @@
 namespace memoria {
 namespace hermes {
 
-pool::SharedPtr<HermesDocView> HermesDocView::self() const
+pool::SharedPtr<DocView> DocView::self() const
 {
-    return pool::SharedPtr<HermesDocView>{mutable_self(), get_ptr_holder()->owner(), pool::DoRef{}};
+    return pool::SharedPtr<DocView>{mutable_self(), get_ptr_holder()->owner(), pool::DoRef{}};
 }
 
 
-void HermesDocView::deep_copy_from(const DocumentHeader* src, DeepCopyDeduplicator& dedup) {
+void DocView::deep_copy_from(const DocumentHeader* src, DeepCopyDeduplicator& dedup) {
     header_ = src->deep_copy_to(*arena_, this, ptr_holder_, dedup);
 }
 
-pool::SharedPtr<HermesDocView> HermesDocView::compactify(bool make_immutable) const
+pool::SharedPtr<DocView> DocView::compactify(bool make_immutable) const
 {
     assert_not_null();
 
@@ -46,7 +46,7 @@ pool::SharedPtr<HermesDocView> HermesDocView::compactify(bool make_immutable) co
     return doc;
 }
 
-pool::SharedPtr<HermesDocView> HermesDocView::clone(bool as_mutable) const
+pool::SharedPtr<DocView> DocView::clone(bool as_mutable) const
 {
     assert_not_null();
     if (arena_)
@@ -87,7 +87,7 @@ pool::SharedPtr<HermesDocView> HermesDocView::clone(bool as_mutable) const
 }
 
 
-GenericMapPtr HermesDocView::new_map()
+GenericMapPtr DocView::new_map()
 {
     using CtrT = Map<Varchar, Value>;
 
@@ -98,7 +98,7 @@ GenericMapPtr HermesDocView::new_map()
     return GenericMapPtr(CtrT(arena_dtc, this, ptr_holder_));
 }
 
-GenericArrayPtr HermesDocView::new_array()
+GenericArrayPtr DocView::new_array()
 {
     using CtrT = GenericArray;
 
@@ -109,7 +109,7 @@ GenericArrayPtr HermesDocView::new_array()
     return GenericArrayPtr(CtrT(arena_dtc, this, ptr_holder_));
 }
 
-GenericArrayPtr HermesDocView::new_array(Span<ValuePtr> span)
+GenericArrayPtr DocView::new_array(Span<ValuePtr> span)
 {
     using CtrT = GenericArray;
 
@@ -129,11 +129,11 @@ GenericArrayPtr HermesDocView::new_array(Span<ValuePtr> span)
 }
 
 
-void HermesDocView::set_value(ValuePtr value) {
+void DocView::set_value(ValuePtr value) {
     header_->value = value->addr_;
 }
 
-DatatypePtr HermesDocView::new_datatype(U8StringView name)
+DatatypePtr DocView::new_datatype(U8StringView name)
 {
     auto str = new_dataobject<Varchar>(name);
     auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
@@ -143,7 +143,7 @@ DatatypePtr HermesDocView::new_datatype(U8StringView name)
     return DatatypePtr(Datatype(arena_dt, this, ptr_holder_));
 }
 
-DatatypePtr HermesDocView::new_datatype(StringValuePtr name)
+DatatypePtr DocView::new_datatype(StringValuePtr name)
 {
     auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
         TypeHashV<Datatype>, name->dt_ctr_
@@ -152,7 +152,7 @@ DatatypePtr HermesDocView::new_datatype(StringValuePtr name)
     return DatatypePtr(Datatype(arena_dt, this, ptr_holder_));
 }
 
-TypedValuePtr HermesDocView::new_typed_value(DatatypePtr datatype, ValuePtr constructor)
+TypedValuePtr DocView::new_typed_value(DatatypePtr datatype, ValuePtr constructor)
 {
     auto arena_tv = arena()->allocate_tagged_object<detail::TypedValueData>(
         TypeHashV<TypedValue>, datatype->datatype_, constructor->addr_
@@ -161,7 +161,7 @@ TypedValuePtr HermesDocView::new_typed_value(DatatypePtr datatype, ValuePtr cons
     return TypedValuePtr(TypedValue(arena_tv, this, ptr_holder_));
 }
 
-ValuePtr HermesDocView::do_import_value(ValuePtr value)
+ValuePtr DocView::do_import_value(ValuePtr value)
 {
     assert_not_null();
     assert_mutable();

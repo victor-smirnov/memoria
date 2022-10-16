@@ -31,7 +31,7 @@ class Interpreter;
 namespace hermes {
 class DocumentBuilder;
 
-class HermesDocView;
+class DocView;
 
 template <typename>
 class Array;

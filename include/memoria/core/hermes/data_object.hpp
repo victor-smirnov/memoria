@@ -27,7 +27,7 @@
 namespace memoria {
 namespace hermes {
 
-class HermesDocView;
+class DocView;
 class HermesDocImpl;
 
 template <typename DT>
@@ -35,7 +35,7 @@ class DataObject: public HoldingView {
 public:
     using ArenaDTContainer = arena::ArenaDataTypeContainer<DT>;
 
-    friend class HermesDocView;
+    friend class DocView;
     friend class Value;
 
     template <typename, typename>
@@ -46,21 +46,21 @@ public:
 
 protected:
     mutable ArenaDTContainer* dt_ctr_;
-    mutable HermesDocView* doc_;
+    mutable DocView* doc_;
 public:
     DataObject() noexcept:
         dt_ctr_(), doc_()
     {}
 
-    DataObject(void* dt_ctr, HermesDocView* doc, ViewPtrHolder* ptr_holder) noexcept :
+    DataObject(void* dt_ctr, DocView* doc, ViewPtrHolder* ptr_holder) noexcept :
         HoldingView(ptr_holder),
         dt_ctr_(reinterpret_cast<ArenaDTContainer*>(dt_ctr)),
         doc_(doc)
     {}
 
-    PoolSharedPtr<HermesDocView> document() const {
+    PoolSharedPtr<DocView> document() const {
         assert_not_null();
-        return PoolSharedPtr<HermesDocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<DocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
     uint64_t hash_code() const {
@@ -155,7 +155,7 @@ namespace detail {
 
 template <typename DT>
 struct ValueCastHelper {
-    static ViewPtr<DataObject<DT>> cast_to(void* addr, HermesDocView* doc, ViewPtrHolder* ref_holder) noexcept {
+    static ViewPtr<DataObject<DT>> cast_to(void* addr, DocView* doc, ViewPtrHolder* ref_holder) noexcept {
         return ViewPtr<DataObject<DT>>(DataObject<DT>(
             addr,
             doc,
@@ -241,7 +241,7 @@ public:
     ArenaDataTypeContainer* deep_copy_to(
             ArenaAllocator& dst,
             ObjectTag tag,
-            hermes::HermesDocView*,
+            hermes::DocView*,
             ViewPtrHolder*,
             DeepCopyDeduplicator& dedup) const
     {

@@ -40,7 +40,7 @@ class TTT {};
 int main(int, char**)
 {
     InitTypeReflections();
-    auto doc = HermesDocView::parse(R"(
+    auto doc = DocView::parse(R"(
         {
             key1: {
                 key2: [1, 2, 3, 4, 10.123]
@@ -55,7 +55,7 @@ int main(int, char**)
 
     println("{}", result->to_pretty_string());
 
-    auto doc1 = HermesDocView::parse("{key1: 'value1', key2: 123456}");
+    auto doc1 = DocView::parse("{key1: 'value1', key2: 123456}");
     auto map = doc1->value()->as_generic_map();
 
     map->for_each([](auto k, auto v){

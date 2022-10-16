@@ -20,7 +20,7 @@ namespace tests {
 
 
 auto ld_document_compaction_test = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "DocumentCompaction", [](auto& state){
-    auto doc = hermes::HermesDocView::make_new();
+    auto doc = hermes::DocView::make_new();
 
     auto map = doc->set_generic_map();
 

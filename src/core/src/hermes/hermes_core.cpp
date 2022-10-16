@@ -31,11 +31,11 @@ void HermesDocImpl::reset_state() noexcept {
     header_ = nullptr;
 }
 
-pool::SharedPtr<HermesDocView> HermesDocView::make_pooled(ObjectPools& pool) {
+pool::SharedPtr<DocView> DocView::make_pooled(ObjectPools& pool) {
     return get_reusable_shared_instance<HermesDocImpl>(pool);
 }
 
-pool::SharedPtr<HermesDocView> HermesDocView::make_new(size_t initial_capacity) {
+pool::SharedPtr<DocView> DocView::make_new(size_t initial_capacity) {
     return TL_allocate_shared<HermesDocImpl>(initial_capacity);
 }
 

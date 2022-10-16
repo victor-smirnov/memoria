@@ -24,7 +24,7 @@
 namespace memoria {
 namespace hermes {
 
-class HermesDocView;
+class DocView;
 
 class DumpFormatState {
     const char* space_;
@@ -88,7 +88,7 @@ public:
 
 class DumpState {
 public:
-    DumpState(const HermesDocView& doc) {}
+    DumpState(const DocView& doc) {}
 };
 
 class StringEscaper {

@@ -31,13 +31,13 @@ template <typename EntryT, typename MapT, typename Iterator>
 class MapIteratorAccessor {
     ViewPtr<MapT> map_;
     Iterator iterator_;
-    HermesDocView* doc_;
+    DocView* doc_;
     ViewPtrHolder* ptr_holder_;
 
 public:
     using ViewType = EntryT;
 
-    MapIteratorAccessor(const ViewPtr<MapT>& map, Iterator iterator, HermesDocView* doc, ViewPtrHolder* ptr_holder):
+    MapIteratorAccessor(const ViewPtr<MapT>& map, Iterator iterator, DocView* doc, ViewPtrHolder* ptr_holder):
         map_(map), iterator_(iterator), doc_(doc), ptr_holder_(ptr_holder)
     {}
 
@@ -63,9 +63,9 @@ public:
     using ArenaMap = arena::Map<KeyT*, void*>;
 protected:
     mutable ArenaMap* map_;
-    mutable HermesDocView* doc_;
+    mutable DocView* doc_;
 
-    friend class HermesDocView;
+    friend class DocView;
     friend class Value;
 
     template <typename, typename>
@@ -81,11 +81,11 @@ protected:
 
     class EntryT {
         const MapIterator* iter_;
-        mutable HermesDocView* doc_;
+        mutable DocView* doc_;
         mutable ViewPtrHolder* ptr_holder_;
 
     public:
-        EntryT(const MapIterator* iter, HermesDocView* doc, ViewPtrHolder* ptr_holder):
+        EntryT(const MapIterator* iter, DocView* doc, ViewPtrHolder* ptr_holder):
             iter_(iter), doc_(doc), ptr_holder_(ptr_holder)
         {}
 
@@ -111,7 +111,7 @@ protected:
 public:
     Map() noexcept : map_(), doc_() {}
 
-    Map(void* map, HermesDocView* doc, ViewPtrHolder* ptr_holder) noexcept :
+    Map(void* map, DocView* doc, ViewPtrHolder* ptr_holder) noexcept :
         HoldingView(ptr_holder),
         map_(reinterpret_cast<ArenaMap*>(map)), doc_(doc)
     {}
@@ -136,9 +136,9 @@ public:
         return Iterator(Accessor(self(), map_->end(), doc_, ptr_holder_));
     }
 
-    PoolSharedPtr<HermesDocView> document() const {
+    PoolSharedPtr<DocView> document() const {
         assert_not_null();
-        return PoolSharedPtr<HermesDocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<DocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
     ValuePtr as_value() const {
@@ -251,7 +251,7 @@ namespace detail {
 
 template <>
 struct ValueCastHelper<GenericMap> {
-    static GenericMapPtr cast_to(void* addr, HermesDocView* doc, ViewPtrHolder* ref_holder) noexcept {
+    static GenericMapPtr cast_to(void* addr, DocView* doc, ViewPtrHolder* ref_holder) noexcept {
         return GenericMapPtr(GenericMap(
             addr,
             doc,

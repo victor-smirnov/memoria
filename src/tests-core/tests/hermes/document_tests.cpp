@@ -19,7 +19,7 @@ namespace memoria {
 namespace tests {
 
 auto document_set_test = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "Document", [](auto& state){
-    auto doc = hermes::HermesDocView::make_new();
+    auto doc = hermes::DocView::make_new();
 
     doc->set_dataobject<Double>(12345.67);
     assert_equals(true, doc->value()->is_double());

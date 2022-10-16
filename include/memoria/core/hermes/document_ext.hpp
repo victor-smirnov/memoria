@@ -24,7 +24,7 @@
 namespace memoria {
 namespace hermes {
 
-inline void HermesDocView::assert_mutable()
+inline void DocView::assert_mutable()
 {
     if (MMA_UNLIKELY(!this->is_mutable())) {
         MEMORIA_MAKE_GENERIC_ERROR("Map<String, Value> is immutable").do_throw();
@@ -32,7 +32,7 @@ inline void HermesDocView::assert_mutable()
 }
 
 template <typename DT>
-DataObjectPtr<DT> HermesDocView::new_dataobject(DTTViewType<DT> view)
+DataObjectPtr<DT> DocView::new_dataobject(DTTViewType<DT> view)
 {
     using DTCtr = DataObject<DT>;
 
@@ -45,7 +45,7 @@ DataObjectPtr<DT> HermesDocView::new_dataobject(DTTViewType<DT> view)
 }
 
 template <typename DT>
-DataObjectPtr<DT> HermesDocView::wrap_dataobject(DTTViewType<DT> view) {
+DataObjectPtr<DT> DocView::wrap_dataobject(DTTViewType<DT> view) {
     auto doc = make_pooled();
     return doc->set_dataobject<DT>(view);
 }

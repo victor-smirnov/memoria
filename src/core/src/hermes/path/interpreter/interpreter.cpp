@@ -46,16 +46,16 @@ namespace alg = boost::algorithm;
 
 template <typename DT>
 hermes::DataObjectPtr<DT> wrap_DO(DTTViewType<DT> view) {
-    return hermes::HermesDocView::wrap_dataobject<DT>(view);
+    return hermes::DocView::wrap_dataobject<DT>(view);
 }
 
 hermes::GenericArrayPtr make_array() {
-    auto doc = hermes::HermesDocView::make_pooled();
+    auto doc = hermes::DocView::make_pooled();
     return doc->set_generic_array();
 }
 
 hermes::GenericMapPtr make_map() {
-    auto doc = hermes::HermesDocView::make_pooled();
+    auto doc = hermes::DocView::make_pooled();
     return doc->set_generic_map();
 }
 
@@ -250,12 +250,12 @@ void Interpreter::visit(const ast::IdentifierNode *node, JsonT &&context)
 
 void Interpreter::visit(const ast::RawStringNode *node)
 {
-    m_context = hermes::HermesDocView::parse(node->rawString)->value();
+    m_context = hermes::DocView::parse(node->rawString)->value();
 }
 
 void Interpreter::visit(const ast::LiteralNode *node)
 {
-    m_context = hermes::HermesDocView::parse(node->literal)->value();
+    m_context = hermes::DocView::parse(node->literal)->value();
 }
 
 void Interpreter::visit(const ast::SubexpressionNode *node)
@@ -356,7 +356,7 @@ void Interpreter::visit(const ast::FlattenOperatorNode*, JsonT&& context)
     {
         auto ctx_array = context->as_generic_array();
 
-        auto doc = hermes::HermesDocView::make_pooled();
+        auto doc = hermes::DocView::make_pooled();
         auto result = doc->set_generic_array();
 
         // create the array of results
@@ -453,7 +453,7 @@ void Interpreter::visit(const ast::SliceExpressionNode* node, JsonT&& context)
         // create the array of results
         //Json result(Json::value_t::array);
 
-        auto doc = hermes::HermesDocView::make_pooled();
+        auto doc = hermes::DocView::make_pooled();
         auto result = doc->set_generic_array();
 
         // iterate over the array
@@ -537,7 +537,7 @@ void Interpreter::visit(const ast::MultiselectListNode *node)
         // create the array of results
         //Json result(Json::value_t::array);
 
-        auto doc = hermes::HermesDocView::make_pooled();
+        auto doc = hermes::DocView::make_pooled();
         auto result = doc->set_generic_array();
 
         // move the current context into a temporary variable in case it holds
@@ -567,7 +567,7 @@ void Interpreter::visit(const ast::MultiselectHashNode *node)
         // create the array of results
         //Json result(Json::value_t::object);
 
-        auto doc = hermes::HermesDocView::make_pooled();
+        auto doc = hermes::DocView::make_pooled();
         auto result = doc->set_generic_map();
 
         // move the current context into a temporary variable in case it holds
@@ -596,7 +596,7 @@ void Interpreter::visit(const ast::NotExpressionNode *node)
 {
     // negate the result of the subexpression
     visit(&node->expression);
-    m_context = hermes::HermesDocView::wrap_dataobject<Boolean>(!toSimpleBoolean(getJsonValue(m_context)))->as_value();
+    m_context = hermes::DocView::wrap_dataobject<Boolean>(!toSimpleBoolean(getJsonValue(m_context)))->as_value();
 }
 
 void Interpreter::visit(const ast::ComparatorExpressionNode *node)
@@ -864,7 +864,7 @@ Index Interpreter::adjustSliceEndpoint(size_t length,
 
 hermes::DataObjectPtr<Boolean> Interpreter::toBoolean(const Json &json) const
 {
-    return hermes::HermesDocView::wrap_dataobject<Boolean>(
+    return hermes::DocView::wrap_dataobject<Boolean>(
         toSimpleBoolean(json)
     );
 }
@@ -1173,7 +1173,7 @@ void Interpreter::keys(FunctionArgumentList &arguments)
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
     // add all the keys from the object to the list of results
-    auto doc = hermes::HermesDocView::make_pooled();
+    auto doc = hermes::DocView::make_pooled();
     auto results = doc->set_generic_array();
     //Json results(Json::value_t::array);
     auto map = object->as_generic_map();
@@ -1270,7 +1270,7 @@ void Interpreter::merge(FunctionArgumentList &arguments)
     using std::placeholders::_1;
     // create an emtpy object to hold the results
     //Json result(Json::value_t::object);
-    auto doc = hermes::HermesDocView::make_pooled();
+    auto doc = hermes::DocView::make_pooled();
     auto result = doc->set_generic_map()->as_value();
 
     // make a visitor which will call mergeObject with either a const lvalue

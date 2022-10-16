@@ -37,10 +37,10 @@ struct ValueCastHelper;
 
 class Value: public HoldingView {
 protected:
-    mutable HermesDocView* doc_;
+    mutable DocView* doc_;
     mutable void* addr_;
 
-    friend class HermesDocView;
+    friend class DocView;
 
     template<typename, typename>
     friend class Map;
@@ -53,7 +53,7 @@ public:
         doc_(), addr_()
     {}
 
-    Value(void* addr, HermesDocView* doc, ViewPtrHolder* ref_holder) noexcept :
+    Value(void* addr, DocView* doc, ViewPtrHolder* ref_holder) noexcept :
         HoldingView(ref_holder),
         doc_(doc),
         addr_(addr)
@@ -61,9 +61,9 @@ public:
 
     virtual ~Value() noexcept = default;
 
-    PoolSharedPtr<HermesDocView> document() const {
+    PoolSharedPtr<DocView> document() const {
         assert_not_null();
-        return PoolSharedPtr<HermesDocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<DocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
     ValuePtr as_value() const {
@@ -234,7 +234,7 @@ public:
         }
     }
 
-    PoolSharedPtr<HermesDocView> clone() const;
+    PoolSharedPtr<DocView> clone() const;
 
     bool equals(const ValuePtr& ptr) const {
         return addr_ == ptr->addr_;

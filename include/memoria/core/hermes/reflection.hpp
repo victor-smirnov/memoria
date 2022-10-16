@@ -26,7 +26,7 @@ class HermesTypeReflectionImpl: public TypehashTypeReflectionImplBase<T> {
 public:
     virtual void hermes_stringify_value(
             void* ptr,
-            hermes::HermesDocView* doc,
+            hermes::DocView* doc,
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,
@@ -38,7 +38,7 @@ public:
 
     virtual bool hermes_is_simple_layout(
             void* ptr,
-            hermes::HermesDocView* doc,
+            hermes::DocView* doc,
             ViewPtrHolder* ref_holder
     ) {
         return T(ptr, doc, ref_holder).is_simple_layout();
@@ -51,7 +51,7 @@ public:
             ViewPtrHolder* ref_holder,
             DeepCopyDeduplicator& dedup)
     {
-        HermesDocView* doc = reinterpret_cast<HermesDocView*>(owner_view);
+        DocView* doc = reinterpret_cast<DocView*>(owner_view);
         return T(ptr, doc, ref_holder).deep_copy_to(arena, dedup);
     }
 };
