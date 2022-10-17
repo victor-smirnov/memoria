@@ -86,4 +86,24 @@ inline U8String Value::type_str() const {
     return get_type_reflection(tag).str();
 }
 
+
+template <typename DT>
+PoolSharedPtr<DocView> Value::convert_to() const
+{
+    assert_not_null();
+    auto src_tag = arena::read_type_tag(addr_);
+    auto to_tag = TypeHashV<DT>;
+    return get_type_reflection(src_tag).datatype_convert_to(to_tag, addr_, doc_, ptr_holder_);
+}
+
+template <typename DT>
+template <typename ToDT>
+PoolSharedPtr<DocView> DataObject<DT>::convert_to() const
+{
+    assert_not_null();
+    auto src_tag = arena::read_type_tag(dt_ctr_);
+    auto to_tag = TypeHashV<ToDT>;
+    return get_type_reflection(src_tag).datatype_convert_to(to_tag, dt_ctr_, doc_, ptr_holder_);
+}
+
 }}

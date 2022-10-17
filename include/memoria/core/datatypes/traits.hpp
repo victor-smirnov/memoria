@@ -25,6 +25,16 @@
 
 namespace memoria {
 
+
+template <typename FromType, typename ToType>
+struct DatatypeConverter;
+
+template <typename Type>
+struct FromPlainStringConverter;
+
+template <typename Type>
+struct ToPlainStringConverter;
+
 template <typename T> struct PrimitiveDataTypeName;
 
 #define MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(TypeName, TypeStr)  \

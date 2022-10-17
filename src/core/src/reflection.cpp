@@ -23,11 +23,16 @@
 
 #include <memoria/core/tools/result.hpp>
 
+#include "reflection_internal.hpp"
+
 #include <memory>
 
 namespace memoria {
 
 using ShortCodeMap = ska::flat_hash_map<uint64_t, std::shared_ptr<TypeReflection>>;
+
+
+IDatatypeConverter::~IDatatypeConverter() noexcept {}
 
 namespace {
 
@@ -76,6 +81,27 @@ void register_type_reflection(std::unique_ptr<TypeReflection> type_reflection)
 std::ostream& operator<<(std::ostream& os, const IDValue& id) {
     os << id.str();
     return os;
+}
+
+
+PoolSharedPtr<hermes::DocView> TypeReflection::datatype_convert_to(
+        uint64_t target_tag, void*,
+        hermes::DocView*,
+        ViewPtrHolder*) const {
+    MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible to {}",
+        str(), get_type_reflection(target_tag).str()
+    ).do_throw();
+}
+
+PoolSharedPtr<hermes::DocView> TypeReflection::datatype_convert_from_plain_string(U8StringView) const {
+    MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible from plain string", str()).do_throw();
+}
+
+U8String TypeReflection::convert_to_plain_string(void*,
+                                                 hermes::DocView*,
+                                                 ViewPtrHolder*) const
+{
+    MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible to plain string", str()).do_throw();
 }
 
 }

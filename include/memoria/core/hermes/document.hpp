@@ -335,56 +335,6 @@ private:
     void assert_mutable();
 };
 
-
-
-
-class HermesDocImpl final: public DocView, public pool::enable_shared_from_this<HermesDocImpl> {
-    arena::ArenaAllocator arena_;
-
-    ViewPtrHolder view_ptr_holder_;
-
-    friend class DocumentBuilder;
-    friend class DocView;
-
-public:
-
-    HermesDocImpl() {
-        DocView::arena_ = &arena_;
-        ptr_holder_ = &view_ptr_holder_;
-
-        header_ = arena_.allocate_object_untagged<DocumentHeader>();
-    }
-
-    HermesDocImpl(size_t chunk_size, arena::AllocationType alc_type = arena::AllocationType::MULTI_CHUNK):
-        arena_(alc_type, chunk_size)
-    {
-        DocView::arena_ = &arena_;
-        ptr_holder_ = &view_ptr_holder_;
-
-        if (alc_type == arena::AllocationType::MULTI_CHUNK) {
-            header_ = arena_.allocate_object_untagged<DocumentHeader>();
-        }
-    }
-
-    HermesDocImpl(arena::AllocationType alc_type, size_t chunk_size, const void* data, size_t size):
-        arena_(alc_type, chunk_size, data, size)
-    {
-        DocView::arena_ = &arena_;
-        ptr_holder_ = &view_ptr_holder_;
-
-        header_ = ptr_cast<DocumentHeader>(arena_.head().memory.get());
-    }
-
-    void object_pool_init_state();
-    void reset_state() noexcept;
-protected:
-
-    void configure_refholder(SharedPtrHolder* ref_holder) {
-        view_ptr_holder_.set_owner(ref_holder);
-    }
-};
-
-
 }
 
 struct HermesDoc{};

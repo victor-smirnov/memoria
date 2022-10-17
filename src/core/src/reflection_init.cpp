@@ -16,15 +16,35 @@
 #include <memoria/core/reflection/reflection.hpp>
 
 #include <memoria/core/hermes/hermes.hpp>
-#include <memoria/core/hermes/reflection.hpp>
 
 #include <memoria/core/datatypes/reflection.hpp>
 #include <memoria/core/datatypes/core.hpp>
 
+#include "reflection_internal.hpp"
 
 namespace memoria {
 
 using namespace hermes;
+
+namespace {
+
+template <typename DTList> struct DataObjectReflectionListBuilder;
+
+template <typename DT, typename... Tail>
+struct DataObjectReflectionListBuilder<TL<DT, Tail...>> {
+    static void build() {
+        register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<DT>, DT>>());
+        DataObjectReflectionListBuilder<TL<Tail...>>::build();
+    }
+};
+
+template <>
+struct DataObjectReflectionListBuilder<TL<>> {
+    static void build() {}
+};
+
+}
+
 
 void InitTypeReflections()
 {
@@ -35,12 +55,14 @@ void InitTypeReflections()
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<TypedValue>>());
 
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<Varchar>>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<BigInt>>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<UBigInt>>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<Boolean>>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<Double>>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<DataObject<Real>>>());
+    DataObjectReflectionListBuilder<AllHermesDatatypes>::build();
+
+//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<Varchar>>>());
+//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<BigInt>>>());
+//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<UBigInt>>>());
+//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<Boolean>>>());
+//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<Double>>>());
+//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<Real>>>());
 
 }
 

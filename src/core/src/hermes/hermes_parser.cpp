@@ -51,6 +51,8 @@
 
 #include <memoria/core/flat_map/flat_hash_map.hpp>
 
+#include "hermes_internal.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <string>

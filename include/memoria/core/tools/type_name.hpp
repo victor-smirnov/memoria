@@ -119,7 +119,10 @@ static inline U8String demangle(const char* name)
 
 #endif
 
-
+template <typename T>
+U8String type_to_str() {
+    return TypeNameFactory<T>::name();
+}
 
 template <typename T>
 struct HasStandardTypeName: detail::tn::STTNHelper<T> {};

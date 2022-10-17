@@ -14,6 +14,8 @@
 // limitations under the License.
 
 #include <memoria/core/hermes/document_ext.hpp>
+#include "hermes_internal.hpp"
+
 
 namespace memoria {
 namespace hermes {

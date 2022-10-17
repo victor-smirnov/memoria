@@ -66,6 +66,35 @@ public:
         return PoolSharedPtr<DocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
+    bool is_convertible_to_plain_string() const
+    {
+        if (!is_null()) {
+            auto tag = arena::read_type_tag(addr_);
+            return get_type_reflection(tag).is_convertible_to_plain_string();
+        }
+        return false;
+    }
+
+    U8String to_plain_string() const
+    {
+        assert_not_null();
+        auto tag = arena::read_type_tag(addr_);
+        return get_type_reflection(tag).convert_to_plain_string(addr_, doc_, ptr_holder_);
+    }
+
+    template <typename DT>
+    bool is_convertible_to() const {
+        if (!is_null()) {
+            auto src_tag = arena::read_type_tag(addr_);
+            auto to_tag = TypeHashV<DT>;
+            return get_type_reflection(src_tag).is_convertible_to(to_tag);
+        }
+        return false;
+    }
+
+    template <typename DT>
+    PoolSharedPtr<DocView> convert_to() const;
+
     ValuePtr as_value() const {
         return ValuePtr(*this);
     }

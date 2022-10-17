@@ -37,6 +37,13 @@ class DocView;
 }
 
 
+struct IDatatypeConverter {
+    virtual ~IDatatypeConverter() noexcept;
+
+    virtual PoolSharedPtr<hermes::DocView> convert(const void* view) const = 0;
+};
+
+
 class DeepCopyDeduplicator;
 
 class TypeReflection {
@@ -44,7 +51,7 @@ public:
     virtual ~TypeReflection() noexcept = default;
 
     virtual const std::type_info& type_info() const noexcept = 0;
-    virtual U8String str() = 0;
+    virtual U8String str() const = 0;
 
     // Not all types may have short type hash
     // TypeHash<T>
@@ -58,20 +65,20 @@ public:
             std::ostream& out,
             hermes::DumpFormatState& state,
             hermes::DumpState& dump_state
-    ) = 0;
+    ) const = 0;
 
     virtual bool hermes_is_simple_layout(
             void* ptr,
             hermes::DocView* doc,
             ViewPtrHolder* ref_holder
-    ) = 0;
+    ) const = 0;
 
     template <typename T>
     T* deep_copy(arena::ArenaAllocator& arena,
                  T* src,
                  void* view_owner,
                  ViewPtrHolder* ptr_holder,
-                 DeepCopyDeduplicator& dedup) {
+                 DeepCopyDeduplicator& dedup) const {
         return reinterpret_cast<T*>(
             deep_copy_to(arena, src, view_owner, ptr_holder, dedup)
         );
@@ -83,9 +90,34 @@ public:
             void*,
             ViewPtrHolder*,
             DeepCopyDeduplicator&
-    ) {
+    ) const {
         MEMORIA_MAKE_GENERIC_ERROR("Deep copy is not implemented for class {}", str()).do_throw();
     }
+
+    virtual bool is_convertible_to(uint64_t) const {
+        return false;
+    }
+
+    virtual bool is_convertible_to_plain_string() const {
+        return false;
+    }
+
+    virtual bool is_convertible_from_plain_string() const {
+        return false;
+    }
+
+    virtual PoolSharedPtr<hermes::DocView> datatype_convert_to(
+            uint64_t taget_tag,
+            void* ptr,
+            hermes::DocView* doc,
+            ViewPtrHolder* ref_holder
+    ) const ;
+
+    virtual PoolSharedPtr<hermes::DocView> datatype_convert_from_plain_string(U8StringView str) const ;
+
+    virtual U8String convert_to_plain_string(void* ptr,
+                                             hermes::DocView* doc,
+                                             ViewPtrHolder* ref_holder) const;
 };
 
 
@@ -98,7 +130,7 @@ public:
         return typeid(T);
     }
 
-    virtual U8String str() {
+    virtual U8String str() const {
         return TypeNameFactory<T>::name();
     }
 
@@ -106,7 +138,7 @@ public:
             void* ptr,
             hermes::DocView* doc,
             ViewPtrHolder* ref_holder
-    ) {
+    ) const {
         MEMORIA_MAKE_GENERIC_ERROR("hermes_is_simple_layout() is not implemented for type {}", str()).do_throw();
     }
 };

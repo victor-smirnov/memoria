@@ -65,4 +65,11 @@ int main(int, char**)
     for (auto item: *map.get()) {
         println("{} :: {}", item.first()->view(), item.second()->to_string());
     }
+
+    auto doc2 = DocView::parse("5678ull");
+    println("{}", doc2->value()->to_plain_string());
+
+    println("{}", doc2->value()->is_convertible_to<Varchar>());
+    println("{}", doc2->value()->convert_to<Varchar>()->to_string());
+
 }

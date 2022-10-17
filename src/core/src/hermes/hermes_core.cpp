@@ -17,6 +17,8 @@
 #include <memoria/core/hermes/document.hpp>
 #include <memoria/core/hermes/value.hpp>
 
+#include "hermes_internal.hpp"
+
 namespace memoria::hermes {
 
 void HermesDocImpl::object_pool_init_state() {
