@@ -163,6 +163,67 @@ public:
         return dt_ctr_->deep_copy_to(arena, TypeHashV<DataObject>, doc_, ptr_holder_, dedup);
     }
 
+    template <typename RightDT>
+    bool is_compareble_with(const DataObjectPtr<RightDT>& other) const
+    {
+        if (is_not_null() && other->is_not_null())
+        {
+            auto tag1 = arena::read_type_tag(dt_ctr_);
+            auto tag2 = arena::read_type_tag(other->dt_ctr_);
+            return get_type_reflection(tag1).hermes_comparable_with(tag2);
+        }
+        else {
+            return false;
+        }
+    }
+
+    template <typename RightDT>
+    int32_t compare(const DataObjectPtr<RightDT>& other) const
+    {
+        if (is_not_null() && other->is_not_null())
+        {
+            auto tag1 = arena::read_type_tag(dt_ctr_);
+            return get_type_reflection(tag1).hermes_compare(
+                    dt_ctr_, doc_, ptr_holder_, other->dt_ctr_, other->doc_, other->ptr_holder_
+            );
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Comparing operands may not be nullptr").do_throw();
+        }
+    }
+
+
+    template <typename RightDT>
+    bool is_equals_compareble_with(const DataObjectPtr<RightDT>& other) const
+    {
+        if (is_not_null() && other->is_not_null())
+        {
+            auto tag1 = arena::read_type_tag(dt_ctr_);
+            auto tag2 = arena::read_type_tag(other->dt_ctr_);
+            return get_type_reflection(tag1).hermes_equals_comparable_with(tag2);
+        }
+        else {
+            return false;
+        }
+    }
+
+    template <typename RightDT>
+    bool equals(const DataObjectPtr<RightDT>& other) const
+    {
+        if (is_not_null() && other->is_not_null())
+        {
+            auto tag1 = arena::read_type_tag(dt_ctr_);
+            return get_type_reflection(tag1).hermes_equals(
+                    dt_ctr_, doc_, ptr_holder_, other->dt_ctr_, other->doc_, other->ptr_holder_
+            );
+        }
+        else {
+            return false;
+        }
+    }
+
+
+
 private:
 
     void assert_not_null() const

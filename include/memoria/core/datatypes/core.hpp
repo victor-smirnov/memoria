@@ -185,5 +185,38 @@ struct TypeHash<Decimal>: UInt64Value<39> {};
 template <>
 struct TypeHash<CoreApiProfileDT>: UInt64Value<ToSmallHash(75796829474235345ull)> {};
 
+using AllHermesDatatypes = TL<
+    Varchar, BigInt, UBigInt, Boolean, Double, Real, TinyInt, UTinyInt, SmallInt, USmallInt, Integer, UInteger
+>;
+
+using IntegerNumericDatatypes = TL<
+    TinyInt, SmallInt, Integer, BigInt,
+    UTinyInt, USmallInt, UInteger, UBigInt
+>;
+
+using RealNumericDatatypes = TL<
+    Real, Double
+>;
+
+using AllNumericDatatypes = MergeLists<
+    IntegerNumericDatatypes, RealNumericDatatypes
+>;
+
+template <typename List>
+struct IsCodeInTheList;
+
+template <typename T, typename... Tail>
+struct IsCodeInTheList<TL<T, Tail...>> {
+    static bool is_in(uint64_t code) noexcept {
+        return TypeHashV<T> == code || IsCodeInTheList<TL<Tail...>>::is_in(code);
+    }
+};
+
+template <>
+struct IsCodeInTheList<TL<>> {
+    static bool is_in(uint64_t code) noexcept {
+        return false;
+    }
+};
 
 }

@@ -108,4 +108,20 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
     }
 };
 
+template <typename Selector>
+struct DatatypeComparator<Varchar, Selector> {
+    static int32_t compare(const DTTViewType<Varchar>& left, const DTTViewType<Varchar>& right) {
+        return left.compare(right);
+    }
+};
+
+template <typename Selector>
+struct DatatypeEqualityComparator<Varchar, Selector> {
+    static bool equals(const DTTViewType<Varchar>& left, const DTTViewType<Varchar>& right) {
+        return left == right;
+    }
+};
+
+
+
 }

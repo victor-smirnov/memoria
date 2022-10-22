@@ -599,14 +599,10 @@ private:
     void maxBy(const ast::ExpressionNode* expression,
                const JsonComparator* comparator,
                JsonT&& array);
-    /**
-     * @brief Checks whether @a array is a homogeneous array which contains
-     * comparable types like strings and numbers.
-     * @param[in] array The @ref Json value that should be tested.
-     * @return Returns true if @a array is a comparable array, otherwise
-     * returns false.
-     */
-    bool isComparableArray(const Json& array) const;
+
+private:
+    // Tools
+    hermes::GenericArrayPtr wrap_array(const std::vector<hermes::ValuePtr>& array);
 };
 }} // namespace jmespath::interpreter
 #endif // INTERPRETER_H

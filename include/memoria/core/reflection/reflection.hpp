@@ -113,11 +113,35 @@ public:
             ViewPtrHolder* ref_holder
     ) const ;
 
-    virtual PoolSharedPtr<hermes::DocView> datatype_convert_from_plain_string(U8StringView str) const ;
+    virtual PoolSharedPtr<hermes::DocView> datatype_convert_from_plain_string(U8StringView str) const;
 
     virtual U8String convert_to_plain_string(void* ptr,
                                              hermes::DocView* doc,
                                              ViewPtrHolder* ref_holder) const;
+
+    virtual bool hermes_comparable() const {
+        return false;
+    }
+
+    virtual bool hermes_comparable_with(uint64_t tag) const {
+        return false;
+    }
+
+    virtual bool hermes_equals_comparable_with(uint64_t tag) const {
+        return false;
+    }
+
+    virtual int32_t hermes_compare(void*, hermes::DocView*, ViewPtrHolder*, void*, hermes::DocView*, ViewPtrHolder*) const {
+        MEMORIA_MAKE_GENERIC_ERROR("Objects of the same type {} are not Hermes-comparable", str()).do_throw();
+    }
+
+    virtual bool hermes_equals(void*, hermes::DocView*, ViewPtrHolder*, void*, hermes::DocView*, ViewPtrHolder*) const {
+        MEMORIA_MAKE_GENERIC_ERROR("Objects of type {} are not Hermes-equals-comparable" ).do_throw();
+    }
+
+    virtual int32_t datatype_view_compare(const void*, const void*) const {
+        MEMORIA_MAKE_GENERIC_ERROR("Datatype views of type {} are not view-comparable" ).do_throw();
+    }
 };
 
 

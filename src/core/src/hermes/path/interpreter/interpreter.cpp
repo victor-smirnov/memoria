@@ -49,6 +49,18 @@ hermes::DataObjectPtr<DT> wrap_DO(DTTViewType<DT> view) {
     return hermes::DocView::wrap_dataobject<DT>(view);
 }
 
+
+hermes::GenericArrayPtr Interpreter::wrap_array(const std::vector<hermes::ValuePtr>& array) {
+    auto doc = hermes::DocView::make_pooled();
+    auto arr = doc->set_generic_array();
+
+    for (auto item: array) {
+        arr->append(item);
+    }
+
+    return arr;
+}
+
 hermes::GenericArrayPtr make_array() {
     auto doc = hermes::DocView::make_pooled();
     return doc->set_generic_array();
@@ -239,7 +251,9 @@ void Interpreter::visit(const ast::IdentifierNode *node, JsonT &&context)
         {
             // assign either a const reference of the result or move the result
             // into the context depending on the type of the context parameter
-            m_context = assignContextValue(map->get(node->identifier));
+
+            auto vv = map->get(node->identifier);
+            m_context = assignContextValue(std::move(vv));
             return;
         }
         catch (const nlohmann::json::out_of_range&) {}
@@ -250,12 +264,14 @@ void Interpreter::visit(const ast::IdentifierNode *node, JsonT &&context)
 
 void Interpreter::visit(const ast::RawStringNode *node)
 {
-    m_context = hermes::DocView::parse(node->rawString)->value();
+    auto doc = hermes::DocView::make_pooled();
+    m_context = doc->set_dataobject<Varchar>(node->rawString)->as_value();
 }
 
 void Interpreter::visit(const ast::LiteralNode *node)
 {
-    m_context = hermes::DocView::parse(node->literal)->value();
+    auto doc = hermes::DocView::make_pooled();
+    m_context = doc->set_dataobject<Varchar>(node->literal)->as_value();
 }
 
 void Interpreter::visit(const ast::SubexpressionNode *node)
@@ -617,7 +633,7 @@ void Interpreter::visit(const ast::ComparatorExpressionNode *node)
     // evaluate the left expression
     visit(&node->leftExpression);
 
-    /*
+
     // move the left side results into a temporary variable
     ContextValue leftResultContext {std::move(m_context)};
     // if the context of the comparator expression holds a value but the
@@ -641,44 +657,34 @@ void Interpreter::visit(const ast::ComparatorExpressionNode *node)
 
     if (node->comparator == Comparator::Equal)
     {
-        m_context = leftResult == rightResult;
+        m_context = wrap_DO<Boolean>(leftResult->equals(rightResult))->as_value();
     }
     else if (node->comparator == Comparator::NotEqual)
     {
-        m_context = leftResult != rightResult;
+        m_context = wrap_DO<Boolean>(!leftResult->equals(rightResult))->as_value();
     }
     else
-    {
-        // if a non number is involved in an ordering comparison the result
-        // should be null
-        if (!leftResult->is_number() || !rightResult->is_number())
+    {        
+        if (node->comparator == Comparator::Less)
         {
+            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) < 0)->as_value();
+        }
+        else if (node->comparator == Comparator::LessOrEqual)
+        {
+            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) <= 0)->as_value();
+        }
+        else if (node->comparator == Comparator::GreaterOrEqual)
+        {
+            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) >= 0)->as_value();
+        }
+        else if (node->comparator == Comparator::Greater)
+        {
+            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) > 0)->as_value();
+        }
+        else {
             m_context = Json{};
         }
-        else
-        {
-            if (node->comparator == Comparator::Less)
-            {
-                m_context = leftResult < rightResult;
-            }
-            else if (node->comparator == Comparator::LessOrEqual)
-            {
-                m_context = leftResult <= rightResult;
-            }
-            else if (node->comparator == Comparator::GreaterOrEqual)
-            {
-                m_context = leftResult >= rightResult;
-            }
-            else if (node->comparator == Comparator::Greater)
-            {
-                m_context = leftResult > rightResult;
-            }
-        }
     }
-
-    */
-
-    m_context = Json{};
 }
 
 void Interpreter::visit(const ast::OrExpressionNode *node)
@@ -963,7 +969,7 @@ void Interpreter::abs(FunctionArgumentList &arguments)
     // get the first argument
     const Json& value = getJsonArgument(arguments[0]);
     // throw an exception if it's not a number
-    if (!value->is_number())
+    if (!value->is_numeric())
     {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
@@ -1045,17 +1051,11 @@ void Interpreter::contains(FunctionArgumentList &arguments)
     if (subject->is_generic_array())
     {
         auto array = subject->as_generic_array();
-
-        for (size_t idx = 0; idx < array->size(); idx++) {
-            auto elem = array->get(idx);
-            if (elem->value_eq(item)) {
+        for (auto elem: *array) {
+            if (elem->equals(item)) {
                 result = true;
             }
         }
-
-        // try to find the given item of the \\\\\\\\\\array
-//        auto it = rng::find(subject, item);
-//        result = (it != std::end(subject));
     }
     // if the subject is a string
     else if (subject->is_varchar())
@@ -1074,18 +1074,16 @@ void Interpreter::ceil(FunctionArgumentList &arguments)
     // get the first argument
     const Json& value = getJsonArgument(arguments[0]);
     // throw an exception if if the value is nto a number
-    if (!value->is_number())
+    if (!value->is_numeric())
     {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
 
     // if the value is an integer then it evaluates to itself
-    if (value->is_double())
-    {
+    if (value->is_double()) {
         m_context = wrap_DO<Double>(std::ceil(value->as_double()->view()))->as_value();
     }
-    else if (value->is_real())
-    {
+    else if (value->is_real()) {
         m_context = wrap_DO<Real>(std::ceil(value->as_real()->view()))->as_value();
     }
     else {
@@ -1115,7 +1113,7 @@ void Interpreter::floor(FunctionArgumentList &arguments)
     // get the first argument
     const Json& value = getJsonArgument(arguments[0]);
      // throw an exception if the value is not a number
-    if (!value->is_number())
+    if (!value->is_numeric())
     {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
@@ -1355,28 +1353,18 @@ void Interpreter::reverse(FunctionArgumentList &arguments)
 
 void Interpreter::reverse(Json&& subject)
 {
-    // throw an exception if the subject is not an array or a string
-    if (!(subject->is_generic_array() )) //|| subject->is_varchar()
-    {
-        BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
+
+    auto doc = hermes::DocView::make_pooled();
+    auto result = doc->set_generic_array();
+
+    auto array = subject->as_generic_array();
+    size_t size = array->size();
+    for (size_t idx = 0; idx < size; idx++) {
+        auto item = array->get(size - idx - 1);
+        result->append(item);
     }
-    // reverse the array or string
-    if (subject->is_generic_array())
-    {
-        auto array = subject->as_generic_array();
-        size_t size = array->size();
-        for (size_t idx = 0; idx < size / 2; idx++) {
-            auto tmp = array->get(idx);
-            array->set_value(idx, array->get(idx));
-            array->set_value(size - idx, tmp);
-        }
-    }
-//    else if (subject->is_varchar())
-//    {
-//        rng::reverse(subject.template get_ref<String&>());
-//    }
-    // set the result
-    m_context = std::move(subject);
+
+    m_context = std::move(result)->as_value();
 }
 
 void Interpreter::sort(FunctionArgumentList &arguments)
@@ -1397,98 +1385,64 @@ void Interpreter::sort(FunctionArgumentList &arguments)
 
 void Interpreter::sort(Json&& array)
 {
-    // FIXME: implementation!
-//    // throw an exception if the argument is not a homogenous array
-//    if (!array.is_array() || !isComparableArray(array))
-//    {
-//        BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
-//    }
+    std::vector<hermes::ValuePtr> sorted;
+    for (auto& item: *(array->as_generic_array())) {
+        sorted.push_back(item);
+    }
 
-//    // sort the array and set the result
-//    std::sort(std::begin(array), std::end(array));
-    m_context = std::move(array);
+    std::sort(std::begin(sorted), std::end(sorted), [](auto left, auto right){
+        return left->compare(right) < 0;
+    });
+
+    auto result = wrap_array(sorted);
+
+    m_context = std::move(result)->as_value();
 }
 
 void Interpreter::sortBy(FunctionArgumentList &arguments)
 {
-    // FIXME: implementation!
+    using std::placeholders::_1;
+    using RvalueType = void(Interpreter::*)(const ast::ExpressionNode*,
+                                             Json&&);
+    // get the first argument
+    ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
+    // get the second argument
+    const ast::ExpressionNode& expression
+            = getArgument<ast::ExpressionNode>(arguments[1]);
 
-//    using std::placeholders::_1;
-//    using RvalueType = void(Interpreter::*)(const ast::ExpressionNode*,
-//                                             Json&&);
-//    // get the first argument
-//    ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
-//    // get the second argument
-//    const ast::ExpressionNode& expression
-//            = getArgument<ast::ExpressionNode>(arguments[1]);
-
-//    // create a visitor which will sort the argument if it's an rvalue
-//    // or create a copy of it's argument and sort the copy
-//    auto visitor = makeMoveOnlyVisitor(
-//        std::bind(static_cast<RvalueType>(&Interpreter::sortBy),
-//                  this, &expression, _1)
-//    );
-//    boost::apply_visitor(visitor, contextValue);
+    // create a visitor which will sort the argument if it's an rvalue
+    // or create a copy of it's argument and sort the copy
+    auto visitor = makeMoveOnlyVisitor(
+        std::bind(static_cast<RvalueType>(&Interpreter::sortBy),
+                  this, &expression, _1)
+    );
+    boost::apply_visitor(visitor, contextValue);
 }
 
 void Interpreter::sortBy(const ast::ExpressionNode* expression, Json&& array)
 {
-    // throw an exception if the subject is not an array
-    if (!array->is_generic_array())
-    {
-        BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
-    }
+    std::vector<hermes::ValuePtr> sorted;
 
-    // FIXME: implementation!
-
-    /*
-    // create an object for calculating array item hashes
-    std::hash<Json> hasher;
-    // create a map for storing the results of the evaluated expression by
-    // the hash value of the item
-    std::unordered_map<size_t, Json> expressionResultsMap;
-    auto firstItemType = Json::value_t::discarded;
-    // iterate over the items of the array
-    for (auto& item: array)
+    for (auto& item: *array->as_generic_array())
     {
         // visit the mapped expression with the item as the context
         m_context = assignContextValue(item);
         visit(expression);
         const Json& resultValue = getJsonValue(m_context);
-        // throw an exception if the evaluated expression doesn't result
-        // in a number or string
-        if (!(resultValue.is_number() || resultValue.is_string()))
-        {
-            BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
-        }
-        // store the type of the first expresion result
-        if (firstItemType == Json::value_t::discarded)
-        {
-            firstItemType = resultValue.type();
-        }
-        // if an expression result's type differs from the type of the first
-        // result then throw an exception
-        else if (resultValue.type() != firstItemType)
-        {
-            BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
-        }
-        // store the result of the expression
-        expressionResultsMap[hasher(item)] = resultValue;
+        sorted.push_back(resultValue);
     }
 
     // sort the items of the array based on the results of the expression
     // evaluated on them
-    std::sort(std::begin(array), std::end(array),
+    std::sort(std::begin(sorted), std::end(sorted),
               [&](const auto& first, const auto& second) -> bool
     {
-        return (expressionResultsMap[hasher(first)]
-                < expressionResultsMap[hasher(second)]);
+        return first->compare(second) < 0;
     });
 
-    */
-
     // set the result
-    m_context = std::move(array);
+    auto result = wrap_array(sorted);
+    m_context = std::move(result)->as_value();
 }
 
 void Interpreter::startsWith(FunctionArgumentList &arguments)
@@ -1626,7 +1580,7 @@ template <typename JsonT>
 void Interpreter::toNumber(JsonT&& value)
 {
     // evaluate to the argument if it's a number
-    if (value->is_number())
+    if (value->is_numeric())
     {
         m_context = assignContextValue(std::move(value));
         return;
@@ -1720,51 +1674,41 @@ void Interpreter::max(FunctionArgumentList &arguments,
 template <typename JsonT>
 void Interpreter::max(const JsonComparator* comparator, JsonT&& array)
 {
-    // throw an exception if the array is not homogenous
-    if (!isComparableArray(array))
-    {
-        BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
+    hermes::ValuePtr max_val;
+
+    for (auto item: *array->as_generic_array()) {
+        if (max_val->is_not_null()) {
+            if (max_val->compare(item) > 0) {
+                max_val = item;
+            }
+        }
+        else {
+            max_val = item;
+        }
     }
 
-    // FIXME: implementation
-
-//    // try to find the largest item in the array
-//    auto it = rng::max_element(array, *comparator);
-//    // if the item was found evaluate to that item
-//    if (it != std::end(array))
-//    {
-//        m_context = assignContextValue(std::move(*it));
-//    }
-//    // if the array was empty then evaluate to null
-//    else
-//    {
-//        m_context = {};
-//    }
-
-    m_context = {};
+    m_context = max_val;
 }
 
 void Interpreter::maxBy(FunctionArgumentList &arguments,
                          const JsonComparator &comparator)
 {
-    // FIXME: implementation
+    using std::placeholders::_1;
+    // get the first argument
+    ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
+    // get the second argument
+    const ast::ExpressionNode& expression
+            = getArgument<ast::ExpressionNode>(arguments[1]);
 
-//    using std::placeholders::_1;
-//    // get the first argument
-//    ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
-//    // get the second argument
-//    const ast::ExpressionNode& expression
-//            = getArgument<ast::ExpressionNode>(arguments[1]);
-
-//    // evaluate the map function with either const lvalue ref to the array
-//    // or as an rvalue ref
-//    auto visitor = makeVisitor(
-//        std::bind(&Interpreter::maxBy<const Json&>,
-//                  this, &expression, &comparator, _1),
-//        std::bind(&Interpreter::maxBy<Json&&>,
-//                  this, &expression, &comparator, _1)
-//    );
-//    boost::apply_visitor(visitor, contextValue);
+    // evaluate the map function with either const lvalue ref to the array
+    // or as an rvalue ref
+    auto visitor = makeVisitor(
+        std::bind(&Interpreter::maxBy<const Json&>,
+                  this, &expression, &comparator, _1),
+        std::bind(&Interpreter::maxBy<Json&&>,
+                  this, &expression, &comparator, _1)
+    );
+    boost::apply_visitor(visitor, contextValue);
 }
 
 template <typename JsonT>
@@ -1772,93 +1716,25 @@ void Interpreter::maxBy(const ast::ExpressionNode* expression,
                          const JsonComparator* comparator,
                          JsonT&& array)
 {
-    // throw an exception if the argument is not an array
-    if (!array->is_generic_array())
-    {
-        BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
-    }
+    hermes::ValuePtr max_val;
 
-    // FIXME: implementation!
+    for (auto item: *array->as_generic_array()) {
+        m_context = assignContextValue(item);
+        visit(expression);
+        const Json& result = getJsonValue(m_context);
 
-    /*
-    // if the array is not empty
-    if (!array.empty())
-    {
-        // create a vector to store the results of the expresion evaluated on
-        // the items of the array
-        std::vector<ContextValue> expressionResults;
-        rng::transform(array, std::back_inserter(expressionResults),
-                       [&, this](const Json& item) -> ContextValue&&
-        {
-            // evaluate the expression on the current item
-            m_context = assignContextValue(item);
-            visit(expression);
-            const Json& result = getJsonValue(m_context);
-            // if the result of the expression is not a number or string then
-            // throw an exception
-            if (!(result.is_number() || result.is_string()))
-            {
-                BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
+        if (max_val->is_not_null()) {
+            if (max_val->compare(result) > 0) {
+                max_val = result;
             }
-            return std::move(m_context);
-        });
-        // find the largest item in the vector of results
-        auto maxResultsIt = rng::max_element(expressionResults,
-                                             [&](const auto& contextLeft,
-                                                 const auto& contextRight) {
-            const Json& left = getJsonValue(contextLeft);
-            const Json& right = getJsonValue(contextRight);
-            return (*comparator)(left, right);
-        });
-        // get the item from the input array which is at the same index as the
-        // largest item in the result vector
-        auto maxIt = std::begin(array)
-            + std::distance(std::begin(expressionResults), maxResultsIt);
-        // set the result
-        m_context = std::move(*maxIt);
-    }
-    // if it's empty then evaluate to null
-    else
-    {
-        m_context = {};
-    }
-    */
-
-    m_context = {};
-}
-
-bool Interpreter::isComparableArray(const Json &array) const
-{
-    // the default result is false
-    bool result = false;
-
-    // FIXME: implementation!
-
-    /*
-    // lambda for comparing the type of the item to the first item and making
-    // sure that they are either a number or a string
-    auto notComparablePredicate = [](const auto& item, const auto& firstItem)
-    {
-        return !((item.is_number() && firstItem.is_number())
-                 || (item.is_string() && firstItem.is_string()));
-    };
-    // evaluate only if the argument is an array
-    if (array.is_array())
-    {
-        // the default result is true for arrays
-        result = true;
-        // if the array is not empty then check the items of the array
-        if (!array.empty())
-        {
-            // check that all items of the array satisfy the comparability
-            // condition
-            result = !alg::any_of(array, std::bind(notComparablePredicate,
-                                                   std::placeholders::_1,
-                                                   std::cref(array[0])));
+        }
+        else {
+            max_val = result;
         }
     }
-    */
 
-    return result;
+    m_context = max_val;
 }
+
+
 }} // namespace jmespath::interpreter

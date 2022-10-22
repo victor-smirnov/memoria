@@ -15,6 +15,9 @@
 
 find_package(inja CONFIG REQUIRED)
 
+find_package(Arrow CONFIG REQUIRED)
+find_package(Parquet CONFIG REQUIRED)
+
 include_directories(../tools/include)
 
 if (BUILD_REACTOR_MEMORIA_LIB)
@@ -52,7 +55,7 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
         target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit ${MEMORIA_LIBS})
         #target_link_libraries(${MEMORIA_TARGET} MemoriaCore ${MEMORIA_LIBS})
 
-        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS} pantor::inja)
+        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS} pantor::inja ${ARROW_LIBRARIES} ${PARQUET_LIBRARIES})
     ENDFOREACH(MEMORIA_TARGET )
 
 endif()

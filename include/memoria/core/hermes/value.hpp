@@ -103,6 +103,10 @@ public:
         return !addr_;
     }
 
+    bool is_not_null() const noexcept {
+        return addr_;
+    }
+
     bool is_varchar() const noexcept {
         return is_a(TypeTag<Varchar>{});
     }
@@ -139,17 +143,93 @@ public:
         return is_a(TypeTag<Datatype>{});
     }
 
-    bool is_number() const noexcept {
-        return is_a(TypeTag<BigInt>{}) || is_a(TypeTag<Double>{});
+    bool is_numeric() const noexcept {
+        if (is_not_null()) {
+            auto code = arena::read_type_tag(addr_);
+            return IsCodeInTheList<AllNumericDatatypes>::is_in(code);
+        }
+        return false;
     }
 
-    bool value_eq(const ValuePtr& vv) const
+    bool is_numeric_real() const noexcept
     {
-        if (!is_null()) {
-            // FIXME: Implementation!
+        if (is_not_null()) {
+            auto code = arena::read_type_tag(addr_);
+            return IsCodeInTheList<RealNumericDatatypes>::is_in(code);
+        }
+        return false;
+    }
+
+    bool is_numeric_integer() const noexcept
+    {
+        if (is_not_null()) {
+            auto code = arena::read_type_tag(addr_);
+            return IsCodeInTheList<IntegerNumericDatatypes>::is_in(code);
+        }
+        return false;
+    }
+
+    uint64_t type_tag() const noexcept {
+        if (is_not_null()) {
+            return arena::read_type_tag(addr_);
+        }
+        return 0;
+    }
+
+
+    bool is_compareble_with(const ValuePtr& other) const
+    {
+        if (is_not_null() && other->is_not_null())
+        {
+            auto tag1 = arena::read_type_tag(addr_);
+            auto tag2 = arena::read_type_tag(other->addr_);
+            return get_type_reflection(tag1).hermes_comparable_with(tag2);
+        }
+        else {
             return false;
         }
-        return vv->is_null();
+    }
+
+    int32_t compare(const ValuePtr& other) const
+    {
+        if (is_not_null() && other->is_not_null())
+        {
+            auto tag1 = arena::read_type_tag(addr_);
+            return get_type_reflection(tag1).hermes_compare(
+                    addr_, doc_, ptr_holder_, other->addr_, other->doc_, other->ptr_holder_
+            );
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Comparing operands may not be nullptr").do_throw();
+        }
+    }
+
+
+    bool is_equals_compareble_with(const ValuePtr& other) const
+    {
+        if (is_not_null() && other->is_not_null())
+        {
+            auto tag1 = arena::read_type_tag(addr_);
+            auto tag2 = arena::read_type_tag(other->addr_);
+            return get_type_reflection(tag1).hermes_equals_comparable_with(tag2);
+        }
+        else {
+            return false;
+        }
+    }
+
+    bool equals(const ValuePtr& other) const
+    {
+        if (is_not_null() && other->is_not_null())
+        {
+            auto tag1 = arena::read_type_tag(addr_);
+            return get_type_reflection(tag1).hermes_equals(
+                    addr_, doc_, ptr_holder_, other->addr_, other->doc_, other->ptr_holder_
+            );
+        }
+        else {
+            return false;
+        }
     }
 
     GenericArrayPtr as_generic_array() const;
@@ -264,14 +344,6 @@ public:
     }
 
     PoolSharedPtr<DocView> clone() const;
-
-    bool equals(const ValuePtr& ptr) const {
-        return addr_ == ptr->addr_;
-    }
-
-    bool equals(const Value& vv) const {
-        return addr_ == vv.addr_;
-    }
 
 private:
     void assert_not_null() const

@@ -26,6 +26,9 @@
 
 #include <memoria/memoria.hpp>
 
+#include <arrow/util/basic_decimal.h>
+#include <arrow/util/decimal.h>
+
 #include <unordered_map>
 
 using namespace memoria;
@@ -41,35 +44,19 @@ int main(int, char**)
 {
     InitTypeReflections();
     auto doc = DocView::parse(R"(
-        {
-            key1: {
-                key2: [1, 2, 3, 4, 10.123]
-            }
-        }
+{
+  "locations": [
+    {"name": "Seattle", "state": "WA"},
+    {"name": "New York", "state": "NY"},
+    {"name": "Bellevue", "state": "WA"},
+    {"name": "Olympia", "state": "WA"}
+  ]
+}
     )");
 
-    println("{}", doc->to_string());
+    println("{}", doc->to_pretty_string());
 
-    jmespath::Expression exp("sum(key1.key2)");
+    jmespath::Expression exp("locations[?state == 'WA'].name | sort(@) | {WashingtonCities: join(', ', @)}"); //
     auto result = jmespath::search(exp, doc->value());
-
     println("{}", result->to_pretty_string());
-
-    auto doc1 = DocView::parse("{key1: 'value1', key2: 123456}");
-    auto map = doc1->value()->as_generic_map();
-
-    map->for_each([](auto k, auto v){
-        println("{} :: {}", k, v->to_string());
-    });
-
-    for (auto item: *map.get()) {
-        println("{} :: {}", item.first()->view(), item.second()->to_string());
-    }
-
-    auto doc2 = DocView::parse("5678ull");
-    println("{}", doc2->value()->to_plain_string());
-
-    println("{}", doc2->value()->is_convertible_to<Varchar>());
-    println("{}", doc2->value()->convert_to<Varchar>()->to_string());
-
 }

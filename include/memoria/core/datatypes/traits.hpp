@@ -29,11 +29,27 @@ namespace memoria {
 template <typename FromType, typename ToType>
 struct DatatypeConverter;
 
+template <typename Type, typename Selector = EmptyType>
+struct DatatypeComparator;
+
+template <typename Type, typename Selector = EmptyType>
+struct DatatypeEqualityComparator;
+
+template <typename LeftType, typename RightType, typename Selector = EmptyType>
+struct CrossDatatypeComparator;
+
+template <typename LeftType, typename RightType, typename Selector = EmptyType>
+struct CrossDatatypeEqualityComparator;
+
 template <typename Type>
 struct FromPlainStringConverter;
 
 template <typename Type>
 struct ToPlainStringConverter;
+
+
+struct NumericDatatype;
+
 
 template <typename T> struct PrimitiveDataTypeName;
 
@@ -561,5 +577,36 @@ U8String make_datatype_signature_string()
     DataTypeTraits<T>::create_signature(buf);
     return buf.str();
 }
+
+
+template <typename Type>
+struct DatatypeComparator<Type, NumericDatatype> {
+    static int32_t compare(const DTTViewType<Type>& left, const DTTViewType<Type>& right) noexcept {
+        return left - right;
+    }
+};
+
+template <typename Type>
+struct DatatypeEqualityComparator<Type, NumericDatatype> {
+    static bool equals(const DTTViewType<Type>& left, const DTTViewType<Type>& right) noexcept {
+        return right == left;
+    }
+};
+
+
+template <typename LeftType, typename RightType>
+struct CrossDatatypeComparator<LeftType, RightType, NumericDatatype> {
+    static int32_t compare(const DTTViewType<LeftType>& left, const DTTViewType<RightType>& right) noexcept {
+        return left - right;
+    }
+};
+
+template <typename LeftType, typename RightType>
+struct CrossDatatypeEqualityComparator<LeftType, RightType, NumericDatatype> {
+    static bool equals(const DTTViewType<LeftType>& left, const DTTViewType<RightType>& right) noexcept {
+        return right == left;
+    }
+};
+
 
 }
