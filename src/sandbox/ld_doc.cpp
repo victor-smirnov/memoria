@@ -45,18 +45,20 @@ int main(int, char**)
     InitTypeReflections();
     auto doc = DocView::parse(R"(
 {
-  "locations": [
-    {"name": "Seattle", "state": "WA"},
-    {"name": "New York", "state": "NY"},
-    {"name": "Bellevue", "state": "WA"},
-    {"name": "Olympia", "state": "WA"}
-  ]
+  "people": [
+    {"first": "James", "last": "d"},
+    {"first": "Jacob", "last": "e"},
+    {"first": "Jayden", "last": "f"},
+    {"missing": "different"}
+  ],
+  "foo": {"bar": "baz"}
 }
     )");
 
     println("{}", doc->to_pretty_string());
 
-    jmespath::Expression exp("locations[?state == 'WA'].name | sort(@) | {WashingtonCities: join(', ', @)}"); //
+    jmespath::Expression exp("people[*].first | [0]"); //[*]
+
     auto result = jmespath::search(exp, doc->value());
     println("{}", result->to_pretty_string());
 }

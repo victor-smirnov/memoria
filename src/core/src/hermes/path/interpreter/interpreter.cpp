@@ -91,7 +91,9 @@ Interpreter::Interpreter()
     auto sortByPtr = static_cast<FunctionType>(&Interpreter::sortBy);
     auto toArrayPtr = static_cast<FunctionType>(&Interpreter::toArray);
     auto toStringPtr = static_cast<FunctionType>(&Interpreter::toString);
-    auto toNumberPtr = static_cast<FunctionType>(&Interpreter::toNumber);
+    auto toDoublePtr = static_cast<FunctionType>(&Interpreter::toDouble);
+    auto toBigIntPtr = static_cast<FunctionType>(&Interpreter::toBigInt);
+    auto toBooleanPtr = static_cast<FunctionType>(&Interpreter::toBoolean);
     auto valuesPtr = static_cast<FunctionType>(&Interpreter::values);
     auto maxPtr = static_cast<MaxFunctionType>(&Interpreter::max);
     auto maxByPtr = static_cast<MaxFunctionType>(&Interpreter::maxBy);
@@ -117,15 +119,15 @@ Interpreter::Interpreter()
         {"map", Descriptor{exactlyTwo, true,
                            bind(mapPtr, this, _1)}},
         {"max", Descriptor{exactlyOne, true,
-                           bind(maxPtr, this, _1, std::less<Json>{})}},
+                           bind(maxPtr, this, _1, hermes::Less{})}},
         {"max_by", Descriptor{exactlyTwo, true,
-                              bind(maxByPtr, this, _1, std::less<Json>{})}},
+                              bind(maxByPtr, this, _1, hermes::Less{})}},
         {"merge", Descriptor{zeroOrMore, false,
                              bind(&Interpreter::merge, this, _1)}},
         {"min", Descriptor{exactlyOne, true,
-                           bind(maxPtr, this, _1, std::greater<Json>{})}},
+                           bind(maxPtr, this, _1, hermes::Greater{})}},
         {"min_by", Descriptor{exactlyTwo, true,
-                              bind(maxByPtr, this, _1, std::greater<Json>{})}},
+                              bind(maxByPtr, this, _1, hermes::Greater{})}},
         {"not_null", Descriptor{oneOrMore, false,
                                 bind(&Interpreter::notNull, this, _1)}},
         {"reverse", Descriptor{exactlyOne, true,
@@ -142,8 +144,12 @@ Interpreter::Interpreter()
                                 bind(toArrayPtr, this, _1)}},
         {"to_string", Descriptor{exactlyOne, true,
                                  bind(toStringPtr, this, _1)}},
-        {"to_number", Descriptor{exactlyOne, true,
-                                 bind(toNumberPtr, this, _1)}},
+        {"to_double", Descriptor{exactlyOne, true,
+                                 bind(toDoublePtr, this, _1)}},
+        {"to_bigint", Descriptor{exactlyOne, true,
+                                 bind(toBigIntPtr, this, _1)}},
+        {"to_boolean", Descriptor{exactlyOne, true,
+                                 bind(toBooleanPtr, this, _1)}},
         {"type", Descriptor{exactlyOne, true,
                             bind(&Interpreter::type, this, _1)}},
         {"values", Descriptor{exactlyOne, true,
@@ -1205,12 +1211,10 @@ void Interpreter::length(FunctionArgumentList &arguments)
         m_context = wrap_DO<BigInt>(std::distance(begin, end))->as_value();
     }
     // otherwise get the size of the array or object
-    else if (subject->is_generic_array())
-    {
+    else if (subject->is_generic_array()) {
         m_context = wrap_DO<BigInt>(subject->as_generic_array()->size())->as_value();
     }
-    else
-    {
+    else {
         m_context = wrap_DO<BigInt>(subject->as_generic_map()->size())->as_value();
     }
 }
@@ -1419,17 +1423,19 @@ void Interpreter::sortBy(FunctionArgumentList &arguments)
     boost::apply_visitor(visitor, contextValue);
 }
 
-void Interpreter::sortBy(const ast::ExpressionNode* expression, Json&& array)
+void Interpreter::sortBy(const ast::ExpressionNode* expression, Json&& source)
 {
-    std::vector<hermes::ValuePtr> sorted;
+    using SortT = std::pair<Json, Json>;
 
-    for (auto& item: *array->as_generic_array())
+    std::vector<SortT> sorted;
+
+    for (auto& item: *source->as_generic_array())
     {
         // visit the mapped expression with the item as the context
         m_context = assignContextValue(item);
         visit(expression);
         const Json& resultValue = getJsonValue(m_context);
-        sorted.push_back(resultValue);
+        sorted.push_back(SortT{item, resultValue});
     }
 
     // sort the items of the array based on the results of the expression
@@ -1437,11 +1443,16 @@ void Interpreter::sortBy(const ast::ExpressionNode* expression, Json&& array)
     std::sort(std::begin(sorted), std::end(sorted),
               [&](const auto& first, const auto& second) -> bool
     {
-        return first->compare(second) < 0;
+        return first.second->compare(second.second) < 0;
     });
 
-    // set the result
-    auto result = wrap_array(sorted);
+    auto doc = hermes::DocView::make_pooled();
+    auto result = doc->set_generic_array();
+
+    for (const auto& pair: sorted) {
+        result->append(pair.first);
+    }
+
     m_context = std::move(result)->as_value();
 }
 
@@ -1557,11 +1568,11 @@ void Interpreter::toString(JsonT&& value)
     // otherwise convert the value to a string by serializing it
     else
     {
-        m_context = wrap_DO<Varchar>(value->to_string())->as_value();
+        m_context = wrap_DO<Varchar>(value->to_plain_string())->as_value();
     }
 }
 
-void Interpreter::toNumber(FunctionArgumentList &arguments)
+void Interpreter::toDouble(FunctionArgumentList &arguments)
 {
     using std::placeholders::_1;
     // get the first argument
@@ -1570,14 +1581,14 @@ void Interpreter::toNumber(FunctionArgumentList &arguments)
     // evaluate the toNumber function with either const lvalue ref to the
     // argument or as an rvalue ref
     auto visitor = makeVisitor(
-        std::bind(&Interpreter::toNumber<const Json&>, this, _1),
-        std::bind(&Interpreter::toNumber<Json&&>, this, _1)
+        std::bind(&Interpreter::toDouble<const Json&>, this, _1),
+        std::bind(&Interpreter::toDouble<Json&&>, this, _1)
     );
     boost::apply_visitor(visitor, contextValue);
 }
 
 template <typename JsonT>
-void Interpreter::toNumber(JsonT&& value)
+void Interpreter::toDouble(JsonT&& value)
 {
     // evaluate to the argument if it's a number
     if (value->is_numeric())
@@ -1602,6 +1613,68 @@ void Interpreter::toNumber(JsonT&& value)
     }
     // otherwise evaluate to null
     m_context = {};
+}
+
+
+void Interpreter::toBigInt(FunctionArgumentList &arguments)
+{
+    using std::placeholders::_1;
+    // get the first argument
+    ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
+
+    // evaluate the toNumber function with either const lvalue ref to the
+    // argument or as an rvalue ref
+    auto visitor = makeVisitor(
+        std::bind(&Interpreter::toBigInt<const Json&>, this, _1),
+        std::bind(&Interpreter::toBigInt<Json&&>, this, _1)
+    );
+    boost::apply_visitor(visitor, contextValue);
+}
+
+template <typename JsonT>
+void Interpreter::toBigInt(JsonT&& value)
+{
+    // evaluate to the argument if it's a number
+    if (value->is_bigint())
+    {
+        m_context = assignContextValue(std::move(value));
+        return;
+    }
+    else
+    {
+        m_context = value->template convert_to<BigInt>()->value();
+    }
+}
+
+
+void Interpreter::toBoolean(FunctionArgumentList &arguments)
+{
+    using std::placeholders::_1;
+    // get the first argument
+    ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
+
+    // evaluate the toNumber function with either const lvalue ref to the
+    // argument or as an rvalue ref
+    auto visitor = makeVisitor(
+        std::bind(&Interpreter::toBoolean<const Json&>, this, _1),
+        std::bind(&Interpreter::toBoolean<Json&&>, this, _1)
+    );
+    boost::apply_visitor(visitor, contextValue);
+}
+
+template <typename JsonT>
+void Interpreter::toBoolean(JsonT&& value)
+{
+    // evaluate to the argument if it's a number
+    if (value->is_bigint())
+    {
+        m_context = assignContextValue(std::move(value));
+        return;
+    }
+    else
+    {
+        m_context = value->template convert_to<Boolean>()->value();
+    }
 }
 
 void Interpreter::type(FunctionArgumentList &arguments)
@@ -1714,26 +1787,42 @@ void Interpreter::maxBy(FunctionArgumentList &arguments,
 template <typename JsonT>
 void Interpreter::maxBy(const ast::ExpressionNode* expression,
                          const JsonComparator* comparator,
-                         JsonT&& array)
+                         JsonT&& source)
 {
-    hermes::ValuePtr max_val;
+    auto array = source->as_generic_array();
 
-    for (auto item: *array->as_generic_array()) {
-        m_context = assignContextValue(item);
-        visit(expression);
-        const Json& result = getJsonValue(m_context);
+    // if the array is not empty
+    if (!array->empty())
+    {
 
-        if (max_val->is_not_null()) {
-            if (max_val->compare(result) > 0) {
-                max_val = result;
-            }
+        using MaxByT = std::pair<Json, Json>;
+        std::vector<MaxByT> expressionResults;
+        for (auto item: *array)
+        {
+            // evaluate the expression on the current item
+            m_context = assignContextValue(item);
+            visit(expression);
+            Json result = getJsonValue(m_context);
+            expressionResults.push_back(MaxByT{item, result});
         }
-        else {
-            max_val = result;
-        }
+
+
+        // find the largest item in the vector of results
+        auto maxResultsIt = rng::max_element(expressionResults,
+                                             [&](const auto& contextLeft,
+                                             const auto& contextRight) {
+            const Json& left = getJsonValue(contextLeft.second);
+            const Json& right = getJsonValue(contextRight.second);
+            bool cmp = (*comparator)(left, right);
+            return cmp;
+        });
+
+        m_context = std::move((*maxResultsIt).first);
     }
-
-    m_context = max_val;
+    // if it's empty then evaluate to null
+    else {
+        m_context = {};
+    }
 }
 
 

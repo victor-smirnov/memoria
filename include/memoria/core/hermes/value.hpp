@@ -360,11 +360,24 @@ using ValuePtr = ViewPtr<Value>;
 
 std::ostream& operator<<(std::ostream& out, ValuePtr ptr);
 
+struct Less {
+    bool operator()(const ValuePtr& left, const ValuePtr& right) {
+        return left->compare(right) < 0;
+    }
+};
+
+struct Greater {
+    bool operator()(const ValuePtr& left, const ValuePtr& right) {
+        return left->compare(right) > 0;
+    }
+};
+
 }
 
 template <typename T>
 auto cast_to(const hermes::ValuePtr& val) {
     return val->cast_to(TypeTag<T>{});
 }
-
 }
+
+

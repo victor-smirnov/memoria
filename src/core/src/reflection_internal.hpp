@@ -281,7 +281,7 @@ struct SameDatatypeEqualityComparatorSelector<T, DT, true> {
     static void build_mapping(Map& map) noexcept {
         map[TypeHashV<DT>] = [](const T& left_object, void* right, hermes::DocView* right_doc, ViewPtrHolder* right_ptr) {
             T right_object(right, right_doc, right_ptr);
-            return DatatypeEqualityComparator<DT, NumericTypeSelector<DT>>::equals(left_object.view(), right_object.view());
+               return DatatypeEqualityComparator<DT, NumericTypeSelector<DT>>::equals(left_object.view(), right_object.view());
         };
     }
 };

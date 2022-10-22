@@ -157,11 +157,11 @@ public:
     ValuePtr get(U8StringView key) const
     {
         assert_not_null();
-        auto res = map_->get(key)->get();
+        auto res = map_->get(key);
 
         if (res) {
             return ValuePtr(Value(
-                res, doc_, ptr_holder_
+                res->get(), doc_, ptr_holder_
             ));
         }
 

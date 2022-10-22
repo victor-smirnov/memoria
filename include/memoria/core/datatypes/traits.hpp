@@ -593,6 +593,13 @@ struct DatatypeEqualityComparator<Type, NumericDatatype> {
     }
 };
 
+template <typename Selector>
+struct DatatypeEqualityComparator<Boolean, Selector> {
+    static bool equals(const DTTViewType<Boolean>& left, const DTTViewType<Boolean>& right) noexcept {
+        return right == left;
+    }
+};
+
 
 template <typename LeftType, typename RightType>
 struct CrossDatatypeComparator<LeftType, RightType, NumericDatatype> {

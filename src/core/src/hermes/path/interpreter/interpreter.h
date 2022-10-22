@@ -515,7 +515,7 @@ private:
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
-    void toNumber(FunctionArgumentList& arguments);
+    void toDouble(FunctionArgumentList& arguments);
     /**
      * @brief Converts the @a value to a number if it's not already a number,
      * all other @ref Json types are converted to null.
@@ -523,7 +523,46 @@ private:
      * @tparam JsonT The type of the @a value.
      */
     template <typename JsonT>
-    void toNumber(JsonT&& value);
+    void toBigInt(JsonT&& value);
+
+
+    /**
+     * @brief Converts the string provided as the first item in the given
+     * @a arguments to a number. If it's already a number then the original
+     * value is returned, all other @ref Json types are converted to null.
+     * @param[in] arguments The list of the function's arguments.
+     * @throws InvalidFunctionArgumentType
+     */
+    void toBigInt(FunctionArgumentList& arguments);
+
+    /**
+     * @brief Converts the string provided as the first item in the given
+     * @a arguments to a number. If it's already a number then the original
+     * value is returned, all other @ref Json types are converted to null.
+     * @param[in] arguments The list of the function's arguments.
+     * @throws InvalidFunctionArgumentType
+     */
+    void toBoolean(FunctionArgumentList& arguments);
+    /**
+     * @brief Converts the @a value to a number if it's not already a number,
+     * all other @ref Json types are converted to null.
+     * @param[in] value A Json value.
+     * @tparam JsonT The type of the @a value.
+     */
+    template <typename JsonT>
+    void toBoolean(JsonT&& value);
+
+
+    /**
+     * @brief Converts the @a value to a number if it's not already a number,
+     * all other @ref Json types are converted to null.
+     * @param[in] value A Json value.
+     * @tparam JsonT The type of the @a value.
+     */
+    template <typename JsonT>
+    void toDouble(JsonT&& value);
+
+
     /**
      * @brief Returns the type of the @ref Json value provided as the first
      * item in @a arguments.

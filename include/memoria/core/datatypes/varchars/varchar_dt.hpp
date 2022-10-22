@@ -122,6 +122,20 @@ struct DatatypeEqualityComparator<Varchar, Selector> {
     }
 };
 
+template <typename Selector>
+struct CrossDatatypeEqualityComparator<Varchar, Boolean, Selector> {
+    static bool equals(const DTTViewType<Varchar>& left, const DTTViewType<Boolean>& right) noexcept {
+        bool is_true = left == "true";
+        return right == is_true;
+    }
+};
 
+template <typename Selector>
+struct CrossDatatypeEqualityComparator<Boolean, Varchar, Selector> {
+    static bool equals(const DTTViewType<Boolean>& left, const DTTViewType<Varchar>& right) noexcept {
+        bool is_true = right == "true";
+        return left == is_true;
+    }
+};
 
 }

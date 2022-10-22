@@ -19,6 +19,7 @@
 #include <memoria/core/types.hpp>
 
 #include <type_traits>
+#include <iostream>
 
 namespace memoria {
 
@@ -461,15 +462,5 @@ public:
         return view_.get_ptr_holder() != nullptr;
     }
 };
-
-template <typename View>
-bool operator<(const ViewPtr<View>& v0, const ViewPtr<View>& v1) {
-    return v0 < v1;
-}
-
-template <typename View>
-bool operator>(const ViewPtr<View>& v0, const ViewPtr<View>& v1) {
-    return v0 > v1;
-}
 
 }

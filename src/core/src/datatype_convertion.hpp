@@ -192,10 +192,20 @@ struct FromPlainStringConverter<UTinyInt> {
 template <>
 struct FromPlainStringConverter<Boolean> {
     static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
-        auto val = std::stoi(std::string(str));
-        doc->set_dataobject<Boolean>(val);
-        return doc;
+
+        bool val = str == "true" || str == "1";
+        if (!val) {
+            val = str == "false" || str == "0";
+        }
+
+        if (val) {
+            auto doc = hermes::DocView::make_pooled();
+            doc->set_dataobject<Boolean>(val);
+            return doc;
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Varchar value of {} is not convertuble to Boolean", str).do_throw();
+        }
     }
 };
 
