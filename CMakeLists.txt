@@ -73,6 +73,7 @@ option(BUILD_TESTS_FIBERS       "Build Fibers tests" OFF)
 option(BUILD_TESTS_DISRUPTOR    "Build Disriptor MPSC queue tests" OFF)
 option(BUILD_TESTS_CONTEXT      "Build Disriptor MPSC queue tests" OFF)
 option(BUILD_TESTS_STORES       "Build Stores tests" ON)
+option(BUILD_TESTS_HERMESPATH   "Build HermesPath tests" OFF)
 
 
 option(BUILD_CODEGENERATOR_EXPLICITLY  "Build code generator explictly (for its development)" OFF)

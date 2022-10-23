@@ -101,13 +101,13 @@
  * @endcode
  *
  * @subsection search Search function
- * The main entry point of the library is the @ref jmespath::search function
+ * The main entry point of the library is the @ref memoria::hermes::path::search function
  * which takes a HermesPath expression as its first argument and a JSON document
  * as the second argument and returns the result of the evaluated expression
  * as a new JSON document.
  * @code{.cpp}
  * auto input = R"({"foo": "bar"})"_json;
- * auto result = jmespath::search("foo", input);
+ * auto result = memoria::hermes::path::search("foo", input);
  * @endcode
  *
  * Besided passing the input document as an lvalue reference you can also pass
@@ -116,27 +116,27 @@
  * efficient and faster manner.
  * @code{.cpp}
  * auto input = R"({"foo": "bar"})"_json;
- * auto result = jmespath::search("foo", std::move(input));
+ * auto result = memoria::hermes::path::search("foo", std::move(input));
  * @endcode
  *
  * @subsection expression Expression class
- * The @ref jmespath::Expression class allows to store a parsed HermesPath
+ * The @ref memoria::hermes::path::Expression class allows to store a parsed HermesPath
  * expression which is usefull if you want to evaluate the same expression
  * on multiple JSON documents.
  * @code{.cpp}
- * jmespath::Expression expression {"foo"};
- * auto result1 = jmespath::search(expression, R"({"foo": "bar"})"_json);
- * auto result2 = jmespath::search(expression, R"({"foo": {"bar": "baz"}})"_json);
+ * memoria::hermes::path::Expression expression {"foo"};
+ * auto result1 = memoria::hermes::path::search(expression, R"({"foo": "bar"})"_json);
+ * auto result2 = memoria::hermes::path::search(expression, R"({"foo": {"bar": "baz"}})"_json);
  * @endcode
  *
- * By importing the names from the @ref jmespath::literals namespace you can
+ * By importing the names from the @ref memoria::hermes::path::literals namespace you can
  * also use user defined literals to define HermesPath expressions.
  * @code{.cpp}
- * using namespace jmespath::literals;
+ * using namespace memoria::hermes::path::literals;
  *
  * auto expression = "foo"_jmespath;
- * auto result1 = jmespath::search(expression, R"({"foo": "bar"})"_json);
- * auto result2 = jmespath::search(expression, R"({"foo": {"bar": "baz"}})"_json);
+ * auto result1 = memoria::hermes::path::search(expression, R"({"foo": "bar"})"_json);
+ * auto result2 = memoria::hermes::path::search(expression, R"({"foo": {"bar": "baz"}})"_json);
  * @endcode
  *
  * @subsection json JSON documents
@@ -145,10 +145,10 @@
  * library.
  *
  * For defining JSON values you can either use `"_json"` user defined literal
- * or the @ref jmespath::ValuePtr type which is just an alias for
+ * or the @ref memoria::hermes::path::ValuePtr type which is just an alias for
  * <a href="https://github.com/nlohmann/json">nlohmann_json</a>
  * @code{.cpp}
- * jmespath::ValuePtr jsonObject {{"foo", "bar"}};
+ * memoria::hermes::path::ValuePtr jsonObject {{"foo", "bar"}};
  * @endcode
  *
  * or you can also include the header of the
@@ -161,8 +161,8 @@
  * @endcode
  *
  * @subsection error Error handling
- * All the exceptions that might get thrown by @ref jmespath::search or
- * @ref jmespath::Expression are listed on the @ref exceptions page.
+ * All the exceptions that might get thrown by @ref memoria::hermes::path::search or
+ * @ref memoria::hermes::path::Expression are listed on the @ref exceptions page.
  *
  * The library uses the
  * <a href="https://www.boost.org/doc/libs/1_69_0/libs/exception/doc/
@@ -176,22 +176,22 @@
  * This additional information can be used for example to pinpoint exactly
  * which part of a HermesPath expression caused a parsing failure.
  * @code{.cpp}
- * jmespath::Expression expression;
+ * memoria::hermes::path::Expression expression;
  *
  * try
  * {
  *      expression = "foo?";
  * }
- * catch (jmespath::SyntaxError& error)
+ * catch (memoria::hermes::path::SyntaxError& error)
  * {
  *      if (const std::string* searchExpression
- *              = boost::get_error_info<jmespath::InfoSearchExpression>(error))
+ *              = boost::get_error_info<memoria::hermes::path::InfoSearchExpression>(error))
  *      {
  *          std::cerr << "Failed parsing expression: "
  *                    << *searchExpression << std::endl;
  *      }
  *      if (const long* location
- *              = boost::get_error_info<jmespath::InfoSyntaxErrorLocation>(
+ *              = boost::get_error_info<memoria::hermes::path::InfoSyntaxErrorLocation>(
  *                  error))
  *      {
  *          std::cerr << "Error at position: " << *location << std::endl;
@@ -209,24 +209,24 @@
  * boost::diagnostic_information</a> function to get all the additional
  * information attached to an exception.
  * @code{.cpp}
- * jmespath::Expression expression;
+ * memoria::hermes::path::Expression expression;
  *
  * try
  * {
  *      expression = "foo?";
  * }
- * catch (jmespath::SyntaxError& error)
+ * catch (memoria::hermes::path::SyntaxError& error)
  * {
  *      std::cerr << boost::diagnostic_information(error) << std::endl;
  * }
  * @endcode
  * This code would produce the following output:
  * @code
- * jmespath.cpp/src/parser/parser.h(90): Throw in function jmespath::parser::Parser::ResultType jmespath::parser::Parser<parser::Grammar>::parse(const jmespath::String &) [T = parser::Grammar]
- * Dynamic exception type: boost::exception_detail::clone_impl<jmespath::SyntaxError>
+ * jmespath.cpp/src/parser/parser.h(90): Throw in function memoria::hermes::path::parser::Parser::ResultType memoria::hermes::path::parser::Parser<parser::Grammar>::parse(const memoria::hermes::path::String &) [T = parser::Grammar]
+ * Dynamic exception type: boost::exception_detail::clone_impl<memoria::hermes::path::SyntaxError>
  * std::exception::what: std::exception
- * [jmespath::tag_search_expression*] = foo?
- * [jmespath::tag_syntax_error_location*] = 3
+ * [memoria::hermes::path::tag_search_expression*] = foo?
+ * [memoria::hermes::path::tag_syntax_error_location*] = 3
  * @endcode
  */
 
@@ -275,7 +275,7 @@
  *
  * @subsubsection integration Integration
  * To use the library in your CMake project you should find the library with
- * `"find_package"` and link your target with `"jmespath::jmespath"`:
+ * `"find_package"` and link your target with `"memoria::hermes::path::jmespath"`:
  * @code
  * cmake_minimum_required(VERSION 3.0)
  * project(example)
@@ -283,7 +283,7 @@
  * find_package(jmespath 0.1.0 CONFIG REQUIRED)
  *
  * add_executable(${PROJECT_NAME} main.cpp)
- * target_link_libraries(${PROJECT_NAME} jmespath::jmespath)
+ * target_link_libraries(${PROJECT_NAME} memoria::hermes::path::jmespath)
  * target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_14)
  * @endcode
  *
