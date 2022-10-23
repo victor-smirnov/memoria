@@ -82,13 +82,6 @@ using Index = boost::multiprecision::number<
         boost::multiprecision::signed_magnitude,
         boost::multiprecision::checked,
         void> >;
-
-
-namespace interpreter {
-class Interpreter;
-}
-
-
 }
 }}
 #endif // TYPES_H

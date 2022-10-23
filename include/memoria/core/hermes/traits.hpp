@@ -23,14 +23,13 @@ namespace memoria {
 struct Varchar;
 
 namespace hermes {
+
 namespace path {
 namespace interpreter {
 class Interpreter;
 }
 }
-}
 
-namespace hermes {
 class DocumentBuilder;
 
 class DocView;
