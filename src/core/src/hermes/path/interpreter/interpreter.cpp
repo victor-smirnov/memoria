@@ -47,12 +47,12 @@ namespace alg = boost::algorithm;
 
 template <typename DT>
 hermes::DataObjectPtr<DT> wrap_DO(DTTViewType<DT> view) {
-    return hermes::DocView::wrap_dataobject<DT>(view);
+    return hermes::HermesCtr::wrap_dataobject<DT>(view);
 }
 
 
 hermes::GenericArrayPtr Interpreter::wrap_array(const std::vector<ValuePtr>& array) {
-    auto doc = hermes::DocView::make_pooled();
+    auto doc = hermes::HermesCtr::make_pooled();
     auto arr = doc->set_generic_array();
 
     for (const auto& item: array) {
@@ -63,12 +63,12 @@ hermes::GenericArrayPtr Interpreter::wrap_array(const std::vector<ValuePtr>& arr
 }
 
 hermes::GenericArrayPtr make_array() {
-    auto doc = hermes::DocView::make_pooled();
+    auto doc = hermes::HermesCtr::make_pooled();
     return doc->set_generic_array();
 }
 
 hermes::GenericMapPtr make_map() {
-    auto doc = hermes::DocView::make_pooled();
+    auto doc = hermes::HermesCtr::make_pooled();
     return doc->set_generic_map();
 }
 
@@ -244,13 +244,13 @@ void Interpreter::visit(const ast::IdentifierNode *node, JsonT &&context)
 
 void Interpreter::visit(const ast::RawStringNode *node)
 {
-    auto doc = hermes::DocView::make_pooled();
+    auto doc = hermes::HermesCtr::make_pooled();
     m_context = doc->set_dataobject<Varchar>(node->rawString)->as_value();
 }
 
 void Interpreter::visit(const ast::LiteralNode *node)
 {
-    auto doc = hermes::DocView::make_pooled();
+    auto doc = hermes::HermesCtr::make_pooled();
     m_context = doc->set_dataobject<Varchar>(node->literal)->as_value();
 }
 
@@ -328,7 +328,7 @@ void Interpreter::visit(const ast::FlattenOperatorNode*, JsonT&& context)
     {
         auto ctx_array = context->as_generic_array();
 
-        auto doc = hermes::DocView::make_pooled();
+        auto doc = hermes::HermesCtr::make_pooled();
         auto result = doc->set_generic_array();
 
         // iterate over the array
@@ -411,7 +411,7 @@ void Interpreter::visit(const ast::SliceExpressionNode* node, JsonT&& context)
         // create the array of results
         //ValuePtr result(ValuePtr::value_t::array);
 
-        auto doc = hermes::DocView::make_pooled();
+        auto doc = hermes::HermesCtr::make_pooled();
         auto result = doc->set_generic_array();
 
         // iterate over the array
@@ -478,7 +478,7 @@ void Interpreter::visit(const ast::MultiselectListNode *node)
     // evaluate the multiselect list opration if the context doesn't holds null
     if (!getJsonValue(m_context)->is_null())
     {
-        auto doc = hermes::DocView::make_pooled();
+        auto doc = hermes::HermesCtr::make_pooled();
         auto result = doc->set_generic_array();
 
         // move the current context into a temporary variable in case it holds
@@ -505,7 +505,7 @@ void Interpreter::visit(const ast::MultiselectHashNode *node)
     // evaluate the multiselect hash opration if the context doesn't holds null
     if (!getJsonValue(m_context)->is_null())
     {
-        auto doc = hermes::DocView::make_pooled();
+        auto doc = hermes::HermesCtr::make_pooled();
         auto result = doc->set_generic_map();
 
         // move the current context into a temporary variable in case it holds
@@ -534,7 +534,7 @@ void Interpreter::visit(const ast::NotExpressionNode *node)
 {
     // negate the result of the subexpression
     visit(&node->expression);
-    m_context = hermes::DocView::wrap_dataobject<Boolean>(!toSimpleBoolean(getJsonValue(m_context)))->as_value();
+    m_context = hermes::HermesCtr::wrap_dataobject<Boolean>(!toSimpleBoolean(getJsonValue(m_context)))->as_value();
 }
 
 void Interpreter::visit(const ast::ComparatorExpressionNode *node)
@@ -754,7 +754,7 @@ Index Interpreter::adjustSliceEndpoint(size_t length,
 
 hermes::DataObjectPtr<Boolean> Interpreter::toBoolean(const ValuePtr &json) const
 {
-    return hermes::DocView::wrap_dataobject<Boolean>(
+    return hermes::HermesCtr::wrap_dataobject<Boolean>(
         toSimpleBoolean(json)
     );
 }
@@ -1055,7 +1055,7 @@ void Interpreter::keys(FunctionArgumentList &arguments)
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
     // add all the keys from the object to the list of results
-    auto doc = hermes::DocView::make_pooled();
+    auto doc = hermes::HermesCtr::make_pooled();
     auto results = doc->set_generic_array();
     //ValuePtr results(ValuePtr::value_t::array);
     auto map = object->as_generic_map();
@@ -1133,7 +1133,7 @@ void Interpreter::merge(FunctionArgumentList &arguments)
 {
     using std::placeholders::_1;
 
-    auto doc = hermes::DocView::make_pooled();
+    auto doc = hermes::HermesCtr::make_pooled();
     auto result = doc->set_generic_map()->as_value();
 
     // iterate over the arguments
@@ -1202,7 +1202,7 @@ void Interpreter::reverse(FunctionArgumentList &arguments)
 void Interpreter::reverse(ValuePtr&& subject)
 {
 
-    auto doc = hermes::DocView::make_pooled();
+    auto doc = hermes::HermesCtr::make_pooled();
     auto result = doc->set_generic_array();
 
     auto array = subject->as_generic_array();
@@ -1272,7 +1272,7 @@ void Interpreter::sortBy(const ast::ExpressionNode* expression, ValuePtr&& sourc
         return first.second->compare(second.second) < 0;
     });
 
-    auto doc = hermes::DocView::make_pooled();
+    auto doc = hermes::HermesCtr::make_pooled();
     auto result = doc->set_generic_array();
 
     for (const auto& pair: sorted) {
@@ -1436,7 +1436,7 @@ void Interpreter::toBigInt(JsonT&& value)
     }
     else
     {
-        m_context = value->template convert_to<BigInt>()->value();
+        m_context = value->template convert_to<BigInt>()->root();
     }
 }
 
@@ -1459,7 +1459,7 @@ void Interpreter::toBoolean(JsonT&& value)
     }
     else
     {
-        m_context = value->template convert_to<Boolean>()->value();
+        m_context = value->template convert_to<Boolean>()->root();
     }
 }
 

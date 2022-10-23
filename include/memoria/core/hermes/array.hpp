@@ -50,10 +50,10 @@ public:
     using ArenaArray = arena::Vector<arena::RelativePtr<void>>;
 protected:
     mutable ArenaArray* array_;
-    mutable DocView* doc_;
+    mutable HermesCtr* doc_;
 
     friend class HermesDocImpl;
-    friend class DocView;
+    friend class HermesCtr;
     friend class Value;
 
     template <typename, typename>
@@ -76,7 +76,7 @@ public:
         array_(), doc_()
     {}
 
-    Array(void* array, DocView* doc, ViewPtrHolder* ref_holder) noexcept:
+    Array(void* array, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept:
         HoldingView(ref_holder),
         array_(reinterpret_cast<ArenaArray*>(array)), doc_(doc)
     {}
@@ -105,9 +105,9 @@ public:
         return GenericArrayPtr(GenericArray(array_, doc_, ptr_holder_));
     }
 
-    PoolSharedPtr<DocView> document() const {
+    PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
-        return PoolSharedPtr<DocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
     ValuePtr as_value() const {
@@ -284,7 +284,7 @@ namespace detail {
 
 template <>
 struct ValueCastHelper<GenericArray> {
-    static GenericArrayPtr cast_to(void* addr, DocView* doc, ViewPtrHolder* ref_holder) noexcept {
+    static GenericArrayPtr cast_to(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept {
         return GenericArrayPtr(GenericArray(
             addr,
             doc,

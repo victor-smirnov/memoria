@@ -19,13 +19,13 @@
 #include <memoria/core/hermes/value.hpp>
 #include <memoria/core/hermes/map.hpp>
 #include <memoria/core/hermes/array.hpp>
-#include <memoria/core/hermes/document.hpp>
+#include <memoria/core/hermes/container.hpp>
 #include <memoria/core/hermes/datatype.hpp>
 #include <memoria/core/hermes/data_object.hpp>
 #include <memoria/core/hermes/typed_value.hpp>
 
 
-#include <memoria/core/hermes/document_ext.hpp>
+#include <memoria/core/hermes/container_ext.hpp>
 #include <memoria/core/hermes/array_ext.hpp>
 #include <memoria/core/hermes/map_ext.hpp>
 #include <memoria/core/hermes/datatype_ext.hpp>

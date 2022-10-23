@@ -43,7 +43,7 @@ class TTT {};
 int main(int, char**)
 {
     InitTypeReflections();
-    auto doc = DocView::parse(R"(
+    auto doc = HermesCtr::parse(R"(
 {
   "people": [
     {"first": "James", "last": "d"},
@@ -59,6 +59,6 @@ int main(int, char**)
 
     hermes::path::Expression exp("people[*].first | [0]"); //[*]
 
-    auto result = hermes::path::search(exp, doc->value());
+    auto result = hermes::path::search(exp, doc->root());
     println("{}", result->to_pretty_string());
 }

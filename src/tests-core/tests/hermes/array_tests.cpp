@@ -20,10 +20,10 @@ namespace tests {
 
 
 auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "ArrayAddRemove", [](auto& state){
-    auto doc = hermes::DocView::make_new();
+    auto doc = hermes::HermesCtr::make_new();
 
     auto array = doc->set_generic_array();
-    assert_equals(true, doc->value()->as_generic_array()->equals(array));
+    assert_equals(true, doc->root()->as_generic_array()->equals(array));
     assert_equals(0, array->size());
 
     size_t size = 10000;
@@ -58,10 +58,10 @@ auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>
 
 
 auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "ArraySet", [](auto& state){
-    auto doc = hermes::DocView::make_new();
+    auto doc = hermes::HermesCtr::make_new();
 
     auto array = doc->set_generic_array();
-    assert_equals(true, doc->value()->as_generic_array()->equals(array));
+    assert_equals(true, doc->root()->as_generic_array()->equals(array));
     assert_equals(0, array->size());
 
     array->append<Varchar>("Hello World");

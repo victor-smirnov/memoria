@@ -48,7 +48,7 @@ struct DataObjectReflectionListBuilder<TL<>> {
 
 void InitTypeReflections()
 {
-    DocView::init_hermes_doc_parser();
+    HermesCtr::init_hermes_doc_parser();
 
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Array<Value>>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Map<Varchar, Value>>>());

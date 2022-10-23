@@ -81,20 +81,20 @@ public:
 
 class TypedValue: public HoldingView {
     mutable detail::TypedValueData* tv_;
-    mutable DocView* doc_;
+    mutable HermesCtr* doc_;
 public:
     TypedValue() noexcept:
         tv_(), doc_()
     {}
 
-    TypedValue(void* tv, DocView* doc, ViewPtrHolder* ptr_holder) noexcept:
+    TypedValue(void* tv, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept:
         HoldingView(ptr_holder),
         tv_(reinterpret_cast<detail::TypedValueData*>(tv)), doc_(doc)
     {}
 
-    PoolSharedPtr<DocView> document() const {
+    PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
-        return PoolSharedPtr<DocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
     ValuePtr as_value() const {

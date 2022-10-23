@@ -19,18 +19,18 @@
 
 namespace memoria::hermes {
 
-class HermesDocImpl final: public DocView, public pool::enable_shared_from_this<HermesDocImpl> {
+class HermesDocImpl final: public HermesCtr, public pool::enable_shared_from_this<HermesDocImpl> {
     arena::ArenaAllocator arena_;
 
     ViewPtrHolder view_ptr_holder_;
 
     friend class DocumentBuilder;
-    friend class DocView;
+    friend class HermesCtr;
 
 public:
 
     HermesDocImpl() {
-        DocView::arena_ = &arena_;
+        HermesCtr::arena_ = &arena_;
         ptr_holder_ = &view_ptr_holder_;
 
         header_ = arena_.allocate_object_untagged<DocumentHeader>();
@@ -39,7 +39,7 @@ public:
     HermesDocImpl(size_t chunk_size, arena::AllocationType alc_type = arena::AllocationType::MULTI_CHUNK):
         arena_(alc_type, chunk_size)
     {
-        DocView::arena_ = &arena_;
+        HermesCtr::arena_ = &arena_;
         ptr_holder_ = &view_ptr_holder_;
 
         if (alc_type == arena::AllocationType::MULTI_CHUNK) {
@@ -50,7 +50,7 @@ public:
     HermesDocImpl(arena::AllocationType alc_type, size_t chunk_size, const void* data, size_t size):
         arena_(alc_type, chunk_size, data, size)
     {
-        DocView::arena_ = &arena_;
+        HermesCtr::arena_ = &arena_;
         ptr_holder_ = &view_ptr_holder_;
 
         header_ = ptr_cast<DocumentHeader>(arena_.head().memory.get());

@@ -32,7 +32,7 @@ class Interpreter;
 
 class DocumentBuilder;
 
-class DocView;
+class HermesCtr;
 
 template <typename>
 class Array;

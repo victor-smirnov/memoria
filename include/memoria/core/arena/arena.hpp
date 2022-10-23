@@ -43,7 +43,7 @@
 namespace memoria {
 
 namespace hermes {
-class DocView;
+class HermesCtr;
 }
 
 

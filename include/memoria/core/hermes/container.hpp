@@ -45,12 +45,12 @@ public:
     ParserConfiguration() {}
 };
 
-class DocView: public HoldingView {
+class HermesCtr: public HoldingView {
 
 protected:
 
     struct DocumentHeader {
-        arena::RelativePtr<void> value;
+        arena::RelativePtr<void> root;
 
         DocumentHeader* deep_copy_to(
                 arena::ArenaAllocator& dst,
@@ -61,14 +61,14 @@ protected:
             auto dh = dst.get_resolver_for(dst.allocate_object_untagged<DocumentHeader>());
             dedup.map(dst, this, dh.get(dst));
 
-            if (value.is_not_null())
+            if (root.is_not_null())
             {
-                auto tag0 = arena::read_type_tag(value.get());
-                void* new_value = get_type_reflection(tag0).deep_copy(dst, value.get(), owner_view, ptr_holder, dedup);
-                dh.get(dst)->value = new_value;
+                auto tag0 = arena::read_type_tag(root.get());
+                void* new_root = get_type_reflection(tag0).deep_copy(dst, root.get(), owner_view, ptr_holder, dedup);
+                dh.get(dst)->root = new_root;
             }
             else {
-                dh.get(dst)->value = nullptr;
+                dh.get(dst)->root = nullptr;
             }
 
             return dh.get(dst);
@@ -95,22 +95,22 @@ protected:
 public:
     using CharIterator = typename U8StringView::const_iterator;
 
-    DocView(): segment_size_(), arena_(), header_() {}
+    HermesCtr(): segment_size_(), arena_(), header_() {}
 
 
-    DocView(void* segment, size_t segment_size, ViewPtrHolder* ref_holder) noexcept:
+    HermesCtr(void* segment, size_t segment_size, ViewPtrHolder* ref_holder) noexcept:
         HoldingView(ref_holder),
         segment_size_(segment_size),
         header_(reinterpret_cast<DocumentHeader*>(segment))
     {}
 
-    DocView(Span<uint8_t> span, ViewPtrHolder* ref_holder) noexcept:
+    HermesCtr(Span<uint8_t> span, ViewPtrHolder* ref_holder) noexcept:
         HoldingView(ref_holder),
         segment_size_(span.size()),
         header_(reinterpret_cast<DocumentHeader*>(span.data()))
     {}
 
-    virtual ~DocView() noexcept = default;
+    virtual ~HermesCtr() noexcept = default;
 
 
     bool is_mutable() const noexcept {
@@ -121,10 +121,10 @@ public:
         return arena_;
     }
 
-    ValuePtr value() const noexcept
+    ValuePtr root() const noexcept
     {
-        if (MMA_LIKELY(header_->value.is_not_null())) {
-            return ValuePtr(Value(header_->value.get(), mutable_self(), ptr_holder_));
+        if (MMA_LIKELY(header_->root.is_not_null())) {
+            return ValuePtr(Value(header_->root.get(), mutable_self(), ptr_holder_));
         }
         else {
             return ValuePtr{};
@@ -161,7 +161,7 @@ public:
     }
 
     void stringify(std::ostream& out, DumpFormatState& state, DumpState& dump_state) const {
-        value()->stringify(out, state, dump_state);
+        root()->stringify(out, state, dump_state);
     }
 
     static bool is_identifier(U8StringView string) {
@@ -186,7 +186,7 @@ public:
 
         auto ptr = this->new_dataobject<DT>(view);
 
-        header_->value = ptr->dt_ctr_;
+        header_->root = ptr->dt_ctr_;
 
         return ptr;
     }
@@ -199,7 +199,7 @@ public:
 
         auto ptr = this->new_array();
 
-        header_->value = ptr->array_;
+        header_->root = ptr->array_;
 
         return ptr;
     }
@@ -211,7 +211,7 @@ public:
 
         auto ptr = this->new_map();
 
-        header_->value = ptr->map_;
+        header_->root = ptr->map_;
 
         return ptr;
     }
@@ -223,7 +223,7 @@ public:
 
         ValuePtr vv = parse_raw_value(str.begin(), str.end());
 
-        header_->value = vv->addr_;
+        header_->root = vv->addr_;
 
         return vv;
     }
@@ -231,7 +231,7 @@ public:
     void set_null() {
         assert_not_null();
         assert_mutable();
-        header_->value = nullptr;
+        header_->root = nullptr;
     }
 
     template <typename DT>
@@ -240,35 +240,35 @@ public:
     DatatypePtr new_datatype(U8StringView name);
     DatatypePtr new_datatype(StringValuePtr name);
 
-    pool::SharedPtr<DocView> self() const;
+    pool::SharedPtr<HermesCtr> self() const;
 
-    pool::SharedPtr<DocView> compactify(bool make_immutable = true) const;
+    pool::SharedPtr<HermesCtr> compactify(bool make_immutable = true) const;
 
-    pool::SharedPtr<DocView> clone(bool as_mutable = false) const;
+    pool::SharedPtr<HermesCtr> clone(bool as_mutable = false) const;
 
-    bool operator==(const DocView& other) const noexcept {
-        MEMORIA_MAKE_GENERIC_ERROR("Equals is not implemented for HermesDoc").do_throw();
+    bool operator==(const HermesCtr& other) const noexcept {
+        MEMORIA_MAKE_GENERIC_ERROR("Equals is not implemented for Hermes").do_throw();
     }
 
 
-    static pool::SharedPtr<DocView> make_pooled(ObjectPools& pool = thread_local_pools());
-    static pool::SharedPtr<DocView> make_new(size_t initial_capacity = 4096);
+    static pool::SharedPtr<HermesCtr> make_pooled(ObjectPools& pool = thread_local_pools());
+    static pool::SharedPtr<HermesCtr> make_new(size_t initial_capacity = 4096);
 
-    static PoolSharedPtr<DocView> parse(U8StringView view) {
+    static PoolSharedPtr<HermesCtr> parse(U8StringView view) {
         return parse(view.begin(), view.end());
     }
 
-    static PoolSharedPtr<DocView> parse_datatype(U8StringView view) {
+    static PoolSharedPtr<HermesCtr> parse_datatype(U8StringView view) {
         return parse_datatype(view.begin(), view.end());
     }
 
-    static PoolSharedPtr<DocView> parse(
+    static PoolSharedPtr<HermesCtr> parse(
             CharIterator start,
             CharIterator end,
             const ParserConfiguration& cfg = ParserConfiguration{}
     );
 
-    static PoolSharedPtr<DocView> parse_datatype(
+    static PoolSharedPtr<HermesCtr> parse_datatype(
             CharIterator start,
             CharIterator end,
             const ParserConfiguration& cfg = ParserConfiguration{}
@@ -286,8 +286,8 @@ protected:
             const ParserConfiguration& cfg = ParserConfiguration{}
     );
 
-    DocView* mutable_self() const {
-        return const_cast<DocView*>(this);
+    HermesCtr* mutable_self() const {
+        return const_cast<HermesCtr*>(this);
     }
 
     GenericMapPtr new_map();
@@ -311,7 +311,7 @@ protected:
                 ss_size = arena_->head().size;
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("DocView is multi-chunked!").do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("HermesCtr is multi-chunked!").do_throw();
             }
         }
         else {
@@ -328,7 +328,7 @@ private:
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(header_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("DocView is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("HermesCtr is null").do_throw();
         }
     }
 
@@ -337,15 +337,15 @@ private:
 
 }
 
-struct HermesDoc{};
+struct Hermes{};
 
 class HermesDocumentStorage;
 
 template <>
-struct DataTypeTraits<HermesDoc>: DataTypeTraitsBase<HermesDoc>
+struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
 {
-    using ViewType      = hermes::DocView;
-    using ConstViewType = hermes::DocView;
+    using ViewType      = hermes::HermesCtr;
+    using ConstViewType = hermes::HermesCtr;
     using AtomType      = uint8_t;
 
     using DatumStorage  = HermesDocumentStorage;
@@ -363,12 +363,12 @@ struct DataTypeTraits<HermesDoc>: DataTypeTraitsBase<HermesDoc>
 
     static void create_signature(SBuf& buf, const LinkedData& obj)
     {
-        buf << "HermesDoc";
+        buf << "Hermes";
     }
 
     static void create_signature(SBuf& buf)
     {
-        buf << "HermesDoc";
+        buf << "Hermes";
     }
 
 
@@ -414,12 +414,12 @@ struct DataTypeTraits<HermesDoc>: DataTypeTraitsBase<HermesDoc>
 
 
 template <typename Buffer>
-class SparseObjectBuilder<HermesDoc, Buffer> {
+class SparseObjectBuilder<Hermes, Buffer> {
     Buffer* buffer_;
 
 
-    using AtomType = DTTAtomType<HermesDoc>;
-    using ViewType = DTTViewType<HermesDoc>;
+    using AtomType = DTTAtomType<Hermes>;
+    using ViewType = DTTViewType<Hermes>;
 
     using ViewPtr = PoolSharedPtr<ViewType>;
 
@@ -429,7 +429,7 @@ public:
     SparseObjectBuilder(Buffer* buffer):
         buffer_(buffer)
     {
-      doc_ = hermes::DocView::make_new();
+      doc_ = hermes::HermesCtr::make_new();
     }
 
     SparseObjectBuilder(SparseObjectBuilder&&) = delete;
@@ -451,10 +451,10 @@ public:
     }
 };
 
-class HermesDocumentStorage: public DatumStorageBase<HermesDoc, typename DataTypeTraits<HermesDoc>::DatumStorageSelector> {
-    using SelectorTag = typename DataTypeTraits<HermesDoc>::DatumStorageSelector;
+class HermesDocumentStorage: public DatumStorageBase<Hermes, typename DataTypeTraits<Hermes>::DatumStorageSelector> {
+    using SelectorTag = typename DataTypeTraits<Hermes>::DatumStorageSelector;
 
-    using Base = DatumStorageBase<HermesDoc, SelectorTag>;
+    using Base = DatumStorageBase<Hermes, SelectorTag>;
     using typename Base::ViewType;
 public:
     HermesDocumentStorage(ViewType view) noexcept: Base(view) {}

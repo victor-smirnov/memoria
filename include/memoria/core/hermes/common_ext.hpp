@@ -16,7 +16,7 @@
 #pragma once
 
 #include <memoria/core/hermes/array.hpp>
-#include <memoria/core/hermes/document.hpp>
+#include <memoria/core/hermes/container.hpp>
 #include <memoria/core/hermes/data_object.hpp>
 #include <memoria/core/hermes/map.hpp>
 #include <memoria/core/hermes/typed_value.hpp>

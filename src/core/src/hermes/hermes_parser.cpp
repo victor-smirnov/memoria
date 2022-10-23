@@ -70,14 +70,14 @@ namespace bp = boost::phoenix;
 class DocumentBuilder {
 
     ArenaBuffer<char> string_buffer_;
-    DocView& doc_;
+    HermesCtr& doc_;
 
     ska::flat_hash_map<U8String, DatatypePtr> type_registry_;
     std::unordered_map<U8StringView, StringValuePtr, arena::DefaultHashFn<U8StringView>> string_registry_;
 
 public:
 
-    DocumentBuilder(DocView& doc):
+    DocumentBuilder(HermesCtr& doc):
         doc_(doc)
     {}
 
@@ -648,7 +648,7 @@ template <typename Iterator>
 using SkipperT = qi::rule<Iterator>;
 
 template <typename Iterator>
-struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<DocView>(), SkipperT<Iterator>>
+struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<HermesCtr>(), SkipperT<Iterator>>
 {
     using Skipper = SkipperT<Iterator>;
 
@@ -914,7 +914,7 @@ struct HermesDocParser : qi::grammar<Iterator, pool::SharedPtr<DocView>(), Skipp
     qi::rule<Iterator, Integer<int64_t, BigInt>(), Skipper>  int64_parser;
     qi::rule<Iterator, ValuePtr, Skipper>  integer_value;
 
-    qi::rule<Iterator, pool::SharedPtr<DocView>(), Skipper> hermes_document;
+    qi::rule<Iterator, pool::SharedPtr<HermesCtr>(), Skipper> hermes_document;
     qi::rule<Iterator, ValuePtr(), Skipper>             hermes_value;
     qi::rule<Iterator, ValuePtr(), Skipper>             standalone_hermes_value;
 
@@ -1106,7 +1106,7 @@ struct DocumentBuilderCleanup {
 }
 
 template <typename Iterator>
-void parse_hermes_document(Iterator& first, Iterator& last, DocView& doc)
+void parse_hermes_document(Iterator& first, Iterator& last, HermesCtr& doc)
 {
     DocumentBuilder builder(doc);
     DocumentBuilder::current(&builder);
@@ -1132,7 +1132,7 @@ void parse_hermes_document(Iterator& first, Iterator& last, DocView& doc)
 
 
 template <typename Iterator>
-void parse_datatype_decl(Iterator& first, Iterator& last, DocView& doc)
+void parse_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc)
 {
     DocumentBuilder builder(doc);
     DocumentBuilder::current(&builder);
@@ -1161,7 +1161,7 @@ void parse_datatype_decl(Iterator& first, Iterator& last, DocView& doc)
 
 
 template <typename Iterator>
-void parse_raw_datatype_decl(Iterator& first, Iterator& last, DocView& doc, DatatypePtr& datatype)
+void parse_raw_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc, DatatypePtr& datatype)
 {
     DocumentBuilder builder(doc);
     DocumentBuilder::current(&builder);
@@ -1186,7 +1186,7 @@ void parse_raw_datatype_decl(Iterator& first, Iterator& last, DocView& doc, Data
 }
 
 template <typename Iterator>
-void parse_raw_value0(Iterator& first, Iterator& last, DocView& doc, ValuePtr& value)
+void parse_raw_value0(Iterator& first, Iterator& last, HermesCtr& doc, ValuePtr& value)
 {
     DocumentBuilder builder(doc);
     DocumentBuilder::current(&builder);
@@ -1226,47 +1226,47 @@ bool parse_identifier(Iterator& first, Iterator& last)
     return r;
 }
 
-PoolSharedPtr<DocView> DocView::parse(CharIterator start, CharIterator end, const ParserConfiguration&)
+PoolSharedPtr<HermesCtr> HermesCtr::parse(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
     PoolSharedPtr<HermesDocImpl> doc = TL_get_reusable_shared_instance<HermesDocImpl>();
     parse_hermes_document(start, end, *doc);
     return doc;
 }
 
-PoolSharedPtr<DocView> DocView::parse_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
+PoolSharedPtr<HermesCtr> HermesCtr::parse_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
     PoolSharedPtr<HermesDocImpl> doc = TL_get_reusable_shared_instance<HermesDocImpl>();
     parse_datatype_decl(start, end, *doc);
     return doc;
 }
 
-DatatypePtr DocView::parse_raw_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
+DatatypePtr HermesCtr::parse_raw_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
     DatatypePtr datatype{};
     parse_raw_datatype_decl(start, end, *this, datatype);
     return datatype;
 }
 
-ValuePtr DocView::parse_raw_value(CharIterator start, CharIterator end, const ParserConfiguration&)
+ValuePtr HermesCtr::parse_raw_value(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
     ValuePtr value{};
     parse_raw_value0(start, end, *this, value);
     return value;
 }
 
-bool DocView::is_identifier(CharIterator start, CharIterator end)
+bool HermesCtr::is_identifier(CharIterator start, CharIterator end)
 {
     return parse_identifier(start, end);
 }
 
-void DocView::assert_identifier(U8StringView name)
+void HermesCtr::assert_identifier(U8StringView name)
 {
     if (!is_identifier(name)) {
         MEMORIA_MAKE_GENERIC_ERROR("Supplied value '{}' is not a valid Hermes identifier", name).do_throw();
     }
 }
 
-void DocView::init_hermes_doc_parser() {
+void HermesCtr::init_hermes_doc_parser() {
     // Init Resolver
     ErrorMessageResolver::instance();
 }

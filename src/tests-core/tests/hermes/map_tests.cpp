@@ -21,10 +21,10 @@ namespace memoria {
 namespace tests {
 
 auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "MapSetRemove", [](auto& state){
-    auto doc = hermes::DocView::make_new();
+    auto doc = hermes::HermesCtr::make_new();
 
     auto map = doc->set_generic_map();
-    assert_equals(true, doc->value()->as_generic_map()->equals(map));
+    assert_equals(true, doc->root()->as_generic_map()->equals(map));
     assert_equals(0, map->size());
 
     size_t size = 10000;
@@ -61,10 +61,10 @@ auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>(
 
 
 auto ldd_map_set_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "MapSet", [](auto& state){
-    auto doc = hermes::DocView::make_new();
+    auto doc = hermes::HermesCtr::make_new();
 
     auto map = doc->set_generic_map();
-    assert_equals(true, doc->value()->as_generic_map()->equals(map));
+    assert_equals(true, doc->root()->as_generic_map()->equals(map));
     assert_equals(0, map->size());
 
     map->put_dataobject<Varchar>("Entry0", "Hello World");

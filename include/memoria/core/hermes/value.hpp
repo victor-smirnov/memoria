@@ -37,10 +37,10 @@ struct ValueCastHelper;
 
 class Value: public HoldingView {
 protected:
-    mutable DocView* doc_;
+    mutable HermesCtr* doc_;
     mutable void* addr_;
 
-    friend class DocView;
+    friend class HermesCtr;
 
     template<typename, typename>
     friend class Map;
@@ -53,7 +53,7 @@ public:
         doc_(), addr_()
     {}
 
-    Value(void* addr, DocView* doc, ViewPtrHolder* ref_holder) noexcept :
+    Value(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept :
         HoldingView(ref_holder),
         doc_(doc),
         addr_(addr)
@@ -61,9 +61,9 @@ public:
 
     virtual ~Value() noexcept = default;
 
-    PoolSharedPtr<DocView> document() const {
+    PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
-        return PoolSharedPtr<DocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
     bool is_convertible_to_plain_string() const
@@ -93,7 +93,7 @@ public:
     }
 
     template <typename DT>
-    PoolSharedPtr<DocView> convert_to() const;
+    PoolSharedPtr<HermesCtr> convert_to() const;
 
     ValuePtr as_value() const {
         return ValuePtr(*this);
@@ -343,7 +343,7 @@ public:
         }
     }
 
-    PoolSharedPtr<DocView> clone() const;
+    PoolSharedPtr<HermesCtr> clone() const;
 
 private:
     void assert_not_null() const

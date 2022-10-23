@@ -29,7 +29,7 @@
 namespace memoria {
 namespace hermes {
 
-class DocView;
+class HermesCtr;
 
 class PtrQualifier {
     uint8_t value_;
@@ -273,7 +273,7 @@ public:
 
 
 class Datatype: public HoldingView {
-    friend class DocView;
+    friend class HermesCtr;
     friend class Value;
     friend class DocumentBuilder;
 
@@ -285,20 +285,20 @@ class Datatype: public HoldingView {
 
 protected:
     mutable detail::DatatypeData* datatype_;
-    mutable DocView* doc_;
+    mutable HermesCtr* doc_;
 public:
     Datatype():
         datatype_(), doc_()
     {}
 
-    Datatype(void* dt, DocView* doc, ViewPtrHolder* ptr_holder) noexcept :
+    Datatype(void* dt, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
         HoldingView(ptr_holder), datatype_(reinterpret_cast<detail::DatatypeData*>(dt)),
         doc_(doc)
     {}
 
-    PoolSharedPtr<DocView> document() const {
+    PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
-        return PoolSharedPtr<DocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
     ValuePtr as_value() const {
@@ -513,7 +513,7 @@ namespace detail {
 
 template <>
 struct ValueCastHelper<Datatype> {
-    static DatatypePtr cast_to(void* addr, DocView* doc, ViewPtrHolder* ref_holder) noexcept {
+    static DatatypePtr cast_to(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept {
         return DatatypePtr(Datatype(
                                addr,
                                doc,

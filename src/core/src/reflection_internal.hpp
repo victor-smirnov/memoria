@@ -33,7 +33,7 @@ class HermesTypeReflectionImpl: public TypehashTypeReflectionImplBase<T> {
 public:
     virtual void hermes_stringify_value(
             void* ptr,
-            hermes::DocView* doc,
+            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,
@@ -45,7 +45,7 @@ public:
 
     virtual bool hermes_is_simple_layout(
             void* ptr,
-            hermes::DocView* doc,
+            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
     ) const {
         return T(ptr, doc, ref_holder).is_simple_layout();
@@ -58,7 +58,7 @@ public:
             ViewPtrHolder* ref_holder,
             DeepCopyDeduplicator& dedup) const
     {
-        hermes::DocView* doc = reinterpret_cast<hermes::DocView*>(owner_view);
+        hermes::HermesCtr* doc = reinterpret_cast<hermes::HermesCtr*>(owner_view);
         return T(ptr, doc, ref_holder).deep_copy_to(arena, dedup);
     }
 };
@@ -100,7 +100,7 @@ struct FromStringHelper<DT, false> {
         return false;
     }
 
-    static PoolSharedPtr<hermes::DocView> convert_from(U8StringView) {
+    static PoolSharedPtr<hermes::HermesCtr> convert_from(U8StringView) {
         MEMORIA_MAKE_GENERIC_ERROR("No 'from string' converter is defined for datatype {}", TypeNameFactory<DT>::name()).do_throw();
     }
 };
@@ -111,7 +111,7 @@ struct FromStringHelper<DT, true> {
         return true;
     }
 
-    static PoolSharedPtr<hermes::DocView> convert_from(U8StringView view) {
+    static PoolSharedPtr<hermes::HermesCtr> convert_from(U8StringView view) {
         return FromPlainStringConverter<DT>::from_string(view);
     }
 };
@@ -188,7 +188,7 @@ template <typename T, typename DT>
 struct SameDatatypeComparatorSelector<T, DT, true> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<DT>] = [](const T& left_object, void* right, hermes::DocView* right_doc, ViewPtrHolder* right_ptr) {
+        map[TypeHashV<DT>] = [](const T& left_object, void* right, hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr) {
             T right_object(right, right_doc, right_ptr);
             return DatatypeComparator<DT, NumericTypeSelector<DT>>::compare(left_object.view(), right_object.view());
         };
@@ -199,7 +199,7 @@ template <typename T, typename DT>
 struct SameDatatypeComparatorSelector<T, DT, false> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<DT>] = [](const T& left_object, void* right, hermes::DocView* right_doc, ViewPtrHolder* right_ptr) {
+        map[TypeHashV<DT>] = [](const T& left_object, void* right, hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr) {
             T right_object(right, right_doc, right_ptr);
             return CrossDatatypeComparator<DT, DT>::compare(left_object.view(), right_object.view());
         };
@@ -214,7 +214,7 @@ template <typename T, typename LeftDT, typename RightDT>
 struct CrossDatatypeComparatorSelector<T, LeftDT, RightDT, true> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<RightDT>] = [](const T& left_object, void* right, hermes::DocView* right_doc, ViewPtrHolder* right_ptr) {
+        map[TypeHashV<RightDT>] = [](const T& left_object, void* right, hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr) {
             hermes::DataObject<RightDT> right_object(right, right_doc, right_ptr);
             return CrossDatatypeComparator<LeftDT, RightDT, NumericTypeSelector<LeftDT>>::compare(left_object.view(), right_object.view());
         };
@@ -279,7 +279,7 @@ template <typename T, typename DT>
 struct SameDatatypeEqualityComparatorSelector<T, DT, true> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<DT>] = [](const T& left_object, void* right, hermes::DocView* right_doc, ViewPtrHolder* right_ptr) {
+        map[TypeHashV<DT>] = [](const T& left_object, void* right, hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr) {
             T right_object(right, right_doc, right_ptr);
                return DatatypeEqualityComparator<DT, NumericTypeSelector<DT>>::equals(left_object.view(), right_object.view());
         };
@@ -290,7 +290,7 @@ template <typename T, typename DT>
 struct SameDatatypeEqualityComparatorSelector<T, DT, false> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<DT>] = [](const T& left_object, void* right, hermes::DocView* right_doc, ViewPtrHolder* right_ptr) {
+        map[TypeHashV<DT>] = [](const T& left_object, void* right, hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr) {
             T right_object(right, right_doc, right_ptr);
             return CrossDatatypeEqualityComparator<DT, DT>::equals(left_object.view(), right_object.view());
         };
@@ -305,7 +305,7 @@ template <typename T, typename LeftDT, typename RightDT>
 struct CrossDatatypeEqualityComparatorSelector<T, LeftDT, RightDT, true> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<RightDT>] = [](const T& left_object, void* right, hermes::DocView* right_doc, ViewPtrHolder* right_ptr) {
+        map[TypeHashV<RightDT>] = [](const T& left_object, void* right, hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr) {
             hermes::DataObject<RightDT> right_object(right, right_doc, right_ptr);
             return CrossDatatypeEqualityComparator<LeftDT, RightDT, NumericTypeSelector<LeftDT>>::equals(left_object.view(), right_object.view());
         };
@@ -449,10 +449,10 @@ struct RightIndexOf<TL<>> {
 
 
 template <typename ViewT>
-using DTEqualityComparator = std::function<bool (const ViewT&, void*, hermes::DocView*, ViewPtrHolder*)>;
+using DTEqualityComparator = std::function<bool (const ViewT&, void*, hermes::HermesCtr*, ViewPtrHolder*)>;
 
 template <typename ViewT>
-using DTComparator = std::function<int32_t (const ViewT&, void*, hermes::DocView*, ViewPtrHolder*)>;
+using DTComparator = std::function<int32_t (const ViewT&, void*, hermes::HermesCtr*, ViewPtrHolder*)>;
 
 
 }
@@ -490,9 +490,9 @@ public:
         return detail::FromStringHelper<DT>::is_convertible();
     }
 
-    virtual PoolSharedPtr<hermes::DocView> datatype_convert_to(
+    virtual PoolSharedPtr<hermes::HermesCtr> datatype_convert_to(
             uint64_t type_hash, void* ptr,
-            hermes::DocView* doc,
+            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
     ) const override
     {
@@ -509,12 +509,12 @@ public:
         }
     }
 
-    virtual PoolSharedPtr<hermes::DocView> datatype_convert_from_plain_string(U8StringView str) const override {
+    virtual PoolSharedPtr<hermes::HermesCtr> datatype_convert_from_plain_string(U8StringView str) const override {
         return detail::FromStringHelper<DT>::convert_from(str);
     }
 
     virtual U8String convert_to_plain_string(void* ptr,
-                                             hermes::DocView* doc,
+                                             hermes::HermesCtr* doc,
                                              ViewPtrHolder* ref_holder) const override
     {
         T data_object(ptr, doc, ref_holder);
@@ -542,8 +542,8 @@ public:
         return LeftTypeIdx < Comparables;
     }
 
-    virtual int32_t hermes_compare(void* left, hermes::DocView* left_doc, ViewPtrHolder* left_ptr,
-                                   void* right, hermes::DocView* right_doc, ViewPtrHolder* right_ptr) const override
+    virtual int32_t hermes_compare(void* left, hermes::HermesCtr* left_doc, ViewPtrHolder* left_ptr,
+                                   void* right, hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr) const override
     {
         if (right)
         {
@@ -569,8 +569,8 @@ public:
         }
     }
 
-    virtual bool hermes_equals(void* left, hermes::DocView* left_doc, ViewPtrHolder* left_ptr,
-                          void* right, hermes::DocView* right_doc, ViewPtrHolder* right_ptr) const override
+    virtual bool hermes_equals(void* left, hermes::HermesCtr* left_doc, ViewPtrHolder* left_ptr,
+                          void* right, hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr) const override
     {
         if (right)
         {

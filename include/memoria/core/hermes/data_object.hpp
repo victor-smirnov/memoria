@@ -27,7 +27,7 @@
 namespace memoria {
 namespace hermes {
 
-class DocView;
+class HermesCtr;
 class HermesDocImpl;
 
 template <typename DT>
@@ -35,7 +35,7 @@ class DataObject: public HoldingView {
 public:
     using ArenaDTContainer = arena::ArenaDataTypeContainer<DT>;
 
-    friend class DocView;
+    friend class HermesCtr;
     friend class Value;
 
     template <typename, typename>
@@ -46,21 +46,21 @@ public:
 
 protected:
     mutable ArenaDTContainer* dt_ctr_;
-    mutable DocView* doc_;
+    mutable HermesCtr* doc_;
 public:
     DataObject() noexcept:
         dt_ctr_(), doc_()
     {}
 
-    DataObject(void* dt_ctr, DocView* doc, ViewPtrHolder* ptr_holder) noexcept :
+    DataObject(void* dt_ctr, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
         HoldingView(ptr_holder),
         dt_ctr_(reinterpret_cast<ArenaDTContainer*>(dt_ctr)),
         doc_(doc)
     {}
 
-    PoolSharedPtr<DocView> document() const {
+    PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
-        return PoolSharedPtr<DocView>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
     bool is_convertible_to_plain_string() const
@@ -90,7 +90,7 @@ public:
     }
 
     template <typename ToDT>
-    PoolSharedPtr<DocView> convert_to() const;
+    PoolSharedPtr<HermesCtr> convert_to() const;
 
     uint64_t hash_code() const {
         assert_not_null();
@@ -245,7 +245,7 @@ namespace detail {
 
 template <typename DT>
 struct ValueCastHelper {
-    static ViewPtr<DataObject<DT>> cast_to(void* addr, DocView* doc, ViewPtrHolder* ref_holder) noexcept {
+    static ViewPtr<DataObject<DT>> cast_to(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept {
         return ViewPtr<DataObject<DT>>(DataObject<DT>(
             addr,
             doc,
@@ -331,7 +331,7 @@ public:
     ArenaDataTypeContainer* deep_copy_to(
             ArenaAllocator& dst,
             ObjectTag tag,
-            hermes::DocView*,
+            hermes::HermesCtr*,
             ViewPtrHolder*,
             DeepCopyDeduplicator& dedup) const
     {

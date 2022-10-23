@@ -33,14 +33,14 @@ UID256 compute_full_type_hash(U8StringView type_decl);
 UID256 compute_full_type_hash_normalized(U8StringView type_decl);
 
 namespace hermes {
-class DocView;
+class HermesCtr;
 }
 
 
 struct IDatatypeConverter {
     virtual ~IDatatypeConverter() noexcept;
 
-    virtual PoolSharedPtr<hermes::DocView> convert(const void* view) const = 0;
+    virtual PoolSharedPtr<hermes::HermesCtr> convert(const void* view) const = 0;
 };
 
 
@@ -59,7 +59,7 @@ public:
 
     virtual void hermes_stringify_value(
             void* ptr,
-            hermes::DocView* doc,
+            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,
@@ -69,7 +69,7 @@ public:
 
     virtual bool hermes_is_simple_layout(
             void* ptr,
-            hermes::DocView* doc,
+            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
     ) const = 0;
 
@@ -106,17 +106,17 @@ public:
         return false;
     }
 
-    virtual PoolSharedPtr<hermes::DocView> datatype_convert_to(
+    virtual PoolSharedPtr<hermes::HermesCtr> datatype_convert_to(
             uint64_t taget_tag,
             void* ptr,
-            hermes::DocView* doc,
+            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
     ) const ;
 
-    virtual PoolSharedPtr<hermes::DocView> datatype_convert_from_plain_string(U8StringView str) const;
+    virtual PoolSharedPtr<hermes::HermesCtr> datatype_convert_from_plain_string(U8StringView str) const;
 
     virtual U8String convert_to_plain_string(void* ptr,
-                                             hermes::DocView* doc,
+                                             hermes::HermesCtr* doc,
                                              ViewPtrHolder* ref_holder) const;
 
     virtual bool hermes_comparable() const {
@@ -131,11 +131,11 @@ public:
         return false;
     }
 
-    virtual int32_t hermes_compare(void*, hermes::DocView*, ViewPtrHolder*, void*, hermes::DocView*, ViewPtrHolder*) const {
+    virtual int32_t hermes_compare(void*, hermes::HermesCtr*, ViewPtrHolder*, void*, hermes::HermesCtr*, ViewPtrHolder*) const {
         MEMORIA_MAKE_GENERIC_ERROR("Objects of the same type {} are not Hermes-comparable", str()).do_throw();
     }
 
-    virtual bool hermes_equals(void*, hermes::DocView*, ViewPtrHolder*, void*, hermes::DocView*, ViewPtrHolder*) const {
+    virtual bool hermes_equals(void*, hermes::HermesCtr*, ViewPtrHolder*, void*, hermes::HermesCtr*, ViewPtrHolder*) const {
         MEMORIA_MAKE_GENERIC_ERROR("Objects of type {} are not Hermes-equals-comparable" ).do_throw();
     }
 
@@ -160,7 +160,7 @@ public:
 
     virtual bool hermes_is_simple_layout(
             void* ptr,
-            hermes::DocView* doc,
+            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
     ) const {
         MEMORIA_MAKE_GENERIC_ERROR("hermes_is_simple_layout() is not implemented for type {}", str()).do_throw();

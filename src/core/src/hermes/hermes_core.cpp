@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/core/hermes/document.hpp>
+#include <memoria/core/hermes/container.hpp>
 #include <memoria/core/hermes/value.hpp>
 
 #include "hermes_internal.hpp"
@@ -33,11 +33,11 @@ void HermesDocImpl::reset_state() noexcept {
     header_ = nullptr;
 }
 
-pool::SharedPtr<DocView> DocView::make_pooled(ObjectPools& pool) {
+pool::SharedPtr<HermesCtr> HermesCtr::make_pooled(ObjectPools& pool) {
     return get_reusable_shared_instance<HermesDocImpl>(pool);
 }
 
-pool::SharedPtr<DocView> DocView::make_new(size_t initial_capacity) {
+pool::SharedPtr<HermesCtr> HermesCtr::make_new(size_t initial_capacity) {
     return TL_allocate_shared<HermesDocImpl>(initial_capacity);
 }
 

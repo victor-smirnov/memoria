@@ -67,8 +67,8 @@ struct ToPlainStringConverter<UTinyInt> {
 
 template <>
 struct FromPlainStringConverter<Varchar> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         doc->set_dataobject<Varchar>(str);
         return doc;
     }
@@ -76,8 +76,8 @@ struct FromPlainStringConverter<Varchar> {
 
 template <typename DT, typename NumberT = DTTViewType<DT>>
 struct NumericFromPlainStringConverter {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         doc->set_dataobject<DT>(str);
         return doc;
     }
@@ -85,8 +85,8 @@ struct NumericFromPlainStringConverter {
 
 template <>
 struct FromPlainStringConverter<BigInt> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoll(std::string(str));
         doc->set_dataobject<BigInt>(val);
         return doc;
@@ -96,8 +96,8 @@ struct FromPlainStringConverter<BigInt> {
 
 template <>
 struct FromPlainStringConverter<UBigInt> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoull(std::string(str));
         doc->set_dataobject<UBigInt>(val);
         return doc;
@@ -107,8 +107,8 @@ struct FromPlainStringConverter<UBigInt> {
 
 template <>
 struct FromPlainStringConverter<Real> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stof(std::string(str));
         doc->set_dataobject<Real>(val);
         return doc;
@@ -118,8 +118,8 @@ struct FromPlainStringConverter<Real> {
 
 template <>
 struct FromPlainStringConverter<Double> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stof(std::string(str));
         doc->set_dataobject<Double>(val);
         return doc;
@@ -128,8 +128,8 @@ struct FromPlainStringConverter<Double> {
 
 template <>
 struct FromPlainStringConverter<Integer> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoi(std::string(str));
         doc->set_dataobject<Integer>(val);
         return doc;
@@ -139,8 +139,8 @@ struct FromPlainStringConverter<Integer> {
 
 template <>
 struct FromPlainStringConverter<UInteger> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoul(std::string(str));
         doc->set_dataobject<UInteger>(val);
         return doc;
@@ -150,8 +150,8 @@ struct FromPlainStringConverter<UInteger> {
 
 template <>
 struct FromPlainStringConverter<SmallInt> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoi(std::string(str));
         doc->set_dataobject<SmallInt>(val);
         return doc;
@@ -161,8 +161,8 @@ struct FromPlainStringConverter<SmallInt> {
 
 template <>
 struct FromPlainStringConverter<USmallInt> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoi(std::string(str));
         doc->set_dataobject<USmallInt>(val);
         return doc;
@@ -171,8 +171,8 @@ struct FromPlainStringConverter<USmallInt> {
 
 template <>
 struct FromPlainStringConverter<TinyInt> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoi(std::string(str));
         doc->set_dataobject<TinyInt>(val);
         return doc;
@@ -181,8 +181,8 @@ struct FromPlainStringConverter<TinyInt> {
 
 template <>
 struct FromPlainStringConverter<UTinyInt> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
-        auto doc = hermes::DocView::make_pooled();
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
+        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoi(std::string(str));
         doc->set_dataobject<UTinyInt>(val);
         return doc;
@@ -191,7 +191,7 @@ struct FromPlainStringConverter<UTinyInt> {
 
 template <>
 struct FromPlainStringConverter<Boolean> {
-    static PoolSharedPtr<hermes::DocView> from_string(U8StringView str) {
+    static PoolSharedPtr<hermes::HermesCtr> from_string(U8StringView str) {
 
         bool val = str == "true" || str == "1";
         if (!val) {
@@ -199,7 +199,7 @@ struct FromPlainStringConverter<Boolean> {
         }
 
         if (val) {
-            auto doc = hermes::DocView::make_pooled();
+            auto doc = hermes::HermesCtr::make_pooled();
             doc->set_dataobject<Boolean>(val);
             return doc;
         }
@@ -212,7 +212,7 @@ struct FromPlainStringConverter<Boolean> {
 
 template <typename ToDT>
 struct DatatypeConverter<Varchar, ToDT>: IDatatypeConverter {
-    PoolSharedPtr<hermes::DocView> convert(const void* view) const
+    PoolSharedPtr<hermes::HermesCtr> convert(const void* view) const
     {
         const DTTViewType<Varchar>* str_view = reinterpret_cast<const DTTViewType<Varchar>*>(view);
         return FromPlainStringConverter<ToDT>::from_string(*str_view);
@@ -222,11 +222,11 @@ struct DatatypeConverter<Varchar, ToDT>: IDatatypeConverter {
 
 template <typename FromDT>
 struct DatatypeConverter<FromDT, Varchar>: IDatatypeConverter {
-    PoolSharedPtr<hermes::DocView> convert(const void* view) const
+    PoolSharedPtr<hermes::HermesCtr> convert(const void* view) const
     {
         DTTViewType<FromDT> typed_view = *reinterpret_cast<const DTTViewType<FromDT>*>(view);
         auto str = ToPlainStringConverter<FromDT>::to_string(typed_view);
-        auto doc = hermes::DocView::make_pooled();
+        auto doc = hermes::HermesCtr::make_pooled();
         doc->set_dataobject<Varchar>(str);
         return doc;
     }

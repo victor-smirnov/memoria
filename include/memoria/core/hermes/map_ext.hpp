@@ -16,7 +16,7 @@
 #pragma once
 
 #include <memoria/core/hermes/map.hpp>
-#include <memoria/core/hermes/document.hpp>
+#include <memoria/core/hermes/container.hpp>
 
 namespace memoria {
 namespace hermes {

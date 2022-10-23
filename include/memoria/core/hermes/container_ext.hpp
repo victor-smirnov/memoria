@@ -16,7 +16,7 @@
 #pragma once
 
 
-#include <memoria/core/hermes/document.hpp>
+#include <memoria/core/hermes/container.hpp>
 #include <memoria/core/hermes/map.hpp>
 #include <memoria/core/hermes/array.hpp>
 #include <memoria/core/hermes/data_object.hpp>
@@ -24,7 +24,7 @@
 namespace memoria {
 namespace hermes {
 
-inline void DocView::assert_mutable()
+inline void HermesCtr::assert_mutable()
 {
     if (MMA_UNLIKELY(!this->is_mutable())) {
         MEMORIA_MAKE_GENERIC_ERROR("Map<String, Value> is immutable").do_throw();
@@ -32,7 +32,7 @@ inline void DocView::assert_mutable()
 }
 
 template <typename DT>
-DataObjectPtr<DT> DocView::new_dataobject(DTTViewType<DT> view)
+DataObjectPtr<DT> HermesCtr::new_dataobject(DTTViewType<DT> view)
 {
     using DTCtr = DataObject<DT>;
 
@@ -45,7 +45,7 @@ DataObjectPtr<DT> DocView::new_dataobject(DTTViewType<DT> view)
 }
 
 template <typename DT>
-DataObjectPtr<DT> DocView::wrap_dataobject(DTTViewType<DT> view) {
+DataObjectPtr<DT> HermesCtr::wrap_dataobject(DTTViewType<DT> view) {
     auto doc = make_pooled();
     return doc->set_dataobject<DT>(view);
 }
@@ -88,7 +88,7 @@ inline U8String Value::type_str() const {
 
 
 template <typename DT>
-PoolSharedPtr<DocView> Value::convert_to() const
+PoolSharedPtr<HermesCtr> Value::convert_to() const
 {
     assert_not_null();
     auto src_tag = arena::read_type_tag(addr_);
@@ -98,7 +98,7 @@ PoolSharedPtr<DocView> Value::convert_to() const
 
 template <typename DT>
 template <typename ToDT>
-PoolSharedPtr<DocView> DataObject<DT>::convert_to() const
+PoolSharedPtr<HermesCtr> DataObject<DT>::convert_to() const
 {
     assert_not_null();
     auto src_tag = arena::read_type_tag(dt_ctr_);
