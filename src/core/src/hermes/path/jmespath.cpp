@@ -3,8 +3,9 @@
 ** Author: Róbert Márki <gsmiko@gmail.com>
 ** Copyright (c) 2016 Róbert Márki
 **
-** This file is part of the jmespath.cpp project which is distributed under
-** the MIT License (MIT).
+** This file is based on the jmespath.cpp project
+** (https://github.com/robertmrk/jmespath.cpp, commitid: 9c9702a)
+** and is distributed under the MIT License (MIT).
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a copy
 ** of this software and associated documentation files (the "Software"), to
@@ -32,7 +33,7 @@
 namespace memoria::hermes::path {
 
 template <typename JsonT>
-std::enable_if_t<std::is_same<std::decay_t<JsonT>, Json>::value, Json>
+std::enable_if_t<std::is_same<std::decay_t<JsonT>, ValuePtr>::value, ValuePtr>
 search(const Expression &expression, JsonT&& document)
 {
     using interpreter::Interpreter;
@@ -52,7 +53,7 @@ search(const Expression &expression, JsonT&& document)
 }
 
 // explicit instantion
-template Json search<const Json&>(const Expression&, const Json&);
-template Json search<Json&>(const Expression&, Json&);
-template Json search<Json>(const Expression&, Json&&);
+template ValuePtr search<const ValuePtr&>(const Expression&, const ValuePtr&);
+template ValuePtr search<ValuePtr&>(const Expression&, ValuePtr&);
+template ValuePtr search<ValuePtr>(const Expression&, ValuePtr&&);
 } // namespace hermes::path

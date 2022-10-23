@@ -2,9 +2,11 @@
 **
 ** Author: Róbert Márki <gsmiko@gmail.com>
 ** Copyright (c) 2016 Róbert Márki
+** Copyright (c) 2022 Victor Smirnov
 **
-** This file is part of the jmespath.cpp project which is distributed under
-** the MIT License (MIT).
+** This file is originally based on the jmespath.cpp project
+** (https://github.com/robertmrk/jmespath.cpp, commitid: 9c9702a)
+** and is distributed under the MIT License (MIT).
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a copy
 ** of this software and associated documentation files (the "Software"), to
@@ -39,14 +41,14 @@ namespace path {
  */
 /**
  * @ingroup error_info
- * @brief InfoSearchExpression contains the JMESPath expression being evaluated
+ * @brief InfoSearchExpression contains the HermesPath expression being evaluated
  */
 using InfoSearchExpression
     = boost::error_info<struct tag_search_expression, std::string>;
 /**
  * @ingroup error_info
  * @brief InfoSyntaxErrorLocation contains the location of the syntax error
- * in the JMESPath expression
+ * in the HermesPath expression
  */
 using InfoSyntaxErrorLocation
     = boost::error_info<struct tag_syntax_error_location, long>;
@@ -102,7 +104,7 @@ private:
 };
 /**
  * @ingroup exceptions
- * @brief The InvalidValue struct represents an invalid value in the JMESPath
+ * @brief The InvalidValue struct represents an invalid value in the HermesPath
  * expression.
  */
 struct InvalidValue : virtual Exception
@@ -115,7 +117,7 @@ private:
 };
 /**
  * @ingroup exceptions
- * @brief The UnknownFunction struct represents a call to a JMESPath built in
+ * @brief The UnknownFunction struct represents a call to a HermesPath built in
  * function which doesn't exists.
  */
 struct UnknownFunction : virtual Exception
@@ -128,7 +130,7 @@ private:
 };
 /**
  * @ingroup exceptions
- * @brief The InvalidFunctionArgumentArity struct signals the a JMESPath built
+ * @brief The InvalidFunctionArgumentArity struct signals the a HermesPath built
  * in function was called with an unexpected number of arguments.
  */
 struct InvalidFunctionArgumentArity : virtual Exception
@@ -141,7 +143,7 @@ private:
 };
 /**
  * @ingroup exceptions
- * @brief The InvalidFunctionArgumentType struct represents a call to a JMESPath
+ * @brief The InvalidFunctionArgumentType struct represents a call to a HermesPath
  * built in function with an unexpected type of argument.
  */
 struct InvalidFunctionArgumentType : virtual Exception

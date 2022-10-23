@@ -3,8 +3,9 @@
 ** Author: Róbert Márki <gsmiko@gmail.com>
 ** Copyright (c) 2016 Róbert Márki
 **
-** This file is part of the jmespath.cpp project which is distributed under
-** the MIT License (MIT).
+** This file is originally based on the jmespath.cpp project
+** (https://github.com/robertmrk/jmespath.cpp, commitid: 9c9702a)
+** and is distributed under the MIT License (MIT).
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a copy
 ** of this software and associated documentation files (the "Software"), to
@@ -63,7 +64,7 @@ public:
 
     /**
      * @brief Parses the given @a expression
-     * @param[in] expression JMESPath search expression encoded in UTF-8
+     * @param[in] expression HermesPath search expression encoded in UTF-8
      * @return The result of parsing the expression. The result's type is the
      * same as the attribute type of the start rule in the specified grammar.
      * @throws SyntaxError
@@ -79,7 +80,7 @@ public:
             IteratorType endIt(expression.cend());
 
             ResultType result;
-            // parse JMESPath expression and create the result
+            // parse HermesPath expression and create the result
             bool parsingSuccesful = qi::phrase_parse(it, endIt,
                                                      m_grammar, encoding::space,
                                                      result);

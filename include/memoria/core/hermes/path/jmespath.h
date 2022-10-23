@@ -2,9 +2,11 @@
 **
 ** Author: Róbert Márki <gsmiko@gmail.com>
 ** Copyright (c) 2016 Róbert Márki
+** Copyright (c) 2022 Victor Smirnov
 **
-** This file is part of the jmespath.cpp project which is distributed under
-** the MIT License (MIT).
+** This file is originally based on the jmespath.cpp project
+** (https://github.com/robertmrk/jmespath.cpp, commitid: 9c9702a)
+** and is distributed under the MIT License (MIT).
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a copy
 ** of this software and associated documentation files (the "Software"), to
@@ -36,10 +38,10 @@
  * @mainpage %jmespath.cpp
  *
  * %jmespath.cpp is a C++ implementation of <a href="http://jmespath.org">
- * JMESPath</a>, a query language for JSON.
+ * HermesPath</a>, a query language for JSON.
  * It can be used to extract and transform elements of a JSON document.
  *
- * @section example JMESPath expression example
+ * @section example HermesPath expression example
  *
  * Input JSON document:
  * @code{.javascript}
@@ -53,7 +55,7 @@
  * }
  * @endcode
  *
- * JMESPath expression:
+ * HermesPath expression:
  * @code{.javascript}
  * locations[?state == 'WA'].name | sort(@) | {WashingtonCities: join(', ', @)}
  * @endcode
@@ -64,8 +66,8 @@
  * @endcode
  *
  * For more examples take a look at the
- * <a href="http://jmespath.org/tutorial.html">JMESPath Tutorial</a> or the
- * <a href="http://jmespath.org/examples.html">JMESPath Examples</a> pages.
+ * <a href="http://jmespath.org/tutorial.html">HermesPath Tutorial</a> or the
+ * <a href="http://jmespath.org/examples.html">HermesPath Examples</a> pages.
  *
  * @section usage Using jmespath.cpp
  *
@@ -99,7 +101,7 @@
  *
  * @subsection search Search function
  * The main entry point of the library is the @ref jmespath::search function
- * which takes a JMESPath expression as its first argument and a JSON document
+ * which takes a HermesPath expression as its first argument and a JSON document
  * as the second argument and returns the result of the evaluated expression
  * as a new JSON document.
  * @code{.cpp}
@@ -117,7 +119,7 @@
  * @endcode
  *
  * @subsection expression Expression class
- * The @ref jmespath::Expression class allows to store a parsed JMESPath
+ * The @ref jmespath::Expression class allows to store a parsed HermesPath
  * expression which is usefull if you want to evaluate the same expression
  * on multiple JSON documents.
  * @code{.cpp}
@@ -127,7 +129,7 @@
  * @endcode
  *
  * By importing the names from the @ref jmespath::literals namespace you can
- * also use user defined literals to define JMESPath expressions.
+ * also use user defined literals to define HermesPath expressions.
  * @code{.cpp}
  * using namespace jmespath::literals;
  *
@@ -142,10 +144,10 @@
  * library.
  *
  * For defining JSON values you can either use `"_json"` user defined literal
- * or the @ref jmespath::Json type which is just an alias for
+ * or the @ref jmespath::ValuePtr type which is just an alias for
  * <a href="https://github.com/nlohmann/json">nlohmann_json</a>
  * @code{.cpp}
- * jmespath::Json jsonObject {{"foo", "bar"}};
+ * jmespath::ValuePtr jsonObject {{"foo", "bar"}};
  * @endcode
  *
  * or you can also include the header of the
@@ -171,7 +173,7 @@
  * the @ref error_info page.
  *
  * This additional information can be used for example to pinpoint exactly
- * which part of a JMESPath expression caused a parsing failure.
+ * which part of a HermesPath expression caused a parsing failure.
  * @code{.cpp}
  * jmespath::Expression expression;
  *
@@ -312,9 +314,9 @@ namespace path {
  * given @a document.
  *
  * The @a expression string should be encoded in UTF-8.
- * @param expression JMESPath expression.
+ * @param expression HermesPath expression.
  * @param document Input JSON document
- * @return Result of the evaluation of the @a expression in @ref Json format
+ * @return Result of the evaluation of the @a expression in @ref ValuePtr format
  * @note This function is reentrant. Since it takes the @a expression by
  * reference the value of the @a expression should be protected from changes
  * until the function returns.
@@ -322,15 +324,15 @@ namespace path {
  * error.
  * @throws InvalidValue When an invalid value is specified for an *expression*.
  * For example a `0` step value for a slice expression.
- * @throws UnknownFunction When an unknown JMESPath function is called in the
+ * @throws UnknownFunction When an unknown HermesPath function is called in the
  * *expression*.
- * @throws InvalidFunctionArgumentArity When a JMESPath function is called with
+ * @throws InvalidFunctionArgumentArity When a HermesPath function is called with
  * an unexpected number of arguments in the *expression*.
  * @throws InvalidFunctionArgumentType When an invalid type of argument was
- * specified for a JMESPath function call in the *expression*.
+ * specified for a HermesPath function call in the *expression*.
  */
 template <typename JsonT>
-std::enable_if_t<std::is_same<std::decay_t<JsonT>, Json>::value, Json>
+std::enable_if_t<std::is_same<std::decay_t<JsonT>, ValuePtr>::value, ValuePtr>
 search(const Expression& expression, JsonT&& document);
 
 /**
@@ -338,9 +340,9 @@ search(const Expression& expression, JsonT&& document);
  * implicit instantiation in client code.
 * @{
 */
-extern template Json search<const Json&>(const Expression&, const Json&);
-extern template Json search<Json&>(const Expression&, Json&);
-extern template Json search<Json>(const Expression&, Json&&);
+extern template ValuePtr search<const ValuePtr&>(const Expression&, const ValuePtr&);
+extern template ValuePtr search<ValuePtr&>(const Expression&, ValuePtr&);
+extern template ValuePtr search<ValuePtr>(const Expression&, ValuePtr&&);
 /** @}*/
 }
 }}

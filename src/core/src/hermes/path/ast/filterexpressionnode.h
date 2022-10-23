@@ -3,8 +3,9 @@
 ** Author: Róbert Márki <gsmiko@gmail.com>
 ** Copyright (c) 2016 Róbert Márki
 **
-** This file is part of the jmespath.cpp project which is distributed under
-** the MIT License (MIT).
+** This file is originally based on the jmespath.cpp project
+** (https://github.com/robertmrk/jmespath.cpp, commitid: 9c9702a)
+** and is distributed under the MIT License (MIT).
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a copy
 ** of this software and associated documentation files (the "Software"), to
@@ -33,7 +34,7 @@
 namespace memoria::hermes::path { namespace ast {
 
 /**
- * @brief The FilterExpressionNode class represents a JMESPath filter
+ * @brief The FilterExpressionNode class represents a HermesPath filter
  * expression.
  */
 class FilterExpressionNode : public AbstractNode

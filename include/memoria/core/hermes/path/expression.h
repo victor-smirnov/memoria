@@ -2,9 +2,11 @@
 **
 ** Author: Róbert Márki <gsmiko@gmail.com>
 ** Copyright (c) 2016 Róbert Márki
+** Copyright (c) 2022 Victor Smirnov
 **
-** This file is part of the jmespath.cpp project which is distributed under
-** the MIT License (MIT).
+** This file is originally based on the jmespath.cpp project
+** (https://github.com/robertmrk/jmespath.cpp, commitid: 9c9702a)
+** and is distributed under the MIT License (MIT).
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a copy
 ** of this software and associated documentation files (the "Software"), to
@@ -40,9 +42,9 @@ class ExpressionNode;
 }
 /**
  * @ingroup public
- * @brief The Expression class represents a JMESPath expression.
+ * @brief The Expression class represents a HermesPath expression.
  *
- * The Expression class can be used to store a parsed JMESPath expression and
+ * The Expression class can be used to store a parsed HermesPath expression and
  * reuse it for multiple searches.
  * @note This class is reentrant.
  */
@@ -69,7 +71,7 @@ public:
      *
      * This constructor participates in overload resolution only if U is
      * implicitly convertible to String. @a Argument should describe a
-     * valid JMESPath expression.
+     * valid HermesPath expression.
      * @param[in] argument The value that should be forwarded.
      * @tparam U The type of @a argument.
      * @throws SyntaxError When the syntax of the specified *expression* is
@@ -106,8 +108,8 @@ public:
     bool operator== (const Expression& other) const;
     /**
      * @brief Converts the expression to the string representation of the
-     * JMESPath expression.
-     * @return[in] String representation of the JMESPath expression.
+     * HermesPath expression.
+     * @return[in] String representation of the HermesPath expression.
      */
     String toString() const;
     /**
@@ -142,7 +144,7 @@ private:
         void operator()(ast::ExpressionNode* node) const;
     };
     /**
-     * @brief The string representation of the JMESPath expression.
+     * @brief The string representation of the HermesPath expression.
      */
     String m_expressionString;
     /**
@@ -151,7 +153,7 @@ private:
     std::unique_ptr<ast::ExpressionNode, ExpressionDeleter> m_astRoot;
     /**
      * @brief Parses the @a expressionString and updates the AST.
-     * @param[in] expressionString The string representation of the JMESPath
+     * @param[in] expressionString The string representation of the HermesPath
      * expression.
      * @throws SyntaxError When the syntax of the specified
      * *expressionString* is invalid.
@@ -165,21 +167,21 @@ private:
 namespace literals {
 
 /**
- * @brief User defined string literal for JMESPath expressions
+ * @brief User defined string literal for HermesPath expressions
  *
- * This operator implements a user defined string literal for JMESPath
+ * This operator implements a user defined string literal for HermesPath
  * expressions. It can be used by appending `"_jmespath"` to a string literal.
- * @param[in] expression The string representation of a JMESPath expression.
+ * @param[in] expression The string representation of a HermesPath expression.
  * @return An Expression object.
  * @throws SyntaxError When the syntax of the specified *expression* is invalid.
  */
-inline Expression operator""_jmespath(const char* expression, std::size_t)
+inline Expression operator""_hermespath(const char* expression, std::size_t)
 {
     return {expression};
 }
 
-} // namespace jmespath::literals
-} // namespace jmespath
+}
+}
 }}
 
 #endif // EXPRESSION_H

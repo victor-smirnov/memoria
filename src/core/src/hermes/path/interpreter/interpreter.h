@@ -4,8 +4,9 @@
 ** Copyright (c) 2016 Róbert Márki
 ** Copyright (c) 2022 Victor Smirnov
 **
-** This file is part of the jmespath.cpp project which is distributed under
-** the MIT License (MIT).
+** This file is originally based on the jmespath.cpp project
+** (https://github.com/robertmrk/jmespath.cpp, commitid: 9c9702a)
+** and is distributed under the MIT License (MIT).
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a copy
 ** of this software and associated documentation files (the "Software"), to
@@ -48,42 +49,42 @@ namespace memoria::hermes::path { namespace interpreter {
 /**
  * @brief Evaluation context type.
  *
- * It can hold either a @ref Json value or a @ref JsonRef.
+ * It can hold either a @ref ValuePtr value or a @ref JsonRef.
  */
-using ContextValue = Json;
+using ContextValue = ValuePtr;
 
 /**
  * @brief Convert the given @a value to something assignable to a @ref
  * ContextValue variable.
- * @param[in] value A @ref Json value.
+ * @param[in] value A @ref ValuePtr value.
  * @return Returns the parameter without any changes as an rvalue reference.
  */
-inline Json&& assignContextValue(Json&& value) {
+inline ValuePtr&& assignContextValue(ValuePtr&& value) {
     return std::move(value);
 }
 /**
  * @brief Convert the given @a value to something assignable to a
  * @ref ContextValue variable.
- * @param[in] value A @ref Json value.
+ * @param[in] value A @ref ValuePtr value.
  * @return Returns a @ref JsonRef which refers to the given @a value.
  */
-inline Json assignContextValue(const Json& value)
+inline ValuePtr assignContextValue(const ValuePtr& value)
 {
     return value;
 }
 
 /**
- * @brief Extract the @ref Json value held by the given @a value.
+ * @brief Extract the @ref ValuePtr value held by the given @a value.
  * @param[in] contextValue A @ref ContextValue variable.
- * @return Returns a constant reference to the @ref Json value held by @a value.
+ * @return Returns a constant reference to the @ref ValuePtr value held by @a value.
  */
-inline const Json& getJsonValue(const ContextValue& contextValue)
+inline const ValuePtr& getJsonValue(const ContextValue& contextValue)
 {
     return contextValue;
 }
 
 /**
- * @brief The Interpreter class evaluates the AST structure on a @ref Json
+ * @brief The Interpreter class evaluates the AST structure on a @ref ValuePtr
  * context.
  * @sa @ref setContext @ref currentContext
  */
@@ -96,19 +97,19 @@ public:
     Interpreter();
     /**
      * @brief Sets the context of the evaluation.
-     * @param[in] value Json document to be used as the context.
+     * @param[in] value ValuePtr document to be used as the context.
      */
     template <typename JsonT>
-    std::enable_if_t<std::is_same<std::decay_t<JsonT>, Json>::value, void>
+    std::enable_if_t<std::is_same<std::decay_t<JsonT>, ValuePtr>::value, void>
     setContext(JsonT&& value)
     {
         m_context = std::forward<JsonT>(value);
     }
     /**
      * @brief Returns the current evaluation context.
-     * @return @ref Json document used as the context.
+     * @return @ref ValuePtr document used as the context.
      */
-    const Json &currentContext() const
+    const ValuePtr &currentContext() const
     {
         return getJsonValue(m_context);
     }
@@ -171,15 +172,15 @@ private:
      */
     using FunctionArgumentList = std::vector<FunctionArgument>;
     /**
-     * @brief Function wrapper type to which JMESPath built in function
+     * @brief Function wrapper type to which HermesPath built in function
      * implementations should conform to.
      */
     using Function = std::function<void(FunctionArgumentList&)>;
     /**
-     * @brief The type of comparator functions used for comparing @ref Json
+     * @brief The type of comparator functions used for comparing @ref ValuePtr
      * values.
      */
-    using JsonComparator = std::function<bool(const Json&, const Json&)>;
+    using JsonComparator = std::function<bool(const ValuePtr&, const ValuePtr&)>;
     /**
      * @brief Function argument arity validator predicate.
      */
@@ -205,7 +206,7 @@ private:
      */
     ContextValue m_context;
     /**
-     * @brief Maps the JMESPath built in function names to their
+     * @brief Maps the HermesPath built in function names to their
      * implementations.
      */
     std::unordered_map<String, FunctionDescriptor> m_functionMap;
@@ -243,13 +244,13 @@ private:
                               Index step) const;
     /**
      * @brief Converts the @a json value to a boolean.
-     * @param[in] json The @ref Json value that needs to be converted.
+     * @param[in] json The @ref ValuePtr value that needs to be converted.
      * @return Returns false if @a json is a false like value (false, 0, empty
      * list, empty object, empty string, null), otherwise returns true.
      */
-    hermes::DataObjectPtr<Boolean> toBoolean(const Json& json) const;
+    hermes::DataObjectPtr<Boolean> toBoolean(const ValuePtr& json) const;
 
-    bool toSimpleBoolean(const Json& json) const;
+    bool toSimpleBoolean(const ValuePtr& json) const;
     /**
      * @brief Evaluates the projection of the given @a expression with the
      * evaluation @a context.
@@ -276,7 +277,7 @@ private:
      * @brief Evaluate the given function expression @a arguments.
      *
      * Evalutate an @ref ast::ExpressionNode on the current context to a
-     * @ref Json value and evaluate @ref ast::ExpressionArgumentNode to its
+     * @ref ValuePtr value and evaluate @ref ast::ExpressionArgumentNode to its
      * child @ref ast::ExpressionNode.
      * @param[in] arguments List of arguments.
      * @param[in] contextValue A context used for evaluating the arguments.
@@ -296,23 +297,23 @@ private:
     template <typename T>
     T& getArgument(FunctionArgument& argument) const;
     /**
-     * @brief Creates a reference to the Json value held by the @a argument.
+     * @brief Creates a reference to the ValuePtr value held by the @a argument.
      * @param argument A funciton argument value.
-     * @return Rreference to the Json value held by the @a argument.
+     * @return Rreference to the ValuePtr value held by the @a argument.
      * @throws InvalidFunctionArgumentType
      */
-    const Json& getJsonArgument(FunctionArgument& argument) const;
+    const ValuePtr& getJsonArgument(FunctionArgument& argument) const;
     /**
      * @brief Calculates the absolute value of the first item in the given list
-     * of @a arguments. The first item must be a number @ref Json value.
+     * of @a arguments. The first item must be a number @ref ValuePtr value.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void abs(FunctionArgumentList& arguments);
     /**
      * @brief Calculates the average value of the items in the first item of the
-     * given @a arguments. The first item must be an @ref Json array and every
-     * item in the array must be a number @ref Json value.
+     * given @a arguments. The first item must be an @ref ValuePtr array and every
+     * item in the array must be a number @ref ValuePtr value.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
@@ -320,14 +321,14 @@ private:
     /**
      * @brief Checks whether the first item in the given @a arguments contains
      * the second item. The first item should be either an array or string the
-     * second item can be any @ref Json type.
+     * second item can be any @ref ValuePtr type.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void contains(FunctionArgumentList& arguments);
     /**
      * @brief Rounds up the first item of the given @a arguments to the next
-     * highest integer value. The first item should be a @ref Json number.
+     * highest integer value. The first item should be a @ref ValuePtr number.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
@@ -335,14 +336,14 @@ private:
     /**
      * @brief Checks whether the first item of the given @a arguments ends with
      * the second item. The first and second item of @a arguments must be a
-     * @ref Json string.
+     * @ref ValuePtr string.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void endsWith(FunctionArgumentList& arguments);
     /**
      * @brief Rounds down the first item of the given @a arguments to the next
-     * lowest integer value. The first item should be a @ref Json number.
+     * lowest integer value. The first item should be a @ref ValuePtr number.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
@@ -381,7 +382,7 @@ private:
      * @brief Applies the expression provided in @a node to every item in the
      * @a array.
      * @param[in] node Pointer to the expresson node.
-     * @param[in] array Either an lvalue or rvalue reference to a @ref Json
+     * @param[in] array Either an lvalue or rvalue reference to a @ref ValuePtr
      * array.
      * @tparam JsonT The type of the @a array.
      * @throws InvalidFunctionArgumentType
@@ -401,11 +402,11 @@ private:
      * @param[in,out] object The object into which the items of the
      * @a sourceObject should be added.
      * @param[in] sourceObject ither an lvalue or rvalue reference to a
-     * @ref Json object.
+     * @ref ValuePtr object.
      * @tparam JsonT JsonT The type of the @a sourceObject.
      */
     template <typename JsonT>
-    void mergeObject(Json* object, JsonT&& sourceObject);
+    void mergeObject(ValuePtr* object, JsonT&& sourceObject);
     /**
      * @brief Accepts one or more items in @a arguments, and will evaluate them
      * in order until a non null argument is encounted.
@@ -423,10 +424,10 @@ private:
     /**
      * @brief Reverses the order of the @a subject. It must either be
      * an array or a string.
-     * @param[in] subject A @ref Json array or string.
+     * @param[in] subject A @ref ValuePtr array or string.
      * @throws InvalidFunctionArgumentType
      */
-    void reverse(Json&& subject);
+    void reverse(ValuePtr&& subject);
     /**
      * @brief Sorts the first item in the given @a arguments, which must either
      * be an array of numbers or an array of strings.
@@ -437,10 +438,10 @@ private:
     /**
      * @brief Sorts the @a array, which must either be an array of numbers or
      * an array of strings.
-     * @param[in] array A @ref Json array of number or strings.
+     * @param[in] array A @ref ValuePtr array of number or strings.
      * @throws InvalidFunctionArgumentType
      */
-    void sort(Json&& array);
+    void sort(ValuePtr&& array);
     /**
      * @brief Sorts the first item in the given @a arguments, which must either
      * be an array of numbers or an array of strings. It uses the expression
@@ -454,10 +455,10 @@ private:
      * an array of strings. It uses the @a expression as the sort key.
      * @param[in] expression The expression which evaluates to the key that
      * should be used for comparisons during sorting.
-     * @param[in] array A @ref Json array of numbers or strings.
+     * @param[in] array A @ref ValuePtr array of numbers or strings.
      * @throws InvalidFunctionArgumentType
      */
-    void sortBy(const ast::ExpressionNode* expression, Json&& array);
+    void sortBy(const ast::ExpressionNode* expression, ValuePtr&& array);
     /**
      * @brief Checks wheather the string provided as the first item in @a
      * arguments starts with the string provided as the second item in @a
@@ -483,22 +484,22 @@ private:
     /**
      * @brief Converts the given @a value to a one element array if it's not
      * already an array.
-     * @param[in] value A @ref Json value.
+     * @param[in] value A @ref ValuePtr value.
      * @tparam JsonT The type of the @a value.
      */
     template <typename JsonT>
     void toArray(JsonT&& value);
     /**
-     * @brief Converts the first item of the given @a arguments to the @ref Json
+     * @brief Converts the first item of the given @a arguments to the @ref ValuePtr
      * encoded value if it's not already a string.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void toString(FunctionArgumentList& arguments);
     /**
-     * @brief Converts the given @a value to the @ref Json encoded value if
+     * @brief Converts the given @a value to the @ref ValuePtr encoded value if
      * it's not already a string.
-     * @param[in] value A Json value.
+     * @param[in] value A ValuePtr value.
      * @tparam JsonT The type of the @a value.
      */
     template <typename JsonT>
@@ -506,15 +507,15 @@ private:
     /**
      * @brief Converts the string provided as the first item in the given
      * @a arguments to a number. If it's already a number then the original
-     * value is returned, all other @ref Json types are converted to null.
+     * value is returned, all other @ref ValuePtr types are converted to null.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void toDouble(FunctionArgumentList& arguments);
     /**
      * @brief Converts the @a value to a number if it's not already a number,
-     * all other @ref Json types are converted to null.
-     * @param[in] value A Json value.
+     * all other @ref ValuePtr types are converted to null.
+     * @param[in] value A ValuePtr value.
      * @tparam JsonT The type of the @a value.
      */
     template <typename JsonT>
@@ -524,7 +525,7 @@ private:
     /**
      * @brief Converts the string provided as the first item in the given
      * @a arguments to a number. If it's already a number then the original
-     * value is returned, all other @ref Json types are converted to null.
+     * value is returned, all other @ref ValuePtr types are converted to null.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
@@ -533,15 +534,15 @@ private:
     /**
      * @brief Converts the string provided as the first item in the given
      * @a arguments to a number. If it's already a number then the original
-     * value is returned, all other @ref Json types are converted to null.
+     * value is returned, all other @ref ValuePtr types are converted to null.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void toBoolean(FunctionArgumentList& arguments);
     /**
      * @brief Converts the @a value to a number if it's not already a number,
-     * all other @ref Json types are converted to null.
-     * @param[in] value A Json value.
+     * all other @ref ValuePtr types are converted to null.
+     * @param[in] value A ValuePtr value.
      * @tparam JsonT The type of the @a value.
      */
     template <typename JsonT>
@@ -550,8 +551,8 @@ private:
 
     /**
      * @brief Converts the @a value to a number if it's not already a number,
-     * all other @ref Json types are converted to null.
-     * @param[in] value A Json value.
+     * all other @ref ValuePtr types are converted to null.
+     * @param[in] value A ValuePtr value.
      * @tparam JsonT The type of the @a value.
      */
     template <typename JsonT>
@@ -559,7 +560,7 @@ private:
 
 
     /**
-     * @brief Returns the type of the @ref Json value provided as the first
+     * @brief Returns the type of the @ref ValuePtr value provided as the first
      * item in @a arguments.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
@@ -574,7 +575,7 @@ private:
     void values(FunctionArgumentList& arguments);
     /**
      * @brief Extracts the values from the @a object.
-     * @param[in] object A @ref Json object.
+     * @param[in] object A @ref ValuePtr object.
      * @tparam JsonT The type of @a object.
      * @throws InvalidFunctionArgumentType
      */
@@ -586,7 +587,7 @@ private:
      * of strings.
      * @param[in] arguments The list of the function's arguments.
      * @param[in] comparator The comparator function used for comparing
-     * @ref Json values. It should return true if its first argument is less
+     * @ref ValuePtr values. It should return true if its first argument is less
      * then its second argument.
      * @throws InvalidFunctionArgumentType
      */
@@ -595,9 +596,9 @@ private:
      * @brief Finds the largest item in the @a array, it must either be an array
      * of numbers or an array of strings.
      * @param[in] comparator The comparator function used for comparing
-     * @ref Json values. It should return true if its first argument is less
+     * @ref ValuePtr values. It should return true if its first argument is less
      * then its second argument.
-     * @param[in] array A @ref Json array.
+     * @param[in] array A @ref ValuePtr array.
      * @tparam JsonT The type of @a array.
      * @throws InvalidFunctionArgumentType
      */
@@ -610,12 +611,12 @@ private:
      * arguments as a key for comparison.
      * @param[in] arguments The list of the function's arguments.
      * @param[in] comparator The comparator function used for comparing
-     * @ref Json values. It should return true if its first argument is less
+     * @ref ValuePtr values. It should return true if its first argument is less
      * then its second argument.
      * @throws InvalidFunctionArgumentType
      */
     void maxBy(FunctionArgumentList& arguments,
-               const JsonComparator& comparator = std::less<Json>{});
+               const JsonComparator& comparator = std::less<ValuePtr>{});
     /**
      * @brief Finds the largest item in the @a array, which must either be an
      * array of numbers or an array of strings, using the @a  expression as a
@@ -623,9 +624,9 @@ private:
      * @param[in] expression The expression which evaluates to the key that
      * should be used for comparisons.
      * @param[in] comparator The comparator function used for comparing
-     * @ref Json values. It should return true if its first argument is less
+     * @ref ValuePtr values. It should return true if its first argument is less
      * then its second argument.
-     * @param[in] array A @ref Json array.
+     * @param[in] array A @ref ValuePtr array.
      * @tparam JsonT The type of the @a array.
      * @throws InvalidFunctionArgumentType
      */
