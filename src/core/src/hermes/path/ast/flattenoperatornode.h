@@ -31,7 +31,7 @@
 #include "variantnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The FlattenOperatorNode class represents a JMESPath flatten operator.
@@ -57,5 +57,5 @@ public:
      */
     bool operator==(const FlattenOperatorNode& other) const;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 #endif // FLATTENOPERATORNODE_H

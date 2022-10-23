@@ -28,7 +28,7 @@
 #include "multiselectlistnode.h"
 #include "allnodes.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 MultiselectListNode::MultiselectListNode()
     : AbstractNode()
@@ -62,4 +62,4 @@ bool MultiselectListNode::operator==(const MultiselectListNode &other) const
     }
     return true;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

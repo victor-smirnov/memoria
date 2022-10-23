@@ -29,7 +29,7 @@
 #define SUBEXPRESSIONNODE_H
 #include "binaryexpressionnode.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The SubexpressionNode class represents a JMESPath subexpression.
@@ -63,11 +63,11 @@ public:
      */
     bool stopsProjection() const override;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::SubexpressionNode,
-    (memoria::jmespath::ast::ExpressionNode, leftExpression)
-    (memoria::jmespath::ast::ExpressionNode, rightExpression)
+    memoria::hermes::path::ast::SubexpressionNode,
+    (memoria::hermes::path::ast::ExpressionNode, leftExpression)
+    (memoria::hermes::path::ast::ExpressionNode, rightExpression)
 )
 #endif // SUBEXPRESSIONNODE_H

@@ -31,7 +31,7 @@
 #include "bracketspecifiernode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The IndexExpressionNode class represents a JMESPath index expression.
@@ -91,12 +91,12 @@ public:
      */
     BracketSpecifierNode bracketSpecifier;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::IndexExpressionNode,
-    (memoria::jmespath::ast::ExpressionNode, leftExpression)
-    (memoria::jmespath::ast::BracketSpecifierNode, bracketSpecifier)
-    (memoria::jmespath::ast::ExpressionNode, rightExpression)
+    memoria::hermes::path::ast::IndexExpressionNode,
+    (memoria::hermes::path::ast::ExpressionNode, leftExpression)
+    (memoria::hermes::path::ast::BracketSpecifierNode, bracketSpecifier)
+    (memoria::hermes::path::ast::ExpressionNode, rightExpression)
 )
 #endif // INDEXEXPRESSIONNODE_H

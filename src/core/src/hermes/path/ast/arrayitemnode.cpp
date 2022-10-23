@@ -28,7 +28,7 @@
 #include "arrayitemnode.h"
 #include "../interpreter/abstractvisitor.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 ArrayItemNode::ArrayItemNode()
     : ArrayItemNode(0)
@@ -54,4 +54,4 @@ bool ArrayItemNode::operator==(const ArrayItemNode &other) const
     }
     return true;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

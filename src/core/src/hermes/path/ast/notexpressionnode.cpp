@@ -29,7 +29,7 @@
 #include "allnodes.h"
 #include "../interpreter/abstractvisitor.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 NotExpressionNode::NotExpressionNode()
     : AbstractNode()
@@ -55,4 +55,4 @@ bool NotExpressionNode::operator==(const NotExpressionNode &other) const
     }
     return true;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

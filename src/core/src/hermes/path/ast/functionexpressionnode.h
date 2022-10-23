@@ -34,7 +34,7 @@
 #include <boost/variant.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 class ExpressionNode;
 class ExpressionArgumentNode;
@@ -82,12 +82,12 @@ public:
      */
     std::vector<ArgumentType> arguments;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::FunctionExpressionNode,
-    (memoria::jmespath::String, functionName)
-    (std::vector<memoria::jmespath::ast::FunctionExpressionNode::ArgumentType>,
+    memoria::hermes::path::ast::FunctionExpressionNode,
+    (memoria::hermes::path::String, functionName)
+    (std::vector<memoria::hermes::path::ast::FunctionExpressionNode::ArgumentType>,
      arguments)
 )
 #endif // FUNCTIONEXPRESSIONNODE_H

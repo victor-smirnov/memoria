@@ -29,7 +29,7 @@
 #define NODERANK_H
 #include "../ast/allnodes.h"
 
-namespace memoria::jmespath { namespace parser {
+namespace memoria::hermes::path { namespace parser {
 
 /**
  * @brief Returns the rank of the given @a node object's type.
@@ -158,5 +158,5 @@ inline int nodeRank(const ast::PipeExpressionNode&)
     return 7;
 }
 /** @} */
-}} // namespace jmespath::parser
+}} // namespace hermes::path::parser
 #endif // NODERANK_H

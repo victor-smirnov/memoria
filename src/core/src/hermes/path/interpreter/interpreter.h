@@ -37,12 +37,12 @@
 #include <unordered_map>
 #include <boost/variant.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 class BinaryExpressionNode;
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
-namespace memoria::jmespath { namespace interpreter {
+namespace memoria::hermes::path { namespace interpreter {
 
 
 /**
@@ -638,5 +638,5 @@ private:
     // Tools
     hermes::GenericArrayPtr wrap_array(const std::vector<hermes::ValuePtr>& array);
 };
-}} // namespace jmespath::interpreter
+}} // namespace hermes::path::interpreter
 #endif // INTERPRETER_H

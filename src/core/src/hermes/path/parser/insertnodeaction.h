@@ -34,7 +34,7 @@
 #include <boost/variant/polymorphic_get.hpp>
 #include <boost/optional.hpp>
 
-namespace memoria::jmespath { namespace parser {
+namespace memoria::hermes::path { namespace parser {
 
 /**
  * @brief The InsertNodeAction class is a functor for inserting the given
@@ -95,5 +95,5 @@ private:
      */
     NodeInsertConditionT m_insertCondition;
 };
-}} // namespace jmespath::parser
+}} // namespace hermes::path::parser
 #endif // INSERTBINARYEXPRESSIONNODEACTION_H

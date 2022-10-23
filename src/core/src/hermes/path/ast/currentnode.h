@@ -30,7 +30,7 @@
 #include "abstractnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The CurrentNode class represents a JMESPath current node expression.
@@ -56,5 +56,5 @@ public:
      */
     bool operator==(const CurrentNode& other) const;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 #endif // CURRENTNODE_H

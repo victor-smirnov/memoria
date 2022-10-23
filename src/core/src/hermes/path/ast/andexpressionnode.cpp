@@ -29,7 +29,7 @@
 #include "allnodes.h"
 #include "../interpreter/abstractvisitor.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 AndExpressionNode::AndExpressionNode()
     : BinaryExpressionNode()
@@ -56,4 +56,4 @@ void AndExpressionNode::accept(interpreter::AbstractVisitor *visitor) const
 {
     visitor->visit(this);
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

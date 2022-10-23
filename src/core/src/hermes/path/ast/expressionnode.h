@@ -32,7 +32,7 @@
 #include <boost/variant.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 class IdentifierNode;
 class RawStringNode;
@@ -103,10 +103,10 @@ public:
      */
     ExpressionNode& operator=(const ValueType& expression);
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::ExpressionNode,
-    (memoria::jmespath::ast::ExpressionNode::ValueType, value)
+    memoria::hermes::path::ast::ExpressionNode,
+    (memoria::hermes::path::ast::ExpressionNode::ValueType, value)
 )
 #endif // EXPRESSIONNODE_H

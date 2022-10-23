@@ -29,7 +29,7 @@
 #include "allnodes.h"
 #include "../interpreter/abstractvisitor.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 PipeExpressionNode::PipeExpressionNode()
     : BinaryExpressionNode()
@@ -56,5 +56,5 @@ void PipeExpressionNode::accept(interpreter::AbstractVisitor *visitor) const
 {
     visitor->visit(this);
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 

@@ -27,7 +27,7 @@
 ****************************************************************************/
 #include "allnodes.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 SubexpressionNode::SubexpressionNode()
     : BinaryExpressionNode()
@@ -49,4 +49,4 @@ bool SubexpressionNode::stopsProjection() const
 {
     return false;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

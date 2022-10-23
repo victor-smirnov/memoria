@@ -30,7 +30,7 @@
 #include "../ast/binaryexpressionnode.h"
 #include "../ast/notexpressionnode.h"
 
-namespace memoria::jmespath { namespace parser {
+namespace memoria::hermes::path { namespace parser {
 
 /**
  * @brief The LeftChildExtractor class is a functor that extracts the
@@ -90,5 +90,5 @@ public:
     }    
     /** @}*/
 };
-}} // namespace jmespath::parser
+}} // namespace hermes::path::parser
 #endif // LEFTCHILDEXTRACTOR_H

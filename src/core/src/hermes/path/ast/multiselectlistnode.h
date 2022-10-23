@@ -33,7 +33,7 @@
 #include <initializer_list>
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The MultiselectListNode class represents a JMESPath list wildcard
@@ -77,10 +77,10 @@ public:
      */
     std::vector<ExpressionNode> expressions;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::MultiselectListNode,
-    (std::vector<memoria::jmespath::ast::ExpressionNode>, expressions)
+    memoria::hermes::path::ast::MultiselectListNode,
+    (std::vector<memoria::hermes::path::ast::ExpressionNode>, expressions)
 )
 #endif // MULTISELECTLISTNODE_H

@@ -36,7 +36,8 @@
 #include <memoria/core/hermes/hermes.hpp>
 
 namespace memoria {
-namespace jmespath {
+namespace hermes {
+namespace path {
 /**
  * @brief 8 bit character type
  */
@@ -70,7 +71,7 @@ using StringIteratorAdaptor
 /**
  * @brief JSON data type
  */
-using Json1      = nlohmann::json;
+
 using Json = hermes::ValuePtr;
 
 /**
@@ -91,6 +92,6 @@ class Interpreter;
 }
 
 
-} // namespace jmespath
 }
+}}
 #endif // TYPES_H

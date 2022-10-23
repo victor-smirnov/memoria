@@ -31,7 +31,7 @@
 #include "expressionnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The ExpressionArgumentNode class represents a JMESPath expression
@@ -68,10 +68,10 @@ public:
      */
     ExpressionNode expression;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::ExpressionArgumentNode,
-    (memoria::jmespath::ast::ExpressionNode, expression)
+    memoria::hermes::path::ast::ExpressionArgumentNode,
+    (memoria::hermes::path::ast::ExpressionNode, expression)
 )
 #endif // EXPRESSIONARGUMENTNODE_H

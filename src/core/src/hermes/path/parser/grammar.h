@@ -43,10 +43,10 @@
 #include <boost/phoenix.hpp>
 
 /**
- * @namespace jmespath::parser
+ * @namespace hermes::path::parser
  * @brief Classes required for parsing JMESPath expressions
  */
-namespace memoria::jmespath { namespace parser {
+namespace memoria::hermes::path { namespace parser {
 
 namespace qi = boost::spirit::qi;
 namespace encoding = qi::unicode;
@@ -60,7 +60,7 @@ namespace phx = boost::phoenix;
  * eliminate left recursion.
  * @tparam Iterator String iterator type
  * @tparam Skipper Character skipper parser type
- * @sa http://jmespath.org/specification.html#grammar
+ * @sa http://hermes::path.org/specification.html#grammar
  */
 template <typename Iterator, typename Skipper = encoding::space_type>
 class Grammar : public qi::grammar<Iterator,
@@ -497,5 +497,5 @@ private:
     qi::symbols<UnicodeChar, UnicodeChar>   m_controlCharacterSymbols;
     qi::rule<Iterator, Index()>     m_indexRule;
 };
-}} // namespace jmespath::parser
+}} // namespace hermes::path::parser
 #endif // GRAMMAR_H

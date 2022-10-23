@@ -35,7 +35,7 @@
 #include "memoria/core/hermes/path/exceptions.h"
 #include <boost/spirit/include/qi.hpp>
 
-namespace memoria::jmespath { namespace parser {
+namespace memoria::hermes::path { namespace parser {
 
 namespace qi = boost::spirit::qi;
 namespace encoding = qi::unicode;
@@ -108,5 +108,5 @@ private:
      */
     GrammarType m_grammar;
 };
-}} // namespace jmespath::parser
+}} // namespace hermes::path::parser
 #endif // PARSER_H

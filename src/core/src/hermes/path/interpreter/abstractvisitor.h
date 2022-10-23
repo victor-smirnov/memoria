@@ -28,7 +28,7 @@
 #ifndef ABSTRACTVISITOR_H
 #define ABSTRACTVISITOR_H
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 class AbstractNode;
 class Node;
@@ -56,13 +56,13 @@ class CurrentNode;
 class FilterExpressionNode;
 class FunctionExpressionNode;
 class ExpressionArgumentNode;
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 /**
- * @namespace jmespath::interpreter
+ * @namespace hermes::path::interpreter
  * @brief Classes for interpreting the AST of the JMESPath expression.
  */
-namespace memoria::jmespath { namespace interpreter {
+namespace memoria::hermes::path { namespace interpreter {
 /**
  * @brief The AbstractVisitor class is an interface which
  * defines the member functions required to visit every
@@ -107,5 +107,5 @@ public:
     virtual void visit(const ast::ExpressionArgumentNode* node) = 0;
     /** @}*/
 };
-}} // namespace jmespath::interpreter
+}} // namespace hermes::path::interpreter
 #endif // ABSTRACTVISITOR_H

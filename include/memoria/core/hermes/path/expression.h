@@ -32,7 +32,8 @@
 #include <memoria/core/hermes/path/exceptions.h>
 
 namespace memoria {
-namespace jmespath {
+namespace hermes {
+namespace path {
 
 namespace ast {
 class ExpressionNode;
@@ -176,8 +177,9 @@ inline Expression operator""_jmespath(const char* expression, std::size_t)
 {
     return {expression};
 }
+
 } // namespace jmespath::literals
 } // namespace jmespath
-}
+}}
 
 #endif // EXPRESSION_H

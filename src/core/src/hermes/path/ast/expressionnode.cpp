@@ -27,7 +27,7 @@
 ****************************************************************************/
 #include "allnodes.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 ExpressionNode::ExpressionNode()
     : VariantNode()
@@ -57,4 +57,4 @@ ExpressionNode &ExpressionNode::operator=(const ValueType &expression)
     value = expression;
     return *this;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

@@ -31,7 +31,7 @@
 #include "expressionnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The NotExpressionNode class represents a JMESPath not expression.
@@ -67,10 +67,10 @@ public:
      */
     ExpressionNode expression;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::NotExpressionNode,
-    (memoria::jmespath::ast::ExpressionNode, expression)
+    memoria::hermes::path::ast::NotExpressionNode,
+    (memoria::hermes::path::ast::ExpressionNode, expression)
 )
 #endif // NOTEXPRESSIONNODE_H

@@ -29,7 +29,7 @@
 #include "parser/parser.h"
 #include "parser/grammar.h"
 
-namespace memoria::jmespath {
+namespace memoria::hermes::path {
 
 Expression::Expression()
     : m_astRoot(new ast::ExpressionNode)
@@ -112,4 +112,4 @@ void Expression::ExpressionDeleter::operator()(ast::ExpressionNode *node) const
         delete node;
     }
 }
-} // namespace jmespath
+} // namespace hermes::path

@@ -29,15 +29,13 @@
 #include "interpreter/interpreter.h"
 #include <boost/hana.hpp>
 
-namespace memoria::jmespath {
+namespace memoria::hermes::path {
 
 template <typename JsonT>
 std::enable_if_t<std::is_same<std::decay_t<JsonT>, Json>::value, Json>
 search(const Expression &expression, JsonT&& document)
 {
     using interpreter::Interpreter;
-//    using interpreter::JsonRef;
-
     if (expression.isEmpty())
     {
         return {};
@@ -50,24 +48,11 @@ search(const Expression &expression, JsonT&& document)
     // evaluate the expression by calling visit with the root of the AST
     s_interpreter.visit(expression.astRoot());
 
-    // copy the context value from the interpreter if it's a reference or move
-    // it into the local result variable if it's a value, and return the result
-    // of the function by value. this approach leaves open the possibility for
-    // the compiler to use copy elision to optimize away any further copies or
-    // moves
-    Json result;
-//    auto visitor = boost::hana::overload(
-//        [&result](Json& value) mutable {
-//            result = std::move(value);
-//        }
-//    );
-//    boost::apply_visitor(visitor, s_interpreter.currentContextValue());
-    result = s_interpreter.currentContextValue();
-    return result;
+    return s_interpreter.currentContextValue();
 }
 
 // explicit instantion
 template Json search<const Json&>(const Expression&, const Json&);
 template Json search<Json&>(const Expression&, Json&);
 template Json search<Json>(const Expression&, Json&&);
-} // namespace jmespath
+} // namespace hermes::path

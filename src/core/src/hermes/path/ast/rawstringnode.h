@@ -31,7 +31,7 @@
 #include "memoria/core/hermes/path/types.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The RawStringNode class represents a JMESPath raw string literal.
@@ -67,10 +67,10 @@ public:
      */
     String rawString;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::RawStringNode,
-    (memoria::jmespath::String, rawString)
+    memoria::hermes::path::ast::RawStringNode,
+    (memoria::hermes::path::String, rawString)
 )
 #endif // RAWSTRINGNODE_H

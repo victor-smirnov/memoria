@@ -29,7 +29,7 @@
 #define HASHWILDCARDNODE_H
 #include "binaryexpressionnode.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The HashWildcardNode class represents a JMESPath hash wildcard
@@ -70,11 +70,11 @@ public:
      */
     void accept(interpreter::AbstractVisitor* visitor) const override;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::HashWildcardNode,
-    (memoria::jmespath::ast::ExpressionNode, leftExpression)
-    (memoria::jmespath::ast::ExpressionNode, rightExpression)
+    memoria::hermes::path::ast::HashWildcardNode,
+    (memoria::hermes::path::ast::ExpressionNode, leftExpression)
+    (memoria::hermes::path::ast::ExpressionNode, rightExpression)
 )
 #endif // HASHWILDCARDNODE_H

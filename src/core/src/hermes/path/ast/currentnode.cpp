@@ -28,7 +28,7 @@
 #include "currentnode.h"
 #include "../interpreter/abstractvisitor.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 CurrentNode::CurrentNode()
     : AbstractNode()
@@ -44,4 +44,4 @@ bool CurrentNode::operator==(const CurrentNode &) const
 {
     return true;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

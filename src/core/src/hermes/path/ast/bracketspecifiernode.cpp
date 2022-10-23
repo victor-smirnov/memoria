@@ -28,7 +28,7 @@
 #include "bracketspecifiernode.h"
 #include "allnodes.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 BracketSpecifierNode::BracketSpecifierNode()
     : VariantNode()
@@ -54,4 +54,4 @@ bool BracketSpecifierNode::stopsProjection() const
 void BracketSpecifierNode::anchor()
 {
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

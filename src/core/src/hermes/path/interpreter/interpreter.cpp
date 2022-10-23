@@ -39,7 +39,7 @@
 #include <boost/hana.hpp>
 #include <boost/type_index.hpp>
 
-namespace memoria::jmespath { namespace interpreter {
+namespace memoria::hermes::path { namespace interpreter {
 
 namespace rng = boost::range;
 namespace alg = boost::algorithm;
@@ -1584,4 +1584,4 @@ void Interpreter::maxBy(const ast::ExpressionNode* expression,
 }
 
 
-}} // namespace jmespath::interpreter
+}} // namespace hermes::path::interpreter

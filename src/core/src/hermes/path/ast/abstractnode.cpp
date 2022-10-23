@@ -27,9 +27,9 @@
 ****************************************************************************/
 #include "abstractnode.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 AbstractNode::~AbstractNode()
 {
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

@@ -28,7 +28,7 @@
 #include "hashwildcardnode.h"
 #include "allnodes.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 HashWildcardNode::HashWildcardNode()
     : BinaryExpressionNode()
@@ -55,4 +55,4 @@ void HashWildcardNode::accept(interpreter::AbstractVisitor *visitor) const
 {
     visitor->visit(this);
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

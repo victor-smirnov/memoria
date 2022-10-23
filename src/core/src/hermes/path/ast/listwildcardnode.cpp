@@ -28,7 +28,7 @@
 #include "listwildcardnode.h"
 #include "../interpreter/abstractvisitor.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 ListWildcardNode::ListWildcardNode()
     : AbstractNode()
@@ -44,4 +44,4 @@ bool ListWildcardNode::operator==(const ListWildcardNode&) const
 {
     return true;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

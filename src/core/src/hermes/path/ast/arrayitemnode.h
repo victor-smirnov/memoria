@@ -31,7 +31,7 @@
 #include "memoria/core/hermes/path/types.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The ArrayItemNode class represents a JMESPath array index
@@ -68,10 +68,10 @@ public:
      */
     Index index;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::ArrayItemNode,
-    (memoria::jmespath::Index, index)
+    memoria::hermes::path::ast::ArrayItemNode,
+    (memoria::hermes::path::Index, index)
 )
 #endif // ARRAYITEMNODE_H

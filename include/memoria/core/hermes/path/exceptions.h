@@ -31,7 +31,8 @@
 #include <boost/exception/all.hpp>
 
 namespace memoria {
-namespace jmespath {
+namespace hermes {
+namespace path {
 /**
  * @defgroup error_info Error info types
  * Additional information about the error that might be attached to exceptions.
@@ -151,6 +152,6 @@ private:
      */
     virtual void anchor();
 };
-} // namespace jmespath
 }
+}}
 #endif // EXCEPTIONS_H

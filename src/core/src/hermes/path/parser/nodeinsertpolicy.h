@@ -29,7 +29,7 @@
 #define NODEINSERTPOLICY_H
 #include "../ast/allnodes.h"
 
-namespace memoria::jmespath { namespace parser {
+namespace memoria::hermes::path { namespace parser {
 
 /**
  * @brief The NodeInsertPolicy class is a functor for inserting a given node
@@ -84,5 +84,5 @@ public:
     }
     /** @}*/
 };
-}} // namespace jmespath::parser
+}} // namespace hermes::path::parser
 #endif // NODEINSERTPOLICY_H

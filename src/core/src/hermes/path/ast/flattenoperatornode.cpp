@@ -27,7 +27,7 @@
 ****************************************************************************/
 #include "flattenoperatornode.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 FlattenOperatorNode::FlattenOperatorNode()
     : AbstractNode()
@@ -42,4 +42,4 @@ bool FlattenOperatorNode::operator==(const FlattenOperatorNode&) const
 {
     return true;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

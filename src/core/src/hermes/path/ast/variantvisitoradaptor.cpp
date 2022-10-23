@@ -28,7 +28,7 @@
 #include "variantvisitoradaptor.h"
 #include "memoria/core/hermes/path/exceptions.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 VariantVisitorAdaptor::VariantVisitorAdaptor(interpreter::AbstractVisitor *visitor)
     : boost::static_visitor<>(),
@@ -39,4 +39,4 @@ VariantVisitorAdaptor::VariantVisitorAdaptor(interpreter::AbstractVisitor *visit
         BOOST_THROW_EXCEPTION(InvalidAgrument());
     }
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

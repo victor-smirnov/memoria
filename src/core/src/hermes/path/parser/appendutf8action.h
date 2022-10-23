@@ -29,7 +29,7 @@
 #define APPENDUTF8ACTION_H
 #include "memoria/core/hermes/path/types.h"
 
-namespace memoria::jmespath { namespace parser {
+namespace memoria::hermes::path { namespace parser {
 
 /**
  * @brief The AppendUtf8Action class is a functor for appending UTF-32
@@ -57,5 +57,5 @@ public:
         *utf8OutIt++ = utf32Char;
     }
 };
-}} // namespace jmespath::parser
+}} // namespace hermes::path::parser
 #endif // APPENDUTF8ACTION_H

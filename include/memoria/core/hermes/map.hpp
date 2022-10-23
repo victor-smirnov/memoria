@@ -75,7 +75,7 @@ protected:
     friend class Array;
 
     friend class DocumentBuilder;
-    friend class memoria::jmespath::interpreter::Interpreter;
+    friend class memoria::hermes::path::interpreter::Interpreter;
     using MapIterator = typename ArenaMap::Iterator;
 
 

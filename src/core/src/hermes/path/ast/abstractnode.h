@@ -28,16 +28,16 @@
 #ifndef ABSTRACTNODE_H
 #define ABSTRACTNODE_H
 
-namespace memoria::jmespath { namespace interpreter {
+namespace memoria::hermes::path { namespace interpreter {
 
 class AbstractVisitor;
 }}
 
 /**
- * @namespace jmespath::ast
+ * @namespace hermes::path::ast
  * @brief Classes which represent the AST nodes
  */
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 /**
  * @brief The AbstractNode class is the common interface class
  * for all AST node types
@@ -73,5 +73,5 @@ public:
      */
     virtual void accept(interpreter::AbstractVisitor* visitor) const = 0;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 #endif // ABSTRACTNODE_H

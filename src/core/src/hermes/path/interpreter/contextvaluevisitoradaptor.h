@@ -32,7 +32,7 @@
 #include <boost/variant.hpp>
 #include <boost/hana.hpp>
 
-namespace memoria::jmespath { namespace interpreter {
+namespace memoria::hermes::path { namespace interpreter {
 
 /**
  * @brief The ContextValueVisitorAdaptor class adapts a visitor object,
@@ -135,5 +135,5 @@ inline decltype(auto) makeMoveOnlyVisitor(
     };
     return result;
 }
-}} // namespace jmespath::interpreter
+}} // namespace hermes::path::interpreter
 #endif // CONTEXTVALUEVISITORADAPTOR_H

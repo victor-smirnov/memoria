@@ -30,7 +30,7 @@
 #include "variantnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 class ArrayItemNode;
 class FlattenOperatorNode;
@@ -79,10 +79,10 @@ private:
      */
     virtual void anchor();
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::BracketSpecifierNode,
-    (memoria::jmespath::ast::BracketSpecifierNode::ValueType, value)
+    memoria::hermes::path::ast::BracketSpecifierNode,
+    (memoria::hermes::path::ast::BracketSpecifierNode::ValueType, value)
 )
 #endif // BRACKETSPECIFIERNODE_H

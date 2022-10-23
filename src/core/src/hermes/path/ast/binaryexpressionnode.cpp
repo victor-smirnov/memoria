@@ -27,7 +27,7 @@
 ****************************************************************************/
 #include "allnodes.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 BinaryExpressionNode::BinaryExpressionNode()
     : AbstractNode()
@@ -57,4 +57,4 @@ void BinaryExpressionNode::accept(interpreter::AbstractVisitor *visitor) const
     leftExpression.accept(visitor);
     rightExpression.accept(visitor);
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

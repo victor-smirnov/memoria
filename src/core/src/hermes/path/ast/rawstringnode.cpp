@@ -28,7 +28,7 @@
 #include "rawstringnode.h"
 #include "../interpreter/abstractvisitor.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 RawStringNode::RawStringNode()
     : AbstractNode()
@@ -54,4 +54,4 @@ bool RawStringNode::operator==(const RawStringNode &other) const
     }
     return true;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

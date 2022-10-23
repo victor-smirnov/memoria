@@ -31,7 +31,7 @@
 #include "noderank.h"
 #include <boost/variant/polymorphic_get.hpp>
 
-namespace memoria::jmespath { namespace parser {
+namespace memoria::hermes::path { namespace parser {
 
 /**
  * @brief The NodeInsertCondition class is a functor that will either yield
@@ -86,5 +86,5 @@ public:
     }
     /** @}*/
 };
-}} // namespace jmespath::parser
+}} // namespace hermes::path::parser
 #endif // NODEINSERTCONDITION_H

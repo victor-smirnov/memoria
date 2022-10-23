@@ -30,7 +30,7 @@
 #include "abstractnode.h"
 #include "expressionnode.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The BinaryExpressionNode class is the base class for all node types
@@ -87,5 +87,5 @@ public:
      */
     ExpressionNode rightExpression;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 #endif // BINARYEXPRESSIONNODE_H

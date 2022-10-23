@@ -303,7 +303,8 @@
  * functions of the library
  */
 namespace memoria {
-namespace jmespath {
+namespace hermes {
+namespace path {
 
 /**
  * @ingroup public
@@ -341,7 +342,7 @@ extern template Json search<const Json&>(const Expression&, const Json&);
 extern template Json search<Json&>(const Expression&, Json&);
 extern template Json search<Json>(const Expression&, Json&&);
 /** @}*/
-} // namespace jmespath
 }
+}}
 
 #endif // JMESPATH_H

@@ -31,7 +31,7 @@
 #include "memoria/core/hermes/path/types.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The LiteralNode class represents a JMESPath literal string
@@ -66,10 +66,10 @@ public:
      */
     String literal;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::LiteralNode,
-    (memoria::jmespath::String, literal)
+    memoria::hermes::path::ast::LiteralNode,
+    (memoria::hermes::path::String, literal)
 )
 #endif // LITERALNODE_H

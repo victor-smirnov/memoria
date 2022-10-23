@@ -31,7 +31,7 @@
 #include <memoria/core/hermes/path/types.h>
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The IdentifierNode class represents a JMESPath identifier
@@ -67,10 +67,10 @@ public:
      */
     String identifier;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::IdentifierNode,
-    (memoria::jmespath::String, identifier)
+    memoria::hermes::path::ast::IdentifierNode,
+    (memoria::hermes::path::String, identifier)
 )
 #endif // IDENTIFIERNODE_H

@@ -28,7 +28,7 @@
 #include "identifiernode.h"
 #include "../interpreter/abstractvisitor.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 IdentifierNode::IdentifierNode()
     : AbstractNode()
@@ -54,4 +54,4 @@ bool IdentifierNode::operator==(const IdentifierNode &other) const
     }
     return true;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

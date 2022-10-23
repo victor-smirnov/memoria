@@ -27,7 +27,7 @@
 ****************************************************************************/
 #include <memoria/core/hermes/path/exceptions.h>
 
-namespace memoria::jmespath {
+namespace memoria::hermes::path {
 
 void Exception::anchor()
 {
@@ -56,4 +56,4 @@ void InvalidFunctionArgumentArity::anchor()
 void InvalidFunctionArgumentType::anchor()
 {
 }
-} // namespace jmespath
+} // namespace hermes::path

@@ -57,8 +57,8 @@ int main(int, char**)
 
     println("{}", doc->to_pretty_string());
 
-    jmespath::Expression exp("people[*].first | [0]"); //[*]
+    hermes::path::Expression exp("people[*].first | [0]"); //[*]
 
-    auto result = jmespath::search(exp, doc->value());
+    auto result = hermes::path::search(exp, doc->value());
     println("{}", result->to_pretty_string());
 }

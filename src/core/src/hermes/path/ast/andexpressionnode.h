@@ -30,7 +30,7 @@
 #include "binaryexpressionnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The AndExpressionNode class represents a JMESPath and expression.
@@ -70,11 +70,11 @@ public:
      */
     void accept(interpreter::AbstractVisitor* visitor) const override;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::AndExpressionNode,
-    (memoria::jmespath::ast::ExpressionNode, leftExpression)
-    (memoria::jmespath::ast::ExpressionNode, rightExpression)
+    memoria::hermes::path::ast::AndExpressionNode,
+    (memoria::hermes::path::ast::ExpressionNode, leftExpression)
+    (memoria::hermes::path::ast::ExpressionNode, rightExpression)
 )
 #endif // ANDEXPRESSIONNODE_H

@@ -27,9 +27,9 @@
 ****************************************************************************/
 #include "abstractvisitor.h"
 
-namespace memoria::jmespath { namespace interpreter {
+namespace memoria::hermes::path { namespace interpreter {
 
 AbstractVisitor::~AbstractVisitor()
 {
 }
-}} // namespace jmespath::interpreter
+}} // namespace hermes::path::interpreter

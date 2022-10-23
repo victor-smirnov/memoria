@@ -29,7 +29,7 @@
 #define ENCODESURROGATEPAIRACTION_H
 #include "memoria/core/hermes/path/types.h"
 
-namespace memoria::jmespath { namespace parser {
+namespace memoria::hermes::path { namespace parser {
 
 /**
  * @brief The EncodeSurrogatePairAction class is a functor for encoding
@@ -58,5 +58,5 @@ public:
         return unicodeChar;
     }
 };
-}} // namespace jmespath::parser
+}} // namespace hermes::path::parser
 #endif // ENCODESURROGATEPAIRACTION_H

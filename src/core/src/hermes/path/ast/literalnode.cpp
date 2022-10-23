@@ -28,7 +28,7 @@
 #include "literalnode.h"
 #include "../interpreter/abstractvisitor.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 LiteralNode::LiteralNode()
     : AbstractNode()
@@ -54,4 +54,4 @@ bool LiteralNode::operator==(const LiteralNode &other) const
     }
     return true;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

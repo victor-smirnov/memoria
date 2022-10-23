@@ -31,7 +31,7 @@
 #include "variantvisitoradaptor.h"
 #include <boost/variant.hpp>
 
-namespace memoria::jmespath { namespace ast{
+namespace memoria::hermes::path { namespace ast{
 
 /**
  * @brief The VariantNode class serves as a container node which can represent
@@ -125,5 +125,5 @@ public:
      */
     ValueType value;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 #endif // VARIANTNODE_H

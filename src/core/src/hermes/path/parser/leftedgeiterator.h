@@ -31,7 +31,7 @@
 #include "leftchildextractor.h"
 #include <iterator>
 
-namespace memoria::jmespath { namespace parser {
+namespace memoria::hermes::path { namespace parser {
 
 /**
  * @brief The LeftEdgeIterator class is a forward iterator which can be used to
@@ -115,5 +115,5 @@ private:
      */
     LeftChildExtractor m_childExtractor;
 };
-}} // namespace jmespath::parser
+}} // namespace hermes::path::parser
 #endif // LEFTEDGEITERATOR_H

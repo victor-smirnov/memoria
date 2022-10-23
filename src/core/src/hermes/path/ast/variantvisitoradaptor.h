@@ -30,7 +30,7 @@
 #include "../interpreter/abstractvisitor.h"
 #include <boost/variant.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The VariantVisitorAdaptor class adapts an AbstractVisitor
@@ -71,5 +71,5 @@ private:
      */
     interpreter::AbstractVisitor* m_visitor;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 #endif // VARIANTVISITOR_H

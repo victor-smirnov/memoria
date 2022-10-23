@@ -28,7 +28,7 @@
 #include "sliceexpressionnode.h"
 #include "../interpreter/abstractvisitor.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 SliceExpressionNode::SliceExpressionNode(const IndexType &startIndex,
                                          const IndexType &stopIndex,
@@ -55,4 +55,4 @@ bool SliceExpressionNode::operator==(const SliceExpressionNode &other) const
     }
     return true;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

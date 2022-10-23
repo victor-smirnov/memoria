@@ -30,7 +30,7 @@
 #include "binaryexpressionnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The PipeExpressionNode class represents a JMESPath pipe expression.
@@ -70,11 +70,11 @@ public:
      */
     void accept(interpreter::AbstractVisitor* visitor) const override;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::PipeExpressionNode,
-    (memoria::jmespath::ast::ExpressionNode, leftExpression)
-    (memoria::jmespath::ast::ExpressionNode, rightExpression)
+    memoria::hermes::path::ast::PipeExpressionNode,
+    (memoria::hermes::path::ast::ExpressionNode, leftExpression)
+    (memoria::hermes::path::ast::ExpressionNode, rightExpression)
 )
 #endif // PIPEEXPRESSIONNODE_H

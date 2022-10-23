@@ -29,7 +29,7 @@
 #include "allnodes.h"
 #include "../interpreter/abstractvisitor.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 FilterExpressionNode::FilterExpressionNode()
     : AbstractNode()
@@ -55,4 +55,4 @@ bool FilterExpressionNode::operator==(const FilterExpressionNode &other) const
     }
     return true;
 }
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast

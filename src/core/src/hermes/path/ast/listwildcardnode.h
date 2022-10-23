@@ -29,7 +29,7 @@
 #define LISTWILDCARDNODE_H
 #include "abstractnode.h"
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The ListWildcardNode class represents a JMESPath list wildcard
@@ -56,5 +56,5 @@ public:
      */
     bool operator==(const ListWildcardNode& other) const;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 #endif // LISTWILDCARDNODE_H

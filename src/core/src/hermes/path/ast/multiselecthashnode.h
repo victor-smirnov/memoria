@@ -36,7 +36,7 @@
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/adapted/std_pair.hpp>
 
-namespace memoria::jmespath { namespace ast {
+namespace memoria::hermes::path { namespace ast {
 
 /**
  * @brief The MultiselectHashNode class represents a JMESPath multiselect
@@ -80,11 +80,11 @@ public:
      */
     std::vector<KeyValuePairType> expressions;
 };
-}} // namespace jmespath::ast
+}} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::jmespath::ast::MultiselectHashNode,
-    (std::vector<memoria::jmespath::ast::MultiselectHashNode::KeyValuePairType>,
+    memoria::hermes::path::ast::MultiselectHashNode,
+    (std::vector<memoria::hermes::path::ast::MultiselectHashNode::KeyValuePairType>,
      expressions)
 )
 #endif // MULTISELECTHASHNODE_H
