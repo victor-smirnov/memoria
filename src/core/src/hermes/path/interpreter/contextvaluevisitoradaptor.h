@@ -60,24 +60,24 @@ public:
      * of the object to which @a value refers to.
      * @param[in] value A @ref JsonRef value.
      */
-    template <typename T>
-    std::enable_if_t<std::is_same<T, JsonRef>::value && ForceMove, void>
-    operator()(const T& value)
-    {
-        m_visitor(Json(value.get()));
-    }
+//    template <typename T>
+//    std::enable_if_t<std::is_same<T, JsonRef>::value && ForceMove, void>
+//    operator()(const T& value)
+//    {
+//        m_visitor(Json(value.get()));
+//    }
 
     /**
      * @brief Calls the visitor object with the lvalue reference of the
      * @ref Json value to which @a value refers to.
      * @param[in] value A @ref JsonRef value.
      */
-    template <typename T>
-    std::enable_if_t<std::is_same<T, JsonRef>::value && !ForceMove, void>
-    operator()(const T& value)
-    {
-         m_visitor(value.get());
-    }
+//    template <typename T>
+//    std::enable_if_t<std::is_same<T, JsonRef>::value && !ForceMove, void>
+//    operator()(const T& value)
+//    {
+//         m_visitor(value.get());
+//    }
 
     /**
      * @brief Calls the visitor object with the rvalue reference of @a value.

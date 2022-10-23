@@ -50,11 +50,11 @@ hermes::DataObjectPtr<DT> wrap_DO(DTTViewType<DT> view) {
 }
 
 
-hermes::GenericArrayPtr Interpreter::wrap_array(const std::vector<hermes::ValuePtr>& array) {
+hermes::GenericArrayPtr Interpreter::wrap_array(const std::vector<Json>& array) {
     auto doc = hermes::DocView::make_pooled();
     auto arr = doc->set_generic_array();
 
-    for (auto item: array) {
+    for (const auto& item: array) {
         arr->append(item);
     }
 
@@ -163,17 +163,7 @@ void Interpreter::evaluateProjection(const ast::ExpressionNode *expression)
     // move the current context into a temporary variable in case it holds
     // a value, since the context member variable will get overwritten during
     // the evaluation of the projection
-    ContextValue contextValue {std::move(m_context)};
-
-    // project the expression with either an lvalue const ref or rvalue ref
-    // context
-    auto visitor = makeVisitor(
-        std::bind(&Interpreter::evaluateProjection<const Json&>,
-                  this, expression, _1),
-        std::bind(&Interpreter::evaluateProjection<Json&&>,
-                  this, expression, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    evaluateProjection(expression, std::move(m_context));
 }
 
 template <typename JsonT>
@@ -188,11 +178,6 @@ void Interpreter::evaluateProjection(const ast::ExpressionNode* expression,
 
         // create the array of results
         auto result = make_array();
-        auto fn = [&](auto val){
-            result->append(val);
-        };
-
-        auto visitor = makeVisitor(fn, fn);
 
         // iterate over the array
         for (auto item: *ctx_array)
@@ -206,7 +191,7 @@ void Interpreter::evaluateProjection(const ast::ExpressionNode* expression,
             if (!getJsonValue(m_context)->is_null())
             {
                 // add the result of the expression to the results array
-                boost::apply_visitor(visitor, m_context);
+                result->append(m_context);
             }
         }
 
@@ -231,19 +216,7 @@ void Interpreter::visit(const ast::ExpressionNode *node)
 
 void Interpreter::visit(const ast::IdentifierNode *node)
 {
-    using std::placeholders::_1;
-    using LvalueType = void(Interpreter::*)(const ast::IdentifierNode*,
-                                             const Json&);
-    using RvalueType = void(Interpreter::*)(const ast::IdentifierNode*,
-                                             Json&&);
-    auto visitor = makeVisitor(
-        std::bind(static_cast<LvalueType>(&Interpreter::visit<const Json&>),
-                  this, node, _1),
-        std::bind(static_cast<RvalueType>(&Interpreter::visit<Json&&>),
-                  this, node, _1)
-    );
-    // visit the node with either an lvalue const ref or rvalue ref context
-    boost::apply_visitor(visitor, m_context);
+    visit(node, std::move(m_context));
 }
 
 template <typename JsonT>
@@ -309,19 +282,7 @@ void Interpreter::visit(const ast::IndexExpressionNode *node)
 
 void Interpreter::visit(const ast::ArrayItemNode *node)
 {
-    using std::placeholders::_1;
-    using LvalueType = void(Interpreter::*)(const ast::ArrayItemNode*,
-                                             const Json&);
-    using RvalueType = void(Interpreter::*)(const ast::ArrayItemNode*,
-                                             Json&&);
-    auto visitor = makeVisitor(
-        std::bind(static_cast<LvalueType>(&Interpreter::visit<const Json&>),
-                  this, node, _1),
-        std::bind(static_cast<RvalueType>(&Interpreter::visit<Json&&>),
-                  this, node, _1)
-    );
-    // visit the node with either an lvalue const ref or rvalue ref context
-    boost::apply_visitor(visitor, m_context);
+    visit(node, std::move(m_context));
 }
 
 template <typename JsonT>
@@ -355,19 +316,7 @@ void Interpreter::visit(const ast::ArrayItemNode *node, JsonT &&context)
 
 void Interpreter::visit(const ast::FlattenOperatorNode *node)
 {
-    using std::placeholders::_1;
-    using LvalueType = void(Interpreter::*)(const ast::FlattenOperatorNode*,
-                                             const Json&);
-    using RvalueType = void(Interpreter::*)(const ast::FlattenOperatorNode*,
-                                             Json&&);
-    auto visitor = makeVisitor(
-        std::bind(static_cast<LvalueType>(&Interpreter::visit<const Json&>),
-                  this, node, _1),
-        std::bind(static_cast<RvalueType>(&Interpreter::visit<Json&&>),
-                  this, node, _1)
-    );
-    // visit the node with either an lvalue const ref or rvalue ref context
-    boost::apply_visitor(visitor, m_context);
+    visit(node, std::move(m_context));
 }
 
 template <typename JsonT>
@@ -381,8 +330,6 @@ void Interpreter::visit(const ast::FlattenOperatorNode*, JsonT&& context)
         auto doc = hermes::DocView::make_pooled();
         auto result = doc->set_generic_array();
 
-        // create the array of results
-        //Json result(Json::value_t::array);
         // iterate over the array
         for (auto item: *ctx_array)
         {
@@ -418,19 +365,7 @@ void Interpreter::visit(const ast::BracketSpecifierNode *node)
 
 void Interpreter::visit(const ast::SliceExpressionNode *node)
 {
-    using std::placeholders::_1;
-    using LvalueType = void(Interpreter::*)(const ast::SliceExpressionNode*,
-                                             const Json&);
-    using RvalueType = void(Interpreter::*)(const ast::SliceExpressionNode*,
-                                             Json&&);
-    auto visitor = makeVisitor(
-        std::bind(static_cast<LvalueType>(&Interpreter::visit<const Json&>),
-                  this, node, _1),
-        std::bind(static_cast<RvalueType>(&Interpreter::visit<Json&&>),
-                  this, node, _1)
-    );
-    // visit the node with either an lvalue const ref or rvalue ref context
-    boost::apply_visitor(visitor, m_context);
+    visit(node, std::move(m_context));
 }
 
 template <typename JsonT>
@@ -508,21 +443,7 @@ void Interpreter::visit(const ast::ListWildcardNode*)
 
 void Interpreter::visit(const ast::HashWildcardNode *node)
 {
-    using std::placeholders::_1;
-    using LvalueType = void(Interpreter::*)(const ast::HashWildcardNode*,
-                                             const Json&);
-    using RvalueType = void(Interpreter::*)(const ast::HashWildcardNode*,
-                                             Json&&);
-    // evaluate the left side expression
-    visit(&node->leftExpression);
-    auto visitor = makeVisitor(
-        std::bind(static_cast<LvalueType>(&Interpreter::visit<const Json&>),
-                  this, node, _1),
-        std::bind(static_cast<RvalueType>(&Interpreter::visit<Json&&>),
-                  this, node, _1)
-    );
-    // visit the node with either an lvalue const ref or rvalue ref context
-    boost::apply_visitor(visitor, m_context);
+    visit(node, std::move(m_context));
 }
 
 template <typename JsonT>
@@ -556,9 +477,6 @@ void Interpreter::visit(const ast::MultiselectListNode *node)
     // evaluate the multiselect list opration if the context doesn't holds null
     if (!getJsonValue(m_context)->is_null())
     {
-        // create the array of results
-        //Json result(Json::value_t::array);
-
         auto doc = hermes::DocView::make_pooled();
         auto result = doc->set_generic_array();
 
@@ -586,9 +504,6 @@ void Interpreter::visit(const ast::MultiselectHashNode *node)
     // evaluate the multiselect hash opration if the context doesn't holds null
     if (!getJsonValue(m_context)->is_null())
     {
-        // create the array of results
-        //Json result(Json::value_t::object);
-
         auto doc = hermes::DocView::make_pooled();
         auto result = doc->set_generic_map();
 
@@ -642,17 +557,6 @@ void Interpreter::visit(const ast::ComparatorExpressionNode *node)
 
     // move the left side results into a temporary variable
     ContextValue leftResultContext {std::move(m_context)};
-    // if the context of the comparator expression holds a value but the
-    // evaluation of the left side expression resulted in a const lvalue
-    // ref then make a copy of the result, to avoid referring to a value that
-    // can get potentially destroyed while evaluating the right side expression
-    auto visitor = boost::hana::overload(
-        [&leftResultContext](Json&, const JsonRef& leftResult) {
-            leftResultContext = leftResult.get();
-        },
-        [](auto, auto) {}
-    );
-    boost::apply_visitor(visitor, contextValue, leftResultContext);
     const Json& leftResult = getJsonValue(leftResultContext);
 
     // set the context for the right side expression
@@ -727,17 +631,7 @@ void Interpreter::evaluateLogicOperator(
     }
     else
     {
-        // if the context of the logic operator holds a value but the
-        // evaluation of the left side expression resulted in a const lvalue
-        // ref then make a copy of the result, to avoid referring to a soon
-        // to be destroyed value
-        auto visitor = boost::hana::overload(
-            [this](Json&, const JsonRef& leftResult) {
-                m_context = leftResult.get();
-            },
-            [](auto, auto) {}
-        );
-        boost::apply_visitor(visitor, contextValue, m_context);
+        m_context = contextValue;
     }
 }
 
@@ -760,24 +654,7 @@ void Interpreter::visit(const ast::CurrentNode *)
 
 void Interpreter::visit(const ast::FilterExpressionNode *node)
 {
-    using std::placeholders::_1;
-    using LvalueType = void(Interpreter::*)(const ast::FilterExpressionNode*,
-                                             const Json&);
-    using RvalueType = void(Interpreter::*)(const ast::FilterExpressionNode*,
-                                             Json&&);
-    // move the current context into a temporary variable in case it holds
-    // a value, since the context member variable will get overwritten during
-    // the evaluation of the filter expression
-    ContextValue contextValue {std::move(m_context)};
-
-    auto visitor = makeVisitor(
-        std::bind(static_cast<LvalueType>(&Interpreter::visit<const Json&>),
-                  this, node, _1),
-        std::bind(static_cast<RvalueType>(&Interpreter::visit<Json&&>),
-                  this, node, _1)
-    );
-    // visit the node with either an lvalue const ref or rvalue ref context
-    boost::apply_visitor(visitor, contextValue);
+    visit(node, std::move(m_context));
 }
 
 template <typename JsonT>
@@ -1221,22 +1098,12 @@ void Interpreter::length(FunctionArgumentList &arguments)
 
 void Interpreter::map(FunctionArgumentList &arguments)
 {
-    using std::placeholders::_1;
     // get the first argument
     const ast::ExpressionNode& expression
             = getArgument<const ast::ExpressionNode>(arguments[0]);
     // get the second argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[1]);
-
-    // evaluate the map function with either const lvalue ref to the array
-    // or as an rvalue ref
-    auto visitor = makeVisitor(
-        std::bind(&Interpreter::map<const Json&>,
-                  this, &expression, _1),
-        std::bind(&Interpreter::map<Json&&>,
-                  this, &expression, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    map(&expression, std::move(contextValue));
 }
 
 template <typename JsonT>
@@ -1250,18 +1117,12 @@ void Interpreter::map(const ast::ExpressionNode* node, JsonT&& array_value)
     }
 
     auto result = make_array();
-    auto fn = [&](auto value){
-        result->append(value);
-    };
-
-    auto visitor = makeVisitor(fn, fn);
-
     auto array = array_value->as_generic_array();
     for (auto item: *array)
     {
         m_context = assignContextValue(std::move(item));
         visit(node);
-        boost::apply_visitor(visitor, m_context);
+        result->append(m_context);
     }
 
     m_context = result->as_value();
@@ -1270,18 +1131,9 @@ void Interpreter::map(const ast::ExpressionNode* node, JsonT&& array_value)
 void Interpreter::merge(FunctionArgumentList &arguments)
 {
     using std::placeholders::_1;
-    // create an emtpy object to hold the results
-    //Json result(Json::value_t::object);
+
     auto doc = hermes::DocView::make_pooled();
     auto result = doc->set_generic_map()->as_value();
-
-    // make a visitor which will call mergeObject with either a const lvalue
-    // ref or an rvalue ref to the argument
-    auto fn = [&](auto value){
-        mergeObject(&result, std::move(value));
-    };
-
-    auto visitor = makeVisitor(fn, fn);
 
     // iterate over the arguments
     for (auto& argument: arguments)
@@ -1304,7 +1156,7 @@ void Interpreter::merge(FunctionArgumentList &arguments)
         // otherwise merge the object into the result object
         else
         {
-            boost::apply_visitor(visitor, contextValue);
+            mergeObject(&result, std::move(contextValue));
         }
     };
     m_context = std::move(result);
@@ -1341,18 +1193,9 @@ void Interpreter::notNull(FunctionArgumentList &arguments)
 
 void Interpreter::reverse(FunctionArgumentList &arguments)
 {
-    using std::placeholders::_1;
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
-
-    // create a visitor which will reverse the argument if it's an rvalue
-    // or create a copy of it's argument and reverse the copy
-    auto visitor = makeMoveOnlyVisitor(
-        std::bind(
-            static_cast<void(Interpreter::*)(Json&&)>(&Interpreter::reverse),
-            this, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    reverse(std::move(contextValue));
 }
 
 void Interpreter::reverse(Json&& subject)
@@ -1373,18 +1216,9 @@ void Interpreter::reverse(Json&& subject)
 
 void Interpreter::sort(FunctionArgumentList &arguments)
 {
-    using std::placeholders::_1;
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
-
-    // create a visitor which will sort the argument if it's an rvalue
-    // or create a copy of it's argument and sort the copy
-    auto visitor = makeMoveOnlyVisitor(
-        std::bind(
-            static_cast<void(Interpreter::*)(Json&&)>(&Interpreter::sort),
-            this, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    sort(std::move(contextValue));
 }
 
 void Interpreter::sort(Json&& array)
@@ -1405,22 +1239,13 @@ void Interpreter::sort(Json&& array)
 
 void Interpreter::sortBy(FunctionArgumentList &arguments)
 {
-    using std::placeholders::_1;
-    using RvalueType = void(Interpreter::*)(const ast::ExpressionNode*,
-                                             Json&&);
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
     // get the second argument
     const ast::ExpressionNode& expression
             = getArgument<ast::ExpressionNode>(arguments[1]);
 
-    // create a visitor which will sort the argument if it's an rvalue
-    // or create a copy of it's argument and sort the copy
-    auto visitor = makeMoveOnlyVisitor(
-        std::bind(static_cast<RvalueType>(&Interpreter::sortBy),
-                  this, &expression, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    sortBy(&expression, std::move(contextValue));
 }
 
 void Interpreter::sortBy(const ast::ExpressionNode* expression, Json&& source)
@@ -1510,17 +1335,9 @@ void Interpreter::sum(FunctionArgumentList &arguments)
 
 void Interpreter::toArray(FunctionArgumentList &arguments)
 {
-    using std::placeholders::_1;
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
-
-    // evaluate the toArray function with either const lvalue ref to the
-    // argument or as an rvalue ref
-    auto visitor = makeVisitor(
-        std::bind(&Interpreter::toArray<const Json&>, this, _1),
-        std::bind(&Interpreter::toArray<Json&&>, this, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    toArray(std::move(contextValue));
 }
 
 template <typename JsonT>
@@ -1544,17 +1361,9 @@ void Interpreter::toArray(JsonT&& value)
 
 void Interpreter::toString(FunctionArgumentList &arguments)
 {
-    using std::placeholders::_1;
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
-
-    // evaluate the toString function with either const lvalue ref to the
-    // argument or as an rvalue ref
-    auto visitor = makeVisitor(
-        std::bind(&Interpreter::toString<const Json&>, this, _1),
-        std::bind(&Interpreter::toString<Json&&>, this, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    toString(std::move(contextValue));
 }
 
 template <typename JsonT>
@@ -1574,17 +1383,9 @@ void Interpreter::toString(JsonT&& value)
 
 void Interpreter::toDouble(FunctionArgumentList &arguments)
 {
-    using std::placeholders::_1;
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
-
-    // evaluate the toNumber function with either const lvalue ref to the
-    // argument or as an rvalue ref
-    auto visitor = makeVisitor(
-        std::bind(&Interpreter::toDouble<const Json&>, this, _1),
-        std::bind(&Interpreter::toDouble<Json&&>, this, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    toDouble(std::move(contextValue));
 }
 
 template <typename JsonT>
@@ -1618,17 +1419,9 @@ void Interpreter::toDouble(JsonT&& value)
 
 void Interpreter::toBigInt(FunctionArgumentList &arguments)
 {
-    using std::placeholders::_1;
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
-
-    // evaluate the toNumber function with either const lvalue ref to the
-    // argument or as an rvalue ref
-    auto visitor = makeVisitor(
-        std::bind(&Interpreter::toBigInt<const Json&>, this, _1),
-        std::bind(&Interpreter::toBigInt<Json&&>, this, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    toBigInt(std::move(contextValue));
 }
 
 template <typename JsonT>
@@ -1649,17 +1442,9 @@ void Interpreter::toBigInt(JsonT&& value)
 
 void Interpreter::toBoolean(FunctionArgumentList &arguments)
 {
-    using std::placeholders::_1;
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
-
-    // evaluate the toNumber function with either const lvalue ref to the
-    // argument or as an rvalue ref
-    auto visitor = makeVisitor(
-        std::bind(&Interpreter::toBoolean<const Json&>, this, _1),
-        std::bind(&Interpreter::toBoolean<Json&&>, this, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    toBoolean(std::move(contextValue));
 }
 
 template <typename JsonT>
@@ -1693,17 +1478,9 @@ void Interpreter::type(FunctionArgumentList &arguments)
 
 void Interpreter::values(FunctionArgumentList &arguments)
 {
-    using std::placeholders::_1;
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
-
-    // evaluate the values function with either const lvalue ref to the array
-    // or as an rvalue ref
-    auto visitor = makeVisitor(
-        std::bind(&Interpreter::values<const Json&>, this, _1),
-        std::bind(&Interpreter::values<Json&&>, this, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    values(std::move(contextValue));
 }
 
 template <typename JsonT>
@@ -1729,19 +1506,9 @@ void Interpreter::values(JsonT&& object)
 void Interpreter::max(FunctionArgumentList &arguments,
                        const JsonComparator &comparator)
 {
-    using std::placeholders::_1;
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
-
-    // evaluate the max function with either const lvalue ref to the array
-    // or as an rvalue ref
-    auto visitor = makeVisitor(
-        std::bind(&Interpreter::max<const Json&>,
-                  this, &comparator, _1),
-        std::bind(&Interpreter::max<Json&&>,
-                  this, &comparator, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    max(&comparator, std::move(contextValue));
 }
 
 template <typename JsonT>
@@ -1766,22 +1533,13 @@ void Interpreter::max(const JsonComparator* comparator, JsonT&& array)
 void Interpreter::maxBy(FunctionArgumentList &arguments,
                          const JsonComparator &comparator)
 {
-    using std::placeholders::_1;
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
     // get the second argument
     const ast::ExpressionNode& expression
             = getArgument<ast::ExpressionNode>(arguments[1]);
 
-    // evaluate the map function with either const lvalue ref to the array
-    // or as an rvalue ref
-    auto visitor = makeVisitor(
-        std::bind(&Interpreter::maxBy<const Json&>,
-                  this, &expression, &comparator, _1),
-        std::bind(&Interpreter::maxBy<Json&&>,
-                  this, &expression, &comparator, _1)
-    );
-    boost::apply_visitor(visitor, contextValue);
+    maxBy(&expression, &comparator, std::move(contextValue));
 }
 
 template <typename JsonT>

@@ -36,7 +36,7 @@ std::enable_if_t<std::is_same<std::decay_t<JsonT>, Json>::value, Json>
 search(const Expression &expression, JsonT&& document)
 {
     using interpreter::Interpreter;
-    using interpreter::JsonRef;
+//    using interpreter::JsonRef;
 
     if (expression.isEmpty())
     {
@@ -56,15 +56,13 @@ search(const Expression &expression, JsonT&& document)
     // the compiler to use copy elision to optimize away any further copies or
     // moves
     Json result;
-    auto visitor = boost::hana::overload(
-        [&result](const JsonRef& value) mutable {
-            result = value.get();
-        },
-        [&result](Json& value) mutable {
-            result = std::move(value);
-        }
-    );
-    boost::apply_visitor(visitor, s_interpreter.currentContextValue());
+//    auto visitor = boost::hana::overload(
+//        [&result](Json& value) mutable {
+//            result = std::move(value);
+//        }
+//    );
+//    boost::apply_visitor(visitor, s_interpreter.currentContextValue());
+    result = s_interpreter.currentContextValue();
     return result;
 }
 

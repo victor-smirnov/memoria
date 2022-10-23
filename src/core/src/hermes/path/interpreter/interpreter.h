@@ -2,6 +2,7 @@
 **
 ** Author: Róbert Márki <gsmiko@gmail.com>
 ** Copyright (c) 2016 Róbert Márki
+** Copyright (c) 2022 Victor Smirnov
 **
 ** This file is part of the jmespath.cpp project which is distributed under
 ** the MIT License (MIT).
@@ -43,16 +44,13 @@ class BinaryExpressionNode;
 
 namespace memoria::jmespath { namespace interpreter {
 
-/**
- * @brief Copyable and assignable reference to a constant @ref Json value
- */
-using JsonRef = std::reference_wrapper<const Json>;
+
 /**
  * @brief Evaluation context type.
  *
  * It can hold either a @ref Json value or a @ref JsonRef.
  */
-using ContextValue = boost::variant<Json, JsonRef>;
+using ContextValue = Json;
 
 /**
  * @brief Convert the given @a value to something assignable to a @ref
@@ -60,8 +58,7 @@ using ContextValue = boost::variant<Json, JsonRef>;
  * @param[in] value A @ref Json value.
  * @return Returns the parameter without any changes as an rvalue reference.
  */
-inline Json&& assignContextValue(Json&& value)
-{
+inline Json&& assignContextValue(Json&& value) {
     return std::move(value);
 }
 /**
@@ -70,9 +67,9 @@ inline Json&& assignContextValue(Json&& value)
  * @param[in] value A @ref Json value.
  * @return Returns a @ref JsonRef which refers to the given @a value.
  */
-inline JsonRef assignContextValue(const Json& value)
+inline Json assignContextValue(const Json& value)
 {
-    return std::cref(value);
+    return value;
 }
 
 /**
@@ -82,9 +79,7 @@ inline JsonRef assignContextValue(const Json& value)
  */
 inline const Json& getJsonValue(const ContextValue& contextValue)
 {
-    return boost::apply_visitor([](const auto& value) -> const Json& {
-        return value;
-    }, contextValue);
+    return contextValue;
 }
 
 /**
