@@ -26,7 +26,7 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#include "memoria/core/hermes/path/jmespath.h"
+#include "memoria/core/hermes/path/path.h"
 #include "interpreter/interpreter.h"
 #include <boost/hana.hpp>
 

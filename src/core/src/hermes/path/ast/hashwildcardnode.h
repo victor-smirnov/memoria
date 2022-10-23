@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef HASHWILDCARDNODE_H
-#define HASHWILDCARDNODE_H
+
+#pragma once
+
 #include "binaryexpressionnode.h"
 
 namespace memoria::hermes::path { namespace ast {
@@ -78,4 +79,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     (memoria::hermes::path::ast::ExpressionNode, leftExpression)
     (memoria::hermes::path::ast::ExpressionNode, rightExpression)
 )
-#endif // HASHWILDCARDNODE_H

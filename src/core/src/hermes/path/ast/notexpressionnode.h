@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef NOTEXPRESSIONNODE_H
-#define NOTEXPRESSIONNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "expressionnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -74,4 +75,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::NotExpressionNode,
     (memoria::hermes::path::ast::ExpressionNode, expression)
 )
-#endif // NOTEXPRESSIONNODE_H

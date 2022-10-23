@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef COMPARATOREXPRESSIONNODE_H
-#define COMPARATOREXPRESSIONNODE_H
+
+#pragma once
+
 #include "binaryexpressionnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -107,4 +108,4 @@ BOOST_FUSION_ADAPT_STRUCT(
     (memoria::hermes::path::ast::ComparatorExpressionNode::Comparator, comparator)
     (memoria::hermes::path::ast::ExpressionNode, rightExpression)
 )
-#endif // COMPARATOREXPRESSIONNODE_H
+

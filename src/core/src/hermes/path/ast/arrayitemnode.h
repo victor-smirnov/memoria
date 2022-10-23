@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef ARRAYITEMNODE_H
-#define ARRAYITEMNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "memoria/core/hermes/path/types.h"
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -75,4 +76,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::ArrayItemNode,
     (memoria::hermes::path::Index, index)
 )
-#endif // ARRAYITEMNODE_H

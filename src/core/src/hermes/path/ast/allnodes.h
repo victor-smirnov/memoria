@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef ALLNODES_H
-#define ALLNODES_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "expressionnode.h"
 #include "identifiernode.h"
@@ -55,4 +56,3 @@
 #include "filterexpressionnode.h"
 #include "functionexpressionnode.h"
 #include "expressionargumentnode.h"
-#endif // ALLNODES_H

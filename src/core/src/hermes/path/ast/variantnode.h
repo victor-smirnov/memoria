@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef VARIANTNODE_H
-#define VARIANTNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "variantvisitoradaptor.h"
 #include <boost/variant.hpp>
@@ -127,4 +128,3 @@ public:
     ValueType value;
 };
 }} // namespace hermes::path::ast
-#endif // VARIANTNODE_H

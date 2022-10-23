@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef EXPRESSIONNODE_H
-#define EXPRESSIONNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "variantnode.h"
 #include <boost/variant.hpp>
@@ -110,4 +111,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::ExpressionNode,
     (memoria::hermes::path::ast::ExpressionNode::ValueType, value)
 )
-#endif // EXPRESSIONNODE_H

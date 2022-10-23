@@ -27,8 +27,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef EXPRESSION_H
-#define EXPRESSION_H
+
+#pragma once
+
 #include <memory>
 #include <memoria/core/hermes/path/types.h>
 #include <memoria/core/hermes/path/exceptions.h>
@@ -183,5 +184,3 @@ inline Expression operator""_hermespath(const char* expression, std::size_t)
 }
 }
 }}
-
-#endif // EXPRESSION_H

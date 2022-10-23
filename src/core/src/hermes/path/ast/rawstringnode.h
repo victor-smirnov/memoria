@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef RAWSTRINGNODE_H
-#define RAWSTRINGNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "memoria/core/hermes/path/types.h"
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -74,4 +75,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::RawStringNode,
     (memoria::hermes::path::String, rawString)
 )
-#endif // RAWSTRINGNODE_H

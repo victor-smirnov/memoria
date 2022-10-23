@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef FUNCTIONEXPRESSIONNODE_H
-#define FUNCTIONEXPRESSIONNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "memoria/core/hermes/path/types.h"
 #include <vector>
@@ -91,4 +92,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::vector<memoria::hermes::path::ast::FunctionExpressionNode::ArgumentType>,
      arguments)
 )
-#endif // FUNCTIONEXPRESSIONNODE_H

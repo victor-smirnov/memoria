@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef FILTEREXPRESSIONNODE_H
-#define FILTEREXPRESSIONNODE_H
+
+#pragma once
+
 #include "expressionnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -74,4 +75,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::FilterExpressionNode,
     (memoria::hermes::path::ast::ExpressionNode, expression)
 )
-#endif // FILTEREXPRESSIONNODE_H

@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef CONTEXTVALUEVISITORADAPTOR_H
-#define CONTEXTVALUEVISITORADAPTOR_H
+
+#pragma once
+
 #include "interpreter.h"
 #include "memoria/core/hermes/path/exceptions.h"
 #include <boost/variant.hpp>
@@ -113,4 +114,3 @@ inline decltype(auto) makeMoveOnlyVisitor(
     return result;
 }
 }} // namespace hermes::path::interpreter
-#endif // CONTEXTVALUEVISITORADAPTOR_H

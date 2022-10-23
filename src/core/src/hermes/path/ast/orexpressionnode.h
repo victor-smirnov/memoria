@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef OREXPRESSIONNODE_H
-#define OREXPRESSIONNODE_H
+
+#pragma once
+
 #include "binaryexpressionnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -78,4 +79,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     (memoria::hermes::path::ast::ExpressionNode, leftExpression)
     (memoria::hermes::path::ast::ExpressionNode, rightExpression)
 )
-#endif // OREXPRESSIONNODE_H

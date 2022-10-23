@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef INDEXEXPRESSIONNODE_H
-#define INDEXEXPRESSIONNODE_H
+
+#pragma once
+
 #include "binaryexpressionnode.h"
 #include "bracketspecifiernode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -100,4 +101,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     (memoria::hermes::path::ast::BracketSpecifierNode, bracketSpecifier)
     (memoria::hermes::path::ast::ExpressionNode, rightExpression)
 )
-#endif // INDEXEXPRESSIONNODE_H

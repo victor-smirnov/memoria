@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef FLATTENOPERATORNODE_H
-#define FLATTENOPERATORNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "variantnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -59,4 +60,3 @@ public:
     bool operator==(const FlattenOperatorNode& other) const;
 };
 }} // namespace hermes::path::ast
-#endif // FLATTENOPERATORNODE_H

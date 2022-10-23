@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef VARIANTVISITOR_H
-#define VARIANTVISITOR_H
+
+#pragma once
+
 #include "../interpreter/abstractvisitor.h"
 #include <boost/variant.hpp>
 
@@ -73,4 +74,3 @@ private:
     interpreter::AbstractVisitor* m_visitor;
 };
 }} // namespace hermes::path::ast
-#endif // VARIANTVISITOR_H

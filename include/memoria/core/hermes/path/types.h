@@ -27,8 +27,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef TYPES_H
-#define TYPES_H
+
+#pragma once
+
 #include <string>
 #include <limits>
 #include <boost/regex/pending/unicode_iterator.hpp>
@@ -84,4 +85,3 @@ using Index = boost::multiprecision::number<
         void> >;
 }
 }}
-#endif // TYPES_H

@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef BINARYEXPRESSIONNODE_H
-#define BINARYEXPRESSIONNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "expressionnode.h"
 
@@ -89,4 +90,4 @@ public:
     ExpressionNode rightExpression;
 };
 }} // namespace hermes::path::ast
-#endif // BINARYEXPRESSIONNODE_H
+

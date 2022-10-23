@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef LITERALNODE_H
-#define LITERALNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "memoria/core/hermes/path/types.h"
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -73,4 +74,4 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::LiteralNode,
     (memoria::hermes::path::String, literal)
 )
-#endif // LITERALNODE_H
+

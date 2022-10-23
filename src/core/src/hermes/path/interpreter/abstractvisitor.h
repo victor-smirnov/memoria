@@ -26,8 +26,8 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef ABSTRACTVISITOR_H
-#define ABSTRACTVISITOR_H
+
+#pragma once
 
 namespace memoria::hermes::path { namespace ast {
 
@@ -109,4 +109,3 @@ public:
     /** @}*/
 };
 }} // namespace hermes::path::interpreter
-#endif // ABSTRACTVISITOR_H

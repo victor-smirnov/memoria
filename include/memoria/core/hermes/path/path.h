@@ -27,8 +27,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef JMESPATH_H
-#define JMESPATH_H
+
+#pragma once
+
 #include <string>
 #include <memoria/core/hermes/path/types.h>
 #include <memoria/core/hermes/path/exceptions.h>
@@ -346,5 +347,3 @@ extern template ValuePtr search<ValuePtr>(const Expression&, ValuePtr&&);
 /** @}*/
 }
 }}
-
-#endif // JMESPATH_H

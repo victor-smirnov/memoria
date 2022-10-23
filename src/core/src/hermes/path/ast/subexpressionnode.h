@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef SUBEXPRESSIONNODE_H
-#define SUBEXPRESSIONNODE_H
+
+#pragma once
+
 #include "binaryexpressionnode.h"
 
 namespace memoria::hermes::path { namespace ast {
@@ -71,4 +72,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     (memoria::hermes::path::ast::ExpressionNode, leftExpression)
     (memoria::hermes::path::ast::ExpressionNode, rightExpression)
 )
-#endif // SUBEXPRESSIONNODE_H

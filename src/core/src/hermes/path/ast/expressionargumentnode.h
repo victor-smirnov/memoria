@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef EXPRESSIONARGUMENTNODE_H
-#define EXPRESSIONARGUMENTNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "expressionnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -75,4 +76,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::ExpressionArgumentNode,
     (memoria::hermes::path::ast::ExpressionNode, expression)
 )
-#endif // EXPRESSIONARGUMENTNODE_H

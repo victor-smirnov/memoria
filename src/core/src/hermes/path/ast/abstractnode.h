@@ -26,8 +26,8 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef ABSTRACTNODE_H
-#define ABSTRACTNODE_H
+
+#pragma once
 
 namespace memoria::hermes::path { namespace interpreter {
 
@@ -75,4 +75,4 @@ public:
     virtual void accept(interpreter::AbstractVisitor* visitor) const = 0;
 };
 }} // namespace hermes::path::ast
-#endif // ABSTRACTNODE_H
+

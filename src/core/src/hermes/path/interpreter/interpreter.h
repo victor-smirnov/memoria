@@ -27,8 +27,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef INTERPRETER_H
-#define INTERPRETER_H
+
+#pragma once
+
 #include "abstractvisitor.h"
 #include "memoria/core/hermes/path/types.h"
 #include "../ast/expressionnode.h"
@@ -640,4 +641,3 @@ private:
     hermes::GenericArrayPtr wrap_array(const std::vector<hermes::ValuePtr>& array);
 };
 }} // namespace hermes::path::interpreter
-#endif // INTERPRETER_H

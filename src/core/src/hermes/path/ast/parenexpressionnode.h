@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef PARENEXPRESSIONNODE_H
-#define PARENEXPRESSIONNODE_H
+
+#pragma once
+
 #include "expressionnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -73,4 +74,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::ParenExpressionNode,
     (memoria::hermes::path::ast::ExpressionNode, expression)
 )
-#endif // PARENEXPRESSIONNODE_H

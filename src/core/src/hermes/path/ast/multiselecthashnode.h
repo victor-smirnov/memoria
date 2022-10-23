@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef MULTISELECTHASHNODE_H
-#define MULTISELECTHASHNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "identifiernode.h"
 #include "expressionnode.h"
@@ -88,4 +89,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::vector<memoria::hermes::path::ast::MultiselectHashNode::KeyValuePairType>,
      expressions)
 )
-#endif // MULTISELECTHASHNODE_H

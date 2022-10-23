@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef CURRENTNODE_H
-#define CURRENTNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -58,4 +59,3 @@ public:
     bool operator==(const CurrentNode& other) const;
 };
 }} // namespace hermes::path::ast
-#endif // CURRENTNODE_H

@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef BRACKETSPECIFIERNODE_H
-#define BRACKETSPECIFIERNODE_H
+
+#pragma once
+
 #include "variantnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -86,4 +87,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::BracketSpecifierNode,
     (memoria::hermes::path::ast::BracketSpecifierNode::ValueType, value)
 )
-#endif // BRACKETSPECIFIERNODE_H

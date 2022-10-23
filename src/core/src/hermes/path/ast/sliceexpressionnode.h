@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef SLICEEXPRESSIONNODE_H
-#define SLICEEXPRESSIONNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "memoria/core/hermes/path/types.h"
 #include "../interpreter/abstractvisitor.h"
@@ -87,4 +88,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     (memoria::hermes::path::ast::SliceExpressionNode::IndexType, stop)
     (memoria::hermes::path::ast::SliceExpressionNode::IndexType, step)
 )
-#endif // SLICEEXPRESSIONNODE_H

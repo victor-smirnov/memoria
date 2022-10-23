@@ -22,7 +22,7 @@
 #include <memoria/core/tools/random.hpp>
 
 #include <memoria/core/hermes/hermes.hpp>
-#include <memoria/core/hermes/path/jmespath.h>
+#include <memoria/core/hermes/path/path.h>
 
 #include <memoria/memoria.hpp>
 

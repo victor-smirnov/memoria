@@ -26,8 +26,7 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef LISTWILDCARDNODE_H
-#define LISTWILDCARDNODE_H
+
 #include "abstractnode.h"
 
 namespace memoria::hermes::path { namespace ast {
@@ -58,4 +57,3 @@ public:
     bool operator==(const ListWildcardNode& other) const;
 };
 }} // namespace hermes::path::ast
-#endif // LISTWILDCARDNODE_H

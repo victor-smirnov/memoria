@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef MULTISELECTLISTNODE_H
-#define MULTISELECTLISTNODE_H
+
+#pragma once
+
 #include "abstractnode.h"
 #include "expressionnode.h"
 #include <vector>
@@ -84,4 +85,3 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::MultiselectListNode,
     (std::vector<memoria::hermes::path::ast::ExpressionNode>, expressions)
 )
-#endif // MULTISELECTLISTNODE_H
