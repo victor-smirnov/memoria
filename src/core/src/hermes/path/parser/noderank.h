@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef NODERANK_H
-#define NODERANK_H
+
+#pragma once
+
 #include "../ast/allnodes.h"
 
 namespace memoria::hermes::path { namespace parser {
@@ -160,4 +161,3 @@ inline int nodeRank(const ast::PipeExpressionNode&)
 }
 /** @} */
 }} // namespace hermes::path::parser
-#endif // NODERANK_H

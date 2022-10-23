@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef NODEINSERTCONDITION_H
-#define NODEINSERTCONDITION_H
+
+#pragma once
+
 #include "../ast/allnodes.h"
 #include "noderank.h"
 #include <boost/variant/polymorphic_get.hpp>
@@ -88,4 +89,3 @@ public:
     /** @}*/
 };
 }} // namespace hermes::path::parser
-#endif // NODEINSERTCONDITION_H

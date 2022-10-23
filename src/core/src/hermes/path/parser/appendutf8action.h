@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef APPENDUTF8ACTION_H
-#define APPENDUTF8ACTION_H
+
+#pragma once
+
 #include "memoria/core/hermes/path/types.h"
 
 namespace memoria::hermes::path { namespace parser {
@@ -59,4 +60,4 @@ public:
     }
 };
 }} // namespace hermes::path::parser
-#endif // APPENDUTF8ACTION_H
+

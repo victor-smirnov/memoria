@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef NODEINSERTPOLICY_H
-#define NODEINSERTPOLICY_H
+
+#pragma once
+
 #include "../ast/allnodes.h"
 
 namespace memoria::hermes::path { namespace parser {
@@ -86,4 +87,3 @@ public:
     /** @}*/
 };
 }} // namespace hermes::path::parser
-#endif // NODEINSERTPOLICY_H

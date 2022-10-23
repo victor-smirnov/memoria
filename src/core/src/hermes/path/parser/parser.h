@@ -26,9 +26,8 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef PARSER_H
-#define PARSER_H
 
+#pragma once
 
 #define BOOST_SPIRIT_UNICODE
 
@@ -110,4 +109,3 @@ private:
     GrammarType m_grammar;
 };
 }} // namespace hermes::path::parser
-#endif // PARSER_H

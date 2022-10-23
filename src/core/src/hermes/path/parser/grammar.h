@@ -26,8 +26,8 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef GRAMMAR_H
-#define GRAMMAR_H
+
+#pragma once
 
 #define BOOST_SPIRIT_UNICODE
 
@@ -499,4 +499,4 @@ private:
     qi::rule<Iterator, Index()>     m_indexRule;
 };
 }} // namespace hermes::path::parser
-#endif // GRAMMAR_H
+

@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef APPENDESCAPESEQUENCEACTION_H
-#define APPENDESCAPESEQUENCEACTION_H
+
+#pragma once
+
 #include "memoria/core/hermes/path/types.h"
 
 namespace memoria::hermes::path { namespace parser {
@@ -73,4 +74,4 @@ public:
     }
 };
 }} // namespace hermes::path::parser
-#endif // APPENDESCAPESEQUENCEACTION_H
+

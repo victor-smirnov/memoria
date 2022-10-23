@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef LEFTCHILDEXTRACTOR_H
-#define LEFTCHILDEXTRACTOR_H
+
+#pragma once
+
 #include "../ast/binaryexpressionnode.h"
 #include "../ast/notexpressionnode.h"
 
@@ -92,4 +93,3 @@ public:
     /** @}*/
 };
 }} // namespace hermes::path::parser
-#endif // LEFTCHILDEXTRACTOR_H

@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef INSERTBINARYEXPRESSIONNODEACTION_H
-#define INSERTBINARYEXPRESSIONNODEACTION_H
+
+#pragma once
+
 #include "noderank.h"
 #include "leftedgeiterator.h"
 #include "../ast/allnodes.h"
@@ -97,4 +98,3 @@ private:
     NodeInsertConditionT m_insertCondition;
 };
 }} // namespace hermes::path::parser
-#endif // INSERTBINARYEXPRESSIONNODEACTION_H

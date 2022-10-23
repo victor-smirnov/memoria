@@ -26,8 +26,9 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#ifndef LEFTEDGEITERATOR_H
-#define LEFTEDGEITERATOR_H
+
+#pragma once
+
 #include "../ast/expressionnode.h"
 #include "leftchildextractor.h"
 #include <iterator>
@@ -117,4 +118,3 @@ private:
     LeftChildExtractor m_childExtractor;
 };
 }} // namespace hermes::path::parser
-#endif // LEFTEDGEITERATOR_H
