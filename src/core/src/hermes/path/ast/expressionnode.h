@@ -38,7 +38,6 @@ namespace memoria::hermes::path { namespace ast {
 
 class IdentifierNode;
 class RawStringNode;
-class LiteralNode;
 class SubexpressionNode;
 class IndexExpressionNode;
 class HashWildcardNode;
@@ -59,7 +58,6 @@ class HermesValueNode;
 class ExpressionNode : public VariantNode<
         boost::recursive_wrapper<IdentifierNode>,
         boost::recursive_wrapper<RawStringNode>,
-        boost::recursive_wrapper<LiteralNode>,
         boost::recursive_wrapper<HermesValueNode>,
         boost::recursive_wrapper<SubexpressionNode>,
         boost::recursive_wrapper<IndexExpressionNode>,

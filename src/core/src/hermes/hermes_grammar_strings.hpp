@@ -51,8 +51,7 @@ template <
     typename EncodeSurrogatePairAction,
     typename String,
     typename RawString,
-    typename Identifier,
-    typename Literal
+    typename Identifier
 >
 struct StringsRuleSet {
 
@@ -85,23 +84,6 @@ struct StringsRuleSet {
         // lazy function for for combining surrogate pair characters into a
         // single codepoint
         phx::function<EncodeSurrogatePairAction> encodeSurrogatePair;
-
-        // match zero or more literal characters enclosed in grave accents
-        m_literalRule = lexeme[ lit('\x60')
-                >> *m_literalCharRule[appendUtf8(at_c<0>(_val), _1)]
-                >> lit('\x60') ];
-
-        // match a character in the range of 0x00-0x5B or 0x5D-0x5F or
-        // 0x61-0x10FFFF or a literal escape
-        m_literalCharRule = char_(U'\x00', U'\x5B')
-                | char_(U'\x5D', U'\x5F')
-                | char_(U'\x61', U'\U0010FFFF')
-                | m_literalEscapeRule;
-
-        // match a grave accent preceded by an escape or match a backslash if
-        // it's not followed by a grave accent
-        m_literalEscapeRule = (m_escapeRule >> char_(U'\x60'))
-                               | (char_(U'\\') >> & (!lit('`')));
 
         // match zero or more raw string characters enclosed in apostrophes
         m_rawStringRule = lexeme[ lit("\'")
@@ -194,14 +176,12 @@ struct StringsRuleSet {
 
     qi::rule<Iterator, Identifier(), Skipper> m_identifierRule;
     qi::rule<Iterator, RawString(), Skipper>  m_rawStringRule;
-    qi::rule<Iterator, Literal(), Skipper>    m_literalRule;
 
-    qi::rule<Iterator, UnicodeChar()>       m_literalCharRule;
-    qi::rule<Iterator, UnicodeChar()>       m_literalEscapeRule;
     qi::rule<Iterator, UnicodeChar()>       m_rawStringCharRule;
     qi::rule<Iterator,
              std::pair<UnicodeChar,
                        UnicodeChar>()>      m_rawStringEscapeRule;
+
     qi::rule<Iterator, String()>            m_quotedStringRule;
     qi::rule<Iterator, String()>            m_unquotedStringRule;
     qi::rule<Iterator, UnicodeChar()>       m_unescapedCharRule;

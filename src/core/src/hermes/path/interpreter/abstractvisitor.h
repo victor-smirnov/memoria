@@ -36,7 +36,6 @@ class Node;
 class ExpressionNode;
 class IdentifierNode;
 class RawStringNode;
-class LiteralNode;
 class SubexpressionNode;
 class IndexExpressionNode;
 class ArrayItemNode;
@@ -87,7 +86,6 @@ public:
     virtual void visit(const ast::IdentifierNode* node) = 0;
     virtual void visit(const ast::RawStringNode* node) = 0;
     virtual void visit(const ast::HermesValueNode* node) = 0;
-    virtual void visit(const ast::LiteralNode* node) = 0;
     virtual void visit(const ast::SubexpressionNode* node) = 0;
     virtual void visit(const ast::IndexExpressionNode* node) = 0;
     virtual void visit(const ast::ArrayItemNode* node) = 0;

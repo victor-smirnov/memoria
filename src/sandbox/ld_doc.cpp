@@ -49,7 +49,7 @@ int main(int, char**)
   "people": [
     {
       "general": {
-        "id": 100,
+        "id": "♪♫•*¨*•.¸¸❤¸¸.•*¨*•♫♪",
         "age": 20,
         "other": "foo",
         "name": "Bob"
@@ -77,7 +77,7 @@ int main(int, char**)
 
     println("{}", doc->to_pretty_string());
 
-    hermes::path::Expression exp("people[?general.id==^100].general | [0]"); //[*]
+    hermes::path::Expression exp("people[?general.id==^'♪♫•*¨*•.¸¸❤¸¸.•*¨*•♫♪'].general | [0]"); //[*]
 
     auto result = hermes::path::search(exp, doc->root());
     println("{}", result->to_pretty_string());

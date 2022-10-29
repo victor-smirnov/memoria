@@ -253,12 +253,6 @@ void Interpreter::visit(const ast::HermesValueNode *node)
     m_context = node->value;
 }
 
-void Interpreter::visit(const ast::LiteralNode *node)
-{
-    auto doc = hermes::HermesCtr::make_pooled();
-    m_context = doc->set_dataobject<Varchar>(node->literal)->as_value();
-}
-
 void Interpreter::visit(const ast::SubexpressionNode *node)
 {
     node->accept(this);

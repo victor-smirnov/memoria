@@ -68,8 +68,7 @@ using PathStringRuleSet = memoria::hermes::parser::StringsRuleSet<
     EncodeSurrogatePairAction,
     String,
     ast::RawStringNode,
-    ast::IdentifierNode,
-    ast::LiteralNode
+    ast::IdentifierNode
 >;
 
 /**
@@ -94,7 +93,6 @@ class Grammar : public qi::grammar<Iterator,
 
     using StringLib::m_identifierRule;
     using StringLib::m_rawStringRule;
-    using StringLib::m_literalRule;
     using StringLib::m_quotedStringRule;
     using StringLib::m_unquotedStringRule;
 
@@ -154,7 +152,6 @@ public:
                       | m_identifierRule
                       | m_multiselectListRule
                       | m_multiselectHashRule
-                      | m_literalRule
                       | m_rawStringRule
                       | m_hermesValueRule
                       | m_parenExpressionRule
