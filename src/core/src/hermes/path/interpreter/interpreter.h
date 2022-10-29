@@ -139,6 +139,7 @@ public:
     void visit(const ast::ExpressionNode *node) override;
     void visit(const ast::IdentifierNode *node) override;
     void visit(const ast::RawStringNode *node) override;
+    void visit(const ast::HermesValueNode *node) override;
     void visit(const ast::LiteralNode* node) override;
     void visit(const ast::SubexpressionNode* node) override;
     void visit(const ast::IndexExpressionNode* node) override;

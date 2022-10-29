@@ -43,21 +43,41 @@ class TTT {};
 int main(int, char**)
 {
     InitTypeReflections();
+
     auto doc = HermesCtr::parse(R"(
 {
   "people": [
-    {"first": "James", "last": "d"},
-    {"first": "Jacob", "last": "e"},
-    {"first": "Jayden", "last": "f"},
-    {"missing": "different"}
-  ],
-  "foo": {"bar": "baz"}
+    {
+      "general": {
+        "id": 100,
+        "age": 20,
+        "other": "foo",
+        "name": "Bob"
+      },
+      "history": {
+        "first_login": "2014-01-01",
+        "last_login": "2014-01-02"
+      }
+    },
+    {
+      "general": {
+        "id": 101,
+        "age": 30,
+        "other": "bar",
+        "name": "Bill"
+      },
+      "history": {
+        "first_login": "2014-05-01",
+        "last_login": "2014-05-02"
+      }
+    }
+  ]
 }
     )");
 
     println("{}", doc->to_pretty_string());
 
-    hermes::path::Expression exp("people[*].first | [0]"); //[*]
+    hermes::path::Expression exp("people[?general.id==^100].general | [0]"); //[*]
 
     auto result = hermes::path::search(exp, doc->root());
     println("{}", result->to_pretty_string());

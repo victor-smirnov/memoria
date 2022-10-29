@@ -36,7 +36,7 @@ class LDTypeDeclarationView {
     const LDDocumentView* doc_;
     TypeDeclPtr state_;
 
-    friend class LDDocumentBuilder;
+    friend class LDHermesCtrBuilder;
     friend class LDDocumentView;
     friend class LDDumpState;
     friend class LDDTypedValueView;

@@ -30,7 +30,7 @@ class Interpreter;
 }
 }
 
-class DocumentBuilder;
+class HermesCtrBuilder;
 
 class HermesCtr;
 

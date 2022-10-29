@@ -31,7 +31,8 @@
 
 #define BOOST_SPIRIT_UNICODE
 
-#include "memoria/core/hermes/path/types.h"
+#include <memoria/core/hermes/path/types.h>
+
 #include "../ast/allnodes.h"
 #include "noderank.h"
 #include "insertnodeaction.h"
@@ -40,6 +41,10 @@
 #include "encodesurrogatepairaction.h"
 #include "nodeinsertpolicy.h"
 #include "nodeinsertcondition.h"
+
+#include "../../hermes_grammar_strings.hpp"
+#include "../../hermes_grammar_value.hpp"
+
 #include <boost/spirit/include/qi.hpp>
 #include <boost/phoenix.hpp>
 
@@ -52,6 +57,20 @@ namespace memoria::hermes::path { namespace parser {
 namespace qi = boost::spirit::qi;
 namespace encoding = qi::unicode;
 namespace phx = boost::phoenix;
+
+
+template <typename Iterator, typename Skipper>
+using PathStringRuleSet = memoria::hermes::parser::StringsRuleSet<
+    Iterator,
+    Skipper,
+    AppendUtf8Action<path::String>,
+    AppendEscapeSequenceAction<String>,
+    EncodeSurrogatePairAction,
+    String,
+    ast::RawStringNode,
+    ast::IdentifierNode,
+    ast::LiteralNode
+>;
 
 /**
  * @brief The Grammar class contains the PEG rule definition based
@@ -66,8 +85,21 @@ namespace phx = boost::phoenix;
 template <typename Iterator, typename Skipper = encoding::space_type>
 class Grammar : public qi::grammar<Iterator,
                                    ast::ExpressionNode(),
-                                   Skipper>
+                                   Skipper>,
+    public PathStringRuleSet<Iterator, Skipper>,
+    public HermesValueRulesLib<Iterator, Skipper>
 {
+    using StringLib = PathStringRuleSet<Iterator, Skipper>;
+    using ValueLib  = HermesValueRulesLib<Iterator, Skipper>;
+
+    using StringLib::m_identifierRule;
+    using StringLib::m_rawStringRule;
+    using StringLib::m_literalRule;
+    using StringLib::m_quotedStringRule;
+    using StringLib::m_unquotedStringRule;
+
+    using ValueLib::hermes_value;
+
 public:
     /**
      * @brief Constructs a Grammar object
@@ -102,15 +134,6 @@ public:
         phx::function<InsertNodeAction<
                 NodeInsertPolicy,
                 NodeInsertCondition> > insertNode;
-        // lazy function for appending UTF-32 characters to a string encoded
-        // in UTF-8
-        phx::function<AppendUtf8Action> appendUtf8;
-        // lazy function for appending UTF-32 encoded escape sequence to a
-        // string encoded in UTF-8
-        phx::function<AppendEscapeSequenceAction> appendEscape;
-        // lazy function for for combining surrogate pair characters into a
-        // single codepoint
-        phx::function<EncodeSurrogatePairAction> encodeSurrogatePair;
 
         // optionally match an expression
         // this ensures that the parsing of empty expressions which contain
@@ -133,6 +156,7 @@ public:
                       | m_multiselectHashRule
                       | m_literalRule
                       | m_rawStringRule
+                      | m_hermesValueRule
                       | m_parenExpressionRule
                       | m_currentNodeRule)[_a = _1])
             >> -m_subexpressionRule(_val)[insertNode(_val, _1)]
@@ -258,11 +282,11 @@ public:
 
         // convert textual comparator symbols to enum values
         m_comparatorSymbols.add
-            (U"<", ast::ComparatorExpressionNode::Comparator::Less)
+            (U"<",  ast::ComparatorExpressionNode::Comparator::Less)
             (U"<=", ast::ComparatorExpressionNode::Comparator::LessOrEqual)
             (U"==", ast::ComparatorExpressionNode::Comparator::Equal)
             (U">=", ast::ComparatorExpressionNode::Comparator::GreaterOrEqual)
-            (U">", ast::ComparatorExpressionNode::Comparator::Greater)
+            (U">",  ast::ComparatorExpressionNode::Comparator::Greater)
             (U"!=", ast::ComparatorExpressionNode::Comparator::NotEqual);
 
         // match a single vertical bar followed by an expression
@@ -294,108 +318,7 @@ public:
         // match an identifier and an expression separated with a colon
         m_keyValuePairRule = m_identifierRule >> lit(':') >> m_expressionRule;
 
-        // match zero or more literal characters enclosed in grave accents
-        m_literalRule = lexeme[ lit('\x60')
-                >> *m_literalCharRule[appendUtf8(at_c<0>(_val), _1)]
-                >> lit('\x60') ];
-
-        // match a character in the range of 0x00-0x5B or 0x5D-0x5F or
-        // 0x61-0x10FFFF or a literal escape
-        m_literalCharRule = char_(U'\x00', U'\x5B')
-                | char_(U'\x5D', U'\x5F')
-                | char_(U'\x61', U'\U0010FFFF')
-                | m_literalEscapeRule;
-
-        // match a grave accent preceded by an escape or match a backslash if
-        // it's not followed by a grave accent
-        m_literalEscapeRule = (m_escapeRule >> char_(U'\x60'))
-                               | (char_(U'\\') >> & (!lit('`')));
-
-        // match zero or more raw string characters enclosed in apostrophes
-        m_rawStringRule = lexeme[ lit("\'")
-                >> * (m_rawStringEscapeRule[appendEscape(at_c<0>(_val), _1)]
-                      | m_rawStringCharRule[appendUtf8(at_c<0>(_val), _1)])
-                >> lit("\'") ];
-
-        // match a single character in the range of 0x07-0x0D or 0x20-0x26 or
-        // 0x28-0x5B or 0x5D-0x10FFFF or an escaped apostrophe
-        m_rawStringCharRule = (char_(U'\x07', U'\x0D')
-                               | char_(U'\x20', U'\x26')
-                               | char_(U'\x28', U'\x5B')
-                               | char_(U'\x5D', U'\U0010FFFF'));
-
-        // match escape sequences
-        m_rawStringEscapeRule = char_(U'\\') >>
-                (char_(U'\x07', U'\x0D')
-                | char_(U'\x20', U'\U0010FFFF'));
-
-        // match unquoted or quoted strings
-        m_identifierRule = m_unquotedStringRule | m_quotedStringRule;
-
-        // match a single character in the range of 0x41-0x5A or 0x61-0x7A
-        // or 0x5F (A-Za-z_) followed by zero or more characters in the range of
-        // 0x30-0x39 (0-9) or 0x41-0x5A (A-Z) or 0x5F (_) or 0x61-0x7A (a-z)
-        // and append them to the rule's string attribute encoded as UTF-8
-        m_unquotedStringRule
-            = lexeme[ ((char_(U'\x41', U'\x5A')
-                        | char_(U'\x61', U'\x7A')
-                        | char_(U'\x5F'))[appendUtf8(_val, _1)]
-            >> *(char_(U'\x30', U'\x39')
-                 | char_(U'\x41', U'\x5A')
-                 | char_(U'\x5F')
-                 | char_(U'\x61', U'\x7A'))[appendUtf8(_val, _1)]) ];
-
-        // match unescaped or escaped characters enclosed in quotes one or more
-        // times and append them to the rule's string attribute encoded as UTF-8
-        m_quotedStringRule
-            = lexeme[ m_quoteRule
-            >> +(m_unescapedCharRule
-                 | m_escapedCharRule)[appendUtf8(_val, _1)]
-            >> m_quoteRule ];
-
-        // match characters in the range of 0x20-0x21 or 0x23-0x5B or
-        // 0x5D-0x10FFFF
-        m_unescapedCharRule = char_(U'\x20', U'\x21')
-            | char_(U'\x23', U'\x5B')
-            | char_(U'\x5D', U'\U0010FFFF');
-
-        // match quotation mark literal
-        m_quoteRule = lit('\"');
-
-        // match backslash literal
-        m_escapeRule = lit('\\');
-
-        // match an escape character followed by quotation mark or backslash or
-        // slash or control character or surrogate pair or a single unicode
-        // escape
-        m_escapedCharRule = lexeme[ m_escapeRule
-            >> (char_(U'\"')
-                | char_(U'\\')
-                | char_(U'/')
-                | m_controlCharacterSymbols
-                | m_surrogatePairCharacterRule
-                | m_unicodeCharRule) ];
-
-        // match a pair of unicode character escapes separated by an escape
-        // symbol if the first character's value is between 0xD800-0xDBFF
-        // and convert them into a single codepoint
-        m_surrogatePairCharacterRule
-            = lexeme[ (m_unicodeCharRule >> m_escapeRule >> m_unicodeCharRule)
-                [_pass = (_1 >= 0xD800 && _1 <= 0xDBFF),
-                _val = encodeSurrogatePair(_1, _2)] ];
-
-        // match a unicode character escape and convert it into a
-        // single codepoint
-        m_unicodeCharRule = lexeme[ lit('u')
-            >> int_parser<UnicodeChar, 16, 4, 4>() ];
-
-        // convert symbols into control characters
-        m_controlCharacterSymbols.add
-        (U"b", U'\x08')     // backspace
-        (U"f", U'\x0C')     // form feed
-        (U"n", U'\x0A')     // line feed
-        (U"r", U'\x0D')     // carriage return
-        (U"t", U'\x09');    // tab
+        m_hermesValueRule = lit('^') >> hermes_value;
     }
 
 private:
@@ -477,25 +400,12 @@ private:
     qi::rule<Iterator,
              ast::ExpressionArgumentNode(),
              Skipper> m_expressionArgumentRule;
-    qi::rule<Iterator, ast::IdentifierNode(), Skipper> m_identifierRule;
-    qi::rule<Iterator, ast::RawStringNode(), Skipper> m_rawStringRule;
-    qi::rule<Iterator, ast::LiteralNode(), Skipper> m_literalRule;
-    qi::rule<Iterator, ast::CurrentNode()>  m_currentNodeRule;
-    qi::rule<Iterator, UnicodeChar()>       m_literalCharRule;
-    qi::rule<Iterator, UnicodeChar()>       m_literalEscapeRule;
-    qi::rule<Iterator, UnicodeChar()>       m_rawStringCharRule;
+
     qi::rule<Iterator,
-             std::pair<UnicodeChar,
-                       UnicodeChar>()>      m_rawStringEscapeRule;
-    qi::rule<Iterator, String()>            m_quotedStringRule;
-    qi::rule<Iterator, String()>            m_unquotedStringRule;
-    qi::rule<Iterator, UnicodeChar()>       m_unescapedCharRule;
-    qi::rule<Iterator, UnicodeChar()>       m_escapedCharRule;
-    qi::rule<Iterator, UnicodeChar()>       m_unicodeCharRule;
-    qi::rule<Iterator, UnicodeChar()>       m_surrogatePairCharacterRule;
-    qi::rule<Iterator>                      m_quoteRule;
-    qi::rule<Iterator>                      m_escapeRule;
-    qi::symbols<UnicodeChar, UnicodeChar>   m_controlCharacterSymbols;
+             ast::HermesValueNode(),
+             Skipper> m_hermesValueRule;
+
+    qi::rule<Iterator, ast::CurrentNode()>  m_currentNodeRule;
     qi::rule<Iterator, Index()>     m_indexRule;
 };
 }} // namespace hermes::path::parser

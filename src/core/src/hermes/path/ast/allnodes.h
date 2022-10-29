@@ -33,6 +33,7 @@
 #include "expressionnode.h"
 #include "identifiernode.h"
 #include "rawstringnode.h"
+#include "hermesvaluenode.h"
 #include "literalnode.h"
 #include "subexpressionnode.h"
 #include "indexexpressionnode.h"

@@ -38,7 +38,7 @@
 namespace memoria {
 namespace hermes {
 
-class DocumentBuilder;
+class HermesCtrBuilder;
 
 class ParserConfiguration {
 public:
@@ -79,7 +79,7 @@ protected:
     mutable arena::ArenaAllocator* arena_;
     mutable DocumentHeader* header_;
 
-    friend class DocumentBuilder;
+    friend class HermesCtrBuilder;
 
     template <typename, typename>
     friend class Map;

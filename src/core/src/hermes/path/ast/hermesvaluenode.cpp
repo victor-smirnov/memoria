@@ -2,7 +2,6 @@
 **
 ** Author: Róbert Márki <gsmiko@gmail.com>
 ** Copyright (c) 2016 Róbert Márki
-** Copyright (c) 2022 Victor Smirnov
 **
 ** This file is originally based on the jmespath.cpp project
 ** (https://github.com/robertmrk/jmespath.cpp, commitid: 9c9702a)
@@ -27,39 +26,33 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
+#include "hermesvaluenode.h"
+#include "../interpreter/abstractvisitor.h"
 
-#pragma once
+namespace memoria::hermes::path { namespace ast {
 
-#include "memoria/core/hermes/path/types.h"
-
-namespace memoria::hermes::path { namespace parser {
-
-/**
- * @brief The AppendUtf8Action class is a functor for appending UTF-32
- * characters to UTF-8 encoded strings.
- */
-template <typename String>
-class AppendUtf8Action
+HermesValueNode::HermesValueNode()
+    : AbstractNode()
 {
-public:
-    /**
-     * @brief The action's result type
-     */
-    using result_type = void;
-    /**
-    * @brief Appends the @a utf32Char character to the @a utf8String encoded in
-    * UTF-8.
-    * @param[out] utf8String The string where the encoded value of the
-    * @a utf32Char will be appended.
-    * @param[in] utf32Char The input character encoded in UTF-32
-    */
-    result_type operator()(String& utf8String,
-                           UnicodeChar utf32Char) const
-    {
-        auto outIt = std::back_inserter(utf8String);
-        boost::utf8_output_iterator<decltype(outIt)> utf8OutIt(outIt);
-        *utf8OutIt++ = utf32Char;
-    }
-};
-}} // namespace hermes::path::parser
+}
 
+HermesValueNode::HermesValueNode(const ValuePtr &value)
+    : AbstractNode(),
+      value(value)
+{
+}
+
+void HermesValueNode::accept(interpreter::AbstractVisitor *visitor) const
+{
+    visitor->visit(this);
+}
+
+bool HermesValueNode::operator==(const HermesValueNode &other) const
+{
+    if (this != &other)
+    {
+        return value->equals(other.value);
+    }
+    return true;
+}
+}} // namespace hermes::path::ast

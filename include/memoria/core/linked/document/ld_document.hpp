@@ -75,7 +75,7 @@ protected:
     ld_::LDArenaView arena_;
     mutable ViewPtrHolder* owner_{};
 
-    friend class LDDocumentBuilder;
+    friend class LDHermesCtrBuilder;
     friend class LDDMapView;
     friend class LDDArrayView;
     friend class LDTypeName;

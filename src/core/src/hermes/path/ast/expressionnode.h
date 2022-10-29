@@ -52,6 +52,7 @@ class ParenExpressionNode;
 class PipeExpressionNode;
 class CurrentNode;
 class FunctionExpressionNode;
+class HermesValueNode;
 /**
  * @brief The ExpressionNode class represents a HermesPath expression.
  */
@@ -59,6 +60,7 @@ class ExpressionNode : public VariantNode<
         boost::recursive_wrapper<IdentifierNode>,
         boost::recursive_wrapper<RawStringNode>,
         boost::recursive_wrapper<LiteralNode>,
+        boost::recursive_wrapper<HermesValueNode>,
         boost::recursive_wrapper<SubexpressionNode>,
         boost::recursive_wrapper<IndexExpressionNode>,
         boost::recursive_wrapper<HashWildcardNode>,

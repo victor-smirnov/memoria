@@ -24,7 +24,7 @@ class HermesDocImpl final: public HermesCtr, public pool::enable_shared_from_thi
 
     ViewPtrHolder view_ptr_holder_;
 
-    friend class DocumentBuilder;
+    friend class HermesCtrBuilder;
     friend class HermesCtr;
 
 public:

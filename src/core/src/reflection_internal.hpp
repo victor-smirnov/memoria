@@ -582,7 +582,7 @@ public:
                 return ii->second(left_data_object, right, right_doc, right_ptr);
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Types {} and {} are not equality-comparable", str(), get_type_reflection(tag).str()).do_throw();
+                return false;
             }
         }
         else {

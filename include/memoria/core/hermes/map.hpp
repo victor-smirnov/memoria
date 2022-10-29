@@ -74,7 +74,7 @@ protected:
     template <typename>
     friend class Array;
 
-    friend class DocumentBuilder;
+    friend class HermesCtrBuilder;
     friend class memoria::hermes::path::interpreter::Interpreter;
     using MapIterator = typename ArenaMap::Iterator;
 
@@ -115,6 +115,14 @@ public:
         HoldingView(ptr_holder),
         map_(reinterpret_cast<ArenaMap*>(map)), doc_(doc)
     {}
+
+    bool is_null() const noexcept {
+        return !map_;
+    }
+
+    bool is_not_null() const noexcept {
+        return map_;
+    }
 
     ViewPtr<Map, true> self() const {
         return ViewPtr<Map, true>(Map(map_, doc_, ptr_holder_));

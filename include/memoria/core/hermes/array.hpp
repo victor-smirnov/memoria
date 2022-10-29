@@ -65,6 +65,7 @@ protected:
     friend class Datatype;
 
     friend class memoria::hermes::path::interpreter::Interpreter;
+    friend class HermesCtrBuilder;
 
     using Accessor = ArrayAccessor<GenericArrayPtr, ValuePtr>;
 public:

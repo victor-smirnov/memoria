@@ -64,14 +64,14 @@ SDNStringEscaper& SDNStringEscaper::current() {
 }
 
 
-class LDDocumentBuilder {
+class LDHermesCtrBuilder {
 
     ArenaBuffer<char> string_buffer_;
     LDDocumentView& doc_;
 
 public:
 
-    LDDocumentBuilder(LDDocumentView& doc):
+    LDHermesCtrBuilder(LDDocumentView& doc):
         doc_(doc)
     {}
 
@@ -152,8 +152,8 @@ public:
         doc_.set_named_type_declaration(id, type_decl);
     }
 
-    static LDDocumentBuilder* current(LDDocumentBuilder* bb = nullptr, bool force = false) {
-        thread_local LDDocumentBuilder* builder = nullptr;
+    static LDHermesCtrBuilder* current(LDHermesCtrBuilder* bb = nullptr, bool force = false) {
+        thread_local LDHermesCtrBuilder* builder = nullptr;
 
         if (MMA_UNLIKELY(force)) {
             builder = bb;
@@ -179,7 +179,7 @@ struct LDNullValue {};
 
 class LDCharBufferBase {
 protected:
-    LDDocumentBuilder* builder_;
+    LDHermesCtrBuilder* builder_;
 public:
 
     using value_type = char;
@@ -190,7 +190,7 @@ public:
 
     LDCharBufferBase()
     {
-        builder_ = LDDocumentBuilder::current();
+        builder_ = LDHermesCtrBuilder::current();
     }
 
     iterator begin() {return iterator{};}
@@ -251,7 +251,7 @@ public:
     }
 
     LDDArrayView finish() {
-        return LDDocumentBuilder::current()->new_array(value_buffer_.span());
+        return LDHermesCtrBuilder::current()->new_array(value_buffer_.span());
     }
 };
 
@@ -266,7 +266,7 @@ public:
     using iterator = EmptyType;
 
     LDDMapValue() {
-        value_ = LDDocumentBuilder::current()->new_map();
+        value_ = LDHermesCtrBuilder::current()->new_map();
     }
 
     iterator end() const {return iterator{};}
@@ -295,7 +295,7 @@ struct LDTypeDeclarationValue: LDTypeDeclarationValueBase {
 
     LDTypeDeclarationView finish() const
     {
-        LDDocumentBuilder* builder = LDDocumentBuilder::current();
+        LDHermesCtrBuilder* builder = LDHermesCtrBuilder::current();
 
         LDTypeDeclarationView decl = builder->new_type_declaration(bf::at_c<0>(*this));
 
@@ -340,15 +340,15 @@ struct LDDValueVisitor: boost::static_visitor<> {
     LDDValueView value;
 
     void operator()(long long v){
-        value = LDDocumentBuilder::current()->new_bigint(v);
+        value = LDHermesCtrBuilder::current()->new_bigint(v);
     }
 
     void operator()(double v){
-        value = LDDocumentBuilder::current()->new_double(v);
+        value = LDHermesCtrBuilder::current()->new_double(v);
     }
 
     void operator()(bool v){
-        value = LDDocumentBuilder::current()->new_boolean(v);
+        value = LDHermesCtrBuilder::current()->new_boolean(v);
     }
 
     void operator()(LDNullValue& v) {}
@@ -378,14 +378,14 @@ struct LDDTypedValueValue: LDDTypedValueValueBase {
         Visitor(LDDValueView ctr_value): ctr_value_(ctr_value) {}
 
         void operator()(LDIdentifierView ref){
-            typed_value = LDDocumentBuilder::current()->new_typed_value(
+            typed_value = LDHermesCtrBuilder::current()->new_typed_value(
                         ref,
                         ctr_value_
             );
         }
 
         void operator()(LDTypeDeclarationView type_decl){
-            typed_value = LDDocumentBuilder::current()->new_typed_value(
+            typed_value = LDHermesCtrBuilder::current()->new_typed_value(
                         type_decl,
                         ctr_value_
             );
@@ -425,10 +425,10 @@ struct TypeDirectoryValue {
     using value_type = TypeDirectoryMapEntry;
     using iterator = EmptyType;
 private:
-    LDDocumentBuilder* builder_;
+    LDHermesCtrBuilder* builder_;
 public:
     TypeDirectoryValue() {
-        builder_ = LDDocumentBuilder::current();
+        builder_ = LDHermesCtrBuilder::current();
     }
 
     iterator end() {return iterator{};}
@@ -494,7 +494,7 @@ struct SDNParser : qi::grammar<Iterator, LDDocument(), qi::space_type>
         };
 
         static auto clear_string_buffer = [](const auto& attrib, const auto& ctx){
-            LDDocumentBuilder::current()->clear_string_buffer();
+            LDHermesCtrBuilder::current()->clear_string_buffer();
         };
 
         static auto finish_value = [](auto& attrib, auto& ctx){
@@ -504,7 +504,7 @@ struct SDNParser : qi::grammar<Iterator, LDDocument(), qi::space_type>
         };
 
         static auto set_doc_value = [](auto& attrib, auto& ctx){
-            LDDocumentBuilder::current()->set_doc_value(bf::at_c<1>(attrib));
+            LDHermesCtrBuilder::current()->set_doc_value(bf::at_c<1>(attrib));
         };
 
 
@@ -647,10 +647,10 @@ struct SDNIdentifierParser : qi::grammar<Iterator, EmptyCharCollection(), qi::sp
 
 
 namespace {
-    struct LDDocumentBuilderCleanup {
-        ~LDDocumentBuilderCleanup() noexcept
+    struct LDHermesCtrBuilderCleanup {
+        ~LDHermesCtrBuilderCleanup() noexcept
         {
-            LDDocumentBuilder::current(nullptr, true);
+            LDHermesCtrBuilder::current(nullptr, true);
         }
     };
 }
@@ -660,9 +660,9 @@ bool parse_sdn2(Iterator& first, Iterator& last, LDDocument& doc)
 {
     static thread_local SDNParser<Iterator> const grammar;
 
-    LDDocumentBuilder builder(doc);
-    LDDocumentBuilder::current(&builder);
-    LDDocumentBuilderCleanup cleanup;
+    LDHermesCtrBuilder builder(doc);
+    LDHermesCtrBuilder::current(&builder);
+    LDHermesCtrBuilderCleanup cleanup;
 
     bool r = qi::phrase_parse(first, last, grammar, qi::standard::space_type());
 
@@ -679,9 +679,9 @@ bool parse_sdn_type_decl(Iterator& first, Iterator& last, LDDocument& doc)
 {
     static thread_local TypeDeclarationParser<Iterator> const grammar;
 
-    LDDocumentBuilder builder(doc);
-    LDDocumentBuilder::current(&builder);
-    LDDocumentBuilderCleanup cleanup;
+    LDHermesCtrBuilder builder(doc);
+    LDHermesCtrBuilder::current(&builder);
+    LDHermesCtrBuilderCleanup cleanup;
 
     LDTypeDeclarationView type_decl{};
     bool r = qi::phrase_parse(first, last, grammar, enc::space, type_decl);
@@ -700,9 +700,9 @@ bool parse_raw_sdn_type_decl(Iterator& first, Iterator& last, LDDocumentView& do
 {
     static thread_local TypeDeclarationParser<Iterator> const grammar;
 
-    LDDocumentBuilder builder(doc);
-    LDDocumentBuilder::current(&builder);
-    LDDocumentBuilderCleanup cleanup;
+    LDHermesCtrBuilder builder(doc);
+    LDHermesCtrBuilder::current(&builder);
+    LDHermesCtrBuilderCleanup cleanup;
 
     bool r = qi::phrase_parse(first, last, grammar, enc::space, type_decl);
 
@@ -717,9 +717,9 @@ bool parse_raw_value0(Iterator& first, Iterator& last, LDDocumentView& doc, LDDV
 {
     static thread_local RawSDNValueParser<Iterator> const grammar;
 
-    LDDocumentBuilder builder(doc);
-    LDDocumentBuilder::current(&builder);
-    LDDocumentBuilderCleanup cleanup;
+    LDHermesCtrBuilder builder(doc);
+    LDHermesCtrBuilder::current(&builder);
+    LDHermesCtrBuilderCleanup cleanup;
 
     bool r = qi::phrase_parse(first, last, grammar, enc::space, value);
 

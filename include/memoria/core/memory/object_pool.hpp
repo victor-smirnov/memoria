@@ -159,6 +159,14 @@ public:
     T* get() {return ptr_;}
     T* get() const {return ptr_;}
 
+    operator bool() const {
+        return ref_holder_ != nullptr;
+    }
+
+    bool is_null() const noexcept {
+        return ref_holder_ == nullptr;
+    }
+
     template<typename U>
     UniquePtr<U> static_cast_to() && {
         UniquePtr<U> pp(static_cast<U*>(ptr_), ref_holder_);
@@ -357,6 +365,10 @@ public:
 
     operator bool() const {
         return ref_holder_ != nullptr;
+    }
+
+    bool is_null() const noexcept {
+        return ref_holder_ == nullptr;
     }
 
     template<typename U>

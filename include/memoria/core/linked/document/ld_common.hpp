@@ -107,7 +107,7 @@ class LDDocumentView;
 class LDStringView;
 class LDIdentifierView;
 class LDDTypedValueView;
-class LDDocumentBuilder;
+class LDHermesCtrBuilder;
 
 struct LinkedData   {};
 struct LDArray      {};

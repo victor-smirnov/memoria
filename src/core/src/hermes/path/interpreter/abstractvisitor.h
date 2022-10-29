@@ -57,6 +57,7 @@ class CurrentNode;
 class FilterExpressionNode;
 class FunctionExpressionNode;
 class ExpressionArgumentNode;
+class HermesValueNode;
 }} // namespace hermes::path::ast
 
 /**
@@ -85,6 +86,7 @@ public:
     virtual void visit(const ast::ExpressionNode* node) = 0;
     virtual void visit(const ast::IdentifierNode* node) = 0;
     virtual void visit(const ast::RawStringNode* node) = 0;
+    virtual void visit(const ast::HermesValueNode* node) = 0;
     virtual void visit(const ast::LiteralNode* node) = 0;
     virtual void visit(const ast::SubexpressionNode* node) = 0;
     virtual void visit(const ast::IndexExpressionNode* node) = 0;

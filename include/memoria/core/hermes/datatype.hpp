@@ -275,7 +275,7 @@ public:
 class Datatype: public HoldingView {
     friend class HermesCtr;
     friend class Value;
-    friend class DocumentBuilder;
+    friend class HermesCtrBuilder;
 
     template <typename, typename>
     friend class Map;

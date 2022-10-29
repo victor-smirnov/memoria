@@ -38,6 +38,8 @@ namespace memoria::hermes::path { namespace parser {
  * UTF-32 an escape sequence, consisting from a pair of UTF-32 characters, to
  * a UTF-8 encoded strings.
  */
+
+template <typename String>
 class AppendEscapeSequenceAction
 {
 public:

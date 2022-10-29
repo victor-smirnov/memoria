@@ -197,7 +197,6 @@ struct ABCpyHelper<T, false> {
     }
 };
 
-
 }
 
 template <typename TT, typename SizeT>
@@ -248,6 +247,8 @@ protected:
     friend class ArenaBufferSharedGuardImpl;
 
 public:
+    using value_type = TT;
+
     ArenaBuffer(SizeT capacity):
         buffer_(capacity > 0 ? allocate_system<ValueT>(capacity).release() : nullptr),
         capacity_(capacity),
@@ -475,6 +476,12 @@ public:
         return resized;
     }
 
+
+    bool push_back(const ValueT& value) noexcept
+    {
+        return append_value(value);
+    }
+
     bool append_values(const ValueT* values, SizeT size) noexcept
     {
         bool resized = ensure(size);
@@ -493,6 +500,7 @@ public:
         size_ += size;
         return resized;
     }
+
 
     bool ensure(SizeT size) noexcept
     {
