@@ -38,7 +38,7 @@ namespace memoria::hermes::path { namespace parser {
  * @brief The AppendUtf8Action class is a functor for appending UTF-32
  * characters to UTF-8 encoded strings.
  */
-template <typename String>
+template <typename StringT = memoria::hermes::path::String>
 class AppendUtf8Action
 {
 public:
@@ -53,7 +53,7 @@ public:
     * @a utf32Char will be appended.
     * @param[in] utf32Char The input character encoded in UTF-32
     */
-    result_type operator()(String& utf8String,
+    result_type operator()(StringT& utf8String,
                            UnicodeChar utf32Char) const
     {
         auto outIt = std::back_inserter(utf8String);

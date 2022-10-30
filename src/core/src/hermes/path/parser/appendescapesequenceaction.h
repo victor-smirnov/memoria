@@ -39,7 +39,7 @@ namespace memoria::hermes::path { namespace parser {
  * a UTF-8 encoded strings.
  */
 
-template <typename String>
+template <typename StringT = memoria::hermes::path::String>
 class AppendEscapeSequenceAction
 {
 public:
@@ -61,7 +61,7 @@ public:
     * @param[in] escapeSequence The character of the escape sequence encoded
     * in UTF-32
     */
-    result_type operator()(String& utf8String,
+    result_type operator()(StringT& utf8String,
                            escape_type escapeSequence) const
     {
         auto outIt = std::back_inserter(utf8String);

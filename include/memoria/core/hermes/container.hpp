@@ -464,4 +464,14 @@ public:
     virtual U8String to_sdn_string() const;
 };
 
+inline PoolSharedPtr<hermes::HermesCtr> operator "" _hdoc(const char* s, std::size_t n)
+{
+    return hermes::HermesCtr::parse(s, s + n);
+}
+
+inline hermes::ValuePtr operator "" _hval(const char* s, std::size_t n)
+{
+    return hermes::HermesCtr::parse(s, s + n)->root();
+}
+
 }

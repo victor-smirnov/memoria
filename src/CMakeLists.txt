@@ -343,10 +343,6 @@ if (BUILD_TESTS)
     if (BUILD_TESTS_DISRUPTOR)
         add_subdirectory(tests-other/disruptor)
     endif()
-
-    if (BUILD_TESTS_HERMESPATH)
-        add_subdirectory(tests-other/hermespath)
-    endif()
 endif()
 
 if (BUILD_SANDBOX)    
