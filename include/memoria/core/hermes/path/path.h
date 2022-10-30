@@ -332,18 +332,8 @@ namespace path {
  * @throws InvalidFunctionArgumentType When an invalid type of argument was
  * specified for a HermesPath function call in the *expression*.
  */
-template <typename JsonT>
-std::enable_if_t<std::is_same<std::decay_t<JsonT>, ValuePtr>::value, ValuePtr>
-search(const Expression& expression, JsonT&& document);
 
-/**
- * @brief Explicit instantiation declaration for @ref search to prevent
- * implicit instantiation in client code.
-* @{
-*/
-extern template ValuePtr search<const ValuePtr&>(const Expression&, const ValuePtr&);
-extern template ValuePtr search<ValuePtr&>(const Expression&, ValuePtr&);
-extern template ValuePtr search<ValuePtr>(const Expression&, ValuePtr&&);
-/** @}*/
+ValuePtr search(const Expression& expression, const ValuePtr& document);
+
 }
 }}

@@ -1,5 +1,5 @@
 
-# Copyright 2016 Victor Smirnov
+# Copyright 2016-2022 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,15 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB SRCS1 src/*.cpp)
-file(GLOB SRCS2 src/datatypes/*.cpp)
+file(GLOB_RECURSE SRCS1 src/*.cpp src/*.h src/*.hpp)
 
-
-file(GLOB SRCS3 src/hermes/path/ast/*.cpp src/hermes/path/*.cpp src/hermes/*.cpp)
-file(GLOB SRCS4 src/hermes/path/interpreter/*.cpp)
-file(GLOB SRCS5 src/hermes/path/parser/*.cpp)
-
-set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES ${SRCS1} ${SRCS2} ${SRCS3} ${SRCS4} ${SRCS5})
-set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_REACTOR ${SRCS1} ${SRCS2} ${SRCS3} ${SRCS4} ${SRCS5})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES ${SRCS1})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_REACTOR ${SRCS1})
 
 add_subdirectory(platforms)

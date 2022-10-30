@@ -100,11 +100,9 @@ public:
      * @brief Sets the context of the evaluation.
      * @param[in] value ValuePtr document to be used as the context.
      */
-    template <typename JsonT>
-    std::enable_if_t<std::is_same<std::decay_t<JsonT>, ValuePtr>::value, void>
-    setContext(JsonT&& value)
+    void setContext(const ContextValue& ctx)
     {
-        m_context = std::forward<JsonT>(value);
+        m_context = ctx;
     }
     /**
      * @brief Returns the current evaluation context.
@@ -216,21 +214,15 @@ private:
      * @param[in] node Pointer to the node.
      * @param[in] context An const lvalue reference or an rvalue reference to
      * the evaluation context.
-     * @tparam JsonT The type of the @a context.
      * @{
      */
-    template <typename JsonT>
-    void visit(const ast::IdentifierNode *node, JsonT&& context);
-    template <typename JsonT>
-    void visit(const ast::ArrayItemNode *node, JsonT&& context);
-    template <typename JsonT>
-    void visit(const ast::FlattenOperatorNode* node, JsonT&& context);
-    template <typename JsonT>
-    void visit(const ast::SliceExpressionNode* node, JsonT&& context);
-    template <typename JsonT>
-    void visit(const ast::HashWildcardNode* node, JsonT&& context);
-    template <typename JsonT>
-    void visit(const ast::FilterExpressionNode* node, JsonT&& context);
+
+    void visit(const ast::IdentifierNode *node, ValuePtr&& context);
+    void visit(const ast::ArrayItemNode *node, ValuePtr&& context);
+    void visit(const ast::FlattenOperatorNode* node, ValuePtr&& context);
+    void visit(const ast::SliceExpressionNode* node, ValuePtr&& context);
+    void visit(const ast::HashWildcardNode* node, ValuePtr&& context);
+    void visit(const ast::FilterExpressionNode* node, ValuePtr&& context);
     /** @}*/
     /**
      * @brief Adjust the value of the slice endpoint to make sure it's within
@@ -252,17 +244,16 @@ private:
     hermes::DataObjectPtr<Boolean> toBoolean(const ValuePtr& json) const;
 
     bool toSimpleBoolean(const ValuePtr& json) const;
+
     /**
      * @brief Evaluates the projection of the given @a expression with the
      * evaluation @a context.
      * @param[in] expression The expression that gets projected.
      * @param[in] context An const lvalue reference or an rvalue reference to
      * the evaluation context.
-     * @tparam JsonT The type of the @a context.
      */
-    template <typename JsonT>
     void evaluateProjection(const ast::ExpressionNode* expression,
-                            JsonT&& context);
+                            ValuePtr&& context);
     /**
      * @brief Evaluates a binary logic operator to the result of the left
      * side expression if it's binary value equals to @a shortCircuitValue
@@ -385,11 +376,9 @@ private:
      * @param[in] node Pointer to the expresson node.
      * @param[in] array Either an lvalue or rvalue reference to a @ref ValuePtr
      * array.
-     * @tparam JsonT The type of the @a array.
      * @throws InvalidFunctionArgumentType
      */
-    template <typename JsonT>
-    void map(const ast::ExpressionNode* node, JsonT&& array);
+    void map(const ast::ExpressionNode* node, ValuePtr&& array);
     /**
      * @brief Accepts zero or more objects in the given @a arguments, and
      * returns a single object with subsequent objects merged. Each subsequent
@@ -404,10 +393,8 @@ private:
      * @a sourceObject should be added.
      * @param[in] sourceObject ither an lvalue or rvalue reference to a
      * @ref ValuePtr object.
-     * @tparam JsonT JsonT The type of the @a sourceObject.
      */
-    template <typename JsonT>
-    void mergeObject(ValuePtr* object, JsonT&& sourceObject);
+    void mergeObject(ValuePtr* object, ValuePtr&& sourceObject);
     /**
      * @brief Accepts one or more items in @a arguments, and will evaluate them
      * in order until a non null argument is encounted.
@@ -486,10 +473,8 @@ private:
      * @brief Converts the given @a value to a one element array if it's not
      * already an array.
      * @param[in] value A @ref ValuePtr value.
-     * @tparam JsonT The type of the @a value.
      */
-    template <typename JsonT>
-    void toArray(JsonT&& value);
+    void toArray(ValuePtr&& value);
     /**
      * @brief Converts the first item of the given @a arguments to the @ref ValuePtr
      * encoded value if it's not already a string.
@@ -501,10 +486,8 @@ private:
      * @brief Converts the given @a value to the @ref ValuePtr encoded value if
      * it's not already a string.
      * @param[in] value A ValuePtr value.
-     * @tparam JsonT The type of the @a value.
      */
-    template <typename JsonT>
-    void toString(JsonT&& value);
+    void toString(ValuePtr&& value);
     /**
      * @brief Converts the string provided as the first item in the given
      * @a arguments to a number. If it's already a number then the original
@@ -517,10 +500,8 @@ private:
      * @brief Converts the @a value to a number if it's not already a number,
      * all other @ref ValuePtr types are converted to null.
      * @param[in] value A ValuePtr value.
-     * @tparam JsonT The type of the @a value.
      */
-    template <typename JsonT>
-    void toBigInt(JsonT&& value);
+    void toBigInt(ValuePtr&& value);
 
 
     /**
@@ -544,20 +525,16 @@ private:
      * @brief Converts the @a value to a number if it's not already a number,
      * all other @ref ValuePtr types are converted to null.
      * @param[in] value A ValuePtr value.
-     * @tparam JsonT The type of the @a value.
      */
-    template <typename JsonT>
-    void toBoolean(JsonT&& value);
+    void toBoolean(ValuePtr&& value);
 
 
     /**
      * @brief Converts the @a value to a number if it's not already a number,
      * all other @ref ValuePtr types are converted to null.
      * @param[in] value A ValuePtr value.
-     * @tparam JsonT The type of the @a value.
      */
-    template <typename JsonT>
-    void toDouble(JsonT&& value);
+    void toDouble(ValuePtr&& value);
 
 
     /**
@@ -577,11 +554,9 @@ private:
     /**
      * @brief Extracts the values from the @a object.
      * @param[in] object A @ref ValuePtr object.
-     * @tparam JsonT The type of @a object.
      * @throws InvalidFunctionArgumentType
      */
-    template <typename JsonT>
-    void values(JsonT&& object);
+    void values(ValuePtr&& object);
     /**
      * @brief Finds the largest item in the array provided as the first item
      * in the @a arguments, it must either be an array of numbers or an array
@@ -600,11 +575,9 @@ private:
      * @ref ValuePtr values. It should return true if its first argument is less
      * then its second argument.
      * @param[in] array A @ref ValuePtr array.
-     * @tparam JsonT The type of @a array.
      * @throws InvalidFunctionArgumentType
      */
-    template <typename JsonT>
-    void max(const JsonComparator* comparator, JsonT&& array);
+    void max(const JsonComparator* comparator, ValuePtr&& array);
     /**
      * @brief Finds the largest item in the array provided as the first item
      * in the @a arguments, which must either be an array of numbers or an array
@@ -628,13 +601,11 @@ private:
      * @ref ValuePtr values. It should return true if its first argument is less
      * then its second argument.
      * @param[in] array A @ref ValuePtr array.
-     * @tparam JsonT The type of the @a array.
      * @throws InvalidFunctionArgumentType
      */
-    template <typename JsonT>
     void maxBy(const ast::ExpressionNode* expression,
                const JsonComparator* comparator,
-               JsonT&& array);
+               ValuePtr&& array);
 
 private:
     // Tools

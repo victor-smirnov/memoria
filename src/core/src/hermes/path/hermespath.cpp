@@ -32,28 +32,25 @@
 
 namespace memoria::hermes::path {
 
-template <typename JsonT>
-std::enable_if_t<std::is_same<std::decay_t<JsonT>, ValuePtr>::value, ValuePtr>
-search(const Expression &expression, JsonT&& document)
+ValuePtr search(const Expression &expression, const ValuePtr& value)
 {
     using interpreter::Interpreter;
     if (expression.isEmpty())
     {
         return {};
     }
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
     thread_local Interpreter s_interpreter;
 #pragma clang diagnostic pop
-    s_interpreter.setContext(std::forward<JsonT>(document));
+    s_interpreter.setContext(value);
+
     // evaluate the expression by calling visit with the root of the AST
     s_interpreter.visit(expression.astRoot());
 
     return s_interpreter.currentContextValue();
 }
 
-// explicit instantion
-template ValuePtr search<const ValuePtr&>(const Expression&, const ValuePtr&);
-template ValuePtr search<ValuePtr&>(const Expression&, ValuePtr&);
-template ValuePtr search<ValuePtr>(const Expression&, ValuePtr&&);
-} // namespace hermes::path
+
+}

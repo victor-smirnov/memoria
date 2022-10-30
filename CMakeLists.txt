@@ -107,7 +107,6 @@ add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
 add_definitions(-DMMA_ICU_CXX_NS=icu)
 
 if (BUILD_POSIX)
-
     if (BUILD_EXTRA_CONTAINERS)
         add_definitions(-DMEMORIA_BUILD_EXTRA_CONTAINERS)
     endif()

@@ -167,9 +167,9 @@ void Interpreter::evaluateProjection(const ast::ExpressionNode *expression)
     evaluateProjection(expression, std::move(m_context));
 }
 
-template <typename JsonT>
+
 void Interpreter::evaluateProjection(const ast::ExpressionNode* expression,
-                                      JsonT&& context)
+                                      ValuePtr&& context)
 {
     using std::placeholders::_1;
     // evaluate the projection if the context holds an array
@@ -220,8 +220,8 @@ void Interpreter::visit(const ast::IdentifierNode *node)
     visit(node, std::move(m_context));
 }
 
-template <typename JsonT>
-void Interpreter::visit(const ast::IdentifierNode *node, JsonT &&context)
+
+void Interpreter::visit(const ast::IdentifierNode *node, ValuePtr &&context)
 {
     // evaluete the identifier if the context holds an object
     if (context->is_generic_map())
@@ -285,8 +285,8 @@ void Interpreter::visit(const ast::ArrayItemNode *node)
     visit(node, std::move(m_context));
 }
 
-template <typename JsonT>
-void Interpreter::visit(const ast::ArrayItemNode *node, JsonT &&context)
+
+void Interpreter::visit(const ast::ArrayItemNode *node, ValuePtr &&context)
 {
     // evaluate the array item expression if the context holds an array
     if (context->is_generic_array())
@@ -319,8 +319,8 @@ void Interpreter::visit(const ast::FlattenOperatorNode *node)
     visit(node, std::move(m_context));
 }
 
-template <typename JsonT>
-void Interpreter::visit(const ast::FlattenOperatorNode*, JsonT&& context)
+
+void Interpreter::visit(const ast::FlattenOperatorNode*, ValuePtr&& context)
 {
     // evaluate the flatten operation if the context holds an array
     if (context->is_generic_array())
@@ -368,8 +368,8 @@ void Interpreter::visit(const ast::SliceExpressionNode *node)
     visit(node, std::move(m_context));
 }
 
-template <typename JsonT>
-void Interpreter::visit(const ast::SliceExpressionNode* node, JsonT&& context)
+
+void Interpreter::visit(const ast::SliceExpressionNode* node, ValuePtr&& context)
 {
     // evaluate the slice operation if the context holds an array
     if (context->is_generic_array())
@@ -446,8 +446,8 @@ void Interpreter::visit(const ast::HashWildcardNode *node)
     visit(node, std::move(m_context));
 }
 
-template <typename JsonT>
-void Interpreter::visit(const ast::HashWildcardNode* node, JsonT&& context)
+
+void Interpreter::visit(const ast::HashWildcardNode* node, ValuePtr&& context)
 {
     // evaluate the hash wildcard operation if the context holds an array
     if (context->is_generic_map())
@@ -657,8 +657,8 @@ void Interpreter::visit(const ast::FilterExpressionNode *node)
     visit(node, std::move(m_context));
 }
 
-template <typename JsonT>
-void Interpreter::visit(const ast::FilterExpressionNode* node, JsonT&& context)
+
+void Interpreter::visit(const ast::FilterExpressionNode* node, ValuePtr&& context)
 {
     // evaluate the filtering operation if the context holds an array
     if (context->is_generic_array())
@@ -1106,8 +1106,8 @@ void Interpreter::map(FunctionArgumentList &arguments)
     map(&expression, std::move(contextValue));
 }
 
-template <typename JsonT>
-void Interpreter::map(const ast::ExpressionNode* node, JsonT&& array_value)
+
+void Interpreter::map(const ast::ExpressionNode* node, ValuePtr&& array_value)
 {
     using std::placeholders::_1;
     // throw an exception if the argument is not an array
@@ -1162,8 +1162,8 @@ void Interpreter::merge(FunctionArgumentList &arguments)
     m_context = std::move(result);
 }
 
-template <typename JsonT>
-void Interpreter::mergeObject(ValuePtr* object, JsonT&& sourceObject)
+
+void Interpreter::mergeObject(ValuePtr* object, ValuePtr&& sourceObject)
 {
     auto map = (*object)->as_generic_map();
     auto src_map = sourceObject->as_generic_map();
@@ -1340,8 +1340,8 @@ void Interpreter::toArray(FunctionArgumentList &arguments)
     toArray(std::move(contextValue));
 }
 
-template <typename JsonT>
-void Interpreter::toArray(JsonT&& value)
+
+void Interpreter::toArray(ValuePtr&& value)
 {
     // evaluate to the argument if it's an array
     if (value->is_generic_array())
@@ -1366,8 +1366,8 @@ void Interpreter::toString(FunctionArgumentList &arguments)
     toString(std::move(contextValue));
 }
 
-template <typename JsonT>
-void Interpreter::toString(JsonT&& value)
+
+void Interpreter::toString(ValuePtr&& value)
 {
     // evaluate to the argument if it's a string
     if (value->is_varchar())
@@ -1388,8 +1388,8 @@ void Interpreter::toDouble(FunctionArgumentList &arguments)
     toDouble(std::move(contextValue));
 }
 
-template <typename JsonT>
-void Interpreter::toDouble(JsonT&& value)
+
+void Interpreter::toDouble(ValuePtr&& value)
 {
     // evaluate to the argument if it's a number
     if (value->is_numeric())
@@ -1424,8 +1424,8 @@ void Interpreter::toBigInt(FunctionArgumentList &arguments)
     toBigInt(std::move(contextValue));
 }
 
-template <typename JsonT>
-void Interpreter::toBigInt(JsonT&& value)
+
+void Interpreter::toBigInt(ValuePtr&& value)
 {
     // evaluate to the argument if it's a number
     if (value->is_bigint())
@@ -1447,8 +1447,8 @@ void Interpreter::toBoolean(FunctionArgumentList &arguments)
     toBoolean(std::move(contextValue));
 }
 
-template <typename JsonT>
-void Interpreter::toBoolean(JsonT&& value)
+
+void Interpreter::toBoolean(ValuePtr&& value)
 {
     // evaluate to the argument if it's a number
     if (value->is_bigint())
@@ -1483,8 +1483,8 @@ void Interpreter::values(FunctionArgumentList &arguments)
     values(std::move(contextValue));
 }
 
-template <typename JsonT>
-void Interpreter::values(JsonT&& object)
+
+void Interpreter::values(ValuePtr&& object)
 {
     // throw an exception if the argument is not an object
     if (!object->is_generic_map())
@@ -1511,8 +1511,8 @@ void Interpreter::max(FunctionArgumentList &arguments,
     max(&comparator, std::move(contextValue));
 }
 
-template <typename JsonT>
-void Interpreter::max(const JsonComparator* comparator, JsonT&& array)
+
+void Interpreter::max(const JsonComparator* comparator, ValuePtr&& array)
 {
     hermes::ValuePtr max_val;
 
@@ -1542,10 +1542,10 @@ void Interpreter::maxBy(FunctionArgumentList &arguments,
     maxBy(&expression, &comparator, std::move(contextValue));
 }
 
-template <typename JsonT>
+
 void Interpreter::maxBy(const ast::ExpressionNode* expression,
                          const JsonComparator* comparator,
-                         JsonT&& source)
+                         ValuePtr&& source)
 {
     auto array = source->as_generic_array();
 

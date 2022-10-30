@@ -30,6 +30,10 @@ add_subdirectory(filesystem_reactor)
 add_subdirectory(filesystem_common)
 add_subdirectory(filesystem_classic)
 
+file(GLOB_RECURSE MAIN_INCLUDES ../include/*.hpp)
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES ${MAIN_INCLUDES})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_REACTOR ${MAIN_INCLUDES})
+
 get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
 
 if (BUILD_CODEGENERATOR_EXPLICITLY)
@@ -274,6 +278,8 @@ if (BUILD_REACTOR_MEMORIA_LIB)
     target_link_libraries(MemoriaStoresReactor MemoriaCoreReactor)
     target_link_libraries(MemoriaInitReactor MemoriaCoreReactor MemoriaCtrsReactor MemoriaStoresReactor)
 
+    target_sources(MemoriaCore PUBLIC ${MAIN_INCLUDES})
+
     set_property(TARGET MemoriaCoreReactor MemoriaInitReactor MemoriaCtrsReactor MemoriaStoresReactor PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
     export(TARGETS MemoriaCoreReactor MemoriaInitReactor MemoriaCtrsReactor MemoriaStoresReactor FILE ${LIBRARY_OUTPUT_PATH}/MemoriaReactor.cmake)
 endif()
@@ -307,6 +313,8 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
     target_link_libraries(MemoriaCtrs MemoriaCore)
     target_link_libraries(MemoriaStores MemoriaCore)
     target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
+
+    target_sources(MemoriaCore PUBLIC ${MAIN_INCLUDES})
 
     set_property(TARGET MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
     export(TARGETS MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)

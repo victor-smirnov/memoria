@@ -27,7 +27,7 @@ if (BUILD_REACTOR_MEMORIA_LIB)
     endif()
 
     FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
-        add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
+        add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp ${MAIN_INCLUDES})
         set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
         set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
         target_link_libraries(${MEMORIA_TARGET} MemoriaCtrsReactor MemoriaStoresReactor MemoriaCoreReactor MemoriaInitReactor ${MEMORIA_LIBS})
