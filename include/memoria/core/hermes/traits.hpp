@@ -42,6 +42,8 @@ class Map;
 
 class Value;
 
+class Parameter;
+
 
 template <typename>
 class DataObject;
@@ -67,7 +69,7 @@ using DataObjectPtr = ViewPtr<DataObject<DT>, true>;
 class TypedValue;
 using TypedValuePtr = ViewPtr<TypedValue, true>;
 
-
+using ParameterPtr = ViewPtr<Parameter, true>;
 
 namespace detail {
 template <typename> struct ValueCastHelper;
@@ -91,6 +93,7 @@ struct TypeHash<hermes::Datatype>: HasU64Value<102> {};
 template <>
 struct TypeHash<hermes::TypedValue>: HasU64Value<103> {};
 
-
+template <>
+struct TypeHash<hermes::Parameter>: HasU64Value<104> {};
 
 }

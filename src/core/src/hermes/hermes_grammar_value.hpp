@@ -49,10 +49,16 @@
 #include "path/parser/encodesurrogatepairaction.h"
 #include "path/parser/appendescapesequenceaction.h"
 
-#include "path/ast/multiselecthashnode.h"
+//#include "path/ast/multiselecthashnode.h"
+
+#include "path/ast/rawstringnode.h"
+#include "path/ast/identifiernode.h"
 
 #include "hermes_grammar_strings.hpp"
 #include "hermes_ctr_builder.hpp"
+
+
+
 
 namespace memoria::hermes {
 
@@ -60,17 +66,7 @@ namespace qi = boost::spirit::qi;
 namespace bf = boost::fusion;
 namespace bp = boost::phoenix;
 
-struct HermesString {
-    std::string value;
-};
 
-struct HermesRawString {
-    std::string value;
-};
-
-struct HermesIdentifier {
-    std::string value;
-};
 
 
 template <typename T, typename DT>
@@ -89,71 +85,8 @@ public:
     }
 };
 
-
-class CharBufferBase {
-protected:
-    HermesCtrBuilder* builder_;
-public:
-
-    using UnicodeChar    = memoria::hermes::path::UnicodeChar;
-
-    using value_type     = UnicodeChar;
-    using size_type      = size_t;
-    using reference      = value_type&;
-    using iterator       = UnicodeChar*;
-    using const_iterator = const UnicodeChar*;
-
-    CharBufferBase() {
-        builder_ = &HermesCtrBuilder::current();
-    }
-
-    iterator begin() {return iterator{};}
-    iterator end() {return iterator{};}
-
-    const_iterator begin() const {return const_iterator{};}
-    const_iterator end() const {return const_iterator{};}
-
-    bool empty() const {
-        return builder_->is_string_buffer_empty();
-    }
-
-    void insert(iterator, value_type value) {
-        builder_->append_char(value);
-    }
-
-    template <typename II>
-    void insert(iterator, II, II){}
-
-    void operator=(value_type value) {
-        builder_->append_char(value);
-    }
-
-    void operator=(StringValuePtr) {
-        // FIXME this method should be removed
-        // but some 'identifier' rules depend on it.
-        // Those rules need to be refactored.
-    }
-};
-
-
-
-struct ParsedStringValue: CharBufferBase {
-
-    mutable StringValuePtr value;
-
-    auto finish() const {
-        value = builder_->new_varchar();
-        return value;
-    }
-
-    using CharBufferBase::operator=;
-
-    operator StringValuePtr() const {
-        if (value->is_null()) {
-            value = builder_->new_varchar();
-        }
-        return value;
-    }
+struct HermesIdentifier {
+    std::string identifier;
 };
 
 
@@ -190,12 +123,12 @@ public:
     QualNameValue() {}
     QualNameValue(const char* str): type_name_(str) {}
 
-    using value_type = StringValuePtr;
+    using value_type = std::string;
     using iterator   = EmptyType;
 
     iterator end() {return iterator{};}
 
-    void insert (iterator, value_type value)
+    void insert (iterator, const value_type& value)
     {
         if (!first_) {
             buffer_.to_std_string().push_back(':');
@@ -205,7 +138,7 @@ public:
             first_ = false;
         }
 
-        for (auto ch: value->view()) {
+        for (auto ch: value) {
             buffer_.to_std_string().push_back(ch);
         }
     }
@@ -224,7 +157,7 @@ public:
 };
 
 
-using MapEntryTuple = boost::phoenix::vector2<StringValuePtr, ValuePtr>;
+using MapEntryTuple = boost::phoenix::vector2<std::string, ValuePtr>;
 
 class MapValue {
     GenericMapPtr value_;
@@ -348,7 +281,7 @@ struct TypeReference {
     }
 };
 
-using TypeDeclOrReference = boost::variant<StringValuePtr, TypeDeclarationValue>;
+using TypeDeclOrReference = boost::variant<std::string, TypeDeclarationValue>;
 
 
 struct ValueVisitor: boost::static_visitor<> {
@@ -395,9 +328,9 @@ struct TypedValueValue: TypedValueValueBase {
 
         Visitor(ValuePtr ctr_value): ctr_value_(ctr_value) {}
 
-        void operator()(StringValuePtr ref)
+        void operator()(const std::string& ref)
         {
-            DatatypePtr datatype = HermesCtrBuilder::current().resolve_typeref(ref->view());
+            DatatypePtr datatype = HermesCtrBuilder::current().resolve_typeref(ref);
             typed_value = HermesCtrBuilder::current().new_typed_value(
                         datatype,
                         ctr_value_
@@ -421,26 +354,30 @@ struct TypedValueValue: TypedValueValueBase {
 };
 
 
-using StringOrTypedValueBase = boost::fusion::vector2<StringValuePtr, Optional<TypeDeclOrReference>>;
+using StringOrTypedValueBase = boost::fusion::vector2<std::string, Optional<TypeDeclOrReference>>;
 
 struct StringOrTypedValue: StringOrTypedValueBase {
     ValuePtr finish()
     {
+        const auto& str  = bf::at_c<0>(*this);
+        auto h_str = HermesCtrBuilder::current().new_varchar(str);
         const auto& type = bf::at_c<1>(*this);
+
         if (MMA_LIKELY(!type)) {
-            return bf::at_c<0>(*this)->as_value();
+
+            return h_str->as_value();
         }
 
         TypedValueValue typed_value;
 
-        bf::at_c<0>(typed_value) = bf::at_c<1>(*this).get();
-        bf::at_c<1>(typed_value) = bf::at_c<0>(*this)->as_value();
+        bf::at_c<0>(typed_value) = type.get();
+        bf::at_c<1>(typed_value) = h_str->as_value();
 
         return typed_value.finish();
     }
 };
 
-using TypeDirectoryMapEntry = boost::fusion::vector2<StringValuePtr, DatatypePtr>;
+using TypeDirectoryMapEntry = boost::fusion::vector2<std::string, DatatypePtr>;
 
 
 struct TypeDirectoryValue {
@@ -480,11 +417,11 @@ template <typename Iterator, typename Skipper>
 using ValueStringRuleSet = memoria::hermes::parser::StringsRuleSet<
     Iterator,
     Skipper,
-    path::parser::AppendUtf8Action<path::String>,
-    path::parser::AppendEscapeSequenceAction<path::String>,
+    path::parser::AppendUtf8Action<>,
+    path::parser::AppendEscapeSequenceAction<>,
     path::parser::EncodeSurrogatePairAction,
     std::string,
-    HermesRawString,
+    path::ast::RawStringNode,
     HermesIdentifier
 >;
 
@@ -532,21 +469,21 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
             bf::at_c<0>(ctx.attributes) = visitor.value;
         };
 
-        static auto finish_string0 = [](auto& attrib, auto& ctx) {
-            bf::at_c<0>(ctx.attributes) = HermesCtrBuilder::current().new_varchar(attrib);
+        static auto finish_raw_string = [](auto& attrib, auto& ctx) {
+            bf::at_c<0>(ctx.attributes) = attrib.rawString;
         };
 
-        static auto finish_string1 = [](auto& attrib, auto& ctx) {
-            bf::at_c<0>(ctx.attributes) = HermesCtrBuilder::current().new_varchar(attrib.value);
+        static auto finish_quoted_string = [](auto& attrib, auto& ctx) {
+            bf::at_c<0>(ctx.attributes) = attrib;
         };
 
-        hermes_string = m_quotedStringRule [finish_string0] | m_rawStringRule [finish_string1];
+        hermes_string = m_quotedStringRule [finish_quoted_string] | m_rawStringRule [finish_raw_string];
 
-        static auto finish_identifier0 = [](auto& attrib, auto& ctx) {
-            bf::at_c<0>(ctx.attributes) = HermesCtrBuilder::current().new_varchar(attrib.value);
+        static auto finish_identifier = [](auto& attrib, auto& ctx) {
+            bf::at_c<0>(ctx.attributes) = attrib.identifier;
         };
 
-        hermes_identifier = m_identifierRule [finish_identifier0];
+        hermes_identifier = m_identifierRule [finish_identifier];
 
         cxx_basic_type =    (lit("long") >> "double") [_val = "long double"] |
 
@@ -582,7 +519,6 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
                          ;
 
         datatype_name = (hermes_identifier % "::") | cxx_basic_type;
-
 
         auto set_const_to_qual = [](auto&, auto& ctx){
             bf::at_c<0>(ctx.attributes).set_const(true);
@@ -639,8 +575,8 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
 
         type_reference   = '#' > hermes_identifier;
 
-        auto check_typeref = [](auto& typeref) {
-            return HermesCtrBuilder::current().check_typeref(typeref->view());
+        auto check_typeref = [](const auto& typeref) {
+            return HermesCtrBuilder::current().check_typeref(typeref);
         };
 
         type_decl_or_reference =  type_declaration[_val = _1] | (type_reference[_val = _1, _pass = boost::phoenix::bind(check_typeref,_1)]);
@@ -673,6 +609,11 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
 
         integer_value = (uint64_parser | int64_parser) [finish_value];
 
+        static auto finish_parameter = [](auto& attrib, auto& ctx) {
+                    bf::at_c<0>(ctx.attributes) = HermesCtrBuilder::current().new_parameter(attrib.identifier)->as_value();
+        };
+        parameter = lit('?') >> m_identifierRule[finish_parameter];
+
         auto enter_builder = [](const auto& attrib, const auto& ctx){
             HermesCtrBuilder::enter();
         };
@@ -681,15 +622,17 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
             HermesCtrBuilder::current().exit();
         };
 
-        hermes_value =  qi::eps[enter_builder] >> (hermes_string_or_typed_value |
-                                        strict_double |
-                                        integer_value |
-                                        map |
-                                        null_value |
-                                        array |
-                                        type_declaration |
-                                        typed_value |
-                                        bool_value
+        hermes_value =  qi::eps[enter_builder] >> (
+                                        hermes_string_or_typed_value
+                                        | strict_double
+                                        | integer_value
+                                        | map
+                                        | null_value
+                                        | array
+                                        | type_declaration
+                                        | typed_value
+                                        | bool_value
+                                        | parameter
                                       )[finish_value] >> qi::eps[exit_builder];
 
         standalone_type_decl = type_declaration;
@@ -705,10 +648,8 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
         map.name("map");
         map_entry.name("map_entry");
         null_value.name("null_value");
-        quoted_string.name("quoted_string");
         hermes_string.name("hermes_string");
         hermes_string_or_typed_value.name("hermes_string_or_typed_value");
-        identifier.name("identifier");
         hermes_identifier.name("hermes_identifier");
         cxx_basic_type.name("cxx_basic_type");
         type_declaration.name("type_declaration");
@@ -745,14 +686,10 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, MapEntryTuple(), Skipper>        map_entry;
 
     qi::rule<Iterator, ValuePtr(), Skipper>             null_value;
-
-    qi::rule<Iterator, ParsedStringValue(), Skipper>    quoted_string;
-    qi::rule<Iterator, StringValuePtr(), Skipper>       hermes_string;
+    qi::rule<Iterator, std::string(), Skipper>          hermes_string;
+    qi::rule<Iterator, std::string(), Skipper>          hermes_identifier;
 
     qi::rule<Iterator, StringOrTypedValue(), Skipper>   hermes_string_or_typed_value;
-
-    qi::rule<Iterator, ParsedStringValue(), Skipper>    identifier;
-    qi::rule<Iterator, StringValuePtr(), Skipper>       hermes_identifier;
 
     qi::rule<Iterator, const char*(), Skipper>          cxx_basic_type;
     qi::rule<Iterator, QualNameValue(), Skipper>        datatype_name;
@@ -763,9 +700,11 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, ValuePtr(), Skipper>             type_parameter;
     qi::rule<Iterator, DatatypePtr(), Skipper>          standalone_type_decl;
 
+    qi::rule<Iterator, ValuePtr(), Skipper>             parameter;
+
     qi::rule<Iterator, TypedValueValue(), Skipper>      typed_value;
 
-    qi::rule<Iterator, StringValuePtr(), Skipper>       type_reference;
+    qi::rule<Iterator, std::string(), Skipper>          type_reference;
     qi::rule<Iterator, TypeDeclOrReference(), Skipper>  type_decl_or_reference;
 
     qi::rule<Iterator, bool(), Skipper> bool_value_true;
@@ -773,22 +712,9 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, bool(), Skipper> bool_value;
 };
 
-
-
-
 }
 
 BOOST_FUSION_ADAPT_STRUCT(
-    memoria::hermes::HermesString,
-    (std::string, value)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    memoria::hermes::HermesRawString,
-    (std::string, value)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::HermesIdentifier,
-    (std::string, value)
+    (std::string, identifier)
 )

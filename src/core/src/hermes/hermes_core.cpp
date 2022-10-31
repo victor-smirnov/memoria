@@ -17,6 +17,10 @@
 #include <memoria/core/hermes/container.hpp>
 #include <memoria/core/hermes/value.hpp>
 
+#include <memoria/core/arena/hash_fn.hpp>
+#include <memoria/core/arena/string.hpp>
+#include <memoria/core/hermes/data_object.hpp>
+
 #include "hermes_internal.hpp"
 
 namespace memoria::hermes {
@@ -56,5 +60,12 @@ std::ostream& operator<<(std::ostream& out, DatatypePtr ptr) {
     out << ptr->to_string();
     return out;
 }
+
+uint64_t Parameter::hash_code() const {
+    assert_not_null();
+    arena::DefaultHashFn<U8StringView> hash;
+    return hash(dt_ctr_->view());
+}
+
 
 }

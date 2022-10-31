@@ -182,6 +182,18 @@ ValuePtr HermesCtr::do_import_value(ValuePtr value)
     }
 }
 
+ParameterPtr HermesCtr::new_parameter(U8StringView name) {
+    assert_not_null();
+    assert_mutable();
+
+    auto arena_dtc = arena_->allocate_tagged_object<typename Parameter::ArenaDTContainer>(
+        TypeHashV<Parameter>,
+        name
+    );
+
+    return ParameterPtr(Parameter(arena_dtc, this, ptr_holder_));
+}
+
 
 
 }}

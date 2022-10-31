@@ -54,16 +54,9 @@ void InitTypeReflections()
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Map<Varchar, Value>>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<TypedValue>>());
+    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Parameter>>());
 
     DataObjectReflectionListBuilder<AllHermesDatatypes>::build();
-
-//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<Varchar>>>());
-//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<BigInt>>>());
-//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<UBigInt>>>());
-//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<Boolean>>>());
-//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<Double>>>());
-//    register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<Real>>>());
-
 }
 
 }

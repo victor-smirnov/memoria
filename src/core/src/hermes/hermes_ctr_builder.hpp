@@ -104,6 +104,10 @@ public:
         return str;
     }
 
+    auto new_parameter(U8StringView name) {
+        return doc_->new_parameter(name);
+    }
+
     auto new_identifier()
     {
         return new_varchar();
@@ -154,11 +158,11 @@ public:
         return doc_->new_typed_value(type_decl, constructor);
     }
 
-    void add_type_directory_entry(StringValuePtr id, DatatypePtr datatype)
+    void add_type_directory_entry(U8StringView id, DatatypePtr datatype)
     {
-        auto ii = type_registry_.find(id->view());
+        auto ii = type_registry_.find(id);
         if (ii == type_registry_.end()) {
-            type_registry_[id->view()] = datatype;
+            type_registry_[id] = datatype;
         }
     }
 
@@ -181,6 +185,10 @@ public:
     }
 
     void append_entry(GenericMapPtr& map, const StringValuePtr& name, const ValuePtr& value) {
+        map->put(name, value);
+    }
+
+    void append_entry(GenericMapPtr& map, U8StringView name, const ValuePtr& value) {
         map->put(name, value);
     }
 

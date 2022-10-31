@@ -51,7 +51,7 @@ int main(int, char**)
       "general": {
         "id": "♪♫•*¨*•.¸¸❤¸¸.•*¨*•♫♪",
         "age": 20,
-        "other": "foo",
+        "other": ?param0,
         "name": "Bob"
       },
       "history": {

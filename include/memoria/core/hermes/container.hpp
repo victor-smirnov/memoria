@@ -32,6 +32,7 @@
 #include <memoria/core/hermes/map.hpp>
 #include <memoria/core/hermes/data_object.hpp>
 #include <memoria/core/hermes/typed_value.hpp>
+#include <memoria/core/hermes/parameter.hpp>
 
 #include <memoria/core/hermes/traits.hpp>
 
@@ -249,6 +250,8 @@ public:
     bool operator==(const HermesCtr& other) const noexcept {
         MEMORIA_MAKE_GENERIC_ERROR("Equals is not implemented for Hermes").do_throw();
     }
+
+    ParameterPtr new_parameter(U8StringView name);
 
 
     static pool::SharedPtr<HermesCtr> make_pooled(ObjectPools& pool = thread_local_pools());

@@ -49,7 +49,7 @@ template <
     typename AppendUtf8Action,
     typename AppendEscapeSequenceAction,
     typename EncodeSurrogatePairAction,
-    typename String,
+    typename StringT,
     typename RawString,
     typename Identifier
 >
@@ -175,15 +175,15 @@ struct StringsRuleSet {
     }
 
     qi::rule<Iterator, Identifier(), Skipper> m_identifierRule;
-    qi::rule<Iterator, RawString(), Skipper>  m_rawStringRule;
+    qi::rule<Iterator, RawString(),  Skipper> m_rawStringRule;
 
     qi::rule<Iterator, UnicodeChar()>       m_rawStringCharRule;
     qi::rule<Iterator,
              std::pair<UnicodeChar,
                        UnicodeChar>()>      m_rawStringEscapeRule;
 
-    qi::rule<Iterator, String()>            m_quotedStringRule;
-    qi::rule<Iterator, String()>            m_unquotedStringRule;
+    qi::rule<Iterator, StringT()>            m_quotedStringRule;
+    qi::rule<Iterator, StringT()>            m_unquotedStringRule;
     qi::rule<Iterator, UnicodeChar()>       m_unescapedCharRule;
     qi::rule<Iterator, UnicodeChar()>       m_escapedCharRule;
     qi::rule<Iterator, UnicodeChar()>       m_unicodeCharRule;
