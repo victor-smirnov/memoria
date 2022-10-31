@@ -31,8 +31,10 @@ class Interpreter;
 }
 
 class HermesCtrBuilder;
-
 class HermesCtr;
+
+
+struct IParameterResolver;
 
 template <typename>
 class Array;

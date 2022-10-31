@@ -250,7 +250,24 @@ void Interpreter::visit(const ast::RawStringNode *node)
 
 void Interpreter::visit(const ast::HermesValueNode *node)
 {
-    m_context = node->value;
+    if (node->value->is_a(TypeTag<Parameter>()))
+    {
+        if (parameter_resolver_) {
+            ParameterPtr param = node->value->cast_to<Parameter>();
+            if (parameter_resolver_->has_parameter(param->view())) {
+                m_context = parameter_resolver_->resolve(param->view());
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Parameter {} resolution failure", param->view()).do_throw();
+            }
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Hermes Parameter resolver is not configured for Path expression").do_throw();
+        }
+    }
+    else {
+        m_context = node->value;
+    }
 }
 
 void Interpreter::visit(const ast::SubexpressionNode *node)

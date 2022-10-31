@@ -31,3 +31,4 @@
 #include <memoria/core/hermes/map_ext.hpp>
 #include <memoria/core/hermes/datatype_ext.hpp>
 #include <memoria/core/hermes/common_ext.hpp>
+#include <memoria/core/hermes/parameter_ext.hpp>

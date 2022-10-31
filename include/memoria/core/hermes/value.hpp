@@ -66,6 +66,9 @@ public:
         return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
+    ValuePtr search(U8StringView query) const;
+    ValuePtr search(U8StringView query, const IParameterResolver& params) const;
+
     bool is_convertible_to_plain_string() const
     {
         if (!is_null()) {

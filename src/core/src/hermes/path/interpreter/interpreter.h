@@ -91,6 +91,8 @@ inline const ValuePtr& getJsonValue(const ContextValue& contextValue)
  */
 class Interpreter : public AbstractVisitor
 {
+    const IParameterResolver* parameter_resolver_{nullptr};
+
 public:
     /**
      * @brief Constructs an Interpreter object.
@@ -104,6 +106,11 @@ public:
     {
         m_context = ctx;
     }
+
+    void set_parameter_resolver(const IParameterResolver* resolver) {
+        parameter_resolver_ = resolver;
+    }
+
     /**
      * @brief Returns the current evaluation context.
      * @return @ref ValuePtr document used as the context.

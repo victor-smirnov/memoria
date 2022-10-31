@@ -21,6 +21,8 @@
 #include <memoria/core/arena/string.hpp>
 #include <memoria/core/hermes/data_object.hpp>
 
+#include <memoria/core/hermes/path/path.h>
+
 #include "hermes_internal.hpp"
 
 namespace memoria::hermes {
@@ -67,5 +69,16 @@ uint64_t Parameter::hash_code() const {
     return hash(dt_ctr_->view());
 }
 
+ValuePtr Value::search(U8StringView query) const
+{
+    hermes::path::Expression exp(std::string{query});
+    return hermes::path::search(exp, ValuePtr(Value(addr_, doc_, ptr_holder_)));
+}
+
+ValuePtr Value::search(U8StringView query, const IParameterResolver& params) const
+{
+    hermes::path::Expression exp(std::string{query});
+    return hermes::path::search(exp, ValuePtr(Value(addr_, doc_, ptr_holder_)), params);
+}
 
 }

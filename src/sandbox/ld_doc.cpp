@@ -49,7 +49,7 @@ int main(int, char**)
   "people": [
     {
       "general": {
-        "id": "♪♫•*¨*•.¸¸❤¸¸.•*¨*•♫♪",
+        "id": 100,
         "age": 20,
         "other": ?param0,
         "name": "Bob"
@@ -77,8 +77,11 @@ int main(int, char**)
 
     println("{}", doc->to_pretty_string());
 
-    hermes::path::Expression exp("people[?general.id==^'♪♫•*¨*•.¸¸❤¸¸.•*¨*•♫♪'].general | [0]"); //[*]
+    auto qry = "people[?general.id==^100ull].general | [0]";
 
-    auto result = hermes::path::search(exp, doc->root());
+    Params params;
+    params.add_dataobject<BigInt>("id", 100);
+
+    auto result = doc->root()->search(qry, params);
     println("{}", result->to_pretty_string());
 }

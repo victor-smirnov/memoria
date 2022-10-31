@@ -52,5 +52,26 @@ ValuePtr search(const Expression &expression, const ValuePtr& value)
     return s_interpreter.currentContextValue();
 }
 
+ValuePtr search(const Expression &expression, const ValuePtr& value, const IParameterResolver& resolver)
+{
+    using interpreter::Interpreter;
+    if (expression.isEmpty())
+    {
+        return {};
+    }
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+    thread_local Interpreter s_interpreter;
+#pragma clang diagnostic pop
+    s_interpreter.setContext(value);
+    s_interpreter.set_parameter_resolver(&resolver);
+
+    // evaluate the expression by calling visit with the root of the AST
+    s_interpreter.visit(expression.astRoot());
+
+    return s_interpreter.currentContextValue();
+}
+
 
 }

@@ -40,6 +40,9 @@
 
 namespace memoria {
 namespace hermes {
+
+struct IParameterResolver;
+
 namespace path {
 /**
  * @brief 8 bit character type
