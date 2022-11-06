@@ -37,10 +37,9 @@ public:
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,
-            hermes::DumpFormatState& state,
-            hermes::DumpState& dump_state
+            hermes::DumpFormatState& state
     ) const {
-        T(ptr, doc, ref_holder).stringify(out, state, dump_state);
+        T(ptr, doc, ref_holder).stringify(out, state);
     }
 
     virtual bool hermes_is_simple_layout(
@@ -100,7 +99,7 @@ struct FromStringHelper<DT, false> {
         return false;
     }
 
-    static PoolSharedPtr<hermes::HermesCtr> convert_from(U8StringView) {
+    static hermes::ValuePtr convert_from(U8StringView) {
         MEMORIA_MAKE_GENERIC_ERROR("No 'from string' converter is defined for datatype {}", TypeNameFactory<DT>::name()).do_throw();
     }
 };
@@ -111,7 +110,7 @@ struct FromStringHelper<DT, true> {
         return true;
     }
 
-    static PoolSharedPtr<hermes::HermesCtr> convert_from(U8StringView view) {
+    static hermes::ValuePtr convert_from(U8StringView view) {
         return FromPlainStringConverter<DT>::from_string(view);
     }
 };
@@ -490,7 +489,7 @@ public:
         return detail::FromStringHelper<DT>::is_convertible();
     }
 
-    virtual PoolSharedPtr<hermes::HermesCtr> datatype_convert_to(
+    virtual hermes::ValuePtr datatype_convert_to(
             uint64_t type_hash, void* ptr,
             hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
@@ -509,7 +508,7 @@ public:
         }
     }
 
-    virtual PoolSharedPtr<hermes::HermesCtr> datatype_convert_from_plain_string(U8StringView str) const override {
+    virtual hermes::ValuePtr datatype_convert_from_plain_string(U8StringView str) const override {
         return detail::FromStringHelper<DT>::convert_from(str);
     }
 

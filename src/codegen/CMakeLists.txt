@@ -30,7 +30,7 @@ if (BUILD_CODEGENERATOR_EXPLICITLY)
 
     target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options util)
     target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling)
-    target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja)
+    target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja hash-library)
 else()
 
 project(MemoriaCodeGen)
@@ -99,7 +99,7 @@ target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
 target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options )
 target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling c++)
-target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja)
+target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja hash-library)
 
 endif()
 

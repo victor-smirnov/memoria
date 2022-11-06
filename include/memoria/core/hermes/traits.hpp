@@ -32,6 +32,7 @@ class Interpreter;
 
 class HermesCtrBuilder;
 class HermesCtr;
+class HermesCtrImpl;
 
 
 struct IParameterResolver;
@@ -62,6 +63,9 @@ using GenericMapPtr = ViewPtr<GenericMap, true>;
 
 using GenericArray    = Array<Value>;
 using GenericArrayPtr = ViewPtr<GenericArray, true>;
+
+template <typename DT>
+using ArrayPtr = ViewPtr<Array<DT>, true>;
 
 using ValuePtr = ViewPtr<Value, true>;
 

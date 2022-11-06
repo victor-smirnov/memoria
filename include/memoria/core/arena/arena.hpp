@@ -165,10 +165,23 @@ protected:
     struct Chunk: ChunkSize {
         MemPtr memory;
 
-        Chunk(MemPtr&& mem, size_t capacity) noexcept:
-            ChunkSize({capacity, 0}),
+        Chunk(MemPtr&& mem, size_t capacity, size_t size = 0) noexcept:
+            ChunkSize({capacity, size}),
             memory(std::move(mem))
         {}
+
+//        Chunk(Chunk&& other) noexcept:
+//            ChunkSize(std::move(other)),
+//            memory(std::move(other.memory))
+//        {}
+
+
+        Chunk clone() const
+        {
+            auto mem = allocate_system<uint8_t>(capacity);
+            std::memcpy(mem.get(), memory.get(), capacity);
+            return Chunk(std::move(mem), capacity, size);
+        }
     };
 
     AllocationType allocation_type_;
@@ -177,6 +190,7 @@ protected:
 
     template <typename>
     friend class AddrResolver;
+
 
 public:
 
@@ -286,6 +300,7 @@ public:
         return array;
     }
 
+
     template <typename T, typename... Args>
     MMA_NODISCARD T* allocate_object(Args&&... args)
     {
@@ -347,6 +362,20 @@ public:
         return chunks_[chunks_.size() - 1];
     }
 
+    Chunk& tail() noexcept {
+        return chunks_[0];
+    }
+
+
+    const Chunk& head() const noexcept {
+        return chunks_[chunks_.size() - 1];
+    }
+
+    const Chunk& tail() const noexcept {
+        return chunks_[0];
+    }
+
+
     void object_pool_init_state() {}
 
     // Will be invoked from destructors, so it's noexcept
@@ -367,6 +396,35 @@ public:
             }
             else {
                 chunks_.clear();
+            }
+        }
+    }
+
+    void init_from(const ArenaAllocator& arena)
+    {
+        this->chunk_size_ = arena.chunk_size_;
+        for (size_t c = 0; c < arena.chunks_.size(); c++)
+        {
+            const auto& src_chunk = arena.chunks_[c];
+
+            if (chunks_.size() == c) {
+                chunks_.emplace_back(src_chunk.clone());
+            }
+            else {
+                auto& dst_chunk = chunks_[c];
+
+                if (dst_chunk.size < src_chunk.size)
+                {
+                    dst_chunk.memory = allocate_system<uint8_t>(src_chunk.capacity);
+                    dst_chunk.capacity = src_chunk.capacity;
+                }
+                else {
+                    std::memset(dst_chunk.memory.get() + dst_chunk.size, 0, dst_chunk.size - src_chunk.size);
+                }
+
+                std::memcpy(dst_chunk.memory.get(), src_chunk.memory.get(), src_chunk.size);
+
+                dst_chunk.size = src_chunk.size;
             }
         }
     }
@@ -446,5 +504,20 @@ inline T* AddrResolver<T>::get(ArenaAllocator& arena) const noexcept {
         return ptr_cast<T>(arena.head().memory.get() + offset);
     }
 }
+
+
+ArenaAllocator& get_local_instance();
+
+class Cleaner {
+    ArenaAllocator& arena_;
+public:
+    Cleaner(ArenaAllocator& arena) noexcept:
+        arena_(arena)
+    {}
+
+    ~Cleaner() noexcept {
+        arena_.reset_state();
+    }
+};
 
 }}

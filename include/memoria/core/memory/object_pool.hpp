@@ -733,6 +733,8 @@ UniquePtr<T> memoria_const_pointer_cast(UniquePtr<U>&& ptr) {
     return std::move(ptr).template const_cast_to<T>();
 }
 
+
+
 template <typename T>
 class SimpleObjectPool: public PoolBase, public boost::enable_shared_from_this<SimpleObjectPool<T>> {
 public:
@@ -808,7 +810,6 @@ private:
         alloc_.destroy(holder);
     }
 };
-
 
 
 template <typename T>

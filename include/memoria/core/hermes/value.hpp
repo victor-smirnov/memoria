@@ -26,6 +26,19 @@
 #include <memoria/core/reflection/reflection.hpp>
 
 namespace memoria {
+
+template <>
+class HoldingView<hermes::Value>: public hermes::TaggedHoldingView {
+
+public:
+    HoldingView(){}
+
+    HoldingView(ViewPtrHolder* holder) noexcept:
+        hermes::TaggedHoldingView(holder)
+    {}
+};
+
+
 namespace hermes {
 
 namespace detail {
@@ -35,10 +48,24 @@ struct ValueCastHelper;
 
 }
 
-class Value: public HoldingView {
+
+
+class Value: public HoldingView<Value> {
+    using Base = HoldingView<Value>;
 protected:
+    static constexpr size_t TAG_ADDRESS     = 0;
+    static constexpr size_t TAG_SMALL_VLAUE = 1;
+    static constexpr size_t TAG_VIEW_PTR    = 2;
+    // ... more tags
+
     mutable HermesCtr* doc_;
-    mutable void* addr_;
+
+    using SmallValueHolder = TaggedValue;
+
+    mutable ValueStorage value_storage_;
+
+    using Base::get_tag;
+    using Base::set_tag;
 
     friend class HermesCtr;
 
@@ -50,20 +77,91 @@ protected:
 
 public:
     Value() noexcept:
-        doc_(), addr_()
-    {}
+        doc_()
+    {
+        value_storage_.addr = nullptr;
+        set_tag(0);
+    }
 
     Value(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept :
-        HoldingView(ref_holder),
-        doc_(doc),
-        addr_(addr)
-    {}
+        Base(ref_holder),
+        doc_(doc)
+    {
+        value_storage_.addr = addr;
+        set_tag(0);
+    }
 
-    virtual ~Value() noexcept = default;
+    Value(const Value& other) noexcept :
+        Base(other),
+        doc_(other.doc_),
+        value_storage_(other.value_storage_)
+    {
+        if (get_tag() == TAG_VIEW_PTR) {
+            value_storage_.view_ptr->ref_copy();
+        }
+    }
+
+    Value(Value&& other) noexcept :
+        Base(std::move(other)),
+        doc_(other.doc_),
+        value_storage_(std::move(other.value_storage_))
+    {
+        if (get_tag() == TAG_VIEW_PTR) {
+            other.value_storage_.view_ptr = nullptr;
+        }
+    }
+
+    virtual ~Value() noexcept
+    {
+        if (get_tag() == TAG_VIEW_PTR)
+        {
+            if (value_storage_.view_ptr) {
+                value_storage_.view_ptr->unref();
+            }
+        }
+    }
+
+    Value& operator=(const Value& other)
+    {
+        if (get_tag() == TAG_SMALL_VLAUE) {
+            if (value_storage_.view_ptr) {
+                value_storage_.view_ptr->unref();
+            }
+        }
+
+        Base::operator=(other);
+        value_storage_ = other.value_storage_;
+
+        if (get_tag() == TAG_SMALL_VLAUE) {
+            if (value_storage_.view_ptr) {
+                value_storage_.view_ptr->ref_copy();
+            }
+        }
+
+        return *this;
+    }
+
+    Value& operator=(Value&& other)
+    {
+        if (get_tag() == TAG_SMALL_VLAUE) {
+            if (value_storage_.view_ptr) {
+                value_storage_.view_ptr->unref();
+            }
+        }
+
+        Base::operator=(std::move(other));
+        value_storage_ = std::move(other.value_storage_);
+
+        if (get_tag() == TAG_SMALL_VLAUE) {
+            other.value_storage_.view_ptr = nullptr;
+        }
+
+        return *this;
+    }
 
     PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
-        return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<HermesCtr>(doc_, get_ptr_holder()->owner(), pool::DoRef{});
     }
 
     ValuePtr search(U8StringView query) const;
@@ -72,7 +170,7 @@ public:
     bool is_convertible_to_plain_string() const
     {
         if (!is_null()) {
-            auto tag = arena::read_type_tag(addr_);
+            auto tag = arena::read_type_tag(value_storage_.addr);
             return get_type_reflection(tag).is_convertible_to_plain_string();
         }
         return false;
@@ -81,14 +179,14 @@ public:
     U8String to_plain_string() const
     {
         assert_not_null();
-        auto tag = arena::read_type_tag(addr_);
-        return get_type_reflection(tag).convert_to_plain_string(addr_, doc_, ptr_holder_);
+        auto tag = arena::read_type_tag(value_storage_.addr);
+        return get_type_reflection(tag).convert_to_plain_string(value_storage_.addr, doc_, get_ptr_holder());
     }
 
     template <typename DT>
     bool is_convertible_to() const {
         if (!is_null()) {
-            auto src_tag = arena::read_type_tag(addr_);
+            auto src_tag = arena::read_type_tag(value_storage_.addr);
             auto to_tag = TypeHashV<DT>;
             return get_type_reflection(src_tag).is_convertible_to(to_tag);
         }
@@ -96,18 +194,18 @@ public:
     }
 
     template <typename DT>
-    PoolSharedPtr<HermesCtr> convert_to() const;
+    ValuePtr convert_to() const;
 
     ValuePtr as_value() const {
         return ValuePtr(*this);
     }
 
     bool is_null() const noexcept {
-        return !addr_;
+        return !value_storage_.addr;
     }
 
     bool is_not_null() const noexcept {
-        return addr_;
+        return value_storage_.addr;
     }
 
     bool is_varchar() const noexcept {
@@ -148,7 +246,7 @@ public:
 
     bool is_numeric() const noexcept {
         if (is_not_null()) {
-            auto code = arena::read_type_tag(addr_);
+            auto code = arena::read_type_tag(value_storage_.addr);
             return IsCodeInTheList<AllNumericDatatypes>::is_in(code);
         }
         return false;
@@ -157,7 +255,7 @@ public:
     bool is_numeric_real() const noexcept
     {
         if (is_not_null()) {
-            auto code = arena::read_type_tag(addr_);
+            auto code = arena::read_type_tag(value_storage_.addr);
             return IsCodeInTheList<RealNumericDatatypes>::is_in(code);
         }
         return false;
@@ -166,7 +264,7 @@ public:
     bool is_numeric_integer() const noexcept
     {
         if (is_not_null()) {
-            auto code = arena::read_type_tag(addr_);
+            auto code = arena::read_type_tag(value_storage_.addr);
             return IsCodeInTheList<IntegerNumericDatatypes>::is_in(code);
         }
         return false;
@@ -174,7 +272,7 @@ public:
 
     uint64_t type_tag() const noexcept {
         if (is_not_null()) {
-            return arena::read_type_tag(addr_);
+            return arena::read_type_tag(value_storage_.addr);
         }
         return 0;
     }
@@ -184,8 +282,8 @@ public:
     {
         if (is_not_null() && other->is_not_null())
         {
-            auto tag1 = arena::read_type_tag(addr_);
-            auto tag2 = arena::read_type_tag(other->addr_);
+            auto tag1 = arena::read_type_tag(value_storage_.addr);
+            auto tag2 = arena::read_type_tag(other->value_storage_.addr);
             return get_type_reflection(tag1).hermes_comparable_with(tag2);
         }
         else {
@@ -197,9 +295,9 @@ public:
     {
         if (is_not_null() && other->is_not_null())
         {
-            auto tag1 = arena::read_type_tag(addr_);
+            auto tag1 = arena::read_type_tag(value_storage_.addr);
             return get_type_reflection(tag1).hermes_compare(
-                    addr_, doc_, ptr_holder_, other->addr_, other->doc_, other->ptr_holder_
+                    value_storage_.addr, doc_, get_ptr_holder(), other->value_storage_.addr, other->doc_, other->get_ptr_holder()
             );
         }
         else {
@@ -212,8 +310,8 @@ public:
     {
         if (is_not_null() && other->is_not_null())
         {
-            auto tag1 = arena::read_type_tag(addr_);
-            auto tag2 = arena::read_type_tag(other->addr_);
+            auto tag1 = arena::read_type_tag(value_storage_.addr);
+            auto tag2 = arena::read_type_tag(other->value_storage_.addr);
             return get_type_reflection(tag1).hermes_equals_comparable_with(tag2);
         }
         else {
@@ -225,9 +323,9 @@ public:
     {
         if (is_not_null() && other->is_not_null())
         {
-            auto tag1 = arena::read_type_tag(addr_);
+            auto tag1 = arena::read_type_tag(value_storage_.addr);
             return get_type_reflection(tag1).hermes_equals(
-                    addr_, doc_, ptr_holder_, other->addr_, other->doc_, other->ptr_holder_
+                    value_storage_.addr, doc_, get_ptr_holder(), other->value_storage_.addr, other->doc_, other->get_ptr_holder()
             );
         }
         else {
@@ -237,6 +335,8 @@ public:
 
     GenericArrayPtr as_generic_array() const;
     GenericMapPtr as_generic_map() const;
+    DatatypePtr as_datatype() const;
+
     DataObjectPtr<Varchar> as_varchar() const;
     DataObjectPtr<Double> as_double() const;
     DataObjectPtr<BigInt> as_bigint() const;
@@ -249,17 +349,23 @@ public:
         return false;
     }
 
+//    template <typename DT>
+//    DTTViewType<DT> as_data_object() const {
+//        return cast_to<DT>()->view();
+//    }
+
     template <typename DT>
-    DTTViewType<DT> as_data_object() const {
-        return cast_to<DT>()->view();
+    DataObjectPtr<DT> as_data_object() const {
+        return cast_to<DT>();
     }
+
 
     template <typename T>
     bool is_a(TypeTag<T>) const noexcept
     {
-        if (MMA_LIKELY((bool)addr_)) {
+        if (MMA_LIKELY((bool)value_storage_.addr)) {
             auto tag = TypeHashV<T>;
-            auto value_tag = arena::read_type_tag(addr_);
+            auto value_tag = arena::read_type_tag(value_storage_.addr);
             return tag == value_tag;
         }
         else {
@@ -277,10 +383,10 @@ public:
     {
         assert_not_null();
         auto tag = TypeHashV<T>;
-        auto value_tag = arena::read_type_tag(addr_);
+        auto value_tag = arena::read_type_tag(value_storage_.addr);
 
         if (value_tag == tag) {
-            return detail::ValueCastHelper<T>::cast_to(addr_, doc_, ptr_holder_);
+            return detail::ValueCastHelper<T>::cast_to(value_storage_.addr, doc_, get_ptr_holder());
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Invalid value type tag: expected {}, actual {}", tag, value_tag).do_throw();
@@ -290,58 +396,48 @@ public:
     bool is_simple_layout() const noexcept
     {
         if (!is_null()) {
-            auto value_tag = arena::read_type_tag(addr_);
+            auto value_tag = arena::read_type_tag(value_storage_.addr);
             return get_type_reflection(value_tag).hermes_is_simple_layout(
-                addr_, doc_, ptr_holder_
+                value_storage_.addr, doc_, get_ptr_holder()
             );
         }
 
         return true;
     }
 
-    U8String to_string() const
+    U8String to_string(const StringifyCfg& cfg = StringifyCfg{}) const
     {
-        DumpFormatState fmt = DumpFormatState().simple();
         std::stringstream ss;
-        stringify(ss, fmt);
+        stringify(ss, cfg);
         return ss.str();
     }
 
     U8String to_pretty_string() const
     {
-        DumpFormatState fmt = DumpFormatState();
-        std::stringstream ss;
-        stringify(ss, fmt);
-        return ss.str();
+        StringifyCfg cfg;
+        cfg.set_spec(StringifySpec::simple());
+        return to_string(cfg);
     }
 
-    void stringify(std::ostream& out) const
+    void stringify(std::ostream& out, const StringifyCfg& cfg = StringifyCfg{}) const
     {
-        DumpFormatState state;
-        DumpState dump_state(*doc_);
-        stringify(out, state, dump_state);
-    }
-
-    void stringify(std::ostream& out, DumpFormatState& format) const
-    {
-        DumpState dump_state(*doc_);
-        stringify(out, format, dump_state);
+        DumpFormatState state(cfg);
+        stringify(out, state);
     }
 
 
 
-    void stringify(std::ostream& out,
-                   DumpFormatState& state,
-                   DumpState& dump_state) const
+
+    void stringify(std::ostream& out, DumpFormatState& state) const
     {
-        if (is_null()) {
+        if (MMA_UNLIKELY(is_null())) {
             out << "null";
         }
         else {
-            auto value_tag = arena::read_type_tag(addr_);
+            auto value_tag = arena::read_type_tag(value_storage_.addr);
             get_type_reflection(value_tag).hermes_stringify_value(
-                addr_, doc_, ptr_holder_,
-                out, state, dump_state
+                value_storage_.addr, doc_, get_ptr_holder(),
+                out, state
             );
         }
     }
@@ -351,7 +447,7 @@ public:
 private:
     void assert_not_null() const
     {
-        if (MMA_UNLIKELY(addr_ == nullptr)) {
+        if (MMA_UNLIKELY(value_storage_.addr == nullptr)) {
             MEMORIA_MAKE_GENERIC_ERROR("Value is null").do_throw();
         }
     }

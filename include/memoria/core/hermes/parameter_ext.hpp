@@ -29,7 +29,7 @@ inline void Params::add_dataobject(U8StringView name, DTTViewType<DT> view) {
 
 
 inline void Params::add_hermes(U8StringView name, U8StringView value) {
-    auto doc = HermesCtr::parse(value);
+    auto doc = HermesCtr::parse_document(value);
     params_[name] = doc->root();
 }
 

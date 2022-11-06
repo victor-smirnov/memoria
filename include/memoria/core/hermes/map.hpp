@@ -56,7 +56,8 @@ public:
 
 
 template <>
-class Map<Varchar, Value>: public HoldingView {
+class Map<Varchar, Value>: public HoldingView<Map<Varchar, Value>> {
+    using Base = HoldingView<Map<Varchar, Value>>;
 public:
     using KeyT = DataObject<Varchar>::ArenaDTContainer;
 
@@ -64,6 +65,7 @@ public:
 protected:
     mutable ArenaMap* map_;
     mutable HermesCtr* doc_;
+    using Base::ptr_holder_;
 
     friend class HermesCtr;
     friend class Value;
@@ -112,7 +114,7 @@ public:
     Map() noexcept : map_(), doc_() {}
 
     Map(void* map, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
-        HoldingView(ptr_holder),
+        Base(ptr_holder),
         map_(reinterpret_cast<ArenaMap*>(map)), doc_(doc)
     {}
 
@@ -186,15 +188,16 @@ public:
     ValuePtr put_hermes(U8StringView key, U8StringView str);
 
     void stringify(std::ostream& out,
-                   DumpFormatState& state,
-                   DumpState& dump_state) const
+                   DumpFormatState& state) const
     {
-        if (state.indent_size() == 0 || !is_simple_layout()) {
-            do_stringify(out, state, dump_state);
+        if (state.cfg().spec().indent_size() == 0 || !is_simple_layout()) {
+            do_stringify(out, state);
         }
         else {
-            DumpFormatState simple_state = state.simple();
-            do_stringify(out, simple_state, dump_state);
+            StringifyCfg cfg1 = state.cfg();
+            cfg1.with_spec(StringifySpec::simple());
+            DumpFormatState simple_state(cfg1);
+            do_stringify(out, simple_state);
         }
     }
 
@@ -242,7 +245,7 @@ protected:
     void put(StringValuePtr name, ValuePtr value);
     void put(U8StringView name, ValuePtr value);
 private:
-    void do_stringify(std::ostream& out, DumpFormatState state, DumpState& dump_state) const;
+    void do_stringify(std::ostream& out, DumpFormatState& state) const;
 
 
     void assert_not_null() const

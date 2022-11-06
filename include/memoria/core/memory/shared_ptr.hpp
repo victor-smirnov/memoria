@@ -140,6 +140,7 @@ public:
 
 template <typename, bool> class ViewPtr;
 
+template <typename>
 class HoldingView {
 protected:
     mutable ViewPtrHolder* ptr_holder_;
@@ -168,7 +169,7 @@ protected:
 };
 
 
-template <typename ViewT, bool IsHoldingView = std::is_base_of_v<HoldingView, ViewT>>
+template <typename ViewT, bool IsHoldingView = std::is_base_of_v<HoldingView<ViewT>, ViewT>>
 class ViewPtr;
 
 template <typename ViewT>
@@ -330,7 +331,6 @@ public:
         view_(view)
     {
         RefHolder* holder = view_.get_ptr_holder();
-
         if (holder) {
             holder->ref_copy();
         }

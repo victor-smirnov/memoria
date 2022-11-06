@@ -49,8 +49,6 @@
 #include "path/parser/encodesurrogatepairaction.h"
 #include "path/parser/appendescapesequenceaction.h"
 
-//#include "path/ast/multiselecthashnode.h"
-
 #include "path/ast/rawstringnode.h"
 #include "path/ast/identifiernode.h"
 
@@ -97,13 +95,13 @@ public:
     using value_type = ViewPtr<Value>;
     using iterator = EmptyType;
 
+    ArrayValue() {
+        array_ = HermesCtrBuilder::current().new_array();
+    }
+
     iterator end() {return iterator{};}
 
     void insert(iterator, value_type value) {
-        if (MMA_UNLIKELY(array_->is_null())) {
-            array_ = HermesCtrBuilder::current().new_array();
-        }
-
         HermesCtrBuilder::current().append_value(array_, value);
     }
 
@@ -165,19 +163,18 @@ public:
     using value_type = MapEntryTuple;
     using iterator = EmptyType;
 
+    MapValue() {
+        value_ = HermesCtrBuilder::current().new_map();
+    }
 
     iterator end() const {return iterator{};}
 
     void insert(iterator, const value_type& entry) {
-        if (value_->is_null()) {
-            value_ = HermesCtrBuilder::current().new_map();
-        }
-
         HermesCtrBuilder::current().append_entry(value_, boost::fusion::at_c<0>(entry), boost::fusion::at_c<1>(entry));
     }
 
-    auto& finish() {
-        return value_;
+    GenericMapPtr finish() {
+        return std::move(value_);
     }
 };
 
@@ -518,7 +515,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
                             lit("bool") [_val = "bool"]
                          ;
 
-        datatype_name = (hermes_identifier % "::") | cxx_basic_type;
+        datatype_name = -(lit("struct") | "class" | "union") >> (hermes_identifier % "::") | cxx_basic_type;
 
         auto set_const_to_qual = [](auto&, auto& ctx){
             bf::at_c<0>(ctx.attributes).set_const(true);
@@ -595,6 +592,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
 
         map          = ('{' >> (map_entry % ',') > '}') |
                                             (lit('{') >> '}');
+
         bool_value_true      = lit("true") [set_bool_true];
         bool_value_false     = lit("false") [set_bool_false];
         bool_value           = bool_value_true | bool_value_false;

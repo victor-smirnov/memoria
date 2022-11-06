@@ -15,47 +15,22 @@
 
 #pragma once
 
-#include <memoria/core/arena/vector.hpp>
-#include <memoria/core/arena/relative_ptr.hpp>
-
-#include <memoria/core/hermes/value.hpp>
 #include <memoria/core/hermes/traits.hpp>
 #include <memoria/core/hermes/common.hpp>
 
-#include <memoria/core/hermes/array/typed_array.hpp>
 #include <memoria/core/hermes/array/typed_array_1fse.hpp>
 
 namespace memoria {
 namespace hermes {
 
-template <typename V>
-class Array;
-
-
-template <typename ArrayT, typename ValueT>
-struct ArrayAccessor {
-    using ViewType = ValueT;
-
-    mutable ArrayT array;
-
-    ValueT get(uint64_t idx) const {
-        return array->get(idx);
-    }
-
-    bool operator==(const ArrayAccessor& other) const {
-        return array->equals(other.array);
-    }
-};
-
-template <>
-class Array<Value>: public HoldingView<Array<Value>> {
-    using Base = HoldingView<Array<Value>>;
-public:    
-    using ArenaArray = arena::Vector<arena::RelativePtr<void>>;
+template <typename DT>
+class Array: public HoldingView<Array<DT>> {
+    using Base = HoldingView<Array<DT>>;
+public:
+    using ArrayStorageT = detail::TypedArrayData<DT, detail::FSE1Subtype, true>;
 protected:
-    mutable ArenaArray* array_;
+    mutable ArrayStorageT* array_;
     mutable HermesCtr* doc_;
-
     using Base::ptr_holder_;
 
     friend class HermesCtrImpl;
@@ -73,10 +48,10 @@ protected:
     friend class memoria::hermes::path::interpreter::Interpreter;
     friend class HermesCtrBuilder;
 
-    using Accessor = ArrayAccessor<GenericArrayPtr, ValuePtr>;
+//    using Accessor = ArrayAccessor<GenericArrayPtr, ValuePtr>;
 public:
-    using iterator = RandomAccessIterator<Accessor>;
-    using const_iterator = iterator;
+//    using iterator = RandomAccessIterator<Accessor>;
+//    using const_iterator = iterator;
 
 
     Array() noexcept:
@@ -85,31 +60,31 @@ public:
 
     Array(void* array, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept:
         Base(ref_holder),
-        array_(reinterpret_cast<ArenaArray*>(array)), doc_(doc)
+        array_(reinterpret_cast<ArrayStorageT*>(array)), doc_(doc)
     {}
 
-    iterator begin() {
-        assert_not_null();
-        return iterator(Accessor{self()}, 0, array_->size());
-    }
+//    iterator begin() {
+//        assert_not_null();
+//        return iterator(Accessor{self()}, 0, array_->size());
+//    }
 
-    iterator end() {
-        assert_not_null();
-        return iterator(Accessor{self()}, array_->size(), array_->size());
-    }
+//    iterator end() {
+//        assert_not_null();
+//        return iterator(Accessor{self()}, array_->size(), array_->size());
+//    }
 
-    iterator cbegin() const {
-        assert_not_null();
-        return const_iterator(Accessor{self()}, array_->size(), array_->size());
-    }
+//    iterator cbegin() const {
+//        assert_not_null();
+//        return const_iterator(Accessor{self()}, array_->size(), array_->size());
+//    }
 
-    iterator cend() const {
-        assert_not_null();
-        return const_iterator(Accessor{self()}, array_->size(), array_->size());
-    }
+//    iterator cend() const {
+//        assert_not_null();
+//        return const_iterator(Accessor{self()}, array_->size(), array_->size());
+//    }
 
-    GenericArrayPtr self() const {
-        return GenericArrayPtr(GenericArray(array_, doc_, ptr_holder_));
+    ArrayPtr<DT> self() const {
+        return ArrayPtr<DT>(Array<DT>(array_, doc_, ptr_holder_));
     }
 
     PoolSharedPtr<HermesCtr> document() const {
@@ -117,9 +92,9 @@ public:
         return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
-    ValuePtr as_value() const {
-        return ValuePtr(Value(array_, doc_, ptr_holder_));
-    }
+//    ValuePtr as_value() const {
+//        return ValuePtr(Value(array_, doc_, ptr_holder_));
+//    }
 
     uint64_t size() const {
         assert_not_null();
@@ -136,44 +111,29 @@ public:
         return array_->size() == 0;
     }
 
-    ValuePtr get(uint64_t idx) const
-    {
-        assert_not_null();
+//    ValuePtr get(uint64_t idx) const
+//    {
+//        assert_not_null();
 
-        if (idx < array_->size())
-        {
-            if (MMA_LIKELY(array_->get(idx).is_not_null())) {
-                return ValuePtr(Value(array_->get(idx).get(), doc_, ptr_holder_));
-            }
-            else {
-                return ValuePtr{};
-            }
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Value>: {} {}", idx, array_->size()).do_throw();
-        }
-    }
+//        if (idx < array_->size())
+//        {
+//            if (MMA_LIKELY(array_->get(idx).is_not_null())) {
+//                return ValuePtr(Value(array_->get(idx).get(), doc_, ptr_holder_));
+//            }
+//            else {
+//                return ValuePtr{};
+//            }
+//        }
+//        else {
+//            MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Value>: {} {}", idx, array_->size()).do_throw();
+//        }
+//    }
 
-    template <typename DT>
-    DataObjectPtr<DT> append(DTTViewType<DT> view);
 
-    GenericMapPtr append_generic_map();
-    GenericArrayPtr append_generic_array();
+    void append(DTTViewType<DT> view);
 
-    DatatypePtr append_datatype(U8StringView name);
-    DatatypePtr append_datatype(const StringValuePtr& name);
+    void set(uint64_t idx, DTTViewType<DT> view);
 
-    ValuePtr append_hermes(U8StringView str);
-    ValuePtr set_hermes(uint64_t idx, U8StringView str);
-
-    ValuePtr append_null();
-
-    template <typename DT>
-    DataObjectPtr<DT> set(uint64_t idx, DTTViewType<DT> view);
-    void set_null(uint64_t idx);
-
-    GenericMapPtr set_generic_map(uint64_t idx);
-    GenericArrayPtr set_generic_array(uint64_t idx);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state) const
@@ -208,13 +168,13 @@ public:
         return simple;
     }
 
-    void for_each(std::function<void(const ViewPtr<Value>&)> fn) const {
-        assert_not_null();
+//    void for_each(std::function<void(const ViewPtr<Value>&)> fn) const {
+//        assert_not_null();
 
-        for (auto& vv: array_->span()) {
-            fn(ViewPtr<Value>(Value(vv.get(), doc_, ptr_holder_)));
-        }
-    }
+//        for (auto& vv: array_->span()) {
+//            fn(ViewPtr<Value>(Value(vv.get(), doc_, ptr_holder_)));
+//        }
+//    }
 
     bool is_null() const {
         return array_ == nullptr;
@@ -230,20 +190,6 @@ public:
     }
 
     void remove(uint64_t idx);
-
-
-    bool equals(const Array& vv) const noexcept {
-        return array_ == vv.array_;
-    }
-
-    bool equals(const GenericArrayPtr& vv) const noexcept {
-        return array_ == vv->array_;
-    }
-
-
-protected:
-    void append(const ValuePtr& value);
-    void set_value(uint64_t idx, const ValuePtr& value);
 
 private:
     void assert_not_null() const {
@@ -287,23 +233,7 @@ private:
             out << "[]";
         }
     }
+
 };
-
-
-namespace detail {
-
-template <>
-struct ValueCastHelper<GenericArray> {
-    static GenericArrayPtr cast_to(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept {
-        return GenericArrayPtr(GenericArray(
-            addr,
-            doc,
-            ref_holder
-        ));
-    }
-};
-
-}
-
 
 }}

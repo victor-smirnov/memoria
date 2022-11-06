@@ -46,7 +46,13 @@ public:
     ParserConfiguration() {}
 };
 
-class HermesCtr: public HoldingView {
+class StaticHermesCtrImpl;
+
+template <size_t Size>
+class SizedHermesCtrImpl;
+
+class HermesCtr: public HoldingView<HermesCtr> {
+    using Base = HoldingView<HermesCtr>;
 
 protected:
 
@@ -79,6 +85,7 @@ protected:
     size_t segment_size_;
     mutable arena::ArenaAllocator* arena_;
     mutable DocumentHeader* header_;
+    using Base::ptr_holder_;
 
     friend class HermesCtrBuilder;
 
@@ -100,13 +107,13 @@ public:
 
 
     HermesCtr(void* segment, size_t segment_size, ViewPtrHolder* ref_holder) noexcept:
-        HoldingView(ref_holder),
+        Base(ref_holder),
         segment_size_(segment_size),
         header_(reinterpret_cast<DocumentHeader*>(segment))
     {}
 
     HermesCtr(Span<uint8_t> span, ViewPtrHolder* ref_holder) noexcept:
-        HoldingView(ref_holder),
+        Base(ref_holder),
         segment_size_(span.size()),
         header_(reinterpret_cast<DocumentHeader*>(span.data()))
     {}
@@ -132,9 +139,9 @@ public:
         }
     }
 
-    U8String to_string() const
+    U8String to_string(const StringifyCfg& cfg = StringifyCfg()) const
     {
-        DumpFormatState fmt = DumpFormatState().simple();
+        DumpFormatState fmt(cfg);
         std::stringstream ss;
         stringify(ss, fmt);
         return ss.str();
@@ -142,27 +149,18 @@ public:
 
     U8String to_pretty_string() const
     {
-        DumpFormatState fmt = DumpFormatState();
-        std::stringstream ss;
-        stringify(ss, fmt);
-        return ss.str();
+        return to_string(StringifyCfg::pretty());
     }
 
-    void stringify(std::ostream& out) const
+    void stringify(std::ostream& out, const StringifyCfg& cfg) const
     {
-        DumpFormatState state;
-        DumpState dump_state(*this);
-        stringify(out, state, dump_state);
+        DumpFormatState state(cfg);
+        stringify(out, state);
     }
 
-    void stringify(std::ostream& out, DumpFormatState& format) const
-    {
-        DumpState dump_state(*this);
-        stringify(out, format, dump_state);
-    }
 
-    void stringify(std::ostream& out, DumpFormatState& state, DumpState& dump_state) const {
-        root()->stringify(out, state, dump_state);
+    void stringify(std::ostream& out, DumpFormatState& state) const {
+        root()->stringify(out, state);
     }
 
     static bool is_identifier(U8StringView string) {
@@ -187,7 +185,7 @@ public:
 
         auto ptr = this->new_dataobject<DT>(view);
 
-        header_->root = ptr->dt_ctr_;
+        header_->root = ptr->dt_ctr();
 
         return ptr;
     }
@@ -224,7 +222,7 @@ public:
 
         ValuePtr vv = parse_raw_value(str.begin(), str.end());
 
-        header_->root = vv->addr_;
+        header_->root = vv->value_storage_.addr;
 
         return vv;
     }
@@ -257,15 +255,15 @@ public:
     static pool::SharedPtr<HermesCtr> make_pooled(ObjectPools& pool = thread_local_pools());
     static pool::SharedPtr<HermesCtr> make_new(size_t initial_capacity = 4096);
 
-    static PoolSharedPtr<HermesCtr> parse(U8StringView view) {
-        return parse(view.begin(), view.end());
+    static PoolSharedPtr<HermesCtr> parse_document(U8StringView view) {
+        return parse_document(view.begin(), view.end());
     }
 
     static PoolSharedPtr<HermesCtr> parse_datatype(U8StringView view) {
         return parse_datatype(view.begin(), view.end());
     }
 
-    static PoolSharedPtr<HermesCtr> parse(
+    static PoolSharedPtr<HermesCtr> parse_document(
             CharIterator start,
             CharIterator end,
             const ParserConfiguration& cfg = ParserConfiguration{}
@@ -324,7 +322,9 @@ protected:
         return Span<uint8_t>(reinterpret_cast<uint8_t*>(header_), ss_size);
     }
 
+    void init_from(arena::ArenaAllocator& arena);
 
+    static PoolSharedPtr<StaticHermesCtrImpl> get_ctr_instance(size_t size);
 
 private:
 
@@ -467,14 +467,9 @@ public:
     virtual U8String to_sdn_string() const;
 };
 
-inline PoolSharedPtr<hermes::HermesCtr> operator "" _hdoc(const char* s, std::size_t n)
-{
-    return hermes::HermesCtr::parse(s, s + n);
+inline PoolSharedPtr<hermes::HermesCtr> operator "" _hdoc(const char* s, std::size_t n) {
+    return hermes::HermesCtr::parse_document(s, s + n);
 }
 
-inline hermes::ValuePtr operator "" _hval(const char* s, std::size_t n)
-{
-    return hermes::HermesCtr::parse(s, s + n)->root();
-}
 
 }

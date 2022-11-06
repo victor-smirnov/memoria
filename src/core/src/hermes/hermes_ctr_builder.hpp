@@ -122,7 +122,7 @@ public:
     }
 
     auto new_boolean(bool v) {
-        return doc_->new_dataobject<BigInt>((int64_t)v);
+        return doc_->new_dataobject<Boolean>(v);
     }
 
     void set_doc_value(ViewPtr<Value> value) {

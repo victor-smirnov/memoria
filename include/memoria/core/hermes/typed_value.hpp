@@ -79,7 +79,9 @@ public:
 
 }
 
-class TypedValue: public HoldingView {
+class TypedValue: public HoldingView<TypedValue> {
+    using Base = HoldingView<TypedValue>;
+protected:
     mutable detail::TypedValueData* tv_;
     mutable HermesCtr* doc_;
 public:
@@ -88,11 +90,11 @@ public:
     {}
 
     TypedValue(void* tv, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept:
-        HoldingView(ptr_holder),
+        Base(ptr_holder),
         tv_(reinterpret_cast<detail::TypedValueData*>(tv)), doc_(doc)
     {}
 
-    PoolSharedPtr<HermesCtr> document() const {
+    PoolSharedPtr<HermesCtr> document() {
         assert_not_null();
         return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
@@ -122,8 +124,7 @@ public:
     }
 
     void stringify(std::ostream& out,
-                   DumpFormatState& state,
-                   DumpState& dump_state) const;
+                   DumpFormatState& state) const;
 
     bool is_simple_layout() const
     {

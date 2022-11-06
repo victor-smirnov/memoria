@@ -81,12 +81,19 @@ public:
     }
 
     void stringify(std::ostream& out,
-                   hermes::DumpFormatState& state,
-                   hermes::DumpState& dump_state)
+                   hermes::DumpFormatState& state)
     {
-        U8StringView kk_escaped = hermes::StringEscaper::current().escape_quotes(view());
-        out << "'" << kk_escaped << "'";
-        hermes::StringEscaper::current().reset();
+        if (state.cfg().use_raw_strings())
+        {
+            U8StringView kk_escaped = hermes::RawStringEscaper::current().escape_quotes(view());
+            out << "'" << kk_escaped << "'";
+            hermes::RawStringEscaper::current().reset();
+        }
+        else {
+            U8StringView kk_escaped = hermes::StringEscaper::current().escape_chars(view());
+            out << "\"" << kk_escaped << "\"";
+            hermes::StringEscaper::current().reset();
+        }
     }
 
     ArenaDataTypeContainer* deep_copy_to(

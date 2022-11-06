@@ -38,7 +38,7 @@ inline DataObjectPtr<DT> Map<Varchar, Value>::put_dataobject(U8StringView key, D
     auto value_ptr = doc_->new_dataobject<DT>(value);
 
     auto arena = doc_->arena();    
-    map_->put(*arena, key_ptr->dt_ctr_, value_ptr->dt_ctr_);
+    map_->put(*arena, key_ptr->dt_ctr(), value_ptr->value_storage_.addr);
 
     return value_ptr;
 }
@@ -53,7 +53,7 @@ inline GenericMapPtr Map<Varchar, Value>::put_generic_map(U8StringView key)
     auto value_ptr = doc_->new_map();
 
     auto arena = doc_->arena();
-    map_->put(*arena, key_ptr->dt_ctr_, value_ptr->map_);
+    map_->put(*arena, key_ptr->dt_ctr(), value_ptr->map_);
 
     return value_ptr;
 }
@@ -67,7 +67,7 @@ inline GenericArrayPtr Map<Varchar, Value>::put_generic_array(U8StringView key)
     auto value_ptr = doc_->new_array();
 
     auto arena = doc_->arena();
-    map_->put(*arena, key_ptr->dt_ctr_, value_ptr->array_);
+    map_->put(*arena, key_ptr->dt_ctr(), value_ptr->array_);
 
     return value_ptr;
 }
@@ -81,18 +81,20 @@ inline void Map<Varchar, Value>::remove(U8StringView key)
     map_->remove(*(doc_->arena()), key);
 }
 
-inline void Map<Varchar, Value>::do_stringify(std::ostream& out, DumpFormatState state, DumpState& dump_state) const
+inline void Map<Varchar, Value>::do_stringify(std::ostream& out, DumpFormatState& state) const
 {
+    auto& spec = state.cfg().spec();
+
     if (size() > 0)
     {
-        out << "{" << state.nl_start();
+        out << "{" << spec.nl_start();
 
         bool first = true;
 
         state.push();
         for_each([&](auto kk, auto vv){
             if (MMA_LIKELY(!first)) {
-                out << "," << state.nl_middle();
+                out << "," << spec.nl_middle();
             }
             else {
                 first = false;
@@ -100,17 +102,22 @@ inline void Map<Varchar, Value>::do_stringify(std::ostream& out, DumpFormatState
 
             state.make_indent(out);
 
-            U8StringView kk_escaped = StringEscaper::current().escape_quotes(kk);
+            if (state.cfg().use_raw_strings()) {
+                U8StringView kk_escaped = RawStringEscaper::current().escape_quotes(kk);
+                out << "'" << kk_escaped << "':" << spec.space();
+                RawStringEscaper::current().reset();
+            }
+            else {
+                U8StringView kk_escaped = StringEscaper::current().escape_chars(kk);
+                out << "\"" << kk_escaped << "\":" << spec.space();
+                RawStringEscaper::current().reset();
+            }
 
-            out << "'" << kk_escaped << "': ";
-
-            StringEscaper::current().reset();
-
-            vv->stringify(out, state, dump_state);
+            vv->stringify(out, state);
         });
         state.pop();
 
-        out << state.nl_end();
+        out << spec.nl_end();
 
         state.make_indent(out);
         out << "}";
@@ -126,7 +133,7 @@ inline void Map<Varchar, Value>::put(StringValuePtr name, ValuePtr value) {
 
     if (!value->is_null()) {
         auto arena = doc_->arena();
-        map_->put(*arena, name->dt_ctr_, value->addr_);
+        map_->put(*arena, name->dt_ctr(), value->value_storage_.addr);
     }
 }
 
@@ -139,7 +146,7 @@ inline void Map<Varchar, Value>::put(U8StringView name, ValuePtr value) {
     {
         auto arena = doc_->arena();
         auto key = doc_->new_dataobject<Varchar>(name);
-        map_->put(*arena, key->dt_ctr_, vv->addr_);
+        map_->put(*arena, key->dt_ctr(), vv->value_storage_.addr);
     }
 }
 
@@ -151,7 +158,7 @@ inline ValuePtr Map<Varchar, Value>::put_hermes(U8StringView key, U8StringView s
   auto value_ptr = doc_->parse_raw_value(str.begin(), str.end());
 
   auto arena = doc_->arena();
-  map_->put(*arena, key_ptr->dt_ctr_, value_ptr->addr_);
+  map_->put(*arena, key_ptr->dt_ctr(), value_ptr->value_storage_.addr);
 
   return value_ptr;
 }

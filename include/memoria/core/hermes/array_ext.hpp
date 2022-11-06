@@ -39,7 +39,7 @@ DataObjectPtr<DT> Array<Value>::append(DTTViewType<DT> view)
 
     auto ptr = doc_->new_dataobject<DT>(view);
 
-    array_->push_back(*doc_->arena(), ptr->dt_ctr_);
+    array_->push_back(*doc_->arena(), ptr->dt_ctr());
 
     return ptr;
 }
@@ -96,7 +96,7 @@ DataObjectPtr<DT> Array<Value>::set(uint64_t idx, DTTViewType<DT> view)
     if (MMA_LIKELY(idx < array_->size()))
     {
         auto ptr = doc_->new_dataobject<DT>(view);
-        array_->set(idx, ptr->dt_ctr_);
+        array_->set(idx, ptr->dt_ctr());
         return ptr;
     }
     else {
@@ -150,7 +150,7 @@ inline void Array<Value>::append(const ValuePtr& value)
 
     if (MMA_LIKELY(!vv->is_null()))
     {
-        array_->push_back(*doc_->arena(), vv->addr_);
+        array_->push_back(*doc_->arena(), vv->value_storage_.addr);
     }
     else {
         array_->push_back(*doc_->arena(), nullptr);
@@ -167,7 +167,7 @@ inline void Array<Value>::set_value(uint64_t idx, const ValuePtr& value)
 
     if (MMA_LIKELY(!vv->is_null()))
     {
-        array_->set(idx, vv->addr_);
+        array_->set(idx, vv->value_storage_.addr);
     }
     else {
         array_->set(idx, nullptr);
@@ -180,7 +180,7 @@ inline ValuePtr Array<Value>::append_hermes(U8StringView str) {
 
   ValuePtr vv = doc_->parse_raw_value(str.begin(), str.end());
 
-  array_->push_back(*doc_->arena(), vv->addr_);
+  array_->push_back(*doc_->arena(), vv->value_storage_.addr);
 
   return vv;
 }
@@ -192,7 +192,7 @@ inline ValuePtr Array<Value>::set_hermes(uint64_t idx, U8StringView str) {
   if (MMA_LIKELY(idx < array_->size()))
   {
       ValuePtr vv = doc_->parse_raw_value(str.begin(), str.end());
-      array_->set(idx, vv->addr_);
+      array_->set(idx, vv->value_storage_.addr);
       return vv;
   }
   else {

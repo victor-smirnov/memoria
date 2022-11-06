@@ -52,7 +52,8 @@ private:
 };
 
 
-class Parameter: public HoldingView {
+class Parameter: public HoldingView<Parameter> {
+    using Base = HoldingView<Parameter>;
 public:
     using ArenaDTContainer = arena::ArenaDataTypeContainer<Varchar>;
 
@@ -68,13 +69,14 @@ public:
 protected:
     mutable ArenaDTContainer* dt_ctr_;
     mutable HermesCtr* doc_;
+    using Base::ptr_holder_;
 public:
     Parameter() noexcept:
         dt_ctr_(), doc_()
     {}
 
     Parameter(void* dt_ctr, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
-        HoldingView(ptr_holder),
+        Base(ptr_holder),
         dt_ctr_(reinterpret_cast<ArenaDTContainer*>(dt_ctr)),
         doc_(doc)
     {}
@@ -110,9 +112,9 @@ public:
         return dt_ctr_->view();
     }
 
-    U8String to_string() const
+    U8String to_string(const StringifyCfg& cfg = StringifyCfg()) const
     {
-        DumpFormatState fmt = DumpFormatState().simple();
+        DumpFormatState fmt = DumpFormatState(cfg);
         std::stringstream ss;
         stringify(ss, fmt);
         return ss.str();
@@ -120,30 +122,18 @@ public:
 
     U8String to_pretty_string() const
     {
-        DumpFormatState fmt = DumpFormatState();
-        std::stringstream ss;
-        stringify(ss, fmt);
-        return ss.str();
+        return to_string(StringifyCfg::pretty());
     }
 
-    void stringify(std::ostream& out) const
+    void stringify(std::ostream& out, const StringifyCfg& cfg) const
     {
-        DumpFormatState state;
-        DumpState dump_state(*doc_);
-        stringify(out, state, dump_state);
+        DumpFormatState state(cfg);
+        stringify(out, state);
     }
-
-    void stringify(std::ostream& out, DumpFormatState& format) const
-    {
-        DumpState dump_state(*doc_);
-        stringify(out, format, dump_state);
-    }
-
 
 
     void stringify(std::ostream& out,
-                   DumpFormatState& state,
-                   DumpState& dump_state) const
+                   DumpFormatState& state) const
     {
         if (dt_ctr_) {
             out << "?" << dt_ctr_->view();

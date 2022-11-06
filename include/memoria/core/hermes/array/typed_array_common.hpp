@@ -13,31 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/core/hermes/typed_value.hpp>
+#pragma once
+
+#include <memoria/core/types.hpp>
+#include <memoria/core/arena/arena.hpp>
+#include <memoria/core/arena/relative_ptr.hpp>
 
 namespace memoria {
 namespace hermes {
+namespace detail {
+
+struct FSE1Subtype {};
+
+template <typename DT, typename SubtypeSelector, bool StatelessType>
+class TypedArrayData;
 
 
-void TypedValue::stringify(std::ostream& out,
-               DumpFormatState& state) const
-{
-    auto ctr = constructor();
-    auto type = this->datatype();
-
-    if (MMA_LIKELY(!ctr->is_varchar()))
-    {
-        auto space = state.cfg().spec().space();
-        out << '@';
-        type->stringify(out, state);
-        out << space << "=" << space;
-        ctr->stringify(out, state);
-    }
-    else {
-        ctr->stringify(out, state);
-        out << '@';
-        type->stringify(out, state);
-    }
-}
-
-}}
+}}}

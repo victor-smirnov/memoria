@@ -17,7 +17,7 @@
 
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/tools/arena_buffer.hpp>
-
+#include <memoria/core/memory/object_pool.hpp>
 
 #include <ostream>
 
@@ -26,7 +26,7 @@ namespace hermes {
 
 class HermesCtr;
 
-class DumpFormatState {
+class StringifySpec {
     const char* space_;
 
     const char* nl_start_;
@@ -34,10 +34,10 @@ class DumpFormatState {
     const char* nl_end_;
 
     size_t indent_size_;
-    size_t current_indent_;
-
 public:
-    DumpFormatState(
+    StringifySpec(): StringifySpec(" ", "\n", "\n", "\n", 2) {}
+
+    StringifySpec(
             const char* space,
             const char* nl_start,
             const char* nl_middle,
@@ -48,18 +48,16 @@ public:
         nl_start_(nl_start),
         nl_middle_(nl_middle),
         nl_end_(nl_end),
-        indent_size_(indent_size),
-        current_indent_(0)
+        indent_size_(indent_size)
     {}
 
-    DumpFormatState(): DumpFormatState(" ", "\n", "\n", "\n", 2) {}
 
-    static DumpFormatState no_indent() {
-        return DumpFormatState("", "", "", "", 0);
+    static StringifySpec no_indent() {
+        return StringifySpec("", "", "", "", 0);
     }
 
-    static DumpFormatState simple() {
-        return DumpFormatState("", "", " ", "", 0);
+    static StringifySpec simple() {
+        return StringifySpec("", "", " ", "", 0);
     }
 
     const char* space() const {return space_;}
@@ -69,29 +67,91 @@ public:
     const char* nl_end() const {return nl_end_;}
 
     size_t indent_size() const {return indent_size_;}
+};
+
+class StringifyCfg {
+    bool use_raw_strings_{true};
+    StringifySpec spec_{StringifySpec::no_indent()};
+
+public:
+    StringifyCfg() {}
+
+    bool use_raw_strings() const {return use_raw_strings_;}
+
+    StringifyCfg& with_raw_strings(bool val) {
+        use_raw_strings_ = val;
+        return *this;
+    }
+
+    const StringifySpec& spec() const {
+        return spec_;
+    }
+
+    StringifyCfg& set_spec(const StringifySpec& spec) {
+        spec_ = spec;
+        return *this;
+    }
+
+    StringifyCfg& with_spec(const StringifySpec& spec) {
+        spec_ = spec;
+        return *this;
+    }
+
+    static StringifyCfg pretty() {
+        StringifyCfg cfg;
+        cfg.set_spec(StringifySpec());
+        return cfg;
+    }
+
+    static StringifyCfg simple() {
+        StringifyCfg cfg;
+        cfg.set_spec(StringifySpec::simple());
+        return cfg;
+    }
+
+
+    static StringifyCfg pretty1() {
+        return pretty().with_raw_strings(false);
+    }
+};
+
+class DumpFormatState {
+    const StringifyCfg& cfg_;
+    size_t current_indent_;
+public:
+    DumpFormatState(const StringifyCfg& cfg):
+        cfg_(cfg),
+        current_indent_(0)
+    {}
+
+    DumpFormatState(const StringifyCfg& cfg, size_t indent):
+        cfg_(cfg),
+        current_indent_(indent)
+    {}
+
+    const StringifyCfg& cfg() const {return cfg_;}
+
     size_t current_indent() const {return current_indent_;}
 
     void push() {
-        current_indent_ += indent_size_;
+        current_indent_ += cfg_.spec().indent_size();
     }
 
     void pop() {
-        current_indent_ -= indent_size_;
+        current_indent_ -= cfg_.spec().indent_size();
     }
 
     void make_indent(std::ostream& out) const {
+        auto space = cfg_.spec().space();
         for (size_t c = 0; c < current_indent_; c++) {
-            out << space_;
+            out << space;
         }
     }
 };
 
-class DumpState {
-public:
-    DumpState(const HermesCtr& doc) {}
-};
 
-class StringEscaper {
+
+class RawStringEscaper {
     ArenaBuffer<U8StringView::value_type> buffer_;
 public:
 
@@ -138,8 +198,73 @@ public:
         }
     }
 
+    static RawStringEscaper& current();
+};
+
+
+class StringEscaper {
+    ArenaBuffer<U8StringView::value_type> buffer_;
+public:
+
+    bool has_escaping_char(U8StringView str) const noexcept
+    {
+        for (auto& ch: str) {
+            switch (ch) {
+                case '\b':
+                case '\f':
+                case '\r':
+                case '\n':
+                case '\t':
+                case '\"':
+                case '\\': return true;
+            }
+        }
+
+        return false;
+    }
+
+    U8StringView escape_chars(const U8StringView& str)
+    {
+        if (!has_escaping_char(str)) {
+            return str;
+        }
+        else {
+            buffer_.clear();
+
+            for (auto& ch: str)
+            {
+                switch(ch) {
+                    case '\b': buffer_.append_values(Span<const char>("\\b", 2)); continue;
+                    case '\f': buffer_.append_values(Span<const char>("\\f", 2)); continue;
+                    case '\r': buffer_.append_values(Span<const char>("\\r", 2)); continue;
+                    case '\n': buffer_.append_values(Span<const char>("\\n", 2)); continue;
+                    case '\t': buffer_.append_values(Span<const char>("\\t", 2)); continue;
+                    case '\"': buffer_.append_values(Span<const char>("\\\"", 2)); continue;
+                    case '\\': buffer_.append_values(Span<const char>("\\\\", 2)); continue;
+                }
+
+                buffer_.append_value(ch);
+            }
+
+            buffer_.append_value(0);
+
+            return U8StringView(buffer_.data(), buffer_.size() - 1);
+        }
+    }
+
+    void reset()
+    {
+        if (buffer_.size() <= 1024*16) {
+            buffer_.clear();
+        }
+        else {
+            buffer_.reset();
+        }
+    }
+
     static StringEscaper& current();
 };
+
 
 
 
@@ -236,5 +361,145 @@ private:
         accessor_.next();
     }
 };
+
+
+
+struct TaggedValue {
+    uint64_t tag;
+    alignas(8) uint8_t value[8];
+};
+
+struct TaggedGenericView: SharedPtrHolder {
+    uint64_t tag;
+    void* view_ptr;
+};
+
+union ValueStorage {
+    void* addr;
+    TaggedValue small_value;
+    TaggedGenericView* view_ptr;
+};
+
+
+template <size_t AlignOf, size_t Size, typename ValueT>
+class AlignedSpacePool: public pool::PoolBase, public boost::enable_shared_from_this<AlignedSpacePool<AlignOf, Size, ValueT>> {
+public:
+
+    virtual U8String pool_type() {
+        return TypeNameFactory<AlignedSpacePool>::name();
+    }
+
+    class RefHolder: public ValueT {
+        alignas (AlignOf) std::byte object_storage_[Size];
+
+        boost::local_shared_ptr<AlignedSpacePool> pool_;
+
+        template <typename> friend class SharedPtr;
+        template <typename> friend class UniquePtr;
+        template <typename> friend class SimpleObjectPool;
+
+    public:
+        template <typename... Args>
+        RefHolder(boost::local_shared_ptr<AlignedSpacePool> pool, Args&&... args):
+            ValueT(std::forward<Args>(args)...),
+            pool_(std::move(pool))
+        {}
+
+        template <typename T>
+        T* ptr() noexcept {
+            static_assert(sizeof(T) <= Size, "");
+            return std::launder(reinterpret_cast<T*>(object_storage_));
+        }
+
+        template <typename T, typename... Args>
+        T* allocate_in(Args&&... args) {
+            new (object_storage_) T(std::forward<Args>(args)...);
+        }
+
+        virtual ~RefHolder() noexcept  = default;
+
+    protected:
+        virtual void dispose() noexcept {
+            pool_->release(this);
+        }
+
+        virtual void destroy() noexcept {
+            ptr()->~T();
+        }
+    };
+
+private:
+
+    boost::object_pool<RefHolder> alloc_;
+
+    friend class RefHolder;
+    template <typename> friend class SharedPtr;
+    template <typename> friend class UniquePtr;
+public:
+
+    template <typename... Args>
+    pool::SharedPtr<ValueT> allocate_shared(Args&&... args)
+    {
+        auto ptr = new (alloc_.malloc()) RefHolder(this->shared_from_this(), std::forward<Args>(args)...);
+        pool::detail::SharedFromThisHelper<ValueT>::initialize(ptr->ptr(), ptr);
+        ptr->value = &ptr->object_storage_;
+        return pool::detail::make_shared_ptr_from(ptr->ptr(), ptr);
+    }
+
+    template <typename... Args>
+    UniquePtr<ValueT> allocate_unique(Args&&... args)
+    {
+        auto ptr = new (alloc_.malloc()) RefHolder(this->shared_from_this(), std::forward<Args>(args)...);
+        return pool::detail::make_unique_ptr_from(ptr->ptr(), ptr);
+    }
+
+private:
+    void release(RefHolder* holder) noexcept {
+        alloc_.destroy(holder);
+    }
+};
+
+
+
+
+class TaggedHoldingView {
+    static constexpr size_t TAG_MASK = 0x7;
+    mutable size_t ptr_holder_;
+
+    template <typename, bool>
+    friend class memoria::ViewPtr;
+
+public:
+    TaggedHoldingView() noexcept:
+        ptr_holder_()
+    {
+    }
+
+    TaggedHoldingView(ViewPtrHolder* holder) noexcept:
+        ptr_holder_(reinterpret_cast<size_t>(holder))
+    {}
+
+
+protected:
+    ViewPtrHolder* get_ptr_holder() const noexcept {
+        return reinterpret_cast<ViewPtrHolder*>(ptr_holder_ & ~TAG_MASK);
+    }
+
+    void reset_ptr_holder() noexcept {
+        ptr_holder_ = 0;
+    }
+
+    size_t get_tag() const noexcept {
+        return ptr_holder_ & TAG_MASK;
+    }
+
+    // Only last 3 bits of the tag are counted
+    void set_tag(size_t tag) noexcept {
+        ptr_holder_ &= ~TAG_MASK;
+        ptr_holder_ |= (tag & TAG_MASK);
+    }
+};
+
+
 
 }}

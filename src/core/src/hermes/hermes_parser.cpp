@@ -24,19 +24,14 @@
 #include <memoria/core/hermes/hermes.hpp>
 #include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/strings/format.hpp>
+#include <memoria/core/strings/u32_string.hpp>
 
 #include <memoria/core/flat_map/flat_hash_map.hpp>
 
 #include <memoria/core/hermes/path/types.h>
 
-//#include "path/parser/appendutf8action.h"
-//#include "path/parser/encodesurrogatepairaction.h"
-//#include "path/parser/appendescapesequenceaction.h"
-
-//#include "path/ast/multiselecthashnode.h"
 
 #include "hermes_internal.hpp"
-//#include "hermes_grammar_strings.hpp"
 #include "hermes_grammar_value.hpp"
 
 
@@ -198,10 +193,14 @@ public:
             start++;
         }
 
-        std::stringstream buf;
+        U8String buf;
         bool add_ellipsis = true;
-        for (size_t c = 0; c < 125; c++) {
-            buf << *err_head;
+        for (size_t c = 0; c < 125; c++)
+        {
+            auto out_ii = std::back_inserter(buf.to_std_string());
+            boost::utf8_output_iterator<decltype(out_ii)> utf8_out_ii(out_ii);
+            *utf8_out_ii++ = *err_head;
+
             if (++err_head == end) {
                 add_ellipsis = false;
                 break;
@@ -209,10 +208,10 @@ public:
         }
 
         if (add_ellipsis) {
-            buf << "...";
+            buf += "...";
         }
 
-        return ErrDescripton{line, column, (size_t)pos, buf.str()};
+        return ErrDescripton{line, column, (size_t)pos, buf};
     }
 
     template <typename Iterator>
@@ -393,9 +392,9 @@ bool parse_identifier(Iterator& first, Iterator& last)
     return r;
 }
 
-PoolSharedPtr<HermesCtr> HermesCtr::parse(CharIterator start, CharIterator end, const ParserConfiguration&)
+PoolSharedPtr<HermesCtr> HermesCtr::parse_document(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
-    PoolSharedPtr<HermesDocImpl> doc = TL_get_reusable_shared_instance<HermesDocImpl>();
+    PoolSharedPtr<HermesCtrImpl> doc = TL_get_reusable_shared_instance<HermesCtrImpl>();
 
     // retain the value of the begin iterator
     IteratorType beginIt(start);
@@ -408,7 +407,7 @@ PoolSharedPtr<HermesCtr> HermesCtr::parse(CharIterator start, CharIterator end, 
 
 PoolSharedPtr<HermesCtr> HermesCtr::parse_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
-    PoolSharedPtr<HermesDocImpl> doc = TL_get_reusable_shared_instance<HermesDocImpl>();
+    PoolSharedPtr<HermesCtrImpl> doc = TL_get_reusable_shared_instance<HermesCtrImpl>();
 
     IteratorType beginIt(start);
     IteratorType it = beginIt;

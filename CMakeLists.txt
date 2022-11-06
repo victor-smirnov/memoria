@@ -208,6 +208,9 @@ link_libraries(absl::base absl::strings absl::hash absl::meta absl::time)
 find_package(fmt CONFIG REQUIRED)
 link_libraries(fmt::fmt fmt::fmt-header-only)
 
+#find_package(unofficial-hash-library CONFIG REQUIRED)
+
+
 if (BUILD_TESTS)
     find_package(yaml-cpp CONFIG REQUIRED)
 endif()

@@ -13,31 +13,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/core/hermes/typed_value.hpp>
+#pragma once
+
+#include <memoria/core/hermes/array/typed_array_common.hpp>
+#include <memoria/core/arena/vector.hpp>
+
 
 namespace memoria {
 namespace hermes {
+namespace detail {
+
+template <typename DT>
+class TypedArrayData<DT, FSE1Subtype, true>: arena::Vector<DTTViewType<DT>> {
+    // No state here!
+    // Must be a Standard Layout type
+public:
+
+};
 
 
-void TypedValue::stringify(std::ostream& out,
-               DumpFormatState& state) const
-{
-    auto ctr = constructor();
-    auto type = this->datatype();
-
-    if (MMA_LIKELY(!ctr->is_varchar()))
-    {
-        auto space = state.cfg().spec().space();
-        out << '@';
-        type->stringify(out, state);
-        out << space << "=" << space;
-        ctr->stringify(out, state);
-    }
-    else {
-        ctr->stringify(out, state);
-        out << '@';
-        type->stringify(out, state);
-    }
-}
-
-}}
+}}}

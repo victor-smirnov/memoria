@@ -34,11 +34,10 @@ public:
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,
-            hermes::DumpFormatState& state,
-            hermes::DumpState& dump_state
+            hermes::DumpFormatState& state
     ) {
         hermes::DataObject<T> dtt(ptr, doc, ref_holder);
-        dtt.stringify(out, state, dump_state);
+        dtt.stringify(out, state);
     }
 
     virtual bool hermes_is_simple_layout(
@@ -61,8 +60,7 @@ class DataTypeReflectionImpl: public TypehashTypeReflectionImplBase<T> {
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,
-            hermes::DumpFormatState& state,
-            hermes::DumpState& dump_state
+            hermes::DumpFormatState& state
     ) {
         MEMORIA_MAKE_GENERIC_ERROR("Hermes support for datatype {} is not impleneted", this->str());
     }

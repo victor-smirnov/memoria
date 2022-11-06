@@ -1452,7 +1452,7 @@ void Interpreter::toBigInt(ValuePtr&& value)
     }
     else
     {
-        m_context = value->template convert_to<BigInt>()->root();
+        m_context = value->template convert_to<BigInt>();
     }
 }
 
@@ -1473,9 +1473,8 @@ void Interpreter::toBoolean(ValuePtr&& value)
         m_context = assignContextValue(std::move(value));
         return;
     }
-    else
-    {
-        m_context = value->template convert_to<Boolean>()->root();
+    else {
+        m_context = value->template convert_to<Boolean>();
     }
 }
 

@@ -25,6 +25,7 @@
 #include <memoria/core/hermes/value.hpp>
 #include <memoria/core/hermes/common.hpp>
 
+#include <memoria/core/tools/uid_256.hpp>
 
 namespace memoria {
 namespace hermes {
@@ -272,7 +273,8 @@ public:
 }
 
 
-class Datatype: public HoldingView {
+class Datatype: public HoldingView<Datatype> {
+    using Base = HoldingView<Datatype>;
     friend class HermesCtr;
     friend class Value;
     friend class HermesCtrBuilder;
@@ -286,13 +288,14 @@ class Datatype: public HoldingView {
 protected:
     mutable detail::DatatypeData* datatype_;
     mutable HermesCtr* doc_;
+    using Base::ptr_holder_;
 public:
     Datatype():
         datatype_(), doc_()
     {}
 
     Datatype(void* dt, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
-        HoldingView(ptr_holder), datatype_(reinterpret_cast<detail::DatatypeData*>(dt)),
+        Base(ptr_holder), datatype_(reinterpret_cast<detail::DatatypeData*>(dt)),
         doc_(doc)
     {}
 
@@ -305,17 +308,20 @@ public:
         return ValuePtr(Value(datatype_, doc_, ptr_holder_));
     }
 
-    U8String to_string() const
+    U8String to_string(const StringifyCfg& cfg = StringifyCfg()) const
     {
-        DumpFormatState fmt = DumpFormatState().simple();
         std::stringstream ss;
+        DumpFormatState fmt = DumpFormatState(cfg);
         stringify(ss, fmt);
         return ss.str();
     }
 
     U8String to_cxx_string() const
     {
-        DumpFormatState fmt = DumpFormatState().simple();
+        StringifyCfg cfg;
+        cfg.set_spec(StringifySpec::simple());
+
+        DumpFormatState fmt = DumpFormatState(cfg);
         std::stringstream ss;
         stringify_cxx(ss, fmt);
         return ss.str();
@@ -323,46 +329,17 @@ public:
 
     U8String to_pretty_string() const
     {
-        DumpFormatState fmt = DumpFormatState();
+        DumpFormatState fmt = DumpFormatState(StringifyCfg::pretty());
         std::stringstream ss;
         stringify(ss, fmt);
         return ss.str();
     }
 
-    void stringify(std::ostream& out) const
-    {
-        DumpFormatState state;
-        DumpState dump_state(*doc_);
-        stringify(out, state, dump_state);
-    }
-
-    void stringify_cxx(std::ostream& out) const
-    {
-        DumpFormatState state;
-        DumpState dump_state(*doc_);
-        stringify_cxx(out, state, dump_state);
-    }
-
-    void stringify(std::ostream& out, DumpFormatState& format) const
-    {
-        DumpState dump_state(*doc_);
-        stringify(out, format, dump_state);
-    }
-
-    void stringify_cxx(std::ostream& out, DumpFormatState& format) const
-    {
-        DumpState dump_state(*doc_);
-        stringify_cxx(out, format, dump_state);
-    }
-
-
     void stringify(std::ostream& out,
-                   DumpFormatState& state,
-                   DumpState& dump_state) const;
+                   DumpFormatState& state) const;
 
     void stringify_cxx(std::ostream& out,
-                       DumpFormatState& state,
-                       DumpState& dump_state) const;
+                       DumpFormatState& state) const;
 
     bool is_simple_layout() const;
 
@@ -490,6 +467,8 @@ public:
         assert_not_null();
         return datatype_->deep_copy_to(arena, TypeHashV<Datatype>, doc_, ptr_holder_, dedup);
     }
+
+    UID256 cxx_type_hash() const;
 
 protected:
 

@@ -40,7 +40,7 @@ class HermesCtr;
 struct IDatatypeConverter {
     virtual ~IDatatypeConverter() noexcept;
 
-    virtual PoolSharedPtr<hermes::HermesCtr> convert(const void* view) const = 0;
+    virtual hermes::ValuePtr convert(const void* view) const = 0;
 };
 
 
@@ -63,8 +63,7 @@ public:
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,
-            hermes::DumpFormatState& state,
-            hermes::DumpState& dump_state
+            hermes::DumpFormatState& state
     ) const = 0;
 
     virtual bool hermes_is_simple_layout(
@@ -106,14 +105,14 @@ public:
         return false;
     }
 
-    virtual PoolSharedPtr<hermes::HermesCtr> datatype_convert_to(
+    virtual hermes::ValuePtr datatype_convert_to(
             uint64_t taget_tag,
             void* ptr,
             hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
     ) const ;
 
-    virtual PoolSharedPtr<hermes::HermesCtr> datatype_convert_from_plain_string(U8StringView str) const;
+    virtual hermes::ValuePtr datatype_convert_from_plain_string(U8StringView str) const;
 
     virtual U8String convert_to_plain_string(void* ptr,
                                              hermes::HermesCtr* doc,

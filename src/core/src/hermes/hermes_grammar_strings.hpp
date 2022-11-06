@@ -119,7 +119,8 @@ struct StringsRuleSet {
                  | char_(U'\x5F')
                  | char_(U'\x61', U'\x7A') | encoding::alnum )[appendUtf8(_val, _1)]) ]
                 - "null" - "true" - "false" - "const" - "volatile" - "signed"
-                - "unsigned" - "int" - "long" - "char" - "double" - "float" - "short" - "bool" - "const";
+                - "unsigned" - "int" - "long" - "char" - "double" - "float" - "short" - "bool" - "const"
+                - "struct" - "class" - "union";
 
         // match unescaped or escaped characters enclosed in quotes one or more
         // times and append them to the rule's string attribute encoded as UTF-8

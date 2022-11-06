@@ -15,6 +15,8 @@
 
 #include <memoria/core/hermes/hermes.hpp>
 
+#include <hash-library/sha256.h>
+
 namespace memoria {
 namespace hermes {
 
@@ -42,25 +44,24 @@ GenericArrayPtr Datatype::type_parameters() const
 }
 
 
-void Datatype::stringify(std::ostream& out,
-               DumpFormatState& state,
-               DumpState& dump_state) const
+void Datatype::stringify(std::ostream& out,DumpFormatState& state) const
 {
     if (datatype_)
     {
+        auto& spec = state.cfg().spec();
         out << type_name()->view();
 
         auto params = type_parameters();
         if (params->is_not_null())
         {
-            out << "<" << state.nl_start();
+            out << "<" << spec.nl_start();
             bool first = true;
 
             state.push();
             for (size_t c = 0; c < params->size(); c++)
             {
                 if (MMA_LIKELY(!first)) {
-                    out << "," << state.nl_middle();
+                    out << "," << spec.nl_middle();
                 }
                 else {
                     first = false;
@@ -69,11 +70,11 @@ void Datatype::stringify(std::ostream& out,
                 state.make_indent(out);
 
                 auto type_param = params->get(c);
-                type_param->stringify(out, state, dump_state);
+                type_param->stringify(out, state);
             }
             state.pop();
 
-            out << state.nl_end();
+            out << spec.nl_end();
 
             state.make_indent(out);
             out << ">";
@@ -82,14 +83,14 @@ void Datatype::stringify(std::ostream& out,
         auto ctr_args = constructor();
         if (ctr_args->is_not_null())
         {
-            out << "(" << state.nl_start();
+            out << "(" << spec.nl_start();
             bool first = true;
 
             state.push();
             for (size_t c = 0; c < ctr_args->size(); c++)
             {
                 if (MMA_LIKELY(!first)) {
-                    out << "," << state.nl_middle();
+                    out << "," << spec.nl_middle();
                 }
                 else {
                     first = false;
@@ -98,11 +99,11 @@ void Datatype::stringify(std::ostream& out,
                 state.make_indent(out);
 
                 auto value = ctr_args->get(c);
-                value->stringify(out, state, dump_state);
+                value->stringify(out, state);
             }
             state.pop();
 
-            out << state.nl_end();
+            out << spec.nl_end();
 
             state.make_indent(out);
             out << ")";
@@ -143,24 +144,24 @@ void Datatype::stringify(std::ostream& out,
 
 
 void Datatype::stringify_cxx(std::ostream& out,
-               DumpFormatState& state,
-               DumpState& dump_state) const
+               DumpFormatState& state) const
 {
     if (datatype_)
     {
+        auto& spec = state.cfg().spec();
         out << type_name()->view();
 
         auto params = type_parameters();
         if (params->is_not_null())
         {
-            out << "<" << state.nl_start();
+            out << "<" << spec.nl_start();
             bool first = true;
 
             state.push();
             for (size_t c = 0; c < params->size(); c++)
             {
                 if (MMA_LIKELY(!first)) {
-                    out << "," << state.nl_middle();
+                    out << "," << spec.nl_middle();
                 }
                 else {
                     first = false;
@@ -170,15 +171,47 @@ void Datatype::stringify_cxx(std::ostream& out,
 
                 ValuePtr type_param = params->get(c);
                 if (type_param->is_a(TypeTag<Datatype>{})) {
-                    cast_to<Datatype>(type_param)->stringify_cxx(out, state, dump_state);
+                    cast_to<Datatype>(type_param)->stringify_cxx(out, state);
+                }
+                else {
+                    type_param->stringify(out, state);
                 }
             }
             state.pop();
 
-            out << state.nl_end();
+            out << spec.nl_end();
 
             state.make_indent(out);
             out << ">";
+        }
+
+
+        for (uint64_t c = 0; c < datatype_->extras().pointers_size(); c++)
+        {
+            PtrQualifier qual = datatype_->extras().pointer(c);
+
+            if (qual.is_const()) {
+                out <<" const";
+            }
+
+            if (qual.is_volatile()) {
+                out <<" volatile";
+            }
+
+            out << "*";
+        }
+
+        if (datatype_->extras().is_const()) {
+            out <<" const";
+        }
+
+        if (datatype_->extras().is_volatile()) {
+            out <<" volatile";
+        }
+
+        for (uint64_t c = 0; c < datatype_->extras().refs_size(); c++)
+        {
+            out << "&";
         }
     }
     else {
@@ -269,6 +302,31 @@ GenericArrayPtr Datatype::set_constructor()
     datatype_->set_constructor(ptr->array_);
 
     return ptr;
+}
+
+UID256 Datatype::cxx_type_hash() const
+{
+    SHA256 hash;
+    U8String cxx_type_decl = to_cxx_string();
+    hash.add(cxx_type_decl.data(), cxx_type_decl.size());
+
+    uint8_t hash_buf[SHA256::HashBytes];
+    hash.getHash(hash_buf);
+
+    UID256 uid;
+
+    auto atoms = uid.atoms();
+    for (int atom = 0; atom < 4; atom++)
+    {
+        atoms[atom] = 0;
+        for (size_t c = 0; c < 8; c++) {
+            atoms[atom] |= ((uint64_t)hash_buf[c + atom * 8]) << (c * 8);
+        }
+    }
+
+    uid.set_type(UID256::Type::TYPE1);
+
+    return uid;
 }
 
 }}

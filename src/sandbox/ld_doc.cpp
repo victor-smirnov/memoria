@@ -44,44 +44,19 @@ int main(int, char**)
 {
     InitTypeReflections();
 
-    auto doc = HermesCtr::parse(R"(
-{
-  "people": [
-    {
-      "general": {
-        "id": 100,
-        "age": 20,
-        "other": ?param0,
-        "name": "Bob"
-      },
-      "history": {
-        "first_login": "2014-01-01",
-        "last_login": "2014-01-02"
-      }
-    },
-    {
-      "general": {
-        "id": 101,
-        "age": 30,
-        "other": "bar",
-        "name": "Bill"
-      },
-      "history": {
-        "first_login": "2014-05-01",
-        "last_login": "2014-05-02"
-      }
-    }
-  ]
-}
+    //    auto doc0 = "01000ull"_hdoc;
+    //    println("{}", doc0->to_pretty_string());
+
+    auto doc = HermesCtr::parse_document(R"(        
+        class MyType<Parameter1<12345ull, true, -5679>>(1,2,3,4,5)
     )");
 
-    println("{}", doc->to_pretty_string());
+    println("{}", doc->to_string(StringifyCfg::simple()));
+    println("{}", doc->root()->as_datatype()->to_cxx_string());
 
-    auto qry = "people[?general.id==^100ull].general | [0]";
+    auto hash = doc->root()->as_datatype()->cxx_type_hash();
 
-    Params params;
-    params.add_dataobject<BigInt>("id", 100);
+    println("{}", hash);
 
-    auto result = doc->root()->search(qry, params);
-    println("{}", result->to_pretty_string());
+
 }

@@ -84,7 +84,7 @@ std::ostream& operator<<(std::ostream& os, const IDValue& id) {
 }
 
 
-PoolSharedPtr<hermes::HermesCtr> TypeReflection::datatype_convert_to(
+hermes::ValuePtr TypeReflection::datatype_convert_to(
         uint64_t target_tag, void*,
         hermes::HermesCtr*,
         ViewPtrHolder*) const {
@@ -93,7 +93,7 @@ PoolSharedPtr<hermes::HermesCtr> TypeReflection::datatype_convert_to(
     ).do_throw();
 }
 
-PoolSharedPtr<hermes::HermesCtr> TypeReflection::datatype_convert_from_plain_string(U8StringView) const {
+hermes::ValuePtr TypeReflection::datatype_convert_from_plain_string(U8StringView) const {
     MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible from plain string", str()).do_throw();
 }
 

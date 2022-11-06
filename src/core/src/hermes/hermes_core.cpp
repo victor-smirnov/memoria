@@ -27,31 +27,37 @@
 
 namespace memoria::hermes {
 
-void HermesDocImpl::object_pool_init_state() {
+void HermesCtrImpl::object_pool_init_state() {
     if (!header_) {
         arena_.object_pool_init_state();
         header_ = arena_.allocate_object_untagged<DocumentHeader>();
     }
 }
 
-void HermesDocImpl::reset_state() noexcept {
+void HermesCtrImpl::reset_state() noexcept {
     arena_.reset_state();
     header_ = nullptr;
 }
 
 pool::SharedPtr<HermesCtr> HermesCtr::make_pooled(ObjectPools& pool) {
-    return get_reusable_shared_instance<HermesDocImpl>(pool);
+    return get_reusable_shared_instance<HermesCtrImpl>(pool);
 }
 
 pool::SharedPtr<HermesCtr> HermesCtr::make_new(size_t initial_capacity) {
-    return TL_allocate_shared<HermesDocImpl>(initial_capacity);
+    return TL_allocate_shared<HermesCtrImpl>(initial_capacity);
 }
 
+
+RawStringEscaper& RawStringEscaper::current() {
+    static thread_local RawStringEscaper escaper;
+    return escaper;
+}
 
 StringEscaper& StringEscaper::current() {
     static thread_local StringEscaper escaper;
     return escaper;
 }
+
 
 std::ostream& operator<<(std::ostream& out, ValuePtr ptr) {
     out << ptr->to_string();
@@ -72,13 +78,64 @@ uint64_t Parameter::hash_code() const {
 ValuePtr Value::search(U8StringView query) const
 {
     hermes::path::Expression exp(std::string{query});
-    return hermes::path::search(exp, ValuePtr(Value(addr_, doc_, ptr_holder_)));
+    return hermes::path::search(exp, ValuePtr(Value(value_storage_.addr, doc_, get_ptr_holder())));
 }
 
 ValuePtr Value::search(U8StringView query, const IParameterResolver& params) const
 {
     hermes::path::Expression exp(std::string{query});
-    return hermes::path::search(exp, ValuePtr(Value(addr_, doc_, ptr_holder_)), params);
+    return hermes::path::search(exp, ValuePtr(Value(value_storage_.addr, doc_, get_ptr_holder())), params);
 }
+
+namespace {
+
+constexpr size_t HEADER_SIZE = 16;
+
+template <size_t Size>
+using PoolT = pool::SimpleObjectPool<SizedHermesCtrImpl<HEADER_SIZE + Size>>;
+
+
+}
+
+PoolSharedPtr<StaticHermesCtrImpl> HermesCtr::get_ctr_instance(size_t size)
+{
+
+    static thread_local LocalSharedPtr<PoolT<8>> instance_pool_8     = MakeLocalShared<PoolT<8>>();
+    static thread_local LocalSharedPtr<PoolT<32>> instance_pool_32   = MakeLocalShared<PoolT<32>>();
+    static thread_local LocalSharedPtr<PoolT<64>> instance_pool_64   = MakeLocalShared<PoolT<64>>();
+    static thread_local LocalSharedPtr<PoolT<128>> instance_pool_128 = MakeLocalShared<PoolT<128>>();
+    static thread_local LocalSharedPtr<PoolT<256>> instance_pool_256 = MakeLocalShared<PoolT<256>>();
+
+    if (size <= 256) {
+        if (size <= HEADER_SIZE + 8) {
+            return instance_pool_8->allocate_shared();
+        }
+        else if (size <= HEADER_SIZE + 32) {
+            return instance_pool_32->allocate_shared();
+        }
+        else if (size <= HEADER_SIZE + 64) {
+            return instance_pool_64->allocate_shared();
+        }
+        else if (size <= HEADER_SIZE + 128) {
+            return instance_pool_128->allocate_shared();
+        }
+        else if (size <= HEADER_SIZE + 256) {
+            return instance_pool_256->allocate_shared();
+        }
+    }
+
+    return PoolSharedPtr<StaticHermesCtrImpl>{};
+}
+
+void HermesCtr::init_from(arena::ArenaAllocator& arena) {
+    if (arena_) {
+        arena_->init_from(arena);
+        header_ = ptr_cast<DocumentHeader>(arena.tail().memory.get());
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("HermesCtr instance is immutable").do_throw();
+    }
+}
+
 
 }
