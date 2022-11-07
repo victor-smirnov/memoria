@@ -715,6 +715,25 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("Right argument is nullptr").do_throw();
         }
     }
+
+    hermes::ValuePtr import_value(
+            hermes::ValueStorageTag vs_tag,
+            hermes::ValueStorage& storage,
+            hermes::HermesCtr* ctr,
+            ViewPtrHolder* ptr
+    ) const override
+    {
+        if (vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS)
+        {
+            T data_object(storage.addr, ctr, ptr);
+            return ctr->new_dataobject<DT>(data_object.view())->as_value();
+        }
+        else {
+            const auto& view = storage.get_view<DT>(vs_tag);
+            return ctr->new_dataobject<DT>(view)->as_value();
+        }
+    }
+
 };
 
 }

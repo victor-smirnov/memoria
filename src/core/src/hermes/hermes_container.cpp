@@ -170,12 +170,20 @@ ValuePtr HermesCtr::do_import_value(ValuePtr value)
 
     if (!value->is_null())
     {
-        auto tag = arena::read_type_tag(value->value_storage_.addr);
+        if (!value->is_detached())
+        {
+            auto tag = arena::read_type_tag(value->value_storage_.addr);
 
-        DeepCopyDeduplicator dedup;
-        auto addr = get_type_reflection(tag).deep_copy_to(*arena_, value->value_storage_.addr, this, ptr_holder_, dedup);
+            DeepCopyDeduplicator dedup;
+            auto addr = get_type_reflection(tag).deep_copy_to(*arena_, value->value_storage_.addr, this, ptr_holder_, dedup);
 
-        return ValuePtr(Value(addr, this, ptr_holder_));
+            return ValuePtr(Value(addr, this, ptr_holder_));
+        }
+        else {
+            auto type_tag = value->get_type_tag();
+            auto vs_tag = value->get_vs_tag();
+            return get_type_reflection(type_tag).import_value(vs_tag, value->value_storage_, this, ptr_holder_);
+        }
     }
     else {
         return value;

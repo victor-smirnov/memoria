@@ -78,11 +78,11 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Herm
 
     auto map = array->append_generic_map();
     assert_equals(true, array->get(3)->is_generic_map());
-    assert_equals(true, array->get(3)->as_generic_map()->equals(map));
+//    assert_equals(true, array->get(3)->as_generic_map()->equals(map));
 
     auto arr = array->append_generic_array();
     assert_equals(true, array->get(4)->is_generic_array());
-    assert_equals(true, array->get(4)->as_generic_array()->equals(arr));
+//    assert_equals(true, array->get(4)->as_generic_array()->equals(arr));
 
     auto sdn1 = array->append_hermes("'123456'@CoolType");
     assert_equals(true, array->get(5)->is_typed_value());

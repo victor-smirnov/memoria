@@ -153,6 +153,11 @@ public:
     ) const {
         MEMORIA_MAKE_GENERIC_ERROR("Objects of type {} are not Hermes-equals-comparable" ).do_throw();
     }
+
+    virtual hermes::ValuePtr import_value(
+            hermes::ValueStorageTag, hermes::ValueStorage&,
+            hermes::HermesCtr*, ViewPtrHolder*
+    ) const;
 };
 
 

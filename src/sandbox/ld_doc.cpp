@@ -44,10 +44,11 @@ int main(int, char**)
 {
     InitTypeReflections();
 
-    auto doc = HermesCtr::parse_document(R"(        
-        [1, 3, 1, 2, 9, 1, 3, 5]
+    auto doc = HermesCtr::parse_document(R"(
+        [1,5,7,3,1,8,2,9,8,3]
     )");
 
+    println("result: {}", doc->to_string());
 
     auto v1 = doc->root()->search("to_boolean(sort(@))");
     println("result: {}", v1->to_pretty_string());

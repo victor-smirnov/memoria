@@ -109,4 +109,11 @@ U8String TypeReflection::convert_to_plain_string(
     MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible to plain string", str()).do_throw();
 }
 
+hermes::ValuePtr TypeReflection::import_value(
+        hermes::ValueStorageTag, hermes::ValueStorage&,
+        hermes::HermesCtr*, ViewPtrHolder*
+) const {
+    MEMORIA_MAKE_GENERIC_ERROR("Importing value in not supported for type {}", str()).do_throw();
+}
+
 }

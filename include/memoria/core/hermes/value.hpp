@@ -481,10 +481,10 @@ private:
         return 0;
     }
 
-
     ValueStorageTag get_vs_tag() const noexcept {
         return static_cast<ValueStorageTag>(this->get_tag());
     }
+
 
     void set_vs_tag(ValueStorageTag tag) noexcept {
         this->set_tag(static_cast<size_t>(tag));

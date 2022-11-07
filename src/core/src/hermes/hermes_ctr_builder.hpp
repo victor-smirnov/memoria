@@ -63,8 +63,6 @@ public:
 
     void append_char(UnicodeChar utf32Char)
     {
-        //string_buffer_.append_value(value);
-
         auto outIt = std::back_inserter(string_buffer_);
         boost::utf8_output_iterator<decltype(outIt)> utf8OutIt(outIt);
         *utf8OutIt++ = utf32Char;
@@ -114,15 +112,15 @@ public:
     }
 
     auto new_bigint(int64_t v) {
-        return doc_->new_dataobject<BigInt>(v);
+        return HermesCtr::wrap_dataobject<BigInt>(v);
     }
 
     auto new_double(double v) {
-        return doc_->new_dataobject<Double>(v);
+        return HermesCtr::wrap_dataobject<Double>(v);
     }
 
     auto new_boolean(bool v) {
-        return doc_->new_dataobject<Boolean>(v);
+        return HermesCtr::wrap_dataobject<Boolean>(v);
     }
 
     void set_doc_value(ViewPtr<Value> value) {
@@ -198,7 +196,7 @@ public:
 
     template <typename DT>
     DataObjectPtr<DT> new_dataobject(DTTViewType<DT> view) {
-        return doc_->template new_dataobject<DT>(view);
+        return HermesCtr::wrap_dataobject<DT>(view);
     }
 
     static void enter() {

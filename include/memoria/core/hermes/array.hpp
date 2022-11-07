@@ -212,7 +212,12 @@ public:
         assert_not_null();
 
         for (auto& vv: array_->span()) {
-            fn(ViewPtr<Value>(Value(vv.get(), doc_, ptr_holder_)));
+            if (vv.is_not_null()) {
+                fn(ViewPtr<Value>(Value(vv.get(), doc_, ptr_holder_)));
+            }
+            else {
+                fn(ViewPtr<Value>(Value()));
+            }
         }
     }
 

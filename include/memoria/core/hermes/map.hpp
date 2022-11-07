@@ -233,14 +233,6 @@ public:
         return map_->deep_copy_to(arena, TypeHashV<Map>, doc_, ptr_holder_, dedup);
     }
 
-    bool equals(const Map& map) const noexcept {
-        return map_ == map.map_;
-    }
-
-    bool equals(GenericMapPtr map) const noexcept {
-        return map_ == map->map_;
-    }
-
 protected:
     void put(StringValuePtr name, ValuePtr value);
     void put(U8StringView name, ValuePtr value);
