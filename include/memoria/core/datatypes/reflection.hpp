@@ -29,14 +29,15 @@ template <typename T>
 class HermesTypedValueReflectionImpl: public TypehashTypeReflectionImplBase<T> {
 public:
     virtual void hermes_stringify_value(
-            void* ptr,
+            size_t vs_tag,
+            hermes::ValueStorage& ptr,
             hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,
             hermes::DumpFormatState& state
     ) {
-        hermes::DataObject<T> dtt(ptr, doc, ref_holder);
+        hermes::DataObject<T> dtt(ptr.addr, doc, ref_holder);
         dtt.stringify(out, state);
     }
 
@@ -55,7 +56,8 @@ template <typename T>
 class DataTypeReflectionImpl: public TypehashTypeReflectionImplBase<T> {
 
     virtual void hermes_stringify_value(
-            void* ptr,
+            size_t vs_tag,
+            hermes::ValueStorage& ptr,
             hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder,
 

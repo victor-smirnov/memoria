@@ -83,14 +83,22 @@ public:
     void stringify(std::ostream& out,
                    hermes::DumpFormatState& state)
     {
+        stringify_view(out, state, view());
+    }
+
+    static void stringify_view(
+            std::ostream& out,
+            hermes::DumpFormatState& state,
+            const U8StringView& view
+    ){
         if (state.cfg().use_raw_strings())
         {
-            U8StringView kk_escaped = hermes::RawStringEscaper::current().escape_quotes(view());
+            U8StringView kk_escaped = hermes::RawStringEscaper::current().escape_quotes(view);
             out << "'" << kk_escaped << "'";
             hermes::RawStringEscaper::current().reset();
         }
         else {
-            U8StringView kk_escaped = hermes::StringEscaper::current().escape_chars(view());
+            U8StringView kk_escaped = hermes::StringEscaper::current().escape_chars(view);
             out << "\"" << kk_escaped << "\"";
             hermes::StringEscaper::current().reset();
         }

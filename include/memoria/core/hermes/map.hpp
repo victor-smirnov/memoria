@@ -258,20 +258,4 @@ private:
     void assert_mutable();
 };
 
-namespace detail {
-
-template <>
-struct ValueCastHelper<GenericMap> {
-    static GenericMapPtr cast_to(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept {
-        return GenericMapPtr(GenericMap(
-            addr,
-            doc,
-            ref_holder
-        ));
-    }
-};
-
-}
-
-
 }}

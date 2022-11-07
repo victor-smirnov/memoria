@@ -1473,6 +1473,14 @@ void Interpreter::toBoolean(ValuePtr&& value)
         m_context = assignContextValue(std::move(value));
         return;
     }
+    else if (value->is_a<GenericArray>()) {
+        auto array = value->cast_to<GenericArray>();
+        m_context = HermesCtr::wrap_dataobject<Boolean>(array->size() > 0)->as_value();
+    }
+    else if (value->is_a<GenericMap>()) {
+        auto map = value->cast_to<GenericMap>();
+        m_context = HermesCtr::wrap_dataobject<Boolean>(map->size() > 0)->as_value();
+    }
     else {
         m_context = value->template convert_to<Boolean>();
     }

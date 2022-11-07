@@ -289,21 +289,4 @@ private:
     }
 };
 
-
-namespace detail {
-
-template <>
-struct ValueCastHelper<GenericArray> {
-    static GenericArrayPtr cast_to(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept {
-        return GenericArrayPtr(GenericArray(
-            addr,
-            doc,
-            ref_holder
-        ));
-    }
-};
-
-}
-
-
 }}

@@ -488,20 +488,4 @@ private:
 
 std::ostream& operator<<(std::ostream& out, DatatypePtr ptr);
 
-namespace detail {
-
-template <>
-struct ValueCastHelper<Datatype> {
-    static DatatypePtr cast_to(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept {
-        return DatatypePtr(Datatype(
-                               addr,
-                               doc,
-                               ref_holder
-                               ));
-    }
-};
-
-}
-
-
 }}

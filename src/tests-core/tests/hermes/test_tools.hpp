@@ -46,7 +46,7 @@ void assert_arrays_equal(const std::vector<T>& expected, hermes::GenericArrayPtr
 {
     assert_equals(expected.size(), actual->size());
     for (size_t c = 0; c < expected.size(); c++) {
-        assert_equals(expected[c], actual->get(c)->cast_to(TypeTag<BigInt>{})->view());
+        assert_equals(expected[c], actual->get(c)->as_data_object<BigInt>()->view());
     }
 }
 
@@ -82,7 +82,7 @@ void assert_arrays_equal(const std::unordered_map<K, V>& expected, hermes::Gener
     actual->for_each([&](auto key, auto value){
         auto ii = expected.find(key);
         assert_equals(true, ii != expected.end());
-        assert_equals(ii->second, value->cast_to(TypeTag<BigInt>{})->view());
+        assert_equals(ii->second, value->template as_data_object<BigInt>()->view());
     });
 }
 

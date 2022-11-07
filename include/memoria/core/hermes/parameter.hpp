@@ -189,20 +189,5 @@ static inline std::ostream& operator<<(std::ostream& out, const ParameterPtr& pt
     return out;
 }
 
-namespace detail {
-
-template <>
-struct ValueCastHelper<Parameter> {
-    static ParameterPtr cast_to(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept {
-        return ParameterPtr(Parameter(
-            addr,
-            doc,
-            ref_holder
-        ));
-    }
-};
-
-}
-
 
 }}

@@ -47,6 +47,12 @@ public:
 };
 
 class StaticHermesCtrImpl;
+struct CommonInstance;
+
+namespace detail {
+template <typename, bool>
+struct DTSizeDispatcher;
+}
 
 template <size_t Size>
 class SizedHermesCtrImpl;
@@ -88,6 +94,7 @@ protected:
     using Base::ptr_holder_;
 
     friend class HermesCtrBuilder;
+    friend struct CommonInstance;
 
     template <typename, typename>
     friend class Map;
@@ -97,6 +104,9 @@ protected:
 
     template <typename>
     friend struct memoria::DataTypeTraits;
+
+    template <typename, bool>
+    friend struct detail::DTSizeDispatcher;
 
     friend class Datatype;
 
@@ -281,6 +291,13 @@ public:
     static DataObjectPtr<DT> wrap_dataobject(DTTViewType<DT> view);
 
 protected:
+    template <typename DT>
+    static DataObjectPtr<DT> wrap_dataobject__full(DTTViewType<DT> view);
+
+    template <typename DT>
+    static DataObjectPtr<DT> wrap_primitive(DTTViewType<DT> view);
+
+
     ValuePtr parse_raw_value(
             CharIterator start,
             CharIterator end,
@@ -325,6 +342,8 @@ protected:
     void init_from(arena::ArenaAllocator& arena);
 
     static PoolSharedPtr<StaticHermesCtrImpl> get_ctr_instance(size_t size);
+
+    static PoolSharedPtr<HermesCtr> common_instance();
 
 private:
 

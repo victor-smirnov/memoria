@@ -191,9 +191,10 @@ constexpr bool DTTIsNDFixedSize = dtt_::DTTIsNDFixedSize<
 
 
 template <typename T> struct DataTypeTraitsBase {
-    static constexpr bool isDataType = true;
+    static constexpr bool isDataType    = true;
     static constexpr bool isSdnDeserializable = false;
-    static constexpr bool isArithmetic = false;
+    static constexpr bool isArithmetic  = false;
+    static constexpr bool isFixedSize   = false;
 
     using DatumSelector         = EmptyType;
     using DatumStorageSelector  = EmptyType;
@@ -246,6 +247,8 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
     using ViewType      = T;
     using LDViewType    = T;
     using LDStorageType = LDST;
+
+    static constexpr bool isFixedSize = true;
 
     static constexpr bool HasTypeConstructors = false;
 

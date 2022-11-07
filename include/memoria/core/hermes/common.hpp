@@ -19,6 +19,10 @@
 #include <memoria/core/tools/arena_buffer.hpp>
 #include <memoria/core/memory/object_pool.hpp>
 
+#include <memoria/core/hermes/traits.hpp>
+
+#include <memoria/core/arena/arena.hpp>
+
 #include <ostream>
 
 namespace memoria {
@@ -374,11 +378,65 @@ struct TaggedGenericView: SharedPtrHolder {
     void* view_ptr;
 };
 
+enum ValueStorageTag {
+    VS_TAG_ADDRESS, VS_TAG_SMALL_VALUE, VS_TAG_GENERIC_VIEW
+};
+
 union ValueStorage {
     void* addr;
     TaggedValue small_value;
     TaggedGenericView* view_ptr;
+
+    template <typename DT>
+    DTTViewType<DT>& get_view(ValueStorageTag tag) {
+        if (tag == ValueStorageTag::VS_TAG_SMALL_VALUE) {
+            return *reinterpret_cast<DTTViewType<DT>*>(small_value.value);
+        }
+        else if (tag == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
+            if (view_ptr) {
+                return *reinterpret_cast<DTTViewType<DT>*>(view_ptr->view_ptr);
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Provided ValueStorage GenericView is null").do_throw();
+            }
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Unsupported ValueStorageTag value: {}", (int64_t)tag).do_throw();
+        }
+    }
+
+    template <typename DT>
+    const DTTViewType<DT>& get_view(ValueStorageTag tag) const {
+        if (tag == ValueStorageTag::VS_TAG_SMALL_VALUE) {
+            return *reinterpret_cast<DTTViewType<DT>*>(small_value.value);
+        }
+        else if (tag == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
+            if (view_ptr) {
+                return *reinterpret_cast<DTTViewType<DT>*>(view_ptr->view_ptr);
+            }
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Unsupported ValueStorageTag value: {}", (int64_t)tag).do_throw();
+        }
+    }
 };
+
+static inline uint64_t get_type_tag(ValueStorageTag vs_tag, const ValueStorage& value_storage) noexcept
+{
+    if (vs_tag == ValueStorageTag::VS_TAG_ADDRESS) {
+        return arena::read_type_tag(value_storage.addr);
+    }
+    else if (vs_tag == ValueStorageTag::VS_TAG_SMALL_VALUE) {
+        return value_storage.small_value.tag;
+    }
+    else if (vs_tag == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
+        if (value_storage.view_ptr) {
+            return value_storage.view_ptr->tag;
+        }
+    }
+
+    return 0;
+}
 
 
 template <size_t AlignOf, size_t Size, typename ValueT>
@@ -500,6 +558,19 @@ protected:
     }
 };
 
+namespace detail {
 
+template <typename T>
+struct ValueCastHelper {
+    static ViewPtr<T> cast_to(ValueStorageTag, ValueStorage& storage, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept {
+        return ViewPtr<T>(T(
+            storage.addr,
+            doc,
+            ref_holder
+        ));
+    }
+};
+
+}
 
 }}

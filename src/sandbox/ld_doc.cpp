@@ -44,19 +44,18 @@ int main(int, char**)
 {
     InitTypeReflections();
 
-    //    auto doc0 = "01000ull"_hdoc;
-    //    println("{}", doc0->to_pretty_string());
-
     auto doc = HermesCtr::parse_document(R"(        
-        class MyType<Parameter1<12345ull, true, -5679>>(1,2,3,4,5)
+        [1, 3, 1, 2, 9, 1, 3, 5]
     )");
 
-    println("{}", doc->to_string(StringifyCfg::simple()));
-    println("{}", doc->root()->as_datatype()->to_cxx_string());
 
-    auto hash = doc->root()->as_datatype()->cxx_type_hash();
+    auto v1 = doc->root()->search("to_boolean(sort(@))");
+    println("result: {}", v1->to_pretty_string());
+    println("detached: {}", v1->is_detached());
 
-    println("{}", hash);
+    auto v2 = HermesCtr::wrap_dataobject<Double>(1234.5678);
+    println("double: {}", v2->to_pretty_string());
+    println("detached: {}", v2->is_detached());
 
 
 }

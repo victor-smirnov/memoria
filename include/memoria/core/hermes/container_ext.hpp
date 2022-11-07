@@ -109,8 +109,29 @@ DataObjectPtr<DT> HermesCtr::new_dataobject(DTTViewType<DT> view)
     return DataObjectPtr<DT>(DTCtr(arena_dtc, this, ptr_holder_));
 }
 
+
+
 template <typename DT>
-DataObjectPtr<DT> HermesCtr::wrap_dataobject(DTTViewType<DT> view)
+DataObjectPtr<DT> HermesCtr::wrap_primitive(DTTViewType<DT> view)
+{
+    static_assert(
+        DataTypeTraits<DT>::isFixedSize &&
+        sizeof(view) <= sizeof(TaggedValue::value),
+        ""
+    );
+
+    TaggedValue storage;
+    storage.tag = TypeHashV<DT>;
+    std::memset(&storage.value, 0, sizeof(storage.value));
+    std::memcpy(&storage.value, &view, sizeof(view));
+
+    auto ctr = common_instance();
+
+    return DataObjectPtr<DT>(DataObject<DT>(storage, ctr.get(), ctr->ptr_holder_));
+}
+
+template <typename DT>
+DataObjectPtr<DT> HermesCtr::wrap_dataobject__full(DTTViewType<DT> view)
 {
     using DataObjectT = DataObject<DT>;
     using ContainerT = typename DataObjectT::ArenaDTContainer;
@@ -139,6 +160,32 @@ DataObjectPtr<DT> HermesCtr::wrap_dataobject(DTTViewType<DT> view)
     return instance->root()->as_data_object<DT>();
 }
 
+namespace detail {
+
+template <typename DT>
+struct DTSizeDispatcher<DT, true> {
+    static auto dispatch(const DTTViewType<DT>& view) {
+        return HermesCtr::wrap_primitive<DT>(view);
+    }
+};
+
+template <typename DT>
+struct DTSizeDispatcher<DT, false> {
+    static auto dispatch(const DTTViewType<DT>& view) {
+        return HermesCtr::wrap_dataobject__full<DT>(view);
+    }
+};
+
+}
+
+template <typename DT>
+DataObjectPtr<DT> HermesCtr::wrap_dataobject(DTTViewType<DT> view)
+{
+    return detail::DTSizeDispatcher<DT,
+            DataTypeTraits<DT>::isFixedSize &&
+            sizeof(view) <= sizeof(TaggedValue::value)
+    >::dispatch(view);
+}
 
 inline GenericArrayPtr Value::as_generic_array() const {
     return cast_to<GenericArray>();
@@ -154,28 +201,28 @@ inline DatatypePtr Value::as_datatype() const {
 }
 
 inline DataObjectPtr<Varchar> Value::as_varchar() const {
-    return cast_to<Varchar>();
+    return cast_to<DataObject<Varchar>>();
 }
 
 inline DataObjectPtr<Double> Value::as_double() const {
-    return cast_to<Double>();
+    return cast_to<DataObject<Double>>();
 }
 
 inline DataObjectPtr<BigInt> Value::as_bigint() const {
-    return cast_to<BigInt>();
+    return cast_to<DataObject<BigInt>>();
 }
 
 inline DataObjectPtr<Boolean> Value::as_boolean() const {
-    return cast_to<Boolean>();
+    return cast_to<DataObject<Boolean>>();
 }
 
 inline DataObjectPtr<Real> Value::as_real() const {
-    return cast_to<Real>();
+    return cast_to<DataObject<Real>>();
 }
 
 inline U8String Value::type_str() const {
     assert_not_null();
-    auto tag = arena::read_type_tag(value_storage_.addr);
+    auto tag = get_type_tag();
     return get_type_reflection(tag).str();
 }
 
@@ -184,9 +231,9 @@ template <typename DT>
 ValuePtr Value::convert_to() const
 {
     assert_not_null();
-    auto src_tag = arena::read_type_tag(value_storage_.addr);
+    auto src_tag = get_type_tag();
     auto to_tag = TypeHashV<DT>;
-    return get_type_reflection(src_tag).datatype_convert_to(to_tag, value_storage_.addr, doc_, get_ptr_holder());
+    return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), value_storage_, doc_, get_ptr_holder());
 }
 
 template <typename DT>
@@ -194,9 +241,9 @@ template <typename ToDT>
 DataObjectPtr<ToDT> DataObject<DT>::convert_to() const
 {
     assert_not_null();
-    auto src_tag = arena::read_type_tag(value_storage_.addr);
+    auto src_tag = get_type_tag();
     auto to_tag = TypeHashV<ToDT>;
-    return get_type_reflection(src_tag).datatype_convert_to(to_tag, value_storage_.addr, doc_, this->get_ptr_holder());
+    return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), value_storage_, doc_, this->get_ptr_holder());
 }
 
 }}

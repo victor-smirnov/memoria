@@ -77,10 +77,6 @@ using TypedValuePtr = ViewPtr<TypedValue, true>;
 
 using ParameterPtr = ViewPtr<Parameter, true>;
 
-namespace detail {
-template <typename> struct ValueCastHelper;
-}
-
 }
 
 template <typename DT>

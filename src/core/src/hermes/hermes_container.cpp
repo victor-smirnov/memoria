@@ -195,11 +195,19 @@ ParameterPtr HermesCtr::new_parameter(U8StringView name) {
 }
 
 
+struct CommonInstance {
+    PoolSharedPtr<HermesCtr> ctr;
+    CommonInstance() {
+        ctr = HermesCtr::wrap_dataobject<Varchar>("Dedicated HermesCtr instance for 8-byte data objects")->document();
+    }
+};
 
 
-//PoolSharedPtr<HermesCtr> HermesCtr::make_ctr() {
 
-//}
+PoolSharedPtr<HermesCtr> HermesCtr::common_instance() {
+    static thread_local CommonInstance instance;
+    return instance.ctr;
+}
 
 
 }}

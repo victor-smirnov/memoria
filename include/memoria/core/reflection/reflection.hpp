@@ -58,7 +58,8 @@ public:
     virtual uint64_t shot_type_hash() const noexcept = 0;
 
     virtual void hermes_stringify_value(
-            void* ptr,
+            hermes::ValueStorageTag vs_tag,
+            hermes::ValueStorage& ptr,
             hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder,
 
@@ -106,17 +107,21 @@ public:
     }
 
     virtual hermes::ValuePtr datatype_convert_to(
-            uint64_t taget_tag,
-            void* ptr,
+            uint64_t target_tag,
+            hermes::ValueStorageTag vs_tag,
+            hermes::ValueStorage& ptr,
             hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
     ) const ;
 
     virtual hermes::ValuePtr datatype_convert_from_plain_string(U8StringView str) const;
 
-    virtual U8String convert_to_plain_string(void* ptr,
-                                             hermes::HermesCtr* doc,
-                                             ViewPtrHolder* ref_holder) const;
+    virtual U8String convert_to_plain_string(
+            hermes::ValueStorageTag vs_tag,
+            hermes::ValueStorage& ptr,
+            hermes::HermesCtr* doc,
+            ViewPtrHolder* ref_holder
+    ) const;
 
     virtual bool hermes_comparable() const {
         return false;
@@ -130,16 +135,23 @@ public:
         return false;
     }
 
-    virtual int32_t hermes_compare(void*, hermes::HermesCtr*, ViewPtrHolder*, void*, hermes::HermesCtr*, ViewPtrHolder*) const {
+    virtual int32_t hermes_compare(
+            hermes::ValueStorageTag,
+            hermes::ValueStorage&, hermes::HermesCtr*, ViewPtrHolder*,
+            hermes::ValueStorageTag,
+            hermes::ValueStorage&, hermes::HermesCtr*, ViewPtrHolder*
+    ) const
+    {
         MEMORIA_MAKE_GENERIC_ERROR("Objects of the same type {} are not Hermes-comparable", str()).do_throw();
     }
 
-    virtual bool hermes_equals(void*, hermes::HermesCtr*, ViewPtrHolder*, void*, hermes::HermesCtr*, ViewPtrHolder*) const {
+    virtual bool hermes_equals(
+            hermes::ValueStorageTag,
+            hermes::ValueStorage&, hermes::HermesCtr*, ViewPtrHolder*,
+            hermes::ValueStorageTag,
+            hermes::ValueStorage&, hermes::HermesCtr*, ViewPtrHolder*
+    ) const {
         MEMORIA_MAKE_GENERIC_ERROR("Objects of type {} are not Hermes-equals-comparable" ).do_throw();
-    }
-
-    virtual int32_t datatype_view_compare(const void*, const void*) const {
-        MEMORIA_MAKE_GENERIC_ERROR("Datatype views of type {} are not view-comparable" ).do_throw();
     }
 };
 
@@ -149,11 +161,11 @@ class TypeReflectionImplBase: public TypeReflection {
 public:
     TypeReflectionImplBase() {}
 
-    virtual const std::type_info& type_info() const noexcept {
+    virtual const std::type_info& type_info() const noexcept override {
         return typeid(T);
     }
 
-    virtual U8String str() const {
+    virtual U8String str() const override {
         return TypeNameFactory<T>::name();
     }
 
@@ -161,7 +173,7 @@ public:
             void* ptr,
             hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
-    ) const {
+    ) const override {
         MEMORIA_MAKE_GENERIC_ERROR("hermes_is_simple_layout() is not implemented for type {}", str()).do_throw();
     }
 };
@@ -173,7 +185,7 @@ public:
 
     // Not all types may have short type hash
     // TypeHash<T>
-    virtual uint64_t shot_type_hash() const noexcept {
+    virtual uint64_t shot_type_hash() const noexcept override {
         return TypeHashV<T>;
     };
 };

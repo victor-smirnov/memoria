@@ -85,7 +85,9 @@ std::ostream& operator<<(std::ostream& os, const IDValue& id) {
 
 
 hermes::ValuePtr TypeReflection::datatype_convert_to(
-        uint64_t target_tag, void*,
+        uint64_t target_tag,
+        hermes::ValueStorageTag vs_tag,
+        hermes::ValueStorage& ptr,
         hermes::HermesCtr*,
         ViewPtrHolder*) const {
     MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible to {}",
@@ -97,9 +99,12 @@ hermes::ValuePtr TypeReflection::datatype_convert_from_plain_string(U8StringView
     MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible from plain string", str()).do_throw();
 }
 
-U8String TypeReflection::convert_to_plain_string(void*,
-                                                 hermes::HermesCtr*,
-                                                 ViewPtrHolder*) const
+U8String TypeReflection::convert_to_plain_string(
+        hermes::ValueStorageTag vs_stag,
+        hermes::ValueStorage& storage,
+        hermes::HermesCtr*,
+        ViewPtrHolder*
+) const
 {
     MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible to plain string", str()).do_throw();
 }
