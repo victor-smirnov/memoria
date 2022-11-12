@@ -741,7 +741,6 @@ public:
         const auto& view = storage.get_view<DT>(vs_tag);
         return ctr->new_dataobject<DT>(view)->as_object();
     }
-
 };
 
 }

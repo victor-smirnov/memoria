@@ -25,6 +25,8 @@
 #include <memoria/core/flat_map/flat_hash_map.hpp>
 
 #include <typeinfo>
+#include <functional>
+
 
 namespace memoria {
 
@@ -46,9 +48,17 @@ struct IDatatypeConverter {
 
 class DeepCopyDeduplicator;
 
-class TypeReflection {
+class TypeReflection: public std::enable_shared_from_this<TypeReflection> {
 public:
     virtual ~TypeReflection() noexcept = default;
+
+    virtual std::shared_ptr<const TypeReflection> self() const {
+        return this->shared_from_this();
+    }
+
+    virtual std::shared_ptr<TypeReflection> self() {
+        return this->shared_from_this();
+    }
 
     virtual const std::type_info& type_info() const noexcept = 0;
     virtual U8String str() const = 0;
@@ -206,10 +216,20 @@ public:
 
 
 TypeReflection& get_type_reflection(ShortTypeCode short_type_hash);
+TypeReflection& get_type_reflection(const UID256& type_hash);
 
 bool has_type_reflection(ShortTypeCode short_type_hash);
+bool has_type_reflection(const UID256& type_hash);
 
-void register_type_reflection(std::unique_ptr<TypeReflection> type_reflection);
+void for_each_type_reflection(std::function<void (const UID256&, TypeReflection&)> fn);
+void for_each_type_reflection(std::function<void (const ShortTypeCode&, TypeReflection&)> fn);
+
+
+void register_type_reflection(TypeReflection& type_reflection);
+void register_type_reflection(const UID256& type_code, TypeReflection& type_reflection);
+
+
+
 
 class DeepCopyDeduplicator {
     ska::flat_hash_map<const void*, arena::AddrResolver<void>> addr_map_;

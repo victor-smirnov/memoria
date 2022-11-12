@@ -370,6 +370,8 @@ private:
     void assert_mutable();
 };
 
+hermes::DatatypePtr strip_namespaces(hermes::DatatypePtr datatype);
+
 }
 
 struct Hermes{};
@@ -502,6 +504,5 @@ public:
 inline PoolSharedPtr<hermes::HermesCtr> operator "" _hdoc(const char* s, std::size_t n) {
     return hermes::HermesCtr::parse_document(s, s + n);
 }
-
 
 }

@@ -33,7 +33,7 @@ template <typename DTList> struct DataObjectReflectionListBuilder;
 template <typename DT, typename... Tail>
 struct DataObjectReflectionListBuilder<TL<DT, Tail...>> {
     static void build() {
-        register_type_reflection(std::make_unique<HermesTypeReflectionDatatypeImpl<DataObject<DT>, DT>>());
+        register_type_reflection(*std::make_shared<HermesTypeReflectionDatatypeImpl<DataObject<DT>, DT>>());
         DataObjectReflectionListBuilder<TL<Tail...>>::build();
     }
 };
@@ -50,24 +50,37 @@ void InitTypeReflections()
 {
     HermesCtr::init_hermes_doc_parser();
 
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<Object>, TypedGenericArray<Object>>>());
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<Integer>, TypedGenericArray<Integer>>>());
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<UInteger>, TypedGenericArray<UInteger>>>());
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<Real>, TypedGenericArray<Real>>>());
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<Double>, TypedGenericArray<Double>>>());
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<UBigInt>, TypedGenericArray<UBigInt>>>());
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<BigInt>, TypedGenericArray<BigInt>>>());
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<SmallInt>, TypedGenericArray<SmallInt>>>());
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<USmallInt>, TypedGenericArray<USmallInt>>>());
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<TinyInt>, TypedGenericArray<TinyInt>>>());
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<UTinyInt>, TypedGenericArray<UTinyInt>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<Object>, TypedGenericArray<Object>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<Integer>, TypedGenericArray<Integer>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<UInteger>, TypedGenericArray<UInteger>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<Real>, TypedGenericArray<Real>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<Double>, TypedGenericArray<Double>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<UBigInt>, TypedGenericArray<UBigInt>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<BigInt>, TypedGenericArray<BigInt>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<SmallInt>, TypedGenericArray<SmallInt>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<USmallInt>, TypedGenericArray<USmallInt>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<TinyInt>, TypedGenericArray<TinyInt>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<UTinyInt>, TypedGenericArray<UTinyInt>>>());
 
-    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Map<Varchar, Object>, GenericObjectMap>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<TypedValue>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Parameter>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Map<Varchar, Object>, GenericObjectMap>>());
+    register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<Datatype>>());
+    register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<TypedValue>>());
+    register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<Parameter>>());
 
     DataObjectReflectionListBuilder<AllHermesDatatypes>::build();
+
+    for_each_type_reflection([](const ShortTypeCode& type_code, TypeReflection& reflection) {
+        auto datatype = HermesCtr::parse_datatype(reflection.str())->root()->as_datatype();
+        auto hash = datatype->cxx_type_hash();
+        register_type_reflection(hash, *reflection.self());
+
+        auto alias_dt = strip_namespaces(datatype);
+        if (alias_dt->type_name()->view() == "DataObject") {
+            alias_dt = alias_dt->type_parameters()->get(0)->as_datatype();
+        }
+
+        register_type_reflection(alias_dt->cxx_type_hash(), *reflection.self());
+    });
 }
 
 }

@@ -470,10 +470,10 @@ public:
 
     UID256 cxx_type_hash() const;
 
-protected:
-
     void append_type_parameter(ObjectPtr value);
     void append_constructor_argument(ObjectPtr value);
+
+
 
 private:
     void assert_not_null() const
