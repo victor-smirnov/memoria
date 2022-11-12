@@ -78,8 +78,8 @@ public:
         return value_;
     }
 
-    ValuePtr finish() const {
-        return HermesCtrBuilder::current().template new_dataobject<DT>(value_)->as_value();
+    ObjectPtr finish() const {
+        return HermesCtrBuilder::current().template new_dataobject<DT>(value_)->as_object();
     }
 };
 
@@ -89,10 +89,10 @@ struct HermesIdentifier {
 
 
 class ArrayValue {
-    GenericArrayPtr array_;
+    ObjectArrayPtr array_;
 
 public:
-    using value_type = ViewPtr<Value>;
+    using value_type = ViewPtr<Object>;
     using iterator = EmptyType;
 
     ArrayValue() {
@@ -155,10 +155,10 @@ public:
 };
 
 
-using MapEntryTuple = boost::phoenix::vector2<std::string, ValuePtr>;
+using MapEntryTuple = boost::phoenix::vector2<std::string, ObjectPtr>;
 
 class MapValue {
-    GenericMapPtr value_;
+    ObjectMapPtr value_;
 public:
     using value_type = MapEntryTuple;
     using iterator = EmptyType;
@@ -173,7 +173,7 @@ public:
         HermesCtrBuilder::current().append_entry(value_, boost::fusion::at_c<0>(entry), boost::fusion::at_c<1>(entry));
     }
 
-    GenericMapPtr finish() {
+    ObjectMapPtr finish() {
         return std::move(value_);
     }
 };
@@ -200,8 +200,8 @@ public:
 class TypeDeclarationValue {
 
     StringValuePtr datatype_name_;
-    std::vector<ValuePtr> params_;
-    std::vector<ValuePtr> ctr_args_;
+    std::vector<ObjectPtr> params_;
+    std::vector<ObjectPtr> ctr_args_;
     std::vector<PtrSpecifier> ptr_specs_;
     bool is_const_{false};
     bool is_volatile_{false};
@@ -212,11 +212,11 @@ public:
         datatype_name_ = ii;
     }
 
-    void add_datatype_parameter(ValuePtr value) {
+    void add_datatype_parameter(ObjectPtr value) {
         params_.push_back(value);
     }
 
-    void add_constructor_arg(ValuePtr value) {
+    void add_constructor_arg(ObjectPtr value) {
         ctr_args_.push_back(value);
     }
 
@@ -283,47 +283,47 @@ using TypeDeclOrReference = boost::variant<std::string, TypeDeclarationValue>;
 
 struct ValueVisitor: boost::static_visitor<> {
 
-    ValuePtr value;
+    ObjectPtr value;
 
     void operator()(long long v) {
-        value = HermesCtrBuilder::current().new_bigint(v)->as_value();
+        value = HermesCtrBuilder::current().new_bigint(v)->as_object();
     }
 
     void operator()(double v) {
-        value = HermesCtrBuilder::current().new_double(v)->as_value();
+        value = HermesCtrBuilder::current().new_double(v)->as_object();
     }
 
     void operator()(bool v) {
-        value = HermesCtrBuilder::current().new_boolean(v)->as_value();
+        value = HermesCtrBuilder::current().new_boolean(v)->as_object();
     }
 
-    void operator()(GenericMapPtr&) {}
+    void operator()(ObjectMapPtr&) {}
 
     void operator()(StringValuePtr& v) {
-        value = v->as_value();
+        value = v->as_object();
     }
 
-    void operator()(ValuePtr& v) {
+    void operator()(ObjectPtr& v) {
         value = v;
     }
 
     template <typename V>
     void operator()(V& v) {
-        value = v.finish()->as_value();
+        value = v.finish()->as_object();
     }
 };
 
-using TypedValueValueBase = boost::fusion::vector2<TypeDeclOrReference, ValuePtr>;
+using TypedValueValueBase = boost::fusion::vector2<TypeDeclOrReference, ObjectPtr>;
 
 
 struct TypedValueValue: TypedValueValueBase {
 
     struct Visitor: public boost::static_visitor<> {
 
-        ValuePtr ctr_value_;
-        ValuePtr typed_value;
+        ObjectPtr ctr_value_;
+        ObjectPtr typed_value;
 
-        Visitor(ValuePtr ctr_value): ctr_value_(ctr_value) {}
+        Visitor(ObjectPtr ctr_value): ctr_value_(ctr_value) {}
 
         void operator()(const std::string& ref)
         {
@@ -331,18 +331,18 @@ struct TypedValueValue: TypedValueValueBase {
             typed_value = HermesCtrBuilder::current().new_typed_value(
                         datatype,
                         ctr_value_
-            )->as_value();
+            )->as_object();
         }
 
         void operator()(DatatypePtr type_decl){
             typed_value = HermesCtrBuilder::current().new_typed_value(
                         type_decl,
                         ctr_value_
-            )->as_value();
+            )->as_object();
         }
     };
 
-    ValuePtr finish()
+    ObjectPtr finish()
     {
         Visitor vv(boost::fusion::at_c<1>(*this));
         boost::apply_visitor(vv, bf::at_c<0>(*this));
@@ -354,7 +354,7 @@ struct TypedValueValue: TypedValueValueBase {
 using StringOrTypedValueBase = boost::fusion::vector2<std::string, Optional<TypeDeclOrReference>>;
 
 struct StringOrTypedValue: StringOrTypedValueBase {
-    ValuePtr finish()
+    ObjectPtr finish()
     {
         const auto& str  = bf::at_c<0>(*this);
         auto h_str = HermesCtrBuilder::current().new_varchar(str);
@@ -362,13 +362,13 @@ struct StringOrTypedValue: StringOrTypedValueBase {
 
         if (MMA_LIKELY(!type)) {
 
-            return h_str->as_value();
+            return h_str->as_object();
         }
 
         TypedValueValue typed_value;
 
         bf::at_c<0>(typed_value) = type.get();
-        bf::at_c<1>(typed_value) = h_str->as_value();
+        bf::at_c<1>(typed_value) = h_str->as_object();
 
         return typed_value.finish();
     }
@@ -608,7 +608,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
         integer_value = (uint64_parser | int64_parser) [finish_value];
 
         static auto finish_parameter = [](auto& attrib, auto& ctx) {
-                    bf::at_c<0>(ctx.attributes) = HermesCtrBuilder::current().new_parameter(attrib.identifier)->as_value();
+                    bf::at_c<0>(ctx.attributes) = HermesCtrBuilder::current().new_parameter(attrib.identifier)->as_object();
         };
         parameter = lit('?') >> m_identifierRule[finish_parameter];
 
@@ -672,18 +672,18 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
 
     qi::rule<Iterator, Integer<uint64_t, UBigInt>(), Skipper> uint64_parser;
     qi::rule<Iterator, Integer<int64_t, BigInt>(), Skipper>  int64_parser;
-    qi::rule<Iterator, ValuePtr, Skipper>  integer_value;
+    qi::rule<Iterator, ObjectPtr, Skipper>  integer_value;
 
 
-    qi::rule<Iterator, ValuePtr(), Skipper>             hermes_value;
-    qi::rule<Iterator, ValuePtr(), Skipper>             standalone_hermes_value;
+    qi::rule<Iterator, ObjectPtr(), Skipper>             hermes_value;
+    qi::rule<Iterator, ObjectPtr(), Skipper>             standalone_hermes_value;
 
     qi::rule<Iterator, ArrayValue(), Skipper>           array;
     qi::rule<Iterator, MapValue(), Skipper>             map;
 
     qi::rule<Iterator, MapEntryTuple(), Skipper>        map_entry;
 
-    qi::rule<Iterator, ValuePtr(), Skipper>             null_value;
+    qi::rule<Iterator, ObjectPtr(), Skipper>             null_value;
     qi::rule<Iterator, std::string(), Skipper>          hermes_string;
     qi::rule<Iterator, std::string(), Skipper>          hermes_identifier;
 
@@ -695,10 +695,10 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, PtrSpecifier(), Skipper>         ref_ptr_const_qual;
 
     qi::rule<Iterator, TypeDeclarationValue(), Skipper> type_declaration;
-    qi::rule<Iterator, ValuePtr(), Skipper>             type_parameter;
+    qi::rule<Iterator, ObjectPtr(), Skipper>             type_parameter;
     qi::rule<Iterator, DatatypePtr(), Skipper>          standalone_type_decl;
 
-    qi::rule<Iterator, ValuePtr(), Skipper>             parameter;
+    qi::rule<Iterator, ObjectPtr(), Skipper>             parameter;
 
     qi::rule<Iterator, TypedValueValue(), Skipper>      typed_value;
 

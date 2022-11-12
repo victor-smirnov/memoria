@@ -22,7 +22,7 @@
 #include <memoria/core/arena/hash_fn.hpp>
 
 
-#include <memoria/core/hermes/value.hpp>
+#include <memoria/core/hermes/object.hpp>
 #include <memoria/core/hermes/common.hpp>
 
 #include <memoria/core/tools/uid_256.hpp>
@@ -226,7 +226,7 @@ public:
 
     DatatypeData* deep_copy_to(
             arena::ArenaAllocator& dst,
-            arena::ObjectTag tag,
+            ShortTypeCode tag,
             void* owner_view,
             ViewPtrHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const
@@ -237,7 +237,7 @@ public:
         }
         else {
             arena::ArenaString * name_ptr =
-                get_type_reflection(TypeHashV<Varchar>).deep_copy(dst, name_.get(), owner_view, ptr_holder, dedup);
+                get_type_reflection(ShortTypeCode::of<Varchar>()).deep_copy(dst, name_.get(), owner_view, ptr_holder, dedup);
 
             auto dtd = dst.get_resolver_for(dst.template allocate_tagged_object<DatatypeData>(
                 tag, name_ptr
@@ -276,7 +276,7 @@ public:
 class Datatype: public HoldingView<Datatype> {
     using Base = HoldingView<Datatype>;
     friend class HermesCtr;
-    friend class Value;
+    friend class Object;
     friend class HermesCtrBuilder;
 
     template <typename, typename>
@@ -304,8 +304,8 @@ public:
         return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
-    ValuePtr as_value() const {
-        return ValuePtr(Value(datatype_, doc_, ptr_holder_));
+    ObjectPtr as_object() const {
+        return ObjectPtr(Object(datatype_, doc_, ptr_holder_));
     }
 
     U8String to_string(const StringifyCfg& cfg = StringifyCfg()) const
@@ -344,10 +344,10 @@ public:
     bool is_simple_layout() const;
 
     StringValuePtr type_name() const;
-    GenericArrayPtr set_constructor();
-    GenericArrayPtr constructor() const;
+    ObjectArrayPtr set_constructor();
+    ObjectArrayPtr constructor() const;
 
-    GenericArrayPtr type_parameters() const;
+    ObjectArrayPtr type_parameters() const;
     DatatypePtr append_type_parameter(U8StringView name);
     DatatypePtr append_type_parameter(StringValuePtr name);
 
@@ -465,15 +465,15 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return datatype_->deep_copy_to(arena, TypeHashV<Datatype>, doc_, ptr_holder_, dedup);
+        return datatype_->deep_copy_to(arena, ShortTypeCode::of<Datatype>(), doc_, ptr_holder_, dedup);
     }
 
     UID256 cxx_type_hash() const;
 
 protected:
 
-    void append_type_parameter(ValuePtr value);
-    void append_constructor_argument(ValuePtr value);
+    void append_type_parameter(ObjectPtr value);
+    void append_constructor_argument(ObjectPtr value);
 
 private:
     void assert_not_null() const

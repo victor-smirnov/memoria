@@ -63,9 +63,9 @@ namespace path {
  * specified for a HermesPath function call in the *expression*.
  */
 
-ValuePtr search(const Expression& expression, const ValuePtr& document);
+ObjectPtr search(const Expression& expression, const ObjectPtr& document);
 
-ValuePtr search(const Expression& expression, const ValuePtr& document, const IParameterResolver& resolver);
+ObjectPtr search(const Expression& expression, const ObjectPtr& document, const IParameterResolver& resolver);
 
 }
 }}

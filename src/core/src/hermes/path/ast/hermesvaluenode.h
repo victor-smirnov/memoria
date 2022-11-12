@@ -53,7 +53,7 @@ public:
      * @a string
      * @param[in] string The raw string value.
      */
-    HermesValueNode(const ValuePtr& string);
+    HermesValueNode(const ObjectPtr& string);
     /**
      * @brief Calls the visit method of the given @a visitor with the
      * dynamic type of the node.
@@ -70,11 +70,11 @@ public:
     /**
      * @brief The raw string value
      */
-    ValuePtr value;
+    ObjectPtr value;
 };
 }} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::HermesValueNode,
-    (memoria::hermes::ValuePtr, value)
+    (memoria::hermes::ObjectPtr, value)
 )

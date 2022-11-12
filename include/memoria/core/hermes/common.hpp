@@ -28,7 +28,17 @@
 namespace memoria {
 namespace hermes {
 
+
 class HermesCtr;
+
+class CtrAware {
+protected:
+    mutable HermesCtr* ctr_;
+public:
+    CtrAware(HermesCtr* ctr): ctr_(ctr) {}
+
+    PoolSharedPtr<HermesCtr> ctr() const;
+};
 
 class StringifySpec {
     const char* space_;
@@ -368,14 +378,110 @@ private:
 
 
 
-struct TaggedValue {
-    uint64_t tag;
-    alignas(8) uint8_t value[8];
+class TaggedValue {
+    static constexpr size_t VALUE_ALIGN = 8;
+    static constexpr size_t VALUE_SIZE  = 8;
+
+private:
+
+    ShortTypeCode tag_;
+    alignas(VALUE_ALIGN) uint8_t value_[VALUE_SIZE];
+
+public:
+    TaggedValue() = default;
+
+    template <typename T>
+    TaggedValue(ShortTypeCode tag, T value):
+        tag_(tag)
+    {
+        set(value);
+    }
+
+    template <typename T>
+    void set(const T& vv) {
+        static_assert(fits_in<T>(), "");
+        *reinterpret_cast<T*>(value_) = vv;
+    }
+
+    template <typename T>
+    T& get() {
+        static_assert(fits_in<T>(), "");
+        return *reinterpret_cast<T*>(value_);
+    }
+
+    template <typename T>
+    const T& get() const {
+        static_assert(fits_in<T>(), "");
+        return *reinterpret_cast<const T*>(value_);
+    }
+
+    template <typename T>
+    T& get_unchecked() {
+        return *reinterpret_cast<T*>(value_);
+    }
+
+    template <typename T>
+    const T& get_unchecked() const {
+        return *reinterpret_cast<const T*>(value_);
+    }
+
+    const ShortTypeCode& tag() const {
+        return tag_;
+    }
+
+    template <typename T>
+    static constexpr bool fits_in()
+    {
+        return alignof(T) <= VALUE_ALIGN && sizeof(T) <= VALUE_SIZE;
+    }
+
+    template <typename DT>
+    static constexpr bool dt_fits_in()
+    {
+        using T = DTTViewType<DT>;
+        return DataTypeTraits<DT>::isFixedSize && fits_in<T>();
+    }
 };
 
 struct TaggedGenericView: SharedPtrHolder {
-    uint64_t tag;
-    void* view_ptr;
+    static constexpr size_t VIEW_ALIGN_OF = 8;
+    static constexpr size_t MAX_VIEW_SIZE = 64;
+
+private:
+    ShortTypeCode tag_;
+    void* view_ptr_;
+
+public:
+    TaggedGenericView() = default;
+    TaggedGenericView(ShortTypeCode tag):
+        tag_(tag), view_ptr_()
+    {}
+
+    const ShortTypeCode& tag() const {
+        return tag_;
+    }
+
+    template <typename T>
+    T& get() {
+        return *reinterpret_cast<T*>(view_ptr_);
+    }
+
+    void set_buffer(void* buffer) {
+        view_ptr_ = buffer;
+    }
+
+    static PoolSharedPtr<TaggedGenericView> allocate_space(size_t size);
+
+    template <typename DT>
+    static PoolSharedPtr<TaggedGenericView> allocate(DTTViewType<DT> view)
+    {
+        using ViewT = DTTViewType<DT>;
+        static_assert(alignof(ViewT) <= VIEW_ALIGN_OF && sizeof(view) < MAX_VIEW_SIZE);
+
+        auto ptr = allocate_space(sizeof(view));
+        new (ptr->view_ptr_) ViewT(view);
+        return ptr;
+    }
 };
 
 enum ValueStorageTag {
@@ -388,13 +494,14 @@ union ValueStorage {
     TaggedGenericView* view_ptr;
 
     template <typename DT>
-    DTTViewType<DT>& get_view(ValueStorageTag tag) {
+    DTTViewType<DT>& get_view(ValueStorageTag tag)
+    {
         if (tag == ValueStorageTag::VS_TAG_SMALL_VALUE) {
-            return *reinterpret_cast<DTTViewType<DT>*>(small_value.value);
+            return small_value.get_unchecked<DTTViewType<DT>>();
         }
         else if (tag == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (view_ptr) {
-                return *reinterpret_cast<DTTViewType<DT>*>(view_ptr->view_ptr);
+                return view_ptr->get<DTTViewType<DT>>();
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Provided ValueStorage GenericView is null").do_throw();
@@ -406,13 +513,14 @@ union ValueStorage {
     }
 
     template <typename DT>
-    const DTTViewType<DT>& get_view(ValueStorageTag tag) const {
+    const DTTViewType<DT>& get_view(ValueStorageTag tag) const
+    {
         if (tag == ValueStorageTag::VS_TAG_SMALL_VALUE) {
-            return *reinterpret_cast<DTTViewType<DT>*>(small_value.value);
+            return small_value.get_unchecked<DTTViewType<DT>>();
         }
         else if (tag == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (view_ptr) {
-                return *reinterpret_cast<DTTViewType<DT>*>(view_ptr->view_ptr);
+                return view_ptr->get<DTTViewType<DT>>();
             }
         }
         else {
@@ -421,21 +529,38 @@ union ValueStorage {
     }
 };
 
-static inline uint64_t get_type_tag(ValueStorageTag vs_tag, const ValueStorage& value_storage) noexcept
+static inline ShortTypeCode get_type_tag(ValueStorageTag vs_tag, const ValueStorage& value_storage) noexcept
 {
     if (vs_tag == ValueStorageTag::VS_TAG_ADDRESS) {
         return arena::read_type_tag(value_storage.addr);
     }
     else if (vs_tag == ValueStorageTag::VS_TAG_SMALL_VALUE) {
-        return value_storage.small_value.tag;
+        return value_storage.small_value.tag();
     }
     else if (vs_tag == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
         if (value_storage.view_ptr) {
-            return value_storage.view_ptr->tag;
+            return value_storage.view_ptr->tag();
         }
     }
 
-    return 0;
+    return ShortTypeCode::nullv();
+}
+
+namespace detail {
+
+template <typename T, bool HasResetMethod = memoria::pool::detail::ObjectPoolLicycleMethods<T>::HasSetBuffer>
+struct SetObjectBufferHelper {
+    static void process(T*, void*) noexcept {}
+};
+
+template <typename T>
+struct SetObjectBufferHelper<T, true> {
+    static void process(T* obj, void* buffer) noexcept {
+        obj->set_buffer(buffer);
+    }
+};
+
+
 }
 
 
@@ -454,24 +579,25 @@ public:
 
         template <typename> friend class SharedPtr;
         template <typename> friend class UniquePtr;
-        template <typename> friend class SimpleObjectPool;
+
+        template <size_t, size_t, typename>
+        friend class AlignedSpacePool;
+
+
 
     public:
         template <typename... Args>
         RefHolder(boost::local_shared_ptr<AlignedSpacePool> pool, Args&&... args):
             ValueT(std::forward<Args>(args)...),
             pool_(std::move(pool))
-        {}
+        {
+            detail::SetObjectBufferHelper<ValueT>::process(this, object_storage_);
+        }
 
         template <typename T>
         T* ptr() noexcept {
             static_assert(sizeof(T) <= Size, "");
             return std::launder(reinterpret_cast<T*>(object_storage_));
-        }
-
-        template <typename T, typename... Args>
-        T* allocate_in(Args&&... args) {
-            new (object_storage_) T(std::forward<Args>(args)...);
         }
 
         virtual ~RefHolder() noexcept  = default;
@@ -482,7 +608,6 @@ public:
         }
 
         virtual void destroy() noexcept {
-            ptr()->~T();
         }
     };
 
@@ -499,16 +624,15 @@ public:
     pool::SharedPtr<ValueT> allocate_shared(Args&&... args)
     {
         auto ptr = new (alloc_.malloc()) RefHolder(this->shared_from_this(), std::forward<Args>(args)...);
-        pool::detail::SharedFromThisHelper<ValueT>::initialize(ptr->ptr(), ptr);
-        ptr->value = &ptr->object_storage_;
-        return pool::detail::make_shared_ptr_from(ptr->ptr(), ptr);
+        pool::detail::SharedFromThisHelper<ValueT>::initialize(ptr, ptr);
+        return pool::detail::make_shared_ptr_from(ptr, ptr);
     }
 
     template <typename... Args>
     UniquePtr<ValueT> allocate_unique(Args&&... args)
     {
         auto ptr = new (alloc_.malloc()) RefHolder(this->shared_from_this(), std::forward<Args>(args)...);
-        return pool::detail::make_unique_ptr_from(ptr->ptr(), ptr);
+        return pool::detail::make_unique_ptr_from(ptr, ptr);
     }
 
 private:
@@ -558,6 +682,25 @@ protected:
     }
 };
 
+
+template <typename List>
+struct IsCodeInTheList;
+
+template <typename T, typename... Tail>
+struct IsCodeInTheList<TL<T, Tail...>> {
+    static bool is_in(ShortTypeCode code) noexcept {
+        return ShortTypeCode::of<T>() == code || IsCodeInTheList<TL<Tail...>>::is_in(code);
+    }
+};
+
+template <>
+struct IsCodeInTheList<TL<>> {
+    static bool is_in(ShortTypeCode code) noexcept {
+        return false;
+    }
+};
+
+
 namespace detail {
 
 template <typename T>
@@ -572,5 +715,25 @@ struct ValueCastHelper {
 };
 
 }
+
+struct GenericArray;
+struct GenericMap;
+
+struct GenericObject {
+    virtual ~GenericObject() noexcept = default;
+    virtual PoolSharedPtr<HermesCtr> ctr() const = 0;
+
+    virtual bool is_array() const = 0;
+    virtual bool is_map()   const = 0;
+
+    virtual PoolSharedPtr<GenericArray> as_array() const = 0;
+    virtual PoolSharedPtr<GenericMap> as_map() const = 0;
+    virtual ObjectPtr as_object() const = 0;
+};
+
+
+using GenericArrayPtr   = PoolSharedPtr<GenericArray>;
+using GenericMapPtr     = PoolSharedPtr<GenericMap>;
+using GenericObjectPtr  = PoolSharedPtr<GenericObject>;
 
 }}

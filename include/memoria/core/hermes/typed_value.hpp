@@ -44,7 +44,7 @@ public:
 
     TypedValueData* deep_copy_to(
             arena::ArenaAllocator& dst,
-            arena::ObjectTag tag,
+            ShortTypeCode tag,
             void* owner_view,
             ViewPtrHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const
@@ -99,8 +99,8 @@ public:
         return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
     }
 
-    ValuePtr as_value() const {
-        return ValuePtr(Value(tv_, doc_, ptr_holder_));
+    ObjectPtr as_object() const {
+        return ObjectPtr(Object(tv_, doc_, ptr_holder_));
     }
 
     bool is_null() const {
@@ -111,10 +111,10 @@ public:
         return tv_ != nullptr;
     }
 
-    ValuePtr constructor() const
+    ObjectPtr constructor() const
     {
         assert_not_null();
-        return ValuePtr(Value(tv_->constructor(), doc_, ptr_holder_));
+        return ObjectPtr(Object(tv_->constructor(), doc_, ptr_holder_));
     }
 
     DatatypePtr datatype() const
@@ -134,7 +134,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return tv_->deep_copy_to(arena, TypeHashV<TypedValue>, doc_, ptr_holder_, dedup);
+        return tv_->deep_copy_to(arena, ShortTypeCode::of<TypedValue>(), doc_, ptr_holder_, dedup);
     }
 
 private:

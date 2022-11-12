@@ -203,7 +203,7 @@ template <typename T>
 struct TypeHash;
 
 template <>
-struct TypeHash<UID64>: UInt64Value<ToSmallHash(24383823489828374ull)> {};
+struct TypeHash<UID64>: UInt64Value<24383823489828374ull> {};
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, UID64& value)
 {

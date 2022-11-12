@@ -46,35 +46,35 @@ class HermesTypeReflectionImpl: public TypeReflection {};
 
 }
 
-TypeReflection& get_type_reflection(uint64_t short_type_hash)
+TypeReflection& get_type_reflection(ShortTypeCode short_type_hash)
 {
-    auto ii = short_code_map().find(short_type_hash);
+    auto ii = short_code_map().find(short_type_hash.u64());
     if (ii != short_code_map().end()) {
         return *ii->second;
     }
     else {
-        MEMORIA_MAKE_GENERIC_ERROR("Type with typcode {} is not regitered", short_type_hash).do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("Type with typcode {} is not regitered", short_type_hash.u64()).do_throw();
     }
 }
 
-bool has_type_reflection(uint64_t short_type_hash)
+bool has_type_reflection(ShortTypeCode short_type_hash)
 {
-    auto ii = short_code_map().find(short_type_hash);
+    auto ii = short_code_map().find(short_type_hash.u64());
     return ii != short_code_map().end();
 }
 
 void register_type_reflection(std::unique_ptr<TypeReflection> type_reflection)
 {
-    uint64_t short_type_hash = type_reflection->shot_type_hash();
+    auto short_type_hash = type_reflection->shot_type_hash();
 
     //println("Register reflection {} for type {}", short_type_hash, type_reflection->str());
 
-    auto ii = short_code_map().find(short_type_hash);
+    auto ii = short_code_map().find(short_type_hash.u64());
     if (ii == short_code_map().end()) {
-        short_code_map()[short_type_hash] = std::move(type_reflection);
+        short_code_map()[short_type_hash.u64()] = std::move(type_reflection);
     }
     else {
-        //MEMORIA_MAKE_GENERIC_ERROR("Type with typcode {} has been already regitered", short_type_hash).do_throw();
+        //MEMORIA_MAKE_GENERIC_ERROR("Type with typcode {} has been already regitered", short_type_hash.u64()).do_throw();
     }
 }
 
@@ -84,8 +84,8 @@ std::ostream& operator<<(std::ostream& os, const IDValue& id) {
 }
 
 
-hermes::ValuePtr TypeReflection::datatype_convert_to(
-        uint64_t target_tag,
+hermes::ObjectPtr TypeReflection::datatype_convert_to(
+        ShortTypeCode target_tag,
         hermes::ValueStorageTag vs_tag,
         hermes::ValueStorage& ptr,
         hermes::HermesCtr*,
@@ -95,7 +95,7 @@ hermes::ValuePtr TypeReflection::datatype_convert_to(
     ).do_throw();
 }
 
-hermes::ValuePtr TypeReflection::datatype_convert_from_plain_string(U8StringView) const {
+hermes::ObjectPtr TypeReflection::datatype_convert_from_plain_string(U8StringView) const {
     MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible from plain string", str()).do_throw();
 }
 
@@ -109,7 +109,7 @@ U8String TypeReflection::convert_to_plain_string(
     MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible to plain string", str()).do_throw();
 }
 
-hermes::ValuePtr TypeReflection::import_value(
+hermes::ObjectPtr TypeReflection::import_value(
         hermes::ValueStorageTag, hermes::ValueStorage&,
         hermes::HermesCtr*, ViewPtrHolder*
 ) const {

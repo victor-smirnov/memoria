@@ -19,7 +19,7 @@
 #include <memoria/core/arena/string.hpp>
 #include <memoria/core/arena/hash_fn.hpp>
 
-#include <memoria/core/hermes/value.hpp>
+#include <memoria/core/hermes/object.hpp>
 #include <memoria/core/hermes/common.hpp>
 #include <memoria/core/hermes/traits.hpp>
 
@@ -50,7 +50,7 @@ public:
     using ArenaDTContainer = arena::ArenaDataTypeContainer<DT>;
 
     friend class HermesCtr;
-    friend class Value;
+    friend class Object;
 
     template <typename, typename>
     friend class Map;
@@ -68,7 +68,7 @@ public:
         doc_(), value_storage_()
     {
         value_storage_.addr = nullptr;
-        set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
+        set_vs_tag(VS_TAG_ADDRESS);
     }
 
     DataObject(void* dt_ctr, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
@@ -76,7 +76,7 @@ public:
         doc_(doc)
     {
         value_storage_.addr = dt_ctr;
-       set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
+        set_vs_tag(VS_TAG_ADDRESS);
     }
 
     DataObject(ValueStorageTag vs_tag, ValueStorage& storage, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
@@ -84,19 +84,38 @@ public:
         doc_(doc),
         value_storage_(storage)
     {
-       set_vs_tag(vs_tag);
+        set_vs_tag(vs_tag);
 
-       if (vs_tag == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
+        if (vs_tag == VS_TAG_GENERIC_VIEW) {
            value_storage_.view_ptr->ref_copy();
-       }
+        }
     }
 
     DataObject(const TaggedValue& storage, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
         Base(ptr_holder),
         doc_(doc)
     {
-       value_storage_.small_value = storage;
-       this->set_vs_tag(ValueStorageTag::VS_TAG_SMALL_VALUE);
+        value_storage_.small_value = storage;
+        this->set_vs_tag(VS_TAG_SMALL_VALUE);
+    }
+
+
+    DataObject(DTTViewType<DT> view, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
+        Base(ptr_holder),
+        doc_(doc)
+    {
+        if (TaggedValue::dt_fits_in<DT>())
+        {
+            this->set_vs_tag(VS_TAG_SMALL_VALUE);
+            value_storage_.small_value = TaggedValue(ShortTypeCode::of<DT>(), view);
+        }
+        else {
+            this->set_vs_tag(VS_TAG_GENERIC_VIEW);
+
+            auto view_ptr = TaggedGenericView::allocate<DT>(view);
+            value_storage_.view_ptr = view_ptr.get();
+            view_ptr.release_holder();
+        }
     }
 
     DataObject(const DataObject& other) noexcept :
@@ -168,7 +187,7 @@ public:
     }
 
     bool is_detached() const {
-        return get_vs_tag() != ValueStorageTag::VS_TAG_ADDRESS;
+        return get_vs_tag() != ValueStorageTag::VS_TAG_SMALL_VALUE;
     }
 
 
@@ -221,8 +240,8 @@ public:
         return value_storage_.addr != nullptr;
     }
 
-    ValuePtr as_value() const {
-        return ValuePtr(Value(get_vs_tag(), value_storage_, doc_, this->get_ptr_holder()));
+    ObjectPtr as_object() const {
+        return ObjectPtr(Object(get_vs_tag(), value_storage_, doc_, this->get_ptr_holder()));
     }
 
     DTTViewType<DT> view() const
@@ -278,7 +297,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return dt_ctr()->deep_copy_to(arena, TypeHashV<DataObject>, doc_, this->get_ptr_holder(), dedup);
+        return dt_ctr()->deep_copy_to(arena, ShortTypeCode::of<DataObject>(), doc_, this->get_ptr_holder(), dedup);
     }
 
     template <typename RightDT>
@@ -341,21 +360,21 @@ public:
     }
 
 private:
-    uint64_t get_type_tag() const noexcept
+    ShortTypeCode get_type_tag() const noexcept
     {
         if (get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS) {
             return arena::read_type_tag(value_storage_.addr);
         }
         else if (get_vs_tag() == ValueStorageTag::VS_TAG_SMALL_VALUE) {
-            return value_storage_.small_value.tag;
+            return value_storage_.small_value.tag();
         }
         else if (get_vs_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (value_storage_.view_ptr) {
-                return value_storage_.view_ptr->tag;
+                return value_storage_.view_ptr->tag();
             }
         }
 
-        return 0;
+        return ShortTypeCode::nullv();
     }
 
     ValueStorageTag get_vs_tag() const {
@@ -377,6 +396,47 @@ private:
         }
     }
 };
+
+
+class GenericDataObjectImpl: public GenericObject {
+    mutable Object object_;
+public:
+    GenericDataObjectImpl(void* addr, HermesCtr* ctr, ViewPtrHolder* ptr_holder):
+        object_(addr, ctr, ptr_holder)
+    {
+        object_.ref();
+    }
+
+    virtual ~GenericDataObjectImpl() noexcept {
+        object_.unref();
+    }
+
+    virtual PoolSharedPtr<HermesCtr> ctr() const {
+        return object_.document();
+    }
+
+    virtual bool is_array() const {
+        return false;
+    }
+    virtual bool is_map() const {
+        return false;
+    }
+
+    virtual PoolSharedPtr<GenericArray> as_array() const {
+        MEMORIA_MAKE_GENERIC_ERROR("DataObject is not an Array").do_throw();
+    }
+
+    virtual PoolSharedPtr<GenericMap> as_map() const {
+        MEMORIA_MAKE_GENERIC_ERROR("DataObject is not a Map").do_throw();
+    }
+
+    virtual ObjectPtr as_object() const {
+        return ObjectPtr(object_);
+    }
+};
+
+
+
 
 
 template <typename DT>
@@ -485,7 +545,7 @@ public:
 
     ArenaDataTypeContainer* deep_copy_to(
             ArenaAllocator& dst,
-            ObjectTag tag,
+            ShortTypeCode tag,
             hermes::HermesCtr*,
             ViewPtrHolder*,
             DeepCopyDeduplicator& dedup) const
@@ -551,7 +611,7 @@ public:
 
     ArenaDataTypeContainer* deep_copy_to(
             ArenaAllocator& dst,
-            ObjectTag tag,
+            ShortTypeCode tag,
             hermes::HermesCtr*,
             ViewPtrHolder*,
             DeepCopyDeduplicator& dedup) const

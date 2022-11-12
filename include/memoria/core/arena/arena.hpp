@@ -49,47 +49,19 @@ class HermesCtr;
 
 namespace arena {
 
-using ObjectTag = uint64_t;
-static constexpr uint8_t SHORT_TYPETAG_LENGTH_BASE = 249;
-
-constexpr size_t type_tag_size(ObjectTag tag)
+static inline constexpr ShortTypeCode read_type_tag(const uint8_t* array) noexcept
 {
-    // Optimizing for small values;
-    if (MMA_LIKELY(tag < SHORT_TYPETAG_LENGTH_BASE)) {
-      return 1;
+    size_t len = (*(array - 1)) & 0x07;
+    uint64_t raw_val{};
+    for (size_t c = 0; c <= len; c++) {
+        uint64_t v0 = *(array - c - 1);
+        raw_val |= v0 << (c * 8);
     }
-
-    uint64_t mask = 0x00FF000000000000;
-    for (size_t c = 8; c > 0; c--) {
-      if (MMA_UNLIKELY((bool)(mask & tag))) {
-        return c;
-      }
-
-      mask >>= 8;
-    }
-
-    return 1 + (tag >= SHORT_TYPETAG_LENGTH_BASE);
+    return ShortTypeCode::of_raw(raw_val);
 }
 
-static inline constexpr ObjectTag read_type_tag(const uint8_t* array) noexcept
-{
-    uint64_t s0 = *(array - 1);
-    if (MMA_LIKELY(s0 < SHORT_TYPETAG_LENGTH_BASE)) {
-        return s0;
-    }
-
-    uint64_t value{};
-    size_t size = s0 - SHORT_TYPETAG_LENGTH_BASE - 1;
-    for (size_t c = 0; c < size; c++) {
-        uint64_t token = *(array - c - 2);
-        value |= token << (c * 8);
-    }
-
-    return value;
-}
-
-static inline ObjectTag read_type_tag(const void* addr) noexcept {
-  return read_type_tag(ptr_cast<const uint8_t>(addr));
+static inline ShortTypeCode read_type_tag(const void* addr) noexcept {
+  return read_type_tag(reinterpret_cast<const uint8_t*>(addr));
 }
 
 
@@ -169,12 +141,6 @@ protected:
             ChunkSize({capacity, size}),
             memory(std::move(mem))
         {}
-
-//        Chunk(Chunk&& other) noexcept:
-//            ChunkSize(std::move(other)),
-//            memory(std::move(other.memory))
-//        {}
-
 
         Chunk clone() const
         {
@@ -304,8 +270,8 @@ public:
     template <typename T, typename... Args>
     MMA_NODISCARD T* allocate_object(Args&&... args)
     {
-        constexpr ObjectTag tag = TypeHashV<T>;
-        constexpr size_t tag_size = type_tag_size(tag);
+        constexpr ShortTypeCode tag = TypeHashV<T>;
+        constexpr size_t tag_size = tag.full_code_len();
         auto ptr = ObjectSpaceAllocator<T>::allocate_object_space(
             tag_size, this, std::forward<Args>(args)...
         );
@@ -315,9 +281,9 @@ public:
     }
 
     template <typename T, typename... Args>
-    MMA_NODISCARD T* allocate_tagged_object(ObjectTag tag, Args&&... args)
+    MMA_NODISCARD T* allocate_tagged_object(ShortTypeCode tag, Args&&... args)
     {
-        size_t tag_size = type_tag_size(tag);
+        size_t tag_size = tag.full_code_len();
         auto ptr = ObjectSpaceAllocator<T>::allocate_object_space(
             tag_size, this, std::forward<Args>(args)...
         );
@@ -340,19 +306,11 @@ public:
         return new (ptr) T(std::forward<Args>(args)...);
     }
 
-    static void write_type_tag(uint8_t* base, ObjectTag tag) noexcept
+    static void write_type_tag(uint8_t* base, ShortTypeCode tag) noexcept
     {
-        uint8_t* buf = base - 1;
-        if (MMA_LIKELY(tag < SHORT_TYPETAG_LENGTH_BASE)) {
-            *buf = static_cast<uint8_t>(tag);
-        }
-        else {
-            size_t tag_len = type_tag_size(tag);
-            *buf = SHORT_TYPETAG_LENGTH_BASE + tag_len - 1;
-            buf--;
-            for (size_t c = 0; c < tag_len; c++) {
-                *(buf - c) = static_cast<uint8_t>(tag >> (c * 8));
-            }
+        uint64_t val = tag.u64();
+        for (size_t c = 0; c < tag.full_code_len(); c++) {
+            *(base - c - 1) = val >> (c * 8);
         }
     }
 

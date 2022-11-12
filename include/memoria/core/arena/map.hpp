@@ -620,7 +620,7 @@ public:
 
     Map* deep_copy_to(
             ArenaAllocator& dst,
-            arena::ObjectTag tag,
+            ShortTypeCode tag,
             void* owner_view,
             ViewPtrHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const

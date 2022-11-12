@@ -48,14 +48,14 @@ public:
     {}
 
     operator LDDValueView() const {
-        return *as_value();
+        return *as_object();
     }
 
     bool operator==(const LDDMapView& other) const noexcept {
         return doc_->equals(other.doc_) && map_.ptr() == other.map_.ptr();
     }
 
-    ViewPtr<LDDValueView> as_value() const {
+    ViewPtr<LDDValueView> as_object() const {
         return ViewPtr<LDDValueView>(
             LDDValueView{doc_, map_.ptr()},
             doc_->owner_

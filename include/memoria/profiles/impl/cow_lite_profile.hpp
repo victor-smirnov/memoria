@@ -37,7 +37,7 @@ class CowLiteProfileT  {};
 using CowLiteProfile = CowLiteProfileT<>;
 
 template<>
-struct TypeHash<CowLiteProfile>: HasValue<uint64_t, ToSmallHash(348752398579234857ull)> {};
+struct TypeHash<CowLiteProfile>: HasValue<uint64_t, 348752398579234857ull> {};
 
 template <>
 struct ProfileTraits<CowLiteProfile>: ApiProfileTraits<CoreApiProfile> {

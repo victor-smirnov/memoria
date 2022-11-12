@@ -123,7 +123,7 @@ public:
         }
     }
 
-    void unref() {
+    void unref() noexcept {
         if (MMA_UNLIKELY((bool)(--references_ == 0))) {
             owner_->unref();
         }

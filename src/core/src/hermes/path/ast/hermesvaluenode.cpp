@@ -36,7 +36,7 @@ HermesValueNode::HermesValueNode()
 {
 }
 
-HermesValueNode::HermesValueNode(const ValuePtr &value)
+HermesValueNode::HermesValueNode(const ObjectPtr &value)
     : AbstractNode(),
       value(value)
 {

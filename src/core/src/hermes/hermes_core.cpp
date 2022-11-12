@@ -15,7 +15,7 @@
 
 
 #include <memoria/core/hermes/container.hpp>
-#include <memoria/core/hermes/value.hpp>
+#include <memoria/core/hermes/object.hpp>
 
 #include <memoria/core/arena/hash_fn.hpp>
 #include <memoria/core/arena/string.hpp>
@@ -59,7 +59,7 @@ StringEscaper& StringEscaper::current() {
 }
 
 
-std::ostream& operator<<(std::ostream& out, ValuePtr ptr) {
+std::ostream& operator<<(std::ostream& out, ObjectPtr ptr) {
     out << ptr->to_string();
     return out;
 }
@@ -75,16 +75,16 @@ uint64_t Parameter::hash_code() const {
     return hash(dt_ctr_->view());
 }
 
-ValuePtr Value::search(U8StringView query) const
+ObjectPtr Object::search(U8StringView query) const
 {
     hermes::path::Expression exp(std::string{query});
-    return hermes::path::search(exp, ValuePtr(Value(value_storage_.addr, doc_, get_ptr_holder())));
+    return hermes::path::search(exp, ObjectPtr(Object(value_storage_.addr, doc_, get_ptr_holder())));
 }
 
-ValuePtr Value::search(U8StringView query, const IParameterResolver& params) const
+ObjectPtr Object::search(U8StringView query, const IParameterResolver& params) const
 {
     hermes::path::Expression exp(std::string{query});
-    return hermes::path::search(exp, ValuePtr(Value(value_storage_.addr, doc_, get_ptr_holder())), params);
+    return hermes::path::search(exp, ObjectPtr(Object(value_storage_.addr, doc_, get_ptr_holder())), params);
 }
 
 namespace {
@@ -134,6 +134,36 @@ void HermesCtr::init_from(arena::ArenaAllocator& arena) {
     }
     else {
         MEMORIA_MAKE_GENERIC_ERROR("HermesCtr instance is immutable").do_throw();
+    }
+}
+
+
+template <size_t Size>
+using ViewPoolT = AlignedSpacePool<TaggedGenericView::VIEW_ALIGN_OF, Size, TaggedGenericView>;
+
+PoolSharedPtr<TaggedGenericView> TaggedGenericView::allocate_space(size_t size)
+{
+    constexpr size_t MAX = TaggedGenericView::MAX_VIEW_SIZE;
+    constexpr size_t SMALL  = 16;
+    constexpr size_t MEDIUM = 32;
+
+    static_assert(SMALL <= MAX && MEDIUM <= MAX);
+
+    static thread_local LocalSharedPtr<ViewPoolT<SMALL>>  view_pool_small  = MakeLocalShared<ViewPoolT<SMALL>>();
+    static thread_local LocalSharedPtr<ViewPoolT<MEDIUM>> view_pool_medium = MakeLocalShared<ViewPoolT<MEDIUM>>();
+    static thread_local LocalSharedPtr<ViewPoolT<MAX>>    view_pool_max    = MakeLocalShared<ViewPoolT<MAX>>();
+
+    if (size <= SMALL) {
+        return view_pool_small->allocate_shared();
+    }
+    else if (size <= MEDIUM) {
+        return view_pool_medium->allocate_shared();
+    }
+    else if (size <= MAX) {
+        return view_pool_max->allocate_shared();
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Requested view size of {} is too large, max is {}", size, MAX).do_throw();
     }
 }
 

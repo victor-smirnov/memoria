@@ -50,8 +50,19 @@ void InitTypeReflections()
 {
     HermesCtr::init_hermes_doc_parser();
 
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Array<Value>>>());
-    register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Map<Varchar, Value>>>());
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<Object>, TypedGenericArray<Object>>>());
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<Integer>, TypedGenericArray<Integer>>>());
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<UInteger>, TypedGenericArray<UInteger>>>());
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<Real>, TypedGenericArray<Real>>>());
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<Double>, TypedGenericArray<Double>>>());
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<UBigInt>, TypedGenericArray<UBigInt>>>());
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<BigInt>, TypedGenericArray<BigInt>>>());
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<SmallInt>, TypedGenericArray<SmallInt>>>());
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<USmallInt>, TypedGenericArray<USmallInt>>>());
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<TinyInt>, TypedGenericArray<TinyInt>>>());
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Array<UTinyInt>, TypedGenericArray<UTinyInt>>>());
+
+    register_type_reflection(std::make_unique<HermesContainerTypeReflectionImpl<Map<Varchar, Object>, GenericObjectMap>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Datatype>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<TypedValue>>());
     register_type_reflection(std::make_unique<HermesTypeReflectionImpl<Parameter>>());

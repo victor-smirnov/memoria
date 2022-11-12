@@ -23,7 +23,8 @@ namespace tests {
 auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "MapSetRemove", [](auto& state){
     auto doc = hermes::HermesCtr::make_new();
 
-    auto map = doc->set_generic_map();
+    auto map = doc->new_map();
+    doc->set_root(map->as_object());
     //assert_equals(true, doc->root()->as_generic_map()->equals(map));
     assert_equals(0, map->size());
 
@@ -63,7 +64,8 @@ auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>(
 auto ldd_map_set_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "MapSet", [](auto& state){
     auto doc = hermes::HermesCtr::make_new();
 
-    auto map = doc->set_generic_map();
+    auto map = doc->new_map();
+    doc->set_root(map->as_object());
 //    assert_equals(true, doc->root()->as_generic_map()->equals(map));
     assert_equals(0, map->size());
 
@@ -80,12 +82,12 @@ auto ldd_map_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     assert_equals(true, map->get("Entry2")->as_boolean()->view());
 
     auto map1 = map->put_generic_map("Entry3");
-    assert_equals(true, map->get("Entry3")->is_generic_map());
+    assert_equals(true, map->get("Entry3")->is_map());
 //    assert_equals(true, map->get("Entry3")->as_generic_map()->equals(map1));
 
     auto arr = map->put_generic_array("Entry4");
-    assert_equals(true, map->get("Entry4")->is_generic_array());
-    assert_equals(true, map->get("Entry4")->as_generic_array()->equals(arr));
+    assert_equals(true, map->get("Entry4")->is_array());
+//    assert_equals(true, map->get("Entry4")->as_generic_array()->equals(arr));
 
     auto sdn1 = map->put_hermes("Entry5", "'123456'@CoolType");
     assert_equals(true, map->get("Entry5")->is_typed_value());
@@ -96,7 +98,7 @@ auto ldd_map_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     assert_equals(true, map->get("Entry6")->equals(sdn2));
 
     auto doc2 = map->put_hermes("Entry7", "{}");
-    assert_equals(true, map->get("Entry7")->is_generic_map());
+    assert_equals(true, map->get("Entry7")->is_map());
     assert_equals(true, map->get("Entry7")->equals(doc2));
 });
 

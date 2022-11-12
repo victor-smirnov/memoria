@@ -22,7 +22,8 @@ namespace tests {
 auto ld_document_compaction_test = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "DocumentCompaction", [](auto& state){
     auto doc = hermes::HermesCtr::make_new();
 
-    auto map = doc->set_generic_map();
+    auto map = doc->new_map();
+    doc->set_root(map->as_object());
 
     size_t size = 100000;
 
@@ -35,14 +36,14 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<HermesTestState
     assert_equals(size, map->size());
 
     auto doc2 = doc->compactify();
-    map = doc2->root()->as_generic_map();
+    auto gmap = doc2->root()->as_generic_map();
 
-    assert_equals(size, map->size());
+    assert_equals(size, gmap->size());
 
     for (size_t c = 0; c < size; c++)
     {
         U8String key = "Entry" + std::to_string(c);
-        auto vv = map->get(key);
+        auto vv = gmap->get(hermes::HermesCtr::wrap_dataobject<Varchar>(key)->as_object());
         assert_equals(true, vv.is_not_empty());
 
         U8String value = std::to_string(c);

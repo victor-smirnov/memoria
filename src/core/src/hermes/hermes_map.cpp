@@ -14,11 +14,28 @@
 // limitations under the License.
 
 #include <memoria/core/hermes/map_ext.hpp>
+#include <memoria/core/hermes/container_ext.hpp>
 
 namespace memoria {
 namespace hermes {
 
+using GMPoolT = pool::SimpleObjectPool<GenericObjectMap>;
+using GMPoolPtrT = boost::local_shared_ptr<GMPoolT>;
 
+using GMEntryPoolT = pool::SimpleObjectPool<GenericObjectMapEntry>;
+using GMEntryPoolPtrT = boost::local_shared_ptr<GMEntryPoolT>;
+
+
+PoolSharedPtr<GenericMap> GenericObjectMap::make_wrapper(void* array, HermesCtr* ctr, ViewPtrHolder* ctr_holder) {
+    static thread_local GMPoolPtrT wrapper_pool = MakeShared<GMPoolT>();
+    return wrapper_pool->allocate_shared(array, ctr, ctr_holder);
+}
+
+PoolSharedPtr<GenericMapEntry> GenericObjectMap::iterator() const
+{
+    static thread_local GMEntryPoolPtrT entry_pool = MakeShared<GMEntryPoolT>();
+    return entry_pool->allocate_shared(map_.begin(), map_.end());
+}
 
 
 }}

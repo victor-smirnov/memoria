@@ -18,8 +18,11 @@
 
 #include <memoria/core/hermes/container.hpp>
 #include <memoria/core/hermes/map.hpp>
-#include <memoria/core/hermes/array.hpp>
+#include <memoria/core/hermes/array/array.hpp>
+#include <memoria/core/hermes/array/typed_array.hpp>
 #include <memoria/core/hermes/data_object.hpp>
+
+#include <memoria/core/hermes/object.hpp>
 
 namespace memoria {
 namespace hermes {
@@ -102,7 +105,7 @@ DataObjectPtr<DT> HermesCtr::new_dataobject(DTTViewType<DT> view)
     using DTCtr = DataObject<DT>;
 
     auto arena_dtc = arena_->allocate_tagged_object<typename DTCtr::ArenaDTContainer>(
-        TypeHashV<DTCtr>,
+        ShortTypeCode::of<DTCtr>(),
         view
     );
 
@@ -115,18 +118,12 @@ template <typename DT>
 DataObjectPtr<DT> HermesCtr::wrap_primitive(DTTViewType<DT> view)
 {
     static_assert(
-        DataTypeTraits<DT>::isFixedSize &&
-        sizeof(view) <= sizeof(TaggedValue::value),
+        TaggedValue::dt_fits_in<DT>(),
         ""
     );
 
-    TaggedValue storage;
-    storage.tag = TypeHashV<DT>;
-    std::memset(&storage.value, 0, sizeof(storage.value));
-    std::memcpy(&storage.value, &view, sizeof(view));
-
     auto ctr = common_instance();
-
+    TaggedValue storage(ShortTypeCode::of<DT>(), view);
     return DataObjectPtr<DT>(DataObject<DT>(storage, ctr.get(), ctr->ptr_holder_));
 }
 
@@ -142,7 +139,7 @@ DataObjectPtr<DT> HermesCtr::wrap_dataobject__full(DTTViewType<DT> view)
     arena::Cleaner cleaner(arena);
 
     auto header  = arena.allocate_object_untagged<DocumentHeader>();
-    auto tag     = TypeHashV<DataObjectT>;
+    auto tag     = ShortTypeCode::of<DataObjectT>();
     header->root = arena.allocate_tagged_object<ContainerT>(tag, view);
 
     if (arena.chunks() == 1)
@@ -181,46 +178,63 @@ struct DTSizeDispatcher<DT, false> {
 template <typename DT>
 DataObjectPtr<DT> HermesCtr::wrap_dataobject(DTTViewType<DT> view)
 {
-    return detail::DTSizeDispatcher<DT,
-            DataTypeTraits<DT>::isFixedSize &&
-            sizeof(view) <= sizeof(TaggedValue::value)
+    return detail::DTSizeDispatcher<
+        DT, TaggedValue::dt_fits_in<DT>()
     >::dispatch(view);
 }
 
-inline GenericArrayPtr Value::as_generic_array() const {
-    return cast_to<GenericArray>();
+inline GenericArrayPtr Object::as_generic_array() const
+{
+    if (get_vs_tag() == VS_TAG_ADDRESS)
+    {
+        auto tag = get_type_tag();
+        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(value_storage_.addr, doc_, get_ptr_holder());
+        return ctr_ptr->as_array();
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Object is not addressable").do_throw();
+    }
 }
 
 
-inline GenericMapPtr Value::as_generic_map() const {
-    return cast_to<GenericMap>();
+inline GenericMapPtr Object::as_generic_map() const
+{
+    if (get_vs_tag() == VS_TAG_ADDRESS)
+    {
+        auto tag = get_type_tag();
+        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(value_storage_.addr, doc_, get_ptr_holder());
+        return ctr_ptr->as_map();
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Object is not addressable").do_throw();
+    }
 }
 
-inline DatatypePtr Value::as_datatype() const {
+inline DatatypePtr Object::as_datatype() const {
     return cast_to<Datatype>();
 }
 
-inline DataObjectPtr<Varchar> Value::as_varchar() const {
+inline DataObjectPtr<Varchar> Object::as_varchar() const {
     return cast_to<DataObject<Varchar>>();
 }
 
-inline DataObjectPtr<Double> Value::as_double() const {
+inline DataObjectPtr<Double> Object::as_double() const {
     return cast_to<DataObject<Double>>();
 }
 
-inline DataObjectPtr<BigInt> Value::as_bigint() const {
+inline DataObjectPtr<BigInt> Object::as_bigint() const {
     return cast_to<DataObject<BigInt>>();
 }
 
-inline DataObjectPtr<Boolean> Value::as_boolean() const {
+inline DataObjectPtr<Boolean> Object::as_boolean() const {
     return cast_to<DataObject<Boolean>>();
 }
 
-inline DataObjectPtr<Real> Value::as_real() const {
+inline DataObjectPtr<Real> Object::as_real() const {
     return cast_to<DataObject<Real>>();
 }
 
-inline U8String Value::type_str() const {
+inline U8String Object::type_str() const {
     assert_not_null();
     auto tag = get_type_tag();
     return get_type_reflection(tag).str();
@@ -228,11 +242,11 @@ inline U8String Value::type_str() const {
 
 
 template <typename DT>
-ValuePtr Value::convert_to() const
+ObjectPtr Object::convert_to() const
 {
     assert_not_null();
     auto src_tag = get_type_tag();
-    auto to_tag = TypeHashV<DT>;
+    auto to_tag = ShortTypeCode::of<DT>();
     return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), value_storage_, doc_, get_ptr_holder());
 }
 
@@ -242,8 +256,38 @@ DataObjectPtr<ToDT> DataObject<DT>::convert_to() const
 {
     assert_not_null();
     auto src_tag = get_type_tag();
-    auto to_tag = TypeHashV<ToDT>;
+    auto to_tag = ShortTypeCode::of<ToDT>();
     return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), value_storage_, doc_, this->get_ptr_holder());
 }
+
+inline PoolSharedPtr<HermesCtr> CtrAware::ctr() const {
+    if (MMA_LIKELY((bool)ctr_)) {
+        return ctr_->self();
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Container is not specified for this Object").do_throw();
+    }
+}
+
+template <typename DT>
+ArrayPtr<DT> HermesCtr::new_typed_array() {
+    assert_not_null();
+    assert_mutable();
+
+    using CtrT = Array<DT>;
+
+    auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::ArrayStorageT>(
+        ShortTypeCode::of<CtrT>()
+    );
+
+    return ArrayPtr<DT>(CtrT(arena_dtc, this, ptr_holder_));
+}
+
+template <typename DT>
+ObjectPtr HermesCtr::new_from_string(U8StringView str) {
+    auto tag = ShortTypeCode::of<DT>();
+    return get_type_reflection(tag).datatype_convert_from_plain_string(str);
+}
+
 
 }}

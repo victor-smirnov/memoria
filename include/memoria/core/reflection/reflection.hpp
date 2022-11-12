@@ -40,7 +40,7 @@ class HermesCtr;
 struct IDatatypeConverter {
     virtual ~IDatatypeConverter() noexcept;
 
-    virtual hermes::ValuePtr convert(const void* view) const = 0;
+    virtual hermes::ObjectPtr convert(const void* view) const = 0;
 };
 
 
@@ -55,7 +55,7 @@ public:
 
     // Not all types may have short type hash
     // TypeHash<T>
-    virtual uint64_t shot_type_hash() const noexcept = 0;
+    virtual ShortTypeCode shot_type_hash() const noexcept = 0;
 
     virtual void hermes_stringify_value(
             hermes::ValueStorageTag vs_tag,
@@ -94,7 +94,7 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("Deep copy is not implemented for class {}", str()).do_throw();
     }
 
-    virtual bool is_convertible_to(uint64_t) const {
+    virtual bool is_convertible_to(ShortTypeCode) const {
         return false;
     }
 
@@ -106,15 +106,15 @@ public:
         return false;
     }
 
-    virtual hermes::ValuePtr datatype_convert_to(
-            uint64_t target_tag,
+    virtual hermes::ObjectPtr datatype_convert_to(
+            ShortTypeCode target_tag,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr,
             hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
     ) const ;
 
-    virtual hermes::ValuePtr datatype_convert_from_plain_string(U8StringView str) const;
+    virtual hermes::ObjectPtr datatype_convert_from_plain_string(U8StringView str) const;
 
     virtual U8String convert_to_plain_string(
             hermes::ValueStorageTag vs_tag,
@@ -127,11 +127,11 @@ public:
         return false;
     }
 
-    virtual bool hermes_comparable_with(uint64_t tag) const {
+    virtual bool hermes_comparable_with(ShortTypeCode tag) const {
         return false;
     }
 
-    virtual bool hermes_equals_comparable_with(uint64_t tag) const {
+    virtual bool hermes_equals_comparable_with(ShortTypeCode tag) const {
         return false;
     }
 
@@ -154,10 +154,18 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("Objects of type {} are not Hermes-equals-comparable" ).do_throw();
     }
 
-    virtual hermes::ValuePtr import_value(
+    virtual hermes::ObjectPtr import_value(
             hermes::ValueStorageTag, hermes::ValueStorage&,
             hermes::HermesCtr*, ViewPtrHolder*
     ) const;
+
+    virtual PoolSharedPtr<hermes::GenericObject> hermes_make_wrapper(
+            void*,
+            hermes::HermesCtr*,
+            ViewPtrHolder*
+    ) const {
+        MEMORIA_MAKE_GENERIC_ERROR("GenericObject API is not supported for type {}", str()).do_throw();
+    }
 };
 
 
@@ -184,22 +192,22 @@ public:
 };
 
 template <typename T>
-class TypehashTypeReflectionImplBase: public TypeReflectionImplBase<T> {
+class TypeCodeTypeReflectionImplBase: public TypeReflectionImplBase<T> {
 public:
-    TypehashTypeReflectionImplBase() {}
+    TypeCodeTypeReflectionImplBase() {}
 
     // Not all types may have short type hash
     // TypeHash<T>
-    virtual uint64_t shot_type_hash() const noexcept override {
-        return TypeHashV<T>;
+    virtual ShortTypeCode shot_type_hash() const noexcept override {
+        return ShortTypeCode::of<T>();
     };
 };
 
 
 
-TypeReflection& get_type_reflection(uint64_t short_type_hash);
+TypeReflection& get_type_reflection(ShortTypeCode short_type_hash);
 
-bool has_type_reflection(uint64_t short_type_hash);
+bool has_type_reflection(ShortTypeCode short_type_hash);
 
 void register_type_reflection(std::unique_ptr<TypeReflection> type_reflection);
 

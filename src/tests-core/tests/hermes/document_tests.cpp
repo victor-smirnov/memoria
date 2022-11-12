@@ -58,14 +58,14 @@ auto document_set_test = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     assert_equals(12345, doc->root()->as_bigint()->view());
 
     doc->set_hermes("{}");
-    assert_equals(true, doc->root()->is_generic_map());
+    assert_equals(true, doc->root()->is_map());
     assert_equals(0, doc->root()->as_generic_map()->size());
     assert_throws<ResultException>([&](){
         doc->root()->as_double();
     });
 
     doc->set_hermes("[]");
-    assert_equals(true, doc->root()->is_generic_array());
+    assert_equals(true, doc->root()->is_array());
     assert_equals(0, doc->root()->as_generic_array()->size());
     assert_throws<ResultException>([&](){
         doc->root()->as_double();

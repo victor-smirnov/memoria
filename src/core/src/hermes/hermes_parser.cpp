@@ -109,7 +109,7 @@ struct HermesDocParser :
         using bp::val;
 
         static auto set_doc_value = [](auto& attrib, auto&){
-            HermesCtrBuilder::current().set_doc_value(bf::at_c<1>(attrib));
+            HermesCtrBuilder::current().set_ctr_root(bf::at_c<1>(attrib));
         };
 
         type_directory_entry = hermes_identifier >> ':' >> type_declaration;
@@ -247,7 +247,7 @@ struct TypeDeclarationParser : qi::grammar<Iterator, DatatypePtr(), SkipperT<Ite
 
 
 template <typename Iterator>
-struct RawHermesDocValueParser : qi::grammar<Iterator, ValuePtr(), SkipperT<Iterator>>
+struct RawHermesDocValueParser : qi::grammar<Iterator, ObjectPtr(), SkipperT<Iterator>>
 {
     HermesDocParser<Iterator> hermes_doc_parser;
     RawHermesDocValueParser() : RawHermesDocValueParser::base_type(hermes_doc_parser.standalone_hermes_value)
@@ -320,7 +320,7 @@ void parse_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc)
             ErrorMessageResolver::instance().do_throw(start, first, last);
         }
 
-        HermesCtrBuilder::current().set_doc_value(type_decl->as_value());
+        HermesCtrBuilder::current().set_ctr_root(type_decl->as_object());
     }
     catch (const ExpectationException<Iterator>& ex) {
         ErrorMessageResolver::instance().do_throw(first, ex);
@@ -353,7 +353,7 @@ void parse_raw_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc, Da
 }
 
 template <typename Iterator>
-void parse_raw_value0(Iterator& first, Iterator& last, HermesCtr& doc, ValuePtr& value)
+void parse_raw_value0(Iterator& first, Iterator& last, HermesCtr& doc, ObjectPtr& value)
 {
     HermesCtrBuilderCleanup cleanup;
     HermesCtrBuilder::enter(doc.self());
@@ -428,13 +428,13 @@ DatatypePtr HermesCtr::parse_raw_datatype(CharIterator start, CharIterator end, 
     return datatype;
 }
 
-ValuePtr HermesCtr::parse_raw_value(CharIterator start, CharIterator end, const ParserConfiguration&)
+ObjectPtr HermesCtr::parse_raw_value(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
     IteratorType beginIt(start);
     IteratorType it = beginIt;
     IteratorType endIt(end);
 
-    ValuePtr value{};
+    ObjectPtr value{};
     parse_raw_value0(it, endIt, *this, value);
     return value;
 }

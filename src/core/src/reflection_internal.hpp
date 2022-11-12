@@ -29,7 +29,7 @@
 namespace memoria {
 
 template <typename T>
-class HermesTypeReflectionImpl: public TypehashTypeReflectionImplBase<T> {
+class HermesTypeReflectionImpl: public TypeCodeTypeReflectionImplBase<T> {
 public:
     virtual void hermes_stringify_value(
             hermes::ValueStorageTag vs_tag,
@@ -68,6 +68,21 @@ public:
     }
 };
 
+
+template <typename T, typename GenericCtrImplT>
+class HermesContainerTypeReflectionImpl: public HermesTypeReflectionImpl<T> {
+public:
+
+    virtual PoolSharedPtr<hermes::GenericObject> hermes_make_wrapper(
+            void* addr,
+            hermes::HermesCtr* ctr,
+            ViewPtrHolder* ptr_holder
+    ) const {
+        return GenericCtrImplT::make_wrapper(addr, ctr, ptr_holder);
+    }
+};
+
+
 namespace detail {
 
 template <typename DT, bool IsTComplete = IsComplete<ToPlainStringConverter<DT>>::value>
@@ -105,7 +120,7 @@ struct FromStringHelper<DT, false> {
         return false;
     }
 
-    static hermes::ValuePtr convert_from(U8StringView) {
+    static hermes::ObjectPtr convert_from(U8StringView) {
         MEMORIA_MAKE_GENERIC_ERROR("No 'from string' converter is defined for datatype {}", TypeNameFactory<DT>::name()).do_throw();
     }
 };
@@ -116,7 +131,7 @@ struct FromStringHelper<DT, true> {
         return true;
     }
 
-    static hermes::ValuePtr convert_from(U8StringView view) {
+    static hermes::ObjectPtr convert_from(U8StringView view) {
         return FromPlainStringConverter<DT>::from_string(view);
     }
 };
@@ -137,7 +152,7 @@ template <typename FromDT, typename ToDT>
 struct TypeCvtBuilderHelper<FromDT, ToDT, true> {
     template <typename Mapping>
     static void add_converter (Mapping& mapping) {
-        mapping[TypeHashV<ToDT>] = std::make_unique<DatatypeConverter<FromDT, ToDT>>();
+        mapping[ShortTypeCode::of<ToDT>().u64()] = std::make_unique<DatatypeConverter<FromDT, ToDT>>();
     }
 };
 
@@ -193,7 +208,7 @@ template <typename T, typename DT>
 struct SameDatatypeComparatorSelector<T, DT, true> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<DT>] = [](
+        map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
                 hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
@@ -214,7 +229,7 @@ template <typename T, typename DT>
 struct SameDatatypeComparatorSelector<T, DT, false> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<DT>] = [](
+        map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
                 hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
@@ -239,7 +254,7 @@ template <typename T, typename LeftDT, typename RightDT>
 struct CrossDatatypeComparatorSelector<T, LeftDT, RightDT, true> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<RightDT>] = [](
+        map[ShortTypeCode::of<RightDT>().u64()] = [](
                 const DTTViewType<LeftDT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
                 hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
@@ -317,7 +332,7 @@ template <typename T, typename DT>
 struct SameDatatypeEqualityComparatorSelector<T, DT, true> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<DT>] = [](
+        map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
                 hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
@@ -338,7 +353,7 @@ template <typename T, typename DT>
 struct SameDatatypeEqualityComparatorSelector<T, DT, false> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<DT>] = [](
+        map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
                 hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
@@ -363,7 +378,7 @@ template <typename T, typename LeftDT, typename RightDT>
 struct CrossDatatypeEqualityComparatorSelector<T, LeftDT, RightDT, true> {
     template <typename Map>
     static void build_mapping(Map& map) noexcept {
-        map[TypeHashV<RightDT>] = [](
+        map[ShortTypeCode::of<RightDT>().u64()] = [](
                 const DTTViewType<LeftDT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
                 hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
@@ -482,18 +497,18 @@ using AllEqualityComparableDatatypes = typename EqualityComparableTypesH<AllHerm
 template <uint64_t LeftCode, typename List, int32_t Idx = 0>
 struct LeftIndexOf;
 
-template <uint64_t HashCode, typename Head, typename... Tail, int32_t Idx>
-struct LeftIndexOf<HashCode, TL<Head, Tail...>, Idx> {
-    static constexpr int32_t Value = IfThenElse<
-            TypeHashV<Head> == HashCode,
+template <uint64_t TypeCode, typename Head, typename... Tail, int32_t Idx>
+struct LeftIndexOf<TypeCode, TL<Head, Tail...>, Idx> {
+    static constexpr int32_t Object = IfThenElse<
+            ShortTypeCode::of<Head>().u64() == TypeCode,
             IntValue<Idx>,
-            IntValue<LeftIndexOf<HashCode, TL<Tail...>, Idx + 1>::Value>
+            IntValue<LeftIndexOf<TypeCode, TL<Tail...>, Idx + 1>::Object>
     >::Value;
 };
 
-template <uint64_t HashCode, int32_t Idx>
-struct LeftIndexOf<HashCode, TL<>, Idx> {
-    static constexpr int32_t Value = Idx;
+template <uint64_t TypeCode, int32_t Idx>
+struct LeftIndexOf<TypeCode, TL<>, Idx> {
+    static constexpr int32_t Object = Idx;
 };
 
 template <typename List>
@@ -501,19 +516,19 @@ struct RightIndexOf;
 
 template <typename Head, typename... Tail>
 struct RightIndexOf<TL<Head, Tail...>> {
-    static int32_t find(uint64_t hash_code, int32_t idx = 0) noexcept {
-        if (TypeHashV<Head> == hash_code) {
+    static int32_t find(ShortTypeCode type_code, int32_t idx = 0) noexcept {
+        if (ShortTypeCode::of<Head>() == type_code) {
             return idx;
         }
         else {
-            return RightIndexOf<TL<Tail...>>::find(hash_code, idx + 1);
+            return RightIndexOf<TL<Tail...>>::find(type_code, idx + 1);
         }
     }
 };
 
 template <>
 struct RightIndexOf<TL<>> {
-    static int32_t find(uint64_t hash_code, int32_t idx = 0) noexcept {
+    static int32_t find(ShortTypeCode type_code, int32_t idx = 0) noexcept {
         return idx;
     }
 };
@@ -537,7 +552,7 @@ class HermesTypeReflectionDatatypeImpl: public HermesTypeReflectionImpl<T> {
     ska::flat_hash_map<uint64_t, detail::DTComparator<DTTViewType<DT>>> comparators_;
     ska::flat_hash_map<uint64_t, detail::DTEqualityComparator<DTTViewType<DT>>> equality_comparators_;
 
-    static constexpr int32_t LeftTypeIdx = detail::LeftIndexOf<TypeHashV<DT>, detail::AllComparableDatatypes>::Value;
+    static constexpr int32_t LeftTypeIdx = detail::LeftIndexOf<ShortTypeCode::of<DT>().u64(), detail::AllComparableDatatypes>::Object;
     static constexpr int32_t Comparables = ListSize<detail::AllComparableDatatypes>;
 
 public:
@@ -568,8 +583,8 @@ public:
         }
     }
 
-    virtual bool is_convertible_to(uint64_t type_hash) const override {
-        return converters_.find(type_hash) != converters_.end();
+    virtual bool is_convertible_to(ShortTypeCode type_hash) const override {
+        return converters_.find(type_hash.u64()) != converters_.end();
     }
 
     virtual bool is_convertible_to_plain_string() const override {
@@ -580,15 +595,15 @@ public:
         return detail::FromStringHelper<DT>::is_convertible();
     }
 
-    virtual hermes::ValuePtr datatype_convert_to(
-            uint64_t type_hash,
+    virtual hermes::ObjectPtr datatype_convert_to(
+            ShortTypeCode type_hash,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr,
             hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
     ) const override
     {
-        auto ii = converters_.find(type_hash);
+        auto ii = converters_.find(type_hash.u64());
         if (ii != converters_.end())
         {
             if (vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
@@ -607,7 +622,7 @@ public:
         }
     }
 
-    virtual hermes::ValuePtr datatype_convert_from_plain_string(U8StringView str) const override {
+    virtual hermes::ObjectPtr datatype_convert_from_plain_string(U8StringView str) const override {
         return detail::FromStringHelper<DT>::convert_from(str);
     }
 
@@ -628,7 +643,7 @@ public:
         }
     }
 
-    virtual bool hermes_comparable_with(uint64_t tag) const override
+    virtual bool hermes_comparable_with(ShortTypeCode tag) const override
     {
         if (LeftTypeIdx < Comparables) {
             int32_t right_idx = detail::RightIndexOf<detail::AllComparableDatatypes>::find(tag);
@@ -640,9 +655,9 @@ public:
     }
 
 
-    virtual bool hermes_equals_comparable_with(uint64_t tag) const override
+    virtual bool hermes_equals_comparable_with(ShortTypeCode tag) const override
     {
-        return equality_comparators_.find(tag) != equality_comparators_.end();
+        return equality_comparators_.find(tag.u64()) != equality_comparators_.end();
     }
 
     virtual bool hermes_comparable() const override {
@@ -657,9 +672,9 @@ public:
     ) const override
     {
         auto tag = hermes::get_type_tag(right_vs_tag, right);
-        if (tag)
+        if (tag.u64())
         {            
-            auto ii = comparators_.find(tag);
+            auto ii = comparators_.find(tag.u64());
             if (ii != comparators_.end())
             {
                 if (left_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
@@ -694,8 +709,8 @@ public:
     ) const override
     {
         auto tag = hermes::get_type_tag(right_vs_tag, right);
-        if (tag) {
-            auto ii = equality_comparators_.find(tag);
+        if (tag.u64()) {
+            auto ii = equality_comparators_.find(tag.u64());
             if (ii != equality_comparators_.end())
             {
                 if (left_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
@@ -716,22 +731,15 @@ public:
         }
     }
 
-    hermes::ValuePtr import_value(
+    hermes::ObjectPtr import_value(
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& storage,
             hermes::HermesCtr* ctr,
             ViewPtrHolder* ptr
     ) const override
     {
-        if (vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS)
-        {
-            T data_object(storage.addr, ctr, ptr);
-            return ctr->new_dataobject<DT>(data_object.view())->as_value();
-        }
-        else {
-            const auto& view = storage.get_view<DT>(vs_tag);
-            return ctr->new_dataobject<DT>(view)->as_value();
-        }
+        const auto& view = storage.get_view<DT>(vs_tag);
+        return ctr->new_dataobject<DT>(view)->as_object();
     }
 
 };

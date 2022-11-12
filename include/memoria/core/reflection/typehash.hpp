@@ -26,11 +26,89 @@
 
 namespace memoria {
 
+template <typename T>
+struct TypeDescriptor: HasU64Value<0> {};
+
+class ShortTypeCode final {
+    uint64_t value_;
+
+    constexpr ShortTypeCode(uint64_t v):
+        value_(v)
+    {}
+
+
+public:
+    ShortTypeCode() = default;
+
+    constexpr uint64_t u64() const {
+        return value_;
+    }
+
+    constexpr bool operator==(ShortTypeCode other) const noexcept {
+        return value_ == other.value_;
+    }
+
+    // Only 56 bit of code matters
+    // 0 = 'null' code (0-sized)
+    static constexpr uint64_t code_len(uint64_t value)
+    {
+        size_t len = 7;
+        uint64_t mask = 0xFF000000000000;
+        for (; len > 0; len--, mask >>= 8) {
+            if (value & mask) {
+                return len;
+            }
+        }
+
+        return len;
+    }
+
+    constexpr size_t code_len() const {
+        return value_ & 0x7ull;
+    }
+
+    constexpr size_t full_code_len() const {
+        return code_len() + 1;
+    }
+
+
+    constexpr uint64_t descriptor() const {
+        return (value_ >> 3) & 0x1Full;
+    }
+
+    template <typename T>
+    static constexpr ShortTypeCode of() {
+        return ShortTypeCode::with_descriptor(TypeHash<T>::Value, TypeDescriptor<T>::Value);
+    }
+
+    constexpr bool is_null() const {
+        return !(value_ & 0x7);
+    }
+
+    constexpr bool is_not_null() const {
+        return (value_ & 0x7);
+    }
+
+    static  constexpr ShortTypeCode nullv() {
+        return ShortTypeCode(0);
+    }
+
+    static constexpr ShortTypeCode of_raw(uint64_t code) {
+        return ShortTypeCode(code);
+    }
+
+    static constexpr ShortTypeCode of_object(uint64_t type_hash) {
+        return ShortTypeCode((type_hash << 8) | code_len(type_hash));
+    }
+
+    static constexpr ShortTypeCode with_descriptor(uint64_t type_hash, uint64_t descriptor) {
+        return ShortTypeCode((type_hash << 8) | code_len(type_hash) | ((descriptor & 0x1Full) << 3));
+    }
+};
+
+// FIXME: remove after removing LDDocument
 static constexpr uint8_t SHORT_TYPEHASH_LENGTH_BASE = 250;
 
-inline constexpr uint64_t ToSmallHash(uint64_t code) {
-    return code & 0xFFFFFFFFFFFFFFull;
-}
 
 struct TypeHashes {
     enum {SCALAR = 1, ARRAY, CONST_VALUE};
@@ -61,7 +139,7 @@ template <
 struct TypeHash<Profile<T>> {
     // FIXME need template assigning unique code to the each profile level
     using VList = UInt64List<100, TypeHash<T>::Value>;
-    static constexpr uint64_t Value = ToSmallHash(md5::Md5Sum<VList>::Type::Value64);
+    static constexpr uint64_t Value = md5::Md5Sum<VList>::Type::Value64;
 };
 
 
@@ -69,7 +147,7 @@ struct TypeHash<Profile<T>> {
 
 
 template <uint64_t Base, uint64_t ... Values>
-static constexpr uint64_t HashHelper = ToSmallHash(md5::Md5Sum<UInt64List<Base, Values...>>::Type::Value64);
+static constexpr uint64_t HashHelper = md5::Md5Sum<UInt64List<Base, Values...>>::Type::Value64;
 
 
 template <typename T, T V>
@@ -92,7 +170,7 @@ private:
     using TaggedValueList = MergeValueLists<UInt64Value<2000>, ValueList>;
 public:
 
-    static const uint64_t Value = ToSmallHash(md5::Md5Sum<TaggedValueList>::Result::Value64);
+    static const uint64_t Value = md5::Md5Sum<TaggedValueList>::Result::Value64;
 };
 
 template <typename... List>
@@ -102,7 +180,7 @@ private:
     using TaggedValueList = MergeValueLists<UInt64Value<2001>, ValueList>;
 public:
 
-    static const uint64_t Value = ToSmallHash(md5::Md5Sum<TaggedValueList>::Result::Value64);
+    static const uint64_t Value = md5::Md5Sum<TaggedValueList>::Result::Value64;
 };
 
 

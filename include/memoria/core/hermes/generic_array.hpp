@@ -15,21 +15,26 @@
 
 #pragma once
 
-#include <memoria/core/hermes/array/typed_array_common.hpp>
-#include <memoria/core/arena/vector.hpp>
+#include <memoria/core/memory/object_pool.hpp>
 
+
+#include <memoria/core/hermes/traits.hpp>
+#include <memoria/core/hermes/common.hpp>
 
 namespace memoria {
 namespace hermes {
-namespace detail {
 
-template <typename DT>
-class TypedArrayData<DT, FSE1Subtype, true>: public arena::Vector<DTTViewType<DT>> {
-    // No state here!
-    // Must be a Standard Layout type
-public:
+struct GenericArray: GenericObject {
+    virtual uint64_t size() const = 0;
+    virtual ObjectPtr get(uint64_t idx) const = 0;
 
+    virtual void set(uint64_t idx, const ObjectPtr& value) = 0;
+
+    virtual void push_back(const ObjectPtr& value)    = 0;
+    virtual void remove(uint64_t start, uint64_t end) = 0;
 };
 
+template <typename>
+class TypedGenericArray;
 
-}}}
+}}

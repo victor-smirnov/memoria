@@ -42,7 +42,7 @@ void assert_arrays_equal(const std::vector<T>& expected, const LDDArrayView& act
 
 
 template <typename T>
-void assert_arrays_equal(const std::vector<T>& expected, hermes::GenericArrayPtr actual)
+void assert_arrays_equal(const std::vector<T>& expected, hermes::ObjectArrayPtr actual)
 {
     assert_equals(expected.size(), actual->size());
     for (size_t c = 0; c < expected.size(); c++) {
@@ -70,7 +70,7 @@ void assert_arrays_equal(const std::unordered_map<K, V>& expected, const LDDMapV
 }
 
 template <typename K, typename V>
-void assert_arrays_equal(const std::unordered_map<K, V>& expected, hermes::GenericMapPtr actual)
+void assert_arrays_equal(const std::unordered_map<K, V>& expected, hermes::ObjectMapPtr actual)
 {
     assert_equals(expected.size(), actual->size());
     for (auto ii: expected)

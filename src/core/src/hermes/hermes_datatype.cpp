@@ -20,26 +20,26 @@
 namespace memoria {
 namespace hermes {
 
-GenericArrayPtr Datatype::constructor() const
+ObjectArrayPtr Datatype::constructor() const
 {
     assert_not_null();
     if (datatype_->has_constructor()) {
-        return GenericArrayPtr(GenericArray(datatype_->constructor(), doc_, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(datatype_->constructor(), doc_, ptr_holder_));
     }
     else {
-        return GenericArrayPtr(GenericArray(nullptr, doc_, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(nullptr, doc_, ptr_holder_));
     }
 }
 
 
-GenericArrayPtr Datatype::type_parameters() const
+ObjectArrayPtr Datatype::type_parameters() const
 {
     assert_not_null();
     if (datatype_->is_parametric()) {
-        return GenericArrayPtr(GenericArray(datatype_->parameters(), doc_, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(datatype_->parameters(), doc_, ptr_holder_));
     }
     else {
-        return GenericArrayPtr(GenericArray(nullptr, doc_, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(nullptr, doc_, ptr_holder_));
     }
 }
 
@@ -169,7 +169,7 @@ void Datatype::stringify_cxx(std::ostream& out,
 
                 state.make_indent(out);
 
-                ValuePtr type_param = params->get(c);
+                ObjectPtr type_param = params->get(c);
                 if (type_param->is_a(TypeTag<Datatype>{})) {
                     cast_to<Datatype>(type_param)->stringify_cxx(out, state);
                 }
@@ -240,13 +240,15 @@ DatatypePtr Datatype::append_type_parameter(U8StringView name)
     assert_not_null();
     assert_mutable();
 
-    GenericArrayPtr params = type_parameters();
+    ObjectArrayPtr params = type_parameters();
     if (MMA_UNLIKELY(params->is_null())) {
         params = doc_->new_array();
         datatype_->set_parameters(params->array_);
     }
 
-    return params->append_datatype(name);
+    auto datatype = doc_->new_datatype(name);
+    params->append(datatype->as_object());
+    return datatype;
 }
 
 DatatypePtr Datatype::append_type_parameter(StringValuePtr name)
@@ -254,21 +256,23 @@ DatatypePtr Datatype::append_type_parameter(StringValuePtr name)
     assert_not_null();
     assert_mutable();
 
-    GenericArrayPtr params = type_parameters();
+    ObjectArrayPtr params = type_parameters();
     if (MMA_UNLIKELY(params->is_null())) {
         params = doc_->new_array();
         datatype_->set_parameters(params->array_);
     }
 
-    return params->append_datatype(name);
+    auto datatype = doc_->new_datatype(name);
+    params->append(datatype->as_object());
+    return datatype;
 }
 
-void Datatype::append_type_parameter(ValuePtr value)
+void Datatype::append_type_parameter(ObjectPtr value)
 {
     assert_not_null();
     assert_mutable();
 
-    GenericArrayPtr params = type_parameters();
+    ObjectArrayPtr params = type_parameters();
     if (MMA_UNLIKELY(params->is_null())) {
         params = doc_->new_array();
         datatype_->set_parameters(params->array_);
@@ -277,12 +281,12 @@ void Datatype::append_type_parameter(ValuePtr value)
     params->append(value);
 }
 
-void Datatype::append_constructor_argument(ValuePtr value)
+void Datatype::append_constructor_argument(ObjectPtr value)
 {
     assert_not_null();
     assert_mutable();
 
-    GenericArrayPtr ctr = constructor();
+    ObjectArrayPtr ctr = constructor();
 
     if (MMA_UNLIKELY(ctr->is_null())) {
         ctr = doc_->new_array();
@@ -293,7 +297,7 @@ void Datatype::append_constructor_argument(ValuePtr value)
 }
 
 
-GenericArrayPtr Datatype::set_constructor()
+ObjectArrayPtr Datatype::set_constructor()
 {
     assert_not_null();
     assert_mutable();

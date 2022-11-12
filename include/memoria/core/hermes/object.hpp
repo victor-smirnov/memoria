@@ -28,7 +28,7 @@
 namespace memoria {
 
 template <>
-class HoldingView<hermes::Value>: public hermes::TaggedHoldingView {
+class HoldingView<hermes::Object>: public hermes::TaggedHoldingView {
 
 public:
     HoldingView(){}
@@ -41,8 +41,10 @@ public:
 
 namespace hermes {
 
-class Value: public HoldingView<Value> {
-    using Base = HoldingView<Value>;
+class GenericDataObjectImpl;
+
+class Object: public HoldingView<Object> {
+    using Base = HoldingView<Object>;
 protected:
     mutable HermesCtr* doc_;
 
@@ -58,15 +60,17 @@ protected:
     template<typename>
     friend class Array;
 
+    friend class GenericDataObjectImpl;
+
 public:
-    Value() noexcept:
+    Object() noexcept:
         doc_()
     {
         value_storage_.addr = nullptr;
         set_tag(ValueStorageTag::VS_TAG_ADDRESS);
     }
 
-    Value(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept :
+    Object(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept :
         Base(ref_holder),
         doc_(doc)
     {
@@ -74,7 +78,7 @@ public:
         set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
     }
 
-    Value(ValueStorageTag vs_tag, ValueStorage storage, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept :
+    Object(ValueStorageTag vs_tag, ValueStorage storage, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept :
         Base(ref_holder),
         doc_(doc)
     {
@@ -86,7 +90,7 @@ public:
         }
     }
 
-    Value(const Value& other) noexcept :
+    Object(const Object& other) noexcept :
         Base(other),
         doc_(other.doc_),
         value_storage_(other.value_storage_)
@@ -96,7 +100,7 @@ public:
         }
     }
 
-    Value(Value&& other) noexcept :
+    Object(Object&& other) noexcept :
         Base(std::move(other)),
         doc_(other.doc_),
         value_storage_(std::move(other.value_storage_))
@@ -106,7 +110,7 @@ public:
         }
     }
 
-    virtual ~Value() noexcept
+    virtual ~Object() noexcept
     {
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW)
         {
@@ -116,7 +120,7 @@ public:
         }
     }
 
-    Value& operator=(const Value& other)
+    Object& operator=(const Object& other)
     {
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (value_storage_.view_ptr) {
@@ -136,7 +140,7 @@ public:
         return *this;
     }
 
-    Value& operator=(Value&& other)
+    Object& operator=(Object&& other)
     {
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (value_storage_.view_ptr) {
@@ -155,7 +159,7 @@ public:
     }
 
     bool is_detached() const {
-        return get_vs_tag() != ValueStorageTag::VS_TAG_ADDRESS;
+        return get_vs_tag() != ValueStorageTag::VS_TAG_SMALL_VALUE;
     }
 
     PoolSharedPtr<HermesCtr> document() const {
@@ -163,8 +167,8 @@ public:
         return PoolSharedPtr<HermesCtr>(doc_, get_ptr_holder()->owner(), pool::DoRef{});
     }
 
-    ValuePtr search(U8StringView query) const;
-    ValuePtr search(U8StringView query, const IParameterResolver& params) const;
+    ObjectPtr search(U8StringView query) const;
+    ObjectPtr search(U8StringView query, const IParameterResolver& params) const;
 
     bool is_convertible_to_plain_string() const
     {
@@ -195,10 +199,10 @@ public:
     }
 
     template <typename DT>
-    ValuePtr convert_to() const;
+    ObjectPtr convert_to() const;
 
-    ValuePtr as_value() const {
-        return ValuePtr(*this);
+    ObjectPtr as_object() const {
+        return ObjectPtr(*this);
     }
 
     bool is_null() const noexcept {
@@ -215,13 +219,18 @@ public:
         return is_a(TypeTag<Varchar>{});
     }
 
-    bool is_generic_array() const noexcept {
-        return is_a(TypeTag<Array<Value>>{});
+    bool is_array() const noexcept {
+        return get_type_tag().descriptor() == HERMES_OBJECT_ARRAY;
     }
 
-    bool is_generic_map() const noexcept {
-        return is_a(TypeTag<Map<Varchar, Value>>{});
+    bool is_map() const noexcept {
+        return get_type_tag().descriptor() == HERMES_OBJECT_MAP;
     }
+
+    bool is_data() const noexcept {
+        return get_type_tag().descriptor() == 0;
+    }
+
 
     bool is_real() const noexcept {
         return is_a(TypeTag<Real>{});
@@ -273,15 +282,15 @@ public:
         return false;
     }
 
-    uint64_t type_tag() const noexcept {
+    ShortTypeCode type_tag() const noexcept {
         if (is_not_null()) {
             return get_type_tag();
         }
-        return 0;
+        return ShortTypeCode::nullv();
     }
 
 
-    bool is_compareble_with(const ValuePtr& other) const
+    bool is_compareble_with(const ObjectPtr& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
@@ -294,7 +303,7 @@ public:
         }
     }
 
-    int32_t compare(const ValuePtr& other) const
+    int32_t compare(const ObjectPtr& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
@@ -312,7 +321,7 @@ public:
     }
 
 
-    bool is_equals_compareble_with(const ValuePtr& other) const
+    bool is_equals_compareble_with(const ObjectPtr& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
@@ -325,7 +334,7 @@ public:
         }
     }
 
-    bool equals(const ValuePtr& other) const
+    bool equals(const ObjectPtr& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
@@ -354,7 +363,7 @@ public:
 
     U8String type_str() const;
 
-    bool operator<(const ValuePtr& other) const {
+    bool operator<(const ObjectPtr& other) const {
         return false;
     }
 
@@ -372,7 +381,7 @@ public:
     bool is_a(TypeTag<T>) const noexcept
     {
         if (is_not_null()) {
-            auto tag = TypeHashV<T>;
+            auto tag = ShortTypeCode::of<T>();
             auto value_tag = get_type_tag();
             return tag == value_tag;
         }
@@ -396,7 +405,7 @@ public:
     auto cast_to(TypeTag<T>) const
     {
         assert_not_null();
-        auto tag = TypeHashV<T>;
+        auto tag = ShortTypeCode::of<T>();
         auto value_tag = get_type_tag();
 
         if (value_tag == tag) {
@@ -406,7 +415,7 @@ public:
             );
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Invalid value type tag: expected {}, actual {}", tag, value_tag).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Invalid value type tag: expected {}, actual {}", tag.u64(), value_tag.u64()).do_throw();
         }
     }
 
@@ -464,21 +473,21 @@ public:
     PoolSharedPtr<HermesCtr> clone() const;
 
 private:
-    uint64_t get_type_tag() const noexcept
+    ShortTypeCode get_type_tag() const noexcept
     {
         if (get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS) {
             return arena::read_type_tag(value_storage_.addr);
         }
         else if (get_vs_tag() == ValueStorageTag::VS_TAG_SMALL_VALUE) {
-            return value_storage_.small_value.tag;
+            return value_storage_.small_value.tag();
         }
         else if (get_vs_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (value_storage_.view_ptr) {
-                return value_storage_.view_ptr->tag;
+                return value_storage_.view_ptr->tag();
             }
         }
 
-        return 0;
+        return ShortTypeCode::nullv();
     }
 
     ValueStorageTag get_vs_tag() const noexcept {
@@ -493,33 +502,39 @@ private:
     void assert_not_null() const
     {
         if (is_null()) {
-            MEMORIA_MAKE_GENERIC_ERROR("Value is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Object is null").do_throw();
         }
+    }
+
+    void ref() {
+        get_ptr_holder()->ref_copy();
+    }
+
+    void unref() {
+        get_ptr_holder()->unref();
     }
 };
 
 
-using ValuePtr = ViewPtr<Value>;
-
-
-std::ostream& operator<<(std::ostream& out, ValuePtr ptr);
+std::ostream& operator<<(std::ostream& out, ObjectPtr ptr);
 
 struct Less {
-    bool operator()(const ValuePtr& left, const ValuePtr& right) {
+    bool operator()(const ObjectPtr& left, const ObjectPtr& right) {
         return left->compare(right) < 0;
     }
 };
 
 struct Greater {
-    bool operator()(const ValuePtr& left, const ValuePtr& right) {
+    bool operator()(const ObjectPtr& left, const ObjectPtr& right) {
         return left->compare(right) > 0;
     }
 };
 
+
 }
 
 template <typename T>
-auto cast_to(const hermes::ValuePtr& val) {
+auto cast_to(const hermes::ObjectPtr& val) {
     return val->cast_to(TypeTag<T>{});
 }
 }

@@ -21,15 +21,15 @@
 namespace memoria {
 namespace hermes {
 
-inline void Map<Varchar, Value>::assert_mutable()
+inline void Map<Varchar, Object>::assert_mutable()
 {
     if (MMA_UNLIKELY(!doc_->is_mutable())) {
-        MEMORIA_MAKE_GENERIC_ERROR("Map<String, Value> is immutable").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("Map<String, Object> is immutable").do_throw();
     }
 }
 
 template <typename DT>
-inline DataObjectPtr<DT> Map<Varchar, Value>::put_dataobject(U8StringView key, DTTViewType<DT> value)
+inline DataObjectPtr<DT> Map<Varchar, Object>::put_dataobject(U8StringView key, DTTViewType<DT> value)
 {
     assert_not_null();
     assert_mutable();
@@ -44,7 +44,7 @@ inline DataObjectPtr<DT> Map<Varchar, Value>::put_dataobject(U8StringView key, D
 }
 
 
-inline GenericMapPtr Map<Varchar, Value>::put_generic_map(U8StringView key)
+inline ObjectMapPtr Map<Varchar, Object>::put_generic_map(U8StringView key)
 {
     assert_not_null();
     assert_mutable();
@@ -58,7 +58,7 @@ inline GenericMapPtr Map<Varchar, Value>::put_generic_map(U8StringView key)
     return value_ptr;
 }
 
-inline GenericArrayPtr Map<Varchar, Value>::put_generic_array(U8StringView key)
+inline ObjectArrayPtr Map<Varchar, Object>::put_generic_array(U8StringView key)
 {
     assert_not_null();
     assert_mutable();
@@ -73,7 +73,7 @@ inline GenericArrayPtr Map<Varchar, Value>::put_generic_array(U8StringView key)
 }
 
 
-inline void Map<Varchar, Value>::remove(U8StringView key)
+inline void Map<Varchar, Object>::remove(U8StringView key)
 {
     assert_not_null();
     assert_mutable();
@@ -81,7 +81,7 @@ inline void Map<Varchar, Value>::remove(U8StringView key)
     map_->remove(*(doc_->arena()), key);
 }
 
-inline void Map<Varchar, Value>::do_stringify(std::ostream& out, DumpFormatState& state) const
+inline void Map<Varchar, Object>::do_stringify(std::ostream& out, DumpFormatState& state) const
 {
     auto& spec = state.cfg().spec();
 
@@ -127,7 +127,7 @@ inline void Map<Varchar, Value>::do_stringify(std::ostream& out, DumpFormatState
     }
 }
 
-inline void Map<Varchar, Value>::put(StringValuePtr name, ValuePtr value) {
+inline void Map<Varchar, Object>::put(StringValuePtr name, ObjectPtr value) {
     assert_not_null();
     assert_mutable();
 
@@ -137,7 +137,7 @@ inline void Map<Varchar, Value>::put(StringValuePtr name, ValuePtr value) {
     }
 }
 
-inline void Map<Varchar, Value>::put(U8StringView name, ValuePtr value) {
+inline void Map<Varchar, Object>::put(U8StringView name, ObjectPtr value) {
     assert_not_null();
     assert_mutable();
 
@@ -150,7 +150,7 @@ inline void Map<Varchar, Value>::put(U8StringView name, ValuePtr value) {
     }
 }
 
-inline ValuePtr Map<Varchar, Value>::put_hermes(U8StringView key, U8StringView str) {
+inline ObjectPtr Map<Varchar, Object>::put_hermes(U8StringView key, U8StringView str) {
   assert_not_null();
   assert_mutable();
 
@@ -162,5 +162,10 @@ inline ValuePtr Map<Varchar, Value>::put_hermes(U8StringView key, U8StringView s
 
   return value_ptr;
 }
+
+inline PoolSharedPtr<GenericMap> Map<Varchar, Object>::as_generic_map() const {
+    return GenericObjectMap::make_wrapper(map_, doc_, ptr_holder_);
+}
+
 
 }}

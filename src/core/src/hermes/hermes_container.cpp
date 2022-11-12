@@ -89,34 +89,34 @@ pool::SharedPtr<HermesCtr> HermesCtr::clone(bool as_mutable) const
 }
 
 
-GenericMapPtr HermesCtr::new_map()
+ObjectMapPtr HermesCtr::new_map()
 {
-    using CtrT = Map<Varchar, Value>;
+    using CtrT = Map<Varchar, Object>;
 
     auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::ArenaMap>(
-        TypeHashV<CtrT>
+        ShortTypeCode::of<CtrT>()
     );
 
-    return GenericMapPtr(CtrT(arena_dtc, this, ptr_holder_));
+    return ObjectMapPtr(CtrT(arena_dtc, this, ptr_holder_));
 }
 
-GenericArrayPtr HermesCtr::new_array()
+ObjectArrayPtr HermesCtr::new_array()
 {
-    using CtrT = GenericArray;
+    using CtrT = ObjectArray;
 
-    auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::ArenaArray>(
-        TypeHashV<CtrT>
+    auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::ArrayStorageT>(
+        ShortTypeCode::of<CtrT>()
     );
 
-    return GenericArrayPtr(CtrT(arena_dtc, this, ptr_holder_));
+    return ObjectArrayPtr(CtrT(arena_dtc, this, ptr_holder_));
 }
 
-GenericArrayPtr HermesCtr::new_array(Span<ValuePtr> span)
+ObjectArrayPtr HermesCtr::new_array(Span<ObjectPtr> span)
 {
-    using CtrT = GenericArray;
+    using CtrT = ObjectArray;
 
-    auto arena_arr = arena()->allocate_tagged_object<typename CtrT::ArenaArray>(
-        TypeHashV<CtrT>
+    auto arena_arr = arena()->allocate_tagged_object<typename CtrT::ArrayStorageT>(
+        ShortTypeCode::of<CtrT>()
     );
 
     if (span.size())
@@ -127,19 +127,21 @@ GenericArrayPtr HermesCtr::new_array(Span<ValuePtr> span)
         }
     }
 
-    return GenericArrayPtr(CtrT(arena_arr, this, ptr_holder_));
+    return ObjectArrayPtr(CtrT(arena_arr, this, ptr_holder_));
 }
 
 
-void HermesCtr::set_value(ValuePtr value) {
-    header_->root = value->value_storage_.addr;
+void HermesCtr::set_root(ObjectPtr value)
+{
+    ObjectPtr vv = do_import_value(value);
+    header_->root = vv->value_storage_.addr;
 }
 
 DatatypePtr HermesCtr::new_datatype(U8StringView name)
 {
     auto str = new_dataobject<Varchar>(name);
     auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
-        TypeHashV<Datatype>, str->dt_ctr()
+        ShortTypeCode::of<Datatype>(), str->dt_ctr()
     );
 
     return DatatypePtr(Datatype(arena_dt, this, ptr_holder_));
@@ -148,36 +150,36 @@ DatatypePtr HermesCtr::new_datatype(U8StringView name)
 DatatypePtr HermesCtr::new_datatype(StringValuePtr name)
 {
     auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
-        TypeHashV<Datatype>, name->dt_ctr()
+        ShortTypeCode::of<Datatype>(), name->dt_ctr()
     );
 
     return DatatypePtr(Datatype(arena_dt, this, ptr_holder_));
 }
 
-TypedValuePtr HermesCtr::new_typed_value(DatatypePtr datatype, ValuePtr constructor)
+TypedValuePtr HermesCtr::new_typed_value(DatatypePtr datatype, ObjectPtr constructor)
 {
     auto arena_tv = arena()->allocate_tagged_object<detail::TypedValueData>(
-        TypeHashV<TypedValue>, datatype->datatype_, constructor->value_storage_.addr
+        ShortTypeCode::of<TypedValue>(), datatype->datatype_, constructor->value_storage_.addr
     );
 
     return TypedValuePtr(TypedValue(arena_tv, this, ptr_holder_));
 }
 
-ValuePtr HermesCtr::do_import_value(ValuePtr value)
+ObjectPtr HermesCtr::do_import_value(ObjectPtr value)
 {
     assert_not_null();
     assert_mutable();
 
     if (!value->is_null())
     {
-        if (!value->is_detached())
+        if (value->get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS)
         {
             auto tag = arena::read_type_tag(value->value_storage_.addr);
 
             DeepCopyDeduplicator dedup;
             auto addr = get_type_reflection(tag).deep_copy_to(*arena_, value->value_storage_.addr, this, ptr_holder_, dedup);
 
-            return ValuePtr(Value(addr, this, ptr_holder_));
+            return ObjectPtr(Object(addr, this, ptr_holder_));
         }
         else {
             auto type_tag = value->get_type_tag();
@@ -195,7 +197,7 @@ ParameterPtr HermesCtr::new_parameter(U8StringView name) {
     assert_mutable();
 
     auto arena_dtc = arena_->allocate_tagged_object<typename Parameter::ArenaDTContainer>(
-        TypeHashV<Parameter>,
+        ShortTypeCode::of<Parameter>(),
         name
     );
 

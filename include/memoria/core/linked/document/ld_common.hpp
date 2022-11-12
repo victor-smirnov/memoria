@@ -124,7 +124,7 @@ template <> struct TypeHash<LDTypedValue>:      UInt64Value<43> {};
 template <> struct TypeHash<LDTypeDeclaration>: UInt64Value<44> {};
 
 template <>
-struct TypeHash<LDDocument>: UInt64Value<ToSmallHash(3457983275945243)> {};
+struct TypeHash<LDDocument>: UInt64Value<3457983275945243> {};
 
 namespace ld_ {
 

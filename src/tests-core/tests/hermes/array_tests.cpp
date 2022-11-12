@@ -22,8 +22,9 @@ namespace tests {
 auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "ArrayAddRemove", [](auto& state){
     auto doc = hermes::HermesCtr::make_new();
 
-    auto array = doc->set_generic_array();
-    assert_equals(true, doc->root()->as_generic_array()->equals(array));
+    auto array = doc->new_array();
+    doc->set_root(array->as_object());
+    //assert_equals(true, doc->root()->as_generic_array()->equals(array));
     assert_equals(0, array->size());
 
     size_t size = 10000;
@@ -60,8 +61,9 @@ auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>
 auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "ArraySet", [](auto& state){
     auto doc = hermes::HermesCtr::make_new();
 
-    auto array = doc->set_generic_array();
-    assert_equals(true, doc->root()->as_generic_array()->equals(array));
+    auto array = doc->new_array();
+    doc->set_root(array->as_object());
+//    assert_equals(true, doc->root()->as_generic_array()->equals(array));
     assert_equals(0, array->size());
 
     array->append<Varchar>("Hello World");
@@ -76,12 +78,14 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Herm
     assert_equals(true, array->get(2)->is_boolean());
     assert_equals(true, array->get(2)->as_boolean()->view());
 
-    auto map = array->append_generic_map();
-    assert_equals(true, array->get(3)->is_generic_map());
+    auto map = doc->new_map();
+    array->append(map->as_object());
+    assert_equals(true, array->get(3)->is_map());
 //    assert_equals(true, array->get(3)->as_generic_map()->equals(map));
 
-    auto arr = array->append_generic_array();
-    assert_equals(true, array->get(4)->is_generic_array());
+    auto arr = doc->new_array();
+    array->append(arr->as_object());
+    assert_equals(true, array->get(4)->is_array());
 //    assert_equals(true, array->get(4)->as_generic_array()->equals(arr));
 
     auto sdn1 = array->append_hermes("'123456'@CoolType");
@@ -93,7 +97,7 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Herm
     assert_equals(true, array->get(6)->equals(sdn2));
 
     auto doc2 = array->append_hermes("{}");
-    assert_equals(true, array->get(7)->is_generic_map());
+    assert_equals(true, array->get(7)->is_map());
     assert_equals(true, array->get(7)->equals(doc2));
 
     array->append_null();
@@ -134,13 +138,13 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Herm
 
 
     array->set_hermes(4, "{}");
-    assert_equals(true, array->get(4)->is_generic_map());
+    assert_equals(true, array->get(4)->is_map());
     assert_throws<ResultException>([&](){
         array->set_hermes(10, "S0");
     });
 
     array->set_hermes(5, "[]");
-    assert_equals(true, array->get(5)->is_generic_array());
+    assert_equals(true, array->get(5)->is_array());
     assert_throws<ResultException>([&](){
         array->set_hermes(10, "S0");
     });

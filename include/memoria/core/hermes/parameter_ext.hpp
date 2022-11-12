@@ -24,7 +24,7 @@ namespace hermes {
 template <typename DT>
 inline void Params::add_dataobject(U8StringView name, DTTViewType<DT> view) {
     auto doc = HermesCtr::make_pooled();
-    params_[name] = doc->set_dataobject<DT>(view)->as_value();
+    params_[name] = doc->set_dataobject<DT>(view)->as_object();
 }
 
 
@@ -37,13 +37,13 @@ inline bool Params::has_parameter(U8StringView name) const {
     return params_.find(name) != params_.end();
 }
 
-inline ValuePtr Params::resolve(U8StringView name) const {
+inline ObjectPtr Params::resolve(U8StringView name) const {
     auto ii = params_.find(name);
     if (ii != params_.end()) {
         return ii->second;
     }
 
-    return ValuePtr{};
+    return ObjectPtr{};
 }
 
 

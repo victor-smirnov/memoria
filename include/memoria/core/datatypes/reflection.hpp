@@ -26,7 +26,7 @@ template <typename> class DataObject;
 }
 
 template <typename T>
-class HermesTypedValueReflectionImpl: public TypehashTypeReflectionImplBase<T> {
+class HermesTypedValueReflectionImpl: public TypeCodeTypeReflectionImplBase<T> {
 public:
     virtual void hermes_stringify_value(
             size_t vs_tag,
@@ -53,7 +53,7 @@ public:
 
 
 template <typename T>
-class DataTypeReflectionImpl: public TypehashTypeReflectionImplBase<T> {
+class DataTypeReflectionImpl: public TypeCodeTypeReflectionImplBase<T> {
 
     virtual void hermes_stringify_value(
             size_t vs_tag,

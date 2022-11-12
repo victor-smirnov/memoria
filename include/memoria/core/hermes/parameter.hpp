@@ -19,7 +19,7 @@
 #include <memoria/core/arena/string.hpp>
 #include <memoria/core/arena/hash_fn.hpp>
 
-#include <memoria/core/hermes/value.hpp>
+#include <memoria/core/hermes/object.hpp>
 #include <memoria/core/hermes/common.hpp>
 #include <memoria/core/hermes/traits.hpp>
 
@@ -36,19 +36,19 @@ struct IParameterResolver {
     virtual ~IParameterResolver() noexcept = default;
 
     virtual bool has_parameter(U8StringView name) const = 0;
-    virtual ValuePtr resolve(U8StringView name) const   = 0;
+    virtual ObjectPtr resolve(U8StringView name) const   = 0;
 };
 
 struct Params: IParameterResolver {
     virtual bool has_parameter(U8StringView name) const;
-    virtual ValuePtr resolve(U8StringView name) const;
+    virtual ObjectPtr resolve(U8StringView name) const;
 
     template <typename DT>
     void add_dataobject(U8StringView name, DTTViewType<DT> view);
     void add_hermes(U8StringView name, U8StringView value);
 
 private:
-    std::unordered_map<U8String, ValuePtr> params_;
+    std::unordered_map<U8String, ObjectPtr> params_;
 };
 
 
@@ -58,7 +58,7 @@ public:
     using ArenaDTContainer = arena::ArenaDataTypeContainer<Varchar>;
 
     friend class HermesCtr;
-    friend class Value;
+    friend class Object;
 
     template <typename, typename>
     friend class Map;
@@ -102,8 +102,8 @@ public:
         return dt_ctr_ != nullptr;
     }
 
-    ValuePtr as_value() const {
-        return ValuePtr(Value(dt_ctr_, doc_, ptr_holder_));
+    ObjectPtr as_object() const {
+        return ObjectPtr(Object(dt_ctr_, doc_, ptr_holder_));
     }
 
     U8StringView view() const
@@ -149,7 +149,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return dt_ctr_->deep_copy_to(arena, TypeHashV<Parameter>, doc_, ptr_holder_, dedup);
+        return dt_ctr_->deep_copy_to(arena, ShortTypeCode::of<Parameter>(), doc_, ptr_holder_, dedup);
     }
 
     int32_t compare(const ParameterPtr& other) const

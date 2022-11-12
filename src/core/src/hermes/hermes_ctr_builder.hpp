@@ -123,11 +123,11 @@ public:
         return HermesCtr::wrap_dataobject<Boolean>(v);
     }
 
-    void set_doc_value(ViewPtr<Value> value) {
-        doc_->set_value(value);
+    void set_ctr_root(ObjectPtr value) {
+        doc_->set_root(value);
     }
 
-    auto new_array(Span<ValuePtr> span) {
+    auto new_array(Span<ObjectPtr> span) {
         return doc_->new_array(span);
     }
 
@@ -143,15 +143,15 @@ public:
         return doc_->new_datatype(id);
     }
 
-    void add_type_decl_param(DatatypePtr& dst, ValuePtr param) {
+    void add_type_decl_param(DatatypePtr& dst, ObjectPtr param) {
         dst->append_type_parameter(param);
     }
 
-    void add_type_decl_ctr_arg(DatatypePtr& dst, ValuePtr ctr_arg) {
+    void add_type_decl_ctr_arg(DatatypePtr& dst, ObjectPtr ctr_arg) {
         dst->append_constructor_argument(ctr_arg);
     }
 
-    TypedValuePtr new_typed_value(DatatypePtr type_decl, ValuePtr constructor)
+    TypedValuePtr new_typed_value(DatatypePtr type_decl, ObjectPtr constructor)
     {
         return doc_->new_typed_value(type_decl, constructor);
     }
@@ -182,15 +182,15 @@ public:
         return (ii != type_registry_.end());
     }
 
-    void append_entry(GenericMapPtr& map, const StringValuePtr& name, const ValuePtr& value) {
+    void append_entry(ObjectMapPtr& map, const StringValuePtr& name, const ObjectPtr& value) {
         map->put(name, value);
     }
 
-    void append_entry(GenericMapPtr& map, U8StringView name, const ValuePtr& value) {
+    void append_entry(ObjectMapPtr& map, U8StringView name, const ObjectPtr& value) {
         map->put(name, value);
     }
 
-    void append_value(GenericArrayPtr& array, const ValuePtr& value) {
+    void append_value(ObjectArrayPtr& array, const ObjectPtr& value) {
         array->append(value);
     }
 

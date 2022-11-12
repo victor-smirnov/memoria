@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memoria/core/hermes/value.hpp>
-#include <memoria/core/hermes/array.hpp>
+#include <memoria/core/hermes/object.hpp>
+#include <memoria/core/hermes/array/array.hpp>
 #include <memoria/core/hermes/container.hpp>
 #include <memoria/core/hermes/data_object.hpp>
 #include <memoria/core/hermes/map.hpp>
@@ -52,7 +52,7 @@ DataObjectPtr<DT> Datatype::append_integral_parameter(DTTViewType<DT> view)
     assert_not_null();
     assert_mutable();
 
-    GenericArrayPtr params = type_parameters();
+    ObjectArrayPtr params = type_parameters();
 
     if (MMA_UNLIKELY(params->is_null())) {
         params = doc_->new_array();

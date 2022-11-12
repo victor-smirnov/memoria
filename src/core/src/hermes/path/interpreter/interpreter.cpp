@@ -51,9 +51,10 @@ hermes::DataObjectPtr<DT> wrap_DO(DTTViewType<DT> view) {
 }
 
 
-hermes::GenericArrayPtr Interpreter::wrap_array(const std::vector<ValuePtr>& array) {
+hermes::ObjectArrayPtr Interpreter::wrap_array(const std::vector<ObjectPtr>& array) {
     auto doc = hermes::HermesCtr::make_pooled();
-    auto arr = doc->set_generic_array();
+    auto arr = doc->new_array();
+    doc->set_root(arr->as_object());
 
     for (const auto& item: array) {
         arr->append(item);
@@ -62,14 +63,18 @@ hermes::GenericArrayPtr Interpreter::wrap_array(const std::vector<ValuePtr>& arr
     return arr;
 }
 
-hermes::GenericArrayPtr make_array() {
+hermes::ObjectArrayPtr make_array() {
     auto doc = hermes::HermesCtr::make_pooled();
-    return doc->set_generic_array();
+    auto arr = doc->new_array();
+    doc->set_root(arr->as_object());
+    return arr;
 }
 
-hermes::GenericMapPtr make_map() {
+hermes::ObjectMapPtr make_map() {
     auto doc = hermes::HermesCtr::make_pooled();
-    return doc->set_generic_map();
+    auto map = doc->new_map();
+    doc->set_root(map->as_object());
+    return map;
 }
 
 Interpreter::Interpreter()
@@ -169,11 +174,11 @@ void Interpreter::evaluateProjection(const ast::ExpressionNode *expression)
 
 
 void Interpreter::evaluateProjection(const ast::ExpressionNode* expression,
-                                      ValuePtr&& context)
+                                      ObjectPtr&& context)
 {
     using std::placeholders::_1;
     // evaluate the projection if the context holds an array
-    if (context->is_generic_array())
+    if (context->is_array())
     {
         auto ctx_array = context->as_generic_array();
 
@@ -181,8 +186,9 @@ void Interpreter::evaluateProjection(const ast::ExpressionNode* expression,
         auto result = make_array();
 
         // iterate over the array
-        for (auto item: *ctx_array)
+        for (size_t idx = 0; idx < ctx_array->size(); idx++)
         {
+            auto item = ctx_array->get(idx);
             // move the item into the context or create an lvalue reference
             // depending on the type of the context variable
             m_context = assignContextValue(std::move(item));
@@ -197,7 +203,7 @@ void Interpreter::evaluateProjection(const ast::ExpressionNode* expression,
         }
 
         // set the results of the projection
-        m_context = result->as_value();
+        m_context = result->as_object();
     }
     // otherwise evaluate to null
     else {
@@ -221,10 +227,10 @@ void Interpreter::visit(const ast::IdentifierNode *node)
 }
 
 
-void Interpreter::visit(const ast::IdentifierNode *node, ValuePtr &&context)
+void Interpreter::visit(const ast::IdentifierNode *node, ObjectPtr &&context)
 {
     // evaluete the identifier if the context holds an object
-    if (context->is_generic_map())
+    if (context->is_map())
     {
         auto map = context->as_generic_map();
         try
@@ -232,7 +238,7 @@ void Interpreter::visit(const ast::IdentifierNode *node, ValuePtr &&context)
             // assign either a const reference of the result or move the result
             // into the context depending on the type of the context parameter
 
-            auto vv = map->get(node->identifier);
+            auto vv = map->get(HermesCtr::wrap_dataobject<Varchar>(node->identifier)->as_object());
             m_context = assignContextValue(std::move(vv));
             return;
         }
@@ -245,7 +251,7 @@ void Interpreter::visit(const ast::IdentifierNode *node, ValuePtr &&context)
 void Interpreter::visit(const ast::RawStringNode *node)
 {
     auto doc = hermes::HermesCtr::make_pooled();
-    m_context = doc->set_dataobject<Varchar>(node->rawString)->as_value();
+    m_context = doc->set_dataobject<Varchar>(node->rawString)->as_object();
 }
 
 void Interpreter::visit(const ast::HermesValueNode *node)
@@ -280,7 +286,7 @@ void Interpreter::visit(const ast::IndexExpressionNode *node)
     // evaluate the left side expression
     visit(&node->leftExpression);
     // evaluate the index expression if the context holds an array
-    if (getJsonValue(m_context)->is_generic_array())
+    if (getJsonValue(m_context)->is_array())
     {
         // evaluate the bracket specifier
         visit(&node->bracketSpecifier);
@@ -303,10 +309,10 @@ void Interpreter::visit(const ast::ArrayItemNode *node)
 }
 
 
-void Interpreter::visit(const ast::ArrayItemNode *node, ValuePtr &&context)
+void Interpreter::visit(const ast::ArrayItemNode *node, ObjectPtr &&context)
 {
     // evaluate the array item expression if the context holds an array
-    if (context->is_generic_array())
+    if (context->is_array())
     {
         auto arr = context->as_generic_array();
 
@@ -337,25 +343,30 @@ void Interpreter::visit(const ast::FlattenOperatorNode *node)
 }
 
 
-void Interpreter::visit(const ast::FlattenOperatorNode*, ValuePtr&& context)
+void Interpreter::visit(const ast::FlattenOperatorNode*, ObjectPtr&& context)
 {
     // evaluate the flatten operation if the context holds an array
-    if (context->is_generic_array())
+    if (context->is_array())
     {
         auto ctx_array = context->as_generic_array();
 
         auto doc = hermes::HermesCtr::make_pooled();
-        auto result = doc->set_generic_array();
+        auto result = doc->new_array();
+        doc->set_root(result->as_object());
 
         // iterate over the array
-        for (auto item: *ctx_array)
+        for (size_t idx = 0; idx < ctx_array->size(); idx++)
         {
+            auto item = ctx_array->get(idx);
+
             // if the item is an array append or move every one of its items
             // to the end of the results variable
-            if (item->is_generic_array())
+            if (item->is_array())
             {
                 auto a0 = item->as_generic_array();
-                for (auto item2: *a0) {
+                for (size_t idx = 0; idx < a0->size(); idx++)
+                {
+                    auto item2 = a0->get(idx);
                     result->append(item2);
                 }
             }
@@ -366,7 +377,7 @@ void Interpreter::visit(const ast::FlattenOperatorNode*, ValuePtr&& context)
             }
         }
         // set the results of the flatten operation
-        m_context = result->as_value();
+        m_context = result->as_object();
     }
     // otherwise evaluate to null
     else
@@ -386,10 +397,10 @@ void Interpreter::visit(const ast::SliceExpressionNode *node)
 }
 
 
-void Interpreter::visit(const ast::SliceExpressionNode* node, ValuePtr&& context)
+void Interpreter::visit(const ast::SliceExpressionNode* node, ObjectPtr&& context)
 {
     // evaluate the slice operation if the context holds an array
-    if (context->is_generic_array())
+    if (context->is_array())
     {
         auto ctx_array = context->as_generic_array();
 
@@ -425,10 +436,11 @@ void Interpreter::visit(const ast::SliceExpressionNode* node, ValuePtr&& context
         }
 
         // create the array of results
-        //ValuePtr result(ValuePtr::value_t::array);
+        //ObjectPtr result(ObjectPtr::value_t::array);
 
         auto doc = hermes::HermesCtr::make_pooled();
-        auto result = doc->set_generic_array();
+        auto result = doc->new_array();
+        doc->set_root(result->as_object());
 
         // iterate over the array
         for (auto i = startIndex;
@@ -442,7 +454,7 @@ void Interpreter::visit(const ast::SliceExpressionNode* node, ValuePtr&& context
         }
 
         // set the results of the projection
-        m_context = result->as_value();
+        m_context = result->as_object();
     }
     // otherwise evaluate to null
     else {
@@ -453,7 +465,7 @@ void Interpreter::visit(const ast::SliceExpressionNode* node, ValuePtr&& context
 void Interpreter::visit(const ast::ListWildcardNode*)
 {
     // evaluate a list wildcard operation to null if the context isn't an array
-    if (!getJsonValue(m_context)->is_generic_array()) {
+    if (!getJsonValue(m_context)->is_array()) {
         m_context = {};
     }
 }
@@ -464,10 +476,10 @@ void Interpreter::visit(const ast::HashWildcardNode *node)
 }
 
 
-void Interpreter::visit(const ast::HashWildcardNode* node, ValuePtr&& context)
+void Interpreter::visit(const ast::HashWildcardNode* node, ObjectPtr&& context)
 {
     // evaluate the hash wildcard operation if the context holds an array
-    if (context->is_generic_map())
+    if (context->is_map())
     {
         auto ctx_map = context->as_generic_map();
 
@@ -478,7 +490,7 @@ void Interpreter::visit(const ast::HashWildcardNode* node, ValuePtr&& context)
         });
 
         // set the results of the projection
-        m_context = result->as_value();
+        m_context = result->as_object();
     }
     // otherwise evaluate to null
     else
@@ -495,7 +507,8 @@ void Interpreter::visit(const ast::MultiselectListNode *node)
     if (!getJsonValue(m_context)->is_null())
     {
         auto doc = hermes::HermesCtr::make_pooled();
-        auto result = doc->set_generic_array();
+        auto result = doc->new_array();
+        doc->set_root(result->as_object());
 
         // move the current context into a temporary variable in case it holds
         // a value, since the context member variable will get overwritten
@@ -512,7 +525,7 @@ void Interpreter::visit(const ast::MultiselectListNode *node)
             result->append(getJsonValue(m_context));
         }
         // set the results of the projection
-        m_context = result->as_value();
+        m_context = result->as_object();
     }
 }
 
@@ -522,7 +535,8 @@ void Interpreter::visit(const ast::MultiselectHashNode *node)
     if (!getJsonValue(m_context)->is_null())
     {
         auto doc = hermes::HermesCtr::make_pooled();
-        auto result = doc->set_generic_map();
+        auto result = doc->new_map();
+        doc->set_root(result->as_object());
 
         // move the current context into a temporary variable in case it holds
         // a value, since the context member variable will get overwritten
@@ -542,7 +556,7 @@ void Interpreter::visit(const ast::MultiselectHashNode *node)
             result->put(keyValuePair.first.identifier, getJsonValue(m_context));
         }
         // set the results of the projection
-        m_context = result->as_value();
+        m_context = result->as_object();
     }
 }
 
@@ -550,7 +564,7 @@ void Interpreter::visit(const ast::NotExpressionNode *node)
 {
     // negate the result of the subexpression
     visit(&node->expression);
-    m_context = hermes::HermesCtr::wrap_dataobject<Boolean>(!toSimpleBoolean(getJsonValue(m_context)))->as_value();
+    m_context = hermes::HermesCtr::wrap_dataobject<Boolean>(!toSimpleBoolean(getJsonValue(m_context)))->as_object();
 }
 
 void Interpreter::visit(const ast::ComparatorExpressionNode *node)
@@ -574,42 +588,42 @@ void Interpreter::visit(const ast::ComparatorExpressionNode *node)
 
     // move the left side results into a temporary variable
     ContextValue leftResultContext {std::move(m_context)};
-    const ValuePtr& leftResult = getJsonValue(leftResultContext);
+    const ObjectPtr& leftResult = getJsonValue(leftResultContext);
 
     // set the context for the right side expression
     m_context = std::move(contextValue);
     // evaluate the right expression
     visit(&node->rightExpression);
-    const ValuePtr& rightResult = getJsonValue(m_context);
+    const ObjectPtr& rightResult = getJsonValue(m_context);
 
     if (node->comparator == Comparator::Equal)
     {
-        m_context = wrap_DO<Boolean>(leftResult->equals(rightResult))->as_value();
+        m_context = wrap_DO<Boolean>(leftResult->equals(rightResult))->as_object();
     }
     else if (node->comparator == Comparator::NotEqual)
     {
-        m_context = wrap_DO<Boolean>(!leftResult->equals(rightResult))->as_value();
+        m_context = wrap_DO<Boolean>(!leftResult->equals(rightResult))->as_object();
     }
     else
     {        
         if (node->comparator == Comparator::Less)
         {
-            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) < 0)->as_value();
+            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) < 0)->as_object();
         }
         else if (node->comparator == Comparator::LessOrEqual)
         {
-            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) <= 0)->as_value();
+            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) <= 0)->as_object();
         }
         else if (node->comparator == Comparator::GreaterOrEqual)
         {
-            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) >= 0)->as_value();
+            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) >= 0)->as_object();
         }
         else if (node->comparator == Comparator::Greater)
         {
-            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) > 0)->as_value();
+            m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) > 0)->as_object();
         }
         else {
-            m_context = ValuePtr{};
+            m_context = ObjectPtr{};
         }
     }
 }
@@ -675,17 +689,19 @@ void Interpreter::visit(const ast::FilterExpressionNode *node)
 }
 
 
-void Interpreter::visit(const ast::FilterExpressionNode* node, ValuePtr&& context)
+void Interpreter::visit(const ast::FilterExpressionNode* node, ObjectPtr&& context)
 {
     // evaluate the filtering operation if the context holds an array
-    if (context->is_generic_array())
+    if (context->is_array())
     {
         auto ctx_array = context->as_generic_array();
 
         // create the array of results
         auto result = make_array();
-        for (auto item: *ctx_array)
+        for (size_t idx = 0; idx < ctx_array->size(); idx++)
         {
+            auto item = ctx_array->get(idx);
+
             // assign a const lvalue ref of the item to the context
             m_context = assignContextValue(item);
             // evaluate the filtering condition
@@ -697,7 +713,7 @@ void Interpreter::visit(const ast::FilterExpressionNode* node, ValuePtr&& contex
         }
 
         // set the results of the projection
-        m_context = result->as_value();
+        m_context = result->as_object();
     }
     // otherwise evaluate to null
     else
@@ -768,7 +784,7 @@ Index Interpreter::adjustSliceEndpoint(size_t length,
     return endpoint;
 }
 
-hermes::DataObjectPtr<Boolean> Interpreter::toBoolean(const ValuePtr &json) const
+hermes::DataObjectPtr<Boolean> Interpreter::toBoolean(const ObjectPtr &json) const
 {
     return hermes::HermesCtr::wrap_dataobject<Boolean>(
         toSimpleBoolean(json)
@@ -776,7 +792,7 @@ hermes::DataObjectPtr<Boolean> Interpreter::toBoolean(const ValuePtr &json) cons
 }
 
 
-bool Interpreter::toSimpleBoolean(const ValuePtr &json) const
+bool Interpreter::toSimpleBoolean(const ObjectPtr &json) const
 {
     if (json->is_bigint()) {
         return json->as_bigint()->view() != 0;
@@ -790,10 +806,10 @@ bool Interpreter::toSimpleBoolean(const ValuePtr &json) const
     else if (json->is_boolean()) {
         return json->as_boolean()->view();
     }
-    else if (json->is_generic_array()) {
+    else if (json->is_array()) {
         return json->as_generic_array()->size() > 0;
     }
-    else if (json->is_generic_map()) {
+    else if (json->is_map()) {
         return json->as_generic_map()->size() > 0;
     }
     else {
@@ -819,7 +835,7 @@ Interpreter::evaluateArguments(
             [&, this](const ast::ExpressionNode& node) -> FunctionArgument {
                 if (contextValue)
                 {
-                    const ValuePtr& context = getJsonValue(*contextValue);
+                    const ObjectPtr& context = getJsonValue(*contextValue);
                     // assign a const lvalue ref to the context
                     m_context = assignContextValue(context);
                 }
@@ -859,7 +875,7 @@ T& Interpreter::getArgument(FunctionArgument& argument) const
     }
 }
 
-const ValuePtr &Interpreter::getJsonArgument(FunctionArgument &argument) const
+const ObjectPtr &Interpreter::getJsonArgument(FunctionArgument &argument) const
 {
     return getJsonValue(getArgument<ContextValue>(argument));
 }
@@ -867,20 +883,20 @@ const ValuePtr &Interpreter::getJsonArgument(FunctionArgument &argument) const
 void Interpreter::abs(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& value = getJsonArgument(arguments[0]);
+    const ObjectPtr& value = getJsonArgument(arguments[0]);
     // throw an exception if it's not a number
     if (!value->is_numeric())
     {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
-    // evaluate to either an integer or a float depending on the ValuePtr type
+    // evaluate to either an integer or a float depending on the ObjectPtr type
     if (value->is_bigint())
     {
-        m_context = wrap_DO<BigInt>(std::abs(value->as_bigint()->view()))->as_value();
+        m_context = wrap_DO<BigInt>(std::abs(value->as_bigint()->view()))->as_object();
     }
     else if (value->is_double())
     {
-        m_context = wrap_DO<Double>(std::abs(value->as_double()->view()))->as_value();
+        m_context = wrap_DO<Double>(std::abs(value->as_double()->view()))->as_object();
     }
     else {
         // FIXME: abs() function for...
@@ -891,18 +907,20 @@ void Interpreter::abs(FunctionArgumentList &arguments)
 void Interpreter::avg(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& items = getJsonArgument(arguments[0]);
+    const ObjectPtr& items = getJsonArgument(arguments[0]);
     // only evaluate if the argument is an array
-    if (items->is_generic_array())
+    if (items->is_array())
     {
         auto array = items->as_generic_array();
 
         // evaluate only non empty arrays
-        if (!array->empty())
+        if (array->size())
         {
             double itemsSum = 0;
-            for (auto item: *array)
+            for (size_t idx = 0; idx < array->size(); idx++)
             {
+                auto item = array->get(idx);
+
                 // add the value held by the item to the sum
                 if (item->is_bigint())
                 {
@@ -919,12 +937,12 @@ void Interpreter::avg(FunctionArgumentList &arguments)
                 }
             }
             // the final result is the sum divided by the number of items
-            m_context = wrap_DO<Double>(itemsSum / array->size())->as_value();
+            m_context = wrap_DO<Double>(itemsSum / array->size())->as_object();
         }
         // otherwise evaluate to null
         else
         {
-            m_context = ValuePtr{};
+            m_context = ObjectPtr{};
         }
     }
     // otherwise throw an exception
@@ -937,21 +955,23 @@ void Interpreter::avg(FunctionArgumentList &arguments)
 void Interpreter::contains(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& subject = getJsonArgument(arguments[0]);
+    const ObjectPtr& subject = getJsonArgument(arguments[0]);
     // get the second argument
-    const ValuePtr& item = getJsonArgument(arguments[1]);
+    const ObjectPtr& item = getJsonArgument(arguments[1]);
     // throw an exception if the subject item is not an array or a string
-    if (!subject->is_generic_array() && !subject->is_varchar())
+    if (!subject->is_array() && !subject->is_varchar())
     {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
     // evaluate to false by default
     bool result = false;
     // if the subject is an array
-    if (subject->is_generic_array())
+    if (subject->is_array())
     {
         auto array = subject->as_generic_array();
-        for (auto elem: *array) {
+        for (size_t idx = 0; idx < array->size(); idx++)
+        {
+            auto elem = array->get(idx);
             if (elem->equals(item)) {
                 result = true;
             }
@@ -966,13 +986,13 @@ void Interpreter::contains(FunctionArgumentList &arguments)
         result = boost::contains(stringSubject, stringItem);
     }
     // set the result
-    m_context = wrap_DO<Boolean>(result)->as_value();
+    m_context = wrap_DO<Boolean>(result)->as_object();
 }
 
 void Interpreter::ceil(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& value = getJsonArgument(arguments[0]);
+    const ObjectPtr& value = getJsonArgument(arguments[0]);
     // throw an exception if if the value is nto a number
     if (!value->is_numeric())
     {
@@ -981,10 +1001,10 @@ void Interpreter::ceil(FunctionArgumentList &arguments)
 
     // if the value is an integer then it evaluates to itself
     if (value->is_double()) {
-        m_context = wrap_DO<Double>(std::ceil(value->as_double()->view()))->as_value();
+        m_context = wrap_DO<Double>(std::ceil(value->as_double()->view()))->as_object();
     }
     else if (value->is_real()) {
-        m_context = wrap_DO<Real>(std::ceil(value->as_real()->view()))->as_value();
+        m_context = wrap_DO<Real>(std::ceil(value->as_real()->view()))->as_object();
     }
     else {
         m_context = value;
@@ -994,9 +1014,9 @@ void Interpreter::ceil(FunctionArgumentList &arguments)
 void Interpreter::endsWith(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& subject = getJsonArgument(arguments[0]);
+    const ObjectPtr& subject = getJsonArgument(arguments[0]);
     // get the second argument
-    const ValuePtr& suffix = getJsonArgument(arguments[1]);
+    const ObjectPtr& suffix = getJsonArgument(arguments[1]);
     // throw an exception if the subject or the suffix is not a string
     if (!subject->is_varchar() || !suffix->is_varchar())
     {
@@ -1005,13 +1025,13 @@ void Interpreter::endsWith(FunctionArgumentList &arguments)
     // check whether subject ends with the suffix
     auto stringSubject = subject->as_varchar()->view();
     auto stringSuffix = suffix->as_varchar()->view();
-    m_context = wrap_DO<Boolean>(boost::ends_with(stringSubject, stringSuffix))->as_value();
+    m_context = wrap_DO<Boolean>(boost::ends_with(stringSubject, stringSuffix))->as_object();
 }
 
 void Interpreter::floor(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& value = getJsonArgument(arguments[0]);
+    const ObjectPtr& value = getJsonArgument(arguments[0]);
      // throw an exception if the value is not a number
     if (!value->is_numeric())
     {
@@ -1020,11 +1040,11 @@ void Interpreter::floor(FunctionArgumentList &arguments)
 
     if (value->is_double())
     {
-        m_context = wrap_DO<Double>(std::floor(value->as_double()->view()))->as_value();
+        m_context = wrap_DO<Double>(std::floor(value->as_double()->view()))->as_object();
     }
     else if (value->is_real())
     {
-        m_context = wrap_DO<Real>(std::floor(value->as_real()->view()))->as_value();
+        m_context = wrap_DO<Real>(std::floor(value->as_real()->view()))->as_object();
     }
     else {
         m_context = value;
@@ -1034,12 +1054,12 @@ void Interpreter::floor(FunctionArgumentList &arguments)
 void Interpreter::join(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& glue = getJsonArgument(arguments[0]);
+    const ObjectPtr& glue = getJsonArgument(arguments[0]);
     // get the second argument
-    const ValuePtr& array_val = getJsonArgument(arguments[1]);
+    const ObjectPtr& array_val = getJsonArgument(arguments[1]);
     // throw an exception if the array or glue is not a string or if any items
     // inside the array are not strings
-    if (!glue->is_varchar() || !array_val->is_generic_array())
+    if (!glue->is_varchar() || !array_val->is_array())
     {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
@@ -1047,8 +1067,9 @@ void Interpreter::join(FunctionArgumentList &arguments)
     auto array = array_val->as_generic_array();
 
     std::vector<String> stringArray;
-    for (auto item: *array)
+    for (size_t idx = 0; idx < array->size(); idx++)
     {
+        auto item = array->get(idx);
         if (!item->is_varchar()) {
             BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
         }
@@ -1058,37 +1079,38 @@ void Interpreter::join(FunctionArgumentList &arguments)
     }
 
     // join together the vector of strings with the glue string
-    m_context = wrap_DO<Varchar>(alg::join(stringArray, glue->as_varchar()->view()))->as_value();
+    m_context = wrap_DO<Varchar>(alg::join(stringArray, glue->as_varchar()->view()))->as_object();
 }
 
 void Interpreter::keys(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& object = getJsonArgument(arguments[0]);
+    const ObjectPtr& object = getJsonArgument(arguments[0]);
     // throw an exception if the argument is not an object
-    if (!object->is_generic_map())
+    if (!object->is_map())
     {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
     // add all the keys from the object to the list of results
     auto doc = hermes::HermesCtr::make_pooled();
-    auto results = doc->set_generic_array();
-    //ValuePtr results(ValuePtr::value_t::array);
+    auto results = doc->new_array();
+    doc->set_root(results->as_object());
+    //ObjectPtr results(ObjectPtr::value_t::array);
     auto map = object->as_generic_map();
 
     map->for_each([&](auto k, auto){
-        results->append<Varchar>(k);
+        results->append<Varchar>(k->as_varchar()->view());
     });
     // set the result
-    m_context = results->as_value();
+    m_context = results->as_object();
 }
 
 void Interpreter::length(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& subject = getJsonArgument(arguments[0]);
+    const ObjectPtr& subject = getJsonArgument(arguments[0]);
     // throw an exception if the subject item is not an array, object or string
-    if (!(subject->is_generic_array() || subject->is_generic_map() || subject->is_varchar()))
+    if (!(subject->is_array() || subject->is_map() || subject->is_varchar()))
     {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
@@ -1102,14 +1124,14 @@ void Interpreter::length(FunctionArgumentList &arguments)
         auto stringSubject = subject->as_varchar()->view();
         auto begin = U8UnicodeIteratorAdaptor(std::begin(stringSubject));
         auto end = U8UnicodeIteratorAdaptor(std::end(stringSubject));
-        m_context = wrap_DO<BigInt>(std::distance(begin, end))->as_value();
+        m_context = wrap_DO<BigInt>(std::distance(begin, end))->as_object();
     }
     // otherwise get the size of the array or object
-    else if (subject->is_generic_array()) {
-        m_context = wrap_DO<BigInt>(subject->as_generic_array()->size())->as_value();
+    else if (subject->is_array()) {
+        m_context = wrap_DO<BigInt>(subject->as_generic_array()->size())->as_object();
     }
     else {
-        m_context = wrap_DO<BigInt>(subject->as_generic_map()->size())->as_value();
+        m_context = wrap_DO<BigInt>(subject->as_generic_map()->size())->as_object();
     }
 }
 
@@ -1124,25 +1146,26 @@ void Interpreter::map(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::map(const ast::ExpressionNode* node, ValuePtr&& array_value)
+void Interpreter::map(const ast::ExpressionNode* node, ObjectPtr&& array_value)
 {
     using std::placeholders::_1;
     // throw an exception if the argument is not an array
-    if (!array_value->is_generic_array())
+    if (!array_value->is_array())
     {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
 
     auto result = make_array();
     auto array = array_value->as_generic_array();
-    for (auto item: *array)
+    for (size_t idx = 0; idx < array->size(); idx++)
     {
+        auto item = array->get(idx);
         m_context = assignContextValue(std::move(item));
         visit(node);
         result->append(m_context);
     }
 
-    m_context = result->as_value();
+    m_context = result->as_object();
 }
 
 void Interpreter::merge(FunctionArgumentList &arguments)
@@ -1150,16 +1173,17 @@ void Interpreter::merge(FunctionArgumentList &arguments)
     using std::placeholders::_1;
 
     auto doc = hermes::HermesCtr::make_pooled();
-    auto result = doc->set_generic_map()->as_value();
+    auto result = doc->new_map()->as_object();
+    doc->set_root(result->as_object());
 
     // iterate over the arguments
     for (auto& argument: arguments)
     {
         // convert the argument to a context value
         ContextValue& contextValue = getArgument<ContextValue>(argument);
-        const ValuePtr& object = getJsonValue(contextValue);
+        const ObjectPtr& object = getJsonValue(contextValue);
         // throw an exception if it's not an object
-        if (!object->is_generic_map())
+        if (!object->is_map())
         {
             BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
         }
@@ -1180,7 +1204,7 @@ void Interpreter::merge(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::mergeObject(ValuePtr* object, ValuePtr&& sourceObject)
+void Interpreter::mergeObject(ObjectPtr* object, ObjectPtr&& sourceObject)
 {
     auto map = (*object)->as_generic_map();
     auto src_map = sourceObject->as_generic_map();
@@ -1196,7 +1220,7 @@ void Interpreter::notNull(FunctionArgumentList &arguments)
     for (auto& argument: arguments)
     {
         // get the current argument
-        const ValuePtr& item = getJsonArgument(argument);
+        const ObjectPtr& item = getJsonArgument(argument);
         // if the current item is not null set it as the result
         if (!item->is_null())
         {
@@ -1215,11 +1239,12 @@ void Interpreter::reverse(FunctionArgumentList &arguments)
     reverse(std::move(contextValue));
 }
 
-void Interpreter::reverse(ValuePtr&& subject)
+void Interpreter::reverse(ObjectPtr&& subject)
 {
 
     auto doc = hermes::HermesCtr::make_pooled();
-    auto result = doc->set_generic_array();
+    auto result = doc->new_array();
+    doc->set_root(result->as_object());
 
     auto array = subject->as_generic_array();
     size_t size = array->size();
@@ -1228,7 +1253,7 @@ void Interpreter::reverse(ValuePtr&& subject)
         result->append(item);
     }
 
-    m_context = std::move(result)->as_value();
+    m_context = std::move(result)->as_object();
 }
 
 void Interpreter::sort(FunctionArgumentList &arguments)
@@ -1238,10 +1263,13 @@ void Interpreter::sort(FunctionArgumentList &arguments)
     sort(std::move(contextValue));
 }
 
-void Interpreter::sort(ValuePtr&& array)
+void Interpreter::sort(ObjectPtr&& array)
 {
-    std::vector<hermes::ValuePtr> sorted;
-    for (auto& item: *(array->as_generic_array())) {
+    std::vector<hermes::ObjectPtr> sorted;
+    auto garray = array->as_generic_array();
+    for (size_t idx = 0; idx < garray->size(); idx++)
+    {
+        auto item = garray->get(idx);
         sorted.push_back(item);
     }
 
@@ -1251,7 +1279,7 @@ void Interpreter::sort(ValuePtr&& array)
 
     auto result = wrap_array(sorted);
 
-    m_context = std::move(result)->as_value();
+    m_context = std::move(result)->as_object();
 }
 
 void Interpreter::sortBy(FunctionArgumentList &arguments)
@@ -1265,18 +1293,20 @@ void Interpreter::sortBy(FunctionArgumentList &arguments)
     sortBy(&expression, std::move(contextValue));
 }
 
-void Interpreter::sortBy(const ast::ExpressionNode* expression, ValuePtr&& source)
+void Interpreter::sortBy(const ast::ExpressionNode* expression, ObjectPtr&& source)
 {
-    using SortT = std::pair<ValuePtr, ValuePtr>;
+    using SortT = std::pair<ObjectPtr, ObjectPtr>;
 
     std::vector<SortT> sorted;
 
-    for (auto& item: *source->as_generic_array())
+    auto array = source->as_generic_array();
+    for (size_t idx = 0; idx < array->size(); idx++)
     {
+        auto item = array->get(idx);
         // visit the mapped expression with the item as the context
         m_context = assignContextValue(item);
         visit(expression);
-        const ValuePtr& resultValue = getJsonValue(m_context);
+        const ObjectPtr& resultValue = getJsonValue(m_context);
         sorted.push_back(SortT{item, resultValue});
     }
 
@@ -1289,21 +1319,22 @@ void Interpreter::sortBy(const ast::ExpressionNode* expression, ValuePtr&& sourc
     });
 
     auto doc = hermes::HermesCtr::make_pooled();
-    auto result = doc->set_generic_array();
+    auto result = doc->new_array();
+    doc->set_root(result->as_object());
 
     for (const auto& pair: sorted) {
         result->append(pair.first);
     }
 
-    m_context = std::move(result)->as_value();
+    m_context = std::move(result)->as_object();
 }
 
 void Interpreter::startsWith(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& subject = getJsonArgument(arguments[0]);
+    const ObjectPtr& subject = getJsonArgument(arguments[0]);
     // get the second argument
-    const ValuePtr& prefix = getJsonArgument(arguments[1]);
+    const ObjectPtr& prefix = getJsonArgument(arguments[1]);
     // throw an exception if the subject or the prefix is not a string
     if (!subject->is_varchar() || !prefix->is_varchar())
     {
@@ -1312,20 +1343,21 @@ void Interpreter::startsWith(FunctionArgumentList &arguments)
     // check whether subject starts with the suffix
     auto stringSubject = subject->as_varchar()->view();
     auto stringPrefix = prefix->as_varchar()->view();
-    m_context = wrap_DO<Boolean>(boost::starts_with(stringSubject, stringPrefix))->as_value();
+    m_context = wrap_DO<Boolean>(boost::starts_with(stringSubject, stringPrefix))->as_object();
 }
 
 void Interpreter::sum(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& items = getJsonArgument(arguments[0]);
+    const ObjectPtr& items = getJsonArgument(arguments[0]);
     // if the argument is an array
-    if (items->is_generic_array())
+    if (items->is_array())
     {
         auto array = items->as_generic_array();
         double itemsSum{};
-        for (auto item: *array)
+        for (size_t idx = 0; idx < array->size(); idx++)
         {
+            auto item = array->get(idx);
             if (item->is_bigint())
             {
                 itemsSum += item->as_bigint()->view();
@@ -1341,7 +1373,7 @@ void Interpreter::sum(FunctionArgumentList &arguments)
         }
 
         // set the result
-        m_context = wrap_DO<Double>(itemsSum)->as_value();
+        m_context = wrap_DO<Double>(itemsSum)->as_object();
     }
     // otherwise throw an exception
     else
@@ -1358,10 +1390,10 @@ void Interpreter::toArray(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::toArray(ValuePtr&& value)
+void Interpreter::toArray(ObjectPtr&& value)
 {
     // evaluate to the argument if it's an array
-    if (value->is_generic_array())
+    if (value->is_array())
     {
         m_context = assignContextValue(std::move(value));
     }
@@ -1372,7 +1404,7 @@ void Interpreter::toArray(ValuePtr&& value)
         auto result = make_array();
         result->append(value);
 
-        m_context = result->as_value();
+        m_context = result->as_object();
     }
 }
 
@@ -1384,7 +1416,7 @@ void Interpreter::toString(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::toString(ValuePtr&& value)
+void Interpreter::toString(ObjectPtr&& value)
 {
     // evaluate to the argument if it's a string
     if (value->is_varchar())
@@ -1394,7 +1426,7 @@ void Interpreter::toString(ValuePtr&& value)
     // otherwise convert the value to a string by serializing it
     else
     {
-        m_context = wrap_DO<Varchar>(value->to_plain_string())->as_value();
+        m_context = wrap_DO<Varchar>(value->to_plain_string())->as_object();
     }
 }
 
@@ -1406,7 +1438,7 @@ void Interpreter::toDouble(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::toDouble(ValuePtr&& value)
+void Interpreter::toDouble(ObjectPtr&& value)
 {
     // evaluate to the argument if it's a number
     if (value->is_numeric())
@@ -1420,7 +1452,7 @@ void Interpreter::toDouble(ValuePtr&& value)
         // try to convert the string to a number
         try
         {
-            m_context = wrap_DO<Double>(std::stod(String(value->as_varchar()->view())))->as_value();
+            m_context = wrap_DO<Double>(std::stod(String(value->as_varchar()->view())))->as_object();
             return;
         }
         // ignore the possible conversion error and let the default case
@@ -1442,7 +1474,7 @@ void Interpreter::toBigInt(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::toBigInt(ValuePtr&& value)
+void Interpreter::toBigInt(ObjectPtr&& value)
 {
     // evaluate to the argument if it's a number
     if (value->is_bigint())
@@ -1465,7 +1497,7 @@ void Interpreter::toBoolean(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::toBoolean(ValuePtr&& value)
+void Interpreter::toBoolean(ObjectPtr&& value)
 {
     // evaluate to the argument if it's a number
     if (value->is_bigint())
@@ -1473,13 +1505,13 @@ void Interpreter::toBoolean(ValuePtr&& value)
         m_context = assignContextValue(std::move(value));
         return;
     }
-    else if (value->is_a<GenericArray>()) {
-        auto array = value->cast_to<GenericArray>();
-        m_context = HermesCtr::wrap_dataobject<Boolean>(array->size() > 0)->as_value();
+    else if (value->is_a<ObjectArray>()) {
+        auto array = value->cast_to<ObjectArray>();
+        m_context = HermesCtr::wrap_dataobject<Boolean>(array->size() > 0)->as_object();
     }
-    else if (value->is_a<GenericMap>()) {
-        auto map = value->cast_to<GenericMap>();
-        m_context = HermesCtr::wrap_dataobject<Boolean>(map->size() > 0)->as_value();
+    else if (value->is_a<ObjectMap>()) {
+        auto map = value->cast_to<ObjectMap>();
+        m_context = HermesCtr::wrap_dataobject<Boolean>(map->size() > 0)->as_object();
     }
     else {
         m_context = value->template convert_to<Boolean>();
@@ -1489,11 +1521,11 @@ void Interpreter::toBoolean(ValuePtr&& value)
 void Interpreter::type(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ValuePtr& value = getJsonArgument(arguments[0]);
+    const ObjectPtr& value = getJsonArgument(arguments[0]);
 
     if (!value->is_null()) {
         String result = value->type_str();
-        m_context = wrap_DO<Varchar>(result)->as_value();
+        m_context = wrap_DO<Varchar>(result)->as_object();
     }
     else {
         m_context = {};
@@ -1508,10 +1540,10 @@ void Interpreter::values(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::values(ValuePtr&& object)
+void Interpreter::values(ObjectPtr&& object)
 {
     // throw an exception if the argument is not an object
-    if (!object->is_generic_map())
+    if (!object->is_map())
     {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
@@ -1524,7 +1556,7 @@ void Interpreter::values(ValuePtr&& object)
         result->append(val);
     });
 
-    m_context = result->as_value();
+    m_context = result->as_object();
 }
 
 void Interpreter::max(FunctionArgumentList &arguments,
@@ -1536,11 +1568,14 @@ void Interpreter::max(FunctionArgumentList &arguments,
 }
 
 
-void Interpreter::max(const JsonComparator* comparator, ValuePtr&& array)
+void Interpreter::max(const JsonComparator* comparator, ObjectPtr&& array)
 {
-    hermes::ValuePtr max_val;
+    hermes::ObjectPtr max_val;
 
-    for (auto item: *array->as_generic_array()) {
+    auto garray = array->as_generic_array();
+    for (size_t idx = 0; idx < garray->size(); idx++)
+    {
+        auto item = garray->get(idx);
         if (max_val->is_not_null()) {
             if (max_val->compare(item) > 0) {
                 max_val = item;
@@ -1569,22 +1604,22 @@ void Interpreter::maxBy(FunctionArgumentList &arguments,
 
 void Interpreter::maxBy(const ast::ExpressionNode* expression,
                          const JsonComparator* comparator,
-                         ValuePtr&& source)
+                         ObjectPtr&& source)
 {
     auto array = source->as_generic_array();
 
     // if the array is not empty
-    if (!array->empty())
+    if (array->size())
     {
-
-        using MaxByT = std::pair<ValuePtr, ValuePtr>;
+        using MaxByT = std::pair<ObjectPtr, ObjectPtr>;
         std::vector<MaxByT> expressionResults;
-        for (auto item: *array)
+        for (size_t idx = 0; idx < array->size(); idx++)
         {
+            auto item = array->get(idx);
             // evaluate the expression on the current item
             m_context = assignContextValue(item);
             visit(expression);
-            ValuePtr result = getJsonValue(m_context);
+            ObjectPtr result = getJsonValue(m_context);
             expressionResults.push_back(MaxByT{item, result});
         }
 
@@ -1593,8 +1628,8 @@ void Interpreter::maxBy(const ast::ExpressionNode* expression,
         auto maxResultsIt = rng::max_element(expressionResults,
                                              [&](const auto& contextLeft,
                                              const auto& contextRight) {
-            const ValuePtr& left = getJsonValue(contextLeft.second);
-            const ValuePtr& right = getJsonValue(contextRight.second);
+            const ObjectPtr& left = getJsonValue(contextLeft.second);
+            const ObjectPtr& right = getJsonValue(contextRight.second);
             bool cmp = (*comparator)(left, right);
             return cmp;
         });

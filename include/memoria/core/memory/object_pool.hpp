@@ -653,9 +653,13 @@ class ObjectPoolLicycleMethods
     template <typename C> static two test2(...);
 
 
+    template <typename C> static one test3( decltype(&C::set_buffer) ) ;
+    template <typename C> static two test3(...);
+
 public:
-    static constexpr bool HasReset = sizeof(test1<T>(0)) == sizeof(char);
-    static constexpr bool HasInit  = sizeof(test2<T>(0)) == sizeof(char);
+    static constexpr bool HasReset      = sizeof(test1<T>(0)) == sizeof(char);
+    static constexpr bool HasInit       = sizeof(test2<T>(0)) == sizeof(char);
+    static constexpr bool HasSetBuffer  = sizeof(test3<T>(0)) == sizeof(char);
 };
 
 

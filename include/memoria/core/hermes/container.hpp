@@ -26,9 +26,9 @@
 
 #include <memoria/core/memory/object_pool.hpp>
 
-#include <memoria/core/hermes/value.hpp>
+#include <memoria/core/hermes/object.hpp>
 #include <memoria/core/hermes/datatype.hpp>
-#include <memoria/core/hermes/array.hpp>
+#include <memoria/core/hermes/array/array.hpp>
 #include <memoria/core/hermes/map.hpp>
 #include <memoria/core/hermes/data_object.hpp>
 #include <memoria/core/hermes/typed_value.hpp>
@@ -139,13 +139,13 @@ public:
         return arena_;
     }
 
-    ValuePtr root() const noexcept
+    ObjectPtr root() const noexcept
     {
         if (MMA_LIKELY(header_->root.is_not_null())) {
-            return ValuePtr(Value(header_->root.get(), mutable_self(), ptr_holder_));
+            return ObjectPtr(Object(header_->root.get(), mutable_self(), ptr_holder_));
         }
         else {
-            return ValuePtr{};
+            return ObjectPtr{};
         }
     }
 
@@ -201,36 +201,36 @@ public:
     }
 
 
-    GenericArrayPtr set_generic_array()
+//    ObjectArrayPtr set_object_array()
+//    {
+//        assert_not_null();
+//        assert_mutable();
+
+//        auto ptr = this->new_array();
+
+//        header_->root = ptr->array_;
+
+//        return ptr;
+//    }
+
+//    ObjectMapPtr set_object_map()
+//    {
+//        assert_not_null();
+//        assert_mutable();
+
+//        auto ptr = this->new_map();
+
+//        header_->root = ptr->map_;
+
+//        return ptr;
+//    }
+
+    ObjectPtr set_hermes(U8StringView str)
     {
         assert_not_null();
         assert_mutable();
 
-        auto ptr = this->new_array();
-
-        header_->root = ptr->array_;
-
-        return ptr;
-    }
-
-    GenericMapPtr set_generic_map()
-    {
-        assert_not_null();
-        assert_mutable();
-
-        auto ptr = this->new_map();
-
-        header_->root = ptr->map_;
-
-        return ptr;
-    }
-
-    ValuePtr set_hermes(U8StringView str)
-    {
-        assert_not_null();
-        assert_mutable();
-
-        ValuePtr vv = parse_raw_value(str.begin(), str.end());
+        ObjectPtr vv = parse_raw_value(str.begin(), str.end());
 
         header_->root = vv->value_storage_.addr;
 
@@ -243,11 +243,15 @@ public:
         header_->root = nullptr;
     }
 
-    template <typename DT>
+    void set_root(ObjectPtr value);
 
+    template <typename DT>
     DataObjectPtr<DT> new_dataobject(DTTViewType<DT> view);
     DatatypePtr new_datatype(U8StringView name);
     DatatypePtr new_datatype(StringValuePtr name);
+
+
+
 
     pool::SharedPtr<HermesCtr> self() const;
 
@@ -290,6 +294,24 @@ public:
     template <typename DT>
     static DataObjectPtr<DT> wrap_dataobject(DTTViewType<DT> view);
 
+    ObjectMapPtr new_map();
+    ObjectArrayPtr new_array();
+    ObjectArrayPtr new_array(Span<ObjectPtr> span);
+
+    template <typename DT>
+    ArrayPtr<DT> new_typed_array();
+
+    TypedValuePtr new_typed_value(DatatypePtr datatype, ObjectPtr constructor);
+
+    ObjectPtr parse_raw_value(
+            CharIterator start,
+            CharIterator end,
+            const ParserConfiguration& cfg = ParserConfiguration{}
+    );
+
+    template <typename DT>
+    ObjectPtr new_from_string(U8StringView str);
+
 protected:
     template <typename DT>
     static DataObjectPtr<DT> wrap_dataobject__full(DTTViewType<DT> view);
@@ -297,28 +319,19 @@ protected:
     template <typename DT>
     static DataObjectPtr<DT> wrap_primitive(DTTViewType<DT> view);
 
-
-    ValuePtr parse_raw_value(
-            CharIterator start,
-            CharIterator end,
-            const ParserConfiguration& cfg = ParserConfiguration{}
-    );
-
     HermesCtr* mutable_self() const {
         return const_cast<HermesCtr*>(this);
     }
 
-    GenericMapPtr new_map();
-    GenericArrayPtr new_array();
-    GenericArrayPtr new_array(Span<ValuePtr> span);
 
-    TypedValuePtr new_typed_value(DatatypePtr datatype, ValuePtr constructor);
 
-    void set_value(ValuePtr value);
+
+
+
 
     void deep_copy_from(const DocumentHeader* header, DeepCopyDeduplicator& dedup);
 
-    ValuePtr do_import_value(ValuePtr value);
+    ObjectPtr do_import_value(ObjectPtr value);
 
     Span<uint8_t> span() const
     {

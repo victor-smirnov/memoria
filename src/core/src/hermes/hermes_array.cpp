@@ -14,10 +14,16 @@
 // limitations under the License.
 
 
-#include <memoria/core/hermes/array_ext.hpp>
+#include <memoria/core/hermes/array/array_ext.hpp>
 
 namespace memoria::hermes {
 
+using GAPoolT = pool::SimpleObjectPool<TypedGenericArray<Object>>;
+using GAPoolPtrT = boost::local_shared_ptr<GAPoolT>;
 
+PoolSharedPtr<GenericArray> TypedGenericArray<Object>::make_wrapper(void* array, HermesCtr* ctr, ViewPtrHolder* ctr_holder) {
+    static thread_local GAPoolPtrT wrapper_pool = MakeLocalShared<GAPoolT>();
+    return wrapper_pool->allocate_shared(array, ctr, ctr_holder);
+}
 
 }

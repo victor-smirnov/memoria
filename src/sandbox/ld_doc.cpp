@@ -42,15 +42,32 @@ class TTT {};
 
 int main(int, char**)
 {
+//    println("{:x}", ShortTypeCode::of_object(0x100ull).u64());
+
     InitTypeReflections();
 
     auto doc = HermesCtr::parse_document(R"(
-        [1,5,7,3,1,8,2,9,8,3]
+{
+  "people": [
+    {
+      "name": "a",
+      "state": {"name": "up"}
+    },
+    {
+      "name": "b",
+      "state": {"name": "down"}
+    },
+    {
+      "name": "c",
+      "state": {"name": "up"}
+    }
+  ]
+}
     )");
 
     println("result: {}", doc->to_string());
 
-    auto v1 = doc->root()->search("to_boolean(sort(@))");
+    auto v1 = doc->root()->search("people[].{Name: name, State: state.name}");
     println("result: {}", v1->to_pretty_string());
     println("detached: {}", v1->is_detached());
 
@@ -58,5 +75,8 @@ int main(int, char**)
     println("double: {}", v2->to_pretty_string());
     println("detached: {}", v2->is_detached());
 
+    auto array = doc->new_typed_array<Double>();
+    array->append(12345.6789);
 
+    println("{}", array->as_object()->to_pretty_string());
 }

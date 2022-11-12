@@ -34,7 +34,7 @@ struct ICtrApiTypes<AllocationMap, Profile> {
 
 template <>
 struct TypeHash<AllocationMap>: UInt64Value<
-    HashHelper<5663493242560930>
+    5663493242560930
 > {};
 
 template <>

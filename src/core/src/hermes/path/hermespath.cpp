@@ -32,7 +32,7 @@
 
 namespace memoria::hermes::path {
 
-ValuePtr search(const Expression &expression, const ValuePtr& value)
+ObjectPtr search(const Expression &expression, const ObjectPtr& value)
 {
     using interpreter::Interpreter;
     if (expression.isEmpty())
@@ -52,7 +52,7 @@ ValuePtr search(const Expression &expression, const ValuePtr& value)
     return s_interpreter.currentContextValue();
 }
 
-ValuePtr search(const Expression &expression, const ValuePtr& value, const IParameterResolver& resolver)
+ObjectPtr search(const Expression &expression, const ObjectPtr& value, const IParameterResolver& resolver)
 {
     using interpreter::Interpreter;
     if (expression.isEmpty())

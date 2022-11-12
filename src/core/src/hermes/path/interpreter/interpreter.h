@@ -50,42 +50,42 @@ namespace memoria::hermes::path { namespace interpreter {
 /**
  * @brief Evaluation context type.
  *
- * It can hold either a @ref ValuePtr value or a @ref JsonRef.
+ * It can hold either a @ref ObjectPtr value or a @ref JsonRef.
  */
-using ContextValue = ValuePtr;
+using ContextValue = ObjectPtr;
 
 /**
  * @brief Convert the given @a value to something assignable to a @ref
  * ContextValue variable.
- * @param[in] value A @ref ValuePtr value.
+ * @param[in] value A @ref ObjectPtr value.
  * @return Returns the parameter without any changes as an rvalue reference.
  */
-inline ValuePtr&& assignContextValue(ValuePtr&& value) {
+inline ObjectPtr&& assignContextValue(ObjectPtr&& value) {
     return std::move(value);
 }
 /**
  * @brief Convert the given @a value to something assignable to a
  * @ref ContextValue variable.
- * @param[in] value A @ref ValuePtr value.
+ * @param[in] value A @ref ObjectPtr value.
  * @return Returns a @ref JsonRef which refers to the given @a value.
  */
-inline ValuePtr assignContextValue(const ValuePtr& value)
+inline ObjectPtr assignContextValue(const ObjectPtr& value)
 {
     return value;
 }
 
 /**
- * @brief Extract the @ref ValuePtr value held by the given @a value.
+ * @brief Extract the @ref ObjectPtr value held by the given @a value.
  * @param[in] contextValue A @ref ContextValue variable.
- * @return Returns a constant reference to the @ref ValuePtr value held by @a value.
+ * @return Returns a constant reference to the @ref ObjectPtr value held by @a value.
  */
-inline const ValuePtr& getJsonValue(const ContextValue& contextValue)
+inline const ObjectPtr& getJsonValue(const ContextValue& contextValue)
 {
     return contextValue;
 }
 
 /**
- * @brief The Interpreter class evaluates the AST structure on a @ref ValuePtr
+ * @brief The Interpreter class evaluates the AST structure on a @ref ObjectPtr
  * context.
  * @sa @ref setContext @ref currentContext
  */
@@ -100,7 +100,7 @@ public:
     Interpreter();
     /**
      * @brief Sets the context of the evaluation.
-     * @param[in] value ValuePtr document to be used as the context.
+     * @param[in] value ObjectPtr document to be used as the context.
      */
     void setContext(const ContextValue& ctx)
     {
@@ -113,9 +113,9 @@ public:
 
     /**
      * @brief Returns the current evaluation context.
-     * @return @ref ValuePtr document used as the context.
+     * @return @ref ObjectPtr document used as the context.
      */
-    const ValuePtr &currentContext() const
+    const ObjectPtr &currentContext() const
     {
         return getJsonValue(m_context);
     }
@@ -183,10 +183,10 @@ private:
      */
     using Function = std::function<void(FunctionArgumentList&)>;
     /**
-     * @brief The type of comparator functions used for comparing @ref ValuePtr
+     * @brief The type of comparator functions used for comparing @ref ObjectPtr
      * values.
      */
-    using JsonComparator = std::function<bool(const ValuePtr&, const ValuePtr&)>;
+    using JsonComparator = std::function<bool(const ObjectPtr&, const ObjectPtr&)>;
     /**
      * @brief Function argument arity validator predicate.
      */
@@ -224,12 +224,12 @@ private:
      * @{
      */
 
-    void visit(const ast::IdentifierNode *node, ValuePtr&& context);
-    void visit(const ast::ArrayItemNode *node, ValuePtr&& context);
-    void visit(const ast::FlattenOperatorNode* node, ValuePtr&& context);
-    void visit(const ast::SliceExpressionNode* node, ValuePtr&& context);
-    void visit(const ast::HashWildcardNode* node, ValuePtr&& context);
-    void visit(const ast::FilterExpressionNode* node, ValuePtr&& context);
+    void visit(const ast::IdentifierNode *node, ObjectPtr&& context);
+    void visit(const ast::ArrayItemNode *node, ObjectPtr&& context);
+    void visit(const ast::FlattenOperatorNode* node, ObjectPtr&& context);
+    void visit(const ast::SliceExpressionNode* node, ObjectPtr&& context);
+    void visit(const ast::HashWildcardNode* node, ObjectPtr&& context);
+    void visit(const ast::FilterExpressionNode* node, ObjectPtr&& context);
     /** @}*/
     /**
      * @brief Adjust the value of the slice endpoint to make sure it's within
@@ -244,13 +244,13 @@ private:
                               Index step) const;
     /**
      * @brief Converts the @a json value to a boolean.
-     * @param[in] json The @ref ValuePtr value that needs to be converted.
+     * @param[in] json The @ref ObjectPtr value that needs to be converted.
      * @return Returns false if @a json is a false like value (false, 0, empty
      * list, empty object, empty string, null), otherwise returns true.
      */
-    hermes::DataObjectPtr<Boolean> toBoolean(const ValuePtr& json) const;
+    hermes::DataObjectPtr<Boolean> toBoolean(const ObjectPtr& json) const;
 
-    bool toSimpleBoolean(const ValuePtr& json) const;
+    bool toSimpleBoolean(const ObjectPtr& json) const;
 
     /**
      * @brief Evaluates the projection of the given @a expression with the
@@ -260,7 +260,7 @@ private:
      * the evaluation context.
      */
     void evaluateProjection(const ast::ExpressionNode* expression,
-                            ValuePtr&& context);
+                            ObjectPtr&& context);
     /**
      * @brief Evaluates a binary logic operator to the result of the left
      * side expression if it's binary value equals to @a shortCircuitValue
@@ -276,7 +276,7 @@ private:
      * @brief Evaluate the given function expression @a arguments.
      *
      * Evalutate an @ref ast::ExpressionNode on the current context to a
-     * @ref ValuePtr value and evaluate @ref ast::ExpressionArgumentNode to its
+     * @ref ObjectPtr value and evaluate @ref ast::ExpressionArgumentNode to its
      * child @ref ast::ExpressionNode.
      * @param[in] arguments List of arguments.
      * @param[in] contextValue A context used for evaluating the arguments.
@@ -296,23 +296,23 @@ private:
     template <typename T>
     T& getArgument(FunctionArgument& argument) const;
     /**
-     * @brief Creates a reference to the ValuePtr value held by the @a argument.
+     * @brief Creates a reference to the ObjectPtr value held by the @a argument.
      * @param argument A funciton argument value.
-     * @return Rreference to the ValuePtr value held by the @a argument.
+     * @return Rreference to the ObjectPtr value held by the @a argument.
      * @throws InvalidFunctionArgumentType
      */
-    const ValuePtr& getJsonArgument(FunctionArgument& argument) const;
+    const ObjectPtr& getJsonArgument(FunctionArgument& argument) const;
     /**
      * @brief Calculates the absolute value of the first item in the given list
-     * of @a arguments. The first item must be a number @ref ValuePtr value.
+     * of @a arguments. The first item must be a number @ref ObjectPtr value.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void abs(FunctionArgumentList& arguments);
     /**
      * @brief Calculates the average value of the items in the first item of the
-     * given @a arguments. The first item must be an @ref ValuePtr array and every
-     * item in the array must be a number @ref ValuePtr value.
+     * given @a arguments. The first item must be an @ref ObjectPtr array and every
+     * item in the array must be a number @ref ObjectPtr value.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
@@ -320,14 +320,14 @@ private:
     /**
      * @brief Checks whether the first item in the given @a arguments contains
      * the second item. The first item should be either an array or string the
-     * second item can be any @ref ValuePtr type.
+     * second item can be any @ref ObjectPtr type.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void contains(FunctionArgumentList& arguments);
     /**
      * @brief Rounds up the first item of the given @a arguments to the next
-     * highest integer value. The first item should be a @ref ValuePtr number.
+     * highest integer value. The first item should be a @ref ObjectPtr number.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
@@ -335,14 +335,14 @@ private:
     /**
      * @brief Checks whether the first item of the given @a arguments ends with
      * the second item. The first and second item of @a arguments must be a
-     * @ref ValuePtr string.
+     * @ref ObjectPtr string.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void endsWith(FunctionArgumentList& arguments);
     /**
      * @brief Rounds down the first item of the given @a arguments to the next
-     * lowest integer value. The first item should be a @ref ValuePtr number.
+     * lowest integer value. The first item should be a @ref ObjectPtr number.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
@@ -381,11 +381,11 @@ private:
      * @brief Applies the expression provided in @a node to every item in the
      * @a array.
      * @param[in] node Pointer to the expresson node.
-     * @param[in] array Either an lvalue or rvalue reference to a @ref ValuePtr
+     * @param[in] array Either an lvalue or rvalue reference to a @ref ObjectPtr
      * array.
      * @throws InvalidFunctionArgumentType
      */
-    void map(const ast::ExpressionNode* node, ValuePtr&& array);
+    void map(const ast::ExpressionNode* node, ObjectPtr&& array);
     /**
      * @brief Accepts zero or more objects in the given @a arguments, and
      * returns a single object with subsequent objects merged. Each subsequent
@@ -399,9 +399,9 @@ private:
      * @param[in,out] object The object into which the items of the
      * @a sourceObject should be added.
      * @param[in] sourceObject ither an lvalue or rvalue reference to a
-     * @ref ValuePtr object.
+     * @ref ObjectPtr object.
      */
-    void mergeObject(ValuePtr* object, ValuePtr&& sourceObject);
+    void mergeObject(ObjectPtr* object, ObjectPtr&& sourceObject);
     /**
      * @brief Accepts one or more items in @a arguments, and will evaluate them
      * in order until a non null argument is encounted.
@@ -419,10 +419,10 @@ private:
     /**
      * @brief Reverses the order of the @a subject. It must either be
      * an array or a string.
-     * @param[in] subject A @ref ValuePtr array or string.
+     * @param[in] subject A @ref ObjectPtr array or string.
      * @throws InvalidFunctionArgumentType
      */
-    void reverse(ValuePtr&& subject);
+    void reverse(ObjectPtr&& subject);
     /**
      * @brief Sorts the first item in the given @a arguments, which must either
      * be an array of numbers or an array of strings.
@@ -433,10 +433,10 @@ private:
     /**
      * @brief Sorts the @a array, which must either be an array of numbers or
      * an array of strings.
-     * @param[in] array A @ref ValuePtr array of number or strings.
+     * @param[in] array A @ref ObjectPtr array of number or strings.
      * @throws InvalidFunctionArgumentType
      */
-    void sort(ValuePtr&& array);
+    void sort(ObjectPtr&& array);
     /**
      * @brief Sorts the first item in the given @a arguments, which must either
      * be an array of numbers or an array of strings. It uses the expression
@@ -450,10 +450,10 @@ private:
      * an array of strings. It uses the @a expression as the sort key.
      * @param[in] expression The expression which evaluates to the key that
      * should be used for comparisons during sorting.
-     * @param[in] array A @ref ValuePtr array of numbers or strings.
+     * @param[in] array A @ref ObjectPtr array of numbers or strings.
      * @throws InvalidFunctionArgumentType
      */
-    void sortBy(const ast::ExpressionNode* expression, ValuePtr&& array);
+    void sortBy(const ast::ExpressionNode* expression, ObjectPtr&& array);
     /**
      * @brief Checks wheather the string provided as the first item in @a
      * arguments starts with the string provided as the second item in @a
@@ -479,42 +479,42 @@ private:
     /**
      * @brief Converts the given @a value to a one element array if it's not
      * already an array.
-     * @param[in] value A @ref ValuePtr value.
+     * @param[in] value A @ref ObjectPtr value.
      */
-    void toArray(ValuePtr&& value);
+    void toArray(ObjectPtr&& value);
     /**
-     * @brief Converts the first item of the given @a arguments to the @ref ValuePtr
+     * @brief Converts the first item of the given @a arguments to the @ref ObjectPtr
      * encoded value if it's not already a string.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void toString(FunctionArgumentList& arguments);
     /**
-     * @brief Converts the given @a value to the @ref ValuePtr encoded value if
+     * @brief Converts the given @a value to the @ref ObjectPtr encoded value if
      * it's not already a string.
-     * @param[in] value A ValuePtr value.
+     * @param[in] value A ObjectPtr value.
      */
-    void toString(ValuePtr&& value);
+    void toString(ObjectPtr&& value);
     /**
      * @brief Converts the string provided as the first item in the given
      * @a arguments to a number. If it's already a number then the original
-     * value is returned, all other @ref ValuePtr types are converted to null.
+     * value is returned, all other @ref ObjectPtr types are converted to null.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void toDouble(FunctionArgumentList& arguments);
     /**
      * @brief Converts the @a value to a number if it's not already a number,
-     * all other @ref ValuePtr types are converted to null.
-     * @param[in] value A ValuePtr value.
+     * all other @ref ObjectPtr types are converted to null.
+     * @param[in] value A ObjectPtr value.
      */
-    void toBigInt(ValuePtr&& value);
+    void toBigInt(ObjectPtr&& value);
 
 
     /**
      * @brief Converts the string provided as the first item in the given
      * @a arguments to a number. If it's already a number then the original
-     * value is returned, all other @ref ValuePtr types are converted to null.
+     * value is returned, all other @ref ObjectPtr types are converted to null.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
@@ -523,29 +523,29 @@ private:
     /**
      * @brief Converts the string provided as the first item in the given
      * @a arguments to a number. If it's already a number then the original
-     * value is returned, all other @ref ValuePtr types are converted to null.
+     * value is returned, all other @ref ObjectPtr types are converted to null.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
      */
     void toBoolean(FunctionArgumentList& arguments);
     /**
      * @brief Converts the @a value to a number if it's not already a number,
-     * all other @ref ValuePtr types are converted to null.
-     * @param[in] value A ValuePtr value.
+     * all other @ref ObjectPtr types are converted to null.
+     * @param[in] value A ObjectPtr value.
      */
-    void toBoolean(ValuePtr&& value);
+    void toBoolean(ObjectPtr&& value);
 
 
     /**
      * @brief Converts the @a value to a number if it's not already a number,
-     * all other @ref ValuePtr types are converted to null.
-     * @param[in] value A ValuePtr value.
+     * all other @ref ObjectPtr types are converted to null.
+     * @param[in] value A ObjectPtr value.
      */
-    void toDouble(ValuePtr&& value);
+    void toDouble(ObjectPtr&& value);
 
 
     /**
-     * @brief Returns the type of the @ref ValuePtr value provided as the first
+     * @brief Returns the type of the @ref ObjectPtr value provided as the first
      * item in @a arguments.
      * @param[in] arguments The list of the function's arguments.
      * @throws InvalidFunctionArgumentType
@@ -560,17 +560,17 @@ private:
     void values(FunctionArgumentList& arguments);
     /**
      * @brief Extracts the values from the @a object.
-     * @param[in] object A @ref ValuePtr object.
+     * @param[in] object A @ref ObjectPtr object.
      * @throws InvalidFunctionArgumentType
      */
-    void values(ValuePtr&& object);
+    void values(ObjectPtr&& object);
     /**
      * @brief Finds the largest item in the array provided as the first item
      * in the @a arguments, it must either be an array of numbers or an array
      * of strings.
      * @param[in] arguments The list of the function's arguments.
      * @param[in] comparator The comparator function used for comparing
-     * @ref ValuePtr values. It should return true if its first argument is less
+     * @ref ObjectPtr values. It should return true if its first argument is less
      * then its second argument.
      * @throws InvalidFunctionArgumentType
      */
@@ -579,12 +579,12 @@ private:
      * @brief Finds the largest item in the @a array, it must either be an array
      * of numbers or an array of strings.
      * @param[in] comparator The comparator function used for comparing
-     * @ref ValuePtr values. It should return true if its first argument is less
+     * @ref ObjectPtr values. It should return true if its first argument is less
      * then its second argument.
-     * @param[in] array A @ref ValuePtr array.
+     * @param[in] array A @ref ObjectPtr array.
      * @throws InvalidFunctionArgumentType
      */
-    void max(const JsonComparator* comparator, ValuePtr&& array);
+    void max(const JsonComparator* comparator, ObjectPtr&& array);
     /**
      * @brief Finds the largest item in the array provided as the first item
      * in the @a arguments, which must either be an array of numbers or an array
@@ -592,12 +592,12 @@ private:
      * arguments as a key for comparison.
      * @param[in] arguments The list of the function's arguments.
      * @param[in] comparator The comparator function used for comparing
-     * @ref ValuePtr values. It should return true if its first argument is less
+     * @ref ObjectPtr values. It should return true if its first argument is less
      * then its second argument.
      * @throws InvalidFunctionArgumentType
      */
     void maxBy(FunctionArgumentList& arguments,
-               const JsonComparator& comparator = std::less<ValuePtr>{});
+               const JsonComparator& comparator = std::less<ObjectPtr>{});
     /**
      * @brief Finds the largest item in the @a array, which must either be an
      * array of numbers or an array of strings, using the @a  expression as a
@@ -605,17 +605,17 @@ private:
      * @param[in] expression The expression which evaluates to the key that
      * should be used for comparisons.
      * @param[in] comparator The comparator function used for comparing
-     * @ref ValuePtr values. It should return true if its first argument is less
+     * @ref ObjectPtr values. It should return true if its first argument is less
      * then its second argument.
-     * @param[in] array A @ref ValuePtr array.
+     * @param[in] array A @ref ObjectPtr array.
      * @throws InvalidFunctionArgumentType
      */
     void maxBy(const ast::ExpressionNode* expression,
                const JsonComparator* comparator,
-               ValuePtr&& array);
+               ObjectPtr&& array);
 
 private:
     // Tools
-    hermes::GenericArrayPtr wrap_array(const std::vector<hermes::ValuePtr>& array);
+    hermes::ObjectArrayPtr wrap_array(const std::vector<hermes::ObjectPtr>& array);
 };
 }} // namespace hermes::path::interpreter
