@@ -48,6 +48,14 @@ public:
         return value_ == other.value_;
     }
 
+    constexpr bool operator!=(ShortTypeCode other) const noexcept {
+        return value_ != other.value_;
+    }
+
+    constexpr bool operator<(ShortTypeCode other) const noexcept {
+        return value_ < other.value_;
+    }
+
     // Only 56 bit of code matters
     // 0 = 'null' code (0-sized)
     static constexpr uint64_t code_len(uint64_t value)

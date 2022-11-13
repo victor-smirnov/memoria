@@ -63,6 +63,7 @@ void InitTypeReflections()
     register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<UTinyInt>, TypedGenericArray<UTinyInt>>>());
 
     register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Map<Varchar, Object>, GenericObjectMap>>());
+
     register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<Datatype>>());
     register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<TypedValue>>());
     register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<Parameter>>());
@@ -78,8 +79,6 @@ void InitTypeReflections()
         if (alias_dt->type_name()->view() == "DataObject") {
             alias_dt = alias_dt->type_parameters()->get(0)->as_datatype();
         }
-
-        println("Registering Alias: {} -> {}", alias_dt->to_pretty_string(), alias_dt->cxx_type_hash());
 
         register_type_reflection(alias_dt->cxx_type_hash(), *reflection.self());
     });

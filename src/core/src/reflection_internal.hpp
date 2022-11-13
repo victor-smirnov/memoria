@@ -69,6 +69,41 @@ public:
 };
 
 
+namespace detail {
+
+template <typename T> struct GenericCtrDispatcher;
+
+template <typename DT>
+struct GenericCtrDispatcher<hermes::Array<DT>> {
+    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
+        return ctr->new_typed_array<DT>()->as_object()->as_generic_array();
+    }
+};
+
+template <>
+struct GenericCtrDispatcher<hermes::Array<hermes::Object>> {
+    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
+        return ctr->new_array()->as_object()->as_generic_array();
+    }
+};
+
+template <>
+struct GenericCtrDispatcher<hermes::Map<Varchar, hermes::Object>> {
+    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
+        return ctr->new_map()->as_object()->as_generic_map();
+    }
+};
+
+template <typename KeyDT, typename ValueDT>
+struct GenericCtrDispatcher<hermes::Map<KeyDT, ValueDT>> {
+    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr)
+    {
+        MEMORIA_MAKE_GENERIC_ERROR("GenericMap dispatcher is not implemented").do_throw();
+    }
+};
+
+}
+
 template <typename T, typename GenericCtrImplT>
 class HermesContainerTypeReflectionImpl: public HermesTypeReflectionImpl<T> {
 public:
@@ -79,6 +114,12 @@ public:
             ViewPtrHolder* ptr_holder
     ) const {
         return GenericCtrImplT::make_wrapper(addr, ctr, ptr_holder);
+    }
+
+    virtual PoolSharedPtr<hermes::GenericObject> hermes_make_container(
+            hermes::HermesCtr* ctr
+    ) const {
+        return detail::GenericCtrDispatcher<T>::create_ctr(ctr);
     }
 };
 
@@ -144,7 +185,9 @@ struct TypeCvtBuilderHelper;
 template <typename FromDT, typename ToDT>
 struct TypeCvtBuilderHelper<FromDT, ToDT, false> {
     template <typename Mapping>
-    static void add_converter (Mapping&) {}
+    static void add_converter (Mapping&) {
+        //println("Unconvertible! {} {}", type_to_str<FromDT>(), type_to_str<ToDT>());
+    }
 };
 
 
@@ -152,6 +195,7 @@ template <typename FromDT, typename ToDT>
 struct TypeCvtBuilderHelper<FromDT, ToDT, true> {
     template <typename Mapping>
     static void add_converter (Mapping& mapping) {
+        //println("**Convertible! {} {}", type_to_str<FromDT>(), type_to_str<ToDT>());
         mapping[ShortTypeCode::of<ToDT>().u64()] = std::make_unique<DatatypeConverter<FromDT, ToDT>>();
     }
 };
@@ -548,7 +592,8 @@ class HermesTypeReflectionDatatypeImpl: public HermesTypeReflectionImpl<T> {
 
     using Base = HermesTypeReflectionImpl<T>;
 
-    ska::flat_hash_map<uint64_t, std::unique_ptr<IDatatypeConverter>> converters_;
+    //ska::flat_hash_map<uint64_t, std::unique_ptr<IDatatypeConverter>> converters_;
+    std::unordered_map<uint64_t, std::unique_ptr<IDatatypeConverter>> converters_;
     ska::flat_hash_map<uint64_t, detail::DTComparator<DTTViewType<DT>>> comparators_;
     ska::flat_hash_map<uint64_t, detail::DTEqualityComparator<DTTViewType<DT>>> equality_comparators_;
 

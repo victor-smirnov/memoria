@@ -371,8 +371,27 @@ struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<Datatype
     }
 };
 
-using TypeDirectoryMapEntry = boost::fusion::vector2<std::string, DatatypePtr>;
+struct TypedArrayValue {
+    GenericArrayPtr array;
 
+    void create_array(const DatatypePtr& type)
+    {
+        array = get_type_reflection(type->cxx_type_hash()).hermes_make_container(
+                HermesCtrBuilder::current().doc().get()
+        )->as_array();
+//        array = HermesCtrBuilder::current().doc()->new_typed_array<Double>()->as_object()->as_generic_array();
+    }
+
+    void push_back(const ObjectPtr& value) {
+        array->push_back(value);
+    }
+
+    ObjectPtr finish() {
+        return array->as_object();
+    }
+};
+
+using TypeDirectoryMapEntry = boost::fusion::vector2<std::string, DatatypePtr>;
 
 struct TypeDirectoryValue {
     using value_type = TypeDirectoryMapEntry;
@@ -590,6 +609,18 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
         array        = ('[' >> (hermes_value % ',') > ']') |
                                             (lit('[') >> ']');
 
+        auto set_array_type_fn = [](auto& attrib, auto& ctx){
+            bf::at_c<0>(ctx.attributes).create_array(attrib);
+        };
+
+        auto add_array_element_fn = [](auto& attrib, auto& ctx){
+            bf::at_c<0>(ctx.attributes).push_back(attrib);
+        };
+
+        typed_array  = '<' >> type_decl_or_reference[set_array_type_fn] >> '>' >> (
+                        '[' >> (hermes_value [add_array_element_fn] % ',') >> ']' | lit('[') >> ']'
+                        );
+
         map_entry    = ((hermes_string | hermes_identifier) > ':' > hermes_value);
 
         map          = ('{' >> (map_entry % ',') > '}') |
@@ -633,6 +664,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
                                         | typed_value
                                         | bool_value
                                         | parameter
+                                        | typed_array
                                       )[finish_value] >> qi::eps[exit_builder];
 
         standalone_type_decl = type_declaration;
@@ -677,8 +709,8 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, ObjectPtr, Skipper>  integer_value;
 
 
-    qi::rule<Iterator, ObjectPtr(), Skipper>             hermes_value;
-    qi::rule<Iterator, ObjectPtr(), Skipper>             standalone_hermes_value;
+    qi::rule<Iterator, ObjectPtr(), Skipper>            hermes_value;
+    qi::rule<Iterator, ObjectPtr(), Skipper>            standalone_hermes_value;
 
     qi::rule<Iterator, ArrayValue(), Skipper>           array;
     qi::rule<Iterator, MapValue(), Skipper>             map;
@@ -705,6 +737,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, ObjectPtr(), Skipper>            parameter;
 
     qi::rule<Iterator, TypedValueValue(), Skipper>      typed_value;
+    qi::rule<Iterator, TypedArrayValue(), Skipper>      typed_array;
 
     qi::rule<Iterator, DatatypePtr(), Skipper>          type_reference;
     qi::rule<Iterator, DatatypePtr(), Skipper>          type_decl_or_reference;

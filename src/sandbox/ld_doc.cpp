@@ -45,42 +45,8 @@ int main(int, char**)
     InitTypeReflections();
 
     auto doc = HermesCtr::parse_document(R"(
-{
-  "people": [
-    {
-      "name": "a",
-      "state": {"name": "up"}
-    },
-    {
-      "name": "b",
-      "state": {"name": "down"}
-    },
-    {
-      "name": "c",
-      "state": {"name": "up"}
-    }
-  ]
-}
+        <Array<Real>> [-1234.123, 567]
     )");
 
-    println("result: {}", doc->to_string());
-
-    auto v1 = doc->root()->search("people[].{Name: name, State: state.name}");
-    println("result: {}", v1->to_pretty_string());
-    println("detached: {}", v1->is_detached());
-
-    auto v2 = HermesCtr::wrap_dataobject<Double>(1234.5678);
-    println("double: {}", v2->to_pretty_string());
-    println("detached: {}", v2->is_detached());
-
-    auto array = doc->new_typed_array<Double>();
-    array->append(12345.6789);
-
-    println("{}", array->as_object()->to_pretty_string());
-
-    auto doc1 = HermesCtr::parse_document(R"(
-        [@Double = '12345.4321']
-    )");
-
-    println("{}", doc1->to_pretty_string());
+    println("result: {}", doc->to_pretty_string());
 }

@@ -218,5 +218,49 @@ struct DatatypeConverter<FromDT, Varchar>: IDatatypeConverter {
     }
 };
 
+template <typename FromDT, typename ToDT>
+struct NumericConverter: IDatatypeConverter {
+    hermes::ObjectPtr convert(const void* view) const
+    {
+        DTTViewType<FromDT> from_view = *reinterpret_cast<const DTTViewType<FromDT>*>(view);
+        DTTViewType<ToDT> to_view     = from_view;
+
+        return hermes::HermesCtr::wrap_dataobject<ToDT>(to_view)->as_object();
+    }
+};
+
+
+template <>
+struct DatatypeConverter<BigInt, Double>: NumericConverter<BigInt, Double> {};
+
+template <>
+struct DatatypeConverter<Double, BigInt>: NumericConverter<Double, BigInt> {};
+
+
+template <>
+struct DatatypeConverter<BigInt, Real>: NumericConverter<BigInt, Real> {};
+
+template <>
+struct DatatypeConverter<Real, BigInt>: NumericConverter<Real, BigInt> {};
+
+template <>
+struct DatatypeConverter<Double, Real>: NumericConverter<Double, Real> {};
+
+template <>
+struct DatatypeConverter<Real, Double>: NumericConverter<Real, Double> {};
+
+template <>
+struct DatatypeConverter<UBigInt, Double>: NumericConverter<UBigInt, Double> {};
+
+template <>
+struct DatatypeConverter<Double, UBigInt>: NumericConverter<Double, UBigInt> {};
+
+template <>
+struct DatatypeConverter<UBigInt, Real>: NumericConverter<UBigInt, Real> {};
+
+template <>
+struct DatatypeConverter<Real, UBigInt>: NumericConverter<Real, UBigInt> {};
+
+
 
 }

@@ -273,11 +273,11 @@ public:
     }
 
     virtual void set(uint64_t idx, const ObjectPtr& value) {
-        array_.set(idx, value->convert_to<DT>()->template as_data_object<DT>());
+        array_.set(idx, value->convert_to<DataObject<DT>>()->template as_data_object<DT>());
     }
 
     virtual void push_back(const ObjectPtr& value) {
-        array_.append(value->convert_to<DT>()->template as_data_object<DT>());
+        array_.append(value->convert_to<DataObject<DT>>()->template as_data_object<DT>());
     }
 
     virtual void remove(uint64_t start, uint64_t end) {

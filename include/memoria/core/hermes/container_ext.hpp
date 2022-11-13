@@ -247,7 +247,12 @@ ObjectPtr Object::convert_to() const
     assert_not_null();
     auto src_tag = get_type_tag();
     auto to_tag = ShortTypeCode::of<DT>();
-    return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), value_storage_, doc_, get_ptr_holder());
+    if (src_tag != to_tag) {
+        return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), value_storage_, doc_, get_ptr_holder());
+    }
+    else {
+        return this->as_object();
+    }
 }
 
 template <typename DT>
