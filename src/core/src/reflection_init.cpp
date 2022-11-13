@@ -79,6 +79,8 @@ void InitTypeReflections()
             alias_dt = alias_dt->type_parameters()->get(0)->as_datatype();
         }
 
+        println("Registering Alias: {} -> {}", alias_dt->to_pretty_string(), alias_dt->cxx_type_hash());
+
         register_type_reflection(alias_dt->cxx_type_hash(), *reflection.self());
     });
 }

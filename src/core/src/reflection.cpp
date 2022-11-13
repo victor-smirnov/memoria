@@ -65,8 +65,10 @@ TypeReflection& get_type_reflection(ShortTypeCode short_type_hash)
 
 TypeReflection& get_type_reflection(const UID256& type_hash)
 {
-    auto ii = type_code_map().find(type_hash);
-    if (ii != type_code_map().end()) {
+    const auto& map = type_code_map();
+
+    auto ii = map.find(type_hash);
+    if (ii != map.end()) {
         return *ii->second;
     }
     else {
@@ -104,7 +106,7 @@ void register_type_reflection(TypeReflection& type_reflection)
 }
 
 void register_type_reflection(const UID256& type_code, TypeReflection& type_reflection) {
-
+    type_code_map()[type_code] = type_reflection.self();
 }
 
 

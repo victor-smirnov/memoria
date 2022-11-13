@@ -42,8 +42,6 @@ class TTT {};
 
 int main(int, char**)
 {
-//    println("{:x}", ShortTypeCode::of_object(0x100ull).u64());
-
     InitTypeReflections();
 
     auto doc = HermesCtr::parse_document(R"(
@@ -79,4 +77,10 @@ int main(int, char**)
     array->append(12345.6789);
 
     println("{}", array->as_object()->to_pretty_string());
+
+    auto doc1 = HermesCtr::parse_document(R"(
+        [@Double = '12345.4321']
+    )");
+
+    println("{}", doc1->to_pretty_string());
 }
