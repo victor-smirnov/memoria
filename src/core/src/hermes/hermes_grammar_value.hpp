@@ -623,7 +623,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
             bf::at_c<0>(ctx.attributes).add_refs();
         };
 
-        type_parameter   = (type_declaration | bool_value | integer_value) [finish_value];
+        type_parameter = (type_declaration | bool_value | integer_value | type_reference) [finish_value];
 
         type_declaration_dto =  datatype_name[add_datatype]
                             > -('<' >> (type_parameter[add_type_parameter] % ',') > '>')

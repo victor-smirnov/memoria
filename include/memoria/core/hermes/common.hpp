@@ -546,6 +546,8 @@ static inline ShortTypeCode get_type_tag(ValueStorageTag vs_tag, const ValueStor
     return ShortTypeCode::nullv();
 }
 
+hermes::DatatypePtr strip_namespaces(hermes::DatatypePtr datatype);
+
 namespace detail {
 
 template <typename T, bool HasResetMethod = memoria::pool::detail::ObjectPoolLicycleMethods<T>::HasSetBuffer>

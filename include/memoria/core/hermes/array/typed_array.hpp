@@ -215,6 +215,10 @@ private:
     {
         auto& spec = state.cfg().spec();
 
+        out << "<";
+        out << get_datatype_name(type_to_str<DT>());
+        out << ">" << spec.space();
+
         if (size() > 0)
         {
             out << "[" << spec.nl_start();

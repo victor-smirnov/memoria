@@ -225,15 +225,6 @@ PoolSharedPtr<HermesCtr> HermesCtr::common_instance() {
     return instance.ctr;
 }
 
-U8StringView get_datatype_name(U8StringView name) {
-    size_t pos = name.find_last_of(':');
-    if (pos == name.npos) {
-        return name;
-    }
-    else {
-        return name.substr(pos + 1);
-    }
-}
 
 hermes::DatatypePtr strip_namespaces(hermes::DatatypePtr src)
 {

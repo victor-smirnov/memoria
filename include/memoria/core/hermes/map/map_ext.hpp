@@ -171,6 +171,12 @@ inline void Map<KeyDT, Object>::do_stringify(std::ostream& out, DumpFormatState&
 
     if (size() > 0)
     {
+        out << "<";
+        out << get_datatype_name(type_to_str<KeyDT>());
+        out << "," << spec.nl_middle();
+        out << "Object";
+        out << ">" << spec.space();
+
         out << "{" << spec.nl_start();
 
         bool first = true;

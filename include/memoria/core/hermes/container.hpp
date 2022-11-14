@@ -371,8 +371,6 @@ private:
     void assert_mutable();
 };
 
-hermes::DatatypePtr strip_namespaces(hermes::DatatypePtr datatype);
-
 }
 
 struct Hermes{};

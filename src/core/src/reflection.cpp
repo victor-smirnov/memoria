@@ -164,4 +164,16 @@ hermes::ObjectPtr TypeReflection::import_value(
     MEMORIA_MAKE_GENERIC_ERROR("Importing value in not supported for type {}", str()).do_throw();
 }
 
+
+U8StringView get_datatype_name(U8StringView name) {
+    size_t pos = name.find_last_of(':');
+    if (pos == name.npos) {
+        return name;
+    }
+    else {
+        return name.substr(pos + 1);
+    }
+}
+
+
 }

@@ -234,7 +234,7 @@ void for_each_type_reflection(std::function<void (const ShortTypeCode&, TypeRefl
 void register_type_reflection(TypeReflection& type_reflection);
 void register_type_reflection(const UID256& type_code, TypeReflection& type_reflection);
 
-
+U8StringView get_datatype_name(U8StringView name);
 
 
 class DeepCopyDeduplicator {
