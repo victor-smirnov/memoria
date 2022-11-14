@@ -96,11 +96,19 @@ struct GenericCtrDispatcher<hermes::Map<Varchar, hermes::Object>> {
 
 template <typename KeyDT, typename ValueDT>
 struct GenericCtrDispatcher<hermes::Map<KeyDT, ValueDT>> {
-    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr)
-    {
-        MEMORIA_MAKE_GENERIC_ERROR("GenericMap dispatcher is not implemented").do_throw();
+    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
+        return ctr->new_typed_map<KeyDT, ValueDT>()->as_object()->as_generic_map();
     }
 };
+
+
+//template <typename KeyDT, typename ValueDT>
+//struct GenericCtrDispatcher<hermes::Map<KeyDT, ValueDT>> {
+//    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr)
+//    {
+//        MEMORIA_MAKE_GENERIC_ERROR("GenericMap dispatcher is not implemented").do_throw();
+//    }
+//};
 
 }
 

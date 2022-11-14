@@ -356,7 +356,7 @@ struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<Datatype
         }
 
         auto ctr_hash = type.get()->cxx_type_hash();
-        if (has_type_reflection(ctr_hash) || true)
+        if (has_type_reflection(ctr_hash))
         {
             return get_type_reflection(ctr_hash).datatype_convert_from_plain_string(str);
         }
@@ -371,25 +371,74 @@ struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<Datatype
     }
 };
 
-struct TypedArrayValue {
-    GenericArrayPtr array;
 
-    void create_array(const DatatypePtr& type)
+using TypedMapEntry = boost::phoenix::vector2<ObjectPtr, ObjectPtr>;
+
+class TypedContainerValue {
+    GenericArrayPtr array_;
+    GenericMapPtr   map_;
+
+    std::vector<ObjectPtr> type_params_;
+public:
+
+    enum TypedContainerType {
+        HERMES_TC_ARRAY, HERMES_TC_MAP
+    };
+
+    void add_type(const ObjectPtr& type){
+        type_params_.push_back(type);
+    }
+
+    void create_ctr(TypedContainerType ctr_type)
     {
-        array = get_type_reflection(type->cxx_type_hash()).hermes_make_container(
+        if (ctr_type == HERMES_TC_ARRAY)
+        {
+            auto ctr_type = HermesCtrBuilder::current().doc()->new_datatype("Array");
+
+            for (auto& param: type_params_) {
+                ctr_type->append_type_parameter(param);
+            }
+
+            array_ = get_type_reflection(ctr_type->cxx_type_hash()).hermes_make_container(
                 HermesCtrBuilder::current().doc().get()
-        )->as_array();
-//        array = HermesCtrBuilder::current().doc()->new_typed_array<Double>()->as_object()->as_generic_array();
+            )->as_array();
+        }
+        else {
+            auto ctr_type = HermesCtrBuilder::current().doc()->new_datatype("Map");
+
+            for (auto& param: type_params_) {
+                ctr_type->append_type_parameter(param);
+            }
+
+            map_ = get_type_reflection(ctr_type->cxx_type_hash()).hermes_make_container(
+                HermesCtrBuilder::current().doc().get()
+            )->as_map();
+        }
     }
 
     void push_back(const ObjectPtr& value) {
-        array->push_back(value);
+        array_->push_back(value);
     }
 
-    ObjectPtr finish() {
-        return array->as_object();
+    void push_back(const TypedMapEntry& value) {
+        map_->put(bf::at_c<0>(value), bf::at_c<1>(value));
+    }
+
+    ObjectPtr finish()
+    {
+        if (!array_.is_null()) {
+            return array_->as_object();
+        }
+        else if (!map_.is_null()) {
+            return map_->as_object();
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Hermes Typed container is null").do_throw();
+        }
     }
 };
+
+
 
 using TypeDirectoryMapEntry = boost::fusion::vector2<std::string, DatatypePtr>;
 
@@ -609,19 +658,35 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
         array        = ('[' >> (hermes_value % ',') > ']') |
                                             (lit('[') >> ']');
 
-        auto set_array_type_fn = [](auto& attrib, auto& ctx){
-            bf::at_c<0>(ctx.attributes).create_array(attrib);
+        auto add_tc_type_fn = [](auto& attrib, auto& ctx){
+            bf::at_c<0>(ctx.attributes).add_type(attrib);
+        };
+
+        auto create_typed_array_ctr_fn = [](auto&, auto& ctx){
+            bf::at_c<0>(ctx.attributes).create_ctr(TypedContainerValue::HERMES_TC_ARRAY);
+        };
+
+        auto create_typed_map_ctr_fn = [](auto&, auto& ctx){
+            bf::at_c<0>(ctx.attributes).create_ctr(TypedContainerValue::HERMES_TC_MAP);
         };
 
         auto add_array_element_fn = [](auto& attrib, auto& ctx){
             bf::at_c<0>(ctx.attributes).push_back(attrib);
         };
 
-        typed_array  = '<' >> type_decl_or_reference[set_array_type_fn] >> '>' >> (
-                        '[' >> (hermes_value [add_array_element_fn] % ',') >> ']' | lit('[') >> ']'
-                        );
+        auto add_map_element_fn = [](auto& attrib, auto& ctx){
+            bf::at_c<0>(ctx.attributes).push_back(attrib);
+        };
+
+        typed_ctr = '<' >> (type_parameter[add_tc_type_fn] % ',') >> '>' >>  ((
+                            lit('[') [create_typed_array_ctr_fn] >> (hermes_value [add_array_element_fn] % ',') >> ']' |
+                            lit('[') [create_typed_array_ctr_fn] >> ']'
+                        ) | (lit('{') [create_typed_map_ctr_fn] >> (typed_map_entry [add_map_element_fn] % ',') >> '}' |
+                             lit('{') [create_typed_map_ctr_fn] >> '}'
+                             ));
 
         map_entry    = ((hermes_string | hermes_identifier) > ':' > hermes_value);
+        typed_map_entry = hermes_value > ':' > hermes_value;
 
         map          = ('{' >> (map_entry % ',') > '}') |
                                             (lit('{') >> '}');
@@ -664,7 +729,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
                                         | typed_value
                                         | bool_value
                                         | parameter
-                                        | typed_array
+                                        | typed_ctr
                                       )[finish_value] >> qi::eps[exit_builder];
 
         standalone_type_decl = type_declaration;
@@ -716,6 +781,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, MapValue(), Skipper>             map;
 
     qi::rule<Iterator, MapEntryTuple(), Skipper>        map_entry;
+    qi::rule<Iterator, TypedMapEntry(), Skipper>        typed_map_entry;
 
     qi::rule<Iterator, ObjectPtr(), Skipper>            null_value;
     qi::rule<Iterator, std::string(), Skipper>          hermes_string;
@@ -737,7 +803,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, ObjectPtr(), Skipper>            parameter;
 
     qi::rule<Iterator, TypedValueValue(), Skipper>      typed_value;
-    qi::rule<Iterator, TypedArrayValue(), Skipper>      typed_array;
+    qi::rule<Iterator, TypedContainerValue(), Skipper>  typed_ctr;
 
     qi::rule<Iterator, DatatypePtr(), Skipper>          type_reference;
     qi::rule<Iterator, DatatypePtr(), Skipper>          type_decl_or_reference;

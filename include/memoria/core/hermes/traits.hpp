@@ -40,8 +40,12 @@ struct IParameterResolver;
 template <typename>
 class Array;
 
-template <typename Key, typename Object>
+template <typename Key, typename Value>
 class Map;
+
+
+template <typename Key, typename Value>
+using MapPtr = ViewPtr<Map<Key, Value>, true>;
 
 class Object;
 
@@ -85,6 +89,9 @@ enum ObjectTypes {
 template <typename DT>
 struct TypeHash<hermes::DataObject<DT>>: HasU64Value<TypeHashV<DT>> {};
 
+template <>
+struct TypeHash<hermes::Object>: HasU64Value<99> {};
+
 
 template <>
 struct TypeHash<hermes::Array<hermes::Object>>: HasU64Value<100> {};
@@ -104,6 +111,15 @@ struct TypeHash<hermes::Parameter>: HasU64Value<104> {};
 
 template <>
 struct TypeHash<hermes::Array<Integer>>: HasU64Value<105> {};
+
+template <typename Key>
+struct TypeHash<hermes::Map<Key, hermes::Object>>: HasU64Value<
+        HashHelper<
+            106,
+            TypeHashV<Key>,
+            TypeHashV<hermes::Object>
+        >
+> {};
 
 
 template <typename T>

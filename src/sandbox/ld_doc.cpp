@@ -45,7 +45,7 @@ int main(int, char**)
     InitTypeReflections();
 
     auto doc = HermesCtr::parse_document(R"(
-        <Array<Real>> [-1234.123, 567]
+        <Integer, Object> {-1234: 'abcd', 567: [1]}
     )");
 
     println("result: {}", doc->to_pretty_string());

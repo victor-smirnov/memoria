@@ -20,7 +20,7 @@
 
 #include <memoria/core/hermes/container.hpp>
 #include <memoria/core/hermes/data_object.hpp>
-#include <memoria/core/hermes/map.hpp>
+#include <memoria/core/hermes/map/map.hpp>
 
 namespace memoria {
 namespace hermes {
@@ -158,8 +158,9 @@ inline ObjectPtr Array<Object>::set_hermes(uint64_t idx, U8StringView str) {
   if (MMA_LIKELY(idx < array_->size()))
   {
       ObjectPtr vv = doc_->parse_raw_value(str.begin(), str.end());
-      array_->set(idx, vv->value_storage_.addr);
-      return vv;
+      auto vv1 = doc_->do_import_value(vv);
+      array_->set(idx, vv1->value_storage_.addr);
+      return vv1;
   }
   else {
       MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Object>::set_hermes(): {}::{}", idx, array_->size()).do_throw();

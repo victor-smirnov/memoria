@@ -18,7 +18,7 @@
 
 namespace memoria {
 
-MMA_DECLARE_EXPLICIT_CU_LINKING(MemoriaStaticAppInit);
+//MMA_DECLARE_EXPLICIT_CU_LINKING(MemoriaStaticAppInit);
 
 void InitMemoriaExplicit();
 

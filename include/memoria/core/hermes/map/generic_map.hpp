@@ -36,7 +36,7 @@ struct GenericMapEntry {
 
 struct GenericMap: GenericObject {
     virtual uint64_t size() const = 0;
-    virtual bool empty() const = 0;
+    virtual bool empty() const    = 0;
 
     virtual PoolSharedPtr<GenericMapEntry> iterator() const = 0;
 
@@ -48,5 +48,12 @@ struct GenericMap: GenericObject {
     template <typename Fn>
     void for_each(Fn&& fn) const;
 };
+
+template <typename, typename>
+class TypedGenericMap;
+
+
+template <typename, typename>
+class TypedGenericMapEntry;
 
 }}

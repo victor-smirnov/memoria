@@ -93,7 +93,7 @@ ObjectMapPtr HermesCtr::new_map()
 {
     using CtrT = Map<Varchar, Object>;
 
-    auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::ArenaMap>(
+    auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::MapStorageT>(
         ShortTypeCode::of<CtrT>()
     );
 
@@ -172,19 +172,25 @@ ObjectPtr HermesCtr::do_import_value(ObjectPtr value)
 
     if (!value->is_null())
     {
-        if (value->get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS)
+        if (value->document().get() != this)
         {
-            auto tag = arena::read_type_tag(value->value_storage_.addr);
+            if (value->get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS)
+            {
+                auto tag = arena::read_type_tag(value->value_storage_.addr);
 
-            DeepCopyDeduplicator dedup;
-            auto addr = get_type_reflection(tag).deep_copy_to(*arena_, value->value_storage_.addr, this, ptr_holder_, dedup);
+                DeepCopyDeduplicator dedup;
+                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, value->value_storage_.addr, this, ptr_holder_, dedup);
 
-            return ObjectPtr(Object(addr, this, ptr_holder_));
+                return ObjectPtr(Object(addr, this, ptr_holder_));
+            }
+            else {
+                auto type_tag = value->get_type_tag();
+                auto vs_tag = value->get_vs_tag();
+                return get_type_reflection(type_tag).import_value(vs_tag, value->value_storage_, this, ptr_holder_);
+            }
         }
         else {
-            auto type_tag = value->get_type_tag();
-            auto vs_tag = value->get_vs_tag();
-            return get_type_reflection(type_tag).import_value(vs_tag, value->value_storage_, this, ptr_holder_);
+            return value;
         }
     }
     else {

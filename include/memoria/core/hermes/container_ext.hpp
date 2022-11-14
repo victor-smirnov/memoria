@@ -17,7 +17,7 @@
 
 
 #include <memoria/core/hermes/container.hpp>
-#include <memoria/core/hermes/map.hpp>
+#include <memoria/core/hermes/map/map.hpp>
 #include <memoria/core/hermes/array/array.hpp>
 #include <memoria/core/hermes/array/typed_array.hpp>
 #include <memoria/core/hermes/data_object.hpp>
@@ -286,6 +286,20 @@ ArrayPtr<DT> HermesCtr::new_typed_array() {
     );
 
     return ArrayPtr<DT>(CtrT(arena_dtc, this, ptr_holder_));
+}
+
+template <typename KeyDT, typename ValueDT>
+MapPtr<KeyDT, ValueDT> HermesCtr::new_typed_map() {
+    assert_not_null();
+    assert_mutable();
+
+    using CtrT = Map<KeyDT, ValueDT>;
+
+    auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::MapStorageT>(
+        ShortTypeCode::of<CtrT>()
+    );
+
+    return MapPtr<KeyDT, ValueDT>(CtrT(arena_dtc, this, ptr_holder_));
 }
 
 template <typename DT>

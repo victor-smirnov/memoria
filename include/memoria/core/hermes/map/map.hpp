@@ -15,65 +15,33 @@
 
 #pragma once
 
-#include <memoria/core/arena/map.hpp>
-#include <memoria/core/arena/relative_ptr.hpp>
-
-#include <memoria/core/hermes/object.hpp>
-#include <memoria/core/hermes/traits.hpp>
-#include <memoria/core/hermes/datatype.hpp>
-#include <memoria/core/hermes/common.hpp>
-#include <memoria/core/hermes/data_object.hpp>
-
-
-#include <memoria/core/hermes/generic_map.hpp>
+#include <memoria/core/hermes/map/map_common.hpp>
 
 namespace memoria {
 namespace hermes {
 
-template <typename EntryT, typename MapT, typename Iterator>
-class MapIteratorAccessor {
-    ViewPtr<MapT> map_;
-    Iterator iterator_;
-    HermesCtr* doc_;
-    ViewPtrHolder* ptr_holder_;
 
-public:
-    using ViewType = EntryT;
 
-    MapIteratorAccessor(const ViewPtr<MapT>& map, Iterator iterator, HermesCtr* doc, ViewPtrHolder* ptr_holder):
-        map_(map), iterator_(iterator), doc_(doc), ptr_holder_(ptr_holder)
-    {}
-
-    EntryT current() const {
-        return EntryT(&iterator_, doc_, ptr_holder_);
-    }
-
-    bool operator==(const MapIteratorAccessor&other) const noexcept {
-        return iterator_ == other.iterator_;
-    }
-
-    void next() {
-        iterator_.next();
-    }
-};
-
-class GenericObjectMap;
 
 template <>
 class Map<Varchar, Object>: public HoldingView<Map<Varchar, Object>> {
     using Base = HoldingView<Map<Varchar, Object>>;
 public:
     using KeyT = DataObject<Varchar>::ArenaDTContainer;
+    using MapStorageT = arena::Map<KeyT*, void*>;
 
-    using ArenaMap = arena::Map<KeyT*, void*>;
+    static_assert(std::is_standard_layout_v<MapStorageT>,"");
+
 protected:
-    mutable ArenaMap* map_;
+    mutable MapStorageT* map_;
     mutable HermesCtr* doc_;
     using Base::ptr_holder_;
 
     friend class HermesCtr;
     friend class Object;
-    friend class GenericObjectMap;
+
+    template <typename, typename>
+    friend class TypedGenericMap;
 
     template <typename, typename>
     friend class Map;
@@ -83,7 +51,7 @@ protected:
 
     friend class HermesCtrBuilder;
     friend class memoria::hermes::path::interpreter::Interpreter;
-    using MapIterator = typename ArenaMap::Iterator;
+    using MapIterator = typename MapStorageT::Iterator;
 
 
     class EntryT {
@@ -122,7 +90,7 @@ public:
 
     Map(void* map, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
         Base(ptr_holder),
-        map_(reinterpret_cast<ArenaMap*>(map)), doc_(doc)
+        map_(reinterpret_cast<MapStorageT*>(map)), doc_(doc)
     {}
 
     bool is_null() const noexcept {
@@ -242,12 +210,10 @@ public:
 
     PoolSharedPtr<GenericMap> as_generic_map() const;
 
-protected:
     void put(StringValuePtr name, ObjectPtr value);
     void put(U8StringView name, ObjectPtr value);
 private:
     void do_stringify(std::ostream& out, DumpFormatState& state) const;
-
 
     void assert_not_null() const
     {
@@ -259,7 +225,9 @@ private:
     void assert_mutable();
 };
 
-class GenericObjectMapEntry: public GenericMapEntry {
+
+template <>
+class TypedGenericMapEntry<Varchar, Object>: public GenericMapEntry {
     using MapT = Map<Varchar, Object>;
     using IteratorT = typename MapT::Iterator;
 
@@ -267,7 +235,7 @@ class GenericObjectMapEntry: public GenericMapEntry {
     IteratorT end_;
 
 public:
-    GenericObjectMapEntry(IteratorT iter, IteratorT end):
+    TypedGenericMapEntry(IteratorT iter, IteratorT end):
         iter_(iter), end_(end)
     {}
 
@@ -288,18 +256,20 @@ public:
     }
 };
 
-class GenericObjectMap: public GenericMap, public pool::enable_shared_from_this<GenericObjectMap> {
+
+template <>
+class TypedGenericMap<Varchar, Object>: public GenericMap, public pool::enable_shared_from_this<TypedGenericMap<Varchar, Object>> {
     ViewPtrHolder* ctr_holder_;
     mutable Map<Varchar, Object> map_;
 public:
-    GenericObjectMap(void* map, HermesCtr* ctr, ViewPtrHolder* ctr_holder):
+    TypedGenericMap(void* map, HermesCtr* ctr, ViewPtrHolder* ctr_holder):
         ctr_holder_(ctr_holder),
         map_(map, ctr, ctr_holder)
     {
         ctr_holder->ref_copy();
     }
 
-    virtual ~GenericObjectMap() noexcept {
+    virtual ~TypedGenericMap() noexcept {
         ctr_holder_->unref();
     }
 
@@ -353,15 +323,6 @@ public:
     static PoolSharedPtr<GenericMap> make_wrapper(void* map, HermesCtr* ctr, ViewPtrHolder* ctr_holder);
 };
 
-template <typename Fn>
-void GenericMap::for_each(Fn&& fn) const
-{
-    auto ii = iterator();
-    while (!ii->is_end())
-    {
-        fn(ii->key(), ii->value());
-        ii->next();
-    }
-}
+
 
 }}

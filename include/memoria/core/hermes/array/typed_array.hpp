@@ -19,7 +19,7 @@
 #include <memoria/core/hermes/common.hpp>
 #include <memoria/core/hermes/data_object.hpp>
 
-#include <memoria/core/hermes/generic_array.hpp>
+#include <memoria/core/hermes/array/generic_array.hpp>
 
 #include <memoria/core/hermes/array/typed_array_1fse.hpp>
 

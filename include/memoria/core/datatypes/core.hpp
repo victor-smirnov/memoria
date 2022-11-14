@@ -132,7 +132,7 @@ template <>
 struct TypeHash<SmallInt>: UInt64Value<22>  {};
 
 template <>
-struct TypeHash<USmallInt>: UInt64Value<23> {};
+struct TypeHash<USmallInt>: UInt64Value<24> {};
 
 template <>
 struct TypeHash<Integer>:  UInt64Value<23>  {};

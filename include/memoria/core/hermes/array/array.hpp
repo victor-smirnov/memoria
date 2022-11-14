@@ -22,7 +22,7 @@
 #include <memoria/core/hermes/traits.hpp>
 #include <memoria/core/hermes/common.hpp>
 
-#include <memoria/core/hermes/generic_array.hpp>
+#include <memoria/core/hermes/array/generic_array.hpp>
 
 #include <memoria/core/hermes/array/typed_array.hpp>
 #include <memoria/core/hermes/array/typed_array_1fse.hpp>

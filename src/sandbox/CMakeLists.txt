@@ -41,7 +41,8 @@ endif()
 if (BUILD_CLASSIC_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX_CLASSIC)
-        set(MEMORIA_SANDBOX_CLASSIC send_msg_bench_raw swmr_store pseudo_latency benchmark_btree benchmark_stdset ld_doc)
+        #set(MEMORIA_SANDBOX_CLASSIC send_msg_bench_raw swmr_store pseudo_latency benchmark_btree benchmark_stdset ld_doc)
+        set(MEMORIA_SANDBOX_CLASSIC ld_doc)
 
         if (NO_COW_PROFILE)
             set(MEMORIA_SANDBOX_CLASSIC ${MEMORIA_SANDBOX_CLASSIC})
@@ -52,10 +53,10 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
         add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
         set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMMA1_NO_REACTOR")
         set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-        target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit ${MEMORIA_LIBS})
-        #target_link_libraries(${MEMORIA_TARGET} MemoriaCore ${MEMORIA_LIBS})
+        #target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit ${MEMORIA_LIBS})
+        target_link_libraries(${MEMORIA_TARGET} MemoriaCore ${MEMORIA_LIBS})
 
-        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS} pantor::inja ${ARROW_LIBRARIES} ${PARQUET_LIBRARIES})
+        #target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS} pantor::inja ${ARROW_LIBRARIES} ${PARQUET_LIBRARIES})
     ENDFOREACH(MEMORIA_TARGET )
 
 endif()

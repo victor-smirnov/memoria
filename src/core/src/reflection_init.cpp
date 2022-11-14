@@ -62,7 +62,13 @@ void InitTypeReflections()
     register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<TinyInt>, TypedGenericArray<TinyInt>>>());
     register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<UTinyInt>, TypedGenericArray<UTinyInt>>>());
 
-    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Map<Varchar, Object>, GenericObjectMap>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Map<Varchar, Object>, TypedGenericMap<Varchar, Object>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Map<Integer, Object>, TypedGenericMap<Integer, Object>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Map<BigInt, Object>, TypedGenericMap<BigInt, Object>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Map<Double, Object>, TypedGenericMap<Double, Object>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Map<Real, Object>, TypedGenericMap<Real, Object>>>());
+    register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Map<UBigInt, Object>, TypedGenericMap<UBigInt, Object>>>());
+
 
     register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<Datatype>>());
     register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<TypedValue>>());

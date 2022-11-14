@@ -236,6 +236,18 @@ struct DatatypeConverter<BigInt, Double>: NumericConverter<BigInt, Double> {};
 template <>
 struct DatatypeConverter<Double, BigInt>: NumericConverter<Double, BigInt> {};
 
+template <>
+struct DatatypeConverter<BigInt, Integer>: NumericConverter<BigInt, Integer> {};
+
+template <>
+struct DatatypeConverter<Integer, BigInt>: NumericConverter<Integer, BigInt> {};
+
+template <>
+struct DatatypeConverter<UBigInt, UInteger>: NumericConverter<UBigInt, UInteger> {};
+
+template <>
+struct DatatypeConverter<UInteger, UBigInt>: NumericConverter<UInteger, UBigInt> {};
+
 
 template <>
 struct DatatypeConverter<BigInt, Real>: NumericConverter<BigInt, Real> {};

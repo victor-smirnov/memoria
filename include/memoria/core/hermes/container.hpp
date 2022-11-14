@@ -29,7 +29,7 @@
 #include <memoria/core/hermes/object.hpp>
 #include <memoria/core/hermes/datatype.hpp>
 #include <memoria/core/hermes/array/array.hpp>
-#include <memoria/core/hermes/map.hpp>
+#include <memoria/core/hermes/map/map.hpp>
 #include <memoria/core/hermes/data_object.hpp>
 #include <memoria/core/hermes/typed_value.hpp>
 #include <memoria/core/hermes/parameter.hpp>
@@ -231,10 +231,10 @@ public:
         assert_mutable();
 
         ObjectPtr vv = parse_raw_value(str.begin(), str.end());
+        auto vv1 = this->do_import_value(vv);
+        header_->root = vv1->value_storage_.addr;
 
-        header_->root = vv->value_storage_.addr;
-
-        return vv;
+        return vv1;
     }
 
     void set_null() {
@@ -249,9 +249,6 @@ public:
     DataObjectPtr<DT> new_dataobject(DTTViewType<DT> view);
     DatatypePtr new_datatype(U8StringView name);
     DatatypePtr new_datatype(StringValuePtr name);
-
-
-
 
     pool::SharedPtr<HermesCtr> self() const;
 
@@ -300,6 +297,10 @@ public:
 
     template <typename DT>
     ArrayPtr<DT> new_typed_array();
+
+    template <typename KeyDT, typename ValueDT>
+    MapPtr<KeyDT, ValueDT> new_typed_map();
+
 
     TypedValuePtr new_typed_value(DatatypePtr datatype, ObjectPtr constructor);
 

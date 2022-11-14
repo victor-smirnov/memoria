@@ -33,7 +33,9 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<HermesTestState
         map->put_dataobject<Varchar>(key, std::to_string(c));
     }
 
-    assert_equals(size, map->size());
+    auto m0 = doc->root()->as_generic_map();
+
+    assert_equals(size, m0->size());
 
     auto doc2 = doc->compactify();
     auto gmap = doc2->root()->as_generic_map();
