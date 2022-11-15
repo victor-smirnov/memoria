@@ -48,6 +48,8 @@ struct Time      {};
 struct TimeWithTZ {};
 struct Boolean   {};
 
+// TODO: May be Hermes Datatypes, but
+// should not have unprefixed aliases
 struct UID64CowBlockID {};
 struct UID256CowBlockID {};
 
@@ -181,6 +183,8 @@ struct TypeHash<BigDecimal>: UInt64Value<38> {};
 
 template <>
 struct TypeHash<Decimal>: UInt64Value<39> {};
+
+
 
 template <>
 struct TypeHash<CoreApiProfileDT>: UInt64Value<75796829474235345ull> {};
