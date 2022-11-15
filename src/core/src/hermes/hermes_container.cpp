@@ -123,7 +123,7 @@ ObjectArrayPtr HermesCtr::new_array(Span<ObjectPtr> span)
     {
         arena_arr->enlarge(*arena_, span.size());
         for (auto& value: span) {
-            arena_arr->push_back(*arena_, value->value_storage_.addr);
+            arena_arr->push_back(*arena_, value->storage_.addr);
         }
     }
 
@@ -134,7 +134,7 @@ ObjectArrayPtr HermesCtr::new_array(Span<ObjectPtr> span)
 void HermesCtr::set_root(ObjectPtr value)
 {
     ObjectPtr vv = do_import_value(value);
-    header_->root = vv->value_storage_.addr;
+    header_->root = vv->storage_.addr;
 }
 
 DatatypePtr HermesCtr::new_datatype(U8StringView name)
@@ -159,7 +159,7 @@ DatatypePtr HermesCtr::new_datatype(StringValuePtr name)
 TypedValuePtr HermesCtr::new_typed_value(DatatypePtr datatype, ObjectPtr constructor)
 {
     auto arena_tv = arena()->allocate_tagged_object<detail::TypedValueData>(
-        ShortTypeCode::of<TypedValue>(), datatype->datatype_, constructor->value_storage_.addr
+        ShortTypeCode::of<TypedValue>(), datatype->datatype_, constructor->storage_.addr
     );
 
     return TypedValuePtr(TypedValue(arena_tv, this, ptr_holder_));
@@ -176,17 +176,17 @@ ObjectPtr HermesCtr::do_import_value(ObjectPtr value)
         {
             if (value->get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS)
             {
-                auto tag = arena::read_type_tag(value->value_storage_.addr);
+                auto tag = arena::read_type_tag(value->storage_.addr);
 
                 DeepCopyDeduplicator dedup;
-                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, value->value_storage_.addr, this, ptr_holder_, dedup);
+                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, value->storage_.addr, this, ptr_holder_, dedup);
 
                 return ObjectPtr(Object(addr, this, ptr_holder_));
             }
             else {
                 auto type_tag = value->get_type_tag();
                 auto vs_tag = value->get_vs_tag();
-                return get_type_reflection(type_tag).import_value(vs_tag, value->value_storage_, this, ptr_holder_);
+                return get_type_reflection(type_tag).import_value(vs_tag, value->storage_, this, ptr_holder_);
             }
         }
         else {
@@ -229,7 +229,7 @@ PoolSharedPtr<HermesCtr> HermesCtr::common_instance() {
 hermes::DatatypePtr strip_namespaces(hermes::DatatypePtr src)
 {
     auto ctr = HermesCtr::make_pooled();
-    auto name = get_datatype_name(src->type_name()->view());
+    auto name = get_datatype_name(*src->type_name()->view());
 
     auto tgt = ctr->new_datatype(name);
     ctr->set_root(tgt->as_object());

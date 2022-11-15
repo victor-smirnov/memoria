@@ -232,7 +232,7 @@ public:
 
         ObjectPtr vv = parse_raw_value(str.begin(), str.end());
         auto vv1 = this->do_import_value(vv);
-        header_->root = vv1->value_storage_.addr;
+        header_->root = vv1->storage_.addr;
 
         return vv1;
     }

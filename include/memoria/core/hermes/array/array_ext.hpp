@@ -81,7 +81,7 @@ inline void Array<Object>::append(const ObjectPtr& value)
 
     if (MMA_LIKELY(!vv->is_null()))
     {
-        array_->push_back(*doc_->arena(), vv->value_storage_.addr);
+        array_->push_back(*doc_->arena(), vv->storage_.addr);
     }
     else {
         array_->push_back(*doc_->arena(), nullptr);
@@ -94,7 +94,7 @@ void Array<DT>::append(const DataObjectPtr<DT>& value)
     assert_not_null();
     assert_mutable();
 
-    array_->push_back(*doc_->arena(), value->view());
+    array_->push_back(*doc_->arena(), *value->view());
 }
 
 template <typename DT>
@@ -112,7 +112,7 @@ void Array<DT>::set(uint64_t idx, const DataObjectPtr<DT>& value)
 {
     assert_not_null();
     assert_mutable();
-    array_->set(idx, value->view());
+    array_->set(idx, *value->view());
 }
 
 template <typename DT>
@@ -133,7 +133,7 @@ inline void Array<Object>::set(uint64_t idx, const ObjectPtr& value)
 
     if (MMA_LIKELY(!vv->is_null()))
     {
-        array_->set(idx, vv->value_storage_.addr);
+        array_->set(idx, vv->storage_.addr);
     }
     else {
         array_->set(idx, nullptr);
@@ -146,7 +146,7 @@ inline ObjectPtr Array<Object>::append_hermes(U8StringView str) {
 
   ObjectPtr vv = doc_->parse_raw_value(str.begin(), str.end());
 
-  array_->push_back(*doc_->arena(), vv->value_storage_.addr);
+  array_->push_back(*doc_->arena(), vv->storage_.addr);
 
   return vv;
 }
@@ -159,7 +159,7 @@ inline ObjectPtr Array<Object>::set_hermes(uint64_t idx, U8StringView str) {
   {
       ObjectPtr vv = doc_->parse_raw_value(str.begin(), str.end());
       auto vv1 = doc_->do_import_value(vv);
-      array_->set(idx, vv1->value_storage_.addr);
+      array_->set(idx, vv1->storage_.addr);
       return vv1;
   }
   else {

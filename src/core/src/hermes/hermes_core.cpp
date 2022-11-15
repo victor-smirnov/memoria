@@ -78,13 +78,13 @@ uint64_t Parameter::hash_code() const {
 ObjectPtr Object::search(U8StringView query) const
 {
     hermes::path::Expression exp(std::string{query});
-    return hermes::path::search(exp, ObjectPtr(Object(value_storage_.addr, doc_, get_ptr_holder())));
+    return hermes::path::search(exp, ObjectPtr(Object(storage_.addr, doc_, get_ptr_holder())));
 }
 
 ObjectPtr Object::search(U8StringView query, const IParameterResolver& params) const
 {
     hermes::path::Expression exp(std::string{query});
-    return hermes::path::search(exp, ObjectPtr(Object(value_storage_.addr, doc_, get_ptr_holder())), params);
+    return hermes::path::search(exp, ObjectPtr(Object(storage_.addr, doc_, get_ptr_holder())), params);
 }
 
 namespace {

@@ -267,7 +267,7 @@ struct SameDatatypeComparatorSelector<T, DT, true> {
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
                 T right_object(right.addr, right_doc, right_ptr);
-                return DatatypeComparator<DT, NumericTypeSelector<DT>>::compare(left_view, right_object.view());
+                return DatatypeComparator<DT, NumericTypeSelector<DT>>::compare(left_view, *right_object.view());
             }
             else {
                 const auto& right_view = right.get_view<DT>(right_vs_tag);
@@ -288,7 +288,7 @@ struct SameDatatypeComparatorSelector<T, DT, false> {
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
                 T right_object(right.addr, right_doc, right_ptr);
-                return CrossDatatypeComparator<DT, DT>::compare(left_view, right_object.view());
+                return CrossDatatypeComparator<DT, DT>::compare(left_view, *right_object.view());
             }
             else {
                 const auto& right_view = right.get_view<DT>(right_vs_tag);
@@ -314,7 +314,7 @@ struct CrossDatatypeComparatorSelector<T, LeftDT, RightDT, true> {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
                 hermes::DataObject<RightDT> right_object(right.addr, right_doc, right_ptr);
                 return CrossDatatypeComparator<LeftDT, RightDT, NumericTypeSelector<LeftDT>>::
-                        compare(left_view, right_object.view());
+                        compare(left_view, *right_object.view());
             }
             else {
                 const auto& right_view = right.get_view<RightDT>(right_vs_tag);
@@ -391,7 +391,7 @@ struct SameDatatypeEqualityComparatorSelector<T, DT, true> {
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
                 T right_object(right.addr, right_doc, right_ptr);
-                return DatatypeEqualityComparator<DT, NumericTypeSelector<DT>>::equals(left_view, right_object.view());
+                return DatatypeEqualityComparator<DT, NumericTypeSelector<DT>>::equals(left_view, *right_object.view());
             }
             else {
                 const auto& right_view = right.get_view<DT>(right_vs_tag);
@@ -439,7 +439,7 @@ struct CrossDatatypeEqualityComparatorSelector<T, LeftDT, RightDT, true> {
             {
                 hermes::DataObject<RightDT> right_object(right.addr, right_doc, right_ptr);
                 return CrossDatatypeEqualityComparator<LeftDT, RightDT, NumericTypeSelector<LeftDT>>::
-                    equals(left_view, right_object.view());
+                    equals(left_view, *right_object.view());
             }
             else {
                 const auto& right_view = right.get_view<RightDT>(right_vs_tag);
@@ -688,7 +688,7 @@ public:
         if (vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS)
         {
             T data_object(ptr.addr, doc, ref_holder);
-            return detail::ToStringHelper<DT>::convert_to(data_object.view());
+            return detail::ToStringHelper<DT>::convert_to(*data_object.view());
         }
         else {
             const auto& view = ptr.get_view<DT>(vs_tag);
@@ -732,7 +732,7 @@ public:
             {
                 if (left_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
                     T left_data_object(left.addr, left_doc, left_ptr);
-                    return ii->second(left_data_object.view(), right_vs_tag, right, right_doc, right_ptr);
+                    return ii->second(*left_data_object.view(), right_vs_tag, right, right_doc, right_ptr);
                 }
                 else {
                     const auto& view = left.get_view<DT>(left_vs_tag);
@@ -768,7 +768,7 @@ public:
             {
                 if (left_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
                     T left_data_object(left.addr, left_doc, left_ptr);
-                    return ii->second(left_data_object.view(), right_vs_tag, right, right_doc, right_ptr);
+                    return ii->second(*left_data_object.view(), right_vs_tag, right, right_doc, right_ptr);
                 }
                 else {
                     const auto& view = left.get_view<DT>(left_vs_tag);

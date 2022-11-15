@@ -45,11 +45,14 @@ namespace memoria::hermes::path { namespace interpreter {
 namespace rng = boost::range;
 namespace alg = boost::algorithm;
 
+namespace {
+
 template <typename DT>
 hermes::DataObjectPtr<DT> wrap_DO(DTTViewType<DT> view) {
     return hermes::HermesCtr::wrap_dataobject<DT>(view);
 }
 
+}
 
 hermes::ObjectArrayPtr Interpreter::wrap_array(const std::vector<ObjectPtr>& array) {
     auto doc = hermes::HermesCtr::make_pooled();
@@ -260,11 +263,11 @@ void Interpreter::visit(const ast::HermesValueNode *node)
     {
         if (parameter_resolver_) {
             ParameterPtr param = node->value->cast_to<Parameter>();
-            if (parameter_resolver_->has_parameter(param->view())) {
-                m_context = parameter_resolver_->resolve(param->view());
+            if (parameter_resolver_->has_parameter(*param->view())) {
+                m_context = parameter_resolver_->resolve(*param->view());
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("Parameter {} resolution failure", param->view()).do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("Parameter {} resolution failure", *param->view()).do_throw();
             }
         }
         else {
@@ -795,16 +798,16 @@ hermes::DataObjectPtr<Boolean> Interpreter::toBoolean(const ObjectPtr &json) con
 bool Interpreter::toSimpleBoolean(const ObjectPtr &json) const
 {
     if (json->is_bigint()) {
-        return json->as_bigint()->view() != 0;
+        return *json->as_bigint()->view() != 0;
     }
     else if (json->is_double()) {
-        return json->as_double()->view() != 0;
+        return *json->as_double()->view() != 0;
     }
     else if (json->is_varchar()) {
-        return json->as_varchar()->view().size() > 0;
+        return json->as_varchar()->view()->size() > 0;
     }
     else if (json->is_boolean()) {
-        return json->as_boolean()->view();
+        return *json->as_boolean()->view();
     }
     else if (json->is_array()) {
         return json->as_generic_array()->size() > 0;
@@ -892,11 +895,11 @@ void Interpreter::abs(FunctionArgumentList &arguments)
     // evaluate to either an integer or a float depending on the ObjectPtr type
     if (value->is_bigint())
     {
-        m_context = wrap_DO<BigInt>(std::abs(value->as_bigint()->view()))->as_object();
+        m_context = wrap_DO<BigInt>(std::abs(*value->as_bigint()->view()))->as_object();
     }
     else if (value->is_double())
     {
-        m_context = wrap_DO<Double>(std::abs(value->as_double()->view()))->as_object();
+        m_context = wrap_DO<Double>(std::abs(*value->as_double()->view()))->as_object();
     }
     else {
         // FIXME: abs() function for...
@@ -924,11 +927,11 @@ void Interpreter::avg(FunctionArgumentList &arguments)
                 // add the value held by the item to the sum
                 if (item->is_bigint())
                 {
-                    itemsSum += item->as_bigint()->view();
+                    itemsSum += *item->as_bigint()->view();
                 }
                 else if (item->is_double())
                 {
-                    itemsSum += item->as_double()->view();
+                    itemsSum += *item->as_double()->view();
                 }
                 // or throw an exception if the current item is not a number
                 else
@@ -981,8 +984,8 @@ void Interpreter::contains(FunctionArgumentList &arguments)
     else if (subject->is_varchar())
     {
         // try to find the given item as a substring in subject
-        U8StringView stringSubject  = subject->as_varchar()->view();
-        U8StringView stringItem     = item->as_varchar()->view();
+        U8StringView stringSubject  = *subject->as_varchar()->view();
+        U8StringView stringItem     = *item->as_varchar()->view();
         result = boost::contains(stringSubject, stringItem);
     }
     // set the result
@@ -1001,10 +1004,10 @@ void Interpreter::ceil(FunctionArgumentList &arguments)
 
     // if the value is an integer then it evaluates to itself
     if (value->is_double()) {
-        m_context = wrap_DO<Double>(std::ceil(value->as_double()->view()))->as_object();
+        m_context = wrap_DO<Double>(std::ceil(*value->as_double()->view()))->as_object();
     }
     else if (value->is_real()) {
-        m_context = wrap_DO<Real>(std::ceil(value->as_real()->view()))->as_object();
+        m_context = wrap_DO<Real>(std::ceil(*value->as_real()->view()))->as_object();
     }
     else {
         m_context = value;
@@ -1025,7 +1028,7 @@ void Interpreter::endsWith(FunctionArgumentList &arguments)
     // check whether subject ends with the suffix
     auto stringSubject = subject->as_varchar()->view();
     auto stringSuffix = suffix->as_varchar()->view();
-    m_context = wrap_DO<Boolean>(boost::ends_with(stringSubject, stringSuffix))->as_object();
+    m_context = wrap_DO<Boolean>(boost::ends_with(*stringSubject, *stringSuffix))->as_object();
 }
 
 void Interpreter::floor(FunctionArgumentList &arguments)
@@ -1040,11 +1043,11 @@ void Interpreter::floor(FunctionArgumentList &arguments)
 
     if (value->is_double())
     {
-        m_context = wrap_DO<Double>(std::floor(value->as_double()->view()))->as_object();
+        m_context = wrap_DO<Double>(std::floor(*value->as_double()->view()))->as_object();
     }
     else if (value->is_real())
     {
-        m_context = wrap_DO<Real>(std::floor(value->as_real()->view()))->as_object();
+        m_context = wrap_DO<Real>(std::floor(*value->as_real()->view()))->as_object();
     }
     else {
         m_context = value;
@@ -1074,12 +1077,12 @@ void Interpreter::join(FunctionArgumentList &arguments)
             BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
         }
         else {
-            stringArray.emplace_back(item->as_varchar()->view());
+            stringArray.emplace_back(*item->as_varchar()->view());
         }
     }
 
     // join together the vector of strings with the glue string
-    m_context = wrap_DO<Varchar>(alg::join(stringArray, glue->as_varchar()->view()))->as_object();
+    m_context = wrap_DO<Varchar>(alg::join(stringArray, *glue->as_varchar()->view()))->as_object();
 }
 
 void Interpreter::keys(FunctionArgumentList &arguments)
@@ -1099,7 +1102,7 @@ void Interpreter::keys(FunctionArgumentList &arguments)
     auto map = object->as_generic_map();
 
     map->for_each([&](auto k, auto){
-        results->append<Varchar>(k->as_varchar()->view());
+        results->append<Varchar>(*k->as_varchar()->view());
     });
     // set the result
     m_context = results->as_object();
@@ -1122,8 +1125,8 @@ void Interpreter::length(FunctionArgumentList &arguments)
         // (since the expected string encoding is UTF-8 the number of
         // items isn't equals to the number of code points)
         auto stringSubject = subject->as_varchar()->view();
-        auto begin = U8UnicodeIteratorAdaptor(std::begin(stringSubject));
-        auto end = U8UnicodeIteratorAdaptor(std::end(stringSubject));
+        auto begin = U8UnicodeIteratorAdaptor(std::begin(*stringSubject));
+        auto end = U8UnicodeIteratorAdaptor(std::end(*stringSubject));
         m_context = wrap_DO<BigInt>(std::distance(begin, end))->as_object();
     }
     // otherwise get the size of the array or object
@@ -1343,7 +1346,7 @@ void Interpreter::startsWith(FunctionArgumentList &arguments)
     // check whether subject starts with the suffix
     auto stringSubject = subject->as_varchar()->view();
     auto stringPrefix = prefix->as_varchar()->view();
-    m_context = wrap_DO<Boolean>(boost::starts_with(stringSubject, stringPrefix))->as_object();
+    m_context = wrap_DO<Boolean>(boost::starts_with(*stringSubject, *stringPrefix))->as_object();
 }
 
 void Interpreter::sum(FunctionArgumentList &arguments)
@@ -1358,18 +1361,7 @@ void Interpreter::sum(FunctionArgumentList &arguments)
         for (size_t idx = 0; idx < array->size(); idx++)
         {
             auto item = array->get(idx);
-            if (item->is_bigint())
-            {
-                itemsSum += item->as_bigint()->view();
-            }
-            else if (item->is_double())
-            {
-                itemsSum += item->as_double()->view();
-            }
-            else
-            {
-                BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
-            }
+            itemsSum += *item->convert_to<Double>()->as_double()->view();
         }
 
         // set the result
@@ -1452,7 +1444,7 @@ void Interpreter::toDouble(ObjectPtr&& value)
         // try to convert the string to a number
         try
         {
-            m_context = wrap_DO<Double>(std::stod(String(value->as_varchar()->view())))->as_object();
+            m_context = wrap_DO<Double>(std::stod(String(*value->as_varchar()->view())))->as_object();
             return;
         }
         // ignore the possible conversion error and let the default case

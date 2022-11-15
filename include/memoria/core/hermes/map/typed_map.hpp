@@ -278,16 +278,16 @@ public:
     }
 
     virtual ObjectPtr get(const ObjectPtr& key) const {
-        return map_.get(key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
+        return map_.get(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
     }
 
     virtual void put(const ObjectPtr& key, const ObjectPtr& value) {
-        map_.put(key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view(), value);
+        map_.put(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view(), value);
     }
 
 
     virtual void remove(const ObjectPtr& key) {
-        map_.remove(key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
+        map_.remove(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {

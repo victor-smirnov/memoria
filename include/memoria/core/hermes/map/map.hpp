@@ -278,7 +278,7 @@ public:
     }
 
     virtual ObjectPtr get(const ObjectPtr& key) const {
-        return map_.get(key->as_varchar()->view());
+        return map_.get(*key->as_varchar()->view());
     }
 
     virtual void put(const ObjectPtr& key, const ObjectPtr& value) {
@@ -287,7 +287,7 @@ public:
 
 
     virtual void remove(const ObjectPtr& key) {
-        map_.remove(key->as_varchar()->view());
+        map_.remove(*key->as_varchar()->view());
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {

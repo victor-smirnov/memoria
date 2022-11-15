@@ -49,7 +49,7 @@ void Datatype::stringify(std::ostream& out,DumpFormatState& state) const
     if (datatype_)
     {
         auto& spec = state.cfg().spec();
-        out << type_name()->view();
+        out << *type_name()->view();
 
         auto params = type_parameters();
         if (params->is_not_null())
@@ -149,7 +149,7 @@ void Datatype::stringify_cxx(std::ostream& out,
     if (datatype_)
     {
         auto& spec = state.cfg().spec();
-        out << type_name()->view();
+        out << *type_name()->view();
 
         auto params = type_parameters();
         if (params->is_not_null())

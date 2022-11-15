@@ -36,6 +36,13 @@ void assert_equals(T1&& expected, T2&& actual) {
 }
 
 template <typename T1, typename T2>
+void assert_equals(T1&& expected, ViewPtr<T2> actual) {
+    if (!(expected == *actual)) {
+        MMA_THROW(TestExecutionException()) << format_ex("Expected {}, actual {}", expected, *actual);
+    }
+}
+
+template <typename T1, typename T2>
 void assert_equals(Span<T1> expected, Span<T2> actual) {
     if (expected.size() != actual.size()) {
         MMA_THROW(TestExecutionException()) << format_ex("Expected.size {}, actual.size {}", expected.size(), actual.size());

@@ -324,7 +324,7 @@ struct TypedValueValue: boost::fusion::vector2<DatatypePtr, ObjectPtr> {
         if (has_type_reflection(ctr_hash))
         {
             if (ctr->is_varchar()) {
-                return get_type_reflection(ctr_hash).datatype_convert_from_plain_string(ctr->as_varchar()->view());
+                return get_type_reflection(ctr_hash).datatype_convert_from_plain_string(*ctr->as_varchar()->view());
             }
             else {
                 // FIXME: implement object construction from generic

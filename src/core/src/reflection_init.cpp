@@ -82,7 +82,7 @@ void InitTypeReflections()
         register_type_reflection(hash, *reflection.self());
 
         auto alias_dt = strip_namespaces(datatype);
-        if (alias_dt->type_name()->view() == "DataObject") {
+        if (*alias_dt->type_name()->view() == "DataObject") {
             alias_dt = alias_dt->type_parameters()->get(0)->as_datatype();
         }
 

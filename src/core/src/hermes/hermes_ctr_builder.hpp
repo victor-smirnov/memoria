@@ -84,7 +84,7 @@ public:
 
         if (str->is_null()) {
             str = doc_->new_dataobject<Varchar>(sv);
-            string_registry_[str->view()] = str;
+            string_registry_[*str->view()] = str;
         }
 
         return str;
@@ -96,7 +96,7 @@ public:
 
         if (str->is_null()) {
             str = doc_->new_dataobject<Varchar>(sv);
-            string_registry_[str->view()] = str;
+            string_registry_[*str->view()] = str;
         }
 
         return str;

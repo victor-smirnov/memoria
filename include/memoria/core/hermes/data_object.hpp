@@ -58,16 +58,18 @@ public:
     template <typename>
     friend class Array;
 
-protected:
+    using ViewT = DTTViewType<DT>;
+    using ViewPtrT = ViewPtr<ViewT>;
 
+protected:
     mutable HermesCtr* doc_;
-    mutable ValueStorage value_storage_;
+    mutable ValueStorage storage_;
 
 public:
     DataObject() noexcept:
-        doc_(), value_storage_()
+        doc_(), storage_()
     {
-        value_storage_.addr = nullptr;
+        storage_.addr = nullptr;
         set_vs_tag(VS_TAG_ADDRESS);
     }
 
@@ -75,27 +77,27 @@ public:
         Base(ptr_holder),
         doc_(doc)
     {
-        value_storage_.addr = dt_ctr;
+        storage_.addr = dt_ctr;
         set_vs_tag(VS_TAG_ADDRESS);
     }
 
     DataObject(ValueStorageTag vs_tag, ValueStorage& storage, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
         Base(ptr_holder),
         doc_(doc),
-        value_storage_(storage)
+        storage_(storage)
     {
         set_vs_tag(vs_tag);
 
         if (vs_tag == VS_TAG_GENERIC_VIEW) {
-           value_storage_.view_ptr->ref_copy();
+           storage_.view_ptr->ref_copy();
         }
     }
 
-    DataObject(const TaggedValue& storage, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
+    DataObject(const TaggedValue& tv_storage, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
         Base(ptr_holder),
         doc_(doc)
     {
-        value_storage_.small_value = storage;
+        storage_.small_value = tv_storage;
         this->set_vs_tag(VS_TAG_SMALL_VALUE);
     }
 
@@ -107,13 +109,13 @@ public:
         if (TaggedValue::dt_fits_in<DT>())
         {
             this->set_vs_tag(VS_TAG_SMALL_VALUE);
-            value_storage_.small_value = TaggedValue(ShortTypeCode::of<DT>(), view);
+            storage_.small_value = TaggedValue(ShortTypeCode::of<DT>(), view);
         }
         else {
             this->set_vs_tag(VS_TAG_GENERIC_VIEW);
 
             auto view_ptr = TaggedGenericView::allocate<DT>(view);
-            value_storage_.view_ptr = view_ptr.get();
+            storage_.view_ptr = view_ptr.get();
             view_ptr.release_holder();
         }
     }
@@ -121,20 +123,20 @@ public:
     DataObject(const DataObject& other) noexcept :
         Base(other),
         doc_(other.doc_),
-        value_storage_(other.value_storage_)
+        storage_(other.storage_)
     {
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
-            value_storage_.view_ptr->ref_copy();
+            storage_.view_ptr->ref_copy();
         }
     }
 
     DataObject(DataObject&& other) noexcept :
         Base(std::move(other)),
         doc_(other.doc_),
-        value_storage_(std::move(other.value_storage_))
+        storage_(std::move(other.storage_))
     {
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
-            other.value_storage_.view_ptr = nullptr;
+            other.storage_.view_ptr = nullptr;
         }
     }
 
@@ -142,8 +144,8 @@ public:
     {
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW)
         {
-            if (value_storage_.view_ptr) {
-                value_storage_.view_ptr->unref();
+            if (storage_.view_ptr) {
+                storage_.view_ptr->unref();
             }
         }
     }
@@ -151,17 +153,17 @@ public:
     DataObject& operator=(const DataObject& other)
     {
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
-            if (value_storage_.view_ptr) {
-                value_storage_.view_ptr->unref();
+            if (storage_.view_ptr) {
+                storage_.view_ptr->unref();
             }
         }
 
         Base::operator=(other);
-        value_storage_ = other.value_storage_;
+        storage_ = other.storage_;
 
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
-            if (value_storage_.view_ptr) {
-                value_storage_.view_ptr->ref_copy();
+            if (storage_.view_ptr) {
+                storage_.view_ptr->ref_copy();
             }
         }
 
@@ -171,16 +173,16 @@ public:
     DataObject& operator=(DataObject&& other)
     {
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
-            if (value_storage_.view_ptr) {
-                value_storage_.view_ptr->unref();
+            if (storage_.view_ptr) {
+                storage_.view_ptr->unref();
             }
         }
 
         Base::operator=(std::move(other));
-        value_storage_ = std::move(other.value_storage_);
+        storage_ = std::move(other.storage_);
 
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
-            other.value_storage_.view_ptr = nullptr;
+            other.storage_.view_ptr = nullptr;
         }
 
         return *this;
@@ -209,8 +211,8 @@ public:
     U8String to_plain_string() const
     {
         assert_not_null();
-        auto tag = arena::read_type_tag(value_storage_.addr);
-        return get_type_reflection(tag).convert_to_plain_string(get_vs_tag(), value_storage_, doc_, this->get_ptr_holder());
+        auto tag = arena::read_type_tag(storage_.addr);
+        return get_type_reflection(tag).convert_to_plain_string(get_vs_tag(), storage_, doc_, this->get_ptr_holder());
     }
 
     template <typename ToDT>
@@ -235,27 +237,27 @@ public:
     }
 
     bool is_null() const noexcept {
-        return value_storage_.addr == nullptr;
+        return storage_.addr == nullptr;
     }
 
     bool is_not_null() const noexcept {
-        return value_storage_.addr != nullptr;
+        return storage_.addr != nullptr;
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(get_vs_tag(), value_storage_, doc_, this->get_ptr_holder()));
+        return ObjectPtr(Object(get_vs_tag(), storage_, doc_, this->get_ptr_holder()));
     }
 
-    DTTViewType<DT> view() const
+    ViewPtrT view() const
     {
         assert_not_null();
         auto vs_tag = get_vs_tag();
 
         if (vs_tag == ValueStorageTag::VS_TAG_ADDRESS) {
-            return dt_ctr()->view();
+            return wrap(dt_ctr()->view());
         }
         else {
-            return value_storage_.get_view<DT>(vs_tag);
+            return wrap(storage_.get_view<DT>(vs_tag));
         }
     }
 
@@ -280,7 +282,7 @@ public:
             dt_ctr()->stringify(out, state);
         }
         else {
-            const auto& view = value_storage_.get_view<DT>(get_vs_tag());
+            const auto& view = storage_.get_view<DT>(get_vs_tag());
             stringify_view(out, state, view);
         }
     }
@@ -323,7 +325,7 @@ public:
         {
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_compare(
-                    value_storage_.addr, doc_, this->get_ptr_holder(), other->value_storage_.addr, other->doc_, other->get_ptr_holder()
+                    storage_.addr, doc_, this->get_ptr_holder(), other->storage_.addr, other->doc_, other->get_ptr_holder()
             );
         }
         else {
@@ -353,7 +355,7 @@ public:
         {
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_equals(
-                    value_storage_.addr, doc_, this->get_ptr_holder(), other->value_storage_.addr, other->doc_, other->get_ptr_holder()
+                    storage_.addr, doc_, this->get_ptr_holder(), other->storage_.addr, other->doc_, other->get_ptr_holder()
             );
         }
         else {
@@ -362,17 +364,21 @@ public:
     }
 
 private:
+    ViewPtrT wrap(const ViewT& view) const {
+        return ViewPtrT(view, this->get_ptr_holder());
+    }
+
     ShortTypeCode get_type_tag() const noexcept
     {
         if (get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS) {
-            return arena::read_type_tag(value_storage_.addr);
+            return arena::read_type_tag(storage_.addr);
         }
         else if (get_vs_tag() == ValueStorageTag::VS_TAG_SMALL_VALUE) {
-            return value_storage_.small_value.tag();
+            return storage_.small_value.tag();
         }
         else if (get_vs_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
-            if (value_storage_.view_ptr) {
-                return value_storage_.view_ptr->tag();
+            if (storage_.view_ptr) {
+                return storage_.view_ptr->tag();
             }
         }
 
@@ -388,12 +394,12 @@ private:
     }
 
     ArenaDTContainer* dt_ctr() const {
-        return reinterpret_cast<ArenaDTContainer*>(value_storage_.addr);
+        return reinterpret_cast<ArenaDTContainer*>(storage_.addr);
     }
 
     void assert_not_null() const
     {
-        if (MMA_UNLIKELY(value_storage_.addr == nullptr)) {
+        if (MMA_UNLIKELY(storage_.addr == nullptr)) {
             MEMORIA_MAKE_GENERIC_ERROR("Datatype<Varchar> is null").do_throw();
         }
     }

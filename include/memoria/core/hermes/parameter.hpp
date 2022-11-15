@@ -66,6 +66,9 @@ public:
     template <typename>
     friend class Array;
 
+    using ViewT = DTTViewType<Varchar>;
+    using ViewPtrT = ViewPtr<ViewT>;
+
 protected:
     mutable ArenaDTContainer* dt_ctr_;
     mutable HermesCtr* doc_;
@@ -89,7 +92,7 @@ public:
 
     U8String to_plain_string() const
     {
-        return view();
+        return *view();
     }
 
     uint64_t hash_code() const;
@@ -106,11 +109,13 @@ public:
         return ObjectPtr(Object(dt_ctr_, doc_, ptr_holder_));
     }
 
-    U8StringView view() const
+    ViewPtrT view() const
     {
         assert_not_null();
-        return dt_ctr_->view();
+        return wrap(dt_ctr_->view());
     }
+
+
 
     U8String to_string(const StringifyCfg& cfg = StringifyCfg()) const
     {
@@ -156,7 +161,7 @@ public:
     {
         if (is_not_null() && other->is_not_null())
         {
-            return view().compare(other->view());
+            return view()->compare(*other->view());
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Comparing operands may not be nullptr").do_throw();
@@ -167,7 +172,7 @@ public:
     bool equals(const ParameterPtr& other) const
     {
         if (is_not_null() && other->is_not_null()) {
-            return view() == other->view();
+            return *view() == *other->view();
         }
         else {
             return false;
@@ -175,6 +180,10 @@ public:
     }
 
 private:
+    ViewPtrT wrap(const ViewT& view) const {
+        return ViewPtrT(view, this->get_ptr_holder());
+    }
+
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(dt_ctr_ == nullptr)) {

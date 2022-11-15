@@ -188,7 +188,7 @@ inline GenericArrayPtr Object::as_generic_array() const
     if (get_vs_tag() == VS_TAG_ADDRESS)
     {
         auto tag = get_type_tag();
-        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(value_storage_.addr, doc_, get_ptr_holder());
+        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(storage_.addr, doc_, get_ptr_holder());
         return ctr_ptr->as_array();
     }
     else {
@@ -202,7 +202,7 @@ inline GenericMapPtr Object::as_generic_map() const
     if (get_vs_tag() == VS_TAG_ADDRESS)
     {
         auto tag = get_type_tag();
-        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(value_storage_.addr, doc_, get_ptr_holder());
+        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(storage_.addr, doc_, get_ptr_holder());
         return ctr_ptr->as_map();
     }
     else {
@@ -248,7 +248,7 @@ ObjectPtr Object::convert_to() const
     auto src_tag = get_type_tag();
     auto to_tag = ShortTypeCode::of<DT>();
     if (src_tag != to_tag) {
-        return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), value_storage_, doc_, get_ptr_holder());
+        return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), storage_, doc_, get_ptr_holder());
     }
     else {
         return this->as_object();
@@ -262,7 +262,7 @@ DataObjectPtr<ToDT> DataObject<DT>::convert_to() const
     assert_not_null();
     auto src_tag = get_type_tag();
     auto to_tag = ShortTypeCode::of<ToDT>();
-    return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), value_storage_, doc_, this->get_ptr_holder());
+    return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), storage_, doc_, this->get_ptr_holder());
 }
 
 inline PoolSharedPtr<HermesCtr> CtrAware::ctr() const {

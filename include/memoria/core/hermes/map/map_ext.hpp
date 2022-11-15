@@ -48,7 +48,7 @@ inline DataObjectPtr<DT> Map<Varchar, Object>::put_dataobject(U8StringView key, 
     auto value_ptr = doc_->new_dataobject<DT>(value);
 
     auto arena = doc_->arena();
-    map_->put(*arena, key_ptr->dt_ctr(), value_ptr->value_storage_.addr);
+    map_->put(*arena, key_ptr->dt_ctr(), value_ptr->storage_.addr);
 
     return value_ptr;
 }
@@ -64,7 +64,7 @@ inline DataObjectPtr<DT> Map<KeyDT, Object>::put_dataobject(KeyView key, DTTView
     auto value_ptr = doc_->new_dataobject<DT>(value);
 
     auto arena = doc_->arena();
-    map_->put(*arena, key_ptr->dt_ctr(), value_ptr->value_storage_.addr);
+    map_->put(*arena, key_ptr->dt_ctr(), value_ptr->storage_.addr);
 
     return value_ptr;
 }
@@ -217,7 +217,7 @@ inline void Map<Varchar, Object>::put(StringValuePtr name, ObjectPtr value) {
 
     if (!value->is_null()) {
         auto arena = doc_->arena();
-        map_->put(*arena, name->dt_ctr(), value->value_storage_.addr);
+        map_->put(*arena, name->dt_ctr(), value->storage_.addr);
     }
 }
 
@@ -230,7 +230,7 @@ inline void Map<Varchar, Object>::put(U8StringView name, ObjectPtr value) {
     {
         auto arena = doc_->arena();
         auto key = doc_->new_dataobject<Varchar>(name);
-        map_->put(*arena, key->dt_ctr(), vv->value_storage_.addr);
+        map_->put(*arena, key->dt_ctr(), vv->storage_.addr);
     }
 }
 
@@ -243,7 +243,7 @@ inline void Map<KeyDT, Object>::put(KeyView key, ObjectPtr value) {
     if (!vv->is_null())
     {
         auto arena = doc_->arena();
-        map_->put(*arena, key, vv->value_storage_.addr);
+        map_->put(*arena, key, vv->storage_.addr);
     }
 }
 
@@ -256,7 +256,7 @@ inline ObjectPtr Map<Varchar, Object>::put_hermes(U8StringView key, U8StringView
   auto vv1 = doc_->do_import_value(value_ptr);
 
   auto arena = doc_->arena();
-  map_->put(*arena, key_ptr->dt_ctr(), vv1->value_storage_.addr);
+  map_->put(*arena, key_ptr->dt_ctr(), vv1->storage_.addr);
 
   return vv1;
 }
@@ -270,7 +270,7 @@ inline ObjectPtr Map<KeyDT, Object>::put_hermes(KeyView key, U8StringView str) {
   auto vv = doc_->do_import_value(value_ptr);
 
   auto arena = doc_->arena();
-  map_->put(*arena, key, vv->value_storage_.addr);
+  map_->put(*arena, key, vv->storage_.addr);
 
   return vv;
 }
