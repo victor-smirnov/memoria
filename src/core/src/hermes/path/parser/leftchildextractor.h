@@ -60,32 +60,39 @@ public:
         return childNode(&node);
     }
 
-    template <typename T, typename
-        std::enable_if<
-            !std::is_base_of<ast::BinaryExpressionNode,
-                             T>::value
-            && !std::is_same<ast::NotExpressionNode,
-                             T>::value, int>::type = 0>
+    template <
+        typename T,
+        typename std::enable_if_t<
+            !std::is_base_of_v<ast::BinaryExpressionNode, T>
+            && !std::is_same_v<ast::NotExpressionNode, T>,
+            int
+        > = 0
+    >
     ast::ExpressionNode* childNode(T*) const
     {
         return nullptr;
     }
 
-    template <typename T, typename
-        std::enable_if<
-            !std::is_base_of<ast::BinaryExpressionNode,
-                             T>::value
-            && std::is_same<ast::NotExpressionNode,
-                            T>::value, int>::type = 0>
+    template <
+        typename T,
+        typename std::enable_if_t<
+            !std::is_base_of_v<ast::BinaryExpressionNode, T>
+            && std::is_same_v<ast::NotExpressionNode, T>,
+            int
+        > = 0
+    >
     ast::ExpressionNode* childNode(T* node) const
     {
         return &node->expression;
     }
 
-    template <typename T, typename
-        std::enable_if<
-            std::is_base_of<ast::BinaryExpressionNode,
-                            T>::value, int>::type = 0>
+    template <
+        typename T,
+        typename std::enable_if_t<
+            std::is_base_of_v<ast::BinaryExpressionNode, T>,
+            int
+        > = 0
+    >
     ast::ExpressionNode* childNode(T* node) const
     {
         return &node->leftExpression;

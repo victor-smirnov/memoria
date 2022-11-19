@@ -44,7 +44,7 @@ namespace memoria::hermes::path { namespace ast {
 class BinaryExpressionNode;
 }} // namespace hermes::path::ast
 
-namespace memoria::hermes::path { namespace interpreter {
+namespace memoria::hermes::path { namespace interpreter2 {
 
 
 /**
@@ -89,21 +89,23 @@ inline const ObjectPtr& getJsonValue(const ContextValue& contextValue)
  * context.
  * @sa @ref setContext @ref currentContext
  */
-class Interpreter : public AbstractVisitor
+class HermesASTInterpreter: public ast::ExpressionAttrs
 {
     const IParameterResolver* parameter_resolver_{nullptr};
+
+    using VisitorFn   = void (HermesASTInterpreter::*)(const ObjectMapPtr&);
+    using VisitorsMap = ska::flat_hash_map<int64_t, VisitorFn>;
 
 public:
     /**
      * @brief Constructs an Interpreter object.
      */
-    Interpreter();
+    HermesASTInterpreter();
     /**
      * @brief Sets the context of the evaluation.
      * @param[in] value ObjectPtr document to be used as the context.
      */
-    void setContext(const ContextValue& ctx)
-    {
+    void setContext(const ContextValue& ctx) {
         m_context = ctx;
     }
 
@@ -133,38 +135,42 @@ public:
      * context.
      * @param[in] expression The expression that gets projected.
      */
-    virtual void evaluateProjection(const ast::ExpressionNode* expression);
+    virtual void evaluateProjection(const ObjectMapPtr& expression);
 
     /**
      * @brief Evaluate the given @a node on the current context value.
      * @param[in] node Pointer to the node
      * @{
      */
-    void visit(const ast::AbstractNode *node) override;
-    void visit(const ast::ExpressionNode *node) override;
-    void visit(const ast::IdentifierNode *node) override;
-    void visit(const ast::RawStringNode *node) override;
-    void visit(const ast::HermesValueNode *node) override;
-    void visit(const ast::SubexpressionNode* node) override;
-    void visit(const ast::IndexExpressionNode* node) override;
-    void visit(const ast::ArrayItemNode* node) override;
-    void visit(const ast::FlattenOperatorNode*) override;
-    void visit(const ast::BracketSpecifierNode* node) override;
-    void visit(const ast::SliceExpressionNode* node) override;
-    void visit(const ast::ListWildcardNode*) override;
-    void visit(const ast::HashWildcardNode* node) override;
-    void visit(const ast::MultiselectListNode* node) override;
-    void visit(const ast::MultiselectHashNode* node) override;
-    void visit(const ast::NotExpressionNode* node) override;
-    void visit(const ast::ComparatorExpressionNode* node) override;
-    void visit(const ast::OrExpressionNode* node) override;
-    void visit(const ast::AndExpressionNode* node) override;
-    void visit(const ast::ParenExpressionNode* node) override;
-    void visit(const ast::PipeExpressionNode* node) override;
-    void visit(const ast::CurrentNode*) override;
-    void visit(const ast::FilterExpressionNode* node) override;
-    void visit(const ast::FunctionExpressionNode* node) override;
-    void visit(const ast::ExpressionArgumentNode*) override;
+
+    void visit(const ObjectMapPtr& node);
+    void visit(const ObjectPtr& node);
+
+    //void visitAbstractNode(const ObjectMapPtr& node);
+    void visitNullNode(const ObjectMapPtr& node);
+    void visitIdentifierNode(const ObjectMapPtr& node);
+    void visitRawStringNode(const ObjectMapPtr& node);
+    void visitHermesValueNode(const ObjectMapPtr& node);
+    void visitSubexpressionNode(const ObjectMapPtr& node);
+    void visitIndexExpressionNode(const ObjectMapPtr& node);
+    void visitArrayItemNode(const ObjectMapPtr& node);
+    void visitFlattenOperatorNode(const ObjectMapPtr& node);
+    void visitBracketSpecifierNode(const ObjectMapPtr& node);
+    void visitSliceExpressionNode(const ObjectMapPtr& node);
+    void visitListWildcardNode(const ObjectMapPtr& node);
+    void visitHashWildcardNode(const ObjectMapPtr& node);
+    void visitMultiselectListNode(const ObjectMapPtr& node);
+    void visitMultiselectHashNode(const ObjectMapPtr& node);
+    void visitNotExpressionNode(const ObjectMapPtr& node);
+    void visitComparatorExpressionNode(const ObjectMapPtr& node);
+    void visitOrExpressionNode(const ObjectMapPtr& node);
+    void visitAndExpressionNode(const ObjectMapPtr& node);
+    void visitParenExpressionNode(const ObjectMapPtr& node);
+    void visitPipeExpressionNode(const ObjectMapPtr& node);
+    void visitCurrentNode(const ObjectMapPtr& node);
+    void visitFilterExpressionNode(const ObjectMapPtr& node);
+    void visitFunctionExpressionNode(const ObjectMapPtr& node);
+    void visitExpressionArgumentNode(const ObjectMapPtr& node);
     /** @}*/
 
 private:
@@ -172,7 +178,7 @@ private:
      * @brief Type of the arguments in @ref FunctionArgumentList.
      */
     using FunctionArgument
-        = boost::variant<boost::blank, ContextValue, ast::ExpressionNode>;
+        = boost::variant<boost::blank, ContextValue, ObjectMapPtr>;
     /**
      * @brief List of @ref FunctionArgument objects.
      */
@@ -225,12 +231,13 @@ private:
      * @{
      */
 
-    void visit(const ast::IdentifierNode *node, ObjectPtr&& context);
-    void visit(const ast::ArrayItemNode *node, ObjectPtr&& context);
-    void visit(const ast::FlattenOperatorNode* node, ObjectPtr&& context);
-    void visit(const ast::SliceExpressionNode* node, ObjectPtr&& context);
-    void visit(const ast::HashWildcardNode* node, ObjectPtr&& context);
-    void visit(const ast::FilterExpressionNode* node, ObjectPtr&& context);
+    void visitIdentifierNode2(const ObjectMapPtr& node, ObjectPtr&& context);
+    void visitArrayItemNode2(const ObjectMapPtr& node, ObjectPtr&& context);
+    void visitFlattenOperatorNode2(const ObjectMapPtr& node, ObjectPtr&& context);
+    void visitSliceExpressionNode2(const ObjectMapPtr& node, ObjectPtr&& context);
+    void visitHashWildcardNode2(const ObjectMapPtr& node, ObjectPtr&& context);
+    void visitFilterExpressionNode2(const ObjectMapPtr& node, ObjectPtr&& context);
+
     /** @}*/
     /**
      * @brief Adjust the value of the slice endpoint to make sure it's within
@@ -240,9 +247,9 @@ private:
      * @param[in] step The slice's step variable value.
      * @return Returns the endpoint's new value.
      */
-    Index adjustSliceEndpoint(size_t length,
-                              Index endpoint,
-                              Index step) const;
+    int64_t adjustSliceEndpoint(size_t length,
+                              int64_t endpoint,
+                              int64_t step) const;
     /**
      * @brief Converts the @a json value to a boolean.
      * @param[in] json The @ref ObjectPtr value that needs to be converted.
@@ -260,7 +267,7 @@ private:
      * @param[in] context An const lvalue reference or an rvalue reference to
      * the evaluation context.
      */
-    void evaluateProjection(const ast::ExpressionNode* expression,
+    void evaluateProjection(const ObjectMapPtr& expression,
                             ObjectPtr&& context);
     /**
      * @brief Evaluates a binary logic operator to the result of the left
@@ -271,7 +278,7 @@ private:
      * @param[in] shortCircuitValue Specifies what should be the boolean value
      * of the left side expression's result to do short circuit evaluation.
      */
-    void evaluateLogicOperator(const ast::BinaryExpressionNode* node,
+    void evaluateLogicOperator(const ObjectMapPtr& node,
                                bool shortCircuitValue);
     /**
      * @brief Evaluate the given function expression @a arguments.
@@ -285,8 +292,8 @@ private:
      * built in functions.
      */
     FunctionArgumentList evaluateArguments(
-            const FunctionExpressionArgumentList& arguments,
-            const std::shared_ptr<ContextValue> &contextValue);
+            const ObjectArrayPtr& arguments,
+            const ObjectPtr &contextValue);
     /**
      * @brief Converts the given function @a argument to the requsted type.
      * @param[in] argument A funciton argument value.
@@ -386,7 +393,7 @@ private:
      * array.
      * @throws InvalidFunctionArgumentType
      */
-    void map(const ast::ExpressionNode* node, ObjectPtr&& array);
+    void map(const ObjectMapPtr& node, ObjectPtr&& array);
     /**
      * @brief Accepts zero or more objects in the given @a arguments, and
      * returns a single object with subsequent objects merged. Each subsequent
@@ -454,7 +461,7 @@ private:
      * @param[in] array A @ref ObjectPtr array of numbers or strings.
      * @throws InvalidFunctionArgumentType
      */
-    void sortBy(const ast::ExpressionNode* expression, ObjectPtr&& array);
+    void sortBy(const ObjectMapPtr& expression, ObjectPtr&& array);
     /**
      * @brief Checks wheather the string provided as the first item in @a
      * arguments starts with the string provided as the second item in @a
@@ -611,12 +618,17 @@ private:
      * @param[in] array A @ref ObjectPtr array.
      * @throws InvalidFunctionArgumentType
      */
-    void maxBy(const ast::ExpressionNode* expression,
+    void maxBy(const ObjectMapPtr& expression,
                const JsonComparator* comparator,
                ObjectPtr&& array);
 
 private:
     // Tools
     hermes::ObjectArrayPtr wrap_array(const std::vector<hermes::ObjectPtr>& array);
+
+    static VisitorsMap build_visitors_map();
+    static const VisitorsMap& visitors_map();
+
+    static ObjectPtr expect_attr(const ObjectMapPtr& map, U8StringView name);
 };
 }} // namespace hermes::path::interpreter

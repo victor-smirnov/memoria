@@ -79,6 +79,8 @@ public:
      * @brief Step index.
      */
     IndexType step;
+
+    static constexpr int64_t CODE = 23;
 };
 }} // namespace hermes::path::ast
 

@@ -27,7 +27,7 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 ****************************************************************************/
-#include "interpreter.h"
+#include "hermes_ast_interpreter.h"
 #include "../ast/allnodes.h"
 #include "memoria/core/hermes/path/exceptions.h"
 #include "contextvaluevisitoradaptor.h"
@@ -40,7 +40,7 @@
 #include <boost/hana.hpp>
 #include <boost/type_index.hpp>
 
-namespace memoria::hermes::path { namespace interpreter {
+namespace memoria::hermes::path { namespace interpreter2 {
 
 namespace rng = boost::range;
 namespace alg = boost::algorithm;
@@ -54,7 +54,7 @@ hermes::DataObjectPtr<DT> wrap_DO(DTTViewType<DT> view) {
 
 }
 
-hermes::ObjectArrayPtr Interpreter::wrap_array(const std::vector<ObjectPtr>& array) {
+hermes::ObjectArrayPtr HermesASTInterpreter::wrap_array(const std::vector<ObjectPtr>& array) {
     auto doc = hermes::HermesCtr::make_pooled();
     auto arr = doc->new_array();
     doc->set_root(arr->as_object());
@@ -80,51 +80,50 @@ hermes::ObjectMapPtr make_map() {
     return map;
 }
 
-Interpreter::Interpreter()
-    : AbstractVisitor{}
+HermesASTInterpreter::HermesASTInterpreter()
 {
     // initialize HermesPath function name to function implementation mapping
     using std::placeholders::_1;
     using std::bind;
     using Descriptor = FunctionDescriptor;
-    using FunctionType = void(Interpreter::*)(FunctionArgumentList&);
-    using MaxFunctionType = void(Interpreter::*)(FunctionArgumentList&,
+    using FunctionType = void(HermesASTInterpreter::*)(FunctionArgumentList&);
+    using MaxFunctionType = void(HermesASTInterpreter::*)(FunctionArgumentList&,
                                                   const JsonComparator&);
     auto exactlyOne = bind(std::equal_to<size_t>{}, _1, 1);
     auto exactlyTwo = bind(std::equal_to<size_t>{}, _1, 2);
     auto zeroOrMore = bind(std::greater_equal<size_t>{}, _1, 0);
     auto oneOrMore = bind(std::greater_equal<size_t>{}, _1, 1);
-    auto mapPtr = static_cast<FunctionType>(&Interpreter::map);
-    auto reversePtr = static_cast<FunctionType>(&Interpreter::reverse);
-    auto sortPtr = static_cast<FunctionType>(&Interpreter::sort);
-    auto sortByPtr = static_cast<FunctionType>(&Interpreter::sortBy);
-    auto toArrayPtr = static_cast<FunctionType>(&Interpreter::toArray);
-    auto toStringPtr = static_cast<FunctionType>(&Interpreter::toString);
-    auto toDoublePtr = static_cast<FunctionType>(&Interpreter::toDouble);
-    auto toBigIntPtr = static_cast<FunctionType>(&Interpreter::toBigInt);
-    auto toBooleanPtr = static_cast<FunctionType>(&Interpreter::toBoolean);
-    auto valuesPtr = static_cast<FunctionType>(&Interpreter::values);
-    auto maxPtr = static_cast<MaxFunctionType>(&Interpreter::max);
-    auto maxByPtr = static_cast<MaxFunctionType>(&Interpreter::maxBy);
+    auto mapPtr = static_cast<FunctionType>(&HermesASTInterpreter::map);
+    auto reversePtr = static_cast<FunctionType>(&HermesASTInterpreter::reverse);
+    auto sortPtr = static_cast<FunctionType>(&HermesASTInterpreter::sort);
+    auto sortByPtr = static_cast<FunctionType>(&HermesASTInterpreter::sortBy);
+    auto toArrayPtr = static_cast<FunctionType>(&HermesASTInterpreter::toArray);
+    auto toStringPtr = static_cast<FunctionType>(&HermesASTInterpreter::toString);
+    auto toDoublePtr = static_cast<FunctionType>(&HermesASTInterpreter::toDouble);
+    auto toBigIntPtr = static_cast<FunctionType>(&HermesASTInterpreter::toBigInt);
+    auto toBooleanPtr = static_cast<FunctionType>(&HermesASTInterpreter::toBoolean);
+    auto valuesPtr = static_cast<FunctionType>(&HermesASTInterpreter::values);
+    auto maxPtr = static_cast<MaxFunctionType>(&HermesASTInterpreter::max);
+    auto maxByPtr = static_cast<MaxFunctionType>(&HermesASTInterpreter::maxBy);
     m_functionMap = {
         {"abs", Descriptor{exactlyOne, true,
-                           bind(&Interpreter::abs, this, _1)}},
+                           bind(&HermesASTInterpreter::abs, this, _1)}},
         {"avg",  Descriptor{exactlyOne, true,
-                            bind(&Interpreter::avg, this, _1)}},
+                            bind(&HermesASTInterpreter::avg, this, _1)}},
         {"contains", Descriptor{exactlyTwo, false,
-                                bind(&Interpreter::contains, this, _1)}},
+                                bind(&HermesASTInterpreter::contains, this, _1)}},
         {"ceil", Descriptor{exactlyOne, true,
-                            bind(&Interpreter::ceil, this, _1)}},
+                            bind(&HermesASTInterpreter::ceil, this, _1)}},
         {"ends_with", Descriptor{exactlyTwo, false,
-                                 bind(&Interpreter::endsWith, this, _1)}},
+                                 bind(&HermesASTInterpreter::endsWith, this, _1)}},
         {"floor", Descriptor{exactlyOne, true,
-                             bind(&Interpreter::floor, this, _1)}},
+                             bind(&HermesASTInterpreter::floor, this, _1)}},
         {"join", Descriptor{exactlyTwo, false,
-                            bind(&Interpreter::join, this, _1)}},
+                            bind(&HermesASTInterpreter::join, this, _1)}},
         {"keys", Descriptor{exactlyOne, true,
-                            bind(&Interpreter::keys, this, _1)}},
+                            bind(&HermesASTInterpreter::keys, this, _1)}},
         {"length", Descriptor{exactlyOne, true,
-                              bind(&Interpreter::length, this, _1)}},
+                              bind(&HermesASTInterpreter::length, this, _1)}},
         {"map", Descriptor{exactlyTwo, true,
                            bind(mapPtr, this, _1)}},
         {"max", Descriptor{exactlyOne, true,
@@ -132,13 +131,13 @@ Interpreter::Interpreter()
         {"max_by", Descriptor{exactlyTwo, true,
                               bind(maxByPtr, this, _1, hermes::Less{})}},
         {"merge", Descriptor{zeroOrMore, false,
-                             bind(&Interpreter::merge, this, _1)}},
+                             bind(&HermesASTInterpreter::merge, this, _1)}},
         {"min", Descriptor{exactlyOne, true,
                            bind(maxPtr, this, _1, hermes::Greater{})}},
         {"min_by", Descriptor{exactlyTwo, true,
                               bind(maxByPtr, this, _1, hermes::Greater{})}},
         {"not_null", Descriptor{oneOrMore, false,
-                                bind(&Interpreter::notNull, this, _1)}},
+                                bind(&HermesASTInterpreter::notNull, this, _1)}},
         {"reverse", Descriptor{exactlyOne, true,
                                bind(reversePtr, this, _1)}},
         {"sort",  Descriptor{exactlyOne, true,
@@ -146,9 +145,9 @@ Interpreter::Interpreter()
         {"sort_by", Descriptor{exactlyTwo, true,
                                bind(sortByPtr, this, _1)}},
         {"starts_with", Descriptor{exactlyTwo, false,
-                                   bind(&Interpreter::startsWith, this, _1)}},
+                                   bind(&HermesASTInterpreter::startsWith, this, _1)}},
         {"sum", Descriptor{exactlyOne, true,
-                           bind(&Interpreter::sum, this, _1)}},
+                           bind(&HermesASTInterpreter::sum, this, _1)}},
         {"to_array", Descriptor{exactlyOne, true,
                                 bind(toArrayPtr, this, _1)}},
         {"to_string", Descriptor{exactlyOne, true,
@@ -160,13 +159,13 @@ Interpreter::Interpreter()
         {"to_boolean", Descriptor{exactlyOne, true,
                                  bind(toBooleanPtr, this, _1)}},
         {"type", Descriptor{exactlyOne, true,
-                            bind(&Interpreter::type, this, _1)}},
+                            bind(&HermesASTInterpreter::type, this, _1)}},
         {"values", Descriptor{exactlyOne, true,
                               bind(valuesPtr, this, _1)}}
     };
 }
 
-void Interpreter::evaluateProjection(const ast::ExpressionNode *expression)
+void HermesASTInterpreter::evaluateProjection(const ObjectMapPtr& expression)
 {
     using std::placeholders::_1;
     // move the current context into a temporary variable in case it holds
@@ -176,9 +175,10 @@ void Interpreter::evaluateProjection(const ast::ExpressionNode *expression)
 }
 
 
-void Interpreter::evaluateProjection(const ast::ExpressionNode* expression,
-                                      ObjectPtr&& context)
-{
+void HermesASTInterpreter::evaluateProjection(
+        const ObjectMapPtr& expression,
+        ObjectPtr&& context
+) {
     using std::placeholders::_1;
     // evaluate the projection if the context holds an array
     if (context->is_array())
@@ -214,23 +214,16 @@ void Interpreter::evaluateProjection(const ast::ExpressionNode* expression,
     }
 }
 
-void Interpreter::visit(const ast::AbstractNode *node)
-{
-    node->accept(this);
-}
+void HermesASTInterpreter::visitNullNode(const ObjectMapPtr& node) {}
 
-void Interpreter::visit(const ast::ExpressionNode *node)
-{
-    node->accept(this);
-}
 
-void Interpreter::visit(const ast::IdentifierNode *node)
+void HermesASTInterpreter::visitIdentifierNode(const ObjectMapPtr& node)
 {
-    visit(node, std::move(m_context));
+    visitIdentifierNode2(node, std::move(m_context));
 }
 
 
-void Interpreter::visit(const ast::IdentifierNode *node, ObjectPtr &&context)
+void HermesASTInterpreter::visitIdentifierNode2(const ObjectMapPtr& node, ObjectPtr &&context)
 {
     // evaluete the identifier if the context holds an object
     if (context->is_map())
@@ -238,10 +231,7 @@ void Interpreter::visit(const ast::IdentifierNode *node, ObjectPtr &&context)
         auto map = context->as_generic_map();
         try
         {
-            // assign either a const reference of the result or move the result
-            // into the context depending on the type of the context parameter
-
-            auto vv = map->get(HermesCtr::wrap_dataobject<Varchar>(node->identifier)->as_object());
+            auto vv = map->get(node->get(IDENTIFIER));
             m_context = assignContextValue(std::move(vv));
             return;
         }
@@ -251,17 +241,19 @@ void Interpreter::visit(const ast::IdentifierNode *node, ObjectPtr &&context)
     m_context = {};
 }
 
-void Interpreter::visit(const ast::RawStringNode *node)
+void HermesASTInterpreter::visitRawStringNode(const ObjectMapPtr& node)
 {
-    m_context = HermesCtr::wrap_dataobject<Varchar>(node->rawString)->as_object();
+    m_context = expect_attr(node, RAW_STRING);
 }
 
-void Interpreter::visit(const ast::HermesValueNode *node)
+void HermesASTInterpreter::visitHermesValueNode(const ObjectMapPtr& node)
 {
-    if (node->value->is_a(TypeTag<Parameter>()))
+    auto value = node->get(VALUE);
+
+    if (value->is_a(TypeTag<Parameter>()))
     {
         if (parameter_resolver_) {
-            ParameterPtr param = node->value->cast_to<Parameter>();
+            ParameterPtr param = value->cast_to<Parameter>();
             if (parameter_resolver_->has_parameter(*param->view())) {
                 m_context = parameter_resolver_->resolve(*param->view());
             }
@@ -274,28 +266,28 @@ void Interpreter::visit(const ast::HermesValueNode *node)
         }
     }
     else {
-        m_context = node->value;
+        m_context = value;
     }
 }
 
-void Interpreter::visit(const ast::SubexpressionNode *node)
+void HermesASTInterpreter::visitSubexpressionNode(const ObjectMapPtr& node)
 {
-    node->accept(this);
+    visit(node->get(LEFT_EXPRESSION));
+    visit(node->get(RIGHT_EXPRESSION));
 }
 
-void Interpreter::visit(const ast::IndexExpressionNode *node)
+void HermesASTInterpreter::visitIndexExpressionNode(const ObjectMapPtr& node)
 {
     // evaluate the left side expression
-    visit(&node->leftExpression);
+    visit(node->get(LEFT_EXPRESSION));
     // evaluate the index expression if the context holds an array
     if (getJsonValue(m_context)->is_array())
     {
         // evaluate the bracket specifier
-        visit(&node->bracketSpecifier);
+        visit(node->get(BRACKET_SPECIFIER));
         // if the index expression also defines a projection then evaluate it
-        if (node->isProjection())
-        {
-            evaluateProjection(&node->rightExpression);
+        if (node->get(IS_PROJECTION)->to_bool()) {
+            evaluateProjection(node->get(RIGHT_EXPRESSION)->as_object_map());
         }
     }
     // otherwise evaluate to null
@@ -305,23 +297,21 @@ void Interpreter::visit(const ast::IndexExpressionNode *node)
     }
 }
 
-void Interpreter::visit(const ast::ArrayItemNode *node)
+void HermesASTInterpreter::visitArrayItemNode(const ObjectMapPtr& node)
 {
-    visit(node, std::move(m_context));
+    visitArrayItemNode2(node, std::move(m_context));
 }
 
 
-void Interpreter::visit(const ast::ArrayItemNode *node, ObjectPtr &&context)
+void HermesASTInterpreter::visitArrayItemNode2(const ObjectMapPtr& node, ObjectPtr &&context)
 {
     // evaluate the array item expression if the context holds an array
     if (context->is_array())
     {
         auto arr = context->as_generic_array();
-
         // normalize the index value
-        auto arrayIndex = node->index;
-        if (arrayIndex < 0)
-        {
+        auto arrayIndex = node->get(INDEX)->to_i64();
+        if (arrayIndex < 0) {
             arrayIndex += arr->size();
         }
 
@@ -339,13 +329,13 @@ void Interpreter::visit(const ast::ArrayItemNode *node, ObjectPtr &&context)
     m_context = {};
 }
 
-void Interpreter::visit(const ast::FlattenOperatorNode *node)
+void HermesASTInterpreter::visitFlattenOperatorNode(const ObjectMapPtr& node)
 {
-    visit(node, std::move(m_context));
+    visitFlattenOperatorNode2(node, std::move(m_context));
 }
 
 
-void Interpreter::visit(const ast::FlattenOperatorNode*, ObjectPtr&& context)
+void HermesASTInterpreter::visitFlattenOperatorNode2(const ObjectMapPtr& node, ObjectPtr&& context)
 {
     // evaluate the flatten operation if the context holds an array
     if (context->is_array())
@@ -388,53 +378,59 @@ void Interpreter::visit(const ast::FlattenOperatorNode*, ObjectPtr&& context)
     }
 }
 
-void Interpreter::visit(const ast::BracketSpecifierNode *node)
-{
-    node->accept(this);
-}
 
-void Interpreter::visit(const ast::SliceExpressionNode *node)
+void HermesASTInterpreter::visitSliceExpressionNode(const ObjectMapPtr& node)
 {
-    visit(node, std::move(m_context));
+    visitSliceExpressionNode2(node, std::move(m_context));
 }
 
 
-void Interpreter::visit(const ast::SliceExpressionNode* node, ObjectPtr&& context)
+void HermesASTInterpreter::visitSliceExpressionNode2(const ObjectMapPtr& node, ObjectPtr&& context)
 {
     // evaluate the slice operation if the context holds an array
     if (context->is_array())
     {
         auto ctx_array = context->as_generic_array();
 
-        Index startIndex = 0;
-        Index stopIndex = 0;
-        Index step = 1;
+        int64_t startIndex = 0;
+        int64_t stopIndex = 0;
+        int64_t step = 1;
         size_t length = ctx_array->size();
 
+        auto node_step = node->get(STEP);
+
         // verify the validity of slice indeces and normalize their values
-        if (node->step)
+        if (node_step->is_not_null())
         {
-            if (*node->step == 0)
+            auto val = node_step->to_i64();
+            if (val == 0)
             {
                 BOOST_THROW_EXCEPTION(InvalidValue{});
             }
-            step = *node->step;
+            step = val;
         }
-        if (!node->start)
+
+        auto node_start = node->get(START);
+        auto node_stop  = node->get(STOP);
+
+        if (node_start->is_null())
         {
             startIndex = step < 0 ? length - 1: 0;
         }
         else
         {
-            startIndex = adjustSliceEndpoint(length, *node->start, step);
+            auto val = node_start->to_i64();
+            startIndex = adjustSliceEndpoint(length, val, step);
         }
-        if (!node->stop)
+
+        if (node_stop->is_null())
         {
-            stopIndex = step < 0 ? -1 : Index{length};
+            stopIndex = step < 0 ? -1 : length;
         }
         else
         {
-            stopIndex = adjustSliceEndpoint(length, *node->stop, step);
+            auto val = node_stop->to_i64();
+            stopIndex = adjustSliceEndpoint(length, val, step);
         }
 
         // create the array of results
@@ -464,21 +460,21 @@ void Interpreter::visit(const ast::SliceExpressionNode* node, ObjectPtr&& contex
     }
 }
 
-void Interpreter::visit(const ast::ListWildcardNode*)
+void HermesASTInterpreter::visitListWildcardNode(const ObjectMapPtr& node)
 {
     // evaluate a list wildcard operation to null if the context isn't an array
-    if (!getJsonValue(m_context)->is_array()) {
+    if (!m_context->is_array()) {
         m_context = {};
     }
 }
 
-void Interpreter::visit(const ast::HashWildcardNode *node)
+void HermesASTInterpreter::visitHashWildcardNode(const ObjectMapPtr& node)
 {
-    visit(node, std::move(m_context));
+    visitHashWildcardNode2(node, std::move(m_context));
 }
 
 
-void Interpreter::visit(const ast::HashWildcardNode* node, ObjectPtr&& context)
+void HermesASTInterpreter::visitHashWildcardNode2(const ObjectMapPtr& node, ObjectPtr&& context)
 {
     // evaluate the hash wildcard operation if the context holds an array
     if (context->is_map())
@@ -499,10 +495,10 @@ void Interpreter::visit(const ast::HashWildcardNode* node, ObjectPtr&& context)
         m_context = {};
     }
     // evaluate the projected sub expression
-    evaluateProjection(&node->rightExpression);
+    evaluateProjection(node->get(RIGHT_EXPRESSION)->as_object_map());
 }
 
-void Interpreter::visit(const ast::MultiselectListNode *node)
+void HermesASTInterpreter::visitMultiselectListNode(const ObjectMapPtr& node)
 {
     // evaluate the multiselect list opration if the context doesn't holds null
     if (!getJsonValue(m_context)->is_null())
@@ -516,12 +512,15 @@ void Interpreter::visit(const ast::MultiselectListNode *node)
         // during  the evaluation of sub expressions
         ContextValue contextValue {std::move(m_context)};
         // iterate over the list of subexpressions
-        for (auto& expression: node->expressions)
+        ObjectArrayPtr expressions = node->get(EXPRESSIONS)->as_object_array();
+        for (size_t c = 0; c < expressions->size(); c++)
         {
+            ObjectPtr expression = expressions->get(c);
+
             // assign a const lvalue ref to the context
             m_context = assignContextValue(getJsonValue(contextValue));
             // evaluate the subexpression
-            visit(&expression);
+            visit(expression->as_object_map());
             // copy the result of the subexpression into the list of results
             result->append(getJsonValue(m_context));
         }
@@ -530,7 +529,7 @@ void Interpreter::visit(const ast::MultiselectListNode *node)
     }
 }
 
-void Interpreter::visit(const ast::MultiselectHashNode *node)
+void HermesASTInterpreter::visitMultiselectHashNode(const ObjectMapPtr& node)
 {
     // evaluate the multiselect hash opration if the context doesn't holds null
     if (!getJsonValue(m_context)->is_null())
@@ -544,36 +543,43 @@ void Interpreter::visit(const ast::MultiselectHashNode *node)
         // during the evaluation of sub expressions
         ContextValue contextValue {std::move(m_context)};
         // iterate over the list of subexpressions
-        for (auto& keyValuePair: node->expressions)
+
+        ObjectArrayPtr expressions = node->get(EXPRESSIONS)->as_object_array();
+        for (size_t c = 0; c < expressions->size(); c++)
         {
+            ObjectPtr keyValuePairObj = expressions->get(c);
             // assign a const lvalue ref to the context
             m_context = assignContextValue(getJsonValue(contextValue));
+
             // evaluate the subexpression
-            visit(&keyValuePair.second);
+            auto keyValuePair = keyValuePairObj->as_object_map();
+            visit(keyValuePair->get(SECOND));
             // add a copy of the result of the sub expression as the value
             // for the key of the subexpression
             //result[keyValuePair.first.identifier] = getJsonValue(m_context);
 
-            result->put(keyValuePair.first.identifier, getJsonValue(m_context));
+            result->put(*keyValuePair->get(FIRST)->as_object_map()->get(IDENTIFIER)->as_varchar()->view(), getJsonValue(m_context));
         }
         // set the results of the projection
         m_context = result->as_object();
     }
 }
 
-void Interpreter::visit(const ast::NotExpressionNode *node)
+void HermesASTInterpreter::visitNotExpressionNode(const ObjectMapPtr& node)
 {
     // negate the result of the subexpression
-    visit(&node->expression);
+    visit(node->get(EXPRESSION)->as_object_map());
     m_context = hermes::HermesCtr::wrap_dataobject<Boolean>(!toSimpleBoolean(getJsonValue(m_context)))->as_object();
 }
 
-void Interpreter::visit(const ast::ComparatorExpressionNode *node)
+void HermesASTInterpreter::visitComparatorExpressionNode(const ObjectMapPtr& node)
 {
     using Comparator = ast::ComparatorExpressionNode::Comparator;
 
+    Comparator comparator = (Comparator)node->get(COMPARATOR)->to_i64();
+
     // thow an error if it's an unhandled operator
-    if (node->comparator == Comparator::Unknown)
+    if (comparator == Comparator::Unknown)
     {
         BOOST_THROW_EXCEPTION(InvalidAgrument{});
     }
@@ -583,9 +589,9 @@ void Interpreter::visit(const ast::ComparatorExpressionNode *node)
     // the context can be reused for the evaluation of the right expression
     ContextValue contextValue {std::move(m_context)};
     m_context = assignContextValue(getJsonValue(contextValue));
-    // evaluate the left expression
-    visit(&node->leftExpression);
 
+    // evaluate the left expression
+    visit(node->get(LEFT_EXPRESSION));
 
     // move the left side results into a temporary variable
     ContextValue leftResultContext {std::move(m_context)};
@@ -594,32 +600,32 @@ void Interpreter::visit(const ast::ComparatorExpressionNode *node)
     // set the context for the right side expression
     m_context = std::move(contextValue);
     // evaluate the right expression
-    visit(&node->rightExpression);
+    visit(node->get(RIGHT_EXPRESSION));
     const ObjectPtr& rightResult = getJsonValue(m_context);
 
-    if (node->comparator == Comparator::Equal)
+    if (comparator == Comparator::Equal)
     {
         m_context = wrap_DO<Boolean>(leftResult->equals(rightResult))->as_object();
     }
-    else if (node->comparator == Comparator::NotEqual)
+    else if (comparator == Comparator::NotEqual)
     {
         m_context = wrap_DO<Boolean>(!leftResult->equals(rightResult))->as_object();
     }
     else
     {        
-        if (node->comparator == Comparator::Less)
+        if (comparator == Comparator::Less)
         {
             m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) < 0)->as_object();
         }
-        else if (node->comparator == Comparator::LessOrEqual)
+        else if (comparator == Comparator::LessOrEqual)
         {
             m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) <= 0)->as_object();
         }
-        else if (node->comparator == Comparator::GreaterOrEqual)
+        else if (comparator == Comparator::GreaterOrEqual)
         {
             m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) >= 0)->as_object();
         }
-        else if (node->comparator == Comparator::Greater)
+        else if (comparator == Comparator::Greater)
         {
             m_context = wrap_DO<Boolean>(leftResult->compare(rightResult) > 0)->as_object();
         }
@@ -629,37 +635,37 @@ void Interpreter::visit(const ast::ComparatorExpressionNode *node)
     }
 }
 
-void Interpreter::visit(const ast::OrExpressionNode *node)
+void HermesASTInterpreter::visitOrExpressionNode(const ObjectMapPtr& node)
 {
     // evaluate the logic operator and return with the left side result
     // if it's equal to true
     evaluateLogicOperator(node, true);
 }
 
-void Interpreter::visit(const ast::AndExpressionNode *node)
+void HermesASTInterpreter::visitAndExpressionNode(const ObjectMapPtr& node)
 {
     // evaluate the logic operator and return with the left side result
     // if it's equal to false
     evaluateLogicOperator(node, false);
 }
 
-void Interpreter::evaluateLogicOperator(
-        const ast::BinaryExpressionNode* node,
-        bool shortCircuitValue)
-{
+void HermesASTInterpreter::evaluateLogicOperator(
+        const ObjectMapPtr& node,
+        bool shortCircuitValue
+){
     // move the current context into a temporary variable and use a const lvalue
     // reference as the context for evaluating the left side expression, so
     // the context can be reused for the evaluation of the right expression
     ContextValue contextValue {std::move(m_context)};
     m_context = assignContextValue(getJsonValue(contextValue));
     // evaluate the left expression
-    visit(&node->leftExpression);
+    visit(node->get(LEFT_EXPRESSION));
     // if the left side result is not enough for producing the final result
     if (toSimpleBoolean(getJsonValue(m_context)) != shortCircuitValue)
     {
         // evaluate the right side expression
         m_context = std::move(contextValue);
-        visit(&node->rightExpression);
+        visit(node->get(RIGHT_EXPRESSION));
     }
     else
     {
@@ -667,30 +673,31 @@ void Interpreter::evaluateLogicOperator(
     }
 }
 
-void Interpreter::visit(const ast::ParenExpressionNode *node)
+void HermesASTInterpreter::visitParenExpressionNode(const ObjectMapPtr& node)
 {
     // evaluate the sub expression
-    visit(&node->expression);
+    visit(node->get(EXPRESSION));
 }
 
-void Interpreter::visit(const ast::PipeExpressionNode *node)
+void HermesASTInterpreter::visitPipeExpressionNode(const ObjectMapPtr& node)
 {
     // evaluate the left followed by the right expression
-    visit(&node->leftExpression);
-    visit(&node->rightExpression);
+    visit(node->get(LEFT_EXPRESSION));
+    visit(node->get(RIGHT_EXPRESSION));
 }
 
-void Interpreter::visit(const ast::CurrentNode *)
+void HermesASTInterpreter::visitCurrentNode(const ObjectMapPtr& node)
 {
+
 }
 
-void Interpreter::visit(const ast::FilterExpressionNode *node)
+void HermesASTInterpreter::visitFilterExpressionNode(const ObjectMapPtr& node)
 {
-    visit(node, std::move(m_context));
+    visitFilterExpressionNode2(node, std::move(m_context));
 }
 
 
-void Interpreter::visit(const ast::FilterExpressionNode* node, ObjectPtr&& context)
+void HermesASTInterpreter::visitFilterExpressionNode2(const ObjectMapPtr& node, ObjectPtr&& context)
 {
     // evaluate the filtering operation if the context holds an array
     if (context->is_array())
@@ -706,7 +713,7 @@ void Interpreter::visit(const ast::FilterExpressionNode* node, ObjectPtr&& conte
             // assign a const lvalue ref of the item to the context
             m_context = assignContextValue(item);
             // evaluate the filtering condition
-            visit(&node->expression);
+            visit(node->get(EXPRESSION));
             // convert the result into a boolean
             if (toSimpleBoolean(getJsonValue(m_context))) {
                 result->append(item) ;
@@ -723,14 +730,15 @@ void Interpreter::visit(const ast::FilterExpressionNode* node, ObjectPtr&& conte
     }
 }
 
-void Interpreter::visit(const ast::FunctionExpressionNode *node)
+void HermesASTInterpreter::visitFunctionExpressionNode(const ObjectMapPtr& node)
 {
     // throw an error if the function doesn't exists
-    auto it = m_functionMap.find(node->functionName);
+    U8String fname = node->get(FUNCTION_NAME)->to_str();
+    auto it = m_functionMap.find(fname.to_std_string());
     if (it == m_functionMap.end())
     {
         BOOST_THROW_EXCEPTION(UnknownFunction()
-                              << InfoFunctionName(node->functionName));
+                              << InfoFunctionName(fname.to_std_string()));
     }
 
     const auto& descriptor = it->second;
@@ -739,36 +747,38 @@ void Interpreter::visit(const ast::FunctionExpressionNode *node)
     const auto& function = std::get<2>(descriptor);
     // validate that the function has been called with the appropriate
     // number of arguments
-    if (!argumentArityValidator(node->arguments.size()))
-    {
+
+    ObjectArrayPtr arguments = node->get(ARGUMENTS)->as_object_array();
+
+    if (!argumentArityValidator(arguments->size())) {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentArity());
     }
 
     // if the function needs more than a single ContextValue
     // argument
-    std::shared_ptr<ContextValue> contextValue;
+    ObjectPtr contextValue;
     if (!singleContextValueArgument)
     {
         // move the current context into a temporary variable in
         // case it holds a value
-        contextValue = std::make_shared<ContextValue>(std::move(m_context));
+        contextValue = std::move(m_context);
     }
 
     // evaluate the functins arguments
     FunctionArgumentList argumentList = evaluateArguments(
-        node->arguments,
+        arguments,
         contextValue);
     // evaluate the function
     function(argumentList);
 }
 
-void Interpreter::visit(const ast::ExpressionArgumentNode *)
+void HermesASTInterpreter::visitExpressionArgumentNode(const ObjectMapPtr& node)
 {
 }
 
-Index Interpreter::adjustSliceEndpoint(size_t length,
-                                        Index endpoint,
-                                        Index step) const
+int64_t HermesASTInterpreter::adjustSliceEndpoint(size_t length,
+                                        int64_t endpoint,
+                                        int64_t step) const
 {
     if (endpoint < 0)
     {
@@ -785,7 +795,7 @@ Index Interpreter::adjustSliceEndpoint(size_t length,
     return endpoint;
 }
 
-hermes::DataObjectPtr<Boolean> Interpreter::toBoolean(const ObjectPtr &json) const
+hermes::DataObjectPtr<Boolean> HermesASTInterpreter::toBoolean(const ObjectPtr &json) const
 {
     return hermes::HermesCtr::wrap_dataobject<Boolean>(
         toSimpleBoolean(json)
@@ -793,7 +803,7 @@ hermes::DataObjectPtr<Boolean> Interpreter::toBoolean(const ObjectPtr &json) con
 }
 
 
-bool Interpreter::toSimpleBoolean(const ObjectPtr &json) const
+bool HermesASTInterpreter::toSimpleBoolean(const ObjectPtr &json) const
 {
     if (json->is_bigint()) {
         return *json->as_bigint()->view() != 0;
@@ -819,50 +829,55 @@ bool Interpreter::toSimpleBoolean(const ObjectPtr &json) const
 }
 
 
-Interpreter::FunctionArgumentList
-Interpreter::evaluateArguments(
-    const FunctionExpressionArgumentList &arguments,
-    const std::shared_ptr<ContextValue>& contextValue)
+HermesASTInterpreter::FunctionArgumentList
+HermesASTInterpreter::evaluateArguments(
+    const ObjectArrayPtr &arguments,
+    const ObjectPtr& contextValue)
 {
     // create a list to hold the evaluated expression arguments
     FunctionArgumentList argumentList;
     // evaluate all the arguments and put the results into argumentList
-    rng::transform(arguments, std::back_inserter(argumentList),
-                   [&, this](const auto& argument)
+
+    for (size_t c = 0; c < arguments->size(); c++)
     {
-        // evaluate the current function argument
-        auto visitor = boost::hana::overload(
-            // evaluate expressions and return their results
-            [&, this](const ast::ExpressionNode& node) -> FunctionArgument {
-                if (contextValue)
-                {
-                    const ObjectPtr& context = getJsonValue(*contextValue);
-                    // assign a const lvalue ref to the context
-                    m_context = assignContextValue(context);
+        ObjectPtr argument = arguments->get(c);
+        if (argument->is_map())
+        {
+            ObjectMapPtr map = argument->as_object_map();
+            ObjectPtr code_attr = map->get(CODE_ATTR);
+            if (code_attr->is_not_null())
+            {
+                int64_t code = code_attr->to_i64();
+                if (code == ast::ExpressionArgumentNode::CODE) {
+                    argumentList.push_back(map->get(EXPRESSION)->as_object_map());
                 }
-                // evaluate the expression
-                this->visit(&node);
-                // move the result
-                FunctionArgument result{std::move(m_context)};
-                return result;
-            },
-            // in case of expression argument nodes return the expression they
-            // hold so it can be evaluated inside a function
-            [](const ast::ExpressionArgumentNode& node) -> FunctionArgument {
-                return node.expression;
-            },
-            // ignore blank arguments
-            [](const boost::blank&) -> FunctionArgument {
-                return {};
+                else {
+                    if (contextValue->is_not_null())
+                    {
+                        const ObjectPtr& context = getJsonValue(contextValue);
+                        // assign a const lvalue ref to the context
+                        m_context = assignContextValue(context);
+                    }
+                    // evaluate the expression
+                    this->visit(map);
+                    // move the result
+                    FunctionArgument result{std::move(m_context)};
+                    argumentList.push_back(result);
+                }
             }
-        );
-        return boost::apply_visitor(visitor, argument);
-    });
+            else {
+                argumentList.push_back(argument);
+            }
+        }
+        else {
+            argumentList.push_back(argument);
+        }
+    }
     return argumentList;
 }
 
 template <typename T>
-T& Interpreter::getArgument(FunctionArgument& argument) const
+T& HermesASTInterpreter::getArgument(FunctionArgument& argument) const
 {
     // get a reference to the variable held by the argument
     try
@@ -876,12 +891,12 @@ T& Interpreter::getArgument(FunctionArgument& argument) const
     }
 }
 
-const ObjectPtr &Interpreter::getJsonArgument(FunctionArgument &argument) const
+const ObjectPtr &HermesASTInterpreter::getJsonArgument(FunctionArgument &argument) const
 {
     return getJsonValue(getArgument<ContextValue>(argument));
 }
 
-void Interpreter::abs(FunctionArgumentList &arguments)
+void HermesASTInterpreter::abs(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& value = getJsonArgument(arguments[0]);
@@ -893,14 +908,14 @@ void Interpreter::abs(FunctionArgumentList &arguments)
     // evaluate to either an integer or a float depending on the ObjectPtr type
     if (value->is_bigint())
     {
-        m_context = wrap_DO<BigInt>(std::abs(*value->as_bigint()->view()))->as_object();
+        m_context = wrap_DO<BigInt>(std::abs(value->to_i64()))->as_object();
     }
     else {
-        m_context = HermesCtr::wrap_dataobject<Double>(std::abs(*value->convert_to<Double>()->as_double()->view()))->as_object();
+        m_context = HermesCtr::wrap_dataobject<Double>(std::abs(value->to_d64()))->as_object();
     }
 }
 
-void Interpreter::avg(FunctionArgumentList &arguments)
+void HermesASTInterpreter::avg(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& items = getJsonArgument(arguments[0]);
@@ -948,7 +963,7 @@ void Interpreter::avg(FunctionArgumentList &arguments)
     }
 }
 
-void Interpreter::contains(FunctionArgumentList &arguments)
+void HermesASTInterpreter::contains(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& subject = getJsonArgument(arguments[0]);
@@ -985,7 +1000,7 @@ void Interpreter::contains(FunctionArgumentList &arguments)
     m_context = wrap_DO<Boolean>(result)->as_object();
 }
 
-void Interpreter::ceil(FunctionArgumentList &arguments)
+void HermesASTInterpreter::ceil(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& value = getJsonArgument(arguments[0]);
@@ -1007,7 +1022,7 @@ void Interpreter::ceil(FunctionArgumentList &arguments)
     }
 }
 
-void Interpreter::endsWith(FunctionArgumentList &arguments)
+void HermesASTInterpreter::endsWith(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& subject = getJsonArgument(arguments[0]);
@@ -1024,7 +1039,7 @@ void Interpreter::endsWith(FunctionArgumentList &arguments)
     m_context = wrap_DO<Boolean>(boost::ends_with(*stringSubject, *stringSuffix))->as_object();
 }
 
-void Interpreter::floor(FunctionArgumentList &arguments)
+void HermesASTInterpreter::floor(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& value = getJsonArgument(arguments[0]);
@@ -1036,18 +1051,18 @@ void Interpreter::floor(FunctionArgumentList &arguments)
 
     if (value->is_double())
     {
-        m_context = wrap_DO<Double>(std::floor(*value->as_double()->view()))->as_object();
+        m_context = wrap_DO<Double>(std::floor(value->to_d64()))->as_object();
     }
     else if (value->is_real())
     {
-        m_context = wrap_DO<Real>(std::floor(*value->as_real()->view()))->as_object();
+        m_context = wrap_DO<Real>(std::floor(value->to_f32()))->as_object();
     }
     else {
         m_context = value;
     }
 }
 
-void Interpreter::join(FunctionArgumentList &arguments)
+void HermesASTInterpreter::join(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& glue = getJsonArgument(arguments[0]);
@@ -1078,7 +1093,7 @@ void Interpreter::join(FunctionArgumentList &arguments)
     m_context = wrap_DO<Varchar>(alg::join(stringArray, *glue->as_varchar()->view()))->as_object();
 }
 
-void Interpreter::keys(FunctionArgumentList &arguments)
+void HermesASTInterpreter::keys(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& object = getJsonArgument(arguments[0]);
@@ -1101,7 +1116,7 @@ void Interpreter::keys(FunctionArgumentList &arguments)
     m_context = results->as_object();
 }
 
-void Interpreter::length(FunctionArgumentList &arguments)
+void HermesASTInterpreter::length(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& subject = getJsonArgument(arguments[0]);
@@ -1131,18 +1146,18 @@ void Interpreter::length(FunctionArgumentList &arguments)
     }
 }
 
-void Interpreter::map(FunctionArgumentList &arguments)
+void HermesASTInterpreter::map(FunctionArgumentList &arguments)
 {
     // get the first argument
-    const ast::ExpressionNode& expression
-            = getArgument<const ast::ExpressionNode>(arguments[0]);
+    const ObjectMapPtr& expression
+            = getArgument<const ObjectMapPtr>(arguments[0]);
     // get the second argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[1]);
-    map(&expression, std::move(contextValue));
+    map(expression, std::move(contextValue));
 }
 
 
-void Interpreter::map(const ast::ExpressionNode* node, ObjectPtr&& array_value)
+void HermesASTInterpreter::map(const ObjectMapPtr& node, ObjectPtr&& array_value)
 {
     using std::placeholders::_1;
     // throw an exception if the argument is not an array
@@ -1164,7 +1179,7 @@ void Interpreter::map(const ast::ExpressionNode* node, ObjectPtr&& array_value)
     m_context = result->as_object();
 }
 
-void Interpreter::merge(FunctionArgumentList &arguments)
+void HermesASTInterpreter::merge(FunctionArgumentList &arguments)
 {
     using std::placeholders::_1;
 
@@ -1200,7 +1215,7 @@ void Interpreter::merge(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::mergeObject(ObjectPtr* object, ObjectPtr&& sourceObject)
+void HermesASTInterpreter::mergeObject(ObjectPtr* object, ObjectPtr&& sourceObject)
 {
     auto map = (*object)->as_generic_map();
     auto src_map = sourceObject->as_generic_map();
@@ -1210,7 +1225,7 @@ void Interpreter::mergeObject(ObjectPtr* object, ObjectPtr&& sourceObject)
     });
 }
 
-void Interpreter::notNull(FunctionArgumentList &arguments)
+void HermesASTInterpreter::notNull(FunctionArgumentList &arguments)
 {
     // iterate over the arguments
     for (auto& argument: arguments)
@@ -1228,14 +1243,14 @@ void Interpreter::notNull(FunctionArgumentList &arguments)
     m_context = {};
 }
 
-void Interpreter::reverse(FunctionArgumentList &arguments)
+void HermesASTInterpreter::reverse(FunctionArgumentList &arguments)
 {
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
     reverse(std::move(contextValue));
 }
 
-void Interpreter::reverse(ObjectPtr&& subject)
+void HermesASTInterpreter::reverse(ObjectPtr&& subject)
 {
 
     auto doc = hermes::HermesCtr::make_pooled();
@@ -1252,14 +1267,14 @@ void Interpreter::reverse(ObjectPtr&& subject)
     m_context = std::move(result)->as_object();
 }
 
-void Interpreter::sort(FunctionArgumentList &arguments)
+void HermesASTInterpreter::sort(FunctionArgumentList &arguments)
 {
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
     sort(std::move(contextValue));
 }
 
-void Interpreter::sort(ObjectPtr&& array)
+void HermesASTInterpreter::sort(ObjectPtr&& array)
 {
     std::vector<hermes::ObjectPtr> sorted;
     auto garray = array->as_generic_array();
@@ -1278,18 +1293,18 @@ void Interpreter::sort(ObjectPtr&& array)
     m_context = std::move(result)->as_object();
 }
 
-void Interpreter::sortBy(FunctionArgumentList &arguments)
+void HermesASTInterpreter::sortBy(FunctionArgumentList &arguments)
 {
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
     // get the second argument
-    const ast::ExpressionNode& expression
-            = getArgument<ast::ExpressionNode>(arguments[1]);
+    const ObjectMapPtr& expression
+            = getArgument<ObjectMapPtr>(arguments[1]);
 
-    sortBy(&expression, std::move(contextValue));
+    sortBy(expression, std::move(contextValue));
 }
 
-void Interpreter::sortBy(const ast::ExpressionNode* expression, ObjectPtr&& source)
+void HermesASTInterpreter::sortBy(const ObjectMapPtr& expression, ObjectPtr&& source)
 {
     using SortT = std::pair<ObjectPtr, ObjectPtr>;
 
@@ -1325,7 +1340,7 @@ void Interpreter::sortBy(const ast::ExpressionNode* expression, ObjectPtr&& sour
     m_context = std::move(result)->as_object();
 }
 
-void Interpreter::startsWith(FunctionArgumentList &arguments)
+void HermesASTInterpreter::startsWith(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& subject = getJsonArgument(arguments[0]);
@@ -1342,7 +1357,7 @@ void Interpreter::startsWith(FunctionArgumentList &arguments)
     m_context = wrap_DO<Boolean>(boost::starts_with(*stringSubject, *stringPrefix))->as_object();
 }
 
-void Interpreter::sum(FunctionArgumentList &arguments)
+void HermesASTInterpreter::sum(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& items = getJsonArgument(arguments[0]);
@@ -1367,7 +1382,7 @@ void Interpreter::sum(FunctionArgumentList &arguments)
     }
 }
 
-void Interpreter::toArray(FunctionArgumentList &arguments)
+void HermesASTInterpreter::toArray(FunctionArgumentList &arguments)
 {
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
@@ -1375,7 +1390,7 @@ void Interpreter::toArray(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::toArray(ObjectPtr&& value)
+void HermesASTInterpreter::toArray(ObjectPtr&& value)
 {
     // evaluate to the argument if it's an array
     if (value->is_array())
@@ -1393,7 +1408,7 @@ void Interpreter::toArray(ObjectPtr&& value)
     }
 }
 
-void Interpreter::toString(FunctionArgumentList &arguments)
+void HermesASTInterpreter::toString(FunctionArgumentList &arguments)
 {
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
@@ -1401,7 +1416,7 @@ void Interpreter::toString(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::toString(ObjectPtr&& value)
+void HermesASTInterpreter::toString(ObjectPtr&& value)
 {
     // evaluate to the argument if it's a string
     if (value->is_varchar())
@@ -1415,7 +1430,7 @@ void Interpreter::toString(ObjectPtr&& value)
     }
 }
 
-void Interpreter::toDouble(FunctionArgumentList &arguments)
+void HermesASTInterpreter::toDouble(FunctionArgumentList &arguments)
 {
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
@@ -1423,7 +1438,7 @@ void Interpreter::toDouble(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::toDouble(ObjectPtr&& value)
+void HermesASTInterpreter::toDouble(ObjectPtr&& value)
 {
     // evaluate to the argument if it's a number
     if (value->is_numeric())
@@ -1437,7 +1452,7 @@ void Interpreter::toDouble(ObjectPtr&& value)
         // try to convert the string to a number
         try
         {
-            m_context = wrap_DO<Double>(std::stod(String(*value->as_varchar()->view())))->as_object();
+            m_context = wrap_DO<Double>(std::stod(value->to_str()))->as_object();
             return;
         }
         // ignore the possible conversion error and let the default case
@@ -1451,7 +1466,7 @@ void Interpreter::toDouble(ObjectPtr&& value)
 }
 
 
-void Interpreter::toBigInt(FunctionArgumentList &arguments)
+void HermesASTInterpreter::toBigInt(FunctionArgumentList &arguments)
 {
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
@@ -1459,7 +1474,7 @@ void Interpreter::toBigInt(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::toBigInt(ObjectPtr&& value)
+void HermesASTInterpreter::toBigInt(ObjectPtr&& value)
 {
     // evaluate to the argument if it's a number
     if (value->is_bigint())
@@ -1474,7 +1489,7 @@ void Interpreter::toBigInt(ObjectPtr&& value)
 }
 
 
-void Interpreter::toBoolean(FunctionArgumentList &arguments)
+void HermesASTInterpreter::toBoolean(FunctionArgumentList &arguments)
 {
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
@@ -1482,7 +1497,7 @@ void Interpreter::toBoolean(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::toBoolean(ObjectPtr&& value)
+void HermesASTInterpreter::toBoolean(ObjectPtr&& value)
 {
     // evaluate to the argument if it's a number
     if (value->is_bigint())
@@ -1490,12 +1505,12 @@ void Interpreter::toBoolean(ObjectPtr&& value)
         m_context = assignContextValue(std::move(value));
         return;
     }
-    else if (value->is_a<ObjectArray>()) {
-        auto array = value->cast_to<ObjectArray>();
+    else if (value->is_object_array()) {
+        auto array = value->as_object_array();
         m_context = HermesCtr::wrap_dataobject<Boolean>(array->size() > 0)->as_object();
     }
-    else if (value->is_a<ObjectMap>()) {
-        auto map = value->cast_to<ObjectMap>();
+    else if (value->is_object_map()) {
+        auto map = value->as_object_map();
         m_context = HermesCtr::wrap_dataobject<Boolean>(map->size() > 0)->as_object();
     }
     else {
@@ -1503,7 +1518,7 @@ void Interpreter::toBoolean(ObjectPtr&& value)
     }
 }
 
-void Interpreter::type(FunctionArgumentList &arguments)
+void HermesASTInterpreter::type(FunctionArgumentList &arguments)
 {
     // get the first argument
     const ObjectPtr& value = getJsonArgument(arguments[0]);
@@ -1517,7 +1532,7 @@ void Interpreter::type(FunctionArgumentList &arguments)
     }
 }
 
-void Interpreter::values(FunctionArgumentList &arguments)
+void HermesASTInterpreter::values(FunctionArgumentList &arguments)
 {
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
@@ -1525,7 +1540,7 @@ void Interpreter::values(FunctionArgumentList &arguments)
 }
 
 
-void Interpreter::values(ObjectPtr&& object)
+void HermesASTInterpreter::values(ObjectPtr&& object)
 {
     // throw an exception if the argument is not an object
     if (!object->is_map())
@@ -1544,7 +1559,7 @@ void Interpreter::values(ObjectPtr&& object)
     m_context = result->as_object();
 }
 
-void Interpreter::max(FunctionArgumentList &arguments,
+void HermesASTInterpreter::max(FunctionArgumentList &arguments,
                        const JsonComparator &comparator)
 {
     // get the first argument
@@ -1553,7 +1568,7 @@ void Interpreter::max(FunctionArgumentList &arguments,
 }
 
 
-void Interpreter::max(const JsonComparator* comparator, ObjectPtr&& array)
+void HermesASTInterpreter::max(const JsonComparator* comparator, ObjectPtr&& array)
 {
     hermes::ObjectPtr max_val;
 
@@ -1574,20 +1589,20 @@ void Interpreter::max(const JsonComparator* comparator, ObjectPtr&& array)
     m_context = max_val;
 }
 
-void Interpreter::maxBy(FunctionArgumentList &arguments,
+void HermesASTInterpreter::maxBy(FunctionArgumentList &arguments,
                          const JsonComparator &comparator)
 {
     // get the first argument
     ContextValue& contextValue = getArgument<ContextValue>(arguments[0]);
     // get the second argument
-    const ast::ExpressionNode& expression
-            = getArgument<ast::ExpressionNode>(arguments[1]);
+    const ObjectMapPtr& expression
+            = getArgument<ObjectMapPtr>(arguments[1]);
 
-    maxBy(&expression, &comparator, std::move(contextValue));
+    maxBy(expression, &comparator, std::move(contextValue));
 }
 
 
-void Interpreter::maxBy(const ast::ExpressionNode* expression,
+void HermesASTInterpreter::maxBy(const ObjectMapPtr& expression,
                          const JsonComparator* comparator,
                          ObjectPtr&& source)
 {
@@ -1627,5 +1642,80 @@ void Interpreter::maxBy(const ast::ExpressionNode* expression,
     }
 }
 
+void HermesASTInterpreter::visit(const ObjectPtr& node)
+{
+    if (node->is_not_null()) {
+        visit(node->as_object_map());
+    }
+}
+
+void HermesASTInterpreter::visit(const ObjectMapPtr& node)
+{
+    auto attr = node->get(CODE_ATTR);
+    if (attr->is_not_null())
+    {
+        int64_t code = attr->to_i64();
+        const auto& map = visitors_map();
+        auto ii = map.find(code);
+        if (ii != map.end()) {
+            (this->*ii->second)(node);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Unknown '{}' value: {}", CODE_ATTR, code).do_throw();
+        }
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Expected '{}' attribute is null", CODE_ATTR).do_throw();
+    }
+}
+
+
+HermesASTInterpreter::VisitorsMap HermesASTInterpreter::build_visitors_map()
+{
+    VisitorsMap map;
+
+    map[ast::ExpressionNode::NULL_NODE_CODE] = &HermesASTInterpreter::visitNullNode;
+
+    map[ast::IdentifierNode::CODE]      = &HermesASTInterpreter::visitIdentifierNode;
+    map[ast::RawStringNode::CODE]       = &HermesASTInterpreter::visitRawStringNode;
+    map[ast::HermesValueNode::CODE]     = &HermesASTInterpreter::visitHermesValueNode;
+    map[ast::SubexpressionNode::CODE]   = &HermesASTInterpreter::visitSubexpressionNode;
+    map[ast::IndexExpressionNode::CODE] = &HermesASTInterpreter::visitIndexExpressionNode;
+    map[ast::ArrayItemNode::CODE]       = &HermesASTInterpreter::visitArrayItemNode;
+    map[ast::FlattenOperatorNode::CODE] = &HermesASTInterpreter::visitFlattenOperatorNode;
+    map[ast::SliceExpressionNode::CODE] = &HermesASTInterpreter::visitSliceExpressionNode;
+    map[ast::ListWildcardNode::CODE]    = &HermesASTInterpreter::visitListWildcardNode;
+    map[ast::HashWildcardNode::CODE]    = &HermesASTInterpreter::visitHashWildcardNode;
+    map[ast::MultiselectListNode::CODE] = &HermesASTInterpreter::visitMultiselectListNode;
+    map[ast::MultiselectHashNode::CODE] = &HermesASTInterpreter::visitMultiselectHashNode;
+    map[ast::NotExpressionNode::CODE]   = &HermesASTInterpreter::visitNotExpressionNode;
+    map[ast::ComparatorExpressionNode::CODE] = &HermesASTInterpreter::visitComparatorExpressionNode;
+    map[ast::OrExpressionNode::CODE]    = &HermesASTInterpreter::visitOrExpressionNode;
+    map[ast::AndExpressionNode::CODE]   = &HermesASTInterpreter::visitAndExpressionNode;
+    map[ast::ParenExpressionNode::CODE] = &HermesASTInterpreter::visitParenExpressionNode;
+    map[ast::PipeExpressionNode::CODE]  = &HermesASTInterpreter::visitPipeExpressionNode;
+    map[ast::CurrentNode::CODE]         = &HermesASTInterpreter::visitCurrentNode;
+    map[ast::FilterExpressionNode::CODE] = &HermesASTInterpreter::visitFilterExpressionNode;
+    map[ast::FunctionExpressionNode::CODE] = &HermesASTInterpreter::visitFunctionExpressionNode;
+    map[ast::ExpressionArgumentNode::CODE] = &HermesASTInterpreter::visitExpressionArgumentNode;
+
+    return map;
+}
+
+const HermesASTInterpreter::VisitorsMap& HermesASTInterpreter::visitors_map() {
+    static VisitorsMap map = build_visitors_map();
+    return map;
+}
+
+ObjectPtr HermesASTInterpreter::expect_attr(const ObjectMapPtr& map, U8StringView name)
+{
+    auto res = map->get(name);
+    if (MMA_LIKELY(res->is_not_null())) {
+        return res;
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Expected '{}' attribute is null", name).do_throw();
+    }
+}
 
 }} // namespace hermes::path::interpreter

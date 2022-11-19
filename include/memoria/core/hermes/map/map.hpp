@@ -188,7 +188,7 @@ public:
 
     bool is_simple_layout() const noexcept
     {
-        if (size() > 2) {
+        if (size() > 1) {
             return false;
         }
 

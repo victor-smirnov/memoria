@@ -35,6 +35,8 @@
 #include <memoria/core/hermes/path/exceptions.h>
 #include <memoria/core/hermes/path/expression.h>
 
+#include <memoria/core/hermes/traits.hpp>
+
 namespace memoria {
 namespace hermes {
 namespace path {
@@ -66,6 +68,10 @@ namespace path {
 ObjectPtr search(const Expression& expression, const ObjectPtr& document);
 
 ObjectPtr search(const Expression& expression, const ObjectPtr& document, const IParameterResolver& resolver);
+
+ObjectPtr search(const ObjectMapPtr& expression, const ObjectPtr& document);
+
+ObjectPtr search(const ObjectMapPtr& expression, const ObjectPtr& document, const IParameterResolver& resolver);
 
 }
 }}

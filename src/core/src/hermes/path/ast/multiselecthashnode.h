@@ -81,6 +81,8 @@ public:
      * @brief The node's child expressions.
      */
     std::vector<KeyValuePairType> expressions;
+
+    static constexpr int64_t CODE = 16;
 };
 }} // namespace hermes::path::ast
 

@@ -68,6 +68,8 @@ public:
      * @brief The raw string value
      */
     String rawString;
+
+    static constexpr int64_t CODE = 22;
 };
 }} // namespace hermes::path::ast
 

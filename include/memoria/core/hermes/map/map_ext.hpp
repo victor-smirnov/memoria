@@ -216,8 +216,9 @@ inline void Map<Varchar, Object>::put(StringValuePtr name, ObjectPtr value) {
     assert_mutable();
 
     if (!value->is_null()) {
-        auto arena = doc_->arena();
-        map_->put(*arena, name->dt_ctr(), value->storage_.addr);
+        auto arena = doc_->arena();        
+        auto vv = doc_->do_import_value(value);
+        map_->put(*arena, name->dt_ctr(), vv->storage_.addr);
     }
 }
 
@@ -303,5 +304,7 @@ PoolSharedPtr<GenericMapEntry> TypedGenericMap<KeyDT, Object>::iterator() const
     static thread_local GMEntryPoolPtrT entry_pool = MakeShared<GMEntryPoolT>();
     return entry_pool->allocate_shared(map_.begin(), map_.end(), map_.document().get(), ctr_holder_);
 }
+
+
 
 }}

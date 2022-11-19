@@ -58,8 +58,8 @@ public:
      */
     template <typename T, typename
         std::enable_if<
-            std::is_base_of<ast::BinaryExpressionNode,
-                            T>::value, int>::type = 0>
+            std::is_base_of_v<ast::BinaryExpressionNode,
+                            T>, int>::type = 0>
     bool operator()(const ast::ExpressionNode& targetNode,
                     const T& node) const
     {
@@ -77,8 +77,8 @@ public:
 
     template <typename T, typename
         std::enable_if<
-            !std::is_base_of<ast::BinaryExpressionNode,
-                             T>::value, int>::type = 0>
+            !std::is_base_of_v<ast::BinaryExpressionNode,
+                             T>, int>::type = 0>
     bool operator()(const ast::ExpressionNode& targetNode,
                     const T& node) const
     {

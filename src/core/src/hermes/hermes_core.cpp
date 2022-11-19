@@ -75,15 +75,29 @@ uint64_t Parameter::hash_code() const {
     return hash(dt_ctr_->view());
 }
 
-ObjectPtr Object::search(U8StringView query) const
+ObjectPtr Object::search2(U8StringView query) const
 {
     hermes::path::Expression exp(std::string{query});
     return hermes::path::search(exp, ObjectPtr(Object(storage_.addr, doc_, get_ptr_holder())));
 }
 
-ObjectPtr Object::search(U8StringView query, const IParameterResolver& params) const
+ObjectPtr Object::search2(U8StringView query, const IParameterResolver& params) const
 {
     hermes::path::Expression exp(std::string{query});
+    return hermes::path::search(exp, ObjectPtr(Object(storage_.addr, doc_, get_ptr_holder())), params);
+}
+
+ObjectPtr Object::search(U8StringView query) const
+{
+    auto ast = HermesCtr::parse_hermes_path(query);
+    auto exp = ast->root()->as_object_map();
+    return hermes::path::search(exp, ObjectPtr(Object(storage_.addr, doc_, get_ptr_holder())));
+}
+
+ObjectPtr Object::search(U8StringView query, const IParameterResolver& params) const
+{
+    auto ast = HermesCtr::parse_hermes_path(query);
+    auto exp = ast->root()->as_object_map();
     return hermes::path::search(exp, ObjectPtr(Object(storage_.addr, doc_, get_ptr_holder())), params);
 }
 

@@ -69,6 +69,8 @@ public:
      * @brief The node's child expression.
      */
     ExpressionNode expression;
+
+    static constexpr int64_t CODE = 7;
 };
 }} // namespace hermes::path::ast
 

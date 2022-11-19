@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include <memoria/core/types.hpp>
+
 namespace memoria::hermes::path { namespace interpreter {
 
 class AbstractVisitor;

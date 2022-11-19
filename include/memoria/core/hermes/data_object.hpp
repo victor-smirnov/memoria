@@ -132,7 +132,7 @@ public:
 
     DataObject(DataObject&& other) noexcept :
         Base(std::move(other)),
-        doc_(other.doc_),
+        doc_(std::move(other.doc_)),
         storage_(std::move(other.storage_))
     {
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
@@ -160,6 +160,7 @@ public:
 
         Base::operator=(other);
         storage_ = other.storage_;
+        doc_ = other.doc_;
 
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (storage_.view_ptr) {
@@ -180,6 +181,7 @@ public:
 
         Base::operator=(std::move(other));
         storage_ = std::move(other.storage_);
+        doc_ = std::move(other.doc_);
 
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             other.storage_.view_ptr = nullptr;
@@ -211,7 +213,7 @@ public:
     U8String to_plain_string() const
     {
         assert_not_null();
-        auto tag = arena::read_type_tag(storage_.addr);
+        auto tag = get_type_tag();
         return get_type_reflection(tag).convert_to_plain_string(get_vs_tag(), storage_, doc_, this->get_ptr_holder());
     }
 
@@ -237,11 +239,13 @@ public:
     }
 
     bool is_null() const noexcept {
-        return storage_.addr == nullptr;
+        return this->get_ptr_holder() == nullptr ||
+                (get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS
+                 && storage_.addr == nullptr);
     }
 
     bool is_not_null() const noexcept {
-        return storage_.addr != nullptr;
+        return !is_null();
     }
 
     ObjectPtr as_object() const {
@@ -325,7 +329,8 @@ public:
         {
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_compare(
-                    storage_.addr, doc_, this->get_ptr_holder(), other->storage_.addr, other->doc_, other->get_ptr_holder()
+                    get_vs_tag(), storage_, doc_, this->get_ptr_holder(),
+                    other->get_vs_tag(), other->storage_, other->doc_, other->get_ptr_holder()
             );
         }
         else {
@@ -399,7 +404,7 @@ private:
 
     void assert_not_null() const
     {
-        if (MMA_UNLIKELY(storage_.addr == nullptr)) {
+        if (MMA_UNLIKELY(is_null())) {
             MEMORIA_MAKE_GENERIC_ERROR("Datatype<Varchar> is null").do_throw();
         }
     }

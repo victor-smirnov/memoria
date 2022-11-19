@@ -71,6 +71,8 @@ public:
      * @param[in] visitor A visitor implementation
      */
     void accept(interpreter::AbstractVisitor* visitor) const override;
+
+    static constexpr int64_t CODE = 2;
 };
 }} // namespace hermes::path::ast
 

@@ -28,6 +28,9 @@
 ****************************************************************************/
 #include "memoria/core/hermes/path/path.h"
 #include "interpreter/interpreter.h"
+
+#include "interpreter/hermes_ast_interpreter.h"
+
 #include <boost/hana.hpp>
 
 namespace memoria::hermes::path {
@@ -72,6 +75,49 @@ ObjectPtr search(const Expression &expression, const ObjectPtr& value, const IPa
 
     return s_interpreter.currentContextValue();
 }
+
+
+ObjectPtr search(const ObjectMapPtr &expression, const ObjectPtr& value)
+{
+    using interpreter2::HermesASTInterpreter;
+    if (expression->empty())
+    {
+        return {};
+    }
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+    thread_local HermesASTInterpreter s_interpreter;
+#pragma clang diagnostic pop
+    s_interpreter.setContext(value);
+
+    // evaluate the expression by calling visit with the root of the AST
+    s_interpreter.visit(expression);
+
+    return s_interpreter.currentContextValue();
+}
+
+ObjectPtr search(const ObjectMapPtr &expression, const ObjectPtr& value, const IParameterResolver& resolver)
+{
+    using interpreter2::HermesASTInterpreter;
+    if (expression->empty())
+    {
+        return {};
+    }
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+    thread_local HermesASTInterpreter s_interpreter;
+#pragma clang diagnostic pop
+    s_interpreter.setContext(value);
+    s_interpreter.set_parameter_resolver(&resolver);
+
+    // evaluate the expression by calling visit with the root of the AST
+    s_interpreter.visit(expression);
+
+    return s_interpreter.currentContextValue();
+}
+
 
 
 }

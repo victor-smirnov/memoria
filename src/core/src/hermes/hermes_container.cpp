@@ -123,7 +123,8 @@ ObjectArrayPtr HermesCtr::new_array(Span<ObjectPtr> span)
     {
         arena_arr->enlarge(*arena_, span.size());
         for (auto& value: span) {
-            arena_arr->push_back(*arena_, value->storage_.addr);
+            auto vv = this->do_import_value(value);
+            arena_arr->push_back(*arena_, vv->storage_.addr);
         }
     }
 
@@ -158,8 +159,10 @@ DatatypePtr HermesCtr::new_datatype(StringValuePtr name)
 
 TypedValuePtr HermesCtr::new_typed_value(DatatypePtr datatype, ObjectPtr constructor)
 {
+    ObjectPtr vv_ctr = do_import_value(constructor);
+
     auto arena_tv = arena()->allocate_tagged_object<detail::TypedValueData>(
-        ShortTypeCode::of<TypedValue>(), datatype->datatype_, constructor->storage_.addr
+        ShortTypeCode::of<TypedValue>(), datatype->datatype_, vv_ctr->storage_.addr
     );
 
     return TypedValuePtr(TypedValue(arena_tv, this, ptr_holder_));
@@ -251,6 +254,8 @@ hermes::DatatypePtr strip_namespaces(hermes::DatatypePtr src)
 
     return tgt;
 }
+
+
 
 
 }}

@@ -88,6 +88,8 @@ public:
      * @brief The right hand expression of the node.
      */
     ExpressionNode rightExpression;
+
+    static constexpr int64_t CODE = 4;
 };
 }} // namespace hermes::path::ast
 

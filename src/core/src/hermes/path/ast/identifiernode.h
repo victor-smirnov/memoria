@@ -68,6 +68,8 @@ public:
      * @brief Name of the identifier
      */
     String identifier;
+
+    static constexpr int64_t CODE = 13;
 };
 }} // namespace hermes::path::ast
 

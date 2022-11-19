@@ -234,6 +234,27 @@ inline DataObjectPtr<Real> Object::as_real() const {
     return cast_to<DataObject<Real>>();
 }
 
+inline int64_t Object::to_i64() const {
+    return *convert_to<BigInt>()->as_data_object<BigInt>()->view();
+}
+
+inline U8String Object::to_str() const {
+    return *convert_to<Varchar>()->as_data_object<Varchar>()->view();
+}
+
+inline bool Object::to_bool() const {
+    return *convert_to<Boolean>()->as_data_object<Boolean>()->view();
+}
+
+inline double Object::to_d64() const {
+    return *convert_to<Double>()->as_data_object<Double>()->view();
+}
+
+inline float Object::to_f32() const {
+    return *convert_to<Real>()->as_data_object<Real>()->view();
+}
+
+
 inline U8String Object::type_str() const {
     assert_not_null();
     auto tag = get_type_tag();
@@ -306,6 +327,15 @@ template <typename DT>
 ObjectPtr HermesCtr::new_from_string(U8StringView str) {
     auto tag = ShortTypeCode::of<DT>();
     return get_type_reflection(tag).datatype_convert_from_plain_string(str);
+}
+
+
+inline ObjectMapPtr Object::as_object_map() const {
+    return cast_to<Map<Varchar, Object>>();
+}
+
+inline ObjectArrayPtr Object::as_object_array() const {
+    return cast_to<Array<Object>>();
 }
 
 

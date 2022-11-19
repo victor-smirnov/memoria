@@ -102,7 +102,7 @@ public:
 
     Object(Object&& other) noexcept :
         Base(std::move(other)),
-        doc_(other.doc_),
+        doc_(std::move(other.doc_)),
         storage_(std::move(other.storage_))
     {
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
@@ -130,6 +130,7 @@ public:
 
         Base::operator=(other);
         storage_ = other.storage_;
+        doc_ = other.doc_;
 
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (storage_.view_ptr) {
@@ -150,6 +151,7 @@ public:
 
         Base::operator=(std::move(other));
         storage_ = std::move(other.storage_);
+        doc_ = std::move(other.doc_);
 
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             other.storage_.view_ptr = nullptr;
@@ -169,6 +171,9 @@ public:
 
     ObjectPtr search(U8StringView query) const;
     ObjectPtr search(U8StringView query, const IParameterResolver& params) const;
+
+    ObjectPtr search2(U8StringView query) const;
+    ObjectPtr search2(U8StringView query, const IParameterResolver& params) const;
 
     bool is_convertible_to_plain_string() const
     {
@@ -220,14 +225,17 @@ public:
     }
 
     bool is_array() const noexcept {
+        assert_not_null();
         return get_type_tag().descriptor() == HERMES_OBJECT_ARRAY;
     }
 
     bool is_map() const noexcept {
+        assert_not_null();
         return get_type_tag().descriptor() == HERMES_OBJECT_MAP;
     }
 
     bool is_data() const noexcept {
+        assert_not_null();
         return get_type_tag().descriptor() == 0;
     }
 
@@ -351,6 +359,7 @@ public:
         }
     }
 
+
     GenericArrayPtr as_generic_array() const;
     GenericMapPtr as_generic_map() const;
     DatatypePtr as_datatype() const;
@@ -360,6 +369,24 @@ public:
     DataObjectPtr<BigInt> as_bigint() const;
     DataObjectPtr<Boolean> as_boolean() const;
     DataObjectPtr<Real> as_real() const;
+
+    int64_t to_i64() const;
+    U8String to_str() const;
+    bool to_bool() const;
+    double to_d64() const;
+    float to_f32() const;
+
+    bool is_object_map() const {
+        return is_a<Map<Varchar, Object>>();
+    }
+
+    bool is_object_array() const {
+        return is_a<Array<Object>>();
+    }
+
+    ObjectMapPtr as_object_map() const;
+    ObjectArrayPtr as_object_array() const;
+
 
     U8String type_str() const;
 
@@ -446,7 +473,7 @@ public:
     U8String to_pretty_string() const
     {
         StringifyCfg cfg;
-        cfg.set_spec(StringifySpec::simple());
+        cfg.set_spec(StringifySpec());
         return to_string(cfg);
     }
 

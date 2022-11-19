@@ -58,5 +58,7 @@ public:
      * false
      */
     bool operator==(const FlattenOperatorNode& other) const;
+
+    static constexpr int64_t CODE = 9;
 };
 }} // namespace hermes::path::ast

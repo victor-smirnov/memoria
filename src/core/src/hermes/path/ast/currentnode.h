@@ -57,5 +57,7 @@ public:
      * false
      */
     bool operator==(const CurrentNode& other) const;
+
+    static constexpr int64_t CODE = 6;
 };
 }} // namespace hermes::path::ast

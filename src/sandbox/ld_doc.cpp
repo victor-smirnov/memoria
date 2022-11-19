@@ -25,9 +25,12 @@
 #include <memoria/core/hermes/path/path.h>
 
 #include <memoria/memoria.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #include <arrow/util/basic_decimal.h>
 #include <arrow/util/decimal.h>
+
+#include <boost/pool/pool_alloc.hpp>
 
 #include <unordered_map>
 
@@ -35,18 +38,32 @@ using namespace memoria;
 using namespace memoria;
 using namespace memoria::hermes;
 
-template <typename T>
-class Boo{};
-
-class TTT {};
-
 int main(int, char**)
 {
     InitTypeReflections();
 
+    //reservations[].instances[].[tags[?Key=='Name'].Values[] | [0], type, state.name]
+
+//    auto expr = R"(
+//        myarray[?contains(@, 'foo') == ^true]
+//    )";
+
+//    auto doc = HermesCtr::parse_hermes_path(expr);
+//    println("result: {}", doc->to_pretty_string());
+
     auto doc = HermesCtr::parse_document(R"(
-        <Integer, Object> {-1234: 'abcd', 567: [1]}
+{
+  "locations": [
+    {"name": "Seattle", "state": "WA"},
+    {"name": "New York", "state": "NY"},
+    {"name": "Bellevue", "state": "WA"},
+    {"name": "Olympia", "state": "WA"}
+  ]
+}
     )");
 
-    println("result: {}", doc->to_pretty_string());
+    auto doc2 = doc->root()->search(R"(locations[?state == 'WA'].name | sort(@)[-2:] | {WashingtonCities: join(', ', @)})");
+    println("result: {}", doc2->to_pretty_string());
+
+    return 0;
 }

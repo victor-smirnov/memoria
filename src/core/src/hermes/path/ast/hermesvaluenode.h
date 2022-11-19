@@ -71,6 +71,8 @@ public:
      * @brief The raw string value
      */
     ObjectPtr value;
+
+    static constexpr int64_t CODE = 12;
 };
 }} // namespace hermes::path::ast
 

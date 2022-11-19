@@ -64,6 +64,8 @@ public:
      * otherwise returns false.
      */
     bool stopsProjection() const override;
+
+    static constexpr int64_t CODE = 24;
 };
 }} // namespace hermes::path::ast
 

@@ -738,4 +738,29 @@ using GenericArrayPtr   = PoolSharedPtr<GenericArray>;
 using GenericMapPtr     = PoolSharedPtr<GenericMap>;
 using GenericObjectPtr  = PoolSharedPtr<GenericObject>;
 
+class HermesASTNode {
+    U8StringView name_;
+    uint64_t code_;
+public:
+    constexpr HermesASTNode(uint64_t code):
+        name_(), code_(code)
+    {}
+
+    constexpr HermesASTNode(U8StringView name, uint64_t code):
+        name_(name), code_(code)
+    {}
+
+    constexpr U8StringView name() const {
+        return name_;
+    }
+
+    constexpr uint64_t code() const {
+        return code_;
+    }
+
+    constexpr bool is_anonymous() const {
+        return name_.size() == 0;
+    }
+};
+
 }}

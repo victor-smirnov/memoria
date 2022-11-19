@@ -99,6 +99,8 @@ public:
      * @brief The type of comparator associated with the expression.
      */
     Comparator comparator;
+
+    static constexpr int64_t CODE = 5;
 };
 }} // namespace hermes::path::ast
 

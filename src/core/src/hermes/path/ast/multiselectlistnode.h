@@ -78,6 +78,8 @@ public:
      * @brief The node's child expressions.
      */
     std::vector<ExpressionNode> expressions;
+
+    static constexpr int64_t CODE = 17;
 };
 }} // namespace hermes::path::ast
 

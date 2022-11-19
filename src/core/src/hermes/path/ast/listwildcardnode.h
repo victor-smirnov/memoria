@@ -55,5 +55,7 @@ public:
      * false
      */
     bool operator==(const ListWildcardNode& other) const;
+
+    static constexpr int64_t CODE = 15;
 };
 }} // namespace hermes::path::ast

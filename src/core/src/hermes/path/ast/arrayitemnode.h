@@ -69,6 +69,8 @@ public:
      * @brief The node's value.
      */
     Index index;
+
+    static constexpr int64_t CODE = 3;
 };
 }} // namespace hermes::path::ast
 

@@ -244,4 +244,8 @@ struct HermesCtrBuilderCleanup {
     }
 };
 
+static inline PoolSharedPtr<HermesCtr> current_ctr() {
+    return HermesCtrBuilder::current().doc();
+}
+
 }

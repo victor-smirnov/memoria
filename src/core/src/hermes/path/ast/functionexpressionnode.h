@@ -83,6 +83,8 @@ public:
      * @brief The function expressions's arguments.
      */
     std::vector<ArgumentType> arguments;
+
+    static constexpr int64_t CODE = 10;
 };
 }} // namespace hermes::path::ast
 

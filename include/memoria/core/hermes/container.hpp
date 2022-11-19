@@ -313,6 +313,8 @@ public:
     template <typename DT>
     ObjectPtr new_from_string(U8StringView str);
 
+    static PoolSharedPtr<HermesCtr> parse_hermes_path(U8StringView text);
+
 protected:
     template <typename DT>
     static DataObjectPtr<DT> wrap_dataobject__full(DTTViewType<DT> view);
@@ -323,12 +325,6 @@ protected:
     HermesCtr* mutable_self() const {
         return const_cast<HermesCtr*>(this);
     }
-
-
-
-
-
-
 
     void deep_copy_from(const DocumentHeader* header, DeepCopyDeduplicator& dedup);
 

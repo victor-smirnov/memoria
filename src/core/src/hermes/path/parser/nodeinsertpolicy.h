@@ -53,9 +53,9 @@ public:
      * @{
      */
     template <typename T, typename
-        std::enable_if<
-            std::is_base_of<ast::BinaryExpressionNode, T>::value
-            && !std::is_same<ast::SubexpressionNode, T>::value, int>::type = 0>
+        std::enable_if_t<
+            std::is_base_of_v<ast::BinaryExpressionNode, T>
+            && !std::is_same_v<ast::SubexpressionNode, T>, int> = 0>
     void operator()(ast::ExpressionNode& targetNode,
                     T& node) const
     {
@@ -64,8 +64,8 @@ public:
     }
 
     template <typename T, typename
-        std::enable_if<
-            std::is_same<ast::NotExpressionNode, T>::value, int>::type = 0>
+        std::enable_if_t<
+            std::is_same_v<ast::NotExpressionNode, T>, int> = 0>
     void operator()(ast::ExpressionNode& targetNode,
                     T& node) const
     {
@@ -74,11 +74,11 @@ public:
     }
 
     template <typename T, typename
-        std::enable_if<
-            (!std::is_base_of<ast::BinaryExpressionNode, T>::value
-            && !std::is_same<ast::NotExpressionNode, T>::value
-            && std::is_assignable<ast::ExpressionNode, T>::value)
-            || std::is_same<ast::SubexpressionNode, T>::value, int>::type = 0>
+        std::enable_if_t<
+            (!std::is_base_of_v<ast::BinaryExpressionNode, T>
+            && !std::is_same_v<ast::NotExpressionNode, T>
+            && std::is_assignable_v<ast::ExpressionNode, T>)
+            || std::is_same_v<ast::SubexpressionNode, T>, int> = 0>
     void operator()(ast::ExpressionNode& targetNode,
                     T& node) const
     {
