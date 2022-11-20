@@ -33,17 +33,11 @@
 
 #include "hermes_internal.hpp"
 #include "hermes_grammar_value.hpp"
-
 #include "path/parser/grammar.h"
-
 
 #include <memoria/core/hermes/path/expression.h>
 
-
-
-#include "path/ast/allnodes.h"
-
-
+//#include "path/ast/allnodes.h"
 
 #include <iostream>
 #include <fstream>
@@ -55,7 +49,6 @@ namespace memoria {
 namespace hermes {
 
 using IteratorType = path::U8UnicodeIteratorAdaptor;
-
 
 namespace qi  = boost::spirit::qi;
 namespace enc = qi::unicode;

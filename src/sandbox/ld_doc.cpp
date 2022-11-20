@@ -42,28 +42,11 @@ int main(int, char**)
 {
     InitTypeReflections();
 
-    //reservations[].instances[].[tags[?Key=='Name'].Values[] | [0], type, state.name]
-
-//    auto expr = R"(
-//        myarray[?contains(@, 'foo') == ^true]
-//    )";
-
-//    auto doc = HermesCtr::parse_hermes_path(expr);
-//    println("result: {}", doc->to_pretty_string());
-
-    auto doc = HermesCtr::parse_document(R"(
-{
-  "locations": [
-    {"name": "Seattle", "state": "WA"},
-    {"name": "New York", "state": "NY"},
-    {"name": "Bellevue", "state": "WA"},
-    {"name": "Olympia", "state": "WA"}
-  ]
-}
+    auto doc = parse_template(R"(
+        key
     )");
 
-    auto doc2 = doc->root()->search(R"(locations[?state == 'WA'].name | sort(@)[-2:] | {WashingtonCities: join(', ', @)})");
-    println("result: {}", doc2->to_pretty_string());
+    println("{}", doc->to_pretty_string());
 
     return 0;
 }

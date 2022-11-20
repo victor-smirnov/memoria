@@ -66,7 +66,7 @@ class HermesASTConverter: public interpreter::AbstractVisitor, public ast::Expre
 
     bool add_string_names_;
 public:
-    HermesASTConverter(bool add_string_names = false):
+    HermesASTConverter(bool add_string_names = true):
         add_string_names_(add_string_names)
     {}
 
@@ -83,6 +83,9 @@ public:
         if (node->isNull())
         {
             auto map = current_ctr()->new_map();
+            if (add_string_names_) {
+                map->put_dataobject<Varchar>(AST_NODE_NAME_ATTR, "NullNode");
+            }
             map->put_dataobject<BigInt>(CODE_ATTR, node->NULL_NODE_CODE);
             context_ = map->as_object();
         }
