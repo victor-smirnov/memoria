@@ -34,9 +34,7 @@
 #include "hermes_internal.hpp"
 #include "hermes_grammar_value.hpp"
 
-//#include "path/parser/hermes_grammar_path.hpp"
-
-#include "path/parser/hermes_path_ast_converter.h"
+#include "path/parser/grammar.h"
 
 
 #include <memoria/core/hermes/path/expression.h>
@@ -334,28 +332,39 @@ void parse_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc)
 }
 
 
-//template <typename Iterator>
-//void parse_hermes_path_expr(Iterator& first, Iterator& last, HermesCtr& doc)
-//{
-//    HermesCtrBuilderCleanup cleanup;
-//    HermesCtrBuilder::enter(doc.self());
+template <typename Iterator>
+void parse_hermes_path_expr(Iterator& first, Iterator& last, HermesCtr& doc)
+{
+    HermesCtrBuilderCleanup cleanup;
+    HermesCtrBuilder::enter(doc.self());
 
-//    static thread_local HermesDocParser<Iterator> const grammar;
+    using Grammar = path::parser::HOGrammar<Iterator>;
 
-//    Iterator start = first;
-//    try {
-//        bool r = qi::phrase_parse(first, last, grammar, grammar.skipper);
-//        if (!r) {
-//            MEMORIA_MAKE_GENERIC_ERROR("Hermes document parse failure").do_throw();
-//        }
-//        else if (first != last) {
-//            ErrorMessageResolver::instance().do_throw(start, first, last);
-//        }
-//    }
-//    catch (const ExpectationException<Iterator>& ex) {
-//        ErrorMessageResolver::instance().do_throw(start, ex);
-//    }
-//}
+    static thread_local Grammar const grammar;
+
+    Optional<ObjectPtr> result;
+
+    Iterator start = first;
+    try {
+        bool r = qi::phrase_parse(first, last, grammar, typename Grammar::SkipperT(), result);
+        if (!r) {
+            MEMORIA_MAKE_GENERIC_ERROR("Hermes document parse failure").do_throw();
+        }
+        else if (first != last) {
+            ErrorMessageResolver::instance().do_throw(start, first, last);
+        }
+
+        if (result.is_initialized()) {
+            doc.set_root(result.get());
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Empty HermesPath expression").do_throw();
+        }
+    }
+    catch (const ExpectationException<Iterator>& ex) {
+        ErrorMessageResolver::instance().do_throw(start, ex);
+    }
+}
 
 
 
@@ -490,26 +499,11 @@ PoolSharedPtr<HermesCtr> HermesCtr::parse_hermes_path(U8StringView text)
 {
     PoolSharedPtr<HermesCtrImpl> doc = TL_get_reusable_shared_instance<HermesCtrImpl>();
 
-//    IteratorType beginIt(text.begin());
-//    IteratorType it = beginIt;
-//    IteratorType endIt(text.end());
+    IteratorType beginIt(text.begin());
+    IteratorType it = beginIt;
+    IteratorType endIt(text.end());
 
-//    parse_hermes_path_expr(it, endIt, *doc);
-
-    HermesCtrBuilderCleanup cleanup;
-    HermesCtrBuilder::enter(doc->self());
-
-    U8String ee = text;
-    path::Expression exp(ee.to_std_string());
-
-    const path::ast::ExpressionNode* root = exp.astRoot();
-
-    path::parser::HermesASTConverter cvt;
-    cvt.visit(root);
-
-    if (cvt.context().is_initialized()) {
-        doc->set_root(cvt.context().get());
-    }
+    parse_hermes_path_expr(it, endIt, *doc);
 
     return doc;
 }

@@ -2,6 +2,7 @@
 **
 ** Author: Róbert Márki <gsmiko@gmail.com>
 ** Copyright (c) 2016 Róbert Márki
+** Copyright (c) 2022 Victor Smirnov
 **
 ** This file is originally based on the jmespath.cpp project
 ** (https://github.com/robertmrk/jmespath.cpp, commitid: 9c9702a)
@@ -45,8 +46,11 @@
 #include "../../hermes_grammar_strings.hpp"
 #include "../../hermes_grammar_value.hpp"
 
+#include "hermes_path_ast_converter.h"
+
 #include <boost/spirit/include/qi.hpp>
 #include <boost/phoenix.hpp>
+#include <boost/spirit/include/phoenix_fusion.hpp>
 
 /**
  * @namespace hermes::path::parser
@@ -57,6 +61,7 @@ namespace memoria::hermes::path { namespace parser {
 namespace qi = boost::spirit::qi;
 namespace encoding = qi::unicode;
 namespace phx = boost::phoenix;
+namespace bf  = boost::fusion;
 
 
 template <typename Iterator, typename Skipper>
@@ -82,9 +87,7 @@ using PathStringRuleSet = memoria::hermes::parser::StringsRuleSet<
  * @sa http://hermes::path.org/specification.html#grammar
  */
 template <typename Iterator, typename Skipper = encoding::space_type>
-class Grammar : public qi::grammar<Iterator,
-                                   ast::ExpressionNode(),
-                                   Skipper>,
+class GrammarRuleSet:
     public PathStringRuleSet<Iterator, Skipper>,
     public HermesValueRulesLib<Iterator, Skipper>
 {
@@ -99,12 +102,12 @@ class Grammar : public qi::grammar<Iterator,
     using ValueLib::hermes_value;
 
 public:
+    using SkipperT = Skipper;
+
     /**
      * @brief Constructs a Grammar object
      */
-    Grammar()
-        : Grammar::base_type(m_topLevelExpressionRule)
-    {
+    GrammarRuleSet() {
         using encoding::char_;
         using qi::lit;
         using qi::lexeme;
@@ -316,12 +319,25 @@ public:
         m_keyValuePairRule = m_identifierRule >> lit(':') >> m_expressionRule;
 
         m_hermesValueRule = lit('^') >> hermes_value;
+
+        auto convert_expression = [](auto& attrib, auto& ctx){
+            HermesASTConverter cvt;
+            cvt.visit(&attrib);
+            bf::at_c<0>(ctx.attributes) = cvt.context();
+        };
+
+        m_topLevelExpressionHORule = m_topLevelExpressionRule [convert_expression];
     }
 
-private:
+protected:
     qi::rule<Iterator,
-             ast::ExpressionNode(),
-             Skipper> m_topLevelExpressionRule;
+            ast::ExpressionNode(),
+            Skipper> m_topLevelExpressionRule;
+
+    qi::rule<Iterator,
+            Optional<ObjectPtr>(),
+            Skipper> m_topLevelExpressionHORule;
+
     qi::rule<Iterator,
              ast::ExpressionNode(),
              qi::locals<ast::ExpressionNode>,
@@ -403,7 +419,47 @@ private:
              Skipper> m_hermesValueRule;
 
     qi::rule<Iterator, ast::CurrentNode()>  m_currentNodeRule;
-    qi::rule<Iterator, Index()>     m_indexRule;
+    qi::rule<Iterator, Index()> m_indexRule;
 };
+
+
+template <typename Iterator, typename Skipper = encoding::space_type>
+class Grammar: public GrammarRuleSet<Iterator, Skipper>, public qi::grammar<Iterator,
+    ast::ExpressionNode(),
+    Skipper>
+{
+    using RulesBase = GrammarRuleSet<Iterator, Skipper>;
+    using GrammarBase = qi::grammar<Iterator,
+            ast::ExpressionNode(),
+            Skipper
+    >;
+
+public:
+    using RulesBase::m_topLevelExpressionRule;
+
+    Grammar(): GrammarBase::base_type(m_topLevelExpressionRule)
+    {
+    }
+};
+
+template <typename Iterator, typename Skipper = encoding::space_type>
+class HOGrammar: public GrammarRuleSet<Iterator, Skipper>, public qi::grammar<Iterator,
+    Optional<ObjectPtr>(),
+    Skipper>
+{
+    using RulesBase = GrammarRuleSet<Iterator, Skipper>;
+    using GrammarBase = qi::grammar<Iterator,
+            Optional<ObjectPtr>(),
+            Skipper
+    >;
+
+public:
+    using RulesBase::m_topLevelExpressionHORule;
+
+    HOGrammar(): GrammarBase::base_type(m_topLevelExpressionHORule)
+    {
+    }
+};
+
 }} // namespace hermes::path::parser
 
