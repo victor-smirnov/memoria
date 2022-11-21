@@ -293,7 +293,8 @@ public:
 
     ObjectMapPtr new_map();
     ObjectArrayPtr new_array();
-    ObjectArrayPtr new_array(Span<ObjectPtr> span);
+    ObjectArrayPtr new_array(Span<const ObjectPtr> span);
+    ObjectArrayPtr new_array(const std::vector<ObjectPtr>& array);
 
     template <typename DT>
     ArrayPtr<DT> new_typed_array();

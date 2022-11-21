@@ -55,4 +55,17 @@ bool HermesValueNode::operator==(const HermesValueNode &other) const
     }
     return true;
 }
+
+ObjectPtr HermesArrayNode::to_hermes_array(HermesCtr& doc) const {
+    auto array = doc.new_array();
+
+    for (auto& var: this->array) {
+        array->append(std::move(var.value));
+    }
+
+    return array->as_object();
+}
+
+
+
 }} // namespace hermes::path::ast

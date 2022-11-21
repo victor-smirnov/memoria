@@ -94,6 +94,7 @@ class GrammarRuleSet:
     using StringLib = PathStringRuleSet<Iterator, Skipper>;
     using ValueLib  = HermesValueRulesLib<Iterator, Skipper>;
 
+protected:
     using StringLib::m_identifierRule;
     using StringLib::m_rawStringRule;
     using StringLib::m_quotedStringRule;

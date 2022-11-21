@@ -33,6 +33,8 @@
 #include <memoria/core/hermes/path/types.h>
 #include <boost/fusion/include/adapt_struct.hpp>
 
+#include <memoria/core/hermes/hermes.hpp>
+
 namespace memoria::hermes::path { namespace ast {
 
 /**

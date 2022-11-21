@@ -111,7 +111,7 @@ ObjectArrayPtr HermesCtr::new_array()
     return ObjectArrayPtr(CtrT(arena_dtc, this, ptr_holder_));
 }
 
-ObjectArrayPtr HermesCtr::new_array(Span<ObjectPtr> span)
+ObjectArrayPtr HermesCtr::new_array(Span<const ObjectPtr> span)
 {
     using CtrT = ObjectArray;
 
@@ -129,6 +129,10 @@ ObjectArrayPtr HermesCtr::new_array(Span<ObjectPtr> span)
     }
 
     return ObjectArrayPtr(CtrT(arena_arr, this, ptr_holder_));
+}
+
+ObjectArrayPtr HermesCtr::new_array(const std::vector<ObjectPtr>& array) {
+    return new_array(Span<const ObjectPtr>(array.data(), array.size()));
 }
 
 

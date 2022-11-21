@@ -43,7 +43,11 @@ int main(int, char**)
     InitTypeReflections();
 
     auto doc = parse_template(R"(
-        key
+        {%- if someVar +%}
+            coll text 1
+        {% else %}
+            cool text 2
+        {%+ endif -%}
     )");
 
     println("{}", doc->to_pretty_string());

@@ -96,10 +96,15 @@ public:
 
     ObjectMapPtr new_ast_node(int64_t code, U8StringView name)
     {
+        return new_ast_node(code, name, add_string_names_);
+    }
+
+    static ObjectMapPtr new_ast_node(int64_t code, U8StringView name, bool add_string_names)
+    {
         auto map = current_ctr()->new_map();
         map->put_dataobject<BigInt>(CODE_ATTR, code);
 
-        if (add_string_names_) {
+        if (add_string_names) {
             map->put_dataobject<Varchar>(AST_NODE_NAME_ATTR, name);
         }
 
@@ -108,9 +113,14 @@ public:
 
     virtual void visit(const ast::IdentifierNode* node)
     {
-        auto map = new_ast_node(node->CODE, IDENTIFIER_NODE_NAME);
-        map->put_dataobject<Varchar>(IDENTIFIER, node->identifier);
-        context_ = map->as_object();
+        context_ = new_identifier(*current_ctr(), *node, add_string_names_)->as_object();
+    }
+
+    static ObjectMapPtr new_identifier(HermesCtr& ctr, const ast::IdentifierNode& node, bool add_node_name = false)
+    {
+        auto map = new_ast_node(node.CODE, IDENTIFIER_NODE_NAME, add_node_name);
+        map->put_dataobject<Varchar>(IDENTIFIER, node.identifier);
+        return map;
     }
 
     virtual void visit(const ast::RawStringNode* node)

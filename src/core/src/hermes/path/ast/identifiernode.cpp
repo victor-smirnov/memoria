@@ -55,4 +55,6 @@ bool IdentifierNode::operator==(const IdentifierNode &other) const
     }
     return true;
 }
+
+
 }} // namespace hermes::path::ast

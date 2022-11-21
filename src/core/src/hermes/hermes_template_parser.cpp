@@ -31,7 +31,13 @@
 #include "hermes_internal.hpp"
 #include "path/parser/grammar.h"
 
-#include <memoria/core/hermes/path/expression.h>
+#include "path/parser/appendutf8action.h"
+//#include "path/parser/appendescapesequenceaction.h"
+#include "path/ast/rawstringnode.h"
+
+#include "path/ast/hermesvaluenode.h"
+
+#include "hermes_template_parser.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -57,7 +63,7 @@ struct HermesTemplateParser :
     >,
     qi::grammar<
         Iterator,
-        ObjectPtr(),
+        path::ast::HermesValueNode(),
         Skipper
     >
 {
@@ -65,7 +71,11 @@ struct HermesTemplateParser :
         Iterator
     >;
 
+    using HermesObject = path::ast::HermesValueNode;
+    using HermesArray  = path::ast::HermesArrayNode;
+
     using RuleLib::m_topLevelExpressionHORule;
+    using RuleLib::m_identifierRule;
 
     HermesTemplateParser() :
         HermesTemplateParser::base_type(
@@ -77,6 +87,7 @@ struct HermesTemplateParser :
         using qi::lexeme;
         using enc::char_;
         using qi::_val;
+        using qi::_a;
         using qi::eol;
         using qi::eoi;
         using qi::_pass;
@@ -86,10 +97,90 @@ struct HermesTemplateParser :
         using bp::construct;
         using bp::val;
 
-        hermes_template = m_topLevelExpressionHORule;
+        // lazy function for appending UTF-32 characters to a string encoded
+        // in UTF-8
+        bp::function<path::parser::AppendUtf8Action<>> appendUtf8;
+        text_block = lexeme[+((char_ - "{{" - "{%" - "{#")[appendUtf8(bp::at_c<0>(_val), _1)])];
+
+        open_stmt  = lit("{%+") [_val = true] | lit("{%-")[_val = false] | lit("{%");
+        close_stmt = lit("+%}") [_val = true] | lit("-%}")[_val = false] | lit("%}");
+
+        auto text_to_hermes = [](auto& attrib, auto& ctx) {
+            auto obj = current_ctr()->new_dataobject<Varchar>(attrib.rawString)->as_object();
+            ctx.attributes = HermesObject(obj);
+        };
+        text_object = text_block[text_to_hermes];
+
+        variable_object = lit("{{") > m_topLevelExpressionHORule > "}}";
+
+        for_stmt = (open_stmt >> "for" >> m_identifierRule >> "in" >> m_topLevelExpressionHORule >> close_stmt)
+                    >> hermes_block_sequence
+                    >> endfor_stmt;
+
+
+        endfor_stmt = open_stmt >> "endfor" >> close_stmt;
+        endif_stmt  = open_stmt >> "endif" >> close_stmt;
+        else_stmt   = open_stmt >> "else" >> close_stmt >> hermes_block_sequence >> endif_stmt;
+
+        if_stmt = (open_stmt >> "if" >> m_topLevelExpressionHORule >> close_stmt)
+                    >> hermes_block_sequence
+                    >> (
+                        endif_stmt |
+                        else_stmt  |
+                        elif_stmt
+                   );
+
+        elif_stmt = (open_stmt >> "elif" >> m_topLevelExpressionHORule >> close_stmt)
+                    >> hermes_block_sequence
+                    >> (
+                        endif_stmt |
+                        else_stmt  |
+                        elif_stmt
+                    );
+
+        auto to_hermes_object = [](auto& attrib, auto& ctx){
+            ctx.attributes = HermesObject(attrib);
+        };
+
+        for_stmt_object = for_stmt[to_hermes_object];
+        if_stmt_object  = if_stmt[to_hermes_object];
+
+        block_sequence = *(text_object | variable_object | for_stmt_object | if_stmt_object);
+
+        auto std_array_to_object = [](auto& attrib, auto& ctx){
+            auto array = current_ctr()->new_array();
+            for (auto& item: attrib) {
+                array->append(std::move(item.value));
+            }
+            ctx.attributes = HermesObject(array->as_object());
+        };
+        hermes_block_sequence = block_sequence[std_array_to_object];
+
+        hermes_template = hermes_block_sequence | eoi;
     }
 
-    qi::rule<Iterator, ObjectPtr(), Skipper> hermes_template;
+    qi::rule<Iterator, path::ast::RawStringNode(), Skipper> text_block;
+    qi::rule<Iterator, HermesObject(), Skipper> text_object;
+    qi::rule<Iterator, HermesObject(), Skipper> variable_object;
+
+    qi::rule<Iterator, TplForStatement(), Skipper> for_stmt;
+    qi::rule<Iterator, HermesObject(), Skipper> for_stmt_object;
+
+    qi::rule<Iterator, TplIfStatement(), Skipper> if_stmt;
+    qi::rule<Iterator, TplIfStatement(), Skipper> elif_stmt;
+    qi::rule<Iterator, HermesObject(), Skipper> if_stmt_object;
+
+    qi::rule<Iterator, Optional<bool>(), Skipper> open_stmt;
+    qi::rule<Iterator, Optional<bool>(), Skipper> close_stmt;
+
+    qi::rule<Iterator, TplSpaceData(), Skipper> endif_stmt;
+    qi::rule<Iterator, TplElseStatement(), Skipper> else_stmt;
+    qi::rule<Iterator, TplSpaceData(), Skipper> endfor_stmt;
+
+    qi::rule<Iterator, std::vector<HermesObject>(), Skipper> block_sequence;
+    qi::rule<Iterator, HermesObject(), Skipper> hermes_block_sequence;
+
+    qi::rule<Iterator, HermesObject(), Skipper> hermes_template;
 };
 
 
@@ -104,7 +195,7 @@ void parse_hermes_template(Iterator& first, Iterator& last, HermesCtr& doc, bool
 
     static thread_local Grammar const grammar;
 
-    ObjectPtr result;
+    path::ast::HermesValueNode result;
 
     //Iterator start = first;
     //try
@@ -115,10 +206,10 @@ void parse_hermes_template(Iterator& first, Iterator& last, HermesCtr& doc, bool
         }
         else if (first != last) {
             //ErrorMessageResolver::instance().do_throw(start, first, last);
-            MEMORIA_MAKE_GENERIC_ERROR("Hermes document parse failure2").do_throw();
+            //MEMORIA_MAKE_GENERIC_ERROR("Hermes document parse failure2").do_throw();
         }
 
-        doc.set_root(result);
+        doc.set_root(result.value);
     }
 //    catch (const ExpectationException<Iterator>& ex) {
 //        ErrorMessageResolver::instance().do_throw(start, ex);

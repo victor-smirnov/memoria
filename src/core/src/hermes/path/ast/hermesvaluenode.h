@@ -36,10 +36,12 @@
 
 #include <memoria/core/hermes/hermes.hpp>
 
+#include <vector>
+
 namespace memoria::hermes::path { namespace ast {
 
 /**
- * @brief The RawStringNode class represents a HermesPath raw string literal.
+ * @brief The HermesValueNode class represents a Hermes Object.
  */
 class HermesValueNode : public AbstractNode
 {
@@ -67,16 +69,36 @@ public:
      * false
      */
     bool operator==(const HermesValueNode& other) const;
+
+    operator ObjectPtr() const {
+        return value;
+    }
+
     /**
-     * @brief The raw string value
+     * @brief The raw Hermes value
      */
     ObjectPtr value;
-
     static constexpr int64_t CODE = 12;
 };
+
+
+struct HermesArrayNode
+{
+    std::vector<HermesValueNode> array;
+    ObjectPtr to_hermes_array(HermesCtr& doc) const;
+};
+
+
+
+
 }} // namespace hermes::path::ast
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::HermesValueNode,
     (memoria::hermes::ObjectPtr, value)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    memoria::hermes::path::ast::HermesArrayNode,
+    (std::vector<memoria::hermes::path::ast::HermesValueNode>, array)
 )
