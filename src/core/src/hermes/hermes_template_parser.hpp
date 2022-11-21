@@ -33,6 +33,10 @@ namespace memoria::hermes {
 struct TplSpaceData {
     Optional<bool> left_space;
     Optional<bool> right_space;
+
+    operator bool() const {
+        return left_space.is_initialized() || right_space.is_initialized();
+    }
 };
 
 struct TemplateConstants {
@@ -47,6 +51,9 @@ struct TemplateConstants {
 
     static constexpr int64_t ELSE_STMT_CODE         = 102;
     static constexpr U8StringView ELSE_STMT_NAME    = "ElseStmt";
+
+    static constexpr int64_t SET_STMT_CODE          = 103;
+    static constexpr U8StringView SET_STMT_NAME     = "SetStmt";
 
     static constexpr U8StringView VARIABLE_NAME     = "variable";
     static constexpr U8StringView EXPRESSION_NAME   = "expression";
@@ -77,18 +84,25 @@ struct TemplateConstants {
         return harray;
     }
 
-    static ObjectPtr new_space_data(const TplSpaceData& data) {
-        auto map = current_ctr()->new_map();
+    static ObjectPtr new_space_data(const TplSpaceData& data)
+    {
+        if (data)
+        {
+            auto map = current_ctr()->new_map();
 
-        if (data.left_space.is_initialized()) {
-            map->put_dataobject<Boolean>(LEFT_SPACE_NAME, data.left_space.get());
+            if (data.left_space.is_initialized()) {
+                map->put_dataobject<Boolean>(LEFT_SPACE_NAME, data.left_space.get());
+            }
+
+            if (data.right_space.is_initialized()) {
+                map->put_dataobject<Boolean>(RIGHT_SPACE_NAME, data.right_space.get());
+            }
+
+            return map->as_object();
         }
-
-        if (data.right_space.is_initialized()) {
-            map->put_dataobject<Boolean>(RIGHT_SPACE_NAME, data.right_space.get());
+        else {
+            return {};
         }
-
-        return map->as_object();
     }
 };
 
@@ -108,20 +122,48 @@ struct TplForStatement: TemplateConstants {
 
         auto identifier = path::parser::HermesASTConverter::new_identifier(*current_ctr(), variable, false);
 
-        map->put(VARIABLE_NAME, identifier->as_object());
+        map->put_dataobject<Varchar>(VARIABLE_NAME, variable.identifier);
         map->put(EXPRESSION_NAME, expression);
 
         map->put(STATEMENTS_NAME, blocks);
         map->put(END_SPACE_DATA_NAME, new_space_data(end_space_data));
-        map->put(START_SPACE_DATA_NAME, new_space_data(TplSpaceData{left_open_space, right_open_space}));
+
+        TplSpaceData start_space_data{left_open_space, right_open_space};
+        map->put(START_SPACE_DATA_NAME, new_space_data(start_space_data));
 
         return map->as_object();
     }
 };
 
+
+struct TplSetStatement: TemplateConstants {
+    Optional<bool> left_open_space;
+    path::ast::IdentifierNode variable;
+    ObjectPtr expression;
+    Optional<bool> right_open_space;
+    TplSpaceData end_space_data;
+
+    operator path::ast::HermesValueNode() const
+    {
+        auto map = new_ast_node(SET_STMT_CODE, SET_STMT_NAME);
+
+        auto identifier = path::parser::HermesASTConverter::new_identifier(*current_ctr(), variable, false);
+
+        map->put_dataobject<Varchar>(VARIABLE_NAME, variable.identifier);
+        map->put(EXPRESSION_NAME, expression);
+
+        map->put(END_SPACE_DATA_NAME, new_space_data(end_space_data));
+
+        TplSpaceData start_space_data{left_open_space, right_open_space};
+        map->put(START_SPACE_DATA_NAME, new_space_data(start_space_data));
+
+        return map->as_object();
+    }
+};
+
+
 struct TplIfStatement;
 struct TplElseStatement;
-
 
 using TplIfAltBranch = boost::variant<
     std::vector<ObjectPtr>,
@@ -211,6 +253,15 @@ BOOST_FUSION_ADAPT_STRUCT(
     (memoria::hermes::ObjectPtr, expression)
     (memoria::Optional<bool>, right_open_space)
     (memoria::hermes::ObjectPtr, blocks)
+    (memoria::hermes::TplSpaceData, end_space_data)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    memoria::hermes::TplSetStatement,
+    (memoria::Optional<bool>, left_open_space)
+    (memoria::hermes::path::ast::IdentifierNode, variable)
+    (memoria::hermes::ObjectPtr, expression)
+    (memoria::Optional<bool>, right_open_space)
     (memoria::hermes::TplSpaceData, end_space_data)
 )
 

@@ -220,6 +220,9 @@ inline void Map<Varchar, Object>::put(StringValuePtr name, ObjectPtr value) {
         auto vv = doc_->do_import_value(value);
         map_->put(*arena, name->dt_ctr(), vv->storage_.addr);
     }
+    else {
+        remove(*name->view());
+    }
 }
 
 inline void Map<Varchar, Object>::put(U8StringView name, ObjectPtr value) {
@@ -233,6 +236,9 @@ inline void Map<Varchar, Object>::put(U8StringView name, ObjectPtr value) {
         auto key = doc_->new_dataobject<Varchar>(name);
         map_->put(*arena, key->dt_ctr(), vv->storage_.addr);
     }
+    else {
+        remove(name);
+    }
 }
 
 template <typename KeyDT>
@@ -245,6 +251,9 @@ inline void Map<KeyDT, Object>::put(KeyView key, ObjectPtr value) {
     {
         auto arena = doc_->arena();
         map_->put(*arena, key, vv->storage_.addr);
+    }
+    else {
+        remove(key);
     }
 }
 

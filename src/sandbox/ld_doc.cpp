@@ -43,14 +43,12 @@ int main(int, char**)
     InitTypeReflections();
 
     auto doc = parse_template(R"(
-        {%- if someVar +%}
-            coll text 1
-        {% else %}
-            cool text 2
-        {%+ endif -%}
-    )");
+        Prefix
+        {%- set MyVar = @.someExpression.a.b.c.d +%}
+        Suffix
+)");
 
-    println("{}", doc->to_pretty_string());
+    println("{}", doc->to_string(StringifyCfg::pretty().with_raw_strings(false)));
 
     return 0;
 }

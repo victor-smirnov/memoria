@@ -68,7 +68,7 @@ struct HermesTemplateParser :
     >
 {
     using RuleLib = path::parser::GrammarRuleSet <
-        Iterator
+        Iterator, Skipper
     >;
 
     using HermesObject = path::ast::HermesValueNode;
@@ -85,6 +85,7 @@ struct HermesTemplateParser :
         using qi::long_;
         using qi::lit;
         using qi::lexeme;
+        using qi::no_skip;
         using enc::char_;
         using qi::_val;
         using qi::_a;
@@ -100,7 +101,7 @@ struct HermesTemplateParser :
         // lazy function for appending UTF-32 characters to a string encoded
         // in UTF-8
         bp::function<path::parser::AppendUtf8Action<>> appendUtf8;
-        text_block = lexeme[+((char_ - "{{" - "{%" - "{#")[appendUtf8(bp::at_c<0>(_val), _1)])];
+        text_block = no_skip[+((char_ - "{{" - "{%" - "{#")[appendUtf8(bp::at_c<0>(_val), _1)])];
 
         open_stmt  = lit("{%+") [_val = true] | lit("{%-")[_val = false] | lit("{%");
         close_stmt = lit("+%}") [_val = true] | lit("-%}")[_val = false] | lit("%}");
@@ -138,14 +139,24 @@ struct HermesTemplateParser :
                         elif_stmt
                     );
 
+        set_stmt = (open_stmt >> "set" >> m_identifierRule >> "=" >> m_topLevelExpressionHORule >> close_stmt);
+
+
         auto to_hermes_object = [](auto& attrib, auto& ctx){
             ctx.attributes = HermesObject(attrib);
         };
 
         for_stmt_object = for_stmt[to_hermes_object];
         if_stmt_object  = if_stmt[to_hermes_object];
+        set_stmt_object = set_stmt[to_hermes_object];
 
-        block_sequence = *(text_object | variable_object | for_stmt_object | if_stmt_object);
+        block_sequence = *(
+                    text_object     |
+                    variable_object |
+                    for_stmt_object |
+                    if_stmt_object  |
+                    set_stmt_object
+                    );
 
         auto std_array_to_object = [](auto& attrib, auto& ctx){
             auto array = current_ctr()->new_array();
@@ -160,22 +171,26 @@ struct HermesTemplateParser :
     }
 
     qi::rule<Iterator, path::ast::RawStringNode(), Skipper> text_block;
-    qi::rule<Iterator, HermesObject(), Skipper> text_object;
-    qi::rule<Iterator, HermesObject(), Skipper> variable_object;
+    qi::rule<Iterator, HermesObject(), Skipper>             text_object;
+    qi::rule<Iterator, HermesObject(), Skipper>             variable_object;
 
-    qi::rule<Iterator, TplForStatement(), Skipper> for_stmt;
-    qi::rule<Iterator, HermesObject(), Skipper> for_stmt_object;
+    qi::rule<Iterator, TplForStatement(), Skipper>  for_stmt;
+    qi::rule<Iterator, HermesObject(), Skipper>     for_stmt_object;
 
-    qi::rule<Iterator, TplIfStatement(), Skipper> if_stmt;
-    qi::rule<Iterator, TplIfStatement(), Skipper> elif_stmt;
-    qi::rule<Iterator, HermesObject(), Skipper> if_stmt_object;
+    qi::rule<Iterator, TplIfStatement(), Skipper>   if_stmt;
+    qi::rule<Iterator, TplIfStatement(), Skipper>   elif_stmt;
+    qi::rule<Iterator, HermesObject(), Skipper>     if_stmt_object;
+
+    qi::rule<Iterator, TplSetStatement(), Skipper>  set_stmt;
+    qi::rule<Iterator, HermesObject(), Skipper>     set_stmt_object;
+
 
     qi::rule<Iterator, Optional<bool>(), Skipper> open_stmt;
     qi::rule<Iterator, Optional<bool>(), Skipper> close_stmt;
 
-    qi::rule<Iterator, TplSpaceData(), Skipper> endif_stmt;
+    qi::rule<Iterator, TplSpaceData(), Skipper>     endif_stmt;
     qi::rule<Iterator, TplElseStatement(), Skipper> else_stmt;
-    qi::rule<Iterator, TplSpaceData(), Skipper> endfor_stmt;
+    qi::rule<Iterator, TplSpaceData(), Skipper>     endfor_stmt;
 
     qi::rule<Iterator, std::vector<HermesObject>(), Skipper> block_sequence;
     qi::rule<Iterator, HermesObject(), Skipper> hermes_block_sequence;
@@ -201,6 +216,7 @@ void parse_hermes_template(Iterator& first, Iterator& last, HermesCtr& doc, bool
     //try
     {
         bool r = qi::phrase_parse(first, last, grammar, typename Grammar::SkipperT(), result);
+//        bool r = qi::parse(first, last, grammar, result);
         if (!r) {
             MEMORIA_MAKE_GENERIC_ERROR("Hermes document parse failure1").do_throw();
         }
