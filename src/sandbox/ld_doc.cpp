@@ -42,13 +42,23 @@ int main(int, char**)
 {
     InitTypeReflections();
 
-    auto doc = parse_template(R"(
+    auto tpl = parse_template(R"(
         Prefix
-        {%- set MyVar = @.someExpression.a.b.c.d +%}
+        {% for item in array1.array2 %}
+            {{ item }}
+        {% endfor %}
         Suffix
-)");
+    )");
 
-    println("{}", doc->to_string(StringifyCfg::pretty().with_raw_strings(false)));
+    println("{}", tpl->to_string(StringifyCfg::pretty().with_raw_strings(false)));
+
+    auto data = HermesCtr::parse_document(R"({
+        array1: {
+            array2: <Double> [1, 2, 3.54321, 4, 5]
+        }
+    })");
+
+    render(tpl->root(), data->root(), std::cout);
 
     return 0;
 }

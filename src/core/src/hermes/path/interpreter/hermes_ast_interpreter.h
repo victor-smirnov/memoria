@@ -34,6 +34,11 @@
 #include "memoria/core/hermes/path/types.h"
 #include "../ast/expressionnode.h"
 #include "../ast/functionexpressionnode.h"
+
+#include "../../hermes_template_renderer.hpp"
+
+
+
 #include <functional>
 #include <tuple>
 #include <unordered_map>
@@ -52,7 +57,7 @@ namespace memoria::hermes::path { namespace interpreter2 {
  *
  * It can hold either a @ref ObjectPtr value or a @ref JsonRef.
  */
-using ContextValue = ObjectPtr;
+using ContextValue = boost::variant<ObjectPtr, const TplVarStack*>;
 
 /**
  * @brief Convert the given @a value to something assignable to a @ref
@@ -81,7 +86,7 @@ inline ObjectPtr assignContextValue(const ObjectPtr& value)
  */
 inline const ObjectPtr& getJsonValue(const ContextValue& contextValue)
 {
-    return contextValue;
+    return boost::get<ObjectPtr>(contextValue);
 }
 
 /**
@@ -117,8 +122,7 @@ public:
      * @brief Returns the current evaluation context.
      * @return @ref ObjectPtr document used as the context.
      */
-    const ObjectPtr &currentContext() const
-    {
+    const ObjectPtr &currentContext() const {
         return getJsonValue(m_context);
     }
     /**
@@ -126,8 +130,7 @@ public:
      * value or a const reference.
      * @return @ref ContextValue used as the context.
      */
-    ContextValue &currentContextValue()
-    {
+    ContextValue &currentContextValue() {
         return m_context;
     }
     /**
@@ -172,6 +175,8 @@ public:
     void visitFunctionExpressionNode(const ObjectMapPtr& node);
     void visitExpressionArgumentNode(const ObjectMapPtr& node);
     /** @}*/
+
+    static bool toSimpleBoolean(const ObjectPtr& json);
 
 private:
     /**
@@ -231,12 +236,12 @@ private:
      * @{
      */
 
-    void visitIdentifierNode2(const ObjectMapPtr& node, ObjectPtr&& context);
-    void visitArrayItemNode2(const ObjectMapPtr& node, ObjectPtr&& context);
-    void visitFlattenOperatorNode2(const ObjectMapPtr& node, ObjectPtr&& context);
-    void visitSliceExpressionNode2(const ObjectMapPtr& node, ObjectPtr&& context);
-    void visitHashWildcardNode2(const ObjectMapPtr& node, ObjectPtr&& context);
-    void visitFilterExpressionNode2(const ObjectMapPtr& node, ObjectPtr&& context);
+    void visitIdentifierNode2(const ObjectMapPtr& node, ContextValue&& context);
+    void visitArrayItemNode2(const ObjectMapPtr& node, ContextValue&& context);
+    void visitFlattenOperatorNode2(const ObjectMapPtr& node, ContextValue&& context);
+    void visitSliceExpressionNode2(const ObjectMapPtr& node, ContextValue&& context);
+    void visitHashWildcardNode2(const ObjectMapPtr& node, ContextValue&& context);
+    void visitFilterExpressionNode2(const ObjectMapPtr& node, ContextValue&& context);
 
     /** @}*/
     /**
@@ -258,7 +263,7 @@ private:
      */
     hermes::DataObjectPtr<Boolean> toBoolean(const ObjectPtr& json) const;
 
-    bool toSimpleBoolean(const ObjectPtr& json) const;
+
 
     /**
      * @brief Evaluates the projection of the given @a expression with the
@@ -268,7 +273,12 @@ private:
      * the evaluation context.
      */
     void evaluateProjection(const ObjectMapPtr& expression,
-                            ObjectPtr&& context);
+                            ContextValue&& context);
+
+    static bool is_hermes_object(const ContextValue& context) {
+        return context.which() == 0;
+    }
+
     /**
      * @brief Evaluates a binary logic operator to the result of the left
      * side expression if it's binary value equals to @a shortCircuitValue
@@ -293,7 +303,7 @@ private:
      */
     FunctionArgumentList evaluateArguments(
             const ObjectArrayPtr& arguments,
-            const ObjectPtr &contextValue);
+            const ContextValue &contextValue);
     /**
      * @brief Converts the given function @a argument to the requsted type.
      * @param[in] argument A funciton argument value.
@@ -393,7 +403,7 @@ private:
      * array.
      * @throws InvalidFunctionArgumentType
      */
-    void map(const ObjectMapPtr& node, ObjectPtr&& array);
+    void map(const ObjectMapPtr& node, ContextValue&& array);
     /**
      * @brief Accepts zero or more objects in the given @a arguments, and
      * returns a single object with subsequent objects merged. Each subsequent
@@ -409,7 +419,7 @@ private:
      * @param[in] sourceObject ither an lvalue or rvalue reference to a
      * @ref ObjectPtr object.
      */
-    void mergeObject(ObjectPtr* object, ObjectPtr&& sourceObject);
+    void mergeObject(ObjectPtr* object, ContextValue&& sourceObject);
     /**
      * @brief Accepts one or more items in @a arguments, and will evaluate them
      * in order until a non null argument is encounted.
@@ -430,7 +440,7 @@ private:
      * @param[in] subject A @ref ObjectPtr array or string.
      * @throws InvalidFunctionArgumentType
      */
-    void reverse(ObjectPtr&& subject);
+    void reverse(ContextValue&& subject);
     /**
      * @brief Sorts the first item in the given @a arguments, which must either
      * be an array of numbers or an array of strings.
@@ -444,7 +454,7 @@ private:
      * @param[in] array A @ref ObjectPtr array of number or strings.
      * @throws InvalidFunctionArgumentType
      */
-    void sort(ObjectPtr&& array);
+    void sort(ContextValue&& array);
     /**
      * @brief Sorts the first item in the given @a arguments, which must either
      * be an array of numbers or an array of strings. It uses the expression
@@ -461,7 +471,7 @@ private:
      * @param[in] array A @ref ObjectPtr array of numbers or strings.
      * @throws InvalidFunctionArgumentType
      */
-    void sortBy(const ObjectMapPtr& expression, ObjectPtr&& array);
+    void sortBy(const ObjectMapPtr& expression, ContextValue&& array);
     /**
      * @brief Checks wheather the string provided as the first item in @a
      * arguments starts with the string provided as the second item in @a
@@ -489,7 +499,7 @@ private:
      * already an array.
      * @param[in] value A @ref ObjectPtr value.
      */
-    void toArray(ObjectPtr&& value);
+    void toArray(ContextValue&& value);
     /**
      * @brief Converts the first item of the given @a arguments to the @ref ObjectPtr
      * encoded value if it's not already a string.
@@ -502,7 +512,7 @@ private:
      * it's not already a string.
      * @param[in] value A ObjectPtr value.
      */
-    void toString(ObjectPtr&& value);
+    void toString(ContextValue&& value);
     /**
      * @brief Converts the string provided as the first item in the given
      * @a arguments to a number. If it's already a number then the original
@@ -516,7 +526,7 @@ private:
      * all other @ref ObjectPtr types are converted to null.
      * @param[in] value A ObjectPtr value.
      */
-    void toBigInt(ObjectPtr&& value);
+    void toBigInt(ContextValue&& value);
 
 
     /**
@@ -541,7 +551,7 @@ private:
      * all other @ref ObjectPtr types are converted to null.
      * @param[in] value A ObjectPtr value.
      */
-    void toBoolean(ObjectPtr&& value);
+    void toBoolean(ContextValue&& value);
 
 
     /**
@@ -549,7 +559,7 @@ private:
      * all other @ref ObjectPtr types are converted to null.
      * @param[in] value A ObjectPtr value.
      */
-    void toDouble(ObjectPtr&& value);
+    void toDouble(ContextValue&& value);
 
 
     /**
@@ -571,7 +581,7 @@ private:
      * @param[in] object A @ref ObjectPtr object.
      * @throws InvalidFunctionArgumentType
      */
-    void values(ObjectPtr&& object);
+    void values(ContextValue&& object);
     /**
      * @brief Finds the largest item in the array provided as the first item
      * in the @a arguments, it must either be an array of numbers or an array
@@ -592,7 +602,7 @@ private:
      * @param[in] array A @ref ObjectPtr array.
      * @throws InvalidFunctionArgumentType
      */
-    void max(const JsonComparator* comparator, ObjectPtr&& array);
+    void max(const JsonComparator* comparator, ContextValue&& array);
     /**
      * @brief Finds the largest item in the array provided as the first item
      * in the @a arguments, which must either be an array of numbers or an array
@@ -620,7 +630,7 @@ private:
      */
     void maxBy(const ObjectMapPtr& expression,
                const JsonComparator* comparator,
-               ObjectPtr&& array);
+               ContextValue&& array);
 
 private:
     // Tools

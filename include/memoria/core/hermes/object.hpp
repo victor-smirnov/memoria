@@ -197,7 +197,7 @@ public:
     bool is_convertible_to() const {
         if (!is_null()) {
             auto src_tag = get_type_tag();
-            auto to_tag = TypeHashV<DT>;
+            auto to_tag = ShortTypeCode::of<DT>();
             return src_tag == to_tag || get_type_reflection(src_tag).is_convertible_to(to_tag);
         }
         return false;

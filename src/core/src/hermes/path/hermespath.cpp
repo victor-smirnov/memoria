@@ -43,10 +43,7 @@ ObjectPtr search(const Expression &expression, const ObjectPtr& value)
         return {};
     }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wexit-time-destructors"
     thread_local Interpreter s_interpreter;
-#pragma clang diagnostic pop
     s_interpreter.setContext(value);
 
     // evaluate the expression by calling visit with the root of the AST
@@ -63,10 +60,7 @@ ObjectPtr search(const Expression &expression, const ObjectPtr& value, const IPa
         return {};
     }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wexit-time-destructors"
-    thread_local Interpreter s_interpreter;
-#pragma clang diagnostic pop
+    Interpreter s_interpreter;
     s_interpreter.setContext(value);
     s_interpreter.set_parameter_resolver(&resolver);
 
@@ -85,16 +79,13 @@ ObjectPtr search(const ObjectMapPtr &expression, const ObjectPtr& value)
         return {};
     }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wexit-time-destructors"
-    thread_local HermesASTInterpreter s_interpreter;
-#pragma clang diagnostic pop
+    HermesASTInterpreter s_interpreter;
     s_interpreter.setContext(value);
 
     // evaluate the expression by calling visit with the root of the AST
     s_interpreter.visit(expression);
 
-    return s_interpreter.currentContextValue();
+    return interpreter2::getJsonValue(s_interpreter.currentContextValue());
 }
 
 ObjectPtr search(const ObjectMapPtr &expression, const ObjectPtr& value, const IParameterResolver& resolver)
@@ -105,17 +96,14 @@ ObjectPtr search(const ObjectMapPtr &expression, const ObjectPtr& value, const I
         return {};
     }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wexit-time-destructors"
-    thread_local HermesASTInterpreter s_interpreter;
-#pragma clang diagnostic pop
+    HermesASTInterpreter s_interpreter;
     s_interpreter.setContext(value);
     s_interpreter.set_parameter_resolver(&resolver);
 
     // evaluate the expression by calling visit with the root of the AST
     s_interpreter.visit(expression);
 
-    return s_interpreter.currentContextValue();
+    return interpreter2::getJsonValue(s_interpreter.currentContextValue());
 }
 
 

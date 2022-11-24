@@ -17,9 +17,14 @@
 
 #include <memoria/core/hermes/container.hpp>
 
+#include <ostream>
+
 namespace memoria {
 namespace hermes {
 
 PoolSharedPtr<HermesCtr> parse_template(U8StringView text, bool node_names = false);
+
+void render(const ObjectPtr& tpl, const ObjectPtr& data, std::ostream& out);
+void render(U8StringView tpl, const ObjectPtr& data, std::ostream& out);
 
 }}

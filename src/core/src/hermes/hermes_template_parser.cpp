@@ -1,3 +1,4 @@
+
 // Copyright 2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,12 +33,12 @@
 #include "path/parser/grammar.h"
 
 #include "path/parser/appendutf8action.h"
-//#include "path/parser/appendescapesequenceaction.h"
 #include "path/ast/rawstringnode.h"
 
 #include "path/ast/hermesvaluenode.h"
 
 #include "hermes_template_parser.hpp"
+#include "hermes_parser_tools.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -98,8 +99,6 @@ struct HermesTemplateParser :
         using bp::construct;
         using bp::val;
 
-        // lazy function for appending UTF-32 characters to a string encoded
-        // in UTF-8
         bp::function<path::parser::AppendUtf8Action<>> appendUtf8;
         text_block = no_skip[+((char_ - "{{" - "{%" - "{#")[appendUtf8(bp::at_c<0>(_val), _1)])];
 
@@ -112,7 +111,7 @@ struct HermesTemplateParser :
         };
         text_object = text_block[text_to_hermes];
 
-        variable_object = lit("{{") > m_topLevelExpressionHORule > "}}";
+        var_stmt = lit("{{") > m_topLevelExpressionHORule > "}}";
 
         for_stmt = (open_stmt >> "for" >> m_identifierRule >> "in" >> m_topLevelExpressionHORule >> close_stmt)
                     >> hermes_block_sequence
@@ -149,10 +148,11 @@ struct HermesTemplateParser :
         for_stmt_object = for_stmt[to_hermes_object];
         if_stmt_object  = if_stmt[to_hermes_object];
         set_stmt_object = set_stmt[to_hermes_object];
+        var_stmt_object = var_stmt[to_hermes_object];
 
         block_sequence = *(
                     text_object     |
-                    variable_object |
+                    var_stmt_object |
                     for_stmt_object |
                     if_stmt_object  |
                     set_stmt_object
@@ -163,6 +163,9 @@ struct HermesTemplateParser :
             for (auto& item: attrib) {
                 array->append(std::move(item.value));
             }
+
+            TemplateConstants::process_outer_space(array->as_object());
+
             ctx.attributes = HermesObject(array->as_object());
         };
         hermes_block_sequence = block_sequence[std_array_to_object];
@@ -172,7 +175,9 @@ struct HermesTemplateParser :
 
     qi::rule<Iterator, path::ast::RawStringNode(), Skipper> text_block;
     qi::rule<Iterator, HermesObject(), Skipper>             text_object;
-    qi::rule<Iterator, HermesObject(), Skipper>             variable_object;
+
+    qi::rule<Iterator, TplVarStatement(), Skipper>          var_stmt;
+    qi::rule<Iterator, HermesObject(), Skipper>             var_stmt_object;
 
     qi::rule<Iterator, TplForStatement(), Skipper>  for_stmt;
     qi::rule<Iterator, HermesObject(), Skipper>     for_stmt_object;
@@ -206,30 +211,27 @@ void parse_hermes_template(Iterator& first, Iterator& last, HermesCtr& doc, bool
     HermesCtrBuilder::enter(doc.self());
 
     using Grammar = HermesTemplateParser<Iterator>;
-    //using Grammar = path::parser::HOGrammar<Iterator>;
 
     static thread_local Grammar const grammar;
 
     path::ast::HermesValueNode result;
 
-    //Iterator start = first;
-    //try
+    Iterator start = first;
+    try
     {
         bool r = qi::phrase_parse(first, last, grammar, typename Grammar::SkipperT(), result);
-//        bool r = qi::parse(first, last, grammar, result);
         if (!r) {
-            MEMORIA_MAKE_GENERIC_ERROR("Hermes document parse failure1").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Hermes document parse failure").do_throw();
         }
         else if (first != last) {
-            //ErrorMessageResolver::instance().do_throw(start, first, last);
-            //MEMORIA_MAKE_GENERIC_ERROR("Hermes document parse failure2").do_throw();
+            ErrorMessageResolver::instance().do_throw(start, first, last);
         }
 
         doc.set_root(result.value);
     }
-//    catch (const ExpectationException<Iterator>& ex) {
-//        ErrorMessageResolver::instance().do_throw(start, ex);
-//    }
+    catch (const ExpectationException<Iterator>& ex) {
+        ErrorMessageResolver::instance().do_throw(start, ex);
+    }
 }
 
 
