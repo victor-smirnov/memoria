@@ -21,6 +21,7 @@
 #include <memoria/core/memory/shared_ptr.hpp>
 
 #include <memoria/core/arena/arena.hpp>
+#include <memoria/core/arena/relative_ptr.hpp>
 
 #include <memoria/core/flat_map/flat_hash_map.hpp>
 
@@ -168,6 +169,19 @@ public:
             hermes::ValueStorageTag, hermes::ValueStorage&,
             hermes::HermesCtr*, ViewPtrHolder*
     ) const;
+
+    virtual bool hermes_is_ptr_embeddable() const {
+        return false;
+    }
+
+    virtual bool hermes_embed(arena::ERelativePtr& dst, const hermes::TaggedValue&) const {
+        return false;
+    }
+
+    virtual void hermes_extract(hermes::TaggedValue& dst, const arena::ERelativePtr& src) const {
+        MEMORIA_MAKE_GENERIC_ERROR("TaggedValue is not ebeddable for {}", str()).do_throw();
+    }
+
 
     virtual PoolSharedPtr<hermes::GenericObject> hermes_make_wrapper(
             void*,

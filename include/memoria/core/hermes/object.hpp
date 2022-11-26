@@ -78,6 +78,14 @@ public:
         set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
     }
 
+    Object(const TaggedValue& tagged_value, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept :
+        Base(ref_holder),
+        doc_(doc)
+    {
+        storage_.small_value = tagged_value;
+        set_vs_tag(ValueStorageTag::VS_TAG_SMALL_VALUE);
+    }
+
     Object(ValueStorageTag vs_tag, ValueStorage storage, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept :
         Base(ref_holder),
         doc_(doc)
@@ -449,7 +457,7 @@ public:
     bool is_simple_layout() const noexcept
     {
         if (!is_null()) {
-            if (get_tag() == ValueStorageTag::VS_TAG_ADDRESS) {
+            if (get_tag() == VS_TAG_ADDRESS) {
                 auto value_tag = get_type_tag();
                 return get_type_reflection(value_tag).hermes_is_simple_layout(
                             storage_.addr, doc_, get_ptr_holder()

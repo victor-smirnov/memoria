@@ -49,6 +49,22 @@ struct CopyHelper<RelativePtr<T>> {
     }
 };
 
+template <typename T>
+struct CopyHelper<EmbeddingRelativePtr<T>> {
+    static void copy(ERelativePtr& dst, const EmbeddingRelativePtr<T>& src) {
+        if (src.is_pointer()) {
+            dst = src.get();
+        }
+        else {
+            dst.copy_from(src);
+        }
+    }
+
+    static void set_default(EmbeddingRelativePtr<T>& dst) {
+        dst = static_cast<void*>(0);
+    }
+};
+
 }
 
 template <typename T>
@@ -95,20 +111,16 @@ public:
         size_++;
     }
 
-    void push_back(ArenaAllocator& arena, Span<const T> span)
+    template <typename Fn>
+    void push_back(ArenaAllocator& arena, Fn&& provider)
     {
         size_t cc = capacity();
-        if (size_ + span.size() > cc) {
-            enlarge(arena, span.size() + size_ - cc);
+        if (size_ >= cc) {
+            enlarge(arena, cc + 1);
         }
 
-        T* data = data_.get();
-
-        for (size_t c = 0; c < span.size(); c++) {
-            data[c] = span[c];
-        }
-
-        size_ += span.size();
+        set(size_, std::move(provider));
+        size_++;
     }
 
     void remove(ArenaAllocator& arena, uint64_t idx)
@@ -207,6 +219,6 @@ public:
     }
 };
 
-using GenericVector = Vector<RelativePtr<void>>;
+using GenericVector = Vector<EmbeddingRelativePtr<void>>;
 
 }}

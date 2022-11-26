@@ -22,6 +22,7 @@
 #include <memoria/core/hermes/traits.hpp>
 
 #include <memoria/core/arena/arena.hpp>
+#include <memoria/core/arena/relative_ptr.hpp>
 
 #include <ostream>
 
@@ -389,6 +390,39 @@ private:
 
 public:
     TaggedValue() = default;
+
+    TaggedValue(ShortTypeCode tag, const arena::ERelativePtr& eptr):
+        tag_(tag)
+    {
+        constexpr size_t EBUF_SIZE = arena::ERelativePtr::BUFFER_SIZE;
+
+        static_assert(EBUF_SIZE <= VALUE_SIZE, "");
+
+        for (size_t c = 0; c < EBUF_SIZE - 1; c++) {
+            value_[c] = eptr.buffer()[c];
+        }
+
+        for (size_t c = EBUF_SIZE - 1; c < VALUE_SIZE; c++) {
+            value_[c] = 0;
+        }
+    }
+
+    TaggedValue(const arena::ERelativePtr& eptr):
+        tag_(ShortTypeCode::of_object(eptr.get_tag()))
+    {
+        constexpr size_t EBUF_SIZE = arena::ERelativePtr::BUFFER_SIZE;
+
+        static_assert(EBUF_SIZE <= VALUE_SIZE, "");
+
+        for (size_t c = 0; c < EBUF_SIZE - 1; c++) {
+            value_[c] = eptr.buffer()[c];
+        }
+
+        for (size_t c = EBUF_SIZE - 1; c < VALUE_SIZE; c++) {
+            value_[c] = 0;
+        }
+    }
+
 
     template <typename T>
     TaggedValue(ShortTypeCode tag, T value):
@@ -762,5 +796,6 @@ public:
         return name_.size() == 0;
     }
 };
+
 
 }}

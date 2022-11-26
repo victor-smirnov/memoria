@@ -68,18 +68,18 @@ namespace bp = boost::phoenix;
 
 
 template <typename T, typename DT>
-class Integer {
+class TypedDataObject {
     T value_;
 public:
-    Integer(): value_() {}
-    Integer(T value): value_(value) {}
+    TypedDataObject(): value_() {}
+    TypedDataObject(T value): value_(value) {}
 
     operator T() const {
         return value_;
     }
 
     ObjectPtr finish() const {
-        return HermesCtrBuilder::current().template new_dataobject<DT>(value_)->as_object();
+        return HermesCtr::wrap_dataobject<DT>(value_)->as_object();
     }
 };
 
@@ -699,11 +699,49 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
                          "0b" >> bin_uint64_parser|
                          &lit('0') >> oct_uint64_parser |
                          dec_uint64_parser
-                        ) >> "ull";
+                        ) >> (lit("ull") | "_u64");
 
-        int64_parser  = dec_int64_parser;
+        uint32_parser = ("0x" >> hex_uint32_parser |
+                         "0b" >> bin_uint32_parser|
+                         &lit('0') >> oct_uint32_parser |
+                         dec_uint32_parser
+                        ) >> (lit("u") | "_u32");
 
-        integer_value = (uint64_parser | int64_parser) [finish_value];
+        uint16_parser = ("0x" >> hex_uint16_parser |
+                         "0b" >> bin_uint16_parser|
+                         &lit('0') >> oct_uint16_parser |
+                         dec_uint16_parser
+                        ) >> "_u16";
+
+        uint8_parser  = ("0x" >> hex_uint8_parser |
+                         "0b" >> bin_uint8_parser|
+                         &lit('0') >> oct_uint8_parser |
+                         dec_uint8_parser
+                        ) >> "_u8";
+
+        int64_parser  = dec_int64_parser >> (lit("ll") | "_s64");
+        int32_parser  = dec_int32_parser >> -lit("_s32");
+        int16_parser  = dec_int16_parser >> "_s16";
+        int8_parser   = dec_int8_parser >> "_s8";
+
+        integer_value = (
+                            uint64_parser |
+                            int64_parser |
+                            uint32_parser |
+                            uint16_parser |
+                            int16_parser |
+                            uint8_parser |
+                            int8_parser |
+                            int32_parser
+                    ) [finish_value];
+
+        f64_parser = strict_f64 >> "d";
+        f32_parser = strict_f32 >> -lit("f");
+
+        fp_value = (
+                    f64_parser |
+                    f32_parser
+                    ) [finish_value];
 
         static auto finish_parameter = [](auto& attrib, auto& ctx) {
                     bf::at_c<0>(ctx.attributes) = HermesCtrBuilder::current().new_parameter(attrib.identifier)->as_object();
@@ -720,7 +758,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
 
         hermes_value =  qi::eps[enter_builder] >> (
                                         hermes_string_or_typed_value
-                                        | strict_double
+                                        | fp_value
                                         | integer_value
                                         | map
                                         | null_value
@@ -760,18 +798,51 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
         bool_value.name("bool_value");
     }
 
-    qi::real_parser<double, qi::strict_real_policies<double>> strict_double;
+    qi::real_parser<double, qi::strict_real_policies<double>> strict_f64;
+    qi::real_parser<float, qi::strict_real_policies<float>>   strict_f32;
 
     qi::uint_parser<uint64_t, 16> hex_uint64_parser;
     qi::uint_parser<uint64_t, 2>  bin_uint64_parser;
     qi::uint_parser<uint64_t, 8>  oct_uint64_parser;
     qi::uint_parser<uint64_t, 10> dec_uint64_parser;
 
-    qi::int_parser<int64_t, 10>  dec_int64_parser;
+    qi::uint_parser<uint32_t, 16> hex_uint32_parser;
+    qi::uint_parser<uint32_t, 2>  bin_uint32_parser;
+    qi::uint_parser<uint32_t, 8>  oct_uint32_parser;
+    qi::uint_parser<uint32_t, 10> dec_uint32_parser;
 
-    qi::rule<Iterator, Integer<uint64_t, UBigInt>(), Skipper> uint64_parser;
-    qi::rule<Iterator, Integer<int64_t, BigInt>(), Skipper>  int64_parser;
+    qi::uint_parser<uint16_t, 16> hex_uint16_parser;
+    qi::uint_parser<uint16_t, 2>  bin_uint16_parser;
+    qi::uint_parser<uint16_t, 8>  oct_uint16_parser;
+    qi::uint_parser<uint16_t, 10> dec_uint16_parser;
+
+    qi::uint_parser<uint8_t, 16> hex_uint8_parser;
+    qi::uint_parser<uint8_t, 2>  bin_uint8_parser;
+    qi::uint_parser<uint8_t, 8>  oct_uint8_parser;
+    qi::uint_parser<uint8_t, 10> dec_uint8_parser;
+
+    qi::int_parser<int64_t, 10>  dec_int64_parser;
+    qi::int_parser<int32_t, 10>  dec_int32_parser;
+    qi::int_parser<int16_t, 10>  dec_int16_parser;
+    qi::int_parser<int8_t, 10>   dec_int8_parser;
+
+
+    qi::rule<Iterator, TypedDataObject<uint64_t, UBigInt>(), Skipper>   uint64_parser;
+    qi::rule<Iterator, TypedDataObject<uint32_t, UInteger>(), Skipper>  uint32_parser;
+    qi::rule<Iterator, TypedDataObject<uint16_t, USmallInt>(), Skipper> uint16_parser;
+    qi::rule<Iterator, TypedDataObject<uint8_t,  UTinyInt>(), Skipper>  uint8_parser;
+
+
+    qi::rule<Iterator, TypedDataObject<int64_t, BigInt>(), Skipper> int64_parser;
+    qi::rule<Iterator, TypedDataObject<int32_t, memoria::Integer>(), Skipper> int32_parser;
+    qi::rule<Iterator, TypedDataObject<int16_t, memoria::SmallInt>(), Skipper> int16_parser;
+    qi::rule<Iterator, TypedDataObject<int8_t, memoria::TinyInt>(), Skipper> int8_parser;
+
+    qi::rule<Iterator, TypedDataObject<float,  memoria::Real>(), Skipper> f32_parser;
+    qi::rule<Iterator, TypedDataObject<double, memoria::Double>(), Skipper> f64_parser;
+
     qi::rule<Iterator, ObjectPtr, Skipper>  integer_value;
+    qi::rule<Iterator, ObjectPtr, Skipper>  fp_value;
 
 
     qi::rule<Iterator, ObjectPtr(), Skipper>            hermes_value;

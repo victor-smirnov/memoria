@@ -39,6 +39,7 @@
 #include <memory>
 #include <vector>
 #include <variant>
+#include <algorithm>
 
 namespace memoria {
 
@@ -86,7 +87,7 @@ struct ObjectSpaceAllocator<T, false> {
     static auto allocate_object_space(size_t tag_size, Arena* arena, CtrArgs&&... args)
     {
         size_t size = sizeof(T);
-        auto addr = arena->allocate_space(size, alignof(T), tag_size);
+        auto addr = arena->allocate_space(size, std::max<size_t>(alignof(T), 2), tag_size);
         return addr;
     }
 };
@@ -97,7 +98,7 @@ struct ObjectSpaceAllocator<T, true> {
     static auto allocate_object_space(size_t tag_size, Arena* arena, CtrArgs&&... args)
     {
         size_t size = T::object_size(std::forward<CtrArgs>(args)...);
-        auto addr = arena->allocate_space(size, alignof(T), tag_size);
+        auto addr = arena->allocate_space(size, std::max<size_t>(alignof(T), 2), tag_size);
         return addr;
     }
 };

@@ -42,6 +42,53 @@ void Array<DT>::assert_mutable()
 }
 
 
+inline ObjectPtr Array<Object>::get(uint64_t idx) const
+{
+    assert_not_null();
+
+    if (idx < array_->size())
+    {
+        const auto& ptr = array_->get(idx);
+        if (MMA_LIKELY(ptr.is_pointer()))
+        {
+            if (MMA_LIKELY(ptr.is_not_null())) {
+                return ObjectPtr(Object(ptr.get(), doc_, ptr_holder_));
+            }
+            else {
+                return ObjectPtr{};
+            }
+        }
+        else {
+            TaggedValue tv(ptr);
+            return ObjectPtr(Object(tv, doc_, ptr_holder_));
+        }
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Object>: {} {}", idx, array_->size()).do_throw();
+    }
+}
+
+
+inline void Array<Object>::for_each(std::function<void(const ObjectPtr&)> fn) const {
+    assert_not_null();
+
+    for (auto& vv: array_->span()) {
+        if (vv.is_pointer())
+        {
+            if (vv.is_not_null()) {
+                fn(ObjectPtr(Object(vv.get(), doc_, ptr_holder_)));
+            }
+            else {
+                fn(ObjectPtr(Object()));
+            }
+        }
+        else {
+            TaggedValue tv(vv);
+            fn(ObjectPtr(Object(tv, doc_, ptr_holder_)));
+        }
+    }
+}
+
 template <typename DT>
 DataObjectPtr<DT> Array<Object>::append(DTTViewType<DT> view)
 {
@@ -77,11 +124,26 @@ inline void Array<Object>::append(const ObjectPtr& value)
     assert_not_null();
     assert_mutable();
 
-    auto vv = doc_->do_import_value(value);
+    if (value->is_not_null()) {
 
-    if (MMA_LIKELY(!vv->is_null()))
-    {
-        array_->push_back(*doc_->arena(), vv->storage_.addr);
+        arena::ERelativePtr val_ptr;
+
+        if (value->get_vs_tag() == VS_TAG_SMALL_VALUE)
+        {
+            ShortTypeCode tag = value->get_type_tag();
+            bool do_import = !get_type_reflection(tag).hermes_embed(val_ptr, value->storage_.small_value);
+            if (do_import)
+            {
+                auto vv = doc_->do_import_value(value);
+                val_ptr = vv->storage_.addr;
+            }
+        }
+        else {
+            auto vv = doc_->do_import_value(value);
+            val_ptr = vv->storage_.addr;
+        }
+
+        array_->push_back(*doc_->arena(), val_ptr);
     }
     else {
         array_->push_back(*doc_->arena(), nullptr);

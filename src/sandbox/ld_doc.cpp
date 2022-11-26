@@ -60,5 +60,19 @@ int main(int, char**)
 
     render(tpl->root(), data->root(), std::cout);
 
+//    auto doc = HermesCtr::parse_document(R"(
+//        {
+//            one: 1,
+//            two: -1,
+//            three: 2_u16,
+//            four: 1.23456789,
+//            five: true,
+//            six: "hello world"
+//        }
+
+//    )");
+
+//    println("{}", doc->to_string(StringifyCfg::pretty().with_raw_strings(false)));
+
     return 0;
 }

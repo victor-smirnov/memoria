@@ -113,18 +113,23 @@ DataObjectPtr<DT> HermesCtr::new_dataobject(DTTViewType<DT> view)
 }
 
 
-
 template <typename DT>
 DataObjectPtr<DT> HermesCtr::wrap_primitive(DTTViewType<DT> view)
+{
+    return wrap_primitive(view, common_instance().get());
+}
+
+
+template <typename DT>
+DataObjectPtr<DT> HermesCtr::wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr)
 {
     static_assert(
         TaggedValue::dt_fits_in<DT>(),
         ""
     );
 
-    auto ctr = common_instance();
     TaggedValue storage(ShortTypeCode::of<DT>(), view);
-    return DataObjectPtr<DT>(DataObject<DT>(storage, ctr.get(), ctr->ptr_holder_));
+    return DataObjectPtr<DT>(DataObject<DT>(storage, ctr, ctr->ptr_holder_));
 }
 
 template <typename DT>
@@ -162,7 +167,7 @@ namespace detail {
 template <typename DT>
 struct DTSizeDispatcher<DT, true> {
     static auto dispatch(const DTTViewType<DT>& view) {
-        return HermesCtr::wrap_primitive<DT>(view);
+        return HermesCtr::wrap_primitive<DT>(view, HermesCtr::common_instance().get());
     }
 };
 
@@ -174,6 +179,27 @@ struct DTSizeDispatcher<DT, false> {
 };
 
 }
+
+
+template <typename DT>
+DataObjectPtr<DT> HermesCtr::new_embeddable_dataobject(DTTViewType<DT> view)
+{
+    if (TaggedValue::dt_fits_in<DT>() && arena::ERelativePtr::fits_in<DTTViewType<DT>>())
+    {
+        return wrap_primitive(view, this);
+    }
+    else {
+        using DTCtr = DataObject<DT>;
+
+        auto arena_dtc = arena_->allocate_tagged_object<typename DTCtr::ArenaDTContainer>(
+                ShortTypeCode::of<DTCtr>(),
+                view
+        );
+
+        return DataObjectPtr<DT>(DTCtr(arena_dtc, this, ptr_holder_));
+    }
+}
+
 
 template <typename DT>
 DataObjectPtr<DT> HermesCtr::wrap_dataobject(DTTViewType<DT> view)

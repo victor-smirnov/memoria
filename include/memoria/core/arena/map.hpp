@@ -61,6 +61,13 @@ struct ElementHolderHelper<RelativePtr<T>> {
     }
 };
 
+template <typename T>
+struct ElementHolderHelper<EmbeddingRelativePtr<T>> {
+    static T* resolve(EmbeddingRelativePtr<T>& e) noexcept {
+        return e.get();
+    }
+};
+
 }
 
 template <
@@ -70,7 +77,7 @@ template <
 class Map {
 
     using KeyHolder   = IfThenElse<std::is_pointer_v<Key>, RelativePtr<std::remove_pointer_t<Key>>, Key>;
-    using ValueHolder = IfThenElse<std::is_pointer_v<Value>, RelativePtr<std::remove_pointer_t<Value>>, Value>;
+    using ValueHolder = IfThenElse<std::is_pointer_v<Value>, EmbeddingRelativePtr<std::remove_pointer_t<Value>>, Value>;
 
     template <typename K>
     using Hash = DefaultHashFn<K>;

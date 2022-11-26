@@ -44,7 +44,7 @@ ObjectArrayPtr Datatype::type_parameters() const
 }
 
 
-void Datatype::stringify(std::ostream& out,DumpFormatState& state) const
+void Datatype::stringify(std::ostream& out, DumpFormatState& state) const
 {
     if (datatype_)
     {

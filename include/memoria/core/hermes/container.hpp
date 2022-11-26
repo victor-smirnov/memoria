@@ -247,6 +247,10 @@ public:
 
     template <typename DT>
     DataObjectPtr<DT> new_dataobject(DTTViewType<DT> view);
+
+    template <typename DT>
+    DataObjectPtr<DT> new_embeddable_dataobject(DTTViewType<DT> view);
+
     DatatypePtr new_datatype(U8StringView name);
     DatatypePtr new_datatype(StringValuePtr name);
 
@@ -323,6 +327,9 @@ protected:
     template <typename DT>
     static DataObjectPtr<DT> wrap_primitive(DTTViewType<DT> view);
 
+    template <typename DT>
+    static DataObjectPtr<DT> wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr);
+
     HermesCtr* mutable_self() const {
         return const_cast<HermesCtr*>(this);
     }
@@ -330,6 +337,7 @@ protected:
     void deep_copy_from(const DocumentHeader* header, DeepCopyDeduplicator& dedup);
 
     ObjectPtr do_import_value(ObjectPtr value);
+    ObjectPtr do_import_embeddable(ObjectPtr value);
 
     Span<uint8_t> span() const
     {

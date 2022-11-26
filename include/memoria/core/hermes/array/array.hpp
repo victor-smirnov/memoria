@@ -27,6 +27,7 @@
 #include <memoria/core/hermes/array/typed_array.hpp>
 #include <memoria/core/hermes/array/typed_array_1fse.hpp>
 
+#include <memoria/core/hermes/object_ptr.hpp>
 
 namespace memoria {
 namespace hermes {
@@ -53,7 +54,7 @@ template <>
 class Array<Object>: public HoldingView<Array<Object>> {
     using Base = HoldingView<Array<Object>>;
 public:    
-    using ArrayStorageT = arena::Vector<arena::RelativePtr<void>>;
+    using ArrayStorageT = arena::Vector<arena::ERelativePtr>;
 protected:
     static_assert(std::is_standard_layout_v<ArrayStorageT>, "");
 
@@ -144,23 +145,7 @@ public:
         return array_->size() == 0;
     }
 
-    ObjectPtr get(uint64_t idx) const
-    {
-        assert_not_null();
-
-        if (idx < array_->size())
-        {
-            if (MMA_LIKELY(array_->get(idx).is_not_null())) {
-                return ObjectPtr(Object(array_->get(idx).get(), doc_, ptr_holder_));
-            }
-            else {
-                return ObjectPtr{};
-            }
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Object>: {} {}", idx, array_->size()).do_throw();
-        }
-    }
+    ObjectPtr get(uint64_t idx) const;
 
     template <typename DT>
     DataObjectPtr<DT> append(DTTViewType<DT> view);
@@ -207,18 +192,7 @@ public:
         return simple;
     }
 
-    void for_each(std::function<void(const ViewPtr<Object>&)> fn) const {
-        assert_not_null();
-
-        for (auto& vv: array_->span()) {
-            if (vv.is_not_null()) {
-                fn(ViewPtr<Object>(Object(vv.get(), doc_, ptr_holder_)));
-            }
-            else {
-                fn(ViewPtr<Object>(Object()));
-            }
-        }
-    }
+    void for_each(std::function<void(const ViewPtr<Object>&)> fn) const;
 
     bool is_null() const {
         return array_ == nullptr;

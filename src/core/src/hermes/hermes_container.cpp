@@ -205,6 +205,55 @@ ObjectPtr HermesCtr::do_import_value(ObjectPtr value)
     }
 }
 
+
+ObjectPtr HermesCtr::do_import_embeddable(ObjectPtr value)
+{
+    assert_not_null();
+    assert_mutable();
+
+    if (!value->is_null())
+    {
+        if (value->document().get() != this)
+        {
+            if (value->get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS)
+            {
+                auto tag = arena::read_type_tag(value->storage_.addr);
+
+                DeepCopyDeduplicator dedup;
+                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, value->storage_.addr, this, ptr_holder_, dedup);
+
+                return ObjectPtr(Object(addr, this, ptr_holder_));
+            }
+            else if (value->get_vs_tag() == ValueStorageTag::VS_TAG_SMALL_VALUE)
+            {
+                auto type_tag = value->get_type_tag();
+                auto& refl = get_type_reflection(type_tag);
+
+                if (refl.hermes_is_ptr_embeddable()) {
+                    return value;
+                }
+                else {
+                    auto vs_tag = value->get_vs_tag();
+                    return refl.import_value(vs_tag, value->storage_, this, ptr_holder_);
+                }
+            }
+            else {
+                auto type_tag = value->get_type_tag();
+                auto vs_tag = value->get_vs_tag();
+                return get_type_reflection(type_tag).import_value(vs_tag, value->storage_, this, ptr_holder_);
+            }
+        }
+        else {
+            return value;
+        }
+    }
+    else {
+        return value;
+    }
+}
+
+
+
 ParameterPtr HermesCtr::new_parameter(U8StringView name) {
     assert_not_null();
     assert_mutable();

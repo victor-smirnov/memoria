@@ -23,6 +23,7 @@
 #include <memoria/core/hermes/common.hpp>
 #include <memoria/core/hermes/traits.hpp>
 
+#include <limits>
 
 namespace memoria {
 
@@ -505,13 +506,108 @@ struct DTFNVFixedSizeHasherHelper<Double> {
     }
 };
 
+template <typename DT>
+struct StringifyViewHelper {
+    static void stringify(std::ostream& out, const DTTViewType<DT>& view) {
+        out << view;
+    }
+};
+
+template <>
+struct StringifyViewHelper<TinyInt> {
+    static void stringify(std::ostream& out, const DTTViewType<TinyInt>& view) {
+        out << (int)view << "_s8";
+    }
+};
+
+template <>
+struct StringifyViewHelper<UTinyInt> {
+    static void stringify(std::ostream& out, const DTTViewType<UTinyInt>& view) {
+        out << (unsigned)view << "_u8";
+    }
+};
+
+template <>
+struct StringifyViewHelper<SmallInt> {
+    static void stringify(std::ostream& out, const DTTViewType<SmallInt>& view) {
+        out << view << "_s16";
+    }
+};
+
+template <>
+struct StringifyViewHelper<USmallInt> {
+    static void stringify(std::ostream& out, const DTTViewType<USmallInt>& view) {
+        out << view << "_u16";
+    }
+};
+
+template <>
+struct StringifyViewHelper<Integer> {
+    static void stringify(std::ostream& out, const DTTViewType<Integer>& view) {
+        out << view;
+    }
+};
+
+template <>
+struct StringifyViewHelper<UInteger> {
+    static void stringify(std::ostream& out, const DTTViewType<UInteger>& view) {
+        out << view << "u";
+    }
+};
+
+template <>
+struct StringifyViewHelper<BigInt> {
+    static void stringify(std::ostream& out, const DTTViewType<BigInt>& view) {
+        out << view << "ll";
+    }
+};
+
+template <>
+struct StringifyViewHelper<UBigInt> {
+    static void stringify(std::ostream& out, const DTTViewType<UBigInt>& view) {
+        out << view << "ull";
+    }
+};
+
+template <>
+struct StringifyViewHelper<Boolean> {
+    static void stringify(std::ostream& out, const DTTViewType<Boolean>& view) {
+        out << (view ? "true" : "false");
+    }
+};
+
+template <>
+struct StringifyViewHelper<Double> {
+    static void stringify(std::ostream& out, const DTTViewType<Double>& view)
+    {
+        std::ios_base::fmtflags f(out.flags());
+        using DV = DTTViewType<Double>;
+        using lims = std::numeric_limits<DV>;
+        out.precision(lims::max_digits10);
+        out << view << "d";
+        out.flags(f);
+    }
+};
+
+template <>
+struct StringifyViewHelper<Real> {
+    static void stringify(std::ostream& out, const DTTViewType<Real>& view)
+    {
+        std::ios_base::fmtflags f(out.flags());
+        using DV = DTTViewType<Real>;
+        using lims = std::numeric_limits<DV>;
+        out.precision(lims::max_digits10);
+        out << view;
+        out.flags(f);
+    }
+};
 
 }
 
 
 
 template <typename DT>
-class ArenaDataTypeContainer<DT, FixedSizeDataTypeTag> {
+class alignas(std::max<size_t>(2, alignof(DTTViewType<DT>))) ArenaDataTypeContainer<DT, FixedSizeDataTypeTag> {
     using ViewT = DTTViewType<DT>;
 
     ViewT value_;
@@ -549,11 +645,7 @@ public:
             hermes::DumpFormatState& state,
             const DTTViewType<DT>& view
     ){
-        out << view;
-
-        if (std::is_same_v<DT, UBigInt>) {
-            out << "ull";
-        }
+        detail::StringifyViewHelper<DT>::stringify(out, view);
     }
 
     ArenaDataTypeContainer* deep_copy_to(
@@ -614,12 +706,7 @@ public:
             hermes::DumpFormatState& state,
             const bool& value
     ){
-        if (value) {
-            out << "true";
-        }
-        else {
-            out << "false";
-        }
+        detail::StringifyViewHelper<Boolean>::stringify(out, value);
     }
 
     ArenaDataTypeContainer* deep_copy_to(

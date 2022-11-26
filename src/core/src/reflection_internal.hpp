@@ -593,6 +593,34 @@ template <typename ViewT>
 using DTComparator = std::function<int32_t (const ViewT&, hermes::ValueStorageTag, hermes::ValueStorage&, hermes::HermesCtr*, ViewPtrHolder*)>;
 
 
+template <typename TV, bool Embeddable>
+struct TVEmbedHelper {
+    static bool embed(uint64_t type_code, arena::ERelativePtr& dst, const hermes::TaggedValue& src)
+    {
+        dst.embed(type_code, src.get_unchecked<TV>());
+        return true;
+    }
+
+    static void extract(hermes::TaggedValue& dst, const arena::ERelativePtr& src)
+    {
+
+    }
+};
+
+template <typename TV>
+struct TVEmbedHelper<TV, false> {
+    static bool embed(uint64_t, arena::ERelativePtr&, const hermes::TaggedValue&) {
+        return false;
+    }
+
+    static void extract(hermes::TaggedValue&, const arena::ERelativePtr&)
+    {
+        MEMORIA_MAKE_GENERIC_ERROR("Type {} is not embeddable into ERelativePtr", TypeNameFactory<TV>::name()).do_throw();
+    }
+};
+
+
+
 }
 
 template <typename T, typename DT>
@@ -793,6 +821,26 @@ public:
     {
         const auto& view = storage.get_view<DT>(vs_tag);
         return ctr->new_dataobject<DT>(view)->as_object();
+    }
+
+    virtual bool hermes_is_ptr_embeddable() const override
+    {
+        bool eptr_fits = arena::ERelativePtr::dt_fits_in<DT>();
+        return eptr_fits;
+    }
+
+    virtual bool hermes_embed(arena::ERelativePtr& dst, const hermes::TaggedValue& src) const override
+    {
+        using DV = DTTViewType<DT>;
+        constexpr bool eptr_fits = arena::ERelativePtr::dt_fits_in<DT>();
+        return detail::TVEmbedHelper<DV, eptr_fits>::embed(TypeHashV<DT>, dst, src);
+    }
+
+    virtual void hermes_extract(hermes::TaggedValue& dst, const arena::ERelativePtr& src) const override
+    {
+        using DV = DTTViewType<DT>;
+        constexpr bool eptr_fits = arena::ERelativePtr::dt_fits_in<DT>();
+        detail::TVEmbedHelper<DV, eptr_fits>::extract(dst, src);
     }
 };
 

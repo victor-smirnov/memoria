@@ -20,9 +20,6 @@
 namespace memoria {
 namespace hermes {
 
-
-
-
 template <>
 class Map<Varchar, Object>: public HoldingView<Map<Varchar, Object>> {
     using Base = HoldingView<Map<Varchar, Object>>;

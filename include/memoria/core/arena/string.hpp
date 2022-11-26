@@ -43,8 +43,7 @@ class ArenaDataTypeContainer<Varchar, Selector> {
 public:
     static constexpr bool UseObjectSize = true;
 
-    ArenaDataTypeContainer(ViewT view)
-    {
+    ArenaDataTypeContainer(ViewT view) {
         uint8_t* buffer = raw_data();
         size_t len = u64_56_vlen_value_size(view.length());
         encode_u64_56_vlen(buffer, view.length());
