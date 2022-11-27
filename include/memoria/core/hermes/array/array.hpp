@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/core/arena/vector.hpp>
+#include <memoria/core/arena/array.hpp>
 #include <memoria/core/arena/relative_ptr.hpp>
 
 #include <memoria/core/hermes/object.hpp>
@@ -54,7 +54,7 @@ template <>
 class Array<Object>: public HoldingView<Array<Object>> {
     using Base = HoldingView<Array<Object>>;
 public:    
-    using ArrayStorageT = arena::Vector<arena::ERelativePtr>;
+    using ArrayStorageT = arena::Array<arena::ERelativePtr>;
 protected:
     static_assert(std::is_standard_layout_v<ArrayStorageT>, "");
 

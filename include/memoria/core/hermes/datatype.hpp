@@ -17,7 +17,7 @@
 
 #include <memoria/core/memory/shared_ptr.hpp>
 #include <memoria/core/arena/string.hpp>
-#include <memoria/core/arena/vector.hpp>
+#include <memoria/core/arena/array.hpp>
 #include <memoria/core/arena/relative_ptr.hpp>
 #include <memoria/core/arena/hash_fn.hpp>
 

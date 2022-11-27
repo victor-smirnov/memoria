@@ -219,6 +219,6 @@ public:
     }
 };
 
-using GenericVector = Vector<EmbeddingRelativePtr<void>>;
+
 
 }}

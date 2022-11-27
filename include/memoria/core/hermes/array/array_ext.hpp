@@ -95,10 +95,8 @@ ObjectArrayPtr Array<Object>::append(DTTViewType<DT> view)
     assert_not_null();
     assert_mutable();
 
-    auto ptr = doc_->new_dataobject<DT>(view);
-    array_->push_back(*doc_->arena(), ptr->dt_ctr());
-
-    return ObjectArrayPtr{ObjectArray{array_, doc_, ptr_holder_}};
+    auto vv = doc_->new_embeddable_dataobject<DT>(view);
+    return append(vv->as_object());
 }
 
 
@@ -108,15 +106,11 @@ DataObjectPtr<DT> Array<Object>::set(uint64_t idx, DTTViewType<DT> view)
     assert_not_null();
     assert_mutable();
 
-    if (MMA_LIKELY(idx < array_->size()))
-    {
-        auto ptr = doc_->new_embeddable_dataobject<DT>(view);
-        array_->set(idx, ptr->dt_ctr());
-        return ptr;
-    }
-    else {
-        MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Object>::set(): {}::{}", idx, array_->size()).do_throw();
-    }
+    auto ptr = doc_->new_embeddable_dataobject<DT>(view);
+    this->set(idx, ptr->as_object());
+
+    return ptr;
+
 }
 
 
@@ -125,8 +119,12 @@ inline ObjectArrayPtr Array<Object>::append(const ObjectPtr& value)
     assert_not_null();
     assert_mutable();
 
-    if (value->is_not_null()) {
+    ShortTypeCode mytag = arena::read_type_tag(array_);
 
+    ArrayStorageT* new_array;
+
+    if (value->is_not_null())
+    {
         arena::ERelativePtr val_ptr;
 
         if (value->get_vs_tag() == VS_TAG_SMALL_VALUE)
@@ -144,13 +142,13 @@ inline ObjectArrayPtr Array<Object>::append(const ObjectPtr& value)
             val_ptr = vv->storage_.addr;
         }
 
-        array_->push_back(*doc_->arena(), val_ptr);
+        new_array = array_->push_back(*doc_->arena(), mytag, val_ptr);
     }
     else {
-        array_->push_back(*doc_->arena(), nullptr);
+        new_array = array_->push_back(*doc_->arena(), mytag, nullptr);
     }
 
-    return ObjectArrayPtr{ObjectArray{array_, doc_, ptr_holder_}};
+    return ObjectArrayPtr{ObjectArray{new_array, doc_, ptr_holder_}};
 }
 
 template <typename DT>
@@ -228,14 +226,9 @@ inline ObjectArrayPtr Array<Object>::remove(uint64_t idx)
     assert_not_null();
     assert_mutable();
 
-    if (idx < array_->size()) {
-        array_->remove(*doc_->arena_, idx);
-    }
-    else {
-        MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Object>::remove(): {}::{}", idx, array_->size()).do_throw();
-    }
-
-    return ObjectArrayPtr{ObjectArray{array_, doc_, ptr_holder_}};
+    ShortTypeCode mytag = arena::read_type_tag(array_);
+    ArrayStorageT* new_array = array_->remove(*doc_->arena_, mytag, idx);
+    return ObjectArrayPtr{ObjectArray{new_array, doc_, ptr_holder_}};
 }
 
 

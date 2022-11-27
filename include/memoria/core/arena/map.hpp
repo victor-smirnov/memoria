@@ -45,45 +45,6 @@
 namespace memoria {
 namespace arena {
 
-//namespace detail {
-
-//template <typename T>
-//struct ElementHolderHelper {
-//    static T& resolve(T& e) noexcept {
-//        return e;
-//    }
-
-//    static void assign(T& dst, const T& src) noexcept {
-//        dst = src;
-//    }
-//};
-
-//template <typename T>
-//struct ElementHolderHelper<RelativePtr<T>> {
-//    static auto resolve(RelativePtr<T>& e) noexcept {
-//        return e.get();
-//    }
-
-//    template <typename DataT>
-//    static void assign(RelativePtr<T>& dst, const DataT& src) noexcept {
-//        dst = src;
-//    }
-//};
-
-//template <typename T>
-//struct ElementHolderHelper<EmbeddingRelativePtr<T>> {
-//    static auto resolve(EmbeddingRelativePtr<T>& e) noexcept {
-//        return e.get_data();
-//    }
-
-//    template <typename DataT>
-//    static void assign(EmbeddingRelativePtr<T>& dst, const DataT& src) noexcept {
-//        dst.setup_data(src);
-//    }
-//};
-
-//}
-
 template <
     typename Key,
     typename Value
@@ -93,29 +54,6 @@ class Map {
     using KeyHolder     = Key;
     using ValueHolder   = Value;
 
-//    using KeyHolder = IfThenElse<
-//            std::is_pointer_v<Key>,
-//            RelativePtr<std::remove_pointer_t<Key>>,
-//            Key
-//    >;
-
-////    using KeyTunnel = IfThenElse<
-////            std::is_pointer_v<Key>,
-////            typename RelativePtr<std::remove_pointer_t<Key>>::TunnelT,
-////            Key
-////    >;
-
-//    using ValueHolder = IfThenElse<
-//            std::is_pointer_v<Value>,
-//            EmbeddingRelativePtr<std::remove_pointer_t<Value>>,
-//            Value
-//    >;
-
-//    using ValueTunnel = IfThenElse<
-//            std::is_pointer_v<Value>,
-//            typename EmbeddingRelativePtr<std::remove_pointer_t<Value>>::TunnelT,
-//            Value
-//    >;
 
     template <typename K>
     using Hash = DefaultHashFn<K>;

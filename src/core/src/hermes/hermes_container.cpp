@@ -100,12 +100,12 @@ ObjectMapPtr HermesCtr::new_map()
     return ObjectMapPtr(CtrT(arena_dtc, this, ptr_holder_));
 }
 
-ObjectArrayPtr HermesCtr::new_array()
+ObjectArrayPtr HermesCtr::new_array(uint64_t capacity)
 {
     using CtrT = ObjectArray;
 
     auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::ArrayStorageT>(
-        ShortTypeCode::of<CtrT>()
+        ShortTypeCode::of<CtrT>(), capacity
     );
 
     return ObjectArrayPtr(CtrT(arena_dtc, this, ptr_holder_));
@@ -113,22 +113,14 @@ ObjectArrayPtr HermesCtr::new_array()
 
 ObjectArrayPtr HermesCtr::new_array(Span<const ObjectPtr> span)
 {
-    using CtrT = ObjectArray;
+    auto array = new_array(span.size());
 
-    auto arena_arr = arena()->allocate_tagged_object<typename CtrT::ArrayStorageT>(
-        ShortTypeCode::of<CtrT>()
-    );
-
-    if (span.size())
-    {
-        arena_arr->enlarge(*arena_, span.size());
-        for (auto& value: span) {
-            auto vv = this->do_import_value(value);
-            arena_arr->push_back(*arena_, vv->storage_.addr);
-        }
+    for (auto& value: span) {
+        auto vv = this->do_import_embeddable(value);
+        array = array->append(vv);
     }
 
-    return ObjectArrayPtr(CtrT(arena_arr, this, ptr_holder_));
+    return array;
 }
 
 ObjectArrayPtr HermesCtr::new_array(const std::vector<ObjectPtr>& array) {

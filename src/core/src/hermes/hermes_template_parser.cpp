@@ -159,9 +159,9 @@ struct HermesTemplateParser :
                     );
 
         auto std_array_to_object = [](auto& attrib, auto& ctx){
-            auto array = current_ctr()->new_array();
+            auto array = current_ctr()->new_array(attrib.size());
             for (auto& item: attrib) {
-                array->append(std::move(item.value));
+                array = array->append(std::move(item.value));
             }
 
             TemplateConstants::process_outer_space(array->as_object());

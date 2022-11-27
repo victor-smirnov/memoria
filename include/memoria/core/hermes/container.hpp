@@ -201,30 +201,6 @@ public:
     }
 
 
-//    ObjectArrayPtr set_object_array()
-//    {
-//        assert_not_null();
-//        assert_mutable();
-
-//        auto ptr = this->new_array();
-
-//        header_->root = ptr->array_;
-
-//        return ptr;
-//    }
-
-//    ObjectMapPtr set_object_map()
-//    {
-//        assert_not_null();
-//        assert_mutable();
-
-//        auto ptr = this->new_map();
-
-//        header_->root = ptr->map_;
-
-//        return ptr;
-//    }
-
     ObjectPtr set_hermes(U8StringView str)
     {
         assert_not_null();
@@ -296,7 +272,7 @@ public:
     static DataObjectPtr<DT> wrap_dataobject(DTTViewType<DT> view);
 
     ObjectMapPtr new_map();
-    ObjectArrayPtr new_array();
+    ObjectArrayPtr new_array(uint64_t capacity = 1);
     ObjectArrayPtr new_array(Span<const ObjectPtr> span);
     ObjectArrayPtr new_array(const std::vector<ObjectPtr>& array);
 

@@ -178,14 +178,17 @@ public:
 
     ~EmbeddingRelativePtr() noexcept = default;
 
+    bool operator==(const EmbeddingRelativePtr&) const = delete;
 
-    EmbeddingRelativePtr& operator=(const EmbeddingRelativePtr& other) noexcept {
+    EmbeddingRelativePtr& operator=(const EmbeddingRelativePtr& other) noexcept
+    {
         if (other.is_pointer()) {
             set_offset(to_u8(other.get()) - my_addr());
         }
         else {
             *as_u64() = *other.as_u64();
         }
+
         return *this;
     }
 
@@ -198,7 +201,7 @@ public:
             *as_u64() = *other.as_u64();
         }
 
-        return this;
+        return *this;
     }
 
     const uint8_t* buffer() const noexcept {

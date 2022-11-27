@@ -278,7 +278,8 @@ void Datatype::append_type_parameter(ObjectPtr value)
         datatype_->set_parameters(params->array_);
     }
 
-    params->append(value);
+    auto new_params = params->append(value);
+    datatype_->set_parameters(new_params->array_);
 }
 
 void Datatype::append_constructor_argument(ObjectPtr value)
@@ -293,7 +294,8 @@ void Datatype::append_constructor_argument(ObjectPtr value)
         datatype_->set_constructor(ctr->array_);
     }
 
-    ctr->append(value);
+    auto new_ctr = ctr->append(value);
+    datatype_->set_parameters(new_ctr->array_);
 }
 
 
