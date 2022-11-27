@@ -90,14 +90,15 @@ inline void Array<Object>::for_each(std::function<void(const ObjectPtr&)> fn) co
 }
 
 template <typename DT>
-DataObjectPtr<DT> Array<Object>::append(DTTViewType<DT> view)
+ObjectArrayPtr Array<Object>::append(DTTViewType<DT> view)
 {
     assert_not_null();
     assert_mutable();
 
     auto ptr = doc_->new_dataobject<DT>(view);
     array_->push_back(*doc_->arena(), ptr->dt_ctr());
-    return ptr;
+
+    return ObjectArrayPtr{ObjectArray{array_, doc_, ptr_holder_}};
 }
 
 
@@ -109,7 +110,7 @@ DataObjectPtr<DT> Array<Object>::set(uint64_t idx, DTTViewType<DT> view)
 
     if (MMA_LIKELY(idx < array_->size()))
     {
-        auto ptr = doc_->new_dataobject<DT>(view);
+        auto ptr = doc_->new_embeddable_dataobject<DT>(view);
         array_->set(idx, ptr->dt_ctr());
         return ptr;
     }
@@ -119,7 +120,7 @@ DataObjectPtr<DT> Array<Object>::set(uint64_t idx, DTTViewType<DT> view)
 }
 
 
-inline void Array<Object>::append(const ObjectPtr& value)
+inline ObjectArrayPtr Array<Object>::append(const ObjectPtr& value)
 {
     assert_not_null();
     assert_mutable();
@@ -148,6 +149,8 @@ inline void Array<Object>::append(const ObjectPtr& value)
     else {
         array_->push_back(*doc_->arena(), nullptr);
     }
+
+    return ObjectArrayPtr{ObjectArray{array_, doc_, ptr_holder_}};
 }
 
 template <typename DT>
@@ -202,16 +205,6 @@ inline void Array<Object>::set(uint64_t idx, const ObjectPtr& value)
     }
 }
 
-inline ObjectPtr Array<Object>::append_hermes(U8StringView str) {
-  assert_not_null();
-  assert_mutable();
-
-  ObjectPtr vv = doc_->parse_raw_value(str.begin(), str.end());
-
-  array_->push_back(*doc_->arena(), vv->storage_.addr);
-
-  return vv;
-}
 
 inline ObjectPtr Array<Object>::set_hermes(uint64_t idx, U8StringView str) {
   assert_not_null();
@@ -230,7 +223,7 @@ inline ObjectPtr Array<Object>::set_hermes(uint64_t idx, U8StringView str) {
 }
 
 
-inline void Array<Object>::remove(uint64_t idx)
+inline ObjectArrayPtr Array<Object>::remove(uint64_t idx)
 {
     assert_not_null();
     assert_mutable();
@@ -241,15 +234,10 @@ inline void Array<Object>::remove(uint64_t idx)
     else {
         MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Object>::remove(): {}::{}", idx, array_->size()).do_throw();
     }
+
+    return ObjectArrayPtr{ObjectArray{array_, doc_, ptr_holder_}};
 }
 
-inline ObjectPtr Array<Object>::append_null() {
-    assert_not_null();
-    assert_mutable();
-
-    array_->push_back(*doc_->arena(), nullptr);
-    return ObjectPtr{};
-}
 
 inline PoolSharedPtr<GenericArray> Array<Object>::as_generic_array() const {
     return TypedGenericArray<Object>::make_wrapper(array_, doc_, ptr_holder_);

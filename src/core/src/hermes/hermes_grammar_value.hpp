@@ -96,7 +96,7 @@ public:
     using iterator = EmptyType;
 
     ArrayValue() {
-        array_ = HermesCtrBuilder::current().new_array();
+        array_ = current_ctr()->new_array();
     }
 
     iterator end() {return iterator{};}
@@ -164,7 +164,7 @@ public:
     using iterator = EmptyType;
 
     MapValue() {
-        value_ = HermesCtrBuilder::current().new_map();
+        value_ = current_ctr()->new_map();
     }
 
     iterator end() const {return iterator{};}
@@ -283,15 +283,15 @@ struct ValueVisitor: boost::static_visitor<> {
     ObjectPtr value;
 
     void operator()(long long v) {
-        value = HermesCtrBuilder::current().new_bigint(v)->as_object();
+        value = HermesCtr::wrap_dataobject<BigInt>(v)->as_object();
     }
 
     void operator()(double v) {
-        value = HermesCtrBuilder::current().new_double(v)->as_object();
+        value = HermesCtr::wrap_dataobject<Double>(v)->as_object();
     }
 
     void operator()(bool v) {
-        value = HermesCtrBuilder::current().new_boolean(v)->as_object();
+        value = HermesCtr::wrap_dataobject<Boolean>(v)->as_object();
     }
 
     void operator()(ObjectMapPtr&) {}
@@ -417,11 +417,11 @@ public:
     }
 
     void push_back(const ObjectPtr& value) {
-        array_->push_back(value);
+        array_ = array_->push_back(value);
     }
 
     void push_back(const TypedMapEntry& value) {
-        map_->put(bf::at_c<0>(value), bf::at_c<1>(value));
+        map_ = map_->put(bf::at_c<0>(value), bf::at_c<1>(value));
     }
 
     ObjectPtr finish()

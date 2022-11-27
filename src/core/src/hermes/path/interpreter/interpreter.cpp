@@ -1206,7 +1206,7 @@ void Interpreter::mergeObject(ObjectPtr* object, ObjectPtr&& sourceObject)
     auto src_map = sourceObject->as_generic_map();
 
     src_map->for_each([&](auto k, auto v){
-        map->put(k, v);
+        map = map->put(k, v);
     });
 }
 

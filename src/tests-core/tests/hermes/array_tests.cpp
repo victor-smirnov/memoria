@@ -88,20 +88,20 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Herm
     assert_equals(true, array->get(4)->is_array());
 //    assert_equals(true, array->get(4)->as_generic_array()->equals(arr));
 
-    auto sdn1 = array->append_hermes("'123456'@CoolType");
-    assert_equals(true, array->get(5)->is_typed_value());
+    //auto sdn1 = array->append_hermes("'123456'@CoolType");
+    //assert_equals(true, array->get(5)->is_typed_value());
     //assert_equals(true, array->get(5)->equals(sdn1));
 
-    auto sdn2 = array->append_hermes("CoolType");
-    assert_equals(true, array->get(6)->is_datatype());
+    //auto sdn2 = array->append_hermes("CoolType");
+    //assert_equals(true, array->get(6)->is_datatype());
     //assert_equals(true, array->get(6)->equals(sdn2));
 
-    auto doc2 = array->append_hermes("{}");
-    assert_equals(true, array->get(7)->is_map());
+    //auto doc2 = array->append_hermes("{}");
+    //assert_equals(true, array->get(7)->is_map());
     //assert_equals(true, array->get(7)->equals(doc2));
 
-    array->append_null();
-    assert_equals(true, array->get(8)->is_null());
+    //array->append_null();
+    //assert_equals(true, array->get(8)->is_null());
 
 
     array->set<Double>(0, 555);

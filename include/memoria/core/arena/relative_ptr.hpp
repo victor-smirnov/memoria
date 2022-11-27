@@ -28,6 +28,7 @@ template <typename T>
 class RelativePtr {
     int64_t offset_;
 public:
+
     RelativePtr() noexcept :
         offset_(0)
     {}
@@ -36,13 +37,25 @@ public:
         offset_(to_u8(ptr) - my_addr())
     {}
 
+    RelativePtr(const RelativePtr& other) noexcept {
+        offset_(to_u8(other.get()) - my_addr());
+    }
+
+    RelativePtr(RelativePtr&& other) noexcept {
+        offset_(to_u8(other.get()) - my_addr());
+    }
+
     ~RelativePtr() noexcept = default;
 
-private:
-    RelativePtr(const RelativePtr&) = default;
-    RelativePtr(RelativePtr&& ptr) noexcept = default;
+    RelativePtr& operator=(const RelativePtr& other) {
+        offset_ = to_u8(other.get()) - my_addr();
+        return *this;
+    }
 
-public:
+    RelativePtr& operator=(RelativePtr&& other) {
+        offset_ = to_u8(other.get()) - my_addr();
+        return *this;
+    }
 
     void reset() noexcept {
         offset_ = 0;
@@ -88,9 +101,6 @@ public:
     }
 
 private:
-    RelativePtr& operator=(const RelativePtr&) = delete;
-    RelativePtr& operator=(RelativePtr&&) = delete;
-
 
     uint8_t* to_u8(T* ptr) const noexcept {
         return reinterpret_cast<uint8_t*>(ptr);
@@ -121,8 +131,9 @@ public:
     template <typename DT>
     static constexpr bool dt_fits_in() {
         using DV = DTTViewType<DT>;
-        return DataTypeTraits<DT>::isFixedSize && fits_in<DV>();
+        return DataTypeTraits<DT>::isFixedSize && fits_in<DV>() && TypeHashV<DT> < 128;
     }
+
 
     EmbeddingRelativePtr() noexcept
     {
@@ -134,39 +145,65 @@ public:
         set_offset(to_u8(ptr) - my_addr());
     }
 
-    template <typename DV>
-    EmbeddingRelativePtr(uint8_t tag, DV dv) {
-        embed(tag, dv);
+
+    EmbeddingRelativePtr(uint8_t tag, const uint8_t* buf)
+    {
+        for (size_t c = 0; c < BUFFER_SIZE; c++) {
+            buffer_[c] = buf[c];
+        }
+
+        uint8_t tagv = (tag << 1) | 0x01;
+        buffer_[BUFFER_SIZE - 1] = tagv;
     }
 
+    EmbeddingRelativePtr(const EmbeddingRelativePtr& other) noexcept
+    {
+        if (other.is_pointer()) {
+            set_offset(to_u8(other.get()) - my_addr());
+        }
+        else {
+            *as_u64() = *other.as_u64();
+        }
+    }
+
+    EmbeddingRelativePtr(EmbeddingRelativePtr&& other) noexcept
+    {
+        if (other.is_pointer()) {
+            set_offset(to_u8(other.get()) - my_addr());
+        }
+        else {
+            *as_u64() = *other.as_u64();
+        }
+    }
 
     ~EmbeddingRelativePtr() noexcept = default;
-private:
-    EmbeddingRelativePtr(const EmbeddingRelativePtr&) = default;
-    EmbeddingRelativePtr(EmbeddingRelativePtr&& ptr) noexcept = default;
 
-    void set_offset(int64_t value)
+
+    EmbeddingRelativePtr& operator=(const EmbeddingRelativePtr& other) noexcept {
+        if (other.is_pointer()) {
+            set_offset(to_u8(other.get()) - my_addr());
+        }
+        else {
+            *as_u64() = *other.as_u64();
+        }
+        return *this;
+    }
+
+    EmbeddingRelativePtr& operator=(EmbeddingRelativePtr&& other) noexcept
     {
-        uint64_t val  = static_cast<uint64_t>(value);
-        uint64_t lowb = val << 56;
-        uint64_t tgt  = (val >> 8) | lowb;
+        if (other.is_pointer()) {
+            set_offset(to_u8(other.get()) - my_addr());
+        }
+        else {
+            *as_u64() = *other.as_u64();
+        }
 
-        *as_u64() = tgt;
+        return this;
     }
 
-    uint64_t* as_u64() noexcept {
-        return ptr_cast<uint64_t>(buffer_);
-    }
-
-    const uint64_t* as_u64() const noexcept {
-        return ptr_cast<const uint64_t>(buffer_);
-    }
-
-public:
     const uint8_t* buffer() const noexcept {
         return buffer_;
     }
-
 
     void reset() noexcept {
         set_offset(0);
@@ -207,6 +244,8 @@ public:
         }
     }
 
+
+
     int64_t offset() const noexcept
     {
         uint64_t val = *ptr_cast<uint64_t>(buffer_);
@@ -238,12 +277,6 @@ public:
         return buffer_[BUFFER_SIZE - 1] >> 1;
     }
 
-//    // alignof = 1
-//    void* allocate_in(uint8_t tag) noexcept
-//    {
-//        buffer_[BUFFER_SIZE - 1] = (tag << 1) | 0x01;
-//        return buffer_;
-//    }
 
     template <typename VT>
     std::enable_if_t <sizeof(VT) < BUFFER_SIZE, void>
@@ -254,46 +287,31 @@ public:
         *ptr_cast<VT>(buffer_) = data;
     }
 
-//    template <typename VT>
-//    std::enable_if_t <sizeof(VT) == BUFFER_SIZE, void>
-//            embed(uint8_t tag, VT data) noexcept
-//    {
-//        const uint8_t* view = reinterpret_cast<const VT*>(&data);
-
-//        for (size_t c = 0; c < 8; c++) {
-//            buffer_[c] = view[c];
-//        }
-
-//        buffer_[7] = (tag << 1) | 0x01;
-//    }
-
-//    template <typename VT>
-//    std::enable_if_t <sizeof(VT) < BUFFER_SIZE, void>
-//            extract(uint8_t& tag, VT& data) const noexcept
-//    {
-//        tag = buffer_[7] >> 1;
-//        data = *ptr_cast<const VT>(buffer_);
-//    }
-
-//    template <typename VT>
-//    std::enable_if_t <sizeof(VT) == BUFFER_SIZE, void>
-//            extract(uint8_t& tag, VT& data) const noexcept
-//    {
-//        uint64_t val = *as_u64();
-//        tag = val >> 57;
-//        val = val & 0xFF00000000000000;
-//        data = *ptr_cast<const VT>(&val);
-//    }
 
     void copy_from(const EmbeddingRelativePtr& other) {
-        for (size_t c = 0; c < 8; c++) {
+        for (size_t c = 0; c < BUFFER_SIZE; c++) {
             buffer_[c] = other.buffer_[c];
         }
     }
 
 private:
-    EmbeddingRelativePtr& operator=(const EmbeddingRelativePtr&) = delete;
-    EmbeddingRelativePtr& operator=(EmbeddingRelativePtr&&) = delete;
+
+    void set_offset(int64_t value)
+    {
+        uint64_t val  = static_cast<uint64_t>(value);
+        uint64_t lowb = val << 56;
+        uint64_t tgt  = (val >> 8) | lowb;
+
+        *as_u64() = tgt;
+    }
+
+    uint64_t* as_u64() noexcept {
+        return ptr_cast<uint64_t>(buffer_);
+    }
+
+    const uint64_t* as_u64() const noexcept {
+        return ptr_cast<const uint64_t>(buffer_);
+    }
 
     uint8_t* to_u8(T* ptr) const noexcept {
         return reinterpret_cast<uint8_t*>(ptr);

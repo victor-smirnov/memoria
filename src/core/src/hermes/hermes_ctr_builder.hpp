@@ -111,13 +111,13 @@ public:
         return new_varchar();
     }
 
-    auto new_bigint(int64_t v) {
-        return HermesCtr::wrap_dataobject<BigInt>(v);
-    }
+//    auto new_bigint(int64_t v) {
+//        return HermesCtr::wrap_dataobject<BigInt>(v);
+//    }
 
-    auto new_double(double v) {
-        return HermesCtr::wrap_dataobject<Double>(v);
-    }
+//    auto new_double(double v) {
+//        return HermesCtr::wrap_dataobject<Double>(v);
+//    }
 
     auto new_boolean(bool v) {
         return HermesCtr::wrap_dataobject<Boolean>(v);
@@ -127,17 +127,17 @@ public:
         doc_->set_root(value);
     }
 
-    auto new_array(Span<ObjectPtr> span) {
-        return doc_->new_array(span);
-    }
+//    auto new_array(Span<ObjectPtr> span) {
+//        return doc_->new_array(span);
+//    }
 
-    auto new_array() {
-        return doc_->new_array();
-    }
+//    auto new_array() {
+//        return doc_->new_array();
+//    }
 
-    auto new_map() {
-        return doc_->new_map();
-    }
+//    auto new_map() {
+//        return doc_->new_map();
+//    }
 
     auto new_datatype(StringValuePtr id) {
         return doc_->new_datatype(id);

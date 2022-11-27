@@ -84,6 +84,10 @@ public:
         return (value_ >> 3) & 0x1Full;
     }
 
+    constexpr uint64_t code() const {
+        return value_ >> 8;
+    }
+
     template <typename T>
     static constexpr ShortTypeCode of() {
         return ShortTypeCode::with_descriptor(TypeHash<T>::Value, TypeDescriptor<T>::Value);

@@ -116,7 +116,7 @@ DataObjectPtr<DT> HermesCtr::new_dataobject(DTTViewType<DT> view)
 template <typename DT>
 DataObjectPtr<DT> HermesCtr::wrap_primitive(DTTViewType<DT> view)
 {
-    return wrap_primitive(view, common_instance().get());
+    return wrap_primitive<DT>(view, common_instance().get());
 }
 
 
@@ -131,6 +131,7 @@ DataObjectPtr<DT> HermesCtr::wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr
     TaggedValue storage(ShortTypeCode::of<DT>(), view);
     return DataObjectPtr<DT>(DataObject<DT>(storage, ctr, ctr->ptr_holder_));
 }
+
 
 template <typename DT>
 DataObjectPtr<DT> HermesCtr::wrap_dataobject__full(DTTViewType<DT> view)
@@ -167,7 +168,11 @@ namespace detail {
 template <typename DT>
 struct DTSizeDispatcher<DT, true> {
     static auto dispatch(const DTTViewType<DT>& view) {
-        return HermesCtr::wrap_primitive<DT>(view, HermesCtr::common_instance().get());
+        return HermesCtr::wrap_primitive<DT>(view);
+    }
+
+    static auto dispatch(const DTTViewType<DT>& view, HermesCtr* owner) {
+        return HermesCtr::wrap_primitive<DT>(view, owner);
     }
 };
 
@@ -175,6 +180,10 @@ template <typename DT>
 struct DTSizeDispatcher<DT, false> {
     static auto dispatch(const DTTViewType<DT>& view) {
         return HermesCtr::wrap_dataobject__full<DT>(view);
+    }
+
+    static auto dispatch(const DTTViewType<DT>& view, HermesCtr* owner) {
+        return owner->new_dataobject<DT>(view);
     }
 };
 
@@ -184,20 +193,10 @@ struct DTSizeDispatcher<DT, false> {
 template <typename DT>
 DataObjectPtr<DT> HermesCtr::new_embeddable_dataobject(DTTViewType<DT> view)
 {
-    if (TaggedValue::dt_fits_in<DT>() && arena::ERelativePtr::fits_in<DTTViewType<DT>>())
-    {
-        return wrap_primitive(view, this);
-    }
-    else {
-        using DTCtr = DataObject<DT>;
-
-        auto arena_dtc = arena_->allocate_tagged_object<typename DTCtr::ArenaDTContainer>(
-                ShortTypeCode::of<DTCtr>(),
-                view
-        );
-
-        return DataObjectPtr<DT>(DTCtr(arena_dtc, this, ptr_holder_));
-    }
+    return detail::DTSizeDispatcher<
+            DT,
+            arena::ERelativePtr::dt_fits_in<DT>()
+    >::dispatch(view, this);
 }
 
 

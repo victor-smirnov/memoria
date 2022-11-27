@@ -391,21 +391,21 @@ private:
 public:
     TaggedValue() = default;
 
-    TaggedValue(ShortTypeCode tag, const arena::ERelativePtr& eptr):
-        tag_(tag)
-    {
-        constexpr size_t EBUF_SIZE = arena::ERelativePtr::BUFFER_SIZE;
+//    TaggedValue(ShortTypeCode tag, const arena::ERelativePtr& eptr):
+//        tag_(tag)
+//    {
+//        constexpr size_t EBUF_SIZE = arena::ERelativePtr::BUFFER_SIZE;
 
-        static_assert(EBUF_SIZE <= VALUE_SIZE, "");
+//        static_assert(EBUF_SIZE <= VALUE_SIZE, "");
 
-        for (size_t c = 0; c < EBUF_SIZE - 1; c++) {
-            value_[c] = eptr.buffer()[c];
-        }
+//        for (size_t c = 0; c < EBUF_SIZE - 1; c++) {
+//            value_[c] = eptr.buffer()[c];
+//        }
 
-        for (size_t c = EBUF_SIZE - 1; c < VALUE_SIZE; c++) {
-            value_[c] = 0;
-        }
-    }
+//        for (size_t c = EBUF_SIZE - 1; c < VALUE_SIZE; c++) {
+//            value_[c] = 0;
+//        }
+//    }
 
     TaggedValue(const arena::ERelativePtr& eptr):
         tag_(ShortTypeCode::of_object(eptr.get_tag()))
@@ -475,6 +475,11 @@ public:
         using T = DTTViewType<DT>;
         return DataTypeTraits<DT>::isFixedSize && fits_in<T>();
     }
+
+    arena::ERelativePtr to_eptr() const noexcept {
+        return arena::ERelativePtr(tag_.code(), value_);
+    }
+
 };
 
 struct TaggedGenericView: SharedPtrHolder {

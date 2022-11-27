@@ -453,6 +453,8 @@ struct TplForStatement: TemplateConstants {
 
         map->put_dataobject<Boolean>(STRIP_SPACE_NAME, true);
 
+        auto vv0 = map->get(STRIP_SPACE_NAME);
+
         auto res = process_inner_space(blocks, right_open_space, end_space_data.left_space);
         if (res->is_not_null()) {
             map->put(STATEMENTS_NAME, blocks);

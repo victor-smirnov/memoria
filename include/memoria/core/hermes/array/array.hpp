@@ -148,16 +148,18 @@ public:
     ObjectPtr get(uint64_t idx) const;
 
     template <typename DT>
-    DataObjectPtr<DT> append(DTTViewType<DT> view);
-
-    ObjectPtr append_hermes(U8StringView str);
+    ObjectArrayPtr append(DTTViewType<DT> view);
     ObjectPtr set_hermes(uint64_t idx, U8StringView str);
 
-    ObjectPtr append_null();
+    ObjectArrayPtr append(const ObjectPtr& value);
+    void set(uint64_t idx, const ObjectPtr& value);
+
 
     template <typename DT>
     DataObjectPtr<DT> set(uint64_t idx, DTTViewType<DT> view);
     void set_null(uint64_t idx);
+
+    ObjectArrayPtr remove(uint64_t idx);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state) const
@@ -206,12 +208,6 @@ public:
         assert_not_null();
         return array_->deep_copy_to(arena, ShortTypeCode::of<Array>(), doc_, ptr_holder_, dedup);
     }
-
-    void remove(uint64_t idx);
-
-
-    void append(const ObjectPtr& value);
-    void set(uint64_t idx, const ObjectPtr& value);
 
 private:
     void assert_not_null() const {
@@ -285,11 +281,18 @@ public:
         array_.set(idx, value);
     }
 
-    virtual void push_back(const ObjectPtr& value) {
-        array_.append(value);
+    virtual GenericArrayPtr push_back(const ObjectPtr& value)
+    {
+        auto new_array = array_.append(value);
+        if (MMA_LIKELY(new_array->array_ == array_.array_)) {
+            return this->shared_from_this();
+        }
+        else {
+            return make_wrapper(new_array->array_, array_.doc_, ctr_holder_);
+        }
     }
 
-    virtual void remove(uint64_t start, uint64_t end) {
+    virtual GenericArrayPtr remove(uint64_t start, uint64_t end) {
         MEMORIA_MAKE_GENERIC_ERROR("Not implemented").do_throw();
     }
 

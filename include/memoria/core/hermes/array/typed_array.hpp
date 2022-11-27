@@ -280,11 +280,12 @@ public:
         array_.set(idx, value->convert_to<DataObject<DT>>()->template as_data_object<DT>());
     }
 
-    virtual void push_back(const ObjectPtr& value) {
+    virtual GenericArrayPtr push_back(const ObjectPtr& value) {
         array_.append(value->convert_to<DataObject<DT>>()->template as_data_object<DT>());
+        return this->shared_from_this();
     }
 
-    virtual void remove(uint64_t start, uint64_t end) {
+    virtual GenericArrayPtr remove(uint64_t start, uint64_t end) {
         MEMORIA_MAKE_GENERIC_ERROR("Not implemented").do_throw();
     }
 

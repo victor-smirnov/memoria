@@ -21,7 +21,7 @@ namespace memoria {
 namespace hermes {
 
 template <typename KeyDT>
-class TypedMapData<KeyDT, Object, FSEKeySubtype, true>: public arena::Map<DTTViewType<KeyDT>, void*> {
+class TypedMapData<KeyDT, Object, FSEKeySubtype, true>: public arena::Map<DTTViewType<KeyDT>, arena::EmbeddingRelativePtr<void>> {
 
 };
 
@@ -144,22 +144,34 @@ public:
     ObjectPtr get(KeyView key) const
     {
         assert_not_null();
-        auto res = map_->get(key);
-
-        if (res) {
-            return ObjectPtr(Object(
-                res->get(), doc_, ptr_holder_
-            ));
+        const auto* res = map_->get(key);
+        if (res)
+        {
+            if (MMA_LIKELY(res->is_pointer()))
+            {
+                if (MMA_LIKELY(res->is_not_null())) {
+                    return ObjectPtr(Object(res->get(), doc_, ptr_holder_));
+                }
+                else {
+                    return ObjectPtr{};
+                }
+            }
+            else {
+                TaggedValue tv(*res);
+                return ObjectPtr(Object(tv, doc_, ptr_holder_));
+            }
         }
-
-        return ObjectPtr();
+        else {
+            return ObjectPtr{};
+        }
     }
 
 
     template <typename DT>
-    DataObjectPtr<DT> put_dataobject(KeyView key, DTTViewType<DT> value);
+    MapPtr<KeyDT, Object> put_dataobject(KeyView key, DTTViewType<DT> value);
 
-    ObjectPtr put_hermes(KeyView key, U8StringView str);
+    MapPtr<KeyDT, Object> put(KeyView name, ObjectPtr value);
+    MapPtr<KeyDT, Object> remove(KeyView key);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state) const
@@ -180,7 +192,19 @@ public:
     {
         assert_not_null();
         map_->for_each([&](const auto& key, const auto& value){
-            fn(key, ViewPtr<Object>{Object(value.get(), doc_, ptr_holder_)});
+            if (value.is_pointer())
+            {
+                if (value.is_not_null()) {
+                    fn(key, ObjectPtr(Object(value.get(), doc_, ptr_holder_)));
+                }
+                else {
+                    fn(key, ObjectPtr(Object()));
+                }
+            }
+            else {
+                TaggedValue tv(value);
+                fn(key, ObjectPtr(Object(tv, doc_, ptr_holder_)));
+            }
         });
     }
 
@@ -199,7 +223,6 @@ public:
         return simple;
     }
 
-    void remove(KeyView key);
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
@@ -208,7 +231,7 @@ public:
 
     PoolSharedPtr<GenericMap> as_generic_map() const;
 
-    void put(KeyView name, ObjectPtr value);
+
 private:
     void do_stringify(std::ostream& out, DumpFormatState& state) const;
 
@@ -281,13 +304,15 @@ public:
         return map_.get(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
     }
 
-    virtual void put(const ObjectPtr& key, const ObjectPtr& value) {
+    virtual GenericMapPtr put(const ObjectPtr& key, const ObjectPtr& value) {
         map_.put(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view(), value);
+        return this->shared_from_this();
     }
 
 
-    virtual void remove(const ObjectPtr& key) {
+    virtual GenericMapPtr remove(const ObjectPtr& key) {
         map_.remove(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
+        return this->shared_from_this();
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {

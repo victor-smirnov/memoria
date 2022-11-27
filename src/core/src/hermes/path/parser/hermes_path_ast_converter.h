@@ -243,7 +243,10 @@ public:
     virtual void visit(const ast::MultiselectListNode* node)
     {
         auto map = new_ast_node(node->CODE, MULTISELECT_LIST_NODE_NAME);
-        auto array = map->put_generic_array(EXPRESSIONS);
+
+        auto array = current_ctr()->new_array();
+        map->put(EXPRESSIONS, array->as_object());
+
         for (auto& item: node->expressions)
         {
             clear_context();
@@ -258,7 +261,9 @@ public:
     virtual void visit(const ast::MultiselectHashNode* node)
     {
         auto map = new_ast_node(node->CODE, MULTISELECT_HASH_NODE_NAME);
-        auto array = map->put_generic_array(EXPRESSIONS);
+
+        auto array = current_ctr()->new_array();
+        map->put(EXPRESSIONS, array->as_object());
 
         for (auto& item: node->expressions)
         {
@@ -370,7 +375,9 @@ public:
         auto map = new_ast_node(node->CODE, FUNCTION_EXPRESSION_NODE_NAME);
 
         map->put_dataobject<Varchar>(FUNCTION_NAME, node->functionName);
-        auto array = map->put_generic_array(ARGUMENTS);
+
+        auto array = current_ctr()->new_array();
+        map->put(ARGUMENTS, array->as_object());
 
         for (auto& item: node->arguments)
         {

@@ -600,22 +600,12 @@ struct TVEmbedHelper {
         dst.embed(type_code, src.get_unchecked<TV>());
         return true;
     }
-
-    static void extract(hermes::TaggedValue& dst, const arena::ERelativePtr& src)
-    {
-
-    }
 };
 
 template <typename TV>
 struct TVEmbedHelper<TV, false> {
     static bool embed(uint64_t, arena::ERelativePtr&, const hermes::TaggedValue&) {
         return false;
-    }
-
-    static void extract(hermes::TaggedValue&, const arena::ERelativePtr&)
-    {
-        MEMORIA_MAKE_GENERIC_ERROR("Type {} is not embeddable into ERelativePtr", TypeNameFactory<TV>::name()).do_throw();
     }
 };
 
@@ -834,13 +824,6 @@ public:
         using DV = DTTViewType<DT>;
         constexpr bool eptr_fits = arena::ERelativePtr::dt_fits_in<DT>();
         return detail::TVEmbedHelper<DV, eptr_fits>::embed(TypeHashV<DT>, dst, src);
-    }
-
-    virtual void hermes_extract(hermes::TaggedValue& dst, const arena::ERelativePtr& src) const override
-    {
-        using DV = DTTViewType<DT>;
-        constexpr bool eptr_fits = arena::ERelativePtr::dt_fits_in<DT>();
-        detail::TVEmbedHelper<DV, eptr_fits>::extract(dst, src);
     }
 };
 

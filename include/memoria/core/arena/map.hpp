@@ -45,30 +45,44 @@
 namespace memoria {
 namespace arena {
 
-namespace detail {
+//namespace detail {
 
-template <typename T>
-struct ElementHolderHelper {
-    static T& resolve(T& e) noexcept {
-        return e;
-    }
-};
+//template <typename T>
+//struct ElementHolderHelper {
+//    static T& resolve(T& e) noexcept {
+//        return e;
+//    }
 
-template <typename T>
-struct ElementHolderHelper<RelativePtr<T>> {
-    static T* resolve(RelativePtr<T>& e) noexcept {
-        return e.get();
-    }
-};
+//    static void assign(T& dst, const T& src) noexcept {
+//        dst = src;
+//    }
+//};
 
-template <typename T>
-struct ElementHolderHelper<EmbeddingRelativePtr<T>> {
-    static T* resolve(EmbeddingRelativePtr<T>& e) noexcept {
-        return e.get();
-    }
-};
+//template <typename T>
+//struct ElementHolderHelper<RelativePtr<T>> {
+//    static auto resolve(RelativePtr<T>& e) noexcept {
+//        return e.get();
+//    }
 
-}
+//    template <typename DataT>
+//    static void assign(RelativePtr<T>& dst, const DataT& src) noexcept {
+//        dst = src;
+//    }
+//};
+
+//template <typename T>
+//struct ElementHolderHelper<EmbeddingRelativePtr<T>> {
+//    static auto resolve(EmbeddingRelativePtr<T>& e) noexcept {
+//        return e.get_data();
+//    }
+
+//    template <typename DataT>
+//    static void assign(EmbeddingRelativePtr<T>& dst, const DataT& src) noexcept {
+//        dst.setup_data(src);
+//    }
+//};
+
+//}
 
 template <
     typename Key,
@@ -76,8 +90,32 @@ template <
 >
 class Map {
 
-    using KeyHolder   = IfThenElse<std::is_pointer_v<Key>, RelativePtr<std::remove_pointer_t<Key>>, Key>;
-    using ValueHolder = IfThenElse<std::is_pointer_v<Value>, EmbeddingRelativePtr<std::remove_pointer_t<Value>>, Value>;
+    using KeyHolder     = Key;
+    using ValueHolder   = Value;
+
+//    using KeyHolder = IfThenElse<
+//            std::is_pointer_v<Key>,
+//            RelativePtr<std::remove_pointer_t<Key>>,
+//            Key
+//    >;
+
+////    using KeyTunnel = IfThenElse<
+////            std::is_pointer_v<Key>,
+////            typename RelativePtr<std::remove_pointer_t<Key>>::TunnelT,
+////            Key
+////    >;
+
+//    using ValueHolder = IfThenElse<
+//            std::is_pointer_v<Value>,
+//            EmbeddingRelativePtr<std::remove_pointer_t<Value>>,
+//            Value
+//    >;
+
+//    using ValueTunnel = IfThenElse<
+//            std::is_pointer_v<Value>,
+//            typename EmbeddingRelativePtr<std::remove_pointer_t<Value>>::TunnelT,
+//            Value
+//    >;
 
     template <typename K>
     using Hash = DefaultHashFn<K>;
@@ -452,8 +490,8 @@ private:
                     bool replace{};
                     this->insert_into_array(
                                 arena, dst_buckets, dst_buckets_capacity,
-                                detail::ElementHolderHelper<KeyHolder>::resolve(key),
-                                detail::ElementHolderHelper<ValueHolder>::resolve(value),
+                                key, //detail::ElementHolderHelper<KeyHolder>::resolve(key),
+                                value, //detail::ElementHolderHelper<ValueHolder>::resolve(value),
                                 replace);
                 }
             }
@@ -527,6 +565,7 @@ private:
             {
                 idx = bucket->find(key);
                 if (idx < bucket->size) {
+                    //detail::ElementHolderHelper<ValueHolder>::assign(bucket->values()[idx], value);
                     bucket->values()[idx] = value;
                 }
                 else {
@@ -542,6 +581,8 @@ private:
                 bucket->size++;
                 keys[idx] = key;
                 bucket->values()[idx] = value;
+                //detail::ElementHolderHelper<KeyHolder>::assign(keys[idx], key);
+                //detail::ElementHolderHelper<ValueHolder>::assign(bucket->values()[idx], value);
             }
             else {
                 Bucket* new_bucket = this->resize_bucket(arena, bucket, bucket->capacity * 2);
@@ -553,6 +594,9 @@ private:
 
                 new_keys[idx] = key;
                 new_values[idx] = value;
+
+                //detail::ElementHolderHelper<KeyHolder>::assign(new_keys[idx], key);
+                //detail::ElementHolderHelper<ValueHolder>::assign(new_values[idx], value);
             }
         }
         else {
@@ -566,6 +610,9 @@ private:
 
             *new_keys = key;
             *new_values = value;
+
+            //detail::ElementHolderHelper<KeyHolder>::assign(*new_keys, key);
+            //detail::ElementHolderHelper<ValueHolder>::assign(*new_values, value);
 
             buckets[bucket_idx] = new_bucket;
         }

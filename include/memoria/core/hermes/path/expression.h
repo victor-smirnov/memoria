@@ -30,9 +30,10 @@
 
 #pragma once
 
-#include <memory>
 #include <memoria/core/hermes/path/types.h>
 #include <memoria/core/hermes/path/exceptions.h>
+
+#include <memory>
 
 namespace memoria {
 namespace hermes {

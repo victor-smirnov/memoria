@@ -30,8 +30,8 @@ struct GenericArray: GenericObject {
 
     virtual void set(uint64_t idx, const ObjectPtr& value) = 0;
 
-    virtual void push_back(const ObjectPtr& value)    = 0;
-    virtual void remove(uint64_t start, uint64_t end) = 0;
+    MMA_NODISCARD virtual GenericArrayPtr push_back(const ObjectPtr& value)    = 0;
+    MMA_NODISCARD virtual GenericArrayPtr remove(uint64_t start, uint64_t end) = 0;
 };
 
 template <typename>

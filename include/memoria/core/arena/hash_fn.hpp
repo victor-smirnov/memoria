@@ -113,6 +113,11 @@ public:
     bool operator()(const Key& key, const RelativePtr<Type>& stored) {
         return stored->equals_to(key);
     }
+
+    template <typename Key>
+    bool operator()(const RelativePtr<Key>& key, const RelativePtr<Type>& stored) {
+        return stored->equals_to(key.get());
+    }
 };
 
 

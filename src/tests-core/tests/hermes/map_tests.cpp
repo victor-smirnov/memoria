@@ -81,24 +81,24 @@ auto ldd_map_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     assert_equals(true, map->get("Entry2")->is_boolean());
     assert_equals(true, map->get("Entry2")->as_boolean()->view());
 
-    auto map1 = map->put_generic_map("Entry3");
-    assert_equals(true, map->get("Entry3")->is_map());
+//    auto map1 = map->put_generic_map("Entry3");
+//    assert_equals(true, map->get("Entry3")->is_map());
 //    assert_equals(true, map->get("Entry3")->as_generic_map()->equals(map1));
 
-    auto arr = map->put_generic_array("Entry4");
-    assert_equals(true, map->get("Entry4")->is_array());
+//    auto arr = map->put_generic_array("Entry4");
+//    assert_equals(true, map->get("Entry4")->is_array());
 //    assert_equals(true, map->get("Entry4")->as_generic_array()->equals(arr));
 
-    auto sdn1 = map->put_hermes("Entry5", "'123456'@CoolType");
-    assert_equals(true, map->get("Entry5")->is_typed_value());
+//    auto sdn1 = map->put_hermes("Entry5", "'123456'@CoolType");
+//    assert_equals(true, map->get("Entry5")->is_typed_value());
     //assert_equals(true, map->get("Entry5")->equals(sdn1));
 
-    auto sdn2 = map->put_hermes("Entry6", "CoolType");
-    assert_equals(true, map->get("Entry6")->is_datatype());
+//    auto sdn2 = map->put_hermes("Entry6", "CoolType");
+//    assert_equals(true, map->get("Entry6")->is_datatype());
     //assert_equals(true, map->get("Entry6")->equals(sdn2));
 
-    auto doc2 = map->put_hermes("Entry7", "{}");
-    assert_equals(true, map->get("Entry7")->is_map());
+//    auto doc2 = map->put_hermes("Entry7", "{}");
+//    assert_equals(true, map->get("Entry7")->is_map());
     //assert_equals(true, map->get("Entry7")->equals(doc2));
 });
 

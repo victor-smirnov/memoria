@@ -178,11 +178,6 @@ public:
         return false;
     }
 
-    virtual void hermes_extract(hermes::TaggedValue& dst, const arena::ERelativePtr& src) const {
-        MEMORIA_MAKE_GENERIC_ERROR("TaggedValue is not ebeddable for {}", str()).do_throw();
-    }
-
-
     virtual PoolSharedPtr<hermes::GenericObject> hermes_make_wrapper(
             void*,
             hermes::HermesCtr*,

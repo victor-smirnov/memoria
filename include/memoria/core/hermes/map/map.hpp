@@ -25,7 +25,11 @@ class Map<Varchar, Object>: public HoldingView<Map<Varchar, Object>> {
     using Base = HoldingView<Map<Varchar, Object>>;
 public:
     using KeyT = DataObject<Varchar>::ArenaDTContainer;
-    using MapStorageT = arena::Map<KeyT*, void*>;
+
+    using KeyPtrT = arena::RelativePtr<KeyT>;
+    using ValuePtrT = arena::EmbeddingRelativePtr<void>;
+
+    using MapStorageT = arena::Map<KeyPtrT, ValuePtrT>;
 
     static_assert(std::is_standard_layout_v<MapStorageT>,"");
 
@@ -139,25 +143,37 @@ public:
     ObjectPtr get(U8StringView key) const
     {
         assert_not_null();
-        auto res = map_->get(key);
+        const ValuePtrT* res = map_->get(key);
 
-        if (res) {
-            return ObjectPtr(Object(
-                res->get(), doc_, ptr_holder_
-            ));
+        if (res)
+        {
+            if (MMA_LIKELY(res->is_pointer()))
+            {
+                if (MMA_LIKELY(res->is_not_null())) {
+                    return ObjectPtr(Object(res->get(), doc_, ptr_holder_));
+                }
+                else {
+                    return ObjectPtr{};
+                }
+            }
+            else {
+                TaggedValue tv(*res);
+                return ObjectPtr(Object(tv, doc_, ptr_holder_));
+            }
         }
-
-        return ObjectPtr();
+        else {
+            return ObjectPtr{};
+        }
     }
 
 
     template <typename DT>
-    DataObjectPtr<DT> put_dataobject(U8StringView key, DTTViewType<DT> value);
+    ObjectMapPtr put_dataobject(U8StringView key, DTTViewType<DT> value);
 
-    ObjectMapPtr put_generic_map(U8StringView key);
-    ObjectArrayPtr put_generic_array(U8StringView key);
+//    ObjectMapPtr put_generic_map(U8StringView key);
+//    ObjectArrayPtr put_generic_array(U8StringView key);
 
-    ObjectPtr put_hermes(U8StringView key, U8StringView str);
+//    ObjectPtr put_hermes(U8StringView key, U8StringView str);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state) const
@@ -179,7 +195,20 @@ public:
         assert_not_null();
         map_->for_each([&](const auto& key, const auto& value){
             U8StringView kk = key->view();
-            fn(kk, ViewPtr<Object>{Object(value.get(), doc_, ptr_holder_)});
+
+            if (value.is_pointer())
+            {
+                if (value.is_not_null()) {
+                    fn(kk, ObjectPtr(Object(value.get(), doc_, ptr_holder_)));
+                }
+                else {
+                    fn(kk, ObjectPtr(Object()));
+                }
+            }
+            else {
+                TaggedValue tv(value);
+                fn(kk, ObjectPtr(Object(tv, doc_, ptr_holder_)));
+            }
         });
     }
 
@@ -198,7 +227,7 @@ public:
         return simple;
     }
 
-    void remove(U8StringView key);
+    ObjectMapPtr remove(U8StringView key);
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
@@ -207,8 +236,8 @@ public:
 
     PoolSharedPtr<GenericMap> as_generic_map() const;
 
-    void put(StringValuePtr name, ObjectPtr value);
-    void put(U8StringView name, ObjectPtr value);
+    ObjectMapPtr put(StringValuePtr name, ObjectPtr value);
+    ObjectMapPtr put(U8StringView name, ObjectPtr value);
 private:
     void do_stringify(std::ostream& out, DumpFormatState& state) const;
 
@@ -278,13 +307,15 @@ public:
         return map_.get(*key->as_varchar()->view());
     }
 
-    virtual void put(const ObjectPtr& key, const ObjectPtr& value) {
+    virtual GenericMapPtr put(const ObjectPtr& key, const ObjectPtr& value) {
         map_.put(key->as_varchar(), value);
+        return this->shared_from_this();
     }
 
 
-    virtual void remove(const ObjectPtr& key) {
+    virtual GenericMapPtr remove(const ObjectPtr& key) {
         map_.remove(*key->as_varchar()->view());
+        return this->shared_from_this();
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {

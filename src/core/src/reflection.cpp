@@ -94,7 +94,7 @@ void register_type_reflection(TypeReflection& type_reflection)
 {
     auto short_type_hash = type_reflection.shot_type_hash();
 
-    //println("Register reflection {} for type {}", short_type_hash, type_reflection->str());
+    //println("Register reflection {} for type {}, code {}", short_type_hash.u64(), short_type_hash.code(), type_reflection.str());
 
     auto ii = short_code_map().find(short_type_hash.u64());
     if (ii == short_code_map().end()) {
