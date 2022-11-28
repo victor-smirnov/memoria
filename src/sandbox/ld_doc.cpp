@@ -61,13 +61,11 @@ int main(int, char**)
 //    render(tpl->root(), data->root(), std::cout);
 
     auto doc = HermesCtr::parse_document(R"(
-        <Double> [
-            1,
-            -1,
-            2_u32,
-            1.23456789,
-           5644449
-        ]
+        <UTinyInt, Object> {
+            0: "zero",
+            1: "one",
+            50: "fifty"
+        }
 
     )");
 

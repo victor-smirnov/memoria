@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memoria/core/arena/map.hpp>
+#include <memoria/core/arena/tiny_map.hpp>
 #include <memoria/core/arena/relative_ptr.hpp>
 
 #include <memoria/core/hermes/object.hpp>

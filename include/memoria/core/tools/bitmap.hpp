@@ -32,7 +32,7 @@
 #include <memoria/core/memory/ptr_cast.hpp>
 
 #include <iostream>
-#include <limits>
+#include <climits>
 #include <type_traits>
 #include <cstring>
 
@@ -104,7 +104,13 @@ constexpr inline size_t TypeBitmaskPopCount(T mask) {
 }
 
 
+template <typename T>
+static constexpr T make_bitmask(uint64_t size)
+{
 
+    return static_cast<T>(-(size != 0))
+        & (static_cast<T>(-1) >> ((sizeof(T) * CHAR_BIT) - size));
+}
 
 /**
  * set one bit (0, 1) 'bit' in buffer 'buf' at address 'idx'

@@ -285,7 +285,7 @@ public:
         return nullptr;
     }
 
-    void put(ArenaAllocator& arena, const Key& key, const Value& value)
+    void put(ArenaAllocator& arena, ShortTypeCode tag, const Key& key, const Value& value)
     {
         if (MMA_UNLIKELY(buckets_.is_null())) {
             return put_empty(arena, key, value);
@@ -293,7 +293,7 @@ public:
         else if (size_ > (1ull << buckets_capacity_))
         {
             enlarge_array(arena);
-            return put(arena, key, value);
+            return put(arena, tag, key, value);
         }
         else {
             bool replace{true};
@@ -306,7 +306,7 @@ public:
     }
 
     template <typename KeyArg>
-    void remove(ArenaAllocator& arena, const KeyArg& key)
+    void remove(ArenaAllocator& arena, ShortTypeCode tag, const KeyArg& key)
     {
         if (MMA_LIKELY(size_))
         {
@@ -344,7 +344,7 @@ public:
             }
             else {
                 shrink_array(arena);
-                this->remove(arena, key);
+                this->remove(arena, tag, key);
             }
         }
     }
