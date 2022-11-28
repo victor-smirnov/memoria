@@ -15,6 +15,8 @@
 
 #pragma once
 
+
+
 #include <memoria/core/hermes/object.hpp>
 #include <memoria/core/hermes/common.hpp>
 #include <memoria/core/hermes/data_object.hpp>
@@ -52,6 +54,9 @@ protected:
 
     friend class memoria::hermes::path::interpreter::Interpreter;
     friend class HermesCtrBuilder;
+
+    template <typename>
+    friend class TypedGenericArray;
 
 //    using Accessor = ArrayAccessor<ObjectArrayPtr, ObjectPtr>;
 public:
@@ -128,14 +133,14 @@ public:
         }
     }
 
-    void append(DTTViewType<DT> view);
-    void append(const DataObjectPtr<DT>& view);
+    ArrayPtr<DT> append(DTTViewType<DT> view);
+    ArrayPtr<DT> append(const DataObjectPtr<DT>& view);
 
-    void push_back(const DataObjectPtr<DT>& value) {
+    ArrayPtr<DT> push_back(const DataObjectPtr<DT>& value) {
         return append(value);
     }
 
-    void push_back(const DTTViewType<DT>& view) {
+    ArrayPtr<DT> push_back(const DTTViewType<DT>& view) {
         return append(view);
     }
 
@@ -197,10 +202,7 @@ public:
         return array_->deep_copy_to(arena, ShortTypeCode::of<Array>(), doc_, ptr_holder_, dedup);
     }
 
-    void remove(uint64_t start, uint64_t end) {
-        assert_not_null();
-        assert_mutable();
-    }
+    ArrayPtr<DT> remove(uint64_t element);
 
 private:
     void assert_not_null() const {
@@ -281,8 +283,8 @@ public:
     }
 
     virtual GenericArrayPtr push_back(const ObjectPtr& value) {
-        array_.append(value->convert_to<DataObject<DT>>()->template as_data_object<DT>());
-        return this->shared_from_this();
+        auto new_array = array_.append(value->convert_to<DataObject<DT>>()->template as_data_object<DT>());
+        return make_wrapper(new_array->array_, array_.document().get(), ctr_holder_);
     }
 
     virtual GenericArrayPtr remove(uint64_t start, uint64_t end) {

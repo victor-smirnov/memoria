@@ -152,21 +152,25 @@ inline ObjectArrayPtr Array<Object>::append(const ObjectPtr& value)
 }
 
 template <typename DT>
-void Array<DT>::append(const DataObjectPtr<DT>& value)
+ArrayPtr<DT> Array<DT>::append(const DataObjectPtr<DT>& value)
 {
     assert_not_null();
     assert_mutable();
 
-    array_->push_back(*doc_->arena(), *value->view());
+    auto mytag = ShortTypeCode::of<Array<DT>>();
+
+    auto* new_array = array_->push_back(*doc_->arena(), mytag, *value->view());
+    return ArrayPtr<DT>{Array<DT>{new_array, doc_, ptr_holder_}};
 }
 
 template <typename DT>
-void Array<DT>::append(DTTViewType<DT> value)
+ArrayPtr<DT> Array<DT>::append(DTTViewType<DT> value)
 {
     assert_not_null();
     assert_mutable();
 
-    array_->push_back(*doc_->arena(), value);
+    auto* new_array = array_->push_back(*doc_->arena(), value);
+    return ArrayPtr<DT>{Array<DT>{new_array, doc_, ptr_holder_}};
 }
 
 
@@ -222,6 +226,17 @@ inline ObjectPtr Array<Object>::set_hermes(uint64_t idx, U8StringView str) {
 
 
 inline ObjectArrayPtr Array<Object>::remove(uint64_t idx)
+{
+    assert_not_null();
+    assert_mutable();
+
+    ShortTypeCode mytag = arena::read_type_tag(array_);
+    ArrayStorageT* new_array = array_->remove(*doc_->arena_, mytag, idx);
+    return ObjectArrayPtr{ObjectArray{new_array, doc_, ptr_holder_}};
+}
+
+template <typename DT>
+ArrayPtr<DT> Array<DT>::remove(uint64_t idx)
 {
     assert_not_null();
     assert_mutable();
