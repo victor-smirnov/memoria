@@ -79,7 +79,7 @@ public:
      */
     std::vector<ExpressionNode> expressions;
 
-    static constexpr int64_t CODE = 17;
+    static constexpr NamedCode CODE = ASTCodes::MULTISELECT_LIST_NODE;
 };
 }} // namespace hermes::path::ast
 

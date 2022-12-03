@@ -72,7 +72,7 @@ public:
      */
     void accept(interpreter::AbstractVisitor* visitor) const override;
 
-    static constexpr int64_t CODE = 21;
+    static constexpr NamedCode CODE = ASTCodes::PIPE_EXPRESSION_NODE;
 };
 }} // namespace hermes::path::ast
 

@@ -1,5 +1,5 @@
 
-// Copyright 2013 Victor Smirnov
+// Copyright 2013-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -137,7 +137,7 @@ namespace intrnl2 {
 template <typename T>
 constexpr bool SelectFW(T arg, size_t& total, size_t count, size_t& stop) noexcept
 {
-    size_t popcnt = PopCnt(arg & MakeMask<T>(0, stop));
+    size_t popcnt = PopCnt(arg & make_bitmask<T>(stop));
 
     if (total + popcnt < count)
     {
@@ -167,7 +167,7 @@ constexpr bool SelectFW(T arg, size_t& total, size_t count, size_t& stop) noexce
 template <typename T>
 constexpr bool SelectBW(T arg, size_t& total, size_t count, size_t start, size_t& delta) noexcept
 {
-    size_t popcnt = PopCnt(arg & MakeMask<T>(0, start + 1));
+    size_t popcnt = PopCnt(arg & make_bitmask<T>(start + 1));
 
     if (total + popcnt < count)
     {

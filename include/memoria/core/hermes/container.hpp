@@ -272,6 +272,8 @@ public:
     static DataObjectPtr<DT> wrap_dataobject(DTTViewType<DT> view);
 
     ObjectMapPtr new_map();
+    TinyObjectMapPtr new_tiny_map(size_t capacity = 1);
+
     ObjectArrayPtr new_array(uint64_t capacity = 1);
     ObjectArrayPtr new_array(Span<const ObjectPtr> span);
     ObjectArrayPtr new_array(const std::vector<ObjectPtr>& array);

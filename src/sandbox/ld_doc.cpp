@@ -44,32 +44,57 @@ int main(int, char**)
 
 //    auto tpl = parse_template(R"(
 //        Prefix
-//        {% for item in array1.array2 %}
+//        {%+ for item in array1.array2 -%}
 //            {{ item }}
-//        {% endfor %}
+//        {%- endfor +%}
 //        Suffix
 //    )");
 
-//    println("{}", tpl->to_string(StringifyCfg::pretty().with_raw_strings(false)));
+//    auto tpl = parse_template(R"(
+//        Prefix
+//        {% if array1.array2 %}
+//            {{ array1.array2[0] }}
+//        {% elif ^true %}
+//        {% else %}
+//        {% endif %}
+//        Suffix
+//    )");
 
-//    auto data = HermesCtr::parse_document(R"({
-//        array1: {
-//            array2: <Double> [1, 2, 3.54321, 4, 5]
-//        }
-//    })");
+    auto tpl = parse_template(R"(
+        Prefix
+        {%- if array1.array2 %}
+            {{ array1.array2[0] }}
+        {% elif ^true -%}
+            |Some Text|
+        {%- else %}
+        {% endif -%}
+        Suffix
+)");
 
-//    render(tpl->root(), data->root(), std::cout);
 
-    auto doc = HermesCtr::parse_document(R"(
-        <UTinyInt, Object> {
-            0: "zero",
-            1: "one",
-            50: "fifty"
+    println("{}", tpl->to_string(StringifyCfg::pretty().with_raw_strings(false)));
+
+    auto data = HermesCtr::parse_document(R"({
+        array1: {
+            array2: <Double> [1] //1, 2, 3.54321, 4, 5
         }
+    })");
 
-    )");
+    render(tpl->root(), data->root(), std::cout);
 
-    println("{}", doc->to_string(StringifyCfg::pretty().with_raw_strings(false)));
+//    auto doc = HermesCtr::parse_document(R"(
+//        <UTinyInt, Object> {
+//            0: "zero",
+//            1: "one",
+//            50: "fifty",
+//            4: "four",
+//            6: "six",
+//            2: 2,
+//            15: 15
+//        }
+//    )");
+
+//    println("{}", doc->to_string(StringifyCfg::pretty().with_raw_strings(false)));
 
     return 0;
 }

@@ -48,19 +48,20 @@ inline ObjectMapPtr Map<Varchar, Object>::put_dataobject(U8StringView key, DTTVi
     auto value_ptr = doc_->new_embeddable_dataobject<DT>(value);
 
     auto arena = doc_->arena();
+    MapStorageT* new_map;
 
     ShortTypeCode mytag = arena::read_type_tag(map_);
     if (value_ptr->get_vs_tag() == VS_TAG_ADDRESS) {
-        map_->put(*arena, mytag, key_ptr->dt_ctr(), value_ptr->storage_.addr);
+        new_map = map_->put(*arena, mytag, key_ptr->dt_ctr(), value_ptr->storage_.addr);
     }
     else if (value_ptr->get_vs_tag() == VS_TAG_SMALL_VALUE) {
-        map_->put(*arena, mytag, key_ptr->dt_ctr(), value_ptr->storage_.small_value.to_eptr());
+        new_map = map_->put(*arena, mytag, key_ptr->dt_ctr(), value_ptr->storage_.small_value.to_eptr());
     }
     else {
         MEMORIA_MAKE_GENERIC_ERROR("Invalid value type").do_throw();
     }
 
-    return ObjectMapPtr(ObjectMap(map_, doc_, ptr_holder_));
+    return ObjectMapPtr(ObjectMap(new_map, doc_, ptr_holder_));
 }
 
 template <typename KeyDT>
@@ -70,50 +71,25 @@ inline MapPtr<KeyDT, Object> Map<KeyDT, Object>::put_dataobject(KeyView key, DTT
     assert_not_null();
     assert_mutable();
 
-    auto key_ptr = doc_->new_dataobject<Varchar>(key);
     auto value_ptr = doc_->new_embeddable_dataobject<DT>(value);
-
     auto arena = doc_->arena();
 
+    void* new_map;
+    ShortTypeCode mytag = arena::read_type_tag(map_);
+
     if (value_ptr->get_vs_tag() == VS_TAG_ADDRESS) {
-        map_->put(*arena, key_ptr->dt_ctr(), value_ptr->storage_.addr);
+        new_map = map_->put(*arena, mytag, key, value_ptr->storage_.addr);
+    }
+    else if (value_ptr->get_vs_tag() == VS_TAG_SMALL_VALUE) {
+        new_map = map_->put(*arena, mytag, key, value_ptr->storage_.small_value.to_eptr());
     }
     else {
         MEMORIA_MAKE_GENERIC_ERROR("Invalid value type").do_throw();
     }
 
-    return MapPtr<KeyDT, Object>(Map{map_, doc_, ptr_holder_});
+    return MapPtr<KeyDT, Object>(Map{new_map, doc_, ptr_holder_});
 }
 
-
-
-//inline ObjectMapPtr Map<Varchar, Object>::put_generic_map(U8StringView key)
-//{
-//    assert_not_null();
-//    assert_mutable();
-
-//    auto key_ptr = doc_->new_dataobject<Varchar>(key);
-//    auto value_ptr = doc_->new_map();
-
-//    auto arena = doc_->arena();
-//    map_->put(*arena, key_ptr->dt_ctr(), value_ptr->map_);
-
-//    return value_ptr;
-//}
-
-//inline ObjectArrayPtr Map<Varchar, Object>::put_generic_array(U8StringView key)
-//{
-//    assert_not_null();
-//    assert_mutable();
-
-//    auto key_ptr = doc_->new_dataobject<Varchar>(key);
-//    auto value_ptr = doc_->new_array();
-
-//    auto arena = doc_->arena();
-//    map_->put(*arena, key_ptr->dt_ctr(), value_ptr->array_);
-
-//    return value_ptr;
-//}
 
 
 inline ObjectMapPtr Map<Varchar, Object>::remove(U8StringView key)
@@ -122,9 +98,9 @@ inline ObjectMapPtr Map<Varchar, Object>::remove(U8StringView key)
     assert_mutable();
 
     ShortTypeCode mytag = arena::read_type_tag(map_);
-    map_->remove(*(doc_->arena()), mytag, key);
+    MapStorageT* new_map = map_->remove(*(doc_->arena()), mytag, key);
 
-    return ObjectMapPtr(ObjectMap(map_, doc_, ptr_holder_));
+    return ObjectMapPtr(ObjectMap(new_map, doc_, ptr_holder_));
 }
 
 template <typename KeyDT>
@@ -134,9 +110,8 @@ inline MapPtr<KeyDT, Object> Map<KeyDT, Object>::remove(KeyView key)
     assert_mutable();
 
     ShortTypeCode mytag = arena::read_type_tag(map_);
-    map_->remove(*(doc_->arena()), mytag, key);
-
-    return MapPtr<KeyDT, Object>(Map{map_, doc_, ptr_holder_});
+    auto* new_map = map_->remove(*(doc_->arena()), mytag, key);
+    return MapPtr<KeyDT, Object>(Map{new_map, doc_, ptr_holder_});
 }
 
 
@@ -191,14 +166,14 @@ inline void Map<KeyDT, Object>::do_stringify(std::ostream& out, DumpFormatState&
 {
     auto& spec = state.cfg().spec();
 
+    out << "<";
+    out << get_datatype_name(type_to_str<KeyDT>());
+    out << "," << spec.space();
+    out << "Object";
+    out << ">" << spec.space();
+
     if (size() > 0)
     {
-        out << "<";
-        out << get_datatype_name(type_to_str<KeyDT>());
-        out << "," << spec.nl_middle();
-        out << "Object";
-        out << ">" << spec.space();
-
         out << "{" << spec.nl_start();
 
         bool first = true;
@@ -237,36 +212,38 @@ inline ObjectMapPtr Map<Varchar, Object>::put(StringValuePtr name, ObjectPtr val
     assert_not_null();
     assert_mutable();
 
+    void* new_map;
     if (!value->is_null()) {
         ShortTypeCode mytag = arena::read_type_tag(map_);
         auto arena = doc_->arena();        
         auto vv = doc_->do_import_value(value);
-        map_->put(*arena, mytag, name->dt_ctr(), vv->storage_.addr);
+        new_map = map_->put(*arena, mytag, name->dt_ctr(), vv->storage_.addr);
     }
     else {
         return remove(*name->view());
     }
 
-    return ObjectMapPtr(ObjectMap(map_, doc_, ptr_holder_));
+    return ObjectMapPtr(ObjectMap(new_map, doc_, ptr_holder_));
 }
 
 inline ObjectMapPtr Map<Varchar, Object>::put(U8StringView name, ObjectPtr value) {
     assert_not_null();
     assert_mutable();
 
+    void* new_map;
     auto vv = doc_->do_import_value(value);
     if (!vv->is_null())
     {
         ShortTypeCode mytag = arena::read_type_tag(map_);
         auto arena = doc_->arena();
         auto key = doc_->new_dataobject<Varchar>(name);
-        map_->put(*arena, mytag, key->dt_ctr(), vv->storage_.addr);
+        new_map = map_->put(*arena, mytag, key->dt_ctr(), vv->storage_.addr);
     }
     else {
         return remove(name);
     }
 
-    return ObjectMapPtr(ObjectMap(map_, doc_, ptr_holder_));
+    return ObjectMapPtr(ObjectMap(new_map, doc_, ptr_holder_));
 }
 
 template <typename KeyDT>
@@ -274,18 +251,19 @@ inline MapPtr<KeyDT, Object> Map<KeyDT, Object>::put(KeyView key, ObjectPtr valu
     assert_not_null();
     assert_mutable();
 
+    void* new_map;
     auto vv = doc_->do_import_value(value);
     if (!vv->is_null())
     {
         ShortTypeCode mytag = arena::read_type_tag(map_);
         auto arena = doc_->arena();
-        map_->put(*arena, mytag, key, vv->storage_.addr);
+        new_map = map_->put(*arena, mytag, key, vv->storage_.addr);
     }
     else {
         return remove(key);
     }
 
-    return MapPtr<KeyDT, Object>(Map{map_, doc_, ptr_holder_});
+    return MapPtr<KeyDT, Object>(Map{new_map, doc_, ptr_holder_});
 }
 
 inline PoolSharedPtr<GenericMap> Map<Varchar, Object>::as_generic_map() const {

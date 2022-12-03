@@ -100,6 +100,16 @@ ObjectMapPtr HermesCtr::new_map()
     return ObjectMapPtr(CtrT(arena_dtc, this, ptr_holder_));
 }
 
+TinyObjectMapPtr HermesCtr::new_tiny_map(size_t capacity) {
+    using CtrT = Map<UTinyInt, Object>;
+
+    auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::MapStorageT>(
+        ShortTypeCode::of<CtrT>(), capacity > 0 ? capacity : 1
+    );
+
+    return TinyObjectMapPtr(CtrT(arena_dtc, this, ptr_holder_));
+}
+
 ObjectArrayPtr HermesCtr::new_array(uint64_t capacity)
 {
     using CtrT = ObjectArray;

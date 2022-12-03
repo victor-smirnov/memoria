@@ -22,6 +22,7 @@
 
 
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/tools/bitmap_select.hpp>
 #include <memoria/core/reflection/reflection.hpp>
 
 
@@ -67,9 +68,11 @@ class Map<uint8_t, Value> {
     static constexpr uint64_t SIZE_BITS_MASK = 0x3F;
 
     static constexpr uint64_t SIZE_START     = MAX_BITS - SIZE_BITS;
-    static constexpr uint64_t CAPACITY_START = MAX_BITS - SIZE_BITS * 3;
+    static constexpr uint64_t CAPACITY_START = MAX_BITS - SIZE_BITS * 2;
 
     static constexpr uint64_t MAX_KEYS = CAPACITY_START; // Should be 64 - 6 - 6 = 52
+    static constexpr uint64_t BITMAP_MASK = ~((SIZE_BITS_MASK << SIZE_START) | (SIZE_BITS_MASK << CAPACITY_START));
+
 
     uint64_t header_;
     Value data_[1];
@@ -111,9 +114,10 @@ public:
             return false;
         }
 
-        const uint8_t key() const {
-            uint64_t mask = make_bitmask<uint64_t>(entry_idx_);
-            uint64_t key = PopCnt(map_->header_ & mask);
+        const uint8_t key() const
+        {
+            uint64_t bits = map_->header_ & BITMAP_MASK;
+            uint64_t key  = SelectFW(bits, entry_idx_ + 1);
             return key;
         }
 
@@ -164,7 +168,7 @@ public:
             if (MMA_LIKELY(header_ & key_mask))
             {
                 uint64_t mask = make_bitmask<uint64_t>(key);
-                uint64_t pos = PopCnt(header_ & mask);
+                uint64_t pos = PopCnt2(header_ & mask);
                 if (pos < size()) {
                     return &data()[pos];
                 }
@@ -185,13 +189,15 @@ public:
                 uint64_t capacity = this->capacity();
 
                 uint64_t mask = make_bitmask<uint64_t>(key);
-                uint64_t pos = PopCnt(header_ & mask);
+                uint64_t bitmap = header_ & mask;
+                uint64_t pos = PopCnt2(bitmap);
 
                 if (size < capacity)
                 {
                     header_ |= key_mask;
                     insert_space(pos);
                     data()[pos] = value;
+                    set_size(size + 1);
                 }
                 else {
                     uint64_t new_capacity = capacity * 2;
@@ -201,6 +207,7 @@ public:
 
                     Map* new_map = arena.allocate_tagged_object<Map>(tag, header_, new_capacity);
                     new_map->header_ |= key_mask;
+                    new_map->set_size(size + 1);
 
                     Value* data = this->data();
                     Value* new_data = new_map->data();
@@ -219,7 +226,7 @@ public:
             }
             else {
                 uint64_t mask = make_bitmask<uint64_t>(key);
-                uint64_t pos = PopCnt(header_ & mask);
+                uint64_t pos = PopCnt2(header_ & mask);
                 data()[pos] = value;
             }
         }
@@ -241,7 +248,7 @@ public:
                 uint64_t capacity = this->capacity();
 
                 uint64_t mask = make_bitmask<uint64_t>(key);
-                uint64_t pos = PopCnt(header_ & mask);
+                uint64_t pos = PopCnt2(header_ & mask);
 
                 if (MMA_LIKELY(size - 1 > capacity / 2))
                 {

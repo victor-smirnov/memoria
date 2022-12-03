@@ -18,6 +18,7 @@
 
 #include <memoria/core/hermes/container.hpp>
 #include <memoria/core/hermes/map/map.hpp>
+#include <memoria/core/hermes/map/typed_map.hpp>
 #include <memoria/core/hermes/array/array.hpp>
 #include <memoria/core/hermes/array/typed_array.hpp>
 #include <memoria/core/hermes/data_object.hpp>
@@ -263,6 +264,10 @@ inline int64_t Object::to_i64() const {
     return *convert_to<BigInt>()->as_data_object<BigInt>()->view();
 }
 
+inline int64_t Object::to_i32() const {
+    return *convert_to<Integer>()->as_data_object<Integer>()->view();
+}
+
 inline U8String Object::to_str() const {
     return *convert_to<Varchar>()->as_data_object<Varchar>()->view();
 }
@@ -357,6 +362,10 @@ ObjectPtr HermesCtr::new_from_string(U8StringView str) {
 
 inline ObjectMapPtr Object::as_object_map() const {
     return cast_to<Map<Varchar, Object>>();
+}
+
+inline TinyObjectMapPtr Object::as_tiny_object_map() const {
+    return cast_to<Map<UTinyInt, Object>>();
 }
 
 inline ObjectArrayPtr Object::as_object_array() const {

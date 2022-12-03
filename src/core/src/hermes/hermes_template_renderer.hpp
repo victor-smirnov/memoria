@@ -29,17 +29,10 @@ public:
     };
 
 private:
-    ObjectPtr default_;
     std::vector<Entry> stack_;
 
 public:
-    TplVarStack(ObjectPtr dflt):
-        default_(dflt)
-    {}
-
-    ObjectPtr get_default() const {
-        return default_;
-    }
+    TplVarStack() {}
 
     void start_frame(U8StringView name, const ObjectPtr& value) {
         stack_.emplace_back<Entry>({name, value, true});
@@ -66,8 +59,6 @@ public:
 
         return {};
     }
-
-
 };
 
 

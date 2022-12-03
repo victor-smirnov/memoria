@@ -100,7 +100,7 @@ public:
      */
     Comparator comparator;
 
-    static constexpr int64_t CODE = 5;
+    static constexpr NamedCode CODE = ASTCodes::COMPARATOR_EXPRESSION_NODE;
 };
 }} // namespace hermes::path::ast
 

@@ -92,7 +92,8 @@ public:
      * @brief The bracket specifier in an index expression.
      */
     BracketSpecifierNode bracketSpecifier;
-    static constexpr int64_t CODE = 14;
+
+    static constexpr NamedCode CODE = ASTCodes::INDEX_EXPRESSION_NODE;
 };
 }} // namespace hermes::path::ast
 

@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -220,6 +220,10 @@ inline int32_t PopCnt(uint32_t v) noexcept
     v = (v + (v >> 4)) & 0x0F0F0F0F;
     v = (v * 0x01010101) >> 24;
     return v;
+}
+
+inline uint64_t PopCnt2(uint64_t arg) noexcept {
+    return __builtin_popcountll(arg);
 }
 
 template <typename T>

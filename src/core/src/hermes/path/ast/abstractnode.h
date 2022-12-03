@@ -31,6 +31,8 @@
 
 #include <memoria/core/types.hpp>
 
+#include <memoria/core/hermes/path/path.h>
+
 namespace memoria::hermes::path { namespace interpreter {
 
 class AbstractVisitor;

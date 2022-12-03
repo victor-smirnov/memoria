@@ -166,14 +166,18 @@ public:
         }
     }
 
+    template <typename T>
+    ObjectPtr get(const NamedTypedCode<T>& code) const {
+        return get(code.name());
+    }
 
     template <typename DT>
     ObjectMapPtr put_dataobject(U8StringView key, DTTViewType<DT> value);
 
-//    ObjectMapPtr put_generic_map(U8StringView key);
-//    ObjectArrayPtr put_generic_array(U8StringView key);
-
-//    ObjectPtr put_hermes(U8StringView key, U8StringView str);
+    template <typename DT, typename T>
+    ObjectMapPtr put_dataobject(const NamedTypedCode<T>& code, DTTViewType<DT> value) {
+        return put_dataobject<DT>(code.name(), value);
+    }
 
     void stringify(std::ostream& out,
                    DumpFormatState& state) const
@@ -236,8 +240,15 @@ public:
 
     PoolSharedPtr<GenericMap> as_generic_map() const;
 
+    // FIXME: const ObjectPtr&
     ObjectMapPtr put(StringValuePtr name, ObjectPtr value);
     ObjectMapPtr put(U8StringView name, ObjectPtr value);
+
+    template <typename T>
+    ObjectMapPtr put(const NamedTypedCode<T>& code, const ObjectPtr& value) {
+        return put(code.name(), value);
+    }
+
 private:
     void do_stringify(std::ostream& out, DumpFormatState& state) const;
 
@@ -307,15 +318,34 @@ public:
         return map_.get(*key->as_varchar()->view());
     }
 
+    virtual ObjectPtr get(U8StringView key) const {
+        return map_.get(key);
+    }
+
+    virtual ObjectPtr get(int32_t key) const {
+        MEMORIA_MAKE_GENERIC_ERROR("Method map(int32_t) is not supported by this generic map").do_throw();
+    }
+
+    virtual ObjectPtr get(uint64_t key) const {
+        MEMORIA_MAKE_GENERIC_ERROR("Method map(uint64_t) is not supported by this generic map").do_throw();
+    }
+
+    virtual ObjectPtr get(uint8_t key) const {
+        MEMORIA_MAKE_GENERIC_ERROR("Method map(uint8_t) is not supported by this generic map").do_throw();
+    }
+
+
+
+
     virtual GenericMapPtr put(const ObjectPtr& key, const ObjectPtr& value) {
-        map_.put(key->as_varchar(), value);
-        return this->shared_from_this();
+        auto new_map = map_.put(key->as_varchar(), value);
+        return make_wrapper(new_map->map_, map_.document().get(), ctr_holder_);
     }
 
 
     virtual GenericMapPtr remove(const ObjectPtr& key) {
-        map_.remove(*key->as_varchar()->view());
-        return this->shared_from_this();
+        auto new_map = map_.remove(*key->as_varchar()->view());
+        return make_wrapper(new_map->map_, map_.document().get(), ctr_holder_);
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {

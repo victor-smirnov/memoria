@@ -78,7 +78,8 @@ public:
      * @brief The raw Hermes value
      */
     ObjectPtr value;
-    static constexpr int64_t CODE = 12;
+
+    static constexpr NamedCode CODE = ASTCodes::HERMES_VALUE_NODE;
 };
 
 

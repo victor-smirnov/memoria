@@ -30,16 +30,20 @@
 
 #pragma once
 
-#include <string>
 #include <memoria/core/hermes/path/types.h>
 #include <memoria/core/hermes/path/exceptions.h>
 #include <memoria/core/hermes/path/expression.h>
 
 #include <memoria/core/hermes/traits.hpp>
 
+#include <string>
+#include <functional>
+
 namespace memoria {
 namespace hermes {
 namespace path {
+
+using HermesObjectResolver = std::function<ObjectPtr(U8StringView)>;
 
 /**
  * @ingroup public
@@ -69,9 +73,59 @@ ObjectPtr search(const Expression& expression, const ObjectPtr& document);
 
 ObjectPtr search(const Expression& expression, const ObjectPtr& document, const IParameterResolver& resolver);
 
-ObjectPtr search(const ObjectMapPtr& expression, const ObjectPtr& document);
+ObjectPtr search(const TinyObjectMapPtr& expression, const ObjectPtr& document);
 
-ObjectPtr search(const ObjectMapPtr& expression, const ObjectPtr& document, const IParameterResolver& resolver);
+ObjectPtr search(const TinyObjectMapPtr& expression, const ObjectPtr& document, const IParameterResolver& resolver);
+
+struct ASTCodes {
+    static constexpr NamedCode CODE_ATTR                  = NamedCode(0, "code");
+
+    static constexpr NamedCode AST_NODE_NAME              = NamedCode(1, "astNodeName");
+    static constexpr NamedCode IDENTIFIER_NODE            = NamedCode(2, "Identifier");
+    static constexpr NamedCode RAW_STRING_NODE            = NamedCode(3, "RawString");
+    static constexpr NamedCode HERMES_VALUE_NODE          = NamedCode(4, "HermesValue");
+    static constexpr NamedCode SUBEXPRESSION_NODE         = NamedCode(5, "Subexpression");
+    static constexpr NamedCode INDEX_EXPRESSION_NODE      = NamedCode(6, "IndexEXpression");
+    static constexpr NamedCode ARRAY_ITEM_NODE            = NamedCode(7, "ArrayItem");
+    static constexpr NamedCode FLATTEN_OPERATOR_NODE      = NamedCode(8, "FlattenExpression");
+    static constexpr NamedCode SLICE_EXPRESSION_NODE      = NamedCode(9, "SliceExpression");
+    static constexpr NamedCode LIST_WILDCARD_NODE         = NamedCode(10, "ListWildcard");
+    static constexpr NamedCode HASH_WILDCARD_NODE         = NamedCode(11, "HashWildcard");
+    static constexpr NamedCode MULTISELECT_LIST_NODE      = NamedCode(12, "MultiselectList");
+    static constexpr NamedCode MULTISELECT_HASH_NODE      = NamedCode(13, "MutiselectHash");
+    static constexpr NamedCode NOT_EXPRESSION_NODE        = NamedCode(14, "NotExpression");
+    static constexpr NamedCode OR_EXPRESSION_NODE         = NamedCode(15, "OrExpression");
+    static constexpr NamedCode COMPARATOR_EXPRESSION_NODE = NamedCode(16, "ComparatorExpression");
+    static constexpr NamedCode AND_EXPRESSION_NODE        = NamedCode(17, "AndExpression");
+    static constexpr NamedCode PAREN_EXPRESSION_NODE      = NamedCode(18, "ParenExpression");
+    static constexpr NamedCode CURRENT_NODE               = NamedCode(19, "Current");
+    static constexpr NamedCode FILTER_EXPRESSION_NODE     = NamedCode(20, "FilterExpression");
+    static constexpr NamedCode PIPE_EXPRESSION_NODE       = NamedCode(21, "PipeExpression");
+    static constexpr NamedCode FUNCTION_EXPRESSION_NODE   = NamedCode(22, "FunctionExpression");
+    static constexpr NamedCode EXPRESSION_ARGUMENT_NODE   = NamedCode(23, "ExpressionArgument");
+    static constexpr NamedCode NULL_NODE                  = NamedCode(24, "NullNode");
+
+    static constexpr NamedCode LEFT_EXPRESSION_ATTR   = NamedCode(25, "leftExpression");
+    static constexpr NamedCode RIGHT_EXPRESSION_ATTR  = NamedCode(26, "rightExpression");
+    static constexpr NamedCode EXPRESSION_ATTR        = NamedCode(27, "expression");
+    static constexpr NamedCode EXPRESSIONS_ATTR       = NamedCode(28, "expressions");
+    static constexpr NamedCode IDENTIFIER_ATTR        = NamedCode(29, "identifier");
+    static constexpr NamedCode RAW_STRING_ATTR        = NamedCode(30, "rawString");
+    static constexpr NamedCode VALUE_ATTR             = NamedCode(31, "value");
+    static constexpr NamedCode BRACKET_SPECIFIER_ATTR = NamedCode(32, "bracketSpecifier");
+    static constexpr NamedCode IS_PROJECTION_ATTR     = NamedCode(33, "isProjection");
+    static constexpr NamedCode STOPS_PROJECTION_ATTR  = NamedCode(34, "stopsProjection");
+    static constexpr NamedCode INDEX_ATTR             = NamedCode(35, "index");
+    static constexpr NamedCode STEP_ATTR              = NamedCode(36, "step");
+    static constexpr NamedCode START_ATTR             = NamedCode(37, "start");
+    static constexpr NamedCode STOP_ATTR              = NamedCode(38, "stop");
+    static constexpr NamedCode FIRST_ATTR             = NamedCode(39, "first");
+    static constexpr NamedCode SECOND_ATTR            = NamedCode(40, "second");
+    static constexpr NamedCode COMPARATOR_ATTR        = NamedCode(41, "comparator");
+    static constexpr NamedCode FUNCTION_NAME_ATTR     = NamedCode(42, "functionName");
+    static constexpr NamedCode ARGUMENTS_ATTR         = NamedCode(43, "arguments");
+};
+
 
 }
 }}

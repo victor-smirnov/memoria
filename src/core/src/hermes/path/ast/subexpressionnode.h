@@ -65,7 +65,7 @@ public:
      */
     bool stopsProjection() const override;
 
-    static constexpr int64_t CODE = 24;
+    static constexpr NamedCode CODE = ASTCodes::SUBEXPRESSION_NODE;
 };
 }} // namespace hermes::path::ast
 

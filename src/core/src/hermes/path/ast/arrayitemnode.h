@@ -33,6 +33,8 @@
 #include "memoria/core/hermes/path/types.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
+#include <memoria/core/hermes/path/path.h>
+
 namespace memoria::hermes::path { namespace ast {
 
 /**
@@ -70,7 +72,7 @@ public:
      */
     Index index;
 
-    static constexpr int64_t CODE = 3;
+    static constexpr NamedCode CODE = ASTCodes::ARRAY_ITEM_NODE;
 };
 }} // namespace hermes::path::ast
 

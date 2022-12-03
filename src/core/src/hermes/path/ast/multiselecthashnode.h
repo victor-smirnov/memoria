@@ -82,7 +82,7 @@ public:
      */
     std::vector<KeyValuePairType> expressions;
 
-    static constexpr int64_t CODE = 16;
+    static constexpr NamedCode CODE = ASTCodes::MULTISELECT_HASH_NODE;
 };
 }} // namespace hermes::path::ast
 

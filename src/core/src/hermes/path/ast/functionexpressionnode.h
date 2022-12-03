@@ -84,7 +84,7 @@ public:
      */
     std::vector<ArgumentType> arguments;
 
-    static constexpr int64_t CODE = 10;
+    static constexpr NamedCode CODE = ASTCodes::FUNCTION_EXPRESSION_NODE;
 };
 }} // namespace hermes::path::ast
 

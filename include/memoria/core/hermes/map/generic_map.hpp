@@ -21,6 +21,8 @@
 #include <memoria/core/hermes/traits.hpp>
 #include <memoria/core/hermes/common.hpp>
 
+
+
 namespace memoria {
 namespace hermes {
 
@@ -39,6 +41,11 @@ struct GenericMap: GenericObject {
     virtual bool empty() const    = 0;
 
     virtual PoolSharedPtr<GenericMapEntry> iterator() const = 0;
+
+    virtual ObjectPtr get(U8StringView key) const = 0;
+    virtual ObjectPtr get(int32_t key) const = 0;
+    virtual ObjectPtr get(uint64_t key) const = 0;
+    virtual ObjectPtr get(uint8_t key) const = 0;
 
     virtual ObjectPtr get(const ObjectPtr& key) const = 0;
 

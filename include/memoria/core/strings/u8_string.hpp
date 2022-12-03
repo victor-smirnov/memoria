@@ -34,9 +34,6 @@ class U16String;
 class U32String;
 class UWString;
 
-
-using U8StringView = boost::string_view;
-
 inline bool is_unicode_space_u8(char codeunit)
 {
     switch (codeunit) {

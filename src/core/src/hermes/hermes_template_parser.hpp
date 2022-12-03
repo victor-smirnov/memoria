@@ -42,50 +42,15 @@ struct TplSpaceData {
     }
 };
 
-struct TemplateConstants {
+struct TemplateConstants: public TplASTCodes {
     using IteratorT = boost::u8_to_u32_iterator<U8StringView::const_iterator>;
 
-    static constexpr U8StringView CODE_ATTR         = "code";
-    static constexpr U8StringView NODE_NAME_ATTR    = "astNodeName";
+    using ASTNodePtr = TinyObjectMapPtr;
 
-    static constexpr int64_t CODE_MIN               = 100;
-
-    static constexpr int64_t FOR_STMT_CODE          = 100;
-    static constexpr U8StringView FOR_STMT_NAME     = "ForStmt";
-
-    static constexpr int64_t IF_STMT_CODE           = 101;
-    static constexpr U8StringView IF_STMT_NAME      = "IfStmt";
-
-    static constexpr int64_t ELSE_STMT_CODE         = 102;
-    static constexpr U8StringView ELSE_STMT_NAME    = "ElseStmt";
-
-    static constexpr int64_t SET_STMT_CODE          = 103;
-    static constexpr U8StringView SET_STMT_NAME     = "SetStmt";
-
-    static constexpr int64_t VAR_STMT_CODE          = 104;
-    static constexpr U8StringView VAR_STMT_NAME     = "VarStmt";
-
-    static constexpr int64_t CODE_MAX               = 105;
-
-
-    static constexpr U8StringView VARIABLE_NAME     = "variable";
-    static constexpr U8StringView EXPRESSION_NAME   = "expression";
-    static constexpr U8StringView STATEMENTS_NAME   = "statements";
-    static constexpr U8StringView ELSE_NAME         = "else";
-
-    static constexpr U8StringView LEFT_SPACE_NAME   = "left_space";
-    static constexpr U8StringView RIGHT_SPACE_NAME  = "right_space";
-    static constexpr U8StringView SPACE_DATA_NAME   = "right_space";
-
-    static constexpr U8StringView END_SPACE_DATA_NAME   = "end_space_data";
-    static constexpr U8StringView START_SPACE_DATA_NAME = "start_space_data";
-    static constexpr U8StringView STRIP_SPACE_NAME  = "strip_space";
-
-
-    static ObjectMapPtr new_ast_node(int64_t code, const U8StringView& name) {
-        auto map = current_ctr()->new_map();
-        map->put_dataobject<BigInt>(CODE_ATTR, code);
-        map->put_dataobject<Varchar>(NODE_NAME_ATTR, name);
+    static ASTNodePtr new_ast_node(const NamedCode& code) {
+        auto map = current_ctr()->new_tiny_map(8);
+        map = map->put_dataobject<Integer>(CODE, code.code());
+        map = map->put_dataobject<Varchar>(NODE_NAME_ATTR, code.name());
         return map;
     }
 
@@ -96,27 +61,6 @@ struct TemplateConstants {
             harray->append(std::move(item.value));
         }
         return harray;
-    }
-
-    static ObjectPtr new_space_data(const TplSpaceData& data)
-    {
-        if (data)
-        {
-            auto map = current_ctr()->new_map();
-
-            if (data.left_space.is_initialized()) {
-                map->put_dataobject<Boolean>(LEFT_SPACE_NAME, data.left_space.get());
-            }
-
-            if (data.right_space.is_initialized()) {
-                map->put_dataobject<Boolean>(RIGHT_SPACE_NAME, data.right_space.get());
-            }
-
-            return map->as_object();
-        }
-        else {
-            return {};
-        }
     }
 
     static bool is_empty(U8StringView text)
@@ -249,28 +193,21 @@ struct TemplateConstants {
         return val.is_initialized() && val.get();
     }
 
-    static bool is_strip_space(const ObjectPtr& mapo, U8StringView prop)
+    static bool is_strip_space(const TinyObjectMapPtr& map, const NamedCode& prop)
     {
-        if (mapo->is_object_map())
-        {
-            ObjectMapPtr map = mapo->as_object_map();
-            auto val = map->get(prop);
-            if (val->is_not_null()) {
-                return !val->to_bool();
-            }
+        auto val = map->get(prop);
+        if (val->is_not_null()) {
+            return !val->to_bool();
         }
         return false;
     }
 
-    static bool is_preserve_line(const ObjectPtr& mapo, U8StringView prop)
+
+    static bool is_preserve_line(const TinyObjectMapPtr& map, const NamedCode& prop)
     {
-        if (mapo->is_object_map())
-        {
-            ObjectMapPtr map = mapo->as_object_map();
-            auto val = map->get(prop);
-            if (val->is_not_null()) {
-                return val->to_bool();
-            }
+        auto val = map->get(prop);
+        if (val->is_not_null()) {
+            return val->to_bool();
         }
         return false;
     }
@@ -284,24 +221,24 @@ struct TemplateConstants {
         }
     }
 
-    static ObjectPtr process_inner_space(const ObjectPtr& stmts, Optional<bool> start, Optional<bool> end)
+    static ObjectPtr process_inner_space(const ObjectPtr& stmts, Optional<bool> top, Optional<bool> bottom)
     {
         if (stmts->is_varchar())
         {
             StringValuePtr txt = stmts->as_varchar();
             U8StringView out = *txt->view();
 
-            if (is_strip_space(start)) {
+            if (is_strip_space(top)) {
                 out = strip_start_ws(*txt->view());
             }
-            else if (!is_preserve_line(start)) {
+            else if (!is_preserve_line(top)) {
                 out = strip_first_line(*txt->view());
             }
 
-            if (is_strip_space(end)) {
+            if (is_strip_space(bottom)) {
                 out = trim_end_ws(out);
             }
-            else if (!is_preserve_line(end)) {
+            else if (!is_preserve_line(bottom)) {
                 out = trim_last_line(*txt->view());
             }
 
@@ -316,7 +253,7 @@ struct TemplateConstants {
                 return {};
             }
             else if (array->size() == 1) {
-                auto new_str = process_inner_space(array->get(0), start, end);
+                auto new_str = process_inner_space(array->get(0), top, bottom);
                 if (new_str->is_not_null()) {
                     array->set(0, new_str);
                 }
@@ -327,12 +264,12 @@ struct TemplateConstants {
                 if (blk_start->is_varchar())
                 {
                     StringValuePtr str = blk_start->as_varchar();
-                    if (is_strip_space(start))
+                    if (is_strip_space(top))
                     {
                         U8StringView out = strip_start_ws(*str->view());
                         update_string(array, 0, out, *str->view());
                     }
-                    else if (!is_preserve_line(start))
+                    else if (!is_preserve_line(top))
                     {
                         U8StringView out = strip_first_line(*str->view());
                         update_string(array, 0, out, *str->view());
@@ -344,12 +281,12 @@ struct TemplateConstants {
                 {
                     StringValuePtr str = blk_end->as_varchar();
 
-                    if (is_strip_space(end))
+                    if (is_strip_space(bottom))
                     {
                         U8StringView out = trim_end_ws(*str->view());
                         update_string(array, array->size() - 1, out, *str->view());
                     }
-                    else if (!is_preserve_line(end))
+                    else if (!is_preserve_line(bottom))
                     {
                         U8StringView out = trim_last_line(*str->view());
                         update_string(array, array->size() - 1, out, *str->view());
@@ -361,6 +298,8 @@ struct TemplateConstants {
         return {};
     }
 
+
+
     static void process_outer_space(ObjectPtr blocks)
     {
         if (blocks->is_object_array())
@@ -369,45 +308,45 @@ struct TemplateConstants {
             for (size_t c = 1; c < array->size(); c++)
             {
                 ObjectPtr item = array->get(c);
-                if (item->is_object_map())
+                if (item->is_tiny_object_map())
                 {
                     ObjectPtr prev = array->get(c - 1);
                     ObjectPtr next = ((c + 1) < array->size()) ? array->get(c + 1) : ObjectPtr{};
                     if (prev->is_varchar() || next->is_varchar())
                     {
-                        ObjectMapPtr map = item->as_object_map();
-                        ObjectPtr code = map->get(CODE_ATTR);
+                        TinyObjectMapPtr map = item->as_tiny_object_map();
+                        ObjectPtr code = map->get(CODE);
                         if (code->is_not_null())
                         {
-                            int64_t code = map->get(CODE_ATTR)->to_i64();
-                            auto do_strip_space = map->get(STRIP_SPACE_NAME);
-                            if (code >= CODE_MIN && code <= CODE_MAX && do_strip_space->is_not_null())
+                            int32_t icode = code->to_i32();
+                            if (is_strip_space(icode))
                             {
-                                ObjectPtr start_sps = map->get(START_SPACE_DATA_NAME);
                                 if (prev->is_varchar())
                                 {
                                     auto str = prev->as_varchar();
-                                    if (is_strip_space(start_sps, LEFT_SPACE_NAME))
+                                    if (is_strip_space(map, TOP_OUTER_SPACE))
                                     {
                                         U8StringView out = trim_end_ws(*str->view());
                                         update_string(array, c - 1, out, *str->view());
                                     }
-                                    else if (!is_preserve_line(start_sps, LEFT_SPACE_NAME))
+                                    else if (!is_preserve_line(map, TOP_OUTER_SPACE))
                                     {
                                         U8StringView out = trim_last_line(*str->view());
                                         update_string(array, c - 1, out, *str->view());
                                     }
                                 }
 
-                                ObjectPtr end_sps = map->get(END_SPACE_DATA_NAME);
                                 if (next->is_varchar())
                                 {
                                     auto str = next->as_varchar();
-                                    if (is_strip_space(end_sps, RIGHT_SPACE_NAME)) {
+
+                                    Optional<bool> b_o_s = get_bottom_outer_space(map);
+
+                                    if (is_strip_space(b_o_s)) {
                                         U8StringView out = strip_start_ws(*str->view());
                                         update_string(array, c + 1, out, *str->view());
                                     }
-                                    else if (!is_preserve_line(end_sps, RIGHT_SPACE_NAME))
+                                    else if (!is_preserve_line(b_o_s))
                                     {
                                         U8StringView out = strip_first_line(*str->view());
                                         update_string(array, c + 1, out, *str->view());
@@ -424,40 +363,106 @@ struct TemplateConstants {
     static size_t offset(const U8StringView::const_iterator& start, const IteratorT& current) {
         return std::distance(start, current.base());
     }
+
+
+    static TinyObjectMapPtr put(const TinyObjectMapPtr& map, const NamedCode& code, const Optional<bool>& val)
+    {
+        if (val.is_initialized()) {
+            return map->put_dataobject<Boolean>(code, val.get());
+        }
+
+        return map;
+    }
+
+    static TinyObjectMapPtr put_space_data(
+            const TinyObjectMapPtr& map,
+            const NamedCode& left_code,
+            const NamedCode& right_code,
+            const TplSpaceData& data
+    ) {
+        auto map1 = put(map, left_code, data.left_space);
+        return put(map1, right_code, data.right_space);
+    }
+
+    static Optional<bool> get_bool(const TinyObjectMapPtr& map, const NamedCode& code)
+    {
+        ObjectPtr val = map->get(code);
+        if (val->is_not_null()) {
+            return val->to_bool();
+        }
+
+        return {};
+    }
+
+    static Optional<bool> get_if_bottom_inner_space(const TinyObjectMapPtr& map)
+    {
+        auto obj = map->get(BOTTOM_INNER_SPACE);
+        if (obj->is_not_null()) {
+            return obj->to_bool();
+        }
+        else {
+            ObjectPtr else_stmt = map->get(ELSE);
+            if (else_stmt->is_not_null())
+            {
+                return get_bool(else_stmt->as_tiny_object_map(), TOP_OUTER_SPACE);
+            }
+
+            return {};
+        }
+    }
+
+    static Optional<bool> get_bottom_outer_space(const TinyObjectMapPtr& map)
+    {
+        auto obj = map->get(BOTTOM_OUTER_SPACE);
+        if (obj->is_not_null()) {
+            return obj->to_bool();
+        }
+        else {
+            ObjectPtr else_stmt = map->get(ELSE);
+            if (else_stmt->is_not_null()) {
+                return get_bottom_outer_space(else_stmt->as_tiny_object_map());
+            }
+            else {
+                return {};
+            }
+        }
+    }
+
+    static bool is_strip_space(int32_t code)
+    {
+        return code == IF_STMT.code() || code == FOR_STMT.code() || code == ELSE_STMT.code() ||
+                code == VAR_STMT.code() || code == SET_STMT.code();
+    }
 };
 
 
 
 struct TplForStatement: TemplateConstants {
-    Optional<bool> left_open_space;
+    Optional<bool> top_outer_space;
     path::ast::IdentifierNode variable;
     ObjectPtr expression;
-    Optional<bool> right_open_space;
+    Optional<bool> top_inner_space;
     ObjectPtr blocks;
-    TplSpaceData end_space_data;
+    TplSpaceData bottom_space_data;
 
     operator path::ast::HermesValueNode() const
     {
-        auto map = new_ast_node(FOR_STMT_CODE, FOR_STMT_NAME);
+        auto map = new_ast_node(FOR_STMT);
 
         auto identifier = path::parser::HermesASTConverter::new_identifier(*current_ctr(), variable, false);
 
-        map->put_dataobject<Varchar>(VARIABLE_NAME, variable.identifier);
-        map->put(EXPRESSION_NAME, expression);
+        map = map->put_dataobject<Varchar>(VARIABLE, variable.identifier);
+        map = map->put(EXPRESSION, expression);
 
-        map->put(STATEMENTS_NAME, blocks);
-        map->put(END_SPACE_DATA_NAME, new_space_data(end_space_data));
+        map = map->put(STATEMENTS, blocks);
+        map = put_space_data(map, BOTTOM_INNER_SPACE, BOTTOM_OUTER_SPACE, bottom_space_data);
 
-        TplSpaceData start_space_data{left_open_space, right_open_space};
-        map->put(START_SPACE_DATA_NAME, new_space_data(start_space_data));
+        map = put(map, TOP_OUTER_SPACE, top_outer_space);
+        map = put(map, TOP_INNER_SPACE, top_inner_space);
 
-        map->put_dataobject<Boolean>(STRIP_SPACE_NAME, true);
-
-        auto vv0 = map->get(STRIP_SPACE_NAME);
-
-        auto res = process_inner_space(blocks, right_open_space, end_space_data.left_space);
+        auto res = process_inner_space(blocks, top_inner_space, bottom_space_data.left_space);
         if (res->is_not_null()) {
-            map->put(STATEMENTS_NAME, blocks);
+            map = map->put(STATEMENTS, blocks);
         }
 
         process_outer_space(blocks);
@@ -468,22 +473,20 @@ struct TplForStatement: TemplateConstants {
 
 
 struct TplSetStatement: TemplateConstants {
-    Optional<bool> left_space;
+    Optional<bool> top_outer_space;
     path::ast::IdentifierNode variable;
     ObjectPtr expression;
-    Optional<bool> right_space;
+    Optional<bool> bottom_outer_space;
 
     operator path::ast::HermesValueNode() const
     {
-        auto map = new_ast_node(SET_STMT_CODE, SET_STMT_NAME);
+        auto map = new_ast_node(SET_STMT);
 
-        map->put_dataobject<Varchar>(VARIABLE_NAME, variable.identifier);
-        map->put(EXPRESSION_NAME, expression);
+        map = map->put_dataobject<Varchar>(VARIABLE, variable.identifier);
+        map = map->put(EXPRESSION, expression);
 
-        TplSpaceData space_data{left_space, right_space};
-        map->put(START_SPACE_DATA_NAME, new_space_data(space_data));
-
-        map->put_dataobject<Boolean>(STRIP_SPACE_NAME, true);
+        map = put(map, TOP_OUTER_SPACE, top_outer_space);
+        map = put(map, BOTTOM_OUTER_SPACE, bottom_outer_space);
 
         return map->as_object();
     }
@@ -494,8 +497,8 @@ struct TplVarStatement: TemplateConstants {
 
     operator path::ast::HermesValueNode() const
     {
-        auto map = new_ast_node(VAR_STMT_CODE, VAR_STMT_NAME);
-        map->put(EXPRESSION_NAME, expression);
+        auto map = new_ast_node(VAR_STMT);
+        map = map->put(EXPRESSION, expression);
         return map->as_object();
     }
 };
@@ -505,28 +508,29 @@ struct TplIfStatement;
 struct TplElseStatement;
 
 using TplIfAltBranch = boost::variant<
-    std::vector<ObjectPtr>,
-    path::ast::HermesValueNode,
     TplSpaceData,
     boost::recursive_wrapper<TplIfStatement>,
     boost::recursive_wrapper<TplElseStatement>
 >;
 
 struct TplElseStatement: TemplateConstants {
-    Optional<bool> left_open_space;
+    Optional<bool> top_outer_space;
     ObjectPtr blocks;
-    Optional<bool> right_open_space;
-    TplSpaceData end_space_data;
+    Optional<bool> top_inner_space;
+    TplSpaceData bottom_space_data;
 
     operator path::ast::HermesValueNode() const
     {
-        auto map = new_ast_node(ELSE_STMT_CODE, ELSE_STMT_NAME);
-        map->put(STATEMENTS_NAME, blocks);
+        auto map = new_ast_node(ELSE_STMT);
+        map = map->put(STATEMENTS, blocks);
 
-        map->put(START_SPACE_DATA_NAME, new_space_data(TplSpaceData{left_open_space, right_open_space}));
-        map->put(END_SPACE_DATA_NAME, new_space_data(end_space_data));
+        map = put(map, TOP_OUTER_SPACE, top_outer_space);
+        map = put(map, TOP_INNER_SPACE, top_inner_space);
 
-        map->put_dataobject<Boolean>(STRIP_SPACE_NAME, true);
+        map = put_space_data(map, BOTTOM_INNER_SPACE, BOTTOM_OUTER_SPACE, bottom_space_data);
+
+        process_inner_space(blocks, top_inner_space, bottom_space_data.left_space);
+        process_outer_space(blocks);
 
         return map->as_object();
     }
@@ -535,46 +539,46 @@ struct TplElseStatement: TemplateConstants {
 
 
 struct TplIfStatement: TemplateConstants {
-    Optional<bool> left_open_space;
+    Optional<bool> top_outer_space;
     ObjectPtr expression;
-    Optional<bool> right_open_space;
+    Optional<bool> top_inner_space;
     ObjectPtr blocks;
 
     TplIfAltBranch alt_branch;
 
     struct AltOp {
         ObjectPtr value;
-        U8StringView prop{ELSE_NAME};
+        NamedCode prop{ELSE};
     };
 
     operator path::ast::HermesValueNode() const
     {
-        auto map = new_ast_node(IF_STMT_CODE, IF_STMT_NAME);
-        map->put(EXPRESSION_NAME, expression);
-        map->put(STATEMENTS_NAME, blocks);
-        map->put_dataobject<Boolean>(STRIP_SPACE_NAME, true);
+        auto map = new_ast_node(IF_STMT);
+        map = map->put(EXPRESSION, expression);
+        map = map->put(STATEMENTS, blocks);
 
-        auto visitor = boost::hana::overload(
-            [&](const std::vector<ObjectPtr>& stts) -> AltOp {
-                return {current_ctr()->new_array(stts)->as_object()};
-            },
-            [](const path::ast::HermesValueNode& node) -> AltOp {
-                return {std::move(node.value)};
-            },
-            [](const TplIfStatement& node) -> AltOp {
-                return {std::move(((path::ast::HermesValueNode)node).value)};
-            },
-            [](const TplElseStatement& node) -> AltOp {
-                return {std::move(((path::ast::HermesValueNode)node).value)};
-            },
-            [](const TplSpaceData& space_data) -> AltOp {
-                return {new_space_data(space_data), END_SPACE_DATA_NAME};
-            }
-        );
-        auto alt_op = boost::apply_visitor(visitor, alt_branch);
-        map->put(alt_op.prop, alt_op.value);
+        map = put(map, TOP_OUTER_SPACE, top_outer_space);
+        map = put(map, TOP_INNER_SPACE, top_inner_space);
 
-        map->put(START_SPACE_DATA_NAME, new_space_data(TplSpaceData{left_open_space, right_open_space}));
+        if (alt_branch.which() == 0)
+        {
+            const TplSpaceData& bottom_space_data = boost::get<TplSpaceData>(alt_branch);
+            map = put_space_data(map, BOTTOM_INNER_SPACE, BOTTOM_OUTER_SPACE, bottom_space_data);
+        }
+        else if (alt_branch.which() == 1)
+        {
+            const TplIfStatement& elif_stmt = boost::get<TplIfStatement>(alt_branch);
+            map = map->put(ELSE, ((path::ast::HermesValueNode)elif_stmt).value);
+        }
+        else {
+            const TplElseStatement& elif_stmt = boost::get<TplElseStatement>(alt_branch);
+            map = map->put(ELSE, ((path::ast::HermesValueNode)elif_stmt).value);
+        }
+
+        auto bottom_inner_space = get_if_bottom_inner_space(map);
+        process_inner_space(blocks, top_inner_space, bottom_inner_space);
+
+        process_outer_space(blocks);
 
         return map->as_object();
     }
@@ -588,20 +592,20 @@ struct TplIfStatement: TemplateConstants {
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplForStatement,
-    (memoria::Optional<bool>, left_open_space)
+    (memoria::Optional<bool>, top_outer_space)
     (memoria::hermes::path::ast::IdentifierNode, variable)
     (memoria::hermes::ObjectPtr, expression)
-    (memoria::Optional<bool>, right_open_space)
+    (memoria::Optional<bool>, top_inner_space)
     (memoria::hermes::ObjectPtr, blocks)
-    (memoria::hermes::TplSpaceData, end_space_data)
+    (memoria::hermes::TplSpaceData, bottom_space_data)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplSetStatement,
-    (memoria::Optional<bool>, left_space)
+    (memoria::Optional<bool>, top_outer_space)
     (memoria::hermes::path::ast::IdentifierNode, variable)
     (memoria::hermes::ObjectPtr, expression)
-    (memoria::Optional<bool>, right_space)
+    (memoria::Optional<bool>, bottom_outer_space)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -611,19 +615,19 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplIfStatement,
-    (memoria::Optional<bool>, left_open_space)
+    (memoria::Optional<bool>, top_outer_space)
     (memoria::hermes::ObjectPtr, expression)
-    (memoria::Optional<bool>, right_open_space)
+    (memoria::Optional<bool>, top_inner_space)
     (memoria::hermes::ObjectPtr, blocks)
     (memoria::hermes::TplIfAltBranch, alt_branch)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplElseStatement,
-    (memoria::Optional<bool>, left_open_space)
-    (memoria::Optional<bool>, right_open_space)
+    (memoria::Optional<bool>, top_outer_space)
+    (memoria::Optional<bool>, top_inner_space)
     (memoria::hermes::ObjectPtr, blocks)
-    (memoria::hermes::TplSpaceData, end_space_data)
+    (memoria::hermes::TplSpaceData, bottom_space_data)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(

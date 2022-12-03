@@ -33,6 +33,9 @@
 
 #include "abstractnode.h"
 #include "variantnode.h"
+
+
+
 #include <boost/variant.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -57,29 +60,6 @@ class CurrentNode;
 class FunctionExpressionNode;
 class HermesValueNode;
 
-struct ExpressionAttrs {
-    static constexpr U8StringView CODE_ATTR         = "code";
-    static constexpr U8StringView LEFT_EXPRESSION   = "leftExpression";
-    static constexpr U8StringView RIGHT_EXPRESSION  = "rightExpression";
-    static constexpr U8StringView EXPRESSION        = "expression";
-    static constexpr U8StringView EXPRESSIONS       = "expressions";
-    static constexpr U8StringView IDENTIFIER        = "identifier";
-    static constexpr U8StringView RAW_STRING        = "rawString";
-    static constexpr U8StringView VALUE             = "value";
-    static constexpr U8StringView BRACKET_SPECIFIER = "bracketSpecifier";
-    static constexpr U8StringView IS_PROJECTION     = "isProjection";
-    static constexpr U8StringView STOPS_PROJECTION  = "stopsProjection";
-    static constexpr U8StringView INDEX             = "index";
-    static constexpr U8StringView STEP              = "step";
-    static constexpr U8StringView START             = "start";
-    static constexpr U8StringView STOP              = "stop";
-    static constexpr U8StringView FIRST             = "first";
-    static constexpr U8StringView SECOND            = "second";
-    static constexpr U8StringView COMPARATOR        = "comparator";
-    static constexpr U8StringView FUNCTION_NAME     = "functionName";
-    static constexpr U8StringView ARGUMENTS         = "arguments";
-};
-
 /**
  * @brief The ExpressionNode class represents a HermesPath expression.
  */
@@ -102,8 +82,6 @@ class ExpressionNode : public VariantNode<
         boost::recursive_wrapper<FunctionExpressionNode> >
 {
 public:
-    static constexpr int64_t NULL_NODE_CODE = 10000;
-
     /**
      * @brief Constructs an empty ExpressionNode object
      */

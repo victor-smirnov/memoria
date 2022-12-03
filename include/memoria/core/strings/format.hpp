@@ -138,6 +138,19 @@ struct formatter<memoria::filesystem::path> {
     }
 };
 
+template <typename T>
+struct formatter<memoria::NamedTypedCode<T>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
+    template <typename FormatContext>
+    auto format(const memoria::NamedTypedCode<T>& d, FormatContext& ctx) {
+        if (MMA_LIKELY(!d.name().empty())) {
+            return format_to(ctx.out(), "<{}:{}>", d.code(), d.name().to_string());
+        }
+        else {
+            return format_to(ctx.out(), "{}", d.code());
+        }
+    }
+};
 
 }

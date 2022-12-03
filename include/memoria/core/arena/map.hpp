@@ -285,7 +285,7 @@ public:
         return nullptr;
     }
 
-    void put(ArenaAllocator& arena, ShortTypeCode tag, const Key& key, const Value& value)
+    Map* put(ArenaAllocator& arena, ShortTypeCode tag, const Key& key, const Value& value)
     {
         if (MMA_UNLIKELY(buckets_.is_null())) {
             return put_empty(arena, key, value);
@@ -303,10 +303,12 @@ public:
                 size_++;
             }
         }
+
+        return this;
     }
 
     template <typename KeyArg>
-    void remove(ArenaAllocator& arena, ShortTypeCode tag, const KeyArg& key)
+    Map* remove(ArenaAllocator& arena, ShortTypeCode tag, const KeyArg& key)
     {
         if (MMA_LIKELY(size_))
         {
@@ -347,6 +349,8 @@ public:
                 this->remove(arena, tag, key);
             }
         }
+
+        return this;
     }
 
     template <typename Fn>
@@ -363,7 +367,7 @@ public:
     
 private:
 
-    void put_empty(ArenaAllocator& arena, const Key& key, const Value& value)
+    Map* put_empty(ArenaAllocator& arena, const Key& key, const Value& value)
     {
         BucketRelPtr* buckets = arena.template allocate_untagged_array<BucketRelPtr>(2);
 
@@ -374,6 +378,8 @@ private:
         this->insert_into_array(arena, buckets, 1, key, value, replace);
 
         this->size_ = 1;
+
+        return this;
     }
 
     void enlarge_array(ArenaAllocator& arena)

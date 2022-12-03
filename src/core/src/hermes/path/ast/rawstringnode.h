@@ -69,7 +69,7 @@ public:
      */
     String rawString;
 
-    static constexpr int64_t CODE = 22;
+    static constexpr NamedCode CODE = ASTCodes::RAW_STRING_NODE;
 };
 }} // namespace hermes::path::ast
 

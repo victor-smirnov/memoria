@@ -24,6 +24,8 @@
 #include <memoria/core/arena/arena.hpp>
 #include <memoria/core/arena/relative_ptr.hpp>
 
+#include <memoria/core/tools/result.hpp>
+
 #include <ostream>
 
 namespace memoria {

@@ -71,7 +71,7 @@ ObjectPtr search(const Expression &expression, const ObjectPtr& value, const IPa
 }
 
 
-ObjectPtr search(const ObjectMapPtr &expression, const ObjectPtr& value)
+ObjectPtr search(const TinyObjectMapPtr &expression, const ObjectPtr& value)
 {
     using interpreter2::HermesASTInterpreter;
     if (expression->empty())
@@ -88,7 +88,7 @@ ObjectPtr search(const ObjectMapPtr &expression, const ObjectPtr& value)
     return interpreter2::getJsonValue(s_interpreter.currentContextValue());
 }
 
-ObjectPtr search(const ObjectMapPtr &expression, const ObjectPtr& value, const IParameterResolver& resolver)
+ObjectPtr search(const TinyObjectMapPtr &expression, const ObjectPtr& value, const IParameterResolver& resolver)
 {
     using interpreter2::HermesASTInterpreter;
     if (expression->empty())

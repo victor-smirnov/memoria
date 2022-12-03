@@ -28,24 +28,50 @@
 namespace memoria::hermes {
 
 class TplRenderer: public TemplateConstants {
-    using VisitorFn   = void (TplRenderer::*)(const ObjectMapPtr&);
-    using VisitorsMap = ska::flat_hash_map<int64_t, VisitorFn>;
 
+    using ASTNodeT = TinyObjectMapPtr;
+    using HermesExprPtr = TinyObjectMapPtr;
+
+    using VisitorFn   = void (TplRenderer::*)(const ASTNodePtr&);
+    using VisitorsMap = ska::flat_hash_map<int32_t, VisitorFn>;
+
+    ObjectPtr data_;
     TplVarStack stack_;
     std::ostream& out_;
 
+    path::HermesObjectResolver name_resoler_;
+
 public:
     TplRenderer(ObjectPtr data, std::ostream& out):
-        stack_(data), out_(out)
-    {}
+        data_(data),
+        stack_(), out_(out)
+    {
+        name_resoler_ = [&](U8StringView name) -> ObjectPtr {
+            auto prop = stack_.find(name);
 
-    ObjectPtr evaluateExpr(const ObjectMapPtr& expr)
+            if (prop.is_initialized()) {
+                return prop.get();
+            }
+            else {
+                if (data_->is_map())
+                {
+                    auto map = data_->as_generic_map();
+                    return map->get(name);
+                }
+                else {
+                    MEMORIA_MAKE_GENERIC_ERROR("Provided default data is not a Map").do_throw();
+                }
+            }
+        };
+    }
+
+    ObjectPtr evaluateExpr(const HermesExprPtr& expr)
     {
         path::interpreter2::HermesASTInterpreter iterpreter;
-        iterpreter.setContext(&stack_);
-        iterpreter.visit(expr);
 
-        return boost::get<ObjectPtr>(iterpreter.currentContext());
+        iterpreter.setContext(&name_resoler_);
+        iterpreter.visit(expr);
+        return iterpreter.currentContext();
     }
 
     void visit(const ObjectPtr& element)
@@ -58,10 +84,10 @@ public:
             else if (element->is_object_array()) {
                 visitStatements(element->as_object_array());
             }
-            else if (element->is_object_map())
+            else if (element->is_tiny_object_map())
             {
-                ObjectMapPtr map = element->as_object_map();
-                int64_t code = map->get(CODE_ATTR)->to_i64();
+                auto map = element->as_tiny_object_map();
+                int32_t code = map->get(CODE)->to_i32();
 
                 auto& vmap = visitors_map();
                 auto ii = vmap.find(code);
@@ -74,7 +100,7 @@ public:
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR(
-                    "Provided Hermes Template AST node is not an ObjectMap: {}",
+                    "Provided Hermes Template AST node is not an TinyObjectMap: {}",
                     element->to_pretty_string()
                 ).do_throw();
             }
@@ -94,13 +120,13 @@ public:
         }
     }
 
-    void visitForStmt(const ObjectMapPtr& element)
+    void visitForStmt(const ASTNodeT& element)
     {
-        U8StringView var_name = *element->get(VARIABLE_NAME)->as_data_object<Varchar>()->view();
-        auto expr = element->get(EXPRESSION_NAME);
-        auto value = evaluateExpr(expr->as_object_map());
+        U8StringView var_name = *element->get(VARIABLE)->as_data_object<Varchar>()->view();
+        auto expr = element->get(EXPRESSION);
+        auto value = evaluateExpr(expr->as_tiny_object_map());
 
-        auto stmts = element->get(STATEMENTS_NAME);
+        auto stmts = element->get(STATEMENTS);
 
         if (value->is_array())
         {
@@ -119,40 +145,40 @@ public:
         }
     }
 
-    void visitIfStmt(const ObjectMapPtr& element)
+    void visitIfStmt(const ASTNodeT& element)
     {
-        auto expr = element->get(EXPRESSION_NAME);
-        auto value = evaluateExpr(expr->as_object_map());
+        auto expr = element->get(EXPRESSION);
+        auto value = evaluateExpr(expr->as_tiny_object_map());
 
         bool boolValue = path::interpreter2::HermesASTInterpreter::toSimpleBoolean(value);
         if (boolValue)
         {
-            auto stmts = element->get(STATEMENTS_NAME);
+            auto stmts = element->get(STATEMENTS);
             visitStatements(stmts->as_object_array());
         }
         else {
-            auto else_part = element->get(ELSE_NAME);
+            auto else_part = element->get(ELSE);
             visit(else_part);
         }
     }
 
-    void visitElseStmt(const ObjectMapPtr& element)
+    void visitElseStmt(const ASTNodeT& element)
     {
-        auto stmts = element->get(STATEMENTS_NAME);
+        auto stmts = element->get(STATEMENTS);
         visitStatements(stmts->as_object_array());
     }
 
-    void visitSetStmt(const ObjectMapPtr& element)
+    void visitSetStmt(const ASTNodeT& element)
     {
-        U8StringView var_name = *element->get(VARIABLE_NAME)->as_data_object<Varchar>()->view();
-        auto expr  = element->get(EXPRESSION_NAME);
-        auto value = evaluateExpr(expr->as_object_map());
+        U8StringView var_name = *element->get(VARIABLE)->as_data_object<Varchar>()->view();
+        auto expr  = element->get(EXPRESSION);
+        auto value = evaluateExpr(expr->as_tiny_object_map());
         stack_.set(var_name, value);
     }
 
-    void visitVarStmt(const ObjectMapPtr& element)
+    void visitVarStmt(const ASTNodeT& element)
     {
-        ObjectMapPtr expr = element->get(EXPRESSION_NAME)->as_object_map();
+        auto expr = element->get(EXPRESSION)->as_tiny_object_map();
         auto res = evaluateExpr(expr);
         out_ << res->to_plain_string();
     }
@@ -162,11 +188,11 @@ private:
     {
         VisitorsMap map;
 
-        map[FOR_STMT_CODE]  = &TplRenderer::visitForStmt;
-        map[IF_STMT_CODE]   = &TplRenderer::visitIfStmt;
-        map[ELSE_STMT_CODE] = &TplRenderer::visitElseStmt;
-        map[SET_STMT_CODE]  = &TplRenderer::visitSetStmt;
-        map[VAR_STMT_CODE]  = &TplRenderer::visitVarStmt;
+        map[FOR_STMT.code()]  = &TplRenderer::visitForStmt;
+        map[IF_STMT.code()]   = &TplRenderer::visitIfStmt;
+        map[ELSE_STMT.code()] = &TplRenderer::visitElseStmt;
+        map[SET_STMT.code()]  = &TplRenderer::visitSetStmt;
+        map[VAR_STMT.code()]  = &TplRenderer::visitVarStmt;
 
         return map;
     }

@@ -80,7 +80,7 @@ public:
      */
     IndexType step;
 
-    static constexpr int64_t CODE = 23;
+    static constexpr NamedCode CODE = ASTCodes::SLICE_EXPRESSION_NODE;
 };
 }} // namespace hermes::path::ast
 

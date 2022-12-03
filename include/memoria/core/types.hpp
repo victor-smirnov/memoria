@@ -20,6 +20,7 @@
 
 #include <boost/exception/all.hpp>
 #include <boost/stacktrace.hpp>
+#include <boost/utility/string_view.hpp>
 
 #include <string>
 #include <sstream>
@@ -32,6 +33,8 @@
 
 #include <type_traits>
 #include <tuple>
+
+
 
 namespace memoria {
 
@@ -278,8 +281,6 @@ struct IStoreApiBase: Referenceable {
 
 };
 
-
-
 template <typename IDType>
 struct BlockIDValueHolder {
     IDType id;
@@ -312,6 +313,46 @@ T div_2(T value) {
 }
 
 constexpr size_t SizeTMax = std::numeric_limits<size_t>::max();
+
+using U8StringView = boost::string_view;
+
+template <typename CodeT>
+class NamedTypedCode {
+    CodeT code_;
+    U8StringView name_;
+public:
+    constexpr NamedTypedCode(CodeT code, const char* name):
+        code_(code), name_(name)
+    {}
+
+    constexpr NamedTypedCode(CodeT code, U8StringView name):
+        code_(code), name_(name)
+    {}
+
+    constexpr NamedTypedCode(CodeT code):
+        code_(code), name_("UNNAMED")
+    {}
+
+    constexpr CodeT code() const {return code_;}
+    constexpr U8StringView name() const {return name_;}
+
+    template <typename U>
+    bool operator==(const NamedTypedCode<U>& other) const noexcept {
+        return code_ == other.code_;
+    }
+
+    template <typename U>
+    bool operator==(const U& code) const noexcept {
+        return code_ == code;
+    }
+
+    template <typename U>
+    bool operator<(const NamedTypedCode<U>& other) const noexcept {
+        return code_ < other.code_;
+    }
+};
+
+using NamedCode = NamedTypedCode<int32_t>;
 
 }
 

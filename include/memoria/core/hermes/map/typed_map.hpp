@@ -22,7 +22,12 @@ namespace hermes {
 
 template <typename KeyDT>
 class TypedMapData<KeyDT, Object, FSEKeySubtype, true>: public arena::Map<DTTViewType<KeyDT>, arena::EmbeddingRelativePtr<void>> {
-
+    using Base = arena::Map<DTTViewType<KeyDT>, arena::EmbeddingRelativePtr<void>>;
+public:
+    TypedMapData() {}
+    TypedMapData(uint64_t capacity):
+        Base(capacity)
+    {}
 };
 
 
@@ -166,12 +171,33 @@ public:
         }
     }
 
+    template <typename T>
+    ObjectPtr get(const NamedTypedCode<T>& code) const {
+        return get(code.code());
+    }
 
     template <typename DT>
     MapPtr<KeyDT, Object> put_dataobject(KeyView key, DTTViewType<DT> value);
 
+    template <typename DT, typename T>
+    MapPtr<KeyDT, Object> put_dataobject(const NamedTypedCode<T>& code, DTTViewType<DT> value) {
+        return put_dataobject<DT>(code.code(), value);
+    }
+
     MapPtr<KeyDT, Object> put(KeyView name, ObjectPtr value);
+
+    template <typename T>
+    MapPtr<KeyDT, Object> put(const NamedTypedCode<T>& code, const ObjectPtr& value) {
+        return put(code.code(), value);
+    }
+
+
     MapPtr<KeyDT, Object> remove(KeyView key);
+
+    template <typename T>
+    MapPtr<KeyDT, Object> remove(const NamedTypedCode<T>& code) {
+        return remove(code.code());
+    }
 
     void stringify(std::ostream& out,
                    DumpFormatState& state) const
@@ -304,15 +330,31 @@ public:
         return map_.get(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
     }
 
+    virtual ObjectPtr get(U8StringView key) const {
+        MEMORIA_MAKE_GENERIC_ERROR("Method map(U8StringView) is not supported by this generic map").do_throw();
+    }
+
+    virtual ObjectPtr get(int32_t key) const {
+        return map_.get(key);
+    }
+
+    virtual ObjectPtr get(uint64_t key) const {
+        return map_.get(key);
+    }
+
+    virtual ObjectPtr get(uint8_t key) const {
+        return map_.get(key);
+    }
+
     virtual GenericMapPtr put(const ObjectPtr& key, const ObjectPtr& value) {
-        map_.put(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view(), value);
-        return this->shared_from_this();
+        auto new_map = map_.put(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view(), value);
+        return make_wrapper(new_map->map_, map_.document().get(), ctr_holder_);
     }
 
 
     virtual GenericMapPtr remove(const ObjectPtr& key) {
-        map_.remove(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
-        return this->shared_from_this();
+        auto new_map = map_.remove(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
+        return make_wrapper(new_map->map_, map_.document().get(), ctr_holder_);
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {

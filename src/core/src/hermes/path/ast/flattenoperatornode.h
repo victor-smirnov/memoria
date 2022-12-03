@@ -59,6 +59,6 @@ public:
      */
     bool operator==(const FlattenOperatorNode& other) const;
 
-    static constexpr int64_t CODE = 9;
+    static constexpr NamedCode CODE = ASTCodes::FLATTEN_OPERATOR_NODE;
 };
 }} // namespace hermes::path::ast

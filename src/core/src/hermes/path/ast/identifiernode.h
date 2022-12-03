@@ -71,7 +71,7 @@ public:
      */
     String identifier;
 
-    static constexpr int64_t CODE = 13;
+    static constexpr NamedCode CODE = ASTCodes::IDENTIFIER_NODE;
 };
 }} // namespace hermes::path::ast
 

@@ -64,6 +64,9 @@ using DatatypePtr   = ViewPtr<Datatype, true>;
 using ObjectMap     = Map<Varchar, Object>;
 using ObjectMapPtr  = ViewPtr<ObjectMap, true>;
 
+using TinyObjectMap     = Map<UTinyInt, Object>;
+using TinyObjectMapPtr  = ViewPtr<TinyObjectMap, true>;
+
 using ObjectArray    = Array<Object>;
 using ObjectArrayPtr = ViewPtr<ObjectArray, true>;
 
@@ -98,6 +101,10 @@ struct TypeHash<hermes::Array<hermes::Object>>: HasU64Value<100> {};
 
 template <>
 struct TypeHash<hermes::Map<Varchar, hermes::Object>>: HasU64Value<101> {};
+
+template <>
+struct TypeHash<hermes::Map<UTinyInt, hermes::Object>>: HasU64Value<98> {};
+
 
 template <>
 struct TypeHash<hermes::Datatype>: HasU64Value<102> {};

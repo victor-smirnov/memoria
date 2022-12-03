@@ -32,6 +32,8 @@
 #include "binaryexpressionnode.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
+#include <memoria/core/hermes/path/path.h>
+
 namespace memoria::hermes::path { namespace ast {
 
 /**
@@ -72,7 +74,7 @@ public:
      */
     void accept(interpreter::AbstractVisitor* visitor) const override;
 
-    static constexpr int64_t CODE = 2;
+    static constexpr NamedCode CODE = ASTCodes::AND_EXPRESSION_NODE;
 };
 }} // namespace hermes::path::ast
 

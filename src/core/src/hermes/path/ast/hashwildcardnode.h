@@ -72,7 +72,7 @@ public:
      */
     void accept(interpreter::AbstractVisitor* visitor) const override;
 
-    static constexpr int64_t CODE = 11;
+    static constexpr NamedCode CODE = ASTCodes::HASH_WILDCARD_NODE;
 };
 }} // namespace hermes::path::ast
 

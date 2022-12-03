@@ -90,14 +90,14 @@ ObjectPtr Object::search2(U8StringView query, const IParameterResolver& params) 
 ObjectPtr Object::search(U8StringView query) const
 {
     auto ast = HermesCtr::parse_hermes_path(query);
-    auto exp = ast->root()->as_object_map();
+    auto exp = ast->root()->as_tiny_object_map();
     return hermes::path::search(exp, ObjectPtr(Object(storage_.addr, doc_, get_ptr_holder())));
 }
 
 ObjectPtr Object::search(U8StringView query, const IParameterResolver& params) const
 {
     auto ast = HermesCtr::parse_hermes_path(query);
-    auto exp = ast->root()->as_object_map();
+    auto exp = ast->root()->as_tiny_object_map();
     return hermes::path::search(exp, ObjectPtr(Object(storage_.addr, doc_, get_ptr_holder())), params);
 }
 

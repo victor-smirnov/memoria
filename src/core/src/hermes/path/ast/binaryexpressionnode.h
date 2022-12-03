@@ -89,7 +89,8 @@ public:
      */
     ExpressionNode rightExpression;
 
-    static constexpr int64_t CODE = 4;
+//    static constexpr int64_t CODE = 4;
+
 };
 }} // namespace hermes::path::ast
 

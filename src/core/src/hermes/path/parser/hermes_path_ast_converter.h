@@ -32,37 +32,17 @@
 
 #include <memoria/core/tools/optional.hpp>
 
+#include <memoria/core/hermes/path/path.h>
+
 #include <boost/hana.hpp>
 
 namespace memoria::hermes::path::parser {
 
-class HermesASTConverter: public interpreter::AbstractVisitor, public ast::ExpressionAttrs {
+class HermesASTConverter: public interpreter::AbstractVisitor, public ASTCodes {
+
+    using ASTNodePtr = TinyObjectMapPtr;
+
     Optional<ObjectPtr> context_;
-
-    static constexpr const U8StringView AST_NODE_NAME_ATTR              = "astNodeName";
-    static constexpr const U8StringView IDENTIFIER_NODE_NAME            = "Identifier";
-    static constexpr const U8StringView RAW_STRING_NODE_NAME            = "RawString";
-    static constexpr const U8StringView HERMES_VALUE_NODE_NAME          = "HermesValue";
-    static constexpr const U8StringView SUBEXPRESSION_NODE_NAME         = "Subexpression";
-    static constexpr const U8StringView INDEX_EXPRESSION_NODE_NAME      = "IndexEXpression";
-    static constexpr const U8StringView ARRAY_ITEM_NODE_NAME            = "ArrayItem";
-    static constexpr const U8StringView FLATTEN_OPERATOR_NODE_NAME      = "FlattenExpression";
-    static constexpr const U8StringView SLICE_EXPRESSION_NODE_NAME      = "SliceExpression";
-    static constexpr const U8StringView LIST_WILDCARD_NODE_NAME         = "ListWildcard";
-    static constexpr const U8StringView HASH_WILDCARD_NODE_NAME         = "HashWildcard";
-    static constexpr const U8StringView MULTISELECT_LIST_NODE_NAME      = "MultiselectList";
-    static constexpr const U8StringView MULTISELECT_HASH_NODE_NAME      = "MutiselectHash";
-    static constexpr const U8StringView NOT_EXPRESSION_NODE_NAME        = "NotExpression";
-    static constexpr const U8StringView OR_EXPRESSION_NODE_NAME         = "OrExpression";
-    static constexpr const U8StringView COMPARATOR_EXPRESSION_NODE_NAME = "ComparatorExpression";
-    static constexpr const U8StringView AND_EXPRESSION_NODE_NAME        = "AndExpression";
-    static constexpr const U8StringView PAREN_EXPRESSION_NODE_NAME      = "ParenExpression";
-    static constexpr const U8StringView CURRENT_NODE_NAME               = "Current";
-    static constexpr const U8StringView FILTER_EXPRESSION_NODE_NAME     = "FilterExpression";
-    static constexpr const U8StringView PIPE_EXPRESSION_NODE_NAME       = "PipeExpression";
-    static constexpr const U8StringView FUNCTION_EXPRESSION_NODE_NAME   = "FunctionExpression";
-    static constexpr const U8StringView EXPRESSION_ARGUMENT_NODE_NAME   = "ExpressionArgument";
-
 
     bool add_string_names_;
 public:
@@ -84,9 +64,9 @@ public:
         {
             auto map = current_ctr()->new_map();
             if (add_string_names_) {
-                map->put_dataobject<Varchar>(AST_NODE_NAME_ATTR, "NullNode");
+                map = map->put_dataobject<Varchar>(AST_NODE_NAME, NULL_NODE.name());
             }
-            map->put_dataobject<BigInt>(CODE_ATTR, node->NULL_NODE_CODE);
+            map = map->put_dataobject<BigInt>(CODE_ATTR, NULL_NODE.code());
             context_ = map->as_object();
         }
         else {
@@ -94,65 +74,69 @@ public:
         }
     }
 
-    ObjectMapPtr new_ast_node(int64_t code, U8StringView name)
+
+    ASTNodePtr new_ast_node(const NamedCode& code)
     {
-        return new_ast_node(code, name, add_string_names_);
+        return new_ast_node(code, add_string_names_);
     }
 
-    static ObjectMapPtr new_ast_node(int64_t code, U8StringView name, bool add_string_names)
+
+
+    static ASTNodePtr new_ast_node(const NamedCode& code, bool add_string_names)
     {
-        auto map = current_ctr()->new_map();
-        map->put_dataobject<BigInt>(CODE_ATTR, code);
+        auto map = current_ctr()->new_tiny_map(4);
+        map = map->put_dataobject<Integer>(CODE_ATTR, code.code());
 
         if (add_string_names) {
-            map->put_dataobject<Varchar>(AST_NODE_NAME_ATTR, name);
+            map = map->put_dataobject<Varchar>(AST_NODE_NAME, code.name());
         }
 
         return map;
     }
+
 
     virtual void visit(const ast::IdentifierNode* node)
     {
         context_ = new_identifier(*current_ctr(), *node, add_string_names_)->as_object();
     }
 
-    static ObjectMapPtr new_identifier(HermesCtr& ctr, const ast::IdentifierNode& node, bool add_node_name = false)
+    static ASTNodePtr new_identifier(HermesCtr& ctr, const ast::IdentifierNode& node, bool add_node_name = false)
     {
-        auto map = new_ast_node(node.CODE, IDENTIFIER_NODE_NAME, add_node_name);
-        map->put_dataobject<Varchar>(IDENTIFIER, node.identifier);
+        auto map = new_ast_node(node.CODE, add_node_name);
+        map = map->put_dataobject<Varchar>(IDENTIFIER_ATTR, node.identifier);
         return map;
     }
 
     virtual void visit(const ast::RawStringNode* node)
     {
-        auto map = new_ast_node(node->CODE, RAW_STRING_NODE_NAME);
-        map->put_dataobject<Varchar>(RAW_STRING, node->rawString);
+        auto map = new_ast_node(node->CODE);
+        map = map->put_dataobject<Varchar>(RAW_STRING_ATTR, node->rawString);
         context_ = map->as_object();
     }
 
     virtual void visit(const ast::HermesValueNode* node)
     {
-        auto map = new_ast_node(node->CODE, HERMES_VALUE_NODE_NAME);
-        map->put(VALUE, node->value);
+        auto map = new_ast_node(node->CODE);
+        map = map->put(VALUE_ATTR, node->value);
         context_ = map->as_object();
     }
 
-    void visit(const ast::BinaryExpressionNode* node, int64_t code, const U8StringView& ast_node_name)
+    void visit(const ast::BinaryExpressionNode* node, const NamedCode& code)
     {
-        auto map = new_ast_node(code, ast_node_name);
+        auto map = new_ast_node(code);
 
-        map->put_dataobject<Boolean>(IS_PROJECTION, node->isProjection());
-        map->put_dataobject<Boolean>(STOPS_PROJECTION, node->stopsProjection());
+        map = map->put_dataobject<Boolean>(IS_PROJECTION_ATTR, node->isProjection());
+        map = map->put_dataobject<Boolean>(STOPS_PROJECTION_ATTR, node->stopsProjection());
 
         visit(&node->leftExpression);
         if (context_.is_initialized()) {
-            map->put(LEFT_EXPRESSION, context_.get());
+            map = map->put(LEFT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
         visit(&node->rightExpression);
         if (context_.is_initialized()) {
-            map->put(RIGHT_EXPRESSION, context_.get());
+            map = map->put(RIGHT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
@@ -161,31 +145,31 @@ public:
 
     virtual void visit(const ast::SubexpressionNode* node)
     {
-        visit(node, node->CODE, SUBEXPRESSION_NODE_NAME);
+        visit(node, node->CODE);
     }
 
     virtual void visit(const ast::IndexExpressionNode* node)
     {
-        auto map = new_ast_node(node->CODE, INDEX_EXPRESSION_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
 
-        map->put_dataobject<Boolean>(IS_PROJECTION, node->isProjection());
-        map->put_dataobject<Boolean>(STOPS_PROJECTION, node->stopsProjection());
+        map = map->put_dataobject<Boolean>(IS_PROJECTION_ATTR, node->isProjection());
+        map = map->put_dataobject<Boolean>(STOPS_PROJECTION_ATTR, node->stopsProjection());
 
         visit(&node->leftExpression);
         if (context_.is_initialized()) {
-            map->put(LEFT_EXPRESSION, context_.get());
+            map = map->put(LEFT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
         visit(&node->bracketSpecifier);
         if (context_.is_initialized()) {
-            map->put(BRACKET_SPECIFIER, context_.get());
+            map = map->put(BRACKET_SPECIFIER_ATTR, context_.get());
             clear_context();
         }
 
         visit(&node->rightExpression);
         if (context_.is_initialized()) {
-            map->put(RIGHT_EXPRESSION, context_.get());
+            map = map->put(RIGHT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
@@ -194,14 +178,14 @@ public:
 
     virtual void visit(const ast::ArrayItemNode* node)
     {
-        auto map = new_ast_node(node->CODE, ARRAY_ITEM_NODE_NAME);
-        map->put_dataobject<BigInt>(INDEX, node->index.convert_to<int64_t>());
+        auto map = new_ast_node(node->CODE);
+        map = map->put_dataobject<BigInt>(INDEX_ATTR, node->index.convert_to<int64_t>());
         context_ = map->as_object();
     }
 
     virtual void visit(const ast::FlattenOperatorNode* node)
     {
-        auto map = new_ast_node(node->CODE, FLATTEN_OPERATOR_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
         context_ = map->as_object();
     }
 
@@ -212,18 +196,18 @@ public:
 
     virtual void visit(const ast::SliceExpressionNode* node)
     {
-        auto map = new_ast_node(node->CODE, SLICE_EXPRESSION_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
 
         if (node->start.is_initialized()) {
-            map->put_dataobject<BigInt>(START, node->start.get().convert_to<int64_t>());
+            map = map->put_dataobject<BigInt>(START_ATTR, node->start.get().convert_to<int64_t>());
         }
 
         if (node->stop.is_initialized()) {
-            map->put_dataobject<BigInt>(STOP, node->stop.get().convert_to<int64_t>());
+            map = map->put_dataobject<BigInt>(STOP_ATTR, node->stop.get().convert_to<int64_t>());
         }
 
         if (node->step.is_initialized()) {
-            map->put_dataobject<BigInt>(STEP, node->step.get().convert_to<int64_t>());
+            map = map->put_dataobject<BigInt>(STEP_ATTR, node->step.get().convert_to<int64_t>());
         }
 
         context_ = map->as_object();
@@ -231,21 +215,21 @@ public:
 
     virtual void visit(const ast::ListWildcardNode* node)
     {
-        auto map = new_ast_node(node->CODE, LIST_WILDCARD_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
         context_ = map->as_object();
     }
 
     virtual void visit(const ast::HashWildcardNode* node)
     {
-        visit(node, node->CODE, HASH_WILDCARD_NODE_NAME);
+        visit(node, node->CODE);
     }
 
     virtual void visit(const ast::MultiselectListNode* node)
     {
-        auto map = new_ast_node(node->CODE, MULTISELECT_LIST_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
 
         auto array = current_ctr()->new_array();
-        map->put(EXPRESSIONS, array->as_object());
+        map = map->put(EXPRESSIONS_ATTR, array->as_object());
 
         for (auto& item: node->expressions)
         {
@@ -260,10 +244,10 @@ public:
 
     virtual void visit(const ast::MultiselectHashNode* node)
     {
-        auto map = new_ast_node(node->CODE, MULTISELECT_HASH_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
 
         auto array = current_ctr()->new_array();
-        map->put(EXPRESSIONS, array->as_object());
+        map = map->put(EXPRESSIONS_ATTR, array->as_object());
 
         for (auto& item: node->expressions)
         {
@@ -273,13 +257,13 @@ public:
             clear_context();
             visit(&item.first);
             if (context_.is_initialized()) {
-                kv_pair->put(FIRST, context_.get());
+                kv_pair->put(FIRST_ATTR, context_.get());
             }
 
             clear_context();
             visit(&item.second);
             if (context_.is_initialized()) {
-                kv_pair->put(SECOND, context_.get());
+                kv_pair->put(SECOND_ATTR, context_.get());
             }
         }
 
@@ -289,11 +273,11 @@ public:
 
     virtual void visit(const ast::NotExpressionNode* node)
     {
-        auto map = new_ast_node(node->CODE, NOT_EXPRESSION_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
 
         visit(&node->expression);
         if (context_.is_initialized()) {
-            map->put(EXPRESSION, context_.get());
+            map = map->put(EXPRESSION_ATTR, context_.get());
         }
 
         clear_context();
@@ -302,21 +286,21 @@ public:
 
     virtual void visit(const ast::ComparatorExpressionNode* node)
     {
-        auto map = new_ast_node(node->CODE, COMPARATOR_EXPRESSION_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
 
-        map->put_dataobject<Boolean>(IS_PROJECTION, node->isProjection());
-        map->put_dataobject<Boolean>(STOPS_PROJECTION, node->stopsProjection());
-        map->put_dataobject<BigInt>(COMPARATOR, (int64_t)node->comparator);
+        map = map->put_dataobject<Boolean>(IS_PROJECTION_ATTR, node->isProjection());
+        map = map->put_dataobject<Boolean>(STOPS_PROJECTION_ATTR, node->stopsProjection());
+        map = map->put_dataobject<BigInt>(COMPARATOR_ATTR, (int64_t)node->comparator);
 
         visit(&node->leftExpression);
         if (context_.is_initialized()) {
-            map->put(LEFT_EXPRESSION, context_.get());
+            map = map->put(LEFT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
         visit(&node->rightExpression);
         if (context_.is_initialized()) {
-            map->put(RIGHT_EXPRESSION, context_.get());
+            map = map->put(RIGHT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
@@ -327,20 +311,20 @@ public:
 
     virtual void visit(const ast::OrExpressionNode* node)
     {
-        visit(node, node->CODE, OR_EXPRESSION_NODE_NAME);
+        visit(node, node->CODE);
     }
 
     virtual void visit(const ast::AndExpressionNode* node)
     {
-        visit(node, node->CODE, AND_EXPRESSION_NODE_NAME);
+        visit(node, node->CODE);
     }
 
     virtual void visit(const ast::ParenExpressionNode* node)
     {
-        auto map = new_ast_node(node->CODE, PAREN_EXPRESSION_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
         visit(&node->expression);
         if (context_.is_initialized()) {
-            map->put(EXPRESSION, context_.get());
+            map = map->put(EXPRESSION_ATTR, context_.get());
         }
 
         clear_context();
@@ -349,21 +333,21 @@ public:
 
     virtual void visit(const ast::PipeExpressionNode* node)
     {
-        visit(node, node->CODE, PIPE_EXPRESSION_NODE_NAME);
+        visit(node, node->CODE);
     }
 
     virtual void visit(const ast::CurrentNode* node)
     {
-        auto map = new_ast_node(node->CODE, CURRENT_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
         context_ = map->as_object();
     }
 
     virtual void visit(const ast::FilterExpressionNode* node)
     {
-        auto map = new_ast_node(node->CODE, FILTER_EXPRESSION_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
         visit(&node->expression);
         if (context_.is_initialized()) {
-            map->put(EXPRESSION, context_.get());
+            map = map->put(EXPRESSION_ATTR, context_.get());
         }
 
         clear_context();
@@ -372,12 +356,12 @@ public:
 
     virtual void visit(const ast::FunctionExpressionNode* node)
     {
-        auto map = new_ast_node(node->CODE, FUNCTION_EXPRESSION_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
 
-        map->put_dataobject<Varchar>(FUNCTION_NAME, node->functionName);
+        map = map->put_dataobject<Varchar>(FUNCTION_NAME_ATTR, node->functionName);
 
         auto array = current_ctr()->new_array();
-        map->put(ARGUMENTS, array->as_object());
+        map = map->put(ARGUMENTS_ATTR, array->as_object());
 
         for (auto& item: node->arguments)
         {
@@ -414,12 +398,12 @@ public:
 
     virtual void visit(const ast::ExpressionArgumentNode* node)
     {
-        auto map = new_ast_node(node->CODE, EXPRESSION_ARGUMENT_NODE_NAME);
+        auto map = new_ast_node(node->CODE);
 
         visit(&node->expression);
 
         if (context_.is_initialized()) {
-            map->put(EXPRESSION, context_.get());
+            map = map->put(EXPRESSION_ATTR, context_.get());
         }
 
         clear_context();

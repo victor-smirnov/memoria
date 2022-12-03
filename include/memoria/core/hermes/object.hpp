@@ -379,6 +379,7 @@ public:
     DataObjectPtr<Real> as_real() const;
 
     int64_t to_i64() const;
+    int64_t to_i32() const;
     U8String to_str() const;
     bool to_bool() const;
     double to_d64() const;
@@ -388,11 +389,17 @@ public:
         return is_a<Map<Varchar, Object>>();
     }
 
+    bool is_tiny_object_map() const {
+        return is_a<Map<UTinyInt, Object>>();
+    }
+
+
     bool is_object_array() const {
         return is_a<Array<Object>>();
     }
 
     ObjectMapPtr as_object_map() const;
+    TinyObjectMapPtr as_tiny_object_map() const;
     ObjectArrayPtr as_object_array() const;
 
 

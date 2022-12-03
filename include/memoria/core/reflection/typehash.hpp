@@ -22,6 +22,8 @@
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/types/static_md5.hpp>
 
+#include <fmt/format.h>
+
 #include <tuple>
 
 namespace memoria {
@@ -193,6 +195,21 @@ private:
 public:
 
     static const uint64_t Value = md5::Md5Sum<TaggedValueList>::Result::Value64;
+};
+
+
+}
+
+namespace fmt {
+
+template <>
+struct formatter<memoria::ShortTypeCode> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::ShortTypeCode& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "<{},{},{},{}>", d.u64(), d.code(), d.descriptor(), d.code_len());
+    }
 };
 
 

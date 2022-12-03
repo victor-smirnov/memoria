@@ -69,7 +69,7 @@ public:
      */
     ExpressionNode expression;
 
-    static constexpr int64_t CODE = 18;
+    static constexpr NamedCode CODE = ASTCodes::NOT_EXPRESSION_NODE;
 };
 }} // namespace hermes::path::ast
 
