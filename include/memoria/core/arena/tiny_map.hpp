@@ -304,7 +304,6 @@ public:
     Map* deep_copy_to(
             ArenaAllocator& dst,
             ShortTypeCode tag,
-            void* owner_view,
             ViewPtrHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const
     {
@@ -325,7 +324,7 @@ public:
 
             const Value* src_data = this->data();
             memoria::detail::DeepCopyHelper<Value>::deep_copy_to(
-                dst, data, src_data, size, owner_view, ptr_holder, dedup
+                dst, data, src_data, size, ptr_holder, dedup
             );
 
             return map.get(dst);

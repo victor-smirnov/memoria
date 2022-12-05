@@ -70,6 +70,11 @@ using ProfileFromDataType = typename ProfileFromDataTypeTF<DT>::Type;
 template <typename DT>
 using DataTypeFromProfile = typename DataTypeFromProfileTF<DT>::Type;
 
+enum class ViewKind {
+    BY_VALUE, BY_REF
+};
+
+
 
 class Decimal {
     bool default_;
@@ -206,6 +211,7 @@ using AllNumericDatatypes = MergeLists<
     IntegerNumericDatatypes, RealNumericDatatypes
 >;
 
-
+template <typename ViewT, typename DT>
+struct ViewToDTMapping;
 
 }

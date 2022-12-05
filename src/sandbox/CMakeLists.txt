@@ -32,7 +32,7 @@ if (BUILD_REACTOR_MEMORIA_LIB)
         set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
         target_link_libraries(${MEMORIA_TARGET} MemoriaCtrsReactor MemoriaStoresReactor MemoriaCoreReactor MemoriaInitReactor ${MEMORIA_LIBS})
 
-        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS} pantor::inja)
+        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS})
     ENDFOREACH(MEMORIA_TARGET)
 
 endif()
@@ -56,7 +56,7 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
         #target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit ${MEMORIA_LIBS})
         target_link_libraries(${MEMORIA_TARGET} MemoriaCore ${MEMORIA_LIBS})
 
-        #target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS} pantor::inja ${ARROW_LIBRARIES} ${PARQUET_LIBRARIES})
+        #target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS})
     ENDFOREACH(MEMORIA_TARGET )
 
 endif()

@@ -59,8 +59,6 @@ protected:
     static_assert(std::is_standard_layout_v<ArrayStorageT>, "");
 
     mutable ArrayStorageT* array_;
-    mutable HermesCtr* doc_;
-
     using Base::ptr_holder_;
 
     friend class HermesCtrImpl;
@@ -87,12 +85,12 @@ public:
     using const_iterator = iterator;
 
     Array() noexcept:
-        array_(), doc_()
+        array_()
     {}
 
-    Array(void* array, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept:
+    Array(void* array, ViewPtrHolder* ref_holder) noexcept:
         Base(ref_holder),
-        array_(reinterpret_cast<ArrayStorageT*>(array)), doc_(doc)
+        array_(reinterpret_cast<ArrayStorageT*>(array))
     {}
 
     iterator begin() {
@@ -118,16 +116,20 @@ public:
     PoolSharedPtr<GenericArray> as_generic_array() const;
 
     ObjectArrayPtr self() const {
-        return ObjectArrayPtr(ObjectArray(array_, doc_, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(array_, ptr_holder_));
     }
 
     PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
-        return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<HermesCtr>(
+                    ptr_holder_->ctr(),
+                    ptr_holder_->owner(),
+                    pool::DoRef{}
+        );
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(array_, doc_, ptr_holder_));
+        return ObjectPtr(Object(array_, ptr_holder_));
     }
 
     uint64_t size() const {
@@ -206,7 +208,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return array_->deep_copy_to(arena, ShortTypeCode::of<Array>(), doc_, ptr_holder_, dedup);
+        return array_->deep_copy_to(arena, ShortTypeCode::of<Array>(), ptr_holder_, dedup);
     }
 
 private:
@@ -258,9 +260,9 @@ class TypedGenericArray<Object>: public GenericArray, public pool::enable_shared
     ViewPtrHolder* ctr_holder_;
     mutable Array<Object> array_;
 public:
-    TypedGenericArray(void* array, HermesCtr* ctr, ViewPtrHolder* ctr_holder):
+    TypedGenericArray(void* array, ViewPtrHolder* ctr_holder):
         ctr_holder_(ctr_holder),
-        array_(array, ctr, ctr_holder)
+        array_(array, ctr_holder)
     {
         ctr_holder->ref_copy();
     }
@@ -288,7 +290,7 @@ public:
             return this->shared_from_this();
         }
         else {
-            return make_wrapper(new_array->array_, array_.doc_, ctr_holder_);
+            return make_wrapper(new_array->array_, ctr_holder_);
         }
     }
 
@@ -325,7 +327,7 @@ public:
         return array_.as_object();
     }
 
-    static PoolSharedPtr<GenericArray> make_wrapper(void* array, HermesCtr* ctr, ViewPtrHolder* ctr_holder);
+    static PoolSharedPtr<GenericArray> make_wrapper(void* array, ViewPtrHolder* ctr_holder);
 };
 
 

@@ -41,18 +41,17 @@ template <typename EntryT, typename MapT, typename Iterator>
 class MapIteratorAccessor {
     ViewPtr<MapT> map_;
     Iterator iterator_;
-    HermesCtr* doc_;
     ViewPtrHolder* ptr_holder_;
 
 public:
     using ViewType = EntryT;
 
-    MapIteratorAccessor(const ViewPtr<MapT>& map, Iterator iterator, HermesCtr* doc, ViewPtrHolder* ptr_holder):
-        map_(map), iterator_(iterator), doc_(doc), ptr_holder_(ptr_holder)
+    MapIteratorAccessor(const ViewPtr<MapT>& map, Iterator iterator, ViewPtrHolder* ptr_holder):
+        map_(map), iterator_(iterator), ptr_holder_(ptr_holder)
     {}
 
     EntryT current() const {
-        return EntryT(&iterator_, doc_, ptr_holder_);
+        return EntryT(&iterator_, ptr_holder_);
     }
 
     bool operator==(const MapIteratorAccessor&other) const noexcept {

@@ -19,6 +19,8 @@
 #include <memoria/core/types.hpp>
 #include <memoria/core/linked/common/linked_hash.hpp>
 
+#include <memoria/core/memory/shared_ptr.hpp>
+
 #include <boost/utility/string_view.hpp>
 
 #include <unicode/ustring.h>
@@ -46,6 +48,50 @@ inline bool is_unicode_space_u8(char codeunit)
     return false;
 }
 
+class U8String;
+
+class U8StringView: public boost::string_view {
+    using Base = boost::string_view;
+
+public:
+    constexpr U8StringView() noexcept: Base() {}
+    constexpr U8StringView(const value_type* str) noexcept:
+        Base(str)
+    {}
+
+    constexpr U8StringView(const value_type* str, size_t size) noexcept:
+        Base(str, size)
+    {}
+
+    constexpr U8StringView(const U8StringView& other) noexcept = default;
+
+    template< class It, class End >
+    constexpr U8StringView( It first, End last ) noexcept:
+        Base(first, last)
+    {}
+
+    U8StringView(const std::string& str) noexcept:
+        Base(str.data(), str.size())
+    {}
+
+    constexpr U8StringView(boost::string_view view) noexcept:
+        Base(view.data(), view.size())
+    {}
+
+    constexpr U8StringView(std::string_view view) noexcept:
+        Base(view.data(), view.size())
+    {}
+
+    operator std::string_view() const noexcept {
+        return std::string_view(data(), size());
+    }
+};
+
+
+
+
+
+
 class U8String {
 public:
     using CharT = char;
@@ -60,9 +106,6 @@ private:
 
     template <typename T2>
     friend std::basic_ostream<char, T2>& operator<<(std::basic_ostream<char, T2>&, const U8String&);
-
-
-
 
 public:
     static const size_t NPOS = ContentT::npos;
@@ -494,6 +537,10 @@ inline std::basic_ostream<char, CharTraits>& operator<<(std::basic_ostream<char,
 }
 
 using U8StringRef = const U8String&;
+
+
+
+
 
 inline bool compare_gt(const U8StringView& first, const U8StringView& second) {
     return first.compare(second) > 0;

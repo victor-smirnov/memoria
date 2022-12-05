@@ -46,8 +46,6 @@ class GenericDataObjectImpl;
 class Object: public HoldingView<Object> {
     using Base = HoldingView<Object>;
 protected:
-    mutable HermesCtr* doc_;
-
     using SmallValueHolder = TaggedValue;
 
     mutable ValueStorage storage_;
@@ -63,32 +61,28 @@ protected:
     friend class GenericDataObjectImpl;
 
 public:
-    Object() noexcept:
-        doc_()
+    Object() noexcept
     {
         storage_.addr = nullptr;
         set_tag(ValueStorageTag::VS_TAG_ADDRESS);
     }
 
-    Object(void* addr, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept :
-        Base(ref_holder),
-        doc_(doc)
+    Object(void* addr, ViewPtrHolder* ref_holder) noexcept :
+        Base(ref_holder)
     {
         storage_.addr = addr;
         set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
     }
 
-    Object(const TaggedValue& tagged_value, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept :
-        Base(ref_holder),
-        doc_(doc)
+    Object(const TaggedValue& tagged_value, ViewPtrHolder* ref_holder) noexcept :
+        Base(ref_holder)
     {
         storage_.small_value = tagged_value;
         set_vs_tag(ValueStorageTag::VS_TAG_SMALL_VALUE);
     }
 
-    Object(ValueStorageTag vs_tag, ValueStorage storage, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept :
-        Base(ref_holder),
-        doc_(doc)
+    Object(ValueStorageTag vs_tag, ValueStorage storage, ViewPtrHolder* ref_holder) noexcept :
+        Base(ref_holder)
     {
         storage_ = storage;
         set_vs_tag(vs_tag);
@@ -100,7 +94,6 @@ public:
 
     Object(const Object& other) noexcept :
         Base(other),
-        doc_(other.doc_),
         storage_(other.storage_)
     {
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
@@ -110,7 +103,6 @@ public:
 
     Object(Object&& other) noexcept :
         Base(std::move(other)),
-        doc_(std::move(other.doc_)),
         storage_(std::move(other.storage_))
     {
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
@@ -120,8 +112,7 @@ public:
 
     virtual ~Object() noexcept
     {
-        if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW)
-        {
+        if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (storage_.view_ptr) {
                 storage_.view_ptr->unref();
             }
@@ -138,7 +129,6 @@ public:
 
         Base::operator=(other);
         storage_ = other.storage_;
-        doc_ = other.doc_;
 
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (storage_.view_ptr) {
@@ -159,7 +149,6 @@ public:
 
         Base::operator=(std::move(other));
         storage_ = std::move(other.storage_);
-        doc_ = std::move(other.doc_);
 
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             other.storage_.view_ptr = nullptr;
@@ -173,8 +162,12 @@ public:
     }
 
     PoolSharedPtr<HermesCtr> document() const {
-        assert_not_null();
-        return PoolSharedPtr<HermesCtr>(doc_, get_ptr_holder()->owner(), pool::DoRef{});
+        assert_not_null();        
+        return PoolSharedPtr<HermesCtr>(
+                    get_ptr_holder()->ctr(),
+                    get_ptr_holder()->owner(),
+                    pool::DoRef{}
+        );
     }
 
     ObjectPtr search(U8StringView query) const;
@@ -197,12 +190,13 @@ public:
         assert_not_null();
         auto tag = get_type_tag();
         return get_type_reflection(tag).convert_to_plain_string(
-            get_vs_tag(), storage_, doc_, get_ptr_holder()
+            get_vs_tag(), storage_, get_ptr_holder()
         );
     }
 
     template <typename DT>
-    bool is_convertible_to() const {
+    bool is_convertible_to() const
+    {
         if (!is_null()) {
             auto src_tag = get_type_tag();
             auto to_tag = ShortTypeCode::of<DT>();
@@ -326,9 +320,9 @@ public:
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_compare(
                     get_vs_tag(),
-                    storage_, doc_, get_ptr_holder(),
+                    storage_, get_ptr_holder(),
                     other->get_vs_tag(),
-                    other->storage_, other->doc_, other->get_ptr_holder()
+                    other->storage_, other->get_ptr_holder()
             );
         }
         else {
@@ -357,9 +351,9 @@ public:
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_equals(
                     get_vs_tag(),
-                    storage_, doc_, get_ptr_holder(),
+                    storage_, get_ptr_holder(),
                     other->get_vs_tag(),
-                    other->storage_, other->doc_, other->get_ptr_holder()
+                    other->storage_, other->get_ptr_holder()
             );
         }
         else {
@@ -453,7 +447,7 @@ public:
         if (value_tag == tag) {
             return detail::ValueCastHelper<T>::cast_to(
                 get_vs_tag(),
-                storage_, doc_, get_ptr_holder()
+                storage_, get_ptr_holder()
             );
         }
         else {
@@ -467,7 +461,7 @@ public:
             if (get_tag() == VS_TAG_ADDRESS) {
                 auto value_tag = get_type_tag();
                 return get_type_reflection(value_tag).hermes_is_simple_layout(
-                            storage_.addr, doc_, get_ptr_holder()
+                            storage_.addr, get_ptr_holder()
                 );
             }
             else {
@@ -506,7 +500,7 @@ public:
         else {
             auto value_tag = get_type_tag();
             get_type_reflection(value_tag).hermes_stringify_value(
-                get_vs_tag(), storage_, doc_, get_ptr_holder(),
+                get_vs_tag(), storage_, get_ptr_holder(),
                 out, state
             );
         }

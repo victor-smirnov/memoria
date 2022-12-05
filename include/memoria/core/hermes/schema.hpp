@@ -13,17 +13,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#pragma once
 
-#include <memoria/core/hermes/array/array_ext.hpp>
+#include <memoria/core/hermes/common.hpp>
+#include <memoria/core/hermes/object.hpp>
+#include <memoria/core/hermes/map/typed_map.hpp>
+
 
 namespace memoria::hermes {
 
-using GAPoolT = pool::SimpleObjectPool<TypedGenericArray<Object>>;
-using GAPoolPtrT = boost::local_shared_ptr<GAPoolT>;
+class TinyObjectBase {
+    TinyObjectMapPtr ptr_;
+public:
+    TinyObjectBase() noexcept {};
+    TinyObjectBase(const TinyObjectMapPtr& ptr) noexcept:
+        ptr_(ptr)
+    {};
+};
 
-PoolSharedPtr<GenericArray> TypedGenericArray<Object>::make_wrapper(void* array, ViewPtrHolder* ctr_holder) {
-    static thread_local GAPoolPtrT wrapper_pool = MakeLocalShared<GAPoolT>();
-    return wrapper_pool->allocate_shared(array, ctr_holder);
-}
+class Record: public TinyObjectBase {
+public:
+    Record() noexcept {}
+    Record(const TinyObjectMapPtr& ptr) noexcept:
+        TinyObjectBase(ptr)
+    {}
+};
 
 }

@@ -20,6 +20,7 @@
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/arena_buffer.hpp>
 #include <memoria/core/strings/u8_string.hpp>
+#include <memoria/core/strings/u8_string_view.hpp>
 #include <memoria/core/datatypes/core.hpp>
 #include <memoria/core/datatypes/traits.hpp>
 
@@ -42,6 +43,7 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
     using ConstViewType = VarcharView;
     using AtomType      = std::remove_const_t<typename VarcharView::value_type>;
 
+    using View2Type     = U8StringOView;
 
     using LDStorageType = LinkedString<typename U8StringView::value_type>;
     using LDViewType    = LDStringView;

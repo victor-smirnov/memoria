@@ -27,8 +27,8 @@
 #include <memoria/memoria.hpp>
 #include <memoria/core/tools/time.hpp>
 
-#include <arrow/util/basic_decimal.h>
-#include <arrow/util/decimal.h>
+#include <memoria/core/numbers/number_view.hpp>
+
 
 #include <boost/pool/pool_alloc.hpp>
 
@@ -82,19 +82,25 @@ int main(int, char**)
 
     render(tpl->root(), data->root(), std::cout);
 
-//    auto doc = HermesCtr::parse_document(R"(
-//        <UTinyInt, Object> {
-//            0: "zero",
-//            1: "one",
-//            50: "fifty",
-//            4: "four",
-//            6: "six",
-//            2: 2,
-//            15: 15
-//        }
-//    )");
+    using DblView    = NumberView<double, ViewKind::BY_VALUE>;
+    using DblViewPtr = ViewPtr<DblView, VIEW_KIND_NON_HOLDING>;
 
-//    println("{}", doc->to_string(StringifyCfg::pretty().with_raw_strings(false)));
+    DblViewPtr v1(0.123456);
+    DblViewPtr v2(1.0);
+    DblViewPtr v3;
+    DblViewPtr v4;
+
+    v3 = v2;
+
+    v4 = 777;
+
+    auto vsum = v1 + v2 + 8;
+
+    println("{}", v1);
+    println("{}", v2);
+    println("{}", v3);
+    println("{}", v4);
+    println("{} :: {}", vsum, TypeNameFactory<decltype(vsum)>::name());
 
     return 0;
 }

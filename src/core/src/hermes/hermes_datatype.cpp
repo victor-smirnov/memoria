@@ -24,10 +24,10 @@ ObjectArrayPtr Datatype::constructor() const
 {
     assert_not_null();
     if (datatype_->has_constructor()) {
-        return ObjectArrayPtr(ObjectArray(datatype_->constructor(), doc_, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(datatype_->constructor(), ptr_holder_));
     }
     else {
-        return ObjectArrayPtr(ObjectArray(nullptr, doc_, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(nullptr, ptr_holder_));
     }
 }
 
@@ -36,10 +36,10 @@ ObjectArrayPtr Datatype::type_parameters() const
 {
     assert_not_null();
     if (datatype_->is_parametric()) {
-        return ObjectArrayPtr(ObjectArray(datatype_->parameters(), doc_, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(datatype_->parameters(), ptr_holder_));
     }
     else {
-        return ObjectArrayPtr(ObjectArray(nullptr, doc_, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(nullptr, ptr_holder_));
     }
 }
 
@@ -240,13 +240,15 @@ DatatypePtr Datatype::append_type_parameter(U8StringView name)
     assert_not_null();
     assert_mutable();
 
+    auto ctr = ptr_holder_->ctr();
+
     ObjectArrayPtr params = type_parameters();
     if (MMA_UNLIKELY(params->is_null())) {
-        params = doc_->new_array();
+        params = ctr->new_array();
         datatype_->set_parameters(params->array_);
     }
 
-    auto datatype = doc_->new_datatype(name);
+    auto datatype = ctr->new_datatype(name);
     params->append(datatype->as_object());
     return datatype;
 }
@@ -256,13 +258,15 @@ DatatypePtr Datatype::append_type_parameter(StringValuePtr name)
     assert_not_null();
     assert_mutable();
 
+    auto ctr = ptr_holder_->ctr();
+
     ObjectArrayPtr params = type_parameters();
     if (MMA_UNLIKELY(params->is_null())) {
-        params = doc_->new_array();
+        params = ctr->new_array();
         datatype_->set_parameters(params->array_);
     }
 
-    auto datatype = doc_->new_datatype(name);
+    auto datatype = ctr->new_datatype(name);
     params->append(datatype->as_object());
     return datatype;
 }
@@ -272,9 +276,11 @@ void Datatype::append_type_parameter(ObjectPtr value)
     assert_not_null();
     assert_mutable();
 
+    auto ctr = ptr_holder_->ctr();
+
     ObjectArrayPtr params = type_parameters();
     if (MMA_UNLIKELY(params->is_null())) {
-        params = doc_->new_array();
+        params = ctr->new_array();
         datatype_->set_parameters(params->array_);
     }
 
@@ -287,10 +293,12 @@ void Datatype::append_constructor_argument(ObjectPtr value)
     assert_not_null();
     assert_mutable();
 
+    auto ctr0 = ptr_holder_->ctr();
+
     ObjectArrayPtr ctr = constructor();
 
     if (MMA_UNLIKELY(ctr->is_null())) {
-        ctr = doc_->new_array();
+        ctr = ctr0->new_array();
         datatype_->set_constructor(ctr->array_);
     }
 
@@ -304,7 +312,8 @@ ObjectArrayPtr Datatype::set_constructor()
     assert_not_null();
     assert_mutable();
 
-    auto ptr = doc_->new_array();
+    auto ctr = ptr_holder_->ctr();
+    auto ptr = ctr->new_array();
     datatype_->set_constructor(ptr->array_);
 
     return ptr;

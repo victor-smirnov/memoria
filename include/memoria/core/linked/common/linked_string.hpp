@@ -26,6 +26,8 @@
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
+#include <memoria/core/strings/u8_string.hpp>
+
 #include <boost/utility/string_view.hpp>
 
 namespace memoria {
@@ -42,7 +44,7 @@ public:
     static constexpr bool UseObjectSize = true;
 
     using CharT = char;
-    using ViewType = boost::basic_string_view<CharT>;
+    using ViewType = U8StringView;
 
     LinkedString(ViewType view) noexcept
     {
@@ -159,6 +161,11 @@ public:
 
     template <typename CharT>
     bool operator()(const boost::basic_string_view<CharT>& key, const T& ptr) {
+        return (*ptr.get(arena_)) == key;
+    }
+
+
+    bool operator()(const U8StringView& key, const T& ptr) {
         return (*ptr.get(arena_)) == key;
     }
 

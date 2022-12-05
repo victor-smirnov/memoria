@@ -35,7 +35,6 @@ public:
 
 protected:
     mutable MapStorageT* map_;
-    mutable HermesCtr* doc_;
     using Base::ptr_holder_;
 
     friend class HermesCtr;
@@ -57,26 +56,25 @@ protected:
 
     class EntryT {
         const MapIterator* iter_;
-        mutable HermesCtr* doc_;
         mutable ViewPtrHolder* ptr_holder_;
 
     public:
-        EntryT(const MapIterator* iter, HermesCtr* doc, ViewPtrHolder* ptr_holder):
-            iter_(iter), doc_(doc), ptr_holder_(ptr_holder)
+        EntryT(const MapIterator* iter, ViewPtrHolder* ptr_holder):
+            iter_(iter), ptr_holder_(ptr_holder)
         {}
 
         StringValuePtr first() const {
-            return StringValuePtr(StringValue(iter_->key().get(), doc_, ptr_holder_));
+            return StringValuePtr(StringValue(iter_->key().get(), ptr_holder_));
         }
 
         ObjectPtr second() const
         {
             if (iter_->value().is_not_null()) {
                 auto ptr = iter_->value().get();
-                return ObjectPtr(Object(ptr, doc_, ptr_holder_));
+                return ObjectPtr(Object(ptr, ptr_holder_));
             }
             else {
-                return ObjectPtr(Object(nullptr, doc_, ptr_holder_));
+                return ObjectPtr(Object(nullptr, ptr_holder_));
             }
         }
     };
@@ -87,11 +85,11 @@ public:
     using Iterator = ForwardIterator<Accessor>;
 
 public:
-    Map() noexcept : map_(), doc_() {}
+    Map() noexcept : map_() {}
 
-    Map(void* map, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
+    Map(void* map, ViewPtrHolder* ptr_holder) noexcept :
         Base(ptr_holder),
-        map_(reinterpret_cast<MapStorageT*>(map)), doc_(doc)
+        map_(reinterpret_cast<MapStorageT*>(map))
     {}
 
     bool is_null() const noexcept {
@@ -103,32 +101,36 @@ public:
     }
 
     ViewPtr<Map, true> self() const {
-        return ViewPtr<Map, true>(Map(map_, doc_, ptr_holder_));
+        return ViewPtr<Map, true>(Map(map_, ptr_holder_));
     }
 
     Iterator begin() const {
-        return Iterator(Accessor(self(), map_->begin(), doc_, ptr_holder_));
+        return Iterator(Accessor(self(), map_->begin(), ptr_holder_));
     }
 
     Iterator end() const {
-        return Iterator(Accessor(self(), map_->end(), doc_, ptr_holder_));
+        return Iterator(Accessor(self(), map_->end(), ptr_holder_));
     }
 
     Iterator cbegin() const {
-        return Iterator(Accessor(self(), map_->begin(), doc_, ptr_holder_));
+        return Iterator(Accessor(self(), map_->begin(), ptr_holder_));
     }
 
     Iterator cend() const {
-        return Iterator(Accessor(self(), map_->end(), doc_, ptr_holder_));
+        return Iterator(Accessor(self(), map_->end(), ptr_holder_));
     }
 
     PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
-        return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<HermesCtr>(
+                    ptr_holder_->ctr(),
+                    ptr_holder_->owner(),
+                    pool::DoRef{}
+        );
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(map_, doc_, ptr_holder_));
+        return ObjectPtr(Object(map_, ptr_holder_));
     }
 
     uint64_t size() const {
@@ -150,7 +152,7 @@ public:
             if (MMA_LIKELY(res->is_pointer()))
             {
                 if (MMA_LIKELY(res->is_not_null())) {
-                    return ObjectPtr(Object(res->get(), doc_, ptr_holder_));
+                    return ObjectPtr(Object(res->get(), ptr_holder_));
                 }
                 else {
                     return ObjectPtr{};
@@ -158,7 +160,7 @@ public:
             }
             else {
                 TaggedValue tv(*res);
-                return ObjectPtr(Object(tv, doc_, ptr_holder_));
+                return ObjectPtr(Object(tv, ptr_holder_));
             }
         }
         else {
@@ -203,7 +205,7 @@ public:
             if (value.is_pointer())
             {
                 if (value.is_not_null()) {
-                    fn(kk, ObjectPtr(Object(value.get(), doc_, ptr_holder_)));
+                    fn(kk, ObjectPtr(Object(value.get(), ptr_holder_)));
                 }
                 else {
                     fn(kk, ObjectPtr(Object()));
@@ -211,7 +213,7 @@ public:
             }
             else {
                 TaggedValue tv(value);
-                fn(kk, ObjectPtr(Object(tv, doc_, ptr_holder_)));
+                fn(kk, ObjectPtr(Object(tv, ptr_holder_)));
             }
         });
     }
@@ -235,7 +237,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return map_->deep_copy_to(arena, ShortTypeCode::of<Map>(), doc_, ptr_holder_, dedup);
+        return map_->deep_copy_to(arena, ShortTypeCode::of<Map>(), ptr_holder_, dedup);
     }
 
     PoolSharedPtr<GenericMap> as_generic_map() const;
@@ -299,9 +301,9 @@ class TypedGenericMap<Varchar, Object>: public GenericMap, public pool::enable_s
     ViewPtrHolder* ctr_holder_;
     mutable Map<Varchar, Object> map_;
 public:
-    TypedGenericMap(void* map, HermesCtr* ctr, ViewPtrHolder* ctr_holder):
+    TypedGenericMap(void* map, ViewPtrHolder* ctr_holder):
         ctr_holder_(ctr_holder),
-        map_(map, ctr, ctr_holder)
+        map_(map, ctr_holder)
     {
         ctr_holder->ref_copy();
     }
@@ -339,13 +341,13 @@ public:
 
     virtual GenericMapPtr put(const ObjectPtr& key, const ObjectPtr& value) {
         auto new_map = map_.put(key->as_varchar(), value);
-        return make_wrapper(new_map->map_, map_.document().get(), ctr_holder_);
+        return make_wrapper(new_map->map_, ctr_holder_);
     }
 
 
     virtual GenericMapPtr remove(const ObjectPtr& key) {
         auto new_map = map_.remove(*key->as_varchar()->view());
-        return make_wrapper(new_map->map_, map_.document().get(), ctr_holder_);
+        return make_wrapper(new_map->map_, ctr_holder_);
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {
@@ -378,7 +380,7 @@ public:
 
     virtual PoolSharedPtr<GenericMapEntry> iterator() const;
 
-    static PoolSharedPtr<GenericMap> make_wrapper(void* map, HermesCtr* ctr, ViewPtrHolder* ctr_holder);
+    static PoolSharedPtr<GenericMap> make_wrapper(void* map, ViewPtrHolder* ctr_holder);
 };
 
 

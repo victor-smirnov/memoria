@@ -29,7 +29,8 @@ class HermesCtrImpl final: public HermesCtr, public pool::enable_shared_from_thi
 
 public:
 
-    HermesCtrImpl() {
+    HermesCtrImpl()
+    {
         HermesCtr::arena_ = &arena_;
         ptr_holder_ = &view_ptr_holder_;
 
@@ -61,6 +62,7 @@ public:
 protected:
 
     void configure_refholder(SharedPtrHolder* ref_holder) {
+        view_ptr_holder_.set_ctr(this);
         view_ptr_holder_.set_owner(ref_holder);
     }
 };

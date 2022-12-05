@@ -34,14 +34,12 @@ public:
     virtual void hermes_stringify_value(
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr,
-            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder,
-
             std::ostream& out,
             hermes::DumpFormatState& state
     ) const {
         if (vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
-            T(ptr.addr, doc, ref_holder).stringify(out, state);
+            T(ptr.addr, ref_holder).stringify(out, state);
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("ValueStorageTag of {} is not supported for type {}", (int64_t)vs_tag, this->str()).do_throw();
@@ -50,21 +48,18 @@ public:
 
     virtual bool hermes_is_simple_layout(
             void* ptr,
-            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
     ) const {
-        return T(ptr, doc, ref_holder).is_simple_layout();
+        return T(ptr, ref_holder).is_simple_layout();
     }
 
     virtual void* deep_copy_to(
             arena::ArenaAllocator& arena,
             void* ptr,
-            void* owner_view,
             ViewPtrHolder* ref_holder,
             DeepCopyDeduplicator& dedup) const
     {
-        hermes::HermesCtr* doc = reinterpret_cast<hermes::HermesCtr*>(owner_view);
-        return T(ptr, doc, ref_holder).deep_copy_to(arena, dedup);
+        return T(ptr, ref_holder).deep_copy_to(arena, dedup);
     }
 };
 
@@ -118,10 +113,9 @@ public:
 
     virtual PoolSharedPtr<hermes::GenericObject> hermes_make_wrapper(
             void* addr,
-            hermes::HermesCtr* ctr,
             ViewPtrHolder* ptr_holder
     ) const {
-        return GenericCtrImplT::make_wrapper(addr, ctr, ptr_holder);
+        return GenericCtrImplT::make_wrapper(addr, ptr_holder);
     }
 
     virtual PoolSharedPtr<hermes::GenericObject> hermes_make_container(
@@ -193,9 +187,7 @@ struct TypeCvtBuilderHelper;
 template <typename FromDT, typename ToDT>
 struct TypeCvtBuilderHelper<FromDT, ToDT, false> {
     template <typename Mapping>
-    static void add_converter (Mapping&) {
-        //println("Unconvertible! {} {}", type_to_str<FromDT>(), type_to_str<ToDT>());
-    }
+    static void add_converter (Mapping&) {}
 };
 
 
@@ -203,7 +195,6 @@ template <typename FromDT, typename ToDT>
 struct TypeCvtBuilderHelper<FromDT, ToDT, true> {
     template <typename Mapping>
     static void add_converter (Mapping& mapping) {
-        //println("**Convertible! {} {}", type_to_str<FromDT>(), type_to_str<ToDT>());
         mapping[ShortTypeCode::of<ToDT>().u64()] = std::make_unique<DatatypeConverter<FromDT, ToDT>>();
     }
 };
@@ -263,10 +254,10 @@ struct SameDatatypeComparatorSelector<T, DT, true> {
         map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
-                hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
+                ViewPtrHolder* right_ptr
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
-                T right_object(right.addr, right_doc, right_ptr);
+                T right_object(right.addr, right_ptr);
                 return DatatypeComparator<DT, NumericTypeSelector<DT>>::compare(left_view, *right_object.view());
             }
             else {
@@ -284,10 +275,10 @@ struct SameDatatypeComparatorSelector<T, DT, false> {
         map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
-                hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
+                ViewPtrHolder* right_ptr
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
-                T right_object(right.addr, right_doc, right_ptr);
+                T right_object(right.addr, right_ptr);
                 return CrossDatatypeComparator<DT, DT>::compare(left_view, *right_object.view());
             }
             else {
@@ -309,10 +300,10 @@ struct CrossDatatypeComparatorSelector<T, LeftDT, RightDT, true> {
         map[ShortTypeCode::of<RightDT>().u64()] = [](
                 const DTTViewType<LeftDT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
-                hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
+                ViewPtrHolder* right_ptr
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
-                hermes::DataObject<RightDT> right_object(right.addr, right_doc, right_ptr);
+                hermes::DataObject<RightDT> right_object(right.addr, right_ptr);
                 return CrossDatatypeComparator<LeftDT, RightDT, NumericTypeSelector<LeftDT>>::
                         compare(left_view, *right_object.view());
             }
@@ -387,10 +378,10 @@ struct SameDatatypeEqualityComparatorSelector<T, DT, true> {
         map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
-                hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
+                ViewPtrHolder* right_ptr
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
-                T right_object(right.addr, right_doc, right_ptr);
+                T right_object(right.addr, right_ptr);
                 return DatatypeEqualityComparator<DT, NumericTypeSelector<DT>>::equals(left_view, *right_object.view());
             }
             else {
@@ -408,10 +399,10 @@ struct SameDatatypeEqualityComparatorSelector<T, DT, false> {
         map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
-                hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
+                ViewPtrHolder* right_ptr
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
-                T right_object(right.addr, right_doc, right_ptr);
+                T right_object(right.addr, right_ptr);
                 return CrossDatatypeEqualityComparator<DT, DT>::equals(left_view, right_object.view());
             }
             else {
@@ -433,11 +424,11 @@ struct CrossDatatypeEqualityComparatorSelector<T, LeftDT, RightDT, true> {
         map[ShortTypeCode::of<RightDT>().u64()] = [](
                 const DTTViewType<LeftDT>& left_view,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right,
-                hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
+                ViewPtrHolder* right_ptr
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS)
             {
-                hermes::DataObject<RightDT> right_object(right.addr, right_doc, right_ptr);
+                hermes::DataObject<RightDT> right_object(right.addr, right_ptr);
                 return CrossDatatypeEqualityComparator<LeftDT, RightDT, NumericTypeSelector<LeftDT>>::
                     equals(left_view, *right_object.view());
             }
@@ -587,10 +578,10 @@ struct RightIndexOf<TL<>> {
 
 
 template <typename ViewT>
-using DTEqualityComparator = std::function<bool (const ViewT&, hermes::ValueStorageTag, hermes::ValueStorage&, hermes::HermesCtr*, ViewPtrHolder*)>;
+using DTEqualityComparator = std::function<bool (const ViewT&, hermes::ValueStorageTag, hermes::ValueStorage&, ViewPtrHolder*)>;
 
 template <typename ViewT>
-using DTComparator = std::function<int32_t (const ViewT&, hermes::ValueStorageTag, hermes::ValueStorage&, hermes::HermesCtr*, ViewPtrHolder*)>;
+using DTComparator = std::function<int32_t (const ViewT&, hermes::ValueStorageTag, hermes::ValueStorage&, ViewPtrHolder*)>;
 
 
 template <typename TV, bool Embeddable>
@@ -639,14 +630,13 @@ public:
     virtual void hermes_stringify_value(
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr,
-            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder,
 
             std::ostream& out,
             hermes::DumpFormatState& state
     ) const override {
         if (vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
-            T(ptr.addr, doc, ref_holder).stringify(out, state);
+            T(ptr.addr, ref_holder).stringify(out, state);
         }
         else {
             const auto& view = ptr.get_view<DT>(vs_tag);
@@ -670,7 +660,6 @@ public:
             ShortTypeCode type_hash,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr,
-            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder
     ) const override
     {
@@ -678,7 +667,7 @@ public:
         if (ii != converters_.end())
         {
             if (vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
-                T data_object(ptr.addr, doc, ref_holder);
+                T data_object(ptr.addr, ref_holder);
                 auto view = data_object.view();
                 return ii->second.get()->convert(&view);
             }
@@ -700,12 +689,11 @@ public:
     virtual U8String convert_to_plain_string(
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr,
-            hermes::HermesCtr* doc,
             ViewPtrHolder* ref_holder) const override
     {
         if (vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS)
         {
-            T data_object(ptr.addr, doc, ref_holder);
+            T data_object(ptr.addr, ref_holder);
             return detail::ToStringHelper<DT>::convert_to(*data_object.view());
         }
         else {
@@ -737,9 +725,9 @@ public:
 
     virtual int32_t hermes_compare(
             hermes::ValueStorageTag left_vs_tag,
-            hermes::ValueStorage& left, hermes::HermesCtr* left_doc, ViewPtrHolder* left_ptr,
+            hermes::ValueStorage& left, ViewPtrHolder* left_ptr,
             hermes::ValueStorageTag right_vs_tag,
-            hermes::ValueStorage& right, hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
+            hermes::ValueStorage& right, ViewPtrHolder* right_ptr
     ) const override
     {
         auto tag = hermes::get_type_tag(right_vs_tag, right);
@@ -749,12 +737,12 @@ public:
             if (ii != comparators_.end())
             {
                 if (left_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
-                    T left_data_object(left.addr, left_doc, left_ptr);
-                    return ii->second(*left_data_object.view(), right_vs_tag, right, right_doc, right_ptr);
+                    T left_data_object(left.addr, left_ptr);
+                    return ii->second(*left_data_object.view(), right_vs_tag, right, right_ptr);
                 }
                 else {
                     const auto& view = left.get_view<DT>(left_vs_tag);
-                    return ii->second(view, right_vs_tag, right, right_doc, right_ptr);
+                    return ii->second(view, right_vs_tag, right, right_ptr);
                 }
             }
             else {
@@ -774,9 +762,9 @@ public:
 
     virtual bool hermes_equals(
             hermes::ValueStorageTag left_vs_tag,
-            hermes::ValueStorage& left, hermes::HermesCtr* left_doc, ViewPtrHolder* left_ptr,
+            hermes::ValueStorage& left, ViewPtrHolder* left_ptr,
             hermes::ValueStorageTag right_vs_tag,
-            hermes::ValueStorage& right, hermes::HermesCtr* right_doc, ViewPtrHolder* right_ptr
+            hermes::ValueStorage& right, ViewPtrHolder* right_ptr
     ) const override
     {
         auto tag = hermes::get_type_tag(right_vs_tag, right);
@@ -785,12 +773,12 @@ public:
             if (ii != equality_comparators_.end())
             {
                 if (left_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
-                    T left_data_object(left.addr, left_doc, left_ptr);
-                    return ii->second(*left_data_object.view(), right_vs_tag, right, right_doc, right_ptr);
+                    T left_data_object(left.addr, left_ptr);
+                    return ii->second(*left_data_object.view(), right_vs_tag, right, right_ptr);
                 }
                 else {
                     const auto& view = left.get_view<DT>(left_vs_tag);
-                    return ii->second(view, right_vs_tag, right, right_doc, right_ptr);
+                    return ii->second(view, right_vs_tag, right, right_ptr);
                 }
             }
             else {
@@ -805,12 +793,11 @@ public:
     hermes::ObjectPtr import_value(
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& storage,
-            hermes::HermesCtr* ctr,
             ViewPtrHolder* ptr
     ) const override
     {
         const auto& view = storage.get_view<DT>(vs_tag);
-        return ctr->new_dataobject<DT>(view)->as_object();
+        return ptr->ctr()->new_dataobject<DT>(view)->as_object();
     }
 
     virtual bool hermes_is_ptr_embeddable() const override

@@ -227,7 +227,6 @@ public:
     DatatypeData* deep_copy_to(
             arena::ArenaAllocator& dst,
             ShortTypeCode tag,
-            void* owner_view,
             ViewPtrHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const
     {
@@ -237,7 +236,7 @@ public:
         }
         else {
             arena::ArenaString * name_ptr =
-                get_type_reflection(ShortTypeCode::of<Varchar>()).deep_copy(dst, name_.get(), owner_view, ptr_holder, dedup);
+                get_type_reflection(ShortTypeCode::of<Varchar>()).deep_copy(dst, name_.get(), ptr_holder, dedup);
 
             auto dtd = dst.get_resolver_for(dst.template allocate_tagged_object<DatatypeData>(
                 tag, name_ptr
@@ -248,7 +247,7 @@ public:
             if (parameters_.is_not_null())
             {
                 auto par_tag = arena::read_type_tag(parameters_.get());
-                arena::GenericVector* ptr = get_type_reflection(par_tag).deep_copy(dst, parameters_.get(), owner_view, ptr_holder, dedup);
+                arena::GenericVector* ptr = get_type_reflection(par_tag).deep_copy(dst, parameters_.get(), ptr_holder, dedup);
                 dtd.get(dst)->parameters_ = ptr;
             }
             else {
@@ -258,7 +257,7 @@ public:
             if (constructor_.is_not_null())
             {
                 auto ctr_tag = arena::read_type_tag(constructor_.get());
-                arena::GenericVector* ptr = get_type_reflection(ctr_tag).deep_copy(dst, constructor_.get(), owner_view, ptr_holder, dedup);
+                arena::GenericVector* ptr = get_type_reflection(ctr_tag).deep_copy(dst, constructor_.get(), ptr_holder, dedup);
                 dtd.get(dst)->constructor_ = ptr;
             }
             else {
@@ -287,25 +286,27 @@ class Datatype: public HoldingView<Datatype> {
 
 protected:
     mutable detail::DatatypeData* datatype_;
-    mutable HermesCtr* doc_;
     using Base::ptr_holder_;
 public:
     Datatype():
-        datatype_(), doc_()
+        datatype_()
     {}
 
-    Datatype(void* dt, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
-        Base(ptr_holder), datatype_(reinterpret_cast<detail::DatatypeData*>(dt)),
-        doc_(doc)
+    Datatype(void* dt, ViewPtrHolder* ptr_holder) noexcept :
+        Base(ptr_holder), datatype_(reinterpret_cast<detail::DatatypeData*>(dt))
     {}
 
     PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
-        return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<HermesCtr>(
+                    ptr_holder_->ctr(),
+                    ptr_holder_->owner(),
+                    pool::DoRef{}
+        );
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(datatype_, doc_, ptr_holder_));
+        return ObjectPtr(Object(datatype_, ptr_holder_));
     }
 
     U8String to_string(const StringifyCfg& cfg = StringifyCfg()) const
@@ -465,7 +466,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return datatype_->deep_copy_to(arena, ShortTypeCode::of<Datatype>(), doc_, ptr_holder_, dedup);
+        return datatype_->deep_copy_to(arena, ShortTypeCode::of<Datatype>(), ptr_holder_, dedup);
     }
 
     UID256 cxx_type_hash() const;

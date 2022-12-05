@@ -67,7 +67,6 @@ protected:
 
         DocumentHeader* deep_copy_to(
                 arena::ArenaAllocator& dst,
-                void* owner_view,
                 ViewPtrHolder* ptr_holder,
                 DeepCopyDeduplicator& dedup) const
         {
@@ -77,7 +76,7 @@ protected:
             if (root.is_not_null())
             {
                 auto tag0 = arena::read_type_tag(root.get());
-                void* new_root = get_type_reflection(tag0).deep_copy(dst, root.get(), owner_view, ptr_holder, dedup);
+                void* new_root = get_type_reflection(tag0).deep_copy(dst, root.get(), ptr_holder, dedup);
                 dh.get(dst)->root = new_root;
             }
             else {
@@ -142,7 +141,7 @@ public:
     ObjectPtr root() const noexcept
     {
         if (MMA_LIKELY(header_->root.is_not_null())) {
-            return ObjectPtr(Object(header_->root.get(), mutable_self(), ptr_holder_));
+            return ObjectPtr(Object(header_->root.get(), ptr_holder_));
         }
         else {
             return ObjectPtr{};
@@ -297,6 +296,9 @@ public:
     ObjectPtr new_from_string(U8StringView str);
 
     static PoolSharedPtr<HermesCtr> parse_hermes_path(U8StringView text);
+
+    static ViewPtr<U8StringOView, VIEW_KIND_HOLDING> make_view(U8StringView);
+    static ViewPtr<U8StringOView, VIEW_KIND_HOLDING> concat(U8StringView lhs, U8StringView rhs);
 
 protected:
     template <typename DT>

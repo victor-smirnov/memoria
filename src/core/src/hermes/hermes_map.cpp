@@ -26,9 +26,9 @@ using GMEntryPoolT = pool::SimpleObjectPool<TypedGenericMapEntry<Varchar, Object
 using GMEntryPoolPtrT = boost::local_shared_ptr<GMEntryPoolT>;
 
 
-PoolSharedPtr<GenericMap> TypedGenericMap<Varchar, Object>::make_wrapper(void* array, HermesCtr* ctr, ViewPtrHolder* ctr_holder) {
+PoolSharedPtr<GenericMap> TypedGenericMap<Varchar, Object>::make_wrapper(void* array, ViewPtrHolder* ctr_holder) {
     static thread_local GMPoolPtrT wrapper_pool = MakeShared<GMPoolT>();
-    return wrapper_pool->allocate_shared(array, ctr, ctr_holder);
+    return wrapper_pool->allocate_shared(array, ctr_holder);
 }
 
 PoolSharedPtr<GenericMapEntry> TypedGenericMap<Varchar, Object>::iterator() const

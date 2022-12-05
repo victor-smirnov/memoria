@@ -162,7 +162,6 @@ public:
     Array* deep_copy_to(
             ArenaAllocator& dst,
             ShortTypeCode tag,
-            void* owner_view,
             ViewPtrHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const
     {
@@ -180,7 +179,7 @@ public:
             auto data = dst.get_resolver_for(vv.get(dst)->data());
 
             const T* src_data = this->data();
-            memoria::detail::DeepCopyHelper<T>::deep_copy_to(dst, data, src_data, size_, owner_view, ptr_holder, dedup);
+            memoria::detail::DeepCopyHelper<T>::deep_copy_to(dst, data, src_data, size_, ptr_holder, dedup);
 
             return vv.get(dst);
         }

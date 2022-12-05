@@ -28,7 +28,7 @@ namespace hermes {
 
 inline void Array<Object>::assert_mutable()
 {
-    if (MMA_UNLIKELY(!doc_->is_mutable())) {
+    if (MMA_UNLIKELY(!get_ptr_holder()->ctr()->is_mutable())) {
         MEMORIA_MAKE_GENERIC_ERROR("Array<Object> is immutable").do_throw();
     }
 }
@@ -36,7 +36,7 @@ inline void Array<Object>::assert_mutable()
 template <typename DT>
 void Array<DT>::assert_mutable()
 {
-    if (MMA_UNLIKELY(!doc_->is_mutable())) {
+    if (MMA_UNLIKELY(!this->get_ptr_holder()->ctr()->is_mutable())) {
         MEMORIA_MAKE_GENERIC_ERROR("Array<DT> is immutable").do_throw();
     }
 }
@@ -52,7 +52,7 @@ inline ObjectPtr Array<Object>::get(uint64_t idx) const
         if (MMA_LIKELY(ptr.is_pointer()))
         {
             if (MMA_LIKELY(ptr.is_not_null())) {
-                return ObjectPtr(Object(ptr.get(), doc_, ptr_holder_));
+                return ObjectPtr(Object(ptr.get(), ptr_holder_));
             }
             else {
                 return ObjectPtr{};
@@ -60,7 +60,7 @@ inline ObjectPtr Array<Object>::get(uint64_t idx) const
         }
         else {
             TaggedValue tv(ptr);
-            return ObjectPtr(Object(tv, doc_, ptr_holder_));
+            return ObjectPtr(Object(tv, ptr_holder_));
         }
     }
     else {
@@ -76,7 +76,7 @@ inline void Array<Object>::for_each(std::function<void(const ObjectPtr&)> fn) co
         if (vv.is_pointer())
         {
             if (vv.is_not_null()) {
-                fn(ObjectPtr(Object(vv.get(), doc_, ptr_holder_)));
+                fn(ObjectPtr(Object(vv.get(), ptr_holder_)));
             }
             else {
                 fn(ObjectPtr(Object()));
@@ -84,7 +84,7 @@ inline void Array<Object>::for_each(std::function<void(const ObjectPtr&)> fn) co
         }
         else {
             TaggedValue tv(vv);
-            fn(ObjectPtr(Object(tv, doc_, ptr_holder_)));
+            fn(ObjectPtr(Object(tv, ptr_holder_)));
         }
     }
 }
@@ -95,7 +95,8 @@ ObjectArrayPtr Array<Object>::append(DTTViewType<DT> view)
     assert_not_null();
     assert_mutable();
 
-    auto vv = doc_->new_embeddable_dataobject<DT>(view);
+    auto ctr = ptr_holder_->ctr();
+    auto vv  = ctr->new_embeddable_dataobject<DT>(view);
     return append(vv->as_object());
 }
 
@@ -105,8 +106,8 @@ DataObjectPtr<DT> Array<Object>::set(uint64_t idx, DTTViewType<DT> view)
 {    
     assert_not_null();
     assert_mutable();
-
-    auto ptr = doc_->new_embeddable_dataobject<DT>(view);
+    auto ctr = ptr_holder_->ctr();
+    auto ptr = ctr->new_embeddable_dataobject<DT>(view);
     this->set(idx, ptr->as_object());
 
     return ptr;
@@ -118,6 +119,8 @@ inline ObjectArrayPtr Array<Object>::append(const ObjectPtr& value)
 {
     assert_not_null();
     assert_mutable();
+
+    auto ctr = ptr_holder_->ctr();
 
     ShortTypeCode mytag = arena::read_type_tag(array_);
 
@@ -133,22 +136,22 @@ inline ObjectArrayPtr Array<Object>::append(const ObjectPtr& value)
             bool do_import = !get_type_reflection(tag).hermes_embed(val_ptr, value->storage_.small_value);
             if (do_import)
             {
-                auto vv = doc_->do_import_value(value);
+                auto vv = ctr->do_import_value(value);
                 val_ptr = vv->storage_.addr;
             }
         }
         else {
-            auto vv = doc_->do_import_value(value);
+            auto vv = ctr->do_import_value(value);
             val_ptr = vv->storage_.addr;
         }
 
-        new_array = array_->push_back(*doc_->arena(), mytag, val_ptr);
+        new_array = array_->push_back(*ctr->arena(), mytag, val_ptr);
     }
     else {
-        new_array = array_->push_back(*doc_->arena(), mytag, nullptr);
+        new_array = array_->push_back(*ctr->arena(), mytag, nullptr);
     }
 
-    return ObjectArrayPtr{ObjectArray{new_array, doc_, ptr_holder_}};
+    return ObjectArrayPtr{ObjectArray{new_array, ptr_holder_}};
 }
 
 template <typename DT>
@@ -157,10 +160,10 @@ ArrayPtr<DT> Array<DT>::append(const DataObjectPtr<DT>& value)
     assert_not_null();
     assert_mutable();
 
+    auto ctr = ptr_holder_->ctr();
     auto mytag = ShortTypeCode::of<Array<DT>>();
-
-    auto* new_array = array_->push_back(*doc_->arena(), mytag, *value->view());
-    return ArrayPtr<DT>{Array<DT>{new_array, doc_, ptr_holder_}};
+    auto* new_array = array_->push_back(*ctr->arena(), mytag, *value->view());
+    return ArrayPtr<DT>{Array<DT>{new_array, ptr_holder_}};
 }
 
 template <typename DT>
@@ -169,8 +172,9 @@ ArrayPtr<DT> Array<DT>::append(DTTViewType<DT> value)
     assert_not_null();
     assert_mutable();
 
-    auto* new_array = array_->push_back(*doc_->arena(), value);
-    return ArrayPtr<DT>{Array<DT>{new_array, doc_, ptr_holder_}};
+    auto ctr = ptr_holder_->ctr();
+    auto* new_array = array_->push_back(*ctr->arena(), value);
+    return ArrayPtr<DT>{Array<DT>{new_array, ptr_holder_}};
 }
 
 
@@ -195,8 +199,9 @@ inline void Array<Object>::set(uint64_t idx, const ObjectPtr& value)
 {
     assert_not_null();
     assert_mutable();
+    auto ctr = ptr_holder_->ctr();
 
-    auto vv = doc_->do_import_value(value);
+    auto vv = ctr->do_import_value(value);
 
     if (MMA_LIKELY(!vv->is_null()))
     {
@@ -214,8 +219,9 @@ inline ObjectPtr Array<Object>::set_hermes(uint64_t idx, U8StringView str) {
 
   if (MMA_LIKELY(idx < array_->size()))
   {
-      ObjectPtr vv = doc_->parse_raw_value(str.begin(), str.end());
-      auto vv1 = doc_->do_import_value(vv);
+      auto ctr = ptr_holder_->ctr();
+      ObjectPtr vv = ctr->parse_raw_value(str.begin(), str.end());
+      auto vv1 = ctr->do_import_value(vv);
       array_->set(idx, vv1->storage_.addr);
       return vv1;
   }
@@ -230,9 +236,10 @@ inline ObjectArrayPtr Array<Object>::remove(uint64_t idx)
     assert_not_null();
     assert_mutable();
 
+    auto ctr = ptr_holder_->ctr();
     ShortTypeCode mytag = arena::read_type_tag(array_);
-    ArrayStorageT* new_array = array_->remove(*doc_->arena_, mytag, idx);
-    return ObjectArrayPtr{ObjectArray{new_array, doc_, ptr_holder_}};
+    ArrayStorageT* new_array = array_->remove(*ctr->arena_, mytag, idx);
+    return ObjectArrayPtr{ObjectArray{new_array, ptr_holder_}};
 }
 
 template <typename DT>
@@ -241,24 +248,25 @@ ArrayPtr<DT> Array<DT>::remove(uint64_t idx)
     assert_not_null();
     assert_mutable();
 
+    auto ctr = ptr_holder_->ctr();
     ShortTypeCode mytag = arena::read_type_tag(array_);
-    ArrayStorageT* new_array = array_->remove(*doc_->arena_, mytag, idx);
-    return ObjectArrayPtr{ObjectArray{new_array, doc_, ptr_holder_}};
+    ArrayStorageT* new_array = array_->remove(*ctr->arena_, mytag, idx);
+    return ObjectArrayPtr{ObjectArray{new_array, ptr_holder_}};
 }
 
 
 inline PoolSharedPtr<GenericArray> Array<Object>::as_generic_array() const {
-    return TypedGenericArray<Object>::make_wrapper(array_, doc_, ptr_holder_);
+    return TypedGenericArray<Object>::make_wrapper(array_, ptr_holder_);
 }
 
 
 template <typename DT>
-PoolSharedPtr<GenericArray> TypedGenericArray<DT>::make_wrapper(void* array, HermesCtr* ctr, ViewPtrHolder* ctr_holder) {
+PoolSharedPtr<GenericArray> TypedGenericArray<DT>::make_wrapper(void* array, ViewPtrHolder* ctr_holder) {
     using GAPoolT = pool::SimpleObjectPool<TypedGenericArray<DT>>;
     using GAPoolPtrT = boost::local_shared_ptr<GAPoolT>;
 
     static thread_local GAPoolPtrT wrapper_pool = MakeLocalShared<GAPoolT>();
-    return wrapper_pool->allocate_shared(array, ctr, ctr_holder);
+    return wrapper_pool->allocate_shared(array, ctr_holder);
 }
 
 

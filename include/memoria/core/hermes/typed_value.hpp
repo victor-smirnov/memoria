@@ -45,7 +45,6 @@ public:
     TypedValueData* deep_copy_to(
             arena::ArenaAllocator& dst,
             ShortTypeCode tag,
-            void* owner_view,
             ViewPtrHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const
     {
@@ -60,13 +59,13 @@ public:
             if (datatype_.is_not_null())
             {
                 auto tag0 = arena::read_type_tag(datatype_.get());
-                dt_data = dst.get_resolver_for(get_type_reflection(tag0).deep_copy(dst, datatype_.get(), owner_view, ptr_holder, dedup));
+                dt_data = dst.get_resolver_for(get_type_reflection(tag0).deep_copy(dst, datatype_.get(), ptr_holder, dedup));
             }
 
             if (constructor_.is_not_null())
             {
                 auto tag0 = arena::read_type_tag(constructor_.get());
-                constructor = dst.get_resolver_for(get_type_reflection(tag0).deep_copy(dst, constructor_.get(), owner_view, ptr_holder, dedup));
+                constructor = dst.get_resolver_for(get_type_reflection(tag0).deep_copy(dst, constructor_.get(), ptr_holder, dedup));
             }
 
             TypedValueData* tv_data = dst.allocate_tagged_object<TypedValueData>(tag, dt_data.get(dst), constructor.get(dst));
@@ -83,24 +82,27 @@ class TypedValue: public HoldingView<TypedValue> {
     using Base = HoldingView<TypedValue>;
 protected:
     mutable detail::TypedValueData* tv_;
-    mutable HermesCtr* doc_;
 public:
     TypedValue() noexcept:
-        tv_(), doc_()
+        tv_()
     {}
 
-    TypedValue(void* tv, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept:
+    TypedValue(void* tv, ViewPtrHolder* ptr_holder) noexcept:
         Base(ptr_holder),
-        tv_(reinterpret_cast<detail::TypedValueData*>(tv)), doc_(doc)
+        tv_(reinterpret_cast<detail::TypedValueData*>(tv))
     {}
 
     PoolSharedPtr<HermesCtr> document() {
         assert_not_null();
-        return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<HermesCtr>(
+                    ptr_holder_->ctr(),
+                    ptr_holder_->owner(),
+                    pool::DoRef{}
+        );
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(tv_, doc_, ptr_holder_));
+        return ObjectPtr(Object(tv_, ptr_holder_));
     }
 
     bool is_null() const {
@@ -114,13 +116,13 @@ public:
     ObjectPtr constructor() const
     {
         assert_not_null();
-        return ObjectPtr(Object(tv_->constructor(), doc_, ptr_holder_));
+        return ObjectPtr(Object(tv_->constructor(), ptr_holder_));
     }
 
     DatatypePtr datatype() const
     {
         assert_not_null();
-        return DatatypePtr(Datatype(tv_->datatype(), doc_, ptr_holder_));
+        return DatatypePtr(Datatype(tv_->datatype(), ptr_holder_));
     }
 
     void stringify(std::ostream& out,
@@ -134,7 +136,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return tv_->deep_copy_to(arena, ShortTypeCode::of<TypedValue>(), doc_, ptr_holder_, dedup);
+        return tv_->deep_copy_to(arena, ShortTypeCode::of<TypedValue>(), ptr_holder_, dedup);
     }
 
 private:

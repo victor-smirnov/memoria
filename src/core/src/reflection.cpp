@@ -136,7 +136,6 @@ hermes::ObjectPtr TypeReflection::datatype_convert_to(
         ShortTypeCode target_tag,
         hermes::ValueStorageTag vs_tag,
         hermes::ValueStorage& ptr,
-        hermes::HermesCtr*,
         ViewPtrHolder*) const {
     MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible to {}",
         str(), get_type_reflection(target_tag).str()
@@ -150,7 +149,6 @@ hermes::ObjectPtr TypeReflection::datatype_convert_from_plain_string(U8StringVie
 U8String TypeReflection::convert_to_plain_string(
         hermes::ValueStorageTag vs_stag,
         hermes::ValueStorage& storage,
-        hermes::HermesCtr*,
         ViewPtrHolder*
 ) const
 {
@@ -159,7 +157,7 @@ U8String TypeReflection::convert_to_plain_string(
 
 hermes::ObjectPtr TypeReflection::import_value(
         hermes::ValueStorageTag, hermes::ValueStorage&,
-        hermes::HermesCtr*, ViewPtrHolder*
+        ViewPtrHolder*
 ) const {
     MEMORIA_MAKE_GENERIC_ERROR("Importing value in not supported for type {}", str()).do_throw();
 }

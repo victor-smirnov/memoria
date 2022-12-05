@@ -71,22 +71,24 @@ public:
 
 protected:
     mutable ArenaDTContainer* dt_ctr_;
-    mutable HermesCtr* doc_;
     using Base::ptr_holder_;
 public:
     Parameter() noexcept:
-        dt_ctr_(), doc_()
+        dt_ctr_()
     {}
 
-    Parameter(void* dt_ctr, HermesCtr* doc, ViewPtrHolder* ptr_holder) noexcept :
+    Parameter(void* dt_ctr, ViewPtrHolder* ptr_holder) noexcept :
         Base(ptr_holder),
-        dt_ctr_(reinterpret_cast<ArenaDTContainer*>(dt_ctr)),
-        doc_(doc)
+        dt_ctr_(reinterpret_cast<ArenaDTContainer*>(dt_ctr))
     {}
 
     PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
-        return PoolSharedPtr<HermesCtr>(doc_, ptr_holder_->owner(), pool::DoRef{});
+        return PoolSharedPtr<HermesCtr>(
+                    ptr_holder_->ctr(),
+                    ptr_holder_->owner(),
+                    pool::DoRef{}
+        );
     }
 
 
@@ -106,7 +108,7 @@ public:
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(dt_ctr_, doc_, ptr_holder_));
+        return ObjectPtr(Object(dt_ctr_, ptr_holder_));
     }
 
     ViewPtrT view() const
@@ -154,7 +156,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return dt_ctr_->deep_copy_to(arena, ShortTypeCode::of<Parameter>(), doc_, ptr_holder_, dedup);
+        return dt_ctr_->deep_copy_to(arena, ShortTypeCode::of<Parameter>(), ptr_holder_, dedup);
     }
 
     int32_t compare(const ParameterPtr& other) const

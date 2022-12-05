@@ -691,7 +691,7 @@ class TaggedHoldingView {
     static constexpr size_t TAG_MASK = 0x7;
     mutable size_t ptr_holder_;
 
-    template <typename, bool>
+    template <typename, size_t>
     friend class memoria::ViewPtr;
 
 public:
@@ -748,10 +748,9 @@ namespace detail {
 
 template <typename T>
 struct ValueCastHelper {
-    static ViewPtr<T> cast_to(ValueStorageTag, ValueStorage& storage, HermesCtr* doc, ViewPtrHolder* ref_holder) noexcept {
+    static ViewPtr<T> cast_to(ValueStorageTag, ValueStorage& storage, ViewPtrHolder* ref_holder) noexcept {
         return ViewPtr<T>(T(
             storage.addr,
-            doc,
             ref_holder
         ));
     }

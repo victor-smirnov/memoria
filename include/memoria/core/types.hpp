@@ -33,6 +33,7 @@
 
 #include <type_traits>
 #include <tuple>
+#include <string_view>
 
 
 
@@ -314,18 +315,19 @@ T div_2(T value) {
 
 constexpr size_t SizeTMax = std::numeric_limits<size_t>::max();
 
-using U8StringView = boost::string_view;
 
 template <typename CodeT>
 class NamedTypedCode {
+    using StringViewT = boost::string_view;
+
     CodeT code_;
-    U8StringView name_;
+    StringViewT name_;
 public:
     constexpr NamedTypedCode(CodeT code, const char* name):
         code_(code), name_(name)
     {}
 
-    constexpr NamedTypedCode(CodeT code, U8StringView name):
+    constexpr NamedTypedCode(CodeT code, StringViewT name):
         code_(code), name_(name)
     {}
 
@@ -334,7 +336,7 @@ public:
     {}
 
     constexpr CodeT code() const {return code_;}
-    constexpr U8StringView name() const {return name_;}
+    constexpr StringViewT name() const {return name_;}
 
     template <typename U>
     bool operator==(const NamedTypedCode<U>& other) const noexcept {

@@ -16,10 +16,13 @@
 #pragma once
 
 #include <memoria/core/datatypes/core.hpp>
+#include <memoria/core/datatypes/fxd_size_view.hpp>
+
 #include <memoria/core/datatypes/type_signature.hpp>
 #include <memoria/core/strings/string_buffer.hpp>
 #include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/integer/accumulator_common.hpp>
+#include <memoria/core/numbers/number_view.hpp>
 
 #include <memoria/core/memory/shared_ptr.hpp>
 
@@ -91,6 +94,9 @@ template <typename T> struct DataTypeTraits {
 
 template <typename T>
 using DTTViewType = typename DataTypeTraits<T>::ViewType;
+
+template <typename T>
+using DTTView2Type = typename DataTypeTraits<T>::View2Type;
 
 template <typename T>
 using DTTAtomType = typename DataTypeTraits<T>::AtomType;
@@ -248,6 +254,8 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
     using LDViewType    = T;
     using LDStorageType = LDST;
 
+    using View2Type = FxdSizeView<T, ViewKind::BY_VALUE>;
+
     static constexpr bool isFixedSize = true;
 
     static constexpr bool HasTypeConstructors = false;
@@ -307,6 +315,8 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 template <typename T, typename DataType, typename LDST = T>
 struct ArithmeticFixedSizeDataTypeTraits: FixedSizeDataTypeTraits<T, DataType, LDST> {
     static constexpr bool isArithmetic = true;
+
+    using View2Type = NumberView<T, ViewKind::BY_VALUE>;
 };
 
 

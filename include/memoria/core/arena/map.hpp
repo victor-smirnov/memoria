@@ -619,7 +619,6 @@ public:
     Map* deep_copy_to(
             ArenaAllocator& dst,
             ShortTypeCode tag,
-            void* owner_view,
             ViewPtrHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const
     {
@@ -657,8 +656,8 @@ public:
                         auto keys   = dst.get_resolver_for(dst_bucket.get(dst)->keys());
                         auto values = dst.get_resolver_for(dst_bucket.get(dst)->values());
 
-                        memoria::detail::DeepCopyHelper<KeyHolder>::deep_copy_to(dst, keys, src_bucket->keys(), src_bucket->size, owner_view, ptr_holder, dedup);
-                        memoria::detail::DeepCopyHelper<ValueHolder>::deep_copy_to(dst, values, src_bucket->values(), src_bucket->size, owner_view, ptr_holder, dedup);
+                        memoria::detail::DeepCopyHelper<KeyHolder>::deep_copy_to(dst, keys, src_bucket->keys(), src_bucket->size, ptr_holder, dedup);
+                        memoria::detail::DeepCopyHelper<ValueHolder>::deep_copy_to(dst, values, src_bucket->values(), src_bucket->size, ptr_holder, dedup);
                     }                    
                 }
             }

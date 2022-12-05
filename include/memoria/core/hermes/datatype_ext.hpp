@@ -28,7 +28,8 @@ namespace hermes {
 
 inline void Datatype::assert_mutable()
 {
-    if (MMA_UNLIKELY(!doc_->is_mutable())) {
+    auto ctr = ptr_holder_->ctr();
+    if (MMA_UNLIKELY(!ctr->is_mutable())) {
         MEMORIA_MAKE_GENERIC_ERROR("Datatype is immutable").do_throw();
     }
 }
@@ -37,7 +38,7 @@ inline void Datatype::assert_mutable()
 
 inline StringValuePtr Datatype::type_name() const {
     assert_not_null();
-    return StringValuePtr(StringValue(datatype_->name(), doc_, ptr_holder_));
+    return StringValuePtr(StringValue(datatype_->name(), ptr_holder_));
 }
 
 template <typename DT>
@@ -55,7 +56,8 @@ DataObjectPtr<DT> Datatype::append_integral_parameter(DTTViewType<DT> view)
     ObjectArrayPtr params = type_parameters();
 
     if (MMA_UNLIKELY(params->is_null())) {
-        params = doc_->new_array();
+        auto ctr = ptr_holder_->ctr();
+        params = ctr->new_array();
         datatype_->set_parameters(params->array_);
     }
 

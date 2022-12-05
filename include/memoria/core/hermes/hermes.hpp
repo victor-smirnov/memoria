@@ -26,6 +26,7 @@
 #include <memoria/core/hermes/typed_value.hpp>
 #include <memoria/core/hermes/parameter.hpp>
 #include <memoria/core/hermes/template.hpp>
+#include <memoria/core/hermes/schema.hpp>
 
 #include <memoria/core/hermes/container_ext.hpp>
 #include <memoria/core/hermes/array/array_ext.hpp>
