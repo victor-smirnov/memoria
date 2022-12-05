@@ -24,10 +24,10 @@ ObjectArrayPtr Datatype::constructor() const
 {
     assert_not_null();
     if (datatype_->has_constructor()) {
-        return ObjectArrayPtr(ObjectArray(datatype_->constructor(), ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(ptr_holder_, datatype_->constructor()));
     }
     else {
-        return ObjectArrayPtr(ObjectArray(nullptr, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(ptr_holder_, nullptr));
     }
 }
 
@@ -36,10 +36,10 @@ ObjectArrayPtr Datatype::type_parameters() const
 {
     assert_not_null();
     if (datatype_->is_parametric()) {
-        return ObjectArrayPtr(ObjectArray(datatype_->parameters(), ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(ptr_holder_, datatype_->parameters()));
     }
     else {
-        return ObjectArrayPtr(ObjectArray(nullptr, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(ptr_holder_, nullptr));
     }
 }
 

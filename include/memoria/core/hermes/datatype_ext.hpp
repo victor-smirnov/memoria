@@ -38,7 +38,7 @@ inline void Datatype::assert_mutable()
 
 inline StringValuePtr Datatype::type_name() const {
     assert_not_null();
-    return StringValuePtr(StringValue(datatype_->name(), ptr_holder_));
+    return StringValuePtr(StringValue(ptr_holder_, datatype_->name()));
 }
 
 template <typename DT>

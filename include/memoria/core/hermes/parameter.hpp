@@ -77,7 +77,7 @@ public:
         dt_ctr_()
     {}
 
-    Parameter(void* dt_ctr, ViewPtrHolder* ptr_holder) noexcept :
+    Parameter(ViewPtrHolder* ptr_holder, void* dt_ctr) noexcept :
         Base(ptr_holder),
         dt_ctr_(reinterpret_cast<ArenaDTContainer*>(dt_ctr))
     {}
@@ -108,7 +108,7 @@ public:
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(dt_ctr_, ptr_holder_));
+        return ObjectPtr(Object(ptr_holder_, dt_ctr_));
     }
 
     ViewPtrT view() const

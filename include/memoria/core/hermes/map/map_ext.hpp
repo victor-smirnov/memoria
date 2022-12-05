@@ -64,7 +64,7 @@ inline ObjectMapPtr Map<Varchar, Object>::put_dataobject(U8StringView key, DTTVi
         MEMORIA_MAKE_GENERIC_ERROR("Invalid value type").do_throw();
     }
 
-    return ObjectMapPtr(ObjectMap(new_map, ptr_holder_));
+    return ObjectMapPtr(ObjectMap(ptr_holder_, new_map));
 }
 
 template <typename KeyDT>
@@ -91,7 +91,7 @@ inline MapPtr<KeyDT, Object> Map<KeyDT, Object>::put_dataobject(KeyView key, DTT
         MEMORIA_MAKE_GENERIC_ERROR("Invalid value type").do_throw();
     }
 
-    return MapPtr<KeyDT, Object>(Map{new_map, ptr_holder_});
+    return MapPtr<KeyDT, Object>(Map{ptr_holder_, new_map});
 }
 
 
@@ -105,7 +105,7 @@ inline ObjectMapPtr Map<Varchar, Object>::remove(U8StringView key)
     ShortTypeCode mytag = arena::read_type_tag(map_);
     MapStorageT* new_map = map_->remove(*(ctr->arena()), mytag, key);
 
-    return ObjectMapPtr(ObjectMap(new_map, ptr_holder_));
+    return ObjectMapPtr(ObjectMap(ptr_holder_, new_map));
 }
 
 template <typename KeyDT>
@@ -117,7 +117,7 @@ inline MapPtr<KeyDT, Object> Map<KeyDT, Object>::remove(KeyView key)
     auto ctr = ptr_holder_->ctr();
     ShortTypeCode mytag = arena::read_type_tag(map_);
     auto* new_map = map_->remove(*(ctr->arena()), mytag, key);
-    return MapPtr<KeyDT, Object>(Map{new_map, ptr_holder_});
+    return MapPtr<KeyDT, Object>(Map{ptr_holder_, new_map});
 }
 
 
@@ -231,7 +231,7 @@ inline ObjectMapPtr Map<Varchar, Object>::put(StringValuePtr name, ObjectPtr val
         return remove(*name->view());
     }
 
-    return ObjectMapPtr(ObjectMap(new_map, ptr_holder_));
+    return ObjectMapPtr(ObjectMap(ptr_holder_, new_map));
 }
 
 inline ObjectMapPtr Map<Varchar, Object>::put(U8StringView name, ObjectPtr value) {
@@ -252,7 +252,7 @@ inline ObjectMapPtr Map<Varchar, Object>::put(U8StringView name, ObjectPtr value
         return remove(name);
     }
 
-    return ObjectMapPtr(ObjectMap(new_map, ptr_holder_));
+    return ObjectMapPtr(ObjectMap(ptr_holder_, new_map));
 }
 
 template <typename KeyDT>
@@ -274,24 +274,24 @@ inline MapPtr<KeyDT, Object> Map<KeyDT, Object>::put(KeyView key, ObjectPtr valu
         return remove(key);
     }
 
-    return MapPtr<KeyDT, Object>(Map{new_map, ptr_holder_});
+    return MapPtr<KeyDT, Object>(Map{ptr_holder_, new_map});
 }
 
 inline PoolSharedPtr<GenericMap> Map<Varchar, Object>::as_generic_map() const {
-    return TypedGenericMap<Varchar, Object>::make_wrapper(map_, ptr_holder_);
+    return TypedGenericMap<Varchar, Object>::make_wrapper(ptr_holder_, map_);
 }
 
 
 
 template <typename KeyDT>
 PoolSharedPtr<GenericMap> TypedGenericMap<KeyDT, Object>::make_wrapper(
-        void* array, ViewPtrHolder* ctr_holder
+        ViewPtrHolder* ctr_holder, void* array
 ) {
     using GMPoolT = pool::SimpleObjectPool<TypedGenericMap<KeyDT, Object>>;
     using GMPoolPtrT = boost::local_shared_ptr<GMPoolT>;
 
     static thread_local GMPoolPtrT wrapper_pool = MakeShared<GMPoolT>();
-    return wrapper_pool->allocate_shared(array, ctr_holder);
+    return wrapper_pool->allocate_shared(ctr_holder, array);
 }
 
 

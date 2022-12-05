@@ -52,7 +52,7 @@ inline ObjectPtr Array<Object>::get(uint64_t idx) const
         if (MMA_LIKELY(ptr.is_pointer()))
         {
             if (MMA_LIKELY(ptr.is_not_null())) {
-                return ObjectPtr(Object(ptr.get(), ptr_holder_));
+                return ObjectPtr(Object(ptr_holder_, ptr.get()));
             }
             else {
                 return ObjectPtr{};
@@ -60,7 +60,7 @@ inline ObjectPtr Array<Object>::get(uint64_t idx) const
         }
         else {
             TaggedValue tv(ptr);
-            return ObjectPtr(Object(tv, ptr_holder_));
+            return ObjectPtr(Object(ptr_holder_, tv));
         }
     }
     else {
@@ -76,7 +76,7 @@ inline void Array<Object>::for_each(std::function<void(const ObjectPtr&)> fn) co
         if (vv.is_pointer())
         {
             if (vv.is_not_null()) {
-                fn(ObjectPtr(Object(vv.get(), ptr_holder_)));
+                fn(ObjectPtr(Object(ptr_holder_, vv.get())));
             }
             else {
                 fn(ObjectPtr(Object()));
@@ -84,7 +84,7 @@ inline void Array<Object>::for_each(std::function<void(const ObjectPtr&)> fn) co
         }
         else {
             TaggedValue tv(vv);
-            fn(ObjectPtr(Object(tv, ptr_holder_)));
+            fn(ObjectPtr(Object(ptr_holder_, tv)));
         }
     }
 }
@@ -151,7 +151,7 @@ inline ObjectArrayPtr Array<Object>::append(const ObjectPtr& value)
         new_array = array_->push_back(*ctr->arena(), mytag, nullptr);
     }
 
-    return ObjectArrayPtr{ObjectArray{new_array, ptr_holder_}};
+    return ObjectArrayPtr{ObjectArray{ptr_holder_, new_array}};
 }
 
 template <typename DT>
@@ -163,7 +163,7 @@ ArrayPtr<DT> Array<DT>::append(const DataObjectPtr<DT>& value)
     auto ctr = ptr_holder_->ctr();
     auto mytag = ShortTypeCode::of<Array<DT>>();
     auto* new_array = array_->push_back(*ctr->arena(), mytag, *value->view());
-    return ArrayPtr<DT>{Array<DT>{new_array, ptr_holder_}};
+    return ArrayPtr<DT>{Array<DT>{ptr_holder_, new_array}};
 }
 
 template <typename DT>
@@ -174,7 +174,7 @@ ArrayPtr<DT> Array<DT>::append(DTTViewType<DT> value)
 
     auto ctr = ptr_holder_->ctr();
     auto* new_array = array_->push_back(*ctr->arena(), value);
-    return ArrayPtr<DT>{Array<DT>{new_array, ptr_holder_}};
+    return ArrayPtr<DT>{Array<DT>{ptr_holder_, new_array}};
 }
 
 
@@ -239,7 +239,7 @@ inline ObjectArrayPtr Array<Object>::remove(uint64_t idx)
     auto ctr = ptr_holder_->ctr();
     ShortTypeCode mytag = arena::read_type_tag(array_);
     ArrayStorageT* new_array = array_->remove(*ctr->arena_, mytag, idx);
-    return ObjectArrayPtr{ObjectArray{new_array, ptr_holder_}};
+    return ObjectArrayPtr{ObjectArray{ptr_holder_, new_array}};
 }
 
 template <typename DT>
@@ -251,22 +251,22 @@ ArrayPtr<DT> Array<DT>::remove(uint64_t idx)
     auto ctr = ptr_holder_->ctr();
     ShortTypeCode mytag = arena::read_type_tag(array_);
     ArrayStorageT* new_array = array_->remove(*ctr->arena_, mytag, idx);
-    return ObjectArrayPtr{ObjectArray{new_array, ptr_holder_}};
+    return ObjectArrayPtr{ObjectArray{ptr_holder_, new_array}};
 }
 
 
 inline PoolSharedPtr<GenericArray> Array<Object>::as_generic_array() const {
-    return TypedGenericArray<Object>::make_wrapper(array_, ptr_holder_);
+    return TypedGenericArray<Object>::make_wrapper(ptr_holder_, array_);
 }
 
 
 template <typename DT>
-PoolSharedPtr<GenericArray> TypedGenericArray<DT>::make_wrapper(void* array, ViewPtrHolder* ctr_holder) {
+PoolSharedPtr<GenericArray> TypedGenericArray<DT>::make_wrapper(ViewPtrHolder* ctr_holder, void* array) {
     using GAPoolT = pool::SimpleObjectPool<TypedGenericArray<DT>>;
     using GAPoolPtrT = boost::local_shared_ptr<GAPoolT>;
 
     static thread_local GAPoolPtrT wrapper_pool = MakeLocalShared<GAPoolT>();
-    return wrapper_pool->allocate_shared(array, ctr_holder);
+    return wrapper_pool->allocate_shared(ctr_holder, array);
 }
 
 

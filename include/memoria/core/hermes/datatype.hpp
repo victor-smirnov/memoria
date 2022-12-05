@@ -236,7 +236,7 @@ public:
         }
         else {
             arena::ArenaString * name_ptr =
-                get_type_reflection(ShortTypeCode::of<Varchar>()).deep_copy(dst, name_.get(), ptr_holder, dedup);
+                get_type_reflection(ShortTypeCode::of<Varchar>()).deep_copy(dst, ptr_holder, name_.get(), dedup);
 
             auto dtd = dst.get_resolver_for(dst.template allocate_tagged_object<DatatypeData>(
                 tag, name_ptr
@@ -247,7 +247,7 @@ public:
             if (parameters_.is_not_null())
             {
                 auto par_tag = arena::read_type_tag(parameters_.get());
-                arena::GenericVector* ptr = get_type_reflection(par_tag).deep_copy(dst, parameters_.get(), ptr_holder, dedup);
+                arena::GenericVector* ptr = get_type_reflection(par_tag).deep_copy(dst, ptr_holder, parameters_.get(), dedup);
                 dtd.get(dst)->parameters_ = ptr;
             }
             else {
@@ -257,7 +257,7 @@ public:
             if (constructor_.is_not_null())
             {
                 auto ctr_tag = arena::read_type_tag(constructor_.get());
-                arena::GenericVector* ptr = get_type_reflection(ctr_tag).deep_copy(dst, constructor_.get(), ptr_holder, dedup);
+                arena::GenericVector* ptr = get_type_reflection(ctr_tag).deep_copy(dst, ptr_holder, constructor_.get(), dedup);
                 dtd.get(dst)->constructor_ = ptr;
             }
             else {
@@ -292,7 +292,7 @@ public:
         datatype_()
     {}
 
-    Datatype(void* dt, ViewPtrHolder* ptr_holder) noexcept :
+    Datatype(ViewPtrHolder* ptr_holder, void* dt) noexcept :
         Base(ptr_holder), datatype_(reinterpret_cast<detail::DatatypeData*>(dt))
     {}
 
@@ -306,7 +306,7 @@ public:
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(datatype_, ptr_holder_));
+        return ObjectPtr(Object(ptr_holder_, datatype_));
     }
 
     U8String to_string(const StringifyCfg& cfg = StringifyCfg()) const

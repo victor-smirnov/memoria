@@ -67,21 +67,21 @@ public:
         set_tag(ValueStorageTag::VS_TAG_ADDRESS);
     }
 
-    Object(void* addr, ViewPtrHolder* ref_holder) noexcept :
+    Object(ViewPtrHolder* ref_holder, void* addr) noexcept :
         Base(ref_holder)
     {
         storage_.addr = addr;
         set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
     }
 
-    Object(const TaggedValue& tagged_value, ViewPtrHolder* ref_holder) noexcept :
+    Object(ViewPtrHolder* ref_holder, const TaggedValue& tagged_value) noexcept :
         Base(ref_holder)
     {
         storage_.small_value = tagged_value;
         set_vs_tag(ValueStorageTag::VS_TAG_SMALL_VALUE);
     }
 
-    Object(ValueStorageTag vs_tag, ValueStorage storage, ViewPtrHolder* ref_holder) noexcept :
+    Object(ViewPtrHolder* ref_holder, ValueStorageTag vs_tag, ValueStorage storage) noexcept :
         Base(ref_holder)
     {
         storage_ = storage;
@@ -190,7 +190,7 @@ public:
         assert_not_null();
         auto tag = get_type_tag();
         return get_type_reflection(tag).convert_to_plain_string(
-            get_vs_tag(), storage_, get_ptr_holder()
+            get_ptr_holder(), get_vs_tag(), storage_
         );
     }
 
@@ -319,10 +319,12 @@ public:
         {
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_compare(
+                    get_ptr_holder(),
                     get_vs_tag(),
-                    storage_, get_ptr_holder(),
+                    storage_,
+                    other->get_ptr_holder(),
                     other->get_vs_tag(),
-                    other->storage_, other->get_ptr_holder()
+                    other->storage_
             );
         }
         else {
@@ -350,10 +352,12 @@ public:
         {
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_equals(
+                    get_ptr_holder(),
                     get_vs_tag(),
-                    storage_, get_ptr_holder(),
+                    storage_,
+                    other->get_ptr_holder(),
                     other->get_vs_tag(),
-                    other->storage_, other->get_ptr_holder()
+                    other->storage_
             );
         }
         else {
@@ -446,8 +450,9 @@ public:
 
         if (value_tag == tag) {
             return detail::ValueCastHelper<T>::cast_to(
+                get_ptr_holder(),
                 get_vs_tag(),
-                storage_, get_ptr_holder()
+                storage_
             );
         }
         else {
@@ -461,7 +466,7 @@ public:
             if (get_tag() == VS_TAG_ADDRESS) {
                 auto value_tag = get_type_tag();
                 return get_type_reflection(value_tag).hermes_is_simple_layout(
-                            storage_.addr, get_ptr_holder()
+                            get_ptr_holder(), storage_.addr
                 );
             }
             else {
@@ -500,7 +505,7 @@ public:
         else {
             auto value_tag = get_type_tag();
             get_type_reflection(value_tag).hermes_stringify_value(
-                get_vs_tag(), storage_, get_ptr_holder(),
+                get_ptr_holder(), get_vs_tag(), storage_,
                 out, state
             );
         }

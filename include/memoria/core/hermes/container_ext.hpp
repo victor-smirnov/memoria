@@ -110,7 +110,7 @@ DataObjectPtr<DT> HermesCtr::new_dataobject(DTTViewType<DT> view)
         view
     );
 
-    return DataObjectPtr<DT>(DTCtr(arena_dtc, ptr_holder_));
+    return DataObjectPtr<DT>(DTCtr(ptr_holder_, arena_dtc));
 }
 
 
@@ -130,7 +130,7 @@ DataObjectPtr<DT> HermesCtr::wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr
     );
 
     TaggedValue storage(ShortTypeCode::of<DT>(), view);
-    return DataObjectPtr<DT>(DataObject<DT>(storage, ctr->ptr_holder_));
+    return DataObjectPtr<DT>(DataObject<DT>(ctr->ptr_holder_, storage));
 }
 
 
@@ -214,7 +214,7 @@ inline GenericArrayPtr Object::as_generic_array() const
     if (get_vs_tag() == VS_TAG_ADDRESS)
     {
         auto tag = get_type_tag();
-        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(storage_.addr, get_ptr_holder());
+        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(get_ptr_holder(), storage_.addr);
         return ctr_ptr->as_array();
     }
     else {
@@ -228,7 +228,7 @@ inline GenericMapPtr Object::as_generic_map() const
     if (get_vs_tag() == VS_TAG_ADDRESS)
     {
         auto tag = get_type_tag();
-        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(storage_.addr, get_ptr_holder());
+        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(get_ptr_holder(), storage_.addr);
         return ctr_ptr->as_map();
     }
     else {
@@ -299,7 +299,7 @@ ObjectPtr Object::convert_to() const
     auto src_tag = get_type_tag();
     auto to_tag = ShortTypeCode::of<DT>();
     if (src_tag != to_tag) {
-        return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), storage_, get_ptr_holder());
+        return get_type_reflection(src_tag).datatype_convert_to(get_ptr_holder(), to_tag, get_vs_tag(), storage_);
     }
     else {
         return this->as_object();
@@ -313,7 +313,7 @@ DataObjectPtr<ToDT> DataObject<DT>::convert_to() const
     assert_not_null();
     auto src_tag = get_type_tag();
     auto to_tag = ShortTypeCode::of<ToDT>();
-    return get_type_reflection(src_tag).datatype_convert_to(to_tag, get_vs_tag(), storage_, this->get_ptr_holder());
+    return get_type_reflection(src_tag).datatype_convert_to(this->get_ptr_holder(), to_tag, get_vs_tag(), storage_);
 }
 
 inline PoolSharedPtr<HermesCtr> CtrAware::ctr() const {
@@ -336,7 +336,7 @@ ArrayPtr<DT> HermesCtr::new_typed_array() {
         ShortTypeCode::of<CtrT>()
     );
 
-    return ArrayPtr<DT>(CtrT(arena_dtc, ptr_holder_));
+    return ArrayPtr<DT>(CtrT(ptr_holder_, arena_dtc));
 }
 
 template <typename KeyDT, typename ValueDT>
@@ -350,7 +350,7 @@ MapPtr<KeyDT, ValueDT> HermesCtr::new_typed_map() {
         ShortTypeCode::of<CtrT>()
     );
 
-    return MapPtr<KeyDT, ValueDT>(CtrT(arena_dtc, ptr_holder_));
+    return MapPtr<KeyDT, ValueDT>(CtrT(ptr_holder_, arena_dtc));
 }
 
 template <typename DT>

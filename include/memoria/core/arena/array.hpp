@@ -179,7 +179,7 @@ public:
             auto data = dst.get_resolver_for(vv.get(dst)->data());
 
             const T* src_data = this->data();
-            memoria::detail::DeepCopyHelper<T>::deep_copy_to(dst, data, src_data, size_, ptr_holder, dedup);
+            memoria::detail::DeepCopyHelper<T>::deep_copy_to(dst, data, ptr_holder, src_data, size_, dedup);
 
             return vv.get(dst);
         }

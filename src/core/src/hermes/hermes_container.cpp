@@ -97,7 +97,7 @@ ObjectMapPtr HermesCtr::new_map()
         ShortTypeCode::of<CtrT>()
     );
 
-    return ObjectMapPtr(CtrT(arena_dtc, ptr_holder_));
+    return ObjectMapPtr(CtrT(ptr_holder_, arena_dtc));
 }
 
 TinyObjectMapPtr HermesCtr::new_tiny_map(size_t capacity) {
@@ -107,7 +107,7 @@ TinyObjectMapPtr HermesCtr::new_tiny_map(size_t capacity) {
         ShortTypeCode::of<CtrT>(), capacity > 0 ? capacity : 1
     );
 
-    return TinyObjectMapPtr(CtrT(arena_dtc, ptr_holder_));
+    return TinyObjectMapPtr(CtrT(ptr_holder_, arena_dtc));
 }
 
 ObjectArrayPtr HermesCtr::new_array(uint64_t capacity)
@@ -118,7 +118,7 @@ ObjectArrayPtr HermesCtr::new_array(uint64_t capacity)
         ShortTypeCode::of<CtrT>(), capacity
     );
 
-    return ObjectArrayPtr(CtrT(arena_dtc, ptr_holder_));
+    return ObjectArrayPtr(CtrT(ptr_holder_, arena_dtc));
 }
 
 ObjectArrayPtr HermesCtr::new_array(Span<const ObjectPtr> span)
@@ -151,7 +151,7 @@ DatatypePtr HermesCtr::new_datatype(U8StringView name)
         ShortTypeCode::of<Datatype>(), str->dt_ctr()
     );
 
-    return DatatypePtr(Datatype(arena_dt, ptr_holder_));
+    return DatatypePtr(Datatype(ptr_holder_, arena_dt));
 }
 
 DatatypePtr HermesCtr::new_datatype(StringValuePtr name)
@@ -160,7 +160,7 @@ DatatypePtr HermesCtr::new_datatype(StringValuePtr name)
         ShortTypeCode::of<Datatype>(), name->dt_ctr()
     );
 
-    return DatatypePtr(Datatype(arena_dt, ptr_holder_));
+    return DatatypePtr(Datatype(ptr_holder_, arena_dt));
 }
 
 TypedValuePtr HermesCtr::new_typed_value(DatatypePtr datatype, ObjectPtr constructor)
@@ -171,7 +171,7 @@ TypedValuePtr HermesCtr::new_typed_value(DatatypePtr datatype, ObjectPtr constru
         ShortTypeCode::of<TypedValue>(), datatype->datatype_, vv_ctr->storage_.addr
     );
 
-    return TypedValuePtr(TypedValue(arena_tv, ptr_holder_));
+    return TypedValuePtr(TypedValue(ptr_holder_, arena_tv));
 }
 
 ObjectPtr HermesCtr::do_import_value(ObjectPtr value)
@@ -188,14 +188,14 @@ ObjectPtr HermesCtr::do_import_value(ObjectPtr value)
                 auto tag = arena::read_type_tag(value->storage_.addr);
 
                 DeepCopyDeduplicator dedup;
-                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, value->storage_.addr, ptr_holder_, dedup);
+                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, ptr_holder_, value->storage_.addr, dedup);
 
-                return ObjectPtr(Object(addr, ptr_holder_));
+                return ObjectPtr(Object(ptr_holder_, addr));
             }
             else {
                 auto type_tag = value->get_type_tag();
                 auto vs_tag = value->get_vs_tag();
-                return get_type_reflection(type_tag).import_value(vs_tag, value->storage_, ptr_holder_);
+                return get_type_reflection(type_tag).import_value(ptr_holder_, vs_tag, value->storage_);
             }
         }
         else {
@@ -222,9 +222,9 @@ ObjectPtr HermesCtr::do_import_embeddable(ObjectPtr value)
                 auto tag = arena::read_type_tag(value->storage_.addr);
 
                 DeepCopyDeduplicator dedup;
-                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, value->storage_.addr, ptr_holder_, dedup);
+                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, ptr_holder_, value->storage_.addr, dedup);
 
-                return ObjectPtr(Object(addr, ptr_holder_));
+                return ObjectPtr(Object(ptr_holder_, addr));
             }
             else if (value->get_vs_tag() == ValueStorageTag::VS_TAG_SMALL_VALUE)
             {
@@ -236,13 +236,13 @@ ObjectPtr HermesCtr::do_import_embeddable(ObjectPtr value)
                 }
                 else {
                     auto vs_tag = value->get_vs_tag();
-                    return refl.import_value(vs_tag, value->storage_, ptr_holder_);
+                    return refl.import_value(ptr_holder_, vs_tag, value->storage_);
                 }
             }
             else {
                 auto type_tag = value->get_type_tag();
                 auto vs_tag = value->get_vs_tag();
-                return get_type_reflection(type_tag).import_value(vs_tag, value->storage_, ptr_holder_);
+                return get_type_reflection(type_tag).import_value(ptr_holder_, vs_tag, value->storage_);
             }
         }
         else {
@@ -265,7 +265,7 @@ ParameterPtr HermesCtr::new_parameter(U8StringView name) {
         name
     );
 
-    return ParameterPtr(Parameter(arena_dtc, ptr_holder_));
+    return ParameterPtr(Parameter(ptr_holder_, arena_dtc));
 }
 
 

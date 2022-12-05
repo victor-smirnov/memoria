@@ -76,7 +76,7 @@ protected:
             if (root.is_not_null())
             {
                 auto tag0 = arena::read_type_tag(root.get());
-                void* new_root = get_type_reflection(tag0).deep_copy(dst, root.get(), ptr_holder, dedup);
+                void* new_root = get_type_reflection(tag0).deep_copy(dst, ptr_holder, root.get(), dedup);
                 dh.get(dst)->root = new_root;
             }
             else {
@@ -141,7 +141,7 @@ public:
     ObjectPtr root() const noexcept
     {
         if (MMA_LIKELY(header_->root.is_not_null())) {
-            return ObjectPtr(Object(header_->root.get(), ptr_holder_));
+            return ObjectPtr(Object(ptr_holder_, header_->root.get()));
         }
         else {
             return ObjectPtr{};

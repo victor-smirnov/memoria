@@ -133,10 +133,11 @@ std::ostream& operator<<(std::ostream& os, const IDValue& id) {
 
 
 hermes::ObjectPtr TypeReflection::datatype_convert_to(
+        ViewPtrHolder*,
         ShortTypeCode target_tag,
         hermes::ValueStorageTag vs_tag,
-        hermes::ValueStorage& ptr,
-        ViewPtrHolder*) const {
+        hermes::ValueStorage& ptr
+) const {
     MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible to {}",
         str(), get_type_reflection(target_tag).str()
     ).do_throw();
@@ -147,17 +148,17 @@ hermes::ObjectPtr TypeReflection::datatype_convert_from_plain_string(U8StringVie
 }
 
 U8String TypeReflection::convert_to_plain_string(
+        ViewPtrHolder*,
         hermes::ValueStorageTag vs_stag,
-        hermes::ValueStorage& storage,
-        ViewPtrHolder*
+        hermes::ValueStorage& storage
 ) const
 {
     MEMORIA_MAKE_GENERIC_ERROR("Type {} is not convertible to plain string", str()).do_throw();
 }
 
 hermes::ObjectPtr TypeReflection::import_value(
-        hermes::ValueStorageTag, hermes::ValueStorage&,
-        ViewPtrHolder*
+        ViewPtrHolder*,
+        hermes::ValueStorageTag, hermes::ValueStorage&
 ) const {
     MEMORIA_MAKE_GENERIC_ERROR("Importing value in not supported for type {}", str()).do_throw();
 }

@@ -59,13 +59,14 @@ public:
             if (datatype_.is_not_null())
             {
                 auto tag0 = arena::read_type_tag(datatype_.get());
-                dt_data = dst.get_resolver_for(get_type_reflection(tag0).deep_copy(dst, datatype_.get(), ptr_holder, dedup));
+                dt_data = dst.get_resolver_for(
+                            get_type_reflection(tag0).deep_copy(dst, ptr_holder, datatype_.get(), dedup));
             }
 
             if (constructor_.is_not_null())
             {
                 auto tag0 = arena::read_type_tag(constructor_.get());
-                constructor = dst.get_resolver_for(get_type_reflection(tag0).deep_copy(dst, constructor_.get(), ptr_holder, dedup));
+                constructor = dst.get_resolver_for(get_type_reflection(tag0).deep_copy(dst, ptr_holder, constructor_.get(), dedup));
             }
 
             TypedValueData* tv_data = dst.allocate_tagged_object<TypedValueData>(tag, dt_data.get(dst), constructor.get(dst));
@@ -87,7 +88,7 @@ public:
         tv_()
     {}
 
-    TypedValue(void* tv, ViewPtrHolder* ptr_holder) noexcept:
+    TypedValue(ViewPtrHolder* ptr_holder, void* tv) noexcept:
         Base(ptr_holder),
         tv_(reinterpret_cast<detail::TypedValueData*>(tv))
     {}
@@ -102,7 +103,7 @@ public:
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(tv_, ptr_holder_));
+        return ObjectPtr(Object(ptr_holder_, tv_));
     }
 
     bool is_null() const {
@@ -116,13 +117,13 @@ public:
     ObjectPtr constructor() const
     {
         assert_not_null();
-        return ObjectPtr(Object(tv_->constructor(), ptr_holder_));
+        return ObjectPtr(Object(ptr_holder_, tv_->constructor()));
     }
 
     DatatypePtr datatype() const
     {
         assert_not_null();
-        return DatatypePtr(Datatype(tv_->datatype(), ptr_holder_));
+        return DatatypePtr(Datatype(ptr_holder_, tv_->datatype()));
     }
 
     void stringify(std::ostream& out,

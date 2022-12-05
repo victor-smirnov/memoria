@@ -88,7 +88,7 @@ public:
         array_()
     {}
 
-    Array(void* array, ViewPtrHolder* ref_holder) noexcept:
+    Array(ViewPtrHolder* ref_holder, void* array) noexcept:
         Base(ref_holder),
         array_(reinterpret_cast<ArrayStorageT*>(array))
     {}
@@ -116,7 +116,7 @@ public:
     PoolSharedPtr<GenericArray> as_generic_array() const;
 
     ObjectArrayPtr self() const {
-        return ObjectArrayPtr(ObjectArray(array_, ptr_holder_));
+        return ObjectArrayPtr(ObjectArray(ptr_holder_, array_));
     }
 
     PoolSharedPtr<HermesCtr> document() const {
@@ -129,7 +129,7 @@ public:
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(array_, ptr_holder_));
+        return ObjectPtr(Object(ptr_holder_, array_));
     }
 
     uint64_t size() const {
@@ -260,9 +260,9 @@ class TypedGenericArray<Object>: public GenericArray, public pool::enable_shared
     ViewPtrHolder* ctr_holder_;
     mutable Array<Object> array_;
 public:
-    TypedGenericArray(void* array, ViewPtrHolder* ctr_holder):
+    TypedGenericArray(ViewPtrHolder* ctr_holder, void* array):
         ctr_holder_(ctr_holder),
-        array_(array, ctr_holder)
+        array_(ctr_holder, array)
     {
         ctr_holder->ref_copy();
     }
@@ -290,7 +290,7 @@ public:
             return this->shared_from_this();
         }
         else {
-            return make_wrapper(new_array->array_, ctr_holder_);
+            return make_wrapper(ctr_holder_, new_array->array_);
         }
     }
 
@@ -327,7 +327,7 @@ public:
         return array_.as_object();
     }
 
-    static PoolSharedPtr<GenericArray> make_wrapper(void* array, ViewPtrHolder* ctr_holder);
+    static PoolSharedPtr<GenericArray> make_wrapper(ViewPtrHolder* ctr_holder, void* array);
 };
 
 

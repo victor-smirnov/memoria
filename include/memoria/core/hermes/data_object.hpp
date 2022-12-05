@@ -73,14 +73,14 @@ public:
         set_vs_tag(VS_TAG_ADDRESS);
     }
 
-    DataObject(void* dt_ctr, ViewPtrHolder* ptr_holder) noexcept :
+    DataObject(ViewPtrHolder* ptr_holder, void* dt_ctr) noexcept :
         Base(ptr_holder)
     {
         storage_.addr = dt_ctr;
         set_vs_tag(VS_TAG_ADDRESS);
     }
 
-    DataObject(ValueStorageTag vs_tag, ValueStorage& storage, ViewPtrHolder* ptr_holder) noexcept :
+    DataObject(ViewPtrHolder* ptr_holder, ValueStorageTag vs_tag, ValueStorage& storage) noexcept :
         Base(ptr_holder),
         storage_(storage)
     {
@@ -91,7 +91,7 @@ public:
         }
     }
 
-    DataObject(const TaggedValue& tv_storage, ViewPtrHolder* ptr_holder) noexcept :
+    DataObject(ViewPtrHolder* ptr_holder, const TaggedValue& tv_storage) noexcept :
         Base(ptr_holder)
     {
         storage_.small_value = tv_storage;
@@ -99,7 +99,7 @@ public:
     }
 
 
-    DataObject(DTTViewType<DT> view, ViewPtrHolder* ptr_holder) noexcept :
+    DataObject(ViewPtrHolder* ptr_holder, DTTViewType<DT> view) noexcept :
         Base(ptr_holder)
     {
         if (TaggedValue::dt_fits_in<DT>())
@@ -245,7 +245,7 @@ public:
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(get_vs_tag(), storage_, this->get_ptr_holder()));
+        return ObjectPtr(Object(this->get_ptr_holder(), get_vs_tag(), storage_));
     }
 
     ViewPtrT view() const
@@ -410,8 +410,8 @@ private:
 class GenericDataObjectImpl: public GenericObject {
     mutable Object object_;
 public:
-    GenericDataObjectImpl(void* addr, ViewPtrHolder* ptr_holder):
-        object_(addr, ptr_holder)
+    GenericDataObjectImpl(ViewPtrHolder* ref_holder, void* addr):
+        object_(ref_holder, addr)
     {
         object_.ref();
     }
@@ -459,13 +459,14 @@ namespace detail {
 template <typename DT>
 struct ValueCastHelper<DataObject<DT>> {
     static ViewPtr<DataObject<DT>> cast_to(
+            ViewPtrHolder* ref_holder,
             ValueStorageTag vs_tag,
-            ValueStorage& storage, ViewPtrHolder* ref_holder
+            ValueStorage& storage
     ) noexcept {
         return ViewPtr<DataObject<DT>>(DataObject<DT>(
+            ref_holder,
             vs_tag,
-            storage,
-            ref_holder
+            storage
         ));
     }
 };

@@ -324,7 +324,7 @@ public:
 
             const Value* src_data = this->data();
             memoria::detail::DeepCopyHelper<Value>::deep_copy_to(
-                dst, data, src_data, size, ptr_holder, dedup
+                dst, data, ptr_holder, src_data, size, dedup
             );
 
             return map.get(dst);

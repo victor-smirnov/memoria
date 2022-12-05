@@ -67,7 +67,7 @@ public:
         array_()
     {}
 
-    Array(void* array, ViewPtrHolder* ref_holder) noexcept:
+    Array(ViewPtrHolder* ref_holder, void* array) noexcept:
         Base(ref_holder),
         array_(reinterpret_cast<ArrayStorageT*>(array))
     {}
@@ -93,7 +93,7 @@ public:
 //    }
 
     ArrayPtr<DT> self() const {
-        return ArrayPtr<DT>(Array<DT>(array_, ptr_holder_));
+        return ArrayPtr<DT>(Array<DT>(ptr_holder_, array_));
     }
 
     PoolSharedPtr<HermesCtr> document() const {
@@ -106,7 +106,7 @@ public:
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(array_, ptr_holder_));
+        return ObjectPtr(Object(ptr_holder_, array_));
     }
 
     uint64_t size() const {
@@ -129,7 +129,7 @@ public:
         assert_not_null();
 
         if (idx < array_->size()) {
-            return DataObjectPtr<DT>(DataObject<DT>(array_->get(idx), ptr_holder_));
+            return DataObjectPtr<DT>(DataObject<DT>(ptr_holder_, array_->get(idx)));
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<DT>: {} {}", idx, array_->size()).do_throw();
@@ -188,7 +188,7 @@ public:
         assert_not_null();
 
         for (auto& vv: array_->span()) {
-            fn(DataObjectPtr<DT>(DataObject<DT>(vv, ptr_holder_)));
+            fn(DataObjectPtr<DT>(DataObject<DT>(ptr_holder_, vv)));
         }
     }
 
@@ -262,9 +262,9 @@ class TypedGenericArray: public GenericArray, public pool::enable_shared_from_th
     ViewPtrHolder* ctr_holder_;
     mutable Array<DT> array_;
 public:
-    TypedGenericArray(void* array, ViewPtrHolder* ctr_holder):
+    TypedGenericArray(ViewPtrHolder* ctr_holder, void* array):
         ctr_holder_(ctr_holder),
-        array_(array, ctr_holder)
+        array_(ctr_holder, array)
     {
         ctr_holder->ref_copy();
     }
@@ -287,7 +287,7 @@ public:
 
     virtual GenericArrayPtr push_back(const ObjectPtr& value) {
         auto new_array = array_.append(value->convert_to<DataObject<DT>>()->template as_data_object<DT>());
-        return make_wrapper(new_array->array_, ctr_holder_);
+        return make_wrapper(ctr_holder_, new_array->array_);
     }
 
     virtual GenericArrayPtr remove(uint64_t start, uint64_t end) {
@@ -323,7 +323,7 @@ public:
         return array_.as_object();
     }
 
-    static PoolSharedPtr<GenericArray> make_wrapper(void* array, ViewPtrHolder* ctr_holder);
+    static PoolSharedPtr<GenericArray> make_wrapper(ViewPtrHolder* ctr_holder, void* array);
 };
 
 

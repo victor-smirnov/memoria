@@ -64,17 +64,17 @@ protected:
         {}
 
         StringValuePtr first() const {
-            return StringValuePtr(StringValue(iter_->key().get(), ptr_holder_));
+            return StringValuePtr(StringValue(ptr_holder_, iter_->key().get()));
         }
 
         ObjectPtr second() const
         {
             if (iter_->value().is_not_null()) {
                 auto ptr = iter_->value().get();
-                return ObjectPtr(Object(ptr, ptr_holder_));
+                return ObjectPtr(Object(ptr_holder_, ptr));
             }
             else {
-                return ObjectPtr(Object(nullptr, ptr_holder_));
+                return ObjectPtr(Object(ptr_holder_, nullptr));
             }
         }
     };
@@ -87,7 +87,7 @@ public:
 public:
     Map() noexcept : map_() {}
 
-    Map(void* map, ViewPtrHolder* ptr_holder) noexcept :
+    Map(ViewPtrHolder* ptr_holder, void* map) noexcept :
         Base(ptr_holder),
         map_(reinterpret_cast<MapStorageT*>(map))
     {}
@@ -101,7 +101,7 @@ public:
     }
 
     ViewPtr<Map, true> self() const {
-        return ViewPtr<Map, true>(Map(map_, ptr_holder_));
+        return ViewPtr<Map, true>(Map(ptr_holder_, map_));
     }
 
     Iterator begin() const {
@@ -130,7 +130,7 @@ public:
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(map_, ptr_holder_));
+        return ObjectPtr(Object(ptr_holder_, map_));
     }
 
     uint64_t size() const {
@@ -152,7 +152,7 @@ public:
             if (MMA_LIKELY(res->is_pointer()))
             {
                 if (MMA_LIKELY(res->is_not_null())) {
-                    return ObjectPtr(Object(res->get(), ptr_holder_));
+                    return ObjectPtr(Object(ptr_holder_, res->get()));
                 }
                 else {
                     return ObjectPtr{};
@@ -160,7 +160,7 @@ public:
             }
             else {
                 TaggedValue tv(*res);
-                return ObjectPtr(Object(tv, ptr_holder_));
+                return ObjectPtr(Object(ptr_holder_, tv));
             }
         }
         else {
@@ -205,7 +205,7 @@ public:
             if (value.is_pointer())
             {
                 if (value.is_not_null()) {
-                    fn(kk, ObjectPtr(Object(value.get(), ptr_holder_)));
+                    fn(kk, ObjectPtr(Object(ptr_holder_, value.get())));
                 }
                 else {
                     fn(kk, ObjectPtr(Object()));
@@ -213,7 +213,7 @@ public:
             }
             else {
                 TaggedValue tv(value);
-                fn(kk, ObjectPtr(Object(tv, ptr_holder_)));
+                fn(kk, ObjectPtr(Object(ptr_holder_, tv)));
             }
         });
     }
@@ -301,9 +301,9 @@ class TypedGenericMap<Varchar, Object>: public GenericMap, public pool::enable_s
     ViewPtrHolder* ctr_holder_;
     mutable Map<Varchar, Object> map_;
 public:
-    TypedGenericMap(void* map, ViewPtrHolder* ctr_holder):
+    TypedGenericMap(ViewPtrHolder* ctr_holder, void* map):
         ctr_holder_(ctr_holder),
-        map_(map, ctr_holder)
+        map_(ctr_holder, map)
     {
         ctr_holder->ref_copy();
     }
@@ -341,13 +341,13 @@ public:
 
     virtual GenericMapPtr put(const ObjectPtr& key, const ObjectPtr& value) {
         auto new_map = map_.put(key->as_varchar(), value);
-        return make_wrapper(new_map->map_, ctr_holder_);
+        return make_wrapper(ctr_holder_, new_map->map_);
     }
 
 
     virtual GenericMapPtr remove(const ObjectPtr& key) {
         auto new_map = map_.remove(*key->as_varchar()->view());
-        return make_wrapper(new_map->map_, ctr_holder_);
+        return make_wrapper(ctr_holder_, new_map->map_);
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {
@@ -380,7 +380,7 @@ public:
 
     virtual PoolSharedPtr<GenericMapEntry> iterator() const;
 
-    static PoolSharedPtr<GenericMap> make_wrapper(void* map, ViewPtrHolder* ctr_holder);
+    static PoolSharedPtr<GenericMap> make_wrapper(ViewPtrHolder* ctr_holder, void* map);
 };
 
 

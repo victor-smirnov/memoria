@@ -64,33 +64,33 @@ public:
     virtual ShortTypeCode shot_type_hash() const noexcept = 0;
 
     virtual void hermes_stringify_value(
+            ViewPtrHolder* ref_holder,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr,
-            ViewPtrHolder* ref_holder,
 
             std::ostream& out,
             hermes::DumpFormatState& state
     ) const = 0;
 
     virtual bool hermes_is_simple_layout(
-            void* ptr,
-            ViewPtrHolder* ref_holder
+            ViewPtrHolder* ref_holder,
+            void* ptr
     ) const = 0;
 
     template <typename T>
     T* deep_copy(arena::ArenaAllocator& arena,
+                 ViewPtrHolder* ref_holder,
                  T* src,
-                 ViewPtrHolder* ptr_holder,
                  DeepCopyDeduplicator& dedup) const {
         return reinterpret_cast<T*>(
-            deep_copy_to(arena, src, ptr_holder, dedup)
+            deep_copy_to(arena, ref_holder, src, dedup)
         );
     }
 
     virtual void* deep_copy_to(
             arena::ArenaAllocator&,
-            void*,
             ViewPtrHolder*,
+            void*,
             DeepCopyDeduplicator&
     ) const {
         MEMORIA_MAKE_GENERIC_ERROR("Deep copy is not implemented for class {}", str()).do_throw();
@@ -109,18 +109,18 @@ public:
     }
 
     virtual hermes::ObjectPtr datatype_convert_to(
+            ViewPtrHolder* ref_holder,
             ShortTypeCode target_tag,
             hermes::ValueStorageTag vs_tag,
-            hermes::ValueStorage& ptr,
-            ViewPtrHolder* ref_holder
+            hermes::ValueStorage& ptr
     ) const ;
 
     virtual hermes::ObjectPtr datatype_convert_from_plain_string(U8StringView str) const;
 
     virtual U8String convert_to_plain_string(
+            ViewPtrHolder* ref_holder,
             hermes::ValueStorageTag vs_tag,
-            hermes::ValueStorage& ptr,
-            ViewPtrHolder* ref_holder
+            hermes::ValueStorage& ptr
     ) const;
 
     virtual bool hermes_comparable() const {
@@ -136,27 +136,31 @@ public:
     }
 
     virtual int32_t hermes_compare(
+            ViewPtrHolder*,
             hermes::ValueStorageTag,
-            hermes::ValueStorage&, ViewPtrHolder*,
+            hermes::ValueStorage&,
+            ViewPtrHolder*,
             hermes::ValueStorageTag,
-            hermes::ValueStorage&, ViewPtrHolder*
+            hermes::ValueStorage&
     ) const
     {
         MEMORIA_MAKE_GENERIC_ERROR("Objects of the same type {} are not Hermes-comparable", str()).do_throw();
     }
 
     virtual bool hermes_equals(
+            ViewPtrHolder*,
             hermes::ValueStorageTag,
-            hermes::ValueStorage&, ViewPtrHolder*,
+            hermes::ValueStorage&,
+            ViewPtrHolder* ref_holder,
             hermes::ValueStorageTag,
-            hermes::ValueStorage&, ViewPtrHolder*
+            hermes::ValueStorage&
     ) const {
         MEMORIA_MAKE_GENERIC_ERROR("Objects of type {} are not Hermes-equals-comparable", str()).do_throw();
     }
 
     virtual hermes::ObjectPtr import_value(
-            hermes::ValueStorageTag, hermes::ValueStorage&,
-            ViewPtrHolder*
+            ViewPtrHolder*,
+            hermes::ValueStorageTag, hermes::ValueStorage&
     ) const;
 
     virtual bool hermes_is_ptr_embeddable() const {
@@ -168,8 +172,8 @@ public:
     }
 
     virtual PoolSharedPtr<hermes::GenericObject> hermes_make_wrapper(
-            void*,
-            ViewPtrHolder*
+            ViewPtrHolder*,
+            void*
     ) const {
         MEMORIA_MAKE_GENERIC_ERROR("GenericObject API is not supported for type {}", str()).do_throw();
     }
@@ -196,8 +200,8 @@ public:
     }
 
     virtual bool hermes_is_simple_layout(
-            void* ptr,
-            ViewPtrHolder* ref_holder
+            ViewPtrHolder* ref_holder,
+            void* ptr
     ) const override {
         MEMORIA_MAKE_GENERIC_ERROR("hermes_is_simple_layout() is not implemented for type {}", str()).do_throw();
     }
@@ -265,8 +269,8 @@ struct DeepCopyHelper {
     static void deep_copy_to(
             arena::ArenaAllocator& arena,
             arena::AddrResolver<T>& dst,
-            const T* src, size_t size,
             ViewPtrHolder* ref_holder,
+            const T* src, size_t size,
             DeepCopyDeduplicator& dedup
     ) {
         std::memcpy(dst.get(arena), src, size * sizeof(T));
@@ -278,8 +282,8 @@ struct DeepCopyHelper<arena::RelativePtr<T>> {
     static void deep_copy_to(
             arena::ArenaAllocator& arena,
             arena::AddrResolver<arena::RelativePtr<T>>& dst,
-            const arena::RelativePtr<T>* src, size_t size,
             ViewPtrHolder* ref_holder,
+            const arena::RelativePtr<T>* src, size_t size,
             DeepCopyDeduplicator& dedup
     )
     {
@@ -288,7 +292,7 @@ struct DeepCopyHelper<arena::RelativePtr<T>> {
             if (src[c].is_not_null())
             {
                 auto tag = arena::read_type_tag(src[c].get());
-                T* ptr = ptr_cast<T>(get_type_reflection(tag).deep_copy_to(arena, src[c].get(), ref_holder, dedup));
+                T* ptr = ptr_cast<T>(get_type_reflection(tag).deep_copy_to(arena, ref_holder, src[c].get(), dedup));
                 dst.get(arena)[c] = ptr;
             }
             else {

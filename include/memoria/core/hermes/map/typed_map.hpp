@@ -77,10 +77,10 @@ protected:
         {
             if (iter_->value().is_not_null()) {
                 auto ptr = iter_->value().get();
-                return ObjectPtr(Object(ptr, ptr_holder_));
+                return ObjectPtr(Object(ptr_holder_, ptr));
             }
             else {
-                return ObjectPtr(Object(nullptr, ptr_holder_));
+                return ObjectPtr(Object(ptr_holder_, nullptr));
             }
         }
     };
@@ -93,7 +93,7 @@ public:
 public:
     Map() noexcept : map_() {}
 
-    Map(void* map, ViewPtrHolder* ptr_holder) noexcept :
+    Map(ViewPtrHolder* ptr_holder, void* map) noexcept :
         Base(ptr_holder),
         map_(reinterpret_cast<MapStorageT*>(map))
     {}
@@ -107,7 +107,7 @@ public:
     }
 
     ViewPtr<Map, true> self() const {
-        return ViewPtr<Map, true>(Map(map_, ptr_holder_));
+        return ViewPtr<Map, true>(Map(ptr_holder_, map_));
     }
 
     Iterator begin() const {
@@ -136,7 +136,7 @@ public:
     }
 
     ObjectPtr as_object() const {
-        return ObjectPtr(Object(map_, ptr_holder_));
+        return ObjectPtr(Object(ptr_holder_, map_));
     }
 
     uint64_t size() const {
@@ -157,7 +157,7 @@ public:
             if (MMA_LIKELY(res->is_pointer()))
             {
                 if (MMA_LIKELY(res->is_not_null())) {
-                    return ObjectPtr(Object(res->get(), ptr_holder_));
+                    return ObjectPtr(Object(ptr_holder_, res->get()));
                 }
                 else {
                     return ObjectPtr{};
@@ -165,7 +165,7 @@ public:
             }
             else {
                 TaggedValue tv(*res);
-                return ObjectPtr(Object(tv, ptr_holder_));
+                return ObjectPtr(Object(ptr_holder_, tv));
             }
         }
         else {
@@ -223,7 +223,7 @@ public:
             if (value.is_pointer())
             {
                 if (value.is_not_null()) {
-                    fn(key, ObjectPtr(Object(value.get(), ptr_holder_)));
+                    fn(key, ObjectPtr(Object(ptr_holder_, value.get())));
                 }
                 else {
                     fn(key, ObjectPtr(Object()));
@@ -231,7 +231,7 @@ public:
             }
             else {
                 TaggedValue tv(value);
-                fn(key, ObjectPtr(Object(tv, ptr_holder_)));
+                fn(key, ObjectPtr(Object(ptr_holder_, tv)));
             }
         });
     }
@@ -290,7 +290,7 @@ public:
     {}
 
     virtual ObjectPtr key() const {
-        return DataObject<KeyDT>(iter_->first(), ptr_holder_).as_object();
+        return DataObject<KeyDT>(ptr_holder_, iter_->first()).as_object();
     }
 
     virtual ObjectPtr value() const {
@@ -312,9 +312,9 @@ class TypedGenericMap<KeyDT, Object>: public GenericMap, public pool::enable_sha
     ViewPtrHolder* ctr_holder_;
     mutable Map<KeyDT, Object> map_;
 public:
-    TypedGenericMap(void* map, ViewPtrHolder* ctr_holder):
+    TypedGenericMap(ViewPtrHolder* ctr_holder, void* map):
         ctr_holder_(ctr_holder),
-        map_(map, ctr_holder)
+        map_(ctr_holder, map)
     {
         ctr_holder->ref_copy();
     }
@@ -349,13 +349,13 @@ public:
 
     virtual GenericMapPtr put(const ObjectPtr& key, const ObjectPtr& value) {
         auto new_map = map_.put(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view(), value);
-        return make_wrapper(new_map->map_, ctr_holder_);
+        return make_wrapper(ctr_holder_, new_map->map_);
     }
 
 
     virtual GenericMapPtr remove(const ObjectPtr& key) {
         auto new_map = map_.remove(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
-        return make_wrapper(new_map->map_, ctr_holder_);
+        return make_wrapper(ctr_holder_, new_map->map_);
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {
@@ -388,7 +388,7 @@ public:
 
     virtual PoolSharedPtr<GenericMapEntry> iterator() const;
 
-    static PoolSharedPtr<GenericMap> make_wrapper(void* map, ViewPtrHolder* ctr_holder);
+    static PoolSharedPtr<GenericMap> make_wrapper(ViewPtrHolder* ctr_holder, void* map);
 };
 
 

@@ -21,9 +21,9 @@ namespace memoria::hermes {
 using GAPoolT = pool::SimpleObjectPool<TypedGenericArray<Object>>;
 using GAPoolPtrT = boost::local_shared_ptr<GAPoolT>;
 
-PoolSharedPtr<GenericArray> TypedGenericArray<Object>::make_wrapper(void* array, ViewPtrHolder* ctr_holder) {
+PoolSharedPtr<GenericArray> TypedGenericArray<Object>::make_wrapper(ViewPtrHolder* ctr_holder, void* array) {
     static thread_local GAPoolPtrT wrapper_pool = MakeLocalShared<GAPoolT>();
-    return wrapper_pool->allocate_shared(array, ctr_holder);
+    return wrapper_pool->allocate_shared(ctr_holder, array);
 }
 
 }

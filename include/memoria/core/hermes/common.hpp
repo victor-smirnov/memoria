@@ -748,10 +748,10 @@ namespace detail {
 
 template <typename T>
 struct ValueCastHelper {
-    static ViewPtr<T> cast_to(ValueStorageTag, ValueStorage& storage, ViewPtrHolder* ref_holder) noexcept {
+    static ViewPtr<T> cast_to(ViewPtrHolder* ref_holder, ValueStorageTag, ValueStorage& storage) noexcept {
         return ViewPtr<T>(T(
-            storage.addr,
-            ref_holder
+            ref_holder,
+            storage.addr
         ));
     }
 };
