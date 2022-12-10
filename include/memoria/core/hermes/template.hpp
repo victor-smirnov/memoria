@@ -47,7 +47,7 @@ struct TplASTCodes {
 
 PoolSharedPtr<HermesCtr> parse_template(U8StringView text, bool node_names = false);
 
-void render(const ObjectPtr& tpl, const ObjectPtr& data, std::ostream& out);
-void render(U8StringView tpl, const ObjectPtr& data, std::ostream& out);
+void render(const Object& tpl, const Object& data, std::ostream& out);
+void render(U8StringView tpl, const Object& data, std::ostream& out);
 
 }}

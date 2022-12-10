@@ -39,19 +39,20 @@ class TypedMapData;
 
 template <typename EntryT, typename MapT, typename Iterator>
 class MapIteratorAccessor {
-    ViewPtr<MapT> map_;
+    MapT map_;
     Iterator iterator_;
-    ViewPtrHolder* ptr_holder_;
+    // FIXME: holding map_ is sufficient.
+    LWMemHolder* mem_holder_;
 
 public:
     using ViewType = EntryT;
 
-    MapIteratorAccessor(const ViewPtr<MapT>& map, Iterator iterator, ViewPtrHolder* ptr_holder):
-        map_(map), iterator_(iterator), ptr_holder_(ptr_holder)
+    MapIteratorAccessor(const MapT& map, Iterator iterator, LWMemHolder* ptr_holder):
+        map_(map), iterator_(iterator), mem_holder_(ptr_holder)
     {}
 
     EntryT current() const {
-        return EntryT(&iterator_, ptr_holder_);
+        return EntryT(&iterator_, mem_holder_);
     }
 
     bool operator==(const MapIteratorAccessor&other) const noexcept {

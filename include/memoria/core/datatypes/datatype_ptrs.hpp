@@ -37,7 +37,7 @@ class OwningViewCfg
 public:
     static constexpr bool Value = sizeof(test<T>(0)) == sizeof(char);
 
-    static void configure_resource_owner(T& view, ViewPtrHolder* owner)
+    static void configure_resource_owner(T& view, LWMemHolder* owner)
     {
         view.configure_resource_owner(owner);
     }
@@ -48,12 +48,12 @@ struct OwningViewSpanHelper;
 
 template <typename T>
 struct OwningViewSpanHelper<T, true> {
-    static void configure_resource_owner(T& view, ViewPtrHolder* owner)
+    static void configure_resource_owner(T& view, LWMemHolder* owner)
     {
         OwningViewCfg<T>::configure_resource_owner(view, owner);
     }
 
-    static void configure_resource_owner(Span<T> span, ViewPtrHolder* owner)
+    static void configure_resource_owner(Span<T> span, LWMemHolder* owner)
     {
         for (auto& view: span) {
             configure_resource_owner(view, owner);
@@ -63,16 +63,16 @@ struct OwningViewSpanHelper<T, true> {
 
 template <typename T>
 struct OwningViewSpanHelper<T, false> {
-    static void configure_resource_owner(T& view, ViewPtrHolder* owner) {}
-    static void configure_resource_owner(Span<T> span, ViewPtrHolder* owner) {}
-    static void configure_resource_owner(Span<const T> span, ViewPtrHolder* owner) {}
+    static void configure_resource_owner(T& view, LWMemHolder* owner) {}
+    static void configure_resource_owner(Span<T> span, LWMemHolder* owner) {}
+    static void configure_resource_owner(Span<const T> span, LWMemHolder* owner) {}
 };
 
 
 
 template <typename ViewT, typename PtrT>
 class DTViewSpan {
-    using HolderT = ViewPtrHolder;
+    using HolderT = LWMemHolder;
 
     HolderT* owner_;
     ViewT* views_;
@@ -206,7 +206,7 @@ public:
 
 template <typename ViewT, typename PtrT>
 class DTConstViewSpan {
-    using HolderT = ViewPtrHolder;
+    using HolderT = LWMemHolder;
 
     HolderT* owner_;
     const ViewT* views_;
@@ -401,17 +401,17 @@ public:
 
 template <typename ViewT>
 class DTConstSharedPtr {
-    using RefHolder = ViewPtrHolder;
+    using MemHolder = LWMemHolder;
 
     ViewT view_;
-    RefHolder* ref_holder_;
+    MemHolder* ref_holder_;
 
 public:
     using element_type = ViewT;
 
     DTConstSharedPtr() noexcept : view_(), ref_holder_() {}
 
-    DTConstSharedPtr(ViewT view, RefHolder* holder) noexcept :
+    DTConstSharedPtr(ViewT view, MemHolder* holder) noexcept :
         view_(view), ref_holder_(holder)
     {
         if (holder) {
@@ -430,7 +430,7 @@ public:
     }
 
     template<typename U>
-    DTConstSharedPtr(const ViewPtr<U>& other) noexcept:
+    DTConstSharedPtr(const Own<U>& other) noexcept:
         view_(other.view_),
         ref_holder_(other.ref_holder_)
     {
@@ -449,7 +449,7 @@ public:
         }
     }
 
-    DTConstSharedPtr(const ViewPtr<ViewT>& other) noexcept:
+    DTConstSharedPtr(const Own<ViewT>& other) noexcept:
         view_(other.view_),
         ref_holder_(other.ref_holder_)
     {
@@ -466,7 +466,7 @@ public:
     }
 
 
-    DTConstSharedPtr(ViewPtr<ViewT>&& other) noexcept:
+    DTConstSharedPtr(Own<ViewT>&& other) noexcept:
         view_(other.view_), ref_holder_(other.ref_holder_)
     {
         other.ref_holder_ = nullptr;
@@ -480,7 +480,7 @@ public:
     }
 
     template<typename U>
-    DTConstSharedPtr(ViewPtr<U>&& other) noexcept:
+    DTConstSharedPtr(Own<U>&& other) noexcept:
         view_(other.view_), ref_holder_(other.ref_holder_)
     {
         other.ref_holder_ = nullptr;
@@ -532,9 +532,9 @@ public:
         }
     }
 
-    RefHolder* release_holder()
+    MemHolder* release_holder()
     {
-        RefHolder* tmp = ref_holder_;
+        MemHolder* tmp = ref_holder_;
         ref_holder_ = nullptr;
         view_ = ViewT{};
         return tmp;
@@ -578,7 +578,7 @@ public:
 
 template <typename ViewT>
 class DTFxdValueWrapper {
-    using RefHolder = ViewPtrHolder;
+    using MemHolder = LWMemHolder;
 
     ViewT view_;
 
@@ -593,7 +593,7 @@ public:
         view_(view)
     {}
 
-    DTFxdValueWrapper(ViewT view, RefHolder*) noexcept :
+    DTFxdValueWrapper(ViewT view, MemHolder*) noexcept :
         view_(view)
     {}
 

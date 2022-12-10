@@ -35,36 +35,39 @@ template<>
 class HoldingView<U8StringOView>: public U8StringView {
     using Base = U8StringView;
 protected:
-    mutable ViewPtrHolder* ptr_holder_;
+    mutable LWMemHolder* mem_holder_;
 
-    template <typename, size_t>
-    friend class ViewPtr;
+    template <typename, OwningKind>
+    friend class Own;
 
 public:
     HoldingView() noexcept:
-        ptr_holder_()
+        mem_holder_()
     {
     }
 
-    HoldingView(ViewPtrHolder* holder, Base base) noexcept:
+    HoldingView(LWMemHolder* holder, Base base) noexcept:
         Base(base),
-        ptr_holder_(holder)
+        mem_holder_(holder)
     {}
 
 protected:
-    ViewPtrHolder* get_ptr_holder() const noexcept {
-        return ptr_holder_;
+    LWMemHolder* get_mem_holder() const noexcept {
+        return mem_holder_;
     }
 
-    void reset_ptr_holder() noexcept {
-        ptr_holder_ = nullptr;
+    void reset_mem_holder() noexcept {
+        mem_holder_ = nullptr;
     }
 };
+
+// FIXME: U8StringOView is unnecessary. Will be removed once
+// LD classes are removed.
 
 class U8StringOView: public HoldingView<U8StringOView> {
     using Base = HoldingView<U8StringOView>;
     using StringV = U8StringView;
-    using PH = ViewPtrHolder*;
+    using PH = LWMemHolder*;
 
 public:
     U8StringOView() noexcept:
@@ -80,11 +83,11 @@ public:
     {}
 
     U8StringOView(const U8StringOView& other) noexcept :
-        Base(other.ptr_holder_, *static_cast<const StringV*>(&other))
+        Base(other.mem_holder_, *static_cast<const StringV*>(&other))
     {}
 
     U8StringOView(U8StringOView&& other) noexcept:
-        Base(other.ptr_holder_, std::move(*static_cast<StringV*>(&other)))
+        Base(other.mem_holder_, std::move(*static_cast<StringV*>(&other)))
     {}
 
     U8StringOView(PH ph, const std::string& str) noexcept:
@@ -105,10 +108,19 @@ public:
 };
 
 template <>
-struct ViewToDTMapping<U8StringView, Varchar> {};
+struct ViewToDTMapping<U8StringView>: HasType<Varchar> {};
 
 template <>
-struct ViewToDTMapping<U8StringOView, Varchar> {};
+struct ViewToDTMapping<U8StringOView>: HasType<Varchar> {};
+
+template <>
+struct ViewToDTMapping<Own<U8StringOView>>: HasType<Varchar> {};
+
+template <>
+struct ViewToDTMapping<const char*>: HasType<Varchar> {};
+
+template <size_t N>
+struct ViewToDTMapping<const char(&)[N]>: HasType<Varchar> {};
 
 }
 
@@ -124,10 +136,20 @@ struct formatter<memoria::U8StringOView> {
     }
 };
 
+template <>
+struct formatter<memoria::U8StringView> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
-template <size_t PtrT>
-struct formatter<memoria::ViewPtr<memoria::U8StringOView, PtrT>> {
-    using ArgT = memoria::ViewPtr<memoria::U8StringOView, PtrT>;
+    template <typename FormatContext>
+    auto format(const memoria::U8StringView& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "{}", d.to_string());
+    }
+};
+
+
+template <memoria::OwningKind KT>
+struct formatter<memoria::Own<memoria::U8StringOView, KT>> {
+    using ArgT = memoria::Own<memoria::U8StringOView, KT>;
 
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 

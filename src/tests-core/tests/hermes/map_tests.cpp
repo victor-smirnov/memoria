@@ -23,7 +23,7 @@ namespace tests {
 auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "MapSetRemove", [](auto& state){
     auto doc = hermes::HermesCtr::make_new();
 
-    auto map = doc->new_map();
+    auto map = doc->make_object_map();
     doc->set_root(map->as_object());
     //assert_equals(true, doc->root()->as_generic_map()->equals(map));
     assert_equals(0, map->size());
@@ -64,7 +64,7 @@ auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>(
 auto ldd_map_set_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "MapSet", [](auto& state){
     auto doc = hermes::HermesCtr::make_new();
 
-    auto map = doc->new_map();
+    auto map = doc->make_object_map();
     doc->set_root(map->as_object());
 //    assert_equals(true, doc->root()->as_generic_map()->equals(map));
     assert_equals(0, map->size());

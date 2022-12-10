@@ -22,7 +22,7 @@
 namespace memoria {
 
 namespace hermes {
-template <typename> class DataObject;
+template <typename> class DataObjectView;
 }
 
 template <typename T>
@@ -32,21 +32,21 @@ public:
             size_t vs_tag,
             hermes::ValueStorage& ptr,
             hermes::HermesCtr* doc,
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
 
             std::ostream& out,
             hermes::DumpFormatState& state
     ) {
-        hermes::DataObject<T> dtt(ptr.addr, doc, ref_holder);
+        hermes::DataObjectView<T> dtt(ptr.addr, doc, ref_holder);
         dtt.stringify(out, state);
     }
 
     virtual bool hermes_is_simple_layout(
             void* ptr,
             hermes::HermesCtr* doc,
-            ViewPtrHolder* ref_holder
+            LWMemHolder* ref_holder
     ) {
-        hermes::DataObject<T> dtt(ptr, doc, ref_holder);
+        hermes::DataObjectView<T> dtt(ptr, doc, ref_holder);
         return dtt.is_simple_layout();
     }
 };
@@ -59,7 +59,7 @@ class DataTypeReflectionImpl: public TypeCodeTypeReflectionImplBase<T> {
             size_t vs_tag,
             hermes::ValueStorage& ptr,
             hermes::HermesCtr* doc,
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
 
             std::ostream& out,
             hermes::DumpFormatState& state

@@ -45,7 +45,7 @@ public:
     TypedValueData* deep_copy_to(
             arena::ArenaAllocator& dst,
             ShortTypeCode tag,
-            ViewPtrHolder* ptr_holder,
+            LWMemHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const
     {
         TypedValueData* existing = dedup.resolve(dst, this);
@@ -79,16 +79,16 @@ public:
 
 }
 
-class TypedValue: public HoldingView<TypedValue> {
-    using Base = HoldingView<TypedValue>;
+class TypedValueView: public HoldingView<TypedValueView> {
+    using Base = HoldingView<TypedValueView>;
 protected:
     mutable detail::TypedValueData* tv_;
 public:
-    TypedValue() noexcept:
+    TypedValueView() noexcept:
         tv_()
     {}
 
-    TypedValue(ViewPtrHolder* ptr_holder, void* tv) noexcept:
+    TypedValueView(LWMemHolder* ptr_holder, void* tv) noexcept:
         Base(ptr_holder),
         tv_(reinterpret_cast<detail::TypedValueData*>(tv))
     {}
@@ -96,14 +96,14 @@ public:
     PoolSharedPtr<HermesCtr> document() {
         assert_not_null();
         return PoolSharedPtr<HermesCtr>(
-                    ptr_holder_->ctr(),
-                    ptr_holder_->owner(),
+                    mem_holder_->ctr(),
+                    mem_holder_->owner(),
                     pool::DoRef{}
         );
     }
 
-    ObjectPtr as_object() const {
-        return ObjectPtr(Object(ptr_holder_, tv_));
+    Object as_object() const {
+        return Object(ObjectView(mem_holder_, tv_));
     }
 
     bool is_null() const {
@@ -114,16 +114,16 @@ public:
         return tv_ != nullptr;
     }
 
-    ObjectPtr constructor() const
+    Object constructor() const
     {
         assert_not_null();
-        return ObjectPtr(Object(ptr_holder_, tv_->constructor()));
+        return Object(ObjectView(mem_holder_, tv_->constructor()));
     }
 
-    DatatypePtr datatype() const
+    Datatype datatype() const
     {
         assert_not_null();
-        return DatatypePtr(Datatype(ptr_holder_, tv_->datatype()));
+        return Datatype(DatatypeView(mem_holder_, tv_->datatype()));
     }
 
     void stringify(std::ostream& out,
@@ -137,14 +137,23 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return tv_->deep_copy_to(arena, ShortTypeCode::of<TypedValue>(), ptr_holder_, dedup);
+        return tv_->deep_copy_to(arena, ShortTypeCode::of<TypedValueView>(), mem_holder_, dedup);
     }
+
+    operator Object() const & noexcept {
+        return as_object();
+    }
+
+    operator Object() && noexcept {
+        return Object(this->release_mem_holder(), tv_ , MoveOwnershipTag{});
+    }
+
 
 private:
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(tv_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("TypedValue is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("TypedValueView is null").do_throw();
         }
     }
 };

@@ -39,10 +39,10 @@ template <typename T>
 using ByRefNumberView = NumberView<T, ViewKind::BY_REF>;
 
 template <typename T>
-using ByValueNumberPtr = ViewPtr<NumberView<T, ViewKind::BY_VALUE>, VIEW_KIND_NON_HOLDING>;
+using ByValueNumberPtr = Own<NumberView<T, ViewKind::BY_VALUE>, OwningKind::WRAPPING>;
 
 template <typename T>
-using ByRefNumberPtr = ViewPtr<NumberView<T, ViewKind::BY_REF>, VIEW_KIND_HOLDING>;
+using ByRefNumberPtr = Own<NumberView<T, ViewKind::BY_REF>, OwningKind::HOLDING>;
 
 template <typename T>
 class NumberView<T, ViewKind::BY_VALUE> {
@@ -110,7 +110,14 @@ public:
     operator T&() {
         return value_;
     }
+
+    const T& value_t() const {
+        return value_;
+    }
 };
+
+template <typename T>
+struct IsWrappingView<NumberView<T, ViewKind::BY_VALUE>>: HasValue<bool, true> {};
 
 template <typename T, typename U>
 ByValueNumberPtr<decltype(std::declval<T>() + std::declval<U>())> operator+(
@@ -310,69 +317,105 @@ NumberView<T, ViewKind::BY_REF>& NumberView<T, ViewKind::BY_REF>::operator=(
 }
 
 template <>
-struct ViewToDTMapping<uint8_t, UTinyInt> {};
+struct ViewToDTMapping<uint8_t>: HasType<UTinyInt> {};
 
 template <>
-struct ViewToDTMapping<ByValueNumberView<uint8_t>, UTinyInt> {};
-
-
+struct ViewToDTMapping<ByValueNumberView<uint8_t>>: HasType<UTinyInt> {};
 
 template <>
-struct ViewToDTMapping<int8_t, TinyInt> {};
-
-template <>
-struct ViewToDTMapping<ByValueNumberView<int8_t>, TinyInt> {};
+struct ViewToDTMapping<Own<ByValueNumberView<uint8_t>>>: HasType<UTinyInt> {};
 
 
 
 template <>
-struct ViewToDTMapping<uint16_t, USmallInt> {};
+struct ViewToDTMapping<int8_t>: HasType<TinyInt> {};
 
 template <>
-struct ViewToDTMapping<ByValueNumberView<uint16_t>, UTinyInt> {};
-
-
+struct ViewToDTMapping<ByValueNumberView<int8_t>>: HasType<TinyInt> {};
 
 template <>
-struct ViewToDTMapping<int16_t, SmallInt> {};
+struct ViewToDTMapping<Own<ByValueNumberView<int8_t>>>: HasType<TinyInt> {};
 
-template <>
-struct ViewToDTMapping<ByValueNumberView<int16_t>, SmallInt> {};
 
 
 template <>
-struct ViewToDTMapping<uint32_t, UInteger> {};
+struct ViewToDTMapping<uint16_t>: HasType<USmallInt> {};
 
 template <>
-struct ViewToDTMapping<ByValueNumberView<uint32_t>, UInteger> {};
-
-
-template <>
-struct ViewToDTMapping<int32_t, Integer> {};
+struct ViewToDTMapping<ByValueNumberView<uint16_t>>: HasType<UTinyInt> {};
 
 template <>
-struct ViewToDTMapping<ByValueNumberView<int32_t>, Integer> {};
+struct ViewToDTMapping<Own<ByValueNumberView<uint16_t>>>: HasType<UTinyInt> {};
+
 
 
 template <>
-struct ViewToDTMapping<uint64_t, UBigInt> {};
+struct ViewToDTMapping<int16_t>: HasType<SmallInt> {};
 
 template <>
-struct ViewToDTMapping<ByValueNumberView<uint64_t>, UBigInt> {};
-
-
-template <>
-struct ViewToDTMapping<double, Double> {};
+struct ViewToDTMapping<ByValueNumberView<int16_t>>: HasType<SmallInt> {};
 
 template <>
-struct ViewToDTMapping<ByValueNumberView<double>, Double> {};
+struct ViewToDTMapping<Own<ByValueNumberView<int16_t>>>: HasType<SmallInt> {};
+
+
 
 
 template <>
-struct ViewToDTMapping<float, Real> {};
+struct ViewToDTMapping<uint32_t>: HasType<UInteger> {};
 
 template <>
-struct ViewToDTMapping<ByValueNumberView<float>, Real> {};
+struct ViewToDTMapping<ByValueNumberView<uint32_t>>: HasType<UInteger> {};
+
+template <>
+struct ViewToDTMapping<Own<ByValueNumberView<uint32_t>>>: HasType<UInteger> {};
+
+
+
+
+template <>
+struct ViewToDTMapping<int32_t>: HasType<Integer> {};
+
+template <>
+struct ViewToDTMapping<ByValueNumberView<int32_t>>: HasType<Integer> {};
+
+template <>
+struct ViewToDTMapping<Own<ByValueNumberView<int32_t>>>: HasType<Integer> {};
+
+
+
+
+template <>
+struct ViewToDTMapping<uint64_t>: HasType<UBigInt> {};
+
+template <>
+struct ViewToDTMapping<ByValueNumberView<uint64_t>>: HasType<UBigInt> {};
+
+template <>
+struct ViewToDTMapping<Own<ByValueNumberView<uint64_t>>>: HasType<UBigInt> {};
+
+
+
+
+template <>
+struct ViewToDTMapping<double>: HasType<Double> {};
+
+template <>
+struct ViewToDTMapping<ByValueNumberView<double>>: HasType<Double> {};
+
+template <>
+struct ViewToDTMapping<Own<ByValueNumberView<double>>>: HasType<Double> {};
+
+
+
+template <>
+struct ViewToDTMapping<float>: HasType<Real> {};
+
+template <>
+struct ViewToDTMapping<ByValueNumberView<float>>: HasType<Real> {};
+
+template <>
+struct ViewToDTMapping<Own<ByValueNumberView<float>>>: HasType<Real> {};
 
 
 }
@@ -389,9 +432,9 @@ struct formatter<memoria::NumberView<T, Kind>> {
     }
 };
 
-template <typename T, memoria::ViewKind Kind, size_t PtrT>
-struct formatter<memoria::ViewPtr<memoria::NumberView<T, Kind>, PtrT>> {
-    using ArgT = memoria::ViewPtr<memoria::NumberView<T, Kind>, PtrT>;
+template <typename T, memoria::ViewKind Kind>
+struct formatter<memoria::Own<memoria::NumberView<T, Kind>, memoria::OwningKind::WRAPPING>> {
+    using ArgT = memoria::Own<memoria::NumberView<T, Kind>, memoria::OwningKind::WRAPPING>;
 
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
@@ -400,5 +443,6 @@ struct formatter<memoria::ViewPtr<memoria::NumberView<T, Kind>, PtrT>> {
         return format_to(ctx.out(), "{}", *d.ptr());
     }
 };
+
 
 }

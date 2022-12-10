@@ -33,10 +33,10 @@ template <typename T, ViewKind Kind>
 class FxdSizeView;
 
 template <typename T>
-using ByValueFxdSizePtr = ViewPtr<FxdSizeView<T, ViewKind::BY_VALUE>, VIEW_KIND_NON_HOLDING>;
+using ByValueFxdSizePtr = Own<FxdSizeView<T, ViewKind::BY_VALUE>, OwningKind::WRAPPING>;
 
 template <typename T>
-using ByRefFxdSizePtr = ViewPtr<FxdSizeView<T, ViewKind::BY_REF>, VIEW_KIND_HOLDING>;
+using ByRefFxdSizePtr = Own<FxdSizeView<T, ViewKind::BY_REF>, OwningKind::HOLDING>;
 
 template <typename T>
 class FxdSizeView<T, ViewKind::BY_VALUE> {
@@ -104,13 +104,17 @@ public:
     operator T&() {
         return value_;
     }
+
+    const T& value_t() const {
+        return value_;
+    }
 };
 
 template <>
-struct ViewToDTMapping<bool, Boolean> {};
+struct ViewToDTMapping<bool>: HasType<Boolean> {};
 
 template <>
-struct ViewToDTMapping<FxdSizeView<bool, ViewKind::BY_VALUE>, Boolean> {};
+struct ViewToDTMapping<FxdSizeView<bool, ViewKind::BY_VALUE>>: HasType<Boolean> {};
 
 
 }
@@ -128,9 +132,9 @@ struct formatter<memoria::FxdSizeView<T, Kind>> {
 };
 
 
-template <typename T, memoria::ViewKind Kind, size_t PtrT>
-struct formatter<memoria::ViewPtr<memoria::FxdSizeView<T, Kind>, PtrT>> {
-    using ArgT = memoria::ViewPtr<memoria::FxdSizeView<T, Kind>, PtrT>;
+template <typename T, memoria::ViewKind Kind, memoria::OwningKind KT>
+struct formatter<memoria::Own<memoria::FxdSizeView<T, Kind>, KT>> {
+    using ArgT = memoria::Own<memoria::FxdSizeView<T, Kind>, KT>;
 
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 

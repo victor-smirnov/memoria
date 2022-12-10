@@ -20,31 +20,31 @@
 namespace memoria {
 namespace hermes {
 
-ObjectArrayPtr Datatype::constructor() const
+ObjectArray DatatypeView::constructor() const
 {
     assert_not_null();
     if (datatype_->has_constructor()) {
-        return ObjectArrayPtr(ObjectArray(ptr_holder_, datatype_->constructor()));
+        return ObjectArray(ObjectArrayView(mem_holder_, datatype_->constructor()));
     }
     else {
-        return ObjectArrayPtr(ObjectArray(ptr_holder_, nullptr));
+        return ObjectArray(ObjectArrayView(mem_holder_, nullptr));
     }
 }
 
 
-ObjectArrayPtr Datatype::type_parameters() const
+ObjectArray DatatypeView::type_parameters() const
 {
     assert_not_null();
     if (datatype_->is_parametric()) {
-        return ObjectArrayPtr(ObjectArray(ptr_holder_, datatype_->parameters()));
+        return ObjectArray(ObjectArrayView(mem_holder_, datatype_->parameters()));
     }
     else {
-        return ObjectArrayPtr(ObjectArray(ptr_holder_, nullptr));
+        return ObjectArray(ObjectArrayView(mem_holder_, nullptr));
     }
 }
 
 
-void Datatype::stringify(std::ostream& out, DumpFormatState& state) const
+void DatatypeView::stringify(std::ostream& out, DumpFormatState& state) const
 {
     if (datatype_)
     {
@@ -143,13 +143,14 @@ void Datatype::stringify(std::ostream& out, DumpFormatState& state) const
 }
 
 
-void Datatype::stringify_cxx(std::ostream& out,
+void DatatypeView::stringify_cxx(std::ostream& out,
                DumpFormatState& state) const
 {
     if (datatype_)
     {
         auto& spec = state.cfg().spec();
         out << *type_name()->view();
+        //println("TN: {}", *type_name()->view());
 
         auto params = type_parameters();
         if (params->is_not_null())
@@ -169,9 +170,9 @@ void Datatype::stringify_cxx(std::ostream& out,
 
                 state.make_indent(out);
 
-                ObjectPtr type_param = params->get(c);
-                if (type_param->is_a(TypeTag<Datatype>{})) {
-                    cast_to<Datatype>(type_param)->stringify_cxx(out, state);
+                Object type_param = params->get(c);
+                if (type_param->is_a(TypeTag<DatatypeView>{})) {
+                    cast_to<DatatypeView>(type_param)->stringify_cxx(out, state);
                 }
                 else {
                     type_param->stringify(out, state);
@@ -219,7 +220,7 @@ void Datatype::stringify_cxx(std::ostream& out,
     }
 }
 
-bool Datatype::is_simple_layout() const {
+bool DatatypeView::is_simple_layout() const {
     assert_not_null();
 
     bool sl = true;
@@ -235,52 +236,56 @@ bool Datatype::is_simple_layout() const {
     return sl;
 }
 
-DatatypePtr Datatype::append_type_parameter(U8StringView name)
+Datatype DatatypeView::append_type_parameter(U8StringView name)
 {
     assert_not_null();
     assert_mutable();
 
-    auto ctr = ptr_holder_->ctr();
+    auto ctr = mem_holder_->ctr();
 
-    ObjectArrayPtr params = type_parameters();
+    ObjectArray params = type_parameters();
     if (MMA_UNLIKELY(params->is_null())) {
-        params = ctr->new_array();
+        params = ctr->make_object_array();
         datatype_->set_parameters(params->array_);
     }
 
     auto datatype = ctr->new_datatype(name);
-    params->append(datatype->as_object());
+    auto new_params = params->append(datatype->as_object());
+    datatype_->set_parameters(new_params->array_);
+
     return datatype;
 }
 
-DatatypePtr Datatype::append_type_parameter(StringValuePtr name)
+Datatype DatatypeView::append_type_parameter(StringValue name)
 {
     assert_not_null();
     assert_mutable();
 
-    auto ctr = ptr_holder_->ctr();
+    auto ctr = mem_holder_->ctr();
 
-    ObjectArrayPtr params = type_parameters();
+    ObjectArray params = type_parameters();
     if (MMA_UNLIKELY(params->is_null())) {
-        params = ctr->new_array();
+        params = ctr->make_object_array();
         datatype_->set_parameters(params->array_);
     }
 
     auto datatype = ctr->new_datatype(name);
-    params->append(datatype->as_object());
+    auto new_params = params->append(datatype->as_object());
+    datatype_->set_parameters(new_params->array_);
+
     return datatype;
 }
 
-void Datatype::append_type_parameter(ObjectPtr value)
+void DatatypeView::append_type_parameter(Object value)
 {
     assert_not_null();
     assert_mutable();
 
-    auto ctr = ptr_holder_->ctr();
+    auto ctr = mem_holder_->ctr();
 
-    ObjectArrayPtr params = type_parameters();
+    ObjectArray params = type_parameters();
     if (MMA_UNLIKELY(params->is_null())) {
-        params = ctr->new_array();
+        params = ctr->make_object_array();
         datatype_->set_parameters(params->array_);
     }
 
@@ -288,42 +293,47 @@ void Datatype::append_type_parameter(ObjectPtr value)
     datatype_->set_parameters(new_params->array_);
 }
 
-void Datatype::append_constructor_argument(ObjectPtr value)
+void DatatypeView::append_constructor_argument(Object value)
 {
     assert_not_null();
     assert_mutable();
 
-    auto ctr0 = ptr_holder_->ctr();
+    auto ctr0 = mem_holder_->ctr();
 
-    ObjectArrayPtr ctr = constructor();
+    ObjectArray ctr = constructor();
 
     if (MMA_UNLIKELY(ctr->is_null())) {
-        ctr = ctr0->new_array();
+        ctr = ctr0->make_object_array();
         datatype_->set_constructor(ctr->array_);
     }
 
     auto new_ctr = ctr->append(value);
-    datatype_->set_parameters(new_ctr->array_);
+    datatype_->set_constructor(new_ctr->array_);
 }
 
 
-ObjectArrayPtr Datatype::set_constructor()
+ObjectArray DatatypeView::set_constructor()
 {
     assert_not_null();
     assert_mutable();
 
-    auto ctr = ptr_holder_->ctr();
-    auto ptr = ctr->new_array();
+    auto ctr = mem_holder_->ctr();
+    auto ptr = ctr->make_object_array();
     datatype_->set_constructor(ptr->array_);
 
     return ptr;
 }
 
-UID256 Datatype::cxx_type_hash() const
+UID256 DatatypeView::cxx_type_hash() const
+{
+    U8String cxx_type_decl = to_cxx_string();
+    return get_cxx_type_hash(cxx_type_decl);
+}
+
+UID256 get_cxx_type_hash(U8StringView text)
 {
     SHA256 hash;
-    U8String cxx_type_decl = to_cxx_string();
-    hash.add(cxx_type_decl.data(), cxx_type_decl.size());
+    hash.add(text.data(), text.size());
 
     uint8_t hash_buf[SHA256::HashBytes];
     hash.getHash(hash_buf);

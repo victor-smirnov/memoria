@@ -30,6 +30,7 @@
 #include <memoria/core/hermes/datatype.hpp>
 #include <memoria/core/hermes/array/array.hpp>
 #include <memoria/core/hermes/map/map.hpp>
+#include <memoria/core/hermes/map/typed_map.hpp>
 #include <memoria/core/hermes/data_object.hpp>
 #include <memoria/core/hermes/typed_value.hpp>
 #include <memoria/core/hermes/parameter.hpp>
@@ -50,12 +51,28 @@ class StaticHermesCtrImpl;
 struct CommonInstance;
 
 namespace detail {
+
 template <typename, bool>
 struct DTSizeDispatcher;
+
+template <bool SmallV>
+struct WrappingImportHelper;
+
 }
 
 template <size_t Size>
 class SizedHermesCtrImpl;
+
+enum class HermesCtrMakers {
+    DATAOBJECT, OTHER
+};
+
+template <typename, HermesCtrMakers>
+struct HermesCtrMakeHelper;
+
+
+template <typename T>
+struct ArrayMaker;
 
 class HermesCtr: public HoldingView<HermesCtr> {
     using Base = HoldingView<HermesCtr>;
@@ -67,7 +84,7 @@ protected:
 
         DocumentHeader* deep_copy_to(
                 arena::ArenaAllocator& dst,
-                ViewPtrHolder* ptr_holder,
+                LWMemHolder* ptr_holder,
                 DeepCopyDeduplicator& dedup) const
         {
             auto dh = dst.get_resolver_for(dst.allocate_object_untagged<DocumentHeader>());
@@ -90,16 +107,16 @@ protected:
     size_t segment_size_;
     mutable arena::ArenaAllocator* arena_;
     mutable DocumentHeader* header_;
-    using Base::ptr_holder_;
+    using Base::mem_holder_;
 
     friend class HermesCtrBuilder;
     friend struct CommonInstance;
 
     template <typename, typename>
-    friend class Map;
+    friend class MapView;
 
     template <typename>
-    friend class Array;
+    friend class ArrayView;
 
     template <typename>
     friend struct memoria::DataTypeTraits;
@@ -107,7 +124,16 @@ protected:
     template <typename, bool>
     friend struct detail::DTSizeDispatcher;
 
-    friend class Datatype;
+    template <bool>
+    friend struct detail::WrappingImportHelper;
+
+    friend class DatatypeView;
+
+    template <typename, HermesCtrMakers>
+    friend struct HermesCtrMakeHelper;
+
+    template <typename>
+    friend struct ArrowMaker;
 
 public:
     using CharIterator = typename U8StringView::const_iterator;
@@ -115,13 +141,13 @@ public:
     HermesCtr(): segment_size_(), arena_(), header_() {}
 
 
-    HermesCtr(void* segment, size_t segment_size, ViewPtrHolder* ref_holder) noexcept:
+    HermesCtr(void* segment, size_t segment_size, LWMemHolder* ref_holder) noexcept:
         Base(ref_holder),
         segment_size_(segment_size),
         header_(reinterpret_cast<DocumentHeader*>(segment))
     {}
 
-    HermesCtr(Span<uint8_t> span, ViewPtrHolder* ref_holder) noexcept:
+    HermesCtr(Span<uint8_t> span, LWMemHolder* ref_holder) noexcept:
         Base(ref_holder),
         segment_size_(span.size()),
         header_(reinterpret_cast<DocumentHeader*>(span.data()))
@@ -138,13 +164,13 @@ public:
         return arena_;
     }
 
-    ObjectPtr root() const noexcept
+    Object root() const noexcept
     {
         if (MMA_LIKELY(header_->root.is_not_null())) {
-            return ObjectPtr(Object(ptr_holder_, header_->root.get()));
+            return Object(ObjectView(mem_holder_, header_->root.get()));
         }
         else {
-            return ObjectPtr{};
+            return Object{};
         }
     }
 
@@ -179,7 +205,7 @@ public:
     static bool is_identifier(CharIterator start, CharIterator end);
     static void assert_identifier(U8StringView name);
 
-    DatatypePtr parse_raw_datatype (
+    Datatype parse_raw_datatype (
             CharIterator start,
             CharIterator end,
             const ParserConfiguration& cfg = ParserConfiguration{}
@@ -187,7 +213,7 @@ public:
 
 
     template <typename DT>
-    DataObjectPtr<DT> set_dataobject(DTTViewType<DT> view)
+    DataObject<DT> set_dataobject(DTTViewType<DT> view)
     {
         assert_not_null();
         assert_mutable();
@@ -200,12 +226,12 @@ public:
     }
 
 
-    ObjectPtr set_hermes(U8StringView str)
+    Object set_hermes(U8StringView str)
     {
         assert_not_null();
         assert_mutable();
 
-        ObjectPtr vv = parse_raw_value(str.begin(), str.end());
+        Object vv = parse_raw_value(str.begin(), str.end());
         auto vv1 = this->do_import_value(vv);
         header_->root = vv1->storage_.addr;
 
@@ -218,16 +244,16 @@ public:
         header_->root = nullptr;
     }
 
-    void set_root(ObjectPtr value);
+    void set_root(Object value);
 
     template <typename DT>
-    DataObjectPtr<DT> new_dataobject(DTTViewType<DT> view);
+    DataObject<DT> new_dataobject(DTTViewType<DT> view);
 
     template <typename DT>
-    DataObjectPtr<DT> new_embeddable_dataobject(DTTViewType<DT> view);
+    DataObject<DT> new_embeddable_dataobject(DTTViewType<DT> view);
 
-    DatatypePtr new_datatype(U8StringView name);
-    DatatypePtr new_datatype(StringValuePtr name);
+    Datatype new_datatype(U8StringView name);
+    Datatype new_datatype(StringValue name);
 
     pool::SharedPtr<HermesCtr> self() const;
 
@@ -239,7 +265,7 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("Equals is not implemented for Hermes").do_throw();
     }
 
-    ParameterPtr new_parameter(U8StringView name);
+    Parameter new_parameter(U8StringView name);
 
 
     static pool::SharedPtr<HermesCtr> make_pooled(ObjectPools& pool = thread_local_pools());
@@ -250,6 +276,7 @@ public:
     }
 
     static PoolSharedPtr<HermesCtr> parse_datatype(U8StringView view) {
+        //println("Parse Datatype: {}", view);
         return parse_datatype(view.begin(), view.end());
     }
 
@@ -268,47 +295,103 @@ public:
     static void init_hermes_doc_parser();
 
     template <typename DT>
-    static DataObjectPtr<DT> wrap_dataobject(DTTViewType<DT> view);
-
-    ObjectMapPtr new_map();
-    TinyObjectMapPtr new_tiny_map(size_t capacity = 1);
-
-    ObjectArrayPtr new_array(uint64_t capacity = 1);
-    ObjectArrayPtr new_array(Span<const ObjectPtr> span);
-    ObjectArrayPtr new_array(const std::vector<ObjectPtr>& array);
-
-    template <typename DT>
-    ArrayPtr<DT> new_typed_array();
-
-    template <typename KeyDT, typename ValueDT>
-    MapPtr<KeyDT, ValueDT> new_typed_map();
+    static DataObject<DT> wrap_dataobject(DTTViewType<DT> view);
 
 
-    TypedValuePtr new_typed_value(DatatypePtr datatype, ObjectPtr constructor);
 
-    ObjectPtr parse_raw_value(
+
+    TypedValue new_typed_value(Datatype datatype, Object constructor);
+
+    Object parse_raw_value(
             CharIterator start,
             CharIterator end,
             const ParserConfiguration& cfg = ParserConfiguration{}
     );
 
     template <typename DT>
-    ObjectPtr new_from_string(U8StringView str);
+    Object new_from_string(U8StringView str);
 
     static PoolSharedPtr<HermesCtr> parse_hermes_path(U8StringView text);
 
-    static ViewPtr<U8StringOView, VIEW_KIND_HOLDING> make_view(U8StringView);
-    static ViewPtr<U8StringOView, VIEW_KIND_HOLDING> concat(U8StringView lhs, U8StringView rhs);
+    // FIXME: nees make(Object) variant but unsure about
+    // what it should do with its arguments. Creating a copy
+    // of an arg (with convertion to the target type) --
+    // is one option.
+
+    template <typename T>
+    auto make(T&& view);
+
+    template <typename T, typename... CtrArg>
+    auto make_t(CtrArg&&... args);
+
+    template <typename DT>
+    Object make_dataobject(const DTViewArg<DT>& view);
+
+    template <typename T, std::enable_if_t<std::is_same_v<T, ObjectArray>, int> = 0>
+    Array<T> make_array(uint64_t capacity = 6);
+
+    template <typename T, std::enable_if_t<!std::is_same_v<T, ObjectArray>, int> = 0>
+    Array<T> make_array(uint64_t capacity = 6);
+
+    template <typename T>
+    auto make_array(Span<const T> span);
+
+    template <typename T>
+    auto make_array(const std::vector<T>& vv) {
+        return make_array(Span<const T>(vv.data(), vv.size()));
+    }
+
+    template <typename DT, typename T>
+    auto make_array_t(Span<const T> span);
+
+    template <typename DT, typename T>
+    auto make_array_t(const std::vector<T>& vv) {
+        return make_array_t<DT>(Span<const T>(vv.data(), vv.size()));
+    }
+
+    template <typename Key, typename Value>
+    Map<Key, Value> make_map(uint64_t capacity = 6);
+
+
+    ObjectMap make_object_map(size_t capacity = 8) {
+        return make_map<Varchar, Object>(capacity);
+    }
+
+    TinyObjectMap make_tiny_map(size_t capacity = 4) {
+        return make_map<UTinyInt, Object>();
+    }
+
+    ObjectArray make_object_array(uint64_t capacity = 4);
+
+    template <typename DT>
+    Array<DT> new_typed_array();
+
+    template <typename KeyDT, typename ValueDT>
+    Map<KeyDT, ValueDT> new_typed_map();
+
+
+    Parameter make_parameter(const U8StringView& name);
+
+    Datatype make_datatype(const U8StringView& name);
+    Datatype make_datatype(const StringValue& name);
+
+    TypedValue make_typed_value(const Datatype& datatype);
 
 protected:
-    template <typename DT>
-    static DataObjectPtr<DT> wrap_dataobject__full(DTTViewType<DT> view);
+
 
     template <typename DT>
-    static DataObjectPtr<DT> wrap_primitive(DTTViewType<DT> view);
+    Object make();
+
 
     template <typename DT>
-    static DataObjectPtr<DT> wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr);
+    static DataObject<DT> wrap_dataobject__full(DTTViewType<DT> view);
+
+    template <typename DT>
+    static DataObject<DT> wrap_primitive(DTTViewType<DT> view);
+
+    template <typename DT>
+    static DataObject<DT> wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr);
 
     HermesCtr* mutable_self() const {
         return const_cast<HermesCtr*>(this);
@@ -316,8 +399,18 @@ protected:
 
     void deep_copy_from(const DocumentHeader* header, DeepCopyDeduplicator& dedup);
 
-    ObjectPtr do_import_value(ObjectPtr value);
-    ObjectPtr do_import_embeddable(ObjectPtr value);
+    Object do_import_value(Object value);
+    Object do_import_embeddable(Object value);
+
+    template <typename ViewT>
+    Object import_object(const Own<ViewT, OwningKind::WRAPPING>& object);
+
+    template <typename ViewT, OwningKind OK>
+    Object import_object(const Own<ViewT, OK>& object);
+
+    Object import_object(const Object& object);
+
+    Object import_small_object(const Object& object);
 
     Span<uint8_t> span() const
     {
@@ -421,12 +514,12 @@ struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
     }
 
 
-    static ViewType make_view(const DataDimensionsTuple& data, ViewPtrHolder* holder)
+    static ViewType make_view(const DataDimensionsTuple& data, LWMemHolder* holder)
     {
         return ViewType(std::get<0>(data), holder);
     }
 
-    static ViewType make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data, ViewPtrHolder* holder)
+    static ViewType make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data, LWMemHolder* holder)
     {
         return ViewType(std::get<0>(data), holder);
     }
@@ -442,7 +535,7 @@ class SparseObjectBuilder<Hermes, Buffer> {
     using AtomType = DTTAtomType<Hermes>;
     using ViewType = DTTViewType<Hermes>;
 
-    using ViewPtr = PoolSharedPtr<ViewType>;
+    using Own = PoolSharedPtr<ViewType>;
 
     PoolSharedPtr<ViewType> doc_;
 
@@ -456,11 +549,11 @@ public:
     SparseObjectBuilder(SparseObjectBuilder&&) = delete;
     SparseObjectBuilder(const SparseObjectBuilder&) = delete;
 
-    ViewPtr view() {
+    Own view() {
         return doc_;
     }
 
-    ViewPtr& doc() {
+    Own& doc() {
         return doc_;
     }
 

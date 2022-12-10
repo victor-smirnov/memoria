@@ -21,10 +21,10 @@ namespace memoria {
 namespace hermes {
 
 template <>
-class Map<Varchar, Object>: public HoldingView<Map<Varchar, Object>> {
-    using Base = HoldingView<Map<Varchar, Object>>;
+class MapView<Varchar, Object>: public HoldingView<MapView<Varchar, Object>> {
+    using Base = HoldingView<MapView<Varchar, Object>>;
 public:
-    using KeyT = DataObject<Varchar>::ArenaDTContainer;
+    using KeyT = DataObjectView<Varchar>::ArenaDTContainer;
 
     using KeyPtrT = arena::RelativePtr<KeyT>;
     using ValuePtrT = arena::EmbeddingRelativePtr<void>;
@@ -35,19 +35,19 @@ public:
 
 protected:
     mutable MapStorageT* map_;
-    using Base::ptr_holder_;
+    using Base::mem_holder_;
 
     friend class HermesCtr;
-    friend class Object;
+    friend class ObjectView;
 
     template <typename, typename>
     friend class TypedGenericMap;
 
     template <typename, typename>
-    friend class Map;
+    friend class MapView;
 
     template <typename>
-    friend class Array;
+    friend class ArrayView;
 
     friend class HermesCtrBuilder;
     friend class memoria::hermes::path::interpreter::Interpreter;
@@ -56,38 +56,38 @@ protected:
 
     class EntryT {
         const MapIterator* iter_;
-        mutable ViewPtrHolder* ptr_holder_;
+        mutable LWMemHolder* mem_holder_;
 
     public:
-        EntryT(const MapIterator* iter, ViewPtrHolder* ptr_holder):
-            iter_(iter), ptr_holder_(ptr_holder)
+        EntryT(const MapIterator* iter, LWMemHolder* ptr_holder):
+            iter_(iter), mem_holder_(ptr_holder)
         {}
 
-        StringValuePtr first() const {
-            return StringValuePtr(StringValue(ptr_holder_, iter_->key().get()));
+        StringValue first() const {
+            return StringValue(StringValueView(mem_holder_, iter_->key().get()));
         }
 
-        ObjectPtr second() const
+        Object second() const
         {
             if (iter_->value().is_not_null()) {
                 auto ptr = iter_->value().get();
-                return ObjectPtr(Object(ptr_holder_, ptr));
+                return Object(mem_holder_, ptr);
             }
             else {
-                return ObjectPtr(Object(ptr_holder_, nullptr));
+                return Object(mem_holder_, nullptr);
             }
         }
     };
 
-    using Accessor = MapIteratorAccessor<EntryT, Map, MapIterator>;
+    using Accessor = MapIteratorAccessor<EntryT, MapView, MapIterator>;
 
 public:
     using Iterator = ForwardIterator<Accessor>;
 
 public:
-    Map() noexcept : map_() {}
+    MapView() noexcept : map_() {}
 
-    Map(ViewPtrHolder* ptr_holder, void* map) noexcept :
+    MapView(LWMemHolder* ptr_holder, void* map) noexcept :
         Base(ptr_holder),
         map_(reinterpret_cast<MapStorageT*>(map))
     {}
@@ -100,37 +100,37 @@ public:
         return map_;
     }
 
-    ViewPtr<Map, true> self() const {
-        return ViewPtr<Map, true>(Map(ptr_holder_, map_));
+    ObjectMap self() const {
+        return ObjectMap(MapView(mem_holder_, map_));
     }
 
     Iterator begin() const {
-        return Iterator(Accessor(self(), map_->begin(), ptr_holder_));
+        return Iterator(Accessor(self(), map_->begin(), mem_holder_));
     }
 
     Iterator end() const {
-        return Iterator(Accessor(self(), map_->end(), ptr_holder_));
+        return Iterator(Accessor(self(), map_->end(), mem_holder_));
     }
 
     Iterator cbegin() const {
-        return Iterator(Accessor(self(), map_->begin(), ptr_holder_));
+        return Iterator(Accessor(self(), map_->begin(), mem_holder_));
     }
 
     Iterator cend() const {
-        return Iterator(Accessor(self(), map_->end(), ptr_holder_));
+        return Iterator(Accessor(self(), map_->end(), mem_holder_));
     }
 
     PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
         return PoolSharedPtr<HermesCtr>(
-                    ptr_holder_->ctr(),
-                    ptr_holder_->owner(),
+                    mem_holder_->ctr(),
+                    mem_holder_->owner(),
                     pool::DoRef{}
         );
     }
 
-    ObjectPtr as_object() const {
-        return ObjectPtr(Object(ptr_holder_, map_));
+    Object as_object() const {
+        return Object(ObjectView(mem_holder_, map_));
     }
 
     uint64_t size() const {
@@ -142,7 +142,7 @@ public:
         return size() == 0;
     }
 
-    ObjectPtr get(U8StringView key) const
+    Object get(U8StringView key) const
     {
         assert_not_null();
         const ValuePtrT* res = map_->get(key);
@@ -152,32 +152,32 @@ public:
             if (MMA_LIKELY(res->is_pointer()))
             {
                 if (MMA_LIKELY(res->is_not_null())) {
-                    return ObjectPtr(Object(ptr_holder_, res->get()));
+                    return Object(ObjectView(mem_holder_, res->get()));
                 }
                 else {
-                    return ObjectPtr{};
+                    return Object{};
                 }
             }
             else {
                 TaggedValue tv(*res);
-                return ObjectPtr(Object(ptr_holder_, tv));
+                return Object(ObjectView(mem_holder_, tv));
             }
         }
         else {
-            return ObjectPtr{};
+            return Object{};
         }
     }
 
     template <typename T>
-    ObjectPtr get(const NamedTypedCode<T>& code) const {
+    Object get(const NamedTypedCode<T>& code) const {
         return get(code.name());
     }
 
     template <typename DT>
-    ObjectMapPtr put_dataobject(U8StringView key, DTTViewType<DT> value);
+    ObjectMap put_dataobject(U8StringView key, DTTViewType<DT> value);
 
     template <typename DT, typename T>
-    ObjectMapPtr put_dataobject(const NamedTypedCode<T>& code, DTTViewType<DT> value) {
+    ObjectMap put_dataobject(const NamedTypedCode<T>& code, DTTViewType<DT> value) {
         return put_dataobject<DT>(code.name(), value);
     }
 
@@ -196,7 +196,7 @@ public:
     }
 
 
-    void for_each(std::function<void(U8StringView, ViewPtr<Object>)> fn) const
+    void for_each(std::function<void(U8StringView, Object)> fn) const
     {
         assert_not_null();
         map_->for_each([&](const auto& key, const auto& value){
@@ -205,15 +205,15 @@ public:
             if (value.is_pointer())
             {
                 if (value.is_not_null()) {
-                    fn(kk, ObjectPtr(Object(ptr_holder_, value.get())));
+                    fn(kk, Object(ObjectView(mem_holder_, value.get())));
                 }
                 else {
-                    fn(kk, ObjectPtr(Object()));
+                    fn(kk, Object(ObjectView()));
                 }
             }
             else {
                 TaggedValue tv(value);
-                fn(kk, ObjectPtr(Object(ptr_holder_, tv)));
+                fn(kk, Object(ObjectView(mem_holder_, tv)));
             }
         });
     }
@@ -233,22 +233,30 @@ public:
         return simple;
     }
 
-    ObjectMapPtr remove(U8StringView key);
+    ObjectMap remove(U8StringView key);
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return map_->deep_copy_to(arena, ShortTypeCode::of<Map>(), ptr_holder_, dedup);
+        return map_->deep_copy_to(arena, ShortTypeCode::of<Map<Varchar, Object>>(), mem_holder_, dedup);
     }
 
     PoolSharedPtr<GenericMap> as_generic_map() const;
 
-    // FIXME: const ObjectPtr&
-    ObjectMapPtr put(StringValuePtr name, ObjectPtr value);
-    ObjectMapPtr put(U8StringView name, ObjectPtr value);
+    // FIXME: const Object&
+    ObjectMap put(StringValue name, Object value);
+    ObjectMap put(U8StringView name, Object value);
 
     template <typename T>
-    ObjectMapPtr put(const NamedTypedCode<T>& code, const ObjectPtr& value) {
+    ObjectMap put(const NamedTypedCode<T>& code, const Object& value) {
         return put(code.name(), value);
+    }
+
+    operator Object() const & noexcept {
+        return as_object();
+    }
+
+    operator Object() && noexcept {
+        return Object(this->release_mem_holder(), map_, MoveOwnershipTag{});
     }
 
 private:
@@ -257,7 +265,7 @@ private:
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(map_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("Map<Varchar, Object> is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("MapView<Varchar, ObjectView> is null").do_throw();
         }
     }
 
@@ -267,7 +275,7 @@ private:
 
 template <>
 class TypedGenericMapEntry<Varchar, Object>: public GenericMapEntry {
-    using MapT = Map<Varchar, Object>;
+    using MapT = MapView<Varchar, Object>;
     using IteratorT = typename MapT::Iterator;
 
     IteratorT iter_;
@@ -278,11 +286,11 @@ public:
         iter_(iter), end_(end)
     {}
 
-    virtual ObjectPtr key() const {
+    virtual Object key() const {
         return iter_->first()->as_object();
     }
 
-    virtual ObjectPtr value() const {
+    virtual Object value() const {
         return iter_->second();
     }
 
@@ -298,10 +306,10 @@ public:
 
 template <>
 class TypedGenericMap<Varchar, Object>: public GenericMap, public pool::enable_shared_from_this<TypedGenericMap<Varchar, Object>> {
-    ViewPtrHolder* ctr_holder_;
-    mutable Map<Varchar, Object> map_;
+    LWMemHolder* ctr_holder_;
+    mutable MapView<Varchar, Object> map_;
 public:
-    TypedGenericMap(ViewPtrHolder* ctr_holder, void* map):
+    TypedGenericMap(LWMemHolder* ctr_holder, void* map):
         ctr_holder_(ctr_holder),
         map_(ctr_holder, map)
     {
@@ -316,36 +324,36 @@ public:
         return map_.size();
     }
 
-    virtual ObjectPtr get(const ObjectPtr& key) const {
+    virtual Object get(const Object& key) const {
         return map_.get(*key->as_varchar()->view());
     }
 
-    virtual ObjectPtr get(U8StringView key) const {
+    virtual Object get(U8StringView key) const {
         return map_.get(key);
     }
 
-    virtual ObjectPtr get(int32_t key) const {
+    virtual Object get(int32_t key) const {
         MEMORIA_MAKE_GENERIC_ERROR("Method map(int32_t) is not supported by this generic map").do_throw();
     }
 
-    virtual ObjectPtr get(uint64_t key) const {
+    virtual Object get(uint64_t key) const {
         MEMORIA_MAKE_GENERIC_ERROR("Method map(uint64_t) is not supported by this generic map").do_throw();
     }
 
-    virtual ObjectPtr get(uint8_t key) const {
+    virtual Object get(uint8_t key) const {
         MEMORIA_MAKE_GENERIC_ERROR("Method map(uint8_t) is not supported by this generic map").do_throw();
     }
 
 
 
 
-    virtual GenericMapPtr put(const ObjectPtr& key, const ObjectPtr& value) {
+    virtual GenericMapPtr put(const Object& key, const Object& value) {
         auto new_map = map_.put(key->as_varchar(), value);
         return make_wrapper(ctr_holder_, new_map->map_);
     }
 
 
-    virtual GenericMapPtr remove(const ObjectPtr& key) {
+    virtual GenericMapPtr remove(const Object& key) {
         auto new_map = map_.remove(*key->as_varchar()->view());
         return make_wrapper(ctr_holder_, new_map->map_);
     }
@@ -367,20 +375,20 @@ public:
     }
 
     virtual PoolSharedPtr<GenericArray> as_array() const {
-        MEMORIA_MAKE_GENERIC_ERROR("Can't convert Key<Varchar, Object> to GenericArray").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("Can't convert Key<Varchar, ObjectView> to GenericArray").do_throw();
     }
 
     virtual PoolSharedPtr<GenericMap> as_map() const {
         return this->shared_from_this();
     }
 
-    virtual ObjectPtr as_object() const {
+    virtual Object as_object() const {
         return map_.as_object();
     }
 
     virtual PoolSharedPtr<GenericMapEntry> iterator() const;
 
-    static PoolSharedPtr<GenericMap> make_wrapper(ViewPtrHolder* ctr_holder, void* map);
+    static PoolSharedPtr<GenericMap> make_wrapper(LWMemHolder* ctr_holder, void* map);
 };
 
 

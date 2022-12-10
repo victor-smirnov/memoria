@@ -26,11 +26,11 @@ namespace hermes {
 
 struct GenericArray: GenericObject {
     virtual uint64_t size() const = 0;
-    virtual ObjectPtr get(uint64_t idx) const = 0;
+    virtual Object get(uint64_t idx) const = 0;
 
-    virtual void set(uint64_t idx, const ObjectPtr& value) = 0;
+    virtual void set(uint64_t idx, const Object& value) = 0;
 
-    MMA_NODISCARD virtual GenericArrayPtr push_back(const ObjectPtr& value)    = 0;
+    MMA_NODISCARD virtual GenericArrayPtr push_back(const Object& value)    = 0;
     MMA_NODISCARD virtual GenericArrayPtr remove(uint64_t start, uint64_t end) = 0;
 };
 

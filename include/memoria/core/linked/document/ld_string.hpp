@@ -40,7 +40,7 @@ public:
         return string_.get();
     }
 
-    ViewPtr<U8StringView> view() const noexcept {
+    Own<U8StringView> view() const noexcept {
         return doc_->wrap(string_.get(&doc_->arena_)->view());
     }
 

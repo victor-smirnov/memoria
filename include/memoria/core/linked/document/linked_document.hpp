@@ -31,18 +31,18 @@
 
 namespace memoria {
 
-inline ViewPtr<LDDArrayView> LDDValueView::as_array() const {
+inline Own<LDDArrayView> LDDValueView::as_array() const {
     ld_::ldd_assert_tag<LDArray>(type_tag_);
     return doc_->wrap(LDDArrayView(doc_, value_ptr_));
 }
 
 
-inline ViewPtr<LDDMapView> LDDValueView::as_map() const {
+inline Own<LDDMapView> LDDValueView::as_map() const {
     ld_::ldd_assert_tag<LDMap>(type_tag_);
     return doc_->wrap(LDDMapView(doc_, value_ptr_));
 }
 
-inline ViewPtr<LDDValueView> LDDArrayView::get(size_t idx) const
+inline Own<LDDValueView> LDDArrayView::get(size_t idx) const
 {
     ld_::LDDPtrHolder ptr = array_.access_checked(idx);
     return doc_->wrap(LDDValueView{doc_, ptr});
@@ -73,14 +73,14 @@ inline bool LDDArrayView::is_simple_layout() const noexcept
 
 
 
-inline ViewPtr<LDTypeDeclarationView> LDDValueView::as_type_decl() const {
+inline Own<LDTypeDeclarationView> LDDValueView::as_type_decl() const {
     ld_::ldd_assert_tag<LDTypeDeclaration>(type_tag_);
     return doc_->wrap(
         LDTypeDeclarationView(doc_, value_ptr_)
     );
 }
 
-inline ViewPtr<LDDTypedValueView> LDDValueView::as_typed_value() const {
+inline Own<LDDTypedValueView> LDDValueView::as_typed_value() const {
     ld_::ldd_assert_tag<LDTypedValue>(type_tag_);
     return doc_->wrap(
         LDDTypedValueView(doc_, value_ptr_)
@@ -90,7 +90,7 @@ inline ViewPtr<LDDTypedValueView> LDDValueView::as_typed_value() const {
 
 
 
-inline ViewPtr<LDDValueView> LDDocumentView::value() const noexcept {
+inline Own<LDDValueView> LDDocumentView::value() const noexcept {
     return wrap(
           LDDValueView{const_cast<LDDocumentView*>(this), state()->value}
     );

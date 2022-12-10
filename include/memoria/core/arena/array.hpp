@@ -162,7 +162,7 @@ public:
     Array* deep_copy_to(
             ArenaAllocator& dst,
             ShortTypeCode tag,
-            ViewPtrHolder* ptr_holder,
+            LWMemHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const
     {
         Array* existing = dedup.resolve(dst, this);

@@ -26,23 +26,23 @@ namespace memoria {
 namespace hermes {
 
 
-inline void Array<Object>::assert_mutable()
+inline void ArrayView<Object>::assert_mutable()
 {
-    if (MMA_UNLIKELY(!get_ptr_holder()->ctr()->is_mutable())) {
-        MEMORIA_MAKE_GENERIC_ERROR("Array<Object> is immutable").do_throw();
+    if (MMA_UNLIKELY(!get_mem_holder()->ctr()->is_mutable())) {
+        MEMORIA_MAKE_GENERIC_ERROR("ArrayView<Object> is immutable").do_throw();
     }
 }
 
 template <typename DT>
-void Array<DT>::assert_mutable()
+void ArrayView<DT>::assert_mutable()
 {
-    if (MMA_UNLIKELY(!this->get_ptr_holder()->ctr()->is_mutable())) {
-        MEMORIA_MAKE_GENERIC_ERROR("Array<DT> is immutable").do_throw();
+    if (MMA_UNLIKELY(!this->get_mem_holder()->ctr()->is_mutable())) {
+        MEMORIA_MAKE_GENERIC_ERROR("ArrayView<DT> is immutable").do_throw();
     }
 }
 
 
-inline ObjectPtr Array<Object>::get(uint64_t idx) const
+inline Object ArrayView<Object>::get(uint64_t idx) const
 {
     assert_not_null();
 
@@ -52,61 +52,61 @@ inline ObjectPtr Array<Object>::get(uint64_t idx) const
         if (MMA_LIKELY(ptr.is_pointer()))
         {
             if (MMA_LIKELY(ptr.is_not_null())) {
-                return ObjectPtr(Object(ptr_holder_, ptr.get()));
+                return Object(ObjectView(mem_holder_, ptr.get()));
             }
             else {
-                return ObjectPtr{};
+                return Object{};
             }
         }
         else {
             TaggedValue tv(ptr);
-            return ObjectPtr(Object(ptr_holder_, tv));
+            return Object(ObjectView(mem_holder_, tv));
         }
     }
     else {
-        MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Object>: {} {}", idx, array_->size()).do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("Range check in ArrayView<Object>: {} {}", idx, array_->size()).do_throw();
     }
 }
 
 
-inline void Array<Object>::for_each(std::function<void(const ObjectPtr&)> fn) const {
+inline void ArrayView<Object>::for_each(std::function<void(const Object&)> fn) const {
     assert_not_null();
 
     for (auto& vv: array_->span()) {
         if (vv.is_pointer())
         {
             if (vv.is_not_null()) {
-                fn(ObjectPtr(Object(ptr_holder_, vv.get())));
+                fn(Object(ObjectView(mem_holder_, vv.get())));
             }
             else {
-                fn(ObjectPtr(Object()));
+                fn(Object(ObjectView()));
             }
         }
         else {
             TaggedValue tv(vv);
-            fn(ObjectPtr(Object(ptr_holder_, tv)));
+            fn(Object(ObjectView(mem_holder_, tv)));
         }
     }
 }
 
 template <typename DT>
-ObjectArrayPtr Array<Object>::append(DTTViewType<DT> view)
+ObjectArray ArrayView<Object>::append(DTTViewType<DT> view)
 {
     assert_not_null();
     assert_mutable();
 
-    auto ctr = ptr_holder_->ctr();
+    auto ctr = mem_holder_->ctr();
     auto vv  = ctr->new_embeddable_dataobject<DT>(view);
     return append(vv->as_object());
 }
 
 
 template <typename DT>
-DataObjectPtr<DT> Array<Object>::set(uint64_t idx, DTTViewType<DT> view)
+DataObject<DT> ArrayView<Object>::set(uint64_t idx, DTTViewType<DT> view)
 {    
     assert_not_null();
     assert_mutable();
-    auto ctr = ptr_holder_->ctr();
+    auto ctr = mem_holder_->ctr();
     auto ptr = ctr->new_embeddable_dataobject<DT>(view);
     this->set(idx, ptr->as_object());
 
@@ -115,12 +115,12 @@ DataObjectPtr<DT> Array<Object>::set(uint64_t idx, DTTViewType<DT> view)
 }
 
 
-inline ObjectArrayPtr Array<Object>::append(const ObjectPtr& value)
+inline ObjectArray ArrayView<Object>::append(const Object& value)
 {
     assert_not_null();
     assert_mutable();
 
-    auto ctr = ptr_holder_->ctr();
+    auto ctr = mem_holder_->ctr();
 
     ShortTypeCode mytag = arena::read_type_tag(array_);
 
@@ -151,35 +151,36 @@ inline ObjectArrayPtr Array<Object>::append(const ObjectPtr& value)
         new_array = array_->push_back(*ctr->arena(), mytag, nullptr);
     }
 
-    return ObjectArrayPtr{ObjectArray{ptr_holder_, new_array}};
+    return ObjectArray{ObjectArrayView{mem_holder_, new_array}};
 }
 
 template <typename DT>
-ArrayPtr<DT> Array<DT>::append(const DataObjectPtr<DT>& value)
+Array<DT> ArrayView<DT>::append(const DataObject<DT>& value)
 {
     assert_not_null();
     assert_mutable();
 
-    auto ctr = ptr_holder_->ctr();
-    auto mytag = ShortTypeCode::of<Array<DT>>();
+    auto ctr = mem_holder_->ctr();
+    auto mytag = ShortTypeCode::of<ArrayView<DT>>();
     auto* new_array = array_->push_back(*ctr->arena(), mytag, *value->view());
-    return ArrayPtr<DT>{Array<DT>{ptr_holder_, new_array}};
+    return Array<DT>{ArrayView<DT>{mem_holder_, new_array}};
 }
 
 template <typename DT>
-ArrayPtr<DT> Array<DT>::append(DTTViewType<DT> value)
+Array<DT> ArrayView<DT>::append(DTTViewType<DT> value)
 {
     assert_not_null();
     assert_mutable();
 
-    auto ctr = ptr_holder_->ctr();
-    auto* new_array = array_->push_back(*ctr->arena(), value);
-    return ArrayPtr<DT>{Array<DT>{ptr_holder_, new_array}};
+    auto ctr = mem_holder_->ctr();
+    auto mytag = ShortTypeCode::of<ArrayView<DT>>();
+    auto* new_array = array_->push_back(*ctr->arena(), mytag, value);
+    return Array<DT>{ArrayView<DT>{mem_holder_, new_array}};
 }
 
 
 template <typename DT>
-void Array<DT>::set(uint64_t idx, const DataObjectPtr<DT>& value)
+void ArrayView<DT>::set(uint64_t idx, const DataObject<DT>& value)
 {
     assert_not_null();
     assert_mutable();
@@ -187,7 +188,7 @@ void Array<DT>::set(uint64_t idx, const DataObjectPtr<DT>& value)
 }
 
 template <typename DT>
-void Array<DT>::set(uint64_t idx, DTTViewType<DT> value)
+void ArrayView<DT>::set(uint64_t idx, DTTViewType<DT> value)
 {
     assert_not_null();
     assert_mutable();
@@ -195,11 +196,11 @@ void Array<DT>::set(uint64_t idx, DTTViewType<DT> value)
 }
 
 
-inline void Array<Object>::set(uint64_t idx, const ObjectPtr& value)
+inline void ArrayView<Object>::set(uint64_t idx, const Object& value)
 {
     assert_not_null();
     assert_mutable();
-    auto ctr = ptr_holder_->ctr();
+    auto ctr = mem_holder_->ctr();
 
     auto vv = ctr->do_import_value(value);
 
@@ -213,55 +214,55 @@ inline void Array<Object>::set(uint64_t idx, const ObjectPtr& value)
 }
 
 
-inline ObjectPtr Array<Object>::set_hermes(uint64_t idx, U8StringView str) {
+inline Object ArrayView<Object>::set_hermes(uint64_t idx, U8StringView str) {
   assert_not_null();
   assert_mutable();
 
   if (MMA_LIKELY(idx < array_->size()))
   {
-      auto ctr = ptr_holder_->ctr();
-      ObjectPtr vv = ctr->parse_raw_value(str.begin(), str.end());
+      auto ctr = mem_holder_->ctr();
+      Object vv = ctr->parse_raw_value(str.begin(), str.end());
       auto vv1 = ctr->do_import_value(vv);
       array_->set(idx, vv1->storage_.addr);
       return vv1;
   }
   else {
-      MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<Object>::set_hermes(): {}::{}", idx, array_->size()).do_throw();
+      MEMORIA_MAKE_GENERIC_ERROR("Range check in ArrayView<Object>::set_hermes(): {}::{}", idx, array_->size()).do_throw();
   }
 }
 
 
-inline ObjectArrayPtr Array<Object>::remove(uint64_t idx)
+inline ObjectArray ArrayView<Object>::remove(uint64_t idx)
 {
     assert_not_null();
     assert_mutable();
 
-    auto ctr = ptr_holder_->ctr();
+    auto ctr = mem_holder_->ctr();
     ShortTypeCode mytag = arena::read_type_tag(array_);
     ArrayStorageT* new_array = array_->remove(*ctr->arena_, mytag, idx);
-    return ObjectArrayPtr{ObjectArray{ptr_holder_, new_array}};
+    return ObjectArray{ObjectArrayView{mem_holder_, new_array}};
 }
 
 template <typename DT>
-ArrayPtr<DT> Array<DT>::remove(uint64_t idx)
+Array<DT> ArrayView<DT>::remove(uint64_t idx)
 {
     assert_not_null();
     assert_mutable();
 
-    auto ctr = ptr_holder_->ctr();
+    auto ctr = mem_holder_->ctr();
     ShortTypeCode mytag = arena::read_type_tag(array_);
     ArrayStorageT* new_array = array_->remove(*ctr->arena_, mytag, idx);
-    return ObjectArrayPtr{ObjectArray{ptr_holder_, new_array}};
+    return ObjectArray{ObjectArrayView{mem_holder_, new_array}};
 }
 
 
-inline PoolSharedPtr<GenericArray> Array<Object>::as_generic_array() const {
-    return TypedGenericArray<Object>::make_wrapper(ptr_holder_, array_);
+inline PoolSharedPtr<GenericArray> ArrayView<Object>::as_generic_array() const {
+    return TypedGenericArray<Object>::make_wrapper(mem_holder_, array_);
 }
 
 
 template <typename DT>
-PoolSharedPtr<GenericArray> TypedGenericArray<DT>::make_wrapper(ViewPtrHolder* ctr_holder, void* array) {
+PoolSharedPtr<GenericArray> TypedGenericArray<DT>::make_wrapper(LWMemHolder* ctr_holder, void* array) {
     using GAPoolT = pool::SimpleObjectPool<TypedGenericArray<DT>>;
     using GAPoolPtrT = boost::local_shared_ptr<GAPoolT>;
 

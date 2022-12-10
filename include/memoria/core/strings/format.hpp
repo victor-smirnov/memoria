@@ -98,16 +98,6 @@ struct formatter<memoria::U8String> {
 };
 
 template <>
-struct formatter<memoria::U8StringView> {
-    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
-
-    template <typename FormatContext>
-    auto format(const memoria::U8StringView& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", d.to_string());
-    }
-};
-
-template <>
 struct formatter<memoria::U16String> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 

@@ -26,42 +26,44 @@ namespace hermes {
 
 
 
-inline void Datatype::assert_mutable()
+inline void DatatypeView::assert_mutable()
 {
-    auto ctr = ptr_holder_->ctr();
+    auto ctr = mem_holder_->ctr();
     if (MMA_UNLIKELY(!ctr->is_mutable())) {
-        MEMORIA_MAKE_GENERIC_ERROR("Datatype is immutable").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("DatatypeView is immutable").do_throw();
     }
 }
 
 
 
-inline StringValuePtr Datatype::type_name() const {
+inline StringValue DatatypeView::type_name() const {
     assert_not_null();
-    return StringValuePtr(StringValue(ptr_holder_, datatype_->name()));
+    return StringValue(StringValueView(mem_holder_, datatype_->name()));
 }
 
 template <typename DT>
-DataObjectPtr<DT> Datatype::append_integral_parameter(DTTViewType<DT> view)
+void DatatypeView::append_integral_parameter(DTTViewType<DT> view)
 {
     static_assert (
         std::is_same_v<DT, BigInt>  ||
         std::is_same_v<DT, UBigInt> ||
+        std::is_same_v<DT, Integer>  ||
         std::is_same_v<DT, Boolean>,
     "");
 
     assert_not_null();
     assert_mutable();
 
-    ObjectArrayPtr params = type_parameters();
+    ObjectArray params = type_parameters();
 
     if (MMA_UNLIKELY(params->is_null())) {
-        auto ctr = ptr_holder_->ctr();
-        params = ctr->new_array();
+        auto ctr = mem_holder_->ctr();
+        params = ctr->make_object_array();
         datatype_->set_parameters(params->array_);
     }
 
-    return params->append(view);
+    auto new_params = params->append<DT>(view);
+    datatype_->set_parameters(new_params->array_);
 }
 
 

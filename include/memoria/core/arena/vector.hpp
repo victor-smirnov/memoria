@@ -188,7 +188,7 @@ public:
     Vector* deep_copy_to(
             ArenaAllocator& dst,
             ShortTypeCode tag,
-            ViewPtrHolder* ptr_holder,
+            LWMemHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const
     {
         Vector* existing = dedup.resolve(dst, this);

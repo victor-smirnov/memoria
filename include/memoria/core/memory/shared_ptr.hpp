@@ -104,14 +104,14 @@ public:
 
 
 
-class ViewPtrHolder {
+class LWMemHolder {
     using HolderT = SharedPtrHolder;
 
     mutable hermes::HermesCtr* ctr_;
     mutable HolderT* owner_;
     int64_t references_{};
 public:
-    ViewPtrHolder():
+    LWMemHolder():
         ctr_(),
         owner_(),
         references_()
@@ -154,64 +154,104 @@ public:
     }
 };
 
-template <typename, size_t> class ViewPtr;
+enum class OwningKind: size_t {
+    EMBEDDED = 0,
+    RESERVED = 1,
+    WRAPPING = 2,
+    HOLDING  = 3
+};
+
+template <typename, OwningKind> class Own;
+
+namespace detail {
+
+template <typename T>
+class HasGetMemHolderMethod
+{
+    typedef char one;
+    struct two { char x[2]; };
+
+    template <typename C> static one test( decltype(&C::get_mem_holder) ) ;
+    template <typename C> static two test(...);
+
+public:
+    static constexpr bool Value = sizeof(test<T>(0)) == sizeof(char);
+};
+
+}
+
+template <typename T>
+struct IsWrappingView: HasValue<bool, false> {};
+
+struct MoveOwnershipTag{};
 
 template <typename>
 class HoldingView {
 protected:
-    mutable ViewPtrHolder* ptr_holder_;
+    mutable LWMemHolder* mem_holder_;
 
-    template <typename, size_t>
-    friend class ViewPtr;
+    template <typename, OwningKind>
+    friend class Own;
+
+    template <typename>
+    friend class detail::HasGetMemHolderMethod;
 
 public:
     HoldingView() noexcept:
-        ptr_holder_()
+        mem_holder_()
     {
     }
 
-    HoldingView(ViewPtrHolder* holder) noexcept:
-        ptr_holder_(holder)
+    HoldingView(LWMemHolder* holder) noexcept:
+        mem_holder_(holder)
     {}
 
 protected:
-    ViewPtrHolder* get_ptr_holder() const noexcept {
-        return ptr_holder_;
+    LWMemHolder* get_mem_holder() const noexcept {
+        return mem_holder_;
     }
 
-    void reset_ptr_holder() noexcept {
-        ptr_holder_ = nullptr;
+    void reset_mem_holder() noexcept {
+        mem_holder_ = nullptr;
+    }
+
+    LWMemHolder* release_mem_holder() noexcept {
+        auto tmp = mem_holder_;
+        mem_holder_ = nullptr;
+        return tmp;
     }
 };
 
-enum ViewPtrKind {
-    VIEW_KIND_NON_HOLDING = 2,
-    VIEW_KIND_HOLDING = 3
-};
+
 
 template <typename ViewT>
-constexpr size_t ViewKindOf = std::is_base_of_v<HoldingView<ViewT>, ViewT>;
+constexpr OwningKind OwningKindOf = detail::HasGetMemHolderMethod<ViewT>::Value ?
+        OwningKind::HOLDING :
+            IsWrappingView<ViewT>::Value ?
+                OwningKind::WRAPPING :
+        OwningKind::EMBEDDED;
 
-template <typename ViewT, size_t IsHoldingView = ViewKindOf<ViewT>>
-class ViewPtr;
+template <typename ViewT, OwningKind IsHoldingView = OwningKindOf<ViewT>>
+class Own;
+
 
 template <typename ViewT>
-class ViewPtr<ViewT, false> {
-    using RefHolder = ViewPtrHolder;
+class Own<ViewT, OwningKind::EMBEDDED> {
+    using MemHolder = LWMemHolder;
 
     mutable ViewT view_;
-    RefHolder* ref_holder_;
+    MemHolder* mem_holder_;
 
-    template <typename, size_t>
-    friend class ViewPtr;
+    template <typename, OwningKind>
+    friend class Own;
 
 public:
     using element_type = ViewT;
 
-    ViewPtr() noexcept : view_(), ref_holder_() {}
+    Own() noexcept : view_(), mem_holder_() {}
 
-    ViewPtr(ViewT view, RefHolder* holder) noexcept :
-        view_(view), ref_holder_(holder)
+    Own(ViewT view, MemHolder* holder) noexcept :
+        view_(view), mem_holder_(holder)
     {
         if (holder) {
             holder->ref_copy();
@@ -219,101 +259,101 @@ public:
     }
 
     template<typename U>
-    ViewPtr(const ViewPtr<U, false>& other) noexcept:
+    Own(const Own<U, OwningKind::EMBEDDED>& other) noexcept:
         view_(other.view_),
-        ref_holder_(other.ref_holder_)
+        mem_holder_(other.mem_holder_)
     {
-        if (MMA_LIKELY((bool)ref_holder_)) {
-            ref_holder_->ref_copy();
+        if (MMA_LIKELY((bool)mem_holder_)) {
+            mem_holder_->ref_copy();
         }
     }
 
 
-    ViewPtr(const ViewPtr& other) noexcept:
+    Own(const Own& other) noexcept:
         view_(other.view_),
-        ref_holder_(other.ref_holder_)
+        mem_holder_(other.mem_holder_)
     {
-        if (MMA_LIKELY((bool)ref_holder_)) {
-            ref_holder_->ref_copy();
+        if (MMA_LIKELY((bool)mem_holder_)) {
+            mem_holder_->ref_copy();
         }
     }
 
 
-    ViewPtr(ViewPtr&& other) noexcept:
-        view_(other.view_), ref_holder_(other.ref_holder_)
+    Own(Own&& other) noexcept:
+        view_(other.view_), mem_holder_(other.mem_holder_)
     {
-        other.ref_holder_ = nullptr;
+        other.mem_holder_ = nullptr;
     }
 
     template<typename U>
-    ViewPtr(ViewPtr<U, false>&& other) noexcept:
-        view_(other.view_), ref_holder_(other.ref_holder_)
+    Own(Own<U, OwningKind::EMBEDDED>&& other) noexcept:
+        view_(other.view_), mem_holder_(other.mem_holder_)
     {
-        other.ref_holder_ = nullptr;
+        other.mem_holder_ = nullptr;
     }
 
-    ~ViewPtr() noexcept {
-        if (ref_holder_) {
-            ref_holder_->unref();
+    ~Own() noexcept {
+        if (mem_holder_) {
+            mem_holder_->unref();
         }
     }
 
-    ViewPtr& operator=(const ViewPtr& other) noexcept {
+    Own& operator=(const Own& other) noexcept {
         if (MMA_LIKELY(&other != this))
         {
-            if (ref_holder_) {
-                ref_holder_->unref();
+            if (mem_holder_) {
+                mem_holder_->unref();
             }
 
             view_ = other.view_;
-            ref_holder_ = other.ref_holder_;
+            mem_holder_ = other.mem_holder_;
 
-            if (ref_holder_){
-                ref_holder_->ref_copy();
+            if (mem_holder_){
+                mem_holder_->ref_copy();
             }
         }
 
         return *this;
     }
 
-    ViewPtr& operator=(ViewPtr&& other) noexcept {
+    Own& operator=(Own&& other) noexcept {
         if (MMA_LIKELY(&other != this))
         {
-            if (MMA_UNLIKELY(ref_holder_ != nullptr)) {
-                ref_holder_->unref();
+            if (MMA_UNLIKELY(mem_holder_ != nullptr)) {
+                mem_holder_->unref();
             }
 
             view_ = other.view_;
-            ref_holder_ = other.ref_holder_;
-            other.ref_holder_ = nullptr;
+            mem_holder_ = other.mem_holder_;
+            other.mem_holder_ = nullptr;
         }
 
         return *this;
     }
 
     void reset() noexcept {
-        if (ref_holder_) {
-            ref_holder_->unref();
-            ref_holder_ = nullptr;
+        if (mem_holder_) {
+            mem_holder_->unref();
+            mem_holder_ = nullptr;
         }
     }
 
-    RefHolder* release_holder()
+    MemHolder* release_holder()
     {
-        RefHolder* tmp = ref_holder_;
-        ref_holder_ = nullptr;
+        MemHolder* tmp = mem_holder_;
+        mem_holder_ = nullptr;
         view_ = ViewT{};
         return tmp;
     }
 
-    friend void swap(ViewPtr& lhs, ViewPtr& rhs) {
+    friend void swap(Own& lhs, Own& rhs) {
         std::swap(lhs.view_, rhs.view_);
-        std::swap(lhs.ref_holder_, rhs.ref_holder_);
+        std::swap(lhs.mem_holder_, rhs.mem_holder_);
     }
 
     auto use_count() const {
-        if (ref_holder_) {
-            return ref_holder_->refs();
+        if (mem_holder_) {
+            return mem_holder_->refs();
         }
         else {
             return 0;
@@ -330,222 +370,70 @@ public:
     const ViewT* get() const {return &view_;}
 
     bool is_empty() const {
-        return ref_holder_ == nullptr;
+        return mem_holder_ == nullptr;
     }
 
     bool is_not_empty() const {
-        return ref_holder_ != nullptr;
+        return mem_holder_ != nullptr;
     }
 };
 
 
 template <typename ViewT>
-class ViewPtr<ViewT, true> {
-    using RefHolder = ViewPtrHolder;
+class Own<ViewT, OwningKind::WRAPPING>: public ViewT {
 
-    mutable ViewT view_;
-
-    template <typename, size_t>
-    friend class ViewPtr;
-
-public:
-    using element_type = ViewT;
-
-    ViewPtr() noexcept : view_() {}
-
-    ViewPtr(ViewT view) noexcept :
-        view_(view)
-    {
-        RefHolder* holder = view_.get_ptr_holder();
-        if (holder) {
-            holder->ref_copy();
-        }
-    }
-
-    template<typename U>
-    ViewPtr(const ViewPtr<U, true>& other) noexcept:
-        view_(other.view_)
-    {
-        RefHolder* holder = view_.get_ptr_holder();
-        if (MMA_LIKELY((bool)holder)) {
-            holder->ref_copy();
-        }
-    }
-
-
-    ViewPtr(const ViewPtr& other) noexcept:
-        view_(other.view_)
-    {
-        RefHolder* holder = view_.get_ptr_holder();
-        if (MMA_LIKELY((bool)holder)) {
-            holder->ref_copy();
-        }
-    }
-
-
-    ViewPtr(ViewPtr&& other) noexcept:
-        view_(other.view_)
-    {
-        other.view_.reset_ptr_holder();
-    }
-
-    template<typename U>
-    ViewPtr(ViewPtr<U, true>&& other) noexcept:
-        view_(other.view_)
-    {
-        other.view_.reset_ptr_holder();
-    }
-
-    ~ViewPtr() noexcept
-    {
-        RefHolder* holder = view_.get_ptr_holder();
-        if (holder) {
-            holder->unref();
-        }
-    }
-
-    ViewPtr& operator=(const ViewPtr& other) noexcept {
-        if (MMA_LIKELY(&other != this))
-        {
-            RefHolder* holder = view_.get_ptr_holder();
-
-            if (holder) {
-                holder->unref();
-            }
-
-            view_ = other.view_;
-
-            holder = view_.get_ptr_holder();
-            if (holder){
-                holder->ref_copy();
-            }
-        }
-
-        return *this;
-    }
-
-    ViewPtr& operator=(ViewPtr&& other) noexcept {
-        if (MMA_LIKELY(&other != this))
-        {
-            RefHolder* holder = view_.get_ptr_holder();
-
-            if (MMA_UNLIKELY(holder != nullptr)) {
-                holder->unref();
-            }
-
-            view_ = other.view_;
-
-            other.view_.reset_ptr_holder();
-        }
-
-        return *this;
-    }
-
-    void reset() noexcept
-    {
-        RefHolder* holder = view_.get_ptr_holder();
-        if (holder) {
-            holder->unref();
-            view_.reset_ptr_holder();
-        }
-    }
-
-    RefHolder* release_holder()
-    {
-        RefHolder* tmp = view_.get_ptr_holder();
-        view_ = ViewT{};
-        return tmp;
-    }
-
-    friend void swap(ViewPtr& lhs, ViewPtr& rhs) {
-        std::swap(lhs.view_, rhs.view_);
-    }
-
-    auto use_count() const {
-        RefHolder* holder = view_.get_ptr_holder();
-        if (holder) {
-            return holder->refs();
-        }
-        else {
-            return 0;
-        }
-    }
-
-    ViewT* operator->() {return &view_;}
-    ViewT* operator->() const {return &view_;}
-
-    ViewT& operator*() {return view_;}
-    ViewT& operator*() const {return view_;}
-
-    ViewT* get() {return &view_;}
-    const ViewT* get() const {return &view_;}
-
-    bool is_empty() const {
-        return view_.get_ptr_holder() == nullptr;
-    }
-
-    bool is_not_empty() const {
-        return view_.get_ptr_holder() != nullptr;
-    }
-};
-
-
-
-template <typename ViewT>
-class ViewPtr<ViewT, VIEW_KIND_NON_HOLDING>: public ViewT {
-
-    using RefHolder = ViewPtrHolder;
+    using MemHolder = LWMemHolder;
     using Base = ViewT;
 
-    template <typename, size_t>
-    friend class ViewPtr;
+    template <typename, OwningKind>
+    friend class Own;
 
 public:
     using element_type = ViewT;
 
-    ViewPtr() noexcept : Base() {}
+    Own() noexcept : Base() {}
 
     template <typename... Args>
-    ViewPtr(RefHolder* holder, Args&&... args):
+    Own(MemHolder* holder, Args&&... args):
         Base(std::forward<Args>(args)...)
     {}
 
     template <typename... Args>
-    ViewPtr(Args&&... args):
+    Own(Args&&... args):
         Base(std::forward<Args>(args)...)
     {}
 
     template<typename U>
-    ViewPtr(const ViewPtr<U, VIEW_KIND_NON_HOLDING>& other):
+    Own(const Own<U, OwningKind::WRAPPING>& other):
         Base(*static_cast<const U*>(&other))
     {}
 
 
-    ViewPtr(const ViewPtr& other):
+    Own(const Own& other):
         Base(*static_cast<const ViewT*>(&other))
     {}
 
-    ViewPtr(ViewPtr&& other):
+    Own(Own&& other):
         Base(std::move(*static_cast<const ViewT*>(&other)))
     {}
 
     template<typename U>
-    ViewPtr(ViewPtr<U, VIEW_KIND_NON_HOLDING>&& other) noexcept:
+    Own(Own<U, OwningKind::WRAPPING>&& other) noexcept:
         Base(std::move(other))
     {}
 
     template <typename U>
-    ViewPtr& operator=(const U& other){
+    Own& operator=(const U& other){
         Base::operator=(other);
         return *this;
     }
 
-    ViewPtr& operator=(const ViewPtr& other){
+    Own& operator=(const Own& other){
         Base::operator=(*static_cast<const ViewT*>(&other));
         return *this;
     }
 
-    ViewPtr& operator=(ViewPtr&& other){
+    Own& operator=(Own&& other){
         Base::operator=(std::move(*static_cast<const ViewT*>(&other)));
         return *this;
     }
@@ -555,7 +443,7 @@ public:
         return Base::operator==(other);
     }
 
-    bool operator==(const ViewPtr& other) {
+    bool operator==(const Own& other) {
         return Base::operator==(*static_cast<const ViewT*>(&other));
     }
 
@@ -563,11 +451,11 @@ public:
         *this = {};
     }
 
-    RefHolder* release_holder() {
+    MemHolder* release_holder() {
         return {};
     }
 
-    friend void swap(ViewPtr& lhs, ViewPtr& rhs)
+    friend void swap(Own& lhs, Own& rhs)
     {
         swap(
             *static_cast<ViewT*>(&lhs),
@@ -591,74 +479,83 @@ public:
 
 
 template <typename ViewT>
-class ViewPtr<ViewT, VIEW_KIND_HOLDING>: public ViewT {
-    using RefHolder = ViewPtrHolder;
+class Own<ViewT, OwningKind::HOLDING>: public ViewT {
+    using MemHolder = LWMemHolder;
     using Base = ViewT;
 
-    template <typename, size_t>
-    friend class ViewPtr;
+    template <typename, OwningKind>
+    friend class Own;
 
 public:
     using element_type = ViewT;
 
-    ViewPtr() noexcept : Base() {}
+    Own() noexcept : Base() {}
 
-    ViewPtr(ViewT view) noexcept :
+    template <typename... Args>
+    Own(MemHolder* holder, Args&&... args):
+        Base(holder, std::forward<Args>(args)...)
+    {
+        if (holder) {
+            holder->ref_copy();
+        }
+    }
+
+    Own(ViewT view) noexcept :
         Base(view)
     {
-        RefHolder* holder = this->get_ptr_holder();
+        MemHolder* holder = this->get_mem_holder();
         if (holder) {
             holder->ref_copy();
         }
     }
 
     template<typename U>
-    ViewPtr(const ViewPtr<U, VIEW_KIND_HOLDING>& other) noexcept:
+    Own(const Own<U, OwningKind::HOLDING>& other) noexcept:
         Base(*static_cast<const U*>(&other))
     {
-        RefHolder* holder = this->get_ptr_holder();
+        MemHolder* holder = this->get_mem_holder();
         if (MMA_LIKELY((bool)holder)) {
             holder->ref_copy();
         }
     }
 
 
-    ViewPtr(const ViewPtr& other) noexcept:
+    Own(const Own& other) noexcept:
         Base(*static_cast<const ViewT*>(&other))
     {
-        RefHolder* holder = this->get_ptr_holder();
+        MemHolder* holder = this->get_mem_holder();
         if (MMA_LIKELY((bool)holder)) {
             holder->ref_copy();
         }
     }
 
 
-    ViewPtr(ViewPtr&& other) noexcept:
+    Own(Own&& other) noexcept:
         Base(std::move(*static_cast<ViewT*>(&other)))
     {
-        other.view_.reset_ptr_holder();
+        other.reset_mem_holder();
     }
 
     template<typename U>
-    ViewPtr(ViewPtr<U, VIEW_KIND_HOLDING>&& other) noexcept:
+    Own(Own<U, OwningKind::HOLDING>&& other) noexcept:
         Base(*static_cast<U*>(&other))
     {
-        other.view_.reset_ptr_holder();
+        other.reset_mem_holder();
     }
 
-    ~ViewPtr() noexcept
+    ~Own() noexcept
     {
-        RefHolder* holder = this->get_ptr_holder();
+        MemHolder* holder = this->get_mem_holder();
         if (holder) {
             holder->unref();
         }
     }
 
-    ViewPtr& operator=(const ViewPtr& other) noexcept
+    Own& operator=(const Own& other) noexcept
     {
         if (MMA_LIKELY(&other != this))
         {
-            RefHolder* holder = this->get_ptr_holder();
+            MemHolder* holder = this->get_mem_holder();
 
             if (holder) {
                 holder->unref();
@@ -666,7 +563,7 @@ public:
 
             *static_cast<ViewT*>(this) = *static_cast<const ViewT*>(&other);
 
-            holder = this->get_ptr_holder();
+            holder = this->get_mem_holder();
             if (holder){
                 holder->ref_copy();
             }
@@ -675,11 +572,11 @@ public:
         return *this;
     }
 
-    ViewPtr& operator=(ViewPtr&& other) noexcept
+    Own& operator=(Own&& other) noexcept
     {
         if (MMA_LIKELY(&other != this))
         {
-            RefHolder* holder = this->get_ptr_holder();
+            MemHolder* holder = this->get_mem_holder();
 
             if (MMA_UNLIKELY(holder != nullptr)) {
                 holder->unref();
@@ -687,7 +584,7 @@ public:
 
             *static_cast<ViewT*>(this) = std::move(*static_cast<const ViewT*>(&other));
 
-            other->reset_ptr_holder();
+            other.reset_mem_holder();
         }
 
         return *this;
@@ -695,26 +592,29 @@ public:
 
     void reset() noexcept
     {
-        RefHolder* holder = this->get_ptr_holder();
+        MemHolder* holder = this->get_mem_holder();
         if (holder) {
             holder->unref();
-            this->reset_ptr_holder();
+            this->reset_mem_holder();
         }
     }
 
-    RefHolder* release_holder()
+    MemHolder* release_holder()
     {
-        RefHolder* tmp = this->get_ptr_holder();
+        MemHolder* tmp = this->get_mem_holder();
         *static_cast<ViewT*>(this) = ViewT{};
         return tmp;
     }
 
-    friend void swap(ViewPtr& lhs, ViewPtr& rhs) {
-        std::swap(lhs.view_, rhs.view_);
+    friend void swap(Own& lhs, Own& rhs) {
+        std::swap(
+            *static_cast<ViewT*>(&lhs),
+            *static_cast<ViewT*>(&rhs)
+        );
     }
 
     auto use_count() const {
-        RefHolder* holder = this->get_ptr_holder();
+        MemHolder* holder = this->get_mem_holder();
         if (holder) {
             return holder->refs();
         }
@@ -724,23 +624,21 @@ public:
     }
 
     ViewT* operator->() {return this;}
-    ViewT* operator->() const {return this;}
+    const ViewT* operator->() const {return this;}
 
-    ViewT& operator*() {return this;}
-    ViewT& operator*() const {return this;}
+    ViewT& operator*() {return *this;}
+    const ViewT& operator*() const {return *this;}
 
     ViewT* get() {return &this;}
     const ViewT* get() const {return &this;}
 
-    bool is_null() const {
-        return this->get_ptr_holder() == nullptr;
+    bool is_empty() const {
+        return this->get_mem_holder() == nullptr;
     }
 
-    bool is_not_null() const {
-        return this->get_ptr_holder() != nullptr;
+    bool is_not_empty() const {
+        return this->get_mem_holder() != nullptr;
     }
 };
-
-
 
 }

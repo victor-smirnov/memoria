@@ -33,7 +33,7 @@ namespace memoria {
 namespace hermes {
 
 template <typename V>
-class Array;
+class ArrayView;
 
 template <typename ArrayT, typename ValueT>
 struct ArrayAccessor {
@@ -51,27 +51,27 @@ struct ArrayAccessor {
 };
 
 template <>
-class Array<Object>: public HoldingView<Array<Object>> {
-    using Base = HoldingView<Array<Object>>;
+class ArrayView<Object>: public HoldingView<ArrayView<ObjectView>> {
+    using Base = HoldingView<ArrayView<ObjectView>>;
 public:    
     using ArrayStorageT = arena::Array<arena::ERelativePtr>;
 protected:
     static_assert(std::is_standard_layout_v<ArrayStorageT>, "");
 
     mutable ArrayStorageT* array_;
-    using Base::ptr_holder_;
+    using Base::mem_holder_;
 
     friend class HermesCtrImpl;
     friend class HermesCtr;
-    friend class Object;
+    friend class ObjectView;
 
     template <typename, typename>
-    friend class Map;
+    friend class MapView;
 
     template <typename>
-    friend class Array;
+    friend class ArrayView;
 
-    friend class Datatype;
+    friend class DatatypeView;
 
     template <typename>
     friend class TypedGenericArray;
@@ -79,16 +79,16 @@ protected:
     friend class memoria::hermes::path::interpreter::Interpreter;
     friend class HermesCtrBuilder;
 
-    using Accessor = ArrayAccessor<ObjectArrayPtr, ObjectPtr>;
+    using Accessor = ArrayAccessor<ObjectArray, Object>;
 public:
     using iterator = RandomAccessIterator<Accessor>;
     using const_iterator = iterator;
 
-    Array() noexcept:
+    ArrayView() noexcept:
         array_()
     {}
 
-    Array(ViewPtrHolder* ref_holder, void* array) noexcept:
+    ArrayView(LWMemHolder* ref_holder, void* array) noexcept:
         Base(ref_holder),
         array_(reinterpret_cast<ArrayStorageT*>(array))
     {}
@@ -115,21 +115,21 @@ public:
 
     PoolSharedPtr<GenericArray> as_generic_array() const;
 
-    ObjectArrayPtr self() const {
-        return ObjectArrayPtr(ObjectArray(ptr_holder_, array_));
+    ObjectArray self() const {
+        return ObjectArray(ObjectArrayView(mem_holder_, array_));
     }
 
     PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
         return PoolSharedPtr<HermesCtr>(
-                    ptr_holder_->ctr(),
-                    ptr_holder_->owner(),
+                    mem_holder_->ctr(),
+                    mem_holder_->owner(),
                     pool::DoRef{}
         );
     }
 
-    ObjectPtr as_object() const {
-        return ObjectPtr(Object(ptr_holder_, array_));
+    Object as_object() const {
+        return Object(ObjectView(mem_holder_, array_));
     }
 
     uint64_t size() const {
@@ -147,21 +147,21 @@ public:
         return array_->size() == 0;
     }
 
-    ObjectPtr get(uint64_t idx) const;
+    Object get(uint64_t idx) const;
 
     template <typename DT>
-    ObjectArrayPtr append(DTTViewType<DT> view);
-    ObjectPtr set_hermes(uint64_t idx, U8StringView str);
+    ObjectArray append(DTTViewType<DT> view);
+    Object set_hermes(uint64_t idx, U8StringView str);
 
-    ObjectArrayPtr append(const ObjectPtr& value);
-    void set(uint64_t idx, const ObjectPtr& value);
+    ObjectArray append(const Object& value);
+    void set(uint64_t idx, const Object& value);
 
 
     template <typename DT>
-    DataObjectPtr<DT> set(uint64_t idx, DTTViewType<DT> view);
+    DataObject<DT> set(uint64_t idx, DTTViewType<DT> view);
     void set_null(uint64_t idx);
 
-    ObjectArrayPtr remove(uint64_t idx);
+    ObjectArray remove(uint64_t idx);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state) const
@@ -196,7 +196,7 @@ public:
         return simple;
     }
 
-    void for_each(std::function<void(const ViewPtr<Object>&)> fn) const;
+    void for_each(std::function<void(const Object&)> fn) const;
 
     bool is_null() const {
         return array_ == nullptr;
@@ -208,13 +208,21 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return array_->deep_copy_to(arena, ShortTypeCode::of<Array>(), ptr_holder_, dedup);
+        return array_->deep_copy_to(arena, ShortTypeCode::of<ArrayView>(), mem_holder_, dedup);
+    }
+
+    operator Object() const & noexcept {
+        return as_object();
+    }
+
+    operator Object() && noexcept {
+        return Object(this->release_mem_holder(), array_, MoveOwnershipTag{});
     }
 
 private:
     void assert_not_null() const {
         if (MMA_UNLIKELY(array_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("Array<Object> is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("ArrayView<Object> is null").do_throw();
         }
     }
 
@@ -257,10 +265,10 @@ private:
 
 template<>
 class TypedGenericArray<Object>: public GenericArray, public pool::enable_shared_from_this<TypedGenericArray<Object>> {
-    ViewPtrHolder* ctr_holder_;
-    mutable Array<Object> array_;
+    LWMemHolder* ctr_holder_;
+    mutable ArrayView<Object> array_;
 public:
-    TypedGenericArray(ViewPtrHolder* ctr_holder, void* array):
+    TypedGenericArray(LWMemHolder* ctr_holder, void* array):
         ctr_holder_(ctr_holder),
         array_(ctr_holder, array)
     {
@@ -275,15 +283,15 @@ public:
         return array_.size();
     }
 
-    virtual ObjectPtr get(uint64_t idx) const {
+    virtual Object get(uint64_t idx) const {
         return array_.get(idx);
     }
 
-    virtual void set(uint64_t idx, const ObjectPtr& value) {
+    virtual void set(uint64_t idx, const Object& value) {
         array_.set(idx, value);
     }
 
-    virtual GenericArrayPtr push_back(const ObjectPtr& value)
+    virtual GenericArrayPtr push_back(const Object& value)
     {
         auto new_array = array_.append(value);
         if (MMA_LIKELY(new_array->array_ == array_.array_)) {
@@ -320,14 +328,14 @@ public:
     }
 
     virtual PoolSharedPtr<GenericMap> as_map() const {
-        MEMORIA_MAKE_GENERIC_ERROR("Can't convert Array<Object> to GenericMap").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("Can't convert ArrayView<Object> to GenericMap").do_throw();
     }
 
-    virtual ObjectPtr as_object() const {
+    virtual Object as_object() const {
         return array_.as_object();
     }
 
-    static PoolSharedPtr<GenericArray> make_wrapper(ViewPtrHolder* ctr_holder, void* array);
+    static PoolSharedPtr<GenericArray> make_wrapper(LWMemHolder* ctr_holder, void* array);
 };
 
 

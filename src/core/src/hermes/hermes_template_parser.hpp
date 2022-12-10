@@ -45,18 +45,18 @@ struct TplSpaceData {
 struct TemplateConstants: public TplASTCodes {
     using IteratorT = boost::u8_to_u32_iterator<U8StringView::const_iterator>;
 
-    using ASTNodePtr = TinyObjectMapPtr;
+    using ASTNodePtr = TinyObjectMap;
 
     static ASTNodePtr new_ast_node(const NamedCode& code) {
-        auto map = current_ctr()->new_tiny_map(8);
+        auto map = current_ctr()->make_tiny_map(8);
         map = map->put_dataobject<Integer>(CODE, code.code());
         map = map->put_dataobject<Varchar>(NODE_NAME_ATTR, code.name());
         return map;
     }
 
-    static ObjectArrayPtr new_object_array(const std::vector<path::ast::HermesValueNode>& array)
+    static ObjectArray new_object_array(const std::vector<path::ast::HermesValueNode>& array)
     {
-        auto harray = current_ctr()->new_array();
+        auto harray = current_ctr()->make_object_array();
         for (auto& item: array) {
             harray->append(std::move(item.value));
         }
@@ -193,7 +193,7 @@ struct TemplateConstants: public TplASTCodes {
         return val.is_initialized() && val.get();
     }
 
-    static bool is_strip_space(const TinyObjectMapPtr& map, const NamedCode& prop)
+    static bool is_strip_space(const TinyObjectMap& map, const NamedCode& prop)
     {
         auto val = map->get(prop);
         if (val->is_not_null()) {
@@ -203,7 +203,7 @@ struct TemplateConstants: public TplASTCodes {
     }
 
 
-    static bool is_preserve_line(const TinyObjectMapPtr& map, const NamedCode& prop)
+    static bool is_preserve_line(const TinyObjectMap& map, const NamedCode& prop)
     {
         auto val = map->get(prop);
         if (val->is_not_null()) {
@@ -212,7 +212,7 @@ struct TemplateConstants: public TplASTCodes {
         return false;
     }
 
-    static void update_string(ObjectArrayPtr& array, size_t idx, U8StringView out, U8StringView str) {
+    static void update_string(ObjectArray& array, size_t idx, U8StringView out, U8StringView str) {
         if (out.length() != str.length()) {
             array->set(
                 idx,
@@ -221,11 +221,11 @@ struct TemplateConstants: public TplASTCodes {
         }
     }
 
-    static ObjectPtr process_inner_space(const ObjectPtr& stmts, Optional<bool> top, Optional<bool> bottom)
+    static Object process_inner_space(const Object& stmts, Optional<bool> top, Optional<bool> bottom)
     {
         if (stmts->is_varchar())
         {
-            StringValuePtr txt = stmts->as_varchar();
+            StringValue txt = stmts->as_varchar();
             U8StringView out = *txt->view();
 
             if (is_strip_space(top)) {
@@ -248,7 +248,7 @@ struct TemplateConstants: public TplASTCodes {
         }
         else if (stmts->is_object_array())
         {
-            ObjectArrayPtr array = stmts->as_object_array();
+            ObjectArray array = stmts->as_object_array();
             if (array->size() == 0) {
                 return {};
             }
@@ -260,10 +260,10 @@ struct TemplateConstants: public TplASTCodes {
             }
             else
             {
-                ObjectPtr blk_start = array->get(0);
+                Object blk_start = array->get(0);
                 if (blk_start->is_varchar())
                 {
-                    StringValuePtr str = blk_start->as_varchar();
+                    StringValue str = blk_start->as_varchar();
                     if (is_strip_space(top))
                     {
                         U8StringView out = strip_start_ws(*str->view());
@@ -276,10 +276,10 @@ struct TemplateConstants: public TplASTCodes {
                     }
                 }
 
-                ObjectPtr blk_end = array->get(array->size() - 1);
+                Object blk_end = array->get(array->size() - 1);
                 if (blk_end->is_varchar())
                 {
-                    StringValuePtr str = blk_end->as_varchar();
+                    StringValue str = blk_end->as_varchar();
 
                     if (is_strip_space(bottom))
                     {
@@ -300,22 +300,22 @@ struct TemplateConstants: public TplASTCodes {
 
 
 
-    static void process_outer_space(ObjectPtr blocks)
+    static void process_outer_space(Object blocks)
     {
         if (blocks->is_object_array())
         {
-            ObjectArrayPtr array = blocks->as_object_array();
+            ObjectArray array = blocks->as_object_array();
             for (size_t c = 1; c < array->size(); c++)
             {
-                ObjectPtr item = array->get(c);
+                Object item = array->get(c);
                 if (item->is_tiny_object_map())
                 {
-                    ObjectPtr prev = array->get(c - 1);
-                    ObjectPtr next = ((c + 1) < array->size()) ? array->get(c + 1) : ObjectPtr{};
+                    Object prev = array->get(c - 1);
+                    Object next = ((c + 1) < array->size()) ? array->get(c + 1) : Object{};
                     if (prev->is_varchar() || next->is_varchar())
                     {
-                        TinyObjectMapPtr map = item->as_tiny_object_map();
-                        ObjectPtr code = map->get(CODE);
+                        TinyObjectMap map = item->as_tiny_object_map();
+                        Object code = map->get(CODE);
                         if (code->is_not_null())
                         {
                             int32_t icode = code->to_i32();
@@ -365,7 +365,7 @@ struct TemplateConstants: public TplASTCodes {
     }
 
 
-    static TinyObjectMapPtr put(const TinyObjectMapPtr& map, const NamedCode& code, const Optional<bool>& val)
+    static TinyObjectMap put(TinyObjectMap& map, const NamedCode& code, const Optional<bool>& val)
     {
         if (val.is_initialized()) {
             return map->put_dataobject<Boolean>(code, val.get());
@@ -374,8 +374,8 @@ struct TemplateConstants: public TplASTCodes {
         return map;
     }
 
-    static TinyObjectMapPtr put_space_data(
-            const TinyObjectMapPtr& map,
+    static TinyObjectMap put_space_data(
+            TinyObjectMap& map,
             const NamedCode& left_code,
             const NamedCode& right_code,
             const TplSpaceData& data
@@ -384,9 +384,9 @@ struct TemplateConstants: public TplASTCodes {
         return put(map1, right_code, data.right_space);
     }
 
-    static Optional<bool> get_bool(const TinyObjectMapPtr& map, const NamedCode& code)
+    static Optional<bool> get_bool(const TinyObjectMap& map, const NamedCode& code)
     {
-        ObjectPtr val = map->get(code);
+        Object val = map->get(code);
         if (val->is_not_null()) {
             return val->to_bool();
         }
@@ -394,14 +394,14 @@ struct TemplateConstants: public TplASTCodes {
         return {};
     }
 
-    static Optional<bool> get_if_bottom_inner_space(const TinyObjectMapPtr& map)
+    static Optional<bool> get_if_bottom_inner_space(const TinyObjectMap& map)
     {
         auto obj = map->get(BOTTOM_INNER_SPACE);
         if (obj->is_not_null()) {
             return obj->to_bool();
         }
         else {
-            ObjectPtr else_stmt = map->get(ELSE);
+            Object else_stmt = map->get(ELSE);
             if (else_stmt->is_not_null())
             {
                 return get_bool(else_stmt->as_tiny_object_map(), TOP_OUTER_SPACE);
@@ -411,14 +411,14 @@ struct TemplateConstants: public TplASTCodes {
         }
     }
 
-    static Optional<bool> get_bottom_outer_space(const TinyObjectMapPtr& map)
+    static Optional<bool> get_bottom_outer_space(const TinyObjectMap& map)
     {
         auto obj = map->get(BOTTOM_OUTER_SPACE);
         if (obj->is_not_null()) {
             return obj->to_bool();
         }
         else {
-            ObjectPtr else_stmt = map->get(ELSE);
+            Object else_stmt = map->get(ELSE);
             if (else_stmt->is_not_null()) {
                 return get_bottom_outer_space(else_stmt->as_tiny_object_map());
             }
@@ -440,9 +440,9 @@ struct TemplateConstants: public TplASTCodes {
 struct TplForStatement: TemplateConstants {
     Optional<bool> top_outer_space;
     path::ast::IdentifierNode variable;
-    ObjectPtr expression;
+    Object expression;
     Optional<bool> top_inner_space;
-    ObjectPtr blocks;
+    Object blocks;
     TplSpaceData bottom_space_data;
 
     operator path::ast::HermesValueNode() const
@@ -475,7 +475,7 @@ struct TplForStatement: TemplateConstants {
 struct TplSetStatement: TemplateConstants {
     Optional<bool> top_outer_space;
     path::ast::IdentifierNode variable;
-    ObjectPtr expression;
+    Object expression;
     Optional<bool> bottom_outer_space;
 
     operator path::ast::HermesValueNode() const
@@ -493,7 +493,7 @@ struct TplSetStatement: TemplateConstants {
 };
 
 struct TplVarStatement: TemplateConstants {
-    ObjectPtr expression;
+    Object expression;
 
     operator path::ast::HermesValueNode() const
     {
@@ -515,7 +515,7 @@ using TplIfAltBranch = boost::variant<
 
 struct TplElseStatement: TemplateConstants {
     Optional<bool> top_outer_space;
-    ObjectPtr blocks;
+    Object blocks;
     Optional<bool> top_inner_space;
     TplSpaceData bottom_space_data;
 
@@ -540,14 +540,14 @@ struct TplElseStatement: TemplateConstants {
 
 struct TplIfStatement: TemplateConstants {
     Optional<bool> top_outer_space;
-    ObjectPtr expression;
+    Object expression;
     Optional<bool> top_inner_space;
-    ObjectPtr blocks;
+    Object blocks;
 
     TplIfAltBranch alt_branch;
 
     struct AltOp {
-        ObjectPtr value;
+        Object value;
         NamedCode prop{ELSE};
     };
 
@@ -594,9 +594,9 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplForStatement,
     (memoria::Optional<bool>, top_outer_space)
     (memoria::hermes::path::ast::IdentifierNode, variable)
-    (memoria::hermes::ObjectPtr, expression)
+    (memoria::hermes::Object, expression)
     (memoria::Optional<bool>, top_inner_space)
-    (memoria::hermes::ObjectPtr, blocks)
+    (memoria::hermes::Object, blocks)
     (memoria::hermes::TplSpaceData, bottom_space_data)
 )
 
@@ -604,21 +604,21 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplSetStatement,
     (memoria::Optional<bool>, top_outer_space)
     (memoria::hermes::path::ast::IdentifierNode, variable)
-    (memoria::hermes::ObjectPtr, expression)
+    (memoria::hermes::Object, expression)
     (memoria::Optional<bool>, bottom_outer_space)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplVarStatement,
-    (memoria::hermes::ObjectPtr, expression)
+    (memoria::hermes::Object, expression)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplIfStatement,
     (memoria::Optional<bool>, top_outer_space)
-    (memoria::hermes::ObjectPtr, expression)
+    (memoria::hermes::Object, expression)
     (memoria::Optional<bool>, top_inner_space)
-    (memoria::hermes::ObjectPtr, blocks)
+    (memoria::hermes::Object, blocks)
     (memoria::hermes::TplIfAltBranch, alt_branch)
 )
 
@@ -626,7 +626,7 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplElseStatement,
     (memoria::Optional<bool>, top_outer_space)
     (memoria::Optional<bool>, top_inner_space)
-    (memoria::hermes::ObjectPtr, blocks)
+    (memoria::hermes::Object, blocks)
     (memoria::hermes::TplSpaceData, bottom_space_data)
 )
 

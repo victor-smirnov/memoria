@@ -71,19 +71,18 @@ int main(int, char**)
         Suffix
 )");
 
-
     println("{}", tpl->to_string(StringifyCfg::pretty().with_raw_strings(false)));
 
     auto data = HermesCtr::parse_document(R"({
         array1: {
-            array2: <Double> [1] //1, 2, 3.54321, 4, 5
+            array2: <memoria::Double> [1] //1, 2, 3.54321, 4, 5
         }
     })");
 
     render(tpl->root(), data->root(), std::cout);
 
     using DblView    = NumberView<double, ViewKind::BY_VALUE>;
-    using DblViewPtr = ViewPtr<DblView, VIEW_KIND_NON_HOLDING>;
+    using DblViewPtr = Own<DblView>;
 
     DblViewPtr v1(0.123456);
     DblViewPtr v2(1.0);
@@ -101,6 +100,25 @@ int main(int, char**)
     println("{}", v3);
     println("{}", v4);
     println("{} :: {}", vsum, TypeNameFactory<decltype(vsum)>::name());
+
+
+    std::vector<double> vals = {1,2,3,4,5};
+
+
+    auto docx = HermesCtr::make_new();
+    std::vector<Object> objs = {
+        docx->make(1),
+        docx->make(2.3456),
+        docx->make("hello world"),
+        docx->make(true),
+    };
+
+    //auto val = doc->make<double>(12345);
+
+    auto val = docx->make_array_t<BigInt>(vals);
+    println("{}", val.as_object().to_pretty_string());
+
+    Object obj = val;
 
     return 0;
 }

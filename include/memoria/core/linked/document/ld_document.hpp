@@ -73,7 +73,7 @@ protected:
     using DocumentPtr   = ld_::LDPtr<DocumentState>;
 
     ld_::LDArenaView arena_;
-    mutable ViewPtrHolder* owner_{};
+    mutable LWMemHolder* owner_{};
 
     friend class LDHermesCtrBuilder;
     friend class LDDMapView;
@@ -107,7 +107,7 @@ protected:
     template <typename> friend class OwningViewCfg;
 
 protected:
-    void configure_resource_owner(ViewPtrHolder* owner) {
+    void configure_resource_owner(LWMemHolder* owner) {
         owner_ = owner;
     }
 
@@ -121,8 +121,8 @@ public:
     virtual ~LDDocumentView() noexcept = default;
 
     template <typename View>
-    ViewPtr<View> wrap(const View& view) const {
-        return ViewPtr<View>(view, owner_);
+    Own<View> wrap(const View& view) const {
+        return Own<View>(view, owner_);
     }
 
     Span<const AtomType> span() const noexcept {
@@ -139,7 +139,7 @@ public:
     LDDocumentView& operator=(const LDDocumentView&) noexcept = default;
     LDDocumentView& operator=(LDDocumentView&&) noexcept = default;
 
-    ViewPtr<LDDocumentView, false> as_immutable_view() const noexcept
+    Own<LDDocumentView, OwningKind::EMBEDDED> as_immutable_view() const noexcept
     {
         LDDocumentView view = *this;
         view.arena_.clear_arena_ptr();
@@ -149,7 +149,7 @@ public:
             terminate(format_u8("Invalid LDDocumentview!").data());
         }
 
-        return ViewPtr<LDDocumentView>(view, owner_);
+        return Own<LDDocumentView>(view, owner_);
     }
 
     PoolSharedPtr<LDDocument> clone();
@@ -158,7 +158,7 @@ public:
         return arena_.data() == other->arena_.data();
     }
 
-    ViewPtr<LDDValueView, false> value() const noexcept;
+    Own<LDDValueView, OwningKind::EMBEDDED> value() const noexcept;
 
     void set_varchar(U8StringView string);
     void set_bigint(int64_t value);
@@ -168,24 +168,24 @@ public:
 
     void set_document(const LDDocumentView& other);
 
-    ViewPtr<LDDMapView, false> set_map();
-    ViewPtr<LDDArrayView, false> set_array();
+    Own<LDDMapView, OwningKind::EMBEDDED> set_map();
+    Own<LDDArrayView, OwningKind::EMBEDDED> set_array();
 
     template <typename T, typename... Args>
-    ViewPtr<DTTLDViewType<T>> set_value(Args&&... args)
+    Own<DTTLDViewType<T>> set_value(Args&&... args)
     {
         auto value_ptr = LDStorageAllocator<T>::allocate_and_construct(arena_.make_mutable(), std::forward<Args>(args)...);
         set_tag(value_ptr.get(), ld_tag_value<T>());
         state_mutable()->value = value_ptr;
 
         using LDViewType = DTTLDViewType<T>;
-        return ViewPtr<DTTLDViewType<T>>(
+        return Own<DTTLDViewType<T>>(
                 LDViewType{this, value_ptr, ld_tag_value<T>()},
                 owner_
         );
     }
 
-    ViewPtr<LDDValueView, false> set_sdn(U8StringView sdn);
+    Own<LDDValueView, OwningKind::EMBEDDED> set_sdn(U8StringView sdn);
 
     // FIXME: should be private?
     LDDocumentView* make_mutable() const
@@ -231,15 +231,15 @@ public:
         return ss.str();
     }
 
-    ViewPtr<LDTypeDeclarationView, false> create_named_type(U8StringView name, U8StringView type_decl);
+    Own<LDTypeDeclarationView, OwningKind::EMBEDDED> create_named_type(U8StringView name, U8StringView type_decl);
 
-    ViewPtr<LDTypeDeclarationView, false> get_named_type_declaration(U8StringView name) const;
+    Own<LDTypeDeclarationView, OwningKind::EMBEDDED> get_named_type_declaration(U8StringView name) const;
 
     void remove_named_type_declaration(U8StringView name);
 
     void for_each_named_type(std::function<void (U8StringView name, LDTypeDeclarationView)> fn) const;
 
-    std::vector<std::pair<ViewPtr<U8StringView>, ViewPtr<LDTypeDeclarationView, false>>> named_types() const;
+    std::vector<std::pair<Own<U8StringView>, Own<LDTypeDeclarationView, OwningKind::EMBEDDED>>> named_types() const;
 
     static bool is_identifier(U8StringView string) {
         return is_identifier(string.begin(), string.end());
@@ -354,7 +354,7 @@ class LDDocument: public LDDocumentView, public pool::enable_shared_from_this<LD
     ld_::LDArena ld_arena_;
 
     using LDDocumentView::arena_;
-    ViewPtrHolder view_holder_;
+    LWMemHolder view_holder_;
 
     friend class LDDArrayView;
     friend class LDDMapView;
@@ -395,7 +395,7 @@ public:
     LDDocument& operator=(const LDDocument&) = delete;
     LDDocument& operator=(LDDocument&&);
 
-    ViewPtr<LDDocumentView> view();
+    Own<LDDocumentView> view();
 
     PoolSharedPtr<LDDocument> compactify() const ;
 
@@ -452,7 +452,7 @@ protected:
 class LDDocumentSpan: public LDDocumentView, public pool::enable_shared_from_this<LDDocumentSpan> {
     using AtomType = typename ld_::LDArenaView::AtomType;
 
-    ViewPtrHolder view_holder_;
+    LWMemHolder view_holder_;
 
     virtual void configure_refholder(SharedPtrHolder* owner) {
         view_holder_.set_owner(owner);

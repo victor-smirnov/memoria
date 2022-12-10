@@ -84,6 +84,26 @@ static inline size_t encode_u64_56_vlen(uint8_t* array, uint64_t value)
   }
 }
 
+static inline size_t u64_56_len_len(size_t len)
+{
+  if (MMA_LIKELY(len < 249)) {
+    return 1;
+  }
+  else {
+    uint64_t mask = 0x00FF000000000000;
+    size_t c{};
+    for (c = 7; c > 0; c--) {
+        if (MMA_UNLIKELY((bool)(mask & len))) {
+            break;
+        }
+
+        mask >>= 8;
+    }
+
+    return c + 1;
+  }
+}
+
 
 static inline constexpr size_t decode_u64_56_vlen(const uint8_t* array, uint64_t& value) noexcept
 {

@@ -30,8 +30,8 @@ class HermesCtrBuilder {
     ArenaBuffer<char> string_buffer_;
     PoolSharedPtr<HermesCtr> doc_;
 
-    ska::flat_hash_map<U8String, DatatypePtr> type_registry_;
-    std::unordered_map<U8StringView, StringValuePtr, arena::DefaultHashFn<U8StringView>> string_registry_;
+    ska::flat_hash_map<U8String, Datatype> type_registry_;
+    std::unordered_map<U8StringView, StringValue, arena::DefaultHashFn<U8StringView>> string_registry_;
 
     size_t refs_{};
 
@@ -48,13 +48,13 @@ public:
         return doc_;
     }
 
-    StringValuePtr resolve_string(U8StringView strv)
+    StringValue resolve_string(U8StringView strv)
     {
         auto ii = string_registry_.find(strv);
         if (ii != string_registry_.end()) {
             return ii->second;
         }
-        return StringValuePtr{};
+        return StringValue{};
     }
 
     U8StringView to_string_view(Span<const char> span) {
@@ -80,7 +80,7 @@ public:
     {
         auto span = string_buffer_.span();
         U8StringView sv = to_string_view(span);
-        StringValuePtr str = resolve_string(sv);
+        StringValue str = resolve_string(sv);
 
         if (str->is_null()) {
             str = doc_->new_dataobject<Varchar>(sv);
@@ -92,7 +92,7 @@ public:
 
     auto new_varchar(U8StringView sv)
     {
-        StringValuePtr str = resolve_string(sv);
+        StringValue str = resolve_string(sv);
 
         if (str->is_null()) {
             str = doc_->new_dataobject<Varchar>(sv);
@@ -123,11 +123,11 @@ public:
         return HermesCtr::wrap_dataobject<Boolean>(v);
     }
 
-    void set_ctr_root(ObjectPtr value) {
+    void set_ctr_root(Object value) {
         doc_->set_root(value);
     }
 
-//    auto new_array(Span<ObjectPtr> span) {
+//    auto new_array(Span<Object> span) {
 //        return doc_->new_array(span);
 //    }
 
@@ -139,24 +139,24 @@ public:
 //        return doc_->new_map();
 //    }
 
-    auto new_datatype(StringValuePtr id) {
+    auto new_datatype(StringValue id) {
         return doc_->new_datatype(id);
     }
 
-    void add_type_decl_param(DatatypePtr& dst, ObjectPtr param) {
+    void add_type_decl_param(Datatype& dst, Object param) {
         dst->append_type_parameter(param);
     }
 
-    void add_type_decl_ctr_arg(DatatypePtr& dst, ObjectPtr ctr_arg) {
+    void add_type_decl_ctr_arg(Datatype& dst, Object ctr_arg) {
         dst->append_constructor_argument(ctr_arg);
     }
 
-    TypedValuePtr new_typed_value(DatatypePtr type_decl, ObjectPtr constructor)
+    TypedValue new_typed_value(Datatype type_decl, Object constructor)
     {
         return doc_->new_typed_value(type_decl, constructor);
     }
 
-    void add_type_directory_entry(U8StringView id, DatatypePtr datatype)
+    void add_type_directory_entry(U8StringView id, Datatype datatype)
     {
         auto ii = type_registry_.find(id);
         if (ii == type_registry_.end()) {
@@ -164,7 +164,7 @@ public:
         }
     }
 
-    DatatypePtr resolve_typeref(U8StringView typeref)
+    Datatype resolve_typeref(U8StringView typeref)
     {
         auto ii = type_registry_.find(typeref);
         if (ii != type_registry_.end())
@@ -182,20 +182,20 @@ public:
         return (ii != type_registry_.end());
     }
 
-    void append_entry(ObjectMapPtr& map, const StringValuePtr& name, const ObjectPtr& value) {
+    void append_entry(ObjectMap& map, const StringValue& name, const Object& value) {
         map->put(name, value);
     }
 
-    void append_entry(ObjectMapPtr& map, U8StringView name, const ObjectPtr& value) {
+    void append_entry(ObjectMap& map, U8StringView name, const Object& value) {
         map->put(name, value);
     }
 
-    void append_value(ObjectArrayPtr& array, const ObjectPtr& value) {
+    void append_value(ObjectArray& array, const Object& value) {
         array->append(value);
     }
 
     template <typename DT>
-    DataObjectPtr<DT> new_dataobject(DTTViewType<DT> view) {
+    DataObject<DT> new_dataobject(DTTViewType<DT> view) {
         return HermesCtr::wrap_dataobject<DT>(view);
     }
 

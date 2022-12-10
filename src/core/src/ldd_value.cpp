@@ -169,7 +169,7 @@ bool find_value(LDDValueView& res, U8StringView path_str)
     return true;
 }
 
-ViewPtr<LDDValueView> get_value(ViewPtr<LDDValueView> src, U8StringView path) {
+Own<LDDValueView> get_value(Own<LDDValueView> src, U8StringView path) {
     if (find_value(*src, path)) {
         return src;
     }

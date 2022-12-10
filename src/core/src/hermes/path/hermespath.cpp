@@ -35,7 +35,7 @@
 
 namespace memoria::hermes::path {
 
-ObjectPtr search(const Expression &expression, const ObjectPtr& value)
+Object search(const Expression &expression, const Object& value)
 {
     using interpreter::Interpreter;
     if (expression.isEmpty())
@@ -52,7 +52,7 @@ ObjectPtr search(const Expression &expression, const ObjectPtr& value)
     return s_interpreter.currentContextValue();
 }
 
-ObjectPtr search(const Expression &expression, const ObjectPtr& value, const IParameterResolver& resolver)
+Object search(const Expression &expression, const Object& value, const IParameterResolver& resolver)
 {
     using interpreter::Interpreter;
     if (expression.isEmpty())
@@ -71,7 +71,7 @@ ObjectPtr search(const Expression &expression, const ObjectPtr& value, const IPa
 }
 
 
-ObjectPtr search(const TinyObjectMapPtr &expression, const ObjectPtr& value)
+Object search(const TinyObjectMap &expression, const Object& value)
 {
     using interpreter2::HermesASTInterpreter;
     if (expression->empty())
@@ -88,7 +88,7 @@ ObjectPtr search(const TinyObjectMapPtr &expression, const ObjectPtr& value)
     return interpreter2::getJsonValue(s_interpreter.currentContextValue());
 }
 
-ObjectPtr search(const TinyObjectMapPtr &expression, const ObjectPtr& value, const IParameterResolver& resolver)
+Object search(const TinyObjectMap &expression, const Object& value, const IParameterResolver& resolver)
 {
     using interpreter2::HermesASTInterpreter;
     if (expression->empty())

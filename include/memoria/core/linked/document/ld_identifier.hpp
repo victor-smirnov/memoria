@@ -34,7 +34,7 @@ public:
         doc_(doc), string_(string)
     {}
 
-    ViewPtr<U8StringView> view() const {
+    Own<U8StringView> view() const {
         return doc_->wrap(string_.get(&doc_->arena_)->view());
     }
 };

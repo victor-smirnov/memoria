@@ -28,12 +28,12 @@
 namespace memoria {
 
 template <typename DT>
-class HoldingView<hermes::DataObject<DT>>: public hermes::TaggedHoldingView {
+class HoldingView<hermes::DataObjectView<DT>>: public hermes::TaggedHoldingView {
 
 public:
     HoldingView(){}
 
-    HoldingView(ViewPtrHolder* holder) noexcept:
+    HoldingView(LWMemHolder* holder) noexcept:
         hermes::TaggedHoldingView(holder)
     {}
 };
@@ -45,42 +45,42 @@ class HermesCtr;
 class HermesCtrImpl;
 
 template <typename DT>
-class DataObject: public HoldingView<DataObject<DT>> {
-    using Base = HoldingView<DataObject<DT>>;
+class DataObjectView: public HoldingView<DataObjectView<DT>> {
+    using Base = HoldingView<DataObjectView<DT>>;
 public:
     using ArenaDTContainer = arena::ArenaDataTypeContainer<DT>;
 
     friend class HermesCtr;
-    friend class Object;
+    friend class ObjectView;
 
     template <typename, typename>
-    friend class Map;
+    friend class MapView;
 
     template <typename>
-    friend class Array;
+    friend class ArrayView;
 
     using ViewT = DTTViewType<DT>;
-    using ViewPtrT = ViewPtr<ViewT>;
+    using ViewPtrT = DTView<DT>;
 
 protected:
     mutable ValueStorage storage_;
 
 public:
-    DataObject() noexcept:
+    DataObjectView() noexcept:
         storage_()
     {
         storage_.addr = nullptr;
         set_vs_tag(VS_TAG_ADDRESS);
     }
 
-    DataObject(ViewPtrHolder* ptr_holder, void* dt_ctr) noexcept :
+    DataObjectView(LWMemHolder* ptr_holder, void* dt_ctr) noexcept :
         Base(ptr_holder)
     {
         storage_.addr = dt_ctr;
         set_vs_tag(VS_TAG_ADDRESS);
     }
 
-    DataObject(ViewPtrHolder* ptr_holder, ValueStorageTag vs_tag, ValueStorage& storage) noexcept :
+    DataObjectView(LWMemHolder* ptr_holder, ValueStorageTag vs_tag, ValueStorage& storage) noexcept :
         Base(ptr_holder),
         storage_(storage)
     {
@@ -91,7 +91,7 @@ public:
         }
     }
 
-    DataObject(ViewPtrHolder* ptr_holder, const TaggedValue& tv_storage) noexcept :
+    DataObjectView(LWMemHolder* ptr_holder, const TaggedValue& tv_storage) noexcept :
         Base(ptr_holder)
     {
         storage_.small_value = tv_storage;
@@ -99,7 +99,7 @@ public:
     }
 
 
-    DataObject(ViewPtrHolder* ptr_holder, DTTViewType<DT> view) noexcept :
+    DataObjectView(LWMemHolder* ptr_holder, DTTViewType<DT> view) noexcept :
         Base(ptr_holder)
     {
         if (TaggedValue::dt_fits_in<DT>())
@@ -116,7 +116,7 @@ public:
         }
     }
 
-    DataObject(const DataObject& other) noexcept :
+    DataObjectView(const DataObjectView& other) noexcept :
         Base(other),
         storage_(other.storage_)
     {
@@ -125,7 +125,7 @@ public:
         }
     }
 
-    DataObject(DataObject&& other) noexcept :
+    DataObjectView(DataObjectView&& other) noexcept :
         Base(std::move(other)),
         storage_(std::move(other.storage_))
     {
@@ -134,7 +134,7 @@ public:
         }
     }
 
-    virtual ~DataObject() noexcept
+    virtual ~DataObjectView() noexcept
     {
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW)
         {
@@ -144,7 +144,7 @@ public:
         }
     }
 
-    DataObject& operator=(const DataObject& other)
+    DataObjectView& operator=(const DataObjectView& other)
     {
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (storage_.view_ptr) {
@@ -164,7 +164,7 @@ public:
         return *this;
     }
 
-    DataObject& operator=(DataObject&& other)
+    DataObjectView& operator=(DataObjectView&& other)
     {
         if (this->get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (storage_.view_ptr) {
@@ -191,8 +191,8 @@ public:
     PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
         return PoolSharedPtr<HermesCtr>(
-                    this->get_ptr_holder()->ctr(),
-                    this->get_ptr_holder()->owner(),
+                    this->get_mem_holder()->ctr(),
+                    this->get_mem_holder()->owner(),
                     pool::DoRef{}
         );
     }
@@ -210,7 +210,7 @@ public:
     {
         assert_not_null();
         auto tag = get_type_tag();
-        return get_type_reflection(tag).convert_to_plain_string(get_vs_tag(), storage_, this->get_ptr_holder());
+        return get_type_reflection(tag).convert_to_plain_string(get_vs_tag(), storage_, this->get_mem_holder());
     }
 
     template <typename ToDT>
@@ -226,7 +226,7 @@ public:
     }
 
     template <typename ToDT>
-    DataObjectPtr<ToDT> convert_to() const;
+    DataObject<ToDT> convert_to() const;
 
     uint64_t hash_code() const {
         assert_not_null();
@@ -235,7 +235,7 @@ public:
     }
 
     bool is_null() const noexcept {
-        return this->get_ptr_holder() == nullptr ||
+        return this->get_mem_holder() == nullptr ||
                 (get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS
                  && storage_.addr == nullptr);
     }
@@ -244,8 +244,8 @@ public:
         return !is_null();
     }
 
-    ObjectPtr as_object() const {
-        return ObjectPtr(Object(this->get_ptr_holder(), get_vs_tag(), storage_));
+    Object as_object() const {
+        return Object(ObjectView(this->get_mem_holder(), get_vs_tag(), storage_));
     }
 
     ViewPtrT view() const
@@ -254,7 +254,7 @@ public:
         auto vs_tag = get_vs_tag();
 
         if (vs_tag == ValueStorageTag::VS_TAG_ADDRESS) {
-            return wrap(dt_ctr()->view());
+            return dt_ctr()->view(this->get_mem_holder());
         }
         else {
             return wrap(storage_.get_view<DT>(vs_tag));
@@ -301,11 +301,11 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return dt_ctr()->deep_copy_to(arena, ShortTypeCode::of<DataObject>(), this->get_ptr_holder(), dedup);
+        return dt_ctr()->deep_copy_to(arena, ShortTypeCode::of<DataObjectView>(), this->get_mem_holder(), dedup);
     }
 
     template <typename RightDT>
-    bool is_compareble_with(const DataObjectPtr<RightDT>& other) const
+    bool is_compareble_with(const DataObject<RightDT>& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
@@ -319,14 +319,14 @@ public:
     }
 
     template <typename RightDT>
-    int32_t compare(const DataObjectPtr<RightDT>& other) const
+    int32_t compare(const DataObject<RightDT>& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_compare(
-                    get_vs_tag(), storage_, this->get_ptr_holder(),
-                    other->get_vs_tag(), other->storage_, other->doc_, other->get_ptr_holder()
+                    get_vs_tag(), storage_, this->get_mem_holder(),
+                    other->get_vs_tag(), other->storage_, other->doc_, other->get_mem_holder()
             );
         }
         else {
@@ -336,7 +336,7 @@ public:
 
 
     template <typename RightDT>
-    bool is_equals_compareble_with(const DataObjectPtr<RightDT>& other) const
+    bool is_equals_compareble_with(const DataObject<RightDT>& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
@@ -350,13 +350,13 @@ public:
     }
 
     template <typename RightDT>
-    bool equals(const DataObjectPtr<RightDT>& other) const
+    bool equals(const DataObject<RightDT>& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_equals(
-                    storage_.addr, this->get_ptr_holder(), other->storage_.addr, other->doc_, other->get_ptr_holder()
+                    storage_.addr, this->get_mem_holder(), other->storage_.addr, other->doc_, other->get_mem_holder()
             );
         }
         else {
@@ -366,7 +366,7 @@ public:
 
 private:
     ViewPtrT wrap(const ViewT& view) const {
-        return ViewPtrT(view, this->get_ptr_holder());
+        return ViewPtrT(this->get_mem_holder(), view);
     }
 
     ShortTypeCode get_type_tag() const noexcept
@@ -401,16 +401,16 @@ private:
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(is_null())) {
-            MEMORIA_MAKE_GENERIC_ERROR("Datatype<Varchar> is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("DatatypeView<Varchar> is null").do_throw();
         }
     }
 };
 
 
 class GenericDataObjectImpl: public GenericObject {
-    mutable Object object_;
+    mutable ObjectView object_;
 public:
-    GenericDataObjectImpl(ViewPtrHolder* ref_holder, void* addr):
+    GenericDataObjectImpl(LWMemHolder* ref_holder, void* addr):
         object_(ref_holder, addr)
     {
         object_.ref();
@@ -432,15 +432,15 @@ public:
     }
 
     virtual PoolSharedPtr<GenericArray> as_array() const {
-        MEMORIA_MAKE_GENERIC_ERROR("DataObject is not an Array").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("DataObjectView is not an ArrayView").do_throw();
     }
 
     virtual PoolSharedPtr<GenericMap> as_map() const {
-        MEMORIA_MAKE_GENERIC_ERROR("DataObject is not a Map").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("DataObjectView is not a MapView").do_throw();
     }
 
-    virtual ObjectPtr as_object() const {
-        return ObjectPtr(object_);
+    virtual Object as_object() const {
+        return Object(object_);
     }
 };
 
@@ -449,7 +449,7 @@ public:
 
 
 template <typename DT>
-std::ostream& operator<<(std::ostream& out, DataObjectPtr<DT> ptr) {
+std::ostream& operator<<(std::ostream& out, DataObject<DT> ptr) {
     out << ptr->to_string();
     return out;
 }
@@ -457,13 +457,13 @@ std::ostream& operator<<(std::ostream& out, DataObjectPtr<DT> ptr) {
 namespace detail {
 
 template <typename DT>
-struct ValueCastHelper<DataObject<DT>> {
-    static ViewPtr<DataObject<DT>> cast_to(
-            ViewPtrHolder* ref_holder,
+struct ValueCastHelper<DataObjectView<DT>> {
+    static DataObject<DT> cast_to(
+            LWMemHolder* ref_holder,
             ValueStorageTag vs_tag,
             ValueStorage& storage
     ) noexcept {
-        return ViewPtr<DataObject<DT>>(DataObject<DT>(
+        return DataObject<DT>(DataObjectView<DT>(
             ref_holder,
             vs_tag,
             storage
@@ -604,6 +604,7 @@ struct StringifyViewHelper<Real> {
 template <typename DT>
 class alignas(std::max<size_t>(2, alignof(DTTViewType<DT>))) ArenaDataTypeContainer<DT, FixedSizeDataTypeTag> {
     using ViewT = DTTViewType<DT>;
+    using OViewT = DTView<DT>;
 
     ViewT value_;
 public:
@@ -613,6 +614,10 @@ public:
 
     const ViewT& view() const noexcept {
         return value_;
+    }
+
+    OViewT view(LWMemHolder* ptr_holder) const noexcept {
+        return OViewT(value_);
     }
 
     bool equals_to(const ViewT& view) const noexcept {
@@ -646,7 +651,7 @@ public:
     ArenaDataTypeContainer* deep_copy_to(
             ArenaAllocator& dst,
             ShortTypeCode tag,
-            ViewPtrHolder*,
+            LWMemHolder*,
             DeepCopyDeduplicator& dedup) const
     {
         ArenaDataTypeContainer* str = dedup.resolve(dst, this);
@@ -665,6 +670,7 @@ public:
 template <>
 class ArenaDataTypeContainer<Boolean, FixedSizeDataTypeTag> {
     using ViewT = DTTViewType<Boolean>;
+    using OViewT = DTView<Boolean>;
 
     uint8_t value_;
 public:
@@ -674,6 +680,10 @@ public:
 
     ViewT view() const noexcept {
         return value_;
+    }
+
+    OViewT view(LWMemHolder* ptr_holder) const noexcept {
+        return OViewT(value_);
     }
 
     bool equals_to(ViewT view) const noexcept {
@@ -706,7 +716,7 @@ public:
     ArenaDataTypeContainer* deep_copy_to(
             ArenaAllocator& dst,
             ShortTypeCode tag,
-            ViewPtrHolder*,
+            LWMemHolder*,
             DeepCopyDeduplicator& dedup) const
     {
         ArenaDataTypeContainer* str = dedup.resolve(dst, this);

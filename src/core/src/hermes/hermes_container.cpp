@@ -22,12 +22,12 @@ namespace hermes {
 
 pool::SharedPtr<HermesCtr> HermesCtr::self() const
 {
-    return pool::SharedPtr<HermesCtr>{mutable_self(), get_ptr_holder()->owner(), pool::DoRef{}};
+    return pool::SharedPtr<HermesCtr>{mutable_self(), get_mem_holder()->owner(), pool::DoRef{}};
 }
 
 
 void HermesCtr::deep_copy_from(const DocumentHeader* src, DeepCopyDeduplicator& dedup) {
-    header_ = src->deep_copy_to(*arena_, ptr_holder_, dedup);
+    header_ = src->deep_copy_to(*arena_, mem_holder_, dedup);
 }
 
 pool::SharedPtr<HermesCtr> HermesCtr::compactify(bool make_immutable) const
@@ -89,92 +89,44 @@ pool::SharedPtr<HermesCtr> HermesCtr::clone(bool as_mutable) const
 }
 
 
-ObjectMapPtr HermesCtr::new_map()
+
+void HermesCtr::set_root(Object value)
 {
-    using CtrT = Map<Varchar, Object>;
-
-    auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::MapStorageT>(
-        ShortTypeCode::of<CtrT>()
-    );
-
-    return ObjectMapPtr(CtrT(ptr_holder_, arena_dtc));
-}
-
-TinyObjectMapPtr HermesCtr::new_tiny_map(size_t capacity) {
-    using CtrT = Map<UTinyInt, Object>;
-
-    auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::MapStorageT>(
-        ShortTypeCode::of<CtrT>(), capacity > 0 ? capacity : 1
-    );
-
-    return TinyObjectMapPtr(CtrT(ptr_holder_, arena_dtc));
-}
-
-ObjectArrayPtr HermesCtr::new_array(uint64_t capacity)
-{
-    using CtrT = ObjectArray;
-
-    auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::ArrayStorageT>(
-        ShortTypeCode::of<CtrT>(), capacity
-    );
-
-    return ObjectArrayPtr(CtrT(ptr_holder_, arena_dtc));
-}
-
-ObjectArrayPtr HermesCtr::new_array(Span<const ObjectPtr> span)
-{
-    auto array = new_array(span.size());
-
-    for (auto& value: span) {
-        auto vv = this->do_import_embeddable(value);
-        array = array->append(vv);
-    }
-
-    return array;
-}
-
-ObjectArrayPtr HermesCtr::new_array(const std::vector<ObjectPtr>& array) {
-    return new_array(Span<const ObjectPtr>(array.data(), array.size()));
-}
-
-
-void HermesCtr::set_root(ObjectPtr value)
-{
-    ObjectPtr vv = do_import_value(value);
+    Object vv = do_import_value(value);
     header_->root = vv->storage_.addr;
 }
 
-DatatypePtr HermesCtr::new_datatype(U8StringView name)
+Datatype HermesCtr::new_datatype(U8StringView name)
 {
     auto str = new_dataobject<Varchar>(name);
     auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
-        ShortTypeCode::of<Datatype>(), str->dt_ctr()
+        ShortTypeCode::of<DatatypeView>(), str->dt_ctr()
     );
 
-    return DatatypePtr(Datatype(ptr_holder_, arena_dt));
+    return Datatype(DatatypeView(mem_holder_, arena_dt));
 }
 
-DatatypePtr HermesCtr::new_datatype(StringValuePtr name)
+Datatype HermesCtr::new_datatype(StringValue name)
 {
     auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
-        ShortTypeCode::of<Datatype>(), name->dt_ctr()
+        ShortTypeCode::of<DatatypeView>(), name->dt_ctr()
     );
 
-    return DatatypePtr(Datatype(ptr_holder_, arena_dt));
+    return Datatype(DatatypeView(mem_holder_, arena_dt));
 }
 
-TypedValuePtr HermesCtr::new_typed_value(DatatypePtr datatype, ObjectPtr constructor)
+TypedValue HermesCtr::new_typed_value(Datatype datatype, Object constructor)
 {
-    ObjectPtr vv_ctr = do_import_value(constructor);
+    Object vv_ctr = do_import_value(constructor);
 
     auto arena_tv = arena()->allocate_tagged_object<detail::TypedValueData>(
-        ShortTypeCode::of<TypedValue>(), datatype->datatype_, vv_ctr->storage_.addr
+        ShortTypeCode::of<TypedValueView>(), datatype->datatype_, vv_ctr->storage_.addr
     );
 
-    return TypedValuePtr(TypedValue(ptr_holder_, arena_tv));
+    return TypedValue(TypedValueView(mem_holder_, arena_tv));
 }
 
-ObjectPtr HermesCtr::do_import_value(ObjectPtr value)
+Object HermesCtr::do_import_value(Object value)
 {
     assert_not_null();
     assert_mutable();
@@ -188,14 +140,14 @@ ObjectPtr HermesCtr::do_import_value(ObjectPtr value)
                 auto tag = arena::read_type_tag(value->storage_.addr);
 
                 DeepCopyDeduplicator dedup;
-                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, ptr_holder_, value->storage_.addr, dedup);
+                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, mem_holder_, value->storage_.addr, dedup);
 
-                return ObjectPtr(Object(ptr_holder_, addr));
+                return Object(ObjectView(mem_holder_, addr));
             }
             else {
                 auto type_tag = value->get_type_tag();
                 auto vs_tag = value->get_vs_tag();
-                return get_type_reflection(type_tag).import_value(ptr_holder_, vs_tag, value->storage_);
+                return get_type_reflection(type_tag).import_value(mem_holder_, vs_tag, value->storage_);
             }
         }
         else {
@@ -208,64 +160,69 @@ ObjectPtr HermesCtr::do_import_value(ObjectPtr value)
 }
 
 
-ObjectPtr HermesCtr::do_import_embeddable(ObjectPtr value)
+Object HermesCtr::do_import_embeddable(Object value)
+{
+    return import_object(value);
+}
+
+Object HermesCtr::import_object(const Object& object)
 {
     assert_not_null();
     assert_mutable();
 
-    if (!value->is_null())
+    if (!object.is_null())
     {
-        if (value->document().get() != this)
+        if (object.get_mem_holder() != mem_holder_)
         {
-            if (value->get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS)
+            if (object.get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS)
             {
-                auto tag = arena::read_type_tag(value->storage_.addr);
+                auto tag = arena::read_type_tag(object.storage_.addr);
 
                 DeepCopyDeduplicator dedup;
-                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, ptr_holder_, value->storage_.addr, dedup);
+                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, mem_holder_, object.storage_.addr, dedup);
 
-                return ObjectPtr(Object(ptr_holder_, addr));
+                return Object(ObjectView(mem_holder_, addr));
             }
-            else if (value->get_vs_tag() == ValueStorageTag::VS_TAG_SMALL_VALUE)
+            else if (object.get_vs_tag() == ValueStorageTag::VS_TAG_SMALL_VALUE)
             {
-                auto type_tag = value->get_type_tag();
+                auto type_tag = object.get_type_tag();
                 auto& refl = get_type_reflection(type_tag);
 
                 if (refl.hermes_is_ptr_embeddable()) {
-                    return value;
+                    return object;
                 }
                 else {
-                    auto vs_tag = value->get_vs_tag();
-                    return refl.import_value(ptr_holder_, vs_tag, value->storage_);
+                    auto vs_tag = object.get_vs_tag();
+                    return refl.import_value(mem_holder_, vs_tag, object.storage_);
                 }
             }
             else {
-                auto type_tag = value->get_type_tag();
-                auto vs_tag = value->get_vs_tag();
-                return get_type_reflection(type_tag).import_value(ptr_holder_, vs_tag, value->storage_);
+                auto type_tag = object.get_type_tag();
+                auto vs_tag = object.get_vs_tag();
+                return get_type_reflection(type_tag).import_value(mem_holder_, vs_tag, object.storage_);
             }
         }
         else {
-            return value;
+            return object;
         }
     }
     else {
-        return value;
+        return object;
     }
 }
 
 
-
-ParameterPtr HermesCtr::new_parameter(U8StringView name) {
+Parameter HermesCtr::new_parameter(U8StringView name)
+{
     assert_not_null();
     assert_mutable();
 
-    auto arena_dtc = arena_->allocate_tagged_object<typename Parameter::ArenaDTContainer>(
-        ShortTypeCode::of<Parameter>(),
+    auto arena_dtc = arena_->allocate_tagged_object<typename ParameterView::ArenaDTContainer>(
+        ShortTypeCode::of<ParameterView>(),
         name
     );
 
-    return ParameterPtr(Parameter(ptr_holder_, arena_dtc));
+    return Parameter(ParameterView(mem_holder_, arena_dtc));
 }
 
 
@@ -287,11 +244,11 @@ PoolSharedPtr<HermesCtr> HermesCtr::common_instance() {
 }
 
 
-hermes::DatatypePtr strip_namespaces(hermes::DatatypePtr src)
+hermes::Datatype strip_namespaces(hermes::Datatype src)
 {
     auto ctr = HermesCtr::make_pooled();
-    auto name = get_datatype_name(*src->type_name()->view());
 
+    auto name = get_datatype_name(src->type_name()->view());
     auto tgt = ctr->new_datatype(name);
     ctr->set_root(tgt->as_object());
 

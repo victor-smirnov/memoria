@@ -19,7 +19,7 @@ namespace memoria {
 namespace hermes {
 
 
-void TypedValue::stringify(std::ostream& out,
+void TypedValueView::stringify(std::ostream& out,
                DumpFormatState& state) const
 {
     auto ctr = constructor();

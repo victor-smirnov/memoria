@@ -78,7 +78,7 @@ protected:
 
     KeyView view_;
 
-    mutable ViewPtrHolder view_holder_;
+    mutable LWMemHolder view_holder_;
 
 protected:
     virtual void configure_refholder(SharedPtrHolder* owner) {

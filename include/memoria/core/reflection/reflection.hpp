@@ -38,7 +38,7 @@ UID256 compute_full_type_hash_normalized(U8StringView type_decl);
 struct IDatatypeConverter {
     virtual ~IDatatypeConverter() noexcept;
 
-    virtual hermes::ObjectPtr convert(const void* view) const = 0;
+    virtual hermes::Object convert(const void* view) const = 0;
 };
 
 
@@ -64,7 +64,7 @@ public:
     virtual ShortTypeCode shot_type_hash() const noexcept = 0;
 
     virtual void hermes_stringify_value(
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr,
 
@@ -73,13 +73,13 @@ public:
     ) const = 0;
 
     virtual bool hermes_is_simple_layout(
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             void* ptr
     ) const = 0;
 
     template <typename T>
     T* deep_copy(arena::ArenaAllocator& arena,
-                 ViewPtrHolder* ref_holder,
+                 LWMemHolder* ref_holder,
                  T* src,
                  DeepCopyDeduplicator& dedup) const {
         return reinterpret_cast<T*>(
@@ -89,7 +89,7 @@ public:
 
     virtual void* deep_copy_to(
             arena::ArenaAllocator&,
-            ViewPtrHolder*,
+            LWMemHolder*,
             void*,
             DeepCopyDeduplicator&
     ) const {
@@ -108,17 +108,17 @@ public:
         return false;
     }
 
-    virtual hermes::ObjectPtr datatype_convert_to(
-            ViewPtrHolder* ref_holder,
+    virtual hermes::Object datatype_convert_to(
+            LWMemHolder* ref_holder,
             ShortTypeCode target_tag,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr
     ) const ;
 
-    virtual hermes::ObjectPtr datatype_convert_from_plain_string(U8StringView str) const;
+    virtual hermes::Object datatype_convert_from_plain_string(U8StringView str) const;
 
     virtual U8String convert_to_plain_string(
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr
     ) const;
@@ -136,10 +136,10 @@ public:
     }
 
     virtual int32_t hermes_compare(
-            ViewPtrHolder*,
+            LWMemHolder*,
             hermes::ValueStorageTag,
             hermes::ValueStorage&,
-            ViewPtrHolder*,
+            LWMemHolder*,
             hermes::ValueStorageTag,
             hermes::ValueStorage&
     ) const
@@ -148,18 +148,18 @@ public:
     }
 
     virtual bool hermes_equals(
-            ViewPtrHolder*,
+            LWMemHolder*,
             hermes::ValueStorageTag,
             hermes::ValueStorage&,
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             hermes::ValueStorageTag,
             hermes::ValueStorage&
     ) const {
         MEMORIA_MAKE_GENERIC_ERROR("Objects of type {} are not Hermes-equals-comparable", str()).do_throw();
     }
 
-    virtual hermes::ObjectPtr import_value(
-            ViewPtrHolder*,
+    virtual hermes::Object import_value(
+            LWMemHolder*,
             hermes::ValueStorageTag, hermes::ValueStorage&
     ) const;
 
@@ -172,7 +172,7 @@ public:
     }
 
     virtual PoolSharedPtr<hermes::GenericObject> hermes_make_wrapper(
-            ViewPtrHolder*,
+            LWMemHolder*,
             void*
     ) const {
         MEMORIA_MAKE_GENERIC_ERROR("GenericObject API is not supported for type {}", str()).do_throw();
@@ -200,7 +200,7 @@ public:
     }
 
     virtual bool hermes_is_simple_layout(
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             void* ptr
     ) const override {
         MEMORIA_MAKE_GENERIC_ERROR("hermes_is_simple_layout() is not implemented for type {}", str()).do_throw();
@@ -269,7 +269,7 @@ struct DeepCopyHelper {
     static void deep_copy_to(
             arena::ArenaAllocator& arena,
             arena::AddrResolver<T>& dst,
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             const T* src, size_t size,
             DeepCopyDeduplicator& dedup
     ) {
@@ -282,7 +282,7 @@ struct DeepCopyHelper<arena::RelativePtr<T>> {
     static void deep_copy_to(
             arena::ArenaAllocator& arena,
             arena::AddrResolver<arena::RelativePtr<T>>& dst,
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             const arena::RelativePtr<T>* src, size_t size,
             DeepCopyDeduplicator& dedup
     )

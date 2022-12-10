@@ -39,6 +39,8 @@ template <typename Selector>
 class ArenaDataTypeContainer<Varchar, Selector> {
     using ViewT = DTTViewType<Varchar>;
 
+    using OViewT = Own<U8StringOView, OwningKind::HOLDING>;
+
     uint8_t array[1];
 public:
     static constexpr bool UseObjectSize = true;
@@ -57,12 +59,20 @@ public:
         return len_len + len;
     }
 
-    U8StringView view() const noexcept
+    OViewT view(LWMemHolder* ptr_holder) const noexcept
     {
         const uint8_t* buffer = raw_data();
         uint64_t size{};
         size_t len_len = decode_u64_56_vlen(buffer, size);
-        return U8StringView(ptr_cast<char>(buffer + len_len), size);
+        return OViewT(ptr_holder, ptr_cast<char>(buffer + len_len), size);
+    }
+
+    ViewT view() const noexcept
+    {
+        const uint8_t* buffer = raw_data();
+        uint64_t size{};
+        size_t len_len = decode_u64_56_vlen(buffer, size);
+        return ViewT(ptr_cast<char>(buffer + len_len), size);
     }
 
     bool equals_to(U8StringView str) const noexcept {
@@ -106,7 +116,7 @@ public:
     ArenaDataTypeContainer* deep_copy_to(
             ArenaAllocator& dst,
             ShortTypeCode tag,
-            ViewPtrHolder*,
+            LWMemHolder*,
             DeepCopyDeduplicator& dedup
     ) const
     {
@@ -119,6 +129,13 @@ public:
             dedup.map(dst, this, new_str);
             return new_str;
         }
+    }
+
+
+    static const void* from_view(const ViewT& view) {
+        const auto* addr = view.data();
+        size_t len_len = u64_56_len_len(view.length());
+        return ptr_cast<void*>(addr - len_len);
     }
 
 private:

@@ -587,11 +587,11 @@ static inline ShortTypeCode get_type_tag(ValueStorageTag vs_tag, const ValueStor
     return ShortTypeCode::nullv();
 }
 
-hermes::DatatypePtr strip_namespaces(hermes::DatatypePtr datatype);
+hermes::Datatype strip_namespaces(hermes::Datatype datatype);
 
 namespace detail {
 
-template <typename T, bool HasResetMethod = memoria::pool::detail::ObjectPoolLicycleMethods<T>::HasSetBuffer>
+template <typename T, bool HasResetMethod = memoria::pool::detail::ObjectPoolLifecycleMethods<T>::HasSetBuffer>
 struct SetObjectBufferHelper {
     static void process(T*, void*) noexcept {}
 };
@@ -689,39 +689,39 @@ private:
 
 class TaggedHoldingView {
     static constexpr size_t TAG_MASK = 0x7;
-    mutable size_t ptr_holder_;
+    mutable size_t mem_holder_;
 
-    template <typename, size_t>
-    friend class memoria::ViewPtr;
+    template <typename, OwningKind>
+    friend class memoria::Own;
 
 public:
     TaggedHoldingView() noexcept:
-        ptr_holder_()
+        mem_holder_()
     {
     }
 
-    TaggedHoldingView(ViewPtrHolder* holder) noexcept:
-        ptr_holder_(reinterpret_cast<size_t>(holder))
+    TaggedHoldingView(LWMemHolder* holder) noexcept:
+        mem_holder_(reinterpret_cast<size_t>(holder))
     {}
 
 
 protected:
-    ViewPtrHolder* get_ptr_holder() const noexcept {
-        return reinterpret_cast<ViewPtrHolder*>(ptr_holder_ & ~TAG_MASK);
+    LWMemHolder* get_mem_holder() const noexcept {
+        return reinterpret_cast<LWMemHolder*>(mem_holder_ & ~TAG_MASK);
     }
 
-    void reset_ptr_holder() noexcept {
-        ptr_holder_ = 0;
+    void reset_mem_holder() noexcept {
+        mem_holder_ = 0;
     }
 
     size_t get_tag() const noexcept {
-        return ptr_holder_ & TAG_MASK;
+        return mem_holder_ & TAG_MASK;
     }
 
     // Only last 3 bits of the tag are counted
     void set_tag(size_t tag) noexcept {
-        ptr_holder_ &= ~TAG_MASK;
-        ptr_holder_ |= (tag & TAG_MASK);
+        mem_holder_ &= ~TAG_MASK;
+        mem_holder_ |= (tag & TAG_MASK);
     }
 };
 
@@ -748,8 +748,8 @@ namespace detail {
 
 template <typename T>
 struct ValueCastHelper {
-    static ViewPtr<T> cast_to(ViewPtrHolder* ref_holder, ValueStorageTag, ValueStorage& storage) noexcept {
-        return ViewPtr<T>(T(
+    static Own<T, OwningKind::HOLDING> cast_to(LWMemHolder* ref_holder, ValueStorageTag, ValueStorage& storage) noexcept {
+        return Own<T, OwningKind::HOLDING>(T(
             ref_holder,
             storage.addr
         ));
@@ -770,7 +770,7 @@ struct GenericObject {
 
     virtual PoolSharedPtr<GenericArray> as_array() const = 0;
     virtual PoolSharedPtr<GenericMap> as_map() const = 0;
-    virtual ObjectPtr as_object() const = 0;
+    virtual Object as_object() const = 0;
 };
 
 

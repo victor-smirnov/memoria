@@ -40,9 +40,9 @@ namespace memoria::hermes::path::parser {
 
 class HermesASTConverter: public interpreter::AbstractVisitor, public ASTCodes {
 
-    using ASTNodePtr = TinyObjectMapPtr;
+    using ASTNodePtr = TinyObjectMap;
 
-    Optional<ObjectPtr> context_;
+    Optional<Object> context_;
 
     bool add_string_names_;
 public:
@@ -62,7 +62,7 @@ public:
     {
         if (node->isNull())
         {
-            auto map = current_ctr()->new_map();
+            auto map = current_ctr()->make_object_map();
             if (add_string_names_) {
                 map = map->put_dataobject<Varchar>(AST_NODE_NAME, NULL_NODE.name());
             }
@@ -84,7 +84,7 @@ public:
 
     static ASTNodePtr new_ast_node(const NamedCode& code, bool add_string_names)
     {
-        auto map = current_ctr()->new_tiny_map(4);
+        auto map = current_ctr()->make_tiny_map(4);
         map = map->put_dataobject<Integer>(CODE_ATTR, code.code());
 
         if (add_string_names) {
@@ -228,7 +228,7 @@ public:
     {
         auto map = new_ast_node(node->CODE);
 
-        auto array = current_ctr()->new_array();
+        auto array = current_ctr()->make_object_array();
         map = map->put(EXPRESSIONS_ATTR, array->as_object());
 
         for (auto& item: node->expressions)
@@ -246,12 +246,12 @@ public:
     {
         auto map = new_ast_node(node->CODE);
 
-        auto array = current_ctr()->new_array();
+        auto array = current_ctr()->make_object_array();
         map = map->put(EXPRESSIONS_ATTR, array->as_object());
 
         for (auto& item: node->expressions)
         {
-            auto kv_pair = current_ctr()->new_map();
+            auto kv_pair = current_ctr()->make_object_map();
             array->append(kv_pair->as_object());
 
             clear_context();
@@ -360,7 +360,7 @@ public:
 
         map = map->put_dataobject<Varchar>(FUNCTION_NAME_ATTR, node->functionName);
 
-        auto array = current_ctr()->new_array();
+        auto array = current_ctr()->make_object_array();
         map = map->put(ARGUMENTS_ATTR, array->as_object());
 
         for (auto& item: node->arguments)
@@ -368,18 +368,18 @@ public:
             clear_context();
             auto visitor = boost::hana::overload(
                 // evaluate expressions and return their results
-                [&, this](const ast::ExpressionNode& node) -> Optional<ObjectPtr> {
+                [&, this](const ast::ExpressionNode& node) -> Optional<Object> {
                     this->visit(&node);
                     return context_;
                 },
                 // in case of expression argument nodes return the expression they
                 // hold so it can be evaluated inside a function
-                [&, this](const ast::ExpressionArgumentNode& node) -> Optional<ObjectPtr> {
+                [&, this](const ast::ExpressionArgumentNode& node) -> Optional<Object> {
                     this->visit(&node);
                     return context_;
                 },
                 // ignore blank arguments
-                [](const boost::blank&) -> Optional<ObjectPtr> {
+                [](const boost::blank&) -> Optional<Object> {
                     return {};
                 }
             );
@@ -388,7 +388,7 @@ public:
                 array->append(result.get());
             }
             else {
-                array->append(ObjectPtr{});
+                array->append(Object{});
             }
         }
 

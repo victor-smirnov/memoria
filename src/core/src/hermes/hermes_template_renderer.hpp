@@ -24,7 +24,7 @@ class TplVarStack {
 public:
     struct Entry {
         U8StringView name;
-        ObjectPtr value;
+        Object value;
         bool frame_start;
     };
 
@@ -34,11 +34,11 @@ private:
 public:
     TplVarStack() {}
 
-    void start_frame(U8StringView name, const ObjectPtr& value) {
+    void start_frame(U8StringView name, const Object& value) {
         stack_.emplace_back<Entry>({name, value, true});
     }
 
-    void set(U8StringView name, const ObjectPtr& value) {
+    void set(U8StringView name, const Object& value) {
         stack_.emplace_back<Entry>({name, value, false});
     }
 
@@ -49,7 +49,7 @@ public:
         while (stack_.size() > 0 && !stack_.back().frame_start);
     }
 
-    Optional<ObjectPtr> find(U8StringView name) const
+    Optional<Object> find(U8StringView name) const
     {
         for (auto ii = stack_.rbegin(); ii != stack_.rend(); ii++) {
             if (ii->name == name) {

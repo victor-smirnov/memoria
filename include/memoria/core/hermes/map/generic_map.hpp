@@ -29,8 +29,8 @@ namespace hermes {
 struct GenericMapEntry {
     virtual ~GenericMapEntry() noexcept = default;
 
-    virtual ObjectPtr key() const   = 0;
-    virtual ObjectPtr value() const = 0;
+    virtual Object key() const   = 0;
+    virtual Object value() const = 0;
 
     virtual bool is_end() const = 0;
     virtual void next() = 0;
@@ -42,15 +42,15 @@ struct GenericMap: GenericObject {
 
     virtual PoolSharedPtr<GenericMapEntry> iterator() const = 0;
 
-    virtual ObjectPtr get(U8StringView key) const = 0;
-    virtual ObjectPtr get(int32_t key) const = 0;
-    virtual ObjectPtr get(uint64_t key) const = 0;
-    virtual ObjectPtr get(uint8_t key) const = 0;
+    virtual Object get(U8StringView key) const = 0;
+    virtual Object get(int32_t key) const = 0;
+    virtual Object get(uint64_t key) const = 0;
+    virtual Object get(uint8_t key) const = 0;
 
-    virtual ObjectPtr get(const ObjectPtr& key) const = 0;
+    virtual Object get(const Object& key) const = 0;
 
-    MMA_NODISCARD virtual GenericMapPtr put(const ObjectPtr& key, const ObjectPtr& value) = 0;
-    MMA_NODISCARD virtual GenericMapPtr remove(const ObjectPtr& key) = 0;
+    MMA_NODISCARD virtual GenericMapPtr put(const Object& key, const Object& value) = 0;
+    MMA_NODISCARD virtual GenericMapPtr remove(const Object& key) = 0;
 
     template <typename Fn>
     void for_each(Fn&& fn) const;

@@ -78,7 +78,7 @@ public:
         return value_;
     }
 
-    ObjectPtr finish() const {
+    Object finish() const {
         return HermesCtr::wrap_dataobject<DT>(value_)->as_object();
     }
 };
@@ -89,14 +89,14 @@ struct HermesIdentifier {
 
 
 class ArrayValue {
-    ObjectArrayPtr array_;
+    ObjectArray array_;
 
 public:
-    using value_type = ViewPtr<Object>;
+    using value_type = Object;
     using iterator = EmptyType;
 
     ArrayValue() {
-        array_ = current_ctr()->new_array();
+        array_ = current_ctr()->make_object_array();
     }
 
     iterator end() {return iterator{};}
@@ -149,22 +149,31 @@ public:
         return HermesCtrBuilder::current().new_varchar(buffer_);
     }
 
-    operator StringValuePtr() const {
+    operator StringValue() const {
         return finish();
     }
 };
 
+struct NumericTypeParamValue: boost::fusion::vector2<Optional<QualNameValue>, Object> {
+    Object finish()
+    {
+        //auto& cast = boost::fusion::at_c<0>(*this);
+        //auto& value  = boost::fusion::at_c<1>(*this);
+        return boost::fusion::at_c<1>(*this);
+    }
+};
 
-using MapEntryTuple = boost::phoenix::vector2<std::string, ObjectPtr>;
+
+using MapEntryTuple = boost::phoenix::vector2<std::string, Object>;
 
 class MapValue {
-    ObjectMapPtr value_;
+    ObjectMap value_;
 public:
     using value_type = MapEntryTuple;
     using iterator = EmptyType;
 
     MapValue() {
-        value_ = current_ctr()->new_map();
+        value_ = current_ctr()->make_object_map();
     }
 
     iterator end() const {return iterator{};}
@@ -173,7 +182,7 @@ public:
         HermesCtrBuilder::current().append_entry(value_, boost::fusion::at_c<0>(entry), boost::fusion::at_c<1>(entry));
     }
 
-    ObjectMapPtr finish() {
+    ObjectMap finish() {
         return std::move(value_);
     }
 };
@@ -199,24 +208,24 @@ public:
 
 class TypeDeclarationValue {
 
-    StringValuePtr datatype_name_;
-    std::vector<ObjectPtr> params_;
-    std::vector<ObjectPtr> ctr_args_;
+    StringValue datatype_name_;
+    std::vector<Object> params_;
+    std::vector<Object> ctr_args_;
     std::vector<PtrSpecifier> ptr_specs_;
     bool is_const_{false};
     bool is_volatile_{false};
     int32_t refs_{};
 
 public:
-    void set_datatype_name(StringValuePtr ii) {
+    void set_datatype_name(StringValue ii) {
         datatype_name_ = ii;
     }
 
-    void add_datatype_parameter(ObjectPtr value) {
+    void add_datatype_parameter(Object value) {
         params_.push_back(value);
     }
 
-    void add_constructor_arg(ObjectPtr value) {
+    void add_constructor_arg(Object value) {
         ctr_args_.push_back(value);
     }
 
@@ -236,10 +245,10 @@ public:
         refs_++;
     }
 
-    DatatypePtr finish() const
+    Datatype finish() const
     {
         HermesCtrBuilder& builder = HermesCtrBuilder::current();
-        DatatypePtr decl = builder.new_datatype(datatype_name_);
+        Datatype decl = builder.new_datatype(datatype_name_);
 
         for (auto& td: params_) {
             builder.add_type_decl_param(decl, td);
@@ -261,7 +270,7 @@ public:
         return decl;
     }
 
-    operator DatatypePtr() const {
+    operator Datatype() const {
         return finish();
     }
 };
@@ -271,16 +280,16 @@ static inline std::ostream& operator<<(std::ostream& out, const TypeDeclarationV
 }
 
 struct TypeReference {
-    StringValuePtr id{};
+    StringValue id{};
 
-    void operator=(StringValuePtr id) {
+    void operator=(StringValue id) {
         this->id = id;
     }
 };
 
 struct ValueVisitor: boost::static_visitor<> {
 
-    ObjectPtr value;
+    Object value;
 
     void operator()(long long v) {
         value = HermesCtr::wrap_dataobject<BigInt>(v)->as_object();
@@ -294,17 +303,17 @@ struct ValueVisitor: boost::static_visitor<> {
         value = HermesCtr::wrap_dataobject<Boolean>(v)->as_object();
     }
 
-    void operator()(ObjectMapPtr&) {}
+    void operator()(ObjectMap&) {}
 
-    void operator()(StringValuePtr& v) {
+    void operator()(StringValue& v) {
         value = v->as_object();
     }
 
-    void operator()(DatatypePtr& v) {
+    void operator()(Datatype& v) {
         value = v->as_object();
     }
 
-    void operator()(ObjectPtr& v) {
+    void operator()(Object& v) {
         value = v;
     }
 
@@ -314,8 +323,8 @@ struct ValueVisitor: boost::static_visitor<> {
     }
 };
 
-struct TypedValueValue: boost::fusion::vector2<DatatypePtr, ObjectPtr> {
-    ObjectPtr finish()
+struct TypedValueValue: boost::fusion::vector2<Datatype, Object> {
+    Object finish()
     {
         auto& type = boost::fusion::at_c<0>(*this);
         auto& ctr  = boost::fusion::at_c<1>(*this);
@@ -344,8 +353,8 @@ struct TypedValueValue: boost::fusion::vector2<DatatypePtr, ObjectPtr> {
     }
 };
 
-struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<DatatypePtr>> {
-    ObjectPtr finish()
+struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<Datatype>> {
+    Object finish()
     {
         const auto& str  = bf::at_c<0>(*this);
         auto h_str = HermesCtrBuilder::current().new_varchar(str);
@@ -367,56 +376,53 @@ struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<Datatype
             )->as_object();
         }
 
-        return ObjectPtr{};
+        return Object{};
     }
 };
 
 
-using TypedMapEntry = boost::phoenix::vector2<ObjectPtr, ObjectPtr>;
+using TypedMapEntry = boost::phoenix::vector2<Object, Object>;
 
 class TypedContainerValue {
     GenericArrayPtr array_;
     GenericMapPtr   map_;
 
-    std::vector<ObjectPtr> type_params_;
+    std::vector<Object> type_params_;
 public:
 
     enum TypedContainerType {
         HERMES_TC_ARRAY, HERMES_TC_MAP
     };
 
-    void add_type(const ObjectPtr& type){
+    void add_type(const Object& type){
         type_params_.push_back(type);
     }
 
     void create_ctr(TypedContainerType ctr_type)
-    {
+    {       
         if (ctr_type == HERMES_TC_ARRAY)
         {
-            auto ctr_type = HermesCtrBuilder::current().doc()->new_datatype("Array");
+            U8String class_txt = "memoria::Own<memoria::hermes::ArrayView<";
+            class_txt += type_params_[0].as_datatype().to_cxx_string();
+            class_txt += ">, 3>";
 
-            for (auto& param: type_params_) {
-                ctr_type->append_type_parameter(param);
-            }
-
-            array_ = get_type_reflection(ctr_type->cxx_type_hash()).hermes_make_container(
+            array_ = get_type_reflection(get_cxx_type_hash(class_txt)).hermes_make_container(
                 HermesCtrBuilder::current().doc().get()
             )->as_array();
         }
         else {
-            auto ctr_type = HermesCtrBuilder::current().doc()->new_datatype("Map");
+            U8String class_txt = "memoria::Own<memoria::hermes::MapView<";
 
-            for (auto& param: type_params_) {
-                ctr_type->append_type_parameter(param);
-            }
+            class_txt += type_params_[0].as_datatype().to_cxx_string();
+            class_txt += ", memoria::Own<memoria::hermes::ObjectView, 3>>, 3>";
 
-            map_ = get_type_reflection(ctr_type->cxx_type_hash()).hermes_make_container(
+            map_ = get_type_reflection(get_cxx_type_hash(class_txt)).hermes_make_container(
                 HermesCtrBuilder::current().doc().get()
             )->as_map();
         }
     }
 
-    void push_back(const ObjectPtr& value) {
+    void push_back(const Object& value) {
         array_ = array_->push_back(value);
     }
 
@@ -424,7 +430,7 @@ public:
         map_ = map_->put(bf::at_c<0>(value), bf::at_c<1>(value));
     }
 
-    ObjectPtr finish()
+    Object finish()
     {
         if (!array_.is_null()) {
             return array_->as_object();
@@ -440,7 +446,7 @@ public:
 
 
 
-using TypeDirectoryMapEntry = boost::fusion::vector2<std::string, DatatypePtr>;
+using TypeDirectoryMapEntry = boost::fusion::vector2<std::string, Datatype>;
 
 struct TypeDirectoryValue {
     using value_type = TypeDirectoryMapEntry;
@@ -623,7 +629,9 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
             bf::at_c<0>(ctx.attributes).add_refs();
         };
 
-        type_parameter = (type_declaration | bool_value | integer_value | type_reference) [finish_value];
+        numeric_type_parameter = -(lit('(') >> datatype_name >> ")") >> integer_value;
+
+        type_parameter = (type_declaration | bool_value | numeric_type_parameter | type_reference) [finish_value];
 
         type_declaration_dto =  datatype_name[add_datatype]
                             > -('<' >> (type_parameter[add_type_parameter] % ',') > '>')
@@ -641,7 +649,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
         type_declaration = type_declaration_dto[typedecl_to_datatype_fn];
 
         auto resolve_typeref_fn = [](auto& attrib, auto& ctx){
-            DatatypePtr datatype = HermesCtrBuilder::current().resolve_typeref(attrib);
+            Datatype datatype = HermesCtrBuilder::current().resolve_typeref(attrib);
             bf::at_c<0>(ctx.attributes) = datatype;
         };
         type_reference   = ('#' > hermes_identifier) [resolve_typeref_fn];
@@ -841,12 +849,12 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, TypedDataObject<float,  memoria::Real>(), Skipper> f32_parser;
     qi::rule<Iterator, TypedDataObject<double, memoria::Double>(), Skipper> f64_parser;
 
-    qi::rule<Iterator, ObjectPtr, Skipper>  integer_value;
-    qi::rule<Iterator, ObjectPtr, Skipper>  fp_value;
+    qi::rule<Iterator, Object, Skipper>  integer_value;
+    qi::rule<Iterator, Object, Skipper>  fp_value;
 
 
-    qi::rule<Iterator, ObjectPtr(), Skipper>            hermes_value;
-    qi::rule<Iterator, ObjectPtr(), Skipper>            standalone_hermes_value;
+    qi::rule<Iterator, Object(), Skipper>            hermes_value;
+    qi::rule<Iterator, Object(), Skipper>            standalone_hermes_value;
 
     qi::rule<Iterator, ArrayValue(), Skipper>           array;
     qi::rule<Iterator, MapValue(), Skipper>             map;
@@ -854,7 +862,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, MapEntryTuple(), Skipper>        map_entry;
     qi::rule<Iterator, TypedMapEntry(), Skipper>        typed_map_entry;
 
-    qi::rule<Iterator, ObjectPtr(), Skipper>            null_value;
+    qi::rule<Iterator, Object(), Skipper>            null_value;
     qi::rule<Iterator, std::string(), Skipper>          hermes_string;
     qi::rule<Iterator, std::string(), Skipper>          hermes_identifier;
 
@@ -866,18 +874,20 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, PtrSpecifier(), Skipper>         ref_ptr_const_qual;
 
     qi::rule<Iterator, TypeDeclarationValue(), Skipper> type_declaration_dto;
-    qi::rule<Iterator, DatatypePtr(), Skipper>          type_declaration;
+    qi::rule<Iterator, Datatype(), Skipper>          type_declaration;
 
-    qi::rule<Iterator, ObjectPtr(), Skipper>            type_parameter;
-    qi::rule<Iterator, DatatypePtr(), Skipper>          standalone_type_decl;
+    qi::rule<Iterator, NumericTypeParamValue(), Skipper>  numeric_type_parameter;
 
-    qi::rule<Iterator, ObjectPtr(), Skipper>            parameter;
+    qi::rule<Iterator, Object(), Skipper>            type_parameter;
+    qi::rule<Iterator, Datatype(), Skipper>          standalone_type_decl;
+
+    qi::rule<Iterator, Object(), Skipper>            parameter;
 
     qi::rule<Iterator, TypedValueValue(), Skipper>      typed_value;
     qi::rule<Iterator, TypedContainerValue(), Skipper>  typed_ctr;
 
-    qi::rule<Iterator, DatatypePtr(), Skipper>          type_reference;
-    qi::rule<Iterator, DatatypePtr(), Skipper>          type_decl_or_reference;
+    qi::rule<Iterator, Datatype(), Skipper>          type_reference;
+    qi::rule<Iterator, Datatype(), Skipper>          type_decl_or_reference;
 
     qi::rule<Iterator, bool(), Skipper> bool_value_true;
     qi::rule<Iterator, bool(), Skipper> bool_value_false;

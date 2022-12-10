@@ -36,7 +36,7 @@ HermesValueNode::HermesValueNode()
 {
 }
 
-HermesValueNode::HermesValueNode(const ObjectPtr &value)
+HermesValueNode::HermesValueNode(const Object &value)
     : AbstractNode(),
       value(value)
 {
@@ -56,8 +56,9 @@ bool HermesValueNode::operator==(const HermesValueNode &other) const
     return true;
 }
 
-ObjectPtr HermesArrayNode::to_hermes_array(HermesCtr& doc) const {
-    auto array = doc.new_array();
+Object HermesArrayNode::to_hermes_array(HermesCtr& doc) const
+{
+    auto array = doc.make_object_array();
 
     for (auto& var: this->array) {
         array->append(std::move(var.value));

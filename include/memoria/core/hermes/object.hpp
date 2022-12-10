@@ -28,12 +28,12 @@
 namespace memoria {
 
 template <>
-class HoldingView<hermes::Object>: public hermes::TaggedHoldingView {
+class HoldingView<hermes::ObjectView>: public hermes::TaggedHoldingView {
 
 public:
     HoldingView(){}
 
-    HoldingView(ViewPtrHolder* holder) noexcept:
+    HoldingView(LWMemHolder* holder) noexcept:
         hermes::TaggedHoldingView(holder)
     {}
 };
@@ -43,8 +43,8 @@ namespace hermes {
 
 class GenericDataObjectImpl;
 
-class Object: public HoldingView<Object> {
-    using Base = HoldingView<Object>;
+class ObjectView: public HoldingView<ObjectView> {
+    using Base = HoldingView<ObjectView>;
 protected:
     using SmallValueHolder = TaggedValue;
 
@@ -53,35 +53,43 @@ protected:
     friend class HermesCtr;
 
     template<typename, typename>
-    friend class Map;
+    friend class MapView;
 
     template<typename>
-    friend class Array;
+    friend class ArrayView;
 
     friend class GenericDataObjectImpl;
 
 public:
-    Object() noexcept
+    ObjectView() noexcept
     {
         storage_.addr = nullptr;
         set_tag(ValueStorageTag::VS_TAG_ADDRESS);
     }
 
-    Object(ViewPtrHolder* ref_holder, void* addr) noexcept :
+    ObjectView(LWMemHolder* ref_holder, void* addr) noexcept :
         Base(ref_holder)
     {
         storage_.addr = addr;
         set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
     }
 
-    Object(ViewPtrHolder* ref_holder, const TaggedValue& tagged_value) noexcept :
+    ObjectView(LWMemHolder* ref_holder, void* addr, MoveOwnershipTag) noexcept :
+        Base(ref_holder)
+    {
+        storage_.addr = addr;
+        set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
+    }
+
+
+    ObjectView(LWMemHolder* ref_holder, const TaggedValue& tagged_value) noexcept :
         Base(ref_holder)
     {
         storage_.small_value = tagged_value;
         set_vs_tag(ValueStorageTag::VS_TAG_SMALL_VALUE);
     }
 
-    Object(ViewPtrHolder* ref_holder, ValueStorageTag vs_tag, ValueStorage storage) noexcept :
+    ObjectView(LWMemHolder* ref_holder, ValueStorageTag vs_tag, ValueStorage storage) noexcept :
         Base(ref_holder)
     {
         storage_ = storage;
@@ -92,7 +100,7 @@ public:
         }
     }
 
-    Object(const Object& other) noexcept :
+    ObjectView(const ObjectView& other) noexcept :
         Base(other),
         storage_(other.storage_)
     {
@@ -101,7 +109,7 @@ public:
         }
     }
 
-    Object(Object&& other) noexcept :
+    ObjectView(ObjectView&& other) noexcept :
         Base(std::move(other)),
         storage_(std::move(other.storage_))
     {
@@ -110,7 +118,7 @@ public:
         }
     }
 
-    virtual ~Object() noexcept
+    virtual ~ObjectView() noexcept
     {
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (storage_.view_ptr) {
@@ -119,7 +127,7 @@ public:
         }
     }
 
-    Object& operator=(const Object& other)
+    ObjectView& operator=(const ObjectView& other)
     {
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (storage_.view_ptr) {
@@ -139,7 +147,7 @@ public:
         return *this;
     }
 
-    Object& operator=(Object&& other)
+    ObjectView& operator=(ObjectView&& other)
     {
         if (get_tag() == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (storage_.view_ptr) {
@@ -164,17 +172,17 @@ public:
     PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();        
         return PoolSharedPtr<HermesCtr>(
-                    get_ptr_holder()->ctr(),
-                    get_ptr_holder()->owner(),
+                    get_mem_holder()->ctr(),
+                    get_mem_holder()->owner(),
                     pool::DoRef{}
         );
     }
 
-    ObjectPtr search(U8StringView query) const;
-    ObjectPtr search(U8StringView query, const IParameterResolver& params) const;
+    Object search(U8StringView query) const;
+    Object search(U8StringView query, const IParameterResolver& params) const;
 
-    ObjectPtr search2(U8StringView query) const;
-    ObjectPtr search2(U8StringView query, const IParameterResolver& params) const;
+    Object search2(U8StringView query) const;
+    Object search2(U8StringView query, const IParameterResolver& params) const;
 
     bool is_convertible_to_plain_string() const
     {
@@ -190,7 +198,7 @@ public:
         assert_not_null();
         auto tag = get_type_tag();
         return get_type_reflection(tag).convert_to_plain_string(
-            get_ptr_holder(), get_vs_tag(), storage_
+            get_mem_holder(), get_vs_tag(), storage_
         );
     }
 
@@ -206,14 +214,14 @@ public:
     }
 
     template <typename DT>
-    ObjectPtr convert_to() const;
+    Object convert_to() const;
 
-    ObjectPtr as_object() const {
-        return ObjectPtr(*this);
+    Object as_object() const {
+        return Object(*this);
     }
 
     bool is_null() const noexcept {
-        return get_ptr_holder() == nullptr ||
+        return get_mem_holder() == nullptr ||
                 (get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS
                  && storage_.addr == nullptr);
     }
@@ -259,11 +267,11 @@ public:
     }
 
     bool is_typed_value() const noexcept {
-        return is_a(TypeTag<TypedValue>{});
+        return is_a(TypeTag<TypedValueView>{});
     }
 
     bool is_datatype() const noexcept {
-        return is_a(TypeTag<Datatype>{});
+        return is_a(TypeTag<DatatypeView>{});
     }
 
     bool is_numeric() const noexcept {
@@ -300,7 +308,7 @@ public:
     }
 
 
-    bool is_compareble_with(const ObjectPtr& other) const
+    bool is_compareble_with(const Object& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
@@ -313,16 +321,16 @@ public:
         }
     }
 
-    int32_t compare(const ObjectPtr& other) const
+    int32_t compare(const Object& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_compare(
-                    get_ptr_holder(),
+                    get_mem_holder(),
                     get_vs_tag(),
                     storage_,
-                    other->get_ptr_holder(),
+                    other->get_mem_holder(),
                     other->get_vs_tag(),
                     other->storage_
             );
@@ -333,7 +341,7 @@ public:
     }
 
 
-    bool is_equals_compareble_with(const ObjectPtr& other) const
+    bool is_equals_compareble_with(const Object& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
@@ -346,16 +354,16 @@ public:
         }
     }
 
-    bool equals(const ObjectPtr& other) const
+    bool equals(const Object& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_equals(
-                    get_ptr_holder(),
+                    get_mem_holder(),
                     get_vs_tag(),
                     storage_,
-                    other->get_ptr_holder(),
+                    other->get_mem_holder(),
                     other->get_vs_tag(),
                     other->storage_
             );
@@ -368,13 +376,13 @@ public:
 
     GenericArrayPtr as_generic_array() const;
     GenericMapPtr as_generic_map() const;
-    DatatypePtr as_datatype() const;
+    Datatype as_datatype() const;
 
-    DataObjectPtr<Varchar> as_varchar() const;
-    DataObjectPtr<Double> as_double() const;
-    DataObjectPtr<BigInt> as_bigint() const;
-    DataObjectPtr<Boolean> as_boolean() const;
-    DataObjectPtr<Real> as_real() const;
+    DataObject<Varchar> as_varchar() const;
+    DataObject<Double> as_double() const;
+    DataObject<BigInt> as_bigint() const;
+    DataObject<Boolean> as_boolean() const;
+    DataObject<Real> as_real() const;
 
     int64_t to_i64() const;
     int64_t to_i32() const;
@@ -384,32 +392,31 @@ public:
     float to_f32() const;
 
     bool is_object_map() const {
-        return is_a<Map<Varchar, Object>>();
+        return is_a<ObjectMap>();
     }
 
     bool is_tiny_object_map() const {
-        return is_a<Map<UTinyInt, Object>>();
+        return is_a<TinyObjectMap>();
     }
-
 
     bool is_object_array() const {
-        return is_a<Array<Object>>();
+        return is_a<ObjectArray>();
     }
 
-    ObjectMapPtr as_object_map() const;
-    TinyObjectMapPtr as_tiny_object_map() const;
-    ObjectArrayPtr as_object_array() const;
+    ObjectMap as_object_map() const;
+    TinyObjectMap as_tiny_object_map() const;
+    ObjectArray as_object_array() const;
 
 
     U8String type_str() const;
 
-    bool operator<(const ObjectPtr& other) const {
+    bool operator<(const Object& other) const {
         return false;
     }
 
     template <typename DT>
-    DataObjectPtr<DT> as_data_object() const {
-        return cast_to<DataObject<DT>>();
+    DataObject<DT> as_data_object() const {
+        return cast_to<DataObjectView<DT>>();
     }
 
     template <typename DT, typename Fn>
@@ -450,7 +457,7 @@ public:
 
         if (value_tag == tag) {
             return detail::ValueCastHelper<T>::cast_to(
-                get_ptr_holder(),
+                get_mem_holder(),
                 get_vs_tag(),
                 storage_
             );
@@ -466,7 +473,7 @@ public:
             if (get_tag() == VS_TAG_ADDRESS) {
                 auto value_tag = get_type_tag();
                 return get_type_reflection(value_tag).hermes_is_simple_layout(
-                            get_ptr_holder(), storage_.addr
+                            get_mem_holder(), storage_.addr
                 );
             }
             else {
@@ -505,7 +512,7 @@ public:
         else {
             auto value_tag = get_type_tag();
             get_type_reflection(value_tag).hermes_stringify_value(
-                get_ptr_holder(), get_vs_tag(), storage_,
+                get_mem_holder(), get_vs_tag(), storage_,
                 out, state
             );
         }
@@ -543,30 +550,30 @@ private:
     void assert_not_null() const
     {
         if (is_null()) {
-            MEMORIA_MAKE_GENERIC_ERROR("Object is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("ObjectView is null").do_throw();
         }
     }
 
     void ref() {
-        get_ptr_holder()->ref_copy();
+        get_mem_holder()->ref_copy();
     }
 
     void unref() {
-        get_ptr_holder()->unref();
+        get_mem_holder()->unref();
     }
 };
 
 
-std::ostream& operator<<(std::ostream& out, ObjectPtr ptr);
+std::ostream& operator<<(std::ostream& out, Object ptr);
 
 struct Less {
-    bool operator()(const ObjectPtr& left, const ObjectPtr& right) {
+    bool operator()(const Object& left, const Object& right) {
         return left->compare(right) < 0;
     }
 };
 
 struct Greater {
-    bool operator()(const ObjectPtr& left, const ObjectPtr& right) {
+    bool operator()(const Object& left, const Object& right) {
         return left->compare(right) > 0;
     }
 };
@@ -575,7 +582,7 @@ struct Greater {
 }
 
 template <typename T>
-auto cast_to(const hermes::ObjectPtr& val) {
+auto cast_to(const hermes::Object& val) {
     return val->cast_to(TypeTag<T>{});
 }
 }

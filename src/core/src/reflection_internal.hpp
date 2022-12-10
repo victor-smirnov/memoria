@@ -32,7 +32,7 @@ template <typename T>
 class HermesTypeReflectionImpl: public TypeCodeTypeReflectionImplBase<T> {
 public:
     virtual void hermes_stringify_value(
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr,
             std::ostream& out,
@@ -47,7 +47,7 @@ public:
     }
 
     virtual bool hermes_is_simple_layout(
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             void* ptr
     ) const override {
         return T(ref_holder, ptr).is_simple_layout();
@@ -55,7 +55,7 @@ public:
 
     virtual void* deep_copy_to(
             arena::ArenaAllocator& arena,
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             void* ptr,
             DeepCopyDeduplicator& dedup) const override
     {
@@ -71,28 +71,28 @@ template <typename T> struct GenericCtrDispatcher;
 template <typename DT>
 struct GenericCtrDispatcher<hermes::Array<DT>> {
     static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
-        return ctr->new_typed_array<DT>()->as_object()->as_generic_array();
+        return ctr->make_array<DT>().as_object().as_generic_array();
     }
 };
 
 template <>
 struct GenericCtrDispatcher<hermes::Array<hermes::Object>> {
     static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
-        return ctr->new_array()->as_object()->as_generic_array();
+        return ctr->make_array<hermes::Object>().as_object().as_generic_array();
     }
 };
 
 template <>
 struct GenericCtrDispatcher<hermes::Map<Varchar, hermes::Object>> {
     static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
-        return ctr->new_map()->as_object()->as_generic_map();
+        return ctr->make_object_map().as_object().as_generic_map();
     }
 };
 
 template <typename KeyDT, typename ValueDT>
 struct GenericCtrDispatcher<hermes::Map<KeyDT, ValueDT>> {
     static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
-        return ctr->new_typed_map<KeyDT, ValueDT>()->as_object()->as_generic_map();
+        return ctr->make_map<KeyDT, ValueDT>().as_object().as_generic_map();
     }
 };
 
@@ -103,7 +103,7 @@ class HermesContainerTypeReflectionImpl: public HermesTypeReflectionImpl<T> {
 public:
 
     virtual PoolSharedPtr<hermes::GenericObject> hermes_make_wrapper(
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             void* addr
     ) const override {
         return GenericCtrImplT::make_wrapper(ref_holder, addr);
@@ -154,7 +154,7 @@ struct FromStringHelper<DT, false> {
         return false;
     }
 
-    static hermes::ObjectPtr convert_from(U8StringView) {
+    static hermes::Object convert_from(U8StringView) {
         MEMORIA_MAKE_GENERIC_ERROR("No 'from string' converter is defined for datatype {}", TypeNameFactory<DT>::name()).do_throw();
     }
 };
@@ -165,7 +165,7 @@ struct FromStringHelper<DT, true> {
         return true;
     }
 
-    static hermes::ObjectPtr convert_from(U8StringView view) {
+    static hermes::Object convert_from(U8StringView view) {
         return FromPlainStringConverter<DT>::from_string(view);
     }
 };
@@ -240,11 +240,11 @@ struct SameDatatypeComparatorSelector;
 
 template <typename T, typename DT>
 struct SameDatatypeComparatorSelector<T, DT, true> {
-    template <typename Map>
-    static void build_mapping(Map& map) noexcept {
+    template <typename MapView>
+    static void build_mapping(MapView& map) noexcept {
         map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
-                ViewPtrHolder* right_ptr,
+                LWMemHolder* right_ptr,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
@@ -261,11 +261,11 @@ struct SameDatatypeComparatorSelector<T, DT, true> {
 
 template <typename T, typename DT>
 struct SameDatatypeComparatorSelector<T, DT, false> {
-    template <typename Map>
-    static void build_mapping(Map& map) noexcept {
+    template <typename MapView>
+    static void build_mapping(MapView& map) noexcept {
         map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
-                ViewPtrHolder* right_ptr,
+                LWMemHolder* right_ptr,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
@@ -286,15 +286,15 @@ struct CrossDatatypeComparatorSelector;
 
 template <typename T, typename LeftDT, typename RightDT>
 struct CrossDatatypeComparatorSelector<T, LeftDT, RightDT, true> {
-    template <typename Map>
-    static void build_mapping(Map& map) noexcept {
+    template <typename MapView>
+    static void build_mapping(MapView& map) noexcept {
         map[ShortTypeCode::of<RightDT>().u64()] = [](
                 const DTTViewType<LeftDT>& left_view,
-                ViewPtrHolder* right_ptr,
+                LWMemHolder* right_ptr,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
-                hermes::DataObject<RightDT> right_object(right_ptr, right.addr);
+                hermes::DataObjectView<RightDT> right_object(right_ptr, right.addr);
                 return CrossDatatypeComparator<LeftDT, RightDT, NumericTypeSelector<LeftDT>>::
                         compare(left_view, *right_object.view());
             }
@@ -309,8 +309,8 @@ struct CrossDatatypeComparatorSelector<T, LeftDT, RightDT, true> {
 
 template <typename T, typename LeftDT, typename RightDT>
 struct CrossDatatypeComparatorSelector<T, LeftDT, RightDT, false> {
-    template <typename Map>
-    static void build_mapping(Map&) noexcept {}
+    template <typename MapView>
+    static void build_mapping(MapView&) noexcept {}
 };
 
 
@@ -322,8 +322,8 @@ struct ComparatorsMapBuilder;
 // Same-datatype case is handled separately.
 template <typename T, typename LeftDT, typename RightDT, typename... Tail>
 struct ComparatorsMapBuilder<T, LeftDT, TL<RightDT, Tail...>> {
-    template <typename Map>
-    static void build_mapping(Map& map) noexcept {
+    template <typename MapView>
+    static void build_mapping(MapView& map) noexcept {
         CrossDatatypeComparatorSelector<
                 T, LeftDT, RightDT,
                 IsComplete<
@@ -337,8 +337,8 @@ struct ComparatorsMapBuilder<T, LeftDT, TL<RightDT, Tail...>> {
 // Same-datatype case.
 template <typename T, typename DT, typename... Tail>
 struct ComparatorsMapBuilder<T, DT, TL<DT, Tail...>> {
-    template <typename Map>
-    static void build_mapping(Map& map) noexcept {
+    template <typename MapView>
+    static void build_mapping(MapView& map) noexcept {
         // At least one of comparators is defined here.
         // Pick up Same-type comparator if it's defined.
         // Otherwise pick up cross-type one.
@@ -353,8 +353,8 @@ struct ComparatorsMapBuilder<T, DT, TL<DT, Tail...>> {
 
 template <typename T, typename DT>
 struct ComparatorsMapBuilder<T, DT, TL<>> {
-    template <typename Map>
-    static void build_mapping(Map&) noexcept {}
+    template <typename MapView>
+    static void build_mapping(MapView&) noexcept {}
 };
 
 
@@ -363,11 +363,11 @@ struct SameDatatypeEqualityComparatorSelector;
 
 template <typename T, typename DT>
 struct SameDatatypeEqualityComparatorSelector<T, DT, true> {
-    template <typename Map>
-    static void build_mapping(Map& map) noexcept {
+    template <typename MapView>
+    static void build_mapping(MapView& map) noexcept {
         map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
-                ViewPtrHolder* right_ptr,
+                LWMemHolder* right_ptr,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
@@ -384,11 +384,11 @@ struct SameDatatypeEqualityComparatorSelector<T, DT, true> {
 
 template <typename T, typename DT>
 struct SameDatatypeEqualityComparatorSelector<T, DT, false> {
-    template <typename Map>
-    static void build_mapping(Map& map) noexcept {
+    template <typename MapView>
+    static void build_mapping(MapView& map) noexcept {
         map[ShortTypeCode::of<DT>().u64()] = [](
                 const DTTViewType<DT>& left_view,
-                ViewPtrHolder* right_ptr,
+                LWMemHolder* right_ptr,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS) {
@@ -409,16 +409,16 @@ struct CrossDatatypeEqualityComparatorSelector;
 
 template <typename T, typename LeftDT, typename RightDT>
 struct CrossDatatypeEqualityComparatorSelector<T, LeftDT, RightDT, true> {
-    template <typename Map>
-    static void build_mapping(Map& map) noexcept {
+    template <typename MapView>
+    static void build_mapping(MapView& map) noexcept {
         map[ShortTypeCode::of<RightDT>().u64()] = [](
                 const DTTViewType<LeftDT>& left_view,
-                ViewPtrHolder* right_ptr,
+                LWMemHolder* right_ptr,
                 hermes::ValueStorageTag right_vs_tag, hermes::ValueStorage& right
         ) {
             if (right_vs_tag == hermes::ValueStorageTag::VS_TAG_ADDRESS)
             {
-                hermes::DataObject<RightDT> right_object(right_ptr, right.addr);
+                hermes::DataObjectView<RightDT> right_object(right_ptr, right.addr);
                 return CrossDatatypeEqualityComparator<LeftDT, RightDT, NumericTypeSelector<LeftDT>>::
                     equals(left_view, *right_object.view());
             }
@@ -433,8 +433,8 @@ struct CrossDatatypeEqualityComparatorSelector<T, LeftDT, RightDT, true> {
 
 template <typename T, typename LeftDT, typename RightDT>
 struct CrossDatatypeEqualityComparatorSelector<T, LeftDT, RightDT, false> {
-    template <typename Map>
-    static void build_mapping(Map&) noexcept {}
+    template <typename MapView>
+    static void build_mapping(MapView&) noexcept {}
 };
 
 
@@ -451,8 +451,8 @@ struct EqualityComparatorsMapBuilder;
 // Same-datatype case is handled separately.
 template <typename T, typename LeftDT, typename RightDT, typename... Tail>
 struct EqualityComparatorsMapBuilder<T, LeftDT, TL<RightDT, Tail...>> {
-    template <typename Map>
-    static void build_mapping(Map& map) noexcept {
+    template <typename MapView>
+    static void build_mapping(MapView& map) noexcept {
         CrossDatatypeEqualityComparatorSelector<
                 T, LeftDT, RightDT,
                 IsComplete<
@@ -467,8 +467,8 @@ struct EqualityComparatorsMapBuilder<T, LeftDT, TL<RightDT, Tail...>> {
 // Same-datatype case.
 template <typename T, typename DT, typename... Tail>
 struct EqualityComparatorsMapBuilder<T, DT, TL<DT, Tail...>> {
-    template <typename Map>
-    static void build_mapping(Map& map) noexcept {
+    template <typename MapView>
+    static void build_mapping(MapView& map) noexcept {
         // At least one of comparators is defined here.
         // Pick up Same-type comparator if it's defined.
         // Otherwise pick up cross-type one.
@@ -483,8 +483,8 @@ struct EqualityComparatorsMapBuilder<T, DT, TL<DT, Tail...>> {
 
 template <typename T, typename DT>
 struct EqualityComparatorsMapBuilder<T, DT, TL<>> {
-    template <typename Map>
-    static void build_mapping(Map&) noexcept {}
+    template <typename MapView>
+    static void build_mapping(MapView&) noexcept {}
 };
 
 
@@ -532,16 +532,16 @@ struct LeftIndexOf;
 
 template <uint64_t TypeCode, typename Head, typename... Tail, int32_t Idx>
 struct LeftIndexOf<TypeCode, TL<Head, Tail...>, Idx> {
-    static constexpr int32_t Object = IfThenElse<
+    static constexpr int32_t ObjectView = IfThenElse<
             ShortTypeCode::of<Head>().u64() == TypeCode,
             IntValue<Idx>,
-            IntValue<LeftIndexOf<TypeCode, TL<Tail...>, Idx + 1>::Object>
+            IntValue<LeftIndexOf<TypeCode, TL<Tail...>, Idx + 1>::ObjectView>
     >::Value;
 };
 
 template <uint64_t TypeCode, int32_t Idx>
 struct LeftIndexOf<TypeCode, TL<>, Idx> {
-    static constexpr int32_t Object = Idx;
+    static constexpr int32_t ObjectView = Idx;
 };
 
 template <typename List>
@@ -568,10 +568,10 @@ struct RightIndexOf<TL<>> {
 
 
 template <typename ViewT>
-using DTEqualityComparator = std::function<bool (const ViewT&, ViewPtrHolder*, hermes::ValueStorageTag, hermes::ValueStorage&)>;
+using DTEqualityComparator = std::function<bool (const ViewT&, LWMemHolder*, hermes::ValueStorageTag, hermes::ValueStorage&)>;
 
 template <typename ViewT>
-using DTComparator = std::function<int32_t (const ViewT&, ViewPtrHolder* right_ptr, hermes::ValueStorageTag, hermes::ValueStorage&)>;
+using DTComparator = std::function<int32_t (const ViewT&, LWMemHolder* right_ptr, hermes::ValueStorageTag, hermes::ValueStorage&)>;
 
 
 template <typename TV, bool Embeddable>
@@ -604,7 +604,7 @@ class HermesTypeReflectionDatatypeImpl: public HermesTypeReflectionImpl<T> {
     ska::flat_hash_map<uint64_t, detail::DTComparator<DTTViewType<DT>>> comparators_;
     ska::flat_hash_map<uint64_t, detail::DTEqualityComparator<DTTViewType<DT>>> equality_comparators_;
 
-    static constexpr int32_t LeftTypeIdx = detail::LeftIndexOf<ShortTypeCode::of<DT>().u64(), detail::AllComparableDatatypes>::Object;
+    static constexpr int32_t LeftTypeIdx = detail::LeftIndexOf<ShortTypeCode::of<DT>().u64(), detail::AllComparableDatatypes>::ObjectView;
     static constexpr int32_t Comparables = ListSize<detail::AllComparableDatatypes>;
 
 public:
@@ -618,7 +618,7 @@ public:
     }
 
     virtual void hermes_stringify_value(
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr,
             std::ostream& out,
@@ -645,8 +645,8 @@ public:
         return detail::FromStringHelper<DT>::is_convertible();
     }
 
-    virtual hermes::ObjectPtr datatype_convert_to(
-            ViewPtrHolder* ref_holder,
+    virtual hermes::Object datatype_convert_to(
+            LWMemHolder* ref_holder,
             ShortTypeCode type_hash,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr
@@ -671,12 +671,12 @@ public:
         }
     }
 
-    virtual hermes::ObjectPtr datatype_convert_from_plain_string(U8StringView str) const override {
+    virtual hermes::Object datatype_convert_from_plain_string(U8StringView str) const override {
         return detail::FromStringHelper<DT>::convert_from(str);
     }
 
     virtual U8String convert_to_plain_string(
-            ViewPtrHolder* ref_holder,
+            LWMemHolder* ref_holder,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& ptr
     ) const override
@@ -714,10 +714,10 @@ public:
     }
 
     virtual int32_t hermes_compare(
-            ViewPtrHolder* left_ptr,
+            LWMemHolder* left_ptr,
             hermes::ValueStorageTag left_vs_tag,
             hermes::ValueStorage& left,
-            ViewPtrHolder* right_ptr,
+            LWMemHolder* right_ptr,
             hermes::ValueStorageTag right_vs_tag,
             hermes::ValueStorage& right
     ) const override
@@ -753,10 +753,10 @@ public:
     }
 
     virtual bool hermes_equals(
-            ViewPtrHolder* left_ptr,
+            LWMemHolder* left_ptr,
             hermes::ValueStorageTag left_vs_tag,
             hermes::ValueStorage& left,
-            ViewPtrHolder* right_ptr,
+            LWMemHolder* right_ptr,
             hermes::ValueStorageTag right_vs_tag,
             hermes::ValueStorage& right
     ) const override
@@ -784,8 +784,8 @@ public:
         }
     }
 
-    hermes::ObjectPtr import_value(
-            ViewPtrHolder* ptr,
+    hermes::Object import_value(
+            LWMemHolder* ptr,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& storage
     ) const override

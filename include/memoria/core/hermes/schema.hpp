@@ -23,10 +23,10 @@
 namespace memoria::hermes {
 
 class TinyObjectBase {
-    TinyObjectMapPtr ptr_;
+    TinyObjectMap ptr_;
 public:
     TinyObjectBase() noexcept {};
-    TinyObjectBase(const TinyObjectMapPtr& ptr) noexcept:
+    TinyObjectBase(const TinyObjectMap& ptr) noexcept:
         ptr_(ptr)
     {};
 };
@@ -34,7 +34,7 @@ public:
 class Record: public TinyObjectBase {
 public:
     Record() noexcept {}
-    Record(const TinyObjectMapPtr& ptr) noexcept:
+    Record(const TinyObjectMap& ptr) noexcept:
         TinyObjectBase(ptr)
     {}
 };

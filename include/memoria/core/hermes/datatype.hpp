@@ -227,7 +227,7 @@ public:
     DatatypeData* deep_copy_to(
             arena::ArenaAllocator& dst,
             ShortTypeCode tag,
-            ViewPtrHolder* ptr_holder,
+            LWMemHolder* ptr_holder,
             DeepCopyDeduplicator& dedup) const
     {
         DatatypeData* existing = dedup.resolve(dst, this);
@@ -272,41 +272,41 @@ public:
 }
 
 
-class Datatype: public HoldingView<Datatype> {
-    using Base = HoldingView<Datatype>;
+class DatatypeView: public HoldingView<DatatypeView> {
+    using Base = HoldingView<DatatypeView>;
     friend class HermesCtr;
-    friend class Object;
+    friend class ObjectView;
     friend class HermesCtrBuilder;
 
     template <typename, typename>
-    friend class Map;
+    friend class MapView;
 
     template <typename>
-    friend class Array;
+    friend class ArrayView;
 
 protected:
     mutable detail::DatatypeData* datatype_;
-    using Base::ptr_holder_;
+    using Base::mem_holder_;
 public:
-    Datatype():
+    DatatypeView():
         datatype_()
     {}
 
-    Datatype(ViewPtrHolder* ptr_holder, void* dt) noexcept :
+    DatatypeView(LWMemHolder* ptr_holder, void* dt) noexcept :
         Base(ptr_holder), datatype_(reinterpret_cast<detail::DatatypeData*>(dt))
     {}
 
     PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
         return PoolSharedPtr<HermesCtr>(
-                    ptr_holder_->ctr(),
-                    ptr_holder_->owner(),
+                    mem_holder_->ctr(),
+                    mem_holder_->owner(),
                     pool::DoRef{}
         );
     }
 
-    ObjectPtr as_object() const {
-        return ObjectPtr(Object(ptr_holder_, datatype_));
+    Object as_object() const {
+        return Object(ObjectView(mem_holder_, datatype_));
     }
 
     U8String to_string(const StringifyCfg& cfg = StringifyCfg()) const
@@ -344,13 +344,13 @@ public:
 
     bool is_simple_layout() const;
 
-    StringValuePtr type_name() const;
-    ObjectArrayPtr set_constructor();
-    ObjectArrayPtr constructor() const;
+    StringValue type_name() const;
+    ObjectArray set_constructor();
+    ObjectArray constructor() const;
 
-    ObjectArrayPtr type_parameters() const;
-    DatatypePtr append_type_parameter(U8StringView name);
-    DatatypePtr append_type_parameter(StringValuePtr name);
+    ObjectArray type_parameters() const;
+    Datatype append_type_parameter(U8StringView name);
+    Datatype append_type_parameter(StringValue name);
 
     void clear_parameters()
     {
@@ -369,7 +369,7 @@ public:
     }
 
     template <typename DT>
-    DataObjectPtr<DT> append_integral_parameter(DTTViewType<DT> view);
+    void append_integral_parameter(DTTViewType<DT> view);
 
     bool has_constructor() const {
         assert_not_null();
@@ -466,27 +466,37 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return datatype_->deep_copy_to(arena, ShortTypeCode::of<Datatype>(), ptr_holder_, dedup);
+        return datatype_->deep_copy_to(arena, ShortTypeCode::of<DatatypeView>(), mem_holder_, dedup);
     }
 
     UID256 cxx_type_hash() const;
 
-    void append_type_parameter(ObjectPtr value);
-    void append_constructor_argument(ObjectPtr value);
+    void append_type_parameter(Object value);
+    void append_constructor_argument(Object value);
 
+
+    operator Object() const & noexcept {
+        return as_object();
+    }
+
+    operator Object() && noexcept {
+        return Object(this->release_mem_holder(), datatype_ , MoveOwnershipTag{});
+    }
 
 
 private:
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(datatype_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("Datatype is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("DatatypeView is null").do_throw();
         }
     }
 
     void assert_mutable();
 };
 
-std::ostream& operator<<(std::ostream& out, DatatypePtr ptr);
+UID256 get_cxx_type_hash(U8StringView sre);
+
+std::ostream& operator<<(std::ostream& out, Datatype ptr);
 
 }}

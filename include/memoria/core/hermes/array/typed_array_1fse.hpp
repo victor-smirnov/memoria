@@ -25,10 +25,15 @@ namespace detail {
 
 template <typename DT>
 class TypedArrayData<DT, FSE1Subtype, true>: public arena::Array<DTTViewType<DT>> {
+    using Base = arena::Array<DTTViewType<DT>>;
+
     // No state here!
     // Must be a Standard Layout type
 public:
-
+    TypedArrayData() {}
+    TypedArrayData(uint64_t capacity):
+        Base(capacity)
+    {}
 };
 
 

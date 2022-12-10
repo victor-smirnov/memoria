@@ -59,46 +59,46 @@ StringEscaper& StringEscaper::current() {
 }
 
 
-std::ostream& operator<<(std::ostream& out, ObjectPtr ptr) {
+std::ostream& operator<<(std::ostream& out, Object ptr) {
     out << ptr->to_string();
     return out;
 }
 
-std::ostream& operator<<(std::ostream& out, DatatypePtr ptr) {
+std::ostream& operator<<(std::ostream& out, Datatype ptr) {
     out << ptr->to_string();
     return out;
 }
 
-uint64_t Parameter::hash_code() const {
+uint64_t ParameterView::hash_code() const {
     assert_not_null();
     arena::DefaultHashFn<U8StringView> hash;
     return hash(dt_ctr_->view());
 }
 
-ObjectPtr Object::search2(U8StringView query) const
+Object ObjectView::search2(U8StringView query) const
 {
     hermes::path::Expression exp(std::string{query});
-    return hermes::path::search(exp, ObjectPtr(Object(get_ptr_holder(), storage_.addr)));
+    return hermes::path::search(exp, Object(ObjectView(get_mem_holder(), storage_.addr)));
 }
 
-ObjectPtr Object::search2(U8StringView query, const IParameterResolver& params) const
+Object ObjectView::search2(U8StringView query, const IParameterResolver& params) const
 {
     hermes::path::Expression exp(std::string{query});
-    return hermes::path::search(exp, ObjectPtr(Object(get_ptr_holder(), storage_.addr)), params);
+    return hermes::path::search(exp, Object(ObjectView(get_mem_holder(), storage_.addr)), params);
 }
 
-ObjectPtr Object::search(U8StringView query) const
+Object ObjectView::search(U8StringView query) const
 {
     auto ast = HermesCtr::parse_hermes_path(query);
     auto exp = ast->root()->as_tiny_object_map();
-    return hermes::path::search(exp, ObjectPtr(Object(get_ptr_holder(), storage_.addr)));
+    return hermes::path::search(exp, Object(ObjectView(get_mem_holder(), storage_.addr)));
 }
 
-ObjectPtr Object::search(U8StringView query, const IParameterResolver& params) const
+Object ObjectView::search(U8StringView query, const IParameterResolver& params) const
 {
     auto ast = HermesCtr::parse_hermes_path(query);
     auto exp = ast->root()->as_tiny_object_map();
-    return hermes::path::search(exp, ObjectPtr(Object(get_ptr_holder(), storage_.addr)), params);
+    return hermes::path::search(exp, Object(ObjectView(get_mem_holder(), storage_.addr)), params);
 }
 
 namespace {

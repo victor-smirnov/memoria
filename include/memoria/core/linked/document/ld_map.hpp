@@ -55,21 +55,21 @@ public:
         return doc_->equals(other.doc_) && map_.ptr() == other.map_.ptr();
     }
 
-    ViewPtr<LDDValueView> as_object() const {
-        return ViewPtr<LDDValueView>(
+    Own<LDDValueView> as_object() const {
+        return Own<LDDValueView>(
             LDDValueView{doc_, map_.ptr()},
             doc_->owner_
         );
     }
 
-    ViewPtr<LDDValueView> get(U8StringView name) const
+    Own<LDDValueView> get(U8StringView name) const
     {
         Optional<ld_::LDGenericPtr<ld_::GenericValue>> ptr = map_.get(name);
         if (ptr) {
-            return ViewPtr<LDDValueView>(LDDValueView(doc_, ptr.get()), doc_->owner_);
+            return Own<LDDValueView>(LDDValueView(doc_, ptr.get()), doc_->owner_);
         }
         else {
-            return ViewPtr<LDDValueView>{};
+            return Own<LDDValueView>{};
         }
     }
 
@@ -97,7 +97,7 @@ public:
 
 
     template <typename T, typename... Args>
-    ViewPtr<LDDValueView> set_value(U8StringView name, Args&&... args)
+    Own<LDDValueView> set_value(U8StringView name, Args&&... args)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
@@ -106,24 +106,24 @@ public:
 
         map_.put(name_str.string_, vv);
 
-        return ViewPtr<LDDValueView>(
+        return Own<LDDValueView>(
             LDDValueView{doc_, vv, ld_tag_value<T>()},
             doc_->owner_
         );
     }
 
 
-    ViewPtr<LDDMapView, false> set_map(U8StringView name)
+    Own<LDDMapView, OwningKind::EMBEDDED> set_map(U8StringView name)
     {
         return set_value<LDMap>(name)->as_map();
     }
 
-    ViewPtr<LDDArrayView, false> set_array(U8StringView name)
+    Own<LDDArrayView, OwningKind::EMBEDDED> set_array(U8StringView name)
     {
         return set_value<LDArray>(name)->as_array();
     }
 
-    ViewPtr<LDDValueView> set_sdn(U8StringView name, U8StringView sdn)
+    Own<LDDValueView> set_sdn(U8StringView name, U8StringView sdn)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
@@ -132,10 +132,10 @@ public:
 
         map_.put(name_str.string_, value.value_ptr_);
 
-        return ViewPtr<LDDValueView>(value, doc_->owner_);
+        return Own<LDDValueView>(value, doc_->owner_);
     }
 
-    ViewPtr<LDDValueView> set_document(U8StringView name, const LDDocument& source)
+    Own<LDDValueView> set_document(U8StringView name, const LDDocument& source)
     {
         LDDocumentView* dst_doc = doc_->make_mutable();
 
@@ -146,10 +146,10 @@ public:
 
         map_.put(name_str, ptr);
 
-        return ViewPtr<LDDValueView>(LDDValueView{doc_, ptr}, doc_->owner_);
+        return Own<LDDValueView>(LDDValueView{doc_, ptr}, doc_->owner_);
     }
 
-    ViewPtr<LDDValueView> set_null(U8StringView name)
+    Own<LDDValueView> set_null(U8StringView name)
     {
         LDDocumentView* dst_doc = doc_->make_mutable();
 
@@ -157,7 +157,7 @@ public:
 
         map_.put(name_str, 0);
 
-        return ViewPtr<LDDValueView>(LDDValueView{doc_, 0}, doc_->owner_);
+        return Own<LDDValueView>(LDDValueView{doc_, 0}, doc_->owner_);
     }
 
     void remove(U8StringView name)
@@ -250,7 +250,7 @@ struct DataTypeTraits<LDMap> {
     using LDStorageType = NullType;
     using LDViewType = LDDMapView;
 
-    using SharedPtrT = ViewPtr<LDViewType>;
+    using SharedPtrT = Own<LDViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<LDViewType>;
 
     using SpanT = DTViewSpan<LDViewType, SharedPtrT>;

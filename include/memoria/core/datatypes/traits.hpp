@@ -96,7 +96,10 @@ template <typename T>
 using DTTViewType = typename DataTypeTraits<T>::ViewType;
 
 template <typename T>
-using DTTView2Type = typename DataTypeTraits<T>::View2Type;
+using DTViewArg = typename DataTypeTraits<T>::ViewType;
+
+template <typename T>
+using DTView = typename DataTypeTraits<T>::View2Type;
 
 template <typename T>
 using DTTAtomType = typename DataTypeTraits<T>::AtomType;
@@ -226,7 +229,7 @@ struct MinimalDataTypeTraits: DataTypeTraitsBase<DataType>
     using DataDimensionsList  = TL<const T*>;
     using DataDimensionsTuple = AsTuple<DataDimensionsList>;
 
-    using SharedPtrT = ViewPtr<ViewType>;
+    using SharedPtrT = Own<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
     using SpanT = DTViewSpan<ViewType, SharedPtrT>;
@@ -254,7 +257,7 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
     using LDViewType    = T;
     using LDStorageType = LDST;
 
-    using View2Type = FxdSizeView<T, ViewKind::BY_VALUE>;
+    using View2Type = Own<FxdSizeView<T, ViewKind::BY_VALUE>, OwningKind::WRAPPING>;
 
     static constexpr bool isFixedSize = true;
 
@@ -316,7 +319,7 @@ template <typename T, typename DataType, typename LDST = T>
 struct ArithmeticFixedSizeDataTypeTraits: FixedSizeDataTypeTraits<T, DataType, LDST> {
     static constexpr bool isArithmetic = true;
 
-    using View2Type = NumberView<T, ViewKind::BY_VALUE>;
+    using View2Type = Own<NumberView<T, ViewKind::BY_VALUE>, OwningKind::WRAPPING>;
 };
 
 
@@ -469,7 +472,7 @@ struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
 
     using ViewType = EmptyType; // Probably, hasn't been defined yet
 
-    using SharedPtrT = ViewPtr<ViewType>;
+    using SharedPtrT = Own<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
     using SpanT = DTViewSpan<ViewType, SharedPtrT>;
@@ -506,7 +509,7 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
 
     using ViewType = EmptyType; // Probably, hasn't been defined yet
 
-    using SharedPtrT = ViewPtr<ViewType>;
+    using SharedPtrT = Own<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
 
@@ -542,7 +545,7 @@ struct DataTypeTraits<CoreApiProfileDT>: DataTypeTraitsBase<CoreApiProfileDT>
 
     using ViewType = CoreApiProfile; // Probably, hasn't been defined yet
 
-    using SharedPtrT = ViewPtr<ViewType>;
+    using SharedPtrT = Own<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
     using SpanT = DTViewSpan<ViewType, SharedPtrT>;
@@ -627,6 +630,7 @@ struct CrossDatatypeEqualityComparator<LeftType, RightType, NumericDatatype> {
         return right == left;
     }
 };
+
 
 
 }

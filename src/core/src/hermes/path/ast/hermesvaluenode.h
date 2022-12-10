@@ -41,7 +41,7 @@
 namespace memoria::hermes::path { namespace ast {
 
 /**
- * @brief The HermesValueNode class represents a Hermes Object.
+ * @brief The HermesValueNode class represents a Hermes ObjectView.
  */
 class HermesValueNode : public AbstractNode
 {
@@ -55,7 +55,7 @@ public:
      * @a string
      * @param[in] string The raw string value.
      */
-    HermesValueNode(const ObjectPtr& string);
+    HermesValueNode(const Object& string);
     /**
      * @brief Calls the visit method of the given @a visitor with the
      * dynamic type of the node.
@@ -70,14 +70,14 @@ public:
      */
     bool operator==(const HermesValueNode& other) const;
 
-    operator ObjectPtr() const {
+    operator Object() const {
         return value;
     }
 
     /**
      * @brief The raw Hermes value
      */
-    ObjectPtr value;
+    Object value;
 
     static constexpr NamedCode CODE = ASTCodes::HERMES_VALUE_NODE;
 };
@@ -86,7 +86,7 @@ public:
 struct HermesArrayNode
 {
     std::vector<HermesValueNode> array;
-    ObjectPtr to_hermes_array(HermesCtr& doc) const;
+    Object to_hermes_array(HermesCtr& doc) const;
 };
 
 
@@ -96,7 +96,7 @@ struct HermesArrayNode
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::HermesValueNode,
-    (memoria::hermes::ObjectPtr, value)
+    (memoria::hermes::Object, value)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(

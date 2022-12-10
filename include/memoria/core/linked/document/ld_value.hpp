@@ -49,8 +49,8 @@ public:
     {}
 
     template <typename View>
-    ViewPtr<View> wrap(const View& view) const {
-        return ViewPtr<View>(view, doc_->owner_);
+    Own<View> wrap(const View& view) const {
+        return Own<View>(view, doc_->owner_);
     }
 
     const LDDocumentView* doc() const noexcept {
@@ -66,70 +66,70 @@ public:
     }
 
 
-    ViewPtr<LDDMapView, false> as_map() const;
-    ViewPtr<LDDArrayView, false> as_array() const;
-    ViewPtr<LDTypeDeclarationView, false> as_type_decl() const;
-    ViewPtr<LDDTypedValueView, false> as_typed_value() const;
+    Own<LDDMapView, OwningKind::EMBEDDED> as_map() const;
+    Own<LDDArrayView, OwningKind::EMBEDDED> as_array() const;
+    Own<LDTypeDeclarationView, OwningKind::EMBEDDED> as_type_decl() const;
+    Own<LDDTypedValueView, OwningKind::EMBEDDED> as_typed_value() const;
 
     template <typename T>
-    ViewPtr<DTTLDViewType<T>> cast_as() const
+    Own<DTTLDViewType<T>> cast_as() const
     {
         ld_::ldd_assert_tag<T>(type_tag_);
-        return ViewPtr<DTTLDViewType<T>>(
+        return Own<DTTLDViewType<T>>(
                 MakeLDView<T>::process(doc_, value_ptr_, type_tag_),
                 doc_->owner_
         );
     }
 
     template <typename T>
-    ViewPtr<DTTLDViewType<T>> unchecked_cast_as() const
+    Own<DTTLDViewType<T>> unchecked_cast_as() const
     {
-        return ViewPtr<DTTLDViewType<T>>(
+        return Own<DTTLDViewType<T>>(
                 MakeLDView<T>::process(doc_, value_ptr_, type_tag_),
                 doc_->owner_
         );
     }
 
-    ViewPtr<LDStringView> as_varchar() const
+    Own<LDStringView> as_varchar() const
     {
         ld_::ldd_assert_tag<Varchar>(type_tag_);
-        return ViewPtr<LDStringView>(
+        return Own<LDStringView>(
                 LDStringView(doc_, value_ptr_),
                 doc_->owner_
         );
     }
 
-    ViewPtr<DTTViewType<BigInt>> as_bigint() const
+    Own<DTTViewType<BigInt>> as_bigint() const
     {
         ld_::ldd_assert_tag<BigInt>(type_tag_);
-        return ViewPtr<DTTViewType<BigInt>>(
+        return Own<DTTViewType<BigInt>>(
             *ld_::LDPtr<DTTLDStorageType<BigInt>>(value_ptr_).get(&doc_->arena_),
             doc_->owner_
         );
     }
 
-    ViewPtr<DTTViewType<Double>> as_double() const
+    Own<DTTViewType<Double>> as_double() const
     {
         ld_::ldd_assert_tag<Double>(type_tag_);        
-        return ViewPtr<DTTViewType<Double>>(
+        return Own<DTTViewType<Double>>(
                 *ld_::LDPtr<DTTLDStorageType<Double>>(value_ptr_).get(&doc_->arena_),
                 doc_->owner_
         );
     }
 
-    ViewPtr<DTTViewType<Real>> as_real() const
+    Own<DTTViewType<Real>> as_real() const
     {
         ld_::ldd_assert_tag<Real>(type_tag_);
-        return ViewPtr<DTTViewType<Real>>(
+        return Own<DTTViewType<Real>>(
                 *ld_::LDPtr<DTTLDStorageType<Real>>(value_ptr_).get(&doc_->arena_),
                 doc_->owner_
         );
     }
 
-    ViewPtr<DTTViewType<Boolean>> as_boolean() const
+    Own<DTTViewType<Boolean>> as_boolean() const
     {
         ld_::ldd_assert_tag<Boolean>(type_tag_);
-        return ViewPtr<DTTViewType<Boolean>>(
+        return Own<DTTViewType<Boolean>>(
                 *ld_::LDPtr<DTTLDStorageType<Boolean>>(value_ptr_).get(&doc_->arena_),
                 doc_->owner_
         );
@@ -223,18 +223,18 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDValueView& va
 }
 
 template <typename T>
-ViewPtr<DTTLDViewType<T>> cast_as(const LDDValueView& view) {
+Own<DTTLDViewType<T>> cast_as(const LDDValueView& view) {
     return view.template cast_as<T>();
 }
 
 template <typename T>
-ViewPtr<DTTLDViewType<T>> unchecked_cast_as(const LDDValueView& view) {
+Own<DTTLDViewType<T>> unchecked_cast_as(const LDDValueView& view) {
     return view.template unchecked_cast_as<T>();
 }
 
 std::vector<U8String> parse_path_expression(U8StringView path);
 
 bool find_value(LDDValueView& view, U8StringView path_str);
-ViewPtr<LDDValueView> get_value(ViewPtr<LDDValueView> src, U8StringView path);
+Own<LDDValueView> get_value(Own<LDDValueView> src, U8StringView path);
 
 }

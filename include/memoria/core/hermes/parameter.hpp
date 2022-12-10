@@ -36,48 +36,48 @@ struct IParameterResolver {
     virtual ~IParameterResolver() noexcept = default;
 
     virtual bool has_parameter(U8StringView name) const = 0;
-    virtual ObjectPtr resolve(U8StringView name) const   = 0;
+    virtual Object resolve(U8StringView name) const   = 0;
 };
 
 struct Params: IParameterResolver {
     virtual bool has_parameter(U8StringView name) const;
-    virtual ObjectPtr resolve(U8StringView name) const;
+    virtual Object resolve(U8StringView name) const;
 
     template <typename DT>
     void add_dataobject(U8StringView name, DTTViewType<DT> view);
     void add_hermes(U8StringView name, U8StringView value);
 
 private:
-    std::unordered_map<U8String, ObjectPtr> params_;
+    std::unordered_map<U8String, Object> params_;
 };
 
 
-class Parameter: public HoldingView<Parameter> {
-    using Base = HoldingView<Parameter>;
+class ParameterView: public HoldingView<ParameterView> {
+    using Base = HoldingView<ParameterView>;
 public:
     using ArenaDTContainer = arena::ArenaDataTypeContainer<Varchar>;
 
     friend class HermesCtr;
-    friend class Object;
+    friend class ObjectView;
 
     template <typename, typename>
-    friend class Map;
+    friend class MapView;
 
     template <typename>
-    friend class Array;
+    friend class ArrayView;
 
     using ViewT = DTTViewType<Varchar>;
-    using ViewPtrT = ViewPtr<ViewT>;
+    using ViewPtrT = DTView<Varchar>;
 
 protected:
     mutable ArenaDTContainer* dt_ctr_;
-    using Base::ptr_holder_;
+    using Base::mem_holder_;
 public:
-    Parameter() noexcept:
+    ParameterView() noexcept:
         dt_ctr_()
     {}
 
-    Parameter(ViewPtrHolder* ptr_holder, void* dt_ctr) noexcept :
+    ParameterView(LWMemHolder* ptr_holder, void* dt_ctr) noexcept :
         Base(ptr_holder),
         dt_ctr_(reinterpret_cast<ArenaDTContainer*>(dt_ctr))
     {}
@@ -85,8 +85,8 @@ public:
     PoolSharedPtr<HermesCtr> document() const {
         assert_not_null();
         return PoolSharedPtr<HermesCtr>(
-                    ptr_holder_->ctr(),
-                    ptr_holder_->owner(),
+                    mem_holder_->ctr(),
+                    mem_holder_->owner(),
                     pool::DoRef{}
         );
     }
@@ -107,14 +107,14 @@ public:
         return dt_ctr_ != nullptr;
     }
 
-    ObjectPtr as_object() const {
-        return ObjectPtr(Object(ptr_holder_, dt_ctr_));
+    Object as_object() const {
+        return Object(ObjectView(mem_holder_, dt_ctr_));
     }
 
     ViewPtrT view() const
     {
         assert_not_null();
-        return wrap(dt_ctr_->view());
+        return dt_ctr_->view(mem_holder_);
     }
 
 
@@ -143,7 +143,7 @@ public:
                    DumpFormatState& state) const
     {
         if (dt_ctr_) {
-            out << "?" << dt_ctr_->view();
+            out << "?" << dt_ctr_->view(mem_holder_).to_string();
         }
         else {
             out << "<null parameter>";
@@ -156,10 +156,10 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return dt_ctr_->deep_copy_to(arena, ShortTypeCode::of<Parameter>(), ptr_holder_, dedup);
+        return dt_ctr_->deep_copy_to(arena, ShortTypeCode::of<ParameterView>(), mem_holder_, dedup);
     }
 
-    int32_t compare(const ParameterPtr& other) const
+    int32_t compare(const Parameter& other) const
     {
         if (is_not_null() && other->is_not_null())
         {
@@ -171,7 +171,7 @@ public:
     }
 
 
-    bool equals(const ParameterPtr& other) const
+    bool equals(const Parameter& other) const
     {
         if (is_not_null() && other->is_not_null()) {
             return *view() == *other->view();
@@ -181,21 +181,25 @@ public:
         }
     }
 
-private:
-    ViewPtrT wrap(const ViewT& view) const {
-        return ViewPtrT(view, this->get_ptr_holder());
+    operator Object() const & noexcept {
+        return as_object();
     }
 
+    operator Object() && noexcept {
+        return Object(this->release_mem_holder(), dt_ctr_ , MoveOwnershipTag{});
+    }
+
+private:
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(dt_ctr_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("Parameter is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("ParameterView is null").do_throw();
         }
     }
 };
 
 
-static inline std::ostream& operator<<(std::ostream& out, const ParameterPtr& ptr) {
+static inline std::ostream& operator<<(std::ostream& out, const Parameter& ptr) {
     out << ptr->to_string();
     return out;
 }

@@ -641,7 +641,7 @@ struct SharedFromThisHelper<T, false> {
 
 // SFINAE test
 template <typename T>
-class ObjectPoolLicycleMethods
+class ObjectPoolLifecycleMethods
 {
     typedef char one;
     struct two { char x[2]; };
@@ -679,7 +679,7 @@ public:
 };
 
 
-template <typename T, bool HasResetMethod = ObjectPoolLicycleMethods<T>::HasReset>
+template <typename T, bool HasResetMethod = ObjectPoolLifecycleMethods<T>::HasReset>
 struct HeavyObjectResetHelper {
     static void process(T*) noexcept {}
 };
@@ -691,7 +691,7 @@ struct HeavyObjectResetHelper<T, true> {
     }
 };
 
-template <typename T, bool HasResetMethod = ObjectPoolLicycleMethods<T>::HasInit>
+template <typename T, bool HasResetMethod = ObjectPoolLifecycleMethods<T>::HasInit>
 struct HeavyObjectInitHelper {
     static void process(T*) {}
 };

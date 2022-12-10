@@ -38,49 +38,52 @@ class HermesCtrImpl;
 struct IParameterResolver;
 
 template <typename>
-class Array;
+class ArrayView;
 
 template <typename Key, typename Value>
-class Map;
+class MapView;
 
 
 template <typename Key, typename Value>
-using MapPtr = ViewPtr<Map<Key, Value>, true>;
+using Map = Own<MapView<Key, Value>, OwningKind::HOLDING>;
 
-class Object;
+class ObjectView;
 
-class Parameter;
+class ParameterView;
 
 
 template <typename>
-class DataObject;
+class DataObjectView;
 
-using StringValue    = DataObject<Varchar>;
-using StringValuePtr = ViewPtr<StringValue, true>;
+using Object = Own<ObjectView, OwningKind::HOLDING>;
 
-class Datatype;
-using DatatypePtr   = ViewPtr<Datatype, true>;
 
-using ObjectMap     = Map<Varchar, Object>;
-using ObjectMapPtr  = ViewPtr<ObjectMap, true>;
+using StringValueView    = DataObjectView<Varchar>;
+using StringValue        = Own<StringValueView, OwningKind::HOLDING>;
 
-using TinyObjectMap     = Map<UTinyInt, Object>;
-using TinyObjectMapPtr  = ViewPtr<TinyObjectMap, true>;
+class DatatypeView;
+using Datatype = Own<DatatypeView, OwningKind::HOLDING>;
 
-using ObjectArray    = Array<Object>;
-using ObjectArrayPtr = ViewPtr<ObjectArray, true>;
+using ObjectMapView = MapView<Varchar, Object>;
+using ObjectMap     = Own<ObjectMapView, OwningKind::HOLDING>;
+
+using TinyObjectMapView = MapView<UTinyInt, Object>;
+using TinyObjectMap     = Own<TinyObjectMapView, OwningKind::HOLDING>;
+
+using ObjectArrayView   = ArrayView<Object>;
+using ObjectArray       = Own<ObjectArrayView, OwningKind::HOLDING>;
 
 template <typename DT>
-using ArrayPtr = ViewPtr<Array<DT>, true>;
-using ObjectPtr = ViewPtr<Object, true>;
+using Array = Own<ArrayView<DT>, OwningKind::HOLDING>;
+
 
 template <typename DT>
-using DataObjectPtr = ViewPtr<DataObject<DT>, true>;
+using DataObject = Own<DataObjectView<DT>, OwningKind::HOLDING>;
 
-class TypedValue;
-using TypedValuePtr = ViewPtr<TypedValue, true>;
+class TypedValueView;
+using TypedValue = Own<TypedValueView, OwningKind::HOLDING>;
 
-using ParameterPtr  = ViewPtr<Parameter, true>;
+using Parameter  = Own<ParameterView, OwningKind::HOLDING>;
 
 enum ObjectTypes {
     HERMES_OBJECT_DATA = 0, HERMES_OBJECT_ARRAY = 1, HERMES_OBJECT_MAP = 2
@@ -90,7 +93,10 @@ enum ObjectTypes {
 }
 
 template <typename DT>
-struct TypeHash<hermes::DataObject<DT>>: HasU64Value<TypeHashV<DT>> {};
+struct TypeHash<hermes::DataObjectView<DT>>: HasU64Value<TypeHashV<DT>> {};
+
+template <>
+struct TypeHash<hermes::ObjectView>: HasU64Value<99> {};
 
 template <>
 struct TypeHash<hermes::Object>: HasU64Value<99> {};
@@ -107,17 +113,25 @@ struct TypeHash<hermes::Map<UTinyInt, hermes::Object>>: HasU64Value<98> {};
 
 
 template <>
-struct TypeHash<hermes::Datatype>: HasU64Value<102> {};
+struct TypeHash<hermes::DatatypeView>: HasU64Value<102> {};
 
 template <>
-struct TypeHash<hermes::TypedValue>: HasU64Value<103> {};
+struct TypeHash<hermes::TypedValueView>: HasU64Value<103> {};
 
 template <>
-struct TypeHash<hermes::Parameter>: HasU64Value<104> {};
+struct TypeHash<hermes::ParameterView>: HasU64Value<104> {};
 
 
 template <>
 struct TypeHash<hermes::Array<Integer>>: HasU64Value<105> {};
+
+template <typename T>
+struct TypeHash<hermes::Array<T>>: HasU64Value<
+        HashHelper<
+            105,
+            TypeHashV<T>
+        >
+> {};
 
 template <typename Key>
 struct TypeHash<hermes::Map<Key, hermes::Object>>: HasU64Value<
@@ -130,7 +144,8 @@ struct TypeHash<hermes::Map<Key, hermes::Object>>: HasU64Value<
 
 
 template <typename T>
-struct TypeDescriptor<hermes::Array<T>>:HasU64Value<hermes::HERMES_OBJECT_ARRAY> {};
+struct TypeDescriptor<Own<hermes::Array<T>>>:HasU64Value<hermes::HERMES_OBJECT_ARRAY> {};
+
 
 template <typename K, typename V>
 struct TypeDescriptor<hermes::Map<K, V>>:HasU64Value<hermes::HERMES_OBJECT_MAP> {};

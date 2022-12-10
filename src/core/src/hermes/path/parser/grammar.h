@@ -336,7 +336,7 @@ protected:
             Skipper> m_topLevelExpressionRule;
 
     qi::rule<Iterator,
-            Optional<ObjectPtr>(),
+            Optional<Object>(),
             Skipper> m_topLevelExpressionHORule;
 
     qi::rule<Iterator,
@@ -445,12 +445,12 @@ public:
 
 template <typename Iterator, typename Skipper = encoding::space_type>
 class HOGrammar: public GrammarRuleSet<Iterator, Skipper>, public qi::grammar<Iterator,
-    Optional<ObjectPtr>(),
+    Optional<Object>(),
     Skipper>
 {
     using RulesBase = GrammarRuleSet<Iterator, Skipper>;
     using GrammarBase = qi::grammar<Iterator,
-            Optional<ObjectPtr>(),
+            Optional<Object>(),
             Skipper
     >;
 

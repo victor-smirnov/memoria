@@ -43,7 +43,7 @@ namespace memoria {
 namespace hermes {
 namespace path {
 
-using HermesObjectResolver = std::function<ObjectPtr(U8StringView)>;
+using HermesObjectResolver = std::function<Object(U8StringView)>;
 
 /**
  * @ingroup public
@@ -69,13 +69,13 @@ using HermesObjectResolver = std::function<ObjectPtr(U8StringView)>;
  * specified for a HermesPath function call in the *expression*.
  */
 
-ObjectPtr search(const Expression& expression, const ObjectPtr& document);
+Object search(const Expression& expression, const Object& document);
 
-ObjectPtr search(const Expression& expression, const ObjectPtr& document, const IParameterResolver& resolver);
+Object search(const Expression& expression, const Object& document, const IParameterResolver& resolver);
 
-ObjectPtr search(const TinyObjectMapPtr& expression, const ObjectPtr& document);
+Object search(const TinyObjectMap& expression, const Object& document);
 
-ObjectPtr search(const TinyObjectMapPtr& expression, const ObjectPtr& document, const IParameterResolver& resolver);
+Object search(const TinyObjectMap& expression, const Object& document, const IParameterResolver& resolver);
 
 struct ASTCodes {
     static constexpr NamedCode CODE_ATTR                  = NamedCode(0, "code");

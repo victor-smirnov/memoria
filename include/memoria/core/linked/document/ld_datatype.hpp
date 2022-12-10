@@ -33,7 +33,7 @@ struct DataTypeTraits<LinkedData>: DataTypeTraitsBase<LinkedData>
 
     using DatumStorage  = LDDocumentStorage;
 
-    using SharedPtrT = ViewPtr<ViewType>;
+    using SharedPtrT = Own<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
     using SpanT      = DTViewSpan<LDDocumentView, SharedPtrT>;

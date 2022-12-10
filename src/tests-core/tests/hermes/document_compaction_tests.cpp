@@ -22,7 +22,7 @@ namespace tests {
 auto ld_document_compaction_test = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "DocumentCompaction", [](auto& state){
     auto doc = hermes::HermesCtr::make_new();
 
-    auto map = doc->new_map();
+    auto map = doc->make_object_map();
     doc->set_root(map->as_object());
 
     size_t size = 100000;

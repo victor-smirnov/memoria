@@ -37,13 +37,13 @@ inline bool Params::has_parameter(U8StringView name) const {
     return params_.find(name) != params_.end();
 }
 
-inline ObjectPtr Params::resolve(U8StringView name) const {
+inline Object Params::resolve(U8StringView name) const {
     auto ii = params_.find(name);
     if (ii != params_.end()) {
         return ii->second;
     }
 
-    return ObjectPtr{};
+    return Object{};
 }
 
 

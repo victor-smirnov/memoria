@@ -136,7 +136,7 @@ struct HermesDocParser :
 
 
 template <typename Iterator>
-struct TypeDeclarationParser : qi::grammar<Iterator, DatatypePtr(), SkipperT<Iterator>>
+struct TypeDeclarationParser : qi::grammar<Iterator, Datatype(), SkipperT<Iterator>>
 {
     HermesDocParser<Iterator> hermes_parser;
     TypeDeclarationParser() : TypeDeclarationParser::base_type(hermes_parser.standalone_type_decl)
@@ -145,7 +145,7 @@ struct TypeDeclarationParser : qi::grammar<Iterator, DatatypePtr(), SkipperT<Ite
 
 
 template <typename Iterator>
-struct RawHermesDocValueParser : qi::grammar<Iterator, ObjectPtr(), SkipperT<Iterator>>
+struct RawHermesDocValueParser : qi::grammar<Iterator, Object(), SkipperT<Iterator>>
 {
     HermesDocParser<Iterator> hermes_doc_parser;
     RawHermesDocValueParser() : RawHermesDocValueParser::base_type(hermes_doc_parser.standalone_hermes_value)
@@ -208,7 +208,7 @@ void parse_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc)
 
     Iterator start = first;
     try {
-        DatatypePtr type_decl{};
+        Datatype type_decl{};
         bool r = qi::phrase_parse(first, last, grammar, grammar.hermes_parser.skipper, type_decl);
 
         if (!r) {
@@ -236,7 +236,7 @@ void parse_hermes_path_expr(Iterator& first, Iterator& last, HermesCtr& doc)
 
     static thread_local Grammar const grammar;
 
-    Optional<ObjectPtr> result;
+    Optional<Object> result;
 
     Iterator start = first;
     try {
@@ -263,7 +263,7 @@ void parse_hermes_path_expr(Iterator& first, Iterator& last, HermesCtr& doc)
 
 
 template <typename Iterator>
-void parse_raw_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc, DatatypePtr& datatype)
+void parse_raw_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc, Datatype& datatype)
 {
     HermesCtrBuilderCleanup cleanup;
     HermesCtrBuilder::enter(doc.self());
@@ -287,7 +287,7 @@ void parse_raw_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc, Da
 }
 
 template <typename Iterator>
-void parse_raw_value0(Iterator& first, Iterator& last, HermesCtr& doc, ObjectPtr& value)
+void parse_raw_value0(Iterator& first, Iterator& last, HermesCtr& doc, Object& value)
 {
     HermesCtrBuilderCleanup cleanup;
     HermesCtrBuilder::enter(doc.self());
@@ -351,24 +351,24 @@ PoolSharedPtr<HermesCtr> HermesCtr::parse_datatype(CharIterator start, CharItera
     return doc;
 }
 
-DatatypePtr HermesCtr::parse_raw_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
+Datatype HermesCtr::parse_raw_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
     IteratorType beginIt(start);
     IteratorType it = beginIt;
     IteratorType endIt(end);
 
-    DatatypePtr datatype{};
+    Datatype datatype{};
     parse_raw_datatype_decl(it, endIt, *this, datatype);
     return datatype;
 }
 
-ObjectPtr HermesCtr::parse_raw_value(CharIterator start, CharIterator end, const ParserConfiguration&)
+Object HermesCtr::parse_raw_value(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
     IteratorType beginIt(start);
     IteratorType it = beginIt;
     IteratorType endIt(end);
 
-    ObjectPtr value{};
+    Object value{};
     parse_raw_value0(it, endIt, *this, value);
     return value;
 }

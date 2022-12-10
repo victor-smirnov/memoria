@@ -29,24 +29,24 @@ namespace memoria::hermes {
 
 class TplRenderer: public TemplateConstants {
 
-    using ASTNodeT = TinyObjectMapPtr;
-    using HermesExprPtr = TinyObjectMapPtr;
+    using ASTNodeT = TinyObjectMap;
+    using HermesExprPtr = TinyObjectMap;
 
     using VisitorFn   = void (TplRenderer::*)(const ASTNodePtr&);
     using VisitorsMap = ska::flat_hash_map<int32_t, VisitorFn>;
 
-    ObjectPtr data_;
+    Object data_;
     TplVarStack stack_;
     std::ostream& out_;
 
     path::HermesObjectResolver name_resoler_;
 
 public:
-    TplRenderer(ObjectPtr data, std::ostream& out):
+    TplRenderer(Object data, std::ostream& out):
         data_(data),
         stack_(), out_(out)
     {
-        name_resoler_ = [&](U8StringView name) -> ObjectPtr {
+        name_resoler_ = [&](U8StringView name) -> Object {
             auto prop = stack_.find(name);
 
             if (prop.is_initialized()) {
@@ -59,13 +59,13 @@ public:
                     return map->get(name);
                 }
                 else {
-                    MEMORIA_MAKE_GENERIC_ERROR("Provided default data is not a Map").do_throw();
+                    MEMORIA_MAKE_GENERIC_ERROR("Provided default data is not a MapView").do_throw();
                 }
             }
         };
     }
 
-    ObjectPtr evaluateExpr(const HermesExprPtr& expr)
+    Object evaluateExpr(const HermesExprPtr& expr)
     {
         path::interpreter2::HermesASTInterpreter iterpreter;
 
@@ -74,7 +74,7 @@ public:
         return iterpreter.currentContext();
     }
 
-    void visit(const ObjectPtr& element)
+    void visit(const Object& element)
     {
         if (element->is_not_null())
         {
@@ -88,7 +88,6 @@ public:
             {
                 auto map = element->as_tiny_object_map();
                 int32_t code = map->get(CODE)->to_i32();
-
                 auto& vmap = visitors_map();
                 auto ii = vmap.find(code);
                 if (ii != vmap.end()) {
@@ -100,20 +99,20 @@ public:
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR(
-                    "Provided Hermes Template AST node is not an TinyObjectMap: {}",
+                    "Provided Hermes Template AST node is not an TinyObjectMapView: {}",
                     element->to_pretty_string()
                 ).do_throw();
             }
         }
     }
 
-    void visitText(const StringValuePtr& element)
+    void visitText(const StringValue& element)
     {
         auto vv = element->view();
         out_ << *vv;
     }
 
-    void visitStatements(const ObjectArrayPtr& element)
+    void visitStatements(const ObjectArray& element)
     {
         for (uint64_t c = 0; c < element->size(); c++) {
             visit(element->get(c));
@@ -205,13 +204,13 @@ private:
 };
 
 
-void render(const ObjectPtr& tpl, const ObjectPtr& data, std::ostream& out)
+void render(const Object& tpl, const Object& data, std::ostream& out)
 {
     TplRenderer renderer(data, out);
     renderer.visit(tpl);
 }
 
-void render(U8StringView tpl, const ObjectPtr& data, std::ostream& out)
+void render(U8StringView tpl, const Object& data, std::ostream& out)
 {
     auto parsed_tpl = parse_template(tpl, false);
     render(parsed_tpl->root(), data, out);

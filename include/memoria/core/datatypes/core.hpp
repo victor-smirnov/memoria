@@ -211,7 +211,7 @@ using AllNumericDatatypes = MergeLists<
     IntegerNumericDatatypes, RealNumericDatatypes
 >;
 
-template <typename ViewT, typename DT>
+template <typename ViewT>
 struct ViewToDTMapping;
 
 }

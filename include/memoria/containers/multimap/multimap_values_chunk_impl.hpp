@@ -84,7 +84,7 @@ protected:
     mutable detail::SpanHolder<Value> span_holder_;
     mutable Optional<ValueView> view_;
 
-    mutable ViewPtrHolder view_holder_;
+    mutable LWMemHolder view_holder_;
 
 protected:
     virtual void configure_refholder(SharedPtrHolder* owner) {

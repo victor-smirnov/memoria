@@ -43,14 +43,14 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
     using ConstViewType = VarcharView;
     using AtomType      = std::remove_const_t<typename VarcharView::value_type>;
 
-    using View2Type     = U8StringOView;
+    using View2Type     = Own<U8StringOView, OwningKind::HOLDING>;
 
     using LDStorageType = LinkedString<typename U8StringView::value_type>;
     using LDViewType    = LDStringView;
 
     using DatumStorage  = VarcharStorage;
 
-    using SharedPtrT = ViewPtr<ViewType>;
+    using SharedPtrT = Own<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
     using SpanT = DTViewSpan<ViewType, SharedPtrT>;
@@ -139,6 +139,5 @@ struct CrossDatatypeEqualityComparator<Boolean, Varchar, Selector> {
         return left == is_true;
     }
 };
-
 
 }
