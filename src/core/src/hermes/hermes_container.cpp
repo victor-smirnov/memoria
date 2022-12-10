@@ -244,31 +244,6 @@ PoolSharedPtr<HermesCtr> HermesCtr::common_instance() {
 }
 
 
-hermes::Datatype strip_namespaces(hermes::Datatype src)
-{
-    auto ctr = HermesCtr::make_pooled();
-
-    auto name = get_datatype_name(src->type_name()->view());
-    auto tgt = ctr->new_datatype(name);
-    ctr->set_root(tgt->as_object());
-
-    auto params = src->type_parameters();
-    if (params->is_not_null())
-    {
-        for (size_t c = 0; c < params->size(); c++) {
-            auto param = params->get(c);
-            if (param->is_datatype()) {
-                auto pp = strip_namespaces(param->as_datatype());
-                tgt->append_type_parameter(pp->as_object());
-            }
-            else {
-                tgt->append_type_parameter(param);
-            }
-        }
-    }
-
-    return tgt;
-}
 
 
 

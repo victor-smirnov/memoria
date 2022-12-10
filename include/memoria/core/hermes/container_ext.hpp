@@ -17,9 +17,9 @@
 
 
 #include <memoria/core/hermes/container.hpp>
-#include <memoria/core/hermes/map/map.hpp>
+#include <memoria/core/hermes/map/object_map.hpp>
 #include <memoria/core/hermes/map/typed_map.hpp>
-#include <memoria/core/hermes/array/array.hpp>
+#include <memoria/core/hermes/array/object_array.hpp>
 #include <memoria/core/hermes/array/typed_array.hpp>
 #include <memoria/core/hermes/data_object.hpp>
 
@@ -209,102 +209,7 @@ DataObject<DT> HermesCtr::wrap_dataobject(DTTViewType<DT> view)
     >::dispatch(view);
 }
 
-inline GenericArrayPtr ObjectView::as_generic_array() const
-{
-    if (get_vs_tag() == VS_TAG_ADDRESS)
-    {
-        auto tag = get_type_tag();
-        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(get_mem_holder(), storage_.addr);
-        return ctr_ptr->as_array();
-    }
-    else {
-        MEMORIA_MAKE_GENERIC_ERROR("Object is not addressable").do_throw();
-    }
-}
 
-
-inline GenericMapPtr ObjectView::as_generic_map() const
-{
-    if (get_vs_tag() == VS_TAG_ADDRESS)
-    {
-        auto tag = get_type_tag();
-        auto ctr_ptr = get_type_reflection(tag).hermes_make_wrapper(get_mem_holder(), storage_.addr);
-        return ctr_ptr->as_map();
-    }
-    else {
-        MEMORIA_MAKE_GENERIC_ERROR("Object is not addressable").do_throw();
-    }
-}
-
-inline Datatype ObjectView::as_datatype() const {
-    return cast_to<DatatypeView>();
-}
-
-inline DataObject<Varchar> ObjectView::as_varchar() const {
-    return cast_to<DataObjectView<Varchar>>();
-}
-
-inline DataObject<Double> ObjectView::as_double() const {
-    return cast_to<DataObjectView<Double>>();
-}
-
-inline DataObject<BigInt> ObjectView::as_bigint() const {
-    return cast_to<DataObjectView<BigInt>>();
-}
-
-inline DataObject<Boolean> ObjectView::as_boolean() const {
-    return cast_to<DataObjectView<Boolean>>();
-}
-
-inline DataObject<Real> ObjectView::as_real() const {
-    return cast_to<DataObjectView<Real>>();
-}
-
-inline int64_t ObjectView::to_i64() const {
-    return *convert_to<BigInt>()->as_data_object<BigInt>()->view();
-}
-
-inline int64_t ObjectView::to_i32() const {
-    return *convert_to<Integer>()->as_data_object<Integer>()->view();
-}
-
-inline U8String ObjectView::to_str() const {
-    return *convert_to<Varchar>()->as_data_object<Varchar>()->view();
-}
-
-inline bool ObjectView::to_bool() const {
-    return *convert_to<Boolean>()->as_data_object<Boolean>()->view();
-}
-
-inline double ObjectView::to_d64() const {
-    return *convert_to<Double>()->as_data_object<Double>()->view();
-}
-
-inline float ObjectView::to_f32() const {
-    return *convert_to<Real>()->as_data_object<Real>()->view();
-}
-
-
-inline U8String ObjectView::type_str() const {
-    assert_not_null();
-    auto tag = get_type_tag();
-    return get_type_reflection(tag).str();
-}
-
-
-template <typename DT>
-Object ObjectView::convert_to() const
-{
-    assert_not_null();
-    auto src_tag = get_type_tag();
-    auto to_tag = ShortTypeCode::of<DT>();
-    if (src_tag != to_tag) {
-        return get_type_reflection(src_tag).datatype_convert_to(get_mem_holder(), to_tag, get_vs_tag(), storage_);
-    }
-    else {
-        return this->as_object();
-    }
-}
 
 template <typename DT>
 template <typename ToDT>
@@ -359,18 +264,6 @@ Object HermesCtr::new_from_string(U8StringView str) {
     return get_type_reflection(tag).datatype_convert_from_plain_string(str);
 }
 
-
-inline ObjectMap ObjectView::as_object_map() const {
-    return cast_to<Map<Varchar, Object>>();
-}
-
-inline TinyObjectMap ObjectView::as_tiny_object_map() const {
-    return cast_to<Map<UTinyInt, Object>>();
-}
-
-inline ObjectArray ObjectView::as_object_array() const {
-    return cast_to<Array<Object>>();
-}
 
 namespace detail {
 

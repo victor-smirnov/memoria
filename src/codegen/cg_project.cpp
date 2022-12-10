@@ -301,11 +301,11 @@ public:
         return config_unit_;
     }
 
-    ViewPtr<LDDocumentView> config() const noexcept override {
+    Own<LDDocumentView> config() const noexcept override {
         return config_->as_immutable_view();
     }
 
-    ViewPtr<LDDMapView> config_map() const override {
+    Own<LDDMapView> config_map() const override {
         return config_->value()->as_typed_value()->constructor()->as_map();
     }
 
@@ -494,7 +494,7 @@ void for_each_value(LDDValueView elem, const std::function<bool(const std::vecto
 }
 
 
-ViewPtr<LDDArrayView> get_or_add_array(LDDMapView map, const U8String& name)
+Own<LDDArrayView> get_or_add_array(LDDMapView map, const U8String& name)
 {
     auto res = map.get(name);
 

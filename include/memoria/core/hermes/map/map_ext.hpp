@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/core/hermes/map/map.hpp>
+#include <memoria/core/hermes/map/object_map.hpp>
 #include <memoria/core/hermes/map/typed_map.hpp>
 #include <memoria/core/hermes/container.hpp>
 

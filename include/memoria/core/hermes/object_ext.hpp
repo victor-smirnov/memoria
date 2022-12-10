@@ -19,13 +19,28 @@
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
+#include <memoria/core/hermes/array/object_array.hpp>
+#include <memoria/core/hermes/map/object_map.hpp>
+#include <memoria/core/hermes/map/typed_map.hpp>
+#include <memoria/core/hermes/datatype.hpp>
+
 #include <algorithm>
 #include <type_traits>
 
-namespace memoria {
-namespace arena {
+namespace memoria::hermes {
 
+template <typename DT>
+Object ObjectView::convert_to() const
+{
+    assert_not_null();
+    auto src_tag = get_type_tag();
+    auto to_tag = ShortTypeCode::of<DT>();
+    if (src_tag != to_tag) {
+        return get_type_reflection(src_tag).datatype_convert_to(get_mem_holder(), to_tag, get_vs_tag(), storage_);
+    }
+    else {
+        return this->as_object();
+    }
+}
 
-
-
-}}
+}

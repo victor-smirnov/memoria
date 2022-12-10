@@ -105,7 +105,7 @@ public:
     }
   }
 
-  ViewPtr<LDDocumentView> config() const override {
+  Own<LDDocumentView> config() const override {
     return config_->view();
   }
 
@@ -283,7 +283,7 @@ public:
     return shared_from_this();
   }
 
-  ViewPtr<LDDMapView> ld_config() const {
+  Own<LDDMapView> ld_config() const {
     return config_->value()->as_typed_value()->constructor()->as_map();
   }
 

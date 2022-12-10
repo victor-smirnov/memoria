@@ -27,8 +27,6 @@
 #include <memoria/core/hermes/array/typed_array.hpp>
 #include <memoria/core/hermes/array/typed_array_1fse.hpp>
 
-#include <memoria/core/hermes/object_ptr.hpp>
-
 namespace memoria {
 namespace hermes {
 

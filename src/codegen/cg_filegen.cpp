@@ -136,7 +136,7 @@ public:
         ).as_varchar()->view();
   }
 
-  ViewPtr<LDDMapView> ld_config() const {
+  Own<LDDMapView> ld_config() const {
     return config_->value()->as_typed_value()->constructor()->as_map();
   }
 

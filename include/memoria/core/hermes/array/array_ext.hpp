@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include <memoria/core/hermes/array/array.hpp>
+#include <memoria/core/hermes/array/object_array.hpp>
 #include <memoria/core/hermes/array/typed_array.hpp>
 
 #include <memoria/core/hermes/container.hpp>
 #include <memoria/core/hermes/data_object.hpp>
-#include <memoria/core/hermes/map/map.hpp>
+#include <memoria/core/hermes/map/object_map.hpp>
 
 namespace memoria {
 namespace hermes {

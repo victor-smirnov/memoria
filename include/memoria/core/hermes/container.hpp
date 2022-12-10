@@ -28,8 +28,8 @@
 
 #include <memoria/core/hermes/object.hpp>
 #include <memoria/core/hermes/datatype.hpp>
-#include <memoria/core/hermes/array/array.hpp>
-#include <memoria/core/hermes/map/map.hpp>
+#include <memoria/core/hermes/array/object_array.hpp>
+#include <memoria/core/hermes/map/object_map.hpp>
 #include <memoria/core/hermes/map/typed_map.hpp>
 #include <memoria/core/hermes/data_object.hpp>
 #include <memoria/core/hermes/typed_value.hpp>
