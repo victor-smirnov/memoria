@@ -102,7 +102,7 @@ ObjectArray ArrayView<Object>::append(DTTViewType<DT> view)
 
 
 template <typename DT>
-DataObject<DT> ArrayView<Object>::set(uint64_t idx, DTTViewType<DT> view)
+Object ArrayView<Object>::set(uint64_t idx, DTTViewType<DT> view)
 {    
     assert_not_null();
     assert_mutable();
@@ -111,7 +111,6 @@ DataObject<DT> ArrayView<Object>::set(uint64_t idx, DTTViewType<DT> view)
     this->set(idx, ptr->as_object());
 
     return ptr;
-
 }
 
 

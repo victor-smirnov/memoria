@@ -17,6 +17,8 @@
 
 #include <memoria/core/hermes/hermes.hpp>
 #include <memoria/core/hermes/path/types.h>
+#include <memoria/core/datatypes/varchars/varchars.hpp>
+#include <memoria/core/strings/u8_string_view.hpp>
 
 
 namespace memoria::hermes {
@@ -31,7 +33,7 @@ class HermesCtrBuilder {
     PoolSharedPtr<HermesCtr> doc_;
 
     ska::flat_hash_map<U8String, Datatype> type_registry_;
-    std::unordered_map<U8StringView, StringValue, arena::DefaultHashFn<U8StringView>> string_registry_;
+    std::unordered_map<U8StringView, DTView<Varchar>, arena::DefaultHashFn<U8StringView>> string_registry_;
 
     size_t refs_{};
 
@@ -48,13 +50,13 @@ public:
         return doc_;
     }
 
-    StringValue resolve_string(U8StringView strv)
+    DTView<Varchar> resolve_string(U8StringView strv)
     {
         auto ii = string_registry_.find(strv);
         if (ii != string_registry_.end()) {
             return ii->second;
         }
-        return StringValue{};
+        return DTView<Varchar>{};
     }
 
     U8StringView to_string_view(Span<const char> span) {
@@ -76,30 +78,30 @@ public:
         return string_buffer_.size() == 0;
     }
 
-    auto new_varchar()
+    Object new_varchar()
     {
         auto span = string_buffer_.span();
         U8StringView sv = to_string_view(span);
-        StringValue str = resolve_string(sv);
+        DTView<Varchar> str = resolve_string(sv);
 
-        if (str->is_null()) {
-            str = doc_->new_dataobject<Varchar>(sv);
-            string_registry_[*str->view()] = str;
+        if (str.is_empty()) {
+            str = doc_->new_dataobject<Varchar>(sv).as_varchar();
+            string_registry_[str] = str;
         }
 
-        return str;
+        return doc_->import_object(str);
     }
 
-    auto new_varchar(U8StringView sv)
+    Object new_varchar(U8StringView sv)
     {
-        StringValue str = resolve_string(sv);
+        auto str = resolve_string(sv);
 
-        if (str->is_null()) {
-            str = doc_->new_dataobject<Varchar>(sv);
-            string_registry_[*str->view()] = str;
+        if (str.is_empty()) {
+            str = doc_->new_dataobject<Varchar>(sv).as_varchar();
+            string_registry_[str] = str;
         }
 
-        return str;
+        return doc_->import_object(str);
     }
 
     auto new_parameter(U8StringView name) {
@@ -139,8 +141,8 @@ public:
 //        return doc_->new_map();
 //    }
 
-    auto new_datatype(StringValue id) {
-        return doc_->new_datatype(id);
+    auto new_datatype(Object id) {
+        return doc_->make_datatype(id->as_varchar());
     }
 
     void add_type_decl_param(Datatype& dst, Object param) {

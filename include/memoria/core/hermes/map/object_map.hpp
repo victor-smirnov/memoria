@@ -325,7 +325,7 @@ public:
     }
 
     virtual Object get(const Object& key) const {
-        return map_.get(*key->as_varchar()->view());
+        return map_.get(key.as_varchar());
     }
 
     virtual Object get(U8StringView key) const {
@@ -354,7 +354,7 @@ public:
 
 
     virtual GenericMapPtr remove(const Object& key) {
-        auto new_map = map_.remove(*key->as_varchar()->view());
+        auto new_map = map_.remove(key.as_varchar());
         return make_wrapper(ctr_holder_, new_map->map_);
     }
 

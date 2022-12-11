@@ -295,7 +295,7 @@ public:
     {}
 
     virtual Object key() const {
-        return DataObjectView<KeyDT>(mem_holder_, iter_->first()).as_object();
+        return DataObject<KeyDT>(mem_holder_, iter_->first()).as_object();
     }
 
     virtual Object value() const {
@@ -334,7 +334,7 @@ public:
     }
 
     virtual Object get(const Object& key) const {
-        return map_.get(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
+        return map_.get(key.convert_to<KeyDT>().template as_data_object<KeyDT>());
     }
 
     virtual Object get(U8StringView key) const {
@@ -354,13 +354,13 @@ public:
     }
 
     virtual GenericMapPtr put(const Object& key, const Object& value) {
-        auto new_map = map_.put(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view(), value);
+        auto new_map = map_.put(key.convert_to<KeyDT>().template as_data_object<KeyDT>(), value);
         return make_wrapper(ctr_holder_, new_map->map_);
     }
 
 
     virtual GenericMapPtr remove(const Object& key) {
-        auto new_map = map_.remove(*key->convert_to<KeyDT>()->template as_data_object<KeyDT>()->view());
+        auto new_map = map_.remove(key.convert_to<KeyDT>().template as_data_object<KeyDT>());
         return make_wrapper(ctr_holder_, new_map->map_);
     }
 

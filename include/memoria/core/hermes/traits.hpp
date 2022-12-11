@@ -17,6 +17,7 @@
 
 #include <memoria/core/reflection/typehash.hpp>
 #include <memoria/core/datatypes/traits.hpp>
+#include <memoria/core/datatypes/varchars/varchars.hpp>
 
 namespace memoria {
 
@@ -61,6 +62,8 @@ using Object = Own<ObjectView, OwningKind::HOLDING>;
 using StringValueView    = DataObjectView<Varchar>;
 using StringValue        = Own<StringValueView, OwningKind::HOLDING>;
 
+using StringOView = DTView<Varchar>;
+
 class DatatypeView;
 using Datatype = Own<DatatypeView, OwningKind::HOLDING>;
 
@@ -92,11 +95,8 @@ enum ObjectTypes {
 
 }
 
-template <typename DT>
-struct TypeHash<hermes::DataObjectView<DT>>: HasU64Value<TypeHashV<DT>> {};
-
-template <>
-struct TypeHash<hermes::ObjectView>: HasU64Value<99> {};
+//template <typename DT>
+//struct TypeHash<hermes::DataObject<DT>>: HasU64Value<TypeHashV<DT>> {};
 
 template <>
 struct TypeHash<hermes::Object>: HasU64Value<99> {};
@@ -113,13 +113,13 @@ struct TypeHash<hermes::Map<UTinyInt, hermes::Object>>: HasU64Value<98> {};
 
 
 template <>
-struct TypeHash<hermes::DatatypeView>: HasU64Value<102> {};
+struct TypeHash<hermes::Datatype>: HasU64Value<102> {};
 
 template <>
-struct TypeHash<hermes::TypedValueView>: HasU64Value<103> {};
+struct TypeHash<hermes::TypedValue>: HasU64Value<103> {};
 
 template <>
-struct TypeHash<hermes::ParameterView>: HasU64Value<104> {};
+struct TypeHash<hermes::Parameter>: HasU64Value<104> {};
 
 
 template <>
@@ -144,7 +144,7 @@ struct TypeHash<hermes::Map<Key, hermes::Object>>: HasU64Value<
 
 
 template <typename T>
-struct TypeDescriptor<Own<hermes::Array<T>>>:HasU64Value<hermes::HERMES_OBJECT_ARRAY> {};
+struct TypeDescriptor<hermes::Array<T>>:HasU64Value<hermes::HERMES_OBJECT_ARRAY> {};
 
 
 template <typename K, typename V>

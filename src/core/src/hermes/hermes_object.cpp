@@ -45,51 +45,51 @@ GenericMapPtr ObjectView::as_generic_map() const
 }
 
 Datatype ObjectView::as_datatype() const {
-    return cast_to<DatatypeView>();
+    return cast_to<Datatype>();
 }
 
-DataObject<Varchar> ObjectView::as_varchar() const {
-    return cast_to<DataObjectView<Varchar>>();
+DTView<Varchar> ObjectView::as_varchar() const {
+    return cast_to<Varchar>();
 }
 
-DataObject<Double> ObjectView::as_double() const {
-    return cast_to<DataObjectView<Double>>();
+DTView<Double> ObjectView::as_double() const {
+    return cast_to<Double>();
 }
 
-DataObject<BigInt> ObjectView::as_bigint() const {
-    return cast_to<DataObjectView<BigInt>>();
+DTView<BigInt> ObjectView::as_bigint() const {
+    return cast_to<BigInt>();
 }
 
-DataObject<Boolean> ObjectView::as_boolean() const {
-    return cast_to<DataObjectView<Boolean>>();
+DTView<Boolean> ObjectView::as_boolean() const {
+    return cast_to<Boolean>();
 }
 
-DataObject<Real> ObjectView::as_real() const {
-    return cast_to<DataObjectView<Real>>();
+DTView<Real> ObjectView::as_real() const {
+    return cast_to<Real>();
 }
 
 int64_t ObjectView::to_i64() const {
-    return *convert_to<BigInt>()->as_data_object<BigInt>()->view();
+    return convert_to<BigInt>().as_data_object<BigInt>();
 }
 
 int64_t ObjectView::to_i32() const {
-    return *convert_to<Integer>()->as_data_object<Integer>()->view();
+    return convert_to<Integer>().as_data_object<Integer>();
 }
 
 U8String ObjectView::to_str() const {
-    return *convert_to<Varchar>()->as_data_object<Varchar>()->view();
+    return convert_to<Varchar>().as_data_object<Varchar>();
 }
 
 bool ObjectView::to_bool() const {
-    return *convert_to<Boolean>()->as_data_object<Boolean>()->view();
+    return convert_to<Boolean>().as_data_object<Boolean>();
 }
 
 double ObjectView::to_d64() const {
-    return *convert_to<Double>()->as_data_object<Double>()->view();
+    return *convert_to<Double>().as_data_object<Double>();
 }
 
 float ObjectView::to_f32() const {
-    return *convert_to<Real>()->as_data_object<Real>()->view();
+    return *convert_to<Real>().as_data_object<Real>();
 }
 
 

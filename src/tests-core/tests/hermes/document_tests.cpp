@@ -22,71 +22,71 @@ auto document_set_test = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     auto doc = hermes::HermesCtr::make_new();
 
     doc->set_dataobject<Double>(12345.67);
-    assert_equals(true, doc->root()->is_double());
-    assert_equals(12345.67, doc->root()->as_double()->view());
+    assert_equals(true, doc->root().is_double());
+    assert_equals(12345.67, doc->root().as_double());
     assert_throws<ResultException>([&](){
         doc->root()->as_bigint();
     });
 
 
     doc->set_dataobject<Varchar>("Hello world");
-    assert_equals(true, doc->root()->is_varchar());
-    assert_equals("Hello world", doc->root()->as_varchar()->view());
+    assert_equals(true, doc->root().is_varchar());
+    assert_equals("Hello world", doc->root().as_varchar());
 
     assert_throws<ResultException>([&](){
         doc->root()->as_double();
     });
 
     doc->set_dataobject<BigInt>(123);
-    assert_equals(true, doc->root()->is_bigint());
-    assert_equals(123, doc->root()->as_bigint()->view());
+    assert_equals(true, doc->root().is_bigint());
+    assert_equals(123, doc->root().as_bigint());
 
     assert_throws<ResultException>([&](){
         doc->root()->as_double();
     });
 
     doc->set_dataobject<Boolean>(1);
-    assert_equals(true, doc->root()->is_boolean());
-    assert_equals(1, doc->root()->as_boolean()->view());
+    assert_equals(true, doc->root().is_boolean());
+    assert_equals(1, doc->root().as_boolean());
 
     assert_throws<ResultException>([&](){
         doc->root()->as_double();
     });
 
     doc->set_hermes("12345");
-    assert_equals(true, doc->root()->is_bigint());
-    assert_equals(12345, doc->root()->as_bigint()->view());
+    assert_equals(true, doc->root().is_bigint());
+    assert_equals(12345, doc->root().as_bigint());
 
     doc->set_hermes("{}");
-    assert_equals(true, doc->root()->is_map());
-    assert_equals(0, doc->root()->as_generic_map()->size());
+    assert_equals(true, doc->root().is_map());
+    assert_equals(0, doc->root().as_generic_map()->size());
     assert_throws<ResultException>([&](){
         doc->root()->as_double();
     });
 
     doc->set_hermes("[]");
-    assert_equals(true, doc->root()->is_array());
-    assert_equals(0, doc->root()->as_generic_array()->size());
+    assert_equals(true, doc->root().is_array());
+    assert_equals(0, doc->root().as_generic_array()->size());
     assert_throws<ResultException>([&](){
         doc->root()->as_double();
     });
 
     doc->set_hermes("Decimal(1,2)");
-    assert_equals(true, doc->root()->is_datatype());
+    assert_equals(true, doc->root().is_datatype());
     assert_throws<ResultException>([&](){
-        doc->root()->as_double();
+        doc->root().as_double();
     });
 
     doc->set_null();
     assert_equals(true, doc->root()->is_null());
     assert_throws<ResultException>([&](){
-        doc->root()->as_double();
+        doc->root().as_double();
     });
 
     doc->set_hermes("'123456.789'@CoolDecimalType(1,2)");
-    assert_equals(true, doc->root()->is_typed_value());
+    assert_equals(true, doc->root().is_typed_value());
     assert_throws<ResultException>([&](){
-        doc->root()->as_double();
+        doc->root().as_double();
     });
 });
 

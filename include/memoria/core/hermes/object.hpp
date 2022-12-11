@@ -17,6 +17,7 @@
 
 #include <memoria/core/memory/object_pool.hpp>
 #include <memoria/core/datatypes/datatype_ptrs.hpp>
+#include <memoria/core/datatypes/varchars/varchars.hpp>
 
 #include <memoria/core/arena/arena.hpp>
 
@@ -59,6 +60,9 @@ protected:
     friend class ArrayView;
 
     friend class GenericDataObjectImpl;
+
+    template <typename, ObjectCasters>
+    friend struct ObjectCaster;
 
 public:
     ObjectView() noexcept
@@ -267,11 +271,11 @@ public:
     }
 
     bool is_typed_value() const noexcept {
-        return is_a(TypeTag<TypedValueView>{});
+        return is_a(TypeTag<TypedValue>{});
     }
 
     bool is_datatype() const noexcept {
-        return is_a(TypeTag<DatatypeView>{});
+        return is_a(TypeTag<Datatype>{});
     }
 
     bool is_numeric() const noexcept {
@@ -378,11 +382,11 @@ public:
     GenericMapPtr as_generic_map() const;
     Datatype as_datatype() const;
 
-    DataObject<Varchar> as_varchar() const;
-    DataObject<Double> as_double() const;
-    DataObject<BigInt> as_bigint() const;
-    DataObject<Boolean> as_boolean() const;
-    DataObject<Real> as_real() const;
+    DTView<Varchar> as_varchar() const;
+    DTView<Double>  as_double() const;
+    DTView<BigInt>  as_bigint() const;
+    DTView<Boolean> as_boolean() const;
+    DTView<Real>    as_real() const;
 
     int64_t to_i64() const;
     int64_t to_i32() const;
@@ -415,8 +419,8 @@ public:
     }
 
     template <typename DT>
-    DataObject<DT> as_data_object() const {
-        return cast_to<DataObjectView<DT>>();
+    DTView<DT> as_data_object() const {
+        return cast_to<DT>();
     }
 
     template <typename DT, typename Fn>
@@ -449,27 +453,12 @@ public:
     }
 
     template <typename T>
-    auto cast_to(TypeTag<T>) const
-    {
-        assert_not_null();
-        auto tag = ShortTypeCode::of<T>();
-        auto value_tag = get_type_tag();
-
-        if (value_tag == tag) {
-            return detail::ValueCastHelper<T>::cast_to(
-                get_mem_holder(),
-                get_vs_tag(),
-                storage_
-            );
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("Invalid value type tag: expected {}, actual {}", tag.u64(), value_tag.u64()).do_throw();
-        }
-    }
+    auto cast_to(TypeTag<T>) const;
 
     bool is_simple_layout() const noexcept
     {
-        if (!is_null()) {
+        if (!is_null())
+        {
             if (get_tag() == VS_TAG_ADDRESS) {
                 auto value_tag = get_type_tag();
                 return get_type_reflection(value_tag).hermes_is_simple_layout(
@@ -550,8 +539,12 @@ private:
     void assert_not_null() const
     {
         if (is_null()) {
-            MEMORIA_MAKE_GENERIC_ERROR("ObjectView is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Object is null").do_throw();
         }
+    }
+
+    void* addr() const {
+        return storage_.addr;
     }
 
     void ref() {

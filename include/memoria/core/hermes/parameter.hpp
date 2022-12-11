@@ -156,7 +156,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return dt_ctr_->deep_copy_to(arena, ShortTypeCode::of<ParameterView>(), mem_holder_, dedup);
+        return dt_ctr_->deep_copy_to(arena, ShortTypeCode::of<Parameter>(), mem_holder_, dedup);
     }
 
     int32_t compare(const Parameter& other) const

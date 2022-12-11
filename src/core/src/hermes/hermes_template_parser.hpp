@@ -225,25 +225,25 @@ struct TemplateConstants: public TplASTCodes {
     {
         if (stmts->is_varchar())
         {
-            StringValue txt = stmts->as_varchar();
-            U8StringView out = *txt->view();
+            auto txt = stmts.as_varchar();
+            U8StringView out = txt;
 
             if (is_strip_space(top)) {
-                out = strip_start_ws(*txt->view());
+                out = strip_start_ws(txt);
             }
             else if (!is_preserve_line(top)) {
-                out = strip_first_line(*txt->view());
+                out = strip_first_line(txt);
             }
 
             if (is_strip_space(bottom)) {
                 out = trim_end_ws(out);
             }
             else if (!is_preserve_line(bottom)) {
-                out = trim_last_line(*txt->view());
+                out = trim_last_line(txt);
             }
 
-            if (out.length() != txt->view()->length()) {
-                return current_ctr()->new_dataobject<Varchar>(out)->as_object();
+            if (out.length() != txt.length()) {
+                return current_ctr()->new_dataobject<Varchar>(out).as_object();
             }
         }
         else if (stmts->is_object_array())
@@ -263,33 +263,33 @@ struct TemplateConstants: public TplASTCodes {
                 Object blk_start = array->get(0);
                 if (blk_start->is_varchar())
                 {
-                    StringValue str = blk_start->as_varchar();
+                    auto str = blk_start->as_varchar();
                     if (is_strip_space(top))
                     {
-                        U8StringView out = strip_start_ws(*str->view());
-                        update_string(array, 0, out, *str->view());
+                        U8StringView out = strip_start_ws(str);
+                        update_string(array, 0, out, str);
                     }
                     else if (!is_preserve_line(top))
                     {
-                        U8StringView out = strip_first_line(*str->view());
-                        update_string(array, 0, out, *str->view());
+                        U8StringView out = strip_first_line(str);
+                        update_string(array, 0, out, str);
                     }
                 }
 
                 Object blk_end = array->get(array->size() - 1);
                 if (blk_end->is_varchar())
                 {
-                    StringValue str = blk_end->as_varchar();
+                    auto str = blk_end.as_varchar();
 
                     if (is_strip_space(bottom))
                     {
-                        U8StringView out = trim_end_ws(*str->view());
-                        update_string(array, array->size() - 1, out, *str->view());
+                        U8StringView out = trim_end_ws(str);
+                        update_string(array, array->size() - 1, out, str);
                     }
                     else if (!is_preserve_line(bottom))
                     {
-                        U8StringView out = trim_last_line(*str->view());
-                        update_string(array, array->size() - 1, out, *str->view());
+                        U8StringView out = trim_last_line(str);
+                        update_string(array, array->size() - 1, out, str);
                     }
                 }
             }
@@ -304,7 +304,7 @@ struct TemplateConstants: public TplASTCodes {
     {
         if (blocks->is_object_array())
         {
-            ObjectArray array = blocks->as_object_array();
+            ObjectArray array = blocks.as_object_array();
             for (size_t c = 1; c < array->size(); c++)
             {
                 Object item = array->get(c);
@@ -326,13 +326,13 @@ struct TemplateConstants: public TplASTCodes {
                                     auto str = prev->as_varchar();
                                     if (is_strip_space(map, TOP_OUTER_SPACE))
                                     {
-                                        U8StringView out = trim_end_ws(*str->view());
-                                        update_string(array, c - 1, out, *str->view());
+                                        U8StringView out = trim_end_ws(str);
+                                        update_string(array, c - 1, out, str);
                                     }
                                     else if (!is_preserve_line(map, TOP_OUTER_SPACE))
                                     {
-                                        U8StringView out = trim_last_line(*str->view());
-                                        update_string(array, c - 1, out, *str->view());
+                                        U8StringView out = trim_last_line(str);
+                                        update_string(array, c - 1, out, str);
                                     }
                                 }
 
@@ -343,13 +343,13 @@ struct TemplateConstants: public TplASTCodes {
                                     Optional<bool> b_o_s = get_bottom_outer_space(map);
 
                                     if (is_strip_space(b_o_s)) {
-                                        U8StringView out = strip_start_ws(*str->view());
-                                        update_string(array, c + 1, out, *str->view());
+                                        U8StringView out = strip_start_ws(str);
+                                        update_string(array, c + 1, out, str);
                                     }
                                     else if (!is_preserve_line(b_o_s))
                                     {
-                                        U8StringView out = strip_first_line(*str->view());
-                                        update_string(array, c + 1, out, *str->view());
+                                        U8StringView out = strip_first_line(str);
+                                        update_string(array, c + 1, out, str);
                                     }
                                 }
                             }

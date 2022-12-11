@@ -454,7 +454,7 @@ std::ostream& operator<<(std::ostream& out, DataObject<DT> ptr) {
     return out;
 }
 
-namespace detail {
+
 
 template <typename DT>
 struct ValueCastHelper<DataObjectView<DT>> {
@@ -463,15 +463,14 @@ struct ValueCastHelper<DataObjectView<DT>> {
             ValueStorageTag vs_tag,
             ValueStorage& storage
     ) noexcept {
-        return DataObject<DT>(DataObjectView<DT>(
+        return DataObject<DT>(
             ref_holder,
             vs_tag,
             storage
-        ));
+        );
     }
 };
 
-}
 }
 
 namespace arena {

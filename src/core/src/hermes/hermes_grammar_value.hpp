@@ -149,7 +149,7 @@ public:
         return HermesCtrBuilder::current().new_varchar(buffer_);
     }
 
-    operator StringValue() const {
+    operator Object() const {
         return finish();
     }
 };
@@ -208,7 +208,7 @@ public:
 
 class TypeDeclarationValue {
 
-    StringValue datatype_name_;
+    Object datatype_name_;
     std::vector<Object> params_;
     std::vector<Object> ctr_args_;
     std::vector<PtrSpecifier> ptr_specs_;
@@ -217,7 +217,7 @@ class TypeDeclarationValue {
     int32_t refs_{};
 
 public:
-    void set_datatype_name(StringValue ii) {
+    void set_datatype_name(Object ii) {
         datatype_name_ = ii;
     }
 
@@ -280,9 +280,9 @@ static inline std::ostream& operator<<(std::ostream& out, const TypeDeclarationV
 }
 
 struct TypeReference {
-    StringValue id{};
+    Object id{};
 
-    void operator=(StringValue id) {
+    void operator=(const Object& id) {
         this->id = id;
     }
 };
@@ -305,10 +305,6 @@ struct ValueVisitor: boost::static_visitor<> {
 
     void operator()(ObjectMap&) {}
 
-    void operator()(StringValue& v) {
-        value = v->as_object();
-    }
-
     void operator()(Datatype& v) {
         value = v->as_object();
     }
@@ -319,7 +315,7 @@ struct ValueVisitor: boost::static_visitor<> {
 
     template <typename V>
     void operator()(V& v) {
-        value = v.finish()->as_object();
+        value = v.finish().as_object();
     }
 };
 
@@ -332,8 +328,8 @@ struct TypedValueValue: boost::fusion::vector2<Datatype, Object> {
         auto ctr_hash = type->cxx_type_hash();
         if (has_type_reflection(ctr_hash))
         {
-            if (ctr->is_varchar()) {
-                return get_type_reflection(ctr_hash).datatype_convert_from_plain_string(*ctr->as_varchar()->view());
+            if (ctr.is_varchar()) {
+                return get_type_reflection(ctr_hash).datatype_convert_from_plain_string(ctr->as_varchar());
             }
             else {
                 // FIXME: implement object construction from generic
@@ -341,14 +337,14 @@ struct TypedValueValue: boost::fusion::vector2<Datatype, Object> {
                 return HermesCtrBuilder::current().new_typed_value(
                         type,
                         ctr
-                )->as_object();
+                ).as_object();
             }
         }
         else {
             return HermesCtrBuilder::current().new_typed_value(
                     type,
                     ctr
-            )->as_object();
+            ).as_object();
         }
     }
 };

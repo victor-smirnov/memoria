@@ -106,10 +106,9 @@ public:
         }
     }
 
-    void visitText(const StringValue& element)
+    void visitText(const DTView<Varchar>& element)
     {
-        auto vv = element->view();
-        out_ << *vv;
+        out_ << element;
     }
 
     void visitStatements(const ObjectArray& element)
@@ -121,15 +120,15 @@ public:
 
     void visitForStmt(const ASTNodeT& element)
     {
-        U8StringView var_name = *element->get(VARIABLE)->as_data_object<Varchar>()->view();
+        auto var_name = element->get(VARIABLE).as_data_object<Varchar>();
         auto expr = element->get(EXPRESSION);
-        auto value = evaluateExpr(expr->as_tiny_object_map());
+        auto value = evaluateExpr(expr.as_tiny_object_map());
 
         auto stmts = element->get(STATEMENTS);
 
         if (value->is_array())
         {
-            auto array = value->as_generic_array();
+            auto array = value.as_generic_array();
 
             for (uint64_t c = 0; c < array->size(); c++)
             {
@@ -164,22 +163,22 @@ public:
     void visitElseStmt(const ASTNodeT& element)
     {
         auto stmts = element->get(STATEMENTS);
-        visitStatements(stmts->as_object_array());
+        visitStatements(stmts.as_object_array());
     }
 
     void visitSetStmt(const ASTNodeT& element)
     {
-        U8StringView var_name = *element->get(VARIABLE)->as_data_object<Varchar>()->view();
+        auto var_name = *element->get(VARIABLE).as_data_object<Varchar>();
         auto expr  = element->get(EXPRESSION);
-        auto value = evaluateExpr(expr->as_tiny_object_map());
+        auto value = evaluateExpr(expr.as_tiny_object_map());
         stack_.set(var_name, value);
     }
 
     void visitVarStmt(const ASTNodeT& element)
     {
-        auto expr = element->get(EXPRESSION)->as_tiny_object_map();
+        auto expr = element->get(EXPRESSION).as_tiny_object_map();
         auto res = evaluateExpr(expr);
-        out_ << res->to_plain_string();
+        out_ << res.to_plain_string();
     }
 
 private:

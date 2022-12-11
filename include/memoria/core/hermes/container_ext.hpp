@@ -101,28 +101,28 @@ inline void HermesCtr::assert_mutable()
 }
 
 template <typename DT>
-DataObject<DT> HermesCtr::new_dataobject(DTTViewType<DT> view)
+Object HermesCtr::new_dataobject(DTTViewType<DT> view)
 {
     using DTCtr = DataObjectView<DT>;
 
     auto arena_dtc = arena_->allocate_tagged_object<typename DTCtr::ArenaDTContainer>(
-        ShortTypeCode::of<DTCtr>(),
+        ShortTypeCode::of<DT>(),
         view
     );
 
-    return DataObject<DT>(DTCtr(mem_holder_, arena_dtc));
+    return Object(mem_holder_, arena_dtc);
 }
 
 
 template <typename DT>
-DataObject<DT> HermesCtr::wrap_primitive(DTTViewType<DT> view)
+Object HermesCtr::wrap_primitive(DTTViewType<DT> view)
 {
     return wrap_primitive<DT>(view, common_instance().get());
 }
 
 
 template <typename DT>
-DataObject<DT> HermesCtr::wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr)
+Object HermesCtr::wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr)
 {
     static_assert(
         TaggedValue::dt_fits_in<DT>(),
@@ -130,12 +130,12 @@ DataObject<DT> HermesCtr::wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr)
     );
 
     TaggedValue storage(ShortTypeCode::of<DT>(), view);
-    return DataObject<DT>(DataObjectView<DT>(ctr->mem_holder_, storage));
+    return Object(ctr->mem_holder_, storage);
 }
 
 
 template <typename DT>
-DataObject<DT> HermesCtr::wrap_dataobject__full(DTTViewType<DT> view)
+Object HermesCtr::wrap_dataobject__full(DTTViewType<DT> view)
 {
     using DataObjectT = DataObjectView<DT>;
     using ContainerT = typename DataObjectT::ArenaDTContainer;
@@ -146,7 +146,7 @@ DataObject<DT> HermesCtr::wrap_dataobject__full(DTTViewType<DT> view)
     arena::Cleaner cleaner(arena);
 
     auto header  = arena.allocate_object_untagged<DocumentHeader>();
-    auto tag     = ShortTypeCode::of<DataObjectT>();
+    auto tag     = ShortTypeCode::of<DT>();
     header->root = arena.allocate_tagged_object<ContainerT>(tag, view);
 
     if (arena.chunks() == 1)
@@ -155,13 +155,13 @@ DataObject<DT> HermesCtr::wrap_dataobject__full(DTTViewType<DT> view)
         if (!instance.is_null())
         {
             instance->init_from(arena);
-            return instance->root()->as_data_object<DT>();
+            return instance->root();
         }
     }
 
     auto instance = make_pooled();
     instance->init_from(arena);
-    return instance->root()->as_data_object<DT>();
+    return instance->root();
 }
 
 namespace detail {
@@ -192,7 +192,7 @@ struct DTSizeDispatcher<DT, false> {
 
 
 template <typename DT>
-DataObject<DT> HermesCtr::new_embeddable_dataobject(DTTViewType<DT> view)
+Object HermesCtr::new_embeddable_dataobject(DTTViewType<DT> view)
 {
     return detail::DTSizeDispatcher<
             DT,
@@ -202,7 +202,7 @@ DataObject<DT> HermesCtr::new_embeddable_dataobject(DTTViewType<DT> view)
 
 
 template <typename DT>
-DataObject<DT> HermesCtr::wrap_dataobject(DTTViewType<DT> view)
+Object HermesCtr::wrap_dataobject(DTTViewType<DT> view)
 {
     return detail::DTSizeDispatcher<
         DT, TaggedValue::dt_fits_in<DT>()
@@ -269,14 +269,14 @@ namespace detail {
 
 
 template <typename T>
-constexpr HermesCtrMakers HermesCtrMakerType = DataTypeTraits<T>::isDataType ?
-            HermesCtrMakers::DATAOBJECT :
-            HermesCtrMakers::OTHER;
+constexpr CtrMakers HermesCtrMakerType = DataTypeTraits<T>::isDataType ?
+            CtrMakers::DATAOBJECT :
+            CtrMakers::OTHER;
 }
 
 
 template <typename DT>
-struct HermesCtrMakeHelper<DT, HermesCtrMakers::DATAOBJECT> {
+struct CtrMakeHelper<DT, CtrMakers::DATAOBJECT> {
     template <typename T>
     static auto make(HermesCtr* ctr, const T& value) {
         //using DT = typename ViewToDTMapping<T>::Type;
@@ -285,7 +285,7 @@ struct HermesCtrMakeHelper<DT, HermesCtrMakers::DATAOBJECT> {
 };
 
 template <typename T>
-struct HermesCtrMakeHelper<Array<T>, HermesCtrMakers::OTHER> {
+struct CtrMakeHelper<Array<T>, CtrMakers::OTHER> {
     template <typename... CtrArgs>
     static Array<T> make(HermesCtr* ctr, CtrArgs&&... args) {
         return ctr->template make_array<T>(std::forward<CtrArgs>(args)...);
@@ -293,7 +293,7 @@ struct HermesCtrMakeHelper<Array<T>, HermesCtrMakers::OTHER> {
 };
 
 template <typename T>
-struct HermesCtrMakeHelper<ArrayView<T>, HermesCtrMakers::OTHER> {
+struct CtrMakeHelper<ArrayView<T>, CtrMakers::OTHER> {
     template <typename... CtrArgs>
     static Array<T> make(HermesCtr* ctr, CtrArgs&&... args) {
         return ctr->template make_array<T>(std::forward<CtrArgs>(args)...);
@@ -302,7 +302,7 @@ struct HermesCtrMakeHelper<ArrayView<T>, HermesCtrMakers::OTHER> {
 
 
 template <typename Key, typename Value>
-struct HermesCtrMakeHelper<MapView<Key, Value>, HermesCtrMakers::OTHER> {
+struct CtrMakeHelper<MapView<Key, Value>, CtrMakers::OTHER> {
     template <typename... CtrArgs>
     static Map<Key, Value> make(HermesCtr* ctr, CtrArgs&&... args) {
         return ctr->template make_map<Key, Value>(std::forward<CtrArgs>(args)...);
@@ -310,7 +310,7 @@ struct HermesCtrMakeHelper<MapView<Key, Value>, HermesCtrMakers::OTHER> {
 };
 
 template <typename Key, typename Value>
-struct HermesCtrMakeHelper<Map<Key, Value>, HermesCtrMakers::OTHER> {
+struct CtrMakeHelper<Map<Key, Value>, CtrMakers::OTHER> {
     template <typename... CtrArgs>
     static Map<Key, Value> make(HermesCtr* ctr, CtrArgs&&... args) {
         return ctr->template make_map<Key, Value>(std::forward<CtrArgs>(args)...);
@@ -318,7 +318,7 @@ struct HermesCtrMakeHelper<Map<Key, Value>, HermesCtrMakers::OTHER> {
 };
 
 template <>
-struct HermesCtrMakeHelper<Parameter, HermesCtrMakers::OTHER> {
+struct CtrMakeHelper<Parameter, CtrMakers::OTHER> {
     template <typename ViewT>
     static Parameter make(HermesCtr* ctr, ViewT&& param_name) {
         return ctr->make_parameter(param_name);
@@ -326,7 +326,7 @@ struct HermesCtrMakeHelper<Parameter, HermesCtrMakers::OTHER> {
 };
 
 template <>
-struct HermesCtrMakeHelper<ParameterView, HermesCtrMakers::OTHER> {
+struct CtrMakeHelper<ParameterView, CtrMakers::OTHER> {
     template <typename ViewT>
     static Parameter make(HermesCtr* ctr, ViewT&& param_name) {
         return ctr->make_parameter(param_name);
@@ -334,7 +334,7 @@ struct HermesCtrMakeHelper<ParameterView, HermesCtrMakers::OTHER> {
 };
 
 template <>
-struct HermesCtrMakeHelper<Datatype, HermesCtrMakers::OTHER> {
+struct CtrMakeHelper<Datatype, CtrMakers::OTHER> {
     template <typename ViewT>
     static Datatype make(HermesCtr* ctr, ViewT&& datatype_name) {
         return ctr->make_datatype(datatype_name);
@@ -342,7 +342,7 @@ struct HermesCtrMakeHelper<Datatype, HermesCtrMakers::OTHER> {
 };
 
 template <>
-struct HermesCtrMakeHelper<DatatypeView, HermesCtrMakers::OTHER> {
+struct CtrMakeHelper<DatatypeView, CtrMakers::OTHER> {
     template <typename ViewT>
     static Datatype make(HermesCtr* ctr, ViewT&& datatype_name) {
         return ctr->make_datatype(datatype_name);
@@ -350,30 +350,30 @@ struct HermesCtrMakeHelper<DatatypeView, HermesCtrMakers::OTHER> {
 };
 
 template <>
-struct HermesCtrMakeHelper<TypedValue, HermesCtrMakers::OTHER> {
+struct CtrMakeHelper<TypedValue, CtrMakers::OTHER> {
     template <typename ViewT>
-    static TypedValue make(HermesCtr* ctr, const Datatype& datatype) {
-        return ctr->make_typed_value(datatype);
+    static TypedValue make(HermesCtr* ctr, const Datatype& datatype, const Object& constructor) {
+        return ctr->make_typed_value(datatype, constructor);
     }
 };
 
 template <>
-struct HermesCtrMakeHelper<TypedValueView, HermesCtrMakers::OTHER> {
+struct CtrMakeHelper<TypedValueView, CtrMakers::OTHER> {
     template <typename ViewT>
-    static TypedValue make(HermesCtr* ctr, const Datatype& datatype) {
-        return ctr->make_typed_value(datatype);
+    static TypedValue make(HermesCtr* ctr, const Datatype& datatype, const Object& constructor) {
+        return ctr->make_typed_value(datatype, constructor);
     }
 };
 
 template <typename T>
 auto HermesCtr::make(T&& view) {
-    using DT = typename ViewToDTMapping<T>::Type;
+    using DT = typename ViewToDTMapping<std::decay_t<T>>::Type;
     return make_dataobject<DT>(view);
 }
 
 template <typename T, typename... CtrArgs>
 auto HermesCtr::make_t(CtrArgs&&... args) {
-    return HermesCtrMakeHelper<T, detail::HermesCtrMakerType<T>>::
+    return CtrMakeHelper<T, detail::HermesCtrMakerType<T>>::
         make(this, std::forward<CtrArgs>(args)...);
 }
 
@@ -388,7 +388,7 @@ Object HermesCtr::make_dataobject(const DTViewArg<DT>& view)
     using DTCtr = DataObjectView<DT>;
 
     auto arena_dtc = arena_->allocate_tagged_object<typename DTCtr::ArenaDTContainer>(
-        ShortTypeCode::of<DTCtr>(),
+        ShortTypeCode::of<DT>(),
         view
     );
 
@@ -494,38 +494,6 @@ Map<Key, Value> HermesCtr::make_map(uint64_t capacity)
 }
 
 
-inline ObjectArray HermesCtr::make_object_array(uint64_t capacity) {
-    return HermesCtr::make_array<Object>(capacity);
-}
-
-
-inline Parameter HermesCtr::make_parameter(const U8StringView& name)
-{
-    assert_not_null();
-    assert_mutable();
-
-    auto arena_dtc = arena_->allocate_tagged_object<typename ParameterView::ArenaDTContainer>(
-        ShortTypeCode::of<ParameterView>(),
-        name
-    );
-
-    return Parameter(mem_holder_, arena_dtc);
-}
-
-
-
-inline Datatype HermesCtr::make_datatype(const U8StringView& name) {
-    return Datatype{};
-}
-
-inline Datatype HermesCtr::make_datatype(const StringValue& name) {
-    return Datatype{};
-}
-
-
-inline TypedValue HermesCtr::make_typed_value(const Datatype& datatype) {
-    return TypedValue{};
-}
 
 
 namespace detail {
@@ -537,7 +505,7 @@ struct WrappingImportHelper {
     {
         using DT = typename ViewToDTMapping<ViewT>::Type;
         TaggedValue storage(ShortTypeCode::of<DT>(), view.value_t());
-        return DataObject<DT>(DataObjectView<DT>(ctr->mem_holder_, storage));
+        return DataObject<DT>(ctr->mem_holder_, storage);
     }
 };
 
@@ -571,7 +539,7 @@ Object HermesCtr::import_object(const Own<ViewT, OK>& object)
     if (object.get_mem_holder() == mem_holder_)
     {
         auto addr = arena::ArenaDataTypeContainer<DT>::from_view(object);
-        return Object{mem_holder_, addr};
+        return Object(mem_holder_, addr);
     }
     else {
         return make(object);

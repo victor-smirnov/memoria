@@ -29,8 +29,9 @@
 namespace memoria {
 
 template <typename T>
-class HermesTypeReflectionImpl: public TypeCodeTypeReflectionImplBase<T> {
+class AbstractHermesTypeReflectionImpl: public TypeCodeTypeReflectionImplBase<T> {
 public:
+
     virtual void hermes_stringify_value(
             LWMemHolder* ref_holder,
             hermes::ValueStorageTag vs_tag,
@@ -63,6 +64,18 @@ public:
     }
 };
 
+
+
+template <typename T>
+class HermesTypeReflectionImpl: public AbstractHermesTypeReflectionImpl<T> {
+public:
+
+    // Not all types may have short type hash
+    // TypeHash<T>
+    virtual ShortTypeCode shot_type_hash() const noexcept override {
+        return ShortTypeCode::of<T>();
+    };
+};
 
 namespace detail {
 
@@ -99,8 +112,14 @@ struct GenericCtrDispatcher<hermes::Map<KeyDT, ValueDT>> {
 }
 
 template <typename T, typename GenericCtrImplT>
-class HermesContainerTypeReflectionImpl: public HermesTypeReflectionImpl<T> {
+class HermesContainerTypeReflectionImpl: public AbstractHermesTypeReflectionImpl<T> {
 public:
+
+    // Not all types may have short type hash
+    // TypeHash<T>
+    virtual ShortTypeCode shot_type_hash() const noexcept override {
+        return ShortTypeCode::of<T>();
+    };
 
     virtual PoolSharedPtr<hermes::GenericObject> hermes_make_wrapper(
             LWMemHolder* ref_holder,
@@ -595,9 +614,9 @@ struct TVEmbedHelper<TV, false> {
 }
 
 template <typename T, typename DT>
-class HermesTypeReflectionDatatypeImpl: public HermesTypeReflectionImpl<T> {
+class HermesTypeReflectionDatatypeImpl: public AbstractHermesTypeReflectionImpl<T> {
 
-    using Base = HermesTypeReflectionImpl<T>;
+    using Base = AbstractHermesTypeReflectionImpl<T>;
 
     //ska::flat_hash_map<uint64_t, std::unique_ptr<IDatatypeConverter>> converters_;
     std::unordered_map<uint64_t, std::unique_ptr<IDatatypeConverter>> converters_;
@@ -609,6 +628,12 @@ class HermesTypeReflectionDatatypeImpl: public HermesTypeReflectionImpl<T> {
 
 public:
     using Base::str;
+
+    // Not all types may have short type hash
+    // TypeHash<T>
+    virtual ShortTypeCode shot_type_hash() const noexcept override {
+        return ShortTypeCode::of<DT>();
+    };
 
     HermesTypeReflectionDatatypeImpl()
     {

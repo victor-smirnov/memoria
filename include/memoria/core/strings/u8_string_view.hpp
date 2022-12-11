@@ -31,6 +31,10 @@ namespace memoria {
 
 class U8StringOView;
 
+namespace hermes {
+class HermesCtr;
+}
+
 template<>
 class HoldingView<U8StringOView>: public U8StringView {
     using Base = U8StringView;
@@ -39,6 +43,8 @@ protected:
 
     template <typename, OwningKind>
     friend class Own;
+
+    friend class hermes::HermesCtr;
 
 public:
     HoldingView() noexcept:
@@ -51,6 +57,13 @@ public:
         mem_holder_(holder)
     {}
 
+    HoldingView& operator=(const HoldingView& other) noexcept
+    {
+        Base::operator=(other);
+        mem_holder_ = other.mem_holder_;
+        return *this;
+    }
+
 protected:
     LWMemHolder* get_mem_holder() const noexcept {
         return mem_holder_;
@@ -58,6 +71,10 @@ protected:
 
     void reset_mem_holder() noexcept {
         mem_holder_ = nullptr;
+    }
+
+    void set_mem_holder(LWMemHolder* mem_holder) noexcept {
+        mem_holder_ = mem_holder;
     }
 };
 
@@ -105,6 +122,20 @@ public:
     const U8StringView* ptr() const {
         return this;
     }
+
+    U8StringOView& operator=(const U8StringOView& other) noexcept
+    {
+        Base::operator=(other);
+        return *this;
+    }
+
+    U8StringOView& operator=(U8StringOView&& other) noexcept
+    {
+
+        Base::operator=(std::move(other));
+        other.reset_mem_holder();
+        return *this;
+    }
 };
 
 template <>
@@ -113,8 +144,8 @@ struct ViewToDTMapping<U8StringView>: HasType<Varchar> {};
 template <>
 struct ViewToDTMapping<U8StringOView>: HasType<Varchar> {};
 
-template <>
-struct ViewToDTMapping<Own<U8StringOView>>: HasType<Varchar> {};
+template <OwningKind OK>
+struct ViewToDTMapping<Own<U8StringOView, OK>>: HasType<Varchar> {};
 
 template <>
 struct ViewToDTMapping<const char*>: HasType<Varchar> {};

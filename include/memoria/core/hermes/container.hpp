@@ -63,12 +63,12 @@ struct WrappingImportHelper;
 template <size_t Size>
 class SizedHermesCtrImpl;
 
-enum class HermesCtrMakers {
+enum class CtrMakers {
     DATAOBJECT, OTHER
 };
 
-template <typename, HermesCtrMakers>
-struct HermesCtrMakeHelper;
+template <typename, CtrMakers>
+struct CtrMakeHelper;
 
 
 template <typename T>
@@ -129,8 +129,8 @@ protected:
 
     friend class DatatypeView;
 
-    template <typename, HermesCtrMakers>
-    friend struct HermesCtrMakeHelper;
+    template <typename, CtrMakers>
+    friend struct CtrMakeHelper;
 
     template <typename>
     friend struct ArrowMaker;
@@ -213,14 +213,14 @@ public:
 
 
     template <typename DT>
-    DataObject<DT> set_dataobject(DTTViewType<DT> view)
+    Object set_dataobject(DTTViewType<DT> view)
     {
         assert_not_null();
         assert_mutable();
 
         auto ptr = this->new_dataobject<DT>(view);
 
-        header_->root = ptr->dt_ctr();
+        header_->root = ptr->addr();
 
         return ptr;
     }
@@ -247,10 +247,10 @@ public:
     void set_root(Object value);
 
     template <typename DT>
-    DataObject<DT> new_dataobject(DTTViewType<DT> view);
+    Object new_dataobject(DTTViewType<DT> view);
 
     template <typename DT>
-    DataObject<DT> new_embeddable_dataobject(DTTViewType<DT> view);
+    Object new_embeddable_dataobject(DTTViewType<DT> view);
 
     Datatype new_datatype(U8StringView name);
     Datatype new_datatype(StringValue name);
@@ -295,9 +295,7 @@ public:
     static void init_hermes_doc_parser();
 
     template <typename DT>
-    static DataObject<DT> wrap_dataobject(DTTViewType<DT> view);
-
-
+    static Object wrap_dataobject(DTTViewType<DT> view);
 
 
     TypedValue new_typed_value(Datatype datatype, Object constructor);
@@ -373,9 +371,9 @@ public:
     Parameter make_parameter(const U8StringView& name);
 
     Datatype make_datatype(const U8StringView& name);
-    Datatype make_datatype(const StringValue& name);
+    Datatype make_datatype(const DTView<Varchar>& name);
 
-    TypedValue make_typed_value(const Datatype& datatype);
+    TypedValue make_typed_value(const Datatype& datatype, const Object& constructor);
 
 protected:
 
@@ -385,13 +383,13 @@ protected:
 
 
     template <typename DT>
-    static DataObject<DT> wrap_dataobject__full(DTTViewType<DT> view);
+    static Object wrap_dataobject__full(DTTViewType<DT> view);
 
     template <typename DT>
-    static DataObject<DT> wrap_primitive(DTTViewType<DT> view);
+    static Object wrap_primitive(DTTViewType<DT> view);
 
     template <typename DT>
-    static DataObject<DT> wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr);
+    static Object wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr);
 
     HermesCtr* mutable_self() const {
         return const_cast<HermesCtr*>(this);

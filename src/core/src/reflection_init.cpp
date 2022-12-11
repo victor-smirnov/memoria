@@ -33,7 +33,7 @@ template <typename DTList> struct DataObjectReflectionListBuilder;
 template <typename DT, typename... Tail>
 struct DataObjectReflectionListBuilder<TL<DT, Tail...>> {
     static void build() {
-        register_type_reflection(*std::make_shared<HermesTypeReflectionDatatypeImpl<DataObjectView<DT>, DT>>());
+        register_type_reflection(*std::make_shared<HermesTypeReflectionDatatypeImpl<DataObject<DT>, DT>>());
         DataObjectReflectionListBuilder<TL<Tail...>>::build();
     }
 };
@@ -71,9 +71,9 @@ void InitTypeReflections()
     register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Map<UBigInt, Object>, TypedGenericMap<UBigInt, Object>>>());
 
 
-    register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<DatatypeView>>());
-    register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<TypedValueView>>());
-    register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<ParameterView>>());
+    register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<Datatype>>());
+    register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<TypedValue>>());
+    register_type_reflection(*std::make_shared<HermesTypeReflectionImpl<Parameter>>());
 
     DataObjectReflectionListBuilder<AllHermesDatatypes>::build();
 
@@ -87,7 +87,7 @@ void InitTypeReflections()
 
         // FIXME strip_namespace is apparently broken for numeric type param
 //        auto alias_dt = strip_namespaces(datatype);
-//        if (*alias_dt->type_name()->view() == "DataObjectView") {
+//        if (*alias_dt->type_name()->view() == "DataObject") {
 //            alias_dt = alias_dt->type_parameters()->get(0)->as_datatype();
 //        }
 

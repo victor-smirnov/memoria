@@ -466,7 +466,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return datatype_->deep_copy_to(arena, ShortTypeCode::of<DatatypeView>(), mem_holder_, dedup);
+        return datatype_->deep_copy_to(arena, ShortTypeCode::of<Datatype>(), mem_holder_, dedup);
     }
 
     UID256 cxx_type_hash() const;
@@ -488,7 +488,7 @@ private:
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(datatype_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("DatatypeView is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Datatype is null").do_throw();
         }
     }
 

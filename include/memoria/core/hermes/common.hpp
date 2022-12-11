@@ -705,6 +705,11 @@ public:
     {}
 
 
+    TaggedHoldingView& operator=(const TaggedHoldingView& other) noexcept {
+        mem_holder_ = other.mem_holder_;
+        return *this;
+    }
+
 protected:
     LWMemHolder* get_mem_holder() const noexcept {
         return reinterpret_cast<LWMemHolder*>(mem_holder_ & ~TAG_MASK);
@@ -743,20 +748,27 @@ struct IsCodeInTheList<TL<>> {
     }
 };
 
+enum class ObjectCasters {
+    DATAOBJECT, OTHER
+};
 
-namespace detail {
+template <typename T, ObjectCasters>
+struct ObjectCaster;
+
 
 template <typename T>
 struct ValueCastHelper {
-    static Own<T, OwningKind::HOLDING> cast_to(LWMemHolder* ref_holder, ValueStorageTag, ValueStorage& storage) noexcept {
+    static Own<T, OwningKind::HOLDING> cast_to(
+            LWMemHolder* ref_holder,
+            ValueStorageTag,
+            ValueStorage& storage
+    ) noexcept {
         return Own<T, OwningKind::HOLDING>(T(
             ref_holder,
             storage.addr
         ));
     }
 };
-
-}
 
 struct GenericArray;
 struct GenericMap;

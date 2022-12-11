@@ -129,10 +129,10 @@ public:
         assert_not_null();
 
         if (idx < array_->size()) {
-            return DataObject<DT>(DataObjectView<DT>(mem_holder_, array_->get(idx)));
+            return DataObject<DT>(mem_holder_, array_->get(idx));
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Range check in ArrayView<DT>: {} {}", idx, array_->size()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<DT>: {} {}", idx, array_->size()).do_throw();
         }
     }
 
@@ -188,7 +188,7 @@ public:
         assert_not_null();
 
         for (auto& vv: array_->span()) {
-            fn(DataObject<DT>(DataObjectView<DT>(mem_holder_, vv)));
+            fn(DataObject<DT>(mem_holder_, vv));
         }
     }
 
@@ -290,11 +290,11 @@ public:
     }
 
     virtual void set(uint64_t idx, const Object& value) {
-        array_.set(idx, value->convert_to<DataObjectView<DT>>()->template as_data_object<DT>());
+        array_.set(idx, value->convert_to<DT>()->template as_data_object<DT>());
     }
 
     virtual GenericArrayPtr push_back(const Object& value) {
-        auto new_array = array_.append(value->convert_to<DataObjectView<DT>>()->template as_data_object<DT>());
+        auto new_array = array_.append(value->convert_to<DT>()->template as_data_object<DT>());
         return make_wrapper(ctr_holder_, new_array->array_);
     }
 

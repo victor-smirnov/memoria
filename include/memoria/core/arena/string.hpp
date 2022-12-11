@@ -132,7 +132,7 @@ public:
     }
 
 
-    static const void* from_view(const ViewT& view) {
+    static void* from_view(const ViewT& view) {
         const auto* addr = view.data();
         size_t len_len = u64_56_len_len(view.length());
         return ptr_cast<void*>(addr - len_len);

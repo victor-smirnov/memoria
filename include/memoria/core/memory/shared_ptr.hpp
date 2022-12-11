@@ -206,6 +206,11 @@ public:
         mem_holder_(holder)
     {}
 
+    HoldingView& operator=(const HoldingView& other) noexcept {
+        mem_holder_ = other.mem_holder_;
+        return *this;
+    }
+
 protected:
     LWMemHolder* get_mem_holder() const noexcept {
         return mem_holder_;
@@ -219,6 +224,10 @@ protected:
         auto tmp = mem_holder_;
         mem_holder_ = nullptr;
         return tmp;
+    }
+
+    void set_mem_holder(LWMemHolder* mem_holder) noexcept {
+        mem_holder_ = mem_holder;
     }
 };
 

@@ -156,7 +156,7 @@ public:
 
 
     template <typename DT>
-    DataObject<DT> set(uint64_t idx, DTTViewType<DT> view);
+    Object set(uint64_t idx, DTTViewType<DT> view);
     void set_null(uint64_t idx);
 
     ObjectArray remove(uint64_t idx);

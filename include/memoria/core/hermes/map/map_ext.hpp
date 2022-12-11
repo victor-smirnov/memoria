@@ -55,10 +55,14 @@ inline ObjectMap MapView<Varchar, Object>::put_dataobject(U8StringView key, DTTV
 
     ShortTypeCode mytag = arena::read_type_tag(map_);
     if (value_ptr->get_vs_tag() == VS_TAG_ADDRESS) {
-        new_map = map_->put(*arena, mytag, key_ptr->dt_ctr(), value_ptr->storage_.addr);
+        new_map = map_->put(*arena, mytag,
+                            reinterpret_cast<arena::ArenaDataTypeContainer<Varchar>*>(key_ptr->addr()),
+                            value_ptr->storage_.addr);
     }
     else if (value_ptr->get_vs_tag() == VS_TAG_SMALL_VALUE) {
-        new_map = map_->put(*arena, mytag, key_ptr->dt_ctr(), value_ptr->storage_.small_value.to_eptr());
+        new_map = map_->put(*arena, mytag,
+                            reinterpret_cast<arena::ArenaDataTypeContainer<Varchar>*>(key_ptr->addr()),
+                            value_ptr->storage_.small_value.to_eptr());
     }
     else {
         MEMORIA_MAKE_GENERIC_ERROR("Invalid value type").do_throw();
@@ -246,7 +250,9 @@ inline ObjectMap MapView<Varchar, Object>::put(U8StringView name, Object value) 
         ShortTypeCode mytag = arena::read_type_tag(map_);
         auto arena = ctr->arena();
         auto key = ctr->new_dataobject<Varchar>(name);
-        new_map = map_->put(*arena, mytag, key->dt_ctr(), vv->storage_.addr);
+        new_map = map_->put(*arena, mytag,
+                            reinterpret_cast<arena::ArenaDataTypeContainer<Varchar>*>(key->addr()),
+                            vv->storage_.addr);
     }
     else {
         return remove(name);

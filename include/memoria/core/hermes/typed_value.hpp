@@ -137,7 +137,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return tv_->deep_copy_to(arena, ShortTypeCode::of<TypedValueView>(), mem_holder_, dedup);
+        return tv_->deep_copy_to(arena, ShortTypeCode::of<TypedValue>(), mem_holder_, dedup);
     }
 
     operator Object() const & noexcept {

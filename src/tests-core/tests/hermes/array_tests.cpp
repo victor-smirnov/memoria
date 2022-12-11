@@ -68,24 +68,24 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Herm
 
     array->append<Varchar>("Hello World");
     assert_equals(true, array->get(0)->is_varchar());
-    assert_equals("Hello World", array->get(0)->as_varchar()->view());
+    assert_equals("Hello World", array->get(0).as_varchar());
 
     array->append<Double>(123456);
-    assert_equals(true, array->get(1)->is_double());
-    assert_equals(123456, array->get(1)->as_double()->view());
+    assert_equals(true, array->get(1).is_double());
+    assert_equals(123456, array->get(1).as_double());
 
     array->append<Boolean>(true);
-    assert_equals(true, array->get(2)->is_boolean());
-    assert_equals(true, array->get(2)->as_boolean()->view());
+    assert_equals(true, array->get(2).is_boolean());
+    assert_equals(true, array->get(2).as_boolean());
 
     auto map = doc->make_object_map();
     array->append(map->as_object());
-    assert_equals(true, array->get(3)->is_map());
+    assert_equals(true, array->get(3).is_map());
 //    assert_equals(true, array->get(3)->as_generic_map()->equals(map));
 
     auto arr = doc->make_object_array();
-    array->append(arr->as_object());
-    assert_equals(true, array->get(4)->is_array());
+    array->append(arr.as_object());
+    assert_equals(true, array->get(4).is_array());
 //    assert_equals(true, array->get(4)->as_generic_array()->equals(arr));
 
     //auto sdn1 = array->append_hermes("'123456'@CoolType");
@@ -105,32 +105,32 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Herm
 
 
     array->set<Double>(0, 555);
-    assert_equals(true, array->get(0)->is_double());
-    assert_equals(555, array->get(0)->as_double()->view());
+    assert_equals(true, array->get(0).is_double());
+    assert_equals(555, array->get(0).as_double());
 
     assert_throws<ResultException>([&](){
         array->set<Double>(10, 555);
     });
 
     array->set<BigInt>(1, 555);
-    assert_equals(true, array->get(1)->is_bigint());
-    assert_equals(555, array->get(1)->as_bigint()->view());
+    assert_equals(true, array->get(1).is_bigint());
+    assert_equals(555, array->get(1).as_bigint());
 
     assert_throws<ResultException>([&](){
         array->set<BigInt>(10, 555);
     });
 
     array->set<Boolean>(2, false);
-    assert_equals(true, array->get(2)->is_boolean());
-    assert_equals(false, array->get(2)->as_boolean()->view());
+    assert_equals(true, array->get(2).is_boolean());
+    assert_equals(false, array->get(2).as_boolean());
 
     assert_throws<ResultException>([&](){
         array->set<Boolean>(10, false);
     });
 
     array->set<Varchar>(3, "Cool String");
-    assert_equals(true, array->get(3)->is_varchar());
-    assert_equals("Cool String", array->get(3)->as_varchar()->view());
+    assert_equals(true, array->get(3).is_varchar());
+    assert_equals("Cool String", array->get(3).as_varchar());
 
     assert_throws<ResultException>([&](){
         array->set<Varchar>(10, "S0");
@@ -138,13 +138,13 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Herm
 
 
     array->set_hermes(4, "{}");
-    assert_equals(true, array->get(4)->is_map());
+    assert_equals(true, array->get(4).is_map());
     assert_throws<ResultException>([&](){
         array->set_hermes(10, "S0");
     });
 
     array->set_hermes(5, "[]");
-    assert_equals(true, array->get(5)->is_array());
+    assert_equals(true, array->get(5).is_array());
     assert_throws<ResultException>([&](){
         array->set_hermes(10, "S0");
     });

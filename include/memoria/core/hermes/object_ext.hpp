@@ -43,4 +43,103 @@ Object ObjectView::convert_to() const
     }
 }
 
+template <typename T>
+constexpr ObjectCasters ObjectCasterFor = DataTypeTraits<T>::isDataType ?
+            ObjectCasters::DATAOBJECT :
+            ObjectCasters::OTHER;
+
+template <typename DT>
+struct ObjectCaster<DT, ObjectCasters::DATAOBJECT> {
+
+    static DTView<DT> cast_to(
+            LWMemHolder* mem_holder,
+            ValueStorageTag vs_tag,
+            ValueStorage& storage
+    ) {
+        if (vs_tag == VS_TAG_ADDRESS)
+        {
+            auto* dt_ctr = reinterpret_cast<arena::ArenaDataTypeContainer<DT>*>(storage.addr);
+            return dt_ctr->view(mem_holder);
+        }
+        else if (vs_tag == VS_TAG_SMALL_VALUE) {
+            return DTView<DT>(mem_holder, storage.small_value.get_unchecked<DTTViewType<DT>>());
+        }
+        else {
+            if (storage.view_ptr) {
+                return DTView<DT>(mem_holder, storage.view_ptr->get<DTTViewType<DT>>());
+            }
+            else {
+                return DTView<DT>{};
+            }
+        }
+    }
+};
+
+
+
+template <typename DT>
+struct ObjectCaster<DataObject<DT>, ObjectCasters::OTHER> {
+
+    static DTView<DT> cast_to(
+            LWMemHolder* mem_holder,
+            ValueStorageTag vs_tag,
+            ValueStorage& storage
+    ) {
+        if (vs_tag == VS_TAG_ADDRESS)
+        {
+            auto* dt_ctr = reinterpret_cast<arena::ArenaDataTypeContainer<DT>*>(storage.addr);
+            return dt_ctr->view(mem_holder);
+        }
+        else if (vs_tag == VS_TAG_SMALL_VALUE) {
+            return DTView<DT>(mem_holder, storage.small_value.get_unchecked<DTTViewType<DT>>());
+        }
+        else {
+            if (storage.view_ptr) {
+                return DTView<DT>(mem_holder, storage.view_ptr->get<DTTViewType<DT>>());
+            }
+            else {
+                return DTView<DT>{};
+            }
+        }
+    }
+};
+
+
+
+template <typename T>
+struct ObjectCaster<T, ObjectCasters::OTHER> {
+
+    static auto cast_to(
+            LWMemHolder* mem_holder,
+            ValueStorageTag vs_tag,
+            ValueStorage& storage
+    ) {
+        if (MMA_LIKELY(vs_tag == VS_TAG_ADDRESS)) {
+            return T(mem_holder, storage.addr);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Incorrect value storage tag {} for type {}", vs_tag, type_to_str<T>()).do_throw();
+        }
+    }
+};
+
+template <typename T>
+auto ObjectView::cast_to(TypeTag<T>) const
+{
+    assert_not_null();
+    auto tag = ShortTypeCode::of<T>();
+    auto value_tag = get_type_tag();
+
+    if (value_tag == tag) {
+        return ObjectCaster<T, ObjectCasterFor<T>>::cast_to(
+            get_mem_holder(),
+            get_vs_tag(),
+            storage_
+        );
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Invalid value type tag: expected {}, actual {}", tag.u64(), value_tag.u64()).do_throw();
+    }
+}
+
 }

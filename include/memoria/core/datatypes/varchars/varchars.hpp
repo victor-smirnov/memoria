@@ -25,7 +25,6 @@
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/arena_buffer.hpp>
 #include <memoria/core/strings/u8_string.hpp>
-
 #include <memoria/core/datatypes/varchars/varchar_dt.hpp>
 
 #include <tuple>

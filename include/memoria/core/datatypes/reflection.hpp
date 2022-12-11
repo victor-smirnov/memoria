@@ -21,10 +21,6 @@
 
 namespace memoria {
 
-namespace hermes {
-template <typename> class DataObjectView;
-}
-
 template <typename T>
 class HermesTypedValueReflectionImpl: public TypeCodeTypeReflectionImplBase<T> {
 public:

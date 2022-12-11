@@ -264,7 +264,7 @@ private:
      * @return Returns false if @a json is a false like value (false, 0, empty
      * list, empty object, empty string, null), otherwise returns true.
      */
-    hermes::DataObject<Boolean> toBoolean(const Object& json) const;
+    hermes::Object toBoolean(const Object& json) const;
 
 
 

@@ -100,30 +100,25 @@ Datatype HermesCtr::new_datatype(U8StringView name)
 {
     auto str = new_dataobject<Varchar>(name);
     auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
-        ShortTypeCode::of<DatatypeView>(), str->dt_ctr()
+        ShortTypeCode::of<Datatype>(),
+                reinterpret_cast<arena::ArenaDataTypeContainer<Varchar>*>(str->addr())
     );
 
-    return Datatype(DatatypeView(mem_holder_, arena_dt));
+    return Datatype(mem_holder_, arena_dt);
 }
 
 Datatype HermesCtr::new_datatype(StringValue name)
 {
     auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
-        ShortTypeCode::of<DatatypeView>(), name->dt_ctr()
+        ShortTypeCode::of<Datatype>(), name->dt_ctr()
     );
 
-    return Datatype(DatatypeView(mem_holder_, arena_dt));
+    return Datatype(mem_holder_, arena_dt);
 }
 
 TypedValue HermesCtr::new_typed_value(Datatype datatype, Object constructor)
 {
-    Object vv_ctr = do_import_value(constructor);
-
-    auto arena_tv = arena()->allocate_tagged_object<detail::TypedValueData>(
-        ShortTypeCode::of<TypedValueView>(), datatype->datatype_, vv_ctr->storage_.addr
-    );
-
-    return TypedValue(TypedValueView(mem_holder_, arena_tv));
+    return make_typed_value(datatype, constructor);
 }
 
 Object HermesCtr::do_import_value(Object value)
@@ -218,11 +213,11 @@ Parameter HermesCtr::new_parameter(U8StringView name)
     assert_mutable();
 
     auto arena_dtc = arena_->allocate_tagged_object<typename ParameterView::ArenaDTContainer>(
-        ShortTypeCode::of<ParameterView>(),
+        ShortTypeCode::of<Parameter>(),
         name
     );
 
-    return Parameter(ParameterView(mem_holder_, arena_dtc));
+    return Parameter(mem_holder_, arena_dtc);
 }
 
 
@@ -244,6 +239,70 @@ PoolSharedPtr<HermesCtr> HermesCtr::common_instance() {
 }
 
 
+ObjectArray HermesCtr::make_object_array(uint64_t capacity) {
+    return HermesCtr::make_array<Object>(capacity);
+}
+
+
+Parameter HermesCtr::make_parameter(const U8StringView& name)
+{
+    assert_not_null();
+    assert_mutable();
+
+    auto arena_dtc = arena_->allocate_tagged_object<typename ParameterView::ArenaDTContainer>(
+        ShortTypeCode::of<Parameter>(),
+        name
+    );
+
+    return Parameter(mem_holder_, arena_dtc);
+}
+
+
+
+Datatype HermesCtr::make_datatype(const U8StringView& name)
+{
+    assert_not_null();
+    assert_mutable();
+
+    Object nameo = make(name);
+
+    auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
+        ShortTypeCode::of<Datatype>(),
+                reinterpret_cast<arena::ArenaDataTypeContainer<Varchar>*>(nameo->addr())
+    );
+
+    return Datatype(mem_holder_, arena_dt);
+}
+
+Datatype HermesCtr::make_datatype(const StringOView& name)
+{
+    assert_not_null();
+    assert_mutable();
+
+    Object nameo = import_object(name);
+
+    auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
+        ShortTypeCode::of<Datatype>(),
+                reinterpret_cast<arena::ArenaDataTypeContainer<Varchar>*>(nameo->addr())
+    );
+
+    return Datatype(mem_holder_, arena_dt);
+}
+
+
+TypedValue HermesCtr::make_typed_value(const Datatype& datatype, const Object& constructor)
+{
+    assert_not_null();
+    assert_mutable();
+
+    Object vv_ctr = do_import_value(constructor);
+
+    auto arena_tv = arena()->allocate_tagged_object<detail::TypedValueData>(
+        ShortTypeCode::of<TypedValue>(), datatype->datatype_, vv_ctr->storage_.addr
+    );
+
+    return TypedValue(mem_holder_, arena_tv);
+}
 
 
 

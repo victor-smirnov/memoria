@@ -171,8 +171,8 @@ void DatatypeView::stringify_cxx(std::ostream& out,
                 state.make_indent(out);
 
                 Object type_param = params->get(c);
-                if (type_param->is_a(TypeTag<DatatypeView>{})) {
-                    cast_to<DatatypeView>(type_param)->stringify_cxx(out, state);
+                if (type_param->is_a(TypeTag<Datatype>{})) {
+                    cast_to<Datatype>(type_param)->stringify_cxx(out, state);
                 }
                 else {
                     type_param->stringify(out, state);

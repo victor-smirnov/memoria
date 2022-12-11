@@ -70,16 +70,16 @@ auto ldd_map_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     assert_equals(0, map->size());
 
     map->put_dataobject<Varchar>("Entry0", "Hello World");
-    assert_equals(true, map->get("Entry0")->is_varchar());
-    assert_equals("Hello World", map->get("Entry0")->as_varchar()->view());
+    assert_equals(true, map->get("Entry0").is_varchar());
+    assert_equals("Hello World", map->get("Entry0").as_varchar());
 
     map->put_dataobject<Double>("Entry1", 123456);
-    assert_equals(true, map->get("Entry1")->is_double());
-    assert_equals(123456, map->get("Entry1")->as_double()->view());
+    assert_equals(true, map->get("Entry1").is_double());
+    assert_equals(123456, map->get("Entry1").as_double());
 
     map->put_dataobject<Boolean>("Entry2", true);
-    assert_equals(true, map->get("Entry2")->is_boolean());
-    assert_equals(true, map->get("Entry2")->as_boolean()->view());
+    assert_equals(true, map->get("Entry2").is_boolean());
+    assert_equals(true, map->get("Entry2").as_boolean());
 
 //    auto map1 = map->put_generic_map("Entry3");
 //    assert_equals(true, map->get("Entry3")->is_map());

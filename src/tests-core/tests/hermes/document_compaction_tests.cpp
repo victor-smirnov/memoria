@@ -33,12 +33,12 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<HermesTestState
         map->put_dataobject<Varchar>(key, std::to_string(c));
     }
 
-    auto m0 = doc->root()->as_generic_map();
+    auto m0 = doc->root().as_generic_map();
 
     assert_equals(size, m0->size());
 
     auto doc2 = doc->compactify();
-    auto gmap = doc2->root()->as_generic_map();
+    auto gmap = doc2->root().as_generic_map();
 
     assert_equals(size, gmap->size());
 
@@ -49,7 +49,7 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<HermesTestState
         assert_equals(true, vv.is_not_empty());
 
         U8String value = std::to_string(c);
-        assert_equals(value, vv->as_varchar()->view());
+        assert_equals(value, vv.as_varchar());
     }
 
 });
