@@ -184,9 +184,9 @@ public:
         return (ii != type_registry_.end());
     }
 
-    void append_entry(ObjectMap& map, const StringValue& name, const Object& value) {
-        map->put(name, value);
-    }
+//    void append_entry(ObjectMap& map, const StringValue& name, const Object& value) {
+//        map->put(name, value);
+//    }
 
     void append_entry(ObjectMap& map, U8StringView name, const Object& value) {
         map->put(name, value);
@@ -194,11 +194,6 @@ public:
 
     void append_value(ObjectArray& array, const Object& value) {
         array->append(value);
-    }
-
-    template <typename DT>
-    DataObject<DT> new_dataobject(DTTViewType<DT> view) {
-        return HermesCtr::wrap_dataobject<DT>(view);
     }
 
     static void enter() {

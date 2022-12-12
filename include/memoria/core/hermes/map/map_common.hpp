@@ -23,8 +23,6 @@
 #include <memoria/core/hermes/traits.hpp>
 #include <memoria/core/hermes/datatype.hpp>
 #include <memoria/core/hermes/common.hpp>
-#include <memoria/core/hermes/data_object.hpp>
-
 
 #include <memoria/core/hermes/map/generic_map.hpp>
 

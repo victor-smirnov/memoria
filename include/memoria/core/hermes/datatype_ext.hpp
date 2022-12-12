@@ -18,7 +18,6 @@
 #include <memoria/core/hermes/object.hpp>
 #include <memoria/core/hermes/array/object_array.hpp>
 #include <memoria/core/hermes/container.hpp>
-#include <memoria/core/hermes/data_object.hpp>
 #include <memoria/core/hermes/map/object_map.hpp>
 
 namespace memoria {
@@ -36,9 +35,9 @@ inline void DatatypeView::assert_mutable()
 
 
 
-inline StringValue DatatypeView::type_name() const {
+inline StringOView DatatypeView::type_name() const {
     assert_not_null();
-    return StringValue(StringValueView(mem_holder_, datatype_->name()));
+    return datatype_->name()->view(mem_holder_);
 }
 
 template <typename DT>

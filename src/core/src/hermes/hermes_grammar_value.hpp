@@ -78,8 +78,9 @@ public:
         return value_;
     }
 
-    Object finish() const {
-        return HermesCtr::wrap_dataobject<DT>(value_)->as_object();
+    Object finish() const
+    {
+        return current_ctr()->make_t<DT>(value_);
     }
 };
 

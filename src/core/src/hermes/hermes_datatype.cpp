@@ -49,7 +49,7 @@ void DatatypeView::stringify(std::ostream& out, DumpFormatState& state) const
     if (datatype_)
     {
         auto& spec = state.cfg().spec();
-        out << *type_name()->view();
+        out << type_name();
 
         auto params = type_parameters();
         if (params->is_not_null())
@@ -149,7 +149,7 @@ void DatatypeView::stringify_cxx(std::ostream& out,
     if (datatype_)
     {
         auto& spec = state.cfg().spec();
-        out << *type_name()->view();
+        out << type_name();
         //println("TN: {}", *type_name()->view());
 
         auto params = type_parameters();
@@ -256,25 +256,25 @@ Datatype DatatypeView::append_type_parameter(U8StringView name)
     return datatype;
 }
 
-Datatype DatatypeView::append_type_parameter(StringValue name)
-{
-    assert_not_null();
-    assert_mutable();
+//Datatype DatatypeView::append_type_parameter(StringValue name)
+//{
+//    assert_not_null();
+//    assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
+//    auto ctr = mem_holder_->ctr();
 
-    ObjectArray params = type_parameters();
-    if (MMA_UNLIKELY(params->is_null())) {
-        params = ctr->make_object_array();
-        datatype_->set_parameters(params->array_);
-    }
+//    ObjectArray params = type_parameters();
+//    if (MMA_UNLIKELY(params->is_null())) {
+//        params = ctr->make_object_array();
+//        datatype_->set_parameters(params->array_);
+//    }
 
-    auto datatype = ctr->new_datatype(name);
-    auto new_params = params->append(datatype->as_object());
-    datatype_->set_parameters(new_params->array_);
+//    auto datatype = ctr->new_datatype(name);
+//    auto new_params = params->append(datatype->as_object());
+//    datatype_->set_parameters(new_params->array_);
 
-    return datatype;
-}
+//    return datatype;
+//}
 
 void DatatypeView::append_type_parameter(Object value)
 {
@@ -358,7 +358,7 @@ hermes::Datatype strip_namespaces(hermes::Datatype src)
 {
     auto ctr = HermesCtr::make_pooled();
 
-    auto name = get_datatype_name(src->type_name()->view());
+    auto name = get_datatype_name(src->type_name());
     auto tgt = ctr->new_datatype(name);
     ctr->set_root(tgt->as_object());
 

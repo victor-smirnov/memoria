@@ -19,7 +19,6 @@
 
 #include <memoria/core/arena/hash_fn.hpp>
 #include <memoria/core/arena/string.hpp>
-#include <memoria/core/hermes/data_object.hpp>
 
 #include <memoria/core/hermes/path/path.h>
 

@@ -145,18 +145,26 @@ public:
         return array_->size() == 0;
     }
 
-    Object get(uint64_t idx) const;
+    Object get(uint64_t idx) const;   
 
-    template <typename DT>
-    ObjectArray append(DTTViewType<DT> view);
-    Object set_hermes(uint64_t idx, U8StringView str);
+
+    template <typename T, std::enable_if_t<!std::is_same_v<std::decay_t<T>, Object>, int> = 0>
+    Object set(uint64_t idx, T&& value);
+
+    template <typename DT, typename T>
+    Object set_t(uint64_t idx, T&& value);
+
+    Object set(uint64_t idx, const Object& value);
+
+    template <typename T, std::enable_if_t<!std::is_same_v<std::decay_t<T>, Object>, int> = 0>
+    ObjectArray append(T&& view);
+
+    template <typename DT, typename T>
+    ObjectArray append_t(T&& view);
 
     ObjectArray append(const Object& value);
-    void set(uint64_t idx, const Object& value);
 
 
-    template <typename DT>
-    Object set(uint64_t idx, DTTViewType<DT> view);
     void set_null(uint64_t idx);
 
     ObjectArray remove(uint64_t idx);

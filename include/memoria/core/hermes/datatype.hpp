@@ -344,13 +344,12 @@ public:
 
     bool is_simple_layout() const;
 
-    StringValue type_name() const;
+    StringOView type_name() const;
     ObjectArray set_constructor();
     ObjectArray constructor() const;
 
     ObjectArray type_parameters() const;
     Datatype append_type_parameter(U8StringView name);
-    Datatype append_type_parameter(StringValue name);
 
     void clear_parameters()
     {

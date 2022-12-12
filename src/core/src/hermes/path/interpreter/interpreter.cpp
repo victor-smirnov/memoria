@@ -1095,7 +1095,7 @@ void Interpreter::keys(FunctionArgumentList &arguments)
     auto map = object->as_generic_map();
 
     map->for_each([&](auto k, auto){
-        results->append<Varchar>(k.as_varchar());
+        results->append_t<Varchar>(k.as_varchar());
     });
     // set the result
     m_context = results->as_object();

@@ -211,12 +211,6 @@ template <typename T>
 class TypeCodeTypeReflectionImplBase: public TypeReflectionImplBase<T> {
 public:
     TypeCodeTypeReflectionImplBase() {}
-
-    // Not all types may have short type hash
-    // TypeHash<T>
-//    virtual ShortTypeCode shot_type_hash() const noexcept override {
-//        return ShortTypeCode::of<T>();
-//    };
 };
 
 

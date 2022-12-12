@@ -179,7 +179,7 @@ inline void MapView<KeyDT, Object>::do_stringify(std::ostream& out, DumpFormatSt
     out << "<";
     out << get_datatype_name(type_to_str<KeyDT>());
     out << "," << spec.space();
-    out << "ObjectView";
+    out << "Object";
     out << ">" << spec.space();
 
     if (size() > 0)
@@ -199,7 +199,7 @@ inline void MapView<KeyDT, Object>::do_stringify(std::ostream& out, DumpFormatSt
 
             state.make_indent(out);
 
-            DataObjectView<KeyDT>::stringify_view(out, state, kk);
+            arena::ArenaDataTypeContainer<KeyDT>::stringify_view(out, state, kk);
 
             out << ":" << spec.space();
 
@@ -218,25 +218,25 @@ inline void MapView<KeyDT, Object>::do_stringify(std::ostream& out, DumpFormatSt
 }
 
 
-inline ObjectMap MapView<Varchar, Object>::put(StringValue name, Object value) {
-    assert_not_null();
-    assert_mutable();
+//inline ObjectMap MapView<Varchar, Object>::put(StringValue name, Object value) {
+//    assert_not_null();
+//    assert_mutable();
 
-    void* new_map;
-    if (!value->is_null())
-    {
-        auto ctr = mem_holder_->ctr();
-        ShortTypeCode mytag = arena::read_type_tag(map_);
-        auto arena = ctr->arena();
-        auto vv = ctr->do_import_value(value);
-        new_map = map_->put(*arena, mytag, name->dt_ctr(), vv->storage_.addr);
-    }
-    else {
-        return remove(*name->view());
-    }
+//    void* new_map;
+//    if (!value->is_null())
+//    {
+//        auto ctr = mem_holder_->ctr();
+//        ShortTypeCode mytag = arena::read_type_tag(map_);
+//        auto arena = ctr->arena();
+//        auto vv = ctr->do_import_value(value);
+//        new_map = map_->put(*arena, mytag, name->dt_ctr(), vv->storage_.addr);
+//    }
+//    else {
+//        return remove(*name->view());
+//    }
 
-    return ObjectMap(ObjectMapView(mem_holder_, new_map));
-}
+//    return ObjectMap(ObjectMapView(mem_holder_, new_map));
+//}
 
 inline ObjectMap MapView<Varchar, Object>::put(U8StringView name, Object value) {
     assert_not_null();

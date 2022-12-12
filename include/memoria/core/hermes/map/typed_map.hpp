@@ -295,7 +295,7 @@ public:
     {}
 
     virtual Object key() const {
-        return DataObject<KeyDT>(mem_holder_, iter_->first()).as_object();
+        return Object(mem_holder_, iter_->first(), DirectViewTag<KeyDT>{});
     }
 
     virtual Object value() const {

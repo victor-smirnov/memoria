@@ -24,7 +24,7 @@ template <>
 class MapView<Varchar, Object>: public HoldingView<MapView<Varchar, Object>> {
     using Base = HoldingView<MapView<Varchar, Object>>;
 public:
-    using KeyT = DataObjectView<Varchar>::ArenaDTContainer;
+    using KeyT = arena::ArenaDataTypeContainer<Varchar>;
 
     using KeyPtrT = arena::RelativePtr<KeyT>;
     using ValuePtrT = arena::EmbeddingRelativePtr<void>;
@@ -63,8 +63,8 @@ protected:
             iter_(iter), mem_holder_(ptr_holder)
         {}
 
-        StringValue first() const {
-            return StringValue(StringValueView(mem_holder_, iter_->key().get()));
+        StringOView first() const {
+            return iter_->key()->view(mem_holder_);
         }
 
         Object second() const
@@ -243,7 +243,6 @@ public:
     PoolSharedPtr<GenericMap> as_generic_map() const;
 
     // FIXME: const Object&
-    ObjectMap put(StringValue name, Object value);
     ObjectMap put(U8StringView name, Object value);
 
     template <typename T>
@@ -287,7 +286,8 @@ public:
     {}
 
     virtual Object key() const {
-        return iter_->first()->as_object();
+        // FIXME mem_holder!
+        return Object(nullptr, (DTTViewType<Varchar>)iter_->first(), DirectViewTag<Varchar>{});
     }
 
     virtual Object value() const {

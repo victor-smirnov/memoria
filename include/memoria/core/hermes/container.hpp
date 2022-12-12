@@ -31,7 +31,6 @@
 #include <memoria/core/hermes/array/object_array.hpp>
 #include <memoria/core/hermes/map/object_map.hpp>
 #include <memoria/core/hermes/map/typed_map.hpp>
-#include <memoria/core/hermes/data_object.hpp>
 #include <memoria/core/hermes/typed_value.hpp>
 #include <memoria/core/hermes/parameter.hpp>
 
@@ -253,7 +252,6 @@ public:
     Object new_embeddable_dataobject(DTTViewType<DT> view);
 
     Datatype new_datatype(U8StringView name);
-    Datatype new_datatype(StringValue name);
 
     pool::SharedPtr<HermesCtr> self() const;
 

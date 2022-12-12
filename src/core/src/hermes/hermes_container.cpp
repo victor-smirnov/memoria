@@ -107,14 +107,14 @@ Datatype HermesCtr::new_datatype(U8StringView name)
     return Datatype(mem_holder_, arena_dt);
 }
 
-Datatype HermesCtr::new_datatype(StringValue name)
-{
-    auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
-        ShortTypeCode::of<Datatype>(), name->dt_ctr()
-    );
+//Datatype HermesCtr::new_datatype(StringValue name)
+//{
+//    auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
+//        ShortTypeCode::of<Datatype>(), name->dt_ctr()
+//    );
 
-    return Datatype(mem_holder_, arena_dt);
-}
+//    return Datatype(mem_holder_, arena_dt);
+//}
 
 TypedValue HermesCtr::new_typed_value(Datatype datatype, Object constructor)
 {

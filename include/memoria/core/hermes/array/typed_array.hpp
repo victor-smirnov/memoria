@@ -19,7 +19,6 @@
 
 #include <memoria/core/hermes/object.hpp>
 #include <memoria/core/hermes/common.hpp>
-#include <memoria/core/hermes/data_object.hpp>
 
 #include <memoria/core/hermes/array/generic_array.hpp>
 
@@ -124,12 +123,12 @@ public:
         return array_->size() == 0;
     }
 
-    DataObject<DT> get(uint64_t idx) const
+    DTView<DT> get(uint64_t idx) const
     {
         assert_not_null();
 
         if (idx < array_->size()) {
-            return DataObject<DT>(mem_holder_, array_->get(idx));
+            return DTView<DT>(mem_holder_, array_->get(idx));
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Range check in Array<DT>: {} {}", idx, array_->size()).do_throw();
@@ -137,19 +136,12 @@ public:
     }
 
     Array<DT> append(DTTViewType<DT> view);
-    Array<DT> append(const DataObject<DT>& view);
-
-    Array<DT> push_back(const DataObject<DT>& value) {
-        return append(value);
-    }
 
     Array<DT> push_back(const DTTViewType<DT>& view) {
         return append(view);
     }
 
-
     void set(uint64_t idx, DTTViewType<DT> view);
-    void set(uint64_t idx, const DataObject<DT>& value);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state) const
@@ -169,26 +161,18 @@ public:
 
     bool is_simple_layout() const
     {
-        assert_not_null();
-
-        if (size() > 3) {
-            return false;
+        if (is_not_null()) {
+            return size() <= 3;
         }
 
-        bool simple = true;
-
-        for_each([&](auto vv){
-            simple = simple && vv->is_simple_layout();
-        });
-
-        return simple;
+        return false;
     }
 
-    void for_each(std::function<void(const DataObject<DT>&)> fn) const {
+    void for_each(std::function<void(const DTView<DT>&)> fn) const {
         assert_not_null();
 
         for (auto& vv: array_->span()) {
-            fn(DataObject<DT>(mem_holder_, vv));
+            fn(DTView<DT>(mem_holder_, vv));
         }
     }
 
@@ -224,43 +208,7 @@ private:
 
     void assert_mutable();
 
-    void do_stringify(std::ostream& out, DumpFormatState& state) const
-    {
-        auto& spec = state.cfg().spec();
-
-        out << "<";
-        out << get_datatype_name(type_to_str<DT>());
-        out << ">" << spec.space();
-
-        if (size() > 0)
-        {
-            out << "[" << spec.nl_start();
-
-            bool first = true;
-
-            state.push();
-            for_each([&](auto vv){
-                if (MMA_LIKELY(!first)) {
-                    out << "," << spec.nl_middle();
-                }
-                else {
-                    first = false;
-                }
-
-                state.make_indent(out);
-                vv->stringify(out, state);
-            });
-            state.pop();
-
-            out << spec.nl_end();
-
-            state.make_indent(out);
-            out << "]";
-        }
-        else {
-            out << "[]";
-        }
-    }
+    void do_stringify(std::ostream& out, DumpFormatState& state) const;
 
 };
 
@@ -286,7 +234,7 @@ public:
     }
 
     virtual Object get(uint64_t idx) const {
-        return array_.get(idx)->as_object();
+        return Object(ctr_holder_, array_.get(idx), DirectViewTag<DT>{});
     }
 
     virtual void set(uint64_t idx, const Object& value) {

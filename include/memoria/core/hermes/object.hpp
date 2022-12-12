@@ -42,7 +42,9 @@ public:
 
 namespace hermes {
 
-class GenericDataObjectImpl;
+template <typename DT>
+struct DirectViewTag{};
+
 
 class ObjectView: public HoldingView<ObjectView> {
     using Base = HoldingView<ObjectView>;
@@ -59,8 +61,6 @@ protected:
     template<typename>
     friend class ArrayView;
 
-    friend class GenericDataObjectImpl;
-
     template <typename, ObjectCasters>
     friend struct ObjectCaster;
 
@@ -69,6 +69,23 @@ public:
     {
         storage_.addr = nullptr;
         set_tag(ValueStorageTag::VS_TAG_ADDRESS);
+    }
+
+    template <typename ViewT, typename DT>
+    ObjectView(LWMemHolder* ptr_holder, ViewT view, DirectViewTag<DT>) noexcept :
+        Base(ptr_holder)
+    {
+        if (TaggedValue::dt_fits_in<DT>())
+        {
+            this->set_vs_tag(VS_TAG_SMALL_VALUE);
+            storage_.small_value = TaggedValue(ShortTypeCode::of<DT>(), view);
+        }
+        else {
+            this->set_vs_tag(VS_TAG_GENERIC_VIEW);
+            auto view_ptr = TaggedGenericView::allocate<DT>(view);
+            storage_.view_ptr = view_ptr.get();
+            view_ptr.release_holder();
+        }
     }
 
     ObjectView(LWMemHolder* ref_holder, void* addr) noexcept :
@@ -509,6 +526,11 @@ public:
 
     PoolSharedPtr<HermesCtr> clone() const;
 
+    template <typename DT>
+    DTTViewType<DT> view_unchecked() const {
+        return storage_.get_view<DT>(get_vs_tag());
+    }
+
 private:
     ShortTypeCode get_type_tag() const noexcept
     {
@@ -553,6 +575,48 @@ private:
 
     void unref() {
         get_mem_holder()->unref();
+    }
+
+    template <typename DT>
+    static void stringify_view(
+            std::ostream& out,
+            hermes::DumpFormatState& state,
+            const DTTViewType<DT>& view
+    ){
+        arena::ArenaDataTypeContainer<DT>::stringify_view(out, state, view);
+    }
+
+public:
+    template <typename DT>
+    void stringify_dt(std::ostream& out,
+                   DumpFormatState& state) const
+    {
+        if (this->get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS) {
+            auto dt_ctr = reinterpret_cast<arena::ArenaDataTypeContainer<DT>*>(storage_.addr);
+            dt_ctr->stringify(out, state);
+        }
+        else {
+            const auto& view = storage_.get_view<DT>(get_vs_tag());
+            stringify_view<DT>(out, state, view);
+        }
+    }
+
+
+    template <typename DT>
+    bool is_simple_layout_dt() const {
+        return true;
+    }
+
+    template <typename DT>
+    void* deep_copy_to_dt(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
+        assert_not_null();
+        if (get_vs_tag() == VS_TAG_ADDRESS) {
+            auto dtc = reinterpret_cast<arena::ArenaDataTypeContainer<DT>*>(storage_.addr);
+            return dtc->deep_copy_to(arena, ShortTypeCode::of<DT>(), this->get_mem_holder(), dedup);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Unsupported value tag code: {}", get_vs_tag()).do_throw();
+        }
     }
 };
 

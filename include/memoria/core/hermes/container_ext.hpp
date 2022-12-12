@@ -21,7 +21,6 @@
 #include <memoria/core/hermes/map/typed_map.hpp>
 #include <memoria/core/hermes/array/object_array.hpp>
 #include <memoria/core/hermes/array/typed_array.hpp>
-#include <memoria/core/hermes/data_object.hpp>
 
 #include <memoria/core/hermes/object.hpp>
 
@@ -103,9 +102,9 @@ inline void HermesCtr::assert_mutable()
 template <typename DT>
 Object HermesCtr::new_dataobject(DTTViewType<DT> view)
 {
-    using DTCtr = DataObjectView<DT>;
+    using DTCtr = arena::ArenaDataTypeContainer<DT>;
 
-    auto arena_dtc = arena_->allocate_tagged_object<typename DTCtr::ArenaDTContainer>(
+    auto arena_dtc = arena_->allocate_tagged_object<DTCtr>(
         ShortTypeCode::of<DT>(),
         view
     );
@@ -137,8 +136,7 @@ Object HermesCtr::wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr)
 template <typename DT>
 Object HermesCtr::wrap_dataobject__full(DTTViewType<DT> view)
 {
-    using DataObjectT = DataObjectView<DT>;
-    using ContainerT = typename DataObjectT::ArenaDTContainer;
+    using ContainerT = arena::ArenaDataTypeContainer<DT>;
 
     auto& arena = arena::get_local_instance();
     arena.object_pool_init_state();
@@ -209,17 +207,6 @@ Object HermesCtr::wrap_dataobject(DTTViewType<DT> view)
     >::dispatch(view);
 }
 
-
-
-template <typename DT>
-template <typename ToDT>
-DataObject<ToDT> DataObjectView<DT>::convert_to() const
-{
-    assert_not_null();
-    auto src_tag = get_type_tag();
-    auto to_tag = ShortTypeCode::of<ToDT>();
-    return get_type_reflection(src_tag).datatype_convert_to(this->get_mem_holder(), to_tag, get_vs_tag(), storage_);
-}
 
 inline PoolSharedPtr<HermesCtr> CtrAware::ctr() const {
     if (MMA_LIKELY((bool)ctr_)) {
@@ -385,14 +372,14 @@ Object HermesCtr::make_dataobject(const DTViewArg<DT>& view)
     assert_not_null();
     assert_mutable();
 
-    using DTCtr = DataObjectView<DT>;
+    using DTCtr = arena::ArenaDataTypeContainer<DT>;
 
-    auto arena_dtc = arena_->allocate_tagged_object<typename DTCtr::ArenaDTContainer>(
+    auto arena_dtc = arena_->allocate_tagged_object<DTCtr>(
         ShortTypeCode::of<DT>(),
         view
     );
 
-    return DataObject<DT>(mem_holder_, arena_dtc).as_object();
+    return Object(mem_holder_, arena_dtc);
 }
 
 template <typename T, std::enable_if_t<std::is_same_v<T, ObjectArray>, int>>
@@ -505,7 +492,7 @@ struct WrappingImportHelper {
     {
         using DT = typename ViewToDTMapping<ViewT>::Type;
         TaggedValue storage(ShortTypeCode::of<DT>(), view.value_t());
-        return DataObject<DT>(ctr->mem_holder_, storage);
+        return Object(ctr->mem_holder_, storage);
     }
 };
 

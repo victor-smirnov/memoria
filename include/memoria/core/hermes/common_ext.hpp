@@ -17,7 +17,6 @@
 
 #include <memoria/core/hermes/array/object_array.hpp>
 #include <memoria/core/hermes/container.hpp>
-#include <memoria/core/hermes/data_object.hpp>
 #include <memoria/core/hermes/map/object_map.hpp>
 #include <memoria/core/hermes/typed_value.hpp>
 #include <memoria/core/hermes/datatype.hpp>

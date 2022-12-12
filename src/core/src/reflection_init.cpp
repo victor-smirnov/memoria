@@ -33,7 +33,7 @@ template <typename DTList> struct DataObjectReflectionListBuilder;
 template <typename DT, typename... Tail>
 struct DataObjectReflectionListBuilder<TL<DT, Tail...>> {
     static void build() {
-        register_type_reflection(*std::make_shared<HermesTypeReflectionDatatypeImpl<DataObject<DT>, DT>>());
+        register_type_reflection(*std::make_shared<HermesTypeReflectionDatatypeImpl<DT>>());
         DataObjectReflectionListBuilder<TL<Tail...>>::build();
     }
 };
@@ -80,16 +80,8 @@ void InitTypeReflections()
     for_each_type_reflection([](const ShortTypeCode& type_code, TypeReflection& reflection) {
         auto datatype = HermesCtr::parse_datatype(reflection.str())->root()->as_datatype();
 
-//        println("DE: {}", datatype.to_cxx_string());
-
         auto hash = datatype->cxx_type_hash();
         register_type_reflection(hash, *reflection.self());
-
-        // FIXME strip_namespace is apparently broken for numeric type param
-//        auto alias_dt = strip_namespaces(datatype);
-//        if (*alias_dt->type_name()->view() == "DataObject") {
-//            alias_dt = alias_dt->type_parameters()->get(0)->as_datatype();
-//        }
 
         auto alias_dt = datatype;
 

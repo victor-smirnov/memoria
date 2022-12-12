@@ -430,12 +430,17 @@ public:
     TaggedValue(ShortTypeCode tag, T value):
         tag_(tag)
     {
-        set(value);
+        set_unchecked(value);
     }
 
     template <typename T>
     void set(const T& vv) {
         static_assert(fits_in<T>(), "");
+        set_unchecked(vv);
+    }
+
+    template <typename T>
+    void set_unchecked(const T& vv) {
         *reinterpret_cast<T*>(value_) = vv;
     }
 
@@ -535,7 +540,7 @@ union ValueStorage {
     TaggedGenericView* view_ptr;
 
     template <typename DT>
-    DTTViewType<DT>& get_view(ValueStorageTag tag)
+    DTTViewType<DT> get_view(ValueStorageTag tag)
     {
         if (tag == ValueStorageTag::VS_TAG_SMALL_VALUE) {
             return small_value.get_unchecked<DTTViewType<DT>>();
@@ -549,23 +554,8 @@ union ValueStorage {
             }
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Unsupported ValueStorageTag value: {}", (int64_t)tag).do_throw();
-        }
-    }
-
-    template <typename DT>
-    const DTTViewType<DT>& get_view(ValueStorageTag tag) const
-    {
-        if (tag == ValueStorageTag::VS_TAG_SMALL_VALUE) {
-            return small_value.get_unchecked<DTTViewType<DT>>();
-        }
-        else if (tag == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
-            if (view_ptr) {
-                return view_ptr->get<DTTViewType<DT>>();
-            }
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("Unsupported ValueStorageTag value: {}", (int64_t)tag).do_throw();
+            auto dtc = reinterpret_cast<arena::ArenaDataTypeContainer<DT>*>(addr);
+            return dtc->view();
         }
     }
 };
@@ -755,20 +745,6 @@ enum class ObjectCasters {
 template <typename T, ObjectCasters>
 struct ObjectCaster;
 
-
-template <typename T>
-struct ValueCastHelper {
-    static Own<T, OwningKind::HOLDING> cast_to(
-            LWMemHolder* ref_holder,
-            ValueStorageTag,
-            ValueStorage& storage
-    ) noexcept {
-        return Own<T, OwningKind::HOLDING>(T(
-            ref_holder,
-            storage.addr
-        ));
-    }
-};
 
 struct GenericArray;
 struct GenericMap;

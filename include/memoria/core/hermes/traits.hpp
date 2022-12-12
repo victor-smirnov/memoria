@@ -23,6 +23,9 @@ namespace memoria {
 
 struct Varchar;
 
+template <typename>
+class HermesTypeReflectionDatatypeImpl;
+
 namespace hermes {
 
 namespace path {
@@ -34,7 +37,6 @@ class Interpreter;
 class HermesCtrBuilder;
 class HermesCtr;
 class HermesCtrImpl;
-
 
 struct IParameterResolver;
 
@@ -52,15 +54,7 @@ class ObjectView;
 
 class ParameterView;
 
-
-template <typename>
-class DataObjectView;
-
 using Object = Own<ObjectView, OwningKind::HOLDING>;
-
-
-using StringValueView    = DataObjectView<Varchar>;
-using StringValue        = Own<StringValueView, OwningKind::HOLDING>;
 
 using StringOView = DTView<Varchar>;
 
@@ -79,10 +73,6 @@ using ObjectArray       = Own<ObjectArrayView, OwningKind::HOLDING>;
 template <typename DT>
 using Array = Own<ArrayView<DT>, OwningKind::HOLDING>;
 
-
-template <typename DT>
-using DataObject = Own<DataObjectView<DT>, OwningKind::HOLDING>;
-
 class TypedValueView;
 using TypedValue = Own<TypedValueView, OwningKind::HOLDING>;
 
@@ -94,9 +84,6 @@ enum ObjectTypes {
 
 
 }
-
-//template <typename DT>
-//struct TypeHash<hermes::DataObject<DT>>: HasU64Value<TypeHashV<DT>> {};
 
 template <>
 struct TypeHash<hermes::Object>: HasU64Value<99> {};

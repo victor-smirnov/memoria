@@ -24,6 +24,9 @@
 #include <memoria/core/hermes/map/typed_map.hpp>
 #include <memoria/core/hermes/datatype.hpp>
 
+#include <memoria/core/hermes/data_object.hpp>
+
+
 #include <algorithm>
 #include <type_traits>
 
@@ -74,36 +77,6 @@ struct ObjectCaster<DT, ObjectCasters::DATAOBJECT> {
         }
     }
 };
-
-
-
-template <typename DT>
-struct ObjectCaster<DataObject<DT>, ObjectCasters::OTHER> {
-
-    static DTView<DT> cast_to(
-            LWMemHolder* mem_holder,
-            ValueStorageTag vs_tag,
-            ValueStorage& storage
-    ) {
-        if (vs_tag == VS_TAG_ADDRESS)
-        {
-            auto* dt_ctr = reinterpret_cast<arena::ArenaDataTypeContainer<DT>*>(storage.addr);
-            return dt_ctr->view(mem_holder);
-        }
-        else if (vs_tag == VS_TAG_SMALL_VALUE) {
-            return DTView<DT>(mem_holder, storage.small_value.get_unchecked<DTTViewType<DT>>());
-        }
-        else {
-            if (storage.view_ptr) {
-                return DTView<DT>(mem_holder, storage.view_ptr->get<DTTViewType<DT>>());
-            }
-            else {
-                return DTView<DT>{};
-            }
-        }
-    }
-};
-
 
 
 template <typename T>
