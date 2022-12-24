@@ -264,10 +264,20 @@ constexpr CtrMakers HermesCtrMakerType = DataTypeTraits<T>::isDataType ?
 
 template <typename DT>
 struct CtrMakeHelper<DT, CtrMakers::DATAOBJECT> {
-    template <typename T>
-    static auto make(HermesCtr* ctr, const T& value) {
-        //using DT = typename ViewToDTMapping<T>::Type;
-        return ctr->template make_dataobject<DT>(value);
+    template <typename... Args>
+    static auto make(HermesCtr* ctr, Args&&... args) {
+        return ctr->template make_dataobject<DT>(std::forward<Args>(args)...);
+    }
+
+    static Object import_object(HermesCtr* ctr, const Object& source) {
+        auto view = source.view_unchecked<DT>();
+        using CtrT = arena::ArenaDataTypeContainer<DT>;
+
+        auto dtc = ctr->arena()->allocate_tagged_object<CtrT>(
+            ShortTypeCode::of<DT>(), view
+        );
+
+        return Object(ctr->get_mem_holder(), dtc);
     }
 };
 
@@ -352,7 +362,7 @@ struct CtrMakeHelper<TypedValueView, CtrMakers::OTHER> {
     }
 };
 
-template <typename T>
+template <typename T, typename std::enable_if_t<!HermesObject<T>::Value, int>>
 auto HermesCtr::make(T&& view) {
     using DT = typename ViewToDTMapping<std::decay_t<T>>::Type;
     return make_dataobject<DT>(view);
@@ -372,14 +382,11 @@ Object HermesCtr::make_dataobject(const DTViewArg<DT>& view)
     assert_not_null();
     assert_mutable();
 
-    using DTCtr = arena::ArenaDataTypeContainer<DT>;
+    return detail::DTSizeDispatcher<
+            DT,
+            arena::ERelativePtr::dt_fits_in<DT>()
+    >::dispatch(view, this);
 
-    auto arena_dtc = arena_->allocate_tagged_object<DTCtr>(
-        ShortTypeCode::of<DT>(),
-        view
-    );
-
-    return Object(mem_holder_, arena_dtc);
 }
 
 template <typename T, std::enable_if_t<std::is_same_v<T, ObjectArray>, int>>
@@ -424,7 +431,7 @@ struct ArrayMaker<Object> {
     {
         ObjectArray array = ctr->make_array<Object>(span.size());
         for (const Object& item: span) {
-            array.append(item);
+            array = array.push_back(item);
         }
         return array;
     }
@@ -437,7 +444,7 @@ struct ArrayMaker {
         using DT = typename ViewToDTMapping<T>::Type;
         auto array = ctr->make_array<DT>(span.size());
         for (const T& item: span) {
-            array.append(item);
+            array = array.push_back(item);
         }
         return array;
     }
@@ -448,7 +455,7 @@ struct ArrayMaker {
         auto array = ctr->make_array<DT>(span.size());
         for (const T& item: span) {
             // FIXME: when append_t is avaialble, use it
-            array.append((DTTViewType<DT>)item);
+            array = array.push_back((DTTViewType<DT>)item);
         }
         return array;
     }
@@ -534,20 +541,6 @@ Object HermesCtr::import_object(const Own<ViewT, OK>& object)
 }
 
 
-
-inline Object HermesCtr::import_small_object(const Object& object)
-{
-    auto vs_tag = object->get_vs_tag();
-    if (MMA_LIKELY(vs_tag == VS_TAG_SMALL_VALUE))
-    {
-        auto type_tag = object.get_type_tag();
-        auto& refl = get_type_reflection(type_tag);
-        return refl.import_value(mem_holder_, vs_tag, object.storage_);
-    }
-    else {
-        return object;
-    }
-}
 
 
 }}

@@ -383,6 +383,15 @@ template <>
 struct ViewToDTMapping<Own<ByValueNumberView<int32_t>>>: HasType<Integer> {};
 
 
+template <>
+struct ViewToDTMapping<int64_t>: HasType<BigInt> {};
+
+template <>
+struct ViewToDTMapping<ByValueNumberView<int64_t>>: HasType<BigInt> {};
+
+template <>
+struct ViewToDTMapping<Own<ByValueNumberView<int64_t>>>: HasType<BigInt> {};
+
 
 
 template <>

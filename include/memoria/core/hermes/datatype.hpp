@@ -132,7 +132,7 @@ public:
             data_ |= (val << F_REFS_SIZE_START);
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Maximal muber of reference specifiers is {}: {}", 3, val).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Maximum nuber of reference specifiers is {}: {}", 3, val).do_throw();
         }
     }
 
@@ -165,7 +165,12 @@ public:
         }
     }
 
-
+    bool operator==(const TypeExtras& other) const noexcept
+    {
+        uint64_t bits_n = F_PTRS_START + pointers_size() * F_PTR_SIZE;
+        uint64_t mask = bits_n < 64 ? ((1ull << bits_n) - 1) : 0xFFFFFFFFFFFFFFFF;
+        return (data_ & mask) == (other.data_ & mask);
+    }
 
 private:
 
@@ -291,6 +296,14 @@ public:
     DatatypeView():
         datatype_()
     {}
+
+    bool is_null() const noexcept {
+        return mem_holder_ == nullptr;
+    }
+
+    bool is_not_null() const noexcept {
+        return mem_holder_ != nullptr;
+    }
 
     DatatypeView(LWMemHolder* ptr_holder, void* dt) noexcept :
         Base(ptr_holder), datatype_(reinterpret_cast<detail::DatatypeData*>(dt))
@@ -472,6 +485,14 @@ public:
 
     void append_type_parameter(Object value);
     void append_constructor_argument(Object value);
+
+
+
+    bool operator!=(const DatatypeView& other) const {
+        return !operator==(other);
+    }
+
+    bool operator==(const DatatypeView& other) const;
 
 
     operator Object() const & noexcept {

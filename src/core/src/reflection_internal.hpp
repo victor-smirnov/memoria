@@ -75,6 +75,30 @@ public:
     virtual ShortTypeCode shot_type_hash() const noexcept override {
         return ShortTypeCode::of<T>();
     };
+
+
+    virtual bool hermes_equals(
+            LWMemHolder* left_ptr,
+            hermes::ValueStorageTag left_vs_tag,
+            hermes::ValueStorage& left,
+            LWMemHolder* right_ptr,
+            hermes::ValueStorageTag right_vs_tag,
+            hermes::ValueStorage& right
+    ) const override
+    {
+        auto right_tag = hermes::get_type_tag(right_vs_tag, right);
+        auto left_tag  = hermes::get_type_tag(left_vs_tag,  left);
+
+        if (right_tag == left_tag)
+        {
+            T left_obj(left_ptr, left.addr);
+            T right_obj(right_ptr, right.addr);
+
+            return left_obj == right_obj;
+        }
+
+        return false;
+    }
 };
 
 namespace detail {
@@ -125,13 +149,37 @@ public:
             LWMemHolder* ref_holder,
             void* addr
     ) const override {
-        return GenericCtrImplT::make_wrapper(ref_holder, addr);
+        return GenericCtrImplT::make_wrapper(T(ref_holder, addr));
     }
 
     virtual PoolSharedPtr<hermes::GenericObject> hermes_make_container(
             hermes::HermesCtr* ctr
     ) const override {
         return detail::GenericCtrDispatcher<T>::create_ctr(ctr);
+    }
+
+
+    virtual bool hermes_equals(
+            LWMemHolder* left_ptr,
+            hermes::ValueStorageTag left_vs_tag,
+            hermes::ValueStorage& left,
+            LWMemHolder* right_ptr,
+            hermes::ValueStorageTag right_vs_tag,
+            hermes::ValueStorage& right
+    ) const override
+    {
+        auto right_tag = hermes::get_type_tag(right_vs_tag, right);
+        auto left_tag  = hermes::get_type_tag(left_vs_tag,  left);
+
+        if (right_tag == left_tag)
+        {
+            T left_obj(left_ptr, left.addr);
+            T right_obj(right_ptr, right.addr);
+
+            return left_obj == right_obj;
+        }
+
+        return false;
     }
 };
 
@@ -758,7 +806,7 @@ public:
     ) const override
     {
         const auto& view = storage.get_view<DT>(vs_tag);
-        return ptr->ctr()->new_dataobject<DT>(view).as_object();
+        return ptr->ctr()->new_dataobject<DT>(view);
     }
 
     virtual bool hermes_is_ptr_embeddable() const override

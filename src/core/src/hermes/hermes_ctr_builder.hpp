@@ -85,7 +85,7 @@ public:
         DTView<Varchar> str = resolve_string(sv);
 
         if (str.is_empty()) {
-            str = doc_->new_dataobject<Varchar>(sv).as_varchar();
+            str = doc_->make_t<Varchar>(sv).as_varchar();
             string_registry_[str] = str;
         }
 
@@ -97,7 +97,7 @@ public:
         auto str = resolve_string(sv);
 
         if (str.is_empty()) {
-            str = doc_->new_dataobject<Varchar>(sv).as_varchar();
+            str = doc_->make_t<Varchar>(sv).as_varchar();
             string_registry_[str] = str;
         }
 
@@ -113,14 +113,6 @@ public:
         return new_varchar();
     }
 
-//    auto new_bigint(int64_t v) {
-//        return HermesCtr::wrap_dataobject<BigInt>(v);
-//    }
-
-//    auto new_double(double v) {
-//        return HermesCtr::wrap_dataobject<Double>(v);
-//    }
-
     auto new_boolean(bool v) {
         return HermesCtr::wrap_dataobject<Boolean>(v);
     }
@@ -129,28 +121,16 @@ public:
         doc_->set_root(value);
     }
 
-//    auto new_array(Span<Object> span) {
-//        return doc_->new_array(span);
-//    }
-
-//    auto new_array() {
-//        return doc_->new_array();
-//    }
-
-//    auto new_map() {
-//        return doc_->new_map();
-//    }
-
-    auto new_datatype(Object id) {
-        return doc_->make_datatype(id->as_varchar());
+    auto make_datatype(Object id) {
+        return doc_->make_datatype(id.as_varchar());
     }
 
     void add_type_decl_param(Datatype& dst, Object param) {
-        dst->append_type_parameter(param);
+        dst.append_type_parameter(param);
     }
 
     void add_type_decl_ctr_arg(Datatype& dst, Object ctr_arg) {
-        dst->append_constructor_argument(ctr_arg);
+        dst.append_constructor_argument(ctr_arg);
     }
 
     TypedValue new_typed_value(Datatype type_decl, Object constructor)
@@ -184,17 +164,11 @@ public:
         return (ii != type_registry_.end());
     }
 
-//    void append_entry(ObjectMap& map, const StringValue& name, const Object& value) {
-//        map->put(name, value);
-//    }
 
-    void append_entry(ObjectMap& map, U8StringView name, const Object& value) {
-        map->put(name, value);
+    MMA_NODISCARD auto append_entry(ObjectMap& map, U8StringView name, const Object& value) {
+        return map.put(name, value);
     }
 
-    void append_value(ObjectArray& array, const Object& value) {
-        array->append(value);
-    }
 
     static void enter() {
         current().ref();

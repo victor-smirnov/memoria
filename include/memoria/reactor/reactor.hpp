@@ -74,7 +74,7 @@ class Reactor: public std::enable_shared_from_this<Reactor> {
     
     IOPoller io_poller_;
     
-    fibers::protected_stack_pool fiber_stack_pool_{4};
+    fibers::protected_stack_pool fiber_stack_pool_{16, 256 * 1024};
     //fibers::protected_fixedsize_stack fiber_stack_pool_{};
     
     uint64_t io_poll_cnt_{};

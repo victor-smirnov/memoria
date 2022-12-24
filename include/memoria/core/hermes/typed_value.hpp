@@ -93,14 +93,7 @@ public:
         tv_(reinterpret_cast<detail::TypedValueData*>(tv))
     {}
 
-    PoolSharedPtr<HermesCtr> document() {
-        assert_not_null();
-        return PoolSharedPtr<HermesCtr>(
-                    mem_holder_->ctr(),
-                    mem_holder_->owner(),
-                    pool::DoRef{}
-        );
-    }
+    PoolSharedPtr<HermesCtr> ctr();
 
     Object as_object() const {
         return Object(ObjectView(mem_holder_, tv_));
@@ -111,6 +104,10 @@ public:
     }
 
     bool is_null_not() const {
+        return tv_ != nullptr;
+    }
+
+    bool is_not_null() const {
         return tv_ != nullptr;
     }
 
@@ -132,13 +129,32 @@ public:
     bool is_simple_layout() const
     {
         assert_not_null();
-        return constructor()->is_simple_layout() && datatype()->is_simple_layout();
+        return constructor().is_simple_layout() && datatype().is_simple_layout();
     }
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
         return tv_->deep_copy_to(arena, ShortTypeCode::of<TypedValue>(), mem_holder_, dedup);
     }
+
+    bool operator!=(const TypedValueView& other) const {
+        return !operator==(other);
+    }
+
+    bool operator==(const TypedValueView& other) const
+    {
+        if (is_not_null() && other.is_not_null())
+        {
+            if (constructor() != other.constructor()) {
+                return false;
+            }
+
+            return datatype() == other.datatype();
+        }
+
+        return is_null() && other.is_null();
+    }
+
 
     operator Object() const & noexcept {
         return as_object();

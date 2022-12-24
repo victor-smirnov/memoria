@@ -49,16 +49,16 @@ struct TemplateConstants: public TplASTCodes {
 
     static ASTNodePtr new_ast_node(const NamedCode& code) {
         auto map = current_ctr()->make_tiny_map(8);
-        map = map->put_dataobject<Integer>(CODE, code.code());
-        map = map->put_dataobject<Varchar>(NODE_NAME_ATTR, code.name());
+        map = map.put_t<Integer>(CODE, code.code());
+        map = map.put(NODE_NAME_ATTR, code.name());
         return map;
     }
 
     static ObjectArray new_object_array(const std::vector<path::ast::HermesValueNode>& array)
     {
-        auto harray = current_ctr()->make_object_array();
+        auto harray = current_ctr()->make_object_array(array.size());
         for (auto& item: array) {
-            harray->append(std::move(item.value));
+            harray = harray.push_back(std::move(item.value));
         }
         return harray;
     }
@@ -195,9 +195,9 @@ struct TemplateConstants: public TplASTCodes {
 
     static bool is_strip_space(const TinyObjectMap& map, const NamedCode& prop)
     {
-        auto val = map->get(prop);
-        if (val->is_not_null()) {
-            return !val->to_bool();
+        auto val = map.get(prop);
+        if (val.is_not_null()) {
+            return !val.to_bool();
         }
         return false;
     }
@@ -205,25 +205,25 @@ struct TemplateConstants: public TplASTCodes {
 
     static bool is_preserve_line(const TinyObjectMap& map, const NamedCode& prop)
     {
-        auto val = map->get(prop);
-        if (val->is_not_null()) {
-            return val->to_bool();
+        auto val = map.get(prop);
+        if (val.is_not_null()) {
+            return val.to_bool();
         }
         return false;
     }
 
     static void update_string(ObjectArray& array, size_t idx, U8StringView out, U8StringView str) {
         if (out.length() != str.length()) {
-            array->set(
+            array.set(
                 idx,
-                current_ctr()->new_dataobject<Varchar>(out)->as_object()
+                current_ctr()->make_t<Varchar>(out).as_object()
             );
         }
     }
 
     static Object process_inner_space(const Object& stmts, Optional<bool> top, Optional<bool> bottom)
     {
-        if (stmts->is_varchar())
+        if (stmts.is_varchar())
         {
             auto txt = stmts.as_varchar();
             U8StringView out = txt;
@@ -243,27 +243,27 @@ struct TemplateConstants: public TplASTCodes {
             }
 
             if (out.length() != txt.length()) {
-                return current_ctr()->new_dataobject<Varchar>(out).as_object();
+                return current_ctr()->make_t<Varchar>(out).as_object();
             }
         }
-        else if (stmts->is_object_array())
+        else if (stmts.is_object_array())
         {
-            ObjectArray array = stmts->as_object_array();
-            if (array->size() == 0) {
+            ObjectArray array = stmts.as_object_array();
+            if (array.size() == 0) {
                 return {};
             }
-            else if (array->size() == 1) {
-                auto new_str = process_inner_space(array->get(0), top, bottom);
-                if (new_str->is_not_null()) {
-                    array->set(0, new_str);
+            else if (array.size() == 1) {
+                auto new_str = process_inner_space(array.get(0), top, bottom);
+                if (new_str.is_not_null()) {
+                    array.set(0, new_str);
                 }
             }
             else
             {
-                Object blk_start = array->get(0);
-                if (blk_start->is_varchar())
+                Object blk_start = array.get(0);
+                if (blk_start.is_varchar())
                 {
-                    auto str = blk_start->as_varchar();
+                    auto str = blk_start.as_varchar();
                     if (is_strip_space(top))
                     {
                         U8StringView out = strip_start_ws(str);
@@ -276,20 +276,20 @@ struct TemplateConstants: public TplASTCodes {
                     }
                 }
 
-                Object blk_end = array->get(array->size() - 1);
-                if (blk_end->is_varchar())
+                Object blk_end = array.get(array.size() - 1);
+                if (blk_end.is_varchar())
                 {
                     auto str = blk_end.as_varchar();
 
                     if (is_strip_space(bottom))
                     {
                         U8StringView out = trim_end_ws(str);
-                        update_string(array, array->size() - 1, out, str);
+                        update_string(array, array.size() - 1, out, str);
                     }
                     else if (!is_preserve_line(bottom))
                     {
                         U8StringView out = trim_last_line(str);
-                        update_string(array, array->size() - 1, out, str);
+                        update_string(array, array.size() - 1, out, str);
                     }
                 }
             }
@@ -302,28 +302,28 @@ struct TemplateConstants: public TplASTCodes {
 
     static void process_outer_space(Object blocks)
     {
-        if (blocks->is_object_array())
+        if (blocks.is_object_array())
         {
             ObjectArray array = blocks.as_object_array();
-            for (size_t c = 1; c < array->size(); c++)
+            for (size_t c = 1; c < array.size(); c++)
             {
-                Object item = array->get(c);
-                if (item->is_tiny_object_map())
+                Object item = array.get(c);
+                if (item.is_tiny_object_map())
                 {
-                    Object prev = array->get(c - 1);
-                    Object next = ((c + 1) < array->size()) ? array->get(c + 1) : Object{};
-                    if (prev->is_varchar() || next->is_varchar())
+                    Object prev = array.get(c - 1);
+                    Object next = ((c + 1) < array.size()) ? array.get(c + 1) : Object{};
+                    if (prev.is_varchar() || next.is_varchar())
                     {
-                        TinyObjectMap map = item->as_tiny_object_map();
-                        Object code = map->get(CODE);
-                        if (code->is_not_null())
+                        TinyObjectMap map = item.as_tiny_object_map();
+                        Object code = map.get(CODE);
+                        if (code.is_not_null())
                         {
-                            int32_t icode = code->to_i32();
+                            int32_t icode = code.to_i32();
                             if (is_strip_space(icode))
                             {
-                                if (prev->is_varchar())
+                                if (prev.is_varchar())
                                 {
-                                    auto str = prev->as_varchar();
+                                    auto str = prev.as_varchar();
                                     if (is_strip_space(map, TOP_OUTER_SPACE))
                                     {
                                         U8StringView out = trim_end_ws(str);
@@ -336,9 +336,9 @@ struct TemplateConstants: public TplASTCodes {
                                     }
                                 }
 
-                                if (next->is_varchar())
+                                if (next.is_varchar())
                                 {
-                                    auto str = next->as_varchar();
+                                    auto str = next.as_varchar();
 
                                     Optional<bool> b_o_s = get_bottom_outer_space(map);
 
@@ -368,7 +368,7 @@ struct TemplateConstants: public TplASTCodes {
     static TinyObjectMap put(TinyObjectMap& map, const NamedCode& code, const Optional<bool>& val)
     {
         if (val.is_initialized()) {
-            return map->put_dataobject<Boolean>(code, val.get());
+            return map.put(code, val.get());
         }
 
         return map;
@@ -386,9 +386,9 @@ struct TemplateConstants: public TplASTCodes {
 
     static Optional<bool> get_bool(const TinyObjectMap& map, const NamedCode& code)
     {
-        Object val = map->get(code);
-        if (val->is_not_null()) {
-            return val->to_bool();
+        Object val = map.get(code);
+        if (val.is_not_null()) {
+            return val.to_bool();
         }
 
         return {};
@@ -396,15 +396,14 @@ struct TemplateConstants: public TplASTCodes {
 
     static Optional<bool> get_if_bottom_inner_space(const TinyObjectMap& map)
     {
-        auto obj = map->get(BOTTOM_INNER_SPACE);
-        if (obj->is_not_null()) {
-            return obj->to_bool();
+        auto obj = map.get(BOTTOM_INNER_SPACE);
+        if (obj.is_not_null()) {
+            return obj.to_bool();
         }
         else {
-            Object else_stmt = map->get(ELSE);
-            if (else_stmt->is_not_null())
-            {
-                return get_bool(else_stmt->as_tiny_object_map(), TOP_OUTER_SPACE);
+            Object else_stmt = map.get(ELSE);
+            if (else_stmt.is_not_null()) {
+                return get_bool(else_stmt.as_tiny_object_map(), TOP_OUTER_SPACE);
             }
 
             return {};
@@ -413,14 +412,14 @@ struct TemplateConstants: public TplASTCodes {
 
     static Optional<bool> get_bottom_outer_space(const TinyObjectMap& map)
     {
-        auto obj = map->get(BOTTOM_OUTER_SPACE);
-        if (obj->is_not_null()) {
-            return obj->to_bool();
+        auto obj = map.get(BOTTOM_OUTER_SPACE);
+        if (obj.is_not_null()) {
+            return obj.to_bool();
         }
         else {
-            Object else_stmt = map->get(ELSE);
-            if (else_stmt->is_not_null()) {
-                return get_bottom_outer_space(else_stmt->as_tiny_object_map());
+            Object else_stmt = map.get(ELSE);
+            if (else_stmt.is_not_null()) {
+                return get_bottom_outer_space(else_stmt.as_tiny_object_map());
             }
             else {
                 return {};
@@ -451,23 +450,23 @@ struct TplForStatement: TemplateConstants {
 
         auto identifier = path::parser::HermesASTConverter::new_identifier(*current_ctr(), variable, false);
 
-        map = map->put_dataobject<Varchar>(VARIABLE, variable.identifier);
-        map = map->put(EXPRESSION, expression);
+        map = map.put(VARIABLE, variable.identifier);
+        map = map.put(EXPRESSION, expression);
 
-        map = map->put(STATEMENTS, blocks);
+        map = map.put(STATEMENTS, blocks);
         map = put_space_data(map, BOTTOM_INNER_SPACE, BOTTOM_OUTER_SPACE, bottom_space_data);
 
         map = put(map, TOP_OUTER_SPACE, top_outer_space);
         map = put(map, TOP_INNER_SPACE, top_inner_space);
 
         auto res = process_inner_space(blocks, top_inner_space, bottom_space_data.left_space);
-        if (res->is_not_null()) {
-            map = map->put(STATEMENTS, blocks);
+        if (res.is_not_null()) {
+            map = map.put(STATEMENTS, blocks);
         }
 
         process_outer_space(blocks);
 
-        return map->as_object();
+        return map.as_object();
     }
 };
 
@@ -482,13 +481,13 @@ struct TplSetStatement: TemplateConstants {
     {
         auto map = new_ast_node(SET_STMT);
 
-        map = map->put_dataobject<Varchar>(VARIABLE, variable.identifier);
-        map = map->put(EXPRESSION, expression);
+        map = map.put(VARIABLE, variable.identifier);
+        map = map.put(EXPRESSION, expression);
 
         map = put(map, TOP_OUTER_SPACE, top_outer_space);
         map = put(map, BOTTOM_OUTER_SPACE, bottom_outer_space);
 
-        return map->as_object();
+        return map.as_object();
     }
 };
 
@@ -498,8 +497,8 @@ struct TplVarStatement: TemplateConstants {
     operator path::ast::HermesValueNode() const
     {
         auto map = new_ast_node(VAR_STMT);
-        map = map->put(EXPRESSION, expression);
-        return map->as_object();
+        map = map.put(EXPRESSION, expression);
+        return map.as_object();
     }
 };
 
@@ -522,7 +521,7 @@ struct TplElseStatement: TemplateConstants {
     operator path::ast::HermesValueNode() const
     {
         auto map = new_ast_node(ELSE_STMT);
-        map = map->put(STATEMENTS, blocks);
+        map = map.put(STATEMENTS, blocks);
 
         map = put(map, TOP_OUTER_SPACE, top_outer_space);
         map = put(map, TOP_INNER_SPACE, top_inner_space);
@@ -532,7 +531,7 @@ struct TplElseStatement: TemplateConstants {
         process_inner_space(blocks, top_inner_space, bottom_space_data.left_space);
         process_outer_space(blocks);
 
-        return map->as_object();
+        return map.as_object();
     }
 };
 
@@ -554,8 +553,8 @@ struct TplIfStatement: TemplateConstants {
     operator path::ast::HermesValueNode() const
     {
         auto map = new_ast_node(IF_STMT);
-        map = map->put(EXPRESSION, expression);
-        map = map->put(STATEMENTS, blocks);
+        map = map.put(EXPRESSION, expression);
+        map = map.put(STATEMENTS, blocks);
 
         map = put(map, TOP_OUTER_SPACE, top_outer_space);
         map = put(map, TOP_INNER_SPACE, top_inner_space);
@@ -568,11 +567,11 @@ struct TplIfStatement: TemplateConstants {
         else if (alt_branch.which() == 1)
         {
             const TplIfStatement& elif_stmt = boost::get<TplIfStatement>(alt_branch);
-            map = map->put(ELSE, ((path::ast::HermesValueNode)elif_stmt).value);
+            map = map.put(ELSE, ((path::ast::HermesValueNode)elif_stmt).value);
         }
         else {
             const TplElseStatement& elif_stmt = boost::get<TplElseStatement>(alt_branch);
-            map = map->put(ELSE, ((path::ast::HermesValueNode)elif_stmt).value);
+            map = map.put(ELSE, ((path::ast::HermesValueNode)elif_stmt).value);
         }
 
         auto bottom_inner_space = get_if_bottom_inner_space(map);
@@ -580,7 +579,7 @@ struct TplIfStatement: TemplateConstants {
 
         process_outer_space(blocks);
 
-        return map->as_object();
+        return map.as_object();
     }
 };
 

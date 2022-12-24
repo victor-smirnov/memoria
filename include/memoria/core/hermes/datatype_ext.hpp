@@ -55,15 +55,17 @@ void DatatypeView::append_integral_parameter(DTTViewType<DT> view)
 
     ObjectArray params = type_parameters();
 
-    if (MMA_UNLIKELY(params->is_null())) {
+    if (MMA_UNLIKELY(params.is_null())) {
         auto ctr = mem_holder_->ctr();
         params = ctr->make_object_array();
-        datatype_->set_parameters(params->array_);
+        datatype_->set_parameters(params.array_);
     }
 
-    auto new_params = params->append<DT>(view);
-    datatype_->set_parameters(new_params->array_);
+    auto new_params = params.push_back<DT>(view);
+    datatype_->set_parameters(new_params.array_);
 }
+
+
 
 
 }}

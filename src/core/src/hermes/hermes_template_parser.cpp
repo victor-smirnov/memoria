@@ -106,7 +106,7 @@ struct HermesTemplateParser :
         close_stmt = lit("+%}") [_val = true] | lit("-%}")[_val = false] | lit("%}");
 
         auto text_to_hermes = [](auto& attrib, auto& ctx) {
-            auto obj = current_ctr()->new_dataobject<Varchar>(attrib.rawString)->as_object();
+            auto obj = current_ctr()->new_dataobject<Varchar>(attrib.rawString).as_object();
             ctx.attributes = HermesObject(obj);
         };
         text_object = text_block[text_to_hermes];
@@ -161,12 +161,12 @@ struct HermesTemplateParser :
         auto std_array_to_object = [](auto& attrib, auto& ctx){
             auto array = current_ctr()->make_object_array(attrib.size());
             for (auto& item: attrib) {
-                array = array->append(std::move(item.value));
+                array = array.push_back(std::move(item.value));
             }
 
-            TemplateConstants::process_outer_space(array->as_object());
+            TemplateConstants::process_outer_space(array.as_object());
 
-            ctx.attributes = HermesObject(array->as_object());
+            ctx.attributes = HermesObject(array.as_object());
         };
         hermes_block_sequence = block_sequence[std_array_to_object];
 

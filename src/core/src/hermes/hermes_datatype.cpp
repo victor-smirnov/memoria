@@ -24,10 +24,10 @@ ObjectArray DatatypeView::constructor() const
 {
     assert_not_null();
     if (datatype_->has_constructor()) {
-        return ObjectArray(ObjectArrayView(mem_holder_, datatype_->constructor()));
+        return ObjectArray(mem_holder_, datatype_->constructor());
     }
     else {
-        return ObjectArray(ObjectArrayView(mem_holder_, nullptr));
+        return ObjectArray();
     }
 }
 
@@ -36,10 +36,10 @@ ObjectArray DatatypeView::type_parameters() const
 {
     assert_not_null();
     if (datatype_->is_parametric()) {
-        return ObjectArray(ObjectArrayView(mem_holder_, datatype_->parameters()));
+        return ObjectArray(mem_holder_, datatype_->parameters());
     }
     else {
-        return ObjectArray(ObjectArrayView(mem_holder_, nullptr));
+        return ObjectArray();
     }
 }
 
@@ -52,13 +52,13 @@ void DatatypeView::stringify(std::ostream& out, DumpFormatState& state) const
         out << type_name();
 
         auto params = type_parameters();
-        if (params->is_not_null())
+        if (params.is_not_null())
         {
             out << "<" << spec.nl_start();
             bool first = true;
 
             state.push();
-            for (size_t c = 0; c < params->size(); c++)
+            for (size_t c = 0; c < params.size(); c++)
             {
                 if (MMA_LIKELY(!first)) {
                     out << "," << spec.nl_middle();
@@ -69,8 +69,8 @@ void DatatypeView::stringify(std::ostream& out, DumpFormatState& state) const
 
                 state.make_indent(out);
 
-                auto type_param = params->get(c);
-                type_param->stringify(out, state);
+                auto type_param = params.get(c);
+                type_param.stringify(out, state);
             }
             state.pop();
 
@@ -81,13 +81,13 @@ void DatatypeView::stringify(std::ostream& out, DumpFormatState& state) const
         }
 
         auto ctr_args = constructor();
-        if (ctr_args->is_not_null())
+        if (ctr_args.is_not_null())
         {
             out << "(" << spec.nl_start();
             bool first = true;
 
             state.push();
-            for (size_t c = 0; c < ctr_args->size(); c++)
+            for (size_t c = 0; c < ctr_args.size(); c++)
             {
                 if (MMA_LIKELY(!first)) {
                     out << "," << spec.nl_middle();
@@ -98,8 +98,8 @@ void DatatypeView::stringify(std::ostream& out, DumpFormatState& state) const
 
                 state.make_indent(out);
 
-                auto value = ctr_args->get(c);
-                value->stringify(out, state);
+                auto value = ctr_args.get(c);
+                value.stringify(out, state);
             }
             state.pop();
 
@@ -153,13 +153,13 @@ void DatatypeView::stringify_cxx(std::ostream& out,
         //println("TN: {}", *type_name()->view());
 
         auto params = type_parameters();
-        if (params->is_not_null())
+        if (params.is_not_null())
         {
             out << "<" << spec.nl_start();
             bool first = true;
 
             state.push();
-            for (size_t c = 0; c < params->size(); c++)
+            for (size_t c = 0; c < params.size(); c++)
             {
                 if (MMA_LIKELY(!first)) {
                     out << "," << spec.nl_middle();
@@ -170,12 +170,12 @@ void DatatypeView::stringify_cxx(std::ostream& out,
 
                 state.make_indent(out);
 
-                Object type_param = params->get(c);
-                if (type_param->is_a(TypeTag<Datatype>{})) {
-                    cast_to<Datatype>(type_param)->stringify_cxx(out, state);
+                Object type_param = params.get(c);
+                if (type_param.is_a(TypeTag<Datatype>{})) {
+                    cast_to<Datatype>(type_param).stringify_cxx(out, state);
                 }
                 else {
-                    type_param->stringify(out, state);
+                    type_param.stringify(out, state);
                 }
             }
             state.pop();
@@ -226,11 +226,11 @@ bool DatatypeView::is_simple_layout() const {
     bool sl = true;
 
     if (is_parametric()) {
-        sl = type_parameters()->is_simple_layout();
+        sl = type_parameters().is_simple_layout();
     }
 
     if (has_constructor()) {
-        sl = sl && constructor()->is_simple_layout();
+        sl = sl && constructor().is_simple_layout();
     }
 
     return sl;
@@ -244,37 +244,18 @@ Datatype DatatypeView::append_type_parameter(U8StringView name)
     auto ctr = mem_holder_->ctr();
 
     ObjectArray params = type_parameters();
-    if (MMA_UNLIKELY(params->is_null())) {
+    if (MMA_UNLIKELY(params.is_null())) {
         params = ctr->make_object_array();
-        datatype_->set_parameters(params->array_);
+        datatype_->set_parameters(params.array_);
     }
 
-    auto datatype = ctr->new_datatype(name);
-    auto new_params = params->append(datatype->as_object());
-    datatype_->set_parameters(new_params->array_);
+    auto datatype = ctr->make_datatype(name);
+    auto new_params = params.push_back(datatype.as_object());
+    datatype_->set_parameters(new_params.array_);
 
     return datatype;
 }
 
-//Datatype DatatypeView::append_type_parameter(StringValue name)
-//{
-//    assert_not_null();
-//    assert_mutable();
-
-//    auto ctr = mem_holder_->ctr();
-
-//    ObjectArray params = type_parameters();
-//    if (MMA_UNLIKELY(params->is_null())) {
-//        params = ctr->make_object_array();
-//        datatype_->set_parameters(params->array_);
-//    }
-
-//    auto datatype = ctr->new_datatype(name);
-//    auto new_params = params->append(datatype->as_object());
-//    datatype_->set_parameters(new_params->array_);
-
-//    return datatype;
-//}
 
 void DatatypeView::append_type_parameter(Object value)
 {
@@ -284,13 +265,13 @@ void DatatypeView::append_type_parameter(Object value)
     auto ctr = mem_holder_->ctr();
 
     ObjectArray params = type_parameters();
-    if (MMA_UNLIKELY(params->is_null())) {
+    if (MMA_UNLIKELY(params.is_null())) {
         params = ctr->make_object_array();
-        datatype_->set_parameters(params->array_);
+        datatype_->set_parameters(params.array_);
     }
 
-    auto new_params = params->append(value);
-    datatype_->set_parameters(new_params->array_);
+    auto new_params = params.push_back(value);
+    datatype_->set_parameters(new_params.array_);
 }
 
 void DatatypeView::append_constructor_argument(Object value)
@@ -302,13 +283,13 @@ void DatatypeView::append_constructor_argument(Object value)
 
     ObjectArray ctr = constructor();
 
-    if (MMA_UNLIKELY(ctr->is_null())) {
+    if (MMA_UNLIKELY(ctr.is_null())) {
         ctr = ctr0->make_object_array();
-        datatype_->set_constructor(ctr->array_);
+        datatype_->set_constructor(ctr.array_);
     }
 
-    auto new_ctr = ctr->append(value);
-    datatype_->set_constructor(new_ctr->array_);
+    auto new_ctr = ctr.push_back(value);
+    datatype_->set_constructor(new_ctr.array_);
 }
 
 
@@ -319,10 +300,33 @@ ObjectArray DatatypeView::set_constructor()
 
     auto ctr = mem_holder_->ctr();
     auto ptr = ctr->make_object_array();
-    datatype_->set_constructor(ptr->array_);
+    datatype_->set_constructor(ptr.array_);
 
     return ptr;
 }
+
+bool DatatypeView::operator==(const DatatypeView& other) const
+{
+    if (is_not_null() && other.is_not_null())
+    {
+        if (type_name() != other.type_name()) {
+            return false;
+        }
+
+        if (constructor() != other.constructor()) {
+            return false;
+        }
+
+        if (type_parameters() != other.type_parameters()) {
+            return false;
+        }
+
+        return datatype_->extras() == other.datatype_->extras();
+    }
+
+    return is_null() && other.is_null();
+}
+
 
 UID256 DatatypeView::cxx_type_hash() const
 {
@@ -358,27 +362,28 @@ hermes::Datatype strip_namespaces(hermes::Datatype src)
 {
     auto ctr = HermesCtr::make_pooled();
 
-    auto name = get_datatype_name(src->type_name());
+    auto name = get_datatype_name(src.type_name());
     auto tgt = ctr->new_datatype(name);
-    ctr->set_root(tgt->as_object());
+    ctr->set_root(tgt.as_object());
 
-    auto params = src->type_parameters();
-    if (params->is_not_null())
+    auto params = src.type_parameters();
+    if (params.is_not_null())
     {
-        for (size_t c = 0; c < params->size(); c++) {
-            auto param = params->get(c);
-            if (param->is_datatype()) {
-                auto pp = strip_namespaces(param->as_datatype());
-                tgt->append_type_parameter(pp->as_object());
+        for (size_t c = 0; c < params.size(); c++) {
+            auto param = params.get(c);
+            if (param.is_datatype()) {
+                auto pp = strip_namespaces(param.as_datatype());
+                tgt.append_type_parameter(pp.as_object());
             }
             else {
-                tgt->append_type_parameter(param);
+                tgt.append_type_parameter(param);
             }
         }
     }
 
     return tgt;
 }
+
 
 
 }}

@@ -142,6 +142,19 @@ template <>
 struct ViewToDTMapping<U8StringView>: HasType<Varchar> {};
 
 template <>
+struct ViewToDTMapping<boost::string_view>: HasType<Varchar> {};
+
+template <>
+struct ViewToDTMapping<std::string_view>: HasType<Varchar> {};
+
+template <>
+struct ViewToDTMapping<std::string>: HasType<Varchar> {};
+
+template <>
+struct ViewToDTMapping<U8String>: HasType<Varchar> {};
+
+
+template <>
 struct ViewToDTMapping<U8StringOView>: HasType<Varchar> {};
 
 template <OwningKind OK>
@@ -152,6 +165,10 @@ struct ViewToDTMapping<const char*>: HasType<Varchar> {};
 
 template <size_t N>
 struct ViewToDTMapping<const char(&)[N]>: HasType<Varchar> {};
+
+template <size_t N>
+struct ViewToDTMapping<char[N]>: HasType<Varchar> {};
+
 
 }
 

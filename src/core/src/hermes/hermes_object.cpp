@@ -85,11 +85,11 @@ bool ObjectView::to_bool() const {
 }
 
 double ObjectView::to_d64() const {
-    return *convert_to<Double>().as_data_object<Double>();
+    return convert_to<Double>().as_data_object<Double>();
 }
 
 float ObjectView::to_f32() const {
-    return *convert_to<Real>().as_data_object<Real>();
+    return convert_to<Real>().as_data_object<Real>();
 }
 
 

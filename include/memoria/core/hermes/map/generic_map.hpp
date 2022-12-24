@@ -37,6 +37,7 @@ struct GenericMapEntry {
 };
 
 struct GenericMap: GenericObject {
+    virtual uint64_t capacity() const = 0;
     virtual uint64_t size() const = 0;
     virtual bool empty() const    = 0;
 

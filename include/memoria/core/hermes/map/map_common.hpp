@@ -34,23 +34,23 @@ struct FSEKeySubtype {};
 template <typename KeyDT, typename ValueDT, typename SubtypeSelector, bool StatelessType>
 class TypedMapData;
 
-
 template <typename EntryT, typename MapT, typename Iterator>
 class MapIteratorAccessor {
     MapT map_;
     Iterator iterator_;
-    // FIXME: holding map_ is sufficient.
-    LWMemHolder* mem_holder_;
 
 public:
     using ViewType = EntryT;
 
-    MapIteratorAccessor(const MapT& map, Iterator iterator, LWMemHolder* ptr_holder):
-        map_(map), iterator_(iterator), mem_holder_(ptr_holder)
+    MapIteratorAccessor(const MapT& map, Iterator iterator):
+        map_(map), iterator_(iterator)
     {}
 
+    MapT& map() {return map_;}
+    const MapT& map() const {return map_;}
+
     EntryT current() const {
-        return EntryT(&iterator_, mem_holder_);
+        return EntryT(&iterator_, map_.mem_holder());
     }
 
     bool operator==(const MapIteratorAccessor&other) const noexcept {

@@ -32,6 +32,7 @@ inline void ArrayView<Object>::assert_mutable()
     }
 }
 
+
 template <typename DT>
 void ArrayView<DT>::assert_mutable()
 {
@@ -88,8 +89,9 @@ inline void ArrayView<Object>::for_each(std::function<void(const Object&)> fn) c
     }
 }
 
-template <typename T, std::enable_if_t<!std::is_same_v<std::decay_t<T>, Object>, int>>
-ObjectArray ArrayView<Object>::append(T&& view)
+
+template <typename T, std::enable_if_t<!HermesObject<std::decay_t<T>>::Value, int>>
+ObjectArray ArrayView<Object>::push_back(T&& view)
 {
     assert_not_null();
     assert_mutable();
@@ -99,20 +101,21 @@ ObjectArray ArrayView<Object>::append(T&& view)
     return append(vv);
 }
 
+
 template <typename DT, typename T>
-ObjectArray ArrayView<Object>::append_t(T&& view)
+ObjectArray ArrayView<Object>::push_back_t(T&& view)
 {
     assert_not_null();
     assert_mutable();
 
     auto ctr = mem_holder_->ctr();
     auto vv  = ctr->make_t<DT>(std::forward<T>(view));
-    return append(vv);
+    return push_back(vv);
 }
 
 
 
-template <typename T, std::enable_if_t<!std::is_same_v<std::decay_t<T>, Object>, int>>
+template <typename T, std::enable_if_t<!HermesObject<std::decay_t<T>>::Value, int>>
 Object ArrayView<Object>::set(uint64_t idx, T&& view)
 {    
     assert_not_null();
@@ -123,6 +126,7 @@ Object ArrayView<Object>::set(uint64_t idx, T&& view)
 
     return ptr;
 }
+
 
 template <typename DT, typename T>
 Object ArrayView<Object>::set_t(uint64_t idx, T&& view)
@@ -137,7 +141,8 @@ Object ArrayView<Object>::set_t(uint64_t idx, T&& view)
     return ptr;
 }
 
-inline ObjectArray ArrayView<Object>::append(const Object& value)
+
+inline ObjectArray ArrayView<Object>::push_back(const Object& value)
 {
     assert_not_null();
     assert_mutable();
@@ -148,22 +153,22 @@ inline ObjectArray ArrayView<Object>::append(const Object& value)
 
     ArrayStorageT* new_array;
 
-    if (value->is_not_null())
+    if (value.is_not_null())
     {
         arena::ERelativePtr val_ptr;
-        if (value->get_vs_tag() == VS_TAG_SMALL_VALUE)
+        if (value.get_vs_tag() == VS_TAG_SMALL_VALUE)
         {
-            ShortTypeCode tag = value->get_type_tag();
-            bool do_import = !get_type_reflection(tag).hermes_embed(val_ptr, value->storage_.small_value);
+            ShortTypeCode tag = value.get_type_tag();
+            bool do_import = !get_type_reflection(tag).hermes_embed(val_ptr, value.storage_.small_value);
             if (do_import)
             {
                 auto vv = ctr->do_import_value(value);
-                val_ptr = vv->storage_.addr;
+                val_ptr = vv.storage_.addr;
             }
         }
         else {
             auto vv = ctr->do_import_value(value);
-            val_ptr = vv->storage_.addr;
+            val_ptr = vv.storage_.addr;
         }
 
         new_array = array_->push_back(*ctr->arena(), mytag, val_ptr);
@@ -178,7 +183,7 @@ inline ObjectArray ArrayView<Object>::append(const Object& value)
 
 
 template <typename DT>
-Array<DT> ArrayView<DT>::append(DTTViewType<DT> value)
+Array<DT> ArrayView<DT>::push_back(DTTViewType<DT> value)
 {
     assert_not_null();
     assert_mutable();
@@ -206,23 +211,23 @@ inline Object ArrayView<Object>::set(uint64_t idx, const Object& ivalue)
 
     auto value = ctr->do_import_value(ivalue);
 
-    if (value->is_not_null())
+    if (value.is_not_null())
     {
         arena::ERelativePtr val_ptr;
 
-        if (value->get_vs_tag() == VS_TAG_SMALL_VALUE)
+        if (value.get_vs_tag() == VS_TAG_SMALL_VALUE)
         {
-            ShortTypeCode tag = value->get_type_tag();
-            bool do_import = !get_type_reflection(tag).hermes_embed(val_ptr, value->storage_.small_value);
+            ShortTypeCode tag = value.get_type_tag();
+            bool do_import = !get_type_reflection(tag).hermes_embed(val_ptr, value.storage_.small_value);
             if (do_import)
             {
                 auto vv = ctr->do_import_value(value);
-                val_ptr = vv->storage_.addr;
+                val_ptr = vv.storage_.addr;
             }
         }
         else {
             auto vv = ctr->do_import_value(value);
-            val_ptr = vv->storage_.addr;
+            val_ptr = vv.storage_.addr;
         }
 
         array_->set(idx, val_ptr);
@@ -235,23 +240,6 @@ inline Object ArrayView<Object>::set(uint64_t idx, const Object& ivalue)
 }
 
 
-//inline Object ArrayView<Object>::set_hermes(uint64_t idx, U8StringView str) {
-//  assert_not_null();
-//  assert_mutable();
-
-//  if (MMA_LIKELY(idx < array_->size()))
-//  {
-//      auto ctr = mem_holder_->ctr();
-//      Object vv = ctr->parse_raw_value(str.begin(), str.end());
-//      auto vv1 = ctr->do_import_value(vv);
-//      array_->set(idx, vv1->storage_.addr);
-//      return vv1;
-//  }
-//  else {
-//      MEMORIA_MAKE_GENERIC_ERROR("Range check in ArrayView<Object>::set_hermes(): {}::{}", idx, array_->size()).do_throw();
-//  }
-//}
-
 
 inline ObjectArray ArrayView<Object>::remove(uint64_t idx)
 {
@@ -261,7 +249,7 @@ inline ObjectArray ArrayView<Object>::remove(uint64_t idx)
     auto ctr = mem_holder_->ctr();
     ShortTypeCode mytag = arena::read_type_tag(array_);
     ArrayStorageT* new_array = array_->remove(*ctr->arena_, mytag, idx);
-    return ObjectArray{ObjectArrayView{mem_holder_, new_array}};
+    return ObjectArray{mem_holder_, new_array};
 }
 
 template <typename DT>
@@ -272,23 +260,23 @@ Array<DT> ArrayView<DT>::remove(uint64_t idx)
 
     auto ctr = mem_holder_->ctr();
     ShortTypeCode mytag = arena::read_type_tag(array_);
-    ArrayStorageT* new_array = array_->remove(*ctr->arena_, mytag, idx);
-    return ObjectArray{ObjectArrayView{mem_holder_, new_array}};
+    auto new_array = array_->remove(*ctr->arena_, mytag, idx);
+    return Array<DT>{mem_holder_, new_array};
 }
 
 
 inline PoolSharedPtr<GenericArray> ArrayView<Object>::as_generic_array() const {
-    return TypedGenericArray<Object>::make_wrapper(mem_holder_, array_);
+    return TypedGenericArray<Object>::make_wrapper(self());
 }
 
 
 template <typename DT>
-PoolSharedPtr<GenericArray> TypedGenericArray<DT>::make_wrapper(LWMemHolder* ctr_holder, void* array) {
+PoolSharedPtr<GenericArray> TypedGenericArray<DT>::make_wrapper(Array<DT>&& array) {
     using GAPoolT = pool::SimpleObjectPool<TypedGenericArray<DT>>;
     using GAPoolPtrT = boost::local_shared_ptr<GAPoolT>;
 
     static thread_local GAPoolPtrT wrapper_pool = MakeLocalShared<GAPoolT>();
-    return wrapper_pool->allocate_shared(ctr_holder, array);
+    return wrapper_pool->allocate_shared(std::move(array));
 }
 
 
@@ -318,8 +306,6 @@ void ArrayView<DT>::do_stringify(std::ostream& out, DumpFormatState& state) cons
 
             state.make_indent(out);
             arena::ArenaDataTypeContainer<DT>::stringify_view(out, state, vv);
-
-            //vv->stringify(out, state);
         });
         state.pop();
 
@@ -333,5 +319,11 @@ void ArrayView<DT>::do_stringify(std::ostream& out, DumpFormatState& state) cons
     }
 }
 
+
+template <typename DT>
+PoolSharedPtr<HermesCtr> ArrayView<DT>::ctr() const {
+    assert_not_null();
+    return mem_holder_->ctr()->self();
+}
 
 }}

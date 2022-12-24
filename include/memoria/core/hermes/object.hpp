@@ -64,6 +64,9 @@ protected:
     template <typename, ObjectCasters>
     friend struct ObjectCaster;
 
+    template <typename, CtrMakers>
+    friend struct CtrMakeHelper;
+
 public:
     ObjectView() noexcept
     {
@@ -88,6 +91,13 @@ public:
         }
     }
 
+    template <typename ViewT, typename DT>
+    ObjectView(MemHolderHandle&& holder, ViewT view, DirectViewTag<DT>) noexcept :
+        ObjectView(holder.release(), view, DirectViewTag<DT> {})
+    {}
+
+
+
     ObjectView(LWMemHolder* ref_holder, void* addr) noexcept :
         Base(ref_holder)
     {
@@ -95,8 +105,22 @@ public:
         set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
     }
 
+    ObjectView(MemHolderHandle&& holder, void* addr) noexcept :
+        Base(holder.release())
+    {
+        storage_.addr = addr;
+        set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
+    }
+
     ObjectView(LWMemHolder* ref_holder, void* addr, MoveOwnershipTag) noexcept :
         Base(ref_holder)
+    {
+        storage_.addr = addr;
+        set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
+    }
+
+    ObjectView(MemHolderHandle&& holder, void* addr, MoveOwnershipTag) noexcept :
+        Base(holder.release())
     {
         storage_.addr = addr;
         set_vs_tag(ValueStorageTag::VS_TAG_ADDRESS);
@@ -110,8 +134,28 @@ public:
         set_vs_tag(ValueStorageTag::VS_TAG_SMALL_VALUE);
     }
 
+
+    ObjectView(MemHolderHandle&& holder, const TaggedValue& tagged_value) noexcept :
+        Base(holder.release())
+    {
+        storage_.small_value = tagged_value;
+        set_vs_tag(ValueStorageTag::VS_TAG_SMALL_VALUE);
+    }
+
+
     ObjectView(LWMemHolder* ref_holder, ValueStorageTag vs_tag, ValueStorage storage) noexcept :
         Base(ref_holder)
+    {
+        storage_ = storage;
+        set_vs_tag(vs_tag);
+
+        if (vs_tag == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
+            storage_.view_ptr->ref_copy();
+        }
+    }
+
+    ObjectView(MemHolderHandle&& holder, ValueStorageTag vs_tag, ValueStorage storage) noexcept :
+        Base(holder.release())
     {
         storage_ = storage;
         set_vs_tag(vs_tag);
@@ -146,6 +190,11 @@ public:
                 storage_.view_ptr->unref();
             }
         }
+    }
+
+    MemHolderHandle mem_holder() const {
+        assert_not_null();
+        return MemHolderHandle(this->get_mem_holder());
     }
 
     ObjectView& operator=(const ObjectView& other)
@@ -201,9 +250,6 @@ public:
 
     Object search(U8StringView query) const;
     Object search(U8StringView query, const IParameterResolver& params) const;
-
-    Object search2(U8StringView query) const;
-    Object search2(U8StringView query, const IParameterResolver& params) const;
 
     bool is_convertible_to_plain_string() const
     {
@@ -331,10 +377,10 @@ public:
 
     bool is_compareble_with(const Object& other) const
     {
-        if (is_not_null() && other->is_not_null())
+        if (is_not_null() && other.is_not_null())
         {
             auto tag1 = get_type_tag();
-            auto tag2 = other->get_type_tag();
+            auto tag2 = other.get_type_tag();
             return get_type_reflection(tag1).hermes_comparable_with(tag2);
         }
         else {
@@ -344,16 +390,16 @@ public:
 
     int32_t compare(const Object& other) const
     {
-        if (is_not_null() && other->is_not_null())
+        if (is_not_null() && other.is_not_null())
         {
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_compare(
                     get_mem_holder(),
                     get_vs_tag(),
                     storage_,
-                    other->get_mem_holder(),
-                    other->get_vs_tag(),
-                    other->storage_
+                    other.get_mem_holder(),
+                    other.get_vs_tag(),
+                    other.storage_
             );
         }
         else {
@@ -364,10 +410,10 @@ public:
 
     bool is_equals_compareble_with(const Object& other) const
     {
-        if (is_not_null() && other->is_not_null())
+        if (is_not_null() && other.is_not_null())
         {
             auto tag1 = get_type_tag();
-            auto tag2 = other->get_type_tag();
+            auto tag2 = other.get_type_tag();
             return get_type_reflection(tag1).hermes_equals_comparable_with(tag2);
         }
         else {
@@ -377,20 +423,20 @@ public:
 
     bool equals(const Object& other) const
     {
-        if (is_not_null() && other->is_not_null())
+        if (is_not_null() && other.is_not_null())
         {
             auto tag1 = get_type_tag();
             return get_type_reflection(tag1).hermes_equals(
                     get_mem_holder(),
                     get_vs_tag(),
                     storage_,
-                    other->get_mem_holder(),
-                    other->get_vs_tag(),
-                    other->storage_
+                    other.get_mem_holder(),
+                    other.get_vs_tag(),
+                    other.storage_
             );
         }
         else {
-            return false;
+            return is_null() == other.is_null();
         }
     }
 
@@ -531,6 +577,14 @@ public:
         return storage_.get_view<DT>(get_vs_tag());
     }
 
+    bool operator!=(const ObjectView& other) const {
+        return !operator==(other);
+    }
+
+    bool operator==(const ObjectView& other) const {
+        return equals(other);
+    }
+
 private:
     ShortTypeCode get_type_tag() const noexcept
     {
@@ -625,13 +679,13 @@ std::ostream& operator<<(std::ostream& out, Object ptr);
 
 struct Less {
     bool operator()(const Object& left, const Object& right) {
-        return left->compare(right) < 0;
+        return left.compare(right) < 0;
     }
 };
 
 struct Greater {
     bool operator()(const Object& left, const Object& right) {
-        return left->compare(right) > 0;
+        return left.compare(right) > 0;
     }
 };
 
@@ -640,7 +694,7 @@ struct Greater {
 
 template <typename T>
 auto cast_to(const hermes::Object& val) {
-    return val->cast_to(TypeTag<T>{});
+    return val.cast_to(TypeTag<T>{});
 }
 }
 

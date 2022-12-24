@@ -25,18 +25,18 @@ void TypedValueView::stringify(std::ostream& out,
     auto ctr = constructor();
     auto type = this->datatype();
 
-    if (MMA_LIKELY(!ctr->is_varchar()))
+    if (MMA_LIKELY(!ctr.is_varchar()))
     {
         auto space = state.cfg().spec().space();
         out << '@';
-        type->stringify(out, state);
+        type.stringify(out, state);
         out << space << "=" << space;
-        ctr->stringify(out, state);
+        ctr.stringify(out, state);
     }
     else {
-        ctr->stringify(out, state);
+        ctr.stringify(out, state);
         out << '@';
-        type->stringify(out, state);
+        type.stringify(out, state);
     }
 }
 

@@ -62,12 +62,6 @@ struct WrappingImportHelper;
 template <size_t Size>
 class SizedHermesCtrImpl;
 
-enum class CtrMakers {
-    DATAOBJECT, OTHER
-};
-
-template <typename, CtrMakers>
-struct CtrMakeHelper;
 
 
 template <typename T>
@@ -194,7 +188,7 @@ public:
 
 
     void stringify(std::ostream& out, DumpFormatState& state) const {
-        root()->stringify(out, state);
+        root().stringify(out, state);
     }
 
     static bool is_identifier(U8StringView string) {
@@ -218,8 +212,7 @@ public:
         assert_mutable();
 
         auto ptr = this->new_dataobject<DT>(view);
-
-        header_->root = ptr->addr();
+        header_->root = ptr.addr();
 
         return ptr;
     }
@@ -230,9 +223,9 @@ public:
         assert_not_null();
         assert_mutable();
 
-        Object vv = parse_raw_value(str.begin(), str.end());
+        Object vv = parse_document(str.begin(), str.end())->root();
         auto vv1 = this->do_import_value(vv);
-        header_->root = vv1->storage_.addr;
+        header_->root = vv1.storage_.addr;
 
         return vv1;
     }
@@ -314,7 +307,7 @@ public:
     // of an arg (with convertion to the target type) --
     // is one option.
 
-    template <typename T>
+    template <typename T, typename std::enable_if_t<!HermesObject<T>::Value, int> = 0>
     auto make(T&& view);
 
     template <typename T, typename... CtrArg>
@@ -376,8 +369,6 @@ public:
 protected:
 
 
-    template <typename DT>
-    Object make();
 
 
     template <typename DT>
@@ -407,6 +398,7 @@ protected:
     Object import_object(const Object& object);
 
     Object import_small_object(const Object& object);
+
 
     Span<uint8_t> span() const
     {

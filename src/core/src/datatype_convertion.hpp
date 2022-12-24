@@ -68,25 +68,22 @@ struct ToPlainStringConverter<UTinyInt> {
 template <>
 struct FromPlainStringConverter<Varchar> {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
-        return doc->set_dataobject<Varchar>(str)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<Varchar>(str);
     }
 };
 
 template <typename DT, typename NumberT = DTTViewType<DT>>
 struct NumericFromPlainStringConverter {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
-        return doc->set_dataobject<DT>(str)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<DT>(str);
     }
 };
 
 template <>
 struct FromPlainStringConverter<BigInt> {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoll(std::string(str));
-        return doc->set_dataobject<BigInt>(val)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<BigInt>(val);
     }
 };
 
@@ -94,9 +91,8 @@ struct FromPlainStringConverter<BigInt> {
 template <>
 struct FromPlainStringConverter<UBigInt> {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoull(std::string(str));
-        return doc->set_dataobject<UBigInt>(val)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<UBigInt>(val);
     }
 };
 
@@ -104,9 +100,8 @@ struct FromPlainStringConverter<UBigInt> {
 template <>
 struct FromPlainStringConverter<Real> {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stof(std::string(str));
-        return doc->set_dataobject<Real>(val)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<Real>(val);
     }
 };
 
@@ -114,18 +109,16 @@ struct FromPlainStringConverter<Real> {
 template <>
 struct FromPlainStringConverter<Double> {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stof(std::string(str));
-        return doc->set_dataobject<Double>(val)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<Double>(val);
     }
 };
 
 template <>
 struct FromPlainStringConverter<Integer> {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoi(std::string(str));
-        return doc->set_dataobject<Integer>(val)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<Integer>(val);
     }
 };
 
@@ -133,9 +126,8 @@ struct FromPlainStringConverter<Integer> {
 template <>
 struct FromPlainStringConverter<UInteger> {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoul(std::string(str));
-        return doc->set_dataobject<UInteger>(val)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<UInteger>(val);
     }
 };
 
@@ -143,9 +135,8 @@ struct FromPlainStringConverter<UInteger> {
 template <>
 struct FromPlainStringConverter<SmallInt> {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoi(std::string(str));
-        return doc->set_dataobject<SmallInt>(val)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<SmallInt>(val);
     }
 };
 
@@ -153,27 +144,24 @@ struct FromPlainStringConverter<SmallInt> {
 template <>
 struct FromPlainStringConverter<USmallInt> {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoi(std::string(str));
-        return doc->set_dataobject<USmallInt>(val)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<USmallInt>(val);
     }
 };
 
 template <>
 struct FromPlainStringConverter<TinyInt> {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoi(std::string(str));
-        return doc->set_dataobject<TinyInt>(val)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<TinyInt>(val);
     }
 };
 
 template <>
 struct FromPlainStringConverter<UTinyInt> {
     static hermes::Object from_string(U8StringView str) {
-        auto doc = hermes::HermesCtr::make_pooled();
         auto val = std::stoi(std::string(str));
-        return doc->set_dataobject<UTinyInt>(val)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<UTinyInt>(val);
     }
 };
 
@@ -187,8 +175,7 @@ struct FromPlainStringConverter<Boolean> {
         }
 
         if (val) {
-            auto doc = hermes::HermesCtr::make_pooled();
-            return doc->set_dataobject<Boolean>(val)->as_object();
+            return hermes::HermesCtr::wrap_dataobject<Boolean>(val);
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Varchar value of {} is not convertuble to Boolean", str).do_throw();
@@ -213,8 +200,7 @@ struct DatatypeConverter<FromDT, Varchar>: IDatatypeConverter {
     {
         DTTViewType<FromDT> typed_view = *reinterpret_cast<const DTTViewType<FromDT>*>(view);
         auto str = ToPlainStringConverter<FromDT>::to_string(typed_view);
-        auto doc = hermes::HermesCtr::make_pooled();
-        return doc->set_dataobject<Varchar>(str)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<Varchar>(str);
     }
 };
 
@@ -225,7 +211,7 @@ struct NumericConverter: IDatatypeConverter {
         DTTViewType<FromDT> from_view = *reinterpret_cast<const DTTViewType<FromDT>*>(view);
         DTTViewType<ToDT> to_view     = from_view;
 
-        return hermes::HermesCtr::wrap_dataobject<ToDT>(to_view)->as_object();
+        return hermes::HermesCtr::wrap_dataobject<ToDT>(to_view);
     }
 };
 

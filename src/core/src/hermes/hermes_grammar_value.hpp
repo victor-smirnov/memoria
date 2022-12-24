@@ -103,7 +103,7 @@ public:
     iterator end() {return iterator{};}
 
     void insert(iterator, value_type value) {
-        HermesCtrBuilder::current().append_value(array_, value);
+        array_ = array_.push_back(value);
     }
 
     auto finish() {
@@ -180,7 +180,7 @@ public:
     iterator end() const {return iterator{};}
 
     void insert(iterator, const value_type& entry) {
-        HermesCtrBuilder::current().append_entry(value_, boost::fusion::at_c<0>(entry), boost::fusion::at_c<1>(entry));
+        value_ = value_.put(boost::fusion::at_c<0>(entry), boost::fusion::at_c<1>(entry));
     }
 
     ObjectMap finish() {
@@ -249,7 +249,7 @@ public:
     Datatype finish() const
     {
         HermesCtrBuilder& builder = HermesCtrBuilder::current();
-        Datatype decl = builder.new_datatype(datatype_name_);
+        Datatype decl = builder.make_datatype(datatype_name_);
 
         for (auto& td: params_) {
             builder.add_type_decl_param(decl, td);
@@ -260,13 +260,13 @@ public:
         }
 
         for (auto& ptr_spec: ptr_specs_) {
-            decl->add_ptr_spec(PtrQualifier(ptr_spec.is_const(), ptr_spec.is_volatile()));
+            decl.add_ptr_spec(PtrQualifier(ptr_spec.is_const(), ptr_spec.is_volatile()));
         }
 
-        decl->set_const(is_const_);
-        decl->set_volatile(is_volatile_);
+        decl.set_const(is_const_);
+        decl.set_volatile(is_volatile_);
 
-        decl->set_refs(refs_);
+        decl.set_refs(refs_);
 
         return decl;
     }
@@ -293,21 +293,21 @@ struct ValueVisitor: boost::static_visitor<> {
     Object value;
 
     void operator()(long long v) {
-        value = HermesCtr::wrap_dataobject<BigInt>(v)->as_object();
+        value = HermesCtr::wrap_dataobject<BigInt>(v).as_object();
     }
 
     void operator()(double v) {
-        value = HermesCtr::wrap_dataobject<Double>(v)->as_object();
+        value = HermesCtr::wrap_dataobject<Double>(v).as_object();
     }
 
     void operator()(bool v) {
-        value = HermesCtr::wrap_dataobject<Boolean>(v)->as_object();
+        value = HermesCtr::wrap_dataobject<Boolean>(v).as_object();
     }
 
     void operator()(ObjectMap&) {}
 
     void operator()(Datatype& v) {
-        value = v->as_object();
+        value = v.as_object();
     }
 
     void operator()(Object& v) {
@@ -326,11 +326,11 @@ struct TypedValueValue: boost::fusion::vector2<Datatype, Object> {
         auto& type = boost::fusion::at_c<0>(*this);
         auto& ctr  = boost::fusion::at_c<1>(*this);
 
-        auto ctr_hash = type->cxx_type_hash();
+        auto ctr_hash = type.cxx_type_hash();
         if (has_type_reflection(ctr_hash))
         {
             if (ctr.is_varchar()) {
-                return get_type_reflection(ctr_hash).datatype_convert_from_plain_string(ctr->as_varchar());
+                return get_type_reflection(ctr_hash).datatype_convert_from_plain_string(ctr.as_varchar());
             }
             else {
                 // FIXME: implement object construction from generic
@@ -358,10 +358,10 @@ struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<Datatype
         const auto& type = bf::at_c<1>(*this);
 
         if (MMA_LIKELY(!type)) {
-            return h_str->as_object();
+            return h_str.as_object();
         }
 
-        auto ctr_hash = type.get()->cxx_type_hash();
+        auto ctr_hash = type.get().cxx_type_hash();
         if (has_type_reflection(ctr_hash))
         {
             return get_type_reflection(ctr_hash).datatype_convert_from_plain_string(str);
@@ -369,8 +369,8 @@ struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<Datatype
         else {
             return HermesCtrBuilder::current().new_typed_value(
                     type.get(),
-                    HermesCtr::wrap_dataobject<Varchar>(str)->as_object()
-            )->as_object();
+                    HermesCtr::wrap_dataobject<Varchar>(str).as_object()
+            ).as_object();
         }
 
         return Object{};
@@ -749,7 +749,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
                     ) [finish_value];
 
         static auto finish_parameter = [](auto& attrib, auto& ctx) {
-                    bf::at_c<0>(ctx.attributes) = HermesCtrBuilder::current().new_parameter(attrib.identifier)->as_object();
+                    bf::at_c<0>(ctx.attributes) = HermesCtrBuilder::current().new_parameter(attrib.identifier).as_object();
         };
         parameter = lit('?') >> m_identifierRule[finish_parameter];
 

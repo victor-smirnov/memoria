@@ -37,8 +37,8 @@ void assert_equals(T1&& expected, T2&& actual) {
 
 template <typename T1, typename T2>
 void assert_equals(T1&& expected, Own<T2> actual) {
-    if (!(expected == *actual)) {
-        MMA_THROW(TestExecutionException()) << format_ex("Expected {}, actual {}", expected, *actual);
+    if (!(expected == actual)) {
+        MMA_THROW(TestExecutionException()) << format_ex("Expected {}, actual {}", expected, actual);
     }
 }
 

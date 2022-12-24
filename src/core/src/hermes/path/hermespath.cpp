@@ -27,54 +27,17 @@
 **
 ****************************************************************************/
 #include "memoria/core/hermes/path/path.h"
-#include "interpreter/interpreter.h"
-
 #include "interpreter/hermes_ast_interpreter.h"
 
 #include <boost/hana.hpp>
 
 namespace memoria::hermes::path {
 
-Object search(const Expression &expression, const Object& value)
-{
-    using interpreter::Interpreter;
-    if (expression.isEmpty())
-    {
-        return {};
-    }
-
-    thread_local Interpreter s_interpreter;
-    s_interpreter.setContext(value);
-
-    // evaluate the expression by calling visit with the root of the AST
-    s_interpreter.visit(expression.astRoot());
-
-    return s_interpreter.currentContextValue();
-}
-
-Object search(const Expression &expression, const Object& value, const IParameterResolver& resolver)
-{
-    using interpreter::Interpreter;
-    if (expression.isEmpty())
-    {
-        return {};
-    }
-
-    Interpreter s_interpreter;
-    s_interpreter.setContext(value);
-    s_interpreter.set_parameter_resolver(&resolver);
-
-    // evaluate the expression by calling visit with the root of the AST
-    s_interpreter.visit(expression.astRoot());
-
-    return s_interpreter.currentContextValue();
-}
-
 
 Object search(const TinyObjectMap &expression, const Object& value)
 {
-    using interpreter2::HermesASTInterpreter;
-    if (expression->empty())
+    using interpreter::HermesASTInterpreter;
+    if (expression.empty())
     {
         return {};
     }
@@ -85,13 +48,13 @@ Object search(const TinyObjectMap &expression, const Object& value)
     // evaluate the expression by calling visit with the root of the AST
     s_interpreter.visit(expression);
 
-    return interpreter2::getJsonValue(s_interpreter.currentContextValue());
+    return interpreter::getPathObject(s_interpreter.currentContextValue());
 }
 
 Object search(const TinyObjectMap &expression, const Object& value, const IParameterResolver& resolver)
 {
-    using interpreter2::HermesASTInterpreter;
-    if (expression->empty())
+    using interpreter::HermesASTInterpreter;
+    if (expression.empty())
     {
         return {};
     }
@@ -103,7 +66,7 @@ Object search(const TinyObjectMap &expression, const Object& value, const IParam
     // evaluate the expression by calling visit with the root of the AST
     s_interpreter.visit(expression);
 
-    return interpreter2::getJsonValue(s_interpreter.currentContextValue());
+    return interpreter::getPathObject(s_interpreter.currentContextValue());
 }
 
 

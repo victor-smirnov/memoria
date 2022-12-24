@@ -82,19 +82,21 @@ public:
         dt_ctr_(reinterpret_cast<ArenaDTContainer*>(dt_ctr))
     {}
 
-    PoolSharedPtr<HermesCtr> document() const {
+    ParameterView(MemHolderHandle&& holder, void* dt_ctr) noexcept :
+        ParameterView(holder.release(), dt_ctr)
+    {}
+
+    MemHolderHandle mem_holder() const {
         assert_not_null();
-        return PoolSharedPtr<HermesCtr>(
-                    mem_holder_->ctr(),
-                    mem_holder_->owner(),
-                    pool::DoRef{}
-        );
+        return MemHolderHandle(this->get_mem_holder());
     }
+
+    PoolSharedPtr<HermesCtr> document() const;
 
 
     U8String to_plain_string() const
     {
-        return *view();
+        return view();
     }
 
     uint64_t hash_code() const;
@@ -161,9 +163,9 @@ public:
 
     int32_t compare(const Parameter& other) const
     {
-        if (is_not_null() && other->is_not_null())
+        if (is_not_null() && other.is_not_null())
         {
-            return view()->compare(*other->view());
+            return view().compare(other.view());
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Comparing operands may not be nullptr").do_throw();
@@ -173,12 +175,20 @@ public:
 
     bool equals(const Parameter& other) const
     {
-        if (is_not_null() && other->is_not_null()) {
-            return *view() == *other->view();
+        if (is_not_null() && other.is_not_null()) {
+            return view() == other.view();
         }
         else {
-            return false;
+            return is_null() == other.is_null();
         }
+    }
+
+    bool operator!=(const Parameter& other) const {
+        return !equals(other);
+    }
+
+    bool operator==(const Parameter& other) const {
+        return equals(other);
     }
 
     operator Object() const & noexcept {
@@ -200,7 +210,7 @@ private:
 
 
 static inline std::ostream& operator<<(std::ostream& out, const Parameter& ptr) {
-    out << ptr->to_string();
+    out << ptr.to_string();
     return out;
 }
 

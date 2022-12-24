@@ -29,7 +29,8 @@
 
 #pragma once
 
-#include "interpreter.h"
+
+#include <memoria/core/hermes/hermes.hpp>
 #include "memoria/core/hermes/path/exceptions.h"
 #include <boost/variant.hpp>
 #include <boost/hana.hpp>

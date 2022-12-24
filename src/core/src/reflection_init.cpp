@@ -78,14 +78,14 @@ void InitTypeReflections()
     DataObjectReflectionListBuilder<AllHermesDatatypes>::build();
 
     for_each_type_reflection([](const ShortTypeCode& type_code, TypeReflection& reflection) {
-        auto datatype = HermesCtr::parse_datatype(reflection.str())->root()->as_datatype();
+        auto datatype = HermesCtr::parse_datatype(reflection.str())->root().as_datatype();
 
-        auto hash = datatype->cxx_type_hash();
+        auto hash = datatype.cxx_type_hash();
         register_type_reflection(hash, *reflection.self());
 
         auto alias_dt = datatype;
 
-        register_type_reflection(alias_dt->cxx_type_hash(), *reflection.self());
+        register_type_reflection(alias_dt.cxx_type_hash(), *reflection.self());
     });
 
 }

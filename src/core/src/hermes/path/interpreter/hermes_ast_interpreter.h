@@ -49,15 +49,12 @@ namespace memoria::hermes::path { namespace ast {
 class BinaryExpressionNode;
 }} // namespace hermes::path::ast
 
-namespace memoria::hermes::path { namespace interpreter2 {
-
-
-
+namespace memoria::hermes::path { namespace interpreter {
 
 /**
  * @brief Evaluation context type.
  *
- * It can hold either a @ref Object value or a @ref JsonRef.
+ * It can hold either a @ref Object value or a @ref const HermesObjectResolver*.
  */
 using ContextValue = boost::variant<Object, const HermesObjectResolver*>;
 
@@ -76,8 +73,7 @@ inline Object&& assignContextValue(Object&& value) {
  * @param[in] value A @ref Object value.
  * @return Returns a @ref JsonRef which refers to the given @a value.
  */
-inline Object assignContextValue(const Object& value)
-{
+inline Object assignContextValue(const Object& value) {
     return value;
 }
 
@@ -86,7 +82,7 @@ inline Object assignContextValue(const Object& value)
  * @param[in] contextValue A @ref ContextValue variable.
  * @return Returns a constant reference to the @ref Object value held by @a value.
  */
-inline const Object& getJsonValue(const ContextValue& contextValue)
+inline const Object& getPathObject(const ContextValue& contextValue)
 {
     return boost::get<Object>(contextValue);
 }
@@ -127,7 +123,7 @@ public:
      * @return @ref Object document used as the context.
      */
     const Object &currentContext() const {
-        return getJsonValue(m_context);
+        return getPathObject(m_context);
     }
     /**
      * @brief Returns the current evaluation context which can either hold a
@@ -179,7 +175,7 @@ public:
     void visitExpressionArgumentNode(const ASTNodePtr& node);
     /** @}*/
 
-    static bool toSimpleBoolean(const Object& json);
+    static bool toSimpleBoolean(const Object& path);
 
 private:
     /**
@@ -200,7 +196,7 @@ private:
      * @brief The type of comparator functions used for comparing @ref Object
      * values.
      */
-    using JsonComparator = std::function<bool(const Object&, const Object&)>;
+    using PathComparator = std::function<bool(const Object&, const Object&)>;
     /**
      * @brief Function argument arity validator predicate.
      */
@@ -259,12 +255,12 @@ private:
                               int64_t endpoint,
                               int64_t step) const;
     /**
-     * @brief Converts the @a json value to a boolean.
-     * @param[in] json The @ref Object value that needs to be converted.
-     * @return Returns false if @a json is a false like value (false, 0, empty
+     * @brief Converts the @a path value to a boolean.
+     * @param[in] path The @ref Object value that needs to be converted.
+     * @return Returns false if @a path is a false like value (false, 0, empty
      * list, empty object, empty string, null), otherwise returns true.
      */
-    hermes::Object toBoolean(const Object& json) const;
+    hermes::Object toBoolean(const Object& path) const;
 
 
 
@@ -322,7 +318,7 @@ private:
      * @return Rreference to the Object value held by the @a argument.
      * @throws InvalidFunctionArgumentType
      */
-    const Object& getJsonArgument(FunctionArgument& argument) const;
+    const Object& getArgument(FunctionArgument& argument) const;
     /**
      * @brief Calculates the absolute value of the first item in the given list
      * of @a arguments. The first item must be a number @ref Object value.
@@ -595,7 +591,7 @@ private:
      * then its second argument.
      * @throws InvalidFunctionArgumentType
      */
-    void max(FunctionArgumentList& arguments, const JsonComparator& comparator);
+    void max(FunctionArgumentList& arguments, const PathComparator& comparator);
     /**
      * @brief Finds the largest item in the @a array, it must either be an array
      * of numbers or an array of strings.
@@ -605,7 +601,7 @@ private:
      * @param[in] array A @ref Object array.
      * @throws InvalidFunctionArgumentType
      */
-    void max(const JsonComparator* comparator, ContextValue&& array);
+    void max(const PathComparator* comparator, ContextValue&& array);
     /**
      * @brief Finds the largest item in the array provided as the first item
      * in the @a arguments, which must either be an array of numbers or an array
@@ -618,7 +614,7 @@ private:
      * @throws InvalidFunctionArgumentType
      */
     void maxBy(FunctionArgumentList& arguments,
-               const JsonComparator& comparator = std::less<Object>{});
+               const PathComparator& comparator = std::less<Object>{});
     /**
      * @brief Finds the largest item in the @a array, which must either be an
      * array of numbers or an array of strings, using the @a  expression as a
@@ -632,7 +628,7 @@ private:
      * @throws InvalidFunctionArgumentType
      */
     void maxBy(const ASTNodePtr& expression,
-               const JsonComparator* comparator,
+               const PathComparator* comparator,
                ContextValue&& array);
 
 private:

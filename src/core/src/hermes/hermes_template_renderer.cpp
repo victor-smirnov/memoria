@@ -53,9 +53,9 @@ public:
                 return prop.get();
             }
             else {
-                if (data_->is_map())
+                if (data_.is_map())
                 {
-                    auto map = data_->as_generic_map();
+                    auto map = data_.as_generic_map();
                     return map->get(name);
                 }
                 else {
@@ -67,7 +67,7 @@ public:
 
     Object evaluateExpr(const HermesExprPtr& expr)
     {
-        path::interpreter2::HermesASTInterpreter iterpreter;
+        path::interpreter::HermesASTInterpreter iterpreter;
 
         iterpreter.setContext(&name_resoler_);
         iterpreter.visit(expr);
@@ -76,18 +76,18 @@ public:
 
     void visit(const Object& element)
     {
-        if (element->is_not_null())
+        if (element.is_not_null())
         {
-            if (element->is_varchar()) {
-                visitText(element->as_varchar());
+            if (element.is_varchar()) {
+                visitText(element.as_varchar());
             }
-            else if (element->is_object_array()) {
-                visitStatements(element->as_object_array());
+            else if (element.is_object_array()) {
+                visitStatements(element.as_object_array());
             }
-            else if (element->is_tiny_object_map())
+            else if (element.is_tiny_object_map())
             {
-                auto map = element->as_tiny_object_map();
-                int32_t code = map->get(CODE)->to_i32();
+                auto map = element.as_tiny_object_map();
+                int32_t code = map.get(CODE).to_i32();
                 auto& vmap = visitors_map();
                 auto ii = vmap.find(code);
                 if (ii != vmap.end()) {
@@ -100,7 +100,7 @@ public:
             else {
                 MEMORIA_MAKE_GENERIC_ERROR(
                     "Provided Hermes Template AST node is not an TinyObjectMapView: {}",
-                    element->to_pretty_string()
+                    element.to_pretty_string()
                 ).do_throw();
             }
         }
@@ -113,20 +113,20 @@ public:
 
     void visitStatements(const ObjectArray& element)
     {
-        for (uint64_t c = 0; c < element->size(); c++) {
-            visit(element->get(c));
+        for (uint64_t c = 0; c < element.size(); c++) {
+            visit(element.get(c));
         }
     }
 
     void visitForStmt(const ASTNodeT& element)
     {
-        auto var_name = element->get(VARIABLE).as_data_object<Varchar>();
-        auto expr = element->get(EXPRESSION);
+        auto var_name = element.get(VARIABLE).as_data_object<Varchar>();
+        auto expr = element.get(EXPRESSION);
         auto value = evaluateExpr(expr.as_tiny_object_map());
 
-        auto stmts = element->get(STATEMENTS);
+        auto stmts = element.get(STATEMENTS);
 
-        if (value->is_array())
+        if (value.is_array())
         {
             auto array = value.as_generic_array();
 
@@ -145,38 +145,38 @@ public:
 
     void visitIfStmt(const ASTNodeT& element)
     {
-        auto expr = element->get(EXPRESSION);
-        auto value = evaluateExpr(expr->as_tiny_object_map());
+        auto expr = element.get(EXPRESSION);
+        auto value = evaluateExpr(expr.as_tiny_object_map());
 
-        bool boolValue = path::interpreter2::HermesASTInterpreter::toSimpleBoolean(value);
+        bool boolValue = path::interpreter::HermesASTInterpreter::toSimpleBoolean(value);
         if (boolValue)
         {
-            auto stmts = element->get(STATEMENTS);
-            visitStatements(stmts->as_object_array());
+            auto stmts = element.get(STATEMENTS);
+            visitStatements(stmts.as_object_array());
         }
         else {
-            auto else_part = element->get(ELSE);
+            auto else_part = element.get(ELSE);
             visit(else_part);
         }
     }
 
     void visitElseStmt(const ASTNodeT& element)
     {
-        auto stmts = element->get(STATEMENTS);
+        auto stmts = element.get(STATEMENTS);
         visitStatements(stmts.as_object_array());
     }
 
     void visitSetStmt(const ASTNodeT& element)
     {
-        auto var_name = *element->get(VARIABLE).as_data_object<Varchar>();
-        auto expr  = element->get(EXPRESSION);
+        auto var_name = element.get(VARIABLE).as_data_object<Varchar>();
+        auto expr  = element.get(EXPRESSION);
         auto value = evaluateExpr(expr.as_tiny_object_map());
         stack_.set(var_name, value);
     }
 
     void visitVarStmt(const ASTNodeT& element)
     {
-        auto expr = element->get(EXPRESSION).as_tiny_object_map();
+        auto expr = element.get(EXPRESSION).as_tiny_object_map();
         auto res = evaluateExpr(expr);
         out_ << res.to_plain_string();
     }

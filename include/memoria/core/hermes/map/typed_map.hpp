@@ -57,16 +57,15 @@ protected:
     friend class ArrayView;
 
     friend class HermesCtrBuilder;
-    friend class memoria::hermes::path::interpreter::Interpreter;
     using MapIterator = typename MapStorageT::Iterator;
 
     class EntryT {
         const MapIterator* iter_;
-        mutable LWMemHolder* mem_holder_;
+        MemHolderHandle holder_;
 
     public:
-        EntryT(const MapIterator* iter, LWMemHolder* ptr_holder):
-            iter_(iter), mem_holder_(ptr_holder)
+        EntryT(const MapIterator* iter, MemHolderHandle&& holder):
+            iter_(iter), holder_(std::move(holder))
         {}
 
         KeyView first() const {
@@ -77,15 +76,15 @@ protected:
         {
             if (iter_->value().is_not_null()) {
                 auto ptr = iter_->value().get();
-                return Object(mem_holder_, ptr);
+                return Object(holder_.holder(), ptr);
             }
             else {
-                return Object(mem_holder_, nullptr);
+                return Object();
             }
         }
     };
 
-    using Accessor = MapIteratorAccessor<EntryT, MapView, MapIterator>;
+    using Accessor = MapIteratorAccessor<EntryT, Map<KeyDT, Object>, MapIterator>;
 
 public:
     using Iterator = ForwardIterator<Accessor>;
@@ -97,6 +96,11 @@ public:
         Base(ptr_holder),
         map_(reinterpret_cast<MapStorageT*>(map))
     {}
+
+    MemHolderHandle mem_holder() const {
+        assert_not_null();
+        return MemHolderHandle(this->get_mem_holder());
+    }
 
     bool is_null() const noexcept {
         return !map_;
@@ -111,29 +115,22 @@ public:
     }
 
     Iterator begin() const {
-        return Iterator(Accessor(self(), map_->begin(), mem_holder_));
+        return Iterator(Accessor(self(), map_->begin()));
     }
 
     Iterator end() const {
-        return Iterator(Accessor(self(), map_->end(), mem_holder_));
+        return Iterator(Accessor(self(), map_->end()));
     }
 
     Iterator cbegin() const {
-        return Iterator(Accessor(self(), map_->begin(), mem_holder_));
+        return Iterator(Accessor(self(), map_->begin()));
     }
 
     Iterator cend() const {
-        return Iterator(Accessor(self(), map_->end(), mem_holder_));
+        return Iterator(Accessor(self(), map_->end()));
     }
 
-    PoolSharedPtr<HermesCtr> document() const {
-        assert_not_null();
-        return PoolSharedPtr<HermesCtr>(
-                    mem_holder_->ctr(),
-                    mem_holder_->owner(),
-                    pool::DoRef{}
-        );
-    }
+    PoolSharedPtr<HermesCtr> ctr() const;
 
     Object as_object() const {
         return Object(mem_holder_, map_);
@@ -142,6 +139,11 @@ public:
     uint64_t size() const {
         assert_not_null();
         return map_->size();
+    }
+
+    uint64_t capacity() const {
+        assert_not_null();
+        return map_->capacity();
     }
 
     bool empty() const {
@@ -178,20 +180,36 @@ public:
         return get(code.code());
     }
 
-    template <typename DT>
-    Map<KeyDT, Object> put_dataobject(KeyView key, DTTViewType<DT> value);
 
-    template <typename DT, typename T>
-    Map<KeyDT, Object> put_dataobject(const NamedTypedCode<T>& code, DTTViewType<DT> value) {
-        return put_dataobject<DT>(code.code(), value);
+
+    template <typename V, std::enable_if_t<HermesObject<V>::Value, int> = 0>
+    Map<KeyDT, Object> put(KeyView name, const V& value) {
+        return put_object(name, value);
     }
 
-    Map<KeyDT, Object> put(KeyView name, Object value);
+    template <typename ViewT, std::enable_if_t<!HermesObject<ViewT>::Value, int> = 0>
+    Map<KeyDT, Object> put(KeyView name, const ViewT& value) {
+        using DT = typename ViewToDTMapping<ViewT>::Type;
+        return put_dataobject<DT>(name, value);
+    }
 
-    template <typename T>
-    Map<KeyDT, Object> put(const NamedTypedCode<T>& code, const Object& value) {
+
+    template <typename DT, typename ViewT>
+    Map<KeyDT, Object> put_t(KeyView name, const ViewT& value) {
+        return put_dataobject<DT>(name, value);
+    }
+
+
+    template <typename T, typename V>
+    Map<KeyDT, Object> put(const NamedTypedCode<T>& code, const V& value) {
         return put(code.code(), value);
     }
+
+    template <typename DT, typename T, typename ViewT>
+    Map<KeyDT, Object> put_t(const NamedTypedCode<T>& code, const ViewT& view) {
+        return put_t<DT>(code.code(), view);
+    }
+
 
     Map<KeyDT, Object> remove(KeyView key);
 
@@ -244,7 +262,7 @@ public:
         bool simple = true;
 
         for_each([&](auto, auto vv){
-            simple = simple && vv->is_simple_layout();
+            simple = simple && vv.is_simple_layout();
         });
 
         return simple;
@@ -266,7 +284,48 @@ public:
         return Object(this->release_mem_holder(), map_, MoveOwnershipTag{});
     }
 
+
+    bool operator!=(const MapView<KeyDT, Object>& other) const {
+        return !operator==(other);
+    }
+
+    bool operator==(const MapView<KeyDT, Object>& other) const
+    {
+        if (is_not_null() && other.is_not_null())
+        {
+            uint64_t my_size = size();
+            if (my_size == other.size())
+            {
+                auto ii = begin();
+                auto ee = end();
+
+                while (ii != ee) {
+                    auto vv = other.get(ii->first());
+
+                    if (ii->second() != vv) {
+                        return false;
+                    }
+
+                    ++ii;
+                }
+
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        return is_null() && other.is_null();
+    }
+
 private:
+    Map<KeyDT, Object> put_object(KeyView name, const Object& value);
+
+    template <typename DT>
+    Map<KeyDT, Object> put_dataobject(KeyView key, DTTViewType<DT> value);
+
+
     void do_stringify(std::ostream& out, DumpFormatState& state) const;
 
     void assert_not_null() const {
@@ -287,15 +346,13 @@ class TypedGenericMapEntry<KeyDT, Object>: public GenericMapEntry {
     IteratorT iter_;
     IteratorT end_;
 
-    LWMemHolder* mem_holder_;
-
 public:
-    TypedGenericMapEntry(IteratorT iter, IteratorT end, LWMemHolder* ptr_holder):
-        iter_(iter), end_(end), mem_holder_(ptr_holder)
+    TypedGenericMapEntry(IteratorT iter, IteratorT end):
+        iter_(iter), end_(end)
     {}
 
     virtual Object key() const {
-        return Object(mem_holder_, iter_->first(), DirectViewTag<KeyDT>{});
+        return Object(iter_.accessor().map().mem_holder(), iter_->first(), DirectViewTag<KeyDT>{});
     }
 
     virtual Object value() const {
@@ -314,23 +371,19 @@ public:
 
 template <typename KeyDT>
 class TypedGenericMap<KeyDT, Object>: public GenericMap, public pool::enable_shared_from_this<TypedGenericMap<KeyDT, Object>> {
-    // FIXME: We dont need to store ctr_holder explicitly
-    LWMemHolder* ctr_holder_;
-    mutable MapView<KeyDT, Object> map_;
+    mutable Map<KeyDT, Object> map_;
 public:
-    TypedGenericMap(LWMemHolder* ctr_holder, void* map):
-        ctr_holder_(ctr_holder),
-        map_(ctr_holder, map)
-    {
-        ctr_holder->ref_copy();
-    }
+    TypedGenericMap(Map<KeyDT, Object>&& map):
+        map_(std::move(map))
+    {}
 
-    virtual ~TypedGenericMap() noexcept {
-        ctr_holder_->unref();
-    }
 
     virtual uint64_t size() const {
         return map_.size();
+    }
+
+    virtual uint64_t capacity() const {
+        return map_.capacity();
     }
 
     virtual Object get(const Object& key) const {
@@ -355,17 +408,17 @@ public:
 
     virtual GenericMapPtr put(const Object& key, const Object& value) {
         auto new_map = map_.put(key.convert_to<KeyDT>().template as_data_object<KeyDT>(), value);
-        return make_wrapper(ctr_holder_, new_map->map_);
+        return make_wrapper(std::move(new_map));
     }
 
 
     virtual GenericMapPtr remove(const Object& key) {
         auto new_map = map_.remove(key.convert_to<KeyDT>().template as_data_object<KeyDT>());
-        return make_wrapper(ctr_holder_, new_map->map_);
+        return make_wrapper(std::move(new_map));
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {
-        return map_.document();
+        return map_.ctr();
     }
 
     virtual bool is_array() const {
@@ -394,7 +447,7 @@ public:
 
     virtual PoolSharedPtr<GenericMapEntry> iterator() const;
 
-    static PoolSharedPtr<GenericMap> make_wrapper(LWMemHolder* ctr_holder, void* map);
+    static PoolSharedPtr<GenericMap> make_wrapper(Map<KeyDT, Object>&& map);
 };
 
 

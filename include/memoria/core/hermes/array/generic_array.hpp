@@ -25,6 +25,7 @@ namespace memoria {
 namespace hermes {
 
 struct GenericArray: GenericObject {
+    virtual uint64_t capacity() const = 0;
     virtual uint64_t size() const = 0;
     virtual Object get(uint64_t idx) const = 0;
 

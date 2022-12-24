@@ -50,36 +50,38 @@ protected:
     friend class ArrayView;
 
     friend class HermesCtrBuilder;
-    friend class memoria::hermes::path::interpreter::Interpreter;
-    using MapIterator = typename MapStorageT::Iterator;
 
+    using MapIterator = typename MapStorageT::Iterator;
 
     class EntryT {
         const MapIterator* iter_;
-        mutable LWMemHolder* mem_holder_;
+        MemHolderHandle holder_;
+
 
     public:
-        EntryT(const MapIterator* iter, LWMemHolder* ptr_holder):
-            iter_(iter), mem_holder_(ptr_holder)
+        EntryT(const MapIterator* iter, MemHolderHandle&& holder):
+            iter_(iter), holder_(std::move(holder))
         {}
 
+
+
         StringOView first() const {
-            return iter_->key()->view(mem_holder_);
+            return iter_->key()->view(holder_.holder());
         }
 
         Object second() const
         {
             if (iter_->value().is_not_null()) {
                 auto ptr = iter_->value().get();
-                return Object(mem_holder_, ptr);
+                return Object(holder_.holder(), ptr);
             }
             else {
-                return Object(mem_holder_, nullptr);
+                return Object();
             }
         }
     };
 
-    using Accessor = MapIteratorAccessor<EntryT, MapView, MapIterator>;
+    using Accessor = MapIteratorAccessor<EntryT, Map<Varchar, Object>, MapIterator>;
 
 public:
     using Iterator = ForwardIterator<Accessor>;
@@ -92,6 +94,11 @@ public:
         map_(reinterpret_cast<MapStorageT*>(map))
     {}
 
+    MemHolderHandle mem_holder() const {
+        assert_not_null();
+        return MemHolderHandle(get_mem_holder());
+    }
+
     bool is_null() const noexcept {
         return !map_;
     }
@@ -101,41 +108,40 @@ public:
     }
 
     ObjectMap self() const {
-        return ObjectMap(MapView(mem_holder_, map_));
+        return ObjectMap(mem_holder_, map_);
     }
 
     Iterator begin() const {
-        return Iterator(Accessor(self(), map_->begin(), mem_holder_));
+        return Iterator(Accessor(self(), map_->begin()));
     }
 
     Iterator end() const {
-        return Iterator(Accessor(self(), map_->end(), mem_holder_));
+        return Iterator(Accessor(self(), map_->end()));
     }
 
     Iterator cbegin() const {
-        return Iterator(Accessor(self(), map_->begin(), mem_holder_));
+        return Iterator(Accessor(self(), map_->begin()));
     }
 
     Iterator cend() const {
-        return Iterator(Accessor(self(), map_->end(), mem_holder_));
+        return Iterator(Accessor(self(), map_->end()));
     }
 
-    PoolSharedPtr<HermesCtr> document() const {
-        assert_not_null();
-        return PoolSharedPtr<HermesCtr>(
-                    mem_holder_->ctr(),
-                    mem_holder_->owner(),
-                    pool::DoRef{}
-        );
-    }
+    PoolSharedPtr<HermesCtr> ctr() const;
 
     Object as_object() const {
-        return Object(ObjectView(mem_holder_, map_));
+        return Object(mem_holder_, map_);
     }
 
     uint64_t size() const {
         assert_not_null();
         return map_->size();
+    }
+
+
+    uint64_t capacity() const {
+        assert_not_null();
+        return map_->capacity();
     }
 
     bool empty() const {
@@ -173,13 +179,7 @@ public:
         return get(code.name());
     }
 
-    template <typename DT>
-    ObjectMap put_dataobject(U8StringView key, DTTViewType<DT> value);
 
-    template <typename DT, typename T>
-    ObjectMap put_dataobject(const NamedTypedCode<T>& code, DTTViewType<DT> value) {
-        return put_dataobject<DT>(code.name(), value);
-    }
 
     void stringify(std::ostream& out,
                    DumpFormatState& state) const
@@ -227,13 +227,13 @@ public:
         bool simple = true;
 
         for_each([&](auto, auto vv){
-            simple = simple && vv->is_simple_layout();
+            simple = simple && vv.is_simple_layout();
         });
 
         return simple;
     }
 
-    ObjectMap remove(U8StringView key);
+    MMA_NODISCARD ObjectMap remove(U8StringView key);
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
@@ -242,12 +242,30 @@ public:
 
     PoolSharedPtr<GenericMap> as_generic_map() const;
 
-    // FIXME: const Object&
-    ObjectMap put(U8StringView name, Object value);
+    template <typename V, std::enable_if_t<HermesObject<V>::Value, int> = 0>
+    MMA_NODISCARD ObjectMap put(U8StringView name, const V& value) {
+        return put_object(name, value);
+    }
 
-    template <typename T>
-    ObjectMap put(const NamedTypedCode<T>& code, const Object& value) {
+    template <typename ViewT, std::enable_if_t<!HermesObject<ViewT>::Value, int> = 0>
+    MMA_NODISCARD ObjectMap put(U8StringView name, const ViewT& value) {
+        using DT = typename ViewToDTMapping<ViewT>::Type;
+        return put_dataobject<DT>(name, value);
+    }
+
+    template <typename DT, typename ViewT>
+    MMA_NODISCARD ObjectMap put_t(U8StringView name, const ViewT& view) {
+        return put_dataobject<DT>(name, view);
+    }
+
+    template <typename T, typename V>
+    MMA_NODISCARD ObjectMap put(const NamedTypedCode<T>& code, const V& value) {
         return put(code.name(), value);
+    }
+
+    template <typename DT, typename T, typename ViewT>
+    MMA_NODISCARD ObjectMap put_t(const NamedTypedCode<T>& code, const ViewT& value) {
+        return put_t<DT>(code.name(), value);
     }
 
     operator Object() const & noexcept {
@@ -258,7 +276,47 @@ public:
         return Object(this->release_mem_holder(), map_, MoveOwnershipTag{});
     }
 
+    bool operator!=(const MapView<Varchar, Object>& other) const {
+        return !operator==(other);
+    }
+
+    bool operator==(const MapView<Varchar, Object>& other) const
+    {
+        if (is_not_null() && other.is_not_null())
+        {
+            uint64_t my_size = size();
+            if (my_size == other.size())
+            {
+                auto ii = begin();
+                auto ee = end();
+
+                while (ii != ee) {
+                    Object vv = other.get(ii->first());
+
+                    if (ii->second() != vv) {
+                        return false;
+                    }
+
+                    ++ii;
+                }
+
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        return is_null() && other.is_null();
+    }
+
+
 private:
+    MMA_NODISCARD ObjectMap put_object(U8StringView name, const Object& value);
+
+    template <typename DT>
+    MMA_NODISCARD ObjectMap put_dataobject(U8StringView key, DTTViewType<DT> value);
+
     void do_stringify(std::ostream& out, DumpFormatState& state) const;
 
     void assert_not_null() const
@@ -306,22 +364,19 @@ public:
 
 template <>
 class TypedGenericMap<Varchar, Object>: public GenericMap, public pool::enable_shared_from_this<TypedGenericMap<Varchar, Object>> {
-    LWMemHolder* ctr_holder_;
-    mutable MapView<Varchar, Object> map_;
+    mutable Map<Varchar, Object> map_;
 public:
-    TypedGenericMap(LWMemHolder* ctr_holder, void* map):
-        ctr_holder_(ctr_holder),
-        map_(ctr_holder, map)
+    TypedGenericMap(Map<Varchar, Object>&& map):
+        map_(std::move(map))
     {
-        ctr_holder->ref_copy();
-    }
-
-    virtual ~TypedGenericMap() noexcept {
-        ctr_holder_->unref();
     }
 
     virtual uint64_t size() const {
         return map_.size();
+    }
+
+    virtual uint64_t capacity() const {
+        return map_.capacity();
     }
 
     virtual Object get(const Object& key) const {
@@ -345,21 +400,19 @@ public:
     }
 
 
-
-
     virtual GenericMapPtr put(const Object& key, const Object& value) {
-        auto new_map = map_.put(key->as_varchar(), value);
-        return make_wrapper(ctr_holder_, new_map->map_);
+        auto new_map = map_.put(key.as_varchar(), value);
+        return make_wrapper(std::move(new_map));
     }
 
 
     virtual GenericMapPtr remove(const Object& key) {
         auto new_map = map_.remove(key.as_varchar());
-        return make_wrapper(ctr_holder_, new_map->map_);
+        return make_wrapper(std::move(new_map));
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {
-        return map_.document();
+        return map_.ctr();
     }
 
     virtual bool is_array() const {
@@ -388,7 +441,7 @@ public:
 
     virtual PoolSharedPtr<GenericMapEntry> iterator() const;
 
-    static PoolSharedPtr<GenericMap> make_wrapper(LWMemHolder* ctr_holder, void* map);
+    static PoolSharedPtr<GenericMap> make_wrapper(Map<Varchar, Object>&&);
 };
 
 

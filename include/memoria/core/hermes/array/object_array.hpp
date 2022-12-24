@@ -33,20 +33,7 @@ namespace hermes {
 template <typename V>
 class ArrayView;
 
-template <typename ArrayT, typename ValueT>
-struct ArrayAccessor {
-    using ViewType = ValueT;
 
-    mutable ArrayT array;
-
-    ValueT get(uint64_t idx) const {
-        return array->get(idx);
-    }
-
-    bool operator==(const ArrayAccessor& other) const {
-        return array->equals(other.array);
-    }
-};
 
 template <>
 class ArrayView<Object>: public HoldingView<ArrayView<ObjectView>> {
@@ -74,7 +61,6 @@ protected:
     template <typename>
     friend class TypedGenericArray;
 
-    friend class memoria::hermes::path::interpreter::Interpreter;
     friend class HermesCtrBuilder;
 
     using Accessor = ArrayAccessor<ObjectArray, Object>;
@@ -90,6 +76,11 @@ public:
         Base(ref_holder),
         array_(reinterpret_cast<ArrayStorageT*>(array))
     {}
+
+    MemHolderHandle mem_holder() const {
+        assert_not_null();
+        return MemHolderHandle(get_mem_holder());
+    }
 
     iterator begin() {
         assert_not_null();
@@ -117,22 +108,21 @@ public:
         return ObjectArray(ObjectArrayView(mem_holder_, array_));
     }
 
-    PoolSharedPtr<HermesCtr> document() const {
-        assert_not_null();
-        return PoolSharedPtr<HermesCtr>(
-                    mem_holder_->ctr(),
-                    mem_holder_->owner(),
-                    pool::DoRef{}
-        );
-    }
+    PoolSharedPtr<HermesCtr> ctr() const;
 
     Object as_object() const {
-        return Object(ObjectView(mem_holder_, array_));
+        return Object(mem_holder_, array_);
     }
 
     uint64_t size() const {
         assert_not_null();
         return array_->size();
+    }
+
+
+    uint64_t capacity() const {
+        assert_not_null();
+        return array_->capacity();
     }
 
 
@@ -145,10 +135,10 @@ public:
         return array_->size() == 0;
     }
 
-    Object get(uint64_t idx) const;   
+    Object get(uint64_t idx) const;
 
 
-    template <typename T, std::enable_if_t<!std::is_same_v<std::decay_t<T>, Object>, int> = 0>
+    template <typename T, std::enable_if_t<!HermesObject<std::decay_t<T>>::Value, int> = 0>
     Object set(uint64_t idx, T&& value);
 
     template <typename DT, typename T>
@@ -156,18 +146,16 @@ public:
 
     Object set(uint64_t idx, const Object& value);
 
-    template <typename T, std::enable_if_t<!std::is_same_v<std::decay_t<T>, Object>, int> = 0>
-    ObjectArray append(T&& view);
+    template <typename T, std::enable_if_t<!HermesObject<std::decay_t<T>>::Value, int> = 0>
+    ObjectArray push_back(T&& view);
 
     template <typename DT, typename T>
-    ObjectArray append_t(T&& view);
-
-    ObjectArray append(const Object& value);
-
+    MMA_NODISCARD ObjectArray push_back_t(T&& view);
+    MMA_NODISCARD ObjectArray push_back(const Object& value);
 
     void set_null(uint64_t idx);
 
-    ObjectArray remove(uint64_t idx);
+    MMA_NODISCARD ObjectArray remove(uint64_t idx);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state) const
@@ -196,7 +184,7 @@ public:
         bool simple = true;
 
         for_each([&](auto vv){
-            simple = simple && vv->is_simple_layout();
+            simple = simple && vv.is_simple_layout();
         });
 
         return simple;
@@ -214,7 +202,7 @@ public:
 
     void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
         assert_not_null();
-        return array_->deep_copy_to(arena, ShortTypeCode::of<ArrayView>(), mem_holder_, dedup);
+        return array_->deep_copy_to(arena, ShortTypeCode::of<Array<Object>>(), mem_holder_, dedup);
     }
 
     operator Object() const & noexcept {
@@ -223,6 +211,33 @@ public:
 
     operator Object() && noexcept {
         return Object(this->release_mem_holder(), array_, MoveOwnershipTag{});
+    }
+
+    bool operator!=(const ArrayView<Object>& other) const {
+        return !operator==(other);
+    }
+
+    bool operator==(const ArrayView<Object>& other) const
+    {
+        if (is_not_null() && other.is_not_null())
+        {
+            uint64_t my_size = size();
+            if (my_size == other.size())
+            {
+                for (uint64_t c = 0; c < my_size; c++) {
+                    if (get(c) != other.get(c)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        return is_null() && other.is_null();
     }
 
 private:
@@ -254,7 +269,7 @@ private:
                 }
 
                 state.make_indent(out);
-                vv->stringify(out, state);
+                vv.stringify(out, state);
             });
             state.pop();
 
@@ -271,22 +286,18 @@ private:
 
 template<>
 class TypedGenericArray<Object>: public GenericArray, public pool::enable_shared_from_this<TypedGenericArray<Object>> {
-    LWMemHolder* ctr_holder_;
-    mutable ArrayView<Object> array_;
+    mutable Array<Object> array_;
 public:
-    TypedGenericArray(LWMemHolder* ctr_holder, void* array):
-        ctr_holder_(ctr_holder),
-        array_(ctr_holder, array)
-    {
-        ctr_holder->ref_copy();
-    }
-
-    virtual ~TypedGenericArray() noexcept {
-        ctr_holder_->unref();
-    }
+    TypedGenericArray(Array<Object>&& array):
+        array_(std::move(array))
+    {}
 
     virtual uint64_t size() const {
         return array_.size();
+    }
+
+    virtual uint64_t capacity() const {
+        return array_.capacity();
     }
 
     virtual Object get(uint64_t idx) const {
@@ -299,12 +310,12 @@ public:
 
     virtual GenericArrayPtr push_back(const Object& value)
     {
-        auto new_array = array_.append(value);
-        if (MMA_LIKELY(new_array->array_ == array_.array_)) {
+        auto new_array = array_.push_back(value);
+        if (MMA_LIKELY(new_array.array_ == array_.array_)) {
             return this->shared_from_this();
         }
         else {
-            return make_wrapper(ctr_holder_, new_array->array_);
+            return make_wrapper(std::move(new_array));
         }
     }
 
@@ -313,7 +324,7 @@ public:
     }
 
     virtual PoolSharedPtr<HermesCtr> ctr() const {
-        return array_.document();
+        return array_.ctr();
     }
 
     virtual bool is_array() const {
@@ -341,7 +352,7 @@ public:
         return array_.as_object();
     }
 
-    static PoolSharedPtr<GenericArray> make_wrapper(LWMemHolder* ctr_holder, void* array);
+    static PoolSharedPtr<GenericArray> make_wrapper(Array<Object>&&);
 };
 
 

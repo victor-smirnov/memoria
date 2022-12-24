@@ -307,6 +307,9 @@ public:
         pos_(pos), size_(size), accessor_(accessor)
     {}
 
+    AccessorType& accessor() {return accessor_;}
+    const AccessorType& accessor() const {return accessor_;}
+
     size_t size() const noexcept {return size_;}
     size_t pos() const noexcept {return pos_;}
 
@@ -363,6 +366,14 @@ public:
     ForwardIterator(AccessorType accessor) : accessor_(accessor)
     {}
 
+    auto& accessor() {
+        return accessor_;
+    }
+
+    const auto& accessor() const {
+        return accessor_;
+    }
+
 private:
     friend class boost::iterator_core_access;
 
@@ -392,22 +403,6 @@ private:
 
 public:
     TaggedValue() = default;
-
-//    TaggedValue(ShortTypeCode tag, const arena::ERelativePtr& eptr):
-//        tag_(tag)
-//    {
-//        constexpr size_t EBUF_SIZE = arena::ERelativePtr::BUFFER_SIZE;
-
-//        static_assert(EBUF_SIZE <= VALUE_SIZE, "");
-
-//        for (size_t c = 0; c < EBUF_SIZE - 1; c++) {
-//            value_[c] = eptr.buffer()[c];
-//        }
-
-//        for (size_t c = EBUF_SIZE - 1; c < VALUE_SIZE; c++) {
-//            value_[c] = 0;
-//        }
-//    }
 
     TaggedValue(const arena::ERelativePtr& eptr):
         tag_(ShortTypeCode::of_object(eptr.get_tag()))
@@ -791,5 +786,19 @@ public:
     }
 };
 
+template <typename ArrayT, typename ValueT>
+struct ArrayAccessor {
+    using ViewType = ValueT;
+
+    mutable ArrayT array;
+
+    ValueT get(uint64_t idx) const {
+        return array->get(idx);
+    }
+
+    bool operator==(const ArrayAccessor& other) const {
+        return array->equals(other.array);
+    }
+};
 
 }}

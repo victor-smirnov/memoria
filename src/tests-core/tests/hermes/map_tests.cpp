@@ -24,9 +24,7 @@ auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>(
     auto doc = hermes::HermesCtr::make_new();
 
     auto map = doc->make_object_map();
-    doc->set_root(map->as_object());
-    //assert_equals(true, doc->root()->as_generic_map()->equals(map));
-    assert_equals(0, map->size());
+    assert_equals(0, map.size());
 
     size_t size = 10000;
 
@@ -35,29 +33,26 @@ auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>(
     {
         U8String key = "Entry" + std::to_string(c);
         values[key] = c;
-        map->put_dataobject<BigInt>(key, c);
+        map = map.put_t<BigInt>(key, c);
 
         if (c % 500 == 0) {
-            assert_arrays_equal(values, *map);
+            assert_arrays_equal(values, map);
         }
     }
-
-    assert_arrays_equal(values, *map);
-
+    assert_arrays_equal(values, map);
 
     for (size_t c = 0; c < size; c++)
     {
         U8String key = "Entry" + std::to_string(c);
 
-        map->remove(key);
+        map = map.remove(key);
         values.erase(key);
 
         if (c % 500 == 0) {
-            assert_arrays_equal(values, *map);
+            assert_arrays_equal(values, map);
         }
     }
-
-    assert_equals(0, map->size());
+    assert_equals(0, map.size());
 });
 
 
@@ -65,21 +60,21 @@ auto ldd_map_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     auto doc = hermes::HermesCtr::make_new();
 
     auto map = doc->make_object_map();
-    doc->set_root(map->as_object());
+//    doc->set_root(map.as_object());
 //    assert_equals(true, doc->root()->as_generic_map()->equals(map));
-    assert_equals(0, map->size());
+    assert_equals(0, map.size());
 
-    map->put_dataobject<Varchar>("Entry0", "Hello World");
-    assert_equals(true, map->get("Entry0").is_varchar());
-    assert_equals("Hello World", map->get("Entry0").as_varchar());
+    map = map.put("Entry0", "Hello World");
+    assert_equals(true, map.get("Entry0").is_varchar());
+    assert_equals("Hello World", map.get("Entry0").as_varchar());
 
-    map->put_dataobject<Double>("Entry1", 123456);
-    assert_equals(true, map->get("Entry1").is_double());
-    assert_equals(123456, map->get("Entry1").as_double());
+    map = map.put_t<Double>("Entry1", 123456);
+    assert_equals(true, map.get("Entry1").is_double());
+    assert_equals(123456, map.get("Entry1").as_double());
 
-    map->put_dataobject<Boolean>("Entry2", true);
-    assert_equals(true, map->get("Entry2").is_boolean());
-    assert_equals(true, map->get("Entry2").as_boolean());
+    map = map.put("Entry2", true);
+    assert_equals(true, map.get("Entry2").is_boolean());
+    assert_equals(true, map.get("Entry2").as_boolean());
 
 //    auto map1 = map->put_generic_map("Entry3");
 //    assert_equals(true, map->get("Entry3")->is_map());

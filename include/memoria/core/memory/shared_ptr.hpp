@@ -154,6 +154,80 @@ public:
     }
 };
 
+class MemHolderHandle {
+    mutable LWMemHolder* holder_;
+public:
+    MemHolderHandle(): holder_(nullptr) {}
+
+    MemHolderHandle(LWMemHolder* holder):
+        holder_(holder)
+    {
+        holder->ref_copy();
+    }
+
+    MemHolderHandle(MemHolderHandle&& other) noexcept :
+        holder_(other.holder_)
+    {
+        other.holder_ = nullptr;
+    }
+
+    MemHolderHandle(const MemHolderHandle& other) noexcept :
+        holder_(other.holder_)
+    {
+        if (holder_) {
+            holder_->ref_copy();
+        }
+    }
+
+    ~MemHolderHandle() noexcept
+    {
+        if (holder_) {
+            holder_->unref();
+        }
+    }
+
+    MemHolderHandle& operator=(const MemHolderHandle& other)
+    {
+        if (holder_) {
+            holder_->unref();
+        }
+
+        holder_ = other.holder_;
+
+        if (holder_) {
+            holder_->ref_copy();
+        }
+
+        return *this;
+    }
+
+    MemHolderHandle& operator=(MemHolderHandle&& other)
+    {
+        if (holder_) {
+            holder_->unref();
+        }
+
+        holder_ = other.holder_;
+        other.holder_ = nullptr;
+
+        return *this;
+    }
+
+    bool operator==(const MemHolderHandle& other) const noexcept {
+        return holder_ == other.holder_;
+    }
+
+    LWMemHolder* holder() const {
+        return holder_;
+    }
+
+    LWMemHolder* release() {
+        auto tmp = holder_;
+        holder_ = nullptr;
+        return tmp;
+    }
+};
+
 enum class OwningKind: size_t {
     EMBEDDED = 0,
     RESERVED = 1,
@@ -408,6 +482,11 @@ public:
     {}
 
     template <typename... Args>
+    Own(MemHolderHandle&& holder, Args&&... args):
+        Base(std::forward<Args>(args)...)
+    {}
+
+    template <typename... Args>
     Own(Args&&... args):
         Base(std::forward<Args>(args)...)
     {}
@@ -475,15 +554,6 @@ public:
     auto use_count() const {
         return 1;
     }
-
-    ViewT* operator->() {return this;}
-    ViewT* operator->() const {return this;}
-
-    ViewT& operator*() {return *this;}
-    ViewT& operator*() const {return *this;}
-
-    ViewT* get() {return this;}
-    const ViewT* get() const {return this;}
 };
 
 
@@ -508,6 +578,11 @@ public:
             holder->ref_copy();
         }
     }
+
+    template <typename... Args>
+    Own(MemHolderHandle&& holder, Args&&... args):
+        Base(std::move(holder), std::forward<Args>(args)...)
+    {}
 
     Own(ViewT view) noexcept :
         Base(view)
@@ -631,15 +706,6 @@ public:
             return 0;
         }
     }
-
-    ViewT* operator->() {return this;}
-    const ViewT* operator->() const {return this;}
-
-    ViewT& operator*() {return *this;}
-    const ViewT& operator*() const {return *this;}
-
-    ViewT* get() {return &this;}
-    const ViewT* get() const {return &this;}
 
     bool is_empty() const {
         return this->get_mem_holder() == nullptr;

@@ -25,7 +25,7 @@ auto document_set_test = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     assert_equals(true, doc->root().is_double());
     assert_equals(12345.67, doc->root().as_double());
     assert_throws<ResultException>([&](){
-        doc->root()->as_bigint();
+        doc->root().as_bigint();
     });
 
 
@@ -34,7 +34,7 @@ auto document_set_test = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     assert_equals("Hello world", doc->root().as_varchar());
 
     assert_throws<ResultException>([&](){
-        doc->root()->as_double();
+        doc->root().as_double();
     });
 
     doc->set_dataobject<BigInt>(123);
@@ -42,7 +42,7 @@ auto document_set_test = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     assert_equals(123, doc->root().as_bigint());
 
     assert_throws<ResultException>([&](){
-        doc->root()->as_double();
+        doc->root().as_double();
     });
 
     doc->set_dataobject<Boolean>(1);
@@ -50,10 +50,10 @@ auto document_set_test = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     assert_equals(1, doc->root().as_boolean());
 
     assert_throws<ResultException>([&](){
-        doc->root()->as_double();
+        doc->root().as_double();
     });
 
-    doc->set_hermes("12345");
+    doc->set_hermes("12345ll");
     assert_equals(true, doc->root().is_bigint());
     assert_equals(12345, doc->root().as_bigint());
 
@@ -61,14 +61,14 @@ auto document_set_test = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     assert_equals(true, doc->root().is_map());
     assert_equals(0, doc->root().as_generic_map()->size());
     assert_throws<ResultException>([&](){
-        doc->root()->as_double();
+        doc->root().as_double();
     });
 
-    doc->set_hermes("[]");
+    doc->set_hermes("[1,2,3,4]");
     assert_equals(true, doc->root().is_array());
-    assert_equals(0, doc->root().as_generic_array()->size());
+    assert_equals(4, doc->root().as_generic_array()->size());
     assert_throws<ResultException>([&](){
-        doc->root()->as_double();
+        doc->root().as_double();
     });
 
     doc->set_hermes("Decimal(1,2)");
@@ -78,7 +78,7 @@ auto document_set_test = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     });
 
     doc->set_null();
-    assert_equals(true, doc->root()->is_null());
+    assert_equals(true, doc->root().is_null());
     assert_throws<ResultException>([&](){
         doc->root().as_double();
     });

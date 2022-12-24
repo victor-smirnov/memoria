@@ -18,137 +18,139 @@
 namespace memoria {
 namespace tests {
 
+using namespace memoria::hermes;
 
-auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "ArrayAddRemove", [](auto& state){
-    auto doc = hermes::HermesCtr::make_new();
+auto hermes_object_array_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "ObjectArrayAddRemove", [](auto& state){
+    auto doc = HermesCtr::make_new();
 
-    auto array = doc->make_object_array();
-    doc->set_root(array->as_object());
-    //assert_equals(true, doc->root()->as_generic_array()->equals(array));
-    assert_equals(0, array->size());
+    auto array = doc->make_t<Array<Object>>();
+
+    assert_equals(0, array.size());
 
     size_t size = 10000;
 
     std::vector<int64_t> values;
     for (size_t c = 0; c < size; c++)
     {
-        array->append_t<BigInt>(12345 + c);
+        array = array.push_back_t<BigInt>(12345 + c);
         values.push_back(12345 + c);
         if (c % 100 == 0) {
-            assert_arrays_equal(values, *array);
+            assert_arrays_equal(values, array);
         }
     }
 
-    assert_arrays_equal(values, *array);
+    assert_arrays_equal(values, array);
 
     assert_throws<ResultException>([&](){
-        array->get(size);
+        array.get(size);
     });
 
     for (size_t c = 0; c < size; c++) {
-        array->remove(0);
+        array = array.remove(0);
         values.erase(values.begin(), values.begin() + 1);
 
         if (c % 100 == 0) {
-            assert_arrays_equal(values, *array);
+            assert_arrays_equal(values, array);
         }
     }
 
-    assert_equals(0, array->size());
+    assert_equals(0, array.size());
+});
+
+auto hermes_integer_array_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "IntegerArrayAddRemove", [](auto& state){
+    auto doc = HermesCtr::make_new();
+
+    auto array = doc->make_t<Array<Integer>>();
+    assert_equals(0, array.size());
+
+    size_t size = 10000;
+
+    std::vector<int64_t> values;
+    for (size_t c = 0; c < size; c++)
+    {
+        array = array.push_back(12345 + c);
+        values.push_back(12345 + c);
+        if (c % 100 == 0) {
+            assert_arrays_equal(values, array);
+        }
+    }
+
+    assert_arrays_equal(values, array);
+
+    assert_throws<ResultException>([&](){
+        array.get(size);
+    });
+
+    for (size_t c = 0; c < size; c++) {
+        array = array.remove(0);
+        values.erase(values.begin(), values.begin() + 1);
+
+        if (c % 100 == 0) {
+            assert_arrays_equal(values, array);
+        }
+    }
+
+    assert_equals(0, array.size());
 });
 
 
-auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "ArraySet", [](auto& state){
+auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "ObjectArraySet", [](auto& state){
     auto doc = hermes::HermesCtr::make_new();
 
     auto array = doc->make_object_array();
-    doc->set_root(array->as_object());
-//    assert_equals(true, doc->root()->as_generic_array()->equals(array));
-    assert_equals(0, array->size());
+    assert_equals(0, array.size());
 
-    array->append_t<Varchar>("Hello World");
-    assert_equals(true, array->get(0)->is_varchar());
-    assert_equals("Hello World", array->get(0).as_varchar());
+    array = array.push_back_t<Varchar>("Hello World");
+    assert_equals(true, array.get(0).is_varchar());
+    assert_equals("Hello World", array.get(0).as_varchar());
 
-    array->append_t<Double>(123456);
-    assert_equals(true, array->get(1).is_double());
-    assert_equals(123456, array->get(1).as_double());
+    array = array.push_back_t<Double>(123456);
+    assert_equals(true, array.get(1).is_double());
+    assert_equals(123456, array.get(1).as_double());
 
-    array->append_t<Boolean>(true);
-    assert_equals(true, array->get(2).is_boolean());
-    assert_equals(true, array->get(2).as_boolean());
+    array = array.push_back_t<Boolean>(true);
+    assert_equals(true, array.get(2).is_boolean());
+    assert_equals(true, array.get(2).as_boolean());
 
     auto map = doc->make_object_map();
-    array->append(map->as_object());
-    assert_equals(true, array->get(3).is_map());
-//    assert_equals(true, array->get(3)->as_generic_map()->equals(map));
+    array = array.push_back(map.as_object());
+    assert_equals(true, array.get(3).is_map());
 
     auto arr = doc->make_object_array();
-    array->append(arr.as_object());
-    assert_equals(true, array->get(4).is_array());
-//    assert_equals(true, array->get(4)->as_generic_array()->equals(arr));
+    array = array.push_back(arr.as_object());
+    assert_equals(true, array.get(4).is_array());
 
-    //auto sdn1 = array->append_hermes("'123456'@CoolType");
-    //assert_equals(true, array->get(5)->is_typed_value());
-    //assert_equals(true, array->get(5)->equals(sdn1));
-
-    //auto sdn2 = array->append_hermes("CoolType");
-    //assert_equals(true, array->get(6)->is_datatype());
-    //assert_equals(true, array->get(6)->equals(sdn2));
-
-    //auto doc2 = array->append_hermes("{}");
-    //assert_equals(true, array->get(7)->is_map());
-    //assert_equals(true, array->get(7)->equals(doc2));
-
-    //array->append_null();
-    //assert_equals(true, array->get(8)->is_null());
-
-
-    array->set_t<Double>(0, 555);
-    assert_equals(true, array->get(0).is_double());
-    assert_equals(555, array->get(0).as_double());
+    array.set_t<Double>(0, 555);
+    assert_equals(true, array.get(0).is_double());
+    assert_equals(555, array.get(0).as_double());
 
     assert_throws<ResultException>([&](){
-        array->set_t<Double>(10, 555);
+        array.set_t<Double>(10, 555);
     });
 
-    array->set_t<BigInt>(1, 555);
-    assert_equals(true, array->get(1).is_bigint());
-    assert_equals(555, array->get(1).as_bigint());
+    array.set_t<BigInt>(1, 555);
+    assert_equals(true, array.get(1).is_bigint());
+    assert_equals(555, array.get(1).as_bigint());
 
     assert_throws<ResultException>([&](){
-        array->set_t<BigInt>(10, 555);
+        array.set_t<BigInt>(10, 555);
     });
 
-    array->set_t<Boolean>(2, false);
-    assert_equals(true, array->get(2).is_boolean());
-    assert_equals(false, array->get(2).as_boolean());
+    array.set_t<Boolean>(2, false);
+    assert_equals(true, array.get(2).is_boolean());
+    assert_equals(false, array.get(2).as_boolean());
 
     assert_throws<ResultException>([&](){
-        array->set_t<Boolean>(10, false);
+        array.set_t<Boolean>(10, false);
     });
 
-    array->set_t<Varchar>(3, "Cool String");
-    assert_equals(true, array->get(3).is_varchar());
-    assert_equals("Cool String", array->get(3).as_varchar());
+    array.set_t<Varchar>(3, "Cool String");
+    assert_equals(true, array.get(3).is_varchar());
+    assert_equals("Cool String", array.get(3).as_varchar());
 
     assert_throws<ResultException>([&](){
-        array->set_t<Varchar>(10, "S0");
+        array.set_t<Varchar>(10, "S0");
     });
-
-
-//    array->set_hermes(4, "{}");
-//    assert_equals(true, array->get(4).is_map());
-//    assert_throws<ResultException>([&](){
-//        array->set_hermes(10, "S0");
-//    });
-
-//    array->set_hermes(5, "[]");
-//    assert_equals(true, array->get(5).is_array());
-//    assert_throws<ResultException>([&](){
-//        array->set_hermes(10, "S0");
-//    });
-
 });
 
 }}

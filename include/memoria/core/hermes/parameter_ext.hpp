@@ -46,6 +46,9 @@ inline Object Params::resolve(U8StringView name) const {
     return Object{};
 }
 
-
+inline PoolSharedPtr<HermesCtr> ParameterView::document() const {
+    assert_not_null();
+    return mem_holder_->ctr()->self();
+}
 
 }}

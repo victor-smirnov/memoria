@@ -28,11 +28,12 @@ class HermesTypeReflectionDatatypeImpl;
 
 namespace hermes {
 
-namespace path {
-namespace interpreter {
-class Interpreter;
-}
-}
+enum class CtrMakers {
+    DATAOBJECT, OTHER
+};
+
+template <typename, CtrMakers>
+struct CtrMakeHelper;
 
 class HermesCtrBuilder;
 class HermesCtr;
@@ -82,6 +83,27 @@ enum ObjectTypes {
     HERMES_OBJECT_DATA = 0, HERMES_OBJECT_ARRAY = 1, HERMES_OBJECT_MAP = 2
 };
 
+
+template <typename T>
+struct HermesObject: BoolValue<false> {};
+
+template <typename T>
+struct HermesObject<Array<T>>: BoolValue<true> {};
+
+template <typename K, typename V>
+struct HermesObject<Map<K, V>>: BoolValue<true> {};
+
+template <>
+struct HermesObject<Datatype>: BoolValue<true> {};
+
+template <>
+struct HermesObject<TypedValue>: BoolValue<true> {};
+
+template <>
+struct HermesObject<Parameter>: BoolValue<true> {};
+
+template <>
+struct HermesObject<Object>: BoolValue<true> {};
 
 }
 

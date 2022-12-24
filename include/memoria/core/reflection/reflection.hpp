@@ -296,6 +296,40 @@ struct DeepCopyHelper<arena::RelativePtr<T>> {
     }
 };
 
+
+template <typename T>
+struct DeepCopyHelper<arena::EmbeddingRelativePtr<T>> {
+    static void deep_copy_to(
+            arena::ArenaAllocator& arena,
+            arena::AddrResolver<arena::EmbeddingRelativePtr<T>>& dst,
+            LWMemHolder* ref_holder,
+            const arena::EmbeddingRelativePtr<T>* src, size_t size,
+            DeepCopyDeduplicator& dedup
+    )
+    {
+        for (size_t c = 0; c < size; c++)
+        {
+            if (src[c].is_pointer())
+            {
+                if (src[c].is_not_null())
+                {
+                    auto tag = arena::read_type_tag(src[c].get());
+                    T* ptr = ptr_cast<T>(get_type_reflection(tag).deep_copy_to(arena, ref_holder, src[c].get(), dedup));
+                    dst.get(arena)[c] = ptr;
+                }
+                else {
+                    dst.get(arena)[c] = nullptr;
+                }
+            }
+            else {
+                dst.get(arena)[c] = src[c];
+            }
+
+        }
+    }
+};
+
+
 }
 
 

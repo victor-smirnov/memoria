@@ -39,10 +39,17 @@ namespace memoria::hermes::path { namespace parser {
  * @brief The LeftEdgeIterator class is a forward iterator which can be used to
  * iterate over the ExpressionNode objects along the left edge of the AST.
  */
-class LeftEdgeIterator : public std::iterator<std::forward_iterator_tag,
-                                              ast::ExpressionNode>
+class LeftEdgeIterator
 {
+    using NodeT = ast::ExpressionNode;
 public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = NodeT;
+    using difference_type = ptrdiff_t;
+    using pointer = NodeT*;
+    using reference = NodeT&;
+
+
     /**
      * @brief Constructs an empty LeftEdgeIterator object which can be used as
      * an end iterator.

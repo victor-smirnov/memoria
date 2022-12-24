@@ -59,12 +59,12 @@ StringEscaper& StringEscaper::current() {
 
 
 std::ostream& operator<<(std::ostream& out, Object ptr) {
-    out << ptr->to_string();
+    out << ptr.to_string();
     return out;
 }
 
 std::ostream& operator<<(std::ostream& out, Datatype ptr) {
-    out << ptr->to_string();
+    out << ptr.to_string();
     return out;
 }
 
@@ -74,30 +74,18 @@ uint64_t ParameterView::hash_code() const {
     return hash(dt_ctr_->view());
 }
 
-Object ObjectView::search2(U8StringView query) const
-{
-    hermes::path::Expression exp(std::string{query});
-    return hermes::path::search(exp, Object(ObjectView(get_mem_holder(), storage_.addr)));
-}
-
-Object ObjectView::search2(U8StringView query, const IParameterResolver& params) const
-{
-    hermes::path::Expression exp(std::string{query});
-    return hermes::path::search(exp, Object(ObjectView(get_mem_holder(), storage_.addr)), params);
-}
-
 Object ObjectView::search(U8StringView query) const
 {
     auto ast = HermesCtr::parse_hermes_path(query);
-    auto exp = ast->root()->as_tiny_object_map();
-    return hermes::path::search(exp, Object(ObjectView(get_mem_holder(), storage_.addr)));
+    auto exp = ast->root().as_tiny_object_map();
+    return hermes::path::search(exp, Object(get_mem_holder(), storage_.addr));
 }
 
 Object ObjectView::search(U8StringView query, const IParameterResolver& params) const
 {
     auto ast = HermesCtr::parse_hermes_path(query);
-    auto exp = ast->root()->as_tiny_object_map();
-    return hermes::path::search(exp, Object(ObjectView(get_mem_holder(), storage_.addr)), params);
+    auto exp = ast->root().as_tiny_object_map();
+    return hermes::path::search(exp, Object(get_mem_holder(), storage_.addr), params);
 }
 
 namespace {
@@ -179,6 +167,13 @@ PoolSharedPtr<TaggedGenericView> TaggedGenericView::allocate_space(size_t size)
         MEMORIA_MAKE_GENERIC_ERROR("Requested view size of {} is too large, max is {}", size, MAX).do_throw();
     }
 }
+
+
+PoolSharedPtr<HermesCtr> TypedValueView::ctr() {
+    assert_not_null();
+    return mem_holder_->ctr()->self();
+}
+
 
 
 }

@@ -181,6 +181,10 @@ public:
             bucket_size_(bucket_size)
         {}
 
+        const Map* map() const {
+            return map_;
+        }
+
         bool operator==(const Iterator& other) const {
             return map_ == other.map_ && bucket_idx_ == other.bucket_idx_ && entry_idx_ == other.entry_idx_;
         }
@@ -233,6 +237,9 @@ public:
         return size_;
     }
 
+    uint64_t capacity() const {
+        return 1ull << buckets_capacity_;
+    }
 
     Iterator begin() const noexcept
     {
@@ -538,9 +545,6 @@ private:
 
                 new_keys[idx] = key;
                 new_values[idx] = value;
-
-                //detail::ElementHolderHelper<KeyHolder>::assign(new_keys[idx], key);
-                //detail::ElementHolderHelper<ValueHolder>::assign(new_values[idx], value);
             }
         }
         else {
@@ -554,9 +558,6 @@ private:
 
             *new_keys = key;
             *new_values = value;
-
-            //detail::ElementHolderHelper<KeyHolder>::assign(*new_keys, key);
-            //detail::ElementHolderHelper<ValueHolder>::assign(*new_values, value);
 
             buckets[bucket_idx] = new_bucket;
         }

@@ -51,7 +51,7 @@ bool HermesValueNode::operator==(const HermesValueNode &other) const
 {
     if (this != &other)
     {
-        return value->equals(other.value);
+        return value.equals(other.value);
     }
     return true;
 }
@@ -61,10 +61,10 @@ Object HermesArrayNode::to_hermes_array(HermesCtr& doc) const
     auto array = doc.make_object_array();
 
     for (auto& var: this->array) {
-        array->append(std::move(var.value));
+        array = array.push_back(std::move(var.value));
     }
 
-    return array->as_object();
+    return array.as_object();
 }
 
 

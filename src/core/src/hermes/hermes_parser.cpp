@@ -218,7 +218,7 @@ void parse_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc)
             ErrorMessageResolver::instance().do_throw(start, first, last);
         }
 
-        HermesCtrBuilder::current().set_ctr_root(type_decl->as_object());
+        HermesCtrBuilder::current().set_ctr_root(type_decl.as_object());
     }
     catch (const ExpectationException<Iterator>& ex) {
         ErrorMessageResolver::instance().do_throw(first, ex);
