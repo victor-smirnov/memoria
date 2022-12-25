@@ -78,6 +78,7 @@ protected:
     }
 };
 
+
 // FIXME: U8StringOView is unnecessary. Will be removed once
 // LD classes are removed.
 
@@ -89,6 +90,10 @@ class U8StringOView: public HoldingView<U8StringOView> {
 public:
     U8StringOView() noexcept:
         Base()
+    {}
+
+    U8StringOView(PH ph, U8StringView str) noexcept:
+        U8StringOView(ph, str.data(), str.size())
     {}
 
     U8StringOView(PH ph, const value_type* str) noexcept:
@@ -168,7 +173,6 @@ struct ViewToDTMapping<const char(&)[N]>: HasType<Varchar> {};
 
 template <size_t N>
 struct ViewToDTMapping<char[N]>: HasType<Varchar> {};
-
 
 }
 

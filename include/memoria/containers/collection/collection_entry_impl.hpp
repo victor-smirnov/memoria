@@ -28,12 +28,14 @@ namespace memoria {
 namespace detail {
 
 template <typename KeyDT, bool FixedSizeKey = DTTIsNDFixedSize<KeyDT>>
-struct SpanHolder {
-    using ViewType = DTTViewType<KeyDT>;
+struct SpanHolder;
 
-    ArenaBuffer<ViewType> arena;
+template <typename KeyDT>
+struct SpanHolder<KeyDT, false> {
+    using StorageT = typename DataTypeTraits<KeyDT>::SpanStorageT;
 
-    Span<const ViewType> span;
+    std::vector<StorageT> arena;
+
     bool set_up{};
 
     template <typename PkdStruct>
@@ -42,11 +44,8 @@ struct SpanHolder {
         auto ee = ss.end(column);
 
         for (auto ii = ss.begin(column); ii != ee; ii++) {
-            arena.append_value(*ii);
-            OwningViewSpanHelper<ViewType>::configure_resource_owner(arena.head(), owner);
+            arena.push_back(*ii);
         }
-
-        span = arena.span();
 
         set_up = true;
     }
@@ -58,19 +57,19 @@ struct SpanHolder {
         auto ee = ss.end(column);
 
         for (auto ii = ss.begin(column); ii != ee; ii++) {
-            arena.append_value(*ii);
-            OwningViewSpanHelper<ViewType>::configure_resource_owner(arena.head(), owner);
+            arena.push_back(*ii);
         }
-
-        span = arena.span().subspan(start, size);
 
         set_up = true;
     }
 
+    DTSpan<KeyDT> span(LWMemHolder* owner) const {
+        return DTSpan<KeyDT>(owner, Span<const StorageT>{arena.data(), arena.size()});
+    }
+
     void reset_state() {
         set_up = false;
-        span = Span<ViewType>{};
-        arena.clear();
+        arena.erase(arena.begin(), arena.end());
     }
 };
 
@@ -78,30 +77,32 @@ struct SpanHolder {
 
 template <typename KeyDT>
 struct SpanHolder<KeyDT, true> {
-    using ViewType = DTTViewType<KeyDT>;
+    using StorageT = typename DataTypeTraits<KeyDT>::SpanStorageT;
 
-    Span<const ViewType> span;
+    Span<const StorageT> span_;
     bool set_up{};
 
     template <typename PkdStruct>
     void populate(const PkdStruct& ss, size_t column, LWMemHolder* owner)
     {
-        span = ss.span(column);
-        OwningViewSpanHelper<ViewType>::configure_resource_owner(span, owner);
+        span_ = ss.span(column);
         set_up = true;
     }
 
     template <typename PkdStruct>
     void populate(const PkdStruct& ss, size_t column, size_t start, size_t size, LWMemHolder* owner)
     {
-        span = ss.span(column).subspan(start, size);
-        OwningViewSpanHelper<ViewType>::configure_resource_owner(span, owner);
+        span_ = ss.span(column).subspan(start, size);
         set_up = true;
+    }
+
+    DTSpan<KeyDT> span(LWMemHolder* owner) const {
+        return DTSpan<KeyDT>(owner, Span<const StorageT>{});
     }
 
     void reset_state() {
         set_up = false;
-        span = Span<ViewType>{};
+        span_ = Span<const StorageT>{};
     }
 };
 
@@ -153,9 +154,9 @@ protected:
 
 public:
 
-    virtual DTTConstPtr<Key> current_key() const {
+    virtual DTView<Key> current_key() const {
         if (leaf_position_ < size_ && !before_start_) {
-            return DTTConstPtr<Key>(view_, &view_holder_);
+            return DTView<Key>(&view_holder_, view_);
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("EOF/BOF Exception: {} {}", size_, before_start_).do_throw();
@@ -187,12 +188,12 @@ public:
         return leaf_position_;
     }
 
-    virtual DTTConstSpan<Key> keys() const {
+    virtual DTSpan<Key> keys() const {
         if (!span_holder_.set_up) {
             span_holder_.populate(keys_struct(), Column, &view_holder_);
         }
 
-        return DTTConstSpan<Key>(span_holder_.span, &view_holder_);
+        return span_holder_.span(&view_holder_);
     }
 
     virtual bool is_before_start() const {
@@ -241,7 +242,6 @@ public:
 
         if (leaf_position_ < size_ && !before_start_) {
             view_ = keys_struct().access(0, leaf_position_);
-            OwningViewSpanHelper<DTTViewType<Key>>::configure_resource_owner(view_, &view_holder_);
         }
     }
 
@@ -276,7 +276,6 @@ public:
     {
         if (leaf_position_ < size_ && !before_start_) {
             view_ = keys_struct().access(0, leaf_position_);
-            OwningViewSpanHelper<DTTViewType<Key>>::configure_resource_owner(view_, &view_holder_);
         }
         else {
             view_ = KeyView{};

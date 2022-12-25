@@ -121,13 +121,13 @@ public:
         return run_size_;
     }
 
-    virtual DTTConstPtr<Value> current_value() const
+    virtual DTView<Value> current_value() const
     {
         if (leaf_position_ < size_ && !before_start_) {
             if (!view_.is_initialized()) {
                 init_current();
             }
-            return DTTConstPtr<Value>(view_.get(), &view_holder_);
+            return DTView<Value>(&view_holder_, view_.get());
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("EOF/BOF Exception: {} {}", size_, before_start_).do_throw();
@@ -155,12 +155,12 @@ public:
         return leaf_position_ - leaf_run_start_;
     }
 
-    virtual DTTConstSpan<Value> values() const {
+    virtual DTSpan<Value> values() const {
         if (!span_holder_.set_up) {
             span_holder_.populate(values_struct(), Column, leaf_run_start_, leaf_run_size_, &view_holder_);
         }
 
-        return DTTConstSpan<Value>(span_holder_.span, &view_holder_);
+        return span_holder_.span(&view_holder_);
     }
 
     virtual bool is_before_start() const {
@@ -276,7 +276,6 @@ public:
     {
         if (leaf_position_ < size_ && !before_start_) {
             view_ = values_struct().access(0, leaf_position_);
-            OwningViewSpanHelper<DTTViewType<Value>>::configure_resource_owner(view_.get(), &view_holder_);
         }
         else {
             view_.reset();
@@ -302,7 +301,6 @@ public:
 protected:
     void init_current() const {
         view_ = values_struct().access(Column, leaf_position_);
-        OwningViewSpanHelper<DTTViewType<Value>>::configure_resource_owner(view_.get(), &view_holder_);
     }
 
 

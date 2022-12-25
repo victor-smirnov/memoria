@@ -53,9 +53,11 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
     using SharedPtrT = Own<ViewType>;
     using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
 
-    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
+    using SpanT      = DTViewSpan<ViewType, SharedPtrT>;
     using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
 
+    using SpanStorageT = U8StringView;
+    using OSpanT       = OSpan<View2Type, SpanStorageT>;
 
     static constexpr bool isDataType          = true;
     static constexpr bool HasTypeConstructors = false;

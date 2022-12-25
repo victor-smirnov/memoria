@@ -146,15 +146,15 @@ class [[clang::annotate(R"(
     }
 )")]] TypeInstance<Vector<UTinyInt>> {};
 
-template<>
-class [[clang::annotate(R"(
-    @TypeInstance = {
-        "profiles": "ALL",
-        "includes": [
-            "memoria/api/vector/vector_api.hpp"
-        ]
-    }
-)")]] TypeInstance<Vector<LinkedData>> {};
+//template<>
+//class [[clang::annotate(R"(
+//    @TypeInstance = {
+//        "profiles": "ALL",
+//        "includes": [
+//            "memoria/api/vector/vector_api.hpp"
+//        ]
+//    }
+//)")]] TypeInstance<Vector<LinkedData>> {};
 
 
 template<>

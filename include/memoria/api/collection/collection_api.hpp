@@ -36,8 +36,8 @@ struct CollectionChunk: ChunkIteratorBase<CollectionChunk<Key, Profile>, Profile
 
     using KeyView = DTTViewType<Key>;
 
-    virtual DTTConstPtr<Key> current_key() const = 0;
-    virtual DTTConstSpan<Key> keys() const = 0;
+    virtual DTView<Key> current_key() const = 0;
+    virtual DTSpan<Key> keys() const = 0;
 
 
     virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
@@ -75,7 +75,7 @@ struct ICtrApi<Collection<Key>, Profile>: public CtrReferenceable<Profile> {
 
     using Base = CtrReferenceable<Profile>;
 
-    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using KeyView   = DTTViewType<Key>;
     using ApiTypes  = ICtrApiTypes<Collection<Key>, Profile>;
 
     using ChunkSharedPtr = IterSharedPtr<CollectionChunk<Key, Profile>>;

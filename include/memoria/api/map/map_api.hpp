@@ -36,11 +36,11 @@ struct MapChunk: ChunkIteratorBase<MapChunk<Key, Value, Profile>, Profile> {
     using KeyView   = DTTViewType<Key>;
     using ValueView = DTTViewType<Value>;
 
-    virtual DTTConstPtr<Key> current_key() const = 0;
-    virtual DTTConstPtr<Value> current_value() const = 0;
+    virtual DTView<Key> current_key() const = 0;
+    virtual DTView<Value> current_value() const = 0;
 
-    virtual DTTConstSpan<Key> keys() const = 0;
-    virtual DTTConstSpan<Value> values() const = 0;
+    virtual DTSpan<Key> keys() const = 0;
+    virtual DTSpan<Value> values() const = 0;
 
     virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
 
@@ -77,8 +77,8 @@ struct MapChunk: ChunkIteratorBase<MapChunk<Key, Value, Profile>, Profile> {
 template <typename Key, typename Value, typename Profile>
 struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
 
-    using KeyView   = typename DataTypeTraits<Key>::ViewType;
-    using ValueView = typename DataTypeTraits<Value>::ViewType;
+    using KeyView   = DTTViewType<Key>;
+    using ValueView = DTTViewType<Value>;
 
     using ApiTypes  = ICtrApiTypes<Map<Key, Value>, Profile>;
 
@@ -94,16 +94,16 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     virtual void remove_up_to(CtrSizeT pos) MEMORIA_READ_ONLY_API
 
     virtual ApiProfileCtrSizeT<Profile> size() const = 0;
-    virtual bool upsert_key(KeyView key, ValueView value) MEMORIA_READ_ONLY_API
-    virtual bool remove_key(KeyView key) MEMORIA_READ_ONLY_API
+    virtual bool upsert_key(const KeyView& key, ValueView value) MEMORIA_READ_ONLY_API
+    virtual bool remove_key(const KeyView& key) MEMORIA_READ_ONLY_API
 
-    virtual ChunkIteratorPtr find(KeyView key) const = 0;
+    virtual ChunkIteratorPtr find(const KeyView& key) const = 0;
     virtual ChunkIteratorPtr append(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr prepend(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
 
-    virtual ChunkIteratorPtr insert(KeyView before, CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
+    virtual ChunkIteratorPtr insert(const KeyView& before, CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr first_entry() const {
         return seek_entry(0);
@@ -122,8 +122,8 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         }
     }
 
-    virtual Optional<Datum<Value>> remove_and_return(KeyView key) MEMORIA_READ_ONLY_API
-    virtual Optional<Datum<Value>> replace_and_return(KeyView key, ValueView value) MEMORIA_READ_ONLY_API
+    virtual Optional<Datum<Value>> remove_and_return(const KeyView& key) MEMORIA_READ_ONLY_API
+    virtual Optional<Datum<Value>> replace_and_return(const KeyView& key, const ValueView& value) MEMORIA_READ_ONLY_API
 
     virtual void with_value(
             KeyView key,
@@ -141,7 +141,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
 
             for (size_t c = 0; c < keys.size(); c++)
             {
-                fn(*keys[c], *values[c]);
+                fn(keys[c], values[c]);
             }
 
             ss = ss->next_chunk();
@@ -154,7 +154,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         auto ss = this->first_entry();
         while (is_valid_chunk(ss))
         {
-            fn(ss->keys().raw_span(), ss->values().raw_span());
+            fn(ss->keys(), ss->values());
             ss = ss->next_chunk();
         }
     }

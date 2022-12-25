@@ -106,7 +106,7 @@ public:
     }
 
 
-    ChunkSharedPtr find(KeyView key) const
+    ChunkSharedPtr find(const KeyView& key) const
     {
         return self().ctr_set_find(key);
     }
@@ -116,7 +116,7 @@ public:
     /**
      * Returns true if the set contains the element
      */
-    bool contains(KeyView k)
+    bool contains(const KeyView& k)
     {
         auto iter = self().ctr_set_find(k);
         return iter->is_found(k);

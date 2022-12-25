@@ -17,6 +17,8 @@
 
 #include <memoria/core/datatypes/core.hpp>
 #include <memoria/core/datatypes/fxd_size_view.hpp>
+#include <memoria/core/datatypes/dt_span.hpp>
+
 
 #include <memoria/core/datatypes/type_signature.hpp>
 #include <memoria/core/strings/string_buffer.hpp>
@@ -117,17 +119,13 @@ template <typename T>
 using DTTLDStorageType = typename DataTypeTraits<T>::LDStorageType;
 
 
-template <typename T>
-using DTTPtr = typename DataTypeTraits<T>::SharedPtrT;
+
 
 template <typename T>
-using DTTConstPtr = typename DataTypeTraits<T>::ConstSharedPtrT;
+using DTSpan = typename DataTypeTraits<T>::OSpanT;
 
 template <typename T>
-using DTTSpan = typename DataTypeTraits<T>::SpanT;
-
-template <typename T>
-using DTTConstSpan = typename DataTypeTraits<T>::ConstSpanT;
+using DTSpanStorage = typename DataTypeTraits<T>::OSpanStorageT;
 
 
 
@@ -229,12 +227,6 @@ struct MinimalDataTypeTraits: DataTypeTraitsBase<DataType>
     using DataDimensionsList  = TL<const T*>;
     using DataDimensionsTuple = AsTuple<DataDimensionsList>;
 
-    using SharedPtrT = Own<ViewType>;
-    using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
-
-    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
-    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
-
     static void create_signature(SBuf& buf, DataType obj) {
         PrimitiveDataTypeName<DataType>::create_signature(buf, obj);
     }
@@ -277,11 +269,9 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 
     using MakeLDViewSelector = LDFxSizeValueViewSelector;
 
-    using SharedPtrT = DTFxdValueWrapper<ViewType>;
-    using ConstSharedPtrT = DTFxdValueWrapper<ViewType>;
-
-    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
-    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
+    // FIXME Muse use true storage type here
+    using SpanStorageT = ViewType;
+    using OSpanT = OSpan<View2Type, SpanStorageT>;
 
     static TypeDimensionsTuple describe_type(const DataType& data_type) {
         return TypeDimensionsTuple{};
@@ -472,12 +462,6 @@ struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
 
     using ViewType = EmptyType; // Probably, hasn't been defined yet
 
-    using SharedPtrT = Own<ViewType>;
-    using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
-
-    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
-    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
-
     static void create_signature(SBuf& buf, const Decimal& obj)
     {
         buf << "Decimal";
@@ -509,12 +493,6 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
 
     using ViewType = EmptyType; // Probably, hasn't been defined yet
 
-    using SharedPtrT = Own<ViewType>;
-    using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
-
-
-    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
-    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
 
     static void create_signature(SBuf& buf, const Decimal& obj)
     {
@@ -544,12 +522,6 @@ struct DataTypeTraits<CoreApiProfileDT>: DataTypeTraitsBase<CoreApiProfileDT>
     static constexpr bool HasTypeConstructors = false;
 
     using ViewType = CoreApiProfile; // Probably, hasn't been defined yet
-
-    using SharedPtrT = Own<ViewType>;
-    using ConstSharedPtrT = DTConstSharedPtr<ViewType>;
-
-    using SpanT = DTViewSpan<ViewType, SharedPtrT>;
-    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
 
     static void create_signature(SBuf& buf, const CoreApiProfileDT& obj) {
         create_signature(buf);

@@ -108,7 +108,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrRApiName)
     }
 
 
-    virtual IterSharedPtr<MapChunk<Key, Value, ApiProfileT>> find(KeyView key) const
+    virtual IterSharedPtr<MapChunk<Key, Value, ApiProfileT>> find(const KeyView& key) const
     {
         return self().ctr_map_find(key);
     }

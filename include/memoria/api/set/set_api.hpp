@@ -28,7 +28,7 @@ namespace memoria {
 
 template <typename Key, typename Profile> 
 struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
-    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using KeyView   = DTTViewType<Key>;
     using ApiTypes  = ICtrApiTypes<Set<Key>, Profile>;
 
     using BufferT       = DataTypeBuffer<Key>;
@@ -43,23 +43,21 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
     virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const = 0;
     virtual ChunkIteratorPtr insert(CtrSizeT at, const BufferT& buffer) MEMORIA_READ_ONLY_API
 
-
-
     virtual ApiProfileCtrSizeT<Profile> size() const = 0;
 
-    virtual ChunkIteratorPtr find(KeyView key) const = 0;
+    virtual ChunkIteratorPtr find(const KeyView& key) const = 0;
 
-    virtual bool contains(KeyView key)  = 0;
+    virtual bool contains(const KeyView& key)  = 0;
 
-    virtual bool remove(KeyView key) MEMORIA_READ_ONLY_API
+    virtual bool remove(const KeyView& key) MEMORIA_READ_ONLY_API
 
-    virtual bool upsert(KeyView key) MEMORIA_READ_ONLY_API
+    virtual bool upsert(const KeyView& key) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr append(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr prepend(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
-    virtual ChunkIteratorPtr insert(KeyView before, CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
+    virtual ChunkIteratorPtr insert(const KeyView& before, CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API
 
     template <typename Fn>
     void for_each(Fn&& fn)

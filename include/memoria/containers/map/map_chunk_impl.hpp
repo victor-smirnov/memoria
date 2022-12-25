@@ -80,18 +80,18 @@ protected:
 
 public:
 
-    virtual DTTConstPtr<Key> current_key() const {
+    virtual DTView<Key> current_key() const {
         if (leaf_position_ < size_ && !before_start_) {
-            return DTTConstPtr<Key>(key_view_, &view_holder_);
+            return DTView<Key>(&view_holder_, key_view_);
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("EOF/BOF Exception: {} {}", size_, before_start_).do_throw();
         }
     }
 
-    virtual DTTConstPtr<Value> current_value() const {
+    virtual DTView<Value> current_value() const {
         if (leaf_position_ < size_ && !before_start_) {
-            return DTTConstPtr<Value>(value_view_, &view_holder_);
+            return DTView<Value>(&view_holder_, value_view_);
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("EOF/BOF Exception: {} {}", size_, before_start_).do_throw();
@@ -123,20 +123,20 @@ public:
         return leaf_position_;
     }
 
-    virtual DTTConstSpan<Key> keys() const {
+    virtual DTSpan<Key> keys() const {
         if (!keys_holder_.set_up) {
             keys_holder_.populate(keys_struct(), Column, &view_holder_);
         }
 
-        return DTTConstSpan<Key>(keys_holder_.span, &view_holder_);
+        return keys_holder_.span(&view_holder_);
     }
 
-    virtual DTTConstSpan<Value> values() const {
+    virtual DTSpan<Value> values() const {
         if (!values_holder_.set_up) {
             values_holder_.populate(values_struct(), Column, &view_holder_);
         }
 
-        return DTTConstSpan<Value>(values_holder_.span, &view_holder_);
+        return values_holder_.span(&view_holder_);
     }
 
     virtual bool is_before_start() const {
@@ -186,10 +186,8 @@ public:
 
         if (leaf_position_ < size_ && !before_start_) {
             key_view_ = keys_struct().access(0, leaf_position_);
-            OwningViewSpanHelper<DTTViewType<Key>>::configure_resource_owner(key_view_, &view_holder_);
 
             value_view_ = values_struct().access(0, leaf_position_);
-            OwningViewSpanHelper<DTTViewType<Value>>::configure_resource_owner(value_view_, &view_holder_);
         }
     }
 
@@ -225,10 +223,7 @@ public:
     {
         if (leaf_position_ < size_ && !before_start_) {
             key_view_ = keys_struct().access(0, leaf_position_);
-            OwningViewSpanHelper<DTTViewType<Key>>::configure_resource_owner(key_view_, &view_holder_);
-
             value_view_ = values_struct().access(0, leaf_position_);
-            OwningViewSpanHelper<DTTViewType<Value>>::configure_resource_owner(value_view_, &view_holder_);
         }
         else {
             key_view_ = KeyView{};

@@ -189,7 +189,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
       auto iter = self.ctr_map_find(key);
       if (iter->is_found(key))
       {
-        auto new_value = value_fn(Datum<Value>(*iter->current_value()));
+        auto new_value = value_fn(Datum<Value>(iter->current_value()));
         if (new_value) {
           self.ctr_update_map_entry(std::move(iter), new_value.get());
         }

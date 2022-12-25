@@ -208,7 +208,7 @@ public:
             else {
                 auto ii = blockmap_ctr_->find(block_id.value());
                 if (ii->is_found(block_id.value())) {
-                    at = ii->current_value();
+                    at = ii->current_value().value_t().value();
                 }
                 else {
                     MEMORIA_MAKE_GENERIC_ERROR("Can't find block ID {} in the BlockMap", block_id).do_throw();
@@ -252,8 +252,8 @@ public:
                 auto ii = blockmap_ctr_->find(block_id.value());
                 if (ii->is_found(block_id.value()))
                 {
-                    at = ii->current_value()->value();
-                    level = ii->current_value()->metadata();
+                    at = ii->current_value().value_t().value();
+                    level = ii->current_value().value_t().metadata();
                 }
                 else {
                     MEMORIA_MAKE_GENERIC_ERROR("Can't find block ID {} in the BlockMap", block_id).do_throw();

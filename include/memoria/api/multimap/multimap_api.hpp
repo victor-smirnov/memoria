@@ -38,8 +38,8 @@ struct MultimapKeysChunk: ChunkIteratorBase<MultimapKeysChunk<Key, Value, Profil
     using KeyView = DTTViewType<Key>;
     using ValuesChunkPtr = IterSharedPtr<MultimapValuesChunk<Key, Value, Profile>>;
 
-    virtual DTTConstPtr<Key> current_key() const = 0;
-    virtual DTTConstSpan<Key> keys() const = 0;
+    virtual DTView<Key> current_key() const = 0;
+    virtual DTSpan<Key> keys() const = 0;
 
     //virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
 
@@ -63,9 +63,9 @@ struct MultimapValuesChunk: ChunkIteratorBase<MultimapValuesChunk<Key, Value, Pr
 
     virtual ~MultimapValuesChunk() noexcept = default;
 
-    virtual DTTConstPtr<Value> current_value() const = 0;
+    virtual DTView<Value> current_value() const = 0;
 
-    virtual DTTConstSpan<Value> values() const = 0;
+    virtual DTSpan<Value> values() const = 0;
 
     //virtual ChunkPtr read_to(DataTypeBuffer<Value>& buffer, CtrSizeT num) const = 0;
 
@@ -86,12 +86,12 @@ public:
     using Key = Key_;
     using Value = Value_;
 
-    using KeyView   = typename DataTypeTraits<Key>::ViewType;
-    using ValueView = typename DataTypeTraits<Value>::ViewType;
+    using KeyView   = DTTViewType<Key>;
+    using ValueView = DTTViewType<Value>;
 
     using ApiTypes  = ICtrApiTypes<Multimap<Key, Value>, Profile>;
 
-    using KeysChunkT = MultimapKeysChunk<Key, Value, Profile>;
+    using KeysChunkT    = MultimapKeysChunk<Key, Value, Profile>;
     using KeysChunkPtrT = IterSharedPtr<KeysChunkT>;
 
     using CtrInputBuffer = typename ApiTypes::CtrInputBuffer;

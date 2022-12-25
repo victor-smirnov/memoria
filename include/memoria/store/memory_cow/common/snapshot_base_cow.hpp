@@ -383,7 +383,7 @@ public:
         std::vector<CtrID> names;
 
         root_map_->for_each([&](auto ctr_name, auto root_id){
-          names.push_back(ctr_name);
+          names.push_back(ctr_name.value_t());
         });
 
         return std::move(names);
@@ -804,7 +804,7 @@ public:
             auto iter = root_map_->find(name);
 
             if (iter->is_found(name)) {
-                return *iter->current_value();
+                return iter->current_value();
             }            
         }
         else {

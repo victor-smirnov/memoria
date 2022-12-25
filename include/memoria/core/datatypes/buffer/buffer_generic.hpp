@@ -191,16 +191,17 @@ public:
         return resized;
     }
 
-    bool append(DTTConstSpan<DataType> span)
+    bool append(const DTSpan<DataType>& span)
     {
         check_builder_is_empty();
 
         bool resized = false;
         for (size_t c = 0; c < span.size(); c++) {
-            resized = emplace_back_nockeck(*span[c]) || resized;
+            resized = emplace_back_nockeck(span[c]) || resized;
         }
         return resized;
     }
+
 
     template <typename ValueType>
     bool append(const std::vector<ValueType>& data)
@@ -216,21 +217,6 @@ public:
 
     const ViewType& operator[](size_t idx) const {
         return views_[idx];
-    }
-
-    DTTConstSpan<DataType> dt_span() const
-    {
-        return DTTConstSpan<DataType>(views_.span(), &view_holder_);
-    }
-
-    DTTConstSpan<DataType> dt_span(size_t from) const
-    {
-        return DTTConstSpan<DataType>(views_.span(from), &view_holder_);
-    }
-
-    DTTConstSpan<DataType> dt_span(size_t from, size_t length) const
-    {
-        return DTTConstSpan<DataType>(views_.span(from, length), &view_holder_);
     }
 
 

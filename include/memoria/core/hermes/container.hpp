@@ -447,32 +447,22 @@ template <>
 struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
 {
     using ViewType      = hermes::HermesCtr;
-    using ConstViewType = hermes::HermesCtr;
     using AtomType      = uint8_t;
 
-    using DatumStorage  = HermesDocumentStorage;
-
-    using SharedPtrT    = PoolSharedPtr<ViewType>;
-    using ConstSharedPtrT = PoolSharedPtr<ViewType>;
-
-    using SpanT      = DTViewSpan<ViewType, SharedPtrT>;
-    using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
+    using View2Type = pool::SharedPtr<hermes::HermesCtr>;
 
     static constexpr bool isDataType          = true;
     static constexpr bool HasTypeConstructors = false;
 
     static constexpr bool isSdnDeserializable = true;
 
-    static void create_signature(SBuf& buf, const LinkedData& obj)
-    {
+    static void create_signature(SBuf& buf, const LinkedData& obj) {
         buf << "Hermes";
     }
 
-    static void create_signature(SBuf& buf)
-    {
+    static void create_signature(SBuf& buf) {
         buf << "Hermes";
     }
-
 
     using DataSpan = Span<AtomType>;
     using SpanList = TL<DataSpan>;
@@ -513,58 +503,6 @@ struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
     }
 };
 
-
-
-template <typename Buffer>
-class SparseObjectBuilder<Hermes, Buffer> {
-    Buffer* buffer_;
-
-
-    using AtomType = DTTAtomType<Hermes>;
-    using ViewType = DTTViewType<Hermes>;
-
-    using Own = PoolSharedPtr<ViewType>;
-
-    PoolSharedPtr<ViewType> doc_;
-
-public:
-    SparseObjectBuilder(Buffer* buffer):
-        buffer_(buffer)
-    {
-      doc_ = hermes::HermesCtr::make_new();
-    }
-
-    SparseObjectBuilder(SparseObjectBuilder&&) = delete;
-    SparseObjectBuilder(const SparseObjectBuilder&) = delete;
-
-    Own view() {
-        return doc_;
-    }
-
-    Own& doc() {
-        return doc_;
-    }
-
-    void build()
-    {
-        doc_ = doc_->compactify();
-        buffer_->append(*doc_);
-        //doc_->clear();
-    }
-};
-
-class HermesDocumentStorage: public DatumStorageBase<Hermes, typename DataTypeTraits<Hermes>::DatumStorageSelector> {
-    using SelectorTag = typename DataTypeTraits<Hermes>::DatumStorageSelector;
-
-    using Base = DatumStorageBase<Hermes, SelectorTag>;
-    using typename Base::ViewType;
-public:
-    HermesDocumentStorage(ViewType view) noexcept: Base(view) {}
-
-    virtual void destroy() noexcept;
-    static HermesDocumentStorage* create(ViewType view);
-    virtual U8String to_sdn_string() const;
-};
 
 inline PoolSharedPtr<hermes::HermesCtr> operator "" _hdoc(const char* s, std::size_t n) {
     return hermes::HermesCtr::parse_document(s, s + n);

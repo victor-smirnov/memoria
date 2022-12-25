@@ -105,11 +105,11 @@ public:
         return arena_.append_values(value);
     }
 
-    bool append(DTTConstSpan<DataType> span)
+    bool append(DTSpan<DataType> span)
     {
         bool resized = false;
         for (size_t c = 0; c < span.size(); c++) {
-            resized = append(*span[c]) || resized;
+            resized = append(span[c]) || resized;
         }
         return resized;
     }
@@ -118,21 +118,6 @@ public:
         return arena_[idx];
     }
 
-
-    DTTConstSpan<DataType> dt_span() const
-    {
-        return DTTConstSpan<DataType>(arena_.span(), &view_holder_);
-    }
-
-    DTTConstSpan<DataType> dt_span(size_t from) const
-    {
-        return DTTConstSpan<DataType>(arena_.span(from), &view_holder_);
-    }
-
-    DTTConstSpan<DataType> dt_span(size_t from, size_t length) const
-    {
-        return DTTConstSpan<DataType>(arena_.span(from, length), &view_holder_);
-    }
 
     Span<const ValueType> span() const {
         return arena_.span();

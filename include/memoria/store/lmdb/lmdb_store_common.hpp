@@ -197,7 +197,7 @@ public:
 
             if (iter->is_found(ctr_id))
             {
-                return *iter->current_value();
+                return iter->current_value();
             }
         }
 
@@ -376,7 +376,7 @@ public:
         std::vector<CtrID> names;
 
         directory_ctr_->for_each([&](auto ctr_name, auto block_id){
-          names.push_back(ctr_name);
+          names.push_back(ctr_name.value_t());
         });
 
         return std::move(names);
