@@ -263,6 +263,8 @@ public:
     static pool::SharedPtr<HermesCtr> make_pooled(ObjectPools& pool = thread_local_pools());
     static pool::SharedPtr<HermesCtr> make_new(size_t initial_capacity = 4096);
 
+    static pool::SharedPtr<HermesCtr> from_span(Span<const uint8_t> data);
+
     static PoolSharedPtr<HermesCtr> parse_document(U8StringView view) {
         return parse_document(view.begin(), view.end());
     }
@@ -367,6 +369,25 @@ public:
 
     TypedValue make_typed_value(const Datatype& datatype, const Object& constructor);
 
+    Span<uint8_t> span() const
+    {
+        size_t ss_size;
+        if (arena_)
+        {
+            if (!arena_->is_chunked()) {
+                ss_size = arena_->head().size;
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("HermesCtr is multi-chunked!").do_throw();
+            }
+        }
+        else {
+            ss_size = segment_size_;
+        }
+
+        return Span<uint8_t>(reinterpret_cast<uint8_t*>(header_), ss_size);
+    }
+
 protected:
 
 
@@ -401,24 +422,7 @@ protected:
     Object import_small_object(const Object& object);
 
 
-    Span<uint8_t> span() const
-    {
-        size_t ss_size;
-        if (arena_)
-        {
-            if (!arena_->is_chunked()) {
-                ss_size = arena_->head().size;
-            }
-            else {
-                MEMORIA_MAKE_GENERIC_ERROR("HermesCtr is multi-chunked!").do_throw();
-            }
-        }
-        else {
-            ss_size = segment_size_;
-        }
 
-        return Span<uint8_t>(reinterpret_cast<uint8_t*>(header_), ss_size);
-    }
 
     void init_from(arena::ArenaAllocator& arena);
 

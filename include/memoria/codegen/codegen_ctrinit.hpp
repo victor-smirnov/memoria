@@ -1,5 +1,5 @@
 
-// Copyright 2021 Victor Smirnov
+// Copyright 2021-2022 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,3 +21,4 @@
 
 #include <memoria/core/datatypes/default_datatype_ops.hpp>
 #include <memoria/core/container/cow.hpp>
+#include <memoria/core/reflection/reflection.hpp>

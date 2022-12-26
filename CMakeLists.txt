@@ -67,7 +67,7 @@ option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized te
 option(BUILD_TESTS_PACKED       "Build Packed Structires tests" ON)
 option(BUILD_TESTS_CONTAINERS   "Build Containers tests" ON)
 option(BUILD_TESTS_REACTOR      "Build Reactor tests" ON)
-option(BUILD_TESTS_SDN          "Build SDN/LDDocument tests" ON)
+option(BUILD_TESTS_SDN          "Build Hermes tests" ON)
 option(BUILD_TESTS_DATATYPES    "Build Datatype tests" ON)
 option(BUILD_TESTS_FIBERS       "Build Fibers tests" OFF)
 option(BUILD_TESTS_DISRUPTOR    "Build Disriptor MPSC queue tests" OFF)

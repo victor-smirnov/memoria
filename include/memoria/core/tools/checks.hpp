@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/core/linked/document/linked_document.hpp>
+#include <memoria/core/hermes/hermes.hpp>
 #include <memoria/core/tools/result.hpp>
 
 namespace memoria {
@@ -24,25 +24,27 @@ enum class CheckSeverity {
     ERROR
 };
 
-using CheckResultConsumerFn = std::function<void (CheckSeverity, const LDDocument&)>;
+using CheckResultConsumerFn = std::function<void (CheckSeverity, const hermes::HermesCtrPtr&)>;
 
 struct NullCheckResultConsumer {
-    void operator()(CheckSeverity, const LDDocument&) {}
+    void operator()(CheckSeverity, const hermes::HermesCtrPtr&) {}
 };
 
 struct ThrowingCheckResultConsumer {
-    void operator()(CheckSeverity svr, const LDDocument& doc) {
+    void operator()(CheckSeverity svr, const hermes::HermesCtrPtr& doc) {
         if (svr == CheckSeverity::ERROR) {
-            MEMORIA_MAKE_GENERIC_ERROR("{}", doc.to_pretty_string()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("{}", doc->to_pretty_string()).do_throw();
         }
     }
 };
 
 template <typename... Args>
-LDDocument make_string_document(const char* fmt, Args&&... args)
+hermes::HermesCtrPtr make_string_document(const char* fmt, Args&&... args)
 {
-    LDDocument doc;
-    doc.set_varchar(format_u8(fmt, std::forward<Args>(args)...));
+    auto str = format_u8(fmt, std::forward<Args>(args)...);
+    hermes::HermesCtrPtr doc = hermes::HermesCtr::make_pooled();
+    auto vv = doc->make_t<Varchar>(str);
+    doc->set_root(vv);
     return doc;
 }
 

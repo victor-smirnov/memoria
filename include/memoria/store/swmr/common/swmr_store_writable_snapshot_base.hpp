@@ -617,16 +617,17 @@ public:
 
         uint64_t pos = (allocation.position() << SUPERBLOCK_ALLOCATION_LEVEL) * BASIC_BLOCK_SIZE;
 
-        auto meta = LDDocument::make_new();
-        auto map = meta->set_map();
-        map->set_varchar("branch_name", snapshot_descriptor_->branch());
+        auto meta = hermes::HermesCtr::make_new();
+        auto map = meta->make_object_map();
+        map = map.put_t<Varchar>("branch_name", snapshot_descriptor_->branch());
+        meta->set_root(map);
 
         auto superblock = new_superblock(pos);
         if (parent_sb) {
-            superblock->init_from(*parent_sb, pos, snapshot_id, *meta);
+            superblock->init_from(*parent_sb, pos, snapshot_id, meta);
         }
         else {
-            superblock->init(pos, file_size, snapshot_id, SUPERBLOCK_SIZE, 1, 1, *meta);
+            superblock->init(pos, file_size, snapshot_id, SUPERBLOCK_SIZE, 1, 1, meta);
         }
         superblock->build_superblock_description();
 
@@ -844,13 +845,13 @@ public:
         return Base::snapshot_id();
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const hermes::Datatype& decl, const CtrID& ctr_id)
     {
         checkIfConainersCreationAllowed();
         return this->create_ctr_instance(decl, ctr_id);
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const hermes::Datatype& decl)
     {
         checkIfConainersCreationAllowed();
         auto ctr_id = createCtrName();
@@ -1273,7 +1274,7 @@ public:
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
-            const LDTypeDeclarationView& decl, const CtrID& ctr_id
+            const hermes::Datatype& decl, const CtrID& ctr_id
     )
     {
         auto ptr = this->create_ctr_instance(decl, ctr_id);

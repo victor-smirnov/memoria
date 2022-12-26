@@ -113,7 +113,7 @@ protected:
     uint64_t cp_snapshots_threshold_{10000};
     uint64_t cp_timeout_{1000}; // 1 second
 
-    PoolSharedPtr<LDDocument> store_params_;
+    PoolSharedPtr<hermes::HermesCtr> store_params_;
 
     bool active_writer_{false};
 
@@ -123,7 +123,7 @@ public:
     using Base::flush;
 
     SWMRStoreBase() {
-        store_params_ = LDDocument::make_new();
+        store_params_ = hermes::HermesCtr::make_new();
 
         history_tree_.set_superblock_fn([&](uint64_t file_pos){
             return this->get_superblock(file_pos * BASIC_BLOCK_SIZE);
@@ -598,7 +598,7 @@ public:
 
             auto sb0 = get_superblock(sb_slot * BASIC_BLOCK_SIZE);
 
-            sb0->set_metadata_doc(*store_params_);
+            sb0->set_metadata_doc(store_params_);
             store_superblock(sb0.get(), sb_slot);
 
             flush_header();
@@ -767,8 +767,8 @@ protected:
 
         if (counters.size() != block_counters_.size())
         {
-            LDDocument doc;
-            doc.set_varchar(fmt::format(
+            auto doc = hermes::HermesCtr::make_pooled();
+            doc->set_dataobject<Varchar>(fmt::format(
                         "Check failure: mismatched number of counters. Expected: {}, actual: {}",
                         block_counters_.size(),
                         counters.size()));
@@ -781,8 +781,8 @@ protected:
 
             if (res) {
                 if (res.get() != counter) {
-                    LDDocument doc;
-                    doc.set_varchar(fmt::format(
+                    auto doc = hermes::HermesCtr::make_pooled();
+                    doc->set_dataobject<Varchar>(fmt::format(
                                 "Counter values mismatch for the block ID {}. Expected: {}, actual: {}",
                                 block_id,
                                 res.get(),
@@ -792,8 +792,8 @@ protected:
                 }
             }
             else {
-                LDDocument doc;
-                doc.set_varchar(fmt::format(
+                auto doc = hermes::HermesCtr::make_pooled();
+                doc->set_dataobject<Varchar>(fmt::format(
                             "Actual counter for the block ID {} is not found in the store's block_counters structure.",
                             block_id
                             ));
@@ -832,7 +832,7 @@ protected:
         history_tree_.cleanup_eviction_queue();
     }
 
-    static bool is_my_block(const uint8_t* mem_block)  {
+    static bool is_my_block(const uint8_t* mem_block) {
         const SuperblockT* sb0 = ptr_cast<SuperblockT>(mem_block);
         return sb0->match_magick() && sb0->match_profile_hash();
     }
@@ -970,7 +970,7 @@ protected:
                 SharedSBPtr<SuperblockT> sb0 = get_superblock(sb_slot * BASIC_BLOCK_SIZE);
                 if (!sb0->is_clean())
                 {
-                    sb0->set_metadata_doc(*store_params_);
+                    sb0->set_metadata_doc(store_params_);
 
                     store_counters(sb0.get());
 
@@ -1140,10 +1140,10 @@ protected:
         auto sb0 = get_superblock(0);
         auto sb1 = get_superblock(BASIC_BLOCK_SIZE);
 
-        sb0->init(0, buffer_size(), SnapshotID{}, BASIC_BLOCK_SIZE, 0, 0, *store_params_);
+        sb0->init(0, buffer_size(), SnapshotID{}, BASIC_BLOCK_SIZE, 0, 0, store_params_);
         sb0->build_superblock_description();
 
-        sb1->init(BASIC_BLOCK_SIZE, buffer_size(), SnapshotID{}, BASIC_BLOCK_SIZE, 1, 1, *store_params_);
+        sb1->init(BASIC_BLOCK_SIZE, buffer_size(), SnapshotID{}, BASIC_BLOCK_SIZE, 1, 1, store_params_);
         sb1->build_superblock_description();
 
         auto snapshot_descriptor_ptr = history_tree_.new_snapshot_descriptor("main");

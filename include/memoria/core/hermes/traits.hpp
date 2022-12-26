@@ -39,6 +39,8 @@ class HermesCtrBuilder;
 class HermesCtr;
 class HermesCtrImpl;
 
+using HermesCtrPtr = pool::SharedPtr<HermesCtr>;
+
 struct IParameterResolver;
 
 template <typename>

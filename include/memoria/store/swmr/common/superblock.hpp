@@ -197,9 +197,11 @@ public:
     }
 
 
-    void init_metadata(LDDocumentView doc)
+    void init_metadata(const PoolSharedPtr<hermes::HermesCtr>& doc)
     {
-        auto span = doc.span();
+        auto new_doc = doc->compactify(true);
+
+        auto span = new_doc->span();
 
         if (span.length() <= METADATA_SIZE) {
             std::memcpy(metadata_, span.data(), span.length());
@@ -216,7 +218,7 @@ public:
             size_t superblock_size,
             SequenceID sequence_id,
             SequenceID cp_sequence_id,
-            LDDocumentView meta
+            const PoolSharedPtr<hermes::HermesCtr>& meta
     )
     {
         magick1_ = MAGICK1;
@@ -247,11 +249,14 @@ public:
 
         allocation_pool_data_.clear();
 
-
         init_metadata(meta);
     }
 
-    void init_from(const SWMRSuperblock& other, uint64_t superblock_file_pos, const SnapshotID& commit_id, LDDocumentView meta)
+    void init_from(
+            const SWMRSuperblock& other,
+            uint64_t superblock_file_pos,
+            const SnapshotID& commit_id,
+            const PoolSharedPtr<hermes::HermesCtr>& meta)
     {
         magick1_ = other.magick1_;
         magick2_ = other.magick2_;
@@ -278,19 +283,18 @@ public:
 
         allocation_pool_data_ = other.allocation_pool_data_;
 
-
         init_metadata(meta);
     }
 
-    PoolSharedPtr<LDDocumentSpan> cmetadata_doc() const  {
-        return LDDocumentSpan::make_new(metadata());
+    PoolSharedPtr<hermes::HermesCtr> cmetadata_doc() const  {
+        return hermes::HermesCtr::from_span(metadata());
     }
 
-    PoolSharedPtr<LDDocumentSpan> metadata_doc()  {
-        return LDDocumentSpan::make_new(metadata());
+    PoolSharedPtr<hermes::HermesCtr> metadata_doc() {
+        return hermes::HermesCtr::from_span(metadata());
     }
 
-    void set_metadata_doc(LDDocumentView view) {
+    void set_metadata_doc(const PoolSharedPtr<hermes::HermesCtr>& view) {
         init_metadata(view);
     }
 

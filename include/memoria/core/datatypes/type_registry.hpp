@@ -29,6 +29,7 @@
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/flat_map/flat_hash_map.hpp>
 
+#include <memoria/core/hermes/hermes.hpp>
 
 #include <boost/any.hpp>
 #include <memoria/context/detail/apply.hpp>
@@ -46,6 +47,7 @@ struct DataTypeOperations {
 
     virtual U8String full_type_name() = 0;
     virtual boost::any create_cxx_instance(const LDTypeDeclarationView& typedecl) = 0;
+    //virtual boost::any create_cxx_instance(const hermes::Datatype& typedecl) = 0;
     virtual AnyDatum from_ld_document(const LDDValueView& value) = 0;
     virtual LDDValueTag type_hash() = 0;
 
@@ -138,6 +140,20 @@ public:
         }
     }
 
+//    boost::any create_object(const hermes::Datatype& decl) const
+//    {
+//        U8String typedecl = decl.to_cxx_string();
+//        auto ii = operations_.find(typedecl);
+//        if (ii != operations_.end())
+//        {
+//            auto ops = ii->second;
+//            return ops->create_cxx_instance(decl);
+//        }
+//        else {
+//            MMA_THROW(RuntimeException()) << format_ex("Datatype operations for {} are not registered", typedecl);
+//        }
+//    }
+
     AnyDatum from_sdn_string(U8StringView sdn_string) const;
 
     static DataTypeRegistry& local();
@@ -155,7 +171,7 @@ private:
     {
         TypeSignature ts = make_datatype_signature<T>();
         auto doc = ts.parse();
-        operations_[doc->value()->as_type_decl()->to_cxx_typedecl()] = ops;
+        operations_[doc->root().as_datatype().to_cxx_string()] = ops;
 
         uint64_t code = TypeHash<T>::Value & 0xFFFFFFFFFFFFFF;
         operations_by_code_[code] = ops;
@@ -199,7 +215,7 @@ public:
 
         TypeSignature ts = make_datatype_signature<T>();
         auto doc = ts.parse();
-        creators_[doc->value()->as_type_decl()->to_cxx_typedecl()] = std::make_tuple(creator, parser);
+        creators_[doc->root().as_datatype().to_cxx_string()] = std::make_tuple(creator, parser);
     }
 
     template <typename T>
@@ -209,7 +225,7 @@ public:
 
         TypeSignature ts = make_datatype_signature<T>();
         auto doc = ts.parse();
-        operations_[doc->value()->as_type_decl()->to_cxx_typedecl()] = ops;
+        operations_[doc->root().as_datatype().to_cxx_string()] = ops;
 
         uint64_t code = TypeHash<T>::Value & 0xFFFFFFFFFFFFFF;
         operations_by_code_[code] = ops;
@@ -237,7 +253,7 @@ public:
         TypeSignature ts = make_datatype_signature<T>();
 
         auto doc = ts.parse();
-        U8String decl = doc->value()->as_type_decl()->to_cxx_typedecl();
+        U8String decl = doc->root().as_datatype().to_cxx_string();
 
         auto ii = creators_.find(decl);
 

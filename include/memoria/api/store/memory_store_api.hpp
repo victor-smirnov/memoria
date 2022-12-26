@@ -167,9 +167,9 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 {
     U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
     auto doc = TypeSignature::parse(signature.to_std_string());
-    auto decl = doc->value()->as_type_decl();
+    auto decl = doc->root().as_datatype();
 
-    auto ctr_ref = alloc->create(*decl, ctr_id);
+    auto ctr_ref = alloc->create(decl, ctr_id);
     (void)ctr_ref;
     return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref));
 }
@@ -182,8 +182,8 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 {
     U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
     auto doc = TypeSignature::parse(signature.to_std_string());
-    auto decl = doc->value()->as_type_decl();
-    auto ctr_ref = alloc->create(*decl);
+    auto decl = doc->root().as_datatype();
+    auto ctr_ref = alloc->create(decl);
     (void)ctr_ref;
     return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref));
 }

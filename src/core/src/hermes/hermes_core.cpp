@@ -22,6 +22,8 @@
 
 #include <memoria/core/hermes/path/path.h>
 
+#include <memoria/core/datatypes/type_signature.hpp>
+
 #include "hermes_internal.hpp"
 
 namespace memoria::hermes {
@@ -44,6 +46,15 @@ pool::SharedPtr<HermesCtr> HermesCtr::make_pooled(ObjectPools& pool) {
 
 pool::SharedPtr<HermesCtr> HermesCtr::make_new(size_t initial_capacity) {
     return TL_allocate_shared<HermesCtrImpl>(initial_capacity);
+}
+
+pool::SharedPtr<HermesCtr> HermesCtr::from_span(Span<const uint8_t> data) {
+    return TL_allocate_shared<HermesCtrImpl>(
+        arena::AllocationType::MULTI_CHUNK,
+        4096,
+        data.data(),
+        data.size()
+    );
 }
 
 
@@ -174,6 +185,21 @@ PoolSharedPtr<HermesCtr> TypedValueView::ctr() {
     return mem_holder_->ctr()->self();
 }
 
+}
+
+namespace memoria {
+
+TypeSignature::TypeSignature(U8StringView name) {
+    name_ = hermes::HermesCtr::parse_datatype(name)->root().as_datatype().to_string();
+}
+
+PoolSharedPtr<hermes::HermesCtr> TypeSignature::parse() const {
+    return hermes::HermesCtr::parse_datatype(name_);
+}
+
+PoolSharedPtr<hermes::HermesCtr> TypeSignature::parse(U8StringView str) {
+    return hermes::HermesCtr::parse_datatype(str);
+}
 
 
 }

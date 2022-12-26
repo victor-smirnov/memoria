@@ -265,8 +265,8 @@ public:
         else {
             U8String signature = make_datatype_signature(RootMapType{}).name();
             auto doc = TypeSignature::parse(signature.to_std_string());
-            auto decl = doc->value()->as_type_decl();
-            auto ctr_ref = create_ctr_instance(*decl, CtrID{});
+            auto decl = doc->root().as_datatype();
+            auto ctr_ref = create_ctr_instance(decl, CtrID{});
 
             root_map_ = memoria_static_pointer_cast<CommonCtrT<RootMapType>>(ctr_ref);
         }
@@ -281,10 +281,10 @@ public:
     virtual ~SnapshotBase() noexcept {}
 
     CtrSharedPtr<CtrReferenceable<ApiProfileT>> create_ctr_instance(
-        const LDTypeDeclarationView& decl, const CtrID& ctr_id
+        const hermes::Datatype& decl, const CtrID& ctr_id
     )
     {
-        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
+        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_string());
 
         if (!instance_pool_->contains(ctr_id))
         {
@@ -920,13 +920,13 @@ public:
     }
 
 
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const hermes::Datatype& decl, const CtrID& ctr_id)
     {
         checkIfConainersCreationAllowed();
         return this->create_ctr_instance(decl, ctr_id);
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const hermes::Datatype& decl)
     {
         checkIfConainersCreationAllowed();
         auto ctr_id = this->createCtrName();

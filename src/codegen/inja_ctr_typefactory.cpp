@@ -72,8 +72,7 @@ public:
   }
 
   void generate_init() {
-    init_gen_->add_snippet("ctr_datatype_init_decl", format_u8("MMA_DEFINE_DEFAULT_DATATYPE_OPS({});", data_type_));
-    init_gen_->add_snippet("ctr_datatype_init_def", format_u8("register_notctr_operations<{}>();", data_type_));
+    init_gen_->add_snippet("ctr_datatype_init_def", format_u8("register_ctr_type_reflection<{}>();", data_type_));
 
     for (auto ii: type_ins_->includes()) {
       init_gen_->add_snippet("ctr_includes", ii, true);

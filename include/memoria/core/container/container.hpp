@@ -264,10 +264,10 @@ public:
         virtual CtrReferenceableUPtrT create_ctr_instance(
                 const ROAllocatorPtr& allocator,
                 const CtrID& ctr_id,
-                const LDTypeDeclarationView& type_decl,
+                const hermes::Datatype& type_decl,
                 bool writable
         ) const {
-            boost::any obj = DataTypeRegistry::local().create_object(type_decl);
+            boost::any obj = get_cxx_instance(type_decl);
 
             if (writable) {
                 return std::make_unique<RWCtrT<ContainerTypeName>>(

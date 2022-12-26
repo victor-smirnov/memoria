@@ -35,7 +35,9 @@
 
 namespace memoria {
 
-class LDDocument;
+namespace hermes {
+class HermesCtr;
+}
 
 class TypeSignature {
     U8String name_;
@@ -54,8 +56,8 @@ public:
         return name_ == other.name_;
     }
 
-    PoolSharedPtr<LDDocument> parse() const;
-    static PoolSharedPtr<LDDocument> parse(U8StringView str);
+    PoolSharedPtr<hermes::HermesCtr> parse() const;
+    static PoolSharedPtr<hermes::HermesCtr> parse(U8StringView str);
 };
 
 }

@@ -23,6 +23,8 @@
 
 #include <memoria/core/tools/result.hpp>
 
+#include <memoria/core/hermes/hermes.hpp>
+
 #include "reflection_internal.hpp"
 
 #include <memory>
@@ -109,6 +111,15 @@ void register_type_reflection(const UID256& type_code, TypeReflection& type_refl
     type_code_map()[type_code] = type_reflection.self();
 }
 
+void register_type_reflection_256(TypeReflection& type_reflection) {
+
+    auto datatype = hermes::HermesCtr::parse_datatype(type_reflection.str())->root().as_datatype();
+
+    auto hash = datatype.cxx_type_hash();
+    register_type_reflection(hash, *type_reflection.self());
+}
+
+
 
 void for_each_type_reflection(std::function<void (const UID256&, TypeReflection&)> fn)
 {
@@ -174,5 +185,9 @@ U8StringView get_datatype_name(U8StringView name) {
     }
 }
 
+Any get_cxx_instance(const hermes::Datatype& typedecl) {
+    UID256 hash = typedecl.cxx_type_hash();
+    return get_type_reflection(hash).create_cxx_instance(typedecl);
+}
 
 }

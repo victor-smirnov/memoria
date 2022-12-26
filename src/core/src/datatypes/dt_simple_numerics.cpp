@@ -183,6 +183,10 @@ struct NumericDataTypeOperationsImpl: DataTypeOperations {
         return boost::any(T{});
     }
 
+    virtual boost::any create_cxx_instance(const hermes::Datatype& typedecl) {
+        return boost::any(T{});
+    }
+
     virtual AnyDatum from_ld_document(const LDDValueView& value) {
         MMA_THROW(UnsupportedOperationException());
     }

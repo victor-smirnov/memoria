@@ -219,13 +219,14 @@ public:
         return Base::snapshot_id();
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(
+            const hermes::Datatype& decl, const CtrID& ctr_id)
     {
         checkIfConainersCreationAllowed();
         return this->create_ctr_instance(decl, ctr_id);
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const LDTypeDeclarationView& decl)
+    virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> create(const hermes::Datatype& decl)
     {
         checkIfConainersCreationAllowed();
         auto ctr_id = createCtrName();
@@ -708,7 +709,7 @@ private:
     }
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
-            const LDTypeDeclarationView& decl, const CtrID& ctr_id
+            const hermes::Datatype& decl, const CtrID& ctr_id
     )
     {
       auto ptr = this->create_ctr_instance(decl, ctr_id);

@@ -43,7 +43,13 @@ struct SimpleDataTypeOperationsImpl: DataTypeOperations {
     }
 
     virtual boost::any create_cxx_instance(const LDTypeDeclarationView& typedecl) {
-        MMA_THROW(UnsupportedOperationException()) << format_ex("DataTypeOperationsImpl<{}>::from_ld_document", full_type_name());
+        MMA_THROW(UnsupportedOperationException())
+                << format_ex("DataTypeOperationsImpl<{}>::from_ld_document", full_type_name());
+    }
+
+    virtual boost::any create_cxx_instance(const hermes::Datatype& typedecl) {
+        MMA_THROW(UnsupportedOperationException())
+                << format_ex("DataTypeOperationsImpl<{}>::from_ld_document", full_type_name());
     }
 
     virtual AnyDatum from_ld_document(const LDDValueView& value) {
@@ -72,6 +78,11 @@ struct CtrDataTypeOperationsImpl: DataTypeOperations {
             MMA_THROW(RuntimeException()) << format_ex("Datatype {} is stateless", full_type_name());
         }
 
+        return boost::any(T{});
+    }
+
+    virtual boost::any create_cxx_instance(const hermes::Datatype& typedecl)
+    {
         return boost::any(T{});
     }
 

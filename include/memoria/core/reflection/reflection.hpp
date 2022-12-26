@@ -25,6 +25,9 @@
 
 #include <memoria/core/flat_map/flat_hash_map.hpp>
 
+#include <memoria/core/tools/any.hpp>
+
+
 #include <typeinfo>
 #include <functional>
 
@@ -61,7 +64,9 @@ public:
 
     // Not all types may have short type hash
     // TypeHash<T>
-    virtual ShortTypeCode shot_type_hash() const noexcept = 0;
+    virtual ShortTypeCode shot_type_hash() const noexcept {
+        MEMORIA_MAKE_GENERIC_ERROR("Method shot_type_hash() is not implemented for {}", str()).do_throw();
+    }
 
     virtual void hermes_stringify_value(
             LWMemHolder* ref_holder,
@@ -70,18 +75,24 @@ public:
 
             std::ostream& out,
             hermes::DumpFormatState& state
-    ) const = 0;
+    ) const {
+        MEMORIA_MAKE_GENERIC_ERROR("Method hermes_stringify_value(...) is not implemented for {}", str()).do_throw();
+    }
 
     virtual bool hermes_is_simple_layout(
             LWMemHolder* ref_holder,
             void* ptr
-    ) const = 0;
+    ) const {
+        MEMORIA_MAKE_GENERIC_ERROR("Method hermes_is_simple_layout(...) is not implemented for {}", str()).do_throw();
+    }
 
     template <typename T>
-    T* deep_copy(arena::ArenaAllocator& arena,
-                 LWMemHolder* ref_holder,
-                 T* src,
-                 DeepCopyDeduplicator& dedup) const {
+    T* deep_copy(
+            arena::ArenaAllocator& arena,
+            LWMemHolder* ref_holder,
+            T* src,
+            DeepCopyDeduplicator& dedup
+    ) const {
         return reinterpret_cast<T*>(
             deep_copy_to(arena, ref_holder, src, dedup)
         );
@@ -133,6 +144,10 @@ public:
 
     virtual bool hermes_equals_comparable_with(ShortTypeCode tag) const {
         return false;
+    }
+
+    virtual Any create_cxx_instance(const hermes::Datatype&) {
+        MEMORIA_MAKE_GENERIC_ERROR("{} is not a datatype", str()).do_throw();
     }
 
     virtual int32_t hermes_compare(
@@ -213,6 +228,13 @@ public:
     TypeCodeTypeReflectionImplBase() {}
 };
 
+template <typename T>
+class CtrTypeReflectionImpl: public TypeReflectionImplBase<T> {
+public:
+    virtual Any create_cxx_instance(const hermes::Datatype&) {
+        return Any(T{});
+    }
+};
 
 
 TypeReflection& get_type_reflection(ShortTypeCode short_type_hash);
@@ -227,8 +249,26 @@ void for_each_type_reflection(std::function<void (const ShortTypeCode&, TypeRefl
 
 void register_type_reflection(TypeReflection& type_reflection);
 void register_type_reflection(const UID256& type_code, TypeReflection& type_reflection);
+void register_type_reflection_256(TypeReflection& type_reflection);
+
 
 U8StringView get_datatype_name(U8StringView name);
+Any get_cxx_instance(const hermes::Datatype& typedecl);
+
+
+
+template <typename T>
+void register_ctr_type_reflection()
+{
+    auto timpl = std::make_shared<CtrTypeReflectionImpl<T>>();
+    register_type_reflection_256(*timpl);
+
+    //std::shared_ptr<DataTypeOperations> ops = std::make_shared<DataTypeOperationsImpl<T>>();
+
+    //DataTypeRegistryStore::global().template register_notctr_operations<T>(ops);
+    //DataTypeRegistry::local().template register_notctr_operations<T>(ops);
+}
+
 
 
 class DeepCopyDeduplicator {

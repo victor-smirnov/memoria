@@ -88,7 +88,7 @@ protected:
 
     bool mutable_{false};
 
-    LDDocumentView metadata_;
+    PoolSharedPtr<hermes::HermesCtr> metadata_;
 
     template <typename> friend class SWMRMappedStoreHistoryView;
 
@@ -115,12 +115,12 @@ public:
 
 
     CtrSharedPtr<CtrReferenceable<ApiProfileT>> create_ctr_instance(
-        const LDTypeDeclarationView& decl, const CtrID& ctr_id
+        const hermes::Datatype& decl, const CtrID& ctr_id
     )
     {
         auto& instance_pool = this->instance_pool();
 
-        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_typedecl());
+        auto factory = ProfileMetadata<Profile>::local()->get_container_factories(decl.to_cxx_string());
 
         if (!instance_pool.contains(ctr_id))
         {
@@ -177,7 +177,7 @@ public:
     }
 
 
-    LDDocumentView metadata() {
+    PoolSharedPtr<hermes::HermesCtr> metadata() {
         return metadata_;
     }
 
@@ -256,7 +256,7 @@ public:
 
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
-            const LDTypeDeclarationView& decl, const CtrID& ctr_id
+            const hermes::Datatype& decl, const CtrID& ctr_id
     ) = 0;
 
 
@@ -418,7 +418,7 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("updated are not allowed for ReadOnly commits").do_throw();
     }
 
-    virtual void check(std::function<VoidResult(LDDocument&)> callback) {
+    virtual void check(std::function<VoidResult(hermes::HermesCtrPtr&)> callback) {
     }
 
 protected:
@@ -440,9 +440,9 @@ protected:
         U8String signature = make_datatype_signature(CtrName{}).name();
 
         auto doc = TypeSignature::parse(signature.to_std_string());
-        auto decl = doc->value()->as_type_decl();
+        auto decl = doc->root().as_datatype();
 
-        auto ctr_ref = internal_create_by_name(*decl, ctr_id);
+        auto ctr_ref = internal_create_by_name(decl, ctr_id);
 
         return memoria_static_pointer_cast<ICtrApi<CtrName, ApiProfileT>>(std::move(ctr_ref));
     }

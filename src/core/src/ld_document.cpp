@@ -630,17 +630,7 @@ Datum<LinkedData, EmptyType> Datum<LinkedData, EmptyType>::from_sdn(const LDDocu
 }
 
 
-TypeSignature::TypeSignature(U8StringView name) {
-    name_ = LDDocument::parse_type_decl(name)->value()->to_standard_string();
-}
 
-PoolSharedPtr<LDDocument> TypeSignature::parse() const {
-    return LDDocument::parse_type_decl(name_);
-}
-
-PoolSharedPtr<LDDocument> TypeSignature::parse(U8StringView str) {
-    return LDDocument::parse_type_decl(str);
-}
 
 
 }
