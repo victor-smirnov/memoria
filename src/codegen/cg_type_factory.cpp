@@ -38,7 +38,7 @@ class TypeFactoryImpl: public TypeFactory, public std::enable_shared_from_this<T
 
     U8String id_;
     U8String name_;
-    PoolSharedPtr<LDDocument> config_;
+    PoolSharedPtr<hermes::HermesCtr> config_;
 
     ShPtr<PreCompiledHeader> precompiled_header_;
     std::vector<U8String> includes_;
@@ -49,7 +49,7 @@ public:
     {
         auto anns = get_annotations(tf_decl_);
         if (anns.size()) {
-            config_ = LDDocument::parse(anns[anns.size() - 1]);
+            config_ = hermes::HermesCtr::parse_document(anns[anns.size() - 1]);
         }
 
         for (auto dd: tf_decl_->decls())
@@ -73,7 +73,7 @@ public:
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return *get_value(config_->value(), sdn_path)->as_varchar()->view();
+        return get_value(config_->root(), sdn_path).as_varchar();
     }
 
     U8String name() const override {
@@ -122,8 +122,8 @@ public:
         }
     }
 
-    Own<LDDocumentView> config() const override {
-        return config_->view();
+    PoolSharedPtr<hermes::HermesCtr> config() const override {
+        return config_;
     }
 
     ShPtr<Project> project() const noexcept override {
@@ -144,9 +144,9 @@ public:
 
     U8String generator() const override
     {
-        auto gen = ld_config()->get("generator");
+        auto gen = ld_config().get("generator");
         if (gen.is_not_empty()) {
-            return *gen->as_varchar()->view();
+            return gen.as_varchar();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} has no generator attribute defined. Skipping: ", type_pattern()).do_throw();
@@ -154,29 +154,29 @@ public:
     }
 
     virtual U8String type() const override {
-        return *get_value(config_->value(), "$/type")->as_varchar()->view();
+        return get_value(config_->root(), "$/type").as_varchar();
     }
 
     ShPtr<TypeFactory> self() {
         return shared_from_this();
     }
 
-    Own<LDDMapView> ld_config() {
-        return config_->value()->as_typed_value()->constructor()->as_map();
+    ObjectMap ld_config() {
+        return config_->root().as_typed_value().constructor().as_object_map();
     }
 
-    Own<LDDMapView> ld_config() const {
-        return config_->value()->as_typed_value()->constructor()->as_map();
+    ObjectMap ld_config() const {
+        return config_->root().as_typed_value().constructor().as_object_map();
     }
 
     void generate_artifacts() override {}
 
-    void dry_run(LDDMapView map) override
+    void dry_run(ObjectMap map) override
     {
         auto sources = get_or_add_array(map, "sources");
         auto byproducts = get_or_add_array(map, "byproducts");
 
-        DefaultResourceNameConsumerImpl consumer(*sources, *byproducts);
+        DefaultResourceNameConsumerImpl consumer(sources, byproducts);
 
         U8String file_path = project()->project_output_folder() + "/" + name_ + ".hpp";
 
@@ -188,13 +188,13 @@ public:
 
     void configure() override
     {
-        auto includes = ld_config()->get("includes");
+        auto includes = ld_config().get("includes");
         if (includes.is_not_empty())
         {
-            auto arr = includes->as_array();
-            for (size_t c = 0; c < arr->size(); c++)
+            auto arr = includes.as_object_array();
+            for (size_t c = 0; c < arr.size(); c++)
             {
-                U8String file_name = *arr->get(c)->as_varchar()->view();
+                U8String file_name = arr.get(c).as_varchar();
                 includes_.push_back(file_name);
             }
         }
@@ -202,10 +202,10 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} must define 'includes' config attribute", type_pattern()).do_throw();
         }
 
-        auto name = ld_config()->get("name");
+        auto name = ld_config().get("name");
         if (name.is_not_empty())
         {
-            name_ = *name->as_varchar()->view();
+            name_ = name.as_varchar();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} must define 'name' config attribute", type_pattern()).do_throw();

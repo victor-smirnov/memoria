@@ -76,7 +76,7 @@ class ProjectImpl: public Project, public std::enable_shared_from_this<ProjectIm
     std::vector<ShPtr<TypeFactory>> type_factories_;
     std::unordered_map<U8String, ShPtr<FileGenerator>> file_generators_;
 
-    PoolSharedPtr<LDDocument> config_;
+    PoolSharedPtr<hermes::HermesCtr> config_;
 
     friend class ConfigVisitor;
 
@@ -97,7 +97,7 @@ public:
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return *get_value(config_->value(), sdn_path)->as_varchar()->view();
+        return get_value(config_->root(), sdn_path).as_varchar();
     }
 
     void parse_configuration() override
@@ -125,19 +125,19 @@ public:
         ConfigVisitor visitor(*this);
         visitor.TraverseAST(config_unit_->ast_unit().getASTContext());
 
-        auto profiles = config_map()->get("profiles");
+        auto profiles = config_map().get("profiles");
         if (profiles.is_not_empty())
         {
-            auto map = profiles->as_map();
-            map->for_each([&](auto profile_name, auto value){
+            auto map = profiles.as_object_map();
+            map.for_each([&](auto profile_name, auto value){
                 profiles_.insert(profile_name);
 
                 if (value.is_map()) {
-                    auto map = value.as_map();
-                    auto enabled = map->get("enabled");
-                    if (enabled.is_not_empty() && enabled->is_boolean())
+                    auto map = value.as_object_map();
+                    auto enabled = map.get("enabled");
+                    if (enabled.is_not_empty() && enabled.is_boolean())
                     {
-                        if (*enabled->as_boolean())
+                        if (enabled.as_boolean())
                         {
                             enabled_profiles_.insert(profile_name);
                         }
@@ -155,11 +155,11 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("No profiles are defined for this configuration").do_throw();
         }
 
-        for_each_value(*config_->value(), [&](const std::vector<U8String>& path, LDDValueView value) -> bool {
+        for_each_value(config_->root(), [&](const std::vector<U8String>& path, const hermes::Object& value) -> bool {
             if (value.is_typed_value())
             {
                 auto tvv = value.as_typed_value();
-                if (*tvv->type()->name() == "FileGenerator")
+                if (tvv.datatype().type_name() == "FileGenerator")
                 {
                     U8String full_path = join_sdn_path(path);
                     auto cfg = value.clone();
@@ -216,37 +216,38 @@ public:
 
 
 
-    PoolSharedPtr<LDDocument> dry_run()  override
+    PoolSharedPtr<hermes::HermesCtr> dry_run()  override
     {
-        PoolSharedPtr<LDDocument> doc = LDDocument::make_new();
-        auto map = doc->set_map();
+        PoolSharedPtr<HermesCtr> doc = HermesCtr::make_new();
+        auto map = doc->make_object_map();
+        doc->set_root(map);
 
-        auto profiles = get_or_add_array(*map, "active_profiles");
+        auto profiles = get_or_add_array(map, "active_profiles");
 
         for (const auto& profile: enabled_profiles_) {
-            profiles->add_varchar(profile);
+            profiles = profiles.push_back_t<Varchar>(profile);
         }
 
-        auto byproducts = get_or_add_array(*map, "byproducts");
+        auto byproducts = get_or_add_array(map, "byproducts");
 
         U8String file_path = project_output_folder_ + "/" + codegen_config_file_name_;
 
-        byproducts->add_varchar(file_path);
-        byproducts->add_varchar(file_path + ".pch");
+        byproducts = byproducts.push_back_t<Varchar>(file_path);
+        byproducts = byproducts.push_back_t<Varchar>(file_path + ".pch");
 
         for (auto& tf: type_factories_)
         {
-            tf->dry_run(*map);
+            tf->dry_run(map);
         }
 
         for (auto& ti: type_instances_)
         {
-            ti->dry_run(*map);
+            ti->dry_run(map);
         }
 
         for (auto& tg: file_generators_)
         {
-            tg.second->dry_run(*map);
+            tg.second->dry_run(map);
         }
 
         return std::move(doc);
@@ -301,12 +302,12 @@ public:
         return config_unit_;
     }
 
-    Own<LDDocumentView> config() const noexcept override {
-        return config_->as_immutable_view();
+    PoolSharedPtr<hermes::HermesCtr> config() const noexcept override {
+        return config_;
     }
 
-    Own<LDDMapView> config_map() const override {
-        return config_->value()->as_typed_value()->constructor()->as_map();
+    ObjectMap config_map() const override {
+        return config_->root().cast_to<hermes::TypedValue>().constructor().as_object_map();
     }
 
     std::vector<U8String> profiles() const override
@@ -334,12 +335,12 @@ public:
     std::vector<U8String> profile_includes(const U8String& profile) const override
     {
         U8String path = U8String("$/profiles/") + profile + "/includes";
-        auto ii = get_value(config_->value(), path)->as_array();
+        auto ii = get_value(config_->root(), path).as_object_array();
 
         std::vector<U8String> incs;
 
-        ii->for_each([&](auto value){
-            incs.push_back(*value.as_varchar()->view());
+        ii.for_each([&](auto value){
+            incs.push_back(value.to_str());
         });
 
         return incs;
@@ -381,7 +382,7 @@ bool ConfigVisitor::VisitCXXRecordDecl(CXXRecordDecl* RD)
 
     if (RD->getNameAsString() == "CodegenConfig") {
         for (const auto& ann: get_annotations(RD)) {
-            project_.config_ = LDDocument::parse(ann);
+            project_.config_ = hermes::HermesCtr::parse_document(ann);
         }
     }
     else if (RD->getNameAsString() == "TypeInstance") {
@@ -453,7 +454,7 @@ U8String join_sdn_path(Span<const U8String> tokens)
 
 U8String get_same_level_path(U8String path, U8String step)
 {
-    auto tokens = parse_path_expression(path);
+    auto tokens = parse_path_expression1(path);
     if (tokens.size() > 0)
     {
         tokens.erase(tokens.end() - 1);
@@ -466,19 +467,22 @@ U8String get_same_level_path(U8String path, U8String step)
     }
 }
 
-void for_each_value(std::vector<U8String>& path, LDDValueView elem, const std::function<bool (const std::vector<U8String>&, LDDValueView)>& consumer)
+void for_each_value(
+        std::vector<U8String>& path,
+        const hermes::Object& elem,
+        const std::function<bool (const std::vector<U8String>&, const hermes::Object&)>& consumer)
 {
     if (consumer(path, elem))
     {
         if (elem.is_typed_value()) {
             path.push_back("$");
-            auto next = elem.as_typed_value()->constructor();
-            for_each_value(path, *next, consumer);
+            auto next = elem.as_typed_value().constructor();
+            for_each_value(path, next, consumer);
             path.pop_back();
         }
-        else if (elem.is_map()) {
-            auto map = elem.as_map();
-            map->for_each([&](auto key, auto value) {
+        else if (elem.is_object_map()) {
+            auto map = elem.as_object_map();
+            map.for_each([&](auto key, auto value) {
                 path.push_back(key);
                 for_each_value(path, value, consumer);
                 path.pop_back();
@@ -487,40 +491,46 @@ void for_each_value(std::vector<U8String>& path, LDDValueView elem, const std::f
     }
 }
 
-void for_each_value(LDDValueView elem, const std::function<bool(const std::vector<U8String>&, LDDValueView)>& consumer)
+void for_each_value(
+        const hermes::Object& elem,
+        const std::function<bool(const std::vector<U8String>&, const hermes::Object&)>& consumer
+)
 {
     std::vector<U8String> path;
     for_each_value(path, elem, consumer);
 }
 
 
-Own<LDDArrayView> get_or_add_array(LDDMapView map, const U8String& name)
+ObjectArray get_or_add_array(ObjectMap map, const U8String& name)
 {
     auto res = map.get(name);
 
     if (res.is_not_empty()) {
-        return res->as_array();
+        return res.as_object_array();
     }
 
-    return map.set_array(name);
+    auto arr = map.ctr()->make_object_array(500);
+    map = map.put(name, arr.as_object());
+
+    return arr;
 }
 
 
-std::string build_output_list(const LDDocumentView& doc)
+std::string build_output_list(const PoolSharedPtr<hermes::HermesCtr>& doc)
 {
     std::stringstream ss;
     std::vector<U8String> files;
 
-    if (doc.value()->is_map())
+    if (doc->root().is_object_map())
     {
-        auto mm = doc.value()->as_map();
-        auto byproducts = mm->get("byproducts");
+        auto mm = doc->root().as_object_map();
+        auto byproducts = mm.get("byproducts");
         if (byproducts.is_not_empty()) {
-            if (byproducts->is_array())
+            if (byproducts.is_object_array())
             {
-                auto arr = byproducts->as_array();
-                for (size_t c = 0; c < arr->size(); c++) {
-                    files.push_back(U8String("BYPRODUCT:") + *arr->get(c)->as_varchar()->view());
+                auto arr = byproducts.as_object_array();
+                for (size_t c = 0; c < arr.size(); c++) {
+                    files.push_back(U8String("BYPRODUCT:") + arr.get(c).as_varchar());
                 }
             }
             else {
@@ -528,13 +538,13 @@ std::string build_output_list(const LDDocumentView& doc)
             }
         }
 
-        auto sources = mm->get("sources");
+        auto sources = mm.get("sources");
         if (sources.is_not_empty()) {
-            if (sources->is_array())
+            if (sources.is_object_array())
             {
-                auto arr = sources->as_array();
-                for (size_t c = 0; c < arr->size(); c++) {
-                    files.push_back(U8String("SOURCE:") + *arr->get(c)->as_varchar()->view());
+                auto arr = sources.as_object_array();
+                for (size_t c = 0; c < arr.size(); c++) {
+                    files.push_back(U8String("SOURCE:") + arr.get(c).as_varchar());
                 }
             }
             else {
@@ -542,13 +552,13 @@ std::string build_output_list(const LDDocumentView& doc)
             }
         }
 
-        auto profiles = mm->get("active_profiles");
+        auto profiles = mm.get("active_profiles");
         if (profiles.is_not_empty()) {
-            if (profiles->is_array())
+            if (profiles.is_object_array())
             {
-                auto arr = profiles->as_array();
-                for (size_t c = 0; c < arr->size(); c++) {
-                    files.push_back(U8String("PROFILE:") + *arr->get(c)->as_varchar()->view());
+                auto arr = profiles.as_object_array();
+                for (size_t c = 0; c < arr.size(); c++) {
+                    files.push_back(U8String("PROFILE:") + arr.get(c).as_varchar());
                 }
             }
             else {
@@ -568,5 +578,60 @@ std::string build_output_list(const LDDocumentView& doc)
 
     return ss.str();
 }
+
+std::vector<U8String> parse_path_expression1(U8StringView path) {
+    auto pattern = ICURegexPattern::compile(u"(/)+");
+    return pattern.split(path);
+}
+
+bool find_value(hermes::Object& res, U8StringView path_str)
+{
+    auto path = parse_path_expression(path_str);
+
+    for (size_t c = 0; c < path.size(); c++)
+    {
+        const U8String& step = path[c];
+        if (!step.is_empty())
+        {
+            if (step == "$") {
+                if (res.is_typed_value()) {
+                    auto res2 = res.as_typed_value().constructor();
+                    res = std::move(res2);
+                }
+                else {
+                    MEMORIA_MAKE_GENERIC_ERROR("Value has invalid type for step {} in path expression '{}'", c, step).do_throw();
+                }
+            }
+            else if (res.is_map())
+            {
+                auto res2 = res.as_object_map().get(step);
+                if (res2.is_null()) {
+                    return false;
+                }
+                else {
+                    res = std::move(res2);
+                }
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Value has invalid type for step {} in path expression '{}'", c, step).do_throw();
+            }
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Empty step {} in the path expression '{}'", c, step).do_throw();
+        }
+    }
+
+    return true;
+}
+
+hermes::Object get_value(hermes::Object src, U8StringView path) {
+    if (find_value(src, path)) {
+        return src;
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Value for path '{}' is not found", path).do_throw();
+    }
+}
+
 
 }}

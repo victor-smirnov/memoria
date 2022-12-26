@@ -104,6 +104,7 @@ protected:
 
     friend class HermesCtrBuilder;
     friend struct CommonInstance;
+    friend class ObjectView;
 
     template <typename, typename>
     friend class MapView;

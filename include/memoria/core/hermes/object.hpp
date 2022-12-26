@@ -444,6 +444,7 @@ public:
     GenericArrayPtr as_generic_array() const;
     GenericMapPtr as_generic_map() const;
     Datatype as_datatype() const;
+    TypedValue as_typed_value() const;
 
     DTView<Varchar> as_varchar() const;
     DTView<Double>  as_double() const;
@@ -570,7 +571,7 @@ public:
         }
     }
 
-    PoolSharedPtr<HermesCtr> clone() const;
+    PoolSharedPtr<HermesCtr> clone(bool make_immutable = true) const;
 
     template <typename DT>
     DTTViewType<DT> view_unchecked() const {

@@ -23,8 +23,6 @@
 
 #include <code_module.hpp>
 
-#include <memoria/core/linked/document/linked_document.hpp>
-
 #include <boost/variant2/variant.hpp>
 
 #include <clang/AST/Type.h>
@@ -42,6 +40,8 @@ class APSInt;
 namespace memoria {
 namespace codegen {
 
+using namespace hermes;
+
 struct CodegenEntity;
 struct Project;
 struct CodeModule;
@@ -57,7 +57,7 @@ struct CodegenEntity {
 
     virtual std::vector<U8String> includes() const = 0;
 
-    virtual void dry_run(LDDMapView consumer) = 0;
+    virtual void dry_run(ObjectMap consumer) = 0;
 
     virtual void generate_artifacts() = 0;
     virtual void configure() = 0;
@@ -72,8 +72,8 @@ struct Project {
     virtual void parse_configuration() = 0;
 
     virtual ShPtr<CodeModule> config_unit() const noexcept = 0;
-    virtual Own<LDDocumentView> config() const noexcept = 0;
-    virtual Own<LDDMapView> config_map() const = 0;
+    virtual PoolSharedPtr<HermesCtr> config() const noexcept = 0;
+    virtual ObjectMap config_map() const = 0;
     virtual U8String project_output_folder() const = 0;
     virtual U8String components_output_folder() const = 0;
     virtual U8String config_string(const U8String& sdn_path) const = 0;
@@ -84,7 +84,7 @@ struct Project {
 
     virtual std::vector<U8String> profiles() const = 0;
 
-    virtual PoolSharedPtr<LDDocument> dry_run() = 0;
+    virtual PoolSharedPtr<HermesCtr> dry_run() = 0;
 
     virtual void generate_artifacts() = 0;
 
@@ -104,7 +104,7 @@ struct TypeInstance: CodegenEntity {
 
     virtual const clang::ClassTemplateSpecializationDecl* ctr_descr() const = 0;
     virtual clang::QualType type() const = 0;
-    virtual Own<LDDocumentView> config() const = 0;
+    virtual PoolSharedPtr<HermesCtr> config() const = 0;
     virtual U8String name() const = 0;
     virtual U8String target_folder() const = 0;
     virtual U8String target_file(const U8String& profile) const = 0;
@@ -130,7 +130,7 @@ struct TypeFactory: CodegenEntity {
     virtual U8String name() const = 0;
 
     virtual U8String factory_id() const = 0;
-    virtual Own<LDDocumentView> config() const = 0;
+    virtual PoolSharedPtr<HermesCtr> config() const = 0;
     virtual U8String type_pattern() const = 0;
 
     virtual void precompile_headers() = 0;
@@ -156,7 +156,7 @@ struct FileGenerator: CodegenEntity {
     virtual U8String target_file() const = 0;
     virtual U8String target_folder() const = 0;
 
-    static ShPtr<FileGenerator> create(ShPtr<Project> project, const U8String& sdn_path, PoolSharedPtr<LDDocument>&& config);
+    static ShPtr<FileGenerator> create(ShPtr<Project> project, const U8String& sdn_path, PoolSharedPtr<HermesCtr>&& config);
 };
 
 std::pair<U8String, U8String> split_path(U8String class_path);
@@ -166,7 +166,7 @@ U8String get_profile_id(U8String profile_name);
 U8String get_same_level_path(U8String path, U8String step);
 U8String join_sdn_path(Span<const U8String> path);
 
-void for_each_value(LDDValueView elem, const std::function<bool (const std::vector<U8String>&, LDDValueView)>& consumer);
+void for_each_value(const Object& elem, const std::function<bool (const std::vector<U8String>&, const Object&)>& consumer);
 
 template <typename T>
 T&& get_or_fail(Optional<T>&& opt, U8StringView msg)
@@ -179,18 +179,18 @@ T&& get_or_fail(Optional<T>&& opt, U8StringView msg)
     }
 }
 
-template <typename T>
-T&& get_or_fail(Own<T>&& opt, U8StringView msg)
+template <typename T, OwningKind OK>
+Own<T, OK> get_or_fail(Own<T, OK>&& opt, U8StringView msg)
 {
     if (opt.is_not_empty()) {
-        return std::move(*opt);
+        return std::move(opt);
     }
     else {
         MEMORIA_MAKE_GENERIC_ERROR("{}", msg).do_throw();
     }
 }
 
-Own<LDDArrayView> get_or_add_array(LDDMapView map, const U8String& name);
+ObjectArray get_or_add_array(ObjectMap map, const U8String& name);
 
 struct ResourceNameConsumer {
     virtual ~ResourceNameConsumer() noexcept = default;
@@ -200,23 +200,28 @@ struct ResourceNameConsumer {
 };
 
 class DefaultResourceNameConsumerImpl: public ResourceNameConsumer {
-    LDDArrayView sources_;
-    LDDArrayView byproducts_;
+    ObjectArray sources_;
+    ObjectArray byproducts_;
 
 public:
-    DefaultResourceNameConsumerImpl(LDDArrayView sources, LDDArrayView byproducts):
+    DefaultResourceNameConsumerImpl(const ObjectArray& sources, const ObjectArray& byproducts):
         sources_(sources), byproducts_(byproducts)
     {}
 
     void add_source_file(std::string name) {
-        sources_.add_varchar(name);
+        sources_ = sources_.push_back_t<Varchar>(name);
     }
 
     void add_byproduct_file(std::string name) {
-        byproducts_.add_varchar(name);
+        byproducts_ = byproducts_.push_back_t<Varchar>(name);
     }
 };
 
-std::string build_output_list(const LDDocumentView& doc);
+std::string build_output_list(const PoolSharedPtr<HermesCtr>& doc);
+
+
+std::vector<U8String> parse_path_expression1(U8StringView path);
+bool find_value(Object& view, U8StringView path_str);
+Object get_value(Object src, U8StringView path);
 
 }}

@@ -50,8 +50,8 @@ class TypeInstanceImpl: public TypeInstance, public std::enable_shared_from_this
 
   const clang::ClassTemplateSpecializationDecl* ctr_descr_;
 
-  PoolSharedPtr<LDDocument> config_;
-  PoolSharedPtr<LDDocument> project_config_;
+  PoolSharedPtr<hermes::HermesCtr> config_;
+  PoolSharedPtr<hermes::HermesCtr> project_config_;
 
   ShPtr<PreCompiledHeader> precompiled_header_;
   std::vector<U8String> includes_;
@@ -69,12 +69,12 @@ public:
   TypeInstanceImpl(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr) noexcept:
     project_ptr_(project), project_(project.get()), ctr_descr_(descr)
   {
-    config_ = LDDocument::make_new();
-    project_config_ = LDDocument::make_new();
+    config_ = hermes::HermesCtr::make_new();
+    project_config_ = hermes::HermesCtr::make_new();
   }
 
   U8String config_string(const U8String& sdn_path) const override {
-    return *get_value(config_->value(), sdn_path)->as_varchar()->view();
+    return get_value(config_->root(), sdn_path).as_varchar();
   }
 
   ShPtr<FileGenerator> initializer() override
@@ -105,8 +105,8 @@ public:
     }
   }
 
-  Own<LDDocumentView> config() const override {
-    return config_->view();
+  PoolSharedPtr<hermes::HermesCtr> config() const override {
+    return config_;
   }
 
   ShPtr<Project> project() const noexcept override {
@@ -228,12 +228,12 @@ public:
     }
   }
 
-  void dry_run(LDDMapView map) override
+  void dry_run(ObjectMap map) override
   {
     auto sources = get_or_add_array(map, "sources");
     auto byproducts = get_or_add_array(map, "byproducts");
 
-    DefaultResourceNameConsumerImpl consumer(*sources, *byproducts);
+    DefaultResourceNameConsumerImpl consumer(sources, byproducts);
 
     U8String file_path = target_folder_ + "/" + name_ + ".hpp";
 
@@ -283,8 +283,8 @@ public:
     return shared_from_this();
   }
 
-  Own<LDDMapView> ld_config() const {
-    return config_->value()->as_typed_value()->constructor()->as_map();
+  ObjectMap ld_config() const {
+    return config_->root().as_typed_value().constructor().as_object_map();
   }
 
   U8String name() const override {
@@ -295,23 +295,23 @@ public:
   {
     auto anns = get_annotations(ctr_descr_);
     if (anns.size()) {
-      config_ = LDDocument::parse(anns[anns.size() - 1]);
+      config_ = hermes::HermesCtr::parse_document(anns[anns.size() - 1]);
 
-      auto name = ld_config()->get("name");
+      auto name = ld_config().get("name");
       if (name.is_not_empty()) {
-        name_ = *name->as_varchar()->view();
+        name_ = name.as_varchar();
       }
       else {
         U8String type_name = type_().getAsString();
         name_ = get_profile_id(type_name);
       }
 
-      auto includes = ld_config()->get("includes");
+      auto includes = ld_config().get("includes");
       if (includes.is_not_empty()) {
-        auto arr = includes->as_array();
-        for (size_t c = 0; c < arr->size(); c++)
+        auto arr = includes.as_object_array();
+        for (size_t c = 0; c < arr.size(); c++)
         {
-          U8String file_name = *arr->get(c)->as_varchar()->view();
+          U8String file_name = arr.get(c).as_varchar();
           includes_.push_back(file_name);
         }
       }
@@ -323,40 +323,40 @@ public:
       MEMORIA_MAKE_GENERIC_ERROR("Configuration must be specified for TypeInstance {}", type_().getAsString()).do_throw();
     }
 
-    auto cfg = config_->value();
-    if (find_value(*cfg, "$/config")) {
-      config_sdn_path_ = *cfg->as_varchar()->view();
+    auto cfg = config_->root();
+    if (find_value(cfg, "$/config")) {
+      config_sdn_path_ = cfg.as_varchar();
     }
     else {
       config_sdn_path_ = "$/groups/default/containers";
     }
 
-    auto vv = project_->config()->value();
-    if (find_value(*vv, config_sdn_path_)) {
-      project_config_ = vv->clone();
+    auto vv = project_->config()->root();
+    if (find_value(vv, config_sdn_path_)) {
+      project_config_ = vv.clone();
     }
     else {
       MEMORIA_MAKE_GENERIC_ERROR(
             "CodeGen Project configuration '{}' must be specified for TypeInstance {}",
             config_sdn_path_,
             type_().getAsString()
-            ).do_throw();
+      ).do_throw();
     }
 
-    target_folder_ = project_->components_output_folder() + "/" + *get_value(project_config_->value(), "$/path")
-        ->as_varchar()->view();
+    target_folder_ = project_->components_output_folder() + "/" + get_value(project_config_->root(), "$/path")
+        .as_varchar();
 
     std::error_code ec;
     if ((!std::filesystem::create_directories(target_folder_.to_std_string(), ec)) && ec) {
       MEMORIA_MAKE_GENERIC_ERROR("Can't create directory '{}': {}", target_folder_, ec.message()).do_throw();
     }
 
-    auto pp = config_->value();
-    if (find_value(*pp, "$/profiles"))
+    auto pp = config_->root();
+    if (find_value(pp, "$/profiles"))
     {
-      if (pp->is_varchar())
+      if (pp.is_varchar())
       {
-        U8String val = *pp->as_varchar()->view();
+        U8String val = pp.as_varchar();
         if (val == "ALL") {
           profiles_ = project_->profiles();
         }
@@ -364,12 +364,12 @@ public:
           MEMORIA_MAKE_GENERIC_ERROR("Invalid profile attribute '{}' value for TypeInstance for {}", type().getAsString()).do_throw();
         }
       }
-      else if (pp->is_array())
+      else if (pp.is_object_array())
       {
-        auto arr = pp->as_array();
+        auto arr = pp.as_object_array();
         profiles_ = std::vector<U8String>();
-        for (size_t c = 0; c < arr->size(); c++) {
-          profiles_.get().push_back(*arr->get(c)->as_varchar()->view());
+        for (size_t c = 0; c < arr.size(); c++) {
+          profiles_.get().push_back(arr.get(c).as_varchar());
         }
       }
       else {

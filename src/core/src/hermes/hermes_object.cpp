@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/core/hermes/object_ext.hpp>
+#include <memoria/core/hermes/hermes.hpp>
 
 namespace memoria::hermes {
 
@@ -42,6 +42,10 @@ GenericMapPtr ObjectView::as_generic_map() const
     else {
         MEMORIA_MAKE_GENERIC_ERROR("Object is not addressable").do_throw();
     }
+}
+
+TypedValue ObjectView::as_typed_value() const {
+    return cast_to<TypedValue>();
 }
 
 Datatype ObjectView::as_datatype() const {
@@ -112,6 +116,19 @@ TinyObjectMap ObjectView::as_tiny_object_map() const {
 
 ObjectArray ObjectView::as_object_array() const {
     return cast_to<Array<Object>>();
+}
+
+PoolSharedPtr<HermesCtr> ObjectView::clone(bool make_immutable) const
+{
+    auto ctr = HermesCtr::make_new();
+
+    if (is_not_null())
+    {
+        Object vv = ctr->do_import_value(Object(get_mem_holder(), get_vs_tag(), storage_));
+        ctr->set_root(vv);
+    }
+
+    return ctr;
 }
 
 

@@ -44,6 +44,7 @@ pid_t forkpty(int *amaster, char *name,
 
 using namespace memoria;
 using namespace memoria::codegen;
+using namespace memoria::hermes;
 
 namespace po = boost::program_options;
 
@@ -146,8 +147,8 @@ int main(int argc, char** argv)
       if (map.count("reuse-config") && list_exists)
       {
         std::string text = load_text_file(file_name);
-        auto doc = LDDocument::parse(text);
-        std::cout << build_output_list(*doc);
+        auto doc = HermesCtr::parse_document(text);
+        std::cout << build_output_list(doc);
       }
       else {
         add_parser_clang_option("-Wno-everything");
@@ -173,9 +174,9 @@ int main(int argc, char** argv)
         }
 
         auto doc = project->dry_run();
-        write_text_file(file_name, doc->to_pretty_string());
+        write_text_file(file_name, doc->root().to_pretty_string());
 
-        std::cout << build_output_list(*doc);
+        std::cout << build_output_list(doc);
       }
     }
     else if (map.count("reuse-config") && list_exists) {
