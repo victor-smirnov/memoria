@@ -162,7 +162,7 @@ protected:
     CDescrPtr head_snapshot_descriptor_{};
     CDescrPtr consistency_point_snapshot_descriptor_{};
 
-    LDDocument metadata_doc_;
+    PoolSharedPtr<hermes::HermesCtr> metadata_doc_;
 
     enum class State {
         ACTIVE, PREPARED, COMMITTED, ROLLED_BACK

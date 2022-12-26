@@ -24,11 +24,9 @@
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/strings/format.hpp>
 
-#include <memoria/core/linked/document/linked_document.hpp>
-
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 
-
+#include <memoria/core/hermes/hermes.hpp>
 
 #include <yaml-cpp/yaml.h>
 #include <sstream>
@@ -638,7 +636,7 @@ void write_message(BinaryOutputStream output, const U8StringView& msg)
     output.flush();
 }
 
-PoolSharedPtr<LDDocument> read_message(BinaryInputStream input)
+PoolSharedPtr<hermes::HermesCtr> read_message(BinaryInputStream input)
 {
     uint64_t size{0};
     if (input.read(ptr_cast<uint8_t>(&size), sizeof(size)) < sizeof(size))
@@ -651,7 +649,7 @@ PoolSharedPtr<LDDocument> read_message(BinaryInputStream input)
         MEMORIA_MAKE_GENERIC_ERROR("Connection has been closed").do_throw();
     }
 
-    return LDDocument::parse(str);
+    return hermes::HermesCtr::parse_document(str);
 }
 
 
@@ -696,11 +694,11 @@ void MultiProcessRunner::handle_connections()
                 while (tests.size() || heads_.count(worker_num) > 0)
                 {
                     auto msg = read_message(input);
-                    U8String code = *get_value(msg->value(), "code")->as_varchar()->view();
+                    U8String code = msg->root().search("code").as_varchar();
 
                     if (code == "GREETING")
                     {
-                        worker_num = *get_value(msg->value(), "worker_id")->as_bigint();
+                        worker_num = msg->root().search("worker_id").as_bigint();
                         worker_process = worker_processes_.at(worker_num);
                     }
                     else if (code == "GET_TASK")
@@ -723,8 +721,8 @@ void MultiProcessRunner::handle_connections()
                     {
                         processed++;
 
-                        U8String test_path = *get_value(msg->value(), "test_path")->as_varchar()->view();
-                        int32_t status = *get_value(msg->value(), "status")->as_bigint();
+                        U8String test_path = msg->root().search("test_path").as_varchar();
+                        int32_t status = msg->root().search("status").as_bigint();
 
                         heads_.erase(worker_num);
 
@@ -905,11 +903,11 @@ void Worker::run()
         write_message(output, "{'code': 'GET_TASK'}");
 
         auto msg = read_message(input);
-        U8String code = *get_value(msg->value(), "code")->as_varchar()->view();
+        U8String code = msg->root().search("code").as_varchar();
 
         if (code == "RUN_TASK")
         {            
-            U8String test_path = *get_value(msg->value(), "test_path")->as_varchar()->view();
+            U8String test_path = msg->root().search("test_path").as_varchar();
 
             println("++++++++++ New message from server: {}", test_path);
 

@@ -34,9 +34,6 @@
 
 #include <memoria/core/datatypes/type_signature.hpp>
 
-#include <memoria/core/linked/document/linked_document.hpp>
-
-
 #include <stack>
 #include <sstream>
 #include <fstream>

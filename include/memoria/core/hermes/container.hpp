@@ -461,10 +461,6 @@ struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
 
     static constexpr bool isSdnDeserializable = true;
 
-    static void create_signature(SBuf& buf, const LinkedData& obj) {
-        buf << "Hermes";
-    }
-
     static void create_signature(SBuf& buf) {
         buf << "Hermes";
     }
@@ -491,11 +487,6 @@ struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
     static TypeDimensionsTuple describe_type(ViewType view) {
         return std::make_tuple();
     }
-
-    static TypeDimensionsTuple describe_type(const LinkedData& data_type) {
-        return TypeDimensionsTuple{};
-    }
-
 
     static ViewType make_view(const DataDimensionsTuple& data, LWMemHolder* holder)
     {

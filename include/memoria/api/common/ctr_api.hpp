@@ -28,8 +28,6 @@
 
 #include <memoria/core/datatypes/datatypes.hpp>
 
-#include <memoria/core/linked/document/linked_document.hpp>
-
 #include <memoria/core/memory/object_pool.hpp>
 
 namespace memoria {

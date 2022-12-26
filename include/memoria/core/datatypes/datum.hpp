@@ -23,8 +23,6 @@
 
 #include <memoria/core/memory/malloc.hpp>
 
-#include <memoria/core/linked/document/linked_document.hpp>
-
 #include <typeinfo>
 
 namespace memoria {
@@ -290,13 +288,6 @@ public:
         return storage_->view();
     }
 
-    static Datum<DataType, Selector> from_sdn_string(U8StringView sdn_string) {
-        return from_sdn(LDDocument::parse(sdn_string));
-    }
-
-    static Datum<DataType, Selector> from_sdn(const LDDocument& value);
-
-
     operator bool() const {
         return storage_ != nullptr;
     }
@@ -385,33 +376,6 @@ public:
     operator const ViewType& () const noexcept {
         return value_;
     }
-
-    static Datum<DataType, FixedSizeDataTypeTag> from_sdn_string(U8StringView sdn_string) {
-        return from_sdn(LDDocument::parse(sdn_string));
-    }
-
-    static Datum<DataType> from_sdn(const LDDocument& doc)
-    {
-        auto value = doc.value();
-
-        if (value->is_double()) {
-            return datum_from_sdn_value(static_cast<DataType*>(nullptr), (double)*value->as_double());
-        }
-        else if (value->is_bigint()) {
-            return datum_from_sdn_value(static_cast<DataType*>(nullptr), (int64_t)*value->as_bigint());
-        }
-//        else if (value.is_boolean()) {
-//            return datum_from_sdn_value(static_cast<DataType*>(nullptr), value.as_boolean());
-//        }
-
-        MMA_THROW(RuntimeException())
-                << format_ex(
-                       "Unsupported SDN value type for fixed size datum convertion: {}",
-                       value->to_standard_string()
-                   );
-    }
-
-
 
     operator AnyDatum ()
     {

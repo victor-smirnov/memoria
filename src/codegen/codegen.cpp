@@ -15,7 +15,6 @@
 
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/linked/document/ld_document.hpp>
 #include <memoria/memoria_core.hpp>
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/tools/result.hpp>

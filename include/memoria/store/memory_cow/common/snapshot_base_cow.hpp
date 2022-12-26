@@ -37,8 +37,6 @@
 
 #include <memoria/core/datatypes/type_registry.hpp>
 
-#include <memoria/core/linked/document/linked_document.hpp>
-
 #include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memoria/core/container/ctr_instance_pool.hpp>

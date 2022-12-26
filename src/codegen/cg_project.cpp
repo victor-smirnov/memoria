@@ -586,7 +586,7 @@ std::vector<U8String> parse_path_expression1(U8StringView path) {
 
 bool find_value(hermes::Object& res, U8StringView path_str)
 {
-    auto path = parse_path_expression(path_str);
+    auto path = parse_path_expression1(path_str);
 
     for (size_t c = 0; c < path.size(); c++)
     {

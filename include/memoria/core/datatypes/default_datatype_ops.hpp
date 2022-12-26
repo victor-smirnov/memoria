@@ -28,7 +28,7 @@ namespace memoria {
 
 class LDDValueView;
 class LDTypeDeclarationView;
-
+/*
 template <typename T>
 struct SimpleDataTypeOperationsImpl: DataTypeOperations {
 
@@ -120,5 +120,6 @@ struct CtrDataTypeOperationsImpl: DataTypeOperations {
                 << format_ex("DataTypeOperationsImpl<{}>::construct_from", full_type_name());
     }
 };
+*/
 
 }

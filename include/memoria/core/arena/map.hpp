@@ -17,9 +17,6 @@
 
 #include <memoria/core/types.hpp>
 
-#include <memoria/core/linked/common/arena.hpp>
-#include <memoria/core/linked/common/linked_vector.hpp>
-#include <memoria/core/linked/common/linked_tools.hpp>
 #include <memoria/core/tools/optional.hpp>
 
 #include <memoria/core/arena/arena.hpp>

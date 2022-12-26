@@ -131,7 +131,8 @@ namespace detail {
             U8StringView sdn_str;
             codec.decode(addr, sdn_str, 0);
 
-            AnyDatum any_datum = DataTypeRegistry::local().from_sdn_string(sdn_str);
+            // FIXME !!!!
+            AnyDatum any_datum;// = DataTypeRegistry::local().from_sdn_string(sdn_str);
 
             Datum<T> datum = datum_cast<T>(any_datum);
 

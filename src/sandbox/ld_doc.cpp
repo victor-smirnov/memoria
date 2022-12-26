@@ -14,7 +14,6 @@
 // limitations under the License.
 
 
-#include <memoria/core/linked/document/linked_document.hpp>
 #include <memoria/core/strings/format.hpp>
 
 #include <memoria/core/tools/span.hpp>

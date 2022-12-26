@@ -24,7 +24,6 @@
 #include <memoria/core/types/list/typelist.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 
-#include <memoria/core/linked/document/linked_document.hpp>
 
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/flat_map/flat_hash_map.hpp>
@@ -39,6 +38,8 @@
 #include <tuple>
 
 namespace memoria {
+
+/*
 
 class DataTypeRegistry;
 
@@ -624,6 +625,14 @@ void register_notctr_operations()
     DataTypeRegistry::local().template register_notctr_operations<T>(ops);
 }
 
+*/
 
+template <typename T>
+void register_operations()
+{
+//    std::shared_ptr<DataTypeOperations> ops = std::make_shared<DataTypeOperationsImpl<T>>();
+//    DataTypeRegistryStore::global().template register_operations<T>(ops);
+//    DataTypeRegistry::local().template register_operations<T>(ops);
+}
 
 }

@@ -24,14 +24,11 @@
 #include <memoria/api/map/map_api.hpp>
 #include <memoria/api/multimap/multimap_api.hpp>
 #include <memoria/api/vector/vector_api.hpp>
-//#include <memoria/api/db/update_log/update_log_api.hpp>
-//#include <memoria/api/db/edge_map/edge_map_api.hpp>
 #include <memoria/api/set/set_api.hpp>
 
-#include <memoria/core/linked/document/ld_datatype.hpp>
 
 namespace memoria {
-
+/*
 AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
 {
     auto sdn_doc = LDDocument::parse(sdn_string);
@@ -132,5 +129,6 @@ DataTypeRegistry& DataTypeRegistry::local()
     static thread_local DataTypeRegistry type_registry_;
     return type_registry_;
 }
+*/
 
 }
