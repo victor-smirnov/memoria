@@ -19,8 +19,6 @@
 #include <memoria/store/lmdb/lmdb_store_common.hpp>
 #include <memoria/store/lmdb/lmdb_store_readonly_snapshot.hpp>
 
-#include <memoria/core/datatypes/type_registry.hpp>
-
 #include <memoria/core/tools/2q_cache.hpp>
 
 #include <type_traits>

@@ -736,7 +736,7 @@ public:
                     history_ctr_->with_value(update_op.snapshot_id, [&](auto value) {
                         using ResultT = std::decay_t<decltype(value)>;
                         if (value) {
-                            auto vv = value.get().view();
+                            auto vv = value.get().value_t();
                             vv.set_parent_snapshot_id(update_op.new_parent_id);
                             return ResultT{vv};
                         }
@@ -1335,7 +1335,7 @@ public:
         history_ctr_->with_value(snapshot_id, [&](const auto& value) {
             using ResultT = std::decay_t<decltype(value)>;
             if (value) {
-                auto vv = value.get().view();
+                auto vv = value.get().value_t();
                 fn(vv);
                 return ResultT{vv};
             }

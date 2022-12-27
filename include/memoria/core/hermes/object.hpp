@@ -16,7 +16,6 @@
 #pragma once
 
 #include <memoria/core/memory/object_pool.hpp>
-#include <memoria/core/datatypes/datatype_ptrs.hpp>
 #include <memoria/core/datatypes/varchars/varchars.hpp>
 
 #include <memoria/core/arena/arena.hpp>

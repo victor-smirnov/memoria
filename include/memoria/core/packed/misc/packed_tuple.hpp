@@ -20,10 +20,11 @@
 #include <memoria/core/tools/accessors.hpp>
 #include <memoria/core/types/algo/for_each.hpp>
 #include <memoria/api/common/packed_api.hpp>
-#include <memoria/core/datatypes/datum.hpp>
-#include <memoria/core/datatypes/type_registry.hpp>
+
 #include <memoria/core/strings/string_codec.hpp>
 #include <memoria/core/strings/format.hpp>
+
+#include <memoria/core/packed/tools/packed_allocator.hpp>
 
 #include <memoria/core/packed/misc/packed_so_default.hpp>
 
@@ -110,17 +111,19 @@ namespace detail {
     {
         static void set_value(const T& value, psize_t idx, PkdTuple& pkd_tuple)
         {
-            Datum<T> datum(value);
-            U8String sdn_str = datum.to_sdn_string();
+            // FIXME !!!!!
 
-            ValueCodec<U8String> codec;
+//            Datum<T> datum(value);
+//            U8String sdn_str = datum.to_sdn_string();
 
-            psize_t str_data_length = codec.length(sdn_str);
+//            ValueCodec<U8String> codec;
 
-            pkd_tuple.resize_block(idx, str_data_length);
+//            psize_t str_data_length = codec.length(sdn_str);
 
-            auto* addr = pkd_tuple.template get<typename ValueCodec<U8String>::BufferType>(idx);
-            codec.encode(addr, sdn_str, 0);
+//            pkd_tuple.resize_block(idx, str_data_length);
+
+//            auto* addr = pkd_tuple.template get<typename ValueCodec<U8String>::BufferType>(idx);
+//            codec.encode(addr, sdn_str, 0);
         }
 
         static void get_value(T& value, psize_t idx, const PkdTuple& pkd_tuple)
@@ -132,11 +135,11 @@ namespace detail {
             codec.decode(addr, sdn_str, 0);
 
             // FIXME !!!!
-            AnyDatum any_datum;// = DataTypeRegistry::local().from_sdn_string(sdn_str);
+            //AnyDatum any_datum;// = DataTypeRegistry::local().from_sdn_string(sdn_str);
 
-            Datum<T> datum = datum_cast<T>(any_datum);
+            //Datum<T> datum = datum_cast<T>(any_datum);
 
-            value = datum.view();
+            //value = datum.view();
         }
 
         template <typename SerializationData>

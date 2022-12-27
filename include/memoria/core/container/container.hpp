@@ -43,7 +43,6 @@
 #include <memoria/profiles/common/metadata.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
-#include <memoria/core/datatypes/type_registry.hpp>
 
 #include <memoria/api/common/ctr_api.hpp>
 #include <memoria/core/tools/result.hpp>

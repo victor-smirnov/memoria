@@ -31,7 +31,6 @@ namespace memoria {
 class VarcharStorage;
 using VarcharView = U8StringView;
 
-class LDStringView;
 
 template <typename CharT> class LinkedString;
 
@@ -45,8 +44,6 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
 
     using View2Type     = Own<U8StringOView, OwningKind::HOLDING>;
 
-    using LDStorageType = LinkedString<typename U8StringView::value_type>;
-    using LDViewType    = LDStringView;
 
     using DatumStorage  = VarcharStorage;
 

@@ -41,7 +41,7 @@ struct ICtrApi<Vector<DataType>, Profile>: public ICtrApi<Collection<DataType>, 
 
     using CtrSizeT  = ApiProfileCtrSizeT<Profile>;
 
-    using DataTypeT     = DataType;
+    using DataTypeT = DataType;
 
     using CtrInputBuffer = typename ApiTypes::CtrInputBuffer;
     using ChunkIteratorPtr = IterSharedPtr<CollectionChunk<DataType, Profile>>;
@@ -49,7 +49,7 @@ struct ICtrApi<Vector<DataType>, Profile>: public ICtrApi<Collection<DataType>, 
     virtual void read_to(CtrInputBuffer& buffer, CtrSizeT start, CtrSizeT length) const = 0;
     virtual ChunkIteratorPtr insert(CtrSizeT at, CtrInputBuffer& buffer) MEMORIA_READ_ONLY_API
 
-    virtual Datum<DataType> get(CtrSizeT pos) const = 0;
+    virtual DTView<DataType> get(CtrSizeT pos) const = 0;
     virtual void set(CtrSizeT pos, const ViewType& view) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr prepend(CtrBatchInputFn<CtrInputBuffer> producer) MEMORIA_READ_ONLY_API

@@ -16,7 +16,6 @@
 #pragma once
 
 #include <memoria/core/datatypes/core.hpp>
-#include <memoria/core/datatypes/datum.hpp>
 #include <memoria/core/datatypes/varbinaries.hpp>
 #include <memoria/core/datatypes/varchars/varchars.hpp>
 #include <memoria/core/datatypes/varchars/varchar_builder.hpp>

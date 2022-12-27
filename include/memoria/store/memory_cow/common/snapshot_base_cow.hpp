@@ -35,8 +35,6 @@
 #include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/tools/random.hpp>
 
-#include <memoria/core/datatypes/type_registry.hpp>
-
 #include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memoria/core/container/ctr_instance_pool.hpp>

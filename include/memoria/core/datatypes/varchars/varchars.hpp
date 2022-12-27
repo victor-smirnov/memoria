@@ -17,9 +17,6 @@
 
 #include <memoria/core/types.hpp>
 
-
-#include <memoria/core/datatypes/datum.hpp>
-
 #include <memoria/api/common/packed_api.hpp>
 
 #include <memoria/core/tools/span.hpp>
@@ -31,17 +28,5 @@
 
 namespace memoria {
 
-class VarcharStorage: public DatumStorageBase<Varchar, typename DataTypeTraits<Varchar>::DatumStorageSelector> {
-    using SelectorTag = typename DataTypeTraits<Varchar>::DatumStorageSelector;
-
-    using Base = DatumStorageBase<Varchar, SelectorTag>;
-    using typename Base::ViewType;
-public:
-    VarcharStorage(ViewType view) noexcept: Base(view) {}
-
-    virtual void destroy() noexcept;
-    static VarcharStorage* create(ViewType view);
-    virtual U8String to_sdn_string() const;
-};
 
 }

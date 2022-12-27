@@ -122,12 +122,12 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         }
     }
 
-    virtual Optional<Datum<Value>> remove_and_return(const KeyView& key) MEMORIA_READ_ONLY_API
-    virtual Optional<Datum<Value>> replace_and_return(const KeyView& key, const ValueView& value) MEMORIA_READ_ONLY_API
+    virtual Optional<DTView<Value>> remove_and_return(const KeyView& key) MEMORIA_READ_ONLY_API
+    virtual Optional<DTView<Value>> replace_and_return(const KeyView& key, const ValueView& value) MEMORIA_READ_ONLY_API
 
     virtual void with_value(
             KeyView key,
-            std::function<Optional<Datum<Value>> (Optional<Datum<Value>>)> value_fn
+            std::function<Optional<DTView<Value>> (Optional<DTView<Value>>)> value_fn
     ) MEMORIA_READ_ONLY_API
 
     template <typename Fn>

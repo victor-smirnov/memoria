@@ -20,8 +20,6 @@
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
 
-#include <memoria/core/datatypes/datum.hpp>
-
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
@@ -145,25 +143,6 @@ U8String UID256::to_cxx_decl() const
 
 AnyID UID256::as_any_id() const {
     return AnyID{std::make_unique<DefaultAnyIDImpl<UID256>>(*this)};
-}
-
-template <>
-Datum<UID256> datum_from_sdn_value(const UID256*, int64_t value)
-{
-    MMA_THROW(RuntimeException()) << WhatCInfo("SDN convertion from int64_t to UID256 is not supported");
-}
-
-template <>
-Datum<UID256> datum_from_sdn_value(const UID256*, double value) {
-    MMA_THROW(RuntimeException()) << WhatCInfo("SDN convertion from double to UID256 is not supported");
-}
-
-
-template <>
-Datum<UID256> datum_from_sdn_value(const UID256*, const U8StringView& str)
-{
-    UID256 uuid = UID256::parse(str);
-    return Datum<UID256>(uuid);
 }
 
 namespace {

@@ -19,8 +19,6 @@
 #include <memoria/core/datatypes/buffer/buffer_common.hpp>
 #include <memoria/core/memory/object_pool.hpp>
 
-#include <memoria/core/datatypes/datatype_ptrs.hpp>
-
 namespace memoria {
 
 template <typename DataTypeT, typename ValueType>

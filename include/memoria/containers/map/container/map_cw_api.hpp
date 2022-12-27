@@ -142,7 +142,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
 
 
 
-    Optional<Datum<Value>> remove_and_return(KeyView key)
+    Optional<DTView<Value>> remove_and_return(KeyView key)
     {
         auto& self = this->self();
 
@@ -152,14 +152,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
         {
             auto val = iter->current_value();
             self.ctr_remove_map_entry(std::move(iter));
-            return Datum<Value>(*val);
+            return val;
         }
         else {
-            return Optional<Datum<Value>>{};
+            return {};
         }
     }
 
-    Optional<Datum<Value>> replace_and_return(KeyView key, ValueView value)
+    Optional<DTView<Value>> replace_and_return(KeyView key, ValueView value)
     {
       auto& self = this->self();
 
@@ -169,27 +169,27 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
       {
         auto prev = iter->current_value();
         self.ctr_update_map_entry(std::move(iter), value);
-        return Datum<Value>(*prev);
+        return prev;
       }
       else {
         self.ctr_insert_map_entry(std::move(iter), key, value);
-        return Optional<Datum<Value>>{};
+        return {};
       }
     }
 
 
     virtual void with_value(
             KeyView key,
-            std::function<Optional<Datum<Value>> (Optional<Datum<Value>>)> value_fn
+            std::function<Optional<DTView<Value>> (Optional<DTView<Value>>)> value_fn
     )
     {
-      using OptionalValue = Optional<Datum<Value>>;
+      using OptionalValue = Optional<DTView<Value>>;
       auto& self = this->self();
 
       auto iter = self.ctr_map_find(key);
       if (iter->is_found(key))
       {
-        auto new_value = value_fn(Datum<Value>(iter->current_value()));
+        auto new_value = value_fn(iter->current_value());
         if (new_value) {
           self.ctr_update_map_entry(std::move(iter), new_value.get());
         }

@@ -15,10 +15,5 @@
 
 #include <memoria/core/exceptions/exceptions.hpp>
 
-#include <memoria/core/datatypes/default_datatype_ops.hpp>
-#include <memoria/core/datatypes/type_registry.hpp>
-#include <memoria/core/datatypes/datum.hpp>
-
-#include <memoria/core/datatypes/default_datatype_ops.hpp>
 #include <memoria/core/container/cow.hpp>
 #include <memoria/core/reflection/reflection.hpp>

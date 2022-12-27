@@ -20,7 +20,6 @@
 #include <memoria/store/swmr/common/swmr_store_writable_snapshot_base.hpp>
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 
-#include <memoria/core/datatypes/type_registry.hpp>
 #include <memoria/core/tools/simple_2q_cache.hpp>
 #include <memoria/core/tools/uid_64.hpp>
 

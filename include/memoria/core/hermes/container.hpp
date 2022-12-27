@@ -16,10 +16,7 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-
-#include <memoria/core/datatypes/datatype_ptrs.hpp>
 #include <memoria/core/datatypes/traits.hpp>
-
 
 #include <memoria/core/arena/arena.hpp>
 #include <memoria/core/arena/relative_ptr.hpp>

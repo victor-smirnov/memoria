@@ -20,8 +20,6 @@
 #include <memoria/store/swmr/common/swmr_store_writable_snapshot_base.hpp>
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 
-#include <memoria/core/datatypes/type_registry.hpp>
-
 #include <memoria/profiles/impl/cow_lite_profile.hpp>
 
 #include <boost/pool/object_pool.hpp>

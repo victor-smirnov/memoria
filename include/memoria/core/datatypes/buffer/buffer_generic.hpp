@@ -21,7 +21,6 @@
 #include <memoria/core/types/algo.hpp>
 
 #include <memoria/core/memory/object_pool.hpp>
-#include <memoria/core/datatypes/datatype_ptrs.hpp>
 
 namespace memoria {
 

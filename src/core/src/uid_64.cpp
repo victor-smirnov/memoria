@@ -20,8 +20,6 @@
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
 
-#include <memoria/core/datatypes/datum.hpp>
-
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
@@ -74,25 +72,6 @@ U8String UID64::to_u8() const
 U16String UID64::to_u16() const
 {
     return to_u8().to_u16();
-}
-
-template <>
-Datum<UID64> datum_from_sdn_value(const UID64*, int64_t value)
-{
-    MMA_THROW(RuntimeException()) << WhatCInfo("SDN convertion from int64_t to UID64 is not supported");
-}
-
-template <>
-Datum<UID64> datum_from_sdn_value(const UID64*, double value) {
-    MMA_THROW(RuntimeException()) << WhatCInfo("SDN convertion from double to UID64 is not supported");
-}
-
-
-template <>
-Datum<UID64> datum_from_sdn_value(const UID64*, const U8StringView& str)
-{
-    UID64 uuid = UID64::parse(str);
-    return Datum<UID64>(uuid);
 }
 
 namespace {

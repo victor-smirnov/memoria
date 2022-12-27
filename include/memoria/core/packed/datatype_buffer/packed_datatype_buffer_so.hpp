@@ -30,7 +30,6 @@
 #include <memoria/core/packed/datatype_buffer/packed_array_iterator.hpp>
 
 #include <memoria/core/datatypes/buffer/buffer.hpp>
-#include <memoria/core/datatypes/datum.hpp>
 
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/bitmap.hpp>
@@ -1353,18 +1352,18 @@ private:
 
     FindResult find_gt_fw_sum(size_t column, size_t start, const ViewType& val) const
     {
-        Datum<DataType> pfx = sum_sum(column, start);
-        Datum<DataType> tgt = pfx.view() + val;
+        auto pfx = sum_sum(column, start);
+        auto tgt = pfx + val;
 
-        return find_gt_fw_sum(column, tgt.view()).sub_prefix(pfx.view());
+        return find_gt_fw_sum(column, tgt).sub_prefix(pfx);
     }
 
     FindResult find_ge_fw_sum(size_t column, size_t start, const ViewType& val) const
     {
-        Datum<DataType> pfx = sum_sum(column, start);
-        Datum<DataType> tgt = pfx.view() + val;
+        auto pfx = sum_sum(column, start);
+        auto tgt = pfx + val;
 
-        return find_ge_fw_sum(column, tgt.view()).sub_prefix(pfx.view());
+        return find_ge_fw_sum(column, tgt).sub_prefix(pfx);
     }
 
     FindResult find_gt_bw_sum(size_t column, const ViewType& val) const
@@ -1374,21 +1373,21 @@ private:
 
     FindResult find_gt_bw_sum(size_t column, size_t start, const ViewType& val) const
     {
-        Datum<DataType> total = sum_sum(column, start + 1);
+        auto total = sum_sum(column, start + 1);
 
-        if (val < total.view())
+        if (val < total)
         {
-            Datum<DataType> tgt = total.view() - val;
-            FindResult res =  find_ge_fw_sum(column, tgt.view());
+            auto tgt = total - val;
+            FindResult res =  find_ge_fw_sum(column, tgt);
 
-            Datum<DataType> prefix = sum_sum(column, res.local_pos() + 1);
+            auto prefix = sum_sum(column, res.local_pos() + 1);
 
-            res.set_prefix(total.view() - prefix.view());
+            res.set_prefix(total - prefix);
 
             return res;
         }
         else {
-            return FindResult(start + 1, total.view());
+            return FindResult(start + 1, total);
         }
     }
 
@@ -1399,21 +1398,21 @@ private:
 
     FindResult find_ge_bw_sum(size_t column, size_t start, const ViewType& val) const
     {
-        Datum<DataType> total = sum_sum(column, start + 1);
+        auto total = sum_sum(column, start + 1);
 
-        if (val <= total.view())
+        if (val <= total)
         {
-            Datum<DataType> tgt = total.view() - val;
-            FindResult res = find_gt_fw_sum(column, tgt.view());
+            auto tgt = total - val;
+            FindResult res = find_gt_fw_sum(column, tgt);
 
-            Datum<DataType> prefix = sum_sum(column, res.local_pos() + 1);
+            auto prefix = sum_sum(column, res.local_pos() + 1);
 
-            res.set_prefix(total.view() - prefix.view());
+            res.set_prefix(total - prefix);
 
             return res;
         }
         else {
-            return FindResult(start + 1, total.view());
+            return FindResult(start + 1, total);
         }
     }
 
@@ -1620,21 +1619,21 @@ private:
                 {
                     size_t limit = (base + index_span) <= size ? base + index_span : size;
 
-                    Datum<DataType> sum{};
+                    DTTViewType<DataType> sum{};
                     for (size_t idx = base; idx < limit; idx++)
                     {
                         ViewType ee = access(c, idx);
-                        sum = sum.view() + ee;
+                        sum = sum + ee;
                     }
 
                     ViewType iv = index.access(c, span);
 
-                    if (iv != sum.view()) {
+                    if (iv != sum) {
                         MEMORIA_MAKE_GENERIC_ERROR(
                                     "Buffer's content mismatch with the index, column {}, idc_c {}: '{}' != '{}' ",
                                     c,
                                     span,
-                                    sum.view(),
+                                    sum,
                                     iv
                         ).do_throw();
                     }
@@ -1665,14 +1664,14 @@ private:
                 {
                     size_t limit = (base + index_span) <= size ? base + index_span : size;
 
-                    Datum<DataType> sum{};
+                    DTTViewType<DataType> sum{};
                     for (size_t idx = base; idx < limit; idx++)
                     {
                         ViewType ee = access(c, idx);
-                        sum = sum.view() + ee;
+                        sum = sum + ee;
                     }
 
-                    columns[c]->append(sum.view());
+                    columns[c]->append(sum);
                 }
             }
 

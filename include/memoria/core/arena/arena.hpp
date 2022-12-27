@@ -21,7 +21,6 @@
 #include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memoria/core/memory/malloc.hpp>
-#include <memoria/core/datatypes/datatype_ptrs.hpp>
 
 #include <memoria/core/memory/memory.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>

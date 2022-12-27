@@ -13,12 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
-
-#include <memoria/core/datatypes/datum.hpp>
 
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
@@ -163,30 +159,5 @@ U16String UUID::to_u16() const
 AnyID UUID::as_any_id() const {
     return AnyID{std::make_unique<DefaultAnyIDImpl<UUID>>(*this)};
 }
-
-
-template <>
-Datum<UUID> datum_from_sdn_value(const UUID*, int64_t value)
-{
-    MMA_THROW(RuntimeException()) << WhatCInfo("SDN convertion from int64_t to UUID is not supported");
-}
-
-template <>
-Datum<UUID> datum_from_sdn_value(const UUID*, double value) {
-    MMA_THROW(RuntimeException()) << WhatCInfo("SDN convertion from double to UUID is not supported");
-}
-
-
-template <>
-Datum<UUID> datum_from_sdn_value(const UUID*, const U8StringView& str)
-{
-    U8StringView tstr = trim_string(str);
-    UUID uuid = UUID::parse(tstr.to_string().c_str());
-
-    return Datum<UUID>(uuid);
-}
-
-
-
 
 }
