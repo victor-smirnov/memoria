@@ -206,14 +206,6 @@ struct DataTypeTraits<FixedArray<Size>>:  FixedSizeDataTypeTraits<FixedArray<Siz
     static constexpr bool HasTypeConstructors = false;
 
     using DatumSelector = FixedSizeDataTypeTag;
-
-    static void create_signature(SBuf& buf, const Decimal& obj) {
-        buf << "UByte" << Size;
-    }
-
-    static void create_signature(SBuf& buf) {
-        buf << "UByte" << Size;
-    }
 };
 
 }

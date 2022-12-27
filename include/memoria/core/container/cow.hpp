@@ -105,13 +105,6 @@ class UID256;
 template<>
 struct DataTypeTraits<CowBlockID<UID64>>: FixedSizeDataTypeTraits<CowBlockID<UID64>, UID64CowBlockID>
 {
-    static void create_signature(SBuf& buf, const CowBlockID<UID64>& obj) {
-        buf << "UID64CowBlockID";
-    }
-
-    static void create_signature(SBuf& buf) {
-        buf << "UID64CowBlockID";
-    }
 };
 
 
@@ -119,13 +112,6 @@ struct DataTypeTraits<CowBlockID<UID64>>: FixedSizeDataTypeTraits<CowBlockID<UID
 template <>
 struct DataTypeTraits<CowBlockID<UID256>>: FixedSizeDataTypeTraits<CowBlockID<UID256>, UID256CowBlockID>
 {
-    static void create_signature(SBuf& buf, const CowBlockID<UID256>& obj) {
-        buf << "UID256CowBlockID";
-    }
-
-    static void create_signature(SBuf& buf) {
-        buf << "UID256CowBlockID";
-    }
 };
 
 

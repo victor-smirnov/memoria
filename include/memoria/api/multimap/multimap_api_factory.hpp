@@ -89,28 +89,6 @@ struct DataTypeTraits<Multimap<Key, Value>> {
 
     static constexpr bool HasTypeConstructors = false;
     static constexpr bool isSdnDeserializable = false;
-
-    static void create_signature(SBuf& buf, const Multimap<Key, Value>& obj)
-    {
-        buf << "Multimap<";
-
-        DataTypeTraits<Key>::create_signature(buf, obj.key());
-        buf << ", ";
-        DataTypeTraits<Value>::create_signature(buf, obj.value());
-
-        buf << ">";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Multimap<";
-
-        DataTypeTraits<Key>::create_signature(buf);
-        buf << ", ";
-        DataTypeTraits<Value>::create_signature(buf);
-
-        buf << ">";
-    }
 };
 
 }

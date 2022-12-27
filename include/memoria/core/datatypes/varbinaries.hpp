@@ -40,16 +40,6 @@ struct DataTypeTraits<Varbinary>: DataTypeTraitsBase<Varbinary>
 
     using SpanT = DTViewSpan<ViewType, SharedPtrT>;
     using ConstSpanT = DTConstViewSpan<ViewType, ConstSharedPtrT>;
-
-    static void create_signature(SBuf& buf, const Varchar& obj)
-    {
-        buf << "Varbinary";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Varbinary";
-    }
 };
 
 

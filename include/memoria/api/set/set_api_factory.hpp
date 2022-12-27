@@ -57,20 +57,6 @@ struct DataTypeTraits<Set<Key>> {
 
     static constexpr bool HasTypeConstructors = false;
     static constexpr bool isSdnDeserializable = false;
-
-    static void create_signature(SBuf& buf, const Set<Key>& obj)
-    {
-        buf << "Set<";
-        DataTypeTraits<Key>::create_signature(buf, obj.key());
-        buf << ">";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Set<";
-        DataTypeTraits<Key>::create_signature(buf);
-        buf << ">";
-    }
 };
 
 }

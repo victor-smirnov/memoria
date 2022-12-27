@@ -231,8 +231,6 @@ struct FromString<UID64> {
     }
 };
 
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(UID64, UID64);
-
 template <>
 struct DataTypeTraits<UID64>: SdnFixedSizeDataTypeTraits<UID64, UID64> {};
 

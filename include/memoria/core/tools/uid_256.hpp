@@ -433,8 +433,6 @@ struct FromString<UID256> {
     }
 };
 
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(UID256, UID256);
-
 template <>
 struct DataTypeTraits<UID256>: SdnFixedSizeDataTypeTraits<UID256, UID256> {};
 

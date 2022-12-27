@@ -20,6 +20,3 @@
 #include <memoria/core/datatypes/varchars/varchars.hpp>
 #include <memoria/core/datatypes/varchars/varchar_builder.hpp>
 #include <memoria/core/datatypes/traits.hpp>
-#include <memoria/core/datatypes/type_signature.hpp>
-
-

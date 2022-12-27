@@ -55,20 +55,6 @@ struct DataTypeTraits<Vector<T>>: DataTypeTraitsBase<Vector<T>> {
 
     static constexpr bool HasTypeConstructors = false;
     static constexpr bool isSdnDeserializable = false;
-
-    static void create_signature(SBuf& buf, const Vector<T>& obj)
-    {
-        buf << "Vector<";
-        DataTypeTraits<T>::create_signature(buf, obj.element());
-        buf << ">";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Vector<";
-        DataTypeTraits<T>::create_signature(buf);
-        buf << ">";
-    }
 };
 
 }

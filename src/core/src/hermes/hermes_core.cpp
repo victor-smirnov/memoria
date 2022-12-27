@@ -22,7 +22,7 @@
 
 #include <memoria/core/hermes/path/path.h>
 
-#include <memoria/core/datatypes/type_signature.hpp>
+#include <memoria/core/reflection/type_signature.hpp>
 
 #include "hermes_internal.hpp"
 
@@ -191,6 +191,10 @@ namespace memoria {
 
 TypeSignature::TypeSignature(U8StringView name) {
     name_ = hermes::HermesCtr::parse_datatype(name)->root().as_datatype().to_string();
+}
+
+TypeSignature TypeSignature::make_normalized(U8StringView str) {
+    return TypeSignature(normalize_type_declaration(str), 0);
 }
 
 PoolSharedPtr<hermes::HermesCtr> TypeSignature::parse() const {

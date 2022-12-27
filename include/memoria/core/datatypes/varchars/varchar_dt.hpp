@@ -61,15 +61,6 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
 
     static constexpr bool isSdnDeserializable = true;
 
-    static void create_signature(SBuf& buf, const Varchar& obj) {
-        buf << "Varchar";
-    }
-
-    static void create_signature(SBuf& buf) {
-        buf << "Varchar";
-    }
-
-
     using DataSpan = Span<const AtomType>;
     using SpanList = TL<DataSpan>;
     using SpanTuple = AsTuple<SpanList>;

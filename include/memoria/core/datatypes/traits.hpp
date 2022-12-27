@@ -20,7 +20,7 @@
 #include <memoria/core/datatypes/dt_span.hpp>
 
 
-#include <memoria/core/datatypes/type_signature.hpp>
+
 #include <memoria/core/strings/string_buffer.hpp>
 #include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/integer/accumulator_common.hpp>
@@ -56,36 +56,6 @@ struct ToPlainStringConverter;
 struct NumericDatatype;
 
 
-template <typename T> struct PrimitiveDataTypeName;
-
-#define MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(TypeName, TypeStr)  \
-template <>                                             \
-struct PrimitiveDataTypeName<TypeName> {                \
-    static void create_signature(SBuf& buf, TypeName) { \
-        buf << MMA_TOSTRING(TypeStr);                   \
-    }                                                   \
-}
-
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(TinyInt, TinyInt);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(UTinyInt, UTinyInt);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(SmallInt, SmallInt);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(USmallInt, USmallInt);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(Integer, Integer);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(UInteger, UInteger);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(BigInt, BigInt);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(UBigInt, UBigInt);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(Real, Real);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(Double, Double);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(Timestamp, Timestamp);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(TimestampWithTZ, TimestampWithTZ);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(Time, Time);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(TimeWithTZ, TimeWithTZ);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(Date, Date);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(uint8_t, UByte);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(int64_t, Int64);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(uint64_t, UInt64);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(Boolean, Boolean);
-MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(bool, Boolean);
 
 
 template <typename T> struct DataTypeTraits {
@@ -142,18 +112,6 @@ constexpr bool DTTisDataType = DataTypeTraits<T>::isDataType;
 
 namespace dtt_ {
     template <typename T, typename = void>
-    struct DTTHasLDStorageTypeH: std::false_type {};
-
-    template <typename T>
-    struct DTTHasLDStorageTypeH<T, VoidT<typename DataTypeTraits<T>::LDStorageType>>: std::true_type {};
-}
-
-template <typename T>
-constexpr bool DTTisLinkedDataType = dtt_::DTTHasLDStorageTypeH<T>::value;
-
-
-namespace dtt_ {
-    template <typename T, typename = void>
     struct DTTHasParametersH1: std::false_type {};
 
     template <typename T>
@@ -172,7 +130,6 @@ namespace dtt_ {
     struct DTTParametersH<T, false>: HasType<TL<>> {};
 }
 
-struct LDFxSizeValueViewSelector {};
 
 template <typename T>
 constexpr bool DTTisParametrized = dtt_::DTTHasParametersH2<T>::value;
@@ -203,8 +160,7 @@ template <typename T> struct DataTypeTraitsBase {
     static constexpr bool isArithmetic  = false;
     static constexpr bool isFixedSize   = false;
 
-    using DatumSelector         = EmptyType;
-    using DatumStorageSelector  = EmptyType;
+    using DatumSelector = EmptyType;
 };
 
 
@@ -226,14 +182,6 @@ struct MinimalDataTypeTraits: DataTypeTraitsBase<DataType>
 
     using DataDimensionsList  = TL<const T*>;
     using DataDimensionsTuple = AsTuple<DataDimensionsList>;
-
-    static void create_signature(SBuf& buf, DataType obj) {
-        PrimitiveDataTypeName<DataType>::create_signature(buf, obj);
-    }
-
-    static void create_signature(SBuf& buf) {
-        PrimitiveDataTypeName<DataType>::create_signature(buf, DataType());
-    }
 };
 
 template <typename T, typename DataType>
@@ -267,7 +215,7 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 
     using DatumSelector = FixedSizeDataTypeTag;
 
-    using MakeLDViewSelector = LDFxSizeValueViewSelector;
+//    using MakeLDViewSelector = LDFxSizeValueViewSelector;
 
     // FIXME Muse use true storage type here
     using SpanStorageT = ViewType;
@@ -294,14 +242,6 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
     static ViewType make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data)
     {
         return *std::get<0>(data);
-    }
-
-    static void create_signature(SBuf& buf, DataType obj) {
-        PrimitiveDataTypeName<DataType>::create_signature(buf, obj);
-    }
-
-    static void create_signature(SBuf& buf) {
-        PrimitiveDataTypeName<DataType>::create_signature(buf, DataType());
     }
 };
 
@@ -461,23 +401,6 @@ struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
 
 
     using ViewType = EmptyType; // Probably, hasn't been defined yet
-
-    static void create_signature(SBuf& buf, const Decimal& obj)
-    {
-        buf << "Decimal";
-
-        if (obj.is_default()) {
-            buf << "()";
-        }
-        else {
-            buf << "(" << obj.precision() << ", " << obj.scale() << ")";
-        }
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Decimal";
-    }
 };
 
 
@@ -493,23 +416,6 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
 
     using ViewType = EmptyType; // Probably, hasn't been defined yet
 
-
-    static void create_signature(SBuf& buf, const Decimal& obj)
-    {
-        buf << "BigDecimal";
-
-        if (obj.is_default())
-        {
-            buf << "()";
-        }
-        else {
-            buf << "(" << obj.precision() << ", " << obj.scale() << ")";
-        }
-    }
-
-    static void create_signature(SBuf& buf) {
-        buf << "BigDecimal";
-    }
 };
 
 
@@ -522,14 +428,6 @@ struct DataTypeTraits<CoreApiProfileDT>: DataTypeTraitsBase<CoreApiProfileDT>
     static constexpr bool HasTypeConstructors = false;
 
     using ViewType = CoreApiProfile; // Probably, hasn't been defined yet
-
-    static void create_signature(SBuf& buf, const CoreApiProfileDT& obj) {
-        create_signature(buf);
-    }
-
-    static void create_signature(SBuf& buf) {
-        buf << "CoreApiProfileDT";
-    }
 };
 
 
@@ -542,29 +440,7 @@ class ArenaDataTypeContainer;
 }
 
 
-template<typename T>
-TypeSignature make_datatype_signature(T obj)
-{
-    SBuf buf;
-    DataTypeTraits<T>::create_signature(buf, obj);
-    return TypeSignature(buf.str());
-}
 
-template<typename T>
-TypeSignature make_datatype_signature()
-{
-    SBuf buf;
-    DataTypeTraits<T>::create_signature(buf);
-    return TypeSignature(buf.str());
-}
-
-template<typename T>
-U8String make_datatype_signature_string()
-{
-    SBuf buf;
-    DataTypeTraits<T>::create_signature(buf);
-    return buf.str();
-}
 
 
 template <typename Type>

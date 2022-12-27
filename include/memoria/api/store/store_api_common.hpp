@@ -16,7 +16,7 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/datatypes/type_signature.hpp>
+#include <memoria/core/reflection/type_signature.hpp>
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/tools/checks.hpp>

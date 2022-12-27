@@ -282,16 +282,6 @@ template <typename ProfileDT>
 struct DataTypeTraits<SnapshotMetadataDT<ProfileDT>>: FixedSizeDataTypeTraits<SWMRSnapshotMetadata<ProfileFromDataType<ProfileDT>>, SnapshotMetadataDT<ProfileDT>> {
 
     using Parameters = TL<ProfileDT>;
-
-    static void create_signature(SBuf& buf, const SnapshotMetadataDT<ProfileDT>&) {
-        create_signature(buf);
-    }
-
-    static void create_signature(SBuf& buf) {
-        buf << "SnapshotMetadataDT<";
-        DataTypeTraits<ProfileDT>::create_signature(buf);
-        buf << ">";
-    }
 };
 
 }

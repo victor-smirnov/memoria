@@ -48,16 +48,6 @@ struct DataTypeTraits<Sequence<AlphabetSize>> {
 
     static constexpr bool HasTypeConstructors = false;
     static constexpr bool isSdnDeserializable = false;
-
-    static void create_signature(SBuf& buf, const Sequence<AlphabetSize>& obj)
-    {
-        buf << "Sequence" << AlphabetSize;
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Sequence" << AlphabetSize;
-    }
 };
 
 }

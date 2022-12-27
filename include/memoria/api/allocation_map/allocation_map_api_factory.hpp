@@ -44,16 +44,6 @@ struct DataTypeTraits<AllocationMap> {
 
     static constexpr bool HasTypeConstructors = false;
     static constexpr bool isSdnDeserializable = false;
-
-    static void create_signature(SBuf& buf, const AllocationMap& obj)
-    {
-        buf << "AllocationMap";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "AllocationMap";
-    }
 };
 
 }

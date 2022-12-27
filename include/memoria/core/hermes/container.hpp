@@ -458,10 +458,6 @@ struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
 
     static constexpr bool isSdnDeserializable = true;
 
-    static void create_signature(SBuf& buf) {
-        buf << "Hermes";
-    }
-
     using DataSpan = Span<AtomType>;
     using SpanList = TL<DataSpan>;
     using SpanTuple = AsTuple<SpanList>;

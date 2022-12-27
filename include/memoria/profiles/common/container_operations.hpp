@@ -32,7 +32,7 @@
 #include <memoria/filesystem/operations.hpp>
 #include <memoria/filesystem/path.hpp>
 
-#include <memoria/core/datatypes/type_signature.hpp>
+#include <memoria/core/reflection/type_signature.hpp>
 
 #include <stack>
 #include <sstream>

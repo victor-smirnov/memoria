@@ -53,20 +53,6 @@ struct DataTypeTraits<Collection<Key>> {
 
     static constexpr bool HasTypeConstructors = false;
     static constexpr bool isSdnDeserializable = false;
-
-    static void create_signature(SBuf& buf, const Collection<Key>& obj)
-    {
-        buf << "Set<";
-        DataTypeTraits<Key>::create_signature(buf, obj.key());
-        buf << ">";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Collection<";
-        DataTypeTraits<Key>::create_signature(buf);
-        buf << ">";
-    }
 };
 
 }

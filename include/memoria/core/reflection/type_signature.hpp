@@ -24,12 +24,14 @@
 #include <memoria/core/tools/type_name.hpp>
 
 #include <memoria/core/types/typelist.hpp>
+#include <memoria/core/memory/memory.hpp>
+
+#include <memoria/core/reflection/reflection.hpp>
 
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 
-#include <memoria/core/memory/memory.hpp>
 
 #include <unordered_map>
 
@@ -41,6 +43,11 @@ class HermesCtr;
 
 class TypeSignature {
     U8String name_;
+
+    TypeSignature(U8StringView name, int):
+        name_(name)
+    {}
+
 public:
     TypeSignature(U8StringView name);
 
@@ -56,8 +63,32 @@ public:
         return name_ == other.name_;
     }
 
+    static TypeSignature make_normalized(U8StringView str);
+
     PoolSharedPtr<hermes::HermesCtr> parse() const;
     static PoolSharedPtr<hermes::HermesCtr> parse(U8StringView str);
 };
+
+
+template<typename T>
+TypeSignature make_datatype_signature(T obj)
+{
+    auto name = TypeNameFactory<T>::name();
+    return TypeSignature::make_normalized(name);
+}
+
+template<typename T>
+TypeSignature make_datatype_signature()
+{
+    auto name = TypeNameFactory<T>::name();
+    return TypeSignature::make_normalized(name);
+}
+
+template<typename T>
+U8String make_datatype_signature_string()
+{
+    auto name = TypeNameFactory<T>::name();
+    return normalize_type_declaration(name);
+}
 
 }

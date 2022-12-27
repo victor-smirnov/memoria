@@ -190,4 +190,17 @@ Any get_cxx_instance(const hermes::Datatype& typedecl) {
     return get_type_reflection(hash).create_cxx_instance(typedecl);
 }
 
+
+U8String normalize_type_declaration(U8StringView type_decl) {
+    return hermes::HermesCtr::parse_datatype(type_decl)->root().as_datatype().to_cxx_string();
+}
+
+UID256 compute_full_type_hash(U8StringView type_decl) {
+    return hermes::HermesCtr::parse_datatype(type_decl)->root().as_datatype().cxx_type_hash();
+}
+
+UID256 compute_full_type_hash_normalized(U8StringView type_decl) {
+    return hermes::HermesCtr::parse_datatype(type_decl)->root().as_datatype().cxx_type_hash();
+}
+
 }
