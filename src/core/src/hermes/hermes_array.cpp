@@ -26,9 +26,13 @@ PoolSharedPtr<GenericArray> TypedGenericArray<Object>::make_wrapper(Array<Object
     return wrapper_pool->allocate_shared(std::move(array));
 }
 
-PoolSharedPtr<HermesCtr> ArrayView<Object>::ctr() const {
+HermesCtr ArrayView<Object>::ctr() const {
     assert_not_null();
-    return mem_holder_->ctr()->self();
+    return HermesCtr(mem_holder_);
+}
+
+HermesCtr TypedGenericArray<Object>::ctr() const {
+    return array_.ctr();
 }
 
 

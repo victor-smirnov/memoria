@@ -18,6 +18,10 @@
 
 #include <memoria/core/types.hpp>
 
+#include <memoria/core/tools/span.hpp>
+
+#include <boost/variant2.hpp>
+
 #include <type_traits>
 #include <iostream>
 
@@ -32,7 +36,11 @@ template <typename> class enable_shared_from_this;
 }
 
 namespace hermes {
-class HermesCtr;
+class HermesCtrView;
+}
+
+namespace arena {
+class ArenaAllocator;
 }
 
 class SharedPtrHolder {
@@ -107,22 +115,30 @@ public:
 class LWMemHolder {
     using HolderT = SharedPtrHolder;
 
-    mutable hermes::HermesCtr* ctr_;
+public:
+    using MemData = boost::variant2::variant<
+        arena::ArenaAllocator*,
+        Span<uint8_t>,
+        EmptyType
+    >;
+
+private:
+    MemData mem_data_;
+
     mutable HolderT* owner_;
     int64_t references_{};
 public:
     LWMemHolder():
-        ctr_(),
+        mem_data_(EmptyType{}),
         owner_(),
         references_()
     {}
 
-    void set_ctr(hermes::HermesCtr* ctr) {
-        ctr_ = ctr;
-    }
+    MemData& mem_data() {return mem_data_;}
+    const MemData& mem_data() const {return mem_data_;}
 
-    hermes::HermesCtr* ctr() const {
-        return ctr_;
+    bool is_mem_mutable() const {
+        return mem_data_.index() == 0;
     }
 
     void set_owner(HolderT* owner) {
@@ -283,6 +299,10 @@ public:
     HoldingView& operator=(const HoldingView& other) noexcept {
         mem_holder_ = other.mem_holder_;
         return *this;
+    }
+
+    bool is_mem_mutable() {
+        return mem_holder_->mem_data().index() == 0;
     }
 
 protected:

@@ -32,7 +32,7 @@ namespace memoria {
 class U8StringOView;
 
 namespace hermes {
-class HermesCtr;
+class HermesCtrView;
 }
 
 template<>
@@ -44,7 +44,7 @@ protected:
     template <typename, OwningKind>
     friend class Own;
 
-    friend class hermes::HermesCtr;
+    friend class hermes::HermesCtrView;
 
 public:
     HoldingView() noexcept:

@@ -20,35 +20,32 @@
 namespace memoria {
 namespace hermes {
 
-pool::SharedPtr<HermesCtr> HermesCtr::self() const
-{
-    return pool::SharedPtr<HermesCtr>{mutable_self(), get_mem_holder()->owner(), pool::DoRef{}};
-}
 
-
-void HermesCtr::deep_copy_from(const DocumentHeader* src, DeepCopyDeduplicator& dedup) {
+void HermesCtrView::deep_copy_from(const DocumentHeader* src, DeepCopyDeduplicator& dedup) {
     header_ = src->deep_copy_to(*arena_, mem_holder_, dedup);
 }
 
-pool::SharedPtr<HermesCtr> HermesCtr::compactify(bool make_immutable) const
+HermesCtr HermesCtrView::compactify(bool make_immutable) const
 {
     assert_not_null();
 
     if (MMA_UNLIKELY(!arena_)) {
-        return self();
+        return HermesCtr(mem_holder_);
     }
 
     arena::AllocationType alc_type = make_immutable ? arena::AllocationType::GROWABLE_SINGLE_CHUNK :
                                                       arena::AllocationType::MULTI_CHUNK;
-    auto doc = TL_allocate_shared<HermesCtrImpl>(arena_->chunk_size(), alc_type);
+    auto arena = TL_allocate_shared<arena::PoolableArena>(alc_type, arena_->chunk_size());
+
+    HermesCtr ctr(&arena->mem_holder(), arena.get());
 
     DeepCopyDeduplicator dedup;
-    doc->deep_copy_from(header_, dedup);
+    ctr.deep_copy_from(header_, dedup);
 
-    return doc;
+    return ctr;
 }
 
-pool::SharedPtr<HermesCtr> HermesCtr::clone(bool as_mutable) const
+HermesCtr HermesCtrView::clone(bool as_mutable) const
 {
     assert_not_null();
     if (arena_)
@@ -56,47 +53,54 @@ pool::SharedPtr<HermesCtr> HermesCtr::clone(bool as_mutable) const
         if (arena_->chunks() > 1 || !as_mutable)
         {
             size_t chunk_size = arena_->chunk_size();
-            auto doc = TL_allocate_shared<HermesCtrImpl>(chunk_size, arena::AllocationType::GROWABLE_SINGLE_CHUNK);
+            auto arena = TL_allocate_shared<arena::PoolableArena>(arena::AllocationType::GROWABLE_SINGLE_CHUNK, chunk_size);
+
+            HermesCtr ctr(&arena->mem_holder(), arena.get());
 
             DeepCopyDeduplicator dedup;
-            doc->deep_copy_from(header_, dedup);
+            ctr.deep_copy_from(header_, dedup);
 
             if (as_mutable) {
-                doc->arena_.switch_to_chunked_mode();
+                arena->switch_to_chunked_mode();
             }
 
-            return doc;
+            return ctr;
         }
         else {
             auto& head = arena_->head();
-            auto doc = TL_allocate_shared<HermesCtrImpl>(
+            auto arena = TL_allocate_shared<arena::PoolableArena>(
                         arena::AllocationType::GROWABLE_SINGLE_CHUNK,
                         arena_->chunk_size(), head.memory.get(), head.size);
 
+            HermesCtr ctr(&arena->mem_holder());
+
             if (as_mutable) {
-                doc->arena_.switch_to_chunked_mode();
+                arena->switch_to_chunked_mode();
             }
 
-            return doc;
+            return ctr;
         }
     }
     else {
         arena::AllocationType alc_type = as_mutable ? arena::AllocationType::MULTI_CHUNK :
                                                       arena::AllocationType::GROWABLE_SINGLE_CHUNK;
 
-        return TL_allocate_shared<HermesCtrImpl>(alc_type, 4096, header_, segment_size_);
+        auto arena = TL_allocate_shared<arena::PoolableArena>(alc_type, 4096, header_, segment_size_);
+
+        HermesCtr ctr(&arena->mem_holder());
+        return ctr;
     }
 }
 
 
 
-void HermesCtr::set_root(Object value)
+void HermesCtrView::set_root(const Object& value)
 {
     Object vv = do_import_value(value);
     header_->root = vv.storage_.addr;
 }
 
-Datatype HermesCtr::new_datatype(U8StringView name)
+Datatype HermesCtrView::new_datatype(U8StringView name)
 {
     auto str = new_dataobject<Varchar>(name);
     auto arena_dt = arena()->allocate_tagged_object<detail::DatatypeData>(
@@ -108,19 +112,19 @@ Datatype HermesCtr::new_datatype(U8StringView name)
 }
 
 
-TypedValue HermesCtr::new_typed_value(Datatype datatype, Object constructor)
+TypedValue HermesCtrView::new_typed_value(Datatype datatype, const Object& constructor)
 {
     return make_typed_value(datatype, constructor);
 }
 
-Object HermesCtr::do_import_value(Object value)
+Object HermesCtrView::do_import_value(const Object& value)
 {
     assert_not_null();
     assert_mutable();
 
     if (!value.is_null())
     {
-        if (value.document().get() != this)
+        if (value.get_mem_holder() != mem_holder_)
         {
             if (value.get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS)
             {
@@ -129,7 +133,7 @@ Object HermesCtr::do_import_value(Object value)
                 DeepCopyDeduplicator dedup;
                 auto addr = get_type_reflection(tag).deep_copy_to(*arena_, mem_holder_, value.storage_.addr, dedup);
 
-                return Object(ObjectView(mem_holder_, addr));
+                return Object(mem_holder_, addr);
             }
             else {
                 auto type_tag = value.get_type_tag();
@@ -153,12 +157,12 @@ Object HermesCtr::do_import_value(Object value)
 }
 
 
-Object HermesCtr::do_import_embeddable(Object value)
+Object HermesCtrView::do_import_embeddable(const Object& value)
 {
     return import_object(value);
 }
 
-Object HermesCtr::import_object(const Object& object)
+Object HermesCtrView::import_object(const Object& object)
 {
     assert_not_null();
     assert_mutable();
@@ -205,7 +209,7 @@ Object HermesCtr::import_object(const Object& object)
 }
 
 
-Parameter HermesCtr::new_parameter(U8StringView name)
+Parameter HermesCtrView::new_parameter(U8StringView name)
 {
     assert_not_null();
     assert_mutable();
@@ -220,29 +224,29 @@ Parameter HermesCtr::new_parameter(U8StringView name)
 
 
 struct CommonInstance {
-    PoolSharedPtr<HermesCtr> ctr;
+    HermesCtr ctr;
     CommonInstance()
     {
-        ctr = HermesCtr::make_pooled();
-        auto str = ctr->make_t<Varchar>("Dedicated HermesCtr instance for 8-byte data objects");
-        ctr->set_root(str.as_object());
+        ctr = HermesCtrView::make_pooled();
+        auto str = ctr.make_t<Varchar>("Dedicated HermesCtrView instance for 8-byte data objects");
+        ctr.set_root(str.as_object());
     }
 };
 
 
 
-PoolSharedPtr<HermesCtr> HermesCtr::common_instance() {
+HermesCtr HermesCtrView::common_instance() {
     static thread_local CommonInstance instance;
     return instance.ctr;
 }
 
 
-ObjectArray HermesCtr::make_object_array(uint64_t capacity) {
-    return HermesCtr::make_array<Object>(capacity);
+ObjectArray HermesCtrView::make_object_array(uint64_t capacity) {
+    return HermesCtrView::make_array<Object>(capacity);
 }
 
 
-Parameter HermesCtr::make_parameter(const U8StringView& name)
+Parameter HermesCtrView::make_parameter(const U8StringView& name)
 {
     assert_not_null();
     assert_mutable();
@@ -257,7 +261,7 @@ Parameter HermesCtr::make_parameter(const U8StringView& name)
 
 
 
-Datatype HermesCtr::make_datatype(const U8StringView& name)
+Datatype HermesCtrView::make_datatype(const U8StringView& name)
 {
     assert_not_null();
     assert_mutable();
@@ -272,7 +276,7 @@ Datatype HermesCtr::make_datatype(const U8StringView& name)
     return Datatype(mem_holder_, arena_dt);
 }
 
-Datatype HermesCtr::make_datatype(const StringOView& name)
+Datatype HermesCtrView::make_datatype(const StringOView& name)
 {
     assert_not_null();
     assert_mutable();
@@ -288,7 +292,7 @@ Datatype HermesCtr::make_datatype(const StringOView& name)
 }
 
 
-TypedValue HermesCtr::make_typed_value(const Datatype& datatype, const Object& constructor)
+TypedValue HermesCtrView::make_typed_value(const Datatype& datatype, const Object& constructor)
 {
     assert_not_null();
     assert_mutable();
@@ -302,7 +306,7 @@ TypedValue HermesCtr::make_typed_value(const Datatype& datatype, const Object& c
     return TypedValue(mem_holder_, arena_tv);
 }
 
-Object HermesCtr::import_small_object(const Object& object)
+Object HermesCtrView::import_small_object(const Object& object)
 {
     auto vs_tag = object.get_vs_tag();
     if (MMA_LIKELY(vs_tag == VS_TAG_SMALL_VALUE))

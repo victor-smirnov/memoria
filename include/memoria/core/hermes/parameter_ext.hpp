@@ -23,14 +23,14 @@ namespace hermes {
 
 template <typename DT>
 inline void Params::add_dataobject(U8StringView name, DTTViewType<DT> view) {
-    auto doc = HermesCtr::make_pooled();
-    params_[name] = doc->set_dataobject<DT>(view)->as_object();
+    auto doc = HermesCtrView::make_pooled();
+    params_[name] = doc.set_dataobject<DT>(view).as_object();
 }
 
 
 inline void Params::add_hermes(U8StringView name, U8StringView value) {
-    auto doc = HermesCtr::parse_document(value);
-    params_[name] = doc->root();
+    auto doc = HermesCtrView::parse_document(value);
+    params_[name] = doc.root();
 }
 
 inline bool Params::has_parameter(U8StringView name) const {
@@ -46,9 +46,9 @@ inline Object Params::resolve(U8StringView name) const {
     return Object{};
 }
 
-inline PoolSharedPtr<HermesCtr> ParameterView::document() const {
+inline HermesCtr ParameterView::ctr() const {
     assert_not_null();
-    return mem_holder_->ctr()->self();
+    return HermesCtr(get_mem_holder());
 }
 
 }}

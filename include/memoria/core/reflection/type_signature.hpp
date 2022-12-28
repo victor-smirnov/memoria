@@ -38,7 +38,7 @@
 namespace memoria {
 
 namespace hermes {
-class HermesCtr;
+class HermesCtrView;
 }
 
 class TypeSignature {
@@ -65,8 +65,8 @@ public:
 
     static TypeSignature make_normalized(U8StringView str);
 
-    PoolSharedPtr<hermes::HermesCtr> parse() const;
-    static PoolSharedPtr<hermes::HermesCtr> parse(U8StringView str);
+    hermes::HermesCtr parse() const;
+    static hermes::HermesCtr parse(U8StringView str);
 };
 
 

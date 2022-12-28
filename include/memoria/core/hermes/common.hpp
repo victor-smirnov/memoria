@@ -32,16 +32,7 @@ namespace memoria {
 namespace hermes {
 
 
-class HermesCtr;
-
-class CtrAware {
-protected:
-    mutable HermesCtr* ctr_;
-public:
-    CtrAware(HermesCtr* ctr): ctr_(ctr) {}
-
-    PoolSharedPtr<HermesCtr> ctr() const;
-};
+class HermesCtrView;
 
 class StringifySpec {
     const char* space_;
@@ -746,7 +737,7 @@ struct GenericMap;
 
 struct GenericObject {
     virtual ~GenericObject() noexcept = default;
-    virtual PoolSharedPtr<HermesCtr> ctr() const = 0;
+    virtual HermesCtr ctr() const = 0;
 
     virtual bool is_array() const = 0;
     virtual bool is_map()   const = 0;

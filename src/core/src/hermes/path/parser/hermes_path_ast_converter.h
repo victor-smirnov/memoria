@@ -61,7 +61,7 @@ public:
     {
         if (node->isNull())
         {
-            auto map = current_ctr()->make_object_map();
+            auto map = current_ctr().make_tiny_map();
             if (add_string_names_) {
                 map = map.put(AST_NODE_NAME, NULL_NODE.name());
             }
@@ -83,7 +83,7 @@ public:
 
     static ASTNodePtr new_ast_node(const NamedCode& code, bool add_string_names)
     {
-        auto map = current_ctr()->make_tiny_map(4);
+        auto map = current_ctr().make_tiny_map(4);
         map = map.put_t<Integer>(CODE_ATTR, code.code());
 
         if (add_string_names) {
@@ -96,10 +96,11 @@ public:
 
     virtual void visit(const ast::IdentifierNode* node)
     {
-        context_ = new_identifier(*current_ctr(), *node, add_string_names_).as_object();
+        auto ctr = current_ctr();
+        context_ = new_identifier(ctr, *node, add_string_names_).as_object();
     }
 
-    static ASTNodePtr new_identifier(HermesCtr& ctr, const ast::IdentifierNode& node, bool add_node_name = false)
+    static ASTNodePtr new_identifier(HermesCtrView& ctr, const ast::IdentifierNode& node, bool add_node_name = false)
     {
         auto map = new_ast_node(node.CODE, add_node_name);
         map = map.put(IDENTIFIER_ATTR, node.identifier);
@@ -227,7 +228,7 @@ public:
     {
         auto map = new_ast_node(node->CODE);
 
-        auto array = current_ctr()->make_object_array();
+        auto array = current_ctr().make_object_array();
         map = map.put(EXPRESSIONS_ATTR, array.as_object());
 
         for (auto& item: node->expressions)
@@ -245,12 +246,12 @@ public:
     {
         auto map = new_ast_node(node->CODE);
 
-        auto array = current_ctr()->make_object_array();
+        auto array = current_ctr().make_object_array();
         map = map.put(EXPRESSIONS_ATTR, array.as_object());
 
         for (auto& item: node->expressions)
         {
-            auto kv_pair = current_ctr()->make_object_map();
+            auto kv_pair = current_ctr().make_tiny_map();
             array = array.push_back(kv_pair.as_object());
 
             clear_context();
@@ -359,7 +360,7 @@ public:
 
         map = map.put(FUNCTION_NAME_ATTR, node->functionName);
 
-        auto array = current_ctr()->make_object_array();
+        auto array = current_ctr().make_object_array();
         map = map.put(ARGUMENTS_ATTR, array.as_object());
 
         for (auto& item: node->arguments)

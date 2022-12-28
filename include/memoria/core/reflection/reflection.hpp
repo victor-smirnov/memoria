@@ -194,7 +194,7 @@ public:
     }
 
     virtual PoolSharedPtr<hermes::GenericObject> hermes_make_container(
-            hermes::HermesCtr*
+            hermes::HermesCtrView*
     ) const {
         MEMORIA_MAKE_GENERIC_ERROR("GenericObject API is not supported for type {}", str()).do_throw();
     }

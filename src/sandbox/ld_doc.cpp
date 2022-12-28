@@ -41,83 +41,97 @@ int main(int, char**)
 {
     InitTypeReflections();
 
-//    auto tpl = parse_template(R"(
-//        Prefix
-//        {%+ for item in array1.array2 -%}
-//            {{ item }}
-//        {%- endfor +%}
-//        Suffix
-//    )");
+    auto d0 = HermesCtr::parse_document(R"(
+{
+  "locations": [
+    {"name": "Seattle", "state": "WA"},
+    {"name": "New York", "state": "NY"},
+    {"name": "Bellevue", "state": "WA"},
+    {"name": "Olympia", "state": "WA"}
+  ]
+}
+    )");
+
+    auto val = d0.root().search("locations[?state == 'WA'].name | sort(@) | {WashingtonCities: join(', ', @)}");
+    println("{}", val.to_pretty_string());
+
+////    auto tpl = parse_template(R"(
+////        Prefix
+////        {%+ for item in array1.array2 -%}
+////            {{ item }}
+////        {%- endfor +%}
+////        Suffix
+////    )");
+
+////    auto tpl = parse_template(R"(
+////        Prefix
+////        {% if array1.array2 %}
+////            {{ array1.array2[0] }}
+////        {% elif ^true %}
+////        {% else %}
+////        {% endif %}
+////        Suffix
+////    )");
 
 //    auto tpl = parse_template(R"(
 //        Prefix
-//        {% if array1.array2 %}
+//        {%- if array1.array2 %}
 //            {{ array1.array2[0] }}
-//        {% elif ^true %}
-//        {% else %}
-//        {% endif %}
+//        {% elif ^true -%}
+//            |Some Text|
+//        {%- else %}
+//        {% endif -%}
 //        Suffix
-//    )");
+//)");
 
-    auto tpl = parse_template(R"(
-        Prefix
-        {%- if array1.array2 %}
-            {{ array1.array2[0] }}
-        {% elif ^true -%}
-            |Some Text|
-        {%- else %}
-        {% endif -%}
-        Suffix
-)");
+//    println("{}", tpl.to_string(StringifyCfg::pretty().with_raw_strings(false)));
 
-    println("{}", tpl->to_string(StringifyCfg::pretty().with_raw_strings(false)));
+//    auto data = HermesCtrView::parse_document(R"({
+//        array1: {
+//            array2: <memoria::Double> [1] //1, 2, 3.54321, 4, 5
+//        }
+//    })");
 
-    auto data = HermesCtr::parse_document(R"({
-        array1: {
-            array2: <memoria::Double> [1] //1, 2, 3.54321, 4, 5
-        }
-    })");
+//    render(tpl.root(), data.root(), std::cout);
 
-    render(tpl->root(), data->root(), std::cout);
+//    using DblView    = NumberView<double, ViewKind::BY_VALUE>;
+//    using DblViewPtr = Own<DblView>;
 
-    using DblView    = NumberView<double, ViewKind::BY_VALUE>;
-    using DblViewPtr = Own<DblView>;
+//    DblViewPtr v1(0.123456);
+//    DblViewPtr v2(1.0);
+//    DblViewPtr v3;
+//    DblViewPtr v4;
 
-    DblViewPtr v1(0.123456);
-    DblViewPtr v2(1.0);
-    DblViewPtr v3;
-    DblViewPtr v4;
+//    v3 = v2;
 
-    v3 = v2;
+//    v4 = 777;
 
-    v4 = 777;
+//    auto vsum = v1 + v2 + 8;
 
-    auto vsum = v1 + v2 + 8;
-
-    println("{}", v1);
-    println("{}", v2);
-    println("{}", v3);
-    println("{}", v4);
-    println("{} :: {}", vsum, TypeNameFactory<decltype(vsum)>::name());
+//    println("{}", v1);
+//    println("{}", v2);
+//    println("{}", v3);
+//    println("{}", v4);
+//    println("{} :: {}", vsum, TypeNameFactory<decltype(vsum)>::name());
 
 
-    std::vector<double> vals = {1,2,3,4,5};
+//    std::vector<double> vals = {1,2,3,4,5};
 
 
-    auto docx = HermesCtr::make_new();
-    std::vector<Object> objs = {
-        docx->make(1),
-        docx->make(2.3456),
-        docx->make("hello world"),
-        docx->make(true),
-    };
+//    auto docx = HermesCtrView::make_new();
+//    std::vector<Object> objs = {
+//        docx.make(1),
+//        docx.make(2.3456),
+//        docx.make("hello world"),
+//        docx.make(true),
+//    };
 
-    //auto val = doc->make<double>(12345);
+//    //auto val = doc->make<double>(12345);
 
-    auto val = docx->make_array_t<BigInt>(vals);
-    println("{}", val.as_object().to_pretty_string());
+//    auto val = docx.make_array_t<BigInt>(vals);
+//    println("{}", val.as_object().to_pretty_string());
 
-    Object obj = val;
+//    Object obj = val;
 
     return 0;
 }

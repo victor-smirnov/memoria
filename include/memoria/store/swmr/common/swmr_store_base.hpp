@@ -113,7 +113,7 @@ protected:
     uint64_t cp_snapshots_threshold_{10000};
     uint64_t cp_timeout_{1000}; // 1 second
 
-    PoolSharedPtr<hermes::HermesCtr> store_params_;
+    hermes::HermesCtr store_params_;
 
     bool active_writer_{false};
 
@@ -123,7 +123,7 @@ public:
     using Base::flush;
 
     SWMRStoreBase() {
-        store_params_ = hermes::HermesCtr::make_new();
+        store_params_ = hermes::HermesCtrView::make_new();
 
         history_tree_.set_superblock_fn([&](uint64_t file_pos){
             return this->get_superblock(file_pos * BASIC_BLOCK_SIZE);
@@ -767,8 +767,8 @@ protected:
 
         if (counters.size() != block_counters_.size())
         {
-            auto doc = hermes::HermesCtr::make_pooled();
-            doc->set_dataobject<Varchar>(fmt::format(
+            auto doc = hermes::HermesCtrView::make_pooled();
+            doc.set_dataobject<Varchar>(fmt::format(
                         "Check failure: mismatched number of counters. Expected: {}, actual: {}",
                         block_counters_.size(),
                         counters.size()));
@@ -781,8 +781,8 @@ protected:
 
             if (res) {
                 if (res.get() != counter) {
-                    auto doc = hermes::HermesCtr::make_pooled();
-                    doc->set_dataobject<Varchar>(fmt::format(
+                    auto doc = hermes::HermesCtrView::make_pooled();
+                    doc.set_dataobject<Varchar>(fmt::format(
                                 "Counter values mismatch for the block ID {}. Expected: {}, actual: {}",
                                 block_id,
                                 res.get(),
@@ -792,8 +792,8 @@ protected:
                 }
             }
             else {
-                auto doc = hermes::HermesCtr::make_pooled();
-                doc->set_dataobject<Varchar>(fmt::format(
+                auto doc = hermes::HermesCtrView::make_pooled();
+                doc.set_dataobject<Varchar>(fmt::format(
                             "Actual counter for the block ID {} is not found in the store's block_counters structure.",
                             block_id
                             ));
@@ -1042,7 +1042,7 @@ protected:
                         ""
             );
 
-            store_params_ = sb0->cmetadata_doc()->clone();
+            store_params_ = sb0->cmetadata_doc().clone();
 
             if (sb1->snapshot_id().is_set())
             {
@@ -1062,7 +1062,7 @@ protected:
                         ""
             );
 
-            store_params_ = sb1->cmetadata_doc()->clone();
+            store_params_ = sb1->cmetadata_doc().clone();
 
             if (sb0->snapshot_id().is_set())
             {

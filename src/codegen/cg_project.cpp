@@ -76,7 +76,7 @@ class ProjectImpl: public Project, public std::enable_shared_from_this<ProjectIm
     std::vector<ShPtr<TypeFactory>> type_factories_;
     std::unordered_map<U8String, ShPtr<FileGenerator>> file_generators_;
 
-    PoolSharedPtr<hermes::HermesCtr> config_;
+    hermes::HermesCtr config_;
 
     friend class ConfigVisitor;
 
@@ -97,7 +97,7 @@ public:
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return get_value(config_->root(), sdn_path).as_varchar();
+        return get_value(config_.root(), sdn_path).as_varchar();
     }
 
     void parse_configuration() override
@@ -155,7 +155,7 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("No profiles are defined for this configuration").do_throw();
         }
 
-        for_each_value(config_->root(), [&](const std::vector<U8String>& path, const hermes::Object& value) -> bool {
+        for_each_value(config_.root(), [&](const std::vector<U8String>& path, const hermes::Object& value) -> bool {
             if (value.is_typed_value())
             {
                 auto tvv = value.as_typed_value();
@@ -216,11 +216,11 @@ public:
 
 
 
-    PoolSharedPtr<hermes::HermesCtr> dry_run()  override
+    hermes::HermesCtr dry_run()  override
     {
-        PoolSharedPtr<HermesCtr> doc = HermesCtr::make_new();
-        auto map = doc->make_object_map();
-        doc->set_root(map);
+        auto doc = HermesCtrView::make_new();
+        auto map = doc.make_object_map();
+        doc.set_root(map);
 
         auto profiles = get_or_add_array(map, "active_profiles");
 
@@ -302,12 +302,12 @@ public:
         return config_unit_;
     }
 
-    PoolSharedPtr<hermes::HermesCtr> config() const noexcept override {
+    hermes::HermesCtr config() const noexcept override {
         return config_;
     }
 
     ObjectMap config_map() const override {
-        return config_->root().cast_to<hermes::TypedValue>().constructor().as_object_map();
+        return config_.root().cast_to<hermes::TypedValue>().constructor().as_object_map();
     }
 
     std::vector<U8String> profiles() const override
@@ -335,7 +335,7 @@ public:
     std::vector<U8String> profile_includes(const U8String& profile) const override
     {
         U8String path = U8String("$/profiles/") + profile + "/includes";
-        auto ii = get_value(config_->root(), path).as_object_array();
+        auto ii = get_value(config_.root(), path).as_object_array();
 
         std::vector<U8String> incs;
 
@@ -382,7 +382,7 @@ bool ConfigVisitor::VisitCXXRecordDecl(CXXRecordDecl* RD)
 
     if (RD->getNameAsString() == "CodegenConfig") {
         for (const auto& ann: get_annotations(RD)) {
-            project_.config_ = hermes::HermesCtr::parse_document(ann);
+            project_.config_ = hermes::HermesCtrView::parse_document(ann);
         }
     }
     else if (RD->getNameAsString() == "TypeInstance") {
@@ -509,21 +509,21 @@ ObjectArray get_or_add_array(ObjectMap map, const U8String& name)
         return res.as_object_array();
     }
 
-    auto arr = map.ctr()->make_object_array(500);
+    auto arr = map.ctr().make_object_array(500);
     map = map.put(name, arr.as_object());
 
     return arr;
 }
 
 
-std::string build_output_list(const PoolSharedPtr<hermes::HermesCtr>& doc)
+std::string build_output_list(const hermes::HermesCtr& doc)
 {
     std::stringstream ss;
     std::vector<U8String> files;
 
-    if (doc->root().is_object_map())
+    if (doc.root().is_object_map())
     {
-        auto mm = doc->root().as_object_map();
+        auto mm = doc.root().as_object_map();
         auto byproducts = mm.get("byproducts");
         if (byproducts.is_not_empty()) {
             if (byproducts.is_object_array())

@@ -113,8 +113,7 @@ void register_type_reflection(const UID256& type_code, TypeReflection& type_refl
 
 void register_type_reflection_256(TypeReflection& type_reflection) {
 
-    auto datatype = hermes::HermesCtr::parse_datatype(type_reflection.str())->root().as_datatype();
-
+    auto datatype = hermes::HermesCtrView::parse_datatype(type_reflection.str()).root().as_datatype();
     auto hash = datatype.cxx_type_hash();
     register_type_reflection(hash, *type_reflection.self());
 }
@@ -192,15 +191,15 @@ Any get_cxx_instance(const hermes::Datatype& typedecl) {
 
 
 U8String normalize_type_declaration(U8StringView type_decl) {
-    return hermes::HermesCtr::parse_datatype(type_decl)->root().as_datatype().to_cxx_string();
+    return hermes::HermesCtrView::parse_datatype(type_decl).root().as_datatype().to_cxx_string();
 }
 
 UID256 compute_full_type_hash(U8StringView type_decl) {
-    return hermes::HermesCtr::parse_datatype(type_decl)->root().as_datatype().cxx_type_hash();
+    return hermes::HermesCtrView::parse_datatype(type_decl).root().as_datatype().cxx_type_hash();
 }
 
 UID256 compute_full_type_hash_normalized(U8StringView type_decl) {
-    return hermes::HermesCtr::parse_datatype(type_decl)->root().as_datatype().cxx_type_hash();
+    return hermes::HermesCtrView::parse_datatype(type_decl).root().as_datatype().cxx_type_hash();
 }
 
 }

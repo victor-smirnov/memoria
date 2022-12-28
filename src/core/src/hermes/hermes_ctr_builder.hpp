@@ -30,7 +30,7 @@ class HermesCtrBuilder {
     using UnicodeChar = path::UnicodeChar;
 
     ArenaBuffer<char> string_buffer_;
-    PoolSharedPtr<HermesCtr> doc_;
+    HermesCtr doc_;
 
     ska::flat_hash_map<U8String, Datatype> type_registry_;
     std::unordered_map<U8StringView, DTView<Varchar>, arena::DefaultHashFn<U8StringView>> string_registry_;
@@ -46,7 +46,7 @@ public:
     auto& string_buffer() {return string_buffer_;}
     const auto& string_buffer() const {return string_buffer_;}
 
-    PoolSharedPtr<HermesCtr>& doc() {
+    HermesCtr& doc() {
         return doc_;
     }
 
@@ -85,11 +85,11 @@ public:
         DTView<Varchar> str = resolve_string(sv);
 
         if (str.is_empty()) {
-            str = doc_->make_t<Varchar>(sv).as_varchar();
+            str = doc_.make_t<Varchar>(sv).as_varchar();
             string_registry_[str] = str;
         }
 
-        return doc_->import_object(str);
+        return doc_.import_object(str);
     }
 
     Object new_varchar(U8StringView sv)
@@ -97,15 +97,15 @@ public:
         auto str = resolve_string(sv);
 
         if (str.is_empty()) {
-            str = doc_->make_t<Varchar>(sv).as_varchar();
+            str = doc_.make_t<Varchar>(sv).as_varchar();
             string_registry_[str] = str;
         }
 
-        return doc_->import_object(str);
+        return doc_.import_object(str);
     }
 
     auto new_parameter(U8StringView name) {
-        return doc_->new_parameter(name);
+        return doc_.new_parameter(name);
     }
 
     auto new_identifier()
@@ -114,15 +114,15 @@ public:
     }
 
     auto new_boolean(bool v) {
-        return HermesCtr::wrap_dataobject<Boolean>(v);
+        return HermesCtrView::wrap_dataobject<Boolean>(v);
     }
 
     void set_ctr_root(Object value) {
-        doc_->set_root(value);
+        doc_.set_root(value);
     }
 
     auto make_datatype(Object id) {
-        return doc_->make_datatype(id.as_varchar());
+        return doc_.make_datatype(id.as_varchar());
     }
 
     void add_type_decl_param(Datatype& dst, Object param) {
@@ -135,7 +135,7 @@ public:
 
     TypedValue new_typed_value(Datatype type_decl, Object constructor)
     {
-        return doc_->new_typed_value(type_decl, constructor);
+        return doc_.new_typed_value(type_decl, constructor);
     }
 
     void add_type_directory_entry(U8StringView id, Datatype datatype)
@@ -174,7 +174,7 @@ public:
         current().ref();
     }
 
-    static void enter(PoolSharedPtr<HermesCtr>&& ctr) {
+    static void enter(HermesCtr ctr) {
         current().do_enter(std::move(ctr));
     }
 
@@ -199,11 +199,11 @@ public:
 private:
     void ref() {
         if (refs_++ == 0) {
-            doc_ = HermesCtr::make_pooled();
+            doc_ = HermesCtrView::make_pooled();
         }
     }
 
-    void do_enter(PoolSharedPtr<HermesCtr>&& ctr) {
+    void do_enter(HermesCtr&& ctr) {
         doc_ = std::move(ctr);
         refs_ = 1;
     }
@@ -215,7 +215,7 @@ struct HermesCtrBuilderCleanup {
     }
 };
 
-static inline PoolSharedPtr<HermesCtr> current_ctr() {
+static inline HermesCtr current_ctr() {
     return HermesCtrBuilder::current().doc();
 }
 

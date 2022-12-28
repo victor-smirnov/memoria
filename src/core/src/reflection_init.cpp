@@ -48,7 +48,7 @@ struct DataObjectReflectionListBuilder<TL<>> {
 
 void InitTypeReflections()
 {
-    HermesCtr::init_hermes_doc_parser();
+    HermesCtrView::init_hermes_doc_parser();
 
     register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<Object>, TypedGenericArray<Object>>>());
     register_type_reflection(*std::make_shared<HermesContainerTypeReflectionImpl<Array<Integer>, TypedGenericArray<Integer>>>());

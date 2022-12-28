@@ -48,7 +48,7 @@ struct TemplateConstants: public TplASTCodes {
     using ASTNodePtr = TinyObjectMap;
 
     static ASTNodePtr new_ast_node(const NamedCode& code) {
-        auto map = current_ctr()->make_tiny_map(8);
+        auto map = current_ctr().make_tiny_map(8);
         map = map.put_t<Integer>(CODE, code.code());
         map = map.put(NODE_NAME_ATTR, code.name());
         return map;
@@ -56,7 +56,7 @@ struct TemplateConstants: public TplASTCodes {
 
     static ObjectArray new_object_array(const std::vector<path::ast::HermesValueNode>& array)
     {
-        auto harray = current_ctr()->make_object_array(array.size());
+        auto harray = current_ctr().make_object_array(array.size());
         for (auto& item: array) {
             harray = harray.push_back(std::move(item.value));
         }
@@ -216,7 +216,7 @@ struct TemplateConstants: public TplASTCodes {
         if (out.length() != str.length()) {
             array.set(
                 idx,
-                current_ctr()->make_t<Varchar>(out).as_object()
+                current_ctr().make_t<Varchar>(out).as_object()
             );
         }
     }
@@ -243,7 +243,7 @@ struct TemplateConstants: public TplASTCodes {
             }
 
             if (out.length() != txt.length()) {
-                return current_ctr()->make_t<Varchar>(out).as_object();
+                return current_ctr().make_t<Varchar>(out).as_object();
             }
         }
         else if (stmts.is_object_array())
@@ -448,7 +448,8 @@ struct TplForStatement: TemplateConstants {
     {
         auto map = new_ast_node(FOR_STMT);
 
-        auto identifier = path::parser::HermesASTConverter::new_identifier(*current_ctr(), variable, false);
+        auto ctr = current_ctr();
+        auto identifier = path::parser::HermesASTConverter::new_identifier(ctr, variable, false);
 
         map = map.put(VARIABLE, variable.identifier);
         map = map.put(EXPRESSION, expression);

@@ -59,8 +59,6 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
     static constexpr bool isDataType          = true;
     static constexpr bool HasTypeConstructors = false;
 
-    static constexpr bool isSdnDeserializable = true;
-
     using DataSpan = Span<const AtomType>;
     using SpanList = TL<DataSpan>;
     using SpanTuple = AsTuple<SpanList>;

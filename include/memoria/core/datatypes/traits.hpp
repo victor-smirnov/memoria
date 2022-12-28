@@ -60,7 +60,6 @@ struct NumericDatatype;
 
 template <typename T> struct DataTypeTraits {
     static constexpr bool isDataType = false;
-    static constexpr bool isSdnDeserializable = false;
 };
 
 
@@ -156,7 +155,6 @@ constexpr bool DTTIsNDFixedSize = dtt_::DTTIsNDFixedSize<
 
 template <typename T> struct DataTypeTraitsBase {
     static constexpr bool isDataType    = true;
-    static constexpr bool isSdnDeserializable = false;
     static constexpr bool isArithmetic  = false;
     static constexpr bool isFixedSize   = false;
 
@@ -193,17 +191,12 @@ struct ArithmeticMinimalDataTypeTraits: MinimalDataTypeTraits<T, DataType> {
 template <typename T, typename DataType, typename LDST = T>
 struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 {
-    using ViewType      = T;
-    using LDViewType    = T;
-    using LDStorageType = LDST;
-
+    using ViewType  = T;
     using View2Type = Own<FxdSizeView<T, ViewKind::BY_VALUE>, OwningKind::WRAPPING>;
 
     static constexpr bool isFixedSize = true;
 
     static constexpr bool HasTypeConstructors = false;
-
-    static constexpr bool isSdnDeserializable = std::is_arithmetic<T>::value;
 
     using ExtData = EmptyType;
 
@@ -214,8 +207,6 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
     using DataDimensionsTuple = AsTuple<DataDimensionsList>;
 
     using DatumSelector = FixedSizeDataTypeTag;
-
-//    using MakeLDViewSelector = LDFxSizeValueViewSelector;
 
     // FIXME Muse use true storage type here
     using SpanStorageT = ViewType;
@@ -252,19 +243,6 @@ struct ArithmeticFixedSizeDataTypeTraits: FixedSizeDataTypeTraits<T, DataType, L
     using View2Type = Own<NumberView<T, ViewKind::BY_VALUE>, OwningKind::WRAPPING>;
 };
 
-
-
-template <typename T, typename DataType>
-struct NonSdnFixedSizeDataTypeTraits: FixedSizeDataTypeTraits<T, DataType>
-{
-    static constexpr bool isSdnDeserializable = false;
-};
-
-template <typename T, typename DataType>
-struct SdnFixedSizeDataTypeTraits: FixedSizeDataTypeTraits<T, DataType>
-{
-    static constexpr bool isSdnDeserializable = true;
-};
 
 
 template <typename DataType, typename Buffer>
@@ -342,19 +320,19 @@ template <>
 struct DataTypeTraits<Double>: ArithmeticFixedSizeDataTypeTraits<double, Double> {};
 
 template <>
-struct DataTypeTraits<Timestamp>: NonSdnFixedSizeDataTypeTraits<int64_t, Timestamp> {};
+struct DataTypeTraits<Timestamp>: FixedSizeDataTypeTraits<int64_t, Timestamp> {};
 
 template <>
-struct DataTypeTraits<TimestampWithTZ>: NonSdnFixedSizeDataTypeTraits<int64_t, TimestampWithTZ> {};
+struct DataTypeTraits<TimestampWithTZ>: FixedSizeDataTypeTraits<int64_t, TimestampWithTZ> {};
 
 template <>
-struct DataTypeTraits<Time>: NonSdnFixedSizeDataTypeTraits<int32_t, Time> {};
+struct DataTypeTraits<Time>: FixedSizeDataTypeTraits<int32_t, Time> {};
 
 template <>
-struct DataTypeTraits<TimeWithTZ>: NonSdnFixedSizeDataTypeTraits<int64_t, TimeWithTZ> {};
+struct DataTypeTraits<TimeWithTZ>: FixedSizeDataTypeTraits<int64_t, TimeWithTZ> {};
 
 template <>
-struct DataTypeTraits<Date>: NonSdnFixedSizeDataTypeTraits<int64_t, Date> {};
+struct DataTypeTraits<Date>: FixedSizeDataTypeTraits<int64_t, Date> {};
 
 template <>
 struct DataTypeTraits<Boolean>: FixedSizeDataTypeTraits<bool, Boolean, uint8_t> {};

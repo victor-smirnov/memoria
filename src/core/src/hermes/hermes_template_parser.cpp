@@ -106,7 +106,7 @@ struct HermesTemplateParser :
         close_stmt = lit("+%}") [_val = true] | lit("-%}")[_val = false] | lit("%}");
 
         auto text_to_hermes = [](auto& attrib, auto& ctx) {
-            auto obj = current_ctr()->new_dataobject<Varchar>(attrib.rawString).as_object();
+            auto obj = current_ctr().new_dataobject<Varchar>(attrib.rawString).as_object();
             ctx.attributes = HermesObject(obj);
         };
         text_object = text_block[text_to_hermes];
@@ -159,7 +159,7 @@ struct HermesTemplateParser :
                     );
 
         auto std_array_to_object = [](auto& attrib, auto& ctx){
-            auto array = current_ctr()->make_object_array(attrib.size());
+            auto array = current_ctr().make_object_array(attrib.size());
             for (auto& item: attrib) {
                 array = array.push_back(std::move(item.value));
             }
@@ -208,7 +208,7 @@ template <typename Iterator>
 void parse_hermes_template(Iterator& first, Iterator& last, HermesCtr& doc, bool node_names)
 {
     HermesCtrBuilderCleanup cleanup;
-    HermesCtrBuilder::enter(doc.self());
+    HermesCtrBuilder::enter(doc);
 
     using Grammar = HermesTemplateParser<Iterator>;
 
@@ -235,14 +235,14 @@ void parse_hermes_template(Iterator& first, Iterator& last, HermesCtr& doc, bool
 }
 
 
-PoolSharedPtr<HermesCtr> parse_template(U8StringView text, bool node_names) {
-    PoolSharedPtr<HermesCtrImpl> doc = TL_get_reusable_shared_instance<HermesCtrImpl>();
+HermesCtr parse_template(U8StringView text, bool node_names) {
+    auto doc = HermesCtr::make_new();
 
     IteratorType beginIt(text.begin());
     IteratorType it = beginIt;
     IteratorType endIt(text.end());
 
-    parse_hermes_template(it, endIt, *doc, node_names);
+    parse_hermes_template(it, endIt, doc, node_names);
 
     return doc;
 }

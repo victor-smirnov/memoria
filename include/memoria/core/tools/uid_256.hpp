@@ -434,7 +434,7 @@ struct FromString<UID256> {
 };
 
 template <>
-struct DataTypeTraits<UID256>: SdnFixedSizeDataTypeTraits<UID256, UID256> {};
+struct DataTypeTraits<UID256>: FixedSizeDataTypeTraits<UID256, UID256> {};
 
 std::ostream& operator<<(std::ostream& out, const BlockIDValueHolder<UID256>& block_id_value) noexcept;
 

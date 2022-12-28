@@ -107,28 +107,28 @@ template <typename T> struct GenericCtrDispatcher;
 
 template <typename DT>
 struct GenericCtrDispatcher<hermes::Array<DT>> {
-    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
+    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtrView* ctr) {
         return ctr->make_array<DT>().as_object().as_generic_array();
     }
 };
 
 template <>
 struct GenericCtrDispatcher<hermes::Array<hermes::Object>> {
-    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
+    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtrView* ctr) {
         return ctr->make_array<hermes::Object>().as_object().as_generic_array();
     }
 };
 
 template <>
 struct GenericCtrDispatcher<hermes::Map<Varchar, hermes::Object>> {
-    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
+    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtrView* ctr) {
         return ctr->make_object_map().as_object().as_generic_map();
     }
 };
 
 template <typename KeyDT, typename ValueDT>
 struct GenericCtrDispatcher<hermes::Map<KeyDT, ValueDT>> {
-    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtr* ctr) {
+    static hermes::GenericObjectPtr create_ctr(hermes::HermesCtrView* ctr) {
         return ctr->make_map<KeyDT, ValueDT>().as_object().as_generic_map();
     }
 };
@@ -153,7 +153,7 @@ public:
     }
 
     virtual PoolSharedPtr<hermes::GenericObject> hermes_make_container(
-            hermes::HermesCtr* ctr
+            hermes::HermesCtrView* ctr
     ) const override {
         return detail::GenericCtrDispatcher<T>::create_ctr(ctr);
     }
@@ -806,7 +806,8 @@ public:
     ) const override
     {
         const auto& view = storage.get_view<DT>(vs_tag);
-        return ptr->ctr()->new_dataobject<DT>(view);
+        auto ctr = hermes::HermesCtr(ptr);
+        return ctr.new_dataobject<DT>(view);
     }
 
     virtual bool hermes_is_ptr_embeddable() const override

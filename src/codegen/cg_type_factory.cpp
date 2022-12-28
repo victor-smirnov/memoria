@@ -38,7 +38,7 @@ class TypeFactoryImpl: public TypeFactory, public std::enable_shared_from_this<T
 
     U8String id_;
     U8String name_;
-    PoolSharedPtr<hermes::HermesCtr> config_;
+    hermes::HermesCtr config_;
 
     ShPtr<PreCompiledHeader> precompiled_header_;
     std::vector<U8String> includes_;
@@ -49,7 +49,7 @@ public:
     {
         auto anns = get_annotations(tf_decl_);
         if (anns.size()) {
-            config_ = hermes::HermesCtr::parse_document(anns[anns.size() - 1]);
+            config_ = hermes::HermesCtrView::parse_document(anns[anns.size() - 1]);
         }
 
         for (auto dd: tf_decl_->decls())
@@ -73,7 +73,7 @@ public:
     }
 
     U8String config_string(const U8String& sdn_path) const override {
-        return get_value(config_->root(), sdn_path).as_varchar();
+        return get_value(config_.root(), sdn_path).as_varchar();
     }
 
     U8String name() const override {
@@ -122,7 +122,7 @@ public:
         }
     }
 
-    PoolSharedPtr<hermes::HermesCtr> config() const override {
+    hermes::HermesCtr config() const override {
         return config_;
     }
 
@@ -154,7 +154,7 @@ public:
     }
 
     virtual U8String type() const override {
-        return get_value(config_->root(), "$/type").as_varchar();
+        return get_value(config_.root(), "$/type").as_varchar();
     }
 
     ShPtr<TypeFactory> self() {
@@ -162,11 +162,11 @@ public:
     }
 
     ObjectMap ld_config() {
-        return config_->root().as_typed_value().constructor().as_object_map();
+        return config_.root().as_typed_value().constructor().as_object_map();
     }
 
     ObjectMap ld_config() const {
-        return config_->root().as_typed_value().constructor().as_object_map();
+        return config_.root().as_typed_value().constructor().as_object_map();
     }
 
     void generate_artifacts() override {}

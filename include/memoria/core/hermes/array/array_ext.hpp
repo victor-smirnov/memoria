@@ -27,7 +27,7 @@ namespace hermes {
 
 inline void ArrayView<Object>::assert_mutable()
 {
-    if (MMA_UNLIKELY(!get_mem_holder()->ctr()->is_mutable())) {
+    if (MMA_UNLIKELY(!get_mem_holder()->is_mem_mutable())) {
         MEMORIA_MAKE_GENERIC_ERROR("ArrayView<Object> is immutable").do_throw();
     }
 }
@@ -36,7 +36,7 @@ inline void ArrayView<Object>::assert_mutable()
 template <typename DT>
 void ArrayView<DT>::assert_mutable()
 {
-    if (MMA_UNLIKELY(!this->get_mem_holder()->ctr()->is_mutable())) {
+    if (MMA_UNLIKELY(!this->get_mem_holder()->is_mem_mutable())) {
         MEMORIA_MAKE_GENERIC_ERROR("ArrayView<DT> is immutable").do_throw();
     }
 }
@@ -52,7 +52,7 @@ inline Object ArrayView<Object>::get(uint64_t idx) const
         if (MMA_LIKELY(ptr.is_pointer()))
         {
             if (MMA_LIKELY(ptr.is_not_null())) {
-                return Object(ObjectView(mem_holder_, ptr.get()));
+                return Object(mem_holder_, ptr.get());
             }
             else {
                 return Object{};
@@ -60,7 +60,7 @@ inline Object ArrayView<Object>::get(uint64_t idx) const
         }
         else {
             TaggedValue tv(ptr);
-            return Object(ObjectView(mem_holder_, tv));
+            return Object(mem_holder_, tv);
         }
     }
     else {
@@ -76,15 +76,15 @@ inline void ArrayView<Object>::for_each(std::function<void(const Object&)> fn) c
         if (vv.is_pointer())
         {
             if (vv.is_not_null()) {
-                fn(Object(ObjectView(mem_holder_, vv.get())));
+                fn(Object(mem_holder_, vv.get()));
             }
             else {
-                fn(Object(ObjectView()));
+                fn(Object());
             }
         }
         else {
             TaggedValue tv(vv);
-            fn(Object(ObjectView(mem_holder_, tv)));
+            fn(Object(mem_holder_, tv));
         }
     }
 }
@@ -96,8 +96,8 @@ ObjectArray ArrayView<Object>::push_back(T&& view)
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
-    auto vv  = ctr->make(std::forward<T>(view));
+    auto ctr = HermesCtr(mem_holder_);
+    auto vv  = ctr.make(std::forward<T>(view));
     return append(vv);
 }
 
@@ -108,8 +108,8 @@ ObjectArray ArrayView<Object>::push_back_t(T&& view)
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
-    auto vv  = ctr->make_t<DT>(std::forward<T>(view));
+    auto ctr = HermesCtr(mem_holder_);
+    auto vv  = ctr.make_t<DT>(std::forward<T>(view));
     return push_back(vv);
 }
 
@@ -120,8 +120,8 @@ Object ArrayView<Object>::set(uint64_t idx, T&& view)
 {    
     assert_not_null();
     assert_mutable();
-    auto ctr = mem_holder_->ctr();
-    auto ptr = ctr->make(std::forward<T>(view));
+    auto ctr = HermesCtr(mem_holder_);
+    auto ptr = ctr.make(std::forward<T>(view));
     set(idx, ptr);
 
     return ptr;
@@ -133,8 +133,8 @@ Object ArrayView<Object>::set_t(uint64_t idx, T&& view)
 {
     assert_not_null();
     assert_mutable();
-    auto ctr = mem_holder_->ctr();
-    auto ptr = ctr->make_t<DT>(std::forward<T>(view));
+    auto ctr = HermesCtr(mem_holder_);
+    auto ptr = ctr.make_t<DT>(std::forward<T>(view));
 
     set(idx, ptr);
 
@@ -147,7 +147,7 @@ inline ObjectArray ArrayView<Object>::push_back(const Object& value)
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
+    auto ctr = HermesCtr(mem_holder_);
 
     ShortTypeCode mytag = arena::read_type_tag(array_);
 
@@ -162,19 +162,19 @@ inline ObjectArray ArrayView<Object>::push_back(const Object& value)
             bool do_import = !get_type_reflection(tag).hermes_embed(val_ptr, value.storage_.small_value);
             if (do_import)
             {
-                auto vv = ctr->do_import_value(value);
+                auto vv = ctr.do_import_value(value);
                 val_ptr = vv.storage_.addr;
             }
         }
         else {
-            auto vv = ctr->do_import_value(value);
+            auto vv = ctr.do_import_value(value);
             val_ptr = vv.storage_.addr;
         }
 
-        new_array = array_->push_back(*ctr->arena(), mytag, val_ptr);
+        new_array = array_->push_back(*ctr.arena(), mytag, val_ptr);
     }
     else {
-        new_array = array_->push_back(*ctr->arena(), mytag, nullptr);
+        new_array = array_->push_back(*ctr.arena(), mytag, nullptr);
     }
 
     return ObjectArray{mem_holder_, new_array};
@@ -188,9 +188,9 @@ Array<DT> ArrayView<DT>::push_back(DTTViewType<DT> value)
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
+    auto ctr = HermesCtr(mem_holder_);
     auto mytag = ShortTypeCode::of<ArrayView<DT>>();
-    auto* new_array = array_->push_back(*ctr->arena(), mytag, value);
+    auto* new_array = array_->push_back(*ctr.arena(), mytag, value);
     return Array<DT>{mem_holder_, new_array};
 }
 
@@ -207,9 +207,9 @@ inline Object ArrayView<Object>::set(uint64_t idx, const Object& ivalue)
 {
     assert_not_null();
     assert_mutable();
-    auto ctr = mem_holder_->ctr();
+    auto ctr = HermesCtr(mem_holder_);
 
-    auto value = ctr->do_import_value(ivalue);
+    auto value = ctr.do_import_value(ivalue);
 
     if (value.is_not_null())
     {
@@ -221,12 +221,12 @@ inline Object ArrayView<Object>::set(uint64_t idx, const Object& ivalue)
             bool do_import = !get_type_reflection(tag).hermes_embed(val_ptr, value.storage_.small_value);
             if (do_import)
             {
-                auto vv = ctr->do_import_value(value);
+                auto vv = ctr.do_import_value(value);
                 val_ptr = vv.storage_.addr;
             }
         }
         else {
-            auto vv = ctr->do_import_value(value);
+            auto vv = ctr.do_import_value(value);
             val_ptr = vv.storage_.addr;
         }
 
@@ -246,9 +246,9 @@ inline ObjectArray ArrayView<Object>::remove(uint64_t idx)
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
+    auto ctr = HermesCtr(mem_holder_);
     ShortTypeCode mytag = arena::read_type_tag(array_);
-    ArrayStorageT* new_array = array_->remove(*ctr->arena_, mytag, idx);
+    ArrayStorageT* new_array = array_->remove(*ctr.arena(), mytag, idx);
     return ObjectArray{mem_holder_, new_array};
 }
 
@@ -258,9 +258,9 @@ Array<DT> ArrayView<DT>::remove(uint64_t idx)
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
+    auto ctr = HermesCtr(mem_holder_);
     ShortTypeCode mytag = arena::read_type_tag(array_);
-    auto new_array = array_->remove(*ctr->arena_, mytag, idx);
+    auto new_array = array_->remove(*ctr.arena(), mytag, idx);
     return Array<DT>{mem_holder_, new_array};
 }
 
@@ -321,9 +321,15 @@ void ArrayView<DT>::do_stringify(std::ostream& out, DumpFormatState& state) cons
 
 
 template <typename DT>
-PoolSharedPtr<HermesCtr> ArrayView<DT>::ctr() const {
+HermesCtr ArrayView<DT>::ctr() const {
     assert_not_null();
-    return mem_holder_->ctr()->self();
+    return HermesCtr(mem_holder_);
 }
+
+template <typename DT>
+HermesCtr TypedGenericArray<DT>::ctr() const {
+    return array_.ctr();
+}
+
 
 }}

@@ -88,7 +88,7 @@ protected:
 
     bool mutable_{false};
 
-    PoolSharedPtr<hermes::HermesCtr> metadata_;
+    hermes::HermesCtr metadata_;
 
     template <typename> friend class SWMRMappedStoreHistoryView;
 
@@ -177,7 +177,7 @@ public:
     }
 
 
-    PoolSharedPtr<hermes::HermesCtr> metadata() {
+    hermes::HermesCtr metadata() {
         return metadata_;
     }
 
@@ -418,7 +418,7 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("updated are not allowed for ReadOnly commits").do_throw();
     }
 
-    virtual void check(std::function<VoidResult(hermes::HermesCtrPtr&)> callback) {
+    virtual void check(std::function<VoidResult(hermes::HermesCtr&)> callback) {
     }
 
 protected:
@@ -440,7 +440,7 @@ protected:
         U8String signature = make_datatype_signature(CtrName{}).name();
 
         auto doc = TypeSignature::parse(signature.to_std_string());
-        auto decl = doc->root().as_datatype();
+        auto decl = doc.root().as_datatype();
 
         auto ctr_ref = internal_create_by_name(decl, ctr_id);
 

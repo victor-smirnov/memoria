@@ -197,11 +197,11 @@ public:
     }
 
 
-    void init_metadata(const PoolSharedPtr<hermes::HermesCtr>& doc)
+    void init_metadata(const hermes::HermesCtr& doc)
     {
-        auto new_doc = doc->compactify(true);
+        auto new_doc = doc.compactify(true);
 
-        auto span = new_doc->span();
+        auto span = new_doc.span();
 
         if (span.length() <= METADATA_SIZE) {
             std::memcpy(metadata_, span.data(), span.length());
@@ -218,7 +218,7 @@ public:
             size_t superblock_size,
             SequenceID sequence_id,
             SequenceID cp_sequence_id,
-            const PoolSharedPtr<hermes::HermesCtr>& meta
+            const hermes::HermesCtr& meta
     )
     {
         magick1_ = MAGICK1;
@@ -256,7 +256,7 @@ public:
             const SWMRSuperblock& other,
             uint64_t superblock_file_pos,
             const SnapshotID& commit_id,
-            const PoolSharedPtr<hermes::HermesCtr>& meta)
+            const hermes::HermesCtr& meta)
     {
         magick1_ = other.magick1_;
         magick2_ = other.magick2_;
@@ -286,15 +286,15 @@ public:
         init_metadata(meta);
     }
 
-    PoolSharedPtr<hermes::HermesCtr> cmetadata_doc() const  {
-        return hermes::HermesCtr::from_span(metadata());
+    hermes::HermesCtr cmetadata_doc() const  {
+        return hermes::HermesCtrView::from_span(metadata());
     }
 
-    PoolSharedPtr<hermes::HermesCtr> metadata_doc() {
-        return hermes::HermesCtr::from_span(metadata());
+    hermes::HermesCtr metadata_doc() {
+        return hermes::HermesCtrView::from_span(metadata());
     }
 
-    void set_metadata_doc(const PoolSharedPtr<hermes::HermesCtr>& view) {
+    void set_metadata_doc(const hermes::HermesCtr& view) {
         init_metadata(view);
     }
 

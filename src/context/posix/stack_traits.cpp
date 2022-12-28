@@ -90,7 +90,7 @@ stack_traits::page_size() noexcept {
 
 std::size_t
 stack_traits::default_size() noexcept {
-    return 128 * 1024;
+    return 256 * 1024;
 }
 
 std::size_t

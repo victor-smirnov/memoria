@@ -636,7 +636,7 @@ void write_message(BinaryOutputStream output, const U8StringView& msg)
     output.flush();
 }
 
-PoolSharedPtr<hermes::HermesCtr> read_message(BinaryInputStream input)
+hermes::HermesCtr read_message(BinaryInputStream input)
 {
     uint64_t size{0};
     if (input.read(ptr_cast<uint8_t>(&size), sizeof(size)) < sizeof(size))
@@ -649,7 +649,7 @@ PoolSharedPtr<hermes::HermesCtr> read_message(BinaryInputStream input)
         MEMORIA_MAKE_GENERIC_ERROR("Connection has been closed").do_throw();
     }
 
-    return hermes::HermesCtr::parse_document(str);
+    return hermes::HermesCtrView::parse_document(str);
 }
 
 
@@ -693,12 +693,13 @@ void MultiProcessRunner::handle_connections()
 
                 while (tests.size() || heads_.count(worker_num) > 0)
                 {
+                    // FIXME: Handle exceptions here!
                     auto msg = read_message(input);
-                    U8String code = msg->root().search("code").as_varchar();
+                    U8String code = msg.root().search("code").as_varchar();
 
                     if (code == "GREETING")
                     {
-                        worker_num = msg->root().search("worker_id").as_bigint();
+                        worker_num = msg.root().search("worker_id").to_i64();
                         worker_process = worker_processes_.at(worker_num);
                     }
                     else if (code == "GET_TASK")
@@ -721,8 +722,8 @@ void MultiProcessRunner::handle_connections()
                     {
                         processed++;
 
-                        U8String test_path = msg->root().search("test_path").as_varchar();
-                        int32_t status = msg->root().search("status").as_bigint();
+                        U8String test_path = msg.root().search("test_path").as_varchar();
+                        int32_t status = msg.root().search("status").to_i32();
 
                         heads_.erase(worker_num);
 
@@ -903,11 +904,11 @@ void Worker::run()
         write_message(output, "{'code': 'GET_TASK'}");
 
         auto msg = read_message(input);
-        U8String code = msg->root().search("code").as_varchar();
+        U8String code = msg.root().search("code").as_varchar();
 
         if (code == "RUN_TASK")
         {            
-            U8String test_path = msg->root().search("test_path").as_varchar();
+            U8String test_path = msg.root().search("test_path").as_varchar();
 
             println("++++++++++ New message from server: {}", test_path);
 

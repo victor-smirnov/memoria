@@ -52,7 +52,7 @@ protected:
 
     mutable ValueStorage storage_;
 
-    friend class HermesCtr;
+    friend class HermesCtrView;
 
     template<typename, typename>
     friend class MapView;
@@ -238,14 +238,7 @@ public:
         return get_vs_tag() != ValueStorageTag::VS_TAG_SMALL_VALUE;
     }
 
-    PoolSharedPtr<HermesCtr> document() const {
-        assert_not_null();        
-        return PoolSharedPtr<HermesCtr>(
-                    get_mem_holder()->ctr(),
-                    get_mem_holder()->owner(),
-                    pool::DoRef{}
-        );
-    }
+    HermesCtr ctr() const;
 
     Object search(U8StringView query) const;
     Object search(U8StringView query, const IParameterResolver& params) const;
@@ -570,7 +563,7 @@ public:
         }
     }
 
-    PoolSharedPtr<HermesCtr> clone(bool make_immutable = true) const;
+    HermesCtr clone(bool make_immutable = true) const;
 
     template <typename DT>
     DTTViewType<DT> view_unchecked() const {

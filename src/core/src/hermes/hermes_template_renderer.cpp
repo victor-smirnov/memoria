@@ -212,7 +212,7 @@ void render(const Object& tpl, const Object& data, std::ostream& out)
 void render(U8StringView tpl, const Object& data, std::ostream& out)
 {
     auto parsed_tpl = parse_template(tpl, false);
-    render(parsed_tpl->root(), data, out);
+    render(parsed_tpl.root(), data, out);
 }
 
 }

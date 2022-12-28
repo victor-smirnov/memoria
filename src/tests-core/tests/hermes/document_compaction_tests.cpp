@@ -20,9 +20,9 @@ namespace tests {
 
 
 auto ld_document_compaction_test = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "DocumentCompaction", [](auto& state){
-    auto doc = hermes::HermesCtr::make_new();
+    auto doc = hermes::HermesCtrView::make_new();
 
-    auto map = doc->make_object_map();
+    auto map = doc.make_object_map();
 
     size_t size = 100000;
 
@@ -32,13 +32,13 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<HermesTestState
         map = map.put(key, std::to_string(c));
     }
 
-    doc->set_root(map.as_object());
-    auto m0 = doc->root().as_generic_map();
+    doc.set_root(map.as_object());
+    auto m0 = doc.root().as_generic_map();
 
     assert_equals(size, m0->size());
 
-    auto doc2 = doc->compactify(false);
-    auto gmap = doc2->root().as_generic_map();
+    auto doc2 = doc.compactify(false);
+    auto gmap = doc2.root().as_generic_map();
 
     assert_equals(size, gmap->size());
 

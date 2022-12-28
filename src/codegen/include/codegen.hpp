@@ -72,7 +72,7 @@ struct Project {
     virtual void parse_configuration() = 0;
 
     virtual ShPtr<CodeModule> config_unit() const noexcept = 0;
-    virtual PoolSharedPtr<HermesCtr> config() const noexcept = 0;
+    virtual HermesCtr config() const noexcept = 0;
     virtual ObjectMap config_map() const = 0;
     virtual U8String project_output_folder() const = 0;
     virtual U8String components_output_folder() const = 0;
@@ -84,7 +84,7 @@ struct Project {
 
     virtual std::vector<U8String> profiles() const = 0;
 
-    virtual PoolSharedPtr<HermesCtr> dry_run() = 0;
+    virtual HermesCtr dry_run() = 0;
 
     virtual void generate_artifacts() = 0;
 
@@ -104,7 +104,7 @@ struct TypeInstance: CodegenEntity {
 
     virtual const clang::ClassTemplateSpecializationDecl* ctr_descr() const = 0;
     virtual clang::QualType type() const = 0;
-    virtual PoolSharedPtr<HermesCtr> config() const = 0;
+    virtual HermesCtr config() const = 0;
     virtual U8String name() const = 0;
     virtual U8String target_folder() const = 0;
     virtual U8String target_file(const U8String& profile) const = 0;
@@ -130,7 +130,7 @@ struct TypeFactory: CodegenEntity {
     virtual U8String name() const = 0;
 
     virtual U8String factory_id() const = 0;
-    virtual PoolSharedPtr<HermesCtr> config() const = 0;
+    virtual HermesCtr config() const = 0;
     virtual U8String type_pattern() const = 0;
 
     virtual void precompile_headers() = 0;
@@ -156,7 +156,7 @@ struct FileGenerator: CodegenEntity {
     virtual U8String target_file() const = 0;
     virtual U8String target_folder() const = 0;
 
-    static ShPtr<FileGenerator> create(ShPtr<Project> project, const U8String& sdn_path, PoolSharedPtr<HermesCtr>&& config);
+    static ShPtr<FileGenerator> create(ShPtr<Project> project, const U8String& sdn_path, HermesCtr config);
 };
 
 std::pair<U8String, U8String> split_path(U8String class_path);
@@ -217,7 +217,7 @@ public:
     }
 };
 
-std::string build_output_list(const PoolSharedPtr<HermesCtr>& doc);
+std::string build_output_list(const HermesCtr& doc);
 
 
 std::vector<U8String> parse_path_expression1(U8StringView path);

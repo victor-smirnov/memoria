@@ -30,7 +30,7 @@
 namespace memoria {
 namespace hermes {
 
-class HermesCtr;
+class HermesCtrView;
 
 struct IParameterResolver {
     virtual ~IParameterResolver() noexcept = default;
@@ -57,7 +57,7 @@ class ParameterView: public HoldingView<ParameterView> {
 public:
     using ArenaDTContainer = arena::ArenaDataTypeContainer<Varchar>;
 
-    friend class HermesCtr;
+    friend class HermesCtrView;
     friend class ObjectView;
 
     template <typename, typename>
@@ -91,7 +91,7 @@ public:
         return MemHolderHandle(this->get_mem_holder());
     }
 
-    PoolSharedPtr<HermesCtr> document() const;
+    HermesCtr ctr() const;
 
 
     U8String to_plain_string() const

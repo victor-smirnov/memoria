@@ -118,17 +118,22 @@ ObjectArray ObjectView::as_object_array() const {
     return cast_to<Array<Object>>();
 }
 
-PoolSharedPtr<HermesCtr> ObjectView::clone(bool make_immutable) const
+HermesCtr ObjectView::clone(bool make_immutable) const
 {
-    auto ctr = HermesCtr::make_new();
+    auto ctr = HermesCtrView::make_new();
 
     if (is_not_null())
     {
-        Object vv = ctr->do_import_value(Object(get_mem_holder(), get_vs_tag(), storage_));
-        ctr->set_root(vv);
+        Object vv = ctr.do_import_value(Object(get_mem_holder(), get_vs_tag(), storage_));
+        ctr.set_root(vv);
     }
 
     return ctr;
+}
+
+HermesCtr ObjectView::ctr() const {
+    assert_not_null();
+    return HermesCtr(get_mem_holder());
 }
 
 

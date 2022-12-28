@@ -86,7 +86,7 @@ public:
 struct HermesArrayNode
 {
     std::vector<HermesValueNode> array;
-    Object to_hermes_array(HermesCtr& doc) const;
+    Object to_hermes_array(HermesCtrView& doc) const;
 };
 
 

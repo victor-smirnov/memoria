@@ -49,14 +49,14 @@ namespace {
 
 template <typename DT>
 hermes::Object wrap_DO(DTTViewType<DT> view) {
-    return hermes::HermesCtr::wrap_dataobject<DT>(view);
+    return hermes::HermesCtrView::wrap_dataobject<DT>(view);
 }
 
 }
 
 hermes::ObjectArray HermesASTInterpreter::wrap_array(const std::vector<Object>& array) {
-    auto doc = hermes::HermesCtr::make_pooled();
-    auto arr = doc->make_object_array(array.size());
+    auto doc = hermes::HermesCtrView::make_pooled();
+    auto arr = doc.make_object_array(array.size());
 
     for (const auto& item: array) {
         arr = arr.push_back(item);
@@ -66,8 +66,8 @@ hermes::ObjectArray HermesASTInterpreter::wrap_array(const std::vector<Object>& 
 }
 
 hermes::ObjectArray make_array() {
-    auto doc = hermes::HermesCtr::make_pooled();
-    auto arr = doc->make_object_array();
+    auto doc = hermes::HermesCtrView::make_pooled();
+    auto arr = doc.make_object_array();
     return arr;
 }
 
@@ -297,6 +297,7 @@ void HermesASTInterpreter::visitIndexExpressionNode(const ASTNodePtr& node)
         // if the index expression also defines a projection then evaluate it
         auto pattr = node.get(IS_PROJECTION_ATTR);
         if (pattr.to_bool()) {
+            auto nn = node.get(RIGHT_EXPRESSION_ATTR);
             evaluateProjection(node.get(RIGHT_EXPRESSION_ATTR).as_tiny_object_map());
         }
     }
@@ -543,9 +544,9 @@ void HermesASTInterpreter::visitMultiselectHashNode(const ASTNodePtr& node)
     // evaluate the multiselect hash opration if the context doesn't holds null
     if (!getPathObject(m_context).is_null())
     {
-        auto doc = hermes::HermesCtr::make_pooled();
-        auto result = doc->make_object_map();
-        doc->set_root(result.as_object());
+        auto doc = hermes::HermesCtrView::make_pooled();
+        auto result = doc.make_object_map();
+        doc.set_root(result.as_object());
 
         // move the current context into a temporary variable in case it holds
         // a value, since the context member variable will get overwritten
@@ -581,7 +582,7 @@ void HermesASTInterpreter::visitNotExpressionNode(const ASTNodePtr& node)
 {
     // negate the result of the subexpression
     visit(node.get(EXPRESSION_ATTR).as_tiny_object_map());
-    m_context = hermes::HermesCtr::wrap_dataobject<Boolean>(!toSimpleBoolean(getPathObject(m_context))).as_object();
+    m_context = hermes::HermesCtrView::wrap_dataobject<Boolean>(!toSimpleBoolean(getPathObject(m_context))).as_object();
 }
 
 void HermesASTInterpreter::visitComparatorExpressionNode(const ASTNodePtr& node)
@@ -811,7 +812,7 @@ int64_t HermesASTInterpreter::adjustSliceEndpoint(size_t length,
 
 hermes::Object HermesASTInterpreter::toBoolean(const Object &path) const
 {
-    return hermes::HermesCtr::wrap_dataobject<Boolean>(
+    return hermes::HermesCtrView::wrap_dataobject<Boolean>(
         toSimpleBoolean(path)
     );
 }
@@ -1116,9 +1117,9 @@ void HermesASTInterpreter::keys(FunctionArgumentList &arguments)
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
     // add all the keys from the object to the list of results
-    auto doc = hermes::HermesCtr::make_pooled();
-    auto results = doc->make_object_array();
-    doc->set_root(results.as_object());
+    auto doc = hermes::HermesCtrView::make_pooled();
+    auto results = doc.make_object_array();
+    doc.set_root(results.as_object());
     //Object results(Object::value_t::array);
     auto map = object.as_generic_map();
 
@@ -1198,9 +1199,9 @@ void HermesASTInterpreter::merge(FunctionArgumentList &arguments)
 {
     using std::placeholders::_1;
 
-    auto doc = hermes::HermesCtr::make_pooled();
-    auto result = doc->make_object_map().as_object();
-    doc->set_root(result.as_object());
+    auto doc = hermes::HermesCtrView::make_pooled();
+    auto result = doc.make_object_map().as_object();
+    doc.set_root(result.as_object());
 
     // iterate over the arguments
     for (auto& argument: arguments)
@@ -1271,9 +1272,9 @@ void HermesASTInterpreter::reverse(ContextValue&& isubject)
 {
     auto subject = getPathObject(isubject);
 
-    auto doc = hermes::HermesCtr::make_pooled();
-    auto result = doc->make_object_array();
-    doc->set_root(result.as_object());
+    auto doc = hermes::HermesCtrView::make_pooled();
+    auto result = doc.make_object_array();
+    doc.set_root(result.as_object());
 
     auto array = subject.as_generic_array();
     size_t size = array->size();
@@ -1536,11 +1537,11 @@ void HermesASTInterpreter::toBoolean(ContextValue&& ivalue)
     }
     else if (value.is_array()) {
         auto array = value.as_generic_array();
-        m_context = HermesCtr::wrap_dataobject<Boolean>(array->size() > 0).as_object();
+        m_context = HermesCtrView::wrap_dataobject<Boolean>(array->size() > 0).as_object();
     }
     else if (value.is_map()) {
         auto map = value.as_generic_map();
-        m_context = HermesCtr::wrap_dataobject<Boolean>(map->size() > 0).as_object();
+        m_context = HermesCtrView::wrap_dataobject<Boolean>(map->size() > 0).as_object();
     }
     else {
         m_context = value.template convert_to<Boolean>();

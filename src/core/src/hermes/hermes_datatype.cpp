@@ -241,15 +241,15 @@ Datatype DatatypeView::append_type_parameter(U8StringView name)
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
+    auto ctr = HermesCtr(mem_holder_);
 
     ObjectArray params = type_parameters();
     if (MMA_UNLIKELY(params.is_null())) {
-        params = ctr->make_object_array();
+        params = ctr.make_object_array();
         datatype_->set_parameters(params.array_);
     }
 
-    auto datatype = ctr->make_datatype(name);
+    auto datatype = ctr.make_datatype(name);
     auto new_params = params.push_back(datatype.as_object());
     datatype_->set_parameters(new_params.array_);
 
@@ -262,11 +262,11 @@ void DatatypeView::append_type_parameter(Object value)
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
+    auto ctr = HermesCtr(mem_holder_);
 
     ObjectArray params = type_parameters();
     if (MMA_UNLIKELY(params.is_null())) {
-        params = ctr->make_object_array();
+        params = ctr.make_object_array();
         datatype_->set_parameters(params.array_);
     }
 
@@ -279,12 +279,12 @@ void DatatypeView::append_constructor_argument(Object value)
     assert_not_null();
     assert_mutable();
 
-    auto ctr0 = mem_holder_->ctr();
+    auto ctr0 = HermesCtr(mem_holder_);
 
     ObjectArray ctr = constructor();
 
     if (MMA_UNLIKELY(ctr.is_null())) {
-        ctr = ctr0->make_object_array();
+        ctr = ctr0.make_object_array();
         datatype_->set_constructor(ctr.array_);
     }
 
@@ -298,8 +298,8 @@ ObjectArray DatatypeView::set_constructor()
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
-    auto ptr = ctr->make_object_array();
+    auto ctr = HermesCtr(mem_holder_);
+    auto ptr = ctr.make_object_array();
     datatype_->set_constructor(ptr.array_);
 
     return ptr;
@@ -360,11 +360,11 @@ UID256 get_cxx_type_hash(U8StringView text)
 
 hermes::Datatype strip_namespaces(hermes::Datatype src)
 {
-    auto ctr = HermesCtr::make_pooled();
+    auto ctr = HermesCtrView::make_pooled();
 
     auto name = get_datatype_name(src.type_name());
-    auto tgt = ctr->new_datatype(name);
-    ctr->set_root(tgt.as_object());
+    auto tgt = ctr.new_datatype(name);
+    ctr.set_root(tgt.as_object());
 
     auto params = src.type_parameters();
     if (params.is_not_null())

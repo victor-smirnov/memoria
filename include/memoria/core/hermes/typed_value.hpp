@@ -93,7 +93,7 @@ public:
         tv_(reinterpret_cast<detail::TypedValueData*>(tv))
     {}
 
-    PoolSharedPtr<HermesCtr> ctr();
+    HermesCtr ctr();
 
     Object as_object() const {
         return Object(ObjectView(mem_holder_, tv_));
@@ -114,13 +114,13 @@ public:
     Object constructor() const
     {
         assert_not_null();
-        return Object(ObjectView(mem_holder_, tv_->constructor()));
+        return Object(mem_holder_, tv_->constructor());
     }
 
     Datatype datatype() const
     {
         assert_not_null();
-        return Datatype(DatatypeView(mem_holder_, tv_->datatype()));
+        return Datatype(mem_holder_, tv_->datatype());
     }
 
     void stringify(std::ostream& out,

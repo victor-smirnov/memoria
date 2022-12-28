@@ -27,8 +27,7 @@ namespace hermes {
 
 inline void DatatypeView::assert_mutable()
 {
-    auto ctr = mem_holder_->ctr();
-    if (MMA_UNLIKELY(!ctr->is_mutable())) {
+    if (MMA_UNLIKELY(!mem_holder_->is_mem_mutable())) {
         MEMORIA_MAKE_GENERIC_ERROR("DatatypeView is immutable").do_throw();
     }
 }
@@ -56,8 +55,8 @@ void DatatypeView::append_integral_parameter(DTTViewType<DT> view)
     ObjectArray params = type_parameters();
 
     if (MMA_UNLIKELY(params.is_null())) {
-        auto ctr = mem_holder_->ctr();
-        params = ctr->make_object_array();
+        auto ctr = HermesCtr(mem_holder_);
+        params = ctr.make_object_array();
         datatype_->set_parameters(params.array_);
     }
 
@@ -65,7 +64,10 @@ void DatatypeView::append_integral_parameter(DTTViewType<DT> view)
     datatype_->set_parameters(new_params.array_);
 }
 
-
+inline HermesCtr DatatypeView::ctr() const {
+    assert_not_null();
+    return HermesCtr(get_mem_holder());
+}
 
 
 }}

@@ -21,9 +21,9 @@ namespace tests {
 using namespace memoria::hermes;
 
 auto hermes_object_array_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "ObjectArrayAddRemove", [](auto& state){
-    auto doc = HermesCtr::make_new();
+    auto doc = HermesCtrView::make_new();
 
-    auto array = doc->make_t<Array<Object>>();
+    auto array = doc.make_t<Array<Object>>();
 
     assert_equals(0, array.size());
 
@@ -58,9 +58,9 @@ auto hermes_object_array_add_remove_tests = register_test_in_suite<FnTest<Hermes
 });
 
 auto hermes_integer_array_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "IntegerArrayAddRemove", [](auto& state){
-    auto doc = HermesCtr::make_new();
+    auto doc = HermesCtrView::make_new();
 
-    auto array = doc->make_t<Array<Integer>>();
+    auto array = doc.make_t<Array<Integer>>();
     assert_equals(0, array.size());
 
     size_t size = 10000;
@@ -95,9 +95,9 @@ auto hermes_integer_array_add_remove_tests = register_test_in_suite<FnTest<Herme
 
 
 auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("HermesTestSuite", "ObjectArraySet", [](auto& state){
-    auto doc = hermes::HermesCtr::make_new();
+    auto doc = hermes::HermesCtrView::make_new();
 
-    auto array = doc->make_object_array();
+    auto array = doc.make_object_array();
     assert_equals(0, array.size());
 
     array = array.push_back_t<Varchar>("Hello World");
@@ -112,11 +112,11 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Herm
     assert_equals(true, array.get(2).is_boolean());
     assert_equals(true, array.get(2).as_boolean());
 
-    auto map = doc->make_object_map();
+    auto map = doc.make_object_map();
     array = array.push_back(map.as_object());
     assert_equals(true, array.get(3).is_map());
 
-    auto arr = doc->make_object_array();
+    auto arr = doc.make_object_array();
     array = array.push_back(arr.as_object());
     assert_equals(true, array.get(4).is_array());
 

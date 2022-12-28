@@ -193,7 +193,7 @@ struct FromString<UUID> {
 };
 
 template <>
-struct DataTypeTraits<UUID>: SdnFixedSizeDataTypeTraits<UUID, UUID> {};
+struct DataTypeTraits<UUID>: FixedSizeDataTypeTraits<UUID, UUID> {};
 
 
 std::ostream& operator<<(std::ostream& out, const BlockIDValueHolder<UUID>& block_id_value) noexcept;

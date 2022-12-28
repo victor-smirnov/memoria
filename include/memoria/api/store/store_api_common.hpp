@@ -82,13 +82,13 @@ public:
 
     virtual CtrReferenceableT create(U8StringView type_def, const CtrID& ctr_id) {
         auto doc = TypeSignature::parse(type_def);
-        auto decl = doc->root().as_datatype();
+        auto decl = doc.root().as_datatype();
         return this->create(decl, ctr_id);
     }
 
     virtual CtrReferenceableT create(U8StringView type_def) {
         auto doc = TypeSignature::parse(type_def);
-        auto decl = doc->root().as_datatype();
+        auto decl = doc.root().as_datatype();
         return this->create(decl);
     }
 
@@ -118,7 +118,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 {
     U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
     auto doc = TypeSignature::parse(signature.to_std_string());
-    auto decl = doc->root().as_datatype();
+    auto decl = doc.root().as_datatype();
 
     auto ctr_ref = alloc->create(decl, ctr_id);
     return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref));
@@ -134,7 +134,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 {
     U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
     auto doc = TypeSignature::parse(signature.to_std_string());
-    auto decl = doc->root().as_datatype();
+    auto decl = doc.root().as_datatype();
     auto ctr_ref = alloc->create(decl);
     return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref));
 }

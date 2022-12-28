@@ -67,7 +67,7 @@ struct HermesDocParser :
     >,
     qi::grammar<
         Iterator,
-        pool::SharedPtr<HermesCtr>(),
+        pool::SharedPtr<HermesCtrView>(),
         SkipperT<Iterator>
     >
 {
@@ -124,7 +124,7 @@ struct HermesDocParser :
         type_directory_entry.name("type_directory_entry");
     }
 
-    qi::rule<Iterator, PoolSharedPtr<HermesCtr>(), Skipper> hermes_document;
+    qi::rule<Iterator, PoolSharedPtr<HermesCtrView>(), Skipper> hermes_document;
     qi::rule<Iterator, TypeDirectoryValue(), Skipper>   type_directory;
     qi::rule<Iterator, TypeDirectoryMapEntry(), Skipper> type_directory_entry;
 
@@ -177,9 +177,9 @@ template <typename Iterator>
 void parse_hermes_document(Iterator& first, Iterator& last, HermesCtr& doc)
 {
     HermesCtrBuilderCleanup cleanup;
-    HermesCtrBuilder::enter(doc.self());
+    HermesCtrBuilder::enter(doc);
 
-    HermesDocParser<Iterator> const grammar;
+    static thread_local HermesDocParser<Iterator> const grammar;
 
     Iterator start = first;
     try {
@@ -202,7 +202,7 @@ template <typename Iterator>
 void parse_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc)
 {
     HermesCtrBuilderCleanup cleanup;
-    HermesCtrBuilder::enter(doc.self());
+    HermesCtrBuilder::enter(doc);
 
     TypeDeclarationParser<Iterator> const grammar;
 
@@ -230,7 +230,7 @@ template <typename Iterator>
 void parse_hermes_path_expr(Iterator& first, Iterator& last, HermesCtr& doc)
 {
     HermesCtrBuilderCleanup cleanup;
-    HermesCtrBuilder::enter(doc.self());
+    HermesCtrBuilder::enter(doc);
 
     using Grammar = path::parser::HOGrammar<Iterator>;
 
@@ -266,7 +266,7 @@ template <typename Iterator>
 void parse_raw_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc, Datatype& datatype)
 {
     HermesCtrBuilderCleanup cleanup;
-    HermesCtrBuilder::enter(doc.self());
+    HermesCtrBuilder::enter(doc);
 
     TypeDeclarationParser<Iterator> const grammar;
 
@@ -290,7 +290,7 @@ template <typename Iterator>
 void parse_raw_value0(Iterator& first, Iterator& last, HermesCtr& doc, Object& value)
 {
     HermesCtrBuilderCleanup cleanup;
-    HermesCtrBuilder::enter(doc.self());
+    HermesCtrBuilder::enter(doc);
 
     RawHermesDocValueParser<Iterator> const grammar;
 
@@ -326,54 +326,58 @@ bool parse_identifier(Iterator& first, Iterator& last)
     return r;
 }
 
-PoolSharedPtr<HermesCtr> HermesCtr::parse_document(CharIterator start, CharIterator end, const ParserConfiguration&)
+HermesCtr HermesCtrView::parse_document(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
-    PoolSharedPtr<HermesCtrImpl> doc = TL_get_reusable_shared_instance<HermesCtrImpl>();
+    auto doc = HermesCtr::make_pooled();
 
     // retain the value of the begin iterator
     IteratorType beginIt(start);
     IteratorType it = beginIt;
     IteratorType endIt(end);
 
-    parse_hermes_document(it, endIt, *doc);
+    parse_hermes_document(it, endIt, doc);
     return doc;
 }
 
-PoolSharedPtr<HermesCtr> HermesCtr::parse_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
+HermesCtr HermesCtrView::parse_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
-    PoolSharedPtr<HermesCtrImpl> doc = TL_get_reusable_shared_instance<HermesCtrImpl>();
+    auto doc = HermesCtr::make_pooled();
 
     IteratorType beginIt(start);
     IteratorType it = beginIt;
     IteratorType endIt(end);
 
-    parse_datatype_decl(it, endIt, *doc);
+    parse_datatype_decl(it, endIt, doc);
     return doc;
 }
 
-Datatype HermesCtr::parse_raw_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
+Datatype HermesCtrView::parse_raw_datatype(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
     IteratorType beginIt(start);
     IteratorType it = beginIt;
     IteratorType endIt(end);
+
+    auto ctr = HermesCtr(mem_holder_);
 
     Datatype datatype{};
-    parse_raw_datatype_decl(it, endIt, *this, datatype);
+    parse_raw_datatype_decl(it, endIt, ctr, datatype);
     return datatype;
 }
 
-Object HermesCtr::parse_raw_value(CharIterator start, CharIterator end, const ParserConfiguration&)
+Object HermesCtrView::parse_raw_value(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
     IteratorType beginIt(start);
     IteratorType it = beginIt;
     IteratorType endIt(end);
 
+    auto ctr = HermesCtr(mem_holder_);
+
     Object value{};
-    parse_raw_value0(it, endIt, *this, value);
+    parse_raw_value0(it, endIt, ctr, value);
     return value;
 }
 
-bool HermesCtr::is_identifier(CharIterator start, CharIterator end)
+bool HermesCtrView::is_identifier(CharIterator start, CharIterator end)
 {
     IteratorType beginIt(start);
     IteratorType it = beginIt;
@@ -382,27 +386,27 @@ bool HermesCtr::is_identifier(CharIterator start, CharIterator end)
     return parse_identifier(it, endIt);
 }
 
-void HermesCtr::assert_identifier(U8StringView name)
+void HermesCtrView::assert_identifier(U8StringView name)
 {
     if (!is_identifier(name)) {
         MEMORIA_MAKE_GENERIC_ERROR("Supplied value '{}' is not a valid Hermes identifier", name).do_throw();
     }
 }
 
-PoolSharedPtr<HermesCtr> HermesCtr::parse_hermes_path(U8StringView text)
+HermesCtr HermesCtrView::parse_hermes_path(U8StringView text)
 {
-    PoolSharedPtr<HermesCtrImpl> doc = TL_get_reusable_shared_instance<HermesCtrImpl>();
+    auto doc = HermesCtr::make_pooled();
 
     IteratorType beginIt(text.begin());
     IteratorType it = beginIt;
     IteratorType endIt(text.end());
 
-    parse_hermes_path_expr(it, endIt, *doc);
+    parse_hermes_path_expr(it, endIt, doc);
 
     return doc;
 }
 
-void HermesCtr::init_hermes_doc_parser() {
+void HermesCtrView::init_hermes_doc_parser() {
     // Init Resolver
     ErrorMessageResolver::instance();
 }

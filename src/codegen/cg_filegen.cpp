@@ -38,7 +38,7 @@ class FileGeneratorImpl: public FileGenerator, public std::enable_shared_from_th
   Project* project_;
 
   U8String sdn_path_;
-  PoolSharedPtr<HermesCtr> config_;
+  HermesCtr config_;
 
   std::unordered_map<U8String, std::vector<U8String>> snippets_;
 
@@ -53,7 +53,7 @@ public:
   FileGeneratorImpl(
           ShPtr<Project> project,
           U8String sdn_path,
-          PoolSharedPtr<hermes::HermesCtr>&& config
+          hermes::HermesCtr&& config
   ):
     project_ptr_(project), project_(project.get()), sdn_path_(sdn_path), config_(std::move(config))
   {
@@ -73,7 +73,7 @@ public:
   }
 
   U8String describe() const override {
-    return format_u8("FileGenerator for: {}", config_->to_pretty_string());
+    return format_u8("FileGenerator for: {}", config_.to_pretty_string());
   }
 
   void add_snippet(const U8String& collection, const U8String& text, bool distinct) override
@@ -141,7 +141,7 @@ public:
   }
 
   hermes::ObjectMap ld_config() const {
-    return config_->root().cast_to<hermes::TypedValue>().constructor().as_object_map();
+    return config_.root().cast_to<hermes::TypedValue>().constructor().as_object_map();
   }
 
   std::vector<U8String> snippets(const U8String& collection) const override
@@ -156,7 +156,7 @@ public:
   }
 
   U8String config_string(const U8String& sdn_path) const override {
-    return get_value(config_->root(), sdn_path).as_varchar();
+    return get_value(config_.root(), sdn_path).as_varchar();
   }
 
   ShPtr<FileGenerator> self() {
@@ -167,7 +167,7 @@ public:
 ShPtr<FileGenerator> FileGenerator::create(
         ShPtr<Project> project,
         const U8String& sdn_path,
-        PoolSharedPtr<hermes::HermesCtr>&& config
+        HermesCtr config
 ){
   return std::make_shared<FileGeneratorImpl>(project, sdn_path, std::move(config));
 }

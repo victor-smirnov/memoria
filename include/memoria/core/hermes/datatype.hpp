@@ -30,7 +30,7 @@
 namespace memoria {
 namespace hermes {
 
-class HermesCtr;
+class HermesCtrView;
 
 class PtrQualifier {
     uint8_t value_;
@@ -279,7 +279,7 @@ public:
 
 class DatatypeView: public HoldingView<DatatypeView> {
     using Base = HoldingView<DatatypeView>;
-    friend class HermesCtr;
+    friend class HermesCtrView;
     friend class ObjectView;
     friend class HermesCtrBuilder;
 
@@ -309,14 +309,7 @@ public:
         Base(ptr_holder), datatype_(reinterpret_cast<detail::DatatypeData*>(dt))
     {}
 
-    PoolSharedPtr<HermesCtr> document() const {
-        assert_not_null();
-        return PoolSharedPtr<HermesCtr>(
-                    mem_holder_->ctr(),
-                    mem_holder_->owner(),
-                    pool::DoRef{}
-        );
-    }
+    HermesCtr ctr() const;
 
     Object as_object() const {
         return Object(ObjectView(mem_holder_, datatype_));

@@ -88,7 +88,6 @@ struct DataTypeTraits<Multimap<Key, Value>> {
     using Parameters = TL<Key, Value>;
 
     static constexpr bool HasTypeConstructors = false;
-    static constexpr bool isSdnDeserializable = false;
 };
 
 }

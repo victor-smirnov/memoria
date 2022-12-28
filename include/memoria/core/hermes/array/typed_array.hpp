@@ -39,7 +39,7 @@ protected:
     using Base::mem_holder_;
 
     friend class HermesCtrImpl;
-    friend class HermesCtr;
+    friend class HermesCtrView;
     friend class ObjectView;
 
     template <typename, typename>
@@ -98,7 +98,7 @@ public:
         return Array<DT>(mem_holder_, array_);
     }
 
-    PoolSharedPtr<HermesCtr> ctr() const;
+    HermesCtr ctr() const;
 
     Object as_object() const {
         return Object(mem_holder_, array_);
@@ -271,9 +271,7 @@ public:
         MEMORIA_MAKE_GENERIC_ERROR("Not implemented").do_throw();
     }
 
-    virtual PoolSharedPtr<HermesCtr> ctr() const {
-        return array_.ctr();
-    }
+    virtual HermesCtr ctr() const;
 
     virtual bool is_array() const {
         return true;

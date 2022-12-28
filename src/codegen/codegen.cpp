@@ -146,7 +146,7 @@ int main(int argc, char** argv)
       if (map.count("reuse-config") && list_exists)
       {
         std::string text = load_text_file(file_name);
-        auto doc = HermesCtr::parse_document(text);
+        auto doc = HermesCtrView::parse_document(text);
         std::cout << build_output_list(doc);
       }
       else {
@@ -173,7 +173,7 @@ int main(int argc, char** argv)
         }
 
         auto doc = project->dry_run();
-        write_text_file(file_name, doc->root().to_pretty_string());
+        write_text_file(file_name, doc.root().to_pretty_string());
 
         std::cout << build_output_list(doc);
       }
@@ -205,7 +205,7 @@ int main(int argc, char** argv)
 
       println("Generating reusable configuration");
       auto doc = project->dry_run();
-      write_text_file(file_name, doc->to_pretty_string());
+      write_text_file(file_name, doc.to_pretty_string());
 
       println("Generating artifacts");
       project->generate_artifacts();

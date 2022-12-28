@@ -56,7 +56,6 @@ struct DataTypeTraits<Set<Key>> {
     using Parameters = TL<Key>;
 
     static constexpr bool HasTypeConstructors = false;
-    static constexpr bool isSdnDeserializable = false;
 };
 
 }

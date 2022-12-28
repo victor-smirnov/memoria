@@ -232,7 +232,7 @@ struct FromString<UID64> {
 };
 
 template <>
-struct DataTypeTraits<UID64>: SdnFixedSizeDataTypeTraits<UID64, UID64> {};
+struct DataTypeTraits<UID64>: FixedSizeDataTypeTraits<UID64, UID64> {};
 
 std::ostream& operator<<(std::ostream& out, const BlockIDValueHolder<UID64>& block_id_value) noexcept;
 

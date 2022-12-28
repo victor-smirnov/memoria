@@ -38,9 +38,15 @@ PoolSharedPtr<GenericMapEntry> TypedGenericMap<Varchar, Object>::iterator() cons
 }
 
 
-PoolSharedPtr<HermesCtr> MapView<Varchar, Object>::ctr() const {
+HermesCtr ObjectMapView::ctr() const {
     assert_not_null();
-    return mem_holder_->ctr()->self();
+    return HermesCtr(get_mem_holder());
+}
+
+
+
+HermesCtr TypedGenericMap<Varchar, Object>::ctr() const {
+    return map_.ctr();
 }
 
 

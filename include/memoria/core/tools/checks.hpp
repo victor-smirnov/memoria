@@ -24,27 +24,27 @@ enum class CheckSeverity {
     ERROR
 };
 
-using CheckResultConsumerFn = std::function<void (CheckSeverity, const hermes::HermesCtrPtr&)>;
+using CheckResultConsumerFn = std::function<void (CheckSeverity, const hermes::HermesCtr&)>;
 
 struct NullCheckResultConsumer {
-    void operator()(CheckSeverity, const hermes::HermesCtrPtr&) {}
+    void operator()(CheckSeverity, const hermes::HermesCtr&) {}
 };
 
 struct ThrowingCheckResultConsumer {
-    void operator()(CheckSeverity svr, const hermes::HermesCtrPtr& doc) {
+    void operator()(CheckSeverity svr, const hermes::HermesCtr& doc) {
         if (svr == CheckSeverity::ERROR) {
-            MEMORIA_MAKE_GENERIC_ERROR("{}", doc->to_pretty_string()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("{}", doc.to_pretty_string()).do_throw();
         }
     }
 };
 
 template <typename... Args>
-hermes::HermesCtrPtr make_string_document(const char* fmt, Args&&... args)
+hermes::HermesCtr make_string_document(const char* fmt, Args&&... args)
 {
     auto str = format_u8(fmt, std::forward<Args>(args)...);
-    hermes::HermesCtrPtr doc = hermes::HermesCtr::make_pooled();
-    auto vv = doc->make_t<Varchar>(str);
-    doc->set_root(vv);
+    auto doc = hermes::HermesCtrView::make_pooled();
+    auto vv = doc.make_t<Varchar>(str);
+    doc.set_root(vv);
     return doc;
 }
 

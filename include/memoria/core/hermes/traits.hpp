@@ -36,10 +36,10 @@ template <typename, CtrMakers>
 struct CtrMakeHelper;
 
 class HermesCtrBuilder;
-class HermesCtr;
+class HermesCtrView;
 class HermesCtrImpl;
 
-using HermesCtrPtr = pool::SharedPtr<HermesCtr>;
+using HermesCtr = Own<HermesCtrView, OwningKind::HOLDING>;
 
 struct IParameterResolver;
 
@@ -48,7 +48,6 @@ class ArrayView;
 
 template <typename Key, typename Value>
 class MapView;
-
 
 template <typename Key, typename Value>
 using Map = Own<MapView<Key, Value>, OwningKind::HOLDING>;

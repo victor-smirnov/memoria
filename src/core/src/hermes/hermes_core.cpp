@@ -40,21 +40,32 @@ void HermesCtrImpl::reset_state() noexcept {
     header_ = nullptr;
 }
 
-pool::SharedPtr<HermesCtr> HermesCtr::make_pooled(ObjectPools& pool) {
-    return get_reusable_shared_instance<HermesCtrImpl>(pool);
+HermesCtr HermesCtrView::make_pooled(ObjectPools& pool)
+{
+    auto arena = get_reusable_shared_instance<arena::PoolableArena>(pool);
+    auto ctr = HermesCtr{&arena->mem_holder(), arena.get()};
+    ctr.header_ = arena->allocate_object_untagged<DocumentHeader>();
+    return ctr;
 }
 
-pool::SharedPtr<HermesCtr> HermesCtr::make_new(size_t initial_capacity) {
-    return TL_allocate_shared<HermesCtrImpl>(initial_capacity);
+HermesCtr HermesCtrView::make_new(size_t initial_capacity)
+{
+    auto arena = TL_allocate_shared<arena::PoolableArena>(initial_capacity);
+    auto ctr = HermesCtr{&arena->mem_holder(), arena.get()};
+    ctr.header_ = arena->allocate_object_untagged<DocumentHeader>();
+    return ctr;
 }
 
-pool::SharedPtr<HermesCtr> HermesCtr::from_span(Span<const uint8_t> data) {
-    return TL_allocate_shared<HermesCtrImpl>(
+HermesCtr HermesCtrView::from_span(Span<const uint8_t> data) {
+    auto arena = TL_allocate_shared<arena::PoolableArena>(
         arena::AllocationType::MULTI_CHUNK,
         4096,
         data.data(),
         data.size()
     );
+
+    auto ctr = HermesCtr{&arena->mem_holder()};
+    return ctr;
 }
 
 
@@ -87,15 +98,15 @@ uint64_t ParameterView::hash_code() const {
 
 Object ObjectView::search(U8StringView query) const
 {
-    auto ast = HermesCtr::parse_hermes_path(query);
-    auto exp = ast->root().as_tiny_object_map();
+    auto ast = HermesCtrView::parse_hermes_path(query);
+    auto exp = ast.root().as_tiny_object_map();
     return hermes::path::search(exp, Object(get_mem_holder(), storage_.addr));
 }
 
 Object ObjectView::search(U8StringView query, const IParameterResolver& params) const
 {
-    auto ast = HermesCtr::parse_hermes_path(query);
-    auto exp = ast->root().as_tiny_object_map();
+    auto ast = HermesCtrView::parse_hermes_path(query);
+    auto exp = ast.root().as_tiny_object_map();
     return hermes::path::search(exp, Object(get_mem_holder(), storage_.addr), params);
 }
 
@@ -109,7 +120,7 @@ using PoolT = pool::SimpleObjectPool<SizedHermesCtrImpl<HEADER_SIZE + Size>>;
 
 }
 
-PoolSharedPtr<StaticHermesCtrImpl> HermesCtr::get_ctr_instance(size_t size)
+PoolSharedPtr<StaticHermesCtrImpl> HermesCtrView::get_ctr_instance(size_t size)
 {
 
     static thread_local LocalSharedPtr<PoolT<8>> instance_pool_8     = MakeLocalShared<PoolT<8>>();
@@ -139,13 +150,13 @@ PoolSharedPtr<StaticHermesCtrImpl> HermesCtr::get_ctr_instance(size_t size)
     return PoolSharedPtr<StaticHermesCtrImpl>{};
 }
 
-void HermesCtr::init_from(arena::ArenaAllocator& arena) {
+void HermesCtrView::init_from(arena::ArenaAllocator& arena) {
     if (arena_) {
         arena_->init_from(arena);
         header_ = ptr_cast<DocumentHeader>(arena.tail().memory.get());
     }
     else {
-        MEMORIA_MAKE_GENERIC_ERROR("HermesCtr instance is immutable").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("HermesCtrView instance is immutable").do_throw();
     }
 }
 
@@ -180,9 +191,9 @@ PoolSharedPtr<TaggedGenericView> TaggedGenericView::allocate_space(size_t size)
 }
 
 
-PoolSharedPtr<HermesCtr> TypedValueView::ctr() {
+HermesCtr TypedValueView::ctr() {
     assert_not_null();
-    return mem_holder_->ctr()->self();
+    return HermesCtr(mem_holder_);
 }
 
 }
@@ -190,19 +201,19 @@ PoolSharedPtr<HermesCtr> TypedValueView::ctr() {
 namespace memoria {
 
 TypeSignature::TypeSignature(U8StringView name) {
-    name_ = hermes::HermesCtr::parse_datatype(name)->root().as_datatype().to_string();
+    name_ = hermes::HermesCtrView::parse_datatype(name).root().as_datatype().to_string();
 }
 
 TypeSignature TypeSignature::make_normalized(U8StringView str) {
     return TypeSignature(normalize_type_declaration(str), 0);
 }
 
-PoolSharedPtr<hermes::HermesCtr> TypeSignature::parse() const {
-    return hermes::HermesCtr::parse_datatype(name_);
+hermes::HermesCtr TypeSignature::parse() const {
+    return hermes::HermesCtrView::parse_datatype(name_);
 }
 
-PoolSharedPtr<hermes::HermesCtr> TypeSignature::parse(U8StringView str) {
-    return hermes::HermesCtr::parse_datatype(str);
+hermes::HermesCtr TypeSignature::parse(U8StringView str) {
+    return hermes::HermesCtrView::parse_datatype(str);
 }
 
 

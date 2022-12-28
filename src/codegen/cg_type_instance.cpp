@@ -50,8 +50,8 @@ class TypeInstanceImpl: public TypeInstance, public std::enable_shared_from_this
 
   const clang::ClassTemplateSpecializationDecl* ctr_descr_;
 
-  PoolSharedPtr<hermes::HermesCtr> config_;
-  PoolSharedPtr<hermes::HermesCtr> project_config_;
+  hermes::HermesCtr config_;
+  hermes::HermesCtr project_config_;
 
   ShPtr<PreCompiledHeader> precompiled_header_;
   std::vector<U8String> includes_;
@@ -69,12 +69,12 @@ public:
   TypeInstanceImpl(ShPtr<Project> project, const clang::ClassTemplateSpecializationDecl* descr) noexcept:
     project_ptr_(project), project_(project.get()), ctr_descr_(descr)
   {
-    config_ = hermes::HermesCtr::make_new();
-    project_config_ = hermes::HermesCtr::make_new();
+    config_ = hermes::HermesCtrView::make_new();
+    project_config_ = hermes::HermesCtrView::make_new();
   }
 
   U8String config_string(const U8String& sdn_path) const override {
-    return get_value(config_->root(), sdn_path).as_varchar();
+    return get_value(config_.root(), sdn_path).as_varchar();
   }
 
   ShPtr<FileGenerator> initializer() override
@@ -105,7 +105,7 @@ public:
     }
   }
 
-  PoolSharedPtr<hermes::HermesCtr> config() const override {
+  hermes::HermesCtr config() const override {
     return config_;
   }
 
@@ -284,7 +284,7 @@ public:
   }
 
   ObjectMap ld_config() const {
-    return config_->root().as_typed_value().constructor().as_object_map();
+    return config_.root().as_typed_value().constructor().as_object_map();
   }
 
   U8String name() const override {
@@ -295,7 +295,7 @@ public:
   {
     auto anns = get_annotations(ctr_descr_);
     if (anns.size()) {
-      config_ = hermes::HermesCtr::parse_document(anns[anns.size() - 1]);
+      config_ = hermes::HermesCtrView::parse_document(anns[anns.size() - 1]);
 
       auto name = ld_config().get("name");
       if (name.is_not_empty()) {
@@ -323,7 +323,7 @@ public:
       MEMORIA_MAKE_GENERIC_ERROR("Configuration must be specified for TypeInstance {}", type_().getAsString()).do_throw();
     }
 
-    auto cfg = config_->root();
+    auto cfg = config_.root();
     if (find_value(cfg, "$/config")) {
       config_sdn_path_ = cfg.as_varchar();
     }
@@ -331,7 +331,7 @@ public:
       config_sdn_path_ = "$/groups/default/containers";
     }
 
-    auto vv = project_->config()->root();
+    auto vv = project_->config().root();
     if (find_value(vv, config_sdn_path_)) {
       project_config_ = vv.clone();
     }
@@ -343,7 +343,7 @@ public:
       ).do_throw();
     }
 
-    target_folder_ = project_->components_output_folder() + "/" + get_value(project_config_->root(), "$/path")
+    target_folder_ = project_->components_output_folder() + "/" + get_value(project_config_.root(), "$/path")
         .as_varchar();
 
     std::error_code ec;
@@ -351,7 +351,7 @@ public:
       MEMORIA_MAKE_GENERIC_ERROR("Can't create directory '{}': {}", target_folder_, ec.message()).do_throw();
     }
 
-    auto pp = config_->root();
+    auto pp = config_.root();
     if (find_value(pp, "$/profiles"))
     {
       if (pp.is_varchar())

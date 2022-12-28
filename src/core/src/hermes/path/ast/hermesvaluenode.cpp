@@ -56,7 +56,7 @@ bool HermesValueNode::operator==(const HermesValueNode &other) const
     return true;
 }
 
-Object HermesArrayNode::to_hermes_array(HermesCtr& doc) const
+Object HermesArrayNode::to_hermes_array(HermesCtrView& doc) const
 {
     auto array = doc.make_object_array();
 

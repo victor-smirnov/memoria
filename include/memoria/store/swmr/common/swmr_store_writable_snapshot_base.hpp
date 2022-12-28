@@ -162,7 +162,7 @@ protected:
     CDescrPtr head_snapshot_descriptor_{};
     CDescrPtr consistency_point_snapshot_descriptor_{};
 
-    PoolSharedPtr<hermes::HermesCtr> metadata_doc_;
+    hermes::HermesCtr metadata_doc_;
 
     enum class State {
         ACTIVE, PREPARED, COMMITTED, ROLLED_BACK
@@ -617,10 +617,10 @@ public:
 
         uint64_t pos = (allocation.position() << SUPERBLOCK_ALLOCATION_LEVEL) * BASIC_BLOCK_SIZE;
 
-        auto meta = hermes::HermesCtr::make_new();
-        auto map = meta->make_object_map();
+        auto meta = hermes::HermesCtrView::make_new();
+        auto map = meta.make_object_map();
         map = map.put_t<Varchar>("branch_name", snapshot_descriptor_->branch());
-        meta->set_root(map);
+        meta.set_root(map);
 
         auto superblock = new_superblock(pos);
         if (parent_sb) {

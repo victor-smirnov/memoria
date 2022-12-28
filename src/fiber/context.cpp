@@ -53,7 +53,7 @@ public:
 };
 
 static ::boost::intrusive_ptr< context > make_dispatcher_context() {
-    default_stack salloc; // use default satck-size
+    default_stack salloc(256*1024); // use default satck-size
     auto sctx = salloc.allocate();
     // reserve space for control structure
     void * storage = reinterpret_cast< void * >(

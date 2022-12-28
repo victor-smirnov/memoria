@@ -40,7 +40,7 @@
 namespace memoria {
 
 namespace hermes {
-class HermesCtr;
+class HermesCtrView;
 }
 
 
@@ -188,6 +188,7 @@ public:
 
     ArenaAllocator(const ArenaAllocator&) = delete;
 
+    virtual ~ArenaAllocator() noexcept = default;
 
 
     bool is_chunked() const {
@@ -474,5 +475,69 @@ public:
         arena_.reset_state();
     }
 };
+
+
+class PoolableArena: public ArenaAllocator, public pool::enable_shared_from_this<PoolableArena> {
+    using Base = ArenaAllocator;
+
+    LWMemHolder mem_holder_;
+
+public:
+    PoolableArena(AllocationType alc_type, size_t chunk_size, void* data, size_t data_size) noexcept :
+        Base(alc_type, chunk_size, data, data_size)
+    {}
+
+
+    PoolableArena(size_t chunk_size = 4096) noexcept :
+        Base(chunk_size)
+    {}
+
+    PoolableArena(AllocationType alc_type, size_t chunk_size = 4096) noexcept :
+        Base(alc_type, chunk_size)
+    {}
+
+    PoolableArena(AllocationType alc_type, size_t chunk_size, const void* data, size_t segment_size):
+        Base(alc_type, chunk_size, data, segment_size)
+    {}
+
+    LWMemHolder& mem_holder() {
+        return mem_holder_;
+    }
+
+    const LWMemHolder& mem_holder() const {
+        return mem_holder_;
+    }
+
+    void configure_refholder(SharedPtrHolder* ref_holder) {
+        mem_holder_.set_owner(ref_holder);
+        mem_holder_.mem_data() = this;
+    }
+
+    void object_pool_init_state() {}
+
+    // Will be invoked from destructors, so it's noexcept
+    void reset_state() noexcept
+    {
+        allocation_type_ = AllocationType::MULTI_CHUNK;
+        if (chunks_.size())
+        {
+            if (chunks_[0].capacity <= chunk_size_)
+            {
+                // FIXME: may reallocate and throw!
+                // Use ArenaBuffer instead of vector here
+                chunks_.erase(chunks_.begin() + 1, chunks_.end());
+                auto& head = this->head();
+
+                std::memset(head.memory.get(), 0, head.size);
+                head.size = 0;
+            }
+            else {
+                chunks_.clear();
+            }
+        }
+    }
+
+};
+
 
 }}

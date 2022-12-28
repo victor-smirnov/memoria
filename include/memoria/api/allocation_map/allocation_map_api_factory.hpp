@@ -41,9 +41,7 @@ template <>
 struct DataTypeTraits<AllocationMap> {
 
     using Parameters = TL<>;
-
     static constexpr bool HasTypeConstructors = false;
-    static constexpr bool isSdnDeserializable = false;
 };
 
 }

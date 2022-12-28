@@ -19,19 +19,19 @@
 
 namespace memoria::hermes {
 
-class HermesCtrImpl final: public HermesCtr, public pool::enable_shared_from_this<HermesCtrImpl> {
+class HermesCtrImpl final: public HermesCtrView, public pool::enable_shared_from_this<HermesCtrImpl> {
     arena::ArenaAllocator arena_;
 
     LWMemHolder view_mem_holder_;
 
     friend class HermesCtrBuilder;
-    friend class HermesCtr;
+    friend class HermesCtrView;
 
 public:
 
     HermesCtrImpl()
     {
-        HermesCtr::arena_ = &arena_;
+        HermesCtrView::arena_ = &arena_;
         mem_holder_ = &view_mem_holder_;
 
         header_ = arena_.allocate_object_untagged<DocumentHeader>();
@@ -40,7 +40,7 @@ public:
     HermesCtrImpl(size_t chunk_size, arena::AllocationType alc_type = arena::AllocationType::MULTI_CHUNK):
         arena_(alc_type, chunk_size)
     {
-        HermesCtr::arena_ = &arena_;
+        HermesCtrView::arena_ = &arena_;
         mem_holder_ = &view_mem_holder_;
 
         if (alc_type == arena::AllocationType::MULTI_CHUNK) {
@@ -51,7 +51,7 @@ public:
     HermesCtrImpl(arena::AllocationType alc_type, size_t chunk_size, const void* data, size_t size):
         arena_(alc_type, chunk_size, data, size)
     {
-        HermesCtr::arena_ = &arena_;
+        HermesCtrView::arena_ = &arena_;
         mem_holder_ = &view_mem_holder_;
 
         header_ = ptr_cast<DocumentHeader>(arena_.head().memory.get());
@@ -62,7 +62,6 @@ public:
 protected:
 
     void configure_refholder(SharedPtrHolder* ref_holder) {
-        view_mem_holder_.set_ctr(this);
         view_mem_holder_.set_owner(ref_holder);
     }
 };

@@ -47,7 +47,6 @@ struct DataTypeTraits<Sequence<AlphabetSize>> {
     using Parameters = TL<>;
 
     static constexpr bool HasTypeConstructors = false;
-    static constexpr bool isSdnDeserializable = false;
 };
 
 }

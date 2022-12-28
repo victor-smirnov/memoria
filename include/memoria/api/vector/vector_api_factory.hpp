@@ -54,7 +54,6 @@ struct DataTypeTraits<Vector<T>>: DataTypeTraitsBase<Vector<T>> {
     using Parameters = TL<T>;
 
     static constexpr bool HasTypeConstructors = false;
-    static constexpr bool isSdnDeserializable = false;
 };
 
 }

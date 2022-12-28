@@ -24,8 +24,7 @@ namespace hermes {
 
 inline void MapView<Varchar, Object>::assert_mutable()
 {
-    auto ctr = mem_holder_->ctr();
-    if (MMA_UNLIKELY(!ctr->is_mutable())) {
+    if (MMA_UNLIKELY(!mem_holder_->is_mem_mutable())) {
         MEMORIA_MAKE_GENERIC_ERROR("MapView<String, Object> is immutable").do_throw();
     }
 }
@@ -33,8 +32,7 @@ inline void MapView<Varchar, Object>::assert_mutable()
 template <typename KeyDT>
 inline void MapView<KeyDT, Object>::assert_mutable()
 {
-    auto ctr = mem_holder_->ctr();
-    if (MMA_UNLIKELY(!ctr->is_mutable())) {
+    if (MMA_UNLIKELY(!mem_holder_->is_mem_mutable())) {
         MEMORIA_MAKE_GENERIC_ERROR("MapView<String, Object> is immutable").do_throw();
     }
 }
@@ -46,11 +44,11 @@ inline ObjectMap MapView<Varchar, Object>::put_dataobject(U8StringView key, DTTV
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
-    auto key_ptr = ctr->new_dataobject<Varchar>(key);
-    auto value_ptr = ctr->new_embeddable_dataobject<DT>(value);
+    auto ctr = HermesCtr(mem_holder_);
+    auto key_ptr = ctr.new_dataobject<Varchar>(key);
+    auto value_ptr = ctr.new_embeddable_dataobject<DT>(value);
 
-    auto arena = ctr->arena();
+    auto arena = ctr.arena();
     MapStorageT* new_map;
 
     ShortTypeCode mytag = arena::read_type_tag(map_);
@@ -78,9 +76,9 @@ inline Map<KeyDT, Object> MapView<KeyDT, Object>::put_dataobject(KeyView key, DT
     assert_not_null();
     assert_mutable();
 
-    HermesCtr* ctr = mem_holder_->ctr();
-    auto value_ptr = ctr->new_embeddable_dataobject<DT>(value);
-    auto arena = ctr->arena();
+    HermesCtr ctr = HermesCtr(mem_holder_);
+    auto value_ptr = ctr.new_embeddable_dataobject<DT>(value);
+    auto arena = ctr.arena();
 
     void* new_map;
     ShortTypeCode mytag = arena::read_type_tag(map_);
@@ -105,9 +103,9 @@ inline ObjectMap MapView<Varchar, Object>::remove(U8StringView key)
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
+    auto ctr = HermesCtr(mem_holder_);
     ShortTypeCode mytag = arena::read_type_tag(map_);
-    MapStorageT* new_map = map_->remove(*(ctr->arena()), mytag, key);
+    MapStorageT* new_map = map_->remove(*(ctr.arena()), mytag, key);
 
     return ObjectMap(mem_holder_, new_map);
 }
@@ -118,9 +116,9 @@ inline Map<KeyDT, Object> MapView<KeyDT, Object>::remove(KeyView key)
     assert_not_null();
     assert_mutable();
 
-    auto ctr = mem_holder_->ctr();
+    auto ctr = HermesCtr(mem_holder_);
     ShortTypeCode mytag = arena::read_type_tag(map_);
-    auto* new_map = map_->remove(*(ctr->arena()), mytag, key);
+    auto* new_map = map_->remove(*(ctr.arena()), mytag, key);
     return Map<KeyDT, Object>(mem_holder_, new_map);
 }
 
@@ -222,13 +220,13 @@ inline ObjectMap MapView<Varchar, Object>::put_object(U8StringView name, const O
     assert_mutable();
 
     void* new_map;
-    auto ctr = mem_holder_->ctr();
-    auto vv = ctr->do_import_value(value);
+    auto ctr = HermesCtr(mem_holder_);
+    auto vv = ctr.do_import_value(value);
     if (!vv.is_null())
     {
         ShortTypeCode mytag = arena::read_type_tag(map_);
-        auto arena = ctr->arena();
-        auto key = ctr->new_dataobject<Varchar>(name);
+        auto arena = ctr.arena();
+        auto key = ctr.new_dataobject<Varchar>(name);
         new_map = map_->put(*arena, mytag,
                             reinterpret_cast<arena::ArenaDataTypeContainer<Varchar>*>(key.addr()),
                             vv.storage_.addr);
@@ -245,14 +243,13 @@ inline Map<KeyDT, Object> MapView<KeyDT, Object>::put_object(KeyView key, const 
     assert_not_null();
     assert_mutable();
 
-    auto ctr = this->get_mem_holder()->ctr();
+    auto ctr = HermesCtr(this->get_mem_holder());
     void* new_map;
-    auto vv = ctr->do_import_value(value);
+    auto vv = ctr.do_import_value(value);
     if (!vv.is_null())
     {
-        auto ctr = mem_holder_->ctr();
         ShortTypeCode mytag = arena::read_type_tag(map_);
-        auto arena = ctr->arena();
+        auto arena = ctr.arena();
         new_map = map_->put(*arena, mytag, key, vv.storage_.addr);
     }
     else {
@@ -292,9 +289,14 @@ PoolSharedPtr<GenericMapEntry> TypedGenericMap<KeyDT, Object>::iterator() const
 }
 
 template <typename KeyDT>
-PoolSharedPtr<HermesCtr> MapView<KeyDT, Object>::ctr() const {
+HermesCtr MapView<KeyDT, Object>::ctr() const {
     assert_not_null();
-    return mem_holder_->ctr()->self();
+    return HermesCtr(this->get_mem_holder());
+}
+
+template <typename KeyDT>
+HermesCtr TypedGenericMap<KeyDT, Object>::ctr() const {
+    return map_.ctr();
 }
 
 }}

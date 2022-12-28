@@ -59,13 +59,11 @@ struct WrappingImportHelper;
 template <size_t Size>
 class SizedHermesCtrImpl;
 
-
-
 template <typename T>
 struct ArrayMaker;
 
-class HermesCtr: public HoldingView<HermesCtr> {
-    using Base = HoldingView<HermesCtr>;
+class HermesCtrView: public HoldingView<HermesCtrView> {
+    using Base = HoldingView<HermesCtrView>;
 
 protected:
 
@@ -129,22 +127,53 @@ protected:
 public:
     using CharIterator = typename U8StringView::const_iterator;
 
-    HermesCtr(): segment_size_(), arena_(), header_() {}
+    HermesCtrView(): segment_size_(), arena_(), header_() {}
 
 
-    HermesCtr(void* segment, size_t segment_size, LWMemHolder* ref_holder) noexcept:
-        Base(ref_holder),
+    HermesCtrView(LWMemHolder* mem_holder, void* segment, size_t segment_size) noexcept:
+        Base(mem_holder),
         segment_size_(segment_size),
+        arena_(),
         header_(reinterpret_cast<DocumentHeader*>(segment))
     {}
 
-    HermesCtr(Span<uint8_t> span, LWMemHolder* ref_holder) noexcept:
-        Base(ref_holder),
+    HermesCtrView(LWMemHolder* mem_holder, Span<uint8_t> span) noexcept:
+        Base(mem_holder),
         segment_size_(span.size()),
+        arena_(),
         header_(reinterpret_cast<DocumentHeader*>(span.data()))
     {}
 
-    virtual ~HermesCtr() noexcept = default;
+
+    HermesCtrView(LWMemHolder* mem_holder, arena::ArenaAllocator* arena) noexcept:
+        Base(mem_holder),
+        segment_size_(0),
+        arena_(arena),
+        header_()
+    {}
+
+    HermesCtrView(LWMemHolder* mem_holder) noexcept:
+        Base(mem_holder)
+    {
+        if (mem_holder->mem_data().index() == 0) {
+            segment_size_ = 0;
+            arena_ = boost::variant2::get<0>(mem_holder->mem_data());
+            header_ = reinterpret_cast<DocumentHeader*>(arena_->tail().memory.get());
+        }
+        else if (mem_holder->mem_data().index() == 1) {
+            auto span = boost::variant2::get<1>(mem_holder->mem_data());
+            segment_size_ = span.size();
+            header_ = reinterpret_cast<DocumentHeader*>(span.data());
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                "Invalid mem_data: {}",
+                mem_holder->mem_data().index()
+            ).do_throw();
+        }
+    }
+
+    virtual ~HermesCtrView() noexcept = default;
 
 
     bool is_mutable() const noexcept {
@@ -158,7 +187,7 @@ public:
     Object root() const noexcept
     {
         if (MMA_LIKELY(header_->root.is_not_null())) {
-            return Object(ObjectView(mem_holder_, header_->root.get()));
+            return Object(mem_holder_, header_->root.get());
         }
         else {
             return Object{};
@@ -221,7 +250,7 @@ public:
         assert_not_null();
         assert_mutable();
 
-        Object vv = parse_document(str.begin(), str.end())->root();
+        Object vv = parse_document(str.begin(), str.end()).root();
         auto vv1 = this->do_import_value(vv);
         header_->root = vv1.storage_.addr;
 
@@ -234,7 +263,7 @@ public:
         header_->root = nullptr;
     }
 
-    void set_root(Object value);
+    void set_root(const Object& value);
 
     template <typename DT>
     Object new_dataobject(DTTViewType<DT> view);
@@ -244,40 +273,39 @@ public:
 
     Datatype new_datatype(U8StringView name);
 
-    pool::SharedPtr<HermesCtr> self() const;
+    //pool::SharedPtr<HermesCtrView> self() const;
 
-    pool::SharedPtr<HermesCtr> compactify(bool make_immutable = true) const;
+    HermesCtr compactify(bool make_immutable = true) const;
 
-    pool::SharedPtr<HermesCtr> clone(bool as_mutable = false) const;
+    HermesCtr clone(bool as_mutable = false) const;
 
-    bool operator==(const HermesCtr& other) const noexcept {
+    bool operator==(const HermesCtrView& other) const noexcept {
         MEMORIA_MAKE_GENERIC_ERROR("Equals is not implemented for Hermes").do_throw();
     }
 
     Parameter new_parameter(U8StringView name);
 
+    static HermesCtr make_pooled(ObjectPools& pool = thread_local_pools());
+    static HermesCtr make_new(size_t initial_capacity = 4096);
 
-    static pool::SharedPtr<HermesCtr> make_pooled(ObjectPools& pool = thread_local_pools());
-    static pool::SharedPtr<HermesCtr> make_new(size_t initial_capacity = 4096);
+    static HermesCtr from_span(Span<const uint8_t> data);
 
-    static pool::SharedPtr<HermesCtr> from_span(Span<const uint8_t> data);
-
-    static PoolSharedPtr<HermesCtr> parse_document(U8StringView view) {
+    static HermesCtr parse_document(U8StringView view) {
         return parse_document(view.begin(), view.end());
     }
 
-    static PoolSharedPtr<HermesCtr> parse_datatype(U8StringView view) {
+    static HermesCtr parse_datatype(U8StringView view) {
         //println("Parse Datatype: {}", view);
         return parse_datatype(view.begin(), view.end());
     }
 
-    static PoolSharedPtr<HermesCtr> parse_document(
+    static HermesCtr parse_document(
             CharIterator start,
             CharIterator end,
             const ParserConfiguration& cfg = ParserConfiguration{}
     );
 
-    static PoolSharedPtr<HermesCtr> parse_datatype(
+    static HermesCtr parse_datatype(
             CharIterator start,
             CharIterator end,
             const ParserConfiguration& cfg = ParserConfiguration{}
@@ -289,7 +317,7 @@ public:
     static Object wrap_dataobject(DTTViewType<DT> view);
 
 
-    TypedValue new_typed_value(Datatype datatype, Object constructor);
+    TypedValue new_typed_value(Datatype datatype, const Object& constructor);
 
     Object parse_raw_value(
             CharIterator start,
@@ -300,7 +328,7 @@ public:
     template <typename DT>
     Object new_from_string(U8StringView str);
 
-    static PoolSharedPtr<HermesCtr> parse_hermes_path(U8StringView text);
+    static HermesCtr parse_hermes_path(U8StringView text);
 
     // FIXME: nees make(Object) variant but unsure about
     // what it should do with its arguments. Creating a copy
@@ -375,7 +403,7 @@ public:
                 ss_size = arena_->head().size;
             }
             else {
-                MEMORIA_MAKE_GENERIC_ERROR("HermesCtr is multi-chunked!").do_throw();
+                MEMORIA_MAKE_GENERIC_ERROR("HermesCtrView is multi-chunked!").do_throw();
             }
         }
         else {
@@ -397,16 +425,16 @@ protected:
     static Object wrap_primitive(DTTViewType<DT> view);
 
     template <typename DT>
-    static Object wrap_primitive(DTTViewType<DT> view, HermesCtr* ctr);
+    static Object wrap_primitive(DTTViewType<DT> view, HermesCtrView* ctr);
 
-    HermesCtr* mutable_self() const {
-        return const_cast<HermesCtr*>(this);
+    HermesCtrView* mutable_self() const {
+        return const_cast<HermesCtrView*>(this);
     }
 
     void deep_copy_from(const DocumentHeader* header, DeepCopyDeduplicator& dedup);
 
-    Object do_import_value(Object value);
-    Object do_import_embeddable(Object value);
+    Object do_import_value(const Object& value);
+    Object do_import_embeddable(const Object& value);
 
     template <typename ViewT>
     Object import_object(const Own<ViewT, OwningKind::WRAPPING>& object);
@@ -425,14 +453,14 @@ protected:
 
     static PoolSharedPtr<StaticHermesCtrImpl> get_ctr_instance(size_t size);
 
-    static PoolSharedPtr<HermesCtr> common_instance();
+    static HermesCtr common_instance();
 
 private:
 
     void assert_not_null() const
     {
         if (MMA_UNLIKELY(header_ == nullptr)) {
-            MEMORIA_MAKE_GENERIC_ERROR("HermesCtr is null").do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("HermesCtrView is null").do_throw();
         }
     }
 
@@ -448,15 +476,12 @@ class HermesDocumentStorage;
 template <>
 struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
 {
-    using ViewType      = hermes::HermesCtr;
+    using ViewType      = hermes::HermesCtrView;
     using AtomType      = uint8_t;
-
-    using View2Type = pool::SharedPtr<hermes::HermesCtr>;
+    using View2Type     = pool::SharedPtr<hermes::HermesCtrView>;
 
     static constexpr bool isDataType          = true;
     static constexpr bool HasTypeConstructors = false;
-
-    static constexpr bool isSdnDeserializable = true;
 
     using DataSpan = Span<AtomType>;
     using SpanList = TL<DataSpan>;
@@ -476,25 +501,24 @@ struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
         return std::make_tuple(view->span());
     }
 
-
     static TypeDimensionsTuple describe_type(ViewType view) {
         return std::make_tuple();
     }
 
     static ViewType make_view(const DataDimensionsTuple& data, LWMemHolder* holder)
     {
-        return ViewType(std::get<0>(data), holder);
+        return ViewType(holder, std::get<0>(data));
     }
 
     static ViewType make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data, LWMemHolder* holder)
     {
-        return ViewType(std::get<0>(data), holder);
+        return ViewType(holder, std::get<0>(data));
     }
 };
 
 
-inline PoolSharedPtr<hermes::HermesCtr> operator "" _hdoc(const char* s, std::size_t n) {
-    return hermes::HermesCtr::parse_document(s, s + n);
+inline hermes::HermesCtr operator "" _hdoc(const char* s, std::size_t n) {
+    return hermes::HermesCtrView::parse_document(s, s + n);
 }
 
 }

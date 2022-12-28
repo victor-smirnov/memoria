@@ -80,7 +80,7 @@ public:
 
     Object finish() const
     {
-        return current_ctr()->make_t<DT>(value_);
+        return current_ctr().make_t<DT>(value_);
     }
 };
 
@@ -97,7 +97,7 @@ public:
     using iterator = EmptyType;
 
     ArrayValue() {
-        array_ = current_ctr()->make_object_array();
+        array_ = current_ctr().make_object_array();
     }
 
     iterator end() {return iterator{};}
@@ -174,7 +174,7 @@ public:
     using iterator = EmptyType;
 
     MapValue() {
-        value_ = current_ctr()->make_object_map();
+        value_ = current_ctr().make_object_map();
     }
 
     iterator end() const {return iterator{};}
@@ -293,15 +293,15 @@ struct ValueVisitor: boost::static_visitor<> {
     Object value;
 
     void operator()(long long v) {
-        value = HermesCtr::wrap_dataobject<BigInt>(v).as_object();
+        value = HermesCtrView::wrap_dataobject<BigInt>(v).as_object();
     }
 
     void operator()(double v) {
-        value = HermesCtr::wrap_dataobject<Double>(v).as_object();
+        value = HermesCtrView::wrap_dataobject<Double>(v).as_object();
     }
 
     void operator()(bool v) {
-        value = HermesCtr::wrap_dataobject<Boolean>(v).as_object();
+        value = HermesCtrView::wrap_dataobject<Boolean>(v).as_object();
     }
 
     void operator()(ObjectMap&) {}
@@ -369,7 +369,7 @@ struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<Datatype
         else {
             return HermesCtrBuilder::current().new_typed_value(
                     type.get(),
-                    HermesCtr::wrap_dataobject<Varchar>(str).as_object()
+                    HermesCtrView::wrap_dataobject<Varchar>(str).as_object()
             ).as_object();
         }
 
@@ -404,7 +404,7 @@ public:
             class_txt += ">, 3>";
 
             array_ = get_type_reflection(get_cxx_type_hash(class_txt)).hermes_make_container(
-                HermesCtrBuilder::current().doc().get()
+                &HermesCtrBuilder::current().doc()
             )->as_array();
         }
         else {
@@ -414,7 +414,7 @@ public:
             class_txt += ", memoria::Own<memoria::hermes::ObjectView, 3>>, 3>";
 
             map_ = get_type_reflection(get_cxx_type_hash(class_txt)).hermes_make_container(
-                HermesCtrBuilder::current().doc().get()
+                &HermesCtrBuilder::current().doc()
             )->as_map();
         }
     }
@@ -704,7 +704,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
                          "0b" >> bin_uint64_parser|
                          &lit('0') >> oct_uint64_parser |
                          dec_uint64_parser
-                        ) >> (lit("ull") | "_u64");
+                        ) >> (lit("ull") | lit("ul") | "_u64");
 
         uint32_parser = ("0x" >> hex_uint32_parser |
                          "0b" >> bin_uint32_parser|

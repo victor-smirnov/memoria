@@ -37,7 +37,7 @@ protected:
     mutable MapStorageT* map_;
     using Base::mem_holder_;
 
-    friend class HermesCtr;
+    friend class HermesCtrView;
     friend class ObjectView;
 
     template <typename, typename>
@@ -127,7 +127,7 @@ public:
         return Iterator(Accessor(self(), map_->end()));
     }
 
-    PoolSharedPtr<HermesCtr> ctr() const;
+    HermesCtr ctr() const;
 
     Object as_object() const {
         return Object(mem_holder_, map_);
@@ -411,9 +411,7 @@ public:
         return make_wrapper(std::move(new_map));
     }
 
-    virtual PoolSharedPtr<HermesCtr> ctr() const {
-        return map_.ctr();
-    }
+    virtual HermesCtr ctr() const;
 
     virtual bool is_array() const {
         return false;

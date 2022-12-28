@@ -143,7 +143,7 @@ protected:
 
     ReferenceCounterDelegate<Profile>* refcounter_delegate_;
 
-    PoolSharedPtr<hermes::HermesCtr> metadata_;
+    hermes::HermesCtr metadata_;
 
     bool writable_{false};
 
@@ -238,7 +238,7 @@ public:
         instance_pool_->remove(ctr_id);
     }
 
-    virtual PoolSharedPtr<hermes::HermesCtr> metadata() {
+    virtual hermes::HermesCtr metadata() {
         return metadata_;
     }
 
@@ -798,7 +798,7 @@ public:
         U8String signature = make_datatype_signature(CtrName{}).name();
 
         auto doc = TypeSignature::parse(signature.to_std_string());
-        auto decl = doc->root().as_datatype();
+        auto decl = doc.root().as_datatype();
 
         auto ctr_ref = internal_create_by_name(decl, ctr_id);
 
