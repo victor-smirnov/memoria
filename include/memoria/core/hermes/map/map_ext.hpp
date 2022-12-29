@@ -39,7 +39,7 @@ inline void MapView<KeyDT, Object>::assert_mutable()
 
 
 template <typename DT>
-inline ObjectMap MapView<Varchar, Object>::put_dataobject(U8StringView key, DTTViewType<DT> value)
+inline ObjectMap MapView<Varchar, Object>::put_dataobject(U8StringView key, const DTTViewType<DT>& value)
 {
     assert_not_null();
     assert_mutable();
@@ -55,12 +55,12 @@ inline ObjectMap MapView<Varchar, Object>::put_dataobject(U8StringView key, DTTV
     if (value_ptr.get_vs_tag() == VS_TAG_ADDRESS) {
         new_map = map_->put(*arena, mytag,
                             reinterpret_cast<arena::ArenaDataTypeContainer<Varchar>*>(key_ptr.addr()),
-                            value_ptr.storage_.addr);
+                            value_ptr.storage_.addr, mem_holder_);
     }
     else if (value_ptr.get_vs_tag() == VS_TAG_SMALL_VALUE) {
         new_map = map_->put(*arena, mytag,
                             reinterpret_cast<arena::ArenaDataTypeContainer<Varchar>*>(key_ptr.addr()),
-                            value_ptr.storage_.small_value.to_eptr());
+                            value_ptr.storage_.small_value.to_eptr(), mem_holder_);
     }
     else {
         MEMORIA_MAKE_GENERIC_ERROR("Invalid value type").do_throw();
@@ -71,7 +71,7 @@ inline ObjectMap MapView<Varchar, Object>::put_dataobject(U8StringView key, DTTV
 
 template <typename KeyDT>
 template <typename DT>
-inline Map<KeyDT, Object> MapView<KeyDT, Object>::put_dataobject(KeyView key, DTTViewType<DT> value)
+inline Map<KeyDT, Object> MapView<KeyDT, Object>::put_dataobject(KeyView key, const DTTViewType<DT>& value)
 {
     assert_not_null();
     assert_mutable();
@@ -84,10 +84,10 @@ inline Map<KeyDT, Object> MapView<KeyDT, Object>::put_dataobject(KeyView key, DT
     ShortTypeCode mytag = arena::read_type_tag(map_);
 
     if (value_ptr.get_vs_tag() == VS_TAG_ADDRESS) {
-        new_map = map_->put(*arena, mytag, key, value_ptr.storage_.addr);
+        new_map = map_->put(*arena, mytag, key, value_ptr.storage_.addr, mem_holder_);
     }
     else if (value_ptr.get_vs_tag() == VS_TAG_SMALL_VALUE) {
-        new_map = map_->put(*arena, mytag, key, value_ptr.storage_.small_value.to_eptr());
+        new_map = map_->put(*arena, mytag, key, value_ptr.storage_.small_value.to_eptr(), mem_holder_);
     }
     else {
         MEMORIA_MAKE_GENERIC_ERROR("Invalid value type").do_throw();
@@ -105,7 +105,7 @@ inline ObjectMap MapView<Varchar, Object>::remove(U8StringView key)
 
     auto ctr = HermesCtr(mem_holder_);
     ShortTypeCode mytag = arena::read_type_tag(map_);
-    MapStorageT* new_map = map_->remove(*(ctr.arena()), mytag, key);
+    MapStorageT* new_map = map_->remove(*(ctr.arena()), mytag, key, mem_holder_);
 
     return ObjectMap(mem_holder_, new_map);
 }
@@ -118,7 +118,7 @@ inline Map<KeyDT, Object> MapView<KeyDT, Object>::remove(KeyView key)
 
     auto ctr = HermesCtr(mem_holder_);
     ShortTypeCode mytag = arena::read_type_tag(map_);
-    auto* new_map = map_->remove(*(ctr.arena()), mytag, key);
+    auto* new_map = map_->remove(*(ctr.arena()), mytag, key, mem_holder_);
     return Map<KeyDT, Object>(mem_holder_, new_map);
 }
 
@@ -229,7 +229,7 @@ inline ObjectMap MapView<Varchar, Object>::put_object(U8StringView name, const O
         auto key = ctr.new_dataobject<Varchar>(name);
         new_map = map_->put(*arena, mytag,
                             reinterpret_cast<arena::ArenaDataTypeContainer<Varchar>*>(key.addr()),
-                            vv.storage_.addr);
+                            vv.storage_.addr, mem_holder_);
     }
     else {
         return remove(name);
@@ -250,7 +250,7 @@ inline Map<KeyDT, Object> MapView<KeyDT, Object>::put_object(KeyView key, const 
     {
         ShortTypeCode mytag = arena::read_type_tag(map_);
         auto arena = ctr.arena();
-        new_map = map_->put(*arena, mytag, key, vv.storage_.addr);
+        new_map = map_->put(*arena, mytag, key, vv.storage_.addr, mem_holder_);
     }
     else {
         return remove(key);

@@ -153,7 +153,7 @@ public:
     Object get(KeyView key) const
     {
         assert_not_null();
-        const auto* res = map_->get(key);
+        const auto* res = map_->get(key, mem_holder_);
         if (res)
         {
             if (MMA_LIKELY(res->is_pointer()))
@@ -323,7 +323,7 @@ private:
     Map<KeyDT, Object> put_object(KeyView name, const Object& value);
 
     template <typename DT>
-    Map<KeyDT, Object> put_dataobject(KeyView key, DTTViewType<DT> value);
+    Map<KeyDT, Object> put_dataobject(KeyView key, const DTTViewType<DT>& value);
 
 
     void do_stringify(std::ostream& out, DumpFormatState& state) const;

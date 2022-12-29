@@ -60,6 +60,12 @@ public:
         hash_ = hash_ ^ value;
     }
 
+    void append(Span<const uint8_t> value) {
+        for (auto vv: value) {
+            append(vv);
+        }
+    }
+
     uint64_t hash() const {
         return hash_;
     }

@@ -94,7 +94,7 @@ template <typename T>
 using DTSpan = typename DataTypeTraits<T>::OSpanT;
 
 template <typename T>
-using DTSpanStorage = typename DataTypeTraits<T>::OSpanStorageT;
+using DTSpanStorage = typename DataTypeTraits<T>::SpanStorageT;
 
 
 
@@ -208,7 +208,7 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 
     using DatumSelector = FixedSizeDataTypeTag;
 
-    // FIXME Muse use true storage type here
+    // FIXME Must use true storage type here
     using SpanStorageT = ViewType;
     using OSpanT = OSpan<View2Type, SpanStorageT>;
 

@@ -800,13 +800,13 @@ public:
     }
 
     hermes::Object import_value(
-            LWMemHolder* ptr,
+            LWMemHolder* mem_holder,
             hermes::ValueStorageTag vs_tag,
             hermes::ValueStorage& storage
     ) const override
     {
-        const auto& view = storage.get_view<DT>(vs_tag);
-        auto ctr = hermes::HermesCtr(ptr);
+        auto view = storage.get_view<DT>(vs_tag, mem_holder);
+        auto ctr = hermes::HermesCtr(mem_holder);
         return ctr.new_dataobject<DT>(view);
     }
 
@@ -824,10 +824,10 @@ public:
     }
 
     virtual bool hermes_is_simple_layout(
-            LWMemHolder* ref_holder,
+            LWMemHolder* mem_holder,
             void* ptr
     ) const override {
-        return T(ref_holder, ptr).is_simple_layout_dt<DT>();
+        return T(mem_holder, ptr).is_simple_layout_dt<DT>();
     }
 
     virtual void* deep_copy_to(

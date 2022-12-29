@@ -467,21 +467,46 @@ private:
     void assert_mutable();
 };
 
+
+class EmbeddedHermesCtrView: public pool::enable_shared_from_this<EmbeddedHermesCtrView> {
+    HermesCtr owner_;
+    LWMemHolder mem_holder_;
+public:
+
+    EmbeddedHermesCtrView(){}
+
+    void setup(HermesCtr&& owner, Span<uint8_t> segment)
+    {
+        owner_ = std::move(owner);
+        mem_holder_.mem_data() = segment;
+    }
+
+    LWMemHolder* mem_holder() {
+        return &mem_holder_;
+    }
+
+protected:
+    void configure_refholder(SharedPtrHolder* ref_holder) {
+        mem_holder_.set_owner(ref_holder);
+    }
+};
+
+
 }
-
-struct Hermes{};
-
-class HermesDocumentStorage;
 
 template <>
 struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
 {
     using ViewType      = hermes::HermesCtrView;
     using AtomType      = uint8_t;
-    using View2Type     = pool::SharedPtr<hermes::HermesCtrView>;
+    using View2Type     = Own<ViewType, OwningKind::HOLDING>;
 
     static constexpr bool isDataType          = true;
     static constexpr bool HasTypeConstructors = false;
+
+    using DatumStorage = EmptyType;
+    using SpanStorageT = Span<uint8_t>;
+    using OSpanT       = OSpan<View2Type, SpanStorageT>;
 
     using DataSpan = Span<AtomType>;
     using SpanList = TL<DataSpan>;
@@ -501,7 +526,11 @@ struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
         return std::make_tuple(view->span());
     }
 
-    static TypeDimensionsTuple describe_type(ViewType view) {
+    static TypeDimensionsTuple describe_type(const ViewType& view) {
+        return std::make_tuple();
+    }
+
+    static TypeDimensionsTuple describe_type(Hermes view) {
         return std::make_tuple();
     }
 
@@ -513,6 +542,66 @@ struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
     static ViewType make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data, LWMemHolder* holder)
     {
         return ViewType(holder, std::get<0>(data));
+    }
+
+    static SpanStorageT make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data)
+    {
+        return std::get<0>(data);
+    }
+};
+
+
+template <typename Buffer>
+class SparseObjectBuilder<Hermes, Buffer> {
+    Buffer* buffer_;
+
+    using AtomType = DTTAtomType<Hermes>;
+    using ViewType = DTTViewType<Hermes>;
+
+    ArenaBuffer<AtomType> arena_;
+
+public:
+    SparseObjectBuilder(Buffer* buffer):
+        buffer_(buffer)
+    {}
+
+    SparseObjectBuilder(SparseObjectBuilder&&) = delete;
+    SparseObjectBuilder(const SparseObjectBuilder&) = delete;
+
+    void append(ViewType view)
+    {
+        auto span = view.span();
+        arena_.append_values(span.data(), span.size());
+    }
+
+    ViewType view() const noexcept {
+        return ViewType(data(), arena_.size());
+    }
+
+    GuardedView<ViewType> guarded_view() const {
+        return GuardedView<ViewType>(view(), arena_.guard());
+    }
+
+    void reset() {
+        arena_.reset();
+    }
+
+    void build()
+    {
+        buffer_->append(view());
+        arena_.clear();
+    }
+
+    AtomType* data() {
+        return arena_.data();
+    }
+
+    const AtomType* data() const {
+        return arena_.data();
+    }
+
+    bool is_empty() const {
+        return arena_.size() == 0;
     }
 };
 

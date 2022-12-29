@@ -160,7 +160,7 @@ public:
         return (header_ >> CAPACITY_START) & SIZE_BITS_MASK;
     }
 
-    const Value* get(uint8_t key) const noexcept
+    const Value* get(uint8_t key, LWMemHolder*) const noexcept
     {
         if (MMA_LIKELY(key < MAX_KEYS))
         {
@@ -178,7 +178,7 @@ public:
         return nullptr;
     }
 
-    Map* put(ArenaAllocator& arena, ShortTypeCode tag, uint8_t key, const Value& value)
+    Map* put(ArenaAllocator& arena, ShortTypeCode tag, uint8_t key, const Value& value, LWMemHolder*)
     {
         if (key < MAX_BITS)
         {
@@ -237,7 +237,7 @@ public:
         return this;
     }
 
-    Map* remove(ArenaAllocator& arena, ShortTypeCode tag, uint8_t key) noexcept
+    Map* remove(ArenaAllocator& arena, ShortTypeCode tag, uint8_t key, LWMemHolder*) noexcept
     {
         if (key < MAX_KEYS)
         {

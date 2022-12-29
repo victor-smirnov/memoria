@@ -64,6 +64,14 @@ struct ToPlainStringConverter<UTinyInt> {
     }
 };
 
+template <>
+struct ToPlainStringConverter<Hermes> {
+    static U8String to_string(const DTTViewType<Hermes>& view) {
+        return view.to_string();
+    }
+};
+
+
 
 template <>
 struct FromPlainStringConverter<Varchar> {
@@ -180,6 +188,13 @@ struct FromPlainStringConverter<Boolean> {
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Varchar value of {} is not convertuble to Boolean", str).do_throw();
         }
+    }
+};
+
+template <>
+struct FromPlainStringConverter<Hermes> {
+    static hermes::Object from_string(U8StringView str) {
+        return hermes::HermesCtrView::parse_document(str).root();
     }
 };
 

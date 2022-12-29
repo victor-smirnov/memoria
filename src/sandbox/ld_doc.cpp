@@ -28,6 +28,7 @@
 
 #include <memoria/core/numbers/number_view.hpp>
 
+#include <memoria/core/datatypes/buffer/buffer.hpp>
 
 #include <boost/pool/pool_alloc.hpp>
 
@@ -43,17 +44,27 @@ int main(int, char**)
 
     auto d0 = HermesCtr::parse_document(R"(
 {
-  "locations": [
-    {"name": "Seattle", "state": "WA"},
-    {"name": "New York", "state": "NY"},
-    {"name": "Bellevue", "state": "WA"},
-    {"name": "Olympia", "state": "WA"}
-  ]
+    aaaaa: "bbbbb"
 }
     )");
 
-    auto val = d0.root().search("locations[?state == 'WA'].name | sort(@) | {WashingtonCities: join(', ', @)}");
-    println("{}", val.to_pretty_string());
+
+    auto doc2 = R"({
+        foo: 'bar',
+        l1234: 12345.6789d
+    })"_hdoc;
+
+    (void)d0.root().as_object_map().put_t<Hermes>("embedded_obj", doc2.compactify());
+
+    println("{}", d0.to_pretty_string());
+
+//    DataTypeBuffer<Hermes> buffer;
+
+//    buffer.append(d0.compactify());
+
+//    println("{}", buffer.span()[0].to_pretty_string());
+
+
 
 ////    auto tpl = parse_template(R"(
 ////        Prefix

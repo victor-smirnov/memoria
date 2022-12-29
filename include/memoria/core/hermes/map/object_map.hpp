@@ -151,7 +151,7 @@ public:
     Object get(U8StringView key) const
     {
         assert_not_null();
-        const ValuePtrT* res = map_->get(key);
+        const ValuePtrT* res = map_->get(key, get_mem_holder());
 
         if (res)
         {
@@ -200,20 +200,20 @@ public:
     {
         assert_not_null();
         map_->for_each([&](const auto& key, const auto& value){
-            U8StringView kk = key->view();
+            auto kk = key->view(mem_holder_);
 
             if (value.is_pointer())
             {
                 if (value.is_not_null()) {
-                    fn(kk, Object(ObjectView(mem_holder_, value.get())));
+                    fn(kk, Object(mem_holder_, value.get()));
                 }
                 else {
-                    fn(kk, Object(ObjectView()));
+                    fn(kk, Object());
                 }
             }
             else {
                 TaggedValue tv(value);
-                fn(kk, Object(ObjectView(mem_holder_, tv)));
+                fn(kk, Object(mem_holder_, tv));
             }
         });
     }
@@ -315,7 +315,7 @@ private:
     MMA_NODISCARD ObjectMap put_object(U8StringView name, const Object& value);
 
     template <typename DT>
-    MMA_NODISCARD ObjectMap put_dataobject(U8StringView key, DTTViewType<DT> value);
+    MMA_NODISCARD ObjectMap put_dataobject(U8StringView key, const DTTViewType<DT>& value);
 
     void do_stringify(std::ostream& out, DumpFormatState& state) const;
 

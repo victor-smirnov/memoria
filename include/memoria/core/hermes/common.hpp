@@ -465,7 +465,7 @@ public:
     template <typename DT>
     static constexpr bool dt_fits_in()
     {
-        using T = DTTViewType<DT>;
+        using T = DTSpanStorage<DT>;
         return DataTypeTraits<DT>::isFixedSize && fits_in<T>();
     }
 
@@ -505,9 +505,9 @@ public:
     static PoolSharedPtr<TaggedGenericView> allocate_space(size_t size);
 
     template <typename DT>
-    static PoolSharedPtr<TaggedGenericView> allocate(DTTViewType<DT> view)
+    static PoolSharedPtr<TaggedGenericView> allocate(const DTSpanStorage<DT>& view)
     {
-        using ViewT = DTTViewType<DT>;
+        using ViewT = DTSpanStorage<DT>;
         static_assert(alignof(ViewT) <= VIEW_ALIGN_OF && sizeof(view) < MAX_VIEW_SIZE);
 
         auto ptr = allocate_space(sizeof(view));
@@ -526,14 +526,17 @@ union ValueStorage {
     TaggedGenericView* view_ptr;
 
     template <typename DT>
-    DTTViewType<DT> get_view(ValueStorageTag tag)
+    DTView<DT> get_view(ValueStorageTag tag, LWMemHolder* mem_holder)
     {
+        using StorageT = DTSpanStorage<DT>;
+
+        StorageT view;
         if (tag == ValueStorageTag::VS_TAG_SMALL_VALUE) {
-            return small_value.get_unchecked<DTTViewType<DT>>();
+            view = small_value.get_unchecked<StorageT>();
         }
         else if (tag == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
             if (view_ptr) {
-                return view_ptr->get<DTTViewType<DT>>();
+                view = view_ptr->get<StorageT>();
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Provided ValueStorage GenericView is null").do_throw();
@@ -541,8 +544,10 @@ union ValueStorage {
         }
         else {
             auto dtc = reinterpret_cast<arena::ArenaDataTypeContainer<DT>*>(addr);
-            return dtc->view();
+            return dtc->view(mem_holder);
         }
+
+        return DTView<DT>(mem_holder, view);
     }
 };
 

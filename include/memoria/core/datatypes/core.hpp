@@ -47,6 +47,7 @@ struct Date      {};
 struct Time      {};
 struct TimeWithTZ {};
 struct Boolean   {};
+struct Hermes    {};
 
 // TODO: May be Hermes Datatypes, but
 // should not have unprefixed aliases
@@ -195,7 +196,7 @@ template <>
 struct TypeHash<CoreApiProfileDT>: UInt64Value<75796829474235345ull> {};
 
 using AllHermesDatatypes = TL<
-    Varchar, BigInt, UBigInt, Boolean, Double, Real, TinyInt, UTinyInt, SmallInt, USmallInt, Integer, UInteger
+    Varchar, BigInt, UBigInt, Boolean, Double, Real, TinyInt, UTinyInt, SmallInt, USmallInt, Integer, UInteger, Hermes
 >;
 
 using IntegerNumericDatatypes = TL<

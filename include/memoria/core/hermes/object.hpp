@@ -566,8 +566,8 @@ public:
     HermesCtr clone(bool make_immutable = true) const;
 
     template <typename DT>
-    DTTViewType<DT> view_unchecked() const {
-        return storage_.get_view<DT>(get_vs_tag());
+    DTView<DT> view_unchecked() const {
+        return storage_.get_view<DT>(get_vs_tag(), get_mem_holder());
     }
 
     bool operator!=(const ObjectView& other) const {
@@ -640,10 +640,10 @@ public:
     {
         if (this->get_vs_tag() == ValueStorageTag::VS_TAG_ADDRESS) {
             auto dt_ctr = reinterpret_cast<arena::ArenaDataTypeContainer<DT>*>(storage_.addr);
-            dt_ctr->stringify(out, state);
+            dt_ctr->stringify(out, state, get_mem_holder());
         }
         else {
-            const auto& view = storage_.get_view<DT>(get_vs_tag());
+            auto view = storage_.get_view<DT>(get_vs_tag(), get_mem_holder());
             stringify_view<DT>(out, state, view);
         }
     }

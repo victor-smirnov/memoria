@@ -22,6 +22,8 @@
 
 #include <memoria/core/memory/object_pool.hpp>
 
+
+
 namespace memoria {
 
 template <typename DataTypeT, typename... TypeParts, typename... DataParts >
@@ -46,6 +48,7 @@ class DataTypeBuffer<
     using DataDimensionsTuple = typename DataTypeTraits<DataTypeT>::DataDimensionsTuple;
 
     using ViewType = DTTViewType<DataTypeT>;
+    using StorageType = DTSpanStorage<DataTypeT>;
 
     using SizeT = size_t;
 
@@ -59,7 +62,7 @@ class DataTypeBuffer<
 
     using DataSizesTuple = boost::mp11::mp_transform<DimensionTypeToSizeT, DataDimensionsTuple>;
 
-    ArenaBuffer<ViewType, SizeT> views_;
+    ArenaBuffer<StorageType, SizeT> views_;
     DataBuffersTuple data_buffers_;
 
     using BuilderT = SparseObjectBuilder<DataTypeT, DataTypeBuffer>;
@@ -337,7 +340,9 @@ private:
         {
             DataDimensionsTuple tuple;
             for_eatch_data_buffer([&](auto idx){
-                std::get<idx>(data_buffers_).next(std::get<idx>(tuple));
+                std::get<idx>(data_buffers_).next(
+                    std::get<idx>(tuple)
+                );
             });
 
             views_.append_value(SOAdapter::make_view(type_data_, tuple));

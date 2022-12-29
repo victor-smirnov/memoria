@@ -75,11 +75,11 @@ public:
         return ViewT(ptr_cast<char>(buffer + len_len), size);
     }
 
-    bool equals_to(U8StringView str) const noexcept {
-        return view() == str;
+    bool equals_to(U8StringView str, LWMemHolder* mem_holder) const noexcept {
+        return view(mem_holder) == str;
     }
 
-    bool equals_to(const ArenaDataTypeContainer* str) const noexcept {
+    bool equals_to(const ArenaDataTypeContainer* str, LWMemHolder* mem_holder) const noexcept {
         return view() == str->view();
     }
 
@@ -90,9 +90,9 @@ public:
     }
 
     void stringify(std::ostream& out,
-                   hermes::DumpFormatState& state)
+                   hermes::DumpFormatState& state, LWMemHolder* mem_holder)
     {
-        stringify_view(out, state, view());
+        stringify_view(out, state, view(mem_holder));
     }
 
     static void stringify_view(
@@ -116,7 +116,7 @@ public:
     ArenaDataTypeContainer* deep_copy_to(
             ArenaAllocator& dst,
             ShortTypeCode tag,
-            LWMemHolder*,
+            LWMemHolder* mem_holder,
             DeepCopyDeduplicator& dedup
     ) const
     {
@@ -125,7 +125,7 @@ public:
             return str;
         }
         else {
-            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, view());
+            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, view(mem_holder));
             dedup.map(dst, this, new_str);
             return new_str;
         }

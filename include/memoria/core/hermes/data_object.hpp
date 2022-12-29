@@ -29,7 +29,6 @@ namespace memoria {
 
 
 namespace hermes {
-
 }
 
 namespace arena {
@@ -170,20 +169,20 @@ public:
         value_(view)
     {}
 
-    const ViewT& view() const noexcept {
-        return value_;
-    }
+//    const ViewT& view() const noexcept {
+//        return value_;
+//    }
 
     OViewT view(LWMemHolder* ptr_holder) const noexcept {
         return OViewT(value_);
     }
 
-    bool equals_to(const ViewT& view) const noexcept {
-        return view() == view;
+    bool equals_to(const ViewT& view, LWMemHolder* mem_holder) const noexcept {
+        return view(mem_holder) == view;
     }
 
-    bool equals_to(const ArenaDataTypeContainer* other) const noexcept {
-        return view() == other->view();
+    bool equals_to(const ArenaDataTypeContainer* other, LWMemHolder* mem_holder) const noexcept {
+        return view(mem_holder) == other->view(mem_holder);
     }
 
     void hash_to(FNVHasher<8>& hasher) const noexcept {
@@ -193,7 +192,7 @@ public:
     }
 
     void stringify(std::ostream& out,
-                   hermes::DumpFormatState& state)
+                   hermes::DumpFormatState& state, LWMemHolder* mem_holder)
     {
         stringify_view(out, state, value_);
     }
@@ -217,7 +216,7 @@ public:
             return str;
         }
         else {
-            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, view());
+            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, value_);
             dedup.map(dst, this, new_str);
             return new_str;
         }
@@ -236,20 +235,20 @@ public:
         value_(view)
     {}
 
-    ViewT view() const noexcept {
-        return value_;
-    }
+//    ViewT view() const noexcept {
+//        return value_;
+//    }
 
-    OViewT view(LWMemHolder* ptr_holder) const noexcept {
+    OViewT view(LWMemHolder* mem_holder) const noexcept {
         return OViewT(value_);
     }
 
-    bool equals_to(ViewT view) const noexcept {
-        return this->view() == view;
+    bool equals_to(ViewT view, LWMemHolder*) const noexcept {
+        return value_ == view;
     }
 
-    bool equals_to(const ArenaDataTypeContainer* other) const noexcept {
-        return this->view() == other->view();
+    bool equals_to(const ArenaDataTypeContainer* other, LWMemHolder*) const noexcept {
+        return value_ == other->value_;
     }
 
     void hash_to(FNVHasher<8>& hasher) const noexcept {
@@ -257,7 +256,7 @@ public:
     }
 
     void stringify(std::ostream& out,
-                   hermes::DumpFormatState& state)
+                   hermes::DumpFormatState& state, LWMemHolder*)
     {
         stringify_view(out, state, value_);
     }
@@ -282,12 +281,13 @@ public:
             return str;
         }
         else {
-            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, view());
+            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, value_);
             dedup.map(dst, this, new_str);
             return new_str;
         }
     }
 };
+
 
 
 }}

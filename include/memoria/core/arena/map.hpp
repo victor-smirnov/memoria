@@ -109,12 +109,12 @@ class Map {
         }
 
         template <typename KeyArg>
-        uint32_t find(const KeyArg& key) const noexcept
+        uint32_t find(const KeyArg& key, LWMemHolder* mem_holder) const noexcept
         {
             KeyEqual eq;
             const KeyHolder* keys = this->keys();
             for (uint32_t c = 0; c < size; c++) {
-                if (eq(key, keys[c])) {
+                if (eq(key, keys[c], mem_holder)) {
                     return c;
                 }
             }
@@ -270,7 +270,7 @@ public:
     }
 
     template <typename KeyArg>
-    const ValueHolder* get(const KeyArg& key) const
+    const ValueHolder* get(const KeyArg& key, LWMemHolder* mem_holder) const
     {
         if (size_)
         {
@@ -279,7 +279,7 @@ public:
             if (!is_bucket_null(bucket_idx))
             {
                 const Bucket* bucket = get_bucket(bucket_idx);
-                uint32_t idx = bucket->find(key);
+                uint32_t idx = bucket->find(key, mem_holder);
                 if (idx < bucket->size) {
                     return &bucket->values()[idx];
                 }
@@ -289,19 +289,19 @@ public:
         return nullptr;
     }
 
-    Map* put(ArenaAllocator& arena, ShortTypeCode tag, const Key& key, const Value& value)
+    Map* put(ArenaAllocator& arena, ShortTypeCode tag, const Key& key, const Value& value, LWMemHolder* mem_holder)
     {
         if (MMA_UNLIKELY(buckets_.is_null())) {
-            return put_empty(arena, key, value);
+            return put_empty(arena, key, value, mem_holder);
         }
         else if (size_ > (1ull << buckets_capacity_))
         {
-            enlarge_array(arena);
-            return put(arena, tag, key, value);
+            enlarge_array(arena, mem_holder);
+            return put(arena, tag, key, value, mem_holder);
         }
         else {
             bool replace{true};
-            insert_into_array(arena, buckets_.get(), buckets_capacity_, key, value, replace);
+            insert_into_array(arena, buckets_.get(), buckets_capacity_, key, value, replace, mem_holder);
             // This value is changing in the insert_into_array()
             if (!replace) {
                 size_++;
@@ -312,7 +312,7 @@ public:
     }
 
     template <typename KeyArg>
-    Map* remove(ArenaAllocator& arena, ShortTypeCode tag, const KeyArg& key)
+    Map* remove(ArenaAllocator& arena, ShortTypeCode tag, const KeyArg& key, LWMemHolder* mem_holder)
     {
         if (MMA_LIKELY(size_))
         {
@@ -326,7 +326,7 @@ public:
                 {
                     Bucket* bucket = get_bucket(bucket_idx);
 
-                    uint32_t idx = bucket->find(key);
+                    uint32_t idx = bucket->find(key, mem_holder);
 
                     if (idx < bucket->size)
                     {
@@ -349,8 +349,8 @@ public:
                 }
             }
             else {
-                shrink_array(arena);
-                this->remove(arena, tag, key);
+                shrink_array(arena, mem_holder);
+                this->remove(arena, tag, key, mem_holder);
             }
         }
 
@@ -371,7 +371,7 @@ public:
     
 private:
 
-    Map* put_empty(ArenaAllocator& arena, const Key& key, const Value& value)
+    Map* put_empty(ArenaAllocator& arena, const Key& key, const Value& value, LWMemHolder* mem_holder)
     {
         BucketRelPtr* buckets = arena.template allocate_untagged_array<BucketRelPtr>(2);
 
@@ -379,25 +379,33 @@ private:
         this->buckets_capacity_ = 1;
 
         bool replace{};
-        this->insert_into_array(arena, buckets, 1, key, value, replace);
+        this->insert_into_array(arena, buckets, 1, key, value, replace, mem_holder);
 
         this->size_ = 1;
 
         return this;
     }
 
-    void enlarge_array(ArenaAllocator& arena)
+    void enlarge_array(ArenaAllocator& arena, LWMemHolder* mem_holder)
     {
         size_t buckets_capacity = this->buckets_capacity_;
         BucketRelPtr* new_buckets = arena.template allocate_untagged_array<BucketRelPtr>((1ull << buckets_capacity) * 2);
 
-        this->copy_buckets(arena, buckets_.get(), buckets_capacity, new_buckets, buckets_capacity + 1);
+        this->copy_buckets(
+                    arena,
+                    buckets_.get(),
+                    buckets_capacity,
+                    new_buckets,
+                    buckets_capacity + 1,
+                    mem_holder
+        );
+
         this->buckets_ = new_buckets;
         this->buckets_capacity_ = buckets_capacity + 1;
     }
 
 
-    void shrink_array(ArenaAllocator& arena)
+    void shrink_array(ArenaAllocator& arena, LWMemHolder* mem_holder)
     {
         if (this->size_)
         {
@@ -406,7 +414,13 @@ private:
             BucketRelPtr* new_buckets = arena.template allocate_untagged_array<BucketRelPtr>(
                         (1ull << (buckets_capacity - 1)));
 
-            copy_buckets(arena, buckets_.get(), buckets_capacity, new_buckets, buckets_capacity - 1);
+            copy_buckets(
+                        arena,
+                        buckets_.get(),
+                        buckets_capacity,
+                        new_buckets,
+                        buckets_capacity - 1,
+                        mem_holder);
 
             this->buckets_ = new_buckets;
             this->buckets_capacity_ = buckets_capacity - 1;
@@ -422,7 +436,8 @@ private:
             BucketRelPtr* src_buckets,
             size_t src_buckets_capacity,
             BucketRelPtr* dst_buckets,
-            size_t dst_buckets_capacity
+            size_t dst_buckets_capacity,
+            LWMemHolder* mem_holder
     )
     {
         for (size_t c = 0; c < 1ull << src_buckets_capacity; c++)
@@ -440,7 +455,9 @@ private:
                                 arena, dst_buckets, dst_buckets_capacity,
                                 key, //detail::ElementHolderHelper<KeyHolder>::resolve(key),
                                 value, //detail::ElementHolderHelper<ValueHolder>::resolve(value),
-                                replace);
+                                replace,
+                                mem_holder
+                    );
                 }
             }
         }
@@ -497,7 +514,8 @@ private:
             size_t capacity,
             const Key& key,
             const Value& value,
-            bool& replace
+            bool& replace,
+            LWMemHolder* mem_holder
     )
     {
         Hash<Key> hh;
@@ -511,7 +529,7 @@ private:
             uint32_t idx;
             if (replace)
             {
-                idx = bucket->find(key);
+                idx = bucket->find(key, mem_holder);
                 if (idx < bucket->size) {
                     //detail::ElementHolderHelper<ValueHolder>::assign(bucket->values()[idx], value);
                     bucket->values()[idx] = value;

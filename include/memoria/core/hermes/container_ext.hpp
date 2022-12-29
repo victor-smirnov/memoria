@@ -531,7 +531,99 @@ Object HermesCtrView::import_object(const Own<ViewT, OK>& object)
     }
 }
 
+}
+
+namespace arena {
+
+template <>
+class alignas(8) ArenaDataTypeContainer<Hermes, EmptyType> {
+    using DT = Hermes;
+    using ViewT  = DTTViewType<DT>;
+    using OViewT = DTView<DT>;
+
+    uint64_t size_;
+public:
+    static constexpr bool UseObjectSize = true;
+
+    ArenaDataTypeContainer(const hermes::HermesCtrView& view)
+    {
+        auto doc_span = view.span();
+        this->size_ = doc_span.size();
+        std::memcpy(span().data(), doc_span.data(), size_);
+    }
+
+    static uint64_t object_size(const hermes::HermesCtrView& view)
+    {
+        auto doc_span = view.span();
+        return doc_span.length() + sizeof(ArenaDataTypeContainer);
+    }
+
+    Span<uint8_t> span() const {
+        return Span<uint8_t>(
+            reinterpret_cast<uint8_t*>(const_cast<ArenaDataTypeContainer*>(this))
+                    + sizeof(ArenaDataTypeContainer),
+            size_
+        );
+    }
+
+    hermes::HermesCtr view(LWMemHolder* ptr_holder) const;
+
+    bool equals_to(const ViewT& view, LWMemHolder* mem_holder) const noexcept {
+        return this->view(mem_holder) == view;
+    }
+
+    bool equals_to(const ArenaDataTypeContainer* other, LWMemHolder* mem_holder) const noexcept {
+        return this->view(mem_holder) == other->view(mem_holder);
+    }
+
+    void hash_to(FNVHasher<8>& hasher) const noexcept {
+        hasher.append(span());
+    }
+
+    void stringify(std::ostream& out,
+                   hermes::DumpFormatState& state, LWMemHolder* mem_holder)
+    {
+        stringify_view(out, state, view(mem_holder));
+    }
+
+
+    static void stringify_view(
+            std::ostream& out,
+            hermes::DumpFormatState& state,
+            const hermes::HermesCtrView& value
+    ){
+        out << "@" << TypeNameFactory<Hermes>::name();
+        auto& spec = state.cfg().spec();
+        out << spec.space() << "=" << spec.space();
+        value.stringify(out, state);
+    }
+
+    ArenaDataTypeContainer* deep_copy_to(
+            ArenaAllocator& dst,
+            ShortTypeCode tag,
+            LWMemHolder* mem_holder,
+            DeepCopyDeduplicator& dedup) const
+    {
+        ArenaDataTypeContainer* str = dedup.resolve(dst, this);
+        if (MMA_LIKELY((bool)str)) {
+            return str;
+        }
+        else {
+            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, view(mem_holder));
+            dedup.map(dst, this, new_str);
+            return new_str;
+        }
+    }
+};
+
+
+}
 
 
 
-}}
+
+namespace hermes {
+
+}
+
+}

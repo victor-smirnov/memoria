@@ -99,7 +99,7 @@ template <typename Type>
 class DefaultEqualToFn {
 public:
     template <typename Key>
-    bool operator()(const Key& key, const Type& stored) {
+    bool operator()(const Key& key, const Type& stored, LWMemHolder* mem_holder) {
         return key == stored;
     }
 };
@@ -110,13 +110,13 @@ template <typename Type>
 class DefaultEqualToFn<RelativePtr<Type>> {
 public:
     template <typename Key>
-    bool operator()(const Key& key, const RelativePtr<Type>& stored) {
-        return stored->equals_to(key);
+    bool operator()(const Key& key, const RelativePtr<Type>& stored, LWMemHolder* mem_holder) {
+        return stored->equals_to(key, mem_holder);
     }
 
     template <typename Key>
-    bool operator()(const RelativePtr<Key>& key, const RelativePtr<Type>& stored) {
-        return stored->equals_to(key.get());
+    bool operator()(const RelativePtr<Key>& key, const RelativePtr<Type>& stored, LWMemHolder* mem_holder) {
+        return stored->equals_to(key.get(), mem_holder);
     }
 };
 
@@ -126,7 +126,7 @@ template <>                                 \
 class DefaultEqualToFn<Type> {              \
 public:                                     \
     template <typename Key>                 \
-    bool operator()(const Key& key, const Type& stored) {\
+    bool operator()(const Key& key, const Type& stored, LWMemHolder* mem_holder) {\
         return key == stored;               \
     }                                       \
 }

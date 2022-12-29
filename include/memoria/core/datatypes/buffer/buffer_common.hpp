@@ -21,6 +21,8 @@
 #include <memoria/core/reflection/typehash.hpp>
 
 #include <memoria/core/datatypes/traits.hpp>
+#include <memoria/core/datatypes/dt_span.hpp>
+
 #include <memoria/core/tools/arena_buffer.hpp>
 
 #include <memoria/core/tools/vle_arena_buffer.hpp>
@@ -129,7 +131,7 @@ namespace detail {
         }
 
 
-        bool emplace_back_nockeck_tool(Span<const T>& span)
+        bool emplace_back_nockeck_tool(Span<T>& span)
         {
             bool resized = buffer_.append(span);
 
@@ -142,11 +144,12 @@ namespace detail {
             iterator_ = buffer_.begin();
         }
 
-        void next(Span<const T>& data)
+        void next(Span<T>& data)
         {
             data = *iterator_;
             ++iterator_;
         }
+
 
         void append_top(const Span<const T> data)
         {

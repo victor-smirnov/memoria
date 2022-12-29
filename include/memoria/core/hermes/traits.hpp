@@ -22,6 +22,7 @@
 namespace memoria {
 
 struct Varchar;
+struct Hermes;
 
 template <typename>
 class HermesTypeReflectionDatatypeImpl;
@@ -107,6 +108,10 @@ template <>
 struct HermesObject<Object>: BoolValue<true> {};
 
 }
+
+
+template <>
+struct TypeHash<Hermes>: HasU64Value<98> {};
 
 template <>
 struct TypeHash<hermes::Object>: HasU64Value<99> {};

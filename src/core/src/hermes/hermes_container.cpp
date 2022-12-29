@@ -320,5 +320,21 @@ Object HermesCtrView::import_small_object(const Object& object)
     }
 }
 
+}
 
-}}
+
+namespace arena {
+
+hermes::HermesCtr ArenaDataTypeContainer<Hermes, EmptyType>::view(LWMemHolder* ptr_holder) const
+{
+    hermes::HermesCtr owner(ptr_holder);
+
+    auto data = TL_get_reusable_shared_instance<hermes::EmbeddedHermesCtrView>();
+    data->setup(std::move(owner), this->span());
+
+    return hermes::HermesCtr(data->mem_holder());
+}
+
+}
+
+}
