@@ -23,6 +23,8 @@
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 
+#include <memoria/core/datatypes/buffer/buffer.hpp>
+
 namespace memoria {
 
 template <typename ExtData, typename PkdStruct>
@@ -106,15 +108,15 @@ public:
         return data_->sum(column);
     }
 
-    template <typename IOSubstream>
-    PkdUpdateStatus prepare_insert_io_substream(size_t at, const IOSubstream& substream, size_t start, size_t size, UpdateState&) {
+    template <typename DT>
+    PkdUpdateStatus prepare_insert_io_substream(size_t at, const DataTypeBuffer<DT>& substream, size_t start, size_t size, UpdateState&) {
         return PkdUpdateStatus::SUCCESS;
     }
 
 
     // FIXME: Adapt to multicolumn!
-    template <typename IOSubstream>
-    size_t commit_insert_io_substream(size_t at, const IOSubstream& substream, size_t start, size_t size, UpdateState&)
+    template <typename DT>
+    size_t commit_insert_io_substream(size_t at, const DataTypeBuffer<DT>& substream, size_t start, size_t size, UpdateState&)
     {
         insert_space(0, size);
         return size;

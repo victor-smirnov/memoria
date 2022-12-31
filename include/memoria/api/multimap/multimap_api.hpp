@@ -41,7 +41,7 @@ struct MultimapKeysChunk: ChunkIteratorBase<MultimapKeysChunk<Key, Value, Profil
     virtual DTView<Key> current_key() const = 0;
     virtual DTSpan<Key> keys() const = 0;
 
-    //virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
+    //virtual ChunkPtr read_to(HermesDTBuffer<Key>& buffer, CtrSizeT num) const = 0;
 
     virtual bool is_found(const KeyView& key) const = 0;
 
@@ -67,7 +67,7 @@ struct MultimapValuesChunk: ChunkIteratorBase<MultimapValuesChunk<Key, Value, Pr
 
     virtual DTSpan<Value> values() const = 0;
 
-    //virtual ChunkPtr read_to(DataTypeBuffer<Value>& buffer, CtrSizeT num) const = 0;
+    //virtual ChunkPtr read_to(HermesDTBuffer<Value>& buffer, CtrSizeT num) const = 0;
 
     virtual bool is_found(const ValueView& key) const = 0;
 

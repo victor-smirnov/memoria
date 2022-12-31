@@ -98,7 +98,7 @@ ObjectArray ArrayView<Object>::push_back(T&& view)
 
     auto ctr = HermesCtr(mem_holder_);
     auto vv  = ctr.make(std::forward<T>(view));
-    return append(vv);
+    return push_back(vv);
 }
 
 

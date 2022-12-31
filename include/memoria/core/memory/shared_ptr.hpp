@@ -134,6 +134,18 @@ public:
         references_()
     {}
 
+    LWMemHolder(HolderT* owner):
+        mem_data_(EmptyType{}),
+        owner_(owner),
+        references_()
+    {}
+
+    LWMemHolder(HolderT* owner, MemData mem_data):
+        mem_data_(std::move(mem_data)),
+        owner_(owner),
+        references_()
+    {}
+
     MemData& mem_data() {return mem_data_;}
     const MemData& mem_data() const {return mem_data_;}
 

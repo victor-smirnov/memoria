@@ -22,6 +22,8 @@
 
 #include <memoria/core/tools/bitmap.hpp>
 
+#include <memoria/api/common/ctr_batch_input.hpp>
+
 #include <type_traits>
 
 
@@ -29,8 +31,10 @@ namespace memoria {
 namespace pdtbuf_ {
 
 
-template <typename T, typename PkdStruct, size_t Dimension, size_t Block, size_t Blocks, size_t DimensionsStart>
-class PDTDimension<Span<const T>, PkdStruct, Dimension, Block, Blocks, DimensionsStart> {
+template <typename T0, typename PkdStruct, size_t Dimension, size_t Block, size_t Blocks, size_t DimensionsStart>
+class PDTDimension<Span<T0>, PkdStruct, Dimension, Block, Blocks, DimensionsStart> {
+    using T = std::remove_const_t<T0>;
+
     PkdStruct* pkd_buf_;
     size_t column_;
 
@@ -360,6 +364,25 @@ public:
 
         for (size_t c = 0; c < size; c++) {
             local_offsets[c + idx] = offsets[c] - buffer_offset_prefix + local_offset_prefix;
+        }
+    }
+
+    template <typename DT>
+    void copy_from_databuffer(size_t idx, size_t start, size_t size, size_t data_length, const HermesDTBuffer<DT>& buffer)
+    {
+        auto* local_offsets = this->offsets();
+        size_t local_offset_prefix  = local_offsets[idx];
+
+        for (size_t c = 0; c < size; c++) {
+            auto val = buffer.get(c + start);
+            auto descr = DataTypeTraits<DT>::describe_data(val);
+            auto span = std::get<0>(descr);
+            size_t data_length = span.length();
+
+            MemCpyBuffer(span.data(), this->data() + local_offset_prefix, data_length);
+
+            local_offset_prefix += data_length;
+            local_offsets[c + idx + 1] = local_offset_prefix;
         }
     }
 

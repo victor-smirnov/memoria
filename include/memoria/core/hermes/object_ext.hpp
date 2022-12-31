@@ -65,11 +65,11 @@ struct ObjectCaster<DT, ObjectCasters::DATAOBJECT> {
             return dt_ctr->view(mem_holder);
         }
         else if (vs_tag == VS_TAG_SMALL_VALUE) {
-            return DTView<DT>(mem_holder, storage.small_value.get_unchecked<DTTViewType<DT>>());
+            return storage.small_value.get_unchecked<DTView<DT>>();
         }
         else {
             if (storage.view_ptr) {
-                return DTView<DT>(mem_holder, storage.view_ptr->get<DTTViewType<DT>>());
+                return storage.view_ptr->get<DTView<DT>>();
             }
             else {
                 return DTView<DT>{};

@@ -39,33 +39,32 @@ public:
 
 template <typename Key, typename Value>
 class MapInputBuffer: public CtrBatchInputBase<TL<TL<
-        DataTypeBuffer<Key>,
-        DataTypeBuffer<Value>
+        HermesDTBuffer<Key>,
+        HermesDTBuffer<Value>
 >>>{
     using Base = CtrBatchInputBase<TL<TL<
-        DataTypeBuffer<Key>,
-        DataTypeBuffer<Value>
+        HermesDTBuffer<Key>,
+        HermesDTBuffer<Value>
     >>>;
 public:
     MapInputBuffer(): Base() {}
 
-    DataTypeBuffer<Key>& keys() {
+    HermesDTBuffer<Key>& keys() {
         return Base::template get<0, 1>();
     }
 
-    const DataTypeBuffer<Key>& keys() const {
+    const HermesDTBuffer<Key>& keys() const {
         return Base::template get<0, 1>();
     }
 
-    DataTypeBuffer<Value>& values() {
+    HermesDTBuffer<Value>& values() {
         return Base::template get<0, 2>();
     }
 
-    const DataTypeBuffer<Value>& values() const {
+    const HermesDTBuffer<Value>& values() const {
         return Base::template get<0, 2>();
     }
 };
-
 
 
 template <typename Key, typename Value, typename Profile>

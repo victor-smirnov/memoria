@@ -21,6 +21,8 @@
 
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 
+#include <memoria/api/common/ctr_batch_input.hpp>
+
 #include <memory>
 
 namespace memoria {
@@ -40,7 +42,7 @@ struct CollectionChunk: ChunkIteratorBase<CollectionChunk<Key, Profile>, Profile
     virtual DTSpan<Key> keys() const = 0;
 
 
-    virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
+    virtual ChunkPtr read_to(HermesDTBuffer<Key>& buffer, CtrSizeT num) const = 0;
 
 
     virtual bool is_found(const KeyView& key) const = 0;
@@ -80,7 +82,6 @@ struct ICtrApi<Collection<Key>, Profile>: public CtrReferenceable<Profile> {
 
     using ChunkSharedPtr = IterSharedPtr<CollectionChunk<Key, Profile>>;
 
-    using BufferT       = DataTypeBuffer<Key>;
     using DataTypeT     = Key;
     using CtrSizeT      = ApiProfileCtrSizeT<Profile>;
 

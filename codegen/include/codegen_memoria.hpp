@@ -154,7 +154,7 @@ class [[clang::annotate(R"(
 //            "memoria/api/vector/vector_api.hpp"
 //        ]
 //    }
-//)")]] TypeInstance<Vector<LinkedData>> {};
+//)")]] TypeInstance<Vector<Hermes>> {};
 
 
 template<>

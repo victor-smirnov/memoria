@@ -38,7 +38,7 @@ public:
 
 template <typename Key, typename Profile>
 struct ICtrApiTypes<Set<Key>, Profile> {
-    using CtrInputBuffer = DataTypeBuffer<Key>;
+    using CtrInputBuffer = HermesDTBuffer<Key>;
 };
 
 

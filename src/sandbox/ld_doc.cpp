@@ -30,8 +30,12 @@
 
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 
-#include <boost/pool/pool_alloc.hpp>
+#include <memoria/api/store/memory_store_api.hpp>
 
+#include <memoria/api/map/map_api.hpp>
+#include <memoria/api/vector/vector_api.hpp>
+
+#include <boost/pool/pool_alloc.hpp>
 #include <unordered_map>
 
 using namespace memoria;
@@ -40,109 +44,21 @@ using namespace memoria::hermes;
 
 int main(int, char**)
 {
-    InitTypeReflections();
+    InitMemoriaExplicit();
 
-    auto d0 = HermesCtr::parse_document(R"(
-{
-    aaaaa: "bbbbb"
-}
-    )");
+    auto store = create_memory_store();
+    auto snp = store->master()->branch();
 
+    auto ctr = create(snp, Vector<Varchar>{});
 
-    auto doc2 = R"({
-        foo: 'bar',
-        l1234: 12345.6789d
-    })"_hdoc;
+    ctr->append([](auto& buffer){
+        for (size_t c = 0; c < 100; c++) {
+            buffer.append("123456789");
+        }
+        return true;
+    });
 
-    (void)d0.root().as_object_map().put_t<Hermes>("embedded_obj", doc2.compactify());
-
-    println("{}", d0.to_pretty_string());
-
-//    DataTypeBuffer<Hermes> buffer;
-
-//    buffer.append(d0.compactify());
-
-//    println("{}", buffer.span()[0].to_pretty_string());
-
-
-
-////    auto tpl = parse_template(R"(
-////        Prefix
-////        {%+ for item in array1.array2 -%}
-////            {{ item }}
-////        {%- endfor +%}
-////        Suffix
-////    )");
-
-////    auto tpl = parse_template(R"(
-////        Prefix
-////        {% if array1.array2 %}
-////            {{ array1.array2[0] }}
-////        {% elif ^true %}
-////        {% else %}
-////        {% endif %}
-////        Suffix
-////    )");
-
-//    auto tpl = parse_template(R"(
-//        Prefix
-//        {%- if array1.array2 %}
-//            {{ array1.array2[0] }}
-//        {% elif ^true -%}
-//            |Some Text|
-//        {%- else %}
-//        {% endif -%}
-//        Suffix
-//)");
-
-//    println("{}", tpl.to_string(StringifyCfg::pretty().with_raw_strings(false)));
-
-//    auto data = HermesCtrView::parse_document(R"({
-//        array1: {
-//            array2: <memoria::Double> [1] //1, 2, 3.54321, 4, 5
-//        }
-//    })");
-
-//    render(tpl.root(), data.root(), std::cout);
-
-//    using DblView    = NumberView<double, ViewKind::BY_VALUE>;
-//    using DblViewPtr = Own<DblView>;
-
-//    DblViewPtr v1(0.123456);
-//    DblViewPtr v2(1.0);
-//    DblViewPtr v3;
-//    DblViewPtr v4;
-
-//    v3 = v2;
-
-//    v4 = 777;
-
-//    auto vsum = v1 + v2 + 8;
-
-//    println("{}", v1);
-//    println("{}", v2);
-//    println("{}", v3);
-//    println("{}", v4);
-//    println("{} :: {}", vsum, TypeNameFactory<decltype(vsum)>::name());
-
-
-//    std::vector<double> vals = {1,2,3,4,5};
-
-
-//    auto docx = HermesCtrView::make_new();
-//    std::vector<Object> objs = {
-//        docx.make(1),
-//        docx.make(2.3456),
-//        docx.make("hello world"),
-//        docx.make(true),
-//    };
-
-//    //auto val = doc->make<double>(12345);
-
-//    auto val = docx.make_array_t<BigInt>(vals);
-//    println("{}", val.as_object().to_pretty_string());
-
-//    Object obj = val;
+    ctr->first_entry()->dump(ChunkDumpMode::LEAF);
 
     return 0;
 }

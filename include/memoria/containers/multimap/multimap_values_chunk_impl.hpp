@@ -233,7 +233,7 @@ public:
         return prev(prefix);
     }
 
-    virtual ChunkPtr read_to(DataTypeBuffer<Value>& buffer, CtrSizeT num) const {
+    virtual ChunkPtr read_to(HermesDTBuffer<Value>& buffer, CtrSizeT num) const {
         return ChunkPtr{};
     }
 

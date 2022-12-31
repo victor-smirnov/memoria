@@ -20,6 +20,9 @@
 
 #include <memoria/core/types/algo/for_each.hpp>
 
+#include <memoria/core/hermes/hermes.hpp>
+#include <memoria/core/datatypes/dt_span.hpp>
+
 #include <tuple>
 
 namespace memoria {
@@ -211,5 +214,141 @@ decltype(auto) get_ctr_batch_input_substream(const CtrBatchInputBase<Streams>& i
 
 template <typename BufferT>
 using CtrBatchInputFn = std::function<bool (BufferT&)>;
+
+template <typename DT, typename Category = typename DataTypeTraits<DT>::DatumSelector>
+class HermesDTBuffer;
+
+template <typename DT>
+class HermesDTBuffer<DT, FixedSizeDataTypeTag> {
+    hermes::HermesCtr ctr_;
+    hermes::Array<DT> array_;
+
+    using DataLengths = std::tuple<size_t>;
+
+public:
+    HermesDTBuffer():
+        ctr_(hermes::HermesCtr::make_pooled())
+    {
+        array_ = ctr_.make_array<DT>();
+    }
+
+    auto get(size_t c) const {
+        return array_.get(c);
+    }
+
+    uint64_t size() const {
+        return array_.size();
+    }
+
+    void clear() {
+        ctr_ = hermes::HermesCtr::make_pooled();
+        array_ = ctr_.make_array<DT>();
+    }
+
+    void reset() {
+        clear();
+    }
+
+    void reindex() {}
+
+    DataLengths data_lengths(size_t start, size_t size) const {
+        return size * sizeof(DTSpanStorage<DT>);
+    }
+
+
+    void append(const DTTViewType<DT>& value) {
+        array_ = array_.push_back(value);
+    }
+
+    template <typename T>
+    void append(Span<const T> value) {
+        for (auto& vv: value) {
+            array_ = array_.push_back(vv);
+        }
+    }
+
+    template <typename T, typename S>
+    void append(OSpan<T, S> value) {
+        for (auto& vv: value) {
+            array_ = array_.push_back(vv.value_t());
+        }
+    }
+};
+
+
+template <typename DT>
+class HermesDTBuffer<DT, EmptyType> {
+    hermes::HermesCtr ctr_;
+    hermes::ObjectArray array_;
+
+    using DataLengths = std::tuple<size_t>;
+public:
+    HermesDTBuffer():
+        ctr_(hermes::HermesCtr::make_pooled())
+    {
+        array_ = ctr_.make_object_array();
+    }
+
+    auto get(size_t c) const {
+        return array_.get(c).convert_to<DT>().template cast_to<DT>();
+    }
+
+    uint64_t size() const {
+        return array_.size();
+    }
+
+    void clear() {
+        ctr_ = hermes::HermesCtr::make_pooled();
+        array_ = ctr_.make_object_array();
+    }
+
+    void reset() {
+        clear();
+    }
+
+    void reindex() {}
+
+    DataLengths data_lengths(size_t start, size_t size) const
+    {
+        size_t total{};
+        for (size_t c = start; c < start + size; c++) {
+            auto obj = array_.get(c);
+            auto view = obj.convert_to<DT>().template cast_to<DT>();
+            auto descr = DataTypeTraits<DT>::describe_data(view);
+            total += std::get<0>(descr).size();
+        }
+
+        return total;
+    }
+
+    void append(const DTTViewType<DT>& value) {
+        array_ = array_.push_back(value);
+    }
+
+    template <typename T>
+    void append(Span<const T> value) {
+        for (auto& vv: value) {
+            array_ = array_.push_back(vv);
+        }
+    }
+
+    template <typename T, typename S>
+    void append(OSpan<T, S> value) {
+        for (auto& vv: value) {
+            array_ = array_.push_back(vv);
+        }
+    }
+};
+
+template <typename DT>
+void clear_ctr_batch_input(HermesDTBuffer<DT>& input) {
+    input.clear();
+}
+
+
+template <typename DT>
+void reindex_ctr_batch_input(HermesDTBuffer<DT>& input) {
+    input.reindex();
+}
 
 }

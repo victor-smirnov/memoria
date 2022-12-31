@@ -167,7 +167,7 @@ public:
         return Base::ctr().ctr_prev_leaf(this);
     }
 
-    virtual EntryIterSharedPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const {
+    virtual EntryIterSharedPtr read_to(HermesDTBuffer<Key>& buffer, CtrSizeT num) const {
         return EntryIterSharedPtr{};
     }
 

@@ -31,7 +31,7 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
     using KeyView   = DTTViewType<Key>;
     using ApiTypes  = ICtrApiTypes<Set<Key>, Profile>;
 
-    using BufferT       = DataTypeBuffer<Key>;
+    using BufferT       = HermesDTBuffer<Key>;
     using DataTypeT     = Key;
     using CtrSizeT      = ApiProfileCtrSizeT<Profile>;
 

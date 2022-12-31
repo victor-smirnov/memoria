@@ -18,6 +18,8 @@
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/core/packed/datatype_buffer/packed_datatype_buffer_common_tools.hpp>
 
+#include <memoria/api/common/ctr_batch_input.hpp>
+
 namespace memoria {
 namespace pdtbuf_ {
 
@@ -150,6 +152,19 @@ public:
     void copy_from(size_t idx, const T* data)
     {
         *(this->data() + idx) = *data;
+    }
+
+
+    template <typename DT>
+    void copy_from_databuffer(size_t idx, size_t start, size_t size, size_t data_length, const HermesDTBuffer<DT>& buffer)
+    {
+        // data_src = buffer.template data<Dimension>(start);
+        //MemCpyBuffer(data_src, this->data() + idx, size);
+
+        for (size_t c = 0; c < size; c++) {
+            auto vv = buffer.get(c + start);
+            *(this->data() + idx + c) = vv.value_t();
+        }
     }
 
     // FIXME: adapt to multicolumn!

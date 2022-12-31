@@ -20,6 +20,8 @@
 
 #include <memoria/api/common/ctr_api_btss.hpp>
 
+#include <memoria/api/common/ctr_batch_input.hpp>
+
 namespace memoria {
 
 template <typename T>
@@ -38,7 +40,7 @@ public:
 
 template <typename Value, typename Profile>
 struct ICtrApiTypes<Vector<Value>, Profile> {
-    using CtrInputBuffer = DataTypeBuffer<Value>;
+    using CtrInputBuffer = HermesDTBuffer<Value>;
 };
 
 

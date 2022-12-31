@@ -818,7 +818,7 @@ public:
 
     virtual bool hermes_embed(arena::ERelativePtr& dst, const hermes::TaggedValue& src) const override
     {
-        using DV = DTTViewType<DT>;
+        using DV = DTView<DT>;
         constexpr bool eptr_fits = arena::ERelativePtr::dt_fits_in<DT>();
         return detail::TVEmbedHelper<DV, eptr_fits>::embed(TypeHashV<DT>, dst, src);
     }

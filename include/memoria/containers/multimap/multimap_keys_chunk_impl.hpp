@@ -164,7 +164,7 @@ public:
         return Base::ctr().ctr_prev_leaf(this);
     }
 
-    virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const {
+    virtual ChunkPtr read_to(HermesDTBuffer<Key>& buffer, CtrSizeT num) const {
         return ChunkPtr{};
     }
 

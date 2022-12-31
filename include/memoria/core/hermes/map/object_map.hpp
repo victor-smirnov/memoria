@@ -344,8 +344,11 @@ public:
     {}
 
     virtual Object key() const {
-        // FIXME mem_holder!
-        return Object(nullptr, (DTTViewType<Varchar>)iter_->first(), DirectViewTag<Varchar>{});
+        return Object(
+            iter_.accessor().map().mem_holder().holder(),
+            iter_->first(),
+            DirectViewTag<Varchar>{}
+        );
     }
 
     virtual Object value() const {

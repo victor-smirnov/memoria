@@ -26,6 +26,11 @@
 namespace memoria {
 
 template <size_t StreamIdx, size_t SubstreamIdx, typename DT>
+decltype(auto) get_ctr_batch_input_substream(const HermesDTBuffer<DT>& input) {
+    return input;
+}
+
+template <size_t StreamIdx, size_t SubstreamIdx, typename DT>
 decltype(auto) get_ctr_batch_input_substream(const DataTypeBuffer<DT>& input) {
     return input;
 }
@@ -74,6 +79,9 @@ auto ctr_batch_input_size_btss(const DataTypeBuffer<DT>& input) {
 }
 
 
-
+template <typename DT>
+auto ctr_batch_input_size_btss(const HermesDTBuffer<DT>& input) {
+    return input.size();
+}
 
 }

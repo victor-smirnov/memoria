@@ -36,6 +36,8 @@
 
 #include <memoria/core/memory/memory.hpp>
 
+#include <memoria/api/common/ctr_batch_input.hpp>
+
 #include <algorithm>
 
 namespace memoria {
@@ -682,9 +684,57 @@ public:
         });
     }
 
+    template <typename DT>
+    PkdUpdateStatus prepare_insert_io_substream(size_t at, const HermesDTBuffer<DT>& buffer, size_t start, size_t size, UpdateState& update_state)
+    {
+        static_assert(Columns == 1, "");
+        MEMORIA_ASSERT(at, <=, this->size());
 
-    template <typename IOSubstream>
-    PkdUpdateStatus prepare_insert_io_substream(size_t at, const IOSubstream& buffer, size_t start, size_t size, UpdateState& update_state)
+        size_t data_size{};
+
+        for (size_t column = 0; column < 1; column++)
+        {
+            DataLengths data_lengths = to_data_lengths(buffer.data_lengths(start, size));
+
+            for_each_dimension([&](auto dim_idx){
+                data_size += data_->template dimension<dim_idx>(column).compute_dimension_size_for_insert(
+                    size, data_lengths[dim_idx], data_->metadata()
+                );
+            });
+        }
+
+        size_t index_block_size = compute_index_block_size(size + this->size());
+        size_t required_block_size = PkdStruct::base_size(data_size + index_block_size);
+        size_t existing_block_size = data_->block_size();
+
+        return update_state.allocator_state()->inc_allocated(existing_block_size, required_block_size);
+    }
+
+    template <typename DT>
+    size_t commit_insert_io_substream(size_t at, const HermesDTBuffer<DT>& buffer, size_t start, size_t size, UpdateState&)
+    {
+        static_assert(Columns == 1, "");
+        MEMORIA_ASSERT(at, <=, this->size());
+
+        DataLengths lengths = to_data_lengths(buffer.data_lengths(start, size));
+
+        insertSpace(0, at, size, lengths);
+
+        for_each_dimension([&](auto dim_idx) {
+            data_->template dimension<dim_idx>(0).copy_from_databuffer(
+                    at, start, size, lengths[dim_idx], buffer
+            );
+        });
+
+        data_->metadata().add_size(size);
+
+        reindex();
+
+        return static_cast<size_t>(at + size);
+    }
+
+    template <typename DT>
+    PkdUpdateStatus prepare_insert_io_substream(size_t at, const DataTypeBuffer<DT>& buffer, size_t start, size_t size, UpdateState& update_state)
     {
         static_assert(Columns == 1, "");
         MEMORIA_ASSERT(at, <=, this->size());
@@ -711,8 +761,8 @@ public:
 
 
     // FIXME: Adapt to multicolumn!
-    template <typename IOSubstream>
-    size_t commit_insert_io_substream(size_t at, const IOSubstream& buffer, size_t start, size_t size, UpdateState&)
+    template <typename DT>
+    size_t commit_insert_io_substream(size_t at, const DataTypeBuffer<DT>& buffer, size_t start, size_t size, UpdateState&)
     {
         static_assert(Columns == 1, "");
         MEMORIA_ASSERT(at, <=, this->size());

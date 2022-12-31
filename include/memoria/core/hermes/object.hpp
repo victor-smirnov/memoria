@@ -73,8 +73,8 @@ public:
         set_tag(ValueStorageTag::VS_TAG_ADDRESS);
     }
 
-    template <typename ViewT, typename DT>
-    ObjectView(LWMemHolder* ptr_holder, ViewT view, DirectViewTag<DT>) noexcept :
+    template <typename DT>
+    ObjectView(LWMemHolder* ptr_holder, const DTView<DT>& view, DirectViewTag<DT>) noexcept :
         Base(ptr_holder)
     {
         if (TaggedValue::dt_fits_in<DT>())
@@ -90,8 +90,8 @@ public:
         }
     }
 
-    template <typename ViewT, typename DT>
-    ObjectView(MemHolderHandle&& holder, ViewT view, DirectViewTag<DT>) noexcept :
+    template <typename DT>
+    ObjectView(MemHolderHandle&& holder, const DTView<DT>& view, DirectViewTag<DT>) noexcept :
         ObjectView(holder.release(), view, DirectViewTag<DT> {})
     {}
 

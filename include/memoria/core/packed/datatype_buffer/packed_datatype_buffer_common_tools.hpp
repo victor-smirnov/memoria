@@ -20,6 +20,9 @@
 #include <memoria/core/types/list/append.hpp>
 #include <memoria/core/tools/result.hpp>
 
+#include <memoria/core/datatypes/core.hpp>
+
+
 #include <type_traits>
 
 namespace memoria {
@@ -132,7 +135,7 @@ public:
 };
 
 template <typename T, typename... Tail>
-class BufferSizeTypeSelector<TL<Span<const T>, Tail...>> {
+class BufferSizeTypeSelector<TL<Span<T>, Tail...>> {
 public:
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 };

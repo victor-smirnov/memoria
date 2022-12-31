@@ -62,6 +62,18 @@ class SizedHermesCtrImpl;
 template <typename T>
 struct ArrayMaker;
 
+class SpanStorageData {
+    mutable LWMemHolder mem_holder_;
+public:
+    SpanStorageData(const LWMemHolder& parent) noexcept:
+        mem_holder_(parent.owner())
+    {}
+
+    LWMemHolder* mem_holder() const {
+        return &mem_holder_;
+    }
+};
+
 class HermesCtrView: public HoldingView<HermesCtrView> {
     using Base = HoldingView<HermesCtrView>;
 
@@ -151,6 +163,30 @@ public:
         arena_(arena),
         header_()
     {}
+
+    HermesCtrView(LWMemHolder*, const SpanStorageData& data) noexcept:
+        Base(data.mem_holder()),
+        segment_size_(0),
+        arena_(),
+        header_()
+    {
+        if (MMA_UNLIKELY(mem_holder_->mem_data().index() == 0)) {
+            segment_size_ = 0;
+            arena_ = boost::variant2::get<0>(mem_holder_->mem_data());
+            header_ = reinterpret_cast<DocumentHeader*>(arena_->tail().memory.get());
+        }
+        else if (mem_holder_->mem_data().index() == 1) {
+            auto span = boost::variant2::get<1>(mem_holder_->mem_data());
+            segment_size_ = span.size();
+            header_ = reinterpret_cast<DocumentHeader*>(span.data());
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                "Invalid mem_data: {}",
+                mem_holder_->mem_data().index()
+            ).do_throw();
+        }
+    }
 
     HermesCtrView(LWMemHolder* mem_holder) noexcept:
         Base(mem_holder)
@@ -491,7 +527,6 @@ protected:
     }
 };
 
-
 }
 
 template <>
@@ -505,7 +540,7 @@ struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
     static constexpr bool HasTypeConstructors = false;
 
     using DatumStorage = EmptyType;
-    using SpanStorageT = Span<uint8_t>;
+    using SpanStorageT = hermes::SpanStorageData;
     using OSpanT       = OSpan<View2Type, SpanStorageT>;
 
     using DataSpan = Span<AtomType>;
@@ -518,7 +553,7 @@ struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
     using TypeDimensionsList  = TL<>;
     using TypeDimensionsTuple = AsTuple<TypeDimensionsList>;
 
-    static DataDimensionsTuple describe_data(ViewType view) {
+    static DataDimensionsTuple describe_data(const ViewType& view) {
         return std::make_tuple(view.span());
     }
 
@@ -543,12 +578,13 @@ struct DataTypeTraits<Hermes>: DataTypeTraitsBase<Hermes>
     {
         return ViewType(holder, std::get<0>(data));
     }
-
-    static SpanStorageT make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data)
-    {
-        return std::get<0>(data);
-    }
 };
+
+template <>
+struct ViewToDTMapping<hermes::HermesCtrView>: HasType<Hermes> {};
+
+template <>
+struct ViewToDTMapping<Own<hermes::HermesCtrView>>: HasType<Hermes> {};
 
 
 template <typename Buffer>

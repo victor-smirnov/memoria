@@ -84,10 +84,6 @@ using DTTTypeDimensionsTuple = typename DataTypeTraits<T>::TypeDimensionsTuple;
 template <typename T>
 using DTTDataDimensionsTuple = typename DataTypeTraits<T>::DataDimensionsTuple;
 
-template <typename T>
-using DTTLDStorageType = typename DataTypeTraits<T>::LDStorageType;
-
-
 
 
 template <typename T>

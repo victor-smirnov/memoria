@@ -58,7 +58,6 @@ protected:
 
     using Profile   = typename Types::Profile;
 
-    using BufferT   = DataTypeBuffer<Key>;
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
     using CtrInputBuffer = typename Types::CtrInputBuffer;
@@ -158,12 +157,7 @@ public:
         return false;
     }
 
-
-
-
-
-
-    ChunkSharedPtr insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size)
+    ChunkSharedPtr insert(CtrSizeT at, const CtrInputBuffer& buffer, size_t start, size_t size)
     {
         auto& self = this->self();
 

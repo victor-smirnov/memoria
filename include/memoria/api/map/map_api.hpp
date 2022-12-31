@@ -42,7 +42,7 @@ struct MapChunk: ChunkIteratorBase<MapChunk<Key, Value, Profile>, Profile> {
     virtual DTSpan<Key> keys() const = 0;
     virtual DTSpan<Value> values() const = 0;
 
-    virtual ChunkPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const = 0;
+    virtual ChunkPtr read_to(HermesDTBuffer<Key>& buffer, CtrSizeT num) const = 0;
 
     virtual bool is_found(const KeyView& key) const = 0;
 
@@ -94,7 +94,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     virtual void remove_up_to(CtrSizeT pos) MEMORIA_READ_ONLY_API
 
     virtual ApiProfileCtrSizeT<Profile> size() const = 0;
-    virtual bool upsert_key(const KeyView& key, ValueView value) MEMORIA_READ_ONLY_API
+    virtual bool upsert_key(const KeyView& key, const ValueView& value) MEMORIA_READ_ONLY_API
     virtual bool remove_key(const KeyView& key) MEMORIA_READ_ONLY_API
 
     virtual ChunkIteratorPtr find(const KeyView& key) const = 0;

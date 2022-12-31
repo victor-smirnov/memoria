@@ -70,7 +70,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
     using CtrInputBuffer = typename Types::CtrInputBuffer;
 
 
-    bool upsert_key(KeyView key, ValueView value)
+    bool upsert_key(const KeyView& key, const ValueView& value)
     {
       auto& self = this->self();
       auto iter = self.ctr_map_find(key);
@@ -88,7 +88,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
 
 
 
-    bool remove_key(KeyView key)
+    bool remove_key(const KeyView& key)
     {
       auto& self = this->self();
       auto iter = self.ctr_map_find(key);
@@ -142,7 +142,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
 
 
 
-    Optional<DTView<Value>> remove_and_return(KeyView key)
+    Optional<DTView<Value>> remove_and_return(const KeyView& key)
     {
         auto& self = this->self();
 
@@ -159,7 +159,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
         }
     }
 
-    Optional<DTView<Value>> replace_and_return(KeyView key, ValueView value)
+    Optional<DTView<Value>> replace_and_return(const KeyView& key, const ValueView& value)
     {
       auto& self = this->self();
 

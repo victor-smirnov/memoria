@@ -41,29 +41,29 @@ public:
 
 template <typename Key, typename Value>
 class MultimapInputBuffer: public FLCtrBatchInput<TL<
-        TL<DataTypeBuffer<Key>>,
-        TL<DataTypeBuffer<Value>>
+        TL<HermesDTBuffer<Key>>,
+        TL<HermesDTBuffer<Value>>
 >>{
     using Base = FLCtrBatchInput<TL<
-        TL<DataTypeBuffer<Key>>,
-        TL<DataTypeBuffer<Value>>
+        TL<HermesDTBuffer<Key>>,
+        TL<HermesDTBuffer<Value>>
     >>;
 public:
     MultimapInputBuffer(): Base() {}
 
-    DataTypeBuffer<Key>& keys() {
+    HermesDTBuffer<Key>& keys() {
         return Base::template get<0, 1>();
     }
 
-    const DataTypeBuffer<Key>& keys() const {
+    const HermesDTBuffer<Key>& keys() const {
         return Base::template get<0, 1>();
     }
 
-    DataTypeBuffer<Value>& values() {
+    HermesDTBuffer<Value>& values() {
         return Base::template get<1, 1>();
     }
 
-    const DataTypeBuffer<Value>& values() const {
+    const HermesDTBuffer<Value>& values() const {
         return Base::template get<1, 1>();
     }
 };

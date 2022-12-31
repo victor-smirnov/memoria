@@ -465,8 +465,8 @@ public:
     template <typename DT>
     static constexpr bool dt_fits_in()
     {
-        using T = DTSpanStorage<DT>;
-        return DataTypeTraits<DT>::isFixedSize && fits_in<T>();
+        using ViewT = DTView<DT>;
+        return DataTypeTraits<DT>::isFixedSize && fits_in<ViewT>();
     }
 
     arena::ERelativePtr to_eptr() const noexcept {
@@ -505,12 +505,12 @@ public:
     static PoolSharedPtr<TaggedGenericView> allocate_space(size_t size);
 
     template <typename DT>
-    static PoolSharedPtr<TaggedGenericView> allocate(const DTSpanStorage<DT>& view)
+    static PoolSharedPtr<TaggedGenericView> allocate(const DTView<DT>& view)
     {
-        using ViewT = DTSpanStorage<DT>;
+        using ViewT = DTView<DT>;
         static_assert(alignof(ViewT) <= VIEW_ALIGN_OF && sizeof(view) < MAX_VIEW_SIZE);
 
-        auto ptr = allocate_space(sizeof(view));
+        auto ptr = allocate_space(sizeof(ViewT));
         new (ptr->view_ptr_) ViewT(view);
         return ptr;
     }
@@ -528,15 +528,15 @@ union ValueStorage {
     template <typename DT>
     DTView<DT> get_view(ValueStorageTag tag, LWMemHolder* mem_holder)
     {
-        using StorageT = DTSpanStorage<DT>;
+        using ViewT = DTView<DT>;
 
-        StorageT view;
         if (tag == ValueStorageTag::VS_TAG_SMALL_VALUE) {
-            view = small_value.get_unchecked<StorageT>();
+            return small_value.get_unchecked<ViewT>();
         }
-        else if (tag == ValueStorageTag::VS_TAG_GENERIC_VIEW) {
+        else if (tag == ValueStorageTag::VS_TAG_GENERIC_VIEW)
+        {
             if (view_ptr) {
-                view = view_ptr->get<StorageT>();
+                return view_ptr->get<ViewT>();
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Provided ValueStorage GenericView is null").do_throw();
@@ -546,8 +546,6 @@ union ValueStorage {
             auto dtc = reinterpret_cast<arena::ArenaDataTypeContainer<DT>*>(addr);
             return dtc->view(mem_holder);
         }
-
-        return DTView<DT>(mem_holder, view);
     }
 };
 

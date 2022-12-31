@@ -50,7 +50,7 @@ protected:
     using ViewType  = DTTViewType<ValueDataType>;
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
-    using BufferT = DataTypeBuffer<ValueDataType>;
+    using BufferT = typename Types::CtrInputBuffer;
 
     using CtrInputBuffer = typename Types::CtrInputBuffer;
 

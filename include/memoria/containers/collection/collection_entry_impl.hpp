@@ -23,6 +23,8 @@
 
 #include <memoria/core/tools/arena_buffer.hpp>
 
+#include <memoria/core/hermes/hermes.hpp>
+
 namespace memoria {
 
 namespace detail {
@@ -105,6 +107,53 @@ struct SpanHolder<KeyDT, true> {
         span_ = Span<const StorageT>{};
     }
 };
+
+
+template <>
+struct SpanHolder<Hermes, false> {
+    using StorageT = typename DataTypeTraits<Hermes>::SpanStorageT;
+
+    std::vector<StorageT> arena;
+
+    bool set_up{};
+
+    template <typename PkdStruct>
+    void populate(const PkdStruct& ss, size_t column, LWMemHolder* owner)
+    {
+        auto ee = ss.end(column);
+
+        for (auto ii = ss.begin(column); ii != ee; ii++) {
+            arena.emplace_back(owner->owner());
+        }
+
+        set_up = true;
+    }
+
+
+    template <typename PkdStruct>
+    void populate(const PkdStruct& ss, size_t column, size_t start, size_t size, LWMemHolder* owner)
+    {
+        auto ee = ss.end(column);
+
+        for (auto ii = ss.begin(column); ii != ee; ii++)
+        {
+            arena.emplace_back(owner->owner());
+        }
+
+        set_up = true;
+    }
+
+    DTSpan<Hermes> span(LWMemHolder* owner) const {
+        return DTSpan<Hermes>(owner, Span<const StorageT>{arena.data(), arena.size()});
+    }
+
+    void reset_state() {
+        set_up = false;
+        arena.erase(arena.begin(), arena.end());
+    }
+};
+
+
 
 }
 
@@ -224,7 +273,7 @@ public:
         return Base::ctr().ctr_prev_leaf(this);
     }
 
-    virtual EntryIterSharedPtr read_to(DataTypeBuffer<Key>& buffer, CtrSizeT num) const {
+    virtual EntryIterSharedPtr read_to(HermesDTBuffer<Key>& buffer, CtrSizeT num) const {
         return EntryIterSharedPtr{};
     }
 

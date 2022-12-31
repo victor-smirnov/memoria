@@ -30,14 +30,21 @@ namespace detail {
 
 template <typename ArrayT>
 struct SpanIteratorAccessor {
+    using element_type = typename ArrayT::element_type;
+
     mutable ArrayT array;
 
+    SpanIteratorAccessor(ArrayT array):
+        array(array)
+    {}
+
+
     auto get(uint64_t idx) const {
-        return array->get(idx);
+        return array.get(idx);
     }
 
     bool operator==(const SpanIteratorAccessor& other) const {
-        return array->equals(other.array);
+        return true;//array.equals(other.array);
     }
 };
 
@@ -48,11 +55,11 @@ struct SpanIteratorAccessor {
 template <typename AccessorType>
 class RandomAccessSpanIterator: public boost::iterator_facade<
         RandomAccessSpanIterator<AccessorType>,
-        const typename AccessorType::ViewType,
+        const typename AccessorType::element_type,
         std::random_access_iterator_tag,
-        const typename AccessorType::ViewType
+        const typename AccessorType::element_type
 > {
-    using ViewType = typename AccessorType::ViewType;
+    using ViewType = typename AccessorType::element_type;
 
     size_t pos_;
     size_t size_;
@@ -120,6 +127,7 @@ public:
     using element_type = T;
     using iterator = RandomAccessSpanIterator<Accessor>;
     using const_iterator = iterator;
+
 
     OSpan():
         mem_holder_(), span_()
@@ -193,19 +201,19 @@ public:
     }
 
     iterator begin() const {
-        iterator(*this, 0, span_.length());
+        return iterator(*this, 0, span_.length());
     }
 
     iterator end() const {
-        iterator(*this, span_.length(), span_.length());
+        return iterator(*this, span_.length(), span_.length());
     }
 
     const_iterator cbegin() const {
-        const_iterator(*this, 0, span_.length());
+        return const_iterator(*this, 0, span_.length());
     }
 
     const_iterator cend() const {
-        const_iterator(*this, span_.length(), span_.length());
+        return const_iterator(*this, span_.length(), span_.length());
     }
 
     bool operator==(const OSpan& other) const noexcept {
@@ -222,7 +230,7 @@ public:
             return T(mem_holder_, span_[idx]);
         }
         else {
-            MEMORIA_MAKE_GENERIC_ERROR("Range check is FXOSpan {}::{}", idx, span_.length()).do_throw();
+            MEMORIA_MAKE_GENERIC_ERROR("Range check in OSpan {}::{}", idx, span_.length()).do_throw();
         }
     }
 

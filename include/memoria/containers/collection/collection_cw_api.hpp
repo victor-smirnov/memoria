@@ -51,7 +51,6 @@ protected:
 
     using Profile   = typename Types::Profile;
 
-    using BufferT   = DataTypeBuffer<Key>;
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
     using typename Base::CollectionChunkTypes;
