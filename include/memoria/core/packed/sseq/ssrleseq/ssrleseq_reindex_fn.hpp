@@ -22,8 +22,6 @@
 
 #include <memoria/core/tools/result.hpp>
 
-#include <memoria/core/datatypes/buffer/buffer.hpp>
-
 #include <memoria/core/memory/memory.hpp>
 
 #include "ssrleseq_tools.hpp"
@@ -81,16 +79,19 @@ public:
 
         if (symbols_block_size_atoms > AtomsPerBlock)
         {
+            using SumDTView = DTTViewType<SumDataType>;
+            using SizeDTView = DTTViewType<SizeDataType>;
+
             std::vector<
-                    IterSharedPtr<DataTypeBuffer<SumDataType>>
+                    IterSharedPtr<std::vector<SumDTView>>
             > sums_bufs(AlphabetSize);
 
             for (size_t c = 0; c < AlphabetSize; c++) {
-                sums_bufs[c] = TL_get_reusable_shared_instance<DataTypeBuffer<SizeDataType>>();
+                sums_bufs[c] = TL_allocate_shared<std::vector<SizeDTView>>();
             }
 
 
-            IterSharedPtr<DataTypeBuffer<SizeDataType>> sizes_buf = TL_get_reusable_shared_instance<DataTypeBuffer<SizeDataType>>();
+            IterSharedPtr<std::vector<SizeDTView>> sizes_buf = TL_allocate_shared<std::vector<SizeDTView>>();
 
             SeqSizeT symbols_total_{};
             typename SumIndexSO::Values sums(SeqSizeT{});
@@ -103,9 +104,9 @@ public:
             auto push_indexes = [&]() {
                 cnt++;
                 for (size_t c = 0; c < AlphabetSize; c++) {
-                    sums_bufs[c]->append(sums[c]);
+                    sums_bufs[c]->push_back(sums[c]);
                 }
-                sizes_buf->append(symbols_total_);
+                sizes_buf->push_back(symbols_total_);
 
 
                 symbols_total_ = SeqSizeT{};

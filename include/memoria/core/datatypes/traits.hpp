@@ -76,9 +76,6 @@ template <typename T>
 using DTTAtomType = typename DataTypeTraits<T>::AtomType;
 
 template <typename T>
-using DTTLDViewType = typename DataTypeTraits<T>::LDViewType;
-
-template <typename T>
 using DTTTypeDimensionsTuple = typename DataTypeTraits<T>::TypeDimensionsTuple;
 
 template <typename T>

@@ -19,8 +19,6 @@
 
 #include <memoria/api/collection/collection_api_factory.hpp>
 
-#include <memoria/core/datatypes/buffer/buffer.hpp>
-
 #include <memoria/api/common/ctr_batch_input.hpp>
 
 #include <memory>

@@ -22,8 +22,7 @@
 #include <memoria/core/tools/result.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
-
-#include <memoria/core/datatypes/buffer/buffer.hpp>
+#include <memoria/api/common/ctr_batch_input.hpp>
 
 namespace memoria {
 
@@ -109,14 +108,14 @@ public:
     }
 
     template <typename DT>
-    PkdUpdateStatus prepare_insert_io_substream(size_t at, const DataTypeBuffer<DT>& substream, size_t start, size_t size, UpdateState&) {
+    PkdUpdateStatus prepare_insert_io_substream(size_t at, const HermesDTBuffer<DT>& substream, size_t start, size_t size, UpdateState&) {
         return PkdUpdateStatus::SUCCESS;
     }
 
 
     // FIXME: Adapt to multicolumn!
     template <typename DT>
-    size_t commit_insert_io_substream(size_t at, const DataTypeBuffer<DT>& substream, size_t start, size_t size, UpdateState&)
+    size_t commit_insert_io_substream(size_t at, const HermesDTBuffer<DT>& substream, size_t start, size_t size, UpdateState&)
     {
         insert_space(0, size);
         return size;

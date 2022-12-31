@@ -20,7 +20,6 @@
 #include <memoria/api/collection/collection_api.hpp>
 
 #include <memoria/api/set/set_api_factory.hpp>
-#include <memoria/core/datatypes/buffer/buffer.hpp>
 
 #include <memory>
 

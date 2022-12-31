@@ -22,7 +22,6 @@
 #include <memoria/core/reflection/typehash.hpp>
 
 #include <memoria/api/map/map_api_factory.hpp>
-#include <memoria/core/datatypes/buffer/buffer.hpp>
 
 namespace memoria {
 

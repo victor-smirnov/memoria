@@ -28,8 +28,6 @@
 
 #include <memoria/core/numbers/number_view.hpp>
 
-#include <memoria/core/datatypes/buffer/buffer.hpp>
-
 #include <memoria/api/store/memory_store_api.hpp>
 
 #include <memoria/api/map/map_api.hpp>

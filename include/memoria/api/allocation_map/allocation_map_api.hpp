@@ -24,7 +24,6 @@
 #include <memoria/api/collection/collection_api.hpp>
 #include <memoria/api/allocation_map/allocation_map_api_factory.hpp>
 
-#include <memoria/core/datatypes/buffer/buffer.hpp>
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/any_id.hpp>
 
