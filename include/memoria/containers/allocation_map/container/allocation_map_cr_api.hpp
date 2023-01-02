@@ -143,13 +143,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrRApiName)
 
             if (sum + len < required)
             {
-                buffer.append_value(AllocationMetadata<ApiProfileT>{level0_pos, len, level});
+                buffer.push_back(AllocationMetadata<ApiProfileT>{level0_pos, len, level});
                 ii = ii->iter_select_fw(level, 0);
                 sum += len;
             }
             else {
                 auto remainder = required - sum;
-                buffer.append_value(AllocationMetadata<ApiProfileT>{level0_pos, remainder, level});
+                buffer.push_back(AllocationMetadata<ApiProfileT>{level0_pos, remainder, level});
                 sum += remainder;
                 break;
             }
@@ -191,13 +191,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrRApiName)
                             }
                         }
                         else if (meta.size_at_level()) {
-                            arena.append_value(meta);
+                            arena.push_back(meta);
                             meta = ALCMeta{0, 0, 0};
                         }
                     }
 
                     if (meta.size_at_level()) {
-                        arena.append_value(meta);
+                        arena.push_back(meta);
                     }
                 }
             }

@@ -258,7 +258,7 @@ public:
             if (alc)
             {
                 if (MMA_UNLIKELY(init_store_mode_)) {
-                    awaiting_init_allocations_.append_value(alc.get());
+                    awaiting_init_allocations_.push_back(alc.get());
                 }
 
                 return alc.get();
@@ -468,8 +468,8 @@ public:
 
         allocation_pool_->add(AllocationMetadataT(0, avaialble, ALLOCATION_MAP_LEVELS - 1));
 
-        awaiting_init_allocations_.append_value(allocation_pool_->allocate_one(0).get());
-        awaiting_init_allocations_.append_value(allocation_pool_->allocate_one(0).get());
+        awaiting_init_allocations_.push_back(allocation_pool_->allocate_one(0).get());
+        awaiting_init_allocations_.push_back(allocation_pool_->allocate_one(0).get());
 
         SnapshotID snapshot_id = ProfileTraits<Profile>::make_random_snapshot_id();
 
@@ -495,7 +495,7 @@ public:
                     counters_file_pos = alc.get().position() * BASIC_BLOCK_SIZE;
                 }
 
-                awaiting_init_allocations_.append_value(alc.get());
+                awaiting_init_allocations_.push_back(alc.get());
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Failure allocating counters block").do_throw();
@@ -612,7 +612,7 @@ public:
         AllocationMetadataT allocation = do_allocate_reserved(0);
 
         if (MMA_UNLIKELY(init_store_mode_)) {
-            awaiting_init_allocations_.append_value(allocation);
+            awaiting_init_allocations_.push_back(allocation);
         }
 
         uint64_t pos = (allocation.position() << SUPERBLOCK_ALLOCATION_LEVEL) * BASIC_BLOCK_SIZE;
@@ -635,11 +635,11 @@ public:
     }
 
     void add_postponed_deallocation(const AllocationMetadataT& meta)  {
-        postponed_deallocations_.append_value(meta);
+        postponed_deallocations_.push_back(meta);
     }
 
     void add_cp_postponed_deallocation(const AllocationMetadataT& meta)  {
-        head_snapshot_descriptor_->postponed_deallocations().append_value(meta);
+        head_snapshot_descriptor_->postponed_deallocations().push_back(meta);
     }
 
 
@@ -659,8 +659,8 @@ public:
         while (postponed_deallocations_.size() > 0)
         {
             ArenaBuffer<AllocationMetadataT> postponed_deallocations;
-            postponed_deallocations.append_values(postponed_deallocations_.span());
-            all_postponed_deallocations.append_values(postponed_deallocations_.span());
+            postponed_deallocations.push_back(postponed_deallocations_.span());
+            all_postponed_deallocations.push_back(postponed_deallocations_.span());
             postponed_deallocations_.clear();
 
             // Just CoW allocation map's leafs that bits will be cleared later
@@ -671,8 +671,8 @@ public:
         while (postponed_deallocations_.size() > 0)
         {
             ArenaBuffer<AllocationMetadataT> postponed_deallocations;
-            postponed_deallocations.append_values(postponed_deallocations_.span());
-            all_postponed_deallocations.append_values(postponed_deallocations_.span());
+            postponed_deallocations.push_back(postponed_deallocations_.span());
+            all_postponed_deallocations.push_back(postponed_deallocations_.span());
             postponed_deallocations_.clear();
 
             // Just CoW allocation map's leafs that bits will be cleared later
@@ -766,7 +766,7 @@ public:
             ArenaBuffer<AllocationMetadataT> evicting_blocks;
             store_->for_all_evicting_snapshots([&](SnapshotDescriptorT* snapshot_descriptor){
                 auto snp = store_->do_open_writable(snapshot_descriptor, [&](const BlockID& id, const AllocationMetadataT& meta){
-                    evicting_blocks.append_value(meta);
+                    evicting_blocks.push_back(meta);
                 }, true);
                 snp->remove_all_blocks(&counters_);
             });

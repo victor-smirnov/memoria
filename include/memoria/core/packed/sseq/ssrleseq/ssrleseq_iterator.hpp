@@ -133,7 +133,7 @@ public:
             RunT run = this->get();
 
             if (run) {
-                sink.append_value(run);
+                sink.push_back(run);
                 next();
             }
             else if (run.is_padding()) {

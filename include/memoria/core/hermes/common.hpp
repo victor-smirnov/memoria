@@ -184,13 +184,13 @@ public:
             {
                 if (MMA_UNLIKELY(ch == '\''))
                 {
-                    buffer_.append_value('\\');
+                    buffer_.push_back('\\');
                 }
 
-                buffer_.append_value(ch);
+                buffer_.push_back(ch);
             }
 
-            buffer_.append_value(0);
+            buffer_.push_back(0);
 
             return U8StringView(buffer_.data(), buffer_.size() - 1);
         }
@@ -242,19 +242,19 @@ public:
             for (auto& ch: str)
             {
                 switch(ch) {
-                    case '\b': buffer_.append_values(Span<const char>("\\b", 2)); continue;
-                    case '\f': buffer_.append_values(Span<const char>("\\f", 2)); continue;
-                    case '\r': buffer_.append_values(Span<const char>("\\r", 2)); continue;
-                    case '\n': buffer_.append_values(Span<const char>("\\n", 2)); continue;
-                    case '\t': buffer_.append_values(Span<const char>("\\t", 2)); continue;
-                    case '\"': buffer_.append_values(Span<const char>("\\\"", 2)); continue;
-                    case '\\': buffer_.append_values(Span<const char>("\\\\", 2)); continue;
+                    case '\b': buffer_.push_back(Span<const char>("\\b", 2)); continue;
+                    case '\f': buffer_.push_back(Span<const char>("\\f", 2)); continue;
+                    case '\r': buffer_.push_back(Span<const char>("\\r", 2)); continue;
+                    case '\n': buffer_.push_back(Span<const char>("\\n", 2)); continue;
+                    case '\t': buffer_.push_back(Span<const char>("\\t", 2)); continue;
+                    case '\"': buffer_.push_back(Span<const char>("\\\"", 2)); continue;
+                    case '\\': buffer_.push_back(Span<const char>("\\\\", 2)); continue;
                 }
 
-                buffer_.append_value(ch);
+                buffer_.push_back(ch);
             }
 
-            buffer_.append_value(0);
+            buffer_.push_back(0);
 
             return U8StringView(buffer_.data(), buffer_.size() - 1);
         }

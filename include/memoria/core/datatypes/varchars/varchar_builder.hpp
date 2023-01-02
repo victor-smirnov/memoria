@@ -24,6 +24,7 @@
 
 namespace memoria {
 
+/*
 template <typename Buffer>
 class SparseObjectBuilder<Varchar, Buffer> {
     Buffer* buffer_;
@@ -76,5 +77,7 @@ public:
         return arena_.size() == 0;
     }
 };
+*/
+
 
 }

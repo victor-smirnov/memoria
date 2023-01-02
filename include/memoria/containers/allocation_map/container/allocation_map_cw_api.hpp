@@ -273,11 +273,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrWApiName)
                         break;
                     }
                     else if (alc.position() + alc.size1() <= leaf_limit) {
-                        buf.append_value(alc);
+                        buf.push_back(alc);
                     }
                     else {
                         auto alc_limit = alc.position() + alc.size1();
-                        buf.append_value(alc.take(leaf_limit - alc_limit));
+                        buf.push_back(alc.take(leaf_limit - alc_limit));
                         break;
                     }
                 }

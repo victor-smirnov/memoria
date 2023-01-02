@@ -151,15 +151,15 @@ public:
                 auto span = res.span();
                 runs_buf_.head() = span[0];
                 for (size_t c = 1; c < span.size(); c++) {
-                    runs_buf_.append_value(span[c]);
+                    runs_buf_.push_back(span[c]);
                 }
             }
             else {
-                runs_buf_.append_values(runs);
+                runs_buf_.push_back(runs);
             }
         }
         else {
-            runs_buf_.append_values(runs);
+            runs_buf_.push_back(runs);
         }
     }
 

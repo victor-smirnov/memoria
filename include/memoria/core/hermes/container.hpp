@@ -587,7 +587,7 @@ template <>
 struct ViewToDTMapping<Own<hermes::HermesCtrView>>: HasType<Hermes> {};
 
 
-template <typename Buffer>
+/*template <typename Buffer>
 class SparseObjectBuilder<Hermes, Buffer> {
     Buffer* buffer_;
 
@@ -607,15 +607,11 @@ public:
     void append(ViewType view)
     {
         auto span = view.span();
-        arena_.append_values(span.data(), span.size());
+        arena_.push_back(span);
     }
 
     ViewType view() const noexcept {
         return ViewType(data(), arena_.size());
-    }
-
-    GuardedView<ViewType> guarded_view() const {
-        return GuardedView<ViewType>(view(), arena_.guard());
     }
 
     void reset() {
@@ -640,7 +636,7 @@ public:
         return arena_.size() == 0;
     }
 };
-
+*/
 
 inline hermes::HermesCtr operator "" _hdoc(const char* s, std::size_t n) {
     return hermes::HermesCtrView::parse_document(s, s + n);
