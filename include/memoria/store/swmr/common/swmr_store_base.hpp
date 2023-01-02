@@ -741,7 +741,6 @@ protected:
             }
 
             check_refcounters(check_state.counters, consumer);
-
             do_check_allocations(consumer);
 
             allocations_->close();

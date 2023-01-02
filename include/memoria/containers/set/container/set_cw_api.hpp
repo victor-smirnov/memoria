@@ -103,7 +103,7 @@ public:
         return memoria_static_pointer_cast<CollectionChunkImplT>(jj);
     }
 
-    ChunkSharedPtr insert(KeyView before, CtrBatchInputFn<CtrInputBuffer> producer)
+    ChunkSharedPtr insert(const KeyView& before, CtrBatchInputFn<CtrInputBuffer> producer)
     {
         auto& self = this->self();
 
@@ -121,7 +121,7 @@ public:
     /**
      * Returns true if set is already containing the element
      */
-    bool upsert(KeyView k)
+    bool upsert(const KeyView& k)
     {
         auto iter = self().ctr_set_find(k);
 
@@ -141,7 +141,7 @@ public:
     /**
      * Returns true if the set contained the element
      */
-    bool remove(KeyView key)
+    bool remove(const KeyView& key)
     {
         auto& self = this->self();
         auto iter = self.ctr_set_find(key);

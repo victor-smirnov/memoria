@@ -49,8 +49,22 @@ public:
         return ctr_;
     }
 
-    void dump(CtrSizeT num = -1) const {
-        ctr_->dump_leafs(num);
+    void dump(CtrSizeT num = std::numeric_limits<CtrSizeT>::max()) const {
+        auto ii = ctr_->iterator();
+
+        CtrSizeT n = 0;
+
+        if (n < num) {
+            ii->dump(ChunkDumpMode::LEAF);
+        }
+        n++;
+
+        auto jj = ii->next_chunk();
+        while (n < num && jj && !jj->is_after_end()) {
+            jj->dump(ChunkDumpMode::LEAF);
+            jj = jj->next_chunk();
+            n++;
+        }
     }
 
     void close()

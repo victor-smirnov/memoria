@@ -30,7 +30,6 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
     using KeyView   = DTTViewType<Key>;
     using ApiTypes  = ICtrApiTypes<Set<Key>, Profile>;
 
-    using BufferT       = HermesDTBuffer<Key>;
     using DataTypeT     = Key;
     using CtrSizeT      = ApiProfileCtrSizeT<Profile>;
 
@@ -39,8 +38,8 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
     using ChunkIteratorPtr = IterSharedPtr<CollectionChunk<Key, Profile>>;
 
 
-    virtual void read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const = 0;
-    virtual ChunkIteratorPtr insert(CtrSizeT at, const BufferT& buffer) MEMORIA_READ_ONLY_API
+    virtual void read_to(CtrInputBuffer& buffer, CtrSizeT start, CtrSizeT length) const = 0;
+    virtual ChunkIteratorPtr insert(CtrSizeT at, const CtrInputBuffer& buffer) MEMORIA_READ_ONLY_API
 
     virtual ApiProfileCtrSizeT<Profile> size() const = 0;
 
@@ -66,7 +65,7 @@ struct ICtrApi<Set<Key>, Profile>: public ICtrApi<Collection<Key>, Profile> {
         {
             auto keys = ss->keys();
             for (size_t c = 0; c < keys.size(); c++) {
-                fn(*keys[c]);
+                fn(keys[c]);
             }
 
             ss = ss->next_chunk();

@@ -458,7 +458,6 @@ public:
         directory_ctr_->check(consumer);
 
         init_history_ctr();
-
         history_ctr_->check(consumer);
 
         init_allocator_ctr();
@@ -978,7 +977,6 @@ public:
     )
     {
         init_allocator_ctr();
-
         allocation_map_ctr_->compare_with(allocations.ctr(), [&](auto& helper){
             consumer(CheckSeverity::ERROR, make_string_document(
                          "Allocation map mismatch at {} :: {}/{} :: {}, level {}. Expected: {}, actual: {}",

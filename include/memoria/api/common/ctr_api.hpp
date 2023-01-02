@@ -110,6 +110,14 @@ struct ChunkIteratorBase {
     virtual ChunkPtr prev_chunk() const = 0;
 
     virtual void dump(ChunkDumpMode mode = ChunkDumpMode::HEADER, std::ostream& out = std::cout) const = 0;
+
+    virtual void dump_leaf() const {
+        return dump(ChunkDumpMode::LEAF);
+    }
+
+    virtual void dump_path() const {
+        return dump(ChunkDumpMode::PATH);
+    }
 };
 
 template <typename ChunkIterT>

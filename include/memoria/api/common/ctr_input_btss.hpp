@@ -19,7 +19,6 @@
 #include <memoria/api/common/ctr_api.hpp>
 #include <memoria/api/common/ctr_batch_input.hpp>
 
-#include <memoria/core/datatypes/buffer/buffer.hpp>
 #include <memoria/core/datatypes/buffer/ssrle_buffer.hpp>
 
 
@@ -30,20 +29,20 @@ decltype(auto) get_ctr_batch_input_substream(const HermesDTBuffer<DT>& input) {
     return input;
 }
 
-template <size_t StreamIdx, size_t SubstreamIdx, typename DT>
-decltype(auto) get_ctr_batch_input_substream(const DataTypeBuffer<DT>& input) {
-    return input;
-}
+//template <size_t StreamIdx, size_t SubstreamIdx, typename DT>
+//decltype(auto) get_ctr_batch_input_substream(const DataTypeBuffer<DT>& input) {
+//    return input;
+//}
 
 template <size_t StreamIdx, size_t SubstreamIdx, size_t AlphabetSize>
 decltype(auto) get_ctr_batch_input_substream(const IOSSRLEBuffer<AlphabetSize>& input) {
     return input;
 }
 
-template <typename DT>
-void clear_ctr_batch_input(DataTypeBuffer<DT>& input) {
-    input.clear();
-}
+//template <typename DT>
+//void clear_ctr_batch_input(DataTypeBuffer<DT>& input) {
+//    input.clear();
+//}
 
 template <size_t AlphabetSize>
 void clear_ctr_batch_input(IOSSRLEBuffer<AlphabetSize>& input) {
@@ -51,10 +50,10 @@ void clear_ctr_batch_input(IOSSRLEBuffer<AlphabetSize>& input) {
 }
 
 
-template <typename DT>
-void reindex_ctr_batch_input(DataTypeBuffer<DT>& input) {
-    input.reindex();
-}
+//template <typename DT>
+//void reindex_ctr_batch_input(DataTypeBuffer<DT>& input) {
+//    input.reindex();
+//}
 
 template <size_t AlphabetSize>
 void reindex_ctr_batch_input(IOSSRLEBuffer<AlphabetSize>& input) {
@@ -73,10 +72,10 @@ auto ctr_batch_input_size_btss(const IOSSRLEBuffer<AlphabetSize>& input) {
     return input.size();
 }
 
-template <typename DT>
-auto ctr_batch_input_size_btss(const DataTypeBuffer<DT>& input) {
-    return input.size();
-}
+//template <typename DT>
+//auto ctr_batch_input_size_btss(const DataTypeBuffer<DT>& input) {
+//    return input.size();
+//}
 
 
 template <typename DT>

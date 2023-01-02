@@ -29,8 +29,6 @@
 
 #include <memoria/core/packed/datatype_buffer/packed_array_iterator.hpp>
 
-#include <memoria/core/datatypes/buffer/buffer.hpp>
-
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 
@@ -733,56 +731,56 @@ public:
         return static_cast<size_t>(at + size);
     }
 
-    template <typename DT>
-    PkdUpdateStatus prepare_insert_io_substream(size_t at, const DataTypeBuffer<DT>& buffer, size_t start, size_t size, UpdateState& update_state)
-    {
-        static_assert(Columns == 1, "");
-        MEMORIA_ASSERT(at, <=, this->size());
+//    template <typename DT>
+//    PkdUpdateStatus prepare_insert_io_substream(size_t at, const DataTypeBuffer<DT>& buffer, size_t start, size_t size, UpdateState& update_state)
+//    {
+//        static_assert(Columns == 1, "");
+//        MEMORIA_ASSERT(at, <=, this->size());
 
-        size_t data_size{};
+//        size_t data_size{};
 
-        for (size_t column = 0; column < 1; column++)
-        {
-            DataLengths data_lengths = to_data_lengths(buffer.data_lengths(start, size));
+//        for (size_t column = 0; column < 1; column++)
+//        {
+//            DataLengths data_lengths = to_data_lengths(buffer.data_lengths(start, size));
 
-            for_each_dimension([&](auto dim_idx){
-                data_size += data_->template dimension<dim_idx>(column).compute_dimension_size_for_insert(
-                    size, data_lengths[dim_idx], data_->metadata()
-                );
-            });
-        }
+//            for_each_dimension([&](auto dim_idx){
+//                data_size += data_->template dimension<dim_idx>(column).compute_dimension_size_for_insert(
+//                    size, data_lengths[dim_idx], data_->metadata()
+//                );
+//            });
+//        }
 
-        size_t index_block_size = compute_index_block_size(size + this->size());
-        size_t required_block_size = PkdStruct::base_size(data_size + index_block_size);
-        size_t existing_block_size = data_->block_size();
+//        size_t index_block_size = compute_index_block_size(size + this->size());
+//        size_t required_block_size = PkdStruct::base_size(data_size + index_block_size);
+//        size_t existing_block_size = data_->block_size();
 
-        return update_state.allocator_state()->inc_allocated(existing_block_size, required_block_size);
-    }
+//        return update_state.allocator_state()->inc_allocated(existing_block_size, required_block_size);
+//    }
 
 
-    // FIXME: Adapt to multicolumn!
-    template <typename DT>
-    size_t commit_insert_io_substream(size_t at, const DataTypeBuffer<DT>& buffer, size_t start, size_t size, UpdateState&)
-    {
-        static_assert(Columns == 1, "");
-        MEMORIA_ASSERT(at, <=, this->size());
+//    // FIXME: Adapt to multicolumn!
+//    template <typename DT>
+//    size_t commit_insert_io_substream(size_t at, const DataTypeBuffer<DT>& buffer, size_t start, size_t size, UpdateState&)
+//    {
+//        static_assert(Columns == 1, "");
+//        MEMORIA_ASSERT(at, <=, this->size());
 
-        DataLengths lengths = to_data_lengths(buffer.data_lengths(start, size));
+//        DataLengths lengths = to_data_lengths(buffer.data_lengths(start, size));
 
-        insertSpace(0, at, size, lengths);
+//        insertSpace(0, at, size, lengths);
 
-        for_each_dimension([&](auto dim_idx) {
-            data_->template dimension<dim_idx>(0).copy_from_databuffer(
-                    at, start, size, lengths[dim_idx], buffer
-            );
-        });
+//        for_each_dimension([&](auto dim_idx) {
+//            data_->template dimension<dim_idx>(0).copy_from_databuffer(
+//                    at, start, size, lengths[dim_idx], buffer
+//            );
+//        });
 
-        data_->metadata().add_size(size);
+//        data_->metadata().add_size(size);
 
-        reindex();
+//        reindex();
 
-        return static_cast<size_t>(at + size);
-    }
+//        return static_cast<size_t>(at + size);
+//    }
 
 
 
@@ -1701,13 +1699,15 @@ private:
         {
             size_t spans = div_up(size, index_span);
 
+            using ViewT = DTTViewType<DataType>;
+
             std::vector<
-                    IterSharedPtr<DataTypeBuffer<DataType>>
+                    IterSharedPtr<std::vector<ViewT>>
             > columns(Columns);
 
             for (size_t c = 0; c < Columns; c++)
             {
-                columns[c] = TL_get_reusable_shared_instance<DataTypeBuffer<DataType>>();
+                columns[c] = TL_allocate_shared<std::vector<ViewT>>();
 
                 size_t base{};
                 for (size_t span = 0; span < spans; span++, base += index_span)
@@ -1721,7 +1721,7 @@ private:
                         sum = sum + ee;
                     }
 
-                    columns[c]->append(sum);
+                    columns[c]->push_back(sum);
                 }
             }
 

@@ -1037,7 +1037,7 @@ public:
             {
                 ref_block(root);
 
-                auto prev_id = directory_ctr_->replace_and_return(ctr_id, root);
+                auto prev_id = directory_ctr_->replace_and_return(ctr_id, root);         
                 if (prev_id)
                 {
                     unref_ctr_root(prev_id.get());

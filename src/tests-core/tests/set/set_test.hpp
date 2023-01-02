@@ -135,7 +135,7 @@ public:
 
         int c = 0;
         for (auto iter = ctr->seek_entry(ctr->size() - 1); is_valid_chunk(iter); iter = iter->prev(100)) {
-            println("Key: {} :: {}", *iter->current_key(), iter->entry_offset());
+            println("Key: {} :: {}", iter->current_key(), iter->entry_offset());
             c++;
         }
 
@@ -197,7 +197,7 @@ public:
             {
                 auto en_key = *en_ii;
 
-                bool equals = internal_set::ValueTools<CxxValueType>::equals(*keys[c], en_key);
+                bool equals = internal_set::ValueTools<CxxValueType>::equals(keys[c], en_key);
                 assert_equals(true, equals);
 
                 en_ii++;

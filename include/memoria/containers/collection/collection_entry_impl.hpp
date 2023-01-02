@@ -99,7 +99,7 @@ struct SpanHolder<KeyDT, true> {
     }
 
     DTSpan<KeyDT> span(LWMemHolder* owner) const {
-        return DTSpan<KeyDT>(owner, Span<const StorageT>{});
+        return DTSpan<KeyDT>(owner, span_);
     }
 
     void reset_state() {

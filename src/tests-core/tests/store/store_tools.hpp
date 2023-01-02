@@ -122,7 +122,7 @@ public:
     {
         StoreT store = store_ops_->create_store();
 
-        CheckResultConsumerFn callback = [](CheckSeverity svr, const LDDocument& doc){
+        CheckResultConsumerFn callback = [](CheckSeverity svr, const hermes::HermesCtr& doc){
             std::cout << doc.to_string() << std::endl;
             if (svr == CheckSeverity::ERROR) {
                 MEMORIA_MAKE_GENERIC_ERROR("Container check error").do_throw();
@@ -135,6 +135,7 @@ public:
             store_ops_->commit(snp, consistency_point_);
 
             if (check_epocs_) {
+                DebugCounter1 = 0;
                 store->check(callback);
             }
         }
