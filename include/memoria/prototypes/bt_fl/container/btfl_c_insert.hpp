@@ -47,7 +47,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
     {
         auto& self = this->self();
 
-        auto buf = allocate_shared<CtrInputBuffer>(self.store().object_pools());
+        auto buf = get_reusable_unique_instance<CtrInputBuffer>(self.store().object_pools());
 
         btfl::CtrBatchInputProvider<MyType> streaming(self, provider, *buf.get());
 

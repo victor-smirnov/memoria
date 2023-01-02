@@ -102,22 +102,24 @@ public:
         });
     }
 
-    virtual void clear()
+    void clear()
     {
+        auto ctr = hermes::HermesCtr::make_pooled();
+
         for_each_stream([&](auto stream_idx){
             for_each_substream<stream_idx>([&](auto substream_idx){
                 auto& substream = std::get<substream_idx>(std::get<stream_idx>(streams_));
-                substream.clear();
+                substream.clear(ctr);
             });
         });
     }
 
-    virtual void reset()
+    void configure(const hermes::HermesCtr& ctr)
     {
         for_each_stream([&](auto stream_idx){
             for_each_substream<stream_idx>([&](auto substream_idx){
                 auto& substream = std::get<substream_idx>(std::get<stream_idx>(streams_));
-                substream.reset();
+                substream.configure(ctr, stream_idx, substream_idx);
             });
         });
     }
@@ -133,10 +135,15 @@ public:
         });
     }
 
-    void reset_state() {
-        clear();
+    void reset_state()
+    {
+        for_each_stream([&](auto stream_idx){
+            for_each_substream<stream_idx>([&](auto substream_idx){
+                auto& substream = std::get<substream_idx>(std::get<stream_idx>(streams_));
+                substream.reset_state();
+            });
+        });
     }
-
 
     template <typename Fn, typename... Args>
     void for_each_stream(Fn&& fn, Args&&... args) {
@@ -197,11 +204,6 @@ void clear_ctr_batch_input(CtrBatchInputBase<Streams>& input) {
 }
 
 template <typename Streams>
-void reset_ctr_batch_input(CtrBatchInputBase<Streams>& input) {
-    input.reset();
-}
-
-template <typename Streams>
 void reindex_ctr_batch_input(CtrBatchInputBase<Streams>& input) {
     input.reindex();
 }
@@ -219,18 +221,13 @@ template <typename DT, typename Category = typename DataTypeTraits<DT>::DatumSel
 class HermesDTBuffer;
 
 template <typename DT>
-class HermesDTBuffer<DT, FixedSizeDataTypeTag> {
-    hermes::HermesCtr ctr_;
+class HermesDTBuffer<DT, FixedSizeDataTypeTag> {    
     hermes::Array<DT> array_;
 
     using DataLengths = std::tuple<size_t>;
 
 public:
-    HermesDTBuffer():
-        ctr_(hermes::HermesCtr::make_pooled())
-    {
-        array_ = ctr_.make_array<DT>();
-    }
+    HermesDTBuffer() {}
 
     auto get(size_t c) const {
         return array_.get(c);
@@ -240,13 +237,19 @@ public:
         return array_.size();
     }
 
-    void clear() {
-        ctr_ = hermes::HermesCtr::make_pooled();
-        array_ = ctr_.make_array<DT>();
+    void clear(hermes::HermesCtr ctr) {
+        array_ = ctr.make_array<DT>();
     }
 
-    void reset() {
-        clear();
+    void clear() {
+        clear(hermes::HermesCtr::make_pooled());
+    }
+
+    void configure(const hermes::HermesCtr& ctr, size_t stream, size_t substream)
+    {
+        auto arr = ctr.root().as_object_array();
+        auto ss = arr.get(stream).as_object_array();
+        array_ = ss.get(substream).cast_to<hermes::Array<DT>>();
     }
 
     void reindex() {}
@@ -254,7 +257,6 @@ public:
     DataLengths data_lengths(size_t start, size_t size) const {
         return size * sizeof(DTSpanStorage<DT>);
     }
-
 
     void append(const DTTViewType<DT>& value) {
         array_ = array_.push_back(value);
@@ -280,21 +282,21 @@ public:
             array_ = array_.push_back(vv.value_t());
         }
     }
+
+    void reset_state() {
+        array_.reset();
+    }
 };
 
 
 template <typename DT>
 class HermesDTBuffer<DT, EmptyType> {
-    hermes::HermesCtr ctr_;
     hermes::ObjectArray array_;
 
     using DataLengths = std::tuple<size_t>;
 public:
-    HermesDTBuffer():
-        ctr_(hermes::HermesCtr::make_pooled())
-    {
-        array_ = ctr_.make_object_array();
-    }
+    HermesDTBuffer()
+    {}
 
     auto get(size_t c) const {
         return array_.get(c).convert_to<DT>().template cast_to<DT>();
@@ -304,13 +306,20 @@ public:
         return array_.size();
     }
 
-    void clear() {
-        ctr_ = hermes::HermesCtr::make_pooled();
-        array_ = ctr_.make_object_array();
+    void clear(hermes::HermesCtr ctr) {
+        array_ = ctr.make_object_array();
     }
 
-    void reset() {
-        clear();
+
+    void clear() {
+        clear(hermes::HermesCtr::make_pooled());
+    }
+
+    void configure(const hermes::HermesCtr& ctr, size_t stream, size_t substream)
+    {
+        auto arr = ctr.root().as_object_array();
+        auto ss = arr.get(stream).as_object_array();
+        array_ = ss.get(substream).as_object_array();
     }
 
     void reindex() {}
@@ -351,6 +360,10 @@ public:
         for (auto& vv: value) {
             array_ = array_.push_back(vv);
         }
+    }
+
+    void reset_state() {
+        array_.reset();
     }
 };
 

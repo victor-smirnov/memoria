@@ -22,6 +22,8 @@
 #include <memoria/core/memory/malloc.hpp>
 #include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
+#include <memoria/core/hermes/traits.hpp>
+
 #include <functional>
 
 namespace memoria {
@@ -133,6 +135,14 @@ public:
         reset();
     }
 
+    virtual void reset(hermes::HermesCtr&) {
+        reset();
+    }
+
+    virtual void clear(hermes::HermesCtr&) {
+        reset();
+    }
+
     virtual void dump(std::ostream& out) const
     {
         assert_indexed();
@@ -180,8 +190,10 @@ public:
     }
 
 
-    void configure(const void* ptr) {
-        MMA_THROW(UnsupportedOperationException());
+    void configure(const hermes::HermesCtr& ctr, size_t stream, size_t substream) {}
+
+    void reset_state() {
+        reset();
     }
 
 private:

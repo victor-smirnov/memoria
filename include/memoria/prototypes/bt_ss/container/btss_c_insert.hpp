@@ -136,7 +136,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::InsertName)
     {
         auto& self = this->self();
 
-        auto buf = allocate_shared<CtrInputBuffer>(self.store().object_pools());
+        auto buf = get_reusable_shared_instance<CtrInputBuffer>(self.store().object_pools());
 
         btss::BTSSCtrBatchInputProvider<MyType> streaming(self, producer, *buf.get());
 

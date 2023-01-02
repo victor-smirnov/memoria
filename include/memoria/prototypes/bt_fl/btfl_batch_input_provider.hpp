@@ -306,7 +306,7 @@ public:
         size_.clear();
 
         if (reset_buffer_) {
-            input_buffer_.clear();
+            clear_ctr_batch_input(input_buffer_);
         }
 
         finished_ = producer_(input_buffer_);
