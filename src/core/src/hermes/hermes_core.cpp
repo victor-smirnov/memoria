@@ -196,6 +196,69 @@ HermesCtr TypedValueView::ctr() {
     return HermesCtr(mem_holder_);
 }
 
+
+void CheckStructureState::check_ptr(const arena::EmbeddingRelativePtr<void>& ptr, const char* src)
+{
+    if (ptr.is_pointer())
+    {
+        if (ptr.is_not_null())
+        {
+            check_bounds(ptr.get(), src);
+            if (!cycle_bitmap_.test_bit(offset(ptr.get())))
+            {
+                auto tag = arena::read_type_tag(ptr.get());
+                get_type_reflection(tag).hermes_check(ptr.get(), *this, src);
+            }
+        }
+    }
+    else {
+        auto tag = ptr.get_tag();
+        get_type_reflection(ShortTypeCode::of_object(tag)).hermes_check_embedded(ptr, *this, src);
+    }
+}
+
+void CheckStructureState::check_ptr(const arena::RelativePtr<void>& ptr, const char* src)
+{
+    check_ptr(ptr.get(), src);
+}
+
+void CheckStructureState::check_ptr(const void* ptr, const char* src)
+{
+    if (ptr)
+    {
+        check_bounds(ptr, src);
+        if (!cycle_bitmap_.test_bit(offset(ptr)))
+        {
+            auto tag = arena::read_type_tag(ptr);
+            get_type_reflection(tag).hermes_check(ptr, *this, src);
+        }
+    }
+}
+
+void CheckStructureState::check_and_set_tagged(const void* ptr, size_t size, const char* src)
+{
+    auto tag = arena::read_type_tag(ptr);
+    size_t start = offset(ptr) - tag.full_code_len();
+    if (!allocation_bitmap_.check_and_set(start, start + size + tag.full_code_len())) {
+        MEMORIA_MAKE_GENERIC_ERROR(
+                    "Allocation from {} to {} overlaps with other allocations at {}",
+                    start, start + size, src
+        ).do_throw();
+    }
+}
+
+void CheckStructureState::check_and_set(const void* ptr, size_t size, const char* src)
+{
+    size_t start = offset(ptr);
+    if (!allocation_bitmap_.check_and_set(start, start + size)) {
+        MEMORIA_MAKE_GENERIC_ERROR(
+                    "Allocation from {} to {} overlaps with other allocations at {}",
+                    start, start + size, src
+        ).do_throw();
+    }
+}
+
+
 }
 
 namespace memoria {
@@ -215,6 +278,5 @@ hermes::HermesCtr TypeSignature::parse() const {
 hermes::HermesCtr TypeSignature::parse(U8StringView str) {
     return hermes::HermesCtrView::parse_datatype(str);
 }
-
 
 }

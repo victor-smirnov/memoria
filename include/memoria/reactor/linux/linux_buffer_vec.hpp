@@ -17,7 +17,7 @@
 
 #include <memoria/core/exceptions/exceptions.hpp>
 
-#include "../message/message.hpp"
+#include <memoria/reactor/message/message.hpp>
 #include "../../core/tools/bzero_struct.hpp"
 #include "../../core/tools/perror.hpp"
 

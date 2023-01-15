@@ -578,6 +578,27 @@ public:
         return equals(other);
     }
 
+    template <typename DT>
+    static void check_dataobject(const void* addr, CheckStructureState& state, const char* src)
+    {
+        using StorageT = arena::ArenaDataTypeContainer<DT>;
+        state.check_alignment<StorageT>(addr, src);
+
+        const StorageT* obj
+                = reinterpret_cast<const StorageT*>(addr);
+        obj->check(state, src);
+    }
+
+    template <typename DT>
+    static void check_dataobject(
+            const arena::EmbeddingRelativePtr<void>& ptr,
+            CheckStructureState& state,
+            const char* src
+    ) {
+        using CtrT = arena::ArenaDataTypeContainer<DT>;
+        CtrT::check(ptr, state, src);
+    }
+
 private:
     ShortTypeCode get_type_tag() const noexcept
     {
@@ -655,11 +676,11 @@ public:
     }
 
     template <typename DT>
-    void* deep_copy_to_dt(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
+    void* deep_copy_to_dt(DeepCopyState& dedup) const {
         assert_not_null();
         if (get_vs_tag() == VS_TAG_ADDRESS) {
             auto dtc = reinterpret_cast<arena::ArenaDataTypeContainer<DT>*>(storage_.addr);
-            return dtc->deep_copy_to(arena, ShortTypeCode::of<DT>(), this->get_mem_holder(), dedup);
+            return dtc->deep_copy_to(ShortTypeCode::of<DT>(), dedup);
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Unsupported value tag code: {}", get_vs_tag()).do_throw();

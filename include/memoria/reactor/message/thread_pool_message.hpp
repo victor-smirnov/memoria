@@ -110,7 +110,9 @@ public:
     ThreadPoolMessage(int cpu, Reactor* reactor, FiberContext* fiber_context, Fn&& fn, RtnFn&& rtn_fn, CtrArgs&&... args):
         Base(cpu, reactor, fiber_context, std::move(fn), std::forward<CtrArgs>(args)...),
         rtn_fn_(std::move(rtn_fn))
-    {}
+    {
+
+    }
 
     virtual void finish() noexcept
     {

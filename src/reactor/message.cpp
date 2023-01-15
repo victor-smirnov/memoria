@@ -22,7 +22,6 @@
 namespace memoria {
 namespace reactor {
 
-
 void FiberIOMessage::finish()
 {
     if (!context_)
@@ -54,7 +53,19 @@ void FiberIOMessage::wait_for()
     engine().scheduler()->suspend(fiber_context);
 }
 
+MemoryMessage* MemoryMessage::make_instance(MemoryObject* obj)
+{
+    using PoolT = MessagePool<MemoryMessage>;
+    static thread_local boost::local_shared_ptr<PoolT> pool = boost::make_local_shared<PoolT>();
+    return pool->allocate(engine().cpu(), obj);
+}
 
 
-    
+DummyMessage* DummyMessage::make_instance(int cpu)
+{
+    using PoolT = MessagePool<DummyMessage>;
+    static thread_local boost::local_shared_ptr<PoolT> pool = boost::make_local_shared<PoolT>();
+    return pool->allocate(cpu, true);
+}
+
 }}

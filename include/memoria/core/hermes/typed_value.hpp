@@ -43,11 +43,10 @@ public:
     }
 
     TypedValueData* deep_copy_to(
-            arena::ArenaAllocator& dst,
             ShortTypeCode tag,
-            LWMemHolder* ptr_holder,
-            DeepCopyDeduplicator& dedup) const
+            DeepCopyState& dedup) const
     {
+        auto& dst = dedup.arena();
         TypedValueData* existing = dedup.resolve(dst, this);
         if (MMA_LIKELY((bool)existing)) {
             return existing;
@@ -60,19 +59,36 @@ public:
             {
                 auto tag0 = arena::read_type_tag(datatype_.get());
                 dt_data = dst.get_resolver_for(
-                            get_type_reflection(tag0).deep_copy(dst, ptr_holder, datatype_.get(), dedup));
+                            get_type_reflection(tag0).deep_copy(datatype_.get(), dedup));
             }
 
             if (constructor_.is_not_null())
             {
                 auto tag0 = arena::read_type_tag(constructor_.get());
-                constructor = dst.get_resolver_for(get_type_reflection(tag0).deep_copy(dst, ptr_holder, constructor_.get(), dedup));
+                constructor = dst.get_resolver_for(get_type_reflection(tag0).deep_copy(constructor_.get(), dedup));
             }
 
             TypedValueData* tv_data = dst.allocate_tagged_object<TypedValueData>(tag, dt_data.get(dst), constructor.get(dst));
             dedup.map(dst, this, tv_data);
 
             return tv_data;
+        }
+    }
+
+    void check(CheckStructureState& state) const
+    {
+        state.check_and_set_tagged(this, sizeof(DatatypeData), MA_SRC);
+        state.mark_as_processed(this);
+
+        if (MMA_UNLIKELY(datatype_.is_null())) {
+            MEMORIA_MAKE_GENERIC_ERROR("TypedValue datatype is null").do_throw();
+        }
+
+        state.check_alignment<DatatypeData>(datatype_.get(), MA_SRC);
+        state.check_ptr(datatype_.get(), MA_SRC);
+
+        if (constructor_.is_not_null()) {
+            state.check_ptr(constructor_.get(), MA_SRC);
         }
     }
 };
@@ -132,9 +148,9 @@ public:
         return constructor().is_simple_layout() && datatype().is_simple_layout();
     }
 
-    void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
+    void* deep_copy_to(DeepCopyState& dedup) const {
         assert_not_null();
-        return tv_->deep_copy_to(arena, ShortTypeCode::of<TypedValue>(), mem_holder_, dedup);
+        return tv_->deep_copy_to(ShortTypeCode::of<TypedValue>(), dedup);
     }
 
     bool operator!=(const TypedValueView& other) const {
@@ -162,6 +178,15 @@ public:
 
     operator Object() && noexcept {
         return Object(this->release_mem_holder(), tv_ , MoveOwnershipTag{});
+    }
+
+    static void check_structure(const void* addr, CheckStructureState& state)
+    {
+        state.check_alignment<detail::TypedValueData>(addr, MA_SRC);
+
+        const detail::TypedValueData* tv
+                = reinterpret_cast<const detail::TypedValueData*>(addr);
+        tv->check(state);
     }
 
 

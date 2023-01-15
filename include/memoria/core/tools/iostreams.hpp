@@ -38,6 +38,8 @@ public:
     virtual size_t read(uint8_t* data, size_t size) = 0;
     virtual void close() = 0;
     virtual bool is_closed() const = 0;
+
+    virtual bool is_multiplexed() const {return false;}
 };
 
 
@@ -48,6 +50,8 @@ public:
     virtual void flush() = 0;
     virtual void close() = 0;
     virtual bool is_closed() const = 0;
+
+    virtual bool is_multiplexed() const {return false;}
 };
 
 class IBinaryIOStream: public IBinaryInputStream, public IBinaryOutputStream {

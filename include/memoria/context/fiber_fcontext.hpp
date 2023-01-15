@@ -230,7 +230,7 @@ public:
                 palloc, std::forward< StackAlloc >( salloc), std::forward< Fn >( fn) ) } {
     }
 
-#if defined(BOOST_USE_SEGMENTED_STACKS)
+#if defined(MEMORIA_USE_SEGMENTED_STACKS)
     template< typename Fn >
     fiber( std::allocator_arg_t, segmented_stack, Fn &&);
 

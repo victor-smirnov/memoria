@@ -747,7 +747,7 @@ public:
         return TypeNameFactory<SimpleObjectPool>::name();
     }
 
-    class RefHolder: public SharedPtrHolder {
+    class RefHolder final: public SharedPtrHolder {
         alignas (T) std::byte object_storage_[sizeof(T)];
         boost::local_shared_ptr<SimpleObjectPool> pool_;
 
@@ -771,11 +771,20 @@ public:
 
     protected:
         virtual void dispose() noexcept {
-            pool_->release(this);
+            if (MMA_UNLIKELY(is_put_to_list())) {
+                put_to_list();
+            }
+            else {
+                finalize_memory_object();
+            }
         }
 
         virtual void destroy() noexcept {
             ptr()->~T();
+        }
+
+        void finalize_memory_object() {
+            pool_->release(this);
         }
     };
 
@@ -819,7 +828,7 @@ private:
 template <typename T>
 class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<HeavyObjectPool<T>> {
 
-    class Descriptor: public SharedPtrHolder {
+    class Descriptor final: public SharedPtrHolder {
         T object_;
         Descriptor* next_;
         boost::local_shared_ptr<HeavyObjectPool> pool_;
@@ -838,13 +847,23 @@ class HeavyObjectPool: public PoolBase, public boost::enable_shared_from_this<He
         }
 
     protected:
-        virtual void dispose() noexcept {
-            pool_->release(this);
-            pool_.reset();
+        virtual void dispose() noexcept
+        {
+            if (MMA_UNLIKELY(is_put_to_list())) {
+                put_to_list();
+            }
+            else {
+                finalize_memory_object();
+            }
         }
 
         virtual void destroy() noexcept {
             detail::HeavyObjectResetHelper<T>::process(this->ptr());
+        }
+
+        void finalize_memory_object() {
+            pool_->release(this);
+            pool_.reset();
         }
     };
 

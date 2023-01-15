@@ -35,7 +35,9 @@ public:
     template <typename... CtrArgs>
     AppLambdaMessage(int cpu, Fn&& fn, CtrArgs&&... args): 
         Base(cpu, true, std::forward<Fn>(fn), std::forward<CtrArgs>(args)...)
-    {}
+    {
+        this->run_in_fiber_ = true;
+    }
     
     virtual void finish() 
     {

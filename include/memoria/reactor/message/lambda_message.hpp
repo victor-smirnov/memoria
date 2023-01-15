@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2017-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
 
 #pragma once
 
-#include "message.hpp"
+#include <memoria/reactor/message/message.hpp>
 
+#include <boost/smart_ptr/make_local_shared_object.hpp>
 
 namespace memoria {
 namespace reactor {
@@ -88,7 +89,9 @@ public:
         Message(cpu, one_way),
         fn_(std::move(fn)), 
         args_(std::make_tuple(std::forward<CtrArgs>(args)...))
-    {}
+    {
+        run_in_fiber_ = true;
+    }
     
     virtual void process() noexcept
     {
@@ -132,18 +135,13 @@ public:
     OneWayLambdaMessage(int cpu, Fn&& fn, CtrArgs&&... args): 
         Base(cpu, true, std::forward<Fn>(fn), std::forward<CtrArgs>(args)...)
     {}
-    
-    virtual void finish() 
+
+    virtual void finish()
     {
-        if (exception_) 
-        {
-            auto tmp = exception_;
-            delete this;
-            std::rethrow_exception(tmp);
-        }
-        else {
-            delete this;
-        }
+    }
+
+    virtual void finalize_memory_object() {
+        delete this;
     }
 };
 
@@ -163,11 +161,13 @@ auto make_lambda_message(int cpu, Fn&& fn, Args&&... args)
 template <typename Fn, typename... Args>
 auto make_one_way_lambda_message(int cpu, Fn&& fn, Args&&... args) 
 {
-    using RtnType = std::invoke_result_t<std::decay_t< Fn >, std::decay_t< Args > ...>;
-    
+    using RtnType = std::invoke_result_t<std::decay_t< Fn >, std::decay_t< Args > ...>;    
     using MsgType = OneWayLambdaMessage<RtnType, Fn, Args...>;
     
-    return new MsgType(cpu, std::forward<Fn>(fn), std::forward<Args>(args)...);
+    using PoolT = MessagePool<MsgType>;
+    static thread_local boost::local_shared_ptr<PoolT> pool = boost::make_local_shared<PoolT>();
+
+    return pool->allocate(cpu, std::forward<Fn>(fn), std::forward<Args>(args)...);
 }
 
     

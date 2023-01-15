@@ -599,20 +599,32 @@ public:
     }
 
     ArenaDataTypeContainer* deep_copy_to(
-            ArenaAllocator& dst,
             ShortTypeCode tag,
-            LWMemHolder* mem_holder,
-            DeepCopyDeduplicator& dedup) const
+            hermes::DeepCopyState& dedup) const
     {
+        auto& dst = dedup.arena();
         ArenaDataTypeContainer* str = dedup.resolve(dst, this);
         if (MMA_LIKELY((bool)str)) {
             return str;
         }
         else {
-            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, view(mem_holder));
+            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, view(dedup.mem_holder()));
             dedup.map(dst, this, new_str);
             return new_str;
         }
+    }
+
+    void check(hermes::CheckStructureState& state, const char* src) const
+    {
+
+    }
+
+    static void check(
+        const arena::EmbeddingRelativePtr<void>& ptr,
+        hermes::CheckStructureState& state,
+        const char* src
+    ) {
+
     }
 };
 

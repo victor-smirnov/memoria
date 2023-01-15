@@ -631,6 +631,8 @@ public:
 
         virtual void destroy() noexcept {
         }
+
+        virtual void finalize_memory_object() {}
     };
 
 private:

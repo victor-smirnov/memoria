@@ -15,49 +15,59 @@
 
 #pragma once
 
+#include <memoria/core/memory/shared_ptr.hpp>
+#include <memoria/core/tools/type_name.hpp>
+
 #include <memoria/fiber/context.hpp>
+
+#include <boost/pool/object_pool.hpp>
+#include <boost/smart_ptr/local_shared_ptr.hpp>
 
 #include <exception>
 #include <string>
-
-
 
 namespace memoria {
 namespace reactor {
 
 using FiberContext = memoria::fibers::context;      
-    
-class Message {
+
+
+class Message: public MemoryObject {
 protected:
-    int cpu_;
-    bool one_way_{false};
-    bool return_{false};
-    
+
+    bool one_way_: 1;
+    bool return_: 1;
+    //bool ow_chainable_: 1;
+    bool run_in_fiber_: 1;
+
     void* data_{};
-    
+
     std::exception_ptr exception_;
-    
+
 public:
     Message(int cpu, bool one_way):
-        cpu_(cpu),
-        one_way_(one_way)
-    {}
+        one_way_(one_way),
+        return_(false),
+        run_in_fiber_(false)
+    {
+        this->owner_cpu_ = cpu;
+    }
     
     virtual ~Message() noexcept {}
     
-    int cpu() const {return cpu_;}
+    int cpu() const {return owner_cpu_;}
     
     bool is_one_way() const {return one_way_;}
     bool is_return() const {return return_;}
     bool is_exception() const {return exception_ != nullptr;}
-    
-    void* data() {return data_;}
+    //bool is_ow_chainable() const {return ow_chainable_;}
+    bool is_run_in_fiber() const {return run_in_fiber_;}
+
     void* data() const {return data_;}
     
     void set_data(void* custom_data) {data_ = custom_data;}
     
-    void rethrow() const 
-    {
+    void rethrow() const {
         std::rethrow_exception(exception_);
     }
     
@@ -67,5 +77,107 @@ public:
     virtual std::string describe() = 0;
 };
 
-    
+
+class DummyMessage: public Message {
+public:
+    DummyMessage(int cpu, bool one_way):
+        Message(cpu, one_way)
+    {}
+
+    virtual void process() noexcept {}
+    virtual void finish() {}
+
+    virtual std::string describe() {
+        return "DummyMessage";
+    };
+
+    static DummyMessage* make_instance(int cpu);
+};
+
+
+class MemoryMessage: public Message {
+    MemoryObject* chain_;
+public:
+    MemoryMessage(int cpu, MemoryObject* chain):
+        Message(cpu, true),
+        chain_(chain)
+    {}
+
+    MemoryObject* chain() const {
+        return chain_;
+    }
+
+    virtual void process() noexcept {
+        chain_->run_finalizers();
+    }
+
+    virtual void finish() {}
+
+    virtual std::string describe() {
+        return std::string("MemoryMessage");
+    };
+
+    static MemoryMessage* make_instance(MemoryObject* obj);
+};
+
+template <typename T>
+class MessagePool;
+
+
+template <typename T>
+class MessagePool: public boost::enable_shared_from_this<MessagePool<T>> {
+    static_assert(std::is_base_of_v<Message, T>);
+    size_t allocated_{};
+    size_t max_{};
+public:
+
+    class MessageImpl final: public T {
+        alignas (T) std::byte object_storage_[sizeof(T)];
+        boost::local_shared_ptr<MessagePool> pool_;
+
+    public:
+        template <typename... Args>
+        MessageImpl(boost::local_shared_ptr<MessagePool>&& pool, Args&&... args):
+            T(std::forward<Args>(args)...),
+            pool_(std::move(pool))
+        {}
+
+        virtual ~MessageImpl() noexcept  = default;
+
+    protected:
+
+        void finalize_memory_object() {
+            pool_->release(this);
+        }
+    };
+
+    friend class MessageImpl;
+
+private:
+    boost::object_pool<MessageImpl> alloc_;//{4096};
+
+public:    
+    ~MessagePool() {
+        std::cout << "Delete MessagePool " << TypeNameFactory<T>::name() << std::endl;
+    }
+
+    template <typename... Args>
+    T* allocate(Args&&... args) {
+        allocated_++;
+
+        if (allocated_ > max_) {
+            max_ = allocated_;
+            //std::cout << TypeNameFactory<T>::name() << " " << allocated_ << std::endl;
+        }
+
+        return new (alloc_.malloc()) MessageImpl(this->shared_from_this(), std::forward<Args>(args)...);
+    }
+
+private:
+    void release(MessageImpl* holder) noexcept {
+        alloc_.destroy(holder);
+        allocated_--;
+    }
+};
+
 }}

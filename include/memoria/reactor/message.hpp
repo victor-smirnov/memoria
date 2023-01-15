@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2017-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 #pragma once
 
 
-#include "message/message.hpp"
-#include "message/app_message.hpp"
-#include "message/fiber_lambda_message.hpp"
-#include "message/fiber_message.hpp"
-#include "message/function_message.hpp"
-#include "message/lambda_message.hpp"
+#include <memoria/reactor/message/message.hpp>
+#include <memoria/reactor/message/app_message.hpp>
+#include <memoria/reactor/message/fiber_lambda_message.hpp>
+#include <memoria/reactor/message/fiber_message.hpp>
+#include <memoria/reactor/message/function_message.hpp>
+#include <memoria/reactor/message/lambda_message.hpp>
 
 

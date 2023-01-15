@@ -302,11 +302,10 @@ public:
     }
 
     Map* deep_copy_to(
-            ArenaAllocator& dst,
             ShortTypeCode tag,
-            LWMemHolder* ptr_holder,
-            DeepCopyDeduplicator& dedup) const
+            hermes::DeepCopyState& dedup) const
     {
+        auto& dst = dedup.arena();
         Map* existing = dedup.resolve(dst, this);
         if (MMA_LIKELY((bool)existing)) {
             return existing;
@@ -324,7 +323,7 @@ public:
 
             const Value* src_data = this->data();
             memoria::detail::DeepCopyHelper<Value>::deep_copy_to(
-                dst, data, ptr_holder, src_data, size, dedup
+                data, src_data, size, dedup
             );
 
             return map.get(dst);
@@ -348,6 +347,32 @@ public:
     {
         return object_size(0, 1);
     }
+
+    void check_typed_map(hermes::CheckStructureState& state) const
+    {
+        if (size() <= capacity())
+        {
+            state.mark_as_processed(this);
+            state.check_and_set_tagged(this, object_size(capacity()), MA_SRC);
+
+            const Value* data = this->data();
+
+            for (size_t c = 0; c < size(); c++) {
+                state.check_ptr(data[c], MA_SRC);
+            }
+
+            for (size_t c = size(); c < capacity(); c++) {
+                if (data[c].is_not_null()) {
+                    MEMORIA_MAKE_GENERIC_ERROR("Map<UTinyInt, Object> has non_null empty slot at {}", c).do_throw();
+                }
+            }
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Map<UTinyInt, Object> size/capacity check error: {} {}", size(), capacity()).do_throw();
+        }
+    }
+
+
 
 private:
 

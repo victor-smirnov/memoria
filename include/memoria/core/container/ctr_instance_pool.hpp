@@ -88,6 +88,8 @@ class CtrInstancePool: public std::enable_shared_from_this<CtrInstancePool<Profi
         virtual void destroy() noexcept {
             pool_->release_ctr_instance(this);
         }
+
+        virtual void finalize_memory_object() {}
     };
 
     std::unordered_map<CtrID, CtrRefHolder*> instances_;

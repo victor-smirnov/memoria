@@ -20,6 +20,7 @@
 #include <memoria/core/tools/perror.hpp>
 
 #include "mpsc_queue.hpp"
+#include "mpmc_queue.hpp"
 #include "message.hpp"
 
 #include <vector>
@@ -31,7 +32,7 @@
 namespace memoria {
 namespace reactor {
 
-using WorkerMessageQueue = MPSCQueue<Message*, 1024>;
+using WorkerMessageQueue    = MPMCQueue<Message*, 1024>;
 using WorkerMessageQueuePtr = std::unique_ptr<WorkerMessageQueue>;
 
 template <typename MyType>

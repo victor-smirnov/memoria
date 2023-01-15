@@ -200,9 +200,9 @@ public:
         return array_ != nullptr;
     }
 
-    void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
+    void* deep_copy_to(DeepCopyState& dedup) const {
         assert_not_null();
-        return array_->deep_copy_to(arena, ShortTypeCode::of<Array<Object>>(), mem_holder_, dedup);
+        return array_->deep_copy_to(ShortTypeCode::of<Array<Object>>(), dedup);
     }
 
     operator Object() const & noexcept {
@@ -238,6 +238,15 @@ public:
         }
 
         return is_null() && other.is_null();
+    }
+
+    static void check_structure(const void* addr, CheckStructureState& state)
+    {
+        state.check_alignment<ArrayStorageT>(addr, MA_SRC);
+
+        const ArrayStorageT* array
+                = reinterpret_cast<const ArrayStorageT*>(addr);
+        array->check_object_array(state);
     }
 
 private:

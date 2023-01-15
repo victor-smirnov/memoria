@@ -76,7 +76,7 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
                 msg->finish();
             });
         }
-        else {
+        else if (msg->is_run_in_fiber()) {
             withTime(fiber_stat, [&]{
                 fibers::fiber ff(fibers::launch::dispatch, std::allocator_arg_t(), this->fiber_stack_pool_, [&, msg](){
                     msg->process();
@@ -86,9 +86,7 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
                     }
                     else {
                         try {
-                            withTime(finish_stat, [msg]{
-                                msg->finish();
-                            });
+                            handle_memory_objects(msg);
                         }
                         catch (...) {
                             std::terminate();
@@ -99,11 +97,25 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
                 ff.detach();
             });
         }
+        else {
+            msg->process();
+            if (!msg->is_one_way())
+            {
+                smp_->submit_to(msg->cpu(), msg);
+            }
+            else {
+                try {
+                    handle_memory_objects(msg);
+                }
+                catch (...) {
+                    std::terminate();
+                }
+            }
+        }
     };
 
     uint64_t io_poll_batch = 32;
-
-    while(running_ || fibers::context::contexts() > fibers::DEFAULT_CONTEXTS) 
+    while(running_ || fibers::context::contexts() > fibers::DEFAULT_CONTEXTS)
     {
         if (++io_poll_cnt_ >= io_poll_batch)
         {
@@ -114,7 +126,6 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
 //            if (this->idle_ticks() >= io_poll_batch)
 //            {
 //                auto duration = this->idle_duration();
-
 //                if (duration > 10)
 //                {
 //                    use_long_timeout = true;
@@ -133,16 +144,16 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
             }
         }
 
-		if (event_loop_tasks_.size() > 0) 
-		{
-			for (auto& task : event_loop_tasks_) {
-				task();
-			}
+        if (MMA_UNLIKELY(event_loop_tasks_.size() > 0))
+        {
+            for (auto& task : event_loop_tasks_) {
+                task();
+            }
 
-			event_loop_tasks_.clear();
-		}
+            event_loop_tasks_.clear();
+        }
         
-        smp_->receive_all(cpu_, process_fn);
+        smp_->receive(cpu_, 512, process_fn);
         
         auto acct0 = scheduler_->activations();
 
@@ -152,8 +163,7 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
 
         auto acct1 = scheduler_->activations();
 
-        if (acct1 - acct0 <= service_fibers_)
-        {
+        if (acct1 - acct0 <= service_fibers_) {
             this->inc_idle_ticks();
         }
         else {
@@ -173,6 +183,20 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
     }
     
     thread_pool_.stop_workers();
+}
+
+void Reactor::handle_memory_objects(MemoryObject* obj)
+{
+    MemoryObjectList& list = MemoryObjectList::list(cpu_);
+    list.link(obj);
+
+    if (MMA_UNLIKELY(list.size() >= 1024))
+    {
+        MemoryObject* chain = list.detach_all();
+        MemoryMessage* msg = MemoryMessage::make_instance(chain);
+        int cpu = chain->owner_cpu();
+        smp_->submit_to(cpu, msg);
+    }
 }
 
 int32_t current_cpu() {

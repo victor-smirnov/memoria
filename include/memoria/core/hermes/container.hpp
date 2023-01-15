@@ -33,6 +33,8 @@
 
 #include <memoria/core/hermes/traits.hpp>
 
+#include <memoria/core/tools/iostreams.hpp>
+
 namespace memoria {
 namespace hermes {
 
@@ -82,18 +84,16 @@ protected:
     struct DocumentHeader {
         arena::RelativePtr<void> root;
 
-        DocumentHeader* deep_copy_to(
-                arena::ArenaAllocator& dst,
-                LWMemHolder* ptr_holder,
-                DeepCopyDeduplicator& dedup) const
+        DocumentHeader* deep_copy_to(DeepCopyState& dedup) const
         {
+            arena::ArenaAllocator& dst = dedup.arena();
             auto dh = dst.get_resolver_for(dst.allocate_object_untagged<DocumentHeader>());
             dedup.map(dst, this, dh.get(dst));
 
             if (root.is_not_null())
             {
                 auto tag0 = arena::read_type_tag(root.get());
-                void* new_root = get_type_reflection(tag0).deep_copy(dst, ptr_holder, root.get(), dedup);
+                void* new_root = get_type_reflection(tag0).deep_copy(root.get(), dedup);
                 dh.get(dst)->root = new_root;
             }
             else {
@@ -449,6 +449,8 @@ public:
         return Span<uint8_t>(reinterpret_cast<uint8_t*>(header_), ss_size);
     }
 
+    void check();
+
 protected:
 
 
@@ -467,7 +469,7 @@ protected:
         return const_cast<HermesCtrView*>(this);
     }
 
-    void deep_copy_from(const DocumentHeader* header, DeepCopyDeduplicator& dedup);
+    void deep_copy_from(const DocumentHeader* header, LWMemHolder* mem_holder);
 
     Object do_import_value(const Object& value);
     Object do_import_embeddable(const Object& value);

@@ -55,12 +55,18 @@ public:
     }
 
     virtual void* deep_copy_to(
-            arena::ArenaAllocator& arena,
-            LWMemHolder* ref_holder,
             void* ptr,
-            DeepCopyDeduplicator& dedup) const override
+            hermes::DeepCopyState& dedup) const override
     {
-        return T(ref_holder, ptr).deep_copy_to(arena, dedup);
+        return T(dedup.mem_holder(), ptr).deep_copy_to(dedup);
+    }
+
+    virtual void hermes_check(
+            const void* addr,
+            hermes::CheckStructureState& state,
+            const char*
+    ) const override {
+        T::check_structure(addr, state);
     }
 };
 
@@ -831,12 +837,26 @@ public:
     }
 
     virtual void* deep_copy_to(
-            arena::ArenaAllocator& arena,
-            LWMemHolder* ref_holder,
             void* ptr,
-            DeepCopyDeduplicator& dedup) const override
+            hermes::DeepCopyState& dedup) const override
     {
-        return T(ref_holder, ptr).deep_copy_to_dt<DT>(arena, dedup);
+        return T(dedup.mem_holder(), ptr).deep_copy_to_dt<DT>(dedup);
+    }
+
+    virtual void hermes_check(
+            const void* addr,
+            hermes::CheckStructureState& state,
+            const char* src
+    ) const override {
+        T::check_dataobject<DT>(addr, state, src);
+    }
+
+    virtual void hermes_check_embedded(
+            const arena::EmbeddingRelativePtr<void>& ptr,
+            hermes::CheckStructureState& state,
+            const char* src
+    ) const override {
+         T::check_dataobject<DT>(ptr, state, src);
     }
 };
 

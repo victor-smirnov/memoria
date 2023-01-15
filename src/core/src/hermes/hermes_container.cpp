@@ -21,8 +21,10 @@ namespace memoria {
 namespace hermes {
 
 
-void HermesCtrView::deep_copy_from(const DocumentHeader* src, DeepCopyDeduplicator& dedup) {
-    header_ = src->deep_copy_to(*arena_, mem_holder_, dedup);
+void HermesCtrView::deep_copy_from(const DocumentHeader* src, LWMemHolder* mem_holder) {
+
+    DeepCopyState dedup(*arena_, mem_holder);
+    header_ = src->deep_copy_to(dedup);
 }
 
 HermesCtr HermesCtrView::compactify(bool make_immutable) const
@@ -39,8 +41,7 @@ HermesCtr HermesCtrView::compactify(bool make_immutable) const
 
     HermesCtr ctr(&arena->mem_holder(), arena.get());
 
-    DeepCopyDeduplicator dedup;
-    ctr.deep_copy_from(header_, dedup);
+    ctr.deep_copy_from(header_, mem_holder_);
 
     return ctr;
 }
@@ -56,9 +57,7 @@ HermesCtr HermesCtrView::clone(bool as_mutable) const
             auto arena = TL_allocate_shared<arena::PoolableArena>(arena::AllocationType::GROWABLE_SINGLE_CHUNK, chunk_size);
 
             HermesCtr ctr(&arena->mem_holder(), arena.get());
-
-            DeepCopyDeduplicator dedup;
-            ctr.deep_copy_from(header_, dedup);
+            ctr.deep_copy_from(header_, mem_holder_);
 
             if (as_mutable) {
                 arena->switch_to_chunked_mode();
@@ -130,8 +129,8 @@ Object HermesCtrView::do_import_value(const Object& value)
             {
                 auto tag = arena::read_type_tag(value.storage_.addr);
 
-                DeepCopyDeduplicator dedup;
-                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, mem_holder_, value.storage_.addr, dedup);
+                DeepCopyState dedup(*arena_, mem_holder_);
+                auto addr = get_type_reflection(tag).deep_copy_to(value.storage_.addr, dedup);
 
                 return Object(mem_holder_, addr);
             }
@@ -175,8 +174,8 @@ Object HermesCtrView::import_object(const Object& object)
             {
                 auto tag = arena::read_type_tag(object.storage_.addr);
 
-                DeepCopyDeduplicator dedup;
-                auto addr = get_type_reflection(tag).deep_copy_to(*arena_, mem_holder_, object.storage_.addr, dedup);
+                DeepCopyState dedup(*arena_, mem_holder_);
+                auto addr = get_type_reflection(tag).deep_copy_to(object.storage_.addr, dedup);
 
                 return Object(mem_holder_, addr);
             }
@@ -319,6 +318,17 @@ Object HermesCtrView::import_small_object(const Object& object)
         return object;
     }
 }
+
+
+
+void HermesCtrView::check()
+{
+    CheckStructureState state(*arena_);
+    if (header_ && header_->root.is_not_null()) {
+        state.check_ptr(header_->root, MA_SRC);
+    }
+}
+
 
 }
 

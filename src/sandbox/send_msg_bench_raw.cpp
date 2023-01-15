@@ -2,9 +2,6 @@
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/strings/format.hpp>
 
-//#include <rigtorp/SPSCQueue.h>
-//#include <rigtorp/MPMCQueue.h>
-
 #include <boost/pool/object_pool.hpp>
 #include <memoria/core/memory/object_pool.hpp>
 #include <boost/smart_ptr.hpp>
@@ -13,7 +10,6 @@
 #include <queue>
 #include <set>
 #include <unordered_set>
-
 
 using namespace memoria::reactor;
 

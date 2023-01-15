@@ -136,6 +136,41 @@ class Map {
             size -= 1;
         }
 
+
+
+        void check_for_object_map(hermes::CheckStructureState& state) const
+        {
+            for (size_t c = 0; c < size; c++) {
+                state.check_ptr(keys()[c].get(), MA_SRC);
+                state.check_ptr(values()[c], MA_SRC);
+            }
+
+            for (size_t c = size; c < capacity; c++)
+            {
+                if (MMA_UNLIKELY(keys()[c].is_not_null())){
+                    MEMORIA_MAKE_GENERIC_ERROR("Empty key slot is not null for {}", c);
+                }
+
+                if (MMA_UNLIKELY(values()[c].is_not_null())){
+                    MEMORIA_MAKE_GENERIC_ERROR("Empty value slot is not null for {}", c);
+                }
+            }
+        }
+
+        void check_for_typed_map(hermes::CheckStructureState& state) const
+        {
+            for (size_t c = 0; c < size; c++) {
+                state.check_ptr(values()[c], MA_SRC);
+            }
+
+            for (size_t c = size; c < capacity; c++)
+            {
+                if (MMA_UNLIKELY(values()[c].is_not_null())){
+                    MEMORIA_MAKE_GENERIC_ERROR("Empty value slot is not null for {}", c);
+                }
+            }
+        }
+
     private:
         static size_t keys_block_size(size_t capacity)
         {
@@ -366,6 +401,88 @@ public:
         while (ii != end) {
             fn(ii.key(), ii.value());
             ii.next();
+        }
+    }
+
+    void check_typed_map(hermes::CheckStructureState& state) const {
+        check_map(state, [&](const Bucket* bucket){
+            bucket->check_for_typed_map(state);
+        });
+    }
+
+    void check_object_map(hermes::CheckStructureState& state) const {
+        check_map(state, [&](const Bucket* bucket){
+            bucket->check_for_object_map(state);
+        });
+    }
+
+    void check_map(
+            hermes::CheckStructureState& state,
+            std::function<void(const Bucket*)> bucket_checker
+    ) const
+    {
+        state.mark_as_processed(this);
+        state.check_and_set_tagged(this, sizeof(Map), MA_SRC);
+
+        if (buckets_capacity_)
+        {
+            if (buckets_.is_null()) {
+                MEMORIA_MAKE_GENERIC_ERROR(
+                            "Hash array must not be null for an empty Map<T, Object>"
+                            ).do_throw();
+            }
+
+            state.check_alignment<BucketRelPtr>(buckets_.get(), MA_SRC);
+
+            state.check_unique_and_mark_as_processed(
+                        buckets_.get(),
+                        MA_SRC
+                        );
+
+            state.check_and_set(
+                        buckets_.get(),
+                        capacity() * sizeof(BucketRelPtr),
+                        MA_SRC
+                        );
+
+            const BucketRelPtr* buckets = buckets_.get();
+
+            for (size_t c = 0; c < capacity(); c++)
+            {
+                if (buckets[c].is_not_null())
+                {
+                    const Bucket* bucket = buckets[c].get();
+                    state.check_alignment<Bucket>(bucket, MA_SRC);
+
+                    state.check_unique_and_mark_as_processed(
+                                bucket,
+                                MA_SRC
+                                );
+
+                    state.check_and_set(
+                                bucket,
+                                Bucket::object_size(bucket->capacity),
+                                MA_SRC
+                                );
+
+                    if (MMA_UNLIKELY(bucket->size > bucket->capacity))
+                    {
+                        MEMORIA_MAKE_GENERIC_ERROR(
+                                    "Bucket sizes exceeds capacity: {} {}",
+                                    bucket->size, bucket->capacity
+                                    ).do_throw();
+                    }
+
+                    bucket_checker(bucket);
+                }
+            }
+        }
+        else {
+            if (buckets_.is_not_null()) {
+                MEMORIA_MAKE_GENERIC_ERROR(
+                            "Hash array must be null for an empty Map<T, Object>"
+                            ).do_throw();
+            }
         }
     }
     
@@ -633,11 +750,10 @@ public:
 
 
     Map* deep_copy_to(
-            ArenaAllocator& dst,
             ShortTypeCode tag,
-            LWMemHolder* ptr_holder,
-            DeepCopyDeduplicator& dedup) const
+            hermes::DeepCopyState& dedup) const
     {
+        auto& dst = dedup.arena();
         Map* existing = dedup.resolve(dst, this);
         if (MMA_LIKELY((bool)existing)) {
             return existing;
@@ -672,8 +788,8 @@ public:
                         auto keys   = dst.get_resolver_for(dst_bucket.get(dst)->keys());
                         auto values = dst.get_resolver_for(dst_bucket.get(dst)->values());
 
-                        memoria::detail::DeepCopyHelper<KeyHolder>::deep_copy_to(dst, keys, ptr_holder, src_bucket->keys(), src_bucket->size, dedup);
-                        memoria::detail::DeepCopyHelper<ValueHolder>::deep_copy_to(dst, values, ptr_holder, src_bucket->values(), src_bucket->size, dedup);
+                        memoria::detail::DeepCopyHelper<KeyHolder>::deep_copy_to(keys, src_bucket->keys(), src_bucket->size, dedup);
+                        memoria::detail::DeepCopyHelper<ValueHolder>::deep_copy_to(values, src_bucket->values(), src_bucket->size, dedup);
                     }                    
                 }
             }

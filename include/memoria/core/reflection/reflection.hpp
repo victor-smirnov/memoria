@@ -18,6 +18,7 @@
 
 #include <memoria/core/tools/uid_256.hpp>
 #include <memoria/core/hermes/common.hpp>
+#include <memoria/core/hermes/serialization.hpp>
 #include <memoria/core/memory/shared_ptr.hpp>
 
 #include <memoria/core/arena/arena.hpp>
@@ -44,8 +45,6 @@ struct IDatatypeConverter {
     virtual hermes::Object convert(const void* view) const = 0;
 };
 
-
-class DeepCopyDeduplicator;
 
 class TypeReflection: public std::enable_shared_from_this<TypeReflection> {
 public:
@@ -88,21 +87,17 @@ public:
 
     template <typename T>
     T* deep_copy(
-            arena::ArenaAllocator& arena,
-            LWMemHolder* ref_holder,
             T* src,
-            DeepCopyDeduplicator& dedup
+            hermes::DeepCopyState& dedup
     ) const {
         return reinterpret_cast<T*>(
-            deep_copy_to(arena, ref_holder, src, dedup)
+            deep_copy_to(src, dedup)
         );
     }
 
     virtual void* deep_copy_to(
-            arena::ArenaAllocator&,
-            LWMemHolder*,
             void*,
-            DeepCopyDeduplicator&
+            hermes::DeepCopyState&
     ) const {
         MEMORIA_MAKE_GENERIC_ERROR("Deep copy is not implemented for class {}", str()).do_throw();
     }
@@ -198,7 +193,33 @@ public:
     ) const {
         MEMORIA_MAKE_GENERIC_ERROR("GenericObject API is not supported for type {}", str()).do_throw();
     }
+
+    virtual void hermes_serialize(
+            hermes::ValueStorageTag,
+            hermes::ValueStorage&,
+            hermes::SerializationState&
+    ) {
+        MEMORIA_MAKE_GENERIC_ERROR("Hermes binary serialization is not supported for type {}", str()).do_throw();
+    }
+
+    virtual void hermes_check(
+            const void* addr,
+            hermes::CheckStructureState& state,
+            const char* src
+    ) const {
+        MEMORIA_MAKE_GENERIC_ERROR("Hermes structure checking is not supported for type {} at {}", str(), src).do_throw();
+    }
+
+    virtual void hermes_check_embedded(
+            const arena::EmbeddingRelativePtr<void>& ptr,
+            hermes::CheckStructureState& state,
+            const char* src
+    ) const {
+        MEMORIA_MAKE_GENERIC_ERROR("Hermes structure checking is not supported for type {} at {}", str(), src).do_throw();
+    }
 };
+
+
 
 
 template <typename T>
@@ -271,25 +292,6 @@ void register_ctr_type_reflection()
 
 
 
-class DeepCopyDeduplicator {
-    ska::flat_hash_map<const void*, arena::AddrResolver<void>> addr_map_;
-public:
-
-    template <typename T>
-    T* resolve(arena::ArenaAllocator& arena, const T* src) noexcept
-    {
-        auto ii = addr_map_.find(src);
-        if (ii != addr_map_.end()) {
-            return reinterpret_cast<T*>(ii->second.get(arena));
-        }
-        return nullptr;
-    }
-
-    template <typename T>
-    void map(arena::ArenaAllocator& arena, const T* src, T* dst) {
-        addr_map_[src] = arena.get_resolver_for(static_cast<void*>(dst));
-    }
-};
 
 namespace arena {
     template <typename T>
@@ -301,24 +303,20 @@ namespace detail {
 template <typename T>
 struct DeepCopyHelper {
     static void deep_copy_to(
-            arena::ArenaAllocator& arena,
             arena::AddrResolver<T>& dst,
-            LWMemHolder* ref_holder,
             const T* src, size_t size,
-            DeepCopyDeduplicator& dedup
+            hermes::DeepCopyState& dedup
     ) {
-        std::memcpy(dst.get(arena), src, size * sizeof(T));
+        std::memcpy(dst.get(dedup.arena()), src, size * sizeof(T));
     }
 };
 
 template <typename T>
 struct DeepCopyHelper<arena::RelativePtr<T>> {
     static void deep_copy_to(
-            arena::ArenaAllocator& arena,
             arena::AddrResolver<arena::RelativePtr<T>>& dst,
-            LWMemHolder* ref_holder,
             const arena::RelativePtr<T>* src, size_t size,
-            DeepCopyDeduplicator& dedup
+            hermes::DeepCopyState& dedup
     )
     {
         for (size_t c = 0; c < size; c++)
@@ -326,11 +324,11 @@ struct DeepCopyHelper<arena::RelativePtr<T>> {
             if (src[c].is_not_null())
             {
                 auto tag = arena::read_type_tag(src[c].get());
-                T* ptr = ptr_cast<T>(get_type_reflection(tag).deep_copy_to(arena, ref_holder, src[c].get(), dedup));
-                dst.get(arena)[c] = ptr;
+                T* ptr = ptr_cast<T>(get_type_reflection(tag).deep_copy_to(src[c].get(), dedup));
+                dst.get(dedup.arena())[c] = ptr;
             }
             else {
-                dst.get(arena)[c] = nullptr;
+                dst.get(dedup.arena())[c] = nullptr;
             }
         }
     }
@@ -340,11 +338,9 @@ struct DeepCopyHelper<arena::RelativePtr<T>> {
 template <typename T>
 struct DeepCopyHelper<arena::EmbeddingRelativePtr<T>> {
     static void deep_copy_to(
-            arena::ArenaAllocator& arena,
             arena::AddrResolver<arena::EmbeddingRelativePtr<T>>& dst,
-            LWMemHolder* ref_holder,
             const arena::EmbeddingRelativePtr<T>* src, size_t size,
-            DeepCopyDeduplicator& dedup
+            hermes::DeepCopyState& dedup
     )
     {
         for (size_t c = 0; c < size; c++)
@@ -354,23 +350,20 @@ struct DeepCopyHelper<arena::EmbeddingRelativePtr<T>> {
                 if (src[c].is_not_null())
                 {
                     auto tag = arena::read_type_tag(src[c].get());
-                    T* ptr = ptr_cast<T>(get_type_reflection(tag).deep_copy_to(arena, ref_holder, src[c].get(), dedup));
-                    dst.get(arena)[c] = ptr;
+                    T* ptr = ptr_cast<T>(get_type_reflection(tag).deep_copy_to(src[c].get(), dedup));
+                    dst.get(dedup.arena())[c] = ptr;
                 }
                 else {
-                    dst.get(arena)[c] = nullptr;
+                    dst.get(dedup.arena())[c] = nullptr;
                 }
             }
             else {
-                dst.get(arena)[c] = src[c];
+                dst.get(dedup.arena())[c] = src[c];
             }
-
         }
     }
 };
 
-
 }
-
 
 }

@@ -16,7 +16,7 @@
 #pragma once
 
 #ifdef MMA_NO_REACTOR
-#error ractor.hpp is inluded while MMA_NO_REACTOR is defined
+#error reactor.hpp is inluded while MMA_NO_REACTOR is defined
 #endif
 
 #include <memoria/core/config.hpp>
@@ -74,9 +74,9 @@ class Reactor: public std::enable_shared_from_this<Reactor> {
     
     IOPoller io_poller_;
     
-    fibers::protected_stack_pool fiber_stack_pool_{16, 256 * 1024};
+    fibers::protected_stack_pool fiber_stack_pool_{8, 16 * 1024 * 1024};
     //fibers::protected_fixedsize_stack fiber_stack_pool_{};
-    
+
     uint64_t io_poll_cnt_{};
     uint64_t yield_cnt_{};
 
@@ -279,7 +279,11 @@ public:
 	void send_message(Message* message) {
 		smp_->submit_to(message->cpu(), message);
 	}
-    
+
+    void send_message(int cpu, Message* message) {
+        smp_->submit_to(cpu, message);
+    }
+
     friend class Application;
     friend Reactor& engine();
     friend bool has_engine();
@@ -361,6 +365,8 @@ private:
     
     void start();    
     void event_loop(uint64_t iopoll_timeout);
+
+    void handle_memory_objects(MemoryObject* obj);
 };
 
 bool has_engine();

@@ -111,9 +111,9 @@ template <typename Reactor, typename Fn, typename... Args>
 auto make_fiber_lambda_message(int cpu, Reactor* reactor, FiberContext* context, Fn&& fn, Args&&... args) 
 {
     using RtnType = std::invoke_result_t<std::decay_t< Fn >, std::decay_t< Args > ... >;
-    
+
     using MsgType = FiberLambdaMessage<Reactor, RtnType, Fn, Args...>;
-    
+
     return std::make_unique<MsgType>(cpu, reactor, context, std::forward<Fn>(fn), std::forward<Args>(args)...);
 }
 

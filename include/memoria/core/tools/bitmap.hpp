@@ -1,5 +1,5 @@
 
-// Copyright 2011-2022 Victor Smirnov
+// Copyright 2011-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -381,6 +381,58 @@ void SetBit(Buffer& buf, size_t idx, int32_t value) noexcept
     }
 }
 
+template <typename T>
+void SetBit(T* buf, size_t idx, int32_t value) noexcept
+{
+    const size_t mask       = TypeBitmask<T>();
+    const size_t divisor    = TypeBitmaskPopCount(mask);
+
+    size_t haddr    = (idx & ~mask) >> divisor;
+    size_t laddr    = idx & mask;
+
+    T& ref          = buf[haddr];
+
+    T bit           = ((T)0x1) << laddr;
+
+    if (value)
+    {
+        ref |= bit;
+    }
+    else {
+        ref &= ~bit; // clear bit
+    }
+}
+
+template <typename T>
+void SetBit(T* buf, size_t idx) noexcept
+{
+    const size_t mask       = TypeBitmask<T>();
+    const size_t divisor    = TypeBitmaskPopCount(mask);
+
+    size_t haddr    = (idx & ~mask) >> divisor;
+    size_t laddr    = idx & mask;
+
+    T& ref          = buf[haddr];
+    T bit           = ((T)0x1) << laddr;
+
+    ref |= bit;
+}
+
+template <typename T>
+void ClearBit(T* buf, size_t idx) noexcept
+{
+    const size_t mask       = TypeBitmask<T>();
+    const size_t divisor    = TypeBitmaskPopCount(mask);
+
+    size_t haddr    = (idx & ~mask) >> divisor;
+    size_t laddr    = idx & mask;
+
+    T& ref          = buf[haddr];
+    T bit           = ((T)0x1) << laddr;
+
+    ref &= ~bit;
+}
+
 /**
  * get one bit (0, 1) from buffer 'buf' at address 'idx'.
  */
@@ -464,6 +516,7 @@ inline GetBits0(const Buffer& buf, size_t idx, int32_t nbits) noexcept
     }
 }
 
+// FIXME: Broken
 template <typename T>
 inline bool TestBits(const T* buf, size_t idx, T bits, int32_t nbits) noexcept
 {
@@ -488,7 +541,7 @@ inline bool TestBit(const T* buf, size_t idx) noexcept
     size_t haddr = (idx & ~mask) >> divisor;
     size_t laddr = idx & mask;
 
-    return buf[haddr] & (static_cast<T>(1)<<laddr);
+    return buf[haddr] & (static_cast<T>(1) << laddr);
 }
 
 

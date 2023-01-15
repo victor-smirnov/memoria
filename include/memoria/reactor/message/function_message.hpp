@@ -34,7 +34,9 @@ public:
     OneWayFunctionMessage(int cpu, const std::function<void()>& fn): 
         Message(cpu, true),
         fn_(fn)
-    {}
+    {
+        run_in_fiber_ = true;
+    }
     
     virtual void process() noexcept 
     {

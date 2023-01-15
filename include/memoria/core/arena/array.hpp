@@ -23,6 +23,8 @@
 #include <memoria/core/tools/result.hpp>
 
 #include <memoria/core/reflection/reflection.hpp>
+#include <memoria/core/hermes/serialization.hpp>
+
 
 namespace memoria {
 namespace arena {
@@ -160,12 +162,12 @@ public:
     }
 
     Array* deep_copy_to(
-            ArenaAllocator& dst,
             ShortTypeCode tag,
-            LWMemHolder* ptr_holder,
-            DeepCopyDeduplicator& dedup) const
+            hermes::DeepCopyState& dedup) const
     {
-        Array* existing = dedup.resolve(dst, this);
+        auto& dst = dedup.arena();
+
+        Array* existing = dedup.resolve(dedup.arena(), this);
         if (MMA_LIKELY((bool)existing)) {
             return existing;
         }
@@ -179,9 +181,47 @@ public:
             auto data = dst.get_resolver_for(vv.get(dst)->data());
 
             const T* src_data = this->data();
-            memoria::detail::DeepCopyHelper<T>::deep_copy_to(dst, data, ptr_holder, src_data, size_, dedup);
+            memoria::detail::DeepCopyHelper<T>::deep_copy_to(data, src_data, size_, dedup);
 
             return vv.get(dst);
+        }
+    }
+
+    void check_typed_array(hermes::CheckStructureState& state) const
+    {
+        state.mark_as_processed(this);
+        state.check_and_set_tagged(this, object_size(capacity_), MA_SRC);
+
+
+        if (size_ > capacity_) {
+            MEMORIA_MAKE_GENERIC_ERROR("Array<T> size/capacity check error: {} {}", size_, capacity_).do_throw();
+        }
+    }
+
+    void check_object_array(hermes::CheckStructureState& state) const
+    {
+        state.mark_as_processed(this);
+        state.check_and_set_tagged(this, object_size(capacity_), MA_SRC);
+
+        if (size_ > capacity_) {
+            MEMORIA_MAKE_GENERIC_ERROR("Array<Object> size/capacity check error: {} {}", size_, capacity_).do_throw();
+        }
+
+        for (size_t c = 0; c < size_; c++) {
+            state.check_ptr(get(c), MA_SRC);
+        }
+
+        for (size_t c = size_; c < capacity_; c++)
+        {
+            if (get(c).is_pointer())
+            {
+                if (get(c).is_not_null()) {
+                    MEMORIA_MAKE_GENERIC_ERROR("Array<Object> element {} must be null at {}", c, MA_SRC).do_throw();
+                }
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR("Array<Object> element {} must be pointer at {}", c, MA_SRC).do_throw();
+            }
         }
     }
 };

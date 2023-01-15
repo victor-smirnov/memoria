@@ -45,16 +45,21 @@ class ArenaDataTypeContainer<Varchar, Selector> {
 public:
     static constexpr bool UseObjectSize = true;
 
-    ArenaDataTypeContainer(ViewT view) {
+    ArenaDataTypeContainer(ViewT view)
+    {
         uint8_t* buffer = raw_data();
         size_t len = u64_56_vlen_value_size(view.length());
         encode_u64_56_vlen(buffer, view.length());
         CopyByteBuffer(view.data(), buffer + len, view.length());
     }
 
-    static uint64_t object_size(ViewT view)
+    static uint64_t object_size(ViewT view) {
+        return object_size(view.length());
+    }
+
+    static uint64_t object_size(size_t str_len)
     {
-        size_t len = view.length();
+        size_t len = str_len;
         size_t len_len = u64_56_vlen_value_size(len);
         return len_len + len;
     }
@@ -65,6 +70,13 @@ public:
         uint64_t size{};
         size_t len_len = decode_u64_56_vlen(buffer, size);
         return OViewT(ptr_holder, ptr_cast<char>(buffer + len_len), size);
+    }
+
+    size_t object_size() const noexcept {
+        const uint8_t* buffer = raw_data();
+        uint64_t size{};
+        size_t len_len = decode_u64_56_vlen(buffer, size);
+        return len_len + size;
     }
 
     ViewT view() const noexcept
@@ -114,18 +126,17 @@ public:
     }
 
     ArenaDataTypeContainer* deep_copy_to(
-            ArenaAllocator& dst,
             ShortTypeCode tag,
-            LWMemHolder* mem_holder,
-            DeepCopyDeduplicator& dedup
+            hermes::DeepCopyState& dedup
     ) const
     {
+        auto& dst = dedup.arena();
         ArenaDataTypeContainer* str = dedup.resolve(dst, this);
         if (MMA_LIKELY((bool)str)) {
             return str;
         }
         else {
-            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, view(mem_holder));
+            ArenaDataTypeContainer* new_str = dst.template allocate_tagged_object<ArenaDataTypeContainer>(tag, view(dedup.mem_holder()));
             dedup.map(dst, this, new_str);
             return new_str;
         }
@@ -137,6 +148,22 @@ public:
         size_t len_len = u64_56_len_len(view.length());
         return ptr_cast<void*>(addr - len_len);
     }
+
+    void check(hermes::CheckStructureState& state, const char* src) const {
+        state.check_and_set_tagged(
+                this,
+                object_size(),
+                src
+        );
+
+        state.mark_as_processed(this);
+    }
+
+    static void check(
+        const arena::EmbeddingRelativePtr<void>& ptr,
+        hermes::CheckStructureState& state,
+        const char* src
+    ) {}
 
 private:
     uint8_t* raw_data() noexcept {

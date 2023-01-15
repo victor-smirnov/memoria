@@ -1,5 +1,5 @@
 
-// Copyright 2011-2023 Victor Smirnov
+// Copyright 2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,17 +13,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/core/types.hpp>
+#include <memoria/core/memory/shared_ptr.hpp>
+#include <memoria/core/tools/result.hpp>
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
+#include <memoria/reactor/reactor.hpp>
 
 namespace memoria {
 
-int64_t DebugCounter = 0;
-int64_t DebugCounter1 = 0;
-int64_t DebugCounter2 = 0;
-int64_t DebugCounter3 = 0;
+std::vector<MemoryObjectList>& MemoryObjectList::object_lists() {
+    int cpus = reactor::engine().cpu_num();
+    static thread_local std::vector<MemoryObjectList> lists(cpus);
+    return lists;
+}
+
+void MemoryObjectList::link(MemoryObject* msg)
+{
+    int cpu = reactor::engine().cpu();
+    MemoryObjectList& list = object_lists()[cpu];
+    msg->next_ = list.head_;
+    list.head_ = msg;
+    list.size_++;
+}
 
 }

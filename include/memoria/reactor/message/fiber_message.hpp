@@ -24,9 +24,6 @@
 namespace memoria {
 namespace reactor {
 
-
-    
-
 template <typename Reactor>
 class FiberMessage: public Message {
 protected:
@@ -40,9 +37,11 @@ public:
         Message(cpu, false), 
         reactor_(reactor),
         fiber_context_(fiber_context)
-    {}
+    {
+        run_in_fiber_ = true;
+    }
     
-    virtual ~FiberMessage() {}
+    virtual ~FiberMessage() noexcept {}
     
     FiberContext* fiber_context() {return fiber_context_;}
     

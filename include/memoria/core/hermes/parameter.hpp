@@ -156,9 +156,9 @@ public:
         return true;
     }
 
-    void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
+    void* deep_copy_to(DeepCopyState& dedup) const {
         assert_not_null();
-        return dt_ctr_->deep_copy_to(arena, ShortTypeCode::of<Parameter>(), mem_holder_, dedup);
+        return dt_ctr_->deep_copy_to(ShortTypeCode::of<Parameter>(), dedup);
     }
 
     int32_t compare(const Parameter& other) const
@@ -197,6 +197,15 @@ public:
 
     operator Object() && noexcept {
         return Object(this->release_mem_holder(), dt_ctr_ , MoveOwnershipTag{});
+    }
+
+    static void check_structure(const void* addr, CheckStructureState& state)
+    {
+        state.check_alignment<ArenaDTContainer>(addr, MA_SRC);
+
+        const ArenaDTContainer* param
+                = reinterpret_cast<const ArenaDTContainer*>(addr);
+        param->check(state, MA_SRC);
     }
 
 private:

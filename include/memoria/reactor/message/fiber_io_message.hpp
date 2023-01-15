@@ -36,6 +36,7 @@ public:
         Message(cpu, false)
     {
         return_ = true;
+        run_in_fiber_ = true;
     }
     
     virtual ~FiberIOMessage() noexcept {}

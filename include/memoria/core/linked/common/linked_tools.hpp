@@ -120,41 +120,4 @@ public:
     }
 };
 
-
-namespace linked_ {
-
-    template <typename T> struct DeepCopyHelper;
-
-    template <typename T, typename HolderT, typename Arena>
-    struct DeepCopyHelper<LinkedPtr<T, HolderT, Arena>>
-    {
-        using PtrT = LinkedPtr<T, HolderT, Arena>;
-
-        template <typename AddressMapping>
-        static PtrT deep_copy(Arena* dst, const Arena* src, PtrT ptr, AddressMapping& address_mapping)
-        {
-            auto ii = address_mapping.find(ptr.get());
-            if (MMA_UNLIKELY(ii != address_mapping.end()))
-            {
-                return ii->second;
-            }
-            else {
-                PtrT new_ptr = ptr.get(src)->deep_copy_to(dst, address_mapping);
-                address_mapping[ptr.get()] = new_ptr;
-                return new_ptr;
-            }
-        }
-    };
-
-    template <typename T>
-    struct DeepCopyHelper
-    {
-        template <typename Arena, typename AddressMapping>
-        static const T& deep_copy(Arena* dst, const Arena* src, const T& value, AddressMapping& address_mapping)
-        {
-            return value;
-        }
-    };
-}
-
 }

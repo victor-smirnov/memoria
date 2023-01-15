@@ -10,8 +10,10 @@
 #include <mutex>
 #include <new>
 
-#include "memoria/fiber/exceptions.hpp"
-#include "memoria/fiber/scheduler.hpp"
+#include <memoria/fiber/exceptions.hpp>
+#include <memoria/fiber/scheduler.hpp>
+
+#include <memoria/fiber/protected_fixedsize_stack.hpp>
 
 
 namespace memoria {
@@ -25,6 +27,8 @@ public:
 };
 
 class dispatcher_context final : public context {
+    using default_stack = protected_fixedsize_stack;
+
 private:
     memoria::context::fiber
     run_( memoria::context::fiber && c){
@@ -53,7 +57,7 @@ public:
 };
 
 static ::boost::intrusive_ptr< context > make_dispatcher_context() {
-    default_stack salloc(256*1024); // use default satck-size
+    protected_fixedsize_stack salloc(16 * 1024 * 1024); // use default satck-size
     auto sctx = salloc.allocate();
     // reserve space for control structure
     void * storage = reinterpret_cast< void * >(

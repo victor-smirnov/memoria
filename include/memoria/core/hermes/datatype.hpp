@@ -230,18 +230,17 @@ public:
     }
 
     DatatypeData* deep_copy_to(
-            arena::ArenaAllocator& dst,
             ShortTypeCode tag,
-            LWMemHolder* ptr_holder,
-            DeepCopyDeduplicator& dedup) const
+            DeepCopyState& dedup) const
     {
+        auto& dst = dedup.arena();
         DatatypeData* existing = dedup.resolve(dst, this);
         if (MMA_LIKELY((bool)existing)) {
             return existing;
         }
         else {
             arena::ArenaString * name_ptr =
-                get_type_reflection(ShortTypeCode::of<Varchar>()).deep_copy(dst, ptr_holder, name_.get(), dedup);
+                get_type_reflection(ShortTypeCode::of<Varchar>()).deep_copy(name_.get(), dedup);
 
             auto dtd = dst.get_resolver_for(dst.template allocate_tagged_object<DatatypeData>(
                 tag, name_ptr
@@ -252,7 +251,7 @@ public:
             if (parameters_.is_not_null())
             {
                 auto par_tag = arena::read_type_tag(parameters_.get());
-                arena::GenericVector* ptr = get_type_reflection(par_tag).deep_copy(dst, ptr_holder, parameters_.get(), dedup);
+                arena::GenericVector* ptr = get_type_reflection(par_tag).deep_copy(parameters_.get(), dedup);
                 dtd.get(dst)->parameters_ = ptr;
             }
             else {
@@ -262,7 +261,7 @@ public:
             if (constructor_.is_not_null())
             {
                 auto ctr_tag = arena::read_type_tag(constructor_.get());
-                arena::GenericVector* ptr = get_type_reflection(ctr_tag).deep_copy(dst, ptr_holder, constructor_.get(), dedup);
+                arena::GenericVector* ptr = get_type_reflection(ctr_tag).deep_copy(constructor_.get(), dedup);
                 dtd.get(dst)->constructor_ = ptr;
             }
             else {
@@ -270,6 +269,29 @@ public:
             }
 
             return dtd.get(dst);
+        }
+    }
+
+    void check(CheckStructureState& state) const
+    {
+        state.check_and_set_tagged(this, sizeof(DatatypeData), MA_SRC);
+        state.mark_as_processed(this);
+
+        if (MMA_UNLIKELY(name_.is_null())) {
+            MEMORIA_MAKE_GENERIC_ERROR("Datatype name is null").do_throw();
+        }
+
+        state.check_alignment<arena::ArenaString>(name_.get(), MA_SRC);
+        state.check_ptr(name_.get(), MA_SRC);
+
+        if (parameters_.is_not_null()) {
+            state.check_alignment<arena::GenericVector>(parameters_.get(), MA_SRC);
+            state.check_ptr(parameters_.get(), MA_SRC);
+        }
+
+        if (constructor_.is_not_null()) {
+            state.check_alignment<arena::GenericVector>(constructor_.get(), MA_SRC);
+            state.check_ptr(constructor_.get(), MA_SRC);
         }
     }
 };
@@ -469,9 +491,9 @@ public:
         datatype_->extras().set_refs_size(size);
     }
 
-    void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
+    void* deep_copy_to(DeepCopyState& dedup) const {
         assert_not_null();
-        return datatype_->deep_copy_to(arena, ShortTypeCode::of<Datatype>(), mem_holder_, dedup);
+        return datatype_->deep_copy_to(ShortTypeCode::of<Datatype>(), dedup);
     }
 
     UID256 cxx_type_hash() const;
@@ -494,6 +516,16 @@ public:
 
     operator Object() && noexcept {
         return Object(this->release_mem_holder(), datatype_ , MoveOwnershipTag{});
+    }
+
+    static void check_structure(const void* addr, CheckStructureState& state)
+    {
+        using CtrT = detail::DatatypeData;
+        state.check_alignment<detail::DatatypeData>(addr, MA_SRC);
+
+        const CtrT* array
+                = reinterpret_cast<const CtrT*>(addr);
+        array->check(state);
     }
 
 

@@ -68,7 +68,7 @@ namespace detail {
 
 template <typename Fn>
 auto withTime(CallDuration& stat, Fn&& fn) {
-    memoria::detail::TimeHolder holder(stat);
+    //memoria::detail::TimeHolder holder(stat);
     return fn();
 }
 

@@ -21,6 +21,7 @@
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/reflection/reflection.hpp>
 
+#include <memoria/core/hermes/serialization.hpp>
 
 namespace memoria {
 namespace arena {
@@ -186,11 +187,10 @@ public:
 
 
     Vector* deep_copy_to(
-            ArenaAllocator& dst,
             ShortTypeCode tag,
-            LWMemHolder* ptr_holder,
-            DeepCopyDeduplicator& dedup) const
+            hermes::DeepCopyState& dedup) const
     {
+        auto& dst = dedup.arena();
         Vector* existing = dedup.resolve(dst, this);
         if (MMA_LIKELY((bool)existing)) {
             return existing;
@@ -210,7 +210,7 @@ public:
                 vv.get(dst)->data_ = data.get(dst);
                 const T* src_data =  data_.get();
 
-                memoria::detail::DeepCopyHelper<T>::deep_copy_to(dst, data, src_data, size_, ptr_holder, dedup);
+                memoria::detail::DeepCopyHelper<T>::deep_copy_to(data, src_data, size_, dedup);
             }
 
             return vv.get(dst);

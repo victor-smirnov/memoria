@@ -269,9 +269,9 @@ public:
     }
 
 
-    void* deep_copy_to(arena::ArenaAllocator& arena, DeepCopyDeduplicator& dedup) const {
+    void* deep_copy_to(DeepCopyState& dedup) const {
         assert_not_null();
-        return map_->deep_copy_to(arena, ShortTypeCode::of<Map<KeyDT, Object>>(), mem_holder_, dedup);
+        return map_->deep_copy_to(ShortTypeCode::of<Map<KeyDT, Object>>(), dedup);
     }
 
     PoolSharedPtr<GenericMap> as_generic_map() const;
@@ -317,6 +317,15 @@ public:
         }
 
         return is_null() && other.is_null();
+    }
+
+    static void check_structure(const void* addr, CheckStructureState& state)
+    {
+        state.check_alignment<MapStorageT>(addr, MA_SRC);
+
+        const MapStorageT* map
+                = reinterpret_cast<const MapStorageT*>(addr);
+        map->check_typed_map(state);
     }
 
 private:

@@ -23,14 +23,14 @@ include_directories(../tools/include)
 if (BUILD_REACTOR_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX)
-        set(MEMORIA_SANDBOX send_msg_bench)
+        set(MEMORIA_SANDBOX send_msg_bench send_msg_bench_raw queue_bench_atomic)
     endif()
 
     FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
         add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp ${MAIN_INCLUDES})
         set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
         set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-        target_link_libraries(${MEMORIA_TARGET} MemoriaCtrsReactor MemoriaStoresReactor MemoriaCoreReactor MemoriaInitReactor ${MEMORIA_LIBS})
+        target_link_libraries(${MEMORIA_TARGET} MemoriaCtrsReactor MemoriaStoresReactor MemoriaCoreReactor MemoriaInitReactor ${MEMORIA_LIBS} atomic)
 
         target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS})
     ENDFOREACH(MEMORIA_TARGET)

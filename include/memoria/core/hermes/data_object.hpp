@@ -206,11 +206,10 @@ public:
     }
 
     ArenaDataTypeContainer* deep_copy_to(
-            ArenaAllocator& dst,
             ShortTypeCode tag,
-            LWMemHolder*,
-            DeepCopyDeduplicator& dedup) const
+            hermes::DeepCopyState& dedup) const
     {
+        auto& dst = dedup.arena();
         ArenaDataTypeContainer* str = dedup.resolve(dst, this);
         if (MMA_LIKELY((bool)str)) {
             return str;
@@ -220,6 +219,19 @@ public:
             dedup.map(dst, this, new_str);
             return new_str;
         }
+    }
+
+    void check(hermes::CheckStructureState& state, const char* src) const
+    {
+
+    }
+
+    static void check(
+        const arena::EmbeddingRelativePtr<void>& ptr,
+        hermes::CheckStructureState& state,
+        const char* src
+    ) {
+
     }
 };
 
@@ -234,10 +246,6 @@ public:
     ArenaDataTypeContainer(ViewT view):
         value_(view)
     {}
-
-//    ViewT view() const noexcept {
-//        return value_;
-//    }
 
     OViewT view(LWMemHolder* mem_holder) const noexcept {
         return OViewT(value_);
@@ -270,12 +278,27 @@ public:
         detail::StringifyViewHelper<Boolean>::stringify(out, value);
     }
 
-    ArenaDataTypeContainer* deep_copy_to(
-            ArenaAllocator& dst,
-            ShortTypeCode tag,
-            LWMemHolder*,
-            DeepCopyDeduplicator& dedup) const
+    void check(hermes::CheckStructureState& state, const char* src) const
     {
+        if (value_ != 0 && value_ != 1) {
+            MEMORIA_MAKE_GENERIC_ERROR("Boolean value is no 0 or 1: {} at {}", (uint32_t)value_, src).do_throw();
+        }
+    }
+
+    static void check(
+        const arena::EmbeddingRelativePtr<void>& ptr,
+        hermes::CheckStructureState& state,
+        const char* src
+    ) {
+
+    }
+
+
+    ArenaDataTypeContainer* deep_copy_to(
+            ShortTypeCode tag,
+            hermes::DeepCopyState& dedup) const
+    {
+        auto& dst = dedup.arena();
         ArenaDataTypeContainer* str = dedup.resolve(dst, this);
         if (MMA_LIKELY((bool)str)) {
             return str;
