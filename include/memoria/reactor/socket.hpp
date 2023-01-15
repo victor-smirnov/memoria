@@ -16,11 +16,11 @@
 #pragma once
 
 #ifdef __linux__
-#include "linux/linux_socket_impl.hpp"
+#include <memoria/reactor/linux/linux_socket_impl.hpp>
 #elif __APPLE__
-#include "macosx/macosx_socket_impl.hpp"
+#include <memoria/reactor/macosx/macosx_socket_impl.hpp>
 #elif _WIN32
-#include "msvc/msvc_socket_impl.hpp"
+#include <memoria/reactor/msvc/msvc_socket_impl.hpp>
 #else 
 #error "Unsupported platform"
 #endif 
@@ -39,7 +39,6 @@ class ClientSocketImpl;
 class ConnectionImpl;
 class SocketConnectionImpl;
 class DummySocketImpl;
-
 
 class ServerSocketConnectionImpl;
 class ClientSocketConnectionImpl;

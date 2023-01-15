@@ -15,19 +15,18 @@
 
 #pragma once
 
-#include "../fiber/context.hpp"
+#include <memoria/fiber/context.hpp>
 
 #include <memoria/core/tools/perror.hpp>
+#include <memoria/reactor/mpmc_queue.hpp>
+#include <memoria/reactor/message.hpp>
 
-#include "mpsc_queue.hpp"
-#include "mpmc_queue.hpp"
-#include "message.hpp"
+#include <memoria/reactor/message_queue.hpp>
 
 #include <vector>
 #include <memory>
 #include <tuple>
 #include <type_traits>
-
 
 namespace memoria {
 namespace reactor {

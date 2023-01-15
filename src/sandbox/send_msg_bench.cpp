@@ -17,15 +17,36 @@ int main(int argc, char** argv, char** envp) {
 
         int64_t t0 = memoria::getTimeInMillis();
 
-        int64_t total = 10000000;
+        MessageQueue queue = MessageQueue::make();
+
+        for (size_t c = 1; c < engine().cpu_num(); c++) {
+            engine().add_queue_to(queue, c);
+        }
+
+        int64_t total = 1000000;
         int cpu = engine().cpu();
-        for (int64_t ii = 0; ii < total; ii++) {
-//            engine().run_at_async(1, [=]() {
+        int tgt = 0;
+        for (int64_t ii = 0; ii < total; ii++, tgt++) {
+//            if (tgt == 15) {
+//                tgt = 0;
+//            }
+
+//            engine().run_at(1 + tgt, [=]() {
 //                return ii + 1;
 //            });
 
-            DummyMessage* msg = DummyMessage::make_instance(cpu);
-            engine().send_message(1, msg);
+            engine().run_async(queue, [=]() {
+                return ii + 1;
+            });
+
+//            engine().run(queue, [=]() {
+//                return engine().cpu();
+//            });
+
+            //engine().println("cpu = {}", cpu);
+
+//            DummyMessage* msg = DummyMessage::make_instance(cpu);
+//            engine().send_message(queue, msg);
 
             if (ii % 16 == 0) {
                 memoria::this_fiber::yield();

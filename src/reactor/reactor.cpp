@@ -154,6 +154,10 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
         }
         
         smp_->receive(cpu_, 512, process_fn);
+
+        for (auto& task_queue: tasks_queues_) {
+            task_queue.receive(process_fn);
+        }
         
         auto acct0 = scheduler_->activations();
 

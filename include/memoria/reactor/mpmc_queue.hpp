@@ -35,22 +35,23 @@ namespace reactor {
 template <typename T, size_t BufferSize = 1024>
 class MPMCQueue {
 
-    using W = atomic_queue::AtomicQueue2<T, BufferSize>;
+    using W = atomic_queue::AtomicQueue<T, BufferSize>;
 
     W queue_;
 
 public:
     MPMCQueue(){}
     
-    bool send(const T& value)
-    {
-        //std::cout << "sending" << std::endl;
+    bool send(const T& value) {
         queue_.push(value);
         return true;
     }
+
+    bool try_send(const T& value) {
+        return queue_.try_push(value);
+    }
     
-    bool get(T& value)
-    {
+    bool get(T& value) {
         return queue_.try_pop(value);
     }
     
@@ -93,6 +94,10 @@ public:
         return available_size;
     }
     
-};    
+};
+
+
+
+
     
 }}

@@ -16,7 +16,7 @@
 #pragma once
 
 #ifdef MMA_NO_REACTOR
-#error reactor.hpp is inluded while MMA_NO_REACTOR is defined
+//#error reactor.hpp is inluded while MMA_NO_REACTOR is defined
 #endif
 
 #include <memoria/core/config.hpp>
@@ -25,9 +25,10 @@
 
 #include <memoria/reactor/message/thread_pool_message.hpp>
 
-#include "scheduler.hpp"
-#include "file.hpp"
-#include "timer.hpp"
+#include <memoria/reactor/scheduler.hpp>
+#include <memoria/reactor/file.hpp>
+#include <memoria/reactor/timer.hpp>
+#include <memoria/reactor/message_queue.hpp>
 
 #include <memoria/fiber/protected_stack_pool.hpp>
 #include <memoria/fiber/pooled_fixedsize_stack.hpp>
@@ -53,11 +54,19 @@
 #include <memory>
 #include <atomic>
 #include <chrono>
+#include <list>
 
 namespace memoria {
 namespace reactor {
 
+class Reactor;
+
+Reactor& engine();
+
 class Reactor: public std::enable_shared_from_this<Reactor> {
+
+    using TaskQueueT = MessageQueue;
+
     std::shared_ptr<Smp> smp_ {};
     int cpu_;
     bool own_thread_;
@@ -73,7 +82,6 @@ class Reactor: public std::enable_shared_from_this<Reactor> {
     RingBuffer<Message*> ring_buffer_{1024};
     
     IOPoller io_poller_;
-    
     fibers::protected_stack_pool fiber_stack_pool_{8, 16 * 1024 * 1024};
     //fibers::protected_fixedsize_stack fiber_stack_pool_{};
 
@@ -96,6 +104,8 @@ class Reactor: public std::enable_shared_from_this<Reactor> {
 
     uint64_t service_fibers_{2};
 
+    std::list<TaskQueueT> tasks_queues_;
+
 public:
     using Clock = std::chrono::system_clock;
     using TimePoint = std::chrono::time_point<Clock>;
@@ -110,7 +120,6 @@ private:
 	std::vector<EventLoopTask> event_loop_tasks_;
 
 public:
-    
     Reactor(std::shared_ptr<Smp> smp, int cpu, bool own_thread):
         smp_(smp), cpu_(cpu), own_thread_(own_thread), thread_pool_(1, 1000, smp_),
         io_poller_(cpu, ring_buffer_)
@@ -198,6 +207,20 @@ public:
     }
 
     template <typename Fn, typename... Args>
+    auto run(MessageQueue& queue, Fn&& task, Args&&... args)
+    {
+        auto ctx = fibers::context::active();
+        BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
+
+        auto msg = make_fiber_lambda_message(cpu_, this, ctx, std::forward<Fn>(task), std::forward<Args>(args)...);
+
+        queue.get()->send(msg.get());
+        scheduler_->suspend(ctx);
+
+        return std::move(msg->result());
+    }
+
+    template <typename Fn, typename... Args>
     void run_at_v(int target_cpu, Fn&& task, Args&&... args)
     {
         if (target_cpu != cpu_)
@@ -230,6 +253,20 @@ public:
             task(std::forward<Args>(args)...);
         }
     }
+
+    template <typename Fn, typename... Args>
+    void run_async(MessageQueue& queue, Fn&& task, Args&&... args)
+    {
+        //auto ctx = fibers::context::active();
+        BOOST_ASSERT_MSG(fibers::context::active() != nullptr, "Fiber context is null");
+
+        auto msg = make_one_way_lambda_message(cpu_, std::forward<Fn>(task), std::forward<Args>(args)...);
+        if (!queue.get()->try_send(msg)) {
+            this_fiber::yield();
+        }
+    }
+
+
     
     template <typename Fn, typename... Args>
     auto run_in_thread_pool(Fn&& task, Args&&... args)
@@ -284,10 +321,21 @@ public:
         smp_->submit_to(cpu, message);
     }
 
+    void send_message(MessageQueue& queue, Message* message) {
+        queue.get()->send(message);
+    }
+
+
     friend class Application;
     friend Reactor& engine();
     friend bool has_engine();
     
+    void add_queue_to(const MessageQueue& queue, int cpu) {
+        run_at_v(cpu, [=]() -> void {
+            engine().register_queue(queue);
+        });
+    }
+
     template <typename> friend class FiberMessage;
     template <typename, typename, typename, typename, typename...> friend class ThreadPoolMessage;
     friend class FiberIOMessage;
@@ -360,6 +408,20 @@ public:
     bool shutdown_requested() const {return !running_;}
 
 private:
+
+    void register_queue(const MessageQueue& queue) {
+        tasks_queues_.push_back(queue);
+    }
+
+    void unregister_queue(const MessageQueue& queue)
+    {
+        for (auto ii = tasks_queues_.begin(); ii != tasks_queues_.end(); ii++) {
+            if (*ii == queue) {
+                tasks_queues_.erase(ii);
+                break;
+            }
+        }
+    }
 
     static thread_local Reactor* local_engine_;
     
