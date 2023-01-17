@@ -29,7 +29,7 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<HermesTestState
     for (size_t c = 0; c < size; c++)
     {
         U8String key = "Entry" + std::to_string(c);
-        map = map.put(key, std::to_string(c));
+        map.put(key, std::to_string(c));
     }
 
     doc.set_root(map.as_object());

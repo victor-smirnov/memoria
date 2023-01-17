@@ -63,9 +63,9 @@ public:
         {
             auto map = current_ctr().make_tiny_map();
             if (add_string_names_) {
-                map = map.put(AST_NODE_NAME, NULL_NODE.name());
+                map.put(AST_NODE_NAME, NULL_NODE.name());
             }
-            map = map.put_t<BigInt>(CODE_ATTR, NULL_NODE.code());
+            map.put_t<BigInt>(CODE_ATTR, NULL_NODE.code());
             context_ = map.as_object();
         }
         else {
@@ -84,10 +84,10 @@ public:
     static ASTNodePtr new_ast_node(const NamedCode& code, bool add_string_names)
     {
         auto map = current_ctr().make_tiny_map(4);
-        map = map.put_t<Integer>(CODE_ATTR, code.code());
+        map.put_t<Integer>(CODE_ATTR, code.code());
 
         if (add_string_names) {
-            map = map.put(AST_NODE_NAME, code.name());
+            map.put(AST_NODE_NAME, code.name());
         }
 
         return map;
@@ -103,21 +103,21 @@ public:
     static ASTNodePtr new_identifier(HermesCtrView& ctr, const ast::IdentifierNode& node, bool add_node_name = false)
     {
         auto map = new_ast_node(node.CODE, add_node_name);
-        map = map.put(IDENTIFIER_ATTR, node.identifier);
+        map.put(IDENTIFIER_ATTR, node.identifier);
         return map;
     }
 
     virtual void visit(const ast::RawStringNode* node)
     {
         auto map = new_ast_node(node->CODE);
-        map = map.put(RAW_STRING_ATTR, node->rawString);
+        map.put(RAW_STRING_ATTR, node->rawString);
         context_ = map.as_object();
     }
 
     virtual void visit(const ast::HermesValueNode* node)
     {
         auto map = new_ast_node(node->CODE);
-        map = map.put(VALUE_ATTR, node->value);
+        map.put(VALUE_ATTR, node->value);
         context_ = map.as_object();
     }
 
@@ -125,18 +125,18 @@ public:
     {
         auto map = new_ast_node(code);
 
-        map = map.put(IS_PROJECTION_ATTR, node->isProjection());
-        map = map.put(STOPS_PROJECTION_ATTR, node->stopsProjection());
+        map.put(IS_PROJECTION_ATTR, node->isProjection());
+        map.put(STOPS_PROJECTION_ATTR, node->stopsProjection());
 
         visit(&node->leftExpression);
         if (context_.is_initialized()) {
-            map = map.put(LEFT_EXPRESSION_ATTR, context_.get());
+            map.put(LEFT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
         visit(&node->rightExpression);
         if (context_.is_initialized()) {
-            map = map.put(RIGHT_EXPRESSION_ATTR, context_.get());
+            map.put(RIGHT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
@@ -152,24 +152,24 @@ public:
     {
         auto map = new_ast_node(node->CODE);
 
-        map = map.put(IS_PROJECTION_ATTR, node->isProjection());
-        map = map.put(STOPS_PROJECTION_ATTR, node->stopsProjection());
+        map.put(IS_PROJECTION_ATTR, node->isProjection());
+        map.put(STOPS_PROJECTION_ATTR, node->stopsProjection());
 
         visit(&node->leftExpression);
         if (context_.is_initialized()) {
-            map = map.put(LEFT_EXPRESSION_ATTR, context_.get());
+            map.put(LEFT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
         visit(&node->bracketSpecifier);
         if (context_.is_initialized()) {
-            map = map.put(BRACKET_SPECIFIER_ATTR, context_.get());
+            map.put(BRACKET_SPECIFIER_ATTR, context_.get());
             clear_context();
         }
 
         visit(&node->rightExpression);
         if (context_.is_initialized()) {
-            map = map.put(RIGHT_EXPRESSION_ATTR, context_.get());
+            map.put(RIGHT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
@@ -179,7 +179,7 @@ public:
     virtual void visit(const ast::ArrayItemNode* node)
     {
         auto map = new_ast_node(node->CODE);
-        map = map.put_t<BigInt>(INDEX_ATTR, node->index.convert_to<int64_t>());
+        map.put_t<BigInt>(INDEX_ATTR, node->index.convert_to<int64_t>());
         context_ = map.as_object();
     }
 
@@ -199,15 +199,15 @@ public:
         auto map = new_ast_node(node->CODE);
 
         if (node->start.is_initialized()) {
-            map = map.put(START_ATTR, node->start.get().convert_to<int64_t>());
+            map.put(START_ATTR, node->start.get().convert_to<int64_t>());
         }
 
         if (node->stop.is_initialized()) {
-            map = map.put(STOP_ATTR, node->stop.get().convert_to<int64_t>());
+            map.put(STOP_ATTR, node->stop.get().convert_to<int64_t>());
         }
 
         if (node->step.is_initialized()) {
-            map = map.put(STEP_ATTR, node->step.get().convert_to<int64_t>());
+            map.put(STEP_ATTR, node->step.get().convert_to<int64_t>());
         }
 
         context_ = map.as_object();
@@ -229,14 +229,14 @@ public:
         auto map = new_ast_node(node->CODE);
 
         auto array = current_ctr().make_object_array();
-        map = map.put(EXPRESSIONS_ATTR, array.as_object());
+        map.put(EXPRESSIONS_ATTR, array.as_object());
 
         for (auto& item: node->expressions)
         {
             clear_context();
             visit(&item);
             if (context_.is_initialized()) {
-                array = array.push_back(context_.get());
+                array.push_back(context_.get());
             }
         }
         context_ = map.as_object();
@@ -247,23 +247,23 @@ public:
         auto map = new_ast_node(node->CODE);
 
         auto array = current_ctr().make_object_array();
-        map = map.put(EXPRESSIONS_ATTR, array.as_object());
+        map.put(EXPRESSIONS_ATTR, array.as_object());
 
         for (auto& item: node->expressions)
         {
             auto kv_pair = current_ctr().make_tiny_map();
-            array = array.push_back(kv_pair.as_object());
+            array.push_back(kv_pair.as_object());
 
             clear_context();
             visit(&item.first);
             if (context_.is_initialized()) {
-                kv_pair = kv_pair.put(FIRST_ATTR, context_.get());
+                kv_pair.put(FIRST_ATTR, context_.get());
             }
 
             clear_context();
             visit(&item.second);
             if (context_.is_initialized()) {
-                kv_pair = kv_pair.put(SECOND_ATTR, context_.get());
+                kv_pair.put(SECOND_ATTR, context_.get());
             }
         }
 
@@ -277,7 +277,7 @@ public:
 
         visit(&node->expression);
         if (context_.is_initialized()) {
-            map = map.put(EXPRESSION_ATTR, context_.get());
+            map.put(EXPRESSION_ATTR, context_.get());
         }
 
         clear_context();
@@ -288,19 +288,19 @@ public:
     {
         auto map = new_ast_node(node->CODE);
 
-        map = map.put(IS_PROJECTION_ATTR, node->isProjection());
-        map = map.put(STOPS_PROJECTION_ATTR, node->stopsProjection());
-        map = map.put(COMPARATOR_ATTR, (int64_t)node->comparator);
+        map.put(IS_PROJECTION_ATTR, node->isProjection());
+        map.put(STOPS_PROJECTION_ATTR, node->stopsProjection());
+        map.put(COMPARATOR_ATTR, (int64_t)node->comparator);
 
         visit(&node->leftExpression);
         if (context_.is_initialized()) {
-            map = map.put(LEFT_EXPRESSION_ATTR, context_.get());
+            map.put(LEFT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
         visit(&node->rightExpression);
         if (context_.is_initialized()) {
-            map = map.put(RIGHT_EXPRESSION_ATTR, context_.get());
+            map.put(RIGHT_EXPRESSION_ATTR, context_.get());
             clear_context();
         }
 
@@ -324,7 +324,7 @@ public:
         auto map = new_ast_node(node->CODE);
         visit(&node->expression);
         if (context_.is_initialized()) {
-            map = map.put(EXPRESSION_ATTR, context_.get());
+            map.put(EXPRESSION_ATTR, context_.get());
         }
 
         clear_context();
@@ -347,7 +347,7 @@ public:
         auto map = new_ast_node(node->CODE);
         visit(&node->expression);
         if (context_.is_initialized()) {
-            map = map.put(EXPRESSION_ATTR, context_.get());
+            map.put(EXPRESSION_ATTR, context_.get());
         }
 
         clear_context();
@@ -358,10 +358,10 @@ public:
     {
         auto map = new_ast_node(node->CODE);
 
-        map = map.put(FUNCTION_NAME_ATTR, node->functionName);
+        map.put(FUNCTION_NAME_ATTR, node->functionName);
 
         auto array = current_ctr().make_object_array();
-        map = map.put(ARGUMENTS_ATTR, array.as_object());
+        map.put(ARGUMENTS_ATTR, array.as_object());
 
         for (auto& item: node->arguments)
         {
@@ -385,10 +385,10 @@ public:
             );
             auto result = boost::apply_visitor(visitor, item);
             if (result.is_initialized()) {
-                array = array.push_back(result.get());
+                array.push_back(result.get());
             }
             else {
-                array = array.push_back(Object{});
+                array.push_back(Object{});
             }
         }
 
@@ -403,7 +403,7 @@ public:
         visit(&node->expression);
 
         if (context_.is_initialized()) {
-            map = map.put(EXPRESSION_ATTR, context_.get());
+            map.put(EXPRESSION_ATTR, context_.get());
         }
 
         clear_context();

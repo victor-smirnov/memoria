@@ -137,7 +137,7 @@ public:
         }
     }
 
-    MMA_NODISCARD Array<DT> push_back(DTTViewType<DT> view);
+    void push_back(DTTViewType<DT> view);
 
     void set(uint64_t idx, DTTViewType<DT> view);
 
@@ -187,7 +187,7 @@ public:
         return array_->deep_copy_to(ShortTypeCode::of<Array<DT>>(), dedup);
     }
 
-    MMA_NODISCARD Array<DT> remove(uint64_t element);
+    void remove(uint64_t element);
 
     operator Object() const & noexcept {
         return as_object();
@@ -271,12 +271,11 @@ public:
         array_.set(idx, value.convert_to<DT>().template as_data_object<DT>());
     }
 
-    virtual GenericArrayPtr push_back(const Object& value) {
-        auto new_array = array_.push_back(value.convert_to<DT>().template as_data_object<DT>());
-        return make_wrapper(std::move(new_array));
+    virtual void push_back(const Object& value) {
+        array_.push_back(value.convert_to<DT>().template as_data_object<DT>());
     }
 
-    virtual GenericArrayPtr remove(uint64_t start, uint64_t end) {
+    virtual void remove(uint64_t start, uint64_t end) {
         MEMORIA_MAKE_GENERIC_ERROR("Not implemented").do_throw();
     }
 

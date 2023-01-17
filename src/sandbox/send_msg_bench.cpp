@@ -3,9 +3,16 @@
 #include <memoria/reactor/reactor.hpp>
 #include <memoria/core/tools/time.hpp>
 
+#include <memoria/core/hrpc/hrpc.hpp>
+#include <memoria/core/hrpc/hrpc_async.hpp>
+
+using namespace memoria;
 using namespace memoria::reactor;
 
 int main(int argc, char** argv, char** envp) {
+
+    hrpc::Request rq;
+    rq.set_call_id(0);
 
     boost::program_options::options_description dd;
     return Application::run_e(
@@ -24,7 +31,7 @@ int main(int argc, char** argv, char** envp) {
         }
 
         int64_t total = 1000000;
-        int cpu = engine().cpu();
+//        int cpu = engine().cpu();
         int tgt = 0;
         for (int64_t ii = 0; ii < total; ii++, tgt++) {
 //            if (tgt == 15) {

@@ -73,16 +73,10 @@ class Map<uint8_t, Value> {
     static constexpr uint64_t MAX_KEYS = CAPACITY_START; // Should be 64 - 6 - 6 = 52
     static constexpr uint64_t BITMAP_MASK = ~((SIZE_BITS_MASK << SIZE_START) | (SIZE_BITS_MASK << CAPACITY_START));
 
-
     uint64_t header_;
-    Value data_[1];
+    RelativePtr<Value> data_;
 
-
-
-
-public:
-    static constexpr bool UseObjectSize = true;
-
+public:    
     class Iterator {
         const Map* map_;
         uint64_t entry_idx_;
@@ -129,17 +123,11 @@ public:
     friend class Iterator;
 
     Map():
-        header_(0x1ull << CAPACITY_START) // size = 0; capacity = 1
+        header_(0), data_()
     {}
 
-    Map(uint64_t capacity):
-        header_(0)
-    {
-        set_capacity(capacity);
-    }
-
     Map(uint64_t header, uint64_t capacity):
-        header_(header)
+        header_(header), data_()
     {
         set_capacity(capacity);
     }
@@ -178,7 +166,7 @@ public:
         return nullptr;
     }
 
-    Map* put(ArenaAllocator& arena, ShortTypeCode tag, uint8_t key, const Value& value, LWMemHolder*)
+    void put(ArenaAllocator& arena, uint8_t key, const Value& value, LWMemHolder*)
     {
         if (key < MAX_BITS)
         {
@@ -200,17 +188,17 @@ public:
                     set_size(size + 1);
                 }
                 else {
-                    uint64_t new_capacity = capacity * 2;
+                    uint64_t new_capacity = capacity > 0 ? (capacity * 2) : 1;
                     if (new_capacity > MAX_KEYS) {
                         new_capacity = MAX_KEYS;
                     }
 
-                    Map* new_map = arena.allocate_tagged_object<Map>(tag, header_, new_capacity);
-                    new_map->header_ |= key_mask;
-                    new_map->set_size(size + 1);
+                    Value* new_data = arena.allocate_untagged_array<Value>(new_capacity);
+                    header_ |= key_mask;
+                    set_size(size + 1);
+                    set_capacity(new_capacity);
 
                     Value* data = this->data();
-                    Value* new_data = new_map->data();
                     for (uint64_t c = 0; c < pos; c++) {
                         new_data[c] = data[c];
                     }
@@ -220,8 +208,7 @@ public:
                     }
 
                     new_data[pos] = value;
-
-                    return new_map;
+                    data_ = new_data;
                 }
             }
             else {
@@ -233,11 +220,9 @@ public:
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Key value {} exceeds max Map<uint8_t, T> range of [0, {})", (int)key, MAX_KEYS).do_throw();
         }
-
-        return this;
     }
 
-    Map* remove(ArenaAllocator& arena, ShortTypeCode tag, uint8_t key, LWMemHolder*) noexcept
+    void remove(ArenaAllocator& arena, uint8_t key, LWMemHolder*) noexcept
     {
         if (key < MAX_KEYS)
         {
@@ -248,45 +233,52 @@ public:
                 uint64_t capacity = this->capacity();
 
                 uint64_t mask = make_bitmask<uint64_t>(key);
-                uint64_t pos = PopCnt2(header_ & mask);
+                uint64_t pos  = PopCnt2(header_ & mask);
 
                 if (MMA_LIKELY(size - 1 > capacity / 2))
                 {
                     header_ &= ~key_mask;
                     remove_space(pos);
+                    set_size(size - 1);
                 }
                 else {
+                    header_ &= ~key_mask;
+
                     uint64_t new_capacity = capacity / 2;
-                    if (new_capacity == 0) {
-                        new_capacity = 1;
+                    if (new_capacity)
+                    {
+                        set_capacity(new_capacity);
+                        set_size(size - 1);
+
+                        Value* new_data = arena.allocate_untagged_array<Value>(new_capacity);
+
+                        Value* data = this->data();
+                        for (uint64_t c = 0; c < pos; c++) {
+                            new_data[c] = data[c];
+                        }
+
+                        for (uint64_t c = pos + 1; c < size; c++) {
+                            new_data[c - 1] = data[c];
+                        }
+
+                        data_ = new_data;
                     }
-
-                    Map* new_map = arena.allocate_tagged_object<Map>(tag, header_ & ~key_mask, new_capacity);
-
-                    Value* data = this->data();
-                    Value* new_data = new_map->data();
-                    for (uint64_t c = 0; c < pos; c++) {
-                        new_data[c] = data[c];
+                    else {
+                        data_ = nullptr;
+                        set_capacity(0);
+                        set_size(0);
                     }
-
-                    for (uint64_t c = pos + 1; c < size; c++) {
-                        new_data[c - 1] = data[c];
-                    }
-
-                    return new_map;
                 }
             }
         }
-
-        return this;
     }
 
     Value* data() {
-        return ptr_cast<Value>(data_);
+        return data_.get();
     }
 
     const Value* data() const {
-        return ptr_cast<const Value>(data_);
+        return data_.get();
     }
 
     template <typename Fn>
@@ -312,40 +304,31 @@ public:
         }
         else {
             auto size = this->size();
-            uint64_t new_capacity = size > 0 ? size : 1;
+            uint64_t new_capacity = size;
 
             auto map = dst.get_resolver_for(dst.template allocate_tagged_object<Map>(tag, header_, new_capacity));
             dedup.map(dst, this, map.get(dst));
-
             map.get(dst)->set_size(size);
 
-            auto data = dst.get_resolver_for(map.get(dst)->data());
+            if (new_capacity)
+            {
+                auto data = dst.get_resolver_for(
+                    dst.template allocate_untagged_array<Value>(new_capacity)
+                );
 
-            const Value* src_data = this->data();
-            memoria::detail::DeepCopyHelper<Value>::deep_copy_to(
-                data, src_data, size, dedup
-            );
+                map.get(dst)->data_ = data.get(dst);
+
+                const Value* src_data = this->data();
+                memoria::detail::DeepCopyHelper<Value>::deep_copy_to(
+                    data, src_data, size, dedup
+                );
+            }
+            else {
+                map.get(dst)->data_ = nullptr;
+            }
 
             return map.get(dst);
         }
-    }
-
-    static size_t object_size(uint64_t, uint64_t capacity)
-    {
-        if (MMA_UNLIKELY(capacity == 0)) {
-            capacity = 1;
-        }
-        return capacity * sizeof(Value) + sizeof(Map) - sizeof(Value);
-    }
-
-    static size_t object_size(uint64_t capacity)
-    {
-        return object_size(0, capacity);
-    }
-
-    static size_t object_size()
-    {
-        return object_size(0, 1);
     }
 
     void check_typed_map(hermes::CheckStructureState& state) const
@@ -353,7 +336,7 @@ public:
         if (size() <= capacity())
         {
             state.mark_as_processed(this);
-            state.check_and_set_tagged(this, object_size(capacity()), MA_SRC);
+            state.check_and_set_tagged(this, sizeof(Map), MA_SRC);
 
             const Value* data = this->data();
 
@@ -371,8 +354,6 @@ public:
             MEMORIA_MAKE_GENERIC_ERROR("Map<UTinyInt, Object> size/capacity check error: {} {}", size(), capacity()).do_throw();
         }
     }
-
-
 
 private:
 

@@ -250,8 +250,7 @@ Datatype DatatypeView::append_type_parameter(U8StringView name)
     }
 
     auto datatype = ctr.make_datatype(name);
-    auto new_params = params.push_back(datatype.as_object());
-    datatype_->set_parameters(new_params.array_);
+    params.push_back(datatype.as_object());
 
     return datatype;
 }
@@ -270,8 +269,7 @@ void DatatypeView::append_type_parameter(Object value)
         datatype_->set_parameters(params.array_);
     }
 
-    auto new_params = params.push_back(value);
-    datatype_->set_parameters(new_params.array_);
+    params.push_back(value);
 }
 
 void DatatypeView::append_constructor_argument(Object value)
@@ -288,8 +286,7 @@ void DatatypeView::append_constructor_argument(Object value)
         datatype_->set_constructor(ctr.array_);
     }
 
-    auto new_ctr = ctr.push_back(value);
-    datatype_->set_constructor(new_ctr.array_);
+    ctr.push_back(value);
 }
 
 

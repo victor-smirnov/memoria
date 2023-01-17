@@ -40,7 +40,10 @@ protected:
 public:
     static constexpr bool UseObjectSize = true;
 
-    Array(): capacity_(1) {}
+    Array():
+        size_(),
+        capacity_(1)
+    {}
 
     Array(size_t capacity) noexcept:
         size_(0), capacity_(capacity)
@@ -81,7 +84,6 @@ public:
         if (idx < size_)
         {
             auto data = this->data();
-
             if ((size_ - 1) >= capacity_ / 2)
             {
                 for (size_t c = idx + 1; c < size_; c++) {
@@ -226,6 +228,5 @@ public:
     }
 };
 
-using GenericVector = Array<EmbeddingRelativePtr<void>>;
 
 }}

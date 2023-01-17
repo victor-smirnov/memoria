@@ -44,6 +44,21 @@ int main(int, char**)
 {
     InitMemoriaExplicit();
 
+//    auto doc = HermesCtr::parse_document(R"(
+//    <memoria::UTinyInt, Object> {
+//        //0_u8: "hello world 0",
+//        //1_u8: "hello world 1",
+//        0: 0,
+//        1: 1,
+//        2: 2
+
+//    }
+//    )");
+
+
+//    println("{}", doc.to_pretty_string());
+
+
     auto doc = HermesCtr::parse_document(R"(
 {
     "quiz": {
@@ -90,6 +105,9 @@ int main(int, char**)
     auto doc2 = doc.compactify();
 
     doc2.check();
+
+    auto vv = doc.root().search("quiz.sport.q1.question");
+    println("{}", vv.to_pretty_string());
 
     return 0;
 }

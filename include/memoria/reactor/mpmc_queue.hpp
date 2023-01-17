@@ -34,8 +34,11 @@ namespace reactor {
     
 template <typename T, size_t BufferSize = 1024>
 class MPMCQueue {
-
+#ifdef NDEBUG
     using W = atomic_queue::AtomicQueue<T, BufferSize>;
+#else
+    using W = atomic_queue::AtomicQueue2<T, BufferSize>;
+#endif
 
     W queue_;
 

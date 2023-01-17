@@ -183,38 +183,38 @@ public:
 
 
     template <typename V, std::enable_if_t<HermesObject<V>::Value, int> = 0>
-    Map<KeyDT, Object> put(KeyView name, const V& value) {
+    void put(KeyView name, const V& value) {
         return put_object(name, value);
     }
 
     template <typename ViewT, std::enable_if_t<!HermesObject<ViewT>::Value, int> = 0>
-    Map<KeyDT, Object> put(KeyView name, const ViewT& value) {
+    void put(KeyView name, const ViewT& value) {
         using DT = typename ViewToDTMapping<ViewT>::Type;
         return put_dataobject<DT>(name, value);
     }
 
 
     template <typename DT, typename ViewT>
-    Map<KeyDT, Object> put_t(KeyView name, const ViewT& value) {
+    void put_t(KeyView name, const ViewT& value) {
         return put_dataobject<DT>(name, value);
     }
 
 
     template <typename T, typename V>
-    Map<KeyDT, Object> put(const NamedTypedCode<T>& code, const V& value) {
+    void put(const NamedTypedCode<T>& code, const V& value) {
         return put(code.code(), value);
     }
 
     template <typename DT, typename T, typename ViewT>
-    Map<KeyDT, Object> put_t(const NamedTypedCode<T>& code, const ViewT& view) {
+    void put_t(const NamedTypedCode<T>& code, const ViewT& view) {
         return put_t<DT>(code.code(), view);
     }
 
 
-    Map<KeyDT, Object> remove(KeyView key);
+    void remove(KeyView key);
 
     template <typename T>
-    Map<KeyDT, Object> remove(const NamedTypedCode<T>& code) {
+    void remove(const NamedTypedCode<T>& code) {
         return remove(code.code());
     }
 
@@ -329,10 +329,10 @@ public:
     }
 
 private:
-    Map<KeyDT, Object> put_object(KeyView name, const Object& value);
+    void put_object(KeyView name, const Object& value);
 
     template <typename DT>
-    Map<KeyDT, Object> put_dataobject(KeyView key, const DTTViewType<DT>& value);
+    void put_dataobject(KeyView key, const DTTViewType<DT>& value);
 
 
     void do_stringify(std::ostream& out, DumpFormatState& state) const;
@@ -415,15 +415,13 @@ public:
         return map_.get(key);
     }
 
-    virtual GenericMapPtr put(const Object& key, const Object& value) {
-        auto new_map = map_.put(key.convert_to<KeyDT>().template as_data_object<KeyDT>(), value);
-        return make_wrapper(std::move(new_map));
+    virtual void put(const Object& key, const Object& value) {
+        map_.put(key.convert_to<KeyDT>().template as_data_object<KeyDT>(), value);
     }
 
 
-    virtual GenericMapPtr remove(const Object& key) {
-        auto new_map = map_.remove(key.convert_to<KeyDT>().template as_data_object<KeyDT>());
-        return make_wrapper(std::move(new_map));
+    virtual void remove(const Object& key) {
+        map_.remove(key.convert_to<KeyDT>().template as_data_object<KeyDT>());
     }
 
     virtual HermesCtr ctr() const;

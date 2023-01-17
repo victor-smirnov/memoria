@@ -61,7 +61,7 @@ Object HermesArrayNode::to_hermes_array(HermesCtrView& doc) const
     auto array = doc.make_object_array();
 
     for (auto& var: this->array) {
-        array = array.push_back(std::move(var.value));
+        array.push_back(std::move(var.value));
     }
 
     return array.as_object();

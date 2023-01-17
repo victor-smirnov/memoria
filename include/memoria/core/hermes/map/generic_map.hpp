@@ -50,8 +50,8 @@ struct GenericMap: GenericObject {
 
     virtual Object get(const Object& key) const = 0;
 
-    MMA_NODISCARD virtual GenericMapPtr put(const Object& key, const Object& value) = 0;
-    MMA_NODISCARD virtual GenericMapPtr remove(const Object& key) = 0;
+    virtual void put(const Object& key, const Object& value) = 0;
+    virtual void remove(const Object& key) = 0;
 
     template <typename Fn>
     void for_each(Fn&& fn) const;

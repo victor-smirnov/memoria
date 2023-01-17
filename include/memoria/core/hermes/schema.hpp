@@ -18,6 +18,7 @@
 #include <memoria/core/hermes/common.hpp>
 #include <memoria/core/hermes/object.hpp>
 #include <memoria/core/hermes/map/typed_map.hpp>
+#include <memoria/core/hermes/array/object_array.hpp>
 
 
 namespace memoria::hermes {
@@ -38,5 +39,8 @@ public:
         TinyObjectBase(ptr)
     {}
 };
+
+
+
 
 }

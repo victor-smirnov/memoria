@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/core/arena/array.hpp>
+#include <memoria/core/arena/vector.hpp>
 #include <memoria/core/arena/relative_ptr.hpp>
 
 #include <memoria/core/hermes/object.hpp>
@@ -39,7 +39,7 @@ template <>
 class ArrayView<Object>: public HoldingView<ArrayView<ObjectView>> {
     using Base = HoldingView<ArrayView<ObjectView>>;
 public:    
-    using ArrayStorageT = arena::Array<arena::ERelativePtr>;
+    using ArrayStorageT = arena::Vector<arena::ERelativePtr>;
 protected:
     static_assert(std::is_standard_layout_v<ArrayStorageT>, "");
 
@@ -147,15 +147,15 @@ public:
     Object set(uint64_t idx, const Object& value);
 
     template <typename T, std::enable_if_t<!HermesObject<std::decay_t<T>>::Value, int> = 0>
-    ObjectArray push_back(T&& view);
+    void push_back(T&& view);
 
     template <typename DT, typename T>
-    MMA_NODISCARD ObjectArray push_back_t(T&& view);
-    MMA_NODISCARD ObjectArray push_back(const Object& value);
+    void push_back_t(T&& view);
+    void push_back(const Object& value);
 
     void set_null(uint64_t idx);
 
-    MMA_NODISCARD ObjectArray remove(uint64_t idx);
+    void remove(uint64_t idx);
 
     void stringify(std::ostream& out,
                    DumpFormatState& state) const
@@ -317,18 +317,12 @@ public:
         array_.set(idx, value);
     }
 
-    virtual GenericArrayPtr push_back(const Object& value)
+    virtual void push_back(const Object& value)
     {
-        auto new_array = array_.push_back(value);
-        if (MMA_LIKELY(new_array.array_ == array_.array_)) {
-            return this->shared_from_this();
-        }
-        else {
-            return make_wrapper(std::move(new_array));
-        }
+        array_.push_back(value);
     }
 
-    virtual GenericArrayPtr remove(uint64_t start, uint64_t end) {
+    virtual void remove(uint64_t start, uint64_t end) {
         MEMORIA_MAKE_GENERIC_ERROR("Not implemented").do_throw();
     }
 

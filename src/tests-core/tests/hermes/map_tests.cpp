@@ -33,7 +33,7 @@ auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>(
     {
         U8String key = "Entry" + std::to_string(c);
         values[key] = c;
-        map = map.put_t<BigInt>(key, c);
+        map.put_t<BigInt>(key, c);
 
         if (c % 500 == 0) {
             assert_arrays_equal(values, map);
@@ -45,7 +45,7 @@ auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<HermesTestState>>(
     {
         U8String key = "Entry" + std::to_string(c);
 
-        map = map.remove(key);
+        map.remove(key);
         values.erase(key);
 
         if (c % 500 == 0) {
@@ -63,15 +63,15 @@ auto ldd_map_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Hermes
 
     assert_equals(0, map.size());
 
-    map = map.put("Entry0", "Hello World");
+    map.put("Entry0", "Hello World");
     assert_equals(true, map.get("Entry0").is_varchar());
     assert_equals("Hello World", map.get("Entry0").as_varchar());
 
-    map = map.put_t<Double>("Entry1", 123456);
+    map.put_t<Double>("Entry1", 123456);
     assert_equals(true, map.get("Entry1").is_double());
     assert_equals(123456, map.get("Entry1").as_double());
 
-    map = map.put("Entry2", true);
+    map.put("Entry2", true);
     assert_equals(true, map.get("Entry2").is_boolean());
     assert_equals(true, map.get("Entry2").as_boolean());
 });

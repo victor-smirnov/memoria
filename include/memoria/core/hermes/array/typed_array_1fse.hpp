@@ -16,7 +16,7 @@
 #pragma once
 
 #include <memoria/core/hermes/array/typed_array_common.hpp>
-#include <memoria/core/arena/array.hpp>
+#include <memoria/core/arena/vector.hpp>
 
 
 namespace memoria {
@@ -24,16 +24,13 @@ namespace hermes {
 namespace detail {
 
 template <typename DT>
-class TypedArrayData<DT, FSE1Subtype, true>: public arena::Array<DTTViewType<DT>> {
-    using Base = arena::Array<DTTViewType<DT>>;
+class TypedArrayData<DT, FSE1Subtype, true>: public arena::Vector<DTTViewType<DT>> {
+    using Base = arena::Vector<DTTViewType<DT>>;
 
     // No state here!
     // Must be a Standard Layout type
 public:
     TypedArrayData() {}
-    TypedArrayData(uint64_t capacity):
-        Base(capacity)
-    {}
 };
 
 

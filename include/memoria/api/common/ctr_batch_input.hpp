@@ -259,27 +259,27 @@ public:
     }
 
     void append(const DTTViewType<DT>& value) {
-        array_ = array_.push_back(value);
+        array_.push_back(value);
     }
 
     template <typename T>
     void append(Span<const T> value) {
         for (auto& vv: value) {
-            array_ = array_.push_back(vv);
+            array_.push_back(vv);
         }
     }
 
     template <typename T>
     void append(const std::vector<T>& value) {
         for (auto& vv: value) {
-            array_ = array_.push_back(vv);
+            array_.push_back(vv);
         }
     }
 
     template <typename T, typename S>
     void append(OSpan<T, S> value) {
         for (auto& vv: value) {
-            array_ = array_.push_back(vv.value_t());
+            array_.push_back(vv.value_t());
         }
     }
 
@@ -338,27 +338,27 @@ public:
     }
 
     void append(const DTTViewType<DT>& value) {
-        array_ = array_.push_back(value);
+        array_.push_back(value);
     }
 
     template <typename T>
     void append(Span<const T> value) {
         for (auto& vv: value) {
-            array_ = array_.push_back(vv);
+            array_.push_back(vv);
         }
     }
 
     template <typename T>
     void append(const std::vector<T>& value) {
         for (auto& vv: value) {
-            array_ = array_.push_back(vv);
+            array_.push_back(vv);
         }
     }
 
     template <typename T, typename S>
     void append(OSpan<T, S> value) {
         for (auto& vv: value) {
-            array_ = array_.push_back(vv);
+            array_.push_back(vv);
         }
     }
 

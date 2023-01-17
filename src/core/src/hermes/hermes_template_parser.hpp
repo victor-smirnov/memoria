@@ -49,8 +49,8 @@ struct TemplateConstants: public TplASTCodes {
 
     static ASTNodePtr new_ast_node(const NamedCode& code) {
         auto map = current_ctr().make_tiny_map(8);
-        map = map.put_t<Integer>(CODE, code.code());
-        map = map.put(NODE_NAME_ATTR, code.name());
+        map.put_t<Integer>(CODE, code.code());
+        map.put(NODE_NAME_ATTR, code.name());
         return map;
     }
 
@@ -58,7 +58,7 @@ struct TemplateConstants: public TplASTCodes {
     {
         auto harray = current_ctr().make_object_array(array.size());
         for (auto& item: array) {
-            harray = harray.push_back(std::move(item.value));
+            harray.push_back(std::move(item.value));
         }
         return harray;
     }
@@ -365,23 +365,21 @@ struct TemplateConstants: public TplASTCodes {
     }
 
 
-    static TinyObjectMap put(TinyObjectMap& map, const NamedCode& code, const Optional<bool>& val)
+    static void put(TinyObjectMap& map, const NamedCode& code, const Optional<bool>& val)
     {
         if (val.is_initialized()) {
-            return map.put(code, val.get());
+            map.put(code, val.get());
         }
-
-        return map;
     }
 
-    static TinyObjectMap put_space_data(
+    static void put_space_data(
             TinyObjectMap& map,
             const NamedCode& left_code,
             const NamedCode& right_code,
             const TplSpaceData& data
     ) {
-        auto map1 = put(map, left_code, data.left_space);
-        return put(map1, right_code, data.right_space);
+        put(map, left_code, data.left_space);
+        return put(map, right_code, data.right_space);
     }
 
     static Optional<bool> get_bool(const TinyObjectMap& map, const NamedCode& code)
@@ -451,18 +449,18 @@ struct TplForStatement: TemplateConstants {
         auto ctr = current_ctr();
         auto identifier = path::parser::HermesASTConverter::new_identifier(ctr, variable, false);
 
-        map = map.put(VARIABLE, variable.identifier);
-        map = map.put(EXPRESSION, expression);
+        map.put(VARIABLE, variable.identifier);
+        map.put(EXPRESSION, expression);
 
-        map = map.put(STATEMENTS, blocks);
-        map = put_space_data(map, BOTTOM_INNER_SPACE, BOTTOM_OUTER_SPACE, bottom_space_data);
+        map.put(STATEMENTS, blocks);
+        put_space_data(map, BOTTOM_INNER_SPACE, BOTTOM_OUTER_SPACE, bottom_space_data);
 
-        map = put(map, TOP_OUTER_SPACE, top_outer_space);
-        map = put(map, TOP_INNER_SPACE, top_inner_space);
+        put(map, TOP_OUTER_SPACE, top_outer_space);
+        put(map, TOP_INNER_SPACE, top_inner_space);
 
         auto res = process_inner_space(blocks, top_inner_space, bottom_space_data.left_space);
         if (res.is_not_null()) {
-            map = map.put(STATEMENTS, blocks);
+            map.put(STATEMENTS, blocks);
         }
 
         process_outer_space(blocks);
@@ -482,11 +480,11 @@ struct TplSetStatement: TemplateConstants {
     {
         auto map = new_ast_node(SET_STMT);
 
-        map = map.put(VARIABLE, variable.identifier);
-        map = map.put(EXPRESSION, expression);
+        map.put(VARIABLE, variable.identifier);
+        map.put(EXPRESSION, expression);
 
-        map = put(map, TOP_OUTER_SPACE, top_outer_space);
-        map = put(map, BOTTOM_OUTER_SPACE, bottom_outer_space);
+        put(map, TOP_OUTER_SPACE, top_outer_space);
+        put(map, BOTTOM_OUTER_SPACE, bottom_outer_space);
 
         return map.as_object();
     }
@@ -498,7 +496,7 @@ struct TplVarStatement: TemplateConstants {
     operator path::ast::HermesValueNode() const
     {
         auto map = new_ast_node(VAR_STMT);
-        map = map.put(EXPRESSION, expression);
+        map.put(EXPRESSION, expression);
         return map.as_object();
     }
 };
@@ -522,12 +520,12 @@ struct TplElseStatement: TemplateConstants {
     operator path::ast::HermesValueNode() const
     {
         auto map = new_ast_node(ELSE_STMT);
-        map = map.put(STATEMENTS, blocks);
+        map.put(STATEMENTS, blocks);
 
-        map = put(map, TOP_OUTER_SPACE, top_outer_space);
-        map = put(map, TOP_INNER_SPACE, top_inner_space);
+        put(map, TOP_OUTER_SPACE, top_outer_space);
+        put(map, TOP_INNER_SPACE, top_inner_space);
 
-        map = put_space_data(map, BOTTOM_INNER_SPACE, BOTTOM_OUTER_SPACE, bottom_space_data);
+        put_space_data(map, BOTTOM_INNER_SPACE, BOTTOM_OUTER_SPACE, bottom_space_data);
 
         process_inner_space(blocks, top_inner_space, bottom_space_data.left_space);
         process_outer_space(blocks);
@@ -554,25 +552,25 @@ struct TplIfStatement: TemplateConstants {
     operator path::ast::HermesValueNode() const
     {
         auto map = new_ast_node(IF_STMT);
-        map = map.put(EXPRESSION, expression);
-        map = map.put(STATEMENTS, blocks);
+        map.put(EXPRESSION, expression);
+        map.put(STATEMENTS, blocks);
 
-        map = put(map, TOP_OUTER_SPACE, top_outer_space);
-        map = put(map, TOP_INNER_SPACE, top_inner_space);
+        put(map, TOP_OUTER_SPACE, top_outer_space);
+        put(map, TOP_INNER_SPACE, top_inner_space);
 
         if (alt_branch.which() == 0)
         {
             const TplSpaceData& bottom_space_data = boost::get<TplSpaceData>(alt_branch);
-            map = put_space_data(map, BOTTOM_INNER_SPACE, BOTTOM_OUTER_SPACE, bottom_space_data);
+            put_space_data(map, BOTTOM_INNER_SPACE, BOTTOM_OUTER_SPACE, bottom_space_data);
         }
         else if (alt_branch.which() == 1)
         {
             const TplIfStatement& elif_stmt = boost::get<TplIfStatement>(alt_branch);
-            map = map.put(ELSE, ((path::ast::HermesValueNode)elif_stmt).value);
+            map.put(ELSE, ((path::ast::HermesValueNode)elif_stmt).value);
         }
         else {
             const TplElseStatement& elif_stmt = boost::get<TplElseStatement>(alt_branch);
-            map = map.put(ELSE, ((path::ast::HermesValueNode)elif_stmt).value);
+            map.put(ELSE, ((path::ast::HermesValueNode)elif_stmt).value);
         }
 
         auto bottom_inner_space = get_if_bottom_inner_space(map);

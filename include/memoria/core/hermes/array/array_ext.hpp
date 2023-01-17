@@ -91,7 +91,7 @@ inline void ArrayView<Object>::for_each(std::function<void(const Object&)> fn) c
 
 
 template <typename T, std::enable_if_t<!HermesObject<std::decay_t<T>>::Value, int>>
-ObjectArray ArrayView<Object>::push_back(T&& view)
+void ArrayView<Object>::push_back(T&& view)
 {
     assert_not_null();
     assert_mutable();
@@ -103,7 +103,7 @@ ObjectArray ArrayView<Object>::push_back(T&& view)
 
 
 template <typename DT, typename T>
-ObjectArray ArrayView<Object>::push_back_t(T&& view)
+void ArrayView<Object>::push_back_t(T&& view)
 {
     assert_not_null();
     assert_mutable();
@@ -142,17 +142,12 @@ Object ArrayView<Object>::set_t(uint64_t idx, T&& view)
 }
 
 
-inline ObjectArray ArrayView<Object>::push_back(const Object& value)
+inline void ArrayView<Object>::push_back(const Object& value)
 {
     assert_not_null();
     assert_mutable();
 
     auto ctr = HermesCtr(mem_holder_);
-
-    ShortTypeCode mytag = arena::read_type_tag(array_);
-
-    ArrayStorageT* new_array;
-
     if (value.is_not_null())
     {
         arena::ERelativePtr val_ptr;
@@ -171,27 +166,23 @@ inline ObjectArray ArrayView<Object>::push_back(const Object& value)
             val_ptr = vv.storage_.addr;
         }
 
-        new_array = array_->push_back(*ctr.arena(), mytag, val_ptr);
+        array_->push_back(*ctr.arena(), val_ptr);
     }
     else {
-        new_array = array_->push_back(*ctr.arena(), mytag, nullptr);
+        array_->push_back(*ctr.arena(), nullptr);
     }
-
-    return ObjectArray{mem_holder_, new_array};
 }
 
 
 
 template <typename DT>
-Array<DT> ArrayView<DT>::push_back(DTTViewType<DT> value)
+void ArrayView<DT>::push_back(DTTViewType<DT> value)
 {
     assert_not_null();
     assert_mutable();
 
     auto ctr = HermesCtr(mem_holder_);
-    auto mytag = ShortTypeCode::of<ArrayView<DT>>();
-    auto* new_array = array_->push_back(*ctr.arena(), mytag, value);
-    return Array<DT>{mem_holder_, new_array};
+    array_->push_back(*ctr.arena(), value);
 }
 
 template <typename DT>
@@ -241,27 +232,23 @@ inline Object ArrayView<Object>::set(uint64_t idx, const Object& ivalue)
 
 
 
-inline ObjectArray ArrayView<Object>::remove(uint64_t idx)
+inline void ArrayView<Object>::remove(uint64_t idx)
 {
     assert_not_null();
     assert_mutable();
 
     auto ctr = HermesCtr(mem_holder_);
-    ShortTypeCode mytag = arena::read_type_tag(array_);
-    ArrayStorageT* new_array = array_->remove(*ctr.arena(), mytag, idx);
-    return ObjectArray{mem_holder_, new_array};
+    array_->remove(*ctr.arena(), idx);
 }
 
 template <typename DT>
-Array<DT> ArrayView<DT>::remove(uint64_t idx)
+void ArrayView<DT>::remove(uint64_t idx)
 {
     assert_not_null();
     assert_mutable();
 
     auto ctr = HermesCtr(mem_holder_);
-    ShortTypeCode mytag = arena::read_type_tag(array_);
-    auto new_array = array_->remove(*ctr.arena(), mytag, idx);
-    return Array<DT>{mem_holder_, new_array};
+    array_->remove(*ctr.arena(), idx);
 }
 
 

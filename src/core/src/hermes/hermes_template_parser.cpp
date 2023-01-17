@@ -161,7 +161,7 @@ struct HermesTemplateParser :
         auto std_array_to_object = [](auto& attrib, auto& ctx){
             auto array = current_ctr().make_object_array(attrib.size());
             for (auto& item: attrib) {
-                array = array.push_back(std::move(item.value));
+                array.push_back(std::move(item.value));
             }
 
             TemplateConstants::process_outer_space(array.as_object());

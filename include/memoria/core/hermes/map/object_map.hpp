@@ -233,7 +233,7 @@ public:
         return simple;
     }
 
-    MMA_NODISCARD ObjectMap remove(U8StringView key);
+    void remove(U8StringView key);
 
     void* deep_copy_to(DeepCopyState& dedup) const {
         assert_not_null();
@@ -243,28 +243,28 @@ public:
     PoolSharedPtr<GenericMap> as_generic_map() const;
 
     template <typename V, std::enable_if_t<HermesObject<V>::Value, int> = 0>
-    MMA_NODISCARD ObjectMap put(U8StringView name, const V& value) {
+    void put(U8StringView name, const V& value) {
         return put_object(name, value);
     }
 
     template <typename ViewT, std::enable_if_t<!HermesObject<ViewT>::Value, int> = 0>
-    MMA_NODISCARD ObjectMap put(U8StringView name, const ViewT& value) {
+    void put(U8StringView name, const ViewT& value) {
         using DT = typename ViewToDTMapping<ViewT>::Type;
         return put_dataobject<DT>(name, value);
     }
 
     template <typename DT, typename ViewT>
-    MMA_NODISCARD ObjectMap put_t(U8StringView name, const ViewT& view) {
+    void put_t(U8StringView name, const ViewT& view) {
         return put_dataobject<DT>(name, view);
     }
 
     template <typename T, typename V>
-    MMA_NODISCARD ObjectMap put(const NamedTypedCode<T>& code, const V& value) {
+    void put(const NamedTypedCode<T>& code, const V& value) {
         return put(code.name(), value);
     }
 
     template <typename DT, typename T, typename ViewT>
-    MMA_NODISCARD ObjectMap put_t(const NamedTypedCode<T>& code, const ViewT& value) {
+    void put_t(const NamedTypedCode<T>& code, const ViewT& value) {
         return put_t<DT>(code.name(), value);
     }
 
@@ -321,10 +321,10 @@ public:
 
 
 private:
-    MMA_NODISCARD ObjectMap put_object(U8StringView name, const Object& value);
+    void put_object(U8StringView name, const Object& value);
 
     template <typename DT>
-    MMA_NODISCARD ObjectMap put_dataobject(U8StringView key, const DTTViewType<DT>& value);
+    void put_dataobject(U8StringView key, const DTTViewType<DT>& value);
 
     void do_stringify(std::ostream& out, DumpFormatState& state) const;
 
@@ -412,15 +412,13 @@ public:
     }
 
 
-    virtual GenericMapPtr put(const Object& key, const Object& value) {
-        auto new_map = map_.put(key.as_varchar(), value);
-        return make_wrapper(std::move(new_map));
+    virtual void put(const Object& key, const Object& value) {
+        map_.put(key.as_varchar(), value);
     }
 
 
-    virtual GenericMapPtr remove(const Object& key) {
-        auto new_map = map_.remove(key.as_varchar());
-        return make_wrapper(std::move(new_map));
+    virtual void remove(const Object& key) {
+        map_.remove(key.as_varchar());
     }
 
     virtual HermesCtr ctr() const;

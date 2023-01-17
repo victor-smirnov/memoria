@@ -381,7 +381,7 @@ Object HermesCtrView::make_dataobject(const DTViewArg<DT>& view)
 }
 
 template <typename T, std::enable_if_t<std::is_same_v<T, ObjectArray>, int>>
-Array<T> HermesCtrView::make_array(uint64_t capacity)
+Array<T> HermesCtrView::make_array()
 {
     assert_not_null();
     assert_mutable();
@@ -389,14 +389,14 @@ Array<T> HermesCtrView::make_array(uint64_t capacity)
     using CtrT = Array<T>;
 
     auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::ArrayStorageT>(
-        ShortTypeCode::of<CtrT>(), capacity
+        ShortTypeCode::of<CtrT>()
     );
 
     return Array<T>(mem_holder_, arena_dtc);
 }
 
 template <typename T, std::enable_if_t<!std::is_same_v<T, ObjectArray>, int>>
-Array<T> HermesCtrView::make_array(uint64_t capacity)
+Array<T> HermesCtrView::make_array()
 {
     assert_not_null();
     assert_mutable();
@@ -404,7 +404,7 @@ Array<T> HermesCtrView::make_array(uint64_t capacity)
     using CtrT = Array<T>;
 
     auto arena_dtc = arena()->allocate_tagged_object<typename CtrT::ArrayStorageT>(
-        ShortTypeCode::of<CtrT>(), capacity
+        ShortTypeCode::of<CtrT>()
     );
 
     return Array<T>(mem_holder_, arena_dtc);
@@ -420,9 +420,9 @@ template <>
 struct ArrayMaker<Object> {
     static auto make_array(HermesCtrView* ctr, Span<const Object> span)
     {
-        ObjectArray array = ctr->make_array<Object>(span.size());
+        ObjectArray array = ctr->make_array<Object>();
         for (const Object& item: span) {
-            array = array.push_back(item);
+            array.push_back(item);
         }
         return array;
     }
@@ -433,9 +433,9 @@ struct ArrayMaker {
     static auto make_array(HermesCtrView* ctr, Span<const T> span)
     {
         using DT = typename ViewToDTMapping<T>::Type;
-        auto array = ctr->make_array<DT>(span.size());
+        auto array = ctr->make_array<DT>();
         for (const T& item: span) {
-            array = array.push_back(item);
+            array.push_back(item);
         }
         return array;
     }
@@ -446,7 +446,7 @@ struct ArrayMaker {
         auto array = ctr->make_array<DT>(span.size());
         for (const T& item: span) {
             // FIXME: when append_t is avaialble, use it
-            array = array.push_back((DTTViewType<DT>)item);
+            array.push_back((DTTViewType<DT>)item);
         }
         return array;
     }

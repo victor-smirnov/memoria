@@ -324,7 +324,7 @@ public:
         return nullptr;
     }
 
-    Map* put(ArenaAllocator& arena, ShortTypeCode tag, const Key& key, const Value& value, LWMemHolder* mem_holder)
+    void put(ArenaAllocator& arena, const Key& key, const Value& value, LWMemHolder* mem_holder)
     {
         if (MMA_UNLIKELY(buckets_.is_null())) {
             return put_empty(arena, key, value, mem_holder);
@@ -332,7 +332,7 @@ public:
         else if (size_ > (1ull << buckets_capacity_))
         {
             enlarge_array(arena, mem_holder);
-            return put(arena, tag, key, value, mem_holder);
+            return put(arena, key, value, mem_holder);
         }
         else {
             bool replace{true};
@@ -342,12 +342,10 @@ public:
                 size_++;
             }
         }
-
-        return this;
     }
 
     template <typename KeyArg>
-    Map* remove(ArenaAllocator& arena, ShortTypeCode tag, const KeyArg& key, LWMemHolder* mem_holder)
+    void remove(ArenaAllocator& arena, const KeyArg& key, LWMemHolder* mem_holder)
     {
         if (MMA_LIKELY(size_))
         {
@@ -385,11 +383,9 @@ public:
             }
             else {
                 shrink_array(arena, mem_holder);
-                this->remove(arena, tag, key, mem_holder);
+                this->remove(arena, key, mem_holder);
             }
         }
-
-        return this;
     }
 
     template <typename Fn>
@@ -488,7 +484,7 @@ public:
     
 private:
 
-    Map* put_empty(ArenaAllocator& arena, const Key& key, const Value& value, LWMemHolder* mem_holder)
+    void put_empty(ArenaAllocator& arena, const Key& key, const Value& value, LWMemHolder* mem_holder)
     {
         BucketRelPtr* buckets = arena.template allocate_untagged_array<BucketRelPtr>(2);
 
@@ -499,8 +495,6 @@ private:
         this->insert_into_array(arena, buckets, 1, key, value, replace, mem_holder);
 
         this->size_ = 1;
-
-        return this;
     }
 
     void enlarge_array(ArenaAllocator& arena, LWMemHolder* mem_holder)

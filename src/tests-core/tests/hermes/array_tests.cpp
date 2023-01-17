@@ -32,7 +32,7 @@ auto hermes_object_array_add_remove_tests = register_test_in_suite<FnTest<Hermes
     std::vector<int64_t> values;
     for (size_t c = 0; c < size; c++)
     {
-        array = array.push_back_t<BigInt>(12345 + c);
+        array.push_back_t<BigInt>(12345 + c);
         values.push_back(12345 + c);
         if (c % 100 == 0) {
             assert_arrays_equal(values, array);
@@ -46,7 +46,7 @@ auto hermes_object_array_add_remove_tests = register_test_in_suite<FnTest<Hermes
     });
 
     for (size_t c = 0; c < size; c++) {
-        array = array.remove(0);
+        array.remove(0);
         values.erase(values.begin(), values.begin() + 1);
 
         if (c % 100 == 0) {
@@ -68,7 +68,7 @@ auto hermes_integer_array_add_remove_tests = register_test_in_suite<FnTest<Herme
     std::vector<int64_t> values;
     for (size_t c = 0; c < size; c++)
     {
-        array = array.push_back(12345 + c);
+        array.push_back(12345 + c);
         values.push_back(12345 + c);
         if (c % 100 == 0) {
             assert_arrays_equal(values, array);
@@ -82,7 +82,7 @@ auto hermes_integer_array_add_remove_tests = register_test_in_suite<FnTest<Herme
     });
 
     for (size_t c = 0; c < size; c++) {
-        array = array.remove(0);
+        array.remove(0);
         values.erase(values.begin(), values.begin() + 1);
 
         if (c % 100 == 0) {
@@ -100,24 +100,24 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Herm
     auto array = doc.make_object_array();
     assert_equals(0, array.size());
 
-    array = array.push_back_t<Varchar>("Hello World");
+    array.push_back_t<Varchar>("Hello World");
     assert_equals(true, array.get(0).is_varchar());
     assert_equals("Hello World", array.get(0).as_varchar());
 
-    array = array.push_back_t<Double>(123456);
+    array.push_back_t<Double>(123456);
     assert_equals(true, array.get(1).is_double());
     assert_equals(123456, array.get(1).as_double());
 
-    array = array.push_back_t<Boolean>(true);
+    array.push_back_t<Boolean>(true);
     assert_equals(true, array.get(2).is_boolean());
     assert_equals(true, array.get(2).as_boolean());
 
     auto map = doc.make_object_map();
-    array = array.push_back(map.as_object());
+    array.push_back(map.as_object());
     assert_equals(true, array.get(3).is_map());
 
     auto arr = doc.make_object_array();
-    array = array.push_back(arr.as_object());
+    array.push_back(arr.as_object());
     assert_equals(true, array.get(4).is_array());
 
     array.set_t<Double>(0, 555);

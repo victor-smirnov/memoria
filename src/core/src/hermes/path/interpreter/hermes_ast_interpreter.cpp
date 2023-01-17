@@ -59,7 +59,7 @@ hermes::ObjectArray HermesASTInterpreter::wrap_array(const std::vector<Object>& 
     auto arr = doc.make_object_array(array.size());
 
     for (const auto& item: array) {
-        arr = arr.push_back(item);
+        arr.push_back(item);
     }
 
     return arr;
@@ -197,7 +197,7 @@ void HermesASTInterpreter::evaluateProjection(
                 if (!getPathObject(m_context).is_null())
                 {
                     // add the result of the expression to the results array
-                    result = result.push_back(getPathObject(m_context));
+                    result.push_back(getPathObject(m_context));
                 }
             }
 
@@ -371,13 +371,13 @@ void HermesASTInterpreter::visitFlattenOperatorNode2(const ASTNodePtr& node, Con
                 for (size_t idx = 0; idx < a0->size(); idx++)
                 {
                     auto item2 = a0->get(idx);
-                    result = result.push_back(item2);
+                    result.push_back(item2);
                 }
             }
             // otherwise append or move the item
             else
             {
-                result = result.push_back(std::move(item));
+                result.push_back(std::move(item));
             }
         }
         // set the results of the flatten operation
@@ -458,7 +458,7 @@ void HermesASTInterpreter::visitSliceExpressionNode2(const ASTNodePtr& node, Con
             // append a copy of the item at arrayIndex or move it into the
             // result array depending on the type of the context variable
             size_t arrayIndex = static_cast<uint64_t>(i);
-            result = result.push_back(std::move(ctx_array->get(arrayIndex)));
+            result.push_back(std::move(ctx_array->get(arrayIndex)));
         }
 
         // set the results of the projection
@@ -496,7 +496,7 @@ void HermesASTInterpreter::visitHashWildcardNode2(const ASTNodePtr& node, Contex
         auto result = make_array();
 
         ctx_map->for_each([&](auto, auto value){
-            result = result.push_back(value);
+            result.push_back(value);
         });
 
         // set the results of the projection
@@ -532,7 +532,7 @@ void HermesASTInterpreter::visitMultiselectListNode(const ASTNodePtr& node)
             // evaluate the subexpression
             visit(expression.as_tiny_object_map());
             // copy the result of the subexpression into the list of results
-            result = result.push_back(getPathObject(m_context));
+            result.push_back(getPathObject(m_context));
         }
         // set the results of the projection
         m_context = result.as_object();
@@ -568,7 +568,7 @@ void HermesASTInterpreter::visitMultiselectHashNode(const ASTNodePtr& node)
             // for the key of the subexpression
             //result[keyValuePair.first.identifier] = getJsonValue(m_context);
 
-            result = result.put(
+            result.put(
                 keyValuePair.get(FIRST_ATTR).as_tiny_object_map().get(IDENTIFIER_ATTR).as_varchar(),
                 getPathObject(m_context)
             );
@@ -731,7 +731,7 @@ void HermesASTInterpreter::visitFilterExpressionNode2(const ASTNodePtr& node, Co
             visit(node.get(EXPRESSION_ATTR));
             // convert the result into a boolean
             if (toSimpleBoolean(getPathObject(m_context))) {
-                result = result.push_back(item) ;
+                result.push_back(item);
             }
         }
 
@@ -1124,7 +1124,7 @@ void HermesASTInterpreter::keys(FunctionArgumentList &arguments)
     auto map = object.as_generic_map();
 
     map->for_each([&](auto k, auto){
-        results = results.push_back_t<Varchar>(k.as_varchar());
+        results.push_back_t<Varchar>(k.as_varchar());
     });
     // set the result
     m_context = results.as_object();
@@ -1189,7 +1189,7 @@ void HermesASTInterpreter::map(const ASTNodePtr& node, ContextValue&& iarray_val
         auto item = array->get(idx);
         m_context = assignContextValue(std::move(item));
         visit(node);
-        result = result.push_back(getPathObject(m_context));
+        result.push_back(getPathObject(m_context));
     }
 
     m_context = result.as_object();
@@ -1239,7 +1239,7 @@ void HermesASTInterpreter::mergeObject(Object* object, ContextValue&& isourceObj
     auto src_map = sourceObject.as_generic_map();
 
     src_map->for_each([&](auto k, auto v){
-        map = map->put(k, v);
+        map->put(k, v);
     });
 }
 
@@ -1280,7 +1280,7 @@ void HermesASTInterpreter::reverse(ContextValue&& isubject)
     size_t size = array->size();
     for (size_t idx = 0; idx < size; idx++) {
         auto item = array->get(size - idx - 1);
-        result = result.push_back(item);
+        result.push_back(item);
     }
 
     m_context = std::move(result).as_object();
@@ -1354,7 +1354,7 @@ void HermesASTInterpreter::sortBy(const ASTNodePtr& expression, ContextValue&& i
 
     auto result = make_array();
     for (const auto& pair: sorted) {
-        result = result.push_back(pair.first);
+        result.push_back(pair.first);
     }
 
     m_context = std::move(result).as_object();
@@ -1424,7 +1424,7 @@ void HermesASTInterpreter::toArray(ContextValue&& ivalue)
     else
     {
         auto result = make_array();
-        result = result.push_back(value);
+        result.push_back(value);
 
         m_context = result.as_object();
     }
@@ -1585,7 +1585,7 @@ void HermesASTInterpreter::values(ContextValue&& iobject)
     auto map = object.as_generic_map();
 
     map->for_each([&](auto, auto val){
-        result = result.push_back(val);
+        result.push_back(val);
     });
 
     m_context = result.as_object();

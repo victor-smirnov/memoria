@@ -619,7 +619,7 @@ public:
 
         auto meta = hermes::HermesCtrView::make_new();
         auto map = meta.make_object_map();
-        map = map.put_t<Varchar>("branch_name", snapshot_descriptor_->branch());
+        map.put_t<Varchar>("branch_name", snapshot_descriptor_->branch());
         meta.set_root(map);
 
         auto superblock = new_superblock(pos);

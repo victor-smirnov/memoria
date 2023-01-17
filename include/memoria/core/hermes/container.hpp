@@ -381,10 +381,10 @@ public:
     Object make_dataobject(const DTViewArg<DT>& view);
 
     template <typename T, std::enable_if_t<std::is_same_v<T, ObjectArray>, int> = 0>
-    Array<T> make_array(uint64_t capacity = 6);
+    Array<T> make_array();
 
     template <typename T, std::enable_if_t<!std::is_same_v<T, ObjectArray>, int> = 0>
-    Array<T> make_array(uint64_t capacity = 6);
+    Array<T> make_array();
 
     template <typename T>
     auto make_array(Span<const T> span);

@@ -241,7 +241,7 @@ HermesCtr HermesCtrView::common_instance() {
 
 
 ObjectArray HermesCtrView::make_object_array(uint64_t capacity) {
-    return HermesCtrView::make_array<Object>(capacity);
+    return HermesCtrView::make_array<Object>();
 }
 
 

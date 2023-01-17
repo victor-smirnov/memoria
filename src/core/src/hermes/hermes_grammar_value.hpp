@@ -103,7 +103,7 @@ public:
     iterator end() {return iterator{};}
 
     void insert(iterator, value_type value) {
-        array_ = array_.push_back(value);
+        array_.push_back(value);
     }
 
     auto finish() {
@@ -180,7 +180,7 @@ public:
     iterator end() const {return iterator{};}
 
     void insert(iterator, const value_type& entry) {
-        value_ = value_.put(boost::fusion::at_c<0>(entry), boost::fusion::at_c<1>(entry));
+        value_.put(boost::fusion::at_c<0>(entry), boost::fusion::at_c<1>(entry));
     }
 
     ObjectMap finish() {
@@ -420,11 +420,11 @@ public:
     }
 
     void push_back(const Object& value) {
-        array_ = array_->push_back(value);
+        array_->push_back(value);
     }
 
     void push_back(const TypedMapEntry& value) {
-        map_ = map_->put(bf::at_c<0>(value), bf::at_c<1>(value));
+        map_->put(bf::at_c<0>(value), bf::at_c<1>(value));
     }
 
     Object finish()
