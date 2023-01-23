@@ -24,19 +24,31 @@
 namespace memoria::hermes {
 
 class TinyObjectBase {
-    TinyObjectMap ptr_;
+protected:
+    TinyObjectMap object_;
 public:
     TinyObjectBase() noexcept {};
-    TinyObjectBase(const TinyObjectMap& ptr) noexcept:
-        ptr_(ptr)
+    TinyObjectBase(TinyObjectMap&& object) noexcept:
+        object_(std::move(object))
     {};
+
+    const hermes::TinyObjectMap& object() const {return object_;}
+    hermes::TinyObjectMap& object() {return object_;}
+
+    U8String to_pretty_string() const {
+        return object_.as_object().to_pretty_string();
+    }
+
+    U8String to_string() const {
+        return object_.as_object().to_string();
+    }
 };
 
 class Record: public TinyObjectBase {
 public:
     Record() noexcept {}
-    Record(const TinyObjectMap& ptr) noexcept:
-        TinyObjectBase(ptr)
+    Record(TinyObjectMap ptr) noexcept:
+        TinyObjectBase(std::move(ptr))
     {}
 };
 

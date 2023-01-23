@@ -101,7 +101,7 @@ public:
     auto sources = get_or_add_array(map, "sources");
 
     U8String file_path = target_file_;
-    sources = sources.push_back_t<Varchar>(file_path);
+    sources.push_back_t<Varchar>(file_path);
   }
 
   virtual std::vector<U8String> includes() const override {
@@ -122,7 +122,7 @@ public:
     U8String path = get_or_fail(
           ld_config().get("filename"),
           "filename property is not specified for file generator"
-        ).as_varchar();
+    ).as_varchar();
     target_file_ = project_->components_output_folder() + "/" + path;
 
     std::filesystem::path pp0(target_file_.to_std_string());
@@ -137,7 +137,7 @@ public:
     handler_ = get_or_fail(
           ld_config().get("handler"),
           "handler property is not specified for file generator"
-        ).as_varchar();
+    ).as_varchar();
   }
 
   hermes::ObjectMap ld_config() const {

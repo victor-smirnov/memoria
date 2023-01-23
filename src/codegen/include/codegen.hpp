@@ -209,11 +209,11 @@ public:
     {}
 
     void add_source_file(std::string name) {
-        sources_ = sources_.push_back_t<Varchar>(name);
+        sources_.push_back_t<Varchar>(name);
     }
 
     void add_byproduct_file(std::string name) {
-        byproducts_ = byproducts_.push_back_t<Varchar>(name);
+        byproducts_.push_back_t<Varchar>(name);
     }
 };
 

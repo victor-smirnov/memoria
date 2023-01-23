@@ -225,15 +225,15 @@ public:
         auto profiles = get_or_add_array(map, "active_profiles");
 
         for (const auto& profile: enabled_profiles_) {
-            profiles = profiles.push_back_t<Varchar>(profile);
+            profiles.push_back_t<Varchar>(profile);
         }
 
         auto byproducts = get_or_add_array(map, "byproducts");
 
         U8String file_path = project_output_folder_ + "/" + codegen_config_file_name_;
 
-        byproducts = byproducts.push_back_t<Varchar>(file_path);
-        byproducts = byproducts.push_back_t<Varchar>(file_path + ".pch");
+        byproducts.push_back_t<Varchar>(file_path);
+        byproducts.push_back_t<Varchar>(file_path + ".pch");
 
         for (auto& tf: type_factories_)
         {
@@ -510,7 +510,7 @@ ObjectArray get_or_add_array(ObjectMap map, const U8String& name)
     }
 
     auto arr = map.ctr().make_object_array(500);
-    map = map.put(name, arr.as_object());
+    map.put(name, arr.as_object());
 
     return arr;
 }

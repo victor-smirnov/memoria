@@ -186,6 +186,11 @@ public:
             return worker_.join();
         }
     }
+
+    void suspend_fiber(fibers::context* ctx)
+    {
+        scheduler_->suspend(ctx);
+    }
     
     template <typename Fn, typename... Args>
     auto run_at(int target_cpu, Fn&& task, Args&&... args)
@@ -406,6 +411,21 @@ public:
     }
 
     bool shutdown_requested() const {return !running_;}
+
+
+    template <typename Fn, typename... Args>
+    fibers::fiber in_fiber(Fn&& fn, Args&&... args)
+    {
+        fibers::fiber ff(
+            fibers::launch::dispatch,
+            std::allocator_arg_t(),
+            this->fiber_stack_pool_,
+            std::forward<Fn>(fn),
+            std::forward<Args>(args)...
+        );
+
+        return ff;
+    }
 
 private:
 

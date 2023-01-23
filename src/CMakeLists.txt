@@ -29,6 +29,8 @@ add_subdirectory(reactor)
 add_subdirectory(filesystem_reactor)
 add_subdirectory(filesystem_common)
 add_subdirectory(filesystem_classic)
+add_subdirectory(hrpc)
+
 
 file(GLOB_RECURSE MAIN_INCLUDES ../include/*.hpp)
 set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES ${MAIN_INCLUDES})
