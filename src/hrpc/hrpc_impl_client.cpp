@@ -36,7 +36,26 @@ PoolSharedPtr<Connection> HRPCClientSocketImpl::open()
     static thread_local auto pool =
             boost::make_local_shared<pool::SimpleObjectPool<HRPCConnectionImpl>>();
 
-    return pool->allocate_shared(this->shared_from_this());
+    auto conn = TCPClientSocketStreamsProviderImpl::make_instance(cfg_);
+    return pool->allocate_shared(service_, conn, ConnectionSide::CLIENT);
+}
+
+
+TCPClientSocketStreamsProviderImpl::
+    TCPClientSocketStreamsProviderImpl(TCPClientSocketConfig config):
+    config_(config),
+    socket_(reactor::ClientSocket(reactor::IPAddress(config.host().data()), config.port()))
+{
+
+}
+
+PoolSharedPtr<StreamsProvider> TCPClientSocketStreamsProviderImpl::
+    make_instance(TCPClientSocketConfig config)
+{
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<TCPClientSocketStreamsProviderImpl>>();
+
+    return pool->allocate_shared(config);
 }
 
 }

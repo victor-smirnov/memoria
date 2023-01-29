@@ -56,32 +56,32 @@ public:
 };
 
 
-class OutputStream {
+class OutputChannel {
 public:
-    virtual ~OutputStream() noexcept = default;
+    virtual ~OutputChannel() noexcept = default;
 
-    virtual StreamCode stream_code() = 0;
+    virtual ChannelCode code() = 0;
 
     virtual PoolSharedPtr<Connection> connection() = 0;
 
-    virtual void push(const StreamMessage& msg) = 0;
+    virtual void push(const Message& msg) = 0;
     virtual void close() = 0;
     virtual bool is_closed() = 0;
 };
 
 
-class InputStream {
+class InputChannel {
 public:
-    virtual ~InputStream() noexcept = default;
+    virtual ~InputChannel() noexcept = default;
 
-    virtual StreamCode stream_code() = 0;
+    virtual ChannelCode code() = 0;
 
     virtual PoolSharedPtr<Connection> connection() = 0;
 
     virtual bool is_closed() = 0;
     virtual void close() = 0;
 
-    virtual bool pop(StreamMessage& msg) = 0;
+    virtual bool pop(Message& msg) = 0;
 };
 
 
@@ -106,11 +106,11 @@ public:
     virtual void on_complete(CallCompletionFn fn) = 0;
     virtual void cancel() = 0;
 
-    virtual size_t input_streams() = 0;
-    virtual size_t output_streams() = 0;
+    virtual size_t input_channels() = 0;
+    virtual size_t output_channels() = 0;
 
-    virtual PoolSharedPtr<InputStream> input_stream(size_t idx)  = 0;
-    virtual PoolSharedPtr<OutputStream> output_stream(size_t idx) = 0;
+    virtual PoolSharedPtr<InputChannel> input_channel(size_t idx)  = 0;
+    virtual PoolSharedPtr<OutputChannel> output_channel(size_t idx) = 0;
 };
 
 using CancelCallListenerFn = std::function<void()>;
@@ -126,11 +126,11 @@ public:
     virtual hermes::Object get(NamedCode name) = 0;
     virtual void set(NamedCode name, hermes::Object object) = 0;
 
-    virtual size_t input_streams() = 0;
-    virtual size_t output_streams() = 0;
+    virtual size_t input_channels() = 0;
+    virtual size_t output_channels() = 0;
 
-    virtual PoolSharedPtr<InputStream> input_stream(size_t idx)  = 0;
-    virtual PoolSharedPtr<OutputStream> output_stream(size_t idx) = 0;
+    virtual PoolSharedPtr<InputChannel> input_channel(size_t idx)  = 0;
+    virtual PoolSharedPtr<OutputChannel> output_channel(size_t idx) = 0;
 
     virtual bool is_cancelled() = 0;
 

@@ -23,16 +23,16 @@ HRPCContextImpl::HRPCContextImpl(ConnectionImplPtr connection, CallID call_id, R
     connection_(connection),
     call_id_(call_id),
     request_(request),
-    batch_size_limit_(connection_->stream_buffer_size())
+    batch_size_limit_(connection_->channel_buffer_size())
 {
     // Output stream at the Call side becomes input stream
     // here at the Context die and vice versa.
-    for (size_t c = 0; c < request.output_streams(); c++) {
-        input_streams_.push_back(make_istream(c));
+    for (size_t c = 0; c < request.output_channels(); c++) {
+        input_channels_.push_back(make_input_channel(c));
     }
 
-    for (size_t c = 0; c < request.input_streams(); c++) {
-        output_streams_.push_back(make_ostream(c));
+    for (size_t c = 0; c < request.input_channels(); c++) {
+        output_channels_.push_back(make_output_channel(c));
     }
 }
 
@@ -40,28 +40,28 @@ PoolSharedPtr<Connection> HRPCContextImpl::connection() {
     return connection_;
 }
 
-void HRPCContextImpl::close_stream(bool input, StreamCode code)
+void HRPCContextImpl::close_channel(bool input, ChannelCode code)
 {
     if (input) {
-        if (code < input_streams_.size() && !input_streams_[code].is_null()) {
-            input_streams_[code]->do_close_stream();
+        if (code < input_channels_.size() && !input_channels_[code].is_null()) {
+            input_channels_[code]->do_close_channel();
         }
     }
     else {
-        if (code < output_streams_.size() && !output_streams_[code].is_null()) {
-            output_streams_[code]->do_close_stream();
+        if (code < output_channels_.size() && !output_channels_[code].is_null()) {
+            output_channels_[code]->do_close_channel();
         }
     }
 }
 
 void HRPCContextImpl::cancel_call()
 {
-    for (auto i_s: input_streams_) {
-        i_s->do_close_stream();
+    for (auto i_s: input_channels_) {
+        i_s->do_close_channel();
     }
 
-    for (auto o_s: output_streams_) {
-        o_s->do_close_stream();
+    for (auto o_s: output_channels_) {
+        o_s->do_close_channel();
     }
 
     cancelled_ = true;
@@ -70,32 +70,32 @@ void HRPCContextImpl::cancel_call()
     }
 }
 
-void HRPCContextImpl::new_message(StreamMessage&& msg, StreamCode code)
+void HRPCContextImpl::new_message(Message&& msg, ChannelCode code)
 {
-    if (code < input_streams_.size() && !input_streams_[code].is_null()) {
-        input_streams_[code]->new_message(std::move(msg));
+    if (code < input_channels_.size() && !input_channels_[code].is_null()) {
+        input_channels_[code]->new_message(std::move(msg));
     }
 }
 
-void HRPCContextImpl::reset_ostream_buffer(StreamCode code)
+void HRPCContextImpl::reset_output_channel_buffer(ChannelCode code)
 {
-    if (code < output_streams_.size() && !output_streams_[code].is_null()) {
-        output_streams_[code]->reset_buffer_size();
+    if (code < output_channels_.size() && !output_channels_[code].is_null()) {
+        output_channels_[code]->reset_buffer_size();
     }
 }
 
-InputStreamImplPtr HRPCContextImpl::make_istream(StreamCode code)
+InputChannelImplPtr HRPCContextImpl::make_input_channel(ChannelCode code)
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCInputStreamImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCInputChannelImpl>>();
 
     return pool->allocate_shared(connection_, call_id_, code, batch_size_limit_, false);
 }
 
-OutputStreamImplPtr HRPCContextImpl::make_ostream(StreamCode code)
+OutputChannelImplPtr HRPCContextImpl::make_output_channel(ChannelCode code)
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCOutputStreamImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCOutputChannelImpl>>();
 
     return pool->allocate_shared(connection_, call_id_, code, batch_size_limit_, false);
 }

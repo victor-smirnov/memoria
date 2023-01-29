@@ -22,11 +22,11 @@ namespace memoria::hrpc {
 
 
 struct Request: public hermes::TinyObjectBase {
-    static constexpr NamedCode ENDPOINT                 = NamedCode(0, "endpoint");
-    static constexpr NamedCode PARAMETERS               = NamedCode(1, "parameters");
-    static constexpr NamedCode INPUT_STREAMS            = NamedCode(2, "inputStreams");
-    static constexpr NamedCode OUTPUT_STREAMS           = NamedCode(3, "outputStreams");
-    static constexpr NamedCode METADATA                 = NamedCode(4, "metadata");
+    static constexpr NamedCode ENDPOINT                 = NamedCode(1, "endpoint");
+    static constexpr NamedCode PARAMETERS               = NamedCode(2, "parameters");
+    static constexpr NamedCode INPUT_CHANNELS           = NamedCode(3, "input_channels");
+    static constexpr NamedCode OUTPUT_CHANNELS          = NamedCode(4, "output_channels");
+    static constexpr NamedCode METADATA                 = NamedCode(5, "metadata");
 protected:
 
 public:
@@ -53,16 +53,16 @@ public:
         return object_.get(PARAMETERS).as_tiny_object_map();
     }
 
-    StreamCode input_streams() {
-        auto vv = object_.get(INPUT_STREAMS);
+    ChannelCode input_channels() {
+        auto vv = object_.get(INPUT_CHANNELS);
         if (vv.is_not_empty()) {
             return vv.to_i32();
         }
         return 0;
     }
 
-    StreamCode output_streams() {
-        auto vv = object_.get(OUTPUT_STREAMS);
+    ChannelCode output_channels() {
+        auto vv = object_.get(OUTPUT_CHANNELS);
         if (vv.is_not_empty()) {
             return vv.to_i32();
         }
@@ -81,12 +81,12 @@ public:
         return object_.put(PARAMETERS, params);
     }
 
-    void set_input_streams(StreamCode streams_num) {
-        object_.put(INPUT_STREAMS, streams_num);
+    void set_input_channels(ChannelCode num) {
+        object_.put(INPUT_CHANNELS, num);
     }
 
-    void set_output_streams(StreamCode streams_num) {
-        object_.put(OUTPUT_STREAMS, streams_num);
+    void set_output_channels(ChannelCode num) {
+        object_.put(OUTPUT_CHANNELS, num);
     }
 
     static Request make() {
@@ -107,8 +107,8 @@ enum class ErrorCode: uint32_t {
 
 class Error: public hermes::TinyObjectBase {
 public:
-    static constexpr NamedCode CODE         = NamedCode(0, "code");
-    static constexpr NamedCode DESCRIPTION  = NamedCode(1, "description");
+    static constexpr NamedCode CODE         = NamedCode(1, "code");
+    static constexpr NamedCode DESCRIPTION  = NamedCode(2, "description");
 protected:    
 public:
     Error() {}
@@ -139,9 +139,9 @@ enum class StatusCode: uint32_t {
 };
 
 struct Response: public hermes::TinyObjectBase {
-    static constexpr NamedCode RESULT       = NamedCode(0, "result");
-    static constexpr NamedCode STATUS_CODE  = NamedCode(1, "status_code");
-    static constexpr NamedCode ERROR        = NamedCode(1, "error");
+    static constexpr NamedCode RESULT       = NamedCode(1, "result");
+    static constexpr NamedCode STATUS_CODE  = NamedCode(2, "status_code");
+    static constexpr NamedCode ERROR        = NamedCode(3, "error");
 protected:
 public:
     Response() {}
@@ -215,20 +215,20 @@ public:
     }
 };
 
-class StreamMessage: public hermes::TinyObjectBase {
+class Message: public hermes::TinyObjectBase {
 protected:
 
 public:
     static constexpr NamedCode DATA       = NamedCode(1, "data");
     static constexpr NamedCode METADATA   = NamedCode(2, "metadata");
 
-    StreamMessage() {}
+    Message() {}
 
-    StreamMessage(hermes::TinyObjectMap&& object):
+    Message(hermes::TinyObjectMap&& object):
         hermes::TinyObjectBase(std::move(object))
     {}
 
-    StreamMessage(hermes::HermesCtr ctr):
+    Message(hermes::HermesCtr ctr):
         hermes::TinyObjectBase(ctr)
     {}
 
@@ -253,12 +253,12 @@ public:
         return object_.as_object().to_pretty_string();
     }
 
-    StreamMessage compactify() const {
+    Message compactify() const {
         return object_.ctr().compactify(true).root().as_tiny_object_map();
     }
 
-    static StreamMessage empty() {
-        StreamMessage batch(hermes::HermesCtr::make_pooled());
+    static Message empty() {
+        Message batch(hermes::HermesCtr::make_pooled());
         return batch;
     }
 };
@@ -267,7 +267,7 @@ public:
 class ConnectionMetadata: public hermes::TinyObjectBase {
 
 public:
-    static constexpr NamedCode STREAM_BUFFER_SIZE = NamedCode(1, "stream_buffer_size");
+    static constexpr NamedCode CHANNEL_BUFFER_SIZE = NamedCode(1, "channel_buffer_size");
 
     ConnectionMetadata() {}
 
@@ -279,12 +279,12 @@ public:
         hermes::TinyObjectBase(std::move(ctr))
     {}
 
-    uint64_t stream_buffer_size() const {
-        return object_.get(STREAM_BUFFER_SIZE).cast_to<UBigInt>();
+    uint64_t channel_buffer_size() const {
+        return object_.get(CHANNEL_BUFFER_SIZE).cast_to<UBigInt>();
     }
 
-    void set_stream_buffer_size(uint64_t size) {
-        object_.put(STREAM_BUFFER_SIZE, size);
+    void set_channel_buffer_size(uint64_t size) {
+        object_.put(CHANNEL_BUFFER_SIZE, size);
     }
 
     ConnectionMetadata compactify() const {
@@ -294,8 +294,8 @@ public:
 
 class ProtocolConfig: public hermes::TinyObjectBase {
 public:
-    static constexpr NamedCode STREAM_BUFFER_SIZE = NamedCode(1, "stream_buffer_size");
-    static constexpr uint64_t  STREAM_BUFFER_SIZE_DEFAULT = 1024*1024; // 1MB
+    static constexpr NamedCode CHANNEL_BUFFER_SIZE = NamedCode(1, "channel_buffer_size");
+    static constexpr uint64_t  CHANNEL_BUFFER_SIZE_DEFAULT = 1024*1024; // 1MB
 
     ProtocolConfig() {}
     ProtocolConfig(hermes::TinyObjectMap map):
@@ -306,18 +306,18 @@ public:
         hermes::TinyObjectBase(std::move(ctr))
     {}
 
-    uint64_t stream_buffer_size() const
+    uint64_t channel_buffer_size() const
     {
-        auto val = object_.get(STREAM_BUFFER_SIZE);
+        auto val = object_.get(CHANNEL_BUFFER_SIZE);
         if (val.is_not_null()) {
             return val.cast_to<UBigInt>();
         }
 
-        return STREAM_BUFFER_SIZE_DEFAULT;
+        return CHANNEL_BUFFER_SIZE_DEFAULT;
     }
 
-    void set_stream_buffer_size(uint64_t size) {
-        object_.put(STREAM_BUFFER_SIZE, size);
+    void set_channel_buffer_size(uint64_t size) {
+        object_.put(CHANNEL_BUFFER_SIZE, size);
     }
 };
 

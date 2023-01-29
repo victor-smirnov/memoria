@@ -35,10 +35,10 @@ int main(int argc, char** argv, char** envp) {
             println("Endpoint {} is called!", ctx->request().endpoint());
             println("Request: {}", ctx->request().to_pretty_string());
 
-            auto i_stream = ctx->input_stream(0);
-            hrpc::StreamMessage msg;
-            while (i_stream->pop(msg)) {
-                println("Stream msg: {}", msg.to_pretty_string());
+            auto i_channel = ctx->input_channel(0);
+            hrpc::Message msg;
+            while (i_channel->pop(msg)) {
+                println("Channel msg: {}", msg.to_pretty_string());
             }
 
             hrpc::Response rs = hrpc::Response::ok();
@@ -69,21 +69,21 @@ int main(int argc, char** argv, char** envp) {
 
             hrpc::Request rq = hrpc::Request::make();
             rq.set_endpoint(endpoint);
-            rq.set_output_streams(1);
+            rq.set_output_channels(1);
 
             auto call = conn->call(rq, [=](hrpc::Response rs){
                 println("Response: {}", rs.to_pretty_string());
                 conn->close();
             });
 
-            auto o_stream = call->output_stream(0);
+            auto o_channel = call->output_channel(0);
 
             for (int c = 0; c < 3; c++) {
-                auto batch = hrpc::StreamMessage::empty();
-                o_stream->push(batch);
+                auto batch = hrpc::Message::empty();
+                o_channel->push(batch);
             }
 
-            o_stream->close();
+            o_channel->close();
 
             call->wait();
 

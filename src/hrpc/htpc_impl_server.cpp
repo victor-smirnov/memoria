@@ -36,8 +36,33 @@ PoolSharedPtr<Connection> HRPCServerSocketImpl::accept()
             boost::make_local_shared<pool::SimpleObjectPool<HRPCConnectionImpl>>();
 
     reactor::SocketConnectionData conn_data = socket_.accept();
+    auto conn = TCPServerSocketStreamsProviderImpl::make_instance(this->shared_from_this(), std::move(conn_data));
 
-    return pool->allocate_shared(this->shared_from_this(), std::move(conn_data));
+    return pool->allocate_shared(service_, conn, ConnectionSide::SERVER);
+}
+
+
+TCPServerSocketStreamsProviderImpl::
+    TCPServerSocketStreamsProviderImpl(
+        ServerSocketImplPtr socket,
+        reactor::SocketConnectionData&& conn_data
+    ):
+    socket_(socket),
+    connection_(std::move(conn_data))
+{
+
+}
+
+PoolSharedPtr<StreamsProvider> TCPServerSocketStreamsProviderImpl::
+    make_instance(
+        ServerSocketImplPtr socket,
+        reactor::SocketConnectionData&& conn_data
+    )
+{
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<TCPServerSocketStreamsProviderImpl>>();
+
+    return pool->allocate_shared(socket, std::move(conn_data));
 }
 
 }

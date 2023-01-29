@@ -18,27 +18,27 @@
 
 namespace memoria::hrpc {
 
-HRPCOutputStreamImpl::HRPCOutputStreamImpl(
+HRPCOutputChannelImpl::HRPCOutputChannelImpl(
     const ConnectionImplPtr& conn,
     CallID call_id,
-    StreamCode stream_code,
+    ChannelCode code,
     uint64_t batch_size_limit,
     bool call_side
 ):
     connection_(conn),
     call_id_(call_id),
-    stream_code_(stream_code),
+    code_(code),
     closed_(),
     call_side_(call_side),
     batch_size_limit_(batch_size_limit)
 {}
 
 
-PoolSharedPtr<Connection> HRPCOutputStreamImpl::connection() {
+PoolSharedPtr<Connection> HRPCOutputChannelImpl::connection() {
     return connection_;
 }
 
-void HRPCOutputStreamImpl::push(const StreamMessage& msg)
+void HRPCOutputChannelImpl::push(const Message& msg)
 {
     if (!closed_)
     {
@@ -55,33 +55,33 @@ void HRPCOutputStreamImpl::push(const StreamMessage& msg)
             msg_type,
             call_id_,
             msg.object().ctr(),
-            stream_code_
+            code_
         );
     }
     else {
-        MEMORIA_MAKE_GENERIC_ERROR("Stream {} for {} has been closed", (int)stream_code_, call_id_);
+        MEMORIA_MAKE_GENERIC_ERROR("Channel {} for {} has been closed", code_, call_id_);
     }
 }
 
-void HRPCOutputStreamImpl::close()
+void HRPCOutputChannelImpl::close()
 {
     MessageType msg_type = call_side_ ? MessageType::CALL_CLOSE_INPUT_STREAM : MessageType::CONTEXT_CLOSE_INPUT_STREAM;
 
     connection_->send_message(
         msg_type,
         call_id_,
-        stream_code_
+        code_
     );
 
-    do_close_stream();
+    do_close_channel();
 }
 
-void HRPCOutputStreamImpl::do_close_stream() {
+void HRPCOutputChannelImpl::do_close_channel() {
     closed_ = true;
     reset_buffer_size();
 }
 
-void HRPCOutputStreamImpl::reset_buffer_size() {
+void HRPCOutputChannelImpl::reset_buffer_size() {
     batch_size_ = 0;
     flow_control_.notify_all();
 }

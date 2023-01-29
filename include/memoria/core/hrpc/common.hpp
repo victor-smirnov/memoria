@@ -21,7 +21,7 @@ namespace memoria::hrpc {
 
 using EndpointID = uint64_t;
 using CallID     = uint64_t;
-using StreamCode = uint16_t;
+using ChannelCode = uint16_t;
 
 class Context;
 class HRPCService;
@@ -55,7 +55,7 @@ public:
 
 constexpr ProtocolVersion PROTOCOL_VERSION = ProtocolVersion(1);
 
-enum class ConnectionType: uint8_t {
+enum class ConnectionSide: uint8_t {
     CLIENT, SERVER
 };
 
@@ -79,19 +79,19 @@ class MessageHeader {
     uint32_t message_size_;
     MessageType message_type_;
     uint8_t reserved_;
-    StreamCode stream_code_;
+    ChannelCode channel_code_;
     CallID call_id_;
 public:
     MessageHeader():
         message_size_(), message_type_(),
-        reserved_(), stream_code_(),
+        reserved_(), channel_code_(),
         call_id_()
     {}
 
     uint32_t message_size() const {return message_size_;}
     MessageType message_type() const {return message_type_;}
     CallID call_id() const {return call_id_;}
-    StreamCode stream_code() const {return stream_code_;}
+    ChannelCode channel_code() const {return channel_code_;}
 
     void set_message_size(uint32_t size) {
         message_size_ = size;
@@ -105,8 +105,8 @@ public:
         call_id_ = id;
     }
 
-    void set_stream_code(StreamCode code) {
-        stream_code_ = code;
+    void set_channel_code(ChannelCode code) {
+        channel_code_ = code;
     }
 };
 

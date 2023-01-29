@@ -31,15 +31,15 @@ HRPCCallImpl::HRPCCallImpl(
     connection_(connection),
     request_(request),
     call_id_(call_id),
-    batch_size_limit_(connection->stream_buffer_size()),
+    batch_size_limit_(connection->channel_buffer_size()),
     completion_fn_(completion_fn)
 {
-    for (size_t c = 0; c < request.input_streams(); c++) {
-        input_streams_.push_back(make_istream(c));
+    for (size_t c = 0; c < request.input_channels(); c++) {
+        input_channels_.push_back(make_input_channel(c));
     }
 
-    for (size_t c = 0; c < request.output_streams(); c++) {
-        output_streams_.push_back(make_ostream(c));
+    for (size_t c = 0; c < request.output_channels(); c++) {
+        output_channels_.push_back(make_output_channel(c));
     }
 }
 
@@ -79,46 +79,46 @@ void HRPCCallImpl::set_response(Response rs)
     }
 }
 
-void HRPCCallImpl::new_message(StreamMessage&& msg, StreamCode code)
+void HRPCCallImpl::new_message(Message&& msg, ChannelCode code)
 {
-    if (code < input_streams_.size() && !input_streams_[code].is_null()) {
-        input_streams_[code]->new_message(std::move(msg));
+    if (code < input_channels_.size() && !input_channels_[code].is_null()) {
+        input_channels_[code]->new_message(std::move(msg));
     }
 }
 
-void HRPCCallImpl::close_stream(bool input, StreamCode code)
+void HRPCCallImpl::close_channel(bool input, ChannelCode code)
 {
     if (input) {
-        if (code < input_streams_.size() && !input_streams_[code].is_null()) {
-            input_streams_[code]->do_close_stream();
+        if (code < input_channels_.size() && !input_channels_[code].is_null()) {
+            input_channels_[code]->do_close_channel();
         }
     }
     else {
-        if (code < output_streams_.size() && !output_streams_[code].is_null()) {
-            output_streams_[code]->do_close_stream();
+        if (code < output_channels_.size() && !output_channels_[code].is_null()) {
+            output_channels_[code]->do_close_channel();
         }
     }
 }
 
-void HRPCCallImpl::reset_ostream_buffer(StreamCode code)
+void HRPCCallImpl::reset_output_channel_buffer(ChannelCode code)
 {
-    if (code < output_streams_.size() && !output_streams_[code].is_null()) {
-        output_streams_[code]->reset_buffer_size();
+    if (code < output_channels_.size() && !output_channels_[code].is_null()) {
+        output_channels_[code]->reset_buffer_size();
     }
 }
 
-InputStreamImplPtr HRPCCallImpl::make_istream(StreamCode code)
+InputChannelImplPtr HRPCCallImpl::make_input_channel(ChannelCode code)
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCInputStreamImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCInputChannelImpl>>();
 
     return pool->allocate_shared(connection_, call_id_, code, batch_size_limit_, true);
 }
 
-OutputStreamImplPtr HRPCCallImpl::make_ostream(StreamCode code)
+OutputChannelImplPtr HRPCCallImpl::make_output_channel(ChannelCode code)
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCOutputStreamImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCOutputChannelImpl>>();
 
     return pool->allocate_shared(connection_, call_id_, code, batch_size_limit_, true);
 }
