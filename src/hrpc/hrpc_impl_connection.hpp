@@ -144,27 +144,27 @@ public:
                     invoke_handler(header);
                     break;
                 }
-                case MessageType::CALL_STREAM_MESSAGE: {
+                case MessageType::CALL_CHANNEL_MESSAGE: {
                     handle_call_side_stream_message(header);
                     break;
                 }
-                case MessageType::CONTEXT_STREAM_MESSAGE: {
+                case MessageType::CONTEXT_CHANNEL_MESSAGE: {
                     handle_context_side_stream_message(header);
                     break;
                 }
-                case MessageType::CALL_CLOSE_INPUT_STREAM: {
+                case MessageType::CALL_CLOSE_INPUT_CHANNEL: {
                     handle_call_close_stream(header, true);
                     break;
                 }
-                case MessageType::CONTEXT_CLOSE_INPUT_STREAM: {
+                case MessageType::CONTEXT_CLOSE_INPUT_CHANNEL: {
                     handle_context_close_stream(header, true);
                     break;
                 }
-                case MessageType::CALL_CLOSE_OUTPUT_STREAM: {
+                case MessageType::CALL_CLOSE_OUTPUT_CHANNEL: {
                     handle_call_close_stream(header, false);
                     break;
                 }
-                case MessageType::CONTEXT_CLOSE_OUTPUT_STREAM: {
+                case MessageType::CONTEXT_CLOSE_OUTPUT_CHANNEL: {
                     handle_context_close_stream(header, false);
                     break;
                 }
@@ -176,11 +176,11 @@ public:
                     handle_return(header);
                     break;
                 }
-                case MessageType::CALL_STREAM_BUFFER_RESET: {
+                case MessageType::CALL_CHANNEL_BUFFER_RESET: {
                     handle_call_stream_buffer_reset(header);
                     break;
                 }
-                case MessageType::CONTEXT_STREAM_BUFFER_RESET: {
+                case MessageType::CONTEXT_CHANNEL_BUFFER_RESET: {
                     handle_context_stream_buffer_reset(header);
                     break;
                 }
@@ -254,10 +254,10 @@ public:
         header.set_call_id(call_id);
         header.set_channel_code(code);
         if (call_side) {
-            header.set_message_type(MessageType::CALL_STREAM_BUFFER_RESET);
+            header.set_message_type(MessageType::CALL_CHANNEL_BUFFER_RESET);
         }
         else {
-            header.set_message_type(MessageType::CONTEXT_STREAM_BUFFER_RESET);
+            header.set_message_type(MessageType::CONTEXT_CHANNEL_BUFFER_RESET);
         }
 
         output_stream_.write(ptr_cast<uint8_t>(&header), sizeof(header));

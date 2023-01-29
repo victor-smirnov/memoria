@@ -50,7 +50,7 @@ void HRPCOutputChannelImpl::push(const Message& msg)
             });
         }
 
-        MessageType msg_type = call_side_ ? MessageType::CALL_STREAM_MESSAGE : MessageType::CONTEXT_STREAM_MESSAGE;
+        MessageType msg_type = call_side_ ? MessageType::CALL_CHANNEL_MESSAGE : MessageType::CONTEXT_CHANNEL_MESSAGE;
         batch_size_ += connection_->send_message(
             msg_type,
             call_id_,
@@ -65,7 +65,7 @@ void HRPCOutputChannelImpl::push(const Message& msg)
 
 void HRPCOutputChannelImpl::close()
 {
-    MessageType msg_type = call_side_ ? MessageType::CALL_CLOSE_INPUT_STREAM : MessageType::CONTEXT_CLOSE_INPUT_STREAM;
+    MessageType msg_type = call_side_ ? MessageType::CALL_CLOSE_INPUT_CHANNEL : MessageType::CONTEXT_CLOSE_INPUT_CHANNEL;
 
     connection_->send_message(
         msg_type,

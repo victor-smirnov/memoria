@@ -62,10 +62,10 @@ void HRPCInputChannelImpl::close()
 
     MessageType type;
     if (call_side_) {
-        type = MessageType::CALL_CLOSE_OUTPUT_STREAM;
+        type = MessageType::CALL_CLOSE_OUTPUT_CHANNEL;
     }
     else {
-        type = MessageType::CONTEXT_CLOSE_OUTPUT_STREAM;
+        type = MessageType::CONTEXT_CLOSE_OUTPUT_CHANNEL;
     }
 
     connection_->send_message(
