@@ -13,10 +13,57 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hrpc_impl_server.hpp"
+#include "hrpc_impl_tcp.hpp"
 #include "hrpc_impl_connection.hpp"
 
+
 namespace memoria::hrpc {
+
+PoolSharedPtr<ClientSocket> make_tcp_client_socket(
+    const TCPClientSocketConfig& cfg,
+    const PoolSharedPtr<HRPCService>& service
+)
+{
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCClientSocketImpl>>();
+
+    return pool->allocate_shared(cfg, service);
+}
+
+
+PoolSharedPtr<Connection> HRPCClientSocketImpl::open()
+{
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCConnectionImpl>>();
+
+    auto conn = TCPClientSocketStreamsProviderImpl::make_instance(cfg_);
+    return pool->allocate_shared(service_, conn, ConnectionSide::CLIENT);
+}
+
+
+TCPClientSocketStreamsProviderImpl::
+    TCPClientSocketStreamsProviderImpl(TCPClientSocketConfig config):
+    config_(config),
+    socket_(reactor::ClientSocket(reactor::IPAddress(config.host().data()), config.port()))
+{
+
+}
+
+PoolSharedPtr<StreamsProvider> TCPClientSocketStreamsProviderImpl::
+    make_instance(TCPClientSocketConfig config)
+{
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<TCPClientSocketStreamsProviderImpl>>();
+
+    return pool->allocate_shared(config);
+}
+
+
+
+
+
+
+
 
 PoolSharedPtr<ServerSocket> make_tcp_server_socket(
     const TCPServerSocketConfig& cfg,

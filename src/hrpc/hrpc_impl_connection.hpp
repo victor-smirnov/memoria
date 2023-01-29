@@ -21,8 +21,6 @@
 
 #include <memoria/fiber/fiber.hpp>
 
-#include "hrpc_impl_client.hpp"
-#include "hrpc_impl_server.hpp"
 #include "hrpc_impl_context.hpp"
 #include "hrpc_impl_call.hpp"
 #include "hrpc_impl_input_channel.hpp"

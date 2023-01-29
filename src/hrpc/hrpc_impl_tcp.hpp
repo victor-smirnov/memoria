@@ -78,4 +78,72 @@ public:
 };
 
 
+class HRPCServerSocketImpl final:
+        public ServerSocket,
+        public pool::enable_shared_from_this<HRPCServerSocketImpl>
+{
+    TCPServerSocketConfig cfg_;
+    PoolSharedPtr<HRPCService> service_;
+
+    reactor::ServerSocket socket_;
+
+public:
+    HRPCServerSocketImpl(
+            const TCPServerSocketConfig& cfg,
+            PoolSharedPtr<HRPCService> service
+    ):
+        cfg_(cfg), service_(service),
+        socket_(reactor::IPAddress(cfg_.host().data()), cfg_.port())
+    {
+    }
+
+    PoolSharedPtr<HRPCService> service() {
+        return service_;
+    }
+
+    const TCPServerSocketConfig& cfg() const {
+        return cfg_;
+    }
+
+    void listen() {
+        socket_.listen();
+    }
+
+    PoolSharedPtr<Connection> accept();
+};
+
+
+class TCPServerSocketStreamsProviderImpl final: public StreamsProvider {
+    ServerSocketImplPtr socket_;
+    reactor::ServerSocketConnection connection_;
+public:
+    TCPServerSocketStreamsProviderImpl(
+        ServerSocketImplPtr socket,
+        reactor::SocketConnectionData&& conn_data
+    );
+
+    BinaryInputStream input_stream() override {
+        return connection_.input();
+    }
+
+    BinaryOutputStream output_stream() override {
+        return connection_.output();
+    }
+
+    void close() override {
+        connection_.close();
+    }
+
+    ProtocolConfig config() override {
+        return socket_->cfg();
+    }
+
+    static PoolSharedPtr<StreamsProvider> make_instance(
+        ServerSocketImplPtr socket,
+        reactor::SocketConnectionData&& conn_data
+    );
+};
+
+
+
 }
