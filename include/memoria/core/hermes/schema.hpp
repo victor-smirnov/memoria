@@ -18,6 +18,7 @@
 #include <memoria/core/hermes/common.hpp>
 #include <memoria/core/hermes/object.hpp>
 #include <memoria/core/hermes/map/typed_map.hpp>
+#include <memoria/core/hermes/container.hpp>
 #include <memoria/core/hermes/array/object_array.hpp>
 
 
@@ -28,9 +29,31 @@ protected:
     TinyObjectMap object_;
 public:
     TinyObjectBase() noexcept {};
+
     TinyObjectBase(TinyObjectMap&& object) noexcept:
         object_(std::move(object))
     {};
+
+    TinyObjectBase(HermesCtr& ctr) noexcept:
+        object_(ctr.make_tiny_map())
+    {
+        ctr.set_root(object_);
+    };
+
+    TinyObjectBase(HermesCtr&& ctr) noexcept:
+        object_(ctr.make_tiny_map())
+    {
+        ctr.set_root(object_);
+    };
+
+
+    bool is_null() const {
+        return object_.is_null();
+    }
+
+    bool is_not_null() const {
+        return object_.is_not_null();
+    }
 
     const hermes::TinyObjectMap& object() const {return object_;}
     hermes::TinyObjectMap& object() {return object_;}

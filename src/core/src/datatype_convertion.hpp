@@ -1,5 +1,5 @@
 
-// Copyright 2022 Victor Smirnov
+// Copyright 2022-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -247,6 +247,9 @@ template <>
 struct DatatypeConverter<Integer, UTinyInt>: NumericConverter<Integer, UTinyInt> {};
 
 template <>
+struct DatatypeConverter<Integer, USmallInt>: NumericConverter<Integer, USmallInt> {};
+
+template <>
 struct DatatypeConverter<UInteger, UTinyInt>: NumericConverter<UInteger, UTinyInt> {};
 
 template <>
@@ -295,6 +298,9 @@ struct DatatypeConverter<UBigInt, Real>: NumericConverter<UBigInt, Real> {};
 
 template <>
 struct DatatypeConverter<Real, UBigInt>: NumericConverter<Real, UBigInt> {};
+
+template <>
+struct DatatypeConverter<USmallInt, Integer>: NumericConverter<USmallInt, Integer> {};
 
 
 

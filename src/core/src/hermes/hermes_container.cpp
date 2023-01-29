@@ -330,6 +330,25 @@ void HermesCtrView::check()
 }
 
 
+size_t HermesCtrView::memory_size() const {
+    if (arena_) {
+        return arena_->memory_size();
+    }
+    else {
+        return segment_size_;
+    }
+}
+
+size_t HermesCtrView::data_size() const {
+    if (arena_) {
+        return arena_->data_size();
+    }
+    else {
+        return segment_size_;
+    }
+}
+
+
 }
 
 

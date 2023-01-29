@@ -51,6 +51,7 @@ public:
 class ServerSocket {
 public:
     virtual ~ServerSocket() noexcept = default;
+    virtual void listen() = 0;
     virtual PoolSharedPtr<Connection> accept() = 0;
 };
 
@@ -63,7 +64,7 @@ public:
 
     virtual PoolSharedPtr<Connection> connection() = 0;
 
-    virtual void push(const StreamBatch& batch) = 0;
+    virtual void push(const StreamMessage& msg) = 0;
     virtual void close() = 0;
     virtual bool is_closed() = 0;
 };
@@ -80,9 +81,7 @@ public:
     virtual bool is_closed() = 0;
     virtual void close() = 0;
 
-    virtual void next() = 0;
-
-    virtual StreamBatch batch() = 0;
+    virtual bool pop(StreamMessage& msg) = 0;
 };
 
 
@@ -114,10 +113,11 @@ public:
     virtual PoolSharedPtr<OutputStream> output_stream(size_t idx) = 0;
 };
 
+using CancelCallListenerFn = std::function<void()>;
 
 class Context {
 public:
-    virtual ~Context() noexcept = 0;
+    virtual ~Context() noexcept = default;
 
     virtual PoolSharedPtr<Connection> connection() = 0;
 
@@ -131,6 +131,10 @@ public:
 
     virtual PoolSharedPtr<InputStream> input_stream(size_t idx)  = 0;
     virtual PoolSharedPtr<OutputStream> output_stream(size_t idx) = 0;
+
+    virtual bool is_cancelled() = 0;
+
+    virtual void set_cancel_listener(CancelCallListenerFn fn) = 0;
 };
 
 
@@ -154,7 +158,12 @@ public:
 
 
 PoolSharedPtr<ClientSocket> make_tcp_client_socket(
-    const TCPClinetSocketConfig& cfg,
+    const TCPClientSocketConfig& cfg,
+    const PoolSharedPtr<HRPCService>& service
+);
+
+PoolSharedPtr<ServerSocket> make_tcp_server_socket(
+    const TCPServerSocketConfig& cfg,
     const PoolSharedPtr<HRPCService>& service
 );
 

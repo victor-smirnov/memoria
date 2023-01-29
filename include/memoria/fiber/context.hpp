@@ -48,6 +48,7 @@
 #include <memoria/fiber/segmented_stack.hpp>
 #include <memoria/fiber/type.hpp>
 
+#include <memoria/fiber/detail/non_atomic.hpp>
 
 #ifdef _MSC_VER
 # pragma warning(push)
@@ -174,7 +175,8 @@ private:
 #if ! defined(MEMORIA_FIBERS_NO_ATOMICS)
     std::atomic< std::size_t >                          use_count_;
 #else
-    std::size_t                                         use_count_;
+    //std::size_t                                         use_count_;
+    detail::NonAtomic<std::size_t>                      use_count_;
 #endif
 #if ! defined(MEMORIA_FIBERS_NO_ATOMICS)
     detail::remote_ready_hook                           remote_ready_hook_{};
@@ -186,6 +188,8 @@ public:
     detail::wait_hook                                   wait_hook_{};
 #if ! defined(MEMORIA_FIBERS_NO_ATOMICS)
     std::atomic< std::intptr_t >                        twstatus{ 0 };
+#else
+    detail::NonAtomic< std::intptr_t >                  twstatus{ 0 };
 #endif
 private:
     scheduler                                       *   scheduler_{ nullptr };

@@ -22,12 +22,18 @@ PoolSharedPtr<Connection> HRPCCallImpl::connection() {
     return connection_;
 }
 
-HRPCCallImpl::HRPCCallImpl(const PoolSharedPtr<HRPCConnectionImpl>& connection, Request request):
+HRPCCallImpl::HRPCCallImpl(
+        const PoolSharedPtr<HRPCConnectionImpl>& connection,
+        CallID call_id,
+        Request request,
+        CallCompletionFn completion_fn
+):
     connection_(connection),
-    request_(request)
+    request_(request),
+    call_id_(call_id),
+    batch_size_limit_(connection->stream_buffer_size()),
+    completion_fn_(completion_fn)
 {
-    call_id_ = connection_->next_call_id();
-
     for (size_t c = 0; c < request.input_streams(); c++) {
         input_streams_.push_back(make_istream(c));
     }
@@ -43,26 +49,37 @@ Response HRPCCallImpl::response() {
     return response_;
 }
 
-void HRPCCallImpl::wait() {
-
+void HRPCCallImpl::wait()
+{
+    std::unique_lock<fibers::mutex> lk(mutex_);
+    waiter_.wait(lk, [&](){
+        return response_.is_null();
+    });
 }
 
-void HRPCCallImpl::on_complete(CallCompletionFn fn) {}
+void HRPCCallImpl::on_complete(CallCompletionFn fn) {
+    completion_fn_ = fn;
+}
 
 void HRPCCallImpl::cancel()
 {
     connection_->send_message(
         MessageType::CANCEL_CALL,
-        call_id_,
-        0
+        call_id_
     );
 }
 
-void HRPCCallImpl::set_response(Response rs) {
+void HRPCCallImpl::set_response(Response rs)
+{
+    response_ = rs;
+    waiter_.notify_all();
 
+    if (completion_fn_) {
+        reactor::engine().in_fiber(completion_fn_, response_).detach();
+    }
 }
 
-void HRPCCallImpl::new_message(StreamBatch&& msg, StreamCode code)
+void HRPCCallImpl::new_message(StreamMessage&& msg, StreamCode code)
 {
     if (code < input_streams_.size() && !input_streams_[code].is_null()) {
         input_streams_[code]->new_message(std::move(msg));
@@ -83,14 +100,28 @@ void HRPCCallImpl::close_stream(bool input, StreamCode code)
     }
 }
 
-InputStreamImplPtr HRPCCallImpl::make_istream(StreamCode code) {
-    static thread_local pool::SimpleObjectPool<HRPCInputStreamImpl> pool;
-    return pool.allocate_shared(connection_, call_id_, code, true);
+void HRPCCallImpl::reset_ostream_buffer(StreamCode code)
+{
+    if (code < output_streams_.size() && !output_streams_[code].is_null()) {
+        output_streams_[code]->reset_buffer_size();
+    }
 }
 
-OutputStreamImplPtr HRPCCallImpl::make_ostream(StreamCode code) {
-    static thread_local pool::SimpleObjectPool<HRPCOutputStreamImpl> pool;
-    return pool.allocate_shared(connection_, call_id_, code, true);
+InputStreamImplPtr HRPCCallImpl::make_istream(StreamCode code)
+{
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCInputStreamImpl>>();
+
+    return pool->allocate_shared(connection_, call_id_, code, batch_size_limit_, true);
 }
+
+OutputStreamImplPtr HRPCCallImpl::make_ostream(StreamCode code)
+{
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCOutputStreamImpl>>();
+
+    return pool->allocate_shared(connection_, call_id_, code, batch_size_limit_, true);
+}
+
 
 }

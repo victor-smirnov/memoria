@@ -191,6 +191,11 @@ public:
     {
         scheduler_->suspend(ctx);
     }
+
+    void resume_fiber(fibers::context* ctx)
+    {
+        scheduler_->resume(ctx);
+    }
     
     template <typename Fn, typename... Args>
     auto run_at(int target_cpu, Fn&& task, Args&&... args)
@@ -454,7 +459,17 @@ private:
 bool has_engine();
 
 Reactor& engine();
-    
+
+template <typename Fn, typename... Args>
+fibers::fiber in_fiber(Fn&& fn, Args&&... args)
+{
+    return engine().in_fiber(
+        std::forward<Fn>(fn),
+        std::forward<Args>(args)...
+    );
+}
+
+
 template <typename Fn, typename... Args> 
 auto engine_or_local(Fn&& fn, Args&&... args)
 {

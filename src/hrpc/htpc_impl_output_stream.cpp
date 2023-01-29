@@ -22,13 +22,15 @@ HRPCOutputStreamImpl::HRPCOutputStreamImpl(
     const ConnectionImplPtr& conn,
     CallID call_id,
     StreamCode stream_code,
+    uint64_t batch_size_limit,
     bool call_side
 ):
     connection_(conn),
     call_id_(call_id),
     stream_code_(stream_code),
     closed_(),
-    call_side_(call_side)
+    call_side_(call_side),
+    batch_size_limit_(batch_size_limit)
 {}
 
 
@@ -36,14 +38,24 @@ PoolSharedPtr<Connection> HRPCOutputStreamImpl::connection() {
     return connection_;
 }
 
-void HRPCOutputStreamImpl::push(const StreamBatch& batch)
+void HRPCOutputStreamImpl::push(const StreamMessage& msg)
 {
-    if (!closed_) {
+    if (!closed_)
+    {
+        if (batch_size_ >= batch_size_limit_)
+        {
+            std::unique_lock<fibers::mutex> lk(mutex_);
+            flow_control_.wait(lk, [&](){
+                return batch_size_ >= batch_size_limit_;
+            });
+        }
+
         MessageType msg_type = call_side_ ? MessageType::CALL_STREAM_MESSAGE : MessageType::CONTEXT_STREAM_MESSAGE;
-        connection_->send_message(
+        batch_size_ += connection_->send_message(
             msg_type,
             call_id_,
-            batch.array()
+            msg.object().ctr(),
+            stream_code_
         );
     }
     else {
@@ -61,11 +73,18 @@ void HRPCOutputStreamImpl::close()
         stream_code_
     );
 
-    closed_ = true;
+    do_close_stream();
 }
 
 void HRPCOutputStreamImpl::do_close_stream() {
     closed_ = true;
+    reset_buffer_size();
 }
+
+void HRPCOutputStreamImpl::reset_buffer_size() {
+    batch_size_ = 0;
+    flow_control_.notify_all();
+}
+
 
 }

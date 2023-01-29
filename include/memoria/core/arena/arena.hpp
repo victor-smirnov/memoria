@@ -122,6 +122,9 @@ public:
     T* get(ArenaAllocator& arena) const noexcept;
 };
 
+
+struct ProvidedBufferCtr{};
+
 class ArenaAllocator {
 protected:
     using MemPtr = UniquePtr<uint8_t>;
@@ -164,6 +167,13 @@ public:
         add_chunk(data_size);
         Chunk& head = this->head();
         memcpy(head.memory.get(), data, data_size);
+    }
+
+    ArenaAllocator(AllocationType alc_type, size_t chunk_size, UniquePtr<uint8_t>&& buffer, size_t data_size) noexcept :
+        allocation_type_(alc_type),
+        chunk_size_(chunk_size)
+    {
+        add_chunk(std::move(buffer), data_size);
     }
 
 
@@ -385,11 +395,33 @@ public:
         }
     }
 
+    size_t memory_size() const noexcept {
+        size_t mem{};
+        for (const auto& chunk: chunks_) {
+            mem += chunk.capacity;
+        }
+        return mem;
+    }
+
+    size_t data_size() const noexcept {
+        size_t mem{};
+        for (const auto& chunk: chunks_) {
+            mem += chunk.size;
+        }
+        return mem;
+    }
+
 private:
 
     void add_chunk(size_t size) {
         chunks_.emplace_back(
             allocate_system_zeroed<uint8_t>(size), size
+        );
+    }
+
+    void add_chunk(UniquePtr<uint8_t>&& buffer, size_t size) {
+        chunks_.emplace_back(
+            std::move(buffer), size
         );
     }
 
@@ -485,6 +517,16 @@ class PoolableArena: public ArenaAllocator, public pool::enable_shared_from_this
 public:
     PoolableArena(AllocationType alc_type, size_t chunk_size, void* data, size_t data_size) noexcept :
         Base(alc_type, chunk_size, data, data_size)
+    {}
+
+    PoolableArena(
+            AllocationType alc_type,
+            size_t chunk_size,
+            UniquePtr<uint8_t>&& data,
+            size_t data_size,
+            ProvidedBufferCtr
+    ) noexcept :
+        Base(alc_type, chunk_size, std::move(data), data_size)
     {}
 
 

@@ -27,7 +27,6 @@ struct Request: public hermes::TinyObjectBase {
     static constexpr NamedCode INPUT_STREAMS            = NamedCode(2, "inputStreams");
     static constexpr NamedCode OUTPUT_STREAMS           = NamedCode(3, "outputStreams");
     static constexpr NamedCode METADATA                 = NamedCode(4, "metadata");
-    static constexpr NamedCode CALL_ID                  = NamedCode(5, "callId");
 protected:
 
 public:
@@ -36,8 +35,14 @@ public:
         hermes::TinyObjectBase(std::move(object))
     {}
 
+    Request(hermes::HermesCtr&& ctr):
+        hermes::TinyObjectBase(ctr.make_tiny_map())
+    {
+        ctr.set_root(object_);
+    }
+
     EndpointID endpoint() {
-        return object_.get(PARAMETERS).cast_to<UBigInt>();
+        return object_.get(ENDPOINT).cast_to<UBigInt>();
     }
 
     void set_endpoint(EndpointID endpoint) {
@@ -57,19 +62,11 @@ public:
     }
 
     StreamCode output_streams() {
-        auto vv = object_.get(INPUT_STREAMS);
+        auto vv = object_.get(OUTPUT_STREAMS);
         if (vv.is_not_empty()) {
             return vv.to_i32();
         }
         return 0;
-    }
-
-    uint64_t call_id() {
-        return object_.get(CALL_ID).cast_to<UBigInt>();
-    }
-
-    void set_call_id(uint64_t call_id) {
-        return object_.put(CALL_ID, call_id);
     }
 
     hermes::Object metadata() {
@@ -90,6 +87,16 @@ public:
 
     void set_output_streams(StreamCode streams_num) {
         object_.put(OUTPUT_STREAMS, streams_num);
+    }
+
+    static Request make() {
+        Request rq(hermes::HermesCtr::make_pooled());
+        return rq;
+    }
+
+    Request compactify() const {
+        auto ctr = object_.ctr().compactify(true);
+        return ctr.root().as_tiny_object_map();
     }
 };
 
@@ -202,36 +209,65 @@ public:
         return rs;
     }
 
-    Response compactify() {
+    Response compactify() const {
         auto ctr = object_.ctr().compactify(true);
         return ctr.root().as_tiny_object_map();
     }
 };
 
-class StreamBatch {
+class StreamMessage: public hermes::TinyObjectBase {
 protected:
-    hermes::ObjectArray array_;
+
 public:
-    StreamBatch() {}
+    static constexpr NamedCode DATA       = NamedCode(1, "data");
+    static constexpr NamedCode METADATA   = NamedCode(2, "metadata");
 
-    StreamBatch(hermes::HermesCtr ctr):
-        array_(ctr.make_object_array())
-    {
-        ctr.set_root(array_);
-    }
+    StreamMessage() {}
 
-    StreamBatch(hermes::ObjectArray&& array):
-        array_(std::move(array))
+    StreamMessage(hermes::TinyObjectMap&& object):
+        hermes::TinyObjectBase(std::move(object))
     {}
 
-    hermes::ObjectArray& array() {return array_;}
-    const hermes::ObjectArray& array() const {return array_;}
+    StreamMessage(hermes::HermesCtr ctr):
+        hermes::TinyObjectBase(ctr)
+    {}
+
+
+    hermes::Object metadata() const {
+        return object_.get(METADATA);
+    }
+
+    void set_metadata(const hermes::Object& meta) {
+        object_.put(METADATA, meta);
+    }
+
+    hermes::Object data() const {
+        return object_.get(DATA);
+    }
+
+    void set_data(const hermes::Object& data) {
+        object_.put(DATA, data);
+    }
+
+    U8String to_pretty_string() const {
+        return object_.as_object().to_pretty_string();
+    }
+
+    StreamMessage compactify() const {
+        return object_.ctr().compactify(true).root().as_tiny_object_map();
+    }
+
+    static StreamMessage empty() {
+        StreamMessage batch(hermes::HermesCtr::make_pooled());
+        return batch;
+    }
 };
 
 
 class ConnectionMetadata: public hermes::TinyObjectBase {
+
 public:
-    static constexpr NamedCode VERSION = NamedCode(0, "version");
+    static constexpr NamedCode STREAM_BUFFER_SIZE = NamedCode(1, "stream_buffer_size");
 
     ConnectionMetadata() {}
 
@@ -239,24 +275,134 @@ public:
         hermes::TinyObjectBase(std::move(object))
     {}
 
-    ConnectionMetadata(hermes::HermesCtr ctr):
-        hermes::TinyObjectBase(ctr.make_tiny_map())
-    {
-        ctr.set_root(object_);
+    ConnectionMetadata(hermes::HermesCtr&& ctr):
+        hermes::TinyObjectBase(std::move(ctr))
+    {}
+
+    uint64_t stream_buffer_size() const {
+        return object_.get(STREAM_BUFFER_SIZE).cast_to<UBigInt>();
     }
 
-    ProtocolVersion version() {
-        return object_.get(VERSION).cast_to<UBigInt>().value_t();
+    void set_stream_buffer_size(uint64_t size) {
+        object_.put(STREAM_BUFFER_SIZE, size);
     }
 
-    void set_version(const ProtocolVersion& version) {
-        object_.put(VERSION, version.value());
-    }
-
-    ConnectionMetadata compactify() {
-        return object_.ctr().compactify(true);
+    ConnectionMetadata compactify() const {
+        return object_.ctr().compactify(true).root().as_tiny_object_map();
     }
 };
 
+class ProtocolConfig: public hermes::TinyObjectBase {
+public:
+    static constexpr NamedCode STREAM_BUFFER_SIZE = NamedCode(1, "stream_buffer_size");
+    static constexpr uint64_t  STREAM_BUFFER_SIZE_DEFAULT = 1024*1024; // 1MB
+
+    ProtocolConfig() {}
+    ProtocolConfig(hermes::TinyObjectMap map):
+        hermes::TinyObjectBase(std::move(map))
+    {}
+
+    ProtocolConfig(hermes::HermesCtr&& ctr):
+        hermes::TinyObjectBase(std::move(ctr))
+    {}
+
+    uint64_t stream_buffer_size() const
+    {
+        auto val = object_.get(STREAM_BUFFER_SIZE);
+        if (val.is_not_null()) {
+            return val.cast_to<UBigInt>();
+        }
+
+        return STREAM_BUFFER_SIZE_DEFAULT;
+    }
+
+    void set_stream_buffer_size(uint64_t size) {
+        object_.put(STREAM_BUFFER_SIZE, size);
+    }
+};
+
+class TCPProtocolConfig: public ProtocolConfig {
+public:
+    static constexpr NamedCode      HOST = NamedCode(2, "host");
+    static constexpr U8StringView   HOST_DEFAULT = "localhost";
+
+    static constexpr NamedCode      PORT = NamedCode(3, "port");
+    static constexpr uint16_t       PORT_DEFAULT = 3145;
+
+    TCPProtocolConfig() {}
+    TCPProtocolConfig(hermes::TinyObjectMap&& map):
+        ProtocolConfig(std::move(map))
+    {}
+
+    TCPProtocolConfig(hermes::HermesCtr&& ctr):
+        ProtocolConfig(std::move(ctr))
+    {}
+
+    U8String host() const
+    {
+        auto val = object_.get(HOST);
+        if (val.is_not_null()) {
+            return val.cast_to<Varchar>();
+        }
+
+        return HOST_DEFAULT;
+    }
+
+    void set_host(U8StringView value) {
+        object_.put(HOST, value);
+    }
+
+    uint16_t port() const
+    {
+        auto val = object_.get(PORT);
+        if (val.is_not_null()) {
+            return val.cast_to<USmallInt>();
+        }
+
+        return PORT_DEFAULT;
+    }
+
+    void set_port(uint16_t value) {
+        object_.put(PORT, value);
+    }
+};
+
+
+class TCPClientSocketConfig: public TCPProtocolConfig {
+public:
+    TCPClientSocketConfig() {}
+    TCPClientSocketConfig(hermes::TinyObjectMap&& map):
+        TCPProtocolConfig(std::move(map))
+    {}
+
+    TCPClientSocketConfig(hermes::HermesCtr&& ctr):
+        TCPProtocolConfig(std::move(ctr))
+    {}
+
+    static TCPClientSocketConfig of_host(U8StringView host, uint16_t port = TCPProtocolConfig::PORT_DEFAULT) {
+        TCPClientSocketConfig cfg(hermes::HermesCtr::make_pooled());
+        cfg.set_host(host);
+        return cfg;
+    }
+};
+
+
+class TCPServerSocketConfig: public TCPProtocolConfig {
+public:
+    TCPServerSocketConfig() {}
+    TCPServerSocketConfig(hermes::TinyObjectMap&& map):
+        TCPProtocolConfig(std::move(map))
+    {}
+
+    TCPServerSocketConfig(hermes::HermesCtr&& ctr):
+        TCPProtocolConfig(std::move(ctr))
+    {}
+
+    static TCPServerSocketConfig of_host(U8StringView host, uint16_t port = TCPProtocolConfig::PORT_DEFAULT) {
+        TCPServerSocketConfig cfg(hermes::HermesCtr::make_pooled());
+        cfg.set_host(host);
+        return cfg;
+    }
+};
 
 }

@@ -24,7 +24,6 @@
 # endif
 #endif
 
-
 namespace memoria {
 namespace fibers {
 namespace detail {

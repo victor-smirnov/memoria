@@ -80,7 +80,7 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 {
     while (true) 
     {
-        ssize_t result = ::read(fd_, data, size);
+        ssize_t result = ::recv(fd_, data, size, MSG_NOSIGNAL | MSG_WAITALL);
         
         if (result >= 0) {
             data_closed_ = result == 0;
@@ -104,7 +104,7 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
 {
     while (true) 
     {
-        ssize_t result = ::write(fd_, data, size);
+        ssize_t result = ::send(fd_, data, size, MSG_NOSIGNAL);
         
         if (result >= 0) {
             data_closed_ = result == 0;

@@ -20,19 +20,23 @@
 namespace memoria::hrpc {
 
 PoolSharedPtr<ClientSocket> make_tcp_client_socket(
-    const TCPClinetSocketConfig& cfg,
+    const TCPClientSocketConfig& cfg,
     const PoolSharedPtr<HRPCService>& service
 )
 {
-    static thread_local pool::SimpleObjectPool<HRPCClientSocketImpl> pool;
-    return pool.allocate_shared(cfg, service);
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCClientSocketImpl>>();
+
+    return pool->allocate_shared(cfg, service);
 }
 
 
 PoolSharedPtr<Connection> HRPCClientSocketImpl::open()
 {
-    static thread_local pool::SimpleObjectPool<HRPCConnectionImpl> pool;
-    return pool.allocate_shared(this->shared_from_this());
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCConnectionImpl>>();
+
+    return pool->allocate_shared(this->shared_from_this());
 }
 
 }

@@ -325,6 +325,7 @@ public:
     static HermesCtr make_new(size_t initial_capacity = 4096);
 
     static HermesCtr from_span(Span<const uint8_t> data);
+    static HermesCtr from_buffer(UniquePtr<uint8_t>&& data, size_t size);
 
     static HermesCtr parse_document(U8StringView view) {
         return parse_document(view.begin(), view.end());
@@ -448,6 +449,9 @@ public:
 
         return Span<uint8_t>(reinterpret_cast<uint8_t*>(header_), ss_size);
     }
+
+    size_t memory_size() const;
+    size_t data_size() const;
 
     void check();
 
@@ -587,58 +591,6 @@ struct ViewToDTMapping<hermes::HermesCtrView>: HasType<Hermes> {};
 
 template <>
 struct ViewToDTMapping<Own<hermes::HermesCtrView>>: HasType<Hermes> {};
-
-
-/*template <typename Buffer>
-class SparseObjectBuilder<Hermes, Buffer> {
-    Buffer* buffer_;
-
-    using AtomType = DTTAtomType<Hermes>;
-    using ViewType = DTTViewType<Hermes>;
-
-    ArenaBuffer<AtomType> arena_;
-
-public:
-    SparseObjectBuilder(Buffer* buffer):
-        buffer_(buffer)
-    {}
-
-    SparseObjectBuilder(SparseObjectBuilder&&) = delete;
-    SparseObjectBuilder(const SparseObjectBuilder&) = delete;
-
-    void append(ViewType view)
-    {
-        auto span = view.span();
-        arena_.push_back(span);
-    }
-
-    ViewType view() const noexcept {
-        return ViewType(data(), arena_.size());
-    }
-
-    void reset() {
-        arena_.reset();
-    }
-
-    void build()
-    {
-        buffer_->append(view());
-        arena_.clear();
-    }
-
-    AtomType* data() {
-        return arena_.data();
-    }
-
-    const AtomType* data() const {
-        return arena_.data();
-    }
-
-    bool is_empty() const {
-        return arena_.size() == 0;
-    }
-};
-*/
 
 inline hermes::HermesCtr operator "" _hdoc(const char* s, std::size_t n) {
     return hermes::HermesCtrView::parse_document(s, s + n);

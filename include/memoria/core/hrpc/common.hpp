@@ -55,20 +55,6 @@ public:
 
 constexpr ProtocolVersion PROTOCOL_VERSION = ProtocolVersion(1);
 
-constexpr uint16_t HRPC_PORT = 3145;
-
-class TCPClinetSocketConfig {
-    U8String host_;
-    uint16_t port_;
-public:
-    TCPClinetSocketConfig(U8String host = "127.0.01", uint16_t port = HRPC_PORT):
-        host_(host), port_(port)
-    {}
-
-    const U8String& host() const {return host_;}
-    uint16_t port() const {return port_;}
-};
-
 enum class ConnectionType: uint8_t {
     CLIENT, SERVER
 };
@@ -84,6 +70,8 @@ enum class MessageType: uint8_t {
     CONTEXT_CLOSE_INPUT_STREAM,
     CALL_CLOSE_OUTPUT_STREAM,
     CONTEXT_CLOSE_OUTPUT_STREAM,
+    CALL_STREAM_BUFFER_RESET,
+    CONTEXT_STREAM_BUFFER_RESET,
     CANCEL_CALL
 };
 

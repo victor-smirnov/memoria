@@ -69,6 +69,7 @@ private:
                 boost::intrusive::linear< true >,
                 boost::intrusive::cache_last< true >
             >                                               terminated_queue_type;
+#ifndef MEMORIA_FIBERS_NO_ATOMICS
     typedef boost::intrusive::slist<
                 context,
                 boost::intrusive::member_hook<
@@ -76,6 +77,7 @@ private:
                 boost::intrusive::linear< true >,
                 boost::intrusive::cache_last< true >
             >                                               remote_ready_queue_type;
+#endif
 
 #if ! defined(MEMORIA_FIBERS_NO_ATOMICS)
     // remote ready-queue contains context' signaled by schedulers

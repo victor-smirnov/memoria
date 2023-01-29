@@ -531,6 +531,7 @@ Object HermesCtrView::import_object(const Own<ViewT, OK>& object)
     }
 }
 
+
 }
 
 namespace arena {
@@ -633,9 +634,5 @@ public:
 
 
 
-
-namespace hermes {
-
-}
 
 }

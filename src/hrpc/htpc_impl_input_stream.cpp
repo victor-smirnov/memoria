@@ -17,6 +17,7 @@
 #include "hrpc_impl_connection.hpp"
 
 #include <memoria/fiber/fiber.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 namespace memoria::hrpc {
 
@@ -24,11 +25,13 @@ HRPCInputStreamImpl::HRPCInputStreamImpl(
         ConnectionImplPtr connection,
         CallID call_id,
         StreamCode stream_code,
+        uint64_t batch_size_limit,
         bool call_side
 ):
     connection_(connection), call_id_(call_id),
     stream_code_(stream_code), closed_(),
-    call_side_(call_side)
+    call_side_(call_side),
+    batch_size_limit_(batch_size_limit)
 {}
 
 PoolSharedPtr<Connection> HRPCInputStreamImpl::connection() {
@@ -36,43 +39,49 @@ PoolSharedPtr<Connection> HRPCInputStreamImpl::connection() {
 }
 
 bool HRPCInputStreamImpl::is_closed() {
-    return closed_;
+    return channel_.is_closed();
 }
 
-void HRPCInputStreamImpl::next()
+bool HRPCInputStreamImpl::pop(StreamMessage& msg)
 {
-    if (head_.is_null()) {
-        while (head_.is_null() && !closed_) {
-            auto ctx = fibers::context::active();
-            reactor::engine().suspend_fiber(ctx);
+    bool success = channel_.pop(msg);
+    if (success)
+    {
+        size_t msg_size = msg.object().ctr().memory_size();
+        batch_size_ += msg_size;
+        if (batch_size_ >= batch_size_limit_ / 2) {
+            connection_->unblock_output_stream(call_id_, stream_code_, call_side_);
         }
     }
+    return success;
 }
 
-StreamBatch HRPCInputStreamImpl::batch()
+void HRPCInputStreamImpl::close()
 {
-    while (head_.is_null() && !closed_) {
-        auto ctx = fibers::context::active();
-        reactor::engine().suspend_fiber(ctx);
+    channel_.clean_and_close();
+
+    MessageType type;
+    if (call_side_) {
+        type = MessageType::CALL_CLOSE_OUTPUT_STREAM;
+    }
+    else {
+        type = MessageType::CONTEXT_CLOSE_OUTPUT_STREAM;
     }
 
-    if (head_.is_null()) {
-        MEMORIA_MAKE_GENERIC_ERROR("Stream {} for {} has been closed.", stream_code_, call_id_).do_throw();
+    connection_->send_message(
+        type, call_id_, stream_code_
+    );
+}
+
+void HRPCInputStreamImpl::new_message(StreamMessage&& msg)
+{
+    if (!channel_.is_closed()) {
+        channel_.push(std::move(msg));
     }
-
-    return head_->batch;
-}
-
-void HRPCInputStreamImpl::close() {
-    closed_ = true;
-}
-
-void HRPCInputStreamImpl::new_message(StreamBatch&& msg) {
-
 }
 
 void HRPCInputStreamImpl::do_close_stream() {
-    closed_ = true;
+    channel_.close();
 }
 
 }

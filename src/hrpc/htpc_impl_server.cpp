@@ -14,3 +14,30 @@
 // limitations under the License.
 
 #include "hrpc_impl_server.hpp"
+#include "hrpc_impl_connection.hpp"
+
+namespace memoria::hrpc {
+
+PoolSharedPtr<ServerSocket> make_tcp_server_socket(
+    const TCPServerSocketConfig& cfg,
+    const PoolSharedPtr<HRPCService>& service
+) {
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCServerSocketImpl>>();
+
+    return pool->allocate_shared(cfg, service);
+}
+
+
+
+PoolSharedPtr<Connection> HRPCServerSocketImpl::accept()
+{
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCConnectionImpl>>();
+
+    reactor::SocketConnectionData conn_data = socket_.accept();
+
+    return pool->allocate_shared(this->shared_from_this(), std::move(conn_data));
+}
+
+}

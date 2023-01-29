@@ -9,11 +9,8 @@
 using namespace memoria;
 using namespace memoria::reactor;
 
-int main(int argc, char** argv, char** envp) {
-
-    hrpc::Request rq;
-    rq.set_call_id(0);
-
+int main(int argc, char** argv, char** envp)
+{
     boost::program_options::options_description dd;
     return Application::run_e(
         dd, argc, argv, envp,

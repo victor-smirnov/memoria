@@ -210,7 +210,7 @@ context::join() {
     // get active context
     context * active_ctx = context::active();
     // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk{ splk_ };
+    detail::spinlock_lock lk{ splk_ };
     // wait for context which is not terminated
     if ( ! terminated_) {
         // push active context to wait-queue, member
@@ -218,7 +218,7 @@ context::join() {
         // the active context
         active_ctx->wait_link( wait_queue_);
         // suspend active context
-        active_ctx->get_scheduler()->suspend( lk);
+        active_ctx->get_scheduler()->suspend(lk);
         // active context resumed
         BOOST_ASSERT( context::active() == active_ctx);
     }
@@ -246,7 +246,7 @@ context::suspend_with_cc() noexcept {
 memoria::context::fiber
 context::terminate() noexcept {
     // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk{ splk_ };
+    detail::spinlock_lock lk{ splk_ };
     // mark as terminated
     terminated_ = true;
     // notify all waiting fibers
@@ -355,7 +355,11 @@ context::ready_is_linked() const noexcept {
 
 bool
 context::remote_ready_is_linked() const noexcept {
+#ifndef MEMORIA_FIBERS_NO_ATOMICS
     return remote_ready_hook_.is_linked();
+#else
+    return false;
+#endif
 }
 
 bool
