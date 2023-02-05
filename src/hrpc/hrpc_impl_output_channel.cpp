@@ -14,18 +14,18 @@
 // limitations under the License.
 
 #include "hrpc_impl_output_channel.hpp"
-#include "hrpc_impl_connection.hpp"
+#include "hrpc_impl_session.hpp"
 
 namespace memoria::hrpc {
 
 HRPCOutputChannelImpl::HRPCOutputChannelImpl(
-    const ConnectionImplPtr& conn,
+    const SessionImplPtr& session,
     CallID call_id,
     ChannelCode code,
     uint64_t batch_size_limit,
     bool call_side
 ):
-    connection_(conn),
+    session_(session),
     call_id_(call_id),
     code_(code),
     closed_(),
@@ -34,8 +34,8 @@ HRPCOutputChannelImpl::HRPCOutputChannelImpl(
 {}
 
 
-PoolSharedPtr<Connection> HRPCOutputChannelImpl::connection() {
-    return connection_;
+PoolSharedPtr<Session> HRPCOutputChannelImpl::session() {
+    return session_;
 }
 
 void HRPCOutputChannelImpl::push(const Message& msg)
@@ -51,11 +51,13 @@ void HRPCOutputChannelImpl::push(const Message& msg)
         }
 
         MessageType msg_type = call_side_ ? MessageType::CALL_CHANNEL_MESSAGE : MessageType::CONTEXT_CHANNEL_MESSAGE;
-        batch_size_ += connection_->send_message(
-            msg_type,
-            call_id_,
+        batch_size_ += session_->send_message(
             msg.object().ctr(),
-            code_
+            [&](MessageHeader& header){
+                header.set_message_type(msg_type);
+                header.set_call_id(call_id_);
+                header.set_channel_code(code_);
+            }
         );
     }
     else {
@@ -67,10 +69,12 @@ void HRPCOutputChannelImpl::close()
 {
     MessageType msg_type = call_side_ ? MessageType::CALL_CLOSE_INPUT_CHANNEL : MessageType::CONTEXT_CLOSE_INPUT_CHANNEL;
 
-    connection_->send_message(
-        msg_type,
-        call_id_,
-        code_
+    session_->send_message(
+        [&](MessageHeader& header){
+            header.set_message_type(msg_type);
+            header.set_call_id(call_id_);
+            header.set_channel_code(code_);
+        }
     );
 
     do_close_channel();

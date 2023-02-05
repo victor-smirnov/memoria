@@ -25,7 +25,7 @@ class HRPCInputChannelImpl final:
         public InputChannel,
         public pool::enable_shared_from_this<HRPCInputChannelImpl>
 {
-    ConnectionImplPtr connection_;
+    SessionImplPtr session_;
     CallID call_id_;
     ChannelCode channel_code_;
     bool closed_;
@@ -82,7 +82,7 @@ class HRPCInputChannelImpl final:
         void wait_for_message() {
             std::unique_lock<fibers::mutex> lk(mutex_);
             waiter_.wait(lk, [&]() -> bool {
-                return should_wait();
+                return messages_.size() > 0 || closed_;
             });
         }
     };
@@ -91,7 +91,7 @@ class HRPCInputChannelImpl final:
 
 public:
     HRPCInputChannelImpl(
-        ConnectionImplPtr connection,
+        SessionImplPtr session,
         CallID call_id,
         ChannelCode stream_id,
         uint64_t batch_size_limit,
@@ -102,7 +102,7 @@ public:
         return channel_code_;
     }
 
-    PoolSharedPtr<Connection> connection() override;
+    PoolSharedPtr<Session> session() override;
 
     bool is_closed() override;
 

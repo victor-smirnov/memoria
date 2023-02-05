@@ -31,16 +31,16 @@ class HRPCServerSocketImpl;
 using ServerSocketImplPtr = PoolSharedPtr<HRPCServerSocketImpl>;
 
 class HRPCServiceImpl;
-using ServiceImplPtr = PoolSharedPtr<HRPCService>;
+using ServiceImplPtr = PoolSharedPtr<Service>;
 
 class HRPCContextImpl;
 using ContextImplPtr = PoolSharedPtr<HRPCContextImpl>;
 using ContextImplWeakPtr = pool::WeakPtr<HRPCContextImpl>;
 
 
-class HRPCConnectionImpl;
-using ConnectionImplPtr = PoolSharedPtr<HRPCConnectionImpl>;
-using ConnectionImplWeakPtr = pool::WeakPtr<HRPCConnectionImpl>;
+class HRPCSessionBase;
+using SessionImplPtr = PoolSharedPtr<HRPCSessionBase>;
+using SessionImplWeakPtr = pool::WeakPtr<HRPCSessionBase>;
 
 
 class HRPCCallImpl;
@@ -49,32 +49,15 @@ using CallImplWeakPtr = pool::WeakPtr<HRPCCallImpl>;
 
 
 class HRPCInputChannelImpl;
-using InputChannelImplPtr = PoolSharedPtr<HRPCInputChannelImpl>;
-using InputChannelImplWeakPtr = pool::WeakPtr<HRPCInputChannelImpl>;
+using InputChannelImplPtr       = PoolSharedPtr<HRPCInputChannelImpl>;
+using InputChannelImplWeakPtr   = pool::WeakPtr<HRPCInputChannelImpl>;
 
 
 class HRPCOutputChannelImpl;
-using OutputChannelImplPtr = PoolSharedPtr<HRPCOutputChannelImpl>;
-using OutputChannelImplWeakPtr = pool::WeakPtr<HRPCOutputChannelImpl>;
+using OutputChannelImplPtr      = PoolSharedPtr<HRPCOutputChannelImpl>;
+using OutputChannelImplWeakPtr  = pool::WeakPtr<HRPCOutputChannelImpl>;
 
-class StreamsProvider {
-public:
-    virtual ~StreamsProvider() = default;
-
-    virtual BinaryInputStream input_stream() = 0;
-    virtual BinaryOutputStream output_stream() = 0;
-    virtual void close() = 0;
-    virtual ProtocolConfig config() = 0;
-};
-
-class ConnectionProvider {
-public:
-    virtual ~ConnectionProvider() = default;
-
-    virtual PoolSharedPtr<StreamsProvider> new_connection() = 0;
-    virtual ProtocolConfig config() = 0;
-};
-
-
+using MessageProviderPtr     = PoolSharedPtr<MessageProvider>;
+using MessageProviderWeakPtr = pool::WeakPtr<MessageProvider>;
 
 }

@@ -13,27 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hrpc_impl_connection.hpp"
-#include "hrpc_impl_call.hpp"
-
+#include "hrpc_impl_service.hpp"
 
 namespace memoria::hrpc {
 
-void HRPCConnectionImpl::handle_return(const MessageHeader& header)
-{
-    auto msg = read_message(header.message_size());
-    Response rs(msg.root().as_tiny_object_map());
-
-    auto ii = calls_.find(header.call_id());
-    if (ii != calls_.end())
-    {
-        auto ptr = ii->second.lock();
-        if (!ptr.is_null()) {
-            ptr->set_response(rs);
-        }
-        calls_.erase(ii);
-    }
+PoolSharedPtr<Service> Service::make() {
+    static thread_local auto pool = boost::make_local_shared<pool::SimpleObjectPool<HRPCServiceImpl>>();
+    return pool->allocate_shared();
 }
-
 
 }

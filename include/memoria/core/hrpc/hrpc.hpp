@@ -24,6 +24,8 @@
 #include <memoria/core/memory/shared_ptr.hpp>
 #include <memoria/core/tools/optional.hpp>
 
+#include <boost/asio.hpp>
+
 #include <functional>
 
 namespace memoria::hrpc {
@@ -31,20 +33,13 @@ namespace memoria::hrpc {
 using RequestHandlerFn = std::function<Response (PoolSharedPtr<Context>)>;
 
 
-class HRPCService {
+class Service {
 public:
-    virtual void add_handler(EndpointID endpoint_id, RequestHandlerFn handler) = 0;
-    virtual void remove_handler(EndpointID endpoint_id) = 0;
-    virtual Optional<RequestHandlerFn> get_handler(EndpointID endpoint_id) = 0;
+    virtual void add_handler(const EndpointID& endpoint_id, RequestHandlerFn handler) = 0;
+    virtual void remove_handler(const EndpointID& endpoint_id) = 0;
+    virtual Optional<RequestHandlerFn> get_handler(const EndpointID& endpoint_id) = 0;
 
-    static PoolSharedPtr<HRPCService> make();
-};
-
-
-class ClientSocket {
-public:    
-    virtual ~ClientSocket() noexcept = default;
-    virtual PoolSharedPtr<Connection> open() = 0;
+    static PoolSharedPtr<Service> make();
 };
 
 
@@ -52,7 +47,7 @@ class ServerSocket {
 public:
     virtual ~ServerSocket() noexcept = default;
     virtual void listen() = 0;
-    virtual PoolSharedPtr<Connection> accept() = 0;
+    virtual PoolSharedPtr<Session> accept() = 0;
 };
 
 
@@ -62,7 +57,7 @@ public:
 
     virtual ChannelCode code() = 0;
 
-    virtual PoolSharedPtr<Connection> connection() = 0;
+    virtual PoolSharedPtr<Session> session() = 0;
 
     virtual void push(const Message& msg) = 0;
     virtual void close() = 0;
@@ -76,7 +71,7 @@ public:
 
     virtual ChannelCode code() = 0;
 
-    virtual PoolSharedPtr<Connection> connection() = 0;
+    virtual PoolSharedPtr<Session> session() = 0;
 
     virtual bool is_closed() = 0;
     virtual void close() = 0;
@@ -94,7 +89,7 @@ class HRPCCall {
 public:
     virtual ~HRPCCall() noexcept = default;
 
-    virtual PoolSharedPtr<Connection> connection() = 0;
+    virtual PoolSharedPtr<Session> session() = 0;
 
     virtual CallID call_id()  = 0;
 
@@ -119,7 +114,9 @@ class Context {
 public:
     virtual ~Context() noexcept = default;
 
-    virtual PoolSharedPtr<Connection> connection() = 0;
+    virtual PoolSharedPtr<Session> session() = 0;
+
+    virtual EndpointID endpoint_id() = 0;
 
     virtual Request request() = 0;
 
@@ -140,31 +137,71 @@ public:
 
 
 
-class Connection {
+class Session {
 public:
-    virtual ~Connection() noexcept = default;
+    virtual ~Session() noexcept = default;
 
-    virtual PoolSharedPtr<HRPCService> service() = 0;
+    virtual PoolSharedPtr<Service> service() = 0;
 
     virtual PoolSharedPtr<HRPCCall> call(
+            const EndpointID& endpoint_id,
             Request request,
-            CallCompletionFn completion_fn = CallCompletionFn{}
+            Optional<ShardID> shard_id,
+            CallCompletionFn completion_fn
     ) = 0;
 
+    PoolSharedPtr<HRPCCall> call(
+            const EndpointID& endpoint_id,
+            Request request
+    ) {
+        return call(endpoint_id, request, Optional<ShardID>{}, CallCompletionFn{});
+    }
+
+    PoolSharedPtr<HRPCCall> call(
+            const EndpointID& endpoint_id,
+            Request request,
+            CallCompletionFn completion_fn
+    ) {
+        return call(endpoint_id, request, Optional<ShardID>{}, completion_fn);
+    }
+
+    PoolSharedPtr<HRPCCall> call(
+            const EndpointID& endpoint_id,
+            Request request,
+            Optional<ShardID> shard_id
+    ) {
+        return call(endpoint_id, request, shard_id, CallCompletionFn{});
+    }
+
     virtual void close() = 0;
+    virtual bool is_closed() = 0;
 
     virtual void handle_messages() = 0;
 };
 
 
-PoolSharedPtr<ClientSocket> make_tcp_client_socket(
+class MessageProvider {
+public:
+    virtual ~MessageProvider() = default;
+
+    virtual bool needs_session_id() = 0;
+
+    virtual RawMessagePtr read_message() = 0;
+    virtual void write_message(const MessageHeader& header, const uint8_t* data) = 0;
+
+    virtual void close() noexcept = 0;
+    virtual bool is_closed() = 0;
+};
+
+
+PoolSharedPtr<Session> make_tcp_client_socket(
     const TCPClientSocketConfig& cfg,
-    const PoolSharedPtr<HRPCService>& service
+    const PoolSharedPtr<Service>& service
 );
 
 PoolSharedPtr<ServerSocket> make_tcp_server_socket(
     const TCPServerSocketConfig& cfg,
-    const PoolSharedPtr<HRPCService>& service
+    const PoolSharedPtr<Service>& service
 );
 
 }

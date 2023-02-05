@@ -25,7 +25,7 @@ class HRPCCallImpl final:
         public HRPCCall,
         public pool::enable_shared_from_this<HRPCCallImpl>
 {
-    PoolSharedPtr<HRPCConnectionImpl> connection_;
+    SessionImplPtr session_;
     Request request_;
     Response response_;
     CallID call_id_;
@@ -42,13 +42,13 @@ class HRPCCallImpl final:
 
 public:
     HRPCCallImpl(
-            const PoolSharedPtr<HRPCConnectionImpl>& connection,
+            const SessionImplPtr& session,
             CallID call_id,
             Request request,
             CallCompletionFn completion_fn
     );
 
-    PoolSharedPtr<Connection> connection() override;
+    PoolSharedPtr<Session> session() override;
 
     CallID call_id() override {
         return call_id_;

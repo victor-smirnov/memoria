@@ -27,7 +27,7 @@ void HermesCtrView::deep_copy_from(const DocumentHeader* src, LWMemHolder* mem_h
     header_ = src->deep_copy_to(dedup);
 }
 
-HermesCtr HermesCtrView::compactify(bool make_immutable) const
+HermesCtr HermesCtrView::compactify(bool make_immutable, size_t header_size) const
 {
     assert_not_null();
 
@@ -37,7 +37,7 @@ HermesCtr HermesCtrView::compactify(bool make_immutable) const
 
     arena::AllocationType alc_type = make_immutable ? arena::AllocationType::GROWABLE_SINGLE_CHUNK :
                                                       arena::AllocationType::MULTI_CHUNK;
-    auto arena = TL_allocate_shared<arena::PoolableArena>(alc_type, arena_->chunk_size());
+    auto arena = TL_allocate_shared<arena::PoolableArena>(alc_type, arena_->chunk_size(), header_size);
 
     HermesCtr ctr(&arena->mem_holder(), arena.get());
 

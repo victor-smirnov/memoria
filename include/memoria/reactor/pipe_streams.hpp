@@ -60,6 +60,9 @@ public:
         return this->ptr_->detach();
     }
 
+    operator BinaryInputStream () const {
+        return BinaryInputStream(this->ptr_);
+    }
 };
 
 
@@ -90,6 +93,10 @@ public:
 
     IOHandle detach() {
         return this->ptr_->detach();
+    }
+
+    operator BinaryOutputStream () const {
+        return BinaryOutputStream(this->ptr_);
     }
 };
 

@@ -17,6 +17,8 @@
 #include <memoria/reactor/pipe_streams.hpp>
 #include <memoria/core/memory/smart_ptrs.hpp>
 
+#include <memoria/core/tools/result.hpp>
+
 #include "linux_io_messages.hpp"
 
 #include <fcntl.h>
@@ -312,12 +314,38 @@ PipeStreams duplicate_pipe(IOHandle input, IOHandle output)
     };
 }
 
-PipeInputStream open_input_pipe(const char* name) {
-    return PipeInputStream();
+PipeInputStream open_input_pipe(const char* name)
+{
+    int fd, err;
+    std::tie(fd, err) = engine().run_in_thread_pool([=](){
+        int fd = ::open(name, O_RDONLY);
+        int err = (errno);
+        return std::make_pair(fd, err);
+    });
+
+    if (fd) {
+        return PipeInputStream(MakeLocalShared<PipeInputStreamImpl>(fd));
+    }
+    else {
+        MMA_THROW(SystemException()) << format_ex("Can't open pipe {} for reading: {}", name, ::strerror(err));
+    }
 }
 
-PipeOutputStream open_output_pipe(const char* name){
-    return PipeOutputStream();
+PipeOutputStream open_output_pipe(const char* name)
+{
+    int fd, err;
+    std::tie(fd, err) = engine().run_in_thread_pool([=](){
+        int fd = ::open(name, O_WRONLY);
+        int err = (errno);
+        return std::make_pair(fd, err);
+    });
+
+    if (fd) {
+        return PipeOutputStream(MakeLocalShared<PipeOutputStreamImpl>(fd));
+    }
+    else {
+        MMA_THROW(SystemException()) << format_ex("Can't open pipe {} for writing: {}", name, ::strerror(err));
+    }
 }
 
 

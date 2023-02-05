@@ -65,28 +65,6 @@ struct CompositeFieldFactory {
     }
 };
 
-template <typename Type>
-class BitField{};
-
-template <typename Type>
-struct FieldFactory<BitField<Type> > {
-
-    typedef BitField<Type> BFType;
-
-    template <typename SerializationData>
-    static void serialize(SerializationData& data, const Type& field)
-    {
-        field.template serialize<FieldFactory>(data);
-    }
-
-    template <typename DeserializationData>
-    static void deserialize(DeserializationData& data, Type& field)
-    {
-        field.template deserialize<FieldFactory>(data);
-    }
-};
-
-
 
 template <typename Type>
 struct FieldFactoryBase {

@@ -14,60 +14,40 @@
 // limitations under the License.
 
 #include "hrpc_impl_tcp.hpp"
-#include "hrpc_impl_connection.hpp"
+#include "hrpc_impl_session.hpp"
 
 
 namespace memoria::hrpc {
 
-PoolSharedPtr<ClientSocket> make_tcp_client_socket(
+PoolSharedPtr<Session> make_tcp_client_socket(
     const TCPClientSocketConfig& cfg,
-    const PoolSharedPtr<HRPCService>& service
+    const PoolSharedPtr<Service>& service
 )
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCClientSocketImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCSessionImpl>>();
 
-    return pool->allocate_shared(cfg, service);
+    auto conn = TCPClientMessageProviderImpl::make_instance(cfg);
+    return pool->allocate_shared(service, conn, cfg, SessionSide::CLIENT);
 }
 
 
-PoolSharedPtr<Connection> HRPCClientSocketImpl::open()
-{
-    static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCConnectionImpl>>();
-
-    auto conn = TCPClientSocketStreamsProviderImpl::make_instance(cfg_);
-    return pool->allocate_shared(service_, conn, ConnectionSide::CLIENT);
-}
-
-
-TCPClientSocketStreamsProviderImpl::
-    TCPClientSocketStreamsProviderImpl(TCPClientSocketConfig config):
-    config_(config),
-    socket_(reactor::ClientSocket(reactor::IPAddress(config.host().data()), config.port()))
-{
-
-}
-
-PoolSharedPtr<StreamsProvider> TCPClientSocketStreamsProviderImpl::
+PoolSharedPtr<MessageProvider> TCPClientMessageProviderImpl::
     make_instance(TCPClientSocketConfig config)
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<TCPClientSocketStreamsProviderImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<TCPClientMessageProviderImpl>>();
 
-    return pool->allocate_shared(config);
+    auto addr = reactor::IPAddress(config.host().data());
+    return pool->allocate_shared(reactor::ClientSocket(addr, config.port()));
 }
-
-
-
-
 
 
 
 
 PoolSharedPtr<ServerSocket> make_tcp_server_socket(
     const TCPServerSocketConfig& cfg,
-    const PoolSharedPtr<HRPCService>& service
+    const PoolSharedPtr<Service>& service
 ) {
     static thread_local auto pool =
             boost::make_local_shared<pool::SimpleObjectPool<HRPCServerSocketImpl>>();
@@ -77,39 +57,185 @@ PoolSharedPtr<ServerSocket> make_tcp_server_socket(
 
 
 
-PoolSharedPtr<Connection> HRPCServerSocketImpl::accept()
+PoolSharedPtr<Session> HRPCServerSocketImpl::accept()
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCConnectionImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<HRPCSessionImpl>>();
 
     reactor::SocketConnectionData conn_data = socket_.accept();
-    auto conn = TCPServerSocketStreamsProviderImpl::make_instance(this->shared_from_this(), std::move(conn_data));
+    auto conn = TCPServerMessageProviderImpl::make_instance(this->shared_from_this(), std::move(conn_data));
 
-    return pool->allocate_shared(service_, conn, ConnectionSide::SERVER);
+    return pool->allocate_shared(service_, conn, cfg_, SessionSide::SERVER);
 }
 
 
-TCPServerSocketStreamsProviderImpl::
-    TCPServerSocketStreamsProviderImpl(
-        ServerSocketImplPtr socket,
-        reactor::SocketConnectionData&& conn_data
-    ):
-    socket_(socket),
-    connection_(std::move(conn_data))
-{
-
-}
-
-PoolSharedPtr<StreamsProvider> TCPServerSocketStreamsProviderImpl::
+PoolSharedPtr<MessageProvider> TCPServerMessageProviderImpl::
     make_instance(
         ServerSocketImplPtr socket,
         reactor::SocketConnectionData&& conn_data
     )
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<TCPServerSocketStreamsProviderImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<TCPServerMessageProviderImpl>>();
 
     return pool->allocate_shared(socket, std::move(conn_data));
+}
+
+TCPClientMessageProviderImpl::
+TCPClientMessageProviderImpl(reactor::ClientSocket socket):
+    TCPMessageProviderBase(socket.input(), socket.output()),
+    socket_(socket)
+{
+}
+
+
+RawMessagePtr TCPMessageProviderBase::read_message()
+{
+    constexpr size_t basic_header_size = MessageHeader::basic_size();
+
+    alignas(MessageHeader)
+    uint8_t header_buf[basic_header_size]{0,};
+
+    size_t sz1 = input_stream_.read_fully(header_buf, sizeof(header_buf), []{
+        this_fiber::yield();
+    });    
+
+    if (sz1 < sizeof(header_buf)) {
+        return RawMessagePtr{nullptr, ::free};
+    }
+
+    MessageHeader* header = ptr_cast<MessageHeader>(header_buf);
+    auto buffer = allocate_system<uint8_t>(header->message_size());
+
+    std::memcpy(buffer.get(), header_buf, basic_header_size);
+
+    size_t msg_size = header->message_size() - basic_header_size;
+    size_t sz2 = input_stream_.read_fully(
+        buffer.get() + basic_header_size,
+        msg_size
+    );
+
+    if (sz2 < msg_size) {
+        return RawMessagePtr{nullptr, ::free};
+    }
+
+    return buffer;
+}
+
+void TCPMessageProviderBase::write_message(
+        const MessageHeader& header,
+        const uint8_t* data
+) {
+    size_t sz = output_stream_.write_fully(data, header.message_size());
+    if (sz < header.message_size()) {
+        MEMORIA_MAKE_GENERIC_ERROR("write_fully: stream closed").do_throw();
+    }
+}
+
+TCPServerMessageProviderImpl::
+TCPServerMessageProviderImpl(
+    ServerSocketImplPtr socket,
+    reactor::SocketConnectionData&& conn_data
+):
+    socket_(socket),
+    connection_(reactor::ServerSocketConnection(std::move(conn_data)))
+{
+    input_stream_ = connection_.input();
+    output_stream_ = connection_.output();
+}
+
+
+
+
+bool ASIOSocketMessageProvider::read(uint8_t* buf, size_t size)
+{
+    size_t cnt = 0;
+    while (cnt < size)
+    {
+        size_t to_read = size - cnt;
+        auto result = socket_.read_some(
+            boost::asio::mutable_buffer(buf + cnt, to_read)
+        );
+
+        if (MMA_LIKELY(result == to_read)) {
+            return true;
+        }
+        else if (MMA_LIKELY(!socket_.is_open())) {
+            return false;
+        }
+        else {
+            cnt += result;
+        }
+    }
+
+    return true;
+}
+
+void ASIOSocketMessageProvider::write(const uint8_t* buf, size_t size)
+{
+    size_t cnt = 0;
+    while(cnt < size)
+    {
+        size_t to_write = size - cnt;
+        auto result = socket_.write_some(
+            boost::asio::buffer(buf + cnt, to_write)
+        );
+
+        if (MMA_LIKELY(result == to_write)) {
+            return;
+        }
+        else if (MMA_UNLIKELY(!socket_.is_open())) {
+            MEMORIA_MAKE_GENERIC_ERROR("MessageProvider::write: socket closed").do_throw();
+        }
+        else {
+            cnt += result;
+        }
+    }
+}
+
+
+RawMessagePtr ASIOSocketMessageProvider::read_message()
+{
+    constexpr size_t basic_header_size = MessageHeader::basic_size();
+
+    alignas(MessageHeader)
+    uint8_t header_buf[basic_header_size]{0,};
+
+    if (!read(header_buf, sizeof(header_buf))) {
+        return RawMessagePtr(nullptr, ::free);
+    }
+
+    MessageHeader* header = ptr_cast<MessageHeader>(header_buf);
+    auto buffer = allocate_system<uint8_t>(header->message_size());
+
+    std::memcpy(buffer.get(), header_buf, basic_header_size);
+
+    if (!read(
+        buffer.get() + basic_header_size,
+        header->message_size() - basic_header_size
+    )) {
+        return RawMessagePtr(nullptr, ::free);
+    }
+
+    return buffer;
+}
+
+void ASIOSocketMessageProvider::write_message(
+        const MessageHeader& header,
+        const uint8_t* data
+) {
+    write(data, header.message_size());
+}
+
+
+PoolSharedPtr<MessageProvider> ASIOSocketMessageProvider::make_instance(
+    net::tcp::socket&& socket
+)
+{
+    static thread_local auto pool =
+            boost::make_local_shared<pool::SimpleObjectPool<ASIOSocketMessageProvider>>();
+
+    return pool->allocate_shared(std::move(socket));
 }
 
 }

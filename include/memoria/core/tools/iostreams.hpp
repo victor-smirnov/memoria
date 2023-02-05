@@ -38,8 +38,6 @@ public:
     virtual size_t read(uint8_t* data, size_t size) = 0;
     virtual void close() = 0;
     virtual bool is_closed() const = 0;
-
-    virtual bool is_multiplexed() const {return false;}
 };
 
 
@@ -50,8 +48,6 @@ public:
     virtual void flush() = 0;
     virtual void close() = 0;
     virtual bool is_closed() const = 0;
-
-    virtual bool is_multiplexed() const {return false;}
 };
 
 class IBinaryIOStream: public IBinaryInputStream, public IBinaryOutputStream {
@@ -69,6 +65,24 @@ struct BinaryInputStream final: PimplBase<IBinaryInputStream> {
 
     size_t read(uint8_t* data, size_t size) {
         return ptr_->read(data, size);
+    }
+
+    size_t read_fully(uint8_t* data, size_t size, std::function<void()> yield_fn = []{})
+    {
+        size_t cnt = 0;
+        while (cnt < size) {
+            auto rr = read(data + cnt, size - cnt);
+            if (rr == 0) {
+                if (!is_closed()) {
+                    yield_fn();
+                }
+                else {
+                    break;
+                }
+            }
+            cnt += rr;
+        }
+        return cnt;
     }
 
     bool is_closed() const {
@@ -91,7 +105,25 @@ struct BinaryOutputStream final: PimplBase<IBinaryOutputStream>{
     size_t write(const uint8_t* data, size_t size) {
         return ptr_->write(data, size);
     }
-    
+
+    size_t write_fully(const uint8_t* data, size_t size, std::function<void()> yield_fn = []{})
+    {
+        size_t cnt = 0;
+        while (cnt < size) {
+            auto rr = write(data + cnt, size - cnt);
+            if (rr == 0) {
+                if (!is_closed()) {
+                    yield_fn();
+                }
+                else {
+                    break;
+                }
+            }
+            cnt += rr;
+        }
+        return cnt;
+    }
+
     void flush() {
         return ptr_->flush();
     }

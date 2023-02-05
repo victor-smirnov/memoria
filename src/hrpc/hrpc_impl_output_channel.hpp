@@ -23,7 +23,7 @@ class HRPCOutputChannelImpl final:
         public OutputChannel,
         public pool::enable_shared_from_this<HRPCOutputChannelImpl>
 {
-    ConnectionImplPtr connection_;
+    SessionImplPtr session_;
     CallID call_id_;
     ChannelCode code_;
     bool closed_;
@@ -38,7 +38,7 @@ class HRPCOutputChannelImpl final:
 
 public:
     HRPCOutputChannelImpl(
-        const ConnectionImplPtr& conn,
+        const SessionImplPtr& session,
         CallID call_id, ChannelCode code,
         uint64_t batch_size_limit, bool call_side
     );
@@ -47,7 +47,7 @@ public:
         return code_;
     }
 
-    PoolSharedPtr<Connection> connection() override;
+    PoolSharedPtr<Session> session() override;
 
     void push(const Message& msg) override;
 

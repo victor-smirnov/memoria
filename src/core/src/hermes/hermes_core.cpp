@@ -68,13 +68,13 @@ HermesCtr HermesCtrView::from_span(Span<const uint8_t> data) {
     return ctr;
 }
 
-HermesCtr HermesCtrView::from_buffer(UniquePtr<uint8_t>&& data, size_t size) {
+HermesCtr HermesCtrView::from_buffer(UniquePtr<uint8_t>&& data, size_t size, size_t header_size) {
     auto arena = TL_allocate_shared<arena::PoolableArena>(
         arena::AllocationType::MULTI_CHUNK,
         4096,
         std::move(data),
         size,
-        arena::ProvidedBufferCtr{}
+        header_size
     );
 
     auto ctr = HermesCtr{&arena->mem_holder()};

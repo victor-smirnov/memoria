@@ -114,6 +114,8 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
         }
     };
 
+    bool restart_iocontext{};
+
     uint64_t io_poll_batch = 32;
     while(running_ || fibers::context::contexts() > fibers::DEFAULT_CONTEXTS)
     {

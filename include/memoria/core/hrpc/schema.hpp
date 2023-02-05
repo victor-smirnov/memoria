@@ -41,14 +41,6 @@ public:
         ctr.set_root(object_);
     }
 
-    EndpointID endpoint() {
-        return object_.get(ENDPOINT).cast_to<UBigInt>();
-    }
-
-    void set_endpoint(EndpointID endpoint) {
-        object_.put(ENDPOINT, endpoint);
-    }
-
     hermes::TinyObjectMap parameters() {
         return object_.get(PARAMETERS).as_tiny_object_map();
     }
@@ -287,8 +279,8 @@ public:
         object_.put(CHANNEL_BUFFER_SIZE, size);
     }
 
-    ConnectionMetadata compactify() const {
-        return object_.ctr().compactify(true).root().as_tiny_object_map();
+    ConnectionMetadata compactify(size_t header_size = 0) const {
+        return object_.ctr().compactify(true, header_size).root().as_tiny_object_map();
     }
 };
 

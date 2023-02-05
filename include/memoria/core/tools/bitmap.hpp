@@ -40,6 +40,64 @@
 
 namespace memoria {
 
+
+class BitField {
+    const size_t offset_;
+    const size_t width_;
+public:
+    constexpr BitField(size_t offset, size_t width = 1):
+        offset_(offset), width_(width)
+    {}
+
+    constexpr size_t offset() const {return offset_;}
+    constexpr size_t width() const {return width_;}
+
+    template <typename T>
+    constexpr T get(T storage) const
+    {
+        T mask = (static_cast<T>(1) << width_) - 1;
+        return (storage >> offset_) & mask;
+    }
+
+    template <typename T>
+    constexpr T get(T storage, size_t idx) const
+    {
+        T mask = (static_cast<T>(1) << width_) - 1;
+        return (storage >> (offset_ + idx * width_)) & mask;
+    }
+
+    template <typename T, typename V>
+    constexpr void set(T& storage, V value) const
+    {
+        T mask = (static_cast<T>(1) << width_) - 1;
+        storage &= ~(mask << offset_);
+        storage |= (static_cast<T>(value) & mask) << offset_;
+    }
+
+    template <typename T, typename V>
+    constexpr void set(T& storage, V value, size_t idx) const
+    {
+        T mask = (static_cast<T>(1) << width_) - 1;
+        storage &= ~(mask << offset_);
+        storage |= (static_cast<T>(value) & mask) << offset_;
+    }
+
+    template <typename T>
+    T get_bit(T storage, size_t idx) const
+    {
+        return (storage >> (offset_ + idx)) & 0x1;
+    }
+
+    template <typename T, typename V>
+    void set_bit(T& storage, V value, size_t idx) const
+    {
+        size_t bit_offset = offset_ + idx;
+        storage &= ~(static_cast<T>(1) << bit_offset);
+        storage |= (static_cast<V>(value) & 0x1) << bit_offset;
+    }
+};
+
+
 const char kPopCountFW_LUT [] = {0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,5,0,1,0,2,0,1,0,3,0,1,0,2,\
                                  0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,6,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,\
                                  0,1,0,2,0,1,0,5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,7,0,1,0,2,\

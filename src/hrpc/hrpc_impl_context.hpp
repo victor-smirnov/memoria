@@ -23,8 +23,9 @@ class HRPCContextImpl final:
         public Context,
         public pool::enable_shared_from_this<HRPCContextImpl>
 {
-    ConnectionImplPtr connection_;
+    SessionImplPtr session_;
     CallID call_id_;
+    EndpointID endpoint_id_;
     Request request_;
 
     std::vector<InputChannelImplPtr> input_channels_;
@@ -37,9 +38,9 @@ class HRPCContextImpl final:
     CancelCallListenerFn cancel_listener_;
 
 public:
-    HRPCContextImpl(ConnectionImplPtr connection, CallID call_id, Request request);
+    HRPCContextImpl(SessionImplPtr session, CallID call_id, const EndpointID& endpoint_id, Request request);
 
-    PoolSharedPtr<Connection> connection() override;
+    PoolSharedPtr<Session> session() override;
 
     Request request() override {
         return request_;
@@ -86,6 +87,10 @@ public:
     }
 
     void set(NamedCode name, hermes::Object object) override {}
+
+    EndpointID endpoint_id() override {
+        return endpoint_id_;
+    }
 
     void new_message(Message&& msg, ChannelCode code);
 

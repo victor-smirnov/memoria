@@ -22,60 +22,12 @@
 
 #include <memoria/reactor/socket.hpp>
 
+#include <boost/asio.hpp>
+
 namespace memoria::hrpc {
 
-class HRPCClientSocketImpl final:
-        public ClientSocket,
-        public pool::enable_shared_from_this<HRPCClientSocketImpl>
-{
-    TCPClientSocketConfig cfg_;
-    PoolSharedPtr<HRPCService> service_;
-
-public:
-    HRPCClientSocketImpl(
-            const TCPClientSocketConfig& cfg,
-            PoolSharedPtr<HRPCService> service
-    ):
-        cfg_(cfg), service_(service)
-    {
-    }
-
-    PoolSharedPtr<HRPCService> service() {
-        return service_;
-    }
-
-    const TCPClientSocketConfig& cfg() const {
-        return cfg_;
-    }
-
-    PoolSharedPtr<Connection> open();
-};
-
-
-class TCPClientSocketStreamsProviderImpl final: public StreamsProvider {
-    TCPClientSocketConfig config_;
-    reactor::ClientSocket socket_;
-public:
-    TCPClientSocketStreamsProviderImpl(TCPClientSocketConfig config);
-
-    BinaryInputStream input_stream() override {
-        return socket_.input();
-    }
-
-    BinaryOutputStream output_stream() override {
-        return socket_.output();
-    }
-
-    void close() override {
-        socket_.close();
-    }
-
-    ProtocolConfig config() override {
-        return config_;
-    }
-
-    static PoolSharedPtr<StreamsProvider> make_instance(TCPClientSocketConfig config);
-};
+namespace net = boost::asio::ip;
+namespace bsys = boost::system;
 
 
 class HRPCServerSocketImpl final:
@@ -83,21 +35,21 @@ class HRPCServerSocketImpl final:
         public pool::enable_shared_from_this<HRPCServerSocketImpl>
 {
     TCPServerSocketConfig cfg_;
-    PoolSharedPtr<HRPCService> service_;
+    PoolSharedPtr<Service> service_;
 
     reactor::ServerSocket socket_;
 
 public:
     HRPCServerSocketImpl(
             const TCPServerSocketConfig& cfg,
-            PoolSharedPtr<HRPCService> service
+            PoolSharedPtr<Service> service
     ):
         cfg_(cfg), service_(service),
         socket_(reactor::IPAddress(cfg_.host().data()), cfg_.port())
     {
     }
 
-    PoolSharedPtr<HRPCService> service() {
+    PoolSharedPtr<Service> service() {
         return service_;
     }
 
@@ -109,41 +61,130 @@ public:
         socket_.listen();
     }
 
-    PoolSharedPtr<Connection> accept();
+    PoolSharedPtr<Session> accept();
 };
 
 
-class TCPServerSocketStreamsProviderImpl final: public StreamsProvider {
+
+
+
+class TCPMessageProviderBase: public MessageProvider  {
+protected:
+    BinaryInputStream input_stream_;
+    BinaryOutputStream output_stream_;
+public:
+    TCPMessageProviderBase(
+        BinaryInputStream input_stream,
+        BinaryOutputStream output_stream
+    ):
+        input_stream_(input_stream),
+        output_stream_(output_stream)
+    {}
+
+    TCPMessageProviderBase() {}
+
+    bool needs_session_id() override {
+        return false;
+    }
+
+    RawMessagePtr read_message() override;
+    void write_message(const MessageHeader& header, const uint8_t* data) override;
+};
+
+
+class ASIOSocketMessageProvider final: public MessageProvider  {
+protected:
+    net::tcp::socket socket_;
+public:
+    ASIOSocketMessageProvider(net::tcp::socket&& socket):
+        socket_(std::move(socket))
+    {}
+
+    bool needs_session_id() override {
+        return false;
+    }
+
+    bool read(uint8_t* buf, size_t size);
+    void write(const uint8_t* buf, size_t size);
+
+    RawMessagePtr read_message() override;
+    void write_message(const MessageHeader& header, const uint8_t* data) override;
+
+    void close() noexcept override
+    {
+        try {
+            socket_.close();
+        }
+        catch (...) {
+            println("Exception while closing ASIO socket");
+        }
+    }
+
+    bool is_closed() override {
+        return !socket_.is_open();
+    }
+
+    static PoolSharedPtr<MessageProvider> make_instance(
+        net::tcp::socket&& socket
+    );
+};
+
+
+
+
+class TCPClientMessageProviderImpl final: public TCPMessageProviderBase {
+    reactor::ClientSocket socket_;
+
+public:
+    TCPClientMessageProviderImpl(reactor::ClientSocket socket);
+
+    void close() noexcept override
+    {
+        try {
+            socket_.close();
+        }
+        catch (...) {
+            println("Exception closing TCP client socket");
+        }
+    }
+
+
+    bool is_closed() override {
+        return socket_.is_closed();
+    }
+
+    static PoolSharedPtr<MessageProvider> make_instance(TCPClientSocketConfig config);
+};
+
+
+class TCPServerMessageProviderImpl final: public TCPMessageProviderBase {
     ServerSocketImplPtr socket_;
     reactor::ServerSocketConnection connection_;
+
 public:
-    TCPServerSocketStreamsProviderImpl(
+    TCPServerMessageProviderImpl(
         ServerSocketImplPtr socket,
         reactor::SocketConnectionData&& conn_data
     );
 
-    BinaryInputStream input_stream() override {
-        return connection_.input();
+    void close() noexcept override {
+        try {
+            connection_.close();
+        }
+        catch (...) {
+            println("Exception closing TCP server connection");
+        }
     }
 
-    BinaryOutputStream output_stream() override {
-        return connection_.output();
+    bool is_closed() override {
+        return connection_.is_closed();
     }
 
-    void close() override {
-        connection_.close();
-    }
-
-    ProtocolConfig config() override {
-        return socket_->cfg();
-    }
-
-    static PoolSharedPtr<StreamsProvider> make_instance(
+    static PoolSharedPtr<MessageProvider> make_instance(
         ServerSocketImplPtr socket,
         reactor::SocketConnectionData&& conn_data
     );
 };
-
 
 
 }

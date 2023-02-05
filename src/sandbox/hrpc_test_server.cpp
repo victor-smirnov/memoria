@@ -25,14 +25,11 @@ int main(int argc, char** argv, char** envp) {
         ShutdownOnScopeExit hh;
         engine().println("HRPC Client/Server");
 
-        auto service = hrpc::HRPCService::make();
+        auto service = hrpc::Service::make();
+        hrpc::EndpointID endpoint_id = hrpc::EndpointID::parse("{1|7d50cb1d2f4ec5ffcb7b22a423c6022873b1dc8420a1b01b264dc5b2b41f3d}");
 
-
-        hrpc::EndpointID endpoint = 1;
-
-        service->add_handler(endpoint, [](const PoolSharedPtr<hrpc::Context>& ctx ){
-            ctx->connection()->close();
-            println("Endpoint {} is called!", ctx->request().endpoint());
+        service->add_handler(endpoint_id, [](const PoolSharedPtr<hrpc::Context>& ctx ){
+            println("Endpoint {} is called!", ctx->endpoint_id());
             println("Request: {}", ctx->request().to_pretty_string());
 
             auto i_channel = ctx->input_channel(0);
@@ -41,60 +38,25 @@ int main(int argc, char** argv, char** envp) {
                 println("Channel msg: {}", msg.to_pretty_string());
             }
 
-            hrpc::Response rs = hrpc::Response::ok();
+            hrpc::Response rs = hrpc::Response::ok();            
             return rs;
         });
 
         auto server_cfg = hrpc::TCPServerSocketConfig::of_host("0.0.0.0");
-        auto client_cfg = hrpc::TCPClientSocketConfig::of_host("localhost");
-
         auto server = hrpc::make_tcp_server_socket(server_cfg, service);
 
         fibers::fiber ff_server([&](){
             auto conn = server->accept();
 
             conn->handle_messages();
-
+            println("Server connection is done");
             conn->close();
-        });
-
-        fibers::fiber ff_client([&](){
-            auto client = hrpc::make_tcp_client_socket(client_cfg, service);
-
-            auto conn = client->open();
-
-            fibers::fiber ff_conn_h([=](){
-                conn->handle_messages();
-            });
-
-            hrpc::Request rq = hrpc::Request::make();
-            rq.set_endpoint(endpoint);
-            rq.set_output_channels(1);
-
-            auto call = conn->call(rq, [=](hrpc::Response rs){
-                println("Response: {}", rs.to_pretty_string());
-                conn->close();
-            });
-
-            auto o_channel = call->output_channel(0);
-
-            for (int c = 0; c < 3; c++) {
-                auto batch = hrpc::Message::empty();
-                o_channel->push(batch);
-            }
-
-            o_channel->close();
-
-            call->wait();
-
-            ff_conn_h.join();
         });
 
 
         server->listen();
 
         ff_server.join();
-        ff_client.join();
 
         return 0;
     }

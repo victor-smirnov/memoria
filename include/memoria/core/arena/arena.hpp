@@ -123,8 +123,6 @@ public:
 };
 
 
-struct ProvidedBufferCtr{};
-
 class ArenaAllocator {
 protected:
     using MemPtr = UniquePtr<uint8_t>;
@@ -152,26 +150,34 @@ protected:
 
     AllocationType allocation_type_;
     size_t chunk_size_;
+    size_t header_size_;
     std::vector<Chunk> chunks_;
 
     template <typename>
     friend class AddrResolver;
 
-
 public:
 
     ArenaAllocator(AllocationType alc_type, size_t chunk_size, void* data, size_t data_size) noexcept :
         allocation_type_(alc_type),
-        chunk_size_(chunk_size)
+        chunk_size_(chunk_size),
+        header_size_(0)
     {
         add_chunk(data_size);
         Chunk& head = this->head();
         memcpy(head.memory.get(), data, data_size);
     }
 
-    ArenaAllocator(AllocationType alc_type, size_t chunk_size, UniquePtr<uint8_t>&& buffer, size_t data_size) noexcept :
+    ArenaAllocator(
+            AllocationType alc_type,
+            size_t chunk_size,
+            UniquePtr<uint8_t>&& buffer,
+            size_t data_size,
+            size_t header_size
+    ) noexcept :
         allocation_type_(alc_type),
-        chunk_size_(chunk_size)
+        chunk_size_(chunk_size),
+        header_size_(header_size)
     {
         add_chunk(std::move(buffer), data_size);
     }
@@ -179,17 +185,23 @@ public:
 
     ArenaAllocator(size_t chunk_size = 4096) noexcept :
         allocation_type_(AllocationType::MULTI_CHUNK),
-        chunk_size_(chunk_size)
+        chunk_size_(chunk_size),
+        header_size_(0)
     {}
 
-    ArenaAllocator(AllocationType alc_type, size_t chunk_size = 4096) noexcept :
+    ArenaAllocator(AllocationType alc_type, size_t chunk_size = 4096, size_t header_size = 0) noexcept :
         allocation_type_(alc_type),
-        chunk_size_(chunk_size)
-    {}
+        chunk_size_(chunk_size),
+        header_size_(header_size)
+    {
+        add_chunk(chunk_size);
+        head().size = header_size;
+    }
 
     ArenaAllocator(AllocationType alc_type, size_t chunk_size, const void* data, size_t segment_size):
         allocation_type_(alc_type),
-        chunk_size_(chunk_size)
+        chunk_size_(chunk_size),
+        header_size_(0)
     {
         add_chunk(segment_size);
         head().size = segment_size;
@@ -199,6 +211,8 @@ public:
     ArenaAllocator(const ArenaAllocator&) = delete;
 
     virtual ~ArenaAllocator() noexcept = default;
+
+    size_t header_size() const {return header_size_;}
 
 
     bool is_chunked() const {
@@ -211,6 +225,16 @@ public:
 
     size_t chunks() const {
         return chunks_.size();
+    }
+
+    uint8_t* root()
+    {
+        if (chunks_.size() > 0) {
+            return tail().memory.get() + header_size_;
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Arena is empty").do_throw();
+        }
     }
 
     template <typename T>
@@ -413,15 +437,15 @@ public:
 
 private:
 
-    void add_chunk(size_t size) {
+    void add_chunk(size_t capacity, size_t size = 0) {
         chunks_.emplace_back(
-            allocate_system_zeroed<uint8_t>(size), size
+            allocate_system_zeroed<uint8_t>(capacity), capacity, size
         );
     }
 
-    void add_chunk(UniquePtr<uint8_t>&& buffer, size_t size) {
+    void add_chunk(UniquePtr<uint8_t>&& buffer, size_t capacity) {
         chunks_.emplace_back(
-            std::move(buffer), size
+            std::move(buffer), capacity, capacity
         );
     }
 
@@ -524,9 +548,9 @@ public:
             size_t chunk_size,
             UniquePtr<uint8_t>&& data,
             size_t data_size,
-            ProvidedBufferCtr
+            size_t header_size
     ) noexcept :
-        Base(alc_type, chunk_size, std::move(data), data_size)
+        Base(alc_type, chunk_size, std::move(data), data_size, header_size)
     {}
 
 
@@ -534,8 +558,8 @@ public:
         Base(chunk_size)
     {}
 
-    PoolableArena(AllocationType alc_type, size_t chunk_size = 4096) noexcept :
-        Base(alc_type, chunk_size)
+    PoolableArena(AllocationType alc_type, size_t chunk_size = 4096, size_t header_size = 0) noexcept :
+        Base(alc_type, chunk_size, header_size)
     {}
 
     PoolableArena(AllocationType alc_type, size_t chunk_size, const void* data, size_t segment_size):

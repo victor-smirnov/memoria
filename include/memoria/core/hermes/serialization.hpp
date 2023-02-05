@@ -348,16 +348,13 @@ class SerializationState {
 
     LWMemHolder* mem_holder_;
 
-    bool multiplexed_;
-
 public:
     static constexpr size_t BUFFER_SIZE = 64*1024;
 
     SerializationState(IBinaryOutputStream& stream, LWMemHolder* mem_holder):
         buffer_(TL_get_reusable_shared_instance<ArenaBuffer<uint8_t>>()),
         stream_(stream),
-        mem_holder_(mem_holder),
-        multiplexed_(stream.is_multiplexed())
+        mem_holder_(mem_holder)
     {
         reserve_header();
     }
@@ -457,7 +454,7 @@ public:
 
 protected:
     void reserve_header() {
-        reserve(4 + multiplexed_ * 8);
+        reserve(4);
     }
 };
 

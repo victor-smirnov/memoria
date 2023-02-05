@@ -131,7 +131,7 @@ typedef ::boost::intrusive::slist_member_hook<
 
 }
 
-constexpr size_t DEFAULT_CONTEXTS = 2;
+constexpr size_t DEFAULT_CONTEXTS = 3;
 
 class MEMORIA_FIBERS_DECL context {
 public:

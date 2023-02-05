@@ -14,16 +14,22 @@
 // limitations under the License.
 
 #include "hrpc_impl_context.hpp"
-#include "hrpc_impl_connection.hpp"
+#include "hrpc_impl_session.hpp"
 
 
 namespace memoria::hrpc {
 
-HRPCContextImpl::HRPCContextImpl(ConnectionImplPtr connection, CallID call_id, Request request):
-    connection_(connection),
+HRPCContextImpl::HRPCContextImpl(
+        SessionImplPtr session,
+        CallID call_id,
+        const EndpointID& endpoint_id,
+        Request request
+):
+    session_(session),
     call_id_(call_id),
+    endpoint_id_(endpoint_id),
     request_(request),
-    batch_size_limit_(connection_->channel_buffer_size())
+    batch_size_limit_(session_->channel_buffer_size())
 {
     // Output stream at the Call side becomes input stream
     // here at the Context die and vice versa.
@@ -36,8 +42,8 @@ HRPCContextImpl::HRPCContextImpl(ConnectionImplPtr connection, CallID call_id, R
     }
 }
 
-PoolSharedPtr<Connection> HRPCContextImpl::connection() {
-    return connection_;
+PoolSharedPtr<Session> HRPCContextImpl::session() {
+    return session_;
 }
 
 void HRPCContextImpl::close_channel(bool input, ChannelCode code)
@@ -89,7 +95,7 @@ InputChannelImplPtr HRPCContextImpl::make_input_channel(ChannelCode code)
     static thread_local auto pool =
             boost::make_local_shared<pool::SimpleObjectPool<HRPCInputChannelImpl>>();
 
-    return pool->allocate_shared(connection_, call_id_, code, batch_size_limit_, false);
+    return pool->allocate_shared(session_, call_id_, code, batch_size_limit_, false);
 }
 
 OutputChannelImplPtr HRPCContextImpl::make_output_channel(ChannelCode code)
@@ -97,7 +103,7 @@ OutputChannelImplPtr HRPCContextImpl::make_output_channel(ChannelCode code)
     static thread_local auto pool =
             boost::make_local_shared<pool::SimpleObjectPool<HRPCOutputChannelImpl>>();
 
-    return pool->allocate_shared(connection_, call_id_, code, batch_size_limit_, false);
+    return pool->allocate_shared(session_, call_id_, code, batch_size_limit_, false);
 }
 
 }

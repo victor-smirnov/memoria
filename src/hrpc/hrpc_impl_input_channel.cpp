@@ -14,7 +14,7 @@
 // limitations under the License.
 
 #include "hrpc_impl_input_channel.hpp"
-#include "hrpc_impl_connection.hpp"
+#include "hrpc_impl_session.hpp"
 
 #include <memoria/fiber/fiber.hpp>
 #include <memoria/reactor/reactor.hpp>
@@ -22,20 +22,20 @@
 namespace memoria::hrpc {
 
 HRPCInputChannelImpl::HRPCInputChannelImpl(
-        ConnectionImplPtr connection,
+        SessionImplPtr session,
         CallID call_id,
         ChannelCode channel_code,
         uint64_t batch_size_limit,
         bool call_side
 ):
-    connection_(connection), call_id_(call_id),
+    session_(session), call_id_(call_id),
     channel_code_(channel_code), closed_(),
     call_side_(call_side),
     batch_size_limit_(batch_size_limit)
 {}
 
-PoolSharedPtr<Connection> HRPCInputChannelImpl::connection() {
-    return connection_;
+PoolSharedPtr<Session> HRPCInputChannelImpl::session() {
+    return session_;
 }
 
 bool HRPCInputChannelImpl::is_closed() {
@@ -50,7 +50,7 @@ bool HRPCInputChannelImpl::pop(Message& msg)
         size_t msg_size = msg.object().ctr().memory_size();
         batch_size_ += msg_size;
         if (batch_size_ >= batch_size_limit_ / 2) {
-            connection_->unblock_output_channel(call_id_, channel_code_, call_side_);
+            session_->unblock_output_channel(call_id_, channel_code_, call_side_);
         }
     }
     return success;
@@ -68,8 +68,13 @@ void HRPCInputChannelImpl::close()
         type = MessageType::CONTEXT_CLOSE_OUTPUT_CHANNEL;
     }
 
-    connection_->send_message(
-        type, call_id_, channel_code_
+    session_->send_message(
+        0,
+        [&](MessageHeader& header) {
+            header.set_message_type(type);
+            header.set_call_id(call_id_);
+            header.set_channel_code(channel_code_);
+        }
     );
 }
 

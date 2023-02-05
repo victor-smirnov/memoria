@@ -194,7 +194,7 @@ public:
         if (mem_holder->mem_data().index() == 0) {
             segment_size_ = 0;
             arena_ = boost::variant2::get<0>(mem_holder->mem_data());
-            header_ = reinterpret_cast<DocumentHeader*>(arena_->tail().memory.get());
+            header_ = reinterpret_cast<DocumentHeader*>(arena_->root());
         }
         else if (mem_holder->mem_data().index() == 1) {
             auto span = boost::variant2::get<1>(mem_holder->mem_data());
@@ -211,6 +211,9 @@ public:
 
     virtual ~HermesCtrView() noexcept = default;
 
+    static size_t minimum_ctr_size() {
+        return sizeof(DocumentHeader);
+    }
 
     bool is_mutable() const noexcept {
         return arena_ != nullptr && arena_->is_chunked();
@@ -311,7 +314,7 @@ public:
 
     //pool::SharedPtr<HermesCtrView> self() const;
 
-    HermesCtr compactify(bool make_immutable = true) const;
+    HermesCtr compactify(bool make_immutable = true, size_t header_size = 0) const;
 
     HermesCtr clone(bool as_mutable = false) const;
 
@@ -325,7 +328,7 @@ public:
     static HermesCtr make_new(size_t initial_capacity = 4096);
 
     static HermesCtr from_span(Span<const uint8_t> data);
-    static HermesCtr from_buffer(UniquePtr<uint8_t>&& data, size_t size);
+    static HermesCtr from_buffer(UniquePtr<uint8_t>&& data, size_t size, size_t header_size = 0);
 
     static HermesCtr parse_document(U8StringView view) {
         return parse_document(view.begin(), view.end());
@@ -433,21 +436,21 @@ public:
 
     Span<uint8_t> span() const
     {
-        size_t ss_size;
         if (arena_)
         {
-            if (!arena_->is_chunked()) {
-                ss_size = arena_->head().size;
+            if (!arena_->is_chunked())
+            {
+                uint8_t* data = arena_->tail().memory.get();
+                size_t ss_size = arena_->tail().size;
+                return Span<uint8_t>(data, ss_size);
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("HermesCtrView is multi-chunked!").do_throw();
             }
         }
         else {
-            ss_size = segment_size_;
+            return Span<uint8_t>(reinterpret_cast<uint8_t*>(header_), segment_size_);
         }
-
-        return Span<uint8_t>(reinterpret_cast<uint8_t*>(header_), ss_size);
     }
 
     size_t memory_size() const;
