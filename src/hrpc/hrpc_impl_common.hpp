@@ -30,8 +30,8 @@ using ClientSocketImplPtr = PoolSharedPtr<HRPCClientSocketImpl>;
 class HRPCServerSocketImpl;
 using ServerSocketImplPtr = PoolSharedPtr<HRPCServerSocketImpl>;
 
-class HRPCServiceImpl;
-using ServiceImplPtr = PoolSharedPtr<Service>;
+class HRPCEndpointRepositoryImpl;
+using EndpointRepositoryImplPtr = PoolSharedPtr<EndpointRepository>;
 
 class HRPCContextImpl;
 using ContextImplPtr = PoolSharedPtr<HRPCContextImpl>;

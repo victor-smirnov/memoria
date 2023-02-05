@@ -31,10 +31,14 @@ using SessionID     = UID256;
 using ShardID       = uint64_t;
 using ChannelCode   = uint16_t;
 
+
 class Context;
-class Service;
-class HRPCCall;
+class EndpointRepoitory;
+class Call;
 class Session;
+class Client;
+class Server;
+
 
 class ProtocolVersion {
     uint32_t value_;

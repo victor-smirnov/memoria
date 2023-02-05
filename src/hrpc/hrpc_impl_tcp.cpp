@@ -19,16 +19,16 @@
 
 namespace memoria::hrpc {
 
-PoolSharedPtr<Session> make_tcp_client_socket(
+PoolSharedPtr<Session> make_tcp_client(
     const TCPClientSocketConfig& cfg,
-    const PoolSharedPtr<Service>& service
+    const PoolSharedPtr<EndpointRepository>& endpoints
 )
 {
     static thread_local auto pool =
             boost::make_local_shared<pool::SimpleObjectPool<HRPCSessionImpl>>();
 
     auto conn = TCPClientMessageProviderImpl::make_instance(cfg);
-    return pool->allocate_shared(service, conn, cfg, SessionSide::CLIENT);
+    return pool->allocate_shared(endpoints, conn, cfg, SessionSide::CLIENT);
 }
 
 
@@ -45,19 +45,19 @@ PoolSharedPtr<MessageProvider> TCPClientMessageProviderImpl::
 
 
 
-PoolSharedPtr<ServerSocket> make_tcp_server_socket(
+PoolSharedPtr<Server> make_tcp_server(
     const TCPServerSocketConfig& cfg,
-    const PoolSharedPtr<Service>& service
+    const PoolSharedPtr<EndpointRepository>& endpoints
 ) {
     static thread_local auto pool =
             boost::make_local_shared<pool::SimpleObjectPool<HRPCServerSocketImpl>>();
 
-    return pool->allocate_shared(cfg, service);
+    return pool->allocate_shared(cfg, endpoints);
 }
 
 
 
-PoolSharedPtr<Session> HRPCServerSocketImpl::accept()
+PoolSharedPtr<Session> HRPCServerSocketImpl::new_session()
 {
     static thread_local auto pool =
             boost::make_local_shared<pool::SimpleObjectPool<HRPCSessionImpl>>();
@@ -65,7 +65,7 @@ PoolSharedPtr<Session> HRPCServerSocketImpl::accept()
     reactor::SocketConnectionData conn_data = socket_.accept();
     auto conn = TCPServerMessageProviderImpl::make_instance(this->shared_from_this(), std::move(conn_data));
 
-    return pool->allocate_shared(service_, conn, cfg_, SessionSide::SERVER);
+    return pool->allocate_shared(endpoints_, conn, cfg_, SessionSide::SERVER);
 }
 
 

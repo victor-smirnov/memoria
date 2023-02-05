@@ -17,8 +17,8 @@
 
 namespace memoria::hrpc {
 
-PoolSharedPtr<Service> Service::make() {
-    static thread_local auto pool = boost::make_local_shared<pool::SimpleObjectPool<HRPCServiceImpl>>();
+PoolSharedPtr<EndpointRepository> EndpointRepository::make() {
+    static thread_local auto pool = boost::make_local_shared<pool::SimpleObjectPool<HRPCEndpointRepositoryImpl>>();
     return pool->allocate_shared();
 }
 

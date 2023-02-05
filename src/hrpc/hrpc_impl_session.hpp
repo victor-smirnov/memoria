@@ -28,12 +28,12 @@ class HRPCSessionImpl:
 
 public:
     HRPCSessionImpl(
-        ServiceImplPtr service,
+        EndpointRepositoryImplPtr endpoints,
         MessageProviderPtr message_provider,
         ProtocolConfig config,
         SessionSide session_side
     ):
-        Base(service, config, session_side),
+        Base(endpoints, config, session_side),
         message_provider_(message_provider)
     {
     }

@@ -22,14 +22,14 @@
 
 namespace memoria::hrpc {
 
-class HRPCServiceImpl final:
-        public Service,
-        public pool::enable_shared_from_this<HRPCServiceImpl>
+class HRPCEndpointRepositoryImpl final:
+        public EndpointRepository,
+        public pool::enable_shared_from_this<HRPCEndpointRepositoryImpl>
 {
     ska::flat_hash_map<EndpointID, RequestHandlerFn> handlers_;
 
 public:
-    HRPCServiceImpl() {}
+    HRPCEndpointRepositoryImpl() {}
 
     void add_handler(const EndpointID& endpoint_id, RequestHandlerFn handler) override {
         handlers_[endpoint_id] = handler;

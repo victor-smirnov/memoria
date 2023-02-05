@@ -25,7 +25,7 @@ int main(int argc, char** argv, char** envp) {
         ShutdownOnScopeExit hh;
         engine().println("HRPC Client/Server");
 
-        auto service = hrpc::Service::make();
+        auto service = hrpc::EndpointRepository::make();
         hrpc::EndpointID endpoint_id = hrpc::EndpointID::parse("{1|7d50cb1d2f4ec5ffcb7b22a423c6022873b1dc8420a1b01b264dc5b2b41f3d}");
 
         service->add_handler(endpoint_id, [](const PoolSharedPtr<hrpc::Context>& ctx ){
@@ -43,10 +43,10 @@ int main(int argc, char** argv, char** envp) {
         });
 
         auto server_cfg = hrpc::TCPServerSocketConfig::of_host("0.0.0.0");
-        auto server = hrpc::make_tcp_server_socket(server_cfg, service);
+        auto server = hrpc::make_tcp_server(server_cfg, service);
 
         fibers::fiber ff_server([&](){
-            auto conn = server->accept();
+            auto conn = server->new_session();
 
             conn->handle_messages();
             println("Server connection is done");

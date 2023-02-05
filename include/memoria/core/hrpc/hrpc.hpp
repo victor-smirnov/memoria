@@ -33,23 +33,28 @@ namespace memoria::hrpc {
 using RequestHandlerFn = std::function<Response (PoolSharedPtr<Context>)>;
 
 
-class Service {
+class EndpointRepository {
 public:
     virtual void add_handler(const EndpointID& endpoint_id, RequestHandlerFn handler) = 0;
     virtual void remove_handler(const EndpointID& endpoint_id) = 0;
     virtual Optional<RequestHandlerFn> get_handler(const EndpointID& endpoint_id) = 0;
 
-    static PoolSharedPtr<Service> make();
+    static PoolSharedPtr<EndpointRepository> make();
 };
 
 
-class ServerSocket {
+class Server {
 public:
-    virtual ~ServerSocket() noexcept = default;
+    virtual ~Server() noexcept = default;
     virtual void listen() = 0;
-    virtual PoolSharedPtr<Session> accept() = 0;
+    virtual PoolSharedPtr<Session> new_session() = 0;
 };
 
+class Client {
+public:
+    virtual ~Client() noexcept = default;
+    virtual PoolSharedPtr<Session> open_session() = 0;
+};
 
 class OutputChannel {
 public:
@@ -85,9 +90,9 @@ public:
 using CallCompletionFn = std::function<void (const Response&)>;
 
 
-class HRPCCall {
+class Call {
 public:
-    virtual ~HRPCCall() noexcept = default;
+    virtual ~Call() noexcept = default;
 
     virtual PoolSharedPtr<Session> session() = 0;
 
@@ -141,23 +146,23 @@ class Session {
 public:
     virtual ~Session() noexcept = default;
 
-    virtual PoolSharedPtr<Service> service() = 0;
+    virtual PoolSharedPtr<EndpointRepository> endpoints() = 0;
 
-    virtual PoolSharedPtr<HRPCCall> call(
+    virtual PoolSharedPtr<Call> call(
             const EndpointID& endpoint_id,
             Request request,
             Optional<ShardID> shard_id,
             CallCompletionFn completion_fn
     ) = 0;
 
-    PoolSharedPtr<HRPCCall> call(
+    PoolSharedPtr<Call> call(
             const EndpointID& endpoint_id,
             Request request
     ) {
         return call(endpoint_id, request, Optional<ShardID>{}, CallCompletionFn{});
     }
 
-    PoolSharedPtr<HRPCCall> call(
+    PoolSharedPtr<Call> call(
             const EndpointID& endpoint_id,
             Request request,
             CallCompletionFn completion_fn
@@ -165,7 +170,7 @@ public:
         return call(endpoint_id, request, Optional<ShardID>{}, completion_fn);
     }
 
-    PoolSharedPtr<HRPCCall> call(
+    PoolSharedPtr<Call> call(
             const EndpointID& endpoint_id,
             Request request,
             Optional<ShardID> shard_id
@@ -194,14 +199,14 @@ public:
 };
 
 
-PoolSharedPtr<Session> make_tcp_client_socket(
+PoolSharedPtr<Session> make_tcp_client(
     const TCPClientSocketConfig& cfg,
-    const PoolSharedPtr<Service>& service
+    const PoolSharedPtr<EndpointRepository>& endpoints
 );
 
-PoolSharedPtr<ServerSocket> make_tcp_server_socket(
+PoolSharedPtr<Server> make_tcp_server(
     const TCPServerSocketConfig& cfg,
-    const PoolSharedPtr<Service>& service
+    const PoolSharedPtr<EndpointRepository>& endpoints
 );
 
 }

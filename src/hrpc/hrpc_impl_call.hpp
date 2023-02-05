@@ -22,7 +22,7 @@
 namespace memoria::hrpc {
 
 class HRPCCallImpl final:
-        public HRPCCall,
+        public Call,
         public pool::enable_shared_from_this<HRPCCallImpl>
 {
     SessionImplPtr session_;

@@ -31,37 +31,37 @@ namespace bsys = boost::system;
 
 
 class HRPCServerSocketImpl final:
-        public ServerSocket,
+        public Server,
         public pool::enable_shared_from_this<HRPCServerSocketImpl>
 {
     TCPServerSocketConfig cfg_;
-    PoolSharedPtr<Service> service_;
+    PoolSharedPtr<EndpointRepository> endpoints_;
 
     reactor::ServerSocket socket_;
 
 public:
     HRPCServerSocketImpl(
             const TCPServerSocketConfig& cfg,
-            PoolSharedPtr<Service> service
+            PoolSharedPtr<EndpointRepository> endpoints
     ):
-        cfg_(cfg), service_(service),
+        cfg_(cfg), endpoints_(endpoints),
         socket_(reactor::IPAddress(cfg_.host().data()), cfg_.port())
     {
     }
 
-    PoolSharedPtr<Service> service() {
-        return service_;
+    PoolSharedPtr<EndpointRepository> service() {
+        return endpoints_;
     }
 
     const TCPServerSocketConfig& cfg() const {
         return cfg_;
     }
 
-    void listen() {
+    void listen() override {
         socket_.listen();
     }
 
-    PoolSharedPtr<Session> accept();
+    PoolSharedPtr<Session> new_session() override;
 };
 
 
