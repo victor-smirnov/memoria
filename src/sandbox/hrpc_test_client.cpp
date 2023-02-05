@@ -29,7 +29,7 @@ int main(int argc, char** argv, char** envp) {
         hrpc::EndpointID endpoint_id = hrpc::EndpointID::parse("{1|7d50cb1d2f4ec5ffcb7b22a423c6022873b1dc8420a1b01b264dc5b2b41f3d}");
 
         auto client_cfg = hrpc::TCPClientSocketConfig::of_host("127.0.0.1");
-        auto conn = hrpc::make_tcp_client(client_cfg, service);
+        auto conn = hrpc::open_tcp_session(client_cfg, service);
 
         fibers::fiber ff_conn_h([=](){
             conn->handle_messages();

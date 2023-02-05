@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hrpc_impl_service.hpp"
+#include "hrpc_impl_endpoints.hpp"
 
 namespace memoria::hrpc {
 

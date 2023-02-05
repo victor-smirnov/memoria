@@ -162,7 +162,7 @@ private:
 }
 
 enum class HeaderOptF: uint32_t {
-    SESSION_ID = 1, ENDPOINT_ID = 2, SHARD_ID = 4
+    NONE = 0, SESSION_ID = 1, ENDPOINT_ID = 2, SHARD_ID = 4
 };
 
 inline uint32_t operator|(HeaderOptF l, HeaderOptF r) {

@@ -199,7 +199,7 @@ public:
 };
 
 
-PoolSharedPtr<Session> make_tcp_client(
+PoolSharedPtr<Session> open_tcp_session(
     const TCPClientSocketConfig& cfg,
     const PoolSharedPtr<EndpointRepository>& endpoints
 );

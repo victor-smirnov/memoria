@@ -33,7 +33,7 @@ public:
         ProtocolConfig config,
         SessionSide session_side
     ):
-        Base(endpoints, config, session_side),
+        Base(endpoints, config, session_side, message_provider->needs_session_id()),
         message_provider_(message_provider)
     {
     }
@@ -71,7 +71,7 @@ public:
         }
     }
 
-    virtual bool is_transport_closed() {
+    virtual bool is_transport_closed() override {
         return message_provider_->is_closed();
     }
 
