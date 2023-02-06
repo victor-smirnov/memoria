@@ -48,7 +48,7 @@ void SocketIOMessage::wait_for()
     context_ = fibers::context::active();
     engine().scheduler()->suspend(context_);
 
-    // Currently we use only read() == 0 for closed connection indication
+    // FIXME: Currently we use only read() == 0 for closed connection indication
     //connection_closed_ = connection_closed_ || (flags_ & ~(EPOLLRDHUP | EPOLLHUP | EPOLLERR));
 }
 

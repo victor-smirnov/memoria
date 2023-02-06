@@ -23,7 +23,7 @@ include_directories(../tools/include)
 if (BUILD_REACTOR_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX)
-        set(MEMORIA_SANDBOX send_msg_bench send_msg_bench_raw queue_bench_atomic hrpc_test_server hrpc_test_client)
+        set(MEMORIA_SANDBOX send_msg_bench send_msg_bench_raw queue_bench_atomic)
     endif()
 
     FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
@@ -42,7 +42,7 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX_CLASSIC)
         #set(MEMORIA_SANDBOX_CLASSIC send_msg_bench_raw swmr_store pseudo_latency benchmark_btree benchmark_stdset ld_doc)
-        set(MEMORIA_SANDBOX_CLASSIC ld_doc)
+        set(MEMORIA_SANDBOX_CLASSIC ld_doc mkuid256)
 
         if (NO_COW_PROFILE)
             set(MEMORIA_SANDBOX_CLASSIC ${MEMORIA_SANDBOX_CLASSIC})

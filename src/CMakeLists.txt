@@ -355,6 +355,10 @@ if (BUILD_TESTS)
         if (BUILD_TESTS_CONTEXT)
             add_subdirectory(tests-other/context)
         endif()
+
+        if (BUILD_TESTS_HRPC)
+            add_subdirectory(tests-other/hrpc)
+        endif()
     endif()
 
     if (BUILD_TESTS_DISRUPTOR)

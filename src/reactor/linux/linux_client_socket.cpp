@@ -69,7 +69,7 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     event.data.ptr = &fiber_io_message_;
 
-    event.events = EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP | EPOLLET;
+    event.events = EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP ;//| EPOLLET;
 
     int sres = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, fd_, &event);
     if (sres < 0) {
@@ -119,24 +119,33 @@ void ClientSocketImpl::close()
         if (res < 0)
         {
             int32_t err_code = errno;
-            ::close(fd_);
+            ::shutdown(fd_, SHUT_RDWR);
             MMA_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for socket {}:{}", ip_address_, ip_port_);
         }
 
         engine().drain_pending_io_events(&fiber_io_message_);
 
-        if (::close(fd_) < 0)
+        if (::shutdown(fd_, SHUT_RDWR) < 0)
         {
             MMA_THROW(SystemException()) << format_ex("Can't close socket {}:{}", ip_address_, ip_port_);
+        }
+
+
+        if (ctx_) {
+            engine().scheduler()->resume(ctx_);
         }
     }
 }
 
 size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 {
+    if (op_closed_ || data_closed_) {
+        return 0;
+    }
+
     while (true)
     {
-        ssize_t result = ::recv(fd_, data, size, MSG_NOSIGNAL | MSG_WAITALL);
+        ssize_t result = ::recv(fd_, data, size, MSG_NOSIGNAL);
 
         if (result >= 0) {
             data_closed_ = result == 0;
@@ -144,7 +153,12 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
+            ctx_ = fibers::context::active();
             fiber_io_message_.wait_for();
+            if (op_closed_ || data_closed_) {
+                return 0;
+            }
+            ctx_ = nullptr;
         }
         else if (errno == ECONNRESET || errno == ECONNABORTED) {
             data_closed_ = true;
@@ -168,7 +182,12 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
+            ctx_ = fibers::context::active();
             fiber_io_message_.wait_for();
+            if (op_closed_ || data_closed_) {
+                return 0;
+            }
+            ctx_ = nullptr;
         }
         else if (errno == ECONNRESET || errno == ECONNABORTED) {
             data_closed_ = true;

@@ -70,9 +70,10 @@ option(BUILD_TESTS_REACTOR      "Build Reactor tests" ON)
 option(BUILD_TESTS_SDN          "Build Hermes tests" ON)
 option(BUILD_TESTS_DATATYPES    "Build Datatype tests" ON)
 option(BUILD_TESTS_FIBERS       "Build Fibers tests" OFF)
-option(BUILD_TESTS_DISRUPTOR    "Build Disriptor MPSC queue tests" OFF)
-option(BUILD_TESTS_CONTEXT      "Build Disriptor MPSC queue tests" OFF)
+option(BUILD_TESTS_CONTEXT      "Build Context Switching tests" OFF)
 option(BUILD_TESTS_STORES       "Build Stores tests" ON)
+option(BUILD_TESTS_HRPC         "Build HRPC Protocol tests" ON)
+
 
 
 option(BUILD_CODEGENERATOR_EXPLICITLY  "Build code generator explictly (for its development)" OFF)

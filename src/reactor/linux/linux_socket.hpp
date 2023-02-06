@@ -44,7 +44,7 @@ public:
     virtual uint16_t port() const = 0;
 };
 
-class ServerSocketImpl: public SocketImpl {
+class ServerSocketImpl final: public SocketImpl {
 protected:
     IPAddress ip_address_;
     uint16_t  ip_port_;
@@ -95,7 +95,7 @@ public:
 
 
 
-class ServerSocketConnectionImpl:
+class ServerSocketConnectionImpl final:
         public SocketConnectionImpl,
         public IBinaryInputStream,
         public IBinaryOutputStream,
@@ -103,6 +103,8 @@ class ServerSocketConnectionImpl:
 {
     IPAddress ip_address_;
     uint16_t ip_port_;
+
+    fibers::context* ctx_{};
 
     SocketIOMessage fiber_io_message_;
 public:
@@ -159,7 +161,7 @@ public:
     }
 };
 
-class ClientSocketImpl: public ClientSocketConnectionImpl {
+class ClientSocketImpl final: public ClientSocketConnectionImpl {
     using Base = ClientSocketConnectionImpl;
 
     IPAddress ip_address_;
@@ -168,6 +170,8 @@ class ClientSocketImpl: public ClientSocketConnectionImpl {
     sockaddr_in sock_address_;
 
     SocketIOMessage fiber_io_message_;
+
+    fibers::context* ctx_{};
 
 public:
      ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port);
@@ -199,7 +203,11 @@ public:
      virtual void flush() {}
 
      virtual void close();
-     virtual bool is_closed() const {return op_closed_ || fiber_io_message_.connection_closed() || data_closed_; }
+     virtual bool is_closed() const {
+         return op_closed_ ||
+                 fiber_io_message_.connection_closed() ||
+                 data_closed_;
+     }
 
 private:
      void connect();

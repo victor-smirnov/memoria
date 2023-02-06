@@ -22,11 +22,10 @@ namespace memoria::hrpc {
 
 
 struct Request: public hermes::TinyObjectBase {
-    static constexpr NamedCode ENDPOINT                 = NamedCode(1, "endpoint");
-    static constexpr NamedCode PARAMETERS               = NamedCode(2, "parameters");
-    static constexpr NamedCode INPUT_CHANNELS           = NamedCode(3, "input_channels");
-    static constexpr NamedCode OUTPUT_CHANNELS          = NamedCode(4, "output_channels");
-    static constexpr NamedCode METADATA                 = NamedCode(5, "metadata");
+    static constexpr NamedCode PARAMETERS               = NamedCode(1, "parameters");
+    static constexpr NamedCode INPUT_CHANNELS           = NamedCode(2, "input_channels");
+    static constexpr NamedCode OUTPUT_CHANNELS          = NamedCode(3, "output_channels");
+    static constexpr NamedCode METADATA                 = NamedCode(4, "metadata");
 protected:
 
 public:
@@ -71,6 +70,18 @@ public:
 
     void set_parameters(const hermes::TinyObjectMap& params) {
         return object_.put(PARAMETERS, params);
+    }
+
+    template <typename T>
+    void set_parameter(NamedCode name, T param)
+    {
+        hermes::Object params_obj = object_.get(PARAMETERS);
+        if (params_obj.is_null()) {
+            params_obj = object_.ctr().make_tiny_map();
+            object_.put(PARAMETERS, params_obj);
+        }
+
+        return params_obj.as_tiny_object_map().put(name, param);
     }
 
     void set_input_channels(ChannelCode num) {
@@ -167,6 +178,16 @@ public:
 
     void set_result(hermes::Object result) {
         object_.put(RESULT, result);
+    }
+
+    template <typename T>
+    void set_result(T&& result) {
+        object_.put(RESULT, std::forward<T>(result));
+    }
+
+    template <typename DT, typename ViewT>
+    void set_result_t(ViewT&& result) {
+        object_.put_t<DT>(RESULT, std::forward<ViewT>(result));
     }
 
     void set_error(const Error& error) {

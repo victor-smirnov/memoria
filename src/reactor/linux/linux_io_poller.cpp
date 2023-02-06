@@ -83,7 +83,7 @@ IOPoller::IOPoller(int cpu, IOBuffer& buffer):
     assert_ok(event_fd_, "Can't initialize file EVENTFD subsystem");
     
     epoll_event ev0;
-    ev0.events = EPOLLIN | EPOLLOUT | EPOLLET; ; //
+    ev0.events = EPOLLIN | EPOLLOUT ;//| EPOLLET; ; //
     ev0.data.ptr = &event_fd_;
     
     assert_ok(
@@ -132,9 +132,11 @@ void IOPoller::poll(int timeout)
                 }
                 else if (eevents[c].data.ptr)
                 {
-                    EPollIOMessage* msg = reinterpret_cast<EPollIOMessage*>(eevents[c].data.ptr);
-                    msg->on_receive(eevents[c]);
-                    buffer_.push_front(msg);
+                    if (eevents[c].data.ptr) {
+                        EPollIOMessage* msg = reinterpret_cast<EPollIOMessage*>(eevents[c].data.ptr);
+                        msg->on_receive(eevents[c]);
+                        buffer_.push_front(msg);
+                    }
                 }
             }
         }

@@ -72,13 +72,11 @@ struct BinaryInputStream final: PimplBase<IBinaryInputStream> {
         size_t cnt = 0;
         while (cnt < size) {
             auto rr = read(data + cnt, size - cnt);
-            if (rr == 0) {
-                if (!is_closed()) {
-                    yield_fn();
-                }
-                else {
-                    break;
-                }
+            if (MMA_UNLIKELY(rr == 0)) {
+                break;
+            }
+            else if (MMA_UNLIKELY(rr < size - cnt)) {
+                yield_fn();
             }
             cnt += rr;
         }

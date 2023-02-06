@@ -51,10 +51,13 @@ Response HRPCCallImpl::response() {
 
 void HRPCCallImpl::wait()
 {
-    std::unique_lock<fibers::mutex> lk(mutex_);
-    waiter_.wait(lk, [&](){
-        return response_.is_null();
-    });
+    if (response_.is_null())
+    {
+        std::unique_lock<fibers::mutex> lk(mutex_);
+        waiter_.wait(lk, [&](){
+            return response_.is_not_null();
+        });
+    }
 }
 
 void HRPCCallImpl::on_complete(CallCompletionFn fn) {

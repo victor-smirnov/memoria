@@ -21,5 +21,5 @@ FOREACH(TEST_SOURCE ${SRCS})
     SET_TARGET_PROPERTIES(${TEST_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     SET_TARGET_PROPERTIES(${TEST_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     
-    target_link_libraries(${TEST_TARGET} MemoriaCore MemoriaCoreCtrs MemoriaCoreStore Boost::unit_test_framework ${MEMORIA_LIBS})
+    target_link_libraries(${TEST_TARGET} MemoriaCoreReactor MemoriaCtrsReactor MemoriaStoresReactor Boost::unit_test_framework ${MEMORIA_LIBS})
 ENDFOREACH()

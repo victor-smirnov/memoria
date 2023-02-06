@@ -78,17 +78,27 @@ ServerSocketConnectionImpl::~ServerSocketConnectionImpl() noexcept
 
 size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 {
+    if (op_closed_ || data_closed_) {
+        return 0;
+    }
+
     while (true) 
     {
-        ssize_t result = ::recv(fd_, data, size, MSG_NOSIGNAL | MSG_WAITALL);
-        
+        ssize_t result = ::recv(fd_, data, size, MSG_NOSIGNAL);
         if (result >= 0) {
             data_closed_ = result == 0;
             return result;
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK) 
-        {
+        {            
+            ctx_ = fibers::context::active();
             fiber_io_message_.wait_for();
+
+            if (op_closed_ || data_closed_) {
+                return 0;
+            }
+
+            ctx_ = nullptr;
         }
         else if (errno == ECONNRESET || errno == ECONNABORTED || errno == EBADF) {
             data_closed_ = true;
@@ -112,7 +122,13 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK) 
         {
+            ctx_ = fibers::context::active();
             fiber_io_message_.wait_for();
+
+            if (op_closed_ || data_closed_) {
+                return 0;
+            }
+            ctx_ = nullptr;
         }
         else if (errno == ECONNRESET || errno == ECONNABORTED) {
             data_closed_ = true;
@@ -130,19 +146,23 @@ void ServerSocketConnectionImpl::close()
     if (!op_closed_)
     {
         op_closed_ = true;
+
         int res = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_DEL, fd_, nullptr);
         if (res < 0)
         {
             int32_t err_code = errno;
-            ::close(fd_);
+            ::shutdown(fd_, SHUT_RDWR);
             MMA_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for connection {}:{}:{}", ip_address_, ip_port_, fd_);
         }
-
         engine().drain_pending_io_events(&fiber_io_message_);
 
-        if (::close(fd_) < 0)
+        if (::shutdown(fd_, SHUT_RDWR) < 0)
         {
             MMA_THROW(SystemException()) << format_ex("Can't close connection {}:{}:{}", ip_address_, ip_port_, fd_);
+        }
+
+        if (ctx_) {
+            engine().scheduler()->resume(ctx_);
         }
     }
 }

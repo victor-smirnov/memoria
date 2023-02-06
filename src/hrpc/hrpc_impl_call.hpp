@@ -107,7 +107,9 @@ public:
     void new_message(Message&& msg, ChannelCode code);
     void close_channel(bool input, ChannelCode code);
 
-    void close_channels() {}
+    void close_channels() {
+        MEMORIA_MAKE_GENERIC_ERROR("Call::close_channels() is not implemented").do_throw();
+    }
 
     void reset_output_channel_buffer(ChannelCode code);
 
