@@ -34,8 +34,6 @@
 #include <limits>
 #include <boost/regex/pending/unicode_iterator.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
-#include <nlohmann/json.hpp>
-
 #include <memoria/core/hermes/hermes.hpp>
 
 namespace memoria {

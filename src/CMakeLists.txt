@@ -104,7 +104,6 @@ execute_process(
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${Boost_INCLUDE_DIRS}
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
-        -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/13.0.0/include
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
         ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
@@ -219,7 +218,6 @@ add_custom_command(
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${Boost_INCLUDE_DIRS}
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
-        -I ${MMA_CLANG_INCLUDES_DIR}/../tools/llvm/lib/clang/13.0.0/include
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
         ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile

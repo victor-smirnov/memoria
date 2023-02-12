@@ -13,11 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_package(inja CONFIG REQUIRED)
-
-find_package(Arrow CONFIG REQUIRED)
-find_package(Parquet CONFIG REQUIRED)
-
 include_directories(../tools/include)
 
 if (BUILD_REACTOR_MEMORIA_LIB)

@@ -19,7 +19,8 @@
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/tools/result.hpp>
 
-#include <codegen.hpp>
+#include "compiler.hpp"
+#include "codegen.hpp"
 #include "inja_generators.hpp"
 
 
@@ -87,11 +88,17 @@ int main(int argc, char** argv)
     po::store(
           boost::program_options::parse_command_line(argc, argv, options),
           map
-          );
+    );
 
     add_parser_clang_option("-std=c++17");
 
     bool verbose = map.count("verbose");
+
+    auto cfg = get_compiler_config();
+    for (const auto& inc: cfg->includes()){
+        if (verbose) println("Config Include opt: {}", inc);
+        add_parser_clang_option(U8String("-I") + inc);
+    }
 
     if (map.count("include"))
     {
