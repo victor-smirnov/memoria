@@ -3,8 +3,6 @@
   "name": "memoria",
   "version": "0.1.0",
   "dependencies": [
-    "boost", "abseil", "atomic-queue", "yaml-cpp", "hash-library"
-  ],
-  "builtin-baseline":"36fb23307e10cc6ffcec566c46c4bb3f567c82c6"
-
+    "boost", "icu", "abseil", "atomic-queue", "yaml-cpp", "hash-library", "fmt"
+  ]
 }
