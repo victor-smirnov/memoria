@@ -1,0 +1,16 @@
+{
+  "default-registry": {
+    "kind": "git",
+    "repository": "https://github.com/victor-smirnov/vcpkg-memoria.git",
+    "baseline": "36fb23307e10cc6ffcec566c46c4bb3f567c82c6"
+  },
+
+  "registries": [
+    {
+      "kind": "git",
+      "repository": "git@github.com:victor-smirnov/memoria-vcpkg-registry.git",
+      "baseline": "3b9f756d65f1d63d81f0a6a7d77807fd1dc3912e",
+      "packages": [ "seastar" ]
+    }
+  ]
+}

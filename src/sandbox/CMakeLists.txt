@@ -26,8 +26,6 @@ if (BUILD_REACTOR_MEMORIA_LIB)
         set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
         set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
         target_link_libraries(${MEMORIA_TARGET} MemoriaCtrsReactor MemoriaStoresReactor MemoriaCoreReactor MemoriaInitReactor ${MEMORIA_LIBS} atomic)
-
-        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS})
     ENDFOREACH(MEMORIA_TARGET)
 
 endif()
@@ -49,8 +47,15 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
         set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMMA1_NO_REACTOR")
         set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
         target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit ${MEMORIA_LIBS})
+    ENDFOREACH(MEMORIA_TARGET )
 
-        #target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS})
+    set(MEMORIA_SANDBOX_SEASTAR seastar-sb)
+
+    FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_SEASTAR})
+        add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
+        set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMMA1_NO_REACTOR -DSEASTAR_SCHEDULING_GROUPS_COUNT=16")
+        set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+        target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit Seastar::seastar  ${MEMORIA_LIBS})
     ENDFOREACH(MEMORIA_TARGET )
 
 endif()

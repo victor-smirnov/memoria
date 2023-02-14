@@ -20,7 +20,7 @@
 
 #include <memoria/core/tools/span.hpp>
 
-#include <boost/variant2.hpp>
+#include <boost/variant2/variant.hpp>
 
 #include <type_traits>
 #include <iostream>

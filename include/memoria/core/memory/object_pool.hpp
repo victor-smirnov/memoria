@@ -26,6 +26,8 @@
 
 #include <boost/pool/object_pool.hpp>
 #include <boost/smart_ptr/local_shared_ptr.hpp>
+#include <boost/smart_ptr/make_local_shared.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 
 #include <memoria/core/tools/result.hpp>
 

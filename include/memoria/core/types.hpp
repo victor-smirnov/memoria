@@ -34,8 +34,7 @@
 #include <type_traits>
 #include <tuple>
 #include <string_view>
-
-
+#include <limits>
 
 namespace memoria {
 

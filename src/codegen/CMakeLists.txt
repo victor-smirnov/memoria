@@ -89,6 +89,8 @@ link_libraries(fmt::fmt fmt::fmt-header-only)
 find_package(inja CONFIG REQUIRED)
 find_package(Clang CONFIG REQUIRED)
 
+find_package(unofficial-hash-library CONFIG REQUIRED)
+
 STRING( REPLACE "^^" ";" MEMORIA_CORE_SRCS "${MEMORIA_CORE_SRCS_STR}" )
 
 file(GLOB CTRGEN_SRCS *.cpp)
@@ -100,7 +102,7 @@ target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
 target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options )
 target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling c++)
-target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja hash-library)
+target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja unofficial::hash-library)
 TARGET_COMPILE_DEFINITIONS(MemoriaCodeGen PUBLIC MMA_NO_REACTOR)
 
 endif()

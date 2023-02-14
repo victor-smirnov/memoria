@@ -171,10 +171,10 @@ else()
 endif()
 
 
-set (Boost_USE_DEBUG_LIBS	 ON)
-set (Boost_USE_RELEASE_LIBS	 ON)
-set (Boost_USE_DEBUG_RUNTIME	 ON)
-set (Boost_USE_MULTITHREADED     ON)
+#set (Boost_USE_DEBUG_LIBS	 ON)
+#set (Boost_USE_RELEASE_LIBS	 ON)
+#set (Boost_USE_DEBUG_RUNTIME	 ON)
+#set (Boost_USE_MULTITHREADED     ON)
 
 if (MSVC)
     set (Boost_USE_STATIC_RUNTIME    ON)
@@ -183,13 +183,13 @@ if (MSVC)
     link_libraries(ICU::dt ICU::uc ICU::i18n)
 
 else()
-    set (Boost_USE_STATIC_RUNTIME    ${BUILD_WITH_STATIC_BOOST})
-    set (Boost_USE_STATIC_LIBS       ${BUILD_WITH_STATIC_BOOST})
+#    set (Boost_USE_STATIC_RUNTIME    ${BUILD_WITH_STATIC_BOOST})
+#    set (Boost_USE_STATIC_LIBS       ${BUILD_WITH_STATIC_BOOST})
     find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
     link_libraries(ICU::i18n ICU::uc ICU::data)
 endif()
 
-find_package(Boost 1.75.0 COMPONENTS context program_options serialization unit_test_framework REQUIRED)
+find_package(Boost 1.74.0 COMPONENTS context program_options serialization unit_test_framework REQUIRED)
 
 if (MSVC)
     link_libraries(Boost::program_options Boost::serialization Boost::unit_test_framework)
@@ -209,8 +209,12 @@ link_libraries(absl::base absl::strings absl::hash absl::meta absl::time)
 find_package(fmt CONFIG REQUIRED)
 link_libraries(fmt::fmt fmt::fmt-header-only)
 
-#find_package(unofficial-hash-library CONFIG REQUIRED)
+find_package(unofficial-hash-library CONFIG REQUIRED)
 
+link_libraries(unofficial::hash-library)
+
+
+find_package(Seastar REQUIRED)
 
 if (BUILD_TESTS)
     find_package(yaml-cpp CONFIG REQUIRED)

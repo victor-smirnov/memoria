@@ -16,7 +16,7 @@
 
 #pragma once
 #include <memoria/core/types.hpp>
-#include <boost/variant2.hpp>
+#include <boost/variant2/variant.hpp>
 
 
 namespace memoria::bt {

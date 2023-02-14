@@ -102,7 +102,7 @@ execute_process(
         --dry-run
         -I ${CMAKE_SOURCE_DIR}/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
-        -I ${Boost_INCLUDE_DIRS}
+        -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
@@ -216,7 +216,7 @@ add_custom_command(
         ${CMAKE_BINARY_DIR}/src/codegen/MemoriaCodeGen
         -I ${CMAKE_SOURCE_DIR}/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
-        -I ${Boost_INCLUDE_DIRS}
+        -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
@@ -277,7 +277,7 @@ if (BUILD_REACTOR_MEMORIA_LIB)
     SET_TARGET_PROPERTIES(MemoriaStoresReactor PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     TARGET_COMPILE_DEFINITIONS(MemoriaStoresReactor PUBLIC MEMORIA_FIBERS_NO_ATOMICS)
 
-    target_link_libraries(MemoriaCoreReactor ${MEMORIA_LIBS} hash-library)
+    target_link_libraries(MemoriaCoreReactor ${MEMORIA_LIBS})
     target_link_libraries(MemoriaCtrsReactor MemoriaCoreReactor)
     target_link_libraries(MemoriaStoresReactor MemoriaCoreReactor)
     target_link_libraries(MemoriaInitReactor MemoriaCoreReactor MemoriaCtrsReactor MemoriaStoresReactor)
@@ -316,7 +316,7 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
     SET_TARGET_PROPERTIES(MemoriaStores PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
     SET_TARGET_PROPERTIES(MemoriaStores PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
-    target_link_libraries(MemoriaCore ${MEMORIA_LIBS} hash-library)
+    target_link_libraries(MemoriaCore ${MEMORIA_LIBS})
     target_link_libraries(MemoriaCtrs MemoriaCore)
     target_link_libraries(MemoriaStores MemoriaCore)
     target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)

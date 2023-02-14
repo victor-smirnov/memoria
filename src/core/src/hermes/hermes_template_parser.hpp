@@ -66,8 +66,9 @@ struct TemplateConstants: public TplASTCodes {
     static bool is_empty(U8StringView text)
     {
         boost::u8_to_u32_iterator<U8StringView::const_iterator> ii = text.begin();
+        boost::u8_to_u32_iterator<U8StringView::const_iterator> end = text.end();
 
-        while (ii != text.end())
+        while (ii != end)
         {
             int ch = *ii;
             if (!std::iswspace(ch)) {
@@ -119,8 +120,9 @@ struct TemplateConstants: public TplASTCodes {
     static U8StringView strip_start_ws(U8StringView text)
     {
         boost::u8_to_u32_iterator<U8StringView::const_iterator> ii = text.begin();
+        boost::u8_to_u32_iterator<U8StringView::const_iterator> end = text.end();
 
-        while (ii != text.end())
+        while (ii != end)
         {
             int ch = *ii;
             if (std::iswspace(ch)) {
@@ -139,10 +141,11 @@ struct TemplateConstants: public TplASTCodes {
     static U8StringView trim_end_ws(U8StringView text)
     {
         boost::u8_to_u32_iterator<U8StringView::const_iterator> ii = text.begin();
+        boost::u8_to_u32_iterator<U8StringView::const_iterator> end = text.end();
 
         size_t pos {};
         bool was_non_space{true};
-        while (ii != text.end())
+        while (ii != end)
         {
             int ch = *ii;
             if (!std::iswspace(ch)) {
